@@ -27,14 +27,20 @@
     "prettier": "latest",
     "typescript": "latest",
     "undici": "latest",
-    "vite": "latest",
+    "vite": "^4.5.2",
     "vite-tsconfig-paths": "^4.2.1"
   },
   "trustedDependencies": [
     "sharp"
   ],
+  "trustedDependencies-annotation": "Needed for bun to allow running install scripts",
   "engines": {
-    "node": ">=16.8.0 <18.0.0 || >=18.11"
+    "node": "^18.17.0 || ^20.3.0 || >=21.0.0",
+    "npm": ">=10.0.0",
+    "pnpm": ">=8.0.0",
+    "yarn": ">=3.0.0"
   },
-  "private": true
+  "engines-annotation": "Mostly required by sharp which needs a Node-API v9 compatible runtime",
+  "private": true,
+  "type": "module"
 }

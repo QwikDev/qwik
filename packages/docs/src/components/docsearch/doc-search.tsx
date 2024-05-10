@@ -12,7 +12,6 @@ import type { DocSearchHit, InternalDocSearchHit } from './types';
 import { type ButtonTranslations, DocSearchButton } from './doc-search-button';
 import { DocSearchModal, type ModalTranslations } from './doc-search-modal';
 import styles from './doc-search.css?inline';
-import type { QwikKeyboardEvent } from '../../../../../packages/qwik/src/core/render/jsx/types/jsx-qwik-events';
 
 export type DocSearchTranslations = Partial<{
   button: ButtonTranslations;
@@ -44,7 +43,7 @@ export interface DocSearchProps {
   translations?: DocSearchTranslations;
 }
 
-export function isEditingContent(event: QwikKeyboardEvent<HTMLElement>): boolean {
+export function isEditingContent(event: KeyboardEvent): boolean {
   const { isContentEditable, tagName } = event.target as HTMLElement;
 
   return isContentEditable || tagName === 'INPUT' || tagName === 'SELECT' || tagName === 'TEXTAREA';
@@ -71,7 +70,7 @@ export const DocSearch = component$((props: DocSearchProps) => {
     snippetLength: 10,
   });
 
-  const searchButtonRef = useSignal();
+  const searchButtonRef = useSignal<Element>();
 
   return (
     <div

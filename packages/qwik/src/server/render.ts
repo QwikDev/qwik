@@ -116,6 +116,15 @@ export async function renderToStream(
         include: 'never',
       };
     }
+    if (!opts.qwikPrefetchServiceWorker) {
+      opts.qwikPrefetchServiceWorker = {};
+    }
+    if (!opts.qwikPrefetchServiceWorker.include) {
+      opts.qwikPrefetchServiceWorker.include = false;
+    }
+    if (!opts.qwikPrefetchServiceWorker.position) {
+      opts.qwikPrefetchServiceWorker.position = 'top';
+    }
   }
 
   if (!opts.manifest) {
@@ -128,7 +137,27 @@ export async function renderToStream(
   const injections = resolvedManifest?.manifest.injections;
   const beforeContent = injections
     ? injections.map((injection) => jsx(injection.tag, injection.attributes ?? {}))
-    : undefined;
+    : [];
+
+  const includeMode = opts.qwikLoader?.include ?? 'auto';
+  const positionMode = opts.qwikLoader?.position ?? 'bottom';
+  if (positionMode === 'top' && includeMode !== 'never') {
+    const qwikLoaderScript = getQwikLoaderScript({
+      debug: opts.debug,
+    });
+    beforeContent.push(
+      jsx('script', {
+        id: 'qwikloader',
+        dangerouslySetInnerHTML: qwikLoaderScript,
+      })
+    );
+    // Assume there will be at least click handlers
+    beforeContent.push(
+      jsx('script', {
+        dangerouslySetInnerHTML: `window.qwikevents.push('click')`,
+      })
+    );
+  }
 
   const renderTimer = createTimer();
   const renderSymbols: string[] = [];
@@ -182,11 +211,9 @@ export async function renderToStream(
       }
 
       const needLoader = !snapshotResult || snapshotResult.mode !== 'static';
-      const includeMode = opts.qwikLoader?.include ?? 'auto';
       const includeLoader = includeMode === 'always' || (includeMode === 'auto' && needLoader);
       if (includeLoader) {
         const qwikLoaderScript = getQwikLoaderScript({
-          events: opts.qwikLoader?.events,
           debug: opts.debug,
         });
         children.push(
@@ -198,12 +225,12 @@ export async function renderToStream(
         );
       }
 
+      // We emit the events separately so other qwikloaders can see them
       const extraListeners = Array.from(containerState.$events$, (s) => JSON.stringify(s));
       if (extraListeners.length > 0) {
-        let content = `window.qwikevents.push(${extraListeners.join(', ')})`;
-        if (!includeLoader) {
-          content = `window.qwikevents||=[];${content}`;
-        }
+        const content =
+          (includeLoader ? `window.qwikevents` : `(window.qwikevents||=[])`) +
+          `.push(${extraListeners.join(', ')})`;
         children.push(
           jsx('script', {
             dangerouslySetInnerHTML: content,
@@ -212,7 +239,7 @@ export async function renderToStream(
         );
       }
 
-      collectRenderSymbols(renderSymbols, contexts);
+      collectRenderSymbols(renderSymbols, contexts as QContext[]);
       snapshotTime = snapshotTimer();
       return jsx(Fragment, { children });
     },
@@ -309,7 +336,7 @@ export function resolveManifest(
 }
 
 const escapeText = (str: string) => {
-  return str.replace(/<(\/?script)/g, '\\x3C$1');
+  return str.replace(/<(\/?script)/gi, '\\x3C$1');
 };
 
 function collectRenderSymbols(renderSymbols: string[], elements: QContext[]) {
@@ -322,6 +349,8 @@ function collectRenderSymbols(renderSymbols: string[], elements: QContext[]) {
   }
 }
 
+export const Q_FUNCS_PREFIX = 'document.currentScript.closest("[q\\\\:container]").qFuncs=';
+
 function serializeFunctions(funcs: string[]) {
-  return `document.currentScript.qFuncs=[${funcs.join(',\n')}]`;
+  return Q_FUNCS_PREFIX + `[${funcs.join(',\n')}]`;
 }

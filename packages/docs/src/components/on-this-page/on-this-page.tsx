@@ -24,7 +24,7 @@ const QWIK_ADVANCED_GROUP = [
   'eslint',
   'library',
   'optimizer',
-  'prefetching',
+  'modules-prefetching',
   'qrl',
   'qwikloader',
   'vite',
@@ -37,6 +37,7 @@ const QWIKCITY_GROUP = [
   'endpoints',
   'env-variables',
   'guides',
+  'html-attributes',
   'layout',
   'middleware',
   'pages',
@@ -46,6 +47,7 @@ const QWIKCITY_GROUP = [
   'routing',
   'server$',
   'troubleshooting',
+  'validator',
 ];
 const QWIKCITY_ADVANCED_GROUP = [
   'content-security-policy',
@@ -92,7 +94,7 @@ export const OnThisPage = component$(() => {
 
   const githubEditRoute = makeEditPageUrl(url.pathname);
 
-  const editUrl = `https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes/${githubEditRoute}/index.mdx`;
+  const editUrl = `https://github.com/QwikDev/qwik/edit/main/packages/docs/src/routes/${githubEditRoute}/index.mdx`;
 
   const OnThisPageMore = [
     {
@@ -101,17 +103,17 @@ export const OnThisPage = component$(() => {
       icon: EditIcon,
     },
     {
-      href: 'https://github.com/BuilderIO/qwik/issues/new/choose',
+      href: 'https://github.com/QwikDev/qwik/issues/new/choose',
       text: 'Create an issue',
       icon: AlertIcon,
     },
     {
-      href: 'https://qwik.builder.io/chat',
+      href: 'https://qwik.dev/chat',
       text: 'Join our community',
       icon: ChatIcon,
     },
     {
-      href: 'https://github.com/BuilderIO/qwik',
+      href: 'https://github.com/QwikDev/qwik',
       text: 'GitHub',
       icon: GithubLogo,
     },
@@ -123,7 +125,7 @@ export const OnThisPage = component$(() => {
   ];
 
   return (
-    <aside class="on-this-page fixed text-sm z-20 bottom-0 right-[max(0px,calc(50%-42rem))] overflow-y-auto hidden xl:block xl:w-[16rem]">
+    <aside class="on-this-page text-sm overflow-y-auto hidden xl:block">
       {contentHeadings.length > 0 ? (
         <>
           <h6>On This Page</h6>

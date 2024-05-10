@@ -6,7 +6,7 @@ export const onGet: RequestHandler = async ({ html }) => {
     `
       <form id="myForm" method="POST">
         <input type="text" name="project" value="Qwik"/>
-        <input type="text" name="url" value="http://qwik.builder.io"/>
+        <input type="text" name="url" value="http://qwik.dev"/>
       </form>
       <script>myForm.submit()</script>`
   );

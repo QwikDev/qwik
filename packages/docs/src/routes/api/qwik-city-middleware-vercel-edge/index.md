@@ -12,15 +12,36 @@ export declare function createQwikCity(
 ): (request: Request) => Promise<Response>;
 ```
 
-| Parameter | Type                                                    | Description |
-| --------- | ------------------------------------------------------- | ----------- |
-| opts      | [QwikCityVercelEdgeOptions](#qwikcityverceledgeoptions) |             |
+<table><thead><tr><th>
 
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+opts
+
+</td><td>
+
+[QwikCityVercelEdgeOptions](#qwikcityverceledgeoptions)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 (request: Request) =&gt; Promise&lt;Response&gt;
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/vercel-edge/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/vercel-edge/index.ts)
 
 ## PlatformVercel
 
@@ -28,7 +49,7 @@ export declare function createQwikCity(
 export interface PlatformVercel
 ```
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/vercel-edge/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/vercel-edge/index.ts)
 
 ## QwikCityVercelEdgeOptions
 
@@ -38,4 +59,4 @@ export interface QwikCityVercelEdgeOptions extends ServerRenderOptions
 
 **Extends:** ServerRenderOptions
 
-[Edit this section](https://github.com/BuilderIO/qwik/tree/main/packages/qwik-city/middleware/vercel-edge/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/vercel-edge/index.ts)

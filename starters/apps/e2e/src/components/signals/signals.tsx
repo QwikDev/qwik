@@ -713,9 +713,8 @@ export const Issue2930 = component$(() => {
         style="border: 1px solid black"
         type="text"
         value={group.controls.ctrl.value}
-        onInput$={(e) => {
-          const val = (e.target as HTMLInputElement).value;
-          group.controls.ctrl.value = val;
+        onInput$={(ev, el) => {
+          group.controls.ctrl.value = el.value;
         }}
       />
       <Stringify data={group} />
@@ -1073,10 +1072,10 @@ export const Issue4228 = component$(() => {
   });
   useTask$(() => {
     if (isBrowser) {
-      (window as any).countA = -1;
-      (window as any).countB = -1;
-      (window as any).countC = -1;
-      (window as any).countD = -1;
+      (window as any).countA = 0;
+      (window as any).countB = 0;
+      (window as any).countC = 0;
+      (window as any).countD = 0;
     }
   });
   useVisibleTask$(

@@ -14,9 +14,7 @@ import { isElement } from '../../testing/html';
 import { assertQwikElement } from '../error/assert';
 import { QScopedStyle } from '../util/markers';
 import { createPropsState, createProxy, setObjectFlags } from './store';
-import { _IMMUTABLE, _IMMUTABLE_PREFIX, QObjectImmutable } from './constants';
-
-export const Q_CTX = '_qc_';
+import { _IMMUTABLE, _IMMUTABLE_PREFIX, Q_CTX, QObjectImmutable } from './constants';
 
 export interface QContextEvents {
   [eventName: string]: QRL | undefined;
@@ -28,24 +26,40 @@ export const HOST_FLAG_MOUNTED = 1 << 2;
 export const HOST_FLAG_DYNAMIC = 1 << 3;
 export const HOST_REMOVED = 1 << 4;
 
+/** Qwik Context of an element. */
 export interface QContext {
+  /** VDOM element. */
   $element$: QwikElement;
   $refMap$: any[];
   $flags$: number;
+  /** QId, for referenced components */
   $id$: string;
+  /** Proxy for the component props */
   $props$: Record<string, any> | null;
+  /** The QRL if this is `component$`-wrapped component. */
   $componentQrl$: QRLInternal<OnRenderFn<any>> | null;
+  /** The event handlers for this element */
   li: Listener[];
+  /** Sequential data store for hooks, managed by useSequentialScope. */
   $seq$: any[] | null;
   $tasks$: SubscriberEffect[] | null;
+  /** The public contexts defined on this (always Virtual) component, managed by useContextProvider. */
   $contexts$: Map<string, any> | null;
   $appendStyles$: StyleAppend[] | null;
   $scopeIds$: string[] | null;
   $vdom$: ProcessedJSXNode | null;
   $slots$: ProcessedJSXNode[] | null;
   $dynamicSlots$: QContext[] | null;
-  $parent$: QContext | null;
-  $slotParent$: QContext | null;
+  /**
+   * The Qwik Context of the virtual parent component, null if no parent. For an real element, it's
+   * the owner virtual component, and for a virtual component it's the wrapping virtual component.
+   */
+  $parentCtx$: QContext | null | undefined;
+  /**
+   * During SSR, separately store the actual parent of slotted components to correctly pause
+   * subscriptions
+   */
+  $realParentCtx$: QContext | undefined;
 }
 
 export const tryGetContext = (element: QwikElement): QContext | undefined => {
@@ -147,9 +161,9 @@ export const createContext = (element: Element | VirtualElement): QContext => {
     $componentQrl$: null,
     $contexts$: null,
     $dynamicSlots$: null,
-    $parent$: null,
-    $slotParent$: null,
-  };
+    $parentCtx$: undefined,
+    $realParentCtx$: undefined,
+  } as QContext;
   seal(ctx);
   (element as any)[Q_CTX] = ctx;
   return ctx;

@@ -5,16 +5,16 @@ import {
   type QRL,
   useContext,
   type ValueOrPromise,
-  _wrapSignal,
   useStore,
   _serializeData,
   _deserializeData,
   _getContextElement,
   _getContextEvent,
+  _wrapProp,
 } from '@builder.io/qwik';
 
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
-import { QACTION_KEY } from './constants';
+import { QACTION_KEY, QFN_KEY, QDATA_KEY } from './constants';
 import { RouteStateContext } from './contexts';
 import type {
   ActionConstructor,
@@ -37,7 +37,10 @@ import type {
   LoaderConstructorQRL,
   ZodConstructorQRL,
   ValidatorConstructorQRL,
-  ServerConstructorQRL,
+  ServerFunction,
+  ServerQRL,
+  RequestEventBase,
+  ServerConfig,
 } from './types';
 import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 import { z } from 'zod';
@@ -46,21 +49,22 @@ import type { FormSubmitCompletedDetail } from './form-component';
 
 /** @public */
 export const routeActionQrl = ((
-  actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => any>,
+  actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
   ...rest: (CommonLoaderActionOptions | DataValidator)[]
 ) => {
   const { id, validators } = getValidators(rest, actionQrl);
   function action() {
     const loc = useLocation() as Editable<RouteLocation>;
     const currentAction = useAction();
-    const initialState: Editable<Partial<ActionStore<any, any>>> = {
+    const initialState: Editable<Partial<ActionStore<unknown, unknown>>> = {
       actionPath: `?${QACTION_KEY}=${id}`,
+      submitted: false,
       isRunning: false,
       status: undefined,
       value: undefined,
       formData: undefined,
     };
-    const state = useStore<Editable<ActionStore<any, any>>>(() => {
+    const state = useStore<Editable<ActionStore<unknown, unknown>>>(() => {
       const value = currentAction.value;
       if (value && value?.id === id) {
         const data = value.data;
@@ -73,15 +77,15 @@ export const routeActionQrl = ((
           initialState.value = result;
         }
       }
-      return initialState as ActionStore<any, any>;
+      return initialState as ActionStore<unknown, unknown>;
     });
 
-    const submit = $((input: any | FormData | SubmitEvent = {}) => {
+    const submit = $((input: unknown | FormData | SubmitEvent = {}) => {
       if (isServer) {
         throw new Error(`Actions can not be invoked within the server during SSR.
 Action.run() can only be called on the browser, for example when a user clicks a button, or submits a form.`);
       }
-      let data: any;
+      let data: unknown | FormData | SubmitEvent;
       let form: HTMLFormElement | undefined;
       if (input instanceof SubmitEvent) {
         form = input.target as HTMLFormElement;
@@ -92,7 +96,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
           input.submitter.name
         ) {
           if (input.submitter.name) {
-            data.append(input.submitter.name, input.submitter.value);
+            (data as FormData).append(input.submitter.name, input.submitter.value);
           }
         }
       } else {
@@ -102,10 +106,11 @@ Action.run() can only be called on the browser, for example when a user clicks a
         if (data instanceof FormData) {
           state.formData = data;
         }
+        state.submitted = true;
         state.isRunning = true;
         loc.isNavigating = true;
         currentAction.value = {
-          data,
+          data: data as Record<string, unknown>,
           id,
           resolve: noSerialize(resolve),
         };
@@ -117,7 +122,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
           if (form.getAttribute('data-spa-reset') === 'true') {
             form.reset();
           }
-          const detail = { status, value: result } satisfies FormSubmitCompletedDetail<any>;
+          const detail = { status, value: result } satisfies FormSubmitCompletedDetail<unknown>;
           form.dispatchEvent(
             new CustomEvent('submitcompleted', {
               bubbles: false,
@@ -148,15 +153,15 @@ Action.run() can only be called on the browser, for example when a user clicks a
 
 /** @public */
 export const globalActionQrl = ((
-  actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => any>,
+  actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
   ...rest: (CommonLoaderActionOptions | DataValidator)[]
 ) => {
-  const action = (routeActionQrl as any)(actionQrl, ...rest);
+  const action = routeActionQrl(actionQrl, ...(rest as any));
   if (isServer) {
-    if (typeof (globalThis as any)._qwikActionsMap === 'undefined') {
-      (globalThis as any)._qwikActionsMap = new Map();
+    if (typeof globalThis._qwikActionsMap === 'undefined') {
+      globalThis._qwikActionsMap = new Map();
     }
-    (globalThis as any)._qwikActionsMap.set(action.__id, action);
+    globalThis._qwikActionsMap!.set((action as ActionInternal).__id, action as ActionInternal);
   }
   return action;
 }) as ActionConstructorQRL;
@@ -182,9 +187,12 @@ export const routeLoaderQrl = ((
       if (!(id in state)) {
         throw new Error(`routeLoader$ "${loaderQrl.getSymbol()}" was invoked in a route where it was not declared.
     This is because the routeLoader$ was not exported in a 'layout.tsx' or 'index.tsx' file of the existing route.
-    For more information check: https://qwik.builder.io/qwikcity/route-loader/`);
+    For more information check: https://qwik.dev/qwikcity/route-loader/
+
+    If your are managing reusable logic or a library it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception.
+    For more information check: https://qwik.dev/docs/cookbook/re-exporting-loaders/`);
       }
-      return _wrapSignal(state, id);
+      return _wrapProp(state, id);
     });
   }
   loader.__brand = 'server_loader' as const;
@@ -258,23 +266,23 @@ export const zodQrl = ((
 }) as ZodConstructorQRL;
 
 /** @public */
-export const zod$: ZodConstructor = /*#__PURE__*/ implicit$FirstArg(zodQrl) as any;
+export const zod$ = /*#__PURE__*/ implicit$FirstArg(zodQrl) as ZodConstructor;
 
 const deepFreeze = (obj: any) => {
-  const propNames = Object.getOwnPropertyNames(obj);
-  for (const name of propNames) {
-    const value = obj[name];
+  Object.getOwnPropertyNames(obj).forEach(prop => {
+    const value = obj[prop];
     if (value && typeof value === 'object') {
       deepFreeze(value);
     }
-  }
+  });
   return Object.freeze(obj);
 };
 
-/**
- * @public
- */
-export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any>) => {
+/** @public */
+export const serverQrl = <T extends ServerFunction>(
+  qrl: QRL<T>,
+  options?: ServerConfig
+): ServerQRL<T> => {
   if (isServer) {
     const captured = qrl.getCaptured();
     if (captured && captured.length > 0 && !_getContextElement()) {
@@ -282,18 +290,38 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any
     }
   }
 
-  function stuff() {
-    return $(async function (this: any, ...args: any[]) {
+  const method = options?.method?.toUpperCase?.() || 'POST';
+  const headers = options?.headers || {};
+  const origin = options?.origin || '';
+  const fetchOptions = options?.fetchOptions || {};
+
+  function rpc() {
+    return $(async function (this: RequestEventBase, ...args: Parameters<T>) {
+      // move to ServerConfig
       const signal =
         args.length > 0 && args[0] instanceof AbortSignal
           ? (args.shift() as AbortSignal)
           : undefined;
+
       if (isServer) {
-        const requestEvent = useQwikCityEnv()?.ev ?? this ?? _getContextEvent();
-        return qrl.apply(requestEvent, deepFreeze(args));
+        // Running during SSR, we can call the function directly
+        let requestEvent = globalThis.qcAsyncRequestStore?.getStore() as RequestEvent | undefined;
+
+        if (!requestEvent) {
+          const contexts = [useQwikCityEnv()?.ev, this, _getContextEvent()] as RequestEvent[];
+          requestEvent = contexts.find(
+            (v) =>
+              v &&
+              Object.prototype.hasOwnProperty.call(v, 'sharedMap') &&
+              Object.prototype.hasOwnProperty.call(v, 'cookie')
+          );
+        }
+
+        return qrl.apply(requestEvent, dev ? deepFreeze(args) : args);
       } else {
+        // Running on the client, we need to call the function via HTTP
         const ctxElm = _getContextElement();
-        const filtered = args.map((arg) => {
+        const filtered = args.map((arg: unknown) => {
           if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
             return new FormData(arg.target);
           } else if (arg instanceof Event) {
@@ -304,15 +332,27 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any
           return arg;
         });
         const hash = qrl.getHash();
-        const res = await fetch(`?qfunc=${hash}`, {
-          method: 'POST',
+        // Handled by `pureServerFunction` middleware
+        let query = '';
+        const config = {
+          ...fetchOptions,
+          method,
           headers: {
+            ...headers,
             'Content-Type': 'application/qwik-json',
+            // Required so we don't call accidentally
             'X-QRL': hash,
           },
           signal,
-          body: await _serializeData([qrl, ...filtered], false),
-        });
+        };
+        const body = await _serializeData([qrl, ...filtered], false);
+        if (method === 'GET') {
+          query += `&${QDATA_KEY}=${encodeURIComponent(body)}`;
+        } else {
+          // PatrickJS: sorry Ryan Florence I prefer const still
+          config.body = body;
+        }
+        const res = await fetch(`${origin}?${QFN_KEY}=${hash}${query}`, config);
 
         const contentType = res.headers.get('Content-Type');
         if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {
@@ -340,15 +380,15 @@ export const serverQrl: ServerConstructorQRL = (qrl: QRL<(...args: any[]) => any
           return obj;
         }
       }
-    }) as any;
+    }) as ServerQRL<T>;
   }
-  return stuff();
+  return rpc();
 };
 
 /** @public */
 export const server$ = /*#__PURE__*/ implicit$FirstArg(serverQrl);
 
-const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl: QRL<any>) => {
+const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl: QRL) => {
   let id: string | undefined;
   const validators: DataValidator[] = [];
   if (rest.length === 1) {
@@ -364,7 +404,7 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
       }
     }
   } else if (rest.length > 1) {
-    validators.push(...(rest.filter((v) => !!v) as any));
+    validators.push(...(rest.filter((v) => !!v) as DataValidator[]));
   }
 
   if (typeof id === 'string') {

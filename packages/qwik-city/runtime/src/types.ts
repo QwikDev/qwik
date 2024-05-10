@@ -45,14 +45,14 @@ export interface RouteModule<BODY = unknown> {
 
 /** @public */
 export interface PageModule extends RouteModule {
-  readonly default: any;
+  readonly default: unknown;
   readonly head?: ContentModuleHead;
   readonly headings?: ContentHeading[];
   readonly onStaticGenerate?: StaticGenerateHandler;
 }
 
 export interface LayoutModule extends RouteModule {
-  readonly default: any;
+  readonly default: unknown;
   readonly head?: ContentModuleHead;
 }
 
@@ -104,11 +104,11 @@ export type RouteNavigate = QRL<
 
 export type RouteAction = Signal<RouteActionValue>;
 
-export type RouteActionResolver = { status: number; result: any };
+export type RouteActionResolver = { status: number; result: unknown };
 export type RouteActionValue =
   | {
       id: string;
-      data: FormData | Record<string, any> | undefined;
+      data: FormData | Record<string, unknown> | undefined;
       output?: RouteActionResolver;
       resolve?: NoSerialize<(data: RouteActionResolver) => void>;
     }
@@ -119,7 +119,9 @@ export type MutableRouteLocation = Mutable<RouteLocation>;
 export type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
 /** @public */
-export interface DocumentHeadValue {
+export interface DocumentHeadValue<
+  FrontMatter extends Record<string, any> = Record<string, unknown>,
+> {
   /** Sets `document.title`. */
   readonly title?: string;
   /**
@@ -138,11 +140,13 @@ export interface DocumentHeadValue {
    * the frontmatter attributes that are not recognized as a well-known meta names (such as title,
    * description, author, etc...), are stored in this property.
    */
-  readonly frontmatter?: Readonly<Record<string, any>>;
+  readonly frontmatter?: Readonly<FrontMatter>;
 }
 
 /** @public */
-export type ResolvedDocumentHead = Required<DocumentHeadValue>;
+export type ResolvedDocumentHead<
+  FrontMatter extends Record<string, any> = Record<string, unknown>,
+> = Required<DocumentHeadValue<FrontMatter>>;
 
 /** @public */
 export interface DocumentMeta {
@@ -327,7 +331,8 @@ type StrictUnionHelper<T, TAll> = T extends any
   ? T & Partial<Record<Exclude<UnionKeys<TAll>, keyof T>, never>>
   : never;
 
-type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
+/** @public */
+export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 
 type Prettify<T> = {} & {
   [K in keyof T]: T[K];
@@ -339,6 +344,7 @@ export type JSONValue = string | number | boolean | { [x: string]: JSONValue } |
 /** @public */
 export type JSONObject = { [x: string]: JSONValue };
 
+/** @public */
 export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
   VALIDATOR extends TypedDataValidator<infer TYPE> ? zod.infer<TYPE> : never;
 
@@ -348,6 +354,7 @@ export interface CommonLoaderActionOptions {
   readonly validation?: DataValidator[];
 }
 
+/** @public */
 export type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<
   infer ERROR
 >[]
@@ -355,7 +362,7 @@ export type FailOfRest<REST extends readonly DataValidator[]> = REST extends rea
   : never;
 
 /** @public */
-export interface ActionConstructor {
+export type ActionConstructor = {
   // Use options object, use typed data validator, use data validator
   <
     OBJ extends Record<string, any> | void | null,
@@ -453,10 +460,10 @@ export interface ActionConstructor {
       readonly id?: string;
     }
   ): Action<StrictUnion<OBJ>>;
-}
+};
 
 /** @public */
-export interface ActionConstructorQRL {
+export type ActionConstructorQRL = {
   // Use options object, use typed data validator, use data validator
   <
     OBJ extends Record<string, any> | void | null,
@@ -550,15 +557,15 @@ export interface ActionConstructorQRL {
       readonly id?: string;
     }
   ): Action<StrictUnion<OBJ>>;
-}
+};
 
 /** @public */
-export interface LoaderOptions {
+export type LoaderOptions = {
   id?: string;
-}
+};
 
 /** @public */
-export interface LoaderConstructor {
+export type LoaderConstructor = {
   // Without validation
   <OBJ>(
     loaderFn: (event: RequestEventLoader) => ValueOrPromise<OBJ>,
@@ -570,10 +577,10 @@ export interface LoaderConstructor {
     loaderFn: (event: RequestEventLoader) => ValueOrPromise<OBJ>,
     ...rest: REST
   ): Loader<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
-}
+};
 
 /** @public */
-export interface LoaderConstructorQRL {
+export type LoaderConstructorQRL = {
   // Without validation
   <OBJ>(
     loaderQrl: QRL<(event: RequestEventLoader) => ValueOrPromise<OBJ>>,
@@ -585,18 +592,18 @@ export interface LoaderConstructorQRL {
     loaderQrl: QRL<(event: RequestEventLoader) => ValueOrPromise<OBJ>>,
     ...rest: REST
   ): Loader<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
-}
+};
 
-export type LoaderStateHolder = Record<string, Signal<any>>;
+export type LoaderStateHolder = Record<string, Signal<unknown>>;
 
 /** @public */
-export interface ActionReturn<RETURN> {
+export type ActionReturn<RETURN> = {
   readonly status?: number;
   readonly value: RETURN;
-}
+};
 
 /** @public */
-export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
+export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
   /**
    * It's the "action" path that a native `<form>` should have in order to call the action.
    *
@@ -670,7 +677,9 @@ export interface ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> {
       ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
       : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
   >;
-}
+  /** Is action.submit was submitted */
+  readonly submitted: boolean;
+};
 
 type Failed = {
   failed: true;
@@ -685,91 +694,91 @@ export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<infer VALIDAT
   : ReadonlySignal<TYPE>;
 
 /** @public */
-export interface Loader<RETURN> {
+export type Loader<RETURN> = {
   /**
    * Returns the `Signal` containing the data returned by the `loader$` function. Like all `use-`
    * functions and methods, it can only be invoked within a `component$()`.
    */
   (): LoaderSignal<RETURN>;
-}
+};
 
 export interface LoaderInternal extends Loader<any> {
   readonly __brand?: 'server_loader';
-  __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<any>>;
+  __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<unknown>>;
   __id: string;
   __validators: DataValidator[] | undefined;
-  (): LoaderSignal<any>;
+  (): LoaderSignal<unknown>;
 }
 
 /** @public */
-export interface Action<RETURN, INPUT = Record<string, any>, OPTIONAL extends boolean = true> {
+export type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boolean = true> = {
   /**
    * Returns the `ActionStore` containing the current action state and methods to invoke it from a
    * component$(). Like all `use-` functions and methods, it can only be invoked within a
    * `component$()`.
    */
   (): ActionStore<RETURN, INPUT, OPTIONAL>;
-}
+};
 
 export interface ActionInternal extends Action<any, any> {
   readonly __brand: 'server_action';
   __id: string;
-  __qrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<any>>;
+  __qrl: QRL<(form: JSONObject, event: RequestEventAction) => ValueOrPromise<unknown>>;
   __validators: DataValidator[] | undefined;
 
-  (): ActionStore<any, any>;
+  (): ActionStore<unknown, unknown>;
 }
-
+/** @public */
 export type ValidatorReturn<T extends Record<string, any> = {}> =
   | ValidatorReturnSuccess
   | ValidatorReturnFail<T>;
 
-export interface ValidatorReturnSuccess {
+export type ValidatorReturnSuccess = {
   readonly success: true;
-  readonly data?: any;
-}
+  readonly data?: unknown;
+};
 
-export interface ValidatorReturnFail<T extends Record<string, any> = {}> {
+export type ValidatorReturnFail<T extends Record<string, any> = {}> = {
   readonly success: false;
   readonly error: T;
   readonly status?: number;
-}
+};
 
 /** @public */
-export interface DataValidator<T extends Record<string, any> = {}> {
+export type DataValidator<T extends Record<string, any> = {}> = {
   validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn<T>>;
-}
+};
 
 /** @public */
-export interface TypedDataValidator<T extends zod.ZodType = any> {
+export type TypedDataValidator<T extends zod.ZodType = zod.ZodType> = {
   __zod: zod.ZodSchema<T>;
   validate(ev: RequestEvent, data: unknown): Promise<zod.SafeParseReturnType<T, T>>;
-}
+};
 
-export interface ValidatorConstructor {
+export type ValidatorConstructor = {
   <T extends ValidatorReturn>(
     validator: (ev: RequestEvent, data: unknown) => ValueOrPromise<T>
   ): T extends ValidatorReturnFail<infer ERROR> ? DataValidator<ERROR> : DataValidator<never>;
-}
+};
 
-export interface ValidatorConstructorQRL {
+export type ValidatorConstructorQRL = {
   <T extends ValidatorReturn>(
     validator: QRL<(ev: RequestEvent, data: unknown) => ValueOrPromise<T>>
   ): T extends ValidatorReturnFail<infer ERROR> ? DataValidator<ERROR> : DataValidator<never>;
-}
+};
 
 /** @public */
-export interface ZodConstructor {
+export type ZodConstructor = {
   <T extends zod.ZodRawShape>(schema: T): TypedDataValidator<zod.ZodObject<T>>;
   <T extends zod.ZodRawShape>(
     schema: (z: typeof zod, ev: RequestEvent) => T
   ): TypedDataValidator<zod.ZodObject<T>>;
   <T extends zod.Schema>(schema: T): TypedDataValidator<T>;
   <T extends zod.Schema>(schema: (z: typeof zod, ev: RequestEvent) => T): TypedDataValidator<T>;
-}
+};
 
 /** @public */
-export interface ZodConstructorQRL {
+export type ZodConstructorQRL = {
   <T extends zod.ZodRawShape>(schema: QRL<T>): TypedDataValidator<zod.ZodObject<T>>;
   <T extends zod.ZodRawShape>(
     schema: QRL<(zs: typeof zod, ev: RequestEvent) => T>
@@ -778,12 +787,37 @@ export interface ZodConstructorQRL {
   <T extends zod.Schema>(
     schema: QRL<(z: typeof zod, ev: RequestEvent) => T>
   ): TypedDataValidator<T>;
+};
+
+/** @public */
+export interface ServerConfig {
+  // TODO: create id registry
+  // id?: string;
+  origin?: string;
+  // TODO: recreate sending arguments as queryParams
+  // only support "get" and "post" for now
+  method?: 'get' | 'post'; // | 'patch' | 'delete';
+  headers?: Record<string, string>;
+  // TODO: add cache interface
+  // cache?: any,
+  // TODO: cancel with signal
+  // signal?: Signal<boolean>;
+  fetchOptions?: any;
 }
 
-export interface ServerFunction {
+/** @public */
+export type ServerFunction = {
   (this: RequestEventBase, ...args: any[]): any;
-}
+  options?: ServerConfig;
+};
 
-export interface ServerConstructorQRL {
-  <T extends ServerFunction>(fnQrl: QRL<T>): QRL<T>;
-}
+/**
+ * You can pass an AbortSignal as the first argument of a `server$` function and it will use it to
+ * abort the fetch when fired.
+ *
+ * @public
+ */
+export type ServerQRL<T extends ServerFunction> = QRL<
+  | ((abort: AbortSignal, ...args: Parameters<T>) => ReturnType<T>)
+  | ((...args: Parameters<T>) => ReturnType<T>)
+>;

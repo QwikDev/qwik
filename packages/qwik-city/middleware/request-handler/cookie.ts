@@ -2,8 +2,11 @@ import type { Cookie as CookieInterface, CookieOptions, CookieValue } from './ty
 
 const SAMESITE = {
   lax: 'Lax',
+  Lax: 'Lax',
+  None: 'None',
   none: 'None',
   strict: 'Strict',
+  Strict: 'Strict',
 } as const;
 
 const UNIT = {
@@ -75,7 +78,7 @@ const parseCookieString = (cookieString: string | undefined | null) => {
   return cookie;
 };
 
-function resolveSameSite(sameSite: boolean | 'strict' | 'lax' | 'none' | undefined) {
+function resolveSameSite(sameSite: CookieOptions['sameSite']) {
   if (sameSite === true) {
     return 'Strict';
   }
@@ -147,7 +150,7 @@ export class Cookie implements CookieInterface {
     this[RES_COOKIE][cookieName] = createSetCookieValue(cookieName, resolvedValue, options);
   }
 
-  delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>) {
+  delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain' | 'sameSite'>) {
     this.set(name, 'deleted', { ...options, maxAge: 0 });
     this[LIVE_COOKIE][name] = null;
   }

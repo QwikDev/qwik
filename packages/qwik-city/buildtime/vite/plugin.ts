@@ -45,7 +45,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
   // Patch Stream APIs
   patchGlobalThis();
 
-  (globalThis as any).__qwikCityNew = true;
+  globalThis.__qwikCityNew = true;
 
   const api: QwikCityPluginApi = {
     getBasePathname: () => ctx?.opts.basePathname ?? '/',
@@ -69,6 +69,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
           exclude: [QWIK_CITY, QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID, QWIK_CITY_SW_REGISTER],
         },
         ssr: {
+          external: ['node:async_hooks'],
           noExternal: [QWIK_CITY, QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID, QWIK_CITY_SW_REGISTER],
         },
       };
@@ -95,6 +96,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
         throw new Error('Missing vite-plugin-qwik');
       }
 
+      // @ts-ignore `format` removed in Vite 5
       if (config.ssr?.format === 'cjs') {
         ssrFormat = 'cjs';
       }
@@ -255,15 +257,15 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
     closeBundle: {
       sequential: true,
       async handler() {
-        if (ctx?.target === 'ssr') {
+        if (ctx?.target === 'ssr' && !ctx?.isDevServer) {
           // ssr build
           const manifest = qwikPlugin!.api.getManifest();
-          const insightsManifest = await qwikPlugin!.api.getInsightsManifest();
           const clientOutDir = qwikPlugin!.api.getClientOutDir();
 
           if (manifest && clientOutDir) {
             const basePathRelDir = api.getBasePathname().replace(/^\/|\/$/, '');
             const clientOutBaseDir = join(clientOutDir, basePathRelDir);
+            const insightsManifest = await qwikPlugin!.api.getInsightsManifest(clientOutDir);
 
             for (const swEntry of ctx.serviceWorkers) {
               try {

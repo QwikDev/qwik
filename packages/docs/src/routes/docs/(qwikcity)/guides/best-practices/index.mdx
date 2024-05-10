@@ -1,5 +1,6 @@
 ---
 title: Best Practices | Guides
+description: Learn the best practices for Qwik, a guide for understanding how to use Qwik to its full potential.
 contributors:
   - mhevery
   - the-r3aper7
@@ -12,6 +13,15 @@ contributors:
   - un33k
   - egmaleta
   - mugan86
+  - octoper
+  - mrhoodz
+  - VinuB-Dev
+  - anartzdev
+  - adamdbradley
+  - hamatoyogi
+  - maiieul
+updated_at: '2024-04-02T18:38:38Z'
+created_at: '2023-03-30T17:37:51Z'
 ---
 
 # Best Practices
@@ -43,7 +53,7 @@ export default component$(() => {
   return (
     <div>
       <button onClick$={() => signal.value++}>+</button>
-        <button onClick$={() => signal.value--}>-</button>
+      <button onClick$={() => signal.value--}>-</button>
         <div>
           {signal.value > 0 ? 'Bigger than zero' : 'Smaller than zero'} - Current
           value: {signal.value}
@@ -53,11 +63,25 @@ export default component$(() => {
 });
 ```
 
-## Avoid registering DOM events in `useVisibleTask$()`
+## Use `useVisibleTask$()` as a last resort
+
+Although convenient, `useVisibleTask$()` runs code eagerly and blocks the main thread, preventing user interaction until the task is finished. You can think of it as an escape hatch.
+
+When in doubt, instead of "useVisibleTask$()" use:
+- `useTask$()` -> perform code execution in SSR mode.
+- `useOn()` -> listen to events on the root element of `the current component`.
+- `useOnWindow()` -> listen to events on the `window` object.
+- `useOnDocument()` -> listen to events on the `document` object.
+
+Sometimes though, it is the only way to achieve the result.
+
+In that case, you can add `// eslint-disable-next-line qwik/no-use-visible-task` to the line before "useVisibleTask$" to remove the warning.
+
+### Register DOM events with `useOn()`, `useOnWindow()`, or `useOnDocument()`
 
 Qwik allows to register event listeners in a declarative way, using the `useOn()` or using JSX.
 
-When using `useVisibleTask` to programmatically register events, we are downloading and executing JavaScript eagerly, even if the event is not triggered.
+When using `useVisibleTask$()` to programmatically register events, we are downloading and executing JavaScript eagerly, even if the event is not triggered.
 
 ```tsx title="Suboptimal implementation"
 // Don't do this!
@@ -89,12 +113,6 @@ useOnDocument(
 );
 ```
 
-When in doubt, instead of `useVisibleTask$()` use:
-- `useOn()`: listen to events on the root element of `the current component`.
-- `useOnWindow()`: listen to events on the `window` object.
-- `useOnDocument()`: listen to events on the `document` object.
-
-
 ## Avoid accessing the location from the `window` object
 
 Don't access `window.location` directly, use `useLocation()` hook instead.
@@ -107,23 +125,18 @@ useVisibleTask$(()=> {
     }
 })
 // or
-if (typeof window !== "undefined") {
-    const queryParams = new URLSearchParams(window.location.search);
-    const query: Record<string, string> = {};
-    queryParams.forEach((value, key) => {
-        query[key] = value;
-    })
-    doTheThing(query);
-}
+useTask$(() => {
+  if (isBrowser) {
+        if (window.location.href).includes('foo') {
+        //... do the thing
+    }
+  }
+})
 ```
 
 Many actions related to location information can be executed during the initial server-side render, resulting in pure HTML without any JavaScript overhead.
 
-By forcing this logic to run on the client side, it introduces increased upfront JavaScript and leads to eager loading.
-
-Using the `if typeof window !== "undefined"` pattern may cause the code to be skipped. On the server, the code block will be skipped since the window is always undefined.
-
-While developers may be accustomed to code running twice, Qwik eliminates this necessity by providing a more efficient approach.
+Forcing this logic to run on the client side introduces increased upfront JavaScript and leads to eager loading.
 
 ```tsx title="Optimal Implementation"
 // Do this!
@@ -132,8 +145,6 @@ const location = useLocation();
 if (location.url.href.includes('foo')) {
   // Do the thing
 }
-
-doTheThing(location.url.searchParams);
 ```
 
 ### Exception
@@ -145,4 +156,3 @@ However, exercise caution! If the required information (such as query parameters
 This approach helps to prevent eager loading of JavaScript and improves performance.
 
 > See: [useLocation() Docs](/docs/(qwikcity)/api/index.mdx#uselocation)
-

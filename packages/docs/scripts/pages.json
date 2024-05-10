@@ -1,5 +1,18 @@
 [
   {
+    "href": "https://sasthyaseba.com",
+    "size": "large",
+    "tags": "site,healthcare,services,webrtc,websocket"
+  },
+  {
+    "href": "https://linkfang-portfolio.vercel.app/",
+    "tags": "portfolio"
+  },
+  {
+    "href": "https://blueagle.top/",
+    "tags": "portfolio,site,blog"
+  },
+  {
     "href": "https://quotemingle.com/",
     "tags": "site"
   },
@@ -9,6 +22,10 @@
   },
   {
     "href": "https://www.dimension.dev",
+    "tags": "saas"
+  },
+  {
+    "href": "https://index.app/beta",
     "tags": "saas"
   },
   {
@@ -28,21 +45,8 @@
     "tags": "portfolio"
   },
   {
-    "href": "https://shaunchander.me",
-    "tags": "portfolio"
-  },
-  {
-    "href": "https://qwik-city-movies-wm.netlify.app/",
-    "size": "large",
-    "tags": "app"
-  },
-  {
     "href": "https://www.hexa.center/",
     "tags": "saas"
-  },
-  {
-    "href": "https://img-models.vercel.app/",
-    "tags": "ecommerce"
   },
   {
     "href": "https://qwik-storefront.vendure.io/",
@@ -55,19 +59,11 @@
     "size": "large"
   },
   {
-    "href": "https://soundy.cloud/",
-    "tags": "saas"
-  },
-  {
     "href": "https://bot-whatsapp.netlify.app/",
     "tags": "site"
   },
   {
     "href": "https://usaibis.com/",
-    "tags": "saas"
-  },
-  {
-    "href": "https://pasha-app.com/",
     "tags": "saas"
   },
   {
@@ -80,9 +76,9 @@
     "repo": "https://github.com/saboooor/burgersonfleek"
   },
   {
-    "href": "https://simplymc.art/",
+    "href": "https://birdflop.com/",
     "tags": "site",
-    "repo": "https://github.com/LuminescentDev/SimplyMC"
+    "repo": "https://github.com/birdflop/web"
   },
   {
     "href": "https://goshi.dev/",
@@ -98,10 +94,6 @@
     "tags": "portfolio"
   },
   {
-    "href": "https://cursos.codigoencasa.com/node",
-    "tags": "learning"
-  },
-  {
     "href": "https://reduced.to",
     "tags": "app"
   },
@@ -110,21 +102,13 @@
     "tags": "portfolio"
   },
   {
-    "href": "https://www.blackflag.dev/",
-    "tags": "site"
-  },
-  {
-    "href": "https://qwik.builder.io",
+    "href": "https://qwik.dev",
     "tags": "site",
-    "repo": "https://github.com/BuilderIO/qwik/tree/main/packages/docs"
+    "repo": "https://github.com/QwikDev/qwik/tree/main/packages/docs"
   },
   {
     "href": "https://pulsestax.com/",
     "tags": "saas"
-  },
-  {
-    "href": "https://www.stockideashq.com/",
-    "tags": "investing"
   },
   {
     "href": "https://promptle.art/",
@@ -135,16 +119,8 @@
     "tags": "portfolio"
   },
   {
-    "href": "https://amirhbeigi.ir",
-    "tags": "portfolio"
-  },
-  {
     "href": "https://puzzledbycsharp.com/",
     "tags": "site"
-  },
-  {
-    "href": "https://ss-link.netlify.app/",
-    "tags": "app"
   },
   {
     "href": "https://necatikcl.dev/",
@@ -152,23 +128,11 @@
     "size": "large"
   },
   {
-    "href": "https://tatbiqit.com/",
-    "tags": "company"
-  },
-  {
-    "href": "https://keyboardz.co/",
-    "tags": "ecommerce"
-  },
-  {
     "href": "https://itbusinesshub.com/",
     "tags": "blog"
   },
   {
     "href": "https://travelcalc.pages.dev",
-    "tags": "app"
-  },
-  {
-    "href": "https://upester.com",
     "tags": "app"
   },
   {
@@ -201,11 +165,31 @@
     "tags": "portfolio"
   },
   {
-    "href": "https://qwik-meet.onrender.com/",
-    "tags": "webrtc"
-  },
-  {
     "href": "https://getpolaris.ai/",
     "tags": "saas"
+  },
+  {
+    "href": "https://juneikerc.com",
+    "tags": "portfolio,site,blog,services"
+  },
+  {
+    "href": "https://valibot.dev/",
+    "tags": "site,documentation"
+  },
+  {
+    "href": "https://todaysdatenow.com/",
+    "tags": "site,tools,time"
+  },
+  {
+    "href": "https://finallyweb.com/",
+    "tags": "stock market education"
+  },
+  {
+    "href": "https://numeia.com",
+    "tags": "saas, marketing, ai"
+  },
+  {
+    "href": "https://qit.tools/",
+    "tags": "online,tools,converters"
   }
 ]

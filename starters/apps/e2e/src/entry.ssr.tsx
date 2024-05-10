@@ -35,6 +35,7 @@ import { TwoListeners } from "./components/two-listeners/twolisteners";
 import { UseId } from "./components/useid/useid";
 import { Watch } from "./components/watch/watch";
 import { Root } from "./root";
+import { SyncQRL } from "./components/resuming/sync-qrl";
 
 /**
  * Entry point for server-side pre-rendering.
@@ -73,6 +74,7 @@ export default function (opts: RenderToStreamOptions) {
     "/e2e/events-client": () => <EventsClient />,
     "/e2e/no-resume": () => <NoResume />,
     "/e2e/resuming": () => <Resuming1 />,
+    "/e2e/sync-qrl": () => <SyncQRL />,
     "/e2e/computed": () => <ComputedRoot />,
     "/e2e/build-variables": () => <BuildVariables />,
   };
@@ -97,7 +99,6 @@ export default function (opts: RenderToStreamOptions) {
         qwikLoader: {
           include:
             url.searchParams.get("loader") === "false" ? "never" : "auto",
-          events: ["click"],
         },
         ...opts,
       },

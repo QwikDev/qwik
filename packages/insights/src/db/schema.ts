@@ -22,6 +22,7 @@ export const applicationTable = sqliteTable(
     id: integer('id').primaryKey(),
     name: text('name').notNull(),
     description: text('description'),
+    url: text('url'),
     publicApiKey: text('public_api_key').notNull(),
   },
   (applications) => ({
@@ -38,7 +39,6 @@ export const symbolTable = sqliteTable('symbols', {
   pathname: text('pathname').notNull(),
   interaction: integer('interaction').notNull(),
   symbol: text('symbol').notNull(),
-  sessionID: text('session_id').notNull(),
   previousSymbol: text('prev_symbol'),
   timeDelta: integer('time_delta_ms').notNull(),
   loadDelay: integer('load_delay_ms').notNull(),
@@ -53,7 +53,6 @@ export const errorTable = sqliteTable('errors', {
   publicApiKey: text('public_api_key').references(() => applicationTable.publicApiKey),
   manifestHash: text('manifest_hash').references(() => manifestTable.hash),
   timestamp: integer('timestamp', { mode: 'timestamp_ms' }).notNull(),
-  sessionID: text('session_id').notNull(),
   url: text('url').notNull(),
   source: text('source').notNull(),
   line: integer('line').notNull(),
@@ -308,3 +307,27 @@ export const routesTable = sqliteTable(
 
 export type RouteRow = InferSelectModel<typeof routesTable>;
 export type RouteRowSansId = InferInsertModel<typeof routesTable>;
+
+export const usersTable = sqliteTable(
+  'users',
+  {
+    id: integer('user_id').primaryKey(),
+    email: text('email').notNull(),
+    created: integer('created', { mode: 'timestamp_ms' }).notNull(),
+    superUser: integer('super_user', { mode: 'boolean' }).notNull(),
+  },
+  (table) => ({
+    emailIndex: uniqueIndex('emailIndex').on(table.email),
+  })
+);
+
+export const userApplicationMap = sqliteTable(
+  'userApplicationMap',
+  {
+    applicationId: integer('application_id').references(() => applicationTable.id),
+    userId: integer('user_id').references(() => usersTable.id),
+  },
+  (table) => ({
+    userApplicationIndex: uniqueIndex('userApplicationIndex').on(table.applicationId, table.userId),
+  })
+);

@@ -4,10 +4,10 @@
   "type": "module",
   "__qwik__": {
     "priority": 2,
-    "displayName": "Basic App",
+    "displayName": "Basic App (Qwik City + Qwik)",
     "qwikCity": true,
     "docs": [
-      "https://qwik.builder.io/docs/getting-started/"
+      "https://qwik.dev/docs/getting-started/"
     ]
   }
 }

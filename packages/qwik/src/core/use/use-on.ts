@@ -3,7 +3,16 @@ import type { QRL } from '../qrl/qrl.public';
 import { getContext, HOST_FLAG_NEED_ATTACH_LISTENER } from '../state/context';
 import { type Listener, normalizeOnProp } from '../state/listeners';
 import { useInvokeContext } from './use-core';
-import { type PascalCaseEventLiteralType } from '../render/jsx/types/jsx-qwik-events';
+import { type KnownEventNames } from '../render/jsx/types/jsx-qwik-events';
+import type {
+  EventHandler,
+  EventFromName,
+  AllEventKeys,
+} from '../render/jsx/types/jsx-qwik-attributes';
+
+export type EventQRL<T extends string = AllEventKeys> =
+  | QRL<EventHandler<EventFromName<T>, Element>>
+  | undefined;
 
 // <docs markdown="../readme.md#useOn">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -18,10 +27,7 @@ import { type PascalCaseEventLiteralType } from '../render/jsx/types/jsx-qwik-ev
  * @see `useOn`, `useOnWindow`, `useOnDocument`.
  */
 // </docs>
-export const useOn = (
-  event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[],
-  eventQrl: QRL<(ev: Event) => void> | undefined
-) => {
+export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
   _useOn(createEventName(event, undefined), eventQrl);
 };
 
@@ -54,10 +60,7 @@ export const useOn = (
  * ```
  */
 // </docs>
-export const useOnDocument = (
-  event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[],
-  eventQrl: QRL<(ev: Event) => void> | undefined
-) => {
+export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
   _useOn(createEventName(event, 'document'), eventQrl);
 };
 
@@ -91,15 +94,12 @@ export const useOnDocument = (
  * ```
  */
 // </docs>
-export const useOnWindow = (
-  event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[],
-  eventQrl: QRL<(ev: Event) => void> | undefined
-) => {
+export const useOnWindow = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
   _useOn(createEventName(event, 'window'), eventQrl);
 };
 
 const createEventName = (
-  event: PascalCaseEventLiteralType | PascalCaseEventLiteralType[],
+  event: KnownEventNames | KnownEventNames[],
   eventType: 'window' | 'document' | undefined
 ) => {
   const formattedEventType = eventType !== undefined ? eventType + ':' : '';
@@ -109,16 +109,16 @@ const createEventName = (
   return res;
 };
 
-const _useOn = (eventName: string | string[], eventQrl: QRL<(ev: Event) => void> | undefined) => {
+const _useOn = (eventName: string | string[], eventQrl: EventQRL) => {
   if (eventQrl) {
     const invokeCtx = useInvokeContext();
     const elCtx = getContext(
       invokeCtx.$hostElement$,
       invokeCtx.$renderCtx$.$static$.$containerState$
     );
-    assertQrl(eventQrl);
+    assertQrl(eventQrl as any);
     if (typeof eventName === 'string') {
-      elCtx.li.push([normalizeOnProp(eventName), eventQrl]);
+      elCtx.li.push([normalizeOnProp(eventName), eventQrl] as Listener);
     } else {
       elCtx.li.push(...eventName.map((name) => [normalizeOnProp(name), eventQrl] as Listener));
     }

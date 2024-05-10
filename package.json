@@ -1,9 +1,44 @@
 {
   "name": "qwik-monorepo",
-  "version": "1.2.13",
+  "version": "1.5.4",
+  "comments": {
+    "01": "devDependencies includes reference to @builder.io/qwik: workspace: *. This is needed or e2e tests will fail",
+    "02": "  It would be nice to be able to remove this dependency and fix the test.",
+    "03": "devDependencies can't include reference to @builder.io/qwik-city or e2e test will fail."
+  },
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
+    },
+    "syncpack": {
+      "versionGroups": [
+        {
+          "label": "use workspace protocol for local packages and allow patch versions (used in e.g. qwik-react)",
+          "dependencies": [
+            "$LOCAL"
+          ],
+          "dependencyTypes": [
+            "!local"
+          ],
+          "pinVersion": "workspace:^"
+        },
+        {
+          "label": "Playwright should have the same version as in flake.nix",
+          "dependencies": [
+            "@playwright/test"
+          ],
+          "pinVersion": "1.40.0"
+        }
+      ],
+      "semverGroups": [
+        {
+          "label": "Undici should always be * until we remove it",
+          "range": "*",
+          "dependencies": [
+            "undici"
+          ]
+        }
+      ]
     }
   },
   "contributors": [
@@ -24,65 +59,75 @@
     }
   ],
   "dependencies": {
-    "esbuild-plugin-raw": "^0.1.7"
+    "esbuild-plugin-raw": "^0.1.8"
   },
   "devDependencies": {
-    "@builder.io/partytown": "^0.8.1",
+    "@builder.io/partytown": "^0.10.0",
+    "@builder.io/qwik": "workspace:^",
+    "@builder.io/qwik-city": "workspace:^",
     "@clack/prompts": "^0.7.0",
-    "@microsoft/api-documenter": "^7.23.9",
-    "@microsoft/api-extractor": "^7.38.0",
-    "@napi-rs/cli": "^2.16.3",
-    "@napi-rs/triples": "1.1.0",
-    "@node-rs/helper": "1.3.3",
-    "@octokit/action": "3.18.1",
-    "@playwright/test": "^1.38.1",
-    "@types/brotli": "^1.3.2",
-    "@types/cross-spawn": "^6.0.3",
-    "@types/eslint": "^8.44.4",
-    "@types/express": "^4.17.19",
-    "@types/mri": "^1.1.2",
-    "@types/node": "^20.8.4",
-    "@types/path-browserify": "1.0.0",
-    "@types/prompts": "^2.4.6",
-    "@types/semver": "^7.5.3",
-    "@types/which-pm-runs": "1.0.0",
-    "@typescript-eslint/eslint-plugin": "^6.7.5",
-    "@typescript-eslint/parser": "^6.7.5",
-    "@typescript-eslint/rule-tester": "^6.7.5",
-    "@typescript-eslint/utils": "^6.7.5",
+    "@eslint/eslintrc": "^3.0.2",
+    "@mdx-js/mdx": "^3.0.1",
+    "@microsoft/api-documenter": "^7.24.2",
+    "@microsoft/api-extractor": "^7.43.1",
+    "@napi-rs/cli": "^2.18.0",
+    "@napi-rs/triples": "^1.2.0",
+    "@node-rs/helper": "^1.5.0",
+    "@octokit/action": "6.0.7",
+    "@playwright/test": "1.40.0",
+    "@types/brotli": "^1.3.4",
+    "@types/bun": "^1.1.0",
+    "@types/cross-spawn": "^6.0.6",
+    "@types/eslint": "^8.56.10",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.12.7",
+    "@types/path-browserify": "^1.0.2",
+    "@types/prompts": "^2.4.9",
+    "@types/react": "^18.2.79",
+    "@types/semver": "^7.5.8",
+    "@types/which-pm-runs": "^1.0.2",
+    "@typescript-eslint/eslint-plugin": "^7.7.1",
+    "@typescript-eslint/parser": "^7.7.1",
+    "@typescript-eslint/rule-tester": "^7.7.1",
+    "@typescript-eslint/utils": "^7.7.1",
     "all-contributors-cli": "6.26.1",
     "brotli": "1.3.3",
     "commitizen": "4.3.0",
-    "concurrently": "^8.2.1",
-    "create-qwik": "workspace:*",
+    "concurrently": "^8.2.2",
+    "create-qwik": "workspace:^",
     "cross-spawn": "7.0.3",
+    "csstype": "^3.1.3",
     "cz-conventional-changelog": "3.3.0",
-    "esbuild": "^0.19.4",
-    "eslint": "^8.51.0",
+    "esbuild": "^0.20.2",
+    "eslint": "^8.57.0",
     "eslint-plugin-no-only-tests": "3.1.0",
-    "eslint-plugin-qwik": "^1.2.13",
-    "execa": "7.2.0",
-    "express": "4.18.2",
+    "eslint-plugin-qwik": "workspace:^",
+    "execa": "8.0.1",
+    "express": "4.18.3",
     "install": "^0.13.0",
-    "monaco-editor": "^0.44.0",
+    "monaco-editor": "^0.45.0",
     "mri": "1.2.0",
-    "ora": "6.3.1",
     "path-browserify": "1.0.1",
-    "prettier": "^3.0.3",
-    "prettier-plugin-jsdoc": "^1.1.1",
-    "pretty-quick": "^3.1.3",
+    "prettier": "^3.2.5",
+    "prettier-plugin-jsdoc": "^1.3.0",
+    "pretty-quick": "^4.0.0",
     "prompts": "2.4.2",
-    "rollup": "3.26.3",
-    "semver": "7.5.4",
+    "rollup": "^4.13.0",
+    "semver": "7.6.0",
     "snoop": "^1.0.4",
-    "syncpack": "^10.7.3",
-    "terser": "^5.21.0",
+    "source-map": "0.7.4",
+    "svgo": "^3.2.0",
+    "syncpack": "^12.3.1",
+    "terser": "^5.29.2",
     "tsm": "^2.3.0",
-    "typescript": "^5.2.2",
-    "undici": "^5.26.0",
-    "vite": "^4.4.11",
-    "vite-tsconfig-paths": "^4.2.1",
-    "vitest": "0.34.6",
+    "typescript": "5.4.5",
+    "undici": "*",
+    "vfile": "^6.0.1",
+    "vite": "^5.2.10",
+    "vite-imagetools": "^6.2.9",
+    "vite-plugin-dts": "^3.9.0",
+    "vite-tsconfig-paths": "^4.3.2",
+    "vitest": "^1.5.0",
     "watchlist": "0.3.1",
     "which-pm-runs": "1.1.0",
     "zod": "^3.22.4"
@@ -93,33 +138,45 @@
     "yarn": "please-use-pnpm",
     "pnpm": ">=8.6.12"
   },
-  "packageManager": "pnpm@8.9.0",
+  "packageManager": "pnpm@9.0.5",
   "pnpm": {
     "overrides": {
-      "vfile": "6.0.1"
+      "typescript": "5.4.5",
+      "vfile": "^6.0.1",
+      "@supabase/realtime-js": "2.8.4"
+    },
+    "patchedDependencies": {
+      "density-clustering@1.3.0": "patches/density-clustering@1.3.0.patch"
     }
   },
   "private": true,
   "scripts": {
     "api.update": "tsm scripts/index.ts --tsc --api --dev",
-    "build": "tsm scripts/index.ts --tsc --build --qwikcity --qwiklabs --api --platform-binding-wasm-copy",
+    "build": "tsm scripts/index.ts",
+    "build.clean": "rm -rf packages/qwik/dist/ && rm -rf packages/qwik-city/lib/ && rm -rf packages/docs/dist/ && rm -rf packages/insights/dist/ && rm -rf packages/qwik-labs/lib/ && rm -rf packages/qwik-labs/vite/",
     "build.cli": "tsm scripts/index.ts --cli --dev",
     "build.cli.prod": "tsm scripts/index.ts --cli",
+    "build.core": "tsm scripts/index.ts --tsc --build --qwikcity --api --platform-binding-wasm-copy",
     "build.eslint": "tsm scripts/index.ts --eslint",
-    "build.full": "tsm scripts/index.ts --tsc --build --supabaseauthhelpers --api --eslint --qwikcity --qwikworker --qwiklabs --qwikreact --qwikauth --cli --platform-binding --wasm",
+    "build.full": "tsm scripts/index.ts --tsc --tsc-docs --build --supabaseauthhelpers --api --eslint --qwikcity --qwikworker --qwiklabs --qwikreact --qwikauth --cli --platform-binding --wasm",
+    "build.local": "tsm scripts/index.ts --tsc --tsc-docs --build --supabaseauthhelpers --api --eslint --qwikcity --qwikworker --qwiklabs --qwikreact --qwikauth --cli --platform-binding-wasm-copy",
     "build.only_javascript": "tsm scripts/index.ts --tsc --build --api",
+    "build.packages.docs": "pnpm run build.local && pnpm -C ./packages/docs/ run build",
+    "build.packages.insights": "pnpm run build.local && tsm ./scripts/patch-workspace-packages.ts && pnpm -C ./packages/insights/ run build",
     "build.platform": "tsm scripts/index.ts --platform-binding",
     "build.platform.copy": "tsm scripts/index.ts --platform-binding-wasm-copy",
     "build.qwik-city": "tsm scripts/index.ts --tsc --qwikcity",
     "build.validate": "tsm scripts/index.ts --tsc --build --api --eslint --qwikcity --platform-binding --wasm --validate",
-    "build.vite": "tsm scripts/index.ts --tsc --build --qwikcity --qwiklabs --platform-binding-wasm-copy",
+    "build.vite": "tsm scripts/index.ts --tsc --build --api --qwikcity --eslint --qwiklabs --platform-binding-wasm-copy",
     "build.wasm": "tsm scripts/index.ts --wasm",
     "build.watch": "tsm scripts/index.ts --build  --qwikcity --watch --dev --platform-binding",
     "cli": "pnpm build.cli && node packages/create-qwik/dist/create-qwik.cjs && tsm scripts/validate-cli.ts --copy-local-qwik-dist",
-    "cli.qwik": "pnpm build.cli && node packages/qwik/dist/qwik.cjs",
+    "cli.qwik": "pnpm build.cli && node packages/qwik/qwik-cli.cjs",
     "cli.validate": "tsm scripts/validate-cli.ts",
     "commit": "git-cz",
-    "deps": "pnpm upgrade -i -r --latest",
+    "deps": "corepack pnpm upgrade -i -r --latest && syncpack fix-mismatches && corepack pnpm dedupe",
+    "docs.dev": "cd packages/docs && pnpm dev",
+    "docs.preview": "cd packages/docs && pnpm preview",
     "docs.sync": "tsm scripts/docs_sync/index.ts && pnpm fmt",
     "eslint.update": "tsm scripts/eslint-docs.ts",
     "fmt": "pnpm prettier.fix && pnpm syncpack format",
@@ -135,10 +192,10 @@
     "preinstall": "npx only-allow pnpm",
     "prettier.fix": "prettier --cache --write .",
     "qwik-save-artifacts": "tsm ./scripts/qwik-save-artifacts.ts",
-    "release.prepare": "pnpm lint && pnpm test.unit && tsm scripts/index.ts --tsc --build --api --eslint --platform-binding --wasm --prepare-release",
+    "release.prepare": "pnpm lint && pnpm test.unit --run && tsm scripts/index.ts --tsc --build --api --eslint --platform-binding --wasm --prepare-release",
     "serve": "tsm --inspect --conditions=development starters/dev-server.ts 3300",
     "serve.debug": "tsm --inspect-brk --conditions=development starters/dev-server.ts 3300",
-    "start": "concurrently \"npm:build.watch\" \"npm:test.watch\" \"npm:tsc.watch\" -n build,test,tsc -c green,magenta,cyan",
+    "start": "concurrently \"npm:build.watch\"  \"npm:tsc.watch\" -n build,tsc -c green,cyan",
     "test": "pnpm build.full && pnpm test.unit && pnpm test.e2e",
     "test.e2e": "pnpm test.e2e.chromium && pnpm test.e2e.webkit",
     "test.e2e.chromium": "playwright test starters --browser=chromium --config starters/playwright.config.ts",
@@ -147,14 +204,15 @@
     "test.e2e.firefox": "playwright test starters --browser=firefox --config starters/playwright.config.ts",
     "test.e2e.webkit": "playwright test starters --browser=webkit --config starters/playwright.config.ts",
     "test.rust": "make test",
+    "test.rust.update": "make test-update",
     "test.unit": "vitest packages",
     "test.unit.debug": "vitest --inspect-brk packages",
     "test.vite": "playwright test starters/e2e/qwikcity --browser=chromium --config starters/playwright.config.ts",
-    "test.watch": "watchlist packages unit.ts -- pnpm test.unit",
     "tsc.check": "tsc --noEmit",
     "tsc.trace": "tsc -p tsconfig.json --traceResolution > tsc.log",
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",
-    "update.qwik.builds": "tsm scripts/update-qwik-builds.ts packages/docs && tsm scripts/update-qwik-builds.ts packages/insights; pnpm install"
+    "update.qwik.builds": "tsm scripts/update-qwik-builds.ts packages/docs && tsm scripts/update-qwik-builds.ts packages/insights; pnpm install",
+    "vitest": "vitest"
   },
   "type": "module"
 }

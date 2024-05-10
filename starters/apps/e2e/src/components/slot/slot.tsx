@@ -1,5 +1,6 @@
 import {
   component$,
+  $,
   useStore,
   Slot,
   useContext,
@@ -7,10 +8,10 @@ import {
   useContextProvider,
   createContextId,
   type Signal,
-  _jsxBranch,
   jsx,
   type JSXNode,
   useVisibleTask$,
+  type FunctionComponent,
 } from "@builder.io/qwik";
 
 export const SlotParent = component$(() => {
@@ -66,6 +67,8 @@ export const SlotParent = component$(() => {
             <p>index page</p>
           </Issue4283>
           <Issue4658 />
+          <Issue5270 />
+          <Issue5506 />
         </>
       )}
       <div>
@@ -280,15 +283,17 @@ export const Issue3565Model = component$(() => {
   );
 });
 
-export const Issue3565 = component$(({ model: Model }: any) => {
-  return (
-    <>
-      <Model>
-        <div>content projected</div>
-      </Model>
-    </>
-  );
-});
+export const Issue3565 = component$(
+  ({ model: Model }: { model: string | FunctionComponent }) => {
+    return (
+      <>
+        <Model>
+          <div>content projected</div>
+        </Model>
+      </>
+    );
+  },
+);
 
 export const Issue3607 = component$(() => {
   const show = useSignal(false);
@@ -504,5 +509,78 @@ export const Issue4658 = component$(() => {
         Toggle
       </button>
     </>
+  );
+});
+
+const Issue5270Context = createContextId<{ hi: string }>("5270");
+export const ProviderParent = component$(() => {
+  useContextProvider(Issue5270Context, { hi: "hello" });
+  const s = useSignal(false);
+  return (
+    <div>
+      <button id="issue-5270-button" onClick$={() => (s.value = !s.value)}>
+        toggle
+      </button>
+      <br />
+      {s.value && <Slot />}
+    </div>
+  );
+});
+const ContextChild = component$(() => {
+  const t = useContext(Issue5270Context);
+  return <div id="issue-5270-div">Ctx: {t.hi}</div>;
+});
+export const Issue5270 = component$(() => {
+  useContextProvider(Issue5270Context, { hi: "wrong" });
+  return (
+    <ProviderParent>
+      <ContextChild />
+    </ProviderParent>
+  );
+});
+
+export const Toggle5506 = component$<any>((props) => {
+  return (
+    <>
+      <label>
+        <input
+          {...props}
+          type="checkbox"
+          // ensure it gets checked state only from props
+          preventdefault:click
+        />
+        toggle me
+      </label>
+    </>
+  );
+});
+
+export const SlotParent5506 = component$(() => <Slot />);
+
+// This breaks signal propagation, if you put this expression directly in the JSX prop it works
+function coerceBoolean(value: string) {
+  return value === "true";
+}
+
+export const Issue5506 = component$(() => {
+  const sig = useSignal("true");
+  const render = useSignal(0);
+  const onClick$ = $(() => {
+    const newValue = sig.value === "true" ? "false" : "true";
+    sig.value = newValue;
+  });
+
+  return (
+    <div id="issue-5506-div">
+      <SlotParent5506 key={render.value}>
+        <Toggle5506
+          id="input-5506"
+          checked={coerceBoolean(sig.value)}
+          onClick$={onClick$}
+        />
+        <br />
+        <button onClick$={() => render.value++}>Rerender on client</button>
+      </SlotParent5506>
+    </div>
   );
 });

@@ -6,7 +6,7 @@
   "configurations": [
     {
       "type": "node",
-      "name": "packages/docs dev.debug",
+      "name": "docs dev.debug",
       "request": "launch",
       "skipFiles": ["<node_internals>/**"],
       "cwd": "${workspaceFolder}/packages/docs",
@@ -15,13 +15,50 @@
     },
     {
       "type": "node",
-      "name": "vscode-jest-tests",
+      "name": "insights dev.debug",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/packages/insights",
+      "program": "${workspaceFolder}/packages/insights/node_modules/vite/bin/vite.js",
+      "args": ["--mode", "ssr", "--force"]
+    },
+    {
+      "type": "node",
+      "name": "docs build.client",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/packages/docs",
+      "program": "${workspaceFolder}/packages/docs/node_modules/vite/bin/vite.js",
+      "args": ["build"]
+    },
+    {
+      "type": "node",
+      "name": "docs build.server",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/packages/docs",
+      "program": "${workspaceFolder}/packages/docs/node_modules/vite/bin/vite.js",
+      "args": ["build", "-c", "adapters/cloudflare-pages/vite.config.mts"]
+    },
+    {
+      "type": "node",
+      "name": "e2e.test",
       "request": "launch",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
+      "program": "${workspaceFolder}/./node_modules/tsm/bin.js",
       "cwd": "${workspaceFolder}",
-      "args": ["--runInBand", "--watchAll=false"]
+      "args": ["./starters/dev-server.ts", "3301"]
+    },
+    {
+      "type": "node",
+      "name": "vitest",
+      "request": "launch",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "program": "${workspaceFolder}/./node_modules/vitest/vitest.mjs",
+      "cwd": "${workspaceFolder}",
+      "args": ["${file}"]
     }
   ]
 }

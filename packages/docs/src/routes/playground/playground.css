@@ -1,6 +1,7 @@
 .playground {
   width: 100%;
   height: cal(100vh - var(--header-height));
+  height: cal(100dvh - var(--header-height));
 
   --playground-header-height: 0px;
 }
@@ -14,6 +15,7 @@
     'repl-input-panel repl-detail-panel';
   top: calc(var(--header-height) + var(--playground-header-height));
   height: calc(100vh - var(--header-height) - var(--panel-toggle-height));
+  height: calc(100dvh - var(--header-height) - var(--panel-toggle-height));
 }
 
 .playground .repl-col-resize-bar {
@@ -56,6 +58,9 @@
 }
 
 @media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
   .playground .repl {
     width: 300vw;
     grid-template-rows: 100%;

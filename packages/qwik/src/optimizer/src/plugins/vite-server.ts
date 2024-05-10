@@ -4,7 +4,7 @@ import { magenta } from 'kleur/colors';
 import type { IncomingMessage, ServerResponse } from 'http';
 
 import type { Connect, ViteDevServer } from 'vite';
-import type { OptimizerSystem, Path, QwikManifest } from '../types';
+import type { OptimizerSystem, Path, QwikManifest, SymbolMapper } from '../types';
 import { type NormalizedQwikPluginOptions, parseId } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
@@ -13,6 +13,7 @@ import imageDevTools from './image-size-runtime.html?raw';
 import clickToComponent from './click-to-component.html?raw';
 import perfWarning from './perf-warning.html?raw';
 import errorHost from './error-host.html?raw';
+import { SYNC_QRL } from '../../../core/qrl/qrl-class';
 
 function getOrigin(req: IncomingMessage) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
@@ -83,7 +84,13 @@ export async function configureDevServer(
           return;
         }
 
-        const ssrModule = await server.ssrLoadModule(opts.input[0]);
+        let firstInput: string;
+        if (Array.isArray(opts.input)) {
+          firstInput = opts.input[0];
+        } else {
+          firstInput = Object.values(opts.input)[0];
+        }
+        const ssrModule = await server.ssrLoadModule(firstInput);
 
         const render: Render = ssrModule.default ?? ssrModule.render;
 
@@ -110,7 +117,12 @@ export async function configureDevServer(
               }
 
               const { pathId, query } = parseId(v.url);
-              if (query === '' && ['.css', '.scss', '.sass'].some((ext) => pathId.endsWith(ext))) {
+              if (
+                query === '' &&
+                ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'].some((ext) =>
+                  pathId.endsWith(ext)
+                )
+              ) {
                 added.add(v.url);
                 manifest.injections!.push({
                   tag: 'link',
@@ -136,7 +148,10 @@ export async function configureDevServer(
             manifest: isClientDevOnly ? undefined : manifest,
             symbolMapper: isClientDevOnly
               ? undefined
-              : (symbolName, mapper) => {
+              : (symbolName: string, mapper: SymbolMapper | undefined) => {
+                  if (symbolName === SYNC_QRL) {
+                    return [symbolName, ''];
+                  }
                   const defaultChunk = [
                     symbolName,
                     `/${srcBase}/${symbolName.toLowerCase()}.js`,
@@ -170,7 +185,9 @@ export async function configureDevServer(
               if (
                 !added.has(v.url) &&
                 query === '' &&
-                ['.css', '.scss', '.sass'].some((ext) => pathId.endsWith(ext))
+                ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'].some((ext) =>
+                  pathId.endsWith(ext)
+                )
               ) {
                 res.write(`<link rel="stylesheet" href="${v.url}">`);
               }
@@ -282,11 +299,14 @@ function invalidPreviewMessage(middlewares: Connect.Server, msg: string) {
   });
 }
 
+const CYPRESS_DEV_SERVER_PATH = '/__cypress/src';
 const FS_PREFIX = `/@fs/`;
 const VALID_ID_PREFIX = `/@id/`;
 const VITE_PUBLIC_PATH = `/@vite/`;
 const internalPrefixes = [FS_PREFIX, VALID_ID_PREFIX, VITE_PUBLIC_PATH];
-const InternalPrefixRE = new RegExp(`^(?:${internalPrefixes.join('|')})`);
+const InternalPrefixRE = new RegExp(
+  `^(${CYPRESS_DEV_SERVER_PATH})?(?:${internalPrefixes.join('|')})`
+);
 
 const shouldSsrRender = (req: IncomingMessage, url: URL) => {
   const pathname = url.pathname;
@@ -307,6 +327,9 @@ const shouldSsrRender = (req: IncomingMessage, url: URL) => {
     return false;
   }
   if (InternalPrefixRE.test(url.pathname)) {
+    return false;
+  }
+  if (pathname.includes('@builder.io/qwik/build')) {
     return false;
   }
   const acceptHeader = req.headers.accept || '';

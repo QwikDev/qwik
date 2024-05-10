@@ -1,4 +1,4 @@
-import { type BuildConfig, ensureDir, type PackageJSON } from './util';
+import { type BuildConfig, ensureDir, type PackageJSON, recursiveChangePrefix } from './util';
 import { readFile, writeFile } from './util';
 import { join } from 'node:path';
 
@@ -18,99 +18,14 @@ export async function generatePackageJson(config: BuildConfig) {
     main: './core.mjs',
     types: './core.d.ts',
     bin: {
-      qwik: './qwik.cjs',
+      qwik: './qwik-cli.cjs',
     },
     type: 'module',
     peerDependencies: {
-      undici: '^5.14.0',
+      undici: '*',
     },
     dependencies: rootPkg.dependencies,
-    exports: {
-      '.': {
-        types: './core.d.ts',
-        import: {
-          min: './core.min.mjs',
-          development: './core.mjs',
-          production: './core.prod.mjs',
-          default: './core.prod.mjs',
-        },
-        require: {
-          development: './core.cjs',
-          production: './core.prod.cjs',
-          default: './core.prod.cjs',
-        },
-      },
-      './cli': {
-        require: './cli.cjs',
-      },
-      './jsx-runtime': {
-        types: './jsx-runtime.d.ts',
-        import: {
-          min: './core.min.mjs',
-          development: './core.mjs',
-          production: './core.prod.mjs',
-          default: './core.prod.mjs',
-        },
-        require: {
-          development: './core.cjs',
-          production: './core.prod.cjs',
-          default: './core.prod.cjs',
-        },
-      },
-      './jsx-dev-runtime': {
-        types: './jsx-runtime.d.ts',
-        import: {
-          min: './core.min.mjs',
-          development: './core.mjs',
-          production: './core.prod.mjs',
-          default: './core.mjs',
-        },
-        require: {
-          development: './core.cjs',
-          production: './core.prod.cjs',
-          default: './core.cjs',
-        },
-      },
-      './build': {
-        import: {
-          development: './build/index.dev.mjs',
-          production: './build/index.prod.mjs',
-          default: './build/index.mjs',
-        },
-        require: {
-          development: './build/index.dev.cjs',
-          production: './build/index.prod.cjs',
-          default: './build/index.cjs',
-        },
-      },
-      './loader': {
-        types: './loader/index.d.ts',
-        import: './loader/index.mjs',
-        require: './loader/index.cjs',
-      },
-      './optimizer.cjs': './optimizer.cjs',
-      './optimizer.mjs': './optimizer.mjs',
-      './optimizer': {
-        types: './optimizer.d.ts',
-        import: './optimizer.mjs',
-        require: './optimizer.cjs',
-      },
-      './server.cjs': './server.cjs',
-      './server.mjs': './server.mjs',
-      './server': {
-        types: './server.d.ts',
-        import: './server.mjs',
-        require: './server.cjs',
-      },
-      './testing': {
-        types: './testing/index.d.ts',
-        import: './testing/index.mjs',
-        require: './testing/index.cjs',
-      },
-      './qwikloader.js': './qwikloader.js',
-      './qwikloader.debug.js': './qwikloader.debug.js',
-      './package.json': './package.json',
-    },
+    exports: recursiveChangePrefix(rootPkg.exports!, './dist/', './'),
     files: Array.from(new Set(rootPkg.files)).sort((a, b) => {
       if (a.toLocaleLowerCase() < b.toLocaleLowerCase()) return -1;
       if (a.toLocaleLowerCase() > b.toLocaleLowerCase()) return 1;
@@ -128,8 +43,8 @@ export async function generatePackageJson(config: BuildConfig) {
   console.log(config.distQwikPkgDir);
 
   await generateLegacyCjsSubmodule(config, 'core');
-  await generateLegacyCjsSubmodule(config, 'jsx-runtime');
-  await generateLegacyCjsSubmodule(config, 'jsx-dev-runtime', 'jsx-runtime');
+  await generateLegacyCjsSubmodule(config, 'jsx-runtime', 'core');
+  await generateLegacyCjsSubmodule(config, 'jsx-dev-runtime', 'core', 'jsx-runtime');
   await generateLegacyCjsSubmodule(config, 'optimizer');
   await generateLegacyCjsSubmodule(config, 'server');
 
@@ -139,7 +54,8 @@ export async function generatePackageJson(config: BuildConfig) {
 export async function generateLegacyCjsSubmodule(
   config: BuildConfig,
   pkgName: string,
-  index = pkgName
+  index = pkgName,
+  types = pkgName
 ) {
   // Modern Node.js will resolve the submodule packages using "exports": https://nodejs.org/api/packages.html#subpath-exports
   // however, legacy Node.js still needs a directory and its own package.json
@@ -149,12 +65,12 @@ export async function generateLegacyCjsSubmodule(
     version: config.distVersion,
     main: `../${index}.mjs`,
     module: `../${index}.mjs`,
-    types: `../${index}.d.ts`,
+    types: `../${types}.d.ts`,
     type: 'module',
     private: true,
     exports: {
       '.': {
-        types: `../${index}.d.ts`,
+        types: `../${types}.d.ts`,
         require: `../${index}.cjs`,
         import: `../${index}.mjs`,
       },

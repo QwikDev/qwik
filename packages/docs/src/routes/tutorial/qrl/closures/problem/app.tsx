@@ -7,8 +7,7 @@ export default component$(() => {
       <label>
         Enter your name followed by the enter key:{' '}
         <input
-          onInput$={$(async (event: KeyboardEvent) => {
-            const input = event.target as HTMLInputElement;
+          onInput$={$(async (ev, input) => {
             store.name = input.value;
           })}
           onChange$={$(async () => {

@@ -12,6 +12,11 @@ contributors:
   - mhevery
   - AnthonyPAlicea
   - zanettin
+  - mrhoodz
+  - thejackshelton
+  - hamatoyogi
+updated_at: '2023-06-25T19:43:33Z'
+created_at: '2023-03-20T23:45:13Z'
 ---
 
 # The dollar `$` sign
@@ -52,18 +57,18 @@ import { jsx as _jsx } from '@builder.io/qwik/jsx-runtime';
 import { qrl } from '@builder.io/qwik';
 export const App_component_AkbU84a8zes = () => {
   console.log('render');
-  return /*#__PURE__*/ _jsx('p', {
+  return /*#__PURE__*/ _jsx('button', {
     onClick$: qrl(
-      () => import('./app_component_p_onclick_01pegc10cpw'),
-      'App_component_p_onClick_01pEgC10cpw'
+      () => import('./app_component_button_onclick_01pegc10cpw'),
+      'App_component_button_onClick_01pEgC10cpw'
     ),
     children: 'Hello Qwik',
   });
 };
 ```
 
-```js title="app_component_p_onclick_01pegc10cpw.js"
-export const App_component_p_onClick_01pEgC10cpw = () => console.log('hello');
+```js title="app_component_button_onclick_01pegc10cpw.js"
+export const App_component_button_onClick_01pEgC10cpw = () => console.log('hello');
 ```
 
 ## Rules
@@ -257,6 +262,8 @@ The original file:
 ```tsx
 const MyComp = component(qrl('./chunk-a.js', 'MyComp_onMount'));
 ```
+
+and a chunk
 
 ```tsx title="chunk-a.js"
 export const MyComp_onMount = () => {

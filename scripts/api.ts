@@ -1,17 +1,14 @@
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
-import { readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { generateApiMarkdownDocs } from './api-docs';
-import { type BuildConfig, panic } from './util';
+import { generateQwikApiMarkdownDocs, generateQwikCityApiMarkdownDocs } from './api-docs';
+import { type BuildConfig, panic, copyFile, ensureDir } from './util';
 
 /**
  * Create each submodule's bundled dts file, and ensure the public API has not changed for a
  * production build.
  */
-export async function apiExtractor(config: BuildConfig) {
-  const apiJsonInputDir = join(config.rootDir, 'dist-dev', 'api');
-  rmSync(apiJsonInputDir, { recursive: true, force: true });
-
+export async function apiExtractorQwik(config: BuildConfig) {
   // core
   // Run the api extractor for each of the submodules
   createTypesApi(
@@ -20,11 +17,21 @@ export async function apiExtractor(config: BuildConfig) {
     join(config.distQwikPkgDir, 'core.d.ts'),
     '.'
   );
-  createTypesApi(
-    config,
-    join(config.srcQwikDir, 'jsx-runtime'),
+  writeFileSync(
+    join(config.distQwikPkgDir, 'index.d.ts'),
+    `// re-export to make TS happy when not using nodenext import resolution\nexport * from './core';`
+  );
+  // Special case for jsx-runtime:
+  // It only re-exports JSX. Don't duplicate the types
+  const jsxContent = readFileSync(join(config.srcQwikDir, 'jsx-runtime.ts'), 'utf-8');
+  writeFileSync(
     join(config.distQwikPkgDir, 'jsx-runtime.d.ts'),
-    '.'
+    `// re-export to make TS happy when not using nodenext import resolution\n${jsxContent}`
+  );
+  ensureDir(join(config.distQwikPkgDir, 'jsx-runtime'));
+  writeFileSync(
+    join(config.distQwikPkgDir, 'jsx-runtime', 'index.d.ts'),
+    `// re-export to make TS happy when not using nodenext import resolution\nexport * from '../jsx-runtime';`
   );
   createTypesApi(
     config,
@@ -52,6 +59,13 @@ export async function apiExtractor(config: BuildConfig) {
   );
   generateServerReferenceModules(config);
 
+  const apiJsonInputDir = join(config.rootDir, 'dist-dev', 'api');
+  await generateQwikApiMarkdownDocs(config, apiJsonInputDir);
+
+  console.log('🥶', 'qwik d.ts API files generated');
+}
+
+export async function apiExtractorQwikCity(config: BuildConfig) {
   // qwik-city
   createTypesApi(
     config,
@@ -133,6 +147,11 @@ export async function apiExtractor(config: BuildConfig) {
   );
   createTypesApi(
     config,
+    join(config.packagesDir, 'qwik-city', 'middleware', 'aws-lambda'),
+    join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'aws-lambda', 'index.d.ts')
+  );
+  createTypesApi(
+    config,
     join(config.packagesDir, 'qwik-city', 'middleware', 'cloudflare-pages'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'cloudflare-pages', 'index.d.ts')
   );
@@ -178,9 +197,10 @@ export async function apiExtractor(config: BuildConfig) {
   );
   generateQwikCityReferenceModules(config);
 
-  await generateApiMarkdownDocs(config, apiJsonInputDir);
+  const apiJsonInputDir = join(config.rootDir, 'dist-dev', 'api');
+  await generateQwikCityApiMarkdownDocs(config, apiJsonInputDir);
 
-  console.log('🥶', 'submodule d.ts API files generated');
+  console.log('🥶', 'qwik-city d.ts API files generated');
 }
 
 function createTypesApi(
@@ -223,28 +243,10 @@ function createTypesApi(
 }
 
 function generateQwikCityReferenceModules(config: BuildConfig) {
-  // @builder.io/qwik-city/server-modules.d.ts
-  const referenceDts = `
-declare module '@qwik-city-plan' {
-  export const routes: any[];
-  export const menus: any[];
-  export const trailingSlash: boolean;
-  export const basePathname: string;
-  export const cacheModules: boolean;
-  const defaultExport: {
-    routes: any[];
-    menus: any[];
-    trailingSlash: boolean;
-    basePathname: string;
-    cacheModules: boolean;
-  };
-  export default defaultExport;
-}
-`;
   const srcModulesPath = join(config.packagesDir, 'qwik-city', 'lib');
 
   const destModulesPath = join(srcModulesPath, 'modules.d.ts');
-  writeFileSync(destModulesPath, referenceDts);
+  copyFile(join(config.packagesDir, 'qwik-city', 'modules.d.ts'), destModulesPath);
 
   // manually prepend the ts reference since api extractor removes it
   const prependReferenceDts = `/// <reference path="./modules.d.ts" />\n\n`;
@@ -273,6 +275,11 @@ declare module '*.mdx' {
   export const frontmatter: Record<string, any>;
   export default node;
 }
+// SVG ?jsx
+declare module '*.svg?jsx' {
+  const Cmp: import('./core').FunctionComponent<import('./core').QwikIntrinsicElements['svg']>
+  export default Cmp;
+}
 // Image ?jsx
 declare module '*?jsx' {
   const Cmp: import('./core').FunctionComponent<Omit<import('./core').QwikIntrinsicElements['img'], 'src' | 'width' | 'height' | 'srcSet'>>
@@ -281,7 +288,6 @@ declare module '*?jsx' {
   export const height: number;
   export const srcSet: string;
 }
-
 // Image &jsx
 declare module '*&jsx' {
   const Cmp: import('./core').FunctionComponent<Omit<import('./core').QwikIntrinsicElements['img'], 'src' | 'width' | 'height' | 'srcSet'>>
@@ -314,9 +320,6 @@ function fixDtsContent(config: BuildConfig, srcPath: string, relativePath?: stri
   if (relativePath) {
     dts = dts.replace(/'@builder\.io\/qwik(.*)'/g, `'${relativePath}$1'`);
   }
-
-  // for some reason api-extractor is adding this in  ¯\_(ツ)_/¯
-  dts = dts.replace('{};', '');
 
   // replace QWIK_VERSION with the actual version number, useful for debugging
   return dts.replace(/QWIK_VERSION/g, config.distVersion);

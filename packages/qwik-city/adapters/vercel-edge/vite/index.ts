@@ -17,10 +17,13 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
         config.build?.outDir || join('.vercel', 'output', 'functions', '_qwik-city.func');
       return {
         resolve: {
-          conditions: ['webworker', 'worker'],
+          conditions:
+            opts.target === 'node'
+              ? ['node', 'import', 'module', 'browser', 'default']
+              : ['edge-light', 'webworker', 'worker', 'browser', 'module', 'main'],
         },
         ssr: {
-          target: 'webworker',
+          target: opts.target === 'node' ? 'node' : 'webworker',
           noExternal: true,
         },
         build: {
@@ -127,6 +130,13 @@ export interface VercelEdgeAdapterOptions extends ServerAdapterOptions {
    * server-side rendered response.
    */
   staticPaths?: string[];
+
+  /**
+   * Define the `target` property in the `ssr` object in the `vite.config.ts` file.
+   *
+   * Defaults to `webworker`.
+   */
+  target?: 'webworker' | 'node';
 }
 
 /** @public */

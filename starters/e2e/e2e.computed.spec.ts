@@ -65,6 +65,11 @@ test.describe("slot", () => {
       await button.click();
       await expect(result).toHaveText("class-2");
     });
+
+    test("dirty tasks", async ({ page }) => {
+      const result = page.locator("#issue-5738-result");
+      await expect(result).toHaveText("Calc: 2");
+    });
   }
 
   test.beforeEach(async ({ page }) => {

@@ -59,8 +59,8 @@ test('creates correct headers', () => {
     {
       key: 'j',
       value: '10',
-      options: { domain: 'https://qwik.builder.io' },
-      expect: 'j=10; Domain=https://qwik.builder.io',
+      options: { domain: 'https://qwik.dev' },
+      expect: 'j=10; Domain=https://qwik.dev',
     },
     {
       key: 'k',
@@ -80,6 +80,9 @@ test('creates correct headers', () => {
       options: { expires: new Date(0) },
       expect: 'm=13; Expires=Thu, 01 Jan 1970 00:00:00 GMT',
     },
+    { key: 'n', value: '14', options: { sameSite: 'Strict' }, expect: 'n=14; SameSite=Strict' },
+    { key: 'o', value: '15', options: { sameSite: 'Lax' }, expect: 'o=15; SameSite=Lax' },
+    { key: 'p', value: '16', options: { sameSite: 'None' }, expect: 'p=16; SameSite=None' },
   ];
   const cookie = new Cookie('');
   const expect = data.map(({ expect }) => expect);

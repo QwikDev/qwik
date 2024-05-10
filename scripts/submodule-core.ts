@@ -148,7 +148,9 @@ async function submoduleCoreProd(config: BuildConfig) {
           if (indx !== -1) {
             throw new Error(
               `"core.min.mjs" should not have any global references, and should have been removed for a production minified build\n` +
-                esmCleanCode.substring(indx, indx + 20)
+                esmCleanCode.substring(indx, indx + 10) +
+                '\n' +
+                esmCleanCode.substring(indx - 100, indx + 300)
             );
           }
           return {

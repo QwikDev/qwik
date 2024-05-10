@@ -1,3 +1,4 @@
+/// <reference types="bun" />
 import type {
   ServerRenderOptions,
   ServerRequestEvent,
@@ -53,7 +54,7 @@ class TextEncoderStream {
 
 /** @public */
 export function createQwikCity(opts: QwikCityBunOptions) {
-  (globalThis as any).TextEncoderStream = TextEncoderStream;
+  globalThis.TextEncoderStream ||= TextEncoderStream as any;
 
   const qwikSerializer = {
     _deserializeData,
@@ -75,7 +76,11 @@ export function createQwikCity(opts: QwikCityBunOptions) {
         mode: 'server',
         locale: undefined,
         url,
-        env: Bun.env,
+        env: {
+          get(key) {
+            return Bun.env[key];
+          },
+        },
         request,
         getWritableStream: (status, headers, cookies, resolve) => {
           const { readable, writable } = new TransformStream<Uint8Array>();

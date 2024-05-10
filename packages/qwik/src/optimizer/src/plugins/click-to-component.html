@@ -56,9 +56,8 @@
     const inspectAttribute = 'data-qwik-inspector';
     const hotKeys = globalThis.qwikdevtools.hotKeys;
     const srcDir = globalThis.qwikdevtools.srcDir;
-    document.querySelector(
-      '#qwik-inspector-info-popup'
-    ).textContent = `Click-to-Source: ${hotKeys.join(' + ')}`;
+    document.querySelector('#qwik-inspector-info-popup').textContent =
+      `Click-to-Source: ${hotKeys.join(' + ')}`;
     console.debug(
       '%c🔍 Qwik Click-To-Source',
       'background: #564CE0; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;',
@@ -133,8 +132,10 @@
           if (target) {
             event.preventDefault();
             const inspectUrl = target.getAttribute(inspectAttribute);
-            body.style.setProperty('cursor', 'progress');
-            qwikOpenInEditor(inspectUrl);
+            if (inspectUrl !== 'false') {
+              body.style.setProperty('cursor', 'progress');
+              qwikOpenInEditor(inspectUrl);
+            }
           }
         }
       },
@@ -142,10 +143,12 @@
     );
 
     globalThis.qwikOpenInEditor = function (path) {
-      const resolvedURL = new URL(path, srcDir);
+      const isWindows = navigator.platform.includes('Win');
+      const resolvedURL = new URL(path, isWindows ? origin : srcDir);
       if (resolvedURL.origin === origin) {
         const params = new URLSearchParams();
-        params.set('file', resolvedURL.pathname);
+        const prefix = isWindows ? srcDir : '';
+        params.set('file', prefix + resolvedURL.pathname);
         fetch('/__open-in-editor?' + params.toString());
       } else {
         location.href = resolvedURL.href;

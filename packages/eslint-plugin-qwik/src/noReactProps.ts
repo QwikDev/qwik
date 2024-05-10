@@ -16,7 +16,7 @@ export const noReactProps = {
     docs: {
       recommended: 'warn',
       description: 'Disallow usage of React-specific `className`/`htmlFor` props.',
-      url: 'https://qwik.builder.io/docs/advanced/eslint/#no-react-props',
+      url: 'https://qwik.dev/docs/advanced/eslint/#no-react-props',
     },
     fixable: 'code',
     schema: [],
@@ -25,8 +25,7 @@ export const noReactProps = {
     },
   },
   create(context) {
-    const modifyJsxSource = context
-      .getSourceCode()
+    const modifyJsxSource = context.sourceCode
       .getAllComments()
       .some((c) => c.value.includes('@jsxImportSource'));
     if (modifyJsxSource) {

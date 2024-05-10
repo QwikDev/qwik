@@ -1,7 +1,7 @@
 import {
   component$,
   type NoSerialize,
-  type PropFunction,
+  type QRL,
   useVisibleTask$,
   useContext,
   useSignal,
@@ -52,11 +52,11 @@ export const Editor = component$((props: EditorProps) => {
   });
 
   useTask$(async ({ track }) => {
-    track(() => props.input.version);
+    const v = track(() => props.input.version);
     track(() => store.editor);
 
-    if (props.input.version && store.editor) {
-      await addQwikLibs(props.input.version);
+    if (v && store.editor) {
+      await addQwikLibs(v);
     }
   });
 
@@ -78,7 +78,7 @@ export interface EditorProps {
   input: ReplAppInput;
   ariaLabel: string;
   lineNumbers: 'on' | 'off';
-  onChange$: PropFunction<(path: string, code: string) => void>;
+  onChange$: QRL<(path: string, code: string) => void>;
   wordWrap: 'on' | 'off';
   store: ReplStore;
 }

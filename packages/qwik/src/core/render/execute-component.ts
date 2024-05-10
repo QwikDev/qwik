@@ -1,9 +1,9 @@
 import { assertDefined } from '../error/assert';
 import { RenderEvent } from '../util/markers';
-import { safeCall } from '../util/promises';
+import { maybeThen, promiseAllLazy, safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../util/types';
-import type { JSXNode } from './jsx/types/jsx-node';
+import type { JSXNode, JSXOutput } from './jsx/types/jsx-node';
 import type { ClassList } from './jsx/types/jsx-qwik-attributes';
 import type { RenderContext } from './types';
 import { type ContainerState, intToStr } from '../container/container';
@@ -15,15 +15,20 @@ import { handleError } from './error-handling';
 import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, type QContext } from '../state/context';
 import { isSignal, SignalUnassignedException } from '../state/signal';
 import { isJSXNode } from './jsx/jsx-runtime';
+import { isUnitlessNumber } from '../util/unitless_number';
+import { isServerPlatform } from '../platform/platform';
+import { executeSSRTasks } from './dom/notify-render';
+import { logWarn } from '../util/log';
 
 export interface ExecuteComponentOutput {
-  node: JSXNode | null;
+  node: JSXOutput;
   rCtx: RenderContext;
 }
 
 export const executeComponent = (
   rCtx: RenderContext,
-  elCtx: QContext
+  elCtx: QContext,
+  attempt?: number
 ): ValueOrPromise<ExecuteComponentOutput> => {
   elCtx.$flags$ &= ~HOST_FLAG_DIRTY;
   elCtx.$flags$ |= HOST_FLAG_MOUNTED;
@@ -33,15 +38,15 @@ export const executeComponent = (
   const hostElement = elCtx.$element$;
   const componentQRL = elCtx.$componentQrl$;
   const props = elCtx.$props$;
-  const newCtx = pushRenderContext(rCtx);
   const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, RenderEvent);
-  const waitOn = (iCtx.$waitOn$ = []);
-  assertDefined(componentQRL, `render: host element to render must has a $renderQrl$:`, elCtx);
-  assertDefined(props, `render: host element to render must has defined props`, elCtx);
+  const waitOn: Promise<unknown>[] = (iCtx.$waitOn$ = []);
+  assertDefined(componentQRL, `render: host element to render must have a $renderQrl$:`, elCtx);
+  assertDefined(props, `render: host element to render must have defined props`, elCtx);
 
   // Set component context
+  const newCtx = pushRenderContext(rCtx);
   newCtx.$cmpCtx$ = elCtx;
-  newCtx.$slotCtx$ = null;
+  newCtx.$slotCtx$ = undefined;
 
   // Invoke render hook
   iCtx.$subscriber$ = [0, hostElement];
@@ -54,30 +59,39 @@ export const executeComponent = (
   return safeCall(
     () => componentFn(props),
     (jsxNode) => {
-      if (waitOn.length > 0) {
-        return Promise.all(waitOn).then(() => {
+      return maybeThen(
+        isServerPlatform()
+          ? maybeThen(promiseAllLazy(waitOn), () =>
+              // Run dirty tasks before SSR output is generated.
+              maybeThen(executeSSRTasks(rCtx.$static$.$containerState$, rCtx), () =>
+                promiseAllLazy(waitOn)
+              )
+            )
+          : promiseAllLazy(waitOn),
+        () => {
           if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
-            return executeComponent(rCtx, elCtx);
+            if (attempt && attempt > 100) {
+              logWarn(`Infinite loop detected. Element: ${elCtx.$componentQrl$?.$symbol$}`);
+            } else {
+              return executeComponent(rCtx, elCtx, attempt ? attempt + 1 : 1);
+            }
           }
           return {
             node: jsxNode,
             rCtx: newCtx,
           };
-        });
-      }
-      if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
-        return executeComponent(rCtx, elCtx);
-      }
-      return {
-        node: jsxNode,
-        rCtx: newCtx,
-      };
+        }
+      );
     },
     (err) => {
       if (err === SignalUnassignedException) {
-        return Promise.all(waitOn).then(() => {
-          return executeComponent(rCtx, elCtx);
-        });
+        if (attempt && attempt > 100) {
+          logWarn(`Infinite loop detected. Element: ${elCtx.$componentQrl$?.$symbol$}`);
+        } else {
+          return maybeThen(promiseAllLazy(waitOn), () => {
+            return executeComponent(rCtx, elCtx, attempt ? attempt + 1 : 1);
+          });
+        }
       }
       handleError(err, hostElement, rCtx);
       return {
@@ -106,7 +120,7 @@ export const createRenderContext = (
       $visited$: [],
     },
     $cmpCtx$: null,
-    $slotCtx$: null,
+    $slotCtx$: undefined,
   };
   seal(ctx);
   seal(ctx.$static$);
@@ -126,7 +140,7 @@ export const serializeClassWithHost = (
   obj: ClassList,
   hostCtx: QContext | undefined | null
 ): string => {
-  if (hostCtx && hostCtx.$scopeIds$) {
+  if (hostCtx?.$scopeIds$?.length) {
     return hostCtx.$scopeIds$.join(' ') + ' ' + serializeClass(obj);
   }
   return serializeClass(obj);
@@ -140,40 +154,25 @@ export const serializeClass = (obj: ClassList): string => {
     return obj.trim();
   }
 
+  const classes: string[] = [];
+
   if (isArray(obj)) {
-    return obj.reduce((result: string, o) => {
+    for (const o of obj) {
       const classList = serializeClass(o);
-      return classList ? (result ? `${result} ${classList}` : classList) : result;
-    }, '');
+      if (classList) {
+        classes.push(classList);
+      }
+    }
+  } else {
+    for (const [key, value] of Object.entries(obj)) {
+      if (value) {
+        classes.push(key.trim());
+      }
+    }
   }
 
-  return Object.entries(obj).reduce(
-    (result, [key, value]) => (value ? (result ? `${result} ${key.trim()}` : key.trim()) : result),
-    ''
-  );
+  return classes.join(' ');
 };
-
-// export const serializeClass = (obj: ClassList): string => {
-//   if (!obj) return '';
-//   if (isString(obj)) return obj.trim();
-
-//   let reduced = '';
-//   if (isArray(obj)) {
-//     for (const o of obj) {
-//       const classList = serializeClass(o);
-//       if (classList) {
-//         reduced += ' ' + classList.trim();
-//       }
-//     }
-//   } else {
-//     for (const key of Object.keys(obj)) {
-//       if (obj[key]) {
-//         reduced += ' ' + key;
-//       }
-//     }
-//   }
-//   return reduced.trim();
-// };
 
 export const stringifyStyle = (obj: any): string => {
   if (obj == null) {
@@ -188,8 +187,11 @@ export const stringifyStyle = (obj: any): string => {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
           const value = obj[key];
           if (value != null) {
-            const normalizedKey = key.startsWith('--') ? key : fromCamelToKebabCase(key);
-            chunks.push(normalizedKey + ':' + value);
+            if (key.startsWith('--')) {
+              chunks.push(key + ':' + value);
+            } else {
+              chunks.push(fromCamelToKebabCase(key) + ':' + setValueForStyle(key, value));
+            }
           }
         }
       }
@@ -197,6 +199,13 @@ export const stringifyStyle = (obj: any): string => {
     }
   }
   return String(obj);
+};
+
+const setValueForStyle = (styleName: string, value: any) => {
+  if (typeof value === 'number' && value !== 0 && !isUnitlessNumber(styleName)) {
+    return value + 'px';
+  }
+  return value;
 };
 
 export const getNextIndex = (ctx: RenderContext) => {

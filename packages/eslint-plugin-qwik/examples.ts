@@ -1,3 +1,8 @@
+/**
+ * @file This file is used as examples in https://qwik.dev/docs/advanced/eslint/
+ *
+ *   Call `pnpm eslint.update` to update the examples in the docs.
+ */
 import { jsxImgExamples } from './src/jsxImg';
 import { jsxKeyExamples } from './src/jsxKey';
 import { jsxNoScriptUrlExamples } from './src/jsxNoScriptUrl';

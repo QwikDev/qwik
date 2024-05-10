@@ -329,6 +329,22 @@ test.describe("slot", () => {
     });
   }
 
+  test("issue 5270", async ({ page }) => {
+    const button = page.locator("#issue-5270-button");
+    const div = page.locator("#issue-5270-div");
+    await expect(div).toBeHidden();
+    await button.click();
+    await expect(div).toBeVisible();
+    await expect(div).toHaveText("Ctx: hello");
+  });
+
+  test("issue 5506", async ({ page }) => {
+    const input = page.locator("#input-5506");
+    await expect(input).toBeChecked();
+    await input.click();
+    await expect(input).not.toBeChecked();
+  });
+
   test.beforeEach(async ({ page }) => {
     await page.goto("/e2e/slot");
     page.on("pageerror", (err) => expect(err).toEqual(undefined));

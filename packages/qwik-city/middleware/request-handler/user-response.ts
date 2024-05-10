@@ -13,6 +13,20 @@ export interface QwikCityRun<T> {
   completion: Promise<unknown>;
 }
 
+let asyncStore: AsyncStore | undefined;
+import('node:async_hooks')
+  .then((module) => {
+    const AsyncLocalStorage = module.AsyncLocalStorage;
+    asyncStore = new AsyncLocalStorage<RequestEventInternal>();
+    globalThis.qcAsyncRequestStore = asyncStore;
+  })
+  .catch((err) => {
+    console.warn(
+      'AsyncLocalStorage not available, continuing without it. This might impact concurrent server calls.',
+      err
+    );
+  });
+
 export function runQwikCity<T>(
   serverRequestEv: ServerRequestEvent<T>,
   loadedRoute: LoadedRoute | null,
@@ -37,7 +51,9 @@ export function runQwikCity<T>(
   return {
     response: responsePromise,
     requestEv,
-    completion: runNext(requestEv, resolve!),
+    completion: asyncStore
+      ? asyncStore.run(requestEv, runNext, requestEv, resolve!)
+      : runNext(requestEv, resolve!),
   };
 }
 

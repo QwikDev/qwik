@@ -26,6 +26,7 @@ import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
 import type { QRL, _deserializeData, _serializeData } from '@builder.io/qwik';
 import { getQwikCityServerData } from './response-page';
 import { RedirectMessage } from './redirect-handler';
+import { ServerError } from './error-handler';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
@@ -59,9 +60,11 @@ export const resolveRequestHandlers = (
       requestHandlers.unshift(csrfCheckMiddleware);
     }
     if (isPageRoute) {
-      if (method === 'POST') {
+      // server$
+      if (method === 'POST' || method === 'GET') {
         requestHandlers.push(pureServerFunction);
       }
+
       requestHandlers.push(fixTrailingSlash);
       requestHandlers.push(renderQData);
     }
@@ -177,7 +180,7 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
     if (method === 'POST') {
       const selectedAction = requestEv.query.get(QACTION_KEY);
       if (selectedAction) {
-        const serverActionsMap = (globalThis as any)._qwikActionsMap as
+        const serverActionsMap = globalThis._qwikActionsMap as
           | Map<string, ActionInternal>
           | undefined;
         const action =
@@ -220,11 +223,13 @@ export function actionsMiddleware(routeLoaders: LoaderInternal[], routeActions: 
             .then((res) => {
               if (res.success) {
                 if (isDev) {
-                  return measure(requestEv, loader.__qrl.getSymbol().split('_', 1)[0], () =>
-                    loader.__qrl.call(requestEv, requestEv as any)
+                  return measure<Promise<unknown>>(
+                    requestEv,
+                    loader.__qrl.getSymbol().split('_', 1)[0],
+                    () => loader.__qrl.call(requestEv, requestEv)
                   );
                 } else {
-                  return loader.__qrl.call(requestEv, requestEv as any);
+                  return loader.__qrl.call(requestEv, requestEv);
                 }
               } else {
                 return requestEv.fail(res.status ?? 500, res.error);
@@ -276,8 +281,8 @@ async function runValidators(
   return lastResult;
 }
 
-function isAsyncIterator(obj: any): obj is AsyncIterable<unknown> {
-  return obj && typeof obj === 'object' && Symbol.asyncIterator in obj;
+function isAsyncIterator(obj: unknown): obj is AsyncIterable<unknown> {
+  return obj ? typeof obj === 'object' && Symbol.asyncIterator in obj : false;
 }
 
 async function pureServerFunction(ev: RequestEvent) {
@@ -297,11 +302,18 @@ async function pureServerFunction(ev: RequestEvent) {
         let result: unknown;
         try {
           if (isDev) {
-            result = await measure(ev, `server_${qrl.getSymbol()}`, () => qrl.apply(ev, args));
+            result = await measure(ev, `server_${qrl.getSymbol()}`, () =>
+              (qrl as Function).apply(ev, args)
+            );
           } else {
-            result = await qrl.apply(ev, args);
+            result = await (qrl as Function).apply(ev, args);
           }
         } catch (err) {
+          if (err instanceof ServerError) {
+            ev.headers.set('Content-Type', 'application/qwik-json');
+            ev.send(err.status, await qwikSerializer._serializeData(err.data, true));
+            return;
+          }
           ev.headers.set('Content-Type', 'application/qwik-json');
           ev.send(500, await qwikSerializer._serializeData(err, true));
           return;
@@ -377,10 +389,20 @@ export function isLastModulePageRoute(routeModules: RouteModule[]) {
 }
 
 export function getPathname(url: URL, trailingSlash: boolean | undefined) {
+  url = new URL(url);
   if (url.pathname.endsWith(QDATA_JSON)) {
-    return url.pathname.slice(0, -QDATA_JSON.length + (trailingSlash ? 1 : 0)) + url.search;
+    url.pathname = url.pathname.slice(0, -QDATA_JSON.length);
   }
-  return url.pathname;
+  if (trailingSlash) {
+    if (!url.pathname.endsWith('/')) {
+      url.pathname += '/';
+    }
+  } else {
+    if (url.pathname.endsWith('/')) {
+      url.pathname = url.pathname.slice(0, -1);
+    }
+  }
+  return url.toString().substring(url.origin.length);
 }
 
 export const encoder = /*#__PURE__*/ new TextEncoder();
@@ -548,7 +570,7 @@ export async function measure<T>(
   requestEv: RequestEventBase,
   name: string,
   fn: () => T
-): Promise<T> {
+): Promise<Awaited<T>> {
   const start = now();
   try {
     return await fn();

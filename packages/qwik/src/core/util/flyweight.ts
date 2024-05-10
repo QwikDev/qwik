@@ -2,8 +2,8 @@
 
 import { qDev } from './qdev';
 
-export const EMPTY_ARRAY = [];
-export const EMPTY_OBJ = {};
+export const EMPTY_ARRAY = [] as any[];
+export const EMPTY_OBJ = {} as Record<string, any>;
 
 if (qDev) {
   Object.freeze(EMPTY_ARRAY);

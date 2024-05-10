@@ -17,8 +17,9 @@ import {
   SHOW_COMMENT,
   type SnapshotState,
   strToInt,
+  type QContainerElement,
 } from './container';
-import { findClose, VirtualElementImpl } from '../render/dom/virtual-element';
+import { getVirtualElement } from '../render/dom/virtual-element';
 import { getSubscriptionManager, parseSubscription, type Subscriptions } from '../state/common';
 import { createProxy, setObjectFlags } from '../state/store';
 import { qDev, qSerialize } from '../util/qdev';
@@ -27,7 +28,6 @@ import { isPrimitive } from '../render/dom/render-dom';
 import { getWrappingContainer } from '../use/use-core';
 import { getContext } from '../state/context';
 import { EMPTY_ARRAY } from '../util/flyweight';
-import { SVG_NS } from '../render/dom/visitor';
 
 export const resumeIfNeeded = (containerEl: Element): void => {
   const isResumed = directGetAttribute(containerEl, QContainerAttr);
@@ -111,7 +111,7 @@ export const resumeContainer = (containerEl: Element) => {
     }
   }
 
-  const inlinedFunctions = getQwikInlinedFuncs(parentJSON);
+  const inlinedFunctions = getQwikInlinedFuncs(containerEl);
   const containerState = _getContainerState(containerEl);
 
   // Collect all elements
@@ -190,14 +190,9 @@ export const resumeContainer = (containerEl: Element) => {
           finalized.set(id, undefined);
           return undefined;
         }
-        const close = findClose(rawElement);
-        const virtual = new VirtualElementImpl(
-          rawElement,
-          close,
-          rawElement.parentElement?.namespaceURI === SVG_NS
-        );
+        const virtual = getVirtualElement(rawElement);
         finalized.set(id, virtual);
-        getContext(virtual, containerState);
+        getContext(virtual!, containerState);
         return virtual;
       } else if (isElement(rawElement)) {
         finalized.set(id, rawElement);
@@ -295,7 +290,7 @@ const reviveSubscriptions = (
   }
 };
 
-const reviveNestedObjects = (obj: any, getObject: GetObject, parser: Parser) => {
+const reviveNestedObjects = (obj: unknown, getObject: GetObject, parser: Parser) => {
   if (parser.fill(obj, getObject)) {
     return;
   }
@@ -303,26 +298,22 @@ const reviveNestedObjects = (obj: any, getObject: GetObject, parser: Parser) => 
   if (obj && typeof obj == 'object') {
     if (isArray(obj)) {
       for (let i = 0; i < obj.length; i++) {
-        obj[i] = getObject(obj[i]);
+        obj[i] = getObject(obj[i] as string);
       }
     } else if (isSerializableObject(obj)) {
       for (const key in obj) {
-        obj[key] = getObject(obj[key]);
+        obj[key] = getObject(obj[key] as string);
       }
     }
   }
 };
 
 const unescapeText = (str: string) => {
-  return str.replace(/\\x3C(\/?script)/g, '<$1');
+  return str.replace(/\\x3C(\/?script)/gi, '<$1');
 };
 
-interface ExtraScript extends HTMLScriptElement {
-  qFuncs?: Function[];
-}
-export const getQwikInlinedFuncs = (parentElm: Element): Function[] => {
-  const elm = getQwikJSON(parentElm, 'q:func') as ExtraScript | undefined;
-  return elm?.qFuncs ?? EMPTY_ARRAY;
+export const getQwikInlinedFuncs = (containerEl: Element): Function[] => {
+  return (containerEl as QContainerElement).qFuncs ?? EMPTY_ARRAY;
 };
 
 export const getQwikJSON = (

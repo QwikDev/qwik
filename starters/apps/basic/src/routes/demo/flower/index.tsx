@@ -36,8 +36,8 @@ export default component$(() => {
         type="range"
         value={state.number}
         max={50}
-        onInput$={(ev) => {
-          state.number = (ev.target as HTMLInputElement).valueAsNumber;
+        onInput$={(ev, el) => {
+          state.number = el.valueAsNumber;
         }}
       />
       <div

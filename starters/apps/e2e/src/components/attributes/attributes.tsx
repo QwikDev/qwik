@@ -134,8 +134,8 @@ export const AttributesChild = component$<{ v: number }>(({ v }) => {
               data-stuff={"stuff: " + state.stuff}
               tabIndex={-1}
               title={title.value}
-              onInput$={(ev) => {
-                input.value = (ev.target as any).value;
+              onInput$={(ev, el) => {
+                input.value = el.value;
               }}
             />
             <svg

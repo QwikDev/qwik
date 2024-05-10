@@ -27,6 +27,15 @@ contributors:
   - mhevery
   - wtlin1228
   - ilteoood
+  - pipisso
+  - ThatJSGuy
+  - mrhoodz
+  - moinulmoin
+  - brkyurun
+  - PatrickJS
+  - maiieul
+updated_at: '2023-09-15T18:58:36Z'
+created_at: '2023-03-20T23:45:13Z'
 ---
 
 # FAQ
@@ -37,7 +46,7 @@ Yes, and I am very funny too! [follow me](https://twitter.com/QwikDev)
 
 ## Why is it called Qwik?
 
-Originally it was called _qoot_, but we thought it would be too hard to search for. One friend of ours, [@patrickjs\_\_](https://twitter.com/PatrickJS__), came up with Qwik and after an internal poll at [builder.io](https://www.builder.io/), we changed it!
+Originally it was called _qoot_, but we thought it would be too hard to search for. One community member, [@PatrickJS\_\_](https://twitter.com/PatrickJS__), came up with _Qwik_ and after an internal poll at [builder.io](https://www.builder.io/), we changed it!
 
 ## How is Qwik different from other frameworks?
 
@@ -109,23 +118,29 @@ export const App_component_p_onClick_01pEgC10cpw = () => console.log('hello');
 
 > Note: The `$` is not related to `jQuery`, Svelte or any other framework.
 
-## Does Qwik download JS when the user interacts?
+## Isn't requesting JS on user interaction slow?
 
-Nope. In production, Qwik uses a lot of information generated during SSR (Server-Side Rendering) to start [pre-populating the cache](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx) with only the bits of interactivity available on the current page as soon as possible. This way, when the user clicks or interacts, the JS is already in the cache.
+Only if you _download_ it on user interaction. Instead, Qwik _prefetches_ the current page's JS modules in a background thread through the [service workers](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers) and _retrieves_ those modules from the browser's [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache) when the user interacts with the application.
 
-## If Qwik still requests the JS, then what's the difference?
+This strategy is called [Speculative Module Fetching](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx), and it is enabled by Resumability. Hydration frameworks must eagerly download and execute the code on page load to retrieve the event handlers, and therefore can't take advantage of speculative module fetching.
 
-Pre-populating the cache is not the same as parsing and executing JS, and Qwik does not execute JS until the user interacts.
+## How does Qwik know what to prefetch, and in which order?
 
-In addition, [Speculative Module Fetching](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx) enables Qwik to prioritize the important parts of interactivity before the less important parts.
+In production, Qwik uses a lot of information generated during SSR (Server-Side Rendering) to start pre-populating the cache as soon as possible, with only the bits of interactivity available on the current page. This way, when the user clicks or interacts, the JS is already in the cache.
+
+In addition, [Qwik insights](../../labs/insights/index.mdx) can be used to prioritize the important parts of interactivity before the less important parts.
 
 For example, the "*Buy Now*" button is more important than the "*Add to Cart*" button, so Qwik will prefetch the "*Buy Now*" button first, and then the "*Add to Cart*" button.
 
-Qwik does not need to prefetch everything to start running, while other frameworks do need to download the whole critical path before they can start running because of [hydration](https://www.builder.io/blog/hydration-is-pure-overhead).
-
 ## Are Qwik apps slow on slow networks?
 
-Not at all! Thanks to [Speculative Module Fetching](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx) Qwik apps are not more affected by slow networks than other frameworks. In fact, because of the fine-grained bundling and resumability, Qwik apps can become interactive with much less JS, effectively making them faster on slow networks.
+Quite the opposite.
+
+Qwik does not need to prefetch everything to start running, while other frameworks do need to download the whole critical path to become interactive because of [hydration](https://www.builder.io/blog/hydration-is-pure-overhead).
+
+In fact, thanks to Qwik's ability to [reduce network waterfalls](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx#reducing-network-waterfalls), it is likely that the requested modules have already been downloaded and stored in the browser's cache at the time of interaction. And even if they haven't yet been cached, Qwik can [avoid duplicating the requests](../../(qwikcity)/advanced/speculative-module-fetching/index.mdx#avoiding-duplicate-requests) and can instead keep fetching the modules that are being requested to start executing them as soon as possible. 
+
+As a result, Qwik apps get to be responsive much faster, especially on slow networks.
 
 ## Does Qwik generate too many small files?
 
@@ -142,13 +157,7 @@ Notice that JSX is not React. In fact, JSX is only syntax without semantics. We 
 - **Similar to HTML**: JSX is visually and conceptually similar to HTML, a tree. Other template systems like _html templates_ (lit-html) are not trees but arrays of tokens, making it harder to build on top and transform.
 - **Popular**: By any margin, JSX is the most widely used template syntax in the world.
 
-## Does Qwik use vDOM (Virtual DOM)?
-
-The answer is somewhere in between:
-
-You can think of it as a spectrum:
-- On one extreme is React which uses vDOM for everything all the time. (Good argument can be made that [vDOM is slow](https://svelte.dev/blog/virtual-dom-is-pure-overhead).)
-- On the other extreme is SolidJS which does not use vDOM at all. (Resulting in a very impressive performance.)
+## Does Qwik use a vDOM (Virtual DOM)?
 
 Qwik uses vDOM only sometimes, and other times it does what SolidJS does (direct DOM update.)
 
@@ -186,9 +195,15 @@ The big thing to understand (and the reason vDOM is not a performance problem in
 
 > In short, Qwik uses vDOM, but significantly less than React in comparable situations.
 
-### Why use vDOM despite its negative reputation?
-1. Because vDOM has attractive DX properties, especially when you need dynamic components. 
-2. Because non-vDOM solution would require executing code at least once on startup to learn about the component structure. (Something which Qwik explicitly avoids.)
+### Why use a vDOM despite its negative reputation?
+
+The question of whether or not to use a vDOM can be seen as a spectrum:
+- On one extreme is React which uses vDOM for everything all the time. (Good argument can be made that [vDOM is slow](https://svelte.dev/blog/virtual-dom-is-pure-overhead).)
+- On the other extreme is SolidJS which does not use vDOM at all. (Resulting in a very impressive performance.)
+
+Qwik on the other hand uses a vDOM sparingly for two reasons:
+1. Because non-vDOM solution would require executing code at least once on startup to learn about the component structure. (Something which Qwik explicitly avoids.)
+2. Because vDOM has attractive DX properties, especially when you need dynamic components. 
 
 For example:
 
@@ -203,7 +218,7 @@ export const DynamicExample = component$(() => {
 ```
 The above code `<Component/>` is super easy to understand. We are dynamically choosing a component to place there. But in [Solid](https://www.solidjs.com/docs/latest/api#dynamic), [Svelte](https://svelte.dev/tutorial/svelte-component), [Vue](https://v2.vuejs.org/v2/guide/components-dynamic-async.html), and [Angular](https://angular.io/api/common/NgTemplateOutlet), this gets complex (see links).
 
-We have the best of both worlds by using vDOM sparingly. During creation, we employ SSR, and most client updates are non-structural. When structural updates are necessary, they are localized to the specific component without affecting its children, thus containing any potential slowdown caused by vDOM.
+We have the best of both worlds by using a vDOM sparingly. During creation, we employ SSR, and most client updates are non-structural. When structural updates are necessary, they are localized to the specific component without affecting its children, thus containing any potential slowdown caused by vDOM.
 
 
 ## Is there a Router for Qwik?
@@ -263,11 +278,15 @@ We think resumability scales without the negative trade-offs of partial hydratio
 
 ## In which languages is Qwik written?
 
-Most of Qwik is written in TypeScript, a superset of JavaScript that adds optional static typing and other features. However, the Qwik compiler (or optimizer) is written in Rust, a language that is very fast and memory efficient.
+Most of Qwik is written in [TypeScript](https://www.typescriptlang.org/), a superset of JavaScript that adds optional static typing and other features. However, the Qwik compiler (or optimizer) is written in Rust, a language that is very fast and memory efficient.
 
 ## Does Qwik have a community?
 
-Yes! there is a growing community of Qwik developers at [Discord](https://qwik.builder.io/chat) and [GitHub](https://github.com/BuilderIO/qwik). They are making amazing contributions to the framework, building sites at scale, and helping each other. [Join us](https://qwik.builder.io/chat).
+Yes! there is a growing community of Qwik developers at [Discord](https://qwik.dev/chat) and [GitHub](https://github.com/QwikDev/qwik). They are making amazing contributions to the framework, building sites at scale, and helping each other. [Join us](https://qwik.dev/chat).
+
+## Is Qwik an "Alex Russell Approved" framework?
+
+Yes! Alex Russell ([@slightlylate](https://twitter.com/slightlylate)), known for his contributions to PWAs, W3C TAG, WC, TC39 & ES6, Chrome Frame, Dojo, and more, is often highly critical of JavaScript frameworks. Nonetheless, [he approves of Qwik](https://infrequently.org/2023/02/the-market-for-lemons/#fn-alex-approved-1).
 
 ## Is Qwik production ready?
 
@@ -281,11 +300,11 @@ False. Qwik serializes only the data that is needed for the current page. If a p
 
 ## Who builds Qwik?
 
-An amazing team of contributors around the world living in [Discord](https://qwik.builder.io/chat), and a few full time developers at [Builder.io](https://www.builder.io/): [Misko](https://twitter.com/mhevery), [Adam](https://twitter.com/adamdbradley) and [Manu Almeida](https://twitter.com/manucorporat).
+An amazing team of contributors around the world living in [Discord](https://qwik.dev/chat), and a few full time developers at [Builder.io](https://www.builder.io/): [Misko](https://twitter.com/mhevery), [Adam](https://twitter.com/adamdbradley) and [Manu Almeida](https://twitter.com/manucorporat).
 
 ## Is Qwik open source?
 
-Yes, [MIT](https://github.com/BuilderIO/qwik/blob/main/LICENSE) and [dependency-free](https://github.com/BuilderIO/qwik/blob/main/packages/qwik/package.json), installing Qwik will not bloat your node_modules nor your lawyers.
+Yes, [MIT](https://github.com/QwikDev/qwik/blob/main/LICENSE) and [dependency-free](https://github.com/QwikDev/qwik/blob/main/packages/qwik/package.json), installing Qwik will not bloat your node_modules nor your lawyers.
 
 ## Does Qwik have any downsides?
 

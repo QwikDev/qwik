@@ -15,7 +15,13 @@ import { setServerPlatform } from '@builder.io/qwik/server';
 
 /** @public */
 export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
-  (globalThis as any).TextEncoderStream = TextEncoderStream;
+  try {
+    // https://developers.cloudflare.com/workers/configuration/compatibility-dates/#streams-constructors
+    // this will throw if CF compatibility_date < 2022-11-30
+    new globalThis.TextEncoderStream();
+  } catch (e) {
+    globalThis.TextEncoderStream = TextEncoderStream as any;
+  }
   const qwikSerializer = {
     _deserializeData,
     _serializeData,

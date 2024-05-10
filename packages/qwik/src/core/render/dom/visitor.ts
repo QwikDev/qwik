@@ -1,7 +1,5 @@
-import { ELEMENT_ID, OnRenderProp, QSlot, QSlotRef, QSlotS, QStyle } from '../../util/markers';
-import { isOnProp, PREVENT_DEFAULT, setEvent } from '../../state/listeners';
-import type { ValueOrPromise } from '../../util/types';
-import { isPromise, promiseAll, promiseAllLazy, maybeThen } from '../../util/promises';
+import type { OnRenderFn } from '../../component/component.public';
+import { getEventName, setRef, type ContainerState } from '../../container/container';
 import {
   assertDefined,
   assertElement,
@@ -10,20 +8,14 @@ import {
   assertQwikElement,
   assertTrue,
 } from '../../error/assert';
-import { logWarn } from '../../util/log';
-import { qDev, qInspector, qTest } from '../../util/qdev';
-import type { OnRenderFn } from '../../component/component.public';
-import { directGetAttribute, directSetAttribute } from '../fast-calls';
-import { SKIP_RENDER_TYPE } from '../jsx/jsx-runtime';
 import { assertQrl, isQrl } from '../../qrl/qrl-class';
+import { PREVENT_DEFAULT, isOnProp, setEvent } from '../../state/listeners';
 import { isElement, isQwikElement, isText, isVirtualElement } from '../../util/element';
-import {
-  getVdom,
-  type ProcessedJSXNode,
-  ProcessedJSXNodeImpl,
-  renderComponent,
-} from './render-dom';
-import type { RenderContext, RenderStaticContext } from '../types';
+import { logWarn } from '../../util/log';
+import { ELEMENT_ID, OnRenderProp, QSlot, QSlotRef, QSlotS, QStyle } from '../../util/markers';
+import { isPromise, maybeThen, promiseAll, promiseAllLazy } from '../../util/promises';
+import { qDev, qInspector, qTest } from '../../util/qdev';
+import type { ValueOrPromise } from '../../util/types';
 import {
   dangerouslySetInnerHTML,
   isAriaAttribute,
@@ -35,17 +27,47 @@ import {
   static_subtree,
   stringifyStyle,
 } from '../execute-component';
-import { type ContainerState, setRef, getEventName } from '../../container/container';
+import { directGetAttribute, directSetAttribute } from '../fast-calls';
+import { SKIP_RENDER_TYPE, isJSXNode } from '../jsx/jsx-runtime';
+import type { RenderContext, RenderStaticContext } from '../types';
 import {
+  ProcessedJSXNodeImpl,
+  getVdom,
+  processData,
+  renderComponent,
+  type ProcessedJSXNode,
+} from './render-dom';
+import {
+  VIRTUAL,
   getRootNode,
   newVirtualElement,
   processVirtualNodes,
   queryAllVirtualByAttribute,
   type QwikElement,
-  VIRTUAL,
   type VirtualElement,
 } from './virtual-element';
 
+import { isBrowser } from '@builder.io/qwik/build';
+import {
+  getProxyTarget,
+  getSubscriptionManager,
+  type SubscriberC,
+  type SubscriptionManager,
+} from '../../state/common';
+import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
+import {
+  HOST_FLAG_DIRTY,
+  HOST_FLAG_NEED_ATTACH_LISTENER,
+  cleanupContext,
+  createContext,
+  getContext,
+  tryGetContext,
+  type QContext,
+} from '../../state/context';
+import { isSignal } from '../../state/signal';
+import { ReadWriteProxyHandler, createPropsState, createProxy } from '../../state/store';
+import { trackSignal } from '../../use/use-core';
+import { EMPTY_OBJ } from '../../util/flyweight';
 import {
   appendChild,
   createElement,
@@ -61,26 +83,6 @@ import {
   setProperty,
   setPropertyPost,
 } from './operations';
-import { EMPTY_OBJ } from '../../util/flyweight';
-import { isSignal } from '../../state/signal';
-import {
-  cleanupContext,
-  createContext,
-  getContext,
-  HOST_FLAG_DIRTY,
-  HOST_FLAG_NEED_ATTACH_LISTENER,
-  type QContext,
-  tryGetContext,
-} from '../../state/context';
-import {
-  getSubscriptionManager,
-  getProxyTarget,
-  type SubscriptionManager,
-} from '../../state/common';
-import { createPropsState, createProxy, ReadWriteProxyHandler } from '../../state/store';
-import { _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
-import { trackSignal } from '../../use/use-core';
-import { isBrowser } from '@builder.io/qwik/build';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -215,6 +217,7 @@ export const diffChildren = (
         elmToMove = oldCh[idxInOld];
         if (elmToMove.$type$ !== newStartVnode.$type$) {
           const newElm = createElm(ctx, newStartVnode, flags, results);
+          // TO CHECK: should we not await these promises?
           maybeThen(newElm, (newElm) => {
             insertBefore(staticCtx, parentElm, newElm, oldStartVnode?.$elm$);
           });
@@ -394,6 +397,8 @@ export const diffVnode = (
     }
     setProperty(staticCtx, elm, 'data', newVnode.$text$);
     return;
+  } else if (tag === '#signal') {
+    return;
   }
   assertQwikElement(elm);
 
@@ -563,10 +568,6 @@ const renderContentProjection = (
         newFlags |= IS_SVG;
       }
 
-      // const oldVdom = getVdom(slotCtx.$element$);
-      // const slotRctx = pushRenderContext(rCtx);
-      // slotRctx.$slotCtx$ = slotCtx;
-      // setVdom(slotCtx.$element$, newVdom);
       const index = staticCtx.$addSlots$.findIndex((slot) => slot[0] === slotEl);
       if (index >= 0) {
         staticCtx.$addSlots$.splice(index, 1);
@@ -617,17 +618,19 @@ const getSlotCtx = (
   slotName: string,
   containerState: ContainerState
 ): QContext => {
+  // If a slot is known, render children inside
   const slotEl = slotMaps.slots[slotName];
   if (slotEl) {
     return getContext(slotEl, containerState);
   }
+  // Otherwise we park the children in a template
   const templateEl = slotMaps.templates[slotName];
   if (templateEl) {
     return getContext(templateEl, containerState);
   }
   const template = createTemplate(staticCtx.$doc$, slotName);
   const elCtx = createContext(template);
-  elCtx.$parent$ = hostCtx;
+  elCtx.$parentCtx$ = hostCtx;
   prepend(staticCtx, hostCtx.$element$, template);
   slotMaps.templates[slotName] = template;
   return elCtx;
@@ -637,7 +640,7 @@ const getSlotName = (node: ProcessedJSXNode): string => {
   return node.$props$[QSlot] ?? '';
 };
 
-const createElm = (
+export const createElm = (
   rCtx: RenderContext,
   vnode: ProcessedJSXNode,
   flags: number,
@@ -647,18 +650,48 @@ const createElm = (
   const doc = rCtx.$static$.$doc$;
   const currentComponent = rCtx.$cmpCtx$;
   if (tag === '#text') {
-    const signal = vnode.$signal$;
-    const elm = doc.createTextNode(vnode.$text$);
-    if (signal) {
-      assertDefined(currentComponent, 'signals can not be used outside components');
-      const subs =
-        flags & IS_IMMUTABLE
-          ? ([3, elm, signal, elm] as const)
-          : ([4, currentComponent.$element$, signal, elm] as const);
+    return (vnode.$elm$ = doc.createTextNode(vnode.$text$));
+  }
 
-      elm.data = vnode.$text$ = jsxToString(trackSignal(signal, subs));
+  if (tag === '#signal') {
+    const signal = vnode.$signal$!;
+    assertDefined(signal, 'expecting signal here');
+    assertDefined(currentComponent, 'signals can not be used outside components');
+    const signalValue = signal.value;
+    if (isJSXNode(signalValue)) {
+      // convert signal value to ProcessedJSXNode
+      const processedSignal = processData(signalValue);
+      if (isSignal(processedSignal)) {
+        throw new Error('NOT IMPLEMENTED: Promise');
+      } else if (Array.isArray(processedSignal)) {
+        throw new Error('NOT IMPLEMENTED: Array');
+      } else {
+        // crate elements
+        const elm = createElm(rCtx, processedSignal as ProcessedJSXNode, flags, promises);
+        // create subscription
+        trackSignal(
+          signal,
+          flags & IS_IMMUTABLE
+            ? ([3, elm, signal, elm] as SubscriberC)
+            : ([4, currentComponent.$element$, signal, elm] as SubscriberC)
+        );
+        // update the vNode for future diff.
+        return (vnode.$elm$ = elm);
+      }
+    } else {
+      // create element
+      const elm = doc.createTextNode(vnode.$text$);
+      elm.data = vnode.$text$ = jsxToString(signalValue);
+      // create subscription
+      trackSignal(
+        signal,
+        flags & IS_IMMUTABLE
+          ? ([3, elm, signal, elm] as SubscriberC)
+          : ([4, currentComponent.$element$, signal, elm] as SubscriberC)
+      );
+      // update the vNode for future diff.
+      return (vnode.$elm$ = elm);
     }
-    return (vnode.$elm$ = elm);
   }
 
   let elm: QwikElement;
@@ -686,8 +719,12 @@ const createElm = (
 
   vnode.$elm$ = elm;
   const elCtx = createContext(elm);
-  elCtx.$parent$ = rCtx.$cmpCtx$;
-  elCtx.$slotParent$ = rCtx.$slotCtx$;
+  if (rCtx.$slotCtx$) {
+    elCtx.$parentCtx$ = rCtx.$slotCtx$;
+    elCtx.$realParentCtx$ = rCtx.$cmpCtx$!;
+  } else {
+    elCtx.$parentCtx$ = rCtx.$cmpCtx$;
+  }
   if (!isVirtual) {
     if (qDev && qInspector) {
       const dev = vnode.$dev$;
@@ -700,11 +737,23 @@ const createElm = (
       }
     }
     if (vnode.$immutableProps$) {
-      setProperties(staticCtx, elCtx, currentComponent, vnode.$immutableProps$, isSvg, true);
+      const immProps =
+        props !== EMPTY_OBJ
+          ? Object.fromEntries(
+              Object.entries(vnode.$immutableProps$).map(([k, v]) => [
+                k,
+                v === _IMMUTABLE ? props[k] : v,
+              ])
+            )
+          : vnode.$immutableProps$;
+      setProperties(staticCtx, elCtx, currentComponent, immProps, isSvg, true);
     }
     if (props !== EMPTY_OBJ) {
       elCtx.$vdom$ = vnode;
-      vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent, props, isSvg, false);
+      const p = vnode.$immutableProps$
+        ? Object.fromEntries(Object.entries(props).filter(([k]) => !(k in vnode.$immutableProps$!)))
+        : props;
+      vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent, p, isSvg, false);
     }
     if (isSvg && tag === 'foreignObject') {
       isSvg = false;
@@ -889,15 +938,22 @@ const handleClass: PropHandler = (ctx, elm, newValue) => {
 
 const checkBeforeAssign: PropHandler = (ctx, elm, newValue, prop) => {
   if (prop in elm) {
-    if ((elm as any)[prop] !== newValue) {
-      if (elm.tagName === 'SELECT') {
+    // a selected <option> is different from a selected <option value> (innerText vs '')
+    if ((elm as any)[prop] !== newValue || (prop === 'value' && !elm.hasAttribute(prop))) {
+      if (
+        // we must set value last so that it adheres to min,max,step
+        prop === 'value' &&
+        // but we must also set options first so they are present before updating select
+        elm.tagName !== 'OPTION'
+      ) {
         setPropertyPost(ctx, elm, prop, newValue);
       } else {
         setProperty(ctx, elm, prop, newValue);
       }
     }
+    return true;
   }
-  return true;
+  return false;
 };
 
 const forceAttribute: PropHandler = (ctx, elm, newValue, prop) => {
@@ -917,6 +973,7 @@ const noop: PropHandler = () => {
 export const PROP_HANDLER_MAP: Record<string, PropHandler | undefined> = {
   style: handleStyle,
   class: handleClass,
+  className: handleClass,
   value: checkBeforeAssign,
   checked: checkBeforeAssign,
   href: forceAttribute,
@@ -1196,8 +1253,8 @@ export const registerQwikEvent = (prop: string) => {
   if (!qTest) {
     const eventName = getEventName(prop);
     try {
-      const qwikevents = ((globalThis as any).qwikevents ||= []);
-      qwikevents.push(eventName);
+      // This is managed by qwik-loader
+      ((globalThis as any).qwikevents ||= []).push(eventName);
     } catch (err) {
       logWarn(err);
     }

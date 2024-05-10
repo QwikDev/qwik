@@ -9,3 +9,14 @@ export const QObjectManagerSymbol = Symbol('proxy manager');
 export const _IMMUTABLE = Symbol('IMMUTABLE');
 
 export const _IMMUTABLE_PREFIX = '$$';
+
+/**
+ * @internal
+ * Key for the virtual element stored on qv comments
+ */
+export const VIRTUAL_SYMBOL = '__virtual';
+/**
+ * @internal
+ * Key for the `QContext` object stored on QwikElements
+ */
+export const Q_CTX = '_qc_';

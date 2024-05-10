@@ -106,7 +106,7 @@ export const processNode = (
   } else {
     throw qError(QError_invalidJsxNodeType, type);
   }
-  let convertedChildren: ProcessedJSXNode[] = EMPTY_ARRAY;
+  let convertedChildren = EMPTY_ARRAY as ProcessedJSXNode[];
   if (children != null) {
     return maybeThen(processData(children, invocationContext), (result) => {
       if (result !== undefined) {
@@ -145,7 +145,8 @@ export const wrapJSX = (
   element: QwikElement,
   input: ProcessedJSXNode[] | ProcessedJSXNode | undefined
 ) => {
-  const children = input === undefined ? EMPTY_ARRAY : isArray(input) ? input : [input];
+  const children: ProcessedJSXNode[] =
+    input === undefined ? EMPTY_ARRAY : isArray(input) ? input : [input];
   const node = new ProcessedJSXNodeImpl(':virtual', {}, null, children, 0, null);
   node.$elm$ = element;
   return node;
@@ -165,7 +166,7 @@ export const processData = (
   } else if (isJSXNode(node)) {
     return processNode(node, invocationContext);
   } else if (isSignal(node)) {
-    const newNode = new ProcessedJSXNodeImpl('#text', EMPTY_OBJ, null, EMPTY_ARRAY, 0, null);
+    const newNode = new ProcessedJSXNodeImpl('#signal', EMPTY_OBJ, null, EMPTY_ARRAY, 0, null);
     newNode.$signal$ = node;
     return newNode;
   } else if (isArray(node)) {
@@ -199,8 +200,15 @@ export const isPrimitive = (obj: any) => {
   return isString(obj) || typeof obj === 'number';
 };
 
+export type ProcessedJSXNodeType =
+  | '#text'
+  | ':virtual'
+  | ':signal'
+  | typeof SKIP_RENDER_TYPE
+  | string;
+
 export interface ProcessedJSXNode {
-  $type$: string;
+  $type$: ProcessedJSXNodeType;
   $id$: string;
   $props$: Record<string, any>;
   $immutableProps$: Record<string, any> | null;

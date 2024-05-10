@@ -5,7 +5,7 @@ import { runAddCommand } from './add/run-add-command';
 import { runNewCommand } from './new/run-new-command';
 import { runJokeCommand } from './joke/run-joke-command';
 import { note, panic, pmRunCmd, printHeader, bye } from './utils/utils';
-import { runBuildCommand } from './build/run-build-command';
+import { runBuildCommand } from './utils/run-build-command';
 import { intro, isCancel, select, confirm } from '@clack/prompts';
 
 const SPACE_TO_HINT = 18;
@@ -62,7 +62,6 @@ const COMMANDS = [
 ];
 
 export async function runCli() {
-  console.clear();
   printHeader();
 
   try {
@@ -151,8 +150,8 @@ async function printHelp(app: AppCommand) {
   if (isCancel(command)) {
     bye();
   }
-
-  await runCommand(Object.assign(app, { task: command as string }));
+  const args = (command as string).split(' ');
+  await runCommand(Object.assign(app, { task: args[0], args }));
 }
 
 function printVersion() {

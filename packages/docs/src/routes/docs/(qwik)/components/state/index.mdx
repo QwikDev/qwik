@@ -27,6 +27,15 @@ contributors:
   - sreeisalso
   - wmertens
   - nicvazquez
+  - mrhoodz
+  - eecopa
+  - fabian-hiller
+  - julianobrasil
+  - aivarsliepa
+  - Balastrong
+  - Jemsco
+updated_at: '2023-10-04T21:48:45Z'
+created_at: '2023-03-20T23:45:13Z'
 ---
 
 import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
@@ -75,12 +84,16 @@ Use `useStore(initialStateObject)` hook to create a reactive object. It takes an
 import { component$, useStore } from '@builder.io/qwik';
 
 export default component$(() => {
-  const state = useStore({ count: 0 });
+  const state = useStore({ count: 0, name: 'Qwik' });
 
   return (
     <>
       <button onClick$={() => state.count++}>Increment</button>
       <p>Count: {state.count}</p>
+      <input
+        value={state.name}
+        onInput$={(_, el) => (state.name = el.value)}
+      />
     </>
   );
 });
@@ -124,8 +137,8 @@ export default component$(() => {
         Add to list
       </button>
       <ul>
-        {store.list.map((item, index) => (
-          <li key={`items-${index}`}>{item}</li>
+        {store.list.map((item, key) => (
+          <li key={key}>{item}</li>
         ))}
       </ul>
     </>
@@ -147,7 +160,16 @@ const shallowStore = useStore(
   { deep: false }
 );
 ```
-
+> **Handling Dynamic Object Mutations**
+>
+> When dynamically manipulating object properties, such as deleting them while they are being rendered somewhere in the app, you may encounter issues.  This could happen if the component renders values dependent on an object's property that is currently being removed.  To prevent this situation, use optional chaining when accessing properties.  For example, if attempting to remove a property:
+> ```tsx
+> delete store.propertyName;
+> ```
+> Be sure to access this property cautiously in the componet by using optional chaining ( ?. ):
+> ```tsx
+> const propertyValue = store.propertyName?.value;
+> ```
 ### Methods
 
 To provide methods on the store, you must make them into QRLs and refer to the store with `this`, like so:
@@ -174,6 +196,8 @@ export default component$(() => {
 });
 ```
 
+> Do you know why you should use a regular `function(){}` instead of an arrow function in `useStore()`? This is because [arrow functions don't have their own bindings to `this`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions) in javascript. This means that if you try to access `this` using an arrow function, `this.count` could point to another object's `count` 😱.
+
 ## Computed state
 
 In Qwik there are two ways to create computed values, each with a different use case (in order of preference):
@@ -187,7 +211,7 @@ In addition to the two ways of creating computed values described above, there i
 
 ### `useComputed$()`
 
-Use `useComputed$` allows to memoize a value derived synchronously from other state.
+Use `useComputed$` to memoize a value derived synchronously from other state.
 
 It is similar to `memo` in other frameworks, since it will only recompute the value when one of the input signals changes.
 
@@ -219,7 +243,7 @@ export default component$(() => {
 
 Use `useResource$()` to create a computed value that is derived asynchronously. It's the asynchronous version of `useComputed$()`, which includes the `state` of the resource (loading, resolved, rejected) on top of the value.
 
-A common use case for `useResource$()` is to fetch data from an external API within the component itself, this means that the execution might happen in the server or the client.
+A common use of `useResource$()` is to fetch data from an external API within the component, which can occur either on the server or the client.
 
 The `useResource$` hook is meant to be used with `<Resource />`. The `<Resource />` component is a convenient way to render different UI based on the state of the resource.
 
@@ -240,7 +264,7 @@ export default component$(() => {
     // this means this code will run on the server and the browser
     track(() => prNumber.value);
     const response = await fetch(
-      `https://api.github.com/repos/BuilderIO/qwik/pulls/${prNumber.value}`
+      `https://api.github.com/repos/QwikDev/qwik/pulls/${prNumber.value}`
     );
     const data = await response.json();
     return data.title as string;
@@ -263,7 +287,7 @@ export default component$(() => {
 
 
 
-> **Note:** The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`). Often time it is desirable to start fetching the data on the server as part of the initial HTTP request before the component is rendered. Fetching data as part of SSR is a more common and preferred way of loading data and is done through [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) API instead. `useResource$` is more of a low-level API that is useful when you want to fetch data in the browser.
+> **Note:** The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`). Often times it is desirable to start fetching the data on the server as part of the initial HTTP request before the component is rendered. Fetching data as part of Server-Side Rendering (SSR) is a common and preferred method of data loading, typically handled by the [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) API. `useResource$` is more of a low-level API that is useful when you want to fetch data in the browser.
 >
 >
 > In many ways `useResource$` is similar to `useTask$`. The big differences are:
@@ -397,11 +421,7 @@ export default component$(() => {
       <div>
         <label>
           Enter your name, and I'll guess your age!
-          <input
-            onInput$={(e: Event) =>
-              (name.value = (e.target as HTMLInputElement).value)
-            }
-          />
+          <input onInput$={(ev, el) => (name.value = el.value)} />
         </label>
       </div>
       <Resource
@@ -506,11 +526,10 @@ export const Child = component$(() => {
 
 Qwik ensures that all application state is always serializable. This is important to ensure that Qwik applications have a [resumability](/docs/(qwik)/concepts/resumable/index.mdx) property.
 
-At times it is necessary to store data that can't be serialized, `noSerialize()` tells Qwik not even bother trying to serialize the marked value.
-
+Sometimes, it's necessary to store data that can't be serialized; `noSerialize()` instructs Qwik not to attempt serializing the marked value.
 For example a reference to a third-party library such as [Monaco editor](https://microsoft.github.io/monaco-editor/) will always need `noSerialize()`, as it is not serializable.
 
-If a value is marked as non-serializable then that value will not survive serialization events such as resuming the application on the client from server SSR. In such a situation the value will be set to `undefined` and it is up to the developer to re-initialize the value on the client.
+If a value is marked as non-serializable then that value will not survive serialization events such as resuming the application on the client from SSR. In this situation the value will be set to `undefined` and it is up to the developer to re-initialize the value on the client.
 
 <CodeSandbox src="/src/routes/demo/state/no-serialize/index.tsx" style={{ height: '8em' }}>
 ```tsx /noSerialize/

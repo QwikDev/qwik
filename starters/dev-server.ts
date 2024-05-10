@@ -1,6 +1,7 @@
 // DO NOT USE FOR PRODUCTION!!!
 // Internal Testing/Dev Server
 // DO NOT USE FOR PRODUCTION!!!
+
 /* eslint-disable no-console */
 
 import type { NextFunction, Request, Response } from "express";
@@ -18,8 +19,20 @@ import {
 import type { QwikManifest } from "@builder.io/qwik/optimizer";
 import type { Render, RenderToStreamOptions } from "@builder.io/qwik/server";
 import type { PackageJSON } from "../scripts/util";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { getErrorHtml } from "../packages/qwik-city/middleware/request-handler/error-handler";
+
+const isWindows = process.platform === "win32";
+
+// map the file path to a url for windows only
+const file = (filePath: string) => {
+  return isWindows ? pathToFileURL(filePath).toString() : filePath;
+};
+
+// Escape path for imports in windows
+const escapeChars = (filePath: string) => {
+  return isWindows ? filePath.replace(/\\/g, "\\\\") : filePath;
+};
 
 const app = express();
 const port = parseInt(process.argv[process.argv.length - 1], 10) || 3300;
@@ -31,14 +44,11 @@ const appNames = readdirSync(startersAppsDir).filter(
   (p) => statSync(join(startersAppsDir, p)).isDirectory() && p !== "base",
 );
 
-const packagesDir = resolve(__dirname, "..", "packages");
-const qwikDistDir = join(packagesDir, "qwik", "dist");
-const qwikDistMjs = join(qwikDistDir, "core.mjs");
-const qwikCityDistDir = join(packagesDir, "qwik-city", "lib");
-const qwikDistOptimizerPath = join(qwikDistDir, "optimizer.mjs");
-const qwikCityDistVite = join(qwikCityDistDir, "vite", "index.mjs");
-const qwikCityMjs = join(qwikCityDistDir, "index.qwik.mjs");
+const rootDir = resolve(__dirname, "..");
+const packagesDir = resolve(rootDir, "packages");
+const qwikCityMjs = join(packagesDir, "qwik-city", "lib", "index.qwik.mjs");
 
+/** Used when qwik-city server is enabled */
 const qwikCityVirtualEntry = "@city-ssr-entry";
 const entrySsrFileName = "entry.ssr.tsx";
 const qwikCityNotFoundPaths = "@qwik-city-not-found-paths";
@@ -94,9 +104,7 @@ async function buildApp(
   appName: string,
   enableCityServer: boolean,
 ) {
-  const optimizer: typeof import("@builder.io/qwik/optimizer") = await import(
-    qwikDistOptimizerPath
-  );
+  const optimizer = await import("@builder.io/qwik/optimizer");
   const appSrcDir = join(appDir, "src");
   const appDistDir = join(appDir, "dist");
   const appServerDir = join(appDir, "server");
@@ -127,7 +135,7 @@ async function buildApp(
         if (id.endsWith(qwikCityVirtualEntry)) {
           return `import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
 import qwikCityPlan from '@qwik-city-plan';
-import render from '${resolve(appSrcDir, "entry.ssr")}';
+import render from '${escapeChars(resolve(appSrcDir, "entry.ssr"))}';
 const { router, notFound } = createQwikCity({
   render,
   qwikCityPlan,
@@ -150,10 +158,19 @@ export {
         }
       },
     });
-    const qwikCityVite: typeof import("@builder.io/qwik-city/vite") =
-      await import(qwikCityDistVite);
+    const qwikCityVite = await import("@builder.io/qwik-city/vite");
 
-    plugins.push(qwikCityVite.qwikCity());
+    plugins.push(
+      qwikCityVite.qwikCity({
+        rewriteRoutes: [
+          {
+            paths: {
+              projects: "projekte",
+            },
+          },
+        ],
+      }),
+    );
   }
 
   const getInlineConf = (extra?: InlineConfig): InlineConfig => ({
@@ -165,20 +182,6 @@ export {
     resolve: {
       conditions: ["development"],
       mainFields: [],
-      alias: [
-        {
-          find: /^@builder\.io\/qwik-city/,
-          replacement: qwikCityDistDir,
-        },
-        {
-          find: /^@builder\.io\/qwik$/,
-          replacement: qwikDistMjs,
-        },
-        {
-          find: /^@builder\.io\/qwik/,
-          replacement: qwikDistDir,
-        },
-      ],
     },
   });
 
@@ -196,6 +199,12 @@ export {
       plugins: [
         ...plugins,
         optimizer.qwikVite({
+          /**
+           * normally qwik finds qwik-city via package.json but we don't want that
+           * because it causes it try try to lookup the special qwik city imports
+           * even when we're not actually importing qwik-city
+           */
+          disableVendorScan: true,
           vendorRoots: enableCityServer ? [qwikCityMjs] : [],
           entryStrategy: {
             type: "single",
@@ -255,7 +264,7 @@ async function cityApp(
 ) {
   const ssrPath = join(appDir, "server", `${qwikCityVirtualEntry}.js`);
 
-  const mod = await import(ssrPath);
+  const mod = await import(file(ssrPath));
   const router: any = mod.router;
   router(req, res, () => {
     mod.notFound(req, res, () => {
@@ -272,7 +281,7 @@ async function ssrApp(
   manifest: QwikManifest,
 ) {
   const ssrPath = join(appDir, "server", "entry.ssr.js");
-  const mod = await import(ssrPath);
+  const mod = await import(file(ssrPath));
   const render: Render = mod.default ?? mod.render;
 
   // ssr the document

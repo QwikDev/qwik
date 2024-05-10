@@ -1,7 +1,7 @@
 import { qError, QError_invalidRefValue } from '../error/error';
 import type { ResourceReturnInternal, SubscriberEffect } from '../use/use-task';
 import { seal } from '../util/qdev';
-import { isFunction, isObject } from '../util/types';
+import { isFunction } from '../util/types';
 import type { QRL } from '../qrl/qrl.public';
 import { fromKebabToCamelCase } from '../util/case';
 import { QContainerAttr } from '../util/markers';
@@ -11,9 +11,10 @@ import {
   type SubscriberSignal,
   type SubscriptionManager,
 } from '../state/common';
-import type { Signal } from '../state/signal';
+import { isSignal, type Signal, type SignalImpl } from '../state/signal';
 import { directGetAttribute } from '../render/fast-calls';
 import type { QContext } from '../state/context';
+import { isServerPlatform } from '../platform/platform';
 
 export type GetObject = (id: string) => any;
 export type GetObjID = (obj: any) => string | null;
@@ -90,20 +91,21 @@ export interface ContainerState {
   $styleMoved$: boolean;
   readonly $styleIds$: Set<string>;
   readonly $events$: Set<string>;
+  readonly $inlineFns$: Map<string, number>;
 }
 
 const CONTAINER_STATE = Symbol('ContainerState');
 
 /** @internal */
 export const _getContainerState = (containerEl: Element): ContainerState => {
-  let set = (containerEl as any)[CONTAINER_STATE] as ContainerState;
-  if (!set) {
-    (containerEl as any)[CONTAINER_STATE] = set = createContainerState(
+  let state = (containerEl as any)[CONTAINER_STATE] as ContainerState;
+  if (!state) {
+    (containerEl as any)[CONTAINER_STATE] = state = createContainerState(
       containerEl,
       directGetAttribute(containerEl, 'q:base') ?? '/'
     );
   }
-  return set;
+  return state;
 };
 
 export const createContainerState = (containerEl: Element, base: string) => {
@@ -132,6 +134,7 @@ export const createContainerState = (containerEl: Element, base: string) => {
     $hostsRendering$: undefined,
     $pauseCtx$: undefined,
     $subsManager$: null as any,
+    $inlineFns$: new Map(),
   };
   seal(containerState);
   containerState.$subsManager$ = createSubscriptionManager(containerState);
@@ -145,8 +148,12 @@ export const removeContainerState = (containerEl: Element) => {
 export const setRef = (value: any, elm: Element) => {
   if (isFunction(value)) {
     return value(elm);
-  } else if (isObject(value)) {
-    if ('value' in value) {
+  } else if (isSignal(value)) {
+    if (isServerPlatform()) {
+      // During SSR, assigning a ref should not cause reactivity because
+      // the expectation is that the ref is filled in on the client
+      return ((value as SignalImpl<Element>).untrackedValue = elm);
+    } else {
       return ((value as Signal<Element>).value = elm);
     }
   }
@@ -179,3 +186,8 @@ export const getEventName = (attribute: string) => {
     return attribute;
   }
 };
+
+export interface QContainerElement {
+  qFuncs?: Function[];
+  _qwikjson_?: any;
+}

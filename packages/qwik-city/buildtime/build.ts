@@ -104,7 +104,10 @@ function rewriteRoutes(ctx: BuildContext, resolved: ReturnType<typeof resolveSou
         const translatedPath = translatedPathParts.join('/');
         const translatedRoute = translatedRouteParts.join('/');
 
-        resolved.routes.push({
+        // push the rewritten route after the original route
+        const originalRouteIndex = resolved.routes.indexOf(rewriteRoute);
+
+        resolved.routes.splice(originalRouteIndex + 1, 0, {
           ...rewriteRoute,
           id: rewriteRoute.id + (idSuffix || rewriteIndex),
           pathname: pathnamePrefix + translatedPath,
@@ -137,7 +140,7 @@ function validateBuild(ctx: BuildContext) {
     .forEach((l) => {
       addWarning(
         ctx,
-        `The "top" layout feature, which is used by "${l.filePath}" has been deprecated and will be removed from future versions. In most cases the "group" layout feature can be used in its place: https://qwik.builder.io/qwikcity/layout/grouped/`
+        `The "top" layout feature, which is used by "${l.filePath}" has been deprecated and will be removed from future versions. In most cases the "group" layout feature can be used in its place: https://qwik.dev/qwikcity/layout/grouped/`
       );
     });
 }

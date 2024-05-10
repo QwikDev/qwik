@@ -1,0 +1,27 @@
+---
+title: Synchronous Event Processing | Tutorial
+contributors:
+  - adamdbradley
+  - manucorporat
+  - kerbelp
+  - mhevery
+  - cunzaizhuyi
+  - spenserblack
+  - hamatoyogi
+  - mrhoodz
+updated_at: '2023-06-25T19:43:33Z'
+created_at: '2022-08-02T12:07:45Z'
+---
+
+While not a common use case, you may occasionally need to process events synchronously.
+
+Since Qwik processes asynchronously by default, your code must be explicitly configured for synchronous calls. 
+
+There are two ways of processing events synchronously:
+1. preferred way: use `sync$()` to load code synchronously. Fast, resumable but with **significant restrictions** on event handler size. 
+2. eager registration: use `useVisibleTask$()` to load code synchronously. No restrictions, but requires eager code execution, which goes against resumability.
+
+This example shows how to eagerly execute code and set up a classical event handler with no restrictions but with the cost of eager execution.
+
+
+**Your task:** Convert the `onClick$` from asynchronous event to synchronous event by using [`useVisibleTask$`](/docs/(qwik)/components/tasks/index.mdx#usevisibletask) lifecycle and [normal event registration](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener).

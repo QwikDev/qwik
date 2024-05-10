@@ -124,8 +124,8 @@ export interface Optimizer {
 export interface OptimizerOptions {
     // (undocumented)
     binding?: any;
-    // (undocumented)
     inlineStylesUpToBytes?: number;
+    sourcemap?: boolean;
     // (undocumented)
     sys?: OptimizerSystem;
 }
@@ -256,6 +256,7 @@ export interface QwikRollupPluginOptions {
     csr?: boolean;
     debug?: boolean;
     entryStrategy?: EntryStrategy;
+    lint?: boolean;
     manifestInput?: QwikManifest;
     manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
     // (undocumented)
@@ -315,7 +316,7 @@ export interface QwikVitePluginApi {
     // (undocumented)
     getClientPublicOutDir: () => string | null;
     // (undocumented)
-    getInsightsManifest: () => Promise<InsightManifest | null>;
+    getInsightsManifest: (clientOutDir?: string | null) => Promise<InsightManifest | null>;
     // (undocumented)
     getManifest: () => QwikManifest | null;
     // (undocumented)
@@ -402,6 +403,8 @@ export interface TransformModule {
     isEntry: boolean;
     // (undocumented)
     map: string | null;
+    // (undocumented)
+    origPath: string | null;
     // (undocumented)
     path: string;
 }

@@ -1,11 +1,12 @@
+import { assertDefined } from '../core/error/assert';
+import type { QRLInternal } from '../core/qrl/qrl-class';
+import { tryGetContext, type QContext } from '../core/state/context';
+import { normalizeOnProp } from '../core/state/listeners';
+import { getWrappingContainer, type PossibleEvents } from '../core/use/use-core';
 import { fromCamelToKebabCase } from '../core/util/case';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
-import { getWrappingContainer } from '../core/use/use-core';
-import { assertDefined } from '../core/error/assert';
-import { tryGetContext, type QContext } from '../core/state/context';
-import { normalizeOnProp } from '../core/state/listeners';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -32,19 +33,35 @@ export class ElementFixture {
     this.window = createWindow();
     this.document = this.window.document;
     this.superParent = this.document.createElement('super-parent');
-    this.parent = this.document.createElement('parent');
-    this.host = this.document.createElement(options.tagName || 'host');
-    this.child = this.document.createElement('child');
-    this.superParent.appendChild(this.parent);
-    this.parent.appendChild(this.host);
-    this.host.appendChild(this.child);
     this.document.body.appendChild(this.superParent);
+    this.parent = this.document.createElement('parent');
+    this.superParent.appendChild(this.parent);
+    if (options.html) {
+      this.parent.innerHTML = options.html;
+      this.host = this.parent.firstElementChild as HTMLElement;
+      assertDefined(this.host, 'host element must be defined');
+      this.host.querySelectorAll('script[q\\:func="qwik/json"]').forEach((script) => {
+        const code = script.textContent;
+        if (code?.startsWith(Q_FUNCS_PREFIX)) {
+          const qFuncs = eval(code.substring(Q_FUNCS_PREFIX.length));
+          const container = this.host.closest(QContainerSelector);
+          (container as any as { qFuncs?: Function[] }).qFuncs = qFuncs;
+        }
+      });
+      this.child = null!;
+    } else {
+      this.host = this.document.createElement(options.tagName || 'host');
+      this.child = this.document.createElement('child');
+      this.parent.appendChild(this.host);
+      this.host.appendChild(this.child);
+    }
   }
 }
 
 /** @public */
 export interface ElementFixtureOptions {
   tagName?: string;
+  html?: string;
 }
 
 /**
@@ -60,36 +77,69 @@ export interface ElementFixtureOptions {
  */
 export async function trigger(
   root: Element,
-  selector: string,
-  eventNameCamel: string
+  queryOrElement: string | Element | keyof HTMLElementTagNameMap | null,
+  eventNameCamel: string,
+  eventPayload: any = {}
 ): Promise<void> {
-  for (const element of Array.from(root.querySelectorAll(selector))) {
+  const elements =
+    typeof queryOrElement === 'string'
+      ? Array.from(root.querySelectorAll(queryOrElement))
+      : [queryOrElement];
+  for (const element of elements) {
     const kebabEventName = fromCamelToKebabCase(eventNameCamel);
-    const event = { type: kebabEventName };
+    const event = root.ownerDocument.createEvent('Event');
+    event.initEvent(kebabEventName, true, true);
+    Object.assign(event, eventPayload);
     const attrName = 'on:' + kebabEventName;
     await dispatch(element, attrName, event);
   }
   await getTestPlatform().flush();
 }
 
+const PREVENT_DEFAULT = 'preventdefault:';
+const STOP_PROPAGATION = 'stoppropagation:';
+const Q_FUNCS_PREFIX = 'document.currentScript.closest("[q\\\\:container]").qFuncs=';
+const QContainerSelector = '[q\\:container]';
+
 /**
  * Dispatch
  *
- * @param root
+ * @param element
  * @param attrName
- * @param ev
+ * @param event
  */
-export const dispatch = async (root: Element | null, attrName: string, ev: any) => {
-  while (root) {
-    const elm = root;
-    const ctx = tryGetContext(elm);
-    const qrls = ctx?.li.filter((li) => li[0] === attrName);
-    if (qrls && qrls.length > 0) {
-      for (const q of qrls) {
-        await q[1].getFn([elm, ev], () => elm.isConnected)(ev, elm);
+export const dispatch = async (element: Element | null, attrName: string, event: any) => {
+  const preventAttributeName = PREVENT_DEFAULT + event.type;
+  const stopPropagationName = STOP_PROPAGATION + event.type;
+  const collectListeners: { element: Element; qrl: QRLInternal }[] = [];
+  while (element) {
+    const preventDefault = element.hasAttribute(preventAttributeName);
+    const stopPropagation = element.hasAttribute(stopPropagationName);
+    if (preventDefault) {
+      event.preventDefault();
+    }
+    if (stopPropagation) {
+      event.stopPropagation();
+    }
+    const ctx = tryGetContext(element);
+    if (ctx) {
+      for (const li of ctx.li) {
+        if (li[0] === attrName) {
+          // Ensure this is correct event type
+          const qrl = li[1];
+          if (isSyncQrl(qrl)) {
+            qrl(event, element);
+          } else {
+            collectListeners.push({ element, qrl: qrl });
+          }
+        }
       }
     }
-    root = elm.parentElement;
+    element = element.parentElement;
+  }
+  for (let i = 0; i < collectListeners.length; i++) {
+    const { element, qrl } = collectListeners[i];
+    await (qrl.getFn([element, event], () => element.isConnected) as Function)(event, element);
   }
 };
 export function getEvent(elCtx: QContext, prop: string): any {
@@ -111,4 +161,7 @@ export function qPropReadQRL(elCtx: QContext, prop: string): ((event: Event) => 
         })
     );
   };
+}
+function isSyncQrl(qrl: QRLInternal<(event: PossibleEvents, elem?: Element | undefined) => any>) {
+  return qrl.$chunk$ == '';
 }

@@ -1,11 +1,11 @@
 import { component$ } from "@builder.io/qwik";
 import styles from "./hero.module.css";
-import ImgThunder from "~/media/thunder.png?jsx";
+import ImgThunder from "../../../media/thunder.png?jsx";
 
 export default component$(() => {
   return (
     <div class={["container", styles.hero]}>
-      <ImgThunder class={styles["hero-image"]} />
+      <ImgThunder class={styles["hero-image"]} alt="Image thunder" />
       <h1>
         So <span class="highlight">fantastic</span>
         <br />
@@ -70,7 +70,7 @@ export default component$(() => {
           Time to celebrate
         </button>
         <a
-          href="https://qwik.builder.io/docs"
+          href="https://qwik.dev/docs"
           target="_blank"
           class="button button-dark"
         >

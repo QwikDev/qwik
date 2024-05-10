@@ -375,7 +375,7 @@ export function qwikJsonDebug(
     } else if (isComment(node)) {
       const text = node.nodeValue || '';
       if (text.startsWith('t=')) {
-        return text.substring(3);
+        return text.substring(2);
       } else if (text.startsWith('qv ')) {
         const parts = text.split(' ');
         for (let i = 0; i < parts.length; i++) {

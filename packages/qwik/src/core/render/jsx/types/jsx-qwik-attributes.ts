@@ -2,226 +2,213 @@ import type { QRL } from '../../../qrl/qrl.public';
 import type { Signal } from '../../../state/signal';
 import type { JSXNode } from './jsx-node';
 import type {
-  QwikAnimationEvent,
-  QwikChangeEvent,
-  QwikClipboardEvent,
-  QwikCompositionEvent,
-  QwikDragEvent,
-  QwikFocusEvent,
-  QwikInvalidEvent,
-  QwikKeyboardEvent,
-  QwikMouseEvent,
-  QwikPointerEvent,
-  QwikSubmitEvent,
-  QwikTouchEvent,
-  QwikTransitionEvent,
-  QwikUIEvent,
-  QwikWheelEvent,
-  SyntheticEvent,
+  QwikIdleEvent,
+  QwikInitEvent,
+  QwikSymbolEvent,
+  QwikVisibleEvent,
 } from './jsx-qwik-events';
 
-export type QwikEventMap<T> = {
-  Copy: QwikClipboardEvent<T>;
-  CopyCapture: QwikClipboardEvent<T>;
-  Cut: QwikClipboardEvent<T>;
-  CutCapture: QwikClipboardEvent<T>;
-  Paste: QwikClipboardEvent<T>;
-  PasteCapture: QwikClipboardEvent<T>;
-  CompositionEnd: QwikCompositionEvent<T>;
-  CompositionEndCapture: QwikCompositionEvent<T>;
-  CompositionStart: QwikCompositionEvent<T>;
-  CompositionStartCapture: QwikCompositionEvent<T>;
-  CompositionUpdate: QwikCompositionEvent<T>;
-  CompositionUpdateCapture: QwikCompositionEvent<T>;
-  Focus: QwikFocusEvent<T>;
-  FocusCapture: QwikFocusEvent<T>;
-  Focusin: QwikFocusEvent<T>;
-  FocusinCapture: QwikFocusEvent<T>;
-  Focusout: QwikFocusEvent<T>;
-  FocusoutCapture: QwikFocusEvent<T>;
-  Blur: QwikFocusEvent<T>;
-  BlurCapture: QwikFocusEvent<T>;
-  Change: QwikChangeEvent<T>;
-  ChangeCapture: QwikChangeEvent<T>;
-  Input: Event;
-  InputCapture: Event;
-  Reset: Event;
-  ResetCapture: Event;
-  Submit: QwikSubmitEvent<T>;
-  SubmitCapture: Event;
-  Invalid: QwikInvalidEvent<T>;
-  InvalidCapture: QwikInvalidEvent<T>;
-  Load: Event;
-  LoadCapture: Event;
-  Error: Event; // also a Media Event
-  ErrorCapture: Event; // also a Media Event
-  KeyDown: QwikKeyboardEvent<T>;
-  KeyDownCapture: QwikKeyboardEvent<T>;
-  KeyPress: QwikKeyboardEvent<T>;
-  KeyPressCapture: QwikKeyboardEvent<T>;
-  KeyUp: QwikKeyboardEvent<T>;
-  KeyUpCapture: QwikKeyboardEvent<T>;
-  AuxClick: QwikMouseEvent<T>;
-  Click: QwikMouseEvent<T>;
-  ClickCapture: QwikMouseEvent<T>;
-  ContextMenu: QwikMouseEvent<T>;
-  ContextMenuCapture: QwikMouseEvent<T>;
-  DblClick: QwikMouseEvent<T>;
-  DblClickCapture: QwikMouseEvent<T>;
-  Drag: QwikDragEvent<T>;
-  DragCapture: QwikDragEvent<T>;
-  DragEnd: QwikDragEvent<T>;
-  DragEndCapture: QwikDragEvent<T>;
-  DragEnter: QwikDragEvent<T>;
-  DragEnterCapture: QwikDragEvent<T>;
-  DragExit: QwikDragEvent<T>;
-  DragExitCapture: QwikDragEvent<T>;
-  DragLeave: QwikDragEvent<T>;
-  DragLeaveCapture: QwikDragEvent<T>;
-  DragOver: QwikDragEvent<T>;
-  DragOverCapture: QwikDragEvent<T>;
-  DragStart: QwikDragEvent<T>;
-  DragStartCapture: QwikDragEvent<T>;
-  Drop: QwikDragEvent<T>;
-  DropCapture: QwikDragEvent<T>;
-  MouseDown: QwikMouseEvent<T>;
-  MouseDownCapture: QwikMouseEvent<T>;
-  MouseEnter: QwikMouseEvent<T>;
-  MouseLeave: QwikMouseEvent<T>;
-  MouseMove: QwikMouseEvent<T>;
-  MouseMoveCapture: QwikMouseEvent<T>;
-  MouseOut: QwikMouseEvent<T>;
-  MouseOutCapture: QwikMouseEvent<T>;
-  MouseOver: QwikMouseEvent<T>;
-  MouseOverCapture: QwikMouseEvent<T>;
-  MouseUp: QwikMouseEvent<T>;
-  MouseUpCapture: QwikMouseEvent<T>;
-  TouchCancel: QwikTouchEvent<T>;
-  TouchCancelCapture: QwikTouchEvent<T>;
-  TouchEnd: QwikTouchEvent<T>;
-  TouchEndCapture: QwikTouchEvent<T>;
-  TouchMove: QwikTouchEvent<T>;
-  TouchMoveCapture: QwikTouchEvent<T>;
-  TouchStart: QwikTouchEvent<T>;
-  TouchStartCapture: QwikTouchEvent<T>;
-  PointerDown: QwikPointerEvent<T>;
-  PointerDownCapture: QwikPointerEvent<T>;
-  PointerMove: QwikPointerEvent<T>;
-  PointerMoveCapture: QwikPointerEvent<T>;
-  PointerUp: QwikPointerEvent<T>;
-  PointerUpCapture: QwikPointerEvent<T>;
-  PointerCancel: QwikPointerEvent<T>;
-  PointerCancelCapture: QwikPointerEvent<T>;
-  PointerEnter: QwikPointerEvent<T>;
-  PointerEnterCapture: QwikPointerEvent<T>;
-  PointerLeave: QwikPointerEvent<T>;
-  PointerLeaveCapture: QwikPointerEvent<T>;
-  PointerOver: QwikPointerEvent<T>;
-  PointerOverCapture: QwikPointerEvent<T>;
-  PointerOut: QwikPointerEvent<T>;
-  PointerOutCapture: QwikPointerEvent<T>;
-  GotPointerCapture: QwikPointerEvent<T>;
-  GotPointerCaptureCapture: QwikPointerEvent<T>;
-  LostPointerCapture: QwikPointerEvent<T>;
-  LostPointerCaptureCapture: QwikPointerEvent<T>;
-  Scroll: QwikUIEvent<T>;
-  ScrollCapture: QwikUIEvent<T>;
-  Wheel: QwikWheelEvent<T>;
-  WheelCapture: QwikWheelEvent<T>;
-  AnimationStart: QwikAnimationEvent<T>;
-  AnimationStartCapture: QwikAnimationEvent<T>;
-  AnimationEnd: QwikAnimationEvent<T>;
-  AnimationEndCapture: QwikAnimationEvent<T>;
-  AnimationIteration: QwikAnimationEvent<T>;
-  AnimationIterationCapture: QwikAnimationEvent<T>;
-  TransitionEnd: QwikTransitionEvent<T>;
-  TransitionEndCapture: QwikTransitionEvent<T>;
+/**
+ * Capitalized multi-word names of some known events so we have nicer qwik attributes. For example,
+ * instead of `oncompositionEnd$` we can use `onCompositionEnd$`. Note that any capitalization
+ * works, so `oncompositionend$` is also valid. This is just for DX.
+ *
+ * Add any multi-word event names to this list. Single word events are automatically converted.
+ */
+type PascalCaseNames =
+  | 'AnimationEnd'
+  | 'AnimationIteration'
+  | 'AnimationStart'
+  | 'AuxClick'
+  | 'BeforeToggle'
+  | 'CanPlay'
+  | 'CanPlayThrough'
+  | 'CompositionEnd'
+  | 'CompositionStart'
+  | 'CompositionUpdate'
+  | 'ContextMenu'
+  | 'DblClick'
+  | 'DragEnd'
+  | 'DragEnter'
+  | 'DragExit'
+  | 'DragLeave'
+  | 'DragOver'
+  | 'DragStart'
+  | 'DurationChange'
+  | 'FocusIn'
+  | 'FocusOut'
+  | 'FullscreenChange'
+  | 'FullscreenError'
+  | 'GotPointerCapture'
+  | 'KeyDown'
+  | 'KeyPress'
+  | 'KeyUp'
+  | 'LoadedData'
+  | 'LoadedMetadata'
+  | 'LoadEnd'
+  | 'LoadStart'
+  | 'LostPointerCapture'
+  | 'MouseDown'
+  | 'MouseEnter'
+  | 'MouseLeave'
+  | 'MouseMove'
+  | 'MouseOut'
+  | 'MouseOver'
+  | 'MouseUp'
+  | 'PointerCancel'
+  | 'PointerDown'
+  | 'PointerEnter'
+  | 'PointerLeave'
+  | 'PointerMove'
+  | 'PointerOut'
+  | 'PointerOver'
+  | 'PointerUp'
+  | 'QIdle'
+  | 'QInit'
+  | 'QSymbol'
+  | 'QVisible'
+  | 'RateChange'
+  | 'RateChange'
+  | 'SecurityPolicyViolation'
+  | 'SelectionChange'
+  | 'SelectStart'
+  | 'TimeUpdate'
+  | 'TouchCancel'
+  | 'TouchEnd'
+  | 'TouchMove'
+  | 'TouchStart'
+  | 'TransitionCancel'
+  | 'TransitionEnd'
+  | 'TransitionRun'
+  | 'TransitionStart'
+  | 'VisibilityChange'
+  | 'VolumeChange';
 
-  //Audio / Video Events
-  AudioProcess: Event;
-  CanPlay: Event;
-  CanPlayThrough: Event;
-  Complete: Event;
-  DurationChange: Event;
-  Emptied: Event;
-  Ended: Event;
-  LoadedData: Event;
-  LoadedMetadata: Event;
-  Pause: Event;
-  Play: Event;
-  Playing: Event;
-  Progress: Event;
-  RateChange: Event;
-  Seeked: Event;
-  Seeking: Event;
-  Stalled: Event;
-  Suspend: Event;
-  TimeUpdate: Event;
-  VolumeChange: Event;
-  Waiting: Event;
+type LcEventNameMap = {
+  [name in PascalCaseNames as Lowercase<name>]: name;
 };
 
-export type PreventDefault<T extends Element> = {
-  [K in keyof QwikEventMap<T> as `preventdefault:${Lowercase<K>}`]?: boolean;
+/**
+ * Convert an event map to PascalCase. For example, `HTMLElementEventMap` contains lowercase keys,
+ * so this will capitalize them, and use the `LcEventNameMap` for multi-word events names.
+ */
+type PascalMap<M> = {
+  [K in Extract<keyof M, string> as K extends keyof LcEventNameMap
+    ? LcEventNameMap[K]
+    : Capitalize<K>]: M[K];
 };
 
-export type QwikKeysEvents = Lowercase<keyof QwikEventMap<any>>;
+type PreventDefault = {
+  [K in keyof HTMLElementEventMap as `preventdefault:${K}`]?: boolean;
+};
 
-export type BaseClassList =
+type StopPropagation = {
+  [K in keyof HTMLElementEventMap as `stoppropagation:${K}`]?: boolean;
+};
+
+type AllEventMapRaw = HTMLElementEventMap &
+  DocumentEventMap &
+  WindowEventHandlersEventMap & {
+    qidle: QwikIdleEvent;
+    qinit: QwikInitEvent;
+    qsymbol: QwikSymbolEvent;
+    qvisible: QwikVisibleEvent;
+  };
+
+/** This corrects the TS definition for ToggleEvent @public */
+export interface CorrectedToggleEvent extends Event {
+  readonly newState: 'open' | 'closed';
+  readonly prevState: 'open' | 'closed';
+}
+// Corrections to the TS types
+type EventCorrectionMap = {
+  auxclick: PointerEvent;
+  beforetoggle: CorrectedToggleEvent;
+  click: PointerEvent;
+  dblclick: PointerEvent;
+  input: InputEvent;
+  toggle: CorrectedToggleEvent;
+};
+
+type AllEventsMap = Omit<AllEventMapRaw, keyof EventCorrectionMap> & EventCorrectionMap;
+type AllPascalEventMaps = PascalMap<AllEventsMap>;
+
+export type AllEventKeys = keyof AllEventsMap;
+
+type LcEvent<T extends string, C extends string = Lowercase<T>> = C extends keyof AllEventsMap
+  ? AllEventsMap[C]
+  : Event;
+
+export type EventFromName<T extends string> = LcEvent<T>;
+
+/**
+ * A class list can be a string, a boolean, an array, or an object.
+ *
+ * If it's an array, each item is a class list and they are all added.
+ *
+ * If it's an object, then the keys are class name strings, and the values are booleans that
+ * determine if the class name string should be added or not.
+ *
+ * @public
+ */
+export type ClassList =
   | string
   | undefined
   | null
   | false
   | Record<string, boolean | string | number | null | undefined>
-  | BaseClassList[];
+  | ClassList[];
 
-/** @public */
-export type ClassList = BaseClassList | BaseClassList[];
-
-export interface QwikProps<T extends Element> extends PreventDefault<T> {
-  class?: ClassList | Signal<ClassList> | undefined;
-  dangerouslySetInnerHTML?: string | undefined;
-  ref?: Ref<T> | undefined;
-
-  /** Corresponding slot name used to project the element into. */
-  'q:slot'?: string;
-}
-
-// Allows for Event Handlers to by typed as QwikEventMap[Key] or Event
-// https://stackoverflow.com/questions/52667959/what-is-the-purpose-of-bivariancehack-in-typescript-types/52668133#52668133
-export type BivariantEventHandler<T extends SyntheticEvent<any> | Event, EL> = {
-  bivarianceHack(event: T, element: EL): any;
+/**
+ * A DOM event handler
+ *
+ * @public
+ */
+export type EventHandler<EV = Event, EL = Element> = {
+  // https://stackoverflow.com/questions/52667959/what-is-the-purpose-of-bivariancehack-in-typescript-types/52668133#52668133
+  bivarianceHack(event: EV, element: EL): any;
 }['bivarianceHack'];
 
-/** @public */
-export type NativeEventHandler<T extends Event = Event, EL = Element> =
-  | BivariantEventHandler<T, EL>
-  | QRL<BivariantEventHandler<T, EL>>[];
+/**
+ * An event handler for Qwik events, can be a handler QRL or an array of handler QRLs.
+ *
+ * @beta
+ */
+export type QRLEventHandlerMulti<EV extends Event, EL> =
+  | QRL<EventHandler<EV, EL>>
+  | undefined
+  | null
+  | QRLEventHandlerMulti<EV, EL>[];
 
-/** @public */
-export type QrlEvent<Type extends Event = Event> = QRL<NativeEventHandler<Type, Element>>;
-
-export interface QwikCustomEvents<El> {
-  [key: `${'document:' | 'window:' | ''}on${string}$`]:
-    | SingleOrArray<NativeEventHandler<Event, El>>
-    | SingleOrArray<Function>
-    | SingleOrArray<undefined>;
-}
-
-type SingleOrArray<T> = T | (SingleOrArray<T> | undefined | null)[];
-
-export type QwikKnownEvents<T> = {
-  [K in keyof QwikEventMap<T> as `${'document:' | 'window:' | ''}on${K}$`]?: SingleOrArray<
-    BivariantEventHandler<QwikEventMap<T>[K], T>
-  >;
+type QwikCustomEvents<EL> = {
+  /**
+   * We don't add custom events here because often people will add props to DOM props that look like
+   * custom events but are not
+   */
 };
+type QwikCustomEventsPlain<EL> = {
+  /** The handler */
+  [key: `${'document:' | 'window:' | ''}on${string}$`]:
+    | QRLEventHandlerMulti<Event, EL>
+    | EventHandler<Event, EL>;
+};
+
+type QwikKnownEvents<EL> = {
+  [K in keyof AllPascalEventMaps as `${
+    | 'document:'
+    | 'window:'
+    | ''}on${K}$`]?: QRLEventHandlerMulti<AllPascalEventMaps[K], EL>;
+};
+type QwikKnownEventsPlain<EL> = {
+  [K in keyof AllPascalEventMaps as `${'document:' | 'window:' | ''}on${K}$`]?:
+    | QRLEventHandlerMulti<AllPascalEventMaps[K], EL>
+    | EventHandler<AllPascalEventMaps[K], EL>;
+};
+
 /** @public */
-export interface QwikEvents<T> extends QwikKnownEvents<T>, QwikCustomEvents<T> {
-  'document:onLoad$'?: BivariantEventHandler<Event, T>;
-  'document:onScroll$'?: BivariantEventHandler<QwikUIEvent<T>, T>;
-  'document:onVisible$'?: BivariantEventHandler<Event, T>;
-  'document:onVisibilityChange$'?: BivariantEventHandler<Event, T>;
-}
+export type QwikEvents<EL, Plain extends boolean = true> = Plain extends true
+  ? QwikKnownEventsPlain<EL> & QwikCustomEventsPlain<EL>
+  : QwikKnownEvents<EL> & QwikCustomEvents<EL>;
 
 /** @public */
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
@@ -247,14 +234,43 @@ export type JSXChildren =
   | JSXNode;
 
 /** @public */
-export interface DOMAttributes<T extends Element> extends QwikProps<T>, QwikEvents<T> {
-  children?: JSXChildren;
+export interface QwikIntrinsicAttributes {
   key?: string | number | null | undefined;
+  children?: JSXChildren;
+
+  /** Corresponding slot name used to project the element into. */
+  'q:slot'?: string;
 }
 
-interface RefFnInterface {
-  (el: Element): void;
+/**
+ * A ref can be either a signal or a function. Note that the type of Signal is Element so that it
+ * can accept more specialized elements too
+ *
+ * @public
+ */
+export type Ref<EL extends Element = Element> = Signal<Element | undefined> | RefFnInterface<EL>;
+type RefFnInterface<EL> = {
+  (el: EL): void;
+};
+interface RefAttr<EL extends Element> {
+  ref?: Ref<EL> | undefined;
+}
+interface DOMAttributesBase<EL extends Element>
+  extends QwikIntrinsicAttributes,
+    PreventDefault,
+    StopPropagation,
+    RefAttr<EL> {
+  dangerouslySetInnerHTML?: string | undefined;
 }
 
-/** @public */
-export type Ref<T extends Element = Element> = Signal<Element | undefined> | RefFnInterface;
+/** The Qwik-specific attributes that DOM elements accept @public */
+export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>, QwikEvents<EL> {
+  class?: ClassList | Signal<ClassList> | undefined;
+}
+
+/** The Qwik DOM attributes without plain handlers, for use as function parameters @public */
+export interface QwikAttributes<EL extends Element>
+  extends DOMAttributesBase<EL>,
+    QwikEvents<EL, false> {
+  class?: ClassList | undefined;
+}

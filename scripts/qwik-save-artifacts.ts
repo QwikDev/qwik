@@ -7,9 +7,11 @@ import { fileURLToPath } from 'node:url';
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const token = process.env.QWIK_API_TOKEN_GITHUB;
 const root = join(__dirname, '..');
-const srcRepoRef = 'https://github.com/BuilderIO/qwik/commit/';
+const srcRepoRef = 'https://github.com/QwikDev/qwik/commit/';
 
 (async () => {
+  // This replaces the `workspace:^` versions with the actual versions.
+  await $('npx', 'syncpack', 'fix-mismatches', '-c', '/dev/null');
   const finishQwik = await prepare({
     buildRepo: 'qwik-build',
     artifactsDir: join(root, 'packages', 'qwik', 'dist'),
@@ -39,12 +41,12 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
     return () => null;
   }
   console.log(
-    'preparing to save artifacts from ' + artifactsDir + ' into BuilderIO/' + buildRepo + ' repo.'
+    'preparing to save artifacts from ' + artifactsDir + ' into QwikDev/' + buildRepo + ' repo.'
   );
   const buildRepoDir = join(root, 'dist-dev', buildRepo);
   const repo = token
-    ? `https://${token}:x-oauth-basic@github.com/BuilderIO/${buildRepo}.git`
-    : `git@github.com:BuilderIO/${buildRepo}.git`;
+    ? `https://${token}:x-oauth-basic@github.com/QwikDev/${buildRepo}.git`
+    : `git@github.com:QwikDev/${buildRepo}.git`;
 
   await $('rm', '-rf', buildRepoDir);
   const SHA = await $('git', 'rev-parse', 'HEAD');
@@ -76,6 +78,7 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
     ...(await expand(artifactsDir, ['.gitignore', 'node_modules'])),
     buildRepoDir
   );
+  await $('cp', join(root, 'CONTINUOUS_BUILD.md'), 'README.md');
   await $('git', 'add', '--all');
   await $(
     'git',
@@ -88,18 +91,30 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
     '-m',
     msg + '\n\n' + srcRepoRef + SHA
   );
-  const dstSHA = await $('git', 'rev-parse', 'HEAD');
-  console.log('##############################################################');
-  console.log('##############################################################');
-  console.log(`### ${artifactsDir} => BuilderIO/${buildRepo}`);
-  console.log(`### ${srcRepoRef}/${dstSHA}`);
-  console.log('##############################################################');
-  console.log('##############################################################');
+  let hasChanges = false;
+  try {
+    await execa('git', ['diff', 'HEAD', 'HEAD~', '--quiet', '--exit-code']);
+  } catch {
+    hasChanges = true;
+  }
+  if (hasChanges) {
+    const dstSHA = await $('git', 'rev-parse', 'HEAD');
+    console.log('##############################################################');
+    console.log('##############################################################');
+    console.log(`### ${artifactsDir} => QwikDev/${buildRepo}`);
+    console.log(`### ${srcRepoRef}/${dstSHA}`);
+    console.log('##############################################################');
+    console.log('##############################################################');
+  }
   const cwd = process.cwd();
   return async () => {
-    process.chdir(cwd);
-    console.log('PUSHING:', repo, `HEAD:${branch}`, 'in', cwd);
-    await $('git', 'push', repo, `HEAD:${branch}`);
+    if (hasChanges) {
+      process.chdir(cwd);
+      console.log('PUSHING:', repo, `HEAD:${branch}`, 'in', cwd);
+      await $('git', 'push', repo, `HEAD:${branch}`);
+    } else {
+      console.log('No changes to push.');
+    }
     await $('rm', '-rf', buildRepoDir);
   };
 }

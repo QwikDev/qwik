@@ -1,9 +1,9 @@
 import path, { resolve } from 'node:path';
-import { qwikVite } from './vite';
-import type { OptimizerOptions } from '../types';
+import { convertManifestToBundleGraph, qwikVite } from './vite';
+import type { OptimizerOptions, QwikBundle, QwikManifest } from '../types';
 import type { Rollup } from 'vite';
 import { normalizePath } from '../../../testing/util';
-import { assert, test } from 'vitest';
+import { assert, test, suite, expect } from 'vitest';
 
 const cwd = process.cwd();
 
@@ -22,7 +22,12 @@ function mockOptimizerOptions(): OptimizerOptions {
 }
 
 const includeDeps = undefined;
-const noExternal = ['@builder.io/qwik', '@builder.io/qwik/server', '@builder.io/qwik/build'];
+const noExternal = [
+  '@builder.io/qwik',
+  '@builder.io/qwik/server',
+  '@builder.io/qwik/build',
+  '@builder.io/qwik-city',
+];
 
 const excludeDeps = [
   '@vite/client',
@@ -35,6 +40,7 @@ const excludeDeps = [
   '@builder.io/qwik/jsx-dev-runtime',
   '@builder.io/qwik/build',
   '@qwik-client-manifest',
+  '@builder.io/qwik-city',
 ];
 
 test('command: serve, mode: development', async () => {
@@ -54,7 +60,7 @@ test('command: serve, mode: development', async () => {
   assert.deepEqual(opts.debug, false);
 
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
-  assert.deepEqual(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev.tsx')));
+  assert.deepEqual(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev')));
   assert.deepEqual(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
   assert.deepEqual(outputOptions.chunkFileNames, 'build/[name].js');
   assert.deepEqual(outputOptions.entryFileNames, 'build/[name].js');
@@ -89,7 +95,7 @@ test('command: serve, mode: production', async () => {
 
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(build.emptyOutDir, undefined);
-  assert.deepEqual(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev.tsx')));
+  assert.deepEqual(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev')));
   assert.deepEqual(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
   assert.deepEqual(outputOptions.chunkFileNames, 'build/q-[hash].js');
   assert.deepEqual(outputOptions.entryFileNames, 'build/q-[hash].js');
@@ -124,7 +130,7 @@ test('command: build, mode: development', async () => {
   assert.deepEqual(plugin.enforce, 'pre');
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(build.emptyOutDir, undefined);
-  assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
+  assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
   assert.deepEqual(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
   assert.deepEqual(outputOptions.chunkFileNames, 'build/[name].js');
   assert.deepEqual(outputOptions.entryFileNames, 'build/[name].js');
@@ -161,7 +167,7 @@ test('command: build, mode: production', async () => {
   assert.deepEqual(plugin.enforce, 'pre');
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(build.emptyOutDir, undefined);
-  assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
+  assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
   assert.deepEqual(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
   assert.deepEqual(outputOptions.chunkFileNames, 'build/q-[hash].js');
   assert.deepEqual(outputOptions.entryFileNames, 'build/q-[hash].js');
@@ -197,7 +203,7 @@ test('command: build, --mode production (client)', async () => {
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'production');
-  assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
+  assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'client-dist')));
   assert.deepEqual(build.emptyOutDir, undefined);
 });
@@ -297,4 +303,30 @@ test('command: build, --mode lib', async () => {
   assert.deepEqual(c.build.outDir, normalizePath(resolve(cwd, 'lib')));
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(opts.resolveQwikBuild, true);
+});
+
+suite('convertManifestToBundleGraph', () => {
+  test('empty', () => {
+    expect(convertManifestToBundleGraph({} as any)).toEqual([]);
+  });
+
+  test('simple file set', () => {
+    const manifest = {
+      bundles: {
+        'a.js': {
+          size: 0,
+          imports: ['b.js'],
+          dynamicImports: ['c.js'],
+        },
+        'b.js': {
+          size: 0,
+          dynamicImports: ['c.js'],
+        },
+        'c.js': {
+          size: 0,
+        },
+      } as Record<string, QwikBundle>,
+    } as QwikManifest;
+    expect(convertManifestToBundleGraph(manifest)).toEqual(['a.js', 3, 5, 'b.js', 5, 'c.js']);
+  });
 });

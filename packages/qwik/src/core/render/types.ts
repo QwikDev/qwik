@@ -11,8 +11,10 @@ export interface RenderOperation {
 /** @public */
 export interface RenderContext {
   readonly $static$: RenderStaticContext;
+  /** Current Qwik component */
   $cmpCtx$: QContext | null;
-  $slotCtx$: QContext | null;
+  /** Current Slot parent */
+  $slotCtx$: QContext | undefined;
 }
 
 export interface RenderStaticContext {
@@ -27,9 +29,6 @@ export interface RenderStaticContext {
   readonly $addSlots$: [QwikElement, QwikElement][];
   readonly $rmSlots$: QwikElement[];
 }
-
-/** @public */
-export interface RenderContext2 {}
 
 // Polyfills for ViewTransition API & scroll restoration
 declare global {

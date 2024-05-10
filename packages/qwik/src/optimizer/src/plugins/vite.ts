@@ -9,6 +9,8 @@ import type {
   QwikManifest,
   TransformModule,
   InsightManifest,
+  Path,
+  QwikBundleGraph,
 } from '../types';
 import { versions } from '../versions';
 import { getImageSizeServer } from './image-size-server';
@@ -35,7 +37,7 @@ import { VITE_DEV_CLIENT_QS, configureDevServer, configurePreviewServer } from '
 
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 
-const STYLING = ['.css', '.scss', '.sass', '.less'];
+const STYLING = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
 const FONTS = ['.woff', '.woff2', '.ttf'];
 
 /** @public */
@@ -52,14 +54,22 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let rootDir: string | null = null;
 
   let ssrOutDir: string | null = null;
+  const fileFilter = qwikViteOpts.fileFilter || (() => true);
   const injections: GlobalInjections[] = [];
   const qwikPlugin = createPlugin(qwikViteOpts.optimizerOptions);
 
-  async function loadQwikInsights(): Promise<InsightManifest | null> {
+  async function loadQwikInsights(clientOutDir?: string | null): Promise<InsightManifest | null> {
     const sys = qwikPlugin.getSys();
+    const cwdRelativePath = absolutePathAwareJoin(
+      sys.path,
+      rootDir || '.',
+      clientOutDir ?? 'dist',
+      'q-insights.json'
+    );
+    const path = absolutePathAwareJoin(sys.path, process.cwd(), cwdRelativePath);
     const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-    const path = sys.path.join(process.cwd(), 'dist', 'q-insights.json');
     if (fs.existsSync(path)) {
+      qwikPlugin.log('Reading Qwik Insight data from: ' + cwdRelativePath);
       return JSON.parse(await fs.promises.readFile(path, 'utf-8')) as InsightManifest;
     }
     return null;
@@ -69,7 +79,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     getOptimizer: () => qwikPlugin.getOptimizer(),
     getOptions: () => qwikPlugin.getOptions(),
     getManifest: () => manifestInput,
-    getInsightsManifest: () => loadQwikInsights(),
+    getInsightsManifest: (clientOutDir?: string | null) => loadQwikInsights(clientOutDir),
     getRootDir: () => qwikPlugin.getOptions().rootDir,
     getClientOutDir: () => clientOutDir,
     getClientPublicOutDir: () => clientPublicOutDir,
@@ -113,18 +123,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       viteCommand = viteEnv.command;
       isClientDevOnly = viteCommand === 'serve' && viteEnv.mode !== 'ssr';
 
-      qwikPlugin.log(`vite config(), command: ${viteCommand}, env.mode: ${viteEnv.mode}`);
-
-      if (sys.env === 'node' && !qwikViteOpts.entryStrategy) {
-        try {
-          const entryStrategy = await loadQwikInsights();
-          if (entryStrategy) {
-            qwikViteOpts.entryStrategy = entryStrategy;
-          }
-        } catch (e) {
-          // ok to ignore
-        }
-      }
+      qwikPlugin.debug(`vite config(), command: ${viteCommand}, env.mode: ${viteEnv.mode}`);
 
       if (viteCommand === 'serve') {
         qwikViteOpts.entryStrategy = { type: 'hook' };
@@ -136,7 +135,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         }
       }
 
-      const shouldFindVendors = target !== 'lib' || viteCommand === 'serve';
+      const shouldFindVendors =
+        !qwikViteOpts.disableVendorScan && (target !== 'lib' || viteCommand === 'serve');
       const vendorRoots = shouldFindVendors
         ? await findQwikRoots(sys, path.join(sys.cwd(), 'package.json'))
         : [];
@@ -154,6 +154,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
         outDir: viteConfig.build?.outDir,
         devTools: qwikViteOpts.devTools,
+        sourcemap: !!viteConfig.build?.sourcemap,
+        lint: qwikViteOpts.lint,
       };
       if (!qwikViteOpts.csr) {
         if (target === 'ssr') {
@@ -265,6 +267,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const vendorIds = vendorRoots.map((v) => v.id);
       const isDevelopment = buildMode === 'development';
       const qDevKey = 'globalThis.qDev';
+      const qTestKey = 'globalThis.qTest';
       const qInspectorKey = 'globalThis.qInspector';
       const qSerializeKey = 'globalThis.qSerialize';
       const qDev = viteConfig?.define?.[qDevKey] ?? isDevelopment;
@@ -303,9 +306,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           ],
         },
         build: {
-          modulePreload: {
-            polyfill: false,
-          },
+          modulePreload: false,
           dynamicImportVarsOptions: {
             exclude: [/./],
           },
@@ -314,6 +315,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           [qDevKey]: qDev,
           [qInspectorKey]: qInspector,
           [qSerializeKey]: qSerialize,
+          [qTestKey]: JSON.stringify(process.env.NODE_ENV === 'test'),
         },
       };
 
@@ -359,10 +361,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           updatedViteConfig.build!.minify = false;
         } else {
           // Test Build
-          const qDevKey = 'globalThis.qDev';
-          const qTestKey = 'globalThis.qTest';
-          const qInspectorKey = 'globalThis.qInspector';
-
           updatedViteConfig.define = {
             [qDevKey]: true,
             [qTestKey]: true,
@@ -371,14 +369,32 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         }
 
         (globalThis as any).qDev = qDev;
+        (globalThis as any).qTest = true;
         (globalThis as any).qInspector = qInspector;
       }
 
       return updatedViteConfig;
     },
 
-    configResolved(config) {
+    async configResolved(config) {
       basePathname = config.base;
+      const sys = qwikPlugin.getSys();
+      if (sys.env === 'node' && !qwikViteOpts.entryStrategy) {
+        try {
+          const entryStrategy = await loadQwikInsights(
+            !qwikViteOpts.csr ? qwikViteOpts.client?.outDir : undefined
+          );
+          if (entryStrategy) {
+            qwikViteOpts.entryStrategy = entryStrategy;
+          }
+        } catch (e) {
+          // ok to ignore
+        }
+      }
+      const useSourcemap = !!config.build.sourcemap;
+      if (useSourcemap && qwikViteOpts.optimizerOptions?.sourcemap === undefined) {
+        qwikPlugin.setSourceMapSupport(true);
+      }
     },
 
     async buildStart() {
@@ -402,7 +418,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     resolveId(id, importer, resolveIdOpts) {
-      if (id.startsWith('\0')) {
+      if (id.startsWith('\0') || !fileFilter(id, 'resolveId')) {
         return null;
       }
       if (isClientDevOnly && id === VITE_CLIENT_MODULE) {
@@ -412,7 +428,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     load(id, loadOpts) {
-      if (id.startsWith('\0')) {
+      if (id.startsWith('\0') || !fileFilter(id, 'load')) {
         return null;
       }
 
@@ -431,7 +447,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     transform(code, id, transformOpts) {
-      if (id.startsWith('\0')) {
+      if (id.startsWith('\0') || !fileFilter(id, 'transform')) {
         return null;
       }
       if (isClientDevOnly) {
@@ -526,6 +542,20 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             fileName: Q_MANIFEST_FILENAME,
             source: clientManifestStr,
           });
+          this.emitFile({
+            type: 'asset',
+            fileName: `build/q-bundle-graph-${manifest.manifestHash}.json`,
+            source: JSON.stringify(convertManifestToBundleGraph(manifest)),
+          });
+          const sys = qwikPlugin.getSys();
+          const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+          const workerScriptPath = (await this.resolve('@builder.io/qwik/qwik-prefetch.js'))!.id;
+          const workerScript = await fs.promises.readFile(workerScriptPath, 'utf-8');
+          this.emitFile({
+            type: 'asset',
+            fileName: `qwik-prefetch-service-worker.js`,
+            source: workerScript,
+          });
 
           if (typeof opts.manifestOutput === 'function') {
             await opts.manifestOutput(manifest);
@@ -535,7 +565,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             await opts.transformedModuleOutput(qwikPlugin.getTransformedOutputs());
           }
 
-          const sys = qwikPlugin.getSys();
           if (tmpClientManifestPath && sys.env === 'node') {
             // Client build should write the manifest to a tmp dir
             const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
@@ -600,7 +629,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     configureServer(server: ViteDevServer) {
       server.middlewares.use(getImageSizeServer(qwikPlugin.getSys(), rootDir!, srcDir!));
-      if (!qwikViteOpts.csr) {
+      const devSsrServer = 'devSsrServer' in qwikViteOpts ? qwikViteOpts.devSsrServer : true;
+      if (!qwikViteOpts.csr && devSsrServer) {
         const plugin = async () => {
           const opts = qwikPlugin.getOptions();
           const sys = qwikPlugin.getSys();
@@ -625,7 +655,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     handleHotUpdate(ctx) {
-      qwikPlugin.log('handleHotUpdate()', ctx);
+      qwikPlugin.debug('handleHotUpdate()', ctx);
 
       for (const mod of ctx.modules) {
         const deps = mod.info?.meta?.qwikdeps;
@@ -639,10 +669,56 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         }
       }
     },
+
+    onLog(level, log) {
+      if (log.plugin == ('vite-plugin-qwik' satisfies QwikVitePlugin['name'])) {
+        const color = LOG_COLOR[level] || ANSI_COLOR.White;
+        const frames = (log.frame || '')
+          .split('\n')
+          .map(
+            (line) =>
+              (line.match(/^\s*\^\s*$/) ? ANSI_COLOR.BrightWhite : ANSI_COLOR.BrightBlack) + line
+          );
+        // eslint-disable-next-line no-console
+        console[level](
+          `${color}%s\n${ANSI_COLOR.BrightWhite}%s\n%s${ANSI_COLOR.RESET}`,
+          `[${log.plugin}](${level}): ${log.message}\n`,
+          `  ${log?.loc?.file}:${log?.loc?.line}:${log?.loc?.column}\n`,
+          `  ${frames.join('\n  ')}\n`
+        );
+        return false;
+      }
+    },
   };
 
   return vitePlugin;
 }
+
+const ANSI_COLOR = {
+  Black: '\x1b[30m',
+  Red: '\x1b[31m',
+  Green: '\x1b[32m',
+  Yellow: '\x1b[33m',
+  Blue: '\x1b[34m',
+  Magenta: '\x1b[35m',
+  Cyan: '\x1b[36m',
+  White: '\x1b[37m',
+  BrightBlack: '\x1b[90m',
+  BrightRed: '\x1b[91m',
+  BrightGreen: '\x1b[92m',
+  BrightYellow: '\x1b[93m',
+  BrightBlue: '\x1b[94m',
+  BrightMagenta: '\x1b[95m',
+  BrightCyan: '\x1b[96m',
+  BrightWhite: '\x1b[97m',
+  RESET: '\x1b[0m',
+};
+
+const LOG_COLOR = {
+  warn: ANSI_COLOR.Yellow,
+  info: ANSI_COLOR.Cyan,
+  debug: ANSI_COLOR.BrightBlack,
+};
 
 function updateEntryDev(code: string) {
   code = code.replace(/["']@builder.io\/qwik["']/g, `'${VITE_CLIENT_MODULE}'`);
@@ -677,13 +753,34 @@ export async function render(document, rootNode, opts) {
 }`;
 }
 
+async function findDepPkgJsonPath(sys: OptimizerSystem, dep: string, parent: string) {
+  const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+  let root = parent;
+  while (root) {
+    const pkg = sys.path.join(root, 'node_modules', dep, 'package.json');
+    try {
+      await fs.promises.access(pkg);
+      // use 'node:fs' version to match 'vite:resolve' and avoid realpath.native quirk
+      // https://github.com/sveltejs/vite-plugin-svelte/issues/525#issuecomment-1355551264
+      return fs.promises.realpath(pkg);
+    } catch {
+      //empty
+    }
+    const nextRoot = sys.path.dirname(root);
+    if (nextRoot === root) {
+      break;
+    }
+    root = nextRoot;
+  }
+  return undefined;
+}
+
 const findQwikRoots = async (
   sys: OptimizerSystem,
   packageJsonPath: string
 ): Promise<QwikPackages[]> => {
   if (sys.env === 'node') {
     const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-    const { resolvePackageData }: typeof import('vite') = await sys.strictDynamicImport('vite');
 
     try {
       const data = await fs.promises.readFile(packageJsonPath, { encoding: 'utf-8' });
@@ -702,21 +799,23 @@ const findQwikRoots = async (
         }
 
         const basedir = sys.cwd();
-        const qwikDirs = packages
-          .map((id) => {
-            const pkgData = resolvePackageData(id, basedir);
-            if (pkgData) {
-              const qwikPath = pkgData.data['qwik'];
+        const qwikDirs = await Promise.all(
+          packages.map(async (id) => {
+            const pkgJsonPath = await findDepPkgJsonPath(sys, id, basedir);
+            if (pkgJsonPath) {
+              const pkgJsonContent = await fs.promises.readFile(pkgJsonPath, 'utf-8');
+              const pkgJson = JSON.parse(pkgJsonContent);
+              const qwikPath = pkgJson['qwik'];
               if (qwikPath) {
                 return {
                   id,
-                  path: sys.path.resolve(pkgData.dir, qwikPath),
+                  path: sys.path.resolve(sys.path.dirname(pkgJsonPath), qwikPath),
                 };
               }
             }
           })
-          .filter(isNotNullable);
-        return qwikDirs;
+        );
+        return qwikDirs.filter(isNotNullable);
       } catch (e) {
         console.error(e);
       }
@@ -732,7 +831,7 @@ export const isNotNullable = <T>(v: T): v is NonNullable<T> => {
 };
 
 const VITE_CLIENT_MODULE = `@builder.io/qwik/vite-client`;
-const CLIENT_DEV_INPUT = 'entry.dev.tsx';
+const CLIENT_DEV_INPUT = 'entry.dev';
 
 interface QwikVitePluginCommonOptions {
   /**
@@ -768,6 +867,11 @@ interface QwikVitePluginCommonOptions {
    */
   vendorRoots?: string[];
   /**
+   * Disables the automatic vendor roots scan. This is useful when you want to manually specify the
+   * vendor roots.
+   */
+  disableVendorScan?: boolean;
+  /**
    * Options for the Qwik optimizer.
    *
    * Default `undefined`
@@ -791,11 +895,24 @@ interface QwikVitePluginCommonOptions {
      */
     clickToSource: string[] | false;
   };
+  /**
+   * Predicate function to filter out files from the optimizer. hook for resolveId, load, and
+   * transform
+   */
+  fileFilter?: (id: string, hook: string) => boolean;
+  /**
+   * Run eslint on the source files for the ssr build or dev server. This can slow down startup on
+   * large projects. Defaults to `true`
+   */
+  lint?: boolean;
 }
 
 interface QwikVitePluginCSROptions extends QwikVitePluginCommonOptions {
   /** Client Side Rendering (CSR) mode. It will not support SSR, default to Vite's `index.html` file. */
   csr: true;
+  client?: never;
+  devSsrServer?: never;
+  ssr?: never;
 }
 
 interface QwikVitePluginSSROptions extends QwikVitePluginCommonOptions {
@@ -830,6 +947,19 @@ interface QwikVitePluginSSROptions extends QwikVitePluginCommonOptions {
      */
     manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
   };
+
+  /**
+   * Qwik is SSR first framework. This means that Qwik requires either SSR or SSG. In dev mode the
+   * dev SSR server is responsible for rendering and pausing the application on the server.
+   *
+   * Under normal circumstances this should be on, unless you have your own SSR server which you
+   * would like to use instead and wish to disable this one.
+   *
+   * Default: true
+   */
+  devSsrServer?: boolean;
+
+  /** Controls the SSR behavior. */
   ssr?: {
     /**
      * The entry point for the SSR renderer. This file should export a `render()` function. This
@@ -869,7 +999,7 @@ export interface QwikVitePluginApi {
   getOptimizer: () => Optimizer | null;
   getOptions: () => NormalizedQwikPluginOptions;
   getManifest: () => QwikManifest | null;
-  getInsightsManifest: () => Promise<InsightManifest | null>;
+  getInsightsManifest: (clientOutDir?: string | null) => Promise<InsightManifest | null>;
   getRootDir: () => string | null;
   getClientOutDir: () => string | null;
   getClientPublicOutDir: () => string | null;
@@ -885,4 +1015,50 @@ export interface QwikVitePlugin {
 export interface QwikViteDevResponse {
   _qwikEnvData?: Record<string, any>;
   _qwikRenderResolve?: () => void;
+}
+
+/**
+ * Joins path segments together and normalizes the resulting path, taking into account absolute
+ * paths.
+ */
+function absolutePathAwareJoin(path: Path, ...segments: string[]): string {
+  for (let i = segments.length - 1; i >= 0; --i) {
+    const segment = segments[i];
+    if (segment.startsWith(path.sep) || segment.indexOf(path.delimiter) !== -1) {
+      segments.splice(0, i);
+      break;
+    }
+  }
+  return path.join(...segments);
+}
+
+export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundleGraph {
+  const bundleGraph: QwikBundleGraph = [];
+  const graph = manifest.bundles;
+  const map = new Map<string, { index: number; deps: string[] }>();
+  for (const bundleName in graph) {
+    const bundle = graph[bundleName];
+    const index = bundleGraph.length;
+    const deps: string[] = [];
+    bundle.imports && deps.push(...bundle.imports);
+    bundle.dynamicImports && deps.push(...bundle.dynamicImports);
+    map.set(bundleName, { index, deps });
+    bundleGraph.push(bundleName);
+    while (index + deps.length >= bundleGraph.length) {
+      bundleGraph.push(null!);
+    }
+  }
+  // Second pass to to update dependency pointers
+  for (const bundleName in graph) {
+    const { index, deps } = map.get(bundleName)!;
+    for (let i = 0; i < deps.length; i++) {
+      const depName = deps[i];
+      const { index: depIndex } = map.get(depName)!;
+      if (depIndex == undefined) {
+        throw new Error(`Missing dependency: ${depName}`);
+      }
+      bundleGraph[index + i + 1] = depIndex;
+    }
+  }
+  return bundleGraph;
 }

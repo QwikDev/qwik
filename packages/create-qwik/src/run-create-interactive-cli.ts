@@ -45,9 +45,10 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
 
   const starterApps = templateManager.templates.filter((a) => a.id !== baseApp.id);
 
-  const backgroundInstall = backgroundInstallDeps(pkgManager, baseApp);
-
   const outDir: string = resolveRelativeDir(projectNameAnswer.trim());
+  baseApp.target = outDir;
+
+  const backgroundInstall = backgroundInstallDeps(pkgManager, baseApp);
 
   log.info(`Creating new project in ${bgBlue(' ' + outDir + ' ')} ... 🐇`);
 
@@ -111,7 +112,7 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
 
   if (!runDepInstall) {
     backgroundInstall.abort();
-  } else {
+  } else if (typeof backgroundInstall.success === 'undefined') {
     try {
       const joke = await confirm({
         message: `Finishing the install. Wanna hear a joke?`,

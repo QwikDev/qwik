@@ -44,7 +44,9 @@ import type {
 } from './types';
 import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 import { z } from 'zod';
+
 import { isDev, isServer } from '@builder.io/qwik/build';
+
 import type { FormSubmitCompletedDetail } from './form-component';
 
 /** @public */
@@ -269,7 +271,7 @@ export const zodQrl = ((
 export const zod$ = /*#__PURE__*/ implicit$FirstArg(zodQrl) as ZodConstructor;
 
 const deepFreeze = (obj: any) => {
-  Object.getOwnPropertyNames(obj).forEach(prop => {
+  Object.getOwnPropertyNames(obj).forEach((prop) => {
     const value = obj[prop];
     if (value && typeof value === 'object') {
       deepFreeze(value);
@@ -317,7 +319,7 @@ export const serverQrl = <T extends ServerFunction>(
           );
         }
 
-        return qrl.apply(requestEvent, dev ? deepFreeze(args) : args);
+        return qrl.apply(requestEvent, isDev ? deepFreeze(args) : args);
       } else {
         // Running on the client, we need to call the function via HTTP
         const ctxElm = _getContextElement();
@@ -325,9 +327,9 @@ export const serverQrl = <T extends ServerFunction>(
           if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
             return new FormData(arg.target);
           } else if (arg instanceof Event) {
-            throw new Error('Cannot serialize instances of Event.');
+            return null;
           } else if (arg instanceof Node) {
-            throw new Error('Cannot serialize instances of Node.');
+            return null;
           }
           return arg;
         });

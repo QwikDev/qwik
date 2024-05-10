@@ -392,7 +392,7 @@ When you want to output a different type of element depending on props but defau
         ...props
       }: { as?: C } & PropsOf<string extends C ? 'div' : C>) => {
         const Cmp = as || 'div';
-        return <Cmp {...props}>hi</Cmp>;
+        return <Cmp {...props}><Slot /></Cmp>;
       }
     );
 

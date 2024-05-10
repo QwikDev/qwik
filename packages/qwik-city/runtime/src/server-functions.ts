@@ -280,6 +280,11 @@ export const serverQrl = <T extends ServerFunction>(
     }
   }
 
+  const method = options?.method?.toUpperCase?.() || 'POST';
+  const headers = options?.headers || {};
+  const origin = options?.origin || '';
+  const fetchOptions = options?.fetchOptions || {};
+
   function rpc() {
     return $(async function (this: RequestEventBase, ...args: Parameters<T>) {
       // move to ServerConfig
@@ -314,10 +319,6 @@ export const serverQrl = <T extends ServerFunction>(
           return arg;
         });
         const hash = qrl.getHash();
-        const method = options?.method?.toUpperCase?.() || 'POST';
-        const headers = options?.headers || {};
-        const origin = options?.origin || '';
-        const fetchOptions = options?.fetchOptions || {};
         // Handled by `pureServerFunction` middleware
         const res = await fetch(`${origin}?${QFN_KEY}=${hash}`, {
           ...fetchOptions,

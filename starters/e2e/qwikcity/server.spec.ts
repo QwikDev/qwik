@@ -103,10 +103,12 @@ test.describe("server$", () => {
       await expect(usersContainer2).toContainText("user2user2");
     });
     test("should work with config GET and custom header", async ({ page }) => {
-      await page.goto("/qwikcity-test/server-func/config");
-      const methodsContainer = page.locator("#server-configs");
-      await expect(methodsContainer).toContainText(
-        "GET-MyCustomValue-MyCustomValue",
+      await page.goto("/qwikcity-test/server-func/server-configs");
+      const serverConfigContainer = page.locator("#server-configs");
+      await serverConfigContainer.waitFor({ state: "attached" });
+
+      await expect(serverConfigContainer).toContainText(
+        "GET--MyCustomValue-MyCustomValue",
       );
     });
   });

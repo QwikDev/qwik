@@ -1,15 +1,15 @@
 import { component$, useSignal, useTask$ } from "@builder.io/qwik";
 import { server$ } from "@builder.io/qwik-city";
-import { delay } from "../../actions/login";
+// import { delay } from "../../actions/login";
 
-const customHeader = "X-Custom-Header";
+const customHeader = "x-custom-header";
 
 const serverFunctionA = server$(
   async function a() {
     return (
       this.method +
-      "-" +
-      (this.request.headers.get("x-custom-header") ||
+      "--" +
+      (this.request.headers.get("X-Custom-Header") ||
         this.request.headers.get(customHeader) ||
         "N/A")
     );
@@ -43,7 +43,7 @@ export const MultipleServerFunctionsWithConfig = component$(() => {
 
   useTask$(async () => {
     serverValA.value = await serverFunctionA();
-    await delay(1);
+    // await delay(1);
     serverValB.value = await serverFunctionB();
   });
 

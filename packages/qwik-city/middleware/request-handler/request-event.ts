@@ -244,13 +244,7 @@ export function createRequestEvent(
       if (requestData !== undefined) {
         return requestData;
       }
-      return (requestData = parseRequest(
-        requestEv.request,
-        sharedMap,
-        qwikSerializer,
-        requestEv.method,
-        requestEv.query
-      ));
+      return (requestData = parseRequest(requestEv, sharedMap, qwikSerializer));
     },
 
     json: (statusCode: number, data: any) => {
@@ -320,11 +314,9 @@ export function getRequestMode(requestEv: RequestEventCommon) {
 const ABORT_INDEX = Number.MAX_SAFE_INTEGER;
 
 const parseRequest = async (
-  request: Request,
+  { request, method, query }: RequestEventInternal,
   sharedMap: Map<string, any>,
-  qwikSerializer: QwikSerializer,
-  method: string,
-  query: URLSearchParams
+  qwikSerializer: QwikSerializer
 ): Promise<JSONValue | undefined> => {
   const type = request.headers.get('content-type')?.split(/[;,]/, 1)[0].trim() ?? '';
   if (type === 'application/x-www-form-urlencoded' || type === 'multipart/form-data') {

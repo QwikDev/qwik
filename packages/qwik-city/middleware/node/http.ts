@@ -56,18 +56,21 @@ export async function fromNodeHttp(
   const requestHeaders = new Headers();
   const nodeRequestHeaders = req.headers;
 
-  Object.entries(nodeRequestHeaders).forEach(([key, value]) => {
+  for (const key in nodeRequestHeaders) {
+    const value = nodeRequestHeaders[key];
     // ensure no HTTP/2-specific headers are being set
     if (!key.startsWith(':')) {
-      if (typeof value === 'string') {
-        requestHeaders.set(key, value);
-      } else if (Array.isArray(value)) {
-        for (const v of value) {
-          requestHeaders.append(key, v);
-        }
+      continue;
+    }
+
+    if (typeof value === 'string') {
+      requestHeaders.set(key, value);
+    } else if (Array.isArray(value)) {
+      for (const v of value) {
+        requestHeaders.append(key, v);
       }
     }
-  });
+  }
 
   const getRequestBody = async function* () {
     for await (const chunk of req as any) {
@@ -98,7 +101,7 @@ export async function fromNodeHttp(
     },
     getWritableStream: (status, headers, cookies) => {
       res.statusCode = status;
-      Object.entries(headers).forEach(([key, value]) => {
+      headers.forEach((value, key) => {
         // ensure no HTTP/2-specific headers are being set
         if (!key.startsWith(':')) {
           res.setHeader(key, value);

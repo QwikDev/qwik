@@ -178,7 +178,7 @@ test.describe("actions", () => {
 
     test.describe("multiple-handlers", () => {
       test("should allow multiple handlers", async ({ page }) => {
-        await page.goto("/qwikcity-test/actions/issue3183/");
+        await page.goto("/qwikcity-test/actions/multiple-handlers/");
         const success = page.locator("#multiple-handlers-success");
 
         await expect(success).toBeHidden();

@@ -55,16 +55,19 @@ export async function fromNodeHttp(
 ) {
   const requestHeaders = new Headers();
   const nodeRequestHeaders = req.headers;
-  for (const key in nodeRequestHeaders) {
-    const value = nodeRequestHeaders[key];
-    if (typeof value === 'string') {
-      requestHeaders.set(key, value);
-    } else if (Array.isArray(value)) {
-      for (const v of value) {
-        requestHeaders.append(key, v);
+
+  Object.entries(nodeRequestHeaders).forEach(([key, value]) => {
+    // ensure no HTTP/2-specific headers are being set
+    if (!key.startsWith(':')) {
+      if (typeof value === 'string') {
+        requestHeaders.set(key, value);
+      } else if (Array.isArray(value)) {
+        for (const v of value) {
+          requestHeaders.append(key, v);
+        }
       }
     }
-  }
+  });
 
   const getRequestBody = async function* () {
     for await (const chunk of req as any) {
@@ -95,7 +98,12 @@ export async function fromNodeHttp(
     },
     getWritableStream: (status, headers, cookies) => {
       res.statusCode = status;
-      headers.forEach((value, key) => res.setHeader(key, value));
+      Object.entries(headers).forEach(([key, value]) => {
+        // ensure no HTTP/2-specific headers are being set
+        if (!key.startsWith(':')) {
+          res.setHeader(key, value);
+        }
+      });
       const cookieHeaders = cookies.headers();
       if (cookieHeaders.length > 0) {
         res.setHeader('Set-Cookie', cookieHeaders);

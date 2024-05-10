@@ -61,11 +61,10 @@ export async function fromNodeHttp(
   const nodeRequestHeaders = req.headers;
 
   try {
-    for (const key in nodeRequestHeaders) {
+    for (const [key, value] of Object.entries(nodeRequestHeaders)) {
       if (invalidHeadersPattern.test(key)) {
         continue;
       }
-      const value = nodeRequestHeaders[key];
       if (typeof value === 'string') {
         requestHeaders.set(key, value);
       } else if (Array.isArray(value)) {
@@ -109,11 +108,10 @@ export async function fromNodeHttp(
       res.statusCode = status;
 
       try {
-        for (const key in headers) {
+        for (const [key, value] of headers) {
           if (invalidHeadersPattern.test(key)) {
             continue;
           }
-          const value = headers[key];
           res.setHeader(key, value);
         }
         const cookieHeaders = cookies.headers();

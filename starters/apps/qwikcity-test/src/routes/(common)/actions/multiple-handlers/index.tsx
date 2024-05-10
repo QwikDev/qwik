@@ -19,7 +19,7 @@ export default component$(() => {
         action={dotNotation}
         onSubmit$={[
           $(() => {
-            console.log("loading false");
+            finished.value = false;
           }),
           $((evt) => dotNotation.submit(evt)),
           $(() => {

@@ -87,6 +87,23 @@
       "mdFile": "qwik-city.cookievalue.md"
     },
     {
+      "name": "data",
+      "id": "servererror-data",
+      "hierarchy": [
+        {
+          "name": "ServerError",
+          "id": "servererror-data"
+        },
+        {
+          "name": "data",
+          "id": "servererror-data"
+        }
+      ],
+      "kind": "Property",
+      "content": "```typescript\ndata: T;\n```",
+      "mdFile": "qwik-city.servererror.data.md"
+    },
+    {
       "name": "DeferReturn",
       "id": "deferreturn",
       "hierarchy": [
@@ -368,6 +385,20 @@
       "mdFile": "qwik-city.resolvevalue.md"
     },
     {
+      "name": "ServerError",
+      "id": "servererror",
+      "hierarchy": [
+        {
+          "name": "ServerError",
+          "id": "servererror"
+        }
+      ],
+      "kind": "Class",
+      "content": "```typescript\nexport declare class ServerError<T = Record<any, any>> extends Error \n```\n**Extends:** Error\n\n\n<table><thead><tr><th>\n\nConstructor\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[(constructor)(status, data)](#)\n\n\n</td><td>\n\n\n</td><td>\n\nConstructs a new instance of the `ServerError` class\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[data](#servererror-data)\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[status](#servererror-status)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/error-handler.ts",
+      "mdFile": "qwik-city.servererror.md"
+    },
+    {
       "name": "ServerRenderOptions",
       "id": "serverrenderoptions",
       "hierarchy": [
@@ -439,6 +470,23 @@
       "kind": "MethodSignature",
       "content": "Sets a `Response` cookie header using the `Set-Cookie` header.\n\n\n```typescript\nset(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nname\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nvalue\n\n\n</td><td>\n\nstring \\| number \\| Record&lt;string, any&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[CookieOptions](#cookieoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvoid",
       "mdFile": "qwik-city.cookie.set.md"
+    },
+    {
+      "name": "status",
+      "id": "servererror-status",
+      "hierarchy": [
+        {
+          "name": "ServerError",
+          "id": "servererror-status"
+        },
+        {
+          "name": "status",
+          "id": "servererror-status"
+        }
+      ],
+      "kind": "Property",
+      "content": "```typescript\nstatus: number;\n```",
+      "mdFile": "qwik-city.servererror.status.md"
     }
   ]
 }

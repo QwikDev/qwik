@@ -1,4 +1,4 @@
-export { getErrorHtml } from './error-handler';
+export { getErrorHtml, ServerError } from './error-handler';
 export { mergeHeadersCookies } from './cookie';
 export { AbortMessage, RedirectMessage } from './redirect-handler';
 export { requestHandler } from './request-handler';

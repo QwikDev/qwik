@@ -412,19 +412,22 @@ export type RouteNavigate = QRL<(path?: string, options?: {
 // @public (undocumented)
 export const RouterOutlet: Component<unknown>;
 
+// Warning: (ae-forgotten-export) The symbol "ServerConfig" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export const server$: <T extends ServerFunction>(first: T) => ServerQRL<T>;
+export const server$: <T extends ServerFunction>(first: T, options?: ServerConfig | undefined) => ServerQRL<T>;
 
 // @public (undocumented)
 export type ServerFunction = {
     (this: RequestEventBase, ...args: any[]): any;
+    options?: ServerConfig;
 };
 
 // @public
 export type ServerQRL<T extends ServerFunction> = QRL<((abort: AbortSignal, ...args: Parameters<T>) => ReturnType<T>) | ((...args: Parameters<T>) => ReturnType<T>)>;
 
 // @public (undocumented)
-export const serverQrl: <T extends ServerFunction>(qrl: QRL<T>) => ServerQRL<T>;
+export const serverQrl: <T extends ServerFunction>(qrl: QRL<T>, options?: ServerConfig) => ServerQRL<T>;
 
 // @public (undocumented)
 export const ServiceWorkerRegister: (props: {

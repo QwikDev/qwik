@@ -362,7 +362,7 @@ string
 ## data
 
 ```typescript
-data: Record<any, any>;
+data: T;
 ```
 
 ## DeferReturn
@@ -1391,7 +1391,7 @@ export interface ResolveValue
 ## ServerError
 
 ```typescript
-export declare class ServerError extends Error
+export declare class ServerError<T> extends Error
 ```
 
 **Extends:** Error
@@ -1447,7 +1447,7 @@ Description
 
 </td><td>
 
-Record&lt;any, any&gt;
+T
 
 </td><td>
 

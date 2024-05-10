@@ -65,7 +65,7 @@ test.describe("server$", () => {
       await expect(methodsContainer).toContainText("GETGET");
     });
 
-    test("should use the same context when invoked from useTask$", async ({
+    test("should use the same context when invoked from useTask$ on the server", async ({
       page,
     }) => {
       await page.goto("/qwikcity-test/server-func/context");
@@ -102,13 +102,21 @@ test.describe("server$", () => {
       await expect(usersContainer1).toContainText("user1user1");
       await expect(usersContainer2).toContainText("user2user2");
     });
-    test("should work with config custom header", async ({ page }) => {
+    test("should work with config custom header and GET on client", async ({
+      page,
+    }) => {
       await page.goto("/qwikcity-test/server-func/server-configs");
       const serverConfigContainer = page.locator("#server-configs");
 
       await expect(serverConfigContainer).toContainText(
         "POST--MyCustomValue-GET--MyCustomValue",
       );
+    });
+    test("should allow for ServerError", async ({ page }) => {
+      await page.goto("/qwikcity-test/server-func/server-error");
+      const serverConfigContainer = page.locator("#server-error");
+
+      await expect(serverConfigContainer).toContainText("my errorPOST");
     });
   });
 });

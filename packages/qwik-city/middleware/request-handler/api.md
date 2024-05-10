@@ -175,10 +175,10 @@ export interface ResolveValue {
 }
 
 // @public (undocumented)
-export class ServerError extends Error {
-    constructor(status: number, data: Record<any, any>);
+export class ServerError<T> extends Error {
+    constructor(status: number, data: T);
     // (undocumented)
-    data: Record<any, any>;
+    data: T;
     // (undocumented)
     status: number;
 }

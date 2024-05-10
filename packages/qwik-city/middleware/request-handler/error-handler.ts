@@ -1,8 +1,8 @@
 /** @public */
-export class ServerError extends Error {
+export class ServerError<T> extends Error {
   constructor(
     public status: number,
-    public data: Record<any, any>
+    public data: T
   ) {
     super();
   }

@@ -44,7 +44,9 @@ import type {
 } from './types';
 import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 import { z } from 'zod';
+
 import { isDev, isServer } from '@builder.io/qwik/build';
+
 import type { FormSubmitCompletedDetail } from './form-component';
 
 /** @public */
@@ -268,6 +270,16 @@ export const zodQrl = ((
 /** @public */
 export const zod$ = /*#__PURE__*/ implicit$FirstArg(zodQrl) as ZodConstructor;
 
+const deepFreeze = (obj: any) => {
+  Object.getOwnPropertyNames(obj).forEach((prop) => {
+    const value = obj[prop];
+    if (value && typeof value === 'object') {
+      deepFreeze(value);
+    }
+  });
+  return Object.freeze(obj);
+};
+
 /** @public */
 export const serverQrl = <T extends ServerFunction>(
   qrl: QRL<T>,
@@ -292,9 +304,11 @@ export const serverQrl = <T extends ServerFunction>(
         args.length > 0 && args[0] instanceof AbortSignal
           ? (args.shift() as AbortSignal)
           : undefined;
+
       if (isServer) {
         // Running during SSR, we can call the function directly
         let requestEvent = globalThis.qcAsyncRequestStore?.getStore() as RequestEvent | undefined;
+
         if (!requestEvent) {
           const contexts = [useQwikCityEnv()?.ev, this, _getContextEvent()] as RequestEvent[];
           requestEvent = contexts.find(
@@ -304,7 +318,8 @@ export const serverQrl = <T extends ServerFunction>(
               Object.prototype.hasOwnProperty.call(v, 'cookie')
           );
         }
-        return qrl.apply(requestEvent, args);
+
+        return qrl.apply(requestEvent, isDev ? deepFreeze(args) : args);
       } else {
         // Running on the client, we need to call the function via HTTP
         const ctxElm = _getContextElement();

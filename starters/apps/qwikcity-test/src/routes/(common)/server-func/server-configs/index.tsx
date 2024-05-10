@@ -15,7 +15,6 @@ const serverFunctionA = server$(
     );
   },
   {
-    method: "get",
     headers: {
       [customHeader]: "MyCustomValue",
     },

@@ -102,14 +102,12 @@ test.describe("server$", () => {
       await expect(usersContainer1).toContainText("user1user1");
       await expect(usersContainer2).toContainText("user2user2");
     });
-    test.only("should work with config GET and custom header", async ({
-      page,
-    }) => {
+    test("should work with config custom header", async ({ page }) => {
       await page.goto("/qwikcity-test/server-func/server-configs");
       const serverConfigContainer = page.locator("#server-configs");
 
       await expect(serverConfigContainer).toContainText(
-        "GET--MyCustomValue-MyCustomValue",
+        "POST--MyCustomValue-MyCustomValue",
       );
     });
   });

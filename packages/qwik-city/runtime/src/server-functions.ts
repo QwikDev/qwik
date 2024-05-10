@@ -280,7 +280,8 @@ export const serverQrl = <T extends ServerFunction>(
     }
   }
 
-  const method = options?.method?.toUpperCase?.() || 'POST';
+  const method = 'POST';
+  // const method = options?.method?.toUpperCase?.() || 'POST';
   const headers = options?.headers || {};
   const origin = options?.origin || '';
   const fetchOptions = options?.fetchOptions || {};

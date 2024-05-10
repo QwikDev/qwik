@@ -794,8 +794,9 @@ export interface ServerConfig {
   // TODO: create id registry
   // id?: string;
   origin?: string;
+  // TODO: recreate sending arguments as queryParams
   // only support "get" and "post" for now
-  method?: 'get' | 'post'; // | 'patch' | 'delete';
+  // method?: 'get' | 'post'; // | 'patch' | 'delete';
   headers?: Record<string, string>;
   // TODO: add cache interface
   // cache?: any,

@@ -38,6 +38,9 @@ function isIgnoredError(message = '') {
   return ignoredErrors.some((ignored) => message.includes(ignored));
 }
 
+// ensure no HTTP/2-specific headers are being set
+const invalidHeadersPattern = /^:(method|scheme|authority|path)$/i;
+
 export function normalizeUrl(url: string, base: string) {
   // do not allow the url to have a relative protocol url
   // which could bypass of CSRF protections
@@ -57,6 +60,9 @@ export async function fromNodeHttp(
   const nodeRequestHeaders = req.headers;
 
   for (const key in nodeRequestHeaders) {
+    if (invalidHeadersPattern.test(key)) {
+      continue;
+    }
     const value = nodeRequestHeaders[key];
     try {
       if (typeof value === 'string') {
@@ -67,7 +73,6 @@ export async function fromNodeHttp(
         }
       }
     } catch (err) {
-      // ensure no HTTP/2-specific headers are being set
       console.error(err);
     }
   }
@@ -103,11 +108,10 @@ export async function fromNodeHttp(
       res.statusCode = status;
       headers.forEach((value, key) => {
         try {
-          if (!key.startsWith(':')) {
+          if (!invalidHeadersPattern.test(key)) {
             res.setHeader(key, value);
           }
         } catch (err) {
-          // ensure no HTTP/2-specific headers are being set
           console.error(err);
         }
       });

@@ -186,6 +186,8 @@ test.describe("actions", () => {
         await expect(success).toHaveText(
           '{"arrayOld":["0","1"],"arrayNew":["0","1"],"people":[{"name":"Fred"},{"name":"Sam"}]}',
         );
+        const finished = page.locator("#multiple-handlers-success");
+        await expect(finished).toContainText("true");
       });
     });
   }

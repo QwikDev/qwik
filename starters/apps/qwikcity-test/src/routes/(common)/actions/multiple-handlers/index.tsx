@@ -1,7 +1,7 @@
 import { $, component$, useSignal } from "@builder.io/qwik";
-import { Form, globalAction$ } from "@builder.io/qwik-city";
+import { Form, routeAction$ } from "@builder.io/qwik-city";
 
-export const useDotNotationAction = globalAction$(async (payload) => {
+export const useDotNotationAction = routeAction$(async (payload) => {
   return {
     success: true,
     payload: payload,
@@ -9,7 +9,7 @@ export const useDotNotationAction = globalAction$(async (payload) => {
 });
 
 export default component$(() => {
-  const finished = useSignal();
+  const finished = useSignal(false);
   const dotNotation = useDotNotationAction();
 
   return (
@@ -23,7 +23,7 @@ export default component$(() => {
             return dotNotation.submit(form);
           }),
           $(() => {
-            finished.value = true;
+            finished.value = dotNotation.submitted;
           }),
         ]}
         id="dot-notation-form"
@@ -44,6 +44,7 @@ export default component$(() => {
           {JSON.stringify(dotNotation.value.payload)}
         </div>
       )}
+      <div id="multiple-handlers-finished">{finished.value}</div>
     </>
   );
 });

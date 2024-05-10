@@ -1,3 +1,12 @@
+export class ServerError extends Error {
+  constructor(
+    public status: number,
+    public data: Record<any, any>
+  ) {
+    super();
+  }
+}
+
 export class ErrorResponse extends Error {
   constructor(
     public status: number,

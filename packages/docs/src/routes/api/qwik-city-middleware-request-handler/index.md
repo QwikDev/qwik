@@ -1391,7 +1391,7 @@ export interface ResolveValue
 ## ServerError
 
 ```typescript
-export declare class ServerError<T> extends Error
+export declare class ServerError<T = Record<any, any>> extends Error
 ```
 
 **Extends:** Error

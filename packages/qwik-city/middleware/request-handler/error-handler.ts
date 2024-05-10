@@ -1,5 +1,5 @@
 /** @public */
-export class ServerError<T> extends Error {
+export class ServerError<T = Record<any, any>> extends Error {
   constructor(
     public status: number,
     public data: T

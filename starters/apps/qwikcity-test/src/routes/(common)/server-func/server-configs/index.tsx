@@ -20,9 +20,12 @@ export const serverFunctionA = server$(
 );
 export const serverFunctionB = server$(
   async function b(this) {
-    return this.request.headers.get("x-custom-header") || "N/A";
+    return (
+      this.method + "--" + this.request.headers.get("x-custom-header") || "N/A"
+    );
   },
   {
+    method: "get",
     headers: {
       [customHeader]: "MyCustomValue",
     },
@@ -41,9 +44,9 @@ export const MultipleServerFunctionsWithConfig = component$(() => {
   });
 
   return (
-    <pre id="server-configs">
+    <div id="server-configs">
       {serverValA.value}-{serverValB.value}
-    </pre>
+    </div>
   );
 });
 

@@ -14,7 +14,7 @@ import {
 } from '@builder.io/qwik';
 
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
-import { QACTION_KEY, QFN_KEY } from './constants';
+import { QACTION_KEY, QFN_KEY, QDATA_KEY } from './constants';
 import { RouteStateContext } from './contexts';
 import type {
   ActionConstructor,
@@ -280,8 +280,7 @@ export const serverQrl = <T extends ServerFunction>(
     }
   }
 
-  const method = 'POST';
-  // const method = options?.method?.toUpperCase?.() || 'POST';
+  const method = options?.method?.toUpperCase?.() || 'POST';
   const headers = options?.headers || {};
   const origin = options?.origin || '';
   const fetchOptions = options?.fetchOptions || {};
@@ -321,7 +320,8 @@ export const serverQrl = <T extends ServerFunction>(
         });
         const hash = qrl.getHash();
         // Handled by `pureServerFunction` middleware
-        const res = await fetch(`${origin}?${QFN_KEY}=${hash}`, {
+        let query = '';
+        const config = {
           ...fetchOptions,
           method,
           headers: {
@@ -331,8 +331,15 @@ export const serverQrl = <T extends ServerFunction>(
             'X-QRL': hash,
           },
           signal,
-          body: await _serializeData([qrl, ...filtered], false),
-        });
+        };
+        const body = await _serializeData([qrl, ...filtered], false);
+        if (method === 'GET') {
+          query += `&${QDATA_KEY}=${encodeURIComponent(body)}`;
+        } else {
+          // PatrickJS: sorry Ryan Florence I prefer const still
+          config.body = body;
+        }
+        const res = await fetch(`${origin}?${QFN_KEY}=${hash}${query}`, config);
 
         const contentType = res.headers.get('Content-Type');
         if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {

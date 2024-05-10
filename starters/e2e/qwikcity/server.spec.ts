@@ -107,7 +107,7 @@ test.describe("server$", () => {
       const serverConfigContainer = page.locator("#server-configs");
 
       await expect(serverConfigContainer).toContainText(
-        "POST--MyCustomValue-MyCustomValue",
+        "POST--MyCustomValue-GET--MyCustomValue",
       );
     });
   });

@@ -60,7 +60,7 @@ export const resolveRequestHandlers = (
     }
     if (isPageRoute) {
       // server$
-      if (method === 'POST') {
+      if (method === 'POST' || method === 'GET') {
         requestHandlers.push(pureServerFunction);
       }
 

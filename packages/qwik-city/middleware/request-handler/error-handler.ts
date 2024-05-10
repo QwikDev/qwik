@@ -1,3 +1,4 @@
+/** @public */
 export class ServerError extends Error {
   constructor(
     public status: number,

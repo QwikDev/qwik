@@ -175,6 +175,15 @@ export interface ResolveValue {
 }
 
 // @public (undocumented)
+export class ServerError extends Error {
+    constructor(status: number, data: Record<any, any>);
+    // (undocumented)
+    data: Record<any, any>;
+    // (undocumented)
+    status: number;
+}
+
+// @public (undocumented)
 export interface ServerRenderOptions extends RenderOptions {
     checkOrigin?: boolean;
     // (undocumented)

@@ -57,6 +57,7 @@ export const routeActionQrl = ((
     const currentAction = useAction();
     const initialState: Editable<Partial<ActionStore<unknown, unknown>>> = {
       actionPath: `?${QACTION_KEY}=${id}`,
+      submitted: false,
       isRunning: false,
       status: undefined,
       value: undefined,
@@ -104,6 +105,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
         if (data instanceof FormData) {
           state.formData = data;
         }
+        state.submitted = true;
         state.isRunning = true;
         loc.isNavigating = true;
         currentAction.value = {

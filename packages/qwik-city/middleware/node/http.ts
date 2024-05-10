@@ -68,6 +68,7 @@ export async function fromNodeHttp(
       }
     } catch (err) {
       // ensure no HTTP/2-specific headers are being set
+      console.error(err);
     }
   }
 
@@ -107,6 +108,7 @@ export async function fromNodeHttp(
           }
         } catch (err) {
           // ensure no HTTP/2-specific headers are being set
+          console.error(err);
         }
       });
       const cookieHeaders = cookies.headers();

@@ -1,17 +1,15 @@
-import { component$, useSignal, useTask$ } from "@builder.io/qwik";
+import { component$, useSignal, useVisibleTask$ } from "@builder.io/qwik";
 import { server$ } from "@builder.io/qwik-city";
-// import { delay } from "../../actions/login";
+import { delay } from "../../actions/login";
 
 const customHeader = "x-custom-header";
 
-const serverFunctionA = server$(
+export const serverFunctionA = server$(
   async function a() {
     return (
       this.method +
       "--" +
-      (this.request.headers.get("X-Custom-Header") ||
-        this.request.headers.get(customHeader) ||
-        "N/A")
+      (this.request.headers.get("X-Custom-Header") || "N/A")
     );
   },
   {
@@ -20,14 +18,9 @@ const serverFunctionA = server$(
     },
   },
 );
-
-const serverFunctionB = server$(
-  async function b() {
-    return (
-      this.headers.get(customHeader) ||
-      this.request.headers.get(customHeader) ||
-      "N/A"
-    );
+export const serverFunctionB = server$(
+  async function b(this) {
+    return this.request.headers.get("x-custom-header") || "N/A";
   },
   {
     headers: {
@@ -40,22 +33,24 @@ export const MultipleServerFunctionsWithConfig = component$(() => {
   const serverValA = useSignal("");
   const serverValB = useSignal("");
 
-  useTask$(async () => {
+  // ensure request made on client
+  useVisibleTask$(async () => {
     serverValA.value = await serverFunctionA();
-    // await delay(1);
+    await delay(1);
     serverValB.value = await serverFunctionB();
   });
 
   return (
-    <div id="server-configs">
+    <pre id="server-configs">
       {serverValA.value}-{serverValB.value}
-    </div>
+    </pre>
   );
 });
 
 export default component$(() => {
   return (
     <>
+      server$
       <MultipleServerFunctionsWithConfig />
     </>
   );

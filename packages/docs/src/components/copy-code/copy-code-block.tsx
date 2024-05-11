@@ -1,8 +1,8 @@
-import { $, component$, sync$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useSignal, useStyles$ } from '@builder.io/qwik';
 import { CopyCode as CopyCodeIcon } from '../svgs/copy-code-icon';
 import styles from './copy-code.css?inline';
 
-const Check = component$(({ height = 12, width = 12 }: { height: number; width: number }) => {
+const Check = component$(({ height = 12, width = 12 }: { height?: number; width?: number }) => {
   useStyles$(styles);
 
   return (
@@ -26,16 +26,14 @@ const Check = component$(({ height = 12, width = 12 }: { height: number; width: 
   );
 });
 export const CopyCode = component$(({ code }: { code: string }) => {
-  const store = useStore({
-    copied: false,
-  });
+  const copied = useSignal(false);
   return (
     <button
+      preventdefault:click
       onClick$={async (e) => {
-        e.preventDefault();
-        store.copied = !store.copied;
-        if (store.copied) {
-          setTimeout(() => (store.copied = false), 1500);
+        copied.value = !copied.value;
+        if (copied.value) {
+          setTimeout(() => (copied.value = false), 1500);
         }
         if (navigator.clipboard) {
           await navigator.clipboard.writeText(code);
@@ -46,8 +44,8 @@ export const CopyCode = component$(({ code }: { code: string }) => {
       <span
         class={{
           animate: true,
-          visible: store.copied,
-          hidden: !store.copied,
+          visible: copied.value,
+          hidden: !copied.value,
         }}
       >
         <Check />
@@ -55,8 +53,8 @@ export const CopyCode = component$(({ code }: { code: string }) => {
       <span
         class={{
           animate: true,
-          visible: !store.copied,
-          hidden: store.copied,
+          visible: !copied.value,
+          hidden: copied.value,
         }}
       >
         <CopyCodeIcon />

@@ -390,6 +390,51 @@ export const serverQrl = <T extends ServerFunction>(
 /** @public */
 export const server$ = /*#__PURE__*/ implicit$FirstArg(serverQrl);
 
+/** @private */
+export type CacheFunction = {
+  (this: any): any;
+};
+
+/** @private */
+export type CacheQRL<T extends CacheFunction> = QRL<
+  | ((...args: Parameters<T>) => ReturnType<T>)
+>;
+
+/** @private */
+export const serverCache = new Map();
+
+/** @public */
+const cacheQrl = <T extends CacheFunction>(qrl: QRL<T>): QRL<CacheQRL<T>> | T => {
+  if (isServer) {
+    const captured = qrl.getCaptured();
+    if (captured && captured.length > 0 && !_getContextElement()) {
+      throw new Error('For security reasons, we cannot serialize QRLs that capture lexical scope.');
+    }
+  }
+  // client
+  function rpc() {
+    return $(async function (this: RequestEventBase, ...args: Parameters<T>) {
+      if (isServer) {
+
+        const cacheKey = await _serializeData([qrl, ...args], false);
+        // let requestEvent = globalThis.qcAsyncRequestStore?.getStore() as RequestEvent | undefined;  
+        if (serverCache.has(cacheKey)) {
+          let requestEvent = globalThis.qcAsyncRequestStore?.getStore() as RequestEvent | undefined;
+          const qrl = serverCache.get(cacheKey);
+          return qrl.apply(requestEvent, isDev ? deepFreeze(args) : args);
+        }
+        return qrl
+      }
+      return ''
+    } as CacheQRL<T>);
+  }
+  return rpc();
+};
+
+/** @public */
+export const cache$ = /*#__PURE__*/ implicit$FirstArg(cacheQrl);
+
+
 const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl: QRL) => {
   let id: string | undefined;
   const validators: DataValidator[] = [];

@@ -30,11 +30,12 @@ export const CodeBlock = component$((props: CodeBlockProps) => {
     if (pathInView$ && path && listSig.value !== undefined) {
       const el = listSig.value;
       const intersectionObserver = new IntersectionObserver(
-        ([{ isIntersecting }]) => isIntersecting && pathInView$(path)
-      , {
-        //to avoid any edge case
-        root: observerRootId ? document.getElementById(observerRootId) : null
-      });
+        ([{ isIntersecting }]) => isIntersecting && pathInView$(path),
+        {
+          //to avoid any edge case
+          root: observerRootId ? document.getElementById(observerRootId) : null,
+        }
+      );
       intersectionObserver.observe(el);
       return () => {
         intersectionObserver.unobserve(el);

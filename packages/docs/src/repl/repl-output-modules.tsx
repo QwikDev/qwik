@@ -27,7 +27,7 @@ export const ReplOutputModules = component$(({ outputs, headerText }: ReplOutput
                 }}
                 class={{
                   'in-view': store.selectedPath && store.selectedPath === o.path,
-                  "!hidden": true,
+                  '!hidden': true,
                   'md:!block': true,
                 }}
                 preventdefault:click

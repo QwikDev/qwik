@@ -1941,7 +1941,7 @@ export const Greeter = component$(() => {
 	});
 }
 
-[test]
+#[test]
 fn example_import_attributes() {
 	test_input!(TestInput {
 		code: r#"

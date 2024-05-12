@@ -129,3 +129,7 @@ export type OutputPanel =
   | 'diagnostics';
 
 export type OutputDetail = 'options' | 'console';
+
+export interface PathInView {
+  selectedPath: string;
+}

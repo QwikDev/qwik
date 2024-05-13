@@ -44,7 +44,7 @@ export const qwikLoader = (
     );
   };
 
-  const resolveContainer = (containerEl: Element & QContainerElement) => {
+  const resolveContainer = (containerEl: QContainerElement) => {
     if (containerEl[Q_JSON] === undefined) {
       const parentJSON = containerEl === doc.documentElement ? doc.body : containerEl;
       let script = parentJSON.lastElementChild;
@@ -75,7 +75,7 @@ export const qwikLoader = (
     if (element.hasAttribute('preventdefault:' + eventName)) {
       ev.preventDefault();
     }
-    const ctx = element['_qc_'] as QContext | undefined;
+    const ctx = element['_qc_'];
     const relevantListeners = ctx && ctx.li.filter((li) => li[0] === attrName);
     if (relevantListeners && relevantListeners.length > 0) {
       for (const listener of relevantListeners) {
@@ -94,7 +94,7 @@ export const qwikLoader = (
     }
     const attrValue = element[getAttribute](attrName);
     if (attrValue) {
-      const container = element.closest('[q\\:container]')! as Element & QContainerElement;
+      const container = element.closest('[q\\:container]')! as QContainerElement;
       const base = new URL(container[getAttribute]('q:base')!, doc.baseURI);
       for (const qrl of attrValue.split('\n')) {
         const url = new URL(qrl, base);
@@ -115,8 +115,6 @@ export const qwikLoader = (
           }
         }
         if (!handler) {
-          const error = new Error('Handler not found for ' + url.href);
-          emitEvent('qerror', { error, href: url.href });
           // break out of the loop if handler is not found
           break;
         }
@@ -128,7 +126,7 @@ export const qwikLoader = (
             isSync || emitEvent<QwikSymbolEvent>('qsymbol', eventData);
             const results = handler(ev, element);
             // only await if there is a promise returned
-            if (isPromise(results as Promise<unknown>)) {
+            if (isPromise(results)) {
               await results;
             }
           } catch (error) {

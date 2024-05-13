@@ -187,7 +187,7 @@ export const getEventName = (attribute: string) => {
   }
 };
 
-export interface QContainerElement {
+export interface QContainerElement extends Element {
   qFuncs?: Function[];
   _qwikjson_?: any;
 }

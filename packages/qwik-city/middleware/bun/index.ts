@@ -18,7 +18,6 @@ import { join, extname } from 'node:path';
 // @builder.io/qwik-city/middleware/bun
 class TextEncoderStream_polyfill {
   private _encoder: TextEncoder;
-  private _writer: unknown;  // Assuming the writer is of unknown type
   public ready: Promise<void>;
   public reader: ReadableStreamDefaultController<Uint8Array> | null;
   public closed: boolean;
@@ -27,7 +26,6 @@ class TextEncoderStream_polyfill {
 
   constructor() {
     this._encoder = new TextEncoder();
-    this._writer = null;
     this.ready = Promise.resolve();
     this.reader = null;
     this.closed = false;
@@ -42,7 +40,7 @@ class TextEncoderStream_polyfill {
       // Assuming the chunk is of unknown type
       write: async (chunk: unknown) => { 
         if (chunk != null && this.reader) {
-          let encoded = this._encoder.encode(String(chunk));
+          const encoded = this._encoder.encode(String(chunk));
           this.reader.enqueue(encoded);
         }
       },

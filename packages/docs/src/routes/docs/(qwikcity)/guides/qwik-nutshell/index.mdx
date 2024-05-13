@@ -693,7 +693,7 @@ const encryptOnServer = server$(function(message: string) {
 
 export default component$(() => {
   useTask$(() => {
-    if (isServer) {
+    if () {
       // This code will only run on the server only when the component is first rendered in the server
     }
   });
@@ -755,14 +755,17 @@ Here is how you import these for reference:
 ```tsx
 import {isServer, isBrowser} from '@builder.io/qwik/build';
 
-// component$
+// inside component$
 
-  useTask$(({ track }) => {
-    // track() <-- make sure track correctly tracks a signal that may change on the client if you want it to run
-    if (isServer) {
-      // run server only
-    }
-  });
+useTask$(({ track }) => {
+  track(() => interactionSig.value) <-- tracks on the client when a signal has changed.
+
+  // server code
+
+  if (isServer) return;
+
+  // client code here
+});
 
 //
 ```

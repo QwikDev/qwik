@@ -100,7 +100,7 @@ export const qwikLoader = (
         const url = new URL(qrl, base);
         const symbol = url.hash[replace](/^#?([^?[|]*).*$/, '$1') || 'default';
         const reqTime = performance.now();
-        let handler: undefined | (evt: Event, target: Element) => Promise<unknown> | unknown;
+        let handler: any;
         const isSync = qrl.startsWith('#');
         if (isSync) {
           handler = (container.qFuncs || [])[Number.parseInt(symbol)];

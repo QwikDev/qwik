@@ -303,7 +303,7 @@ To update all dependencies, run:
 pnpm deps
 ```
 
-This will show an interactive UI to update all dependencies. Be careful about performing major updates, especially for the docs site, since not all functionalitty has test coverage there.
+This will show an interactive UI to update all dependencies. Be careful about performing major updates, especially for the docs site, since not all functionality has test coverage there.
 
 ## Starter CLI `create-qwik`
 

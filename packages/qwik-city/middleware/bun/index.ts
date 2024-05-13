@@ -27,10 +27,10 @@ class TextEncoderStream {
   public closed = false;
 
   public readable = new ReadableStream({
-    start: controller => {
+    start: (controller) => {
       this._reader = controller;
-    }
-  })
+    },
+  });
 
   public writable = new WritableStream({
     write: async (chunk) => {
@@ -46,7 +46,7 @@ class TextEncoderStream {
     abort: (reason) => {
       this._reader?.error(reason);
       this.closed = true;
-    }
+    },
   });
 }
 

@@ -16,16 +16,12 @@ import { MIME_TYPES } from '../request-handler/mime-types';
 import { join, extname } from 'node:path';
 
 // @builder.io/qwik-city/middleware/bun
-
-class TextEncoderStream {
+// still missing from bun: last check was bun version 1.1.8
+class TextEncoderStream_polyfill {
   private _encoder = new TextEncoder();
-
   private _reader: ReadableStreamDefaultController<any> | null = null;
-
   public ready = Promise.resolve();
-
   public closed = false;
-
   public readable = new ReadableStream({
     start: (controller) => {
       this._reader = controller;
@@ -52,7 +48,7 @@ class TextEncoderStream {
 
 /** @public */
 export function createQwikCity(opts: QwikCityBunOptions) {
-  globalThis.TextEncoderStream ||= TextEncoderStream as any;
+  globalThis.TextEncoderStream = TextEncoderStream || TextEncoderStream_polyfill as any;
 
   const qwikSerializer = {
     _deserializeData,

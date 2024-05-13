@@ -89,6 +89,15 @@ server.on("request", (req, res) => {
 
   staticFile(req, res, () => {
     router(req, res, () => {
+      // Return a cheaper 404 for static files
+      if (
+        req.method === "GET" &&
+        /\.(js|css|jpg|jpeg|png|webp|avif|gif|svg)$/.test(req.url ?? "")
+      ) {
+        res.writeHead(404, { "Content-Type": "text/html; charset=utf-8" });
+        res.end("Not Found");
+        return;
+      }
       notFound(req, res, () => {});
     });
   });

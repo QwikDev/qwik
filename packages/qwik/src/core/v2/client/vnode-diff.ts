@@ -10,7 +10,7 @@ import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { SubscriptionType } from '../../state/common';
-import { isSignal } from '../../state/signal';
+import { SignalDerived, isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
 import { TaskFlags, cleanupTask, isTask, type SubscriberEffect } from '../../use/use-task';
 import { EMPTY_OBJ } from '../../util/flyweight';
@@ -19,9 +19,11 @@ import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   OnRenderProp,
+  QDefaultSlot,
   QSlot,
   QSlotParent,
   QStyle,
+  QTemplate,
   QUnclaimedProjections,
 } from '../../util/markers';
 import { isPromise } from '../../util/promises';
@@ -54,7 +56,6 @@ import {
 } from './types';
 import {
   mapApp_findIndx,
-  mapApp_remove,
   mapArray_set,
   vnode_ensureElementInflated,
   vnode_getAttr,
@@ -387,7 +388,7 @@ export const vnode_diff = (
       /// STEP 1: Bucketize the children based on the projection name.
       for (let i = 0; i < children.length; i++) {
         const child = children[i];
-        const slotName = String((isJSXNode(child) && child.props[QSlot]) || '');
+        const slotName = String((isJSXNode(child) && child.props[QSlot]) || QDefaultSlot);
         const idx = mapApp_findIndx(projections, slotName, 0);
         let jsxBucket: JSXNodeImpl<typeof Projection>;
         if (idx >= 0) {
@@ -420,6 +421,7 @@ export const vnode_diff = (
     );
     if (vCurrent == null) {
       vNewNode = vnode_newVirtual();
+      vNewNode[VNodeProps.parent] = vParent;
       isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Projection);
       isDev && vnode_setProp(vNewNode, 'q:code', 'expectProjection');
       vnode_setProp(vNewNode as VirtualVNode, QSlot, slotName);
@@ -428,20 +430,21 @@ export const vnode_diff = (
 
       const componentProjections =
         vnode_getProp<(string | VNode)[]>(vParent, QUnclaimedProjections, null) || [];
-      mapArray_set(componentProjections, slotName, vNewNode, 0);
+      componentProjections.push(slotName);
       vnode_setProp(vParent as VirtualVNode, QUnclaimedProjections, componentProjections);
     }
   }
 
   function expectSlot() {
-    const slotNameKey: string = jsxValue.props.name || '';
     // console.log('expectSlot', JSON.stringify(slotNameKey));
-    const vHost = vnode_getProjectionParentComponent(vParent, container.$getObjectById$);
+    const vHost = vnode_getProjectionParentComponent(vParent, container.rootVNode);
+
+    const slotNameKey = getSlotNameKey(vHost);
 
     if (vHost) {
       const componentProjections =
         vnode_getProp<(string | JSXChildren | number)[]>(vHost, QUnclaimedProjections, null) || [];
-      mapApp_remove(componentProjections, slotNameKey, 0);
+      componentProjections.splice(componentProjections.indexOf(slotNameKey), 1);
       vnode_setProp(vHost, QUnclaimedProjections, componentProjections);
     }
 
@@ -485,6 +488,17 @@ export const vnode_diff = (
       isDev && vnode_setProp(vNewNode, 'q:code', 'expectSlot' + count++);
     }
     return true;
+  }
+
+  function getSlotNameKey(vHost: VNode | null) {
+    const constProps = jsxValue.constProps;
+    if (constProps && typeof constProps == 'object' && 'name' in constProps) {
+      const constValue = constProps.name;
+      if (constValue instanceof SignalDerived) {
+        return trackSignal(constValue, [SubscriptionType.HOST, vHost as fixMeAny]);
+      }
+    }
+    return jsxValue.props.name || QDefaultSlot;
   }
 
   function drainAsyncQueue(): ValueOrPromise<void> {
@@ -1122,9 +1136,9 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
         vnode_getProp(vCursor as VirtualVNode, OnRenderProp, null) !== null;
       if (isComponent) {
         // SPECIAL CASE: If we are a component, we need to descend into the projected content and release the content.
-        const attrs = vCursor as ClientAttrs;
-        for (let i = VirtualVNodeProps.PROPS_OFFSET; i < vCursor.length; i = i + 2) {
-          const key = attrs[i]!;
+        const attrs = vCursor;
+        for (let i = VirtualVNodeProps.PROPS_OFFSET; i < attrs.length; i = i + 2) {
+          const key = attrs[i] as string;
           if (!key.startsWith(':') && !key.startsWith('q:')) {
             // any prop which does not start with `:` or `q:` is a content-projection prop.
             const value = attrs[i + 1];
@@ -1157,6 +1171,11 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
           continue;
         }
       }
+    }
+    // Out of children
+    if (vCursor === vNode) {
+      // we are where we started, this means that vNode has no children, so we are done.
+      return;
     }
     // Out of children, go to next sibling
     const vNextSibling = vnode_getNextSibling(vCursor);
@@ -1197,7 +1216,7 @@ function cleanupStaleUnclaimedProjection(journal: VNodeJournal, projection: VNod
     const projectionParentType = projectionParent[VNodeProps.flags];
     if (
       projectionParentType & VNodeFlags.Element &&
-      vnode_getElementName(projectionParent as ElementVNode) === 'q:template'
+      vnode_getElementName(projectionParent as ElementVNode) === QTemplate
     ) {
       // if parent is the q:template element then projection is still unclaimed - remove it
       vnode_remove(journal, projectionParent, projection, true);

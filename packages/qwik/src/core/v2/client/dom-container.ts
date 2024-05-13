@@ -1,7 +1,7 @@
 /** @file Public APIs for the SSR */
 
 import type { ObjToProxyMap } from '../../container/container';
-import { assertTrue } from '../../error/assert';
+import { assertDefined, assertTrue } from '../../error/assert';
 import { getPlatform } from '../../platform/platform';
 import type { QRL } from '../../qrl/qrl.public';
 import { ERROR_CONTEXT, isRecoverable } from '../../render/error-handling';
@@ -66,6 +66,7 @@ import {
   vnode_setProp,
   type VNodeJournal,
   isQContainerElementWithValue,
+  vnode_getVNodeForNode as vnode_getVNodeForElement,
 } from './vnode';
 import { vnode_diff } from './vnode-diff';
 
@@ -178,8 +179,11 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
         qTemplateElement = this.document.createElement(QTemplate);
         qTemplateElement.style.display = 'none';
         this.$journal$.push(VNodeJournalOpCode.Insert, this.document.body, null, qTemplateElement);
+        this._qTemplate = vnode_newElement(qTemplateElement, QTemplate);
+      } else {
+        this._qTemplate = vnode_getVNodeForElement(this.rootVNode, qTemplateElement);
+        assertDefined(this._qTemplate, 'Missing q:template element.');
       }
-      this._qTemplate = vnode_newElement(qTemplateElement, QTemplate);
     }
 
     return this._qTemplate;
@@ -332,15 +336,14 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   }
 
   emitUnclaimedProjection(): ValueOrPromise<void> {
-    const unclaimedProjections = this.vNodesWithProjections.flatMap((component) =>
-      vnode_getProp<(string | VNode)[]>(component, QUnclaimedProjections, null)
-    );
+    const unclaimedProjections = this.vNodesWithProjections
+      // get all the unclaimed projections from the components
+      .flatMap((component) =>
+        vnode_getProp<string[]>(component, QUnclaimedProjections, null)
+          // get all the projection vnode from the component by name
+          ?.map((slotName) => vnode_getProp(component, slotName, null))
+      );
     if (unclaimedProjections.length) {
-      // remove slot names
-      for (let i = unclaimedProjections.length - 2; i >= 0; i = i - 2) {
-        unclaimedProjections.splice(i, 1);
-      }
-
       for (let i = 0; i < unclaimedProjections.length; i++) {
         const unclaimedProjection = unclaimedProjections[i] as VNode | null;
         if (unclaimedProjection) {

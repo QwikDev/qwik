@@ -1,12 +1,13 @@
-import { _isJSXNode as isJSXNode } from '@builder.io/qwik';
+import { _isJSXNode as isJSXNode, type JSXNode } from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
 import {
-  QSlot,
   QSlotParent,
   mapApp_remove,
   mapArray_get,
   mapArray_set,
   ELEMENT_SEQ,
+  QSlot,
+  QDefaultSlot,
 } from './qwik-copy';
 import type { SsrAttrs, ISsrNode, ISsrComponentFrame, JSXChildren } from './qwik-types';
 import type { CleanupQueue } from './v2-ssr-container';
@@ -88,15 +89,15 @@ export class SsrComponentFrame implements ISsrComponentFrame {
   distributeChildrenIntoSlots(children: JSXChildren, scopedStyle: string | null) {
     this.childrenScopedStyle = scopedStyle;
     if (isJSXNode(children)) {
-      const slotName = (children.props[QSlot] || '') as string;
+      const slotName = this.getSlotName(children);
       mapArray_set(this.slots, slotName, children, 0);
     } else if (Array.isArray(children)) {
       const defaultSlot = [];
       for (let i = 0; i < children.length; i++) {
         const child = children[i];
         if (isJSXNode(child)) {
-          const slotName = (child.props[QSlot] || '') as string;
-          if (slotName === '') {
+          const slotName = this.getSlotName(child);
+          if (slotName === QDefaultSlot) {
             defaultSlot.push(child);
           } else {
             mapArray_set(this.slots, slotName, child, 0);
@@ -105,10 +106,17 @@ export class SsrComponentFrame implements ISsrComponentFrame {
           defaultSlot.push(child);
         }
       }
-      defaultSlot.length && mapArray_set(this.slots, '', defaultSlot, 0);
+      defaultSlot.length && mapArray_set(this.slots, QDefaultSlot, defaultSlot, 0);
     } else {
-      mapArray_set(this.slots, '', children, 0);
+      mapArray_set(this.slots, QDefaultSlot, children, 0);
     }
+  }
+
+  private getSlotName(jsx: JSXNode): string {
+    if (jsx.props[QSlot]) {
+      return jsx.props[QSlot] as string;
+    }
+    return QDefaultSlot;
   }
 
   consumeChildrenForSlot(projectionNode: ISsrNode, slotName: string): JSXChildren | null {

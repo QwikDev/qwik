@@ -47,6 +47,7 @@ export const TaskEvent = 'qTask';
 
 /** `<q:slot name="...">` */
 export const QSlotInertName = '\u0000';
+export const QDefaultSlot = '';
 
 /**
  * Attribute to mark that this VNode has a pointer to itself from the `qwik/json` state.

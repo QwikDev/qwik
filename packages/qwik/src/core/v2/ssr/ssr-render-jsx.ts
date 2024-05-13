@@ -12,7 +12,7 @@ import { SignalDerived, isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
-import { ELEMENT_KEY, FLUSH_COMMENT, QScopedStyle, QSlot } from '../../util/markers';
+import { ELEMENT_KEY, FLUSH_COMMENT, QDefaultSlot, QScopedStyle, QSlot } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { isFunction, type ValueOrPromise } from '../../util/types';
 import {
@@ -25,7 +25,7 @@ import { addComponentStylePrefix, hasClassAttr, isClassAttr } from '../shared/sc
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
-import type { SSRContainer, SsrAttrs } from './ssr-types';
+import type { ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
 import { SSRComment, SSRStream, type SSRStreamChildren } from '../../render/jsx/utils.public';
 import { isAsyncGenerator } from '../../util/async-generator';
 
@@ -193,30 +193,15 @@ function processJSXNode(
           const children = jsx.children as JSXOutput;
           children != null && enqueue(children);
         } else if (type === Slot) {
-          const componentFrame = ssr.getNearestComponentFrame()!;
+          const componentFrame = ssr.getNearestComponentFrame();
           const projectionAttrs = isDev ? [DEBUG_TYPE, VirtualType.Projection] : [];
           if (componentFrame) {
             const compId = componentFrame.componentNode.id || '';
             projectionAttrs.push(':', compId);
             ssr.openProjection(projectionAttrs);
             const host = componentFrame.componentNode;
-            let slotName: string = '';
             const node = ssr.getLastNode();
-            const constProps = jsx.constProps;
-            if (constProps && typeof constProps == 'object' && 'name' in constProps) {
-              const constValue = constProps.name;
-              if (constValue instanceof SignalDerived) {
-                slotName = trackSignal(constValue, [
-                  SubscriptionType.PROP_MUTABLE,
-                  host as fixMeAny,
-                  constValue,
-                  node as fixMeAny,
-                  'name',
-                  undefined,
-                ]);
-              }
-            }
-            slotName = String(slotName || jsx.props.name || '');
+            const slotName = getSlotName(host, jsx);
             projectionAttrs.push(QSlot, slotName);
             enqueue(new SetScopedStyle(styleScoped));
             enqueue(ssr.closeProjection);
@@ -224,7 +209,7 @@ function processJSXNode(
             const slotChildren =
               componentFrame.consumeChildrenForSlot(node, slotName) || slotDefaultChildren;
             if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
-              ssr.addUnclaimedProjection(node, '', slotDefaultChildren);
+              ssr.addUnclaimedProjection(node, QDefaultSlot, slotDefaultChildren);
             }
             enqueue(slotChildren as JSXOutput);
             enqueue(new SetScopedStyle(componentFrame.childrenScopedStyle));
@@ -479,4 +464,15 @@ function addPreventDefaultEventToSerializationContext(
   if (eventName) {
     serializationCtx.$eventNames$.add(eventName);
   }
+}
+
+function getSlotName(host: ISsrNode, jsx: JSXNode): string {
+  const constProps = jsx.constProps;
+  if (constProps && typeof constProps == 'object' && 'name' in constProps) {
+    const constValue = constProps.name;
+    if (constValue instanceof SignalDerived) {
+      return trackSignal(constValue, [SubscriptionType.HOST, host as fixMeAny]);
+    }
+  }
+  return (jsx.props.name as string) || QDefaultSlot;
 }

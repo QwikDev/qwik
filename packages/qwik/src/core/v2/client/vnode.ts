@@ -198,7 +198,7 @@ export const vnode_newElement = (element: Element, tag: string): ElementVNode =>
   assertTrue(vnode_isElementVNode(vnode), 'Incorrect format of ElementVNode.');
   assertFalse(vnode_isTextVNode(vnode), 'Incorrect format of ElementVNode.');
   assertFalse(vnode_isVirtualVNode(vnode), 'Incorrect format of ElementVNode.');
-  return vnode as unknown as ElementVNode;
+  return vnode;
 };
 
 export const vnode_newUnMaterializedElement = (element: Element): ElementVNode => {
@@ -215,7 +215,7 @@ export const vnode_newUnMaterializedElement = (element: Element): ElementVNode =
   assertTrue(vnode_isElementVNode(vnode), 'Incorrect format of ElementVNode.');
   assertFalse(vnode_isTextVNode(vnode), 'Incorrect format of ElementVNode.');
   assertFalse(vnode_isVirtualVNode(vnode), 'Incorrect format of ElementVNode.');
-  return vnode as unknown as ElementVNode;
+  return vnode;
 };
 
 export const vnode_newSharedText = (
@@ -234,7 +234,7 @@ export const vnode_newSharedText = (
   assertFalse(vnode_isElementVNode(vnode), 'Incorrect format of TextVNode.');
   assertTrue(vnode_isTextVNode(vnode), 'Incorrect format of TextVNode.');
   assertFalse(vnode_isVirtualVNode(vnode), 'Incorrect format of TextVNode.');
-  return vnode as unknown as TextVNode;
+  return vnode;
 };
 
 export const vnode_newText = (textNode: Text, textContent: string | undefined): TextVNode => {
@@ -249,7 +249,7 @@ export const vnode_newText = (textNode: Text, textContent: string | undefined): 
   assertFalse(vnode_isElementVNode(vnode), 'Incorrect format of TextVNode.');
   assertTrue(vnode_isTextVNode(vnode), 'Incorrect format of TextVNode.');
   assertFalse(vnode_isVirtualVNode(vnode), 'Incorrect format of TextVNode.');
-  return vnode as unknown as TextVNode;
+  return vnode;
 };
 
 export const vnode_newVirtual = (): VirtualVNode => {
@@ -264,7 +264,7 @@ export const vnode_newVirtual = (): VirtualVNode => {
   assertFalse(vnode_isElementVNode(vnode), 'Incorrect format of TextVNode.');
   assertFalse(vnode_isTextVNode(vnode), 'Incorrect format of TextVNode.');
   assertTrue(vnode_isVirtualVNode(vnode), 'Incorrect format of TextVNode.');
-  return vnode as unknown as VirtualVNode;
+  return vnode;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -686,6 +686,28 @@ export const vnode_getVNodeForChildNode = (
   return child as ElementVNode;
 };
 
+// this is trying to find the vnode for the element using Breadth-First Search
+export const vnode_getVNodeForNode = (
+  vNode: ElementVNode,
+  element: Element
+): ElementVNode | null => {
+  ensureElementVNode(vNode);
+  const queue: VNode[] = [vNode];
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    if (current[ElementVNodeProps.element] === element) {
+      ensureElementVNode(current);
+      return current as ElementVNode;
+    }
+    let child = vnode_getFirstChild(current);
+    while (child) {
+      queue.push(child);
+      child = vnode_getNextSibling(child);
+    }
+  }
+  return null;
+};
+
 const indexOfAlphanumeric = (id: string, length: number): number => {
   let idx = 0;
   while (idx < length) {
@@ -977,11 +999,14 @@ export const vnode_insertBefore = (
   }
 
   // ensure that the previous node is unlinked.
+  const newChildCurrentParent = newChild[VNodeProps.parent];
   if (
-    newChild[VNodeProps.parent] &&
-    (newChild[VNodeProps.previousSibling] || newChild[VNodeProps.nextSibling])
+    newChildCurrentParent &&
+    (newChild[VNodeProps.previousSibling] ||
+      newChild[VNodeProps.nextSibling] ||
+      (vnode_isElementVNode(newChildCurrentParent) && newChildCurrentParent !== parent))
   ) {
-    vnode_remove(journal, newChild[VNodeProps.parent]!, newChild, false);
+    vnode_remove(journal, newChildCurrentParent, newChild, false);
   }
 
   // link newChild into the previous/next list
@@ -1675,7 +1700,7 @@ export const vnode_documentPosition = (a: VNode, b: VNode): -1 | 0 | 1 => {
  */
 export const vnode_getProjectionParentComponent = (
   vHost: VNode,
-  getObjectById: (id: string) => unknown
+  rootVNode: ElementVNode
 ): VirtualVNode | null => {
   let projectionDepth = 1;
   while (projectionDepth--) {
@@ -1683,9 +1708,13 @@ export const vnode_getProjectionParentComponent = (
       vHost &&
       (vnode_isVirtualVNode(vHost) ? vnode_getProp(vHost, OnRenderProp, null) === null : true)
     ) {
-      const vProjectionParent =
-        vnode_isVirtualVNode(vHost) &&
-        (vnode_getProp(vHost, QSlotParent, getObjectById) as VNode | null);
+      const qSlotParentProp = vnode_getProp(vHost, QSlotParent, null) as string | VNode | null;
+      const qSlotParent =
+        qSlotParentProp &&
+        (typeof qSlotParentProp === 'string'
+          ? vnode_locate(rootVNode, qSlotParentProp)
+          : qSlotParentProp);
+      const vProjectionParent = vnode_isVirtualVNode(vHost) && qSlotParent;
       if (vProjectionParent) {
         // We found a projection, so we need to go up one more level.
         projectionDepth++;

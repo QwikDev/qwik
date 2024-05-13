@@ -95,23 +95,24 @@ export const qwikLoader = (
     const attrValue = element[getAttribute](attrName);
     if (attrValue) {
       const container = element.closest('[q\\:container]')! as QContainerElement;
-      const base = new URL(container[getAttribute]('q:base')!, doc.baseURI);
+      const qBase = container[getAttribute]('q:base')!;
       const qVersion = container[getAttribute]('q:version') || 'unknown';
       const qManifest = container[getAttribute]('q:manifest-hash') || 'dev';
+      const base = new URL(qBase, doc.baseURI);
       for (const qrl of attrValue.split('\n')) {
         const url = new URL(qrl, base);
         const href = url.href;
         const symbol = url.hash[replace](/^#?([^?[|]*).*$/, '$1') || 'default';
         const reqTime = performance.now();
-        let handler: any;
-        let error: Error | undefined;
-        let importError;
-        let syncHandlerError;
+        let handler: undefined | any;
+        let importError: undefined | 'sync' | 'async';
+        let error: undefined | Error;
         const isSync = qrl.startsWith('#');
+        const eventData = { qBase, qManifest, qVersion, href, symbol, element, reqTime };
         if (isSync) {
           handler = (container.qFuncs || [])[Number.parseInt(symbol)];
           if (!handler) {
-            syncHandlerError = true;
+            importError = 'sync';
             error = new Error('sync handler error for symbol: ' + symbol);
           }
         } else {
@@ -121,30 +122,20 @@ export const qwikLoader = (
             resolveContainer(container);
             handler = (await module)[symbol];
           } catch (err) {
-            importError = true;
+            importError = 'async';
             error = err as Error;
           }
         }
         if (!handler) {
-          const eventData = {
-            syncHandlerError,
-            importError,
-            error,
-            symbol,
-            qManifest,
-            qVersion,
-            href,
-          };
-          emitEvent('qerror', eventData);
+          emitEvent('qerror', { importError, error, ...eventData });
           // break out of the loop if handler is not found
           break;
         }
         const previousCtx = doc[Q_CONTEXT];
         if (element[isConnected]) {
-          const eventData = { qManifest, qVersion, href, symbol, element, reqTime };
           try {
             doc[Q_CONTEXT] = [element, ev, url];
-            isSync || emitEvent<QwikSymbolEvent>('qsymbol', eventData);
+            isSync || emitEvent<QwikSymbolEvent>('qsymbol', { ...eventData });
             const results = handler(ev, element);
             // only await if there is a promise returned
             if (isPromise(results)) {

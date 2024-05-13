@@ -114,7 +114,12 @@ export const qwikLoader = (
             emitEvent('qerror', { importError: true, error, symbol, uri });
           }
         }
-        if (!handler) return;
+        if (!handler) {
+          const error = new Error('Handler not found for ' + url.href);
+          emitEvent('qerror', { error, href: url.href });
+          // break out of the loop if handler is not found
+          break;
+        }
         const previousCtx = doc[Q_CONTEXT];
         if (element[isConnected]) {
           const eventData = { symbol, element, reqTime };

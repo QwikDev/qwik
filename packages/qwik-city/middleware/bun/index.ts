@@ -16,45 +16,57 @@ import { MIME_TYPES } from '../request-handler/mime-types';
 import { join, extname } from 'node:path';
 
 // @builder.io/qwik-city/middleware/bun
-
-const resolved = Promise.resolve();
-class TextEncoderStream {
-  // minimal polyfill implementation of TextEncoderStream
-  // since bun does not yet support TextEncoderStream
-  _writer: any;
-  readable: any;
-  writable: any;
+class TextEncoderStream_polyfill {
+  private _encoder: TextEncoder;
+  private _writer: unknown;  // Assuming the writer is of unknown type
+  public ready: Promise<void>;
+  public reader: ReadableStreamDefaultController<Uint8Array> | null;
+  public closed: boolean;
+  public readable: ReadableStream<Uint8Array>;
+  public writable: WritableStream;
 
   constructor() {
+    this._encoder = new TextEncoder();
     this._writer = null;
-    this.readable = {
-      pipeTo: (writableStream: any) => {
-        this._writer = writableStream.getWriter();
-      },
-    };
-    this.writable = {
-      getWriter: () => {
-        if (!this._writer) {
-          throw new Error('No writable stream');
+    this.ready = Promise.resolve();
+    this.reader = null;
+    this.closed = false;
+
+    this.readable = new ReadableStream<Uint8Array>({
+      start: (controller: ReadableStreamDefaultController<Uint8Array>) => {
+        this.reader = controller;
+      }
+    });
+
+    this.writable = new WritableStream({
+      // Assuming the chunk is of unknown type
+      write: async (chunk: unknown) => { 
+        if (chunk != null && this.reader) {
+          let encoded = this._encoder.encode(String(chunk));
+          this.reader.enqueue(encoded);
         }
-        const encoder = new TextEncoder();
-        return {
-          write: async (chunk: any) => {
-            if (chunk != null) {
-              await this._writer.write(encoder.encode(chunk));
-            }
-          },
-          close: () => this._writer.close(),
-          ready: resolved,
-        };
       },
-    };
+      close: () => {
+        if (this.reader) {
+          this.reader.close();
+        }  
+        this.closed = true;
+      },
+      abort: (reason: string) => {
+        if (this.reader) {
+          this.reader.error(new Error(reason));
+        }  
+        this.closed = true;
+      }
+    });
   }
-}
+};
+
+
 
 /** @public */
 export function createQwikCity(opts: QwikCityBunOptions) {
-  globalThis.TextEncoderStream ||= TextEncoderStream as any;
+  globalThis.TextEncoderStream ||= TextEncoderStream_polyfill as any;
 
   const qwikSerializer = {
     _deserializeData,

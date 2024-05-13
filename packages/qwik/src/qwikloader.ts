@@ -96,8 +96,10 @@ export const qwikLoader = (
     if (attrValue) {
       const container = element.closest('[q\\:container]')! as QContainerElement;
       const base = new URL(container[getAttribute]('q:base')!, doc.baseURI);
+      const manifest = container[getAttribute]('q:manifest-hash')
       for (const qrl of attrValue.split('\n')) {
         const url = new URL(qrl, base);
+        const href = url.href;
         const symbol = url.hash[replace](/^#?([^?[|]*).*$/, '$1') || 'default';
         const reqTime = performance.now();
         let handler: any;
@@ -128,7 +130,8 @@ export const qwikLoader = (
             importError,
             error,
             symbol,
-            href: url.href,
+            manifest,
+            href,
           };
           emitEvent('qerror', eventData);
           // break out of the loop if handler is not found
@@ -136,7 +139,7 @@ export const qwikLoader = (
         }
         const previousCtx = doc[Q_CONTEXT];
         if (element[isConnected]) {
-          const eventData = { symbol, element, reqTime };
+          const eventData = { manifest, href, symbol, element, reqTime };
           try {
             doc[Q_CONTEXT] = [element, ev, url];
             isSync || emitEvent<QwikSymbolEvent>('qsymbol', eventData);

@@ -101,20 +101,36 @@ export const qwikLoader = (
         const symbol = url.hash[replace](/^#?([^?[|]*).*$/, '$1') || 'default';
         const reqTime = performance.now();
         let handler: any;
+        let error: Error | undefined;
+        let importError;
+        let syncHandlerError;
         const isSync = qrl.startsWith('#');
         if (isSync) {
           handler = (container.qFuncs || [])[Number.parseInt(symbol)];
+          if (!handler) {
+            syncHandlerError = true;
+            error = new Error('sync handler error for symbol: ' + symbol);
+          }
         } else {
           const uri = url.href.split('#')[0];
           try {
             const module = import(/* @vite-ignore */ uri);
             resolveContainer(container);
             handler = (await module)[symbol];
-          } catch (error) {
-            emitEvent('qerror', { importError: true, error, symbol, uri });
+          } catch (err) {
+            importError = true;
+            error = err as Error;
           }
         }
         if (!handler) {
+          const eventData = {
+            syncHandlerError,
+            importError,
+            error,
+            symbol,
+            href: url.href,
+          };
+          emitEvent('qerror', eventData);
           // break out of the loop if handler is not found
           break;
         }

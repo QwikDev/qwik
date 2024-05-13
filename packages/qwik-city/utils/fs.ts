@@ -33,7 +33,7 @@ export function getPathnameFromDirPath(opts: NormalizedPluginOptions, dirPath: s
     // remove grouped layout segments
     .filter((segment) => !isGroupedLayoutName(segment))
     .join('/');
-
+  if (pathname === '') return '/';
   return pathname;
 }
 

@@ -48,7 +48,7 @@ class TextEncoderStream_polyfill {
 
 /** @public */
 export function createQwikCity(opts: QwikCityBunOptions) {
-  globalThis.TextEncoderStream = TextEncoderStream || TextEncoderStream_polyfill as any;
+  globalThis.TextEncoderStream = TextEncoderStream || (TextEncoderStream_polyfill as any);
 
   const qwikSerializer = {
     _deserializeData,

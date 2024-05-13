@@ -1,6 +1,5 @@
 import type { QwikSymbolEvent, QwikVisibleEvent } from './core/render/jsx/types/jsx-qwik-events';
-import type { QContainerElement } from './core/container/container';
-import type { QContext } from './core/state/context';
+import type { QContainerElement, QDocument, QElement, QWindow } from './core/container/container';
 
 /**
  * Set up event listening for browser.
@@ -11,17 +10,9 @@ import type { QContext } from './core/state/context';
  * @param doc - Document to use for setting up global listeners, and to determine all the browser
  *   supported events.
  */
-export const qwikLoader = (
-  doc: Document & { __q_context__?: [Element, Event, URL] | 0 },
-  hasInitialized?: number
-) => {
+export const qwikLoader = (doc: QDocument, hasInitialized?: number) => {
   const Q_CONTEXT = '__q_context__';
-  type qWindow = Window & {
-    qwikevents: {
-      push: (...e: string[]) => void;
-    };
-  };
-  const win = window as unknown as qWindow;
+  const win = window as unknown as QWindow;
   const events = new Set();
 
   // Some shortenings for minification
@@ -65,12 +56,7 @@ export const qwikLoader = (
       detail,
     }) as T;
 
-  const dispatch = async (
-    element: Element & { _qc_?: QContext | undefined },
-    onPrefix: string,
-    ev: Event,
-    eventName = ev.type
-  ) => {
+  const dispatch = async (element: QElement, onPrefix: string, ev: Event, eventName = ev.type) => {
     const attrName = 'on' + onPrefix + ':' + eventName;
     if (element.hasAttribute('preventdefault:' + eventName)) {
       ev.preventDefault();
@@ -202,7 +188,7 @@ export const qwikLoader = (
   };
 
   const addEventListener = (
-    el: Document | Window,
+    el: QDocument | QWindow,
     eventName: string,
     handler: (ev: Event) => void,
     capture = false

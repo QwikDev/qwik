@@ -191,3 +191,17 @@ export interface QContainerElement extends Element {
   qFuncs?: Function[];
   _qwikjson_?: any;
 }
+
+export interface QElement extends Element {
+  _qc_?: QContext | undefined;
+}
+
+export interface QDocument extends Document {
+  __q_context__?: [Element, Event, URL] | 0;
+}
+
+export interface QWindow extends Window {
+  qwikevents: {
+    push: (...e: string[]) => void;
+  };
+}

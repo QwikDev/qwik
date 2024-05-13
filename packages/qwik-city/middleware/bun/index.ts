@@ -17,39 +17,37 @@ import { join, extname } from 'node:path';
 
 // @builder.io/qwik-city/middleware/bun
 
-const resolved = Promise.resolve();
 class TextEncoderStream {
-  // minimal polyfill implementation of TextEncoderStream
-  // since bun does not yet support TextEncoderStream
-  _writer: any;
-  readable: any;
-  writable: any;
+  private _encoder = new TextEncoder();
 
-  constructor() {
-    this._writer = null;
-    this.readable = {
-      pipeTo: (writableStream: any) => {
-        this._writer = writableStream.getWriter();
-      },
-    };
-    this.writable = {
-      getWriter: () => {
-        if (!this._writer) {
-          throw new Error('No writable stream');
-        }
-        const encoder = new TextEncoder();
-        return {
-          write: async (chunk: any) => {
-            if (chunk != null) {
-              await this._writer.write(encoder.encode(chunk));
-            }
-          },
-          close: () => this._writer.close(),
-          ready: resolved,
-        };
-      },
-    };
-  }
+  private _reader: ReadableStreamDefaultController<any> | null = null;
+
+  public ready = Promise.resolve();
+
+  public closed = false;
+
+  public readable = new ReadableStream({
+    start: controller => {
+      this._reader = controller;
+    }
+  })
+
+  public writable = new WritableStream({
+    write: async (chunk) => {
+      if (chunk != null && this._reader) {
+        const encoded = this._encoder.encode(chunk);
+        this._reader.enqueue(encoded);
+      }
+    },
+    close: () => {
+      this._reader?.close();
+      this.closed = true;
+    },
+    abort: (reason) => {
+      this._reader?.error(reason);
+      this.closed = true;
+    }
+  });
 }
 
 /** @public */

@@ -220,6 +220,18 @@ export type ServerRequestMode = 'dev' | 'static' | 'server';
 // @public (undocumented)
 export type ServerResponseHandler<T = any> = (status: number, headers: Headers, cookies: Cookie, resolve: (response: T) => void, requestEv: RequestEventInternal) => WritableStream<Uint8Array>;
 
+// @internal (undocumented)
+export class _TextEncoderStream_polyfill {
+    // (undocumented)
+    closed: boolean;
+    // (undocumented)
+    readable: ReadableStream<any>;
+    // (undocumented)
+    ready: Promise<void>;
+    // (undocumented)
+    writable: WritableStream<any>;
+}
+
 // (No @packageDocumentation comment for this package)
 
 ```

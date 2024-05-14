@@ -21,7 +21,8 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
     // this will throw if CF compatibility_date < 2022-11-30
     new globalThis.TextEncoderStream();
   } catch (e) {
-    globalThis.TextEncoderStream = _TextEncoderStream_polyfill as any;
+    // @ts-ignore
+    globalThis.TextEncoderStream = class TextEncoderStream extends _TextEncoderStream_polyfill {};
   }
   const qwikSerializer = {
     _deserializeData,

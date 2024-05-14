@@ -122,4 +122,51 @@ describe('_TextEncoderStream_polyfill tests', () => {
     const result = await reader.read();
     expect(new TextDecoder().decode(result.value)).toBe('test chaining');
   });
+  it('compares abort behavior between polyfill and native TextEncoderStream', async () => {
+    const polyfillStream = new _TextEncoderStream_polyfill();
+    const nativeStream = new TextEncoderStream();
+
+    const polyWriter = polyfillStream.writable.getWriter();
+    const nativeWriter = nativeStream.writable.getWriter();
+
+    const polyReader = polyfillStream.readable.getReader();
+    const nativeReader = nativeStream.readable.getReader();
+
+    // Start writing data to both streams
+    polyWriter.write('Initial data');
+    nativeWriter.write('Initial data');
+
+    // Abort both streams
+    await polyWriter.abort('polyfill abort reason');
+    await nativeWriter.abort('native abort reason');
+
+    // Attempt to read from both streams and expect failures
+    async function testRead(reader: any, expectedError: any) {
+      try {
+        await reader.read();
+        throw new Error('Read should not have succeeded after abort');
+      } catch (error: any) {
+        expect(error.message).toContain(expectedError);
+      }
+    }
+
+    await testRead(polyReader, 'polyfill abort reason');
+    await testRead(nativeReader, 'native abort reason');
+
+    // Ensure no further writes are allowed after abort
+    async function testWrite(writer: any) {
+      try {
+        await writer.write('Data after abort');
+        throw new Error('Write should not have succeeded after abort');
+      } catch (error: any) {
+        expect(error.name).toBe('TypeError');
+      }
+    }
+
+    await testWrite(polyWriter);
+    await testWrite(nativeWriter);
+
+    // Optional: Check custom flags in polyfill
+    expect(polyfillStream.destroyed).toBeTruthy();
+  });
 });

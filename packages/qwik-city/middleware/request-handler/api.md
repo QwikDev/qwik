@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="node" />
-
 import type { Action } from '@builder.io/qwik-city';
 import type { _deserializeData } from '@builder.io/qwik';
 import type { EnvGetter as EnvGetter_2 } from '@builder.io/qwik-city/middleware/request-handler';
@@ -225,6 +223,14 @@ export type ServerResponseHandler<T = any> = (status: number, headers: Headers, 
 // @internal (undocumented)
 export class _TextEncoderStream_polyfill extends TransformStream<string, Uint8Array> {
     constructor();
+    // (undocumented)
+    closed: boolean;
+    // (undocumented)
+    destroyed: boolean;
+    // (undocumented)
+    encoding: string;
+    // (undocumented)
+    ready: Promise<void>;
 }
 
 // (No @packageDocumentation comment for this package)

@@ -5,7 +5,7 @@ import type {
 import {
   mergeHeadersCookies,
   requestHandler,
-  TextEncoderStream_polyfill,
+  _TextEncoderStream_polyfill,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
@@ -21,7 +21,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
     // this will throw if CF compatibility_date < 2022-11-30
     new globalThis.TextEncoderStream();
   } catch (e) {
-    globalThis.TextEncoderStream = TextEncoderStream_polyfill as any;
+    globalThis.TextEncoderStream = _TextEncoderStream_polyfill as any;
   }
   const qwikSerializer = {
     _deserializeData,

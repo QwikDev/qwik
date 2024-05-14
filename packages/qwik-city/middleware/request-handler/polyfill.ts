@@ -1,4 +1,5 @@
-export class TextEncoderStream_polyfill {
+/** @private */
+export class _TextEncoderStream_polyfill {
   private _encoder = new TextEncoder();
   private _reader: ReadableStreamDefaultController<any> | null = null;
   public ready = Promise.resolve();

@@ -7,7 +7,7 @@ import type {
 import {
   mergeHeadersCookies,
   requestHandler,
-  TextEncoderStream_polyfill,
+  _TextEncoderStream_polyfill,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
@@ -20,7 +20,7 @@ import { join, extname } from 'node:path';
 export function createQwikCity(opts: QwikCityBunOptions) {
   // @builder.io/qwik-city/middleware/bun
   // still missing from bun: last check was bun version 1.1.8
-  globalThis.TextEncoderStream = TextEncoderStream || (TextEncoderStream_polyfill as any);
+  globalThis.TextEncoderStream = TextEncoderStream || (_TextEncoderStream_polyfill as any);
 
   const qwikSerializer = {
     _deserializeData,

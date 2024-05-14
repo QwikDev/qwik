@@ -7,6 +7,7 @@ import type {
 import {
   mergeHeadersCookies,
   requestHandler,
+  TextEncoderStream_polyfill,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
@@ -15,39 +16,10 @@ import { setServerPlatform } from '@builder.io/qwik/server';
 import { MIME_TYPES } from '../request-handler/mime-types';
 import { join, extname } from 'node:path';
 
-// @builder.io/qwik-city/middleware/bun
-// still missing from bun: last check was bun version 1.1.8
-class TextEncoderStream_polyfill {
-  private _encoder = new TextEncoder();
-  private _reader: ReadableStreamDefaultController<any> | null = null;
-  public ready = Promise.resolve();
-  public closed = false;
-  public readable = new ReadableStream({
-    start: (controller) => {
-      this._reader = controller;
-    },
-  });
-
-  public writable = new WritableStream({
-    write: async (chunk) => {
-      if (chunk != null && this._reader) {
-        const encoded = this._encoder.encode(chunk);
-        this._reader.enqueue(encoded);
-      }
-    },
-    close: () => {
-      this._reader?.close();
-      this.closed = true;
-    },
-    abort: (reason) => {
-      this._reader?.error(reason);
-      this.closed = true;
-    },
-  });
-}
-
 /** @public */
 export function createQwikCity(opts: QwikCityBunOptions) {
+  // @builder.io/qwik-city/middleware/bun
+  // still missing from bun: last check was bun version 1.1.8
   globalThis.TextEncoderStream = TextEncoderStream || (TextEncoderStream_polyfill as any);
 
   const qwikSerializer = {

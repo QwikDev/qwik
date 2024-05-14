@@ -2,6 +2,7 @@ export { getErrorHtml, ServerError } from './error-handler';
 export { mergeHeadersCookies } from './cookie';
 export { AbortMessage, RedirectMessage } from './redirect-handler';
 export { requestHandler } from './request-handler';
+export { TextEncoderStream_polyfill } from './polyfill';
 export type {
   CacheControl,
   Cookie,

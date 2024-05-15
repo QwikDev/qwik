@@ -590,6 +590,7 @@ export const PrefetchGraph: (opts?: {
     base?: string;
     manifestHash?: string;
     manifestURL?: string;
+    nonce?: string;
 }) => JSXNode_2<"script">;
 
 // @alpha
@@ -598,6 +599,7 @@ export const PrefetchServiceWorker: (opts: {
     path?: string;
     verbose?: boolean;
     fetchBundleGraph?: boolean;
+    nonce?: string;
 }) => JSXNode_2<"script">;
 
 // @public (undocumented)

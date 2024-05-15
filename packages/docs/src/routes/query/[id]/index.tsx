@@ -1,7 +1,6 @@
 import { component$ } from '@builder.io/qwik';
 import { routeLoader$, server$ } from '@builder.io/qwik-city';
 import { createClient } from '@supabase/supabase-js';
-import { normalizeLine, resolveContext } from '../../../components/qwik-gpt/search';
 
 export const approveId = server$(async function (id: string, approved: boolean) {
   const supabase = createClient(this.env.get('SUPABASE_URL')!, this.env.get('SUPABASE_KEY')!);
@@ -43,7 +42,6 @@ export const useQueryData = routeLoader$(async (ev) => {
     id: query_id,
     query: entry.query,
     results: all_results,
-    input: await resolveContext(entry.results),
     similar: output2.data,
     output: entry.output,
     model: entry.model,
@@ -59,6 +57,7 @@ export default component$(() => {
 
   return (
     <div>
+      {/* TODO: can we remove this? What "administrative" UI is this? */}
       <h1 class="text-3xl">Query: {queryData.query}</h1>
       <h2 class="text-3xl">Model: {queryData.model}</h2>
       <div>
@@ -132,3 +131,20 @@ export default component$(() => {
     </div>
   );
 });
+
+export function normalizeLine(line: string) {
+  line = line.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+  line = line.toLowerCase();
+  line = line.replaceAll('`', '');
+  line = line.replaceAll('*', '');
+  line = line.replaceAll('_', ' ');
+  line = line.replaceAll('#', '');
+  line = line.replaceAll('-', ' ');
+  line = line.replaceAll('...', '.');
+  line = line.replaceAll('>', '');
+  line = line.replaceAll('<', '');
+  line = line.replaceAll('..', '.');
+  line = line.replaceAll('  ', ' ');
+  line = line.trim();
+  return line;
+}

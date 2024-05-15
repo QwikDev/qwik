@@ -231,7 +231,7 @@ export const BackButton = component$(() => {
   const loc = useLocation();
 
   return (
-    <button onClick$={() => nav(loc.prevUrl?.pathname ?? '/')}>
+    <button onClick$={() => loc.prevUrl ? window.history.back() : nav('/')}>
       Go Back
     </button>
   );
@@ -239,7 +239,7 @@ export const BackButton = component$(() => {
 
 ```
 
-The fallback in the nav function ensures that if the previous URL (loc.prevUrl) is not available, the user is redirected to a default path (the root path /). This is useful in scenarios where the navigation history might not include a previous URL, such as when the user directly lands on a specific page without navigating from another page within the app.
+The fallback in the nav function ensures that if the previous URL (loc.prevUrl) is not available, the user is redirected to a default path (eg. the root path /). This is useful in scenarios where the navigation history might not include a previous URL, such as when the user directly lands on a specific page without navigating from another page within the app.
 
 ## `routeLoader$()`
 

@@ -95,7 +95,7 @@ const PREFETCH_CODE = /*#__PURE__*/ ((
  * @alpha
  */
 export const PrefetchGraph = (
-  opts: { base?: string; manifestHash?: string; manifestURL?: string } = {}
+  opts: { base?: string; manifestHash?: string; manifestURL?: string; nonce?: string } = {}
 ) => {
   const resolvedOpts = {
     base: '/build/',
@@ -119,6 +119,7 @@ export const PrefetchGraph = (
       ].join(','),
       ');',
     ].join(''),
+    nonce: opts.nonce,
   };
   return _jsxC('script', props, 0, 'prefetch-graph');
 };

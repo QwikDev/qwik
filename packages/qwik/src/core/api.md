@@ -590,6 +590,7 @@ export const PrefetchGraph: (opts?: {
     base?: string;
     manifestHash?: string;
     manifestURL?: string;
+    nonce?: string;
 }) => JSXNode_2<"script">;
 
 // @alpha

@@ -1,7 +1,6 @@
-import { Slot, component$, useContext, useSignal, useStore, useTask$ } from '@builder.io/qwik';
-import { QwikGPT } from '../qwik-gpt';
+import { Slot, component$, useContext, useStore } from '@builder.io/qwik';
 import { SearchContext } from './context';
-import { AiResultOpenContext, type DocSearchState } from './doc-search';
+import { type DocSearchState } from './doc-search';
 import { Snippet } from './snippet';
 import type { InternalDocSearchHit } from './types';
 
@@ -103,63 +102,3 @@ export const Result = component$(
     );
   }
 );
-
-export const AIButton = component$(({ state }: { state: DocSearchState }) => {
-  const gpt = useSignal<string>();
-  const aiResultOpen = useContext(AiResultOpenContext);
-
-  useTask$(({ track }) => {
-    aiResultOpen.value = Boolean(track(() => gpt.value?.trim()));
-  });
-
-  useTask$(({ track }) => {
-    // When query changes, reset gpt value
-    track(() => state.query);
-    gpt.value = '';
-  });
-
-  const ai = -1;
-  return (
-    <>
-      {state.query.length > 3 && (
-        <li
-          role="option"
-          style={{ 'margin-top': '10px' }}
-          id={`docsearch-item-${ai}`}
-          aria-selected={state.activeItemId === ai ? 'true' : undefined}
-          class="ai-li"
-          onMouseOver$={() => {
-            if (state.activeItemId !== ai) {
-              state.activeItemId = ai;
-            }
-          }}
-        >
-          <div class="ai-button">
-            <button
-              onClick$={() => {
-                gpt.value = state.query;
-              }}
-            >
-              <span>
-                🤖 Ask QwikAI (beta)
-                {state.query === '' ? (
-                  '...'
-                ) : (
-                  <>
-                    {': '}
-                    <strong>{state.query}</strong>
-                  </>
-                )}
-              </span>
-            </button>
-            {gpt.value && (
-              <div class="qwikgpt-box">
-                <QwikGPT query={gpt.value}></QwikGPT>
-              </div>
-            )}
-          </div>
-        </li>
-      )}
-    </>
-  );
-});

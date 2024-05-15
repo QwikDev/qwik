@@ -11,7 +11,6 @@ import type { DocSearchHit } from './types';
 
 import { identity } from './utils';
 import { clearStalled, setStalled } from './utils/stalledControl';
-import { AIButton } from './result';
 import { isBrowser } from '@builder.io/qwik/build';
 
 export type ModalTranslations = Partial<{
@@ -184,13 +183,6 @@ export const DocSearchModal = component$(
           </header>
 
           <div class="DocSearch-Dropdown" ref={dropdownRef}>
-            <div class="DocSearch-Dropdown-Container">
-              <section class="DocSearch-Hits">
-                <ul role="listbox" aria-labelledby="docsearch-label" id="docsearch-list">
-                  <AIButton state={state} />
-                </ul>
-              </section>
-            </div>
             <ScreenState
               state={state}
               disableUserPersonalization={disableUserPersonalization}

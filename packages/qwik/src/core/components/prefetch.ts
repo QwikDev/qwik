@@ -19,6 +19,7 @@ export const PrefetchServiceWorker = (opts: {
   path?: string;
   verbose?: boolean;
   fetchBundleGraph?: boolean;
+  nonce?: string;
 }) => {
   const resolvedOpts = {
     base: '/',
@@ -44,6 +45,7 @@ export const PrefetchServiceWorker = (opts: {
       ].join(','),
       ');',
     ].join(''),
+    nonce: opts.nonce,
   };
   return _jsxC('script', props, 0, 'prefetch-service-worker');
 };

@@ -1,4 +1,4 @@
-import { describe, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { PrefetchServiceWorker } from './prefetch';
 import { renderToString } from '../../server/render';
 
@@ -9,6 +9,13 @@ describe('PrefetchServiceWorker', () => {
       const output = await renderToString(<PrefetchServiceWorker />, { containerTagName: 'div' });
       // eslint-disable-next-line no-console
       console.log('>>>>', output.html);
+    });
+
+    it('should render with a nonce', async () => {
+      const output = await renderToString(<PrefetchServiceWorker nonce="1234" />, {
+        containerTagName: 'div',
+      });
+      expect(output.html).to.contain('<script nonce="1234" q:key="prefetch-service-worker">');
     });
   });
 });

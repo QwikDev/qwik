@@ -21,7 +21,7 @@ export const PrefetchServiceWorker = (opts: {
   fetchBundleGraph?: boolean;
 }) => {
   const resolvedOpts = {
-    base: '/',
+    base: import.meta.env.BASE_URL,
     verbose: false,
     path: 'qwik-prefetch-service-worker.js',
     ...opts,
@@ -96,7 +96,7 @@ export const PrefetchGraph = (
   opts: { base?: string; manifestHash?: string; manifestURL?: string } = {}
 ) => {
   const resolvedOpts = {
-    base: '/build/',
+    base: `${import.meta.env.BASE_URL}build/`,
     manifestHash: null,
     manifestURL: null,
     ...opts,

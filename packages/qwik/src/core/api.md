@@ -598,6 +598,7 @@ export const PrefetchServiceWorker: (opts: {
     path?: string;
     verbose?: boolean;
     fetchBundleGraph?: boolean;
+    nonce?: string;
 }) => JSXNode_2<"script">;
 
 // @public (undocumented)

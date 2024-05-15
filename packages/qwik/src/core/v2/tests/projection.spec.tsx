@@ -1220,6 +1220,63 @@ describe.each([
       );
     });
 
+    it('#1630 - case 2', async () => {
+      const Child = component$(() => (
+        <b>
+          <Slot />
+        </b>
+      ));
+      const Issue1630 = component$((props) => {
+        const store = useStore({ open: true });
+        return (
+          <div>
+            <button
+              onClick$={() => {
+                store.open = !store.open;
+              }}
+            ></button>
+            <Slot name="static" />
+            {store.open && <Slot />}
+          </div>
+        );
+      });
+      const { document } = await render(
+        <Issue1630>
+          <Child q:slot="static">CHILD</Child>
+          <p q:slot="static"></p>
+          DYNAMIC
+        </Issue1630>,
+        { debug }
+      );
+      await expect(document.querySelector('div')).toMatchDOM(
+        <div>
+          <button></button>
+          <b>CHILD</b>
+          <p q:slot="static"></p>
+          DYNAMIC
+        </div>
+      );
+      await trigger(document.body, 'button', 'click');
+      await expect(document.querySelector('div')).toMatchDOM(
+        <div>
+          <button></button>
+          <b>CHILD</b>
+          <p q:slot="static"></p>
+          {''}
+        </div>
+      );
+
+      await trigger(document.body, 'button', 'click');
+      await expect(document.querySelector('div')).toMatchDOM(
+        <div>
+          <button></button>
+          <b>CHILD</b>
+          <p q:slot="static"></p>
+          DYNAMIC
+        </div>
+      );
+    });
+
     it('#2688', async () => {
       const Switch = component$((props: { name: string }) => {
         return <Slot name={props.name} />;

@@ -100,7 +100,7 @@ export class SsrComponentFrame implements ISsrComponentFrame {
           if (slotName === QDefaultSlot) {
             defaultSlot.push(child);
           } else {
-            mapArray_set(this.slots, slotName, child, 0);
+            this.updateSlot(slotName, child);
           }
         } else {
           defaultSlot.push(child);
@@ -110,6 +110,22 @@ export class SsrComponentFrame implements ISsrComponentFrame {
     } else {
       mapArray_set(this.slots, QDefaultSlot, children, 0);
     }
+  }
+
+  private updateSlot(slotName: string, child: JSXNode) {
+    // we need to check if the slot already has a value
+    let existingSlots = mapArray_get<JSXChildren>(this.slots, slotName, 0);
+    if (existingSlots === null) {
+      existingSlots = child;
+    } else if (Array.isArray(existingSlots)) {
+      // if the slot already has a value and it is an array, we need to push the new value
+      existingSlots.push(child);
+    } else {
+      // if the slot already has a value and it is not an array, we need to create an array
+      existingSlots = [existingSlots, child];
+    }
+    // set the new value
+    mapArray_set(this.slots, slotName, existingSlots, 0);
   }
 
   private getSlotName(jsx: JSXNode): string {

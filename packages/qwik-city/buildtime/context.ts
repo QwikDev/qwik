@@ -45,6 +45,15 @@ function normalizeOptions(
   viteBasePath: string,
   userOpts: PluginOptions | undefined
 ) {
+  if (!(viteBasePath.startsWith('/') && viteBasePath.endsWith('/'))) {
+    // TODO v2: make this an error
+    console.error(
+      `warning: vite's config.base must begin and end with /. This will be an error in v2. If you have a valid use case, please open an issue.`
+    );
+    if (!viteBasePath.endsWith('/')) {
+      viteBasePath += '/';
+    }
+  }
   const opts: NormalizedPluginOptions = { ...userOpts } as any;
 
   if (typeof opts.routesDir !== 'string') {
@@ -71,14 +80,17 @@ function normalizeOptions(
     // but in most cases should be passed in by the vite config "base" property
     opts.basePathname = viteBasePath;
   }
-
-  // cleanup basePathname
-  const url = new URL(opts.basePathname, 'https://qwik.builer.io/');
-  opts.basePathname = url.pathname;
   if (!opts.basePathname.endsWith('/')) {
-    // basePathname should always start and end with a slash
+    // TODO v2: make this an error
+    console.error(
+      `Warning: qwik-city plugin basePathname must end with /. This will be an error in v2`
+    );
     opts.basePathname += '/';
   }
+
+  // cleanup basePathname
+  const url = new URL(opts.basePathname, 'https://qwik.dev/');
+  opts.basePathname = url.pathname;
 
   if (typeof opts.trailingSlash !== 'boolean') {
     opts.trailingSlash = true;

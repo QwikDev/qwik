@@ -217,6 +217,30 @@ This component will have a button then when clicked, Qwik City will navigate to 
 
 > Notice that for SEO, and accessibility it's better to use the `<Link>` component instead of `useNavigate()` programmatically to navigate to a new page after some user interaction.
 
+### Going back
+
+In Qwik, you can programmatically navigate back to the previous page using the useNavigate and useLocation hooks.
+
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { useNavigate, useLocation } from '@builder.io/qwik-city';
+
+export const BackButton = component$(() => {
+  const nav = useNavigate();
+  const loc = useLocation();
+
+  return (
+    <button onClick$={() => nav(loc.prevUrl?.pathname ?? '/')}>
+      Go Back
+    </button>
+  );
+});
+
+```
+
+The fallback in the nav function ensures that if the previous URL (loc.prevUrl) is not available, the user is redirected to a default path (the root path /). This is useful in scenarios where the navigation history might not include a previous URL, such as when the user directly lands on a specific page without navigating from another page within the app.
+
 ## `routeLoader$()`
 
 The `routeLoader$()` function is used to declare a new Server Loader in the given page/middleware or layout. Qwik City will execute all the declared loaders for the given route match. Qwik Components can later reference the loaders by importing them and calling the returned custom hook function in order to retrieve the data.

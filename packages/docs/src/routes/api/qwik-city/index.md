@@ -2129,7 +2129,7 @@ RouterOutlet: import("@builder.io/qwik").Component<unknown>;
 
 ```typescript
 server$: <T extends ServerFunction>(
-  first: T,
+  qrl: T,
   options?: ServerConfig | undefined,
 ) => ServerQRL<T>;
 ```
@@ -2149,7 +2149,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-first
+qrl
 
 </td><td>
 

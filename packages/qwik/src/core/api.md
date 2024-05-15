@@ -131,6 +131,9 @@ export interface ComponentBaseProps {
 // @public
 export const componentQrl: <PROPS extends Record<any, any>>(componentQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
 
+// @public (undocumented)
+export type ComputedFn<T> = () => T;
+
 // @public
 export interface ContextId<STATE> {
     readonly __brand_context_type__: STATE;
@@ -155,7 +158,16 @@ export interface CorrectedToggleEvent extends Event {
 }
 
 // @public
+export const createComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>;
+
+// @public (undocumented)
+export const createComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => Signal<Awaited<T>>;
+
+// @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
+
+// @public
+export const createSignal: UseSignal;
 
 // @public (undocumented)
 export interface CSSProperties extends CSS_2.Properties<string | number>, CSS_2.PropertiesHyphen<string | number> {
@@ -216,7 +228,7 @@ export interface ErrorBoundaryStore {
 }
 
 // @public (undocumented)
-export const event$: <T>(first: T) => QRL<T>;
+export const event$: <T>(qrl: T) => QRL<T>;
 
 // @public
 export type EventHandler<EV = Event, EL = Element> = {
@@ -342,7 +354,7 @@ export interface ImgHTMLAttributes<T extends Element> extends Attrs<'img', T> {
 export const _IMMUTABLE: unique symbol;
 
 // @public
-export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => ((first: FIRST, ...rest: REST) => RET);
+export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (qrl: QRL<FIRST>, ...rest: REST) => RET) => ((qrl: FIRST, ...rest: REST) => RET);
 
 // Warning: (ae-internal-missing-underscore) The name "inlinedQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -903,7 +915,7 @@ export const _serializeData: (data: any, pureQRL?: boolean) => Promise<string>;
 // @public
 export const setPlatform: (plt: CorePlatform) => CorePlatform;
 
-// @public (undocumented)
+// @public
 export interface Signal<T = any> {
     // (undocumented)
     value: T;
@@ -1609,15 +1621,14 @@ export interface TrackHTMLAttributes<T extends Element> extends Attrs<'track', T
 // @public
 export const untrack: <T>(fn: () => T) => T;
 
-// Warning: (ae-forgotten-export) The symbol "Computed" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export const useComputed$: Computed;
+// @public
+export const useComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>;
 
-// Warning: (ae-forgotten-export) The symbol "ComputedQRL" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export const useComputedQrl: ComputedQRL;
+export const useComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => Signal<Awaited<T>>;
+
+// @public
+export const useConst: <T>(value: (() => T) | T) => T;
 
 // Warning: (ae-forgotten-export) The symbol "UseContext" needs to be exported by the entry point index.d.ts
 //
@@ -1669,7 +1680,7 @@ export interface UseSignal {
     <T>(value: T | (() => T)): Signal<T>;
 }
 
-// @public (undocumented)
+// @public
 export const useSignal: UseSignal;
 
 // @public
@@ -1682,13 +1693,13 @@ export interface UseStoreOptions {
 }
 
 // @public
-export const useStyles$: (first: string) => void;
+export const useStyles$: (qrl: string) => void;
 
 // @public
 export const useStylesQrl: (styles: QRL<string>) => void;
 
 // @public
-export const useStylesScoped$: (first: string) => UseStylesScoped;
+export const useStylesScoped$: (qrl: string) => UseStylesScoped;
 
 // @public (undocumented)
 export interface UseStylesScoped {
@@ -1700,7 +1711,7 @@ export interface UseStylesScoped {
 export const useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
 
 // @public
-export const useTask$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void;
+export const useTask$: (qrl: TaskFn, opts?: UseTaskOptions | undefined) => void;
 
 // @public (undocumented)
 export interface UseTaskOptions {
@@ -1711,7 +1722,7 @@ export interface UseTaskOptions {
 export const useTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void;
 
 // @public
-export const useVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
+export const useVisibleTask$: (qrl: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
 
 // @public
 export const useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;

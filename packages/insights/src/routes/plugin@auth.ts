@@ -6,6 +6,7 @@ export const { onRequest, useAuthSession, useAuthSignin, useAuthSignout } = serv
   ({ env }) => ({
     secret: env.get('PRIVATE_AUTH_SECRET'),
     trustHost: true,
+    basePath: env.get('PRIVATE_AUTH_BASE_API'),
     providers: [
       GitHub({
         clientId: env.get('PRIVATE_GITHUB_ID')!,

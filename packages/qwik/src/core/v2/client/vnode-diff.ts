@@ -436,16 +436,19 @@ export const vnode_diff = (
   }
 
   function expectSlot() {
-    // console.log('expectSlot', JSON.stringify(slotNameKey));
     const vHost = vnode_getProjectionParentComponent(vParent, container.rootVNode);
 
     const slotNameKey = getSlotNameKey(vHost);
+    // console.log('expectSlot', JSON.stringify(slotNameKey));
 
     if (vHost) {
       const componentProjections =
         vnode_getProp<(string | JSXChildren | number)[]>(vHost, QUnclaimedProjections, null) || [];
-      componentProjections.splice(componentProjections.indexOf(slotNameKey), 1);
-      vnode_setProp(vHost, QUnclaimedProjections, componentProjections);
+      const slotIndex = componentProjections.indexOf(slotNameKey);
+      if (slotIndex >= 0) {
+        componentProjections.splice(slotIndex, 1);
+        vnode_setProp(vHost, QUnclaimedProjections, componentProjections);
+      }
     }
 
     const vProjectedNode = vHost
@@ -896,7 +899,6 @@ export const vnode_diff = (
   }
 
   function expectComponent(component: Function) {
-    // expectVirtual(VirtualType.Component);
     const componentMeta = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
     let host = (vNewNode || vCurrent) as VirtualVNode;
     if (componentMeta) {

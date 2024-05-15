@@ -11,6 +11,7 @@ import {
   Fragment as InlineComponent,
   Fragment as Projection,
   Fragment as Signal,
+  useVisibleTask$,
 } from '@builder.io/qwik';
 import { vnode_getNextSibling } from '../client/vnode';
 
@@ -1297,6 +1298,68 @@ describe.each([
         <div>
           <div q:slot="b">Bravo 124</div>
         </div>
+      );
+    });
+
+    it('#4283', async () => {
+      const HideUntilVisible = component$(() => {
+        const isNotVisible = useSignal(true);
+
+        useVisibleTask$(
+          () => {
+            if (isNotVisible.value) {
+              isNotVisible.value = false;
+            }
+          },
+          {
+            strategy: 'document-ready',
+          }
+        );
+
+        if (isNotVisible.value) {
+          return <div></div>;
+        }
+
+        return (
+          <div>
+            <p>Hide until visible</p>
+            <Slot />
+          </div>
+        );
+      });
+
+      const Issue4283 = component$(() => {
+        return (
+          <HideUntilVisible>
+            <p>Content</p>
+            <Slot />
+          </HideUntilVisible>
+        );
+      });
+
+      const { vNode, document } = await render(
+        <Issue4283>
+          <p>index page</p>
+        </Issue4283>,
+        { debug }
+      );
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'div', ':document:qinit');
+      }
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <div>
+              <p>Hide until visible</p>
+              <Projection>
+                <p>Content</p>
+                <Projection>
+                  <p>index page</p>
+                </Projection>
+              </Projection>
+            </div>
+          </Component>
+        </Component>
       );
     });
   });

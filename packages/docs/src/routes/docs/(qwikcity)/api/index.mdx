@@ -176,11 +176,7 @@ The above code would generate:
 
 ## `useNavigate()`
 
-The `useNavigate()` function allows to programmatically navigate to the next page without involving a user click or causing a full-page reload. This is the API used by the `<Link>` component internally to support SPA navigation.
-
-This function returns a `nav()` function that can be used to "push" to a new path.
-
-Also, `useNavigate` can be used to SPA refresh the current page, by calling the `nav()` function without arguments.
+The `useNavigate()` hook returns a function that programmatically navigates to the next page without requiring a user click or causing a full-page reload. This function can be called with a string argument to "push" a new path, or without arguments to cause an SPA refresh of the page. This is the API used by the `<Link>` component internally to support SPA navigation.
 
 ```tsx {12,21} /useNavigate/
 import { component$ } from '@builder.io/qwik';
@@ -213,14 +209,13 @@ export default component$(() => {
 });
 ```
 
-This component will have a button then when clicked, Qwik City will navigate to `/dashboard` without causing a page to reload.
+This component has a button that when clicked, will navigate to `/dashboard` without causing a page reload.
 
 > Notice that for SEO, and accessibility it's better to use the `<Link>` component instead of `useNavigate()` programmatically to navigate to a new page after some user interaction.
 
 ### Going back
 
-In Qwik, you can programmatically navigate back to the previous page using the useNavigate and useLocation hooks.
-
+To programmatically navigate back to the previous page, use the useNavigate and useLocation hooks.
 
 ```tsx
 import { component$ } from '@builder.io/qwik';

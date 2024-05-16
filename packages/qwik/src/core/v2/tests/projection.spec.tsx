@@ -111,13 +111,6 @@ describe.each([
         </Fragment>
       </Fragment>
     );
-    if (render === ssrRenderToDom) {
-      expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
-        <q:template style="display:none">
-          <Fragment>default-value</Fragment>
-        </q:template>
-      );
-    }
   });
   it('should render nested projection', async () => {
     const Child = component$(() => {
@@ -225,13 +218,6 @@ describe.each([
         </Component>
       </Component>
     );
-    if (render === ssrRenderToDom) {
-      expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
-        <q:template style="display:none">
-          <Fragment>Default Child</Fragment>
-        </q:template>
-      );
-    }
   });
   it('should render conditional projection', async () => {
     const Child = component$(() => {
@@ -1416,6 +1402,93 @@ describe.each([
               </Projection>
             </div>
           </Component>
+        </Component>
+      );
+    });
+    it('#4283 - case 2', async () => {
+      const HideUntilVisible = component$(() => {
+        const isNotVisible = useSignal(true);
+
+        useVisibleTask$(
+          () => {
+            if (isNotVisible.value) {
+              isNotVisible.value = false;
+            }
+          },
+          {
+            strategy: 'document-ready',
+          }
+        );
+
+        if (isNotVisible.value) {
+          return <div></div>;
+        }
+
+        return (
+          <div>
+            <p>Hide until visible</p>
+            <Slot />
+          </div>
+        );
+      });
+
+      const Issue4283 = component$(() => {
+        return (
+          <HideUntilVisible>
+            <p>Content</p>
+            <Slot />
+          </HideUntilVisible>
+        );
+      });
+
+      const SlotParent = component$(() => {
+        const render = useSignal(true);
+        return (
+          <>
+            {render.value && (
+              <>
+                <Issue4283>
+                  <p>index page</p>
+                </Issue4283>
+                <button onClick$={() => (render.value = !render.value)}></button>
+              </>
+            )}
+          </>
+        );
+      });
+
+      const { vNode, document } = await render(<SlotParent />, { debug });
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'div', ':document:qinit');
+      }
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <Fragment>
+              <Component>
+                <Component>
+                  <div>
+                    <p>Hide until visible</p>
+                    <Projection>
+                      <p>Content</p>
+                      <Projection>
+                        <p>index page</p>
+                      </Projection>
+                    </Projection>
+                  </div>
+                </Component>
+              </Component>
+              <button></button>
+            </Fragment>
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(document.body, 'button', 'click');
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>{''}</Fragment>
         </Component>
       );
     });

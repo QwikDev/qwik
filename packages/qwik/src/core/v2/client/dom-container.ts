@@ -66,7 +66,7 @@ import {
   vnode_setProp,
   type VNodeJournal,
   isQContainerElementWithValue,
-  vnode_getVNodeForNode as vnode_getVNodeForElement,
+  vnode_getVNodeForElement,
 } from './vnode';
 import { vnode_diff } from './vnode-diff';
 

@@ -193,7 +193,8 @@ function processJSXNode(
           const children = jsx.children as JSXOutput;
           children != null && enqueue(children);
         } else if (type === Slot) {
-          const componentFrame = ssr.getNearestComponentFrame();
+          const componentFrame =
+            ssr.getNearestComponentFrame() || ssr.unclaimedProjectionComponentFrameQueue.shift();
           const projectionAttrs = isDev ? [DEBUG_TYPE, VirtualType.Projection] : [];
           if (componentFrame) {
             const compId = componentFrame.componentNode.id || '';
@@ -209,7 +210,7 @@ function processJSXNode(
             const slotChildren =
               componentFrame.consumeChildrenForSlot(node, slotName) || slotDefaultChildren;
             if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
-              ssr.addUnclaimedProjection(node, QDefaultSlot, slotDefaultChildren);
+              ssr.addUnclaimedProjection(componentFrame, QDefaultSlot, slotDefaultChildren);
             }
             enqueue(slotChildren as JSXOutput);
             enqueue(new SetScopedStyle(componentFrame.childrenScopedStyle));

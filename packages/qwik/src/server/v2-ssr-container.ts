@@ -162,7 +162,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private depthFirstElementCount: number = -1;
   private vNodeData: VNodeData[] = [];
   private componentStack: ISsrComponentFrame[] = [];
-  private unclaimedProjections: Array<ISsrNode | string | JSXChildren> = [];
+  private unclaimedProjections: Array<ISsrComponentFrame | string | JSXChildren> = [];
+  unclaimedProjectionComponentFrameQueue: Array<ISsrComponentFrame> = [];
   private cleanupQueue: CleanupQueue = [];
 
   constructor(opts: Required<Required<Parameters<typeof ssrCreateContainer>>[0]>) {
@@ -368,11 +369,17 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   openProjection(attrs: SsrAttrs) {
     this.openFragment(attrs);
-    this.getComponentFrame()!.projectionDepth++;
+    const componentFrame = this.getComponentFrame();
+    if (componentFrame) {
+      componentFrame.projectionDepth++;
+    }
   }
 
   closeProjection() {
-    this.getComponentFrame()!.projectionDepth--;
+    const componentFrame = this.getComponentFrame();
+    if (componentFrame) {
+      componentFrame.projectionDepth--;
+    }
     this.closeFragment();
   }
 
@@ -449,8 +456,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.lastNode!;
   }
 
-  addUnclaimedProjection(node: ISsrNode, name: string, children: JSXChildren): void {
-    this.unclaimedProjections.push(node, null, name, children);
+  addUnclaimedProjection(frame: ISsrComponentFrame, name: string, children: JSXChildren): void {
+    // componentFrame, scopedStyleIds, slotName, children
+    this.unclaimedProjections.push(frame, null, name, children);
   }
 
   $appendStyle$(content: string, styleId: string, host: ISsrNode, scoped: boolean): void {
@@ -804,17 +812,36 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.openElement(QTemplate, ['style', 'display:none'], null);
         let idx = 0;
         let ssrComponentNode: ISsrNode | null = null;
+        let ssrComponentFrame: ISsrComponentFrame | null = null;
         let scopedStyleId: string | null = null;
+
+        for (let i = 0; i < unclaimedProjections.length; i += 4) {
+          this.unclaimedProjectionComponentFrameQueue.push(
+            unclaimedProjections[i] as ISsrComponentFrame
+          );
+        }
+
         while (idx < unclaimedProjections.length) {
           const value = unclaimedProjections[idx++];
-          if (value instanceof SsrNode) {
+          if (value instanceof SsrComponentFrame) {
             // It is important to restore the `ssrComponentNode` so that the content
             // can pretend to be inside the component.
-            ssrComponentNode = this.currentComponentNode = value;
+            ssrComponentNode = this.currentComponentNode = value.componentNode;
+            ssrComponentFrame = value;
             // scopedStyleId is always after ssrComponentNode
             scopedStyleId = unclaimedProjections[idx++] as string;
           } else if (typeof value === 'string') {
             const children = unclaimedProjections[idx++] as JSXOutput;
+            if (!ssrComponentFrame?.hasSlot(value)) {
+              /**
+               * Skip the slot if it is already claimed by previous unclaimed projections. We need
+               * to remove the slot from the component frame so that it does not incorrectly resolve
+               * non-existing node later
+               */
+              ssrComponentFrame && ssrComponentFrame.componentNode.removeProp(value);
+              continue;
+            }
+            this.unclaimedProjectionComponentFrameQueue.shift();
             this.openFragment(
               isDev
                 ? [DEBUG_TYPE, VirtualType.Projection, QSlotParent, ssrComponentNode!.id]

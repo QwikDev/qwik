@@ -75,6 +75,16 @@ export class SsrNode implements ISsrNode {
       return mapArray_get(this.attrs, name, 0);
     }
   }
+
+  removeProp(name: string): void {
+    if (name.startsWith(':')) {
+      if (this.locals) {
+        mapApp_remove(this.locals, name, 0);
+      }
+    } else {
+      mapApp_remove(this.attrs, name, 0);
+    }
+  }
 }
 
 export type SsrNodeType = 1 | 3 | 9 | 11;
@@ -135,6 +145,10 @@ export class SsrComponentFrame implements ISsrComponentFrame {
     return QDefaultSlot;
   }
 
+  hasSlot(slotName: string): boolean {
+    return mapArray_get(this.slots, slotName, 0) !== null;
+  }
+
   consumeChildrenForSlot(projectionNode: ISsrNode, slotName: string): JSXChildren | null {
     const children = mapApp_remove(this.slots, slotName, 0);
     if (children !== null) {
@@ -144,9 +158,9 @@ export class SsrComponentFrame implements ISsrComponentFrame {
     return children;
   }
 
-  releaseUnclaimedProjections(unclaimedProjections: (ISsrNode | JSXChildren | string)[]) {
+  releaseUnclaimedProjections(unclaimedProjections: (ISsrComponentFrame | JSXChildren | string)[]) {
     if (this.slots.length) {
-      unclaimedProjections.push(this.componentNode);
+      unclaimedProjections.push(this);
       unclaimedProjections.push(this.childrenScopedStyle);
       unclaimedProjections.push.apply(unclaimedProjections, this.slots);
     }

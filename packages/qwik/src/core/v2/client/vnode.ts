@@ -687,7 +687,7 @@ export const vnode_getVNodeForChildNode = (
 };
 
 // this is trying to find the vnode for the element using Breadth-First Search
-export const vnode_getVNodeForNode = (
+export const vnode_getVNodeForElement = (
   vNode: ElementVNode,
   element: Element
 ): ElementVNode | null => {

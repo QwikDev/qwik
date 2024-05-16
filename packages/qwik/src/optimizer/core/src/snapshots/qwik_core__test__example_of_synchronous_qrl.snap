@@ -68,6 +68,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "test_component",
   "hash": "LUXeXe0DQrg",
   "canonicalFilename": "test_component_luxexe0dqrg",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

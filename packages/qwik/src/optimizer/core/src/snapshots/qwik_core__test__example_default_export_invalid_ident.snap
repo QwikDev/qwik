@@ -20,11 +20,11 @@ export default component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("../../../_404_component_zrvowc98eqo"), "_404_component_zRvoWc98eqo"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./_404_component_zrvowc98eqo"), "_404_component_zRvoWc98eqo"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;AAGA,6BAAe,iHAKZ\"}")
-============================= _404_component_zrvowc98eqo.tsx (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;AAGA,6BAAe,0GAKZ\"}")
+============================= src/components/mongo/_404_component_zrvowc98eqo.tsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 export const _404_component_zRvoWc98eqo = ()=>{
@@ -43,6 +43,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
   "displayName": "_404_component",
   "hash": "zRvoWc98eqo",
   "canonicalFilename": "_404_component_zrvowc98eqo",
+  "path": "src/components/mongo",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -54,7 +55,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
   ]
 }
 */
-============================= _404_component_div_onclick_oimo9dvew9q.tsx (ENTRY POINT)==
+============================= src/components/mongo/_404_component_div_onclick_oimo9dvew9q.tsx (ENTRY POINT)==
 
 export const _404_component_div_onClick_OiMo9dvEW9Q = ()=>console.log(mongodb);
 
@@ -68,6 +69,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
   "displayName": "_404_component_div_onClick",
   "hash": "OiMo9dvEW9Q",
   "canonicalFilename": "_404_component_div_onclick_oimo9dvew9q",
+  "path": "src/components/mongo",
   "extension": "tsx",
   "parent": "_404_component_zRvoWc98eqo",
   "ctxKind": "jSXProp",

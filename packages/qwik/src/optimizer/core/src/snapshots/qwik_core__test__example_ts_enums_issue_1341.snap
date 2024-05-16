@@ -61,6 +61,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "App_component",
   "hash": "ckEPmXZlub0",
   "canonicalFilename": "app_component_ckepmxzlub0",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

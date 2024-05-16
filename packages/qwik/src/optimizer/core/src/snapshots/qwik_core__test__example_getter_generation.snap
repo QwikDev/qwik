@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2943
+assertion_line: 2941
 expression: output
 ---
 ==INPUT==
@@ -85,6 +85,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Cmp_component",
   "hash": "4ryKJTOKjWE",
   "canonicalFilename": "cmp_component_4rykjtokjwe",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -156,6 +157,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "App_component",
   "hash": "ckEPmXZlub0",
   "canonicalFilename": "app_component_ckepmxzlub0",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

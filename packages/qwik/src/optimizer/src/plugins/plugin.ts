@@ -135,12 +135,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     opts.debug = !!updatedOpts.debug;
 
-    opts.base =
-      !updatedOpts?.base || updatedOpts.base === '/'
-        ? ''
-        : updatedOpts.base.endsWith('/')
-          ? updatedOpts.base.slice(0, -1)
-          : updatedOpts.base;
+    opts.base = normalizeBase(opts.base);
 
     updatedOpts.target === 'test';
     if (
@@ -882,6 +877,18 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     validateSource,
     setSourceMapSupport,
   };
+}
+
+function normalizeBase(base?: string) {
+  if (!base || base === '/') {
+    return '';
+  }
+
+  if (base.endsWith('/')) {
+    return base.slice(0, -1);
+  }
+
+  return base;
 }
 
 const insideRoots = (ext: string, dir: string, srcDir: string | null, vendorRoots: string[]) => {

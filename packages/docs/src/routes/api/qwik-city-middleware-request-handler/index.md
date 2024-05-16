@@ -359,6 +359,12 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
+## data
+
+```typescript
+data: T;
+```
+
 ## DeferReturn
 
 ```typescript
@@ -1382,6 +1388,87 @@ export interface ResolveValue
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
+## ServerError
+
+```typescript
+export declare class ServerError<T = Record<any, any>> extends Error
+```
+
+**Extends:** Error
+
+<table><thead><tr><th>
+
+Constructor
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[(constructor)(status, data)](#)
+
+</td><td>
+
+</td><td>
+
+Constructs a new instance of the `ServerError` class
+
+</td></tr>
+</tbody></table>
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[data](#servererror-data)
+
+</td><td>
+
+</td><td>
+
+T
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[status](#servererror-status)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/error-handler.ts)
+
 ## ServerRenderOptions
 
 ```typescript
@@ -1675,3 +1762,9 @@ _(Optional)_
 **Returns:**
 
 void
+
+## status
+
+```typescript
+status: number;
+```

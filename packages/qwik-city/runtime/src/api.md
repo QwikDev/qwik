@@ -13,6 +13,7 @@ import type { EnvGetter } from '@builder.io/qwik-city/middleware/request-handler
 import { JSXNode } from '@builder.io/qwik';
 import { JSXOutput } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
+import { QRLEventHandlerMulti } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
 import type { ReadonlySignal } from '@builder.io/qwik';
@@ -23,7 +24,7 @@ import { RequestEventCommon } from '@builder.io/qwik-city/middleware/request-han
 import { RequestEventLoader } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ResolveSyncValue } from '@builder.io/qwik-city/middleware/request-handler';
-import { ValueOrPromise } from '@builder.io/qwik';
+import type { ValueOrPromise } from '@builder.io/qwik';
 import { z } from 'zod';
 import type * as zod from 'zod';
 
@@ -68,6 +69,7 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
     readonly formData: FormData | undefined;
     readonly value: RETURN | undefined;
     readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;
+    readonly submitted: boolean;
 };
 
 // @public (undocumented)
@@ -219,8 +221,8 @@ export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'],
     action?: ActionStore<O, I, true | false>;
     // (undocumented)
     key?: string | number | null;
-    onSubmit$?: (event: Event, form: HTMLFormElement) => ValueOrPromise<void>;
-    onSubmitCompleted$?: (event: CustomEvent<FormSubmitSuccessDetail<O>>, form: HTMLFormElement) => ValueOrPromise<void>;
+    onSubmit$?: QRLEventHandlerMulti<SubmitEvent, HTMLFormElement> | undefined;
+    onSubmitCompleted$?: QRLEventHandlerMulti<CustomEvent<FormSubmitSuccessDetail<O>>, HTMLFormElement> | undefined;
     reloadDocument?: boolean;
     spaReset?: boolean;
 }
@@ -400,7 +402,7 @@ export interface RouteLocation {
 }
 
 // @public (undocumented)
-export type RouteNavigate = QRL<(path?: string, options?: {
+export type RouteNavigate = QRL<(path?: string | number, options?: {
     type?: Exclude<NavigationType, 'initial'>;
     forceReload?: boolean;
     replaceState?: boolean;
@@ -410,19 +412,22 @@ export type RouteNavigate = QRL<(path?: string, options?: {
 // @public (undocumented)
 export const RouterOutlet: Component<unknown>;
 
+// Warning: (ae-forgotten-export) The symbol "ServerConfig" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export const server$: <T extends ServerFunction>(first: T) => ServerQRL<T>;
+export const server$: <T extends ServerFunction>(first: T, options?: ServerConfig | undefined) => ServerQRL<T>;
 
 // @public (undocumented)
 export type ServerFunction = {
     (this: RequestEventBase, ...args: any[]): any;
+    options?: ServerConfig;
 };
 
 // @public
 export type ServerQRL<T extends ServerFunction> = QRL<((abort: AbortSignal, ...args: Parameters<T>) => ReturnType<T>) | ((...args: Parameters<T>) => ReturnType<T>)>;
 
 // @public (undocumented)
-export const serverQrl: <T extends ServerFunction>(qrl: QRL<T>) => ServerQRL<T>;
+export const serverQrl: <T extends ServerFunction>(qrl: QRL<T>, options?: ServerConfig) => ServerQRL<T>;
 
 // @public (undocumented)
 export const ServiceWorkerRegister: (props: {

@@ -14,7 +14,7 @@ import {
 } from '@builder.io/qwik';
 
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
-import { QACTION_KEY, QFN_KEY } from './constants';
+import { QACTION_KEY, QFN_KEY, QDATA_KEY } from './constants';
 import { RouteStateContext } from './contexts';
 import type {
   ActionConstructor,
@@ -40,10 +40,13 @@ import type {
   ServerFunction,
   ServerQRL,
   RequestEventBase,
+  ServerConfig,
 } from './types';
 import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 import { z } from 'zod';
+
 import { isDev, isServer } from '@builder.io/qwik/build';
+
 import type { FormSubmitCompletedDetail } from './form-component';
 
 /** @public */
@@ -57,6 +60,7 @@ export const routeActionQrl = ((
     const currentAction = useAction();
     const initialState: Editable<Partial<ActionStore<unknown, unknown>>> = {
       actionPath: `?${QACTION_KEY}=${id}`,
+      submitted: false,
       isRunning: false,
       status: undefined,
       value: undefined,
@@ -104,6 +108,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
         if (data instanceof FormData) {
           state.formData = data;
         }
+        state.submitted = true;
         state.isRunning = true;
         loc.isNavigating = true;
         currentAction.value = {
@@ -265,8 +270,21 @@ export const zodQrl = ((
 /** @public */
 export const zod$ = /*#__PURE__*/ implicit$FirstArg(zodQrl) as ZodConstructor;
 
+const deepFreeze = (obj: any) => {
+  Object.getOwnPropertyNames(obj).forEach((prop) => {
+    const value = obj[prop];
+    if (value && typeof value === 'object') {
+      deepFreeze(value);
+    }
+  });
+  return Object.freeze(obj);
+};
+
 /** @public */
-export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> => {
+export const serverQrl = <T extends ServerFunction>(
+  qrl: QRL<T>,
+  options?: ServerConfig
+): ServerQRL<T> => {
   if (isServer) {
     const captured = qrl.getCaptured();
     if (captured && captured.length > 0 && !_getContextElement()) {
@@ -274,15 +292,23 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
     }
   }
 
-  function stuff() {
+  const method = options?.method?.toUpperCase?.() || 'POST';
+  const headers = options?.headers || {};
+  const origin = options?.origin || '';
+  const fetchOptions = options?.fetchOptions || {};
+
+  function rpc() {
     return $(async function (this: RequestEventBase, ...args: Parameters<T>) {
+      // move to ServerConfig
       const signal =
         args.length > 0 && args[0] instanceof AbortSignal
           ? (args.shift() as AbortSignal)
           : undefined;
+
       if (isServer) {
         // Running during SSR, we can call the function directly
         let requestEvent = globalThis.qcAsyncRequestStore?.getStore() as RequestEvent | undefined;
+
         if (!requestEvent) {
           const contexts = [useQwikCityEnv()?.ev, this, _getContextEvent()] as RequestEvent[];
           requestEvent = contexts.find(
@@ -292,7 +318,8 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
               Object.prototype.hasOwnProperty.call(v, 'cookie')
           );
         }
-        return qrl.apply(requestEvent, args);
+
+        return qrl.apply(requestEvent, isDev ? deepFreeze(args) : args);
       } else {
         // Running on the client, we need to call the function via HTTP
         const ctxElm = _getContextElement();
@@ -308,16 +335,26 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
         });
         const hash = qrl.getHash();
         // Handled by `pureServerFunction` middleware
-        const res = await fetch(`?${QFN_KEY}=${hash}`, {
-          method: 'POST',
+        let query = '';
+        const config = {
+          ...fetchOptions,
+          method,
           headers: {
+            ...headers,
             'Content-Type': 'application/qwik-json',
             // Required so we don't call accidentally
             'X-QRL': hash,
           },
           signal,
-          body: await _serializeData([qrl, ...filtered], false),
-        });
+        };
+        const body = await _serializeData([qrl, ...filtered], false);
+        if (method === 'GET') {
+          query += `&${QDATA_KEY}=${encodeURIComponent(body)}`;
+        } else {
+          // PatrickJS: sorry Ryan Florence I prefer const still
+          config.body = body;
+        }
+        const res = await fetch(`${origin}?${QFN_KEY}=${hash}${query}`, config);
 
         const contentType = res.headers.get('Content-Type');
         if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {
@@ -347,7 +384,7 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
       }
     }) as ServerQRL<T>;
   }
-  return stuff();
+  return rpc();
 };
 
 /** @public */

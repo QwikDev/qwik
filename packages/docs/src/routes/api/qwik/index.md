@@ -3486,6 +3486,7 @@ PrefetchGraph: (opts?: {
   base?: string;
   manifestHash?: string;
   manifestURL?: string;
+  nonce?: string;
 }) => import("@builder.io/qwik/jsx-runtime").JSXNode<"script">;
 ```
 
@@ -3508,7 +3509,7 @@ opts
 
 </td><td>
 
-{ base?: string; manifestHash?: string; manifestURL?: string; }
+{ base?: string; manifestHash?: string; manifestURL?: string; nonce?: string; }
 
 </td><td>
 
@@ -3520,7 +3521,7 @@ _(Optional)_ Options for the loading prefetch graph.
 </tbody></table>
 **Returns:**
 
-import("@builder.io/qwik/jsx-runtime").JSXNode&lt;"script"&gt;
+import("@builder.io/qwik/jsx-runtime").[JSXNode](#jsxnode)&lt;"script"&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -3538,6 +3539,7 @@ PrefetchServiceWorker: (opts: {
   path?: string;
   verbose?: boolean;
   fetchBundleGraph?: boolean;
+  nonce?: string;
 }) => import("@builder.io/qwik/jsx-runtime").JSXNode<"script">;
 ```
 
@@ -3560,7 +3562,7 @@ opts
 
 </td><td>
 
-{ base?: string; path?: string; verbose?: boolean; fetchBundleGraph?: boolean; }
+{ base?: string; path?: string; verbose?: boolean; fetchBundleGraph?: boolean; nonce?: string; }
 
 </td><td>
 
@@ -3572,7 +3574,7 @@ Options for the prefetch service worker.
 </tbody></table>
 **Returns:**
 
-import("@builder.io/qwik/jsx-runtime").JSXNode&lt;"script"&gt;
+import("@builder.io/qwik/jsx-runtime").[JSXNode](#jsxnode)&lt;"script"&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 

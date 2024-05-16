@@ -1,6 +1,7 @@
 use crate::transform::HookData;
 use crate::words::*;
 use crate::{parse::PathData, transform::HookKind};
+use path_slash::PathBufExt;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use swc_atoms::JsWord;
@@ -134,7 +135,15 @@ impl EntryPolicy for PerComponentStrategy {
 		}
 		context.first().map_or_else(
 			|| Some(ENTRY_HOOKS.clone()),
-			|root| Some(JsWord::from(["entry_", root].concat())),
+			|root| {
+				Some(JsWord::from(
+					_path
+						.rel_dir
+						.join(["entry_", root].concat())
+						.to_slash_lossy()
+						.as_ref(),
+				))
+			},
 		)
 	}
 }
@@ -171,10 +180,18 @@ impl EntryPolicy for SmartStrategy {
 				return Some(entry.clone());
 			}
 		}
-		Some(context.first().map_or_else(
-			|| ENTRY_HOOKS.clone(),
-			|root| JsWord::from(["entry_", root].concat()),
-		))
+		context.first().map_or_else(
+			|| Some(ENTRY_HOOKS.clone()),
+			|root| {
+				Some(JsWord::from(
+					_path
+						.rel_dir
+						.join(["entry_", root].concat())
+						.to_slash_lossy()
+						.as_ref(),
+				))
+			},
+		)
 	}
 }
 

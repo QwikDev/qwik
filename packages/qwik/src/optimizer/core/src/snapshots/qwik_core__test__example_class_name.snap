@@ -99,6 +99,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "App2_component",
   "hash": "3yveMqbQ3Fs",
   "canonicalFilename": "app2_component_3yvemqbq3fs",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

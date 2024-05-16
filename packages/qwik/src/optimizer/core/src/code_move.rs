@@ -96,11 +96,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
 						asserts: import.asserts.clone(),
 						src: Box::new(ast::Str {
 							span: DUMMY_SP,
-							value: fix_path(
-								&ctx.path.abs_dir,
-								&ctx.path.base_dir,
-								import.source.as_ref(),
-							)?,
+							value: import.source.clone(),
 							raw: None,
 						}),
 						specifiers: vec![specifier],
@@ -124,11 +120,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
 						asserts: None,
 						src: Box::new(ast::Str {
 							span: DUMMY_SP,
-							value: fix_path(
-								&ctx.path.abs_dir,
-								&ctx.path.base_dir,
-								&format!("./{}", filename),
-							)?,
+							value: format!("./{}", filename).into(),
 							raw: None,
 						}),
 						specifiers: vec![ast::ImportSpecifier::Named(ast::ImportNamedSpecifier {

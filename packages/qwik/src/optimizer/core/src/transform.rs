@@ -72,6 +72,7 @@ pub struct HookData {
 	pub ctx_kind: HookKind,
 	pub ctx_name: JsWord,
 	pub origin: JsWord,
+	pub path: JsWord,
 	pub display_name: JsWord,
 	pub hash: JsWord,
 	pub need_transform: bool,
@@ -427,6 +428,7 @@ impl<'a> QwikTransform<'a> {
 			ctx_kind,
 			ctx_name,
 			origin: self.options.path_data.rel_path.to_slash_lossy().into(),
+			path: self.options.path_data.rel_dir.to_slash_lossy().into(),
 			display_name,
 			need_transform: false,
 			hash,
@@ -657,6 +659,7 @@ impl<'a> QwikTransform<'a> {
 			ctx_kind,
 			ctx_name,
 			origin: self.options.path_data.rel_path.to_slash_lossy().into(),
+			path: self.options.path_data.rel_dir.to_slash_lossy().into(),
 			display_name,
 			need_transform: true,
 			hash,
@@ -757,28 +760,19 @@ impl<'a> QwikTransform<'a> {
 
 		let mut filename = format!(
 			"./{}",
+			// the filename part of the entry, because we're in the same directory
 			entry
 				.as_ref()
-				.map(|e| e.as_ref())
+				.and_then(|e| Path::new(e.as_ref()).file_name())
+				.and_then(|f| f.to_str())
 				.unwrap_or(&canonical_filename)
 		);
 		if self.options.explicit_extensions {
 			filename.push('.');
 			filename.push_str(&self.options.extension);
 		}
-		let inside_hook = !self.hook_stack.is_empty();
-		let import_path = if inside_hook {
-			fix_path("a", "a", &filename)
-		} else {
-			fix_path(
-				&self.options.path_data.base_dir,
-				&self.options.path_data.abs_dir,
-				&filename,
-			)
-		}
-		.unwrap();
 
-		let import_expr = self.create_qrl(import_path, &symbol_name, &hook_data, &span);
+		let import_expr = self.create_qrl(filename.into(), &symbol_name, &hook_data, &span);
 		self.hooks.push(Hook {
 			entry,
 			span,

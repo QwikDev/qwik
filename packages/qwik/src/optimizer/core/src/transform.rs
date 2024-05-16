@@ -638,15 +638,15 @@ impl<'a> QwikTransform<'a> {
 			compute_scoped_idents(&descendent_idents, &decl_collect);
 		if !can_capture && !scoped_idents.is_empty() {
 			HANDLER.with(|handler| {
-                let ids: Vec<_> = scoped_idents.iter().map(|id| id.0.as_ref()).collect();
-                handler
-                    .struct_span_err_with_code(
-                        first_arg_span,
-                        &format!("Qrl($) scope is not a function, but it's capturing local identifiers: {}", ids.join(", ")),
-                        errors::get_diagnostic_id(errors::Error::CanNotCapture),
-                    )
-                    .emit();
-            });
+				let ids: Vec<_> = scoped_idents.iter().map(|id| id.0.as_ref()).collect();
+				handler
+					.struct_span_err_with_code(
+						first_arg_span,
+						&format!("Qrl($) scope is not a function, but it's capturing local identifiers: {}", ids.join(", ")),
+						errors::get_diagnostic_id(errors::Error::CanNotCapture),
+					)
+					.emit();
+			});
 			scoped_idents = vec![];
 		}
 		let hook_data = HookData {
@@ -670,16 +670,16 @@ impl<'a> QwikTransform<'a> {
 					}
 					if invalid_decl.iter().any(|entry| entry.0 == *id) {
 						HANDLER.with(|handler| {
-                            handler
-                                .struct_err_with_code(
-                                    &format!(
-                                        "Reference to identifier '{}' can not be used inside a Qrl($) scope because it's a function",
-                                        id.0
-                                    ),
-                                    errors::get_diagnostic_id(errors::Error::FunctionReference),
-                                )
-                                .emit();
-                        });
+							handler
+								.struct_err_with_code(
+									&format!(
+										"Reference to identifier '{}' can not be used inside a Qrl($) scope because it's a function",
+										id.0
+									),
+									errors::get_diagnostic_id(errors::Error::FunctionReference),
+								)
+								.emit();
+						});
 					}
 				}
 			}
@@ -748,16 +748,12 @@ impl<'a> QwikTransform<'a> {
 	) -> ast::CallExpr {
 		let canonical_filename = get_canonical_filename(&symbol_name);
 
-		let entry = self
-			.options
-			.entry_policy
-			.get_entry_for_sym(
-				&hook_data.hash,
-				self.options.path_data,
-				&self.stack_ctxt,
-				&hook_data,
-			)
-			.map(|entry| JsWord::from(escape_sym(entry.as_ref())));
+		let entry = self.options.entry_policy.get_entry_for_sym(
+			&hook_data.hash,
+			self.options.path_data,
+			&self.stack_ctxt,
+			&hook_data,
+		);
 
 		let mut filename = format!(
 			"./{}",
@@ -782,7 +778,7 @@ impl<'a> QwikTransform<'a> {
 		}
 		.unwrap();
 
-		let o = self.create_qrl(import_path, &symbol_name, &hook_data, &span);
+		let import_expr = self.create_qrl(import_path, &symbol_name, &hook_data, &span);
 		self.hooks.push(Hook {
 			entry,
 			span,
@@ -792,7 +788,7 @@ impl<'a> QwikTransform<'a> {
 			expr: Box::new(expr),
 			hash: hook_hash,
 		});
-		o
+		import_expr
 	}
 
 	fn handle_jsx(&mut self, mut node: ast::CallExpr) -> ast::CallExpr {
@@ -1118,14 +1114,14 @@ impl<'a> QwikTransform<'a> {
 			}
 		}
 		HANDLER.with(|handler| {
-            handler
-                .struct_span_err_with_code(
-                    node.span,
-                    "Dynamic import() inside Qrl($) scope is not a string, relative paths might break",
-                    errors::get_diagnostic_id(errors::Error::DynamicImportInsideQhook),
-                )
-                .emit();
-        });
+			handler
+				.struct_span_err_with_code(
+					node.span,
+					"Dynamic import() inside Qrl($) scope is not a string, relative paths might break",
+					errors::get_diagnostic_id(errors::Error::DynamicImportInsideQhook),
+				)
+				.emit();
+		});
 		node
 	}
 
@@ -2155,25 +2151,25 @@ impl<'a> Fold for QwikTransform<'a> {
 						let new_specifier =
 							convert_signal_word(&ident.sym).expect("Specifier ends with $");
 						global_collect
-                            .exports
-                            .keys()
-                            .find(|id| id.0 == new_specifier)
-                            .map_or_else(
-                                || {
-                                    HANDLER.with(|handler| {
-                                        handler
-                                            .struct_span_err_with_code(
-                                                ident.span,
-                                                &format!("Found '{}' but did not find the corresponding '{}' exported in the same file. Please check that it is exported and spelled correctly", &ident.sym, &new_specifier),
-                                                errors::get_diagnostic_id(errors::Error::MissingQrlImplementation),
-                                            )
-                                            .emit();
-                                    });
-                                },
-                                |new_local| {
-                                    replace_callee = Some(new_ident_from_id(new_local).as_callee());
-                                },
-                            );
+							.exports
+							.keys()
+							.find(|id| id.0 == new_specifier)
+							.map_or_else(
+								|| {
+									HANDLER.with(|handler| {
+										handler
+											.struct_span_err_with_code(
+												ident.span,
+												&format!("Found '{}' but did not find the corresponding '{}' exported in the same file. Please check that it is exported and spelled correctly", &ident.sym, &new_specifier),
+												errors::get_diagnostic_id(errors::Error::MissingQrlImplementation),
+										)
+											.emit();
+									});
+								},
+								|new_local| {
+									replace_callee = Some(new_ident_from_id(new_local).as_callee());
+								},
+							);
 					}
 				} else {
 					self.stack_ctxt.push(ident.sym.to_string());

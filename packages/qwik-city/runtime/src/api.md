@@ -402,7 +402,7 @@ export interface RouteLocation {
 }
 
 // @public (undocumented)
-export type RouteNavigate = QRL<(path?: string, options?: {
+export type RouteNavigate = QRL<(path?: string | number, options?: {
     type?: Exclude<NavigationType, 'initial'>;
     forceReload?: boolean;
     replaceState?: boolean;

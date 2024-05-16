@@ -152,6 +152,10 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
       replaceState = false,
       scroll = true,
     } = typeof opt === 'object' ? opt : { forceReload: opt };
+    if (typeof path === 'number' && isBrowser) {
+      history.go(path);
+      return;
+    }
     const lastDest = routeInternal.value.dest;
     const dest = path === undefined ? lastDest : toUrl(path, routeLocation.url);
 

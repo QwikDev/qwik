@@ -90,7 +90,7 @@ export type ScrollState = {
 /** @public */
 export type RouteNavigate = QRL<
   (
-    path?: string,
+    path?: string | number,
     options?:
       | {
           type?: Exclude<NavigationType, 'initial'>;

@@ -1,16 +1,16 @@
 // Polyfill for TextEncoderStream
 /** @internal */
 export class _TextEncoderStream_polyfill extends TransformStream<string, Uint8Array> {
-  private _encoder = new TextEncoder();
   public ready = Promise.resolve();
   public closed = false;
   public destroyed = false;
   public encoding = 'utf-8';
 
   constructor() {
+    const encoder = new TextEncoder();
     super({
       transform: (chunk: string, controller: TransformStreamDefaultController<Uint8Array>) => {
-        const encoded = this._encoder.encode(chunk);
+        const encoded = encoder.encode(chunk);
         if (encoded.byteLength > 0) {
           controller.enqueue(encoded);
         }

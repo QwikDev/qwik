@@ -68,7 +68,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   let internalOptimizer: Optimizer | null = null;
   let linter: QwikLinter | undefined = undefined;
-  const hookManifest: Record<string, string> = {};
+
   let diagnosticsCallback: (
     d: Diagnostic[],
     optimizer: Optimizer,
@@ -390,29 +390,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         transformOpts.isServer = true;
         transformOpts.regCtxName = REG_CTX_NAME;
       }
-
-      const result = await optimizer.transformFs(transformOpts);
-      for (const output of result.modules) {
-        const key = normalizePath(path.join(srcDir, output.path)!);
-        debug(`buildStart() add transformedOutput`, key, output.hook?.displayName);
-        transformedOutputs.set(key, [output, key]);
-        ssrTransformedOutputs.set(key, [output, key]);
-        if (output.hook) {
-          hookManifest[output.hook.hash] = key;
-          // The original path must be absolute
-          output.origPath = path.resolve(srcDir, output.hook.origin);
-        } else if (output.isEntry) {
-          ctx.emitFile({
-            id: key,
-            type: 'chunk',
-          });
-        }
-      }
-
-      diagnosticsCallback(result.diagnostics, optimizer, srcDir);
-
-      results.set('@buildStart', result);
-      ssrResults.set('@buildStart', result);
     }
   };
 
@@ -469,15 +446,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (importer) {
       // Only process relative links
       if (!id.startsWith('.') && !path.isAbsolute(id)) {
-        // Handle nested node_modules imports from moved code
-        const transformedOutput = isSSR
-          ? ssrTransformedOutputs.get(importer)
-          : transformedOutputs.get(importer);
-        const originalPath = transformedOutput?.[0].origPath || transformedOutput?.[1];
-        if (originalPath) {
-          // Resolve imports relative to original source path
-          return ctx.resolve(id, originalPath, { skipSelf: true });
-        }
         return;
       }
       const parsedId = parseId(id);
@@ -877,7 +845,7 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
 }
 
 const insideRoots = (ext: string, dir: string, srcDir: string | null, vendorRoots: string[]) => {
-  if (ext !== '.js') {
+  if (!(ext === '.js' || ext === '.mjs' || ext === '.cjs')) {
     return false;
   }
   if (srcDir != null && dir.startsWith(srcDir)) {

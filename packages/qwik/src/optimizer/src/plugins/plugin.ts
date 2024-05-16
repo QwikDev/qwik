@@ -294,6 +294,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     if (typeof updatedOpts.lint === 'boolean') {
       opts.lint = updatedOpts.lint;
+    } else {
+      opts.lint = updatedOpts.buildMode === 'development';
     }
 
     return { ...opts };

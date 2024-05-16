@@ -154,7 +154,10 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
             const mod = await sys.dynamicImport(`./bindings/${triple.platformArchABI}`);
             return mod;
           } catch (e) {
-            console.warn(e);
+            console.warn(
+              `Unable to load native binding ${triple.platformArchABI}. Falling back to wasm build.`,
+              (e as Error)?.message
+            );
           }
         }
       }

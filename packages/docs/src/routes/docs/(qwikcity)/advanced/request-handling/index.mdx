@@ -115,6 +115,8 @@ Appends a header with the provided key to the cookie. The new header will have a
 cookie.delete('my-cookie');
 // equivalent to
 cookie.set('my-cookie', 'deleted', new Date(0));
+// or
+cookie.set('my-cookie', '');
 ```
 
 Optionally, you can set the path, sameSite and/or domain when deleting the cookie. If your cookie was created with a path/domain, you must set these fields for the deletion to take effect.

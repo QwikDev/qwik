@@ -144,7 +144,7 @@ function recursiveScan(
   }
   let pathIdx = pathLength;
   const sep = suffix + '/';
-  let depthWatchdog = 5;
+  let depthWatchdog = 8;
   while (pathIdx >= pathStart && depthWatchdog--) {
     const match = matchRoutePart(route, routeStart, routeLength, path, pathIdx, pathLength);
     if (match) {

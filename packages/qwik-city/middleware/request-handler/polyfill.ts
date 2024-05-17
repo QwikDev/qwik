@@ -1,25 +1,73 @@
 // Polyfill for TextEncoderStream
-/** @internal */
-export class _TextEncoderStream_polyfill extends TransformStream<string, Uint8Array> {
-  public ready = Promise.resolve();
-  public closed = false;
-  public destroyed = false;
-  public encoding = 'utf-8';
 
-  constructor() {
-    const encoder = new TextEncoder();
-    super({
-      transform: (chunk: string, controller: TransformStreamDefaultController<Uint8Array>) => {
-        const encoded = encoder.encode(chunk);
-        if (encoded.byteLength > 0) {
-          controller.enqueue(encoded);
+/**
+ * TextEncoderStream polyfill based on Node.js' implementation https://github.com/nodejs/node/blob/3f3226c8e363a5f06c1e6a37abd59b6b8c1923f1/lib/internal/webstreams/encoding.js#L38-L119 (MIT License)
+ */
+/** @internal */
+export class _TextEncoderStream_polyfill {
+  #pendingHighSurrogate: string | null = null;
+
+  #handle = new TextEncoder();
+
+  #transform = new TransformStream<string, Uint8Array>({
+    transform: (chunk, controller) => {
+      // https://encoding.spec.whatwg.org/#encode-and-enqueue-a-chunk
+      chunk = String(chunk);
+
+      let finalChunk = '';
+      for (const item of chunk) {
+        const codeUnit = item.charCodeAt(0);
+        if (this.#pendingHighSurrogate !== null) {
+          const highSurrogate = this.#pendingHighSurrogate;
+
+          this.#pendingHighSurrogate = null;
+          if (codeUnit >= 0xdc00 && codeUnit <= 0xdfff) {
+            finalChunk += highSurrogate + item;
+            continue;
+          }
+
+          finalChunk += '\uFFFD';
         }
-      },
-      flush: (/* controller: TransformStreamDefaultController<Uint8Array> */) => {
-        // With TextEncoder there's no need to handle the flush method since it doesn't have any end-of-stream state.
-        this.closed = true;
-        this.destroyed = true;
-      },
-    });
+
+        if (codeUnit >= 0xd800 && codeUnit <= 0xdbff) {
+          this.#pendingHighSurrogate = item;
+          continue;
+        }
+
+        if (codeUnit >= 0xdc00 && codeUnit <= 0xdfff) {
+          finalChunk += '\uFFFD';
+          continue;
+        }
+
+        finalChunk += item;
+      }
+
+      if (finalChunk) {
+        controller.enqueue(this.#handle.encode(finalChunk));
+      }
+    },
+
+    flush: (controller) => {
+      // https://encoding.spec.whatwg.org/#encode-and-flush
+      if (this.#pendingHighSurrogate !== null) {
+        controller.enqueue(new Uint8Array([0xef, 0xbf, 0xbd]));
+      }
+    },
+  });
+
+  get encoding() {
+    return this.#handle.encoding;
+  }
+
+  get readable() {
+    return this.#transform.readable;
+  }
+
+  get writable() {
+    return this.#transform.writable;
+  }
+
+  get [Symbol.toStringTag]() {
+    return 'TextEncoderStream';
   }
 }

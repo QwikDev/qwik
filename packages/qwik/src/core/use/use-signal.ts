@@ -34,7 +34,7 @@ export const createSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STA
  *
  * @public
  */
-export const useConst = <T>(value: (() => T) | T): T => {
+export const useConstant = <T>(value: (() => T) | T): T => {
   const { val, set } = useSequentialScope<T>();
   if (val != null) {
     return val;
@@ -50,5 +50,5 @@ export const useConst = <T>(value: (() => T) | T): T => {
  * @public
  */
 export const useSignal: UseSignal = (initialState?: any) => {
-  return useConst(() => createSignal(initialState));
+  return useConstant(() => createSignal(initialState));
 };

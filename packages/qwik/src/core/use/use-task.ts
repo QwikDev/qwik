@@ -34,7 +34,7 @@ import {
 import { QObjectManagerSymbol } from '../state/constants';
 import { ComputedEvent, TaskEvent } from '../util/markers';
 import { getContext } from '../state/context';
-import { useConst } from './use-signal';
+import { useConstant } from './use-signal';
 
 export const TaskFlagsIsVisibleTask = 1 << 0;
 export const TaskFlagsIsTask = 1 << 1;
@@ -328,7 +328,7 @@ export const createComputedQrl = <T>(qrl: QRL<ComputedFn<T>>): Signal<Awaited<T>
 };
 /** @public */
 export const useComputedQrl = <T>(qrl: QRL<ComputedFn<T>>): Signal<Awaited<T>> => {
-  return useConst(() => createComputedQrl(qrl));
+  return useConstant(() => createComputedQrl(qrl));
 };
 
 /**

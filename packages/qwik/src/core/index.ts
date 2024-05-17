@@ -87,7 +87,7 @@ export { useContext, useContextProvider, createContextId } from './use/use-conte
 export { useServerData } from './use/use-env-data';
 export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
 export { useOn, useOnDocument, useOnWindow } from './use/use-on';
-export { useSignal, useConst, createSignal } from './use/use-signal';
+export { useSignal, useConstant, createSignal } from './use/use-signal';
 export { withLocale, getLocale } from './use/use-locale';
 
 export type { UseStylesScoped } from './use/use-styles';

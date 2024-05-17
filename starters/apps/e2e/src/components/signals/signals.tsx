@@ -3,7 +3,7 @@ import {
   type Signal,
   useSignal,
   createSignal,
-  useConst,
+  useConstant,
   useStore,
   useVisibleTask$,
   useTask$,
@@ -1244,7 +1244,7 @@ export const Issue4868Card = component$((props: { src: string }) => {
 });
 
 export const ManySignals = component$(() => {
-  const signals = useConst(() => {
+  const signals = useConstant(() => {
     const arr: (Signal<number> | string)[] = [];
     for (let i = 0; i < 10; i++) {
       arr.push(createSignal(0));
@@ -1252,8 +1252,8 @@ export const ManySignals = component$(() => {
     }
     return arr;
   });
-  const doubles = useConst(() =>
-    signals.map((s) =>
+  const doubles = useConstant(() =>
+    signals.map((s: Signal<number> | string) =>
       typeof s === "string" ? s : createComputed$(() => s.value * 2),
     ),
   );

@@ -78,6 +78,14 @@ function errorOnDuplicatesPkgDeps(
     (dep) => dependencies[dep],
   );
 
+  const qwikPkg = Object.keys(dependencies).filter((value) => /qwik/i.test(value));
+
+  const message = `Move qwik packages ${qwikPkg.join(", ")} to devDependencies`
+
+  if (qwikPkg.length > 0) {
+    throw new Error(message);
+  }
+
   // Format the error message with the duplicates list.
   // The `join` function is used to represent the elements of the 'duplicateDeps' array as a comma-separated string.
   const msg = `

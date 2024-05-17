@@ -221,16 +221,15 @@ export type ServerRequestMode = 'dev' | 'static' | 'server';
 export type ServerResponseHandler<T = any> = (status: number, headers: Headers, cookies: Cookie, resolve: (response: T) => void, requestEv: RequestEventInternal) => WritableStream<Uint8Array>;
 
 // @internal (undocumented)
-export class _TextEncoderStream_polyfill extends TransformStream<string, Uint8Array> {
-    constructor();
+export class _TextEncoderStream_polyfill {
     // (undocumented)
-    closed: boolean;
+    get [Symbol.toStringTag](): string;
     // (undocumented)
-    destroyed: boolean;
+    get encoding(): string;
     // (undocumented)
-    encoding: string;
+    get readable(): ReadableStream<Uint8Array>;
     // (undocumented)
-    ready: Promise<void>;
+    get writable(): WritableStream<string>;
 }
 
 // (No @packageDocumentation comment for this package)

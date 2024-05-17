@@ -316,7 +316,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   }
 
   ensureProjectionResolved(vNode: VirtualVNode): void {
-    // console.log('ensureProjectionResolved', String(vNode));
     if ((vNode[VNodeProps.flags] & VNodeFlags.Resolved) === 0) {
       vNode[VNodeProps.flags] |= VNodeFlags.Resolved;
       for (let i = vnode_getPropStartIndex(vNode); i < vNode.length; i = i + 2) {

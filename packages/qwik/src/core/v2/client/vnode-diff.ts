@@ -5,7 +5,7 @@ import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
 import { dangerouslySetInnerHTML, serializeAttribute } from '../../render/execute-component';
-import { Fragment, JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
+import { Fragment, JSXNodeImpl, isJSXNode, type Props } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
@@ -842,7 +842,7 @@ export const vnode_diff = (
       vSiblingsIdx = 0;
       let vNode = vCurrent;
       while (vNode) {
-        const vKey = getKey(vNode, container.$getObjectById$);
+        const vKey = getKey(vNode) || getComponentHash(vNode, container.$getObjectById$);
         if (vNodeWithKey === null && vKey == key) {
           vNodeWithKey = vNode as ElementVNode | VirtualVNode;
         } else {
@@ -906,41 +906,40 @@ export const vnode_diff = (
       // QComponent
       let shouldRender = false;
       const [componentQRL] = componentMeta;
-      const jsxKey = jsxValue.key || componentQRL.$hash$;
-      const vNodeKey = getKey(host, container.$getObjectById$);
-      if (jsxKey !== vNodeKey) {
+
+      const componentHash = componentQRL.$hash$;
+      const vNodeComponentHash = getComponentHash(host, container.$getObjectById$);
+
+      const lookupKey = jsxValue.key || componentHash;
+      const vNodeLookupKey = getKey(host) || vNodeComponentHash;
+
+      const lookupKeysAreEqual = lookupKey === vNodeLookupKey;
+      const hashesAreEqual = componentHash === vNodeComponentHash;
+
+      if (!lookupKeysAreEqual) {
         // See if we already have this component later on.
-        vNewNode = retrieveChildWithKey(jsxKey);
+        vNewNode = retrieveChildWithKey(lookupKey);
         if (vNewNode) {
           // We found the component, move it up.
           vnode_insertBefore(journal, vParent as VirtualVNode, vNewNode, vCurrent);
         } else {
           // We did not find the component, create it.
-          vnode_insertBefore(
-            journal,
-            vParent as VirtualVNode,
-            (vNewNode = vnode_newVirtual()),
-            vCurrent && getInsertBefore()
-          );
-          isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Component);
-          container.setHostProp(vNewNode, OnRenderProp, componentQRL);
-          container.setHostProp(vNewNode, ELEMENT_PROPS, jsxProps);
-          container.setHostProp(vNewNode, ELEMENT_KEY, jsxKey);
-
-          // rewrite slot props to the new node
-          if (host) {
-            for (let i = vnode_getPropStartIndex(host); i < host.length; i = i + 2) {
-              const prop = host[i] as string;
-              if (!prop.startsWith('q:')) {
-                const value = host[i + 1];
-                container.setHostProp(vNewNode, prop, value);
-              }
-            }
-          }
+          insertNewComponent(host, componentQRL, jsxProps);
         }
         host = vNewNode as VirtualVNode;
         shouldRender = true;
+      } else if (!hashesAreEqual) {
+        insertNewComponent(host, componentQRL, jsxProps);
+        if (vNewNode) {
+          if (host) {
+            // TODO(varixo): not sure why we need to copy flags here.
+            vNewNode[VNodeProps.flags] = host[VNodeProps.flags];
+          }
+          host = vNewNode as VirtualVNode;
+          shouldRender = true;
+        }
       }
+
       const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
       shouldRender = shouldRender || propsDiffer(jsxProps, vNodeProps);
       if (shouldRender) {
@@ -991,6 +990,34 @@ export const vnode_diff = (
     }
   }
 
+  function insertNewComponent(
+    host: VNode | null,
+    componentQRL: QRLInternal<OnRenderFn<any>>,
+    jsxProps: Props
+  ) {
+    vnode_insertBefore(
+      journal,
+      vParent as VirtualVNode,
+      (vNewNode = vnode_newVirtual()),
+      vCurrent && getInsertBefore()
+    );
+    isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Component);
+    container.setHostProp(vNewNode, OnRenderProp, componentQRL);
+    container.setHostProp(vNewNode, ELEMENT_PROPS, jsxProps);
+    container.setHostProp(vNewNode, ELEMENT_KEY, jsxValue.key);
+
+    // rewrite slot props to the new node
+    if (host) {
+      for (let i = vnode_getPropStartIndex(host); i < host.length; i = i + 2) {
+        const prop = host[i] as string;
+        if (!prop.startsWith('q:')) {
+          const value = host[i + 1];
+          container.setHostProp(vNewNode, prop, value);
+        }
+      }
+    }
+  }
+
   function expectText(text: string) {
     if (vCurrent !== null) {
       const type = vnode_getType(vCurrent);
@@ -1022,25 +1049,29 @@ export const isQStyleVNode = (vNode: VNode): boolean => {
 /**
  * Retrieve the key from the VNode.
  *
- * If the VNode does not have a key and it is a QComponent, we fallback to the QRL as the key.
- *
  * @param vNode - VNode to retrieve the key from
- * @param getObject - Function to retrieve the object by id for QComponent QRL
  * @returns Key
  */
-function getKey(vNode: VNode | null, getObject: (id: string) => any): string | null {
+function getKey(vNode: VNode | null): string | null {
   if (vNode == null) {
     return null;
   }
-  let vKey = vnode_getProp<string>(vNode, ELEMENT_KEY, null);
-  if (vKey == null) {
-    const qrl = vnode_getProp<QRLInternal>(vNode, OnRenderProp, getObject);
-    // If this is a QComponent and it does not have a key, we fallback to the QRL as the key
-    if (qrl) {
-      vKey = qrl.$hash$;
-    }
+  return vnode_getProp<string>(vNode, ELEMENT_KEY, null);
+}
+
+/**
+ * Retrieve the component hash from the VNode.
+ *
+ * @param vNode - VNode to retrieve the key from
+ * @param getObject - Function to retrieve the object by id for QComponent QRL
+ * @returns Hash
+ */
+function getComponentHash(vNode: VNode | null, getObject: (id: string) => any): string | null {
+  if (vNode == null) {
+    return null;
   }
-  return vKey;
+  const qrl = vnode_getProp<QRLInternal>(vNode, OnRenderProp, getObject);
+  return qrl ? qrl.$hash$ : null;
 }
 
 /**

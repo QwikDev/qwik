@@ -10,8 +10,14 @@ import {
   Fragment,
   Fragment as InlineComponent,
   Fragment as Projection,
-  Fragment as Signal,
+  Fragment as DerivedSignal,
   useVisibleTask$,
+  useContextProvider,
+  createContextId,
+  type Signal,
+  type JSXNode,
+  jsx,
+  useContext,
 } from '@builder.io/qwik';
 import { vnode_getNextSibling } from '../client/vnode';
 
@@ -706,7 +712,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <Signal>child-content</Signal>
+                  <DerivedSignal>child-content</DerivedSignal>
                 </Projection>
               </span>
             </Component>
@@ -721,7 +727,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <Signal>{''}</Signal>
+                  <DerivedSignal>{''}</DerivedSignal>
                 </Projection>
               </span>
             </Component>
@@ -740,7 +746,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <Signal>child-content</Signal>
+                  <DerivedSignal>child-content</DerivedSignal>
                 </Projection>
               </span>
             </Component>
@@ -801,7 +807,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <Signal>{''}</Signal>
+                  <DerivedSignal>{''}</DerivedSignal>
                 </Projection>
               </span>
             </Component>
@@ -824,7 +830,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <Signal>child-content</Signal>
+                  <DerivedSignal>child-content</DerivedSignal>
                 </Projection>
               </span>
             </Component>
@@ -842,7 +848,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <Signal>{''}</Signal>
+                  <DerivedSignal>{''}</DerivedSignal>
                 </Projection>
               </span>
             </Component>
@@ -857,7 +863,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <Signal>{'child-content'}</Signal>
+                  <DerivedSignal>{'child-content'}</DerivedSignal>
                 </Projection>
               </span>
             </Component>
@@ -887,7 +893,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <Signal>child-content</Signal>
+                  <DerivedSignal>child-content</DerivedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1302,7 +1308,7 @@ describe.each([
                 <Component>
                   <Projection>
                     <div q:slot="a">
-                      Alpha <Signal>{'123'}</Signal>
+                      Alpha <DerivedSignal>{'123'}</DerivedSignal>
                     </div>
                   </Projection>
                 </Component>
@@ -1328,7 +1334,7 @@ describe.each([
                 <Component>
                   <Projection>
                     <div q:slot="b">
-                      Bravo <Signal>{'124'}</Signal>
+                      Bravo <DerivedSignal>{'124'}</DerivedSignal>
                     </div>
                   </Projection>
                 </Component>
@@ -1341,6 +1347,161 @@ describe.each([
         <div>
           <div q:slot="b">Bravo 124</div>
         </div>
+      );
+    });
+
+    it('#3727', async () => {
+      const CTX = createContextId<Signal<any[]>>('content-Issue3727');
+      const Issue3727ParentB = component$(() => {
+        return (
+          <main id="parentB">
+            <Slot />
+          </main>
+        );
+      });
+
+      const Issue3727ChildB = component$(() => {
+        const copyList = useSignal<string[]>([]);
+        // using context here may cause error
+        useContext(CTX);
+        return (
+          <article>
+            <h1>Second</h1>
+            <button
+              id="add"
+              onClick$={async () => {
+                copyList.value = [...copyList.value, `item ${copyList.value.length}`];
+              }}
+            >
+              Add item
+            </button>
+            <ul>
+              {copyList.value.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+          </article>
+        );
+      });
+
+      const Issue3727ParentA = component$(() => {
+        return (
+          <main id="parentA">
+            <Slot />
+          </main>
+        );
+      });
+
+      const Issue3727ChildA = component$(() => {
+        const content = useContext(CTX);
+
+        return (
+          <article>
+            <h1>First</h1>
+            <button
+              id="navigate"
+              onClick$={() => {
+                content.value = [Issue3727ParentB, Issue3727ChildB];
+              }}
+            >
+              Navigate
+            </button>
+          </article>
+        );
+      });
+
+      const Issue3727 = component$(() => {
+        const content = useSignal<any[]>([Issue3727ParentA, Issue3727ChildA]);
+        useContextProvider(CTX, content);
+
+        const contentsLen = content.value.length;
+        let cmp: JSXNode | null = null;
+        for (let i = contentsLen - 1; i >= 0; i--) {
+          cmp = jsx(content.value[i], {
+            children: cmp,
+          });
+        }
+        return cmp;
+      });
+
+      const { vNode, document } = await render(<Issue3727 />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <main id="parentA">
+              <Projection>
+                <Component>
+                  <article>
+                    <h1>First</h1>
+                    <button id="navigate">Navigate</button>
+                  </article>
+                </Component>
+              </Projection>
+            </main>
+          </Component>
+        </Component>
+      );
+
+      await trigger(document.body, '#navigate', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <main id="parentB">
+              <Projection>
+                <Component>
+                  <article>
+                    <h1>Second</h1>
+                    <button id="add">Add item</button>
+                    <ul></ul>
+                  </article>
+                </Component>
+              </Projection>
+            </main>
+          </Component>
+        </Component>
+      );
+
+      await trigger(document.body, '#add', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <main id="parentB">
+              <Projection>
+                <Component>
+                  <article>
+                    <h1>Second</h1>
+                    <button id="add">Add item</button>
+                    <ul>
+                      <li>item 0</li>
+                    </ul>
+                  </article>
+                </Component>
+              </Projection>
+            </main>
+          </Component>
+        </Component>
+      );
+      await trigger(document.body, '#add', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <main id="parentB">
+              <Projection>
+                <Component>
+                  <article>
+                    <h1>Second</h1>
+                    <button id="add">Add item</button>
+                    <ul>
+                      <li>item 0</li>
+                      <li>item 1</li>
+                    </ul>
+                  </article>
+                </Component>
+              </Projection>
+            </main>
+          </Component>
+        </Component>
       );
     });
 

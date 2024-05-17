@@ -97,10 +97,7 @@ export const jsx = <T extends string | FunctionComponent<any>>(
   key?: string | number | null
 ): JSXNode<T> => {
   const processed = key == null ? null : String(key);
-  const children = untrack(() => {
-    const c = props.children;
-    return c;
-  });
+  const children = untrack(() => props.children);
   return _jsxQ(type, props, null, children, 0, processed);
 };
 

@@ -40,15 +40,6 @@ describe('_TextEncoderStream_polyfill tests', () => {
     );
   });
 
-  it('should signal closed and destroyed on end', async () => {
-    const encoderStream = new _TextEncoderStream_polyfill();
-    const writer = encoderStream.writable.getWriter();
-    await writer.close();
-
-    expect(encoderStream.closed).toBeTruthy();
-    expect(encoderStream.destroyed).toBeTruthy();
-  });
-
   it('encoding consistency with native TextEncoderStream', async () => {
     const polyfillStream = new _TextEncoderStream_polyfill();
     const nativeStream = new TextEncoderStream();

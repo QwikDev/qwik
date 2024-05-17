@@ -1,7 +1,9 @@
 // Polyfill for TextEncoderStream
 
 /**
- * TextEncoderStream polyfill based on Node.js' implementation https://github.com/nodejs/node/blob/3f3226c8e363a5f06c1e6a37abd59b6b8c1923f1/lib/internal/webstreams/encoding.js#L38-L119 (MIT License)
+ * TextEncoderStream polyfill based on Node.js' implementation
+ * https://github.com/nodejs/node/blob/3f3226c8e363a5f06c1e6a37abd59b6b8c1923f1/lib/internal/webstreams/encoding.js#L38-L119
+ * (MIT License)
  */
 /** @internal */
 export class _TextEncoderStream_polyfill {

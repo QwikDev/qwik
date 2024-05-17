@@ -10183,14 +10183,14 @@ qrl
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-## useConst
+## useConstant
 
 Stores a value which is retained for the lifetime of the component.
 
 If the value is a function, the function is invoked to calculate the actual value.
 
 ```typescript
-useConst: <T>(value: (() => T) | T) => T;
+useConstant: <T>(value: (() => T) | T) => T;
 ```
 
 <table><thead><tr><th>

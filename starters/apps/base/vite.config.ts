@@ -80,7 +80,7 @@ function errorOnDuplicatesPkgDeps(
   );
 
   // include any known qwik packages
-  const qwikPkg = Object.keys(dependencies).filter((value) => /qwik|modular-forms/i.test(value));
+  const qwikPkg = Object.keys(dependencies).filter((value) => /qwik/i.test(value));
 
   // any errors for missing "qwik-city-plan" 
   msg = `Move qwik packages ${qwikPkg.join(", ")} to devDependencies`;

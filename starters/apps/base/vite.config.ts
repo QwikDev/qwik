@@ -72,7 +72,7 @@ function errorOnDuplicatesPkgDeps(
   devDependencies: PkgDep,
   dependencies: PkgDep,
 ) {
-  let msg = '';
+  let msg = "";
   // Create an array 'duplicateDeps' by filtering devDependencies.
   // If a dependency also exists in dependencies, it is considered a duplicate.
   const duplicateDeps = Object.keys(devDependencies).filter(
@@ -80,9 +80,11 @@ function errorOnDuplicatesPkgDeps(
   );
 
   // include any known qwik packages
-  const qwikPkg = Object.keys(dependencies).filter((value) => /qwik/i.test(value));
+  const qwikPkg = Object.keys(dependencies).filter((value) =>
+    /qwik/i.test(value),
+  );
 
-  // any errors for missing "qwik-city-plan" 
+  // any errors for missing "qwik-city-plan"
   msg = `Move qwik packages ${qwikPkg.join(", ")} to devDependencies`;
 
   if (qwikPkg.length > 0) {

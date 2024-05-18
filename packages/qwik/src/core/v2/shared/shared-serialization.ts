@@ -5,7 +5,13 @@ import { componentQrl, isQwikComponent } from '../../component/component.public'
 import type { ObjToProxyMap } from '../../container/container';
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertTrue } from '../../error/assert';
-import { createQRL, isQrl, isSyncQrl, type QRLInternal } from '../../qrl/qrl-class';
+import {
+  createQRL,
+  isQrl,
+  isSyncQrl,
+  type QRLInternal,
+  type SyncQRLInternal,
+} from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
 import {
   Fragment,
@@ -1112,40 +1118,50 @@ export function subscriptionManagerFromString(
   }
 }
 
-export function qrlToString(serializationContext: SerializationContext, value: QRLInternal) {
+export function qrlToString(
+  serializationContext: SerializationContext,
+  value: QRLInternal | SyncQRLInternal
+) {
   let symbol = value.$symbol$;
   let chunk = value.$chunk$;
-  if (!chunk) {
-    chunk = serializationContext.$symbolToChunkResolver$(value.$hash$);
-  }
-  if (isDev) {
-    let backChannel: Map<string, Function> = (globalThis as any)[QRL_RUNTIME_CHUNK];
-    if (!backChannel) {
-      backChannel = (globalThis as any)[QRL_RUNTIME_CHUNK] = new Map();
-    }
-    backChannel.set(value.$symbol$, (value as any)._devOnlySymbolRef);
+  const isSync = isSyncQrl(value);
+  if (!isSync) {
+    // If we have a symbol we need to resolve the chunk.
     if (!chunk) {
-      chunk = QRL_RUNTIME_CHUNK;
+      chunk = serializationContext.$symbolToChunkResolver$(value.$hash$);
     }
-  }
-  if (!chunk) {
-    throwErrorAndStop('Missing chunk for: ' + value.$symbol$);
-  }
-
-  if (isSyncQrl(value)) {
+    // in Dev mode we need to keep track of the symbols
+    if (isDev) {
+      let backChannel: Map<string, Function> = (globalThis as any)[QRL_RUNTIME_CHUNK];
+      if (!backChannel) {
+        backChannel = (globalThis as any)[QRL_RUNTIME_CHUNK] = new Map();
+      }
+      backChannel.set(value.$symbol$, (value as any)._devOnlySymbolRef);
+      if (!chunk) {
+        chunk = QRL_RUNTIME_CHUNK;
+      }
+    }
+    if (!chunk) {
+      throwErrorAndStop('Missing chunk for: ' + value.$symbol$);
+    }
+  } else {
     const fn = value.resolved as Function;
     chunk = '';
     symbol = String(serializationContext.$addSyncFn$(undefined, 0, fn));
   }
 
-  const qrlString =
-    chunk +
-    '#' +
-    symbol +
-    (value.$captureRef$ && value.$captureRef$.length
-      ? `[${value.$captureRef$.map(serializationContext.$addRoot$).join(' ')}]`
-      : '');
-  return qrlString;
+  let qrlStringInline = `${chunk}#${symbol}`;
+  if (Array.isArray(value.$captureRef$) && value.$captureRef$.length > 0) {
+    let serializedReferences = '';
+    // hot-path optimization
+    for (let i = 0; i < value.$captureRef$.length; i++) {
+      if (i > 0) serializedReferences += ' ';
+      serializedReferences += serializationContext.$addRoot$(value.$captureRef$[i]);
+    }
+    qrlStringInline += `[${serializedReferences}]`;
+  }
+
+  return qrlStringInline;
 }
 
 /**

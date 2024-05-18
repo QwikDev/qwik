@@ -26,8 +26,14 @@ export const isQrl = <T = unknown>(value: unknown): value is QRLInternal<T> => {
 // Make sure this value is same as value in `platform.ts`
 export const SYNC_QRL = '<sync>';
 
+interface SyncQRLSymbol {
+  $symbol$: typeof SYNC_QRL;
+}
+
+export type SyncQRLInternal = QRLInternal & SyncQRLSymbol;
+
 /** Sync QRL is a function which is serialized into `<script q:func="qwik/json">` tag. */
-export const isSyncQrl = (value: any): value is QRLInternal => {
+export const isSyncQrl = (value: any): value is SyncQRLInternal => {
   return isQrl(value) && value.$symbol$ == SYNC_QRL;
 };
 

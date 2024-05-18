@@ -20,6 +20,7 @@ import {
   useContext,
 } from '@builder.io/qwik';
 import { vnode_getNextSibling } from '../client/vnode';
+import { SVG_NS } from '../../util/markers';
 
 const debug = false;
 
@@ -1503,6 +1504,44 @@ describe.each([
           </Component>
         </Component>
       );
+    });
+
+    it('#4215', async () => {
+      const QwikSvgWithSlot = component$(() => {
+        return (
+          <svg
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ width: '24px', height: '24px' }}
+          >
+            <Slot />
+          </svg>
+        );
+      });
+      const Parent = component$(() => {
+        const show = useSignal<boolean>(true);
+
+        return (
+          <>
+            <button
+              onClick$={() => {
+                show.value = !show.value;
+              }}
+            ></button>
+            <QwikSvgWithSlot>
+              {show.value && (
+                <path d="M14.71 6.71c-.39-.39-1.02-.39-1.41 0L8.71 11.3c-.39.39-.39 1.02 0 1.41l4.59 4.59c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L10.83 12l3.88-3.88c.39-.39.38-1.03 0-1.41z" />
+              )}
+            </QwikSvgWithSlot>
+          </>
+        );
+      });
+      const { container, document } = await render(<Parent />, { debug });
+      expect(document.querySelector('path')?.namespaceURI).toEqual(SVG_NS);
+
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+      expect(document.querySelector('path')?.namespaceURI).toEqual(SVG_NS);
     });
 
     it('#4283', async () => {

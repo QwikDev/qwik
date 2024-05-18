@@ -40,6 +40,8 @@ export const QContainerSelector =
   QContainerValue.TEXT +
   '])';
 
+export const SVG_NS = 'http://www.w3.org/2000/svg';
+
 export const ResourceEvent = 'qResource';
 export const ComputedEvent = 'qComputed';
 export const RenderEvent = 'qRender';

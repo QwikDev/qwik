@@ -85,6 +85,7 @@ function errorOnDuplicatesPkgDeps(
   );
 
   // any errors for missing "qwik-city-plan"
+  // [PLUGIN_ERROR]: Invalid module "@qwik-city-plan" is not a valid package
   msg = `Move qwik packages ${qwikPkg.join(", ")} to devDependencies`;
 
   if (qwikPkg.length > 0) {

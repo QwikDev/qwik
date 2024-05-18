@@ -538,6 +538,13 @@ export const vnode_diff = (
       while (vCurrent) {
         const toRemove = vCurrent;
         advanceToNextSibling();
+        if (
+          // we need to check that to avoid an infinity loop,
+          // where we are trying to remove the node and insert it in the q:template at the end
+          vnode_isQTemplateVNode(toRemove[VNodeProps.parent])
+        ) {
+          continue;
+        }
         cleanup(container, toRemove);
         if (
           toRemove[VNodeProps.flags] & VNodeFlags.Virtual &&
@@ -550,6 +557,12 @@ export const vnode_diff = (
         }
       }
     }
+  }
+
+  function vnode_isQTemplateVNode(vNode: VNode | null) {
+    return (
+      vNode && vnode_isElementVNode(vNode) && vNode[ElementVNodeProps.elementName] === QTemplate
+    );
   }
 
   function expectNoMoreTextNodes() {

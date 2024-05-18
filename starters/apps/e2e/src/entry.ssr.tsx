@@ -35,7 +35,7 @@ import { TwoListeners } from "./components/two-listeners/twolisteners";
 import { UseId } from "./components/useid/useid";
 import { Watch } from "./components/watch/watch";
 import { Root } from "./root";
-import { SyncQRL } from "./components/resuming/sync-qrl";
+import { SyncQRL } from "./components/sync-qrl/sync-qrl";
 import { RenderExceptions, UseTaskExceptions } from "./components/exceptions";
 
 /**

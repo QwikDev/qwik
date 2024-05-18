@@ -5,7 +5,7 @@ import { componentQrl, isQwikComponent } from '../../component/component.public'
 import type { ObjToProxyMap } from '../../container/container';
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertTrue } from '../../error/assert';
-import { createQRL, isQrl, type QRLInternal } from '../../qrl/qrl-class';
+import { createQRL, isQrl, isSyncQrl, type QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
 import {
   Fragment,
@@ -1113,6 +1113,7 @@ export function subscriptionManagerFromString(
 }
 
 export function qrlToString(serializationContext: SerializationContext, value: QRLInternal) {
+  let symbol = value.$symbol$;
   let chunk = value.$chunk$;
   if (!chunk) {
     chunk = serializationContext.$symbolToChunkResolver$(value.$hash$);
@@ -1130,10 +1131,17 @@ export function qrlToString(serializationContext: SerializationContext, value: Q
   if (!chunk) {
     throwErrorAndStop('Missing chunk for: ' + value.$symbol$);
   }
+
+  if (isSyncQrl(value)) {
+    const fn = value.resolved as Function;
+    chunk = '';
+    symbol = String(serializationContext.$addSyncFn$(undefined, 0, fn));
+  }
+
   const qrlString =
     chunk +
     '#' +
-    value.$symbol$ +
+    symbol +
     (value.$captureRef$ && value.$captureRef$.length
       ? `[${value.$captureRef$.map(serializationContext.$addRoot$).join(' ')}]`
       : '');

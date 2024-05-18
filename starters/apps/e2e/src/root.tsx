@@ -98,6 +98,9 @@ export const Root = component$(() => {
       <p>
         <a href="/e2e/build-variables">Build Variables</a>
       </p>
+      <p>
+        <a href="/e2e/sync-qrl">Sync qrl</a>
+      </p>
     </section>
   );
 });

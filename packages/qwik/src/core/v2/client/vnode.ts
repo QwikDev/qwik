@@ -991,6 +991,8 @@ export const vnode_insertBefore = (
   const parentNode = vnode_getDomParent(parent);
   if (parentNode) {
     const children = vnode_getDOMChildNodes(journal, newChild);
+    // TODO: Ensure that the child Namespace matches the parent, if not convert it.
+    // Make sure you copy attributes and convert recursively, then update the VNode
     children.length &&
       journal.push(
         VNodeJournalOpCode.Insert,

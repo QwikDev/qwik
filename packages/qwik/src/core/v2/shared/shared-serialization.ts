@@ -1155,7 +1155,9 @@ export function qrlToString(
     let serializedReferences = '';
     // hot-path optimization
     for (let i = 0; i < value.$captureRef$.length; i++) {
-      if (i > 0) serializedReferences += ' ';
+      if (i > 0) {
+        serializedReferences += ' ';
+      }
       serializedReferences += serializationContext.$addRoot$(value.$captureRef$[i]);
     }
     qrlStringInline += `[${serializedReferences}]`;

@@ -283,7 +283,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       this.rendering = true;
       this.renderDone = getPlatform().nextTick(() => {
         // console.log('>>>> scheduleRender nextTick', !!this.rendering);
-        this.$scheduler$(ChoreType.UNCLAIMED_PROJECTIONS);
         return maybeThen(this.$scheduler$(ChoreType.WAIT_FOR_ALL), () => {
           // console.log('>>>> scheduleRender done', !!this.rendering);
           this.rendering = false;
@@ -310,11 +309,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
 
   addVNodeProjection(componentVNodeWithProjection: VirtualVNode): void {
     this.vNodesWithProjections.push(componentVNodeWithProjection);
-  }
-
-  emitUnclaimedProjection(): ValueOrPromise<void> {
-    // in CSR there is no need to emit unprojected content into the DOM, since it is sufficient
-    // to keep a reference to it for future need.
   }
 
   $getObjectById$ = (id: number | string): unknown => {

@@ -24,7 +24,6 @@ import {
   QSlotParent,
   QStyle,
   QTemplate,
-  QUnclaimedProjections,
 } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { type ValueOrPromise } from '../../util/types';
@@ -427,11 +426,6 @@ export const vnode_diff = (
       vnode_setProp(vNewNode as VirtualVNode, QSlot, slotName);
       vnode_setProp(vNewNode as VirtualVNode, QSlotParent, vParent);
       vnode_setProp(vParent as VirtualVNode, slotName, vNewNode);
-
-      const componentProjections =
-        vnode_getProp<(string | VNode)[]>(vParent, QUnclaimedProjections, null) || [];
-      componentProjections.push(slotName);
-      vnode_setProp(vParent as VirtualVNode, QUnclaimedProjections, componentProjections);
     }
   }
 
@@ -440,16 +434,6 @@ export const vnode_diff = (
 
     const slotNameKey = getSlotNameKey(vHost);
     // console.log('expectSlot', JSON.stringify(slotNameKey));
-
-    if (vHost) {
-      const componentProjections =
-        vnode_getProp<(string | JSXChildren | number)[]>(vHost, QUnclaimedProjections, null) || [];
-      const slotIndex = componentProjections.indexOf(slotNameKey);
-      if (slotIndex >= 0) {
-        componentProjections.splice(slotIndex, 1);
-        vnode_setProp(vHost, QUnclaimedProjections, componentProjections);
-      }
-    }
 
     const vProjectedNode = vHost
       ? vnode_getProp<VirtualVNode | null>(
@@ -538,23 +522,10 @@ export const vnode_diff = (
       while (vCurrent) {
         const toRemove = vCurrent;
         advanceToNextSibling();
-        if (
-          // we need to check that to avoid an infinity loop,
-          // where we are trying to remove the node and insert it in the q:template at the end
-          vnode_isQTemplateVNode(toRemove[VNodeProps.parent])
-        ) {
-          continue;
-        }
         cleanup(container, toRemove);
         vnode_remove(journal, vParent as ElementVNode | VirtualVNode, toRemove, true);
       }
     }
-  }
-
-  function vnode_isQTemplateVNode(vNode: VNode | null) {
-    return (
-      vNode && vnode_isElementVNode(vNode) && vNode[ElementVNodeProps.elementName] === QTemplate
-    );
   }
 
   function expectNoMoreTextNodes() {

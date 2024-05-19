@@ -21,7 +21,6 @@ export interface ClientContainer extends Container2 {
   parseQRL<T = unknown>(qrl: string): QRL<T>;
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
   addVNodeProjection(componentVNodeWithProjection: VirtualVNode): void;
-  emitUnclaimedProjection(): void;
 }
 
 /** @internal */
@@ -97,9 +96,9 @@ export const enum VNodeFlags {
 }
 
 export const enum VNodeFlagsIndex {
-  mask /* ************* */ = ~0b11111,
-  negated_mask /* ****** */ = 0b11111,
-  shift /* ************* */ = 5,
+  mask /* ************* */ = ~0b11_11111,
+  negated_mask /* ****** */ = 0b11_11111,
+  shift /* ************* */ = 7,
 }
 
 export const enum VNodeProps {

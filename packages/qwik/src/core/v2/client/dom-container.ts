@@ -1,7 +1,7 @@
 /** @file Public APIs for the SSR */
 
 import type { ObjToProxyMap } from '../../container/container';
-import { assertDefined, assertTrue } from '../../error/assert';
+import { assertTrue } from '../../error/assert';
 import { getPlatform } from '../../platform/platform';
 import type { QRL } from '../../qrl/qrl.public';
 import { ERROR_CONTEXT, isRecoverable } from '../../render/error-handling';
@@ -22,8 +22,6 @@ import {
   QSlotParent,
   QStyle,
   QStyleSelector,
-  QTemplate,
-  QUnclaimedProjections,
 } from '../../util/markers';
 import { maybeThen } from '../../util/promises';
 import { qDev } from '../../util/qdev';
@@ -45,11 +43,12 @@ import {
   type ElementVNode,
   type ClientContainer as IClientContainer,
   type QDocument,
-  type VirtualVNode,
   type VNode,
+  type VirtualVNode,
 } from './types';
 import {
   VNodeJournalOpCode,
+  isQContainerElementWithValue,
   mapArray_get,
   mapArray_set,
   vnode_applyJournal,
@@ -65,8 +64,6 @@ import {
   vnode_newUnMaterializedElement,
   vnode_setProp,
   type VNodeJournal,
-  isQContainerElementWithValue,
-  vnode_getVNodeForElement,
 } from './vnode';
 import { vnode_diff } from './vnode-diff';
 
@@ -125,7 +122,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   private $styleIds$: Set<string> | null = null;
   private $vnodeLocate$: (id: string) => VNode = (id) => vnode_locate(this.rootVNode, id);
   private vNodesWithProjections: Array<VirtualVNode> = [];
-  private _qTemplate: ElementVNode | null = null;
 
   constructor(element: ContainerElement) {
     super(
@@ -169,24 +165,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       this.stateData = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
     }
     this.$qFuncs$ = element.qFuncs || EMPTY_ARRAY;
-  }
-
-  get qTemplate(): ElementVNode {
-    if (this._qTemplate === null) {
-      let qTemplateElement: HTMLElement | null = this.document.body.querySelector('q\\:template');
-
-      if (!qTemplateElement) {
-        qTemplateElement = this.document.createElement(QTemplate);
-        qTemplateElement.style.display = 'none';
-        this.$journal$.push(VNodeJournalOpCode.Insert, this.document.body, null, qTemplateElement);
-        this._qTemplate = vnode_newElement(qTemplateElement, QTemplate);
-      } else {
-        this._qTemplate = vnode_getVNodeForElement(this.rootVNode, qTemplateElement);
-        assertDefined(this._qTemplate, 'Missing q:template element.');
-      }
-    }
-
-    return this._qTemplate;
   }
 
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void {
@@ -335,22 +313,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   }
 
   emitUnclaimedProjection(): ValueOrPromise<void> {
-    const unclaimedProjections = this.vNodesWithProjections
-      // get all the unclaimed projections from the components
-      .flatMap((component) =>
-        vnode_getProp<string[]>(component, QUnclaimedProjections, null)
-          // get all the projection vnode from the component by name
-          ?.map((slotName) => vnode_getProp(component, slotName, null))
-      );
-    if (unclaimedProjections.length) {
-      for (let i = 0; i < unclaimedProjections.length; i++) {
-        const unclaimedProjection = unclaimedProjections[i] as VNode | null;
-        if (unclaimedProjection) {
-          vnode_insertBefore(this.$journal$, this.qTemplate, unclaimedProjection, null);
-        }
-      }
-      this.vNodesWithProjections = [];
-    }
+    // in CSR there is no need to emit unprojected content into the DOM, since it is sufficient
+    // to keep a reference to it for future need.
   }
 
   $getObjectById$ = (id: number | string): unknown => {

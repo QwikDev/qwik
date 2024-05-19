@@ -377,9 +377,6 @@ export const vnode_diff = (
   /////////////////////////////////////////////////////////////////////////////
 
   function descendContentToProject(children: JSXChildren) {
-    if (children == null) {
-      return;
-    }
     if (!Array.isArray(children)) {
       children = [children];
     }
@@ -421,7 +418,10 @@ export const vnode_diff = (
     );
     if (vCurrent == null) {
       vNewNode = vnode_newVirtual();
-      vNewNode[VNodeProps.parent] = vParent;
+      // you may be tempted to add the projection into the current parent, but
+      // that is wrong. We don't yet know if the projection will be projected, so
+      // we should leave it unattached.
+      // vNewNode[VNodeProps.parent] = vParent;
       isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Projection);
       isDev && vnode_setProp(vNewNode, 'q:code', 'expectProjection');
       vnode_setProp(vNewNode as VirtualVNode, QSlot, slotName);
@@ -546,15 +546,7 @@ export const vnode_diff = (
           continue;
         }
         cleanup(container, toRemove);
-        if (
-          toRemove[VNodeProps.flags] & VNodeFlags.Virtual &&
-          vnode_getProp(toRemove as VirtualVNode, QSlot, null) !== null
-        ) {
-          // move projected node to the q:template on remove
-          vnode_insertBefore(journal, container.qTemplate, toRemove, null);
-        } else {
-          vnode_remove(journal, vParent as ElementVNode | VirtualVNode, toRemove, true);
-        }
+        vnode_remove(journal, vParent as ElementVNode | VirtualVNode, toRemove, true);
       }
     }
   }
@@ -962,7 +954,7 @@ export const vnode_diff = (
           container.addVNodeProjection(host);
         }
       }
-      descendContentToProject(jsxValue.children);
+      jsxValue.children != null && descendContentToProject(jsxValue.children);
     } else {
       // Inline Component
       if (!host) {

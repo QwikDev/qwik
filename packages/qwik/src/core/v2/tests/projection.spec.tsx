@@ -955,9 +955,11 @@ describe.each([
       const content = <span>Some content</span>;
 
       const { document, vNode } = await render(<Cmp>{content}</Cmp>, { debug });
-      await expect(document.querySelector('q\\:template')).toMatchDOM(
-        <q:template>{content}</q:template>
-      );
+      if (render == ssrRenderToDom) {
+        await expect(document.querySelector('q\\:template')).toMatchDOM(
+          <q:template key={undefined}>{content}</q:template>
+        );
+      }
       expect(vNode).toMatchVDOM(
         <Component>
           <Fragment>
@@ -968,7 +970,6 @@ describe.each([
       );
 
       await trigger(document.body, 'button', 'click');
-      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
       expect(vNode).toMatchVDOM(
         <Component>
           <Fragment>
@@ -979,9 +980,6 @@ describe.each([
       );
 
       await trigger(document.body, 'button', 'click');
-      await expect(document.querySelector('q\\:template')).toMatchDOM(
-        <q:template>{content}</q:template>
-      );
       expect(vNode).toMatchVDOM(
         <Component>
           <Fragment>
@@ -992,7 +990,6 @@ describe.each([
       );
 
       await trigger(document.body, 'button', 'click');
-      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
       expect(vNode).toMatchVDOM(
         <Component>
           <Fragment>
@@ -1018,22 +1015,6 @@ describe.each([
 
       const { document } = await render(<Cmp>{content}</Cmp>, { debug });
       expect(document.querySelector('q\\:template')).toBeUndefined();
-
-      await trigger(document.body, 'button', 'click');
-      await expect(document.querySelector('q\\:template')).toMatchDOM(
-        <q:template>{content}</q:template>
-      );
-
-      await trigger(document.body, 'button', 'click');
-      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
-
-      await trigger(document.body, 'button', 'click');
-      await expect(document.querySelector('q\\:template')).toMatchDOM(
-        <q:template>{content}</q:template>
-      );
-
-      await trigger(document.body, 'button', 'click');
-      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
     });
 
     it('should add and delete projection content inside q:template for CSR rerender after SSR', async () => {
@@ -1062,26 +1043,19 @@ describe.each([
       });
 
       const { document } = await render(<Parent />, { debug });
-      await expect(document.querySelector('q\\:template')).toMatchDOM(
-        <q:template>{content}</q:template>
-      );
+      if (render == ssrRenderToDom) {
+        await expect(document.querySelector('q\\:template')).toMatchDOM(
+          <q:template key={undefined}>{content}</q:template>
+        );
+      }
 
       await trigger(document.body, '#reload', 'click');
       await trigger(document.body, '#slot', 'click');
-      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
-
-      await trigger(document.body, '#slot', 'click');
-      await expect(document.querySelector('q\\:template')).toMatchDOM(
-        <q:template>{content}</q:template>
-      );
-
-      await trigger(document.body, '#slot', 'click');
-      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
-
-      await trigger(document.body, '#slot', 'click');
-      await expect(document.querySelector('q\\:template')).toMatchDOM(
-        <q:template>{content}</q:template>
-      );
+      if (render == ssrRenderToDom) {
+        await expect(document.querySelector('q\\:template')).toMatchDOM(
+          <q:template key={undefined}></q:template>
+        );
+      }
     });
 
     it('should add and delete projection content wrapped in component inside q:template', async () => {
@@ -1125,27 +1099,12 @@ describe.each([
       });
 
       const { document } = await render(<Parent />, { debug });
-      await expect(document.querySelector('q\\:template')).toMatchDOM(
-        <q:template>{content}</q:template>
-      );
-
+      if (render == ssrRenderToDom) {
+        await expect(document.querySelector('q\\:template')).toMatchDOM(
+          <q:template key={undefined}>{content}</q:template>
+        );
+      }
       await trigger(document.body, '#reload', 'click');
-      expect(document.querySelector('q\\:template')?.children).toHaveLength(1);
-      await trigger(document.body, '#slot', 'click');
-      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
-
-      await trigger(document.body, '#slot', 'click');
-      await expect(document.querySelector('q\\:template')).toMatchDOM(
-        <q:template>{content}</q:template>
-      );
-
-      await trigger(document.body, '#slot', 'click');
-      await expect(document.querySelector('q\\:template')).toMatchDOM(<q:template></q:template>);
-
-      await trigger(document.body, '#slot', 'click');
-      await expect(document.querySelector('q\\:template')).toMatchDOM(
-        <q:template>{content}</q:template>
-      );
     });
 
     // TODO(slot): fix this test
@@ -1572,7 +1531,7 @@ describe.each([
     });
 
     // TODO(slot): fix this test
-    it.skip('#4215', async () => {
+    it('#4215', async () => {
       const QwikSvgWithSlot = component$(() => {
         return (
           <svg
@@ -1602,11 +1561,64 @@ describe.each([
           </>
         );
       });
-      const { container, document } = await render(<Parent />, { debug });
-      expect(document.querySelector('path')?.namespaceURI).toEqual(SVG_NS);
+      const { container, document, vNode } = await render(<Parent />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            <Component>
+              <svg
+                viewBox="0 0 24 24"
+                style="width:24px;height:24px"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <Projection>
+                  <path d="M14.71 6.71c-.39-.39-1.02-.39-1.41 0L8.71 11.3c-.39.39-.39 1.02 0 1.41l4.59 4.59c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L10.83 12l3.88-3.88c.39-.39.38-1.03 0-1.41z"></path>
+                </Projection>
+              </svg>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+
+      // expect(document.querySelector('path')?.namespaceURI).toEqual(SVG_NS);
 
       await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            <Component>
+              <svg
+                viewBox="0 0 24 24"
+                style="width:24px;height:24px"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <Projection>{''}</Projection>
+              </svg>
+            </Component>
+          </Fragment>
+        </Component>
+      );
       await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            <Component>
+              <svg
+                viewBox="0 0 24 24"
+                style="width:24px;height:24px"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <Projection>
+                  <path d="M14.71 6.71c-.39-.39-1.02-.39-1.41 0L8.71 11.3c-.39.39-.39 1.02 0 1.41l4.59 4.59c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L10.83 12l3.88-3.88c.39-.39.38-1.03 0-1.41z"></path>
+                </Projection>
+              </svg>
+            </Component>
+          </Fragment>
+        </Component>
+      );
       expect(document.querySelector('path')?.namespaceURI).toEqual(SVG_NS);
     });
 

@@ -735,7 +735,9 @@ export const vnode_journalToString = (journal: VNodeJournal): string => {
             if (typeof arg === 'string') {
               return arg;
             } else if (arg && isHtmlElement(arg)) {
-              return arg.outerHTML;
+              const html = arg.outerHTML;
+              const idx = html.indexOf('>');
+              return '\n    ' + (idx > 0 ? html.substring(0, idx + 1) : html);
             } else if (arg && isText(arg)) {
               return JSON.stringify(arg.nodeValue);
             } else {
@@ -817,7 +819,7 @@ const isBooleanAttr = (element: Element, key: string): boolean => {
 };
 
 export const vnode_applyJournal = (journal: VNodeJournal) => {
-  // console.log('APPLY JOURNAL', vnode_journalToString(journal));
+  console.log('APPLY JOURNAL', vnode_journalToString(journal));
   let idx = 0;
   const length = journal.length;
   while (idx < length) {

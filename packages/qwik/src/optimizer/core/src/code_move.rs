@@ -272,6 +272,7 @@ fn new_entry_module(
 	};
 	let mut need_handle_watch = false;
 	for hook in hooks {
+		// TODO fix the path from the entry to the hook in case of mismatched location
 		let mut src = ["./", &hook.canonical_filename].concat();
 		if explicit_extensions {
 			src = src + "." + hook.extension.as_ref();

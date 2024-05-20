@@ -15,6 +15,7 @@ lazy_static! {
 	pub static ref _INLINED_QRL_DEV: JsWord = JsWord::from("inlinedQrlDEV");
 	pub static ref _NOOP_QRL: JsWord = JsWord::from("_noopQrl");
 	pub static ref _REST_PROPS: JsWord = JsWord::from("_restProps");
+	// TODO rename hooks to qpackets or jspackets
 	pub static ref QHOOK: JsWord = JsWord::from("$");
 	pub static ref Q_SYNC: JsWord = JsWord::from("sync$");
 	pub static ref QWIK_INTERNAL: JsWord = JsWord::from("qwik");

@@ -163,7 +163,7 @@ impl EntryPolicy for SmartStrategy {
 		&self,
 		hash: &str,
 		_path: &PathData,
-		context: &[String],
+		_context: &[String],
 		hook_data: &HookData,
 	) -> Option<JsWord> {
 		if hook_data.scoped_idents.is_empty()
@@ -180,18 +180,7 @@ impl EntryPolicy for SmartStrategy {
 				return Some(entry.clone());
 			}
 		}
-		context.first().map_or_else(
-			|| Some(ENTRY_HOOKS.clone()),
-			|root| {
-				Some(JsWord::from(
-					_path
-						.rel_dir
-						.join(["entry_", root].concat())
-						.to_slash_lossy()
-						.as_ref(),
-				))
-			},
-		)
+		None
 	}
 }
 

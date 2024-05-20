@@ -243,6 +243,7 @@ export function getValidManifest(manifest: QwikManifest | undefined | null) {
   return undefined;
 }
 
+const hookRegex = /_[a-zA-Z0-9]{11}$/;
 export function generateManifestFromBundles(
   path: Path,
   hooks: HookAnalysis[],
@@ -264,55 +265,12 @@ export function generateManifestFromBundles(
     },
   };
 
-  for (const hook of hooks) {
-    const buildFilePath = `${hook.canonicalFilename}.${hook.extension}`;
-
-    const outputBundle = outputBundles.find((b) => {
-      return Object.keys(b.modules).find((f) => f.endsWith(buildFilePath));
-    });
-
-    if (outputBundle) {
-      const symbolName = hook.name;
-      const bundleFileName = path.basename(outputBundle.fileName);
-
-      manifest.mapping[symbolName] = bundleFileName;
-
-      manifest.symbols[symbolName] = {
-        origin: hook.origin,
-        displayName: hook.displayName,
-        canonicalFilename: hook.canonicalFilename,
-        hash: hook.hash,
-        ctxKind: hook.ctxKind,
-        ctxName: hook.ctxName,
-        captures: hook.captures,
-        parent: hook.parent,
-        loc: hook.loc,
-      };
-
-      addBundleToManifest(path, manifest, outputBundle, bundleFileName);
-    }
-  }
-
   for (const outputBundle of outputBundles) {
     const bundleFileName = path.basename(outputBundle.fileName);
-    addBundleToManifest(path, manifest, outputBundle, bundleFileName);
-  }
-
-  return updateSortAndPriorities(manifest);
-}
-
-function addBundleToManifest(
-  path: Path,
-  manifest: QwikManifest,
-  outputBundle: GeneratedOutputBundle,
-  bundleFileName: string
-) {
-  if (!manifest.bundles[bundleFileName]) {
     const buildDirName = path.dirname(outputBundle.fileName);
     const bundle: QwikBundle = {
       size: outputBundle.size,
     };
-
     const bundleImports = outputBundle.imports
       .filter((i) => path.dirname(i) === buildDirName)
       .map((i) => path.relative(buildDirName, i));
@@ -331,7 +289,34 @@ function addBundleToManifest(
     if (modulePaths.length > 0) {
       bundle.origins = modulePaths;
     }
+    const symbols = outputBundle.exports.filter((e) => hookRegex.test(e));
+    if (symbols.length > 0) {
+      bundle.symbols = symbols;
+    }
 
     manifest.bundles[bundleFileName] = bundle;
+    Object.assign(manifest.mapping, ...symbols.map((s) => ({ [s]: bundleFileName })));
   }
+
+  for (const hook of hooks) {
+    const symbol = hook.name;
+    const bundle = manifest.mapping[symbol];
+    if (!bundle) {
+      console.error(`Unable to find bundle for hook: ${hook.hash}`, manifest);
+      throw new Error(`Unable to find bundle for hook: ${hook.hash}`);
+    }
+    manifest.symbols[symbol] = {
+      origin: hook.origin,
+      displayName: hook.displayName,
+      canonicalFilename: hook.canonicalFilename,
+      hash: hook.hash,
+      ctxKind: hook.ctxKind,
+      ctxName: hook.ctxName,
+      captures: hook.captures,
+      parent: hook.parent,
+      loc: hook.loc,
+    };
+  }
+
+  return updateSortAndPriorities(manifest);
 }

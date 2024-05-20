@@ -148,7 +148,19 @@ export {
 `;
         }
         if (id.endsWith(qwikCityStaticPaths)) {
-          return `export function isStaticPath(){ return false; };`;
+          return `export function isStaticPath(method, url){
+            if (method !== 'GET') {
+              return false;
+            }
+            if (url.search !== '') {
+              return false;
+            }
+            const p = url.pathname;
+            if (p.includes('/build/')) {
+              return true;
+            }
+            return false;
+          };`;
         }
         if (id.endsWith(qwikCityNotFoundPaths)) {
           const notFoundHtml = getErrorHtml(404, "Resource Not Found");

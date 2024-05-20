@@ -265,10 +265,6 @@ const getEnv = (): SystemEnvironment => {
     return 'deno';
   }
 
-  if (typeof Bun !== 'undefined') {
-    return 'bun';
-  }
-
   if (
     typeof process !== 'undefined' &&
     typeof global !== 'undefined' &&

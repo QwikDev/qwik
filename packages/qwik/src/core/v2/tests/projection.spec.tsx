@@ -20,7 +20,7 @@ import {
   useContext,
 } from '@builder.io/qwik';
 import { vnode_getNextSibling } from '../client/vnode';
-import { SVG_NS } from '../../util/markers';
+import { HTML_NS, SVG_NS } from '../../util/markers';
 
 const debug = false;
 
@@ -1349,6 +1349,88 @@ describe.each([
       );
       expect(document.querySelector('filter')?.namespaceURI).toEqual(SVG_NS);
       expect(document.querySelector('feGaussianBlur')?.namespaceURI).toEqual(SVG_NS);
+    });
+
+    it('should toggle foreignObject children with correct namespace', async () => {
+      const QwikSvgWithSlot = component$(() => {
+        return (
+          <svg
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ width: '24px', height: '24px' }}
+          >
+            <foreignObject>
+              <Slot />
+            </foreignObject>
+          </svg>
+        );
+      });
+      const Parent = component$(() => {
+        const show = useSignal<boolean>(true);
+
+        return (
+          <>
+            <button
+              onClick$={() => {
+                show.value = !show.value;
+              }}
+            ></button>
+            <QwikSvgWithSlot>{show.value && <div></div>}</QwikSvgWithSlot>
+          </>
+        );
+      });
+      const { container, document, vNode } = await render(<Parent />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            <Component>
+              <svg
+                viewBox="0 0 24 24"
+                style="width:24px;height:24px"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <foreignObject>
+                  <Projection>
+                    <div></div>
+                  </Projection>
+                </foreignObject>
+              </svg>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+
+      expect(document.querySelector('svg')?.namespaceURI).toEqual(SVG_NS);
+      expect(document.querySelector('foreignObject')?.namespaceURI).toEqual(SVG_NS);
+      expect(document.querySelector('div')?.namespaceURI).toEqual(HTML_NS);
+
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            <Component>
+              <svg
+                viewBox="0 0 24 24"
+                style="width:24px;height:24px"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <foreignObject>
+                  <Projection>
+                    <div></div>
+                  </Projection>
+                </foreignObject>
+              </svg>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+      expect(document.querySelector('svg')?.namespaceURI).toEqual(SVG_NS);
+      expect(document.querySelector('foreignObject')?.namespaceURI).toEqual(SVG_NS);
+      expect(document.querySelector('div')?.namespaceURI).toEqual(HTML_NS);
     });
 
     it('should toggle slot inside svg and render nested children with correct namespace', async () => {

@@ -18,12 +18,15 @@ import {
   ELEMENT_KEY,
   ELEMENT_PROPS,
   ELEMENT_SEQ,
+  HTML_NS,
+  MATH_NS,
   OnRenderProp,
   QDefaultSlot,
   QSlot,
   QSlotParent,
   QStyle,
   QTemplate,
+  SVG_NS,
 } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { type ValueOrPromise } from '../../util/types';
@@ -54,10 +57,14 @@ import {
   type VirtualVNode,
 } from './types';
 import {
+  isForeignObjectElement,
+  isMathElement,
+  isSvgElement,
   mapApp_findIndx,
   mapArray_set,
   vnode_ensureElementInflated,
   vnode_getAttr,
+  vnode_getDomParentVNode,
   vnode_getElementName,
   vnode_getFirstChild,
   vnode_getNextSibling,
@@ -69,6 +76,7 @@ import {
   vnode_getText,
   vnode_getType,
   vnode_insertBefore,
+  vnode_isDefaultNamespace,
   vnode_isElementVNode,
   vnode_isTextVNode,
   vnode_isVNode,
@@ -541,8 +549,7 @@ export const vnode_diff = (
 
   /** @param tag Returns true if `qDispatchEvent` needs patching */
   function createNewElement(jsx: JSXNode, tag: string): boolean {
-    const element = container.document.createElement(tag);
-    vNewNode = vnode_newElement(element, tag);
+    const element = createElementWithNamespace(tag);
 
     const { constProps } = jsx;
     let needsQDispatchEventPatch = false;
@@ -557,7 +564,11 @@ export const vnode_diff = (
           // But we need to mark them so that they don't get pulled into the diff.
           const eventName = getEventNameFromJsxProp(key);
           const scope = getEventNameScopeFromJsxProp(key);
-          vnode_setProp(vNewNode, HANDLER_PREFIX + ':' + scope + ':' + eventName, value);
+          vnode_setProp(
+            vNewNode as ElementVNode,
+            HANDLER_PREFIX + ':' + scope + ':' + eventName,
+            value
+          );
           needsQDispatchEventPatch = true;
           continue;
         }
@@ -602,7 +613,7 @@ export const vnode_diff = (
     const key = jsx.key;
     if (key) {
       element.setAttribute(ELEMENT_KEY, key);
-      vnode_setProp(vNewNode, ELEMENT_KEY, key);
+      vnode_setProp(vNewNode as ElementVNode, ELEMENT_KEY, key);
     }
 
     // append class attribute if styleScopedId exists and there is no class attribute
@@ -612,9 +623,64 @@ export const vnode_diff = (
       element.setAttribute('class', scopedStyleIdPrefix);
     }
 
-    vnode_insertBefore(journal, container.document, vParent as ElementVNode, vNewNode, vCurrent);
+    vnode_insertBefore(
+      journal,
+      container.document,
+      vParent as ElementVNode,
+      vNewNode as ElementVNode,
+      vCurrent
+    );
 
     return needsQDispatchEventPatch;
+  }
+
+  function createElementWithNamespace(tag: string): Element {
+    const domParentVNode = vnode_getDomParentVNode(vParent);
+
+    const parentIsDefaultNamespace = domParentVNode
+      ? vnode_getElementName(domParentVNode) && vnode_isDefaultNamespace(domParentVNode)
+      : true;
+    const parentIsForeignObject = !parentIsDefaultNamespace
+      ? isForeignObjectElement(vnode_getElementName(domParentVNode!))
+      : false;
+
+    let elementNamespace = HTML_NS;
+    let elementNamespaceFlag = VNodeFlags.NS_html;
+
+    if (isSvgElement(tag)) {
+      elementNamespace = SVG_NS;
+      elementNamespaceFlag = VNodeFlags.NS_svg;
+    } else if (isMathElement(tag)) {
+      elementNamespace = MATH_NS;
+      elementNamespaceFlag = VNodeFlags.NS_math;
+    } else if (domParentVNode && !parentIsForeignObject) {
+      const isParentSvg = (domParentVNode[VNodeProps.flags] & VNodeFlags.NS_svg) !== 0;
+      const isParentMath = (domParentVNode[VNodeProps.flags] & VNodeFlags.NS_math) !== 0;
+
+      elementNamespace = isParentSvg ? SVG_NS : isParentMath ? MATH_NS : HTML_NS;
+      elementNamespaceFlag = domParentVNode[VNodeProps.flags] & VNodeFlags.NAMESPACE_MASK;
+    } else {
+      elementNamespace = HTML_NS;
+      elementNamespaceFlag = VNodeFlags.NS_html;
+    }
+
+    const newChildIsDefaultNamespace = elementNamespace === HTML_NS;
+
+    let element: Element;
+    if (parentIsDefaultNamespace && newChildIsDefaultNamespace) {
+      element = container.document.createElement(tag);
+      vNewNode = vnode_newElement(element, tag);
+    } else {
+      element = container.document.createElementNS(elementNamespace, tag);
+      vNewNode = vnode_newElement(element, tag);
+
+      if (newChildIsDefaultNamespace) {
+        vNewNode[VNodeProps.flags] |= domParentVNode![VNodeProps.flags] & VNodeFlags.NAMESPACE_MASK;
+      } else {
+        vNewNode[VNodeProps.flags] |= elementNamespaceFlag;
+      }
+    }
+    return element;
   }
 
   function expectElement(jsx: JSXNode, tag: string) {

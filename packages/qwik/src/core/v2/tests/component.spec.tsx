@@ -15,7 +15,7 @@ import { ErrorProvider } from '../../../testing/rendering.unit-util';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import { useSignal } from '../../use/use-signal';
 import { useStore } from '../../use/use-store.public';
-import { MATH_NS, SVG_NS } from '../../util/markers';
+import { HTML_NS, MATH_NS, SVG_NS } from '../../util/markers';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -827,6 +827,7 @@ describe.each([
         </svg>
       );
 
+      expect(container.document.querySelector('svg')?.namespaceURI).toEqual(SVG_NS);
       expect(container.document.querySelector('circle')?.namespaceURI).toEqual(SVG_NS);
       expect(container.document.querySelector('line')?.namespaceURI).toEqual(SVG_NS);
 
@@ -850,6 +851,65 @@ describe.each([
           <circle cx="15" cy="15" r="50"></circle>
         </svg>
       );
+    });
+
+    it('should render svg and foreignObject with correct namespaces', async () => {
+      const Parent = component$(() => {
+        return (
+          <div class="html">
+            <svg class="svg" preserveAspectRatio="true">
+              <path class="svg"></path>
+              <foreignObject class="svg">
+                <div class="html">hello</div>
+                <svg class="svg">
+                  <circle class="svg"></circle>
+                  <foreignObject class="svg">
+                    <div class="html">still outside svg</div>
+                    <math class="math">
+                      <msup class="math">
+                        <mi class="math">x</mi>
+                        <mn class="math">2</mn>
+                      </msup>
+                    </math>
+                  </foreignObject>
+                </svg>
+              </foreignObject>
+            </svg>
+          </div>
+        );
+      });
+      const { vNode, document } = await render(<Parent />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <div class="html">
+            <svg class="svg" preserveAspectRatio="true">
+              <path class="svg"></path>
+              <foreignObject class="svg">
+                <div class="html">hello</div>
+                <svg class="svg">
+                  <circle class="svg"></circle>
+                  <foreignObject class="svg">
+                    <div class="html">still outside svg</div>
+                    <math class="math">
+                      <msup class="math">
+                        <mi class="math">x</mi>
+                        <mn class="math">2</mn>
+                      </msup>
+                    </math>
+                  </foreignObject>
+                </svg>
+              </foreignObject>
+            </svg>
+          </div>
+        </Component>
+      );
+      const namespaceURIForSelector = (selector: string) =>
+        Array.from(
+          new Set(Array.from(document.querySelectorAll(selector)).flatMap((el) => el.namespaceURI))
+        );
+      expect(namespaceURIForSelector('.html')).toEqual([HTML_NS]);
+      expect(namespaceURIForSelector('.svg')).toEqual([SVG_NS]);
+      expect(namespaceURIForSelector('.math')).toEqual([MATH_NS]);
     });
   });
 

@@ -351,34 +351,38 @@ jobs:
   build-docs:
     name: Build Docs
     needs: changes
+    if: ${{ needs.changes.outputs.docsbuild == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
         uses: actions/checkout@v4.1.1
 
       - uses: pnpm/action-setup@v2.2.4
-        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
 
       - name: Setup Node
-        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
         uses: actions/setup-node@v4.0.2
         with:
           node-version: 18.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
+      - name: Install Rust toolchain
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
       - name: Install NPM Dependencies
-        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
         run: |
           # Ensure that the qwik binary gets made
           mkdir -p packages/qwik/dist/bindings/
           pnpm install --frozen-lockfile
 
+      # Temporary fix for the docs build, soon we will use caching
+      - run: pnpm build.local
+      - run: pnpm build --platform-binding
+
       - name: Build Qwik Docs
-        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
-        run: pnpm run build.packages.docs
+        run: pnpm -C packages/docs build
 
   ############ BUILD DISTRIBUTION ############
   build-distribution:

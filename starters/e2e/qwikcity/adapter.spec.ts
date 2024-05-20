@@ -10,5 +10,7 @@ test.describe("Qwik City Adapter", () => {
 
     const data = await rsp.text();
     expect(data).toBe("Not Found");
+    // "Resource Not Found" is replaced in the development server
+    expect(data).not.toBe("Resource Not Found");
   });
 });

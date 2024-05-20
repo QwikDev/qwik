@@ -386,7 +386,7 @@ export const serverQrl = <T extends ServerFunction>(
             throw obj;
           }
           return obj;
-        } else if (contentType === 'text/plain') {
+        } else if (contentType === 'text/plain' || contentType === 'text/html') {
           const str = await res.text();
           if (res.status === 500) {
             throw str;

@@ -75,7 +75,7 @@ Alternatively you can use [devcontainers/cli](https://github.com/devcontainers/c
 
 - Install devcontainers following their documentation.
 - In your terminal navigate to the Qwik's project root directory.
-- Then run `devcontainer up --workspace-folder .`. This command will start a Docker container will all required environment dependencies.
+- Then run `devcontainer up --workspace-folder .`. This command will start a Docker container with all required environment dependencies.
 
 If you want to use Nix:
 

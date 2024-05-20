@@ -245,6 +245,7 @@ describe('vnode', () => {
       vnode_getFirstChild(vParent);
       vnode_insertBefore(
         journal,
+        document,
         vParent,
         vnode_newText(document.createTextNode('inserted'), 'inserted'),
         vnode_getFirstChild(vParent)
@@ -277,7 +278,7 @@ describe('vnode', () => {
       const textE = vnode_newText(document.createTextNode('E'), 'E');
       const textF = vnode_newText(document.createTextNode('F'), 'F');
 
-      vnode_insertBefore(journal, vParent, fragment2, null);
+      vnode_insertBefore(journal, document, vParent, fragment2, null);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '2' } as any)} />
@@ -286,7 +287,7 @@ describe('vnode', () => {
       vnode_applyJournal(journal);
       expect(parent.innerHTML).toBe('');
 
-      vnode_insertBefore(journal, vParent, fragment1, fragment2);
+      vnode_insertBefore(journal, document, vParent, fragment1, fragment2);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '1' } as any)} />
@@ -296,7 +297,7 @@ describe('vnode', () => {
       vnode_applyJournal(journal);
       expect(parent.innerHTML).toBe('');
 
-      vnode_insertBefore(journal, fragment1, fragment3, null);
+      vnode_insertBefore(journal, document, fragment1, fragment3, null);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '1' } as any)}>
@@ -308,7 +309,7 @@ describe('vnode', () => {
       vnode_applyJournal(journal);
       expect(parent.innerHTML).toBe('');
 
-      vnode_insertBefore(journal, fragment1, textA, fragment3);
+      vnode_insertBefore(journal, document, fragment1, textA, fragment3);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '1' } as any)}>
@@ -321,7 +322,7 @@ describe('vnode', () => {
       vnode_applyJournal(journal);
       expect(parent.innerHTML).toBe('1A');
 
-      vnode_insertBefore(journal, fragment2, textB, null);
+      vnode_insertBefore(journal, document, fragment2, textB, null);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '1' } as any)}>
@@ -334,7 +335,7 @@ describe('vnode', () => {
       vnode_applyJournal(journal);
       expect(parent.innerHTML).toBe('1A2B');
 
-      vnode_insertBefore(journal, fragment3, textC, null);
+      vnode_insertBefore(journal, document, fragment3, textC, null);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '1' } as any)}>
@@ -347,7 +348,7 @@ describe('vnode', () => {
       vnode_applyJournal(journal);
       expect(parent.innerHTML).toBe('1A3C2B');
 
-      vnode_insertBefore(journal, vParent, textD, null);
+      vnode_insertBefore(journal, document, vParent, textD, null);
       expect(vParent).toMatchVDOM(
         <test>
           <Fragment {...({ 'q:id': '1' } as any)}>
@@ -360,7 +361,7 @@ describe('vnode', () => {
       vnode_applyJournal(journal);
       expect(parent.innerHTML).toBe('1A3C2BD');
 
-      vnode_insertBefore(journal, vParent, textE, fragment1);
+      vnode_insertBefore(journal, document, vParent, textE, fragment1);
       expect(vParent).toMatchVDOM(
         <test>
           E
@@ -374,7 +375,7 @@ describe('vnode', () => {
       vnode_applyJournal(journal);
       expect(parent.innerHTML).toBe('E1A3C2BD');
 
-      vnode_insertBefore(journal, vParent, textF, fragment3);
+      vnode_insertBefore(journal, document, vParent, textF, fragment3);
       expect(vParent).toMatchVDOM(
         <test>
           E
@@ -407,7 +408,7 @@ describe('vnode', () => {
       const fragment1 = vnode_getFirstChild(vParent) as VirtualVNode;
       const fragment2 = vnode_getFirstChild(fragment1) as VirtualVNode;
       const text = vnode_newText(document.createTextNode('INSERT'), 'INSERT');
-      vnode_insertBefore(journal, fragment2, text, null);
+      vnode_insertBefore(journal, document, fragment2, text, null);
       vnode_applyJournal(journal);
       expect(vParent).toMatchVDOM(
         <test>
@@ -514,8 +515,8 @@ describe('vnode', () => {
       it('should insert before null', () => {
         const v1 = vnode_newText(document.createTextNode('1'), '1');
         const v2 = vnode_newText(document.createTextNode('2'), '2');
-        vnode_insertBefore(journal, vParent, v1, null);
-        vnode_insertBefore(journal, vParent, v2, null);
+        vnode_insertBefore(journal, document, vParent, v1, null);
+        vnode_insertBefore(journal, document, vParent, v2, null);
         expect(vParent).toMatchVDOM(
           <test>
             {'1'}
@@ -530,9 +531,9 @@ describe('vnode', () => {
         const v1 = vnode_newText(document.createTextNode('1'), '1');
         const v2 = vnode_newText(document.createTextNode('2'), '2');
         const v3 = vnode_newText(document.createTextNode('3'), '3');
-        vnode_insertBefore(journal, vParent, v3, null);
-        vnode_insertBefore(journal, vParent, v1, v3);
-        vnode_insertBefore(journal, vParent, v2, v3);
+        vnode_insertBefore(journal, document, vParent, v3, null);
+        vnode_insertBefore(journal, document, vParent, v1, v3);
+        vnode_insertBefore(journal, document, vParent, v2, v3);
         expect(vParent).toMatchVDOM(
           <test>
             {'1'}
@@ -549,10 +550,10 @@ describe('vnode', () => {
         const vSpan1 = vnode_newElement(document.createElement('div'), 'div');
         const v1 = vnode_newText(document.createTextNode('1'), '1');
         const vSpan2 = vnode_newElement(document.createElement('span'), 'span');
-        vnode_insertBefore(journal, vParent, vSpan1, null);
-        vnode_insertBefore(journal, vSpan1, vVirtual, null);
-        vnode_insertBefore(journal, vParent, vSpan2, null);
-        vnode_insertBefore(journal, vVirtual, v1, null);
+        vnode_insertBefore(journal, document, vParent, vSpan1, null);
+        vnode_insertBefore(journal, document, vSpan1, vVirtual, null);
+        vnode_insertBefore(journal, document, vParent, vSpan2, null);
+        vnode_insertBefore(journal, document, vVirtual, v1, null);
         expect(vParent).toMatchVDOM(
           <test>
             <div>

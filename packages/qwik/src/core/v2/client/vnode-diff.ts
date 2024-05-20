@@ -449,6 +449,7 @@ export const vnode_diff = (
       // Nothing to project, so render content of the slot.
       vnode_insertBefore(
         journal,
+        container.document,
         vParent as ElementVNode | VirtualVNode,
         (vNewNode = vnode_newVirtual()),
         vCurrent && getInsertBefore()
@@ -465,6 +466,7 @@ export const vnode_diff = (
       // move from q:template to the target node
       vnode_insertBefore(
         journal,
+        container.document,
         vParent as ElementVNode | VirtualVNode,
         (vNewNode = vProjectedNode),
         vCurrent && getInsertBefore()
@@ -540,12 +542,8 @@ export const vnode_diff = (
   /** @param tag Returns true if `qDispatchEvent` needs patching */
   function createNewElement(jsx: JSXNode, tag: string): boolean {
     const element = container.document.createElement(tag);
-    vnode_insertBefore(
-      journal,
-      vParent as ElementVNode,
-      (vNewNode = vnode_newElement(element, tag)),
-      vCurrent
-    );
+    vNewNode = vnode_newElement(element, tag);
+
     const { constProps } = jsx;
     let needsQDispatchEventPatch = false;
     if (constProps) {
@@ -614,6 +612,8 @@ export const vnode_diff = (
       element.setAttribute('class', scopedStyleIdPrefix);
     }
 
+    vnode_insertBefore(journal, container.document, vParent as ElementVNode, vNewNode, vCurrent);
+
     return needsQDispatchEventPatch;
   }
 
@@ -637,7 +637,13 @@ export const vnode_diff = (
         needsQDispatchEventPatch = createNewElement(jsx, tag);
       } else {
         // Existing keyed node
-        vnode_insertBefore(journal, vParent as ElementVNode, vNewNode, vCurrent);
+        vnode_insertBefore(
+          journal,
+          container.document,
+          vParent as ElementVNode,
+          vNewNode,
+          vCurrent
+        );
       }
     } else {
       needsQDispatchEventPatch = createNewElement(jsx, tag);
@@ -856,6 +862,7 @@ export const vnode_diff = (
         // We found it, move it up.
         vnode_insertBefore(
           journal,
+          container.document,
           vParent as VirtualVNode,
           (vNewNode = vnode_newVirtual()),
           vCurrent && getInsertBefore()
@@ -866,6 +873,7 @@ export const vnode_diff = (
     // Did not find it, insert a new one.
     vnode_insertBefore(
       journal,
+      container.document,
       vParent as VirtualVNode,
       (vNewNode = vnode_newVirtual()),
       vCurrent && getInsertBefore()
@@ -897,7 +905,13 @@ export const vnode_diff = (
         vNewNode = retrieveChildWithKey(lookupKey);
         if (vNewNode) {
           // We found the component, move it up.
-          vnode_insertBefore(journal, vParent as VirtualVNode, vNewNode, vCurrent);
+          vnode_insertBefore(
+            journal,
+            container.document,
+            vParent as VirtualVNode,
+            vNewNode,
+            vCurrent
+          );
         } else {
           // We did not find the component, create it.
           insertNewComponent(host, componentQRL, jsxProps);
@@ -932,6 +946,7 @@ export const vnode_diff = (
         // We did not find the component, create it.
         vnode_insertBefore(
           journal,
+          container.document,
           vParent as VirtualVNode,
           (vNewNode = vnode_newVirtual()),
           vCurrent && getInsertBefore()
@@ -973,6 +988,7 @@ export const vnode_diff = (
   ) {
     vnode_insertBefore(
       journal,
+      container.document,
       vParent as VirtualVNode,
       (vNewNode = vnode_newVirtual()),
       vCurrent && getInsertBefore()
@@ -1007,6 +1023,7 @@ export const vnode_diff = (
     }
     vnode_insertBefore(
       journal,
+      container.document,
       vParent as VirtualVNode,
       (vNewNode = vnode_newText(container.document.createTextNode(text), text)),
       vCurrent

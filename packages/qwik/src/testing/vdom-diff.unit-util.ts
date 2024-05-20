@@ -102,7 +102,13 @@ function diffJsxVNode(received: _VNode, expected: JSXNode | string, path: string
       if (isJsxPropertyAnEventName(prop) || isHtmlAttributeAnEventName(prop)) {
         return;
       }
-      let receivedValue = vnode_getAttr(received, prop) || receivedElement?.getAttribute(prop);
+      // we need this, because Domino lowercases all attributes for `element.attributes`
+      const propLowerCased = prop.toLowerCase();
+      let receivedValue =
+        vnode_getAttr(received, prop) ||
+        vnode_getAttr(received, propLowerCased) ||
+        receivedElement?.getAttribute(prop) ||
+        receivedElement?.getAttribute(propLowerCased);
       let expectedValue =
         prop === 'key' || prop === 'q:key' ? expected.key ?? receivedValue : expected.props[prop];
       if (typeof receivedValue === 'boolean' || typeof receivedValue === 'number') {
@@ -260,7 +266,7 @@ export function vnode_fromJSX(jsx: JSXOutput) {
       const type = jsx.type;
       if (typeof type === 'string') {
         const child = vnode_newUnMaterializedElement(doc.createElement(type));
-        vnode_insertBefore(journal, vParent, child, null);
+        vnode_insertBefore(journal, doc, vParent, child, null);
 
         // TODO(hack): jsx.props is an empty object
         const props = jsx.varProps;
@@ -283,6 +289,7 @@ export function vnode_fromJSX(jsx: JSXOutput) {
     text: (value) => {
       vnode_insertBefore(
         journal,
+        doc,
         vParent,
         vnode_newText(doc.createTextNode(String(value)), String(value)),
         null
@@ -358,7 +365,10 @@ async function diffNode(received: HTMLElement, expected: JSXOutput): Promise<str
         entries.push(['q:key', jsx.key]);
       }
       entries.forEach(([expectedKey, expectedValue]) => {
-        let receivedValue = element.getAttribute(expectedKey);
+        // we need this, because Domino lowercases all attributes for `element.attributes`
+        const expectedKeyLowerCased = expectedKey.toLowerCase();
+        let receivedValue =
+          element.getAttribute(expectedKey) || element.getAttribute(expectedKeyLowerCased);
         if (typeof receivedValue === 'boolean' || typeof receivedValue === 'number') {
           receivedValue = serializeBooleanOrNumberAttribute(receivedValue);
         }

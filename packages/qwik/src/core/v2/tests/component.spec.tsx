@@ -15,6 +15,7 @@ import { ErrorProvider } from '../../../testing/rendering.unit-util';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import { useSignal } from '../../use/use-signal';
 import { useStore } from '../../use/use-store.public';
+import { MATH_NS, SVG_NS } from '../../util/markers';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -691,7 +692,6 @@ describe.each([
       const SvgComp = component$((props: { cx: string; cy: string }) => {
         return (
           <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="0">
-            {/* <circle cx={props.cx} cy={props.cy} r="50" /> */}
             <circle {...props} r="50" />
           </svg>
         );
@@ -826,8 +826,9 @@ describe.each([
           <line x1="0" y1="80" x2="100" y2="20" stroke="black" key="1"></line>
         </svg>
       );
-      // TODO(slot): fix this test
-      // expect(container.document.querySelector('line')?.namespaceURI).toEqual(SVG_NS);
+
+      expect(container.document.querySelector('circle')?.namespaceURI).toEqual(SVG_NS);
+      expect(container.document.querySelector('line')?.namespaceURI).toEqual(SVG_NS);
 
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
@@ -849,6 +850,44 @@ describe.each([
           <circle cx="15" cy="15" r="50"></circle>
         </svg>
       );
+    });
+  });
+
+  describe('math', () => {
+    it('should render math', async () => {
+      const MathComp = component$(() => {
+        return (
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <msup>
+              <mi>x</mi>
+              <mn>2</mn>
+            </msup>
+          </math>
+        );
+      });
+      const { vNode, document } = await render(<MathComp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <msup>
+              <mi>x</mi>
+              <mn>2</mn>
+            </msup>
+          </math>
+        </Component>
+      );
+      await expect(document.querySelector('math')).toMatchDOM(
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <msup>
+            <mi>x</mi>
+            <mn>2</mn>
+          </msup>
+        </math>
+      );
+      expect(document.querySelector('math')?.namespaceURI).toEqual(MATH_NS);
+      expect(document.querySelector('msup')?.namespaceURI).toEqual(MATH_NS);
+      expect(document.querySelector('mi')?.namespaceURI).toEqual(MATH_NS);
+      expect(document.querySelector('mn')?.namespaceURI).toEqual(MATH_NS);
     });
   });
 

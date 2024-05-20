@@ -596,6 +596,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       //     type: 'hook',
       //     manual: hookManifest,
       //   };
+      // TODO only allow strategies that don't reuse the same files
       const entryStrategy: EntryStrategy = opts.entryStrategy;
       const transformOpts: TransformModulesOptions = {
         input: [
@@ -634,7 +635,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
 
       const newOutput = optimizer.transformModulesSync(transformOpts);
-
+      // uncomment to show transform results
+      // debug(transformOpts, newOutput)
       diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
 
       if (isSSR) {
@@ -647,10 +649,16 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
       const deps = new Set<string>();
       for (const mod of newOutput.modules) {
-        if (isTransformedFile(mod)) {
+        if (isAdditionalFile(mod)) {
           const key = normalizePath(path.join(srcDir, mod.path));
+          if (currentOutputs.has(key)) {
+            throw new Error(`Duplicate chunk id ${key} for input ${id}. Please rename the export.`);
+          }
           currentOutputs.set(key, [mod, id]);
           deps.add(key);
+          ctx.addWatchFile(key);
+          // Do not rename the exports of this file
+          ctx.emitFile({ id: key, type: 'chunk', preserveSignature: 'allow-extension' });
         }
       }
       if (isSSR && strip) {
@@ -682,11 +690,18 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
         results.set(normalizedID, clientNewOutput);
         for (const mod of clientNewOutput.modules) {
-          if (isTransformedFile(mod)) {
+          if (isAdditionalFile(mod)) {
             const key = normalizePath(path.join(srcDir, mod.path));
-            ctx.addWatchFile(key);
+            if (transformedOutputs.has(key)) {
+              throw new Error(
+                `Duplicate SSR chunk id ${key} for input ${id}. Please rename the export.`
+              );
+            }
             transformedOutputs.set(key, [mod, id]);
             deps.add(key);
+            ctx.addWatchFile(key);
+            // Do not rename the exports of this file
+            ctx.emitFile({ id: key, type: 'chunk', preserveSignature: 'allow-extension' });
           }
         }
       }
@@ -699,7 +714,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         await ctx.load({ id });
       }
 
-      const module = newOutput.modules.find((mod) => !isTransformedFile(mod))!;
+      const module = newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
       return {
         code: module.code,
         map: module.map,
@@ -861,7 +876,7 @@ const insideRoots = (ext: string, dir: string, srcDir: string | null, vendorRoot
   return false;
 };
 
-function isTransformedFile(mod: TransformModule) {
+function isAdditionalFile(mod: TransformModule) {
   return mod.isEntry || mod.hook;
 }
 

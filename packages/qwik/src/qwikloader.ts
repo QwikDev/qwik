@@ -121,6 +121,9 @@ export const qwikLoader = (
             const module = import(/* @vite-ignore */ uri);
             resolveContainer(container);
             handler = (await module)[symbol];
+            if (!handler) {
+              error = new Error(`${symbol} not in ${uri}`);
+            }
           } catch (err) {
             importError = 'async';
             error = err as Error;
@@ -128,6 +131,7 @@ export const qwikLoader = (
         }
         if (!handler) {
           emitEvent('qerror', { importError, error, ...eventData });
+          console.error(error);
           // break out of the loop if handler is not found
           break;
         }

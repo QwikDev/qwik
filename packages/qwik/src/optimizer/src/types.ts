@@ -267,6 +267,7 @@ export interface GlobalInjections {
 
 export interface GeneratedOutputBundle {
   fileName: string;
+  exports: string[];
   modules: {
     [id: string]: any;
   };

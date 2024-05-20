@@ -741,6 +741,7 @@ impl<'a> QwikTransform<'a> {
 		idents
 	}
 
+	/// Creates a js packet, to be used as a qrl source
 	fn create_hook(
 		&mut self,
 		hook_data: HookData,
@@ -751,6 +752,7 @@ impl<'a> QwikTransform<'a> {
 	) -> ast::CallExpr {
 		let canonical_filename = get_canonical_filename(&symbol_name);
 
+		// TODO remove
 		let entry = self.options.entry_policy.get_entry_for_sym(
 			&hook_data.hash,
 			self.options.path_data,
@@ -758,21 +760,27 @@ impl<'a> QwikTransform<'a> {
 			&hook_data,
 		);
 
-		let mut filename = format!(
-			"./{}",
-			// the filename part of the entry, because we're in the same directory
-			entry
-				.as_ref()
-				.and_then(|e| Path::new(e.as_ref()).file_name())
-				.and_then(|f| f.to_str())
-				.unwrap_or(&canonical_filename)
-		);
+		// We import from the given entry, or from the hook file directly
+		let mut url = entry
+			.as_ref()
+			.and_then(|e| {
+				Some(
+					fix_path(
+						dbg!(&self.options.path_data.base_dir),
+						dbg!(&self.options.path_data.abs_dir),
+						&["./", e.as_ref()].concat(),
+					)
+					.and_then(|f| Ok(f.to_string())),
+				)
+			})
+			.unwrap_or_else(|| Ok(["./", &canonical_filename].concat()))
+			.unwrap();
 		if self.options.explicit_extensions {
-			filename.push('.');
-			filename.push_str(&self.options.extension);
+			url.push('.');
+			url.push_str(&self.options.extension);
 		}
 
-		let import_expr = self.create_qrl(filename.into(), &symbol_name, &hook_data, &span);
+		let import_expr = self.create_qrl(url.into(), &symbol_name, &hook_data, &span);
 		self.hooks.push(Hook {
 			entry,
 			span,

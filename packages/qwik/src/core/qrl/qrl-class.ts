@@ -93,25 +93,26 @@ export const createQRL = <TYPE>(
   };
 
   const resolve = async (containerEl?: Element): Promise<TYPE> => {
+    if (symbolRef !== null) {
+      // Resolving (Promise) or already resolved (value)
+      return symbolRef;
+    }
     if (containerEl) {
       setContainer(containerEl);
     }
-    if (chunk == '') {
+    if (chunk === '') {
       // Sync QRL
       assertDefined(_containerEl, 'Sync QRL must have container element');
       const qFuncs = (_containerEl as QContainerElement).qFuncs || [];
-      qrl.resolved = symbolRef = qFuncs[Number(symbol)] as TYPE;
-    }
-    if (symbolRef !== null) {
-      return symbolRef;
+      return (qrl.resolved = symbolRef = qFuncs[Number(symbol)] as TYPE);
     }
     if (symbolFn !== null) {
       return (symbolRef = symbolFn().then(
         (module) => (qrl.resolved = symbolRef = module[symbol] as TYPE)
       ));
     } else {
-      const symbol2 = getPlatform().importSymbol(_containerEl, chunk, symbol);
-      return (symbolRef = maybeThen(symbol2, (ref) => {
+      const imported = getPlatform().importSymbol(_containerEl, chunk, symbol);
+      return (symbolRef = maybeThen(imported, (ref) => {
         return (qrl.resolved = symbolRef = ref);
       }));
     }

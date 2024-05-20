@@ -124,6 +124,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
           if (b.type === 'chunk') {
             outputAnalyzer.addBundle({
               fileName,
+              exports: b.exports,
               modules: b.modules,
               imports: b.imports,
               dynamicImports: b.dynamicImports,

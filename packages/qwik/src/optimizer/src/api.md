@@ -255,6 +255,7 @@ export interface QwikRollupPluginOptions {
     // (undocumented)
     csr?: boolean;
     debug?: boolean;
+    // @deprecated
     entryStrategy?: EntryStrategy;
     lint?: boolean;
     manifestInput?: QwikManifest;

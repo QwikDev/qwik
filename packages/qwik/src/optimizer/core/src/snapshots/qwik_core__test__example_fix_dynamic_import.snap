@@ -22,7 +22,7 @@ export const Header = component$(() => {
     );
 });
 
-============================= project/folder/header_component_rggm7ks9qwi.tsx ==
+============================= project/folder/header_component_rggm7ks9qwi.tsx (ENTRY POINT)==
 
 import thing from "../state";
 export const Header_component_RGgm7Ks9QWI = ()=>{
@@ -41,7 +41,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"
 {
   "origin": "project/folder/test.tsx",
   "name": "Header_component_RGgm7Ks9QWI",
-  "entry": "entry_hooks",
+  "entry": null,
   "displayName": "Header_component",
   "hash": "RGgm7Ks9QWI",
   "canonicalFilename": "header_component_rggm7ks9qwi",
@@ -64,16 +64,10 @@ import { qrl } from "@builder.io/qwik";
 export function foo() {
     return import("../state");
 }
-export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./entry_hooks"), "Header_component_RGgm7Ks9QWI"));
+export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./header_component_rggm7ks9qwi"), "Header_component_RGgm7Ks9QWI"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,SAAS,MAAM;IAClB,OAAO,MAAM,CAAC;AAClB,CAAC;AAED,OAAO,MAAM,uBAAS,6FAOnB\"}")
-============================= entry_hooks.js (ENTRY POINT)==
-
-export { Header_component_RGgm7Ks9QWI } from "./header_component_rggm7ks9qwi";
-
-
-None
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,SAAS,MAAM;IAClB,OAAO,MAAM,CAAC;AAClB,CAAC;AAED,OAAO,MAAM,uBAAS,8GAOnB\"}")
 == DIAGNOSTICS ==
 
 []

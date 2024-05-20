@@ -380,6 +380,12 @@ export const serverQrl = <T extends ServerFunction>(
             throw obj;
           }
           return obj;
+        } else if (contentType === 'application/json') {
+          const obj = await res.json();
+          if (res.status === 500) {
+            throw obj;
+          }
+          return obj;
         }
       }
     }) as ServerQRL<T>;

@@ -49,12 +49,12 @@ export const Child = component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./entry_Parent"), "Parent_component_0TaiDayHrlo"));
-export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./entry_Child"), "Child_component_9GyF01GDKqw"));
+export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./parent_component_0taidayhrlo"), "Parent_component_0TaiDayHrlo"));
+export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./child_component_9gyf01gdkqw"), "Child_component_9GyF01GDKqw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,uBAAS,8FAgBnB;AAEH,OAAO,MAAM,sBAAQ,4FAelB\"}")
-============================= parent_component_0taidayhrlo.js ==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,uBAAS,8GAgBnB;AAEH,OAAO,MAAM,sBAAQ,4GAelB\"}")
+============================= parent_component_0taidayhrlo.js (ENTRY POINT)==
 
 import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
@@ -66,7 +66,7 @@ export const Parent_component_0TaiDayHrlo = ()=>{
         text: ''
     });
     // Double count watch
-    useServerMountQrl(/*#__PURE__*/ qrl(()=>import("./entry_server"), "Parent_component_useServerMount_cQrQm0HrrM8", [
+    useServerMountQrl(/*#__PURE__*/ qrl(()=>import("./parent_component_useservermount_cqrqm0hrrm8"), "Parent_component_useServerMount_cQrQm0HrrM8", [
         state
     ]));
     return /*#__PURE__*/ _jsxQ("div", null, {
@@ -82,7 +82,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "Parent_component_0TaiDayHrlo",
-  "entry": "entry_Parent",
+  "entry": null,
   "displayName": "Parent_component",
   "hash": "0TaiDayHrlo",
   "canonicalFilename": "parent_component_0taidayhrlo",
@@ -98,7 +98,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= child_component_useservermount_lne1dxu8z28.js ==
+============================= child_component_useservermount_lne1dxu8z28.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
 import mongo from "mongodb";
@@ -113,7 +113,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "Child_component_useServerMount_lnE1dxU8z28",
-  "entry": "entry_server",
+  "entry": null,
   "displayName": "Child_component_useServerMount",
   "hash": "lnE1dxU8z28",
   "canonicalFilename": "child_component_useservermount_lne1dxu8z28",
@@ -155,7 +155,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= child_component_9gyf01gdkqw.js ==
+============================= child_component_9gyf01gdkqw.js (ENTRY POINT)==
 
 import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
@@ -167,7 +167,7 @@ export const Child_component_9GyF01GDKqw = ()=>{
         text: ''
     });
     // Double count watch
-    useServerMountQrl(/*#__PURE__*/ qrl(()=>import("./entry_server"), "Child_component_useServerMount_lnE1dxU8z28", [
+    useServerMountQrl(/*#__PURE__*/ qrl(()=>import("./child_component_useservermount_lne1dxu8z28"), "Child_component_useServerMount_lnE1dxU8z28", [
         state
     ]));
     return /*#__PURE__*/ _jsxQ("div", null, {
@@ -183,7 +183,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "Child_component_9GyF01GDKqw",
-  "entry": "entry_Child",
+  "entry": null,
   "displayName": "Child_component",
   "hash": "9GyF01GDKqw",
   "canonicalFilename": "child_component_9gyf01gdkqw",
@@ -199,7 +199,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= parent_component_useservermount_cqrqm0hrrm8.js ==
+============================= parent_component_useservermount_cqrqm0hrrm8.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
 import mongo from "mongodb";
@@ -216,7 +216,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "Parent_component_useServerMount_cQrQm0HrrM8",
-  "entry": "entry_server",
+  "entry": null,
   "displayName": "Parent_component_useServerMount",
   "hash": "cQrQm0HrrM8",
   "canonicalFilename": "parent_component_useservermount_cqrqm0hrrm8",
@@ -258,25 +258,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= entry_Child.js (ENTRY POINT)==
-
-export { Child_component_9GyF01GDKqw } from "./child_component_9gyf01gdkqw";
-
-
-None
-============================= entry_Parent.js (ENTRY POINT)==
-
-export { Parent_component_0TaiDayHrlo } from "./parent_component_0taidayhrlo";
-
-
-None
-============================= entry_server.js (ENTRY POINT)==
-
-export { Child_component_useServerMount_lnE1dxU8z28 } from "./child_component_useservermount_lne1dxu8z28";
-export { Parent_component_useServerMount_cQrQm0HrrM8 } from "./parent_component_useservermount_cqrqm0hrrm8";
-
-
-None
 == DIAGNOSTICS ==
 
 []

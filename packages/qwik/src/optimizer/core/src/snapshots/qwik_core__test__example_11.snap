@@ -25,10 +25,11 @@ export const App = component$(() => {
     );
 });
 
-============================= project/header_component_header_onclick_kjd9tcnknxy.tsx ==
+============================= project/header_component_header_onclick_kjd9tcnknxy.tsx (ENTRY POINT)==
 
 import dep3 from "dep3/something";
 export const Header_component_Header_onClick_KjD9TCNkNxY = (ev)=>dep3(ev);
+export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";2DAQ2B,CAAC,KAAO,KAAK\"}")
@@ -36,7 +37,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 {
   "origin": "project/test.tsx",
   "name": "Header_component_Header_onClick_KjD9TCNkNxY",
-  "entry": "entry_hooks",
+  "entry": null,
   "displayName": "Header_component_Header_onClick",
   "hash": "KjD9TCNkNxY",
   "canonicalFilename": "header_component_header_onclick_kjd9tcnknxy",
@@ -52,14 +53,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   ]
 }
 */
-============================= project/header_component_uvbjufyfvdo.tsx ==
+============================= project/header_component_uvbjufyfvdo.tsx (ENTRY POINT)==
 
 import { Header } from "./test";
 import { bar as bbar } from "../state";
 import * as dep2 from "dep2";
 import { qrl } from "@builder.io/qwik";
 export const Header_component_UVBJuFYfvDo = ()=>{
-    return <Header onClick={/*#__PURE__*/ qrl(()=>import("./entry_hooks"), "Header_component_Header_onClick_KjD9TCNkNxY")}>
+    return <Header onClick={/*#__PURE__*/ qrl(()=>import("./header_component_header_onclick_kjd9tcnknxy"), "Header_component_Header_onClick_KjD9TCNkNxY")}>
 
             {dep2.stuff()}{bbar()}
 
@@ -67,12 +68,12 @@ export const Header_component_UVBJuFYfvDo = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAMiC,IAAM;IACnC,QACK,OAAO,wGAA8B;;YAClC,CAAC,KAAK,KAAK,IAAI,OAAO;;QAC1B,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAMiC,IAAM;IACnC,QACK,OAAO,wIAA8B;;YAClC,CAAC,KAAK,KAAK,IAAI,OAAO;;QAC1B,EAAE;AAEV\"}")
 /*
 {
   "origin": "project/test.tsx",
   "name": "Header_component_UVBJuFYfvDo",
-  "entry": "entry_hooks",
+  "entry": null,
   "displayName": "Header_component",
   "hash": "UVBJuFYfvDo",
   "canonicalFilename": "header_component_uvbjufyfvdo",
@@ -88,7 +89,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   ]
 }
 */
-============================= project/app_component_wgkrhwxaqjs.tsx ==
+============================= project/app_component_wgkrhwxaqjs.tsx (ENTRY POINT)==
 
 import { Header } from "./test";
 import { foo } from "../state";
@@ -102,7 +103,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 {
   "origin": "project/test.tsx",
   "name": "App_component_wGkRHWXaqjs",
-  "entry": "entry_hooks",
+  "entry": null,
   "displayName": "App_component",
   "hash": "wGkRHWXaqjs",
   "canonicalFilename": "app_component_wgkrhwxaqjs",
@@ -122,20 +123,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./entry_hooks"), "Header_component_UVBJuFYfvDo"));
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./entry_hooks"), "App_component_wGkRHWXaqjs"));
+export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./header_component_uvbjufyfvdo"), "Header_component_UVBJuFYfvDo"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_wgkrhwxaqjs"), "App_component_wGkRHWXaqjs"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,uBAAS,6FAMnB;AAEH,OAAO,MAAM,oBAAM,0FAIhB\"}")
-============================= entry_hooks.js (ENTRY POINT)==
-
-export { Header_component_Header_onClick_KjD9TCNkNxY } from "./header_component_header_onclick_kjd9tcnknxy";
-export { Header_component_UVBJuFYfvDo } from "./header_component_uvbjufyfvdo";
-export { App_component_wGkRHWXaqjs } from "./app_component_wgkrhwxaqjs";
-export { _hW } from "@builder.io/qwik";
-
-
-None
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,uBAAS,8GAMnB;AAEH,OAAO,MAAM,oBAAM,wGAIhB\"}")
 == DIAGNOSTICS ==
 
 []

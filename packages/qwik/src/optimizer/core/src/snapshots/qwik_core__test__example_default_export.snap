@@ -21,10 +21,10 @@ export default component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./entry______slug__.js"), "_____slug___component_vgk6N3QaQd4"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./_____slug___component_vgk6n3qaqd4.js"), "_____slug___component_vgk6N3QaQd4"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;AAIA,6BAAe,2GAKZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;AAIA,6BAAe,2HAKZ\"}")
 ============================= src/routes/_repl/[id]/_____slug___component_div_onclick_oesymv0so3o.js (ENTRY POINT)==
 
 import { sibling } from "./sibling";
@@ -52,7 +52,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
   ]
 }
 */
-============================= src/routes/_repl/[id]/_____slug___component_vgk6n3qaqd4.js ==
+============================= src/routes/_repl/[id]/_____slug___component_vgk6n3qaqd4.js (ENTRY POINT)==
 
 import { _jsxQ } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
@@ -68,7 +68,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
 {
   "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
   "name": "_____slug___component_vgk6N3QaQd4",
-  "entry": "src/routes/_repl/[id]/entry______slug__",
+  "entry": null,
   "displayName": "_____slug___component",
   "hash": "vgk6N3QaQd4",
   "canonicalFilename": "_____slug___component_vgk6n3qaqd4",
@@ -84,12 +84,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
   ]
 }
 */
-============================= src/routes/_repl/[id]/entry______slug__.js (ENTRY POINT)==
-
-export { _____slug___component_vgk6N3QaQd4 } from "./_____slug___component_vgk6n3qaqd4.js";
-
-
-None
 == DIAGNOSTICS ==
 
 []

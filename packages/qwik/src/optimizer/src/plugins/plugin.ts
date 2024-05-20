@@ -590,12 +590,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       const srcDir = opts.srcDir ? opts.srcDir : normalizePath(dir);
       const mode =
         opts.target === 'lib' ? 'lib' : opts.buildMode === 'development' ? 'dev' : 'prod';
-      // const entryStrategy: EntryStrategy = ['hoist', 'hook', 'inline'].includes(opts.entryStrategy.type)
-      //   ? opts.entryStrategy
-      //   : {
-      //     type: 'hook',
-      //     manual: hookManifest,
-      //   };
       // TODO only allow strategies that don't reuse the same files
       const entryStrategy: EntryStrategy = opts.entryStrategy;
       const transformOpts: TransformModulesOptions = {
@@ -938,6 +932,7 @@ export interface QwikPluginOptions {
   csr?: boolean;
   buildMode?: QwikBuildMode;
   debug?: boolean;
+  /** @deprecated This no longer does anything */
   entryStrategy?: EntryStrategy;
   rootDir?: string;
   tsconfigFileNames?: string[];

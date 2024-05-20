@@ -869,6 +869,8 @@ interface QwikVitePluginCommonOptions {
    * always `hook`.
    *
    * Default `{ type: "smart" }`)
+   *
+   * @deprecated This no longer does anything
    */
   entryStrategy?: EntryStrategy;
   /**

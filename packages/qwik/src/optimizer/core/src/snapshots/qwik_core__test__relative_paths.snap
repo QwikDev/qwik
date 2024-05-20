@@ -26,7 +26,7 @@ Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoo
   "extension": "js",
   "parent": "App_component_AkbU84a8zes",
   "ctxKind": "jSXProp",
-  "ctxName": "onClick",
+  "ctxName": "onClick$",
   "captures": true,
   "loc": [
     706,

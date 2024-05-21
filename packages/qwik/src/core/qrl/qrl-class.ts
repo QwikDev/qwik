@@ -26,8 +26,14 @@ export const isQrl = <T = unknown>(value: unknown): value is QRLInternal<T> => {
 // Make sure this value is same as value in `platform.ts`
 export const SYNC_QRL = '<sync>';
 
+interface SyncQRLSymbol {
+  $symbol$: typeof SYNC_QRL;
+}
+
+export type SyncQRLInternal = QRLInternal & SyncQRLSymbol;
+
 /** Sync QRL is a function which is serialized into `<script q:func="qwik/json">` tag. */
-export const isSyncQrl = (value: any): value is QRLInternal => {
+export const isSyncQrl = (value: any): value is SyncQRLInternal => {
   return isQrl(value) && value.$symbol$ == SYNC_QRL;
 };
 
@@ -101,7 +107,7 @@ export const createQRL = <TYPE>(
       // Sync QRL
       assertDefined(_containerEl, 'Sync QRL must have container element');
       const qFuncs = (_containerEl as QContainerElement).qFuncs || [];
-      symbolRef = qFuncs[Number(symbol)] as TYPE;
+      qrl.resolved = symbolRef = qFuncs[Number(symbol)] as TYPE;
     }
     if (symbolRef !== null) {
       return symbolRef;
@@ -180,8 +186,11 @@ export const createQRL = <TYPE>(
     $capture$: capture,
     $captureRef$: captureRef,
     dev: null,
-    resolved: symbol == SYNC_QRL ? symbolRef : undefined,
+    resolved: undefined,
   });
+  if (symbolRef) {
+    maybeThen(symbolRef, (resolved) => (qrl.resolved = symbolRef = resolved));
+  }
   if (isDev) {
     (qrl as any)._devOnlySymbolRef = symbolRef;
   }

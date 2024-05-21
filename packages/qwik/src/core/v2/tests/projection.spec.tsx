@@ -1691,6 +1691,62 @@ describe.each([
       );
     });
 
+    // TODO(slot): fix this test
+    it.skip('#2688 - case 2', async () => {
+      const Switch = component$((props: { name: string }) => {
+        return <Slot name={props.name} />;
+      });
+      const Issue2688 = component$(({ count }: { count: number }) => {
+        const store = useStore({ flip: false });
+
+        return (
+          <>
+            <button id="flip" onClick$={() => (store.flip = !store.flip)}></button>
+            <Switch name={store.flip ? 'b' : 'a'}>
+              <div q:slot="a">Alpha {count}</div>
+              <div q:slot="b">Bravo {count}</div>
+            </Switch>
+          </>
+        );
+      });
+
+      const Parent = component$(() => {
+        const state = useStore({
+          count: 0,
+        });
+        return (
+          <div>
+            <Issue2688 count={state.count} />
+            <button id="counter" onClick$={() => state.count++}></button>
+          </div>
+        );
+      });
+
+      const { vNode, document } = await render(<Parent />, { debug });
+      await trigger(document.body, '#flip', 'click');
+      await trigger(document.body, '#counter', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <div>
+            <Component>
+              <Fragment>
+                <button id="flip"></button>
+                <Component>
+                  <Projection>
+                    <div q:slot="b">
+                      {'Bravo '}
+                      <DerivedSignal>1</DerivedSignal>
+                    </div>
+                  </Projection>
+                </Component>
+              </Fragment>
+            </Component>
+            <button id="counter"></button>
+          </div>
+        </Component>
+      );
+    });
+
     it('#3727', async () => {
       const CTX = createContextId<Signal<any[]>>('content-Issue3727');
       const Issue3727ParentB = component$(() => {

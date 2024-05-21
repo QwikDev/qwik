@@ -99,6 +99,7 @@ export class Cookie implements CookieInterface {
   private [REQ_COOKIE]: Record<string, string>;
   private [RES_COOKIE]: Record<string, string> = {};
   private [LIVE_COOKIE]: Record<string, string | null> = {};
+  private appendCounter = 0;
 
   constructor(cookieString?: string | undefined | null) {
     this[REQ_COOKIE] = parseCookieString(cookieString);
@@ -148,6 +149,25 @@ export class Cookie implements CookieInterface {
         ? cookieValue
         : encodeURIComponent(JSON.stringify(cookieValue));
     this[RES_COOKIE][cookieName] = createSetCookieValue(cookieName, resolvedValue, options);
+  }
+
+  append(
+    cookieName: string,
+    cookieValue: string | number | Record<string, any>,
+    options: CookieOptions = {}
+  ) {
+    this[LIVE_COOKIE][cookieName] =
+      typeof cookieValue === 'string' ? cookieValue : JSON.stringify(cookieValue);
+
+    const resolvedValue =
+      typeof cookieValue === 'string'
+        ? cookieValue
+        : encodeURIComponent(JSON.stringify(cookieValue));
+    this[RES_COOKIE][++this.appendCounter] = createSetCookieValue(
+      cookieName,
+      resolvedValue,
+      options
+    );
   }
 
   delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain' | 'sameSite'>) {

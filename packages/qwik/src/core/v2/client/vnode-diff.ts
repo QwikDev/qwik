@@ -123,7 +123,7 @@ export const vnode_diff = (
   /// When elements have keys they can be consumed out of order and therefore we can't use nextSibling.
   /// In such a case this array will contain the elements after the current location.
   /// The array even indices will contains keys and odd indices the vNode.
-  let vSiblings: Array<string | null | VNode> | null = null;
+  let vSiblings: Array<string | null | VNode> | null = null; // See: `SiblingsArray`
   let vSiblingsIdx = -1;
 
   /// Current set of JSX children.
@@ -260,7 +260,7 @@ export const vnode_diff = (
     if (vSiblings !== null) {
       // We came across a key, and we moved nodes around. This means we can no longer use
       // `vnode_getNextSibling` to look at next node and instead we have to go by `vSiblings`.
-      const idx = vSiblingsIdx + 3; // 2 plus 1 for node offset
+      const idx = vSiblingsIdx + SiblingsArray.NextVNode;
       return idx < vSiblings.length ? (vSiblings[idx] as any) : null;
     } else {
       // If we don't have a `vNewNode`, than that means we just reconciled the current node.
@@ -279,7 +279,7 @@ export const vnode_diff = (
   function advanceToNextSibling() {
     vCurrent = peekNextSibling();
     if (vSiblings !== null) {
-      vSiblingsIdx += 2; // advance;
+      vSiblingsIdx += SiblingsArray.Size; // advance;
     }
   }
 
@@ -364,7 +364,7 @@ export const vnode_diff = (
     if (vNewNode) {
       return vCurrent;
     } else if (vSiblings !== null) {
-      const nextIdx = vSiblingsIdx + 3; // 2 plus 1 for node offset
+      const nextIdx = vSiblingsIdx + SiblingsArray.NextVNode;
       return nextIdx < vSiblings.length ? (vSiblings[nextIdx] as VNode) : null;
     } else {
       return peekNextSibling();
@@ -536,7 +536,7 @@ export const vnode_diff = (
   }
 
   function expectNoMoreTextNodes() {
-    while (vCurrent !== null && vnode_getType(vCurrent) === 3 /* Text */) {
+    while (vCurrent !== null && vnode_isTextVNode(vCurrent)) {
       cleanup(container, vCurrent);
       const toRemove = vCurrent;
       advanceToNextSibling();
@@ -627,18 +627,13 @@ export const vnode_diff = (
   function expectElement(jsx: JSXNode, tag: string) {
     const isSameTagName =
       vCurrent && vnode_isElementVNode(vCurrent) && tag === vnode_getElementName(vCurrent);
-    let jsxKey: string | null = null;
+    const jsxKey: string | null = jsx.key;
     let needsQDispatchEventPatch = false;
-    if (
-      isSameTagName &&
-      (jsxKey = jsx.key) == vnode_getProp(vCurrent as ElementVNode, ELEMENT_KEY, null)
-    ) {
-      // All is good.
-    } else if (jsxKey !== null) {
+    if (!isSameTagName || jsxKey !== vnode_getProp(vCurrent as ElementVNode, ELEMENT_KEY, null)) {
       // So we have a key and it does not match the current node.
       // We need to do a forward search to find it.
       // The complication is that once we start taking nodes out of order we can't use `vnode_getNextSibling`
-      vNewNode = retrieveChildWithKey(jsxKey);
+      vNewNode = retrieveChildWithKey(tag, jsxKey);
       if (vNewNode === null) {
         // No existing node with key exists, just create a new one.
         needsQDispatchEventPatch = createNewElement(jsx, tag);
@@ -646,8 +641,6 @@ export const vnode_diff = (
         // Existing keyed node
         vnode_insertBefore(journal, vParent as ElementVNode, vNewNode, vCurrent);
       }
-    } else {
-      needsQDispatchEventPatch = createNewElement(jsx, tag);
     }
     // reconcile attributes
 
@@ -815,9 +808,16 @@ export const vnode_diff = (
    * we need to splice the `vSiblings` array).
    *
    * @param key
-   * @returns
+   * @returns Array where: (see: `SiblingsArray`)
+   *
+   *   - Idx%3 == 0 nodeName
+   *   - Idx%3 == 1 key
+   *   - Idx%3 == 2 vNode
    */
-  function retrieveChildWithKey(key: string): ElementVNode | VirtualVNode | null {
+  function retrieveChildWithKey(
+    nodeName: string | null,
+    key: string | null
+  ): ElementVNode | VirtualVNode | null {
     let vNodeWithKey: ElementVNode | VirtualVNode | null = null;
     if (vSiblingsIdx === -1) {
       // it is not materialized; so materialize it.
@@ -825,22 +825,24 @@ export const vnode_diff = (
       vSiblingsIdx = 0;
       let vNode = vCurrent;
       while (vNode) {
+        const name = vnode_isElementVNode(vNode) ? vnode_getElementName(vNode) : null;
         const vKey = getKey(vNode, container.$getObjectById$);
-        if (vNodeWithKey === null && vKey == key) {
+        if (vNodeWithKey === null && vKey == key && name == nodeName) {
           vNodeWithKey = vNode as ElementVNode | VirtualVNode;
         } else {
           // we only add the elements which we did not find yet.
-          vSiblings.push(vKey, vNode);
+          vSiblings.push(name, vKey, vNode);
         }
         vNode = vnode_getNextSibling(vNode);
       }
     } else {
-      for (let idx = vSiblingsIdx; idx < vSiblings!.length; idx += 2) {
-        const vKey = vSiblings![idx];
-        if (vKey == key) {
-          vNodeWithKey = vSiblings![idx + 1] as any;
+      for (let idx = vSiblingsIdx; idx < vSiblings!.length; idx += SiblingsArray.Size) {
+        const name = vSiblings![idx + SiblingsArray.Name];
+        const vKey = vSiblings![idx + SiblingsArray.Key];
+        if (vKey === key && name === nodeName) {
+          vNodeWithKey = vSiblings![idx + SiblingsArray.VNode] as any;
           // remove the node from the siblings array
-          vSiblings?.splice(idx, 2);
+          vSiblings?.splice(idx, SiblingsArray.Size);
           break;
         }
       }
@@ -858,7 +860,7 @@ export const vnode_diff = (
       return;
     } else if (jsxKey !== null) {
       // We have a key find it
-      vNewNode = retrieveChildWithKey(jsxKey);
+      vNewNode = retrieveChildWithKey(null, jsxKey);
       if (vNewNode != null) {
         // We found it, move it up.
         vnode_insertBefore(
@@ -894,7 +896,7 @@ export const vnode_diff = (
       const vNodeKey = getKey(host, container.$getObjectById$);
       if (jsxKey !== vNodeKey) {
         // See if we already have this component later on.
-        vNewNode = retrieveChildWithKey(jsxKey);
+        vNewNode = retrieveChildWithKey(null, jsxKey);
         if (vNewNode) {
           // We found the component, move it up.
           vnode_insertBefore(journal, vParent as VirtualVNode, vNewNode, vCurrent);
@@ -1211,3 +1213,11 @@ function cleanupStaleUnclaimedProjection(journal: VNodeJournal, projection: VNod
  */
 const HANDLER_PREFIX = ':';
 let count = 0;
+const enum SiblingsArray {
+  Name = 0,
+  Key = 1,
+  VNode = 2,
+  Size = 3,
+  NextVNode = Size + VNode,
+}
+

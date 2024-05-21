@@ -448,22 +448,6 @@ test.describe("render", () => {
       }
     });
 
-    test("html fragment", async ({ page }) => {
-      const result = page.locator("#html-fragment-test-result");
-      const mounted = await result.getAttribute("data-mounted");
-      if (mounted === "server") {
-        await expect(await result.innerHTML()).toEqual(
-          "<!--qv--><b>html fragment test</b><!--/qv-->",
-        );
-      } else if (mounted === "browser") {
-        await expect(await result.innerHTML()).toEqual(
-          "<!--qv --><b>html fragment test</b><!--/qv-->",
-        );
-      } else {
-        throw new Error("Unexpected mounted value");
-      }
-    });
-
     test("issue4292", async ({ page }) => {
       const button = page.locator("#issue-4292-result");
       await expect(button).toHaveText("Hello, World!");

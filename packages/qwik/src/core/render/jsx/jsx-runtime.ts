@@ -376,10 +376,6 @@ interface JsxDevOpts {
 }
 
 /** @public */
-export const HTMLFragment: FunctionComponent<{ dangerouslySetInnerHTML: string }> = (props) =>
-  jsx(Virtual, props);
-
-/** @public */
 export const jsxDEV = <T extends string | FunctionComponent<Props>>(
   type: T,
   props: T extends FunctionComponent<infer PROPS> ? PROPS : Props,

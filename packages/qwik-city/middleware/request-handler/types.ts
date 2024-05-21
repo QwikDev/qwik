@@ -493,6 +493,14 @@ export interface Cookie {
   has(name: string): boolean;
   /** Sets a `Response` cookie header using the `Set-Cookie` header. */
   set(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;
+  /**
+   * Appends a `Response` cookie header using the `Set-Cookie` header.
+   *
+   * The difference between `set()` and `append()` is that if the specified header already exists,
+   * `set()` will overwrite the existing value with the new one, whereas `append()` will append the
+   * new value onto the end of the set of values.
+   */
+  append(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;
   /** Deletes cookie value by name using the `Response` cookie header. */
   delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain' | 'sameSite'>): void;
   /** Returns an array of all the set `Response` `Set-Cookie` header values. */

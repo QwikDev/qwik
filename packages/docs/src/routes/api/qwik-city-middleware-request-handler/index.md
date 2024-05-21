@@ -12,6 +12,69 @@ export declare class AbortMessage
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/redirect-handler.ts)
 
+## append
+
+Appends a `Response` cookie header using the `Set-Cookie` header.
+
+The difference between `set()` and `append()` is that if the specified header already exists, `set()` will overwrite the existing value with the new one, whereas `append()` will append the new value onto the end of the set of values.
+
+```typescript
+append(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+name
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+value
+
+</td><td>
+
+string \| number \| Record&lt;string, any&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+[CookieOptions](#cookieoptions)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+void
+
 ## CacheControl
 
 ```typescript
@@ -102,6 +165,17 @@ Description
 
 </th></tr></thead>
 <tbody><tr><td>
+
+[append(name, value, options)](#cookie-append)
+
+</td><td>
+
+Appends a `Response` cookie header using the `Set-Cookie` header.
+
+The difference between `set()` and `append()` is that if the specified header already exists, `set()` will overwrite the existing value with the new one, whereas `append()` will append the new value onto the end of the set of values.
+
+</td></tr>
+<tr><td>
 
 [delete(name, options)](#cookie-delete)
 

@@ -68,7 +68,7 @@ export interface QwikCityProps {
   //  * ```tsx
   //  * <QwikCityProvider>
   //  *   <head>
-  //  *     <meta charSet="utf-8" />
+  //  *     <meta charset="UTF-8" />
   //  *   </head>
   //  *   <body lang="en"></body>
   //  * </QwikCityProvider>

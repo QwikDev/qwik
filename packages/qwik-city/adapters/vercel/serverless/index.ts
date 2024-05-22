@@ -180,6 +180,7 @@ export interface VercelServerlessAdapterOptions extends ServerAdapterOptions {
    * Defaults to `true`.
    */
   outputConfig?: boolean;
+
   /**
    * The `entrypoint` property in the `.vc-config.json` file. Indicates the initial file where code
    * will be executed for the Edge Function.
@@ -187,6 +188,7 @@ export interface VercelServerlessAdapterOptions extends ServerAdapterOptions {
    * Defaults to `entry.vercel-edge.js`.
    */
   vcConfigEntryPoint?: string;
+
   /**
    * Manually add pathnames that should be treated as static paths and not SSR. For example, when
    * these pathnames are requested, their response should come from a static file, rather than a
@@ -214,6 +216,48 @@ export interface VercelServerlessAdapterOptions extends ServerAdapterOptions {
    * Required: No
    */
   awsLambdaHandler?: string;
+
+  /**
+   * Specifies the target platform for the deployment, such as Vercel, AWS, etc.
+   *
+   * Required: No
+   */
+  target?: string;
+
+  /**
+   * Specifies the runtime environment for the function, for example, Node.js, Deno, etc.
+   *
+   * Required: No
+   */
+  runtime?: string;
+
+  /**
+   * Specifies the memory allocation for the serverless function.
+   *
+   * Required: No
+   */
+  memory?: number;
+
+  /**
+   * Specifies the maximum duration that the serverless function can run.
+   *
+   * Required: No
+   */
+  maxDuration?: number;
+
+  /**
+   * Specifies environment variables for the serverless function.
+   *
+   * Required: No
+   */
+  environment?: { [key: string]: string };
+
+  /**
+   * Specifies the regions in which the serverless function should run.
+   *
+   * Required: No
+   */
+  regions?: string[];
 }
 
 /** @public */

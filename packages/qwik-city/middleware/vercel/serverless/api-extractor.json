@@ -5,8 +5,8 @@
   "apiReport": {
     "enabled": true,
     "reportFileName": "api.md",
-    "reportFolder": "<projectFolder>/middleware/vercel/edge/",
-    "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-city/middleware/vercel/edge"
+    "reportFolder": "<projectFolder>/middleware/vercel/serverless/",
+    "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-city/middleware/vercel/serverless"
   },
   "dtsRollup": {
     "enabled": true,

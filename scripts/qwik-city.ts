@@ -474,7 +474,7 @@ async function buildAdapterVercelEdgeVite(config: BuildConfig) {
     target: nodeTarget,
     format: 'esm',
     external: ADAPTER_EXTERNALS,
-    plugins: [resolveAdapterShared('../../shared/vite/index.mjs')],
+    plugins: [resolveAdapterShared('../../vercel/edge/index.mjs')],
   });
 
   await build({
@@ -485,7 +485,7 @@ async function buildAdapterVercelEdgeVite(config: BuildConfig) {
     target: nodeTarget,
     format: 'cjs',
     external: ADAPTER_EXTERNALS,
-    plugins: [resolveAdapterShared('../../shared/vite/index.cjs')],
+    plugins: [resolveAdapterShared('../../vercel/edge/index.cjs')],
   });
 }
 
@@ -500,7 +500,7 @@ async function buildAdapterVercelServerlessVite(config: BuildConfig) {
     target: nodeTarget,
     format: 'esm',
     external: ADAPTER_EXTERNALS,
-    plugins: [resolveAdapterShared('../../shared/vite/index.mjs')],
+    plugins: [resolveAdapterShared('../../vercel/serverless/index.mjs')],
   });
 
   await build({
@@ -511,7 +511,7 @@ async function buildAdapterVercelServerlessVite(config: BuildConfig) {
     target: nodeTarget,
     format: 'cjs',
     external: ADAPTER_EXTERNALS,
-    plugins: [resolveAdapterShared('../../shared/vite/index.cjs')],
+    plugins: [resolveAdapterShared('../../vercel/serverless/index.cjs')],
   });
 }
 

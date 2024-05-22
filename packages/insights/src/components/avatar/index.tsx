@@ -18,7 +18,7 @@ export default component$<AvatarProps>((props) => {
     <img
       src={props.src}
       alt={props.alt}
-      class="verflow-hidden rounded-full border border-slate-300 leading-[0px]"
+      class="overflow-hidden rounded-full border border-slate-300 leading-[0px]"
       width="40"
       height="40"
     />

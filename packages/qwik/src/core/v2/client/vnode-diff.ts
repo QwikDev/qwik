@@ -1216,4 +1216,3 @@ const enum SiblingsArray {
   Size = 3,
   NextVNode = Size + VNode,
 }
-

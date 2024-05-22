@@ -8,7 +8,7 @@ export default function Root() {
     <SomeProvider>
       <QwikCityProvider>
         <head>
-          <meta charSet="utf-8" />
+          <meta charset="UTF-8" />
           <RouterHead />
         </head>
         <body>

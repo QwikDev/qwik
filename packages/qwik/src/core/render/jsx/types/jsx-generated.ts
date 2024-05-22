@@ -648,7 +648,7 @@ type SpecialAttrs = {
     children?: undefined;
   };
   meta: {
-    charSet?: string | undefined;
+    charset?: string | undefined;
     children?: undefined;
   };
   meter: {

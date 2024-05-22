@@ -4,17 +4,22 @@
 
 ```ts
 
+/// <reference types="node" />
+
+import type { Http2ServerRequest } from 'node:http2';
+import type { IncomingMessage } from 'node:http';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
+import type { ServerResponse } from 'node:http';
 
 // @public (undocumented)
-export function createQwikCity(opts: QwikCityVercelEdgeOptions): (request: Request) => Promise<Response>;
+export function createQwikCity(opts: QwikCityVercelServerlessOptions): (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (err?: any) => void) => void;
 
 // @public (undocumented)
-export interface PlatformVercel {
+export interface PlatformVercelServerless {
 }
 
 // @public (undocumented)
-export interface QwikCityVercelEdgeOptions extends ServerRenderOptions {
+export interface QwikCityVercelServerlessOptions extends ServerRenderOptions {
 }
 
 // (No @packageDocumentation comment for this package)

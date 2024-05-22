@@ -8,8 +8,12 @@ title: \@builder.io/qwik-city/middleware/vercel API Reference
 
 ```typescript
 export declare function createQwikCity(
-  opts: QwikCityVercelEdgeOptions,
-): (request: Request) => Promise<Response>;
+  opts: QwikCityVercelServerlessOptions,
+): (
+  req: IncomingMessage | Http2ServerRequest,
+  res: ServerResponse,
+  next: (err?: any) => void,
+) => void;
 ```
 
 <table><thead><tr><th>
@@ -31,7 +35,7 @@ opts
 
 </td><td>
 
-[QwikCityVercelEdgeOptions](#qwikcityverceledgeoptions)
+[QwikCityVercelServerlessOptions](#qwikcityvercelserverlessoptions)
 
 </td><td>
 
@@ -39,32 +43,24 @@ opts
 </tbody></table>
 **Returns:**
 
-(request: Request) =&gt; Promise&lt;Response&gt;
+(req: IncomingMessage \| Http2ServerRequest, res: ServerResponse, next: (err?: any) =&gt; void) =&gt; void
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/vercel/edge/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/vercel/serverless/index.ts)
 
-## PlatformVercel
+## PlatformVercelServerless
 
 ```typescript
-export interface PlatformVercel
+export interface PlatformVercelServerless
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/vercel/edge/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/vercel/serverless/index.ts)
 
-## PlatformVercelEdge
-
-```typescript
-export interface PlatformVercelEdge
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/vercel/edge/index.ts)
-
-## QwikCityVercelEdgeOptions
+## QwikCityVercelServerlessOptions
 
 ```typescript
-export interface QwikCityVercelEdgeOptions extends ServerRenderOptions
+export interface QwikCityVercelServerlessOptions extends ServerRenderOptions
 ```
 
 **Extends:** ServerRenderOptions
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/vercel/edge/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/vercel/serverless/index.ts)

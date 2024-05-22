@@ -9,7 +9,6 @@ import {
   jsx,
   SkipRender,
   SSRRaw,
-  HTMLFragment,
   type PropsOf,
   Slot,
   type QRL,
@@ -100,7 +99,6 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
       <Issue4346 />
       <SkipRenderTest />
       <SSRRawTest />
-      <HTMLFragmentTest />
       <Issue4292 />
       <Issue4386 />
       <Issue4455 />
@@ -820,17 +818,6 @@ export const SSRRawTest = component$(() => {
       data-mounted={isServer ? "server" : "browser"}
     >
       <SSRRaw data="<b>ssr raw test</b>" />
-    </div>
-  );
-});
-
-export const HTMLFragmentTest = component$(() => {
-  return (
-    <div
-      id="html-fragment-test-result"
-      data-mounted={isServer ? "server" : "browser"}
-    >
-      <HTMLFragment dangerouslySetInnerHTML="<b>html fragment test</b>" />
     </div>
   );
 });

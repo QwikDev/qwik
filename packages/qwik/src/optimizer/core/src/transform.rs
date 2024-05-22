@@ -200,11 +200,9 @@ impl<'a> QwikTransform<'a> {
 						"@builder.io/qwik/jsx-runtime" | "@builder.io/qwik/jsx-dev-runtime",
 						"Fragment",
 					) => Some(id.clone()),
-					(
-						ImportKind::Named,
-						"@builder.io/qwik",
-						"Fragment" | "RenderOnce" | "HTMLFragment",
-					) => Some(id.clone()),
+					(ImportKind::Named, "@builder.io/qwik", "Fragment" | "RenderOnce") => {
+						Some(id.clone())
+					}
 					(ImportKind::Named, "@builder.io/qwik-city", "Link") => Some(id.clone()),
 					(_, source, _) => {
 						if source.ends_with("?jsx") || source.ends_with(".md") {

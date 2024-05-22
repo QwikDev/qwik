@@ -2382,16 +2382,6 @@ export interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLEle
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
-## HTMLFragment
-
-```typescript
-HTMLFragment: FunctionComponent<{
-  dangerouslySetInnerHTML: string;
-}>;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
-
 ## HtmlHTMLAttributes
 
 ```typescript

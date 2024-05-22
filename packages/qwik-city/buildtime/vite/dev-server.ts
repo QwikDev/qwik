@@ -324,7 +324,7 @@ export function getUnmatchedRouteHtml(url: URL, ctx: BuildContext): string {
   return `
   <html>
     <head>
-      <meta charset="utf-8">
+      <meta charset="UTF-8">
       <meta http-equiv="Status" content="404">
       <title>404 Not Found</title>
       <meta name="viewport" content="width=device-width,initial-scale=1">

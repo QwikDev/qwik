@@ -5,7 +5,7 @@ export const Root = component$(() => {
   return (
     <>
       <head>
-        <meta charSet="utf-8" />
+        <meta charset="UTF-8" />
         <title>Qwik Blank App</title>
         <style>
           {`

@@ -5,7 +5,7 @@ export default () => {
   return (
     <>
       <head>
-        <meta charSet="utf-8" />
+        <meta charset="UTF-8" />
         <title>Qwik Blank App</title>
       </head>
       <body>

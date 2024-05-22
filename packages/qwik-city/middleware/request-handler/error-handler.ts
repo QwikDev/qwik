@@ -45,7 +45,7 @@ export function minimalHtmlResponse(status: number, message?: string) {
   const color = status >= 500 ? COLOR_500 : COLOR_400;
   return `
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta http-equiv="Status" content="${status}">
   <title>${status} ${message}</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">

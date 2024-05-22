@@ -3,6 +3,7 @@ import { getParentDir, type ServerAdapterOptions, viteAdapter } from '../../shar
 import fs from 'node:fs';
 import { dirname, join } from 'node:path';
 
+/** @public */
 export const FUNCTION_DIRECTORY = '_qwik-city-edge';
 
 /** @public */

@@ -1017,6 +1017,7 @@ export const vnode_remove = (
   vToRemove: VNode,
   removeDOM: boolean
 ) => {
+  assertEqual(vParent, vnode_getParent(vToRemove), 'Parent mismatch.');
   if (vnode_isTextVNode(vToRemove)) {
     vnode_ensureTextInflated(journal, vToRemove);
   }
@@ -1365,7 +1366,8 @@ export function vnode_toString(
     if (vnode_isTextVNode(vnode)) {
       strings.push(stringify(vnode_getText(vnode)));
     } else if (vnode_isVirtualVNode(vnode)) {
-      const attrs: string[] = [];
+      const idx = vnode[VNodeProps.flags] >>> VNodeFlagsIndex.shift;
+      const attrs: string[] = ['[' + String(idx) + ']'];
       vnode_getAttrKeys(vnode).forEach((key) => {
         if (key !== DEBUG_TYPE) {
           const value = vnode_getAttr(vnode!, key);

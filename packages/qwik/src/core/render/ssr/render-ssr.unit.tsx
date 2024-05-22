@@ -1462,7 +1462,7 @@ test('html slot', async () => {
       <!--qv q:id=0 q:key=sX:-->
       <!--qv q:s q:sref=0 q:key=-->
       <head q:head>
-        <meta charset="utf-8" q:head />
+        <meta charset="UTF-8" q:head />
         <title q:head>Qwik</title>
         <link rel="stylesheet" href="/global.css" />
         <style q:style="fio5tb-1" hidden>

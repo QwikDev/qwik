@@ -56,7 +56,6 @@ export type { SSRStreamProps, SSRHintProps, SSRStreamChildren } from './render/j
 export { Slot } from './render/jsx/slot.public';
 export {
   Fragment,
-  HTMLFragment,
   RenderOnce,
   jsx,
   jsxDEV,

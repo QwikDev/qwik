@@ -978,20 +978,6 @@
       "mdFile": "qwik.htmlelementattrs.md"
     },
     {
-      "name": "HTMLFragment",
-      "id": "htmlfragment",
-      "hierarchy": [
-        {
-          "name": "HTMLFragment",
-          "id": "htmlfragment"
-        }
-      ],
-      "kind": "Variable",
-      "content": "```typescript\nHTMLFragment: FunctionComponent<{\n    dangerouslySetInnerHTML: string;\n}>\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts",
-      "mdFile": "qwik.htmlfragment.md"
-    },
-    {
       "name": "HtmlHTMLAttributes",
       "id": "htmlhtmlattributes",
       "hierarchy": [

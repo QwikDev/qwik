@@ -442,11 +442,6 @@ export interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLEle
 }
 
 // @public (undocumented)
-export const HTMLFragment: FunctionComponent<{
-    dangerouslySetInnerHTML: string;
-}>;
-
-// @public (undocumented)
 export interface HtmlHTMLAttributes<T extends Element> extends Attrs<'html', T> {
 }
 

@@ -12,7 +12,7 @@ import { useVisibleTask$, useTask$ } from '../../use/use-task';
 import { delay } from '../../util/promises';
 import { SSRComment, SSRRaw } from '../jsx/utils.public';
 import { Slot } from '../jsx/slot.public';
-import { HTMLFragment, jsx } from '../jsx/jsx-runtime';
+import { jsx } from '../jsx/jsx-runtime';
 import { _renderSSR, type RenderSSROptions } from './render-ssr';
 import { useStore } from '../../use/use-store.public';
 import { useSignal } from '../../use/use-signal';
@@ -1425,22 +1425,6 @@ test.skip('ssr raw', async () => {
   <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
     <body>
       <div>hello</div>
-    </body>
-  </html>`
-  );
-});
-
-test.skip('html fragment', async () => {
-  await testSSR(
-    <body>
-      <HTMLFragment dangerouslySetInnerHTML="<div>hello</div>" />
-    </body>,
-    `
-  <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
-    <body>
-      <!--qv-->
-      <div>hello</div>
-      <!--/qv-->
     </body>
   </html>`
   );

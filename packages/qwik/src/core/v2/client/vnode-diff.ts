@@ -9,6 +9,7 @@ import { Fragment, JSXNodeImpl, isJSXNode, type Props } from '../../render/jsx/j
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
+import { SSRComment } from '../../render/jsx/utils.public';
 import { SubscriptionType } from '../../state/common';
 import { SignalDerived, isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
@@ -92,7 +93,6 @@ import {
   vnode_truncate,
   type VNodeJournal,
 } from './vnode';
-import { SSRComment } from '../../render/jsx/utils.public';
 
 export type ComponentQueue = Array<VNode>;
 
@@ -533,7 +533,11 @@ export const vnode_diff = (
         const toRemove = vCurrent;
         advanceToNextSibling();
         cleanup(container, toRemove);
-        vnode_remove(journal, vParent as ElementVNode | VirtualVNode, toRemove, true);
+        if (vParent === vnode_getParent(toRemove)) {
+          // If we are diffing projection than the parent is not the parent of the node.
+          // If that is the case we don't want to remove the node from the parent.
+          vnode_remove(journal, vParent as ElementVNode | VirtualVNode, toRemove, true);
+        }
       }
     }
   }

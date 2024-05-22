@@ -1171,6 +1171,70 @@ describe.each([
         </Component>
       );
     });
+
+    it('should not go into an infinity loop because of removing nodes from q:template', async () => {
+      const Projector = component$(() => {
+        return (
+          <div>
+            <Slot name="start"></Slot>
+          </div>
+        );
+      });
+
+      const SlotParent = component$(() => {
+        const showContent = useSignal(true);
+        return (
+          <>
+            <Projector>
+              {showContent.value && <>DEFAULT</>}
+              <span q:slot="ignore">IGNORE</span>
+            </Projector>
+            <Projector>
+              {showContent.value && <>DEFAULT</>}
+              <span q:slot="ignore">IGNORE</span>
+            </Projector>
+            <button onClick$={() => (showContent.value = !showContent.value)}></button>
+          </>
+        );
+      });
+
+      const { document, vNode } = await render(<SlotParent />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <Component>
+              <div>
+                <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+              </div>
+            </Component>
+            <Component>
+              <div>
+                <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+              </div>
+            </Component>
+            <button></button>
+          </Fragment>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <Component>
+              <div>
+                <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+              </div>
+            </Component>
+            <Component>
+              <div>
+                <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+              </div>
+            </Component>
+            <button></button>
+          </Fragment>
+        </Component>
+      );
+    });
   });
 
   describe('svg', () => {

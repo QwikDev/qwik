@@ -132,4 +132,5 @@ export interface QwikCityVercelEdgeOptions extends ServerRenderOptions {}
 export interface PlatformVercelEdge {}
 
 /** For backward compatibility */
+/** @public */
 export interface PlatformVercel {}

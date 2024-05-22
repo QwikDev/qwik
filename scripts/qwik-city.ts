@@ -673,7 +673,9 @@ async function buildMiddlewareVercelEdge(config: BuildConfig) {
 }
 
 async function buildMiddlewareVercelServerless(config: BuildConfig) {
-  const entryPoints = [join(config.srcQwikCityDir, 'middleware', 'vercel', 'serverless', 'index.ts')];
+  const entryPoints = [
+    join(config.srcQwikCityDir, 'middleware', 'vercel', 'serverless', 'index.ts'),
+  ];
 
   await build({
     entryPoints,

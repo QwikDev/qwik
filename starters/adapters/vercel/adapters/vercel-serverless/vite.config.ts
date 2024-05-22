@@ -1,4 +1,7 @@
-import { vercelServerlessAdapter, FUNCTION_DIRECTORY } from "@builder.io/qwik-city/adapters/vercel/serverless";
+import {
+  vercelServerlessAdapter,
+  FUNCTION_DIRECTORY,
+} from "@builder.io/qwik-city/adapters/vercel/serverless";
 import { extendConfig } from "@builder.io/qwik-city/vite";
 import baseConfig from "../../vite.config";
 

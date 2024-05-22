@@ -9,6 +9,7 @@ import { Fragment, JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
+import { SSRComment } from '../../render/jsx/utils.public';
 import { SubscriptionType } from '../../state/common';
 import { isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
@@ -84,7 +85,6 @@ import {
   vnode_truncate,
   type VNodeJournal,
 } from './vnode';
-import { SSRComment } from '../../render/jsx/utils.public';
 
 export type ComponentQueue = Array<VNode>;
 
@@ -522,13 +522,9 @@ export const vnode_diff = (
         const toRemove = vCurrent;
         advanceToNextSibling();
         cleanup(container, toRemove);
-        if (
-          toRemove[VNodeProps.flags] & VNodeFlags.Virtual &&
-          vnode_getProp(toRemove as VirtualVNode, QSlot, null) !== null
-        ) {
-          // move projected node to the q:template on remove
-          vnode_insertBefore(journal, container.qTemplate, toRemove, null);
-        } else {
+        if (vParent === vnode_getParent(toRemove)) {
+          // If we are diffing projection than the parent is not the parent of the node.
+          // If that is the case we don't want to remove the node from the parent.
           vnode_remove(journal, vParent as ElementVNode | VirtualVNode, toRemove, true);
         }
       }

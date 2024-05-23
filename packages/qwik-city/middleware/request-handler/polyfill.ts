@@ -74,7 +74,6 @@ export class _TextEncoderStream_polyfill {
   }
 }
 
-
 const resolved = Promise.resolve();
 /** @internal */
 export class _TextEncoderStream_polyfill2 {

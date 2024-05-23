@@ -94,6 +94,8 @@ export const VirtualTypeName: Record<string, string> = {
 
 // these values are used in the qwik loader as a plain text for the q:container selector
 export const enum QContainerValue {
+  // standard dangerouslySetInnerHTML
   HTML = 'html',
+  // textarea
   TEXT = 'text',
 }

@@ -1036,9 +1036,14 @@ export const vnode_remove = (
   vToRemove[VNodeProps.previousSibling] = null;
   vToRemove[VNodeProps.nextSibling] = null;
   if (removeDOM) {
-    const domParent = vnode_getDomParent(vParent)!;
+    const domParent = vnode_getDomParent(vParent);
+    const isInnerHTMLParent = vnode_getAttr(vParent, dangerouslySetInnerHTML);
+    if (isInnerHTMLParent) {
+      // ignore children, as they are inserted via innerHTML
+      return;
+    }
     const children = vnode_getDOMChildNodes(journal, vToRemove);
-    children.length && journal.push(VNodeJournalOpCode.Remove, domParent, ...children);
+    domParent && children.length && journal.push(VNodeJournalOpCode.Remove, domParent, ...children);
   }
 };
 
@@ -1069,9 +1074,9 @@ export const vnode_truncate = (
   vDelete: VNode
 ) => {
   assertDefined(vDelete, 'Missing vDelete.');
-  const parent = vnode_getDomParent(vParent)!;
+  const parent = vnode_getDomParent(vParent);
   const children = vnode_getDOMChildNodes(journal, vDelete);
-  children.length && journal.push(VNodeJournalOpCode.Remove, parent, ...children);
+  parent && children.length && journal.push(VNodeJournalOpCode.Remove, parent, ...children);
   const vPrevious = vDelete[VNodeProps.previousSibling];
   if (vPrevious) {
     vPrevious[VNodeProps.nextSibling] = null;

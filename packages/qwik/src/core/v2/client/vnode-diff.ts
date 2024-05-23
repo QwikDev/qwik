@@ -9,7 +9,7 @@ import { Fragment, JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
-import { SSRComment } from '../../render/jsx/utils.public';
+import { SSRComment, SkipRender } from '../../render/jsx/utils.public';
 import { SubscriptionType } from '../../state/common';
 import { isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
@@ -216,6 +216,8 @@ export const vnode_diff = (
               }
             }
           }
+        } else if (jsxValue === SkipRender) {
+          // do nothing, we are skipping this node
         } else {
           expectText('');
         }

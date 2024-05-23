@@ -4,6 +4,7 @@ import {
   Fragment,
   SSRComment,
   Fragment as Signal,
+  SkipRender,
   component$,
   h,
   jsx,
@@ -1213,6 +1214,133 @@ describe.each([
               <div class="renders">1</div>
             </div>
           </Component>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should skip render', async () => {
+    const SkipRenderTest = component$(() => {
+      const count = useSignal(0);
+      if (count.value % 3 !== 0) {
+        return SkipRender;
+      }
+      const countV = count.value + '';
+      return (
+        <>
+          <button onClick$={() => count.value++}>Increment {countV}</button>
+          <div>Number: {count.value}</div>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<SkipRenderTest />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button>
+            {'Increment '}
+            {'0'}
+          </button>
+          <div>
+            {'Number: '}
+            <Signal>0</Signal>
+          </div>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button>
+            {'Increment '}
+            {'0'}
+          </button>
+          <div>
+            {'Number: '}
+            <Signal>1</Signal>
+          </div>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button>
+            {'Increment '}
+            {'0'}
+          </button>
+          <div>
+            {'Number: '}
+            <Signal>2</Signal>
+          </div>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button>
+            {'Increment '}
+            {'3'}
+          </button>
+          <div>
+            {'Number: '}
+            <Signal>3</Signal>
+          </div>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button>
+            {'Increment '}
+            {'3'}
+          </button>
+          <div>
+            {'Number: '}
+            <Signal>4</Signal>
+          </div>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button>
+            {'Increment '}
+            {'3'}
+          </button>
+          <div>
+            {'Number: '}
+            <Signal>5</Signal>
+          </div>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button>
+            {'Increment '}
+            {'6'}
+          </button>
+          <div>
+            {'Number: '}
+            <Signal>6</Signal>
+          </div>
         </Fragment>
       </Component>
     );

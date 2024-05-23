@@ -52,7 +52,7 @@ describe('PrefetchServiceWorker', () => {
     });
     it('should render script with a custom service-worker path with different base', async () => {
       const output = await renderToString(
-        <PrefetchServiceWorker path="patrickjs-service-worker.js" base="/build/" />,
+        <PrefetchServiceWorker path="patrickjs-service-worker.js" base="/build2/" />,
         {
           containerTagName: 'div',
         }
@@ -60,7 +60,7 @@ describe('PrefetchServiceWorker', () => {
       // eslint-disable-next-line no-console
       console.log('>>>>', output.html);
       expect(output.html).to.includes('scope: "/"');
-      expect(output.html).to.includes('"/build/patrickjs-service-worker.js"');
+      expect(output.html).to.includes('"/build2/patrickjs-service-worker.js"');
     });
     it('should render script with a custom path', async () => {
       const output = await renderToString(

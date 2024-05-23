@@ -38,6 +38,16 @@ describe('PrefetchServiceWorker', () => {
       expect(output.html).to.includes('scope: "/"');
       expect(output.html).to.includes('"/build/en/qwik-prefetch-service-worker.js"');
     });
+    it('should render script with without base and only q:base', async () => {
+      const output = await renderToString(<PrefetchServiceWorker />, {
+        base: '/build/en/',
+        containerTagName: 'div',
+      });
+      // eslint-disable-next-line no-console
+      console.log('>>>>', output.html);
+      expect(output.html).to.includes('scope: "/"');
+      expect(output.html).to.includes('"/qwik-prefetch-service-worker.js"');
+    });
     it('should render script with a custom service-worker path', async () => {
       const output = await renderToString(
         <PrefetchServiceWorker path="patrickjs-service-worker.js" />,

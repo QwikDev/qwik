@@ -596,6 +596,7 @@ export const PrefetchGraph: (opts?: {
 // @alpha
 export const PrefetchServiceWorker: (opts: {
     base?: string;
+    scope?: string;
     path?: string;
     verbose?: boolean;
     fetchBundleGraph?: boolean;

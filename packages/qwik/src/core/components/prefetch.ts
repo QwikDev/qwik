@@ -1,5 +1,6 @@
 import { isDev } from '@builder.io/qwik/build';
 import { _jsxC } from '../internal';
+import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 
 /**
  * Install a service worker which will prefetch the bundles.
@@ -27,7 +28,7 @@ export const PrefetchServiceWorker = (opts: {
   verbose?: boolean;
   fetchBundleGraph?: boolean;
   nonce?: string;
-}) => {
+}): JSXNode<'script'> => {
   const resolvedOpts = {
     base: import.meta.env.BASE_URL || '/',
     scope: '/',

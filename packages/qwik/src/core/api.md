@@ -5,7 +5,7 @@
 ```ts
 
 import * as CSS_2 from 'csstype';
-import { JSXNode as JSXNode_2 } from '@builder.io/qwik/jsx-runtime';
+import type { JSXNode as JSXNode_2 } from '@builder.io/qwik/jsx-runtime';
 
 // @public
 export const $: <T>(expression: T) => QRL<T>;
@@ -601,7 +601,7 @@ export const PrefetchServiceWorker: (opts: {
     verbose?: boolean;
     fetchBundleGraph?: boolean;
     nonce?: string;
-}) => JSXNode_2<"script">;
+}) => JSXNode_2<'script'>;
 
 // @public (undocumented)
 export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progress', T> {

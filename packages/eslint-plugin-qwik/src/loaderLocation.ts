@@ -56,9 +56,9 @@ If you understand this, you can disable this warning with:
   create(context) {
     const routesDir = context.options?.[0]?.routesDir ?? 'src/routes';
     const path = normalizePath(context.getFilename());
-    const isLayout = /\/layout(|!|-.+)\.tsx?$/.test(path);
-    const isIndex = /\/index(|!|@.+)\.tsx?$/.test(path);
-    const isPlugin = /\/plugin(|@.+)\.tsx?$/.test(path);
+    const isLayout = /\/layout(|!|-.+)\.(j|t)sx?$/.test(path);
+    const isIndex = /\/index(|!|@.+)\.(j|t)sx?$/.test(path);
+    const isPlugin = /\/plugin(|@.+)\.(j|t)sx?$/.test(path);
     const isInsideRoutes = new RegExp(`/${routesDir}/`).test(path);
 
     const canContainLoader = isInsideRoutes && (isIndex || isLayout || isPlugin);

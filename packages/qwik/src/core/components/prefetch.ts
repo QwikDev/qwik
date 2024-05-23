@@ -62,6 +62,7 @@ export const PrefetchServiceWorker = (opts: {
       );
     }
     if (resolvedOpts.verbose) {
+      // eslint-disable-next-line no-console
       console.log(
         'Installing <PrefetchServiceWorker /> service-worker with options:',
         resolvedOpts

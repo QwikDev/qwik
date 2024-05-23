@@ -30,25 +30,33 @@ export const PrefetchServiceWorker = (opts: {
     path: 'qwik-prefetch-service-worker.js',
     ...opts,
   };
+  if (opts?.path?.startsWith?.('/')) {
+    // allow different path and base
+    resolvedOpts.path = opts.path;
+  } else {
+    // base: '/'
+    // path: 'qwik-prefetch-service-worker.js
+    resolvedOpts.path = resolvedOpts.base + resolvedOpts.path;
+  }
   // dev only errors
   if (isDev) {
     // Check if base ends with a '/'
-    if (!base.endsWith('/')) {
+    if (!resolvedOpts.base.endsWith('/')) {
       throw new Error(`The 'base' option should always end with a '/'. Received: ${base}`);
     }
     // Check if path does not start with a '/' and ends with '.js'
-    if (path.startsWith('/') || !path.endsWith('.js')) {
-      throw new Error(`The 'path' option should never start with '/' and must end with '.js'. Received: ${path}`);
+    if (!resolvedOpts.path.endsWith('.js')) {
+      throw new Error(`The 'path' option must end with '.js'. Received: ${path}`);
     }
     // Validate service worker scope (must start with a '/' and not contain spaces)
-    if (!scope.startsWith('/') || /\s/.test(scope)) {
+    if (!resolvedOpts.scope.startsWith('/') || /\s/.test(resolvedOpts.scope)) {
       throw new Error(`Invalid 'scope' option for service worker. It must start with '/' and contain no spaces. Received: ${scope}`);
     }
     if (resolvedOpts.verbose) {
       console.log('Installing <PrefetchServiceWorker /> service-worker with options:', { base, scope, path, verbose });
     }
   }  
-  let code = PREFETCH_CODE.replace('URL', resolvedOpts.base + resolvedOpts.path).replace(
+  let code = PREFETCH_CODE.replace('URL', resolvedOpts.path).replace(
     'SCOPE',
     resolvedOpts.scope
   );
@@ -66,7 +74,7 @@ export const PrefetchServiceWorker = (opts: {
       ].join(','),
       ');',
     ].join(''),
-    nonce: opts.nonce,
+    nonce: resolvedOpts.nonce,
   };
   return _jsxC('script', props, 0, 'prefetch-service-worker');
 };

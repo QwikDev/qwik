@@ -7,16 +7,17 @@ import { _jsxC } from '../internal';
  * There can only be one service worker per page. Because there can be many separate Qwik Containers
  * on the page each container needs to load its prefetch graph using `PrefetchGraph` component.
  *
- * @param {Object} opts - Options for the prefetch service worker.
- * @param {string} [opts.base=import.meta.env.BASE_URL] - Base URL for the service worker
- *   `import.meta.env.BASE_URL` or `'/'`. Default is `import.meta.env.BASE_URL`
- * @param {string} [opts.scope='/'] - Base URL for when the service-worker will activate. Default is
- *   `'/'`
- * @param {string} [opts.path='qwik-prefetch-service-worker.js'] - Path to the service worker.
- *   Default is `'${opts.base}qwik-prefetch-service-worker.js'` unless you pass a a path that starts
- *   with a '/' then the base is ignored. Default is `'qwik-prefetch-service-worker.js'`
- * @param {boolean} [opts.verbose=false] - Verbose logging for the service worker installation.
- *   Default is `false`
+ * @param opts - Options for the prefetch service worker.
+ *
+ *   - `base` - Base URL for the service worker `import.meta.env.BASE_URL` or `/`. Default is
+ *       `import.meta.env.BASE_URL`
+ *   - `scope` - Base URL for when the service-worker will activate. Default is `/`
+ *   - `path` - Path to the service worker. Default is `qwik-prefetch-service-worker.js` unless you pass
+ *       a path that starts with a `/` then the base is ignored. Default is
+ *       `qwik-prefetch-service-worker.js`
+ *   - `verbose` - Verbose logging for the service worker installation. Default is `false`
+ *   - `nonce` - Optional nonce value for security purposes, defaults to `undefined`.
+ *
  * @alpha
  */
 export const PrefetchServiceWorker = (opts: {

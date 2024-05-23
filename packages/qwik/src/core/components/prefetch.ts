@@ -8,11 +8,15 @@ import { _jsxC } from '../internal';
  * on the page each container needs to load its prefetch graph using `PrefetchGraph` component.
  *
  * @param {Object} opts - Options for the prefetch service worker.
- * @param {string} [opts.base=import.meta.env.BASE_URL] - Base URL for the service worker. Default is import.meta.env.BASE_URL or '/'.
- * @param {string} [opts.scope='/'] - Base URL for when the service-worker will activate. Default is '/'.
- * @param {string} [opts.path='qwik-prefetch-service-worker.js'] - Path to the service worker. Default is 'qwik-prefetch-service-worker.js'.
- * @param {boolean} [opts.verbose=false] - Verbose logging for the service worker installation. Default is false.
- *
+ * @param {string} [opts.base=import.meta.env.BASE_URL] - Base URL for the service worker
+ *   `import.meta.env.BASE_URL` or `'/'`. Default is `import.meta.env.BASE_URL`
+ * @param {string} [opts.scope='/'] - Base URL for when the service-worker will activate. Default is
+ *   `'/'`
+ * @param {string} [opts.path='qwik-prefetch-service-worker.js'] - Path to the service worker.
+ *   Default is `'${opts.base}qwik-prefetch-service-worker.js'` unless you pass a a path that starts
+ *   with a '/' then the base is ignored. Default is `'qwik-prefetch-service-worker.js'`
+ * @param {boolean} [opts.verbose=false] - Verbose logging for the service worker installation.
+ *   Default is `false`
  * @alpha
  */
 export const PrefetchServiceWorker = (opts: {
@@ -42,24 +46,28 @@ export const PrefetchServiceWorker = (opts: {
   if (isDev) {
     // Check if base ends with a '/'
     if (!resolvedOpts.base.endsWith('/')) {
-      throw new Error(`The 'base' option should always end with a '/'. Received: ${base}`);
+      throw new Error(
+        `The 'base' option should always end with a '/'. Received: ${resolvedOpts.base}`
+      );
     }
     // Check if path does not start with a '/' and ends with '.js'
     if (!resolvedOpts.path.endsWith('.js')) {
-      throw new Error(`The 'path' option must end with '.js'. Received: ${path}`);
+      throw new Error(`The 'path' option must end with '.js'. Received: ${resolvedOpts.path}`);
     }
     // Validate service worker scope (must start with a '/' and not contain spaces)
     if (!resolvedOpts.scope.startsWith('/') || /\s/.test(resolvedOpts.scope)) {
-      throw new Error(`Invalid 'scope' option for service worker. It must start with '/' and contain no spaces. Received: ${scope}`);
+      throw new Error(
+        `Invalid 'scope' option for service worker. It must start with '/' and contain no spaces. Received: ${resolvedOpts.scope}`
+      );
     }
     if (resolvedOpts.verbose) {
-      console.log('Installing <PrefetchServiceWorker /> service-worker with options:', { base, scope, path, verbose });
+      console.log(
+        'Installing <PrefetchServiceWorker /> service-worker with options:',
+        resolvedOpts
+      );
     }
-  }  
-  let code = PREFETCH_CODE.replace('URL', resolvedOpts.path).replace(
-    'SCOPE',
-    resolvedOpts.scope
-  );
+  }
+  let code = PREFETCH_CODE.replace('URL', resolvedOpts.path).replace('SCOPE', resolvedOpts.scope);
   if (!isDev) {
     code = code.replaceAll(/\s+/gm, '');
   }

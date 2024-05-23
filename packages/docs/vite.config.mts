@@ -113,9 +113,6 @@ export default defineConfig(async () => {
         },
       }),
       qwikVite(),
-      partytownVite({
-        dest: resolve('dist', '~partytown'),
-      }),
       examplesData(routesDir),
       playgroundData(routesDir),
       tutorialData(routesDir),

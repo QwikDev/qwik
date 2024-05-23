@@ -22,7 +22,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
     new globalThis.TextEncoderStream();
   } catch (e) {
     // @ts-ignore
-    globalThis.TextEncoderStream = _TextEncoderStream_polyfill;
+    globalThis.TextEncoderStream = _TextEncoderStream_polyfill2;
   }
   const qwikSerializer = {
     _deserializeData,

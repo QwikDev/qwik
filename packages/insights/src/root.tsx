@@ -1,13 +1,8 @@
+import './global.css';
 import { component$, useContextProvider, useStore } from '@builder.io/qwik';
 import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
 import { Insights } from '@builder.io/qwik-labs';
-
-import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';
-import { GlobalStore, type SiteStore } from './context';
-import { BUILDER_PUBLIC_API_KEY } from './constants';
-
-import './global.css';
 
 export const uwu = /*javascript*/ `
 ;(function () {
@@ -42,23 +37,16 @@ export const uwu = /*javascript*/ `
 })();
 `;
 export default component$(() => {
-  const store = useStore<SiteStore>({
-    headerMenuOpen: false,
-    sideMenuOpen: false,
-    theme: 'auto',
-  });
-
-  useContextProvider(GlobalStore, store);
-
   return (
     <QwikCityProvider>
       <head>
-        <script dangerouslySetInnerHTML={uwu} />
         <meta charset="utf-8" />
+        <script dangerouslySetInnerHTML={uwu} />
         <RouterHead />
-        <ServiceWorkerRegister />
-        {/* <script dangerouslySetInnerHTML={`(${collectSymbols})()`} /> */}
-        <Insights publicApiKey={import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY} />
+        <Insights
+          publicApiKey={import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY}
+          postUrl="/api/v1/${publicApiKey}/post/"
+        />
       </head>
       <body
         class={{
@@ -67,13 +55,8 @@ export default component$(() => {
         }}
       >
         <RouterOutlet />
-        <RealMetricsOptimization builderApiKey={BUILDER_PUBLIC_API_KEY} />
+        <ServiceWorkerRegister />
       </body>
     </QwikCityProvider>
   );
 });
-
-export function collectSymbols() {
-  (window as any).symbols = [];
-  document.addEventListener('qsymbol', (e) => (window as any).symbols.push((e as any).detail));
-}

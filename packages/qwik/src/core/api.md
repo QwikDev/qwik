@@ -120,8 +120,6 @@ export interface ClientContainer extends Container2 {
     // (undocumented)
     $setRawState$(id: number, vParent: _ElementVNode | _VirtualVNode): void;
     // (undocumented)
-    addVNodeProjection(componentVNodeWithProjection: _VirtualVNode): void;
-    // (undocumented)
     document: _QDocument;
     // (undocumented)
     element: _ContainerElement;
@@ -265,8 +263,6 @@ class DomContainer extends _SharedContainer implements ClientContainer, StoreTra
     // (undocumented)
     $setRawState$(id: number, vParent: _ElementVNode | _VirtualVNode): void;
     constructor(element: _ContainerElement);
-    // (undocumented)
-    addVNodeProjection(componentVNodeWithProjection: _VirtualVNode): void;
     // (undocumented)
     document: _QDocument;
     // (undocumented)

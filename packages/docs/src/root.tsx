@@ -7,38 +7,6 @@ import './global.css';
 import { BUILDER_PUBLIC_API_KEY } from './constants';
 import { Insights } from '@builder.io/qwik-labs';
 
-export const uwu = /*javascript*/ `
-;(function () {
-  try {
-    var preferredUwu;
-    try {
-      preferredUwu = localStorage.getItem('uwu');
-    } catch (err) { }
-
-    const isUwuValue = window.location
-      && window.location.search
-      && window.location.search.match(/uwu=(true|false)/);
-
-    if (isUwuValue) {
-      const isUwu = isUwuValue[1] === 'true';
-      if (isUwu) {
-        try {
-          localStorage.setItem('uwu', true);
-        } catch (err) { }
-        document.documentElement.classList.add('uwu');
-        console.log('uwu mode enabled. turn off with ?uwu=false')
-        console.log('logo credit to @sawaratsuki1004 via https://github.com/SAWARATSUKI/ServiceLogos');
-      } else {
-        try {
-          localStorage.removeItem('uwu', false);
-        } catch (err) { }
-      }
-    } else if (preferredUwu) {
-      document.documentElement.classList.add('uwu');
-    }
-  } catch (err) { }
-})();
-`;
 export default component$(() => {
   const store = useStore<SiteStore>({
     headerMenuOpen: false,
@@ -52,7 +20,6 @@ export default component$(() => {
     <QwikCityProvider>
       <head>
         <meta charset="utf-8" />
-        <script dangerouslySetInnerHTML={uwu} />
         <RouterHead />
         <ServiceWorkerRegister />
         {/* <script dangerouslySetInnerHTML={`(${collectSymbols})()`} /> */}

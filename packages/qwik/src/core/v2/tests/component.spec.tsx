@@ -5,6 +5,8 @@ import {
   SSRComment,
   Fragment as Signal,
   component$,
+  h,
+  jsx,
   useComputed$,
   useVisibleTask$,
 } from '@builder.io/qwik';
@@ -1217,6 +1219,91 @@ describe.each([
   });
 
   describe('regression', () => {
+    it('#3643', async () => {
+      const Issue3643 = component$(() => {
+        const toggle = useSignal(false);
+        return (
+          <main>
+            <button onClick$={() => (toggle.value = !toggle.value)}>Toggle</button>
+            <div>
+              {toggle.value
+                ? h('div', {}, 'World')
+                : h('div', { dangerouslySetInnerHTML: 'Hello' })}
+            </div>
+            <div>
+              {toggle.value
+                ? jsx('div', { children: 'World' })
+                : jsx('div', { dangerouslySetInnerHTML: 'Hello' })}
+            </div>
+          </main>
+        );
+      });
+      const { document, container } = await render(<Issue3643 />, { debug });
+      await expect(document.querySelector('main')).toMatchDOM(
+        <main>
+          <button>Toggle</button>
+          <div>
+            <div>Hello</div>
+          </div>
+          <div>
+            <div>Hello</div>
+          </div>
+        </main>
+      );
+
+      await trigger(container.element, 'button', 'click');
+      await expect(document.querySelector('main')).toMatchDOM(
+        <main>
+          <button>Toggle</button>
+          <div>
+            <div>World</div>
+          </div>
+          <div>
+            <div>World</div>
+          </div>
+        </main>
+      );
+
+      await trigger(container.element, 'button', 'click');
+      await expect(document.querySelector('main')).toMatchDOM(
+        <main>
+          <button>Toggle</button>
+          <div>
+            <div>Hello</div>
+          </div>
+          <div>
+            <div>Hello</div>
+          </div>
+        </main>
+      );
+
+      await trigger(container.element, 'button', 'click');
+      await expect(document.querySelector('main')).toMatchDOM(
+        <main>
+          <button>Toggle</button>
+          <div>
+            <div>World</div>
+          </div>
+          <div>
+            <div>World</div>
+          </div>
+        </main>
+      );
+
+      await trigger(container.element, 'button', 'click');
+      await expect(document.querySelector('main')).toMatchDOM(
+        <main>
+          <button>Toggle</button>
+          <div>
+            <div>Hello</div>
+          </div>
+          <div>
+            <div>Hello</div>
+          </div>
+        </main>
+      );
+    });
+
     it('#5647', async () => {
       const ChildNested = component$(() => {
         return <div>Nested</div>;

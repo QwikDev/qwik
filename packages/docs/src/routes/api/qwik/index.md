@@ -3521,7 +3521,7 @@ _(Optional)_ Options for the loading prefetch graph.
 </tbody></table>
 **Returns:**
 
-import("@builder.io/qwik/jsx-runtime").[JSXNode](#jsxnode)&lt;"script"&gt;
+import("@builder.io/qwik/jsx-runtime").JSXNode&lt;"script"&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -3536,6 +3536,7 @@ There can only be one service worker per page. Because there can be many separat
 ```typescript
 PrefetchServiceWorker: (opts: {
   base?: string;
+  scope?: string;
   path?: string;
   verbose?: boolean;
   fetchBundleGraph?: boolean;
@@ -3562,19 +3563,19 @@ opts
 
 </td><td>
 
-{ base?: string; path?: string; verbose?: boolean; fetchBundleGraph?: boolean; nonce?: string; }
+{ base?: string; scope?: string; path?: string; verbose?: boolean; fetchBundleGraph?: boolean; nonce?: string; }
 
 </td><td>
 
 Options for the prefetch service worker.
 
-- `base` - Base URL for the service worker. - `path` - Path to the service worker.
+- `base` - Base URL for the service worker `import.meta.env.BASE_URL` or `/`. Default is `import.meta.env.BASE_URL` - `scope` - Base URL for when the service-worker will activate. Default is `/` - `path` - Path to the service worker. Default is `qwik-prefetch-service-worker.js` unless you pass a path that starts with a `/` then the base is ignored. Default is `qwik-prefetch-service-worker.js` - `verbose` - Verbose logging for the service worker installation. Default is `false` - `nonce` - Optional nonce value for security purposes, defaults to `undefined`.
 
 </td></tr>
 </tbody></table>
 **Returns:**
 
-import("@builder.io/qwik/jsx-runtime").[JSXNode](#jsxnode)&lt;"script"&gt;
+import("@builder.io/qwik/jsx-runtime").JSXNode&lt;"script"&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 

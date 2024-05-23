@@ -121,7 +121,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   private stateData: unknown[];
   private $styleIds$: Set<string> | null = null;
   private $vnodeLocate$: (id: string) => VNode = (id) => vnode_locate(this.rootVNode, id);
-  private vNodesWithProjections: Array<VirtualVNode> = [];
 
   constructor(element: ContainerElement) {
     super(
@@ -305,10 +304,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
         }
       }
     }
-  }
-
-  addVNodeProjection(componentVNodeWithProjection: VirtualVNode): void {
-    this.vNodesWithProjections.push(componentVNodeWithProjection);
   }
 
   $getObjectById$ = (id: number | string): unknown => {

@@ -20,7 +20,6 @@ export interface ClientContainer extends Container2 {
   $journal$: VNodeJournal;
   parseQRL<T = unknown>(qrl: string): QRL<T>;
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
-  addVNodeProjection(componentVNodeWithProjection: VirtualVNode): void;
 }
 
 /** @internal */

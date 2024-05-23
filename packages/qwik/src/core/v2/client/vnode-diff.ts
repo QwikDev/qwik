@@ -1006,10 +1006,6 @@ export const vnode_diff = (
       shouldRender = shouldRender || propsDiffer(jsxProps, vNodeProps);
       if (shouldRender) {
         container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
-
-        if (host) {
-          container.addVNodeProjection(host);
-        }
       }
       jsxValue.children != null && descendContentToProject(jsxValue.children);
     } else {
@@ -1049,7 +1045,6 @@ export const vnode_diff = (
         jsxValue.propsC
       );
       asyncQueue.push(jsxOutput, host);
-      container.addVNodeProjection(host);
     }
   }
 

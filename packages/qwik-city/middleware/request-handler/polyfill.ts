@@ -73,3 +73,39 @@ export class _TextEncoderStream_polyfill {
     return 'TextEncoderStream';
   }
 }
+
+const resolved = Promise.resolve();
+/** @internal */
+export class _TextEncoderStream_polyfill2 {
+  // minimal polyfill implementation of TextEncoderStream
+  // since Cloudflare Pages doesn't support readable.pipeTo()
+  _writer: any;
+  readable: any;
+  writable: any;
+
+  constructor() {
+    this._writer = null;
+    this.readable = {
+      pipeTo: (writableStream: any) => {
+        this._writer = writableStream.getWriter();
+      },
+    };
+    this.writable = {
+      getWriter: () => {
+        if (!this._writer) {
+          throw new Error('No writable stream');
+        }
+        const encoder = new TextEncoder();
+        return {
+          write: async (chunk: any) => {
+            if (chunk != null) {
+              await this._writer.write(encoder.encode(chunk));
+            }
+          },
+          close: () => this._writer.close(),
+          ready: resolved,
+        };
+      },
+    };
+  }
+}

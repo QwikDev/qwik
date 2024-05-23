@@ -233,6 +233,17 @@ export class _TextEncoderStream_polyfill {
     get writable(): WritableStream<string>;
 }
 
+// @internal (undocumented)
+export class _TextEncoderStream_polyfill2 {
+    constructor();
+    // (undocumented)
+    readable: any;
+    // (undocumented)
+    writable: any;
+    // (undocumented)
+    _writer: any;
+}
+
 // (No @packageDocumentation comment for this package)
 
 ```

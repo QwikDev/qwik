@@ -1,0 +1,26 @@
+name: Closing Issues For Inactivity
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  close-issues:
+    if: github.repository == 'QwikDev/qwik'
+    runs-on: ubuntu-latest
+    steps:
+      - name: needs reproduction
+        uses: actions-cool/issues-helper@v3
+        with:
+          actions: 'close-issues'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          labels: 'STATUS-2: needs reproduction'
+          inactive-day: 14
+
+      - name: missing info
+        uses: actions-cool/issues-helper@v3
+        with:
+          actions: 'close-issues'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          labels: 'STATUS-2: missing info'
+          inactive-day: 14

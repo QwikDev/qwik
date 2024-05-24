@@ -212,17 +212,13 @@ export interface QwikBundle {
     symbols?: string[];
 }
 
-// @public (undocumented)
+// @public
 export interface QwikManifest {
-    // (undocumented)
     bundles: {
         [fileName: string]: QwikBundle;
     };
-    // (undocumented)
     injections?: GlobalInjections[];
-    // (undocumented)
     manifestHash: string;
-    // (undocumented)
     mapping: {
         [symbolName: string]: string;
     };
@@ -238,7 +234,6 @@ export interface QwikManifest {
     platform?: {
         [name: string]: string;
     };
-    // (undocumented)
     symbols: {
         [symbolName: string]: QwikSymbol;
     };

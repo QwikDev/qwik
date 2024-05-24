@@ -138,7 +138,7 @@ export default defineConfig(async () => {
           defaultHandler(level, log);
         },
         output: {
-          experimentalMinChunkSize: 5000,
+          experimentalMinChunkSize: 2000,
           assetFileNames: 'assets/[hash].[ext]',
         },
       },

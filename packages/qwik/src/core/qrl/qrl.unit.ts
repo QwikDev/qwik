@@ -48,12 +48,17 @@ describe('serialization', () => {
       $symbol$: 'default',
       resolved: undefined,
     });
+    matchProps(parseQRL('./chunk#di#'), {
+      $chunk$: './chunk#di',
+      $symbol$: 'default',
+      resolved: undefined,
+    });
     matchProps(parseQRL('./chunk#mySymbol'), {
       $chunk$: './chunk',
       $symbol$: 'mySymbol',
     });
-    matchProps(parseQRL('./chunk#mySymbol'), {
-      $chunk$: './chunk',
+    matchProps(parseQRL('#mySymbol'), {
+      $chunk$: '',
       $symbol$: 'mySymbol',
     });
     matchProps(parseQRL('./chunk#s1'), {
@@ -73,6 +78,11 @@ describe('serialization', () => {
     });
     matchProps(parseQRL('./chunk#s1[1 b]'), {
       $chunk$: './chunk',
+      $symbol$: 's1',
+      $capture$: ['1', 'b'],
+    });
+    matchProps(parseQRL('./chunk#a#s1[1 b]'), {
+      $chunk$: './chunk#a',
       $symbol$: 's1',
       $capture$: ['1', 'b'],
     });

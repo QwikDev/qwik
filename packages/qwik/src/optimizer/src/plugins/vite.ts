@@ -486,19 +486,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
           if (opts.target === 'client') {
             // client build
-            const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
+            const outputAnalyzer = qwikPlugin.createOutputAnalyzer(rollupBundle);
 
             for (const [fileName, b] of Object.entries(rollupBundle)) {
-              if (b.type === 'chunk') {
-                outputAnalyzer.addBundle({
-                  fileName,
-                  modules: b.modules,
-                  imports: b.imports,
-                  dynamicImports: b.dynamicImports,
-                  size: b.code.length,
-                  exports: b.exports,
-                });
-              } else {
+              if (b.type === 'asset') {
                 const baseFilename = basePathname + fileName;
                 if (STYLING.some((ext) => fileName.endsWith(ext))) {
                   if (

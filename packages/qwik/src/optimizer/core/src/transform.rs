@@ -752,7 +752,6 @@ impl<'a> QwikTransform<'a> {
 	) -> ast::CallExpr {
 		let canonical_filename = get_canonical_filename(&symbol_name);
 
-		// We import from the given entry, or from the hook file directly
 		let mut url = ["./", &canonical_filename].concat();
 		if self.options.explicit_extensions {
 			url.push('.');

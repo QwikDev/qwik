@@ -14,6 +14,10 @@ Therefore, to solve the problem in the best possible way, please create a minima
 
 Without enough information to reproduce the issue, we will close it because we can't recreate and solve it.
 
+## Triaging Issues
+
+If you're interested in helping out with triaging issues, please follow the [Triaging Guide](./contributing/TRIAGE.md).
+
 ## Submitting a Pull Request (PR)
 
 ### Branch Organization

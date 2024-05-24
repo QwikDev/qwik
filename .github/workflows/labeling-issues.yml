@@ -1,0 +1,40 @@
+name: Labling Issues
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  handle-labeled:
+    if: github.repository == 'QwikDev/qwik'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: remove needs triage
+        if: contains(github.event.issue.labels.*.name, 'STATUS-1') && (contains(github.event.label.name, 'STATUS-2:') || contains(github.event.label.name, 'STATUS-3:'))
+        uses: actions-cool/issues-helper@v3
+        with:
+          actions: 'remove-labels'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          labels: 'STATUS-1: needs triage'
+
+      - name: needs reproduction time limit
+        if: contains(github.event.label.name, 'needs reproduction')
+        uses: actions-cool/issues-helper@v3
+        with:
+          actions: 'create-comment'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            Hello @${{ github.event.issue.user.login }}. Please provide a [minimal reproduction](https://stackoverflow.com/help/minimal-reproducible-example) using a GitHub repository or [StackBlitz](https://qwik.new). Issues marked with `STATUS-2: needs reproduction` will be automatically closed if they have no activity within 14 days.
+
+      - name: missing info time limit
+        if: contains(github.event.label.name, 'missing info')
+        uses: actions-cool/issues-helper@v3
+        with:
+          actions: 'create-comment'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            Hello @${{ github.event.issue.user.login }}. Please provide the missing information requested above. Issues marked with `STATUS-2: missing info` will be automatically closed if they have no activity within 14 days.

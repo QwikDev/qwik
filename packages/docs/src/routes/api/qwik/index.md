@@ -10726,7 +10726,7 @@ boolean
 
 </td><td>
 
-_(Optional)_ If `true` then all nested objects and arrays will be tracked as well. Default is `false`.
+_(Optional)_ If `true` then all nested objects and arrays will be tracked as well. Default is `true`.
 
 </td></tr>
 <tr><td>

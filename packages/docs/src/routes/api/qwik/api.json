@@ -3174,7 +3174,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface UseStoreOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[deep?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ If `true` then all nested objects and arrays will be tracked as well. Default is `false`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[reactive?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ If `false` then the object will not be tracked for changes. Default is `true`<!-- -->.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface UseStoreOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[deep?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ If `true` then all nested objects and arrays will be tracked as well. Default is `true`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[reactive?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ If `false` then the object will not be tracked for changes. Default is `true`<!-- -->.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-store.public.ts",
       "mdFile": "qwik.usestoreoptions.md"
     },

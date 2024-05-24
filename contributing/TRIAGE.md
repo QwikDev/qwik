@@ -50,7 +50,7 @@ Alright, Triage Titans! Somebody got a cool new feature idea or an awesome impro
 
 It's our job to make sure these enhancements are properly evaluated, prioritized, and brought to life.
 
-What helps the team to prioritize work is the number of 👍 votes by the community on the a specific issue.
+What helps the team to prioritize work is the number of 👍 votes by the community on a specific issue.
 
 ### A note about enhancements to the core:
 

@@ -1,6 +1,10 @@
 /* eslint-disable no-empty-pattern */
-import { assert, test, beforeAll, type TestAPI } from 'vitest';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { assert, beforeAll, test, type TestAPI } from 'vitest';
+import { build } from '../buildtime/build';
+import { createBuildContext } from '../buildtime/context';
 import type {
   BuildContext,
   BuildLayout,
@@ -8,13 +12,11 @@ import type {
   MarkdownAttributes,
   PluginOptions,
 } from '../buildtime/types';
-import { createBuildContext } from '../buildtime/context';
-import { tmpdir } from 'node:os';
 import { normalizePath } from './fs';
-import { build } from '../buildtime/build';
-import { fileURLToPath } from 'node:url';
 
 export { assert };
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 export function suite(title: string = 'qwik-city') {
   const rootDir = tmpdir();
@@ -40,7 +42,6 @@ export function testAppSuite(
   let buildCtx: BuildContext;
 
   beforeAll(async (testCtx) => {
-    const __dirname = fileURLToPath(new URL('.', import.meta.url));
     const testAppRootDir = join(__dirname, '..', '..', '..', 'starters', 'apps', 'qwikcity-test');
     const basePath = '/';
     const ctx = createBuildContext(testAppRootDir, basePath, userOpts);

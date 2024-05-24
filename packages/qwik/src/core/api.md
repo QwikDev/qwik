@@ -138,6 +138,8 @@ export interface ClientContainer extends Container2 {
     // (undocumented)
     qTemplate: _ElementVNode;
     // (undocumented)
+    renderDone: Promise<void>;
+    // (undocumented)
     rootVNode: _ElementVNode;
 }
 
@@ -302,7 +304,7 @@ class DomContainer extends _SharedContainer implements ClientContainer, StoreTra
     // (undocumented)
     get qTemplate(): _ElementVNode;
     // (undocumented)
-    renderDone: Promise<void> | null;
+    renderDone: Promise<void>;
     // (undocumented)
     rendering: boolean;
     // (undocumented)
@@ -310,7 +312,7 @@ class DomContainer extends _SharedContainer implements ClientContainer, StoreTra
     // (undocumented)
     rootVNode: _ElementVNode;
     // (undocumented)
-    scheduleRender(): Promise<void> | null;
+    scheduleRender(): Promise<void>;
     // (undocumented)
     setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)
@@ -411,6 +413,11 @@ export function getLocale(defaultLocale?: string): string;
 
 // @public
 export const getPlatform: () => CorePlatform;
+
+// Warning: (ae-incompatible-release-tags) The symbol "getQContainerElement" is marked as @public, but its signature references "_ElementVNode" which is marked as @internal
+//
+// @public (undocumented)
+export function getQContainerElement(element: Element | _ElementVNode): Element | null;
 
 // @public
 function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;

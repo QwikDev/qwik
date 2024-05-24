@@ -143,7 +143,7 @@ import { DEBUG_TYPE, QContainerValue, VirtualType, VirtualTypeName } from '../sh
 import { VNodeDataChar } from '../shared/vnode-data-types';
 import {
   getDomContainer,
-  getDomContainerFromHTMLElement,
+  getDomContainerFromQContainerElement,
   getQContainerElement,
 } from './dom-container';
 import {
@@ -1576,14 +1576,22 @@ function materializeFromVNodeData(
       // we have an empty text node
       if (combinedText === null) {
         if (!container) {
-          const htmlElement = getQContainerElement(element);
-          if (htmlElement) {
-            container = getDomContainerFromHTMLElement(htmlElement);
+          const qContainerElement = getQContainerElement(element);
+          if (qContainerElement) {
+            container = getDomContainerFromQContainerElement(qContainerElement);
           }
         }
         // we need to create a new empty text node for this
         // if we don't have container just leave null object
         textNode = container?.document.createTextNode('') || null;
+        if (container) {
+          container.$journal$.push(
+            VNodeJournalOpCode.Insert,
+            vnode_getDomParent(vParent),
+            null,
+            textNode as Text
+          );
+        }
       }
 
       addVNode(

@@ -880,6 +880,20 @@
       "mdFile": "qwik.getplatform.md"
     },
     {
+      "name": "getQContainerElement",
+      "id": "getqcontainerelement",
+      "hierarchy": [
+        {
+          "name": "getQContainerElement",
+          "id": "getqcontainerelement"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function getQContainerElement(element: Element | ElementVNode): Element | null;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nelement\n\n\n</td><td>\n\nElement \\| ElementVNode\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nElement \\| null",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/client/dom-container.ts",
+      "mdFile": "qwik.getqcontainerelement.md"
+    },
+    {
       "name": "h",
       "id": "h",
       "hierarchy": [

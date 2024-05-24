@@ -22,7 +22,14 @@ import { setLocale } from './use-locale';
 import type { Subscriber } from '../state/common';
 import type { Signal } from '../state/signal';
 import type { Container2, fixMeAny } from '../v2/shared/types';
-import { vnode_getDomParent, vnode_isVNode } from '../v2/client/vnode';
+import {
+  vnode_getDomParent,
+  vnode_getNode,
+  vnode_isElementVNode,
+  vnode_isVNode,
+} from '../v2/client/vnode';
+import { getQContainerElement } from '../v2/client/dom-container';
+import type { ContainerElement } from '../v2/client/types';
 
 declare const document: QwikDocument;
 
@@ -254,9 +261,15 @@ export const trackRead = <T>(readFn: () => T, sub: Subscriber): T => {
 export const _getContextElement = (): unknown => {
   const iCtx = tryGetInvokeContext();
   if (iCtx) {
-    return (
-      iCtx.$element$ ?? iCtx.$hostElement$ ?? (iCtx.$qrl$ as QRLInternal)?.$setContainer$(undefined)
-    );
+    const hostElement = iCtx.$hostElement$;
+    let element: Element | null;
+    if (vnode_isVNode(hostElement) && vnode_isElementVNode(hostElement)) {
+      element = vnode_getNode(hostElement) as Element;
+    } else {
+      element = hostElement as Element;
+    }
+
+    return element ?? (iCtx.$qrl$ as QRLInternal)?.$setContainer$(undefined);
   }
 };
 
@@ -281,10 +294,10 @@ export const _jsxBranch = <T>(input?: T) => {
 
 /** @internal */
 export const _waitUntilRendered = (elm: Element) => {
-  const containerEl = getWrappingContainer(elm);
+  const containerEl = getQContainerElement(elm);
   if (!containerEl) {
     return Promise.resolve();
   }
-  const containerState = _getContainerState(containerEl);
-  return containerState.$renderPromise$ ?? Promise.resolve();
+  const container = (containerEl as ContainerElement).qContainer;
+  return container?.renderDone ?? Promise.resolve();
 };

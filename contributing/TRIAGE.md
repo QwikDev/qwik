@@ -1,7 +1,6 @@
 # Triage Titans Guide
 
-
-Hey there! Welcome to the wild world of the **Triage Titans**, where we tame bugs and nurture enhancements with the precision of true repository doctors. 
+Hey there! Welcome to the wild world of the **Triage Titans**, where we tame bugs and nurture enhancements with the precision of true repository doctors.
 
 Let's keep the code healthy, the project smooth, and have some fun along the way.
 
@@ -13,14 +12,13 @@ Let's keep the code healthy, the project smooth, and have some fun along the way
 
 ---
 
-👇 *Inspiration for the diagrams below came from the Vite project*
+👇 _Inspiration for the diagrams below came from the Vite project_
 
 ## Bug Triaging Process
 
-Our bug triaging process makes sure every reported issue gets the attention it deserves. We categorize, prioritize, and assign bugs to the right person to squash them quickly. 
+Our bug triaging process makes sure every reported issue gets the attention it deserves. We categorize, prioritize, and assign bugs to the right person to squash them quickly.
 
 Here's how the Triage Titans handle bug reports in the Qwik repository:
-
 
 ```mermaid
 flowchart TD
@@ -48,9 +46,9 @@ flowchart TD
 
 ## Enhancement Triaging Process
 
-Alright, Triage Titans! Somebody got a cool new feature idea or an awesome improvement to boost Qwik? 
+Alright, Triage Titans! Somebody got a cool new feature idea or an awesome improvement to boost Qwik?
 
-It's our job to make sure these enhancements are properly evaluated, prioritized, and brought to life. 
+It's our job to make sure these enhancements are properly evaluated, prioritized, and brought to life.
 
 What helps the team to prioritize work is the number of 👍 votes by the community on the a specific issue.
 
@@ -65,9 +63,6 @@ That's why we'll often encourage the the community to implement a certain featur
 .
 
 Now, let's dive into how we handle enhancement requests in the Qwik repository:
-
-
-
 
 ```mermaid
 flowchart TD
@@ -84,9 +79,8 @@ flowchart TD
     implement --YES--> doimplement["1. Tag with 'STATUS-2: team is working on this'\n2. Add related feature label if\napplicable (e.g. 'COMP: runtime')\n3. Add version \nlabels (e.g. 'VERSION: upcoming major')"]
 ```
 
-
 ## Thank You!
 
-A big shoutout to all our amazing contributors and Triage Titans! Your dedication, creativity, and hard work help keep Qwik running smoothly and evolving with exciting new features. We couldn't do it without you. 
+A big shoutout to all our amazing contributors and Triage Titans! Your dedication, creativity, and hard work help keep Qwik running smoothly and evolving with exciting new features. We couldn't do it without you.
 
 Thanks for being a part of our journey and making Qwik awesome. Keep up the great work, and let's continue to build something amazing together!

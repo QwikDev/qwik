@@ -225,38 +225,22 @@ export const serializeQRLs = (
   return mapJoin(existingQRLs, (qrl) => serializeQRL(qrl, opts), '\n');
 };
 
-/** `./chunk#symbol[captures] */
+/** `./chunk#[attr#][symbol][[captures]] */
 export const parseQRL = <T = any>(qrl: string, containerEl?: Element): QRLInternal<T> => {
-  const endIdx = qrl.length;
-  const hashIdx = indexOf(qrl, 0, '#');
-  const captureIdx = indexOf(qrl, hashIdx, '[');
-
-  const chunkEndIdx = Math.min(hashIdx, captureIdx);
-  const chunk = qrl.substring(0, chunkEndIdx);
-
-  const symbolStartIdx = hashIdx == endIdx ? hashIdx : hashIdx + 1;
-  const symbolEndIdx = captureIdx;
-  const symbol =
-    symbolStartIdx == symbolEndIdx ? 'default' : qrl.substring(symbolStartIdx, symbolEndIdx);
-
-  const captureStartIdx = captureIdx;
-  const captureEndIdx = endIdx;
-  const capture =
-    captureStartIdx === captureEndIdx
-      ? EMPTY_ARRAY
-      : qrl.substring(captureStartIdx + 1, captureEndIdx - 1).split(' ');
+  const parse = /^(?<c>[^#[]*)#?((?<a>[^#]+)#)?(?<s>[^[]*)(\[(?<p>[^\]]*)\])?$/.exec(qrl);
+  if (!parse) {
+    throw new Error(`Invalid QRL format "${qrl}"`);
+  }
+  const { c, a, s, p } = parse.groups!;
+  const chunk = `${c}${a ? `#${a}` : ''}`;
+  const symbol = s || 'default';
+  const capture = p ? p.split(' ') : [];
 
   const iQrl = createQRL<any>(chunk, symbol, null, null, capture, null, null);
   if (containerEl) {
     iQrl.$setContainer$(containerEl);
   }
   return iQrl as QRLInternal<T>;
-};
-
-const indexOf = (text: string, startIdx: number, char: string) => {
-  const endIdx = text.length;
-  const charIdx = text.indexOf(char, startIdx == endIdx ? 0 : startIdx);
-  return charIdx == -1 ? endIdx : charIdx;
 };
 
 const addToArray = (array: any[], obj: any) => {

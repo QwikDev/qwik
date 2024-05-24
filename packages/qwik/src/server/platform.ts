@@ -42,13 +42,17 @@ export function createPlatform(
         return regSym;
       }
 
-      let modulePath = String(url);
+      // eslint-disable-next-line prefer-const
+      let [modulePath, attr] = String(url).split('#')[0];
       if (!modulePath.endsWith('.js')) {
         modulePath += '.js';
       }
-      const module = require(modulePath); // eslint-disable-line  @typescript-eslint/no-var-requires
+      let module = require(modulePath); // eslint-disable-line  @typescript-eslint/no-var-requires
+      if (attr) {
+        module = module[attr];
+      }
       if (!(symbolName in module)) {
-        throw new Error(`Q-ERROR: missing symbol '${symbolName}' in module '${modulePath}'.`);
+        throw new Error(`Q-ERROR: missing symbol '${symbolName}' in module '${url}'.`);
       }
       return module[symbolName];
     },

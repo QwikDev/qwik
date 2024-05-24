@@ -1,11 +1,10 @@
 import type { Rollup } from 'vite';
 import { hashCode } from '../../../core/util/hash_code';
-import { generateManifestFromBundles, getValidManifest } from '../manifest';
+import { generateManifestFromBundles, generateQwikEntries, getValidManifest } from '../manifest';
 import { createOptimizer } from '../optimizer';
 import type {
   Diagnostic,
   EntryStrategy,
-  GeneratedOutputBundle,
   GlobalInjections,
   HookAnalysis,
   InsightManifest,
@@ -19,6 +18,7 @@ import type {
   TransformOutput,
 } from '../types';
 import { createLinter, type QwikLinter } from './eslint-plugin';
+import type { LoadResult, OutputBundle, PluginContext, TransformResult } from 'rollup';
 
 const REG_CTX_NAME = ['server'];
 
@@ -326,8 +326,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
   };
 
-  const buildStart = async (ctx: any) => {
-    debug(`buildStart()`, opts.buildMode, opts.scope);
+  let didAddQwikEntries = false;
+  const buildStart = async (ctx: PluginContext) => {
+    debug(`buildStart()`, opts.buildMode, opts.scope, opts.target);
     const optimizer = getOptimizer();
 
     if (optimizer.sys.env === 'node' && opts.target === 'ssr' && opts.lint) {
@@ -338,6 +339,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
     }
 
+    didAddQwikEntries = false;
+
+    // TODO is this still needed?
     const generatePreManifest = !['hoist', 'hook', 'inline'].includes(opts.entryStrategy.type);
     if (generatePreManifest) {
       const path = getPath();
@@ -410,6 +414,14 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       return {
         external: true,
         id,
+      };
+    }
+
+    if (id.endsWith(QWIK_ENTRIES_ID)) {
+      return {
+        id: normalizePath(getPath().resolve(opts.rootDir, QWIK_ENTRIES_ID)),
+        // make sure nothing gets removed
+        moduleSideEffects: true,
       };
     }
 
@@ -494,11 +506,61 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
     return null;
   };
-
-  const load = async (_ctx: any, id: string, ssrOpts: { ssr?: boolean } = {}) => {
+  const load = async (
+    ctx: PluginContext,
+    id: string,
+    ssrOpts: { ssr?: boolean } = {}
+  ): Promise<LoadResult> => {
     if (id.startsWith('\0') || id.startsWith('/@fs/')) {
       return;
     }
+
+    if (opts.target === 'client' && !didAddQwikEntries) {
+      // add the entry that will capture all the hook paths
+      didAddQwikEntries = true;
+      ctx.emitFile({
+        id: QWIK_ENTRIES_ID,
+        type: 'chunk',
+      });
+    }
+
+    if (id.endsWith(QWIK_ENTRIES_ID)) {
+      // Wait until all modules are loaded and all hooks are known
+      let found;
+      const seen = new Set<string>();
+      const timer = setInterval(
+        // eslint-disable-next-line no-console
+        () => console.log('Qwik plugin waiting for all code parsing to complete (deadlock?)'),
+        60000
+      );
+      do {
+        found = false;
+        await Promise.all(
+          [...ctx.getModuleIds()].map((id) => {
+            if (id.endsWith(QWIK_ENTRIES_ID)) {
+              return;
+            }
+            const module = ctx.getModuleInfo(id);
+            if (!module || module.isExternal || module.code || seen.has(id)) {
+              return;
+            }
+            found = true;
+            seen.add(id);
+            return ctx.load({ ...module, resolveDependencies: true });
+          })
+        );
+      } while (found);
+      clearInterval(timer);
+
+      for (const [id, [mod]] of transformedOutputs.entries()) {
+        if (isAdditionalFile(mod)) {
+          ctx.addWatchFile(id);
+        }
+      }
+      didAddQwikEntries = false;
+      return generateQwikEntries(transformedOutputs);
+    }
+
     const isSSR = ssrOpts?.ssr ?? opts.target === 'ssr';
     if (opts.resolveQwikBuild && id.endsWith(QWIK_BUILD_ID)) {
       debug(`load()`, QWIK_BUILD_ID, opts.buildMode);
@@ -552,11 +614,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const transform = async function (
-    ctx: Rollup.PluginContext,
+    ctx: PluginContext,
     code: string,
     id: string,
     ssrOpts: { ssr?: boolean } = {}
-  ) {
+  ): Promise<TransformResult> {
     if (id.startsWith('\0') || id.startsWith('/@fs/')) {
       return;
     }
@@ -630,7 +692,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       const newOutput = optimizer.transformModulesSync(transformOpts);
       // uncomment to show transform results
-      // debug(transformOpts, newOutput)
+      // debug(transformOpts, newOutput);
       diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
 
       if (isSSR) {
@@ -645,14 +707,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       for (const mod of newOutput.modules) {
         if (isAdditionalFile(mod)) {
           const key = normalizePath(path.join(srcDir, mod.path));
-          if (currentOutputs.has(key)) {
-            throw new Error(`Duplicate chunk id ${key} for input ${id}. Please rename the export.`);
-          }
           currentOutputs.set(key, [mod, id]);
           deps.add(key);
           ctx.addWatchFile(key);
-          // Do not rename the exports of this file
-          ctx.emitFile({ id: key, type: 'chunk', preserveSignature: 'allow-extension' });
         }
       }
       if (isSSR && strip) {
@@ -686,16 +743,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         for (const mod of clientNewOutput.modules) {
           if (isAdditionalFile(mod)) {
             const key = normalizePath(path.join(srcDir, mod.path));
-            if (transformedOutputs.has(key)) {
-              throw new Error(
-                `Duplicate SSR chunk id ${key} for input ${id}. Please rename the export.`
-              );
-            }
             transformedOutputs.set(key, [mod, id]);
             deps.add(key);
             ctx.addWatchFile(key);
-            // Do not rename the exports of this file
-            ctx.emitFile({ id: key, type: 'chunk', preserveSignature: 'allow-extension' });
           }
         }
       }
@@ -724,11 +774,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return null;
   };
 
-  const createOutputAnalyzer = () => {
-    const outputBundles: GeneratedOutputBundle[] = [];
+  const createOutputAnalyzer = (rollupBundle: OutputBundle) => {
     const injections: GlobalInjections[] = [];
 
-    const addBundle = (b: GeneratedOutputBundle) => outputBundles.push(b);
     const addInjection = (b: GlobalInjections) => injections.push(b);
     const generateManifest = async () => {
       const optimizer = getOptimizer();
@@ -739,7 +787,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         .map((mod) => mod.hook)
         .filter((h) => !!h) as HookAnalysis[];
 
-      const manifest = generateManifestFromBundles(path, hooks, injections, outputBundles, opts);
+      const manifest = generateManifestFromBundles(path, hooks, injections, rollupBundle, opts);
 
       for (const symbol of Object.values(manifest.symbols)) {
         if (symbol.origin) {
@@ -763,7 +811,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       return manifest;
     };
 
-    return { addBundle, addInjection, generateManifest };
+    return { addInjection, generateManifest };
   };
 
   const getOptions = () => opts;
@@ -909,6 +957,9 @@ export const QWIK_BUILD_ID = '@builder.io/qwik/build';
 export const QWIK_JSX_RUNTIME_ID = '@builder.io/qwik/jsx-runtime';
 
 export const QWIK_JSX_DEV_RUNTIME_ID = '@builder.io/qwik/jsx-dev-runtime';
+
+/** Virtual import to collect all hook locations */
+export const QWIK_ENTRIES_ID = '@qwik-entries.mjs';
 
 export const QWIK_CORE_SERVER = '@builder.io/qwik/server';
 

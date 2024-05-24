@@ -50,15 +50,15 @@ Alright, Triage Titans! Somebody got a cool new feature idea or an awesome impro
 
 It's our job to make sure these enhancements are properly evaluated, prioritized, and brought to life.
 
-What helps the team to prioritize work is the number of 👍 votes by the community on the a specific issue.
+What helps the team to prioritize work is the number of 👍 votes by the community on a specific issue.
 
 ### A note about enhancements to the core:
 
-We are very careful of which features we introduce into the Qwik core, because we know that every new feature adds complexity and maintenance tasks to the codebase.
+We are very careful about which features we introduce into the Qwik core, because we know that every new feature adds complexity and maintenance tasks to the codebase.
 
 Every feature is being carefully evaluated based on our vision and philosophy of "automatic optimization".
 
-That's why we'll often encourage the the community to implement a certain feature and evaluate its adoption over time to see if it should actually be part of the core.
+That's why we'll often encourage the community to implement a certain feature and evaluate its adoption over time to see if it should actually be part of the core.
 
 .
 
@@ -81,6 +81,6 @@ flowchart TD
 
 ## Thank You!
 
-A big shoutout to all our amazing contributors and Triage Titans! Your dedication, creativity, and hard work help keep Qwik running smoothly and evolving with exciting new features. We couldn't do it without you.
+A big shoutout to all our amazing contributors and Triage Titans! Your dedication, creativity, and hard work help keep Qwik running smoothly and evolving with exciting new features. We wouldn't be able to do it without you 🫶
 
-Thanks for being a part of our journey and making Qwik awesome. Keep up the great work, and let's continue to build something amazing together!
+Thank you for being a part of our journey and making Qwik awesome. Keep up the great work, and let's continue building something amazing together!

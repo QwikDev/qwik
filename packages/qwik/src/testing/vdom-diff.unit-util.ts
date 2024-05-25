@@ -102,7 +102,13 @@ function diffJsxVNode(received: _VNode, expected: JSXNode | string, path: string
       if (isJsxPropertyAnEventName(prop) || isHtmlAttributeAnEventName(prop)) {
         return;
       }
-      let receivedValue = vnode_getAttr(received, prop) || receivedElement?.getAttribute(prop);
+      // we need this, because Domino lowercases all attributes for `element.attributes`
+      const propLowerCased = prop.toLowerCase();
+      let receivedValue =
+        vnode_getAttr(received, prop) ||
+        vnode_getAttr(received, propLowerCased) ||
+        receivedElement?.getAttribute(prop) ||
+        receivedElement?.getAttribute(propLowerCased);
       let expectedValue =
         prop === 'key' || prop === 'q:key' ? expected.key ?? receivedValue : expected.props[prop];
       if (typeof receivedValue === 'boolean' || typeof receivedValue === 'number') {
@@ -358,7 +364,10 @@ async function diffNode(received: HTMLElement, expected: JSXOutput): Promise<str
         entries.push(['q:key', jsx.key]);
       }
       entries.forEach(([expectedKey, expectedValue]) => {
-        let receivedValue = element.getAttribute(expectedKey);
+        // we need this, because Domino lowercases all attributes for `element.attributes`
+        const expectedKeyLowerCased = expectedKey.toLowerCase();
+        let receivedValue =
+          element.getAttribute(expectedKey) || element.getAttribute(expectedKeyLowerCased);
         if (typeof receivedValue === 'boolean' || typeof receivedValue === 'number') {
           receivedValue = serializeBooleanOrNumberAttribute(receivedValue);
         }

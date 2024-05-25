@@ -120,13 +120,9 @@ export interface ClientContainer extends Container2 {
     // (undocumented)
     $setRawState$(id: number, vParent: _ElementVNode | _VirtualVNode): void;
     // (undocumented)
-    addVNodeProjection(componentVNodeWithProjection: _VirtualVNode): void;
-    // (undocumented)
     document: _QDocument;
     // (undocumented)
     element: _ContainerElement;
-    // (undocumented)
-    emitUnclaimedProjection(): void;
     // (undocumented)
     parseQRL<T = unknown>(qrl: string): QRL<T>;
     // (undocumented)
@@ -135,10 +131,6 @@ export interface ClientContainer extends Container2 {
     qContainer: string;
     // (undocumented)
     qManifestHash: string;
-    // (undocumented)
-    qTemplate: _ElementVNode;
-    // (undocumented)
-    renderDone: Promise<void>;
     // (undocumented)
     rootVNode: _ElementVNode;
 }
@@ -272,13 +264,9 @@ class DomContainer extends _SharedContainer implements ClientContainer, StoreTra
     $setRawState$(id: number, vParent: _ElementVNode | _VirtualVNode): void;
     constructor(element: _ContainerElement);
     // (undocumented)
-    addVNodeProjection(componentVNodeWithProjection: _VirtualVNode): void;
-    // (undocumented)
     document: _QDocument;
     // (undocumented)
     element: _ContainerElement;
-    // (undocumented)
-    emitUnclaimedProjection(): ValueOrPromise<void>;
     // (undocumented)
     ensureProjectionResolved(vNode: _VirtualVNode): void;
     // (undocumented)
@@ -302,9 +290,7 @@ class DomContainer extends _SharedContainer implements ClientContainer, StoreTra
     // (undocumented)
     qManifestHash: string;
     // (undocumented)
-    get qTemplate(): _ElementVNode;
-    // (undocumented)
-    renderDone: Promise<void>;
+    renderDone: Promise<void> | null;
     // (undocumented)
     rendering: boolean;
     // (undocumented)
@@ -2002,11 +1988,21 @@ export const enum _VNodeFlags {
     // (undocumented)
     INFLATED_TYPE_MASK = 15,
     // (undocumented)
+    NAMESPACE_MASK = 96,
+    // (undocumented)
+    NEGATED_NAMESPACE_MASK = -97,
+    // (undocumented)
+    NS_html = 0,
+    // (undocumented)
+    NS_math = 64,
+    // (undocumented)
+    NS_svg = 32,
+    // (undocumented)
     Resolved = 16,
     // (undocumented)
-    Text = 4,
+    Text = 4,// http://www.w3.org/1999/xhtml
     // (undocumented)
-    TYPE_MASK = 7,
+    TYPE_MASK = 7,// http://www.w3.org/2000/svg
     // (undocumented)
     Virtual = 2
 }

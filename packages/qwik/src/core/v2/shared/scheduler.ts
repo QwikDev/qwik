@@ -94,7 +94,6 @@ import {
 } from '../../use/use-task';
 import { isPromise, maybeThen, maybeThenPassError, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
-import { isDomContainer } from '../client/dom-container';
 import type { VirtualVNode } from '../client/types';
 import { vnode_documentPosition, vnode_isVNode } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
@@ -117,7 +116,6 @@ export const enum ChoreType {
   COMPONENT_SSR /* ********* */ = 0b000_101,
   COMPONENT /* ************* */ = 0b000_110,
   WAIT_FOR_COMPONENTS /* *** */ = 0b001_000,
-  UNCLAIMED_PROJECTIONS /* * */ = 0b010_000,
   JOURNAL_FLUSH /* ********* */ = 0b011_000,
   VISIBLE /* *************** */ = 0b100_000,
   CLEANUP_VISIBLE /* ******* */ = 0b101_000,
@@ -155,7 +153,6 @@ export const createScheduler = (
   function schedule(type: ChoreType.JOURNAL_FLUSH): ValueOrPromise<void>;
   function schedule(type: ChoreType.WAIT_FOR_ALL): ValueOrPromise<void>;
   function schedule(type: ChoreType.WAIT_FOR_COMPONENTS): ValueOrPromise<void>;
-  function schedule(type: ChoreType.UNCLAIMED_PROJECTIONS): ValueOrPromise<JSXOutput>;
   /**
    * Schedule rendering of a component.
    *
@@ -292,11 +289,6 @@ export const createScheduler = (
       case ChoreType.TASK:
       case ChoreType.VISIBLE:
         returnValue = runSubscriber2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
-        break;
-      case ChoreType.UNCLAIMED_PROJECTIONS:
-        if (isDomContainer(container)) {
-          container.emitUnclaimedProjection();
-        }
         break;
       case ChoreType.CLEANUP_VISIBLE:
         const task = chore.$payload$ as Task<TaskFn, TaskFn>;
@@ -470,7 +462,6 @@ function debugChoreToString(chore: Chore): string {
         [ChoreType.COMPONENT_SSR]: 'COMPONENT_SSR',
         [ChoreType.JOURNAL_FLUSH]: 'JOURNAL_FLUSH',
         [ChoreType.VISIBLE]: 'VISIBLE',
-        [ChoreType.UNCLAIMED_PROJECTIONS]: 'UNCLAIMED_PROJECTIONS',
         [ChoreType.WAIT_FOR_ALL]: 'WAIT_FOR_ALL',
         [ChoreType.WAIT_FOR_COMPONENTS]: 'WAIT_FOR_COMPONENTS',
       } as any

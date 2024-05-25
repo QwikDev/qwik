@@ -74,4 +74,4 @@ export const useSequentialScope = <T>(): SequentialScope<T> => {
   }
 };
 
-export const SEQ_IDX_LOCAL = ':seqIdx';
+export const SEQ_IDX_LOCAL = 'q:seqIdx';

@@ -22,8 +22,6 @@ import {
   QSlotParent,
   QStyle,
   QStyleSelector,
-  QTemplate,
-  QUnclaimedProjections,
 } from '../../util/markers';
 import { maybeThen } from '../../util/promises';
 import { qDev } from '../../util/qdev';
@@ -45,11 +43,12 @@ import {
   type ElementVNode,
   type ClientContainer as IClientContainer,
   type QDocument,
-  type VirtualVNode,
   type VNode,
+  type VirtualVNode,
 } from './types';
 import {
   VNodeJournalOpCode,
+  isQContainerElementWithValue,
   mapArray_get,
   mapArray_set,
   vnode_applyJournal,
@@ -65,7 +64,6 @@ import {
   vnode_newUnMaterializedElement,
   vnode_setProp,
   type VNodeJournal,
-  isQContainerElementWithValue,
 } from './vnode';
 import { vnode_diff } from './vnode-diff';
 
@@ -117,8 +115,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   private stateData: unknown[];
   private $styleIds$: Set<string> | null = null;
   private $vnodeLocate$: (id: string) => VNode = (id) => vnode_locate(this.rootVNode, id);
-  private vNodesWithProjections: Array<VirtualVNode> = [];
-  private _qTemplate: ElementVNode | null = null;
 
   constructor(element: ContainerElement) {
     super(
@@ -162,21 +158,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       this.stateData = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
     }
     this.$qFuncs$ = element.qFuncs || EMPTY_ARRAY;
-  }
-
-  get qTemplate(): ElementVNode {
-    if (this._qTemplate === null) {
-      let qTemplateElement: HTMLElement | null = this.document.body.querySelector('q\\:template');
-
-      if (!qTemplateElement) {
-        qTemplateElement = this.document.createElement(QTemplate);
-        qTemplateElement.style.display = 'none';
-        this.$journal$.push(VNodeJournalOpCode.Insert, this.document.body, null, qTemplateElement);
-      }
-      this._qTemplate = vnode_newElement(qTemplateElement, QTemplate);
-    }
-
-    return this._qTemplate;
   }
 
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void {
@@ -295,7 +276,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       this.rendering = true;
       this.renderDone = getPlatform().nextTick(() => {
         // console.log('>>>> scheduleRender nextTick', !!this.rendering);
-        this.$scheduler$(ChoreType.UNCLAIMED_PROJECTIONS);
         return maybeThen(this.$scheduler$(ChoreType.WAIT_FOR_ALL), () => {
           // console.log('>>>> scheduleRender done', !!this.rendering);
           this.rendering = false;
@@ -306,7 +286,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   }
 
   ensureProjectionResolved(vNode: VirtualVNode): void {
-    // console.log('ensureProjectionResolved', String(vNode));
     if ((vNode[VNodeProps.flags] & VNodeFlags.Resolved) === 0) {
       vNode[VNodeProps.flags] |= VNodeFlags.Resolved;
       for (let i = vnode_getPropStartIndex(vNode); i < vNode.length; i = i + 2) {
@@ -318,30 +297,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
           }
         }
       }
-    }
-  }
-
-  addVNodeProjection(componentVNodeWithProjection: VirtualVNode): void {
-    this.vNodesWithProjections.push(componentVNodeWithProjection);
-  }
-
-  emitUnclaimedProjection(): ValueOrPromise<void> {
-    const unclaimedProjections = this.vNodesWithProjections.flatMap((component) =>
-      vnode_getProp<(string | VNode)[]>(component, QUnclaimedProjections, null)
-    );
-    if (unclaimedProjections.length) {
-      // remove slot names
-      for (let i = unclaimedProjections.length - 2; i >= 0; i = i - 2) {
-        unclaimedProjections.splice(i, 1);
-      }
-
-      for (let i = 0; i < unclaimedProjections.length; i++) {
-        const unclaimedProjection = unclaimedProjections[i] as VNode | null;
-        if (unclaimedProjection) {
-          vnode_insertBefore(this.$journal$, this.qTemplate, unclaimedProjection, null);
-        }
-      }
-      this.vNodesWithProjections = [];
     }
   }
 

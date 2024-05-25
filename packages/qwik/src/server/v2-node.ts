@@ -1,12 +1,13 @@
-import { _isJSXNode as isJSXNode } from '@builder.io/qwik';
+import { _isJSXNode as isJSXNode, type JSXNode } from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
 import {
-  QSlot,
   QSlotParent,
   mapApp_remove,
   mapArray_get,
   mapArray_set,
   ELEMENT_SEQ,
+  QSlot,
+  QDefaultSlot,
 } from './qwik-copy';
 import type { SsrAttrs, ISsrNode, ISsrComponentFrame, JSXChildren } from './qwik-types';
 import type { CleanupQueue } from './v2-ssr-container';
@@ -74,6 +75,16 @@ export class SsrNode implements ISsrNode {
       return mapArray_get(this.attrs, name, 0);
     }
   }
+
+  removeProp(name: string): void {
+    if (name.startsWith(':')) {
+      if (this.locals) {
+        mapApp_remove(this.locals, name, 0);
+      }
+    } else {
+      mapApp_remove(this.attrs, name, 0);
+    }
+  }
 }
 
 export type SsrNodeType = 1 | 3 | 9 | 11;
@@ -88,27 +99,54 @@ export class SsrComponentFrame implements ISsrComponentFrame {
   distributeChildrenIntoSlots(children: JSXChildren, scopedStyle: string | null) {
     this.childrenScopedStyle = scopedStyle;
     if (isJSXNode(children)) {
-      const slotName = (children.props[QSlot] || '') as string;
+      const slotName = this.getSlotName(children);
       mapArray_set(this.slots, slotName, children, 0);
     } else if (Array.isArray(children)) {
       const defaultSlot = [];
       for (let i = 0; i < children.length; i++) {
         const child = children[i];
         if (isJSXNode(child)) {
-          const slotName = (child.props[QSlot] || '') as string;
-          if (slotName === '') {
+          const slotName = this.getSlotName(child);
+          if (slotName === QDefaultSlot) {
             defaultSlot.push(child);
           } else {
-            mapArray_set(this.slots, slotName, child, 0);
+            this.updateSlot(slotName, child);
           }
         } else {
           defaultSlot.push(child);
         }
       }
-      defaultSlot.length && mapArray_set(this.slots, '', defaultSlot, 0);
+      defaultSlot.length && mapArray_set(this.slots, QDefaultSlot, defaultSlot, 0);
     } else {
-      mapArray_set(this.slots, '', children, 0);
+      mapArray_set(this.slots, QDefaultSlot, children, 0);
     }
+  }
+
+  private updateSlot(slotName: string, child: JSXNode) {
+    // we need to check if the slot already has a value
+    let existingSlots = mapArray_get<JSXChildren>(this.slots, slotName, 0);
+    if (existingSlots === null) {
+      existingSlots = child;
+    } else if (Array.isArray(existingSlots)) {
+      // if the slot already has a value and it is an array, we need to push the new value
+      existingSlots.push(child);
+    } else {
+      // if the slot already has a value and it is not an array, we need to create an array
+      existingSlots = [existingSlots, child];
+    }
+    // set the new value
+    mapArray_set(this.slots, slotName, existingSlots, 0);
+  }
+
+  private getSlotName(jsx: JSXNode): string {
+    if (jsx.props[QSlot]) {
+      return jsx.props[QSlot] as string;
+    }
+    return QDefaultSlot;
+  }
+
+  hasSlot(slotName: string): boolean {
+    return mapArray_get(this.slots, slotName, 0) !== null;
   }
 
   consumeChildrenForSlot(projectionNode: ISsrNode, slotName: string): JSXChildren | null {
@@ -120,9 +158,9 @@ export class SsrComponentFrame implements ISsrComponentFrame {
     return children;
   }
 
-  releaseUnclaimedProjections(unclaimedProjections: (ISsrNode | JSXChildren | string)[]) {
+  releaseUnclaimedProjections(unclaimedProjections: (ISsrComponentFrame | JSXChildren | string)[]) {
     if (this.slots.length) {
-      unclaimedProjections.push(this.componentNode);
+      unclaimedProjections.push(this);
       unclaimedProjections.push(this.childrenScopedStyle);
       unclaimedProjections.push.apply(unclaimedProjections, this.slots);
     }

@@ -12,7 +12,7 @@ import {
   TaskFlagsIsTask,
   isSubscriberDescriptor,
 } from '../../use/use-task';
-import { maybeThen } from '../../util/promises';
+import { isPromise, maybeThen } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { renderComponent } from './render-dom';

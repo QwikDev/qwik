@@ -193,7 +193,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
         const journal: VNodeJournal = [];
         vnode_getDOMChildNodes(journal, vHost).forEach((child) => errorDiv.appendChild(child));
         const vErrorDiv = vnode_newElement(errorDiv, 'error-host');
-        vnode_insertBefore(journal, this.document, vHost, vErrorDiv, null);
+        vnode_insertBefore(journal, vHost, vErrorDiv, null);
         vnode_applyJournal(journal);
       }
 

@@ -396,11 +396,24 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
   }
 };
 
-export const vnode_getDOMChildVNodes = (
+export function vnode_getDOMChildNodes(
   journal: VNodeJournal,
   root: VNode,
-  childNodes: (ElementVNode | TextVNode)[] = []
-): (ElementVNode | TextVNode)[] => {
+  isVNode: true,
+  childNodes?: (ElementVNode | TextVNode)[]
+): (ElementVNode | TextVNode)[];
+export function vnode_getDOMChildNodes(
+  journal: VNodeJournal,
+  root: VNode,
+  isVNode?: false,
+  childNodes?: (Element | Text)[]
+): (Element | Text)[];
+export function vnode_getDOMChildNodes(
+  journal: VNodeJournal,
+  root: VNode,
+  isVNode: boolean = false,
+  childNodes: (ElementVNode | TextVNode | Element | Text)[] = []
+): (ElementVNode | TextVNode | Element | Text)[] {
   if (vnode_isElementOrTextVNode(root)) {
     if (vnode_isTextVNode(root)) {
       /**
@@ -410,13 +423,13 @@ export const vnode_getDOMChildVNodes = (
        */
       vnode_ensureTextInflated(journal, root);
     }
-    childNodes.push(root);
+    childNodes.push(isVNode ? root : vnode_getNode(root)!);
     return childNodes;
   }
   let vNode = vnode_getFirstChild(root);
   while (vNode) {
     if (vnode_isElementVNode(vNode)) {
-      childNodes.push(vNode);
+      childNodes.push(isVNode ? vNode : vnode_getNode(vNode)!);
     } else if (vnode_isTextVNode(vNode)) {
       /**
        * If we are collecting text nodes, we need to ensure that they are inflated. If not inflated
@@ -424,51 +437,16 @@ export const vnode_getDOMChildVNodes = (
        * single text node would remove many text nodes.
        */
       vnode_ensureTextInflated(journal, vNode);
-      childNodes.push(vNode);
+      childNodes.push(isVNode ? vNode : vnode_getNode(vNode)!);
     } else {
-      vnode_getDOMChildVNodes(journal, vNode, childNodes);
+      isVNode
+        ? vnode_getDOMChildNodes(journal, vNode, true, childNodes as (ElementVNode | TextVNode)[])
+        : vnode_getDOMChildNodes(journal, vNode, false, childNodes as (Element | Text)[]);
     }
     vNode = vnode_getNextSibling(vNode);
   }
   return childNodes;
-};
-
-export const vnode_getDOMChildNodes = (
-  journal: VNodeJournal,
-  root: VNode,
-  childNodes: (Element | Text)[] = []
-): (Element | Text)[] => {
-  if (vnode_isElementOrTextVNode(root)) {
-    if (vnode_isTextVNode(root)) {
-      /**
-       * If we are collecting text nodes, we need to ensure that they are inflated. If not inflated
-       * we would return a single text node which represents many actual text nodes, or removing a
-       * single text node would remove many text nodes.
-       */
-      vnode_ensureTextInflated(journal, root);
-    }
-    childNodes.push(vnode_getNode(root)!);
-    return childNodes;
-  }
-  let vNode = vnode_getFirstChild(root);
-  while (vNode) {
-    if (vnode_isElementVNode(vNode)) {
-      childNodes.push(vnode_getNode(vNode)!);
-    } else if (vnode_isTextVNode(vNode)) {
-      /**
-       * If we are collecting text nodes, we need to ensure that they are inflated. If not inflated
-       * we would return a single text node which represents many actual text nodes, or removing a
-       * single text node would remove many text nodes.
-       */
-      vnode_ensureTextInflated(journal, vNode);
-      childNodes.push(vnode_getNode(vNode)!);
-    } else {
-      vnode_getDOMChildNodes(journal, vNode, childNodes);
-    }
-    vNode = vnode_getNextSibling(vNode);
-  }
-  return childNodes;
-};
+}
 
 /**
  * Returns the previous/next sibling but from the point of view of the DOM.
@@ -725,28 +703,6 @@ export const vnode_getVNodeForChildNode = (
   return child as ElementVNode;
 };
 
-// this is trying to find the vnode for the element using Breadth-First Search
-export const vnode_getVNodeForElement = (
-  vNode: ElementVNode,
-  element: Element
-): ElementVNode | null => {
-  ensureElementVNode(vNode);
-  const queue: VNode[] = [vNode];
-  while (queue.length > 0) {
-    const current = queue.shift()!;
-    if (current[ElementVNodeProps.element] === element) {
-      ensureElementVNode(current);
-      return current as ElementVNode;
-    }
-    let child = vnode_getFirstChild(current);
-    while (child) {
-      queue.push(child);
-      child = vnode_getNextSibling(child);
-    }
-  }
-  return null;
-};
-
 const indexOfAlphanumeric = (id: string, length: number): number => {
   let idx = 0;
   while (idx < length) {
@@ -994,7 +950,6 @@ export const mapArray_get = <T>(
 
 export const vnode_insertBefore = (
   journal: VNodeJournal,
-  document: Document,
   parent: ElementVNode | VirtualVNode,
   newChild: VNode,
   insertBefore: VNode | null
@@ -1031,7 +986,7 @@ export const vnode_insertBefore = (
   const domParentVNode = vnode_getDomParentVNode(parent);
   const parentNode = domParentVNode && domParentVNode[ElementVNodeProps.element];
   if (parentNode) {
-    const domChildren = vnode_getDomChildrenToInsert(journal, document, domParentVNode, newChild);
+    const domChildren = vnode_getDomChildrenToInsert(journal, domParentVNode, newChild);
     domChildren.length &&
       journal.push(
         VNodeJournalOpCode.Insert,
@@ -1074,7 +1029,6 @@ export const vnode_insertBefore = (
 
 function vnode_getDomChildrenToInsert(
   journal: VNodeJournal,
-  document: Document,
   domParentVNode: ElementVNode,
   newChild: VNode
 ) {
@@ -1093,9 +1047,11 @@ function vnode_getDomChildrenToInsert(
   } else {
     // parent is in a different namespace, so we need to clone the children with the correct namespace.
     // The namespace cannot be changed on nodes, so we need to clone these nodes
-    const children = vnode_getDOMChildVNodes(journal, newChild);
+    const children = vnode_getDOMChildNodes(journal, newChild, true);
     const isParentSvg = (domParentVNode[VNodeProps.flags] & VNodeFlags.NS_svg) !== 0;
     const namespace = isParentSvg ? SVG_NS : MATH_NS;
+
+    const doc = vnode_getNode(domParentVNode)!.ownerDocument;
 
     for (let i = 0; i < children.length; i++) {
       const childVNode = children[i];
@@ -1117,7 +1073,7 @@ function vnode_getDomChildrenToInsert(
       childVNode[VNodeProps.flags] |= domParentVNode[VNodeProps.flags] & VNodeFlags.NAMESPACE_MASK;
 
       // clone the element with the correct namespace
-      const newChildElement = vnode_cloneElementWithNamespace(document, childVNode, namespace);
+      const newChildElement = vnode_cloneElementWithNamespace(doc, childVNode, namespace);
 
       if (newChildElement) {
         domChildren.push(newChildElement);

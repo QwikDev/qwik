@@ -43,14 +43,14 @@ describe('scheduler', () => {
     vA = vnode_locate(vBody, document.querySelector('a') as Element) as ElementVNode;
     vAHost = vnode_newVirtual();
     vnode_setProp(vAHost, 'q:id', 'A');
-    vnode_insertBefore([], document, vA, vAHost, null);
+    vnode_insertBefore([], vA, vAHost, null);
     vB = vnode_locate(vBody, document.querySelector('b') as Element) as ElementVNode;
     vBHost1 = vnode_newVirtual();
     vnode_setProp(vBHost1, 'q:id', 'b1');
     vBHost2 = vnode_newVirtual();
     vnode_setProp(vBHost2, 'q:id', 'b2');
-    vnode_insertBefore([], document, vB, vBHost1, null);
-    vnode_insertBefore([], document, vB, vBHost2, null);
+    vnode_insertBefore([], vB, vBHost1, null);
+    vnode_insertBefore([], vB, vBHost2, null);
   });
 
   it('should execute sort tasks', async () => {

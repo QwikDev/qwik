@@ -266,7 +266,7 @@ export function vnode_fromJSX(jsx: JSXOutput) {
       const type = jsx.type;
       if (typeof type === 'string') {
         const child = vnode_newUnMaterializedElement(doc.createElement(type));
-        vnode_insertBefore(journal, doc, vParent, child, null);
+        vnode_insertBefore(journal, vParent, child, null);
 
         // TODO(hack): jsx.props is an empty object
         const props = jsx.varProps;
@@ -289,7 +289,6 @@ export function vnode_fromJSX(jsx: JSXOutput) {
     text: (value) => {
       vnode_insertBefore(
         journal,
-        doc,
         vParent,
         vnode_newText(doc.createTextNode(String(value)), String(value)),
         null

@@ -481,6 +481,9 @@ jobs:
             packages/qwik-labs/vite/
             packages/qwik-labs/package.json
           if-no-files-found: error
+      - run: pnpx pkg-pr-new publish --compact ./packages/qwik/dist ./packages/qwik-city/dist dist-dev-eslint-plugin-qwik dist-dev-create-qwik
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   ############ RELEASE ############
   release:

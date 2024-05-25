@@ -13,6 +13,8 @@ import {
   _weakSerialize,
   useStyles$,
   _waitUntilRendered,
+  _getQContainerElement,
+  type _ElementVNode,
 } from '@builder.io/qwik';
 import { isBrowser, isDev, isServer } from '@builder.io/qwik/build';
 import * as qwikCity from '@qwik-city-plan';
@@ -501,7 +503,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
 
           clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
           _waitUntilRendered(elm as Element).then(() => {
-            const container = getContainer(elm as Element);
+            const container = _getQContainerElement(elm as _ElementVNode)!;
             container.setAttribute('q:route', routeName);
             const scrollState = currentScrollState(scroller);
             saveScrollHistory(scrollState);
@@ -523,13 +525,6 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
 
   return <Slot />;
 });
-
-function getContainer(elm: Node): HTMLElement {
-  while (elm && elm.nodeType !== Node.ELEMENT_NODE) {
-    elm = elm.parentElement as Element;
-  }
-  return (elm as Element).closest('[q\\:container]') as HTMLElement;
-}
 
 /** @public */
 export interface QwikCityMockProps {

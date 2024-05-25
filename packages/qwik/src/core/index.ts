@@ -81,7 +81,7 @@ export type { QwikDOMAttributes, QwikJSX, QwikJSX as JSX } from './render/jsx/ty
 export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
 export type { QwikHTMLElements, QwikSVGElements } from './render/jsx/types/jsx-generated';
 export { render2 as render } from './v2/client/dom-render';
-export { getDomContainer } from './v2/client/dom-container';
+export { getDomContainer, _getQContainerElement } from './v2/client/dom-container';
 export type { RenderSSROptions, StreamWriter } from './render/ssr/render-ssr';
 export type { RenderOptions, RenderResult } from './render/dom/render.public';
 

@@ -12,7 +12,7 @@ import { Virtual, JSXNodeImpl } from '../jsx/jsx-runtime';
 import { isPromise } from '../../util/promises';
 import { isQwikElement } from '../../util/element';
 
-export const executeSignalOperation = (rCtx: RenderContext, operation: SubscriberSignal) => {
+export const executeSignalOperation = async (rCtx: RenderContext, operation: SubscriberSignal) => {
   try {
     const type = operation[0];
     const staticCtx = rCtx.$static$;
@@ -48,7 +48,8 @@ export const executeSignalOperation = (rCtx: RenderContext, operation: Subscribe
           return;
         }
         vdom.$props$[prop] = value;
-        return smartSetProperty(staticCtx, elm, prop, value, isSVG);
+        smartSetProperty(staticCtx, elm, prop, value, isSVG);
+        return;
       }
       case 3:
       case 4: {
@@ -84,11 +85,11 @@ export const executeSignalOperation = (rCtx: RenderContext, operation: Subscribe
             ) {
               diffVnode(rCtx, oldVnode, newVnode, 0);
             } else {
-              const promises: Promise<any>[] = []; // TODO(misko): hook this up
+              const promises: Promise<any>[] = [];
               const oldNode = oldVnode.$elm$;
               const newElm = createElm(rCtx, newVnode, 0, promises);
               if (promises.length) {
-                logError('Rendering promises in JSX signals is not supported');
+                await Promise.all(promises);
               }
               subscription[3] = newElm;
               insertBefore(rCtx.$static$, elm.parentElement!, newElm, oldNode);

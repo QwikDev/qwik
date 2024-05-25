@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("context", () => {
-  function tests() {
+  function tests(ssr: boolean) {
     test("should load", async ({ page }) => {
       const level2State1 = page.locator(".level2-state1");
       const level2State2 = page.locator(".level2-state2");
@@ -136,8 +136,10 @@ test.describe("context", () => {
       const btn = page.locator("#issue2894-button");
       const value = page.locator("#issue2894-value");
 
-      await expect(value).toHaveText("Value: bar");
-      await expect(value).not.toBeVisible();
+      if (ssr) {
+        await expect(value).not.toBeVisible();
+        await expect(value).toHaveText("Value: bar");
+      }
 
       await btn.click();
 
@@ -181,7 +183,7 @@ test.describe("context", () => {
       }
     });
   });
-  tests();
+  tests(true);
 
   test.describe("client rerender", () => {
     test.beforeEach(async ({ page }) => {
@@ -189,6 +191,6 @@ test.describe("context", () => {
       await rerender.click();
       await page.waitForTimeout(100);
     });
-    tests();
+    tests(false);
   });
 });

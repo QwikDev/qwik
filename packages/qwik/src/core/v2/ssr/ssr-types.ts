@@ -22,6 +22,7 @@ export interface ISsrNode {
   currentComponentNode: ISsrNode | null;
   setProp(name: string, value: any): void;
   getProp(name: string): any;
+  removeProp(name: string): void;
 }
 
 export interface ISsrComponentFrame {
@@ -29,9 +30,12 @@ export interface ISsrComponentFrame {
   scopedStyleIds: Set<string>;
   childrenScopedStyle: string | null;
   projectionDepth: number;
-  releaseUnclaimedProjections(unclaimedProjections: (ISsrNode | JSXChildren | string)[]): void;
+  releaseUnclaimedProjections(
+    unclaimedProjections: (ISsrComponentFrame | JSXChildren | string)[]
+  ): void;
   consumeChildrenForSlot(projectionNode: ISsrNode, slotName: string): JSXChildren | null;
   distributeChildrenIntoSlots(children: JSXChildren, scopedStyle: string | null): void;
+  hasSlot(slotName: string): boolean;
 }
 
 export type SymbolToChunkResolver = (symbol: string) => string;
@@ -43,6 +47,7 @@ export interface SSRContainer extends Container2 {
   readonly serializationCtx: SerializationContext;
   readonly symbolToChunkResolver: SymbolToChunkResolver;
   readonly buildBase: string;
+  unclaimedProjectionComponentFrameQueue: ISsrComponentFrame[];
 
   openContainer(): void;
   closeContainer(): void;
@@ -70,7 +75,7 @@ export interface SSRContainer extends Container2 {
   commentNode(text: string): void;
   addRoot(obj: any): number;
   getLastNode(): ISsrNode;
-  addUnclaimedProjection(node: ISsrNode, name: string, children: JSXChildren): void;
+  addUnclaimedProjection(frame: ISsrComponentFrame, name: string, children: JSXChildren): void;
   isStatic(): boolean;
   render(jsx: JSXOutput): Promise<void>;
 

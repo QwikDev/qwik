@@ -13,7 +13,6 @@ export interface ClientContainer extends Container2 {
   document: QDocument;
   element: ContainerElement;
   qContainer: string;
-  qTemplate: ElementVNode;
   qBase: string;
   $locale$: string;
   qManifestHash: string;
@@ -22,8 +21,6 @@ export interface ClientContainer extends Container2 {
   renderDone: Promise<void>;
   parseQRL<T = unknown>(qrl: string): QRL<T>;
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
-  addVNodeProjection(componentVNodeWithProjection: VirtualVNode): void;
-  emitUnclaimedProjection(): void;
 }
 
 /** @internal */
@@ -80,23 +77,29 @@ export interface QNode extends Node {
  * @internal
  */
 export const enum VNodeFlags {
-  Element /* ****************** */ = 0b00001,
-  Virtual /* ****************** */ = 0b00010,
-  ELEMENT_OR_VIRTUAL_MASK /* ** */ = 0b00011,
-  ELEMENT_OR_TEXT_MASK /* ***** */ = 0b00101,
-  TYPE_MASK /* **************** */ = 0b00111,
-  INFLATED_TYPE_MASK /* ******* */ = 0b01111,
-  Text /* ********************* */ = 0b00100,
+  Element /* ****************** */ = 0b00_00001,
+  Virtual /* ****************** */ = 0b00_00010,
+  ELEMENT_OR_VIRTUAL_MASK /* ** */ = 0b00_00011,
+  ELEMENT_OR_TEXT_MASK /* ***** */ = 0b00_00101,
+  TYPE_MASK /* **************** */ = 0b00_00111,
+  INFLATED_TYPE_MASK /* ******* */ = 0b00_01111,
+  Text /* ********************* */ = 0b00_00100,
   /// Extra flag which marks if a node needs to be inflated.
-  Inflated /* ***************** */ = 0b01000,
+  Inflated /* ***************** */ = 0b00_01000,
   /// Marks if the `ensureProjectionResolved` has been called on the node.
-  Resolved /* ***************** */ = 0b10000,
+  Resolved /* ***************** */ = 0b00_10000,
+  /// Flags for Namespace
+  NAMESPACE_MASK /* *********** */ = 0b11_00000,
+  NEGATED_NAMESPACE_MASK /* ** */ = ~0b11_00000,
+  NS_html /* ****************** */ = 0b00_00000, // http://www.w3.org/1999/xhtml
+  NS_svg /* ******************* */ = 0b01_00000, // http://www.w3.org/2000/svg
+  NS_math /* ****************** */ = 0b10_00000, // http://www.w3.org/1998/Math/MathML
 }
 
 export const enum VNodeFlagsIndex {
-  mask /* ************* */ = ~0b11111,
-  negated_mask /* ****** */ = 0b11111,
-  shift /* ************* */ = 5,
+  mask /* ************* */ = ~0b11_11111,
+  negated_mask /* ****** */ = 0b11_11111,
+  shift /* ************* */ = 7,
 }
 
 export const enum VNodeProps {

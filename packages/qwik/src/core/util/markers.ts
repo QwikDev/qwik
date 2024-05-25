@@ -25,7 +25,6 @@ export const QStyleSSelector = 'style[q\\:sstyle]';
 export const QStylesAllSelector = QStyleSelector + ',' + QStyleSSelector;
 export const QScopedStyle = 'q:sstyle';
 export const QCtxAttr = 'q:ctx';
-export const QUnclaimedProjections = 'q:uproj';
 
 export const QLocaleAttr = 'q:locale';
 export const QContainerAttr = 'q:container';
@@ -40,6 +39,10 @@ export const QContainerSelector =
   QContainerValue.TEXT +
   '])';
 
+export const HTML_NS = 'http://www.w3.org/1999/xhtml';
+export const SVG_NS = 'http://www.w3.org/2000/svg';
+export const MATH_NS = 'http://www.w3.org/1998/Math/MathML';
+
 export const ResourceEvent = 'qResource';
 export const ComputedEvent = 'qComputed';
 export const RenderEvent = 'qRender';
@@ -47,6 +50,7 @@ export const TaskEvent = 'qTask';
 
 /** `<q:slot name="...">` */
 export const QSlotInertName = '\u0000';
+export const QDefaultSlot = '';
 
 /**
  * Attribute to mark that this VNode has a pointer to itself from the `qwik/json` state.

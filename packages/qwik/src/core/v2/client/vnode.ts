@@ -144,7 +144,7 @@ import { VNodeDataChar } from '../shared/vnode-data-types';
 import {
   getDomContainer,
   getDomContainerFromQContainerElement,
-  getQContainerElement,
+  _getQContainerElement,
 } from './dom-container';
 import {
   ElementVNodeProps,
@@ -1576,7 +1576,7 @@ function materializeFromVNodeData(
       // we have an empty text node
       if (combinedText === null) {
         if (!container) {
-          const qContainerElement = getQContainerElement(element);
+          const qContainerElement = _getQContainerElement(element);
           if (qContainerElement) {
             container = getDomContainerFromQContainerElement(qContainerElement);
           }

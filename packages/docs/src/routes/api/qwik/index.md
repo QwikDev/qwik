@@ -2251,45 +2251,6 @@ getPlatform: () => CorePlatform;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/platform/platform.ts)
 
-## getQContainerElement
-
-```typescript
-export declare function getQContainerElement(
-  element: Element | ElementVNode,
-): Element | null;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-element
-
-</td><td>
-
-Element \| ElementVNode
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-**Returns:**
-
-Element \| null
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/client/dom-container.ts)
-
 ## h
 
 The legacy transform, used in special cases like `<div {...props} key="key" />`. Note that the children are spread arguments, instead of a prop like in jsx() calls.

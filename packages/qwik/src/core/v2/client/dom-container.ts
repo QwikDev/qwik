@@ -71,7 +71,7 @@ import { vnode_diff } from './vnode-diff';
 
 /** @public */
 export function getDomContainer(element: Element | ElementVNode): IClientContainer {
-  const qContainerElement = getQContainerElement(element);
+  const qContainerElement = _getQContainerElement(element);
   if (!qContainerElement) {
     throwErrorAndStop('Unable to find q:container.');
   }
@@ -87,8 +87,8 @@ export function getDomContainerFromQContainerElement(qContainerElement: Element)
   return container;
 }
 
-/** @public */
-export function getQContainerElement(element: Element | ElementVNode): Element | null {
+/** @internal */
+export function _getQContainerElement(element: Element | ElementVNode): Element | null {
   const qContainerElement: Element | null = Array.isArray(element)
     ? (vnode_getDomParent(element) as Element)
     : element;
@@ -391,7 +391,7 @@ export function processVNodeData(document: Document, rootElement: Element) {
   if (vNodeData.length === 0) {
     return;
   }
-  const containerElement = getQContainerElement(rootElement) as ContainerElement;
+  const containerElement = _getQContainerElement(rootElement) as ContainerElement;
   const qVNodeRefs = (containerElement.qVNodeRefs = new Map<number, Element | ElementVNode>());
   const walker = document.createTreeWalker(
     containerElement.parentNode!,

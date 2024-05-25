@@ -28,7 +28,7 @@ import {
   vnode_isElementVNode,
   vnode_isVNode,
 } from '../v2/client/vnode';
-import { getQContainerElement } from '../v2/client/dom-container';
+import { _getQContainerElement } from '../v2/client/dom-container';
 import type { ContainerElement } from '../v2/client/types';
 
 declare const document: QwikDocument;
@@ -294,7 +294,7 @@ export const _jsxBranch = <T>(input?: T) => {
 
 /** @internal */
 export const _waitUntilRendered = (elm: Element) => {
-  const containerEl = getQContainerElement(elm);
+  const containerEl = _getQContainerElement(elm);
   if (!containerEl) {
     return Promise.resolve();
   }

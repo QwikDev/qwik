@@ -414,10 +414,8 @@ export function getLocale(defaultLocale?: string): string;
 // @public
 export const getPlatform: () => CorePlatform;
 
-// Warning: (ae-incompatible-release-tags) The symbol "getQContainerElement" is marked as @public, but its signature references "_ElementVNode" which is marked as @internal
-//
-// @public (undocumented)
-export function getQContainerElement(element: Element | _ElementVNode): Element | null;
+// @internal (undocumented)
+export function _getQContainerElement(element: Element | _ElementVNode): Element | null;
 
 // @public
 function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;

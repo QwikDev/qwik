@@ -13,7 +13,7 @@ import {
   _weakSerialize,
   useStyles$,
   _waitUntilRendered,
-  getQContainerElement,
+  _getQContainerElement,
   type _ElementVNode,
 } from '@builder.io/qwik';
 import { isBrowser, isDev, isServer } from '@builder.io/qwik/build';
@@ -503,7 +503,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
 
           clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
           _waitUntilRendered(elm as Element).then(() => {
-            const container = getQContainerElement(elm as _ElementVNode)!;
+            const container = _getQContainerElement(elm as _ElementVNode)!;
             container.setAttribute('q:route', routeName);
             const scrollState = currentScrollState(scroller);
             saveScrollHistory(scrollState);

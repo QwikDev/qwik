@@ -1,0 +1,14 @@
+# For all PRs
+* @QwikDev/core-veterans
+
+# For docs PRs
+packages/docs @QwikDev/docs-team @QwikDev/qwik-team
+contributing @QwikDev/docs-team @QwikDev/qwik-team
+README.md @QwikDev/docs-team @QwikDev/qwik-team
+CONTRIBUTING.md @QwikDev/docs-team @QwikDev/qwik-team
+CODE_OF_CONDUCT.md @QwikDev/docs-team @QwikDev/qwik-team
+
+# Protect the code owners file
+.github/CODEOWNERS @mhevery @shairez
+
+

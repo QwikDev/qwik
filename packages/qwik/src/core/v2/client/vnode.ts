@@ -128,7 +128,6 @@ import {
   ELEMENT_KEY,
   ELEMENT_PROPS,
   ELEMENT_SEQ,
-  MATH_NS,
   OnRenderProp,
   QContainerAttr,
   QCtxAttr,
@@ -138,7 +137,6 @@ import {
   QSlotRef,
   QStyle,
   QStylesAllSelector,
-  SVG_NS,
 } from '../../util/markers';
 import { isHtmlElement } from '../../util/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType, VirtualTypeName } from '../shared/types';
@@ -163,6 +161,10 @@ import {
   type VNode,
   type VirtualVNode,
 } from './types';
+import {
+  vnode_getDomChildrenWithCorrectNamespacesToInsert,
+  vnode_getElementNamespaceFlags,
+} from './vnode-namespace';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -335,7 +337,7 @@ const ensureElementOrVirtualVNode = (vNode: VNode) => {
   );
 };
 
-const ensureElementVNode = (vNode: VNode): ElementVNode => {
+export const ensureElementVNode = (vNode: VNode): ElementVNode => {
   assertTrue(
     vnode_isElementVNode(vNode),
     'Expecting ElementVNode was: ' + vnode_getNodeTypeName(vNode)
@@ -986,7 +988,11 @@ export const vnode_insertBefore = (
   const domParentVNode = vnode_getDomParentVNode(parent);
   const parentNode = domParentVNode && domParentVNode[ElementVNodeProps.element];
   if (parentNode) {
-    const domChildren = vnode_getDomChildrenToInsert(journal, domParentVNode, newChild);
+    const domChildren = vnode_getDomChildrenWithCorrectNamespacesToInsert(
+      journal,
+      domParentVNode,
+      newChild
+    );
     domChildren.length &&
       journal.push(
         VNodeJournalOpCode.Insert,
@@ -1027,156 +1033,6 @@ export const vnode_insertBefore = (
   newChild[VNodeProps.parent] = parent;
 };
 
-function vnode_getDomChildrenToInsert(
-  journal: VNodeJournal,
-  domParentVNode: ElementVNode,
-  newChild: VNode
-) {
-  const parentNodeIsDefaultNamespace = vnode_isDefaultNamespace(domParentVNode);
-  const parentIsForeignObject = !parentNodeIsDefaultNamespace
-    ? isForeignObjectElement(vnode_getElementName(domParentVNode))
-    : false;
-  const newChildNodeIsDefaultNamespace = vnode_isElementVNode(newChild)
-    ? vnode_isDefaultNamespace(newChild)
-    : // for non-element nodes, we assume they are in the default namespace
-      true;
-  let domChildren: (Element | Text)[] = [];
-  if (parentNodeIsDefaultNamespace || parentIsForeignObject || !newChildNodeIsDefaultNamespace) {
-    // parent is in the default namespace, so just get the dom children. This is the fast path.
-    domChildren = vnode_getDOMChildNodes(journal, newChild);
-  } else {
-    // parent is in a different namespace, so we need to clone the children with the correct namespace.
-    // The namespace cannot be changed on nodes, so we need to clone these nodes
-    const children = vnode_getDOMChildNodes(journal, newChild, true);
-    const isParentSvg = (domParentVNode[VNodeProps.flags] & VNodeFlags.NS_svg) !== 0;
-    const namespace = isParentSvg ? SVG_NS : MATH_NS;
-
-    const doc = vnode_getNode(domParentVNode)!.ownerDocument;
-
-    for (let i = 0; i < children.length; i++) {
-      const childVNode = children[i];
-      if (vnode_isTextVNode(childVNode)) {
-        // text nodes are always in the default namespace
-        domChildren.push(childVNode[TextVNodeProps.node] as Text);
-        continue;
-      }
-      if (
-        (childVNode[VNodeProps.flags] & VNodeFlags.NAMESPACE_MASK) ===
-        (domParentVNode[VNodeProps.flags] & VNodeFlags.NAMESPACE_MASK)
-      ) {
-        // if the child and parent have the same namespace, we don't need to clone the element
-        domChildren.push(childVNode[ElementVNodeProps.element] as Element);
-        continue;
-      }
-
-      childVNode[VNodeProps.flags] &= VNodeFlags.NEGATED_NAMESPACE_MASK;
-      childVNode[VNodeProps.flags] |= domParentVNode[VNodeProps.flags] & VNodeFlags.NAMESPACE_MASK;
-
-      // clone the element with the correct namespace
-      const newChildElement = vnode_cloneElementWithNamespace(doc, childVNode, namespace);
-
-      if (newChildElement) {
-        domChildren.push(newChildElement);
-      }
-    }
-  }
-  return domChildren;
-}
-
-/** This function clones an element with a different namespace, but without the children. */
-function cloneElementWithNamespace(
-  document: Document,
-  element: Element,
-  elementName: string,
-  namespace: string
-): Element {
-  const newElement = document.createElementNS(namespace, elementName);
-  const attributes = element.attributes;
-  for (const attribute of attributes) {
-    const name = attribute.name;
-    const value = attribute.value;
-    newElement.setAttribute(name, value);
-  }
-  return newElement;
-}
-
-/**
- * This function clones an ElementVNode with a different namespace, including the children. This
- * traverse the tree using depth-first search and clones the elements using
- * `cloneElementWithNamespace`.
- */
-function vnode_cloneElementWithNamespace(
-  document: Document,
-  elementVNode: ElementVNode,
-  namespace: string
-) {
-  let vCursor: VNode | null = elementVNode;
-  let vParent: VNode | null = null;
-  let rootElement: Element | null = null;
-  let parentElement: Element | null = null;
-  while (vCursor) {
-    if (vnode_isElementVNode(vCursor)) {
-      // Clone the element
-      const childElement = vCursor[ElementVNodeProps.element] as Element;
-      const childElementTag = vnode_getElementName(vCursor);
-      const newChildElement = cloneElementWithNamespace(
-        document,
-        childElement,
-        childElementTag,
-        namespace
-      );
-      vCursor[ElementVNodeProps.element] = newChildElement;
-      if (rootElement == null) {
-        rootElement = newChildElement;
-      }
-      if (parentElement) {
-        parentElement.appendChild(newChildElement);
-      }
-      parentElement = newChildElement;
-
-      // Descend into children
-      const vFirstChild = vnode_getFirstChild(vCursor);
-      if (vFirstChild) {
-        vCursor = vFirstChild;
-        continue;
-      }
-    }
-    if (vCursor === elementVNode) {
-      // we are where we started, this means that vNode has no children, so we are done.
-      return rootElement;
-    }
-    // Out of children, go to next sibling
-    const vNextSibling = vnode_getNextSibling(vCursor);
-    if (vNextSibling) {
-      vCursor = vNextSibling;
-      continue;
-    }
-    if (vCursor === elementVNode) {
-      // we are back where we started, we are done.
-      return rootElement;
-    }
-    // Out of siblings, go to parent
-    vParent = vnode_getParent(vCursor);
-    while (vParent) {
-      if (vParent === elementVNode) {
-        // We are back where we started, we are done.
-        return rootElement;
-      }
-      const vNextParentSibling = vnode_getNextSibling(vParent);
-      if (vNextParentSibling) {
-        vCursor = vNextParentSibling;
-        return rootElement;
-      }
-      vParent = vnode_getParent(vParent);
-    }
-    if (vParent == null) {
-      // We are done.
-      return rootElement;
-    }
-  }
-  return rootElement;
-}
-
 export const vnode_getDomParent = (vnode: VNode): Element | Text | null => {
   vnode = vnode_getDomParentVNode(vnode) as VNode;
   return (vnode && vnode[ElementVNodeProps.element]) as Element | Text | null;
@@ -1187,21 +1043,6 @@ export const vnode_getDomParentVNode = (vnode: VNode): ElementVNode | null => {
     vnode = vnode[VNodeProps.parent]!;
   }
   return vnode;
-};
-
-export const vnode_isDefaultNamespace = (vnode: ElementVNode): boolean => {
-  const flags = vnode[VNodeProps.flags];
-  return (flags & VNodeFlags.NAMESPACE_MASK) === 0;
-};
-
-export const vnode_getElementNamespaceFlags = (tag: string) => {
-  if (isSvgElement(tag)) {
-    return VNodeFlags.NS_svg;
-  } else if (isMathElement(tag)) {
-    return VNodeFlags.NS_math;
-  } else {
-    return VNodeFlags.NS_html;
-  }
 };
 
 export const vnode_remove = (
@@ -1800,12 +1641,6 @@ export const vnode_getType = (vnode: VNode): 1 | 3 | 11 => {
 
 const isElement = (node: any): node is Element =>
   node && typeof node == 'object' && node.nodeType === /** Node.ELEMENT_NODE* */ 1;
-
-export const isForeignObjectElement = (tag: string) => tag === 'foreignObject';
-
-export const isSvgElement = (tag: string) => tag === 'svg' || isForeignObjectElement(tag);
-
-export const isMathElement = (tag: string) => tag === 'math';
 
 /// These global variables are used to avoid creating new arrays for each call to `vnode_getPathToClosestDomNode`.
 const aPath: VNode[] = [];

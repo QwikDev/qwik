@@ -1449,7 +1449,7 @@ describe.each([
               xmlns="http://www.w3.org/2000/svg"
               style={{ width: '24px', height: '24px' }}
             >
-              <Slot />
+              {show.value && <Slot />}
             </svg>
           </>
         );
@@ -1458,10 +1458,28 @@ describe.each([
         <Parent>
           <filter id="blurMe">
             <feGaussianBlur in="SourceGraphic" class="test" />
+            <foreignObject>
+              <div id="inner-div">test</div>
+            </foreignObject>
           </filter>
         </Parent>,
         { debug }
       );
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            <svg
+              viewBox="0 0 24 24"
+              style="width:24px;height:24px"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {''}
+            </svg>
+          </Fragment>
+        </Component>
+      );
+
       await trigger(container.element, 'button', 'click');
 
       expect(vNode).toMatchVDOM(
@@ -1476,6 +1494,9 @@ describe.each([
               <Projection>
                 <filter id="blurMe">
                   <feGaussianBlur in="SourceGraphic" class="test" />
+                  <foreignObject>
+                    <div id="inner-div">test</div>
+                  </foreignObject>
                 </filter>
               </Projection>
             </svg>
@@ -1484,7 +1505,14 @@ describe.each([
       );
 
       expect(document.querySelector('filter')?.namespaceURI).toEqual(SVG_NS);
-      expect(document.querySelector('feGaussianBlur')?.namespaceURI).toEqual(SVG_NS);
+      if (render === ssrRenderToDom) {
+        expect(document.querySelector('fegaussianblur')?.namespaceURI).toEqual(SVG_NS);
+        expect(document.querySelector('foreignobject')?.namespaceURI).toEqual(SVG_NS);
+      } else {
+        expect(document.querySelector('feGaussianBlur')?.namespaceURI).toEqual(SVG_NS);
+        expect(document.querySelector('foreignObject')?.namespaceURI).toEqual(SVG_NS);
+      }
+      expect(document.querySelector('#inner-div')?.namespaceURI).toEqual(HTML_NS);
     });
   });
 

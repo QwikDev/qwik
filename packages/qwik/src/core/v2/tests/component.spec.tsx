@@ -4,7 +4,10 @@ import {
   Fragment,
   SSRComment,
   Fragment as Signal,
+  SkipRender,
   component$,
+  h,
+  jsx,
   useComputed$,
   useVisibleTask$,
 } from '@builder.io/qwik';
@@ -657,6 +660,51 @@ describe.each([
             </Component>
           </div>
           <span>test</span>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should rerender both text nodes', async () => {
+    const SecretForm = component$(() => {
+      const message = useSignal('');
+      const secret = useSignal('');
+
+      return (
+        <>
+          {message.value && <p>{message.value}</p>}
+          {secret.value && <p>{secret.value}</p>}
+          <button
+            onClick$={() => {
+              message.value = 'foo';
+              secret.value = 'bar';
+            }}
+          ></button>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<SecretForm />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          {''}
+          {''}
+          <button></button>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <p>
+            <Signal>{'foo'}</Signal>
+          </p>
+          <p>
+            <Signal>{'bar'}</Signal>
+          </p>
+          <button></button>
         </Fragment>
       </Component>
     );
@@ -1317,7 +1365,219 @@ describe.each([
     );
   });
 
+  it('should skip render', async () => {
+    const SkipRenderTest = component$(() => {
+      const count = useSignal(0);
+      if (count.value % 3 !== 0) {
+        return SkipRender;
+      }
+      const countV = count.value + '';
+      return (
+        <>
+          <button onClick$={() => count.value++}>Increment {countV}</button>
+          <div>Number: {count.value}</div>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<SkipRenderTest />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button>
+            {'Increment '}
+            {'0'}
+          </button>
+          <div>
+            {'Number: '}
+            <Signal>0</Signal>
+          </div>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button>
+            {'Increment '}
+            {'0'}
+          </button>
+          <div>
+            {'Number: '}
+            <Signal>1</Signal>
+          </div>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button>
+            {'Increment '}
+            {'0'}
+          </button>
+          <div>
+            {'Number: '}
+            <Signal>2</Signal>
+          </div>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button>
+            {'Increment '}
+            {'3'}
+          </button>
+          <div>
+            {'Number: '}
+            <Signal>3</Signal>
+          </div>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button>
+            {'Increment '}
+            {'3'}
+          </button>
+          <div>
+            {'Number: '}
+            <Signal>4</Signal>
+          </div>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button>
+            {'Increment '}
+            {'3'}
+          </button>
+          <div>
+            {'Number: '}
+            <Signal>5</Signal>
+          </div>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button>
+            {'Increment '}
+            {'6'}
+          </button>
+          <div>
+            {'Number: '}
+            <Signal>6</Signal>
+          </div>
+        </Fragment>
+      </Component>
+    );
+  });
+
   describe('regression', () => {
+    it('#3643', async () => {
+      const Issue3643 = component$(() => {
+        const toggle = useSignal(false);
+        return (
+          <main>
+            <button onClick$={() => (toggle.value = !toggle.value)}>Toggle</button>
+            <div>
+              {toggle.value
+                ? h('div', {}, 'World')
+                : h('div', { dangerouslySetInnerHTML: 'Hello' })}
+            </div>
+            <div>
+              {toggle.value
+                ? jsx('div', { children: 'World' })
+                : jsx('div', { dangerouslySetInnerHTML: 'Hello' })}
+            </div>
+          </main>
+        );
+      });
+      const { document, container } = await render(<Issue3643 />, { debug });
+      await expect(document.querySelector('main')).toMatchDOM(
+        <main>
+          <button>Toggle</button>
+          <div>
+            <div>Hello</div>
+          </div>
+          <div>
+            <div>Hello</div>
+          </div>
+        </main>
+      );
+
+      await trigger(container.element, 'button', 'click');
+      await expect(document.querySelector('main')).toMatchDOM(
+        <main>
+          <button>Toggle</button>
+          <div>
+            <div>World</div>
+          </div>
+          <div>
+            <div>World</div>
+          </div>
+        </main>
+      );
+
+      await trigger(container.element, 'button', 'click');
+      await expect(document.querySelector('main')).toMatchDOM(
+        <main>
+          <button>Toggle</button>
+          <div>
+            <div>Hello</div>
+          </div>
+          <div>
+            <div>Hello</div>
+          </div>
+        </main>
+      );
+
+      await trigger(container.element, 'button', 'click');
+      await expect(document.querySelector('main')).toMatchDOM(
+        <main>
+          <button>Toggle</button>
+          <div>
+            <div>World</div>
+          </div>
+          <div>
+            <div>World</div>
+          </div>
+        </main>
+      );
+
+      await trigger(container.element, 'button', 'click');
+      await expect(document.querySelector('main')).toMatchDOM(
+        <main>
+          <button>Toggle</button>
+          <div>
+            <div>Hello</div>
+          </div>
+          <div>
+            <div>Hello</div>
+          </div>
+        </main>
+      );
+    });
+
     it('#5647', async () => {
       const ChildNested = component$(() => {
         return <div>Nested</div>;

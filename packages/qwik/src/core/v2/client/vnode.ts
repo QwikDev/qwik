@@ -143,8 +143,8 @@ import { DEBUG_TYPE, QContainerValue, VirtualType, VirtualTypeName } from '../sh
 import { VNodeDataChar } from '../shared/vnode-data-types';
 import {
   getDomContainer,
-  getDomContainerFromHTMLElement,
-  getQContainerElement,
+  getDomContainerFromQContainerElement,
+  _getQContainerElement,
 } from './dom-container';
 import {
   ElementVNodeProps,
@@ -1070,9 +1070,14 @@ export const vnode_remove = (
   vToRemove[VNodeProps.previousSibling] = null;
   vToRemove[VNodeProps.nextSibling] = null;
   if (removeDOM) {
-    const domParent = vnode_getDomParent(vParent)!;
+    const domParent = vnode_getDomParent(vParent);
+    const isInnerHTMLParent = vnode_getAttr(vParent, dangerouslySetInnerHTML);
+    if (isInnerHTMLParent) {
+      // ignore children, as they are inserted via innerHTML
+      return;
+    }
     const children = vnode_getDOMChildNodes(journal, vToRemove);
-    children.length && journal.push(VNodeJournalOpCode.Remove, domParent, ...children);
+    domParent && children.length && journal.push(VNodeJournalOpCode.Remove, domParent, ...children);
   }
 };
 
@@ -1103,9 +1108,9 @@ export const vnode_truncate = (
   vDelete: VNode
 ) => {
   assertDefined(vDelete, 'Missing vDelete.');
-  const parent = vnode_getDomParent(vParent)!;
+  const parent = vnode_getDomParent(vParent);
   const children = vnode_getDOMChildNodes(journal, vDelete);
-  children.length && journal.push(VNodeJournalOpCode.Remove, parent, ...children);
+  parent && children.length && journal.push(VNodeJournalOpCode.Remove, parent, ...children);
   const vPrevious = vDelete[VNodeProps.previousSibling];
   if (vPrevious) {
     vPrevious[VNodeProps.nextSibling] = null;
@@ -1606,14 +1611,22 @@ function materializeFromVNodeData(
       // we have an empty text node
       if (combinedText === null) {
         if (!container) {
-          const htmlElement = getQContainerElement(element);
-          if (htmlElement) {
-            container = getDomContainerFromHTMLElement(htmlElement);
+          const qContainerElement = _getQContainerElement(element);
+          if (qContainerElement) {
+            container = getDomContainerFromQContainerElement(qContainerElement);
           }
         }
         // we need to create a new empty text node for this
         // if we don't have container just leave null object
         textNode = container?.document.createTextNode('') || null;
+        if (container) {
+          container.$journal$.push(
+            VNodeJournalOpCode.Insert,
+            vnode_getDomParent(vParent),
+            null,
+            textNode as Text
+          );
+        }
       }
 
       addVNode(

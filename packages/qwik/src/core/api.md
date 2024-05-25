@@ -298,7 +298,7 @@ class DomContainer extends _SharedContainer implements ClientContainer, StoreTra
     // (undocumented)
     rootVNode: _ElementVNode;
     // (undocumented)
-    scheduleRender(): Promise<void> | null;
+    scheduleRender(): Promise<void>;
     // (undocumented)
     setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)
@@ -399,6 +399,9 @@ export function getLocale(defaultLocale?: string): string;
 
 // @public
 export const getPlatform: () => CorePlatform;
+
+// @internal (undocumented)
+export function _getQContainerElement(element: Element | _ElementVNode): Element | null;
 
 // @public
 function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;

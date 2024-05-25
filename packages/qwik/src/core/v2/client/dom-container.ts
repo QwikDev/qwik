@@ -69,14 +69,14 @@ import { vnode_diff } from './vnode-diff';
 
 /** @public */
 export function getDomContainer(element: Element | ElementVNode): IClientContainer {
-  const qContainerElement = getQContainerElement(element);
+  const qContainerElement = _getQContainerElement(element);
   if (!qContainerElement) {
     throwErrorAndStop('Unable to find q:container.');
   }
-  return getDomContainerFromHTMLElement(qContainerElement!);
+  return getDomContainerFromQContainerElement(qContainerElement!);
 }
 
-export function getDomContainerFromHTMLElement(qContainerElement: Element): IClientContainer {
+export function getDomContainerFromQContainerElement(qContainerElement: Element): IClientContainer {
   const qElement = qContainerElement as ContainerElement;
   let container = qElement.qContainer;
   if (!container) {
@@ -85,18 +85,12 @@ export function getDomContainerFromHTMLElement(qContainerElement: Element): ICli
   return container;
 }
 
-export function getQContainerElement(element: Element | ElementVNode): Element | null {
-  let qContainerElement: Element | null = Array.isArray(element)
+/** @internal */
+export function _getQContainerElement(element: Element | ElementVNode): Element | null {
+  const qContainerElement: Element | null = Array.isArray(element)
     ? (vnode_getDomParent(element) as Element)
     : element;
-  while (
-    qContainerElement &&
-    (!qContainerElement.hasAttribute(QContainerAttr) ||
-      isQContainerElementWithValue(qContainerElement))
-  ) {
-    qContainerElement = qContainerElement.closest(QContainerSelector);
-  }
-  return qContainerElement;
+  return qContainerElement.closest(QContainerSelector);
 }
 
 export const isDomContainer = (container: any): container is DomContainer => {
@@ -112,7 +106,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   public rootVNode: ElementVNode;
   public document: QDocument;
   public $journal$: VNodeJournal;
-  public renderDone: Promise<void> | null = Promise.resolve();
+  public renderDone: Promise<void> = Promise.resolve();
   public rendering: boolean = false;
   public $rawStateData$: unknown[];
   public $proxyMap$: ObjToProxyMap = new WeakMap();
@@ -153,7 +147,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
     this.stateData = null!;
     const document = this.element.ownerDocument as QDocument;
     if (!document.qVNodeData) {
-      processVNodeData(document);
+      processVNodeData(document, this.element);
     }
     this.$rawStateData$ = [];
     this.stateData = [];
@@ -344,7 +338,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   }
 }
 
-export function processVNodeData(document: Document) {
+export function processVNodeData(document: Document, rootElement: Element) {
   const qDocument = document as QDocument;
   const vNodeDataMap =
     qDocument.qVNodeData || (qDocument.qVNodeData = new WeakMap<Element, string>());
@@ -352,8 +346,7 @@ export function processVNodeData(document: Document) {
   if (vNodeData.length === 0) {
     return;
   }
-  const containers = document.querySelectorAll('[q\\:container]');
-  const containerElement = containers[0] as ContainerElement;
+  const containerElement = _getQContainerElement(rootElement) as ContainerElement;
   const qVNodeRefs = (containerElement.qVNodeRefs = new Map<number, Element | ElementVNode>());
   const walker = document.createTreeWalker(
     containerElement.parentNode!,

@@ -1,6 +1,6 @@
 ## Vercel Edge
 
-This starter site is configured to deploy to [Vercel Edge Functions](https://vercel.com/docs/concepts/functions/edge-functions), which means it will be rendered at an edge location near to your users.
+This starter site is configured to deploy to [Vercel Edge Functions](https://vercel.com/docs/concepts/functions/edge-functions), which means it will be rendered at an edge location near to your users. Vercel supports two runtimes: Edge and Serverless. The Edge runtime is lightweight and web-compatible, while the Serverless runtime is based on Node.js.
 
 ## Installation
 
@@ -34,7 +34,7 @@ To deploy the application for development:
 npm run deploy
 ```
 
-Notice that you might need a [Vercel account](https://docs.Vercel.com/get-started/) in order to complete this step!
+Notice that you might need a [Vercel account](https://vercel.com/docs/getting-started-with-vercel) in order to complete this step!
 
 ## Production deploy
 

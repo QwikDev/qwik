@@ -664,6 +664,51 @@ describe.each([
     );
   });
 
+  it('should rerender both text nodes', async () => {
+    const SecretForm = component$(() => {
+      const message = useSignal('');
+      const secret = useSignal('');
+
+      return (
+        <>
+          {message.value && <p>{message.value}</p>}
+          {secret.value && <p>{secret.value}</p>}
+          <button
+            onClick$={() => {
+              message.value = 'foo';
+              secret.value = 'bar';
+            }}
+          ></button>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<SecretForm />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          {''}
+          {''}
+          <button></button>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <p>
+            <Signal>{'foo'}</Signal>
+          </p>
+          <p>
+            <Signal>{'bar'}</Signal>
+          </p>
+          <button></button>
+        </Fragment>
+      </Component>
+    );
+  });
+
   describe('svg', () => {
     it('should render svg', async () => {
       const SvgComp = component$(() => {

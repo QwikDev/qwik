@@ -107,7 +107,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: ${{ inputs.node_version }}
+          node-version: ${{ github.event.inputs.node_version }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -177,7 +177,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: ${{ inputs.node_version }}
+          node-version: ${{ github.event.inputs.node_version }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -270,7 +270,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: ${{ inputs.node_version }}
+          node-version: ${{ github.event.inputs.node_version }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -337,7 +337,7 @@ jobs:
         if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: ${{ inputs.node_version }}
+          node-version: ${{ github.event.inputs.node_version }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -370,7 +370,7 @@ jobs:
         if: ${{ needs.changes.outputs.docsbuild == 'true' }}
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: ${{ inputs.node_version }}
+          node-version: ${{ github.event.inputs.node_version }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -410,7 +410,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: ${{ inputs.node_version }}
+          node-version: ${{ github.event.inputs.node_version }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -510,7 +510,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: ${{ inputs.node_version }}
+          node-version: ${{ github.event.inputs.node_version }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -576,10 +576,10 @@ jobs:
         settings:
           - host: ubuntu-latest
             browser: chromium
-            node: ${{ inputs.node_version }}
+            node: ${{ github.event.inputs.node_version }}
           - host: macos-latest
             browser: webkit
-            node: ${{ inputs.node_version }}
+            node: ${{ github.event.inputs.node_version }}
 
     runs-on: ${{ matrix.settings.host }}
 
@@ -654,7 +654,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: ${{ inputs.node_version }}
+          node-version: ${{ github.event.inputs.node_version }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -750,7 +750,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: ${{ inputs.node_version }}
+          node-version: ${{ github.event.inputs.node_version }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 

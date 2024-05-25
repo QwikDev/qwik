@@ -79,6 +79,7 @@ export function vnode_getDomChildrenWithCorrectNamespacesToInsert(
       // clone the element with the correct namespace
       const newChildElement = vnode_cloneElementWithNamespace(
         childVNode,
+        domParentVNode,
         elementNamespace,
         elementNamespaceFlag
       );
@@ -102,7 +103,7 @@ function cloneElementWithNamespace(
   for (const attribute of attributes) {
     const name = attribute.name;
     const value = attribute.value;
-    if (name === ':') {
+    if (!name || name === ':') {
       continue;
     }
     newElement.setAttribute(name, value);
@@ -117,6 +118,7 @@ function cloneElementWithNamespace(
  */
 function vnode_cloneElementWithNamespace(
   elementVNode: ElementVNode,
+  parentVNode: ElementVNode,
   namespace: string,
   namespaceFlag: VNodeFlags
 ) {
@@ -134,13 +136,18 @@ function vnode_cloneElementWithNamespace(
       // We need to check if the parent is a foreignObject element
       // and get a new namespace data.
       const vCursorParent = vnode_getParent(vCursor);
-      const vCursorDomParent = vCursorParent && vnode_getDomParentVNode(vCursorParent);
-      if (vCursorDomParent && isForeignObjectElement(vnode_getElementName(vCursorDomParent))) {
+      // For the first vNode parentNode is not parent from vNode tree, but parent from DOM tree
+      // this is because vNode is not moved yet.
+      // rootElement is null only for the first vNode
+      const vCursorDomParent =
+        rootElement == null ? parentVNode : vCursorParent && vnode_getDomParentVNode(vCursorParent);
+      if (vCursorDomParent) {
         const namespaceData = getNewElementNamespaceData(
           vCursorDomParent,
           vnode_getElementName(vCursor)
         );
         namespace = namespaceData.elementNamespace;
+        namespaceFlag = namespaceData.elementNamespaceFlag;
       }
 
       const newChildElement = cloneElementWithNamespace(childElement, childElementTag, namespace);
@@ -161,6 +168,7 @@ function vnode_cloneElementWithNamespace(
       // Then we can overwrite the cursor with newly created element.
       // This is because we need to materialize the children before we assign new element
       vCursor[ElementVNodeProps.element] = newChildElement;
+      // Set correct namespace flag
       vCursor[VNodeProps.flags] &= VNodeFlags.NEGATED_NAMESPACE_MASK;
       vCursor[VNodeProps.flags] |= namespaceFlag;
       if (vFirstChild) {

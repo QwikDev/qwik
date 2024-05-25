@@ -1459,7 +1459,12 @@ describe.each([
           <filter id="blurMe">
             <feGaussianBlur in="SourceGraphic" class="test" />
             <foreignObject>
-              <div id="inner-div">test</div>
+              <div id="inner-div">
+                test
+                <svg id="inner-svg" xmlns="http://www.w3.org/2000/svg">
+                  <path></path>
+                </svg>
+              </div>
             </foreignObject>
           </filter>
         </Parent>,
@@ -1495,7 +1500,12 @@ describe.each([
                 <filter id="blurMe">
                   <feGaussianBlur in="SourceGraphic" class="test" />
                   <foreignObject>
-                    <div id="inner-div">test</div>
+                    <div id="inner-div">
+                      test
+                      <svg id="inner-svg" xmlns="http://www.w3.org/2000/svg">
+                        <path></path>
+                      </svg>
+                    </div>
                   </foreignObject>
                 </filter>
               </Projection>
@@ -1513,6 +1523,8 @@ describe.each([
         expect(document.querySelector('foreignObject')?.namespaceURI).toEqual(SVG_NS);
       }
       expect(document.querySelector('#inner-div')?.namespaceURI).toEqual(HTML_NS);
+      expect(document.querySelector('#inner-svg')?.namespaceURI).toEqual(SVG_NS);
+      expect(document.querySelector('path')?.namespaceURI).toEqual(SVG_NS);
     });
   });
 

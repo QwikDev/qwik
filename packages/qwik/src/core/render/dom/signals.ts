@@ -70,6 +70,7 @@ export const executeSignalOperation = async (rCtx: RenderContext, operation: Sub
             | ProcessedJSXNode
             | undefined;
           if (isPromise(newVnode)) {
+            // TODO(misko): hook this up
             logError('Rendering promises in JSX signals is not supported');
           } else {
             if (newVnode === undefined) {

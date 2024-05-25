@@ -11,6 +11,11 @@ on:
       - 'build/**'
   workflow_dispatch:
     inputs:
+      node_version:
+        description: 'Node version to use for the build'
+        required: false
+        type: string
+        default: '20.x'
       disttag:
         description: 'Publish "@builder.io/qwik" to NPM using this dist-tag, push the git-tag to the repo and create a GitHub release. The "latest" and "next" dist-tags will use the version number already committed in package.json.'
         required: true
@@ -102,7 +107,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: ${{ inputs.node_version }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -172,7 +177,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: ${{ inputs.node_version }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -265,7 +270,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: ${{ inputs.node_version }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -332,7 +337,7 @@ jobs:
         if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: ${{ inputs.node_version }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -365,7 +370,7 @@ jobs:
         if: ${{ needs.changes.outputs.docsbuild == 'true' }}
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: ${{ inputs.node_version }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -405,7 +410,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: ${{ inputs.node_version }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -505,7 +510,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: ${{ inputs.node_version }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -571,10 +576,10 @@ jobs:
         settings:
           - host: ubuntu-latest
             browser: chromium
-            node: 18.x
+            node: ${{ inputs.node_version }}
           - host: macos-latest
             browser: webkit
-            node: 18.x
+            node: ${{ inputs.node_version }}
 
     runs-on: ${{ matrix.settings.host }}
 
@@ -649,7 +654,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: ${{ inputs.node_version }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -745,7 +750,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: ${{ inputs.node_version }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 

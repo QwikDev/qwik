@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3511
+assertion_line: 3621
 expression: output
 ---
 ==INPUT==
@@ -68,28 +68,28 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= cmp_component_4rykjtokjwe.js (ENTRY POINT)==
 
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 import { _wrapProp } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const Cmp_component_4ryKJTOKjWE = ()=>{
     const htmlSignal = useSignal("<h2><span>I'm a signal value!</span></h2>");
-    return /*#__PURE__*/ _jsxQ("div", null, null, [
-        /*#__PURE__*/ _jsxQ("div", null, null, /*#__PURE__*/ _jsxQ("span", null, {
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _jsxSorted("span", null, {
             id: "first",
             dangerouslySetInnerHTML: "vanilla HTML here"
         }, null, 3, null), 3, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, /*#__PURE__*/ _jsxQ("span", null, {
+        /*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _jsxSorted("span", null, {
             id: "second",
             dangerouslySetInnerHTML: "<h1>I'm an h1!</h1>",
             class: "after"
         }, null, 3, null), 3, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
-            /*#__PURE__*/ _jsxQ("span", null, {
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
+            /*#__PURE__*/ _jsxSorted("span", null, {
                 id: "third",
                 dangerouslySetInnerHTML: _wrapProp(htmlSignal, "value"),
                 class: "after"
             }, null, 3, null),
-            /*#__PURE__*/ _jsxQ("button", null, {
+            /*#__PURE__*/ _jsxSorted("button", null, {
                 onClick$: /*#__PURE__*/ qrl(()=>import("./cmp_component_div_div_button_onclick_3ra5dio0esa"), "Cmp_component_div_div_button_onClick_3Ra5dio0eSA", [
                     htmlSignal
                 ])
@@ -99,7 +99,7 @@ export const Cmp_component_4ryKJTOKjWE = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAEyB,IAAM;IAC5B,MAAM,aAAa,UAAU;IAC7B,qBACC,MAAC;sBACA,MAAC,iCACA,MAAC;YAAK,IAAG;YAAQ,yBAAwB;;sBAE1C,MAAC,iCACA,MAAC;YAAK,IAAG;YAAS,yBAAwB;YAAsB,OAAM;;sBAEvE,MAAC;0BACA,MAAC;gBAAK,IAAG;gBAAQ,uBAAuB,YAAE;gBAAkB,OAAM;;0BAClE,MAAC;gBACA,QAAQ;;;;;;AAOb\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAEyB,IAAM;IAC5B,MAAM,aAAa,UAAU;IAC7B,qBACC,WAAC;sBACA,WAAC,iCACA,WAAC;YAAK,IAAG;YAAQ,yBAAwB;;sBAE1C,WAAC,iCACA,WAAC;YAAK,IAAG;YAAS,yBAAwB;YAAsB,OAAM;;sBAEvE,WAAC;0BACA,WAAC;gBAAK,IAAG;gBAAQ,uBAAuB,YAAE;gBAAkB,OAAM;;0BAClE,WAAC;gBACA,QAAQ;;;;;;AAOb\"}")
 /*
 {
   "origin": "test.tsx",

@@ -91,19 +91,19 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
             return (
               code.slice(0, index) +
               `
-  import { _jsxQ } from '@builder.io/qwik';
+  import { _jsxSorted } from '@builder.io/qwik';
   const PROPS = {srcSet, width, height};
   export default function (props, key, _, dev) {
-    return _jsxQ('img', {...{decoding: 'async', loading: 'lazy'}, ...props}, PROPS, undefined, 3, key, dev);
+    return _jsxSorted('img', {...{decoding: 'async', loading: 'lazy'}, ...props}, PROPS, undefined, 3, key, dev);
   }`
             );
           } else if (extension === '.svg') {
             const { svgAttributes } = optimizeSvg({ code, path: pathId }, userOpts);
             return `
-  import { _jsxQ } from '@builder.io/qwik';
+  import { _jsxSorted } from '@builder.io/qwik';
   const PROPS = ${JSON.stringify(svgAttributes)};
   export default function (props, key, _, dev) {
-    return _jsxQ('svg', props, PROPS, undefined, 3, key, dev);
+    return _jsxSorted('svg', props, PROPS, undefined, 3, key, dev);
   }`;
           }
         }

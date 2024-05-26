@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 800
+assertion_line: 910
 expression: output
 ---
 ==INPUT==
@@ -25,11 +25,11 @@ import { useStyleQrl } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 import { serverQrl } from "@builder.io/qwik";
 import { _regSymbol } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 const Works_component_div_onClick_server_OsNoEFc5SM4 = /*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "OsNoEFc5SM4");
 const Works_component_t45qL4vNGv0 = (props)=>{
     useStyleQrl(/*#__PURE__*/ inlinedQrl(STYLES, "Works_component_useStyle_i40UL9JyQpg"));
-    return /*#__PURE__*/ _jsxQ("div", {
+    return /*#__PURE__*/ _jsxSorted("div", {
         onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(Works_component_div_onClick_server_OsNoEFc5SM4, "Works_component_div_onClick_server_OsNoEFc5SM4"))
     }, null, null, 2, "u6_0");
 };
@@ -38,7 +38,7 @@ const STYLES = '.class {}';
 export { STYLES as _auto_STYLES };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;gFAOyB,IAAM,QAAQ,GAAG,CAAC,aAF7B;oCAFkB,CAAC,QAAU;IAC1C,qCAAU;IAEV,qBACC,MAAC;QAAI,UAAU;;AAEjB;AANA,OAAO,MAAM,sBAAQ,mGAMlB;AAEH,MAAM,SAAS\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;gFAOyB,IAAM,QAAQ,GAAG,CAAC,aAF7B;oCAFkB,CAAC,QAAU;IAC1C,qCAAU;IAEV,qBACC,WAAC;QAAI,UAAU;;AAEjB;AANA,OAAO,MAAM,sBAAQ,mGAMlB;AAEH,MAAM,SAAS\"}")
 == DIAGNOSTICS ==
 
 []

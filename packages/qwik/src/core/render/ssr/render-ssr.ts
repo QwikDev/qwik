@@ -1,6 +1,6 @@
 import { isPromise, maybeThen } from '../../util/promises';
 import { type InvokeContext, newInvokeContext, invoke, trackSignal } from '../../use/use-core';
-import { Virtual, _jsxC, _jsxQ, createJSXError, isJSXNode } from '../jsx/jsx-runtime';
+import { Virtual, _jsxSorted, createJSXError, isJSXNode } from '../jsx/jsx-runtime';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../../util/types';
 import type { FunctionComponent, JSXNode, JSXOutput } from '../jsx/types/jsx-node';
 import {
@@ -171,7 +171,7 @@ export const _renderSSR = async (node: JSXOutput, opts: RenderSSROptions) => {
     containerState.$serverData$ = opts.serverData;
   }
 
-  const rootNode = _jsxQ(
+  const rootNode = _jsxSorted(
     root,
     EMPTY_OBJ,
     containerAttributes,
@@ -406,12 +406,12 @@ const renderSSRComponent = (
       const array = isHTML ? ssrCtx.$static$.$headNodes$ : extraNodes;
       for (const style of elCtx.$appendStyles$) {
         array.push(
-          _jsxQ(
+          _jsxSorted(
             'style',
             {
-              [QStyle]: style.styleId,
               [dangerouslySetInnerHTML]: style.content,
               hidden: '',
+              [QStyle]: style.styleId,
             },
             null,
             null,
@@ -423,14 +423,14 @@ const renderSSRComponent = (
     }
     const newID = getNextIndex(rCtx);
     const scopeId = elCtx.$scopeIds$ ? serializeSStyle(elCtx.$scopeIds$) : undefined;
-    const processedNode = _jsxC(
+    const processedNode = _jsxSorted(
       node.type,
       {
-        [QScopedStyle]: scopeId,
         [ELEMENT_ID]: newID,
-        children: res.node,
+        [QScopedStyle]: scopeId,
       },
       null,
+      res.node,
       0,
       node.key
     );
@@ -479,7 +479,7 @@ const renderSSRComponent = (
             const content = projectedChildren[slotName];
             // projectedChildren[slotName] = undefined;
             if (content) {
-              return _jsxQ(
+              return _jsxSorted(
                 'q:template',
                 { [QSlot]: slotName || true, hidden: true, 'aria-hidden': 'true' },
                 null,
@@ -853,7 +853,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
     return processData(res, rCtx, ssrCtx, stream, flags, beforeClose);
   }
   return renderNode(
-    _jsxQ(Virtual, EMPTY_OBJ, null, res, 0, node.key),
+    _jsxSorted(Virtual, EMPTY_OBJ, null, res, 0, node.key),
     rCtx,
     ssrCtx,
     stream,

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { vnode_fromJSX } from '@builder.io/qwik/testing';
 import { vnode_applyJournal, vnode_getNode, type VNodeJournal } from './vnode';
 import { vnode_diff } from './vnode-diff';
-import { _jsxQ } from '@builder.io/qwik';
+import { _jsxSorted } from '@builder.io/qwik';
 
 describe('vNode-diff', () => {
   const journal: VNodeJournal = [];
@@ -130,12 +130,12 @@ describe('vNode-diff', () => {
     it('should update attributes', () => {
       // here we need tu "emulate" the var props
       const { vNode, vParent, document } = vnode_fromJSX(
-        _jsxQ(
+        _jsxSorted(
           'test',
           {},
           null,
           [
-            _jsxQ(
+            _jsxSorted(
               'span',
               {
                 id: 'a',
@@ -151,12 +151,12 @@ describe('vNode-diff', () => {
           null
         )
       );
-      const test = _jsxQ(
+      const test = _jsxSorted(
         'test',
         {},
         null,
         [
-          _jsxQ(
+          _jsxSorted(
             'span',
             {
               class: 'B',

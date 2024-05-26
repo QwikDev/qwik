@@ -844,7 +844,7 @@ impl<'a> QwikTransform<'a> {
 		let should_emit_key = is_fn || self.root_jsx_mode;
 		self.root_jsx_mode = false;
 
-		let (has_dynamic_children, var_props, const_props, children, flags) =
+		let (should_sort, var_props, const_props, children, flags) =
 			self.handle_jsx_props_obj(node_props, is_fn, is_text_only);
 
 		let key = if node.args.len() == 1 {
@@ -865,14 +865,14 @@ impl<'a> QwikTransform<'a> {
 		};
 
 		// TODO use _restProps or similar to remove const props from spread props
-		let (jsx_func, mut args) = if has_dynamic_children {
+		let (jsx_func, mut args) = if should_sort {
 			(
-				self.ensure_core_import(&_JSX_C),
-				vec![node_type, var_props, const_props, flags, key],
+				self.ensure_core_import(&_JSX_SPLIT),
+				vec![node_type, var_props, const_props, children, flags, key],
 			)
 		} else {
 			(
-				self.ensure_core_import(&_JSX_Q),
+				self.ensure_core_import(&_JSX_SORTED),
 				vec![node_type, var_props, const_props, children, flags, key],
 			)
 		};
@@ -1157,7 +1157,7 @@ impl<'a> QwikTransform<'a> {
 		ast::ExprOrSpread,
 		ast::ExprOrSpread,
 	) {
-		let (has_dynamic_children, var_props_raw, const_props_raw, children, flags) =
+		let (should_sort, var_props_raw, const_props_raw, children, flags) =
 			self.internal_handle_jsx_props_obj(expr, is_fn, is_text_only);
 
 		let var_props = if var_props_raw.is_empty() {
@@ -1201,13 +1201,7 @@ impl<'a> QwikTransform<'a> {
 				raw: None,
 			}))),
 		};
-		(
-			has_dynamic_children,
-			var_props,
-			const_props,
-			children,
-			flags,
-		)
+		(should_sort, var_props, const_props, children, flags)
 	}
 
 	#[allow(clippy::cognitive_complexity)]
@@ -1248,7 +1242,7 @@ impl<'a> QwikTransform<'a> {
 					.filter(|prop| !matches!(prop, ast::PropOrSpread::Prop(_)))
 					.count();
 				let has_spread_props = spread_props_count > 0;
-				let mut has_dynamic_children = has_spread_props;
+				let should_runtime_sort = has_spread_props;
 				let mut static_listeners = !has_spread_props;
 				let mut static_subtree = !has_spread_props;
 
@@ -1307,7 +1301,6 @@ impl<'a> QwikTransform<'a> {
 											}),
 										)));
 									} else {
-										has_dynamic_children = false;
 										children = Some(transformed_children);
 									}
 								} else if !is_fn && key_word.starts_with("bind:") {
@@ -1476,7 +1469,18 @@ impl<'a> QwikTransform<'a> {
 								var_props.push(prop.fold_with(self));
 							}
 						}
-						// spread props
+						ast::PropOrSpread::Prop(box ast::Prop::Shorthand(ref node)) => {
+							let key_word = node.sym.clone();
+							if key_word == *CHILDREN {
+								children = Some(Box::new(ast::Expr::Ident(ast::Ident::new(
+									CHILDREN.clone(),
+									DUMMY_SP,
+								))));
+							} else {
+								var_props.push(prop.fold_with(self));
+							}
+						}
+						// spread props and other PropOrSpread cases (pretty much impossible)
 						prop => {
 							var_props.push(prop.fold_with(self));
 							spread_props_count -= 1;
@@ -1497,13 +1501,34 @@ impl<'a> QwikTransform<'a> {
 				if static_subtree {
 					flags |= 1 << 1;
 				}
-				(
-					has_dynamic_children,
-					var_props,
-					const_props,
-					children,
-					flags,
-				)
+
+				if !should_runtime_sort {
+					var_props.sort_by(|a: &ast::PropOrSpread, b: &ast::PropOrSpread| {
+						match (a, b) {
+							(
+								ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref a)),
+								ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref b)),
+							) => {
+								let a_key = match &a.key {
+									ast::PropName::Ident(ident) => Some(ident.sym.as_ref()),
+									ast::PropName::Str(s) => Some(s.value.as_ref()),
+									_ => None,
+								};
+								let b_key = match b.key {
+									ast::PropName::Ident(ref ident) => Some(ident.sym.as_ref()),
+									ast::PropName::Str(ref s) => Some(s.value.as_ref()),
+									_ => None,
+								};
+								match (a_key, b_key) {
+									(Some(a_key), Some(b_key)) => a_key.cmp(b_key),
+									_ => std::cmp::Ordering::Equal,
+								}
+							}
+							_ => std::cmp::Ordering::Equal,
+						}
+					});
+				}
+				(should_runtime_sort, var_props, const_props, children, flags)
 			}
 			_ => (true, vec![], vec![], None, 0),
 		}

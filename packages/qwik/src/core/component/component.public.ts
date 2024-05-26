@@ -8,11 +8,11 @@ import type {
   QRLEventHandlerMulti,
 } from '../render/jsx/types/jsx-qwik-attributes';
 import type { FunctionComponent } from '../render/jsx/types/jsx-node';
-import { Virtual, _jsxC } from '../render/jsx/jsx-runtime';
+import { Virtual } from '../render/jsx/jsx-runtime';
 import { SERIALIZABLE_STATE } from '../container/serializers';
 import { qTest } from '../util/qdev';
 import { assertQrl } from '../qrl/qrl-class';
-import { _CONST_PROPS, _VAR_PROPS, _jsxQ } from '../internal';
+import { _CONST_PROPS, _VAR_PROPS, _jsxSorted } from '../internal';
 import { assertNumber } from '../error/assert';
 import type { QwikIntrinsicElements } from '../render/jsx/types/jsx-qwik-elements';
 
@@ -192,12 +192,12 @@ export const componentQrl = <PROPS extends Record<any, any>>(
     assertNumber(flags, 'The Qwik Component was not invoked correctly');
     const hash = qTest ? 'sX' : componentQrl.$hash$.slice(0, 4);
     const finalKey = hash + ':' + (key ? key : '');
-    return _jsxQ(
+    return _jsxSorted(
       Virtual,
       {
+        props,
         [OnRenderProp]: componentQrl,
         [QSlot]: props[QSlot],
-        props,
       },
       null,
       props.children,

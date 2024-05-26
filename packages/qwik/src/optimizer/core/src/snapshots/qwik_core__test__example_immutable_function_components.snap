@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2469
+assertion_line: 2579
 expression: output
 ---
 ==INPUT==
@@ -19,16 +19,16 @@ export const App = component$((props: Stuff) => {
 ============================= test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 import { Slot } from '@builder.io/qwik';
 const App_component_ckEPmXZlub0 = (props)=>{
-    return /*#__PURE__*/ _jsxQ("div", null, null, /*#__PURE__*/ _jsxQ(Slot, null, null, null, 3, "u6_0"), 1, "u6_1");
+    return /*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 3, "u6_0"), 1, "u6_1");
 };
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACA,SAA+B,IAAI,QAAQ,mBAAmB;kCAEhC,CAAC,QAAiB;IAC/C,qBACC,MAAC,iCACA,MAAC;AAGJ;AANA,OAAO,MAAM,oBAAM,+FAMhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACA,SAA+B,IAAI,QAAQ,mBAAmB;kCAEhC,CAAC,QAAiB;IAC/C,qBACC,WAAC,iCACA,WAAC;AAGJ;AANA,OAAO,MAAM,oBAAM,+FAMhB\"}")
 == DIAGNOSTICS ==
 
 []

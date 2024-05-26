@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1367
+assertion_line: 1477
 expression: output
 ---
 ==INPUT==
@@ -76,7 +76,7 @@ export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,sBAAQ,4GAoBlB\"}")
 ============================= child_component_9gyf01gdkqw.js (ENTRY POINT)==
 
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 import { _wrapProp } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { useBrowserVisibleTaskQrl } from "@builder.io/qwik";
@@ -89,11 +89,11 @@ export const Child_component_9GyF01GDKqw = ()=>{
     useBrowserVisibleTaskQrl(/*#__PURE__*/ qrl(()=>import("./child_component_usebrowservisibletask_0igfpoyjmqa"), "Child_component_useBrowserVisibleTask_0IGFPOyJmQA", [
         state
     ]));
-    return /*#__PURE__*/ _jsxQ("div", null, null, _wrapProp(state, "count"), 3, "u6_0");
+    return /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(state, "count"), 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAGgC,IAAM;IACrC,MAAM,QAAQ,SAAS;QACtB,OAAO;IACR;IAEA,qBAAqB;IACrB;;;IASA,qBACC,MAAC,6BACA;AAGH\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAGgC,IAAM;IACrC,MAAM,QAAQ,SAAS;QACtB,OAAO;IACR;IAEA,qBAAqB;IACrB;;;IASA,qBACC,WAAC,6BACA;AAGH\"}")
 /*
 {
   "origin": "test.tsx",

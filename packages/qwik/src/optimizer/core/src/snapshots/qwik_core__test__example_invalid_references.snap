@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 858
+assertion_line: 968
 expression: output
 ---
 ==INPUT==
@@ -88,14 +88,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
 
 import { _auto_I10 as I10 } from "./test";
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 export const App_component_1_w0t0o3QMovU = ()=>{
-    return /*#__PURE__*/ _jsxQ(I10, null, null, null, 3, "u6_0");
+    return /*#__PURE__*/ _jsxSorted(I10, null, null, null, 3, "u6_0");
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAWU,IAAM;IACd,qBACC,MAAC;AAEH\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAWU,IAAM;IACd,qBACC,WAAC;AAEH\"}")
 /*
 {
   "origin": "test.tsx",

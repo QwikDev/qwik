@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2275
+assertion_line: 2385
 expression: output
 ---
 ==INPUT==
@@ -42,13 +42,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= root_component_royhjyacbye.js (ENTRY POINT)==
 
 import { _auto_App as App } from "./test";
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 export const Root_component_royhjYaCbYE = (props)=>{
-    return /*#__PURE__*/ _jsxQ(App, null, null, null, 3, "u6_1");
+    return /*#__PURE__*/ _jsxSorted(App, null, null, null, 3, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAU+B,CAAC,QAAiB;IAChD,qBACC,MAAC;AAEH\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAU+B,CAAC,QAAiB;IAChD,qBACC,WAAC;AAEH\"}")
 /*
 {
   "origin": "test.tsx",
@@ -70,13 +70,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = ()=>{
-    return /*#__PURE__*/ _jsxQ("div", null, null, "hola", 3, "u6_0");
+    return /*#__PURE__*/ _jsxSorted("div", null, null, "hola", 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAGuB,IAAM;IAC5B,qBACC,MAAC,mBAAI;AAEP\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAGuB,IAAM;IAC5B,qBACC,WAAC,mBAAI;AAEP\"}")
 /*
 {
   "origin": "test.tsx",

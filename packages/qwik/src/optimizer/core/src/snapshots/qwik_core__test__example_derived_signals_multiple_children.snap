@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2783
+assertion_line: 2893
 expression: output
 ---
 ==INPUT==
@@ -43,7 +43,7 @@ export const App = component$(() => {
 ============================= test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 import { _wrapProp } from "@builder.io/qwik";
 import { _fnSignal } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
@@ -53,91 +53,91 @@ import { dep } from './file';
 const App_component_ckEPmXZlub0 = ()=>{
     const signal = useSignal(0);
     const store = useStore({});
-    return /*#__PURE__*/ _jsxQ(_Fragment, null, null, [
-        /*#__PURE__*/ _jsxQ("div", null, null, "First text", 3, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, "First text", 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             `text`
         ], 3, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             1
         ], 3, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             true
         ], 3, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             `text${12}`
         ], 3, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             typeof `text${12}` === 'string' ? 12 : 43
         ], 3, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             signal
         ], 3, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             _wrapProp(signal, "value")
         ], 3, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             _fnSignal((p0)=>12 + p0.value, [
                 signal
             ], "12+p0.value")
         ], 3, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             _fnSignal((p0)=>p0.address.city.name, [
                 store
             ], "p0.address.city.name")
         ], 3, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             _fnSignal((p0)=>p0.address.city.name ? 'true' : 'false', [
                 store
             ], 'p0.address.city.name?"true":"false"')
         ], 3, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             dep
         ], 3, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             dep.thing
         ], 3, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             dep.thing + 'stuff'
         ], 3, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             globalThing
         ], 1, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             globalThing.thing
         ], 1, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             globalThing.thing + 'stuff'
         ], 1, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             signal.value()
         ], 1, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             signal.value + unknown()
         ], 1, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             mutable(signal)
         ], 1, null),
-        /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
             signal.value + dep
         ], 1, null)
@@ -146,7 +146,7 @@ const App_component_ckEPmXZlub0 = ()=>{
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;kCAEG,IAAM;IACnC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC;sBACC,MAAC,mBAAI;sBACL,MAAC;YAAI;YAAO,CAAC,IAAI,CAAC;;sBAClB,MAAC;YAAI;YAAO;;sBACZ,MAAC;YAAI;YAAO,IAAI;;sBAChB,MAAC;YAAI;YAAO,CAAC,IAAI,EAAE,GAAG,CAAC;;sBACvB,MAAC;YAAI;YAAO,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;;sBACrD,MAAC;YAAI;YAAO;;sBACZ,MAAC;YAAI;sBAAO;;sBACZ,MAAC;YAAI;4BAAO,KAAK,GAAO,KAAK;;;;sBAC7B,MAAC;YAAI;4BAAO,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;;sBACnC,MAAC;YAAI;4BAAO,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;;sBACtD,MAAC;YAAI;YAAO;;sBACZ,MAAC;YAAI;YAAO,IAAI,KAAK;;sBACrB,MAAC;YAAI;YAAO,IAAI,KAAK,GAAG;;sBACxB,MAAC;YAAI;YAAO;;sBACZ,MAAC;YAAI;YAAO,YAAY,KAAK;;sBAC7B,MAAC;YAAI;YAAO,YAAY,KAAK,GAAG;;sBAChC,MAAC;YAAI;YAAO,OAAO,KAAK;;sBACxB,MAAC;YAAI;YAAO,OAAO,KAAK,GAAG;;sBAC3B,MAAC;YAAI;YAAO,QAAQ;;sBACpB,MAAC;YAAI;YAAO,OAAO,KAAK,GAAG;;;AAG9B;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;kCAEG,IAAM;IACnC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC;sBACC,WAAC,mBAAI;sBACL,WAAC;YAAI;YAAO,CAAC,IAAI,CAAC;;sBAClB,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;YAAO,IAAI;;sBAChB,WAAC;YAAI;YAAO,CAAC,IAAI,EAAE,GAAG,CAAC;;sBACvB,WAAC;YAAI;YAAO,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;;sBACrD,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;sBAAO;;sBACZ,WAAC;YAAI;4BAAO,KAAK,GAAO,KAAK;;;;sBAC7B,WAAC;YAAI;4BAAO,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;;sBACnC,WAAC;YAAI;4BAAO,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;;sBACtD,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;YAAO,IAAI,KAAK;;sBACrB,WAAC;YAAI;YAAO,IAAI,KAAK,GAAG;;sBACxB,WAAC;YAAI;YAAO;;sBACZ,WAAC;YAAI;YAAO,YAAY,KAAK;;sBAC7B,WAAC;YAAI;YAAO,YAAY,KAAK,GAAG;;sBAChC,WAAC;YAAI;YAAO,OAAO,KAAK;;sBACxB,WAAC;YAAI;YAAO,OAAO,KAAK,GAAG;;sBAC3B,WAAC;YAAI;YAAO,QAAQ;;sBACpB,WAAC;YAAI;YAAO,OAAO,KAAK,GAAG;;;AAG9B;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
 == DIAGNOSTICS ==
 
 []

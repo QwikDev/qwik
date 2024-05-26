@@ -1,5 +1,5 @@
 import { isDev } from '@builder.io/qwik/build';
-import { _jsxQ } from '../internal';
+import { _jsxSorted } from '../internal';
 import type { JSXNode } from '../render/jsx/types/jsx-node';
 
 /**
@@ -46,7 +46,7 @@ export const PrefetchServiceWorker = (opts: {
       ');',
     ].join(''),
   };
-  return _jsxQ('script', null, props, null, 0, 'prefetch-service-worker');
+  return _jsxSorted('script', null, props, null, 0, 'prefetch-service-worker');
 };
 
 const PREFETCH_CODE = /*#__PURE__*/ ((
@@ -119,7 +119,7 @@ export const PrefetchGraph = (
       ');',
     ].join(''),
   };
-  return _jsxQ('script', null, props, null, 0, 'prefetch-graph');
+  return _jsxSorted('script', null, props, null, 0, 'prefetch-graph');
 };
 
 const PREFETCH_GRAPH_CODE = /*#__PURE__*/ ((

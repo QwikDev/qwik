@@ -9,7 +9,7 @@ import { isNotNullable, isPromise, maybeThen, promiseAll } from '../../util/prom
 import { qDev, qInspector, seal } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, type ValueOrPromise } from '../../util/types';
 import { executeComponent, shouldWrapFunctional } from '../execute-component';
-import { _jsxC, isJSXNode, SKIP_RENDER_TYPE, Virtual } from '../jsx/jsx-runtime';
+import { _jsxSorted, isJSXNode, SKIP_RENDER_TYPE, Virtual } from '../jsx/jsx-runtime';
 import type { DevJSX, JSXNode } from '../jsx/types/jsx-node';
 import { SkipRender } from '../jsx/utils.public';
 import type { RenderContext } from '../types';
@@ -104,7 +104,7 @@ export const processNode = (
     if (!shouldWrapFunctional(res, node)) {
       return processData(res, invocationContext);
     }
-    return processNode(_jsxC(Virtual, { children: res }, null, 0, key), invocationContext);
+    return processNode(_jsxSorted(Virtual, null, null, res, 0, key), invocationContext);
   } else {
     throw qError(QError_invalidJsxNodeType, type);
   }

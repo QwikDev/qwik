@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3481
+assertion_line: 3591
 expression: output
 ---
 ==INPUT==
@@ -37,7 +37,8 @@ export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test_c
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGE,uDAAuD;AACvD,0CAA0C;AAC1C,6BAAe,0GAab\"}")
 ============================= test_component_luxexe0dqrg.js (ENTRY POINT)==
 
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
+import { _jsxSplit } from "@builder.io/qwik";
 import { _restProps } from "@builder.io/qwik";
 import { _wrapProp } from "@builder.io/qwik";
 export const test_component_LUXeXe0DQrg = (props)=>{
@@ -53,24 +54,24 @@ export const test_component_LUXeXe0DQrg = (props)=>{
     });
     renders.renders++;
     const rerenders = renders.renders + 0;
-    return /*#__PURE__*/ _jsxQ("div", null, {
+    return /*#__PURE__*/ _jsxSorted("div", null, {
         id: _wrapProp(props, "id")
     }, [
-        /*#__PURE__*/ _jsxQ("span", {
+        /*#__PURE__*/ _jsxSplit("span", {
             ...rest
         }, null, [
             _wrapProp(props, "message"),
             " ",
             _wrapProp(props, "count")
         ], 0, null),
-        /*#__PURE__*/ _jsxQ("div", null, {
+        /*#__PURE__*/ _jsxSorted("div", null, {
             class: "renders"
         }, rerenders, 1, null)
     ], 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAK4B,SAA6D;;;;;;IACtF,MAAM,UAAU,SAAS;QAAE,SAAS;IAAE,GAAG;QAAE,UAAU,KAAK;IAAC;IAC3D,QAAQ,OAAO;IACf,MAAM,YAAY,QAAQ,OAAO,GAAG;IACpC,qBACC,MAAC;QAAI,EAAE;;sBACN,MAAC;YAAM,GAAG,IAAI;;;YACL;;;sBAET,MAAC;YAAI,OAAM;WAAW;;AAGzB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAK4B,SAA6D;;;;;;IACtF,MAAM,UAAU,SAAS;QAAE,SAAS;IAAE,GAAG;QAAE,UAAU,KAAK;IAAC;IAC3D,QAAQ,OAAO;IACf,MAAM,YAAY,QAAQ,OAAO,GAAG;IACpC,qBACC,WAAC;QAAI,EAAE;;sBACN,UAAC;YAAM,GAAG,IAAI;;;YACL;;;sBAET,WAAC;YAAI,OAAM;WAAW;;AAGzB\"}")
 /*
 {
   "origin": "test.tsx",

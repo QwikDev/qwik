@@ -53,7 +53,8 @@ export interface ResourceOptions {
  * - `resolved` - the data is available.
  * - `rejected` - the data is not available due to an error or timeout.
  *
- * Avoid using a `try/catch` statement in `useResource$`. If you catch the error instead of passing it, the resource status will never be `rejected`.
+ * Avoid using a `try/catch` statement in `useResource$`. If you catch the error instead of passing
+ * it, the resource status will never be `rejected`.
  *
  * ### Example
  *

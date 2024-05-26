@@ -1,7 +1,8 @@
-export { getErrorHtml } from './error-handler';
+export { getErrorHtml, ServerError } from './error-handler';
 export { mergeHeadersCookies } from './cookie';
 export { AbortMessage, RedirectMessage } from './redirect-handler';
 export { requestHandler } from './request-handler';
+export { _TextEncoderStream_polyfill, _TextEncoderStream_polyfill2 } from './polyfill';
 export type {
   CacheControl,
   Cookie,

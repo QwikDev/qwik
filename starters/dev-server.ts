@@ -148,7 +148,7 @@ export {
 `;
         }
         if (id.endsWith(qwikCityStaticPaths)) {
-          return `export function isStaticPath(){ return false; };`;
+          return `export function isStaticPath(method, url){ return false; };`;
         }
         if (id.endsWith(qwikCityNotFoundPaths)) {
           const notFoundHtml = getErrorHtml(404, "Resource Not Found");

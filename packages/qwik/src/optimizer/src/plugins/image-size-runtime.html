@@ -321,7 +321,7 @@
         }
         const realArea = info.width && info.height;
         const threshholdArea = realArea * 0.5;
-        const tooBig = browserArea < threshholdArea;
+        const tooBig = browserArea < threshholdArea && info.type !== 'svg';
         skip = false;
         if (layoutInvalidation || tooBig) {
           if (!overlay) {

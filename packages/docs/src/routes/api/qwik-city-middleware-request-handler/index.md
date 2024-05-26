@@ -12,6 +12,69 @@ export declare class AbortMessage
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/redirect-handler.ts)
 
+## append
+
+Appends a `Response` cookie header using the `Set-Cookie` header.
+
+The difference between `set()` and `append()` is that if the specified header already exists, `set()` will overwrite the existing value with the new one, whereas `append()` will append the new value onto the end of the set of values.
+
+```typescript
+append(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+name
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+value
+
+</td><td>
+
+string \| number \| Record&lt;string, any&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+[CookieOptions](#cookieoptions)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+void
+
 ## CacheControl
 
 ```typescript
@@ -102,6 +165,17 @@ Description
 
 </th></tr></thead>
 <tbody><tr><td>
+
+[append(name, value, options)](#cookie-append)
+
+</td><td>
+
+Appends a `Response` cookie header using the `Set-Cookie` header.
+
+The difference between `set()` and `append()` is that if the specified header already exists, `set()` will overwrite the existing value with the new one, whereas `append()` will append the new value onto the end of the set of values.
+
+</td></tr>
+<tr><td>
 
 [delete(name, options)](#cookie-delete)
 
@@ -358,6 +432,12 @@ string
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+
+## data
+
+```typescript
+data: T;
+```
 
 ## DeferReturn
 
@@ -1382,6 +1462,87 @@ export interface ResolveValue
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
 
+## ServerError
+
+```typescript
+export declare class ServerError<T = Record<any, any>> extends Error
+```
+
+**Extends:** Error
+
+<table><thead><tr><th>
+
+Constructor
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[(constructor)(status, data)](#)
+
+</td><td>
+
+</td><td>
+
+Constructs a new instance of the `ServerError` class
+
+</td></tr>
+</tbody></table>
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[data](#servererror-data)
+
+</td><td>
+
+</td><td>
+
+T
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[status](#servererror-status)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/error-handler.ts)
+
 ## ServerRenderOptions
 
 ```typescript
@@ -1675,3 +1836,9 @@ _(Optional)_
 **Returns:**
 
 void
+
+## status
+
+```typescript
+status: number;
+```

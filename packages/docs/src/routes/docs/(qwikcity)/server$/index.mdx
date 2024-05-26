@@ -13,7 +13,8 @@ contributors:
   - wtlin1228
   - adamdbradley
   - jemsco
-updated_at: '2023-10-03T18:53:23Z'
+  - patrickjs
+updated_at: '2024-05-11T17:00:00Z'
 created_at: '2023-03-29T02:35:29Z'
 ---
 
@@ -23,7 +24,7 @@ created_at: '2023-03-29T02:35:29Z'
 
 `server$` is a form of RPC (Remote Procedure Call) mechanism between the client and server, just like a traditional HTTP endpoint but strongly typed thanks to Typescript, and easier to maintain.
 
-Your new function will have the following signature:
+Your new function will have the following signature:  
 `([AbortSignal, ] ...): Promise<T>`
 
 `AbortSignal` is optional, and allows you to cancel a long running request by terminating the connection.
@@ -102,11 +103,19 @@ import { component$, useSignal } from '@builder.io/qwik';
 import { server$ } from '@builder.io/qwik-city';
 
 const stream = server$(async function* () {
-  for (let i = 0; i < 10; i++) {
-    yield i;
+  // Creation of an array with 10 undefined values
+  const iterationRange = Array(10).fill().entries(); 
+
+  for (const [index] of iterationRange) {
+    // Yield returns the index during each iteration
+    yield index;
+
+    // Waiting for 1 second before the next iteration
+    // This simulates a delay in the execution
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 });
+
 
 export default component$(() => {
   const message = useSignal('');
@@ -114,9 +123,12 @@ export default component$(() => {
     <div>
       <button
         onClick$={async () => {
-          const response = await stream();
-          for await (const i of response) {
-            message.value += ` ${i}`;
+          // call the async stream function and wait for the response
+          const response = await stream(); 
+          // use a for-await-of loop to asynchronously iterate over the response
+          for await (const index of response) {
+            // add each index from the response to the message value
+            message.value += ` ${index}`;
           }
         }}
       >
@@ -140,7 +152,7 @@ On the client, the proxy function invokes the wrapped function via an HTTP reque
 > Note: The `server$()` function must ensure that the server and client have the same version of the code executing. If there is a version skew the behavior is undefined and may result in an error. If version skew is a common problem then a more formal RPC mechanism should be used such as a tRPC or other library.
 
 > **Important Gotcha**
-> When defining and calling `server$()` inside an `onClick$`, be aware that this can lead to potential errors. To avoid them, make sure the events have `$` wrapped around them.  
+> When defining and calling `server$()` inside an `onClick$`, be aware that this can lead to potential errors. To avoid them, make sure the handlers have `$` wrapped around them.  
 > Don't do this  
 > `onClick$={() => server$(() => // some server code!)}`  
 > Do this  
@@ -152,4 +164,4 @@ When using `server$`, it's important to understand how [middleware functions](/d
 
 To ensure that a middleware function runs for both types of requests, it should be defined in the `plugin.ts` file. This ensures that the middleware is executed consistently for all incoming requests, regardless of whether they are normal page requests or `server$` requests.
 
-By [defining middleware in the `plugin.ts`](/docs/advanced/routing/#plugints) file, developers can maintain a centralized location for shared middleware logic, ensuring consistency and reducing potential errors or oversights.
+By [defining middleware in the `plugin.ts`](/docs/advanced/plugints) file, developers can maintain a centralized location for shared middleware logic, ensuring consistency and reducing potential errors or oversights.

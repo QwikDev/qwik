@@ -54,7 +54,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {\n    readonly actionPath: string;\n    readonly isRunning: boolean;\n    readonly status?: number;\n    readonly formData: FormData | undefined;\n    readonly value: RETURN | undefined;\n    readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;\n};\n```\n**References:** [ActionReturn](#actionreturn)",
+      "content": "```typescript\nexport type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {\n    readonly actionPath: string;\n    readonly isRunning: boolean;\n    readonly status?: number;\n    readonly formData: FormData | undefined;\n    readonly value: RETURN | undefined;\n    readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;\n    readonly submitted: boolean;\n};\n```\n**References:** [ActionReturn](#actionreturn)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.actionstore.md"
     },
@@ -250,7 +250,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> \n```\n**Extends:** Omit&lt;QwikJSX.IntrinsicElements\\['form'\\], 'action' \\| 'method'&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[action?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[ActionStore](#actionstore)<!-- -->&lt;O, I, true \\| false&gt;\n\n\n</td><td>\n\n_(Optional)_ Reference to the action returned by `action()`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[key?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| number \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[onSubmit$?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n(event: Event, form: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt;\n\n\n</td><td>\n\n_(Optional)_ Event handler executed right when the form is submitted.\n\n\n</td></tr>\n<tr><td>\n\n[onSubmitCompleted$?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n(event: CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)<!-- -->&lt;O&gt;&gt;, form: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt;\n\n\n</td><td>\n\n_(Optional)_ Event handler executed right after the action is executed successfully and returns some data.\n\n\n</td></tr>\n<tr><td>\n\n[reloadDocument?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When `true` the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.\n\n\n</td></tr>\n<tr><td>\n\n[spaReset?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When `true` all the form inputs will be reset in SPA mode, just like happens in a full page form submission.\n\nDefaults to `false`\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> \n```\n**Extends:** Omit&lt;QwikJSX.IntrinsicElements\\['form'\\], 'action' \\| 'method'&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[action?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[ActionStore](#actionstore)<!-- -->&lt;O, I, true \\| false&gt;\n\n\n</td><td>\n\n_(Optional)_ Reference to the action returned by `action()`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[key?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| number \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[onSubmit$?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nQRLEventHandlerMulti&lt;SubmitEvent, HTMLFormElement&gt; \\| undefined\n\n\n</td><td>\n\n_(Optional)_ Event handler executed right when the form is submitted.\n\n\n</td></tr>\n<tr><td>\n\n[onSubmitCompleted$?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nQRLEventHandlerMulti&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)<!-- -->&lt;O&gt;&gt;, HTMLFormElement&gt; \\| undefined\n\n\n</td><td>\n\n_(Optional)_ Event handler executed right after the action is executed successfully and returns some data.\n\n\n</td></tr>\n<tr><td>\n\n[reloadDocument?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When `true` the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.\n\n\n</td></tr>\n<tr><td>\n\n[spaReset?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When `true` all the form inputs will be reset in SPA mode, just like happens in a full page form submission.\n\nDefaults to `false`\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/form-component.tsx",
       "mdFile": "qwik-city.formprops.md"
     },
@@ -642,7 +642,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type RouteNavigate = QRL<(path?: string, options?: {\n    type?: Exclude<NavigationType, 'initial'>;\n    forceReload?: boolean;\n    replaceState?: boolean;\n    scroll?: boolean;\n} | boolean) => Promise<void>>;\n```\n**References:** [NavigationType](#navigationtype)",
+      "content": "```typescript\nexport type RouteNavigate = QRL<(path?: string | number, options?: {\n    type?: Exclude<NavigationType, 'initial'>;\n    forceReload?: boolean;\n    replaceState?: boolean;\n    scroll?: boolean;\n} | boolean) => Promise<void>>;\n```\n**References:** [NavigationType](#navigationtype)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.routenavigate.md"
     },
@@ -670,7 +670,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nserver$: <T extends ServerFunction>(first: T) => ServerQRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfirst\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[ServerQRL](#serverqrl)<!-- -->&lt;T&gt;",
+      "content": "```typescript\nserver$: <T extends ServerFunction>(first: T, options?: ServerConfig | undefined) => ServerQRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfirst\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\nServerConfig \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[ServerQRL](#serverqrl)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts",
       "mdFile": "qwik-city.server_.md"
     },
@@ -684,7 +684,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ServerFunction = {\n    (this: RequestEventBase, ...args: any[]): any;\n};\n```",
+      "content": "```typescript\nexport type ServerFunction = {\n    (this: RequestEventBase, ...args: any[]): any;\n    options?: ServerConfig;\n};\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.serverfunction.md"
     },

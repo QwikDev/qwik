@@ -714,15 +714,18 @@ export const PrefetchGraph: (opts?: {
     base?: string;
     manifestHash?: string;
     manifestURL?: string;
+    nonce?: string;
 }) => JSXNode<string>;
 
 // @alpha
 export const PrefetchServiceWorker: (opts: {
     base?: string;
+    scope?: string;
     path?: string;
     verbose?: boolean;
     fetchBundleGraph?: boolean;
-}) => JSXNode<string>;
+    nonce?: string;
+}) => JSXNode<'script'>;
 
 // @public (undocumented)
 export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progress', T> {
@@ -884,6 +887,10 @@ export type QwikSVGElements = {
 
 // @public
 export type QwikSymbolEvent = CustomEvent<{
+    qBase: string;
+    qManifest: string;
+    qVersion: string;
+    href: string;
     symbol: string;
     element: Element;
     reqTime: number;

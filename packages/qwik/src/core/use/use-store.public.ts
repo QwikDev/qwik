@@ -6,7 +6,7 @@ import { useSequentialScope } from './use-sequential-scope';
 
 /** @public */
 export interface UseStoreOptions {
-  /** If `true` then all nested objects and arrays will be tracked as well. Default is `false`. */
+  /** If `true` then all nested objects and arrays will be tracked as well. Default is `true`. */
   deep?: boolean;
 
   /** If `false` then the object will not be tracked for changes. Default is `true`. */

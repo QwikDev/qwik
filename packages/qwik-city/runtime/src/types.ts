@@ -90,7 +90,7 @@ export type ScrollState = {
 /** @public */
 export type RouteNavigate = QRL<
   (
-    path?: string,
+    path?: string | number,
     options?:
       | {
           type?: Exclude<NavigationType, 'initial'>;
@@ -677,6 +677,8 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
       ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
       : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
   >;
+  /** Is action.submit was submitted */
+  readonly submitted: boolean;
 };
 
 type Failed = {
@@ -788,8 +790,25 @@ export type ZodConstructorQRL = {
 };
 
 /** @public */
+export interface ServerConfig {
+  // TODO: create id registry
+  // id?: string;
+  origin?: string;
+  // TODO: recreate sending arguments as queryParams
+  // only support "get" and "post" for now
+  method?: 'get' | 'post'; // | 'patch' | 'delete';
+  headers?: Record<string, string>;
+  // TODO: add cache interface
+  // cache?: any,
+  // TODO: cancel with signal
+  // signal?: Signal<boolean>;
+  fetchOptions?: any;
+}
+
+/** @public */
 export type ServerFunction = {
   (this: RequestEventBase, ...args: any[]): any;
+  options?: ServerConfig;
 };
 
 /**

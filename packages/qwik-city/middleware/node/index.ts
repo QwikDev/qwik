@@ -74,7 +74,13 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
       if (!res.headersSent) {
         const origin = computeOrigin(req, opts);
         const url = getUrl(req, origin);
-        const notFoundHtml = getNotFound(url.pathname);
+
+        // In the development server, we replace the getNotFound function
+        // For static paths, we assign a static "Not Found" message.
+        // This ensures consistency between development and production environments for specific URLs.
+        const notFoundHtml = isStaticPath(req.method || 'GET', url)
+          ? 'Not Found'
+          : getNotFound(url.pathname);
         res.writeHead(404, {
           'Content-Type': 'text/html; charset=utf-8',
           'X-Not-Found': url.pathname,
@@ -105,8 +111,9 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
         } else {
           filePath = join(staticFolder, pathname, 'index.html');
         }
-        const stream = createReadStream(filePath);
         const ext = extname(filePath).replace(/^\./, '');
+        const stream = createReadStream(filePath);
+        stream.on('error', next);
 
         const contentType = MIME_TYPES[ext];
 
@@ -118,7 +125,6 @@ export function createQwikCity(opts: QwikCityNodeRequestOptions) {
           res.setHeader('Cache-Control', opts.static.cacheControl);
         }
 
-        stream.on('error', next);
         stream.pipe(res);
 
         return;

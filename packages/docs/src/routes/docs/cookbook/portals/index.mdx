@@ -59,7 +59,7 @@ Both Qwik UI's popover and modal components can be used regardless of meta-frame
 
 If the behavior of the above components do not fit the use case, there is also the ability to create a custom portal component in Qwik. We'll create a modal component from scratch.
 
-> The following is an SSR portal implementation using Qwik City. If you are using multiple frontend frameworks alongside Qwik, you may prefer a [React-like portal implementation](https://github.com/qwikifiers/qwik-ui/blob/main/packages/kit-headless/src/components/popover/popover-impl.tsx#L42).
+> The following is an SSR portal implementation using Qwik City. If you are using multiple frontend frameworks alongside Qwik, you may prefer a [React-like portal implementation](https://github.com/qwikifiers/qwik-ui/blob/main/packages/kit-headless/src/components/popover/popover-panel-impl.tsx#L84).
 
 The fundamental problems to solve are:
 1. decide where the popup should be rendered in the application. (Let's call this `<Portal>`)

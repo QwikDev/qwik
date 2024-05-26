@@ -39,6 +39,7 @@ export interface ClientConn {
 
 // @public (undocumented)
 export interface Cookie {
+    append(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;
     delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain' | 'sameSite'>): void;
     get(name: string): CookieValue | null;
     getAll(): Record<string, CookieValue>;
@@ -175,6 +176,15 @@ export interface ResolveValue {
 }
 
 // @public (undocumented)
+export class ServerError<T = Record<any, any>> extends Error {
+    constructor(status: number, data: T);
+    // (undocumented)
+    data: T;
+    // (undocumented)
+    status: number;
+}
+
+// @public (undocumented)
 export interface ServerRenderOptions extends RenderOptions {
     checkOrigin?: boolean;
     // (undocumented)
@@ -210,6 +220,29 @@ export type ServerRequestMode = 'dev' | 'static' | 'server';
 //
 // @public (undocumented)
 export type ServerResponseHandler<T = any> = (status: number, headers: Headers, cookies: Cookie, resolve: (response: T) => void, requestEv: RequestEventInternal) => WritableStream<Uint8Array>;
+
+// @internal (undocumented)
+export class _TextEncoderStream_polyfill {
+    // (undocumented)
+    get [Symbol.toStringTag](): string;
+    // (undocumented)
+    get encoding(): string;
+    // (undocumented)
+    get readable(): ReadableStream<Uint8Array>;
+    // (undocumented)
+    get writable(): WritableStream<string>;
+}
+
+// @internal (undocumented)
+export class _TextEncoderStream_polyfill2 {
+    constructor();
+    // (undocumented)
+    readable: any;
+    // (undocumented)
+    writable: any;
+    // (undocumented)
+    _writer: any;
+}
 
 // (No @packageDocumentation comment for this package)
 

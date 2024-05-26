@@ -1,4 +1,11 @@
-import { jsx, type QwikJSX, type ValueOrPromise, component$, Slot } from '@builder.io/qwik';
+import {
+  jsx,
+  type QwikJSX,
+  component$,
+  Slot,
+  type QRLEventHandlerMulti,
+  $,
+} from '@builder.io/qwik';
 import type { ActionStore } from './types';
 import { useNavigate } from './use-functions';
 
@@ -29,13 +36,12 @@ export interface FormProps<O, I>
   spaReset?: boolean;
 
   /** Event handler executed right when the form is submitted. */
-  onSubmit$?: (event: Event, form: HTMLFormElement) => ValueOrPromise<void>;
+  onSubmit$?: QRLEventHandlerMulti<SubmitEvent, HTMLFormElement> | undefined;
 
   /** Event handler executed right after the action is executed successfully and returns some data. */
-  onSubmitCompleted$?: (
-    event: CustomEvent<FormSubmitCompletedDetail<O>>,
-    form: HTMLFormElement
-  ) => ValueOrPromise<void>;
+  onSubmitCompleted$?:
+    | QRLEventHandlerMulti<CustomEvent<FormSubmitCompletedDetail<O>>, HTMLFormElement>
+    | undefined;
 
   key?: string | number | null;
 }
@@ -46,13 +52,44 @@ export const Form = <O, I>(
   key: string | null
 ) => {
   if (action) {
+    const isArrayApi = Array.isArray(onSubmit$);
+    // if you pass an array you can choose where you want action.submit in it
+    if (isArrayApi) {
+      return jsx(
+        'form',
+        {
+          ...rest,
+          action: action.actionPath,
+          'preventdefault:submit': !reloadDocument,
+          onSubmit$: [
+            ...onSubmit$,
+            // action.submit "submitcompleted" event for onSubmitCompleted$ events
+            !reloadDocument
+              ? $((evt: SubmitEvent) => {
+                  if (!action.submitted) {
+                    return action.submit(evt);
+                  }
+                })
+              : undefined,
+          ],
+          method: 'post',
+          ['data-spa-reset']: spaReset ? 'true' : undefined,
+        },
+        key
+      );
+    }
     return jsx(
       'form',
       {
         ...rest,
         action: action.actionPath,
         'preventdefault:submit': !reloadDocument,
-        onSubmit$: [!reloadDocument ? action.submit : undefined, onSubmit$],
+        onSubmit$: [
+          // action.submit "submitcompleted" event for onSubmitCompleted$ events
+          !reloadDocument ? action.submit : undefined,
+          // TODO: v2 breaking change this should fire before the action.submit
+          onSubmit$,
+        ],
         method: 'post',
         ['data-spa-reset']: spaReset ? 'true' : undefined,
       },
@@ -80,15 +117,19 @@ export const GetForm = component$<FormProps<undefined, undefined>>(
         preventdefault:submit={!reloadDocument}
         data-spa-reset={spaReset ? 'true' : undefined}
         {...rest}
-        onSubmit$={async (_, form) => {
-          const formData = new FormData(form);
-          const params = new URLSearchParams();
-          formData.forEach((value, key) => {
-            if (typeof value === 'string') {
-              params.append(key, value);
-            }
-          });
-          nav('?' + params.toString(), { type: 'form', forceReload: true }).then(() => {
+        onSubmit$={[
+          ...(Array.isArray(onSubmit$) ? onSubmit$ : [onSubmit$]),
+          $(async (_evt, form) => {
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
+            formData.forEach((value, key) => {
+              if (typeof value === 'string') {
+                params.append(key, value);
+              }
+            });
+            await nav('?' + params.toString(), { type: 'form', forceReload: true });
+          }),
+          $((_evt, form) => {
             if (form.getAttribute('data-spa-reset') === 'true') {
               form.reset();
             }
@@ -102,8 +143,10 @@ export const GetForm = component$<FormProps<undefined, undefined>>(
                 },
               })
             );
-          });
-        }}
+            //
+          }),
+          // end of array
+        ]}
       >
         <Slot />
       </form>

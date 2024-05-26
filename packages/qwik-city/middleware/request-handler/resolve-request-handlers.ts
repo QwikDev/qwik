@@ -26,6 +26,7 @@ import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
 import type { QRL, _deserializeData, _serializeData } from '@builder.io/qwik';
 import { getQwikCityServerData } from './response-page';
 import { RedirectMessage } from './redirect-handler';
+import { ServerError } from './error-handler';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
@@ -59,9 +60,11 @@ export const resolveRequestHandlers = (
       requestHandlers.unshift(csrfCheckMiddleware);
     }
     if (isPageRoute) {
-      if (method === 'POST') {
+      // server$
+      if (method === 'POST' || method === 'GET') {
         requestHandlers.push(pureServerFunction);
       }
+
       requestHandlers.push(fixTrailingSlash);
       requestHandlers.push(renderQData);
     }
@@ -306,6 +309,11 @@ async function pureServerFunction(ev: RequestEvent) {
             result = await (qrl as Function).apply(ev, args);
           }
         } catch (err) {
+          if (err instanceof ServerError) {
+            ev.headers.set('Content-Type', 'application/qwik-json');
+            ev.send(err.status, await qwikSerializer._serializeData(err.data, true));
+            return;
+          }
           ev.headers.set('Content-Type', 'application/qwik-json');
           ev.send(500, await qwikSerializer._serializeData(err, true));
           return;

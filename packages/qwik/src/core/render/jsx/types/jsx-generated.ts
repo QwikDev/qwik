@@ -607,13 +607,13 @@ type SpecialAttrs = {
         'bind:checked'?: undefined;
       }
     | {
-        type: 'button' | 'reset' | 'submit';
+        type?: 'button' | 'reset' | 'submit';
         'bind:value'?: undefined;
         'bind:checked'?: undefined;
         autoComplete?: undefined;
       }
     | {
-        type: 'checkbox' | 'radio';
+        type?: 'checkbox' | 'radio';
         'bind:value'?: undefined;
         autoComplete?: undefined;
       }

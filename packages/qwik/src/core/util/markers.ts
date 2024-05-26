@@ -28,6 +28,7 @@ export const QCtxAttr = 'q:ctx';
 
 export const QLocaleAttr = 'q:locale';
 export const QContainerAttr = 'q:container';
+export const QContainerAttrEnd = '/' + QContainerAttr;
 
 export const QTemplate = 'q:template';
 

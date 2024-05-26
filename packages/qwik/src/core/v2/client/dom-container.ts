@@ -35,7 +35,7 @@ import {
 import { _SharedContainer } from '../shared/shared-container';
 import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
 import { type HostElement } from '../shared/types';
-import { VNodeDataChar, VNodeDataSeparator } from '../shared/vnode-data-types';
+import { processVNodeData } from './process-vnode-data';
 import {
   VNodeFlags,
   VNodeProps,
@@ -48,7 +48,6 @@ import {
 } from './types';
 import {
   VNodeJournalOpCode,
-  isQContainerElementWithValue,
   mapArray_get,
   mapArray_set,
   vnode_applyJournal,
@@ -147,7 +146,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
     this.stateData = null!;
     const document = this.element.ownerDocument as QDocument;
     if (!document.qVNodeData) {
-      processVNodeData(document, this.element);
+      processVNodeData(document);
     }
     this.$rawStateData$ = [];
     this.stateData = [];
@@ -335,106 +334,5 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       styleElement.textContent = content;
       this.$journal$.push(VNodeJournalOpCode.Insert, this.document.head, null, styleElement);
     }
-  }
-}
-
-export function processVNodeData(document: Document, rootElement: Element) {
-  const qDocument = document as QDocument;
-  const vNodeDataMap =
-    qDocument.qVNodeData || (qDocument.qVNodeData = new WeakMap<Element, string>());
-  const vNodeData = document.querySelectorAll('script[type="qwik/vnode"]');
-  if (vNodeData.length === 0) {
-    return;
-  }
-  const containerElement = _getQContainerElement(rootElement) as ContainerElement;
-  const qVNodeRefs = (containerElement.qVNodeRefs = new Map<number, Element | ElementVNode>());
-  const walker = document.createTreeWalker(
-    containerElement.parentNode!,
-    1 /* NodeFilter.SHOW_ELEMENT */
-  );
-  const currentVNodeData = vNodeData[0].textContent!;
-  const currentVNodeDataLength = currentVNodeData.length;
-  /// Stores the current element index as the TreeWalker traverses the DOM.
-  let elementIdx = -1;
-  /// Stores the current VNode index as derived from the VNodeData script tag.
-  let vNodeElementIndex = -1;
-  let vNodeDataStart = 0;
-  let vNodeDataEnd = 0;
-  let ch: number;
-  let needsToStoreRef = -1;
-  for (let node = walker.firstChild(); node !== null; node = walker.nextNode()) {
-    if (isQContainerElementWithValue(node.parentElement)) {
-      continue;
-    }
-    elementIdx++;
-    if (vNodeElementIndex < elementIdx) {
-      // VNodeData needs to catch up with the elementIdx
-      if (vNodeElementIndex == -1) {
-        // Special case for initial catch up
-        vNodeElementIndex = 0;
-      }
-      vNodeDataStart = vNodeDataEnd;
-      if (vNodeDataStart < currentVNodeDataLength) {
-        while (isSeparator((ch = currentVNodeData.charCodeAt(vNodeDataStart)))) {
-          // Keep consuming the separators and incrementing the vNodeIndex
-          // console.log('ADVANCE', vNodeElementIndex, ch, ch - 33);
-          vNodeElementIndex += 1 << (ch - VNodeDataSeparator.SKIP_0);
-          vNodeDataStart++;
-          if (vNodeDataStart >= currentVNodeDataLength) {
-            // we reached the end of the vNodeData stop.
-            break;
-          }
-        }
-        const shouldStoreRef = ch === VNodeDataSeparator.REFERENCE;
-        if (shouldStoreRef) {
-          // if we need to store the ref handle it here.
-          needsToStoreRef = vNodeElementIndex;
-          vNodeDataStart++;
-          if (vNodeDataStart < currentVNodeDataLength) {
-            ch = currentVNodeData.charCodeAt(vNodeDataEnd);
-          } else {
-            // assume separator on end.
-            ch = VNodeDataSeparator.SKIP_0;
-          }
-        }
-        vNodeDataEnd = vNodeDataStart;
-        let depth = 0;
-        while (true as boolean) {
-          // look for the end of VNodeData
-          if (vNodeDataEnd < currentVNodeDataLength) {
-            ch = currentVNodeData.charCodeAt(vNodeDataEnd);
-            if (depth === 0 && isSeparator(ch)) {
-              break;
-            } else {
-              if (ch === VNodeDataChar.OPEN) {
-                depth++;
-              } else if (ch === VNodeDataChar.CLOSE) {
-                depth--;
-              }
-              vNodeDataEnd++;
-            }
-          } else {
-            break;
-          }
-        }
-      } else {
-        elementIdx = Number.MAX_SAFE_INTEGER;
-      }
-    }
-    // console.log('WALK', elementIdx, (node as Element).outerHTML, vNodeElementIndex);
-
-    if (needsToStoreRef === elementIdx) {
-      qVNodeRefs.set(elementIdx, node as Element);
-    }
-    if (elementIdx === vNodeElementIndex) {
-      // console.log('MATCH', elementIdx, vNodeElementIndex);
-      const instructions = currentVNodeData.substring(vNodeDataStart, vNodeDataEnd);
-      // console.log('SET', (node as Element).outerHTML, instructions);
-      vNodeDataMap.set(node as Element, instructions);
-    }
-  }
-
-  function isSeparator(ch: number) {
-    return /* `!` */ 33 <= ch && ch <= 47; /* `/` */
   }
 }

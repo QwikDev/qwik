@@ -209,6 +209,7 @@ function shouldSkip(vNode: _VNode | null) {
     if (
       tag === 'script' &&
       (vnode_getAttr(vNode, 'type') === 'qwik/vnode' ||
+        vnode_getAttr(vNode, 'type') === 'x-qwik/vnode' ||
         vnode_getAttr(vNode, 'type') === 'qwik/state')
     ) {
       return true;

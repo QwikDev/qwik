@@ -170,7 +170,8 @@ export interface _ContainerElement extends HTMLElement {
     // (undocumented)
     qContainer?: ClientContainer;
     qFuncs?: Array<Function>;
-    qVNodeRefs: Map<number, Element | _ElementVNode>;
+    qVnodeData?: string;
+    qVNodeRefs?: Map<number, Element | _ElementVNode>;
 }
 
 // @public

@@ -130,6 +130,7 @@ import {
   ELEMENT_SEQ,
   OnRenderProp,
   QContainerAttr,
+  QContainerAttrEnd,
   QCtxAttr,
   QScopedStyle,
   QSlot,
@@ -189,6 +190,7 @@ export type VNodeJournal = Array<VNodeJournalOpCode | Document | Element | Text 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const vnode_newElement = (element: Element, tag: string): ElementVNode => {
+  assertEqual(fastNodeType(element), 1 /* ELEMENT_NODE */, 'Expecting element node.');
   const vnode: ElementVNode = VNodeArray.createElement(
     VNodeFlags.Element | VNodeFlags.Inflated | (-1 << VNodeFlagsIndex.shift), // Flag
     null,
@@ -206,6 +208,7 @@ export const vnode_newElement = (element: Element, tag: string): ElementVNode =>
 };
 
 export const vnode_newUnMaterializedElement = (element: Element): ElementVNode => {
+  assertEqual(fastNodeType(element), 1 /* ELEMENT_NODE */, 'Expecting element node.');
   const vnode: ElementVNode = VNodeArray.createElement(
     VNodeFlags.Element | (-1 << VNodeFlagsIndex.shift), // Flag
     null,
@@ -227,6 +230,8 @@ export const vnode_newSharedText = (
   sharedTextNode: Text | null,
   textContent: string
 ): TextVNode => {
+  sharedTextNode &&
+    assertEqual(fastNodeType(sharedTextNode), 3 /* TEXT_NODE */, 'Expecting element node.');
   const vnode: TextVNode = VNodeArray.createText(
     VNodeFlags.Text | (-1 << VNodeFlagsIndex.shift), // Flag
     null, // Parent
@@ -250,6 +255,7 @@ export const vnode_newText = (textNode: Text, textContent: string | undefined): 
     textNode, // TextNode
     textContent // Text Content
   );
+  assertEqual(fastNodeType(textNode), 3 /* TEXT_NODE */, 'Expecting element node.');
   assertFalse(vnode_isElementVNode(vnode), 'Incorrect format of TextVNode.');
   assertTrue(vnode_isTextVNode(vnode), 'Incorrect format of TextVNode.');
   assertFalse(vnode_isVirtualVNode(vnode), 'Incorrect format of TextVNode.');
@@ -624,7 +630,7 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
     for (let i = elementPath.length - 2; i >= 0; i--) {
       vNode = vnode_getVNodeForChildNode(vNode, elementPath[i]);
     }
-    elementOffset != -1 && qVNodeRefs.set(elementOffset, vNode);
+    elementOffset != -1 && qVNodeRefs!.set(elementOffset, vNode);
   } else {
     vNode = refElement;
   }
@@ -1172,7 +1178,7 @@ export const vnode_getFirstChild = (vnode: VNode): VNode | null => {
 
 export const vnode_materialize = (vNode: ElementVNode) => {
   const element = vNode[ElementVNodeProps.element];
-  const firstChild = element.firstChild;
+  const firstChild = fastFirstChild(element);
   const vNodeData = (element.ownerDocument as QDocument)?.qVNodeData?.get(element);
   const vFirstChild = vNodeData
     ? materializeFromVNodeData(vNode, vNodeData, element, firstChild)
@@ -1187,7 +1193,7 @@ const ensureMaterialized = (vnode: ElementVNode): VNode | null => {
     // need to materialize the vNode.
     const element = vParent[ElementVNodeProps.element];
 
-    if (isQContainerElementWithValue(element)) {
+    if (vParent[VNodeProps.parent] && shouldIgnoreChildren(element)) {
       // We have a container with html value, must ignore the content.
       vFirstChild =
         vParent[ElementVNodeProps.firstChild] =
@@ -1202,12 +1208,77 @@ const ensureMaterialized = (vnode: ElementVNode): VNode | null => {
   return vFirstChild;
 };
 
-export const isQContainerElementWithValue = (node: Node | null): boolean => {
-  if (isElement(node)) {
-    const qContainer = node.getAttribute(QContainerAttr);
-    return qContainer === QContainerValue.HTML || qContainer === QContainerValue.TEXT;
+let _fastHasAttribute: ((this: Element, key: string) => boolean) | null = null;
+const shouldIgnoreChildren = (node: Element): boolean => {
+  if (!_fastHasAttribute) {
+    _fastHasAttribute = node.hasAttribute;
   }
-  return false;
+  return _fastHasAttribute.call(node, QContainerAttr);
+};
+
+let _fastNodeType: ((this: Node) => number) | null = null;
+const fastNodeType = (node: Node): number => {
+  if (!_fastNodeType) {
+    _fastNodeType = fastGetter<typeof _fastNodeType>(node, 'nodeType')!;
+  }
+  return _fastNodeType.call(node);
+};
+const fastIsTextOrElement = (node: Node): boolean => {
+  const type = fastNodeType(node);
+  return type === /* Node.TEXT_NODE */ 3 || type === /* Node.ELEMENT_NODE */ 1;
+};
+
+let _fastNextSibling: ((this: Node) => Node | null) | null = null;
+const fastNextSibling = (node: Node | null): Node | null => {
+  if (!_fastNextSibling) {
+    _fastNextSibling = fastGetter<typeof _fastNextSibling>(node, 'nextSibling')!;
+  }
+  while (node) {
+    node = _fastNextSibling.call(node);
+    if (node !== null) {
+      const type = fastNodeType(node);
+      if (type === /* Node.TEXT_NODE */ 3 || type === /* Node.ELEMENT_NODE */ 1) {
+        break;
+      } else if (type === /* Node.COMMENT_NODE */ 8) {
+        if (node.nodeValue?.startsWith(QContainerAttr)) {
+          while (node && (node = _fastNextSibling.call(node))) {
+            if (
+              fastNodeType(node) === /* Node.COMMENT_NODE */ 8 &&
+              node.nodeValue?.startsWith(QContainerAttrEnd)
+            ) {
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+  return node;
+};
+
+let _fastFirstChild: ((this: Node) => Node | null) | null = null;
+const fastFirstChild = (node: Node | null): Node | null => {
+  if (!_fastFirstChild) {
+    _fastFirstChild = fastGetter<typeof _fastFirstChild>(node, 'firstChild')!;
+  }
+  node = node && _fastFirstChild.call(node);
+  while (node && !fastIsTextOrElement(node)) {
+    node = fastNextSibling(node);
+  }
+  return node;
+};
+
+const fastGetter = <T>(prototype: any, name: string): T => {
+  let getter: any;
+  while (prototype && !(getter = Object.getOwnPropertyDescriptor(prototype, name)?.get)) {
+    prototype = Object.getPrototypeOf(prototype);
+  }
+  return (
+    getter ||
+    function (this: any) {
+      return this[name];
+    }
+  );
 };
 
 const isQStyleElement = (node: Node | null): node is Element => {
@@ -1218,18 +1289,18 @@ const isQStyleElement = (node: Node | null): node is Element => {
   );
 };
 
-const materializeFromDOM = (vParent: ElementVNode, firstChild: ChildNode | null) => {
+const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null) => {
   let vFirstChild: VNode | null = null;
   // materialize from DOM
   let child = firstChild;
   while (isQStyleElement(child)) {
     // skip over style elements, as those need to be moved to the head.
     // VNode pretends that `<style q:style q:sstyle>` elements do not exist.
-    child = child.nextSibling;
+    child = fastNextSibling(child);
   }
   let vChild: VNode | null = null;
   while (child) {
-    const nodeType = child.nodeType;
+    const nodeType = fastNodeType(child);
     let vNextChild: VNode | null = null;
     if (nodeType === /* Node.TEXT_NODE */ 3) {
       vNextChild = vnode_newText(child as Text, child.textContent ?? undefined);
@@ -1245,7 +1316,7 @@ const materializeFromDOM = (vParent: ElementVNode, firstChild: ChildNode | null)
     if (!vFirstChild) {
       vParent[ElementVNodeProps.firstChild] = vFirstChild = vChild;
     }
-    child = child.nextSibling;
+    child = fastNextSibling(child);
   }
   vParent[ElementVNodeProps.lastChild] = vChild || null;
   vParent[ElementVNodeProps.firstChild] = vFirstChild;
@@ -1526,7 +1597,7 @@ function materializeFromVNodeData(
     if (isNumber(peek())) {
       // Element counts get encoded as numbers.
       while (!isElement(child)) {
-        child = child!.nextSibling;
+        child = fastNextSibling(child);
         if (!child) {
           throwErrorAndStop(
             'Materialize error: missing element: ' + vData + ' ' + peek() + ' ' + nextToConsumeIdx
@@ -1537,7 +1608,7 @@ function materializeFromVNodeData(
       while (isQStyleElement(child)) {
         // skip over style elements, as those need to be moved to the head
         // and are not included in the counts.
-        child = child.nextSibling;
+        child = fastNextSibling(child);
       }
       combinedText = null;
       previousTextNode = null;
@@ -1548,7 +1619,7 @@ function materializeFromVNodeData(
       }
       while (value--) {
         addVNode(vnode_newUnMaterializedElement(child as Element));
-        child = child!.nextSibling;
+        child = fastNextSibling(child);
       }
       // collect the elements;
     } else if (peek() === VNodeDataChar.SCOPED_STYLE) {
@@ -1653,7 +1724,7 @@ export const vnode_getType = (vnode: VNode): 1 | 3 | 11 => {
 };
 
 const isElement = (node: any): node is Element =>
-  node && typeof node == 'object' && node.nodeType === /** Node.ELEMENT_NODE* */ 1;
+  node && typeof node == 'object' && fastNodeType(node) === /** Node.ELEMENT_NODE* */ 1;
 
 /// These global variables are used to avoid creating new arrays for each call to `vnode_getPathToClosestDomNode`.
 const aPath: VNode[] = [];

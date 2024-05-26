@@ -580,10 +580,11 @@ jobs:
     # Sometimes the tests just hang
     timeout-minutes: 10
     name: E2E Tests
-    if: always() && (needs.changes.outputs.build-qwik == 'true' || needs.changes.outputs.build-others == 'true' || needs.changes.outputs.build-rust == 'true') && needs.build-package.result == 'success'
+    if: always() && (needs.changes.outputs.build-qwik == 'true' || needs.changes.outputs.build-others == 'true' || needs.changes.outputs.build-rust == 'true') && needs.build-package.result == 'success' && needs.test-unit.result == 'success'
     needs:
       - build-package
       - changes
+      - test-unit
 
     strategy:
       matrix:

@@ -37,7 +37,10 @@ export interface ContainerElement extends HTMLElement {
    * the idle time which processes few elements at a time to see if they are still referenced and
    * removes them from the map if they are not.
    */
-  qVNodeRefs: Map<number, Element | ElementVNode>;
+  qVNodeRefs?: Map<number, Element | ElementVNode>;
+
+  /** String from `<script type="qwik/vnode">` tag. */
+  qVnodeData?: string;
 
   /** Map of Synchronous functions. */
   qFuncs?: Array<Function>;

@@ -10,21 +10,36 @@
  * HTML.
  */
 export const VNodeDataSeparator = {
-  REFERENCE: /* * */ 126, // `~` is a reference to the node. Save it.
-  SKIP_0: /* ***** */ 33, // `!` is vNodeData separator skipping 0. (ie next vNode)
-  SKIP_1: /* ***** */ 34, // `"` is vNodeData separator skipping 1.
-  SKIP_2: /* ***** */ 35, // `#` is vNodeData separator skipping 2.
-  SKIP_4: /* ***** */ 36, // `$` is vNodeData separator skipping 4.
-  SKIP_8: /* ***** */ 37, // `%` is vNodeData separator skipping 8.
-  SKIP_16: /* **** */ 38, // `&` is vNodeData separator skipping 16.
-  SKIP_32: /* **** */ 39, // '`'` is vNodeData separator skipping 32.
-  SKIP_64: /* **** */ 40, // `(` is vNodeData separator skipping 64.
-  SKIP_128: /* *** */ 41, // `)` is vNodeData separator skipping 128.
-  SKIP_256: /* *** */ 42, // `*` is vNodeData separator skipping 256.
-  SKIP_512: /* *** */ 43, // `+` is vNodeData separator skipping 512.
-  SKIP_1024: /* ** */ 44, // '`'` is vNodeData separator skipping 1024.
-  SKIP_2048: /* ** */ 46, // `.` is vNodeData separator skipping 2048.
-  SKIP_4096: /* ** */ 47, // `/` is vNodeData separator skipping 4096.
+  REFERENCE_CH: /* ***** */ `~`, // `~` is a reference to the node. Save it.
+  REFERENCE: /* ******** */ 126, // `~` is a reference to the node. Save it.
+  ADVANCE_1_CH: /* ***** */ `!`, // `!` is vNodeData separator skipping 0. (ie next vNode)
+  ADVANCE_1: /* ********* */ 33, // `!` is vNodeData separator skipping 0. (ie next vNode)
+  ADVANCE_2_CH: /* ***** */ `"`, // `"` is vNodeData separator skipping 1.
+  ADVANCE_2: /* ********* */ 34, // `"` is vNodeData separator skipping 1.
+  ADVANCE_4_CH: /* ***** */ `#`, // `#` is vNodeData separator skipping 2.
+  ADVANCE_4: /* ********* */ 35, // `#` is vNodeData separator skipping 2.
+  ADVANCE_8_CH: /* ***** */ `$`, // `$` is vNodeData separator skipping 4.
+  ADVANCE_8: /* ********* */ 36, // `$` is vNodeData separator skipping 4.
+  ADVANCE_16_CH: /* **** */ `%`, // `%` is vNodeData separator skipping 8.
+  ADVANCE_16: /* ******** */ 37, // `%` is vNodeData separator skipping 8.
+  ADVANCE_32_CH: /* **** */ `&`, // `&` is vNodeData separator skipping 16.
+  ADVANCE_32: /* ******** */ 38, // `&` is vNodeData separator skipping 16.
+  ADVANCE_64_CH: /* **** */ '`', // '`'` is vNodeData separator skipping 32.
+  ADVANCE_64: /* ******** */ 39, // '`'` is vNodeData separator skipping 32.
+  ADVANCE_128_CH: /* *** */ `(`, // `(` is vNodeData separator skipping 64.
+  ADVANCE_128: /* ******* */ 40, // `(` is vNodeData separator skipping 64.
+  ADVANCE_256_CH: /* *** */ `)`, // `)` is vNodeData separator skipping 128.
+  ADVANCE_256: /* ******* */ 41, // `)` is vNodeData separator skipping 128.
+  ADVANCE_512_CH: /* *** */ `*`, // `*` is vNodeData separator skipping 256.
+  ADVANCE_512: /* ******* */ 42, // `*` is vNodeData separator skipping 256.
+  ADVANCE_1024_CH: /* ** */ `+`, // `+` is vNodeData separator skipping 512.
+  ADVANCE_1024: /* ****** */ 43, // `+` is vNodeData separator skipping 512.
+  ADVANCE_2048_CH: /* *  */ '`', // '`'` is vNodeData separator skipping 1024.
+  ADVANCE_2048: /* ****** */ 44, // '`'` is vNodeData separator skipping 1024.
+  ADVANCE_4096_CH: /* *  */ `.`, // `.` is vNodeData separator skipping 2048.
+  ADVANCE_4096: /* ****** */ 46, // `.` is vNodeData separator skipping 2048.
+  ADVANCE_8192_CH: /* *  */ `/`, // `/` is vNodeData separator skipping 4096.
+  ADVANCE_9102: /* ****** */ 47, // `/` is vNodeData separator skipping 4096.
 };
 
 /** VNodeDataChar contains information about the VNodeData used for encoding props */

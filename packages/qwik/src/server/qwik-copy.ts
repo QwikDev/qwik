@@ -43,3 +43,4 @@ export {
 } from '../core/v2/shared/scoped-styles';
 export { DEBUG_TYPE, VirtualType, QContainerValue } from '../core/v2/shared/types';
 export { VNodeDataChar } from '../core/v2/shared/vnode-data-types';
+export { VNodeDataSeparator } from '../core/v2/shared/vnode-data-types';

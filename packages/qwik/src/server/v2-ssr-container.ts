@@ -31,23 +31,24 @@ import {
   serializeAttribute,
   isClassAttr,
   QContainerValue,
+  VNodeDataSeparator,
 } from './qwik-copy';
-import type {
-  ContextId,
-  HostElement,
-  SSRContainer as ISSRContainer,
-  ISsrComponentFrame,
-  ISsrNode,
-  JSXChildren,
-  JSXOutput,
-  SerializationContext,
-  SsrAttrKey,
-  SsrAttrValue,
-  SsrAttrs,
-  StreamWriter,
-  SymbolToChunkResolver,
-  ValueOrPromise,
-  fixMeAny,
+import {
+  type ContextId,
+  type HostElement,
+  type SSRContainer as ISSRContainer,
+  type ISsrComponentFrame,
+  type ISsrNode,
+  type JSXChildren,
+  type JSXOutput,
+  type SerializationContext,
+  type SsrAttrKey,
+  type SsrAttrValue,
+  type SsrAttrs,
+  type StreamWriter,
+  type SymbolToChunkResolver,
+  type ValueOrPromise,
+  type fixMeAny,
 } from './qwik-types';
 import { Q_FUNCS_PREFIX } from './render';
 import type { PrefetchResource, RenderOptions, RenderToStreamResult } from './types';
@@ -866,22 +867,22 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     // console.log('emitVNodeSeparators', lastSerializedIdx, elementIdx, skipCount);
     while (skipCount != 0) {
       if (skipCount >= 4096) {
-        this.write('/');
+        this.write(VNodeDataSeparator.ADVANCE_8192_CH);
         skipCount -= 8192;
       } else {
-        skipCount & 4096 && this.write('.');
-        skipCount & 2048 && this.write('-');
-        skipCount & 1024 && this.write('+');
-        skipCount & 512 && this.write('*');
-        skipCount & 256 && this.write(')');
-        skipCount & 128 && this.write('(');
-        skipCount & 64 && this.write("'");
-        skipCount & 32 && this.write('&');
-        skipCount & 16 && this.write('%');
-        skipCount & 8 && this.write('$');
-        skipCount & 4 && this.write('#');
-        skipCount & 2 && this.write('"');
-        skipCount & 1 && this.write('!');
+        skipCount & 4096 && this.write(VNodeDataSeparator.ADVANCE_4096_CH);
+        skipCount & 2048 && this.write(VNodeDataSeparator.ADVANCE_2048_CH);
+        skipCount & 1024 && this.write(VNodeDataSeparator.ADVANCE_1024_CH);
+        skipCount & 512 && this.write(VNodeDataSeparator.ADVANCE_512_CH);
+        skipCount & 256 && this.write(VNodeDataSeparator.ADVANCE_256_CH);
+        skipCount & 128 && this.write(VNodeDataSeparator.ADVANCE_128_CH);
+        skipCount & 64 && this.write(VNodeDataSeparator.ADVANCE_64_CH);
+        skipCount & 32 && this.write(VNodeDataSeparator.ADVANCE_32_CH);
+        skipCount & 16 && this.write(VNodeDataSeparator.ADVANCE_16_CH);
+        skipCount & 8 && this.write(VNodeDataSeparator.ADVANCE_8_CH);
+        skipCount & 4 && this.write(VNodeDataSeparator.ADVANCE_4_CH);
+        skipCount & 2 && this.write(VNodeDataSeparator.ADVANCE_2_CH);
+        skipCount & 1 && this.write(VNodeDataSeparator.ADVANCE_1_CH);
         skipCount = 0;
       }
     }

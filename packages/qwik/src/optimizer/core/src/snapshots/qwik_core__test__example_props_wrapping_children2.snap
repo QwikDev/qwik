@@ -1,5 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 648
 expression: output
 ---
 ==INPUT==
@@ -27,12 +28,12 @@ export const Works = component$((props) => {
 import { componentQrl } from "@builder.io/qwik";
 import { _wrapProp } from "@builder.io/qwik";
 import { _fnSignal } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 import { useSignal } from '@builder.io/qwik';
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
     let fromLocal = useSignal(0);
-    return /*#__PURE__*/ _jsxQ("div", null, null, [
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
         "before-",
         fromLocal,
         _wrapProp(props, "fromProps"),
@@ -54,7 +55,7 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
 }, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAwB,SAAS,QAAQ,mBAAmB;AAC5D,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IAC1C,IAAI,YAAY,UAAU;IAC1B,qBACC,MAAC;QAAI;QAEH;kBACA;QACA,YAAY,MAAM,SAAS;wBAC3B,CAAA;gBAAC,OAAO,GAAM,SAAS;YAAA,CAAA;;;QACvB;YAAC,OAAO;QAAS;QACjB;YAAC,OAAO,MAAM,SAAS;YAAE,OAAO;QAAS;QAAE;;AAI/C,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAwB,SAAS,QAAQ,mBAAmB;AAC5D,OAAO,MAAM,sBAAQ,sCAAW,CAAC,QAAU;IAC1C,IAAI,YAAY,UAAU;IAC1B,qBACC,WAAC;QAAI;QAEH;kBACA;QACA,YAAY,MAAM,SAAS;wBAC3B,CAAA;gBAAC,OAAO,GAAM,SAAS;YAAA,CAAA;;;QACvB;YAAC,OAAO;QAAS;QACjB;YAAC,OAAO,MAAM,SAAS;YAAE,OAAO;QAAS;QAAE;;AAI/C,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

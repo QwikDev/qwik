@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2829
+assertion_line: 2939
 expression: output
 ---
 ==INPUT==
@@ -29,16 +29,16 @@ export const App = component$(() => {
 ============================= test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { useStore } from '@builder.io/qwik';
 const App_component_ckEPmXZlub0 = ()=>{
     useSignal(0);
     const store = useStore({});
-    return /*#__PURE__*/ _jsxQ(_Fragment, null, null, /*#__PURE__*/ _jsxQ("ul", null, {
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted("ul", null, {
         id: "issue-2800-result"
-    }, Object.entries(store).map(([key, value])=>/*#__PURE__*/ _jsxQ("li", null, null, [
+    }, Object.entries(store).map(([key, value])=>/*#__PURE__*/ _jsxSorted("li", null, null, [
             key,
             " - ",
             value
@@ -47,7 +47,7 @@ const App_component_ckEPmXZlub0 = ()=>{
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AACA,SAAqB,QAAQ,QAAiB,mBAAmB;kCAInC,IAAM;IACpB,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC,2CACC,MAAC;QAAG,IAAG;OACL,OAAO,OAAO,CAAC,OAAO,GAAG,CAAC,CAAC,CAAC,KAAK,MAAM,iBACxC,MAAC;YACC;YAAI;YAAI;;AAMd;AAdA,OAAO,MAAM,oBAAM,+FAchB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AACA,SAAqB,QAAQ,QAAiB,mBAAmB;kCAInC,IAAM;IACpB,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC,gDACC,WAAC;QAAG,IAAG;OACL,OAAO,OAAO,CAAC,OAAO,GAAG,CAAC,CAAC,CAAC,KAAK,MAAM,iBACxC,WAAC;YACC;YAAI;YAAI;;AAMd;AAdA,OAAO,MAAM,oBAAM,+FAchB\"}")
 == DIAGNOSTICS ==
 
 []

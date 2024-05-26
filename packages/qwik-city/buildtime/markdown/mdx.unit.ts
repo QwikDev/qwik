@@ -23,7 +23,7 @@ describe('mdx', () => {
     // It could be that new mdx versions change this output, make sure it still makes sense
     expect(result).toMatchInlineSnapshot(`
       {
-        "code": "import { _jsxC, RenderOnce } from '@builder.io/qwik';
+        "code": "import { _jsxSorted, RenderOnce } from '@builder.io/qwik';
       import {Fragment as _Fragment, jsx as _jsx, jsxs as _jsxs} from "@builder.io/qwik/jsx-runtime";
       export const headings = [{
         "text": "Hello",
@@ -59,7 +59,7 @@ describe('mdx', () => {
       }
 
       const WrappedMdxContent = () => {
-        return _jsxC(RenderOnce, {children: _jsxC(_createMdxContent, {}, undefined, 3, null)}, undefined, 3, "eB2HIyA1");
+        return _jsxSorted(RenderOnce, null, null, _jsxSorted(_createMdxContent, null, null, null, 3, null), 3, "eB2HIyA1");
       };
       export default WrappedMdxContent;
       ",

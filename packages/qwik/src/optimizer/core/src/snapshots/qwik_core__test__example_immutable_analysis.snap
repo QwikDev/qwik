@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2022
+assertion_line: 2132
 expression: output
 ---
 ==INPUT==
@@ -122,7 +122,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _fnSignal } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 import importedValue from "v";
 import { qrl } from "@builder.io/qwik";
 import styles from "./styles.module.css";
@@ -134,13 +134,13 @@ export const App_component_ckEPmXZlub0 = (props)=>{
     const remove = /*#__PURE__*/ qrl(()=>import("./app_component_remove_pu6yoc5p6sy"), "App_component_remove_pU6yOC5P6sY", [
         state
     ]);
-    return /*#__PURE__*/ _jsxQ(_Fragment, null, null, [
-        /*#__PURE__*/ _jsxQ("p", {
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("p", {
             onClick$: props.onClick$
         }, {
             class: "stuff"
         }, "Hello Qwik", 2, null),
-        /*#__PURE__*/ _jsxQ(Div, {
+        /*#__PURE__*/ _jsxSorted(Div, {
             document: window.document,
             onClick$: props.onClick$
         }, {
@@ -163,9 +163,9 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                 null,
                 {}
             ]
-        }, /*#__PURE__*/ _jsxQ("p", null, null, "Hello Qwik", 3, null), 2, "u6_0"),
+        }, /*#__PURE__*/ _jsxSorted("p", null, null, "Hello Qwik", 3, null), 2, "u6_0"),
         "[].map(() => (",
-        /*#__PURE__*/ _jsxQ(props.Model, {
+        /*#__PURE__*/ _jsxSorted(props.Model, {
             mutable2: (()=>console.log(state.count))()
         }, {
             class: state,
@@ -189,7 +189,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;yCAK8B,CAAC,QAAU;IAExC,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACC;sBACC,MAAC;YAAgB,UAAU,MAAM,QAAQ;;YAAtC,OAAM;WAAkC;sBAC3C,MAAC;YAEA,UAAU,OAAO,QAAQ;YACzB,UAAU,MAAM,QAAQ;;YAFxB,OAAO,OAAO,GAAG;YAGjB,QAAQ;YACR,YAAY;YACZ,YAAW;YACX,YAAY;gBACX,KAAK;gBACL,KAAK,gBAAgB,IAAI,GAAG,KAAK;YAClC;YACA,YAAY;YACZ,WAAW;;;YACX,YAAY;gBAAC;gBAAG;gBAAG;gBAAe,IAAI;gBAAE,CAAC;aAAE;yBAE3C,MAAC,iBAAE;QACE;sBAEL,MA9Ba,MAAT;YAqCH,UAAU,AAAC,CAAA,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAA;;YANxC,OAAO;YACP,SAAS;YACT,QAAQ,kBAAE,CAAA;oBACT,KAAK;oBACL,KAAK,GAAM,KAAK,GAAG,IAAI,GAAG,KAAK;gBAChC,CAAA;;;YAEA,UAAU;gBAAC;gBAAG;gBAAG;gBAAO,IAAI;gBAAE,CAAC;aAAE;;QAChC;;AAIN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;yCAK8B,CAAC,QAAU;IAExC,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACC;sBACC,WAAC;YAAgB,UAAU,MAAM,QAAQ;;YAAtC,OAAM;WAAkC;sBAC3C,WAAC;YAEA,UAAU,OAAO,QAAQ;YACzB,UAAU,MAAM,QAAQ;;YAFxB,OAAO,OAAO,GAAG;YAGjB,QAAQ;YACR,YAAY;YACZ,YAAW;YACX,YAAY;gBACX,KAAK;gBACL,KAAK,gBAAgB,IAAI,GAAG,KAAK;YAClC;YACA,YAAY;YACZ,WAAW;;;YACX,YAAY;gBAAC;gBAAG;gBAAG;gBAAe,IAAI;gBAAE,CAAC;aAAE;yBAE3C,WAAC,iBAAE;QACE;sBAEL,WA9Ba,MAAT;YAqCH,UAAU,AAAC,CAAA,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAA;;YANxC,OAAO;YACP,SAAS;YACT,QAAQ,kBAAE,CAAA;oBACT,KAAK;oBACL,KAAK,GAAM,KAAK,GAAG,IAAI,GAAG,KAAK;gBAChC,CAAA;;;YAEA,UAAU;gBAAC;gBAAG;gBAAG;gBAAO,IAAI;gBAAE,CAAC;aAAE;;QAChC;;AAIN\"}")
 /*
 {
   "origin": "test.tsx",

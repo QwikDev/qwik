@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1436
+assertion_line: 1546
 expression: output
 ---
 ==INPUT==
@@ -53,16 +53,16 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
 */
 ============================= _____slug___component_vgk6n3qaqd4.js ==
 
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const _____slug___component_vgk6N3QaQd4 = ()=>{
-    return /*#__PURE__*/ _jsxQ("div", null, {
+    return /*#__PURE__*/ _jsxSorted("div", null, {
         onClick$: /*#__PURE__*/ qrl(()=>import("./_____slug___component_div_onclick_oesymv0so3o.js"), "_____slug___component_div_onClick_OesyMV0SO3o")
     }, null, 3, "W4_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;iDAI0B,IAAM;IAC/B,qBACC,MAAC;QAAI,QAAQ;;AAGf\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;iDAI0B,IAAM;IAC/B,qBACC,WAAC;QAAI,QAAQ;;AAGf\"}")
 /*
 {
   "origin": "src/routes/_repl/[id]/[[...slug]].tsx",

@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2001
+assertion_line: 2111
 expression: output
 ---
 ==INPUT==
@@ -26,16 +26,16 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./ap
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,wGAMhB\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = ()=>{
     console.log(function*(lo, t) {
         console.log((yield (yield lo)(t.href).then((r)=>r.json())));
     });
-    return /*#__PURE__*/ _jsxQ("p", null, null, "Hello Qwik", 3, "u6_0");
+    return /*#__PURE__*/ _jsxSorted("p", null, null, "Hello Qwik", 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,IAAM;IACnC,QAAQ,GAAG,CAAC,UAAU,EAAO,EAAE,CAAM,EAAE;QACvC,QAAQ,GAAG,CAAC,CAAA,MAAM,AAAC,CAAA,MAAM,EAAC,EAAG,EAAE,IAAI,EAAE,IAAI,CAAC,CAAC,IAAM,EAAE,IAAI,GAAE;IACzD;IAEA,qBAAO,MAAC,iBAAE;AACX\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,IAAM;IACnC,QAAQ,GAAG,CAAC,UAAU,EAAO,EAAE,CAAM,EAAE;QACvC,QAAQ,GAAG,CAAC,CAAA,MAAM,AAAC,CAAA,MAAM,EAAC,EAAG,EAAE,IAAI,EAAE,IAAI,CAAC,CAAC,IAAM,EAAE,IAAI,GAAE;IACzD;IAEA,qBAAO,WAAC,iBAAE;AACX\"}")
 /*
 {
   "origin": "test.tsx",

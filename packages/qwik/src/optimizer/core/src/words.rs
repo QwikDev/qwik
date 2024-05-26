@@ -37,8 +37,8 @@ lazy_static! {
 	pub static ref _JSX_BRANCH: JsWord = JsWord::from("_jsxBranch");
 	pub static ref _QRL_SYNC: JsWord = JsWord::from("_qrlSync");
 	pub static ref _WRAP_PROP: JsWord = JsWord::from("_wrapProp");
-	pub static ref _JSX_Q: JsWord = JsWord::from("_jsxQ");
-	pub static ref _JSX_C: JsWord = JsWord::from("_jsxC");
+	pub static ref _JSX_SORTED: JsWord = JsWord::from("_jsxSorted");
+	pub static ref _JSX_SPLIT: JsWord = JsWord::from("_jsxSplit");
 	pub static ref JSX: JsWord = JsWord::from("jsx");
 	pub static ref JSXS: JsWord = JsWord::from("jsxs");
 	pub static ref JSX_DEV: JsWord = JsWord::from("jsxDEV");

@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest';
 import { trigger } from '../../../testing/element-fixture';
 import '../../../testing/vdom-diff.unit-util';
 import { component$ } from '../../component/component.public';
-import { _jsxC } from '../../internal';
+import { _jsxSorted } from '../../internal';
 import { useSignal } from '../../use/use-signal';
 import type { fixMeAny } from '../shared/types';
 
@@ -77,7 +77,11 @@ describe.each([
       </b>
     ));
     const MyCmp = component$(() => {
-      return <button>{_jsxC(Child as fixMeAny, null, { name: 'NAME', num: 123 }, 3, null)}</button>;
+      return (
+        <button>
+          {_jsxSorted(Child as fixMeAny, null, { name: 'NAME', num: 123 }, null, 3, null)}
+        </button>
+      );
     });
 
     const { vNode } = await render(<MyCmp />, { debug });

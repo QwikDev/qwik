@@ -2656,7 +2656,7 @@ Boolean - True if the object is a `Signal`.
 
 ## jsx
 
-Used by the JSX transpilers to create a JSXNode. Note that the optimizer will not use this, instead using \_jsxC and \_jsxQ directly.
+Used by the JSX transpilers to create a JSXNode. Note that the optimizer will not use this, instead using \_jsxSplit and \_jsxSorted directly.
 
 ```typescript
 jsx: <T extends string | FunctionComponent<any>>(

@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2210
+assertion_line: 2320
 expression: output
 ---
 ==INPUT==
@@ -18,17 +18,17 @@ export const App = component$((props: Stuff) => {
 
 ============================= app_component_ckepmxzlub0.ts (ENTRY POINT)==
 
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = (props: Stuff)=>{
-    return /*#__PURE__*/ _jsxQ(Cmp, null, null, /*#__PURE__*/ _jsxQ("p", null, {
+    return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", null, {
         class: "stuff",
         onClick$: /*#__PURE__*/ qrl(()=>import("./app_component_cmp_p_onclick_vuxzfutkpto.ts"), "App_component_Cmp_p_onClick_vuXzfUTkpto")
     }, "Hello Qwik", 3, null), 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,OAAO,QAAU;IAC/C,qBACC,MAAC,+BACA,MAAC;QAAE,OAAM;QAAQ,QAAQ;OAA6B;AAGzD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,OAAO,QAAU;IAC/C,qBACC,WAAC,+BACA,WAAC;QAAE,OAAM;QAAQ,QAAQ;OAA6B;AAGzD\"}")
 /*
 {
   "origin": "test.tsx",

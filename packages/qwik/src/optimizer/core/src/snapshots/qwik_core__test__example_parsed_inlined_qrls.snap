@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1502
+assertion_line: 1612
 expression: output
 ---
 ==INPUT==
@@ -44,7 +44,7 @@ export const STYLES = ".red { color: red; }";
 ============================= test.tsx ==
 
 import { _wrapProp } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 import { componentQrl, inlinedQrl, useStore, useLexicalScope } from '@builder.io/qwik';
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     useStyles$(/*#__PURE__*/ inlinedQrl(STYLES, "s_odz7dfdfdM"));
@@ -52,12 +52,12 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     const store = useStore({
         count: 0
     });
-    return /*#__PURE__*/ _jsxQ("div", null, null, [
-        /*#__PURE__*/ _jsxQ("p", null, null, [
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("p", null, null, [
             "Count: ",
             _wrapProp(store, "count")
         ], 3, null),
-        /*#__PURE__*/ _jsxQ("p", null, null, /*#__PURE__*/ _jsxQ("button", {
+        /*#__PURE__*/ _jsxSorted("p", null, null, /*#__PURE__*/ _jsxSorted("button", {
             onClick$: /*#__PURE__*/ inlinedQrl(()=>{
                 const [store] = useLexicalScope();
                 return store.count++;
@@ -70,7 +70,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
 export const STYLES = ".red { color: red; }";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAS,YAAY,EAAE,UAAU,EAAE,QAAQ,EAAa,eAAe,QAAQ,mBAAmB;AAElG,OAAO,MAAM,MAAM,WAAW,GAAG,sCAAwB,IAAI;IAC5D,oCAAsB;IACtB,oCAAsB;IAEtB,MAAM,QAAQ,SAAS;QACtB,OAAO;IACR;IACA,OAAO,WAAW,GAAG,MAAK,mBACf;QACT,WAAW,GAAG,MAAK,iBACR;YACT;sBACA;SACA;QAEF,WAAW,GAAG,MAAI,iBACP,WAAW,GAAG,MAAI;YAC3B,QAAQ,2BAAa,IAAI;gBACxB,MAAM,CAAC,MAAM,GAAG;gBAChB,OAAO,MAAM,KAAK;YACnB;;;iBAGU;KAGZ;AAEH,qBAAiC;AAEjC,OAAO,MAAM,SAAS,uBAAuB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAS,YAAY,EAAE,UAAU,EAAE,QAAQ,EAAa,eAAe,QAAQ,mBAAmB;AAElG,OAAO,MAAM,MAAM,WAAW,GAAG,sCAAwB,IAAI;IAC5D,oCAAsB;IACtB,oCAAsB;IAEtB,MAAM,QAAQ,SAAS;QACtB,OAAO;IACR;IACA,OAAO,WAAW,GAAG,WAAK,mBACf;QACT,WAAW,GAAG,WAAK,iBACR;YACT;sBACA;SACA;QAEF,WAAW,GAAG,WAAI,iBACP,WAAW,GAAG,WAAI;YAC3B,QAAQ,2BAAa,IAAI;gBACxB,MAAM,CAAC,MAAM,GAAG;gBAChB,OAAO,MAAM,KAAK;YACnB;;;iBAGU;KAGZ;AAEH,qBAAiC;AAEjC,OAAO,MAAM,SAAS,uBAAuB\"}")
 == DIAGNOSTICS ==
 
 []

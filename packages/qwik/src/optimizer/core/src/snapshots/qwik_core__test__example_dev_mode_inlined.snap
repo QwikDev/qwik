@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2187
+assertion_line: 2297
 expression: output
 ---
 ==INPUT==
@@ -20,9 +20,9 @@ export const App = component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { inlinedQrlDEV } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
-    return /*#__PURE__*/ _jsxQ(Cmp, null, null, /*#__PURE__*/ _jsxQ("p", null, {
+    return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", null, {
         class: "stuff",
         onClick$: /*#__PURE__*/ inlinedQrlDEV(()=>console.log('warn'), "App_component_Cmp_p_onClick_vuXzfUTkpto", {
             file: "/user/qwik/src/test.tsx",
@@ -47,7 +47,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
 }));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,yCAAW,IAAM;IACnC,qBACC,MAAC,+BACA,MAAC;QAAE,OAAM;QAAQ,QAAQ,8BAAE,IAAM,QAAQ,GAAG,CAAC;;;;;;OAAS;;;;;;;;;AAGzD;;;;;IAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,yCAAW,IAAM;IACnC,qBACC,WAAC,+BACA,WAAC;QAAE,OAAM;QAAQ,QAAQ,8BAAE,IAAM,QAAQ,GAAG,CAAC;;;;;;OAAS;;;;;;;;;AAGzD;;;;;IAAG\"}")
 == DIAGNOSTICS ==
 
 []

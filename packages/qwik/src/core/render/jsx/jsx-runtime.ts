@@ -22,16 +22,22 @@ import { SkipRender } from './utils.public';
 export type Props = Record<string, unknown>;
 
 /**
- * Create a JSXNode with children already split
+ * Create a JSXNode with the properties fully split into variable and constant parts, and children
+ * separated out. Furthermore, the varProps must be a sorted object, that is, the keys must be
+ * sorted in ascending utf-8 value order.
+ *
+ * The constant parts are expected to be the same on every render, and are not checked for changes.
+ * This means that they are constant scalars or refs. When the ref is a signal or a store, it can
+ * still update the attribute on the vnode.
  *
  * @param type - The JSX type
- * @param varProps - The properties of the tag
+ * @param varProps - The properties of the tag, sorted, excluding children, excluding any constProps
  * @param constProps - The properties of the tag that are known to be constant references and don't
  *   need checking for changes on re-render
  * @param children - JSX children. Any `children` in the props objects are ignored.
  * @internal
  */
-export const _jsxQ = <T>(
+export const _jsxSorted = <T>(
   type: T,
   varProps: Props | null,
   constProps: Props | null,
@@ -61,7 +67,14 @@ export const _jsxQ = <T>(
 };
 
 /**
- * Create a JSXNode
+ * Create a JSXNode, with the properties split into variable and constant parts, but the variable
+ * parts could include keys from constProps, as well as `key` and `children`.
+ *
+ * The constant parts are expected to be the same on every render, and are not checked for changes.
+ * This means that they are constant scalars or refs. When the ref is a signal or a store, it can
+ * still update the attribute on the vnode.
+ *
+ * If `children` is defined, any `children` in the props will be ignored.
  *
  * @param type - The tag type
  * @param varProps - The properties of the tag that could change, including children
@@ -69,36 +82,62 @@ export const _jsxQ = <T>(
  *   for changes on re-render
  * @internal
  */
-export const _jsxC = <T extends string | FunctionComponent<any>>(
+export const _jsxSplit = <T extends string | FunctionComponent<any>>(
   type: T,
   varProps: Props | null,
   constProps: Props | null,
+  children: JSXChildren | null | undefined,
   flags: number,
   key: string | number | null,
   dev?: DevJSX
 ): JSXNode<T> => {
-  let children;
+  let sortedProps;
   if (varProps) {
-    children = varProps.children;
+    // filter and sort
+    sortedProps = Object.fromEntries(
+      untrack(() => Object.entries(varProps!))
+        .filter((entry) => {
+          const attr = entry[0];
+          if (attr === 'children') {
+            // side-effect!
+            children ??= entry[1] as JSXChildren;
+            return false;
+          } else if (attr === 'key') {
+            key = entry[1] as string;
+            return false;
+          }
+          return (
+            !constProps ||
+            !(attr in constProps) ||
+            // special case for event handlers, they merge
+            /^on[A-Z].*\$$/.test(attr)
+          );
+        })
+        // sort for fast compare in vNodes
+        // keys can never be the same so we don't check for that
+        .sort(([a], [b]) => (a < b ? -1 : 1))
+    );
   } else {
-    varProps = typeof type === 'string' ? EMPTY_OBJ : {};
+    sortedProps = typeof type === 'string' ? EMPTY_OBJ : {};
   }
-  return _jsxQ(type, varProps, constProps, children as JSXChildren, flags, key, dev);
+  if (constProps && 'children' in constProps) {
+    children = constProps.children as JSXChildren;
+    constProps.children = undefined;
+  }
+  return _jsxSorted(type, sortedProps, constProps, children, flags, key, dev);
 };
 
 /**
  * @public
  * Used by the JSX transpilers to create a JSXNode.
- * Note that the optimizer will not use this, instead using _jsxC and _jsxQ directly.
+ * Note that the optimizer will not use this, instead using _jsxSplit and _jsxSorted directly.
  */
 export const jsx = <T extends string | FunctionComponent<any>>(
   type: T,
   props: T extends FunctionComponent<infer PROPS> ? PROPS : Props,
   key?: string | number | null
 ): JSXNode<T> => {
-  const processed = key == null ? null : String(key);
-  const children = untrack(() => props.children);
-  return _jsxQ(type, props, null, children, 0, processed);
+  return _jsxSplit(type, props, null, null, 0, key || null);
 };
 
 /**
@@ -114,25 +153,7 @@ export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends 
   props?: PROPS | null,
   ...children: any[]
 ): JSXNode<TYPE> {
-  const varProps: Record<string, any> = {};
-
-  let key: string | undefined;
-  let k: any;
-
-  for (k in props) {
-    if (k === 'key') {
-      key = String((props as any)[k]);
-    } else if (k === 'children') {
-      // only allow overriding if the JSX had no children
-      if (arguments.length <= 2) {
-        children = (props as any)[k];
-      }
-    } else {
-      varProps[k] = (props as any)[k];
-    }
-  }
-
-  return _jsxQ(type, varProps, null, children, 0, key);
+  return _jsxSplit(type, props!, null, children, 0, null);
 }
 
 export const SKIP_RENDER_TYPE = ':skipRender';

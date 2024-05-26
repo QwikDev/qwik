@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3453
+assertion_line: 3563
 expression: output
 ---
 ==INPUT==
@@ -34,29 +34,29 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test_component_luxexe0dqrg.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 import { _qrlSync } from "@builder.io/qwik";
 export const test_component_LUXeXe0DQrg = ()=>{
-    return /*#__PURE__*/ _jsxQ(_Fragment, null, null, [
-        /*#__PURE__*/ _jsxQ("input", {
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("input", {
             onClick$: _qrlSync(function(event, target) {
                 // comment should be removed
                 event.preventDefault();
             }, "function(event,target){event.preventDefault();}")
         }, null, null, 2, null),
-        /*#__PURE__*/ _jsxQ("input", {
+        /*#__PURE__*/ _jsxSorted("input", {
             onClick$: _qrlSync((event, target)=>{
                 event.preventDefault();
             }, "(event,target)=>{event.preventDefault();}")
         }, null, null, 2, null),
-        /*#__PURE__*/ _jsxQ("input", {
+        /*#__PURE__*/ _jsxSorted("input", {
             onClick$: _qrlSync((event, target)=>event.preventDefault(), "(event,target)=>event.preventDefault()")
         }, null, null, 2, null)
     ], 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAG4B,IAAM;IAChC,qBACC;sBACC,MAAC;YAAM,QAAQ,WAAQ,SAAS,KAAK,EAAE,MAAM,EAAE;gBAC9C,4BAA4B;gBAC5B,MAAM,cAAc;YACrB;;sBACA,MAAC;YAAM,QAAQ,WAAQ,CAAC,OAAO,SAAW;gBACzC,MAAM,cAAc;YACrB;;sBACA,MAAC;YAAM,QAAQ,WAAQ,CAAC,OAAO,SAAW,MAAM,cAAc;;;AAGhE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAG4B,IAAM;IAChC,qBACC;sBACC,WAAC;YAAM,QAAQ,WAAQ,SAAS,KAAK,EAAE,MAAM,EAAE;gBAC9C,4BAA4B;gBAC5B,MAAM,cAAc;YACrB;;sBACA,WAAC;YAAM,QAAQ,WAAQ,CAAC,OAAO,SAAW;gBACzC,MAAM,cAAc;YACrB;;sBACA,WAAC;YAAM,QAAQ,WAAQ,CAAC,OAAO,SAAW,MAAM,cAAc;;;AAGhE\"}")
 /*
 {
   "origin": "test.tsx",

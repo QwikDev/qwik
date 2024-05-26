@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2514
+assertion_line: 2624
 expression: output
 ---
 ==INPUT==
@@ -37,41 +37,41 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= app2_component_3yvemqbq3fs.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 import { _wrapProp } from "@builder.io/qwik";
 export const App2_component_3yveMqbQ3Fs = ()=>{
     const signal = useSignal();
     const computed = signal.value + 'foo';
-    return /*#__PURE__*/ _jsxQ(_Fragment, null, null, [
-        /*#__PURE__*/ _jsxQ("div", null, {
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, {
             className: "hola"
         }, null, 3, null),
-        /*#__PURE__*/ _jsxQ("div", null, {
+        /*#__PURE__*/ _jsxSorted("div", null, {
             className: _wrapProp(signal, "value")
         }, null, 3, null),
-        /*#__PURE__*/ _jsxQ("div", null, {
+        /*#__PURE__*/ _jsxSorted("div", null, {
             className: signal
         }, null, 3, null),
-        /*#__PURE__*/ _jsxQ("div", {
+        /*#__PURE__*/ _jsxSorted("div", {
             className: computed
         }, null, null, 3, null),
-        /*#__PURE__*/ _jsxQ(Foo, null, {
+        /*#__PURE__*/ _jsxSorted(Foo, null, {
             className: "hola"
         }, null, 3, "u6_0"),
-        /*#__PURE__*/ _jsxQ(Foo, null, {
+        /*#__PURE__*/ _jsxSorted(Foo, null, {
             className: _wrapProp(signal, "value")
         }, null, 3, "u6_1"),
-        /*#__PURE__*/ _jsxQ(Foo, null, {
+        /*#__PURE__*/ _jsxSorted(Foo, null, {
             className: signal
         }, null, 3, "u6_2"),
-        /*#__PURE__*/ _jsxQ(Foo, {
+        /*#__PURE__*/ _jsxSorted(Foo, {
             className: computed
         }, null, null, 3, "u6_3")
     ], 1, "u6_4");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAG+B,IAAM;IACpC,MAAM,SAAS;IACf,MAAM,WAAW,OAAO,KAAK,GAAG;IAChC,qBACC;sBACC,MAAC;YAAI,WAAU;;sBACf,MAAC;YAAI,SAAS,YAAE;;sBAChB,MAAC;YAAI,WAAW;;sBAChB,MAAC;YAAI,WAAW;;sBAEhB,MAAC;YAAI,WAAU;;sBACf,MAAC;YAAI,SAAS,YAAE;;sBAChB,MAAC;YAAI,WAAW;;sBAChB,MAAC;YAAI,WAAW;;;AAGnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAG+B,IAAM;IACpC,MAAM,SAAS;IACf,MAAM,WAAW,OAAO,KAAK,GAAG;IAChC,qBACC;sBACC,WAAC;YAAI,WAAU;;sBACf,WAAC;YAAI,SAAS,YAAE;;sBAChB,WAAC;YAAI,WAAW;;sBAChB,WAAC;YAAI,WAAW;;sBAEhB,WAAC;YAAI,WAAU;;sBACf,WAAC;YAAI,SAAS,YAAE;;sBAChB,WAAC;YAAI,WAAW;;sBAChB,WAAC;YAAI,WAAW;;;AAGnB\"}")
 /*
 {
   "origin": "test.tsx",

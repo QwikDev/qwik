@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1600
+assertion_line: 1710
 expression: output
 ---
 ==INPUT==
@@ -118,7 +118,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= parent_component_0taidayhrlo.js ==
 
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 import { _wrapProp } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
@@ -131,13 +131,13 @@ export const Parent_component_0TaiDayHrlo = ()=>{
     useTaskQrl(/*#__PURE__*/ qrl(()=>import("./entry_Parent"), "Parent_component_useTask_gDH1EtUWqBU", [
         state
     ]));
-    return /*#__PURE__*/ _jsxQ("div", null, {
+    return /*#__PURE__*/ _jsxSorted("div", null, {
         onClick$: /*#__PURE__*/ qrl(()=>import("./parent_component_div_onclick_c5xe49nqd3a"), "Parent_component_div_onClick_C5XE49Nqd3A")
     }, _wrapProp(state, "text"), 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;4CAKiC,IAAM;IACtC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA,qBACC,MAAC;QAAI,QAAQ;iBACX;AAGJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;4CAKiC,IAAM;IACtC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA,qBACC,WAAC;QAAI,QAAQ;iBACX;AAGJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -184,7 +184,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= child_component_9gyf01gdkqw.js ==
 
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 import { _wrapProp } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
@@ -197,13 +197,13 @@ export const Child_component_9GyF01GDKqw = ()=>{
     useTaskQrl(/*#__PURE__*/ qrl(()=>import("./entry_Child"), "Child_component_useTask_Oh4n7ZeqJkU", [
         state
     ]));
-    return /*#__PURE__*/ _jsxQ("div", null, {
+    return /*#__PURE__*/ _jsxSorted("div", null, {
         onClick$: /*#__PURE__*/ qrl(()=>import("./child_component_div_onclick_ellivsnaioq"), "Child_component_div_onClick_elliVSnAiOQ")
     }, _wrapProp(state, "text"), 3, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAuBgC,IAAM;IACrC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAIA,qBACC,MAAC;QAAI,QAAQ;iBACX;AAGJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAuBgC,IAAM;IACrC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAIA,qBACC,WAAC;QAAI,QAAQ;iBACX;AAGJ\"}")
 /*
 {
   "origin": "test.tsx",

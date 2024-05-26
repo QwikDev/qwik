@@ -6,7 +6,7 @@ import {
   useOnDocument,
   eventQrl,
   useContext,
-  _jsxC,
+  _jsxSplit,
   SkipRender,
   withLocale,
   _deserializeData,
@@ -23,7 +23,7 @@ import {
   Slot,
   getLocale,
   untrack,
-  _jsxQ,
+  _jsxSorted,
   _wrapSignal,
   implicit$FirstArg,
   _serializeData,
@@ -67,7 +67,7 @@ const RouterOutlet = /* @__PURE__ */ componentQrl(
       const contentsLen = context.value.length;
       let cmp = null;
       for (let i = contentsLen - 1; i >= 0; i--)
-        cmp = _jsxC(
+        cmp = _jsxSplit(
           context.value[i].default,
           {
             children: cmp,
@@ -568,7 +568,7 @@ const QwikCityProvider = /* @__PURE__ */ componentQrl(
         ]
       )
     );
-    return /* @__PURE__ */ _jsxC(Slot, null, 3, 'qY_0');
+    return /* @__PURE__ */ _jsxSplit(Slot, null, 3, 'qY_0');
   }, 'QwikCityProvider_component_TxCFOy819ag')
 );
 const QwikCityMockProvider = /* @__PURE__ */ componentQrl(
@@ -608,7 +608,7 @@ const QwikCityMockProvider = /* @__PURE__ */ componentQrl(
     useContextProvider(RouteLocationContext, routeLocation);
     useContextProvider(RouteNavigateContext, goto);
     useContextProvider(RouteStateContext, loaderState);
-    return /* @__PURE__ */ _jsxC(Slot, null, 3, 'qY_1');
+    return /* @__PURE__ */ _jsxSplit(Slot, null, 3, 'qY_1');
   }, 'QwikCityMockProvider_component_WmYC5H00wtI')
 );
 const Link = /* @__PURE__ */ componentQrl(
@@ -629,12 +629,12 @@ const Link = /* @__PURE__ */ componentQrl(
         'Link_component_event_event_5g4B0Gd1Wck'
       )
     );
-    return /* @__PURE__ */ _jsxC(
+    return /* @__PURE__ */ _jsxSplit(
       'a',
       {
         ...linkProps,
         'data-prefetch': prefetchDataset,
-        children: /* @__PURE__ */ _jsxC(Slot, null, null, 3, 'AD_0'),
+        children: /* @__PURE__ */ _jsxSplit(Slot, null, null, 3, 'AD_0'),
         onClick$: /* @__PURE__ */ inlinedQrl(
           (_, elm) => {
             const [nav2, reload2] = useLexicalScope();
@@ -662,7 +662,7 @@ const prefetchLinkResources = (elm, isOnVisible) => {
 };
 let windowInnerWidth = 0;
 const ServiceWorkerRegister = (props) =>
-  _jsxC(
+  _jsxSplit(
     'script',
     null,
     {
@@ -962,7 +962,7 @@ async function* streamAsyncIterator(stream, ctxElm) {
 const Form = ({ action, spaReset, reloadDocument, onSubmit$, ...rest }, key) => {
   _jsxBranch();
   if (action)
-    return _jsxC(
+    return _jsxSplit(
       'form',
       {
         ...rest,
@@ -978,7 +978,7 @@ const Form = ({ action, spaReset, reloadDocument, onSubmit$, ...rest }, key) => 
       key
     );
   else
-    return /* @__PURE__ */ _jsxC(
+    return /* @__PURE__ */ _jsxSplit(
       GetForm,
       {
         spaReset,
@@ -994,11 +994,11 @@ const GetForm = /* @__PURE__ */ componentQrl(
   /* @__PURE__ */ inlinedQrl((props) => {
     const rest = _restProps(props, ['action', 'spaReset', 'reloadDocument', 'onSubmit$']);
     const nav = useNavigate();
-    return /* @__PURE__ */ _jsxC(
+    return /* @__PURE__ */ _jsxSplit(
       'form',
       {
         ...rest,
-        children: /* @__PURE__ */ _jsxC(Slot, null, 3, 'BC_0'),
+        children: /* @__PURE__ */ _jsxSplit(Slot, null, 3, 'BC_0'),
         onSubmit$: /* @__PURE__ */ inlinedQrl(
           async (_, form) => {
             const [nav2] = useLexicalScope();

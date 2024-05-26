@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1082
+assertion_line: 1192
 expression: output
 ---
 ==INPUT==
@@ -128,11 +128,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= foo_component_1_dvu6fitwgly.js (ENTRY POINT)==
 
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const Foo_component_1_DvU6FitWglY = ()=>{
     const handler = /*#__PURE__*/ qrl(()=>import("./foo_component_handler_h10xztd0e7w"), "Foo_component_handler_H10xZtD0e7w");
-    return /*#__PURE__*/ _jsxQ("div", null, {
+    return /*#__PURE__*/ _jsxSorted("div", null, {
         onClick$: /*#__PURE__*/ qrl(()=>import("./foo_component_div_onclick_m48dyiidsjw"), "Foo_component_div_onClick_M48DYiidSJw"),
         onDocumentScroll$: /*#__PURE__*/ qrl(()=>import("./foo_component_div_ondocumentscroll_rwfftfivukc"), "Foo_component_div_onDocumentScroll_rwFFtFiVuKc"),
         onDocumentScroll$: /*#__PURE__*/ qrl(()=>import("./foo_component_div_ondocumentscroll_1_cwneogpmtzi"), "Foo_component_div_onDocumentScroll_1_CwneoGpmTZI"),
@@ -151,7 +151,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAKU,IAAM;IACd,MAAM;IACN,qBACC,MAAC;QACA,QAAQ;QACR,iBAAiB;QACjB,iBAAiB;QAEjB,WAAS;QACT,oBAAkB;QAClB,oBAAkB;QAPnB,eAkBE;QAlBF,wBAkBE;QAlBF,wBAkBE;QALD,UAAU;QAbX,qBAcoB;QAdpB,mBAekB;QAEjB,OAAO;;AAGV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAKU,IAAM;IACd,MAAM;IACN,qBACC,WAAC;QACA,QAAQ;QACR,iBAAiB;QACjB,iBAAiB;QAEjB,WAAS;QACT,oBAAkB;QAClB,oBAAkB;QAPnB,eAkBE;QAlBF,wBAkBE;QAlBF,wBAkBE;QALD,UAAU;QAbX,qBAcoB;QAdpB,mBAekB;QAEjB,OAAO;;AAGV\"}")
 /*
 {
   "origin": "test.tsx",

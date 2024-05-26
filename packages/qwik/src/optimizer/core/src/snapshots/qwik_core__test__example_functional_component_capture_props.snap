@@ -112,11 +112,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const App_component_1_w0t0o3QMovU = ()=>{
     const [C2, C3, C4, C5, C6, C7, C8, I2, I3, I4, I5, I6, I7, I8, count, state] = useLexicalScope();
-    return /*#__PURE__*/ _jsxQ("div", null, {
+    return /*#__PURE__*/ _jsxSorted("div", null, {
         onClick$: /*#__PURE__*/ qrl(()=>import("./app_component_div_onclick_1cgetmfzx0g"), "App_component_div_onClick_1CGetmFZx0g", [
             count,
             state
@@ -144,7 +144,7 @@ export const App_component_1_w0t0o3QMovU = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAMU;;IACR,qBACC,MAAC;QAAI,QAAQ;;;;;QACX;QAAI;QAAI;QAAI;QAAI;QAAI;QAAI;QACxB;QAAI;QAAI;QAAI;QAAI;QAAI;QAAI;QACxB;QAAI;QAAI\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAMU;;IACR,qBACC,WAAC;QAAI,QAAQ;;;;;QACX;QAAI;QAAI;QAAI;QAAI;QAAI;QAAI;QACxB;QAAI;QAAI;QAAI;QAAI;QAAI;QAAI;QACxB;QAAI;QAAI\"}")
 /*
 {
   "origin": "test.tsx",

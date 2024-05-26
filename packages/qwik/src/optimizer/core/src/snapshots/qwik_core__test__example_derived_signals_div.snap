@@ -1,5 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 2750
 expression: output
 ---
 ==INPUT==
@@ -62,7 +63,7 @@ export const App = component$((props) => {
 import { componentQrl } from "@builder.io/qwik";
 import { _wrapProp } from "@builder.io/qwik";
 import { _fnSignal } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 import { useStore, mutable } from '@builder.io/qwik';
 import { dep } from './file';
@@ -71,20 +72,20 @@ const App_component_ckEPmXZlub0 = (props)=>{
     const signal = useSignal(0);
     const store = useStore({});
     const count = props.counter.count;
-    return /*#__PURE__*/ _jsxQ("div", {
+    return /*#__PURE__*/ _jsxSorted("div", {
         class: {
             even: count % 2 === 0,
             odd: count % 2 === 1,
             stable0: true,
             hidden: false
         },
-        staticDocument: window.document,
         global: globalThing,
         globalAccess: globalThing.thing,
         globalComputed: globalThing.thing + 'stuff',
         noInline2: signal.value + unknown(),
         noInline3: mutable(signal),
-        noInline4: signal.value + dep
+        noInline4: signal.value + dep,
+        staticDocument: window.document
     }, {
         staticClass: styles.foo,
         staticText: "text",
@@ -115,7 +116,7 @@ const App_component_ckEPmXZlub0 = (props)=>{
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;AAC3B,OAAO,YAAY,sBAAsB;kCAEX,CAAC,QAAU;IACxC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,MAAM,QAAQ,MAAM,OAAO,CAAC,KAAK;IAEjC,qBACC,MAAC;QACA,OAAO;YACN,MAAM,QAAQ,MAAM;YACpB,KAAK,QAAQ,MAAM;YACnB,SAAS,IAAI;YACb,QAAQ,KAAK;QACd;QAEA,gBAAgB,OAAO,QAAQ;QAmB/B,QAAQ;QACR,cAAc,YAAY,KAAK;QAC/B,gBAAgB,YAAY,KAAK,GAAG;QAIpC,WAAW,OAAO,KAAK,GAAG;QAC1B,WAAW,QAAQ;QACnB,WAAW,OAAO,KAAK,GAAG;;QA5B1B,aAAa,OAAO,GAAG;QAEvB,YAAW;QACX,aAAa,CAAC,IAAI,CAAC;QACnB,cAAc;QACd,eAAe,IAAI;QACnB,YAAY,CAAC,IAAI,EAAE,GAAG,CAAC;QACvB,aAAa,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;QAEtD,QAAQ;QACR,WAAW,YAAE;QACb,mBAAmB,kBAAE,KAAK,GAAO,KAAK;;;QAEtC,KAAK,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;QAC9B,aAAa,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;QAEzD,KAAK;QACL,WAAW,IAAI,KAAK;QACpB,aAAa,IAAI,KAAK,GAAG;QAOzB,QAAQ,kBAAE,GAAO,KAAK;;;;AAOzB;AA7CA,OAAO,MAAM,oBAAM,+FA6ChB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,mBAAmB;AAEjE,SAAQ,GAAG,QAAO,SAAS;AAC3B,OAAO,YAAY,sBAAsB;kCAEX,CAAC,QAAU;IACxC,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,MAAM,QAAQ,MAAM,OAAO,CAAC,KAAK;IAEjC,qBACC,WAAC;QACA,OAAO;YACN,MAAM,QAAQ,MAAM;YACpB,KAAK,QAAQ,MAAM;YACnB,SAAS,IAAI;YACb,QAAQ,KAAK;QACd;QAqBA,QAAQ;QACR,cAAc,YAAY,KAAK;QAC/B,gBAAgB,YAAY,KAAK,GAAG;QAIpC,WAAW,OAAO,KAAK,GAAG;QAC1B,WAAW,QAAQ;QACnB,WAAW,OAAO,KAAK,GAAG;QA3B1B,gBAAgB,OAAO,QAAQ;;QAD/B,aAAa,OAAO,GAAG;QAEvB,YAAW;QACX,aAAa,CAAC,IAAI,CAAC;QACnB,cAAc;QACd,eAAe,IAAI;QACnB,YAAY,CAAC,IAAI,EAAE,GAAG,CAAC;QACvB,aAAa,OAAO,CAAC,IAAI,EAAE,GAAG,CAAC,KAAK,WAAW,KAAK,EAAE;QAEtD,QAAQ;QACR,WAAW,YAAE;QACb,mBAAmB,kBAAE,KAAK,GAAO,KAAK;;;QAEtC,KAAK,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;QAC9B,aAAa,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS,OAAO;;;QAEzD,KAAK;QACL,WAAW,IAAI,KAAK;QACpB,aAAa,IAAI,KAAK,GAAG;QAOzB,QAAQ,kBAAE,GAAO,KAAK;;;;AAOzB;AA7CA,OAAO,MAAM,oBAAM,+FA6ChB\"}")
 == DIAGNOSTICS ==
 
 []

@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 710
+assertion_line: 820
 expression: output
 ---
 ==INPUT==
@@ -82,16 +82,16 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test_component_luxexe0dqrg.js (ENTRY POINT)==
 
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const test_component_LUXeXe0DQrg = ()=>{
-    return /*#__PURE__*/ _jsxQ("button", null, {
+    return /*#__PURE__*/ _jsxSorted("button", null, {
         onClick$: /*#__PURE__*/ qrl(()=>import("./test_component_button_onclick_dgk9xlyroka"), "test_component_button_onClick_DGk9xLyRokA")
     }, null, 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAwB0B,IAAM;IAC/B,qBACC,MAAC;QAAO,QAAQ;;AAEjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAwB0B,IAAM;IAC/B,qBACC,WAAC;QAAO,QAAQ;;AAEjB\"}")
 /*
 {
   "origin": "test.tsx",

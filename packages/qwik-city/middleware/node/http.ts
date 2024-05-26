@@ -30,15 +30,19 @@ export function getUrl(req: IncomingMessage | Http2ServerRequest, origin: string
   return normalizeUrl((req as any).originalUrl || req.url || '/', origin);
 }
 
-const DOUBLE_SLASH_REG = /\/\/|\\\\/g;
-
 // when the user refreshes or cancels the stream there will be an error
 function isIgnoredError(message = '') {
   const ignoredErrors = ['The stream has been destroyed', 'write after end'];
   return ignoredErrors.some((ignored) => message.includes(ignored));
 }
 
+// ensure no HTTP/2-specific headers are being set
+const invalidHeadersPattern = /^:(method|scheme|authority|path)$/i;
+
 export function normalizeUrl(url: string, base: string) {
+  // defined in function because of lastIndex gotcha with /g
+  const DOUBLE_SLASH_REG = /\/\/|\\\\/g;
+
   // do not allow the url to have a relative protocol url
   // which could bypass of CSRF protections
   // for example: new URL("//attacker.com", "https://qwik.build.io")
@@ -55,15 +59,22 @@ export async function fromNodeHttp(
 ) {
   const requestHeaders = new Headers();
   const nodeRequestHeaders = req.headers;
-  for (const key in nodeRequestHeaders) {
-    const value = nodeRequestHeaders[key];
-    if (typeof value === 'string') {
-      requestHeaders.set(key, value);
-    } else if (Array.isArray(value)) {
-      for (const v of value) {
-        requestHeaders.append(key, v);
+
+  try {
+    for (const [key, value] of Object.entries(nodeRequestHeaders)) {
+      if (invalidHeadersPattern.test(key)) {
+        continue;
+      }
+      if (typeof value === 'string') {
+        requestHeaders.set(key, value);
+      } else if (Array.isArray(value)) {
+        for (const v of value) {
+          requestHeaders.append(key, v);
+        }
       }
     }
+  } catch (err) {
+    console.error(err);
   }
 
   const getRequestBody = async function* () {
@@ -95,11 +106,22 @@ export async function fromNodeHttp(
     },
     getWritableStream: (status, headers, cookies) => {
       res.statusCode = status;
-      headers.forEach((value, key) => res.setHeader(key, value));
-      const cookieHeaders = cookies.headers();
-      if (cookieHeaders.length > 0) {
-        res.setHeader('Set-Cookie', cookieHeaders);
+
+      try {
+        for (const [key, value] of headers) {
+          if (invalidHeadersPattern.test(key)) {
+            continue;
+          }
+          res.setHeader(key, value);
+        }
+        const cookieHeaders = cookies.headers();
+        if (cookieHeaders.length > 0) {
+          res.setHeader('Set-Cookie', cookieHeaders);
+        }
+      } catch (err) {
+        console.error(err);
       }
+
       return new WritableStream<Uint8Array>({
         write(chunk) {
           if (res.closed || res.destroyed) {

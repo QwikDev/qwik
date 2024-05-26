@@ -74,9 +74,9 @@ export function extractLang(locale: string): string {
  */
 export function extractBase({ serverData }: RenderOptions): string {
   if (import.meta.env.DEV) {
-    return "/build";
+    return `${import.meta.env.BASE_URL}build`;
   } else {
-    return "/build/" + serverData!.locale;
+    return `${import.meta.env.BASE_URL}build/` + serverData!.locale;
   }
 }
 

@@ -17,7 +17,8 @@ contributors:
   - hamatoyogi
   - aendel
   - maiieul
-updated_at: '2024-04-02T18:53:23Z'
+  - patrickjs
+updated_at: '2024-05-13T16:00:00Z'
 created_at: '2023-03-30T19:49:50Z'
 ---
 # Qwik in a nutshell
@@ -692,7 +693,7 @@ const encryptOnServer = server$(function(message: string) {
 
 export default component$(() => {
   useTask$(() => {
-    if (isServer) {
+    if () {
       // This code will only run on the server only when the component is first rendered in the server
     }
   });
@@ -747,4 +748,24 @@ export const isBrowser: boolean = /*#__PURE__*/ (() =>
   String(HTMLElement).includes('[native code]'))();
 
 export const isServer: boolean = !isBrowser;
+```
+
+Here is how you import these for reference:
+
+```tsx
+import {isServer, isBrowser} from '@builder.io/qwik/build';
+
+// inside component$
+
+useTask$(({ track }) => {
+  track(() => interactionSig.value) <-- tracks on the client when a signal has changed.
+
+  // server code
+
+  if (isServer) return;
+
+  // client code here
+});
+
+//
 ```

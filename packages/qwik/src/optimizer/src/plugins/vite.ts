@@ -378,6 +378,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     async configResolved(config) {
       basePathname = config.base;
+      if (!(basePathname.startsWith('/') && basePathname.endsWith('/'))) {
+        throw new Error(`Vite's config.base must begin and end with /`);
+      }
       const sys = qwikPlugin.getSys();
       if (sys.env === 'node' && !qwikViteOpts.entryStrategy) {
         try {
@@ -910,8 +913,9 @@ interface QwikVitePluginCommonOptions {
 interface QwikVitePluginCSROptions extends QwikVitePluginCommonOptions {
   /** Client Side Rendering (CSR) mode. It will not support SSR, default to Vite's `index.html` file. */
   csr: true;
-  ssr: never;
-  client: never;
+  client?: never;
+  devSsrServer?: never;
+  ssr?: never;
 }
 
 interface QwikVitePluginSSROptions extends QwikVitePluginCommonOptions {

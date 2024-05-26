@@ -386,23 +386,33 @@ bundled with the parent component.
 When you want to output a different type of element depending on props but default to a `<div>`, you can do it using something like this:
 
 ```tsx
-    const Poly = component$(
-      <C extends string | FunctionComponent = 'div'>({
-        as,
-        ...props
-      }: { as?: C } & PropsOf<string extends C ? 'div' : C>) => {
-        const Cmp = as || 'div';
-        return <Cmp {...props}>hi</Cmp>;
-      }
+const Poly = component$(
+  <C extends string | FunctionComponent = 'div'>({
+    as,
+    ...props
+  }: { as?: C } & PropsOf<string extends C ? 'div' : C>) => {
+    const Cmp = as || 'div';
+    return (
+      <Cmp {...props}>
+        <Slot />
+      </Cmp>
     );
+  }
+);
 
-// These all work with correct types
-<>
-  <Poly>Hello from a div</Poly>
-  <Poly as="a" href="/blog">Blog</Poly>
-  <Poly as="input" onInput$={(ev, el) => console.log(el.value)} />
-  <Poly as={OtherComponent} someProp />
-</>
+export const TestComponent = component$(() => {
+  // These all work with correct types
+  return (
+    <>
+      <Poly>Hello from a div</Poly>
+      <Poly as="a" href="/blog">
+        Blog
+      </Poly>
+      <Poly as="input" onInput$={(ev, el) => console.log(el.value)} />
+      <Poly as={OtherComponent} someProp />
+    </>
+  );
+});
 ```
 
 Note the `string extends C`, this is only true when TypeScript cannot infer the type from the `as` prop allowing you to specify the default type.

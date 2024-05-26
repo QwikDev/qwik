@@ -66,6 +66,12 @@ describe('route-matcher', () => {
     assert.deepEqual(matchRoute('/seg/[...rest]', '/seg/a/b/c'), { rest: 'a/b/c' });
   });
 
+  test('should match /seg/[...rest]/a/b/c/d/e', () => {
+    assert.deepEqual(matchRoute('/seg/[...rest]/a/b/c/d/e', '/seg/a/b/c/d/e'), {
+      rest: '',
+    });
+  });
+
   test('should match /seg/[...rest] with trailing slash', () => {
     assert.deepEqual(matchRoute('/seg/[...rest]/', '/seg/a/b/c'), { rest: 'a/b/c' });
   });

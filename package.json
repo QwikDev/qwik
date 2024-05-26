@@ -1,6 +1,6 @@
 {
   "name": "qwik-monorepo",
-  "version": "1.5.4",
+  "version": "2.0.0-0",
   "comments": {
     "01": "devDependencies includes reference to @builder.io/qwik: workspace: *. This is needed or e2e tests will fail",
     "02": "  It would be nice to be able to remove this dependency and fix the test.",
@@ -138,9 +138,9 @@
     "node": ">=16.8.0 <18.0.0 || >=18.11",
     "npm": "please-use-pnpm",
     "yarn": "please-use-pnpm",
-    "pnpm": ">=8.6.12"
+    "pnpm": ">=9.0.5"
   },
-  "packageManager": "pnpm@9.0.6",
+  "packageManager": "pnpm@9.1.2",
   "pnpm": {
     "overrides": {
       "typescript": "5.4.5",

@@ -29,7 +29,7 @@ import {
 import '../../../testing/vdom-diff.unit-util';
 import { renderToString2 } from 'packages/qwik/src/server/v2-ssr-render2';
 
-const debug = true; //true;
+const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 /**

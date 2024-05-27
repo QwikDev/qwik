@@ -65,7 +65,7 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
     const appName = paths[1];
     const appDir = join(startersAppsDir, appName);
     if (!existsSync(appDir)) {
-      res.send(`❌ Invalid dev-server path: ${appDir}`);
+      res.status(404).send(`❌ Invalid dev-server path: ${appDir}`);
       return;
     }
 

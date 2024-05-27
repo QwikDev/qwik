@@ -4,16 +4,30 @@ import {
   Fragment as Component,
   Fragment,
   Fragment as Projection,
-  Fragment as Signal,
+  Fragment as DerivedSignal,
+  createContextId,
+  useContext,
+  useContextProvider,
+  useSignal,
+  Slot,
+  component$,
+  noSerialize,
+  type NoSerialize,
+  type Signal,
+  getPlatform,
+  setPlatform,
+  _getDomContainer,
 } from '@builder.io/qwik';
 import { describe, expect, it } from 'vitest';
-import { trigger } from '../../../testing/element-fixture';
-import { domRender, ssrRenderToDom } from '../../../testing/rendering.unit-util';
+import {
+  trigger,
+  domRender,
+  ssrRenderToDom,
+  createDocument,
+  emulateExecutionOfQwikFuncs,
+} from '@builder.io/qwik/testing';
 import '../../../testing/vdom-diff.unit-util';
-import { component$ } from '../../component/component.public';
-import { Slot } from '../../render/jsx/slot.public';
-import { createContextId, useContext, useContextProvider } from '../../use/use-context';
-import { useSignal } from '../../use/use-signal';
+import { renderToString2 } from 'packages/qwik/src/server/v2-ssr-render2';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -55,7 +69,7 @@ describe.each([
       <Component>
         <Component>
           <span>
-            <Signal>CONTEXT_VALUE</Signal>
+            <DerivedSignal>CONTEXT_VALUE</DerivedSignal>
           </span>
         </Component>
       </Component>
@@ -79,7 +93,7 @@ describe.each([
       <Component>
         <Component>
           <span>
-            <Signal>CONTEXT_VALUE</Signal>
+            <DerivedSignal>CONTEXT_VALUE</DerivedSignal>
           </span>
         </Component>
       </Component>
@@ -137,12 +151,14 @@ describe.each([
                 <Awaited>
                   <Component>
                     <Fragment>
-                      <p>1</p>
+                      <p>
+                        <DerivedSignal>1</DerivedSignal>
+                      </p>
                       <p>
                         <Awaited>0</Awaited>
                       </p>
                       <p>
-                        <Signal>0</Signal>
+                        <DerivedSignal>0</DerivedSignal>
                       </p>
                       <button>Increment</button>
                     </Fragment>
@@ -163,12 +179,14 @@ describe.each([
                 <Awaited>
                   <Component>
                     <Fragment>
-                      <p>1</p>
+                      <p>
+                        <DerivedSignal>1</DerivedSignal>
+                      </p>
                       <p>
                         <Awaited>2</Awaited>
                       </p>
                       <p>
-                        <Signal>2</Signal>
+                        <DerivedSignal>2</DerivedSignal>
                       </p>
                       <button>Increment</button>
                     </Fragment>
@@ -234,7 +252,7 @@ describe.each([
                 <Component>
                   <div id="issue-5270-div">
                     {'Ctx: '}
-                    <Signal>{'hello'}</Signal>
+                    <DerivedSignal>{'hello'}</DerivedSignal>
                   </div>
                 </Component>
               </Projection>
@@ -243,5 +261,60 @@ describe.each([
         </Component>
       );
     });
+  });
+});
+
+describe('html wrapper', () => {
+  it('should provide and retrieve a context in client', async () => {
+    const contextId = createContextId<Signal<NoSerialize<{ value: string }>>>('myTest');
+    const Consumer = component$(() => {
+      const ctxValue = useContext(contextId);
+      return <span>{ctxValue.value?.value}</span>;
+    });
+    const Test = component$(() => {
+      const data = useContext(contextId);
+      const show = useSignal(false);
+
+      return (
+        <>
+          <button
+            onClick$={() => {
+              data.value = noSerialize({ value: 'CONTEXT_VALUE' });
+              show.value = true;
+            }}
+          ></button>
+          {show.value && <Consumer />}
+        </>
+      );
+    });
+    const Provider = component$(() => {
+      const data = useSignal();
+      useContextProvider(contextId, data);
+
+      return <Slot />;
+    });
+
+    let document = createDocument();
+    const platform = getPlatform();
+    try {
+      const result = await renderToString2(
+        <Provider>
+          <head></head>
+          <body>
+            <Test />
+          </body>
+        </Provider>
+      );
+      document = createDocument({ html: result.html });
+    } finally {
+      setPlatform(platform);
+    }
+
+    emulateExecutionOfQwikFuncs(document);
+    const container = _getDomContainer(document.querySelector('[q\\:container]')!);
+
+    await trigger(container.document.body, 'button', 'click');
+
+    expect(document.querySelector('span')?.innerHTML).toContain('CONTEXT_VALUE');
   });
 });

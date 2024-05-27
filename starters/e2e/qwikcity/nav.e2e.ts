@@ -36,9 +36,9 @@ test.describe("actions", () => {
       await expect(increment).toHaveText("Click me 1");
     });
 
-    // TODO(v2): fix this
-    test.describe.skip("scroll-restoration", () => {
-      test("should not refresh again on popstate after manual refresh", async ({
+    test.describe("scroll-restoration", () => {
+      // TODO(v2): fix this
+      test.skip("should not refresh again on popstate after manual refresh", async ({
         page,
       }) => {
         await page.goto("/qwikcity-test/scroll-restoration/page-long/");
@@ -94,7 +94,8 @@ test.describe("actions", () => {
         await page.waitForTimeout(50);
         expect(await getWindowScrollXY(page)).toStrictEqual([0, 0]);
       });
-      test("should restore scroll on back and forward navigations", async ({
+      // TODO(v2): fix this
+      test.skip("should restore scroll on back and forward navigations", async ({
         page,
       }) => {
         await page.goto("/qwikcity-test/scroll-restoration/page-long/");
@@ -159,8 +160,7 @@ test.describe("actions", () => {
 
   function tests() {
     test.describe("issue2829", () => {
-      // TODO(v2): fix this
-      test.skip("should navigate with context", async ({ page }) => {
+      test("should navigate with context", async ({ page }) => {
         await page.goto("/qwikcity-test/issue2829/a/");
         const link = page.locator("#issue2829-link");
         await link.click();
@@ -175,8 +175,7 @@ test.describe("actions", () => {
       });
     });
 
-    // TODO(v2): fix this
-    test.describe.skip("issue2890", () => {
+    test.describe("issue2890", () => {
       test("should navigate (link 0)", async ({ page, javaScriptEnabled }) => {
         await page.goto("/qwikcity-test/issue2890/a/");
         const link = page.locator("#issue2890-link-0");
@@ -279,8 +278,7 @@ test.describe("actions", () => {
     });
 
     test.describe("issue 2751", () => {
-      // TODO(v2): fix this
-      test.skip("should navigate without crash", async ({
+      test("should navigate without crash", async ({
         context,
         javaScriptEnabled,
       }) => {

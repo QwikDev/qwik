@@ -200,6 +200,7 @@
     "start": "concurrently \"npm:build.watch\"  \"npm:tsc.watch\" -n build,tsc -c green,cyan",
     "test": "pnpm build.full && pnpm test.unit && pnpm test.e2e",
     "test.e2e": "pnpm test.e2e.chromium && pnpm test.e2e.webkit",
+    "test.e2e.cli": "tsm scripts/e2e-cli.ts",
     "test.e2e.chromium": "playwright test starters --browser=chromium --config starters/playwright.config.ts",
     "test.e2e.chromium.debug": "PWDEBUG=1 playwright test starters --browser=chromium --config starters/playwright.config.ts",
     "test.e2e.city": "playwright test starters/e2e/qwikcity --browser=chromium --config starters/playwright.config.ts",

@@ -588,8 +588,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
               // write out fragment attributes
               if (fragmentAttrs) {
                 writeFragmentAttrs(this.write.bind(this), this.addRoot.bind(this), fragmentAttrs);
+                fragmentAttrs = vNodeAttrsStack.pop()!;
               }
-              fragmentAttrs = vNodeAttrsStack.pop()!;
               depth--;
               this.write(VNodeDataChar.CLOSE_CHAR);
             } else if (value >= 0) {
@@ -603,8 +603,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           while (depth-- > 0) {
             if (fragmentAttrs) {
               writeFragmentAttrs(this.write.bind(this), this.addRoot.bind(this), fragmentAttrs);
+              fragmentAttrs = vNodeAttrsStack.pop()!;
             }
-            fragmentAttrs = vNodeAttrsStack.pop()!;
             this.write(VNodeDataChar.CLOSE_CHAR);
           }
         }

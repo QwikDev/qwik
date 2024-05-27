@@ -100,45 +100,6 @@ describe.each([
     );
   });
 
-  // it('should provide and retrieve a context with non-serializable content changing inside', async () => {
-  //   const contextId = createContextId<Signal<NoSerialize<{ data: string }>>>('myTest1');
-  //   const Consumer = component$(() => {
-  //     const ctxValue = useContext(contextId);
-  //     return <span>{ctxValue.value?.data}</span>;
-  //   });
-  //   const Provider = component$(() => {
-  //     const data = useSignal();
-  //     useContextProvider(contextId, data);
-  //     const show = useSignal(false);
-
-  //     useTask$(({ track }) => {
-  //       track(() => show.value);
-  //       data.value = noSerialize({ data: 'UPDATED_CONTEXT_VALUE' });
-  //     });
-
-  //     return (
-  //       <>
-  //         <button
-  //           onClick$={() => {
-  //             show.value = true;
-  //           }}
-  //         />
-  //         <Slot />
-  //       </>
-  //     );
-  //   });
-
-  //   const { vNode, document } = await render(
-  //     <Provider>
-  //       <Consumer />
-  //     </Provider>,
-  //     { debug }
-  //   );
-  //   console.log('click');
-  //   await trigger(document.body, 'button', 'click');
-  //   expect(vNode).toMatchVDOM(<Component>{/* <Fragment> */}</Component>);
-  // });
-
   describe('regression', () => {
     it('#4038', async () => {
       interface IMyComponent {

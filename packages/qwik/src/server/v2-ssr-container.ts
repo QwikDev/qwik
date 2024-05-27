@@ -587,50 +587,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             } else if (value === CLOSE_FRAGMENT) {
               // write out fragment attributes
               if (fragmentAttrs) {
-                for (let i = 0; i < fragmentAttrs.length; ) {
-                  const key = fragmentAttrs[i++] as string;
-                  let value = fragmentAttrs[i++] as string;
-                  if (typeof value !== 'string') {
-                    value = String(this.addRoot(value));
-                  }
-                  switch (key) {
-                    case QScopedStyle:
-                      this.write(VNodeDataChar.SCOPED_STYLE_CHAR);
-                      break;
-                    case OnRenderProp:
-                      this.write(VNodeDataChar.RENDER_FN_CHAR);
-                      break;
-                    case ELEMENT_ID:
-                      this.write(VNodeDataChar.ID_CHAR);
-                      break;
-                    case ELEMENT_PROPS:
-                      this.write(VNodeDataChar.PROPS_CHAR);
-                      break;
-                    case QSlotRef:
-                      this.write(VNodeDataChar.SLOT_REF_CHAR);
-                      break;
-                    case ELEMENT_KEY:
-                      this.write(VNodeDataChar.KEY_CHAR);
-                      break;
-                    case ELEMENT_SEQ:
-                      this.write(VNodeDataChar.SEQ_CHAR);
-                      break;
-                    // Skipping `\` character for now because it is used for escaping.
-                    case QCtxAttr:
-                      this.write(VNodeDataChar.CONTEXT_CHAR);
-                      break;
-                    case QSlot:
-                      this.write(VNodeDataChar.SLOT_CHAR);
-                      break;
-                    default:
-                      this.write(VNodeDataChar.SEPARATOR_CHAR);
-                      this.write(key);
-                      this.write(VNodeDataChar.SEPARATOR_CHAR);
-                  }
-                  this.write(value!);
-                }
-                fragmentAttrs = vNodeAttrsStack.pop()!;
+                writeFragmentAttrs(this.write.bind(this), this.addRoot.bind(this), fragmentAttrs);
               }
+              fragmentAttrs = vNodeAttrsStack.pop()!;
               depth--;
               this.write(VNodeDataChar.CLOSE_CHAR);
             } else if (value >= 0) {
@@ -642,11 +601,65 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             }
           }
           while (depth-- > 0) {
+            if (fragmentAttrs) {
+              writeFragmentAttrs(this.write.bind(this), this.addRoot.bind(this), fragmentAttrs);
+            }
+            fragmentAttrs = vNodeAttrsStack.pop()!;
             this.write(VNodeDataChar.CLOSE_CHAR);
           }
         }
       }
     }
+
+    function writeFragmentAttrs(
+      write: (text: string) => void,
+      addRoot: (obj: unknown) => number,
+      fragmentAttrs: SsrAttrs
+    ): void {
+      for (let i = 0; i < fragmentAttrs.length; ) {
+        const key = fragmentAttrs[i++] as string;
+        let value = fragmentAttrs[i++] as string;
+        if (typeof value !== 'string') {
+          value = String(addRoot(value));
+        }
+        switch (key) {
+          case QScopedStyle:
+            write(VNodeDataChar.SCOPED_STYLE_CHAR);
+            break;
+          case OnRenderProp:
+            write(VNodeDataChar.RENDER_FN_CHAR);
+            break;
+          case ELEMENT_ID:
+            write(VNodeDataChar.ID_CHAR);
+            break;
+          case ELEMENT_PROPS:
+            write(VNodeDataChar.PROPS_CHAR);
+            break;
+          case QSlotRef:
+            write(VNodeDataChar.SLOT_REF_CHAR);
+            break;
+          case ELEMENT_KEY:
+            write(VNodeDataChar.KEY_CHAR);
+            break;
+          case ELEMENT_SEQ:
+            write(VNodeDataChar.SEQ_CHAR);
+            break;
+          // Skipping `\` character for now because it is used for escaping.
+          case QCtxAttr:
+            write(VNodeDataChar.CONTEXT_CHAR);
+            break;
+          case QSlot:
+            write(VNodeDataChar.SLOT_CHAR);
+            break;
+          default:
+            write(VNodeDataChar.SEPARATOR_CHAR);
+            write(key);
+            write(VNodeDataChar.SEPARATOR_CHAR);
+        }
+        write(value);
+      }
+    }
+
     this.closeElement();
   }
 
@@ -659,11 +672,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (flag !== VNodeDataFlag.NONE) {
         if (flag & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE)) {
           let fragmentAttrs: SsrAttrs | null = null;
+          let depth = 0;
           for (let i = 1; i < vNode.length; i++) {
             const value = vNode[i];
             if (Array.isArray(value)) {
               vNodeAttrsStack.push(fragmentAttrs!);
               fragmentAttrs = value;
+            } else if (value === OPEN_FRAGMENT) {
+              depth++;
             } else if (value === CLOSE_FRAGMENT) {
               // write out fragment attributes
               if (fragmentAttrs) {
@@ -675,6 +691,19 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
                 }
                 fragmentAttrs = vNodeAttrsStack.pop()!;
               }
+              depth--;
+            }
+          }
+
+          while (depth-- > 0) {
+            if (fragmentAttrs) {
+              for (let i = 0; i < fragmentAttrs.length; i++) {
+                const value = fragmentAttrs[i] as string;
+                if (typeof value !== 'string') {
+                  fragmentAttrs[i] = String(this.addRoot(value));
+                }
+              }
+              fragmentAttrs = vNodeAttrsStack.pop()!;
             }
           }
         }

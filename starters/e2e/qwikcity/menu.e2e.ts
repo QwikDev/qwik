@@ -6,15 +6,15 @@ test.describe("Qwik City Menu", () => {
     test.use({ javaScriptEnabled: false });
     tests();
   });
-  test.describe("spa", () => {
+  // TODO(v2): fix this
+  test.describe.skip("spa", () => {
     test.use({ javaScriptEnabled: true });
     tests();
   });
 });
 
 function tests() {
-  // TODO(v2): fix this
-  test.skip("Qwik City Menu", async ({ context, javaScriptEnabled }) => {
+  test("Qwik City Menu", async ({ context, javaScriptEnabled }) => {
     const ctx = await load(context, javaScriptEnabled, "/qwikcity-test/");
 
     /***********  Docs: home  ***********/

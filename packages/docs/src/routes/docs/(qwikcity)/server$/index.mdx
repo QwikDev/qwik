@@ -20,9 +20,7 @@ created_at: '2023-03-29T02:35:29Z'
 
 # `server$()`
 
-`server$()` allows you to create a function that always execute on the server, making it a great place to access the DB or perform server-only actions.
-
-`server$` is a form of RPC (Remote Procedure Call) mechanism between the client and server, just like a traditional HTTP endpoint but strongly typed thanks to Typescript, and easier to maintain.
+`server$()` allows you to define functions that execute exclusively on the server, making it ideal for server-only operations and database access. It functions as an RPC (Remote Procedure Call) mechanism between the client and server, similar to a traditional HTTP endpoint, but strongly typed with TypeScript and easier to maintain.
 
 Your new function will have the following signature:  
 `([AbortSignal, ] ...): Promise<T>`
@@ -145,7 +143,7 @@ This API is actually used to implement QwikGPT streaming responses in our docs s
 
 ## How does `server$()` work?
 
-A `server$()` wraps a function and returns an async proxy to the function. On the server, the proxy function directly calls the wrapped function, and a HTTP endpoint is automatically created by the `server$()` function.
+`server$()` wraps a function and returns an async proxy to the function. On the server, the proxy function directly calls the wrapped function, and a HTTP endpoint is automatically created by the `server$()` function.
 
 On the client, the proxy function invokes the wrapped function via an HTTP request, using `fetch()`.
 

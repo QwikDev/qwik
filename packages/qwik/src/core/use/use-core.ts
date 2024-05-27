@@ -123,6 +123,10 @@ export const useInvokeContext = (): RenderInvokeContext => {
 
   return ctx as RenderInvokeContext;
 };
+export const useContainerState = () => {
+  const ctx = useInvokeContext();
+  return ctx.$renderCtx$.$static$.$containerState$;
+};
 
 export function useBindInvokeContext<FN extends (...args: any) => any>(
   this: unknown,

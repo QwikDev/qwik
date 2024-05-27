@@ -507,6 +507,20 @@
       "mdFile": "qwik.componentqrl.md"
     },
     {
+      "name": "ComputedFn",
+      "id": "computedfn",
+      "hierarchy": [
+        {
+          "name": "ComputedFn",
+          "id": "computedfn"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ComputedFn<T> = () => T;\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "mdFile": "qwik.computedfn.md"
+    },
+    {
       "name": "ContextId",
       "id": "contextid",
       "hierarchy": [
@@ -549,6 +563,34 @@
       "mdFile": "qwik.correctedtoggleevent.md"
     },
     {
+      "name": "createComputed$",
+      "id": "createcomputed_",
+      "hierarchy": [
+        {
+          "name": "createComputed$",
+          "id": "createcomputed_"
+        }
+      ],
+      "kind": "Function",
+      "content": "Returns read-only signal that updates when signals used in the `ComputedFn` change. Unlike useComputed$, this is not a hook and it always creates a new signal.\n\n\n```typescript\ncreateComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[ComputedFn](#computedfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[Signal](#signal)<!-- -->&lt;Awaited&lt;T&gt;&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "mdFile": "qwik.createcomputed_.md"
+    },
+    {
+      "name": "createComputedQrl",
+      "id": "createcomputedqrl",
+      "hierarchy": [
+        {
+          "name": "createComputedQrl",
+          "id": "createcomputedqrl"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\ncreateComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => Signal<Awaited<T>>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[QRL](#qrl)<!-- -->&lt;[ComputedFn](#computedfn)<!-- -->&lt;T&gt;&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[Signal](#signal)<!-- -->&lt;Awaited&lt;T&gt;&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "mdFile": "qwik.createcomputedqrl.md"
+    },
+    {
       "name": "createContextId",
       "id": "createcontextid",
       "hierarchy": [
@@ -561,6 +603,20 @@
       "content": "Create a context ID to be used in your application. The name should be written with no spaces.\n\nContext is a way to pass stores to the child components without prop-drilling.\n\nUse `createContextId()` to create a `ContextId`<!-- -->. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.\n\n\\#\\#\\# Example\n\n```tsx\n// Declare the Context type.\ninterface TodosStore {\n  items: string[];\n}\n// Create a Context ID (no data is saved here.)\n// You will use this ID to both create and retrieve the Context.\nexport const TodosContext = createContextId<TodosStore>('Todos');\n\n// Example of providing context to child components.\nexport const App = component$(() => {\n  useContextProvider(\n    TodosContext,\n    useStore<TodosStore>({\n      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],\n    })\n  );\n\n  return <Items />;\n});\n\n// Example of retrieving the context provided by a parent component.\nexport const Items = component$(() => {\n  const todos = useContext(TodosContext);\n  return (\n    <ul>\n      {todos.items.map((item) => (\n        <li>{item}</li>\n      ))}\n    </ul>\n  );\n});\n\n```\n\n\n```typescript\ncreateContextId: <STATE = unknown>(name: string) => ContextId<STATE>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nname\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nThe name of the context.\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[ContextId](#contextid)<!-- -->&lt;STATE&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts",
       "mdFile": "qwik.createcontextid.md"
+    },
+    {
+      "name": "createSignal",
+      "id": "createsignal",
+      "hierarchy": [
+        {
+          "name": "createSignal",
+          "id": "createsignal"
+        }
+      ],
+      "kind": "Variable",
+      "content": "Creates a signal.\n\nIf the initial state is a function, the function is invoked to calculate the actual initial state.\n\n\n```typescript\ncreateSignal: UseSignal\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts",
+      "mdFile": "qwik.createsignal.md"
     },
     {
       "name": "CSSProperties",
@@ -763,7 +819,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nevent$: <T>(first: T) => QRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfirst\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[QRL](#qrl)<!-- -->&lt;T&gt;",
+      "content": "```typescript\nevent$: <T>(qrl: T) => QRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[QRL](#qrl)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
       "mdFile": "qwik.event_.md"
     },
@@ -1071,7 +1127,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Create a `____$(...)` convenience method from `___(...)`<!-- -->.\n\nIt is very common for functions to take a lazy-loadable resource as a first argument. For this reason, the Qwik Optimizer automatically extracts the first argument from any function which ends in `$`<!-- -->.\n\nThis means that `foo$(arg0)` and `foo($(arg0))` are equivalent with respect to Qwik Optimizer. The former is just a shorthand for the latter.\n\nFor example, these function calls are equivalent:\n\n- `component$(() => {...})` is same as `component($(() => {...}))`\n\n```tsx\nexport function myApi(callback: QRL<() => void>): void {\n  // ...\n}\n\nexport const myApi$ = implicit$FirstArg(myApi);\n// type of myApi$: (callback: () => void): void\n\n// can be used as:\nmyApi$(() => console.log('callback'));\n\n// will be transpiled to:\n// FILE: <current file>\nmyApi(qrl('./chunk-abc.js', 'callback'));\n\n// FILE: chunk-abc.js\nexport const callback = () => console.log('callback');\n```\n\n\n```typescript\nimplicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => ((first: FIRST, ...rest: REST) => RET)\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfn\n\n\n</td><td>\n\n(first: [QRL](#qrl)<!-- -->&lt;FIRST&gt;, ...rest: REST) =&gt; RET\n\n\n</td><td>\n\nA function that should have its first argument automatically `$`<!-- -->.\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n((first: FIRST, ...rest: REST) =&gt; RET)",
+      "content": "Create a `____$(...)` convenience method from `___(...)`<!-- -->.\n\nIt is very common for functions to take a lazy-loadable resource as a first argument. For this reason, the Qwik Optimizer automatically extracts the first argument from any function which ends in `$`<!-- -->.\n\nThis means that `foo$(arg0)` and `foo($(arg0))` are equivalent with respect to Qwik Optimizer. The former is just a shorthand for the latter.\n\nFor example, these function calls are equivalent:\n\n- `component$(() => {...})` is same as `component($(() => {...}))`\n\n```tsx\nexport function myApi(callback: QRL<() => void>): void {\n  // ...\n}\n\nexport const myApi$ = implicit$FirstArg(myApi);\n// type of myApi$: (callback: () => void): void\n\n// can be used as:\nmyApi$(() => console.log('callback'));\n\n// will be transpiled to:\n// FILE: <current file>\nmyApi(qrl('./chunk-abc.js', 'callback'));\n\n// FILE: chunk-abc.js\nexport const callback = () => console.log('callback');\n```\n\n\n```typescript\nimplicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (qrl: QRL<FIRST>, ...rest: REST) => RET) => ((qrl: FIRST, ...rest: REST) => RET)\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfn\n\n\n</td><td>\n\n(qrl: [QRL](#qrl)<!-- -->&lt;FIRST&gt;, ...rest: REST) =&gt; RET\n\n\n</td><td>\n\nA function that should have its first argument automatically `$`<!-- -->.\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n((qrl: FIRST, ...rest: REST) =&gt; RET)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/util/implicit_dollar.ts",
       "mdFile": "qwik.implicit_firstarg.md"
     },
@@ -2474,7 +2530,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface Signal<T = any> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[value](#)\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "A signal is a reactive value which can be read and written. When the signal is written, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nFurthermore, when a signal value is passed as a prop to a component, the optimizer will automatically forward the signal. This means that `return <div title={signal.value}>hi</div>` will update the `title` attribute when the signal changes without having to re-render the component.\n\n\n```typescript\nexport interface Signal<T = any> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[value](#)\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/state/signal.ts",
       "mdFile": "qwik.signal.md"
     },
@@ -2963,8 +3019,8 @@
           "id": "usecomputed_"
         }
       ],
-      "kind": "Variable",
-      "content": "```typescript\nuseComputed$: Computed\n```",
+      "kind": "Function",
+      "content": "Hook that returns a read-only signal that updates when signals used in the `ComputedFn` change.\n\n\n```typescript\nuseComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[ComputedFn](#computedfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[Signal](#signal)<!-- -->&lt;Awaited&lt;T&gt;&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.usecomputed_.md"
     },
@@ -2977,10 +3033,24 @@
           "id": "usecomputedqrl"
         }
       ],
-      "kind": "Variable",
-      "content": "```typescript\nuseComputedQrl: ComputedQRL\n```",
+      "kind": "Function",
+      "content": "```typescript\nuseComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => Signal<Awaited<T>>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[QRL](#qrl)<!-- -->&lt;[ComputedFn](#computedfn)<!-- -->&lt;T&gt;&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[Signal](#signal)<!-- -->&lt;Awaited&lt;T&gt;&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.usecomputedqrl.md"
+    },
+    {
+      "name": "useConstant",
+      "id": "useconstant",
+      "hierarchy": [
+        {
+          "name": "useConstant",
+          "id": "useconstant"
+        }
+      ],
+      "kind": "Function",
+      "content": "Stores a value which is retained for the lifetime of the component.\n\nIf the value is a function, the function is invoked to calculate the actual value.\n\n\n```typescript\nuseConstant: <T>(value: (() => T) | T) => T\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\n(() =&gt; T) \\| T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nT",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts",
+      "mdFile": "qwik.useconstant.md"
     },
     {
       "name": "useContext",
@@ -3132,7 +3202,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nuseSignal: UseSignal\n```",
+      "content": "Hook that creates a signal that is retained for the lifetime of the component.\n\n\n```typescript\nuseSignal: UseSignal\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts",
       "mdFile": "qwik.usesignal.md"
     },
@@ -3146,7 +3216,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nuseSignal: UseSignal\n```",
+      "content": "Hook that creates a signal that is retained for the lifetime of the component.\n\n\n```typescript\nuseSignal: UseSignal\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts",
       "mdFile": "qwik.usesignal.md"
     },
@@ -3188,7 +3258,7 @@
         }
       ],
       "kind": "Function",
-      "content": "A lazy-loadable reference to a component's styles.\n\nComponent styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)\n\n```tsx\nimport styles from './code-block.css?inline';\n\nexport const CmpStyles = component$(() => {\n  useStyles$(styles);\n\n  return <div>Some text</div>;\n});\n```\n\n\n```typescript\nuseStyles$: (first: string) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfirst\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvoid",
+      "content": "A lazy-loadable reference to a component's styles.\n\nComponent styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)\n\n```tsx\nimport styles from './code-block.css?inline';\n\nexport const CmpStyles = component$(() => {\n  useStyles$(styles);\n\n  return <div>Some text</div>;\n});\n```\n\n\n```typescript\nuseStyles$: (qrl: string) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvoid",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts",
       "mdFile": "qwik.usestyles_.md"
     },
@@ -3230,7 +3300,7 @@
         }
       ],
       "kind": "Function",
-      "content": "A lazy-loadable reference to a component's styles, that is scoped to the component.\n\nComponent styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)\n\n```tsx\nimport scoped from './code-block.css?inline';\n\nexport const CmpScopedStyles = component$(() => {\n  useStylesScoped$(scoped);\n\n  return <div>Some text</div>;\n});\n```\n\n\n```typescript\nuseStylesScoped$: (first: string) => UseStylesScoped\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfirst\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[UseStylesScoped](#usestylesscoped)",
+      "content": "A lazy-loadable reference to a component's styles, that is scoped to the component.\n\nComponent styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)\n\n```tsx\nimport scoped from './code-block.css?inline';\n\nexport const CmpScopedStyles = component$(() => {\n  useStylesScoped$(scoped);\n\n  return <div>Some text</div>;\n});\n```\n\n\n```typescript\nuseStylesScoped$: (qrl: string) => UseStylesScoped\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[UseStylesScoped](#usestylesscoped)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts",
       "mdFile": "qwik.usestylesscoped_.md"
     },
@@ -3258,7 +3328,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Reruns the `taskFn` when the observed inputs change.\n\nUse `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when those inputs change.\n\nThe `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.\n\n\n```typescript\nuseTask$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfirst\n\n\n</td><td>\n\n[TaskFn](#taskfn)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\n[UseTaskOptions](#usetaskoptions) \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvoid",
+      "content": "Reruns the `taskFn` when the observed inputs change.\n\nUse `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when those inputs change.\n\nThe `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.\n\n\n```typescript\nuseTask$: (qrl: TaskFn, opts?: UseTaskOptions | undefined) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[TaskFn](#taskfn)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\n[UseTaskOptions](#usetaskoptions) \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvoid",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.usetask_.md"
     },
@@ -3300,7 +3370,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```tsx\nconst Timer = component$(() => {\n  const store = useStore({\n    count: 0,\n  });\n\n  useVisibleTask$(() => {\n    // Only runs in the client\n    const timer = setInterval(() => {\n      store.count++;\n    }, 500);\n    return () => {\n      clearInterval(timer);\n    };\n  });\n\n  return <div>{store.count}</div>;\n});\n```\n\n\n```typescript\nuseVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfirst\n\n\n</td><td>\n\n[TaskFn](#taskfn)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\n[OnVisibleTaskOptions](#onvisibletaskoptions) \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvoid",
+      "content": "```tsx\nconst Timer = component$(() => {\n  const store = useStore({\n    count: 0,\n  });\n\n  useVisibleTask$(() => {\n    // Only runs in the client\n    const timer = setInterval(() => {\n      store.count++;\n    }, 500);\n    return () => {\n      clearInterval(timer);\n    };\n  });\n\n  return <div>{store.count}</div>;\n});\n```\n\n\n```typescript\nuseVisibleTask$: (qrl: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[TaskFn](#taskfn)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\n[OnVisibleTaskOptions](#onvisibletaskoptions) \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvoid",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.usevisibletask_.md"
     },

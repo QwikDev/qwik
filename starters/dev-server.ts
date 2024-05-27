@@ -7,7 +7,7 @@
 import type { NextFunction, Request, Response } from "express";
 import express from "express";
 import { build, type InlineConfig, type PluginOption } from "vite";
-import { join, resolve } from "node:path";
+import { join, relative, resolve } from "node:path";
 import {
   readdirSync,
   statSync,
@@ -61,6 +61,12 @@ const cache = new Map<string, Promise<QwikManifest>>();
 async function handleApp(req: Request, res: Response, next: NextFunction) {
   try {
     const url = new URL(req.url, address);
+    if (existsSync(url.pathname)) {
+      const relPath = relative(startersAppsDir, url.pathname);
+      if (!relPath.startsWith(".")) {
+        url.pathname = relPath;
+      }
+    }
     const paths = url.pathname.split("/");
     const appName = paths[1];
     const appDir = join(startersAppsDir, appName);

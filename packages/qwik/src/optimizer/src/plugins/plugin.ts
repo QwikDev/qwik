@@ -1,4 +1,4 @@
-import type { Rollup } from 'vite';
+import type { Rollup, Plugin } from 'vite';
 import { hashCode } from '../../../core/util/hash_code';
 import { generateManifestFromBundles, generateQwikEntries, getValidManifest } from '../manifest';
 import { createOptimizer } from '../optimizer';
@@ -11,14 +11,13 @@ import type {
   Optimizer,
   OptimizerOptions,
   QwikManifest,
-  TransformFsOptions,
   TransformModule,
   TransformModuleInput,
   TransformModulesOptions,
   TransformOutput,
 } from '../types';
 import { createLinter, type QwikLinter } from './eslint-plugin';
-import type { LoadResult, OutputBundle, PluginContext, TransformResult } from 'rollup';
+import type { LoadResult, OutputBundle, TransformResult } from 'rollup';
 
 const REG_CTX_NAME = ['server'];
 
@@ -297,7 +296,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     } else {
       opts.lint = updatedOpts.buildMode === 'development';
     }
-
+    console.dir(opts);
     return { ...opts };
   };
 
@@ -327,9 +326,13 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   let didAddQwikEntries = false;
-  const buildStart = async (ctx: PluginContext) => {
+  const jsPacketIdSource = new Map<string, string>();
+  const buildStart = async (ctx: Rollup.PluginContext) => {
     debug(`buildStart()`, opts.buildMode, opts.scope, opts.target);
     const optimizer = getOptimizer();
+    // hmm
+    // transformedOutputs.clear();
+    // ssrTransformedOutputs.clear();
 
     if (optimizer.sys.env === 'node' && opts.target === 'ssr' && opts.lint) {
       try {
@@ -340,72 +343,15 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     didAddQwikEntries = false;
-
-    // TODO is this still needed?
-    const generatePreManifest = !['hoist', 'hook', 'inline'].includes(opts.entryStrategy.type);
-    if (generatePreManifest) {
-      const path = getPath();
-
-      let srcDir = '/';
-      if (typeof opts.srcDir === 'string') {
-        srcDir = normalizePath(opts.srcDir);
-        debug(`buildStart() srcDir`, opts.srcDir);
-      } else if (Array.isArray(opts.srcInputs)) {
-        optimizer.sys.getInputFiles = async (rootDir) =>
-          opts.srcInputs!.map((i) => {
-            const relInput: TransformModuleInput = {
-              path: normalizePath(path.relative(rootDir, i.path)),
-              code: i.code,
-            };
-            return relInput;
-          });
-        debug(`buildStart() opts.srcInputs (${opts.srcInputs.length})`);
-      }
-      const vendorRoots = opts.vendorRoots;
-      if (vendorRoots.length > 0) {
-        debug(`vendorRoots`, vendorRoots);
-      }
-
-      debug(`transformedOutput.clear()`);
-      transformedOutputs.clear();
-
-      const mode =
-        opts.target === 'lib' ? 'lib' : opts.buildMode === 'development' ? 'dev' : 'prod';
-      const transformOpts: TransformFsOptions = {
-        srcDir,
-        rootDir: opts.rootDir,
-        vendorRoots,
-        entryStrategy: opts.entryStrategy,
-        minify: 'simplify',
-        transpileTs: true,
-        transpileJsx: true,
-        explicitExtensions: true,
-        preserveFilenames: true,
-        mode,
-        scope: opts.scope ? opts.scope : undefined,
-        sourceMaps: opts.sourcemap,
-      };
-
-      if (opts.target === 'client') {
-        transformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
-        transformOpts.stripExports = SERVER_STRIP_EXPORTS;
-        transformOpts.isServer = false;
-      } else if (opts.target === 'ssr') {
-        transformOpts.stripCtxName = CLIENT_STRIP_CTX_NAME;
-        transformOpts.stripEventHandlers = true;
-        transformOpts.isServer = true;
-        transformOpts.regCtxName = REG_CTX_NAME;
-      }
-    }
   };
 
   const resolveId = async (
     ctx: Rollup.PluginContext,
     id: string,
     importer: string | undefined,
-    ssrOpts?: { ssr?: boolean }
+    resolveOpts?: Parameters<Extract<Plugin['resolveId'], Function>>[2]
   ) => {
-    debug(`resolveId()`, 'Start', id, importer);
+    debug(`resolveId()`, 'Start', id, importer, resolveOpts, opts.target);
     if (id.startsWith('\0') || id.startsWith('/@fs')) {
       return;
     }
@@ -455,11 +401,23 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     const path = getPath();
-    const isSSR = ssrOpts?.ssr ?? opts.target === 'ssr';
+    const isSSR = resolveOpts?.ssr ?? opts.target === 'ssr';
 
     if (importer) {
+      if (!isSSR && importer.endsWith('.html')) {
+        const match = id.match(/.js?qrl=(.*)$/);
+        console.log('dev server asking for jsPacket', path.isAbsolute(id), match);
+        if (match) {
+          const jsPacketId = match[1];
+          const sourceId = jsPacketIdSource.get(jsPacketId);
+          if (sourceId) {
+            await ctx.load({ id: sourceId });
+            // Now all jsPackets exist in the cache
+          }
+        }
+      }
       // Only process relative links
-      if (!id.startsWith('.') && !path.isAbsolute(id)) {
+      if (!id.startsWith('.') && (!path.isAbsolute(id) || !importer.endsWith('.html'))) {
         return;
       }
       const parsedId = parseId(id);
@@ -507,9 +465,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return null;
   };
   const load = async (
-    ctx: PluginContext,
+    ctx: Rollup.PluginContext,
     id: string,
-    ssrOpts: { ssr?: boolean } = {}
+    loadOpts?: Parameters<Extract<Plugin['load'], Function>>[1]
   ): Promise<LoadResult> => {
     if (id.startsWith('\0') || id.startsWith('/@fs/')) {
       return;
@@ -561,7 +519,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       return generateQwikEntries(transformedOutputs);
     }
 
-    const isSSR = ssrOpts?.ssr ?? opts.target === 'ssr';
+    const isSSR = loadOpts?.ssr ?? opts.target === 'ssr';
     if (opts.resolveQwikBuild && id.endsWith(QWIK_BUILD_ID)) {
       debug(`load()`, QWIK_BUILD_ID, opts.buildMode);
       return {
@@ -614,15 +572,15 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const transform = async function (
-    ctx: PluginContext,
+    ctx: Rollup.PluginContext,
     code: string,
     id: string,
-    ssrOpts: { ssr?: boolean } = {}
+    transformOpts: Parameters<Extract<Plugin['transform'], Function>>[2] = {}
   ): Promise<TransformResult> {
     if (id.startsWith('\0') || id.startsWith('/@fs/')) {
       return;
     }
-    const isSSR = ssrOpts.ssr ?? opts.target === 'ssr';
+    const isSSR = transformOpts.ssr ?? opts.target === 'ssr';
     const currentOutputs = isSSR ? ssrTransformedOutputs : transformedOutputs;
     if (currentOutputs.has(id)) {
       return;
@@ -640,6 +598,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       TRANSFORM_REGEX.test(pathId) ||
       insideRoots(ext, dir, opts.srcDir, opts.vendorRoots)
     ) {
+      /** Strip client|server code from server|client */
       const strip = opts.target === 'client' || opts.target === 'ssr';
       const normalizedID = normalizePath(pathId);
       debug(`transform()`, 'Transforming', pathId);
@@ -655,12 +614,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       // TODO only allow strategies that don't reuse the same files
       const entryStrategy: EntryStrategy = opts.entryStrategy;
       const transformOpts: TransformModulesOptions = {
-        input: [
-          {
-            code: code,
-            path: filePath,
-          },
-        ],
+        input: [{ code, path: filePath }],
         entryStrategy,
         minify: 'simplify',
         // Always enable sourcemaps in dev for click-to-source
@@ -669,21 +623,19 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         transpileJsx: true,
         explicitExtensions: true,
         preserveFilenames: true,
-        srcDir: srcDir,
+        srcDir,
         rootDir: opts.rootDir,
-        mode: mode,
-        scope: opts.scope ? opts.scope : void 0,
+        mode,
+        scope: opts.scope || undefined,
       };
-      if (isSSR) {
-        transformOpts.isServer = isSSR;
-        transformOpts.entryStrategy = { type: 'hoist' };
-      }
+
       if (strip) {
         transformOpts.isServer = isSSR;
         if (isSSR) {
           transformOpts.stripCtxName = CLIENT_STRIP_CTX_NAME;
           transformOpts.stripEventHandlers = true;
           transformOpts.regCtxName = REG_CTX_NAME;
+          transformOpts.entryStrategy = { type: 'hoist' };
         } else {
           transformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
           transformOpts.stripExports = SERVER_STRIP_EXPORTS;
@@ -692,7 +644,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       const newOutput = optimizer.transformModulesSync(transformOpts);
       // uncomment to show transform results
-      // debug(transformOpts, newOutput);
+      debug({ isSSR, strip }, transformOpts, newOutput);
       diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
 
       if (isSSR) {
@@ -713,13 +665,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         }
       }
       if (isSSR && strip) {
+        // We also need a client build with the server code stripped
+        // so that we know all the possible jsPackets that are used
         const clientTransformOpts: TransformModulesOptions = {
-          input: [
-            {
-              code: code,
-              path: filePath,
-            },
-          ],
+          input: [{ code, path: filePath }],
           entryStrategy: opts.entryStrategy,
           minify: 'simplify',
           sourceMaps: opts.sourcemap || 'development' === opts.buildMode,
@@ -731,11 +680,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           rootDir: opts.rootDir,
           mode: mode,
           scope: opts.scope ? opts.scope : void 0,
+          stripCtxName: SERVER_STRIP_CTX_NAME,
+          stripExports: SERVER_STRIP_EXPORTS,
+          isServer: false,
         };
-        clientTransformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
-        clientTransformOpts.stripExports = SERVER_STRIP_EXPORTS;
-        clientTransformOpts.isServer = false;
         const clientNewOutput = optimizer.transformModulesSync(clientTransformOpts);
+        debug('client build', transformOpts, newOutput);
 
         diagnosticsCallback(clientNewOutput.diagnostics, optimizer, srcDir);
 
@@ -744,8 +694,14 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           if (isAdditionalFile(mod)) {
             const key = normalizePath(path.join(srcDir, mod.path));
             transformedOutputs.set(key, [mod, id]);
-            deps.add(key);
-            ctx.addWatchFile(key);
+            // these are in ssr context and should be in client context
+            // deps.add(key);
+            // ctx.addWatchFile(key);
+            if (mod.hook) {
+              currentOutputs.set(mod.hook.name, [mod, id]);
+              jsPacketIdSource.set(mod.hook.name, id);
+              console.log('hook', mod.hook.name.toLowerCase(), id);
+            }
           }
         }
       }
@@ -769,7 +725,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       };
     }
 
-    debug(`transform()`, 'No Transforming', id);
+    debug(`transform()`, 'Not transforming', id);
 
     return null;
   };
@@ -823,7 +779,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const debug = (...str: any[]) => {
-    if (opts.debug) {
+    if (true || opts.debug) {
       // eslint-disable-next-line no-console
       console.debug(`[QWIK PLUGIN: ${id}]`, ...str);
     }

@@ -44,7 +44,7 @@ export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
                 "onInput$": /*#__PURE__*/ inlinedQrl((_, elm)=>{
                     const [value] = useLexicalScope();
                     return value.value = elm.value;
-                }, "s_SO0WIOE0Sqc", [
+                }, "s_6IZeYpXCNXA", [
                     value
                 ])
             }, null, 3, null),
@@ -53,7 +53,7 @@ export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
                 "onInput$": /*#__PURE__*/ inlinedQrl((_, elm)=>{
                     const [checked] = useLexicalScope();
                     return checked.value = elm.checked;
-                }, "s_VKebOylP0Dk", [
+                }, "s_JPI3bLCVnso", [
                     checked
                 ])
             }, null, 3, null),
@@ -62,7 +62,7 @@ export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
                 "onChange$": /*#__PURE__*/ inlinedQrl((_, elm)=>{
                     const [stuff] = useLexicalScope();
                     return stuff.value = elm.stuff;
-                }, "s_HplsUb3Bodg", [
+                }, "s_eyREJ0lZTFw", [
                     stuff
                 ])
             }, null, 3, null),

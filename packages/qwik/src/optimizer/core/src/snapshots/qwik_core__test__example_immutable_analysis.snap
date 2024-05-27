@@ -56,28 +56,20 @@ export const App = component$((props) => {
     );
 });
 
-============================= test.js ==
+============================= app_component_fragment_div_onevent_zrfduybt3xm.js (ENTRY POINT)==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const App_component_Fragment_Div_onEvent_zrFduYbT3xM = ()=>console.log('stuff');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,oBAAM,wGA4ChB\"}")
-============================= app_component__fragment_div_onevent_p0vwsfvwp1k.js (ENTRY POINT)==
-
-export const App_component__Fragment_Div_onEvent_p0vWsfvWP1k = ()=>console.log('stuff');
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+DAsB0B,IAAM,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"8DAsB0B,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component__Fragment_Div_onEvent_p0vWsfvWP1k",
+  "name": "App_component_Fragment_Div_onEvent_zrFduYbT3xM",
   "entry": null,
-  "displayName": "App_component__Fragment_Div_onEvent",
-  "hash": "p0vWsfvWP1k",
-  "canonicalFilename": "app_component__fragment_div_onevent_p0vwsfvwp1k",
+  "displayName": "App_component_Fragment_Div_onEvent",
+  "hash": "zrFduYbT3xM",
+  "canonicalFilename": "app_component_fragment_div_onevent_zrfduybt3xm",
   "path": "",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",
@@ -90,24 +82,32 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= app_component__fragment_div_immutable4_qt1dno4izxo.js (ENTRY POINT)==
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,oBAAM,wGA4ChB\"}")
+============================= app_component_fragment_div_immutable4_2zf7ja3yti0.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
-export const App_component__Fragment_Div_immutable4_QT1DNo4IZXo = (ev)=>{
+export const App_component_Fragment_Div_immutable4_2zF7jA3Yti0 = (ev)=>{
     const [state] = useLexicalScope();
     return console.log(state.count);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEA8B6B,CAAC;;WAAO,QAAQ,GAAG,CAAC,MAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iEA8B6B,CAAC;;WAAO,QAAQ,GAAG,CAAC,MAAM,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component__Fragment_Div_immutable4_QT1DNo4IZXo",
+  "name": "App_component_Fragment_Div_immutable4_2zF7jA3Yti0",
   "entry": null,
-  "displayName": "App_component__Fragment_Div_immutable4",
-  "hash": "QT1DNo4IZXo",
-  "canonicalFilename": "app_component__fragment_div_immutable4_qt1dno4izxo",
+  "displayName": "App_component_Fragment_Div_immutable4",
+  "hash": "2zF7jA3Yti0",
+  "canonicalFilename": "app_component_fragment_div_immutable4_2zf7ja3yti0",
   "path": "",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",
@@ -117,6 +117,34 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     984,
     1016
+  ]
+}
+*/
+============================= app_component_fragment_div_transparent_eedek6em1oo.js (ENTRY POINT)==
+
+export const App_component_Fragment_Div_transparent_eeDEK6EM1oo = ()=>{
+    console.log('stuff');
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kEAuB8B,IAAM;IAAC,QAAQ,GAAG,CAAC;AAAQ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_Fragment_Div_transparent_eeDEK6EM1oo",
+  "entry": null,
+  "displayName": "App_component_Fragment_Div_transparent",
+  "hash": "eeDEK6EM1oo",
+  "canonicalFilename": "app_component_fragment_div_transparent_eedek6em1oo",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "jSXProp",
+  "ctxName": "transparent$",
+  "captures": false,
+  "loc": [
+    723,
+    751
   ]
 }
 */
@@ -153,8 +181,8 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                     return window.document;
                 },
                 onClick$: props.onClick$,
-                onEvent$: /*#__PURE__*/ qrl(()=>import("./app_component__fragment_div_onevent_p0vwsfvwp1k"), "App_component__Fragment_Div_onEvent_p0vWsfvWP1k"),
-                transparent$: /*#__PURE__*/ qrl(()=>import("./app_component__fragment_div_transparent_jtd8sctndsg"), "App_component__Fragment_Div_transparent_jTD8SCTNDsg"),
+                onEvent$: /*#__PURE__*/ qrl(()=>import("./app_component_fragment_div_onevent_zrfduybt3xm"), "App_component_Fragment_Div_onEvent_zrFduYbT3xM"),
+                transparent$: /*#__PURE__*/ qrl(()=>import("./app_component_fragment_div_transparent_eedek6em1oo"), "App_component_Fragment_Div_transparent_eeDEK6EM1oo"),
                 immutable1: "stuff",
                 get immutable2 () {
                     return {
@@ -163,7 +191,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                     };
                 },
                 immutable3: 2,
-                immutable4$: /*#__PURE__*/ qrl(()=>import("./app_component__fragment_div_immutable4_qt1dno4izxo"), "App_component__Fragment_Div_immutable4_QT1DNo4IZXo", [
+                immutable4$: /*#__PURE__*/ qrl(()=>import("./app_component_fragment_div_immutable4_2zf7ja3yti0"), "App_component_Fragment_Div_immutable4_2zF7jA3Yti0", [
                     state
                 ]),
                 immutable5: [
@@ -272,34 +300,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     267,
     405
-  ]
-}
-*/
-============================= app_component__fragment_div_transparent_jtd8sctndsg.js (ENTRY POINT)==
-
-export const App_component__Fragment_Div_transparent_jTD8SCTNDsg = ()=>{
-    console.log('stuff');
-};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mEAuB8B,IAAM;IAAC,QAAQ,GAAG,CAAC;AAAQ\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_component__Fragment_Div_transparent_jTD8SCTNDsg",
-  "entry": null,
-  "displayName": "App_component__Fragment_Div_transparent",
-  "hash": "jTD8SCTNDsg",
-  "canonicalFilename": "app_component__fragment_div_transparent_jtd8sctndsg",
-  "path": "",
-  "extension": "js",
-  "parent": "App_component_ckEPmXZlub0",
-  "ctxKind": "jSXProp",
-  "ctxName": "transparent$",
-  "captures": false,
-  "loc": [
-    723,
-    751
   ]
 }
 */

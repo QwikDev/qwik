@@ -741,7 +741,7 @@ impl<'a> QwikTransform<'a> {
 		idents
 	}
 
-	/// Creates a js packet, to be used as a qrl source
+	/// Replace code with an import expression from a jsPacket
 	fn create_hook(
 		&mut self,
 		hook_data: HookData,
@@ -949,7 +949,7 @@ impl<'a> QwikTransform<'a> {
 		];
 		let fn_callee = if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				&self.options.path_data.abs_path,
+				&self.options.path_data.rel_path,
 				hook_data,
 				span,
 			));
@@ -1014,7 +1014,7 @@ impl<'a> QwikTransform<'a> {
 
 		let fn_callee = if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				&self.options.path_data.abs_path,
+				&self.options.path_data.rel_path,
 				&hook_data,
 				&span,
 			));
@@ -1110,6 +1110,8 @@ impl<'a> QwikTransform<'a> {
 		node
 	}
 
+	/// This transforms `jsx(type, props, key)`
+	/// TODO make it work when props is not `{...}` but an expression
 	fn handle_jsx_props_obj(
 		&mut self,
 		expr: ast::ExprOrSpread,
@@ -1677,6 +1679,17 @@ impl<'a> QwikTransform<'a> {
 			value: symbol_name.into(),
 			raw: None,
 		}))];
+
+		let mut fn_name: &JsWord = &_NOOP_QRL;
+		if self.options.mode == EmitMode::Dev {
+			args.push(get_qrl_dev_obj(
+				&self.options.path_data.rel_path,
+				&hook_data,
+				&DUMMY_SP,
+			));
+			fn_name = &_NOOP_QRL_DEV;
+		};
+
 		// Injects state
 		if !hook_data.scoped_idents.is_empty() {
 			args.push(ast::Expr::Array(ast::ArrayLit {
@@ -1693,7 +1706,7 @@ impl<'a> QwikTransform<'a> {
 					.collect(),
 			}))
 		}
-		self.create_internal_call(&_NOOP_QRL, args, true)
+		self.create_internal_call(fn_name, args, true)
 	}
 }
 
@@ -2265,10 +2278,25 @@ fn escape_sym(str: &str) -> String {
 	str.chars()
 		.flat_map(|x| match x {
 			'A'..='Z' | 'a'..='z' | '0'..='9' | '_' => Some(x),
-			'$' => None,
 			_ => Some('_'),
 		})
-		.collect()
+		// trim and squash underscores
+		.fold((String::new(), None), |(mut acc, prev), x| {
+			if x == '_' {
+				if prev == None {
+					(acc, None)
+				} else {
+					(acc, Some('_'))
+				}
+			} else {
+				if prev == Some('_') {
+					acc.push('_');
+				}
+				acc.push(x);
+				(acc, Some(x))
+			}
+		})
+		.0
 }
 
 const fn can_capture_scope(expr: &ast::Expr) -> bool {
@@ -2316,7 +2344,7 @@ fn parse_symbol_name(symbol_name: JsWord, dev: bool) -> (JsWord, JsWord, JsWord)
 	(s_n, display_name.into(), hash.into())
 }
 
-fn get_qrl_dev_obj(asb_path: &Path, hook: &HookData, span: &Span) -> ast::Expr {
+fn get_qrl_dev_obj(rel_path: &Path, hook: &HookData, span: &Span) -> ast::Expr {
 	ast::Expr::Object(ast::ObjectLit {
 		span: DUMMY_SP,
 		props: vec![
@@ -2324,7 +2352,7 @@ fn get_qrl_dev_obj(asb_path: &Path, hook: &HookData, span: &Span) -> ast::Expr {
 				key: ast::PropName::Ident(ast::Ident::new(js_word!("file"), DUMMY_SP)),
 				value: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
 					span: DUMMY_SP,
-					value: asb_path.to_str().unwrap().into(),
+					value: rel_path.to_str().unwrap().into(),
 					raw: None,
 				}))),
 			}))),

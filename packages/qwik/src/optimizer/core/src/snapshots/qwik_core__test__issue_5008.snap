@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3425
+assertion_line: 3463
 expression: output
 ---
 ==INPUT==
@@ -48,7 +48,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
     return /*#__PURE__*/ _jsxC(_Fragment, {
         children: [
             /*#__PURE__*/ _jsxQ("button", null, {
-                onClick$: /*#__PURE__*/ qrl(()=>import("./test_component__fragment_button_onclick_p2zpf6rl1l8"), "test_component__Fragment_button_onClick_p2zPf6rl1L8", [
+                onClick$: /*#__PURE__*/ qrl(()=>import("./test_component_fragment_button_onclick_ef3qezgqwcy"), "test_component_Fragment_button_onClick_eF3QEzgQWcY", [
                     store
                 ])
             }, "+1", 3, null),
@@ -88,24 +88,24 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test_component__fragment_button_onclick_p2zpf6rl1l8.js (ENTRY POINT)==
+============================= test_component_fragment_button_onclick_ef3qezgqwcy.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
-export const test_component__Fragment_button_onClick_p2zPf6rl1L8 = ()=>{
+export const test_component_Fragment_button_onClick_eF3QEzgQWcY = ()=>{
     const [store] = useLexicalScope();
     return store[0].value++;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";mEAO8B;;WAAM,KAAK,CAAC,EAAE,CAAC,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEAO8B;;WAAM,KAAK,CAAC,EAAE,CAAC,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "test_component__Fragment_button_onClick_p2zPf6rl1L8",
+  "name": "test_component_Fragment_button_onClick_eF3QEzgQWcY",
   "entry": null,
-  "displayName": "test_component__Fragment_button_onClick",
-  "hash": "p2zPf6rl1L8",
-  "canonicalFilename": "test_component__fragment_button_onclick_p2zpf6rl1l8",
+  "displayName": "test_component_Fragment_button_onClick",
+  "hash": "eF3QEzgQWcY",
+  "canonicalFilename": "test_component_fragment_button_onclick_ef3qezgqwcy",
   "path": "",
   "extension": "js",
   "parent": "test_component_LUXeXe0DQrg",

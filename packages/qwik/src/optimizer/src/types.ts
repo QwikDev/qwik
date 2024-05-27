@@ -242,7 +242,8 @@ export type SymbolMapper = Record<string, readonly [symbol: string, chunk: strin
 /** @public */
 export type SymbolMapperFn = (
   symbolName: string,
-  mapper: SymbolMapper | undefined
+  mapper: SymbolMapper | undefined,
+  parent?: string
 ) => readonly [symbol: string, chunk: string] | undefined;
 
 /** @public */

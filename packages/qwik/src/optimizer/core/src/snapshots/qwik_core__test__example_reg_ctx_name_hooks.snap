@@ -33,10 +33,10 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
     return /*#__PURE__*/ _jsxC(_Fragment, {
         children: [
             /*#__PURE__*/ _jsxQ("div", {
-                onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(/*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "07DGQ0fITXs"), "Works_component__Fragment_div_onClick_server_07DGQ0fITXs"))
+                onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(/*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "gcSPFNpGYgg"), "Works_component_Fragment_div_onClick_server_gcSPFNpGYgg"))
             }, null, null, 2, null),
             /*#__PURE__*/ _jsxQ("div", null, {
-                onClick$: /*#__PURE__*/ _noopQrl("Works_component__Fragment_div_onClick_YhOCqfqU0Rc")
+                onClick$: /*#__PURE__*/ _noopQrl("Works_component_Fragment_div_onClick_nO4DPVZWP7g")
             }, null, 3, null)
         ]
     }, 1, "u6_0");

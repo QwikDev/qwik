@@ -125,6 +125,17 @@ export const _noopQrl = <T>(
 };
 
 /** @internal */
+export const _noopQrlDEV = <T>(
+  symbolName: string,
+  opts: QRLDev,
+  lexicalScopeCapture: any[] = EMPTY_ARRAY
+): QRL<T> => {
+  const newQrl = _noopQrl(symbolName, lexicalScopeCapture) as QRLInternal<T>;
+  newQrl.dev = opts;
+  return newQrl;
+};
+
+/** @internal */
 export const qrlDEV = <T = any>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,
@@ -163,12 +174,14 @@ export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
   const platform = getPlatform();
 
   if (platform) {
-    const result = platform.chunkForSymbol(refSymbol, chunk);
+    const result = platform.chunkForSymbol(refSymbol, chunk, qrl.dev?.file);
     if (result) {
       chunk = result[1];
       if (!qrl.$refSymbol$) {
         symbol = result[0];
       }
+    } else {
+      console.error('serializeQRL: Cannot resolve symbol', symbol, 'in', chunk, qrl.dev?.file);
     }
   }
 

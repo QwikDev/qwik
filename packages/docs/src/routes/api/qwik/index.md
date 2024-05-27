@@ -10446,7 +10446,9 @@ This method works like an async memoized function that runs whenever some tracke
 
 The status can be one of the following:
 
-- 'pending' - the data is not yet available. - 'resolved' - the data is available. - 'rejected' - the data is not available due to an error or timeout.
+- `pending` - the data is not yet available. - `resolved` - the data is available. - `rejected` - the data is not available due to an error or timeout.
+
+Avoid using a `try/catch` statement in `useResource$`. If you catch the error instead of passing it, the resource status will never be `rejected`.
 
 ### Example
 

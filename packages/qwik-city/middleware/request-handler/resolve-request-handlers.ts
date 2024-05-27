@@ -68,7 +68,6 @@ export const resolveRequestHandlers = (
       requestHandlers.push(fixTrailingSlash);
       requestHandlers.push(renderQData);
     }
-    requestHandlers.push(handleRedirect);
     _resolveRequestHandlers(
       routeLoaders,
       routeActions,
@@ -85,6 +84,7 @@ export const resolveRequestHandlers = (
       requestHandlers.push(actionsMiddleware(routeLoaders, routeActions) as any);
       requestHandlers.push(renderHandler);
     }
+    requestHandlers.push(handleRedirect);
   }
   return requestHandlers;
 };

@@ -1,0 +1,14 @@
+.animate {
+  opacity: 1;
+  animation: check-in 1 1s;
+}
+
+@keyframes check-in {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}

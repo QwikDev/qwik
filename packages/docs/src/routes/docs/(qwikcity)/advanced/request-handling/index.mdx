@@ -8,11 +8,12 @@ contributors:
   - tzdesign
   - mrhoodz
   - hamatoyogi
+  - jemsco
 updated_at: '2023-07-01T18:35:24Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
-# Request handling
+# Request Handling
 
 Each `layout.ts` and `index.ts` file inside the `src/routes` directory has the ability to access the current HTTP request, response, and URL. This allows you to retrieve and modify data, and even respond with custom content.
 
@@ -114,6 +115,8 @@ Appends a header with the provided key to the cookie. The new header will have a
 cookie.delete('my-cookie');
 // equivalent to
 cookie.set('my-cookie', 'deleted', new Date(0));
+// or
+cookie.set('my-cookie', '');
 ```
 
 Optionally, you can set the path, sameSite and/or domain when deleting the cookie. If your cookie was created with a path/domain, you must set these fields for the deletion to take effect.

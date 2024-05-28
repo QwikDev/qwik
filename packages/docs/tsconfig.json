@@ -16,6 +16,7 @@
     "assumeChangesOnlyAffectDirectDependencies": true,
     "noUnusedLocals": true,
     "paths": {
+      "~/*": ["src/*"],
       "@examples-data": ["src/routes/examples/apps/examples-data.ts"],
       "@playground-data": ["src/routes/playground/playground-data.ts"],
       "@tutorial-data": ["src/routes/tutorial/tutorial-data.ts"]

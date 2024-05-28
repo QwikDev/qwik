@@ -196,3 +196,35 @@ test('translated pathname /products/[id]', ({ assertRoute }) => {
     r.filePath.endsWith('starters/apps/qwikcity-test/src/routes/(common)/products/[id]/index.tsx')
   );
 });
+
+const testWithDuplicatedRoutes = testAppSuite('Duplicated segments with multiple prefixes', {
+  rewriteRoutes: [
+    {
+      prefix: 'de',
+      paths: {
+        produkt: 'produkt',
+      },
+    },
+    {
+      prefix: 'no',
+      paths: {
+        produkt: 'produkt',
+      },
+    },
+    {
+      prefix: 'fi',
+      paths: {
+        produkt: 'tuote',
+      },
+    },
+  ],
+});
+
+testWithDuplicatedRoutes(
+  'Issue #6375: be able to deal with the same translated pathnames with multiple prefixes ',
+  ({ assertRoute }) => {
+    const r = assertRoute('/produkt/');
+
+    assert.equal(r.pathname, '/produkt/');
+  }
+);

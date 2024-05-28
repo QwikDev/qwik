@@ -378,6 +378,15 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     async configResolved(config) {
       basePathname = config.base;
+      if (!(basePathname.startsWith('/') && basePathname.endsWith('/'))) {
+        // TODO v2: make this an error
+        console.error(
+          `warning: vite's config.base must begin and end with /. This will be an error in v2. If you have a valid use case, please open an issue.`
+        );
+        if (!basePathname.endsWith('/')) {
+          basePathname += '/';
+        }
+      }
       const sys = qwikPlugin.getSys();
       if (sys.env === 'node' && !qwikViteOpts.entryStrategy) {
         try {
@@ -831,7 +840,7 @@ export const isNotNullable = <T>(v: T): v is NonNullable<T> => {
 };
 
 const VITE_CLIENT_MODULE = `@builder.io/qwik/vite-client`;
-const CLIENT_DEV_INPUT = 'entry.dev.tsx';
+const CLIENT_DEV_INPUT = 'entry.dev';
 
 interface QwikVitePluginCommonOptions {
   /**
@@ -910,8 +919,9 @@ interface QwikVitePluginCommonOptions {
 interface QwikVitePluginCSROptions extends QwikVitePluginCommonOptions {
   /** Client Side Rendering (CSR) mode. It will not support SSR, default to Vite's `index.html` file. */
   csr: true;
-  ssr: never;
-  client: never;
+  client?: never;
+  devSsrServer?: never;
+  ssr?: never;
 }
 
 interface QwikVitePluginSSROptions extends QwikVitePluginCommonOptions {

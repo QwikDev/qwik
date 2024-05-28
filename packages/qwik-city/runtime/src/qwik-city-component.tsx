@@ -58,6 +58,9 @@ import {
 import spaInit from './spa-init';
 
 /** @public */
+export const QWIK_CITY_SCROLLER = '_qCityScroller';
+
+/** @public */
 export interface QwikCityProps {
   // /**
   //  * The QwikCity component must have only two direct children: `<head>` and `<body>`, like the following example:
@@ -65,7 +68,7 @@ export interface QwikCityProps {
   //  * ```tsx
   //  * <QwikCityProvider>
   //  *   <head>
-  //  *     <meta charSet="utf-8" />
+  //  *     <meta charset="utf-8" />
   //  *   </head>
   //  *   <body lang="en"></body>
   //  * </QwikCityProvider>
@@ -90,7 +93,9 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   useStyles$(`:root{view-transition-name:none}`);
   const env = useQwikCityEnv();
   if (!env?.params) {
-    throw new Error(`Missing Qwik City Env Data`);
+    throw new Error(
+      `Missing Qwik City Env Data for help visit https://github.com/QwikDev/qwik/issues/6237`
+    );
   }
 
   const urlEnv = useServerData<string>('url');
@@ -147,6 +152,12 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
       replaceState = false,
       scroll = true,
     } = typeof opt === 'object' ? opt : { forceReload: opt };
+    if (typeof path === 'number') {
+      if (isBrowser) {
+        history.go(path);
+      }
+      return;
+    }
     const lastDest = routeInternal.value.dest;
     const dest = path === undefined ? lastDest : toUrl(path, routeLocation.url);
 
@@ -166,7 +177,8 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         }
 
         // Always scroll on same-page popstates, #hash clicks, or links.
-        restoreScroll(type, dest, new URL(location.href), getScrollHistory());
+        const scroller = document.getElementById(QWIK_CITY_SCROLLER) ?? document.documentElement;
+        restoreScroll(type, dest, new URL(location.href), scroller, getScrollHistory());
 
         if (type === 'popstate') {
           (window as ClientSPAWindow)._qCityScrollEnabled = true;
@@ -307,6 +319,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
           if (navType === 'popstate') {
             scrollState = getScrollHistory();
           }
+          const scroller = document.getElementById(QWIK_CITY_SCROLLER) ?? document.documentElement;
 
           if (
             (navigation.scroll &&
@@ -317,7 +330,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
           ) {
             // Mark next DOM render to scroll.
             (document as any).__q_scroll_restore__ = () =>
-              restoreScroll(navType, trackUrl, prevUrl, scrollState);
+              restoreScroll(navType, trackUrl, prevUrl, scroller, scrollState);
           }
 
           const loaders = clientPageData?.loaders;
@@ -371,8 +384,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
                   }
                 }
 
-                state._qCityScroll =
-                  state._qCityScroll || currentScrollState(document.documentElement);
+                state._qCityScroll = state._qCityScroll || currentScrollState(scroller);
                 return state;
               };
 
@@ -417,7 +429,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
                     win._qCityScrollEnabled = false;
                     clearTimeout(win._qCityScrollDebounce);
                     saveScrollHistory({
-                      ...currentScrollState(document.documentElement),
+                      ...currentScrollState(scroller),
                       x: 0,
                       y: 0,
                     });
@@ -444,7 +456,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
                   if (win._qCityScrollEnabled && document.visibilityState === 'hidden') {
                     // Last & most reliable point to commit state.
                     // Do not clear timeout here in case debounce gets to run later.
-                    const scrollState = currentScrollState(document.documentElement);
+                    const scrollState = currentScrollState(scroller);
                     saveScrollHistory(scrollState);
                   }
                 },
@@ -464,7 +476,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
 
                 clearTimeout(win._qCityScrollDebounce);
                 win._qCityScrollDebounce = setTimeout(() => {
-                  const scrollState = currentScrollState(document.documentElement);
+                  const scrollState = currentScrollState(scroller);
                   saveScrollHistory(scrollState);
                   // Needed for e2e debounceDetector.
                   win._qCityScrollDebounce = undefined;
@@ -489,7 +501,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
 
             // Save the final scroll state before pushing new state.
             // Upgrades/replaces state with scroll pos on nav as needed.
-            const scrollState = currentScrollState(document.documentElement);
+            const scrollState = currentScrollState(scroller);
             saveScrollHistory(scrollState);
           }
 
@@ -497,7 +509,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
           _waitUntilRendered(elm as Element).then(() => {
             const container = getContainer(elm as Element);
             container.setAttribute('q:route', routeName);
-            const scrollState = currentScrollState(document.documentElement);
+            const scrollState = currentScrollState(scroller);
             saveScrollHistory(scrollState);
             win._qCityScrollEnabled = true;
 

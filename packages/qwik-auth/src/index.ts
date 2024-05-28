@@ -1,5 +1,6 @@
 import { Auth, skipCSRFCheck } from '@auth/core';
-import type { AuthAction, AuthConfig, Session } from '@auth/core/types';
+import type { AuthAction, Session } from '@auth/core/types';
+import type { AuthConfig } from '@auth/core';
 import { implicit$FirstArg, type QRL } from '@builder.io/qwik';
 import {
   globalAction$,
@@ -50,6 +51,11 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
       const signInUrl = `${baseSignInUrl}?${new URLSearchParams(authorizationParams)}`;
 
       const data = await authAction(body, req, signInUrl, auth);
+
+      // set authjs.callback-url cookie. Fix for https://github.com/QwikDev/qwik/issues/5227
+      req.cookie.set('authjs.callback-url', callbackUrl, {
+        path: '/',
+      });
 
       if (data.url) {
         throw req.redirect(301, data.url);

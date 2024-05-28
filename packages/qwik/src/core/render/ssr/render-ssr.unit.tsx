@@ -1450,7 +1450,7 @@ test('html slot', async () => {
   await testSSR(
     <HtmlContext>
       <head>
-        <meta charSet="utf-8" />
+        <meta charset="utf-8" />
         <title>Qwik</title>
       </head>
       <body>

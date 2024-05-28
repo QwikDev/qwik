@@ -209,6 +209,25 @@ describe('vnode', () => {
       vnode_applyJournal(journal);
       expect(parent.innerHTML).toEqual(`!23`);
     });
+    it('should inflate text node on write', () => {
+      parent.innerHTML = ``;
+      document.qVNodeData.set(parent, 'AA');
+      expect(vParent).toMatchVDOM(
+        <test>
+          {''}
+          {''}
+        </test>
+      );
+      const firstText = vnode_getFirstChild(vParent) as TextVNode;
+      const secondText = vnode_getNextSibling(firstText) as TextVNode;
+      // Getting hold of the text nodes should not cause inflation.
+      expect(journal.length).toBe(0);
+
+      vnode_setText(journal, secondText, 'B');
+      vnode_setText(journal, firstText, 'A');
+      vnode_applyJournal(journal);
+      expect(parent.innerHTML).toEqual(`AB`);
+    });
   });
   describe('virtual', () => {
     it('should create empty Virtual', () => {

@@ -142,11 +142,7 @@ import {
 import { isHtmlElement } from '../../util/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType, VirtualTypeName } from '../shared/types';
 import { VNodeDataChar } from '../shared/vnode-data-types';
-import {
-  getDomContainer,
-  getDomContainerFromQContainerElement,
-  _getQContainerElement,
-} from './dom-container';
+import { getDomContainer, _getQContainerElement } from './dom-container';
 import {
   ElementVNodeProps,
   TextVNodeProps,
@@ -535,7 +531,9 @@ const vnode_getDomSibling = (
     // Next step is to descend until we find a DOM done.
     while (sibling) {
       cursor = sibling;
-      if (cursor[VNodeProps.flags] & VNodeFlags.ELEMENT_OR_TEXT_MASK) {
+      if (cursor[VNodeProps.flags] & VNodeFlags.ELEMENT_OR_TEXT_MASK && vnode_getNode(cursor)) {
+        // we have to check that we actually have a node, because it could be a text node which is
+        // zero length and which does not have a representation in the DOM.
         return cursor;
       }
       sibling = (cursor as VirtualVNode)[childProp];
@@ -557,28 +555,28 @@ const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
   if ((flags & VNodeFlags.Inflated) === 0) {
     const parentNode = vnode_getDomParent(vnode)!;
     const sharedTextNode = textVNode[TextVNodeProps.node] as Text;
-    if (sharedTextNode && vnode[TextVNodeProps.text] === '') {
-      // Special case. When the VNode is "" than DOM does not actually have the text node in it, so we need to insert it.
-      journal.push(VNodeJournalOpCode.Insert, parentNode, null, sharedTextNode);
-    }
     const doc = parentNode.ownerDocument;
     // Walk the previous siblings and inflate them.
     let cursor = vnode_getDomSibling(vnode, false, true);
     // If text node is 0 length, than there is no text node.
     // In that case we use the next node as a reference, in which
     // case we know that the next node MUST be either NULL or an Element.
-    let insertBeforeNode: Element | Text | null = sharedTextNode;
-    if (!insertBeforeNode) {
-      insertBeforeNode = (vnode_getDomSibling(vnode, true, true)?.[ElementVNodeProps.element] ||
-        null) as Element | Text | null;
-    }
+    const insertBeforeNode: Element | Text | null =
+      sharedTextNode ||
+      ((vnode_getDomSibling(vnode, true, true)?.[ElementVNodeProps.element] || null) as
+        | Element
+        | Text
+        | null);
+
     let lastPreviousTextNode = insertBeforeNode;
     while (cursor && vnode_isTextVNode(cursor)) {
-      const textNode = doc.createTextNode(cursor[TextVNodeProps.text]);
-      journal.push(VNodeJournalOpCode.Insert, parentNode, lastPreviousTextNode, textNode);
-      lastPreviousTextNode = textNode;
-      cursor[TextVNodeProps.node] = textNode;
-      cursor[VNodeProps.flags] |= VNodeFlags.Inflated;
+      if ((cursor[VNodeProps.flags] & VNodeFlags.Inflated) === 0) {
+        const textNode = doc.createTextNode(cursor[TextVNodeProps.text]);
+        journal.push(VNodeJournalOpCode.Insert, parentNode, lastPreviousTextNode, textNode);
+        lastPreviousTextNode = textNode;
+        cursor[TextVNodeProps.node] = textNode;
+        cursor[VNodeProps.flags] |= VNodeFlags.Inflated;
+      }
       cursor = vnode_getDomSibling(cursor, false, true);
     }
     // Walk the next siblings and inflate them.
@@ -586,14 +584,16 @@ const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
     while (cursor && vnode_isTextVNode(cursor)) {
       const next = vnode_getDomSibling(cursor, true, true);
       const isLastNode = next ? !vnode_isTextVNode(next) : true;
-      if (isLastNode && sharedTextNode) {
-        journal.push(VNodeJournalOpCode.SetText, sharedTextNode, cursor[TextVNodeProps.text]);
-      } else {
-        const textNode = doc.createTextNode(cursor[TextVNodeProps.text]);
-        journal.push(VNodeJournalOpCode.Insert, parentNode, insertBeforeNode, textNode);
-        cursor[TextVNodeProps.node] = textNode;
+      if ((cursor[VNodeProps.flags] & VNodeFlags.Inflated) === 0) {
+        if (isLastNode && sharedTextNode) {
+          journal.push(VNodeJournalOpCode.SetText, sharedTextNode, cursor[TextVNodeProps.text]);
+        } else {
+          const textNode = doc.createTextNode(cursor[TextVNodeProps.text]);
+          journal.push(VNodeJournalOpCode.Insert, parentNode, insertBeforeNode, textNode);
+          cursor[TextVNodeProps.node] = textNode;
+        }
+        cursor[VNodeProps.flags] |= VNodeFlags.Inflated;
       }
-      cursor[VNodeProps.flags] |= VNodeFlags.Inflated;
       cursor = next;
     }
   }
@@ -1665,40 +1665,20 @@ function materializeFromVNodeData(
     } else if (peek() === VNodeDataChar.SLOT) {
       vnode_setAttr(null, vParent, QSlot, consumeValue());
     } else {
+      const textNode =
+        child && fastNodeType(child) === /* Node.TEXT_NODE */ 3 ? (child as Text) : null;
       // must be alphanumeric
-      let length = 0;
       if (combinedText === null) {
-        combinedText = child ? child.nodeValue : null;
+        combinedText = textNode ? textNode.nodeValue : null;
         textIdx = 0;
       }
+      let length = 0;
       while (isLowercase(peek())) {
         length += consume() - 97; /* `a` */
         length *= 26;
       }
       length += consume() - 65; /* `A` */
       const text = combinedText === null ? '' : combinedText.substring(textIdx, textIdx + length);
-
-      let textNode = child;
-      // we have an empty text node
-      if (combinedText === null) {
-        if (!container) {
-          const qContainerElement = _getQContainerElement(element);
-          if (qContainerElement) {
-            container = getDomContainerFromQContainerElement(qContainerElement);
-          }
-        }
-        // we need to create a new empty text node for this
-        // if we don't have container just leave null object
-        textNode = container?.document.createTextNode('') || null;
-        if (container) {
-          container.$journal$.push(
-            VNodeJournalOpCode.Insert,
-            vnode_getDomParent(vParent),
-            null,
-            textNode as Text
-          );
-        }
-      }
 
       addVNode(
         (previousTextNode = vnode_newSharedText(previousTextNode, textNode as Text | null, text))

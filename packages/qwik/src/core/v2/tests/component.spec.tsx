@@ -19,6 +19,7 @@ import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import { useSignal } from '../../use/use-signal';
 import { useStore } from '../../use/use-store.public';
 import { HTML_NS, MATH_NS, SVG_NS } from '../../util/markers';
+import { delay } from '../../util/promises';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -421,7 +422,7 @@ describe.each([
       return (
         <p onClick$={() => (signal.value = 123)}>
           <b>Test</b>
-          {signal.value + 1}xx<span>{signal.value}</span>xxx<a></a>
+          {signal.value + 1}xx<span>{signal.value}</span>XXX<a></a>
         </p>
       );
     });
@@ -437,7 +438,7 @@ describe.each([
           <span>
             <Signal>123</Signal>
           </span>
-          {'xxx'}
+          {'XXX'}
           <a></a>
         </p>
       </Component>
@@ -447,12 +448,12 @@ describe.each([
         <b>Test</b>
         {'124xx'}
         <span>123</span>
-        {'xxx'}
+        {'XXX'}
         <a></a>
       </p>
     );
     expect(document.querySelector('p')?.innerHTML).toEqual(
-      '<b>Test</b>124xx<span>123</span>xxx<a></a>'
+      '<b>Test</b>124xx<span>123</span>XXX<a></a>'
     );
   });
 
@@ -1490,6 +1491,53 @@ describe.each([
         </Fragment>
       </Component>
     );
+  });
+
+  it('should update signals', async () => {
+    const MultipleServerFunctionsInvokedInTask = component$(() => {
+      const methodA = useSignal('');
+      const methodB = useSignal('');
+      const ref = useSignal<Element>();
+
+      useVisibleTask$(async () => {
+        const [error /*, data */] = await ['SomeError', 'ignore payload'];
+        if (error) {
+          methodA.value = error;
+        }
+        await delay(1);
+        //     err, method
+        const [, method] = await ['ignore error', 'POST'];
+        methodB.value = method;
+      });
+
+      return (
+        <div
+          ref={ref}
+          id="server-error"
+          onClick$={() => {
+            // Cause the VNode's to be deserialized
+            if (!ref.value) {
+              throw new Error('ref is not set');
+            }
+          }}
+        >
+          <b>(</b>
+          {methodA.value}
+          {methodB.value}
+          <b>)</b>
+        </div>
+      );
+    });
+    const { document } = await render(<MultipleServerFunctionsInvokedInTask />, { debug });
+    const div = document.querySelector('#server-error')!;
+    // console.log('vNode', String(vNode));
+    await trigger(document.body, 'div', 'click');
+    // console.log('vNode', String(vNode));
+    await trigger(document.body, 'div', 'qvisible');
+    await delay(10);
+    // console.log('vNode', String(vNode));
+    // console.log('>>>>', div.outerHTML);
+    expect(div.innerHTML).toEqual('<b>(</b>SomeErrorPOST<b>)</b>');
   });
 
   describe('regression', () => {

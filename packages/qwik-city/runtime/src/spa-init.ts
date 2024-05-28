@@ -30,6 +30,8 @@ export default $((currentScript: HTMLScriptElement) => {
   const debounceTimeout = '_qCityScrollDebounce';
   const scrollHistory = '_qCityScroll';
 
+  const containerSelector = '[q\\:container]:not([q\\:container=html]):not([q\\:container=text])';
+
   const checkAndScroll = (scrollState: ScrollState | undefined) => {
     if (scrollState) {
       win.scrollTo(scrollState.x, scrollState.y);
@@ -74,12 +76,12 @@ export default $((currentScript: HTMLScriptElement) => {
         // Hook into useNavigate context, if available.
         // We hijack a <Link> here, goes through the loader, resumes, app, etc. Simple.
         // TODO Will only work with <Link>, is there a better way?
-        const container = currentScript!.closest('[q\\:container]')!;
+        const container = currentScript!.closest(containerSelector)!;
         const link = container.querySelector('a[q\\:link]');
 
         if (link) {
           // Re-acquire container, link may be in a nested container.
-          const container = link.closest('[q\\:container]')!;
+          const container = link.closest(containerSelector)!;
           const bootstrapLink = link.cloneNode() as HTMLAnchorElement;
           bootstrapLink.setAttribute('q:nbs', '');
           bootstrapLink.style.display = 'none';

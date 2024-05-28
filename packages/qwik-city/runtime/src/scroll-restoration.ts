@@ -1,6 +1,13 @@
 import type { NavigationType, ScrollState } from './types';
 import { isSamePath } from './utils';
 
+export function callRestoreScrollOnDocument() {
+  if ((document as any).__q_scroll_restore__) {
+    (document as any).__q_scroll_restore__();
+    (document as any).__q_scroll_restore__ = undefined;
+  }
+}
+
 export const restoreScroll = (
   type: NavigationType,
   toUrl: URL,

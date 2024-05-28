@@ -1,6 +1,7 @@
 import {
   Fragment as Component,
   SSRComment,
+  SSRRaw,
   SSRStreamBlock,
   Fragment as Signal,
   component$,
@@ -146,6 +147,14 @@ describe('v2 client render', () => {
         </>
       </Component>
     );
+  });
+  it('should not render SSRRaw', async () => {
+    const SSRRawCmp = component$(() => {
+      return <SSRRaw data="<div>hello</div>" />;
+    });
+    const { vNode, container } = await clientRender(<SSRRawCmp />);
+    expect(vnode_getFirstChild(vNode)).toMatchVDOM(<Component></Component>);
+    expect(container.document.body.innerHTML).toEqual('');
   });
 
   describe('stream', () => {

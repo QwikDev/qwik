@@ -12,7 +12,15 @@ import { SignalDerived, isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
-import { ELEMENT_KEY, FLUSH_COMMENT, QDefaultSlot, QScopedStyle, QSlot } from '../../util/markers';
+import {
+  ELEMENT_KEY,
+  FLUSH_COMMENT,
+  QDefaultSlot,
+  QContainerAttr,
+  QScopedStyle,
+  QSlot,
+  QContainerAttrEnd,
+} from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { isFunction, type ValueOrPromise } from '../../util/types';
 import {
@@ -23,10 +31,15 @@ import {
 } from '../shared/event-names';
 import { addComponentStylePrefix, hasClassAttr, isClassAttr } from '../shared/scoped-styles';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
-import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
+import { DEBUG_TYPE, QContainerValue, VirtualType, type fixMeAny } from '../shared/types';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
-import { SSRComment, SSRStream, type SSRStreamChildren } from '../../render/jsx/utils.public';
+import {
+  SSRComment,
+  SSRRaw,
+  SSRStream,
+  type SSRStreamChildren,
+} from '../../render/jsx/utils.public';
 import { isAsyncGenerator } from '../../util/async-generator';
 
 class SetScopedStyle {
@@ -238,6 +251,10 @@ function processJSXNode(
 
           enqueue(value as StackValue);
           isPromise(value) && enqueue(Promise);
+        } else if (type === SSRRaw) {
+          ssr.commentNode(QContainerAttr + '=' + QContainerValue.HTML);
+          ssr.htmlNode(jsx.props.data as string);
+          ssr.commentNode(QContainerAttrEnd);
         } else if (isQwikComponent(type)) {
           ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
           const host = ssr.getLastNode();

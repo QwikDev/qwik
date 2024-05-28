@@ -462,8 +462,9 @@ type Prettify<T> = {} & {
   [K in keyof T]: T[K];
 };
 
-type IfEquals<X, Y, A, B> =
-  (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B;
+type IfEquals<X, Y, A, B> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2
+  ? A
+  : B;
 type IsReadOnlyKey<T, K extends keyof T> = IfEquals<
   { [Q in K]: T[K] },
   { -readonly [Q in K]: T[K] },
@@ -599,37 +600,9 @@ type SpecialAttrs = {
     value?: string | ReadonlyArray<string> | number | undefined | null | FormDataEntryValue;
     width?: Size | undefined;
     children?: undefined;
-  } & (
-    | {
-        type?:
-          | Exclude<HTMLInputTypeAttribute, 'button' | 'reset' | 'submit' | 'checkbox' | 'radio'>
-          | undefined;
-        'bind:checked'?: undefined;
-      }
-    | {
-        type?: 'button' | 'reset' | 'submit';
-        'bind:value'?: undefined;
-        'bind:checked'?: undefined;
-        autoComplete?: undefined;
-      }
-    | {
-        type?: 'checkbox' | 'radio';
-        'bind:value'?: undefined;
-        autoComplete?: undefined;
-      }
-  ) &
-    (
-      | {
-          type?: Exclude<HTMLInputTypeAttribute, 'button'> | undefined;
-          popovertarget?: undefined;
-          popovertargetaction?: undefined;
-        }
-      | {
-          type: 'button';
-          popovertarget?: string | undefined;
-          popovertargetaction?: PopoverTargetAction | undefined;
-        }
-    );
+    popovertarget?: string | undefined;
+    popovertargetaction?: PopoverTargetAction | undefined;
+  };
   label: {
     form?: string | undefined;
     for?: string | undefined;

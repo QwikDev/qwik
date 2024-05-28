@@ -1,6 +1,5 @@
 import { qwikVite } from '@builder.io/qwik/optimizer';
 import { defineConfig } from 'vite';
-import dts from 'vite-plugin-dts';
 
 export default defineConfig(() => {
   return {
@@ -22,6 +21,6 @@ export default defineConfig(() => {
         ],
       },
     },
-    plugins: [qwikVite(), dts({ rollupTypes: true })],
+    plugins: [qwikVite()],
   };
 }) as any;

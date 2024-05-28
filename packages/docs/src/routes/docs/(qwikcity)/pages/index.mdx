@@ -20,7 +20,7 @@ created_at: '2023-03-20T23:45:13Z'
 
 # Pages
 
-Pages are created by adding a new `index.tsx` file in the `src/routes` directory. Pages exports a `default` Qwik component, which will be rendered as the content of the page.
+Pages are created by adding a new `index.tsx` file in the `src/routes` directory. Pages export a `default` Qwik component, which will be rendered as the content of the page.
 
 ```tsx title="src/routes/some/path/index.tsx"
 import { component$ } from '@builder.io/qwik';
@@ -31,7 +31,7 @@ export default component$(() => {
 });
 ```
 
-> The only difference between a page and an endpoint is that an endpoint only exports an `onRequest`, `onGet`, `onPost`, `onPut`, `onDelete`, `onPatch`, `onHead` function, which will be used to handle the incoming request.
+> The only difference between a page and an endpoint is that an endpoint only exports an `onRequest`, `onGet`, `onPost`, `onPut`, `onDelete`, `onPatch`, or `onHead` function, which will be used to handle the incoming request.
 
 
 ## `head` export

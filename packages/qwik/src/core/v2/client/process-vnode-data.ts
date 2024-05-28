@@ -81,12 +81,12 @@ export function processVNodeData(document: Document) {
   ///////////////////////////////
 
   const enum NodeType {
-    CONTAINER_MASK /* ******* */ = 0b001,
-    ELEMENT /* ************** */ = 0b010, // regular element
-    ELEMENT_CONTAINER /* **** */ = 0b011, // container element need to descend into it
-    COMMENT_SKIP_START /* *** */ = 0b101, // Comment but skip the content until COMMENT_SKIP_END
-    COMMENT_SKIP_END /* ***** */ = 0b110, // Comment end
-    OTHER /* **************** */ = 0b000,
+    CONTAINER_MASK /* ******* */ = 0b0001,
+    ELEMENT /* ************** */ = 0b0010, // regular element
+    ELEMENT_CONTAINER /* **** */ = 0b0011, // container element need to descend into it
+    COMMENT_SKIP_START /* *** */ = 0b0101, // Comment but skip the content until COMMENT_SKIP_END
+    COMMENT_SKIP_END /* ***** */ = 0b1000, // Comment end
+    OTHER /* **************** */ = 0b0000,
   }
 
   /**

@@ -287,8 +287,7 @@ test.describe("render", () => {
       await expect(result).toHaveText("3");
     });
 
-    // TODO(v2): fix this
-    test.skip("issue3481", async ({ page }) => {
+    test("issue3481", async ({ page }) => {
       const increment = page.locator("#issue-3481-button");
       const result1 = page.locator("#issue-3481-result1");
       const result2 = page.locator("#issue-3481-result2");
@@ -437,14 +436,15 @@ test.describe("render", () => {
       await expect(result).toHaveText("Number: 6");
     });
 
-    // TODO(v2): fix this
-    test.skip("ssr raw", async ({ page }) => {
+    test("ssr raw", async ({ page }) => {
       const result = page.locator("#ssr-raw-test-result");
       const mounted = await result.getAttribute("data-mounted");
       if (mounted === "server") {
-        expect(await result.innerHTML()).toEqual("<b>ssr raw test</b>");
+        expect(await result.innerHTML()).toEqual(
+          "<!--q:container=html--><b>ssr raw test</b><!--/q:container-->",
+        );
       } else if (mounted === "browser") {
-        expect(await result.innerHTML()).toEqual("<!--qv --><!--/qv-->");
+        expect(await result.innerHTML()).toEqual("");
       } else {
         throw new Error("Unexpected mounted value");
       }

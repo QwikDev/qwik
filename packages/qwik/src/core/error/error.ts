@@ -52,7 +52,9 @@ export const codeToText = (code: number, ...parts: any[]): string => {
     return `Code(${code}): ${text}`;
   } else {
     // cute little hack to give roughly the correct line number. Update the line number if it shifts.
-    return `Code(${code}) https://github.com/QwikDev/qwik/blob/main/packages/qwik/src/core/error/error.ts#L${8 + code}`;
+    return `Code(${code}) https://github.com/QwikDev/qwik/blob/main/packages/qwik/src/core/error/error.ts#L${
+      8 + code
+    }`;
   }
 };
 

@@ -3469,6 +3469,7 @@ PrefetchGraph: (opts?: {
   base?: string;
   manifestHash?: string;
   manifestURL?: string;
+  nonce?: string;
 }) => JSXNode<string>;
 ```
 
@@ -3491,7 +3492,7 @@ opts
 
 </td><td>
 
-{ base?: string; manifestHash?: string; manifestURL?: string; }
+{ base?: string; manifestHash?: string; manifestURL?: string; nonce?: string; }
 
 </td><td>
 
@@ -3518,10 +3519,12 @@ There can only be one service worker per page. Because there can be many separat
 ```typescript
 PrefetchServiceWorker: (opts: {
   base?: string;
+  scope?: string;
   path?: string;
   verbose?: boolean;
   fetchBundleGraph?: boolean;
-}) => JSXNode<string>;
+  nonce?: string;
+}) => JSXNode<"script">;
 ```
 
 <table><thead><tr><th>
@@ -3543,19 +3546,19 @@ opts
 
 </td><td>
 
-{ base?: string; path?: string; verbose?: boolean; fetchBundleGraph?: boolean; }
+{ base?: string; scope?: string; path?: string; verbose?: boolean; fetchBundleGraph?: boolean; nonce?: string; }
 
 </td><td>
 
 Options for the prefetch service worker.
 
-- `base` - Base URL for the service worker. - `path` - Path to the service worker.
+- `base` - Base URL for the service worker. Default is `import.meta.env.BASE_URL`, which is defined by Vite's `config.base` and defaults to `/`. - `scope` - Base URL for when the service-worker will activate. Default is `/` - `path` - Path to the service worker. Default is `qwik-prefetch-service-worker.js` unless you pass a path that starts with a `/` then the base is ignored. Default is `qwik-prefetch-service-worker.js` - `verbose` - Verbose logging for the service worker installation. Default is `false` - `nonce` - Optional nonce value for security purposes, defaults to `undefined`.
 
 </td></tr>
 </tbody></table>
 **Returns:**
 
-[JSXNode](#jsxnode)&lt;string&gt;
+[JSXNode](#jsxnode)&lt;'script'&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -4283,6 +4286,10 @@ Emitted by qwik-loader when a module was lazily loaded
 
 ```typescript
 export type QwikSymbolEvent = CustomEvent<{
+  qBase: string;
+  qManifest: string;
+  qVersion: string;
+  href: string;
   symbol: string;
   element: Element;
   reqTime: number;
@@ -10713,7 +10720,7 @@ boolean
 
 </td><td>
 
-_(Optional)_ If `true` then all nested objects and arrays will be tracked as well. Default is `false`.
+_(Optional)_ If `true` then all nested objects and arrays will be tracked as well. Default is `true`.
 
 </td></tr>
 <tr><td>

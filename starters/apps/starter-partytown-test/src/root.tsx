@@ -7,7 +7,7 @@ export default () => {
   return (
     <>
       <head>
-        <meta charSet="utf-8" />
+        <meta charset="utf-8" />
         <title>Qwik + Partytown Blank App</title>
         <script dangerouslySetInnerHTML={partytownSnippet({ debug: true })} />
       </head>

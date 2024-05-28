@@ -10,27 +10,67 @@ import type { JSXNode } from '../render/jsx/types/jsx-node';
  *
  * @param opts - Options for the prefetch service worker.
  *
- *   - `base` - Base URL for the service worker.
- *   - `path` - Path to the service worker.
+ *   - `base` - Base URL for the service worker. Default is `import.meta.env.BASE_URL`, which is defined
+ *       by Vite's `config.base` and defaults to `/`.
+ *   - `scope` - Base URL for when the service-worker will activate. Default is `/`
+ *   - `path` - Path to the service worker. Default is `qwik-prefetch-service-worker.js` unless you pass
+ *       a path that starts with a `/` then the base is ignored. Default is
+ *       `qwik-prefetch-service-worker.js`
+ *   - `verbose` - Verbose logging for the service worker installation. Default is `false`
+ *   - `nonce` - Optional nonce value for security purposes, defaults to `undefined`.
  *
  * @alpha
  */
 export const PrefetchServiceWorker = (opts: {
   base?: string;
+  scope?: string;
   path?: string;
   verbose?: boolean;
   fetchBundleGraph?: boolean;
-}) => {
+  nonce?: string;
+}): JSXNode<'script'> => {
   const resolvedOpts = {
-    base: '/',
+    base: import.meta.env.BASE_URL || '/',
+    scope: '/',
     verbose: false,
     path: 'qwik-prefetch-service-worker.js',
     ...opts,
   };
-  let code = PREFETCH_CODE.replace('URL', resolvedOpts.base + resolvedOpts.path).replace(
-    'SCOPE',
-    resolvedOpts.base
-  );
+  if (opts?.path?.startsWith?.('/')) {
+    // allow different path and base
+    resolvedOpts.path = opts.path;
+  } else {
+    // base: '/'
+    // path: 'qwik-prefetch-service-worker.js
+    resolvedOpts.path = resolvedOpts.base + resolvedOpts.path;
+  }
+  // dev only errors
+  if (isDev) {
+    // Check if base ends with a '/'
+    if (!resolvedOpts.base.endsWith('/')) {
+      throw new Error(
+        `The 'base' option should always end with a '/'. Received: ${resolvedOpts.base}`
+      );
+    }
+    // Check if path does not start with a '/' and ends with '.js'
+    if (!resolvedOpts.path.endsWith('.js')) {
+      throw new Error(`The 'path' option must end with '.js'. Received: ${resolvedOpts.path}`);
+    }
+    // Validate service worker scope (must start with a '/' and not contain spaces)
+    if (!resolvedOpts.scope.startsWith('/') || /\s/.test(resolvedOpts.scope)) {
+      throw new Error(
+        `Invalid 'scope' option for service worker. It must start with '/' and contain no spaces. Received: ${resolvedOpts.scope}`
+      );
+    }
+    if (resolvedOpts.verbose) {
+      // eslint-disable-next-line no-console
+      console.log(
+        'Installing <PrefetchServiceWorker /> service-worker with options:',
+        resolvedOpts
+      );
+    }
+  }
+  let code = PREFETCH_CODE.replace('URL', resolvedOpts.path).replace('SCOPE', resolvedOpts.scope);
   if (!isDev) {
     code = code.replaceAll(/\s+/gm, '');
   }
@@ -45,6 +85,7 @@ export const PrefetchServiceWorker = (opts: {
       ].join(','),
       ');',
     ].join(''),
+    nonce: resolvedOpts.nonce,
   };
   return _jsxSorted('script', null, props, null, 0, 'prefetch-service-worker');
 };
@@ -94,10 +135,10 @@ const PREFETCH_CODE = /*#__PURE__*/ ((
  * @alpha
  */
 export const PrefetchGraph = (
-  opts: { base?: string; manifestHash?: string; manifestURL?: string } = {}
+  opts: { base?: string; manifestHash?: string; manifestURL?: string; nonce?: string } = {}
 ): JSXNode<string> => {
   const resolvedOpts = {
-    base: '/build/',
+    base: `${import.meta.env.BASE_URL}build/`,
     manifestHash: null,
     manifestURL: null,
     ...opts,
@@ -118,6 +159,7 @@ export const PrefetchGraph = (
       ].join(','),
       ');',
     ].join(''),
+    nonce: opts.nonce,
   };
   return _jsxSorted('script', null, props, null, 0, 'prefetch-graph');
 };

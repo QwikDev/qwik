@@ -30,11 +30,9 @@ created_at: '2023-03-20T23:45:13Z'
 
 # `routeAction$()`
 
-Actions can handle form submissions, allowing you to perform side effects such as writing to a database or sending an email.
+`routeAction$()` is used to define functions called actions that execute exclusively on the server, and only when explicitly called. Actions can have side effects such as writing to a database or sending an email, that cannot happen during client-side rendering. This makes them ideal for handling form submissions, performing operations with side effects, and then returning data back to the client/browser where it can be used to update the UI. 
 
-Actions can also return data back to the client/browser, allowing you to update the UI accordingly, i.e. showing a success message after a form submission.
-
-Actions can be declared using the `routeAction$()` or `globalAction$()` exported from `@builder.io/qwik-city`.
+Actions can be declared using `routeAction$()` or `globalAction$()` exported from `@builder.io/qwik-city`.
 
 ```tsx {4,16} /useAddUser/ /firstName/#a /lastName/#b /email/#c title="src/routes/layout.tsx"
 import { component$ } from '@builder.io/qwik';

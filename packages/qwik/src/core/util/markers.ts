@@ -33,6 +33,7 @@ export const QContainerAttrEnd = '/' + QContainerAttr;
 export const QTemplate = 'q:template';
 
 // the same selector should be inside the qwik loader
+// and the same selector should be inside the qwik city spa-shim and spa-init
 export const QContainerSelector =
   '[q\\:container]:not([q\\:container=' +
   QContainerValue.HTML +

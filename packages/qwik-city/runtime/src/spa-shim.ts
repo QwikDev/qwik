@@ -32,7 +32,9 @@ const shim = async (path: string, symbol: string) => {
 
     const currentScript = document.currentScript as HTMLScriptElement;
 
-    const container = currentScript.closest('[q\\:container]')!;
+    const container = currentScript.closest(
+      '[q\\:container]:not([q\\:container=html]):not([q\\:container=text])'
+    )!;
     const base = new URL(container.getAttribute('q:base')!, document.baseURI);
     const url = new URL(path, base);
 

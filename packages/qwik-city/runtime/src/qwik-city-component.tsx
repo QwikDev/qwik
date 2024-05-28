@@ -56,6 +56,7 @@ import {
   getScrollHistory,
   saveScrollHistory,
   restoreScroll,
+  callRestoreScrollOnDocument,
 } from './scroll-restoration';
 import spaInit from './spa-init';
 
@@ -514,6 +515,9 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             const scrollState = currentScrollState(scroller);
             saveScrollHistory(scrollState);
             win._qCityScrollEnabled = true;
+            if (isBrowser) {
+              callRestoreScrollOnDocument();
+            }
 
             routeLocation.isNavigating = false;
             navResolver.r?.();

@@ -4,7 +4,6 @@ import {
   type JSXNode,
   SkipRender,
   useContext,
-  _jsxBranch,
   useServerData,
 } from '@builder.io/qwik';
 
@@ -15,8 +14,6 @@ import shim from './spa-shim';
 export const RouterOutlet = component$(() => {
   // TODO Option to remove this shim, especially for MFEs.
   const shimScript = shim();
-
-  _jsxBranch();
 
   const nonce = useServerData<string | undefined>('nonce');
   const { value } = useContext(ContentInternalContext);

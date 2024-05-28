@@ -9,7 +9,7 @@ import { Fragment, JSXNodeImpl, isJSXNode, type Props } from '../../render/jsx/j
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
-import { SSRComment, SkipRender } from '../../render/jsx/utils.public';
+import { SSRComment, SSRRaw, SkipRender } from '../../render/jsx/utils.public';
 import { SubscriptionType } from '../../state/common';
 import { SignalDerived, isSignal } from '../../state/signal';
 import { trackSignal } from '../../use/use-core';
@@ -210,6 +210,8 @@ export const vnode_diff = (
                 expectProjection();
                 descend(jsxValue.children, true);
               } else if (type === SSRComment) {
+                expectNoMore();
+              } else if (type === SSRRaw) {
                 expectNoMore();
               } else {
                 // Must be a component

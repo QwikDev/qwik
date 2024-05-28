@@ -100,7 +100,7 @@ describe('processVnodeData', () => {
               Foo<i>Bar!</i>
             <!--/q:container-->
             <b>After!</b>
-            ${encodeVNode({ 2: 'G1', 4: 'FB' })}
+            ${encodeVNode({ 2: 'G1', 3: 'FB' })}
           </body>
         </html>`);
       expect(container1.rootVNode).toMatchVDOM(

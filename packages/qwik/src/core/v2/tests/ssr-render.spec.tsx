@@ -1,13 +1,15 @@
-import { ssrRenderToDom } from '@builder.io/qwik/testing';
+import { ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
 import { describe, expect, it } from 'vitest';
 import { component$ } from '../../component/component.public';
 import {
   Fragment as Component,
+  Fragment as Projection,
   Fragment,
   Fragment as InlineComponent,
 } from '../../render/jsx/jsx-runtime';
-import { SSRComment, SSRStream, SSRStreamBlock } from '../../render/jsx/utils.public';
+import { SSRComment, SSRRaw, SSRStream, SSRStreamBlock } from '../../render/jsx/utils.public';
 import { delay } from '../../util/promises';
+import { Slot, useSignal } from '@builder.io/qwik';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -40,6 +42,65 @@ describe('v2 ssr render', () => {
       <meta content="dark light" name="color-scheme" key="0" />
     );
   });
+
+  it('should render SSRRaw', async () => {
+    const TestCmp = component$(() => {
+      return (
+        <div>
+          <Slot />
+        </div>
+      );
+    });
+    const Cmp = component$(() => {
+      const rerender = useSignal(0);
+      return (
+        <div data-render={rerender.value} key={rerender.value}>
+          <button onClick$={() => rerender.value++}></button>
+          <SSRRaw data="<div>hello</div>" />
+          <TestCmp>
+            <span>a</span>
+          </TestCmp>
+        </div>
+      );
+    });
+    const { vNode, document } = await ssrRenderToDom(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div data-render="0" key="0">
+          <button></button>
+          <Component>
+            <div>
+              <Projection>
+                <span>a</span>
+              </Projection>
+            </div>
+          </Component>
+        </div>
+      </Component>
+    );
+    expect(document.querySelector('div[data-render]')?.outerHTML).toContain(
+      '<!--q:container=html--><div>hello</div><!--/q:container-->'
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div data-render="1" key="1">
+          <button></button>
+          <Component>
+            <div>
+              <Projection>
+                <span>a</span>
+              </Projection>
+            </div>
+          </Component>
+        </div>
+      </Component>
+    );
+    expect(document.querySelector('div[data-render]')?.outerHTML).not.toContain(
+      '<!--q:container=html--><div>hello</div><!--/q:container-->'
+    );
+  });
+
   describe('component', () => {
     describe('inline', () => {
       it('should render inline component', async () => {

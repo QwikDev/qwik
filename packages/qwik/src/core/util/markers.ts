@@ -26,7 +26,12 @@ export const QStylesAllSelector = QStyleSelector + ',' + QStyleSSelector;
 export const QScopedStyle = 'q:sstyle';
 export const QCtxAttr = 'q:ctx';
 
+export const QRenderAttr = 'q:render';
+export const QRuntimeAttr = 'q:runtime';
+export const QVersionAttr = 'q:version';
+export const QBaseAttr = 'q:base';
 export const QLocaleAttr = 'q:locale';
+export const QManifestHashAttr = 'q:manifest-hash';
 export const QContainerAttr = 'q:container';
 export const QContainerAttrEnd = '/' + QContainerAttr;
 

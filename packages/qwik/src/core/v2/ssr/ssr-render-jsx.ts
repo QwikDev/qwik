@@ -188,10 +188,16 @@ function processJSXNode(
         if (innerHTML) {
           ssr.htmlNode(innerHTML);
         }
+
         enqueue(ssr.closeElement);
+
         if (type === 'head') {
-          enqueue(ssr.$appendHeadNodes$);
+          enqueue(ssr.additionalHeadNodes);
+          enqueue(ssr.emitQwikLoaderAtTopIfNeeded);
+        } else if (type === 'body') {
+          enqueue(ssr.additionalBodyNodes);
         }
+
         const children = jsx.children as JSXOutput;
         children != null && enqueue(children);
       } else if (isFunction(type)) {

@@ -1,10 +1,28 @@
-import { Fragment as Component, Fragment as Signal } from '@builder.io/qwik';
+import {
+  Fragment as Component,
+  Fragment as Signal,
+  type JSXOutput,
+  component$,
+  componentQrl,
+  getPlatform,
+  setPlatform,
+  inlinedQrl,
+  render,
+  useServerData,
+  useLexicalScope,
+  useOn,
+  Resource,
+  useResource$,
+  useResourceQrl,
+  useSignal,
+  useTask$,
+  getDomContainer,
+} from '@builder.io/qwik';
 import { createDocument } from '@builder.io/qwik-dom';
-import type { QwikManifest } from '@builder.io/qwik/optimizer';
+import type { GlobalInjections, QwikManifest } from '@builder.io/qwik/optimizer';
 import { renderToStream, renderToString } from '@builder.io/qwik/server';
 import { emulateExecutionOfQwikFuncs, getTestPlatform, trigger } from '@builder.io/qwik/testing';
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
-import type { JSXOutput } from '../../../server/qwik-types';
 import type {
   RenderToStreamOptions,
   RenderToStreamResult,
@@ -14,18 +32,7 @@ import type {
   StreamingOptions,
 } from '../../../server/types';
 import { renderToStream2, renderToString2 } from '../../../server/v2-ssr-render2';
-import { component$, componentQrl } from '../../component/component.public';
 import { _fnSignal } from '../../internal';
-import { getPlatform, setPlatform } from '../../platform/platform';
-import { inlinedQrl } from '../../qrl/qrl';
-import { render } from '../../render/dom/render.public';
-import { useServerData } from '../../use/use-env-data';
-import { useLexicalScope } from '../../use/use-lexical-scope.public';
-import { useOn } from '../../use/use-on';
-import { Resource, useResource$, useResourceQrl } from '../../use/use-resource';
-import { useSignal } from '../../use/use-signal';
-import { useTask$ } from '../../use/use-task';
-import { getDomContainer } from '../client/dom-container';
 import { render2 } from '../client/dom-render';
 import { vnode_getFirstChild } from '../client/vnode';
 
@@ -87,16 +94,6 @@ const Counter = componentQrl(
     );
   }, 's_counter')
 );
-
-// const Greeter = componentQrl<{ salutation?: string; name?: string }>(
-//   inlinedQrl(({ salutation, name }) => {
-//     return (
-//       <span>
-//         {salutation || 'Hello'} {name || 'World'}!
-//       </span>
-//     );
-//   }, 's_greeter')
-// );
 
 const renderToStringAndSetPlatform = async (jsx: JSXOutput, opts: RenderToStringOptions = {}) => {
   const platform = getPlatform();
@@ -773,6 +770,53 @@ describe('render api', () => {
           },
         });
         expect(result.html.includes(`q:manifest-hash="${testManifestHash}"`)).toBeTruthy();
+      });
+      it('should render manifest injections', async () => {
+        const cssContent = 'body { color: red; }';
+        const cssPath = '/path/to/style.css';
+        const scriptPath = '/path/to/script.js';
+        const result = await renderToStringAndSetPlatform(
+          <>
+            <head></head>
+            <body>test</body>
+          </>,
+          {
+            containerTagName: 'html',
+            prefetchStrategy: {
+              symbolsToPrefetch: 'auto',
+            },
+            manifest: {
+              ...defaultManifest,
+              injections: [
+                {
+                  location: 'head',
+                  tag: 'style',
+                  attributes: {
+                    'data-src': cssPath,
+                    dangerouslySetInnerHTML: cssContent,
+                  },
+                },
+                {
+                  location: 'body',
+                  tag: 'script',
+                  attributes: {
+                    id: 'script123',
+                    src: scriptPath,
+                  },
+                },
+              ] as GlobalInjections[],
+            },
+          }
+        );
+        const document = createDocument(result.html);
+        const style = document.head.querySelector('style');
+        expect(style?.getAttribute('data-src')).toEqual(cssPath);
+        expect(style?.innerHTML).toEqual(cssContent);
+        expect(style?.parentNode?.nodeName.toLowerCase()).toEqual('head');
+
+        const script = document.body.querySelector('#script123');
+        expect(script?.getAttribute('src')).toEqual(scriptPath);
+        expect(script?.parentNode?.nodeName.toLowerCase()).toEqual('body');
       });
     });
     describe('debug', () => {

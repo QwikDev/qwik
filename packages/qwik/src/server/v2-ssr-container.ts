@@ -1,5 +1,12 @@
 /** @file Public APIs for the SSR */
-import { _SharedContainer, _walkJSX, isSignal } from '@builder.io/qwik';
+import {
+  _SharedContainer,
+  _jsxSorted,
+  _jsxSplit,
+  _walkJSX,
+  isSignal,
+  type JSXNode,
+} from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 import { getQwikLoaderScript } from '@builder.io/qwik/server';
@@ -32,6 +39,12 @@ import {
   isClassAttr,
   QContainerValue,
   VNodeDataSeparator,
+  QRenderAttr,
+  QRuntimeAttr,
+  QVersionAttr,
+  QBaseAttr,
+  QLocaleAttr,
+  QManifestHashAttr,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -146,10 +159,23 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public renderOptions: RenderOptions;
   public prefetchResources: PrefetchResource[] = [];
   public serializationCtx: SerializationContext;
+  /**
+   * We use this to append additional nodes in the head node
+   *
+   * - From manifest injections
+   * - From useStyles and useScopedStyles hooks
+   */
+  public additionalHeadNodes = new Array<JSXNode>();
+
+  /**
+   * We use this to append additional nodes in the body node
+   *
+   * - From manifest injections
+   */
+  public additionalBodyNodes = new Array<JSXNode>();
   private lastNode: ISsrNode | null = null;
   private currentComponentNode: ISsrNode | null = null;
   private styleIds = new Set<string>();
-  private headStyles = new Map<string, string>();
 
   private currentElementFrame: ContainerElementFrame | null = null;
 
@@ -191,6 +217,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.buildBase = opts.buildBase;
     this.resolvedManifest = opts.resolvedManifest;
     this.renderOptions = opts.renderOptions;
+
+    this.$processInjectionsFromManifest$();
   }
 
   ensureProjectionResolved(host: HostElement): void {}
@@ -257,18 +285,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.write('<!DOCTYPE html>');
     }
     let qRender = isDev ? 'ssr-dev' : 'ssr';
-    if (this.renderOptions.containerAttributes?.['q:render']) {
-      qRender = `${this.renderOptions.containerAttributes['q:render']}-${qRender}`;
+    if (this.renderOptions.containerAttributes?.[QRenderAttr]) {
+      qRender = `${this.renderOptions.containerAttributes[QRenderAttr]}-${qRender}`;
     }
     const containerAttributes: Record<string, string> = {
       ...this.renderOptions.containerAttributes,
-      'q:runtime': '2',
-      [QContainerAttr]: 'paused',
-      'q:version': this.$version$ ?? 'dev',
-      'q:render': qRender,
-      'q:base': this.buildBase,
-      'q:locale': this.$locale$,
-      'q:manifest-hash': this.resolvedManifest.manifest.manifestHash,
+      [QRuntimeAttr]: '2',
+      [QContainerAttr]: QContainerValue.PAUSED,
+      [QVersionAttr]: this.$version$ ?? 'dev',
+      [QRenderAttr]: qRender,
+      [QBaseAttr]: this.buildBase,
+      [QLocaleAttr]: this.$locale$,
+      [QManifestHashAttr]: this.resolvedManifest.manifest.manifestHash,
     };
 
     const containerAttributeArray = Object.entries(containerAttributes).reduce<string[]>(
@@ -462,6 +490,24 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.unclaimedProjections.push(frame, null, name, children);
   }
 
+  $processInjectionsFromManifest$(): void {
+    const injections = this.resolvedManifest.manifest.injections;
+    if (!injections) {
+      return;
+    }
+
+    for (let i = 0; i < injections.length; i++) {
+      const injection = injections[i];
+
+      const jsxNode = _jsxSplit(injection.tag, null, injection.attributes || {}, null, 0, null);
+      if (injection.location === 'head') {
+        this.additionalHeadNodes.push(jsxNode);
+      } else {
+        this.additionalBodyNodes.push(jsxNode);
+      }
+    }
+  }
+
   $appendStyle$(content: string, styleId: string, host: ISsrNode, scoped: boolean): void {
     if (scoped) {
       const componentFrame = this.getComponentFrame(0)!;
@@ -473,19 +519,20 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (!this.styleIds.has(styleId)) {
       this.styleIds.add(styleId);
       if (this.currentElementFrame?.elementName === 'html') {
-        this.headStyles.set(styleId, content);
+        this.additionalHeadNodes.push(
+          _jsxSorted(
+            'style',
+            null,
+            { dangerouslySetInnerHTML: content, [QStyle]: styleId },
+            null,
+            0,
+            styleId
+          )
+        );
       } else {
         this._styleNode(styleId, content);
       }
     }
-  }
-
-  $appendHeadNodes$(): void {
-    // render styles inside head
-    this.headStyles.forEach((value, styleId) => this._styleNode(styleId, value));
-    this.headStyles.clear();
-
-    this.emitQwikLoaderAtTopIfNeeded();
   }
 
   private _styleNode(styleId: string, content: string) {
@@ -763,7 +810,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.renderOptions.qwikLoader?.include ?? 'auto';
   }
 
-  private emitQwikLoaderAtTopIfNeeded() {
+  emitQwikLoaderAtTopIfNeeded() {
     const positionMode = this.getQwikLoaderPositionMode();
     if (positionMode === 'top') {
       const includeMode = this.getQwikLoaderIncludeMode();
@@ -1041,6 +1088,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           innerHTML = String(value);
           key = QContainerAttr;
           value = QContainerValue.HTML;
+          // we can skip this attribute for a style node
+          // because we skip materializing the style node
+          if (tag === 'style') {
+            continue;
+          }
         }
 
         if (tag === 'textarea' && key === 'value') {

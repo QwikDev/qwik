@@ -24,11 +24,11 @@ created_at: '2023-03-29T02:35:29Z'
 
 > `server$` can accept any number of arguments and return any value that can be serialized by Qwik, that includes primitives, objects, arrays, bigint, JSX nodes and even Promises, just to name a few.
 
-Your new function will have the following signature:  
-`([AbortSignal, ] ...): Promise<T>`
 
-`AbortSignal` is optional, and allows you to cancel a long running request by terminating the connection.
-Please note that depending on your server runtime, the function on the server may not terminate immediately. It depends on how client disconnections are handled by the runtime.
+`AbortSignal` is optional, and allows you to cancel a long running request by terminating the connection.  
+Your new function will have the following signature:  
+`([AbortSignal, ...yourOtherArgs]): Promise<T>`  
+> Please note that depending on your server runtime, the function on the server may not terminate immediately. It depends on how client disconnections are handled by the runtime.
 
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
@@ -90,6 +90,8 @@ export const getEnvVariable = server$(
 
 You can read cookies using `this.cookie.get()` and `this.cookie.set()`.
 
+> When using `handleCookies` (in our example below) if it's used within a `useTask$` function that runs during the initial request, setting cookies won’t work as expected. This is because, during server-side rendering (SSR), the response is streamed, and HTTP requires all headers to be set before sending the first response. However, if handleCookies is used in useVisibleTask$, this issue doesn’t occur. If you need to set cookies for the initial document request you can use `plugin@<name>.ts` or Middleware.
+
 ```tsx
 export const handleCookies = server$(
   function () {
@@ -130,7 +132,7 @@ export const getHeaders = server$(
 );
 ```
 
-### Example: Using Multiple Request Information
+### Using Multiple RequestEvent Information
 
 Here's an example that combines environment variables, cookies, URL, and headers in a single function.
 
@@ -141,7 +143,7 @@ export const handleRequest = server$(
     const dbKey = this.env.get('DB_KEY');
 
     // Access cookies
-    const userSession = this.cookie.get('user-session');
+    const userSession = this.cookie.get('user-session')?.value;
     if (!userSession) {
       this.cookie.set('user-session', 'new-session-id', { path: '/', httpOnly: true });
     }

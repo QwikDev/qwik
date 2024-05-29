@@ -771,7 +771,7 @@ describe('render api', () => {
         });
         expect(result.html.includes(`q:manifest-hash="${testManifestHash}"`)).toBeTruthy();
       });
-      it.only('should render manifest injections', async () => {
+      it('should render manifest injections', async () => {
         const cssContent = 'body { color: red; }';
         const cssPath = '/path/to/style.css';
         const scriptPath = '/path/to/script.js';

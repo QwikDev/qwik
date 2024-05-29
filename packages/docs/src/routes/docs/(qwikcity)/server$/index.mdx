@@ -22,11 +22,13 @@ created_at: '2023-03-29T02:35:29Z'
 
 `server$()` allows you to define functions that execute exclusively on the server, making it ideal for server-only operations and database access. It functions as an RPC (Remote Procedure Call) mechanism between the client and server, similar to a traditional HTTP endpoint, but strongly typed with TypeScript and easier to maintain.
 
-Your new function will have the following signature:  
-`([AbortSignal, ] ...): Promise<T>`
+> `server$` can accept any number of arguments and return any value that can be serialized by Qwik, that includes primitives, objects, arrays, bigint, JSX nodes and even Promises, just to name a few.
 
-`AbortSignal` is optional, and allows you to cancel a long running request by terminating the connection.
-Please note that depending on your server runtime, the function on the server may not terminate immediately. It depends on how client disconnections are handled by the runtime.
+
+`AbortSignal` is optional, and allows you to cancel a long running request by terminating the connection.  
+Your new function will have the following signature:  
+`([AbortSignal, ...yourOtherArgs]): Promise<T>`  
+> Please note that depending on your server runtime, the function on the server may not terminate immediately. It depends on how client disconnections are handled by the runtime.
 
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
@@ -34,11 +36,13 @@ import { server$ } from '@builder.io/qwik-city';
 
 // By wrapping a function with `server$()` we mark it to always
 // execute on the server. This is a form of RPC mechanism.
-const serverGreeter = server$((firstName: string, lastName: string) => {
-  const greeting = `Hello ${firstName} ${lastName}`;
-  console.log('Prints in the server', greeting);
-  return greeting;
-});
+export const serverGreeter = server$(
+  function (firstName: string, lastName: string) {
+    const greeting = `Hello ${firstName} ${lastName}`;
+    console.log('Prints in the server', greeting);
+    return greeting;
+  }
+);
 
 export default component$(() => {
   const firstName = useSignal('');
@@ -50,10 +54,12 @@ export default component$(() => {
       <label>Last name: <input bind:value={lastName} /></label>
 
       <button
-        onClick$={async () => {
-          const greeting = await serverGreeter(firstName.value, lastName.value);
-          alert(greeting);
-        }}
+        onClick$={
+          async () => {
+            const greeting = await serverGreeter(firstName.value, lastName.value);
+            alert(greeting);
+          }
+        }
       >
         greet
       </button>
@@ -62,57 +68,133 @@ export default component$(() => {
 });
 ```
 
-`server$` can also read the HTTP cookies, headers, or environment variables, using `this`. In this case you will need to use a function instead of an arrow function.
+## Accessing Request Information with `RequestEvent`
+
+When using `server$`, you have access to the `RequestEvent` object through `this`. This object provides useful information about the HTTP request, including environment variables, cookies, URL, and headers. Here's how you can use it:
+
+### Environment Variables
+
+You can access environment variables using `this.env.get()`.
 
 ```tsx
-// Notice that the wrapped function is declared as an `async function`
-const addUser = server$(async function(id: number, fullName: string, address: Address) {
-  // The `this` is the `RequestEvent` object, which contains
-  // the HTTP headers, cookies, and environment variables.
-  const db = createClient(this.env.get('DB_KEY'));
-  if (this.cookie.get('user-session')) {
-    await db.from('users').insert({
-      id,
-      fullName,
-      address
-    });
-    return {
-      success: true,
-    }
+export const getEnvVariable = server$(
+  function () {
+    const dbKey = this.env.get('DB_KEY');
+    console.log('Database Key:', dbKey);
+    return dbKey;
   }
-  return {
-    success: false,
-  }
-})
+);
 ```
 
-> Server$ can accept any number of arguments and return any value that can be serialized by Qwik, that includes primitives, objects, arrays, bigint, JSX nodes and even Promises, just to name a few.
+### Cookies
 
+You can read cookies using `this.cookie.get()` and `this.cookie.set()`.
+
+> When using `handleCookies` (in our example below) if it's used within a `useTask$` function that runs during the initial request, setting cookies won’t work as expected. This is because, during server-side rendering (SSR), the response is streamed, and HTTP requires all headers to be set before sending the first response. However, if handleCookies is used in useVisibleTask$, this issue doesn’t occur. If you need to set cookies for the initial document request you can use `plugin@<name>.ts` or Middleware.
+
+```tsx
+export const handleCookies = server$(
+  function () {
+    const userSession = this.cookie.get('user-session')?.value;
+    if (!userSession) {
+      this.cookie.set('user-session', 'new-session-id', { path: '/', httpOnly: true });
+    }
+    return userSession;
+  }
+);
+```
+
+### URL
+
+You can access the request URL and its components using `this.url`.
+
+```tsx
+export const getRequestUrl = server$(
+  function () {
+    const requestUrl = this.url;
+    console.log('Request URL:', requestUrl);
+    return requestUrl;
+  }
+);
+```
+
+### Headers
+
+You can read headers using `this.headers.get()`.
+
+```tsx
+export const getHeaders = server$(
+  function () {
+    const userAgent = this.headers.get('User-Agent');
+    console.log('User-Agent:', userAgent);
+    return userAgent;
+  }
+);
+```
+
+### Using Multiple RequestEvent Information
+
+Here's an example that combines environment variables, cookies, URL, and headers in a single function.
+
+```tsx
+export const handleRequest = server$(
+  function () {
+    // Access environment variable
+    const dbKey = this.env.get('DB_KEY');
+
+    // Access cookies
+    const userSession = this.cookie.get('user-session')?.value;
+    if (!userSession) {
+      this.cookie.set('user-session', 'new-session-id', { path: '/', httpOnly: true });
+    }
+
+    // Access request URL
+    const requestUrl = this.url;
+
+    // Access headers
+    const userAgent = this.headers.get('User-Agent');
+
+    console.log('Environment Variable:', dbKey);
+    console.log('User Session:', userSession);
+    console.log('Request URL:', requestUrl);
+    console.log('User-Agent:', userAgent);
+
+    return {
+      dbKey,
+      userSession,
+      requestUrl,
+      userAgent
+    };
+  }
+);
+```
 
 ## Streaming Responses
 
-`server$` can return a stream of data by using an async generator. This is useful for streaming data from the server to the client.
+`server$` can return a stream of data by using an async generator function, which is useful for streaming data from the server to the client.
 
-Terminating the generator on the client side (e.g. by calling `return()` on the generator, or by breaking out from your async for-loop) will terminate the connection. As with `AbortSignal` -
-how the generator will terminate on the server side depends on the server runtime and how client disconnects are handled.
+Terminating the generator on the client side (e.g., by calling `.return()` on the generator or by breaking out from your async for-of loop) will terminate the connection. Similar to `AbortSignal`, how the generator terminates on the server side depends on the server runtime and how client disconnects are handled.
 
 ```tsx
 import { component$, useSignal } from '@builder.io/qwik';
 import { server$ } from '@builder.io/qwik-city';
 
-const stream = server$(async function* () {
-  // Creation of an array with 10 undefined values
-  const iterationRange = Array(10).fill().entries(); 
-
-  for (const [index] of iterationRange) {
-    // Yield returns the index during each iteration
-    yield index;
-
-    // Waiting for 1 second before the next iteration
-    // This simulates a delay in the execution
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+export const streamFromServer = server$(
+  // Async Generator Function
+  async function* () {
+    // Creation of an array with 10 undefined values
+    const iterationRange = Array(10).fill().entries(); 
+  
+    for (const [value] of iterationRange) {
+      // Yield returns the array value during each iteration
+      yield value;
+  
+      // Waiting for 1 second before the next iteration
+      // This simulates a delay in the execution
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
   }
-});
+);
 
 
 export default component$(() => {
@@ -120,15 +202,18 @@ export default component$(() => {
   return (
     <div>
       <button
-        onClick$={async () => {
-          // call the async stream function and wait for the response
-          const response = await stream(); 
-          // use a for-await-of loop to asynchronously iterate over the response
-          for await (const index of response) {
-            // add each index from the response to the message value
-            message.value += ` ${index}`;
+        onClick$={
+          async () => {
+            // call the async stream function and wait for the response
+            const response = await streamFromServer(); 
+            // use a for-await-of loop to asynchronously iterate over the response
+            for await (const value of response) {
+              // add each value from the response to the message value
+              message.value += ` ${value}`;
+            }
+            // do anything else
           }
-        }}
+        }
       >
         start
       </button>
@@ -163,3 +248,6 @@ When using `server$`, it's important to understand how [middleware functions](/d
 To ensure that a middleware function runs for both types of requests, it should be defined in the `plugin.ts` file. This ensures that the middleware is executed consistently for all incoming requests, regardless of whether they are normal page requests or `server$` requests.
 
 By [defining middleware in the `plugin.ts`](/docs/advanced/plugints) file, developers can maintain a centralized location for shared middleware logic, ensuring consistency and reducing potential errors or oversights.
+
+
+

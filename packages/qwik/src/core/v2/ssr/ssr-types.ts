@@ -8,6 +8,7 @@ import type {
   ValueOrPromise,
 } from '../../../server/qwik-types';
 import type { PrefetchResource } from '../../../server/types';
+import type { JSXNode } from '../../render/jsx/types/jsx-node';
 import type { Signal } from '../../state/signal';
 
 export type SsrAttrKey = string;
@@ -47,6 +48,8 @@ export interface SSRContainer extends Container2 {
   readonly serializationCtx: SerializationContext;
   readonly symbolToChunkResolver: SymbolToChunkResolver;
   readonly buildBase: string;
+  additionalHeadNodes: Array<JSXNode>;
+  additionalBodyNodes: Array<JSXNode>;
   unclaimedProjectionComponentFrameQueue: ISsrComponentFrame[];
 
   openContainer(): void;
@@ -79,5 +82,5 @@ export interface SSRContainer extends Container2 {
   isStatic(): boolean;
   render(jsx: JSXOutput): Promise<void>;
 
-  $appendHeadNodes$(): void;
+  emitQwikLoaderAtTopIfNeeded(): void;
 }

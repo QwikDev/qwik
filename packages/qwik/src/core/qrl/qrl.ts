@@ -175,6 +175,7 @@ export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
 
   if (platform) {
     const result = platform.chunkForSymbol(refSymbol, chunk, qrl.dev?.file);
+    console.log('serializeQRL', { refSymbol, symbol, chunk, result, dev: qrl.dev });
     if (result) {
       chunk = result[1];
       if (!qrl.$refSymbol$) {

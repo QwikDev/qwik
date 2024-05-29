@@ -35,7 +35,7 @@ export const App = component$(() => {
 import { componentQrl } from "@builder.io/qwik";
 import { qrlDEV } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0", {
-    file: "/user/qwik/src/test.tsx",
+    file: "test.tsx",
     lo: 107,
     hi: 569,
     displayName: "App_component"
@@ -53,7 +53,7 @@ import { useStore } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = ()=>{
     const stuff = useStore();
     serverStuffQrl(/*#__PURE__*/ _noopQrlDEV("App_component_serverStuff_ebyHaP15ytQ", {
-        file: "/user/qwik/src/test.tsx",
+        file: "test.tsx",
         lo: 0,
         hi: 0,
         displayName: "App_component_serverStuff"
@@ -61,7 +61,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
         stuff
     ]));
     serverStuffQrl(/*#__PURE__*/ _noopQrlDEV("App_component_serverStuff_1_PQCqO0ANabY", {
-        file: "/user/qwik/src/test.tsx",
+        file: "test.tsx",
         lo: 0,
         hi: 0,
         displayName: "App_component_serverStuff_1"
@@ -70,7 +70,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
         children: /*#__PURE__*/ _jsxQ("p", null, {
             class: "stuff",
             shouldRemove$: /*#__PURE__*/ _noopQrlDEV("App_component_Cmp_p_shouldRemove_uU0MG0jvQD4", {
-                file: "/user/qwik/src/test.tsx",
+                file: "test.tsx",
                 lo: 0,
                 hi: 0,
                 displayName: "App_component_Cmp_p_shouldRemove"
@@ -78,7 +78,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
                 stuff
             ]),
             onClick$: /*#__PURE__*/ _noopQrlDEV("App_component_Cmp_p_onClick_vuXzfUTkpto", {
-                file: "/user/qwik/src/test.tsx",
+                file: "test.tsx",
                 lo: 0,
                 hi: 0,
                 displayName: "App_component_Cmp_p_onClick"

@@ -27,7 +27,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
         children: /*#__PURE__*/ _jsxQ("p", null, {
             class: "stuff",
             onClick$: /*#__PURE__*/ inlinedQrlDEV(()=>console.log('warn'), "App_component_Cmp_p_onClick_vuXzfUTkpto", {
-                file: "/user/qwik/src/test.tsx",
+                file: "test.tsx",
                 lo: 164,
                 hi: 189,
                 displayName: "App_component_Cmp_p_onClick"
@@ -43,7 +43,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
         columnNumber: 9
     });
 }, "App_component_ckEPmXZlub0", {
-    file: "/user/qwik/src/test.tsx",
+    file: "test.tsx",
     lo: 90,
     hi: 229,
     displayName: "App_component"

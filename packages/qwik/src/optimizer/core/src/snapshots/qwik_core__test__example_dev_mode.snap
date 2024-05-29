@@ -21,7 +21,7 @@ export const App = component$(() => {
 import { componentQrl } from "@builder.io/qwik";
 import { qrlDEV } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0", {
-    file: "/user/qwik/src/test.tsx",
+    file: "test.tsx",
     lo: 90,
     hi: 229,
     displayName: "App_component"
@@ -39,7 +39,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
         children: /*#__PURE__*/ _jsxQ("p", null, {
             class: "stuff",
             onClick$: /*#__PURE__*/ qrlDEV(()=>import("./app_component_cmp_p_onclick_vuxzfutkpto"), "App_component_Cmp_p_onClick_vuXzfUTkpto", {
-                file: "/user/qwik/src/test.tsx",
+                file: "test.tsx",
                 lo: 164,
                 hi: 189,
                 displayName: "App_component_Cmp_p_onClick"

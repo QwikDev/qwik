@@ -944,7 +944,7 @@ impl<'a> QwikTransform<'a> {
 		];
 		let fn_callee = if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				&self.options.path_data.abs_path,
+				&self.options.path_data.rel_path,
 				hook_data,
 				span,
 			));
@@ -1009,7 +1009,7 @@ impl<'a> QwikTransform<'a> {
 
 		let fn_callee = if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				&self.options.path_data.abs_path,
+				&self.options.path_data.rel_path,
 				&hook_data,
 				&span,
 			));
@@ -1105,6 +1105,8 @@ impl<'a> QwikTransform<'a> {
 		node
 	}
 
+	/// This transforms `jsx(type, props, key)`
+	/// TODO make it work when props is not `{...}` but an expression
 	fn handle_jsx_props_obj(
 		&mut self,
 		expr: ast::ExprOrSpread,
@@ -1676,7 +1678,7 @@ impl<'a> QwikTransform<'a> {
 		let mut fn_name: &JsWord = &_NOOP_QRL;
 		if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				&self.options.path_data.abs_path,
+				&self.options.path_data.rel_path,
 				&hook_data,
 				&DUMMY_SP,
 			));
@@ -2337,7 +2339,7 @@ fn parse_symbol_name(symbol_name: JsWord, dev: bool) -> (JsWord, JsWord, JsWord)
 	(s_n, display_name.into(), hash.into())
 }
 
-fn get_qrl_dev_obj(asb_path: &Path, hook: &HookData, span: &Span) -> ast::Expr {
+fn get_qrl_dev_obj(rel_path: &Path, hook: &HookData, span: &Span) -> ast::Expr {
 	ast::Expr::Object(ast::ObjectLit {
 		span: DUMMY_SP,
 		props: vec![
@@ -2345,7 +2347,7 @@ fn get_qrl_dev_obj(asb_path: &Path, hook: &HookData, span: &Span) -> ast::Expr {
 				key: ast::PropName::Ident(ast::Ident::new(js_word!("file"), DUMMY_SP)),
 				value: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
 					span: DUMMY_SP,
-					value: asb_path.to_str().unwrap().into(),
+					value: rel_path.to_str().unwrap().into(),
 					raw: None,
 				}))),
 			}))),

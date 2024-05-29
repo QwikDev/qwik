@@ -25,7 +25,7 @@ export const App = component$((props: Stuff) => {
 import { componentQrl } from "@builder.io/qwik";
 import { qrlDEV } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./app_component_kglyfbhvjc0.js"), "App_component_KGLYFBhvJc0", {
-    file: "/src/project/project/index.tsx",
+    file: "project/index.tsx",
     lo: 90,
     hi: 348,
     displayName: "App_component"

@@ -16,6 +16,7 @@ export interface UseSignal {
  * If the initial state is a function, the function is invoked to calculate the actual initial
  * state.
  *
+ * @deprecated This is a technology preview
  * @public
  */
 export const createSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STATE> => {
@@ -32,6 +33,7 @@ export const createSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STA
  *
  * If the value is a function, the function is invoked to calculate the actual value.
  *
+ * @deprecated This is a technology preview
  * @public
  */
 export const useConstant = <T>(value: (() => T) | T): T => {

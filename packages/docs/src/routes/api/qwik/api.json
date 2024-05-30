@@ -614,7 +614,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "Creates a signal.\n\nIf the initial state is a function, the function is invoked to calculate the actual initial state.\n\n\n```typescript\ncreateSignal: UseSignal\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> this is a technology preview\n> \n\nCreates a signal.\n\nIf the initial state is a function, the function is invoked to calculate the actual initial state.\n\n\n```typescript\ncreateSignal: UseSignal\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts",
       "mdFile": "qwik.createsignal.md"
     },
@@ -3048,7 +3048,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Stores a value which is retained for the lifetime of the component.\n\nIf the value is a function, the function is invoked to calculate the actual value.\n\n\n```typescript\nuseConstant: <T>(value: (() => T) | T) => T\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\n(() =&gt; T) \\| T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nT",
+      "content": "> Warning: This API is now obsolete.\n> \n> this is a technology preview\n> \n\nStores a value which is retained for the lifetime of the component.\n\nIf the value is a function, the function is invoked to calculate the actual value.\n\n\n```typescript\nuseConstant: <T>(value: (() => T) | T) => T\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\n(() =&gt; T) \\| T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nT",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts",
       "mdFile": "qwik.useconstant.md"
     },

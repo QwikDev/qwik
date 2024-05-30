@@ -1855,6 +1855,10 @@ The name of the context.
 
 ## createSignal
 
+> Warning: This API is now obsolete.
+>
+> this is a technology preview
+
 Creates a signal.
 
 If the initial state is a function, the function is invoked to calculate the actual initial state.
@@ -10187,6 +10191,10 @@ qrl
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## useConstant
+
+> Warning: This API is now obsolete.
+>
+> this is a technology preview
 
 Stores a value which is retained for the lifetime of the component.
 

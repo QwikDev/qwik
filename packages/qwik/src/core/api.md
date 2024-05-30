@@ -166,7 +166,7 @@ export const createComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => Signal<Awaited<T
 // @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
 
-// @public
+// @public @deprecated
 export const createSignal: UseSignal;
 
 // @public (undocumented)
@@ -1630,7 +1630,7 @@ export const useComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>;
 // @public (undocumented)
 export const useComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => Signal<Awaited<T>>;
 
-// @public
+// @public @deprecated
 export const useConstant: <T>(value: (() => T) | T) => T;
 
 // Warning: (ae-forgotten-export) The symbol "UseContext" needs to be exported by the entry point index.d.ts

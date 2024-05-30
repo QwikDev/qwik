@@ -28,6 +28,7 @@ function getOrigin(req: IncomingMessage) {
 }
 
 export async function configureDevServer(
+  base: string,
   server: ViteDevServer,
   opts: NormalizedQwikPluginOptions,
   sys: OptimizerSystem,
@@ -54,7 +55,7 @@ export async function configureDevServer(
   }
 
   // qwik middleware injected BEFORE vite internal middlewares
-  server.middlewares.use(async (req: any, res: any, next: any) => {
+  server.middlewares.use(async (req, res, next) => {
     try {
       const { ORIGIN } = process.env;
       const domain = ORIGIN ?? getOrigin(req);
@@ -152,16 +153,16 @@ export async function configureDevServer(
                   if (symbolName === SYNC_QRL) {
                     return [symbolName, ''];
                   }
-                  const defaultChunk = [
-                    symbolName,
-                    `${import.meta.env.BASE_URL}${parent ? `${srcBase}/${parent}?qrl=` : '@qrl/'}${symbolName.toLowerCase()}`,
-                  ] as const;
-                  if (mapper) {
-                    const hash = getSymbolHash(symbolName);
-                    return mapper[hash] ?? defaultChunk;
-                  } else {
-                    return defaultChunk;
+                  const chunk = mapper && mapper[getSymbolHash(symbolName)];
+                  if (chunk) {
+                    return chunk;
                   }
+                  if (!parent) {
+                    console.error('unknown qrl requested without parent:', symbolName);
+                    return [symbolName, `${base}${symbolName.toLowerCase()}.js`];
+                  }
+                  const packetFile = `${path.dirname(parent)}/${symbolName.toLowerCase()}.js?_qrl_parent=/${srcBase}/${parent}`;
+                  return [symbolName, `${base}${srcBase}/${packetFile}`];
                 },
             prefetchStrategy: null,
             serverData,
@@ -206,6 +207,17 @@ export async function configureDevServer(
           next();
         }
       } else {
+        // We didn't ssr, but maybe a qrl was requested
+        const parent = url.searchParams.get('_qrl_parent');
+        if (parent && url.pathname.endsWith('.js')) {
+          // load the parent so it populates the qrl cache
+          await server.transformRequest(parent);
+          const result = await server.transformRequest(url.pathname);
+          if (result) {
+            res.write(result.code);
+            res.end();
+          }
+        }
         next();
       }
     } catch (e: any) {

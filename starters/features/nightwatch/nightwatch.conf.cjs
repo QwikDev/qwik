@@ -14,7 +14,7 @@
 module.exports = {
   // An array of folders (excluding subfolders) where your tests are located;
   // if this is not specified, the test source must be passed as the second argument to the test runner.
-  src_folders: ['test'],
+  src_folders: ["test"],
 
   // See https://nightwatchjs.org/guide/concepts/page-object-model.html
   page_objects_path: [],
@@ -27,16 +27,16 @@ module.exports = {
 
   // See https://nightwatchjs.org/guide/extending-nightwatch/adding-plugins.html
   plugins: [],
-  
-  // See https://nightwatchjs.org/guide/concepts/test-globals.html
-  globals_path: 'nightwatch/globals.js',
 
-  baseUrl: 'http://localhost:4173',
-  
+  // See https://nightwatchjs.org/guide/concepts/test-globals.html
+  globals_path: "nightwatch/globals.js",
+
+  baseUrl: "http://localhost:4173",
+
   webdriver: {},
 
   test_workers: {
-    enabled: true
+    enabled: true,
   },
 
   test_settings: {
@@ -45,105 +45,103 @@ module.exports = {
 
       screenshots: {
         enabled: false,
-        path: 'screens',
-        on_failure: true
+        path: "screens",
+        on_failure: true,
       },
 
       desiredCapabilities: {
-        browserName: 'chrome'
+        browserName: "chrome",
       },
-      
+
       webdriver: {
         start_process: true,
-        server_path: ''
+        server_path: "",
       },
-      
     },
-    
+
     safari: {
       desiredCapabilities: {
-        browserName: 'safari',
+        browserName: "safari",
         alwaysMatch: {
-          acceptInsecureCerts: false
-        }
+          acceptInsecureCerts: false,
+        },
       },
       webdriver: {
         start_process: true,
-        server_path: ''
-      }
+        server_path: "",
+      },
     },
-    
+
     firefox: {
       desiredCapabilities: {
-        browserName: 'firefox',
+        browserName: "firefox",
         alwaysMatch: {
           acceptInsecureCerts: true,
-          'moz:firefoxOptions': {
+          "moz:firefoxOptions": {
             args: [
               // '-headless',
               // '-verbose'
-            ]
-          }
-        }
+            ],
+          },
+        },
       },
       webdriver: {
         start_process: true,
-        server_path: '',
+        server_path: "",
         cli_args: [
           // very verbose geckodriver logs
           // '-vv'
-        ]
-      }
+        ],
+      },
     },
-    
+
     chrome: {
       desiredCapabilities: {
-        browserName: 'chrome',
-        'goog:chromeOptions': {
+        browserName: "chrome",
+        "goog:chromeOptions": {
           // More info on Chromedriver: https://sites.google.com/a/chromium.org/chromedriver/
           args: [
             //'--no-sandbox',
             //'--ignore-certificate-errors',
             //'--allow-insecure-localhost',
             //'--headless=new'
-          ]
-        }
+          ],
+        },
       },
 
       webdriver: {
         start_process: true,
-        server_path: '',
+        server_path: "",
         cli_args: [
           // --verbose
-        ]
-      }
+        ],
+      },
     },
-    
+
     edge: {
       desiredCapabilities: {
-        browserName: 'MicrosoftEdge',
-        'ms:edgeOptions': {
+        browserName: "MicrosoftEdge",
+        "ms:edgeOptions": {
           // More info on EdgeDriver: https://docs.microsoft.com/en-us/microsoft-edge/webdriver-chromium/capabilities-edge-options
           args: [
             //'--headless=new'
-          ]
-        }
+          ],
+        },
       },
 
       webdriver: {
         start_process: true,
-        server_path: '',
+        server_path: "",
         cli_args: [
           // --verbose
-        ]
-      }
+        ],
+      },
     },
-    
   },
-  
+
   usage_analytics: {
     enabled: true,
-    log_path: './logs/analytics',
-    client_id: '7adb2ef4-e58a-4d84-be15-0d3983b28f9d'
-  }
+    log_path: "./logs/analytics",
+    client_id: "7adb2ef4-e58a-4d84-be15-0d3983b28f9d",
+  },
 };

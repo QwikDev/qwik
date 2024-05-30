@@ -796,6 +796,11 @@ impl<'a> QwikTransform<'a> {
 	}
 
 	fn handle_jsx(&mut self, mut node: ast::CallExpr) -> ast::CallExpr {
+		// if the props aren't an object literal, leave unchanged
+		match &*node.args[1].expr {
+			ast::Expr::Object(_) => {}
+			_ => return node,
+		}
 		let node_type = node.args.remove(0);
 		let node_props = node.args.remove(0);
 		let (name_token, is_fn, is_text_only) = match &*node_type.expr {

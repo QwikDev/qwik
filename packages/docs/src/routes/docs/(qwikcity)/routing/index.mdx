@@ -18,6 +18,7 @@ contributors:
   - jordanw66
   - mrhoodz
   - chsanch
+  - RumNCodeDev
 updated_at: '2023-10-02T22:44:45Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
@@ -271,13 +272,12 @@ export default component$(() => {
 
 ### `<Link prefetch>`
 
-The Link component's `prefetch` prop can be used to improve the perceived performance of the application. Although Qwik pages excel at lazy loading javascript, this feature can come in handy for content-heavy pages or SSR pages that need to wait for database or API calls.
+By default, a `Link` component will start prefetching the next page as soon as the user hovers over the corresponding link in the UI. So if the application is done prefetching when the user clicks on the link, the next page will appear instantly. Although Qwik applications already excel at lazy loading javascript, this behavior can come in handy for content-heavy pages or SSR pages that need to wait for database or API calls.
 
+If this is not your desired behavior, you can set the `prefetch` prop to false.
 ```tsx
-<Link prefetch href="/about">About</Link>
+ <Link prefetch={false} href="/about">About</Link>
 ```
-
-By simply adding the `prefetch` prop, your Link component will start prefetching the page as soon as the user hovers over the link. If the application is done prefetching when the user clicks on the link, the following page will appear instantly.
 
 ### Scroll Restoration
 
@@ -414,5 +414,9 @@ Qwik City also supports:
 - [Nested layouts](/docs/(qwikcity)/advanced/routing/index.mdx#nested-layout)
 - [Menus](/docs/(qwikcity)/advanced/menu/index.mdx)
 - [Request Handling](/docs/(qwikcity)/advanced/request-handling/index.mdx)
+
+## Typesafe Routing
+- [Typed Routes](/docs/(qwikcity)/labs/typed-routes/index.mdx#-typed-routes)
+- [Declarative Routing](/docs/(qwikcity)/labs/typed-routes/index.mdx#declarative-routing)
 
 These are discussed later.

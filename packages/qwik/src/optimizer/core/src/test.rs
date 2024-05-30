@@ -1979,7 +1979,7 @@ export const Root = () => {
     return (
         <html>
             <head>
-                <meta charSet="utf-8" />
+                <meta charset="utf-8" />
                 <title>Qwik Blank App</title>
             </head>
             <body>
@@ -2156,6 +2156,25 @@ export const App = component$(() => {
 		.to_string(),
 		transpile_ts: true,
 		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn special_jsx() {
+	test_input!(TestInput {
+		code: r#"
+// don't transpile jsx with non-plain-object props
+import { jsx } from '@builder.io/qwik';
+
+export const App = () => {
+    const props = {}
+    return jsx('div', props, 'Hello Qwik');
+}
+"#
+		.to_string(),
+		transpile_ts: false,
+		transpile_jsx: false,
 		..TestInput::default()
 	});
 }

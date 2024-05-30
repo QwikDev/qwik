@@ -165,6 +165,7 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
       ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
       : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
   >;
+  readonly submitted: boolean;
 };
 ```
 
@@ -1264,7 +1265,7 @@ _(Optional)_
 
 </td><td>
 
-(event: Event, form: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt;
+QRLEventHandlerMulti&lt;SubmitEvent, HTMLFormElement&gt; \| undefined
 
 </td><td>
 
@@ -1279,7 +1280,7 @@ _(Optional)_ Event handler executed right when the form is submitted.
 
 </td><td>
 
-(event: CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)&lt;O&gt;&gt;, form: HTMLFormElement) =&gt; ValueOrPromise&lt;void&gt;
+QRLEventHandlerMulti&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)&lt;O&gt;&gt;, HTMLFormElement&gt; \| undefined
 
 </td><td>
 
@@ -1680,6 +1681,14 @@ export declare type PathParams = Record<string, string>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+
+## QWIK_CITY_SCROLLER
+
+```typescript
+QWIK_CITY_SCROLLER = "_qCityScroller";
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/qwik-city-component.tsx)
 
 ## QwikCityMockProps
 
@@ -2091,7 +2100,7 @@ URL
 ```typescript
 export type RouteNavigate = QRL<
   (
-    path?: string,
+    path?: string | number,
     options?:
       | {
           type?: Exclude<NavigationType, "initial">;
@@ -2119,7 +2128,10 @@ RouterOutlet: import("@builder.io/qwik").Component<unknown>;
 ## server$
 
 ```typescript
-server$: <T extends ServerFunction>(first: T) => ServerQRL<T>;
+server$: <T extends ServerFunction>(
+  qrl: T,
+  options?: ServerConfig | undefined,
+) => ServerQRL<T>;
 ```
 
 <table><thead><tr><th>
@@ -2137,13 +2149,26 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-first
+qrl
 
 </td><td>
 
 T
 
 </td><td>
+
+</td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+ServerConfig \| undefined
+
+</td><td>
+
+_(Optional)_
 
 </td></tr>
 </tbody></table>
@@ -2158,6 +2183,7 @@ T
 ```typescript
 export type ServerFunction = {
   (this: RequestEventBase, ...args: any[]): any;
+  options?: ServerConfig;
 };
 ```
 

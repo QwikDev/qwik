@@ -21,7 +21,8 @@ npm run qwik add static
 
 Above command will create a directory at project root named `adapters/static/vite.config.ts` with the below code.
 
-```tsx file="adapters/static/vite.config.ts"
+```ts title="adapters/static/vite.config.ts"
+import { staticAdapter } from "@builder.io/qwik-city/adapters/static/vite";
 import { extendConfig } from '@builder.io/qwik-city/vite';
 import baseConfig from '../../vite.config';
 

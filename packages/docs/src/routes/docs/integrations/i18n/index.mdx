@@ -34,7 +34,7 @@ Disadvantages of the runtime approach are:
   1. Once as the original string in the code.
   2. Once as a key in a translation map.
   3. Once as a translated value in the translation map.
-- The tools don't know how to break up the translation map, for this reason, the whole translation map must be loaded eagerly on application startup. This is a problem because it undoes the effort Qwik put into breaking up and lazy load your codebase. In addition because translation maps are not broken up, the browser will download unnecessary translations. For example, translations for static components that will never re-render on the client.
+- The tools currently lack the capability to break up the translation map. The whole translation map must be loaded eagerly on application startup. This is a less than ideal situation because it works against Qwik's effort to break up and lazy load your codebase. Additionally, because translation maps are not broken up, the browser will download unnecessary translations. For example, translations for static components that will never re-render on the client.
 - There is a runtime cost to translation lookups.
 
 The advantages of compile-time approaches are:
@@ -57,7 +57,7 @@ Qwik's goal is to deliver the best possible user experience. It achieves this by
 
 ### Server
 
-The server does not have the constraint of lazy loading. For this reason, the server can use either the runtime or compiled approach. The disadvantage of compile time approach on the server is that we need to have a separate deployment for each translation. This complicates the deployment process as well as puts greater demand on number of servers. For this reason, we think the runtime approach is preferable on the server.
+The server does not have the constraint of lazy loading. For this reason, the server can use either the runtime or compiled approach. The disadvantage of compile time approach on the server is that we need to have a separate deployment for each translation. This complicates the deployment process as well as puts greater demand on the number of servers. For this reason, we think the runtime approach is preferable on the server.
 
 ### Development
 
@@ -67,7 +67,7 @@ During development, fewer build steps will result in a faster turnaround. For th
 
 Our recommendation is to use a tool that would provide a runtime approach on the server, and runtime or compile time on the client depending on whether we are in development or production. This way it is possible to prove the best user experience and development experience, and use the least server resources.
 
-## Internationalization libraries
+## Internationalization Libraries
 
 ### $localize
 

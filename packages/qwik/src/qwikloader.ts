@@ -11,9 +11,17 @@ import type { QContext } from './core/state/context';
  * @param doc - Document to use for setting up global listeners, and to determine all the browser
  *   supported events.
  */
-export const qwikLoader = (doc: Document, hasInitialized?: number) => {
+export const qwikLoader = (
+  doc: Document & { __q_context__?: [Element, Event, URL] | 0 },
+  hasInitialized?: number
+) => {
   const Q_CONTEXT = '__q_context__';
-  const win = window as any;
+  type qWindow = Window & {
+    qwikevents: {
+      push: (...e: string[]) => void;
+    };
+  };
+  const win = window as unknown as qWindow;
   const events = new Set();
 
   // Some shortenings for minification
@@ -36,13 +44,13 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     );
   };
 
-  const resolveContainer = (containerEl: Element) => {
-    if ((containerEl as QContainerElement)[Q_JSON] === undefined) {
+  const resolveContainer = (containerEl: QContainerElement) => {
+    if (containerEl[Q_JSON] === undefined) {
       const parentJSON = containerEl === doc.documentElement ? doc.body : containerEl;
       let script = parentJSON.lastElementChild;
       while (script) {
         if (script.tagName === 'SCRIPT' && script[getAttribute]('type') === 'qwik/json') {
-          (containerEl as QContainerElement)[Q_JSON] = JSON.parse(
+          containerEl[Q_JSON] = JSON.parse(
             script.textContent![replace](/\\x3C(\/?script)/gi, '<$1')
           );
           break;
@@ -57,12 +65,17 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       detail,
     }) as T;
 
-  const dispatch = async (element: Element, onPrefix: string, ev: Event, eventName = ev.type) => {
+  const dispatch = async (
+    element: Element & { _qc_?: QContext | undefined },
+    onPrefix: string,
+    ev: Event,
+    eventName = ev.type
+  ) => {
     const attrName = 'on' + onPrefix + ':' + eventName;
     if (element.hasAttribute('preventdefault:' + eventName)) {
       ev.preventDefault();
     }
-    const ctx = (element as any)['_qc_'] as QContext | undefined;
+    const ctx = element['_qc_'];
     const relevantListeners = ctx && ctx.li.filter((li) => li[0] === attrName);
     if (relevantListeners && relevantListeners.length > 0) {
       for (const listener of relevantListeners) {
@@ -81,38 +94,57 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     }
     const attrValue = element[getAttribute](attrName);
     if (attrValue) {
-      const container = element.closest('[q\\:container]')!;
-      const base = new URL(container[getAttribute]('q:base')!, doc.baseURI);
+      const container = element.closest('[q\\:container]')! as QContainerElement;
+      const qBase = container[getAttribute]('q:base')!;
+      const qVersion = container[getAttribute]('q:version') || 'unknown';
+      const qManifest = container[getAttribute]('q:manifest-hash') || 'dev';
+      const base = new URL(qBase, doc.baseURI);
       for (const qrl of attrValue.split('\n')) {
         const url = new URL(qrl, base);
-        const symbolName = url.hash[replace](/^#?([^?[|]*).*$/, '$1') || 'default';
+        const href = url.href;
+        const symbol = url.hash[replace](/^#?([^?[|]*).*$/, '$1') || 'default';
         const reqTime = performance.now();
-        let handler: any;
+        let handler: undefined | any;
+        let importError: undefined | 'sync' | 'async';
+        let error: undefined | Error;
         const isSync = qrl.startsWith('#');
+        const eventData = { qBase, qManifest, qVersion, href, symbol, element, reqTime };
         if (isSync) {
-          handler = ((container as QContainerElement).qFuncs || [])[Number.parseInt(symbolName)];
+          handler = (container.qFuncs || [])[Number.parseInt(symbol)];
+          if (!handler) {
+            importError = 'sync';
+            error = new Error('sync handler error for symbol: ' + symbol);
+          }
         } else {
-          const module = import(/* @vite-ignore */ url.href.split('#')[0]);
-          resolveContainer(container);
-          handler = (await module)[symbolName];
+          const uri = url.href.split('#')[0];
+          try {
+            const module = import(/* @vite-ignore */ uri);
+            resolveContainer(container);
+            handler = (await module)[symbol];
+          } catch (err) {
+            importError = 'async';
+            error = err as Error;
+          }
         }
-        const previousCtx = (doc as any)[Q_CONTEXT];
+        if (!handler) {
+          emitEvent('qerror', { importError, error, ...eventData });
+          // break out of the loop if handler is not found
+          break;
+        }
+        const previousCtx = doc[Q_CONTEXT];
         if (element[isConnected]) {
           try {
-            (doc as any)[Q_CONTEXT] = [element, ev, url];
-            isSync ||
-              emitEvent<QwikSymbolEvent>('qsymbol', {
-                symbol: symbolName,
-                element: element,
-                reqTime,
-              });
+            doc[Q_CONTEXT] = [element, ev, url];
+            isSync || emitEvent<QwikSymbolEvent>('qsymbol', { ...eventData });
             const results = handler(ev, element);
             // only await if there is a promise returned
             if (isPromise(results)) {
               await results;
             }
+          } catch (error) {
+            emitEvent('qerror', { error, ...eventData });
           } finally {
-            (doc as any)[Q_CONTEXT] = previousCtx;
+            doc[Q_CONTEXT] = previousCtx;
           }
         }
       }
@@ -202,7 +234,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
 
   if (!(Q_CONTEXT in doc)) {
     // Mark qwik-loader presence but falsy
-    (doc as any)[Q_CONTEXT] = 0;
+    doc[Q_CONTEXT] = 0;
     const qwikevents = win.qwikevents;
     // If `qwikEvents` is an array, process it.
     if (Array.isArray(qwikevents)) {

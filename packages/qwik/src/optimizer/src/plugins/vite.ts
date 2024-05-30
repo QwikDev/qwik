@@ -649,7 +649,15 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             const opts = qwikPlugin.getOptions();
             const sys = qwikPlugin.getSys();
             const path = qwikPlugin.getPath();
-            await configureDevServer(server, opts, sys, path, isClientDevOnly, clientDevInput);
+            await configureDevServer(
+              basePathname,
+              server,
+              opts,
+              sys,
+              path,
+              isClientDevOnly,
+              clientDevInput
+            );
           };
           const isNEW = (globalThis as any).__qwikCityNew === true;
           if (isNEW) {

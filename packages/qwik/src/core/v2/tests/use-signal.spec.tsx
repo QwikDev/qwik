@@ -226,6 +226,42 @@ describe.each([
       </Component>
     );
   });
+
+  it('should not execute signal when not used', async () => {
+    const Cmp = component$(() => {
+      const data = useSignal<{ price: number } | null>({ price: 100 });
+      return (
+        <div>
+          <button onClick$={() => (data.value = null)}></button>
+          {data.value == null && <span>not found</span>}
+          {data.value != null && <span>{data.value.price}</span>}
+        </div>
+      );
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <button></button>
+          {''}
+          <span>
+            <Signal>100</Signal>
+          </span>
+        </div>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <button></button>
+          <span>not found</span>
+          {''}
+        </div>
+      </Component>
+    );
+  });
+
   describe('derived', () => {
     it('should update value directly in DOM', async () => {
       const log: string[] = [];

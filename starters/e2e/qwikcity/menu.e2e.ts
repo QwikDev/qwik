@@ -6,8 +6,7 @@ test.describe("Qwik City Menu", () => {
     test.use({ javaScriptEnabled: false });
     tests();
   });
-  // TODO(v2): fix this
-  test.describe.skip("spa", () => {
+  test.describe("spa", () => {
     test.use({ javaScriptEnabled: true });
     tests();
   });

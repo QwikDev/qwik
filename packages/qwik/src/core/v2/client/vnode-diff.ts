@@ -28,7 +28,6 @@ import {
 } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { type ValueOrPromise } from '../../util/types';
-import { executeComponent2 } from '../shared/component-execution';
 import {
   convertEventNameFromJsxPropToHtmlAttr,
   getEventNameFromJsxProp,
@@ -38,7 +37,7 @@ import {
 } from '../shared/event-names';
 import { ChoreType } from '../shared/scheduler';
 import { hasClassAttr } from '../shared/scoped-styles';
-import type { QElement2, QwikLoaderEventScope, fixMeAny } from '../shared/types';
+import type { HostElement, QElement2, QwikLoaderEventScope, fixMeAny } from '../shared/types';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import type { DomContainer } from './dom-container';
 import {
@@ -87,6 +86,7 @@ import {
   type VNodeJournal,
 } from './vnode';
 import { getNewElementNamespaceData } from './vnode-namespace';
+import { executeComponent2 } from '../shared/component-execution';
 
 export type ComponentQueue = Array<VNode>;
 
@@ -902,7 +902,7 @@ export const vnode_diff = (
 
   function expectComponent(component: Function) {
     const componentMeta = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
-    let host = (vNewNode || vCurrent) as VirtualVNode;
+    let host = (vNewNode || vCurrent) as VirtualVNode | null;
     if (componentMeta) {
       const jsxProps = jsxValue.props;
       // QComponent
@@ -942,31 +942,27 @@ export const vnode_diff = (
         }
       }
 
-      const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
-      shouldRender = shouldRender || propsDiffer(jsxProps, vNodeProps);
-      if (shouldRender) {
-        container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
+      if (host) {
+        const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
+        shouldRender = shouldRender || propsDiffer(jsxProps, vNodeProps);
+        if (shouldRender) {
+          container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
+        }
       }
       jsxValue.children != null && descendContentToProject(jsxValue.children);
     } else {
       // Inline Component
-      if (!host) {
-        // We did not find the component, create it.
-        vnode_insertBefore(
-          journal,
-          vParent as VirtualVNode,
-          (vNewNode = vnode_newVirtual()),
-          vCurrent && getInsertBefore()
-        );
-        host = vNewNode;
-      }
-      isDev &&
-        vnode_setProp(
-          (vNewNode || vCurrent) as VirtualVNode,
-          DEBUG_TYPE,
-          VirtualType.InlineComponent
-        );
-      let component$Host: VNode = host;
+      vnode_insertBefore(
+        journal,
+        vParent as VirtualVNode,
+        (vNewNode = vnode_newVirtual()),
+        vCurrent && getInsertBefore()
+      );
+      isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.InlineComponent);
+      vnode_setProp(vNewNode, ELEMENT_PROPS, jsxValue.propsC);
+
+      host = vNewNode;
+      let component$Host: VNode | null = host;
       // Find the closest component host which has `OnRender` prop.
       while (
         component$Host &&
@@ -974,13 +970,13 @@ export const vnode_diff = (
           ? vnode_getProp(component$Host, OnRenderProp, null) === null
           : true)
       ) {
-        component$Host = vnode_getParent(component$Host)!;
+        component$Host = vnode_getParent(component$Host);
       }
       const jsxOutput = executeComponent2(
         container,
         host,
-        (component$Host || container.rootVNode) as fixMeAny,
-        component as OnRenderFn<any>,
+        (component$Host || container.rootVNode) as HostElement,
+        component as OnRenderFn<unknown>,
         jsxValue.propsC
       );
       asyncQueue.push(jsxOutput, host);
@@ -1102,8 +1098,8 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
   if (!src || !dst) {
     return true;
   }
-  let srcKeys = Object.keys(src);
-  let dstKeys = Object.keys(dst);
+  let srcKeys = removeChildrenKey(Object.keys(src));
+  let dstKeys = removeChildrenKey(Object.keys(dst));
   if (srcKeys.length !== dstKeys.length) {
     return true;
   }
@@ -1117,6 +1113,14 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
     }
   }
   return false;
+}
+
+function removeChildrenKey(keys: string[]): string[] {
+  const childrenIdx = keys.indexOf('children');
+  if (childrenIdx !== -1) {
+    keys.splice(childrenIdx, 1);
+  }
+  return keys;
 }
 
 /**

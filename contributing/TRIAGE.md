@@ -38,7 +38,7 @@ flowchart TD
     maj --YES--> P4[P4: urgent]
     maj --NO--> P3[P3: important]
     unusable --NO--> workarounds{Are there\nworkarounds for\nthe bug?}
-    workarounds --NO--> P2[P2: minor bug]
+    workarounds --NO--> P2[P2: minor]
     workarounds --YES--> P1[P1: nice to have / fix]
 ```
 

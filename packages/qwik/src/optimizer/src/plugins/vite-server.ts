@@ -373,7 +373,7 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDi
     `<script>
       globalThis.qwikdevtools = ${JSON.stringify(qwikdevtools)};
     </script>` +
-    imageDevTools +
+    (opts.imageDevTools ? imageDevTools : '') +
     (opts.clickToSource ? clickToComponent : '')
   );
 };

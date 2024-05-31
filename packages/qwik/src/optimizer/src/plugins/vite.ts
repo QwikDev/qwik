@@ -637,8 +637,16 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     configureServer(server: ViteDevServer) {
-      server.middlewares.use(getImageSizeServer(qwikPlugin.getSys(), rootDir!, srcDir!));
       const devSsrServer = 'devSsrServer' in qwikViteOpts ? qwikViteOpts.devSsrServer : true;
+      const imageDevTools =
+        qwikViteOpts.devTools && 'imageDevTools' in qwikViteOpts.devTools
+          ? qwikViteOpts.devTools.imageDevTools
+          : true;
+
+      if (imageDevTools) {
+        server.middlewares.use(getImageSizeServer(qwikPlugin.getSys(), rootDir!, srcDir!));
+      }
+
       if (!qwikViteOpts.csr && devSsrServer) {
         const plugin = async () => {
           const opts = qwikPlugin.getOptions();
@@ -895,6 +903,13 @@ interface QwikVitePluginCommonOptions {
     | null;
   devTools?: {
     /**
+     * Validates image sizes for CLS issues during development. In case of issues, provides you with
+     * a correct image size resolutions. If set to `false`, image dev tool will be disabled.
+     *
+     * Default `true`
+     */
+    imageDevTools?: boolean | true;
+    /**
      * Press-hold the defined keys to enable qwik dev inspector. By default the behavior is
      * activated by pressing the left or right `Alt` key. If set to `false`, qwik dev inspector will
      * be disabled.
@@ -902,7 +917,7 @@ interface QwikVitePluginCommonOptions {
      * Valid values are `KeyboardEvent.code` values. Please note that the 'Left' and 'Right'
      * suffixes are ignored.
      */
-    clickToSource: string[] | false;
+    clickToSource?: string[] | false;
   };
   /**
    * Predicate function to filter out files from the optimizer. hook for resolveId, load, and

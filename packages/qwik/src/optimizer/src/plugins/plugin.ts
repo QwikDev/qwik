@@ -96,6 +96,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     vendorRoots: [],
     scope: null,
     devTools: {
+      imageDevTools: true,
       clickToSource: ['Alt'],
     },
     inlineStylesUpToBytes: null as any,
@@ -281,6 +282,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     if (typeof updatedOpts.devTools === 'object') {
+      if ('imageDevTools' in updatedOpts.devTools) {
+        opts.devTools.imageDevTools = updatedOpts.devTools.imageDevTools;
+      }
+
       if ('clickToSource' in updatedOpts.devTools) {
         opts.devTools.clickToSource = updatedOpts.devTools.clickToSource;
       }
@@ -948,6 +953,7 @@ const LIB_OUT_DIR = 'lib';
 export const Q_MANIFEST_FILENAME = 'q-manifest.json';
 
 export interface QwikPluginDevTools {
+  imageDevTools?: boolean | true;
   clickToSource?: string[] | false;
 }
 

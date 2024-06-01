@@ -960,6 +960,32 @@ describe.each([
       expect(namespaceURIForSelector('.svg')).toEqual([SVG_NS]);
       expect(namespaceURIForSelector('.math')).toEqual([MATH_NS]);
     });
+
+    it('should render svg with dangerouslySetInnerHTML', async () => {
+      const SvgComp = component$(() => {
+        return (
+          <svg
+            viewBox="0 0 100 100"
+            xmlns="http://www.w3.org/2000/svg"
+            dangerouslySetInnerHTML='<circle cx="50" cy="50" r="50"></circle><path d="M10 10"></path><path d="M20 20"></path>'
+          ></svg>
+        );
+      });
+      const { vNode, document } = await render(<SvgComp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          {/* @ts-ignore-next-line */}
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:container="html"></svg>
+        </Component>
+      );
+      await expect(document.querySelector('svg')).toMatchDOM(
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="50" />
+          <path d="M10 10" />
+          <path d="M20 20" />
+        </svg>
+      );
+    });
   });
 
   describe('math', () => {

@@ -1,4 +1,5 @@
 import { HTML_NS, MATH_NS, SVG_NS } from '../../util/markers';
+import { getDomContainerFromQContainerElement } from './dom-container';
 import {
   ElementVNodeProps,
   TextVNodeProps,
@@ -9,6 +10,7 @@ import {
 } from './types';
 import {
   ensureElementVNode,
+  shouldIgnoreChildren,
   vnode_getDOMChildNodes,
   vnode_getDomParentVNode,
   vnode_getElementName,
@@ -128,9 +130,11 @@ function vnode_cloneElementWithNamespace(
   let rootElement: Element | null = null;
   let parentElement: Element | null = null;
   while (vCursor) {
+    let childElement: Element | null = null;
+    let newChildElement: Element | null = null;
     if (vnode_isElementVNode(vCursor)) {
       // Clone the element
-      const childElement = vCursor[ElementVNodeProps.element] as Element;
+      childElement = vCursor[ElementVNodeProps.element] as Element;
       const childElementTag = vnode_getElementName(vCursor);
 
       // We need to check if the parent is a foreignObject element
@@ -150,7 +154,7 @@ function vnode_cloneElementWithNamespace(
         namespaceFlag = namespaceData.elementNamespaceFlag;
       }
 
-      const newChildElement = cloneElementWithNamespace(childElement, childElementTag, namespace);
+      newChildElement = cloneElementWithNamespace(childElement, childElementTag, namespace);
 
       childElement.remove();
 
@@ -160,7 +164,6 @@ function vnode_cloneElementWithNamespace(
       if (parentElement) {
         parentElement.appendChild(newChildElement);
       }
-      parentElement = newChildElement;
 
       // Descend into children
       // We need first get the first child, if any
@@ -173,7 +176,21 @@ function vnode_cloneElementWithNamespace(
       vCursor[VNodeProps.flags] |= namespaceFlag;
       if (vFirstChild) {
         vCursor = vFirstChild;
+        parentElement = newChildElement;
         continue;
+      } else if (shouldIgnoreChildren(childElement)) {
+        // If we should ignore children of the element this means that the element is a container
+        // We need to get the first child of the container
+        const container = getDomContainerFromQContainerElement(childElement);
+
+        if (container) {
+          const innerContainerFirstVNode = vnode_getFirstChild(container.rootVNode);
+          if (innerContainerFirstVNode) {
+            vCursor = innerContainerFirstVNode;
+            parentElement = newChildElement;
+            continue;
+          }
+        }
       }
     }
     if (vCursor === elementVNode) {

@@ -1209,7 +1209,7 @@ const ensureMaterialized = (vnode: ElementVNode): VNode | null => {
 };
 
 let _fastHasAttribute: ((this: Element, key: string) => boolean) | null = null;
-const shouldIgnoreChildren = (node: Element): boolean => {
+export const shouldIgnoreChildren = (node: Element): boolean => {
   if (!_fastHasAttribute) {
     _fastHasAttribute = node.hasAttribute;
   }
@@ -1229,7 +1229,7 @@ const fastIsTextOrElement = (node: Node): boolean => {
 };
 
 let _fastNextSibling: ((this: Node) => Node | null) | null = null;
-const fastNextSibling = (node: Node | null): Node | null => {
+export const fastNextSibling = (node: Node | null): Node | null => {
   if (!_fastNextSibling) {
     _fastNextSibling = fastGetter<typeof _fastNextSibling>(node, 'nextSibling')!;
   }

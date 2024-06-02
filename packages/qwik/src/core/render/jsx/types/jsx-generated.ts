@@ -626,10 +626,15 @@ type SpecialAttrs = {
     referrerPolicy?: HTMLAttributeReferrerPolicy | undefined;
     sizes?: string | undefined;
     type?: string | undefined;
+    /** @deprecated Use `charset` instead */
     charSet?: string | undefined;
+    charset?: string | undefined;
     children?: undefined;
   };
   meta: {
+    /** @deprecated Use `charset` instead */
+    charSet?: 'utf-8' | undefined;
+    /** Qwik only supports utf-8 */
     charset?: 'utf-8' | undefined;
     children?: undefined;
   };

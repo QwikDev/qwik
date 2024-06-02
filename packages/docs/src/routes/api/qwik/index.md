@@ -1855,6 +1855,10 @@ The name of the context.
 
 ## createSignal
 
+> Warning: This API is now obsolete.
+>
+> this is a technology preview
+
 Creates a signal.
 
 If the initial state is a function, the function is invoked to calculate the actual initial state.
@@ -10188,6 +10192,10 @@ qrl
 
 ## useConstant
 
+> Warning: This API is now obsolete.
+>
+> this is a technology preview
+
 Stores a value which is retained for the lifetime of the component.
 
 If the value is a function, the function is invoked to calculate the actual value.
@@ -10647,7 +10655,9 @@ This method works like an async memoized function that runs whenever some tracke
 
 The status can be one of the following:
 
-- 'pending' - the data is not yet available. - 'resolved' - the data is available. - 'rejected' - the data is not available due to an error or timeout.
+- `pending` - the data is not yet available. - `resolved` - the data is available. - `rejected` - the data is not available due to an error or timeout.
+
+Avoid using a `try/catch` statement in `useResource$`. If you catch the error instead of passing it, the resource status will never be `rejected`.
 
 ### Example
 

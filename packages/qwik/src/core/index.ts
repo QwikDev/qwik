@@ -28,7 +28,8 @@ export type {
 // Internal Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
 export { $, sync$, _qrlSync, type SyncQRL } from './qrl/qrl.public';
-export { event$, eventQrl } from './qrl/qrl.public';
+export { eventQrl } from './qrl/qrl.public';
+export { event$ } from './qrl/qrl.public.dollar';
 
 export { qrl, inlinedQrl, inlinedQrlDEV, qrlDEV } from './qrl/qrl';
 export type { QRL, PropFunction, PropFnInterface } from './qrl/qrl.public';
@@ -120,9 +121,8 @@ export type {
 } from './use/use-task';
 export type { ResourceProps, ResourceOptions } from './use/use-resource';
 export { useResource$, useResourceQrl, Resource } from './use/use-resource';
-export { useTask$, useTaskQrl } from './use/use-task';
-export { useVisibleTask$, useVisibleTaskQrl } from './use/use-task';
-export { useComputed$, useComputedQrl } from './use/use-task';
+export { useTaskQrl, useVisibleTaskQrl, useComputedQrl } from './use/use-task';
+export { useComputed$, useTask$, useVisibleTask$ } from './use/use-task-dollar';
 export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './render/error-handling';
 

@@ -39,7 +39,7 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
 
       const isCredentials = providerId === 'credentials';
 
-      const auth = await getAuthOptions(authOptions, req);
+      const auth = await patchAuthOptions(authOptions, req);
       const body = new URLSearchParams({ callbackUrl: callbackUrl as string });
       Object.entries(rest).forEach(([key, value]) => {
         body.set(key, String(value));
@@ -80,7 +80,7 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
   const useAuthSignout = globalAction$(
     async ({ callbackUrl }, req) => {
       callbackUrl ??= defaultCallbackURL(req);
-      const auth = await getAuthOptions(authOptions, req);
+      const auth = await patchAuthOptions(authOptions, req);
       const body = new URLSearchParams({ callbackUrl });
       await authAction(body, req, `/api/auth/signout`, auth);
     },
@@ -99,7 +99,7 @@ export function serverAuthQrl(authOptions: QRL<(ev: RequestEventCommon) => QwikA
 
       const action = req.url.pathname.slice(prefix.length + 1).split('/')[0] as AuthAction;
 
-      const auth = await getAuthOptions(authOptions, req);
+      const auth = await patchAuthOptions(authOptions, req);
       if (actions.includes(action) && req.url.pathname.startsWith(prefix + '/')) {
         // Casting to `Response` because, something is off with the types in `@auth/core` here:
         // Without passing `raw`, it should know it's supposed to return a `Response` object, but it doesn't.
@@ -224,7 +224,7 @@ async function getSessionData(req: Request, options: AuthConfig): GetSessionResu
   throw new Error(data.message);
 }
 
-const getAuthOptions = async (
+const patchAuthOptions = async (
   authOptions: QRL<(ev: RequestEventCommon) => QwikAuthConfig>,
   req: RequestEventCommon
 ) => {

@@ -59,14 +59,32 @@ class Signal2<T = any> implements ISignal2<T> {
    *
    * An effect is work which needs to be done when the signal changes.
    *
-   * 1. `Task` - A task which needs to be re-run.
+   * 1. `Task` - A task which needs to be re-run. For example a `useTask` or `useResource`, etc...
    * 2. `VNode` - A component or Direct DOM update. (Look at the VNode attributes to determine if it is
    *    a Component or VNode signal target)
+   * 3. `Signal2` - A derived signal which needs to be re-computed. A derived signal gets marked as
+   *    dirty synchronously, but the computation is lazy.
+   *
+   * `Task` and `VNode` are leaves in a tree, where as `Signal2` is a node in a tree. When
+   * processing a change in a signal, the leaves (`Task` and `VNode`) are scheduled for execution,
+   * where as the Nodes (`Signal2`) are synchronously recursed into and marked as dirty.
    */
   private $effects$: null | Array<Task | VNode | Signal2> = null;
 
-  /** If this signal is computed, then compute function is stored here. */
+  /**
+   * If this signal is computed, then compute function is stored here.
+   *
+   * The computed functions must be executed synchronously (because of this we need to eagerly
+   * resolve the QRL during the mark dirty phase so that any call to it will be synchronous). )
+   */
   private $computeQrl$: null | QRLInternal<() => T>;
+
+  /**
+   * The execution context when the signal was being created.
+   *
+   * The context contains the scheduler and the subscriber, and is used by the derived signal to
+   * capture dependencies.
+   */
   private $context$: InvokeContext | undefined;
 
   constructor(value: T, computeTask: QRLInternal<() => T> | null) {
@@ -113,12 +131,12 @@ class Signal2<T = any> implements ISignal2<T> {
         assertDefined(subscriber.$computeQrl$, 'Expecting ComputedSignal');
         // Special case of a computed signal.
         subscriber.$untrackedValue$ = NEEDS_COMPUTATION;
-        const resolved = subscriber.$computeQrl$.getFn();
-        // TODO(mhevery): This needs to be added to the scheduler to make sure
-        // that we don't try to read the computed signal until it has been resolved.
-        // scheduler(ChoreType.QRL_RESOLVE, resolved);
+        const qrl = subscriber.$computeQrl$!;
+        if (!qrl.resolved) {
+          const resolved = subscriber.$computeQrl$.resolve();
+          this.$context$?.$container2$?.$scheduler$(ChoreType.QRL_RESOLVE, null, null, resolved);
+        }
         target = subscriber;
-        DEBUG && log('Should schedule', resolved);
       } else {
         target = subscriber[1] as Task;
         assertTrue(isTask(target), 'Invalid subscriber.');

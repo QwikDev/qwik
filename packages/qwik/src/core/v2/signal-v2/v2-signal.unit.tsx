@@ -51,15 +51,10 @@ describe('v2-signal', () => {
         const a = createSignal2(2);
         const b = createSignal2(10);
         await retry(() => {
-          const signal = createComputed2$(() => {
-            return a.value + b.value;
-          });
+          const signal = createComputed2$(() => a.value + b.value);
           expect((signal as any).$untrackedValue$).toEqual(12);
           expect(signal.value).toEqual(12);
-          effect$(() => {
-            console.log('TEST effect.signal', signal.value);
-            log.push(signal.value);
-          });
+          effect$(() => log.push(signal.value));
           expect(log).toEqual([12]);
           a.value++;
           b.value += 10;

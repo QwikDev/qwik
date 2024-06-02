@@ -65,7 +65,7 @@ export const FooterLinks = component$(() => {
       {linkColumns.map((column, colIndex) => (
         <div key={colIndex} class="flex flex-col gap-4 flex-1">
           {column.map((link, linkIndex) => (
-            <a key={linkIndex} class="hover:text-interactive-blue" href={link.href}>
+            <a key={linkIndex} class="hover:text-interactive-blue z-[10]" href={link.href}>
               {link.title}
             </a>
           ))}

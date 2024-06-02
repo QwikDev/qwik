@@ -15,10 +15,10 @@
 import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
-import { SubscriptionType } from '../../state/common';
-import { invoke, tryGetInvokeContext, type InvokeContext } from '../../use/use-core';
+import { tryGetInvokeContext, type InvokeContext } from '../../use/use-core';
 import { Task, isTask } from '../../use/use-task';
 import { isPromise } from '../../util/promises';
+import { qDev } from '../../util/qdev';
 import type { VNode } from '../client/types';
 import { ChoreType } from '../shared/scheduler';
 import type { Signal2 as ISignal2 } from './v2-signal.public';
@@ -42,7 +42,7 @@ export const createSignal2 = (value?: any) => {
 
 // TODO(mhevery): this should not be a public API.
 export const createComputedSignal2 = <T>(qrl: QRL<() => T>) => {
-  const signal = new Signal2(NEEDS_COMPUTATION, qrl);
+  const signal = new Signal2(NEEDS_COMPUTATION, qrl as QRLInternal<() => T>);
   signal.untrackedValue; // trigger computation
   return signal;
 };
@@ -96,6 +96,7 @@ class Signal2<T = any> implements ISignal2<T> {
           ctx && (ctx.$subscriber$ = previousSubscriber);
         }
         assertFalse(isPromise(untrackedValue), 'Computed function must be synchronous.');
+        DEBUG && log('Signal.computed', untrackedValue);
         this.$untrackedValue$ = untrackedValue;
       }
     }
@@ -125,7 +126,7 @@ class Signal2<T = any> implements ISignal2<T> {
       const effects = this.$effects$ || (this.$effects$ = []);
       const existingIdx = effects.indexOf(target);
       if (existingIdx === -1) {
-        DEBUG && log('Signal.subscribe', isSignal2(target) ? 'Signal2' : 'Task', target);
+        DEBUG && log('Signal.subscribe', isSignal2(target) ? 'Signal2' : 'Task', String(target));
         this.$effects$?.push(target);
       }
     }
@@ -139,10 +140,11 @@ class Signal2<T = any> implements ISignal2<T> {
       if (this.$effects$ && this.$context$) {
         const scheduler = this.$context$.$container2$!.$scheduler$;
         const scheduleEffect = (effect: VNode | Task | Signal2) => {
-          DEBUG && log('  effect', effect);
+          DEBUG && log('       schedule.effect', String(effect));
           if (isTask(effect)) {
             scheduler(ChoreType.TASK, effect);
           } else if (effect instanceof Signal2) {
+            effect.$untrackedValue$ = NEEDS_COMPUTATION;
             effect.$effects$?.forEach(scheduleEffect);
           } else {
             throw new Error('Not implemented');
@@ -153,3 +155,8 @@ class Signal2<T = any> implements ISignal2<T> {
     }
   }
 }
+
+qDev &&
+  (Signal2.prototype.toString = () => {
+    return 'Signal2';
+  });

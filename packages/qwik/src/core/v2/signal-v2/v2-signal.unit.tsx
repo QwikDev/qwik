@@ -52,15 +52,17 @@ describe('v2-signal', () => {
         const b = createSignal2(10);
         await retry(() => {
           const signal = createComputed2$(() => {
-            debugger;
             return a.value + b.value;
           });
           expect((signal as any).$untrackedValue$).toEqual(12);
           expect(signal.value).toEqual(12);
-          effect$(() => log.push(signal.value));
+          effect$(() => {
+            console.log('TEST effect.signal', signal.value);
+            log.push(signal.value);
+          });
           expect(log).toEqual([12]);
           a.value++;
-          b.value++;
+          b.value += 10;
           expect(log).toEqual([12]);
         });
         await flushSignals();
@@ -77,6 +79,7 @@ describe('v2-signal', () => {
   }
 
   function flushSignals() {
+    console.log('flushSignals()');
     return container.$scheduler$(ChoreType.WAIT_FOR_ALL);
   }
 });

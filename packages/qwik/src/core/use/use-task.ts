@@ -26,7 +26,6 @@ import {
   type Signal,
   type SignalInternal,
 } from '../state/signal';
-import { implicit$FirstArg } from '../util/implicit_dollar';
 import { logError, logErrorAndStop } from '../util/log';
 import { ComputedEvent, TaskEvent } from '../util/markers';
 import { delay, isPromise, maybeThen, safeCall } from '../util/promises';

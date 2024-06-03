@@ -1,5 +1,4 @@
 use crate::transform::HookData;
-use crate::words::*;
 use crate::{parse::PathData, transform::HookKind};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -9,7 +8,6 @@ use lazy_static::lazy_static;
 
 lazy_static! {
 	static ref ENTRY_HOOKS: JsWord = JsWord::from("entry_hooks");
-	static ref ENTRY_SERVER: JsWord = JsWord::from("entry_server");
 }
 
 // EntryStrategies
@@ -161,9 +159,6 @@ impl EntryPolicy for SmartStrategy {
 			&& (hook_data.ctx_kind != HookKind::Function || &hook_data.ctx_name == "event$")
 		{
 			return None;
-		}
-		if hook_data.ctx_name == *USE_SERVER_MOUNT {
-			return Some(ENTRY_SERVER.clone());
 		}
 		if let Some(map) = &self.map {
 			let entry = map.get(hash);

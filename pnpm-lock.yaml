@@ -7,6 +7,7 @@ settings:
 overrides:
   typescript: 5.4.5
   vfile: ^6.0.1
+  sharp: '>=0.33'
   '@supabase/realtime-js': 2.8.4
 
 patchedDependencies:
@@ -7176,9 +7177,6 @@ packages:
     resolution: {integrity: sha512-uPEjtyh2tFEvWYt4Jw7McOD5FPcHkcxm/tHZc5PWaDB3JYq0rGFUbgaAK+CT5pYpQddBfsZVWI08OwoRfdfbcQ==}
     engines: {node: '>=10'}
 
-  node-addon-api@6.1.0:
-    resolution: {integrity: sha512-+eawOlIgy680F0kBzPUNFhMZGtJ1YmqM6l4+Crf4IkImjYrO/mqPwRMh352g23uIaQKFItcQ64I7KMaJxHgAVA==}
-
   node-addon-api@7.1.0:
     resolution: {integrity: sha512-mNcltoe1R8o7STTegSOHdnJNN7s5EUvhoS7ShnTHDyOSd+8H+UdWODq6qSv67PjC8Zc5JRT8+oLAMCr0SIXw7g==}
     engines: {node: ^16 || ^18 || >= 20}
@@ -8427,10 +8425,6 @@ packages:
 
   setprototypeof@1.2.0:
     resolution: {integrity: sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==}
-
-  sharp@0.32.6:
-    resolution: {integrity: sha512-KyLTWwgcR9Oe4d9HwCwNM2l7+J0dUQwn/yf7S0EnTtb0eVS4RxO0eUSvxPtzT4F3SY+C4K6fqdv/DO27sJ/v/w==}
-    engines: {node: '>=14.15.0'}
 
   sharp@0.33.2:
     resolution: {integrity: sha512-WlYOPyyPDiiM07j/UO+E720ju6gtNtHjEGg5vovUk1Lgxyjm2LFO+37Nt/UI3MMh2l6hxTWQWi7qk3cXJTutcQ==}
@@ -15570,7 +15564,7 @@ snapshots:
       listhen: 1.6.0
       ofetch: 1.3.3
       pathe: 1.1.2
-      sharp: 0.32.6
+      sharp: 0.33.2
       svgo: 3.2.0
       ufo: 1.4.0
       unstorage: 1.10.1(@netlify/blobs@7.3.0)
@@ -17184,8 +17178,6 @@ snapshots:
     dependencies:
       semver: 7.6.0
 
-  node-addon-api@6.1.0: {}
-
   node-addon-api@7.1.0: {}
 
   node-domexception@1.0.0: {}
@@ -18558,17 +18550,6 @@ snapshots:
       split-string: 3.1.0
 
   setprototypeof@1.2.0: {}
-
-  sharp@0.32.6:
-    dependencies:
-      color: 4.2.3
-      detect-libc: 2.0.2
-      node-addon-api: 6.1.0
-      prebuild-install: 7.1.1
-      semver: 7.6.0
-      simple-get: 4.0.1
-      tar-fs: 3.0.5
-      tunnel-agent: 0.6.0
 
   sharp@0.33.2:
     dependencies:

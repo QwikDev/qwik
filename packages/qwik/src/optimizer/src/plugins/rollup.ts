@@ -175,6 +175,11 @@ export function normalizeRollupOutputOptions(
     : // use the existing rollupOutputOpts object or create a new one
       [rollupOutputOpts || {}];
 
+  // make sure at least one output is present in every case
+  if (!outputOpts.length) {
+    outputOpts.push({});
+  }
+
   return outputOpts.map((outputOptsObj) =>
     normalizeRollupOutputOptionsObject(path, opts, outputOptsObj)
   );

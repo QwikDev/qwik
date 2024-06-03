@@ -490,7 +490,7 @@ jobs:
             packages/qwik-labs/vite/
             packages/qwik-labs/package.json
           if-no-files-found: error
-      - run: pnpx pkg-pr-new publish --compact ./packages/qwik/dist ./packages/qwik-city/lib dist-dev-eslint-plugin-qwik dist-dev-create-qwik
+      - run: pnpm dlx pkg-pr-new@0.0.6 publish --compact ./packages/qwik/dist ./packages/qwik-city/lib dist-dev-eslint-plugin-qwik dist-dev-create-qwik
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

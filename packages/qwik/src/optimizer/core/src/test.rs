@@ -1548,7 +1548,7 @@ export const STYLES = ".red { color: red; }";
 fn example_use_server_mount() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useServerMount$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useTask$, useStore, useStyles$ } from '@builder.io/qwik';
 import mongo from 'mongodb';
 import redis from 'redis';
 
@@ -1558,7 +1558,7 @@ export const Parent = component$(() => {
     });
 
     // Double count watch
-    useServerMount$(async () => {
+    useTask$(async () => {
         state.text = await mongo.users();
         redis.set(state.text);
     });
@@ -1576,7 +1576,7 @@ export const Child = component$(() => {
     });
 
     // Double count watch
-    useServerMount$(async () => {
+    useTask$(async () => {
         state.text = await mongo.users();
     });
 
@@ -1709,7 +1709,8 @@ export default component$(()=> {
 fn example_strip_server_code() {
 	test_input!(TestInput {
         code: r#"
-import { component$, useServerMount$, serverLoader$, serverStuff$, $, client$, useStore, useTask$ } from '@builder.io/qwik';
+import { component$, serverLoader$, serverStuff$, $, client$, useStore, useTask$ } from '@builder.io/qwik';
+import { isServer } from '@builder.io/qwik/build';
 import mongo from 'mongodb';
 import redis from 'redis';
 import { handler } from 'serverless';
@@ -1720,7 +1721,8 @@ export const Parent = component$(() => {
     });
 
     // Double count watch
-    useServerMount$(async () => {
+    useTask$(async () => {
+        if (!isServer) return;
         state.text = await mongo.users();
         redis.set(state.text);
     });
@@ -1753,7 +1755,7 @@ export const Parent = component$(() => {
         transpile_ts: true,
         transpile_jsx: true,
         entry_strategy: EntryStrategy::Hook,
-        strip_ctx_name: Some(vec!["useServerMount$".into(), "server".into()]),
+        strip_ctx_name: Some(vec!["server".into()]),
         ..TestInput::default()
     });
 }
@@ -3306,7 +3308,7 @@ import mongo from 'mongodb';
 
 export const Greeter = component$(() => {
     // Double count watch
-    useServerMount$(async () => {
+    useTask$(async () => {
         await mongo.users();
     });
     return (

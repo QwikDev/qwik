@@ -37,6 +37,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Header",
   "hash": "WjUaUQN7Oxg",
   "canonicalFilename": "header_wjuauqn7oxg",
+  "path": "",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",

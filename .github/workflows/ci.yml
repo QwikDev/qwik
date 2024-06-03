@@ -159,7 +159,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  ############ BUILD WASM ############
+  ############ BUILD WASM #############
   build-wasm:
     name: Build WASM
     runs-on: ubuntu-latest

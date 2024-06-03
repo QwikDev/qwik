@@ -1172,13 +1172,13 @@ import { $, component$ } from '@builder.io/qwik';
 import thing from "../state";
 
 export function foo() {
-    return import("../state")
+    return import("../foo/state2")
 }
 
 export const Header = component$(() => {
     return (
         <div>
-            {import("../state")}
+            {import("../folder/state3")}
             {thing}
         </div>
     );

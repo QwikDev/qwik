@@ -3,8 +3,7 @@ use swc_common::errors::DiagnosticId;
 pub enum Error {
 	FunctionReference = 2,
 	CanNotCapture,
-	DynamicImportInsideQhook,
-	MissingQrlImplementation,
+	MissingQrlImplementation = 5,
 }
 
 pub fn get_diagnostic_id(err: Error) -> DiagnosticId {

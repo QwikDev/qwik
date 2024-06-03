@@ -30,7 +30,7 @@ export const Header = component$(() => {
 
 export const Footer = component$();
 
-============================= header_component_uvbjufyfvdo.jsx (ENTRY POINT)==
+============================= project/header_component_uvbjufyfvdo.jsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 export const Header_component_UVBJuFYfvDo = ()=>{
@@ -47,6 +47,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   "displayName": "Header_component",
   "hash": "UVBJuFYfvDo",
   "canonicalFilename": "header_component_uvbjufyfvdo",
+  "path": "project",
   "extension": "jsx",
   "parent": null,
   "ctxKind": "function",
@@ -70,25 +71,25 @@ export function foo() {}
 export class bar {
 }
 export default function DefaultFn() {}
-export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("../header_component_uvbjufyfvdo"), "Header_component_UVBJuFYfvDo"));
+export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./header_component_uvbjufyfvdo"), "Header_component_UVBJuFYfvDo"));
 export const Footer = /*#__PURE__*/ componentQrl();
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,CAAC,GAAG,EAAC,EAAC,EAAE,IAAI,CAAC,EAAE,CAAA,EAAE,GAAE,GAAE,EAAE,GAAG,GAAE,EAAE,IAAE,EAAE,EAAE,GAAG,EAAE,GAAG,IAAI;AAE7D,MAAM,OAAO;AACb,MAAM,WAAW;AACjB,SAAQ,IAAI,EAAE,YAAY,KAAK,GAAE;AAEjC,OAAO,SAAS,MAAM,CAAE,CAAC;AACzB,OAAO,MAAM;AAAK,CAAC;AAEnB,eAAe,SAAS,YAAY,CAAC,CAAC;AAEtC,OAAO,MAAM,uBAAS,+GAOnB;AAEH,OAAO,MAAM,uBAAS,eAAa\"}")
-============================= header_component_1_uwm1kg0igo0.jsx (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,CAAC,GAAG,EAAC,EAAC,EAAE,IAAI,CAAC,EAAE,CAAA,EAAE,GAAE,GAAE,EAAE,GAAG,GAAE,EAAE,IAAE,EAAE,EAAE,GAAG,EAAE,GAAG,IAAI;AAE7D,MAAM,OAAO;AACb,MAAM,WAAW;AACjB,SAAQ,IAAI,EAAE,YAAY,KAAK,GAAE;AAEjC,OAAO,SAAS,MAAM,CAAE,CAAC;AACzB,OAAO,MAAM;AAAK,CAAC;AAEnB,eAAe,SAAS,YAAY,CAAC,CAAC;AAEtC,OAAO,MAAM,uBAAS,8GAOnB;AAEH,OAAO,MAAM,uBAAS,eAAa\"}")
+============================= project/header_component_1_uwm1kg0igo0.jsx (ENTRY POINT)==
 
-import { default as DefaultFn } from "./project/test";
-import { Footer } from "./project/test";
-import { a } from "./project/test";
-import { b } from "./project/test";
-import { bar } from "./project/test";
-import { c } from "./project/test";
-import { d } from "./project/test";
-import { e } from "./project/test";
-import { exp1 } from "./project/test";
-import { f } from "./project/test";
-import { foo } from "./project/test";
-import { expr2 as internal } from "./project/test";
+import { default as DefaultFn } from "./test";
+import { Footer } from "./test";
+import { a } from "./test";
+import { b } from "./test";
+import { bar } from "./test";
+import { c } from "./test";
+import { d } from "./test";
+import { e } from "./test";
+import { exp1 } from "./test";
+import { f } from "./test";
+import { foo } from "./test";
+import { expr2 as internal } from "./test";
 export const Header_component_1_uWM1kg0IGO0 = ()=><Footer>
 
             <div>{a}{b}{c}{d}{e}{f}{exp1}{internal}{foo}{bar}{DefaultFn}</div>
@@ -108,6 +109,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   "displayName": "Header_component_1",
   "hash": "uWM1kg0IGO0",
   "canonicalFilename": "header_component_1_uwm1kg0igo0",
+  "path": "project",
   "extension": "jsx",
   "parent": "Header_component_UVBJuFYfvDo",
   "ctxKind": "function",

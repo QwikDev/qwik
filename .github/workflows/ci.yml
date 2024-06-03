@@ -102,7 +102,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4.0.2
@@ -170,7 +170,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
       - name: Setup Node
@@ -263,7 +263,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
       - name: Setup Node
@@ -330,7 +330,7 @@ jobs:
         if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
         uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
         if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
 
       - name: Setup Node
@@ -363,7 +363,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4.0.2
@@ -407,7 +407,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
       - name: Setup Node
@@ -509,7 +509,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4.0.2
@@ -592,7 +592,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
       - name: Setup Node ${{ matrix.settings.node }}
@@ -653,7 +653,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4.0.2
@@ -749,7 +749,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4.0.2

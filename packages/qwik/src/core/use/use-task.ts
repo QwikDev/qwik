@@ -1,4 +1,4 @@
-import { newInvokeContext, invoke, waitAndRun, untrack } from './use-core';
+import { newInvokeContext, invoke, waitAndRun, untrack, useInvokeContext } from './use-core';
 import { logError, logErrorAndStop } from '../util/log';
 import { delay, safeCall, maybeThen } from '../util/promises';
 import { isFunction, isObject, type ValueOrPromise } from '../util/types';
@@ -33,6 +33,8 @@ import {
 } from '../state/signal';
 import { QObjectManagerSymbol } from '../state/constants';
 import { ComputedEvent, TaskEvent } from '../util/markers';
+import { getContext } from '../state/context';
+import { useConstant } from './use-signal';
 
 export const TaskFlagsIsVisibleTask = 1 << 0;
 export const TaskFlagsIsTask = 1 << 1;
@@ -296,22 +298,13 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
   }
 };
 
-interface ComputedQRL {
-  <T>(qrl: QRL<ComputedFn<T>>): ReadonlySignal<Awaited<T>>;
-}
-
-interface Computed {
-  <T>(qrl: ComputedFn<T>): ReadonlySignal<Awaited<T>>;
-}
-
 /** @public */
-export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<Awaited<T>> => {
-  const { val, set, iCtx, i, elCtx } = useSequentialScope<Signal<Awaited<T>>>();
-  if (val) {
-    return val;
-  }
+export const createComputedQrl = <T>(qrl: QRL<ComputedFn<T>>): Signal<Awaited<T>> => {
   assertQrl(qrl);
+  const iCtx = useInvokeContext();
+  const hostElement = iCtx.$hostElement$;
   const containerState = iCtx.$renderCtx$.$static$.$containerState$;
+  const elCtx = getContext(hostElement, containerState);
   const signal = _createSignal(
     undefined as Awaited<T>,
     containerState,
@@ -321,23 +314,36 @@ export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<
 
   const task = new Task(
     TaskFlagsIsDirty | TaskFlagsIsTask | TaskFlagsIsComputed,
-    i,
+    // Computed signals should update immediately
+    0,
     elCtx.$element$,
     qrl,
     signal
   );
   qrl.$resolveLazy$(containerState.$containerEl$);
-  if (!elCtx.$tasks$) {
-    elCtx.$tasks$ = [];
-  }
-  elCtx.$tasks$.push(task);
+  (elCtx.$tasks$ ||= []).push(task);
 
   waitAndRun(iCtx, () => runComputed(task, containerState, iCtx.$renderCtx$));
-  return set(signal);
+  return signal as ReadonlySignal<Awaited<T>>;
+};
+/** @public */
+export const useComputedQrl = <T>(qrl: QRL<ComputedFn<T>>): Signal<Awaited<T>> => {
+  return useConstant(() => createComputedQrl(qrl));
 };
 
-/** @public */
-export const useComputed$: Computed = implicit$FirstArg(useComputedQrl);
+/**
+ * Hook that returns a read-only signal that updates when signals used in the `ComputedFn` change.
+ *
+ * @public
+ */
+export const useComputed$ = implicit$FirstArg(useComputedQrl);
+/**
+ * Returns read-only signal that updates when signals used in the `ComputedFn` change. Unlike
+ * useComputed$, this is not a hook and it always creates a new signal.
+ *
+ * @public
+ */
+export const createComputed$ = implicit$FirstArg(createComputedQrl);
 
 // <docs markdown="../readme.md#useTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

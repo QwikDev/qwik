@@ -47,7 +47,7 @@ test('command: serve, mode: development', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = qwikVite(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c = (await plugin.config({}, { command: 'serve', mode: 'development' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
@@ -80,7 +80,7 @@ test('command: serve, mode: production', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = qwikVite(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c = (await plugin.config({}, { command: 'serve', mode: 'production' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
@@ -114,7 +114,7 @@ test('command: build, mode: development', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = qwikVite(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c = (await plugin.config({}, { command: 'build', mode: 'development' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
@@ -151,7 +151,7 @@ test('command: build, mode: production', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = qwikVite(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c = (await plugin.config({}, { command: 'build', mode: 'production' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
@@ -194,7 +194,7 @@ test('command: build, --mode production (client)', async () => {
     },
   };
 
-  const plugin = qwikVite(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c: any = (await plugin.config({}, { command: 'build', mode: 'production' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
@@ -212,7 +212,7 @@ test('command: build, --ssr entry.server.tsx', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = qwikVite(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c = (await plugin.config(
     { build: { ssr: resolve(cwd, 'src', 'entry.server.tsx') } },
     { command: 'build', mode: '' }
@@ -255,7 +255,7 @@ test('command: serve, --mode ssr', async () => {
       outDir: resolve(cwd, 'ssr-dist'),
     },
   };
-  const plugin = qwikVite(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c: any = (await plugin.config(
     { build: { emptyOutDir: true } },
     { command: 'serve', mode: 'ssr' }
@@ -283,7 +283,7 @@ test('command: serve, --mode ssr with build.assetsDir', async () => {
       outDir: resolve(cwd, 'ssr-dist'),
     },
   };
-  const plugin = qwikVite(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c: any = (await plugin.config(
     { build: { emptyOutDir: true, assetsDir: 'my-assets-dir' } },
     { command: 'serve', mode: 'ssr' }
@@ -307,7 +307,7 @@ test('should use build.assetsDir config with dist/ fallback', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = qwikVite(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c: any = (await plugin.config(
     { build: { assetsDir: 'my-assets-dir/' } },
     { command: 'serve', mode: 'ssr' }
@@ -320,7 +320,7 @@ test('should use build.outDir and build.assetsDir config ', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = qwikVite(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c: any = (await plugin.config(
     { build: { outDir: 'my-dist/', assetsDir: 'my-assets-dir' } },
     { command: 'serve', mode: 'ssr' }
@@ -333,7 +333,7 @@ test('command: build, --mode lib', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = qwikVite(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c: any = (await plugin.config(
     {
       build: {

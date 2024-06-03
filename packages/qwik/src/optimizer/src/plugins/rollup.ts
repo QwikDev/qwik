@@ -69,7 +69,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     },
 
     outputOptions(rollupOutputOpts) {
-      return normalizeRollupOutputOptions(
+      return normalizeRollupOutputOptionsObject(
         qwikPlugin.getPath(),
         qwikPlugin.getOptions(),
         rollupOutputOpts
@@ -168,59 +168,75 @@ export function normalizeRollupOutputOptions(
   path: Path,
   opts: NormalizedQwikPluginOptions,
   rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined
-) {
-  const outputOpts: Rollup.OutputOptions = {};
-  if (rollupOutputOpts && !Array.isArray(rollupOutputOpts)) {
-    Object.assign(outputOpts, rollupOutputOpts);
-  }
-  if (!outputOpts.assetFileNames) {
-    outputOpts.assetFileNames = 'build/q-[hash].[ext]';
+): Rollup.OutputOptions[] {
+  const outputOpts: Rollup.OutputOptions[] = rollupOutputOpts
+    ? // fill the `outputOpts` array with the existing option entries
+      Array.isArray(rollupOutputOpts)
+      ? rollupOutputOpts
+      : [rollupOutputOpts]
+    : // if there are no existing option entries, create a single new option entry
+      [{}];
+
+  return outputOpts.map((outputOptsObj) =>
+    normalizeRollupOutputOptionsObject(path, opts, outputOptsObj)
+  );
+}
+
+export function normalizeRollupOutputOptionsObject(
+  path: Path,
+  opts: NormalizedQwikPluginOptions,
+  rollupOutputOptsObj: Rollup.OutputOptions | undefined
+): Rollup.OutputOptions {
+  const outputOptsObj: Rollup.OutputOptions = { ...rollupOutputOptsObj };
+
+  if (!outputOptsObj.assetFileNames) {
+    outputOptsObj.assetFileNames = 'build/q-[hash].[ext]';
   }
   if (opts.target === 'client') {
     // client output
 
     if (opts.buildMode === 'production') {
       // client production output
-      if (!outputOpts.entryFileNames) {
-        outputOpts.entryFileNames = 'build/q-[hash].js';
+      if (!outputOptsObj.entryFileNames) {
+        outputOptsObj.entryFileNames = 'build/q-[hash].js';
       }
-      if (!outputOpts.chunkFileNames) {
-        outputOpts.chunkFileNames = 'build/q-[hash].js';
+      if (!outputOptsObj.chunkFileNames) {
+        outputOptsObj.chunkFileNames = 'build/q-[hash].js';
       }
     } else {
       // client development output
-      if (!outputOpts.entryFileNames) {
-        outputOpts.entryFileNames = 'build/[name].js';
+      if (!outputOptsObj.entryFileNames) {
+        outputOptsObj.entryFileNames = 'build/[name].js';
       }
-      if (!outputOpts.chunkFileNames) {
-        outputOpts.chunkFileNames = 'build/[name].js';
+      if (!outputOptsObj.chunkFileNames) {
+        outputOptsObj.chunkFileNames = 'build/[name].js';
       }
     }
   } else if (opts.buildMode === 'production') {
     // server production output
     // everything in same dir so './@qwik-city...' imports work from entry and chunks
-    if (!outputOpts.chunkFileNames) {
-      outputOpts.chunkFileNames = 'q-[hash].js';
+    if (!outputOptsObj.chunkFileNames) {
+      outputOptsObj.chunkFileNames = 'q-[hash].js';
     }
-    if (!outputOpts.assetFileNames) {
-      outputOpts.assetFileNames = 'assets/[hash].[ext]';
+    if (!outputOptsObj.assetFileNames) {
+      outputOptsObj.assetFileNames = 'assets/[hash].[ext]';
     }
   }
 
   if (opts.target === 'client') {
     // client should always be es
-    outputOpts.format = 'es';
+    outputOptsObj.format = 'es';
   }
 
-  if (!outputOpts.dir) {
-    outputOpts.dir = opts.outDir;
+  if (!outputOptsObj.dir) {
+    outputOptsObj.dir = opts.outDir;
   }
 
-  if (outputOpts.format === 'cjs' && typeof outputOpts.exports !== 'string') {
-    outputOpts.exports = 'auto';
+  if (outputOptsObj.format === 'cjs' && typeof outputOptsObj.exports !== 'string') {
+    outputOptsObj.exports = 'auto';
   }
 
-  return outputOpts;
+  return outputOptsObj;
 }
 
 export function createRollupError(id: string, diagnostic: Diagnostic) {

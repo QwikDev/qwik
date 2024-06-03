@@ -120,7 +120,7 @@ jobs:
           pnpm install --frozen-lockfile
 
       - name: Build Packages
-        run: pnpm tsm scripts/index.ts --tsc --build --cli --api --qwiklabs --eslint --platform-binding-wasm-copy --set-dist-tag="${{ github.event.inputs.disttag }}"
+        run: pnpm tsm scripts/index.ts --tsc --build --cli --api --qwiklabs --qwikcity --eslint --platform-binding-wasm-copy --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print Qwik Dist Build
         run: tree packages/qwik/dist/
@@ -154,6 +154,10 @@ jobs:
           name: dist-dev-eslint-plugin-qwik
           path: packages/eslint-plugin-qwik/dist/
           if-no-files-found: error
+
+      - run: pnpm dlx pkg-pr-new@0.0.6 publish --compact ./packages/qwik/dist ./packages/qwik-city/lib ./packages/eslint-plugin-qwik/dist ./packages/create-qwik/dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   ############ BUILD WASM ############
   build-wasm:
@@ -490,11 +494,6 @@ jobs:
             packages/qwik-labs/vite/
             packages/qwik-labs/package.json
           if-no-files-found: error
-      - name: Create installable test package
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: pnpm dlx pkg-pr-new@0.0.6 publish --compact ./packages/qwik/dist ./packages/qwik-city/lib dist-dev-eslint-plugin-qwik dist-dev-create-qwik
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   ############ RELEASE ############
   release:

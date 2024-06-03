@@ -63,7 +63,7 @@ test('command: serve, mode: development', async () => {
   assert.deepEqual(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev')));
 
   assert.ok(Array.isArray(outputOptions));
-  assert.isNotEmpty(outputOptions);
+  assert.lengthOf(outputOptions, 1);
 
   outputOptions.forEach((outputOptionsObj) => {
     assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');
@@ -105,7 +105,7 @@ test('command: serve, mode: production', async () => {
   assert.deepEqual(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev')));
 
   assert.ok(Array.isArray(outputOptions));
-  assert.isNotEmpty(outputOptions);
+  assert.lengthOf(outputOptions, 1);
 
   outputOptions.forEach((outputOptionsObj) => {
     assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');
@@ -147,7 +147,7 @@ test('command: build, mode: development', async () => {
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
 
   assert.ok(Array.isArray(outputOptions));
-  assert.isNotEmpty(outputOptions);
+  assert.lengthOf(outputOptions, 1);
 
   outputOptions.forEach((outputOptionsObj) => {
     assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');
@@ -191,7 +191,7 @@ test('command: build, mode: production', async () => {
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
 
   assert.ok(Array.isArray(outputOptions));
-  assert.isNotEmpty(outputOptions);
+  assert.lengthOf(outputOptions, 1);
 
   outputOptions.forEach((outputOptionsObj) => {
     assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');
@@ -262,7 +262,7 @@ test('command: build, --ssr entry.server.tsx', async () => {
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'entry.server.tsx'))]);
 
   assert.ok(Array.isArray(outputOptions));
-  assert.isNotEmpty(outputOptions);
+  assert.lengthOf(outputOptions, 1);
 
   outputOptions.forEach((outputOptionsObj) => {
     assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');
@@ -392,7 +392,7 @@ test('command: build, --mode lib', async () => {
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'index.ts'))]);
 
   assert.ok(Array.isArray(outputOptions));
-  assert.isNotEmpty(outputOptions);
+  assert.lengthOf(outputOptions, 1);
 
   outputOptions.forEach((outputOptionsObj) => {
     assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');
@@ -451,7 +451,7 @@ test('command: build, --mode lib with multiple outputs', async () => {
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'index.ts'))]);
 
   assert.ok(Array.isArray(outputOptions));
-  assert.isNotEmpty(outputOptions);
+  assert.lengthOf(outputOptions, 4);
 
   outputOptions.forEach((outputOptionsObj) => {
     assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');

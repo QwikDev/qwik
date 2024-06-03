@@ -72,6 +72,7 @@ pub struct HookData {
 	pub ctx_kind: HookKind,
 	pub ctx_name: JsWord,
 	pub origin: JsWord,
+	pub path: JsWord,
 	pub display_name: JsWord,
 	pub hash: JsWord,
 	pub need_transform: bool,
@@ -262,10 +263,6 @@ impl<'a> QwikTransform<'a> {
 		)
 	}
 
-	fn is_inside_module(&self) -> bool {
-		self.hook_stack.is_empty() || self.is_inline()
-	}
-
 	fn get_dev_location(&self, span: Span) -> ast::ExprOrSpread {
 		let loc = self.options.cm.lookup_char_pos(span.lo);
 		let file_name = self
@@ -427,6 +424,7 @@ impl<'a> QwikTransform<'a> {
 			ctx_kind,
 			ctx_name,
 			origin: self.options.path_data.rel_path.to_slash_lossy().into(),
+			path: self.options.path_data.rel_dir.to_slash_lossy().into(),
 			display_name,
 			need_transform: false,
 			hash,
@@ -657,6 +655,7 @@ impl<'a> QwikTransform<'a> {
 			ctx_kind,
 			ctx_name,
 			origin: self.options.path_data.rel_path.to_slash_lossy().into(),
+			path: self.options.path_data.rel_dir.to_slash_lossy().into(),
 			display_name,
 			need_transform: true,
 			hash,
@@ -738,6 +737,8 @@ impl<'a> QwikTransform<'a> {
 		idents
 	}
 
+	/// Removes `expr` from the AST and moves it to a separate import.
+	/// These import are then grouped into entry files depending on strategy.
 	fn create_hook(
 		&mut self,
 		hook_data: HookData,
@@ -748,41 +749,32 @@ impl<'a> QwikTransform<'a> {
 	) -> ast::CallExpr {
 		let canonical_filename = get_canonical_filename(&symbol_name);
 
-		let entry = self
-			.options
-			.entry_policy
-			.get_entry_for_sym(
-				&hook_data.hash,
-				self.options.path_data,
-				&self.stack_ctxt,
-				&hook_data,
-			)
-			.map(|entry| JsWord::from(escape_sym(entry.as_ref())));
-
-		let mut filename = format!(
-			"./{}",
-			entry
-				.as_ref()
-				.map(|e| e.as_ref())
-				.unwrap_or(&canonical_filename)
+		let entry = self.options.entry_policy.get_entry_for_sym(
+			&hook_data.hash,
+			self.options.path_data,
+			&self.stack_ctxt,
+			&hook_data,
 		);
-		if self.options.explicit_extensions {
-			filename.push('.');
-			filename.push_str(&self.options.extension);
-		}
-		let inside_hook = !self.hook_stack.is_empty();
-		let import_path = if inside_hook {
-			fix_path("a", "a", &filename)
-		} else {
-			fix_path(
-				&self.options.path_data.base_dir,
-				&self.options.path_data.abs_dir,
-				&filename,
-			)
-		}
-		.unwrap();
 
-		let import_expr = self.create_qrl(import_path, &symbol_name, &hook_data, &span);
+		// We import from the given entry, or from the hook file directly
+		let mut url = entry
+			.as_ref()
+			.map(|e| {
+				fix_path(
+					dbg!(&self.options.path_data.base_dir),
+					dbg!(&self.options.path_data.abs_dir),
+					&["./", e.as_ref()].concat(),
+				)
+				.map(|f| f.to_string())
+			})
+			.unwrap_or_else(|| Ok(["./", &canonical_filename].concat()))
+			.unwrap();
+		if self.options.explicit_extensions {
+			url.push('.');
+			url.push_str(&self.options.extension);
+		}
+
+		let import_expr = self.create_qrl(url.into(), &symbol_name, &hook_data, &span);
 		self.hooks.push(Hook {
 			entry,
 			span,
@@ -795,6 +787,8 @@ impl<'a> QwikTransform<'a> {
 		import_expr
 	}
 
+	// transforms `jsx(type, props, key)` into the internal versions
+	// the jsx transform already converted `<div>` into `jsx('div', {}, key)`
 	fn handle_jsx(&mut self, mut node: ast::CallExpr) -> ast::CallExpr {
 		// if the props aren't an object literal, leave unchanged
 		match &*node.args[1].expr {
@@ -1099,41 +1093,7 @@ impl<'a> QwikTransform<'a> {
 		}
 	}
 
-	fn fix_dynamic_import(&self, node: ast::CallExpr) -> ast::CallExpr {
-		if let Some(expr_spread) = node.args.get(0) {
-			if let ast::Expr::Lit(ast::Lit::Str(string)) = &*expr_spread.expr {
-				let new_value = fix_path(
-					&self.options.path_data.abs_dir,
-					&self.options.path_data.base_dir,
-					string.value.as_ref(),
-				)
-				.unwrap();
-
-				return ast::CallExpr {
-					args: vec![ast::ExprOrSpread {
-						spread: None,
-						expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
-							value: new_value,
-							raw: None,
-							span: string.span,
-						}))),
-					}],
-					..node
-				};
-			}
-		}
-		HANDLER.with(|handler| {
-			handler
-				.struct_span_err_with_code(
-					node.span,
-					"Dynamic import() inside Qrl($) scope is not a string, relative paths might break",
-					errors::get_diagnostic_id(errors::Error::DynamicImportInsideQhook),
-				)
-				.emit();
-		});
-		node
-	}
-
+	/// This transforms the props of a `jsx(type, {...props}, key)` call
 	fn handle_jsx_props_obj(
 		&mut self,
 		expr: ast::ExprOrSpread,
@@ -2116,50 +2076,45 @@ impl<'a> Fold for QwikTransform<'a> {
 		o
 	}
 
+	// Convert function calls, including those ending in `$`
 	fn fold_call_expr(&mut self, node: ast::CallExpr) -> ast::CallExpr {
 		let mut name_token = false;
 		let mut replace_callee = None;
 		let mut ctx_name: JsWord = QHOOK.clone();
 
-		match &node.callee {
-			ast::Callee::Import(_) => {
-				if !self.is_inside_module() {
-					return self.fix_dynamic_import(node);
+		if let ast::Callee::Expr(box ast::Expr::Ident(ident)) = &node.callee {
+			if id_eq!(ident, &self.sync_qrl_fn) {
+				return self.handle_sync_qrl(node);
+			} else if id_eq!(ident, &self.qhook_fn) {
+				if let Some(comments) = self.options.comments {
+					comments.add_pure_comment(ident.span.lo);
 				}
-			}
-			ast::Callee::Expr(box ast::Expr::Ident(ident)) => {
-				if id_eq!(ident, &self.sync_qrl_fn) {
-					return self.handle_sync_qrl(node);
-				} else if id_eq!(ident, &self.qhook_fn) {
-					if let Some(comments) = self.options.comments {
-						comments.add_pure_comment(ident.span.lo);
-					}
-					return self.handle_qhook(node);
-				} else if self.jsx_functions.contains(&id!(ident)) {
-					return self.handle_jsx(node);
-				} else if id_eq!(ident, &self.inlined_qrl_fn) {
-					return self.handle_inlined_qhook(node);
-				} else if let Some(specifier) = self.marker_functions.get(&id!(ident)) {
-					self.stack_ctxt.push(ident.sym.to_string());
-					ctx_name = specifier.clone();
-					name_token = true;
+				return self.handle_qhook(node);
+			} else if self.jsx_functions.contains(&id!(ident)) {
+				return self.handle_jsx(node);
+			} else if id_eq!(ident, &self.inlined_qrl_fn) {
+				return self.handle_inlined_qhook(node);
+			} else if let Some(specifier) = self.marker_functions.get(&id!(ident)) {
+				self.stack_ctxt.push(ident.sym.to_string());
+				ctx_name = specifier.clone();
+				name_token = true;
 
-					if id_eq!(ident, &self.qcomponent_fn) {
-						self.in_component = true;
-						if let Some(comments) = self.options.comments {
-							comments.add_pure_comment(node.span.lo);
-						}
+				if id_eq!(ident, &self.qcomponent_fn) {
+					self.in_component = true;
+					if let Some(comments) = self.options.comments {
+						comments.add_pure_comment(node.span.lo);
 					}
-					let global_collect = &mut self.options.global_collect;
-					if let Some(import) = global_collect.imports.get(&id!(ident)).cloned() {
-						let new_specifier =
-							convert_signal_word(&import.specifier).expect("Specifier ends with $");
-						let new_local = self.ensure_import(&new_specifier, &import.source);
-						replace_callee = Some(new_ident_from_id(&new_local).as_callee());
-					} else {
-						let new_specifier =
-							convert_signal_word(&ident.sym).expect("Specifier ends with $");
-						global_collect
+				}
+				let global_collect = &mut self.options.global_collect;
+				if let Some(import) = global_collect.imports.get(&id!(ident)).cloned() {
+					let new_specifier =
+						convert_signal_word(&import.specifier).expect("Specifier ends with $");
+					let new_local = self.ensure_import(&new_specifier, &import.source);
+					replace_callee = Some(new_ident_from_id(&new_local).as_callee());
+				} else {
+					let new_specifier =
+						convert_signal_word(&ident.sym).expect("Specifier ends with $");
+					global_collect
 							.exports
 							.keys()
 							.find(|id| id.0 == new_specifier)
@@ -2179,13 +2134,11 @@ impl<'a> Fold for QwikTransform<'a> {
 									replace_callee = Some(new_ident_from_id(new_local).as_callee());
 								},
 							);
-					}
-				} else {
-					self.stack_ctxt.push(ident.sym.to_string());
-					name_token = true;
 				}
+			} else {
+				self.stack_ctxt.push(ident.sym.to_string());
+				name_token = true;
 			}
-			_ => {}
 		}
 
 		let convert_qrl = replace_callee.is_some();
@@ -2288,11 +2241,26 @@ pub fn create_synthetic_named_import(local: &Id, src: &JsWord) -> ast::ModuleIte
 fn escape_sym(str: &str) -> String {
 	str.chars()
 		.flat_map(|x| match x {
-			'A'..='Z' | 'a'..='z' | '0'..='9' | '_' => Some(x),
-			'$' => None,
+			'A'..='Z' | 'a'..='z' | '0'..='9' => Some(x),
 			_ => Some('_'),
 		})
-		.collect()
+		// trim and squash underscores
+		.fold((String::new(), None), |(mut acc, prev), x| {
+			if x == '_' {
+				if prev.is_none() {
+					(acc, None)
+				} else {
+					(acc, Some('_'))
+				}
+			} else {
+				if prev == Some('_') {
+					acc.push('_');
+				}
+				acc.push(x);
+				(acc, Some(x))
+			}
+		})
+		.0
 }
 
 const fn can_capture_scope(expr: &ast::Expr) -> bool {
@@ -2340,7 +2308,7 @@ fn parse_symbol_name(symbol_name: JsWord, dev: bool) -> (JsWord, JsWord, JsWord)
 	(s_n, display_name.into(), hash.into())
 }
 
-fn get_qrl_dev_obj(asb_path: &Path, hook: &HookData, span: &Span) -> ast::Expr {
+fn get_qrl_dev_obj(abs_path: &Path, hook: &HookData, span: &Span) -> ast::Expr {
 	ast::Expr::Object(ast::ObjectLit {
 		span: DUMMY_SP,
 		props: vec![
@@ -2348,7 +2316,7 @@ fn get_qrl_dev_obj(asb_path: &Path, hook: &HookData, span: &Span) -> ast::Expr {
 				key: ast::PropName::Ident(ast::Ident::new(js_word!("file"), DUMMY_SP)),
 				value: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
 					span: DUMMY_SP,
-					value: asb_path.to_str().unwrap().into(),
+					value: abs_path.to_str().unwrap().into(),
 					raw: None,
 				}))),
 			}))),

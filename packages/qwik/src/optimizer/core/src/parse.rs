@@ -46,6 +46,7 @@ pub struct HookAnalysis {
 	pub display_name: JsWord,
 	pub hash: JsWord,
 	pub canonical_filename: JsWord,
+	pub path: JsWord,
 	pub extension: JsWord,
 	pub parent: Option<JsWord>,
 	pub ctx_kind: HookKind,
@@ -383,7 +384,17 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 					let comments_maps = comments.clone().take_all();
 					for h in hooks.into_iter() {
 						let is_entry = h.entry.is_none();
-						let hook_path = [&h.canonical_filename, ".", &h.data.extension].concat();
+						let path_str = h.data.path.to_string();
+						let path = if path_str.is_empty() {
+							path_str
+						} else {
+							[&path_str, "/"].concat()
+						};
+						let hook_path = [
+							path,
+							[&h.canonical_filename, ".", &h.data.extension].concat(),
+						]
+						.concat();
 						let need_handle_watch =
 							might_need_handle_watch(&h.data.ctx_kind, &h.data.ctx_name) && is_entry;
 
@@ -438,6 +449,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 								entry: h.entry,
 								extension: h.data.extension,
 								canonical_filename: h.canonical_filename,
+								path: h.data.path,
 								parent: h.data.parent_hook,
 								ctx_kind: h.data.ctx_kind,
 								ctx_name: h.data.ctx_name,

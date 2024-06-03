@@ -24,6 +24,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "sym1",
   "hash": "aXUrPXX5Lak",
   "canonicalFilename": "sym1_axurpxx5lak",
+  "path": "",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",

@@ -47,6 +47,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "App2_qwikify",
   "hash": "RKJW7oCMdS4",
   "canonicalFilename": "app2_qwikify_rkjw7ocmds4",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

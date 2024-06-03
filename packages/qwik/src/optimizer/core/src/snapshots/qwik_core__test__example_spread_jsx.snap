@@ -105,6 +105,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "RouterHead_component",
   "hash": "DPA76mgIou0",
   "canonicalFilename": "routerhead_component_dpa76mgiou0",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

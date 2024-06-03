@@ -96,11 +96,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
 						asserts: import.asserts.clone(),
 						src: Box::new(ast::Str {
 							span: DUMMY_SP,
-							value: fix_path(
-								&ctx.path.abs_dir,
-								&ctx.path.base_dir,
-								import.source.as_ref(),
-							)?,
+							value: import.source.clone(),
 							raw: None,
 						}),
 						specifiers: vec![specifier],
@@ -124,11 +120,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
 						asserts: None,
 						src: Box::new(ast::Str {
 							span: DUMMY_SP,
-							value: fix_path(
-								&ctx.path.abs_dir,
-								&ctx.path.base_dir,
-								&format!("./{}", filename),
-							)?,
+							value: format!("./{}", filename).into(),
 							raw: None,
 						}),
 						specifiers: vec![ast::ImportSpecifier::Named(ast::ImportNamedSpecifier {
@@ -249,7 +241,7 @@ pub fn generate_entries(
 		}
 
 		for (entry, hooks) in &entries_map {
-			let module = new_entry_module(hooks, core_module, explicit_extensions);
+			let module = new_entry_module(entry, hooks, core_module, explicit_extensions);
 			let (code, map) =
 				emit_source_code(Lrc::clone(&source_map), None, &module, root_dir, false)
 					.context("Emitting source code")?;
@@ -269,6 +261,7 @@ pub fn generate_entries(
 }
 
 fn new_entry_module(
+	path: &str,
 	hooks: &[&HookAnalysis],
 	core_module: &JsWord,
 	explicit_extensions: bool,
@@ -280,7 +273,14 @@ fn new_entry_module(
 	};
 	let mut need_handle_watch = false;
 	for hook in hooks {
-		let mut src = ["./", &hook.canonical_filename].concat();
+		// TODO fix the path from the entry to the hook in case of mismatched location
+		let mut src = fix_path(
+			&hook.path.to_string(),
+			Path::new(path).parent().unwrap().to_str().unwrap(),
+			&["./", &hook.canonical_filename].concat(),
+		)
+		.unwrap()
+		.to_string();
 		if explicit_extensions {
 			src = src + "." + hook.extension.as_ref();
 		}

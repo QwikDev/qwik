@@ -24,7 +24,7 @@ export const App = component$((props: Stuff) => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrlDEV } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("../app_component_kglyfbhvjc0.js"), "App_component_KGLYFBhvJc0", {
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./app_component_kglyfbhvjc0.js"), "App_component_KGLYFBhvJc0", {
     file: "/src/project/project/index.tsx",
     lo: 90,
     hi: 348,
@@ -33,7 +33,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import(".
 
 
 Some("{\"version\":3,\"sources\":[\"/src/project/project/index.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM;;;;;IAUhB\"}")
-============================= app_component_kglyfbhvjc0.js (ENTRY POINT)==
+============================= project/app_component_kglyfbhvjc0.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _IMMUTABLE } from "@builder.io/qwik";
@@ -95,6 +95,7 @@ Some("{\"version\":3,\"sources\":[\"/src/project/project/index.tsx\"],\"names\":
   "displayName": "App_component",
   "hash": "KGLYFBhvJc0",
   "canonicalFilename": "app_component_kglyfbhvjc0",
+  "path": "project",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

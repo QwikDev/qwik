@@ -169,13 +169,11 @@ export function normalizeRollupOutputOptions(
   opts: NormalizedQwikPluginOptions,
   rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined
 ): Rollup.OutputOptions[] {
-  const outputOpts: Rollup.OutputOptions[] = rollupOutputOpts
-    ? // fill the `outputOpts` array with the existing option entries
-      Array.isArray(rollupOutputOpts)
-      ? rollupOutputOpts
-      : [rollupOutputOpts]
-    : // if there are no existing option entries, create a single new option entry
-      [{}];
+  const outputOpts: Rollup.OutputOptions[] = Array.isArray(rollupOutputOpts)
+    ? // fill the `outputOpts` array with all existing option entries
+      [...rollupOutputOpts]
+    : // use the existing rollupOutputOpts object or create a new one
+      [rollupOutputOpts || {}];
 
   return outputOpts.map((outputOptsObj) =>
     normalizeRollupOutputOptionsObject(path, opts, outputOptsObj)

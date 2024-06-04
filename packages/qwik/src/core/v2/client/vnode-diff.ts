@@ -952,17 +952,23 @@ export const vnode_diff = (
       jsxValue.children != null && descendContentToProject(jsxValue.children);
     } else {
       // Inline Component
-      vnode_insertBefore(
-        journal,
-        vParent as VirtualVNode,
-        (vNewNode = vnode_newVirtual()),
-        vCurrent && getInsertBefore()
-      );
-      isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.InlineComponent);
-      vnode_setProp(vNewNode, ELEMENT_PROPS, jsxValue.propsC);
-
-      host = vNewNode;
-      let component$Host: VNode | null = host;
+      if (!host) {
+        // We did not find the component, create it.
+        vnode_insertBefore(
+          journal,
+          vParent as VirtualVNode,
+          (vNewNode = vnode_newVirtual()),
+          vCurrent && getInsertBefore()
+        );
+        host = vNewNode;
+      }
+      isDev &&
+        vnode_setProp(
+          (vNewNode || vCurrent) as VirtualVNode,
+          DEBUG_TYPE,
+          VirtualType.InlineComponent
+        );
+      let component$Host: VNode = host;
       // Find the closest component host which has `OnRender` prop.
       while (
         component$Host &&
@@ -970,7 +976,7 @@ export const vnode_diff = (
           ? vnode_getProp(component$Host, OnRenderProp, null) === null
           : true)
       ) {
-        component$Host = vnode_getParent(component$Host);
+        component$Host = vnode_getParent(component$Host)!;
       }
       const jsxOutput = executeComponent2(
         container,

@@ -12,15 +12,15 @@
     "vfile": "^6.0.1",
     "vite": "^5.2.11",
     "vite-imagetools": "^6.2.9",
-    "zod": "^3.23.6"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@azure/functions": "^3.5.1",
     "@builder.io/qwik": "workspace:^",
-    "@microsoft/api-extractor": "^7.43.1",
+    "@microsoft/api-extractor": "^7.47.0",
     "@netlify/edge-functions": "^2.3.1",
     "@types/mdast": "^4.0.1",
-    "@types/node": "^20.12.8",
+    "@types/node": "^20.14.1",
     "@types/refractor": "^3.4.1",
     "@types/set-cookie-parser": "^2.4.7",
     "estree-util-value-to-estree": "3.1.1",

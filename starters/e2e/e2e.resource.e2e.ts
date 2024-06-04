@@ -11,13 +11,14 @@ test.describe("resource", () => {
     });
   });
 
-  // TODO(v2): fix this
-  test.skip("should load", async ({ page }) => {
+  test("should load", async ({ page }) => {
     const resource1 = page.locator(".resource1");
     const logs = page.locator(".logs");
     const increment = page.locator("button.increment");
     let logsContent =
-      "[RENDER] <ResourceApp>\n[WATCH] 1 before\n[WATCH] 1 after\n[WATCH] 2 before\n[WATCH] 2 after\n[RESOURCE] 1 before\n[RENDER] <Results>\n\n\n";
+      "[WATCH] 1 before\n[WATCH] 1 after\n[WATCH] 2 before\n[WATCH] 2 after\n[RESOURCE] 1 before\n";
+    // TODO: server promise streaming is not supported, so for now we can't test this correctly
+    logsContent += "[RESOURCE] 1 after\n\n";
     await expect(resource1).toHaveText("resource 1 is 80");
     // await expect(resource2).toHaveText('resource 2 is 160');
     await expect(logs).toHaveText(logsContent);
@@ -27,22 +28,23 @@ test.describe("resource", () => {
 
     await expect(resource1).toHaveText("loading resource 1...");
     logsContent +=
-      "[RESOURCE] 1 after\n\n[WATCH] 1 before\n[WATCH] 1 after\n[WATCH] 2 before\n[WATCH] 2 after\n[RESOURCE] 1 before\n[RENDER] <Results>\n\n\n";
+      "[WATCH] 1 before\n[WATCH] 1 after\n[WATCH] 2 before\n[WATCH] 2 after\n[RESOURCE] 1 before\n";
     // await expect(resource2).toHaveText('loading resource 2...');
     await expect(logs).toHaveText(logsContent);
 
     await expect(resource1).toHaveText("resource 1 is 88");
-    logsContent += "[RESOURCE] 1 after\n[RENDER] <Results>\n\n\n";
+    logsContent += "[RESOURCE] 1 after\n\n";
     // await expect(resource2).toHaveText('resource 2 is 176');
     await expect(logs).toHaveText(logsContent);
   });
 
-  // TODO(v2): fix this
-  test.skip("should track subscriptions", async ({ page }) => {
+  test("should track subscriptions", async ({ page }) => {
     const resource1 = page.locator(".resource1");
     const logs = page.locator(".logs");
     let logsContent =
-      "[RENDER] <ResourceApp>\n[WATCH] 1 before\n[WATCH] 1 after\n[WATCH] 2 before\n[WATCH] 2 after\n[RESOURCE] 1 before\n[RENDER] <Results>\n\n\n";
+      "[WATCH] 1 before\n[WATCH] 1 after\n[WATCH] 2 before\n[WATCH] 2 after\n[RESOURCE] 1 before\n";
+    // TODO: server promise streaming is not supported, so for now we can't test this correctly
+    logsContent += "[RESOURCE] 1 after\n\n";
     await expect(resource1).toHaveText("resource 1 is 80");
     await expect(logs).toHaveText(logsContent);
 
@@ -52,14 +54,11 @@ test.describe("resource", () => {
     await countBtn.click();
     await expect(countBtn).toHaveText("count is 1");
 
-    logsContent += "[RESOURCE] 1 after\n[RENDER] <Results>\n\n\n";
+    // logsContent += "[RESOURCE] 1 after\n\n";
     await expect(logs).toHaveText(logsContent);
 
     await countBtn.click();
     await expect(countBtn).toHaveText("count is 2");
-
-    logsContent += "[RENDER] <Results>\n\n\n";
-    await expect(logs).toHaveText(logsContent);
   });
 });
 
@@ -114,8 +113,7 @@ test.describe("resource serialization", () => {
     await expect(button1).toHaveText("4(count is here: 2)");
   });
 
-  // TODO(v2): fix this
-  test.skip("race condition", async ({ page }) => {
+  test("race condition", async ({ page }) => {
     const btn = page.locator("#resource-race-btn");
     const result = page.locator("#resource-race-result");
 

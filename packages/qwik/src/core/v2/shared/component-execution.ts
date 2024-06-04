@@ -82,7 +82,7 @@ export const executeComponent2 = (
         useOnEvents && addUseOnEvents(jsx, useOnEvents);
         return jsx;
       },
-      (err: any) => {
+      (err) => {
         if (isPromise(err)) {
           return err.then(executeComponentWithPromiseExceptionRetry) as Promise<JSXOutput>;
         } else {

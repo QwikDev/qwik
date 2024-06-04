@@ -29,10 +29,10 @@ import {
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { logError, logErrorAndStop } from '../util/log';
 import { ComputedEvent, TaskEvent } from '../util/markers';
-import { delay, isPromise, maybeThen, safeCall } from '../util/promises';
+import { delay, isPromise, safeCall } from '../util/promises';
 import { isFunction, isObject, type ValueOrPromise } from '../util/types';
 import { ChoreType } from '../v2/shared/scheduler';
-import { isContainer2, type Container2, type HostElement, type fixMeAny } from '../v2/shared/types';
+import { type Container2, type HostElement, type fixMeAny } from '../v2/shared/types';
 import { invoke, newInvokeContext, untrack, waitAndRun } from './use-core';
 import { useOn, useOnDocument } from './use-on';
 import { useSequentialScope } from './use-sequential-scope';
@@ -192,12 +192,12 @@ export interface ResourceReturnInternal<T> {
 }
 /** @public */
 export interface DescriptorBase<T = unknown, B = unknown> {
-  $qrl$: QRLInternal<T>;
-  $el$: QwikElement;
   $flags$: number;
   $index$: number;
-  $destroy$: NoSerialize<() => void> | null;
+  $el$: QwikElement;
+  $qrl$: QRLInternal<T>;
   $state$: B | undefined;
+  $destroy$: NoSerialize<() => void> | null;
 }
 
 /** @public */
@@ -658,7 +658,7 @@ export const runSubscriber = async (
 ) => {
   assertEqual(!!(task.$flags$ & TaskFlags.DIRTY), true, 'Resource is not dirty', task);
   if (isResourceTask(task)) {
-    return runResource(task, containerState, rCtx);
+    return runResource(task, containerState as any, rCtx as any);
   } else if (isComputedTask(task)) {
     return runComputed(task, containerState, rCtx);
   } else {
@@ -673,7 +673,7 @@ export const runSubscriber2 = async (
 ) => {
   assertEqual(!!(task.$flags$ & TaskFlags.DIRTY), true, 'Task is not dirty', task);
   if (isResourceTask(task)) {
-    return runResource(task, container, host as fixMeAny);
+    return runResource(task, container, host);
   } else if (isComputedTask(task)) {
     return runComputed2(task, container, host);
   } else {
@@ -683,23 +683,17 @@ export const runSubscriber2 = async (
 
 export const runResource = <T>(
   task: ResourceDescriptor<T>,
-  containerState: ContainerState | Container2,
-  rCtx: RenderContext,
-  waitOn?: Promise<unknown>
+  container: Container2,
+  host: HostElement
 ): ValueOrPromise<void> => {
   task.$flags$ &= ~TaskFlags.DIRTY;
   cleanupTask(task);
 
-  const el = task.$el$;
-  const locale = isContainer2(containerState) ? containerState.$locale$ : rCtx.$static$.$locale$;
-  const iCtx = newInvokeContext(locale, el, undefined, TaskEvent);
-  const { $subsManager$: subsManager } = containerState;
-  iCtx.$renderCtx$ = rCtx;
+  const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, TaskEvent);
   const taskFn = task.$qrl$.getFn(iCtx, () => {
-    subsManager.$clearSub$(task);
+    container.$subsManager$.$clearSub$(task);
   });
 
-  const cleanups: (() => void)[] = [];
   const resource = task.$state$;
   assertDefined(
     resource,
@@ -710,7 +704,6 @@ export const runResource = <T>(
   const track: Tracker = (obj: (() => unknown) | object | Signal, prop?: string) => {
     if (isFunction(obj)) {
       const ctx = newInvokeContext();
-      ctx.$renderCtx$ = rCtx;
       ctx.$subscriber$ = [SubscriptionType.HOST, task];
       return invoke(ctx, obj);
     }
@@ -728,12 +721,33 @@ export const runResource = <T>(
       return obj;
     }
   };
+
+  const handleError = (reason: unknown) => container.handleError(reason, host);
+  let cleanupFns: (() => void)[] | null = null;
+  const cleanup = (fn: () => void) => {
+    done = true;
+    if (typeof fn == 'function') {
+      if (!cleanupFns) {
+        cleanupFns = [];
+        task.$destroy$ = noSerialize(() => {
+          task.$destroy$ = null;
+          cleanupFns!.forEach((fn) => {
+            try {
+              fn();
+            } catch (err) {
+              handleError(err);
+            }
+          });
+        });
+      }
+      cleanupFns.push(fn);
+    }
+  };
+
   const resourceTarget = unwrapProxy(resource);
   const opts: ResourceCtx<T> = {
     track,
-    cleanup(callback) {
-      cleanups.push(callback);
-    },
+    cleanup,
     cache(policy) {
       let milliseconds = 0;
       if (policy === 'immutable') {
@@ -784,13 +798,8 @@ export const runResource = <T>(
     promise.catch(ignoreErrorToPreventNodeFromCrashing);
   });
 
-  task.$destroy$ = noSerialize(() => {
-    done = true;
-    cleanups.forEach((fn) => fn());
-  });
-
   const promise = safeCall(
-    () => maybeThen(waitOn, () => taskFn(opts)),
+    () => Promise.resolve(taskFn(opts)),
     (value) => {
       setState(true, value);
     },

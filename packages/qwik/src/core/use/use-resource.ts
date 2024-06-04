@@ -1,7 +1,7 @@
 import { isServerPlatform } from '../platform/platform';
 import { assertQrl } from '../qrl/qrl-class';
 import { dollar, type QRL } from '../qrl/qrl.public';
-import { Fragment, jsx } from '../render/jsx/jsx-runtime';
+import { Fragment, _jsxSorted } from '../render/jsx/jsx-runtime';
 import { untrack, useBindInvokeContext } from './use-core';
 import {
   Task,
@@ -21,7 +21,7 @@ import { createProxy, type StoreTracker } from '../state/store';
 import { isPromise } from '../util/promises';
 import { isObject } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';
-import { EMPTY_ARRAY } from '../util/flyweight';
+import type { fixMeAny } from '../../server/qwik-types';
 
 /**
  * Options to pass to `useResource$()`
@@ -96,14 +96,14 @@ export const useResourceQrl = <T>(
   qrl: QRL<ResourceFn<T>>,
   opts?: ResourceOptions
 ): ResourceReturn<T> => {
-  const { val, set, i, iCtx, elCtx } = useSequentialScope<ResourceReturn<T>>();
+  const { val, set, i, iCtx } = useSequentialScope<ResourceReturn<T>>();
   if (val != null) {
     return val;
   }
   assertQrl(qrl);
 
-  const containerState = iCtx.$container2$ || iCtx.$renderCtx$.$static$.$containerState$;
-  const resource = createResourceReturn<T>(containerState, opts);
+  const container = iCtx.$container2$;
+  const resource = createResourceReturn<T>(container, opts);
   const el = iCtx.$hostElement$;
   const task = new Task(
     TaskFlags.DIRTY | TaskFlags.RESOURCE,
@@ -113,14 +113,7 @@ export const useResourceQrl = <T>(
     resource,
     null
   ) as ResourceDescriptor<any>;
-  const previousWait = Promise.all(iCtx.$waitOn$ ? iCtx.$waitOn$.slice() : EMPTY_ARRAY);
-  runResource(task, containerState, iCtx.$renderCtx$, previousWait);
-  if (!iCtx.$container2$) {
-    if (!elCtx.$tasks$) {
-      elCtx.$tasks$ = [];
-    }
-    elCtx.$tasks$.push(task);
-  }
+  runResource(task, container, iCtx.$hostElement$ as fixMeAny);
   set(resource);
 
   return resource;
@@ -287,12 +280,14 @@ export const Resource = <T>(props: ResourceProps<T>): JSXOutput => {
   }
 
   // Resource path
-  return jsx(Fragment, {
-    children: promise.then(
-      useBindInvokeContext(props.onResolved),
-      useBindInvokeContext(props.onRejected)
-    ),
-  });
+  return _jsxSorted(
+    Fragment,
+    null,
+    null,
+    promise.then(useBindInvokeContext(props.onResolved), useBindInvokeContext(props.onRejected)),
+    0,
+    null
+  );
 };
 
 export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturnInternal<T> => {
@@ -315,7 +310,7 @@ export const createResourceReturn = <T>(
   initialPromise?: Promise<T>
 ): ResourceReturnInternal<T> => {
   const result = _createResourceReturn<T>(opts);
-  result.value = initialPromise as any;
+  result.value = initialPromise as Promise<T>;
   const resource = createProxy(result, containerState, undefined);
   return resource;
 };

@@ -20,6 +20,7 @@ import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   OnRenderProp,
+  QContainerAttr,
   QDefaultSlot,
   QSlot,
   QSlotParent,
@@ -38,7 +39,7 @@ import {
 import { ChoreType } from '../shared/scheduler';
 import { hasClassAttr } from '../shared/scoped-styles';
 import type { HostElement, QElement2, QwikLoaderEventScope, fixMeAny } from '../shared/types';
-import { DEBUG_TYPE, VirtualType } from '../shared/types';
+import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import type { DomContainer } from './dom-container';
 import {
   ElementVNodeProps,
@@ -590,6 +591,7 @@ export const vnode_diff = (
 
         if (key === dangerouslySetInnerHTML) {
           element.innerHTML = value as string;
+          element.setAttribute(QContainerAttr, QContainerValue.HTML);
           continue;
         }
 

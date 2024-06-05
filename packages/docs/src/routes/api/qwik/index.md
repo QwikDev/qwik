@@ -10034,40 +10034,9 @@ T
 
 ## useComputed$
 
-Hook that returns a read-only signal that updates when signals used in the `ComputedFn` change.
-
 ```typescript
-useComputed$: <T>(qrl: ComputedFn<T>) => Readonly<Signal<Awaited<T>>>;
+useComputed$: Computed;
 ```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-qrl
-
-</td><td>
-
-[ComputedFn](#computedfn)&lt;T&gt;
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-**Returns:**
-
-Readonly&lt;[Signal](#signal)&lt;Awaited&lt;T&gt;&gt;&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 

@@ -1842,8 +1842,10 @@ export interface TrackHTMLAttributes<T extends Element> extends Attrs<'track', T
 // @public
 export const untrack: <T>(fn: () => T) => T;
 
-// @public
-export const useComputed$: <T>(qrl: ComputedFn<T>) => Readonly<Signal<Awaited<T>>>;
+// Warning: (ae-forgotten-export) The symbol "Computed" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export const useComputed$: Computed;
 
 // Warning: (ae-forgotten-export) The symbol "ComputedQRL" needs to be exported by the entry point index.d.ts
 //

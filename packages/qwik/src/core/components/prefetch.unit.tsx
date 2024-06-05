@@ -203,7 +203,6 @@ describe('PrefetchGraph', () => {
       const output = await renderToString(<PrefetchGraph nonce="1234" />, {
         containerTagName: 'div',
       });
-      console.log(output.html);
       expect(output.html).to.contain(
         '<script q:key="prefetch-graph" : q:container="html" nonce="1234">'
       );

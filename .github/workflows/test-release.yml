@@ -50,6 +50,6 @@ jobs:
       - name: Build Eslint rules
         run: pnpm tsm scripts/index.ts --eslint
 
-      - run: pnpm dlx pkg-pr-new@0.0.7 publish --compact --pnpm ./packages/qwik/dist ./packages/qwik-city/lib ./packages/eslint-plugin-qwik/dist ./packages/create-qwik/dist
+      - run: pnpx pkg-pr-new publish --compact --pnpm ./packages/qwik/dist ./packages/qwik-city/lib ./packages/eslint-plugin-qwik/dist ./packages/create-qwik/dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

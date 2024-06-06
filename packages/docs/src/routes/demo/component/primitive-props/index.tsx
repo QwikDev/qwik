@@ -22,12 +22,12 @@ export const Item = component$<ItemProps>((props) => {
 });
 
 export default component$(() => {
-  const price = useSignal(2.99);
+  const price = useSignal(9.99);
 
   return (
     <>
       <h1>Props</h1>
-      <Item name="screwdriver" price={price} quantity={10} />
+      <Item name="hammer" price={price} quantity={5} />
     </>
   );
 });

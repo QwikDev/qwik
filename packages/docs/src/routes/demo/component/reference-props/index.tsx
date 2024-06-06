@@ -2,10 +2,10 @@ import { component$ } from "@builder.io/qwik";
 
 interface ItemProps {
   details: {
-    name: string;
-    quantity: number;
-    description: string;
-    price: number;
+    name?: string;
+    quantity?: number;
+    description?: string;
+    price?: number;
   };
 }
 

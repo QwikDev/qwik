@@ -5,7 +5,7 @@ import { RuleTester } from '@typescript-eslint/rule-tester';
 import { fileURLToPath } from 'node:url';
 import { rules } from './index';
 import { readdir, readFile, stat } from 'node:fs/promises';
-import { join, dirname } from 'path';
+import { join } from 'path';
 
 // https://typescript-eslint.io/packages/rule-tester/#vitest
 RuleTester.afterAll = vitest.afterAll;
@@ -40,7 +40,7 @@ interface InvalidTestCase extends TestCase {
 }
 await (async function setupEsLintRuleTesters() {
   // list './test' directory content and set up one RuleTester per directory
-  const testDir = join(dirname(new URL(import.meta.url).pathname), './tests');
+  const testDir = join(__dirname, './tests');
   const ruleNames = await readdir(testDir);
   for (const ruleName of ruleNames) {
     const rule = rules[ruleName];

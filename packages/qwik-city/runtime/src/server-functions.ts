@@ -273,7 +273,8 @@ export const zod$ = /*#__PURE__*/ implicit$FirstArg(zodQrl) as ZodConstructor;
 const deepFreeze = (obj: any) => {
   Object.getOwnPropertyNames(obj).forEach((prop) => {
     const value = obj[prop];
-    if (value && typeof value === 'object') {
+    // we assume that a frozen object is a circular reference and fully deep frozen
+    if (value && typeof value === 'object' && !Object.isFrozen(value)) {
       deepFreeze(value);
     }
   });

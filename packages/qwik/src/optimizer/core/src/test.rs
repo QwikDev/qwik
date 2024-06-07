@@ -2271,6 +2271,25 @@ export const App = component$(() => {
 }
 
 #[test]
+fn special_jsx() {
+	test_input!(TestInput {
+		code: r#"
+// don't transpile jsx with non-plain-object props
+import { jsx } from '@builder.io/qwik';
+
+export const App = () => {
+    const props = {}
+    return jsx('div', props, 'Hello Qwik');
+}
+"#
+		.to_string(),
+		transpile_ts: false,
+		transpile_jsx: false,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn example_dev_mode() {
 	test_input!(TestInput {
 		code: r#"

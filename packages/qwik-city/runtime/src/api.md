@@ -415,7 +415,7 @@ export const RouterOutlet: Component<unknown>;
 // Warning: (ae-forgotten-export) The symbol "ServerConfig" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export const server$: <T extends ServerFunction>(first: T, options?: ServerConfig | undefined) => ServerQRL<T>;
+export const server$: <T extends ServerFunction>(qrl: T, options?: ServerConfig | undefined) => ServerQRL<T>;
 
 // @public (undocumented)
 export type ServerFunction = {

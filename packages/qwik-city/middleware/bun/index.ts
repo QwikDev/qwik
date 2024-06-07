@@ -7,6 +7,7 @@ import type {
 import {
   mergeHeadersCookies,
   requestHandler,
+  _TextEncoderStream_polyfill,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
@@ -15,40 +16,11 @@ import { setServerPlatform } from '@builder.io/qwik/server';
 import { MIME_TYPES } from '../request-handler/mime-types';
 import { join, extname } from 'node:path';
 
-// @builder.io/qwik-city/middleware/bun
-// still missing from bun: last check was bun version 1.1.8
-class TextEncoderStream_polyfill {
-  private _encoder = new TextEncoder();
-  private _reader: ReadableStreamDefaultController<any> | null = null;
-  public ready = Promise.resolve();
-  public closed = false;
-  public readable = new ReadableStream({
-    start: (controller) => {
-      this._reader = controller;
-    },
-  });
-
-  public writable = new WritableStream({
-    write: async (chunk) => {
-      if (chunk != null && this._reader) {
-        const encoded = this._encoder.encode(chunk);
-        this._reader.enqueue(encoded);
-      }
-    },
-    close: () => {
-      this._reader?.close();
-      this.closed = true;
-    },
-    abort: (reason) => {
-      this._reader?.error(reason);
-      this.closed = true;
-    },
-  });
-}
-
 /** @public */
 export function createQwikCity(opts: QwikCityBunOptions) {
-  globalThis.TextEncoderStream = TextEncoderStream || (TextEncoderStream_polyfill as any);
+  // @builder.io/qwik-city/middleware/bun
+  // still missing from bun: last check was bun version 1.1.8
+  globalThis.TextEncoderStream ||= _TextEncoderStream_polyfill;
 
   const qwikSerializer = {
     _deserializeData,
@@ -129,7 +101,13 @@ export function createQwikCity(opts: QwikCityBunOptions) {
   const notFound = async (request: Request) => {
     try {
       const url = new URL(request.url);
-      const notFoundHtml = getNotFound(url.pathname);
+
+      // In the development server, we replace the getNotFound function
+      // For static paths, we assign a static "Not Found" message.
+      // This ensures consistency between development and production environments for specific URLs.
+      const notFoundHtml = isStaticPath(request.method || 'GET', url)
+        ? 'Not Found'
+        : getNotFound(url.pathname);
       return new Response(notFoundHtml, {
         status: 404,
         headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },

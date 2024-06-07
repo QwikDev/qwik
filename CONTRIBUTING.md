@@ -14,6 +14,10 @@ Therefore, to solve the problem in the best possible way, please create a minima
 
 Without enough information to reproduce the issue, we will close it because we can't recreate and solve it.
 
+## Triaging Issues
+
+If you're interested in helping out with triaging issues, please follow the [Triaging Guide](./contributing/TRIAGE.md).
+
 ## Submitting a Pull Request (PR)
 
 ### Branch Organization
@@ -70,6 +74,12 @@ If you want to use Docker:
 
 - Install the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension in your VSCode.
 - Once installed you will be prompted to 'Reopen the folder to develop in a container [learn more](https://code.visualstudio.com/docs/devcontainers/containers) or Clone repository in Docker volume for [better I/O performance](https://code.visualstudio.com/docs/devcontainers/containers#_quick-start-open-a-git-repository-or-github-pr-in-an-isolated-container-volume)'. If you're not prompted, you can run the `Dev Containers: Open Folder in Container` command from the [VSCode Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette).
+
+Alternatively you can use [devcontainers/cli](https://github.com/devcontainers/cli):
+
+- Install devcontainers following their documentation.
+- In your terminal navigate to the Qwik's project root directory.
+- Then run `devcontainer up --workspace-folder .`. This command will start a Docker container with all required environment dependencies.
 
 If you want to use Nix:
 

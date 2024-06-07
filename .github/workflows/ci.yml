@@ -155,7 +155,8 @@ jobs:
           path: packages/eslint-plugin-qwik/dist/
           if-no-files-found: error
 
-      - run: pnpm dlx pkg-pr-new@0.0.8 publish --compact --pnpm ./packages/qwik/dist ./packages/qwik-city/lib ./packages/eslint-plugin-qwik/dist ./packages/create-qwik/dist
+      - name: Publish packages for testing
+        run: pnpm dlx pkg-pr-new@0.0.8 publish --compact --pnpm ./packages/qwik/dist ./packages/qwik-city/lib ./packages/eslint-plugin-qwik/dist ./packages/create-qwik/dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

@@ -148,6 +148,7 @@ function processPrefetchAll(swState: SWState, basePath: string) {
 }
 
 export function drainMsgQueue(swState: SWState) {
+  console.log('DEBUG: drainMsgQueue');
   if (!swState.$msgQueuePromise$ && swState.$msgQueue$.length) {
     const top = swState.$msgQueue$.shift()!;
     swState.$msgQueuePromise$ = processMessage(swState, top).then(() => {

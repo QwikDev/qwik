@@ -69,6 +69,25 @@ describe('_TextEncoderStream_polyfill tests', () => {
     expect(polyWriter.write({} as any)).toEqual(nativeWriter.write({} as any));
   });
 
+  it("can encode emoji characters just the same as Node.js' implementation", async () => {
+    const polyfillStream = new _TextEncoderStream_polyfill();
+    const nativeStream = new TextEncoderStream();
+
+    const input = '🦊test emoji encoding📦';
+
+    const polyReader = polyfillStream.readable.getReader();
+    const nativeReader = nativeStream.readable.getReader();
+
+    polyfillStream.writable.getWriter().write(input);
+    nativeStream.writable.getWriter().write(input);
+
+    const polyResult = await polyReader.read();
+    const nativeResult = await nativeReader.read();
+
+    expect(polyResult.value).toEqual(nativeResult.value);
+    expect(new TextDecoder().decode(polyResult.value)).toBe(input);
+  });
+
   it('handles large input', async () => {
     const encoderStream = new _TextEncoderStream_polyfill();
     const writer = encoderStream.writable.getWriter();

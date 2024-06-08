@@ -113,26 +113,35 @@ export default component$(() => {
 
 ## Props
 
-Props are used to pass data from the parent into the component. Props are accessible via the `props` argument to the component$ function.
+Props are used to pass data from the parent into the component. Data passed via props is accessible via the `props` argument to the `component$` function. 
 
-In this example a component `Item` declares optional `name`, `quantity`, `description`, and `price`.
+Props are shallowly immutable, meaning primitive data types (strings, numbers, booleans) cannot be changed once passed. However, internal elements of reference types (objects, arrays, functions) can be changed despite the reference itself being immutable.
 
-<CodeSandbox src="/src/routes/demo/component/props/index.tsx" style={{ height: '10em' }}>
+To change primitive props data in the parent component from the child component, use signals. When updating data locally within the child component a signal is not necessary, destructure the props and use the values to define new local variables.
+
+The two examples below show a component `Item` that declares optional `name`, `quantity`, `description`, and `price` props. 
+
+In the first example primitive data types are passed via props. The `price` prop is passed as a signal and can be changed from the parent component. `quantity` is passed as a number value that is used to define a new signal in `Item` that can be reactively updated locally. Alternatively, if quantity did not need to be reactive it could be defined as a normal variable instead of a signal.
+
+<CodeSandbox src="/src/routes/demo/component/primitive-props/index.tsx" style={{ height: '10em' }}>
 ```tsx {3-8, 27} /ItemProps/
-import { component$ } from '@builder.io/qwik';
+import { component$, useSignal } from "@builder.io/qwik";
+import type { Signal } from "@builder.io/qwik";
 
 interface ItemProps {
   name?: string;
   quantity?: number;
   description?: string;
-  price?: number;
+  price?: Signal<number>;
 }
 
 export const Item = component$<ItemProps>((props) => {
+  const localQuantity = useSignal(props.quantity);
+
   return (
     <ul>
       <li>name: {props.name}</li>
-      <li>quantity: {props.quantity}</li>
+      <li>quantity: {localQuantity}</li>
       <li>description: {props.description}</li>
       <li>price: {props.price}</li>
     </ul>
@@ -140,17 +149,59 @@ export const Item = component$<ItemProps>((props) => {
 });
 
 export default component$(() => {
+  const price = useSignal(9.99);
+
   return (
     <>
       <h1>Props</h1>
-      <Item name="hammer" price={9.99} />
+      <Item name="hammer" price={price} quantity={5} />
     </>
   );
 });
+
 ```
 </CodeSandbox>
 
-> In the example above we are using `component$<ItemProps>` to provide an explicit type for the props. This is optional but it allows the TypeScript compiler to check that the props are used correctly.
+In this second example the props are passed as a single `details` object containing the data, instead of individual primitive values. This allows the data inside to be mutated without the use of signals, however the `details` object storing the data is still immutable and cannot be changed once passed.
+
+<CodeSandbox src="/src/routes/demo/component/reference-props/index.tsx" style={{ height: '10em' }}>
+```tsx {3-8, 27} /ItemProps/
+import { component$ } from "@builder.io/qwik";
+
+interface ItemProps {
+  details: {
+    name?: string;
+    quantity?: number;
+    description?: string;
+    price?: number;
+  };
+}
+
+export const Item = component$((props: ItemProps) => {
+  props.details.price = 4.99;
+
+  return (
+    <ul>
+      <li>name: {props.details.name}</li>
+      <li>quantity: {props.details.quantity}</li>
+      <li>description: {props.details.description}</li>
+      <li>price: {props.details.price}</li>
+    </ul>
+  );
+});
+
+export default component$(() => {
+  return (
+    <Item
+      details={{ name: "hammer", quantity: 5, description: "", price: 9.99 }}
+    />
+  );
+});
+
+```
+</CodeSandbox>
+
+> In the examples above we are using `component$<ItemProps>` to provide an explicit type for the props. This is optional but it allows the TypeScript compiler to check that the props are used correctly.
 
 ### Default props
 

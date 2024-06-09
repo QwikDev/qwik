@@ -157,7 +157,7 @@ export interface CorrectedToggleEvent extends Event {
     readonly prevState: 'open' | 'closed';
 }
 
-// @public
+// @public @deprecated
 export const createComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>;
 
 // @public (undocumented)

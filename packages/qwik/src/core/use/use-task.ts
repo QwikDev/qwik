@@ -341,6 +341,7 @@ export const useComputed$ = implicit$FirstArg(useComputedQrl);
  * Returns read-only signal that updates when signals used in the `ComputedFn` change. Unlike
  * useComputed$, this is not a hook and it always creates a new signal.
  *
+ * @deprecated This is a technology preview
  * @public
  */
 export const createComputed$ = implicit$FirstArg(createComputedQrl);

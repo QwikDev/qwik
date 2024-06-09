@@ -41,10 +41,10 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1
       '@microsoft/api-documenter':
-        specifier: ^7.24.2
+        specifier: 7.24.2
         version: 7.24.2(@types/node@20.12.8)
       '@microsoft/api-extractor':
-        specifier: ^7.43.1
+        specifier: 7.43.1
         version: 7.43.1(@types/node@20.12.8)
       '@napi-rs/cli':
         specifier: ^2.18.0
@@ -7012,10 +7012,6 @@ packages:
     resolution: {integrity: sha512-sBz8G/YjVniEz6lKPNpKxXwazJe4c19fEfV2GDMX6AjFz+MX9uDWIZW8XreVhkFW3fkIdTv/gxWr/Kks5FFAVw==}
     engines: {node: '>=10'}
 
-  minimatch@9.0.3:
-    resolution: {integrity: sha512-RHiac9mvaRw0x3AYRgDC1CxAP7HTcNrrECeA8YYJeWnpo+2Q5CegtZjaotWTWxDG3UeGA1coE05iH1mPjT/2mg==}
-    engines: {node: '>=16 || 14 >=14.17'}
-
   minimatch@9.0.4:
     resolution: {integrity: sha512-KqWh+VchfxcMNRAJjj2tnsSJdNbHsVgnkBhTNrW7AjVo6OvLtxw8zfT9oLw1JSohlFzJ8jCoTgaoXvJ+kHt6fw==}
     engines: {node: '>=16 || 14 >=14.17'}
@@ -11116,7 +11112,7 @@ snapshots:
       '@iarna/toml': 2.2.5
       dot-prop: 7.2.0
       find-up: 6.3.0
-      minimatch: 9.0.3
+      minimatch: 9.0.4
       read-pkg: 7.1.0
       semver: 7.6.0
       yaml: 2.4.2
@@ -11392,7 +11388,7 @@ snapshots:
       junk: 4.0.1
       locate-path: 7.2.0
       merge-options: 3.0.4
-      minimatch: 9.0.3
+      minimatch: 9.0.4
       normalize-path: 3.0.0
       p-map: 5.5.0
       path-exists: 5.0.0
@@ -12406,7 +12402,7 @@ snapshots:
       '@vue/compiler-dom': 3.4.26
       '@vue/shared': 3.4.26
       computeds: 0.0.1
-      minimatch: 9.0.3
+      minimatch: 9.0.4
       muggle-string: 0.3.1
       path-browserify: 1.0.1
       vue-template-compiler: 2.7.16
@@ -14966,7 +14962,7 @@ snapshots:
     dependencies:
       foreground-child: 3.1.1
       jackspeak: 2.3.6
-      minimatch: 9.0.3
+      minimatch: 9.0.4
       minipass: 7.0.4
       path-scurry: 1.10.1
 
@@ -15394,7 +15390,7 @@ snapshots:
 
   ignore-walk@6.0.4:
     dependencies:
-      minimatch: 9.0.3
+      minimatch: 9.0.4
 
   ignore@5.3.1: {}
 
@@ -16887,10 +16883,6 @@ snapshots:
       brace-expansion: 2.0.1
 
   minimatch@7.4.6:
-    dependencies:
-      brace-expansion: 2.0.1
-
-  minimatch@9.0.3:
     dependencies:
       brace-expansion: 2.0.1
 

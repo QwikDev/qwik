@@ -572,7 +572,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Returns read-only signal that updates when signals used in the `ComputedFn` change. Unlike useComputed$, this is not a hook and it always creates a new signal.\n\n\n```typescript\ncreateComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[ComputedFn](#computedfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[Signal](#signal)<!-- -->&lt;Awaited&lt;T&gt;&gt;",
+      "content": "> Warning: This API is now obsolete.\n> \n> This is a technology preview\n> \n\nReturns read-only signal that updates when signals used in the `ComputedFn` change. Unlike useComputed$, this is not a hook and it always creates a new signal.\n\n\n```typescript\ncreateComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[ComputedFn](#computedfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[Signal](#signal)<!-- -->&lt;Awaited&lt;T&gt;&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.createcomputed_.md"
     },

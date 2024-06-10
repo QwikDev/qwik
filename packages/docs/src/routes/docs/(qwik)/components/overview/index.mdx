@@ -162,7 +162,7 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-In this second example the props are passed as a single `details` object containing the data, instead of individual primitive values. This allows the data inside to be mutated without the use of signals, however the `details` object storing the data is still immutable and cannot be changed once passed.
+In this second example, the props are passed as a single details object containing the data, instead of individual primitive values. This allows the data inside to be mutated without the use of signals. However, the details object storing the data is still immutable and cannot be changed once passed.
 
 <CodeSandbox src="/src/routes/demo/component/reference-props/index.tsx" style={{ height: '10em' }}>
 ```tsx {3-8, 27} /ItemProps/

@@ -178,7 +178,7 @@ export const NoStructuralChange = component$(() => {
 });
 ```
 
-Qwik will use vDOM when the change is structural. In the following example the DOM structure needs to be updated (replace `<h1>` with `<button>`) and so vDOM will be used for rendering:
+When there is a structural change, Qwik utilizes the virtual DOM (vDOM). In the following example, the DOM structure needs to be updated (replace `<h1>` with `<button>`), so vDOM will be used for rendering:
 ```ts title="DOM structure change"
 export const StructuralChange = component$(() => {
   const isLoggedIn = useSignal(false);

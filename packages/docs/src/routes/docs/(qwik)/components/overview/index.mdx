@@ -121,7 +121,7 @@ To change primitive props data in the parent component from the child component,
 
 The two examples below show a component `Item` that declares optional `name`, `quantity`, `description`, and `price` props. 
 
-In the first example primitive data types are passed via props. The `price` prop is passed as a signal and can be changed from the parent component. `quantity` is passed as a number value that is used to define a new signal in `Item` that can be reactively updated locally. Alternatively, if quantity did not need to be reactive it could be defined as a normal variable instead of a signal.
+In the first example, primitive data types are passed via props. The `price` prop is passed as a signal and can be changed from the parent component. `quantity` is passed as a number value that is used to define a new signal in `Item` that can be reactively updated locally. Alternatively, if quantity did not need to be reactive it could be defined as a normal variable instead of a signal.
 
 <CodeSandbox src="/src/routes/demo/component/primitive-props/index.tsx" style={{ height: '10em' }}>
 ```tsx {3-8, 27} /ItemProps/

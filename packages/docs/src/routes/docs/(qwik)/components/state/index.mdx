@@ -529,7 +529,7 @@ Qwik ensures that all application state is always serializable. This is importan
 Sometimes, it's necessary to store data that can't be serialized; `noSerialize()` instructs Qwik not to attempt serializing the marked value.
 For example, a reference to a third-party library such as [Monaco editor](https://microsoft.github.io/monaco-editor/) will always need `noSerialize()`, as it is not serializable.
 
-If a value is marked as non-serializable then that value will not survive serialization events such as resuming the application on the client from SSR. In this situation the value will be set to `undefined` and it is up to the developer to re-initialize the value on the client.
+If a value is marked as non-serializable, then that value will not survive serialization events, such as resuming the application on the client from SSR. In this situation, the value will be set to `undefined` and it is up to the developer to re-initialize the value on the client.
 
 <CodeSandbox src="/src/routes/demo/state/no-serialize/index.tsx" style={{ height: '8em' }}>
 ```tsx /noSerialize/

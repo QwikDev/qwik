@@ -527,7 +527,7 @@ export const Child = component$(() => {
 Qwik ensures that all application state is always serializable. This is important to ensure that Qwik applications have a [resumability](/docs/(qwik)/concepts/resumable/index.mdx) property.
 
 Sometimes, it's necessary to store data that can't be serialized; `noSerialize()` instructs Qwik not to attempt serializing the marked value.
-For example a reference to a third-party library such as [Monaco editor](https://microsoft.github.io/monaco-editor/) will always need `noSerialize()`, as it is not serializable.
+For example, a reference to a third-party library such as [Monaco editor](https://microsoft.github.io/monaco-editor/) will always need `noSerialize()`, as it is not serializable.
 
 If a value is marked as non-serializable then that value will not survive serialization events such as resuming the application on the client from SSR. In this situation the value will be set to `undefined` and it is up to the developer to re-initialize the value on the client.
 

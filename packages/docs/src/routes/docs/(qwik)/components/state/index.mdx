@@ -200,9 +200,9 @@ export default component$(() => {
 
 ## Computed state
 
-In Qwik there are two ways to create computed values, each with a different use case (in order of preference):
+In Qwik, there are two ways to create computed values, each with a different use case (in order of preference):
 
-1. `useComputed$()`: `useComputed$()` is the preferred way of creating computed values. Use it when the computed value can be derived synchronously purely from the source state (current application state). For example, creating a lowercase version of a string or combining first and last name into a full name.
+1. `useComputed$()`: `useComputed$()` is the preferred way of creating computed values. Use it when the computed value can be derived synchronously purely from the source state (current application state). For example, creating a lowercase version of a string or combining first and last names into a full name.
 
 2. [`useResource$()`](/docs/(qwik)/components/state/index.mdx#useresource): `useResource$()` is used when the computed value is asynchronous or the state comes from outside of the application. For example, fetching the current weather (external state) based on a current location (application internal state).
 

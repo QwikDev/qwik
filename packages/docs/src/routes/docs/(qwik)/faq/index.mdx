@@ -191,7 +191,7 @@ export const StructuralChange = component$(() => {
 
 ```
 
-The big thing to understand (and the reason vDOM is not a performance problem in Qwik) is that in React when you invalidate a root component the vDOM for the whole tree gets created. In Qwik, the decision is made on a per-component basis.  And only for components that have structural change AND are actually changing their structure. If a component is structural (vDOM) but no change in structure is detected, then Qwik skips the component. You can think of it as auto-memoization of all components, this means that vDOM is only employed when the view is changing structurally. This is rare because in most cases the view only changes its values. 
+The important thing to understand is that vDOM doesn't cause performance issues in Qwik. In React, however, invalidating a root component results in vDOM for the whole tree getting created. In Qwik, the decision is made on a per-component basis.  And only for components that have structural change AND are changing their structure. If a component is structural (vDOM) but no change in structure is detected, then Qwik skips the component. You can think of it as auto-memoization of all components, this means that vDOM is only employed when the view is changing structurally. This is rare because in most cases the view only changes its values. 
 
 > In short, Qwik uses vDOM, but significantly less than React in comparable situations.
 

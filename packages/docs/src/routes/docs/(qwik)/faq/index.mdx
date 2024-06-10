@@ -235,7 +235,7 @@ If there is no need for SSR, you can deploy your Qwik app as a static site thank
 
 It depends. For SPAs, most of the cost is paid upfront by downloading everything at the beginning of the session. So when a user interacts with the app, the cost is minimal.
 
-MPAs are extremely fast to load as they don't need to download as much JS as their SPA counterparts. However, when the user navigates, it usually requires a full page reload. A full page reload is usually super fast because browsers are extremely fast to download and parse HTML, but the MPA approach is not ideal for every project since sometimes, it's ideal to keep state between navigation, and SPA does that very well.
+MPAs are extremely fast to load as they don't need to download as much JS as their SPA counterparts. However, when the user navigates, it usually requires a full page reload. A full-page reload is typically super fast because browsers are extremely fast at downloading and parsing HTML. But, since sometimes, it's ideal to keep state between navigation, the MPA approach is not ideal for every project. In this case, SPA does that very well.
 
 Qwik is a unique framework that is both an MPA and an SPA at the same time.
 

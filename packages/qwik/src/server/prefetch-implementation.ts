@@ -44,6 +44,15 @@ function prefetchUrlsEvent(
   prefetchResources: PrefetchResource[],
   nonce?: string
 ) {
+  // eslint-disable-next-line no-console
+  console.log('prefetch nodes', prefetchNodes);
+  // eslint-disable-next-line no-console
+  console.log(
+    'prefetch node base: ',
+    // @ts-ignore
+    prefetchNodes.map((n) => n.closest('[q\\:container]'))
+  );
+
   const mostReferenced = getMostReferenced(prefetchResources);
   for (const url of mostReferenced) {
     prefetchNodes.push(

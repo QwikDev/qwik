@@ -130,7 +130,7 @@ export const onGet: RequestHandler = ({ json }) => {
 };
 ```
 
-> Notice that in the last example, there is no default export. This is because we are not rendering a Qwik component, but rather we are handling the request directly and returning a JSON response. This is useful to implement RESTful APIs or any other type of HTTP endpoint.
+> Notice that in the last example, there is no default export. This is because you are not rendering a Qwik component, but rather you are handling the request directly and returning a JSON response. This is useful for implementing RESTful APIs or any other type of HTTP endpoint.
 
 ### Page + Endpoint
 
@@ -156,14 +156,14 @@ export default component$(() => {
 
 ## `layout.tsx` files
 
-Layout modules are very similar to `index` files, both can handle requests and render Qwik components, however, layouts are designed to work like a middleware, allowing to **share UI and request handling (middleware)** to a set of routes.
+Layout modules are very similar to `index` files. Both can handle requests and render Qwik components. However, layouts are designed to work like middleware, allowing to **share UI and request handling (middleware)** to a set of routes.
 
 Usually, different pages need some common request handling and share some UI. For example, picture a dashboard site where all the pages are under the `/admin/*` directory:
 
 - **Shared request handling:** The request cookies need to be validated before even rendering the page, otherwise, render a blank 401 page.
 - **Shared UI:** All pages share a common header showing the user's name and profile picture.
 
-Instead of repeating the same code in each route, we can use layouts to automatically reuse common parts.  Layouts support adding middleware to the route also.
+Instead of repeating the same code in each route, use layouts to automatically reuse common parts. Layouts also support adding middleware to the route.
 
 Take this `src/routes` directory as an example:
 
@@ -192,7 +192,7 @@ An `onRequest` handler in `src/routes/index.tsx` doesn't get executed.
 
 ### Nested Layouts
 
-Layouts also **provide a way to add common UI to the rendered page**. For example, if we want to add a common header to all of the routes, we can add a `Header` component to the root layout.
+Layouts also **provide a way to add common UI to the rendered page**. For example, if you want to add a common header to all of the routes, add a Header component to the root layout.
 
 For the given example, the Qwik components will be rendered in the following order:
 

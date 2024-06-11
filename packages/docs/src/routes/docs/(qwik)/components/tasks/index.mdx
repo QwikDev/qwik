@@ -55,7 +55,7 @@ Resumability is "Lazy execution", it's the ability to build the "framework state
 The application environment—whether client-side or server-side—is determined by user interactions. In server-side rendering, the application initially renders on the server.
 When the user interacts with the application, it resumes on the client-side, continuing from the state left by the server. This approach ensures efficient and responsive user experiences by leveraging both environments based on interaction.
 
-> **Note**: For systems that use hydration the execution of the application happens twice. Once on a server (SSR/SSG) and once on the browser (hydration). This is why many frameworks have "effects" which only execute on the browser. That means that the code that runs on the server is different than the code that runs on the browser. Qwik execution is unified, meaning if the code has already been executed on the server it does not re-execute it on the browser.
+> **Note**: For systems that use hydration, the execution of the application happens twice. Once on a server (SSR/SSG) and once on the browser (hydration). This is why many frameworks have "effects" which only execute on the browser. That means that the code that runs on the server is different than the code that runs on the browser. Qwik execution is unified, meaning if the code has already been executed on the server, it does not re-execute it on the browser.
 
 **In Qwik, there are only 3 lifecycle stages:**
 

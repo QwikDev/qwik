@@ -88,7 +88,7 @@ async function processBundleGraph(
   graph: SWGraph,
   cleanup: boolean
 ) {
-  const existingBaseIndex = swState.$bases$.findIndex((base) => base === base);
+  const existingBaseIndex = swState.$bases$.findIndex((b) => b.$path$ === base);
   if (existingBaseIndex !== -1) {
     swState.$bases$.splice(existingBaseIndex, 1);
   }
@@ -149,7 +149,6 @@ function processPrefetchAll(swState: SWState, basePath: string) {
 
 export function drainMsgQueue(swState: SWState) {
   // eslint-disable-next-line no-console
-  console.log('DEBUG: drainMsgQueue');
   if (!swState.$msgQueuePromise$ && swState.$msgQueue$.length) {
     const top = swState.$msgQueue$.shift()!;
     swState.$msgQueuePromise$ = processMessage(swState, top).then(() => {

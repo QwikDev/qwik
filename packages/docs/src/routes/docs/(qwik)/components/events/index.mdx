@@ -64,7 +64,7 @@ Notice that `onClick$` ends with [`$`](/docs/(qwik)/advanced/dollar/index.mdx). 
 
 ## Reusing Event Handlers
 
-If we want to reuse the same event handler for multiple elements or events, we need to wrap the event handler into the `$()` function exported by `@builder.io/qwik` to transform it into a [`QRL`](/docs/advanced/qrl/).
+To reuse the same event handler for multiple elements or events, you have to wrap the event handler into the `$()` function exported by `@builder.io/qwik`. This transforms it into a [`QRL`](/docs/advanced/qrl/).
 
 <CodeSandbox src="/src/routes/demo/events/extracted-handler/index.tsx" style={{ height: '6em' }}>
 ```tsx {5} /increment/#a

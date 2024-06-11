@@ -204,7 +204,7 @@ export default component$(() => {
 
 In some cases, it is necessary to handle an event traditionally, because some APIs need to be used synchronously. For example, `dragstart` event must be processed synchronously and therefore it can't be combined with Qwik's lazy code execution.
 
-To do this, we can leverage a `useVisibleTask` to programmatically add an event listener using the DOM API directly.
+To do this, you can leverage a `useVisibleTask` to programmatically add an event listener using the DOM API directly.
 
 <CodeSandbox src="/src/routes/demo/events/synchronous/index.tsx" style={{ height: '10em' }}>
 ```tsx {7-20}

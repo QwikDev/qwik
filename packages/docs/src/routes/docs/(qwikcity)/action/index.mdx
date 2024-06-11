@@ -102,7 +102,7 @@ export default component$(() => {
 
 Under the hood, the `<Form/>` component uses a native HTML `<form>` element, so it will work without JavaScript.
 
-When JS is enabled, the `<Form/>` component will intercept the form submission and trigger the action in SPA mode, allowing for a full SPA experience.
+When JS is enabled, the `<Form/>` component will intercept the form submission and trigger the action in SPA mode. Allowing for a full SPA experience.
 
 > This is to clarify that the server re-renders the whole page and re-executes everything, so if you have any [routeLoader$](/docs/route-loader/) they will be executed too.
 
@@ -110,7 +110,7 @@ When JS is enabled, the `<Form/>` component will intercept the form submission a
 
 ## Using actions programmatically
 
-Actions can also be triggered programmatically using the `action.submit()` method, i.e. you don't need a `<Form/>` component, but you can trigger the action from a button click or any other event, just like you would do with a function.
+Actions can also be triggered programmatically using the `action.submit()` method (i.e. you don't need a `<Form/>` component). However, you can trigger the action from a button click or any other event, just like you would do with a function.
 
 ```tsx {18} title="src/routes/index.tsx"
 import { component$ } from '@builder.io/qwik';
@@ -146,7 +146,7 @@ In the example above, the `addUser` action is triggered when the user clicks the
 
 ## Actions with Event Handlers
 
-We can use the `onSubmitCompleted$` event handler after an action is executed successfully and returns some data. It is particularly useful when you need to perform additional tasks, such as resetting UI elements or updating the application state, once an action has been completed successfully.
+The `onSubmitCompleted$` event handler can be used after an action is successfully executed and returns some data. This is useful for performing tasks, such as resetting UI elements or updating the application state, once an action has been completed.
 
 Here's an example of the `onSubmitCompleted$` handler used to edit an item in a EditForm component of a todo app.
 
@@ -382,13 +382,13 @@ export default component$(() => {
 });
 ```
 
-The `action.formData` is especially useful as it allows to keep the form data filled by the user even on a page refresh, allowing to have a full SPA experience, even with JS disabled.
+The `action.formData` is especially useful for retaining user-filled form data even after a page refresh. This enables a seamless SPA experience, even with JS disabled.
 
 ## Route vs Global actions
 
 Actions can be declared using the `routeAction$()` or `globalAction$()` exported from `@builder.io/qwik-city`, the only difference between the two is that `routeAction$()` is scoped to a route, while `globalAction$()` is globally available across the whole app.
 
-We recommend starting with `routeAction$()` and only use `globalAction$()` when you need to share an action across multiple routes, or if you wish to use the action in a component that is not a route.
+It's recommended to start with `routeAction$()`. Use `globalAction$()` only when sharing an action across multiple routes, or if you wish to use the action in a component that is not a route.
 
 ### `routeAction$()`
 

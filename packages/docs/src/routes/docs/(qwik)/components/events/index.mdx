@@ -298,7 +298,7 @@ export const Button = component$<ButtonProps>(({ onTripleClick$ }) => {
 
 ## Window and Document Events
 
-So far, we have discussed how to listen to events that originate from elements. There are events such as `scroll` and `mousemove` that need to be listened to on the `window` or `document`. Qwik allows this by providing the `document:on` and `window:on` prefixes when listening for events.
+So far, the discussion has focused on listening to events originating from elements. There are events such as `scroll` and `mousemove` that need to be listened to on the `window` or `document`. Qwik allows this by providing the `document:on` and `window:on` prefixes when listening for events.
 
 The `window:on`/`document:` prefixes are used to register an event at the current DOM location of the component while allowing it to receive events from the `window`/`document`. There are two advantages to this:
 

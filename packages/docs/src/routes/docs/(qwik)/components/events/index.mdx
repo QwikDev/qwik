@@ -137,7 +137,7 @@ export default component$(() => {
 
 ## Asynchronous Events
 
-Because of the async nature of Qwik, an event's handler execution might be delayed because the implementation has not been loaded into the JavaScript VM yet. Because of the asynchronous nature of event processing in Qwik the following APIs on an `Event` object will not work:
+Due to Qwik's asynchronous nature, the execution of an event handler might be delayed if the implementation has not yet been loaded into the JavaScript VM. Consequently, the following APIs on an Event object will not work:
 
 - `event.preventDefault()`
 - `event.currentTarget`

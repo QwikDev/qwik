@@ -117,7 +117,7 @@ const PREFETCH_CODE = /*#__PURE__*/ ((
   v && q.push(['verbose']);
   document.addEventListener(
     'qprefetch',
-    (e: any) => e.detail.bundles && q.push(['prefetch', '/test-build' || b, ...e.detail.bundles])
+    (e: any) => e.detail.bundles && q.push(['prefetch', e.detail.base || b, ...e.detail.bundles])
   );
 }).toString();
 

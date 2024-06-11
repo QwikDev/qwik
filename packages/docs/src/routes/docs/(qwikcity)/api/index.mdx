@@ -400,7 +400,7 @@ export default component$(() => {
 
 The `Link` component works like the `<a>` anchor element, but instead of causing a full page to reload, it will navigate as a SPA (Single Page Navigation). This is useful if you need to navigate without losing your current state.
 
-> Notice that full-page reloads in Qwik are extremely cheap, other frameworks abuse SPA links because a full-page reload requires JS to hydrate and re-execute everything. This is not the case for Qwik. We found in our internal testing that using `<a>` usually leads to the most snappy interactions.
+> Notice that full-page reloads in Qwik are extremely cheap. Other frameworks abuse SPA links because a full-page reload requires JS to hydrate and re-execute everything. This is not the case for Qwik. Through investigation of internal testing, using `<a>` usually leads to the most snappy interactions.
 
 Under the hood, the `<Link>` component uses the [`useNavigate()`](/docs/(qwikcity)/api/index.mdx#usenavigate) API and prevents the default behavior of the native `<a>`:
 

@@ -144,7 +144,7 @@ export const serverFunction = server$(function () {
 
 ### Usage in serverfull architecture (Example:Express)
 
-For accessing the .env variables in serverfull architecture we need to use singleton design pattern, initialize the db in a plugin and access it with getDB wherever it is needed
+For accessing the .env variables in serverfull architecture you need to use singleton design pattern, initialize the db in a plugin, and access it with getDB wherever it is needed.
 
 ```typescript title="src/util/db.ts"
 let _db!: AppDatabase;

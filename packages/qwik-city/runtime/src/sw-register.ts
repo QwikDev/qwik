@@ -15,7 +15,6 @@ import type { QPrefetchData, QPrefetchMessage } from './service-worker/types';
       swReg!.active &&
         swReg!.active.postMessage({
           type: 'qprefetch',
-          base: qBase.getAttribute('q:base')!,
           ...data,
         });
     }
@@ -37,7 +36,7 @@ import type { QPrefetchData, QPrefetchMessage } from './service-worker/types';
         initServiceWorker = () => {
           swReg = reg;
           queuedEventDetails.forEach(sendPrefetch!);
-          sendPrefetch!({ bundles: queuedEventDetails });
+          sendPrefetch!({ base: `${import.meta.env.BASE_URL}build/`, bundles: queuedEventDetails });
         };
 
         if (reg.installing) {

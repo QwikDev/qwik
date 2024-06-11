@@ -362,7 +362,7 @@ Sometimes a task needs to run only on the browser and after rendering, in that c
 > ```
 > </CodeSandbox>
 >
-> In the above example the `useTask$()` is guarded by `isServer`. The `track()` function is placed before the guard, which
+> In the above example, the `useTask$()` is guarded by `isServer`. The `track()` function is placed before the guard, which
 > allows the server to set up the subscription without executing any code on the server. The client
 > then executes the `useTask$()` once the `text` signal changes.
 

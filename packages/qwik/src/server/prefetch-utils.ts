@@ -21,6 +21,7 @@ export function workerFetchScript() {
 
 export function prefetchUrlsEventScript(prefetchResources: PrefetchResource[]) {
   const data: QPrefetchData = {
+    base: `${import.meta.env.BASE_URL}build/`,
     bundles: flattenPrefetchResources(prefetchResources).map((u) => u.split('/').pop()!),
   };
   return `document.dispatchEvent(new CustomEvent("qprefetch",{detail:${JSON.stringify(data)}}))`;

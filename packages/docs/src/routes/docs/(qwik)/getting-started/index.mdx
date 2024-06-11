@@ -43,7 +43,7 @@ import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
 
 Qwik is a new kind of framework that is [resumable](../concepts/resumable/index.mdx) (no eager JS execution and no hydration), built for the edge and [familiar to React developers](/docs/integrations/react/index.mdx).
 
-To play with it right away, check out our in-browser playgrounds:
+To play with it right away, check out Qwik’s in-browser playgrounds:
 
 - [StackBlitz Qwik](https://qwik.new) (Full Qwik + Qwikcity integration)
 - [Examples playground](/examples/reactivity/counter/) (Qwik only, no routing)
@@ -159,7 +159,7 @@ Code explanation:
 
 ### 3. Posting Data to the Server
 
-Previously, we used `routeLoader$` to send data from the server to the client. To post (send) data from the client back to the server, we use [`routeAction$`](/docs/action/).
+Previously, the component `routeLoader$` was used to send data from the server to the client. To post (send) data from the client back to the server, use [`routeAction$`](/docs/action/).
 
 NOTE: `routeAction$` is the preferred way to send data to the server because it uses the browser native form API, which works even if JavaScript is disabled.
 
@@ -543,7 +543,7 @@ export default component$(() => {
 
 ### 7. Preview
 
-We've built a basic application as an overview of the key Qwik concepts and its API. The application is running in dev mode, which uses hot-module-reloading (HMR) to continuously update the application while changing the code.
+This tutorial has a basic example application as an overview of the key Qwik concepts and its API. The application is running in dev mode, which uses hot-module-reloading (HMR) to continuously update the application while changing the code.
 
 While in dev mode:
 
@@ -563,8 +563,8 @@ NOTE:
 
 ## Review
 
-Congratulations! You've learned a lot about Qwik!
-For more on just how much you can achieve with Qwik, we recommend reading the dedicated docs on each of the topics touched on in this tutorial:
+Congratulations, you've learned a lot about Qwik!
+For more on just how much you can achieve with Qwik, check out the dedicated docs on each of the topics touched on in this tutorial:
 
 - [Project structure](/docs/(qwikcity)/project-structure/index.mdx)
 - [Directory-based routing](/docs/(qwikcity)/routing/index.mdx#directory-based-routing)

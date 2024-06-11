@@ -1698,6 +1698,10 @@ Description
 
 ## createComputed$
 
+> Warning: This API is now obsolete.
+>
+> This is a technology preview
+
 Returns read-only signal that updates when signals used in the `ComputedFn` change. Unlike useComputed$, this is not a hook and it always creates a new signal.
 
 ```typescript
@@ -1857,7 +1861,7 @@ The name of the context.
 
 > Warning: This API is now obsolete.
 >
-> this is a technology preview
+> This is a technology preview
 
 Creates a signal.
 
@@ -3621,7 +3625,7 @@ _(Optional)_ Options for the loading prefetch graph.
 </tbody></table>
 **Returns:**
 
-[JSXNode](#jsxnode)&lt;"script"&gt;
+JSXNode&lt;"script"&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -3675,7 +3679,7 @@ Options for the prefetch service worker.
 </tbody></table>
 **Returns:**
 
-[JSXNode](#jsxnode)&lt;'script'&gt;
+JSXNode&lt;'script'&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -10194,7 +10198,7 @@ qrl
 
 > Warning: This API is now obsolete.
 >
-> this is a technology preview
+> This is a technology preview
 
 Stores a value which is retained for the lifetime of the component.
 

@@ -144,7 +144,7 @@ Because of the async nature of Qwik, an event's handler execution might be delay
 
 ### Prevent Default
 
-Because event handling is asynchronous, you can't use `event.preventDefault()`. To solve this Qwik introduces a declarative way to prevent default through `preventdefault:{eventName}` attribute.
+Because event handling is asynchronous, you can't use `event.preventDefault()`. To solve this, Qwik introduces a declarative way to prevent default through `preventdefault:{eventName}` attribute.
 
 <CodeSandbox src="/src/routes/demo/events/preventdefault/index.tsx" style={{ height: '6em' }}>
 ```tsx {7}

@@ -112,7 +112,7 @@ Additionally, this task can be reactive and will re-execute when **tracked** [st
 
 `useTask$()` will block the rendering of the component until after its async callback resolves, in other words, tasks execute sequentially even if they are asynchronous. (Only one task executes at a time).
 
-Let's look at the simplest use case of the task to run some asynchronous work on component initialization.
+Take a look at the simplest use case of the task to run some asynchronous work on component initialization:
 
 <CodeSandbox src="/src/routes/demo/tasks/use-task/index.tsx" style={{ height: '6em' }}>
 ```tsx

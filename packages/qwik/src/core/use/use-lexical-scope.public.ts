@@ -1,11 +1,11 @@
 import { assertDefined } from '../error/assert';
 import { inflateQrl, parseQRL } from '../qrl/qrl';
-import { getWrappingContainer, getInvokeContext } from './use-core';
+import { getInvokeContext } from './use-core';
 import { assertQrl, type QRLInternal } from '../qrl/qrl-class';
 import { getContext } from '../state/context';
 import { resumeIfNeeded } from '../container/resume';
 import { _getContainerState } from '../container/container';
-import { getDomContainer } from '../v2/client/dom-container';
+import { _getQContainerElement, getDomContainer } from '../v2/client/dom-container';
 
 // <docs markdown="../readme.md#useLexicalScope">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -27,7 +27,7 @@ export const useLexicalScope = <VARS extends any[]>(): VARS => {
   if (!qrl) {
     const el = context.$element$;
     assertDefined(el, 'invoke: element must be defined inside useLexicalScope()', context);
-    const containerElement = getWrappingContainer(el) as HTMLElement;
+    const containerElement = _getQContainerElement(el) as HTMLElement;
     assertDefined(containerElement, `invoke: cant find parent q:container of`, el);
     if (containerElement.getAttribute('q:runtime') == '2') {
       const container = getDomContainer(containerElement);

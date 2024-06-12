@@ -3,8 +3,8 @@ import { assertDefined } from '../core/error/assert';
 import type { QRLInternal } from '../core/qrl/qrl-class';
 import { tryGetContext, type QContext } from '../core/state/context';
 import { normalizeOnProp } from '../core/state/listeners';
-import { getWrappingContainer, type PossibleEvents } from '../core/use/use-core';
-import { getDomContainer } from '@builder.io/qwik';
+import { type PossibleEvents } from '../core/use/use-core';
+import { _getQContainerElement, getDomContainer } from '@builder.io/qwik';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
@@ -191,7 +191,7 @@ export function getEvent(elCtx: QContext, prop: string): any {
 
 export function qPropReadQRL(elCtx: QContext, prop: string): ((event: Event) => void) | null {
   const allListeners = elCtx.li;
-  const containerEl = getWrappingContainer(elCtx.$element$);
+  const containerEl = _getQContainerElement(elCtx.$element$ as Element);
   assertDefined(containerEl, 'container element must be defined');
 
   return (event) => {

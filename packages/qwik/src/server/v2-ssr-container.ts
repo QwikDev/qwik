@@ -710,6 +710,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.closeElement();
   }
 
+  /**
+   * This is needed for the case when we have a component around the `<body>` tag. In this case we
+   * start emitting the vnode script tag before the `<body>` close tag.
+   */
   addVNodeDataToSerializationRoots() {
     const vNodeAttrsStack: SsrAttrs[] = [];
     const vNodeData = this.vNodeData;

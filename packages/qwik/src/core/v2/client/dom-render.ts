@@ -2,11 +2,11 @@ import type { JSXNode } from '@builder.io/qwik';
 import type { RenderOptions, RenderResult } from '../../render/dom/render.public';
 import type { FunctionComponent, JSXOutput } from '../../render/jsx/types/jsx-node';
 import { isDocument, isElement } from '../../util/element';
-import { QContainerAttr } from '../../util/markers';
 import { ChoreType } from '../shared/scheduler';
-import type { HostElement, fixMeAny } from '../shared/types';
+import { QContainerValue, type HostElement, type fixMeAny } from '../shared/types';
 import { DomContainer, getDomContainer } from './dom-container';
 import { cleanup } from './vnode-diff';
+import { QContainerAttr } from '../../util/markers';
 
 /**
  * Render JSX.
@@ -37,7 +37,7 @@ export const render2 = async (
     }
     parent = child as Element;
   }
-  (parent as Element).setAttribute(QContainerAttr, 'resumed');
+  (parent as Element).setAttribute(QContainerAttr, QContainerValue.RESUMED);
 
   const container = getDomContainer(parent as HTMLElement) as DomContainer;
   container.$serverData$ = opts.serverData!;

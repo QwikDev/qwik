@@ -4,7 +4,6 @@ import { assertDefined, assertTrue } from '../../error/assert';
 import { getPlatform, isServerPlatform } from '../../platform/platform';
 import type { SubscriberSignal, Subscriptions } from '../../state/common';
 import { HOST_FLAG_DIRTY, getContext, type QContext } from '../../state/context';
-import { getWrappingContainer } from '../../use/use-core';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import {
   TaskFlags,
@@ -136,14 +135,9 @@ const scheduleFrame = (containerState: ContainerState): Promise<void> => {
  */
 export const _hW = () => {
   const [task] = useLexicalScope<[SubscriberEffect]>();
-  if (vnode_isVNode(task.$el$)) {
-    const containerElement = getWrappingContainer(task.$el$ as fixMeAny) as HTMLElement;
-    const container = getDomContainer(containerElement);
-    const type = task.$flags$ & TaskFlags.VISIBLE_TASK ? ChoreType.VISIBLE : ChoreType.TASK;
-    container.$scheduler$(type, task as Task);
-  } else {
-    notifyTask(task, _getContainerState(getWrappingContainer(task.$el$)!));
-  }
+  const container = getDomContainer(task.$el$ as Element);
+  const type = task.$flags$ & TaskFlags.VISIBLE_TASK ? ChoreType.VISIBLE : ChoreType.TASK;
+  container.$scheduler$(type, task as Task);
 };
 
 const renderMarked = async (containerState: ContainerState): Promise<void> => {

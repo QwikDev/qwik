@@ -19,13 +19,22 @@ export function workerFetchScript() {
   return s;
 }
 
-export function prefetchUrlsEventScript(buildBase: string, prefetchResources: PrefetchResource[]) {
-  const data: QPrefetchData = {
-    base: buildBase,
-    bundles: flattenPrefetchResources(prefetchResources).map((u) => u.split('/').pop()!),
-  };
-  return `document.dispatchEvent(new CustomEvent("qprefetch",{detail:${JSON.stringify(data)}}))`;
+export function prefetchUrlsEventScript(prefetchResources: PrefetchResource[]) {
+  const bundles = JSON.stringify(flattenPrefetchResources(prefetchResources).map((u) => u.split('/').pop()!));
+  return `(${PREFETCH_CODE})(
+    "document.currentScript.closest('[q\\\\:container]')",
+    'window.qwikPrefetchSW||(window.qwikPrefetchSW=[])',
+    ${bundles}
+  );`;
 }
+
+const PREFETCH_CODE = /*#__PURE__*/ ((
+  qc: HTMLElement, // QwikContainer Element
+  q: Array<any[]>, // Queue of messages to send to the service worker.
+  bundles: string, // Bundles to prefetch
+) => {
+  q.push(['prefetch', qc.getAttribute('q:base'), ...JSON.parse(bundles)]);
+}).toString();
 
 export function flattenPrefetchResources(prefetchResources: PrefetchResource[]) {
   const urls: string[] = [];

@@ -10,7 +10,6 @@ import type { PrefetchImplementation, PrefetchResource, PrefetchStrategy } from 
 export function applyPrefetchImplementation(
   prefetchStrategy: PrefetchStrategy | undefined,
   prefetchResources: PrefetchResource[],
-  buildBase: string,
   nonce?: string
 ): JSXNode | null {
   // if prefetchStrategy is undefined, use defaults
@@ -20,7 +19,7 @@ export function applyPrefetchImplementation(
   const prefetchNodes: JSXNode[] = [];
 
   if (prefetchImpl.prefetchEvent === 'always') {
-    prefetchUrlsEvent(prefetchNodes, prefetchResources, buildBase, nonce);
+    prefetchUrlsEvent(prefetchNodes, prefetchResources, nonce);
   }
 
   if (prefetchImpl.linkInsert === 'html-append') {
@@ -43,7 +42,6 @@ export function applyPrefetchImplementation(
 function prefetchUrlsEvent(
   prefetchNodes: JSXNode[],
   prefetchResources: PrefetchResource[],
-  buildBase: string,
   nonce?: string
 ) {
   const mostReferenced = getMostReferenced(prefetchResources);
@@ -60,7 +58,7 @@ function prefetchUrlsEvent(
     jsx('script', {
       'q:type': 'prefetch-bundles',
       dangerouslySetInnerHTML:
-        prefetchUrlsEventScript(buildBase, prefetchResources) +
+        prefetchUrlsEventScript(prefetchResources) +
         `;document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`,
       nonce,
     })

@@ -63,6 +63,48 @@ export default component$(() => {
 });
 ```
 
+
+## Moving signal reads to `useTask$` or `useComputed$`
+
+This is similar to the tip above.
+
+Every time Qwik "reads" a signal/store value
+the function that the "read" is happening at, will re-run again
+on every change to that signal.
+
+That’s why it’s better to "read" values (and track them)
+inside of `useTask$` or `useComputed$` functions instead of inside component functions,
+whenever possible.
+
+Because otherwise, your component function will re-run
+on each change.
+
+
+```tsx title="Suboptimal implementation"
+// Don't do this!
+export default component$(() => {
+  const count = useSignal(1);
+  const doubleCount = count.value*2;
+  return (
+    <div>{doubleCount}</div>
+  );
+});
+```
+
+The above implementation will cause the whole template to be re-rendered when the signal changes. 
+
+Below, only the `useComputed$` function will re-run on any `count.value` change:
+
+```tsx title="Optimal Implementation"
+export default component$(() => {
+  const count = useSignal(1);
+  const dobuleCount = useComputed$(() => count.value*2);
+  return (
+    <div>{doubleCount.value}</div>
+  );
+});
+```
+
 ## Use `useVisibleTask$()` as a last resort
 
 Although convenient, `useVisibleTask$()` runs code eagerly and blocks the main thread, preventing user interaction until the task is finished. You can think of it as an escape hatch.

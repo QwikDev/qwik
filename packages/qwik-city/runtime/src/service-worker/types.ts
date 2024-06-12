@@ -1,5 +1,4 @@
 export interface QPrefetchData {
-  base?: string;
   links?: string[];
   bundles?: string[];
   symbols?: string[];
@@ -7,6 +6,7 @@ export interface QPrefetchData {
 
 export interface QPrefetchMessage extends QPrefetchData {
   type: 'qprefetch';
+  base: string;
 }
 
 export type ServiceWorkerMessage = QPrefetchMessage;

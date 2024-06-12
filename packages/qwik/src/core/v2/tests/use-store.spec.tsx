@@ -1,14 +1,15 @@
 import { Fragment as Component, Fragment, Fragment as Signal } from '@builder.io/qwik';
 import { describe, expect, it, vi } from 'vitest';
-import { advanceToNextTimerAndFlush, trigger } from '../../../testing/element-fixture';
-import { domRender, ssrRenderToDom } from '../../../testing/rendering.unit-util';
-import '../../../testing/vdom-diff.unit-util';
-import { component$ } from '@builder.io/qwik';
-import type { Signal as SignalType } from '../../state/signal';
-import { untrack } from '../../use/use-core';
-import { useSignal } from '../../use/use-signal';
-import { useStore } from '../../use/use-store.public';
-import { useTask$ } from '../../use/use-task';
+import { advanceToNextTimerAndFlush } from '../../../testing/element-fixture';
+import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
+import {
+  component$,
+  type Signal as SignalType,
+  untrack,
+  useSignal,
+  useStore,
+  useTask$,
+} from '@builder.io/qwik';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -284,6 +285,30 @@ describe.each([
     });
   });
 
+  it('should set the value with SerializationConstant at the start', async () => {
+    const DataCmp = component$(() => {
+      const data = useStore({ logs: '' });
+      return <button onClick$={() => (data.logs += '\n test')}>Data: {data.logs}!</button>;
+    });
+
+    const { vNode, container } = await render(<DataCmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          Data: <Signal>{''}</Signal>!
+        </button>
+      </Component>
+    );
+    await trigger(container.element, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          Data: <Signal>{'\n test'}</Signal>!
+        </button>
+      </Component>
+    );
+  });
+
   describe('regression', () => {
     it('#5597 - should update value', async () => {
       (globalThis as any).clicks = 0;
@@ -461,8 +486,7 @@ describe.each([
       );
     });
 
-    // TODO(optimizer-test): this is failing also in v1
-    it.skip('#5017 - should update child nodes for direct array', async () => {
+    it('#5017 - should update child nodes for direct array', async () => {
       const Child = component$<{ columns: string }>(({ columns }) => {
         return <div>Child: {columns}</div>;
       });
@@ -489,13 +513,13 @@ describe.each([
             <Component>
               <div>
                 {'Child: '}
-                {'INITIAL'}
+                <Signal>{'INITIAL'}</Signal>
               </div>
             </Component>
             <Component>
               <div>
                 {'Child: '}
-                {'INITIAL'}
+                <Signal>{'INITIAL'}</Signal>
               </div>
             </Component>
           </Fragment>
@@ -509,13 +533,13 @@ describe.each([
             <Component>
               <div>
                 {'Child: '}
-                {'UPDATE'}
+                <Signal>{'UPDATE'}</Signal>
               </div>
             </Component>
             <Component>
               <div>
                 {'Child: '}
-                {'UPDATE'}
+                <Signal>{'UPDATE'}</Signal>
               </div>
             </Component>
           </Fragment>

@@ -156,6 +156,33 @@ class DeserializationHandler implements ProxyHandler<object> {
     return propValue;
   }
 
+  set(target: object, property: string | symbol, newValue: any, receiver: any): boolean {
+    /**
+     * If we are setting a value which is a string and starts with a special character, we need to
+     * prefix it with a SerializationConstant character to indicate that it is a string. But only if
+     * the current value is an empty string.
+     *
+     * Without this later (when getting the value) we would try to deserialize the value incorrectly
+     * due to the special character at the start.
+     */
+    if (
+      typeof newValue === 'string' &&
+      newValue.length >= 1 &&
+      newValue.charCodeAt(0) < SerializationConstant.LAST_VALUE
+    ) {
+      const currentPropValue = Reflect.get(target, property, receiver);
+      if (typeof currentPropValue === 'string' && currentPropValue.length === 0) {
+        return Reflect.set(
+          target,
+          property,
+          SerializationConstant.String_CHAR + newValue,
+          receiver
+        );
+      }
+    }
+    return Reflect.set(target, property, newValue, receiver);
+  }
+
   has(target: object, property: PropertyKey) {
     if (property === SERIALIZER_PROXY_UNWRAP) {
       return true;

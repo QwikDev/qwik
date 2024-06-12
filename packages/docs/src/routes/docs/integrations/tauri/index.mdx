@@ -14,3 +14,55 @@ created_at: '2023-05-14T08:01:52Z'
 Tauri is a framework to build desktop applications with any frontend framework and a Rust core.
 
 Learn more on the [Tauri website](https://tauri.app/v1/guides/getting-started/setup/qwik/).
+
+## Adapter
+Make sure you use the [Static Adapter](https://qwik.dev/docs/deployments/static/).
+
+Then you can build your app with 
+
+```shell
+npm run build
+```
+
+## Add Tauri
+
+To install Tauri via npm run:
+
+```shell
+npm install -D @tauri-apps/cli
+```
+
+In your `package.json`, add this script:
+
+```json title="package.json"
+"scripts": {
+  "tauri": "tauri"
+}
+```
+
+Then, to scaffold a minimal Rust project that is pre-configured to use Tauri, open a terminal and run the following command:
+```shell
+npm run tauri init
+```
+This command will walk you through a quick setup:
+1. *What is your app name?*
+This will be the name of your final bundle and what the OS will call your app. You can use any name you want here.
+1. *What should the window title be?*
+This will be the title of the default main window. You can use any title you want here.
+3. *Where are your web assets (HTML/CSS/JS) located relative to the `<current dir>/src-tauri/tauri.conf.json` file that will be created?*
+This is the path that Tauri will load your frontend assets from when building for production.
+Use `../dist` for this value.
+4. *What is the URL of your dev server?*
+This can be either a URL or a file path that Tauri will load during development.
+Use `http://localhost:5173` for this value.
+5. *What is your frontend dev command?*
+This is the command used to start your frontend dev server.
+Use `npm run dev` **(make sure to adapt this to use the package manager of your choice)**.
+6. *What is your frontend build command?*
+This is the command to build your frontend files.
+Use `npm run build` **(make sure to adapt this to use the package manager of your choice)**.
+
+That's it! Finally you can run this command to start developing your app:
+```shell
+npm run tauri dev
+```

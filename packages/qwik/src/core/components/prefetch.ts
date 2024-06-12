@@ -99,9 +99,6 @@ const PREFETCH_CODE = /*#__PURE__*/ ((
   h?: string
 ) => {
   b = qc.getAttribute('q:base')!;
-
-  // eslint-disable-next-line no-console
-  console.log('base inside prefetch code', b);
   h = qc.getAttribute('q:manifest-hash')!;
   c.register('URL', { scope: 'SCOPE' }).then(
     (sw: ServiceWorkerRegistration, onReady?: () => void) => {

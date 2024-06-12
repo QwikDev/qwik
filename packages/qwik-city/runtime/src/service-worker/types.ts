@@ -1,5 +1,5 @@
 export interface QPrefetchData {
-  base: string;
+  base?: string;
   links?: string[];
   bundles?: string[];
   symbols?: string[];

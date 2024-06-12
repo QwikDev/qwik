@@ -148,7 +148,6 @@ function processPrefetchAll(swState: SWState, basePath: string) {
 }
 
 export function drainMsgQueue(swState: SWState) {
-  // eslint-disable-next-line no-console
   if (!swState.$msgQueuePromise$ && swState.$msgQueue$.length) {
     const top = swState.$msgQueue$.shift()!;
     swState.$msgQueuePromise$ = processMessage(swState, top).then(() => {

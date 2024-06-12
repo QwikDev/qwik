@@ -23,8 +23,8 @@ export function prefetchUrlsEventScript(prefetchResources: PrefetchResource[]) {
     flattenPrefetchResources(prefetchResources).map((u) => u.split('/').pop()!)
   );
   return `(${PREFETCH_CODE})(
-    "document.currentScript.closest('[q\\\\:container]')",
-    'window.qwikPrefetchSW||(window.qwikPrefetchSW=[])',
+    document.currentScript.closest('[q\\\\:container]'),
+    window.qwikPrefetchSW||(window.qwikPrefetchSW=[]),
     ${bundles}
   );`;
 }

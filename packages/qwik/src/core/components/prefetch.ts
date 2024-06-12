@@ -114,7 +114,7 @@ const PREFETCH_CODE = /*#__PURE__*/ ((
   v && q.push(['verbose']);
   document.addEventListener(
     'qprefetch',
-    (e: any) => e.detail.bundles && q.push(['prefetch', e.detail.base, ...e.detail.bundles])
+    (e: any) => e.detail.bundles && q.push(['prefetch', ...e.detail.bundles])
   );
 }).toString();
 

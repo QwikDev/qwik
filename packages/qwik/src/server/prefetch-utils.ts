@@ -26,7 +26,7 @@ export function prefetchUrlsEventScript(prefetchResources: PrefetchResource[]) {
   return `(${PREFETCH_BUNDLES_CODE})(
     document.currentScript.closest('[q\\\\:container]'),
     window.qwikPrefetchSW||(window.qwikPrefetchSW=[]),
-    ${data.bundles!.join(',')}
+    ${JSON.stringify(data.bundles!)}
   );`;
 }
 
@@ -35,7 +35,7 @@ const PREFETCH_BUNDLES_CODE = /*#__PURE__*/ ((
   q: Array<any[]>, // Queue of messages to send to the service worker.
   bundles: string // Bundles to prefetch
 ) => {
-  q.push(['prefetch', qc.getAttribute('q:base'), ...bundles.split(',')]);
+  q.push(['prefetch', qc.getAttribute('q:base'), ...bundles]);
 }).toString();
 
 export function flattenPrefetchResources(prefetchResources: PrefetchResource[]) {

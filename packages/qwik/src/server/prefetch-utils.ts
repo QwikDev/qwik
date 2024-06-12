@@ -26,16 +26,16 @@ export function prefetchUrlsEventScript(prefetchResources: PrefetchResource[]) {
   return `(${PREFETCH_BUNDLES_CODE})(
     document.currentScript.closest('[q\\\\:container]'),
     window.qwikPrefetchSW||(window.qwikPrefetchSW=[]),
-    ${JSON.stringify(data)}
+    ${data.bundles!.join(',')}
   );`;
 }
 
 const PREFETCH_BUNDLES_CODE = /*#__PURE__*/ ((
   qc: HTMLElement, // QwikContainer Element
   q: Array<any[]>, // Queue of messages to send to the service worker.
-  data: string // Bundles to prefetch
+  bundles: string // Bundles to prefetch
 ) => {
-  q.push(['prefetch', qc.getAttribute('q:base'), ...(JSON.parse(data) as QPrefetchData).bundles!]);
+  q.push(['prefetch', qc.getAttribute('q:base'), ...bundles.split(',')]);
 }).toString();
 
 export function flattenPrefetchResources(prefetchResources: PrefetchResource[]) {

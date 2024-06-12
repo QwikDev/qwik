@@ -44,7 +44,7 @@ All other frameworks' hydration **replays** all the application logic on the cli
 
 Resumability is about pausing execution on the server and resuming execution on the client without having to replay and download all of the application logic.
 
-A good mental model is that Qwik applications at any point of their lifecycle can be serialized and moved to a different VM instance (server to browser). There, the application simply resumes where the serialization stopped. No hydration is required. This is why we say that Qwik applications don't hydrate; they resume.
+A good mental model is that Qwik applications at any point of their lifecycle can be serialized and moved to a different VM instance (server to browser). There, the application simply resumes where the serialization stopped. No hydration is required. Hence, Qwik applications don't hydrate; they resume.
 
 In order to achieve this, Qwik needs to solve the 3 problems (listeners, component tree, application state) in a way that is compatible with a no-code startup.
 

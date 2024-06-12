@@ -275,6 +275,60 @@ test('command: serve, --mode ssr', async () => {
   assert.deepEqual(opts.resolveQwikBuild, true);
 });
 
+test('command: serve, --mode ssr with build.assetsDir', async () => {
+  const initOpts = {
+    optimizerOptions: mockOptimizerOptions(),
+    ssr: {
+      input: resolve(cwd, 'src', 'renderz.tsx'),
+      outDir: resolve(cwd, 'ssr-dist'),
+    },
+  };
+  const plugin = qwikVite(initOpts);
+  const c: any = (await plugin.config(
+    { build: { emptyOutDir: true, assetsDir: 'my-assets-dir' } },
+    { command: 'serve', mode: 'ssr' }
+  ))!;
+  const opts = await plugin.api?.getOptions();
+  const build = c.build!;
+  const rollupOptions = build!.rollupOptions!;
+
+  assert.deepEqual(opts.target, 'ssr');
+  assert.deepEqual(opts.buildMode, 'development');
+  assert.deepEqual(build.minify, undefined);
+  assert.deepEqual(build.ssr, undefined);
+  assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'renderz.tsx'))]);
+  assert.deepEqual(c.build.outDir, normalizePath(resolve(cwd, 'ssr-dist')));
+  assert.deepEqual(build.emptyOutDir, undefined);
+  assert.deepEqual(c.publicDir, undefined);
+  assert.deepEqual(opts.resolveQwikBuild, true);
+});
+
+test('should use build.assetsDir config with dist/ fallback', async () => {
+  const initOpts = {
+    optimizerOptions: mockOptimizerOptions(),
+  };
+  const plugin = qwikVite(initOpts);
+  const c: any = (await plugin.config(
+    { build: { assetsDir: 'my-assets-dir/' } },
+    { command: 'serve', mode: 'ssr' }
+  ))!;
+
+  assert.equal(c.build.outDir, normalizePath(resolve(cwd, `dist/my-assets-dir`)));
+});
+
+test('should use build.outDir and build.assetsDir config ', async () => {
+  const initOpts = {
+    optimizerOptions: mockOptimizerOptions(),
+  };
+  const plugin = qwikVite(initOpts);
+  const c: any = (await plugin.config(
+    { build: { outDir: 'my-dist/', assetsDir: 'my-assets-dir' } },
+    { command: 'serve', mode: 'ssr' }
+  ))!;
+
+  assert.equal(c.build.outDir, normalizePath(resolve(cwd, `my-dist/my-assets-dir`)));
+});
+
 test('command: build, --mode lib', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),

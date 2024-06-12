@@ -22,7 +22,7 @@ import {
 import { vnode_getNextSibling } from '../client/vnode';
 import { HTML_NS, SVG_NS } from '../../util/markers';
 
-const debug = false;
+const debug = true;
 
 /**
  * Below are helper components that are constant. They have to be in the top level scope so that the
@@ -41,26 +41,30 @@ describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: projection', ({ render }) => {
-  it('should render basic projection', async () => {
+  it.only('should render basic projection', async () => {
     const Child = component$(() => {
       return (
         <div>
-          <Slot />
+          <Slot name="shai">misko</Slot>
         </div>
       );
     });
     const Parent = component$(() => {
-      return <Child>parent-content</Child>;
+      return (
+        <Child>
+          <b q:slot="shai">parent-content</b>
+        </Child>
+      );
     });
     const { vNode } = await render(<Parent>render-content</Parent>, { debug });
     expect(vNode).toMatchVDOM(
-      <Fragment>
-        <Fragment>
+      <Component>
+        <Component>
           <div>
-            <Fragment>parent-content</Fragment>
+            <Projection>parent-content</Projection>
           </div>
-        </Fragment>
-      </Fragment>
+        </Component>
+      </Component>
     );
   });
   it('should render unused projection into template', async () => {

@@ -30,6 +30,7 @@ import {
 } from '../v2/client/vnode';
 import { _getQContainerElement } from '../v2/client/dom-container';
 import type { ContainerElement } from '../v2/client/types';
+import type { EffectSubscriptions } from '../v2/signal/v2-signal';
 
 declare const document: QwikDocument;
 
@@ -90,6 +91,7 @@ export interface InvokeContext {
   $waitOn$: Promise<unknown>[] | undefined;
   /** The current subscriber for registering signal reads */
   $subscriber$: Subscriber | null | undefined;
+  $effectSubscriber$: EffectSubscriptions | undefined;
   $renderCtx$: RenderContext | undefined;
   $locale$: string | undefined;
   $container2$: Container2 | undefined;
@@ -211,6 +213,7 @@ export const newInvokeContext = (
     $qrl$: undefined,
     $waitOn$: undefined,
     $subscriber$: undefined,
+    $effectSubscriber$: undefined,
     $renderCtx$: undefined,
     $locale$,
     $container2$: undefined,

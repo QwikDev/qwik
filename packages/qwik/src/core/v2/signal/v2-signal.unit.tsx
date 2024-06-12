@@ -1,8 +1,8 @@
-import { createDocument } from '@builder.io/qwik/testing';
-import { isPromise } from 'util/types';
-import { beforeEach, describe, expect, it } from 'vitest';
-import type { QRLInternal } from '../../qrl/qrl-class';
-import type { QRL } from '../../qrl/qrl.public';
+import { createDocument, getTestPlatform } from '@builder.io/qwik/testing';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { inlinedQrl } from '../../qrl/qrl';
+import { type QRLInternal } from '../../qrl/qrl-class';
+import { type QRL } from '../../qrl/qrl.public';
 import type { VirtualElement } from '../../render/dom/virtual-element';
 import { SubscriptionType, type Subscriber } from '../../state/common';
 import { invoke, newInvokeContext } from '../../use/use-core';
@@ -11,11 +11,13 @@ import { implicit$FirstArg } from '../../util/implicit_dollar';
 import { getDomContainer } from '../client/dom-container';
 import { ChoreType } from '../shared/scheduler';
 import type { Container2 } from '../shared/types';
-import { createComputed2$, createSignal2 } from './v2-signal.public';
-import type { ValueOrPromise } from '../../util/types';
+import { createComputed2Qrl, createSignal2 } from './v2-signal.public';
+import { isPromise } from '../../util/promises';
+import { $, type ValueOrPromise } from '@builder.io/qwik';
 
 describe('v2-signal', () => {
   const log: any[] = [];
+  const delayMap = new Map();
   let container: Container2 = null!;
   beforeEach(() => {
     log.length = 0;
@@ -23,16 +25,23 @@ describe('v2-signal', () => {
     container = getDomContainer(document.body);
   });
 
+  afterEach(async () => {
+    delayMap.clear();
+    await container.$scheduler$(ChoreType.WAIT_FOR_ALL);
+    await getTestPlatform().flush();
+    container = null!;
+  });
+
   describe('primitive', () => {
     it('basic read operation', async () => {
-      await withScheduler(() => {
+      await withContainer(() => {
         const signal = createSignal2(123);
         expect(signal.value).toEqual(123);
       });
     });
 
     it('basic subscription operation', async () => {
-      await withScheduler(async () => {
+      await withContainer(async () => {
         const signal = createSignal2(123);
         expect(signal.value).toEqual(123);
         await effect$(() => log.push(signal.value));
@@ -46,12 +55,19 @@ describe('v2-signal', () => {
   });
 
   describe('computed', () => {
-    it.only('basic subscription operation', async () => {
-      await withScheduler(async () => {
+    it('should simulate lazy loaded QRLs', async () => {
+      const qrl = delay($(() => 'OK'));
+      expect(qrl.resolved).not.toBeDefined();
+      await qrl.resolve();
+      expect(qrl.resolved).toBeDefined();
+    });
+
+    it('basic subscription operation', async () => {
+      await withContainer(async () => {
         const a = createSignal2(2);
         const b = createSignal2(10);
         await retry(() => {
-          const signal = createComputed2$(() => a.value + b.value);
+          const signal = createComputed2Qrl(delay($(() => a.value + b.value)));
           expect((signal as any).$untrackedValue$).toEqual(12);
           expect(signal.value).toEqual(12);
           effect$(() => log.push(signal.value));
@@ -67,7 +83,7 @@ describe('v2-signal', () => {
   });
   ////////////////////////////////////////
 
-  function withScheduler(fn: () => ValueOrPromise<void>) {
+  function withContainer<T>(fn: () => T): T {
     const ctx = newInvokeContext();
     ctx.$container2$ = container;
     return invoke(ctx, fn);
@@ -76,6 +92,23 @@ describe('v2-signal', () => {
   function flushSignals() {
     console.log('flushSignals()');
     return container.$scheduler$(ChoreType.WAIT_FOR_ALL);
+  }
+
+  /** Simulates the QRLs being lazy loaded once per test. */
+  function delay<T>(qrl: QRL<() => T>): QRLInternal<() => T> {
+    const iQrl = qrl as QRLInternal<() => T>;
+    const hash = iQrl.$symbol$;
+    let delayQrl = delayMap.get(hash);
+    if (!delayQrl) {
+      console.log('DELAY', hash);
+      delayQrl = inlinedQrl(
+        Promise.resolve(iQrl.resolve()),
+        'd_' + iQrl.$symbol$,
+        iQrl.$captureRef$ as any
+      ) as any;
+      delayMap.set(hash, delayQrl);
+    }
+    return delayQrl;
   }
 });
 
@@ -95,6 +128,13 @@ async function effectQrl(fnQrl: QRL<() => void>) {
 
 const effect$ = /*#__PURE__*/ implicit$FirstArg(effectQrl);
 
-function retry(fn: () => void) {
-  fn();
+function retry<T>(fn: () => T): ValueOrPromise<T> {
+  try {
+    return fn();
+  } catch (e) {
+    if (isPromise(e)) {
+      return e.then(retry.bind(null, fn)) as ValueOrPromise<T>;
+    }
+    throw e;
+  }
 }

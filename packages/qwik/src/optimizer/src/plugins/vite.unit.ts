@@ -285,7 +285,7 @@ test('command: serve, --mode ssr with build.assetsDir', async () => {
   };
   const plugin = qwikVite(initOpts);
   const c: any = (await plugin.config(
-    { build: { emptyOutDir: true, assetsDir: 'my-assets-dir/' } },
+    { build: { emptyOutDir: true, assetsDir: 'my-assets-dir' } },
     { command: 'serve', mode: 'ssr' }
   ))!;
   const opts = await plugin.api?.getOptions();
@@ -304,23 +304,29 @@ test('command: serve, --mode ssr with build.assetsDir', async () => {
 });
 
 test('should use build.assetsDir config with dist/ fallback', async () => {
-  const plugin = qwikVite();
+  const initOpts = {
+    optimizerOptions: mockOptimizerOptions(),
+  };
+  const plugin = qwikVite(initOpts);
   const c: any = (await plugin.config(
-    { assetsDir: 'my-assets-dir/' },
+    { build: { assetsDir: 'my-assets-dir/' } },
     { command: 'serve', mode: 'ssr' }
   ))!;
 
-  assert.equal(c.build.outDir, normalizePath(resolve(cwd, `dist/my-assets-dir/`)));
+  assert.equal(c.build.outDir, normalizePath(resolve(cwd, `dist/my-assets-dir`)));
 });
 
 test('should use build.outDir and build.assetsDir config ', async () => {
-  const plugin = qwikVite();
+  const initOpts = {
+    optimizerOptions: mockOptimizerOptions(),
+  };
+  const plugin = qwikVite(initOpts);
   const c: any = (await plugin.config(
-    { outDir: 'my-dist/', assetsDir: 'my-assets-dir/' },
+    { build: { outDir: 'my-dist/', assetsDir: 'my-assets-dir' } },
     { command: 'serve', mode: 'ssr' }
   ))!;
 
-  assert.equal(c.build.outDir, normalizePath(resolve(cwd, `my-dist/my-assets-dir/`)));
+  assert.equal(c.build.outDir, normalizePath(resolve(cwd, `my-dist/my-assets-dir`)));
 });
 
 test('command: build, --mode lib', async () => {

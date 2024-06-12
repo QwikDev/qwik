@@ -59,7 +59,7 @@ function prefetchUrlsEvent(
       'q:type': 'prefetch-bundles',
       dangerouslySetInnerHTML:
         prefetchUrlsEventScript(prefetchResources) +
-        `;document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`,
+        `document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`,
       nonce,
     })
   );

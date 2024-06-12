@@ -90,7 +90,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     enforce: 'pre',
     api,
 
-    async config(viteConfig, viteEnv) {     
+    async config(viteConfig, viteEnv) {
       await qwikPlugin.init();
 
       const sys = qwikPlugin.getSys();
@@ -152,7 +152,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         resolveQwikBuild: true,
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
-        outDir: viteConfig.build?.outDir || viteConfig.build?.assetsDir,
+        outDir: (viteConfig.build?.outDir || CLIENT_OUT_DIR) + viteConfig.build?.assetsDir,
         devTools: qwikViteOpts.devTools,
         sourcemap: !!viteConfig.build?.sourcemap,
         lint: qwikViteOpts.lint,

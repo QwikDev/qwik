@@ -272,7 +272,8 @@
     let skip = false;
 
     async function _getInfo(originalSrc) {
-      if (originalSrc.startsWith('blob:')) {
+      // Put all supported protocols here, see also packages/qwik/src/optimizer/src/plugins/image-size-server.ts
+      if (!/^(https?|file|capacitor):/.test(originalSrc)) {
         return undefined;
       }
       const url = new URL('/__image_info', location.href);
@@ -281,14 +282,14 @@
       if (res.ok) {
         return await res.json();
       } else {
-        return undefined;
+        return null;
       }
     }
 
     const map = new Map();
     function getInfo(originalSrc) {
       let p = map.get(originalSrc);
-      if (!p) {
+      if (typeof p === 'undefined') {
         p = _getInfo(originalSrc);
         map.set(originalSrc, p);
       }

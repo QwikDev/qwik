@@ -11,7 +11,7 @@ export function applyPrefetchImplementation(
   prefetchStrategy: PrefetchStrategy | undefined,
   prefetchResources: PrefetchResource[],
   buildBase: string,
-  nonce?: string,
+  nonce?: string
 ): JSXNode | null {
   // if prefetchStrategy is undefined, use defaults
   // set default if implementation wasn't provided
@@ -44,7 +44,7 @@ function prefetchUrlsEvent(
   prefetchNodes: JSXNode[],
   prefetchResources: PrefetchResource[],
   buildBase: string,
-  nonce?: string,
+  nonce?: string
 ) {
   const mostReferenced = getMostReferenced(prefetchResources);
   for (const url of mostReferenced) {

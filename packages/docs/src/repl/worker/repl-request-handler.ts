@@ -1,9 +1,6 @@
-/* eslint-disable no-console */
-// import type { ReplEventMessage } from '../types';
 import { QWIK_REPL_RESULT_CACHE } from './repl-constants';
-// import { sendMessageToReplServer } from './repl-messenger';
 
-export const requestHandler = async (ev: any) => {
+export const requestHandler = (ev: FetchEvent) => {
   const reqUrl = new URL(ev.request.url);
   const pathname = reqUrl.pathname;
   const parts = pathname.split('/');
@@ -14,7 +11,7 @@ export const requestHandler = async (ev: any) => {
     return;
   }
 
-  return ev.respondWith(
+  ev.respondWith(
     caches
       .open(QWIK_REPL_RESULT_CACHE)
       .then(async (cache) => {
@@ -50,6 +47,19 @@ export const requestHandler = async (ev: any) => {
           return rsp;
         }
 
+        if (ev.request.url.includes('/repl/')) {
+          return new Response(
+            '500 - Cannot communicate with REPL service worker - ' + ev.request.url,
+            {
+              headers: {
+                'Content-Type': 'text/plain; charset=utf-8',
+                'Cache-Control': 'no-store, no-cache, max-age=0',
+                'X-Qwik-REPL-App': 'Error',
+              },
+              status: 500,
+            }
+          );
+        }
         return new Response('404 - ' + ev.request.url, {
           headers: {
             'Content-Type': 'text/plain; charset=utf-8',
@@ -59,7 +69,10 @@ export const requestHandler = async (ev: any) => {
           status: 404,
         });
       })
-      .catch((e) => console.error(e))
+      .catch((e) => {
+        console.error('REPL handler error', e);
+        throw e;
+      })
   );
 };
 

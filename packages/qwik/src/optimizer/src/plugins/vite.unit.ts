@@ -276,7 +276,7 @@ test('command: serve, --mode ssr', async () => {
 });
 
 test('command: serve, --mode ssr with build.assetsDir', async () => {
-  const initOpts = {    
+  const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
     ssr: {
       input: resolve(cwd, 'src', 'renderz.tsx'),
@@ -309,8 +309,8 @@ test('should use build.assetsDir config with dist/ fallback', async () => {
     { assetsDir: 'my-assets-dir/' },
     { command: 'serve', mode: 'ssr' }
   ))!;
-  
-  assert.equal(c.build.outDir, normalizePath(resolve(cwd, `dist/my-assets-dir/`)));  
+
+  assert.equal(c.build.outDir, normalizePath(resolve(cwd, `dist/my-assets-dir/`)));
 });
 
 test('should use build.outDir and build.assetsDir config ', async () => {
@@ -319,8 +319,8 @@ test('should use build.outDir and build.assetsDir config ', async () => {
     { outDir: 'my-dist/', assetsDir: 'my-assets-dir/' },
     { command: 'serve', mode: 'ssr' }
   ))!;
-  
-  assert.equal(c.build.outDir, normalizePath(resolve(cwd, `my-dist/my-assets-dir/`)));  
+
+  assert.equal(c.build.outDir, normalizePath(resolve(cwd, `my-dist/my-assets-dir/`)));
 });
 
 test('command: build, --mode lib', async () => {

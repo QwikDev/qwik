@@ -3,14 +3,14 @@ import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scri
 import type {
   EntryStrategy,
   GlobalInjections,
+  InsightManifest,
   Optimizer,
   OptimizerOptions,
   OptimizerSystem,
-  QwikManifest,
-  TransformModule,
-  InsightManifest,
   Path,
   QwikBundleGraph,
+  QwikManifest,
+  TransformModule,
 } from '../types';
 import { versions } from '../versions';
 import { getImageSizeServer } from './image-size-server';
@@ -156,9 +156,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         resolveQwikBuild: true,
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
-        outDir: viteConfig.build?.assetsDir
-          ? path.join(viteConfig.build?.outDir || CLIENT_OUT_DIR, viteConfig.build?.assetsDir)
-          : viteConfig.build?.outDir,
+        outDir:
+          target === 'client' && viteConfig.build?.assetsDir
+            ? path.join(viteConfig.build?.outDir || CLIENT_OUT_DIR, viteConfig.build?.assetsDir)
+            : viteConfig.build?.outDir,
         devTools: qwikViteOpts.devTools,
         sourcemap: !!viteConfig.build?.sourcemap,
         lint: qwikViteOpts.lint,

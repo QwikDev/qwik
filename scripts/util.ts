@@ -4,16 +4,12 @@ import mri from 'mri';
 import {
   access as fsAccess,
   copyFile as fsCopyFile,
-  existsSync,
   mkdirSync,
-  readdirSync,
   readdir as fsReaddir,
   readFile as fsReadFile,
   rmdirSync,
   stat as fsStat,
-  statSync,
   unlink as fsUnlink,
-  unlinkSync,
   writeFile as fsWriteFile,
   mkdir as fsMkdir,
 } from 'node:fs';
@@ -254,22 +250,10 @@ export const writeFile = /*#__PURE__*/ promisify(fsWriteFile);
 export const mkdir = /*#__PURE__*/ promisify(fsMkdir);
 
 export function emptyDir(dir: string) {
-  if (existsSync(dir)) {
-    const items = readdirSync(dir).map((f) => join(dir, f));
-    for (const item of items) {
-      const s = statSync(item);
-      if (s.isDirectory()) {
-        emptyDir(item);
-        try {
-          rmdirSync(item);
-        } catch (e) {}
-      } else if (s.isFile()) {
-        unlinkSync(item);
-      }
-    }
-  } else {
-    ensureDir(dir);
-  }
+  try {
+    rmdirSync(dir, { recursive: true });
+  } catch (e) {}
+  ensureDir(dir);
 }
 
 export function ensureDir(dir: string) {

@@ -156,10 +156,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         resolveQwikBuild: true,
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
-        outDir:
-          target === 'client' && viteConfig.build?.assetsDir
-            ? path.join(viteConfig.build?.outDir || CLIENT_OUT_DIR, viteConfig.build?.assetsDir)
-            : viteConfig.build?.outDir,
+        outDir: viteConfig.build?.outDir,
+        assetsDir:
+          viteConfig.build?.assetsDir !== '_astro' ? viteConfig.build?.assetsDir : undefined,
         devTools: qwikViteOpts.devTools,
         sourcemap: !!viteConfig.build?.sourcemap,
         lint: qwikViteOpts.lint,
@@ -185,6 +184,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           pluginOpts.input = qwikViteOpts.client?.input;
           if (qwikViteOpts.client?.outDir) {
             pluginOpts.outDir = qwikViteOpts.client.outDir;
+          } else {
+            if (pluginOpts.assetsDir) {
+              pluginOpts.outDir = path.join(
+                pluginOpts.outDir || CLIENT_OUT_DIR,
+                pluginOpts.assetsDir
+              );
+            }
           }
           pluginOpts.manifestOutput = qwikViteOpts.client?.manifestOutput;
         } else {

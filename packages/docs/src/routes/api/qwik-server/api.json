@@ -26,7 +26,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Provides the `qwik-prefetch-service-worker.js` file as a string. Useful for tooling to inline the qwikloader script into HTML.\n\n\n```typescript\nexport declare function getQwikPrefetchWorkerScript(opts?: {\n    debug?: boolean;\n}): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n{ debug?: boolean; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nstring",
+      "content": "Provides the `qwik-prefetch-service-worker.js` file as a string. Useful for tooling to inline the qwik-prefetch-service-worker script into HTML.\n\n\n```typescript\nexport declare function getQwikPrefetchWorkerScript(opts?: {\n    debug?: boolean;\n}): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n{ debug?: boolean; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nstring",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/scripts.ts",
       "mdFile": "qwik.getqwikprefetchworkerscript.md"
     },

@@ -1,9 +1,9 @@
 import path, { resolve } from 'node:path';
-import { convertManifestToBundleGraph, qwikVite } from './vite';
-import type { OptimizerOptions, QwikBundle, QwikManifest } from '../types';
 import type { Rollup } from 'vite';
+import { assert, expect, suite, test } from 'vitest';
 import { normalizePath } from '../../../testing/util';
-import { assert, test, suite, expect } from 'vitest';
+import type { OptimizerOptions, QwikBundle, QwikManifest } from '../types';
+import { convertManifestToBundleGraph, qwikVite } from './vite';
 
 const cwd = process.cwd();
 
@@ -338,27 +338,27 @@ test('command: serve, --mode ssr with build.assetsDir', async () => {
   assert.deepEqual(opts.resolveQwikBuild, true);
 });
 
-test('should use build.assetsDir config with dist/ fallback', async () => {
+test('should use build.assetsDir config with dist/ fallback with client target', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = qwikVite(initOpts)[0];
   const c: any = (await plugin.config(
     { build: { assetsDir: 'my-assets-dir/' } },
-    { command: 'serve', mode: 'ssr' }
+    { command: 'serve' }
   ))!;
 
   assert.equal(c.build.outDir, normalizePath(resolve(cwd, `dist/my-assets-dir`)));
 });
 
-test('should use build.outDir and build.assetsDir config ', async () => {
+test('should use build.outDir and build.assetsDir config with client target', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = qwikVite(initOpts)[0];
   const c: any = (await plugin.config(
     { build: { outDir: 'my-dist/', assetsDir: 'my-assets-dir' } },
-    { command: 'serve', mode: 'ssr' }
+    { command: 'serve' }
   ))!;
 
   assert.equal(c.build.outDir, normalizePath(resolve(cwd, `my-dist/my-assets-dir`)));

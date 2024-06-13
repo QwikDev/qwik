@@ -193,5 +193,7 @@ Note that this process is only for testing the speculative module fetching, and 
 
 ### Debug Mode
 
-To see the service worker logs, add `window.qwikPrefetchSW.push(['verbose', '', []]` to the JavaScript console and press the `Enter` key.
+The service worker in Qwik core, which uses the `<PrefetchServiceWorker />` and `<PrefetchGraph />` components in `root.tsx` has a debug mode.
+
+To see the service worker logs, add `window.qwikPrefetchSW.push(['verbose', '', []])` to the JavaScript console and press the `Enter` key.
 

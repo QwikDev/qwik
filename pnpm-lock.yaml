@@ -602,7 +602,7 @@ importers:
         specifier: workspace:^
         version: link:../qwik
       '@microsoft/api-extractor':
-        specifier: ^7.43.1
+        specifier: 7.43.1
         version: 7.43.1(@types/node@20.12.8)
       '@netlify/edge-functions':
         specifier: ^2.3.1

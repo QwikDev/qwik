@@ -68,7 +68,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   let internalOptimizer: Optimizer | null = null;
   let linter: QwikLinter | undefined = undefined;
-  const hookManifest: Record<string, string> = {};
+
   let diagnosticsCallback: (
     d: Diagnostic[],
     optimizer: Optimizer,
@@ -392,27 +392,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         transformOpts.isServer = true;
         transformOpts.regCtxName = REG_CTX_NAME;
       }
-
-      const result = await optimizer.transformFs(transformOpts);
-      for (const output of result.modules) {
-        const key = normalizePath(path.join(srcDir, output.path)!);
-        debug(`buildStart() add transformedOutput`, key, output.hook?.displayName);
-        transformedOutputs.set(key, [output, key]);
-        ssrTransformedOutputs.set(key, [output, key]);
-        if (output.hook) {
-          hookManifest[output.hook.hash] = key;
-        } else if (output.isEntry) {
-          ctx.emitFile({
-            id: key,
-            type: 'chunk',
-          });
-        }
-      }
-
-      diagnosticsCallback(result.diagnostics, optimizer, srcDir);
-
-      results.set('@buildStart', result);
-      ssrResults.set('@buildStart', result);
     }
   };
 
@@ -611,12 +590,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       const srcDir = opts.srcDir ? opts.srcDir : normalizePath(dir);
       const mode =
         opts.target === 'lib' ? 'lib' : opts.buildMode === 'development' ? 'dev' : 'prod';
-      // const entryStrategy: EntryStrategy = ['hoist', 'hook', 'inline'].includes(opts.entryStrategy.type)
-      //   ? opts.entryStrategy
-      //   : {
-      //     type: 'hook',
-      //     manual: hookManifest,
-      //   };
       const entryStrategy: EntryStrategy = opts.entryStrategy;
       const transformOpts: TransformModulesOptions = {
         input: [
@@ -868,7 +841,7 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
 }
 
 const insideRoots = (ext: string, dir: string, srcDir: string | null, vendorRoots: string[]) => {
-  if (ext !== '.js') {
+  if (!(ext === '.js' || ext === '.mjs' || ext === '.cjs')) {
     return false;
   }
   if (srcDir != null && dir.startsWith(srcDir)) {

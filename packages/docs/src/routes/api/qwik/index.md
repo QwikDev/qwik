@@ -1698,6 +1698,10 @@ Description
 
 ## createComputed$
 
+> Warning: This API is now obsolete.
+>
+> This is a technology preview
+
 Returns read-only signal that updates when signals used in the `ComputedFn` change. Unlike useComputed$, this is not a hook and it always creates a new signal.
 
 ```typescript
@@ -4025,7 +4029,8 @@ export type QRLEventHandlerMulti<EV extends Event, EL> =
   | QRL<EventHandler<EV, EL>>
   | undefined
   | null
-  | QRLEventHandlerMulti<EV, EL>[];
+  | QRLEventHandlerMulti<EV, EL>[]
+  | EventHandler<EV, EL>;
 ```
 
 **References:** [QRL](#qrl), [EventHandler](#eventhandler), [QRLEventHandlerMulti](#qrleventhandlermulti)

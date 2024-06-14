@@ -85,7 +85,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     getClientPublicOutDir: () => clientPublicOutDir,
   };
 
-  const vitePlugin: VitePlugin = {
+  // We provide two plugins to Vite. The first plugin is the main plugin that handles all the
+  // Vite hooks. The second plugin is a post plugin that is called after the build has finished.
+  // The post plugin is used to generate the Qwik manifest file that is used during SSR to
+  // generate QRLs for event handlers.
+  const vitePluginPre: VitePlugin = {
     name: 'vite-plugin-qwik',
     enforce: 'pre',
     api,
@@ -152,7 +156,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         resolveQwikBuild: true,
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
-        outDir: viteConfig.build?.outDir,
+        outDir: viteConfig.build?.assetsDir
+          ? path.join(viteConfig.build?.outDir || CLIENT_OUT_DIR, viteConfig.build?.assetsDir)
+          : viteConfig.build?.outDir,
         devTools: qwikViteOpts.devTools,
         sourcemap: !!viteConfig.build?.sourcemap,
         lint: qwikViteOpts.lint,
@@ -329,10 +335,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         updatedViteConfig.build!.outDir = buildOutputDir;
         updatedViteConfig.build!.rollupOptions = {
           input: opts.input,
-          output: {
-            ...normalizeRollupOutputOptions(path, opts, viteConfig.build?.rollupOptions?.output),
-            dir: buildOutputDir,
-          },
+          output: normalizeRollupOutputOptions(
+            path,
+            opts,
+            viteConfig.build?.rollupOptions?.output
+          ).map((outputOptsObj) => {
+            outputOptsObj.dir = buildOutputDir;
+            return outputOptsObj;
+          }),
           preserveEntrySignatures: 'exports-only',
           onwarn: (warning, warn) => {
             if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
@@ -467,6 +477,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       }
       return qwikPlugin.transform(this, code, id, transformOpts);
     },
+  };
+
+  const vitePluginPost: VitePlugin = {
+    name: 'vite-plugin-qwik-post',
+    enforce: 'post',
 
     generateBundle: {
       order: 'post',
@@ -477,8 +492,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           // client build
           const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
 
-          for (const fileName in rollupBundle) {
-            const b = rollupBundle[fileName];
+          for (const [fileName, b] of Object.entries(rollupBundle)) {
             if (b.type === 'chunk') {
               outputAnalyzer.addBundle({
                 fileName,
@@ -708,7 +722,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
   };
 
-  return vitePlugin;
+  return [vitePluginPre, vitePluginPost];
 }
 
 const ANSI_COLOR = {
@@ -1077,7 +1091,8 @@ export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundle
     const { index, deps } = map.get(bundleName)!;
     for (let i = 0; i < deps.length; i++) {
       const depName = deps[i];
-      const { index: depIndex } = map.get(depName)!;
+      const dep = map.get(depName);
+      const depIndex = dep?.index;
       if (depIndex == undefined) {
         throw new Error(`Missing dependency: ${depName}`);
       }

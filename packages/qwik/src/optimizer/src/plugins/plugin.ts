@@ -406,8 +406,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         ssrTransformedOutputs.set(key, [output, key]);
         if (output.hook) {
           hookManifest[output.hook.hash] = key;
-          // The original path must be absolute
-          output.origPath = path.resolve(srcDir, output.hook.origin);
         } else if (output.isEntry) {
           ctx.emitFile({
             id: key,
@@ -474,17 +472,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const isSSR = ssrOpts?.ssr ?? opts.target === 'ssr';
 
     if (importer) {
-      // Only process relative links
-      if (!id.startsWith('.') && !path.isAbsolute(id)) {
-        // Handle nested node_modules imports from moved code
-        const transformedOutput = isSSR
-          ? ssrTransformedOutputs.get(importer)
-          : transformedOutputs.get(importer);
-        const originalPath = transformedOutput?.[0].origPath || transformedOutput?.[1];
-        if (originalPath) {
-          // Resolve imports relative to original source path
-          return ctx.resolve(id, originalPath, { skipSelf: true });
-        }
+      // Only process ids that look like paths
+      if (!(id.startsWith('.') || path.isAbsolute(id))) {
         return;
       }
       const parsedId = parseId(id);

@@ -26,7 +26,7 @@ const Header = $((decl1, {decl2}, [decl3]) => {
     )
 });
 
-============================= header_wlr3xni6u38.tsx (ENTRY POINT)==
+============================= project/header_wlr3xni6u38.tsx (ENTRY POINT)==
 
 export const Header_WlR3xnI6u38 = (decl1, { decl2  }, [decl3])=>{
     ident1.no;
@@ -60,6 +60,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   "displayName": "Header",
   "hash": "WlR3xnI6u38",
   "canonicalFilename": "header_wlr3xni6u38",
+  "path": "project",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -74,7 +75,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 ============================= project/test.tsx ==
 
 import { qrl } from "@builder.io/qwik";
-/*#__PURE__*/ qrl(()=>import("../header_wlr3xni6u38"), "Header_WlR3xnI6u38");
+/*#__PURE__*/ qrl(()=>import("./header_wlr3xni6u38"), "Header_WlR3xnI6u38");
 
 
 Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")

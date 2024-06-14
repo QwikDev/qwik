@@ -50,6 +50,4 @@ export interface QwikCityPluginApi {
   getBasePathname: () => string;
   getRoutes: () => BuildRoute[];
   getServiceWorkers: () => BuildEntry[];
-  getContext: () => BuildContext | null;
-  getMdxTransformer: () => MdxTransform | null;
 }

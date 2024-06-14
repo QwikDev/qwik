@@ -12,7 +12,7 @@
     "priority": 30,
     "displayName": "Adapter: Netlify Edge",
     "docs": [
-      "https://qwik.builder.io/deployments/netlify-edge/",
+      "https://qwik.dev/deployments/netlify-edge/",
       "https://docs.netlify.com/edge-functions/overview/",
       "https://docs.netlify.com/"
     ],

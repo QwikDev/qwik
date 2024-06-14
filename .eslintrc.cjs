@@ -4,13 +4,24 @@ module.exports = {
     es2021: true,
     node: true,
   },
-  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    // Enable this for testing but it makes the lint quite slow
+    // 'plugin:qwik/recommended',
+  ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 12,
     sourceType: 'module',
+    // Needed when using the qwik plugin
+    // project: ['./tsconfig.json'],
   },
-  plugins: ['@typescript-eslint', 'no-only-tests'],
+  plugins: [
+    '@typescript-eslint',
+    'no-only-tests',
+    // 'qwik'
+  ],
   rules: {
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',

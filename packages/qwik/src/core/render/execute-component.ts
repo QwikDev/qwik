@@ -3,7 +3,7 @@ import { RenderEvent } from '../util/markers';
 import { maybeThen, promiseAllLazy, safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../util/types';
-import type { JSXNode } from './jsx/types/jsx-node';
+import type { JSXNode, JSXOutput } from './jsx/types/jsx-node';
 import type { ClassList } from './jsx/types/jsx-qwik-attributes';
 import type { RenderContext } from './types';
 import { type ContainerState, intToStr } from '../container/container';
@@ -16,15 +16,19 @@ import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, type QContext } from '../state/cont
 import { isSignal, SignalUnassignedException } from '../state/signal';
 import { isJSXNode } from './jsx/jsx-runtime';
 import { isUnitlessNumber } from '../util/unitless_number';
+import { isServerPlatform } from '../platform/platform';
+import { executeSSRTasks } from './dom/notify-render';
+import { logWarn } from '../util/log';
 
 export interface ExecuteComponentOutput {
-  node: JSXNode | null;
+  node: JSXOutput;
   rCtx: RenderContext;
 }
 
 export const executeComponent = (
   rCtx: RenderContext,
-  elCtx: QContext
+  elCtx: QContext,
+  attempt?: number
 ): ValueOrPromise<ExecuteComponentOutput> => {
   elCtx.$flags$ &= ~HOST_FLAG_DIRTY;
   elCtx.$flags$ |= HOST_FLAG_MOUNTED;
@@ -35,14 +39,14 @@ export const executeComponent = (
   const componentQRL = elCtx.$componentQrl$;
   const props = elCtx.$props$;
   const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, RenderEvent);
-  const waitOn = (iCtx.$waitOn$ = []);
+  const waitOn: Promise<unknown>[] = (iCtx.$waitOn$ = []);
   assertDefined(componentQRL, `render: host element to render must have a $renderQrl$:`, elCtx);
   assertDefined(props, `render: host element to render must have defined props`, elCtx);
 
   // Set component context
   const newCtx = pushRenderContext(rCtx);
   newCtx.$cmpCtx$ = elCtx;
-  newCtx.$slotCtx$ = null;
+  newCtx.$slotCtx$ = undefined;
 
   // Invoke render hook
   iCtx.$subscriber$ = [0, hostElement];
@@ -55,21 +59,39 @@ export const executeComponent = (
   return safeCall(
     () => componentFn(props),
     (jsxNode) => {
-      return maybeThen(promiseAllLazy(waitOn), () => {
-        if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
-          return executeComponent(rCtx, elCtx);
+      return maybeThen(
+        isServerPlatform()
+          ? maybeThen(promiseAllLazy(waitOn), () =>
+              // Run dirty tasks before SSR output is generated.
+              maybeThen(executeSSRTasks(rCtx.$static$.$containerState$, rCtx), () =>
+                promiseAllLazy(waitOn)
+              )
+            )
+          : promiseAllLazy(waitOn),
+        () => {
+          if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
+            if (attempt && attempt > 100) {
+              logWarn(`Infinite loop detected. Element: ${elCtx.$componentQrl$?.$symbol$}`);
+            } else {
+              return executeComponent(rCtx, elCtx, attempt ? attempt + 1 : 1);
+            }
+          }
+          return {
+            node: jsxNode,
+            rCtx: newCtx,
+          };
         }
-        return {
-          node: jsxNode,
-          rCtx: newCtx,
-        };
-      });
+      );
     },
     (err) => {
       if (err === SignalUnassignedException) {
-        return maybeThen(promiseAllLazy(waitOn), () => {
-          return executeComponent(rCtx, elCtx);
-        });
+        if (attempt && attempt > 100) {
+          logWarn(`Infinite loop detected. Element: ${elCtx.$componentQrl$?.$symbol$}`);
+        } else {
+          return maybeThen(promiseAllLazy(waitOn), () => {
+            return executeComponent(rCtx, elCtx, attempt ? attempt + 1 : 1);
+          });
+        }
       }
       handleError(err, hostElement, rCtx);
       return {
@@ -98,7 +120,7 @@ export const createRenderContext = (
       $visited$: [],
     },
     $cmpCtx$: null,
-    $slotCtx$: null,
+    $slotCtx$: undefined,
   };
   seal(ctx);
   seal(ctx.$static$);
@@ -118,7 +140,7 @@ export const serializeClassWithHost = (
   obj: ClassList,
   hostCtx: QContext | undefined | null
 ): string => {
-  if (hostCtx && hostCtx.$scopeIds$) {
+  if (hostCtx?.$scopeIds$?.length) {
     return hostCtx.$scopeIds$.join(' ') + ' ' + serializeClass(obj);
   }
   return serializeClass(obj);

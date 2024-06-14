@@ -36,6 +36,13 @@ export interface StyleAppend {
   content: string | null;
 }
 
+// Simplified version of `ServerRequestEvent` from `@builder.io/qwik-city` package.
+export interface ServerRequestEvent<T = unknown> {
+  url: URL;
+  locale: string | undefined;
+  request: Request;
+}
+
 export type PossibleEvents =
   | Event
   | SimplifiedServerRequestEvent
@@ -116,6 +123,10 @@ export const useInvokeContext = (): RenderInvokeContext => {
 
   return ctx as RenderInvokeContext;
 };
+export const useContainerState = () => {
+  const ctx = useInvokeContext();
+  return ctx.$renderCtx$.$static$.$containerState$;
+};
 
 export function useBindInvokeContext<FN extends (...args: any) => any>(
   this: unknown,
@@ -185,6 +196,9 @@ export const newInvokeContext = (
   event?: PossibleEvents,
   url?: URL
 ): InvokeContext => {
+  // ServerRequestEvent has .locale, but it's not always defined.
+  const $locale$ =
+    locale || (typeof event === 'object' && event && 'locale' in event ? event.locale : undefined);
   const ctx: InvokeContext = {
     $url$: url,
     $i$: 0,
@@ -195,7 +209,7 @@ export const newInvokeContext = (
     $waitOn$: undefined,
     $subscriber$: undefined,
     $renderCtx$: undefined,
-    $locale$: locale,
+    $locale$,
   };
   seal(ctx);
   return ctx;

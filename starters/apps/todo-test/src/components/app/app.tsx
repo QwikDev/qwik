@@ -7,7 +7,7 @@ import {
 import { Footer } from "../footer/footer";
 import { Header } from "../header/header";
 import { Body } from "../body/body";
-import { TODOS, Todos } from "../../state/state";
+import { TODOS, type Todos } from "../../state/state";
 import styles from "./index.css?inline";
 
 /**

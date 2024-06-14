@@ -132,8 +132,10 @@
           if (target) {
             event.preventDefault();
             const inspectUrl = target.getAttribute(inspectAttribute);
-            body.style.setProperty('cursor', 'progress');
-            qwikOpenInEditor(inspectUrl);
+            if (inspectUrl !== 'false') {
+              body.style.setProperty('cursor', 'progress');
+              qwikOpenInEditor(inspectUrl);
+            }
           }
         }
       },
@@ -141,10 +143,12 @@
     );
 
     globalThis.qwikOpenInEditor = function (path) {
-      const resolvedURL = new URL(path, srcDir);
+      const isWindows = navigator.platform.includes('Win');
+      const resolvedURL = new URL(path, isWindows ? origin : srcDir);
       if (resolvedURL.origin === origin) {
         const params = new URLSearchParams();
-        params.set('file', resolvedURL.pathname);
+        const prefix = isWindows ? srcDir : '';
+        params.set('file', prefix + resolvedURL.pathname);
         fetch('/__open-in-editor?' + params.toString());
       } else {
         location.href = resolvedURL.href;

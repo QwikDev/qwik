@@ -11,6 +11,11 @@ on:
       - 'build/**'
   workflow_dispatch:
     inputs:
+      node_version:
+        description: 'Node version to use for the build'
+        required: false
+        type: string
+        default: '20.x'
       disttag:
         description: 'Publish "@builder.io/qwik" to NPM using this dist-tag, push the git-tag to the repo and create a GitHub release. The "latest" and "next" dist-tags will use the version number already committed in package.json.'
         required: true
@@ -44,7 +49,7 @@ jobs:
         run: echo "${{ github.ref }}"
       - name: NPM Dist Tag
         run: echo "${{ github.event.inputs.disttag }}"
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4.1.1
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -95,30 +100,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - run: corepack enable
 
       - name: Install NPM Dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Ensure that the qwik binary gets made
+          mkdir -p packages/qwik/dist/bindings/
+          pnpm install --frozen-lockfile
 
       - name: Build Packages
-        run: pnpm tsm scripts/index.ts --tsc --build --cli --api --set-dist-tag="${{ github.event.inputs.disttag }}"
+        run: pnpm tsm scripts/index.ts --tsc --build --cli --api --qwiklabs --qwikcity --eslint --platform-binding-wasm-copy --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print Qwik Dist Build
         run: tree packages/qwik/dist/
 
       - name: Upload Qwik Build Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: dist-dev-builder-io-qwik
           path: packages/qwik/dist/
@@ -128,7 +136,7 @@ jobs:
         run: tree packages/create-qwik/dist/
 
       - name: Upload Create Qwik CLI Build Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: dist-dev-create-qwik
           path: packages/create-qwik/dist/
@@ -141,13 +149,18 @@ jobs:
         run: tree packages/eslint-plugin-qwik/dist/
 
       - name: Upload Eslint rules Build Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: dist-dev-eslint-plugin-qwik
           path: packages/eslint-plugin-qwik/dist/
           if-no-files-found: error
 
-  ############ BUILD WASM ############
+      - name: Publish packages for testing
+        run: pnpm dlx pkg-pr-new@0.0.8 publish --compact --pnpm ./packages/qwik/dist ./packages/qwik-city/lib ./packages/eslint-plugin-qwik/dist ./packages/create-qwik/dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  ############ BUILD WASM #############
   build-wasm:
     name: Build WASM
     runs-on: ubuntu-latest
@@ -160,16 +173,16 @@ jobs:
 
       - name: Checkout
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -178,32 +191,17 @@ jobs:
 
       - name: Install Rust toolchain
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions-rs/toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          profile: minimal
+          # additionally install wasm32-unknown-unknown target
           target: wasm32-unknown-unknown
-
-      - name: Cache cargo dependencies
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-          key: cargo-deps-wasm-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
-
-      - name: Cache cargo build
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v3
-        with:
-          path: packages/qwik/src/wasm/target
-          key: cargo-build-wasm-${{ runner.os }}-${{ hashFiles('./packages/qwik/src/wasm/Cargo.lock') }}
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Ensure that the qwik binary gets made
+          mkdir -p packages/qwik/dist/bindings/
+          pnpm install --frozen-lockfile
 
       - uses: jetli/wasm-pack-action@v0.3.0
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -216,14 +214,33 @@ jobs:
 
       - name: Print WASM Dist Build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        continue-on-error: true
         run: tree packages/qwik/dist/bindings/
 
       - name: Upload WASM Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: dist-bindings-wasm
           path: packages/qwik/dist/bindings/*
+          if-no-files-found: error
+
+      - name: Build Platform Binding
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        run: pnpm tsm scripts/index.ts --platform-binding
+        shell: bash
+
+      - name: Print Packages Dist Build
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        continue-on-error: true
+        run: tree packages/qwik/dist/
+
+      - name: Upload Platform Binding Artifact
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: dist-bindings-x86_64-unknown-linux-gnu
+          path: packages/qwik/dist/bindings/*.node
           if-no-files-found: error
 
   ############ BUILD PLATFORM BINDINGS ############
@@ -231,20 +248,15 @@ jobs:
     strategy:
       matrix:
         settings:
-          - host: macos-latest
+          # looks like that's the last intel macos
+          - host: macos-13
             target: x86_64-apple-darwin
-            build: pnpm tsm scripts/index.ts --platform-binding
 
           - host: macos-latest
             target: aarch64-apple-darwin
-            build: |
-              export SDKROOT=$(xcrun -sdk macosx11.1 --show-sdk-path)
-              export MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx11.1 --show-sdk-platform-version)
-              pnpm tsm scripts/index.ts --platform-binding --platform-target=aarch64-apple-darwin
 
           - host: windows-latest
             target: x86_64-pc-windows-msvc
-            build: pnpm tsm scripts/index.ts --platform-binding
 
     name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
@@ -254,29 +266,25 @@ jobs:
     steps:
       - name: Checkout
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: corepack enable
-        shell: bash
 
       - name: Install Rust toolchain
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          target: ${{ matrix.settings.target }}
+        uses: actions-rust-lang/setup-rust-toolchain@v1
 
       - name: Pull Latest Image
         if: ${{ needs.changes.outputs.fullbuild == 'true' && matrix.settings.docker }}
@@ -286,24 +294,6 @@ jobs:
           DOCKER_USERNAME: ${{ github.actor }}
           DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Cache cargo dependencies
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-          key: cargo-deps-${{ matrix.settings.target }}-${{ hashFiles('Cargo.lock') }}
-
-      - name: Cache cargo build
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v3
-        with:
-          path: target
-          key: cargo-build-${{ matrix.settings.target }}-${{ hashFiles('Cargo.lock') }}
-
       - name: Setup Toolchain
         if: ${{ needs.changes.outputs.fullbuild == 'true' && matrix.settings.setup }}
         run: ${{ matrix.settings.setup }}
@@ -311,16 +301,24 @@ jobs:
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Ensure that the qwik binary gets made
+          mkdir -p packages/qwik/dist/bindings/
+          pnpm install --frozen-lockfile
 
       - name: Build Platform Binding
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: ${{ matrix.settings.build }}
+        run: pnpm tsm scripts/index.ts --platform-binding
         shell: bash
+
+      - name: Print Packages Dist Build
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        continue-on-error: true
+        run: ls -lR packages/qwik/dist/
 
       - name: Upload Platform Binding Artifact
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: dist-bindings-${{ matrix.settings.target }}
           path: packages/qwik/dist/bindings/*.node
@@ -335,58 +333,66 @@ jobs:
     steps:
       - name: Checkout
         if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
         if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
 
       - name: Setup Node
         if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Ensure that the qwik binary gets made
+          mkdir -p packages/qwik/dist/bindings/
+          pnpm install --frozen-lockfile
 
       - name: Build Qwik Insights
         if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
-        working-directory: packages/insights
-        run: pnpm run build.ci
+        run: pnpm run build.packages.insights
 
   ############ BUILD DOCS ############
   build-docs:
     name: Build Docs
     needs: changes
+    if: ${{ needs.changes.outputs.docsbuild == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
-        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
+      - uses: pnpm/action-setup@v4
 
       - name: Setup Node
-        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
+      - name: Install Rust toolchain
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
       - name: Install NPM Dependencies
-        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Ensure that the qwik binary gets made
+          mkdir -p packages/qwik/dist/bindings/
+          pnpm install --frozen-lockfile
+
+      # Temporary fix for the docs build, soon we will use caching
+      - run: pnpm build.local
+      - run: pnpm build --platform-binding
 
       - name: Build Qwik Docs
-        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
-        working-directory: packages/docs
-        run: pnpm run build
+        run: pnpm -C packages/docs build
 
   ############ BUILD DISTRIBUTION ############
   build-distribution:
@@ -404,16 +410,16 @@ jobs:
     steps:
       - name: Checkout
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -422,16 +428,14 @@ jobs:
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: pnpm install --frozen-lockfile
-
-      - name: Create packages/qwik/dist/ directory
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: |
+          # Ensure that the qwik binary gets made
           mkdir -p packages/qwik/dist/bindings/
+          pnpm install --frozen-lockfile
 
       - name: Download Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.2
 
       - name: Print Distribution Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -455,7 +459,7 @@ jobs:
 
       - name: Upload Qwik Distribution Artifact
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: builderio-qwik-distribution
           path: packages/qwik/dist/*
@@ -463,7 +467,7 @@ jobs:
 
       - name: Build QwikCity / QwikLabs
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: pnpm tsm scripts/index.ts --tsc --qwikcity --qwiklabs --api
+        run: pnpm tsm scripts/index.ts --tsc --qwikcity --qwiklabs --api --eslint
 
       - name: Print QwikCity Lib Build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -471,7 +475,7 @@ jobs:
 
       - name: Upload QwikCity Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: builderio-qwikcity-distribution
           path: packages/qwik-city/lib/
@@ -479,16 +483,15 @@ jobs:
 
       - name: Print QwikLabs Lib Build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: tree packages/qwik-labs/lib/ packages/qwik-labs/lib-types/ packages/qwik-labs/vite/
+        run: tree packages/qwik-labs/lib/ packages/qwik-labs/vite/
 
       - name: Upload QwikLabs Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: builderio-qwiklabs-distribution
           path: |
             packages/qwik-labs/lib/
-            packages/qwik-labs/lib-types/
             packages/qwik-labs/vite/
             packages/qwik-labs/package.json
           if-no-files-found: error
@@ -506,21 +509,21 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - run: corepack enable
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.2
 
       - name: Print Distribution Artifacts
         run: tree builderio-qwik-distribution/
@@ -539,11 +542,13 @@ jobs:
           mkdir -p packages/eslint-plugin-qwik/dist/
           mv dist-dev-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
           mv builderio-qwiklabs-distribution/lib packages/qwik-labs/lib
-          mv builderio-qwiklabs-distribution/lib-types packages/qwik-labs/lib-types
-          mv builderio-qwiklabs-distribution/vite/* packages/qwik-labs/vite/
+          mv builderio-qwiklabs-distribution/vite packages/qwik-labs/vite
 
       - name: Install NPM Dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Ensure that the qwik binary gets made
+          mkdir -p packages/qwik/dist/bindings/
+          pnpm install --frozen-lockfile
 
       - name: Commit Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' && github.event_name == 'push' }}
@@ -577,24 +582,24 @@ jobs:
         settings:
           - host: ubuntu-latest
             browser: chromium
-            node: 18.x
+            node: 20.x
           - host: macos-latest
             browser: webkit
-            node: 18.x
+            node: 20.x
 
     runs-on: ${{ matrix.settings.host }}
 
     steps:
       - name: Checkout
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
       - name: Setup Node ${{ matrix.settings.node }}
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.2
         with:
           node-version: ${{ matrix.settings.node }}
           cache: 'pnpm'
@@ -606,7 +611,7 @@ jobs:
 
       - name: Download Build Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.2
 
       - name: Move Distribution Artifacts
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -622,7 +627,10 @@ jobs:
 
       - name: Install NPM Dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Ensure that the qwik binary gets made
+          mkdir -p packages/qwik/dist/bindings/
+          pnpm install --frozen-lockfile
 
       - name: Install Playwright
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -630,7 +638,7 @@ jobs:
 
       - name: Playwright E2E Tests
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: pnpm run test.e2e.${{ matrix.settings.browser }}
+        run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 60000 --retries 3 --workers 1
 
       - name: Validate Create Qwik Cli
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -645,21 +653,27 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - run: corepack enable
 
       - name: Install NPM Dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Ensure that the qwik binary gets made
+          mkdir -p packages/qwik/dist/bindings/
+          pnpm install --frozen-lockfile
+
+      - name: Build core
+        run: pnpm run build.core
 
       - name: Unit Tests
         run: pnpm run test.unit
@@ -674,7 +688,7 @@ jobs:
     steps:
       - name: Checkout
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
       - name: Install Rust toolchain
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
@@ -685,7 +699,7 @@ jobs:
 
       - name: Cache cargo dependencies
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
@@ -696,7 +710,7 @@ jobs:
 
       - name: Cache cargo build
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: target
           key: cargo-build-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
@@ -735,25 +749,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - run: corepack enable
 
       - name: Install NPM Dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Ensure that the qwik binary gets made
+          mkdir -p packages/qwik/dist/bindings/
+          pnpm install --frozen-lockfile
 
       - name: Prettier Check
         if: ${{ always() }}
         run: pnpm run lint.prettier
+
+      - name: Build ESLint
+        if: ${{ always() }}
+        run: pnpm tsm scripts/index.ts --eslint
 
       - name: ESLint Check
         if: ${{ always() }}

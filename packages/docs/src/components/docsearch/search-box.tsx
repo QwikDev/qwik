@@ -1,10 +1,4 @@
-import {
-  component$,
-  useVisibleTask$,
-  useContext,
-  type Signal,
-  type PropFunction,
-} from '@builder.io/qwik';
+import { component$, useVisibleTask$, useContext, type Signal, type QRL } from '@builder.io/qwik';
 
 import { MAX_QUERY_SIZE } from './constants';
 import { SearchContext } from './context';
@@ -23,7 +17,7 @@ interface SearchBoxProps {
   state: DocSearchState;
   autoFocus: boolean;
   inputRef: Signal<HTMLInputElement | null>;
-  onClose$: PropFunction<() => void>;
+  onClose$: QRL<() => void>;
 }
 
 export const SearchBox = component$((props: SearchBoxProps) => {
@@ -69,7 +63,7 @@ export const SearchBox = component$((props: SearchBoxProps) => {
           enterKeyHint={props.state.activeItemId ? 'go' : 'search'}
           spellcheck={false}
           autoFocus={props.autoFocus}
-          placeholder="Search docs or ask a question"
+          placeholder="Search docs"
           type="search"
           ref={props.inputRef as any}
           onInput$={(event) => {

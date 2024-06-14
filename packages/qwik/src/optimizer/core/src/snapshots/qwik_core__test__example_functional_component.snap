@@ -1,5 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 327
 expression: output
 ---
 ==INPUT==
@@ -34,6 +35,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Header_component",
   "hash": "J4uyIhaBNR4",
   "canonicalFilename": "header_component_j4uyihabnr4",
+  "path": "",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",

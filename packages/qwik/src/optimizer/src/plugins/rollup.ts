@@ -56,6 +56,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         manifestInput: qwikRollupOpts.manifestInput,
         transformedModuleOutput: qwikRollupOpts.transformedModuleOutput,
         inlineStylesUpToBytes: qwikRollupOpts.optimizerOptions?.inlineStylesUpToBytes,
+        lint: qwikRollupOpts.lint,
       };
 
       const opts = qwikPlugin.normalizeOptions(pluginOpts);
@@ -68,7 +69,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     },
 
     outputOptions(rollupOutputOpts) {
-      return normalizeRollupOutputOptions(
+      return normalizeRollupOutputOptionsObject(
         qwikPlugin.getPath(),
         qwikPlugin.getOptions(),
         rollupOutputOpts
@@ -167,11 +168,30 @@ export function normalizeRollupOutputOptions(
   path: Path,
   opts: NormalizedQwikPluginOptions,
   rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined
-) {
-  const outputOpts: Rollup.OutputOptions = {};
-  if (rollupOutputOpts && !Array.isArray(rollupOutputOpts)) {
-    Object.assign(outputOpts, rollupOutputOpts);
+): Rollup.OutputOptions[] {
+  const outputOpts: Rollup.OutputOptions[] = Array.isArray(rollupOutputOpts)
+    ? // fill the `outputOpts` array with all existing option entries
+      [...rollupOutputOpts]
+    : // use the existing rollupOutputOpts object or create a new one
+      [rollupOutputOpts || {}];
+
+  // make sure at least one output is present in every case
+  if (!outputOpts.length) {
+    outputOpts.push({});
   }
+
+  return outputOpts.map((outputOptsObj) =>
+    normalizeRollupOutputOptionsObject(path, opts, outputOptsObj)
+  );
+}
+
+export function normalizeRollupOutputOptionsObject(
+  path: Path,
+  opts: NormalizedQwikPluginOptions,
+  rollupOutputOptsObj: Rollup.OutputOptions | undefined
+): Rollup.OutputOptions {
+  const outputOpts: Rollup.OutputOptions = { ...rollupOutputOptsObj };
+
   if (!outputOpts.assetFileNames) {
     outputOpts.assetFileNames = 'build/q-[hash].[ext]';
   }
@@ -194,6 +214,15 @@ export function normalizeRollupOutputOptions(
       if (!outputOpts.chunkFileNames) {
         outputOpts.chunkFileNames = 'build/[name].js';
       }
+    }
+  } else if (opts.buildMode === 'production') {
+    // server production output
+    // everything in same dir so './@qwik-city...' imports work from entry and chunks
+    if (!outputOpts.chunkFileNames) {
+      outputOpts.chunkFileNames = 'q-[hash].js';
+    }
+    if (!outputOpts.assetFileNames) {
+      outputOpts.assetFileNames = 'assets/[hash].[ext]';
     }
   }
 
@@ -297,6 +326,11 @@ export interface QwikRollupPluginOptions {
   transformedModuleOutput?:
     | ((transformedModules: TransformModule[]) => Promise<void> | void)
     | null;
+  /**
+   * Run eslint on the source files for the ssr build or dev server. This can slow down startup on
+   * large projects. Defaults to `true`
+   */
+  lint?: boolean;
 }
 
 export interface QwikRollupPlugin extends Rollup.Plugin {}

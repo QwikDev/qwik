@@ -243,12 +243,12 @@ export const postRendering = async (containerState: ContainerState, rCtx: Render
   }
 };
 
+const isTask = (task: SubscriberEffect) => (task.$flags$ & TaskFlagsIsTask) !== 0;
+const isResourceTask = (task: SubscriberEffect) => (task.$flags$ & TaskFlagsIsResource) !== 0;
 const executeTasksBefore = async (containerState: ContainerState, rCtx: RenderContext) => {
   const containerEl = containerState.$containerEl$;
   const resourcesPromises: ValueOrPromise<SubscriberEffect>[] = [];
   const taskPromises: ValueOrPromise<SubscriberEffect>[] = [];
-  const isTask = (task: SubscriberEffect) => (task.$flags$ & TaskFlagsIsTask) !== 0;
-  const isResourceTask = (task: SubscriberEffect) => (task.$flags$ & TaskFlagsIsResource) !== 0;
 
   containerState.$taskNext$.forEach((task) => {
     if (isTask(task)) {
@@ -290,8 +290,59 @@ const executeTasksBefore = async (containerState: ContainerState, rCtx: RenderCo
   if (resourcesPromises.length > 0) {
     const resources = await Promise.all(resourcesPromises);
     sortTasks(resources);
-    resources.forEach((task) => runSubscriber(task, containerState, rCtx));
+    // no await so these run concurrently with the rendering
+    for (const task of resources) {
+      runSubscriber(task, containerState, rCtx);
+    }
   }
+};
+
+/** Execute tasks that are dirty during SSR render */
+export const executeSSRTasks = (containerState: ContainerState, rCtx: RenderContext) => {
+  const containerEl = containerState.$containerEl$;
+  const staging = containerState.$taskStaging$;
+  if (!staging.size) {
+    return;
+  }
+  const taskPromises: ValueOrPromise<SubscriberEffect>[] = [];
+
+  let tries = 20;
+  const runTasks = () => {
+    // SSR dirty tasks are in taskStaging
+    staging.forEach((task) => {
+      console.error('task', task.$qrl$.$symbol$);
+      if (isTask(task)) {
+        taskPromises.push(maybeThen(task.$qrl$.$resolveLazy$(containerEl), () => task));
+      }
+      // We ignore other types of tasks, they are handled via waitOn
+    });
+
+    staging.clear();
+
+    // Wait for all promises
+    if (taskPromises.length > 0) {
+      return Promise.all(taskPromises).then(async (tasks): Promise<unknown> => {
+        sortTasks(tasks);
+        await Promise.all(
+          tasks.map((task) => {
+            return runSubscriber(task, containerState, rCtx);
+          })
+        );
+        taskPromises.length = 0;
+        if (--tries && staging.size > 0) {
+          return runTasks();
+        }
+        if (!tries) {
+          logWarn(
+            `Infinite task loop detected. Tasks:\n${Array.from(staging)
+              .map((task) => `  ${task.$qrl$.$symbol$}`)
+              .join('\n')}`
+          );
+        }
+      });
+    }
+  };
+  return runTasks();
 };
 
 const executeTasksAfter = async (
@@ -342,8 +393,9 @@ const sortNodes = (elements: QContext[]) => {
 };
 
 const sortTasks = (tasks: SubscriberEffect[]) => {
+  const isServer = isServerPlatform();
   tasks.sort((a, b) => {
-    if (a.$el$ === b.$el$) {
+    if (isServer || a.$el$ === b.$el$) {
       return a.$index$ < b.$index$ ? -1 : 1;
     }
     return (a.$el$.compareDocumentPosition(getRootNode(b.$el$)) & 2) !== 0 ? 1 : -1;

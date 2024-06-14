@@ -326,7 +326,7 @@ const STATE_MACHINE: StateArc[][] = /*__PURE__*/ (() => [
     [ANY, DOT, elementClassIdSelector],
     [ANY, HASH, elementClassIdSelector],
     [ANY, AT, atRuleSelector, 'keyframe'],
-    [ANY, AT, atRuleBlock, 'media', 'supports'],
+    [ANY, AT, atRuleBlock, 'media', 'supports', 'container'],
     [ANY, AT, atRuleInert],
     [ANY, OPEN_BRACE, body],
     [FORWARD_SLASH, STAR, commentMultiline],

@@ -60,6 +60,8 @@
 :root {
   color-scheme: light;
   --header-height: 80px;
+  --aside-width: 300px;
+  --container-max-width: 1400px;
   --builder-bar-height: 56px;
   --panel-toggle-height: 0px;
   --scroll-margin-top: calc(var(--header-height) + var(--builder-bar-height) + 10px);
@@ -194,6 +196,16 @@ html {
   overflow: auto;
 }
 
+.uwu-logo {
+  display: none;
+}
+html.uwu .qwik-logo {
+  display: none;
+}
+html.uwu .uwu-logo {
+  display: block !important;
+}
+
 a,
 button,
 textarea,
@@ -203,21 +215,19 @@ select {
 }
 
 body {
-  @apply antialiased min-h-screen;
+  @apply antialiased h-screen overflow-auto;
 }
 
 @media (max-width: 1023px) {
   .menu-open .sidebar {
-    width: 100%;
-    @apply z-50;
+    @apply block fixed z-50 top-0 bottom-0 left-0 max-h-none w-full;
   }
 
   .menu-open .menu {
     @apply block;
 
     @apply top-0;
-    @apply p-3;
-    @apply pr-16;
+    @apply p-3 pt-6 pr-16;
     width: 360px;
 
     background: var(--bg-color);
@@ -232,30 +242,6 @@ body {
     @apply p-3;
   }
 
-  .menu-open header {
-    pointer-events: none;
-    touch-action: none;
-    opacity: 0.4;
-    background-color: transparent;
-  }
-
-  .menu-open .breadcrumbs {
-    pointer-events: none;
-    touch-action: none;
-    opacity: 0.2;
-    background-color: transparent;
-  }
-
-  .menu-open main {
-    pointer-events: none;
-    touch-action: none;
-    opacity: 0.2;
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    background: transparent;
-  }
-
   .menu-close {
     display: block;
     position: fixed;
@@ -266,6 +252,8 @@ body {
     padding-left: 12px;
     cursor: default;
     color: var(--qwik-dark-blue);
+    background: color-mix(in hsl, var(--bg-color), transparent 20%);
+    backdrop-filter: blur(3px);
   }
 
   .menu-close svg {
@@ -288,7 +276,17 @@ body {
     color: rgb(241 245 249 / var(--tw-text-opacity)) !important;
   }
 }
+@media (min-width: 1024px) {
+  #qwik-sidebar.menu {
+    width: 17rem;
+  }
+}
 
+@media (min-width: 1300px) {
+  #qwik-sidebar.menu {
+    width: 20rem;
+  }
+}
 /* Builder */
 :root[data-theme='dark'] .builder .dark-mode {
   filter: invert(90%) hue-rotate(180deg);

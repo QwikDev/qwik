@@ -11,7 +11,7 @@ export const preferClasslist = {
       recommended: false,
       description:
         'Enforce using the classlist prop over importing a classnames helper. The classlist prop accepts an object `{ [class: string]: boolean }` just like classnames.',
-      url: 'https://qwik.builder.io/docs/advanced/eslint/#prefer-classlist',
+      url: 'https://qwik.dev/docs/advanced/eslint/#prefer-classlist',
     },
     fixable: 'code',
     schema: [

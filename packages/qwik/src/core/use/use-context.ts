@@ -147,7 +147,8 @@ export const createContextId = <STATE = unknown>(name: string): ContextId<STATE>
  * component's function. Once assigned, use `useContext()` in any child component to retrieve the
  * value.
  *
- * Context is a way to pass stores to the child components without prop-drilling.
+ * Context is a way to pass stores to the child components without prop-drilling. Note that scalar
+ * values are allowed, but for reactivity you need signals or stores.
  *
  * ### Example
  *
@@ -191,10 +192,7 @@ export const createContextId = <STATE = unknown>(name: string): ContextId<STATE>
  * @public
  */
 // </docs>
-export const useContextProvider = <STATE extends object>(
-  context: ContextId<STATE>,
-  newValue: STATE
-) => {
+export const useContextProvider = <STATE>(context: ContextId<STATE>, newValue: STATE) => {
   const { val, set, elCtx } = useSequentialScope<boolean>();
   if (val !== undefined) {
     return;
@@ -211,9 +209,9 @@ export const useContextProvider = <STATE extends object>(
 };
 
 export interface UseContext {
-  <STATE extends object, T>(context: ContextId<STATE>, transformer: (value: STATE) => T): T;
-  <STATE extends object, T>(context: ContextId<STATE>, defaultValue: T): STATE | T;
-  <STATE extends object>(context: ContextId<STATE>): STATE;
+  <STATE, T>(context: ContextId<STATE>, transformer: (value: STATE) => T): T;
+  <STATE, T>(context: ContextId<STATE>, defaultValue: T): STATE | T;
+  <STATE>(context: ContextId<STATE>): STATE;
 }
 
 // <docs markdown="../readme.md#useContext">
@@ -266,9 +264,9 @@ export interface UseContext {
  * @public
  */
 // </docs>
-export const useContext: UseContext = <STATE extends object>(
+export const useContext: UseContext = <STATE>(
   context: ContextId<STATE>,
-  defaultValue?: any
+  defaultValue?: STATE | ((current: STATE | undefined) => STATE)
 ) => {
   const { val, set, iCtx, elCtx } = useSequentialScope<STATE>();
   if (val !== undefined) {
@@ -280,7 +278,7 @@ export const useContext: UseContext = <STATE extends object>(
 
   const value = resolveContext(context, elCtx, iCtx.$renderCtx$.$static$.$containerState$);
   if (typeof defaultValue === 'function') {
-    return set(invoke(undefined, defaultValue, value));
+    return set(invoke(undefined, defaultValue as any, value));
   }
   if (value !== undefined) {
     return set(value);
@@ -335,6 +333,7 @@ const getParentProvider = (ctx: QContext, containerState: ContainerState): QCont
   // `null` means there's no parent, `undefined` means we don't know yet.
   if (ctx.$parentCtx$ === undefined) {
     // Not fully resumed container, find context from DOM
+    // We cannot recover $realParentCtx$ from this but that's fine because we don't need to pause on the client
     ctx.$parentCtx$ = findParentCtx(ctx.$element$, containerState);
   }
   /**
@@ -345,7 +344,7 @@ const getParentProvider = (ctx: QContext, containerState: ContainerState): QCont
   return ctx.$parentCtx$;
 };
 
-export const resolveContext = <STATE extends object>(
+export const resolveContext = <STATE>(
   context: ContextId<STATE>,
   hostCtx: QContext,
   containerState: ContainerState

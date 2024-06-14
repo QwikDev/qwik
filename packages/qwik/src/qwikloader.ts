@@ -11,33 +11,47 @@ import type { QContext } from './core/state/context';
  * @param doc - Document to use for setting up global listeners, and to determine all the browser
  *   supported events.
  */
-export const qwikLoader = (doc: Document, hasInitialized?: number) => {
+export const qwikLoader = (
+  doc: Document & { __q_context__?: [Element, Event, URL] | 0 },
+  hasInitialized?: number
+) => {
   const Q_CONTEXT = '__q_context__';
-  const win = window as any;
+  type qWindow = Window & {
+    qwikevents: {
+      push: (...e: string[]) => void;
+    };
+  };
+  const win = window as unknown as qWindow;
   const events = new Set();
 
+  // Some shortenings for minification
+  const replace = 'replace';
+  const forEach = 'forEach';
+  const target = 'target';
+  const getAttribute = 'getAttribute';
+  const isConnected = 'isConnected';
+  const qvisible = 'qvisible';
+  const Q_JSON = '_qwikjson_';
   const querySelectorAll = (query: string) => {
     return doc.querySelectorAll(query);
   };
 
+  const isPromise = (promise: Promise<any>) => promise && typeof promise.then === 'function';
+
   const broadcast = (infix: string, ev: Event, type = ev.type) => {
-    querySelectorAll('[on' + infix + '\\:' + type + ']').forEach((target) =>
-      dispatch(target, infix, ev, type)
+    querySelectorAll('[on' + infix + '\\:' + type + ']')[forEach]((el) =>
+      dispatch(el, infix, ev, type)
     );
   };
 
-  const getAttribute = (el: Element, name: string) => {
-    return el.getAttribute(name);
-  };
-
-  const resolveContainer = (containerEl: Element) => {
-    if ((containerEl as QContainerElement)['_qwikjson_'] === undefined) {
+  const resolveContainer = (containerEl: QContainerElement) => {
+    if (containerEl[Q_JSON] === undefined) {
       const parentJSON = containerEl === doc.documentElement ? doc.body : containerEl;
       let script = parentJSON.lastElementChild;
       while (script) {
-        if (script.tagName === 'SCRIPT' && getAttribute(script, 'type') === 'qwik/json') {
-          (containerEl as QContainerElement)['_qwikjson_'] = JSON.parse(
-            script.textContent!.replace(/\\x3C(\/?script)/g, '<$1')
+        if (script.tagName === 'SCRIPT' && script[getAttribute]('type') === 'qwik/json') {
+          containerEl[Q_JSON] = JSON.parse(
+            script.textContent![replace](/\\x3C(\/?script)/gi, '<$1')
           );
           break;
         }
@@ -51,49 +65,91 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       detail,
     }) as T;
 
-  const dispatch = async (element: Element, onPrefix: string, ev: Event, eventName = ev.type) => {
+  const dispatch = async (
+    element: Element & { _qc_?: QContext | undefined },
+    onPrefix: string,
+    ev: Event,
+    eventName = ev.type
+  ) => {
     const attrName = 'on' + onPrefix + ':' + eventName;
     if (element.hasAttribute('preventdefault:' + eventName)) {
       ev.preventDefault();
     }
-    const ctx = (element as any)['_qc_'] as QContext | undefined;
-    const qrls = ctx?.li.filter((li) => li[0] === attrName);
-    if (qrls && qrls.length > 0) {
-      for (const q of qrls) {
-        await q[1].getFn([element, ev], () => element.isConnected)(ev, element);
+    const ctx = element['_qc_'];
+    const relevantListeners = ctx && ctx.li.filter((li) => li[0] === attrName);
+    if (relevantListeners && relevantListeners.length > 0) {
+      for (const listener of relevantListeners) {
+        // listener[1] holds the QRL
+        const results = listener[1].getFn([element, ev], () => element[isConnected])(ev, element);
+        const cancelBubble = ev.cancelBubble;
+        if (isPromise(results)) {
+          await results;
+        }
+        // forcing async with await resets ev.cancelBubble to false
+        if (cancelBubble) {
+          ev.stopPropagation();
+        }
       }
       return;
     }
-    const attrValue = getAttribute(element, attrName);
+    const attrValue = element[getAttribute](attrName);
     if (attrValue) {
-      const container = element.closest('[q\\:container]')!;
-      const base = new URL(getAttribute(container, 'q:base')!, doc.baseURI);
+      const container = element.closest('[q\\:container]')! as QContainerElement;
+      const qBase = container[getAttribute]('q:base')!;
+      const qVersion = container[getAttribute]('q:version') || 'unknown';
+      const qManifest = container[getAttribute]('q:manifest-hash') || 'dev';
+      const base = new URL(qBase, doc.baseURI);
       for (const qrl of attrValue.split('\n')) {
         const url = new URL(qrl, base);
-        const symbolName = url.hash.replace(/^#?([^?[|]*).*$/, '$1') || 'default';
+        const href = url.href;
+        const symbol = url.hash[replace](/^#?([^?[|]*).*$/, '$1') || 'default';
         const reqTime = performance.now();
-        let handler: any;
+        let handler: undefined | any;
+        let importError: undefined | 'sync' | 'async' | 'no-symbol';
+        let error: undefined | Error;
         const isSync = qrl.startsWith('#');
+        const eventData = { qBase, qManifest, qVersion, href, symbol, element, reqTime };
         if (isSync) {
-          handler = ((container as QContainerElement).qFuncs || [])[Number.parseInt(symbolName)];
+          handler = (container.qFuncs || [])[Number.parseInt(symbol)];
+          if (!handler) {
+            importError = 'sync';
+            error = new Error('sync handler error for symbol: ' + symbol);
+          }
         } else {
-          const module = import(/* @vite-ignore */ url.href.split('#')[0]);
-          resolveContainer(container);
-          handler = (await module)[symbolName];
-        }
-        const previousCtx = (doc as any)[Q_CONTEXT];
-        if (element.isConnected) {
+          const uri = url.href.split('#')[0];
           try {
-            (doc as any)[Q_CONTEXT] = [element, ev, url];
-            isSync ||
-              emitEvent<QwikSymbolEvent>('qsymbol', {
-                symbol: symbolName,
-                element: element,
-                reqTime,
-              });
-            await handler(ev, element);
+            const module = import(/* @vite-ignore */ uri);
+            resolveContainer(container);
+            handler = (await module)[symbol];
+            if (!handler) {
+              importError = 'no-symbol';
+              error = new Error(`${symbol} not in ${uri}`);
+            }
+          } catch (err) {
+            importError ||= 'async';
+            error = err as Error;
+          }
+        }
+        if (!handler) {
+          emitEvent('qerror', { importError, error, ...eventData });
+          console.error(error);
+          // break out of the loop if handler is not found
+          break;
+        }
+        const previousCtx = doc[Q_CONTEXT];
+        if (element[isConnected]) {
+          try {
+            doc[Q_CONTEXT] = [element, ev, url];
+            isSync || emitEvent<QwikSymbolEvent>('qsymbol', { ...eventData });
+            const results = handler(ev, element);
+            // only await if there is a promise returned
+            if (isPromise(results)) {
+              await results;
+            }
+          } catch (error) {
+            emitEvent('qerror', { error, ...eventData });
           } finally {
-            (doc as any)[Q_CONTEXT] = previousCtx;
+            doc[Q_CONTEXT] = previousCtx;
           }
         }
       }
@@ -104,7 +160,7 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     doc.dispatchEvent(createEvent<T>(eventName, detail));
   };
 
-  const camelToKebab = (str: string) => str.replace(/([A-Z])/g, (a) => '-' + a.toLowerCase());
+  const camelToKebab = (str: string) => str[replace](/([A-Z])/g, (a) => '-' + a.toLowerCase());
 
   /**
    * Event handler responsible for processing browser events.
@@ -117,12 +173,19 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
   const processDocumentEvent = async (ev: Event) => {
     // eslint-disable-next-line prefer-const
     let type = camelToKebab(ev.type);
-    let element = ev.target as Element | null;
+    let element = ev[target] as Element | null;
     broadcast('-document', ev, type);
 
-    while (element && element.getAttribute) {
-      await dispatch(element, '', ev, type);
-      element = ev.bubbles && ev.cancelBubble !== true ? element.parentElement : null;
+    while (element && element[getAttribute]) {
+      const results = dispatch(element, '', ev, type);
+      let cancelBubble = ev.cancelBubble;
+      if (isPromise(results)) {
+        await results;
+      }
+      // if another async handler stopPropagation
+      cancelBubble =
+        cancelBubble || ev.cancelBubble || element.hasAttribute('stoppropagation:' + ev.type);
+      element = ev.bubbles && cancelBubble !== true ? element.parentElement : null;
     }
   };
 
@@ -140,17 +203,17 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
       const riC = win.requestIdleCallback ?? win.setTimeout;
       riC.bind(win)(() => emitEvent('qidle'));
 
-      if (events.has('qvisible')) {
-        const results = querySelectorAll('[on\\:qvisible]');
+      if (events.has(qvisible)) {
+        const results = querySelectorAll('[on\\:' + qvisible + ']');
         const observer = new IntersectionObserver((entries) => {
           for (const entry of entries) {
             if (entry.isIntersecting) {
-              observer.unobserve(entry.target);
-              dispatch(entry.target, '', createEvent<QwikVisibleEvent>('qvisible', entry));
+              observer.unobserve(entry[target]);
+              dispatch(entry[target], '', createEvent<QwikVisibleEvent>(qvisible, entry));
             }
           }
         });
-        results.forEach((el) => observer.observe(el));
+        results[forEach]((el) => observer.observe(el));
       }
     }
   };
@@ -168,17 +231,21 @@ export const qwikLoader = (doc: Document, hasInitialized?: number) => {
     for (const eventName of eventNames) {
       if (!events.has(eventName)) {
         addEventListener(doc, eventName, processDocumentEvent, true);
-        addEventListener(win, eventName, processWindowEvent);
+        addEventListener(win, eventName, processWindowEvent, true);
         events.add(eventName);
       }
     }
   };
 
-  if (!(doc as any).qR) {
+  if (!(Q_CONTEXT in doc)) {
+    // Mark qwik-loader presence but falsy
+    doc[Q_CONTEXT] = 0;
     const qwikevents = win.qwikevents;
+    // If `qwikEvents` is an array, process it.
     if (Array.isArray(qwikevents)) {
       push(qwikevents);
     }
+    // Now rig up `qwikEvents` so we get notified of new registrations by other containers.
     win.qwikevents = {
       push: (...e: string[]) => push(e),
     };

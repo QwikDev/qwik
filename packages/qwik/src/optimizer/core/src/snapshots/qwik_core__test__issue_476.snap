@@ -1,5 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 1974
 expression: output
 ---
 ==INPUT==
@@ -11,7 +12,7 @@ export const Root = () => {
     return (
         <html>
             <head>
-                <meta charSet="utf-8" />
+                <meta charset="utf-8" />
                 <title>Qwik Blank App</title>
             </head>
             <body>
@@ -29,7 +30,7 @@ export const Root = ()=>{
 
             <head>
 
-                <meta charSet="utf-8"/>
+                <meta charset="utf-8"/>
 
                 <title>Qwik Blank App</title>
 

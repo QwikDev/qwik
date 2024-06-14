@@ -59,8 +59,8 @@ test('creates correct headers', () => {
     {
       key: 'j',
       value: '10',
-      options: { domain: 'https://qwik.builder.io' },
-      expect: 'j=10; Domain=https://qwik.builder.io',
+      options: { domain: 'https://qwik.dev' },
+      expect: 'j=10; Domain=https://qwik.dev',
     },
     {
       key: 'k',
@@ -80,6 +80,9 @@ test('creates correct headers', () => {
       options: { expires: new Date(0) },
       expect: 'm=13; Expires=Thu, 01 Jan 1970 00:00:00 GMT',
     },
+    { key: 'n', value: '14', options: { sameSite: 'Strict' }, expect: 'n=14; SameSite=Strict' },
+    { key: 'o', value: '15', options: { sameSite: 'Lax' }, expect: 'o=15; SameSite=Lax' },
+    { key: 'p', value: '16', options: { sameSite: 'None' }, expect: 'p=16; SameSite=None' },
   ];
   const cookie = new Cookie('');
   const expect = data.map(({ expect }) => expect);
@@ -95,4 +98,85 @@ test('creates correct headers', () => {
     const actual = result[i];
     assert.equal(actual, expected);
   }
+});
+
+test('append cookies all keys are present', () => {
+  const data: TestData[] = [
+    { key: 'a', value: '1', options: {}, expect: 'a=1' },
+    { key: 'a', value: '2', options: { sameSite: 'strict' }, expect: 'a=2; SameSite=Strict' },
+    { key: 'a', value: '2', options: { sameSite: 'lax' }, expect: 'a=2; SameSite=Lax' },
+    { key: 'a', value: '2', options: { sameSite: 'none' }, expect: 'a=2; SameSite=None' },
+    { key: 'a', value: '2', options: { httpOnly: true }, expect: 'a=2; HttpOnly' },
+    { key: 'a', value: '6', options: { secure: true }, expect: 'a=6; Secure' },
+    {
+      key: 'a',
+      value: '7',
+      options: { path: '/qwikcity/overview/' },
+      expect: 'a=7; Path=/qwikcity/overview/',
+    },
+    {
+      key: 'a',
+      value: '8',
+      options: { maxAge: [60, 'minutes'] },
+      expect: `a=8; Max-Age=${60 * 60}`,
+    },
+    { key: 'a', value: '9', options: { maxAge: 60 * 60 }, expect: `a=9; Max-Age=${60 * 60}` },
+    {
+      key: 'a',
+      value: '10',
+      options: { domain: 'https://qwik.dev' },
+      expect: 'a=10; Domain=https://qwik.dev',
+    },
+    {
+      key: 'b',
+      value: '1',
+      options: { expires: 'Wed, 21 Oct 2015 07:28:00 GMT' },
+      expect: 'b=1; Expires=Wed, 21 Oct 2015 07:28:00 GMT',
+    },
+    {
+      key: 'b',
+      value: '1',
+      options: { domain: 'https://qwik.dev' },
+      expect: 'b=1; Domain=https://qwik.dev',
+    },
+    {
+      key: 'b',
+      value: '1',
+      options: { expires: new Date(0) },
+      expect: 'b=1; Expires=Thu, 01 Jan 1970 00:00:00 GMT',
+    },
+    { key: 'c', value: '14', options: { sameSite: 'Strict' }, expect: 'c=14; SameSite=Strict' },
+    { key: 'c', value: '15', options: { sameSite: 'Lax' }, expect: 'c=15; SameSite=Lax' },
+    { key: 'd', value: '16', options: { sameSite: 'None' }, expect: 'd=16; SameSite=None' },
+  ];
+  const cookie = new Cookie('');
+  const expect = data.map(({ expect }) => expect);
+
+  data.forEach(({ key, value, options }) => {
+    cookie.append(key, value, options);
+  });
+
+  const result = cookie.headers();
+  assert.equal(expect.length, result.length);
+  for (let i = 0; i < expect.length; i++) {
+    const expected = expect[i];
+    const actual = result[i];
+    assert.equal(actual, expected);
+  }
+});
+
+test('set cookies only latest key is present', () => {
+  const data: TestData[] = [
+    { key: 'a', value: '1', options: {}, expect: 'a=1' },
+    { key: 'a', value: '2', options: { sameSite: 'strict' }, expect: 'a=2; SameSite=Strict' },
+  ];
+  const cookie = new Cookie('');
+
+  data.forEach(({ key, value, options }) => {
+    cookie.set(key, value, options);
+  });
+
+  const result = cookie.headers();
+  assert.equal(1, result.length);
+  assert.equal(result[0], data[1].expect);
 });

@@ -1,19 +1,19 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "extends": "../../../api-extractor.json",
-  "mainEntryPointFilePath": "<projectFolder>/dist-dev/dts-out/packages/qwik-city/adapters/static/vite/index.d.ts",
+  "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik-city/adapters/static/vite/index.d.ts",
   "apiReport": {
     "enabled": true,
     "reportFileName": "api.md",
-    "reportFolder": "<projectFolder>/packages/qwik-city/adapters/static/",
-    "reportTempFolder": "<projectFolder>/dist-dev/api-extractor/qwik-city/adapters/static"
+    "reportFolder": "<projectFolder>/adapters/static/",
+    "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-city/adapters/static"
   },
   "dtsRollup": {
     "enabled": true,
-    "untrimmedFilePath": "<projectFolder>/packages/qwik-city/lib/adapters/static/vite/index.d.ts"
+    "untrimmedFilePath": "<projectFolder>/lib/adapters/static/vite/index.d.ts"
   },
   "docModel": {
     "enabled": true,
-    "apiJsonFilePath": "<projectFolder>/dist-dev/api/qwik-city/vite/static/docs.api.json"
+    "apiJsonFilePath": "<projectFolder>/../../dist-dev/api/qwik-city/vite/static/docs.api.json"
   }
 }

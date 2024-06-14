@@ -1,20 +1,20 @@
 import { assert, suite, test } from 'vitest';
-import type { JSXNode } from '../../jsx-runtime';
 import { renderToString } from '../../server/render';
 import { createDocument } from '../../testing/document';
 import { createDOM } from '../../testing/library';
 import { component$ } from '../component/component.public';
 import { _fnSignal } from '../internal';
 import { useSignal } from '../use/use-signal';
+import type { JSXOutput } from '../render/jsx/types/jsx-node';
 
 suite('jsx signals', () => {
   const RenderJSX = component$(() => {
-    const jsx = useSignal<string | JSXNode>(<span>SSR</span>);
+    const jsx = useSignal<string | JSXOutput>(<span>SSR</span>);
     return (
       <>
         <button
           class="set-jsx"
-          onJsx$={(e: CustomEvent<JSXNode | string>) => (jsx.value = e.detail)}
+          onJsx$={(e: CustomEvent<JSXOutput | string>) => (jsx.value = e.detail)}
         />
         <div class="jsx">{jsx.value}</div>
         <div class="jsx-signal">{_fnSignal((p0) => p0.value, [jsx], 'p0.value')}</div>

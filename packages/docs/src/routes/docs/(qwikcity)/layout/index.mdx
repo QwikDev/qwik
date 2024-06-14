@@ -8,11 +8,13 @@ contributors:
   - nnelgxorz
   - the-r3aper7
   - mrhoodz
+  - aendel
+  - jemsco
 updated_at: '2023-06-25T19:43:33Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
-# Nested layouts
+# Nested Layouts
 
 Layouts provide **nested UI and request handling (middleware)** to a set of routes:
 
@@ -21,9 +23,9 @@ Layouts provide **nested UI and request handling (middleware)** to a set of rout
 
 ## Example
 
-Let's put together all the concepts we have learned so far to build a full app.
+Now, combine all the previously discussed concepts to build a full app.
 
-In the proposed example, we have a site with 2 pages: `https://example.com` and `https://example.com/about`, and we want to add a common header and footer to all the pages, the only difference between the pages is the content in the middle.
+In the proposed example, you will notice a site with 2 pages: `https://example.com` and `https://example.com/about`. The goal is to add a common header and footer to all the pages, the only difference between the pages is the content in the middle.
 
 ```
 ┌───────────────────────────────────────────────────┐
@@ -38,9 +40,9 @@ In the proposed example, we have a site with 2 pages: `https://example.com` and 
 └───────────────────────────────────────────────────┘
 ```
 
-First, we create three components: `<Header>`, `<Footer>`, and `<Menu>`.
+First, create three components: `<Header>`, `<Footer>`, and `<Menu>`.
 
-> The developer could copy-paste these components manually into each page component, but that is repetitive and error-prone, **instead, we can use layouts to automatically reuse common parts.**
+> The developer could copy-paste these components manually into each page component, but that is repetitive and error-prone. **Instead, use layouts to automatically reuse common parts.**
 
 ### Routes directory
 
@@ -78,7 +80,7 @@ export default component$(() => {
 
 ### `src/routes/index.tsx`
 
-This is the main route for the site. It will be rendered under the `Slot` component in the `src/routes/layout.tsx` file, so even though it doesn't have any of the `Header`, `Menu`, or `Footer` components, it will still be rendered with them.
+This is the main route for the site. It will be rendered within the `Slot` component in the `src/routes/layout.tsx` file. Even though the `Header`, `Menu`, or `Footer` components are not referenced, it will still be rendered with them.
 
 ```tsx title="src/routes/index.tsx"
 import { component$ } from '@builder.io/qwik';
@@ -90,7 +92,7 @@ export default component$(() => {
 
 ### `src/routes/about/index.tsx`
 
-Same as the `src/routes/index.tsx` file, but for the `about` route, similary it will be rendered under the `Slot` component in the `src/routes/layout.tsx` file, so even though it doesn't have any of the `Header`, `Menu`, or `Footer` components, it will still be rendered with them.
+Similar to the `src/routes/index.tsx` file, the `about` route will also be rendered within the `Slot` component in the `src/routes/layout.tsx` file. Even though the `Header`, `Menu`, or `Footer` components are not referenced, it will still be rendered with them.
 
 ```tsx title="src/routes/about/index.tsx"
 import { component$ } from '@builder.io/qwik';
@@ -100,7 +102,7 @@ export default component$(() => {
 });
 ```
 
-When we run the app, Qwik will render the `About` nested inside the `RootLayout`
+When you run the app, Qwik will render the `About` nested inside the `RootLayout`
 
 ```tsx
 <RootLayout>

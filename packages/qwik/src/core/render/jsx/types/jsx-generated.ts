@@ -452,7 +452,8 @@ interface HTMLAttributesBase extends AriaAttributes {
   popover?: 'manual' | 'auto' | undefined;
 }
 
-interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement> {}
+/** @public */
+export interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement> {}
 
 /** @public */
 export interface HTMLAttributes<E extends Element> extends HTMLElementAttrs, DOMAttributes<E> {}
@@ -461,9 +462,8 @@ type Prettify<T> = {} & {
   [K in keyof T]: T[K];
 };
 
-type IfEquals<X, Y, A, B> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2
-  ? A
-  : B;
+type IfEquals<X, Y, A, B> =
+  (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B;
 type IsReadOnlyKey<T, K extends keyof T> = IfEquals<
   { [Q in K]: T[K] },
   { -readonly [Q in K]: T[K] },
@@ -582,11 +582,20 @@ type SpecialAttrs = {
     children?: undefined;
   };
   input: {
+    /**
+     * For type: HTMLInputTypeAttribute, excluding 'button' | 'color' | 'file' | 'hidden' | 'image'|
+     * 'range' | 'reset' | 'submit' | 'checkbox' | 'radio'
+     */
     autoComplete?:
       | HTMLInputAutocompleteAttribute
       | Omit<HTMLInputAutocompleteAttribute, string>
       | undefined;
+    /** For type: 'checkbox' | 'radio' */
     'bind:checked'?: Signal<boolean | undefined>;
+    /**
+     * For type: HTMLInputTypeAttribute, excluding 'button' | 'reset' | 'submit' | 'checkbox' |
+     * 'radio'
+     */
     'bind:value'?: Signal<string | undefined>;
     enterKeyHint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send' | undefined;
     height?: Size | undefined;
@@ -599,37 +608,10 @@ type SpecialAttrs = {
     value?: string | ReadonlyArray<string> | number | undefined | null | FormDataEntryValue;
     width?: Size | undefined;
     children?: undefined;
-  } & (
-    | {
-        type?:
-          | Exclude<HTMLInputTypeAttribute, 'button' | 'reset' | 'submit' | 'checkbox' | 'radio'>
-          | undefined;
-        'bind:checked'?: undefined;
-      }
-    | {
-        type: 'button' | 'reset' | 'submit';
-        'bind:value'?: undefined;
-        'bind:checked'?: undefined;
-        autoComplete?: undefined;
-      }
-    | {
-        type: 'checkbox' | 'radio';
-        'bind:value'?: undefined;
-        autoComplete?: undefined;
-      }
-  ) &
-    (
-      | {
-          type?: Exclude<HTMLInputTypeAttribute, 'button'> | undefined;
-          popovertarget?: undefined;
-          popovertargetaction?: undefined;
-        }
-      | {
-          type: 'button';
-          popovertarget?: string | undefined;
-          popovertargetaction?: PopoverTargetAction | undefined;
-        }
-    );
+    /** For type: 'button' */
+    popovertarget?: string | undefined;
+    popovertargetaction?: PopoverTargetAction | undefined;
+  };
   label: {
     form?: string | undefined;
     for?: string | undefined;
@@ -644,11 +626,16 @@ type SpecialAttrs = {
     referrerPolicy?: HTMLAttributeReferrerPolicy | undefined;
     sizes?: string | undefined;
     type?: string | undefined;
+    /** @deprecated Use `charset` instead */
     charSet?: string | undefined;
+    charset?: string | undefined;
     children?: undefined;
   };
   meta: {
-    charSet?: string | undefined;
+    /** @deprecated Use `charset` instead */
+    charSet?: 'utf-8' | undefined;
+    /** Qwik only supports utf-8 */
+    charset?: 'utf-8' | undefined;
     children?: undefined;
   };
   meter: {
@@ -1275,19 +1262,21 @@ export type IntrinsicSVGElements = {
   >;
 };
 
-/** The DOM props without plain handlers, for use inside functions @public */
+/**
+ * The DOM props without plain handlers, for use inside functions
+ *
+ * @public
+ */
 export type QwikHTMLElements = {
   [tag in keyof HTMLElementTagNameMap]: Augmented<HTMLElementTagNameMap[tag], SpecialAttrs[tag]> &
     HTMLElementAttrs &
     QwikAttributes<HTMLElementTagNameMap[tag]>;
-} & {
-  /** For unknown tags we allow all props */
-  [unknownTag: string]: { [prop: string]: any } & HTMLElementAttrs &
-    // We use any instead of Element because this index type needs to be matched by
-    // all the other ones and those are subtypes of Element
-    QwikAttributes<any>;
 };
-/** The SVG props without plain handlers, for use inside functions @public */
+/**
+ * The SVG props without plain handlers, for use inside functions
+ *
+ * @public
+ */
 export type QwikSVGElements = {
   [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: SVGProps<
     SVGElementTagNameMap[K]

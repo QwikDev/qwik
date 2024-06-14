@@ -1,8 +1,8 @@
 # Qwik Library ⚡️
 
-- [Qwik Docs](https://qwik.builder.io/)
-- [Discord](https://qwik.builder.io/chat)
-- [Qwik on GitHub](https://github.com/BuilderIO/qwik)
+- [Qwik Docs](https://qwik.dev/)
+- [Discord](https://qwik.dev/chat)
+- [Qwik on GitHub](https://github.com/QwikDev/qwik)
 - [@QwikDev](https://twitter.com/QwikDev)
 - [Vite](https://vitejs.dev/)
 - [Partytown](https://partytown.builder.io/)
@@ -40,7 +40,7 @@ pnpm dev
 
 ## Production
 
-The production build should generate the production build of your component library in (./lib) and the typescript type definitions in (./lib-types).
+The production build should generate the production build of your component library and type definitions in (./lib).
 
 ```
 pnpm build

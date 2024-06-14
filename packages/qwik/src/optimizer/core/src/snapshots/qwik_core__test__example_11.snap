@@ -1,5 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 297
 expression: output
 ---
 ==INPUT==
@@ -24,7 +25,7 @@ export const App = component$(() => {
     );
 });
 
-============================= header_component_header_onclick_kjd9tcnknxy.tsx ==
+============================= project/header_component_header_onclick_kjd9tcnknxy.tsx ==
 
 import dep3 from "dep3/something";
 export const Header_component_Header_onClick_KjD9TCNkNxY = (ev)=>dep3(ev);
@@ -39,6 +40,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   "displayName": "Header_component_Header_onClick",
   "hash": "KjD9TCNkNxY",
   "canonicalFilename": "header_component_header_onclick_kjd9tcnknxy",
+  "path": "project",
   "extension": "tsx",
   "parent": "Header_component_UVBJuFYfvDo",
   "ctxKind": "function",
@@ -50,14 +52,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   ]
 }
 */
-============================= header_component_uvbjufyfvdo.tsx ==
+============================= project/header_component_uvbjufyfvdo.tsx ==
 
-import { Header } from "./project/test";
-import { bar as bbar } from "./state";
+import { Header } from "./test";
+import { bar as bbar } from "../state";
 import * as dep2 from "dep2";
 import { qrl } from "@builder.io/qwik";
 export const Header_component_UVBJuFYfvDo = ()=>{
-    return <Header onClick={/*#__PURE__*/ qrl(()=>import("./entry_hooks"), "Header_component_Header_onClick_KjD9TCNkNxY")}>
+    return <Header onClick={/*#__PURE__*/ qrl(()=>import("../entry_hooks"), "Header_component_Header_onClick_KjD9TCNkNxY")}>
 
             {dep2.stuff()}{bbar()}
 
@@ -65,7 +67,7 @@ export const Header_component_UVBJuFYfvDo = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAMiC,IAAM;IACnC,QACK,OAAO,wGAA8B;;YAClC,CAAC,KAAK,KAAK,IAAI,OAAO;;QAC1B,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAMiC,IAAM;IACnC,QACK,OAAO,yGAA8B;;YAClC,CAAC,KAAK,KAAK,IAAI,OAAO;;QAC1B,EAAE;AAEV\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -74,6 +76,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   "displayName": "Header_component",
   "hash": "UVBJuFYfvDo",
   "canonicalFilename": "header_component_uvbjufyfvdo",
+  "path": "project",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -85,10 +88,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   ]
 }
 */
-============================= app_component_wgkrhwxaqjs.tsx ==
+============================= project/app_component_wgkrhwxaqjs.tsx ==
 
-import { Header } from "./project/test";
-import { foo } from "./state";
+import { Header } from "./test";
+import { foo } from "../state";
 export const App_component_wGkRHWXaqjs = ()=>{
     return <Header>{foo()}</Header>;
 };
@@ -103,6 +106,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   "displayName": "App_component",
   "hash": "wGkRHWXaqjs",
   "canonicalFilename": "app_component_wgkrhwxaqjs",
+  "path": "project",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -125,9 +129,9 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("../e
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,uBAAS,8FAMnB;AAEH,OAAO,MAAM,oBAAM,2FAIhB\"}")
 ============================= entry_hooks.js (ENTRY POINT)==
 
-export { Header_component_Header_onClick_KjD9TCNkNxY } from "./header_component_header_onclick_kjd9tcnknxy";
-export { Header_component_UVBJuFYfvDo } from "./header_component_uvbjufyfvdo";
-export { App_component_wGkRHWXaqjs } from "./app_component_wgkrhwxaqjs";
+export { Header_component_Header_onClick_KjD9TCNkNxY } from "./project/header_component_header_onclick_kjd9tcnknxy";
+export { Header_component_UVBJuFYfvDo } from "./project/header_component_uvbjufyfvdo";
+export { App_component_wGkRHWXaqjs } from "./project/app_component_wgkrhwxaqjs";
 export { _hW } from "@builder.io/qwik";
 
 

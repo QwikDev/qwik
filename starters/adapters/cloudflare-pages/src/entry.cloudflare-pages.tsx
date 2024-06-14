@@ -4,7 +4,7 @@
  * It's the entry point for Cloudflare Pages when building for production.
  *
  * Learn more about the Cloudflare Pages integration here:
- * - https://qwik.builder.io/docs/deployments/cloudflare-pages/
+ * - https://qwik.dev/docs/deployments/cloudflare-pages/
  *
  */
 import {

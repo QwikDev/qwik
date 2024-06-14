@@ -30,7 +30,7 @@ export function logAppCreated(pkgManager: string, result: CreateAppResult, ranIn
   outString.push(logSuccessFooter(result.docs));
 
   outString.push(`👀 ${cyan('Presentations, Podcasts and Videos:')}`);
-  outString.push(`   https://qwik.builder.io/media/`);
+  outString.push(`   https://qwik.dev/media/`);
   outString.push(``);
 
   outString.push(`🐰 ${cyan(`Next steps:`)}`);

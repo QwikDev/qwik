@@ -1,6 +1,6 @@
 import { component$, Resource, useResource$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
-import { getBuilderSearchParams, getContent, RenderContent } from '@builder.io/sdk-qwik';
+import { getBuilderSearchParams, fetchOneEntry, Content } from '@builder.io/sdk-qwik';
 import { QWIK_MODEL } from '../../constants';
 
 export default component$<{
@@ -29,7 +29,7 @@ export default component$<{
           options: getBuilderSearchParams(query),
           userAttributes: {
             urlPath: location.url.pathname,
-            site: 'qwik.builder.io',
+            site: 'qwik.dev',
           },
           ...(contentId && {
             query: {
@@ -37,7 +37,7 @@ export default component$<{
             },
           }),
         },
-        getContent
+        fetchOneEntry
       );
     } else {
       return getCachedValue(
@@ -60,7 +60,7 @@ export default component$<{
         content.html ? (
           <props.tag class="builder" dangerouslySetInnerHTML={content.html} />
         ) : (
-          <RenderContent model={props.model} content={content} apiKey={props.apiKey} />
+          <Content model={props.model} content={content} apiKey={props.apiKey} />
         )
       }
     />
@@ -119,10 +119,14 @@ export async function getBuilderContent({
     qwikUrl.searchParams.set('cachebust', 'true');
   }
 
-  const response = await fetch(qwikUrl.href);
-  if (response.ok) {
-    const content: BuilderContent = JSON.parse(await response.text());
-    return content;
+  try {
+    const response = await fetch(qwikUrl.href);
+    if (response.ok) {
+      const content: BuilderContent = JSON.parse(await response.text());
+      return content;
+    }
+  } catch (err) {
+    console.error(err);
   }
-  throw new Error(`Unable to load Builder content from ${qwikUrl.toString()}`);
+  return { html: `<div>Unable to load Builder content from ${qwikUrl.toString()}</div>` };
 }

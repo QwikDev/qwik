@@ -12,7 +12,7 @@ export function logSuccessFooter(docs: string[]) {
   }
   outString.push(``);
   outString.push(`💬 ${cyan('Questions? Start the conversation at:')}`);
-  outString.push(`   https://qwik.builder.io/chat`);
+  outString.push(`   https://qwik.dev/chat`);
   outString.push(`   https://twitter.com/QwikDev`);
   outString.push(``);
 

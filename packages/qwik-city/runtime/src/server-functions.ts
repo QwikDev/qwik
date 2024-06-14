@@ -5,16 +5,16 @@ import {
   type QRL,
   useContext,
   type ValueOrPromise,
-  _wrapSignal,
   useStore,
   _serializeData,
   _deserializeData,
   _getContextElement,
   _getContextEvent,
+  _wrapProp,
 } from '@builder.io/qwik';
 
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
-import { QACTION_KEY, QFN_KEY } from './constants';
+import { QACTION_KEY, QFN_KEY, QDATA_KEY } from './constants';
 import { RouteStateContext } from './contexts';
 import type {
   ActionConstructor,
@@ -40,10 +40,13 @@ import type {
   ServerFunction,
   ServerQRL,
   RequestEventBase,
+  ServerConfig,
 } from './types';
 import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 import { z } from 'zod';
+
 import { isDev, isServer } from '@builder.io/qwik/build';
+
 import type { FormSubmitCompletedDetail } from './form-component';
 
 /** @public */
@@ -57,6 +60,7 @@ export const routeActionQrl = ((
     const currentAction = useAction();
     const initialState: Editable<Partial<ActionStore<unknown, unknown>>> = {
       actionPath: `?${QACTION_KEY}=${id}`,
+      submitted: false,
       isRunning: false,
       status: undefined,
       value: undefined,
@@ -104,6 +108,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
         if (data instanceof FormData) {
           state.formData = data;
         }
+        state.submitted = true;
         state.isRunning = true;
         loc.isNavigating = true;
         currentAction.value = {
@@ -148,8 +153,6 @@ Action.run() can only be called on the browser, for example when a user clicks a
   return action satisfies ActionInternal;
 }) as unknown as ActionConstructorQRL;
 
-export type ServerGT = typeof globalThis & { _qwikActionsMap?: Map<string, ActionInternal> };
-
 /** @public */
 export const globalActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
@@ -157,13 +160,10 @@ export const globalActionQrl = ((
 ) => {
   const action = routeActionQrl(actionQrl, ...(rest as any));
   if (isServer) {
-    if (typeof (globalThis as ServerGT)._qwikActionsMap === 'undefined') {
-      (globalThis as ServerGT)._qwikActionsMap = new Map();
+    if (typeof globalThis._qwikActionsMap === 'undefined') {
+      globalThis._qwikActionsMap = new Map();
     }
-    (globalThis as ServerGT)._qwikActionsMap!.set(
-      (action as ActionInternal).__id,
-      action as ActionInternal
-    );
+    globalThis._qwikActionsMap!.set((action as ActionInternal).__id, action as ActionInternal);
   }
   return action;
 }) as ActionConstructorQRL;
@@ -189,12 +189,12 @@ export const routeLoaderQrl = ((
       if (!(id in state)) {
         throw new Error(`routeLoader$ "${loaderQrl.getSymbol()}" was invoked in a route where it was not declared.
     This is because the routeLoader$ was not exported in a 'layout.tsx' or 'index.tsx' file of the existing route.
-    For more information check: https://qwik.builder.io/qwikcity/route-loader/
+    For more information check: https://qwik.dev/qwikcity/route-loader/
 
     If your are managing reusable logic or a library it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception.
-    For more information check: https://qwik.builder.io/docs/cookbook/re-exporting-loaders/`);
+    For more information check: https://qwik.dev/docs/cookbook/re-exporting-loaders/`);
       }
-      return _wrapSignal(state, id);
+      return _wrapProp(state, id);
     });
   }
   loader.__brand = 'server_loader' as const;
@@ -270,8 +270,22 @@ export const zodQrl = ((
 /** @public */
 export const zod$ = /*#__PURE__*/ implicit$FirstArg(zodQrl) as ZodConstructor;
 
+const deepFreeze = (obj: any) => {
+  Object.getOwnPropertyNames(obj).forEach((prop) => {
+    const value = obj[prop];
+    // we assume that a frozen object is a circular reference and fully deep frozen
+    if (value && typeof value === 'object' && !Object.isFrozen(value)) {
+      deepFreeze(value);
+    }
+  });
+  return Object.freeze(obj);
+};
+
 /** @public */
-export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> => {
+export const serverQrl = <T extends ServerFunction>(
+  qrl: QRL<T>,
+  options?: ServerConfig
+): ServerQRL<T> => {
   if (isServer) {
     const captured = qrl.getCaptured();
     if (captured && captured.length > 0 && !_getContextElement()) {
@@ -279,25 +293,38 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
     }
   }
 
-  function stuff() {
+  const method = options?.method?.toUpperCase?.() || 'POST';
+  const headers = options?.headers || {};
+  const origin = options?.origin || '';
+  const fetchOptions = options?.fetchOptions || {};
+
+  function rpc() {
     return $(async function (this: RequestEventBase, ...args: Parameters<T>) {
+      // move to ServerConfig
       const signal =
         args.length > 0 && args[0] instanceof AbortSignal
           ? (args.shift() as AbortSignal)
           : undefined;
+
       if (isServer) {
         // Running during SSR, we can call the function directly
-        const requestEvent = [useQwikCityEnv()?.ev, this, _getContextEvent()].find(
-          (v) =>
-            v &&
-            Object.prototype.hasOwnProperty.call(v, 'sharedMap') &&
-            Object.prototype.hasOwnProperty.call(v, 'cookie')
-        );
-        return qrl.apply(requestEvent, args);
+        let requestEvent = globalThis.qcAsyncRequestStore?.getStore() as RequestEvent | undefined;
+
+        if (!requestEvent) {
+          const contexts = [useQwikCityEnv()?.ev, this, _getContextEvent()] as RequestEvent[];
+          requestEvent = contexts.find(
+            (v) =>
+              v &&
+              Object.prototype.hasOwnProperty.call(v, 'sharedMap') &&
+              Object.prototype.hasOwnProperty.call(v, 'cookie')
+          );
+        }
+
+        return qrl.apply(requestEvent, isDev ? deepFreeze(args) : args);
       } else {
         // Running on the client, we need to call the function via HTTP
         const ctxElm = _getContextElement();
-        const filtered = args.map((arg) => {
+        const filtered = args.map((arg: unknown) => {
           if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
             return new FormData(arg.target);
           } else if (arg instanceof Event) {
@@ -309,16 +336,26 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
         });
         const hash = qrl.getHash();
         // Handled by `pureServerFunction` middleware
-        const res = await fetch(`?${QFN_KEY}=${hash}`, {
-          method: 'POST',
+        let query = '';
+        const config = {
+          ...fetchOptions,
+          method,
           headers: {
+            ...headers,
             'Content-Type': 'application/qwik-json',
             // Required so we don't call accidentally
             'X-QRL': hash,
           },
           signal,
-          body: await _serializeData([qrl, ...filtered], false),
-        });
+        };
+        const body = await _serializeData([qrl, ...filtered], false);
+        if (method === 'GET') {
+          query += `&${QDATA_KEY}=${encodeURIComponent(body)}`;
+        } else {
+          // PatrickJS: sorry Ryan Florence I prefer const still
+          config.body = body;
+        }
+        const res = await fetch(`${origin}?${QFN_KEY}=${hash}${query}`, config);
 
         const contentType = res.headers.get('Content-Type');
         if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {
@@ -344,11 +381,23 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
             throw obj;
           }
           return obj;
+        } else if (contentType === 'application/json') {
+          const obj = await res.json();
+          if (res.status === 500) {
+            throw obj;
+          }
+          return obj;
+        } else if (contentType === 'text/plain' || contentType === 'text/html') {
+          const str = await res.text();
+          if (res.status === 500) {
+            throw str;
+          }
+          return str;
         }
       }
     }) as ServerQRL<T>;
   }
-  return stuff();
+  return rpc();
 };
 
 /** @public */

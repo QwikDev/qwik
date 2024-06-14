@@ -3,15 +3,13 @@ import type { ScrollHistoryState } from './scroll-restoration';
 
 import { isDev, isServer } from '@builder.io/qwik/build';
 import { getPlatform } from '@builder.io/qwik';
-import { basePathname } from '@qwik-city-plan';
 
 import init from './spa-init';
 
 export default () => {
   if (isServer) {
     const [symbol, bundle] = getPlatform().chunkForSymbol(init.getSymbol(), null)!;
-    const path = (!isDev ? basePathname + 'build/' : '') + bundle;
-    return `(${shim.toString()})('${path}','${symbol}');`;
+    return `(${shim.toString()})('${bundle}','${symbol}');`;
   }
 };
 
@@ -33,18 +31,18 @@ const shim = async (path: string, symbol: string) => {
     }
 
     const currentScript = document.currentScript as HTMLScriptElement;
-    if (!isDev) {
-      (await import(path))[symbol](currentScript);
-    } else {
-      // Importing @qwik-city-plan here explodes dev, get basePathname manually.
-      const container = currentScript.closest('[q\\:container]')!;
-      const base = new URL(container.getAttribute('q:base')!, document.baseURI);
-      const url = new URL(path, base);
 
+    const container = currentScript.closest('[q\\:container]')!;
+    const base = new URL(container.getAttribute('q:base')!, document.baseURI);
+    const url = new URL(path, base);
+
+    if (isDev) {
       // Bypass dev import hijack. (not going to work here)
       // eslint-disable-next-line no-new-func
       const imp = new Function('url', 'return import(url)');
       (await imp(url.href))[symbol](currentScript);
+    } else {
+      (await import(url.href))[symbol](currentScript);
     }
   }
 };

@@ -141,7 +141,7 @@ export async function mainThread(sys: System) {
 
       const addToQueue = (pathname: string | undefined | null, params: PathParams | undefined) => {
         if (pathname) {
-          pathname = new URL(pathname, `https://qwik.builder.io`).pathname;
+          pathname = new URL(pathname, `https://qwik.dev`).pathname;
 
           if (pathname !== opts.basePathname) {
             if (trailingSlash) {
@@ -236,7 +236,7 @@ function validateOptions(opts: StaticGenerateOptions) {
     throw new Error(`Missing "origin" option`);
   }
   siteOrigin = siteOrigin.trim();
-  if (!siteOrigin.startsWith('https://') && !siteOrigin.startsWith('http://')) {
+  if (!/:\/\//.test(siteOrigin) || siteOrigin.startsWith('://')) {
     throw new Error(
       `"origin" must start with a valid protocol, such as "https://" or "http://", received "${siteOrigin}"`
     );

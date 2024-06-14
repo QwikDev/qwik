@@ -1,3 +1,4 @@
+import { QWIK_PKG_NAME, getBundled } from './bundled';
 import { ReplConsole } from './repl-console';
 import { ReplOptions } from './repl-options';
 import { ReplTabButton } from './repl-tab-button';
@@ -27,7 +28,11 @@ export const ReplDetailPanel = ({ input, store }: ReplDetailPanelProps) => {
       <div class="repl-tab">
         {store.selectedOutputDetail === 'console' ? <ReplConsole store={store} /> : null}
         {store.selectedOutputDetail === 'options' ? (
-          <ReplOptions input={input} versions={store.versions} />
+          <ReplOptions
+            input={input}
+            versions={store.versions}
+            qwikVersion={getBundled()[QWIK_PKG_NAME].version}
+          />
         ) : null}
       </div>
     </div>

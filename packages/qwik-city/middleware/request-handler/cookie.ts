@@ -2,8 +2,11 @@ import type { Cookie as CookieInterface, CookieOptions, CookieValue } from './ty
 
 const SAMESITE = {
   lax: 'Lax',
+  Lax: 'Lax',
+  None: 'None',
   none: 'None',
   strict: 'Strict',
+  Strict: 'Strict',
 } as const;
 
 const UNIT = {
@@ -75,7 +78,7 @@ const parseCookieString = (cookieString: string | undefined | null) => {
   return cookie;
 };
 
-function resolveSameSite(sameSite: boolean | 'strict' | 'lax' | 'none' | undefined) {
+function resolveSameSite(sameSite: CookieOptions['sameSite']) {
   if (sameSite === true) {
     return 'Strict';
   }
@@ -96,6 +99,7 @@ export class Cookie implements CookieInterface {
   private [REQ_COOKIE]: Record<string, string>;
   private [RES_COOKIE]: Record<string, string> = {};
   private [LIVE_COOKIE]: Record<string, string | null> = {};
+  private appendCounter = 0;
 
   constructor(cookieString?: string | undefined | null) {
     this[REQ_COOKIE] = parseCookieString(cookieString);
@@ -147,7 +151,26 @@ export class Cookie implements CookieInterface {
     this[RES_COOKIE][cookieName] = createSetCookieValue(cookieName, resolvedValue, options);
   }
 
-  delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>) {
+  append(
+    cookieName: string,
+    cookieValue: string | number | Record<string, any>,
+    options: CookieOptions = {}
+  ) {
+    this[LIVE_COOKIE][cookieName] =
+      typeof cookieValue === 'string' ? cookieValue : JSON.stringify(cookieValue);
+
+    const resolvedValue =
+      typeof cookieValue === 'string'
+        ? cookieValue
+        : encodeURIComponent(JSON.stringify(cookieValue));
+    this[RES_COOKIE][++this.appendCounter] = createSetCookieValue(
+      cookieName,
+      resolvedValue,
+      options
+    );
+  }
+
+  delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain' | 'sameSite'>) {
     this.set(name, 'deleted', { ...options, maxAge: 0 });
     this[LIVE_COOKIE][name] = null;
   }

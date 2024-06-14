@@ -1,5 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 1681
 expression: output
 ---
 ==INPUT==
@@ -41,6 +42,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "test_component_useResource",
   "hash": "4a8wVY7wh38",
   "canonicalFilename": "test_component_useresource_4a8wvy7wh38",
+  "path": "",
   "extension": "tsx",
   "parent": "test_component_LUXeXe0DQrg",
   "ctxKind": "function",
@@ -82,6 +84,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "test_component",
   "hash": "LUXeXe0DQrg",
   "canonicalFilename": "test_component_luxexe0dqrg",
+  "path": "",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",

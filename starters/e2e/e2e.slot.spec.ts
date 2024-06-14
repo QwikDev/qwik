@@ -338,6 +338,13 @@ test.describe("slot", () => {
     await expect(div).toHaveText("Ctx: hello");
   });
 
+  test("issue 5506", async ({ page }) => {
+    const input = page.locator("#input-5506");
+    await expect(input).toBeChecked();
+    await input.click();
+    await expect(input).not.toBeChecked();
+  });
+
   test.beforeEach(async ({ page }) => {
     await page.goto("/e2e/slot");
     page.on("pageerror", (err) => expect(err).toEqual(undefined));

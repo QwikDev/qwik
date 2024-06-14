@@ -11,7 +11,7 @@
     "docs": [
       "https://www.builder.io/c/docs/quickstart"
     ],
-    "displayName": "Site with Visual CMS",
+    "displayName": "Site with Visual CMS (Qwik City + Qwik)",
     "qwikCity": true
   }
 }

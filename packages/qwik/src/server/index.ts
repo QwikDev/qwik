@@ -27,7 +27,7 @@ export type {
 } from './types';
 export { renderToString, renderToStream, resolveManifest } from './render';
 export { versions } from './utils';
-export { getQwikLoaderScript } from './scripts';
+export { getQwikLoaderScript, getQwikPrefetchWorkerScript } from './scripts';
 
 /** @public */
 export async function setServerPlatform(manifest: QwikManifest | ResolvedManifest | undefined) {

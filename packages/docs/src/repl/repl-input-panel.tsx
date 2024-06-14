@@ -1,4 +1,4 @@
-import type { PropFunction } from '@builder.io/qwik';
+import type { QRL } from '@builder.io/qwik';
 import { Editor } from './editor';
 import { ReplCommands } from './repl-commands';
 import { ReplTabButton } from './repl-tab-button';
@@ -65,8 +65,8 @@ const formatFilePath = (path: string) => {
 interface ReplInputPanelProps {
   input: ReplAppInput;
   store: ReplStore;
-  onInputChange$: PropFunction<(path: string, code: string) => void>;
-  onInputDelete$: PropFunction<(path: string) => void>;
+  onInputChange$: QRL<(path: string, code: string) => void>;
+  onInputDelete$: QRL<(path: string) => void>;
   enableDownload?: boolean;
   enableCopyToPlayground?: boolean;
   enableInputDelete?: boolean;

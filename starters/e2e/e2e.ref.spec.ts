@@ -16,10 +16,14 @@ test.describe("ref", () => {
     const dynamicEl = page.locator("#dynamic");
     const static2El = page.locator("#static-2");
     const dynamic2El = page.locator("#dynamic-2");
+    const static3El = page.locator("#static-3");
+    const dynamic3El = page.locator("#dynamic-3");
 
     await expect(staticEl).toHaveText("Rendered static");
     await expect(dynamicEl).toHaveText("Rendered dynamic");
     await expect(static2El).toHaveText("Rendered static-2");
     await expect(dynamic2El).toHaveText("Rendered dynamic-2");
+    await expect(static3El).toHaveText("Rendered static-3");
+    await expect(dynamic3El).toHaveText("Rendered dynamic-3");
   });
 });

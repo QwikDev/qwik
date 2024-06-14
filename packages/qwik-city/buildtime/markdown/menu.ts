@@ -50,7 +50,7 @@ export function parseMenu(
       }
       currentDepth = t.depth;
       const parentNode = stack[stack.length - 1];
-      for (const h2Token of t.tokens) {
+      for (const h2Token of t.tokens || []) {
         const lastNode: ParsedMenuItem = {
           text: '',
         };

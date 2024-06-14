@@ -3,8 +3,14 @@ import { assert, test } from 'vitest';
 import type { QwikManifest } from '../types';
 import { createPlugin } from './plugin';
 import { normalizePath } from '../../../testing/util';
+import { qwikVite } from './vite';
 
 const cwd = process.cwd();
+
+test('types', () => () => {
+  qwikVite({ csr: true });
+  qwikVite({ csr: false, ssr: {} });
+});
 
 test('defaults', async () => {
   const plugin = await mockPlugin();
@@ -15,7 +21,7 @@ test('defaults', async () => {
   assert.deepEqual(opts.debug, false);
   assert.deepEqual(opts.rootDir, normalizePath(cwd));
   assert.deepEqual(opts.tsconfigFileNames, ['./tsconfig.json']);
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
+  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
   assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
@@ -33,7 +39,7 @@ test('defaults (buildMode: production)', async () => {
   assert.deepEqual(opts.debug, false);
   assert.deepEqual(opts.rootDir, normalizePath(cwd));
   assert.deepEqual(opts.tsconfigFileNames, ['./tsconfig.json']);
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
+  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
   assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
@@ -52,7 +58,7 @@ test('defaults (target: ssr)', async () => {
   assert.deepEqual(opts.debug, false);
   assert.deepEqual(opts.rootDir, normalizePath(cwd));
   assert.deepEqual(opts.tsconfigFileNames, ['./tsconfig.json']);
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr.tsx'))]);
+  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr'))]);
   assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'server')));
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
@@ -70,7 +76,7 @@ test('defaults (buildMode: production, target: ssr)', async () => {
   assert.deepEqual(opts.debug, false);
   assert.deepEqual(opts.rootDir, normalizePath(cwd));
   assert.deepEqual(opts.tsconfigFileNames, ['./tsconfig.json']);
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr.tsx'))]);
+  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr'))]);
   assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'server')));
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);

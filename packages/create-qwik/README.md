@@ -30,11 +30,11 @@ console.log(result);
 ## Community
 
 - Ping us at [@QwikDev](https://twitter.com/QwikDev)
-- Join our [Discord](https://qwik.builder.io/chat) community
+- Join our [Discord](https://qwik.dev/chat) community
 
 ## Related
 
-- [Qwik](https://qwik.builder.io/)
+- [Qwik](https://qwik.dev/)
 - [Partytown](https://partytown.builder.io)
 - [Mitosis](https://github.com/BuilderIO/mitosis)
 - [Builder.io](https://github.com/BuilderIO/)

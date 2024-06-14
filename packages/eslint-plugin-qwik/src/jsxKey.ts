@@ -32,7 +32,7 @@ export const jsxKey = {
       description: 'Disallow missing `key` props in iterators/collection literals',
       category: 'Possible Errors',
       recommended: true,
-      url: 'https://qwik.builder.io/docs/advanced/eslint/#jsx-key',
+      url: 'https://qwik.dev/docs/advanced/eslint/#jsx-key',
     },
 
     messages,

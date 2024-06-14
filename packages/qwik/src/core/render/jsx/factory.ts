@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { jsx } from './jsx-runtime';
-import type { QwikJSX } from './types/jsx-qwik';
+import type { QwikJSX as JSX } from './types/jsx-qwik';
 import type { FunctionComponent, JSXNode } from './types/jsx-node';
 import { isArray } from '../../util/types';
 
@@ -60,12 +60,5 @@ export declare namespace h {
   ): JSXNode<any>;
   export function h(sel: any, data: any | null, children: JSXNode<any>): JSXNode<any>;
 
-  export namespace JSX {
-    export interface Element extends QwikJSX.Element {}
-    export interface IntrinsicAttributes extends QwikJSX.IntrinsicAttributes {}
-    export interface IntrinsicElements extends QwikJSX.IntrinsicElements {}
-    export interface ElementChildrenAttribute {
-      children?: any;
-    }
-  }
+  export { JSX };
 }

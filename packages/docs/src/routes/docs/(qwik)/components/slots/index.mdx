@@ -13,6 +13,7 @@ contributors:
   - mhevery
   - jakovljevic-mladen
   - mrhoodz
+  - Jemsco
 updated_at: '2023-10-09T12:58:31Z'
 created_at: '2023-04-02T20:45:37Z'
 ---
@@ -55,10 +56,11 @@ The `<Slot>` component is a placeholder for the children of the component. The `
 
 > **Note**: Slots in Qwik are declarative, allowing Qwik to render parents and children in isolation. Because slots are declarative, the children can NOT be read, or transformed by the components.
 >
-> Why? Because Qwik needs to be able to render parent/children components independently from each other. With an imperative (`children`) approach, the child component can modify the `children` in countless ways. If a child component relied on `children`, it would be forced to re-render whenever a parent component would re-render to reapply the imperative transformation to the `children`. The extra rendering goes explicitly against the goals of Qwik components rendering in isolation.
+> Slots in Qwik act like designated placeholders for content, allowing components to stay independent and avoid unnecessary re-renders. This setup keeps things flexible and easy to manage, unlike the direct children approach where parent changes can lead to frequent and complex child updates. Slots help maintain a smooth and efficient component structure.
+>
+> In unique situations where some work needs to be done based on children, and the drawbacks of parents and children being lazy loaded together are understood, then an inline component is another choice.
 
-
-### Named slots
+### Named Slots
 
 The `Slot` component can be used multiple times in the same component, as long as it has a different `name` property:
 
@@ -106,7 +108,7 @@ Notice that:
 - If `q:slot` is not specified or it's an empty string, the content will be projected into the default `<Slot>`, i.e. the `<Slot>` without a `name` property.
 - Multiple `q:slot="footer"` attributes coalesce items together in the content projection.
 
-### Unprojected content
+### Unprojected Content
 
 Qwik keeps all content around, even if not projected. This is because the content could be projected in the future. When projected content does not match any `<Slot>` component, the content is moved into an inert `<q:template>` element.
 
@@ -148,9 +150,9 @@ Results in:
 </q:template>
 ```
 
-Notice that the un-projected content is moved into an inert `<q:template>`. This is done just in case the `Accordion` component re-renders and inserts the `<Slot>`. In that case, we avoid having to re-render the parent component just to generate the projected content. By persisting the un-projected content when the parent is initially rendered, the rendering of the two components can stay independent.
+Notice that the un-projected content is moved into an inert `<q:template>`. This is done in case the `Accordion` component re-renders in the `<Slot>`. In this case, we avoid having to re-render the parent component just to generate the projected content. By persisting the un-projected content when the parent is initially rendered, the rendering of the two components can stay independent.
 
-### Invalid projection
+### Invalid Projection
 
 The `q:slot` attribute must be a direct child of a component.
 
@@ -235,9 +237,9 @@ All frameworks need a way for a component to wrap its complex content conditiona
 
 The two approaches can best be described as declarative vs imperative. They both come with their set of advantages and disadvantages.
 
-Qwik uses the declarative projection approach. The reason for this is that Qwik needs to be able to render parent/children components independently from each other. With an imperative (`children`) approach, the child component can modify the `children` in countless ways. If a child component relied on `children`, it would be forced to re-render whenever a parent component would re-render to reapply the imperative transformation to the `children`. The extra rendering goes explicitly against the goals of Qwik components rendering in isolation.
+Qwik uses the declarative projection approach because it needs to be able to render parent and child components independently from each other. In an imperative  approach, there are countless ways a child component can modify the `children`. If a child component relied on its `children`, it would be forced to re-render every time the parent component re-rendered to reapply the changes. This additional rendering contradicts Qwik's goal of having components render in isolation.
 
-> **Note**: Due to Slots being declarative in Qwik, projection with `<Slot>` will only work if the parent component is wrapped in `component$()`. If parent component is not wrapped in `component$()`, it is considered an [inline component](/docs/components/overview/#inline-components) and `<Slot>` will not work.
+> **Note**: Make sure to use `<Slot />` within a `component$()` function to ensure it works correctly. `<Slot />` cannot operate in [inline components](/docs/components/overview/#inline-components) which are similar to normal functions `export const MyInlineComp = () => `.
 
 ### Advanced: Slots and Context
 

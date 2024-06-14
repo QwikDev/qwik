@@ -319,7 +319,7 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
    * provide the most common values for auto-complete, but you can use any string you want).
    *
    * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control and
-   * https://qwik.builder.io/docs/caching/#CDN-Cache-Controls for more information.
+   * https://qwik.dev/docs/caching/#CDN-Cache-Controls for more information.
    */
   readonly cacheControl: (cacheControl: CacheControl, target?: CacheControlTarget) => void;
 
@@ -493,8 +493,16 @@ export interface Cookie {
   has(name: string): boolean;
   /** Sets a `Response` cookie header using the `Set-Cookie` header. */
   set(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;
+  /**
+   * Appends a `Response` cookie header using the `Set-Cookie` header.
+   *
+   * The difference between `set()` and `append()` is that if the specified header already exists,
+   * `set()` will overwrite the existing value with the new one, whereas `append()` will append the
+   * new value onto the end of the set of values.
+   */
+  append(name: string, value: string | number | Record<string, any>, options?: CookieOptions): void;
   /** Deletes cookie value by name using the `Response` cookie header. */
-  delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain'>): void;
+  delete(name: string, options?: Pick<CookieOptions, 'path' | 'domain' | 'sameSite'>): void;
   /** Returns an array of all the set `Response` `Set-Cookie` header values. */
   headers(): string[];
 }
@@ -538,7 +546,7 @@ export interface CookieOptions {
    * Controls whether or not a cookie is sent with cross-site requests, providing some protection
    * against cross-site request forgery attacks (CSRF).
    */
-  sameSite?: 'strict' | 'lax' | 'none' | boolean;
+  sameSite?: 'strict' | 'lax' | 'none' | 'Strict' | 'Lax' | 'None' | boolean;
   /**
    * Indicates that the cookie is sent to the server only when a request is made with the `https:`
    * scheme (except on localhost)

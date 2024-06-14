@@ -22,6 +22,7 @@ export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {})
         ssr: {
           target: 'webworker',
           noExternal: true,
+          external: ['node:async_hooks'],
         },
         build: {
           ssr: true,

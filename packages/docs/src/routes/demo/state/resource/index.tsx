@@ -13,7 +13,7 @@ export default component$(() => {
     // this means this code will run on the server and the browser
     track(() => prNumber.value);
     const response = await fetch(
-      `https://api.github.com/repos/BuilderIO/qwik/pulls/${prNumber.value}`
+      `https://api.github.com/repos/QwikDev/qwik/pulls/${prNumber.value}`
     );
     const data = await response.json();
     return data.title as string;

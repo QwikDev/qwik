@@ -1,19 +1,19 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "extends": "../../api-extractor.json",
-  "mainEntryPointFilePath": "<projectFolder>/dist-dev/dts-out/packages/qwik-city/middleware/node/index.d.ts",
+  "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik-city/middleware/node/index.d.ts",
   "apiReport": {
     "enabled": true,
     "reportFileName": "api.md",
-    "reportFolder": "<projectFolder>/packages/qwik-city/middleware/node/",
-    "reportTempFolder": "<projectFolder>/dist-dev/api-extractor/qwik-city/middleware/node"
+    "reportFolder": "<projectFolder>/middleware/node/",
+    "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-city/middleware/node"
   },
   "dtsRollup": {
     "enabled": true,
-    "untrimmedFilePath": "<projectFolder>/packages/qwik-city/lib/middleware/node/index.d.ts"
+    "untrimmedFilePath": "<projectFolder>/lib/middleware/node/index.d.ts"
   },
   "docModel": {
     "enabled": true,
-    "apiJsonFilePath": "<projectFolder>/dist-dev/api/qwik-city/middleware/node/docs.api.json"
+    "apiJsonFilePath": "<projectFolder>/../../dist-dev/api/qwik-city/middleware/node/docs.api.json"
   }
 }

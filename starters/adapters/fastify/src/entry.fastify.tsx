@@ -4,10 +4,11 @@
  * It's the entry point for the Fastify server when building for production.
  *
  * Learn more about Node.js server integrations here:
- * - https://qwik.builder.io/docs/deployments/node/
+ * - https://qwik.dev/docs/deployments/node/
  *
  */
 import { type PlatformNode } from "@builder.io/qwik-city/middleware/node";
+import "dotenv/config";
 import Fastify from "fastify";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";

@@ -12,21 +12,21 @@ import { isStaticPath } from '@qwik-city-static-paths';
 import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 import { setServerPlatform } from '@builder.io/qwik/server';
 import { MIME_TYPES } from '../request-handler/mime-types';
+// @ts-ignore
 import { extname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
 
 // @builder.io/qwik-city/middleware/deno
 
 /** @public */
-export interface Addr {
+export interface NetAddr {
   transport: 'tcp' | 'udp';
   hostname: string;
   port: number;
 }
 
 /** @public */
-export interface ConnInfo {
-  readonly localAddr: Addr;
-  readonly remoteAddr: Addr;
+export interface ServeHandlerInfo {
+  remoteAddr: NetAddr;
 }
 
 /** @public */
@@ -42,7 +42,7 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
 
   const staticFolder = opts.static?.root ?? join(fromFileUrl(import.meta.url), '..', '..', 'dist');
 
-  async function router(request: Request, conn: ConnInfo) {
+  async function router(request: Request, info: ServeHandlerInfo) {
     try {
       const url = new URL(request.url);
 
@@ -50,6 +50,7 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
         mode: 'server',
         locale: undefined,
         url,
+        // @ts-ignore
         env: Deno.env,
         request,
         getWritableStream: (status, headers, cookies, resolve) => {
@@ -66,9 +67,9 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
         },
         getClientConn: () => {
           return opts.getClientConn
-            ? opts.getClientConn(request, conn)
+            ? opts.getClientConn(request, info)
             : {
-                ip: conn.remoteAddr.hostname,
+                ip: info.remoteAddr.hostname,
               };
         },
       };
@@ -101,7 +102,13 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
   const notFound = async (request: Request) => {
     try {
       const url = new URL(request.url);
-      const notFoundHtml = getNotFound(url.pathname);
+
+      // In the development server, we replace the getNotFound function
+      // For static paths, we assign a static "Not Found" message.
+      // This ensures consistency between development and production environments for specific URLs.
+      const notFoundHtml = isStaticPath(request.method || 'GET', url)
+        ? 'Not Found'
+        : getNotFound(url.pathname);
       return new Response(notFoundHtml, {
         status: 404,
         headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },
@@ -128,6 +135,7 @@ export function createQwikCity(opts: QwikCityDenoOptions) {
     }
     return {
       filePath,
+      // @ts-ignore
       content: await Deno.open(filePath, { read: true }),
     };
   };
@@ -175,5 +183,5 @@ export interface QwikCityDenoOptions extends ServerRenderOptions {
     /** Set the Cache-Control header for all static files */
     cacheControl?: string;
   };
-  getClientConn?: (request: Request, conn: ConnInfo) => ClientConn;
+  getClientConn?: (request: Request, info: ServeHandlerInfo) => ClientConn;
 }

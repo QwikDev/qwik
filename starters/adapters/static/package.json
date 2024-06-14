@@ -7,7 +7,7 @@
     "priority": 10,
     "displayName": "Adapter: Static site (.html files)",
     "docs": [
-      "https://qwik.builder.io/qwikcity/static-site-generation/overview/"
+      "https://qwik.dev/qwikcity/static-site-generation/overview/"
     ],
     "nextSteps": {
       "lines": [

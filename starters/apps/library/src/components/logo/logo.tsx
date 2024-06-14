@@ -3,7 +3,7 @@ import { component$ } from "@builder.io/qwik";
 export const Logo = component$(() => {
   return (
     <div>
-      <a href="https://qwik.builder.io/">
+      <a href="https://qwik.dev/">
         <img
           alt="Qwik Logo"
           width={400}

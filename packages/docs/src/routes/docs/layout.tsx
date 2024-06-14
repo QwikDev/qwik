@@ -1,21 +1,22 @@
 import { component$, Slot, useContext, useStyles$ } from '@builder.io/qwik';
 import { useContent, useLocation } from '@builder.io/qwik-city';
 import { ContentNav } from '../../components/content-nav/content-nav';
+import Contributors from '../../components/contributors';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';
 import { OnThisPage } from '../../components/on-this-page/on-this-page';
 import { createBreadcrumbs, SideBar } from '../../components/sidebar/sidebar';
 import { GlobalStore } from '../../context';
 import styles from './docs.css?inline';
-import Contributors from '../../components/contributors';
 
 // eslint-disable-next-line
 export { useMarkdownItems } from '../../components/sidebar/sidebar';
 
 export default component$(() => {
-  const loc = useLocation();
-  const noRightMenu = ['/docs/'].includes(loc.url.pathname);
   useStyles$(styles);
+  const loc = useLocation();
+  // hide OnThisPage on docs overview page; only show on sub-pages
+  const hasOnThisPage = loc.url.pathname !== '/docs/';
   const { menu } = useContent();
   const globalStore = useContext(GlobalStore);
   const { url } = useLocation();
@@ -50,22 +51,20 @@ export default component$(() => {
           </ol>
         ) : null}
       </nav>
-      <SideBar />
-      <main
-        class={{
-          'no-right-menu': noRightMenu,
-        }}
-      >
-        <div class="docs-container">
-          <article>
-            <Slot />
-            <Contributors />
-          </article>
-          <ContentNav />
-          <Footer />
-        </div>
-        <OnThisPage />
-      </main>
+      <div class="flex gap-12 xl:gap-20 items-stretch content-container">
+        <SideBar />
+        <main class="contents">
+          <div class="docs-container">
+            <article>
+              <Slot />
+              <Contributors />
+            </article>
+            <ContentNav />
+            <Footer />
+          </div>
+          {hasOnThisPage && <OnThisPage />}
+        </main>
+      </div>
     </div>
   );
 });

@@ -1,4 +1,4 @@
-import { component$, useStore, type JSXNode, type ReadonlySignal } from '@builder.io/qwik';
+import { component$, useStore, type ReadonlySignal, type JSXOutput } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import { BundleCmp } from '~/components/bundle';
 import { BundleIcon } from '~/components/icons/bundle';
@@ -194,7 +194,7 @@ export const MatrixCells = component$<{
 
 function cells(row: number[], symbols: Symbol[]) {
   const size = row.length;
-  const cells: JSXNode[] = [];
+  const cells: JSXOutput[] = [];
   const total = vectorSum(row);
   let sparseSize = 0;
   for (let colIdx = 0; colIdx < row.length; colIdx++) {

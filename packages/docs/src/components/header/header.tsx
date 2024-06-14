@@ -15,8 +15,6 @@ import {
   setPreference,
   ThemeToggle,
 } from '../theme-toggle/theme-toggle';
-import BuilderContentComp from '../../components/builder-content';
-import { BUILDER_TOP_BAR_MODEL, BUILDER_PUBLIC_API_KEY } from '../../constants';
 
 export const Header = component$(() => {
   useStyles$(styles);
@@ -31,23 +29,8 @@ export const Header = component$(() => {
     });
   });
 
-  const hasBuilderBar = !(
-    pathname.startsWith('/examples') ||
-    pathname.startsWith('/tutorial') ||
-    pathname.startsWith('/playground')
-  );
-
   return (
     <>
-      {hasBuilderBar && (
-        <div class="builder-bar">
-          <BuilderContentComp
-            apiKey={BUILDER_PUBLIC_API_KEY}
-            model={BUILDER_TOP_BAR_MODEL}
-            tag="div"
-          />
-        </div>
-      )}
       <header
         class={{
           'header-container': true,
@@ -127,7 +110,7 @@ export const Header = component$(() => {
               <ThemeToggle />
             </li>
             <li>
-              <a href="https://github.com/BuilderIO/qwik" target="_blank" title="GitHub">
+              <a href="https://github.com/QwikDev/qwik" target="_blank" title="GitHub">
                 <span class="lg:hidden">GitHub</span>
                 <span class="hidden lg:block">
                   <GithubLogo width={22} height={22} />
@@ -143,7 +126,7 @@ export const Header = component$(() => {
               </a>
             </li>
             <li>
-              <a href="https://qwik.builder.io/chat" target="_blank" title="Discord">
+              <a href="https://qwik.dev/chat" target="_blank" title="Discord">
                 <span class="lg:hidden">Discord</span>
                 <span class="hidden lg:block">
                   <DiscordLogo width={22} height={22} />

@@ -44,14 +44,14 @@
     "prettier": "latest",
     "typescript": "latest",
     "undici": "latest",
-    "vite": "latest",
+    "vite": "^4.5.2",
     "vite-tsconfig-paths": "^4.2.1"
   },
   "__qwik__": {
-    "displayName": "Component library",
+    "displayName": "Component library (Qwik)",
     "priority": -1,
     "docs": [
-      "https://qwik.builder.io/docs/getting-started/"
+      "https://qwik.dev/docs/getting-started/"
     ]
   }
 }

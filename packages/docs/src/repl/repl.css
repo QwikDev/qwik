@@ -1,3 +1,5 @@
+@tailwind components;
+
 .repl {
   color: var(--text-color);
   background-color: var(--bg-color);
@@ -205,12 +207,22 @@
   white-space: pre-wrap;
 }
 
+@layer components {
+  .sm-grid-column {
+    grid-template-columns: 100%;
+  }
+  .md-grid-column {
+    grid-template-columns: minmax(200px, 25%) auto;
+  }
+}
+
 .output-modules {
   display: grid;
-  grid-template-columns: minmax(200px, 25%) auto;
   grid-template-areas: 'repl-file-tree repl-file-text';
   height: 100%;
   overflow: hidden;
+  @apply sm-grid-column;
+  @apply md:md-grid-column;
 }
 
 .output-modules .file-tree {
@@ -232,7 +244,8 @@
   overflow: hidden;
 }
 
-.output-modules .file-tree-items a:hover {
+.output-modules .file-tree-items a:hover,
+.output-modules .file-tree-items a.in-view {
   color: var(--qwik-blue);
 }
 

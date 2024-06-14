@@ -30,10 +30,13 @@ export async function getEdges(
   { limit, manifestHashes }: { limit?: number; manifestHashes: string[] }
 ) {
   return time('edgeTable.getEdges', async () => {
-    const where = and(
-      eq(edgeTable.publicApiKey, publicApiKey),
-      inArray(edgeTable.manifestHash, manifestHashes)
-    )!;
+    const where = manifestHashes.length
+      ? and(
+          eq(edgeTable.publicApiKey, publicApiKey),
+          inArray(edgeTable.manifestHash, manifestHashes)
+        )
+      : eq(edgeTable.publicApiKey, publicApiKey);
+
     const query = db
       .select({
         from: edgeTable.from,
@@ -44,7 +47,7 @@ export async function getEdges(
       .from(edgeTable)
       .where(where)
       .groupBy(edgeTable.from, edgeTable.to)
-      .limit(limit || 100_000); // TODO: The 100_000 limit is due to Turso serialization format not being efficient, upgrade this once Turso is fixed.
+      .limit(limit || 10_000); // TODO: The 10_000 limit is due to Turso serialization format not being efficient, upgrade this once Turso is fixed.
     const rows = await query.all();
     return rows.map((e) => ({
       from: e.from,
@@ -150,7 +153,7 @@ export async function getAppInfo(
   return {
     github:
       publicApiKey == '221smyuj5gl'
-        ? 'https://github.com/BuilderIO/qwik/blob/main/packages/docs/src'
+        ? 'https://github.com/QwikDev/qwik/blob/main/packages/docs/src'
         : null,
     ...app!,
   };

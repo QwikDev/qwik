@@ -1,6 +1,6 @@
 {
   "index_name": "qwik",
-  "sitemap_urls": ["http://qwik.builder.io/sitemap.xml"],
+  "sitemap_urls": ["http://qwik.dev/sitemap.xml"],
   "selectors": {
     "lvl0": {
       "selector": "header a.active",

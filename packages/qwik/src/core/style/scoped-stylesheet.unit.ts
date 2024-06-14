@@ -151,6 +151,13 @@ test('@media', () => {
   );
 });
 
+test('@container', () => {
+  assert.equal(
+    scopeStylesheet('@container (min-width: 1px) { div {} span {} }', '_'),
+    '@container (min-width: 1px) { div.⭐️_ {} span.⭐️_ {} }'
+  );
+});
+
 test('@supports', () => {
   assert.equal(
     scopeStylesheet(

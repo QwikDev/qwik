@@ -4,9 +4,7 @@ import {
   type JSXNode,
   SkipRender,
   useContext,
-  _IMMUTABLE,
   _jsxBranch,
-  _jsxQ,
   useServerData,
 } from '@builder.io/qwik';
 

@@ -2,11 +2,12 @@
 title: "\U0001F9EA Typed Routes"
 contributors:
   - mhevery
+  - RumNCodeDev
 updated_at: '2023-06-23T23:07:42Z'
 created_at: '2023-06-23T23:07:42Z'
 ---
 
-# 🧪 Typed Routes 
+# 🧪 Typed Routes
 **Stage:** `prototyping`
 
 Provides type safe way of building URLs within the application.
@@ -17,7 +18,7 @@ Provides type safe way of building URLs within the application.
 2. update `vite.config.ts`
    ```typescript
    // ...
-   import { qwikTypes } from '@builder.io/qwik-labs/vite'; 
+   import { qwikTypes } from '@builder.io/qwik-labs/vite';
 
    export default defineConfig(() => {
      return {
@@ -44,3 +45,99 @@ Provides type safe way of building URLs within the application.
      );
    });
    ```
+
+
+# Declarative Routing
+This is a package originally created by Jack Herrington aka *"The Blue Collar Coder"* for type safe routing inside NextJS applications and has been adapted for use inside QwikCity
+
+## Installation
+1. `npx declarative-routing init`
+
+## Setup
+The initialization process will create some important files for you.
+
+### .src/declarativeRoutes
+- `makeRoute.ts` - Used for defining page routes
+- `index.ts` - Where all of your route files will be imported from.
+- `hooks.ts` - A file with two custom hooks `useParams` & `useSearchParams` used to access type safe route urls, params, and searchParams
+
+### Each of your route directories
+- routeInfo.ts - Where you name the route, and provide a `zod` schema for the `params` and `search` (search params)
+
+## Usage
+
+### Declare Route Details
+```typescript title="/src/routes/pokemon/[pokemonId]/routeInfo.ts"
+import { z } from "zod";
+
+export const Route = {
+  name: "PokemonDetail",
+  params: z.object({
+    pokemonId: z.coerce.number(),
+  }),
+};
+```
+
+### Inside Component
+There are a few different ways you can use Declarative Routes inside your component.
+
+1. Use *RouteName*.Link
+```typescript title="myComponent.tsx"
+import { PokemonDetail } from "~/declarativeRoutes
+
+export default component$(() => {
+  // ...
+  return (
+    // ...
+    <PokemonDetail.Link pokemonId={1}>Bulbasaur</PokemonDetail.Link>
+  );
+});
+```
+
+2. Use the standard Link and use the *RouteName* as a function to return the path
+```typescript title="myComponent.tsx"
+import { Link } from "@builder.io/qwik-city";
+import { PokemonDetail } from "~/declarativeRoutes
+
+export default component$(() => {
+  // ...
+  return (
+    // ...
+    <Link href={PokemonDetail({ pokemonId: 1 })}>Bulbasaur</Link>
+  );
+});
+```
+3. Use *RouteName*.ParamsLink
+```typescript title="myComponent.tsx"
+import { PokemonDetail } from "~/declarativeRoutes";
+
+export default component$(() => {
+  // ...
+  return (
+    // ...
+    <PokemonDetail.ParamsLink params={{ pokemonId: 1 }}>Bulbasaur</PokemonDetail.ParamsLink>
+  );
+});
+```
+4. Get the params from a *RouteName*
+
+```typescript title="myComponent.tsx"
+import { PokemonDetail } from "~/declarativeRoutes";
+
+export default component$(() => {
+  // Typescript will know the correct params and their types
+  const { pokemonId } = useParams(PokemonDetail);
+  // ...
+  return (
+    // ...
+  );
+});
+```
+
+## Add or Change Routes
+If you add a new route, or move an existing route, simply run `npx declarative-routing build` and this will rerun the process and update any changes needed
+
+## Links
+- [GitHub](https://github.com/ProNextJS/declarative-routing)
+- [QwikCity Setup Instructions](https://github.com/ProNextJS/declarative-routing/blob/main/docs/qwikcity.md)
+- [Example Repos](https://github.com/ProNextJS/declarative-routing/tree/main/examples/qwikcity)

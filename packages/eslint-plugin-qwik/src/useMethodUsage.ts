@@ -10,7 +10,7 @@ export const useMethodUsage: Rule.RuleModule = {
       description: 'Detect invalid use of use hooks.',
       category: 'Variables',
       recommended: true,
-      url: 'https://qwik.builder.io/docs/advanced/eslint/#use-method-usage',
+      url: 'https://qwik.dev/docs/advanced/eslint/#use-method-usage',
     },
     messages: {
       useWrongFunction: 'Calling use* methods in wrong function.',

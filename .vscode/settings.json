@@ -6,5 +6,9 @@
     "**/dist-dev/**",
     "**/cypress/**",
     "**/.{idea,git,cache,output,temp}/**"
-  ]
+  ],
+  "javascript.preferences.autoImportFileExcludePatterns": ["node:test"],
+  "typescript.preferences.preferTypeOnlyAutoImports": true,
+  "typescript.tsdk": "./node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true
 }

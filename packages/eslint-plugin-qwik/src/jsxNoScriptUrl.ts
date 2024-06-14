@@ -23,7 +23,7 @@ export const jsxNoScriptUrl = {
     docs: {
       recommended: 'error',
       description: 'Disallow javascript: URLs.',
-      url: 'https://qwik.builder.io/docs/advanced/eslint/#jsx-no-script-url',
+      url: 'https://qwik.dev/docs/advanced/eslint/#jsx-no-script-url',
     },
     schema: [],
     messages: {

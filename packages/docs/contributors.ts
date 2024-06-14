@@ -36,7 +36,7 @@ async function updateGithubCommits(filePath: string) {
   const gm = matter.read(filePath);
 
   const repoPath = path.relative(rootDir, filePath).replace(/\\/g, '/');
-  const url = new URL(`https://api.github.com/repos/BuilderIO/qwik/commits`);
+  const url = new URL(`https://api.github.com/repos/QwikDev/qwik/commits`);
   url.searchParams.set('since', new Date('2022-01-01').toISOString());
   url.searchParams.set('path', repoPath);
 

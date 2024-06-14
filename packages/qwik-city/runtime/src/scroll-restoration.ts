@@ -5,13 +5,14 @@ export const restoreScroll = (
   type: NavigationType,
   toUrl: URL,
   fromUrl: URL,
+  scroller: Element,
   scrollState?: ScrollState
 ) => {
   if (type === 'popstate' && scrollState) {
-    window.scrollTo(scrollState.x, scrollState.y);
+    scroller.scrollTo(scrollState.x, scrollState.y);
   } else if (type === 'link' || type === 'form') {
     if (!hashScroll(toUrl, fromUrl)) {
-      window.scrollTo(0, 0);
+      scroller.scrollTo(0, 0);
     }
   }
 };

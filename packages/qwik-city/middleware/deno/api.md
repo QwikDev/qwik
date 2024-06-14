@@ -8,7 +8,14 @@ import type { ClientConn } from '@builder.io/qwik-city/middleware/request-handle
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 
 // @public (undocumented)
-export interface Addr {
+export function createQwikCity(opts: QwikCityDenoOptions): {
+    router: (request: Request, info: ServeHandlerInfo) => Promise<Response | null>;
+    notFound: (request: Request) => Promise<Response>;
+    staticFile: (request: Request) => Promise<Response | null>;
+};
+
+// @public (undocumented)
+export interface NetAddr {
     // (undocumented)
     hostname: string;
     // (undocumented)
@@ -18,28 +25,19 @@ export interface Addr {
 }
 
 // @public (undocumented)
-export interface ConnInfo {
-    // (undocumented)
-    readonly localAddr: Addr;
-    // (undocumented)
-    readonly remoteAddr: Addr;
-}
-
-// @public (undocumented)
-export function createQwikCity(opts: QwikCityDenoOptions): {
-    router: (request: Request, conn: ConnInfo) => Promise<Response | null>;
-    notFound: (request: Request) => Promise<Response>;
-    staticFile: (request: Request) => Promise<Response | null>;
-};
-
-// @public (undocumented)
 export interface QwikCityDenoOptions extends ServerRenderOptions {
     // (undocumented)
-    getClientConn?: (request: Request, conn: ConnInfo) => ClientConn;
+    getClientConn?: (request: Request, info: ServeHandlerInfo) => ClientConn;
     static?: {
         root?: string;
         cacheControl?: string;
     };
+}
+
+// @public (undocumented)
+export interface ServeHandlerInfo {
+    // (undocumented)
+    remoteAddr: NetAddr;
 }
 
 // (No @packageDocumentation comment for this package)

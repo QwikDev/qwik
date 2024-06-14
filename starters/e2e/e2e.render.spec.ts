@@ -295,18 +295,18 @@ test.describe("render", () => {
       await expect(result1).toHaveText("Hello 0");
       await expect(result2).toHaveText("Hello 0");
       await expect(result1).toHaveCSS("color", "rgb(0, 0, 255)");
-      await expect(result2).toHaveCSS("color", "rgb(0, 0, 255)");
+      await expect(result2).toHaveCSS("color", "rgb(255, 0, 0)");
       await increment.click();
       await expect(result1).toHaveText("Hello 1");
       await expect(result2).toHaveText("Hello 1");
       await expect(result1).toHaveCSS("color", "rgb(0, 0, 255)");
-      await expect(result2).toHaveCSS("color", "rgb(0, 0, 255)");
+      await expect(result2).toHaveCSS("color", "rgb(255, 0, 0)");
 
       await increment.click();
       await expect(result1).toHaveText("Hello 2");
       await expect(result2).toHaveText("Hello 2");
       await expect(result1).toHaveCSS("color", "rgb(0, 0, 255)");
-      await expect(result2).toHaveCSS("color", "rgb(0, 0, 255)");
+      await expect(result2).toHaveCSS("color", "rgb(255, 0, 0)");
     });
 
     test("issue3468", async ({ page }) => {
@@ -529,5 +529,10 @@ test.describe("render", () => {
     await expect(result).toHaveText("Hello");
     await toggle.click();
     await expect(result).toHaveText("world");
+  });
+
+  test("dynamic DOM tags", async ({ page }) => {
+    const button = page.locator("#dynamic-button");
+    await expect(button).toHaveClass("btn");
   });
 });

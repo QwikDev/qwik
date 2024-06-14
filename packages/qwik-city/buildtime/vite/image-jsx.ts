@@ -3,7 +3,7 @@ import type { PluginOption } from 'vite';
 import { optimize } from 'svgo';
 import fs from 'node:fs';
 import path from 'node:path';
-import { parseId } from 'packages/qwik/src/optimizer/src/plugins/plugin';
+import { parseId } from '../../../qwik/src/optimizer/src/plugins/plugin';
 import type { QwikCityVitePluginOptions } from './types';
 import type { Config as SVGOConfig } from 'svgo';
 
@@ -11,50 +11,56 @@ import type { Config as SVGOConfig } from 'svgo';
 export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[] {
   const supportedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif', '.tiff'];
   return [
-    import('vite-imagetools').then(({ imagetools }) =>
-      imagetools({
-        exclude: [],
-        extendOutputFormats(builtins) {
-          const jsx: OutputFormat = () => (metadatas) => {
-            const srcSet = metadatas.map((meta) => `${meta.src} ${meta.width}w`).join(', ');
-            let largestImage: any;
-            let largestImageSize = 0;
-            for (let i = 0; i < metadatas.length; i++) {
-              const m = metadatas[i] as any;
-              if (m.width > largestImageSize) {
-                largestImage = m;
-                largestImageSize = m.width;
+    import('vite-imagetools')
+      .then(({ imagetools }) =>
+        imagetools({
+          exclude: [],
+          extendOutputFormats(builtins) {
+            const jsx: OutputFormat = () => (metadatas) => {
+              const srcSet = metadatas.map((meta) => `${meta.src} ${meta.width}w`).join(', ');
+              let largestImage: any;
+              let largestImageSize = 0;
+              for (let i = 0; i < metadatas.length; i++) {
+                const m = metadatas[i] as any;
+                if (m.width > largestImageSize) {
+                  largestImage = m;
+                  largestImageSize = m.width;
+                }
               }
-            }
-            return {
-              srcSet,
-              width: largestImage === null || largestImage === void 0 ? void 0 : largestImage.width,
-              height:
-                largestImage === null || largestImage === void 0 ? void 0 : largestImage.height,
+              return {
+                srcSet,
+                width:
+                  largestImage === null || largestImage === void 0 ? void 0 : largestImage.width,
+                height:
+                  largestImage === null || largestImage === void 0 ? void 0 : largestImage.height,
+              };
             };
-          };
-          return {
-            ...builtins,
-            jsx,
-          };
-        },
-        defaultDirectives: (url) => {
-          if (url.searchParams.has('jsx')) {
-            const { jsx, ...params } = Object.fromEntries(url.searchParams.entries());
-            return new URLSearchParams({
-              format: 'webp',
-              quality: '75',
-              w: '200;400;600;800;1200',
-              withoutEnlargement: '',
-              ...userOpts?.imageOptimization?.jsxDirectives,
-              ...params,
-              as: 'jsx',
-            });
-          }
-          return new URLSearchParams();
-        },
-      })
-    ),
+            return {
+              ...builtins,
+              jsx,
+            };
+          },
+          defaultDirectives: (url) => {
+            if (url.searchParams.has('jsx')) {
+              const { jsx, ...params } = Object.fromEntries(url.searchParams.entries());
+              return new URLSearchParams({
+                format: 'webp',
+                quality: '75',
+                w: '200;400;600;800;1200',
+                withoutEnlargement: '',
+                ...userOpts?.imageOptimization?.jsxDirectives,
+                ...params,
+                as: 'jsx',
+              });
+            }
+            return new URLSearchParams();
+          },
+        })
+      )
+      .catch((err) => {
+        console.error('Error loading vite-imagetools, image imports are not available', err);
+        return null;
+      }),
     {
       name: 'qwik-city-image-jsx',
       load: {

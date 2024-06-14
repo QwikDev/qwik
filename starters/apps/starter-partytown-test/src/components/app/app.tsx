@@ -9,7 +9,7 @@ export const App = component$(() => {
       document:on-expensiveComputationDone$={() => (state.running = false)}
     >
       <p style={{ "text-align": "center" }}>
-        <a href="https://github.com/builderio/qwik">
+        <a href="https://github.com/QwikDev/qwik">
           <img
             alt="Qwik Logo"
             width={400}
@@ -18,8 +18,8 @@ export const App = component$(() => {
         </a>
       </p>
       <p class="congrats">
-        Congratulations <a href="https://github.com/builderio/qwik">Qwik</a>{" "}
-        with <a href="https://partytown.builder.io/">Partytown</a> is working!
+        Congratulations <a href="https://github.com/QwikDev/qwik">Qwik</a> with{" "}
+        <a href="https://partytown.builder.io/">Partytown</a> is working!
       </p>
 
       <p>
@@ -91,7 +91,7 @@ export const App = component$(() => {
           (Lazy hydration is what gives even large apps instant on behavior.)
         </li>
         <li>
-          Read the docs <a href="https://qwik.builder.io/">here</a>.
+          Read the docs <a href="https://qwik.dev/">here</a>.
         </li>
         <li>Replace the content of this component with your code.</li>
         <li>Build amazing web-sites with unbeatable startup performance.</li>

@@ -11,6 +11,7 @@ import type { PossibleEvents } from '../use/use-core';
 
 const ON_PROP_REGEX = /^(on|window:|document:)/;
 
+/** A QRL that will be called when the event occurs */
 export type Listener = [
   eventName: string,
   qrl: QRLInternal<(event: PossibleEvents, elem?: Element) => any>,

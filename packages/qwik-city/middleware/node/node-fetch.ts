@@ -8,6 +8,7 @@ import { fetch, Headers, Request, Response, FormData } from 'undici';
 
 import crypto from 'crypto';
 
+// TODO: remove when undici is removed
 export function patchGlobalThis() {
   if (
     typeof global !== 'undefined' &&
@@ -22,7 +23,9 @@ export function patchGlobalThis() {
     globalThis.FormData = FormData as any;
   }
   if (typeof globalThis.TextEncoderStream === 'undefined') {
+    // @ts-ignore
     globalThis.TextEncoderStream = TextEncoderStream;
+    // @ts-ignore
     globalThis.TextDecoderStream = TextDecoderStream;
   }
   if (typeof globalThis.WritableStream === 'undefined') {

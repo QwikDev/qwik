@@ -26,6 +26,7 @@ import type { ValueOrPromise } from '@builder.io/qwik';
 import type { QwikManifest, ResolvedManifest } from '@builder.io/qwik/optimizer';
 import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
 import { isPromise } from './../../runtime/src/utils';
+import { QDATA_KEY } from '../../runtime/src/constants';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
@@ -73,7 +74,10 @@ export function createRequestEvent(
 
     while (routeModuleIndex < requestHandlers.length) {
       const moduleRequestHandler = requestHandlers[routeModuleIndex];
-      const result = moduleRequestHandler(requestEv);
+      const asyncStore = globalThis.qcAsyncRequestStore;
+      const result = asyncStore?.run
+        ? asyncStore.run(requestEv, moduleRequestHandler, requestEv)
+        : moduleRequestHandler(requestEv);
       if (isPromise(result)) {
         await result;
       }
@@ -240,7 +244,7 @@ export function createRequestEvent(
       if (requestData !== undefined) {
         return requestData;
       }
-      return (requestData = parseRequest(requestEv.request, sharedMap, qwikSerializer));
+      return (requestData = parseRequest(requestEv, sharedMap, qwikSerializer));
     },
 
     json: (statusCode: number, data: any) => {
@@ -310,7 +314,7 @@ export function getRequestMode(requestEv: RequestEventCommon) {
 const ABORT_INDEX = Number.MAX_SAFE_INTEGER;
 
 const parseRequest = async (
-  request: Request,
+  { request, method, query }: RequestEventInternal,
   sharedMap: Map<string, any>,
   qwikSerializer: QwikSerializer
 ): Promise<JSONValue | undefined> => {
@@ -323,6 +327,16 @@ const parseRequest = async (
     const data = await request.json();
     return data;
   } else if (type === 'application/qwik-json') {
+    if (method === 'GET' && query.has(QDATA_KEY)) {
+      const data = query.get(QDATA_KEY);
+      if (data) {
+        try {
+          return qwikSerializer._deserializeData(decodeURIComponent(data));
+        } catch (err) {
+          //
+        }
+      }
+    }
     return qwikSerializer._deserializeData(await request.text());
   }
   return undefined;

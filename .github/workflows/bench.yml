@@ -11,7 +11,7 @@ jobs:
       optimizer: ${{ steps.filter.outputs.optimizer }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4.1.1
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -25,10 +25,10 @@ jobs:
     if: ${{ needs.changes.outputs.optimizer == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4.1.1
 
       - name: Cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
@@ -51,7 +51,7 @@ jobs:
         run: cargo +nightly-2021-09-30 bench --workspace | tee output.txt
 
       - name: Download previous benchmark results
-        run: mkdir raw-data && curl -o raw-data/benchmark-data.json https://raw.githubusercontent.com/BuilderIO/qwik-raw-data/gh-pages/benchmark-data.json
+        run: mkdir raw-data && curl -o raw-data/benchmark-data.json https://raw.githubusercontent.com/QwikDev/qwik-raw-data/gh-pages/benchmark-data.json
 
       - name: Analyze benchmark result
         uses: benchmark-action/github-action-benchmark@v1
@@ -102,5 +102,5 @@ jobs:
           clean: false
           single-commit: false
           git-config-email: github-bot@builder.io
-          repository-name: BuilderIO/qwik-raw-data
+          repository-name: QwikDev/qwik-raw-data
           commit-message: 'Update'

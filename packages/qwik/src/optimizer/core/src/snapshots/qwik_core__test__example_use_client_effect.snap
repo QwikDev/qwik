@@ -1,5 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 1367
 expression: output
 ---
 ==INPUT==
@@ -54,6 +55,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Child_component_useBrowserVisibleTask",
   "hash": "0IGFPOyJmQA",
   "canonicalFilename": "child_component_usebrowservisibletask_0igfpoyjmqa",
+  "path": "",
   "extension": "js",
   "parent": "Child_component_9GyF01GDKqw",
   "ctxKind": "function",
@@ -103,6 +105,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Child_component",
   "hash": "9GyF01GDKqw",
   "canonicalFilename": "child_component_9gyf01gdkqw",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

@@ -12,7 +12,11 @@ import type { SymbolMapperFn } from '@builder.io/qwik/optimizer';
 
 // @public
 export function getQwikLoaderScript(opts?: {
-    events?: string[];
+    debug?: boolean;
+}): string;
+
+// @public
+export function getQwikPrefetchWorkerScript(opts?: {
     debug?: boolean;
 }): string;
 
@@ -64,8 +68,6 @@ export interface PrefetchStrategy {
 // @public (undocumented)
 export interface QwikLoaderOptions {
     // (undocumented)
-    events?: string[];
-    // (undocumented)
     include?: 'always' | 'never' | 'auto';
     // (undocumented)
     position?: 'top' | 'bottom';
@@ -84,6 +86,8 @@ export interface RenderOptions extends SerializeDocumentOptions {
     // (undocumented)
     prefetchStrategy?: PrefetchStrategy | null;
     qwikLoader?: QwikLoaderOptions;
+    // Warning: (ae-forgotten-export) The symbol "QwikPrefetchServiceWorkerOptions" needs to be exported by the entry point index.d.ts
+    qwikPrefetchServiceWorker?: QwikPrefetchServiceWorkerOptions;
     // (undocumented)
     serverData?: Record<string, any>;
     snapshot?: boolean;

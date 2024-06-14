@@ -217,6 +217,7 @@ export const diffChildren = (
         elmToMove = oldCh[idxInOld];
         if (elmToMove.$type$ !== newStartVnode.$type$) {
           const newElm = createElm(ctx, newStartVnode, flags, results);
+          // TO CHECK: should we not await these promises?
           maybeThen(newElm, (newElm) => {
             insertBefore(staticCtx, parentElm, newElm, oldStartVnode?.$elm$);
           });
@@ -567,10 +568,6 @@ const renderContentProjection = (
         newFlags |= IS_SVG;
       }
 
-      // const oldVdom = getVdom(slotCtx.$element$);
-      // const slotRctx = pushRenderContext(rCtx);
-      // slotRctx.$slotCtx$ = slotCtx;
-      // setVdom(slotCtx.$element$, newVdom);
       const index = staticCtx.$addSlots$.findIndex((slot) => slot[0] === slotEl);
       if (index >= 0) {
         staticCtx.$addSlots$.splice(index, 1);
@@ -621,10 +618,12 @@ const getSlotCtx = (
   slotName: string,
   containerState: ContainerState
 ): QContext => {
+  // If a slot is known, render children inside
   const slotEl = slotMaps.slots[slotName];
   if (slotEl) {
     return getContext(slotEl, containerState);
   }
+  // Otherwise we park the children in a template
   const templateEl = slotMaps.templates[slotName];
   if (templateEl) {
     return getContext(templateEl, containerState);
@@ -720,7 +719,12 @@ export const createElm = (
 
   vnode.$elm$ = elm;
   const elCtx = createContext(elm);
-  elCtx.$parentCtx$ = rCtx.$slotCtx$ ?? rCtx.$cmpCtx$;
+  if (rCtx.$slotCtx$) {
+    elCtx.$parentCtx$ = rCtx.$slotCtx$;
+    elCtx.$realParentCtx$ = rCtx.$cmpCtx$!;
+  } else {
+    elCtx.$parentCtx$ = rCtx.$cmpCtx$;
+  }
   if (!isVirtual) {
     if (qDev && qInspector) {
       const dev = vnode.$dev$;
@@ -733,11 +737,23 @@ export const createElm = (
       }
     }
     if (vnode.$immutableProps$) {
-      setProperties(staticCtx, elCtx, currentComponent, vnode.$immutableProps$, isSvg, true);
+      const immProps =
+        props !== EMPTY_OBJ
+          ? Object.fromEntries(
+              Object.entries(vnode.$immutableProps$).map(([k, v]) => [
+                k,
+                v === _IMMUTABLE ? props[k] : v,
+              ])
+            )
+          : vnode.$immutableProps$;
+      setProperties(staticCtx, elCtx, currentComponent, immProps, isSvg, true);
     }
     if (props !== EMPTY_OBJ) {
       elCtx.$vdom$ = vnode;
-      vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent, props, isSvg, false);
+      const p = vnode.$immutableProps$
+        ? Object.fromEntries(Object.entries(props).filter(([k]) => !(k in vnode.$immutableProps$!)))
+        : props;
+      vnode.$props$ = setProperties(staticCtx, elCtx, currentComponent, p, isSvg, false);
     }
     if (isSvg && tag === 'foreignObject') {
       isSvg = false;
@@ -922,15 +938,22 @@ const handleClass: PropHandler = (ctx, elm, newValue) => {
 
 const checkBeforeAssign: PropHandler = (ctx, elm, newValue, prop) => {
   if (prop in elm) {
-    if ((elm as any)[prop] !== newValue) {
-      if (elm.tagName === 'SELECT') {
+    // a selected <option> is different from a selected <option value> (innerText vs '')
+    if ((elm as any)[prop] !== newValue || (prop === 'value' && !elm.hasAttribute(prop))) {
+      if (
+        // we must set value last so that it adheres to min,max,step
+        prop === 'value' &&
+        // but we must also set options first so they are present before updating select
+        elm.tagName !== 'OPTION'
+      ) {
         setPropertyPost(ctx, elm, prop, newValue);
       } else {
         setProperty(ctx, elm, prop, newValue);
       }
     }
+    return true;
   }
-  return true;
+  return false;
 };
 
 const forceAttribute: PropHandler = (ctx, elm, newValue, prop) => {
@@ -950,6 +973,7 @@ const noop: PropHandler = () => {
 export const PROP_HANDLER_MAP: Record<string, PropHandler | undefined> = {
   style: handleStyle,
   class: handleClass,
+  className: handleClass,
   value: checkBeforeAssign,
   checked: checkBeforeAssign,
   href: forceAttribute,
@@ -1229,8 +1253,8 @@ export const registerQwikEvent = (prop: string) => {
   if (!qTest) {
     const eventName = getEventName(prop);
     try {
-      const qwikevents = ((globalThis as any).qwikevents ||= []);
-      qwikevents.push(eventName);
+      // This is managed by qwik-loader
+      ((globalThis as any).qwikevents ||= []).push(eventName);
     } catch (err) {
       logWarn(err);
     }

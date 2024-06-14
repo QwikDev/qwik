@@ -1,5 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 1125
 expression: output
 ---
 ==INPUT==
@@ -80,6 +81,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Foo_component",
   "hash": "HTDRsvUbLiE",
   "canonicalFilename": "foo_component_htdrsvublie",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -106,6 +108,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Root_component_useStyles",
   "hash": "u5DkUxGrGnU",
   "canonicalFilename": "root_component_usestyles_u5dkuxgrgnu",
+  "path": "",
   "extension": "js",
   "parent": "Root_component_royhjYaCbYE",
   "ctxKind": "function",
@@ -136,6 +139,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Root_component",
   "hash": "royhjYaCbYE",
   "canonicalFilename": "root_component_royhjyacbye",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -165,6 +169,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Root_component_1",
   "hash": "cBpQNYDUHI4",
   "canonicalFilename": "root_component_1_cbpqnyduhi4",
+  "path": "",
   "extension": "js",
   "parent": "Root_component_royhjYaCbYE",
   "ctxKind": "function",
@@ -190,6 +195,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Foo_component_div_onClick",
   "hash": "M48DYiidSJw",
   "canonicalFilename": "foo_component_div_onclick_m48dyiidsjw",
+  "path": "",
   "extension": "js",
   "parent": "Foo_component_HTDRsvUbLiE",
   "ctxKind": "eventHandler",

@@ -38,6 +38,7 @@ const _setAttribute = (el: QwikElement, prop: string, value: any) => {
   if (value == null || value === false) {
     el.removeAttribute(prop);
   } else {
+    // element.setAttribute requires string. Boolean attributes automatically convert "" to `true`
     const str = value === true ? '' : String(value);
     directSetAttribute(el, prop, str);
   }
@@ -69,7 +70,7 @@ const _setProperty = (node: any, key: string, value: any) => {
       node.removeAttribute(key);
     }
   } catch (err) {
-    logError(codeToText(QError_setProperty), { node, key, value }, err);
+    logError(codeToText(QError_setProperty), key, { node, value }, err);
   }
 };
 

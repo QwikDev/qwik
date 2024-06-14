@@ -1,5 +1,5 @@
 import { type BuildConfig, ensureDir, panic } from './util';
-import { apiExtractor } from './api';
+import { apiExtractorQwik, apiExtractorQwikCity } from './api';
 import { buildCreateQwikCli } from './create-qwik-cli';
 import { buildEslint } from './eslint';
 import { buildPlatformBinding, copyPlatformBindingWasm } from './binding-platform';
@@ -19,17 +19,21 @@ import {
 import { submoduleBuild } from './submodule-build';
 import { submoduleCli } from './submodule-cli';
 import { submoduleCore } from './submodule-core';
-import { submoduleJsxRuntime } from './submodule-jsx-runtime';
 import { submoduleOptimizer } from './submodule-optimizer';
 import { submoduleQwikLoader } from './submodule-qwikloader';
+import { submoduleQwikPrefetch } from './submodule-qwikprefetch';
 import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
-import { tsc } from './tsc';
+import { tsc, tscQwik, tscQwikCity } from './tsc';
+import { tscDocs } from './tsc-docs';
 import { validateBuild } from './validate-build';
 import { buildQwikAuth } from './qwik-auth';
 import { buildSupabaseAuthHelpers } from './supabase-auth-helpers';
 import { buildQwikWorker } from './qwik-worker';
 import { buildQwikLabs } from './qwik-labs';
+import { watch, copyFile } from 'fs/promises';
+import { join } from 'path';
+import { rmSync } from 'fs';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in config has all the correct
@@ -57,10 +61,12 @@ export async function build(config: BuildConfig) {
     );
 
     if (config.tsc) {
-      await tsc(config);
+      rmSync(config.tscDir, { recursive: true, force: true });
+      rmSync(config.dtsDir, { recursive: true, force: true });
+      await tscQwik(config);
     }
 
-    if (config.build) {
+    if (config.qwik) {
       if (config.dev) {
         ensureDir(config.distQwikPkgDir);
       } else {
@@ -72,8 +78,8 @@ export async function build(config: BuildConfig) {
 
       await Promise.all([
         submoduleCore(config),
-        submoduleJsxRuntime(config),
         submoduleQwikLoader(config),
+        submoduleQwikPrefetch(config),
         submoduleBuild(config),
         submoduleTesting(config),
         submoduleCli(config),
@@ -85,8 +91,13 @@ export async function build(config: BuildConfig) {
       await Promise.all([submoduleServer(config), submoduleOptimizer(config)]);
     }
 
-    if (config.eslint) {
-      await buildEslint(config);
+    if (config.api) {
+      rmSync(join(config.rootDir, 'dist-dev', 'api'), { recursive: true, force: true });
+      rmSync(join(config.rootDir, 'dist-dev', 'api-docs'), { recursive: true, force: true });
+      rmSync(join(config.rootDir, 'dist-dev', 'api-extractor'), { recursive: true, force: true });
+    }
+    if (config.api || (config.tsc && config.qwik)) {
+      await apiExtractorQwik(config);
     }
 
     if (config.platformBinding) {
@@ -99,16 +110,28 @@ export async function build(config: BuildConfig) {
       await buildWasmBinding(config);
     }
 
+    if (config.tsc) {
+      await tscQwikCity(config);
+    }
+
     if (config.qwikcity) {
       await buildQwikCity(config);
     }
 
-    if (config.qwikreact) {
-      await buildQwikReact(config);
+    if (config.api || (config.tsc && config.qwikcity)) {
+      await apiExtractorQwikCity(config);
     }
 
-    if (config.qwiklabs) {
-      await buildQwikLabs(config);
+    if (config.tsc) {
+      await tsc(config);
+    }
+
+    if (config.eslint) {
+      await buildEslint(config);
+    }
+
+    if (config.qwikreact) {
+      await buildQwikReact(config);
     }
 
     if (config.qwikauth) {
@@ -119,12 +142,16 @@ export async function build(config: BuildConfig) {
       await buildQwikWorker(config);
     }
 
+    if (config.qwiklabs) {
+      await buildQwikLabs(config);
+    }
+
     if (config.supabaseauthhelpers) {
       await buildSupabaseAuthHelpers(config);
     }
 
-    if (config.api) {
-      await apiExtractor(config);
+    if (config.tscDocs) {
+      await tscDocs(config);
     }
 
     if (config.validate) {
@@ -145,9 +172,48 @@ export async function build(config: BuildConfig) {
     }
 
     if (config.watch) {
-      console.log('👀 watching...');
+      await watchDirectories({
+        [join(config.srcQwikDir, 'core')]: async () => {
+          await submoduleCore({ ...config, dev: true });
+          await copyFile(
+            join(config.srcQwikDir, '..', 'dist', 'core.cjs'),
+            join(config.srcQwikDir, '..', 'dist', 'core.prod.cjs')
+          );
+          await copyFile(
+            join(config.srcQwikDir, '..', 'dist', 'core.mjs'),
+            join(config.srcQwikDir, '..', 'dist', 'core.prod.mjs')
+          );
+          console.log(
+            join(config.srcQwikDir, '..', 'dist', 'core.cjs'),
+            join(config.srcQwikDir, '..', 'dist', 'core.prod.cjs')
+          );
+        },
+        [join(config.srcQwikDir, 'optimizer')]: () => submoduleOptimizer(config),
+        [join(config.srcQwikDir, 'prefetch-service-worker')]: () => submoduleQwikPrefetch(config),
+        [join(config.srcQwikDir, 'server')]: () => submoduleServer(config),
+        [join(config.srcQwikCityDir, 'runtime/src')]: () => buildQwikCity(config),
+      });
     }
   } catch (e: any) {
     panic(String(e ? e.stack || e : 'Error'));
+  }
+}
+
+async function watchDirectories(dirs: Record<string, () => Promise<any>>) {
+  const promises: Promise<void>[] = [];
+  for (const dir of Object.keys(dirs)) {
+    promises.push(watchDirectory(dir, dirs[dir]));
+  }
+  return Promise.all(promises);
+}
+async function watchDirectory(dir: string, reactionFn: () => Promise<void>) {
+  console.log('👀 watching', dir);
+  for await (const change of watch(dir, { recursive: true })) {
+    console.log('👀 change in', dir, '=>', change.filename);
+    try {
+      await reactionFn();
+    } catch (e) {
+      console.error('👀 error', dir, '=>', e);
+    }
   }
 }

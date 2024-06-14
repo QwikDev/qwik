@@ -1,5 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 3006
 expression: output
 ---
 ==INPUT==
@@ -96,9 +97,9 @@ async function renderToString(rootNode, opts) {
 
 export { qwikify$, qwikifyQrl, renderToString };
         
-============================= qwikifyqrl_component_usewatch_x04jc5xep1u.mjs (ENTRY POINT)==
+============================= ../node_modules/@builder.io/qwik-react/qwikifyqrl_component_usewatch_x04jc5xep1u.mjs (ENTRY POINT)==
 
-import { _auto_filterProps as filterProps } from "../node_modules/@builder.io/qwik-react/index.qwik.mjs";
+import { _auto_filterProps as filterProps } from "./index.qwik.mjs";
 import { isBrowser } from "@builder.io/qwik/build";
 import { noSerialize } from "@builder.io/qwik";
 import { useLexicalScope } from "@builder.io/qwik";
@@ -110,7 +111,7 @@ export const qwikifyQrl_component_useWatch_x04JC5xeP1U = async (track)=>{
         else {
             const [Cmp, client] = await Promise.all([
                 reactCmpQrl.resolve(),
-                import("../node_modules/@builder.io/qwik-react/client-f762f78c.js")
+                import('./client-f762f78c.js')
             ]);
             let root;
             if (hostElement.childElementCount > 0) root = client.hydrateRoot(hostElement, client.Main(Cmp, filterProps(props), store.event));
@@ -138,6 +139,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
   "displayName": "qwikifyQrl_component_useWatch",
   "hash": "x04JC5xeP1U",
   "canonicalFilename": "qwikifyqrl_component_usewatch_x04jc5xep1u",
+  "path": "../node_modules/@builder.io/qwik-react",
   "extension": "mjs",
   "parent": "qwikifyQrl_component_zH94hIe0Ick",
   "ctxKind": "function",
@@ -149,13 +151,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
   ]
 }
 */
-============================= qwikifyqrl_component_zh94hie0ick.mjs (ENTRY POINT)==
+============================= ../node_modules/@builder.io/qwik-react/qwikifyqrl_component_zh94hie0ick.mjs (ENTRY POINT)==
 
 import { Fragment } from "@builder.io/qwik/jsx-runtime";
 import { SkipRerender } from "@builder.io/qwik";
 import { _jsxBranch } from "@builder.io/qwik";
 import { _jsxC } from "@builder.io/qwik";
-import { _auto_filterProps as filterProps } from "../node_modules/@builder.io/qwik-react/index.qwik.mjs";
+import { _auto_filterProps as filterProps } from "./index.qwik.mjs";
 import { isServer } from "@builder.io/qwik/build";
 import { qrl } from "@builder.io/qwik";
 import { useHostElement } from "@builder.io/qwik";
@@ -181,7 +183,7 @@ export const qwikifyQrl_component_zH94hIe0Ick = (props)=>{
     if (isServer && !props['client:only']) {
         const jsx$1 = Promise.all([
             reactCmpQrl.resolve(),
-            import("../node_modules/@builder.io/qwik-react/server-9ac6caad.js")
+            import('./server-9ac6caad.js')
         ]).then(([Cmp, server])=>{
             const html = server.render(Cmp, filterProps(props));
             return /*#__PURE__*/ _jsxC(Host, {
@@ -210,6 +212,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
   "displayName": "qwikifyQrl_component",
   "hash": "zH94hIe0Ick",
   "canonicalFilename": "qwikifyqrl_component_zh94hie0ick",
+  "path": "../node_modules/@builder.io/qwik-react",
   "extension": "mjs",
   "parent": null,
   "ctxKind": "function",
@@ -226,7 +229,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
 import { qrl } from "@builder.io/qwik";
 import { componentQrl, implicit$FirstArg } from '@builder.io/qwik';
 function qwikifyQrl(reactCmpQrl) {
-    return /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("../../../src/qwikifyqrl_component_zh94hie0ick.mjs"), "qwikifyQrl_component_zH94hIe0Ick", [
+    return /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./qwikifyqrl_component_zh94hie0ick.mjs"), "qwikifyQrl_component_zH94hIe0Ick", [
         reactCmpQrl
     ]), {
         tagName: 'qwik-wrap'

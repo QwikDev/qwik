@@ -1,7 +1,7 @@
 import { component$, useStyles$ } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
-import styles from './styles.css?inline';
 import pages from './generated-pages.json';
+import styles from './styles.css?inline';
 
 export interface MediaEntry {
   title: string;
@@ -27,16 +27,18 @@ export default component$(() => {
       <h1>Showcase</h1>
 
       <ul class="grid">
-        {pages.map((entry) => (
-          <SiteLink entry={entry as any} key={entry.href} />
-        ))}
+        {pages
+          .sort(() => (Math.random() > 0.5 ? 1 : -1))
+          .map((entry) => (
+            <SiteLink entry={entry as any} key={entry.href} />
+          ))}
       </ul>
       <section>
         <h2>Add Site</h2>
         <p>This page missing any great site or in need of an update?</p>
         <p>
           <a
-            href="https://github.com/BuilderIO/qwik/edit/main/packages/docs/scripts/pages.json"
+            href="https://github.com/QwikDev/qwik/edit/main/packages/docs/scripts/pages.json"
             target="_blank"
             class="edit-page"
           >

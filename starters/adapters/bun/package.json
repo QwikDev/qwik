@@ -8,7 +8,7 @@
     "priority": 20,
     "displayName": "Adapter: Bun Server",
     "docs": [
-      "https://qwik.builder.io/deployments/bun/",
+      "https://qwik.dev/deployments/bun/",
       "https://bun.sh/docs/api/http"
     ],
     "nextSteps": {
@@ -20,5 +20,8 @@
         "- bun run serve: runs the production server locally"
       ]
     }
+  },
+  "devDependencies": {
+    "@types/bun": "*"
   }
 }

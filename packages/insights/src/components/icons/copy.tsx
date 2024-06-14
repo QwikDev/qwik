@@ -1,8 +1,8 @@
-import { component$, useSignal, type PropFunction, useStylesScoped$ } from '@builder.io/qwik';
+import { component$, useSignal, type QRL, useStylesScoped$ } from '@builder.io/qwik';
 
 interface CopyIconProps {
   class?: string;
-  onClick$: PropFunction<() => void>;
+  onClick$: QRL<() => void>;
 }
 
 export const CopyIcon = component$<CopyIconProps>(({ onClick$, ...props }) => {

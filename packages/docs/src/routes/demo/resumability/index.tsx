@@ -4,8 +4,8 @@ import {
   noSerialize,
   useContext,
   useStore,
-  type JSXNode,
   type NoSerialize,
+  type JSXOutput,
 } from '@builder.io/qwik';
 import {
   Portal,
@@ -46,7 +46,7 @@ export const HoverProvider = component$(() => {
           target.dispatchEvent(
             new CustomEvent('hover', {
               bubbles: true,
-              detail: async (jsx: JSXNode) => {
+              detail: async (jsx: JSXOutput) => {
                 if (state.close) return;
                 state.currentTarget = e.target as HTMLElement;
                 state.close = noSerialize(await portal('popup', jsx));
@@ -83,4 +83,4 @@ function isPortal(element: HTMLElement) {
   return element.closest('[data-portal]') != null;
 }
 
-export type HoverEvent = CustomEvent<(jsx: JSXNode) => void>;
+export type HoverEvent = CustomEvent<(jsx: JSXOutput) => void>;

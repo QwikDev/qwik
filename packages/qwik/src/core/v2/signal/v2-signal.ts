@@ -22,6 +22,7 @@ import { isPromise } from '../../util/promises';
 import { qDev } from '../../util/qdev';
 import type { VNode } from '../client/types';
 import { ChoreType, type Scheduler } from '../shared/scheduler';
+import type { fixMeAny } from '../shared/types';
 import type { Signal2 as ISignal2 } from './v2-signal.public';
 
 const DEBUG = true;
@@ -102,7 +103,7 @@ type Effect = Task | VNode | Signal2;
  * effect can be scheduled if either `signalA` or `signalB` triggers. The `subscription1` is shared
  * between the signals.
  */
-type EffectSubscriptions = [Effect, InvokeContext | null, ...Signal2[]];
+export type EffectSubscriptions = [Effect, InvokeContext | null, ...Signal2[]];
 
 class Signal2<T = any> implements ISignal2<T> {
   private $untrackedValue$: T;
@@ -187,7 +188,7 @@ class Signal2<T = any> implements ISignal2<T> {
           DEBUG && log('       schedule.effect', String(effect));
           if (isTask(effect)) {
             assertDefined(this.$scheduler$, 'Scheduler must be defined.');
-            this.$scheduler$(ChoreType.TASK, effect);
+            this.$scheduler$(ChoreType.TASK, effectSubscriptions as fixMeAny);
           } else if (effect instanceof Signal2) {
             effect.$untrackedValue$ = NEEDS_COMPUTATION;
             effect.$effects$?.forEach(scheduleEffect);

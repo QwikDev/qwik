@@ -99,6 +99,7 @@ import { vnode_documentPosition, vnode_isVNode } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
 import { executeComponent2 } from './component-execution';
 import type { Container2, HostElement, fixMeAny } from './types';
+import type { EffectSubscriptions } from '../signal/v2-signal';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -296,6 +297,15 @@ export const createScheduler = (
         returnValue = runComputed2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
         break;
       case ChoreType.TASK:
+        const payload = chore.$payload$;
+        if (Array.isArray(payload)) {
+          // This is a hack to see if the scheduling will work.
+          const effectSubscriber = payload as fixMeAny as EffectSubscriptions;
+          const effect = effectSubscriber[0];
+          returnValue = runSubscriber2(effect as Task<TaskFn, TaskFn>, container, host);
+          break;
+        }
+      // eslint-disable-next-line no-fallthrough
       case ChoreType.VISIBLE:
         returnValue = runSubscriber2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
         break;

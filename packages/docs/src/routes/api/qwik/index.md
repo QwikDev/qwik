@@ -4029,7 +4029,8 @@ export type QRLEventHandlerMulti<EV extends Event, EL> =
   | QRL<EventHandler<EV, EL>>
   | undefined
   | null
-  | QRLEventHandlerMulti<EV, EL>[];
+  | QRLEventHandlerMulti<EV, EL>[]
+  | EventHandler<EV, EL>;
 ```
 
 **References:** [QRL](#qrl), [EventHandler](#eventhandler), [QRLEventHandlerMulti](#qrleventhandlermulti)

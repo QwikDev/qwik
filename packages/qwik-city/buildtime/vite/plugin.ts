@@ -55,6 +55,8 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
     getServiceWorkers: () => {
       return ctx?.serviceWorkers.slice() ?? [];
     },
+    getContext: () => Object.freeze(ctx),
+    getMdxTransformer: () => mdxTransform,
   };
 
   const plugin: Plugin = {

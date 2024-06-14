@@ -37,12 +37,12 @@ export interface FormProps<O, I>
   spaReset?: boolean;
 
   /** Event handler executed right when the form is submitted. */
-  onSubmit$?: QRLEventHandlerMulti<SubmitEvent, HTMLFormElement> | undefined;
+  onSubmit$?: QRLEventHandlerMulti<SubmitEvent, HTMLFormElement> | undefined | ((event:SubmitEvent,element:HTMLFormElement) => void);
 
   /** Event handler executed right after the action is executed successfully and returns some data. */
   onSubmitCompleted$?:
     | QRLEventHandlerMulti<CustomEvent<FormSubmitCompletedDetail<O>>, HTMLFormElement>
-    | undefined;
+    | undefined | ((event:CustomEvent<FormSubmitCompletedDetail<O>>,element:HTMLFormElement) => void);
 
   key?: string | number | null;
 }

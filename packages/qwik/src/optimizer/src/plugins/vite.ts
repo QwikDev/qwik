@@ -335,10 +335,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         updatedViteConfig.build!.outDir = buildOutputDir;
         updatedViteConfig.build!.rollupOptions = {
           input: opts.input,
-          output: {
-            ...normalizeRollupOutputOptions(path, opts, viteConfig.build?.rollupOptions?.output),
-            dir: buildOutputDir,
-          },
+          output: normalizeRollupOutputOptions(
+            path,
+            opts,
+            viteConfig.build?.rollupOptions?.output
+          ).map((outputOptsObj) => {
+            outputOptsObj.dir = buildOutputDir;
+            return outputOptsObj;
+          }),
           preserveEntrySignatures: 'exports-only',
           onwarn: (warning, warn) => {
             if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {

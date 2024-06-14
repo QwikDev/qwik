@@ -408,7 +408,7 @@ test('command: build, --mode lib with multiple outputs', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = qwikVite(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c: any = (await plugin.config(
     {
       build: {

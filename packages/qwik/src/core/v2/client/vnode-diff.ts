@@ -393,7 +393,7 @@ export const vnode_diff = (
 
       const projections: Array<string | JSXNode> = [];
       if (host) {
-        // we need to create empty projections for all the slots to remove unused slots
+        // we need to create empty projections for all the slots to remove unused slots content
         for (let i = vnode_getPropStartIndex(host); i < host.length; i = i + 2) {
           const prop = host[i] as string;
           if (!prop.startsWith('q:')) {

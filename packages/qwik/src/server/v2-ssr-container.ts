@@ -127,6 +127,10 @@ class StringBufferWriter {
 }
 
 interface ContainerElementFrame {
+  /*
+   * Used during development mode to track the nesting of HTML tags
+   * in order provide error messages when the nesting is incorrect.
+   */
   tagNesting: TagNesting;
   parent: ContainerElementFrame | null;
   /** Element name. */

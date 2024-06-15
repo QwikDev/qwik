@@ -16,7 +16,7 @@ import {
 import { maybeThen } from '../util/promises';
 import { qDev, qSerialize, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../util/types';
-import { isSignal2 } from '../v2/signal-v2/v2-signal';
+import { isSignal2 } from '../v2/signal/v2-signal';
 import type { QRLDev } from './qrl';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 

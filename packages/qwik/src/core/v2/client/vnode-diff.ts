@@ -562,9 +562,9 @@ export const vnode_diff = (
     }
   }
 
-  /** @param tag Returns true if `qDispatchEvent` needs patching */
-  function createNewElement(jsx: JSXNode, tag: string): boolean {
-    const element = createElementWithNamespace(tag);
+  /** @param elementName Returns true if `qDispatchEvent` needs patching */
+  function createNewElement(jsx: JSXNode, elementName: string): boolean {
+    const element = createElementWithNamespace(elementName);
 
     const { constProps } = jsx;
     let needsQDispatchEventPatch = false;
@@ -609,7 +609,7 @@ export const vnode_diff = (
           continue;
         }
 
-        if (tag === 'textarea' && key === 'value') {
+        if (elementName === 'textarea' && key === 'value') {
           if (typeof value !== 'string') {
             if (isDev) {
               throw new Error('The value of the textarea must be a string');
@@ -644,32 +644,35 @@ export const vnode_diff = (
     return needsQDispatchEventPatch;
   }
 
-  function createElementWithNamespace(tag: string): Element {
+  function createElementWithNamespace(elementName: string): Element {
     const domParentVNode = vnode_getDomParentVNode(vParent);
     const { elementNamespace, elementNamespaceFlag } = getNewElementNamespaceData(
       domParentVNode,
-      tag
+      elementName
     );
 
-    const element = container.document.createElementNS(elementNamespace, tag);
-    vNewNode = vnode_newElement(element, tag);
+    const element = container.document.createElementNS(elementNamespace, elementName);
+    vNewNode = vnode_newElement(element, elementName);
     vNewNode[VNodeProps.flags] |= elementNamespaceFlag;
     return element;
   }
 
-  function expectElement(jsx: JSXNode, tag: string) {
-    const isSameTagName =
-      vCurrent && vnode_isElementVNode(vCurrent) && tag === vnode_getElementName(vCurrent);
+  function expectElement(jsx: JSXNode, elementName: string) {
+    const isSameElementName =
+      vCurrent && vnode_isElementVNode(vCurrent) && elementName === vnode_getElementName(vCurrent);
     const jsxKey: string | null = jsx.key;
     let needsQDispatchEventPatch = false;
-    if (!isSameTagName || jsxKey !== vnode_getProp(vCurrent as ElementVNode, ELEMENT_KEY, null)) {
+    if (
+      !isSameElementName ||
+      jsxKey !== vnode_getProp(vCurrent as ElementVNode, ELEMENT_KEY, null)
+    ) {
       // So we have a key and it does not match the current node.
       // We need to do a forward search to find it.
       // The complication is that once we start taking nodes out of order we can't use `vnode_getNextSibling`
-      vNewNode = retrieveChildWithKey(tag, jsxKey);
+      vNewNode = retrieveChildWithKey(elementName, jsxKey);
       if (vNewNode === null) {
         // No existing node with key exists, just create a new one.
-        needsQDispatchEventPatch = createNewElement(jsx, tag);
+        needsQDispatchEventPatch = createNewElement(jsx, elementName);
       } else {
         // Existing keyed node
         vnode_insertBefore(journal, vParent as ElementVNode, vNewNode, vCurrent);

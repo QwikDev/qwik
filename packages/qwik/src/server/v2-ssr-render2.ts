@@ -208,8 +208,8 @@ function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResu
           } else {
             enqueue(chunk);
           }
-          const chunkSize = networkFlushes === 0 ? initialChunkSize : minimumChunkSize;
-          if (forceFlush || bufferSize >= chunkSize) {
+          const maxBufferSize = networkFlushes === 0 ? initialChunkSize : minimumChunkSize;
+          if (count === 0 && (forceFlush || bufferSize >= maxBufferSize)) {
             forceFlush = false;
             flush();
           }

@@ -1,4 +1,3 @@
-import type { FunctionComponent } from '@builder.io/qwik';
 import { isDev } from '../../../build/index.dev';
 import type { StreamWriter } from '../../../server/types';
 import { componentQrl, isQwikComponent } from '../../component/component.public';
@@ -20,6 +19,7 @@ import {
   isJSXNode,
   isPropsProxy,
 } from '../../render/jsx/jsx-runtime';
+import { type FunctionComponent } from '../../render/jsx/types/jsx-node';
 import { Slot } from '../../render/jsx/slot.public';
 import {
   SubscriptionProp,
@@ -47,6 +47,7 @@ import type { DomContainer } from '../client/dom-container';
 import { vnode_getNode, vnode_isVNode, vnode_locate } from '../client/vnode';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
 import { ELEMENT_ID } from '../../util/markers';
+import { getPlatform } from '../../platform/platform';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 
@@ -1151,6 +1152,19 @@ export function qrlToString(
 ) {
   let symbol = value.$symbol$;
   let chunk = value.$chunk$;
+
+  const refSymbol = value.$refSymbol$ ?? symbol;
+  const platform = getPlatform();
+  if (platform) {
+    const result = platform.chunkForSymbol(refSymbol, chunk);
+    if (result) {
+      chunk = result[1];
+      if (!value.$refSymbol$) {
+        symbol = result[0];
+      }
+    }
+  }
+
   const isSync = isSyncQrl(value);
   if (!isSync) {
     // If we have a symbol we need to resolve the chunk.

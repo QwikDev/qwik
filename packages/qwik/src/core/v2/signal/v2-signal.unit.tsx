@@ -68,18 +68,51 @@ describe('v2-signal', () => {
         const b = createSignal2(10);
         await retry(() => {
           const signal = createComputed2Qrl(delay($(() => a.value + b.value)));
-          expect((signal as any).$untrackedValue$).toEqual(12);
+          expect((signal as any).$untrackedValue$).not.toEqual(12);
+          // This won't register a subscriber because there isn't any,
+          // but it will update the value and store the container.
           expect(signal.value).toEqual(12);
+          expect((signal as any).$untrackedValue$).toEqual(12);
           effect$(() => log.push(signal.value));
           expect(log).toEqual([12]);
           a.value++;
           b.value += 10;
+          // effects must run async
           expect(log).toEqual([12]);
         });
         await flushSignals();
         expect(log).toEqual([12, 23]);
       });
     });
+    // using .only because otherwise there's a function-not-the-same issue
+    it.only('force', () =>
+      withContainer(async () => {
+        const obj = { count: 0 };
+        const qrl = delay(
+          $(() => {
+            obj.count++;
+            return obj;
+          })
+        );
+        await qrl.resolve();
+        const computed = createComputed2Qrl(qrl);
+        expect(computed.value).toBe(obj);
+        expect(obj.count).toBe(1);
+        effect$((v) => console.log('effect', v) || log.push(computed.value.count));
+        await flushSignals();
+        expect(log).toEqual([1]);
+        expect(obj.count).toBe(1);
+        // mark dirty but value remains shallow same after calc
+        (computed as any).$invalid$ = true;
+        computed.value.count;
+        await flushSignals();
+        expect(log).toEqual([1]);
+        expect(obj.count).toBe(2);
+        // force recalculation+notify
+        computed.force();
+        await flushSignals();
+        expect(log).toEqual([1, 3]);
+      }));
   });
   ////////////////////////////////////////
 

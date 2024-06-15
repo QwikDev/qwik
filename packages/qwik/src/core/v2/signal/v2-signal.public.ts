@@ -15,12 +15,20 @@ export interface Signal2<T> extends ReadonlySignal2<T> {
   value: T;
 }
 
+export interface ComputedSignal2<T> extends ReadonlySignal2<T> {
+  /**
+   * Use this to force recalculation and running subscribers, for example when the calculated value
+   * mutates but remains the same object. Useful for third-party libraries.
+   */
+  force(): void;
+}
+
 export const createSignal2: {
   <T>(): Signal2<T | undefined>;
   <T>(value: T): Signal2<T>;
 } = _createSignal2;
 
-export const createComputed2Qrl: <T>(qrl: QRL<() => T>) => ReadonlySignal2<T> =
+export const createComputed2Qrl: <T>(qrl: QRL<() => T>) => ComputedSignal2<T> =
   _createComputedSignal2;
 
 export const createComputed2$ = /*#__PURE__*/ implicit$FirstArg(createComputed2Qrl);

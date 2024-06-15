@@ -44,7 +44,7 @@ const NEEDS_COMPUTATION: any = {
 const log = (...args: any[]) => console.log(...args);
 
 export const createSignal2 = (value?: any) => {
-  return new Signal2(undefined, value);
+  return new Signal2(null, value);
 };
 
 export const createComputedSignal2 = <T>(qrl: QRL<() => T>) => {
@@ -129,32 +129,29 @@ class Signal2<T = any> implements ISignal2<T> {
 
   get value() {
     const ctx = tryGetInvokeContext();
-    // If no context or no subscriptions, skip this.
-    if (ctx && ctx.$effectSubscriber$) {
+    if (ctx) {
       if (this.$container$ === null) {
         assertTrue(!!ctx.$container2$, 'container should be in context ');
         // Grab the container now we have access to it
         this.$container$ = ctx.$container2$!;
       } else {
-        console.log(
-          'Signal2',
-          ctx,
-          this.$container$,
-          ctx.$container2$,
-          this.$container$ === ctx.$container2$
+        assertTrue(
+          !ctx.$container2$ || ctx.$container2$ === this.$container$,
+          'Do not use signals across containers'
         );
-        assertTrue(ctx.$container2$ === this.$container$, 'Do not use signals across containers');
       }
-      const effectSubscriber = ctx.$effectSubscriber$;
-      const effects = (this.$effects$ ||= []);
-      // Let's make sure that we have a reference to this effect.
-      // Adding reference is essentially adding a subscription, so if the signal
-      // changes we know who to notify.
-      ensureContains(effects, effectSubscriber);
-      // But when effect is scheduled in needs to be able to know which signals
-      // to unsubscribe from. So we need to store the reference from the effect back
-      // to this signal.
-      ensureContains(effectSubscriber, this);
+      if (ctx.$effectSubscriber$) {
+        const effectSubscriber = ctx.$effectSubscriber$;
+        const effects = (this.$effects$ ||= []);
+        // Let's make sure that we have a reference to this effect.
+        // Adding reference is essentially adding a subscription, so if the signal
+        // changes we know who to notify.
+        ensureContains(effects, effectSubscriber);
+        // But when effect is scheduled in needs to be able to know which signals
+        // to unsubscribe from. So we need to store the reference from the effect back
+        // to this signal.
+        ensureContains(effectSubscriber, this);
+      }
     }
     return this.untrackedValue;
   }
@@ -168,7 +165,6 @@ class Signal2<T = any> implements ISignal2<T> {
   }
 
   protected $triggerEffects$() {
-    log('meep', this.$effects$, !!this.$container$);
     if (!this.$effects$?.length || !this.$container$) {
       return;
     }

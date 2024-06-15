@@ -4,8 +4,7 @@ import { inlinedQrl } from '../../qrl/qrl';
 import { type QRLInternal } from '../../qrl/qrl-class';
 import { type QRL } from '../../qrl/qrl.public';
 import type { VirtualElement } from '../../render/dom/virtual-element';
-import { SubscriptionType, type Subscriber } from '../../state/common';
-import { invoke, newInvokeContext } from '../../use/use-core';
+import { invoke, newInvokeContext, tryGetInvokeContext } from '../../use/use-core';
 import { Task } from '../../use/use-task';
 import { implicit$FirstArg } from '../../util/implicit_dollar';
 import { getDomContainer } from '../client/dom-container';
@@ -14,6 +13,7 @@ import type { Container2 } from '../shared/types';
 import { createComputed2Qrl, createSignal2 } from './v2-signal.public';
 import { isPromise } from '../../util/promises';
 import { $, type ValueOrPromise } from '@builder.io/qwik';
+import type { EffectSubscriptions } from './v2-signal';
 
 describe('v2-signal', () => {
   const log: any[] = [];
@@ -62,7 +62,7 @@ describe('v2-signal', () => {
       expect(qrl.resolved).toBeDefined();
     });
 
-    it('basic subscription operation', async () => {
+    it.only('basic subscription operation', async () => {
       await withContainer(async () => {
         const a = createSignal2(2);
         const b = createSignal2(10);
@@ -85,31 +85,33 @@ describe('v2-signal', () => {
       });
     });
     // using .only because otherwise there's a function-not-the-same issue
-    it.only('force', () =>
+    it('force', () =>
       withContainer(async () => {
         const obj = { count: 0 };
-        const qrl = delay(
-          $(() => {
-            obj.count++;
-            return obj;
-          })
-        );
-        await qrl.resolve();
-        const computed = createComputed2Qrl(qrl);
-        expect(computed.value).toBe(obj);
-        expect(obj.count).toBe(1);
-        effect$((v) => console.log('effect', v) || log.push(computed.value.count));
-        await flushSignals();
-        expect(log).toEqual([1]);
-        expect(obj.count).toBe(1);
-        // mark dirty but value remains shallow same after calc
-        (computed as any).$invalid$ = true;
-        computed.value.count;
-        await flushSignals();
-        expect(log).toEqual([1]);
-        expect(obj.count).toBe(2);
-        // force recalculation+notify
-        computed.force();
+        await retry(async () => {
+          const computed = createComputed2Qrl(
+            delay(
+              $(() => {
+                obj.count++;
+                return obj;
+              })
+            )
+          );
+          expect(computed.value).toBe(obj);
+          expect(obj.count).toBe(1);
+          effect$(() => log.push(computed.value.count));
+          await flushSignals();
+          expect(log).toEqual([1]);
+          expect(obj.count).toBe(1);
+          // mark dirty but value remains shallow same after calc
+          (computed as any).$invalid$ = true;
+          computed.value.count;
+          await flushSignals();
+          expect(log).toEqual([1]);
+          expect(obj.count).toBe(2);
+          // force recalculation+notify
+          computed.force();
+        });
         await flushSignals();
         expect(log).toEqual([1, 3]);
       }));
@@ -148,25 +150,30 @@ describe('v2-signal', () => {
 async function effectQrl(fnQrl: QRL<() => void>) {
   const element: VirtualElement = null!;
   const task = new Task(0, 0, element, fnQrl as QRLInternal, undefined, null);
-  const subscriber: Subscriber = [SubscriptionType.HOST, task] as any;
+  const subscriber: EffectSubscriptions = [task, null];
   const fn = (fnQrl as QRLInternal<() => void>).$resolveLazy$();
   if (isPromise(fn)) {
     throw fn;
   } else {
     const ctx = newInvokeContext();
-    ctx.$subscriber$ = subscriber;
-    invoke(ctx, fn);
+    ctx.$effectSubscriber$ = subscriber;
+    try {
+      invoke(ctx, fn);
+    } catch (e) {
+      console.error('effect$ failed', fn.toString(), e);
+      throw e;
+    }
   }
 }
 
 const effect$ = /*#__PURE__*/ implicit$FirstArg(effectQrl);
 
-function retry<T>(fn: () => T): ValueOrPromise<T> {
+function retry<T>(fn: () => T, ctx = tryGetInvokeContext()): ValueOrPromise<T> {
   try {
-    return fn();
+    return invoke(ctx, fn);
   } catch (e) {
     if (isPromise(e)) {
-      return e.then(retry.bind(null, fn)) as ValueOrPromise<T>;
+      return e.then(retry.bind(null, fn, ctx)) as ValueOrPromise<T>;
     }
     throw e;
   }

@@ -975,11 +975,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return elementIdx;
   }
 
-  /**
-   * @param elementName
-   * @param depthFirstElementIdx
-   * @param isElement
-   */
   private createAndPushFrame(elementName: string, depthFirstElementIdx: number) {
     let tagNesting: TagNesting = TagNesting.ANYTHING;
     if (isDev) {
@@ -1023,10 +1018,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       }
     }
     const frame: ContainerElementFrame = {
-      tagNesting: tagNesting,
+      tagNesting,
       parent: this.currentElementFrame,
-      elementName: elementName,
-      depthFirstElementIdx: depthFirstElementIdx,
+      elementName,
+      depthFirstElementIdx,
       vNodeData: [VNodeDataFlag.NONE],
     };
     this.currentElementFrame = frame;

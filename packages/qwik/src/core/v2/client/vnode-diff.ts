@@ -562,7 +562,12 @@ export const vnode_diff = (
     }
   }
 
-  /** @param elementName Returns true if `qDispatchEvent` needs patching */
+  /**
+   * Returns whether `qDispatchEvent` needs patching. This is true when one of the `jsx` argument's
+   * const props has the name of an event.
+   *
+   * @returns {boolean}
+   */
   function createNewElement(jsx: JSXNode, elementName: string): boolean {
     const element = createElementWithNamespace(elementName);
 

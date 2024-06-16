@@ -187,7 +187,7 @@ function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResu
       };
       break;
     case 'auto':
-      let count = 0;
+      let openedSSRStreamBlocks = 0;
       let forceFlush = false;
       const minimumChunkSize = inOrderStreaming.maximumChunk ?? 0;
       const initialChunkSize = inOrderStreaming.maximumInitialChunk ?? 0;
@@ -199,17 +199,17 @@ function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResu
           if (chunk === '<!--' + FLUSH_COMMENT + '-->') {
             forceFlush = true;
           } else if (chunk === '<!--' + STREAM_BLOCK_START_COMMENT + '-->') {
-            count++;
+            openedSSRStreamBlocks++;
           } else if (chunk === '<!--' + STREAM_BLOCK_END_COMMENT + '-->') {
-            count--;
-            if (count === 0) {
+            openedSSRStreamBlocks--;
+            if (openedSSRStreamBlocks === 0) {
               forceFlush = true;
             }
           } else {
             enqueue(chunk);
           }
-          const chunkSize = networkFlushes === 0 ? initialChunkSize : minimumChunkSize;
-          if (forceFlush || bufferSize >= chunkSize) {
+          const maxBufferSize = networkFlushes === 0 ? initialChunkSize : minimumChunkSize;
+          if (openedSSRStreamBlocks === 0 && (forceFlush || bufferSize >= maxBufferSize)) {
             forceFlush = false;
             flush();
           }

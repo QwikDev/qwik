@@ -185,7 +185,7 @@ export type VNodeJournal = Array<VNodeJournalOpCode | Document | Element | Text 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const vnode_newElement = (element: Element, tag: string): ElementVNode => {
+export const vnode_newElement = (element: Element, elementName: string): ElementVNode => {
   assertEqual(fastNodeType(element), 1 /* ELEMENT_NODE */, 'Expecting element node.');
   const vnode: ElementVNode = VNodeArray.createElement(
     VNodeFlags.Element | VNodeFlags.Inflated | (-1 << VNodeFlagsIndex.shift), // Flag
@@ -195,7 +195,7 @@ export const vnode_newElement = (element: Element, tag: string): ElementVNode =>
     null,
     null,
     element,
-    tag
+    elementName
   );
   assertTrue(vnode_isElementVNode(vnode), 'Incorrect format of ElementVNode.');
   assertFalse(vnode_isTextVNode(vnode), 'Incorrect format of ElementVNode.');
@@ -1845,10 +1845,10 @@ const VNodeArray = class VNode extends Array {
     firstChild: VNode | null | undefined,
     lastChild: VNode | null | undefined,
     element: Element,
-    tag: string | undefined
+    elementName: string | undefined
   ) {
     const vnode = new VNode(flags, parent, previousSibling, nextSibling) as any;
-    vnode.push(firstChild, lastChild, element, tag);
+    vnode.push(firstChild, lastChild, element, elementName);
     return vnode;
   }
 

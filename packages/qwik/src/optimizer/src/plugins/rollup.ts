@@ -4,20 +4,20 @@ import type {
   Diagnostic,
   EntryStrategy,
   OptimizerOptions,
-  QwikManifest,
-  TransformModuleInput,
   Path,
+  QwikManifest,
   TransformModule,
+  TransformModuleInput,
 } from '../types';
+import { versions } from '../versions';
 import {
+  Q_MANIFEST_FILENAME,
   createPlugin,
   type NormalizedQwikPluginOptions,
   type QwikBuildMode,
   type QwikBuildTarget,
   type QwikPluginOptions,
-  Q_MANIFEST_FILENAME,
 } from './plugin';
-import { versions } from '../versions';
 
 /** @public */
 export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
@@ -72,7 +72,8 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
       return normalizeRollupOutputOptionsObject(
         qwikPlugin.getPath(),
         qwikPlugin.getOptions(),
-        rollupOutputOpts
+        rollupOutputOpts,
+        false
       );
     },
 
@@ -153,7 +154,8 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 export function normalizeRollupOutputOptions(
   path: Path,
   opts: NormalizedQwikPluginOptions,
-  rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined
+  rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined,
+  useCFAssetsDir: boolean
 ): Rollup.OutputOptions[] {
   const outputOpts: Rollup.OutputOptions[] = Array.isArray(rollupOutputOpts)
     ? // fill the `outputOpts` array with all existing option entries
@@ -167,19 +169,21 @@ export function normalizeRollupOutputOptions(
   }
 
   return outputOpts.map((outputOptsObj) =>
-    normalizeRollupOutputOptionsObject(path, opts, outputOptsObj)
+    normalizeRollupOutputOptionsObject(path, opts, outputOptsObj, useCFAssetsDir)
   );
 }
 
 export function normalizeRollupOutputOptionsObject(
   path: Path,
   opts: NormalizedQwikPluginOptions,
-  rollupOutputOptsObj: Rollup.OutputOptions | undefined
+  rollupOutputOptsObj: Rollup.OutputOptions | undefined,
+  useCFAssetsDir: boolean
 ): Rollup.OutputOptions {
   const outputOpts: Rollup.OutputOptions = { ...rollupOutputOptsObj };
 
   if (!outputOpts.assetFileNames) {
-    outputOpts.assetFileNames = 'build/q-[hash].[ext]';
+    const fileName = 'build/q-[hash].[ext]';
+    outputOpts.assetFileNames = useCFAssetsDir ? path.join(opts.assetsDir, fileName) : fileName;
   }
   if (opts.target === 'client') {
     // client output
@@ -187,18 +191,22 @@ export function normalizeRollupOutputOptionsObject(
     if (opts.buildMode === 'production') {
       // client production output
       if (!outputOpts.entryFileNames) {
-        outputOpts.entryFileNames = 'build/q-[hash].js';
+        const fileName = 'build/q-[hash].js';
+        outputOpts.entryFileNames = useCFAssetsDir ? path.join(opts.assetsDir, fileName) : fileName;
       }
       if (!outputOpts.chunkFileNames) {
-        outputOpts.chunkFileNames = 'build/q-[hash].js';
+        const fileName = 'build/q-[hash].js';
+        outputOpts.chunkFileNames = useCFAssetsDir ? path.join(opts.assetsDir, fileName) : fileName;
       }
     } else {
       // client development output
       if (!outputOpts.entryFileNames) {
-        outputOpts.entryFileNames = 'build/[name].js';
+        const fileName = 'build/[name].js';
+        outputOpts.entryFileNames = useCFAssetsDir ? path.join(opts.assetsDir, fileName) : fileName;
       }
       if (!outputOpts.chunkFileNames) {
-        outputOpts.chunkFileNames = 'build/[name].js';
+        const fileName = 'build/[name].js';
+        outputOpts.chunkFileNames = useCFAssetsDir ? path.join(opts.assetsDir, fileName) : fileName;
       }
     }
   } else if (opts.buildMode === 'production') {

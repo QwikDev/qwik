@@ -144,6 +144,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const vendorRoots = shouldFindVendors
         ? await findQwikRoots(sys, path.join(sys.cwd(), 'package.json'))
         : [];
+      const useCFAssetsDir = target === 'client' && viteConfig.build?.assetsDir !== '_astro';
       const pluginOpts: QwikPluginOptions = {
         target,
         buildMode,
@@ -157,8 +158,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
         outDir: viteConfig.build?.outDir,
-        assetsDir:
-          viteConfig.build?.assetsDir !== '_astro' ? viteConfig.build?.assetsDir : undefined,
+        assetsDir: useCFAssetsDir ? viteConfig.build?.assetsDir : undefined,
         devTools: qwikViteOpts.devTools,
         sourcemap: !!viteConfig.build?.sourcemap,
         lint: qwikViteOpts.lint,
@@ -345,7 +345,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           output: normalizeRollupOutputOptions(
             path,
             opts,
-            viteConfig.build?.rollupOptions?.output
+            viteConfig.build?.rollupOptions?.output,
+            useCFAssetsDir
           ).map((outputOptsObj) => {
             outputOptsObj.dir = buildOutputDir;
             return outputOptsObj;

@@ -136,6 +136,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     opts.debug = !!updatedOpts.debug;
 
+    if (updatedOpts.assetsDir) {
+      opts.assetsDir = updatedOpts.assetsDir;
+    }
+
     updatedOpts.target === 'test';
     if (
       updatedOpts.target === 'ssr' ||

@@ -19,6 +19,12 @@ export const QSlotS = 'q:s';
 export const QStyle = 'q:style';
 export const QScopedStyle = 'q:sstyle';
 export const QCtxAttr = 'q:ctx';
+export const QManifestHash = 'q:manifest-hash';
+export const QFuncsSuffix = ':qFuncs';
+
+export const getQFuncs = (document: Document, hash: string): Function[] => {
+  return (document as any)[hash + QFuncsSuffix] || [];
+};
 
 export const QLocaleAttr = 'q:locale';
 export const QContainerAttr = 'q:container';

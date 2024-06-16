@@ -1,4 +1,3 @@
-import type { QContainerElement } from '../container/container';
 import { assertDefined } from '../error/assert';
 import { qError, QError_qrlIsNotFunction } from '../error/error';
 import { getPlatform, isServerPlatform } from '../platform/platform';
@@ -12,6 +11,7 @@ import {
   type InvokeContext,
   type InvokeTuple,
 } from '../use/use-core';
+import { getQFuncs, QManifestHash } from '../util/markers';
 import { maybeThen } from '../util/promises';
 import { qDev, qSerialize, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../util/types';
@@ -55,7 +55,7 @@ export type QRLInternalMethods<TYPE> = {
       unknown;
 
   $setContainer$(containerEl: Element | undefined): Element | undefined;
-  $resolveLazy$(containerEl?: Element): ValueOrPromise<TYPE>;
+  $resolveLazy$(containerEl: Element): ValueOrPromise<TYPE>;
 };
 
 export type QRLInternal<TYPE = unknown> = QRL<TYPE> & QRLInternalMethods<TYPE>;
@@ -103,7 +103,9 @@ export const createQRL = <TYPE>(
     if (chunk === '') {
       // Sync QRL
       assertDefined(_containerEl, 'Sync QRL must have container element');
-      const qFuncs = (_containerEl as QContainerElement).qFuncs || [];
+      const hash = _containerEl.getAttribute(QManifestHash)!;
+      const doc = _containerEl.ownerDocument!;
+      const qFuncs = getQFuncs(doc, hash);
       return (qrl.resolved = symbolRef = qFuncs[Number(symbol)] as TYPE);
     }
     if (symbolFn !== null) {

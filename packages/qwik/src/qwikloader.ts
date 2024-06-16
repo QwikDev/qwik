@@ -110,7 +110,8 @@ export const qwikLoader = (
         const isSync = qrl.startsWith('#');
         const eventData = { qBase, qManifest, qVersion, href, symbol, element, reqTime };
         if (isSync) {
-          handler = (container.qFuncs || [])[Number.parseInt(symbol)];
+          const hash = container.getAttribute('q:manifest-hash')!;
+          handler = ((doc as any)[hash + ':funcs'] || [])[Number.parseInt(symbol)];
           if (!handler) {
             importError = 'sync';
             error = new Error('sync handler error for symbol: ' + symbol);

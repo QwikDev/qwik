@@ -29,7 +29,6 @@ import {
 } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { type ValueOrPromise } from '../../util/types';
-import { executeComponent2 } from '../shared/component-execution';
 import {
   convertEventNameFromJsxPropToHtmlAttr,
   getEventNameFromJsxProp,
@@ -39,7 +38,7 @@ import {
 } from '../shared/event-names';
 import { ChoreType } from '../shared/scheduler';
 import { hasClassAttr } from '../shared/scoped-styles';
-import type { QElement2, QwikLoaderEventScope, fixMeAny } from '../shared/types';
+import type { HostElement, QElement2, QwikLoaderEventScope, fixMeAny } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import type { DomContainer } from './dom-container';
 import {
@@ -88,6 +87,7 @@ import {
   type VNodeJournal,
 } from './vnode';
 import { getNewElementNamespaceData } from './vnode-namespace';
+import { executeComponent2 } from '../shared/component-execution';
 
 export type ComponentQueue = Array<VNode>;
 
@@ -382,12 +382,28 @@ export const vnode_diff = (
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
 
-  function descendContentToProject(children: JSXChildren) {
+  function descendContentToProject(children: JSXChildren, host: VirtualVNode | null) {
     if (!Array.isArray(children)) {
       children = [children];
     }
     if (children.length) {
+      const createProjectionJSXNode = (slotName: string) => {
+        return new JSXNodeImpl(Projection, EMPTY_OBJ, null, [], 0, slotName);
+      };
+
       const projections: Array<string | JSXNode> = [];
+      if (host) {
+        // we need to create empty projections for all the slots to remove unused slots content
+        for (let i = vnode_getPropStartIndex(host); i < host.length; i = i + 2) {
+          const prop = host[i] as string;
+          if (!prop.startsWith('q:')) {
+            const slotName = prop;
+            projections.push(slotName);
+            projections.push(createProjectionJSXNode(slotName));
+          }
+        }
+      }
+
       /// STEP 1: Bucketize the children based on the projection name.
       for (let i = 0; i < children.length; i++) {
         const child = children[i];
@@ -397,14 +413,12 @@ export const vnode_diff = (
         if (idx >= 0) {
           jsxBucket = projections[idx + 1] as any;
         } else {
-          projections.splice(
-            ~idx,
-            0,
-            slotName,
-            (jsxBucket = new JSXNodeImpl(Projection, EMPTY_OBJ, null, [], 0, slotName))
-          );
+          projections.splice(~idx, 0, slotName, (jsxBucket = createProjectionJSXNode(slotName)));
         }
-        (jsxBucket.children as JSXChildren[]).push(child);
+        const removeProjection = child === false;
+        if (!removeProjection) {
+          (jsxBucket.children as JSXChildren[]).push(child);
+        }
       }
       /// STEP 2: remove the names
       for (let i = projections.length - 2; i >= 0; i = i - 2) {
@@ -904,7 +918,7 @@ export const vnode_diff = (
 
   function expectComponent(component: Function) {
     const componentMeta = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
-    let host = (vNewNode || vCurrent) as VirtualVNode;
+    let host = (vNewNode || vCurrent) as VirtualVNode | null;
     if (componentMeta) {
       const jsxProps = jsxValue.props;
       // QComponent
@@ -944,31 +958,27 @@ export const vnode_diff = (
         }
       }
 
-      const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
-      shouldRender = shouldRender || propsDiffer(jsxProps, vNodeProps);
-      if (shouldRender) {
-        container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
+      if (host) {
+        const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
+        shouldRender = shouldRender || propsDiffer(jsxProps, vNodeProps);
+        if (shouldRender) {
+          container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
+        }
       }
-      jsxValue.children != null && descendContentToProject(jsxValue.children);
+      jsxValue.children != null && descendContentToProject(jsxValue.children, host);
     } else {
       // Inline Component
-      if (!host) {
-        // We did not find the component, create it.
-        vnode_insertBefore(
-          journal,
-          vParent as VirtualVNode,
-          (vNewNode = vnode_newVirtual()),
-          vCurrent && getInsertBefore()
-        );
-        host = vNewNode;
-      }
-      isDev &&
-        vnode_setProp(
-          (vNewNode || vCurrent) as VirtualVNode,
-          DEBUG_TYPE,
-          VirtualType.InlineComponent
-        );
-      let component$Host: VNode = host;
+      vnode_insertBefore(
+        journal,
+        vParent as VirtualVNode,
+        (vNewNode = vnode_newVirtual()),
+        vCurrent && getInsertBefore()
+      );
+      isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.InlineComponent);
+      vnode_setProp(vNewNode, ELEMENT_PROPS, jsxValue.propsC);
+
+      host = vNewNode;
+      let component$Host: VNode | null = host;
       // Find the closest component host which has `OnRender` prop.
       while (
         component$Host &&
@@ -976,13 +986,13 @@ export const vnode_diff = (
           ? vnode_getProp(component$Host, OnRenderProp, null) === null
           : true)
       ) {
-        component$Host = vnode_getParent(component$Host)!;
+        component$Host = vnode_getParent(component$Host);
       }
       const jsxOutput = executeComponent2(
         container,
         host,
-        (component$Host || container.rootVNode) as fixMeAny,
-        component as OnRenderFn<any>,
+        (component$Host || container.rootVNode) as HostElement,
+        component as OnRenderFn<unknown>,
         jsxValue.propsC
       );
       asyncQueue.push(jsxOutput, host);

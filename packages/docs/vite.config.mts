@@ -134,6 +134,9 @@ export default defineConfig(async () => {
             // Suppress errors like these:
             // FILE Module level directives cause errors when bundled, "use client" in FILE was ignored.
             return;
+          } else if (level == 'warn' && log.code === 'SOURCEMAP_ERROR') {
+            // https://github.com/vitejs/vite/issues/15012
+            return;
           }
           defaultHandler(level, log);
         },

@@ -25,9 +25,9 @@ import { createProxy, setObjectFlags } from '../state/store';
 import { qDev, qSerialize } from '../util/qdev';
 import { pauseContainer } from './pause';
 import { isPrimitive } from '../render/dom/render-dom';
-import { getWrappingContainer } from '../use/use-core';
 import { getContext } from '../state/context';
 import { EMPTY_ARRAY } from '../util/flyweight';
+import { _getQContainerElement } from '../v2/client/dom-container';
 
 export const resumeIfNeeded = (containerEl: Element): void => {
   const isResumed = directGetAttribute(containerEl, QContainerAttr);
@@ -63,7 +63,7 @@ export const _deserializeData = (data: string, element?: unknown) => {
   let doc = {} as Document;
   let containerState = {} as any;
   if (isNode(element) && isQwikElement(element)) {
-    const containerEl = getWrappingContainer(element);
+    const containerEl = _getQContainerElement(element);
     if (containerEl) {
       containerState = _getContainerState(containerEl);
       doc = containerEl.ownerDocument;

@@ -152,6 +152,7 @@ function processJSXNode(
       enqueue(ssr.closeFragment);
       enqueue(value);
       enqueue(Promise);
+      enqueue(() => ssr.commentNode(FLUSH_COMMENT));
     } else if (isAsyncGenerator(value)) {
       enqueue(async () => {
         for await (const chunk of value) {

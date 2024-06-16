@@ -56,9 +56,9 @@ export interface SSRContainer extends Container2 {
   closeContainer(): void;
 
   openElement(
-    tag: string,
-    attrs: SsrAttrs | null,
-    immutableAttrs?: SsrAttrs | null
+    elementName: string,
+    varAttrs: SsrAttrs | null,
+    constAttrs?: SsrAttrs | null
   ): string | undefined;
   closeElement(): ValueOrPromise<void>;
 

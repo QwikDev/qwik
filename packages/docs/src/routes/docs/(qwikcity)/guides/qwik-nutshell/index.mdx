@@ -25,14 +25,7 @@ created_at: '2023-03-30T19:49:50Z'
 
 ## Components
 
-Qwik components are very similar to React components. They are functions that return JSX. However, `component$(...)` needs to be used, event handlers must have the `$` suffix, state is created using `useSignal()` , `class` is used instead of `className` and some other differences.
-
-- Components are always declared with the `component$` function.
-- Components can use the `useSignal` hook to create reactive state.
-- Event handlers are declared with the `$` suffix.
-- For `<input>`, the `onChange` event is called `onInput$` in Qwik.
-- JSX prefers HTML attributes. `class` instead of `className`. `for` instead of `htmlFor`.
-- Conditional rendering is done with the ternary operator `?` and the `&&` operator, just like React.
+Qwik components are very similar to React components. They are functions that return JSX. However, `component$(...)` needs to be used, event handlers must have the `$` suffix, state is created using `useSignal()`, `class` is used instead of `className` and some other differences.
 
 
 ```tsx title="src/components/my-other-component/index.tsx"

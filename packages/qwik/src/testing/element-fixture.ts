@@ -42,8 +42,9 @@ export class ElementFixture {
       assertDefined(this.host, 'host element must be defined');
       this.host.querySelectorAll('script[q\\:func="qwik/json"]').forEach((script) => {
         const code = script.textContent;
-        if (code?.startsWith(Q_FUNCS_PREFIX)) {
-          const qFuncs = eval(code.substring(Q_FUNCS_PREFIX.length));
+        if (code?.match(Q_FUNCS_PREFIX)) {
+          const equal = code.indexOf('=');
+          const qFuncs = eval(code.substring(equal + 1));
           const container = this.host.closest(QContainerSelector);
           (container as any as { qFuncs?: Function[] }).qFuncs = qFuncs;
         }
@@ -98,7 +99,7 @@ export async function trigger(
 
 const PREVENT_DEFAULT = 'preventdefault:';
 const STOP_PROPAGATION = 'stoppropagation:';
-const Q_FUNCS_PREFIX = 'document.currentScript.closest("[q\\\\:container]").qFuncs=';
+const Q_FUNCS_PREFIX = /document.qdata\["qFuncs_(.+)"\]=/;
 const QContainerSelector = '[q\\:container]';
 
 /**

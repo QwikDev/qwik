@@ -6,10 +6,11 @@ import { getPlatform } from '@builder.io/qwik';
 
 import init from './spa-init';
 
-export default () => {
+export default (base: string) => {
   if (isServer) {
     const [symbol, bundle] = getPlatform().chunkForSymbol(init.getSymbol(), null)!;
-    return `(${shim.toString()})('${bundle}','${symbol}');`;
+    const args = [base, bundle, symbol].map((x) => JSON.stringify(x)).join(',');
+    return `(${shim.toString()})(${args});`;
   }
 };
 
@@ -20,7 +21,7 @@ export default () => {
 // - If the check here doesn't pass, your page was never SPA. (no SPA pops possible)
 
 // ! DO NOT IMPORT OR USE ANY EXTERNAL REFERENCES IN THIS SCRIPT.
-const shim = async (path: string, symbol: string) => {
+const shim = async (base: string, path: string, symbol: string) => {
   if (!(window as ClientSPAWindow)._qcs && history.scrollRestoration === 'manual') {
     // TODO Option to remove this shim especially for MFEs, like loader, for now we only run once.
     (window as ClientSPAWindow)._qcs = true;
@@ -30,19 +31,21 @@ const shim = async (path: string, symbol: string) => {
       window.scrollTo(scrollState.x, scrollState.y);
     }
 
-    const currentScript = document.currentScript as HTMLScriptElement;
+    const script = document.currentScript as HTMLScriptElement;
+    if (script) {
+      // Inside shadow DOM, we can't get a hold of a container. So we can't
+      // load the SPA shim.
+      const container = script!.closest('[q\\:container]')!;
+      const url = new URL(path, new URL(base, document.baseURI));
 
-    const container = currentScript.closest('[q\\:container]')!;
-    const base = new URL(container.getAttribute('q:base')!, document.baseURI);
-    const url = new URL(path, base);
-
-    if (isDev) {
-      // Bypass dev import hijack. (not going to work here)
-      // eslint-disable-next-line no-new-func
-      const imp = new Function('url', 'return import(url)');
-      (await imp(url.href))[symbol](currentScript);
-    } else {
-      (await import(url.href))[symbol](currentScript);
+      if (isDev) {
+        // Bypass dev import hijack. (not going to work here)
+        // eslint-disable-next-line no-new-func
+        const imp = new Function('url', 'return import(url)');
+        (await imp(url.href))[symbol](container);
+      } else {
+        (await import(url.href))[symbol](container);
+      }
     }
   }
 };

@@ -2,13 +2,19 @@ import { describe, expect, it } from 'vitest';
 import { PrefetchServiceWorker, PrefetchGraph } from './prefetch';
 import { renderToString } from '../../server/render';
 
+const DEBUG = false;
+function log(...args: any[]) {
+  if (DEBUG) {
+    // eslint-disable-next-line no-console
+    console.log(...args);
+  }
+}
+
 describe('PrefetchServiceWorker', () => {
   describe('render', () => {
     it('should render', async () => {
-      // eslint-disable-next-line no-console
       const output = await renderToString(<PrefetchServiceWorker />, { containerTagName: 'div' });
-      // eslint-disable-next-line no-console
-      console.log('>>>>', output.html);
+      log('>>>>', output.html);
     });
 
     it('should render with a nonce', async () => {
@@ -24,8 +30,7 @@ describe('PrefetchServiceWorker', () => {
           containerTagName: 'div',
         }
       );
-      // eslint-disable-next-line no-console
-      console.log('>>>>', output.html);
+      log('>>>>', output.html);
       expect(output.html).to.includes('scope: "/en/"');
       expect(output.html).to.includes('"/build/en/qwik-prefetch-service-worker.js"');
     });
@@ -33,8 +38,7 @@ describe('PrefetchServiceWorker', () => {
       const output = await renderToString(<PrefetchServiceWorker base="/build/en/" />, {
         containerTagName: 'div',
       });
-      // eslint-disable-next-line no-console
-      console.log('>>>>', output.html);
+      log('>>>>', output.html);
       expect(output.html).to.includes('scope: "/"');
       expect(output.html).to.includes('"/build/en/qwik-prefetch-service-worker.js"');
     });
@@ -43,10 +47,9 @@ describe('PrefetchServiceWorker', () => {
         base: '/build/en/',
         containerTagName: 'div',
       });
-      // eslint-disable-next-line no-console
-      console.log('>>>>', output.html);
+      log('>>>>', output.html);
       expect(output.html).to.includes('scope: "/"');
-      expect(output.html).to.includes('"/qwik-prefetch-service-worker.js"');
+      expect(output.html).to.includes('/qwik-prefetch-service-worker.js');
     });
     it('should render script with a custom service-worker path', async () => {
       const output = await renderToString(
@@ -55,10 +58,9 @@ describe('PrefetchServiceWorker', () => {
           containerTagName: 'div',
         }
       );
-      // eslint-disable-next-line no-console
-      console.log('>>>>', output.html);
+      log('>>>>', output.html);
       expect(output.html).to.includes('scope: "/"');
-      expect(output.html).to.includes('"/patrickjs-service-worker.js"');
+      expect(output.html).to.includes('/patrickjs-service-worker.js');
     });
     it('should render script with a custom service-worker path with different base', async () => {
       const output = await renderToString(
@@ -67,8 +69,7 @@ describe('PrefetchServiceWorker', () => {
           containerTagName: 'div',
         }
       );
-      // eslint-disable-next-line no-console
-      console.log('>>>>', output.html);
+      log('>>>>', output.html);
       expect(output.html).to.includes('scope: "/"');
       expect(output.html).to.includes('"/build2/patrickjs-service-worker.js"');
     });
@@ -83,8 +84,7 @@ describe('PrefetchServiceWorker', () => {
           containerTagName: 'div',
         }
       );
-      // eslint-disable-next-line no-console
-      console.log('>>>>', output.html);
+      log('>>>>', output.html);
       expect(output.html).to.includes('scope: "/"');
       expect(output.html).to.includes('"/build/patrickjs-service-worker.js"');
     });
@@ -94,10 +94,8 @@ describe('PrefetchServiceWorker', () => {
 describe('PrefetchGraph', () => {
   describe('render', () => {
     it('should render', async () => {
-      // eslint-disable-next-line no-console
       const output = await renderToString(<PrefetchGraph />, { containerTagName: 'div' });
-      // eslint-disable-next-line no-console
-      console.log('>>>>', output.html);
+      log('>>>>', output.html);
     });
 
     it('should render with a nonce', async () => {

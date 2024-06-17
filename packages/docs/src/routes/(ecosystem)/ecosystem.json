@@ -121,6 +121,11 @@
       "title": "Vercel",
       "href": "/docs/deployments/vercel-edge/",
       "imgSrc": "/ecosystem/vercel.svg"
+    },
+    {
+      "title": "Zerops",
+      "href": "/docs/deployments/zerops/",
+      "imgSrc": "/ecosystem/zerops.svg"
     }
   ],
   "libraries": [

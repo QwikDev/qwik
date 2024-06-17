@@ -187,13 +187,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           pluginOpts.input = qwikViteOpts.client?.input;
           if (qwikViteOpts.client?.outDir) {
             pluginOpts.outDir = qwikViteOpts.client.outDir;
-          } else {
-            if (pluginOpts.assetsDir) {
-              pluginOpts.outDir = path.join(
-                pluginOpts.outDir || CLIENT_OUT_DIR,
-                pluginOpts.assetsDir
-              );
-            }
           }
           pluginOpts.manifestOutput = qwikViteOpts.client?.manifestOutput;
         } else {

@@ -99,6 +99,12 @@ describe('serialization', () => {
       serializeQRL(createQRL('c', 's1', null, null, [1 as any, '2'], null, null)),
       'c#s1[1 2]'
     );
+    assert.equal(
+      serializeQRL(
+        createQRL('src/routes/[...index]/c', 's1', null, null, [1 as any, '2'], null, null)
+      ),
+      'src/routes/%5B...index%5D/c#s1[1 2]'
+    );
   });
 
   test('should parse reference', () => {

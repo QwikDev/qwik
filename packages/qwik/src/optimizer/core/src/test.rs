@@ -3497,6 +3497,44 @@ fn example_of_synchronous_qrl() {
 	});
 }
 
+#[test]
+fn example_noop_dev_mode() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useStore, serverStuff$, $ } from '@builder.io/qwik';
+
+export const App = component$(() => {
+    const stuff = useStore();
+    serverStuff$(async () => {
+        // should be removed but keep scope
+        console.log(stuff.count)
+    })
+    serverStuff$(async () => {
+        // should be removed
+    })
+
+    return (
+        <Cmp>
+            <p class="stuff" 
+                shouldRemove$={() => stuff.count}
+                onClick$={() => console.log('warn')}
+            >
+                Hello Qwik
+            </p>
+        </Cmp>
+    );
+});
+"#
+		.to_string(),
+		mode: EmitMode::Dev,
+		transpile_ts: true,
+		transpile_jsx: true,
+		strip_event_handlers: true,
+		strip_ctx_name: Some(vec!["server".into()]),
+		..TestInput::default()
+	});
+}
+
 // TODO(misko): Make this test work by implementing strict serialization.
 // #[test]
 // fn example_of_synchronous_qrl_that_cant_be_serialized() {

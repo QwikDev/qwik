@@ -338,7 +338,7 @@ test('command: serve, --mode ssr with build.assetsDir', async () => {
   assert.deepEqual(opts.resolveQwikBuild, true);
 });
 
-test('should use build.assetsDir config with dist/ fallback with client target', async () => {
+test('should use the dist/ fallback with client target', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
@@ -348,10 +348,10 @@ test('should use build.assetsDir config with dist/ fallback with client target',
     { command: 'serve' }
   ))!;
 
-  assert.equal(c.build.outDir, normalizePath(resolve(cwd, `dist/my-assets-dir`)));
+  assert.equal(c.build.outDir, normalizePath(resolve(cwd, `dist`)));
 });
 
-test('should use build.outDir and build.assetsDir config with client target', async () => {
+test('should use build.outDir config with client target', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
@@ -361,10 +361,10 @@ test('should use build.outDir and build.assetsDir config with client target', as
     { command: 'serve' }
   ))!;
 
-  assert.equal(c.build.outDir, normalizePath(resolve(cwd, `my-dist/my-assets-dir`)));
+  assert.equal(c.build.outDir, normalizePath(resolve(cwd, `my-dist`)));
 });
 
-test('should not use build.assetsDir config when assetsDir is _astro', async () => {
+test('should use build.outDir config when assetsDir is _astro', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };

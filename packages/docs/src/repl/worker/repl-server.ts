@@ -1,6 +1,6 @@
 /**
  * - Source for url: "/repl/~repl-server-host.js"
- * - Created from the route: "src/routes/repl/~repl-server.js/entry.ts"
+ * - Created from the route: "src/routes/repl/~repl-server-host.js/entry.ts"
  * - Script executed from url: "/repl/~repl-server-host.html"
  * - Public static html source file: "public/repl/~repl-server-host.html"
  */

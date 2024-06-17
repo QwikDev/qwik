@@ -70,7 +70,8 @@ const StoreOption = (props: StoreOptionProps) => {
 
 export const BUILD_MODE_OPTIONS = ['development', 'production'];
 
-export const ENTRY_STRATEGY_OPTIONS = ['component', 'hook', 'single', 'smart', 'inline', 'hoist'];
+// We don't support `inline` and `hoist` for client bundles
+export const ENTRY_STRATEGY_OPTIONS = ['component', 'hook', 'single', 'smart'];
 
 interface StoreOptionProps {
   label: string;

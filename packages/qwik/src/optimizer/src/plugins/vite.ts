@@ -144,7 +144,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const vendorRoots = shouldFindVendors
         ? await findQwikRoots(sys, path.join(sys.cwd(), 'package.json'))
         : [];
-      const useCFAssetsDir = target === 'client' && viteConfig.build?.assetsDir !== '_astro';
+      const useCFAssetsDir =
+        target === 'client' &&
+        !!viteConfig.build?.assetsDir &&
+        viteConfig.build?.assetsDir !== '_astro';
       const pluginOpts: QwikPluginOptions = {
         target,
         buildMode,

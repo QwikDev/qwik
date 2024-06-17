@@ -369,7 +369,7 @@ test('should not use build.assetsDir config when assetsDir is _astro', async () 
     optimizerOptions: mockOptimizerOptions(),
   };
 
-  const plugin = qwikVite(initOpts);
+  const plugin = qwikVite(initOpts)[0];
 
   // Astro sets a build.assetsDir of _astro, but we don't want to change that
   const c: any = (await plugin.config({ build: { assetsDir: '_astro' } }, { command: 'serve' }))!;

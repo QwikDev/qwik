@@ -14,7 +14,7 @@ import { $ } from '@builder.io/qwik';
 // - Robust, fully relies only on history. (scrollRestoration = 'manual')
 
 // ! DO NOT IMPORT OR USE ANY EXTERNAL REFERENCES IN THIS SCRIPT.
-export default $((currentScript: HTMLScriptElement) => {
+export default $((container: HTMLElement) => {
   const win: ClientSPAWindow = window;
 
   const currentPath = location.pathname + location.search;
@@ -74,7 +74,6 @@ export default $((currentScript: HTMLScriptElement) => {
         // Hook into useNavigate context, if available.
         // We hijack a <Link> here, goes through the loader, resumes, app, etc. Simple.
         // TODO Will only work with <Link>, is there a better way?
-        const container = currentScript!.closest('[q\\:container]')!;
         const link = container.querySelector('a[q\\:link]');
 
         if (link) {

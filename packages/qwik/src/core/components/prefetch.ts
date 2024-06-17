@@ -1,6 +1,7 @@
 import { isDev } from '@builder.io/qwik/build';
 import { _jsxC } from '../internal';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
+import { useServerData } from '../use/use-env-data';
 
 /**
  * Install a service worker which will prefetch the bundles.
@@ -29,8 +30,10 @@ export const PrefetchServiceWorker = (opts: {
   fetchBundleGraph?: boolean;
   nonce?: string;
 }): JSXNode<'script'> => {
+  const serverData = useServerData<Record<string, string>>('containerAttributes', {});
   const resolvedOpts = {
-    base: import.meta.env.BASE_URL || '/',
+    base: serverData['q:base'],
+    manifestHash: serverData['q:manifest-hash'],
     scope: '/',
     verbose: false,
     path: 'qwik-prefetch-service-worker.js',
@@ -78,7 +81,8 @@ export const PrefetchServiceWorker = (opts: {
     dangerouslySetInnerHTML: [
       '(' + code + ')(',
       [
-        "document.currentScript.closest('[q\\\\:container]')",
+        JSON.stringify(resolvedOpts.base),
+        JSON.stringify(resolvedOpts.manifestHash),
         'navigator.serviceWorker',
         'window.qwikPrefetchSW||(window.qwikPrefetchSW=[])',
         resolvedOpts.verbose,
@@ -91,15 +95,12 @@ export const PrefetchServiceWorker = (opts: {
 };
 
 const PREFETCH_CODE = /*#__PURE__*/ ((
-  qc: HTMLElement, // QwikContainer Element
+  b: string, // base
+  h: string, // manifest hash
   c: ServiceWorkerContainer, // Service worker container
   q: Array<any[]>, // Queue of messages to send to the service worker.
-  v: boolean, // Verbose mode
-  b?: string,
-  h?: string
+  v: boolean // Verbose mode
 ) => {
-  b = qc.getAttribute('q:base')!;
-  h = qc.getAttribute('q:manifest-hash')!;
   c.register('URL', { scope: 'SCOPE' }).then(
     (sw: ServiceWorkerRegistration, onReady?: () => void) => {
       onReady = () => q.forEach((q.push = (v) => sw.active!.postMessage(v) as any));
@@ -137,39 +138,26 @@ const PREFETCH_CODE = /*#__PURE__*/ ((
 export const PrefetchGraph = (
   opts: { base?: string; manifestHash?: string; manifestURL?: string; nonce?: string } = {}
 ) => {
+  const serverData = useServerData<Record<string, string>>('containerAttributes', {});
   const resolvedOpts = {
-    base: `${import.meta.env.BASE_URL}build/`,
-    manifestHash: null,
-    manifestURL: null,
+    base: serverData['q:base'],
+    manifestHash: serverData['q:manifest-hash'],
+    scope: '/',
+    verbose: false,
+    path: 'qwik-prefetch-service-worker.js',
     ...opts,
   };
-  let code = PREFETCH_GRAPH_CODE;
-  if (!isDev) {
-    code = code.replaceAll(/\s+/gm, '');
-  }
+  const args = [
+    'graph-url',
+    resolvedOpts.base,
+    resolvedOpts.base + `q-bundle-graph-${resolvedOpts.manifestHash}.json`,
+  ]
+    .map((x) => JSON.stringify(x))
+    .join(',');
+  const code = `(window.qwikPrefetchSW||(window.qwikPrefetchSW=[])).push(${args})`;
   const props = {
-    dangerouslySetInnerHTML: [
-      '(' + code + ')(',
-      [
-        "document.currentScript.closest('[q\\\\:container]')",
-        'window.qwikPrefetchSW||(window.qwikPrefetchSW=[])',
-        JSON.stringify(resolvedOpts.base),
-        JSON.stringify(resolvedOpts.manifestHash),
-        JSON.stringify(resolvedOpts.manifestURL),
-      ].join(','),
-      ');',
-    ].join(''),
+    dangerouslySetInnerHTML: code,
     nonce: opts.nonce,
   };
   return _jsxC('script', props, 0, 'prefetch-graph');
 };
-
-const PREFETCH_GRAPH_CODE = /*#__PURE__*/ ((
-  qc: HTMLElement, // QwikContainer Element
-  q: Array<any[]>, // Queue of messages to send to the service worker.
-  b: string, // Base URL
-  h: string | null, // Manifest hash
-  u: string | null // Manifest URL
-) => {
-  q.push(['graph-url', b, u || `q-bundle-graph-${h || qc.getAttribute('q:manifest-hash')}.json`]);
-}).toString();

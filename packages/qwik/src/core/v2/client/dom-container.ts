@@ -24,6 +24,7 @@ import {
   QStyleSelector,
 } from '../../util/markers';
 import { maybeThen } from '../../util/promises';
+import { isSlotProp } from '../../util/prop';
 import { qDev } from '../../util/qdev';
 import type { ValueOrPromise } from '../../util/types';
 import { ChoreType } from '../shared/scheduler';
@@ -64,7 +65,7 @@ import {
   vnode_setProp,
   type VNodeJournal,
 } from './vnode';
-import { isSlotProp, vnode_diff } from './vnode-diff';
+import { vnode_diff } from './vnode-diff';
 
 /** @public */
 export function getDomContainer(element: Element | ElementVNode): IClientContainer {

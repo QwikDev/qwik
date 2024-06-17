@@ -89,6 +89,7 @@ import {
 } from './vnode';
 import { getNewElementNamespaceData } from './vnode-namespace';
 import { executeComponent2 } from '../shared/component-execution';
+import { isParentSlotProp, isSlotProp } from '../../util/prop';
 
 export type ComponentQueue = Array<VNode>;
 
@@ -1280,14 +1281,6 @@ function cleanupStaleUnclaimedProjection(journal: VNodeJournal, projection: VNod
       vnode_remove(journal, projectionParent, projection, true);
     }
   }
-}
-
-export function isSlotProp(prop: string): boolean {
-  return !prop.startsWith('q:');
-}
-
-function isParentSlotProp(prop: string): boolean {
-  return prop.startsWith(QSlotParent);
 }
 
 /**

@@ -1,5 +1,5 @@
 /**
- * - Source for url: "/repl/~repl-server.js"
+ * - Source for url: "/repl/~repl-server-host.js"
  * - Created from the route: "src/routes/repl/~repl-server.js/entry.ts"
  * - Script executed from url: "/repl/~repl-server-host.html"
  * - Public static html source file: "public/repl/~repl-server-host.html"
@@ -146,7 +146,7 @@ export const initReplServer = (win: Window, doc: Document, nav: Navigator) => {
           console.error('Qwik REPL Server "%s" service worker registration failed:', clientId, err);
         }
       )
-      .catch((e) => console.error(e));
+      .catch((e) => console.error('REPL service worker error', e));
 
     doc.title += ': ' + clientId;
     win.addEventListener('message', receiveMessageFromMainApp);

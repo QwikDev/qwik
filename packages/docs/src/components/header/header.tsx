@@ -15,8 +15,6 @@ import {
   setPreference,
   ThemeToggle,
 } from '../theme-toggle/theme-toggle';
-import BuilderContentComp from '../../components/builder-content';
-import { BUILDER_TOP_BAR_MODEL, BUILDER_PUBLIC_API_KEY } from '../../constants';
 
 export const Header = component$(() => {
   useStyles$(styles);
@@ -31,23 +29,8 @@ export const Header = component$(() => {
     });
   });
 
-  const hasBuilderBar = !(
-    pathname.startsWith('/examples') ||
-    pathname.startsWith('/tutorial') ||
-    pathname.startsWith('/playground')
-  );
-
   return (
     <>
-      {hasBuilderBar && (
-        <div class="builder-bar">
-          <BuilderContentComp
-            apiKey={BUILDER_PUBLIC_API_KEY}
-            model={BUILDER_TOP_BAR_MODEL}
-            tag="div"
-          />
-        </div>
-      )}
       <header
         class={{
           'header-container': true,

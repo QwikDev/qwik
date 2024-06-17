@@ -22,7 +22,7 @@ import type { JSXOutput } from '../jsx/types/jsx-node';
 test('render attributes', async () => {
   await testSSR(
     <body id="stuff" aria-required="true" role=""></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body id="stuff" aria-required="true" role=""></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body id="stuff" aria-required="true" role=""></body></html>'
   );
 });
 
@@ -37,7 +37,7 @@ test('render aria value', async () => {
       aria-hidden={undefined}
     ></body>,
     `
-        <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+        <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
           <body id="stuff" aria-required="true" aria-busy="false" role="" preventdefault:click></body>
         </html>
         `
@@ -47,7 +47,7 @@ test('render aria value', async () => {
 test('render className', async () => {
   await testSSR(
     <body class="stuff"></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body class="stuff"></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body class="stuff"></body></html>'
   );
 });
 
@@ -152,7 +152,7 @@ test('render class', async () => {
         'm-0 p-2': true,
       }}
     ></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body class="stuff m-0 p-2"></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body class="stuff m-0 p-2"></body></html>'
   );
 
   const Test = component$(() => {
@@ -164,7 +164,7 @@ test('render class', async () => {
     <body>
       <Test />
     </body>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <!--qv q:id=0 q:key=sX:-->
         <div class="myClass" q:id="1"></div>
@@ -177,7 +177,7 @@ test('render class', async () => {
     <body
       class={['stuff', '', 'm-0 p-2', null, { active: 1 }, undefined, [{ container: 'yup' }]]}
     ></body>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body class="stuff m-0 p-2 active container"></body>
     </html>`
   );
@@ -186,7 +186,7 @@ test('render class', async () => {
 test('render contentEditable', async () => {
   await testSSR(
     <body contentEditable="true"></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body contentEditable="true"></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body contentEditable="true"></body></html>'
   );
 });
 
@@ -198,7 +198,7 @@ test('render draggable', async () => {
       <div draggable={undefined}></div>
     </body>,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <div draggable="true"></div>
         <div draggable="false"></div>
@@ -215,7 +215,7 @@ test('render <textarea>', async () => {
       <textarea value="some text"></textarea>
     </body>,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <textarea>some text</textarea>
       </body>
@@ -232,7 +232,7 @@ test('render spellcheck', async () => {
       <div spellcheck={undefined}></div>
     </body>,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <div spellcheck="true"></div>
         <div spellcheck="false"></div>
@@ -256,7 +256,7 @@ test('render styles', async () => {
       }}
     ></body>,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body style="
           padding-top: 10px;
           padding-bottom: 10px;
@@ -274,7 +274,7 @@ test('render fake click handler', async () => {
   const Div = 'body' as any;
   await testSSR(
     <Div on:click="true" onScroll="text"></Div>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body on:click="true" onScroll="text"></body>
     </html>`
   );
@@ -285,7 +285,7 @@ test('self closing elements', async () => {
     <body>
       <input></input>
     </body>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <input>
       </body>
@@ -296,27 +296,27 @@ test('self closing elements', async () => {
 test('single simple children', async () => {
   await testSSR(
     <body>hola</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body>hola</body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body>hola</body></html>'
   );
   await testSSR(
     <body>{0}</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body>0</body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body>0</body></html>'
   );
   await testSSR(
     <body>{true}</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>'
   );
   await testSSR(
     <body>{false}</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>'
   );
   await testSSR(
     <body>{null}</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>'
   );
   await testSSR(
     <body>{undefined}</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>'
   );
 });
 
@@ -327,7 +327,7 @@ test('valid phrasing content', async () => {
         <del>Del</del>
       </p>
     </body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body><p><del>Del</del></p></body>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><p><del>Del</del></p></body>'
   );
   await testSSR(
     <body>
@@ -338,7 +338,7 @@ test('valid phrasing content', async () => {
         </select>
       </p>
     </body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body><p><select><option>A</option><option>B</option></select></p></body>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><p><select><option>A</option><option>B</option></select></p></body>'
   );
   await testSSR(
     <body>
@@ -346,7 +346,7 @@ test('valid phrasing content', async () => {
         <link rel="example" />
       </p>
     </body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body><p><link rel="example"/></p></body>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><p><link rel="example"/></p></body>'
   );
   await testSSR(
     <body>
@@ -357,7 +357,7 @@ test('valid phrasing content', async () => {
         <img useMap="#my-map" src="/example.png" alt="Example" />
       </p>
     </body>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <p>
           <map name="my-map">
@@ -381,7 +381,7 @@ test('valid phrasing content', async () => {
         </svg>
       </p>
     </body>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <p>
           <svg viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -406,7 +406,7 @@ test('valid phrasing content', async () => {
         </math>
       </p>
     </body>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <p>
           <math>
@@ -427,51 +427,51 @@ test('valid phrasing content', async () => {
 test('events', async () => {
   await testSSR(
     <body onClick$={() => console.warn('hol')}>hola</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body on:click="/runtimeQRL#_">hola</body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body on:click="/runtimeQRL#_">hola</body></html>'
   );
   await testSSR(
     <body onClick$={[undefined, $(() => console.warn('hol'))]}>hola</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body on:click="/runtimeQRL#_">hola</body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body on:click="/runtimeQRL#_">hola</body></html>'
   );
   await testSSR(
     <body onClick$={[undefined, [$(() => console.warn('hol'))]]}>hola</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body on:click="/runtimeQRL#_">hola</body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body on:click="/runtimeQRL#_">hola</body></html>'
   );
   await testSSR(
     <body document:onClick$={() => console.warn('hol')}>hola</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body on-document:click="/runtimeQRL#_">hola</body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body on-document:click="/runtimeQRL#_">hola</body></html>'
   );
   await testSSR(
     <body window:onClick$={() => console.warn('hol')}>hola</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body on-window:click="/runtimeQRL#_">hola</body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body on-window:click="/runtimeQRL#_">hola</body></html>'
   );
   await testSSR(
     <body>
       <input onInput$={() => console.warn('hol')} />
     </body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body><input on:input="/runtimeQRL#_"></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><input on:input="/runtimeQRL#_"></body></html>'
   );
 });
 
 test('innerHTML', async () => {
   await testSSR(
     <body dangerouslySetInnerHTML="<p>hola</p>"></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body><p>hola</p></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><p>hola</p></body></html>'
   );
   await testSSR(
     <body dangerouslySetInnerHTML=""></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>'
   );
   const Div = 'body' as any;
   await testSSR(
     <Div dangerouslySetInnerHTML={0}></Div>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body>0</body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body>0</body></html>'
   );
   await testSSR(
     <body>
       <script dangerouslySetInnerHTML="() => null"></script>
     </body>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <script>
           () => null
@@ -486,7 +486,7 @@ test('single complex children', async () => {
     <div>
       <p>hola</p>
     </div>,
-    '<container q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test" class="qc📦"><div><p>hola</p></div></container>',
+    '<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦"><div><p>hola</p></div></container>',
     {
       containerTagName: 'container',
     }
@@ -496,7 +496,7 @@ test('single complex children', async () => {
       hola {2}
       <p>hola</p>
     </div>,
-    '<container q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test" class="qc📦"><div>hola 2<p>hola</p></div></container>',
+    '<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦"><div>hola 2<p>hola</p></div></container>',
     {
       containerTagName: 'container',
     }
@@ -515,7 +515,7 @@ test('single multiple children', async () => {
       <li>7</li>
       <li>8</li>
     </ul>,
-    '<container q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test" class="qc📦"><ul><li>1</li><li>2</li><li>3</li><li>4</li><li>5</li><li>6</li><li>7</li><li>8</li></ul></container>',
+    '<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦"><ul><li>1</li><li>2</li><li>3</li><li>4</li><li>5</li><li>6</li><li>7</li><li>8</li></ul></container>',
     {
       containerTagName: 'container',
     }
@@ -527,7 +527,7 @@ test('sanity', async () => {
     <body>
       <div>{`.rule > thing{}`}</div>
     </body>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <div>.rule &gt; thing{}</div>
       </body>
@@ -557,7 +557,7 @@ test('using fragment', async () => {
       </>
       <li>8</li>
     </ul>,
-    '<container q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test" class="qc📦"><ul><li>1</li><li>2</li><li>3</li><li>4</li><li>5</li><li>6</li><li>7</li><li>8</li></ul></container>',
+    '<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦"><ul><li>1</li><li>2</li><li>3</li><li>4</li><li>5</li><li>6</li><li>7</li><li>8</li></ul></container>',
     {
       containerTagName: 'container',
     }
@@ -567,11 +567,11 @@ test('using fragment', async () => {
 test('using promises', async () => {
   await testSSR(
     <body>{Promise.resolve('hola')}</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body><!--qkssr-f-->hola</body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><!--qkssr-f-->hola</body></html>'
   );
   await testSSR(
     <body>{Promise.resolve(<p>hola</p>)}</body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body><!--qkssr-f--><p>hola</p></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body><!--qkssr-f--><p>hola</p></body></html>'
   );
 
   await testSSR(
@@ -586,7 +586,7 @@ test('using promises', async () => {
       ))}
     </ul>,
     [
-      '<container q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test" class="qc📦">',
+      '<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦">',
       '<ul>',
       '<!--qkssr-f-->',
       '<li>',
@@ -628,7 +628,7 @@ test('mixed children', async () => {
       ))}
     </ul>,
     `
-        <container q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test" class="qc📦">
+        <container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦">
         <ul>
         <li>0</li>
         <li>1</li>
@@ -656,7 +656,7 @@ test('DelayResource', async () => {
         <DelayResource text="thing" delay={10} />
       </ul>
     </body>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
     <body>
       <ul>
         <!--qv q:id=0 q:key=sX:-->
@@ -682,7 +682,7 @@ test('using promises with DelayResource', async () => {
         <DelayResource text="thing" delay={500} />
       </ul>
     </body>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
       <ul>
         <!--qkssr-f-->
@@ -700,7 +700,7 @@ test('using promises with DelayResource', async () => {
 test('using component', async () => {
   await testSSR(
     <MyCmp />,
-    `<container q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test" class="qc📦">
+    `<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦">
       <!--qv q:id=0 q:key=sX:-->
       <section><div>MyCmp{}</div></section>
       <!--/qv-->
@@ -716,7 +716,7 @@ test('using component with key', async () => {
     <body>
       <MyCmp key="hola" />
     </body>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <!--qv q:id=0 q:key=sX:hola-->
         <section><div>MyCmp{}</div></section>
@@ -731,7 +731,7 @@ test('using element with key', async () => {
     <body>
       <div key="hola" />
     </body>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <div q:key="hola"></div>
       </body>
@@ -744,7 +744,7 @@ test('using element with key containing double quotes', async () => {
     <body>
       <div key={'"hola"'} />
     </body>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <div q:key="&quot;hola&quot;"></div>
       </body>
@@ -766,7 +766,7 @@ test('using component props', async () => {
       stuff
     </MyCmp>,
     `
-    <container q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test" class="qc📦">
+    <container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦">
       <!--qv q:id=0 q:key=sX:-->
       <section>
         <div>MyCmp{"id":"12","host:prop":"attribute","innerHTML":"123","dangerouslySetInnerHTML":"432","onClick":"lazy.js","prop":"12"}</div>
@@ -787,7 +787,7 @@ test('using component project content', async () => {
       <div>slot</div>
     </MyCmp>,
     `
-  <container q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test" class="qc📦">
+  <container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦">
     <!--qv q:id=0 q:key=sX:-->
     <section><div>MyCmp{}</div></section>
     <q:template q:slot hidden aria-hidden="true"><div>slot</div></q:template>
@@ -805,7 +805,7 @@ test('using complex component', async () => {
     <body>
       <MyCmpComplex></MyCmpComplex>
     </body>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <!--qv q:id=0 q:key=sX:-->
         <div on:click="/runtimeQRL#_" q:id="1">
@@ -822,7 +822,7 @@ test('using complex component with slot', async () => {
   await testSSR(
     <MyCmpComplex>Hola</MyCmpComplex>,
     `
-    <container q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test" class="qc📦">
+    <container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦">
       <!--qv q:id=0 q:key=sX:-->
       <div on:click="/runtimeQRL#_" q:id="1">
         <button on:click="/runtimeQRL#_">Click</button>
@@ -847,7 +847,7 @@ test('<head>', async () => {
       </>
     </head>,
     `
-  <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+  <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
     <head q:head>
       <title q:head>hola</title>
       <meta q:head>
@@ -870,7 +870,7 @@ test('named slots', async () => {
       default
     </NamedSlot>,
     `
-    <container q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test" class="qc📦">
+    <container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦">
       <!--qv q:id=0 q:key=sX:-->
       <div>
         <!--qv q:s q:sref=0 q:key=start-->
@@ -904,7 +904,7 @@ test('nested slots', async () => {
       </SimpleSlot>
     </SimpleSlot>,
     `
-    <container q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test" class="qc📦">
+    <container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦">
       <!--qv q:id=0 q:key=sX:-->
         <div id="root">
           Before root
@@ -943,7 +943,7 @@ test('mixes slots', async () => {
   await testSSR(
     <MixedSlot>Content</MixedSlot>,
     `
-    <container q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test" class="qc📦">
+    <container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦">
       <!--qv q:id=0 q:key=sX:-->
       <!--qv q:id=1 q:key=sX:-->
         <div id="1">Before 1
@@ -968,7 +968,7 @@ test('component RenderSignals()', async () => {
   await testSSR(
     <RenderSignals />,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <!--qv q:id=0 q:key=sX:-->
       <head q:head>
         <title q:head>value</title>
@@ -990,7 +990,7 @@ test('component useContextProvider()', async () => {
     <Context>
       <ContextConsumer />
     </Context>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <!--qv q:id=0 q:key=sX:-->
         <!--qv q:s q:sref=0 q:key=-->
           <!--qv q:id=1 q:key=sX:-->hello bye<!--/qv-->
@@ -1004,7 +1004,7 @@ test('component useContextProvider()', async () => {
 test('component useContextProvider() + useContext()', async () => {
   await testSSR(
     <ContextWithValueAndUse value="hello bye" />,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <!--qv q:id=0 q:key=sX:-->hello bye<!--/qv-->
     </html>`
   );
@@ -1020,7 +1020,7 @@ test('component slotted context', async () => {
       </VariadicContext>
     </body>,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <!--qv q:id=0 q:key=sX:-->
         <!--qv q:id=1 q:key=sX:-->
@@ -1061,7 +1061,7 @@ test('component useOn()', async () => {
     <body>
       <Events />
     </body>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
       <!--qv q:id=0 q:key=sX:-->
       <div on:click="/runtimeQRL#_\n/runtimeQRL#_" on-window:click="/runtimeQRL#_" on-document:click="/runtimeQRL#_"></div>
@@ -1077,7 +1077,7 @@ test('component useOn([array])', async () => {
       <UseOnMultiple />
     </body>,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <!--qv q:id=0 q:key=sX:-->
         <div on:click="/runtimeQRL#_\n/runtimeQRL#_"
@@ -1100,7 +1100,7 @@ test('component useStyles()', async () => {
         <Styles />
       </body>
     </>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <!--qv q:id=0 q:key=sX:-->
           <style q:style="17nc-0" hidden>.host {color: red}</style>
@@ -1123,7 +1123,7 @@ test('component useStylesScoped()', async () => {
       </body>
     </>,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <!--qv q:sstyle=⭐️1d-0|⭐️1e-1 q:id=0 q:key=sX:-->
         <style q:style="1d-0" hidden>
@@ -1179,7 +1179,7 @@ test('component useStylesScoped() + slot', async () => {
       <RootStyles></RootStyles>
     </>,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <!--qv q:sstyle=⭐️lkei4s-0 q:id=0 q:key=sX:-->
       <body class="⭐️lkei4s-0">
         <!--qv q:sstyle=⭐️tdblg1-0 q:id=1 q:key=sX:-->
@@ -1207,7 +1207,7 @@ test('component useStylesScoped() + slot', async () => {
 test('component useBrowserVisibleTask()', async () => {
   await testSSR(
     <UseClientEffect />,
-    `<container q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test" class="qc📦">
+    `<container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦">
       <!--qv q:id=0 q:key=sX:-->
         <div on:qvisible="/runtimeQRL#_[0]
 /runtimeQRL#_[1]" q:id="1"></div>
@@ -1225,7 +1225,7 @@ test('component useBrowserVisibleTask() without elements', async () => {
       <UseEmptyClientEffect />
     </body>,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <!--qv q:id=0 q:key=sX:-->
         Hola
@@ -1244,7 +1244,7 @@ test('component useBrowserVisibleTask() inside <head>', async () => {
       <UseClientEffect as="style" />
     </head>,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <head q:head>
         <!--qv q:id=0 q:key=sX:-->
         Hola
@@ -1263,7 +1263,7 @@ test('nested html', async () => {
     <>
       <body></body>
     </>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body></body></html>`
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>`
   );
 });
 
@@ -1273,7 +1273,7 @@ test('root html component', async () => {
       <link></link>
     </HeadCmp>,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <!--qv q:id=0 q:key=sX:-->
       <head on-document:qinit="/runtimeQRL#_[0]" q:id="1" q:head>
         <title q:head>hola</title>
@@ -1320,7 +1320,7 @@ test('containerAttributes', async () => {
       <body></body>
     </>,
     `
-    <html prefix="something" q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    <html prefix="something" q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
      <body></body>
     </html>
     `,
@@ -1335,7 +1335,7 @@ test('containerAttributes', async () => {
       <div></div>
     </>,
     `
-    <app prefix="something" q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test" class='qc📦 thing'>
+    <app prefix="something" q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class='qc📦 thing'>
      <div></div>
     </app>
     `,
@@ -1355,7 +1355,7 @@ test('custom q:render', async () => {
       <body></body>
     </>,
     `
-    <html q:render="static-ssr-dev" q:container="paused" q:version="dev" q:manifest-hash="test">
+    <html q:render="static-ssr-dev" q:container="paused" q:version="dev" q:base="" q:manifest-hash="test">
      <body></body>
     </html>
     `,
@@ -1370,7 +1370,7 @@ test('custom q:render', async () => {
       <body></body>
     </>,
     `
-    <html q:render="ssr-dev" q:container="paused" q:version="dev" q:manifest-hash="test">
+    <html q:render="ssr-dev" q:container="paused" q:version="dev" q:base="" q:manifest-hash="test">
      <body></body>
     </html>
     `,
@@ -1399,7 +1399,7 @@ test('ssr marks', async () => {
         <li>3</li>
       ))}
     </body>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <!--qkssr-f-->
         <li>1</li>
@@ -1422,7 +1422,7 @@ test('ssr raw', async () => {
       <SSRRaw data="<div>hello</div>" />
     </body>,
     `
-  <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+  <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
     <body>
       <div>hello</div>
     </body>
@@ -1436,7 +1436,7 @@ test('html fragment', async () => {
       <HTMLFragment dangerouslySetInnerHTML="<div>hello</div>" />
     </body>,
     `
-  <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+  <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
     <body>
       <!--qv-->
       <div>hello</div>
@@ -1489,7 +1489,7 @@ test('null component', async () => {
     <>
       <NullCmp />
     </>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><!--qv q:id=0 q:key=sX:--><!--/qv--></html>`
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><!--qv q:id=0 q:key=sX:--><!--/qv--></html>`
   );
 });
 
@@ -1499,7 +1499,7 @@ test('cleanse attribute name', async () => {
   };
   await testSSR(
     <body {...o}></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body></body></html>'
   );
 });
 
@@ -1509,7 +1509,7 @@ test('cleanse class attribute', async () => {
   };
   await testSSR(
     <body {...o}></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body class="&quot;><script>alert(&quot;ಠ~ಠ&quot;)</script>"></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body class="&quot;><script>alert(&quot;ಠ~ಠ&quot;)</script>"></body></html>'
   );
 });
 
@@ -1519,7 +1519,7 @@ test('class emoji valid', async () => {
   };
   await testSSR(
     <body {...o}></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test"><body class="package📦"></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body class="package📦"></body></html>'
   );
 });
 
@@ -1531,7 +1531,7 @@ test('issue 4283', async () => {
       </Issue4283>
     </body>,
     `
-    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:manifest-hash="test">
+    <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
         <!--qv q:id=0 q:key=sX:-->
         <!--qv q:id=1 q:key=sX:-->
@@ -1843,7 +1843,7 @@ async function testSSR(
   expected: string | string[],
   opts?: Partial<RenderSSROptions>
 ) {
-  const chunks: string[] = [];
+  let chunks: string[] = [];
   const stream: StreamWriter = {
     write(chunk) {
       chunks.push(chunk);
@@ -1856,6 +1856,7 @@ async function testSSR(
     manifestHash: 'test',
     ...opts,
   });
+  chunks = chunks.map((c) => c.replace(/ q:instance="[^"]+"/, ''));
   if (typeof expected === 'string') {
     const options = { parser: 'html', htmlWhitespaceSensitivity: 'ignore' } as const;
     expect(await format(chunks.join(''), options)).toBe(

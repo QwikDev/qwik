@@ -23,9 +23,9 @@ Layouts provide **nested UI and request handling (middleware)** to a set of rout
 
 ## Example
 
-Let's put together all the concepts we have learned so far to build a full app.
+Now, combine all the previously discussed concepts to build a full app.
 
-In the proposed example, we have a site with 2 pages: `https://example.com` and `https://example.com/about`, and we want to add a common header and footer to all the pages, the only difference between the pages is the content in the middle.
+In the proposed example, you will notice a site with 2 pages: `https://example.com` and `https://example.com/about`. The goal is to add a common header and footer to all the pages, the only difference between the pages is the content in the middle.
 
 ```
 ┌───────────────────────────────────────────────────┐
@@ -40,9 +40,9 @@ In the proposed example, we have a site with 2 pages: `https://example.com` and 
 └───────────────────────────────────────────────────┘
 ```
 
-First, we create three components: `<Header>`, `<Footer>`, and `<Menu>`.
+First, create three components: `<Header>`, `<Footer>`, and `<Menu>`.
 
-> The developer could copy-paste these components manually into each page component, but that is repetitive and error-prone, **instead, we can use layouts to automatically reuse common parts.**
+> The developer could copy-paste these components manually into each page component, but that is repetitive and error-prone. **Instead, use layouts to automatically reuse common parts.**
 
 ### Routes directory
 
@@ -102,7 +102,7 @@ export default component$(() => {
 });
 ```
 
-When we run the app, Qwik will render the `About` nested inside the `RootLayout`
+When you run the app, Qwik will render the `About` nested inside the `RootLayout`
 
 ```tsx
 <RootLayout>

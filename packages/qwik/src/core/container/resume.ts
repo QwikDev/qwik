@@ -2,7 +2,7 @@ import { assertDefined, assertTrue } from '../error/assert';
 import { getDocument } from '../util/dom';
 import { isComment, isElement, isNode, isQwikElement, isText } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
-import { ELEMENT_ID, QContainerAttr } from '../util/markers';
+import { ELEMENT_ID, QContainerAttr, QInstance, getQFuncs } from '../util/markers';
 
 import { emitEvent } from '../util/event';
 
@@ -17,7 +17,6 @@ import {
   SHOW_COMMENT,
   type SnapshotState,
   strToInt,
-  type QContainerElement,
 } from './container';
 import { getVirtualElement } from '../render/dom/virtual-element';
 import { getSubscriptionManager, parseSubscription, type Subscriptions } from '../state/common';
@@ -27,7 +26,6 @@ import { pauseContainer } from './pause';
 import { isPrimitive } from '../render/dom/render-dom';
 import { getWrappingContainer } from '../use/use-core';
 import { getContext } from '../state/context';
-import { EMPTY_ARRAY } from '../util/flyweight';
 
 export const resumeIfNeeded = (containerEl: Element): void => {
   const isResumed = directGetAttribute(containerEl, QContainerAttr);
@@ -101,6 +99,7 @@ export const resumeContainer = (containerEl: Element) => {
   }
 
   const doc = getDocument(containerEl);
+  const hash = containerEl.getAttribute(QInstance)!;
   const isDocElement = containerEl === doc.documentElement;
   const parentJSON = isDocElement ? doc.body : containerEl;
   if (qDev) {
@@ -111,7 +110,7 @@ export const resumeContainer = (containerEl: Element) => {
     }
   }
 
-  const inlinedFunctions = getQwikInlinedFuncs(containerEl);
+  const inlinedFunctions = getQFuncs(doc, hash);
   const containerState = _getContainerState(containerEl);
 
   // Collect all elements
@@ -310,10 +309,6 @@ const reviveNestedObjects = (obj: unknown, getObject: GetObject, parser: Parser)
 
 const unescapeText = (str: string) => {
   return str.replace(/\\x3C(\/?script)/gi, '<$1');
-};
-
-export const getQwikInlinedFuncs = (containerEl: Element): Function[] => {
-  return (containerEl as QContainerElement).qFuncs ?? EMPTY_ARRAY;
 };
 
 export const getQwikJSON = (

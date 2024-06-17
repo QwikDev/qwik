@@ -11,6 +11,11 @@ on:
       - 'build/**'
   workflow_dispatch:
     inputs:
+      node_version:
+        description: 'Node version to use for the build'
+        required: false
+        type: string
+        default: '20.x'
       disttag:
         description: 'Publish "@builder.io/qwik" to NPM using this dist-tag, push the git-tag to the repo and create a GitHub release. The "latest" and "next" dist-tags will use the version number already committed in package.json.'
         required: true
@@ -97,12 +102,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -115,7 +120,7 @@ jobs:
           pnpm install --frozen-lockfile
 
       - name: Build Packages
-        run: pnpm tsm scripts/index.ts --tsc --build --cli --api --qwiklabs --eslint --platform-binding-wasm-copy --set-dist-tag="${{ github.event.inputs.disttag }}"
+        run: pnpm tsm scripts/index.ts --tsc --build --cli --api --qwiklabs --qwikcity --eslint --platform-binding-wasm-copy --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print Qwik Dist Build
         run: tree packages/qwik/dist/
@@ -150,7 +155,12 @@ jobs:
           path: packages/eslint-plugin-qwik/dist/
           if-no-files-found: error
 
-  ############ BUILD WASM ############
+      - name: Publish packages for testing
+        run: pnpm dlx pkg-pr-new@0.0.8 publish --compact --pnpm ./packages/qwik/dist ./packages/qwik-city/lib ./packages/eslint-plugin-qwik/dist ./packages/create-qwik/dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  ############ BUILD WASM #############
   build-wasm:
     name: Build WASM
     runs-on: ubuntu-latest
@@ -165,14 +175,14 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -258,14 +268,14 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -325,14 +335,14 @@ jobs:
         if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
         uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
         if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
 
       - name: Setup Node
         if: ${{ needs.changes.outputs.insightsbuild == 'true' }}
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -351,34 +361,38 @@ jobs:
   build-docs:
     name: Build Docs
     needs: changes
+    if: ${{ needs.changes.outputs.docsbuild == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
         uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
-        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
+      - uses: pnpm/action-setup@v4
 
       - name: Setup Node
-        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
+      - name: Install Rust toolchain
+        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
       - name: Install NPM Dependencies
-        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
         run: |
           # Ensure that the qwik binary gets made
           mkdir -p packages/qwik/dist/bindings/
           pnpm install --frozen-lockfile
 
+      # Temporary fix for the docs build, soon we will use caching
+      - run: pnpm build.local
+      - run: pnpm build --platform-binding
+
       - name: Build Qwik Docs
-        if: ${{ needs.changes.outputs.docsbuild == 'true' }}
-        run: pnpm run build.packages.docs
+        run: pnpm -C packages/docs build
 
   ############ BUILD DISTRIBUTION ############
   build-distribution:
@@ -398,14 +412,14 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
       - name: Setup Node
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -497,12 +511,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -568,10 +582,10 @@ jobs:
         settings:
           - host: ubuntu-latest
             browser: chromium
-            node: 18.x
+            node: 20.x
           - host: macos-latest
             browser: webkit
-            node: 18.x
+            node: 20.x
 
     runs-on: ${{ matrix.settings.host }}
 
@@ -580,7 +594,7 @@ jobs:
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
         if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
       - name: Setup Node ${{ matrix.settings.node }}
@@ -641,12 +655,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -737,12 +751,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.1.1
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 

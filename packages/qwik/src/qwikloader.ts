@@ -105,12 +105,13 @@ export const qwikLoader = (
         const symbol = url.hash[replace](/^#?([^?[|]*).*$/, '$1') || 'default';
         const reqTime = performance.now();
         let handler: undefined | any;
-        let importError: undefined | 'sync' | 'async';
+        let importError: undefined | 'sync' | 'async' | 'no-symbol';
         let error: undefined | Error;
         const isSync = qrl.startsWith('#');
         const eventData = { qBase, qManifest, qVersion, href, symbol, element, reqTime };
         if (isSync) {
-          handler = (container.qFuncs || [])[Number.parseInt(symbol)];
+          const hash = container.getAttribute('q:instance')!;
+          handler = ((doc as any)['qFuncs_' + hash] || [])[Number.parseInt(symbol)];
           if (!handler) {
             importError = 'sync';
             error = new Error('sync handler error for symbol: ' + symbol);
@@ -121,13 +122,18 @@ export const qwikLoader = (
             const module = import(/* @vite-ignore */ uri);
             resolveContainer(container);
             handler = (await module)[symbol];
+            if (!handler) {
+              importError = 'no-symbol';
+              error = new Error(`${symbol} not in ${uri}`);
+            }
           } catch (err) {
-            importError = 'async';
+            importError ||= 'async';
             error = err as Error;
           }
         }
         if (!handler) {
           emitEvent('qerror', { importError, error, ...eventData });
+          console.error(error);
           // break out of the loop if handler is not found
           break;
         }

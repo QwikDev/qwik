@@ -11,7 +11,8 @@ contributors:
   - jessezhang91
   - mrhoodz
   - adamdbradley
-updated_at: '2023-08-25T17:16:17Z'
+  - s-voloshynenko
+updated_at: '2024-05-31T15:31:17Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
@@ -182,13 +183,19 @@ transformedModuleOutput?:
 ```js
 devTools?: {
     /**
+     * Validates image sizes for CLS issues during development.
+     * In case of issues, provides you with a correct image size resolutions.
+     * If set to `false`, image dev tool will be disabled.
+     */
+    imageDevTools?: boolean | true;
+    /**
      * Press-hold the defined keys to enable qwik dev inspector.
      * By default the behavior is activated by pressing the left or right `Alt` key.
      * If set to `false`, qwik dev inspector will be disabled.
      * Valid values are `KeyboardEvent.code` values.
      * Please note that the 'Left' and 'Right' suffixes are ignored.
      */
-    clickToSource: string[] | false;
+    clickToSource?: string[] | false;
 };
 ```
 

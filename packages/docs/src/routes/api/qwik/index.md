@@ -1698,6 +1698,10 @@ Description
 
 ## createComputed$
 
+> Warning: This API is now obsolete.
+>
+> This is a technology preview
+
 Returns read-only signal that updates when signals used in the `ComputedFn` change. Unlike useComputed$, this is not a hook and it always creates a new signal.
 
 ```typescript
@@ -1854,6 +1858,10 @@ The name of the context.
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
 
 ## createSignal
+
+> Warning: This API is now obsolete.
+>
+> This is a technology preview
 
 Creates a signal.
 
@@ -4021,7 +4029,8 @@ export type QRLEventHandlerMulti<EV extends Event, EL> =
   | QRL<EventHandler<EV, EL>>
   | undefined
   | null
-  | QRLEventHandlerMulti<EV, EL>[];
+  | QRLEventHandlerMulti<EV, EL>[]
+  | EventHandler<EV, EL>;
 ```
 
 **References:** [QRL](#qrl), [EventHandler](#eventhandler), [QRLEventHandlerMulti](#qrleventhandlermulti)
@@ -10187,6 +10196,10 @@ qrl
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## useConstant
+
+> Warning: This API is now obsolete.
+>
+> This is a technology preview
 
 Stores a value which is retained for the lifetime of the component.
 

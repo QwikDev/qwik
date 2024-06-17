@@ -157,7 +157,7 @@ export interface CorrectedToggleEvent extends Event {
     readonly prevState: 'open' | 'closed';
 }
 
-// @public
+// @public @deprecated
 export const createComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>;
 
 // @public (undocumented)
@@ -166,7 +166,7 @@ export const createComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => Signal<Awaited<T
 // @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
 
-// @public
+// @public @deprecated
 export const createSignal: UseSignal;
 
 // @public (undocumented)
@@ -670,7 +670,7 @@ export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: st
 export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @beta
-export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[];
+export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[] | EventHandler<EV, EL>;
 
 // @alpha
 export const _qrlSync: <TYPE extends Function>(fn: TYPE, serializedFn?: string) => SyncQRL<TYPE>;
@@ -1630,7 +1630,7 @@ export const useComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>;
 // @public (undocumented)
 export const useComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => Signal<Awaited<T>>;
 
-// @public
+// @public @deprecated
 export const useConstant: <T>(value: (() => T) | T) => T;
 
 // Warning: (ae-forgotten-export) The symbol "UseContext" needs to be exported by the entry point index.d.ts

@@ -5,7 +5,7 @@ import type {
 import {
   mergeHeadersCookies,
   requestHandler,
-  _TextEncoderStream_polyfill2,
+  _TextEncoderStream_polyfill,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
@@ -22,7 +22,7 @@ export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {
     new globalThis.TextEncoderStream();
   } catch (e) {
     // @ts-ignore
-    globalThis.TextEncoderStream = _TextEncoderStream_polyfill2;
+    globalThis.TextEncoderStream = _TextEncoderStream_polyfill;
   }
   const qwikSerializer = {
     _deserializeData,

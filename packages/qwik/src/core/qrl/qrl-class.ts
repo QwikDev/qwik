@@ -1,4 +1,3 @@
-import type { QContainerElement } from '../container/container';
 import { assertDefined } from '../error/assert';
 import { qError, QError_qrlIsNotFunction } from '../error/error';
 import { getPlatform, isServerPlatform } from '../platform/platform';
@@ -12,6 +11,7 @@ import {
   type InvokeContext,
   type InvokeTuple,
 } from '../use/use-core';
+import { getQFuncs, QInstance } from '../util/markers';
 import { maybeThen } from '../util/promises';
 import { qDev, qSerialize, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../util/types';
@@ -55,7 +55,7 @@ export type QRLInternalMethods<TYPE> = {
       unknown;
 
   $setContainer$(containerEl: Element | undefined): Element | undefined;
-  $resolveLazy$(containerEl?: Element): ValueOrPromise<TYPE>;
+  $resolveLazy$(containerEl: Element): ValueOrPromise<TYPE>;
 };
 
 export type QRLInternal<TYPE = unknown> = QRL<TYPE> & QRLInternalMethods<TYPE>;
@@ -93,25 +93,28 @@ export const createQRL = <TYPE>(
   };
 
   const resolve = async (containerEl?: Element): Promise<TYPE> => {
+    if (symbolRef !== null) {
+      // Resolving (Promise) or already resolved (value)
+      return symbolRef;
+    }
     if (containerEl) {
       setContainer(containerEl);
     }
-    if (chunk == '') {
+    if (chunk === '') {
       // Sync QRL
       assertDefined(_containerEl, 'Sync QRL must have container element');
-      const qFuncs = (_containerEl as QContainerElement).qFuncs || [];
-      qrl.resolved = symbolRef = qFuncs[Number(symbol)] as TYPE;
-    }
-    if (symbolRef !== null) {
-      return symbolRef;
+      const hash = _containerEl.getAttribute(QInstance)!;
+      const doc = _containerEl.ownerDocument!;
+      const qFuncs = getQFuncs(doc, hash);
+      return (qrl.resolved = symbolRef = qFuncs[Number(symbol)] as TYPE);
     }
     if (symbolFn !== null) {
       return (symbolRef = symbolFn().then(
         (module) => (qrl.resolved = symbolRef = module[symbol] as TYPE)
       ));
     } else {
-      const symbol2 = getPlatform().importSymbol(_containerEl, chunk, symbol);
-      return (symbolRef = maybeThen(symbol2, (ref) => {
+      const imported = getPlatform().importSymbol(_containerEl, chunk, symbol);
+      return (symbolRef = maybeThen(imported, (ref) => {
         return (qrl.resolved = symbolRef = ref);
       }));
     }

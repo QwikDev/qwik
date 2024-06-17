@@ -1,6 +1,6 @@
 use crate::transform::HookData;
-use crate::words::*;
 use crate::{parse::PathData, transform::HookKind};
+use path_slash::PathBufExt;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use swc_atoms::JsWord;
@@ -9,7 +9,6 @@ use lazy_static::lazy_static;
 
 lazy_static! {
 	static ref ENTRY_HOOKS: JsWord = JsWord::from("entry_hooks");
-	static ref ENTRY_SERVER: JsWord = JsWord::from("entry_server");
 }
 
 // EntryStrategies
@@ -134,7 +133,15 @@ impl EntryPolicy for PerComponentStrategy {
 		}
 		context.first().map_or_else(
 			|| Some(ENTRY_HOOKS.clone()),
-			|root| Some(JsWord::from(["entry_", root].concat())),
+			|root| {
+				Some(JsWord::from(
+					_path
+						.rel_dir
+						.join(["entry_", root].concat())
+						.to_slash_lossy()
+						.as_ref(),
+				))
+			},
 		)
 	}
 }
@@ -157,24 +164,34 @@ impl EntryPolicy for SmartStrategy {
 		context: &[String],
 		hook_data: &HookData,
 	) -> Option<JsWord> {
+		// Event handlers without scope variables are put into a separate file
 		if hook_data.scoped_idents.is_empty()
 			&& (hook_data.ctx_kind != HookKind::Function || &hook_data.ctx_name == "event$")
 		{
 			return None;
 		}
-		if hook_data.ctx_name == *USE_SERVER_MOUNT {
-			return Some(ENTRY_SERVER.clone());
-		}
+		// Anything that Insights wants to put together is put together
 		if let Some(map) = &self.map {
 			let entry = map.get(hash);
 			if let Some(entry) = entry {
 				return Some(entry.clone());
 			}
 		}
-		Some(context.first().map_or_else(
-			|| ENTRY_HOOKS.clone(),
-			|root| JsWord::from(["entry_", root].concat()),
-		))
+		// Everything else is put into a single file per component
+		// This means that all QRLs for a component are loaded together
+		// if one is used
+		context.first().map_or_else(
+			|| None,
+			|root| {
+				Some(JsWord::from(
+					_path
+						.rel_dir
+						.join(["entry_", root].concat())
+						.to_slash_lossy()
+						.as_ref(),
+				))
+			},
+		)
 	}
 }
 

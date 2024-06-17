@@ -1843,7 +1843,7 @@ async function testSSR(
   expected: string | string[],
   opts?: Partial<RenderSSROptions>
 ) {
-  const chunks: string[] = [];
+  let chunks: string[] = [];
   const stream: StreamWriter = {
     write(chunk) {
       chunks.push(chunk);
@@ -1856,6 +1856,7 @@ async function testSSR(
     manifestHash: 'test',
     ...opts,
   });
+  chunks = chunks.map((c) => c.replace(/ q:instance="[^"]+"/, ''));
   if (typeof expected === 'string') {
     const options = { parser: 'html', htmlWhitespaceSensitivity: 'ignore' } as const;
     expect(await format(chunks.join(''), options)).toBe(

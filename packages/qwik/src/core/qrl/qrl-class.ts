@@ -11,7 +11,7 @@ import {
   type InvokeContext,
   type InvokeTuple,
 } from '../use/use-core';
-import { getQFuncs, QManifestHash } from '../util/markers';
+import { getQFuncs, QInstance } from '../util/markers';
 import { maybeThen } from '../util/promises';
 import { qDev, qSerialize, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../util/types';
@@ -103,7 +103,7 @@ export const createQRL = <TYPE>(
     if (chunk === '') {
       // Sync QRL
       assertDefined(_containerEl, 'Sync QRL must have container element');
-      const hash = _containerEl.getAttribute(QManifestHash)!;
+      const hash = _containerEl.getAttribute(QInstance)!;
       const doc = _containerEl.ownerDocument!;
       const qFuncs = getQFuncs(doc, hash);
       return (qrl.resolved = symbolRef = qFuncs[Number(symbol)] as TYPE);

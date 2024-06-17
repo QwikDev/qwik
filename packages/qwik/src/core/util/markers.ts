@@ -20,10 +20,11 @@ export const QStyle = 'q:style';
 export const QScopedStyle = 'q:sstyle';
 export const QCtxAttr = 'q:ctx';
 export const QManifestHash = 'q:manifest-hash';
-export const QFuncsSuffix = ':qFuncs';
+export const QInstance = 'q:instance';
+export const QFuncsPrefix = 'qFuncs_';
 
 export const getQFuncs = (document: Document, hash: string): Function[] => {
-  return (document as any)[hash + QFuncsSuffix] || [];
+  return (document as any)[QFuncsPrefix + hash] || [];
 };
 
 export const QLocaleAttr = 'q:locale';

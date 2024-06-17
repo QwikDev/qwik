@@ -99,7 +99,7 @@ export async function trigger(
 
 const PREVENT_DEFAULT = 'preventdefault:';
 const STOP_PROPAGATION = 'stoppropagation:';
-const Q_FUNCS_PREFIX = /document.qdata\["(.+):qFuncs"\]=/;
+const Q_FUNCS_PREFIX = /document.qdata\["qFuncs_(.+)"\]=/;
 const QContainerSelector = '[q\\:container]';
 
 /**

@@ -30,10 +30,7 @@ export const PrefetchServiceWorker = (opts: {
   fetchBundleGraph?: boolean;
   nonce?: string;
 }): JSXNode<'script'> => {
-  const serverData = useServerData<Record<string, string>>('containerAttributes');
-  if (!serverData) {
-    throw new Error('PrefetchServiceWorker component must be rendered on the server.');
-  }
+  const serverData = useServerData<Record<string, string>>('containerAttributes', {});
   const resolvedOpts = {
     base: serverData['q:base'],
     manifestHash: serverData['q:manifest-hash'],
@@ -141,10 +138,7 @@ const PREFETCH_CODE = /*#__PURE__*/ ((
 export const PrefetchGraph = (
   opts: { base?: string; manifestHash?: string; manifestURL?: string; nonce?: string } = {}
 ) => {
-  const serverData = useServerData<Record<string, string>>('containerAttributes');
-  if (!serverData) {
-    throw new Error('PrefetchServiceWorker component must be rendered on the server.');
-  }
+  const serverData = useServerData<Record<string, string>>('containerAttributes', {});
   const resolvedOpts = {
     base: serverData['q:base'],
     manifestHash: serverData['q:manifest-hash'],

@@ -157,6 +157,7 @@ export const _renderSSR = async (node: JSXOutput, opts: RenderSSROptions) => {
   containerAttributes['q:base'] = opts.base || '';
   containerAttributes['q:locale'] = locale;
   containerAttributes['q:manifest-hash'] = opts.manifestHash;
+  containerAttributes['q:instance'] = hash();
 
   const children = root === 'html' ? [node] : [headNodes, node];
   if (root !== 'html') {
@@ -188,6 +189,8 @@ export const _renderSSR = async (node: JSXOutput, opts: RenderSSROptions) => {
     renderRoot(rootNode, rCtx, ssrCtx, opts.stream, containerState, opts)
   );
 };
+
+const hash = () => Math.random().toString(36).slice(2);
 
 const renderRoot = async (
   node: JSXNode,

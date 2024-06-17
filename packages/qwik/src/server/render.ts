@@ -17,7 +17,7 @@ import type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
 import { getValidManifest } from '../optimizer/src/manifest';
 import { applyPrefetchImplementation } from './prefetch-implementation';
 import type { QContext } from '../core/state/context';
-import { QManifestHash } from '../core/util/markers';
+import { QInstance } from '../core/util/markers';
 
 const DOCTYPE = '<!DOCTYPE html>';
 
@@ -204,7 +204,7 @@ export async function renderToStream(
         })
       );
       if (snapshotResult.funcs.length > 0) {
-        const hash = containerAttributes[QManifestHash];
+        const hash = containerAttributes[QInstance];
         children.push(
           jsx('script', {
             'q:func': 'qwik/json',
@@ -357,7 +357,7 @@ function collectRenderSymbols(renderSymbols: string[], elements: QContext[]) {
   }
 }
 
-export const Q_FUNCS_PREFIX = 'document["HASH:qFuncs"]=';
+export const Q_FUNCS_PREFIX = 'document["qFuncs_HASH"]=';
 
 function serializeFunctions(hash: string, funcs: string[]) {
   return Q_FUNCS_PREFIX.replace('HASH', hash) + `[${funcs.join(',\n')}]`;

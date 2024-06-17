@@ -10,7 +10,7 @@ export default (base: string) => {
   if (isServer) {
     const [symbol, bundle] = getPlatform().chunkForSymbol(init.getSymbol(), null)!;
     const args = [base, bundle, symbol].map((x) => JSON.stringify(x)).join(',');
-    return `(${shim.toString()})('${args}');`;
+    return `(${shim.toString()})(${args});`;
   }
 };
 

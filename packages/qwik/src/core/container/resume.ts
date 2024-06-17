@@ -2,7 +2,7 @@ import { assertDefined, assertTrue } from '../error/assert';
 import { getDocument } from '../util/dom';
 import { isComment, isElement, isNode, isQwikElement, isText } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
-import { ELEMENT_ID, QContainerAttr, QManifestHash, getQFuncs } from '../util/markers';
+import { ELEMENT_ID, QContainerAttr, QInstance, getQFuncs } from '../util/markers';
 
 import { emitEvent } from '../util/event';
 
@@ -99,7 +99,7 @@ export const resumeContainer = (containerEl: Element) => {
   }
 
   const doc = getDocument(containerEl);
-  const hash = containerEl.getAttribute(QManifestHash)!;
+  const hash = containerEl.getAttribute(QInstance)!;
   const isDocElement = containerEl === doc.documentElement;
   const parentJSON = isDocElement ? doc.body : containerEl;
   if (qDev) {

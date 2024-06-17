@@ -1190,7 +1190,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
         const attrs = vCursor;
         for (let i = VirtualVNodeProps.PROPS_OFFSET; i < attrs.length; i = i + 2) {
           const key = attrs[i] as string;
-          if (isNamedSlotProp(key)) {
+          if (!isParentSlotProp(key) && isSlotProp(key)) {
             const value = attrs[i + 1];
             if (value) {
               attrs[i + 1] = null; // prevent infinite loop
@@ -1288,10 +1288,6 @@ export function isSlotProp(prop: string): boolean {
 
 function isParentSlotProp(prop: string): boolean {
   return prop.startsWith(QSlotParent);
-}
-
-function isNamedSlotProp(prop: string): boolean {
-  return !isParentSlotProp(prop) && isSlotProp(prop);
 }
 
 /**

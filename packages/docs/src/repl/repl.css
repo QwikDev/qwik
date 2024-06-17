@@ -219,6 +219,10 @@
 .output-modules {
   display: grid;
   grid-template-areas: 'repl-file-tree repl-file-text';
+  @media screen and (max-width: 768px) {
+    grid-template-areas: 'repl-file-tree' 'repl-file-text';
+  }
+
   height: 100%;
   overflow: hidden;
   @apply sm-grid-column;

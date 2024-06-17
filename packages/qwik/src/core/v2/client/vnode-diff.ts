@@ -397,7 +397,7 @@ export const vnode_diff = (
         // we need to create empty projections for all the slots to remove unused slots content
         for (let i = vnode_getPropStartIndex(host); i < host.length; i = i + 2) {
           const prop = host[i] as string;
-          if (!isSlotProp(prop)) {
+          if (isSlotProp(prop)) {
             const slotName = prop;
             projections.push(slotName);
             projections.push(createProjectionJSXNode(slotName));

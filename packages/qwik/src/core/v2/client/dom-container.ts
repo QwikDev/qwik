@@ -64,7 +64,7 @@ import {
   vnode_setProp,
   type VNodeJournal,
 } from './vnode';
-import { vnode_diff } from './vnode-diff';
+import { isSlotProp, vnode_diff } from './vnode-diff';
 
 /** @public */
 export function getDomContainer(element: Element | ElementVNode): IClientContainer {
@@ -289,7 +289,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       vNode[VNodeProps.flags] |= VNodeFlags.Resolved;
       for (let i = vnode_getPropStartIndex(vNode); i < vNode.length; i = i + 2) {
         const prop = vNode[i] as string;
-        if (!prop.startsWith('q:')) {
+        if (isSlotProp(prop)) {
           const value = vNode[i + 1];
           if (typeof value == 'string') {
             vNode[i + 1] = this.$vnodeLocate$(value);

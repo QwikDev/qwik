@@ -205,10 +205,6 @@ function vnode_cloneElementWithNamespace(
       vCursor = vNextSibling;
       continue;
     }
-    if (vCursor === elementVNode) {
-      // we are back where we started, we are done.
-      return rootElement;
-    }
     // Out of siblings, go to parent
     vParent = vnode_getParent(vCursor);
     while (vParent) {

@@ -84,6 +84,7 @@ import {
   vnode_setProp,
   vnode_setText,
   vnode_truncate,
+  vnode_walkVNode,
   type VNodeJournal,
 } from './vnode';
 import { getNewElementNamespaceData } from './vnode-namespace';
@@ -396,7 +397,7 @@ export const vnode_diff = (
         // we need to create empty projections for all the slots to remove unused slots content
         for (let i = vnode_getPropStartIndex(host); i < host.length; i = i + 2) {
           const prop = host[i] as string;
-          if (!prop.startsWith('q:')) {
+          if (!isSlotProp(prop)) {
             const slotName = prop;
             projections.push(slotName);
             projections.push(createProjectionJSXNode(slotName));
@@ -1027,7 +1028,7 @@ export const vnode_diff = (
     if (host) {
       for (let i = vnode_getPropStartIndex(host); i < host.length; i = i + 2) {
         const prop = host[i] as string;
-        if (!prop.startsWith('q:')) {
+        if (isSlotProp(prop)) {
           const value = host[i + 1];
           container.setHostProp(vNewNode, prop, value);
         }
@@ -1189,8 +1190,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
         const attrs = vCursor;
         for (let i = VirtualVNodeProps.PROPS_OFFSET; i < attrs.length; i = i + 2) {
           const key = attrs[i] as string;
-          if (!key.startsWith(':') && !key.startsWith('q:')) {
-            // any prop which does not start with `:` or `q:` is a content-projection prop.
+          if (isNamedSlotProp(key)) {
             const value = attrs[i + 1];
             if (value) {
               attrs[i + 1] = null; // prevent infinite loop
@@ -1220,6 +1220,17 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
           vCursor = vFirstChild;
           continue;
         }
+      } else if (vCursor === vNode) {
+        /**
+         * If it is a projection and we are at the root, then we should only walk the children to
+         * materialize the projection content. This is because we could have references in the vnode
+         * refs map which need to be materialized before cleanup.
+         */
+        const vFirstChild = vnode_getFirstChild(vCursor);
+        if (vFirstChild) {
+          vnode_walkVNode(vFirstChild);
+          return;
+        }
       }
     }
     // Out of children
@@ -1233,10 +1244,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
       vCursor = vNextSibling;
       continue;
     }
-    if (vCursor === vNode) {
-      // we are back where we started, we are done.
-      return;
-    }
+
     // Out of siblings, go to parent
     vParent = vnode_getParent(vCursor);
     while (vParent) {
@@ -1272,6 +1280,18 @@ function cleanupStaleUnclaimedProjection(journal: VNodeJournal, projection: VNod
       vnode_remove(journal, projectionParent, projection, true);
     }
   }
+}
+
+export function isSlotProp(prop: string): boolean {
+  return !prop.startsWith('q:');
+}
+
+function isParentSlotProp(prop: string): boolean {
+  return prop.startsWith(QSlotParent);
+}
+
+function isNamedSlotProp(prop: string): boolean {
+  return !isParentSlotProp(prop) && isSlotProp(prop);
 }
 
 /**

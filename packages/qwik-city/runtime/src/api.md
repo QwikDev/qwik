@@ -477,6 +477,11 @@ export const useNavigate: () => RouteNavigate;
 export const validator$: ValidatorConstructor;
 
 // @public (undocumented)
+export type ValidatorErrorKeyDotNotation<T, Prefix extends string = ''> = T extends object ? {
+    [K in keyof T & string]: T[K] extends (infer U)[] ? U extends object ? `${Prefix}${K}[]` | `${Prefix}${K}[]${ValidatorErrorKeyDotNotation<U, '.'>}` : `${Prefix}${K}[]` : T[K] extends object ? ValidatorErrorKeyDotNotation<T[K], `${Prefix}${K}.`> : `${Prefix}${K}`;
+}[keyof T & string] : never;
+
+// @public (undocumented)
 export type ValidatorErrorType<T, U = string> = {
     formErrors: U[];
     fieldErrors: Partial<{
@@ -512,10 +517,6 @@ export type ZodConstructor = {
 //
 // @public (undocumented)
 export const zodQrl: ZodConstructorQRL;
-
-// Warnings were encountered during analysis:
-//
-// /Users/tobi/dev/web/qwik/dist-dev/dts-out/packages/qwik-city/runtime/src/types.d.ts:278:5 - (ae-forgotten-export) The symbol "ValidatorErrorType" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

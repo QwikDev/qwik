@@ -2395,6 +2395,31 @@ validator$: ValidatorConstructor;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
 
+## ValidatorErrorKeyDotNotation
+
+```typescript
+export type ValidatorErrorKeyDotNotation<
+  T,
+  Prefix extends string = "",
+> = T extends object
+  ? {
+      [K in keyof T & string]: T[K] extends (infer U)[]
+        ? U extends object
+          ?
+              | `${Prefix}${K}[]`
+              | `${Prefix}${K}[]${ValidatorErrorKeyDotNotation<U, ".">}`
+          : `${Prefix}${K}[]`
+        : T[K] extends object
+          ? ValidatorErrorKeyDotNotation<T[K], `${Prefix}${K}.`>
+          : `${Prefix}${K}`;
+    }[keyof T & string]
+  : never;
+```
+
+**References:** [ValidatorErrorKeyDotNotation](#validatorerrorkeydotnotation)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
+
 ## ValidatorErrorType
 
 ```typescript
@@ -2407,6 +2432,8 @@ export type ValidatorErrorType<T, U = string> = {
   }>;
 };
 ```
+
+**References:** [ValidatorErrorKeyDotNotation](#validatorerrorkeydotnotation)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 

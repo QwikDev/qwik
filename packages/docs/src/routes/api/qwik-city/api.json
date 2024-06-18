@@ -857,6 +857,20 @@
       "mdFile": "qwik-city.validator_.md"
     },
     {
+      "name": "ValidatorErrorKeyDotNotation",
+      "id": "validatorerrorkeydotnotation",
+      "hierarchy": [
+        {
+          "name": "ValidatorErrorKeyDotNotation",
+          "id": "validatorerrorkeydotnotation"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ValidatorErrorKeyDotNotation<T, Prefix extends string = ''> = T extends object ? {\n    [K in keyof T & string]: T[K] extends (infer U)[] ? U extends object ? `${Prefix}${K}[]` | `${Prefix}${K}[]${ValidatorErrorKeyDotNotation<U, '.'>}` : `${Prefix}${K}[]` : T[K] extends object ? ValidatorErrorKeyDotNotation<T[K], `${Prefix}${K}.`> : `${Prefix}${K}`;\n}[keyof T & string] : never;\n```\n**References:** [ValidatorErrorKeyDotNotation](#validatorerrorkeydotnotation)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
+      "mdFile": "qwik-city.validatorerrorkeydotnotation.md"
+    },
+    {
       "name": "ValidatorErrorType",
       "id": "validatorerrortype",
       "hierarchy": [
@@ -866,7 +880,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ValidatorErrorType<T, U = string> = {\n    formErrors: U[];\n    fieldErrors: Partial<{\n        [K in ValidatorErrorKeyDotNotation<T>]: K extends `${infer _Prefix}[]${infer _Suffix}` ? U[] : U;\n    }>;\n};\n```",
+      "content": "```typescript\nexport type ValidatorErrorType<T, U = string> = {\n    formErrors: U[];\n    fieldErrors: Partial<{\n        [K in ValidatorErrorKeyDotNotation<T>]: K extends `${infer _Prefix}[]${infer _Suffix}` ? U[] : U;\n    }>;\n};\n```\n**References:** [ValidatorErrorKeyDotNotation](#validatorerrorkeydotnotation)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.validatorerrortype.md"
     },

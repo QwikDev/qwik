@@ -15,7 +15,18 @@ import {
 } from './common';
 import { QObjectManagerSymbol, _CONST_PROPS } from './constants';
 
-/** @public */
+/**
+ * A signal is a reactive value which can be read and written. When the signal is written, all tasks
+ * which are tracking the signal will be re-run and all components that read the signal will be
+ * re-rendered.
+ *
+ * Furthermore, when a signal value is passed as a prop to a component, the optimizer will
+ * automatically forward the signal. This means that `return <div title={signal.value}>hi</div>`
+ * will update the `title` attribute when the signal changes without having to re-render the
+ * component.
+ *
+ * @public
+ */
 export interface Signal<T = any> {
   value: T;
 }

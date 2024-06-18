@@ -67,7 +67,13 @@ import { Q_FUNCS_PREFIX } from './render';
 import type { PrefetchResource, RenderOptions, RenderToStreamResult } from './types';
 import { createTimer } from './utils';
 import { SsrComponentFrame, SsrNode } from './v2-node';
-import { TagNesting, allowedContent, initialTag, isEmptyTag, isTagAllowed } from './v2-tag-nesting';
+import {
+  TagNesting,
+  allowedContent,
+  initialTag,
+  isSelfClosingTag,
+  isTagAllowed,
+} from './v2-tag-nesting';
 import {
   CLOSE_FRAGMENT,
   OPEN_FRAGMENT,
@@ -127,6 +133,10 @@ class StringBufferWriter {
 }
 
 interface ContainerElementFrame {
+  /*
+   * Used during development mode to track the nesting of HTML tags
+   * in order provide error messages when the nesting is incorrect.
+   */
   tagNesting: TagNesting;
   parent: ContainerElementFrame | null;
   /** Element name. */
@@ -315,29 +325,30 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   openElement(
-    tag: string,
-    attrs: SsrAttrs | null,
-    immutableAttrs?: SsrAttrs | null
+    elementName: string,
+    varAttrs: SsrAttrs | null,
+    constAttrs?: SsrAttrs | null
   ): string | undefined {
     let innerHTML: string | undefined = undefined;
     this.lastNode = null;
-    const isQwikStyle = isQwikStyleElement(tag, attrs) || isQwikStyleElement(tag, immutableAttrs);
+    const isQwikStyle =
+      isQwikStyleElement(elementName, varAttrs) || isQwikStyleElement(elementName, constAttrs);
     if (!isQwikStyle && this.currentElementFrame) {
       vNodeData_incrementElementCount(this.currentElementFrame.vNodeData);
     }
 
-    this.pushFrame(tag, this.depthFirstElementCount++, true);
+    this.createAndPushFrame(elementName, this.depthFirstElementCount++);
     this.write('<');
-    this.write(tag);
-    if (attrs) {
-      innerHTML = this.writeAttrs(tag, attrs, false);
+    this.write(elementName);
+    if (varAttrs) {
+      innerHTML = this.writeAttrs(elementName, varAttrs, false);
     }
-    if (immutableAttrs && immutableAttrs.length) {
+    if (constAttrs && constAttrs.length) {
       // we have to skip the `ref` prop, so we don't need `:` if there is only this `ref` prop
-      if (immutableAttrs[0] !== 'ref') {
+      if (constAttrs[0] !== 'ref') {
         this.write(' :');
       }
-      innerHTML = this.writeAttrs(tag, immutableAttrs, true) || innerHTML;
+      innerHTML = this.writeAttrs(elementName, constAttrs, true) || innerHTML;
     }
     this.write('>');
     this.lastNode = null;
@@ -377,8 +388,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private _closeElement() {
     const currentFrame = this.popFrame();
     const elementName = currentFrame.elementName!;
-    const isEmptyElement = isEmptyTag(elementName);
-    if (!isEmptyElement) {
+    if (!isSelfClosingTag(elementName)) {
       this.write('</');
       this.write(elementName);
       this.write('>');
@@ -710,6 +720,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.closeElement();
   }
 
+  /**
+   * This is needed for the case when we have a component around the `<body>` tag. In this case we
+   * start emitting the vnode script tag before the `<body>` close tag.
+   */
   addVNodeDataToSerializationRoots() {
     const vNodeAttrsStack: SsrAttrs[] = [];
     const vNodeData = this.vNodeData;
@@ -965,20 +979,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return elementIdx;
   }
 
-  /**
-   * @param tag
-   * @param depthFirstElementIdx
-   * @param isElement
-   */
-  private pushFrame(tag: string, depthFirstElementIdx: number, isElement: boolean) {
+  private createAndPushFrame(elementName: string, depthFirstElementIdx: number) {
     let tagNesting: TagNesting = TagNesting.ANYTHING;
     if (isDev) {
       if (!this.currentElementFrame) {
-        tagNesting = initialTag(tag);
+        tagNesting = initialTag(elementName);
       } else {
         let frame: ContainerElementFrame | null = this.currentElementFrame;
         const previousTagNesting = frame!.tagNesting;
-        tagNesting = isTagAllowed(previousTagNesting, tag);
+        tagNesting = isTagAllowed(previousTagNesting, elementName);
         if (tagNesting === TagNesting.NOT_ALLOWED) {
           const frames: ContainerElementFrame[] = [];
           while (frame) {
@@ -986,9 +995,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             frame = frame.parent;
           }
           const text: string[] = [
-            `HTML rules do not allow '<${tag}>' at this location.`,
+            `HTML rules do not allow '<${elementName}>' at this location.`,
             `  (The HTML parser will try to recover by auto-closing or inserting additional tags which will confuse Qwik when it resumes.)`,
-            `  Offending tag: <${tag}>`,
+            `  Offending tag: <${elementName}>`,
             `  Existing tag context:`,
           ];
           let indent = '    ';
@@ -1004,7 +1013,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             indent += ' ';
           }
           text.push(
-            `${indent}<${tag}> <= is not allowed as a child of ${
+            `${indent}<${elementName}> <= is not allowed as a child of ${
               allowedContent(previousTagNesting)[0]
             }.`
           );
@@ -1013,16 +1022,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       }
     }
     const frame: ContainerElementFrame = {
-      tagNesting: tagNesting,
+      tagNesting,
       parent: this.currentElementFrame,
-      elementName: tag,
-      depthFirstElementIdx: depthFirstElementIdx,
+      elementName,
+      depthFirstElementIdx,
       vNodeData: [VNodeDataFlag.NONE],
     };
     this.currentElementFrame = frame;
-    if (isElement) {
-      this.vNodeData.push(frame.vNodeData);
-    }
+    this.vNodeData.push(frame.vNodeData);
   }
   private popFrame() {
     const closingFrame = this.currentElementFrame!;

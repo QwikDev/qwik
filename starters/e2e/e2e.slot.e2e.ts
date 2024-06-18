@@ -90,8 +90,7 @@ test.describe("slot", () => {
       });
     });
 
-    // TODO(v2): fix this
-    test.skip("should toggle content", async ({ page }) => {
+    test("should toggle content", async ({ page }) => {
       const content1 = page.locator("#btn1");
       const content2 = page.locator("#btn2");
       const content3 = page.locator("#btn3");
@@ -115,8 +114,7 @@ test.describe("slot", () => {
       });
     });
 
-    // TODO(v2): fix this
-    test.skip("should toggle content and buttons", async ({ page }) => {
+    test("should toggle content and buttons", async ({ page }) => {
       const content1 = page.locator("#btn1");
       const content2 = page.locator("#btn2");
       const content3 = page.locator("#btn3");
@@ -214,8 +212,7 @@ test.describe("slot", () => {
       await expect(modalContent).not.toBeHidden();
     });
 
-    // TODO(v2): fix this
-    test.skip("issue 2688", async ({ page }) => {
+    test("issue 2688", async ({ page }) => {
       const result = page.locator("#issue-2688-result");
       const button = page.locator("#issue-2688-button");
       const count = page.locator("#btn-count");

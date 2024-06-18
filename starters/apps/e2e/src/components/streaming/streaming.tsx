@@ -61,15 +61,15 @@ export const Streaming = component$(() => {
       </ol>
 
       <SSRStreamBlock>
-        <Cmp text="this 1" delay={1000}></Cmp>
-        <Cmp text="this 2" delay={1200}></Cmp>
+        <Cmp text="this 1" delay={500}></Cmp>
+        <Cmp text="this 2" delay={600}></Cmp>
       </SSRStreamBlock>
 
-      <Cmp text="this 3" delay={1500}></Cmp>
+      <Cmp text="this 3" delay={750}></Cmp>
 
       <SSRStreamBlock>
+        <Cmp text="this 4" delay={500}></Cmp>
         <Cmp text="this 4" delay={1000}></Cmp>
-        <Cmp text="this 4" delay={2000}></Cmp>
       </SSRStreamBlock>
     </div>
   );

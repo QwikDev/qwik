@@ -21,13 +21,8 @@ import { isArray } from '../util/types';
 import { setLocale } from './use-locale';
 import type { Subscriber } from '../state/common';
 import type { Signal } from '../state/signal';
-import type { Container2, fixMeAny } from '../v2/shared/types';
-import {
-  vnode_getDomParent,
-  vnode_getNode,
-  vnode_isElementVNode,
-  vnode_isVNode,
-} from '../v2/client/vnode';
+import type { Container2 } from '../v2/shared/types';
+import { vnode_getNode, vnode_isElementVNode, vnode_isVNode } from '../v2/client/vnode';
 import { _getQContainerElement } from '../v2/client/dom-container';
 import type { ContainerElement } from '../v2/client/types';
 
@@ -217,13 +212,6 @@ export const newInvokeContext = (
   };
   seal(ctx);
   return ctx;
-};
-
-export const getWrappingContainer = (el: QwikElement): Element | null => {
-  if (vnode_isVNode(el)) {
-    el = vnode_getDomParent(el) as fixMeAny;
-  }
-  return el.closest(QContainerSelector);
 };
 
 /**

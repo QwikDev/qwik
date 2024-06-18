@@ -5,7 +5,7 @@
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
-    "@types/react": "^18.3.1",
+    "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
@@ -36,7 +36,7 @@
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
     "@builder.io/qwik": "workspace:^",
-    "@types/react": "^18.3.1",
+    "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "react": "18.3.1",
     "react-dom": "18.3.1"

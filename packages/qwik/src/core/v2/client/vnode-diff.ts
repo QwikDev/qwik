@@ -29,7 +29,6 @@ import {
 } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { type ValueOrPromise } from '../../util/types';
-import { executeComponent2 } from '../shared/component-execution';
 import {
   convertEventNameFromJsxPropToHtmlAttr,
   getEventNameFromJsxProp,
@@ -39,7 +38,7 @@ import {
 } from '../shared/event-names';
 import { ChoreType } from '../shared/scheduler';
 import { hasClassAttr } from '../shared/scoped-styles';
-import type { QElement2, QwikLoaderEventScope, fixMeAny } from '../shared/types';
+import type { HostElement, QElement2, QwikLoaderEventScope, fixMeAny } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import type { DomContainer } from './dom-container';
 import {
@@ -85,9 +84,12 @@ import {
   vnode_setProp,
   vnode_setText,
   vnode_truncate,
+  vnode_walkVNode,
   type VNodeJournal,
 } from './vnode';
 import { getNewElementNamespaceData } from './vnode-namespace';
+import { executeComponent2 } from '../shared/component-execution';
+import { isParentSlotProp, isSlotProp } from '../../util/prop';
 
 export type ComponentQueue = Array<VNode>;
 
@@ -382,12 +384,28 @@ export const vnode_diff = (
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
 
-  function descendContentToProject(children: JSXChildren) {
+  function descendContentToProject(children: JSXChildren, host: VirtualVNode | null) {
     if (!Array.isArray(children)) {
       children = [children];
     }
     if (children.length) {
+      const createProjectionJSXNode = (slotName: string) => {
+        return new JSXNodeImpl(Projection, EMPTY_OBJ, null, [], 0, slotName);
+      };
+
       const projections: Array<string | JSXNode> = [];
+      if (host) {
+        // we need to create empty projections for all the slots to remove unused slots content
+        for (let i = vnode_getPropStartIndex(host); i < host.length; i = i + 2) {
+          const prop = host[i] as string;
+          if (isSlotProp(prop)) {
+            const slotName = prop;
+            projections.push(slotName);
+            projections.push(createProjectionJSXNode(slotName));
+          }
+        }
+      }
+
       /// STEP 1: Bucketize the children based on the projection name.
       for (let i = 0; i < children.length; i++) {
         const child = children[i];
@@ -397,14 +415,12 @@ export const vnode_diff = (
         if (idx >= 0) {
           jsxBucket = projections[idx + 1] as any;
         } else {
-          projections.splice(
-            ~idx,
-            0,
-            slotName,
-            (jsxBucket = new JSXNodeImpl(Projection, EMPTY_OBJ, null, [], 0, slotName))
-          );
+          projections.splice(~idx, 0, slotName, (jsxBucket = createProjectionJSXNode(slotName)));
         }
-        (jsxBucket.children as JSXChildren[]).push(child);
+        const removeProjection = child === false;
+        if (!removeProjection) {
+          (jsxBucket.children as JSXChildren[]).push(child);
+        }
       }
       /// STEP 2: remove the names
       for (let i = projections.length - 2; i >= 0; i = i - 2) {
@@ -548,9 +564,14 @@ export const vnode_diff = (
     }
   }
 
-  /** @param tag Returns true if `qDispatchEvent` needs patching */
-  function createNewElement(jsx: JSXNode, tag: string): boolean {
-    const element = createElementWithNamespace(tag);
+  /**
+   * Returns whether `qDispatchEvent` needs patching. This is true when one of the `jsx` argument's
+   * const props has the name of an event.
+   *
+   * @returns {boolean}
+   */
+  function createNewElement(jsx: JSXNode, elementName: string): boolean {
+    const element = createElementWithNamespace(elementName);
 
     const { constProps } = jsx;
     let needsQDispatchEventPatch = false;
@@ -595,7 +616,7 @@ export const vnode_diff = (
           continue;
         }
 
-        if (tag === 'textarea' && key === 'value') {
+        if (elementName === 'textarea' && key === 'value') {
           if (typeof value !== 'string') {
             if (isDev) {
               throw new Error('The value of the textarea must be a string');
@@ -630,32 +651,35 @@ export const vnode_diff = (
     return needsQDispatchEventPatch;
   }
 
-  function createElementWithNamespace(tag: string): Element {
+  function createElementWithNamespace(elementName: string): Element {
     const domParentVNode = vnode_getDomParentVNode(vParent);
     const { elementNamespace, elementNamespaceFlag } = getNewElementNamespaceData(
       domParentVNode,
-      tag
+      elementName
     );
 
-    const element = container.document.createElementNS(elementNamespace, tag);
-    vNewNode = vnode_newElement(element, tag);
+    const element = container.document.createElementNS(elementNamespace, elementName);
+    vNewNode = vnode_newElement(element, elementName);
     vNewNode[VNodeProps.flags] |= elementNamespaceFlag;
     return element;
   }
 
-  function expectElement(jsx: JSXNode, tag: string) {
-    const isSameTagName =
-      vCurrent && vnode_isElementVNode(vCurrent) && tag === vnode_getElementName(vCurrent);
+  function expectElement(jsx: JSXNode, elementName: string) {
+    const isSameElementName =
+      vCurrent && vnode_isElementVNode(vCurrent) && elementName === vnode_getElementName(vCurrent);
     const jsxKey: string | null = jsx.key;
     let needsQDispatchEventPatch = false;
-    if (!isSameTagName || jsxKey !== vnode_getProp(vCurrent as ElementVNode, ELEMENT_KEY, null)) {
+    if (
+      !isSameElementName ||
+      jsxKey !== vnode_getProp(vCurrent as ElementVNode, ELEMENT_KEY, null)
+    ) {
       // So we have a key and it does not match the current node.
       // We need to do a forward search to find it.
       // The complication is that once we start taking nodes out of order we can't use `vnode_getNextSibling`
-      vNewNode = retrieveChildWithKey(tag, jsxKey);
+      vNewNode = retrieveChildWithKey(elementName, jsxKey);
       if (vNewNode === null) {
         // No existing node with key exists, just create a new one.
-        needsQDispatchEventPatch = createNewElement(jsx, tag);
+        needsQDispatchEventPatch = createNewElement(jsx, elementName);
       } else {
         // Existing keyed node
         vnode_insertBefore(journal, vParent as ElementVNode, vNewNode, vCurrent);
@@ -904,7 +928,7 @@ export const vnode_diff = (
 
   function expectComponent(component: Function) {
     const componentMeta = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
-    let host = (vNewNode || vCurrent) as VirtualVNode;
+    let host = (vNewNode || vCurrent) as VirtualVNode | null;
     if (componentMeta) {
       const jsxProps = jsxValue.props;
       // QComponent
@@ -944,31 +968,27 @@ export const vnode_diff = (
         }
       }
 
-      const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
-      shouldRender = shouldRender || propsDiffer(jsxProps, vNodeProps);
-      if (shouldRender) {
-        container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
+      if (host) {
+        const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
+        shouldRender = shouldRender || propsDiffer(jsxProps, vNodeProps);
+        if (shouldRender) {
+          container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
+        }
       }
-      jsxValue.children != null && descendContentToProject(jsxValue.children);
+      jsxValue.children != null && descendContentToProject(jsxValue.children, host);
     } else {
       // Inline Component
-      if (!host) {
-        // We did not find the component, create it.
-        vnode_insertBefore(
-          journal,
-          vParent as VirtualVNode,
-          (vNewNode = vnode_newVirtual()),
-          vCurrent && getInsertBefore()
-        );
-        host = vNewNode;
-      }
-      isDev &&
-        vnode_setProp(
-          (vNewNode || vCurrent) as VirtualVNode,
-          DEBUG_TYPE,
-          VirtualType.InlineComponent
-        );
-      let component$Host: VNode = host;
+      vnode_insertBefore(
+        journal,
+        vParent as VirtualVNode,
+        (vNewNode = vnode_newVirtual()),
+        vCurrent && getInsertBefore()
+      );
+      isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.InlineComponent);
+      vnode_setProp(vNewNode, ELEMENT_PROPS, jsxValue.propsC);
+
+      host = vNewNode;
+      let component$Host: VNode | null = host;
       // Find the closest component host which has `OnRender` prop.
       while (
         component$Host &&
@@ -976,13 +996,13 @@ export const vnode_diff = (
           ? vnode_getProp(component$Host, OnRenderProp, null) === null
           : true)
       ) {
-        component$Host = vnode_getParent(component$Host)!;
+        component$Host = vnode_getParent(component$Host);
       }
       const jsxOutput = executeComponent2(
         container,
         host,
-        (component$Host || container.rootVNode) as fixMeAny,
-        component as OnRenderFn<any>,
+        (component$Host || container.rootVNode) as HostElement,
+        component as OnRenderFn<unknown>,
         jsxValue.propsC
       );
       asyncQueue.push(jsxOutput, host);
@@ -1009,7 +1029,7 @@ export const vnode_diff = (
     if (host) {
       for (let i = vnode_getPropStartIndex(host); i < host.length; i = i + 2) {
         const prop = host[i] as string;
-        if (!prop.startsWith('q:')) {
+        if (isSlotProp(prop)) {
           const value = host[i + 1];
           container.setHostProp(vNewNode, prop, value);
         }
@@ -1171,8 +1191,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
         const attrs = vCursor;
         for (let i = VirtualVNodeProps.PROPS_OFFSET; i < attrs.length; i = i + 2) {
           const key = attrs[i] as string;
-          if (!key.startsWith(':') && !key.startsWith('q:')) {
-            // any prop which does not start with `:` or `q:` is a content-projection prop.
+          if (!isParentSlotProp(key) && isSlotProp(key)) {
             const value = attrs[i + 1];
             if (value) {
               attrs[i + 1] = null; // prevent infinite loop
@@ -1202,6 +1221,17 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
           vCursor = vFirstChild;
           continue;
         }
+      } else if (vCursor === vNode) {
+        /**
+         * If it is a projection and we are at the root, then we should only walk the children to
+         * materialize the projection content. This is because we could have references in the vnode
+         * refs map which need to be materialized before cleanup.
+         */
+        const vFirstChild = vnode_getFirstChild(vCursor);
+        if (vFirstChild) {
+          vnode_walkVNode(vFirstChild);
+          return;
+        }
       }
     }
     // Out of children
@@ -1215,10 +1245,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
       vCursor = vNextSibling;
       continue;
     }
-    if (vCursor === vNode) {
-      // we are back where we started, we are done.
-      return;
-    }
+
     // Out of siblings, go to parent
     vParent = vnode_getParent(vCursor);
     while (vParent) {

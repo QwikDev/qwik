@@ -394,7 +394,7 @@ describe.each([
             <div id="btn1">
               <Component>
                 <div>
-                  <Projection>{''}</Projection>
+                  <Projection></Projection>
                 </div>
               </Component>
             </div>
@@ -566,7 +566,6 @@ describe.each([
             <Component>
               <Projection>
                 <Projection></Projection>
-                {''}
               </Projection>
             </Component>
           </Component>
@@ -574,11 +573,147 @@ describe.each([
             <Component>
               <Projection>
                 <Projection></Projection>
-                {''}
               </Projection>
             </Component>
           </Component>
           <button>{'Toggle'}</button>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should toggle named slot to nothing', async () => {
+    const Projector = component$((props: { state: any; id: string }) => {
+      return (
+        <div id={props.id}>
+          <Slot name="start"></Slot>
+          <Slot />
+          <Slot name="end"></Slot>
+        </div>
+      );
+    });
+
+    const Parent = component$(() => {
+      const state = useStore({
+        toggle: true,
+        count: 0,
+      });
+      return (
+        <>
+          <Projector state={state} id="btn1">
+            {state.toggle && <>DEFAULT {state.count}</>}
+          </Projector>
+
+          <Projector state={state} id="btn2">
+            {state.toggle && <span q:slot="start">START {state.count}</span>}
+            {state.toggle && <span q:slot="end">END {state.count}</span>}
+          </Projector>
+          <button id="toggle" onClick$={() => (state.toggle = !state.toggle)}></button>
+          <button id="count" onClick$={() => state.count++}></button>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Parent />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <Component>
+            <div id="btn1">
+              <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+              <Projection>
+                <Fragment>
+                  {'DEFAULT '}
+                  <DerivedSignal>{'0'}</DerivedSignal>
+                </Fragment>
+              </Projection>
+              <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+            </div>
+          </Component>
+          <Component>
+            <div id="btn2">
+              <Projection>
+                <span q:slot="start">
+                  {'START '}
+                  <DerivedSignal>{'0'}</DerivedSignal>
+                </span>
+              </Projection>
+              <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+              <Projection>
+                <span q:slot="end">
+                  {'END '}
+                  <DerivedSignal>{'0'}</DerivedSignal>
+                </span>
+              </Projection>
+            </div>
+          </Component>
+          <button id="toggle"></button>
+          <button id="count"></button>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, '#toggle', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <Component>
+            <div id="btn1">
+              <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+              <Projection></Projection>
+              <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+            </div>
+          </Component>
+          <Component>
+            <div id="btn2">
+              <Projection></Projection>
+              <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+              <Projection></Projection>
+            </div>
+          </Component>
+          <button id="toggle"></button>
+          <button id="count"></button>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, '#count', 'click');
+    await trigger(document.body, '#toggle', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <Component>
+            <div id="btn1">
+              <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+              <Projection>
+                <Fragment>
+                  {'DEFAULT '}
+                  <DerivedSignal>{'1'}</DerivedSignal>
+                </Fragment>
+              </Projection>
+              <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+            </div>
+          </Component>
+          <Component>
+            <div id="btn2">
+              <Projection>
+                <span q:slot="start">
+                  {'START '}
+                  <DerivedSignal>{'1'}</DerivedSignal>
+                </span>
+              </Projection>
+              <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+              <Projection>
+                <span q:slot="end">
+                  {'END '}
+                  <DerivedSignal>{'1'}</DerivedSignal>
+                </span>
+              </Projection>
+            </div>
+          </Component>
+          <button id="toggle"></button>
+          <button id="count"></button>
         </Fragment>
       </Component>
     );
@@ -1107,8 +1242,7 @@ describe.each([
       await trigger(document.body, '#reload', 'click');
     });
 
-    // TODO(slot): fix this test
-    it.skip('should not go into an infinity loop because of removing nodes from q:template', async () => {
+    it('should not go into an infinity loop because of removing nodes from q:template', async () => {
       const Projector = component$(() => {
         return (
           <div>
@@ -1238,7 +1372,7 @@ describe.each([
                 style="width:24px;height:24px"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <Projection>{''}</Projection>
+                <Projection></Projection>
               </svg>
             </Component>
           </Fragment>
@@ -1731,8 +1865,7 @@ describe.each([
       );
     });
 
-    // TODO(slot): fix this test
-    it.skip('#2688 - case 2', async () => {
+    it('#2688 - case 2', async () => {
       const Switch = component$((props: { name: string }) => {
         return <Slot name={props.name} />;
       });

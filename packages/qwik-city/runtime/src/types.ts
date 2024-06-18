@@ -363,16 +363,24 @@ export type FailOfRest<REST extends readonly DataValidator[]> = REST extends rea
 
 type ValidatorErrorKeyDotNotation<T, Prefix extends string = ''> = T extends object
   ? {
-      [K in keyof T & string]: T[K] extends object
-        ? ValidatorErrorKeyDotNotation<T[K], `${Prefix}${K}.`>
-        : `${Prefix}${K}`;
+      [K in keyof T & string]: T[K] extends (infer U)[]
+        ? U extends object
+          ? `${Prefix}${K}[]` | `${Prefix}${K}[]${ValidatorErrorKeyDotNotation<U, '.'>}`
+          : `${Prefix}${K}[]`
+        : T[K] extends object
+          ? ValidatorErrorKeyDotNotation<T[K], `${Prefix}${K}.`>
+          : `${Prefix}${K}`;
     }[keyof T & string]
   : never;
 
 /** @public */
 export type ValidatorErrorType<T, U = string> = {
   formErrors: U[];
-  fieldErrors: Partial<Record<ValidatorErrorKeyDotNotation<T>, U>>;
+  fieldErrors: Partial<{
+    [K in ValidatorErrorKeyDotNotation<T>]: K extends `${infer _Prefix}[]${infer _Suffix}`
+      ? U[]
+      : U;
+  }>;
 };
 
 /** @public */

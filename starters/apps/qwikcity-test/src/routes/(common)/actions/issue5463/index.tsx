@@ -19,6 +19,7 @@ export const useDotNotationAction = globalAction$(
           firstName: z.string(),
         }),
       }),
+      persons: z.array(z.object({ name: z.string() })),
     }),
   ),
 );

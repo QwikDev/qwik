@@ -274,14 +274,27 @@ export const zodQrl = ((
 
 const flattenZodIssues = (issues: z.ZodIssue | z.ZodIssue[]) => {
   issues = Array.isArray(issues) ? issues : [issues];
+  return issues.reduce<Record<string, string | string[]>>((acc, issue) => {
+    const isExpectingArray = 'expected' in issue && issue.expected === 'array';
+    const hasArrayType = issue.path.some((path) => typeof path === 'number') || isExpectingArray;
+    if (hasArrayType) {
+      const keySuffix = 'expected' in issue && issue.expected === 'array' ? '[]' : '';
+      const key =
+        issue.path
+          .map((path) => (typeof path === 'number' ? '*' : path))
+          .join('.')
+          .replace(/\.\*/g, '[]') + keySuffix;
 
-  return issues.reduce(
-    (acc, issue) => {
-      acc[issue.path.join('.')] = issue.message;
+      acc[key] = acc[key] || [];
+      if (Array.isArray(acc[key])) {
+        (acc[key] as string[]).push(issue.message);
+      }
       return acc;
-    },
-    {} as Record<string, string>
-  );
+    } else {
+      acc[issue.path.join('.')] = issue.message;
+    }
+    return acc;
+  }, {});
 };
 
 /** @public */

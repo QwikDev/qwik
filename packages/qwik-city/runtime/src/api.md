@@ -507,7 +507,7 @@ export const zodQrl: ZodConstructorQRL;
 
 // Warnings were encountered during analysis:
 //
-// /Users/tobi/dev/web/qwik/dist-dev/dts-out/packages/qwik-city/runtime/src/types.d.ts:276:5 - (ae-forgotten-export) The symbol "ValidatorErrorType" needs to be exported by the entry point index.d.ts
+// /Users/tobi/dev/web/qwik/dist-dev/dts-out/packages/qwik-city/runtime/src/types.d.ts:278:5 - (ae-forgotten-export) The symbol "ValidatorErrorType" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

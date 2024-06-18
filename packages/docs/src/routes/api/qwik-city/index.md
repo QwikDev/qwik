@@ -40,7 +40,7 @@ export type ActionConstructor = {
   ): Action<
     StrictUnion<
       | OBJ
-      | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>
+      | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>
       | FailReturn<FailOfRest<REST>>
     >,
     GetValidatorType<VALIDATOR>,
@@ -60,7 +60,7 @@ export type ActionConstructor = {
     },
   ): Action<
     StrictUnion<
-      OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>
+      OBJ | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>
     >,
     GetValidatorType<VALIDATOR>,
     false
@@ -92,7 +92,7 @@ export type ActionConstructor = {
   ): Action<
     StrictUnion<
       | OBJ
-      | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>
+      | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>
       | FailReturn<FailOfRest<REST>>
     >,
     GetValidatorType<VALIDATOR>,
@@ -109,7 +109,7 @@ export type ActionConstructor = {
     options: VALIDATOR,
   ): Action<
     StrictUnion<
-      OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>
+      OBJ | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>
     >,
     GetValidatorType<VALIDATOR>,
     false

@@ -10,12 +10,12 @@ const LoginSchema = v.object({
   email: v.pipe(
     v.string(),
     v.minLength(1, 'Please enter your email.'),
-    v.email('The email address is badly formatted.'),
+    v.email('The email address is badly formatted.')
   ),
   password: v.pipe(
     v.string(),
     v.minLength(1, 'Please enter your password.'),
-    v.minLength(8, 'Your password must have 8 characters or more.'),
+    v.minLength(8, 'Your password must have 8 characters or more.')
   ),
 });
 

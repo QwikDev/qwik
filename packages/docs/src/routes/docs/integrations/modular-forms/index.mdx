@@ -38,7 +38,7 @@ type LoginForm = {
 Since Modular Forms supports [Valibot](https://valibot.dev/) and [Zod](https://zod.dev/) for input validation, you can optionally derive the type definition from a schema.
 
 ```ts
-import { email, type Input, minLength, object, string } from 'valibot';
+import { email, type InferOutput, minLength, object, string } from 'valibot';
 
 const LoginSchema = object({
   email: string([
@@ -51,7 +51,7 @@ const LoginSchema = object({
   ]),
 });
 
-type LoginForm = Input<typeof LoginSchema>;
+type LoginForm = InferOutput<typeof LoginSchema>;
 ```
 
 If you're wondering why this guide favors Valibot over Zod, I recommend reading this [announcement post](https://www.builder.io/blog/introducing-valibot).
@@ -183,7 +183,7 @@ import { $, component$, type QRL } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import type { InitialValues, SubmitHandler } from '@modular-forms/qwik';
 import { formAction$, useForm, valiForm$ } from '@modular-forms/qwik';
-import { email, type Input, minLength, object, string } from 'valibot';
+import { email, type InferOutput, minLength, object, string } from 'valibot';
 
 const LoginSchema = object({
   email: string([
@@ -196,7 +196,7 @@ const LoginSchema = object({
   ]),
 });
 
-type LoginForm = Input<typeof LoginSchema>;
+type LoginForm = InferOutput<typeof LoginSchema>;
 
 export const useFormLoader = routeLoader$<InitialValues<LoginForm>>(() => ({
   email: '',

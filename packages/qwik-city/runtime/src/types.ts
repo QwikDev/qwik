@@ -361,6 +361,20 @@ export type FailOfRest<REST extends readonly DataValidator[]> = REST extends rea
   ? ERROR
   : never;
 
+type ValidatorErrorKeyDotNotation<T, Prefix extends string = ''> = T extends object
+  ? {
+      [K in keyof T & string]: T[K] extends object
+        ? `${Prefix}${K}` | ValidatorErrorKeyDotNotation<T[K], `${Prefix}${K}.`>
+        : `${Prefix}${K}`;
+    }[keyof T & string]
+  : never;
+
+/** @public */
+export type ValidatorErrorType<T, U = string> = {
+  formErrors: U[];
+  fieldErrors: Record<ValidatorErrorKeyDotNotation<T>, U[]>;
+};
+
 /** @public */
 export type ActionConstructor = {
   // Use options object, use typed data validator, use data validator
@@ -380,7 +394,7 @@ export type ActionConstructor = {
   ): Action<
     StrictUnion<
       | OBJ
-      | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>
+      | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>
       | FailReturn<FailOfRest<REST>>
     >,
     GetValidatorType<VALIDATOR>,
@@ -398,7 +412,7 @@ export type ActionConstructor = {
       readonly validation: [VALIDATOR];
     }
   ): Action<
-    StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>>,
+    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>>,
     GetValidatorType<VALIDATOR>,
     false
   >;
@@ -427,7 +441,7 @@ export type ActionConstructor = {
   ): Action<
     StrictUnion<
       | OBJ
-      | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>
+      | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>
       | FailReturn<FailOfRest<REST>>
     >,
     GetValidatorType<VALIDATOR>,
@@ -442,7 +456,7 @@ export type ActionConstructor = {
     ) => ValueOrPromise<OBJ>,
     options: VALIDATOR
   ): Action<
-    StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>>,
+    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>>,
     GetValidatorType<VALIDATOR>,
     false
   >;
@@ -480,7 +494,7 @@ export type ActionConstructorQRL = {
   ): Action<
     StrictUnion<
       | OBJ
-      | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>
+      | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>
       | FailReturn<FailOfRest<REST>>
     >,
     GetValidatorType<VALIDATOR>,
@@ -497,7 +511,7 @@ export type ActionConstructorQRL = {
       readonly validation: [VALIDATOR];
     }
   ): Action<
-    StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>>,
+    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>>,
     GetValidatorType<VALIDATOR>,
     false
   >;
@@ -525,7 +539,7 @@ export type ActionConstructorQRL = {
   ): Action<
     StrictUnion<
       | OBJ
-      | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>
+      | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>
       | FailReturn<FailOfRest<REST>>
     >,
     GetValidatorType<VALIDATOR>,
@@ -539,7 +553,7 @@ export type ActionConstructorQRL = {
     >,
     options: VALIDATOR
   ): Action<
-    StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>>,
+    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>>,
     GetValidatorType<VALIDATOR>,
     false
   >;

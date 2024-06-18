@@ -38,17 +38,17 @@ export type ActionConstructor = {
     <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {
         readonly id?: string;
         readonly validation: [VALIDATOR, ...REST];
-    }): Action<StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorType<VALIDATOR>, false>;
+    }): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorType<VALIDATOR>, false>;
     <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {
         readonly id?: string;
         readonly validation: [VALIDATOR];
-    }): Action<StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>>, GetValidatorType<VALIDATOR>, false>;
+    }): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>>, GetValidatorType<VALIDATOR>, false>;
     <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {
         readonly id?: string;
         readonly validation: REST;
     }): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
-    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorType<VALIDATOR>, false>;
-    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR): Action<StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>>, GetValidatorType<VALIDATOR>, false>;
+    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorType<VALIDATOR>, false>;
+    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>>, GetValidatorType<VALIDATOR>, false>;
     <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
     <OBJ>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options?: {
         readonly id?: string;
@@ -504,6 +504,10 @@ export type ZodConstructor = {
 //
 // @public (undocumented)
 export const zodQrl: ZodConstructorQRL;
+
+// Warnings were encountered during analysis:
+//
+// /Users/tobi/dev/web/qwik/dist-dev/dts-out/packages/qwik-city/runtime/src/types.d.ts:276:5 - (ae-forgotten-export) The symbol "ValidatorErrorType" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

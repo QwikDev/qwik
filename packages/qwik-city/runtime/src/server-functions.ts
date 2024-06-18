@@ -255,10 +255,15 @@ export const zodQrl = ((
               result.error.issues
             );
           }
+          const zodErrorsFlatten = result.error.flatten();
+          const fieldErrors = flattenZodIssues(result.error.issues);
           return {
             success: false,
             status: 400,
-            error: result.error.flatten(),
+            error: {
+              formErrors: zodErrorsFlatten.formErrors,
+              fieldErrors: fieldErrors,
+            },
           };
         }
       },
@@ -266,6 +271,18 @@ export const zodQrl = ((
   }
   return undefined as any;
 }) as ZodConstructorQRL;
+
+const flattenZodIssues = (issues: z.ZodIssue | z.ZodIssue[]) => {
+  issues = Array.isArray(issues) ? issues : [issues];
+
+  return issues.reduce(
+    (acc, issue) => {
+      acc[issue.path.join('.')] = issue.message;
+      return acc;
+    },
+    {} as Record<string, string>
+  );
+};
 
 /** @public */
 export const zod$ = /*#__PURE__*/ implicit$FirstArg(zodQrl) as ZodConstructor;

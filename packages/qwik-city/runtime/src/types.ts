@@ -372,7 +372,7 @@ type ValidatorErrorKeyDotNotation<T, Prefix extends string = ''> = T extends obj
 /** @public */
 export type ValidatorErrorType<T, U = string> = {
   formErrors: U[];
-  fieldErrors: Record<ValidatorErrorKeyDotNotation<T>, U>;
+  fieldErrors: Partial<Record<ValidatorErrorKeyDotNotation<T>, U>>;
 };
 
 /** @public */

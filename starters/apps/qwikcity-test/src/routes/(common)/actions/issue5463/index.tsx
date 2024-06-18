@@ -26,11 +26,13 @@ export const useDotNotationAction = globalAction$(
 export default component$(() => {
   const dotNotation = useDotNotationAction();
 
-  type ConfirmType = Record<
-    | "credentials.username"
-    | "credentials.password"
-    | "evenMoreComplex.deep.firstName",
-    string
+  type ConfirmType = Partial<
+    Record<
+      | "credentials.username"
+      | "credentials.password"
+      | "evenMoreComplex.deep.firstName",
+      string
+    >
   >;
 
   const errors = dotNotation.value?.fieldErrors satisfies

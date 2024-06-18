@@ -43,8 +43,8 @@ import * as v from 'valibot';
 const LoginSchema = v.object({
   email: v.pipe(
     v.string(),
-    v.minLength(1, 'Please enter your email'),
-    v.email('he email address is badly formatted'),
+    v.minLength(1, 'Please enter your email.'),
+    v.email('he email address is badly formatted.'),
   ),
   password: v.pipe(
     v.string(),
@@ -187,11 +187,11 @@ import type { InitialValues, SubmitHandler } from '@modular-forms/qwik';
 import { formAction$, useForm, valiForm$ } from '@modular-forms/qwik';
 import * as v from 'valibot';
 
-export const LoginSchema = v.object({
+const LoginSchema = v.object({
   email: v.pipe(
     v.string(),
-    v.minLength(1, 'Please enter your email'),
-    v.email('The email address is badly formatted'),
+    v.minLength(1, 'Please enter your email.'),
+    v.email('The email address is badly formatted.'),
   ),
   password: v.pipe(
     v.string(),

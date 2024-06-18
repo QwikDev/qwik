@@ -1865,8 +1865,7 @@ describe.each([
       );
     });
 
-    // TODO(slot): fix this test
-    it.skip('#2688 - case 2', async () => {
+    it('#2688 - case 2', async () => {
       const Switch = component$((props: { name: string }) => {
         return <Slot name={props.name} />;
       });

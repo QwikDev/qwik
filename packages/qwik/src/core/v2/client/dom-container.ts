@@ -24,6 +24,7 @@ import {
   QStyleSelector,
 } from '../../util/markers';
 import { maybeThen } from '../../util/promises';
+import { isSlotProp } from '../../util/prop';
 import { qDev } from '../../util/qdev';
 import type { ValueOrPromise } from '../../util/types';
 import { ChoreType } from '../shared/scheduler';
@@ -289,7 +290,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       vNode[VNodeProps.flags] |= VNodeFlags.Resolved;
       for (let i = vnode_getPropStartIndex(vNode); i < vNode.length; i = i + 2) {
         const prop = vNode[i] as string;
-        if (!prop.startsWith('q:')) {
+        if (isSlotProp(prop)) {
           const value = vNode[i + 1];
           if (typeof value == 'string') {
             vNode[i + 1] = this.$vnodeLocate$(value);

@@ -476,6 +476,14 @@ export const useNavigate: () => RouteNavigate;
 // @public (undocumented)
 export const validator$: ValidatorConstructor;
 
+// @public (undocumented)
+export type ValidatorErrorType<T, U = string> = {
+    formErrors: U[];
+    fieldErrors: Partial<{
+        [K in ValidatorErrorKeyDotNotation<T>]: K extends `${infer _Prefix}[]${infer _Suffix}` ? U[] : U;
+    }>;
+};
+
 // Warning: (ae-forgotten-export) The symbol "ValidatorConstructorQRL" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)

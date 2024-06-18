@@ -136,7 +136,7 @@ export type ActionConstructor = {
 };
 ```
 
-**References:** [TypedDataValidator](#typeddatavalidator), [DataValidator](#datavalidator), [GetValidatorType](#getvalidatortype), [Action](#action), [StrictUnion](#strictunion), [FailReturn](#failreturn), [FailOfRest](#failofrest), [JSONObject](#jsonobject)
+**References:** [TypedDataValidator](#typeddatavalidator), [DataValidator](#datavalidator), [GetValidatorType](#getvalidatortype), [Action](#action), [StrictUnion](#strictunion), [FailReturn](#failreturn), [ValidatorErrorType](#validatorerrortype), [FailOfRest](#failofrest), [JSONObject](#jsonobject)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
@@ -2394,6 +2394,21 @@ validator$: ValidatorConstructor;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/server-functions.ts)
+
+## ValidatorErrorType
+
+```typescript
+export type ValidatorErrorType<T, U = string> = {
+  formErrors: U[];
+  fieldErrors: Partial<{
+    [K in ValidatorErrorKeyDotNotation<T>]: K extends `${infer _Prefix}[]${infer _Suffix}`
+      ? U[]
+      : U;
+  }>;
+};
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts)
 
 ## validatorQrl
 

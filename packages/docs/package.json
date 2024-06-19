@@ -48,7 +48,7 @@
     "tsm": "^2.3.0",
     "typescript": "5.4.5",
     "undici": "*",
-    "valibot": "^0.29.0",
+    "valibot": "^0.33.2",
     "vite": "^5.2.10",
     "vite-plugin-inspect": "^0.8.4",
     "wrangler": "^3.30.1"

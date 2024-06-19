@@ -155,7 +155,7 @@ export function normalizeRollupOutputOptions(
   path: Path,
   opts: NormalizedQwikPluginOptions,
   rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined,
-  useCFAssetsDir: boolean
+  useAssetsDir: boolean
 ): Rollup.OutputOptions[] {
   const outputOpts: Rollup.OutputOptions[] = Array.isArray(rollupOutputOpts)
     ? // fill the `outputOpts` array with all existing option entries
@@ -169,7 +169,7 @@ export function normalizeRollupOutputOptions(
   }
 
   return outputOpts.map((outputOptsObj) =>
-    normalizeRollupOutputOptionsObject(path, opts, outputOptsObj, useCFAssetsDir)
+    normalizeRollupOutputOptionsObject(path, opts, outputOptsObj, useAssetsDir)
   );
 }
 
@@ -177,13 +177,13 @@ export function normalizeRollupOutputOptionsObject(
   path: Path,
   opts: NormalizedQwikPluginOptions,
   rollupOutputOptsObj: Rollup.OutputOptions | undefined,
-  useCFAssetsDir: boolean
+  useAssetsDir: boolean
 ): Rollup.OutputOptions {
   const outputOpts: Rollup.OutputOptions = { ...rollupOutputOptsObj };
 
   if (!outputOpts.assetFileNames) {
     const fileName = 'build/q-[hash].[ext]';
-    outputOpts.assetFileNames = useCFAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
+    outputOpts.assetFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
   }
   if (opts.target === 'client') {
     // client output
@@ -192,21 +192,21 @@ export function normalizeRollupOutputOptionsObject(
       // client production output
       if (!outputOpts.entryFileNames) {
         const fileName = 'build/q-[hash].js';
-        outputOpts.entryFileNames = useCFAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
+        outputOpts.entryFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
       }
       if (!outputOpts.chunkFileNames) {
         const fileName = 'build/q-[hash].js';
-        outputOpts.chunkFileNames = useCFAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
+        outputOpts.chunkFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
       }
     } else {
       // client development output
       if (!outputOpts.entryFileNames) {
         const fileName = 'build/[name].js';
-        outputOpts.entryFileNames = useCFAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
+        outputOpts.entryFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
       }
       if (!outputOpts.chunkFileNames) {
         const fileName = 'build/[name].js';
-        outputOpts.chunkFileNames = useCFAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
+        outputOpts.chunkFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
       }
     }
   } else if (opts.buildMode === 'production') {

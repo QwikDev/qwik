@@ -378,8 +378,8 @@ importers:
         specifier: '*'
         version: 6.6.2
       valibot:
-        specifier: ^0.29.0
-        version: 0.29.0
+        specifier: ^0.33.2
+        version: 0.33.2
       vite:
         specifier: ^5.2.10
         version: 5.2.11(@types/node@20.12.8)(terser@5.31.0)
@@ -9358,8 +9358,8 @@ packages:
   v8-compile-cache-lib@3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
 
-  valibot@0.29.0:
-    resolution: {integrity: sha512-JhZn08lwZPhAamOCfBwBkv/btQt4KeQhekULPH8crH053zUCLSOGEF2zKExu3bFf245tsj6J1dY0ysd/jUiMIQ==}
+  valibot@0.33.2:
+    resolution: {integrity: sha512-ZpFWuI+bs5+PP66q4zVFn4e4t/s5jmMw5iPBZmGUoi8iQqXyU9YY/BLCAyk62Z/bNS8qdUNBEyx52952qdqW3w==}
 
   validate-npm-package-license@3.0.4:
     resolution: {integrity: sha512-DpKm2Ui/xN7/HQKCtpZxoRWBhZ9Z0kqtygG8XCgNQ8ZlDnxuQmWhj566j8fN4Cu3/JmbhsDo7fcAJq4s9h27Ew==}
@@ -19560,7 +19560,7 @@ snapshots:
 
   v8-compile-cache-lib@3.0.1: {}
 
-  valibot@0.29.0: {}
+  valibot@0.33.2: {}
 
   validate-npm-package-license@3.0.4:
     dependencies:

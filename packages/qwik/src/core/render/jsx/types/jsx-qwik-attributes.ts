@@ -241,6 +241,7 @@ export interface QwikIntrinsicAttributes {
 
   /** Corresponding slot name used to project the element into. */
   'q:slot'?: string;
+  'q:shadowRoot'?: boolean;
   fetchPriority?: 'auto' | 'high' | 'low';
 }
 

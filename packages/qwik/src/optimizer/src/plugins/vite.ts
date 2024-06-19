@@ -561,12 +561,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             fileName: Q_MANIFEST_FILENAME,
             source: clientManifestStr,
           });
+
+          const sys = qwikPlugin.getSys();
+          const filePath = sys.path.dirname(_.chunkFileNames as string);
           this.emitFile({
             type: 'asset',
-            fileName: `build/q-bundle-graph-${manifest.manifestHash}.json`,
+            fileName: sys.path.join(filePath, `q-bundle-graph-${manifest.manifestHash}.json`),
             source: JSON.stringify(convertManifestToBundleGraph(manifest)),
           });
-          const sys = qwikPlugin.getSys();
           const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
           const workerScriptPath = (await this.resolve('@builder.io/qwik/qwik-prefetch.js'))!.id;
           const workerScript = await fs.promises.readFile(workerScriptPath, 'utf-8');

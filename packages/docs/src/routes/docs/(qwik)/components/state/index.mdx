@@ -74,7 +74,7 @@ export default component$(() => {
 
 This example above shows how `useSignal()` can be used in a counter component to keep track of the count. Modifying the `count.value` property will cause the component to be updated automatically. For instance, when the property is changed in the button click handler as in the example above.
 
-> **NOTE** Don't pass signals as props, instead pass their values:
+> **NOTE** If you just need to read the signal's value, don't pass the entire signal as a prop, instead pass only its value:
 
 ⛔ **Avoid:**
 

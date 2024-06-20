@@ -469,14 +469,14 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       if (!(id.startsWith('.') || path.isAbsolute(id))) {
         return;
       }
-      if (opts.target === 'ssr') {
-        const match = /^([^?]*)\?_qrl_parent=(.*)/.exec(id);
+      if (opts.target === 'ssr' && !isSSR) {
+        // possibly dev mode request from the browser
+        const match = /^([^?]*)\?_qrl_parent=(.*)/.exec(decodeURIComponent(id));
         if (match) {
           // ssr mode asking for a client qrl, this will fall through to the devserver
           // building here via ctx.load doesn't seem to work (target is always ssr?)
           // eslint-disable-next-line prefer-const
           let [, qrlId, parentId] = match;
-          parentId = decodeURIComponent(parentId);
           // If the parent is not in root (e.g. pnpm symlink), the qrl also isn't
           if (parentId.startsWith(opts.rootDir)) {
             qrlId = `${opts.rootDir}${qrlId}`;
@@ -592,7 +592,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     id: string,
     transformOpts: Parameters<Extract<Plugin['transform'], Function>>[2] = {}
   ): Promise<TransformResult> {
-    if (id.startsWith('\0') || id.startsWith('/@fs/')) {
+    if (id.startsWith('\0')) {
       return;
     }
     const isSSR = !!transformOpts.ssr;

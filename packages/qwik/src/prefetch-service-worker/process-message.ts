@@ -126,7 +126,10 @@ async function processBundleGraphUrl(swState: SWState, base: string, graphPath: 
 }
 
 function processPrefetch(swState: SWState, basePath: string, bundles: string[]) {
-  const base = swState.$bases$.find((base) => basePath === base.$path$);
+  let base = swState.$bases$.find((base) => base.$graph$.includes(bundles[0].replace('./', '')));
+  if (!base) {
+    base = swState.$bases$.find((base) => basePath === base.$path$);
+  }
   if (!base) {
     console.error(`Base path not found: ${basePath}, ignoring prefetch.`);
   } else {

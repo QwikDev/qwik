@@ -1,7 +1,7 @@
-import { component$, useComputed$, useSignal, useTask$ } from '@builder.io/qwik';
-import { qwikGPT, rateResponse } from './search';
+import { component$, useComputed$, useSignal } from '@builder.io/qwik';
+// import { qwikGPT, rateResponse } from './search';
 import { CodeBlock } from '../code-block/code-block';
-import { isBrowser } from '@builder.io/qwik/build';
+// import { isBrowser } from '@builder.io/qwik/build';
 import snarkdown from 'snarkdown';
 
 const snarkdownEnhanced = (md: string) => {
@@ -18,9 +18,9 @@ const snarkdownEnhanced = (md: string) => {
 
 export const QwikGPT = component$((props: { query: string }) => {
   const message = useSignal('');
-  const done = useSignal(false);
-  const id = useSignal<string>();
-  const rated = useSignal(false);
+  // const done = useSignal(false);
+  // const id = useSignal<string>();
+  // const rated = useSignal(false);
 
   const process = useComputed$(() => {
     const rawLines = message.value.split('\n');
@@ -70,30 +70,30 @@ export const QwikGPT = component$((props: { query: string }) => {
     return lines;
   });
 
-  useTask$(({ track }) => {
-    const query = track(() => props.query);
-    if (isBrowser) {
-      message.value = '';
-      done.value = false;
-      rated.value = false;
-      id.value = undefined;
-      if (props.query !== '') {
-        const run = async () => {
-          done.value = false;
-          const response = await qwikGPT(query);
-          for await (const value of response) {
-            if (typeof value === 'string') {
-              message.value += value;
-            } else if (value.type === 'id') {
-              id.value = value.content;
-            }
-          }
-          done.value = true;
-        };
-        run();
-      }
-    }
-  });
+  // useTask$(({ track }) => {
+  //   const query = track(() => props.query);
+  //   if (isBrowser) {
+  //     message.value = '';
+  //     done.value = false;
+  //     rated.value = false;
+  //     id.value = undefined;
+  //     if (props.query !== '') {
+  //       const run = async () => {
+  //         done.value = false;
+  //         const response = await qwikGPT(query);
+  //         for await (const value of response) {
+  //           if (typeof value === 'string') {
+  //             message.value += value;
+  //           } else if (value.type === 'id') {
+  //             id.value = value.content;
+  //           }
+  //         }
+  //         done.value = true;
+  //       };
+  //       run();
+  //     }
+  //   }
+  // });
 
   if (message.value === '' && props.query !== '') {
     return (
@@ -114,7 +114,7 @@ export const QwikGPT = component$((props: { query: string }) => {
           );
         })}
       </div>
-      {done.value && (
+      {/* {done.value && (
         <div class="ai-rate">
           {rated.value ? (
             <>Thank you very much!</>
@@ -142,7 +142,7 @@ export const QwikGPT = component$((props: { query: string }) => {
             </>
           )}
         </div>
-      )}
+      )} */}
     </>
   );
 });

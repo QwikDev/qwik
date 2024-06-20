@@ -19,11 +19,12 @@ export function workerFetchScript() {
   return s;
 }
 
-export function prefetchUrlsEventScript(prefetchResources: PrefetchResource[]) {
+export function prefetchUrlsEventScript(base: string, prefetchResources: PrefetchResource[]) {
   const data: QPrefetchData = {
     bundles: flattenPrefetchResources(prefetchResources).map((u) => u.split('/').pop()!),
   };
-  return `document.dispatchEvent(new CustomEvent("qprefetch",{detail:${JSON.stringify(data)}}))`;
+  const args = ['prefetch', base, data.bundles!].map((x) => JSON.stringify(x)).join(',');
+  return `window.qwikPrefetchSW||(window.qwikPrefetchSW=[]).push(${args});`;
 }
 
 export function flattenPrefetchResources(prefetchResources: PrefetchResource[]) {

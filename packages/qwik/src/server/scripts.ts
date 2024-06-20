@@ -17,7 +17,7 @@ const QWIK_PREFETCH_DEBUG: string = (globalThis as any).QWIK_PREFETCH_DEBUG;
 
 /**
  * Provides the `qwik-prefetch-service-worker.js` file as a string. Useful for tooling to inline the
- * qwikloader script into HTML.
+ * qwik-prefetch-service-worker script into HTML.
  *
  * @public
  */

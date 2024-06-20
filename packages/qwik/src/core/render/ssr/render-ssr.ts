@@ -148,27 +148,33 @@ export const _renderSSR = async (node: JSXOutput, opts: RenderSSROptions) => {
   };
   seal(ssrCtx);
 
-  let qRender = qDev ? 'ssr-dev' : 'ssr';
-  if (opts.containerAttributes['q:render']) {
-    qRender = `${opts.containerAttributes['q:render']}-${qRender}`;
-  }
-  const containerAttributes: Record<string, any> = {
-    ...opts.containerAttributes,
-    'q:container': 'paused',
-    'q:version': version ?? 'dev',
-    'q:render': qRender,
-    'q:base': opts.base,
-    'q:locale': opts.serverData?.locale,
-    'q:manifest-hash': opts.manifestHash,
-  };
+  const locale = opts.serverData?.locale;
+  const containerAttributes = opts.containerAttributes;
+  const qRender = containerAttributes['q:render'];
+  containerAttributes['q:container'] = 'paused';
+  containerAttributes['q:version'] = version ?? 'dev';
+  containerAttributes['q:render'] = (qRender ? qRender + '-' : '') + (qDev ? 'ssr-dev' : 'ssr');
+  containerAttributes['q:base'] = opts.base || '';
+  containerAttributes['q:locale'] = locale;
+  containerAttributes['q:manifest-hash'] = opts.manifestHash;
+  containerAttributes['q:instance'] = hash();
+
   const children = root === 'html' ? [node] : [headNodes, node];
   if (root !== 'html') {
     containerAttributes.class =
       'qc📦' + (containerAttributes.class ? ' ' + containerAttributes.class : '');
   }
-  if (opts.serverData) {
-    containerState.$serverData$ = opts.serverData;
-  }
+  const serverData = (containerState.$serverData$ = {
+    ...containerState.$serverData$,
+    ...opts.serverData,
+  });
+  serverData.containerAttributes = {
+    ...serverData['containerAttributes'],
+    ...containerAttributes,
+  };
+  const invokeCtx = (ssrCtx.$invocationContext$ = newInvokeContext(locale));
+  invokeCtx.$renderCtx$ = rCtx;
+  ssrCtx.$invocationContext$;
 
   const rootNode = _jsxQ(
     root,
@@ -183,6 +189,8 @@ export const _renderSSR = async (node: JSXOutput, opts: RenderSSROptions) => {
     renderRoot(rootNode, rCtx, ssrCtx, opts.stream, containerState, opts)
   );
 };
+
+const hash = () => Math.random().toString(36).slice(2);
 
 const renderRoot = async (
   node: JSXNode,

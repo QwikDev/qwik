@@ -20,7 +20,7 @@ import { join, extname } from 'node:path';
 export function createQwikCity(opts: QwikCityBunOptions) {
   // @builder.io/qwik-city/middleware/bun
   // still missing from bun: last check was bun version 1.1.8
-  globalThis.TextEncoderStream ||= class TextEncoderStream extends _TextEncoderStream_polyfill {};
+  globalThis.TextEncoderStream ||= _TextEncoderStream_polyfill;
 
   const qwikSerializer = {
     _deserializeData,

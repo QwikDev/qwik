@@ -17,13 +17,16 @@ export class _TextEncoderStream_polyfill {
       chunk = String(chunk);
 
       let finalChunk = '';
-      for (const item of chunk) {
+      for (let i = 0; i < chunk.length; i++) {
+        const item = chunk[i];
         const codeUnit = item.charCodeAt(0);
+
         if (this.#pendingHighSurrogate !== null) {
           const highSurrogate = this.#pendingHighSurrogate;
 
           this.#pendingHighSurrogate = null;
-          if (codeUnit >= 0xdc00 && codeUnit <= 0xdfff) {
+
+          if (0xdc00 <= codeUnit && codeUnit <= 0xdfff) {
             finalChunk += highSurrogate + item;
             continue;
           }
@@ -31,12 +34,12 @@ export class _TextEncoderStream_polyfill {
           finalChunk += '\uFFFD';
         }
 
-        if (codeUnit >= 0xd800 && codeUnit <= 0xdbff) {
+        if (0xd800 <= codeUnit && codeUnit <= 0xdbff) {
           this.#pendingHighSurrogate = item;
           continue;
         }
 
-        if (codeUnit >= 0xdc00 && codeUnit <= 0xdfff) {
+        if (0xdc00 <= codeUnit && codeUnit <= 0xdfff) {
           finalChunk += '\uFFFD';
           continue;
         }

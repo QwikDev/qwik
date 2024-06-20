@@ -1,6 +1,6 @@
 {
   "name": "qwik-monorepo",
-  "version": "1.5.5",
+  "version": "1.5.7",
   "comments": {
     "01": "devDependencies includes reference to @builder.io/qwik: workspace: *. This is needed or e2e tests will fail",
     "02": "  It would be nice to be able to remove this dependency and fix the test.",
@@ -68,8 +68,8 @@
     "@clack/prompts": "^0.7.0",
     "@eslint/eslintrc": "^3.0.2",
     "@mdx-js/mdx": "^3.0.1",
-    "@microsoft/api-documenter": "^7.24.2",
-    "@microsoft/api-extractor": "^7.43.1",
+    "@microsoft/api-documenter": "7.24.2",
+    "@microsoft/api-extractor": "7.43.1",
     "@napi-rs/cli": "^2.18.0",
     "@napi-rs/triples": "^1.2.0",
     "@node-rs/helper": "^1.5.0",
@@ -103,7 +103,7 @@
     "eslint-plugin-no-only-tests": "3.1.0",
     "eslint-plugin-qwik": "workspace:^",
     "execa": "8.0.1",
-    "express": "4.18.3",
+    "express": "4.19.2",
     "install": "^0.13.0",
     "monaco-editor": "^0.45.0",
     "mri": "1.2.0",
@@ -143,6 +143,7 @@
     "overrides": {
       "typescript": "5.4.5",
       "vfile": "^6.0.1",
+      "sharp": ">=0.33",
       "@supabase/realtime-js": "2.8.4"
     },
     "patchedDependencies": {
@@ -192,7 +193,7 @@
     "preinstall": "npx only-allow pnpm",
     "prettier.fix": "prettier --cache --write .",
     "qwik-save-artifacts": "tsm ./scripts/qwik-save-artifacts.ts",
-    "release.prepare": "pnpm lint && pnpm test.unit --run && tsm scripts/index.ts --tsc --build --api --eslint --platform-binding --wasm --prepare-release",
+    "release.prepare": "pnpm build --prepare-release",
     "serve": "tsm --inspect --conditions=development starters/dev-server.ts 3300",
     "serve.debug": "tsm --inspect-brk --conditions=development starters/dev-server.ts 3300",
     "start": "concurrently \"npm:build.watch\"  \"npm:tsc.watch\" -n build,tsc -c green,cyan",

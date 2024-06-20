@@ -1,5 +1,7 @@
 import { isDev } from '@builder.io/qwik/build';
 import { _jsxC } from '../internal';
+import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
+import { useServerData } from '../use/use-env-data';
 
 /**
  * Install a service worker which will prefetch the bundles.
@@ -9,28 +11,69 @@ import { _jsxC } from '../internal';
  *
  * @param opts - Options for the prefetch service worker.
  *
- *   - `base` - Base URL for the service worker.
- *   - `path` - Path to the service worker.
+ *   - `base` - Base URL for the service worker `import.meta.env.BASE_URL` or `/`. Default is
+ *       `import.meta.env.BASE_URL`
+ *   - `scope` - Base URL for when the service-worker will activate. Default is `/`
+ *   - `path` - Path to the service worker. Default is `qwik-prefetch-service-worker.js` unless you pass
+ *       a path that starts with a `/` then the base is ignored. Default is
+ *       `qwik-prefetch-service-worker.js`
+ *   - `verbose` - Verbose logging for the service worker installation. Default is `false`
+ *   - `nonce` - Optional nonce value for security purposes, defaults to `undefined`.
  *
  * @alpha
  */
 export const PrefetchServiceWorker = (opts: {
   base?: string;
+  scope?: string;
   path?: string;
   verbose?: boolean;
   fetchBundleGraph?: boolean;
   nonce?: string;
-}) => {
+}): JSXNode<'script'> => {
+  const serverData = useServerData<Record<string, string>>('containerAttributes', {});
   const resolvedOpts = {
-    base: import.meta.env.BASE_URL,
+    base: serverData['q:base'],
+    manifestHash: serverData['q:manifest-hash'],
+    scope: '/',
     verbose: false,
     path: 'qwik-prefetch-service-worker.js',
     ...opts,
   };
-  let code = PREFETCH_CODE.replace('URL', resolvedOpts.base + resolvedOpts.path).replace(
-    'SCOPE',
-    resolvedOpts.base
-  );
+  if (opts?.path?.startsWith?.('/')) {
+    // allow different path and base
+    resolvedOpts.path = opts.path;
+  } else {
+    // base: '/'
+    // path: 'qwik-prefetch-service-worker.js
+    resolvedOpts.path = resolvedOpts.base + resolvedOpts.path;
+  }
+  // dev only errors
+  if (isDev) {
+    // Check if base ends with a '/'
+    if (!resolvedOpts.base.endsWith('/')) {
+      throw new Error(
+        `The 'base' option should always end with a '/'. Received: ${resolvedOpts.base}`
+      );
+    }
+    // Check if path does not start with a '/' and ends with '.js'
+    if (!resolvedOpts.path.endsWith('.js')) {
+      throw new Error(`The 'path' option must end with '.js'. Received: ${resolvedOpts.path}`);
+    }
+    // Validate service worker scope (must start with a '/' and not contain spaces)
+    if (!resolvedOpts.scope.startsWith('/') || /\s/.test(resolvedOpts.scope)) {
+      throw new Error(
+        `Invalid 'scope' option for service worker. It must start with '/' and contain no spaces. Received: ${resolvedOpts.scope}`
+      );
+    }
+    if (resolvedOpts.verbose) {
+      // eslint-disable-next-line no-console
+      console.log(
+        'Installing <PrefetchServiceWorker /> service-worker with options:',
+        resolvedOpts
+      );
+    }
+  }
+  let code = PREFETCH_CODE.replace('URL', resolvedOpts.path).replace('SCOPE', resolvedOpts.scope);
   if (!isDev) {
     code = code.replaceAll(/\s+/gm, '');
   }
@@ -38,28 +81,26 @@ export const PrefetchServiceWorker = (opts: {
     dangerouslySetInnerHTML: [
       '(' + code + ')(',
       [
-        "document.currentScript.closest('[q\\\\:container]')",
+        JSON.stringify(resolvedOpts.base),
+        JSON.stringify(resolvedOpts.manifestHash),
         'navigator.serviceWorker',
         'window.qwikPrefetchSW||(window.qwikPrefetchSW=[])',
         resolvedOpts.verbose,
       ].join(','),
       ');',
     ].join(''),
-    nonce: opts.nonce,
+    nonce: resolvedOpts.nonce,
   };
   return _jsxC('script', props, 0, 'prefetch-service-worker');
 };
 
 const PREFETCH_CODE = /*#__PURE__*/ ((
-  qc: HTMLElement, // QwikContainer Element
+  b: string, // base
+  h: string, // manifest hash
   c: ServiceWorkerContainer, // Service worker container
   q: Array<any[]>, // Queue of messages to send to the service worker.
-  v: boolean, // Verbose mode
-  b?: string,
-  h?: string
+  v: boolean // Verbose mode
 ) => {
-  b = qc.getAttribute('q:base')!;
-  h = qc.getAttribute('q:manifest-hash')!;
   c.register('URL', { scope: 'SCOPE' }).then(
     (sw: ServiceWorkerRegistration, onReady?: () => void) => {
       onReady = () => q.forEach((q.push = (v) => sw.active!.postMessage(v) as any));
@@ -97,39 +138,26 @@ const PREFETCH_CODE = /*#__PURE__*/ ((
 export const PrefetchGraph = (
   opts: { base?: string; manifestHash?: string; manifestURL?: string; nonce?: string } = {}
 ) => {
+  const serverData = useServerData<Record<string, string>>('containerAttributes', {});
   const resolvedOpts = {
-    base: `${import.meta.env.BASE_URL}build/`,
-    manifestHash: null,
-    manifestURL: null,
+    base: serverData['q:base'],
+    manifestHash: serverData['q:manifest-hash'],
+    scope: '/',
+    verbose: false,
+    path: 'qwik-prefetch-service-worker.js',
     ...opts,
   };
-  let code = PREFETCH_GRAPH_CODE;
-  if (!isDev) {
-    code = code.replaceAll(/\s+/gm, '');
-  }
+  const args = [
+    'graph-url',
+    resolvedOpts.base,
+    resolvedOpts.base + `q-bundle-graph-${resolvedOpts.manifestHash}.json`,
+  ]
+    .map((x) => JSON.stringify(x))
+    .join(',');
+  const code = `(window.qwikPrefetchSW||(window.qwikPrefetchSW=[])).push(${args})`;
   const props = {
-    dangerouslySetInnerHTML: [
-      '(' + code + ')(',
-      [
-        "document.currentScript.closest('[q\\\\:container]')",
-        'window.qwikPrefetchSW||(window.qwikPrefetchSW=[])',
-        JSON.stringify(resolvedOpts.base),
-        JSON.stringify(resolvedOpts.manifestHash),
-        JSON.stringify(resolvedOpts.manifestURL),
-      ].join(','),
-      ');',
-    ].join(''),
+    dangerouslySetInnerHTML: code,
     nonce: opts.nonce,
   };
   return _jsxC('script', props, 0, 'prefetch-graph');
 };
-
-const PREFETCH_GRAPH_CODE = /*#__PURE__*/ ((
-  qc: HTMLElement, // QwikContainer Element
-  q: Array<any[]>, // Queue of messages to send to the service worker.
-  b: string, // Base URL
-  h: string | null, // Manifest hash
-  u: string | null // Manifest URL
-) => {
-  q.push(['graph-url', b, u || `q-bundle-graph-${h || qc.getAttribute('q:manifest-hash')}.json`]);
-}).toString();

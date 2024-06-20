@@ -51,8 +51,8 @@ export default component$(() => {
   return (
     <QwikCityProvider>
       <head>
+        <meta charset="utf-8" />
         <script dangerouslySetInnerHTML={uwu} />
-        <meta charSet="utf-8" />
         <RouterHead />
         <ServiceWorkerRegister />
         {/* <script dangerouslySetInnerHTML={`(${collectSymbols})()`} /> */}

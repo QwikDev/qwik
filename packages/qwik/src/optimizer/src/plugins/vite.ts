@@ -33,7 +33,7 @@ import {
   type QwikPluginOptions,
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
-import { VITE_DEV_CLIENT_QS, configureDevServer, configurePreviewServer } from './vite-server';
+import { VITE_DEV_CLIENT_QS, configureDevServer, configurePreviewServer } from './vite-dev-server';
 
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 
@@ -85,7 +85,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     getClientPublicOutDir: () => clientPublicOutDir,
   };
 
-  const vitePlugin: VitePlugin = {
+  // We provide two plugins to Vite. The first plugin is the main plugin that handles all the
+  // Vite hooks. The second plugin is a post plugin that is called after the build has finished.
+  // The post plugin is used to generate the Qwik manifest file that is used during SSR to
+  // generate QRLs for event handlers.
+  const vitePluginPre: VitePlugin = {
     name: 'vite-plugin-qwik',
     enforce: 'pre',
     api,
@@ -152,7 +156,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         resolveQwikBuild: true,
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
-        outDir: viteConfig.build?.outDir,
+        outDir: viteConfig.build?.assetsDir
+          ? path.join(viteConfig.build?.outDir || CLIENT_OUT_DIR, viteConfig.build?.assetsDir)
+          : viteConfig.build?.outDir,
         devTools: qwikViteOpts.devTools,
         sourcemap: !!viteConfig.build?.sourcemap,
         lint: qwikViteOpts.lint,
@@ -329,10 +335,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         updatedViteConfig.build!.outDir = buildOutputDir;
         updatedViteConfig.build!.rollupOptions = {
           input: opts.input,
-          output: {
-            ...normalizeRollupOutputOptions(path, opts, viteConfig.build?.rollupOptions?.output),
-            dir: buildOutputDir,
-          },
+          output: normalizeRollupOutputOptions(
+            path,
+            opts,
+            viteConfig.build?.rollupOptions?.output
+          ).map((outputOptsObj) => {
+            outputOptsObj.dir = buildOutputDir;
+            return outputOptsObj;
+          }),
           preserveEntrySignatures: 'exports-only',
           onwarn: (warning, warn) => {
             if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
@@ -467,6 +477,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       }
       return qwikPlugin.transform(this, code, id, transformOpts);
     },
+  };
+
+  const vitePluginPost: VitePlugin = {
+    name: 'vite-plugin-qwik-post',
+    enforce: 'post',
 
     generateBundle: {
       order: 'post',
@@ -475,19 +490,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
         if (opts.target === 'client') {
           // client build
-          const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
+          const outputAnalyzer = qwikPlugin.createOutputAnalyzer(rollupBundle);
 
-          for (const fileName in rollupBundle) {
-            const b = rollupBundle[fileName];
-            if (b.type === 'chunk') {
-              outputAnalyzer.addBundle({
-                fileName,
-                modules: b.modules,
-                imports: b.imports,
-                dynamicImports: b.dynamicImports,
-                size: b.code.length,
-              });
-            } else {
+          for (const [fileName, b] of Object.entries(rollupBundle)) {
+            if (b.type === 'asset') {
               const baseFilename = basePathname + fileName;
               if (STYLING.some((ext) => fileName.endsWith(ext))) {
                 if (typeof b.source === 'string' && b.source.length < opts.inlineStylesUpToBytes) {
@@ -637,14 +643,31 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     configureServer(server: ViteDevServer) {
-      server.middlewares.use(getImageSizeServer(qwikPlugin.getSys(), rootDir!, srcDir!));
       const devSsrServer = 'devSsrServer' in qwikViteOpts ? qwikViteOpts.devSsrServer : true;
+      const imageDevTools =
+        qwikViteOpts.devTools && 'imageDevTools' in qwikViteOpts.devTools
+          ? qwikViteOpts.devTools.imageDevTools
+          : true;
+
+      if (imageDevTools) {
+        server.middlewares.use(getImageSizeServer(qwikPlugin.getSys(), rootDir!, srcDir!));
+      }
+
       if (!qwikViteOpts.csr && devSsrServer) {
         const plugin = async () => {
           const opts = qwikPlugin.getOptions();
           const sys = qwikPlugin.getSys();
           const path = qwikPlugin.getPath();
-          await configureDevServer(server, opts, sys, path, isClientDevOnly, clientDevInput);
+          await configureDevServer(
+            basePathname,
+            server,
+            opts,
+            sys,
+            path,
+            isClientDevOnly,
+            clientDevInput,
+            qwikPlugin.foundQrls
+          );
         };
         const isNEW = (globalThis as any).__qwikCityNew === true;
         if (isNEW) {
@@ -700,7 +723,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
   };
 
-  return vitePlugin;
+  return [vitePluginPre, vitePluginPost];
 }
 
 const ANSI_COLOR = {
@@ -895,6 +918,13 @@ interface QwikVitePluginCommonOptions {
     | null;
   devTools?: {
     /**
+     * Validates image sizes for CLS issues during development. In case of issues, provides you with
+     * a correct image size resolutions. If set to `false`, image dev tool will be disabled.
+     *
+     * Default `true`
+     */
+    imageDevTools?: boolean | true;
+    /**
      * Press-hold the defined keys to enable qwik dev inspector. By default the behavior is
      * activated by pressing the left or right `Alt` key. If set to `false`, qwik dev inspector will
      * be disabled.
@@ -902,7 +932,7 @@ interface QwikVitePluginCommonOptions {
      * Valid values are `KeyboardEvent.code` values. Please note that the 'Left' and 'Right'
      * suffixes are ignored.
      */
-    clickToSource: string[] | false;
+    clickToSource?: string[] | false;
   };
   /**
    * Predicate function to filter out files from the optimizer. hook for resolveId, load, and
@@ -1062,7 +1092,8 @@ export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundle
     const { index, deps } = map.get(bundleName)!;
     for (let i = 0; i < deps.length; i++) {
       const depName = deps[i];
-      const { index: depIndex } = map.get(depName)!;
+      const dep = map.get(depName);
+      const depIndex = dep?.index;
       if (depIndex == undefined) {
         throw new Error(`Missing dependency: ${depName}`);
       }

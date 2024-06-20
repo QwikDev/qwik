@@ -72,6 +72,28 @@ export default component$(() => {
           }}
         />
         {errors?.["credentials.password"] ?? "no error"}
+
+        <input
+          type="hidden"
+          name="evenMoreComplex.deep.firstName"
+          value="John"
+          class={{
+            error:
+              dotNotation.value?.fieldErrors?.[
+                "evenMoreComplex.deep.firstName"
+              ],
+          }}
+        />
+
+        <input
+          type="hidden"
+          name="persons.0.name"
+          value="John"
+          class={{
+            error: dotNotation.value?.fieldErrors?.["persons[].name"]?.[0],
+          }}
+        />
+
         <button>Dot Notation</button>
       </Form>
     </>

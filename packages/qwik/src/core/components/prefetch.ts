@@ -1,6 +1,6 @@
 import { isDev } from '@builder.io/qwik/build';
-import { _jsxC } from '../internal';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
+import { _jsxC } from '../internal';
 import { useServerData } from '../use/use-env-data';
 
 /**
@@ -45,7 +45,7 @@ export const PrefetchServiceWorker = (opts: {
   } else {
     // base: '/'
     // path: 'qwik-prefetch-service-worker.js
-    resolvedOpts.path = resolvedOpts.base + resolvedOpts.path;
+    resolvedOpts.path = resolvedOpts.base.replace('build/', '') + resolvedOpts.path;
   }
   // dev only errors
   if (isDev) {
@@ -147,14 +147,10 @@ export const PrefetchGraph = (
     path: 'qwik-prefetch-service-worker.js',
     ...opts,
   };
-  const args = [
-    'graph-url',
-    resolvedOpts.base,
-    resolvedOpts.base + `q-bundle-graph-${resolvedOpts.manifestHash}.json`,
-  ]
+  const args = ['graph-url', resolvedOpts.base, `q-bundle-graph-${resolvedOpts.manifestHash}.json`]
     .map((x) => JSON.stringify(x))
     .join(',');
-  const code = `(window.qwikPrefetchSW||(window.qwikPrefetchSW=[])).push(${args})`;
+  const code = `(window.qwikPrefetchSW||(window.qwikPrefetchSW=[])).push([${args}])`;
   const props = {
     dangerouslySetInnerHTML: code,
     nonce: opts.nonce,

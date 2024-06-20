@@ -32,7 +32,7 @@ describe('PrefetchServiceWorker', () => {
       );
       log('>>>>', output.html);
       expect(output.html).to.includes('scope: "/en/"');
-      expect(output.html).to.includes('"/build/en/qwik-prefetch-service-worker.js"');
+      expect(output.html).to.includes('"/en/qwik-prefetch-service-worker.js"');
     });
     it('should render script with a base', async () => {
       const output = await renderToString(<PrefetchServiceWorker base="/build/en/" />, {
@@ -40,7 +40,7 @@ describe('PrefetchServiceWorker', () => {
       });
       log('>>>>', output.html);
       expect(output.html).to.includes('scope: "/"');
-      expect(output.html).to.includes('"/build/en/qwik-prefetch-service-worker.js"');
+      expect(output.html).to.includes('"/en/qwik-prefetch-service-worker.js"');
     });
     it('should render script with without base and only q:base', async () => {
       const output = await renderToString(<PrefetchServiceWorker />, {

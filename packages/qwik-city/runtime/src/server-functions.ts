@@ -324,7 +324,7 @@ export const serverQrl = <T extends ServerFunction>(
       } else {
         // Running on the client, we need to call the function via HTTP
         const ctxElm = _getContextElement();
-        const filtered = args.map((arg: unknown) => {
+        const filteredArgs = args.map((arg: unknown) => {
           if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
             return new FormData(arg.target);
           } else if (arg instanceof Event) {
@@ -334,7 +334,7 @@ export const serverQrl = <T extends ServerFunction>(
           }
           return arg;
         });
-        const hash = qrl.getHash();
+        const qrlHash = qrl.getHash();
         // Handled by `pureServerFunction` middleware
         let query = '';
         const config = {
@@ -344,18 +344,18 @@ export const serverQrl = <T extends ServerFunction>(
             ...headers,
             'Content-Type': 'application/qwik-json',
             // Required so we don't call accidentally
-            'X-QRL': hash,
+            'X-QRL': qrlHash,
           },
           signal: abortSignal,
         };
-        const body = await _serializeData([qrl, ...filtered], false);
+        const body = await _serializeData([qrl, ...filteredArgs], false);
         if (method === 'GET') {
           query += `&${QDATA_KEY}=${encodeURIComponent(body)}`;
         } else {
           // PatrickJS: sorry Ryan Florence I prefer const still
           config.body = body;
         }
-        const res = await fetch(`${origin}?${QFN_KEY}=${hash}${query}`, config);
+        const res = await fetch(`${origin}?${QFN_KEY}=${qrlHash}${query}`, config);
 
         const contentType = res.headers.get('Content-Type');
         if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {
@@ -441,13 +441,13 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
 const deserializeStream = async function* (
   stream: ReadableStream<Uint8Array>,
   ctxElm: unknown,
-  signal?: AbortSignal
+  abortSignal?: AbortSignal
 ) {
   const reader = stream.getReader();
   try {
     let buffer = '';
     const decoder = new TextDecoder();
-    while (!signal?.aborted) {
+    while (!abortSignal?.aborted) {
       const result = await reader.read();
       if (result.done) {
         break;

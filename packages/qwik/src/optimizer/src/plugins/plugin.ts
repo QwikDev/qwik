@@ -476,6 +476,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           // building here via ctx.load doesn't seem to work (target is always ssr?)
           // eslint-disable-next-line prefer-const
           let [, qrlId, parentId] = match;
+          parentId = decodeURIComponent(parentId);
           // If the parent is not in root (e.g. pnpm symlink), the qrl also isn't
           if (parentId.startsWith(opts.rootDir)) {
             qrlId = `${opts.rootDir}${qrlId}`;

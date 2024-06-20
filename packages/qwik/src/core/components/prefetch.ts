@@ -158,7 +158,7 @@ export const PrefetchGraph = (
     resolvedOpts.base,
     `q-bundle-graph-${resolvedOpts.manifestHash}.json`,
   ]);
-  const code = `(window.qwikPrefetchSW||(window.qwikPrefetchSW=[])).push(${args})`;
+  const code = `(window.qwikPrefetchSW||(window.qwikPrefetchSW=[])).push(${args}))`;
   const props = {
     dangerouslySetInnerHTML: code,
     nonce: opts.nonce,

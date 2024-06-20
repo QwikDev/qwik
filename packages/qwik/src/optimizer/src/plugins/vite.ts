@@ -156,9 +156,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         resolveQwikBuild: true,
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
-        outDir: viteConfig.build?.assetsDir
-          ? path.join(viteConfig.build?.outDir || CLIENT_OUT_DIR, viteConfig.build?.assetsDir)
-          : viteConfig.build?.outDir,
+        outDir: viteConfig.build?.outDir,
         devTools: qwikViteOpts.devTools,
         sourcemap: !!viteConfig.build?.sourcemap,
         lint: qwikViteOpts.lint,

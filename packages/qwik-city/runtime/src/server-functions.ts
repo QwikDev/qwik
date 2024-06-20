@@ -1,49 +1,49 @@
 import {
   $,
-  implicit$FirstArg,
-  noSerialize,
-  type QRL,
-  useContext,
-  type ValueOrPromise,
-  useStore,
-  _serializeData,
   _deserializeData,
   _getContextElement,
   _getContextEvent,
+  _serializeData,
   _wrapProp,
+  implicit$FirstArg,
+  noSerialize,
+  useContext,
+  useStore,
+  type QRL,
+  type ValueOrPromise,
 } from '@builder.io/qwik';
 
+import { z } from 'zod';
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
-import { QACTION_KEY, QFN_KEY, QDATA_KEY } from './constants';
+import { QACTION_KEY, QDATA_KEY, QFN_KEY } from './constants';
 import { RouteStateContext } from './contexts';
 import type {
   ActionConstructor,
-  ZodConstructor,
-  JSONObject,
-  RouteActionResolver,
-  RouteLocation,
-  Editable,
-  ActionStore,
-  RequestEvent,
+  ActionConstructorQRL,
   ActionInternal,
-  LoaderInternal,
-  RequestEventAction,
+  ActionStore,
   CommonLoaderActionOptions,
   DataValidator,
-  ValidatorReturn,
+  Editable,
+  JSONObject,
   LoaderConstructor,
-  ValidatorConstructor,
-  ActionConstructorQRL,
   LoaderConstructorQRL,
-  ZodConstructorQRL,
-  ValidatorConstructorQRL,
+  LoaderInternal,
+  RequestEvent,
+  RequestEventAction,
+  RequestEventBase,
+  RouteActionResolver,
+  RouteLocation,
+  ServerConfig,
   ServerFunction,
   ServerQRL,
-  RequestEventBase,
-  ServerConfig,
+  ValidatorConstructor,
+  ValidatorConstructorQRL,
+  ValidatorReturn,
+  ZodConstructor,
+  ZodConstructorQRL,
 } from './types';
 import { useAction, useLocation, useQwikCityEnv } from './use-functions';
-import { z } from 'zod';
 
 import { isDev, isServer } from '@builder.io/qwik/build';
 
@@ -301,7 +301,7 @@ export const serverQrl = <T extends ServerFunction>(
   function rpc() {
     return $(async function (this: RequestEventBase, ...args: Parameters<T>) {
       // move to ServerConfig
-      const signal =
+      const abortSignal =
         args.length > 0 && args[0] instanceof AbortSignal
           ? (args.shift() as AbortSignal)
           : undefined;
@@ -346,7 +346,7 @@ export const serverQrl = <T extends ServerFunction>(
             // Required so we don't call accidentally
             'X-QRL': hash,
           },
-          signal,
+          signal: abortSignal,
         };
         const body = await _serializeData([qrl, ...filtered], false);
         if (method === 'GET') {
@@ -364,12 +364,12 @@ export const serverQrl = <T extends ServerFunction>(
               for await (const result of deserializeStream(
                 res.body!,
                 ctxElm ?? document.documentElement,
-                signal
+                abortSignal
               )) {
                 yield result;
               }
             } finally {
-              if (!signal?.aborted) {
+              if (!abortSignal?.aborted) {
                 await res.body!.cancel();
               }
             }

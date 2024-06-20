@@ -8,7 +8,7 @@ import init from './spa-init';
 
 export default (base: string) => {
   if (isServer) {
-    const [symbol, bundle] = getPlatform().chunkForSymbol(init.getSymbol(), null)!;
+    const [symbol, bundle] = getPlatform().chunkForSymbol(init.getSymbol(), null, init.dev?.file)!;
     const args = [base, bundle, symbol].map((x) => JSON.stringify(x)).join(',');
     return `(${shim.toString()})(${args});`;
   }

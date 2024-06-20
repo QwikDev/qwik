@@ -133,6 +133,8 @@ export async function configureDevServer(
             });
           });
 
+          // We must encode the chunk so that e.g. + doesn't get converted to space etc
+          const encode = (url: string) => encodeURIComponent(url).replaceAll('%2F', '/');
           const renderOpts: RenderToStreamOptions = {
             debug: true,
             locale: serverData.locale,
@@ -147,7 +149,7 @@ export async function configureDevServer(
                   }
                   const chunk = mapper && mapper[getSymbolHash(symbolName)];
                   if (chunk) {
-                    return chunk;
+                    return [chunk[0], encode(chunk[1])];
                   }
                   parent ||= foundQrls.get(symbolName);
                   if (!parent) {
@@ -162,7 +164,7 @@ export async function configureDevServer(
                   const qrlPath = parentPath.startsWith(opts.rootDir)
                     ? path.relative(opts.rootDir, parentPath)
                     : parentPath;
-                  const qrlFile = `${qrlPath}/${symbolName.toLowerCase()}.js?_qrl_parent=${parent}`;
+                  const qrlFile = `${encode(qrlPath)}/${symbolName.toLowerCase()}.js?_qrl_parent=${encode(parent)}`;
                   return [symbolName, `${base}${qrlFile}`];
                 },
             prefetchStrategy: null,

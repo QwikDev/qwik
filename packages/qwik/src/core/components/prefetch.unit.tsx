@@ -24,15 +24,18 @@ describe('PrefetchServiceWorker', () => {
       expect(output.html).to.contain('<script nonce="1234" q:key="prefetch-service-worker">');
     });
     it('should render script with a scope', async () => {
+      // if the qwik app was isolated to /en/ folder
+      // scope will only run in /en/ pathname in the url
       const output = await renderToString(
-        <PrefetchServiceWorker base="/build/en/" scope="/en/" />,
+        <PrefetchServiceWorker base="/en/build/" scope="/en/" />,
         {
           containerTagName: 'div',
         }
       );
       log('>>>>', output.html);
       expect(output.html).to.includes('scope: "/en/"');
-      expect(output.html).to.includes('"/build/en/qwik-prefetch-service-worker.js"');
+      expect(output.html).to.includes('"/en/build/"');
+      expect(output.html).to.includes('"/qwik-prefetch-service-worker.js"');
     });
     it('should render script with a base', async () => {
       const output = await renderToString(<PrefetchServiceWorker base="/build/en/" />, {
@@ -40,7 +43,8 @@ describe('PrefetchServiceWorker', () => {
       });
       log('>>>>', output.html);
       expect(output.html).to.includes('scope: "/"');
-      expect(output.html).to.includes('"/build/en/qwik-prefetch-service-worker.js"');
+      expect(output.html).to.includes('"/build/en/"');
+      expect(output.html).to.includes('"/qwik-prefetch-service-worker.js"');
     });
     it('should render script with without base and only q:base', async () => {
       const output = await renderToString(<PrefetchServiceWorker />, {
@@ -71,7 +75,8 @@ describe('PrefetchServiceWorker', () => {
       );
       log('>>>>', output.html);
       expect(output.html).to.includes('scope: "/"');
-      expect(output.html).to.includes('"/build2/patrickjs-service-worker.js"');
+      expect(output.html).to.includes('"/build2/"');
+      expect(output.html).to.includes('"/patrickjs-service-worker.js"');
     });
     it('should render script with a custom path', async () => {
       const output = await renderToString(
@@ -86,6 +91,7 @@ describe('PrefetchServiceWorker', () => {
       );
       log('>>>>', output.html);
       expect(output.html).to.includes('scope: "/"');
+      expect(output.html).to.includes('"/build/en/"');
       expect(output.html).to.includes('"/build/patrickjs-service-worker.js"');
     });
   });

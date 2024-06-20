@@ -1,9 +1,9 @@
 import type { Render } from '@builder.io/qwik/server';
-import type { QwikSerializer, ServerRenderOptions, ServerRequestEvent } from './types';
-import type { QwikCityPlan } from '../../runtime/src/types';
-import { getRouteMatchPathname, type QwikCityRun, runQwikCity } from './user-response';
-import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
 import { loadRoute } from '../../runtime/src/routing';
+import type { QwikCityPlan } from '../../runtime/src/types';
+import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
+import type { QwikSerializer, ServerRenderOptions, ServerRequestEvent } from './types';
+import { getRouteMatchPathname, runQwikCity, type QwikCityRun } from './user-response';
 
 /**
  * The request handler for QwikCity. Called by every integration.
@@ -18,18 +18,19 @@ export async function requestHandler<T = unknown>(
   const { render, qwikCityPlan, manifest, checkOrigin } = opts;
   const pathname = serverRequestEv.url.pathname;
   const matchPathname = getRouteMatchPathname(pathname, qwikCityPlan.trailingSlash);
-  const route = await loadRequestHandlers(
+  const routeAndHandlers = await loadRequestHandlers(
     qwikCityPlan,
     matchPathname,
     serverRequestEv.request.method,
     checkOrigin ?? true,
     render
   );
-  if (route) {
+  if (routeAndHandlers) {
+    const [route, requestHandlers] = routeAndHandlers;
     return runQwikCity(
       serverRequestEv,
-      route[0],
-      route[1],
+      route,
+      requestHandlers,
       manifest,
       qwikCityPlan.trailingSlash,
       qwikCityPlan.basePathname,

@@ -210,7 +210,7 @@ export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
       throwErrorAndStop('Sync QRL without containerState');
     }
   }
-  let output = `${encodeURI(chunk)}#${symbol}`;
+  let output = `${chunk}#${symbol}`;
   const capture = qrl.$capture$;
   const captureRef = qrl.$captureRef$;
   if (captureRef && captureRef.length) {

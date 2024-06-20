@@ -101,9 +101,9 @@ describe('serialization', () => {
     );
     assert.equal(
       serializeQRL(
-        createQRL('src/routes/[...index]/c', 's1', null, null, [1 as any, '2'], null, null)
+        createQRL('src/routes/[...index]/a+b/c?foo', 's1', null, null, [1 as any, '2'], null, null)
       ),
-      'src/routes/%5B...index%5D/c#s1[1 2]'
+      'src/routes/[...index]/a+b/c?foo#s1[1 2]'
     );
   });
 

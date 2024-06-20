@@ -20,7 +20,17 @@ test.describe("container", () => {
   });
 
   test("should handle inner counter", async ({ page }) => {
-    const anchor = page.locator("a");
+    const container = page.locator(".inline-container");
+    const anchor = container.locator("a");
+
+    await expect(anchor).toHaveText("1 / 1");
+    await anchor.click();
+    await expect(anchor).toHaveText("2 / 3");
+  });
+
+  test("should handle shadow-dom counter", async ({ page }) => {
+    const shadowHost = page.locator("[q\\:shadowroot]");
+    const anchor = shadowHost.locator("a");
 
     await expect(anchor).toHaveText("1 / 1");
     await anchor.click();

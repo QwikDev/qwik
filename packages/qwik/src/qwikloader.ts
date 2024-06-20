@@ -18,11 +18,14 @@ export const qwikLoader = (
   const Q_CONTEXT = '__q_context__';
   type qWindow = Window & {
     qwikevents: {
-      push: (...e: string[]) => void;
+      events: Set<string>;
+      roots: Set<Node>;
+      push: (...e: (string | (EventTarget & ParentNode))[]) => void;
     };
   };
   const win = window as unknown as qWindow;
-  const events = new Set();
+  const events = new Set<string>();
+  const roots = new Set<EventTarget & ParentNode>([doc]);
 
   // Some shortenings for minification
   const replace = 'replace';
@@ -32,8 +35,20 @@ export const qwikLoader = (
   const isConnected = 'isConnected';
   const qvisible = 'qvisible';
   const Q_JSON = '_qwikjson_';
+  const qContainerAttr = '[q\\:container]';
+  const nativeQuerySelectorAll = (root: ParentNode, selector: string) =>
+    Array.from(root.querySelectorAll(selector));
   const querySelectorAll = (query: string) => {
-    return doc.querySelectorAll(query);
+    const elements: Element[] = [];
+    roots.forEach((root) => elements.push(...nativeQuerySelectorAll(root, query)));
+    return elements;
+  };
+  const findShadowRoots = (fragment: EventTarget & ParentNode) => {
+    processEventOrNode(fragment);
+    nativeQuerySelectorAll(fragment, '[q\\:shadowroot]').forEach((parent) => {
+      const shadowRoot = parent.shadowRoot;
+      shadowRoot && findShadowRoots(shadowRoot);
+    });
   };
 
   const isPromise = (promise: Promise<any>) => promise && typeof promise.then === 'function';
@@ -94,7 +109,7 @@ export const qwikLoader = (
     }
     const attrValue = element[getAttribute](attrName);
     if (attrValue) {
-      const container = element.closest('[q\\:container]')! as QContainerElement;
+      const container = element.closest(qContainerAttr)! as QContainerElement;
       const qBase = container[getAttribute]('q:base')!;
       const qVersion = container[getAttribute]('q:version') || 'unknown';
       const qManifest = container[getAttribute]('q:manifest-hash') || 'dev';
@@ -197,6 +212,7 @@ export const qwikLoader = (
   const processReadyStateChange = () => {
     const readyState = doc.readyState;
     if (!hasInitialized && (readyState == 'interactive' || readyState == 'complete')) {
+      roots.forEach(findShadowRoots);
       // document is ready
       hasInitialized = 1;
 
@@ -220,7 +236,7 @@ export const qwikLoader = (
   };
 
   const addEventListener = (
-    el: Document | Window,
+    el: EventTarget,
     eventName: string,
     handler: (ev: Event) => void,
     capture = false
@@ -228,12 +244,25 @@ export const qwikLoader = (
     return el.addEventListener(eventName, handler, { capture, passive: false });
   };
 
-  const push = (eventNames: string[]) => {
-    for (const eventName of eventNames) {
-      if (!events.has(eventName)) {
-        addEventListener(doc, eventName, processDocumentEvent, true);
-        addEventListener(win, eventName, processWindowEvent, true);
-        events.add(eventName);
+  const processEventOrNode = (...eventNames: (string | (EventTarget & ParentNode))[]) => {
+    for (const eventNameOrNode of eventNames) {
+      if (typeof eventNameOrNode === 'string') {
+        // If it is string we just add the event to window and each of our roots.
+        if (!events.has(eventNameOrNode)) {
+          roots.forEach((root) =>
+            addEventListener(root, eventNameOrNode, processDocumentEvent, true)
+          );
+          addEventListener(win, eventNameOrNode, processWindowEvent, true);
+          events.add(eventNameOrNode);
+        }
+      } else {
+        // If it is a new root, we also need this root to catch up to all of the events sofar.
+        if (!roots.has(eventNameOrNode)) {
+          events.forEach((eventName) =>
+            addEventListener(eventNameOrNode, eventName, processDocumentEvent, true)
+          );
+          roots.add(eventNameOrNode);
+        }
       }
     }
   };
@@ -244,11 +273,13 @@ export const qwikLoader = (
     const qwikevents = win.qwikevents;
     // If `qwikEvents` is an array, process it.
     if (Array.isArray(qwikevents)) {
-      push(qwikevents);
+      processEventOrNode(...qwikevents);
     }
     // Now rig up `qwikEvents` so we get notified of new registrations by other containers.
     win.qwikevents = {
-      push: (...e: string[]) => push(e),
+      events: events,
+      roots: roots,
+      push: processEventOrNode,
     };
     addEventListener(doc, 'readystatechange', processReadyStateChange);
     processReadyStateChange();

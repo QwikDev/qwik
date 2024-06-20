@@ -153,10 +153,12 @@ export const PrefetchGraph = (
     path: 'qwik-prefetch-service-worker.js',
     ...opts,
   };
-  const args = ['graph-url', resolvedOpts.base, `q-bundle-graph-${resolvedOpts.manifestHash}.json`]
-    .map((x) => JSON.stringify(x))
-    .join(',');
-  const code = `(window.qwikPrefetchSW||(window.qwikPrefetchSW=[])).push([${args}])`;
+  const args = JSON.stringify([
+    'graph-url',
+    resolvedOpts.base,
+    `q-bundle-graph-${resolvedOpts.manifestHash}.json`,
+  ]);
+  const code = `(window.qwikPrefetchSW||(window.qwikPrefetchSW=[])).push(${args})`;
   const props = {
     dangerouslySetInnerHTML: code,
     nonce: opts.nonce,

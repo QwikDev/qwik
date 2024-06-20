@@ -23,8 +23,8 @@ export function prefetchUrlsEventScript(base: string, prefetchResources: Prefetc
   const data: QPrefetchData = {
     bundles: flattenPrefetchResources(prefetchResources).map((u) => u.split('/').pop()!),
   };
-  const args = ['prefetch', base, ...data.bundles!].map((x) => JSON.stringify(x)).join(',');
-  return `(window.qwikPrefetchSW||(window.qwikPrefetchSW=[])).push([${args}]);`;
+  const args = JSON.stringify(['prefetch', base, ...data.bundles!]);
+  return `window.qwikPrefetchSW||(window.qwikPrefetchSW=[]).push(${args});`;
 }
 
 export function flattenPrefetchResources(prefetchResources: PrefetchResource[]) {

@@ -84,6 +84,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     tsconfigFileNames: ['./tsconfig.json'],
     input: null as any,
     outDir: null as any,
+    assetsDir: null as any,
     resolveQwikBuild: true,
     entryStrategy: null as any,
     srcDir: null as any,
@@ -953,6 +954,7 @@ export interface QwikPluginOptions {
   insightsManifest?: InsightManifest | null;
   input?: string[] | string | { [entry: string]: string };
   outDir?: string;
+  assetsDir?: string;
   srcDir?: string | null;
   scope?: string | null;
   srcInputs?: TransformModuleInput[] | null;

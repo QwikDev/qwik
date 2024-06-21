@@ -167,14 +167,14 @@ export function normalizeRollupOutputOptions(
   }
 
   return outputOpts.map((outputOptsObj) =>
-    normalizeRollupOutputOptionsObject(path, opts, outputOptsObj)
+    normalizeRollupOutputOptionsObject(opts, outputOptsObj, true)
   );
 }
 
 export function normalizeRollupOutputOptionsObject(
-  path: Path,
   opts: NormalizedQwikPluginOptions,
-  rollupOutputOptsObj: Rollup.OutputOptions | undefined
+  rollupOutputOptsObj: Rollup.OutputOptions | undefined,
+  useAssetsDir: boolean
 ): Rollup.OutputOptions {
   const outputOpts: Rollup.OutputOptions = { ...rollupOutputOptsObj };
 
@@ -183,22 +183,29 @@ export function normalizeRollupOutputOptionsObject(
   }
   if (opts.target === 'client') {
     // client output
+    outputOpts.assetFileNames = useAssetsDir
+      ? `${opts.assetsDir}/${outputOpts.assetFileNames}`
+      : outputOpts.assetFileNames;
 
     if (opts.buildMode === 'production') {
       // client production output
       if (!outputOpts.entryFileNames) {
-        outputOpts.entryFileNames = 'build/q-[hash].js';
+        const fileName = 'build/q-[hash].js';
+        outputOpts.entryFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
       }
       if (!outputOpts.chunkFileNames) {
-        outputOpts.chunkFileNames = 'build/q-[hash].js';
+        const fileName = 'build/q-[hash].js';
+        outputOpts.chunkFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
       }
     } else {
       // client development output
       if (!outputOpts.entryFileNames) {
-        outputOpts.entryFileNames = 'build/[name].js';
+        const fileName = 'build/[name].js';
+        outputOpts.entryFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
       }
       if (!outputOpts.chunkFileNames) {
-        outputOpts.chunkFileNames = 'build/[name].js';
+        const fileName = 'build/[name].js';
+        outputOpts.chunkFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
       }
     }
   } else if (opts.buildMode === 'production') {

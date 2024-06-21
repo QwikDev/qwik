@@ -6,7 +6,6 @@ import type {
   OptimizerOptions,
   QwikManifest,
   TransformModuleInput,
-  Path,
   TransformModule,
 } from '../types';
 import {
@@ -69,11 +68,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     },
 
     outputOptions(rollupOutputOpts) {
-      return normalizeRollupOutputOptionsObject(
-        qwikPlugin.getPath(),
-        qwikPlugin.getOptions(),
-        rollupOutputOpts
-      );
+      return normalizeRollupOutputOptionsObject(qwikPlugin.getOptions(), rollupOutputOpts, false);
     },
 
     async buildStart() {
@@ -151,9 +146,9 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 }
 
 export function normalizeRollupOutputOptions(
-  path: Path,
   opts: NormalizedQwikPluginOptions,
-  rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined
+  rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined,
+  useAssetsDir: boolean
 ): Rollup.OutputOptions[] {
   const outputOpts: Rollup.OutputOptions[] = Array.isArray(rollupOutputOpts)
     ? // fill the `outputOpts` array with all existing option entries
@@ -167,7 +162,7 @@ export function normalizeRollupOutputOptions(
   }
 
   return outputOpts.map((outputOptsObj) =>
-    normalizeRollupOutputOptionsObject(opts, outputOptsObj, true)
+    normalizeRollupOutputOptionsObject(opts, outputOptsObj, useAssetsDir)
   );
 }
 

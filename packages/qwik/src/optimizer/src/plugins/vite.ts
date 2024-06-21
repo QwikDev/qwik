@@ -144,6 +144,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const vendorRoots = shouldFindVendors
         ? await findQwikRoots(sys, path.join(sys.cwd(), 'package.json'))
         : [];
+      const useAssetsDir =
+        target === 'client' &&
+        !!viteConfig.build?.assetsDir &&
+        viteConfig.build?.assetsDir !== '_astro';
       const pluginOpts: QwikPluginOptions = {
         target,
         buildMode,
@@ -157,6 +161,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
         outDir: viteConfig.build?.outDir,
+        assetsDir: useAssetsDir ? viteConfig.build?.assetsDir : undefined,
         devTools: qwikViteOpts.devTools,
         sourcemap: !!viteConfig.build?.sourcemap,
         lint: qwikViteOpts.lint,
@@ -334,9 +339,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         updatedViteConfig.build!.rollupOptions = {
           input: opts.input,
           output: normalizeRollupOutputOptions(
-            path,
             opts,
-            viteConfig.build?.rollupOptions?.output
+            viteConfig.build?.rollupOptions?.output,
+            useAssetsDir
           ).map((outputOptsObj) => {
             outputOptsObj.dir = buildOutputDir;
             return outputOptsObj;
@@ -555,12 +560,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             fileName: Q_MANIFEST_FILENAME,
             source: clientManifestStr,
           });
+          const sys = qwikPlugin.getSys();
+          const filePath = sys.path.dirname(_.chunkFileNames as string);
           this.emitFile({
             type: 'asset',
-            fileName: `build/q-bundle-graph-${manifest.manifestHash}.json`,
+            fileName: sys.path.join(filePath, `q-bundle-graph-${manifest.manifestHash}.json`),
             source: JSON.stringify(convertManifestToBundleGraph(manifest)),
           });
-          const sys = qwikPlugin.getSys();
           const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
           const workerScriptPath = (await this.resolve('@builder.io/qwik/qwik-prefetch.js'))!.id;
           const workerScript = await fs.promises.readFile(workerScriptPath, 'utf-8');

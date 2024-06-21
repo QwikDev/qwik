@@ -12,7 +12,7 @@ import {
   readdirSync,
   statSync,
   unlinkSync,
-  rmdirSync,
+  rmSync,
   existsSync,
   readFileSync,
 } from "node:fs";
@@ -256,7 +256,7 @@ function removeDir(dir: string) {
         unlinkSync(itemPath);
       }
     });
-    rmdirSync(dir);
+    rmSync(dir);
   } catch (e) {
     /**/
   }

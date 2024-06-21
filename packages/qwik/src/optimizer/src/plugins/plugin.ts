@@ -61,10 +61,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const id = `${Math.round(Math.random() * 899) + 100}`;
 
   const results = new Map<string, TransformOutput>();
-  const transformedOutputs = new Map<string, [TransformModule, string]>();
+  const clientTransformedOutputs = new Map<string, [TransformModule, string]>();
 
   const ssrResults = new Map<string, TransformOutput>();
-  const ssrTransformedOutputs = new Map<string, [TransformModule, string]>();
+  const serverTransformedOutputs = new Map<string, [TransformModule, string]>();
   const foundQrls = new Map<string, string>();
 
   let internalOptimizer: Optimizer | null = null;
@@ -366,7 +366,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
 
       debug(`transformedOutput.clear()`);
-      transformedOutputs.clear();
+      clientTransformedOutputs.clear();
 
       const mode =
         opts.target === 'lib' ? 'lib' : opts.buildMode === 'development' ? 'dev' : 'prod';
@@ -400,8 +400,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       for (const output of result.modules) {
         const key = normalizePath(path.join(srcDir, output.path)!);
         debug(`buildStart() add transformedOutput`, key, output.hook?.displayName);
-        transformedOutputs.set(key, [output, key]);
-        ssrTransformedOutputs.set(key, [output, key]);
+        clientTransformedOutputs.set(key, [output, key]);
+        serverTransformedOutputs.set(key, [output, key]);
         if (opts.target === 'client' && output.isEntry) {
           ctx.emitFile({
             id: key,
@@ -421,10 +421,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const resolveId = async (
     ctx: Rollup.PluginContext,
     id: string,
-    importer: string | undefined,
+    importerId: string | undefined,
     resolveOpts?: Parameters<Extract<Plugin['resolveId'], Function>>[2]
   ) => {
-    debug(`resolveId()`, 'Start', id, importer, resolveOpts, opts.target);
+    debug(`resolveId()`, 'Start', id, importerId, resolveOpts, opts.target);
     if (id.startsWith('\0') || id.startsWith('/@fs')) {
       return;
     }
@@ -463,10 +463,18 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     const path = getPath();
     const isSSR = !!resolveOpts?.ssr;
+    const transformedOutputs = isSSR ? serverTransformedOutputs : clientTransformedOutputs;
 
-    if (importer) {
+    if (importerId) {
       // Only process ids that look like paths
       if (!(id.startsWith('.') || path.isAbsolute(id))) {
+        // Rollup can ask us to resolve imports from QRL segments
+        // It seems like files need to exist on disk for this to work automatically
+        const mod = transformedOutputs.get(importerId);
+        if (mod) {
+          const parentId = mod[1];
+          return ctx.resolve(id, parentId, { skipSelf: true });
+        }
         return;
       }
       if (opts.target === 'ssr' && !isSSR) {
@@ -481,7 +489,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           if (parentId.startsWith(opts.rootDir)) {
             qrlId = `${opts.rootDir}${qrlId}`;
           }
-          if (!transformedOutputs.has(qrlId)) {
+          if (!clientTransformedOutputs.has(qrlId)) {
             // fall back to dev server which can wait for transform() to finish
             return null;
           }
@@ -493,18 +501,16 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       let importeePathId = normalizePath(parsedId.pathId);
       const ext = path.extname(importeePathId).toLowerCase();
       if (ext in RESOLVE_EXTS) {
-        importer = normalizePath(importer);
-        debug(`resolveId("${importeePathId}", "${importer}")`);
-        const parsedImporterId = parseId(importer);
+        importerId = normalizePath(importerId);
+        debug(`resolveId("${importeePathId}", "${importerId}")`);
+        const parsedImporterId = parseId(importerId);
         const dir = path.dirname(parsedImporterId.pathId);
         if (parsedImporterId.pathId.endsWith('.html') && !importeePathId.endsWith('.html')) {
           importeePathId = normalizePath(path.join(dir, importeePathId));
         } else {
           importeePathId = normalizePath(path.resolve(dir, importeePathId));
         }
-        const transformedOutput = isSSR
-          ? ssrTransformedOutputs.get(importeePathId)
-          : transformedOutputs.get(importeePathId);
+        const transformedOutput = transformedOutputs.get(importeePathId);
 
         if (transformedOutput) {
           debug(`resolveId() Resolved ${importeePathId} from transformedOutputs`);
@@ -518,10 +524,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       const importeePathId = normalizePath(parsedId.pathId);
       const ext = path.extname(importeePathId).toLowerCase();
       if (ext in RESOLVE_EXTS) {
-        debug(`resolveId("${importeePathId}", "${importer}")`);
-        const transformedOutput = isSSR
-          ? ssrTransformedOutputs.get(importeePathId)
-          : transformedOutputs.get(importeePathId);
+        debug(`resolveId("${importeePathId}", "${importerId}")`);
+        const transformedOutput = transformedOutputs.get(importeePathId);
 
         if (transformedOutput) {
           debug(`resolveId() Resolved ${importeePathId} from transformedOutputs`);
@@ -532,9 +536,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
     }
     // We don't (yet) know this id
-    debug(`resolveId()`, 'Not resolved', id, importer, resolveOpts);
+    debug(`resolveId()`, 'Not resolved', id, importerId, resolveOpts);
     return null;
   };
+
   const load = async (
     ctx: Rollup.PluginContext,
     id: string,
@@ -563,7 +568,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const path = getPath();
     id = normalizePath(parsedId.pathId);
 
-    const transformedModule = isSSR ? ssrTransformedOutputs.get(id) : transformedOutputs.get(id);
+    const transformedModule = isSSR
+      ? serverTransformedOutputs.get(id)
+      : clientTransformedOutputs.get(id);
 
     if (transformedModule) {
       debug(`load()`, 'Found', id);
@@ -596,7 +603,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       return;
     }
     const isSSR = !!transformOpts.ssr;
-    const currentOutputs = isSSR ? ssrTransformedOutputs : transformedOutputs;
+    const currentOutputs = isSSR ? serverTransformedOutputs : clientTransformedOutputs;
     if (currentOutputs.has(id)) {
       return;
     }
@@ -772,7 +779,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const getOptions = () => opts;
 
   const getTransformedOutputs = () => {
-    return Array.from(transformedOutputs.values()).map((t) => {
+    return Array.from(clientTransformedOutputs.values()).map((t) => {
       return t[0];
     });
   };

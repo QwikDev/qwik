@@ -155,11 +155,6 @@ jobs:
           path: packages/eslint-plugin-qwik/dist/
           if-no-files-found: error
 
-      - name: Publish packages for testing
-        run: pnpm dlx pkg-pr-new@0.0.8 publish --compact --pnpm ./packages/qwik/dist ./packages/qwik-city/lib ./packages/eslint-plugin-qwik/dist ./packages/create-qwik/dist
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   ############ BUILD WASM #############
   build-wasm:
     name: Build WASM
@@ -398,6 +393,7 @@ jobs:
   build-distribution:
     name: Build Distribution
     runs-on: ubuntu-latest
+    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     needs:
       - build-package
@@ -409,14 +405,11 @@ jobs:
 
     steps:
       - name: Checkout
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v4.1.1
 
       - uses: pnpm/action-setup@v4
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
       - name: Setup Node
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v4.0.2
         with:
           node-version: 20.x
@@ -424,41 +417,32 @@ jobs:
           registry-url: https://registry.npmjs.org/
 
       - run: corepack enable
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
       - name: Install NPM Dependencies
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: |
           # Ensure that the qwik binary gets made
           mkdir -p packages/qwik/dist/bindings/
           pnpm install --frozen-lockfile
 
       - name: Download Build Artifacts
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/download-artifact@v4.1.2
 
       - name: Print Distribution Artifacts
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: tree dist-dev-builder-io-qwik/
 
       - name: Move Distribution Artifacts
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: mv dist-dev-builder-io-qwik/* packages/qwik/dist/
 
       - name: Print Bindings Artifacts
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: tree dist-bindings-*/
 
       - name: Move Binding Artifacts
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: mv dist-bindings-*/* packages/qwik/dist/bindings/
 
       - name: Print Packages Dist Build
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: tree packages/qwik/dist/
 
       - name: Upload Qwik Distribution Artifact
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/upload-artifact@v4.3.1
         with:
           name: builderio-qwik-distribution
@@ -466,15 +450,12 @@ jobs:
           if-no-files-found: error
 
       - name: Build QwikCity / QwikLabs
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: pnpm tsm scripts/index.ts --tsc --qwikcity --qwiklabs --api --eslint
 
       - name: Print QwikCity Lib Build
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: tree packages/qwik-city/lib/
 
       - name: Upload QwikCity Build Artifacts
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/upload-artifact@v4.3.1
         with:
           name: builderio-qwikcity-distribution
@@ -482,11 +463,9 @@ jobs:
           if-no-files-found: error
 
       - name: Print QwikLabs Lib Build
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: tree packages/qwik-labs/lib/ packages/qwik-labs/vite/
 
       - name: Upload QwikLabs Build Artifacts
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/upload-artifact@v4.3.1
         with:
           name: builderio-qwiklabs-distribution
@@ -495,6 +474,11 @@ jobs:
             packages/qwik-labs/vite/
             packages/qwik-labs/package.json
           if-no-files-found: error
+
+      - name: Publish packages for testing
+        run: pnpm dlx pkg-pr-new@^0.0.9 publish --compact --pnpm ./packages/qwik/dist ./packages/qwik-city/lib ./packages/eslint-plugin-qwik/dist ./packages/create-qwik/dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   ############ RELEASE ############
   release:
@@ -576,6 +560,7 @@ jobs:
     needs:
       - build-distribution
       - changes
+    if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
     strategy:
       matrix:
@@ -591,30 +576,24 @@ jobs:
 
     steps:
       - name: Checkout
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/checkout@v4.1.1
 
       - uses: pnpm/action-setup@v4
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
 
       - name: Setup Node ${{ matrix.settings.node }}
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/setup-node@v4.0.2
         with:
           node-version: ${{ matrix.settings.node }}
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
-      - if: ${{ needs.changes.outputs.fullbuild == 'true' }}
-        run: corepack enable
+      - run: corepack enable
         shell: bash
 
       - name: Download Build Artifacts
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         uses: actions/download-artifact@v4.1.2
 
       - name: Move Distribution Artifacts
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: |
           mkdir -p packages/qwik/dist/
           mv builderio-qwik-distribution/* packages/qwik/dist/
@@ -626,22 +605,18 @@ jobs:
           mv dist-dev-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
 
       - name: Install NPM Dependencies
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: |
           # Ensure that the qwik binary gets made
           mkdir -p packages/qwik/dist/bindings/
           pnpm install --frozen-lockfile
 
       - name: Install Playwright
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: npx playwright install ${{ matrix.settings.browser }} --with-deps
 
       - name: Playwright E2E Tests
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 60000 --retries 3 --workers 1
 
       - name: Validate Create Qwik Cli
-        if: ${{ needs.changes.outputs.fullbuild == 'true' }}
         run: pnpm cli.validate
 
   ############ UNIT TEST ############

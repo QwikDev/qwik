@@ -7,7 +7,7 @@ import {
   mkdirSync,
   readdir as fsReaddir,
   readFile as fsReadFile,
-  rmdirSync,
+  rmSync,
   stat as fsStat,
   unlink as fsUnlink,
   writeFile as fsWriteFile,
@@ -251,7 +251,7 @@ export const mkdir = /*#__PURE__*/ promisify(fsMkdir);
 
 export function emptyDir(dir: string) {
   try {
-    rmdirSync(dir, { recursive: true });
+    rmSync(dir, { recursive: true });
   } catch (e) {}
   ensureDir(dir);
 }

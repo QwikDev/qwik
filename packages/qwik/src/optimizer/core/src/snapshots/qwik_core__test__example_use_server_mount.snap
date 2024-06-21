@@ -62,7 +62,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "Parent_component_useTask_gDH1EtUWqBU",
-  "entry": "entry_Parent",
+  "entry": "test.tsx_entry_Parent",
   "displayName": "Parent_component_useTask",
   "hash": "gDH1EtUWqBU",
   "canonicalFilename": "parent_component_usetask_gdh1etuwqbu",
@@ -82,11 +82,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./entry_Parent"), "Parent_component_0TaiDayHrlo"));
-export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./entry_Child"), "Child_component_9GyF01GDKqw"));
+export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_entry_Parent"), "Parent_component_0TaiDayHrlo"));
+export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_entry_Child"), "Child_component_9GyF01GDKqw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,uBAAS,8FAgBnB;AAEH,OAAO,MAAM,sBAAQ,4FAelB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,uBAAS,uGAgBnB;AAEH,OAAO,MAAM,sBAAQ,qGAelB\"}")
 ============================= child_component_usetask_oh4n7zeqjku.js ==
 
 import { useLexicalScope } from "@builder.io/qwik";
@@ -102,7 +102,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "Child_component_useTask_Oh4n7ZeqJkU",
-  "entry": "entry_Child",
+  "entry": "test.tsx_entry_Child",
   "displayName": "Child_component_useTask",
   "hash": "Oh4n7ZeqJkU",
   "canonicalFilename": "child_component_usetask_oh4n7zeqjku",
@@ -130,7 +130,7 @@ export const Parent_component_0TaiDayHrlo = ()=>{
         text: ''
     });
     // Double count watch
-    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./entry_Parent"), "Parent_component_useTask_gDH1EtUWqBU", [
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_entry_Parent"), "Parent_component_useTask_gDH1EtUWqBU", [
         state
     ]));
     return /*#__PURE__*/ _jsxQ("div", null, {
@@ -146,7 +146,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "Parent_component_0TaiDayHrlo",
-  "entry": "entry_Parent",
+  "entry": "test.tsx_entry_Parent",
   "displayName": "Parent_component",
   "hash": "0TaiDayHrlo",
   "canonicalFilename": "parent_component_0taidayhrlo",
@@ -200,7 +200,7 @@ export const Child_component_9GyF01GDKqw = ()=>{
         text: ''
     });
     // Double count watch
-    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./entry_Child"), "Child_component_useTask_Oh4n7ZeqJkU", [
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_entry_Child"), "Child_component_useTask_Oh4n7ZeqJkU", [
         state
     ]));
     return /*#__PURE__*/ _jsxQ("div", null, {
@@ -216,7 +216,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "Child_component_9GyF01GDKqw",
-  "entry": "entry_Child",
+  "entry": "test.tsx_entry_Child",
   "displayName": "Child_component",
   "hash": "9GyF01GDKqw",
   "canonicalFilename": "child_component_9gyf01gdkqw",
@@ -258,7 +258,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= entry_Child.js (ENTRY POINT)==
+============================= test.tsx_entry_Child.js (ENTRY POINT)==
 
 export { Child_component_useTask_Oh4n7ZeqJkU } from "./child_component_usetask_oh4n7zeqjku";
 export { Child_component_9GyF01GDKqw } from "./child_component_9gyf01gdkqw";
@@ -266,7 +266,7 @@ export { _hW } from "@builder.io/qwik";
 
 
 None
-============================= entry_Parent.js (ENTRY POINT)==
+============================= test.tsx_entry_Parent.js (ENTRY POINT)==
 
 export { Parent_component_useTask_gDH1EtUWqBU } from "./parent_component_usetask_gdh1etuwqbu";
 export { Parent_component_0TaiDayHrlo } from "./parent_component_0taidayhrlo";

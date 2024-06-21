@@ -1,5 +1,6 @@
 import { useContent, useLocation } from '@builder.io/qwik-city';
-import { component$, useContext, useStyles$ } from '@builder.io/qwik';
+import { component$, useContext, $, useStyles$, useOnDocument, useSignal, useTask$, useVisibleTask$ } from '@builder.io/qwik';
+import type { Signal } from '@builder.io/qwik';
 import { ChatIcon } from '../svgs/chat-icon';
 import { GithubLogo } from '../svgs/github-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
@@ -123,24 +124,67 @@ export const OnThisPage = component$(() => {
       icon: TwitterLogo,
     },
   ];
+  const ActiveElement = useSignal<string>("hello")
+
+
+  const useActiveItem = (itemIds: string[]) => {
+    const activeId = useSignal<string>('');
+
+    useVisibleTask$(({ cleanup }) => {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              activeId.value = entry.target.id;
+            }
+          });
+        },
+        { rootMargin: `0% 0% -85% 0%` },
+      );
+
+      itemIds.forEach((id) => {
+        const element = document.getElementById(id);
+        if (element) {
+          observer.observe(element);
+        }
+      });
+
+      cleanup(() => {
+        itemIds.forEach((id) => {
+          const element = document.getElementById(id);
+          if (element) {
+            observer.unobserve(element);
+          }
+        });
+      });
+    });
+
+
+    return activeId;
+  };
+
+  ActiveElement.value = useActiveItem(contentHeadings.map((h) => h.id))
+
 
   return (
     <aside class="on-this-page text-sm overflow-y-auto hidden xl:block">
       {contentHeadings.length > 0 ? (
         <>
           <h6>On This Page</h6>
+          <h6>{ActiveElement.value}</h6>
           <ul class="px-2 font-medium text-[var(--interactive-text-color)]">
             {contentHeadings.map((h) => (
               <li
                 key={h.id}
-                class={`${
-                  theme.theme === 'light'
-                    ? 'hover:bg-[var(--qwik-light-blue)]'
-                    : 'hover:bg-[var(--on-this-page-hover-bg-color)]'
-                }`}
+
+                class={`${theme.theme === 'light'
+                  ? 'hover:bg-[var(--qwik-light-blue)]'
+                  : 'hover:bg-[var(--on-this-page-hover-bg-color)]'
+                  }`}
               >
                 <a href={`#${h.id}`} class={`${h.level > 2 ? 'ml-4' : null} on-this-page-item`}>
-                  {h.text}
+                  <h1> {ActiveElement.value} <br /> {h.id} </h1>
+                  {ActiveElement.value === h.id ? <h1>same thing </h1> : null}
                 </a>
               </li>
             ))}
@@ -153,11 +197,10 @@ export const OnThisPage = component$(() => {
         {OnThisPageMore.map((el, index) => {
           return (
             <li
-              class={`${
-                theme.theme === 'light'
-                  ? 'hover:bg-[var(--qwik-light-blue)]'
-                  : 'hover:bg-[var(--on-this-page-hover-bg-color)]'
-              } rounded-lg`}
+              class={`${theme.theme === 'light'
+                ? 'hover:bg-[var(--qwik-light-blue)]'
+                : 'hover:bg-[var(--on-this-page-hover-bg-color)]'
+                } rounded-lg`}
               key={`more-items-on-this-page-${index}`}
             >
               <a class="more-item" href={el.href} rel="noopener" target="_blank">

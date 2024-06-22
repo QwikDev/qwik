@@ -147,14 +147,15 @@ export async function configureDevServer(
                   if (symbolName === SYNC_QRL) {
                     return [symbolName, ''];
                   }
-                  const chunk = mapper && mapper[getSymbolHash(symbolName)];
+                  const hash = getSymbolHash(symbolName);
+                  const chunk = mapper && mapper[hash];
                   if (chunk) {
                     return [chunk[0], encode(chunk[1])];
                   }
-                  parent ||= foundQrls.get(symbolName);
+                  parent ||= foundQrls.get(hash);
                   if (!parent) {
                     console.error(
-                      'qwik vite-dev-server: unknown qrl requested without parent:',
+                      'qwik vite-dev-server symbolMapper: unknown qrl requested without parent:',
                       symbolName
                     );
                     return [symbolName, `${base}${symbolName.toLowerCase()}.js`];

@@ -1,4 +1,4 @@
-import type { Rollup, Plugin } from 'vite';
+import type { Rollup, Plugin, ViteDevServer } from 'vite';
 import { hashCode } from '../../../core/util/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
 import { createOptimizer } from '../optimizer';
@@ -60,10 +60,10 @@ export interface QwikPackages {
 export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const id = `${Math.round(Math.random() * 899) + 100}`;
 
-  const results = new Map<string, TransformOutput>();
+  const clientResults = new Map<string, TransformOutput>();
   const clientTransformedOutputs = new Map<string, [TransformModule, string]>();
 
-  const ssrResults = new Map<string, TransformOutput>();
+  const serverResults = new Map<string, TransformOutput>();
   const serverTransformedOutputs = new Map<string, [TransformModule, string]>();
   const foundQrls = new Map<string, string>();
 
@@ -125,6 +125,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const getPath = () => {
     const optimizer = getOptimizer();
     return optimizer.sys.path;
+  };
+
+  let server: ViteDevServer | undefined;
+  const configureServer = (devServer: ViteDevServer) => {
+    server = devServer;
   };
 
   /** Note that as a side-effect this updates the internal plugin `opts` */
@@ -418,8 +423,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       diagnosticsCallback(result.diagnostics, optimizer, srcDir);
 
-      results.set('@buildStart', result);
-      ssrResults.set('@buildStart', result);
+      clientResults.set('@buildStart', result);
+      serverResults.set('@buildStart', result);
     }
   };
 
@@ -482,24 +487,27 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         }
         return;
       }
-      if (opts.target === 'ssr' && !isSSR) {
-        // possibly dev mode request from the browser
-        const match = /^([^?]*)\?_qrl_parent=(.*)/.exec(decodeURIComponent(id));
+      if (opts.target === 'ssr' && !isSSR && importerId.endsWith('.html') && server) {
+        // This is a request from a dev-mode browser
+        // we uri-encode chunk paths in dev mode, and other imported files don't have % in their paths
+        // These will be individual source files and their QRL segments
+        id = decodeURIComponent(id);
+        // Check for parent passed via QRL
+        const match = /^([^?]*)\?_qrl_parent=(.*)/.exec(id);
         if (match) {
-          // ssr mode asking for a client qrl, this will fall through to the devserver
-          // building here via ctx.load doesn't seem to work (target is always ssr?)
-          // eslint-disable-next-line prefer-const
-          let [, qrlId, parentId] = match;
+          id = match[1];
+          const parentId = match[2];
           // If the parent is not in root (e.g. pnpm symlink), the qrl also isn't
           if (parentId.startsWith(opts.rootDir)) {
-            qrlId = `${opts.rootDir}${qrlId}`;
+            id = `${opts.rootDir}${id}`;
           }
-          if (!clientTransformedOutputs.has(qrlId)) {
-            // fall back to dev server which can wait for transform() to finish
-            return null;
+          // building here via ctx.load doesn't seem to work (target is always ssr?)
+          // instead we use the devserver directly
+          if (!clientTransformedOutputs.has(id)) {
+            debug(`resolveId()`, 'transforming QRL parent', parentId);
+            await server.transformRequest(parentId);
+            // The QRL segment should exist now
           }
-          debug(`resolveId()`, 'Resolved', qrlId);
-          return { id: qrlId };
         }
       }
       const parsedId = parseId(id);
@@ -608,6 +616,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       return;
     }
     const isSSR = !!transformOpts.ssr;
+    // TODO does this clear in dev mode ???
     const currentOutputs = isSSR ? serverTransformedOutputs : clientTransformedOutputs;
     if (currentOutputs.has(id)) {
       return;
@@ -696,9 +705,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         if (newOutput.diagnostics.length === 0 && linter) {
           await linter.lint(ctx, code, id);
         }
-        ssrResults.set(normalizedID, newOutput);
+        serverResults.set(normalizedID, newOutput);
       } else {
-        results.set(normalizedID, newOutput);
+        clientResults.set(normalizedID, newOutput);
       }
       const deps = new Set<string>();
       for (const mod of newOutput.modules) {
@@ -749,7 +758,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       const optimizer = getOptimizer();
       const path = optimizer.sys.path;
 
-      const hooks = Array.from(results.values())
+      const hooks = Array.from(clientResults.values())
         .flatMap((r) => r.modules)
         .map((mod) => mod.hook)
         .filter((h) => !!h) as HookAnalysis[];
@@ -868,6 +877,7 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     validateSource,
     setSourceMapSupport,
     foundQrls,
+    configureServer,
   };
 }
 

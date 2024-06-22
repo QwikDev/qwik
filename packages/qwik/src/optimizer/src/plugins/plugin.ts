@@ -1,4 +1,4 @@
-import type { Rollup, Plugin } from 'vite';
+import type { Rollup, Plugin, ViteDevServer } from 'vite';
 import { hashCode } from '../../../core/util/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
 import { createOptimizer } from '../optimizer';
@@ -124,6 +124,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const getPath = () => {
     const optimizer = getOptimizer();
     return optimizer.sys.path;
+  };
+
+  let server: ViteDevServer | undefined;
+  const configureServer = (devServer: ViteDevServer) => {
+    server = devServer;
   };
 
   /** Note that as a side-effect this updates the internal plugin `opts` */
@@ -477,28 +482,28 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         }
         return;
       }
-      if (opts.target === 'ssr' && !isSSR && importerId.endsWith('.html')) {
-        // we uri-encode chunk paths in dev mode, and other files don't have % in their paths
+      if (opts.target === 'ssr' && !isSSR && importerId.endsWith('.html') && server) {
+        // This is a request from a dev-mode browser
+        // we uri-encode chunk paths in dev mode, and other imported files don't have % in their paths
+        // These will be individual source files and their QRL segments
         id = decodeURIComponent(id);
-        // possibly dev mode request from the browser
+        // Check for parent passed via QRL
         const match = /^([^?]*)\?_qrl_parent=(.*)/.exec(id);
         if (match) {
-          // ssr mode asking for a client qrl, this will fall through to the devserver
-          // building here via ctx.load doesn't seem to work (target is always ssr?)
-          // eslint-disable-next-line prefer-const
-          let [, qrlId, parentId] = match;
+          id = match[1];
+          const parentId = match[2];
           // If the parent is not in root (e.g. pnpm symlink), the qrl also isn't
           if (parentId.startsWith(opts.rootDir)) {
-            qrlId = `${opts.rootDir}${qrlId}`;
+            id = `${opts.rootDir}${id}`;
           }
-          if (!clientTransformedOutputs.has(qrlId)) {
-            // fall back to dev server which can wait for transform() to finish
-            return null;
+          // building here via ctx.load doesn't seem to work (target is always ssr?)
+          // instead we use the devserver directly
+          if (!clientTransformedOutputs.has(id)) {
+            debug(`resolveId()`, 'transforming QRL parent', parentId);
+            await server.transformRequest(parentId);
+            // The QRL segment should exist now
           }
-          debug(`resolveId()`, 'Resolved', qrlId);
-          return { id: qrlId };
         }
-        // TODO check foundQrls for parentId and build via dev server
       }
       const parsedId = parseId(id);
       let importeePathId = normalizePath(parsedId.pathId);
@@ -867,6 +872,7 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     validateSource,
     setSourceMapSupport,
     foundQrls,
+    configureServer,
   };
 }
 

@@ -209,18 +209,6 @@ export async function configureDevServer(
           next();
         }
       } else {
-        // We didn't ssr, but maybe a qrl was requested
-        const parent = url.searchParams.get('_qrl_parent');
-        if (parent && url.pathname.endsWith('.js')) {
-          // load the parent so it populates the qrl cache
-          await server.transformRequest(parent);
-          const result = await server.transformRequest(url.pathname);
-          if (result) {
-            res.setHeader('content-type', 'application/javascript');
-            res.write(result.code);
-            res.end();
-          }
-        }
         next();
       }
     } catch (e: any) {

@@ -641,6 +641,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     configureServer(server: ViteDevServer) {
+      qwikPlugin.configureServer(server);
       const devSsrServer = 'devSsrServer' in qwikViteOpts ? qwikViteOpts.devSsrServer : true;
       const imageDevTools =
         qwikViteOpts.devTools && 'imageDevTools' in qwikViteOpts.devTools

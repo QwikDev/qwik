@@ -475,11 +475,6 @@ jobs:
             packages/qwik-labs/package.json
           if-no-files-found: error
 
-      - name: Publish packages for testing
-        run: pnpm dlx pkg-pr-new@^0.0.9 publish --compact --pnpm ./packages/qwik/dist ./packages/qwik-city/lib ./packages/eslint-plugin-qwik/dist ./packages/create-qwik/dist
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   ############ RELEASE ############
   release:
     name: Release
@@ -546,6 +541,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish packages for testing
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        run: pnpm dlx pkg-pr-new@^0.0.9 publish --compact --pnpm ./packages/qwik/dist ./packages/qwik-city/lib ./packages/eslint-plugin-qwik/dist ./packages/create-qwik/dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish
         if: ${{ github.event_name == 'workflow_dispatch' }}

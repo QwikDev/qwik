@@ -1,6 +1,5 @@
 use crate::transform::HookData;
-use crate::{parse::PathData, transform::HookKind};
-use path_slash::PathBufExt;
+use crate::transform::HookKind;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use swc_atoms::JsWord;
@@ -27,7 +26,6 @@ pub trait EntryPolicy: Send + Sync {
 	fn get_entry_for_sym(
 		&self,
 		hash: &str,
-		location: &PathData,
 		context: &[String],
 		hook_data: &HookData,
 	) -> Option<JsWord>;
@@ -40,7 +38,6 @@ impl EntryPolicy for InlineStrategy {
 	fn get_entry_for_sym(
 		&self,
 		_hash: &str,
-		_path: &PathData,
 		_context: &[String],
 		_hook_data: &HookData,
 	) -> Option<JsWord> {
@@ -63,7 +60,6 @@ impl EntryPolicy for SingleStrategy {
 	fn get_entry_for_sym(
 		&self,
 		hash: &str,
-		_path: &PathData,
 		_context: &[String],
 		_hook_data: &HookData,
 	) -> Option<JsWord> {
@@ -92,7 +88,6 @@ impl EntryPolicy for PerHookStrategy {
 	fn get_entry_for_sym(
 		&self,
 		hash: &str,
-		_path: &PathData,
 		_context: &[String],
 		_hook_data: &HookData,
 	) -> Option<JsWord> {
@@ -121,9 +116,8 @@ impl EntryPolicy for PerComponentStrategy {
 	fn get_entry_for_sym(
 		&self,
 		hash: &str,
-		_path: &PathData,
 		context: &[String],
-		_hook_data: &HookData,
+		hook_data: &HookData,
 	) -> Option<JsWord> {
 		if let Some(map) = &self.map {
 			let entry = map.get(hash);
@@ -133,15 +127,7 @@ impl EntryPolicy for PerComponentStrategy {
 		}
 		context.first().map_or_else(
 			|| Some(ENTRY_HOOKS.clone()),
-			|root| {
-				Some(JsWord::from(
-					_path
-						.rel_dir
-						.join(["entry_", root].concat())
-						.to_slash_lossy()
-						.as_ref(),
-				))
-			},
+			|root| Some(JsWord::from([&hook_data.origin, "_entry_", root].concat())),
 		)
 	}
 }
@@ -160,7 +146,6 @@ impl EntryPolicy for SmartStrategy {
 	fn get_entry_for_sym(
 		&self,
 		hash: &str,
-		_path: &PathData,
 		context: &[String],
 		hook_data: &HookData,
 	) -> Option<JsWord> {
@@ -181,16 +166,10 @@ impl EntryPolicy for SmartStrategy {
 		// This means that all QRLs for a component are loaded together
 		// if one is used
 		context.first().map_or_else(
+			// Top-level QRLs are put into a separate file
 			|| None,
-			|root| {
-				Some(JsWord::from(
-					_path
-						.rel_dir
-						.join(["entry_", root].concat())
-						.to_slash_lossy()
-						.as_ref(),
-				))
-			},
+			// Other QRLs are put into a file named after the original file + the root component
+			|root| Some(JsWord::from([&hook_data.origin, "_entry_", root].concat())),
 		)
 	}
 }

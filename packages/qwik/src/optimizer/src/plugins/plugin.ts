@@ -1,4 +1,4 @@
-import type { Rollup, Plugin } from 'vite';
+import type { Rollup, Plugin, ViteDevServer } from 'vite';
 import { hashCode } from '../../../core/util/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
 import { createOptimizer } from '../optimizer';
@@ -60,11 +60,11 @@ export interface QwikPackages {
 export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const id = `${Math.round(Math.random() * 899) + 100}`;
 
-  const results = new Map<string, TransformOutput>();
-  const transformedOutputs = new Map<string, [TransformModule, string]>();
+  const clientResults = new Map<string, TransformOutput>();
+  const clientTransformedOutputs = new Map<string, [TransformModule, string]>();
 
-  const ssrResults = new Map<string, TransformOutput>();
-  const ssrTransformedOutputs = new Map<string, [TransformModule, string]>();
+  const serverResults = new Map<string, TransformOutput>();
+  const serverTransformedOutputs = new Map<string, [TransformModule, string]>();
   const foundQrls = new Map<string, string>();
 
   let internalOptimizer: Optimizer | null = null;
@@ -124,6 +124,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const getPath = () => {
     const optimizer = getOptimizer();
     return optimizer.sys.path;
+  };
+
+  let server: ViteDevServer | undefined;
+  const configureServer = (devServer: ViteDevServer) => {
+    server = devServer;
   };
 
   /** Note that as a side-effect this updates the internal plugin `opts` */
@@ -366,7 +371,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
 
       debug(`transformedOutput.clear()`);
-      transformedOutputs.clear();
+      clientTransformedOutputs.clear();
 
       const mode =
         opts.target === 'lib' ? 'lib' : opts.buildMode === 'development' ? 'dev' : 'prod';
@@ -400,8 +405,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       for (const output of result.modules) {
         const key = normalizePath(path.join(srcDir, output.path)!);
         debug(`buildStart() add transformedOutput`, key, output.hook?.displayName);
-        transformedOutputs.set(key, [output, key]);
-        ssrTransformedOutputs.set(key, [output, key]);
+        clientTransformedOutputs.set(key, [output, key]);
+        serverTransformedOutputs.set(key, [output, key]);
         if (opts.target === 'client' && output.isEntry) {
           ctx.emitFile({
             id: key,
@@ -413,18 +418,18 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       diagnosticsCallback(result.diagnostics, optimizer, srcDir);
 
-      results.set('@buildStart', result);
-      ssrResults.set('@buildStart', result);
+      clientResults.set('@buildStart', result);
+      serverResults.set('@buildStart', result);
     }
   };
 
   const resolveId = async (
     ctx: Rollup.PluginContext,
     id: string,
-    importer: string | undefined,
+    importerId: string | undefined,
     resolveOpts?: Parameters<Extract<Plugin['resolveId'], Function>>[2]
   ) => {
-    debug(`resolveId()`, 'Start', id, importer, resolveOpts, opts.target);
+    debug(`resolveId()`, 'Start', id, importerId, resolveOpts, opts.target);
     if (id.startsWith('\0') || id.startsWith('/@fs')) {
       return;
     }
@@ -463,48 +468,57 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     const path = getPath();
     const isSSR = !!resolveOpts?.ssr;
+    const transformedOutputs = isSSR ? serverTransformedOutputs : clientTransformedOutputs;
 
-    if (importer) {
+    if (importerId) {
       // Only process ids that look like paths
       if (!(id.startsWith('.') || path.isAbsolute(id))) {
+        // Rollup can ask us to resolve imports from QRL segments
+        // It seems like files need to exist on disk for this to work automatically
+        const mod = transformedOutputs.get(importerId);
+        if (mod) {
+          const parentId = mod[1];
+          return ctx.resolve(id, parentId, { skipSelf: true });
+        }
         return;
       }
-      if (opts.target === 'ssr' && !isSSR) {
-        // possibly dev mode request from the browser
-        const match = /^([^?]*)\?_qrl_parent=(.*)/.exec(decodeURIComponent(id));
+      if (opts.target === 'ssr' && !isSSR && importerId.endsWith('.html') && server) {
+        // This is a request from a dev-mode browser
+        // we uri-encode chunk paths in dev mode, and other imported files don't have % in their paths
+        // These will be individual source files and their QRL segments
+        id = decodeURIComponent(id);
+        // Check for parent passed via QRL
+        const match = /^([^?]*)\?_qrl_parent=(.*)/.exec(id);
         if (match) {
-          // ssr mode asking for a client qrl, this will fall through to the devserver
-          // building here via ctx.load doesn't seem to work (target is always ssr?)
-          // eslint-disable-next-line prefer-const
-          let [, qrlId, parentId] = match;
+          id = match[1];
+          const parentId = match[2];
           // If the parent is not in root (e.g. pnpm symlink), the qrl also isn't
           if (parentId.startsWith(opts.rootDir)) {
-            qrlId = `${opts.rootDir}${qrlId}`;
+            id = `${opts.rootDir}${id}`;
           }
-          if (!transformedOutputs.has(qrlId)) {
-            // fall back to dev server which can wait for transform() to finish
-            return null;
+          // building here via ctx.load doesn't seem to work (target is always ssr?)
+          // instead we use the devserver directly
+          if (!clientTransformedOutputs.has(id)) {
+            debug(`resolveId()`, 'transforming QRL parent', parentId);
+            await server.transformRequest(parentId);
+            // The QRL segment should exist now
           }
-          debug(`resolveId()`, 'Resolved', qrlId);
-          return { id: qrlId };
         }
       }
       const parsedId = parseId(id);
       let importeePathId = normalizePath(parsedId.pathId);
       const ext = path.extname(importeePathId).toLowerCase();
       if (ext in RESOLVE_EXTS) {
-        importer = normalizePath(importer);
-        debug(`resolveId("${importeePathId}", "${importer}")`);
-        const parsedImporterId = parseId(importer);
+        importerId = normalizePath(importerId);
+        debug(`resolveId("${importeePathId}", "${importerId}")`);
+        const parsedImporterId = parseId(importerId);
         const dir = path.dirname(parsedImporterId.pathId);
         if (parsedImporterId.pathId.endsWith('.html') && !importeePathId.endsWith('.html')) {
           importeePathId = normalizePath(path.join(dir, importeePathId));
         } else {
           importeePathId = normalizePath(path.resolve(dir, importeePathId));
         }
-        const transformedOutput = isSSR
-          ? ssrTransformedOutputs.get(importeePathId)
-          : transformedOutputs.get(importeePathId);
+        const transformedOutput = transformedOutputs.get(importeePathId);
 
         if (transformedOutput) {
           debug(`resolveId() Resolved ${importeePathId} from transformedOutputs`);
@@ -518,10 +532,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       const importeePathId = normalizePath(parsedId.pathId);
       const ext = path.extname(importeePathId).toLowerCase();
       if (ext in RESOLVE_EXTS) {
-        debug(`resolveId("${importeePathId}", "${importer}")`);
-        const transformedOutput = isSSR
-          ? ssrTransformedOutputs.get(importeePathId)
-          : transformedOutputs.get(importeePathId);
+        debug(`resolveId("${importeePathId}", "${importerId}")`);
+        const transformedOutput = transformedOutputs.get(importeePathId);
 
         if (transformedOutput) {
           debug(`resolveId() Resolved ${importeePathId} from transformedOutputs`);
@@ -532,9 +544,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
     }
     // We don't (yet) know this id
-    debug(`resolveId()`, 'Not resolved', id, importer, resolveOpts);
+    debug(`resolveId()`, 'Not resolved', id, importerId, resolveOpts);
     return null;
   };
+
   const load = async (
     ctx: Rollup.PluginContext,
     id: string,
@@ -563,7 +576,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const path = getPath();
     id = normalizePath(parsedId.pathId);
 
-    const transformedModule = isSSR ? ssrTransformedOutputs.get(id) : transformedOutputs.get(id);
+    const transformedModule = isSSR
+      ? serverTransformedOutputs.get(id)
+      : clientTransformedOutputs.get(id);
 
     if (transformedModule) {
       debug(`load()`, 'Found', id);
@@ -596,7 +611,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       return;
     }
     const isSSR = !!transformOpts.ssr;
-    const currentOutputs = isSSR ? ssrTransformedOutputs : transformedOutputs;
+    // TODO does this clear in dev mode ???
+    const currentOutputs = isSSR ? serverTransformedOutputs : clientTransformedOutputs;
     if (currentOutputs.has(id)) {
       return;
     }
@@ -684,9 +700,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         if (newOutput.diagnostics.length === 0 && linter) {
           await linter.lint(ctx, code, id);
         }
-        ssrResults.set(normalizedID, newOutput);
+        serverResults.set(normalizedID, newOutput);
       } else {
-        results.set(normalizedID, newOutput);
+        clientResults.set(normalizedID, newOutput);
       }
       const deps = new Set<string>();
       for (const mod of newOutput.modules) {
@@ -737,7 +753,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       const optimizer = getOptimizer();
       const path = optimizer.sys.path;
 
-      const hooks = Array.from(results.values())
+      const hooks = Array.from(clientResults.values())
         .flatMap((r) => r.modules)
         .map((mod) => mod.hook)
         .filter((h) => !!h) as HookAnalysis[];
@@ -772,7 +788,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const getOptions = () => opts;
 
   const getTransformedOutputs = () => {
-    return Array.from(transformedOutputs.values()).map((t) => {
+    return Array.from(clientTransformedOutputs.values()).map((t) => {
       return t[0];
     });
   };
@@ -856,6 +872,7 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     validateSource,
     setSourceMapSupport,
     foundQrls,
+    configureServer,
   };
 }
 

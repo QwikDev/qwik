@@ -751,7 +751,6 @@ impl<'a> QwikTransform<'a> {
 
 		let entry = self.options.entry_policy.get_entry_for_sym(
 			&hook_data.hash,
-			self.options.path_data,
 			&self.stack_ctxt,
 			&hook_data,
 		);

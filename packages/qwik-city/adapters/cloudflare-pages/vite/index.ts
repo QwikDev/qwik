@@ -44,7 +44,7 @@ export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {})
         if (assetsDir && !assetsDir.endsWith('/')) {
           assetsDir += '/';
         }
-        let pathName = assetsDir ? basePathname + assetsDir : basePathname;
+        const pathName = assetsDir ? basePathname + assetsDir : basePathname;
         const routesJson = {
           version: 1,
           include: [pathName + '*'],

@@ -41,10 +41,10 @@ export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {})
       const routesJsonPath = join(clientOutDir, '_routes.json');
       const hasRoutesJson = fs.existsSync(routesJsonPath);
       if (!hasRoutesJson && opts.functionRoutes !== false) {
-        let pathName = assetsDir ? basePathname + assetsDir : basePathname;
-        if (pathName && !pathName.endsWith('/')) {
-          pathName += '/';
+        if (assetsDir && !assetsDir.endsWith('/')) {
+          assetsDir += '/';
         }
+        let pathName = assetsDir ? basePathname + assetsDir : basePathname;
         const routesJson = {
           version: 1,
           include: [pathName + '*'],

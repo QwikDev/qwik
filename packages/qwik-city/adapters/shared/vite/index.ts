@@ -169,7 +169,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
 
             const { staticPathsCode, notFoundPathsCode } = await postBuild(
               clientPublicOutDir,
-              basePathname,
+              assetsDir ? join(basePathname, assetsDir) : basePathname,
               staticPaths,
               format,
               !!opts.cleanStaticGenerated

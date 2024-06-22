@@ -3,6 +3,7 @@ import { createQRL } from './qrl-class';
 import { qrl } from './qrl';
 import { describe, test, assert, assertType, expectTypeOf } from 'vitest';
 import { $, type QRL } from './qrl.public';
+import { useLexicalScope } from '../use/use-lexical-scope.public';
 
 function matchProps(obj: any, properties: Record<string, any>) {
   for (const [key, value] of Object.entries(properties)) {
@@ -99,6 +100,12 @@ describe('serialization', () => {
       serializeQRL(createQRL('c', 's1', null, null, [1 as any, '2'], null, null)),
       'c#s1[1 2]'
     );
+    assert.equal(
+      serializeQRL(
+        createQRL('src/routes/[...index]/a+b/c?foo', 's1', null, null, [1 as any, '2'], null, null)
+      ),
+      'src/routes/[...index]/a+b/c?foo#s1[1 2]'
+    );
   });
 
   test('should parse reference', () => {
@@ -128,5 +135,96 @@ describe('serialization', () => {
     assert.equal(q.resolved, undefined);
     await q.resolve();
     assert.equal(q.resolved, 'hello');
+  });
+});
+
+describe('createQRL', () => {
+  test('should create QRL', () => {
+    const q = createQRL('chunk', 'symbol', 'resolved', null, null, null, null);
+    matchProps(q, {
+      $chunk$: 'chunk',
+      $symbol$: 'symbol',
+      resolved: 'resolved',
+    });
+  });
+  test('should have .resolved: given scalar', async () => {
+    const q = createQRL('chunk', 'symbol', 'resolved', null, null, null, null);
+    assert.equal(q.resolved, 'resolved');
+  });
+  test('should have .resolved: given promise for scalar', async () => {
+    const q = createQRL('chunk', 'symbol', Promise.resolve('resolved'), null, null, null, null);
+    assert.equal(q.resolved, undefined);
+    assert.equal(await q.resolve(), 'resolved');
+    assert.equal(q.resolved, 'resolved');
+  });
+  test('should have .resolved: promise for scalar', async () => {
+    const q = createQRL(
+      'chunk',
+      'symbol',
+      null,
+      () => Promise.resolve({ symbol: 'resolved' }),
+      null,
+      null,
+      null
+    );
+    assert.equal(q.resolved, undefined);
+    assert.equal(await q.resolve(), 'resolved');
+    assert.equal(q.resolved, 'resolved');
+  });
+
+  const fn = () => 'hi';
+  test('should have .resolved: given function without captures', async () => {
+    const q = createQRL('chunk', 'symbol', fn, null, null, null, null);
+    assert.equal(q.resolved, fn);
+  });
+  test('should have .resolved: given promise for function without captures', async () => {
+    const q = createQRL('chunk', 'symbol', Promise.resolve(fn), null, null, null, null);
+    assert.equal(q.resolved, undefined);
+    assert.equal(await q.resolve(), fn);
+    assert.equal(q.resolved, fn);
+  });
+  test('should have .resolved: promise for function without captures', async () => {
+    const q = createQRL(
+      'chunk',
+      'symbol',
+      null,
+      () => Promise.resolve({ symbol: fn }),
+      null,
+      null,
+      null
+    );
+    assert.equal(q.resolved, undefined);
+    assert.equal(await q.resolve(), fn);
+    assert.equal(q.resolved, fn);
+  });
+
+  const capFn = () => useLexicalScope();
+  test('should have .resolved: given function with captures', async () => {
+    const q = createQRL('chunk', 'symbol', capFn, null, null, ['hi'], null);
+    assert.isDefined(q.resolved);
+    assert.notEqual(q.resolved, capFn);
+    assert.deepEqual(q.resolved!(), ['hi']);
+  });
+  test('should have .resolved: given promise for function with captures', async () => {
+    const q = createQRL('chunk', 'symbol', Promise.resolve(capFn), null, null, ['hi'], null);
+    assert.equal(q.resolved, undefined);
+    assert.deepEqual(await q(), ['hi']);
+    assert.notEqual(q.resolved, capFn);
+    assert.deepEqual(q.resolved!(), ['hi']);
+  });
+  test('should have .resolved: promise for function with captures', async () => {
+    const q = createQRL<Function>(
+      'chunk',
+      'symbol',
+      null,
+      () => Promise.resolve({ symbol: capFn }),
+      null,
+      ['hi'],
+      null
+    );
+    assert.equal(q.resolved, undefined);
+    assert.deepEqual(await q(), ['hi']);
+    assert.notEqual(q.resolved, capFn);
+    assert.deepEqual(q.resolved!(), ['hi']);
   });
 });

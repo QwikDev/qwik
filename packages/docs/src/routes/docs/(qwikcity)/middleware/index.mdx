@@ -55,7 +55,7 @@ Each middleware function is passed a [`RequestEvent`](#requestevent) object whic
 
 ## Order of Invocation
 
-The order of middleware function chain is determined by their location. Starting from the topmost `layout.tsx` and ending at the `index.tsx` for a given route. (Same resolution logic as the order of layout and route component as defined by the route path.)
+The order of the middleware function chain is determined by their location. Starting from the topmost `layout.tsx` and ending at the `index.tsx` for a given route. (Same resolution logic as the order of layout and route component as defined by the route path.)
 
 For example, if the request is `/api/greet/` in the following folder structure, the invocation order is as follows:
 
@@ -71,7 +71,7 @@ src/
 
 Qwik City looks into each file in order and checks to see if it has `onRequest` (or `onGet`, `onPost`, `onPut`, `onPatch`, and `onDelete`) exported functions. If found the function gets added into the middleware execution chain in that order. 
 
-`routeLoader$` and `routeAction$` are also considered part of the middleware and they execute after the `on*` functions and before the default exported component.
+`routeLoader$` and `routeAction$` are also part of the middleware. They execute after the `on*` functions and before the default exported component.
 
 ## Component as an HTML Endpoint
 

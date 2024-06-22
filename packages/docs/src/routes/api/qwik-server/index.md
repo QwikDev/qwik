@@ -47,7 +47,7 @@ string
 
 ## getQwikPrefetchWorkerScript
 
-Provides the `qwik-prefetch-service-worker.js` file as a string. Useful for tooling to inline the qwikloader script into HTML.
+Provides the `qwik-prefetch-service-worker.js` file as a string. Useful for tooling to inline the qwik-prefetch-service-worker script into HTML.
 
 ```typescript
 export declare function getQwikPrefetchWorkerScript(opts?: {

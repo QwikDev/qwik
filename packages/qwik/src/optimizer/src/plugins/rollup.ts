@@ -69,7 +69,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     },
 
     outputOptions(rollupOutputOpts) {
-      return normalizeRollupOutputOptions(
+      return normalizeRollupOutputOptionsObject(
         qwikPlugin.getPath(),
         qwikPlugin.getOptions(),
         rollupOutputOpts
@@ -117,22 +117,8 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 
       if (opts.target === 'client') {
         // client build
-        const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
-
-        for (const fileName in rollupBundle) {
-          const b = rollupBundle[fileName];
-          if (b.type === 'chunk') {
-            outputAnalyzer.addBundle({
-              fileName,
-              modules: b.modules,
-              imports: b.imports,
-              dynamicImports: b.dynamicImports,
-              size: b.code.length,
-            });
-          }
-        }
-
         const optimizer = qwikPlugin.getOptimizer();
+        const outputAnalyzer = qwikPlugin.createOutputAnalyzer(rollupBundle);
         const manifest = await outputAnalyzer.generateManifest();
         manifest.platform = {
           ...versions,
@@ -168,11 +154,30 @@ export function normalizeRollupOutputOptions(
   path: Path,
   opts: NormalizedQwikPluginOptions,
   rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined
-) {
-  const outputOpts: Rollup.OutputOptions = {};
-  if (rollupOutputOpts && !Array.isArray(rollupOutputOpts)) {
-    Object.assign(outputOpts, rollupOutputOpts);
+): Rollup.OutputOptions[] {
+  const outputOpts: Rollup.OutputOptions[] = Array.isArray(rollupOutputOpts)
+    ? // fill the `outputOpts` array with all existing option entries
+      [...rollupOutputOpts]
+    : // use the existing rollupOutputOpts object or create a new one
+      [rollupOutputOpts || {}];
+
+  // make sure at least one output is present in every case
+  if (!outputOpts.length) {
+    outputOpts.push({});
   }
+
+  return outputOpts.map((outputOptsObj) =>
+    normalizeRollupOutputOptionsObject(path, opts, outputOptsObj)
+  );
+}
+
+export function normalizeRollupOutputOptionsObject(
+  path: Path,
+  opts: NormalizedQwikPluginOptions,
+  rollupOutputOptsObj: Rollup.OutputOptions | undefined
+): Rollup.OutputOptions {
+  const outputOpts: Rollup.OutputOptions = { ...rollupOutputOptsObj };
+
   if (!outputOpts.assetFileNames) {
     outputOpts.assetFileNames = 'build/q-[hash].[ext]';
   }

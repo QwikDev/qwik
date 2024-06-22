@@ -1558,7 +1558,7 @@ Description
 
 </td><td>
 
-(symbolName: string, chunk: string \| null) =&gt; readonly [symbol: string, chunk: string] \| undefined
+(symbolName: string, chunk: string \| null, parent?: string) =&gt; readonly [symbol: string, chunk: string] \| undefined
 
 </td><td>
 
@@ -1697,6 +1697,10 @@ Description
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
 ## createComputed$
+
+> Warning: This API is now obsolete.
+>
+> This is a technology preview
 
 Returns read-only signal that updates when signals used in the `ComputedFn` change. Unlike useComputed$, this is not a hook and it always creates a new signal.
 
@@ -1854,6 +1858,10 @@ The name of the context.
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
 
 ## createSignal
+
+> Warning: This API is now obsolete.
+>
+> This is a technology preview
 
 Creates a signal.
 
@@ -3611,13 +3619,13 @@ opts
 
 _(Optional)_ Options for the loading prefetch graph.
 
-- `base` - Base of the graph. For a default installation this will default to `/build/`. But if more than one MFE is installed on the page, then each MFE needs to have its own base. - `manifestHash` - Hash of the manifest file to load. If not provided the hash will be extracted from the container attribute `q:manifest-hash` and assume the default build file `${base}/q-bundle-graph-${manifestHash}.json`. - `manifestURL` - URL of the manifest file to load if non-standard bundle graph location name.
+- `base` - Base of the graph. For a default installation this will default to the q:base value `/build/`. But if more than one MFE is installed on the page, then each MFE needs to have its own base. - `manifestHash` - Hash of the manifest file to load. If not provided the hash will be extracted from the container attribute `q:manifest-hash` and assume the default build file `${base}/q-bundle-graph-${manifestHash}.json`. - `manifestURL` - URL of the manifest file to load if non-standard bundle graph location name.
 
 </td></tr>
 </tbody></table>
 **Returns:**
 
-JSXNode&lt;"script"&gt;
+[JSXNode](#jsxnode)&lt;"script"&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -3671,7 +3679,7 @@ Options for the prefetch service worker.
 </tbody></table>
 **Returns:**
 
-JSXNode&lt;'script'&gt;
+[JSXNode](#jsxnode)&lt;'script'&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -4021,7 +4029,8 @@ export type QRLEventHandlerMulti<EV extends Event, EL> =
   | QRL<EventHandler<EV, EL>>
   | undefined
   | null
-  | QRLEventHandlerMulti<EV, EL>[];
+  | QRLEventHandlerMulti<EV, EL>[]
+  | EventHandler<EV, EL>;
 ```
 
 **References:** [QRL](#qrl), [EventHandler](#eventhandler), [QRLEventHandlerMulti](#qrleventhandlermulti)
@@ -10187,6 +10196,10 @@ qrl
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## useConstant
+
+> Warning: This API is now obsolete.
+>
+> This is a technology preview
 
 Stores a value which is retained for the lifetime of the component.
 

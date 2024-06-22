@@ -50,6 +50,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let clientOutDir: string | null = null;
   let basePathname: string = '/';
   let clientPublicOutDir: string | null = null;
+  let viteAssetsDir: string | undefined;
   let srcDir: string | null = null;
   let rootDir: string | null = null;
 
@@ -83,6 +84,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     getRootDir: () => qwikPlugin.getOptions().rootDir,
     getClientOutDir: () => clientOutDir,
     getClientPublicOutDir: () => clientPublicOutDir,
+    getAssetsDir: () => viteAssetsDir,
   };
 
   // We provide two plugins to Vite. The first plugin is the main plugin that handles all the
@@ -144,10 +146,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const vendorRoots = shouldFindVendors
         ? await findQwikRoots(sys, path.join(sys.cwd(), 'package.json'))
         : [];
-      const useAssetsDir =
-        target === 'client' &&
-        !!viteConfig.build?.assetsDir &&
-        viteConfig.build?.assetsDir !== '_astro';
+      viteAssetsDir = viteConfig.build?.assetsDir;
+      const useAssetsDir = target === 'client' && !!viteAssetsDir && viteAssetsDir !== '_astro';
       const pluginOpts: QwikPluginOptions = {
         target,
         buildMode,
@@ -161,7 +161,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         vendorRoots: [...(qwikViteOpts.vendorRoots ?? []), ...vendorRoots.map((v) => v.path)],
         outDir: viteConfig.build?.outDir,
-        assetsDir: useAssetsDir ? viteConfig.build?.assetsDir : undefined,
+        assetsDir: useAssetsDir ? viteAssetsDir : undefined,
         devTools: qwikViteOpts.devTools,
         sourcemap: !!viteConfig.build?.sourcemap,
         lint: qwikViteOpts.lint,
@@ -1046,6 +1046,7 @@ export interface QwikVitePluginApi {
   getRootDir: () => string | null;
   getClientOutDir: () => string | null;
   getClientPublicOutDir: () => string | null;
+  getAssetsDir: () => string | undefined;
 }
 
 /** @public */

@@ -120,6 +120,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
           const basePathname = qwikCityPlugin.api.getBasePathname();
           const clientOutDir = qwikVitePlugin.api.getClientOutDir()!;
           const clientPublicOutDir = qwikVitePlugin.api.getClientPublicOutDir()!;
+          const assetsDir = qwikVitePlugin.api.getAssetsDir();
 
           const rootDir = qwikVitePlugin.api.getRootDir() ?? undefined;
           if (renderModulePath && qwikCityPlanModulePath && clientOutDir && clientPublicOutDir) {
@@ -189,6 +190,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
                 clientPublicOutDir,
                 basePathname,
                 routes,
+                assetsDir,
                 warn: (message) => this.warn(message),
                 error: (message) => this.error(message),
               });
@@ -234,6 +236,7 @@ interface ViteAdapterPluginOptions {
     serverOutDir: string;
     basePathname: string;
     routes: BuildRoute[];
+    assetsDir?: string;
     warn: (message: string) => void;
     error: (message: string) => void;
   }) => Promise<void>;

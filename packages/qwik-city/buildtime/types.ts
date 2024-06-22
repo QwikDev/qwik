@@ -141,7 +141,9 @@ export interface MdxPlugins {
   rehypeAutolinkHeadings: boolean;
 }
 
-export interface NormalizedPluginOptions extends Required<PluginOptions> {}
+export interface NormalizedPluginOptions extends Required<PluginOptions> {
+  assetsDir?: string;
+}
 
 export interface MarkdownAttributes {
   [name: string]: string;

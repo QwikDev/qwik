@@ -161,10 +161,11 @@ export async function configureDevServer(
                     return [symbolName, `${base}${symbolName.toLowerCase()}.js`];
                   }
                   const parentPath = path.dirname(parent);
-                  // support getting files through pnpm link symlinks
+                  // DX: if the file isn't under the source dir (e.g. a symlink from node_modules)
+                  // use the full path, otherwise relative to the source
                   const qrlPath = parentPath.startsWith(opts.rootDir)
                     ? path.relative(opts.rootDir, parentPath)
-                    : parentPath;
+                    : `/@fs/${parentPath}`;
                   const qrlFile = `${encode(qrlPath)}/${symbolName.toLowerCase()}.js?_qrl_parent=${encode(parent)}`;
                   return [symbolName, `${base}${qrlFile}`];
                 },

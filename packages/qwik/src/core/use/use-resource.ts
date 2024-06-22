@@ -23,6 +23,13 @@ import { isObject } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';
 import type { fixMeAny } from '../../server/qwik-types';
 
+const DEBUG: boolean = false;
+
+function debugLog(...arg: any) {
+  // eslint-disable-next-line no-console
+  console.log(arg.join(', '));
+}
+
 /**
  * Options to pass to `useResource$()`
  *
@@ -248,50 +255,48 @@ export interface ResourceProps<T> {
  */
 // </docs>
 export const Resource = <T>(props: ResourceProps<T>): JSXOutput => {
-  const isBrowser = !isServerPlatform();
+  // Resource path
+  return _jsxSorted(Fragment, null, null, getResourceValueAsPromise(props), 0, null);
+};
+
+function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutput> | JSXOutput {
   const resource = props.value as ResourceReturnInternal<T> | Promise<T> | Signal<T>;
-  let promise: Promise<T> | undefined;
   if (isResourceReturn(resource)) {
+    const isBrowser = !isServerPlatform();
     if (isBrowser) {
-      if (props.onRejected) {
-        resource.value.catch(() => {});
-        if (resource._state === 'rejected') {
-          return props.onRejected(resource._error!);
-        }
-      }
-      if (props.onPending) {
-        const state = resource._state;
-        if (state === 'resolved') {
-          return props.onResolved(resource._resolved!);
-        } else if (state === 'pending') {
-          return props.onPending();
-        } else if (state === 'rejected') {
-          throw resource._error;
-        }
-      }
-      if (untrack(() => resource._resolved) !== undefined) {
-        return props.onResolved(resource._resolved!);
+      const state = resource._state;
+      DEBUG && debugLog(`RESOURCE_CMP.${state}`, 'VALUE: ' + untrack(() => resource._resolved));
+
+      if (state === 'pending' && props.onPending) {
+        return Promise.resolve(props.onPending());
+      } else if (state === 'rejected' && props.onRejected) {
+        return Promise.resolve(resource._error!).then(props.onRejected);
+      } else {
+        // resolved, pending without onPending prop or rejected with onRejected prop
+        return Promise.resolve(resource._resolved as T).then(props.onResolved);
       }
     }
-    promise = resource.value;
+    return resource.value.then(
+      useBindInvokeContext(props.onResolved),
+      useBindInvokeContext(props.onRejected)
+    );
   } else if (isPromise(resource)) {
-    promise = resource;
+    return resource.then(
+      useBindInvokeContext(props.onResolved),
+      useBindInvokeContext(props.onRejected)
+    );
   } else if (isSignal(resource)) {
-    promise = Promise.resolve(resource.value);
+    return Promise.resolve(resource.value).then(
+      useBindInvokeContext(props.onResolved),
+      useBindInvokeContext(props.onRejected)
+    );
   } else {
-    return props.onResolved(resource as T);
+    return Promise.resolve(resource as T).then(
+      useBindInvokeContext(props.onResolved),
+      useBindInvokeContext(props.onRejected)
+    );
   }
-
-  // Resource path
-  return _jsxSorted(
-    Fragment,
-    null,
-    null,
-    promise.then(useBindInvokeContext(props.onResolved), useBindInvokeContext(props.onRejected)),
-    0,
-    null
-  );
-};
+}
 
 export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturnInternal<T> => {
   const resource: ResourceReturnInternal<T> = {
@@ -326,6 +331,7 @@ export const isResourceReturn = (obj: any): obj is ResourceReturn<unknown> => {
   return isObject(obj) && (getProxyTarget(obj as any) || obj).__brand === 'resource';
 };
 
+// TODO: to remove - serializers v1
 export const serializeResource = (
   resource: ResourceReturnInternal<unknown>,
   getObjId: GetObjID
@@ -340,9 +346,10 @@ export const serializeResource = (
   }
 };
 
+// TODO: to remove - serializers v1
 export const parseResourceReturn = <T>(data: string): ResourceReturnInternal<T> => {
   const [first, id] = data.split(' ');
-  const result = _createResourceReturn<T>(undefined);
+  const result = _createResourceReturn<T>();
   result.value = Promise.resolve() as any;
   if (first === '0') {
     result._state = 'resolved';

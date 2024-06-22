@@ -96,6 +96,7 @@ import {
 } from '../../use/use-task';
 import { isPromise, maybeThen, maybeThenPassError, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
+import { isDomContainer } from '../client/dom-container';
 import type { VirtualVNode } from '../client/types';
 import { vnode_documentPosition, vnode_isVNode } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
@@ -292,11 +293,12 @@ export const createScheduler = (
         returnValue = runComputed2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
         break;
       case ChoreType.RESOURCE:
-        // Ignore the return value of the resource, because async resources should not be awaited.
+        // Don't await the return value of the resource, because async resources should not be awaited.
         // The reason for this is that we should be able to update for example a node with loading
         // text. If we await the resource, the loading text will not be displayed until the resource
         // is loaded.
-        runResource(chore.$payload$ as ResourceDescriptor<TaskFn>, container, host);
+        const result = runResource(chore.$payload$ as ResourceDescriptor<TaskFn>, container, host);
+        returnValue = isDomContainer(container) ? null : result;
         break;
       case ChoreType.TASK:
       case ChoreType.VISIBLE:

@@ -697,7 +697,7 @@ export const runResource = <T>(
   const resource = task.$state$;
   assertDefined(
     resource,
-    'useResource: when running a resource, "task.r" must be a defined.',
+    'useResource: when running a resource, "task.resource" must be a defined.',
     task
   );
 
@@ -773,6 +773,7 @@ export const runResource = <T>(
         resource._state = 'resolved';
         resource._resolved = value as T;
         resource._error = undefined;
+        // console.log('RESOURCE.resolved: ', value);
 
         resolve(value as T);
       } else {
@@ -789,6 +790,7 @@ export const runResource = <T>(
 
   // Execute mutation inside empty invocation
   invoke(iCtx, () => {
+    // console.log('RESOURCE.pending: ');
     resource._state = 'pending';
     resource.loading = !isServerPlatform();
     const promise = (resource.value = new Promise((r, re) => {
@@ -799,7 +801,7 @@ export const runResource = <T>(
   });
 
   const promise = safeCall(
-    () => Promise.resolve(taskFn(opts)),
+    () => taskFn(opts),
     (value) => {
       setState(true, value);
     },

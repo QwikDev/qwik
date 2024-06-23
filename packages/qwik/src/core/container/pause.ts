@@ -44,7 +44,12 @@ import { HOST_FLAG_DYNAMIC, tryGetContext, type QContext } from '../state/contex
 import { groupListeners } from '../state/listeners';
 import { SignalImpl } from '../state/signal';
 import { serializeSStyle } from '../style/qrl-styles';
-import { TaskFlags, cleanupTask } from '../use/use-task';
+import {
+  TaskFlags,
+  cleanupTask,
+  isResourceTask,
+  type ResourceReturnInternal,
+} from '../use/use-task';
 import { isNotNullable, isPromise } from '../util/promises';
 import { isArray, isObject, isSerializableObject } from '../util/types';
 import {
@@ -63,7 +68,6 @@ import {
 } from './container';
 import { UNDEFINED_PREFIX, collectDeps, serializeValue } from './serializers';
 import { isQrl } from '../qrl/qrl-class';
-import { isResourceTask, type ResourceReturnInternal } from '../use/use-resource';
 
 /** @internal */
 export const _serializeData = async (data: any, pureQRL?: boolean) => {

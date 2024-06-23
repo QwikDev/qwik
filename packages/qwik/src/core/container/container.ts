@@ -1,5 +1,5 @@
 import { qError, QError_invalidRefValue } from '../error/error';
-import type { SubscriberEffect } from '../use/use-task';
+import type { ResourceReturnInternal, SubscriberEffect } from '../use/use-task';
 import { seal } from '../util/qdev';
 import { isFunction } from '../util/types';
 import type { QRL } from '../qrl/qrl.public';
@@ -12,7 +12,6 @@ import { directGetAttribute } from '../render/fast-calls';
 import type { QContext } from '../state/context';
 import { isServerPlatform } from '../platform/platform';
 import type { StoreTracker } from '../state/store';
-import type { ResourceReturnInternal } from '../use/use-resource';
 
 export type GetObject = (id: string) => any;
 // v2 allows numbers

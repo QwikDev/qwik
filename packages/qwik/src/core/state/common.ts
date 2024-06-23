@@ -8,10 +8,10 @@ import { notifyChange } from '../render/dom/notify-render';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { serializeAttribute } from '../render/execute-component';
 import { trackSignal } from '../use/use-core';
-import { isResourceTask } from '../use/use-resource';
 import {
   TaskFlags,
   isComputedTask,
+  isResourceTask,
   isSubscriberDescriptor,
   isTask,
   type SubscriberEffect,

@@ -107,20 +107,18 @@ export type {
   ComputedFn,
   EagernessOptions,
   OnVisibleTaskOptions,
-  TaskCtx,
-  TaskFn,
-  Tracker,
-  UseTaskOptions,
-  VisibleTaskStrategy,
-} from './use/use-task';
-export type {
   ResourceCtx,
   ResourceFn,
   ResourcePending,
   ResourceRejected,
   ResourceResolved,
   ResourceReturn,
-} from './use/use-resource';
+  TaskCtx,
+  TaskFn,
+  Tracker,
+  UseTaskOptions,
+  VisibleTaskStrategy,
+} from './use/use-task';
 export type { ResourceProps, ResourceOptions } from './use/use-resource';
 export { useResource$, useResourceQrl, Resource } from './use/use-resource';
 export { useTask$, useTaskQrl } from './use/use-task';

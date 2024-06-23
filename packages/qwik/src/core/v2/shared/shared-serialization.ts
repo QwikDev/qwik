@@ -39,7 +39,7 @@ import {
   type Signal,
 } from '../../state/signal';
 import { getOrCreateProxy, isStore } from '../../state/store';
-import { Task, type ResourceReturnInternal } from '../../use/use-task';
+import { Task } from '../../use/use-task';
 import { throwErrorAndStop } from '../../util/log';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
@@ -48,6 +48,7 @@ import { vnode_getNode, vnode_isVNode, vnode_locate } from '../client/vnode';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
 import { ELEMENT_ID } from '../../util/markers';
 import { getPlatform } from '../../platform/platform';
+import type { ResourceReturnInternal } from '../../use/use-resource';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 

@@ -2,32 +2,91 @@ import { isServerPlatform } from '../platform/platform';
 import { assertQrl } from '../qrl/qrl-class';
 import { dollar, type QRL } from '../qrl/qrl.public';
 import { Fragment, _jsxSorted } from '../render/jsx/jsx-runtime';
-import { untrack, useBindInvokeContext } from './use-core';
+import { invoke, newInvokeContext, untrack, useBindInvokeContext } from './use-core';
 import {
   Task,
   TaskFlags,
-  runResource,
-  type ResourceDescriptor,
-  type ResourceFn,
-  type ResourceReturn,
-  type ResourceReturnInternal,
+  cleanupTask,
+  type DescriptorBase,
+  type SubscriberEffect,
+  type Tracker,
 } from './use-task';
 
 import type { GetObjID } from '../container/container';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
-import { getProxyTarget } from '../state/common';
+import {
+  SubscriptionType,
+  getProxyTarget,
+  getSubscriptionManager,
+  noSerialize,
+  unwrapProxy,
+} from '../state/common';
 import { isSignal, type Signal } from '../state/signal';
 import { createProxy, type StoreTracker } from '../state/store';
-import { isPromise } from '../util/promises';
-import { isObject } from '../util/types';
+import { delay, isPromise, safeCall } from '../util/promises';
+import { isFunction, isObject } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';
-import type { fixMeAny } from '../../server/qwik-types';
+import type { Container2, HostElement, ValueOrPromise, fixMeAny } from '../../server/qwik-types';
+import { ResourceEvent } from '../util/markers';
+import { assertDefined } from '../error/assert';
+import { logErrorAndStop } from '../util/log';
+import { QError_trackUseStore, codeToText } from '../error/error';
 
 const DEBUG: boolean = false;
 
 function debugLog(...arg: any) {
   // eslint-disable-next-line no-console
   console.log(arg.join(', '));
+}
+
+export interface ResourceDescriptor<T>
+  extends DescriptorBase<ResourceFn<T>, ResourceReturnInternal<T>> {}
+
+export const isResourceTask = (task: SubscriberEffect): task is ResourceDescriptor<unknown> => {
+  return (task.$flags$ & TaskFlags.RESOURCE) !== 0;
+};
+
+/** @public */
+export interface ResourceCtx<T> {
+  readonly track: Tracker;
+  cleanup(callback: () => void): void;
+  cache(policyOrMilliseconds: number | 'immutable'): void;
+  readonly previous: T | undefined;
+}
+
+/** @public */
+export type ResourceFn<T> = (ctx: ResourceCtx<unknown>) => ValueOrPromise<T>;
+
+/** @public */
+export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
+
+/** @public */
+export interface ResourcePending<T> {
+  readonly value: Promise<T>;
+  readonly loading: boolean;
+}
+
+/** @public */
+export interface ResourceResolved<T> {
+  readonly value: Promise<T>;
+  readonly loading: boolean;
+}
+
+/** @public */
+export interface ResourceRejected<T> {
+  readonly value: Promise<T>;
+  readonly loading: boolean;
+}
+
+export interface ResourceReturnInternal<T> {
+  __brand: 'resource';
+  _state: 'pending' | 'resolved' | 'rejected';
+  _resolved: T | undefined;
+  _error: Error | undefined;
+  _cache: number;
+  _timeout: number;
+  value: Promise<T>;
+  loading: boolean;
 }
 
 /**
@@ -189,6 +248,161 @@ export const useResource$ = <T>(
   opts?: ResourceOptions
 ): ResourceReturn<T> => {
   return useResourceQrl<T>(dollar(generatorFn), opts);
+};
+
+export const runResource = <T>(
+  task: ResourceDescriptor<T>,
+  container: Container2,
+  host: HostElement
+): ValueOrPromise<void> => {
+  task.$flags$ &= ~TaskFlags.DIRTY;
+  cleanupTask(task);
+
+  const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, ResourceEvent);
+
+  const taskFn = task.$qrl$.getFn(iCtx, () => {
+    container.$subsManager$.$clearSub$(task);
+  });
+
+  const resource = task.$state$;
+  assertDefined(
+    resource,
+    'useResource: when running a resource, "task.resource" must be a defined.',
+    task
+  );
+
+  const track: Tracker = (obj: (() => unknown) | object | Signal, prop?: string) => {
+    if (isFunction(obj)) {
+      const ctx = newInvokeContext();
+      ctx.$subscriber$ = [SubscriptionType.HOST, task];
+      return invoke(ctx, obj);
+    }
+    const manager = getSubscriptionManager(obj);
+    if (manager) {
+      manager.$addSub$([SubscriptionType.HOST, task], prop);
+    } else {
+      logErrorAndStop(codeToText(QError_trackUseStore), obj);
+    }
+    if (prop) {
+      return (obj as Record<string, unknown>)[prop];
+    } else if (isSignal(obj)) {
+      return obj.value;
+    } else {
+      return obj;
+    }
+  };
+
+  const handleError = (reason: unknown) => container.handleError(reason, host);
+
+  const cleanups: (() => void)[] = [];
+  task.$destroy$ = noSerialize(() => {
+    cleanups.forEach((fn) => {
+      try {
+        fn();
+      } catch (err) {
+        handleError(err);
+      }
+    });
+  });
+
+  const resourceTarget = unwrapProxy(resource);
+  const opts: ResourceCtx<T> = {
+    track,
+    cleanup(fn) {
+      if (typeof fn === 'function') {
+        cleanups.push(fn);
+      }
+    },
+    cache(policy) {
+      let milliseconds = 0;
+      if (policy === 'immutable') {
+        milliseconds = Infinity;
+      } else {
+        milliseconds = policy;
+      }
+      resource._cache = milliseconds;
+    },
+    previous: resourceTarget._resolved,
+  };
+
+  let resolve: (v: T) => void;
+  let reject: (v: unknown) => void;
+  let done = false;
+
+  const setState = (resolved: boolean, value: T | Error) => {
+    if (!done) {
+      done = true;
+      if (resolved) {
+        done = true;
+        resource.loading = false;
+        resource._state = 'resolved';
+        resource._resolved = value as T;
+        resource._error = undefined;
+        // console.log('RESOURCE.resolved: ', value);
+
+        resolve(value as T);
+      } else {
+        done = true;
+        resource.loading = false;
+        resource._state = 'rejected';
+        resource._error = value as Error;
+        reject(value as Error);
+      }
+      return true;
+    }
+    return false;
+  };
+
+  /**
+   * Add cleanup to resolve the resource if we are trying to run the same resource again while the
+   * previous one is not resolved yet. The next `runResource` run will call this cleanup
+   */
+  cleanups.push(() => {
+    if (untrack(() => resource.loading) === true) {
+      const value = untrack(() => resource._resolved) as T;
+      setState(true, value);
+    }
+  });
+
+  // Execute mutation inside empty invocation
+  invoke(iCtx, () => {
+    // console.log('RESOURCE.pending: ');
+    resource._state = 'pending';
+    resource.loading = !isServerPlatform();
+    const promise = (resource.value = new Promise((r, re) => {
+      resolve = r;
+      reject = re;
+    }));
+    promise.catch(ignoreErrorToPreventNodeFromCrashing);
+  });
+
+  const promise = safeCall(
+    () => Promise.resolve(taskFn(opts)),
+    (value) => {
+      setState(true, value);
+    },
+    (reason) => {
+      setState(false, reason);
+    }
+  );
+
+  const timeout = resourceTarget._timeout;
+  if (timeout > 0) {
+    return Promise.race([
+      promise,
+      delay(timeout).then(() => {
+        if (setState(false, new Error('timeout'))) {
+          cleanupTask(task);
+        }
+      }),
+    ]);
+  }
+  return promise;
+};
+
+const ignoreErrorToPreventNodeFromCrashing = (err: unknown) => {
+  // ignore error to prevent node from crashing
+  // node will crash in promise is rejected and no one is listening to the rejection.
 };
 
 /** @public */

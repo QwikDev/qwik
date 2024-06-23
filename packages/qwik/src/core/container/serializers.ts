@@ -7,11 +7,15 @@ import {
 import { parseQRL, serializeQRL } from '../qrl/qrl';
 import { isQrl, type QRLInternal } from '../qrl/qrl-class';
 import { intToStr, type ContainerState, type GetObject, type MustGetObjID } from './container';
-import { isResourceReturn, parseResourceReturn, serializeResource } from '../use/use-resource';
+import {
+  isResourceReturn,
+  parseResourceReturn,
+  serializeResource,
+  type ResourceReturnInternal,
+} from '../use/use-resource';
 import {
   isSubscriberDescriptor,
   parseTask,
-  type ResourceReturnInternal,
   serializeTask,
   type SubscriberEffect,
 } from '../use/use-task';

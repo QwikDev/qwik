@@ -84,14 +84,13 @@ import { assertEqual } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
+import { runResource, type ResourceDescriptor } from '../../use/use-resource';
 import {
   Task,
   TaskFlags,
   cleanupTask,
   runComputed2,
-  runResource,
-  runSubscriber2,
-  type ResourceDescriptor,
+  runTask2,
   type TaskFn,
 } from '../../use/use-task';
 import { isPromise, maybeThen, maybeThenPassError, safeCall } from '../../util/promises';
@@ -302,7 +301,7 @@ export const createScheduler = (
         break;
       case ChoreType.TASK:
       case ChoreType.VISIBLE:
-        returnValue = runSubscriber2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
+        returnValue = runTask2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
         break;
       case ChoreType.CLEANUP_VISIBLE:
         const task = chore.$payload$ as Task<TaskFn, TaskFn>;

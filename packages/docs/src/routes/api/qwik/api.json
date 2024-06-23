@@ -2335,7 +2335,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface ResourceCtx<T> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[previous](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nT \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[track](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[Tracker](#tracker)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[cache(policyOrMilliseconds)](#resourcectx-cache)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[cleanup(callback)](#)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
       "mdFile": "qwik.resourcectx.md"
     },
     {
@@ -2349,7 +2349,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type ResourceFn<T> = (ctx: ResourceCtx<unknown>) => ValueOrPromise<T>;\n```\n**References:** [ResourceCtx](#resourcectx)<!-- -->, [ValueOrPromise](#valueorpromise)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
       "mdFile": "qwik.resourcefn.md"
     },
     {
@@ -2377,7 +2377,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface ResourcePending<T> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[loading](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[value](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nPromise&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
       "mdFile": "qwik.resourcepending.md"
     },
     {
@@ -2405,7 +2405,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface ResourceRejected<T> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[loading](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[value](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nPromise&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
       "mdFile": "qwik.resourcerejected.md"
     },
     {
@@ -2419,7 +2419,7 @@
       ],
       "kind": "Interface",
       "content": "```typescript\nexport interface ResourceResolved<T> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[loading](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[value](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nPromise&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
       "mdFile": "qwik.resourceresolved.md"
     },
     {
@@ -2433,7 +2433,7 @@
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;\n```\n**References:** [ResourcePending](#resourcepending)<!-- -->, [ResourceResolved](#resourceresolved)<!-- -->, [ResourceRejected](#resourcerejected)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
       "mdFile": "qwik.resourcereturn.md"
     },
     {

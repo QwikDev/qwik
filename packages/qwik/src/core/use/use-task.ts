@@ -28,7 +28,7 @@ import {
 } from '../state/signal';
 import { implicit$FirstArg } from '../util/implicit_dollar';
 import { logError, logErrorAndStop } from '../util/log';
-import { ComputedEvent, TaskEvent } from '../util/markers';
+import { ComputedEvent, ResourceEvent, TaskEvent } from '../util/markers';
 import { delay, isPromise, safeCall } from '../util/promises';
 import { isFunction, isObject, type ValueOrPromise } from '../util/types';
 import { ChoreType } from '../v2/shared/scheduler';
@@ -689,7 +689,8 @@ export const runResource = <T>(
   task.$flags$ &= ~TaskFlags.DIRTY;
   cleanupTask(task);
 
-  const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, TaskEvent);
+  const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, ResourceEvent);
+
   const taskFn = task.$qrl$.getFn(iCtx, () => {
     container.$subsManager$.$clearSub$(task);
   });
@@ -723,31 +724,26 @@ export const runResource = <T>(
   };
 
   const handleError = (reason: unknown) => container.handleError(reason, host);
-  let cleanupFns: (() => void)[] | null = null;
-  const cleanup = (fn: () => void) => {
-    done = true;
-    if (typeof fn == 'function') {
-      if (!cleanupFns) {
-        cleanupFns = [];
-        task.$destroy$ = noSerialize(() => {
-          task.$destroy$ = null;
-          cleanupFns!.forEach((fn) => {
-            try {
-              fn();
-            } catch (err) {
-              handleError(err);
-            }
-          });
-        });
+
+  const cleanups: (() => void)[] = [];
+  task.$destroy$ = noSerialize(() => {
+    cleanups.forEach((fn) => {
+      try {
+        fn();
+      } catch (err) {
+        handleError(err);
       }
-      cleanupFns.push(fn);
-    }
-  };
+    });
+  });
 
   const resourceTarget = unwrapProxy(resource);
   const opts: ResourceCtx<T> = {
     track,
-    cleanup,
+    cleanup(fn) {
+      if (typeof fn === 'function') {
+        cleanups.push(fn);
+      }
+    },
     cache(policy) {
       let milliseconds = 0;
       if (policy === 'immutable') {
@@ -788,6 +784,17 @@ export const runResource = <T>(
     return false;
   };
 
+  /**
+   * Add cleanup to resolve the resource if we are trying to run the same resource again while the
+   * previous one is not resolved yet. The next `runResource` run will call this cleanup
+   */
+  cleanups.push(() => {
+    if (untrack(() => resource.loading) === true) {
+      const value = untrack(() => resource._resolved) as T;
+      setState(true, value);
+    }
+  });
+
   // Execute mutation inside empty invocation
   invoke(iCtx, () => {
     // console.log('RESOURCE.pending: ');
@@ -801,7 +808,7 @@ export const runResource = <T>(
   });
 
   const promise = safeCall(
-    () => taskFn(opts),
+    () => Promise.resolve(taskFn(opts)),
     (value) => {
       setState(true, value);
     },

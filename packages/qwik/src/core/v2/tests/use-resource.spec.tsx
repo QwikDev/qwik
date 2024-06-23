@@ -10,10 +10,8 @@ import {
   useSignal,
 } from '@builder.io/qwik';
 import { describe, expect, it } from 'vitest';
-import { trigger } from '../../../testing/element-fixture';
-import { domRender, ssrRenderToDom } from '../../../testing/rendering.unit-util';
 import '../../../testing/vdom-diff.unit-util';
-import { getTestPlatform } from '@builder.io/qwik/testing';
+import { getTestPlatform, trigger, domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

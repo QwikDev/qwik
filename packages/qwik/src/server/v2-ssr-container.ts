@@ -132,13 +132,13 @@ class StringBufferWriter {
   }
 }
 
-interface ContainerElementFrame {
+interface ElementFrame {
   /*
    * Used during development mode to track the nesting of HTML tags
    * in order provide error messages when the nesting is incorrect.
    */
   tagNesting: TagNesting;
-  parent: ContainerElementFrame | null;
+  parent: ElementFrame | null;
   /** Element name. */
   elementName: string;
   /**
@@ -187,7 +187,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private currentComponentNode: ISsrNode | null = null;
   private styleIds = new Set<string>();
 
-  private currentElementFrame: ContainerElementFrame | null = null;
+  private currentElementFrame: ElementFrame | null = null;
 
   private renderTimer: ReturnType<typeof createTimer>;
   /**
@@ -985,11 +985,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (!this.currentElementFrame) {
         tagNesting = initialTag(elementName);
       } else {
-        let frame: ContainerElementFrame | null = this.currentElementFrame;
+        let frame: ElementFrame | null = this.currentElementFrame;
         const previousTagNesting = frame!.tagNesting;
         tagNesting = isTagAllowed(previousTagNesting, elementName);
         if (tagNesting === TagNesting.NOT_ALLOWED) {
-          const frames: ContainerElementFrame[] = [];
+          const frames: ElementFrame[] = [];
           while (frame) {
             frames.unshift(frame);
             frame = frame.parent;
@@ -1021,7 +1021,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         }
       }
     }
-    const frame: ContainerElementFrame = {
+    const frame: ElementFrame = {
       tagNesting,
       parent: this.currentElementFrame,
       elementName,

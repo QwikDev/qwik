@@ -734,6 +734,7 @@ export const runResource = <T>(
         handleError(err);
       }
     });
+    done = true;
   });
 
   const resourceTarget = unwrapProxy(resource);

@@ -1,5 +1,6 @@
 import { format } from 'prettier';
 
+import { expect, test, vi } from 'vitest';
 import type { StreamWriter } from '../../../server/types';
 import { component$ } from '../../component/component.public';
 import { inlinedQrl } from '../../qrl/qrl';
@@ -7,17 +8,16 @@ import { $ } from '../../qrl/qrl.public';
 import { createContextId, useContext, useContextProvider } from '../../use/use-context';
 import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
 import { Resource, useResource$ } from '../../use/use-resource';
-import { useStylesScopedQrl, useStylesQrl } from '../../use/use-styles';
-import { useVisibleTask$, useTask$ } from '../../use/use-task';
-import { delay } from '../../util/promises';
-import { SSRComment, SSRRaw } from '../jsx/utils.public';
-import { Slot } from '../jsx/slot.public';
-import { HTMLFragment, jsx } from '../jsx/jsx-runtime';
-import { _renderSSR, type RenderSSROptions } from './render-ssr';
-import { useStore } from '../../use/use-store.public';
 import { useSignal } from '../../use/use-signal';
-import { expect, test, vi } from 'vitest';
+import { useStore } from '../../use/use-store.public';
+import { useStylesQrl, useStylesScopedQrl } from '../../use/use-styles';
+import { useTask$, useVisibleTask$ } from '../../use/use-task';
+import { delay } from '../../util/promises';
+import { HTMLFragment, jsx } from '../jsx/jsx-runtime';
+import { Slot } from '../jsx/slot.public';
 import type { JSXOutput } from '../jsx/types/jsx-node';
+import { SSRComment, SSRRaw } from '../jsx/utils.public';
+import { _renderSSR, type RenderSSROptions } from './render-ssr';
 
 test('render attributes', async () => {
   await testSSR(
@@ -769,7 +769,7 @@ test('using component props', async () => {
     <container q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test" class="qc📦">
       <!--qv q:id=0 q:key=sX:-->
       <section>
-        <div>MyCmp{"id":"12","host:prop":"attribute","innerHTML":"123","dangerouslySetInnerHTML":"432","onClick":"lazy.js","prop":"12"}</div>
+        <div>MyCmp{&quot;id&quot;:&quot;12&quot;,&quot;host:prop&quot;:&quot;attribute&quot;,&quot;innerHTML&quot;:&quot;123&quot;,&quot;dangerouslySetInnerHTML&quot;:&quot;432&quot;,&quot;onClick&quot;:&quot;lazy.js&quot;,&quot;prop&quot;:&quot;12&quot;}</div>
       </section>
       <q:template q:slot hidden aria-hidden="true">stuff</q:template>
       <!--/qv-->
@@ -1509,7 +1509,7 @@ test('cleanse class attribute', async () => {
   };
   await testSSR(
     <body {...o}></body>,
-    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body class="&quot;><script>alert(&quot;ಠ~ಠ&quot;)</script>"></body></html>'
+    '<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test"><body class="&quot;&gt;&lt;script&gt;alert(&quot;ಠ~ಠ&quot;)&lt;/script&gt;"></body></html>'
   );
 });
 

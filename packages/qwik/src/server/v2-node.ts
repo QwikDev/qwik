@@ -85,6 +85,20 @@ export class SsrNode implements ISsrNode {
       mapApp_remove(this.attrs, name, 0);
     }
   }
+
+  toString(): string {
+    let stringifiedAttrs = '';
+    for (let i = 0; i < this.attrs.length; i += 2) {
+      const key = this.attrs[i];
+      const value = this.attrs[i + 1];
+      stringifiedAttrs += `${key}=`;
+      stringifiedAttrs += `${typeof value === 'string' || typeof value === 'number' ? JSON.stringify(value) : '*'}`;
+      if (i < this.attrs.length - 2) {
+        stringifiedAttrs += ', ';
+      }
+    }
+    return `SSRNode [<${this.id}> ${stringifiedAttrs}]`;
+  }
 }
 
 export type SsrNodeType = 1 | 3 | 9 | 11;

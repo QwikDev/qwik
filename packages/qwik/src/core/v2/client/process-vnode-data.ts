@@ -245,7 +245,6 @@ export function processVNodeData(document: Document) {
                 ch = VNodeDataSeparator.ADVANCE_1;
               }
             }
-            vData_end = vData_start;
             vData_end = findVDataSectionEnd(vData, vData_start, vData_length);
           } else {
             vNodeElementIndex = Number.MAX_SAFE_INTEGER;

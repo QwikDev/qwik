@@ -621,7 +621,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (flag !== VNodeDataFlag.NONE) {
         lastSerializedIdx = this.emitVNodeSeparators(lastSerializedIdx, elementIdx);
         if (flag & VNodeDataFlag.REFERENCE) {
-          this.write('~');
+          this.write(VNodeDataSeparator.REFERENCE_CH);
         }
         if (flag & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE)) {
           let fragmentAttrs: SsrAttrs | null = null;
@@ -956,7 +956,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     let skipCount = elementIdx - lastSerializedIdx;
     // console.log('emitVNodeSeparators', lastSerializedIdx, elementIdx, skipCount);
     while (skipCount != 0) {
-      if (skipCount >= 4096) {
+      if (skipCount > 4096) {
         this.write(VNodeDataSeparator.ADVANCE_8192_CH);
         skipCount -= 8192;
       } else {

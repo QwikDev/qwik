@@ -128,6 +128,7 @@ import {
   ELEMENT_KEY,
   ELEMENT_PROPS,
   ELEMENT_SEQ,
+  ELEMENT_SEQ_IDX,
   OnRenderProp,
   QContainerAttr,
   QContainerAttrEnd,
@@ -1688,6 +1689,8 @@ function materializeFromVNodeData(
       vnode_setAttr(null, vParent, ELEMENT_KEY, consumeValue());
     } else if (peek() === VNodeDataChar.SEQ) {
       vnode_setAttr(null, vParent, ELEMENT_SEQ, consumeValue());
+    } else if (peek() === VNodeDataChar.SEQ_IDX) {
+      vnode_setAttr(null, vParent, ELEMENT_SEQ_IDX, consumeValue());
     } else if (peek() === VNodeDataChar.CONTEXT) {
       vnode_setAttr(null, vParent, QCtxAttr, consumeValue());
     } else if (peek() === VNodeDataChar.OPEN) {

@@ -1,6 +1,6 @@
 import { verifySerializable } from '../state/common';
 import { getContext, type QContext } from '../state/context';
-import { ELEMENT_SEQ } from '../util/markers';
+import { ELEMENT_SEQ, ELEMENT_SEQ_IDX } from '../util/markers';
 import { qDev, qSerialize } from '../util/qdev';
 import type { fixMeAny, HostElement } from '../v2/shared/types';
 import { useInvokeContext, type RenderInvokeContext } from './use-core';
@@ -31,11 +31,11 @@ export const useSequentialScope = <T>(): SequentialScope<T> => {
       seq = [];
       iCtx.$container2$.setHostProp(host, ELEMENT_SEQ, seq);
     }
-    let seqIdx = iCtx.$container2$.getHostProp<number>(host, SEQ_IDX_LOCAL);
+    let seqIdx = iCtx.$container2$.getHostProp<number>(host, ELEMENT_SEQ_IDX);
     if (seqIdx === null) {
       seqIdx = 0;
     }
-    iCtx.$container2$.setHostProp(host, SEQ_IDX_LOCAL, seqIdx + 1);
+    iCtx.$container2$.setHostProp(host, ELEMENT_SEQ_IDX, seqIdx + 1);
     while (seq.length <= seqIdx) {
       seq.push(undefined);
     }
@@ -73,5 +73,3 @@ export const useSequentialScope = <T>(): SequentialScope<T> => {
     };
   }
 };
-
-export const SEQ_IDX_LOCAL = 'q:seqIdx';

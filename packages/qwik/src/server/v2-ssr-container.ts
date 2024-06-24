@@ -19,6 +19,7 @@ import {
   ELEMENT_KEY,
   ELEMENT_PROPS,
   ELEMENT_SEQ,
+  ELEMENT_SEQ_IDX,
   OnRenderProp,
   QCtxAttr,
   QScopedStyle,
@@ -700,6 +701,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             break;
           case ELEMENT_SEQ:
             write(VNodeDataChar.SEQ_CHAR);
+            break;
+          case ELEMENT_SEQ_IDX:
+            write(VNodeDataChar.SEQ_IDX_CHAR);
             break;
           // Skipping `\` character for now because it is used for escaping.
           case QCtxAttr:

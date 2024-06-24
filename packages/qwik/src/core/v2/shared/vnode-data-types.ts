@@ -67,6 +67,8 @@ export const VNodeDataChar = {
   DON_T_USE_CHAR: '\\',
   CONTEXT: /* ************ */ 93, // `]` - `q:ctx' - Component context/props
   CONTEXT_CHAR: /* **** */ ']',
+  SEQ_IDX: /* ************ */ 94, // `[` - `q:seqIdx' - Sequential scope id
+  SEQ_IDX_CHAR: /* **** */ '^',
   SEPARATOR: /* ********* */ 124, // `|` - Separator char to encode any key/value pairs.
   SEPARATOR_CHAR: /* ** */ '|',
   SLOT: /* ************** */ 126, // `~` - `q:slot' - Slot name

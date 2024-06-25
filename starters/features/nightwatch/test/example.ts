@@ -1,10 +1,12 @@
+import {browser} from 'nightwatch';
+
 describe("Nightwatch demo test", () => {
-  before(async function (browser) {
+  before(async function () {
     // navigate to baseUrl
     await browser.navigateTo("/");
   });
 
-  it("should have correct title", async function (browser) {
+  it("should have correct title", async function () {
     // assert the title
     const title = await browser.getTitle();
     browser.assert.equal(title, "Welcome to Qwik");

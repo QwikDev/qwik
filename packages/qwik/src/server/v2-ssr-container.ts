@@ -19,6 +19,7 @@ import {
   ELEMENT_KEY,
   ELEMENT_PROPS,
   ELEMENT_SEQ,
+  ELEMENT_SEQ_IDX,
   OnRenderProp,
   QCtxAttr,
   QScopedStyle,
@@ -621,7 +622,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (flag !== VNodeDataFlag.NONE) {
         lastSerializedIdx = this.emitVNodeSeparators(lastSerializedIdx, elementIdx);
         if (flag & VNodeDataFlag.REFERENCE) {
-          this.write('~');
+          this.write(VNodeDataSeparator.REFERENCE_CH);
         }
         if (flag & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE)) {
           let fragmentAttrs: SsrAttrs | null = null;
@@ -700,6 +701,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             break;
           case ELEMENT_SEQ:
             write(VNodeDataChar.SEQ_CHAR);
+            break;
+          case ELEMENT_SEQ_IDX:
+            write(VNodeDataChar.SEQ_IDX_CHAR);
             break;
           // Skipping `\` character for now because it is used for escaping.
           case QCtxAttr:
@@ -956,7 +960,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     let skipCount = elementIdx - lastSerializedIdx;
     // console.log('emitVNodeSeparators', lastSerializedIdx, elementIdx, skipCount);
     while (skipCount != 0) {
-      if (skipCount >= 4096) {
+      if (skipCount > 4096) {
         this.write(VNodeDataSeparator.ADVANCE_8192_CH);
         skipCount -= 8192;
       } else {

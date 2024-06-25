@@ -8,12 +8,12 @@ import { ERROR_CONTEXT, isRecoverable } from '../../render/error-handling';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { StoreTracker } from '../../state/store';
 import type { ContextId } from '../../use/use-context';
-import { SEQ_IDX_LOCAL } from '../../use/use-sequential-scope';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
 import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
+  ELEMENT_SEQ_IDX,
   OnRenderProp,
   QContainerAttr,
   QContainerSelector,
@@ -263,7 +263,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       case QCtxAttr:
         getObjectById = this.$getObjectById$;
         break;
-      case SEQ_IDX_LOCAL:
+      case ELEMENT_SEQ_IDX:
         getObjectById = parseInt;
         break;
     }

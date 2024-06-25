@@ -71,6 +71,7 @@ export const ELEMENT_ID = 'q:id';
 export const ELEMENT_KEY = 'q:key';
 export const ELEMENT_PROPS = 'q:props';
 export const ELEMENT_SEQ = 'q:seq';
+export const ELEMENT_SEQ_IDX = 'q:seqIdx';
 export const ELEMENT_SELF_ID = -1;
 export const ELEMENT_ID_SELECTOR = '[q\\:id]';
 export const ELEMENT_ID_PREFIX = '#';

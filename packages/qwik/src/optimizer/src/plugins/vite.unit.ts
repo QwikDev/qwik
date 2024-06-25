@@ -1,9 +1,9 @@
 import path, { resolve } from 'node:path';
-import { convertManifestToBundleGraph, qwikVite } from './vite';
-import type { OptimizerOptions, QwikBundle, QwikManifest } from '../types';
 import type { Rollup } from 'vite';
+import { assert, expect, suite, test } from 'vitest';
 import { normalizePath } from '../../../testing/util';
-import { assert, test, suite, expect } from 'vitest';
+import type { OptimizerOptions, QwikBundle, QwikManifest } from '../types';
+import { convertManifestToBundleGraph, qwikVite } from './vite';
 
 const cwd = process.cwd();
 
@@ -308,6 +308,73 @@ test('command: serve, --mode ssr', async () => {
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(c.publicDir, undefined);
   assert.deepEqual(opts.resolveQwikBuild, true);
+});
+
+test('command: serve, --mode ssr with build.assetsDir', async () => {
+  const initOpts = {
+    optimizerOptions: mockOptimizerOptions(),
+    ssr: {
+      input: resolve(cwd, 'src', 'renderz.tsx'),
+      outDir: resolve(cwd, 'ssr-dist'),
+    },
+  };
+  const plugin = qwikVite(initOpts)[0];
+  const c: any = (await plugin.config(
+    { build: { emptyOutDir: true, assetsDir: 'my-assets-dir' } },
+    { command: 'serve', mode: 'ssr' }
+  ))!;
+  const opts = await plugin.api?.getOptions();
+  const build = c.build!;
+  const rollupOptions = build!.rollupOptions!;
+
+  assert.deepEqual(opts.target, 'ssr');
+  assert.deepEqual(opts.buildMode, 'development');
+  assert.deepEqual(build.minify, undefined);
+  assert.deepEqual(build.ssr, undefined);
+  assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'renderz.tsx'))]);
+  assert.deepEqual(c.build.outDir, normalizePath(resolve(cwd, 'ssr-dist')));
+  assert.deepEqual(build.emptyOutDir, undefined);
+  assert.deepEqual(c.publicDir, undefined);
+  assert.deepEqual(opts.resolveQwikBuild, true);
+});
+
+test('should use the dist/ fallback with client target', async () => {
+  const initOpts = {
+    optimizerOptions: mockOptimizerOptions(),
+  };
+  const plugin = qwikVite(initOpts)[0];
+  const c: any = (await plugin.config(
+    { build: { assetsDir: 'my-assets-dir/' } },
+    { command: 'serve' }
+  ))!;
+
+  assert.equal(c.build.outDir, normalizePath(resolve(cwd, `dist`)));
+});
+
+test('should use build.outDir config with client target', async () => {
+  const initOpts = {
+    optimizerOptions: mockOptimizerOptions(),
+  };
+  const plugin = qwikVite(initOpts)[0];
+  const c: any = (await plugin.config(
+    { build: { outDir: 'my-dist/', assetsDir: 'my-assets-dir' } },
+    { command: 'serve' }
+  ))!;
+
+  assert.equal(c.build.outDir, normalizePath(resolve(cwd, `my-dist`)));
+});
+
+test('should use build.outDir config when assetsDir is _astro', async () => {
+  const initOpts = {
+    optimizerOptions: mockOptimizerOptions(),
+  };
+
+  const plugin = qwikVite(initOpts)[0];
+
+  // Astro sets a build.assetsDir of _astro, but we don't want to change that
+  const c: any = (await plugin.config({ build: { assetsDir: '_astro' } }, { command: 'serve' }))!;
+
+  assert.equal(c.build.outDir, normalizePath(resolve(cwd, `dist/`)));
 });
 
 test('command: build, --mode lib', async () => {

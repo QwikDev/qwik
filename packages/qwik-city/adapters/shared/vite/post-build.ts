@@ -4,12 +4,15 @@ import { getErrorHtml } from '@builder.io/qwik-city/middleware/request-handler';
 
 export async function postBuild(
   clientOutDir: string,
-  basePathname: string,
+  pathName: string,
   userStaticPaths: string[],
   format: string,
   cleanStatic: boolean
 ) {
-  const ignorePathnames = new Set([basePathname + 'build/', basePathname + 'assets/']);
+  if (pathName && !pathName.endsWith('/')) {
+    pathName += '/';
+  }
+  const ignorePathnames = new Set([pathName + 'build/', pathName + 'assets/']);
 
   const staticPaths = new Set(userStaticPaths.map(normalizeTrailingSlash));
   const notFounds: string[][] = [];
@@ -51,11 +54,11 @@ export async function postBuild(
   };
 
   if (fs.existsSync(clientOutDir)) {
-    await loadDir(clientOutDir, basePathname);
+    await loadDir(clientOutDir, pathName);
   }
 
-  const notFoundPathsCode = createNotFoundPathsModule(basePathname, notFounds, format);
-  const staticPathsCode = createStaticPathsModule(basePathname, staticPaths, format);
+  const notFoundPathsCode = createNotFoundPathsModule(pathName, notFounds, format);
+  const staticPathsCode = createStaticPathsModule(pathName, staticPaths, format);
 
   return {
     notFoundPathsCode,

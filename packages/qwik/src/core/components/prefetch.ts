@@ -143,10 +143,10 @@ const PREFETCH_CODE = /*#__PURE__*/ ((
 export const PrefetchGraph = (
   opts: { base?: string; manifestHash?: string; manifestURL?: string; nonce?: string } = {}
 ) => {
-  if (isDev) {
+  const isTest = import.meta.env.TEST;
+  if (isDev && !isTest) {
     const props = {
       dangerouslySetInnerHTML: '<!-- PrefetchGraph is disabled in dev mode. -->',
-      nonce: opts.nonce,
     };
     return _jsxC('script', props, 0, 'prefetch-graph');
   }

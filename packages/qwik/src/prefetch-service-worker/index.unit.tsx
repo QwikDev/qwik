@@ -225,7 +225,7 @@ describe('service-worker', async () => {
     });
     it('should upgrade prefetch request to direct request when dependent request needs it', async () => {
       const swState = mockSwState();
-      swState.$maxPrefetchRequests$ = 1;
+      swState.$maxPrefetchRequests$ = 2;
       await processMessage(swState, [
         'graph',
         '/base/',
@@ -233,7 +233,10 @@ describe('service-worker', async () => {
       ]);
       await processMessage(swState, ['prefetch', '/base/', 'a.js', 'b.js', 'c.js']);
       await delay(0);
-      expect(swState.$queue$.filter(areFetching).map(getPathname)).toEqual(['/base/a.js']);
+      expect(swState.$queue$.filter(areFetching).map(getPathname)).toEqual([
+        '/base/a.js',
+        '/base/b.js',
+      ]);
       directFetch(swState, new URL('http://server/base/a.js'));
       await delay(0);
       // The `b.js` should be upgraded to direct request because it is a dependency of `a.js`.

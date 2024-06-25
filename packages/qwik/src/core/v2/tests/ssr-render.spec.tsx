@@ -176,8 +176,10 @@ describe('v2 ssr render', () => {
         </div>
       );
       // we should not stream the comment nodes of the SSRStreamBlock
-      expect(document.querySelector('#stream-block')?.innerHTML).toEqual(
-        '<div>stream content</div>'
+      expect(document.querySelector('#stream-block')).toMatchDOM(
+        <div id="stream-block">
+          <div>stream content</div>
+        </div>
       );
     });
 

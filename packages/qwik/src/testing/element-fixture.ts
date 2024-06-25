@@ -213,3 +213,7 @@ export async function advanceToNextTimerAndFlush() {
   vi.advanceTimersToNextTimer();
   await getTestPlatform().flush();
 }
+
+export function cleanupAttrs(innerHTML: string | undefined): any {
+  return innerHTML?.replaceAll(/ q:key="[^"]+"/g, '').replaceAll(/ :=""/g, '');
+}

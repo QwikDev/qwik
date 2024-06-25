@@ -71,9 +71,8 @@ describe.each([
       </>
     );
     const style = container.document.querySelector(QStyleSelector);
-    expect(style?.outerHTML).toEqual(
-      `<style q:style="${(globalThis as any).rawStyleId}">${STYLE_RED}</style>`
-    );
+    const attrs = { 'q:style': (globalThis as any).rawStyleId };
+    expect(style).toMatchDOM(<style {...attrs}>{STYLE_RED}</style>);
   });
 
   it('should save styles when JSX deleted', async () => {
@@ -101,9 +100,8 @@ describe.each([
       </Component>
     );
     const style = container.document.querySelector(QStyleSelector);
-    expect(style?.outerHTML).toEqual(
-      `<style q:style="${(globalThis as any).rawStyleId}">${STYLE_RED}</style>`
-    );
+    const attrs = { 'q:style': (globalThis as any).rawStyleId };
+    expect(style).toMatchDOM(<style {...attrs}>{STYLE_RED}</style>);
   });
 
   it('style node should contain q:style attribute', async () => {

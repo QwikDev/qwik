@@ -49,6 +49,7 @@ import type { ContainerElement, ElementVNode, QDocument } from './types';
 export function processVNodeData(document: Document) {
   const Q_CONTAINER = 'q:container';
   const Q_CONTAINER_END = '/' + Q_CONTAINER;
+  const Q_PROPS_SEPARATOR = ':';
   const qDocument = document as QDocument;
   const vNodeDataMap =
     qDocument.qVNodeData || (qDocument.qVNodeData = new WeakMap<Element, string>());
@@ -66,6 +67,7 @@ export function processVNodeData(document: Document) {
     );
   };
   const getAttribute = prototype.getAttribute as (this: Node, name: string) => string | null;
+  const hasAttribute = prototype.hasAttribute as (this: Node, name: string) => boolean;
   const getNodeType = getter(prototype, 'nodeType') as (this: Node) => number;
 
   // Process all of the `qwik/vnode` script tags by attaching them to the corresponding containers.
@@ -98,7 +100,12 @@ export function processVNodeData(document: Document) {
     const nodeType = getNodeType.call(node);
     if (nodeType === 1 /* Node.ELEMENT_NODE */) {
       const qContainer = getAttribute.call(node, Q_CONTAINER);
-      return qContainer === null ? NodeType.ELEMENT : NodeType.ELEMENT_CONTAINER;
+      if (qContainer === null) {
+        const isQElement = hasAttribute.call(node, Q_PROPS_SEPARATOR);
+        return isQElement ? NodeType.ELEMENT : NodeType.OTHER;
+      } else {
+        return NodeType.ELEMENT_CONTAINER;
+      }
     } else if (nodeType === 8 /* Node.COMMENT_NODE */) {
       const nodeValue = node.nodeValue || ''; // nodeValue is monomorphic so it does not need fast path
       if (nodeValue.startsWith(Q_CONTAINER)) {

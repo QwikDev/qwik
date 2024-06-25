@@ -13,7 +13,7 @@ import {
 } from '@builder.io/qwik';
 import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 import { describe, expect, it } from 'vitest';
-import { trigger } from '../../../testing/element-fixture';
+import { cleanupAttrs, trigger } from '../../../testing/element-fixture';
 import { ErrorProvider } from '../../../testing/rendering.unit-util';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import { useSignal } from '../../use/use-signal';
@@ -452,7 +452,7 @@ describe.each([
         <a></a>
       </p>
     );
-    expect(document.querySelector('p')?.innerHTML).toEqual(
+    expect(cleanupAttrs(document.querySelector('p')?.innerHTML)).toEqual(
       '<b>Test</b>124xx<span>123</span>XXX<a></a>'
     );
   });
@@ -1563,7 +1563,7 @@ describe.each([
     await delay(10);
     // console.log('vNode', String(vNode));
     // console.log('>>>>', div.outerHTML);
-    expect(div.innerHTML).toEqual('<b>(</b>SomeErrorPOST<b>)</b>');
+    expect(cleanupAttrs(div.innerHTML)).toEqual('<b>(</b>SomeErrorPOST<b>)</b>');
   });
 
   describe('regression', () => {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PrefetchServiceWorker, PrefetchGraph } from './prefetch';
 import { renderToString2 as renderToString } from '../../server/v2-ssr-render2';
+import { cleanupAttrs } from '../../testing/element-fixture';
 
 describe('PrefetchServiceWorker', () => {
   describe('render', () => {
@@ -12,9 +13,7 @@ describe('PrefetchServiceWorker', () => {
       const output = await renderToString(<PrefetchServiceWorker nonce="1234" />, {
         containerTagName: 'div',
       });
-      expect(output.html).to.contain(
-        '<script q:key="prefetch-service-worker" : q:container="html" nonce="1234">'
-      );
+      expect(cleanupAttrs(output.html)).to.contain('<script q:container="html" nonce="1234">');
     });
     it('should render script with a scope', async () => {
       const output = await renderToString(
@@ -103,18 +102,14 @@ describe('PrefetchGraph', () => {
       const output = await renderToString(<PrefetchGraph nonce="1234" />, {
         containerTagName: 'div',
       });
-      expect(output.html).to.contain(
-        '<script q:key="prefetch-graph" : q:container="html" nonce="1234">'
-      );
+      expect(cleanupAttrs(output.html)).to.contain('<script q:container="html" nonce="1234">');
     });
 
     it('should render with a nonce', async () => {
       const output = await renderToString(<PrefetchServiceWorker nonce="1234" />, {
         containerTagName: 'div',
       });
-      expect(output.html).to.contain(
-        '<script q:key="prefetch-service-worker" : q:container="html" nonce="1234">'
-      );
+      expect(cleanupAttrs(output.html)).to.contain('<script q:container="html" nonce="1234">');
     });
     it('should render script with a scope', async () => {
       const output = await renderToString(
@@ -203,9 +198,7 @@ describe('PrefetchGraph', () => {
       const output = await renderToString(<PrefetchGraph nonce="1234" />, {
         containerTagName: 'div',
       });
-      expect(output.html).to.contain(
-        '<script q:key="prefetch-graph" : q:container="html" nonce="1234">'
-      );
+      expect(cleanupAttrs(output.html)).to.contain('<script q:container="html" nonce="1234">');
     });
   });
 });

@@ -36,10 +36,10 @@ export const VNodeDataSeparator = {
   ADVANCE_1024: /* ****** */ 43, // `+` is vNodeData separator skipping 512.
   ADVANCE_2048_CH: /* *  */ ',', // ',' is vNodeData separator skipping 1024.
   ADVANCE_2048: /* ****** */ 44, // ',' is vNodeData separator skipping 1024.
-  ADVANCE_4096_CH: /* *  */ `.`, // `.` is vNodeData separator skipping 2048.
-  ADVANCE_4096: /* ****** */ 46, // `.` is vNodeData separator skipping 2048.
-  ADVANCE_8192_CH: /* *  */ `/`, // `/` is vNodeData separator skipping 4096.
-  ADVANCE_8192: /* ****** */ 47, // `/` is vNodeData separator skipping 4096.
+  ADVANCE_4096_CH: /* *  */ `-`, // `.` is vNodeData separator skipping 2048.
+  ADVANCE_4096: /* ****** */ 45, // `.` is vNodeData separator skipping 2048.
+  ADVANCE_8192_CH: /* *  */ `.`, // `/` is vNodeData separator skipping 4096.
+  ADVANCE_8192: /* ****** */ 46, // `/` is vNodeData separator skipping 4096.
 };
 
 /** VNodeDataChar contains information about the VNodeData used for encoding props */
@@ -67,7 +67,7 @@ export const VNodeDataChar = {
   DON_T_USE_CHAR: '\\',
   CONTEXT: /* ************ */ 93, // `]` - `q:ctx' - Component context/props
   CONTEXT_CHAR: /* **** */ ']',
-  SEQ_IDX: /* ************ */ 94, // `[` - `q:seqIdx' - Sequential scope id
+  SEQ_IDX: /* ************ */ 94, // `^` - `q:seqIdx' - Sequential scope id
   SEQ_IDX_CHAR: /* **** */ '^',
   SEPARATOR: /* ********* */ 124, // `|` - Separator char to encode any key/value pairs.
   SEPARATOR_CHAR: /* ** */ '|',

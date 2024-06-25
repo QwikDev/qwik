@@ -110,7 +110,8 @@ export function processVNodeData(document: Document) {
     return NodeType.OTHER;
   };
 
-  const isSeparator = (ch: number) => /* `!` */ 33 <= ch && ch <= 47; /* `/` */
+  const isSeparator = (ch: number) =>
+    /* `!` */ VNodeDataSeparator.ADVANCE_1 <= ch && ch <= VNodeDataSeparator.ADVANCE_8192; /* `.` */
   /**
    * Given the `vData` string, `start` index, and `end` index, find the end of the VNodeData
    * section.

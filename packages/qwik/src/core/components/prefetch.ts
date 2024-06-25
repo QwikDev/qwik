@@ -146,6 +146,7 @@ export const PrefetchGraph = (
   if (isDev) {
     const props = {
       dangerouslySetInnerHTML: '<!-- PrefetchGraph is disabled in dev mode. -->',
+      nonce: opts.nonce,
     };
     return _jsxC('script', props, 0, 'prefetch-graph');
   }

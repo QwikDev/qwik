@@ -345,6 +345,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       innerHTML = this.writeAttrs(elementName, varAttrs, false);
     }
     this.write(' :');
+    // Domino sometimes does not like empty attributes, so we need to add a empty value
+    isDev && this.write('=""');
     if (constAttrs && constAttrs.length) {
       innerHTML = this.writeAttrs(elementName, constAttrs, true) || innerHTML;
     }

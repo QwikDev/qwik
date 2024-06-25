@@ -100,11 +100,11 @@ export function processVNodeData(document: Document) {
     const nodeType = getNodeType.call(node);
     if (nodeType === 1 /* Node.ELEMENT_NODE */) {
       const qContainer = getAttribute.call(node, Q_CONTAINER);
-      if (qContainer) {
-        return NodeType.ELEMENT_CONTAINER;
-      } else {
+      if (qContainer === null) {
         const isQElement = hasAttribute.call(node, Q_PROPS_SEPARATOR);
         return isQElement ? NodeType.ELEMENT : NodeType.OTHER;
+      } else {
+        return NodeType.ELEMENT_CONTAINER;
       }
     } else if (nodeType === 8 /* Node.COMMENT_NODE */) {
       const nodeValue = node.nodeValue || ''; // nodeValue is monomorphic so it does not need fast path

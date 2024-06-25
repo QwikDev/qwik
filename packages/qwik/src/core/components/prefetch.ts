@@ -143,6 +143,12 @@ const PREFETCH_CODE = /*#__PURE__*/ ((
 export const PrefetchGraph = (
   opts: { base?: string; manifestHash?: string; manifestURL?: string; nonce?: string } = {}
 ) => {
+  if (isDev) {
+    const props = {
+      dangerouslySetInnerHTML: '<!-- PrefetchGraph is disabled in dev mode. -->',
+    };
+    return _jsxC('script', props, 0, 'prefetch-graph');
+  }
   const serverData = useServerData<Record<string, string>>('containerAttributes', {});
   const resolvedOpts = {
     // /build/q-bundle-graph-${manifestHash}.json is always within the q:base location /build/

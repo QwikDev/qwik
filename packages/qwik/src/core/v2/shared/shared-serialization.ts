@@ -291,7 +291,7 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       task.$flags$ = restInt();
       task.$index$ = restInt();
       task.$el$ = container.$getObjectById$(restInt()) as Element;
-      task.$qrl$ = inflateQRL(container, parseQRL(restString()));
+      task.$qrl$ = container.$getObjectById$(restInt()) as QRLInternal;
       const taskState = restString();
       task.$state$ = taskState
         ? (container.$getObjectById$(taskState) as Signal<unknown>)
@@ -404,7 +404,9 @@ const allocate = <T>(value: string): any => {
     case SerializationConstant.QRL_VALUE:
       return parseQRL(value);
     case SerializationConstant.Task_VALUE:
-      return new Task(-1, -1, null!, null!, null!, null);
+      const task = new Task(-1, -1, null!, null!, null!, null);
+      console.log('allocate', task.uniqueId);
+      return task;
     case SerializationConstant.Resource_VALUE:
       throw new Error('Not implemented');
     case SerializationConstant.URL_VALUE:
@@ -873,6 +875,9 @@ function serialize(serializationContext: SerializationContext): void {
     // So the first thing to to is to see if we have a circular dependency.
     // (NOTE: For root objects we need to serialize them regardless if we have seen
     //        them before, otherwise the root object reference will point to itself.)
+    if (typeof (value as any)?.uniqueId !== 'undefined') {
+      console.log('depth, (value as any)?.uniqueId', depth, (value as any)?.uniqueId);
+    }
     const seen = depth <= 1 ? undefined : serializationContext.$wasSeen$(value);
     if (fastSkipSerialize(value as object)) {
       writeString(SerializationConstant.UNDEFINED_CHAR);
@@ -970,6 +975,8 @@ function serialize(serializationContext: SerializationContext): void {
           (value.key || '')
       );
     } else if (value instanceof Task) {
+      console.log('task', value.uniqueId);
+      $addRoot$(value);
       writeString(
         SerializationConstant.Task_CHAR +
           value.$flags$ +
@@ -978,7 +985,7 @@ function serialize(serializationContext: SerializationContext): void {
           ' ' +
           $addRoot$(value.$el$) +
           ' ' +
-          qrlToString(serializationContext, value.$qrl$) +
+          $addRoot$(value.$qrl$) +
           (value.$state$ == null ? '' : ' ' + $addRoot$(value.$state$))
       );
     } else if (isPromise(value)) {
@@ -1058,6 +1065,9 @@ function serializeArray(
   for (let i = 0; i < value.length; i++) {
     if (i !== 0) {
       $writer$.write(',');
+    }
+    if (value[i] && typeof value[i] === 'object' && 'uniqueId' in value[i]) {
+      console.log('serializeArray task', value[i].uniqueId);
     }
     writeValue(value[i], i);
   }

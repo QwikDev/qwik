@@ -364,6 +364,26 @@ export const createSubscriptionManager = (containerState: ContainerState): Subsc
         }
         groupToManagers.delete(group);
         managers.length = 0;
+      } else {
+        // if (isTask(group)) {
+        //   const hackyValue = ([...groupToManagers.entries()]
+        //     .find(([k, v]) => isTask(k) && k.$qrl$.$symbol$ === group.$qrl$.$symbol$));
+            
+        //   if (hackyValue) {
+        //     const [managersKey, managers] = hackyValue;
+        //     console.log('managers.length', managers.length);
+        //     for (const manager of managers) {
+        //       manager.$unsubGroup$(managersKey);
+              
+        //     }
+        //     groupToManagers.delete(managersKey);
+        //     managers.length = 0;
+        //   }
+        // }
+        if (isTask(group)) {
+          console.log('NOTHING FOUND FOR', (group as any)?.uniqueId);
+        }
+        console.log([...groupToManagers.keys()].map(k => isTask(k) ? k.uniqueId : 'not a task'));
       }
     },
     $clearSignal$: (signal: SubscriberSignal) => {
@@ -471,6 +491,7 @@ export class LocalSubscriptionManager {
     }
     subs.push((__lastSubscription = [...sub, key] as fixMeAny));
     this.$addToGroup$(group, this);
+    // console.log('addSub', isTask(group) ? group.$qrl$.$symbol$ : null, this.$groupToManagers$.get(group))
   }
 
   $notifySubs$(key?: string | undefined) {

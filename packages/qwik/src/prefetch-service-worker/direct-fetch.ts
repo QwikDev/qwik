@@ -45,7 +45,7 @@ function getResponse(swState: SWState, url: URL): Promise<Response> {
 
 async function enqueueFetchIfNeeded(swState: SWState, url: URL, priority: number) {
   let task = swState.$queue$.find((task) => task.$url$.pathname === url.pathname);
-  const mode = priority >= DIRECT_PRIORITY ? 'direct' : 'prefetch';
+  const mode = priority > DIRECT_PRIORITY ? 'direct' : 'prefetch';
   if (task) {
     const state = task.$isFetching$ ? 'fetching' : 'waiting';
     if (task.$priority$ < priority) {
@@ -80,11 +80,11 @@ function taskTick(swState: SWState) {
       outstandingRequests++;
     } else if (
       swState.$getCache$() &&
-      (outstandingRequests < swState.$maxPrefetchRequests$ || task.$priority$ >= DIRECT_PRIORITY)
+      (outstandingRequests < swState.$maxPrefetchRequests$ || task.$priority$ > DIRECT_PRIORITY)
     ) {
       task.$isFetching$ = true;
       outstandingRequests++;
-      const action = task.$priority$ >= DIRECT_PRIORITY ? 'FETCH (CACHE MISS)' : 'FETCH';
+      const action = task.$priority$ > DIRECT_PRIORITY ? 'FETCH (CACHE MISS)' : 'FETCH';
       swState.$log$(action, task.$url$.pathname);
       swState
         .$fetch$(task.$url$)

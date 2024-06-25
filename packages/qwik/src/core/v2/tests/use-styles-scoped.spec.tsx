@@ -8,7 +8,7 @@ import { createDocument } from '@builder.io/qwik-dom';
 import { afterEach, describe, expect, it } from 'vitest';
 import { useStore } from '../..';
 import { renderToString2 } from '../../../server/v2-ssr-render2';
-import { trigger } from '../../../testing/element-fixture';
+import { cleanupAttrs, trigger } from '../../../testing/element-fixture';
 import { domRender, ssrRenderToDom } from '../../../testing/rendering.unit-util';
 import '../../../testing/vdom-diff.unit-util';
 import { component$ } from '../../component/component.public';
@@ -123,7 +123,9 @@ describe.each([
       </>
     );
     const style = container.document.querySelector(QStyleSelector);
-    expect(style?.outerHTML).toEqual(`<style q:style="${styleId}">${scopeStyle}</style>`);
+    expect(cleanupAttrs(style?.outerHTML)).toEqual(
+      `<style q:style="${styleId}">${scopeStyle}</style>`
+    );
   });
 
   it('should save styles when JSX deleted', async () => {
@@ -154,7 +156,9 @@ describe.each([
       </Component>
     );
     const style = container.document.querySelector(QStyleSelector);
-    expect(style?.outerHTML).toEqual(`<style q:style="${styleId}">${scopeStyle}</style>`);
+    expect(cleanupAttrs(style?.outerHTML)).toEqual(
+      `<style q:style="${styleId}">${scopeStyle}</style>`
+    );
   });
 
   it('style node should contain q:style attribute', async () => {
@@ -252,7 +256,7 @@ describe.each([
     );
     const qStyles = container.document.querySelectorAll(QStyleSelector);
     expect(qStyles).toHaveLength(2);
-    expect(Array.from(qStyles).map((style) => style.outerHTML)).toEqual(
+    expect(Array.from(qStyles).map((style) => cleanupAttrs(style.outerHTML))).toEqual(
       expect.arrayContaining([
         `<style q:style="${firstStyleId}">${firstScopeStyle}</style>`,
         `<style q:style="${secondStyleId}">${secondScopeStyle}</style>`,

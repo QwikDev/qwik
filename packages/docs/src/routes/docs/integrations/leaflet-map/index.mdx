@@ -38,6 +38,193 @@ It also adds new files to your project folder:
 - `src/components/leaflet-map/index.tsx`: Leaflet map simple map features component.
 - `src/routes/basic-map/index.tsx`: Example to consume Leaflet Map component with demo data
 
+## Example
+
+### map component
+
+The `LeafletMap` component leverages the Leaflet library to render an interactive map. This component can be configured with various properties (props) to set the central location, add markers, and draw boundaries. Here is the implementation:
+
+```tsx title="src/components/leaflet-map/index.tsx"
+import { component$, noSerialize, useSignal,  useStyles$, useVisibleTask$,  } from "@builder.io/qwik";
+import * as L from "leaflet";
+import type { MapProps } from "~/models/map";
+import {fvg}  from "~/media/poly/FVG.geojson";
+import styles from "./index.css?inline";
+
+export const LeafletMap = component$<MapProps>( ({ location, markers, group }: MapProps) => {
+  useStyles$(styles);
+
+  const mapContainer$ = useSignal<L.Map>();
+
+  // eslint-disable-next-line qwik/no-use-visible-task
+  useVisibleTask$(async ({ track }) => {
+    track(location);  
+    group && track(group);
+
+    if (mapContainer$.value) {
+      mapContainer$.value.remove();
+    }
+
+    // center location
+    const { value: locationData } = location;
+    const centerPosition: [number, number] = locationData.point as [
+      number,
+      number,
+    ];
+
+    // layers
+    const markersLayer  = new L.LayerGroup();
+    const bordersLayer  = new L.LayerGroup();
+
+    // map
+    const map = L.map("map", {
+      layers: [markersLayer, bordersLayer],
+    }).setView(
+      centerPosition,
+      locationData.zoom || 14,
+    );
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution:
+        '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+
+    // center position marker
+    locationData.marker && L.marker(centerPosition).bindPopup(`Udine`).addTo(map);
+
+    // add boundaries to map
+    L.geoJSON(fvg, { style: { color: "#005DA4" } }).addTo(bordersLayer);  
+      
+    // add markers to map
+    const markersList = await markers
+    markersList && markersList.map((m) => {  
+      const myIcon = L.divIcon({ className: "marker-point", html: `<div class="marker-label" title="${m.name}" >${m.label}</div>` });
+      L.marker([+m.lat, +m.lon], { icon: myIcon }).addTo(markersLayer);
+    }) 
+
+    mapContainer$.value = noSerialize(map);
+  });
+
+  return <div id="map"></div>
+
+});
+```
+> In the `LeafletMap` component, both the location and the group signal are tracked. This ensures that when the signal changes, the server function is called, and the map is updated with the new data.
+
+### route
+
+The route file configures the map, including the initial position and the group of markers to load. Here is an example code:
+
+```tsx title="src/routes/leaflet/index.tsx"
+import { component$, useStyles$, useSignal  } from "@builder.io/qwik";
+import { server$ } from "@builder.io/qwik-city";
+import leafletStyles from 'leaflet/dist/leaflet.css?inline';   
+import { LeafletMap } from "~/components/leaflet-map";
+import type { LocationsProps } from "~/models/location";
+import type { StationsProps } from '~/models/map';
+
+export const serverGetMarkers = server$( 
+  async function (group)  {
+      const res = await fetch(`https://[YOUR_API_ADDRESS]/${group}`);
+      const markers = await res.json() 
+      return markers.data as MarkersProps[];
+})
+
+export default component$(  () => {
+  useStyles$(leafletStyles);
+
+  const currentLocation = useSignal<LocationsProps>({
+    name: "Udine",
+    point: [ 46.06, 13.23],
+    zoom: 9,
+    marker: true,
+  });
+
+  const groupSig = useSignal("fda");
+
+  return (
+    <>
+      <select name="group" class="leaflet-ctrl" bind:value={groupSig}>
+        <option value="fda">FDA</option>
+        <option value="fvg">FVG</option>
+      </select>
+      <LeafletMap 
+        location={currentLocation} 
+        markers={serverGetMarkers(groupSig.value)}
+        group={groupSig}
+      > 
+      </LeafletMap>         
+    </>
+  );
+});
+```
+
+### props
+
+The properties (props) used in the `LeafletMap` component and other related components are defined as follows:
+
+```tsx
+export interface LocationsProps {
+  name: string;
+  // latitude , longitude
+  point: [number, number];
+  zoom: number;
+  marker: boolean;
+}
+
+export interface MapProps {
+  location: Signal<LocationsProps>;
+  markers?: Promise<StationsProps[]>;
+  group?: Signal<string>;
+}
+
+export interface MarkersProps {
+  "id": number,
+  "name": string,
+  "label": string,
+  "lat": string,
+  "lon": string
+}
+```
+
+### sample data json and geojson
+
+```json title="api_data.json"
+{
+  "data": [
+    {
+      "id": 34,
+      "name": "Name test 1",
+      "label": "LABEL1",
+      "lat": "45.770946",
+      "lon": "13.31338",
+      "alt": "0"
+    },
+    {
+      "id": 52,
+      "name": "Name test 2",
+      "label": "LABEL2",
+      "lat": "46.312663",
+      "lon": "13.274682",
+      "alt": "600"
+    }]
+}
+```
+
+```tsx title="geojson.ts"
+export const fvg: any = {
+"type": "FeatureCollection",
+"name": "FVG_line_0_001",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "ID_OGG": "08020060000", "NAME": "GEOJSON NAME" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 12.4188, 46.3528 ], [ 12.4178, 46.3547 ], [ 12.4284, 46.3517 ], [ 12.4425, 46.3599 ], [ 12.4488, 46.3605 ], [ 12.4554, 46.3652 ], [ 12.4552, 46.3672 ], [ 12.4513, 46.3706 ] ] ] } }
+]
+}
+```
+
+
+This setup allows you to create a dynamic and interactive map that can be easily configured and extended with different locations and markers.
+
 ## Interesting info about LeafletJS Map:
 
 ### Official

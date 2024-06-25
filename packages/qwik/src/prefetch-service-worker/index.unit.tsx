@@ -1,9 +1,9 @@
-import { setupServiceWorker } from './setup';
-import { expect, describe, it, vi } from 'vitest';
-import { createState, type SWTask } from './state';
-import { processMessage } from './process-message';
-import { addDependencies, directFetch } from './direct-fetch';
+import { describe, expect, it, vi } from 'vitest';
 import { delay } from '../core/util/promises';
+import { addDependencies, directFetch } from './direct-fetch';
+import { processMessage } from './process-message';
+import { setupServiceWorker } from './setup';
+import { createState, type SWTask } from './state';
 
 describe('service-worker', async () => {
   describe('registration', async () => {
@@ -205,7 +205,7 @@ describe('service-worker', async () => {
       await delay(0);
       expect(swState.$queue$.length).toBe(2);
       expect(swState.$queue$.filter((t) => t.$isFetching$).length).toBe(1);
-      const responsePromise = directFetch(swState, new URL('http://server/base/direct.js'));
+      const responsePromise = directFetch(swState, new URL('http://server/base/direct.js'), true);
       await delay(0);
       expect(swState.$queue$.length).toBe(3);
       expect(swState.$queue$.filter((t) => t.$isFetching$).length).toBe(2);

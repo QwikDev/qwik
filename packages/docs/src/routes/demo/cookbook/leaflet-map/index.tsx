@@ -106,38 +106,6 @@ This ensures that when the signal changes, the server function is called, and th
 
 export const LeafletMap = component$<MapProps>(
   ({ location, markers, group }) => {
-    // Sample geojson
-
-    const geojson = {
-      type: 'FeatureCollection',
-      name: 'FVG_line_0_001',
-      crs: {
-        type: 'name',
-        properties: { name: 'urn:ogc:def:crs:OGC:1.3:CRS84' },
-      },
-      features: [
-        {
-          type: 'Feature',
-          properties: { ID_OGG: '08020060000', NAME: 'GEOJSON NAME' },
-          geometry: {
-            type: 'MultiLineString',
-            coordinates: [
-              [
-                [12.4188, 46.3528],
-                [12.4178, 46.3547],
-                [12.4284, 46.3517],
-                [12.4425, 46.3599],
-                [12.4488, 46.3605],
-                [12.4554, 46.3652],
-                [12.4552, 46.3672],
-                [12.4513, 46.3706],
-              ],
-            ],
-          },
-        },
-      ],
-    };
-
     const mapContainerSig = useSignal<L.Map>();
 
     useVisibleTask$(async ({ track }) => {
@@ -186,9 +154,6 @@ export const LeafletMap = component$<MapProps>(
         L.marker(centerPosition, { icon: qwikMarker })
           .bindPopup(`Udine`)
           .addTo(map);
-
-      // add boundaries to map
-      L.geoJSON(geojson, { style: { color: '#005DA4' } }).addTo(bordersLayer);
 
       // add markers to map
       const markersList = await markers;

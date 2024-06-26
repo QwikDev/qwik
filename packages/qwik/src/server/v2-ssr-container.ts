@@ -541,7 +541,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   private _styleNode(styleId: string, content: string) {
     this.openElement('style', [QStyle, styleId]);
-    this.textNode(content);
+    this.write(content);
     this.closeElement();
   }
 

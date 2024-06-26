@@ -120,7 +120,7 @@
 import { isDev } from '@builder.io/qwik/build';
 import { assertDefined, assertEqual, assertFalse, assertTrue } from '../../error/assert';
 import { isQrl } from '../../qrl/qrl-class';
-import { dangerouslySetInnerHTML } from '../../render/execute-component';
+import { dangerouslySetInnerHTML, escapeContent } from '../../render/execute-component';
 import { isText } from '../../util/element';
 import { throwErrorAndStop } from '../../util/log';
 import {
@@ -890,7 +890,7 @@ export const vnode_applyJournal = (journal: VNodeJournal) => {
         if (isBooleanAttr(element, key)) {
           (element as any)[key] = parseBoolean(value);
         } else if (key === 'value' && key in element) {
-          (element as any).value = String(value);
+          (element as any).value = escapeContent(String(value));
         } else if (key === dangerouslySetInnerHTML) {
           (element as any).innerHTML = value!;
         } else {

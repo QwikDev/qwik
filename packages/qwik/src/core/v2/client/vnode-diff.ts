@@ -4,7 +4,11 @@ import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
-import { dangerouslySetInnerHTML, serializeAttribute } from '../../render/execute-component';
+import {
+  dangerouslySetInnerHTML,
+  escapeContent,
+  serializeAttribute,
+} from '../../render/execute-component';
 import { Fragment, JSXNodeImpl, isJSXNode, type Props } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
@@ -623,7 +627,7 @@ export const vnode_diff = (
             }
             continue;
           }
-          (element as HTMLTextAreaElement).value = value as string;
+          (element as HTMLTextAreaElement).value = escapeContent(value as string);
           continue;
         }
 

@@ -46,6 +46,7 @@ import {
   QBaseAttr,
   QLocaleAttr,
   QManifestHashAttr,
+  escapeContent,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -458,14 +459,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   /** Write a text node with correct escaping. Save the length of the text node in the vNodeData. */
   textNode(text: string) {
-    let lastIdx = 0;
-    let openAngleBracketIdx: number = -1;
-    while ((openAngleBracketIdx = text.indexOf('<', openAngleBracketIdx + 1)) !== -1) {
-      this.write(text.substring(lastIdx, openAngleBracketIdx));
-      this.write('&lt;');
-      lastIdx = openAngleBracketIdx + 1;
-    }
-    this.write(lastIdx === 0 ? text : text.substring(lastIdx));
+    this.write(escapeContent(text));
     vNodeData_addTextSize(this.currentElementFrame!.vNodeData, text.length);
     this.lastNode = null;
   }
@@ -1112,7 +1106,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             }
             continue;
           }
-          innerHTML = value;
+          innerHTML = escapeContent(value);
           key = QContainerAttr;
           value = QContainerValue.TEXT;
         }
@@ -1124,15 +1118,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           this.write(key);
           if (value !== true) {
             this.write('="');
-            let startIdx = 0;
-            let quoteIdx: number;
-            const strValue = String(value);
-            while ((quoteIdx = strValue.indexOf('"', startIdx)) != -1) {
-              this.write(strValue.substring(startIdx, quoteIdx));
-              this.write('&quot;');
-              startIdx = quoteIdx;
-            }
-            this.write(startIdx === 0 ? strValue : strValue.substring(startIdx));
+            const strValue = escapeContent(String(value));
+            this.write(strValue);
 
             this.write('"');
           }

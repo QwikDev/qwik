@@ -79,13 +79,26 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
           },
           defaultDirectives: (url) => {
             if (url.searchParams.has('jsx')) {
+              // userOpts format
+              const { format: userOptsImgFormat, ...userOptsImageOptimization } = userOpts?.imageOptimization?.jsxDirectives ?? {};
+              // default format
+              let format = 'webp';
+              // image extname
+              const extname = path.extname(url.pathname).slice(1);
+              if (userOptsImgFormat) {
+                if (typeof userOptsImgFormat === 'function') {
+                  format = userOptsImgFormat(extname);
+                } else {
+                  format = userOptsImgFormat;
+                }
+              }
               const { jsx, ...params } = Object.fromEntries(url.searchParams.entries());
               return new URLSearchParams({
-                format: 'avif;webp;' + path.extname(url.pathname).slice(1),
+                format,
                 quality: '75',
                 w: '200;400;600;800;1200',
                 withoutEnlargement: '',
-                ...userOpts?.imageOptimization?.jsxDirectives,
+                ...userOptsImageOptimization,
                 ...params,
                 as: 'jsx',
               });
@@ -131,8 +144,13 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
   import { _jsxQ } from '@builder.io/qwik';
   const PROPS = {...img};
   export default function (props, key, _, dev) {
+    if(!sources?.length) return null;
+    if(sources.length < 2){
+      // Single format directly returns the <img />
+      return _jsxQ('img', {...{decoding: 'async', loading: 'lazy'}, ...props}, sources[0], undefined, 3, key, dev);
+    }
     return _jsxQ('picture', null, null,
-      [...sources?.map((source) => _jsxQ('source', {...source}, null, undefined, 3, key, dev)),
+      [...sources.map((source) => _jsxQ('source', {...source}, null, undefined, 3, key, dev)),
       _jsxQ('img', {...{decoding: 'async', loading: 'lazy'}, ...props}, PROPS, undefined, 3, key, dev)]
     );
   }`

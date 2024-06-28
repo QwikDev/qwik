@@ -3319,6 +3319,34 @@
       "mdFile": "qwik.usestylesscopedqrl.md"
     },
     {
+      "name": "useStylesWithScope$",
+      "id": "usestyleswithscope_",
+      "hierarchy": [
+        {
+          "name": "useStylesWithScope$",
+          "id": "usestyleswithscope_"
+        }
+      ],
+      "kind": "Function",
+      "content": "A lazy-loadable reference to a component's styles, that is scoped to the component.\n\nComponent styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)\n\n```tsx\nimport scoped from './code-block.css?inline';\n\nexport const CmpScopedStyles = component$(() => {\n  useStylesScoped$(scoped);\n\n  return <div>Some text</div>;\n});\n```\nThe scoped style can have `:scope` pseudo class to scope the styles to the component like this.\n\n```css\n:scope {\n  color: red;\n  background: blue;\n}\n```\n\n\n```typescript\nuseStylesWithScope$: (qrl: string) => UseStylesScoped\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[UseStylesScoped](#usestylesscoped)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts",
+      "mdFile": "qwik.usestyleswithscope_.md"
+    },
+    {
+      "name": "useStylesWithScopeQrl",
+      "id": "usestyleswithscopeqrl",
+      "hierarchy": [
+        {
+          "name": "useStylesWithScopeQrl",
+          "id": "usestyleswithscopeqrl"
+        }
+      ],
+      "kind": "Function",
+      "content": "A lazy-loadable reference to a component's styles, that is scoped to the component.\n\nComponent styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)\n\n```tsx\nimport scoped from './code-block.css?inline';\n\nexport const CmpScopedStyles = component$(() => {\n  useStylesScoped$(scoped);\n\n  return <div>Some text</div>;\n});\n```\nThe scoped style can have `:scope` pseudo class to scope the styles to the component like this.\n\n```css\n:scope {\n  color: red;\n  background: blue;\n}\n```\n\n\n```typescript\nuseStylesWithScopeQrl: (styles: QRL<string>) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nstyles\n\n\n</td><td>\n\n[QRL](#qrl)<!-- -->&lt;string&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvoid",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts",
+      "mdFile": "qwik.usestyleswithscopeqrl.md"
+    },
+    {
       "name": "useTask$",
       "id": "usetask_",
       "hierarchy": [

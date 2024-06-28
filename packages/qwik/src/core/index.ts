@@ -85,7 +85,14 @@ export { untrack } from './use/use-core';
 export { useId } from './use/use-id';
 export { useContext, useContextProvider, createContextId } from './use/use-context';
 export { useServerData } from './use/use-env-data';
-export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
+export {
+  useStylesQrl,
+  useStyles$,
+  useStylesScopedQrl,
+  useStylesScoped$,
+  useStylesWithScope$,
+  useStylesWithScopeQrl,
+} from './use/use-styles';
 export { useOn, useOnDocument, useOnWindow } from './use/use-on';
 export { useSignal, useConstant, createSignal } from './use/use-signal';
 export { withLocale, getLocale } from './use/use-locale';

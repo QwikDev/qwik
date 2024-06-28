@@ -1714,6 +1714,12 @@ export interface UseStylesScoped {
 export const useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
 
 // @public
+export const useStylesWithScope$: (qrl: string) => UseStylesScoped;
+
+// @public
+export const useStylesWithScopeQrl: (styles: QRL<string>) => void;
+
+// @public
 export const useTask$: (qrl: TaskFn, opts?: UseTaskOptions | undefined) => void;
 
 // @public (undocumented)

@@ -11211,6 +11211,126 @@ styles
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
+## useStylesWithScope$
+
+A lazy-loadable reference to a component's styles, that is scoped to the component.
+
+Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
+
+```tsx
+import scoped from "./code-block.css?inline";
+
+export const CmpScopedStyles = component$(() => {
+  useStylesScoped$(scoped);
+
+  return <div>Some text</div>;
+});
+```
+
+The scoped style can have `:scope` pseudo class to scope the styles to the component like this.
+
+```css
+:scope {
+  color: red;
+  background: blue;
+}
+```
+
+```typescript
+useStylesWithScope$: (qrl: string) => UseStylesScoped;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+qrl
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+[UseStylesScoped](#usestylesscoped)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
+
+## useStylesWithScopeQrl
+
+A lazy-loadable reference to a component's styles, that is scoped to the component.
+
+Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
+
+```tsx
+import scoped from "./code-block.css?inline";
+
+export const CmpScopedStyles = component$(() => {
+  useStylesScoped$(scoped);
+
+  return <div>Some text</div>;
+});
+```
+
+The scoped style can have `:scope` pseudo class to scope the styles to the component like this.
+
+```css
+:scope {
+  color: red;
+  background: blue;
+}
+```
+
+```typescript
+useStylesWithScopeQrl: (styles: QRL<string>) => void
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+styles
+
+</td><td>
+
+[QRL](#qrl)&lt;string&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+void
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
+
 ## useTask$
 
 Reruns the `taskFn` when the observed inputs change.

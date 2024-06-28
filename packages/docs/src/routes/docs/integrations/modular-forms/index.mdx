@@ -44,7 +44,7 @@ const LoginSchema = v.object({
   email: v.pipe(
     v.string(),
     v.nonEmpty('Please enter your email.'),
-    v.email('he email address is badly formatted.'),
+    v.email('The email address is badly formatted.'),
   ),
   password: v.pipe(
     v.string(),

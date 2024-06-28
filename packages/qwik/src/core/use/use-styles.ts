@@ -132,7 +132,7 @@ export const useStylesScoped$ = /*#__PURE__*/ implicit$FirstArg(useStylesScopedQ
  * import scoped from './code-block.css?inline';
  *
  * export const CmpScopedStyles = component$(() => {
- *   useStylesScoped$(scoped);
+ *   useStylesWithScope$(scoped);
  *
  *   return <div>Some text</div>;
  * });
@@ -175,7 +175,7 @@ export const useStylesWithScopeQrl = (styles: QRL<string>): void => {
  * import scoped from './code-block.css?inline';
  *
  * export const CmpScopedStyles = component$(() => {
- *   useStylesScoped$(scoped);
+ *   useStylesWithScope$(scoped);
  *
  *   return <div>Some text</div>;
  * });

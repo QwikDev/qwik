@@ -22,21 +22,23 @@ import {
   type VNodeJournal,
 } from './vnode';
 
-export const isForeignObjectElement = (tag: string) => tag.toLowerCase() === 'foreignobject';
+export const isForeignObjectElement = (elementName: string) =>
+  elementName.toLowerCase() === 'foreignobject';
 
-export const isSvgElement = (tag: string) => tag === 'svg' || isForeignObjectElement(tag);
+export const isSvgElement = (elementName: string) =>
+  elementName === 'svg' || isForeignObjectElement(elementName);
 
-export const isMathElement = (tag: string) => tag === 'math';
+export const isMathElement = (elementName: string) => elementName === 'math';
 
 export const vnode_isDefaultNamespace = (vnode: ElementVNode): boolean => {
   const flags = vnode[VNodeProps.flags];
   return (flags & VNodeFlags.NAMESPACE_MASK) === 0;
 };
 
-export const vnode_getElementNamespaceFlags = (tag: string) => {
-  if (isSvgElement(tag)) {
+export const vnode_getElementNamespaceFlags = (elementName: string) => {
+  if (isSvgElement(elementName)) {
     return VNodeFlags.NS_svg;
-  } else if (isMathElement(tag)) {
+  } else if (isMathElement(elementName)) {
     return VNodeFlags.NS_math;
   } else {
     return VNodeFlags.NS_html;
@@ -203,10 +205,6 @@ function vnode_cloneElementWithNamespace(
       vCursor = vNextSibling;
       continue;
     }
-    if (vCursor === elementVNode) {
-      // we are back where we started, we are done.
-      return rootElement;
-    }
     // Out of siblings, go to parent
     vParent = vnode_getParent(vCursor);
     while (vParent) {
@@ -243,7 +241,7 @@ function isMath(tagOrVNode: string | ElementVNode): boolean {
 
 export function getNewElementNamespaceData(
   domParentVNode: ElementVNode | null,
-  tag: string
+  elementName: string
 ): NewElementNamespaceData;
 export function getNewElementNamespaceData(
   domParentVNode: ElementVNode | null,

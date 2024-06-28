@@ -89,11 +89,14 @@ import {
   TaskFlags,
   cleanupTask,
   runComputed2,
+  runResource,
   runSubscriber2,
+  type ResourceDescriptor,
   type TaskFn,
 } from '../../use/use-task';
 import { isPromise, maybeThen, maybeThenPassError, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
+import { isDomContainer } from '../client/dom-container';
 import type { VirtualVNode } from '../client/types';
 import { vnode_documentPosition, vnode_isVNode } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
@@ -162,7 +165,10 @@ export const createScheduler = (
    * @param props- Props to pass to the component.
    * @param waitForChore? = false
    */
-  function schedule(type: ChoreType.TASK | ChoreType.VISIBLE, task: Task): ValueOrPromise<void>;
+  function schedule(
+    type: ChoreType.TASK | ChoreType.VISIBLE | ChoreType.RESOURCE | ChoreType.COMPUTED,
+    task: Task
+  ): ValueOrPromise<void>;
   function schedule(
     type: ChoreType.COMPONENT,
     host: HostElement,
@@ -175,7 +181,6 @@ export const createScheduler = (
     qrl: QRL<(...args: any[]) => any>,
     props: any
   ): ValueOrPromise<JSXOutput>;
-  function schedule(type: ChoreType.COMPUTED, task: Task): ValueOrPromise<void>;
   function schedule(
     type: ChoreType.NODE_DIFF,
     host: HostElement,
@@ -198,6 +203,7 @@ export const createScheduler = (
       type === ChoreType.TASK ||
       type === ChoreType.VISIBLE ||
       type === ChoreType.COMPUTED ||
+      type === ChoreType.RESOURCE ||
       type === ChoreType.CLEANUP_VISIBLE;
     if (isTask) {
       (hostOrTask as Task).$flags$ |= TaskFlags.DIRTY;
@@ -285,6 +291,14 @@ export const createScheduler = (
         break;
       case ChoreType.COMPUTED:
         returnValue = runComputed2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
+        break;
+      case ChoreType.RESOURCE:
+        // Don't await the return value of the resource, because async resources should not be awaited.
+        // The reason for this is that we should be able to update for example a node with loading
+        // text. If we await the resource, the loading text will not be displayed until the resource
+        // is loaded.
+        const result = runResource(chore.$payload$ as ResourceDescriptor<TaskFn>, container, host);
+        returnValue = isDomContainer(container) ? null : result;
         break;
       case ChoreType.TASK:
       case ChoreType.VISIBLE:

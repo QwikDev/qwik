@@ -3,7 +3,7 @@ import { assertEqual, assertNumber, assertTrue } from '../error/assert';
 import { QError_immutableProps, qError } from '../error/error';
 import { tryGetInvokeContext } from '../use/use-core';
 import { logError, logWarn } from '../util/log';
-import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
+import { ComputedEvent, RenderEvent } from '../util/markers';
 import { qDev, qSerialize } from '../util/qdev';
 import { isArray, isObject, isSerializableObject } from '../util/types';
 import {
@@ -233,12 +233,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
         } else if (invokeCtx.$event$ === ComputedEvent) {
           logWarn(
             'State mutation inside useComputed$() is an antipattern. Use useTask$() instead',
-            invokeCtx.$hostElement$
-          );
-        } else if (invokeCtx.$event$ === ResourceEvent) {
-          logWarn(
-            'State mutation inside useResource$() is an antipattern. Use useTask$() instead',
-            invokeCtx.$hostElement$
+            String(invokeCtx.$hostElement$)
           );
         }
       }

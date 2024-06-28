@@ -144,7 +144,7 @@ function isInHead(text: string): TagNesting {
   }
 }
 
-export function isEmptyTag(text: string): boolean {
+export function isSelfClosingTag(text: string): boolean {
   switch (text) {
     case 'area':
     case 'base':
@@ -171,7 +171,7 @@ export function isEmptyTag(text: string): boolean {
 }
 
 function isInAnything(text: string): TagNesting {
-  if (isEmptyTag(text)) {
+  if (isSelfClosingTag(text)) {
     return TagNesting.EMPTY;
   }
 

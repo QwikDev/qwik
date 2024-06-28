@@ -128,6 +128,7 @@ import {
   ELEMENT_KEY,
   ELEMENT_PROPS,
   ELEMENT_SEQ,
+  ELEMENT_SEQ_IDX,
   OnRenderProp,
   QContainerAttr,
   QContainerAttrEnd,
@@ -185,7 +186,7 @@ export type VNodeJournal = Array<VNodeJournalOpCode | Document | Element | Text 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const vnode_newElement = (element: Element, tag: string): ElementVNode => {
+export const vnode_newElement = (element: Element, elementName: string): ElementVNode => {
   assertEqual(fastNodeType(element), 1 /* ELEMENT_NODE */, 'Expecting element node.');
   const vnode: ElementVNode = VNodeArray.createElement(
     VNodeFlags.Element | VNodeFlags.Inflated | (-1 << VNodeFlagsIndex.shift), // Flag
@@ -195,7 +196,7 @@ export const vnode_newElement = (element: Element, tag: string): ElementVNode =>
     null,
     null,
     element,
-    tag
+    elementName
   );
   assertTrue(vnode_isElementVNode(vnode), 'Incorrect format of ElementVNode.');
   assertFalse(vnode_isTextVNode(vnode), 'Incorrect format of ElementVNode.');
@@ -399,6 +400,53 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
     }
   }
 };
+
+/** Walks the VNode tree and materialize it using `vnode_getFirstChild`. */
+export function vnode_walkVNode(vNode: VNode) {
+  let vCursor: VNode | null = vNode;
+  // Depth first traversal
+  if (vnode_isTextVNode(vNode)) {
+    // Text nodes don't have subscriptions or children;
+    return;
+  }
+  let vParent: VNode | null = null;
+  do {
+    const vFirstChild = vnode_getFirstChild(vCursor);
+    if (vFirstChild) {
+      vCursor = vFirstChild;
+      continue;
+    }
+    // Out of children
+    if (vCursor === vNode) {
+      // we are where we started, this means that vNode has no children, so we are done.
+      return;
+    }
+    // Out of children, go to next sibling
+    const vNextSibling = vnode_getNextSibling(vCursor);
+    if (vNextSibling) {
+      vCursor = vNextSibling;
+      continue;
+    }
+    // Out of siblings, go to parent
+    vParent = vnode_getParent(vCursor);
+    while (vParent) {
+      if (vParent === vNode) {
+        // We are back where we started, we are done.
+        return;
+      }
+      const vNextParentSibling = vnode_getNextSibling(vParent);
+      if (vNextParentSibling) {
+        vCursor = vNextParentSibling;
+        break;
+      }
+      vParent = vnode_getParent(vParent);
+    }
+    if (vParent == null) {
+      // We are done.
+      return;
+    }
+  } while (true as boolean);
+}
 
 export function vnode_getDOMChildNodes(
   journal: VNodeJournal,
@@ -614,10 +662,10 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
     refElement = id;
   }
   assertDefined(refElement, 'Missing refElement.');
-  if (!Array.isArray(refElement)) {
+  if (!vnode_isVNode(refElement)) {
     assertTrue(
       containerElement.contains(refElement),
-      'refElement must be a child of containerElement.'
+      `Couldn't find the element inside the container while locating the VNode.`
     );
     // We need to find the vnode.
     let parent = refElement;
@@ -1641,6 +1689,8 @@ function materializeFromVNodeData(
       vnode_setAttr(null, vParent, ELEMENT_KEY, consumeValue());
     } else if (peek() === VNodeDataChar.SEQ) {
       vnode_setAttr(null, vParent, ELEMENT_SEQ, consumeValue());
+    } else if (peek() === VNodeDataChar.SEQ_IDX) {
+      vnode_setAttr(null, vParent, ELEMENT_SEQ_IDX, consumeValue());
     } else if (peek() === VNodeDataChar.CONTEXT) {
       vnode_setAttr(null, vParent, QCtxAttr, consumeValue());
     } else if (peek() === VNodeDataChar.OPEN) {
@@ -1845,10 +1895,10 @@ const VNodeArray = class VNode extends Array {
     firstChild: VNode | null | undefined,
     lastChild: VNode | null | undefined,
     element: Element,
-    tag: string | undefined
+    elementName: string | undefined
   ) {
     const vnode = new VNode(flags, parent, previousSibling, nextSibling) as any;
-    vnode.push(firstChild, lastChild, element, tag);
+    vnode.push(firstChild, lastChild, element, elementName);
     return vnode;
   }
 

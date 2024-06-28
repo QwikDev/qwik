@@ -21,6 +21,7 @@ import {
 } from '@builder.io/qwik';
 import { vnode_getNextSibling } from '../client/vnode';
 import { HTML_NS, SVG_NS } from '../../util/markers';
+import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 
 const debug = false;
 
@@ -1687,7 +1688,7 @@ describe.each([
         </Issue1630>,
         { debug }
       );
-      expect(removeKeyAttrs(document.querySelector('div')?.innerHTML || '')).toContain(
+      expect(cleanupAttrs(document.querySelector('div')?.innerHTML || '')).toContain(
         '</p><b>CHILD</b>DYNAMIC'
       );
       await trigger(document.body, 'button', 'click');
@@ -1702,7 +1703,7 @@ describe.each([
           </div>
         </Component>
       );
-      expect(removeKeyAttrs(document.querySelector('div')?.innerHTML || '')).not.toContain(
+      expect(cleanupAttrs(document.querySelector('div')?.innerHTML || '')).not.toContain(
         '<b>CHILD</b>DYNAMIC'
       );
       await trigger(document.body, 'button', 'click');
@@ -1722,7 +1723,7 @@ describe.each([
           </div>
         </Component>
       );
-      expect(removeKeyAttrs(document.querySelector('div')?.innerHTML || '')).toContain(
+      expect(cleanupAttrs(document.querySelector('div')?.innerHTML || '')).toContain(
         '</p><b>CHILD</b>DYNAMIC'
       );
     });
@@ -1865,8 +1866,7 @@ describe.each([
       );
     });
 
-    // TODO(slot): fix this test
-    it.skip('#2688 - case 2', async () => {
+    it('#2688 - case 2', async () => {
       const Switch = component$((props: { name: string }) => {
         return <Slot name={props.name} />;
       });
@@ -2226,7 +2226,3 @@ describe.each([
     });
   });
 });
-
-function removeKeyAttrs(innerHTML: string): any {
-  return innerHTML.replaceAll(/ q:key="[^"]+"/g, '');
-}

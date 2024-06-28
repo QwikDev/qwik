@@ -6,9 +6,8 @@ import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import { SubscriptionType } from '../../state/common';
 import { invokeApply, newInvokeContext } from '../../use/use-core';
 import { USE_ON_LOCAL, type UseOnMap } from '../../use/use-on';
-import { SEQ_IDX_LOCAL } from '../../use/use-sequential-scope';
 import { EMPTY_OBJ } from '../../util/flyweight';
-import { ELEMENT_PROPS, OnRenderProp, RenderEvent } from '../../util/markers';
+import { ELEMENT_PROPS, ELEMENT_SEQ_IDX, OnRenderProp, RenderEvent } from '../../util/markers';
 import { isPromise, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { Container2, HostElement, fixMeAny } from './types';
@@ -73,7 +72,7 @@ export const executeComponent2 = (
   const executeComponentWithPromiseExceptionRetry = (): ValueOrPromise<JSXOutput> =>
     safeCall<JSXOutput, JSXOutput, JSXOutput>(
       () => {
-        container.setHostProp(renderHost, SEQ_IDX_LOCAL, null);
+        container.setHostProp(renderHost, ELEMENT_SEQ_IDX, null);
         container.setHostProp(renderHost, ELEMENT_PROPS, props);
         return componentFn(props);
       },
@@ -82,7 +81,7 @@ export const executeComponent2 = (
         useOnEvents && addUseOnEvents(jsx, useOnEvents);
         return jsx;
       },
-      (err: any) => {
+      (err) => {
         if (isPromise(err)) {
           return err.then(executeComponentWithPromiseExceptionRetry) as Promise<JSXOutput>;
         } else {

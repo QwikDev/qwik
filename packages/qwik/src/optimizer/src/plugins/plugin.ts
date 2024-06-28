@@ -84,6 +84,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     tsconfigFileNames: ['./tsconfig.json'],
     input: null as any,
     outDir: null as any,
+    assetsDir: null as any,
     resolveQwikBuild: true,
     entryStrategy: null as any,
     srcDir: null as any,
@@ -139,6 +140,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const path = optimizer.sys.path;
 
     opts.debug = !!updatedOpts.debug;
+
+    if (updatedOpts.assetsDir) {
+      opts.assetsDir = updatedOpts.assetsDir;
+    }
 
     updatedOpts.target === 'test';
     if (
@@ -325,7 +330,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         if (typeof opts.srcDir === 'string' && !fs.existsSync(opts.srcDir)) {
           throw new Error(`Qwik srcDir "${opts.srcDir}" not found.`);
         }
-        for (const [_, input] of Object.entries(opts.input)) {
+        for (const [_, input] of Object.entries(opts.input || {})) {
           const resolved = await resolver(input);
           if (!resolved) {
             throw new Error(`Qwik input "${input}" not found.`);
@@ -346,6 +351,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
     }
 
+    // Problematic part of the plugin: parse the entire source tree in the hopes of
+    // having all code combined into the entry hooks. This is a problem because it
+    // prevents other plugins from having a look at the untouched code.
+    // TODO work out a way to combine entries in a more incremental way
+    // Note: During dev mode, entry strategy is hook, so this doesn't run
     const generatePreManifest = !['hoist', 'hook', 'inline'].includes(opts.entryStrategy.type);
     if (generatePreManifest) {
       const path = getPath();
@@ -470,21 +480,24 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const isSSR = !!resolveOpts?.ssr;
     const transformedOutputs = isSSR ? serverTransformedOutputs : clientTransformedOutputs;
 
+    // Requests originating from another file, or the browser
     if (importerId) {
-      // Only process ids that look like paths
-      if (!(id.startsWith('.') || path.isAbsolute(id))) {
+      const looksLikePath = id.startsWith('.') || id.startsWith('/');
+      if (!looksLikePath) {
         // Rollup can ask us to resolve imports from QRL segments
-        // It seems like files need to exist on disk for this to work automatically
-        const mod = transformedOutputs.get(importerId);
-        if (mod) {
-          const parentId = mod[1];
+        // It seems like files need to exist on disk for this to work automatically,
+        // so for segments we provide the parent instead
+        const segment = transformedOutputs.get(importerId);
+        if (segment) {
+          const parentId = segment[1];
           return ctx.resolve(id, parentId, { skipSelf: true });
         }
         return;
       }
+      let isAbsoluteDevFile;
       if (opts.target === 'ssr' && !isSSR && importerId.endsWith('.html') && server) {
         // This is a request from a dev-mode browser
-        // we uri-encode chunk paths in dev mode, and other imported files don't have % in their paths
+        // we uri-encode chunk paths in dev mode, and other imported files don't have % in their paths (hopefully)
         // These will be individual source files and their QRL segments
         id = decodeURIComponent(id);
         // Check for parent passed via QRL
@@ -492,39 +505,49 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         if (match) {
           id = match[1];
           const parentId = match[2];
-          // If the parent is not in root (e.g. pnpm symlink), the qrl also isn't
-          if (parentId.startsWith(opts.rootDir)) {
-            id = `${opts.rootDir}${id}`;
-          }
           // building here via ctx.load doesn't seem to work (target is always ssr?)
           // instead we use the devserver directly
-          if (!clientTransformedOutputs.has(id)) {
+          if (!clientResults.has(parentId)) {
             debug(`resolveId()`, 'transforming QRL parent', parentId);
             await server.transformRequest(parentId);
             // The QRL segment should exist now
           }
         }
+        // Support absolute paths for qrl segments, due to e.g. pnpm linking
+        isAbsoluteDevFile = id.startsWith('/@fs/');
+        if (isAbsoluteDevFile) {
+          id = id.slice(4);
+        }
       }
       const parsedId = parseId(id);
       let importeePathId = normalizePath(parsedId.pathId);
-      const ext = path.extname(importeePathId).toLowerCase();
-      if (ext in RESOLVE_EXTS) {
-        importerId = normalizePath(importerId);
-        debug(`resolveId("${importeePathId}", "${importerId}")`);
-        const parsedImporterId = parseId(importerId);
-        const dir = path.dirname(parsedImporterId.pathId);
-        if (parsedImporterId.pathId.endsWith('.html') && !importeePathId.endsWith('.html')) {
-          importeePathId = normalizePath(path.join(dir, importeePathId));
-        } else {
-          importeePathId = normalizePath(path.resolve(dir, importeePathId));
-        }
-        const transformedOutput = transformedOutputs.get(importeePathId);
-
-        if (transformedOutput) {
+      if (isAbsoluteDevFile) {
+        if (transformedOutputs.has(importeePathId)) {
           debug(`resolveId() Resolved ${importeePathId} from transformedOutputs`);
-          return {
-            id: importeePathId + parsedId.query,
-          };
+          return { id: importeePathId + parsedId.query };
+        }
+        // fall through to standard resolve
+      } else {
+        const ext = path.extname(importeePathId).toLowerCase();
+        if (ext in RESOLVE_EXTS) {
+          importerId = normalizePath(importerId);
+          debug(`resolveId("${importeePathId}", "${importerId}")`);
+          const parsedImporterId = parseId(importerId);
+          const dir = path.dirname(parsedImporterId.pathId);
+          if (parsedImporterId.pathId.endsWith('.html') && !importeePathId.endsWith('.html')) {
+            // dev mode browser requests, add rootDir
+            importeePathId = normalizePath(path.join(dir, importeePathId));
+          } else {
+            importeePathId = normalizePath(path.resolve(dir, importeePathId));
+          }
+          const transformedOutput = transformedOutputs.get(importeePathId);
+
+          if (transformedOutput) {
+            debug(`resolveId() Resolved ${importeePathId} from transformedOutputs`);
+            return {
+              id: importeePathId + parsedId.query,
+            };
+          }
         }
       }
     } else if (path.isAbsolute(id)) {
@@ -963,6 +986,7 @@ export interface QwikPluginOptions {
   insightsManifest?: InsightManifest | null;
   input?: string[] | string | { [entry: string]: string };
   outDir?: string;
+  assetsDir?: string;
   srcDir?: string | null;
   scope?: string | null;
   srcInputs?: TransformModuleInput[] | null;

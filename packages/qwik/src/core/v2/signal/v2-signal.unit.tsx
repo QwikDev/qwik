@@ -1,19 +1,19 @@
+import { $, type ValueOrPromise } from '@builder.io/qwik';
 import { createDocument, getTestPlatform } from '@builder.io/qwik/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { inlinedQrl } from '../../qrl/qrl';
 import { type QRLInternal } from '../../qrl/qrl-class';
 import { type QRL } from '../../qrl/qrl.public';
 import type { VirtualElement } from '../../render/dom/virtual-element';
-import { invoke, newInvokeContext, tryGetInvokeContext } from '../../use/use-core';
+import { invoke, newInvokeContext } from '../../use/use-core';
 import { Task } from '../../use/use-task';
 import { implicit$FirstArg } from '../../util/implicit_dollar';
+import { isPromise } from '../../util/promises';
 import { getDomContainer } from '../client/dom-container';
 import { ChoreType } from '../shared/scheduler';
 import type { Container2 } from '../shared/types';
-import { createComputed2Qrl, createSignal2 } from './v2-signal.public';
-import { isPromise } from '../../util/promises';
-import { $, type ValueOrPromise } from '@builder.io/qwik';
 import type { EffectSubscriptions } from './v2-signal';
+import { createComputed2Qrl, createSignal2, type ReadonlySignal2 } from './v2-signal.public';
 
 describe('v2-signal', () => {
   const log: any[] = [];
@@ -44,7 +44,7 @@ describe('v2-signal', () => {
       await withContainer(async () => {
         const signal = createSignal2(123);
         expect(signal.value).toEqual(123);
-        await effect$(() => log.push(signal.value));
+        effect$(() => log.push(signal.value));
         expect(log).toEqual([123]);
         signal.value++;
         expect(log).toEqual([123]);
@@ -56,27 +56,36 @@ describe('v2-signal', () => {
 
   describe('computed', () => {
     it('should simulate lazy loaded QRLs', async () => {
-      const qrl = delay($(() => 'OK'));
+      const qrl = delayQrl($(() => 'OK'));
       expect(qrl.resolved).not.toBeDefined();
       await qrl.resolve();
       expect(qrl.resolved).toBeDefined();
     });
 
-    it.only('basic subscription operation', async () => {
+    it('basic subscription operation', async () => {
       await withContainer(async () => {
         const a = createSignal2(2);
         const b = createSignal2(10);
         await retry(() => {
-          const signal = createComputed2Qrl(delay($(() => a.value + b.value)));
-          expect((signal as any).$untrackedValue$).not.toEqual(12);
-          // This won't register a subscriber because there isn't any,
-          // but it will update the value and store the container.
-          expect(signal.value).toEqual(12);
-          expect((signal as any).$untrackedValue$).toEqual(12);
-          effect$(() => log.push(signal.value));
+          let signal!: ReadonlySignal2<number>;
+          effect$(() => {
+            signal =
+              signal ||
+              createComputed2Qrl(
+                delayQrl(
+                  $(() => {
+                    return a.value + b.value;
+                  })
+                )
+              );
+            if (!log.length) {
+              expect(signal.untrackedValue).toEqual(12);
+            }
+            log.push(signal.value); // causes subscription
+          });
           expect(log).toEqual([12]);
-          a.value++;
-          b.value += 10;
+          a.value = a.untrackedValue + 1;
+          b.value = b.untrackedValue + 10;
           // effects must run async
           expect(log).toEqual([12]);
         });
@@ -88,30 +97,30 @@ describe('v2-signal', () => {
     it('force', () =>
       withContainer(async () => {
         const obj = { count: 0 };
-        await retry(async () => {
-          const computed = createComputed2Qrl(
-            delay(
+        const computed = await retry(() => {
+          return createComputed2Qrl(
+            delayQrl(
               $(() => {
                 obj.count++;
                 return obj;
               })
             )
           );
-          expect(computed.value).toBe(obj);
-          expect(obj.count).toBe(1);
-          effect$(() => log.push(computed.value.count));
-          await flushSignals();
-          expect(log).toEqual([1]);
-          expect(obj.count).toBe(1);
-          // mark dirty but value remains shallow same after calc
-          (computed as any).$invalid$ = true;
-          computed.value.count;
-          await flushSignals();
-          expect(log).toEqual([1]);
-          expect(obj.count).toBe(2);
-          // force recalculation+notify
-          computed.force();
         });
+        expect(computed.value).toBe(obj);
+        expect(obj.count).toBe(1);
+        effect$(() => log.push(computed!.value.count));
+        await flushSignals();
+        expect(log).toEqual([1]);
+        expect(obj.count).toBe(1);
+        // mark dirty but value remains shallow same after calc
+        (computed as any).$invalid$ = true;
+        computed.value.count;
+        await flushSignals();
+        expect(log).toEqual([1]);
+        expect(obj.count).toBe(2);
+        // force recalculation+notify
+        computed.force();
         await flushSignals();
         expect(log).toEqual([1, 3]);
       }));
@@ -125,17 +134,16 @@ describe('v2-signal', () => {
   }
 
   function flushSignals() {
-    console.log('flushSignals()');
     return container.$scheduler$(ChoreType.WAIT_FOR_ALL);
   }
 
   /** Simulates the QRLs being lazy loaded once per test. */
-  function delay<T>(qrl: QRL<() => T>): QRLInternal<() => T> {
+  function delayQrl<T>(qrl: QRL<() => T>): QRLInternal<() => T> {
     const iQrl = qrl as QRLInternal<() => T>;
     const hash = iQrl.$symbol$;
     let delayQrl = delayMap.get(hash);
     if (!delayQrl) {
-      console.log('DELAY', hash);
+      // console.log('DELAY', hash);
       delayQrl = inlinedQrl(
         Promise.resolve(iQrl.resolve()),
         'd_' + iQrl.$symbol$,
@@ -145,36 +153,32 @@ describe('v2-signal', () => {
     }
     return delayQrl;
   }
-});
 
-async function effectQrl(fnQrl: QRL<() => void>) {
-  const element: VirtualElement = null!;
-  const task = new Task(0, 0, element, fnQrl as QRLInternal, undefined, null);
-  const subscriber: EffectSubscriptions = [task, null];
-  const fn = (fnQrl as QRLInternal<() => void>).$resolveLazy$();
-  if (isPromise(fn)) {
-    throw fn;
-  } else {
-    const ctx = newInvokeContext();
-    ctx.$effectSubscriber$ = subscriber;
+  function effectQrl(fnQrl: QRL<() => void>) {
+    const qrl = fnQrl as QRLInternal<() => void>;
+    const element: VirtualElement = null!;
+    const task = new Task(0, 0, element, fnQrl as QRLInternal, undefined, null);
+    if (!qrl.resolved) {
+      throw qrl.resolve();
+    } else {
+      const ctx = newInvokeContext();
+      ctx.$container2$ = container;
+      const subscriber: EffectSubscriptions = [task, ctx];
+      ctx.$effectSubscriber$ = subscriber;
+      return invoke(ctx, qrl.getFn(ctx));
+    }
+  }
+
+  const effect$ = /*#__PURE__*/ implicit$FirstArg(effectQrl);
+
+  function retry<T>(fn: () => T): ValueOrPromise<T> {
     try {
-      invoke(ctx, fn);
+      return fn();
     } catch (e) {
-      console.error('effect$ failed', fn.toString(), e);
+      if (isPromise(e)) {
+        return e.then(retry.bind(null, fn)) as ValueOrPromise<T>;
+      }
       throw e;
     }
   }
-}
-
-const effect$ = /*#__PURE__*/ implicit$FirstArg(effectQrl);
-
-function retry<T>(fn: () => T, ctx = tryGetInvokeContext()): ValueOrPromise<T> {
-  try {
-    return invoke(ctx, fn);
-  } catch (e) {
-    if (isPromise(e)) {
-      return e.then(retry.bind(null, fn, ctx)) as ValueOrPromise<T>;
-    }
-    throw e;
-  }
-}
+});

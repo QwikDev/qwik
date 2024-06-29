@@ -99,10 +99,10 @@ import { vnode_documentPosition, vnode_isVNode } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
 import { executeComponent2 } from './component-execution';
 import type { Container2, HostElement, fixMeAny } from './types';
-import type { EffectSubscriptions } from '../signal/v2-signal';
+import { EffectSubscriptionsProp, type EffectSubscriptions } from '../signal/v2-signal';
 
 // Turn this on to get debug output of what the scheduler is doing.
-const DEBUG: boolean = false;
+const DEBUG: boolean = true;
 
 export const enum ChoreType {
   /// MASKS defining three levels of sorting
@@ -301,7 +301,7 @@ export const createScheduler = (
         if (Array.isArray(payload)) {
           // This is a hack to see if the scheduling will work.
           const effectSubscriber = payload as fixMeAny as EffectSubscriptions;
-          const effect = effectSubscriber[0];
+          const effect = effectSubscriber[EffectSubscriptionsProp.EFFECT];
           returnValue = runSubscriber2(effect as Task<TaskFn, TaskFn>, container, host);
           break;
         }
@@ -499,7 +499,7 @@ function debugTrace(
   if (arg) {
     lines.push(
       '    arg: ' +
-        ('$type$' in arg ? debugChoreToString(arg as Chore) : String(arg).replaceAll(/\n.*/gim, ''))
+      ('$type$' in arg ? debugChoreToString(arg as Chore) : String(arg).replaceAll(/\n.*/gim, ''))
     );
   }
   if (currentChore) {

@@ -12,22 +12,20 @@
  *   - It is `Readonly` because it is computed.
  */
 
+import { qwikDebugToString } from '../../debug';
 import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
-import { isQrl, type QRLInternal } from '../../qrl/qrl-class';
+import { type QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
-import { SubscriptionProp, SubscriptionType, type Subscriber } from '../../state/common';
 import {
-  invoke,
-  newInvokeContext,
   tryGetInvokeContext,
-  type InvokeContext,
+  type InvokeContext
 } from '../../use/use-core';
-import { Task, isTask } from '../../use/use-task';
+import { Task, TaskFlags, isTask } from '../../use/use-task';
 import { isPromise } from '../../util/promises';
 import { qDev } from '../../util/qdev';
 import type { VNode } from '../client/types';
 import { ChoreType, type Scheduler } from '../shared/scheduler';
-import type { Container2, fixMeAny } from '../shared/types';
+import type { fixMeAny } from '../shared/types';
 import type { Signal2 as ISignal2 } from './v2-signal.public';
 
 const DEBUG = true;
@@ -41,14 +39,15 @@ const NEEDS_COMPUTATION: any = {
 };
 
 // eslint-disable-next-line no-console
-const log = (...args: any[]) => console.log(...args);
+const log = (...args: any[]) => console.log('SIGNAL', ...(args).map(qwikDebugToString));
 
 export const createSignal2 = (value?: any) => {
   return new Signal2(null, value);
 };
 
 export const createComputedSignal2 = <T>(qrl: QRL<() => T>) => {
-  if (!qrl.resolved) {
+  const resolved = qrl.resolved;
+  if (!resolved) {
     // When we are creating a signal using a use method, we need to ensure
     // that the computation can be lazy and therefore we need to unsure
     // that the QRL is resolved.
@@ -107,6 +106,10 @@ type Effect = Task | VNode | Signal2;
  * between the signals.
  */
 export type EffectSubscriptions = [Effect, InvokeContext | null, ...Signal2[]];
+export const enum EffectSubscriptionsProp {
+  EFFECT = 0,
+  CONTEXT = 1,
+}
 
 class Signal2<T = any> implements ISignal2<T> {
   protected $untrackedValue$: T;
@@ -115,11 +118,10 @@ class Signal2<T = any> implements ISignal2<T> {
   // TODO perf: use a set?
   protected $effects$: null | EffectSubscriptions[] = null;
 
-  /** Container to get the scheduler and call the computation. */
-  protected $container$: Container2 | null = null;
+  protected $scheduler$: Scheduler | null = null;
 
-  constructor(container: Container2 | null, value: T) {
-    this.$container$ = container;
+  constructor(scheduler: Scheduler | null, value: T) {
+    this.$scheduler$ = scheduler;
     this.$untrackedValue$ = value;
   }
 
@@ -130,18 +132,18 @@ class Signal2<T = any> implements ISignal2<T> {
   get value() {
     const ctx = tryGetInvokeContext();
     if (ctx) {
-      if (this.$container$ === null) {
+      if (this.$scheduler$ === null) {
         assertTrue(!!ctx.$container2$, 'container should be in context ');
         // Grab the container now we have access to it
-        this.$container$ = ctx.$container2$!;
+        this.$scheduler$ = ctx.$container2$!.$scheduler$;
       } else {
         assertTrue(
-          !ctx.$container2$ || ctx.$container2$ === this.$container$,
+          !ctx.$container2$?.$scheduler$ || ctx.$container2$?.$scheduler$ === this.$scheduler$,
           'Do not use signals across containers'
         );
       }
-      if (ctx.$effectSubscriber$) {
-        const effectSubscriber = ctx.$effectSubscriber$;
+      const effectSubscriber = ctx.$effectSubscriber$;
+      if (effectSubscriber) {
         const effects = (this.$effects$ ||= []);
         // Let's make sure that we have a reference to this effect.
         // Adding reference is essentially adding a subscription, so if the signal
@@ -151,6 +153,7 @@ class Signal2<T = any> implements ISignal2<T> {
         // to unsubscribe from. So we need to store the reference from the effect back
         // to this signal.
         ensureContains(effectSubscriber, this);
+        DEBUG && log("read->sub", this.$untrackedValue$, effectSubscriber[EffectSubscriptionsProp.EFFECT])
       }
     }
     return this.untrackedValue;
@@ -165,24 +168,26 @@ class Signal2<T = any> implements ISignal2<T> {
   }
 
   protected $triggerEffects$() {
-    if (!this.$effects$?.length || !this.$container$) {
-      return;
+    if (this.$effects$) {
+      const scheduleEffect = (effectSubscriptions: EffectSubscriptions) => {
+        const effect = effectSubscriptions[EffectSubscriptionsProp.EFFECT];
+        DEBUG && log('       schedule.effect', String(effect));
+        if (isTask(effect)) {
+          effect.$flags$ |= TaskFlags.DIRTY;
+          assertDefined(this.$scheduler$, 'Scheduler must be defined.');
+          this.$scheduler$(ChoreType.TASK, effectSubscriptions as fixMeAny);
+        } else if (effect instanceof ComputedSignal2) {
+          // we don't schedule ComputedSignal directly, instead we invalidate it and
+          // and schedule the signals effects (recursively)
+          effect.$invalid$ = true;
+          effect.$effects$?.forEach(scheduleEffect);
+        } else {
+          throw new Error('Not implemented');
+        }
+      };
+      this.$effects$.forEach(scheduleEffect);
     }
-    const scheduleEffect = (effectSubscriptions: EffectSubscriptions) => {
-      const effect = effectSubscriptions[0];
-      DEBUG && log('       schedule.effect', String(effect));
-      if (isTask(effect)) {
-        const scheduler = this.$container$!.$scheduler$;
-        assertDefined(scheduler, 'Scheduler must be defined.');
-        scheduler(ChoreType.TASK, effectSubscriptions as fixMeAny);
-      } else if (effect instanceof ComputedSignal2) {
-        effect.$invalidate$();
-      } else {
-        throw new Error('Not implemented');
-      }
-    };
-    this.$effects$.forEach(scheduleEffect);
-    this.$effects$.length = 0;
+
     DEBUG && log('done scheduling');
   }
 
@@ -193,22 +198,17 @@ class Signal2<T = any> implements ISignal2<T> {
     }
   }
   toString() {
-    return `[Signal ${String(this.value)}]`;
+    return `[Signal ${String(this.$untrackedValue$)}]`;
   }
   toJSON() {
-    return { value: this.value };
+    return { value: this.$untrackedValue$ };
   }
 }
 
-qDev &&
-  (Signal2.prototype.toString = () => {
-    return 'Signal2';
-  });
-
 /** Ensure the item is in array (do nothing if already there) */
 function ensureContains(array: any[], value: any) {
-  const idx = array.indexOf(value);
-  if (idx === -1) {
+  const isMissing = array.indexOf(value) === -1;
+  if (isMissing) {
     array.push(value);
   }
 }
@@ -230,11 +230,11 @@ class ComputedSignal2<T> extends Signal2<T> {
   // we need the old value to know if effects need running after computation
   $invalid$: boolean = true;
 
-  constructor(container: Container2 | null, computeTask: QRLInternal<() => T> | null) {
+  constructor(scheduler: Scheduler | null, computeTask: QRLInternal<() => T> | null) {
     assertDefined(computeTask, 'compute QRL must be provided');
     // The value is used for comparison when signals trigger, which can only happen
     // when it was calculated before. Therefore we can pass whatever we like.
-    super(container, NEEDS_COMPUTATION);
+    super(scheduler, NEEDS_COMPUTATION);
     this.$computeQrl$ = computeTask;
   }
 
@@ -262,6 +262,7 @@ class ComputedSignal2<T> extends Signal2<T> {
 
   get untrackedValue() {
     this.$computeIfNeeded$();
+    assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state')
     return this.$untrackedValue$;
   }
 
@@ -275,19 +276,28 @@ class ComputedSignal2<T> extends Signal2<T> {
       'Computed signals must run sync. Expected the QRL to be resolved at this point.'
     );
 
-    // TODO locale (ideally move to global state)
-    const ctx = newInvokeContext();
-    ctx.$effectSubscriber$ = [this, null];
-    ctx.$container2$ = this.$container$!;
-    const untrackedValue = computeQrl.getFn(ctx)() as T;
-    assertFalse(isPromise(untrackedValue), 'Computed function must be synchronous.');
-    DEBUG && log('Signal.$compute$', untrackedValue);
-    this.$invalid$ = false;
+    const ctx = tryGetInvokeContext();
+    assertDefined(computeQrl, 'Signal is marked as dirty, but no compute function is provided.');
+    const previousEffectSubscription = ctx?.$effectSubscriber$;
+    ctx && (ctx.$effectSubscriber$ = [this, null]);
+    assertTrue(
+      !!computeQrl.resolved,
+      'Computed signals must run sync. Expected the QRL to be resolved at this point.'
+    );
+    try {
+      const untrackedValue = computeQrl.getFn(ctx)() as T;
+      assertFalse(isPromise(untrackedValue), 'Computed function must be synchronous.');
+      DEBUG && log('Signal.$compute$', untrackedValue);
+      this.$invalid$ = false;
 
-    const didChange = untrackedValue !== this.$untrackedValue$;
-    this.$untrackedValue$ = untrackedValue;
-
-    return didChange;
+      const didChange = untrackedValue !== this.$untrackedValue$;
+      this.$untrackedValue$ = untrackedValue;
+      return didChange;
+    } finally {
+      if (ctx) {
+        ctx.$effectSubscriber$ = previousEffectSubscription;
+      }
+    }
   }
 
   // Getters don't get inherited
@@ -299,8 +309,3 @@ class ComputedSignal2<T> extends Signal2<T> {
     throw new TypeError('ComputedSignal is read-only');
   }
 }
-
-qDev &&
-  (ComputedSignal2.prototype.toString = () => {
-    return 'ComputedSignal2';
-  });

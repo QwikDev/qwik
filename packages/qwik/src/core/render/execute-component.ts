@@ -244,26 +244,6 @@ export function serializeAttribute(key: string, value: any, styleScopedId?: stri
   return value;
 }
 
-const ESCAPE_HTML = /[&<>'"]/g;
-export function escapeContent(s: string) {
-  return s.replace(ESCAPE_HTML, (c) => {
-    switch (c) {
-      case '&':
-        return '&amp;';
-      case '<':
-        return '&lt;';
-      case '>':
-        return '&gt;';
-      case '"':
-        return '&quot;';
-      case "'":
-        return '&#39;';
-      default:
-        return '';
-    }
-  });
-}
-
 function isEnumeratedBooleanAttribute(key: string) {
   return isAriaAttribute(key) || ['spellcheck', 'draggable', 'contenteditable'].includes(key);
 }

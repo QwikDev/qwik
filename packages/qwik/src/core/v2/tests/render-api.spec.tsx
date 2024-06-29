@@ -284,7 +284,7 @@ describe('render api', () => {
           containerTagName: 'div',
           manifest: defaultManifest,
         });
-        await expect(cleanupAttrs(result.html)).toContain(
+        expect(cleanupAttrs(result.html)).toContain(
           `<div data-amp="foo&amp;bar" data-lt="foo&lt;bar" data-gt="foo&gt;bar" data-a="&quot;" data-b="&#39;">{&quot;a&quot;:&quot;123&quot;,&quot;b&quot;:&quot;&lt;script /&gt;&quot;,&quot;c&quot;:&quot;&amp;foo&quot;}</div>`
         );
       });

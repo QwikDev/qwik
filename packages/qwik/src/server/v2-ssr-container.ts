@@ -46,7 +46,7 @@ import {
   QBaseAttr,
   QLocaleAttr,
   QManifestHashAttr,
-  escapeContent,
+  escapeHTML,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -459,7 +459,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   /** Write a text node with correct escaping. Save the length of the text node in the vNodeData. */
   textNode(text: string) {
-    this.write(escapeContent(text));
+    this.write(escapeHTML(text));
     vNodeData_addTextSize(this.currentElementFrame!.vNodeData, text.length);
     this.lastNode = null;
   }
@@ -1106,7 +1106,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             }
             continue;
           }
-          innerHTML = escapeContent(value);
+          innerHTML = escapeHTML(value);
           key = QContainerAttr;
           value = QContainerValue.TEXT;
         }
@@ -1118,7 +1118,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           this.write(key);
           if (value !== true) {
             this.write('="');
-            const strValue = escapeContent(String(value));
+            const strValue = escapeHTML(String(value));
             this.write(strValue);
 
             this.write('"');

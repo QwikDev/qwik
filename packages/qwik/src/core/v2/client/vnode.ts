@@ -120,7 +120,7 @@
 import { isDev } from '@builder.io/qwik/build';
 import { assertDefined, assertEqual, assertFalse, assertTrue } from '../../error/assert';
 import { isQrl } from '../../qrl/qrl-class';
-import { dangerouslySetInnerHTML, escapeContent } from '../../render/execute-component';
+import { dangerouslySetInnerHTML } from '../../render/execute-component';
 import { isText } from '../../util/element';
 import { throwErrorAndStop } from '../../util/log';
 import {
@@ -163,6 +163,7 @@ import {
   vnode_getDomChildrenWithCorrectNamespacesToInsert,
   vnode_getElementNamespaceFlags,
 } from './vnode-namespace';
+import { escapeHTML } from '../shared/character-escaping';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -890,7 +891,7 @@ export const vnode_applyJournal = (journal: VNodeJournal) => {
         if (isBooleanAttr(element, key)) {
           (element as any)[key] = parseBoolean(value);
         } else if (key === 'value' && key in element) {
-          (element as any).value = escapeContent(String(value));
+          (element as any).value = escapeHTML(String(value));
         } else if (key === dangerouslySetInnerHTML) {
           (element as any).innerHTML = value!;
         } else {

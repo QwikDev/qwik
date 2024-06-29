@@ -90,6 +90,7 @@ import {
 import { getNewElementNamespaceData } from './vnode-namespace';
 import { executeComponent2 } from '../shared/component-execution';
 import { isParentSlotProp, isSlotProp } from '../../util/prop';
+import { escapeHTML } from '../shared/character-escaping';
 
 export type ComponentQueue = Array<VNode>;
 
@@ -623,7 +624,7 @@ export const vnode_diff = (
             }
             continue;
           }
-          (element as HTMLTextAreaElement).value = value as string;
+          (element as HTMLTextAreaElement).value = escapeHTML(value as string);
           continue;
         }
 

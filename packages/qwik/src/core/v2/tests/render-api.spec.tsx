@@ -266,6 +266,28 @@ describe('render api', () => {
         expect(timing.render).toBeGreaterThan(0);
         expect(timing.snapshot).toBeGreaterThan(0);
       });
+
+      it('should escape invalid characters', async () => {
+        const Cmp = component$(() => {
+          const obj = {
+            a: '123',
+            b: '<script />',
+            c: '&foo',
+          };
+          return (
+            <div data-amp="foo&bar" data-lt="foo<bar" data-gt="foo>bar" data-a='"' data-b="'">
+              {JSON.stringify(obj)}
+            </div>
+          );
+        });
+        const result = await renderToStringAndSetPlatform(<Cmp />, {
+          containerTagName: 'div',
+          manifest: defaultManifest,
+        });
+        expect(cleanupAttrs(result.html)).toContain(
+          `<div data-amp="foo&amp;bar" data-lt="foo&lt;bar" data-gt="foo&gt;bar" data-a="&quot;" data-b="&#39;">{&quot;a&quot;:&quot;123&quot;,&quot;b&quot;:&quot;&lt;script /&gt;&quot;,&quot;c&quot;:&quot;&amp;foo&quot;}</div>`
+        );
+      });
     });
     describe('version', () => {
       afterEach(async () => {

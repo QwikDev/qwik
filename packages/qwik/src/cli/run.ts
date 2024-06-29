@@ -7,6 +7,7 @@ import { runJokeCommand } from './joke/run-joke-command';
 import { note, panic, pmRunCmd, printHeader, bye } from './utils/utils';
 import { runBuildCommand } from './utils/run-build-command';
 import { intro, isCancel, select, confirm } from '@clack/prompts';
+import { runV2Migration } from './migrate-v2/run-migration';
 
 const SPACE_TO_HINT = 18;
 const COMMANDS = [
@@ -43,6 +44,14 @@ const COMMANDS = [
     label: 'joke',
     hint: 'Tell a random dad joke',
     run: () => runJokeCommand(),
+    showInHelp: true,
+  },
+  {
+    value: 'migrate-v2',
+    label: 'migrate-v2',
+    //   TODO: package names
+    hint: 'Rescopes the application from @builder.io/* namespace to @qwik.dev/*',
+    run: (app: AppCommand) => runV2Migration(app),
     showInHelp: true,
   },
   {
@@ -96,6 +105,10 @@ async function runCommand(app: AppCommand) {
     }
     case 'joke': {
       await runJokeCommand();
+      return;
+    }
+    case 'migrate-v2': {
+      await runV2Migration(app);
       return;
     }
     case 'version': {

@@ -717,6 +717,16 @@ export const createSerializationContext = (
         const unwrapObj = unwrapProxy(obj);
         if (unwrapObj !== obj) {
           discoveredValues.push(unwrapObj);
+          const manager = getSubscriptionManager(obj as object)!;
+
+          // add subscription host to the discovered values
+          for (const sub of manager.$subs$) {
+            for (let i = 0; i < sub.length; i++) {
+              if (i !== SubscriptionProp.TYPE) {
+                discoveredValues.push(sub[i]);
+              }
+            }
+          }
         } else if (id === undefined || isRoot) {
           // Object has not been seen yet, must scan content
           // But not for root.
@@ -765,7 +775,6 @@ export const createSerializationContext = (
             // const manager = obj[QObjectManagerSymbol];
             // discoveredValues.push(...manager.$subs$);
           } else if (obj instanceof Task) {
-            $addRoot$(obj);
             discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$);
           } else if (NodeConstructor && obj instanceof NodeConstructor) {
             // ignore the nodes

@@ -165,7 +165,7 @@ export async function configureDevServer(
                   // use the full path, otherwise relative to the source
                   const qrlPath = parentPath.startsWith(opts.rootDir)
                     ? path.relative(opts.rootDir, parentPath)
-                    : `/@fs/${parentPath}`;
+                    : `@fs${parentPath}`;
                   const qrlFile = `${encode(qrlPath)}/${symbolName.toLowerCase()}.js?_qrl_parent=${encode(parent)}`;
                   return [symbolName, `${base}${qrlFile}`];
                 },

@@ -721,10 +721,8 @@ export const createSerializationContext = (
 
           // add subscription host to the discovered values
           for (const sub of manager.$subs$) {
-            for (let i = 0; i < sub.length; i++) {
-              if (i !== SubscriptionProp.TYPE) {
-                discoveredValues.push(sub[i]);
-              }
+            for (let i = SubscriptionProp.HOST; i < sub.length; i++) {
+              discoveredValues.push(sub[i]);
             }
           }
         } else if (id === undefined || isRoot) {

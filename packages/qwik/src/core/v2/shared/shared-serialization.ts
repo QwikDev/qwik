@@ -53,7 +53,7 @@ const deserializedProxyMap = new WeakMap<object, unknown>();
 
 type DeserializerProxy<T extends object = object> = T & { [SERIALIZER_PROXY_UNWRAP]: object };
 
-const unwrapDeserializerProxy = (value: unknown) => {
+export const unwrapDeserializerProxy = (value: unknown) => {
   const unwrapped =
     typeof value === 'object' &&
     value !== null &&
@@ -94,6 +94,15 @@ class DeserializationHandler implements ProxyHandler<object> {
   get(target: object, property: PropertyKey, receiver: object) {
     if (property === SERIALIZER_PROXY_UNWRAP) {
       return target;
+    }
+    const unwrapped = unwrapDeserializerProxy(unwrapProxy(target)) as object;
+    const unwrappedPropValue = Reflect.get(unwrapped, property, receiver);
+    if (
+      typeof unwrappedPropValue === 'string' &&
+      unwrappedPropValue.length >= 1 &&
+      unwrappedPropValue.charCodeAt(0) === SerializationConstant.String_VALUE
+    ) {
+      return allocate(unwrappedPropValue);
     }
     let propValue = Reflect.get(target, property, receiver);
     let typeCode: number;
@@ -171,15 +180,7 @@ class DeserializationHandler implements ProxyHandler<object> {
       newValue.length >= 1 &&
       newValue.charCodeAt(0) < SerializationConstant.LAST_VALUE
     ) {
-      const currentPropValue = Reflect.get(target, property, receiver);
-      if (typeof currentPropValue === 'string' && currentPropValue.length === 0) {
-        return Reflect.set(
-          target,
-          property,
-          SerializationConstant.String_CHAR + newValue,
-          receiver
-        );
-      }
+      return Reflect.set(target, property, SerializationConstant.String_CHAR + newValue, receiver);
     }
     return Reflect.set(target, property, newValue, receiver);
   }

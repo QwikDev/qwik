@@ -128,6 +128,7 @@ import {
   ELEMENT_KEY,
   ELEMENT_PROPS,
   ELEMENT_SEQ,
+  ELEMENT_SEQ_IDX,
   OnRenderProp,
   QContainerAttr,
   QContainerAttrEnd,
@@ -162,6 +163,7 @@ import {
   vnode_getDomChildrenWithCorrectNamespacesToInsert,
   vnode_getElementNamespaceFlags,
 } from './vnode-namespace';
+import { escapeHTML } from '../shared/character-escaping';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -889,7 +891,7 @@ export const vnode_applyJournal = (journal: VNodeJournal) => {
         if (isBooleanAttr(element, key)) {
           (element as any)[key] = parseBoolean(value);
         } else if (key === 'value' && key in element) {
-          (element as any).value = String(value);
+          (element as any).value = escapeHTML(String(value));
         } else if (key === dangerouslySetInnerHTML) {
           (element as any).innerHTML = value!;
         } else {
@@ -1688,6 +1690,8 @@ function materializeFromVNodeData(
       vnode_setAttr(null, vParent, ELEMENT_KEY, consumeValue());
     } else if (peek() === VNodeDataChar.SEQ) {
       vnode_setAttr(null, vParent, ELEMENT_SEQ, consumeValue());
+    } else if (peek() === VNodeDataChar.SEQ_IDX) {
+      vnode_setAttr(null, vParent, ELEMENT_SEQ_IDX, consumeValue());
     } else if (peek() === VNodeDataChar.CONTEXT) {
       vnode_setAttr(null, vParent, QCtxAttr, consumeValue());
     } else if (peek() === VNodeDataChar.OPEN) {

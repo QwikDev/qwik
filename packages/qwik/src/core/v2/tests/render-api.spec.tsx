@@ -35,6 +35,7 @@ import { renderToStream2, renderToString2 } from '../../../server/v2-ssr-render2
 import { _fnSignal } from '../../internal';
 import { render2 } from '../client/dom-render';
 import { vnode_getFirstChild } from '../client/vnode';
+import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
@@ -264,6 +265,28 @@ describe('render api', () => {
         expect(timing.firstFlush).toBeGreaterThan(0);
         expect(timing.render).toBeGreaterThan(0);
         expect(timing.snapshot).toBeGreaterThan(0);
+      });
+
+      it('should escape invalid characters', async () => {
+        const Cmp = component$(() => {
+          const obj = {
+            a: '123',
+            b: '<script />',
+            c: '&foo',
+          };
+          return (
+            <div data-amp="foo&bar" data-lt="foo<bar" data-gt="foo>bar" data-a='"' data-b="'">
+              {JSON.stringify(obj)}
+            </div>
+          );
+        });
+        const result = await renderToStringAndSetPlatform(<Cmp />, {
+          containerTagName: 'div',
+          manifest: defaultManifest,
+        });
+        expect(cleanupAttrs(result.html)).toContain(
+          `<div data-amp="foo&amp;bar" data-lt="foo&lt;bar" data-gt="foo&gt;bar" data-a="&quot;" data-b="&#39;">{&quot;a&quot;:&quot;123&quot;,&quot;b&quot;:&quot;&lt;script /&gt;&quot;,&quot;c&quot;:&quot;&amp;foo&quot;}</div>`
+        );
       });
     });
     describe('version', () => {
@@ -825,7 +848,7 @@ describe('render api', () => {
           containerTagName: 'div',
           debug: true,
         });
-        expect(result.html).toContain('<script id="qwikloader">debug</script>');
+        expect(cleanupAttrs(result.html)).toContain('<script id="qwikloader">debug</script>');
       });
 
       it('should emit qwik loader without debug mode', async () => {
@@ -833,7 +856,7 @@ describe('render api', () => {
           containerTagName: 'div',
           debug: false,
         });
-        expect(result.html).toContain('<script id="qwikloader">min</script>');
+        expect(cleanupAttrs(result.html)).toContain('<script id="qwikloader">min</script>');
       });
     });
     describe('snapshotResult', () => {

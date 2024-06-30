@@ -19,6 +19,7 @@ import {
   ELEMENT_KEY,
   ELEMENT_PROPS,
   ELEMENT_SEQ,
+  ELEMENT_SEQ_IDX,
   OnRenderProp,
   QCtxAttr,
   QScopedStyle,
@@ -45,6 +46,7 @@ import {
   QBaseAttr,
   QLocaleAttr,
   QManifestHashAttr,
+  escapeHTML,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -343,11 +345,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (varAttrs) {
       innerHTML = this.writeAttrs(elementName, varAttrs, false);
     }
+    this.write(' :');
+    // Domino sometimes does not like empty attributes, so we need to add a empty value
+    isDev && this.write('=""');
     if (constAttrs && constAttrs.length) {
-      // we have to skip the `ref` prop, so we don't need `:` if there is only this `ref` prop
-      if (constAttrs[0] !== 'ref') {
-        this.write(' :');
-      }
       innerHTML = this.writeAttrs(elementName, constAttrs, true) || innerHTML;
     }
     this.write('>');
@@ -458,14 +459,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   /** Write a text node with correct escaping. Save the length of the text node in the vNodeData. */
   textNode(text: string) {
-    let lastIdx = 0;
-    let openAngleBracketIdx: number = -1;
-    while ((openAngleBracketIdx = text.indexOf('<', openAngleBracketIdx + 1)) !== -1) {
-      this.write(text.substring(lastIdx, openAngleBracketIdx));
-      this.write('&lt;');
-      lastIdx = openAngleBracketIdx + 1;
-    }
-    this.write(lastIdx === 0 ? text : text.substring(lastIdx));
+    this.write(escapeHTML(text));
     vNodeData_addTextSize(this.currentElementFrame!.vNodeData, text.length);
     this.lastNode = null;
   }
@@ -547,7 +541,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   private _styleNode(styleId: string, content: string) {
     this.openElement('style', [QStyle, styleId]);
-    this.textNode(content);
+    this.write(content);
     this.closeElement();
   }
 
@@ -621,7 +615,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (flag !== VNodeDataFlag.NONE) {
         lastSerializedIdx = this.emitVNodeSeparators(lastSerializedIdx, elementIdx);
         if (flag & VNodeDataFlag.REFERENCE) {
-          this.write('~');
+          this.write(VNodeDataSeparator.REFERENCE_CH);
         }
         if (flag & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE)) {
           let fragmentAttrs: SsrAttrs | null = null;
@@ -700,6 +694,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             break;
           case ELEMENT_SEQ:
             write(VNodeDataChar.SEQ_CHAR);
+            break;
+          case ELEMENT_SEQ_IDX:
+            write(VNodeDataChar.SEQ_IDX_CHAR);
             break;
           // Skipping `\` character for now because it is used for escaping.
           case QCtxAttr:
@@ -956,7 +953,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     let skipCount = elementIdx - lastSerializedIdx;
     // console.log('emitVNodeSeparators', lastSerializedIdx, elementIdx, skipCount);
     while (skipCount != 0) {
-      if (skipCount >= 4096) {
+      if (skipCount > 4096) {
         this.write(VNodeDataSeparator.ADVANCE_8192_CH);
         skipCount -= 8192;
       } else {
@@ -1109,7 +1106,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             }
             continue;
           }
-          innerHTML = value;
+          innerHTML = escapeHTML(value);
           key = QContainerAttr;
           value = QContainerValue.TEXT;
         }
@@ -1121,15 +1118,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           this.write(key);
           if (value !== true) {
             this.write('="');
-            let startIdx = 0;
-            let quoteIdx: number;
-            const strValue = String(value);
-            while ((quoteIdx = strValue.indexOf('"', startIdx)) != -1) {
-              this.write(strValue.substring(startIdx, quoteIdx));
-              this.write('&quot;');
-              startIdx = quoteIdx;
-            }
-            this.write(startIdx === 0 ? strValue : strValue.substring(startIdx));
+            const strValue = escapeHTML(String(value));
+            this.write(strValue);
 
             this.write('"');
           }

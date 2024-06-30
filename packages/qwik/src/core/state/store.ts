@@ -10,6 +10,7 @@ import {
   SERIALIZER_PROXY_UNWRAP,
   SerializationConstant,
   subscriptionManagerFromString,
+  unwrapDeserializerProxy,
 } from '../v2/shared/shared-serialization';
 import {
   LocalSubscriptionManager,
@@ -183,22 +184,14 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     const invokeCtx = tryGetInvokeContext();
     const recursive = (flags & QObjectRecursive) !== 0;
     const immutable = (flags & QObjectImmutable) !== 0;
-    const hiddenSignal = target['_IMMUTABLE_PREFIX' + prop];
     let subscriber: Subscriber | undefined | null;
-    let value;
     if (invokeCtx) {
       subscriber = invokeCtx.$subscriber$;
     }
     if (immutable && (!(prop in target) || immutableValue(target[_CONST_PROPS]?.[prop]))) {
       subscriber = null;
     }
-    if (hiddenSignal) {
-      assertTrue(isSignal(hiddenSignal), '$$ prop must be a signal');
-      value = hiddenSignal.value;
-      subscriber = null;
-    } else {
-      value = target[prop];
-    }
+    const value = target[prop];
     if (subscriber) {
       const isA = isArray(target);
       this.$manager$.$addSub$(subscriber, isA ? undefined : prop);
@@ -207,6 +200,8 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   }
 
   set(target: TargetType, prop: string | symbol, newValue: any): boolean {
+    // we need deserializer proxy only to get the value, not to set it
+    target = unwrapDeserializerProxy(target) as TargetType;
     if (typeof prop === 'symbol') {
       target[prop] = newValue;
       return true;
@@ -261,12 +256,6 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     if (hasOwnProperty.call(target, property)) {
       return true;
     }
-    if (
-      typeof property === 'string' &&
-      hasOwnProperty.call(target, '_IMMUTABLE_PREFIX' + property)
-    ) {
-      return true;
-    }
     return false;
   }
 
@@ -284,14 +273,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
         this.$manager$.$addSub$(subscriber);
       }
     }
-    if (isArray(target)) {
-      return Reflect.ownKeys(target);
-    }
-    return Reflect.ownKeys(target).map((a) => {
-      return typeof a === 'string' && a.startsWith('_IMMUTABLE_PREFIX')
-        ? a.slice('_IMMUTABLE_PREFIX'.length)
-        : a;
-    });
+    return Reflect.ownKeys(target);
   }
 
   getOwnPropertyDescriptor(

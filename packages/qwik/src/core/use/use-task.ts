@@ -987,10 +987,7 @@ export const parseTask = (data: string) => {
   return new Task(strToInt(flags), strToInt(index), el as any, qrl as any, resource as any, null);
 };
 
-let uniqueId = 0;
-
 export class Task<T = unknown, B = T> implements DescriptorBase<unknown, Signal<B>> {
-  public uniqueId: number;
   constructor(
     public $flags$: number,
     public $index$: number,
@@ -998,9 +995,7 @@ export class Task<T = unknown, B = T> implements DescriptorBase<unknown, Signal<
     public $qrl$: QRLInternal<T>,
     public $state$: Signal<B> | undefined,
     public $destroy$: NoSerialize<() => void> | null
-  ) {
-    this.uniqueId = uniqueId++;
-  }
+  ) {}
 }
 
 export const isTask = (value: any): value is Task => {

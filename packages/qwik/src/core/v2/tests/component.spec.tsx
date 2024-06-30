@@ -6,13 +6,9 @@ import {
   Fragment as Signal,
   SkipRender,
   component$,
-  createContextId,
   h,
   jsx,
   useComputed$,
-  useContext,
-  useContextProvider,
-  useTask$,
   useVisibleTask$,
 } from '@builder.io/qwik';
 import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
@@ -24,14 +20,13 @@ import { useSignal } from '../../use/use-signal';
 import { useStore } from '../../use/use-store.public';
 import { HTML_NS, MATH_NS, SVG_NS } from '../../util/markers';
 import { delay } from '../../util/promises';
-import { isBrowser, isServer } from '@builder.io/qwik/build';
 
-const debug = true; //true;
+const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  // { render: domRender }, //
+  { render: domRender }, //
 ])('$render.name: component', ({ render }) => {
   it('should render component', async () => {
     const MyComp = component$(() => {
@@ -1569,97 +1564,6 @@ describe.each([
     // console.log('vNode', String(vNode));
     // console.log('>>>>', div.outerHTML);
     expect(div.innerHTML).toEqual('<b>(</b>SomeErrorPOST<b>)</b>');
-  });
-
-  it.only('should unsubscribe from removed component', async () => {
-    (global as any).logs = [] as string[];
-
-    const ToggleChildA = component$((props: {name: string, count: number}) => {
-      useTask$(({ track }) => {
-        const count = track(() => props.count);
-        const logText = `Child of "${props.name}" (${count})`;
-        (global as any).logs.push(logText);
-      });
-
-      return (
-        <div>
-          <h1>Toggle {props.name}</h1>
-        </div>
-      );
-    });
-
-    const ToggleChildB = component$((props: {name: string, count: number}) => {
-      useTask$(({ track }) => {
-        const count = track(() => props.count);
-        const logText = `Child of "${props.name}" (${count})`;
-        (global as any).logs.push(logText);
-      });
-
-      return (
-        <div>
-          <h1>Toggle {props.name}</h1>
-        </div>
-      );
-    });
-
-
-    const Toggle = component$(() => {
-      const store = useStore({
-        count: 0,
-        cond: false
-      });
-      return (
-        <div>
-          <button id="increment" type="button" onClick$={() => store.count++}>
-            Root increment
-          </button>
-          <div>
-            {!store.cond ? <ToggleChildA name='A' count={store.count}/> : <ToggleChildB name='B' count={store.count}/>}
-            <button
-              type="button"
-              id="toggle"
-              onClick$={() => (store.cond = !store.cond)}
-            >
-              Toggle
-            </button>
-          </div>
-        </div>
-      );
-    });
-
-    const { vNode, document } = await render(<Toggle />, { debug });
-    expect(vNode).toBeDefined();
-    // expect(vNode).toMatchVDOM(
-    //   <Component>
-    //     {/* <div>
-    //       <button></button>
-    //       <Component>
-
-    //       </Component>
-    //     </div> */}
-    //   </Component>
-    // );
-  
-    // console.log('increment');
-    await trigger(document.body, '#increment', 'click');
-    // console.log('toggle');
-    await trigger(document.body, '#toggle', 'click');
-    // console.log(document.body.innerHTML);
-    // console.log('increment');
-    await trigger(document.body, '#increment', 'click');
-    // console.log('toggle');
-    await trigger(document.body, '#toggle', 'click');
-
-    // console.log(String(vNode));
-    // console.log((global as any).logs);
-
-    expect((global as any).logs).toEqual([
-      'Child of "A" (0)',  // init
-      'Child of "A" (1)',  // increment
-      'Child of "B" (1)',  // toggle
-      'Child of "B" (2)',  // increment
-      'Child of "A" (2)'  // toggle
-    ])
   });
 
   describe('regression', () => {

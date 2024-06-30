@@ -765,6 +765,7 @@ export const createSerializationContext = (
             // const manager = obj[QObjectManagerSymbol];
             // discoveredValues.push(...manager.$subs$);
           } else if (obj instanceof Task) {
+            $addRoot$(obj);
             discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$);
           } else if (NodeConstructor && obj instanceof NodeConstructor) {
             // ignore the nodes

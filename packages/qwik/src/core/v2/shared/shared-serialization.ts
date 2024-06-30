@@ -1141,9 +1141,15 @@ function subscriptionManagerToString(
 ) {
   const data: string[] = [];
   for (const sub of subscriptionManager.$subs$) {
-    data.push(
-      sub.map((val, propId) => (propId === SubscriptionProp.TYPE ? val : $addRoot$(val))).join(' ')
-    );
+    let subData = '';
+    for (let i = 0; i < sub.length; i++) {
+      if (i === SubscriptionProp.TYPE) {
+        subData += sub[i];
+      } else {
+        subData += ' ' + $addRoot$(sub[i]);
+      }
+    }
+    data.push(subData);
   }
   return data.join(';');
 }

@@ -285,28 +285,115 @@ describe.each([
     });
   });
 
-  it('should set the value with SerializationConstant at the start', async () => {
-    const DataCmp = component$(() => {
-      const data = useStore({ logs: '' });
-      return <button onClick$={() => (data.logs += '\n test')}>Data: {data.logs}!</button>;
+  describe('SerializationConstant at the start', () => {
+    it('should set the value with SerializationConstant at the start for initial empty value', async () => {
+      const DataCmp = component$(() => {
+        const data = useStore({ logs: '' });
+        return <button onClick$={() => (data.logs = '\n test')}>Data: {data.logs}!</button>;
+      });
+
+      const { vNode, container } = await render(<DataCmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Data: <Signal>{''}</Signal>!
+          </button>
+        </Component>
+      );
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Data: <Signal>{'\n test'}</Signal>!
+          </button>
+        </Component>
+      );
     });
 
-    const { vNode, container } = await render(<DataCmp />, { debug });
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <button>
-          Data: <Signal>{''}</Signal>!
-        </button>
-      </Component>
-    );
-    await trigger(container.element, 'button', 'click');
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <button>
-          Data: <Signal>{'\n test'}</Signal>!
-        </button>
-      </Component>
-    );
+    it('should set the value with SerializationConstant at the start', async () => {
+      const DataCmp = component$(() => {
+        const data = useStore({ logs: '\n abcd' });
+        return <button onClick$={() => (data.logs = '\n test')}>Data: {data.logs}!</button>;
+      });
+
+      const { vNode, container } = await render(<DataCmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Data: <Signal>{'\n abcd'}</Signal>!
+          </button>
+        </Component>
+      );
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Data: <Signal>{'\n test'}</Signal>!
+          </button>
+        </Component>
+      );
+    });
+
+    it('should update the value with SerializationConstant at the start', async () => {
+      const DataCmp = component$(() => {
+        const data = useStore({ logs: '\n abcd' });
+        return <button onClick$={() => (data.logs += '\n test')}>Data: {data.logs}!</button>;
+      });
+
+      const { vNode, container } = await render(<DataCmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Data: <Signal>{'\n abcd'}</Signal>!
+          </button>
+        </Component>
+      );
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Data: <Signal>{'\n abcd\n test'}</Signal>!
+          </button>
+        </Component>
+      );
+    });
+
+    it('should push the value with SerializationConstant at the start to array', async () => {
+      const DataCmp = component$(() => {
+        const data = useStore({ logs: ['\n abcd'] });
+        return (
+          <button onClick$={() => data.logs.push('\n test')}>
+            Data:
+            {data.logs.map((d) => (
+              <span>{d}</span>
+            ))}
+            !
+          </button>
+        );
+      });
+
+      const { vNode, container } = await render(<DataCmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            {'Data:'}
+            <span>{'\n abcd'}</span>
+            {'!'}
+          </button>
+        </Component>
+      );
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            {'Data:'}
+            <span>{'\n abcd'}</span>
+            <span>{'\n test'}</span>
+            {'!'}
+          </button>
+        </Component>
+      );
+    });
   });
 
   describe('regression', () => {

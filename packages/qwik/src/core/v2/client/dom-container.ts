@@ -335,9 +335,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       styleElement.setAttribute(QStyle, styleId);
       styleElement.textContent = content;
       this.$journal$.push(VNodeJournalOpCode.Insert, this.document.head, null, styleElement);
-    } else {
-      const styleIdsString = this.getHostProp<string>(host, QStyle);
-      const styleIds = convertStyleIdsStringToArray(styleIdsString) || [];
+    } else if (styleIds.length) {
       this.$journal$.push(VNodeJournalOpCode.EnableStyles, this.document, ...styleIds);
     }
   }
@@ -351,6 +349,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
     }
     const styleIdsString = this.getHostProp<string>(host, QStyle);
     const styleIds = convertStyleIdsStringToArray(styleIdsString) || [];
-    this.$journal$.push(VNodeJournalOpCode.DisableStyles, this.document, ...styleIds);
+    if (styleIds.length) {
+      this.$journal$.push(VNodeJournalOpCode.DisableStyles, this.document, ...styleIds);
+    }
   }
 }

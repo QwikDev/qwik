@@ -717,6 +717,14 @@ export const createSerializationContext = (
         const unwrapObj = unwrapProxy(obj);
         if (unwrapObj !== obj) {
           discoveredValues.push(unwrapObj);
+          const manager = getSubscriptionManager(obj as object)!;
+
+          // add subscription host to the discovered values
+          for (const sub of manager.$subs$) {
+            for (let i = SubscriptionProp.HOST; i < sub.length; i++) {
+              discoveredValues.push(sub[i]);
+            }
+          }
         } else if (id === undefined || isRoot) {
           // Object has not been seen yet, must scan content
           // But not for root.
@@ -1131,9 +1139,15 @@ function subscriptionManagerToString(
 ) {
   const data: string[] = [];
   for (const sub of subscriptionManager.$subs$) {
-    data.push(
-      sub.map((val, propId) => (propId === SubscriptionProp.TYPE ? val : $addRoot$(val))).join(' ')
-    );
+    let subData = '';
+    for (let i = 0; i < sub.length; i++) {
+      if (i === SubscriptionProp.TYPE) {
+        subData += sub[i];
+      } else {
+        subData += ' ' + $addRoot$(sub[i]);
+      }
+    }
+    data.push(subData);
   }
   return data.join(';');
 }

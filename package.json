@@ -59,6 +59,7 @@
     }
   ],
   "dependencies": {
+    "@qwik-ui/headless": "^0.4.4",
     "esbuild-plugin-raw": "^0.1.8"
   },
   "devDependencies": {

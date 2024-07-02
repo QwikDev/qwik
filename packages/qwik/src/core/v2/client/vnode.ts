@@ -140,7 +140,7 @@ import {
   QStyle,
   QStylesAllSelector,
 } from '../../util/markers';
-import { isHtmlElement } from '../../util/types';
+import { isHtmlElement, isObject } from '../../util/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType, VirtualTypeName } from '../shared/types';
 import { VNodeDataChar } from '../shared/vnode-data-types';
 import { getDomContainer, _getQContainerElement } from './dom-container';
@@ -164,6 +164,7 @@ import {
   vnode_getElementNamespaceFlags,
 } from './vnode-namespace';
 import { escapeHTML } from '../shared/character-escaping';
+import { SignalImpl } from '../../state/signal';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1879,8 +1880,15 @@ const stringify = (value: any): any => {
       }
     } else if (Array.isArray(value)) {
       return '[' + value.map(stringify).join(', ') + ']';
+    } if (value instanceof SignalImpl) {
+      return stringify(value.value)
     } else {
-      return String(value);
+      if(value.toString){
+        return String(value);
+      }else {
+        return JSON.stringify(value)
+      }
+      
     }
   } finally {
     stringifyPath.pop();

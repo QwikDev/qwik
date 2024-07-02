@@ -5,11 +5,6 @@ import { GlobalStore } from '~/context';
 const pkgManagers = ['pnpm', 'npm', 'yarn', 'bun'] as const;
 type PkgManagers = (typeof pkgManagers)[number];
 
-export interface IconProps {
-  width?: number;
-  height?: number;
-}
-
 export default component$(() => {
   const globalStore = useContext(GlobalStore);
   const selectedPkgManagersSig = useSignal<PkgManagers>('pnpm');

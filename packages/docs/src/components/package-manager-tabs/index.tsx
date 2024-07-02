@@ -1,13 +1,16 @@
-import { Slot, component$, useSignal } from '@builder.io/qwik';
+import { Slot, component$, useContext, useSignal } from '@builder.io/qwik';
 import { Tabs } from '@qwik-ui/headless';
+import { GlobalStore } from '~/context';
 
 const pkgManagers = ['pnpm', 'npm', 'yarn', 'bun'] as const;
 type PkgManagers = (typeof pkgManagers)[number];
 
 export default component$(() => {
+  const globalStore = useContext(GlobalStore);
   const selectedPkgManagersSig = useSignal<PkgManagers>('pnpm');
 
-  const _class = 'px-4 pt-2 rounded-md text-white';
+  const activeClass = `${globalStore.theme === 'light' ? 'bg-gray-300 text-black' : 'bg-slate-800 text-white'}`;
+
   return (
     <>
       <Tabs.Root
@@ -19,10 +22,7 @@ export default component$(() => {
         <Tabs.List>
           <Tabs.Tab
             tabId="pnpm"
-            class={{
-              [_class]: true,
-              'bg-slate-800 font-bold': selectedPkgManagersSig.value === 'pnpm',
-            }}
+            class={`px-4 pt-2 rounded-md ${selectedPkgManagersSig.value === 'pnpm' ? `font-bold ${activeClass}` : ''}`}
           >
             <span class="inline-flex items-center gap-x-2">
               <PnpmIcon />
@@ -31,10 +31,7 @@ export default component$(() => {
           </Tabs.Tab>
           <Tabs.Tab
             tabId="npm"
-            class={{
-              [_class]: true,
-              'bg-slate-800 hover:bg-none font-bold': selectedPkgManagersSig.value === 'npm',
-            }}
+            class={`px-4 pt-2 rounded-md ${selectedPkgManagersSig.value === 'npm' ? `font-bold ${activeClass}` : ''}`}
           >
             <span class="inline-flex items-center gap-x-2">
               <NpmIcon />
@@ -43,10 +40,7 @@ export default component$(() => {
           </Tabs.Tab>
           <Tabs.Tab
             tabId="yarn"
-            class={{
-              [_class]: true,
-              'bg-slate-800 hover:bg-none font-bold': selectedPkgManagersSig.value === 'yarn',
-            }}
+            class={`px-4 pt-2 rounded-md ${selectedPkgManagersSig.value === 'yarn' ? `font-bold ${activeClass}` : ''}`}
           >
             <span class="inline-flex items-center gap-x-2">
               <YarnIcon />
@@ -55,10 +49,7 @@ export default component$(() => {
           </Tabs.Tab>
           <Tabs.Tab
             tabId="bun"
-            class={{
-              [_class]: true,
-              'bg-slate-800 hover:bg-none font-bold': selectedPkgManagersSig.value === 'bun',
-            }}
+            class={`px-4 pt-2 rounded-md ${selectedPkgManagersSig.value === 'bun' ? `font-bold ${activeClass}` : ''}`}
           >
             <span class="inline-flex items-center gap-x-2">
               <BunIcon />

@@ -2291,6 +2291,19 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[getAssetsDir](#)
+
+</td><td>
+
+</td><td>
+
+() =&gt; string \| undefined
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
 [getClientOutDir](#)
 
 </td><td>

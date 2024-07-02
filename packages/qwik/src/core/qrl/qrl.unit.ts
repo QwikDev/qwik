@@ -86,6 +86,16 @@ describe('serialization', () => {
       $symbol$: 'symbol',
       $capture$: ['2'],
     });
+    matchProps(
+      parseQRL(
+        '/src/path%2d/foo_symbol.js?_qrl_parent=/home/user/project/src/path/foo.js#symbol[2]'
+      ),
+      {
+        $chunk$: '/src/path%2d/foo_symbol.js?_qrl_parent=/home/user/project/src/path/foo.js',
+        $symbol$: 'symbol',
+        $capture$: ['2'],
+      }
+    );
   });
 
   test('serialize qrls', () => {

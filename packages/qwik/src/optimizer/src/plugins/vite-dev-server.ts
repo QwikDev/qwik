@@ -147,23 +147,25 @@ export async function configureDevServer(
                   if (symbolName === SYNC_QRL) {
                     return [symbolName, ''];
                   }
-                  const chunk = mapper && mapper[getSymbolHash(symbolName)];
+                  const hash = getSymbolHash(symbolName);
+                  const chunk = mapper && mapper[hash];
                   if (chunk) {
                     return [chunk[0], encode(chunk[1])];
                   }
-                  parent ||= foundQrls.get(symbolName);
+                  parent ||= foundQrls.get(hash);
                   if (!parent) {
                     console.error(
-                      'qwik vite-dev-server: unknown qrl requested without parent:',
+                      'qwik vite-dev-server symbolMapper: unknown qrl requested without parent:',
                       symbolName
                     );
                     return [symbolName, `${base}${symbolName.toLowerCase()}.js`];
                   }
                   const parentPath = path.dirname(parent);
-                  // support getting files through pnpm link symlinks
+                  // DX: if the file isn't under the source dir (e.g. a symlink from node_modules)
+                  // use the full path, otherwise relative to the source
                   const qrlPath = parentPath.startsWith(opts.rootDir)
                     ? path.relative(opts.rootDir, parentPath)
-                    : parentPath;
+                    : `@fs${parentPath}`;
                   const qrlFile = `${encode(qrlPath)}/${symbolName.toLowerCase()}.js?_qrl_parent=${encode(parent)}`;
                   return [symbolName, `${base}${qrlFile}`];
                 },
@@ -208,18 +210,6 @@ export async function configureDevServer(
           next();
         }
       } else {
-        // We didn't ssr, but maybe a qrl was requested
-        const parent = url.searchParams.get('_qrl_parent');
-        if (parent && url.pathname.endsWith('.js')) {
-          // load the parent so it populates the qrl cache
-          await server.transformRequest(parent);
-          const result = await server.transformRequest(url.pathname);
-          if (result) {
-            res.setHeader('content-type', 'application/javascript');
-            res.write(result.code);
-            res.end();
-          }
-        }
         next();
       }
     } catch (e: any) {

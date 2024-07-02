@@ -26,6 +26,7 @@ const noExternal = [
   '@builder.io/qwik',
   '@builder.io/qwik/server',
   '@builder.io/qwik/build',
+  '@qwik-ui/headless',
   '@builder.io/qwik-city',
 ];
 
@@ -40,6 +41,7 @@ const excludeDeps = [
   '@builder.io/qwik/jsx-dev-runtime',
   '@builder.io/qwik/build',
   '@qwik-client-manifest',
+  '@qwik-ui/headless',
   '@builder.io/qwik-city',
 ];
 

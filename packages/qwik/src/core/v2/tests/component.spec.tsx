@@ -493,18 +493,46 @@ describe.each([
 
   it('should escape html tags', async () => {
     const Cmp = component$(() => {
+      const counter = useSignal(0);
       const b = '<script></script>';
-      return <p>{JSON.stringify(b)}</p>;
+      return (
+        <button onClick$={() => counter.value++}>
+          {JSON.stringify(b)}
+          {`&<'"`}
+          {counter.value}
+        </button>
+      );
     });
 
     const { vNode, document } = await render(<Cmp />, { debug });
     expect(vNode).toMatchVDOM(
       <Component>
-        <p>{'"<script></script>"'}</p>
+        <button>
+          {'"<script></script>"'}
+          {`&<'"`}
+          <Signal>{0}</Signal>
+        </button>
       </Component>
     );
 
-    expect(document.querySelector('p')).toMatchDOM(<p>{'"<script></script>"'}</p>);
+    await expect(document.querySelector('button')).toMatchDOM(
+      <button>{`"<script></script>"&<'"0`}</button>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          {'"<script></script>"'}
+          {`&<'"`}
+          <Signal>{1}</Signal>
+        </button>
+      </Component>
+    );
+
+    await expect(document.querySelector('button')).toMatchDOM(
+      <button>{`"<script></script>"&<'"1`}</button>
+    );
   });
 
   it('should render correctly with comment nodes', async () => {

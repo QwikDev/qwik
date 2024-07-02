@@ -25,6 +25,7 @@ import {
   SubscriptionProp,
   fastSkipSerialize,
   getProxyFlags,
+  getProxyTarget,
   getSubscriptionManager,
   unwrapProxy,
   type LocalSubscriptionManager,
@@ -53,7 +54,7 @@ const deserializedProxyMap = new WeakMap<object, unknown>();
 
 type DeserializerProxy<T extends object = object> = T & { [SERIALIZER_PROXY_UNWRAP]: object };
 
-const unwrapDeserializerProxy = (value: unknown) => {
+export const unwrapDeserializerProxy = (value: unknown) => {
   const unwrapped =
     typeof value === 'object' &&
     value !== null &&
@@ -94,6 +95,28 @@ class DeserializationHandler implements ProxyHandler<object> {
   get(target: object, property: PropertyKey, receiver: object) {
     if (property === SERIALIZER_PROXY_UNWRAP) {
       return target;
+    }
+    if (getProxyTarget(target) !== undefined) {
+      /**
+       * If we modify string value by for example `+=` operator, we need to get the old value first.
+       * If the target is a store proxy, we need to unwrap it and get the real object. This is
+       * because if we try to get the value, we will get deserialized value which is not what we
+       * want in case of string.
+       *
+       * For strings we always assume that they are not deserialized (cached), so we need to get the
+       * real value. The reason is that if we have a string which starts with a serialization
+       * constant character, we need to have the SerializationConstant.String_CHAR prefix character.
+       * Otherwise the system will try to deserialize the value again.
+       */
+      const unwrapped = unwrapDeserializerProxy(unwrapProxy(target)) as object;
+      const unwrappedPropValue = Reflect.get(unwrapped, property, receiver);
+      if (
+        typeof unwrappedPropValue === 'string' &&
+        unwrappedPropValue.length >= 1 &&
+        unwrappedPropValue.charCodeAt(0) === SerializationConstant.String_VALUE
+      ) {
+        return allocate(unwrappedPropValue);
+      }
     }
     let propValue = Reflect.get(target, property, receiver);
     let typeCode: number;
@@ -160,8 +183,7 @@ class DeserializationHandler implements ProxyHandler<object> {
   set(target: object, property: string | symbol, newValue: any, receiver: any): boolean {
     /**
      * If we are setting a value which is a string and starts with a special character, we need to
-     * prefix it with a SerializationConstant character to indicate that it is a string. But only if
-     * the current value is an empty string.
+     * prefix it with a SerializationConstant character to indicate that it is a string.
      *
      * Without this later (when getting the value) we would try to deserialize the value incorrectly
      * due to the special character at the start.
@@ -171,15 +193,7 @@ class DeserializationHandler implements ProxyHandler<object> {
       newValue.length >= 1 &&
       newValue.charCodeAt(0) < SerializationConstant.LAST_VALUE
     ) {
-      const currentPropValue = Reflect.get(target, property, receiver);
-      if (typeof currentPropValue === 'string' && currentPropValue.length === 0) {
-        return Reflect.set(
-          target,
-          property,
-          SerializationConstant.String_CHAR + newValue,
-          receiver
-        );
-      }
+      return Reflect.set(target, property, SerializationConstant.String_CHAR + newValue, receiver);
     }
     return Reflect.set(target, property, newValue, receiver);
   }
@@ -703,6 +717,14 @@ export const createSerializationContext = (
         const unwrapObj = unwrapProxy(obj);
         if (unwrapObj !== obj) {
           discoveredValues.push(unwrapObj);
+          const manager = getSubscriptionManager(obj as object)!;
+
+          // add subscription host to the discovered values
+          for (const sub of manager.$subs$) {
+            for (let i = SubscriptionProp.HOST; i < sub.length; i++) {
+              discoveredValues.push(sub[i]);
+            }
+          }
         } else if (id === undefined || isRoot) {
           // Object has not been seen yet, must scan content
           // But not for root.
@@ -1117,9 +1139,15 @@ function subscriptionManagerToString(
 ) {
   const data: string[] = [];
   for (const sub of subscriptionManager.$subs$) {
-    data.push(
-      sub.map((val, propId) => (propId === SubscriptionProp.TYPE ? val : $addRoot$(val))).join(' ')
-    );
+    let subData = '';
+    for (let i = 0; i < sub.length; i++) {
+      if (i === SubscriptionProp.TYPE) {
+        subData += sub[i];
+      } else {
+        subData += ' ' + $addRoot$(sub[i]);
+      }
+    }
+    data.push(subData);
   }
   return data.join(';');
 }

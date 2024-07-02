@@ -1,292 +1,169 @@
-import { Slot, component$, useContext, useSignal } from '@builder.io/qwik';
+import { Slot, component$, useSignal } from '@builder.io/qwik';
 import { Tabs } from '@qwik-ui/headless';
-import { GlobalStore } from '~/context';
 
 const pkgManagers = ['pnpm', 'npm', 'yarn', 'bun'] as const;
 type PkgManagers = (typeof pkgManagers)[number];
 
 export default component$(() => {
-  const globalStore = useContext(GlobalStore);
   const selectedPkgManagersSig = useSignal<PkgManagers>('pnpm');
 
+  const _class = 'px-4 pt-2 rounded-md text-white';
   return (
-    <Tabs.Root
-      selectedTabId={selectedPkgManagersSig.value}
-      onSelectedTabIdChange$={(pkgManager) => {
-        selectedPkgManagersSig.value = pkgManager as PkgManagers;
-      }}
-    >
-      <Tabs.List>
-        <Tabs.Tab
-          tabId="pnpm"
-          class={`px-4 py-2 rounded-md ${
-            selectedPkgManagersSig.value === 'pnpm'
-              ? 'bg-[#011f33] hover:bg-none font-bold text-white'
-              : globalStore.theme === 'light'
-                ? 'hover:bg-[var(--qwik-light-blue)] text-black'
-                : 'hover:bg-[var(--on-this-page-hover-bg-color)] text-white'
-          }`}
-        >
-          <span class="inline-flex items-center gap-x-2">
-            <PnpmIcon />
-            pnpm
-          </span>
-        </Tabs.Tab>
-        <Tabs.Tab
-          tabId="npm"
-          class={`px-4 py-2 rounded-md ${
-            selectedPkgManagersSig.value === 'npm'
-              ? 'bg-[#011f33] hover:bg-none font-bold text-white'
-              : globalStore.theme === 'light'
-                ? 'hover:bg-[var(--qwik-light-blue)] text-black'
-                : 'hover:bg-[var(--on-this-page-hover-bg-color)] text-white'
-          }`}
-        >
-          <span class="inline-flex items-center gap-x-2">
-            <NpmIcon />
-            npm
-          </span>
-        </Tabs.Tab>
-        <Tabs.Tab
-          tabId="yarn"
-          class={`px-4 py-2 rounded-md ${
-            selectedPkgManagersSig.value === 'yarn'
-              ? 'bg-[#011f33] hover:bg-none font-bold text-white'
-              : globalStore.theme === 'light'
-                ? 'hover:bg-[var(--qwik-light-blue)] text-black'
-                : 'hover:bg-[var(--on-this-page-hover-bg-color)] text-white'
-          }`}
-        >
-          <span class="inline-flex items-center gap-x-2">
-            <YarnIcon />
-            yarn
-          </span>
-        </Tabs.Tab>
-        <Tabs.Tab
-          tabId="bun"
-          class={`px-4 py-2 rounded-md ${
-            selectedPkgManagersSig.value === 'bun'
-              ? 'bg-[#011f33] hover:bg-none font-bold text-white'
-              : globalStore.theme === 'light'
-                ? 'hover:bg-[var(--qwik-light-blue)] text-black'
-                : 'hover:bg-[var(--on-this-page-hover-bg-color)] text-white'
-          }`}
-        >
-          <span class="inline-flex items-center gap-x-2">
-            <BunIcon />
-            bun
-          </span>
-        </Tabs.Tab>
-      </Tabs.List>
+    <>
+      <Tabs.Root
+        selectedTabId={selectedPkgManagersSig.value}
+        onSelectedTabIdChange$={(pkgManager) => {
+          selectedPkgManagersSig.value = pkgManager as PkgManagers;
+        }}
+      >
+        <Tabs.List>
+          <Tabs.Tab
+            tabId="pnpm"
+            class={{
+              [_class]: true,
+              'bg-slate-800 font-bold': selectedPkgManagersSig.value === 'pnpm',
+            }}
+          >
+            <span class="inline-flex items-center gap-x-2">
+              <PnpmIcon />
+              pnpm
+            </span>
+          </Tabs.Tab>
+          <Tabs.Tab
+            tabId="npm"
+            class={{
+              [_class]: true,
+              'bg-slate-800 hover:bg-none font-bold': selectedPkgManagersSig.value === 'npm',
+            }}
+          >
+            <span class="inline-flex items-center gap-x-2">
+              <NpmIcon />
+              npm
+            </span>
+          </Tabs.Tab>
+          <Tabs.Tab
+            tabId="yarn"
+            class={{
+              [_class]: true,
+              'bg-slate-800 hover:bg-none font-bold': selectedPkgManagersSig.value === 'yarn',
+            }}
+          >
+            <span class="inline-flex items-center gap-x-2">
+              <YarnIcon />
+              yarn
+            </span>
+          </Tabs.Tab>
+          <Tabs.Tab
+            tabId="bun"
+            class={{
+              [_class]: true,
+              'bg-slate-800 hover:bg-none font-bold': selectedPkgManagersSig.value === 'bun',
+            }}
+          >
+            <span class="inline-flex items-center gap-x-2">
+              <BunIcon />
+              bun
+            </span>
+          </Tabs.Tab>
+        </Tabs.List>
 
-      <Tabs.Panel>
-        <Slot name="pnpm" />
-      </Tabs.Panel>
-      <Tabs.Panel>
-        <Slot name="npm" />
-      </Tabs.Panel>
-      <Tabs.Panel>
-        <Slot name="yarn" />
-      </Tabs.Panel>
-      <Tabs.Panel>
-        <Slot name="bun" />
-      </Tabs.Panel>
-    </Tabs.Root>
+        <Tabs.Panel>
+          <Slot name="pnpm" />
+        </Tabs.Panel>
+        <Tabs.Panel>
+          <Slot name="npm" />
+        </Tabs.Panel>
+        <Tabs.Panel>
+          <Slot name="yarn" />
+        </Tabs.Panel>
+        <Tabs.Panel>
+          <Slot name="bun" />
+        </Tabs.Panel>
+      </Tabs.Root>{' '}
+    </>
   );
 });
 
-const PnpmIcon = (() => 
-  <svg
-    version="1.1"
-    xmlns="http://www.w3.org/2000/svg"
-    xmlns:xlink="http://www.w3.org/1999/xlink"
-    preserveAspectRatio="xMidYMid meet"
-    viewBox="76.58987244897958 44 164.00775510204068 164"
-    width={18}
-    height={18}
-  >
-    <defs>
-      <path d="M237.6 95L187.6 95L187.6 45L237.6 45L237.6 95Z" id="arNRoK435"></path>
-      <path d="M182.59 95L132.59 95L132.59 45L182.59 45L182.59 95Z" id="a3H2WU7Px"></path>
-      <path d="M127.59 95L77.59 95L77.59 45L127.59 45L127.59 95Z" id="b1DInM56vl"></path>
-      <path d="M237.6 150L187.6 150L187.6 100L237.6 100L237.6 150Z" id="a7LFlgQIwu"></path>
-      <path d="M182.59 150L132.59 150L132.59 100L182.59 100L182.59 150Z" id="amwLiZcuo"></path>
-      <path d="M182.59 205L132.59 205L132.59 155L182.59 155L182.59 205Z" id="f3Peu5RWan"></path>
-      <path d="M237.6 205L187.6 205L187.6 155L237.6 155L237.6 205Z" id="a6DXBfqPa"></path>
-      <path d="M127.59 205L77.59 205L77.59 155L127.59 155L127.59 205Z" id="c1GWSTH1z7"></path>
-    </defs>
-    <g>
-      <g>
-        <use xlink:href="#arNRoK435" opacity="1" fill="#f9ad00" fill-opacity="1"></use>
+const PnpmIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256">
+    <g fill="none">
+      <g clip-path="url(#skillIconsPnpmLight0)">
+        <path
+          fill="#F4F2ED"
+          d="M196 0H60C26.863 0 0 26.863 0 60v136c0 33.137 26.863 60 60 60h136c33.137 0 60-26.863 60-60V60c0-33.137-26.863-60-60-60"
+        />
+        <path fill="#F9AD00" d="M40 41h55v55H40zm60 0h55v55h-55zm60 0h55v55h-55zm0 60h55v55h-55z" />
+        <path fill="#4E4E4E" d="M160 161h55v55h-55zm-60 0h55v55h-55zm-60 0h55v55H40z" />
+        <path fill="#F4F2ED" d="M40 101h55v55H40z" />
+        <path fill="#4E4E4E" d="M100 101h55v55h-55z" />
       </g>
-      <g>
-        <use xlink:href="#a3H2WU7Px" opacity="1" fill="#f9ad00" fill-opacity="1"></use>
-      </g>
-      <g>
-        <use xlink:href="#b1DInM56vl" opacity="1" fill="#f9ad00" fill-opacity="1"></use>
-      </g>
-      <g>
-        <use xlink:href="#a7LFlgQIwu" opacity="1" fill="#f9ad00" fill-opacity="1"></use>
-      </g>
-      <g>
-        <use xlink:href="#amwLiZcuo" opacity="1" fill="#4e4e4e" fill-opacity="1"></use>
-      </g>
-      <g>
-        <use xlink:href="#f3Peu5RWan" opacity="1" fill="#4e4e4e" fill-opacity="1"></use>
-      </g>
-      <g>
-        <use xlink:href="#a6DXBfqPa" opacity="1" fill="#4e4e4e" fill-opacity="1"></use>
-      </g>
-      <g>
-        <use xlink:href="#c1GWSTH1z7" opacity="1" fill="#4e4e4e" fill-opacity="1"></use>
-      </g>
+      <defs>
+        <clipPath id="skillIconsPnpmLight0">
+          <path fill="#fff" d="M0 0h256v256H0z" />
+        </clipPath>
+      </defs>
     </g>
-  </svg>
-)
-
-const NpmIcon = (() => 
-  <svg
-    width={18}
-    height={18}
-    viewBox="0 0 630 630"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    xmlns:xlink="http://www.w3.org/1999/xlink"
-  >
-    <rect width="630" height="630" fill="url(#pattern0)" />
-    <defs>
-      <pattern id="pattern0" patternContentUnits="objectBoundingBox" width="1" height="1">
-        <use xlink:href="#image0_13_2" transform="scale(0.0015873)" />
-      </pattern>
-      <image
-        id="image0_13_2"
-        width="630"
-        height="630"
-        xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAnYAAAJ2CAYAAADSVM/5AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAA2HSURBVHhe7dm/ilRXAMDhc1eDnUiw8F+ZxtLe2lew8T1k0VJZ8hqCL7HPsLB1CNiIGJSAgo1GZ3InDiGSNFnc2evP74PLnjnbXM5czvkxdzoaYz0AAPjm7W3/AgDwjRN2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AICI6WiM9Xa8LHtzc66XeWsAwHdsmsZYrbYflmW5YbdZNGEHACzNghvFq1gAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIqajMdbb8bJM03xny7y1OqsO8G2YT0rOwoIbRdjxhQu3bo1Ld+6Mac+PuQBLtl6txpvDw/H++Hg7w84IuxMQdju3We0r9++P648ffw476w+wTPMZuQm7Fw8ejN9+/tkvd7sm7E5A2O3cZrWv7u+P648ejeEXO4Bl24Tdw4fj5cGBsNu1BTeK0xsAIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHT0Rjr7XhZpmm+s2XeWtVmta/u74/rjx7Nya/56Vh//Dg+vH49xqdP2xlOxbxnT/Pe/cOVK2M6f347yalZrcaLhw/Hy4ODMZ+Y7NKCG0XY8TdhR9WH58/Hr/fujT9evfq8t/D1zcs6zeF8/uq18dPTp+PCtWvbf3BqhN3ZEXYnIOx2TthR9f7Zs/HL7dvjw8uXDsBTtNlDzt+8OW4eHo4LN258nuT0CLuzs+BGcXoD3w2H3+myvnD2hB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIO76wXq3Ger2eB/M1j12ub/7668Gen2d2Z71d9//6Plxf55qf6c1evdmz4Z+mo/nx2I6XZZpsxmfgwq1b49KdO2Pa0/x0fHr7dvz+5MlYvXu3neG0nLt8efx49+44d/HidobTsom6N4eH4/3x8XaGnVlwowg7/sWqUzTvKOyIPWR3PNdnRNidgLADAJZowY3ifRsAQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEdPRGOvteFn25uZcL/PWAIDv2DSNsVptPyzLcsMOAID/xatYAIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMAiBB2AAARwg4AIELYAQBECDsAgAhhBwAQIewAACKEHQBAhLADAIgQdgAAEcIOACBC2AEARAg7AIAIYQcAECHsAAAihB0AQISwAwCIEHYAABHCDgAgQtgBAEQIOwCACGEHABAh7AAAIoQdAECEsAMASBjjT53R4qbnekMRAAAAAElFTkSuQmCC"
-      />
-    </defs>
   </svg>
 );
 
-const YarnIcon = (() => 
-  <svg
-    viewBox="0 0 512 512"
-    xmlns="http://www.w3.org/2000/svg"
-    fill-rule="evenodd"
-    clip-rule="evenodd"
-    stroke-linejoin="round"
-    stroke-miterlimit="2"
-    width={18}
-    height={18}
-  >
+const NpmIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256">
+    <path fill="#C12127" d="M0 256V0h256v256z" />
+    <path fill="#FFF" d="M48 48h160v160h-32V80h-48v128H48z" />
+  </svg>
+);
+
+const YarnIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256">
     <path
-      d="M256 0c141.344 0 256 114.656 256 256S397.344 512 256 512 0 397.344 0 256 114.656 0 256 0z"
-      fill="#2c8ebb"
-      fill-rule="nonzero"
+      fill="#368FB9"
+      d="M128 0C57.328 0 0 57.328 0 128s57.328 128 128 128s128-57.328 128-128S198.672 0 128 0"
     />
     <path
-      d="M430.16 333.59c-1.78-14.035-13.641-23.721-28.863-23.524-22.733.297-41.81 12.06-54.461 19.868-4.943 3.064-9.193 5.337-12.85 7.017.79-11.465.099-26.49-5.832-42.996-7.215-19.768-16.901-31.926-23.82-38.943 8.006-11.664 18.977-28.665 24.117-54.956 4.448-22.437 3.064-57.329-7.117-76.9-2.075-3.953-5.535-6.82-9.884-8.005-1.779-.495-5.14-1.483-11.762.395-9.983-20.658-13.442-22.832-16.111-24.612-5.535-3.558-12.059-4.349-18.187-2.075-8.204 2.965-15.222 10.872-21.844 24.908-.988 2.075-1.878 4.052-2.669 6.03-12.553.889-32.321 5.435-49.025 23.523-2.076 2.274-6.128 3.954-10.379 5.536h.1c-8.699 3.064-12.653 10.18-17.496 23.03-6.721 17.989.198 35.682 7.018 47.147-9.291 8.303-21.646 21.548-28.17 37.066-8.105 19.175-8.994 37.955-8.698 48.136-6.919 7.314-17.594 21.053-18.78 36.472-1.581 21.548 6.227 36.176 9.687 41.514.988 1.581 2.075 2.866 3.261 4.151-.395 2.669-.494 5.535.1 8.5 1.284 6.92 5.633 12.553 12.256 16.112 13.047 6.919 31.234 9.884 45.27 2.866 5.04 5.338 14.232 10.477 30.937 10.477h.988c4.25 0 58.218-2.866 73.934-6.72 7.017-1.681 11.86-4.646 15.023-7.315 10.082-3.163 37.956-12.652 64.248-29.653 18.582-12.058 25.007-14.628 38.844-17.989 13.443-3.262 21.844-15.518 20.164-29.06zm-23.525 14.53c-15.815 3.756-23.821 7.216-43.392 19.966-30.542 19.769-63.95 28.961-63.95 28.961s-2.768 4.151-10.774 6.03c-13.838 3.36-65.927 6.226-70.672 6.325-12.75.1-20.559-3.261-22.733-8.5-6.623-15.815 9.488-22.734 9.488-22.734s-3.558-2.174-5.634-4.151c-1.878-1.878-3.854-5.634-4.448-4.25-2.47 6.03-3.756 20.757-10.378 27.379-9.093 9.192-26.292 6.128-36.473.79-11.169-5.93.791-19.866.791-19.866s-6.03 3.558-10.872-3.756c-4.35-6.722-8.402-18.187-7.315-32.322 1.186-16.11 19.176-31.728 19.176-31.728s-3.163-23.82 7.215-48.235c9.39-22.239 34.694-40.13 34.694-40.13s-21.251-23.524-13.344-44.676c5.14-13.838 7.215-13.739 8.896-14.332 5.93-2.273 11.663-4.744 15.913-9.39 21.251-22.931 48.334-18.582 48.334-18.582s12.85-39.043 24.71-31.432c3.657 2.372 16.803 31.63 16.803 31.63s14.036-8.204 15.617-5.14c8.5 16.506 9.49 48.037 5.733 67.212-6.326 31.63-22.14 48.63-28.466 59.305-1.483 2.471 17 10.28 28.664 42.601 10.774 29.554 1.186 54.363 2.866 57.13.297.495.396.692.396.692s12.355.989 37.164-14.332c13.245-8.204 28.96-17.396 46.851-17.593 17.297-.297 18.187 19.966 5.14 23.128z"
-      fill="#fff"
-      fill-rule="nonzero"
+      fill="#FFF"
+      d="M203.317 174.06c-7.907 1.878-11.91 3.608-21.695 9.983c-15.271 9.884-31.976 14.48-31.976 14.48s-1.383 2.076-5.387 3.015c-6.918 1.68-32.963 3.114-35.335 3.163c-6.376.05-10.28-1.63-11.367-4.25c-3.311-7.907 4.744-11.367 4.744-11.367s-1.779-1.087-2.817-2.076c-.939-.939-1.927-2.816-2.224-2.125c-1.235 3.015-1.878 10.379-5.189 13.69c-4.547 4.596-13.146 3.064-18.236.395c-5.585-2.965.395-9.933.395-9.933s-3.015 1.779-5.436-1.878c-2.175-3.36-4.2-9.094-3.657-16.16c.593-8.056 9.587-15.865 9.587-15.865s-1.581-11.91 3.608-24.117c4.695-11.12 17.347-20.065 17.347-20.065s-10.626-11.762-6.672-22.338c2.57-6.92 3.608-6.87 4.448-7.166c2.965-1.137 5.831-2.373 7.957-4.695c10.625-11.466 24.166-9.292 24.166-9.292s6.425-19.52 12.356-15.715c1.828 1.186 8.401 15.814 8.401 15.814s7.018-4.102 7.809-2.57c4.25 8.254 4.744 24.019 2.866 33.607c-3.163 15.814-11.07 24.315-14.233 29.652c-.741 1.236 8.5 5.14 14.332 21.3c5.387 14.777.593 27.182 1.433 28.566c.148.247.198.346.198.346s6.177.494 18.582-7.166c6.622-4.102 14.48-8.698 23.425-8.797c8.65-.149 9.094 9.983 2.57 11.564m11.763-7.265c-.89-7.017-6.82-11.86-14.431-11.762c-11.367.148-20.905 6.03-27.231 9.934c-2.471 1.532-4.596 2.669-6.425 3.509c.395-5.733.05-13.245-2.916-21.498c-3.608-9.885-8.45-15.963-11.91-19.472c4.003-5.832 9.489-14.332 12.058-27.478c2.224-11.219 1.533-28.664-3.558-38.45c-1.038-1.976-2.767-3.41-4.942-4.003c-.89-.247-2.57-.741-5.881.198c-4.991-10.329-6.721-11.416-8.056-12.306c-2.767-1.779-6.029-2.174-9.093-1.038c-4.102 1.483-7.61 5.437-10.922 12.454a51.47 51.47 0 0 0-1.334 3.015c-6.277.445-16.161 2.718-24.513 11.762c-1.038 1.137-3.064 1.977-5.19 2.768h.05c-4.349 1.532-6.326 5.09-8.747 11.515c-3.361 8.994.098 17.84 3.508 23.574c-4.645 4.151-10.823 10.773-14.084 18.532c-4.053 9.588-4.498 18.978-4.35 24.068c-3.459 3.658-8.796 10.527-9.39 18.237c-.79 10.773 3.114 18.088 4.844 20.756c.494.791 1.038 1.434 1.63 2.076c-.197 1.334-.246 2.768.05 4.25c.643 3.46 2.817 6.277 6.128 8.056c6.524 3.46 15.617 4.942 22.635 1.433c2.52 2.669 7.117 5.239 15.469 5.239h.494c2.125 0 29.109-1.433 36.967-3.36c3.509-.841 5.93-2.324 7.512-3.658c5.04-1.582 18.977-6.326 32.123-14.826c9.291-6.03 12.504-7.315 19.423-8.995c6.72-1.63 10.922-7.759 10.082-14.53"
     />
   </svg>
 );
 
-const BunIcon = (() => 
-  <svg
-    id="Bun"
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 80 70"
-    height={18}
-    width={18}
-  >
+const BunIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="36.41" height="32" viewBox="0 0 256 225">
+    <path d="M228.747 65.588a38.198 38.198 0 0 0-1.62-1.62c-.55-.519-1.07-1.102-1.62-1.62c-.551-.52-1.07-1.102-1.62-1.62c-.551-.52-1.07-1.103-1.62-1.621c-.552-.519-1.07-1.102-1.62-1.62c-.552-.519-1.07-1.102-1.621-1.62c-.551-.52-1.07-1.102-1.62-1.62a85.744 85.744 0 0 1 25.632 59.819c0 53.695-54.505 97.377-121.519 97.377c-37.525 0-71.097-13.707-93.424-35.192l1.62 1.62l1.62 1.62l1.62 1.62l1.621 1.621l1.62 1.62l1.62 1.62l1.621 1.62c22.295 22.393 56.612 36.813 95.044 36.813c67.014 0 121.519-43.682 121.519-97.215c0-22.878-9.851-44.557-27.253-61.602" />
     <path
-      id="Shadow"
-      d="M71.09,20.74c-.16-.17-.33-.34-.5-.5s-.33-.34-.5-.5-.33-.34-.5-.5-.33-.34-.5-.5-.33-.34-.5-.5-.33-.34-.5-.5-.33-.34-.5-.5A26.46,26.46,0,0,1,75.5,35.7c0,16.57-16.82,30.05-37.5,30.05-11.58,0-21.94-4.23-28.83-10.86l.5.5.5.5.5.5.5.5.5.5.5.5.5.5C19.55,65.3,30.14,69.75,42,69.75c20.68,0,37.5-13.48,37.5-30C79.5,32.69,76.46,26,71.09,20.74Z"
+      fill="#FBF0DF"
+      d="M234.937 114.066c0 49.288-50.779 89.243-113.418 89.243S8.101 163.354 8.101 114.066c0-30.558 19.443-57.552 49.32-73.56C87.3 24.498 105.9 8.101 121.52 8.101c15.62 0 28.97 13.384 64.097 32.405c29.878 16.008 49.32 43.002 49.32 73.56"
     />
-    <g id="Body">
+    <path
+      fill="#F6DECE"
+      d="M234.937 114.066a70.222 70.222 0 0 0-2.593-18.73c-8.846 107.909-140.476 113.093-192.227 80.818a129.62 129.62 0 0 0 81.402 27.155c62.542 0 113.418-40.02 113.418-89.243"
+    />
+    <path
+      fill="#FFFEFC"
+      d="M77.87 34.576c14.484-8.684 33.733-24.984 52.658-25.017a30.104 30.104 0 0 0-9.009-1.458c-7.842 0-16.203 4.05-26.734 10.143c-3.662 2.139-7.453 4.504-11.472 6.967c-7.55 4.666-16.202 9.948-25.924 15.23c-30.85 16.69-49.288 44.201-49.288 73.625v3.856C27.74 48.542 63.417 43.261 77.87 34.576"
+    />
+    <path
+      fill="#CCBEA7"
+      d="M112.186 16.3a53.177 53.177 0 0 1-18.244 40.409c-.907.81-.194 2.365.972 1.912c10.92-4.245 25.665-16.948 19.443-42.58c-.259-1.459-2.17-1.07-2.17.259m7.356 0a52.626 52.626 0 0 1 5.217 43.65c-.388 1.134 1.005 2.106 1.783 1.166c7.096-9.073 13.286-27.09-5.25-46.534c-.94-.842-2.398.454-1.75 1.588zm8.944-.551a53.21 53.21 0 0 1 22.198 38.108a1.07 1.07 0 0 0 2.106.357c2.981-11.31 1.296-30.59-23.235-40.604c-1.296-.518-2.138 1.232-1.069 2.01zM68.666 49.45a54.894 54.894 0 0 0 33.928-29.164c.584-1.167 2.43-.713 2.14.583c-5.607 25.924-24.37 31.336-36.035 30.623c-1.232.032-1.2-1.685-.033-2.042"
+    />
+    <path d="M121.519 211.443C54.505 211.443 0 167.761 0 114.066c0-32.405 20.026-62.64 53.566-80.754c9.721-5.184 18.05-10.402 25.47-14.97c4.083-2.528 7.94-4.894 11.666-7.097C102.076 4.505 111.797 0 121.519 0c9.722 0 18.212 3.889 28.84 10.175c3.241 1.847 6.482 3.856 9.949 6.06c8.069 4.99 17.175 10.629 29.164 17.077c33.54 18.115 53.566 48.316 53.566 80.754c0 53.695-54.505 97.377-121.519 97.377m0-203.342c-7.842 0-16.203 4.05-26.734 10.143c-3.662 2.139-7.453 4.504-11.472 6.967c-7.55 4.666-16.202 9.948-25.924 15.23c-30.85 16.69-49.288 44.201-49.288 73.625c0 49.223 50.876 89.276 113.418 89.276c62.542 0 113.418-40.053 113.418-89.276c0-29.424-18.439-56.936-49.32-73.56c-12.25-6.48-21.81-12.573-29.554-17.369c-3.532-2.17-6.773-4.18-9.722-5.962c-9.818-5.833-16.98-9.074-24.822-9.074" />
+    <path
+      fill="#B71422"
+      d="M144.365 137.722a28.938 28.938 0 0 1-9.463 15.263a22.068 22.068 0 0 1-12.962 6.092a22.165 22.165 0 0 1-13.383-6.092a28.938 28.938 0 0 1-9.333-15.263a2.333 2.333 0 0 1 2.593-2.625h39.988a2.333 2.333 0 0 1 2.56 2.625"
+    />
+    <path
+      fill="#FF6164"
+      d="M108.557 153.244a22.392 22.392 0 0 0 13.351 6.157a22.392 22.392 0 0 0 13.318-6.157a34.447 34.447 0 0 0 3.241-3.468a22.133 22.133 0 0 0-15.879-7.485a19.93 19.93 0 0 0-16.202 9.008c.745.681 1.393 1.33 2.171 1.945"
+    />
+    <path d="M109.076 150.684a17.37 17.37 0 0 1 13.577-6.74a19.443 19.443 0 0 1 12.962 5.476a51.225 51.225 0 0 0 2.139-2.495a22.684 22.684 0 0 0-15.263-6.254a20.61 20.61 0 0 0-15.846 7.647a30.882 30.882 0 0 0 2.43 2.366" />
+    <path d="M121.81 161.021a24.045 24.045 0 0 1-14.42-6.481a30.85 30.85 0 0 1-10.077-16.365a3.889 3.889 0 0 1 .842-3.24a4.57 4.57 0 0 1 3.662-1.653h39.988a4.666 4.666 0 0 1 3.661 1.653a3.856 3.856 0 0 1 .81 3.24A30.85 30.85 0 0 1 136.2 154.54c-3.93 3.717-9 6-14.388 6.481m-19.993-23.98c-.519 0-.648.227-.68.292a26.864 26.864 0 0 0 8.846 14.16a20.188 20.188 0 0 0 11.828 5.672a20.35 20.35 0 0 0 11.828-5.606a26.896 26.896 0 0 0 8.814-14.161a.68.68 0 0 0-.648-.292z" />
+    <g transform="translate(53.792 88.4)">
+      <ellipse cx="117.047" cy="40.183" fill="#FEBBD0" rx="18.957" ry="11.147" />
+      <ellipse cx="18.957" cy="40.183" fill="#FEBBD0" rx="18.957" ry="11.147" />
+      <path d="M27.868 35.71a17.855 17.855 0 1 0-17.822-17.854c0 9.848 7.974 17.837 17.822 17.855m80.268 0A17.855 17.855 0 1 0 90.41 17.857c-.018 9.818 7.908 17.801 17.726 17.855" />
       <path
-        id="Background"
-        d="M73,35.7c0,15.21-15.67,27.54-35,27.54S3,50.91,3,35.7C3,26.27,9,17.94,18.22,13S33.18,3,38,3s8.94,4.13,19.78,10C67,17.94,73,26.27,73,35.7Z"
-        style="fill:#fbf0df"
-      />
-      <path
-        id="Bottom_Shadow"
-        data-name="Bottom Shadow"
-        d="M73,35.7a21.67,21.67,0,0,0-.8-5.78c-2.73,33.3-43.35,34.9-59.32,24.94A40,40,0,0,0,38,63.24C57.3,63.24,73,50.89,73,35.7Z"
-        style="fill:#f6dece"
-      />
-      <path
-        id="Light_Shine"
-        data-name="Light Shine"
-        d="M24.53,11.17C29,8.49,34.94,3.46,40.78,3.45A9.29,9.29,0,0,0,38,3c-2.42,0-5,1.25-8.25,3.13-1.13.66-2.3,1.39-3.54,2.15-2.33,1.44-5,3.07-8,4.7C8.69,18.13,3,26.62,3,35.7c0,.4,0,.8,0,1.19C9.06,15.48,20.07,13.85,24.53,11.17Z"
-        style="fill:#fffefc"
-      />
-      <path
-        id="Top"
-        d="M35.12,5.53A16.41,16.41,0,0,1,29.49,18c-.28.25-.06.73.3.59,3.37-1.31,7.92-5.23,6-13.14C35.71,5,35.12,5.12,35.12,5.53Zm2.27,0A16.24,16.24,0,0,1,39,19c-.12.35.31.65.55.36C41.74,16.56,43.65,11,37.93,5,37.64,4.74,37.19,5.14,37.39,5.49Zm2.76-.17A16.42,16.42,0,0,1,47,17.12a.33.33,0,0,0,.65.11c.92-3.49.4-9.44-7.17-12.53C40.08,4.54,39.82,5.08,40.15,5.32ZM21.69,15.76a16.94,16.94,0,0,0,10.47-9c.18-.36.75-.22.66.18-1.73,8-7.52,9.67-11.12,9.45C21.32,16.4,21.33,15.87,21.69,15.76Z"
-        style="fill:#ccbea7;fill-rule:evenodd"
-      />
-      <path
-        id="Outline"
-        d="M38,65.75C17.32,65.75.5,52.27.5,35.7c0-10,6.18-19.33,16.53-24.92,3-1.6,5.57-3.21,7.86-4.62,1.26-.78,2.45-1.51,3.6-2.19C32,1.89,35,.5,38,.5s5.62,1.2,8.9,3.14c1,.57,2,1.19,3.07,1.87,2.49,1.54,5.3,3.28,9,5.27C69.32,16.37,75.5,25.69,75.5,35.7,75.5,52.27,58.68,65.75,38,65.75ZM38,3c-2.42,0-5,1.25-8.25,3.13-1.13.66-2.3,1.39-3.54,2.15-2.33,1.44-5,3.07-8,4.7C8.69,18.13,3,26.62,3,35.7,3,50.89,18.7,63.25,38,63.25S73,50.89,73,35.7C73,26.62,67.31,18.13,57.78,13,54,11,51.05,9.12,48.66,7.64c-1.09-.67-2.09-1.29-3-1.84C42.63,4,40.42,3,38,3Z"
-      />
-    </g>
-    <g id="Mouth">
-      <g id="Background-2" data-name="Background">
-        <path
-          d="M45.05,43a8.93,8.93,0,0,1-2.92,4.71,6.81,6.81,0,0,1-4,1.88A6.84,6.84,0,0,1,34,47.71,8.93,8.93,0,0,1,31.12,43a.72.72,0,0,1,.8-.81H44.26A.72.72,0,0,1,45.05,43Z"
-          style="fill:#b71422"
-        />
-      </g>
-      <g id="Tongue">
-        <path
-          id="Background-3"
-          data-name="Background"
-          d="M34,47.79a6.91,6.91,0,0,0,4.12,1.9,6.91,6.91,0,0,0,4.11-1.9,10.63,10.63,0,0,0,1-1.07,6.83,6.83,0,0,0-4.9-2.31,6.15,6.15,0,0,0-5,2.78C33.56,47.4,33.76,47.6,34,47.79Z"
-          style="fill:#ff6164"
-        />
-        <path
-          id="Outline-2"
-          data-name="Outline"
-          d="M34.16,47a5.36,5.36,0,0,1,4.19-2.08,6,6,0,0,1,4,1.69c.23-.25.45-.51.66-.77a7,7,0,0,0-4.71-1.93,6.36,6.36,0,0,0-4.89,2.36A9.53,9.53,0,0,0,34.16,47Z"
-        />
-      </g>
-      <path
-        id="Outline-3"
-        data-name="Outline"
-        d="M38.09,50.19a7.42,7.42,0,0,1-4.45-2,9.52,9.52,0,0,1-3.11-5.05,1.2,1.2,0,0,1,.26-1,1.41,1.41,0,0,1,1.13-.51H44.26a1.44,1.44,0,0,1,1.13.51,1.19,1.19,0,0,1,.25,1h0a9.52,9.52,0,0,1-3.11,5.05A7.42,7.42,0,0,1,38.09,50.19Zm-6.17-7.4c-.16,0-.2.07-.21.09a8.29,8.29,0,0,0,2.73,4.37A6.23,6.23,0,0,0,38.09,49a6.28,6.28,0,0,0,3.65-1.73,8.3,8.3,0,0,0,2.72-4.37.21.21,0,0,0-.2-.09Z"
-      />
-    </g>
-    <g id="Face">
-      <ellipse
-        id="Right_Blush"
-        data-name="Right Blush"
-        cx="53.22"
-        cy="40.18"
-        rx="5.85"
-        ry="3.44"
-        style="fill:#febbd0"
-      />
-      <ellipse
-        id="Left_Bluch"
-        data-name="Left Bluch"
-        cx="22.95"
-        cy="40.18"
-        rx="5.85"
-        ry="3.44"
-        style="fill:#febbd0"
-      />
-      <path
-        id="Eyes"
-        d="M25.7,38.8a5.51,5.51,0,1,0-5.5-5.51A5.51,5.51,0,0,0,25.7,38.8Zm24.77,0A5.51,5.51,0,1,0,45,33.29,5.5,5.5,0,0,0,50.47,38.8Z"
-        style="fill-rule:evenodd"
-      />
-      <path
-        id="Iris"
-        d="M24,33.64a2.07,2.07,0,1,0-2.06-2.07A2.07,2.07,0,0,0,24,33.64Zm24.77,0a2.07,2.07,0,1,0-2.06-2.07A2.07,2.07,0,0,0,48.75,33.64Z"
-        style="fill:#fff;fill-rule:evenodd"
+        fill="#FFF"
+        d="M22.36 18.99a6.708 6.708 0 1 0 .064-13.416a6.708 6.708 0 0 0-.065 13.416m80.267 0a6.708 6.708 0 1 0-.065 0z"
       />
     </g>
   </svg>
-));
+);

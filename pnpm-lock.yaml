@@ -296,6 +296,9 @@ importers:
       '@mui/x-data-grid':
         specifier: ^6.19.6
         version: 6.19.11(@mui/material@5.15.16(@emotion/react@11.11.4(@types/react@18.3.1)(react@18.2.0))(@emotion/styled@11.11.0(@emotion/react@11.11.4(@types/react@18.3.1)(react@18.2.0))(@types/react@18.3.1)(react@18.2.0))(@types/react@18.3.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@mui/system@5.15.15(@emotion/react@11.11.4(@types/react@18.3.1)(react@18.2.0))(@emotion/styled@11.11.0(@emotion/react@11.11.4(@types/react@18.3.1)(react@18.2.0))(@types/react@18.3.1)(react@18.2.0))(@types/react@18.3.1)(react@18.2.0))(@types/react@18.3.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@qwik-ui/headless':
+        specifier: ^0.4.4
+        version: 0.4.4(@builder.io/qwik@packages+qwik)
       '@supabase/supabase-js':
         specifier: ^2.39.8
         version: 2.43.1

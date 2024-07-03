@@ -5,7 +5,7 @@ import type { IncomingMessage, ServerResponse } from 'http';
 
 import type { Connect, ViteDevServer } from 'vite';
 import type { OptimizerSystem, Path, QwikManifest } from '../types';
-import { type NormalizedQwikPluginOptions, parseId } from './plugin';
+import { type NormalizedQwikPluginOptions, parseId, getSymbolHash } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
 import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
@@ -148,12 +148,20 @@ export async function configureDevServer(
                     return [symbolName, ''];
                   }
                   const hash = getSymbolHash(symbolName);
-                  const chunk = mapper && mapper[hash];
-                  if (chunk) {
-                    return [chunk[0], encode(chunk[1])];
-                  }
-                  parent ||= foundQrls.get(hash);
                   if (!parent) {
+                    console.warn(
+                      `qwik vite-dev-server symbolMapper: parent not provided for ${symbolName}, falling back to foundQrls.`
+                    );
+                    parent = foundQrls.get(hash);
+                  }
+                  if (!parent) {
+                    console.warn(
+                      `qwik vite-dev-server symbolMapper: ${symbolName} not in foundQrls, falling back to mapper.`
+                    );
+                    const chunk = mapper && mapper[hash];
+                    if (chunk) {
+                      return [chunk[0], chunk[1]];
+                    }
                     console.error(
                       'qwik vite-dev-server symbolMapper: unknown qrl requested without parent:',
                       symbolName
@@ -415,11 +423,3 @@ function getViteDevIndexHtml(entryUrl: string, serverData: Record<string, any>) 
 }
 
 export const VITE_DEV_CLIENT_QS = `qwik-vite-dev-client`;
-
-export const getSymbolHash = (symbolName: string) => {
-  const index = symbolName.lastIndexOf('_');
-  if (index > -1) {
-    return symbolName.slice(index + 1);
-  }
-  return symbolName;
-};

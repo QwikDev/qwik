@@ -74,15 +74,18 @@ function createSymbolMapper(
 }
 
 /**
- * ```
- *   For a given symbol (QRL such as `onKeydown$`) the server needs to know which bundle the symbol is in.
+ * For a given symbol (QRL such as `onKeydown$`) the server needs to know which bundle the symbol is
+ * in.
  *
- *   Normally this is provided by Qwik's `q-manifest` . But `q-manifest` only exists after a full client build.
+ * Normally this is provided by Qwik's `q-manifest` . But `q-manifest` only exists after a full
+ * client build.
  *
- *   This would be a problem in dev mode. So in dev mode the symbol is mapped to the expected URL using the symbolMapper function above. For Vite the given path is fixed for a given symbol.
+ * This would be a problem in dev mode. So in dev mode the symbol is mapped to the expected URL
+ * using the symbolMapper function above. For Vite the given path is fixed for a given symbol.
  *
  * We export this symbolMapper function for systems that do not use Qwik's ssr dev server.
- * ```
+ *
+ * @alpha
  */
 export let symbolMapper:
   | ((symbolName: string, mapper: any, parent: string | undefined) => [string, string])

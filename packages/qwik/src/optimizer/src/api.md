@@ -378,6 +378,9 @@ export type SourceMapsOption = 'external' | 'inline' | undefined | null;
 // @public (undocumented)
 export type SymbolMapper = Record<string, readonly [symbol: string, chunk: string]>;
 
+// @alpha
+export let symbolMapper: ((symbolName: string, mapper: any, parent: string | undefined) => [string, string]) | undefined;
+
 // @public (undocumented)
 export type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined, parent?: string) => readonly [symbol: string, chunk: string] | undefined;
 

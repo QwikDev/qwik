@@ -1,4 +1,4 @@
-import type { Rollup, Plugin, ViteDevServer } from 'vite';
+import type { Rollup, Plugin, ViteDevServer, HmrContext } from 'vite';
 import { hashCode } from '../../../core/util/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
 import { createOptimizer } from '../optimizer';
@@ -433,18 +433,37 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
   };
 
+  const getParentId = (id: string, isSSR: boolean) => {
+    const transformedOutputs = isSSR ? serverTransformedOutputs : clientTransformedOutputs;
+    const segment = transformedOutputs.get(id);
+    if (segment) {
+      return segment[1];
+    }
+    const hash = getSymbolHash(id);
+    return foundQrls.get(hash);
+  };
+
+  let resolveIdCount = 0;
+  /** This resolves special names and QRL segments/entries. All the rest falls through */
   const resolveId = async (
     ctx: Rollup.PluginContext,
     id: string,
     importerId: string | undefined,
     resolveOpts?: Parameters<Extract<Plugin['resolveId'], Function>>[2]
   ) => {
-    debug(`resolveId()`, 'Start', id, importerId, resolveOpts, opts.target);
-    if (id.startsWith('\0') || id.startsWith('/@fs')) {
+    const count = resolveIdCount++;
+    const isSSR = !!resolveOpts?.ssr;
+    debug(`resolveId(${count})`, 'Start', id, {
+      from: importerId,
+      for: isSSR ? 'server' : 'client',
+    });
+    // note that qrl segments request /%40fs instead of /@fs
+    if (id.startsWith('\0')) {
       return;
     }
 
     if (opts.target === 'lib' && id.startsWith(QWIK_CORE_ID)) {
+      // For library code, we must retain the qwik imports as-is. They all start with /qwik.
       return {
         external: true,
         id,
@@ -452,7 +471,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     if (opts.resolveQwikBuild && id.endsWith(QWIK_BUILD_ID)) {
-      debug(`resolveId()`, 'Resolved', QWIK_BUILD_ID);
+      debug(`resolveId(${count})`, 'Resolved', QWIK_BUILD_ID);
       return {
         id: normalizePath(getPath().resolve(opts.rootDir, QWIK_BUILD_ID)),
         moduleSideEffects: false,
@@ -460,7 +479,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     if (id.endsWith(QWIK_CLIENT_MANIFEST_ID)) {
-      debug(`resolveId()`, 'Resolved', QWIK_CLIENT_MANIFEST_ID);
+      debug(`resolveId(${count})`, 'Resolved', QWIK_CLIENT_MANIFEST_ID);
       if (opts.target === 'lib') {
         return {
           id: id,
@@ -477,19 +496,17 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     const path = getPath();
-    const isSSR = !!resolveOpts?.ssr;
-    const transformedOutputs = isSSR ? serverTransformedOutputs : clientTransformedOutputs;
 
     // Requests originating from another file, or the browser
     if (importerId) {
       const looksLikePath = id.startsWith('.') || id.startsWith('/');
       if (!looksLikePath) {
         // Rollup can ask us to resolve imports from QRL segments
-        // It seems like files need to exist on disk for this to work automatically,
-        // so for segments we provide the parent instead
-        const segment = transformedOutputs.get(importerId);
-        if (segment) {
-          const parentId = segment[1];
+        // It seems like importers need to exist on disk for this to work automatically,
+        // so for segments we resolve via the parent instead
+        debug(`resolveId(${count})`, 'falling back to default resolver');
+        const parentId = getParentId(importerId, isSSR);
+        if (parentId) {
           return ctx.resolve(id, parentId, { skipSelf: true });
         }
         return;
@@ -497,44 +514,45 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       importerId = normalizePath(importerId);
       const parsedImporterId = parseId(importerId);
       const dir = path.dirname(parsedImporterId.pathId);
-      if (opts.target === 'ssr' && !isSSR && importerId.endsWith('.html') && server) {
+      if (
+        opts.target === 'ssr' &&
+        !isSSR &&
+        importerId.endsWith('.html') &&
+        server &&
+        id.startsWith('/')
+      ) {
         // This is a request from a dev-mode browser
         // we uri-encode chunk paths in dev mode, and other imported files don't have % in their paths (hopefully)
         // These will be individual source files and their QRL segments
         id = decodeURIComponent(id);
         // Support absolute paths for qrl segments, due to e.g. pnpm linking
-        const isAbsoluteFile = id.startsWith('/@fs/');
-        if (isAbsoluteFile) {
+        if (id.startsWith('/@fs/')) {
           id = id.slice(4);
+        } else {
+          // We know for sure that the path is relative to the html importer even though it starts with /
+          id = path.join(dir, id);
         }
+        id = normalizePath(id);
         // Check for parent passed via QRL
         const match = /^([^?]*)\?_qrl_parent=(.*)/.exec(id);
         if (match) {
           id = match[1];
+          // The parent is in the same directory as the requested segment
           const parentId = id.slice(0, id.lastIndexOf('/') + 1) + match[2];
-          if (!isAbsoluteFile) {
-            // We know for sure that the path is relative to the html importer even though it starts with /
-            id = normalizePath(path.join(dir, id));
-          }
-          // building here via ctx.load doesn't seem to work (target is always ssr?)
-          // instead we use the devserver directly
-          if (!clientResults.has(parentId)) {
-            debug(`resolveId()`, 'transforming QRL parent', parentId);
-            await server.transformRequest(parentId);
-            // The QRL segment should exist now
-          }
+          const hash = getSymbolHash(id);
+          // Register the parent in case we don't have it (restart etc)
+          foundQrls.set(hash, parentId);
         }
       }
       const parsedId = parseId(id);
       let importeePathId = normalizePath(parsedId.pathId);
       const ext = path.extname(importeePathId).toLowerCase();
       if (ext in RESOLVE_EXTS) {
-        debug(`resolveId("${importeePathId}", "${importerId}")`);
         // resolve relative paths
         importeePathId = normalizePath(path.resolve(dir, importeePathId));
-
-        if (transformedOutputs.has(importeePathId)) {
-          debug(`resolveId() Resolved ${importeePathId} from transformedOutputs`);
+        const parentId = getParentId(importeePathId, isSSR);
+        if (parentId) {
+          debug(`resolveId(${count}) Resolved ${importeePathId} from transformedOutputs`);
           return {
             id: importeePathId + parsedId.query,
           };
@@ -544,19 +562,17 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       const parsedId = parseId(id);
       const importeePathId = normalizePath(parsedId.pathId);
       const ext = path.extname(importeePathId).toLowerCase();
-      if (ext in RESOLVE_EXTS) {
-        debug(`resolveId("${importeePathId}", "${importerId}")`);
-
-        if (transformedOutputs.has(importeePathId)) {
-          debug(`resolveId() Resolved ${importeePathId} from transformedOutputs`);
-          return {
-            id: importeePathId + parsedId.query,
-          };
-        }
+      if (ext in RESOLVE_EXTS && getParentId(importeePathId, isSSR)) {
+        debug(
+          `resolveId(${count}) Resolved ${importeePathId} from transformedOutputs (no importer)`
+        );
+        return {
+          id: importeePathId + parsedId.query,
+        };
       }
     }
     // We don't (yet) know this id
-    debug(`resolveId()`, 'Not resolved', id, importerId, resolveOpts);
+    debug(`resolveId(${count})`, 'Not resolved', id, importerId);
     return null;
   };
 
@@ -588,9 +604,19 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const path = getPath();
     id = normalizePath(parsedId.pathId);
 
-    const transformedModule = isSSR
-      ? serverTransformedOutputs.get(id)
-      : clientTransformedOutputs.get(id);
+    const outputs = isSSR ? serverTransformedOutputs : clientTransformedOutputs;
+    if (server && !outputs.has(id)) {
+      // in dev mode, it could be that the id is a QRL segment that wasn't transformed yet
+      const parentId = getParentId(id, isSSR);
+      if (parentId) {
+        // building here via ctx.load doesn't seem to work (no transform), instead we use the devserver directly
+        debug(`load()`, 'transforming QRL parent', parentId);
+        await server.transformRequest(parentId);
+        // The QRL segment should exist now
+      }
+    }
+
+    const transformedModule = outputs.get(id);
 
     if (transformedModule) {
       debug(`load()`, 'Found', id);
@@ -609,7 +635,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       return { code, map, meta: { hook } };
     }
 
-    debug('load()', 'Not found', id, parsedId);
+    debug('load()', 'Not found', id);
     return null;
   };
 
@@ -623,11 +649,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       return;
     }
     const isSSR = !!transformOpts.ssr;
-    // TODO does this clear in dev mode ???
     const currentOutputs = isSSR ? serverTransformedOutputs : clientTransformedOutputs;
     if (currentOutputs.has(id)) {
+      // This is a QRL segment, and we don't need to process it any further
       return;
     }
+
     const optimizer = getOptimizer();
     const path = getPath();
 
@@ -644,14 +671,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       /** Strip client|server code from server|client */
       const strip = opts.target === 'client' || opts.target === 'ssr';
       const normalizedID = normalizePath(pathId);
-      debug(`transform()`, 'Transforming', {
-        pathId,
-        id,
-        parsedPathId,
-        strip,
-        isSSR,
-        target: opts.target,
-      });
+      debug(
+        `transform()`,
+        `Transforming ${id} (for: ${isSSR ? 'server' : 'client'}${strip ? ', strip' : ''})`
+      );
 
       let filePath = base;
       if (opts.srcDir) {
@@ -720,6 +743,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       for (const mod of newOutput.modules) {
         if (mod !== module) {
           const key = normalizePath(path.join(srcDir, mod.path));
+          debug(`transform()`, `segment ${key}`, mod.hook?.displayName);
           currentOutputs.set(key, [mod, id]);
           deps.add(key);
           // rollup must be told about entry points
@@ -730,7 +754,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
               preserveSignature: 'allow-extension',
             });
           }
-          ctx.addWatchFile(key);
         }
       }
 
@@ -741,6 +764,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       for (const id of deps.values()) {
         await ctx.load({ id });
       }
+
+      ctx.addWatchFile(id);
 
       return {
         code: module.code,
@@ -821,6 +846,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     diagnosticsCallback = cb;
   };
 
+  /** Convert windows backslashes to forward slashes */
   const normalizePath = (id: string) => {
     if (typeof id === 'string') {
       const sys = getSys();
@@ -863,6 +889,29 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     opts.sourcemap = sourcemap;
   }
 
+  // Only used in Vite dev mode
+  function handleHotUpdate(ctx: HmrContext) {
+    debug('handleHotUpdate()', ctx.file);
+
+    for (const mod of ctx.modules) {
+      const { id } = mod;
+      if (id) {
+        debug('handleHotUpdate()', `invalidate ${id}`);
+        serverResults.delete(id);
+        clientResults.delete(id);
+      }
+      for (const dep of mod.info?.meta?.qwikdeps || []) {
+        debug('handleHotUpdate()', `invalidate segment ${dep}`);
+        serverTransformedOutputs.delete(dep);
+        clientTransformedOutputs.delete(dep);
+        const mod = ctx.server.moduleGraph.getModuleById(dep);
+        if (mod) {
+          ctx.server.moduleGraph.invalidateModule(mod);
+        }
+      }
+    }
+  }
+
   return {
     buildStart,
     createOutputAnalyzer,
@@ -885,6 +934,7 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     setSourceMapSupport,
     foundQrls,
     configureServer,
+    handleHotUpdate,
   };
 }
 
@@ -916,6 +966,14 @@ export function parseId(originalId: string) {
     query: queryStr ? `?${query}` : '',
     params: new URLSearchParams(queryStr),
   };
+}
+
+export function getSymbolHash(symbolName: string) {
+  const index = symbolName.lastIndexOf('_');
+  if (index > -1) {
+    return symbolName.slice(index + 1);
+  }
+  return symbolName;
 }
 
 const TRANSFORM_EXTS = {

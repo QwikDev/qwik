@@ -14,6 +14,7 @@ import clickToComponent from './click-to-component.html?raw';
 import perfWarning from './perf-warning.html?raw';
 import errorHost from './error-host.html?raw';
 import { SYNC_QRL } from '../../../core/qrl/qrl-class';
+import path from 'path';
 
 function getOrigin(req: IncomingMessage) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
@@ -26,6 +27,56 @@ function getOrigin(req: IncomingMessage) {
 
   return `${protocol}://${host}`;
 }
+
+// We must encode the chunk so that e.g. + doesn't get converted to space etc
+const encode = (url: string) => encodeURIComponent(url).replaceAll('%2F', '/');
+
+function createSymbolMapper(
+  base: string,
+  opts: NormalizedQwikPluginOptions,
+  foundQrls: Map<string, string>
+): (symbolName: string, mapper: any, parent: string | undefined) => [string, string] {
+  return (symbolName: string, mapper: any, parent: string | undefined): [string, string] => {
+    if (symbolName === SYNC_QRL) {
+      return [symbolName, ''];
+    }
+    const hash = getSymbolHash(symbolName);
+    const chunk = mapper && mapper[hash];
+    if (chunk) {
+      return [chunk[0], encode(chunk[1])];
+    }
+    parent ||= foundQrls.get(hash);
+    if (!parent) {
+      console.error(
+        'qwik vite-dev-server symbolMapper: unknown qrl requested without parent:',
+        symbolName
+      );
+      return [symbolName, `${base}${symbolName.toLowerCase()}.js`];
+    }
+    const parentPath = path.dirname(parent);
+    const parentFile = path.basename(parent);
+    const qrlPath = parentPath.startsWith(opts.rootDir)
+      ? path.posix.normalize(path.relative(opts.rootDir, parentPath))
+      : `@fs${path.posix.normalize(parentPath)}`;
+    const qrlFile = `${encode(qrlPath)}/${symbolName.toLowerCase()}.js?_qrl_parent=${encode(parentFile)}`;
+    return [symbolName, `${base}${qrlFile}`];
+  };
+}
+
+/**
+ * ```
+ *   For a given symbol (QRL such as `onKeydown$`) the server needs to know which bundle the symbol is in.
+ *
+ *   Normally this is provided by Qwik's `q-manifest` . But `q-manifest` only exists after a full client build.
+ *
+ *   This would be a problem in dev mode. So in dev mode the symbol is mapped to the expected URL using the symbolMapper function above. For Vite the given path is fixed for a given symbol.
+ *
+ * We export this symbolMapper function for systems that do not use Qwik's ssr dev server.
+ * ```
+ */
+export let symbolMapper:
+  | ((symbolName: string, mapper: any, parent: string | undefined) => [string, string])
+  | undefined;
 
 export async function configureDevServer(
   base: string,
@@ -133,43 +184,15 @@ export async function configureDevServer(
             });
           });
 
-          // We must encode the chunk so that e.g. + doesn't get converted to space etc
-          const encode = (url: string) => encodeURIComponent(url).replaceAll('%2F', '/');
+          symbolMapper = createSymbolMapper(base, opts, foundQrls);
+
           const renderOpts: RenderToStreamOptions = {
             debug: true,
             locale: serverData.locale,
             stream: res,
             snapshot: !isClientDevOnly,
             manifest: isClientDevOnly ? undefined : manifest,
-            symbolMapper: isClientDevOnly
-              ? undefined
-              : (symbolName, mapper, parent) => {
-                  if (symbolName === SYNC_QRL) {
-                    return [symbolName, ''];
-                  }
-                  const hash = getSymbolHash(symbolName);
-                  const chunk = mapper && mapper[hash];
-                  if (chunk) {
-                    return [chunk[0], encode(chunk[1])];
-                  }
-                  parent ||= foundQrls.get(hash);
-                  if (!parent) {
-                    console.error(
-                      'qwik vite-dev-server symbolMapper: unknown qrl requested without parent:',
-                      symbolName
-                    );
-                    return [symbolName, `${base}${symbolName.toLowerCase()}.js`];
-                  }
-                  const parentPath = path.dirname(parent);
-                  const parentFile = path.basename(parent);
-                  // DX: if the file isn't under the source dir (e.g. a symlink from node_modules)
-                  // use the full path, otherwise relative to the source
-                  const qrlPath = parentPath.startsWith(opts.rootDir)
-                    ? path.posix.normalize(path.relative(opts.rootDir, parentPath))
-                    : `@fs${path.posix.normalize(parentPath)}`;
-                  const qrlFile = `${encode(qrlPath)}/${symbolName.toLowerCase()}.js?_qrl_parent=${encode(parentFile)}`;
-                  return [symbolName, `${base}${qrlFile}`];
-                },
+            symbolMapper: isClientDevOnly ? undefined : symbolMapper,
             prefetchStrategy: null,
             serverData,
             containerAttributes: { ...serverData.containerAttributes },

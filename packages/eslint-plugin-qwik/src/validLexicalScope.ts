@@ -325,6 +325,9 @@ function _isTypeCapturable(
   if (isTypeQRL(type)) {
     return;
   }
+  if (type.symbol?.name === 'JSXNode') {
+    return;
+  }
 
   const canBeCalled = type.getCallSignatures().length > 0;
   if (canBeCalled) {
@@ -355,9 +358,6 @@ function _isTypeCapturable(
 
   if (type.isUnion()) {
     for (const subType of type.types) {
-      if (subType.symbol?.name === 'JSXNode') {
-        continue;
-      }
       const result = _isTypeCapturable(context, checker, subType, node, opts, level + 1, seen);
       if (result) {
         return result;

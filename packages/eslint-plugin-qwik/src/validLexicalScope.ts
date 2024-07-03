@@ -325,7 +325,7 @@ function _isTypeCapturable(
   if (isTypeQRL(type)) {
     return;
   }
-  if (type.symbol.name === 'JSXNodeImpl') {
+  if (type.symbol?.name === 'JSXNodeImpl') {
     return;
   }
 

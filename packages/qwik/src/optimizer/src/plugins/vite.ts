@@ -692,18 +692,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     handleHotUpdate(ctx) {
-      qwikPlugin.debug('handleHotUpdate()', ctx);
+      qwikPlugin.handleHotUpdate(ctx);
 
-      for (const mod of ctx.modules) {
-        const deps = mod.info?.meta?.qwikdeps;
-        if (deps && deps.length > 0) {
-          for (const dep of deps) {
-            const mod = ctx.server.moduleGraph.getModuleById(dep);
-            if (mod) {
-              ctx.server.moduleGraph.invalidateModule(mod);
-            }
-          }
-        }
+      // Tell the client to reload the page if any modules were used in ssr or client
+      // this needs to be refined
+      if (ctx.modules.length) {
+        ctx.server.hot.send({
+          type: 'full-reload',
+        });
       }
     },
 

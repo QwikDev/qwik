@@ -11,8 +11,7 @@ test.describe("toggle", () => {
     });
   });
 
-  // TODO(v2): fix this
-  test.skip("should load", async ({ page }) => {
+  test("should load", async ({ page }) => {
     const title = page.locator("h1");
     const mount = page.locator("#mount");
     const root = page.locator("#root");
@@ -46,7 +45,7 @@ test.describe("toggle", () => {
 
     // ToggleB
     await btnToggle.click();
-    logsStr += "Child(1)ToggleB()";
+    logsStr += "ToggleB()Child(1)";
 
     await expect(title).toHaveText("ToggleA");
     await expect(mount).toHaveText("mounted in client");
@@ -65,7 +64,7 @@ test.describe("toggle", () => {
     // ToggleA + increment
     await btnToggle.click();
     await btnIncrement.click();
-    logsStr += "Child(2)ToggleA()Log(3)Child(3)";
+    logsStr += "ToggleA()Child(2)Log(3)Child(3)";
 
     await expect(title).toHaveText("ToggleB");
     await expect(mount).toHaveText("mounted in client");

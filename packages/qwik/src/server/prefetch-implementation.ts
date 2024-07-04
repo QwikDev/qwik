@@ -102,14 +102,14 @@ function prefetchUrlsEvent2(
     if (nonce) {
       attrs.push('nonce', nonce);
     }
-    container.openElement('link', attrs);
+    container.openElement('link', null, attrs);
     container.closeElement();
   }
   const scriptAttrs = ['q:type', 'prefetch-bundles'];
   if (nonce) {
     scriptAttrs.push('nonce', nonce);
   }
-  container.openElement('script', scriptAttrs);
+  container.openElement('script', null, scriptAttrs);
   container.writer.write(prefetchUrlsEventScript(prefetchResources));
   container.writer.write(
     `;document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`
@@ -157,7 +157,7 @@ function linkHtmlImplementation2(
       }
     }
 
-    container.openElement('link', attributes);
+    container.openElement('link', null, attributes);
     container.closeElement();
   }
 }
@@ -228,7 +228,7 @@ function linkJsImplementation2(
   if (nonce) {
     scriptAttrs.push('nonce', nonce);
   }
-  container.openElement('script', scriptAttrs);
+  container.openElement('script', null, scriptAttrs);
 
   const rel = prefetchImpl.linkRel || 'prefetch';
 
@@ -294,7 +294,7 @@ function workerFetchImplementation2(
   if (nonce) {
     scriptAttrs.push(nonce, 'nonce');
   }
-  container.openElement('script', scriptAttrs);
+  container.openElement('script', null, scriptAttrs);
 
   container.writer.write(`const u=${JSON.stringify(flattenPrefetchResources(prefetchResources))};`);
   container.writer.write(workerFetchScript());

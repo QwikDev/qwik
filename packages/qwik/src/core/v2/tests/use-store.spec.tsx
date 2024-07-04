@@ -8,7 +8,7 @@ import type { Signal as SignalType } from '../../state/signal';
 import { untrack } from '../../use/use-core';
 import { useSignal } from '../../use/use-signal';
 import { useStore } from '../../use/use-store.public';
-import { useTask$ } from '../../use/use-task';
+import { useTask$ } from '../../use/use-task-dollar';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

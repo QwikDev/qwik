@@ -8,7 +8,7 @@ import { Fragment as Component, Fragment, Fragment as Signal } from '../../rende
 import { SignalDerived, type Signal as SignalType } from '../../state/signal';
 import { useSignal } from '../../use/use-signal';
 import { useStore } from '../../use/use-store.public';
-import { useTask$ } from '../../use/use-task';
+import { useTask$ } from '../../use/use-task-dollar';
 import { delay } from '../../util/promises';
 
 const debug = false; //true;

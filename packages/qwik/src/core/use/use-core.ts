@@ -250,9 +250,18 @@ const trackInvocation = /*#__PURE__*/ newInvokeContext(
  *
  * @public
  */
-export const trackSignal = <T>(signal: Signal, sub: Subscriber): T => {
-  trackInvocation.$subscriber$ = sub;
-  return invoke(trackInvocation, () => signal.value);
+export const trackSignal = <T>(signal: Signal, sub: Subscriber, container?: Container2): T => {
+  trackInvocation.$subscriber$ = sub; // todo(mhevery): delete me after signal 2
+  const previousSubscriber = trackInvocation.$effectSubscriber$;
+  const previousContainer = trackInvocation.$container2$;
+  try {
+    trackInvocation.$effectSubscriber$ = [sub[1] as fixMeAny, trackInvocation];
+    trackInvocation.$container2$ = container;
+    return invoke(trackInvocation, () => signal.value);
+  } finally {
+    trackInvocation.$effectSubscriber$ = previousSubscriber;
+    trackInvocation.$container2$ = previousContainer;
+  }
 };
 
 export const trackRead = <T>(readFn: () => T, sub: Subscriber): T => {

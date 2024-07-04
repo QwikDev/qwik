@@ -8,7 +8,7 @@ import { createContextId, useContext, useContextProvider } from '../../use/use-c
 import { useOn, useOnDocument, useOnWindow } from '../../use/use-on';
 import { Resource, useResource$ } from '../../use/use-resource';
 import { useStylesScopedQrl, useStylesQrl } from '../../use/use-styles';
-import { useVisibleTask$, useTask$ } from '../../use/use-task';
+import { useVisibleTask$, useTask$ } from '../../use/use-task-dollar';
 import { delay } from '../../util/promises';
 import { SSRComment, SSRRaw } from '../jsx/utils.public';
 import { Slot } from '../jsx/slot.public';

@@ -16,6 +16,7 @@ import { qwikDebugToString } from '../../debug';
 import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
 import { type QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
+import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import {
   tryGetInvokeContext,
   type InvokeContext
@@ -25,7 +26,7 @@ import { isPromise } from '../../util/promises';
 import { qDev } from '../../util/qdev';
 import type { VNode } from '../client/types';
 import { ChoreType, type Scheduler } from '../shared/scheduler';
-import type { fixMeAny } from '../shared/types';
+import type { HostElement, fixMeAny } from '../shared/types';
 import type { Signal2 as ISignal2 } from './v2-signal.public';
 
 const DEBUG = true;
@@ -172,9 +173,9 @@ class Signal2<T = any> implements ISignal2<T> {
       const scheduleEffect = (effectSubscriptions: EffectSubscriptions) => {
         const effect = effectSubscriptions[EffectSubscriptionsProp.EFFECT];
         DEBUG && log('       schedule.effect', String(effect));
+        assertDefined(this.$scheduler$, 'Scheduler must be defined.');
         if (isTask(effect)) {
           effect.$flags$ |= TaskFlags.DIRTY;
-          assertDefined(this.$scheduler$, 'Scheduler must be defined.');
           this.$scheduler$(ChoreType.TASK, effectSubscriptions as fixMeAny);
         } else if (effect instanceof ComputedSignal2) {
           // we don't schedule ComputedSignal directly, instead we invalidate it and
@@ -182,7 +183,9 @@ class Signal2<T = any> implements ISignal2<T> {
           effect.$invalid$ = true;
           effect.$effects$?.forEach(scheduleEffect);
         } else {
-          throw new Error('Not implemented');
+          const host: HostElement = effect as any;
+          const target = host;
+          this.$scheduler$(ChoreType.NODE_DIFF, host, target, this.$untrackedValue$ as JSXOutput);
         }
       };
       this.$effects$.forEach(scheduleEffect);

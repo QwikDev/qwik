@@ -9,7 +9,7 @@ import { component$ } from '../../component/component.public';
 import { inlinedQrl } from '../../qrl/qrl';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { useStore } from '../../use/use-store.public';
-import { useVisibleTask$, useTask$ } from '../../use/use-task';
+import { useVisibleTask$, useTask$ } from '../../use/use-task-dollar';
 import { useOn } from '../../use/use-on';
 import { Slot } from '../jsx/slot.public';
 import { render } from './render.public';

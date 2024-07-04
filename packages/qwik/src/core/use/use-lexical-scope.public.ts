@@ -26,7 +26,7 @@ export const useLexicalScope = <VARS extends any[]>(): VARS => {
   let qrl = context.$qrl$ as QRLInternal<unknown> | undefined;
   if (!qrl) {
     const el = context.$element$;
-    computeTask.$qrl$assertDefined(
+    assertDefined(
       el,
       'invoke: element must be defined inside useLexicalScope()',
       context

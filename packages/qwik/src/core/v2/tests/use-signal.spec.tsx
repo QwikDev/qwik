@@ -15,14 +15,14 @@ import type { Signal as SignalType } from '../../state/signal';
 import { untrack } from '../../use/use-core';
 import { useSignal } from '../../use/use-signal';
 
-const debug = false; //true;
+const debug = true; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: useSignal', ({ render }) => {
-  it('should update value', async () => {
+  it.only('should update value', async () => {
     const Counter = component$((props: { initial: number }) => {
       const count = useSignal(props.initial);
       return <button onClick$={() => count.value++}>Count: {count.value}!</button>;

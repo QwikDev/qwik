@@ -6,7 +6,7 @@ import { component$ } from '../../component/component.public';
 import { Fragment as Component, Fragment, Fragment as Signal } from '../../render/jsx/jsx-runtime';
 import { useSignal } from '../../use/use-signal';
 import { useStore } from '../../use/use-store.public';
-import { useVisibleTask$ } from '../../use/use-task';
+import { useVisibleTask$ } from '../../use/use-task-dollar';
 import { delay } from '../../util/promises';
 
 const debug = false; //true;

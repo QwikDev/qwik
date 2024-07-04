@@ -359,8 +359,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   closeElement(): ValueOrPromise<void> {
     const currentFrame = this.currentElementFrame!;
     if (
-      (currentFrame.parent === null && currentFrame.tagNesting !== TagNesting.HTML) ||
-      currentFrame.tagNesting === TagNesting.BODY
+      (currentFrame.parent === null && currentFrame.elementName !== 'html') ||
+      currentFrame.elementName === 'body'
     ) {
       this.drainCleanupQueue();
       this.timing.render = this.renderTimer();

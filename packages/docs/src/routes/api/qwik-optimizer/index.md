@@ -2764,13 +2764,34 @@ export type SourceMapsOption = "external" | "inline" | undefined | null;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## SymbolMapper
+## symbolMapper
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+For a given symbol (QRL such as `onKeydown$`) the server needs to know which bundle the symbol is in.
+
+Normally this is provided by Qwik's `q-manifest` . But `q-manifest` only exists after a full client build.
+
+This would be a problem in dev mode. So in dev mode the symbol is mapped to the expected URL using the symbolMapper function below. For Vite the given path is fixed for a given symbol.
 
 ```typescript
-export type SymbolMapper = Record<
-  string,
-  readonly [symbol: string, chunk: string]
->;
+symbolMapper: ReturnType<typeof createSymbolMapper>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite-dev-server.ts)
+
+## SymbolMapper
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+For a given symbol (QRL such as `onKeydown$`) the server needs to know which bundle the symbol is in.
+
+Normally this is provided by Qwik's `q-manifest` . But `q-manifest` only exists after a full client build.
+
+This would be a problem in dev mode. So in dev mode the symbol is mapped to the expected URL using the symbolMapper function below. For Vite the given path is fixed for a given symbol.
+
+```typescript
+symbolMapper: ReturnType<typeof createSymbolMapper>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)

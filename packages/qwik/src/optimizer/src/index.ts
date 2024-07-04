@@ -1,4 +1,5 @@
 export { createOptimizer } from './optimizer';
+export { symbolMapper } from './plugins/vite-dev-server';
 export { versions } from './versions';
 
 export type {

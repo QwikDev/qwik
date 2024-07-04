@@ -345,7 +345,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           ).map((outputOptsObj) => {
             outputOptsObj.dir = buildOutputDir;
             return outputOptsObj;
-          }),
+          })[0], // forced single output to solve https://github.com/QwikDev/qwik/issues/6620
           preserveEntrySignatures: 'exports-only',
           onwarn: (warning, warn) => {
             if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {

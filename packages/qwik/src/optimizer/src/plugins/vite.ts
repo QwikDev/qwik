@@ -648,7 +648,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     configureServer(server: ViteDevServer) {
       qwikPlugin.configureServer(server);
-      const devSsrServer = 'devSsrServer' in qwikViteOpts ? qwikViteOpts.devSsrServer : true;
+      const devSsrServer = 'devSsrServer' in qwikViteOpts ? !!qwikViteOpts.devSsrServer : true;
       const imageDevTools =
         qwikViteOpts.devTools && 'imageDevTools' in qwikViteOpts.devTools
           ? qwikViteOpts.devTools.imageDevTools
@@ -658,7 +658,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         server.middlewares.use(getImageSizeServer(qwikPlugin.getSys(), rootDir!, srcDir!));
       }
 
-      if (!qwikViteOpts.csr && devSsrServer) {
+      if (!qwikViteOpts.csr) {
         const plugin = async () => {
           const opts = qwikPlugin.getOptions();
           const sys = qwikPlugin.getSys();
@@ -671,7 +671,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             path,
             isClientDevOnly,
             clientDevInput,
-            qwikPlugin.foundQrls
+            qwikPlugin.foundQrls,
+            devSsrServer
           );
         };
         const isNEW = (globalThis as any).__qwikCityNew === true;

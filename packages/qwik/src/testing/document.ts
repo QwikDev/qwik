@@ -24,12 +24,12 @@ export function createWindow(opts: MockDocumentOptions = {}): MockWindow {
 }
 
 export function ensureGlobals(doc: any, opts?: MockDocumentOptions) {
-  if (!doc || doc.nodeType !== 9) {
-    throw new Error(`Invalid document`);
-  }
-
   if (doc && doc[QWIK_DOC]) {
     return doc.defaultView;
+  }
+
+  if (!doc || doc.nodeType !== 9) {
+    throw new Error(`Invalid document`);
   }
 
   doc[QWIK_DOC] = true;

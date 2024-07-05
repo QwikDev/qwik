@@ -102,7 +102,7 @@ import type { Container2, HostElement, fixMeAny } from './types';
 import { EffectSubscriptionsProp, type EffectSubscriptions } from '../signal/v2-signal';
 
 // Turn this on to get debug output of what the scheduler is doing.
-const DEBUG: boolean = true;
+const DEBUG: boolean = false;
 
 export const enum ChoreType {
   /// MASKS defining three levels of sorting

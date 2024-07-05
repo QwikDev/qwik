@@ -12,12 +12,13 @@
  *   - It is `Readonly` because it is computed.
  */
 
-import { qwikDebugToString } from '../../debug';
+import { pad, qwikDebugToString } from '../../debug';
 import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
 import { type QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import {
+  trackSignal2,
   tryGetInvokeContext,
   type InvokeContext
 } from '../../use/use-core';
@@ -25,8 +26,8 @@ import { Task, TaskFlags, isTask } from '../../use/use-task';
 import { isPromise } from '../../util/promises';
 import { qDev } from '../../util/qdev';
 import type { VNode } from '../client/types';
-import { ChoreType, type Scheduler } from '../shared/scheduler';
-import type { HostElement, fixMeAny } from '../shared/types';
+import { ChoreType } from '../shared/scheduler';
+import type { Container2, HostElement, fixMeAny } from '../shared/types';
 import type { Signal2 as ISignal2 } from './v2-signal.public';
 
 const DEBUG = true;
@@ -72,7 +73,7 @@ export const isSignal2 = (value: any): value is ISignal2<unknown> => {
  * - `VNode`: Either a component or `<Signal>`
  * - `Signal2`: A derived signal which contains a computation function.
  */
-type Effect = Task | VNode | Signal2;
+export type Effect = Task | VNode | Signal2;
 
 /**
  * An effect plus a list of subscriptions effect depends on.
@@ -119,10 +120,10 @@ class Signal2<T = any> implements ISignal2<T> {
   // TODO perf: use a set?
   protected $effects$: null | EffectSubscriptions[] = null;
 
-  protected $scheduler$: Scheduler | null = null;
+  protected $container$: Container2 | null = null;
 
-  constructor(scheduler: Scheduler | null, value: T) {
-    this.$scheduler$ = scheduler;
+  constructor(container: Container2 | null, value: T) {
+    this.$container$ = container;
     this.$untrackedValue$ = value;
   }
 
@@ -133,13 +134,13 @@ class Signal2<T = any> implements ISignal2<T> {
   get value() {
     const ctx = tryGetInvokeContext();
     if (ctx) {
-      if (this.$scheduler$ === null) {
-        assertTrue(!!ctx.$container2$, 'container should be in context ');
+      if (this.$container$ === null) {
+        assertDefined(ctx.$container2$, 'container should be in context ');
         // Grab the container now we have access to it
-        this.$scheduler$ = ctx.$container2$!.$scheduler$;
+        this.$container$ = ctx.$container2$;
       } else {
         assertTrue(
-          !ctx.$container2$?.$scheduler$ || ctx.$container2$?.$scheduler$ === this.$scheduler$,
+          !ctx.$container2$ || ctx.$container2$ === this.$container$,
           'Do not use signals across containers'
         );
       }
@@ -154,7 +155,7 @@ class Signal2<T = any> implements ISignal2<T> {
         // to unsubscribe from. So we need to store the reference from the effect back
         // to this signal.
         ensureContains(effectSubscriber, this);
-        DEBUG && log("read->sub", this.$untrackedValue$, effectSubscriber[EffectSubscriptionsProp.EFFECT])
+        DEBUG && log("read->sub", pad('\n' + this.toString(), "  "))
       }
     }
     return this.untrackedValue;
@@ -162,7 +163,7 @@ class Signal2<T = any> implements ISignal2<T> {
 
   set value(value) {
     if (value !== this.$untrackedValue$) {
-      DEBUG && log('Signal.set', this.$untrackedValue$, '->', value);
+      DEBUG && log('Signal.set', this.$untrackedValue$, '->', value, pad('\n' + this.toString(), "  "));
       this.$untrackedValue$ = value;
       this.$triggerEffects$();
     }
@@ -172,20 +173,21 @@ class Signal2<T = any> implements ISignal2<T> {
     if (this.$effects$) {
       const scheduleEffect = (effectSubscriptions: EffectSubscriptions) => {
         const effect = effectSubscriptions[EffectSubscriptionsProp.EFFECT];
-        DEBUG && log('       schedule.effect', String(effect));
-        assertDefined(this.$scheduler$, 'Scheduler must be defined.');
+        assertDefined(this.$container$, 'Scheduler must be defined.');
         if (isTask(effect)) {
           effect.$flags$ |= TaskFlags.DIRTY;
-          this.$scheduler$(ChoreType.TASK, effectSubscriptions as fixMeAny);
-        } else if (effect instanceof ComputedSignal2) {
-          // we don't schedule ComputedSignal directly, instead we invalidate it and
+          DEBUG && log('schedule.effect.task', pad('\n' + String(effect), '  '));
+          this.$container$.$scheduler$(ChoreType.TASK, effectSubscriptions as fixMeAny);
+        } else if (effect instanceof Signal2) {
+          // we don't schedule ComputedSignal/DerivedSignal directly, instead we invalidate it and
           // and schedule the signals effects (recursively)
-          effect.$invalid$ = true;
+          (effect as ComputedSignal2<unknown> | DerivedSignal<unknown>).$invalid$ = true;
           effect.$effects$?.forEach(scheduleEffect);
         } else {
           const host: HostElement = effect as any;
           const target = host;
-          this.$scheduler$(ChoreType.NODE_DIFF, host, target, this.$untrackedValue$ as JSXOutput);
+          DEBUG && log('schedule.effect.node_diff', pad('\n' + String(effect), '  '));
+          this.$container$.$scheduler$(ChoreType.NODE_DIFF, host, target, this.$untrackedValue$ as JSXOutput);
         }
       };
       this.$effects$.forEach(scheduleEffect);
@@ -201,7 +203,8 @@ class Signal2<T = any> implements ISignal2<T> {
     }
   }
   toString() {
-    return `[Signal ${String(this.$untrackedValue$)}]`;
+    return `[${this.constructor.name}${(this as any).$invalid$ ? " INVALID" : ''} ${String(this.$untrackedValue$)}]` +
+      this.$effects$?.map(e => '\n -> ' + pad(qwikDebugToString(e[0]), '    ')).join('\n') || '';
   }
   toJSON() {
     return { value: this.$untrackedValue$ };
@@ -215,6 +218,7 @@ function ensureContains(array: any[], value: any) {
     array.push(value);
   }
 }
+
 
 /**
  * A signal which is computed from other signals.
@@ -233,11 +237,11 @@ class ComputedSignal2<T> extends Signal2<T> {
   // we need the old value to know if effects need running after computation
   $invalid$: boolean = true;
 
-  constructor(scheduler: Scheduler | null, computeTask: QRLInternal<() => T> | null) {
+  constructor(container: Container2 | null, computeTask: QRLInternal<() => T> | null) {
     assertDefined(computeTask, 'compute QRL must be provided');
     // The value is used for comparison when signals trigger, which can only happen
     // when it was calculated before. Therefore we can pass whatever we like.
-    super(scheduler, NEEDS_COMPUTATION);
+    super(container, NEEDS_COMPUTATION);
     this.$computeQrl$ = computeTask;
   }
 
@@ -310,5 +314,70 @@ class ComputedSignal2<T> extends Signal2<T> {
 
   set value(_: any) {
     throw new TypeError('ComputedSignal is read-only');
+  }
+}
+
+export class DerivedSignal<T> extends Signal2<T> {
+  $args$: any[];
+  $fn$: (...args: any[]) => T;
+  $fnStr$: string | null;
+
+  // We need a separate flag to know when the computation needs running because
+  // we need the old value to know if effects need running after computation
+  $invalid$: boolean = true;
+
+  constructor(container: Container2 | null, fn: (...args: any[]) => T, args: any[], fnStr: string | null) {
+    super(container, NEEDS_COMPUTATION);
+    this.$args$ = args;
+    this.$fn$ = fn;
+    this.$fnStr$ = fnStr;
+  }
+
+  $invalidate$() {
+    this.$invalid$ = true;
+    if (!this.$effects$?.length) {
+      return;
+    }
+    // We should only call subscribers if the calculation actually changed.
+    // Therefore, we need to calculate the value now.
+    // TODO move this calculation to the beginning of the next tick, add chores to that tick if necessary. New chore type?
+    if (this.$computeIfNeeded$()) {
+      this.$triggerEffects$();
+    }
+  }
+
+  /**
+   * Use this to force running subscribers, for example when the calculated value has mutated but
+   * remained the same object
+   */
+  force() {
+    this.$invalid$ = true;
+    this.$triggerEffects$();
+  }
+
+  get untrackedValue() {
+    if (this.$invalid$ && !this.$container$) {
+      // This is a hack to handle isValidJSXChild. Unsure why this is needed.
+      return this.$fn$(...this.$args$);
+    }
+    this.$computeIfNeeded$();
+    assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state')
+    return this.$untrackedValue$;
+  }
+
+  private $computeIfNeeded$() {
+    if (!this.$invalid$) {
+      return false;
+    }
+    this.$untrackedValue$ = trackSignal2(() => this.$fn$(...this.$args$), this, this.$container$!);
+  }
+
+  // Getters don't get inherited
+  get value() {
+    return super.value;
+  }
+
+  set value(_: any) {
+    throw new TypeError('DerivedSignal is read-only');
   }
 }

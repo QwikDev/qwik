@@ -22,6 +22,6 @@ export const useSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STATE>
     isFunction(initialState) && !isQwikComponent(initialState)
       ? invoke(undefined, initialState as any)
       : initialState;
-  const signal = createSignal2(value)
+  const signal = createSignal2(value);
   return set(signal);
 };

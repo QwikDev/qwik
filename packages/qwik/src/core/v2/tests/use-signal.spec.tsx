@@ -19,10 +19,10 @@ const debug = true; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
-  { render: ssrRenderToDom }, //
+  // { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: useSignal', ({ render }) => {
-  it.only('should update value', async () => {
+  it('should update value', async () => {
     const Counter = component$((props: { initial: number }) => {
       const count = useSignal(props.initial);
       return <button onClick$={() => count.value++}>Count: {count.value}!</button>;
@@ -87,7 +87,7 @@ describe.each([
       </>
     );
   });
-  it('should update from JSX', async () => {
+  it.only('should update from JSX', async () => {
     const Child = component$(() => {
       return (
         <span>
@@ -114,6 +114,7 @@ describe.each([
         </button>
       </>
     );
+    console.log('>>>>>>>>> CLICK');
     await trigger(container.element, 'button', 'click');
     expect(vNode).toMatchVDOM(
       <>

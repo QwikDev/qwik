@@ -1,6 +1,7 @@
 import { assertDefined } from '../error/assert';
 import { SignalDerived } from '../state/signal';
 import { qSerialize } from '../util/qdev';
+import { DerivedSignal } from '../v2/signal/v2-signal';
 
 /** @internal */
 export const _fnSignal = <T extends (...args: any) => any>(
@@ -8,7 +9,7 @@ export const _fnSignal = <T extends (...args: any) => any>(
   args: Parameters<T>,
   fnStr?: string
 ) => {
-  return new SignalDerived<ReturnType<T>, Parameters<T>>(fn, args, fnStr);
+  return new DerivedSignal(null, fn, args, fnStr || null);
 };
 
 export const serializeDerivedSignalFunc = (signal: SignalDerived) => {

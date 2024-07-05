@@ -12,7 +12,7 @@ import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../../render/jsx/utils.public';
 import { SubscriptionType } from '../../state/common';
 import { SignalDerived, isSignal } from '../../state/signal';
-import { trackSignal } from '../../use/use-core';
+import { trackSignal, trackSignal2 } from '../../use/use-core';
 import { TaskFlags, cleanupTask, isTask, type SubscriberEffect } from '../../use/use-task';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import {
@@ -88,6 +88,7 @@ import {
   type VNodeJournal,
 } from './vnode';
 import { getNewElementNamespaceData } from './vnode-namespace';
+import { isSignal2 } from '../signal/v2-signal';
 
 export type ComponentQueue = Array<VNode>;
 
@@ -176,15 +177,12 @@ export const vnode_diff = (
         } else if (jsxValue && typeof jsxValue === 'object') {
           if (Array.isArray(jsxValue)) {
             descend(jsxValue, false);
-          } else if (isSignal(jsxValue)) {
+          } else if (isSignal2(jsxValue)) {
             expectVirtual(VirtualType.DerivedSignal, null);
             descend(
-              trackSignal(jsxValue, [
-                SubscriptionType.TEXT_MUTABLE,
+              trackSignal2(() => jsxValue.value,
                 vCurrent || (vNewNode as fixMeAny), // This should be host, but not sure why
-                jsxValue,
-                vCurrent || (vNewNode as fixMeAny),
-              ]),
+                container),
               true
             );
           } else if (isPromise(jsxValue)) {

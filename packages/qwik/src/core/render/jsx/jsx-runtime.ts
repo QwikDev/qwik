@@ -18,6 +18,7 @@ import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 import { SkipRender } from './utils.public';
+import { isSignal2 } from '../../v2/signal/v2-signal';
 
 export type Props = Record<string, unknown>;
 
@@ -376,6 +377,8 @@ export const isValidJSXChild = (node: unknown): node is JsxChild => {
   }
   if (isSignal(node)) {
     return isValidJSXChild(node.value);
+  } else if (isSignal2(node)) {
+    return isValidJSXChild(node.untrackedValue);
   } else if (isPromise(node)) {
     return true;
   }

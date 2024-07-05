@@ -146,7 +146,7 @@ function processJSXNode(
       // const host = ssr.getComponentFrame(0)!.componentNode as fixMeAny;
       const host = signalNode;
       enqueue(ssr.closeFragment);
-      enqueue(trackSignal(value, [SubscriptionType.TEXT_MUTABLE, host, value, signalNode]));
+      enqueue(trackSignal(value, [SubscriptionType.TEXT_MUTABLE, host, value, signalNode], ssr));
     } else if (isPromise(value)) {
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Awaited] : EMPTY_ARRAY);
       enqueue(ssr.closeFragment);

@@ -679,10 +679,7 @@ export const vnode_diff = (
       vCurrent && vnode_isElementVNode(vCurrent) && elementName === vnode_getElementName(vCurrent);
     const jsxKey: string | null = jsx.key;
     let needsQDispatchEventPatch = false;
-    if (
-      !isSameElementName ||
-      jsxKey !== vnode_getProp(vCurrent as ElementVNode, ELEMENT_KEY, null)
-    ) {
+    if (!isSameElementName || jsxKey !== getKey(vCurrent)) {
       // So we have a key and it does not match the current node.
       // We need to do a forward search to find it.
       // The complication is that once we start taking nodes out of order we can't use `vnode_getNextSibling`
@@ -794,10 +791,11 @@ export const vnode_diff = (
         // Source has more keys, so we need to remove them from destination
         if (dstKey && isHtmlAttributeAnEventName(dstKey)) {
           patchEventDispatch = true;
+          dstIdx++;
         } else {
           record(dstKey!, null);
+          dstIdx--;
         }
-        dstIdx++; // skip the destination value, we don't care about it.
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (dstKey == null) {
         // Destination has more keys, so we need to insert them from source.
@@ -828,17 +826,23 @@ export const vnode_diff = (
         } else {
           record(srcKey, srcAttrs[srcIdx]);
         }
+
         srcIdx++;
         // advance srcValue
         srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
+        // we need to increment dstIdx too, because we added destination key and value to the VNode
+        // and dstAttrs is a reference to the VNode
+        dstIdx++;
+        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else {
         // Source is missing the key, so we need to remove it from destination.
         if (isHtmlAttributeAnEventName(dstKey)) {
           patchEventDispatch = true;
+          dstIdx++;
         } else {
           record(dstKey!, null);
+          dstIdx--;
         }
-        dstIdx++; // skip the destination value, we don't care about it.
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       }
     }

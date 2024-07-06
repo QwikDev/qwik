@@ -10,14 +10,14 @@ import {
   jsx,
   useComputed$,
   useVisibleTask$,
+  type JSXOutput,
+  useSignal,
+  useStore,
 } from '@builder.io/qwik';
-import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
+import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
 import { describe, expect, it } from 'vitest';
-import { cleanupAttrs, trigger } from '../../../testing/element-fixture';
+import { cleanupAttrs } from '../../../testing/element-fixture';
 import { ErrorProvider } from '../../../testing/rendering.unit-util';
-import type { JSXOutput } from '../../render/jsx/types/jsx-node';
-import { useSignal } from '../../use/use-signal';
-import { useStore } from '../../use/use-store.public';
 import { HTML_NS, MATH_NS, SVG_NS } from '../../util/markers';
 import { delay } from '../../util/promises';
 

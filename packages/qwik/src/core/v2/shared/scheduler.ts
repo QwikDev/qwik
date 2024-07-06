@@ -99,7 +99,7 @@ import { vnode_documentPosition, vnode_isVNode } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
 import { executeComponent2 } from './component-execution';
 import type { Container2, HostElement, fixMeAny } from './types';
-import { EffectSubscriptionsProp, type EffectSubscriptions } from '../signal/v2-signal';
+import { EffectSubscriptionsProp, isSignal2, type EffectSubscriptions } from '../signal/v2-signal';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -315,7 +315,10 @@ export const createScheduler = (
         break;
       case ChoreType.NODE_DIFF: {
         const parentVirtualNode = chore.$target$ as VirtualVNode;
-        const jsx = chore.$payload$ as JSXOutput;
+        let jsx = chore.$payload$ as JSXOutput;
+        if (isSignal2(jsx)) {
+          jsx = jsx.value as any;
+        }
         returnValue = vnode_diff(container as fixMeAny, jsx, parentVirtualNode, null);
         break;
       }

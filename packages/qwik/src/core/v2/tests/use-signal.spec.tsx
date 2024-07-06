@@ -114,7 +114,6 @@ describe.each([
         </button>
       </>
     );
-    console.log('>>>>>>>>> CLICK');
     await trigger(container.element, 'button', 'click');
     expect(vNode).toMatchVDOM(
       <>

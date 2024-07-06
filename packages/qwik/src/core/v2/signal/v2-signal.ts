@@ -171,6 +171,7 @@ class Signal2<T = any> implements ISignal2<T> {
 
   protected $triggerEffects$() {
     if (this.$effects$) {
+      let signal: Signal2 = this;
       const scheduleEffect = (effectSubscriptions: EffectSubscriptions) => {
         const effect = effectSubscriptions[EffectSubscriptionsProp.EFFECT];
         assertDefined(this.$container$, 'Scheduler must be defined.');
@@ -181,13 +182,23 @@ class Signal2<T = any> implements ISignal2<T> {
         } else if (effect instanceof Signal2) {
           // we don't schedule ComputedSignal/DerivedSignal directly, instead we invalidate it and
           // and schedule the signals effects (recursively)
+          if (effect instanceof ComputedSignal2) {
+            // TODO(misko): ensure that the computed signal's QRL is resolved.
+            // If not resolved scheduled it to be resolved.
+          }
           (effect as ComputedSignal2<unknown> | DerivedSignal<unknown>).$invalid$ = true;
-          effect.$effects$?.forEach(scheduleEffect);
+          const previousSignal = signal;
+          try {
+            signal = effect;
+            effect.$effects$?.forEach(scheduleEffect);
+          } finally {
+            signal = previousSignal;
+          }
         } else {
           const host: HostElement = effect as any;
           const target = host;
           DEBUG && log('schedule.effect.node_diff', pad('\n' + String(effect), '  '));
-          this.$container$.$scheduler$(ChoreType.NODE_DIFF, host, target, this.$untrackedValue$ as JSXOutput);
+          this.$container$.$scheduler$(ChoreType.NODE_DIFF, host, target, signal as fixMeAny);
         }
       };
       this.$effects$.forEach(scheduleEffect);

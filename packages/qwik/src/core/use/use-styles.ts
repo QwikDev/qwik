@@ -138,10 +138,10 @@ export const useStylesScoped$ = /*#__PURE__*/ implicit$FirstArg(useStylesScopedQ
  * });
  * ```
  *
- * The scoped style can have `:scope` pseudo class to scope the styles to the component like this.
+ * The scoped style can have `:q-scope` pseudo class to scope the styles to the component like this.
  *
  * ```css
- * :scope {
+ * :q-scope {
  *   color: red;
  *   background: blue;
  * }
@@ -156,7 +156,7 @@ export const useStylesWithScopeQrl = (styles: QRL<string>): void => {
     styles,
     (str, styleId) => {
       const scopeId = ComponentStylesPrefixContent + styleId;
-      return str.replaceAll(/:scope\b/g, '.' + scopeId);
+      return str.replaceAll(/:q-scope\b/g, '.' + scopeId);
     },
     true
   );
@@ -181,10 +181,10 @@ export const useStylesWithScopeQrl = (styles: QRL<string>): void => {
  * });
  * ```
  *
- * The scoped style can have `:scope` pseudo class to scope the styles to the component like this.
+ * The scoped style can have `:q-scope` pseudo class to scope the styles to the component like this.
  *
  * ```css
- * :scope {
+ * :q-scope {
  *   color: red;
  *   background: blue;
  * }

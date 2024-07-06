@@ -38,7 +38,13 @@ import {
 } from '../shared/event-names';
 import { ChoreType } from '../shared/scheduler';
 import { hasClassAttr } from '../shared/scoped-styles';
-import type { HostElement, QElement2, QwikLoaderEventScope, fixMeAny } from '../shared/types';
+import type {
+  HostElement,
+  QElement2,
+  QwikLoaderEventScope,
+  fixMeAny,
+  qWindow,
+} from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import type { DomContainer } from './dom-container';
 import {
@@ -592,6 +598,9 @@ export const vnode_diff = (
             HANDLER_PREFIX + ':' + scope + ':' + eventName,
             value
           );
+          if (eventName) {
+            registerQwikLoaderEvent(eventName);
+          }
           needsQDispatchEventPatch = true;
           continue;
         }
@@ -770,7 +779,9 @@ export const vnode_diff = (
       }
 
       // register an event for qwik loader
-      ((globalThis as fixMeAny).qwikevents ||= []).push(eventName);
+      if (eventName) {
+        registerQwikLoaderEvent(eventName);
+      }
     };
 
     while (srcKey !== null || dstKey !== null) {
@@ -832,6 +843,13 @@ export const vnode_diff = (
       }
     }
     return patchEventDispatch;
+  }
+
+  function registerQwikLoaderEvent(eventName: string) {
+    const window = container.document.defaultView as qWindow | null;
+    if (window) {
+      (window.qwikevents ||= [] as string[]).push(eventName);
+    }
   }
 
   /**

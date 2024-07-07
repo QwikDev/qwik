@@ -1,4 +1,4 @@
-import {browser} from 'nightwatch';
+import { browser } from "nightwatch";
 
 describe("Nightwatch demo test", () => {
   before(async function () {

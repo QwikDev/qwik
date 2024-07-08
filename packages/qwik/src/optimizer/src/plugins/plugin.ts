@@ -10,6 +10,7 @@ import type {
   InsightManifest,
   Optimizer,
   OptimizerOptions,
+  OptimizerSystem,
   QwikManifest,
   TransformFsOptions,
   TransformModule,
@@ -104,9 +105,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     lint: true,
   };
 
+  let lazyNormalizePath: (id: string) => string;
   const init = async () => {
     if (!internalOptimizer) {
       internalOptimizer = await createOptimizer(optimizerOptions);
+      lazyNormalizePath = makeNormalizePath(internalOptimizer.sys);
     }
   };
 
@@ -846,28 +849,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     diagnosticsCallback = cb;
   };
 
-  /** Convert windows backslashes to forward slashes */
-  const normalizePath = (id: string) => {
-    if (typeof id === 'string') {
-      const sys = getSys();
-      if (sys.os === 'win32') {
-        // MIT https://github.com/sindresorhus/slash/blob/main/license
-        // Convert Windows backslash paths to slash paths: foo\\bar ➔ foo/bar
-        const isExtendedLengthPath = /^\\\\\?\\/.test(id);
-        if (!isExtendedLengthPath) {
-          const hasNonAscii = /[^\u0000-\u0080]+/.test(id); // eslint-disable-line no-control-regex
-          if (!hasNonAscii) {
-            id = id.replace(/\\/g, '/');
-          }
-        }
-        // windows normalize
-        return sys.path.posix.normalize(id);
-      }
-      // posix normalize
-      return sys.path.normalize(id);
-    }
-    return id;
-  };
+  const normalizePath = (id: string) => lazyNormalizePath(id);
 
   function getQwikBuildModule(isSSR: boolean, target: QwikBuildTarget) {
     const isServer = isSSR || target === 'test';
@@ -937,6 +919,28 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     handleHotUpdate,
   };
 }
+
+/** Convert windows backslashes to forward slashes */
+export const makeNormalizePath = (sys: OptimizerSystem) => (id: string) => {
+  if (typeof id === 'string') {
+    if (sys.os === 'win32') {
+      // MIT https://github.com/sindresorhus/slash/blob/main/license
+      // Convert Windows backslash paths to slash paths: foo\\bar ➔ foo/bar
+      const isExtendedLengthPath = /^\\\\\?\\/.test(id);
+      if (!isExtendedLengthPath) {
+        const hasNonAscii = /[^\u0000-\u0080]+/.test(id); // eslint-disable-line no-control-regex
+        if (!hasNonAscii) {
+          id = id.replace(/\\/g, '/');
+        }
+      }
+      // windows normalize
+      return sys.path.posix.normalize(id);
+    }
+    // posix normalize
+    return sys.path.normalize(id);
+  }
+  return id;
+};
 
 const insideRoots = (ext: string, dir: string, srcDir: string | null, vendorRoots: string[]) => {
   if (ext !== '.js') {

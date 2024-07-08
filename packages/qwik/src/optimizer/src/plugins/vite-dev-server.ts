@@ -33,7 +33,8 @@ function getOrigin(req: IncomingMessage) {
 }
 
 // We must encode the chunk so that e.g. + doesn't get converted to space etc
-const encode = (url: string) => encodeURIComponent(url).replaceAll('%2F', '/');
+const encode = (url: string) =>
+  encodeURIComponent(url).replaceAll('%2F', '/').replaceAll('%40', '@');
 
 function createSymbolMapper(
   base: string,

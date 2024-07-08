@@ -117,7 +117,7 @@ async function processBundleGraph(
 async function processBundleGraphUrl(swState: SWState, base: string, graphPath: string) {
   // Call `processBundleGraph` with an empty graph so that a cache location will be allocated.
   await processBundleGraph(swState, base, [], false);
-  const response = (await directFetch(swState, new URL(base + graphPath, swState.$url$)))!;
+  const response = (await directFetch(swState, new URL(base + graphPath, swState.$url$.origin)))!;
   if (response && response.status === 200) {
     const graph = (await response.json()) as SWGraph;
     graph.push(graphPath);

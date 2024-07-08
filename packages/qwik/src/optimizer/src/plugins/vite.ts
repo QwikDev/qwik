@@ -570,9 +570,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
           const workerScriptPath = (await this.resolve('@builder.io/qwik/qwik-prefetch.js'))!.id;
           const workerScript = await fs.promises.readFile(workerScriptPath, 'utf-8');
+          const assetsDir = qwikPlugin.getOptions().assetsDir || '';
+          const useAssetsDir = !!assetsDir && assetsDir !== '_astro';
+          const qwikPrefetchServiceWorkerFile = 'qwik-prefetch-service-worker.js';
           this.emitFile({
             type: 'asset',
-            fileName: `qwik-prefetch-service-worker.js`,
+            fileName: useAssetsDir
+              ? sys.path.join(filePath, qwikPrefetchServiceWorkerFile)
+              : qwikPrefetchServiceWorkerFile,
             source: workerScript,
           });
 

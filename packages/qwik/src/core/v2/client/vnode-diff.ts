@@ -38,7 +38,13 @@ import {
 } from '../shared/event-names';
 import { ChoreType } from '../shared/scheduler';
 import { hasClassAttr } from '../shared/scoped-styles';
-import type { HostElement, QElement2, QwikLoaderEventScope, fixMeAny } from '../shared/types';
+import type {
+  HostElement,
+  QElement2,
+  QwikLoaderEventScope,
+  fixMeAny,
+  qWindow,
+} from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import type { DomContainer } from './dom-container';
 import {
@@ -592,6 +598,9 @@ export const vnode_diff = (
             HANDLER_PREFIX + ':' + scope + ':' + eventName,
             value
           );
+          if (eventName) {
+            registerQwikLoaderEvent(eventName);
+          }
           needsQDispatchEventPatch = true;
           continue;
         }
@@ -670,10 +679,7 @@ export const vnode_diff = (
       vCurrent && vnode_isElementVNode(vCurrent) && elementName === vnode_getElementName(vCurrent);
     const jsxKey: string | null = jsx.key;
     let needsQDispatchEventPatch = false;
-    if (
-      !isSameElementName ||
-      jsxKey !== vnode_getProp(vCurrent as ElementVNode, ELEMENT_KEY, null)
-    ) {
+    if (!isSameElementName || jsxKey !== getKey(vCurrent)) {
       // So we have a key and it does not match the current node.
       // We need to do a forward search to find it.
       // The complication is that once we start taking nodes out of order we can't use `vnode_getNextSibling`
@@ -770,7 +776,9 @@ export const vnode_diff = (
       }
 
       // register an event for qwik loader
-      ((globalThis as fixMeAny).qwikevents ||= []).push(eventName);
+      if (eventName) {
+        registerQwikLoaderEvent(eventName);
+      }
     };
 
     while (srcKey !== null || dstKey !== null) {
@@ -783,10 +791,11 @@ export const vnode_diff = (
         // Source has more keys, so we need to remove them from destination
         if (dstKey && isHtmlAttributeAnEventName(dstKey)) {
           patchEventDispatch = true;
+          dstIdx++;
         } else {
           record(dstKey!, null);
+          dstIdx--;
         }
-        dstIdx++; // skip the destination value, we don't care about it.
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (dstKey == null) {
         // Destination has more keys, so we need to insert them from source.
@@ -817,21 +826,34 @@ export const vnode_diff = (
         } else {
           record(srcKey, srcAttrs[srcIdx]);
         }
+
         srcIdx++;
         // advance srcValue
         srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
+        // we need to increment dstIdx too, because we added destination key and value to the VNode
+        // and dstAttrs is a reference to the VNode
+        dstIdx++;
+        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else {
         // Source is missing the key, so we need to remove it from destination.
         if (isHtmlAttributeAnEventName(dstKey)) {
           patchEventDispatch = true;
+          dstIdx++;
         } else {
           record(dstKey!, null);
+          dstIdx--;
         }
-        dstIdx++; // skip the destination value, we don't care about it.
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       }
     }
     return patchEventDispatch;
+  }
+
+  function registerQwikLoaderEvent(eventName: string) {
+    const window = container.document.defaultView as qWindow | null;
+    if (window) {
+      (window.qwikevents ||= [] as string[]).push(eventName);
+    }
   }
 
   /**

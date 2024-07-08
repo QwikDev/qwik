@@ -127,54 +127,6 @@ describe('vNode-diff', () => {
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(test);
     });
-    it('should update attributes', () => {
-      // here we need tu "emulate" the var props
-      const { vNode, vParent, document } = vnode_fromJSX(
-        _jsxSorted(
-          'test',
-          {},
-          null,
-          [
-            _jsxSorted(
-              'span',
-              {
-                id: 'a',
-                about: 'name',
-              },
-              null,
-              [],
-              0,
-              null
-            ),
-          ],
-          0,
-          null
-        )
-      );
-      const test = _jsxSorted(
-        'test',
-        {},
-        null,
-        [
-          _jsxSorted(
-            'span',
-            {
-              class: 'B',
-              about: 'ABOUT',
-            },
-            null,
-            [],
-            0,
-            null
-          ),
-        ],
-        0,
-        null
-      );
-      vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
-      vnode_applyJournal(journal);
-      expect(vNode).toMatchVDOM(test);
-    });
     it('should remove extra text node', async () => {
       const { vNode, vParent, document } = vnode_fromJSX(
         <test key="0">
@@ -199,6 +151,261 @@ describe('vNode-diff', () => {
       await expect(document.querySelector('test')).toMatchDOM(test);
     });
   });
+
+  describe('attributes', () => {
+    it('should update attributes', () => {
+      const { vNode, vParent, document } = vnode_fromJSX(
+        _jsxSorted(
+          'span',
+          {
+            about: 'foo',
+            id: 'a',
+            'on:click': () => null,
+          },
+          null,
+          [],
+          0,
+          null
+        )
+      );
+      const test = _jsxSorted(
+        'span',
+        {
+          about: 'bar',
+          id: 'b',
+          onClick: () => null,
+        },
+        null,
+        [],
+        0,
+        null
+      );
+      vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+      vnode_applyJournal(journal);
+      expect(vNode).toMatchVDOM(test);
+    });
+
+    it('should remove attributes - case 1', () => {
+      const { vNode, vParent, document } = vnode_fromJSX(
+        _jsxSorted(
+          'span',
+          {
+            about: 'name',
+            id: 'a',
+            test: 'value',
+          },
+          null,
+          [],
+          0,
+          null
+        )
+      );
+      const test = _jsxSorted(
+        'span',
+        {
+          about: 'name',
+        },
+        null,
+        [],
+        0,
+        null
+      );
+      vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+      vnode_applyJournal(journal);
+      expect(vNode).toMatchVDOM(test);
+    });
+
+    it('should remove attributes - case 2', () => {
+      const { vNode, vParent, document } = vnode_fromJSX(
+        _jsxSorted(
+          'span',
+          {
+            about: 'name',
+            id: 'a',
+            test: 'value',
+          },
+          null,
+          [],
+          0,
+          null
+        )
+      );
+      const test = _jsxSorted(
+        'span',
+        {
+          id: 'a',
+        },
+        null,
+        [],
+        0,
+        null
+      );
+      vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+      vnode_applyJournal(journal);
+      expect(vNode).toMatchVDOM(test);
+    });
+
+    it('should remove attributes - case 3', () => {
+      const { vNode, vParent, document } = vnode_fromJSX(
+        _jsxSorted(
+          'span',
+          {
+            about: 'name',
+            id: 'a',
+            test: 'value',
+          },
+          null,
+          [],
+          0,
+          null
+        )
+      );
+      const test = _jsxSorted(
+        'span',
+        {
+          test: 'value',
+        },
+        null,
+        [],
+        0,
+        null
+      );
+      vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+      vnode_applyJournal(journal);
+      expect(vNode).toMatchVDOM(test);
+    });
+
+    it('should remove attributes - case 4', () => {
+      const { vNode, vParent, document } = vnode_fromJSX(
+        _jsxSorted(
+          'span',
+          {
+            about: 'name',
+            id: 'a',
+            test: 'value',
+          },
+          null,
+          [],
+          0,
+          null
+        )
+      );
+      const test = _jsxSorted('span', {}, null, [], 0, null);
+      vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+      vnode_applyJournal(journal);
+      expect(vNode).toMatchVDOM(test);
+    });
+
+    it('should add attributes - case 1', () => {
+      const { vNode, vParent, document } = vnode_fromJSX(
+        _jsxSorted(
+          'span',
+          {
+            about: 'name',
+          },
+          null,
+          [],
+          0,
+          null
+        )
+      );
+      const test = _jsxSorted(
+        'span',
+        {
+          about: 'name',
+          id: 'a',
+          test: 'value',
+        },
+        null,
+        [],
+        0,
+        null
+      );
+      vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+      vnode_applyJournal(journal);
+      expect(vNode).toMatchVDOM(test);
+    });
+
+    it('should add attributes - case 2', () => {
+      const { vNode, vParent, document } = vnode_fromJSX(
+        _jsxSorted(
+          'span',
+          {
+            id: 'a',
+          },
+          null,
+          [],
+          0,
+          null
+        )
+      );
+      const test = _jsxSorted(
+        'span',
+        {
+          about: 'name',
+          id: 'a',
+          test: 'value',
+        },
+        null,
+        [],
+        0,
+        null
+      );
+      vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+      vnode_applyJournal(journal);
+      expect(vNode).toMatchVDOM(test);
+    });
+
+    it('should add attributes - case 3', () => {
+      const { vNode, vParent, document } = vnode_fromJSX(
+        _jsxSorted(
+          'span',
+          {
+            test: 'value',
+          },
+          null,
+          [],
+          0,
+          null
+        )
+      );
+      const test = _jsxSorted(
+        'span',
+        {
+          about: 'name',
+          id: 'a',
+          test: 'value',
+        },
+        null,
+        [],
+        0,
+        null
+      );
+      vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+      vnode_applyJournal(journal);
+      expect(vNode).toMatchVDOM(test);
+    });
+
+    it('should add attributes - case 4', () => {
+      const { vNode, vParent, document } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
+      const test = _jsxSorted(
+        'span',
+        {
+          about: 'name',
+          id: 'a',
+          test: 'value',
+        },
+        null,
+        [],
+        0,
+        null
+      );
+      vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+      vnode_applyJournal(journal);
+      expect(vNode).toMatchVDOM(test);
+    });
+  });
+
   describe('keys', () => {
     it('should not reuse element because old has a key and new one does not', () => {
       const { vNode, vParent, document } = vnode_fromJSX(

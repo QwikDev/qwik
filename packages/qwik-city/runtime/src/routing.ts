@@ -18,41 +18,44 @@ export const loadRoute = async (
   cacheModules: boolean | undefined,
   pathname: string
 ): Promise<LoadedRoute | null> => {
-  if (Array.isArray(routes)) {
-    for (const route of routes) {
-      const routeName = route[0];
-      const params = matchRoute(routeName, pathname);
-      if (params) {
-        const loaders = route[1];
-        const routeBundleNames = route[3];
-        const mods: RouteModule[] = new Array(loaders.length);
-        const pendingLoads: Promise<any>[] = [];
-        const menuLoader = getMenuLoader(menus, pathname);
-        let menu: ContentMenu | undefined = undefined;
-
-        loaders.forEach((moduleLoader, i) => {
-          loadModule<RouteModule>(
-            moduleLoader,
-            pendingLoads,
-            (routeModule) => (mods[i] = routeModule),
-            cacheModules
-          );
-        });
-
-        loadModule<MenuModule>(
-          menuLoader,
-          pendingLoads,
-          (menuModule) => (menu = menuModule?.default),
-          cacheModules
-        );
-
-        if (pendingLoads.length > 0) {
-          await Promise.all(pendingLoads);
-        }
-
-        return [routeName, params, mods, menu, routeBundleNames];
-      }
+  if (!Array.isArray(routes)) {
+    return null;
+  }
+  for (const routeData of routes) {
+    const routeName = routeData[0];
+    const params = matchRoute(routeName, pathname);
+    if (!params) {
+      continue;
     }
+    const loaders = routeData[1];
+    const routeBundleNames = routeData[3];
+    const modules: RouteModule[] = new Array(loaders.length);
+    const pendingLoads: Promise<any>[] = [];
+
+    loaders.forEach((moduleLoader, i) => {
+      loadModule<RouteModule>(
+        moduleLoader,
+        pendingLoads,
+        (routeModule) => (modules[i] = routeModule),
+        cacheModules
+      );
+    });
+
+    const menuLoader = getMenuLoader(menus, pathname);
+    let menu: ContentMenu | undefined = undefined;
+
+    loadModule<MenuModule>(
+      menuLoader,
+      pendingLoads,
+      (menuModule) => (menu = menuModule?.default),
+      cacheModules
+    );
+
+    if (pendingLoads.length > 0) {
+      await Promise.all(pendingLoads);
+    }
+
+    return [routeName, params, modules, menu, routeBundleNames];
   }
   return null;
 };
@@ -68,18 +71,18 @@ const loadModule = <T>(
     if (loadedModule) {
       moduleSetter(loadedModule);
     } else {
-      const l: any = moduleLoader();
-      if (typeof l.then === 'function') {
+      const moduleOrPromise: any = moduleLoader();
+      if (typeof moduleOrPromise.then === 'function') {
         pendingLoads.push(
-          l.then((loadedModule: any) => {
+          moduleOrPromise.then((loadedModule: any) => {
             if (cacheModules !== false) {
               MODULE_CACHE.set(moduleLoader, loadedModule);
             }
             moduleSetter(loadedModule);
           })
         );
-      } else if (l) {
-        moduleSetter(l);
+      } else if (moduleOrPromise) {
+        moduleSetter(moduleOrPromise);
       }
     }
   }

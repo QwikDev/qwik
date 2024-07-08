@@ -142,7 +142,7 @@ export interface ContextId<STATE> {
 
 // @public
 export interface CorePlatform {
-    chunkForSymbol: (symbolName: string, chunk: string | null) => readonly [symbol: string, chunk: string] | undefined;
+    chunkForSymbol: (symbolName: string, chunk: string | null, parent?: string) => readonly [symbol: string, chunk: string] | undefined;
     importSymbol: (containerEl: Element | undefined, url: string | URL | undefined | null, symbol: string) => ValueOrPromise<any>;
     isServer: boolean;
     nextTick: (fn: () => any) => Promise<any>;
@@ -157,7 +157,7 @@ export interface CorrectedToggleEvent extends Event {
     readonly prevState: 'open' | 'closed';
 }
 
-// @public
+// @public @deprecated
 export const createComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>;
 
 // @public (undocumented)
@@ -166,7 +166,7 @@ export const createComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => Signal<Awaited<T
 // @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
 
-// @public
+// @public @deprecated
 export const createSignal: UseSignal;
 
 // @public (undocumented)
@@ -542,6 +542,9 @@ export type NativeWheelEvent = WheelEvent;
 // @internal (undocumented)
 export const _noopQrl: <T>(symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>;
 
+// @internal (undocumented)
+export const _noopQrlDEV: <T>(symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
+
 // @public
 export type NoSerialize<T> = (T & {
     __no_serialize__: true;
@@ -670,7 +673,7 @@ export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: st
 export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @beta
-export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[];
+export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[] | EventHandler<EV, EL>;
 
 // @alpha
 export const _qrlSync: <TYPE extends Function>(fn: TYPE, serializedFn?: string) => SyncQRL<TYPE>;
@@ -1630,7 +1633,7 @@ export const useComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>;
 // @public (undocumented)
 export const useComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => Signal<Awaited<T>>;
 
-// @public
+// @public @deprecated
 export const useConstant: <T>(value: (() => T) | T) => T;
 
 // Warning: (ae-forgotten-export) The symbol "UseContext" needs to be exported by the entry point index.d.ts

@@ -1,49 +1,49 @@
 import {
   $,
-  implicit$FirstArg,
-  noSerialize,
-  type QRL,
-  useContext,
-  type ValueOrPromise,
-  useStore,
-  _serializeData,
   _deserializeData,
   _getContextElement,
   _getContextEvent,
+  _serializeData,
   _wrapProp,
+  implicit$FirstArg,
+  noSerialize,
+  useContext,
+  useStore,
+  type QRL,
+  type ValueOrPromise,
 } from '@builder.io/qwik';
 
+import { z } from 'zod';
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
-import { QACTION_KEY, QFN_KEY, QDATA_KEY } from './constants';
+import { QACTION_KEY, QDATA_KEY, QFN_KEY } from './constants';
 import { RouteStateContext } from './contexts';
 import type {
   ActionConstructor,
-  ZodConstructor,
-  JSONObject,
-  RouteActionResolver,
-  RouteLocation,
-  Editable,
-  ActionStore,
-  RequestEvent,
+  ActionConstructorQRL,
   ActionInternal,
-  LoaderInternal,
-  RequestEventAction,
+  ActionStore,
   CommonLoaderActionOptions,
   DataValidator,
-  ValidatorReturn,
+  Editable,
+  JSONObject,
   LoaderConstructor,
-  ValidatorConstructor,
-  ActionConstructorQRL,
   LoaderConstructorQRL,
-  ZodConstructorQRL,
-  ValidatorConstructorQRL,
+  LoaderInternal,
+  RequestEvent,
+  RequestEventAction,
+  RequestEventBase,
+  RouteActionResolver,
+  RouteLocation,
+  ServerConfig,
   ServerFunction,
   ServerQRL,
-  RequestEventBase,
-  ServerConfig,
+  ValidatorConstructor,
+  ValidatorConstructorQRL,
+  ValidatorReturn,
+  ZodConstructor,
+  ZodConstructorQRL,
 } from './types';
 import { useAction, useLocation, useQwikCityEnv } from './use-functions';
-import { z } from 'zod';
 
 import { isDev, isServer } from '@builder.io/qwik/build';
 
@@ -273,7 +273,8 @@ export const zod$ = /*#__PURE__*/ implicit$FirstArg(zodQrl) as ZodConstructor;
 const deepFreeze = (obj: any) => {
   Object.getOwnPropertyNames(obj).forEach((prop) => {
     const value = obj[prop];
-    if (value && typeof value === 'object') {
+    // we assume that a frozen object is a circular reference and fully deep frozen
+    if (value && typeof value === 'object' && !Object.isFrozen(value)) {
       deepFreeze(value);
     }
   });
@@ -300,7 +301,7 @@ export const serverQrl = <T extends ServerFunction>(
   function rpc() {
     return $(async function (this: RequestEventBase, ...args: Parameters<T>) {
       // move to ServerConfig
-      const signal =
+      const abortSignal =
         args.length > 0 && args[0] instanceof AbortSignal
           ? (args.shift() as AbortSignal)
           : undefined;
@@ -323,7 +324,7 @@ export const serverQrl = <T extends ServerFunction>(
       } else {
         // Running on the client, we need to call the function via HTTP
         const ctxElm = _getContextElement();
-        const filtered = args.map((arg: unknown) => {
+        const filteredArgs = args.map((arg: unknown) => {
           if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
             return new FormData(arg.target);
           } else if (arg instanceof Event) {
@@ -333,7 +334,7 @@ export const serverQrl = <T extends ServerFunction>(
           }
           return arg;
         });
-        const hash = qrl.getHash();
+        const qrlHash = qrl.getHash();
         // Handled by `pureServerFunction` middleware
         let query = '';
         const config = {
@@ -343,18 +344,18 @@ export const serverQrl = <T extends ServerFunction>(
             ...headers,
             'Content-Type': 'application/qwik-json',
             // Required so we don't call accidentally
-            'X-QRL': hash,
+            'X-QRL': qrlHash,
           },
-          signal,
+          signal: abortSignal,
         };
-        const body = await _serializeData([qrl, ...filtered], false);
+        const body = await _serializeData([qrl, ...filteredArgs], false);
         if (method === 'GET') {
           query += `&${QDATA_KEY}=${encodeURIComponent(body)}`;
         } else {
           // PatrickJS: sorry Ryan Florence I prefer const still
           config.body = body;
         }
-        const res = await fetch(`${origin}?${QFN_KEY}=${hash}${query}`, config);
+        const res = await fetch(`${origin}?${QFN_KEY}=${qrlHash}${query}`, config);
 
         const contentType = res.headers.get('Content-Type');
         if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {
@@ -363,12 +364,12 @@ export const serverQrl = <T extends ServerFunction>(
               for await (const result of deserializeStream(
                 res.body!,
                 ctxElm ?? document.documentElement,
-                signal
+                abortSignal
               )) {
                 yield result;
               }
             } finally {
-              if (!signal?.aborted) {
+              if (!abortSignal?.aborted) {
                 await res.body!.cancel();
               }
             }
@@ -440,13 +441,13 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
 const deserializeStream = async function* (
   stream: ReadableStream<Uint8Array>,
   ctxElm: unknown,
-  signal?: AbortSignal
+  abortSignal?: AbortSignal
 ) {
   const reader = stream.getReader();
   try {
     let buffer = '';
     const decoder = new TextDecoder();
-    while (!signal?.aborted) {
+    while (!abortSignal?.aborted) {
       const result = await reader.read();
       if (result.done) {
         break;

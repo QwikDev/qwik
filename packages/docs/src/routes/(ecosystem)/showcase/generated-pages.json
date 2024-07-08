@@ -17,6 +17,22 @@
     "tags": "site,healthcare,services,webrtc,websocket"
   },
   {
+    "title": "Ohayo Dev & Design | Acceuil",
+    "imgSrc": "/showcases/ohayo-dev-design_com_.webp",
+    "perf": {
+      "score": 0.98,
+      "fcpDisplay": "1.1 s",
+      "fcpScore": 1,
+      "lcpDisplay": "2.3 s",
+      "lcpScore": 0.93,
+      "ttiDisplay": "1.4 s",
+      "ttiScore": 1,
+      "ttiTime": 1370.12221275
+    },
+    "href": "https://ohayo-dev-design.com/",
+    "tags": "web, dev, agency"
+  },
+  {
     "title": "Wep Apps | Zhou's Portfolio",
     "imgSrc": "/showcases/linkfang-portfolio_vercel_app_.webp",
     "perf": {

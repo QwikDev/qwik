@@ -460,7 +460,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       from: importerId,
       for: isSSR ? 'server' : 'client',
     });
-    // note that qrl segments request /%40fs instead of /@fs
     if (id.startsWith('\0')) {
       return;
     }

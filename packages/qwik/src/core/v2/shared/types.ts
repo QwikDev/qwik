@@ -54,6 +54,12 @@ export interface QElement2 extends HTMLElement {
   qDispatchEvent?: (event: Event, scope: QwikLoaderEventScope) => boolean;
 }
 
+export type qWindow = Window & {
+  qwikevents: {
+    push: (...e: string[]) => void;
+  };
+};
+
 export type QwikLoaderEventScope = '-document' | '-window' | '';
 
 export const isContainer2 = (container: any): container is Container2 => {

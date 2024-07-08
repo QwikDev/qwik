@@ -5,7 +5,12 @@ import type { IncomingMessage, ServerResponse } from 'http';
 
 import type { Connect, ViteDevServer } from 'vite';
 import type { OptimizerSystem, Path, QwikManifest, SymbolMapper, SymbolMapperFn } from '../types';
-import { type NormalizedQwikPluginOptions, parseId, getSymbolHash } from './plugin';
+import {
+  type NormalizedQwikPluginOptions,
+  parseId,
+  getSymbolHash,
+  makeNormalizePath,
+} from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
 import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
@@ -34,8 +39,10 @@ function createSymbolMapper(
   base: string,
   opts: NormalizedQwikPluginOptions,
   foundQrls: Map<string, string>,
-  path: Path
+  path: Path,
+  sys: OptimizerSystem
 ): SymbolMapperFn {
+  const normalizePath = makeNormalizePath(sys);
   return (
     symbolName: string,
     mapper: SymbolMapper | undefined,
@@ -65,11 +72,13 @@ function createSymbolMapper(
       );
       return [symbolName, `${base}${symbolName.toLowerCase()}.js`];
     }
-    const parentPath = path.dirname(parent);
+    // on windows, absolute paths don't start with a slash
+    const maybeSlash = sys.os === 'win32' ? '/' : '';
+    const parentPath = normalizePath(path.dirname(parent));
     const parentFile = path.basename(parent);
     const qrlPath = parentPath.startsWith(opts.rootDir)
-      ? path.posix.normalize(path.relative(opts.rootDir, parentPath))
-      : `@fs${path.posix.normalize(parentPath)}`;
+      ? path.relative(opts.rootDir, parentPath)
+      : `@fs${maybeSlash}${parentPath}`;
     const qrlFile = `${encode(qrlPath)}/${symbolName.toLowerCase()}.js?_qrl_parent=${encode(parentFile)}`;
     return [symbolName, `${base}${qrlFile}`];
   };
@@ -98,7 +107,7 @@ export async function configureDevServer(
   foundQrls: Map<string, string>,
   devSsrServer: boolean
 ) {
-  symbolMapper = createSymbolMapper(base, opts, foundQrls, path);
+  symbolMapper = createSymbolMapper(base, opts, foundQrls, path, sys);
   if (typeof fetch !== 'function' && sys.env === 'node') {
     // polyfill fetch() when not available in Node.js
 

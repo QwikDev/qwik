@@ -209,7 +209,10 @@ export const isSignal = <T = unknown>(obj: any): obj is Signal<T> => {
 const getProp = (obj: any, prop: string) => obj[prop];
 
 /** @internal */
-export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P): any => {
+export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(
+  obj: T,
+  prop: P | undefined = 'value' as P
+): any => {
   if (!isObject(obj)) {
     return obj[prop];
   }

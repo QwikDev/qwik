@@ -47,7 +47,7 @@ export const App2_component_3yveMqbQ3Fs = ()=>{
             className: "hola"
         }, null, 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, {
-            className: _wrapProp(signal, "value")
+            className: _wrapProp(signal)
         }, null, 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, {
             className: signal
@@ -59,7 +59,7 @@ export const App2_component_3yveMqbQ3Fs = ()=>{
             className: "hola"
         }, null, 3, "u6_0"),
         /*#__PURE__*/ _jsxSorted(Foo, null, {
-            className: _wrapProp(signal, "value")
+            className: _wrapProp(signal)
         }, null, 3, "u6_1"),
         /*#__PURE__*/ _jsxSorted(Foo, null, {
             className: signal

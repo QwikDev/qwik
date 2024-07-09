@@ -65,7 +65,7 @@ export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
             ])
         }, null, 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, value, 3, null),
-        /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(value, "value"), 3, null)
+        /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(value), 3, null)
     ], 3, "u6_0");
 }, "s_n7HuG2hhU0Q"));
 

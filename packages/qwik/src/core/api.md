@@ -2084,7 +2084,7 @@ export interface WebViewHTMLAttributes<T extends Element> extends HTMLAttributes
 export function withLocale<T>(locale: string, fn: () => T): T;
 
 // @internal (undocumented)
-export const _wrapProp: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;
+export const _wrapProp: <T extends Record<any, any>, P extends keyof T>(obj: T, prop?: P | undefined) => any;
 
 // (No @packageDocumentation comment for this package)
 

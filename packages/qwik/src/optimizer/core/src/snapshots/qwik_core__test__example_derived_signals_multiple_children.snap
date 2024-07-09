@@ -81,7 +81,7 @@ const App_component_ckEPmXZlub0 = ()=>{
         ], 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",
-            _wrapProp(signal, "value")
+            _wrapProp(signal)
         ], 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, [
             "First ",

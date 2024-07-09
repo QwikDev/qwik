@@ -498,7 +498,7 @@ function skipRequest(pathname: string) {
   if (pathname.includes('favicon')) {
     return true;
   }
-  if (pathname.startsWith('/src/')) {
+  if (pathname.startsWith('/src/') || pathname.startsWith('/@fs/')) {
     const ext = getExtension(pathname);
     if (SKIP_SRC_EXTS[ext]) {
       return true;

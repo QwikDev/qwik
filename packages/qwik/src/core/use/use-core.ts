@@ -255,12 +255,22 @@ export const trackSignal = <T>(signal: Signal, sub: Subscriber): T => {
   return invoke(trackInvocation, () => signal.value);
 };
 
-export const trackSignal2 = <T>(fn: () => T, sub: Effect, property: string | boolean, container: Container2): T => {
+/**
+ * 
+ * @param fn 
+ * @param subscriber 
+ * @param property  `true` - subscriber is component
+ *                  `false` - subscriber is VNode
+ *                  `string` - subscriber is property
+ * @param container 
+ * @returns 
+ */
+export const trackSignal2 = <T>(fn: () => T, subscriber: Effect, property: string | boolean, container: Container2): T => {
   console.log(">>>>>>>>>> PROPERTY", property);
   const previousSubscriber = trackInvocation.$effectSubscriber$;
   const previousContainer = trackInvocation.$container2$;
   try {
-    trackInvocation.$effectSubscriber$ = [sub, property];
+    trackInvocation.$effectSubscriber$ = [subscriber, property];
     trackInvocation.$container2$ = container;
     return invoke(trackInvocation, fn);
   } finally {

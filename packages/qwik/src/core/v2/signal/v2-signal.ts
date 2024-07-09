@@ -117,16 +117,17 @@ export type EffectSubscriptions = [
 export const enum EffectSubscriptionsProp {
   EFFECT = 0,
   PROPERTY = 1,
+  FIRST_BACK_REF = 2,
 }
 
-class Signal2<T = any> implements ISignal2<T> {
-  protected $untrackedValue$: T;
+export class Signal2<T = any> implements ISignal2<T> {
+  $untrackedValue$: T;
 
   /** Store a list of effects which are dependent on this signal. */
   // TODO perf: use a set?
-  protected $effects$: null | EffectSubscriptions[] = null;
+  $effects$: null | EffectSubscriptions[] = null;
 
-  protected $container$: Container2 | null = null;
+  $container$: Container2 | null = null;
 
   constructor(container: Container2 | null, value: T) {
     this.$container$ = container;
@@ -259,7 +260,7 @@ function ensureContains(array: any[], value: any) {
  *
  * The value is available synchronously, but the computation is done lazily.
  */
-class ComputedSignal2<T> extends Signal2<T> {
+export class ComputedSignal2<T> extends Signal2<T> {
   /**
    * The compute function is stored here.
    *
@@ -353,8 +354,8 @@ class ComputedSignal2<T> extends Signal2<T> {
 
 export class DerivedSignal2<T> extends Signal2<T> {
   $args$: any[];
-  $fn$: (...args: any[]) => T;
-  $fnStr$: string | null;
+  $func$: (...args: any[]) => T;
+  $funcStr$: string | null;
 
   // We need a separate flag to know when the computation needs running because
   // we need the old value to know if effects need running after computation
@@ -363,8 +364,8 @@ export class DerivedSignal2<T> extends Signal2<T> {
   constructor(container: Container2 | null, fn: (...args: any[]) => T, args: any[], fnStr: string | null) {
     super(container, NEEDS_COMPUTATION);
     this.$args$ = args;
-    this.$fn$ = fn;
-    this.$fnStr$ = fnStr;
+    this.$func$ = fn;
+    this.$funcStr$ = fnStr;
   }
 
   $invalidate$() {
@@ -392,7 +393,7 @@ export class DerivedSignal2<T> extends Signal2<T> {
   get untrackedValue() {
     if (this.$invalid$ && !this.$container$) {
       // This is a hack to handle isValidJSXChild. Unsure why this is needed.
-      return this.$fn$(...this.$args$);
+      return this.$func$(...this.$args$);
     }
     this.$computeIfNeeded$();
     assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state')
@@ -403,7 +404,7 @@ export class DerivedSignal2<T> extends Signal2<T> {
     if (!this.$invalid$) {
       return false;
     }
-    this.$untrackedValue$ = trackSignal2(() => this.$fn$(...this.$args$), this, false, this.$container$!);
+    this.$untrackedValue$ = trackSignal2(() => this.$func$(...this.$args$), this, false, this.$container$!);
   }
 
   // Getters don't get inherited

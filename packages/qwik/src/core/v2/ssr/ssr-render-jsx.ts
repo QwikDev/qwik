@@ -8,8 +8,6 @@ import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { SubscriptionType } from '../../state/common';
-import { SignalDerived, isSignal } from '../../state/signal';
-import { trackSignal } from '../../use/use-core';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
 import {
@@ -41,6 +39,8 @@ import {
   type SSRStreamChildren,
 } from '../../render/jsx/utils.public';
 import { isAsyncGenerator } from '../../util/async-generator';
+import { DerivedSignal2, isSignal2 } from '../signal/v2-signal';
+import { trackSignal2 } from '../../use/use-core';
 
 class SetScopedStyle {
   constructor(public $scopedStyle$: string | null) {}
@@ -139,14 +139,13 @@ function processJSXNode(
       for (let i = value.length - 1; i >= 0; i--) {
         enqueue(value[i]);
       }
-    } else if (isSignal(value)) {
+    } else if (isSignal2(value)) {
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.DerivedSignal] : EMPTY_ARRAY);
       const signalNode = ssr.getLastNode() as fixMeAny;
       // TODO(mhevery): It is unclear to me why we need to serialize host for SignalDerived.
       // const host = ssr.getComponentFrame(0)!.componentNode as fixMeAny;
-      const host = signalNode;
       enqueue(ssr.closeFragment);
-      enqueue(trackSignal(value, [SubscriptionType.TEXT_MUTABLE, host, value, signalNode], ssr));
+      enqueue(trackSignal2(() => (value.value as any), signalNode, false, ssr));
     } else if (isPromise(value)) {
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Awaited] : EMPTY_ARRAY);
       enqueue(ssr.closeFragment);
@@ -221,7 +220,7 @@ function processJSXNode(
             ssr.openProjection(projectionAttrs);
             const host = componentFrame.componentNode;
             const node = ssr.getLastNode();
-            const slotName = getSlotName(host, jsx);
+            const slotName = getSlotName(host, jsx, ssr);
             projectionAttrs.push(QSlot, slotName);
             enqueue(new SetScopedStyle(styleScoped));
             enqueue(ssr.closeProjection);
@@ -378,7 +377,7 @@ export function toSsrAttrs(
       continue;
     }
 
-    if (isSignal(value)) {
+    if (isSignal2(value)) {
       // write signal as is. We will track this signal inside `writeAttrs`
       if (isClassAttr(key)) {
         // additionally append styleScopedId for class attr
@@ -490,12 +489,12 @@ function addPreventDefaultEventToSerializationContext(
   }
 }
 
-function getSlotName(host: ISsrNode, jsx: JSXNode): string {
+function getSlotName(host: ISsrNode, jsx: JSXNode, ssr: SSRContainer): string {
   const constProps = jsx.constProps;
   if (constProps && typeof constProps == 'object' && 'name' in constProps) {
     const constValue = constProps.name;
-    if (constValue instanceof SignalDerived) {
-      return trackSignal(constValue, [SubscriptionType.HOST, host as fixMeAny]);
+    if (constValue instanceof DerivedSignal2) {
+      return trackSignal2(() => constValue.value, host as fixMeAny, false, ssr);
     }
   }
   return (jsx.props.name as string) || QDefaultSlot;

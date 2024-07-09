@@ -371,7 +371,7 @@ describe('serializer v2', () => {
       });
     });
 
-    describe('SignalWrapperSerializer, / ' + SerializationConstant.SignalWrapper_CHAR, () => {
+    describe('SignalWrapperSerializer, / ' + SerializationConstant.ComputedSignal_CHAR, () => {
       it.todo('should serialize and deserialize', () => {
         ///
       });

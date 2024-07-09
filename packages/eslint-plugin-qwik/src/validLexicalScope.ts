@@ -325,6 +325,9 @@ function _isTypeCapturable(
   if (isTypeQRL(type)) {
     return;
   }
+  if (type.symbol?.name === 'JSXNode') {
+    return;
+  }
 
   const canBeCalled = type.getCallSignatures().length > 0;
   if (canBeCalled) {
@@ -486,7 +489,6 @@ const ALLOWED_CLASSES = {
   Set: true,
   Map: true,
   Uint8Array: true,
-  JSXNodeImpl: true,
 };
 
 const referencesOutsideGood = `

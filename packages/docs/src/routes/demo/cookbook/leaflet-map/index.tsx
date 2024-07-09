@@ -1,56 +1,3 @@
----
-title: LeafletJS Map | Integrations
-keywords: 'map, interactive maps'
-contributors:
-  - mugan86
-  - igorbabko
-  - anartzdev
-  - gimonaa
-  - gioboa
-updated_at: '2023-10-03T18:53:23Z'
-created_at: '2023-09-13T18:55:37Z'
----
-
-import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
-
-# LeafletJS Map
-
-Leaflet is the leading open-source JavaScript library for mobile-friendly interactive maps. 
-Weighing just about 42 KB of JS, it has all the mapping features most developers ever need.
-
-Leaflet is designed with simplicity, performance and usability in mind. 
-It works efficiently across all major desktop and mobile platforms, can be extended with lots of plugins, has a beautiful, easy to use and well-documented API and a simple, readable source code that is a joy to contribute to. [LeafletJS Map Website](https://leafletjs.com/)
-
-## Usage
-
-You can add LeafletJS Map easily by using the following Qwik starter script:
-
-```shell
-npm run qwik add leaflet-map
-```
-
-The previous command updates your app with the necessary dependencies.
-
-- `leaflet@1.9.4`
-- `@types/leaflet@1.9.4`
-
-It also adds new files to your project folder:
-
-- `src/helpers/boundary-box.tsx`: Check map area boundaries function.
-- `src/models/location.ts`: Model to define locations info elements to use in props.
-- `src/models/map.ts`: Model to define map info to use in props.
-- `src/components/leaflet-map/index.tsx`: Leaflet map simple map features component.
-- `src/routes/basic-map/index.tsx`: Example to consume Leaflet Map component with demo data
-
-## Example
-
-The main component configures the map, including the initial position and the group of markers to load.
-This setup allows you to create a dynamic and interactive map that can be easily configured and extended with different locations and markers.
-
-### Here is an example:
-
-<CodeSandbox src="/src/routes/demo/cookbook/leaflet-map/index.tsx"  style={{ height: '30em' }}>
-```tsx
 import {
   component$,
   noSerialize,
@@ -62,66 +9,6 @@ import {
 import * as L from 'leaflet';
 import leafletStyles from 'leaflet/dist/leaflet.css?inline';
 
-// Sample data json and geojson
-
-export const fvg: any = {
-  type: 'FeatureCollection',
-  name: 'FVG_line_0_001',
-  crs: { type: 'name', properties: { name: 'urn:ogc:def:crs:OGC:1.3:CRS84' } },
-  features: [
-    {
-      type: 'Feature',
-      properties: { ID_OGG: '08020060000', NAME: 'GEOJSON NAME' },
-      geometry: {
-        type: 'MultiLineString',
-        coordinates: [
-          [
-            [12.4188, 46.3528],
-            [12.4178, 46.3547],
-            [12.4284, 46.3517],
-            [12.4425, 46.3599],
-            [12.4488, 46.3605],
-            [12.4554, 46.3652],
-            [12.4552, 46.3672],
-            [12.4513, 46.3706],
-          ],
-        ],
-      },
-    },
-  ],
-};
-
-const markers: Record<string, MarkersProps[]> = {
-  FDA: [
-    {
-      name: "Terzo d'Aquileia",
-      label: 'TRZ',
-      lat: '45.770946',
-      lon: '13.31338',
-    },
-    {
-      name: 'Musi',
-      label: 'MUS',
-      lat: '46.312663',
-      lon: '13.274682',
-    },
-  ],
-  FVG: [
-    {
-      name: 'Borgo Grotta Gigante',
-      label: 'BGG',
-      lat: '45.709385',
-      lon: '13.764681',
-    },
-    {
-      name: 'Muggia',
-      label: 'MGG',
-      lat: '45.610495',
-      lon: '13.752682',
-    },
-  ],
-};
-
 export default component$(() => {
   useStyles$(
     leafletStyles +
@@ -132,6 +19,37 @@ export default component$(() => {
     }
   `
   );
+
+  const markers: Record<string, MarkersProps[]> = {
+    FDA: [
+      {
+        name: "Terzo d'Aquileia",
+        label: 'TRZ',
+        lat: '45.770946',
+        lon: '13.31338',
+      },
+      {
+        name: 'Musi',
+        label: 'MUS',
+        lat: '46.312663',
+        lon: '13.274682',
+      },
+    ],
+    FVG: [
+      {
+        name: 'Borgo Grotta Gigante',
+        label: 'BGG',
+        lat: '45.709385',
+        lon: '13.764681',
+      },
+      {
+        name: 'Muggia',
+        label: 'MGG',
+        lat: '45.610495',
+        lon: '13.752682',
+      },
+    ],
+  };
 
   const groupSig = useSignal('FDA');
   const currentLocation = useSignal<LocationsProps>({
@@ -237,9 +155,6 @@ export const LeafletMap = component$<MapProps>(
           .bindPopup(`Udine`)
           .addTo(map);
 
-      // add boundaries to map
-      L.geoJSON(fvg, { style: { color: '#005DA4' } }).addTo(bordersLayer);
-
       // add markers to map
       const markersList = await markers;
       markersList &&
@@ -257,12 +172,3 @@ export const LeafletMap = component$<MapProps>(
     return <div id="map" style={{ height: '25rem' }}></div>;
   }
 );
-```
-</CodeSandbox>
-
-## Interesting info about LeafletJS Map:
-
-### Official
-
-- `Tutorials`: Examples step by step to reference to create new features using Documentation. [Reference](https://leafletjs.com/examples.html).
-- `Docs`: All necessary info to work with LeafletJS. [Reference](https://leafletjs.com/reference.html)

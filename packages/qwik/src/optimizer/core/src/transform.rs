@@ -2367,14 +2367,20 @@ fn is_return_static(expr: &Option<Box<ast::Expr>>) -> bool {
 }
 
 fn make_wrap(method: &Id, obj: Box<ast::Expr>, prop: JsWord) -> ast::Expr {
-	ast::Expr::Call(ast::CallExpr {
-		callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(method)))),
-		args: vec![
+	// if the prop is the same as "value", don't pass the prop
+	let args = if prop == *"value" {
+		vec![ast::ExprOrSpread::from(obj)]
+	} else {
+		vec![
 			ast::ExprOrSpread::from(obj),
 			ast::ExprOrSpread::from(Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str::from(
 				prop,
 			))))),
-		],
+		]
+	};
+	ast::Expr::Call(ast::CallExpr {
+		callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(method)))),
+		args,
 		span: DUMMY_SP,
 		type_args: None,
 	})

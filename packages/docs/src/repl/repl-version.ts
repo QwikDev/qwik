@@ -4,11 +4,11 @@ import { QWIK_PKG_NAME, getBundled } from './bundled';
 const bundledVersion = getBundled()[QWIK_PKG_NAME].version;
 
 // The golden oldies
-const keepList = new Set('1.0.0,1.1.5,1.2.13'.split(','));
+const keepList = new Set('1.0.0,1.1.5,1.2.13,1.4.5'.split(','));
 
 // The bad apples - add versions that break the REPL here
 const blockList = new Set(
-  '1.2.0,1.2.1,1.2.2,1.2.3,1.2.4,1.2.5,1.2.6,1.2.7,1.2.8,1.2.9,1.2.10,1.2.11,1.2.14,1.2.15,1.3.0'.split(
+  '1.2.0,1.2.1,1.2.2,1.2.3,1.2.4,1.2.5,1.2.6,1.2.7,1.2.8,1.2.9,1.2.10,1.2.11,1.2.14,1.2.15,1.3.0,1.6.0'.split(
     ','
   )
 );

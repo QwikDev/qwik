@@ -15,7 +15,7 @@ export interface UseStylesScoped {
 
 /** @public */
 export interface UseStylesOptions {
-  transform: (str: string, styleId: string) => string;
+  transform: (str: string, scopeId: string) => string;
   scoped: boolean;
 }
 
@@ -132,7 +132,7 @@ export const useStylesScoped$ = /*#__PURE__*/ implicit$FirstArg(useStylesScopedQ
 
 const _useStyles = (
   styleQrl: QRL<string>,
-  transform: (str: string, styleId: string) => string,
+  transform: (str: string, scopeId: string) => string,
   scoped: boolean
 ): string => {
   assertQrl(styleQrl);
@@ -163,7 +163,7 @@ const _useStyles = (
     assertDefined(elCtx.$appendStyles$, 'appendStyles must be defined');
     elCtx.$appendStyles$.push({
       styleId,
-      content: transform(styleText, styleId),
+      content: transform(styleText, ComponentStylesPrefixContent + styleId),
     });
   };
   if (isPromise(value)) {

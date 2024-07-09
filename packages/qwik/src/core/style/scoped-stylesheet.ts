@@ -1,5 +1,4 @@
 /* eslint-disable no-console */
-import { ComponentStylesPrefixContent } from '../util/markers';
 import { qDev } from '../util/qdev';
 
 // Make sure this is always set to `false` in production, but it is useful to set for `true` in development for debugging.
@@ -136,7 +135,7 @@ export const scopeStylesheet = (css: string, scopeId: string): string => {
     }
 
     flush(idx);
-    out.push('.', ComponentStylesPrefixContent, scopeId);
+    out.push('.', scopeId);
     DEBUG && console.log('INSERT', out.join(''));
   }
   function lookAhead(arc: StateArc): boolean {

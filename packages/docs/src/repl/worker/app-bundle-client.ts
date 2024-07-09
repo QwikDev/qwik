@@ -76,7 +76,7 @@ export const appBundleClient = async (
     });
 
     result.clientBundles = generated.output.map(getOutput).filter((f) => {
-      return !f.path.endsWith('app.js') && !f.path.endsWith('q-manifest.json');
+      return !f.path.endsWith('q-manifest.json');
     });
 
     await Promise.all(

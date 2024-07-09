@@ -4,6 +4,7 @@ import { logWarn } from '../util/log';
 import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
 import { qDev, qSerialize } from '../util/qdev';
 import { isObject } from '../util/types';
+import { DerivedSignal2, isSignal2 } from '../v2/signal/v2-signal';
 import {
   LocalSubscriptionManager,
   getProxyTarget,
@@ -210,6 +211,10 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T,
   if (isSignal(obj)) {
     assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
     return new SignalDerived(getProp, [obj, prop as string]);
+  }
+  if (isSignal2(obj)) {
+    assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
+    return new DerivedSignal2(null, getProp, [obj, prop as string], null);
   }
   if (_CONST_PROPS in obj) {
     const constProps = (obj as any)[_CONST_PROPS];

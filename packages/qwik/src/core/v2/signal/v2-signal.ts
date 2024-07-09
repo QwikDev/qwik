@@ -16,13 +16,12 @@ import { pad, qwikDebugToString } from '../../debug';
 import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
 import { type QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
-import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import {
   trackSignal2,
-  tryGetInvokeContext,
-  type InvokeContext
+  tryGetInvokeContext
 } from '../../use/use-core';
 import { Task, TaskFlags, isTask } from '../../use/use-task';
+import { ELEMENT_PROPS, OnRenderProp } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { qDev } from '../../util/qdev';
 import type { VNode } from '../client/types';
@@ -82,7 +81,6 @@ export type Effect = Task | VNode | Signal2;
  * is to clear its subscriptions so that the effect can re add new set of subscriptions. In order to
  * clear the subscriptions we need to store them here.
  *
- * (For performance reasons we also save `InvokeContext` so that we can avoid re-creating it.)
  *
  * Imagine you have effect such as:
  *
@@ -106,11 +104,19 @@ export type Effect = Task | VNode | Signal2;
  * Both `signalA` as well as `signalB` will have a reference to `subscription` to the so that the
  * effect can be scheduled if either `signalA` or `signalB` triggers. The `subscription1` is shared
  * between the signals.
+ * 
+ * The second position `string|boolean` store the property name of the effect.
+ * - property name of the VNode
+ * - `true` if component.
+ * - `false` if VNode update. (not component)
  */
-export type EffectSubscriptions = [Effect, InvokeContext | null, ...Signal2[]];
+export type EffectSubscriptions = [
+  Effect, // EffectSubscriptionsProp.EFFECT
+  string | boolean,  // EffectSubscriptionsProp.PROPERTY
+  ...Signal2[]];
 export const enum EffectSubscriptionsProp {
   EFFECT = 0,
-  CONTEXT = 1,
+  PROPERTY = 1,
 }
 
 class Signal2<T = any> implements ISignal2<T> {
@@ -125,6 +131,7 @@ class Signal2<T = any> implements ISignal2<T> {
   constructor(container: Container2 | null, value: T) {
     this.$container$ = container;
     this.$untrackedValue$ = value;
+    DEBUG && log('new', this);
   }
 
   get untrackedValue() {
@@ -144,7 +151,13 @@ class Signal2<T = any> implements ISignal2<T> {
           'Do not use signals across containers'
         );
       }
-      const effectSubscriber = ctx.$effectSubscriber$;
+      let effectSubscriber = ctx.$effectSubscriber$;
+      if (!effectSubscriber && ctx.$hostElement$) {
+        const host: VNode | null = ctx.$hostElement$ as any;
+        if (host) {
+          effectSubscriber = [host, true /* component */];
+        }
+      }
       if (effectSubscriber) {
         const effects = (this.$effects$ ||= []);
         // Let's make sure that we have a reference to this effect.
@@ -174,10 +187,12 @@ class Signal2<T = any> implements ISignal2<T> {
       let signal: Signal2 = this;
       const scheduleEffect = (effectSubscriptions: EffectSubscriptions) => {
         const effect = effectSubscriptions[EffectSubscriptionsProp.EFFECT];
+        const property = effectSubscriptions[EffectSubscriptionsProp.PROPERTY];
         assertDefined(this.$container$, 'Scheduler must be defined.');
         if (isTask(effect)) {
           effect.$flags$ |= TaskFlags.DIRTY;
           DEBUG && log('schedule.effect.task', pad('\n' + String(effect), '  '));
+          // TODO(mhevery): We should check if visible/resource task and scheduled differently.
           this.$container$.$scheduler$(ChoreType.TASK, effectSubscriptions as fixMeAny);
         } else if (effect instanceof Signal2) {
           // we don't schedule ComputedSignal/DerivedSignal directly, instead we invalidate it and
@@ -186,7 +201,7 @@ class Signal2<T = any> implements ISignal2<T> {
             // TODO(misko): ensure that the computed signal's QRL is resolved.
             // If not resolved scheduled it to be resolved.
           }
-          (effect as ComputedSignal2<unknown> | DerivedSignal<unknown>).$invalid$ = true;
+          (effect as ComputedSignal2<unknown> | DerivedSignal2<unknown>).$invalid$ = true;
           const previousSignal = signal;
           try {
             signal = effect;
@@ -194,11 +209,19 @@ class Signal2<T = any> implements ISignal2<T> {
           } finally {
             signal = previousSignal;
           }
-        } else {
+        } else if (property === true) {
+          const host: HostElement = effect as any;
+          const qrl = this.$container$.getHostProp<QRL<(...args: any[]) => any>>(host, OnRenderProp);
+          assertDefined(qrl, 'Component must have QRL');
+          const props = this.$container$.getHostProp<any>(host, ELEMENT_PROPS);
+          this.$container$.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
+        } else if (property === false) {
           const host: HostElement = effect as any;
           const target = host;
-          DEBUG && log('schedule.effect.node_diff', pad('\n' + String(effect), '  '));
           this.$container$.$scheduler$(ChoreType.NODE_DIFF, host, target, signal as fixMeAny);
+        } else {
+          const host: HostElement = effect as any;
+          this.$container$.$scheduler$(ChoreType.NODE_PROP, host, property, signal as fixMeAny);
         }
       };
       this.$effects$.forEach(scheduleEffect);
@@ -297,7 +320,7 @@ class ComputedSignal2<T> extends Signal2<T> {
     const ctx = tryGetInvokeContext();
     assertDefined(computeQrl, 'Signal is marked as dirty, but no compute function is provided.');
     const previousEffectSubscription = ctx?.$effectSubscriber$;
-    ctx && (ctx.$effectSubscriber$ = [this, null]);
+    ctx && (ctx.$effectSubscriber$ = [this, false]);
     assertTrue(
       !!computeQrl.resolved,
       'Computed signals must run sync. Expected the QRL to be resolved at this point.'
@@ -328,7 +351,7 @@ class ComputedSignal2<T> extends Signal2<T> {
   }
 }
 
-export class DerivedSignal<T> extends Signal2<T> {
+export class DerivedSignal2<T> extends Signal2<T> {
   $args$: any[];
   $fn$: (...args: any[]) => T;
   $fnStr$: string | null;
@@ -380,7 +403,7 @@ export class DerivedSignal<T> extends Signal2<T> {
     if (!this.$invalid$) {
       return false;
     }
-    this.$untrackedValue$ = trackSignal2(() => this.$fn$(...this.$args$), this, this.$container$!);
+    this.$untrackedValue$ = trackSignal2(() => this.$fn$(...this.$args$), this, false, this.$container$!);
   }
 
   // Getters don't get inherited

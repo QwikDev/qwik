@@ -10,9 +10,7 @@ import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../../render/jsx/utils.public';
-import { SubscriptionType } from '../../state/common';
-import { SignalDerived, isSignal } from '../../state/signal';
-import { trackSignal, trackSignal2 } from '../../use/use-core';
+import { trackSignal2 } from '../../use/use-core';
 import { TaskFlags, cleanupTask, isTask, type SubscriberEffect } from '../../use/use-task';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import {
@@ -88,7 +86,8 @@ import {
   type VNodeJournal,
 } from './vnode';
 import { getNewElementNamespaceData } from './vnode-namespace';
-import { isSignal2 } from '../signal/v2-signal';
+import { DerivedSignal2, isSignal2 } from '../signal/v2-signal';
+import type { Signal2 } from '../signal/v2-signal.public';
 
 export type ComponentQueue = Array<VNode>;
 
@@ -180,9 +179,12 @@ export const vnode_diff = (
           } else if (isSignal2(jsxValue)) {
             expectVirtual(VirtualType.DerivedSignal, null);
             descend(
-              trackSignal2(() => jsxValue.value,
+              trackSignal2(
+                () => jsxValue.value,
                 vCurrent || (vNewNode as fixMeAny), // This should be host, but not sure why
-                container),
+                false,
+                container
+              ),
               true
             );
           } else if (isPromise(jsxValue)) {
@@ -486,8 +488,8 @@ export const vnode_diff = (
     const constProps = jsxValue.constProps;
     if (constProps && typeof constProps == 'object' && 'name' in constProps) {
       const constValue = constProps.name;
-      if (constValue instanceof SignalDerived) {
-        return trackSignal(constValue, [SubscriptionType.HOST, vHost as fixMeAny]);
+      if (constValue instanceof DerivedSignal2) {
+        return trackSignal2(() => constValue.value, vHost as fixMeAny, true, container);
       }
     }
     return jsxValue.props.name || QDefaultSlot;
@@ -572,19 +574,12 @@ export const vnode_diff = (
           continue;
         }
 
-        if (isSignal(value)) {
+        if (isSignal2(value)) {
           if (key === 'ref') {
             value.value = element;
             continue;
           }
-          value = trackSignal(value, [
-            SubscriptionType.PROP_IMMUTABLE,
-            vNewNode as fixMeAny,
-            value,
-            vNewNode as fixMeAny,
-            key,
-            scopedStyleIdPrefix || undefined,
-          ]);
+          value = trackSignal2(() => (value as Signal2<unknown>).value, vNewNode as fixMeAny, key, container);
         }
 
         if (key === dangerouslySetInnerHTML) {

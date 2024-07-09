@@ -2,20 +2,44 @@ import { isQrl } from "../server/prefetch-strategy";
 import { isTask } from "./use/use-task";
 import { vnode_isVNode, vnode_toString } from "./v2/client/vnode";
 
-export function qwikDebugToString(obj: any): any {
-  if (Array.isArray(obj)) {
-    if (vnode_isVNode(obj)) {
-      return vnode_toString.apply(obj);
-    } else {
-      return obj.map(qwikDebugToString);
+const stringifyPath: any[] = [];
+export function qwikDebugToString(value: any): any {
+  if (value === null) {
+    return 'null';
+  } else if (value === undefined) {
+    return 'undefined';
+  } else if (typeof value === 'string') {
+    return '"' + value + '"';
+  } else if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  } else if (typeof value === 'object' || typeof value === 'function') {
+    if (stringifyPath.includes(value)) {
+      return '*';
     }
-  } else if (isTask(obj)) {
-    return `Task(${qwikDebugToString(obj.$qrl$)})`
-  } else if (isQrl(obj)) {
-    return `Qrl(${obj.$symbol$})`
+    if (stringifyPath.length > 10) {
+      debugger;
+    }
+    try {
+      stringifyPath.push(value);
+      if (Array.isArray(value)) {
+        if (vnode_isVNode(value)) {
+          return vnode_toString.apply(value);
+        } else {
+          return value.map(qwikDebugToString);
+        }
+      } else if (isTask(value)) {
+        return `Task(${qwikDebugToString(value.$qrl$)})`
+      } else if (isQrl(value)) {
+        return `Qrl(${value.$symbol$})`
+      }
+    } finally {
+      stringifyPath.pop();
+    }
   }
-  return obj;
+  return value;
 }
+
+
 
 export const pad = (text: string, prefix: string) => {
   return String(text).split('\n').map((line, idx) => (idx ? prefix : '') + line).join('\n');

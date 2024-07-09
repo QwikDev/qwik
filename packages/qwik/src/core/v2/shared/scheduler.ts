@@ -95,35 +95,37 @@ import {
 import { isPromise, maybeThen, maybeThenPassError, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { VirtualVNode } from '../client/types';
-import { vnode_documentPosition, vnode_isVNode } from '../client/vnode';
+import { vnode_documentPosition, vnode_isVNode, vnode_setAttr } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
 import { executeComponent2 } from './component-execution';
 import type { Container2, HostElement, fixMeAny } from './types';
 import { EffectSubscriptionsProp, isSignal2, type EffectSubscriptions } from '../signal/v2-signal';
+import { serializeAttribute } from '../../render/execute-component';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
 
 export const enum ChoreType {
   /// MASKS defining three levels of sorting
-  MACRO /* ***************** */ = 0b111_000,
+  MACRO /* ***************** */ = 0b111_0000,
   /* order of elements (not encoded here) */
-  MICRO /* ***************** */ = 0b000_111,
+  MICRO /* ***************** */ = 0b000_1111,
 
   /** Ensure tha the QRL promise is resolved before processing next chores in the queue */
-  QRL_RESOLVE /* *********** */ = 0b000_000,
+  QRL_RESOLVE /* *********** */ = 0b000_0000,
   // TODO(mhevery): COMPUTED should be deleted because it is handled synchronously.
-  COMPUTED /* ************** */ = 0b000_001,
-  RESOURCE /* ************** */ = 0b000_010,
-  TASK /* ****************** */ = 0b000_011,
-  NODE_DIFF /* ************* */ = 0b000_100,
-  COMPONENT_SSR /* ********* */ = 0b000_101,
-  COMPONENT /* ************* */ = 0b000_110,
-  WAIT_FOR_COMPONENTS /* *** */ = 0b001_000,
-  JOURNAL_FLUSH /* ********* */ = 0b011_000,
-  VISIBLE /* *************** */ = 0b100_000,
-  CLEANUP_VISIBLE /* ******* */ = 0b101_000,
-  WAIT_FOR_ALL /* ********** */ = 0b111_111,
+  COMPUTED /* ************** */ = 0b000_0001,
+  RESOURCE /* ************** */ = 0b000_0010,
+  TASK /* ****************** */ = 0b000_0011,
+  NODE_DIFF /* ************* */ = 0b000_0100,
+  NODE_PROP /* ************* */ = 0b000_0101,
+  COMPONENT_SSR /* ********* */ = 0b000_0110,
+  COMPONENT /* ************* */ = 0b000_0111,
+  WAIT_FOR_COMPONENTS /* *** */ = 0b001_0000,
+  JOURNAL_FLUSH /* ********* */ = 0b011_0000,
+  VISIBLE /* *************** */ = 0b100_0000,
+  CLEANUP_VISIBLE /* ******* */ = 0b101_0000,
+  WAIT_FOR_ALL /* ********** */ = 0b111_1111,
 }
 
 export interface Chore {
@@ -192,12 +194,18 @@ export const createScheduler = (
     target: HostElement,
     value: JSXOutput
   ): ValueOrPromise<void>;
+  function schedule(
+    type: ChoreType.NODE_PROP,
+    host: HostElement,
+    prop: string,
+    value: any
+  ): ValueOrPromise<void>;
   function schedule(type: ChoreType.CLEANUP_VISIBLE, task: Task): ValueOrPromise<JSXOutput>;
   ///// IMPLEMENTATION /////
   function schedule(
     type: ChoreType,
     hostOrTask: HostElement | Task | null = null,
-    targetOrQrl: HostElement | QRL<(...args: any[]) => any> | null = null,
+    targetOrQrl: HostElement | QRL<(...args: any[]) => any> | string | null = null,
     payload: any = null
   ): ValueOrPromise<any> {
     const runLater: boolean =
@@ -214,7 +222,7 @@ export const createScheduler = (
     }
     let chore: Chore = {
       $type$: type,
-      $idx$: isTask ? (hostOrTask as Task).$index$ : 0,
+      $idx$: isTask ? (hostOrTask as Task).$index$ : (typeof targetOrQrl === 'string' ? targetOrQrl : 0),
       $host$: isTask ? ((hostOrTask as Task).$el$ as fixMeAny) : (hostOrTask as HostElement),
       $target$: targetOrQrl as any,
       $payload$: isTask ? hostOrTask : payload,
@@ -313,7 +321,7 @@ export const createScheduler = (
         const task = chore.$payload$ as Task<TaskFn, TaskFn>;
         cleanupTask(task);
         break;
-      case ChoreType.NODE_DIFF: {
+      case ChoreType.NODE_DIFF: 
         const parentVirtualNode = chore.$target$ as VirtualVNode;
         let jsx = chore.$payload$ as JSXOutput;
         if (isSignal2(jsx)) {
@@ -321,7 +329,18 @@ export const createScheduler = (
         }
         returnValue = vnode_diff(container as fixMeAny, jsx, parentVirtualNode, null);
         break;
-      }
+      case ChoreType.NODE_PROP:
+        const virtualNode = chore.$host$ as VirtualVNode;
+        let value = chore.$payload$ as any;
+        if (isSignal2(value)) {
+          value = value.value as any;
+        }
+        // TODO(mhevery): Fix this hack
+        const journal = container.$journal$ as fixMeAny;
+        const property = chore.$idx$ as string;
+        value = serializeAttribute(property, value);
+        vnode_setAttr(journal, virtualNode, property, value);
+        break;
     }
     return maybeThenPassError(returnValue, (value) => {
       DEBUG && debugTrace('execute.DONE', null, currentChore, choreQueue);

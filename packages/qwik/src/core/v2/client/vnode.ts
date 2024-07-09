@@ -162,6 +162,7 @@ import {
   vnode_getDomChildrenWithCorrectNamespacesToInsert,
   vnode_getElementNamespaceFlags,
 } from './vnode-namespace';
+import { qwikDebugToString } from '../../debug';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1475,14 +1476,14 @@ export function vnode_toString(
   const strings: string[] = [];
   do {
     if (vnode_isTextVNode(vnode)) {
-      strings.push(stringify(vnode_getText(vnode)));
+      strings.push(qwikDebugToString(vnode_getText(vnode)));
     } else if (vnode_isVirtualVNode(vnode)) {
       const idx = vnode[VNodeProps.flags] >>> VNodeFlagsIndex.shift;
       const attrs: string[] = ['[' + String(idx) + ']'];
       vnode_getAttrKeys(vnode).forEach((key) => {
         if (key !== DEBUG_TYPE) {
           const value = vnode_getAttr(vnode!, key);
-          attrs.push(' ' + key + '=' + stringify(value));
+          attrs.push(' ' + key + '=' + qwikDebugToString(value));
         }
       });
       const name =
@@ -1498,20 +1499,20 @@ export function vnode_toString(
       const keys = vnode_getAttrKeys(vnode);
       keys.forEach((key) => {
         const value = vnode_getAttr(vnode!, key);
-        attrs.push(' ' + key + '=' + stringify(value));
+        attrs.push(' ' + key + '=' + qwikDebugToString(value));
       });
       const node = vnode_getNode(vnode) as HTMLElement;
       if (node) {
         const vnodeData = (node.ownerDocument as QDocument).qVNodeData?.get(node);
         if (vnodeData) {
-          attrs.push(' q:vnodeData=' + stringify(vnodeData));
+          attrs.push(' q:vnodeData=' + qwikDebugToString(vnodeData));
         }
       }
       const domAttrs = node.attributes;
       for (let i = 0; i < domAttrs.length; i++) {
         const attr = domAttrs[i];
         if (keys.indexOf(attr.name) === -1) {
-          attrs.push(' ' + attr.name + (attr.value ? '=' + stringify(attr.value) : ''));
+          attrs.push(' ' + attr.name + (attr.value ? '=' + qwikDebugToString(attr.value) : ''));
         }
       }
       strings.push('<' + tag + attrs.join('') + '>');
@@ -1802,38 +1803,6 @@ export const vnode_getProjectionParentComponent = (
     }
   }
   return vHost as VirtualVNode | null;
-};
-
-const stringifyPath: any[] = [];
-const stringify = (value: any): any => {
-  stringifyPath.push(value);
-  try {
-    if (value === null) {
-      return 'null';
-    } else if (value === undefined) {
-      return 'undefined';
-    } else if (typeof value === 'string') {
-      return '"' + value + '"';
-    } else if (typeof value === 'function') {
-      if (isQrl(value)) {
-        return '"' + (value.$chunk$ || '') + '#' + value.$hash$ + '"';
-      } else {
-        return '"' + value.name + '()"';
-      }
-    } else if (vnode_isVNode(value)) {
-      if (stringifyPath.indexOf(value) !== -1) {
-        return '*';
-      } else {
-        return '"' + String(value).replaceAll(/\n\s*/gm, '') + '"';
-      }
-    } else if (Array.isArray(value)) {
-      return '[' + value.map(stringify).join(', ') + ']';
-    } else {
-      return String(value);
-    }
-  } finally {
-    stringifyPath.pop();
-  }
 };
 
 const VNodeArray = class VNode extends Array {

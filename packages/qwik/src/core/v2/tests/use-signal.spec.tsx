@@ -15,11 +15,11 @@ import type { Signal as SignalType } from '../../state/signal';
 import { untrack } from '../../use/use-core';
 import { useSignal } from '../../use/use-signal';
 
-const debug = true; //true;
+const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
-  // { render: ssrRenderToDom }, //
+  { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: useSignal', ({ render }) => {
   it('should update value', async () => {
@@ -87,7 +87,7 @@ describe.each([
       </>
     );
   });
-  it.only('should update from JSX', async () => {
+  it('should update from JSX', async () => {
     const Child = component$(() => {
       return (
         <span>

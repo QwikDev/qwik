@@ -10985,7 +10985,8 @@ export const CmpStyles = component$(() => {
 ```
 
 ```typescript
-useStyles$: (qrl: string) => void
+useStyles$: (qrl: string, options?: Partial<UseStylesOptions> | undefined) =>
+  UseStylesScoped;
 ```
 
 <table><thead><tr><th>
@@ -11012,10 +11013,23 @@ string
 </td><td>
 
 </td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+Partial&lt;UseStylesOptions&gt; \| undefined
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
 </tbody></table>
 **Returns:**
 
-void
+[UseStylesScoped](#usestylesscoped)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
@@ -11036,7 +11050,8 @@ export const CmpStyles = component$(() => {
 ```
 
 ```typescript
-useStylesQrl: (styles: QRL<string>) => void
+useStylesQrl: (styles: QRL<string>, options?: Partial<UseStylesOptions>) =>
+  UseStylesScoped;
 ```
 
 <table><thead><tr><th>
@@ -11063,10 +11078,23 @@ styles
 </td><td>
 
 </td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+Partial&lt;UseStylesOptions&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
 </tbody></table>
 **Returns:**
 
-void
+[UseStylesScoped](#usestylesscoped)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 

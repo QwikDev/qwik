@@ -13,6 +13,12 @@ export interface UseStylesScoped {
   scopeId: string;
 }
 
+/** @public */
+export interface UseStylesOptions {
+  transform: (str: string, styleId: string) => string;
+  scoped: boolean;
+}
+
 // <docs markdown="../readme.md#useStyles">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useStyles instead)
@@ -36,8 +42,15 @@ export interface UseStylesScoped {
  * @see `useStylesScoped`
  */
 // </docs>
-export const useStylesQrl = (styles: QRL<string>): void => {
-  _useStyles(styles, (str) => str, false);
+export const useStylesQrl = (
+  styles: QRL<string>,
+  options: Partial<UseStylesOptions> = {}
+): UseStylesScoped => {
+  const transform = options.transform ?? ((str) => str);
+  const scoped = options.scoped ?? false;
+  return {
+    scopeId: ComponentStylesPrefixContent + _useStyles(styles, transform, scoped),
+  };
 };
 
 // <docs markdown="../readme.md#useStyles">
@@ -89,9 +102,7 @@ export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
  */
 // </docs>
 export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
-  return {
-    scopeId: ComponentStylesPrefixContent + _useStyles(styles, getScopedStyles, true),
-  };
+  return useStylesQrl(styles, { transform: getScopedStyles, scoped: true });
 };
 
 // <docs markdown="../readme.md#useStylesScoped">
@@ -118,83 +129,6 @@ export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
  */
 // </docs>
 export const useStylesScoped$ = /*#__PURE__*/ implicit$FirstArg(useStylesScopedQrl);
-
-// <docs markdown="../readme.md#useStylesScoped">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useStylesScoped instead)
-/**
- * A lazy-loadable reference to a component's styles, that is scoped to the component.
- *
- * Component styles allow Qwik to lazy load the style information for the component only when
- * needed. (And avoid double loading it in case of SSR hydration.)
- *
- * ```tsx
- * import scoped from './code-block.css?inline';
- *
- * export const CmpScopedStyles = component$(() => {
- *   useStylesWithScope$(scoped);
- *
- *   return <div>Some text</div>;
- * });
- * ```
- *
- * The scoped style can have `:q-scope` pseudo class to scope the styles to the component like this.
- *
- * ```css
- * :q-scope {
- *   color: red;
- *   background: blue;
- * }
- * ```
- *
- * @public
- * @see `useStylesScoped`
- */
-// </docs>
-export const useStylesWithScopeQrl = (styles: QRL<string>): void => {
-  _useStyles(
-    styles,
-    (str, styleId) => {
-      const scopeId = ComponentStylesPrefixContent + styleId;
-      return str.replaceAll(/:q-scope\b/g, '.' + scopeId);
-    },
-    true
-  );
-};
-
-// <docs markdown="../readme.md#useStylesScoped">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useStylesScoped instead)
-/**
- * A lazy-loadable reference to a component's styles, that is scoped to the component.
- *
- * Component styles allow Qwik to lazy load the style information for the component only when
- * needed. (And avoid double loading it in case of SSR hydration.)
- *
- * ```tsx
- * import scoped from './code-block.css?inline';
- *
- * export const CmpScopedStyles = component$(() => {
- *   useStylesWithScope$(scoped);
- *
- *   return <div>Some text</div>;
- * });
- * ```
- *
- * The scoped style can have `:q-scope` pseudo class to scope the styles to the component like this.
- *
- * ```css
- * :q-scope {
- *   color: red;
- *   background: blue;
- * }
- * ```
- *
- * @public
- * @see `useStylesScoped`
- */
-// </docs>
-export const useStylesWithScope$ = /*#__PURE__*/ implicit$FirstArg(useStylesScopedQrl);
 
 const _useStyles = (
   styleQrl: QRL<string>,

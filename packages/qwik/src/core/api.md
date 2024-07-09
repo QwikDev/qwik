@@ -1698,11 +1698,13 @@ export interface UseStoreOptions {
     reactive?: boolean;
 }
 
+// Warning: (ae-forgotten-export) The symbol "UseStylesOptions" needs to be exported by the entry point index.d.ts
+//
 // @public
-export const useStyles$: (qrl: string) => void;
+export const useStyles$: (qrl: string, options?: Partial<UseStylesOptions> | undefined) => UseStylesScoped;
 
 // @public
-export const useStylesQrl: (styles: QRL<string>) => void;
+export const useStylesQrl: (styles: QRL<string>, options?: Partial<UseStylesOptions>) => UseStylesScoped;
 
 // @public
 export const useStylesScoped$: (qrl: string) => UseStylesScoped;

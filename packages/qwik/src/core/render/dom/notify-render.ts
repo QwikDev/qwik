@@ -310,7 +310,6 @@ export const executeSSRTasks = (containerState: ContainerState, rCtx: RenderCont
   const runTasks = () => {
     // SSR dirty tasks are in taskStaging
     staging.forEach((task) => {
-      console.error('task', task.$qrl$.$symbol$);
       if (isTask(task)) {
         taskPromises.push(maybeThen(task.$qrl$.$resolveLazy$(containerEl), () => task));
       }

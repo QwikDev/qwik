@@ -310,7 +310,7 @@
         const loc = node.getAttribute('data-qwik-inspector');
         const browserArea = rect.width * rect.height;
         if (!node.hasAttribute('width') || !node.hasAttribute('height')) {
-          skip = true;          
+          skip = true;
           const computedStyles = getComputedStyle(node);
           const hasAspect = computedStyles.getPropertyValue('aspect-ratio').toString() !== 'auto';
           const hasWidth = isDefinedUnit(computedStyles.getPropertyValue('width').toString());

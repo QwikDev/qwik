@@ -52,7 +52,9 @@ jobs:
       build-rust: ${{ steps.cache-rust.outputs.cache-hit != 'true' }}
       build-others: ${{ steps.cache-others.outputs.cache-hit != 'true' }}
       build-docs: ${{ steps.cache-docs.outputs.cache-hit != 'true' }}
-      build-insights: ${{ steps.cache-insights.outputs.cache-hit != 'true' }}
+      # TEMP v2: disable insights build
+      # build-insights: ${{ steps.cache-insights.outputs.cache-hit != 'true' }}
+      build-insights: false
 
     steps:
       - name: Branch

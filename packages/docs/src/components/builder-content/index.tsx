@@ -1,6 +1,5 @@
 import { component$, Resource, useResource$ } from '@builder.io/qwik';
 import { useLocation } from '@builder.io/qwik-city';
-import { getBuilderSearchParams, fetchOneEntry, Content } from '@builder.io/sdk-qwik';
 import { QWIK_MODEL } from '../../constants';
 
 export default component$<{
@@ -17,52 +16,24 @@ export default component$<{
         ? query.get(name)
         : (query as unknown as Record<string, string>)[name];
 
-    const render = queryGet('render');
     const contentId = props.model === QWIK_MODEL ? queryGet('content') : undefined;
-    const isSDK = render === 'sdk';
     cache('immutable');
-    if (isSDK) {
-      return getCachedValue(
-        {
-          model: props.model!,
-          apiKey: props.apiKey!,
-          options: getBuilderSearchParams(query),
-          userAttributes: {
-            urlPath: location.url.pathname,
-            site: 'qwik.dev',
-          },
-          ...(contentId && {
-            query: {
-              id: contentId,
-            },
-          }),
-        },
-        fetchOneEntry
-      );
-    } else {
-      return getCachedValue(
-        {
-          apiKey: props.apiKey,
-          model: props.model,
-          urlPath: location.url.pathname,
-          contentId: contentId,
-        },
-        getBuilderContent
-      );
-    }
+    return getCachedValue(
+      {
+        apiKey: props.apiKey,
+        model: props.model,
+        urlPath: location.url.pathname,
+        contentId: contentId,
+      },
+      getBuilderContent
+    );
   });
 
   return (
     <Resource
       value={builderContentRsrc}
       onPending={() => <div>Loading...</div>}
-      onResolved={(content) =>
-        content.html ? (
-          <props.tag class="builder" dangerouslySetInnerHTML={content.html} />
-        ) : (
-          <Content model={props.model} content={content} apiKey={props.apiKey} />
-        )
-      }
+      onResolved={(content) => <props.tag class="builder" dangerouslySetInnerHTML={content.html} />}
     />
   );
 });

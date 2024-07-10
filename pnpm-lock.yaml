@@ -287,9 +287,6 @@ importers:
       '@emotion/styled':
         specifier: ^11.11.0
         version: 11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1)
-      '@modular-forms/qwik':
-        specifier: ^0.24.0
-        version: 0.24.0(@builder.io/qwik-city@packages+qwik-city)(@builder.io/qwik@packages+qwik)
       '@mui/material':
         specifier: ^5.15.14
         version: 5.15.19(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -311,12 +308,6 @@ importers:
       '@types/react-dom':
         specifier: ^18.3.0
         version: 18.3.0
-      '@unpic/core':
-        specifier: ^0.0.42
-        version: 0.0.42
-      '@unpic/qwik':
-        specifier: ^0.0.38
-        version: 0.0.38(@builder.io/qwik@packages+qwik)
       algoliasearch:
         specifier: 4.16.0
         version: 4.16.0
@@ -348,8 +339,8 @@ importers:
         specifier: ^22.6.0
         version: 22.10.0(bufferutil@4.0.8)(typescript@5.4.5)(utf-8-validate@5.0.10)
       qwik-image:
-        specifier: ^0.0.10
-        version: 0.0.10
+        specifier: 0.0.14-alpha
+        version: 0.0.14-alpha
       react:
         specifier: 18.3.1
         version: 18.3.1
@@ -3306,15 +3297,6 @@ packages:
 
   '@ungap/structured-clone@1.2.0':
     resolution: {integrity: sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==}
-
-  '@unpic/core@0.0.42':
-    resolution: {integrity: sha512-K5Di+P8Bijl7doGDBGU+5VqX44e2iXMEm7G/AVla+9Hgxb5rOm/OXZoOjCUNjx5BOnjsVyegP6vlgsTfBtymkQ==}
-
-  '@unpic/qwik@0.0.38':
-    resolution: {integrity: sha512-5I3M9a6VGrw9KF5B7GHxpvwU3VyRfJ1qCWNSlcdLxw8S6m0lapOXL5oJq0gnRlde7csMfyE12oogmtp8nAibbw==}
-    engines: {node: '>=15.0.0'}
-    peerDependencies:
-      '@builder.io/qwik': '*'
 
   '@vercel/nft@0.23.1':
     resolution: {integrity: sha512-NE0xSmGWVhgHF1OIoir71XAd0W0C1UE3nzFyhpFiMr3rVhetww7NvM1kc41trBsPG37Bh+dE5FYCTMzM/gBu0w==}
@@ -7958,8 +7940,8 @@ packages:
   quote-unquote@1.0.0:
     resolution: {integrity: sha512-twwRO/ilhlG/FIgYeKGFqyHhoEhqgnKVkcmqMKi2r524gz3ZbDTcyFt38E9xjJI2vT+KbRNHVbnJ/e0I25Azwg==}
 
-  qwik-image@0.0.10:
-    resolution: {integrity: sha512-+X+EEdFzt5gl48Und3oPf34PLuIl0TKT959/zTQjboL1aYjMX1+1HAvE2OllUclyk8Pf0TFgDRN/YyYORc8mfA==}
+  qwik-image@0.0.14-alpha:
+    resolution: {integrity: sha512-Xj+Cc6em2eNRLLZ1PWsQG1wYwDHF4z8qJLMPJ4KD/1uRckv4YpfUcNXR64KTrdwehfXfYGSAmK/rBUrvbbFPgA==}
 
   radix3@1.1.2:
     resolution: {integrity: sha512-b484I/7b8rDEdSDKckSSBA8knMpcdsXudlE/LNL639wFoHKwLbEkQFZHWEYwDC0wa0FKUcCY+GAF73Z7wxNVFA==}
@@ -9115,9 +9097,6 @@ packages:
   unixify@1.0.0:
     resolution: {integrity: sha512-6bc58dPYhCMHHuwxldQxO3RRNZ4eCogZ/st++0+fcC1nr0jiGUtAdBJ2qzmLQWSxbtz42pWt4QQMiZ9HvZf5cg==}
     engines: {node: '>=0.10.0'}
-
-  unpic@3.18.0:
-    resolution: {integrity: sha512-JemzuG3nyKpEQ/DArrYM0l+LDSLLPYiUQvDfGXJY35+r0J0C984vPB4Zh8DyMVip102YSnTeZtZ6Q8OQegQDRQ==}
 
   unpipe@1.0.0:
     resolution: {integrity: sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==}
@@ -12166,14 +12145,6 @@ snapshots:
       yargs: 16.2.0
 
   '@ungap/structured-clone@1.2.0': {}
-
-  '@unpic/core@0.0.42':
-    dependencies:
-      unpic: 3.18.0
-
-  '@unpic/qwik@0.0.38(@builder.io/qwik@packages+qwik)':
-    dependencies:
-      '@builder.io/qwik': link:packages/qwik
 
   '@vercel/nft@0.23.1(supports-color@9.4.0)':
     dependencies:
@@ -17753,7 +17724,7 @@ snapshots:
 
   quote-unquote@1.0.0: {}
 
-  qwik-image@0.0.10: {}
+  qwik-image@0.0.14-alpha: {}
 
   radix3@1.1.2: {}
 
@@ -19075,8 +19046,6 @@ snapshots:
   unixify@1.0.0:
     dependencies:
       normalize-path: 2.1.1
-
-  unpic@3.18.0: {}
 
   unpipe@1.0.0: {}
 

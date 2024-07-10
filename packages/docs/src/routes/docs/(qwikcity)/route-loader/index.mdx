@@ -128,7 +128,7 @@ The above example shows two `routeLoader$`s being used in the same file. A gener
 
 Just like [middleware](/docs/middleware/) or [endpoint](/docs/endpoints/) `onRequest` and `onGet`, `routeLoader$`s have access to the [`RequestEvent`](/docs/middleware#requestevent) API which includes information about the current HTTP request.
 
-This information comes in handy when the loader needs to conditionally return data based on the request, or it needs to override the response status, headers or body manually.
+This information comes in handy when the loader needs to conditionally return data based on the request, or it needs to override the response status, headers, or body manually.
 
 ```tsx /requestEvent/ title="src/routes/product/[user]/index.tsx"
 import { routeLoader$ } from '@builder.io/qwik-city';
@@ -235,8 +235,8 @@ export default component$(() => {
 
 ## Performance considerations
 
-Route Loaders are executed on the server, after every navigation. This means that they are executed every time a user navigates to a page in a SPA or MPA, and they are executed even if the user is navigating to the same page.
+Route Loaders are executed on the server, after every navigation. This means that they are executed every time a user navigates to a page in an SPA or MPA, and they are executed even if the user is navigating to the same page.
 
-Loaders execute after the Qwik Middlewares handlers (`onRequest`, `onGet`, `onPost`, etc), and before the Qwik Components are rendered. This allows the loaders to start fetching data as soon as possible, reducing latency.
+Loaders execute after the Qwik Middleware handlers (`onRequest`, `onGet`, `onPost`, etc), and before the Qwik Components are rendered. This allows the loaders to start fetching data as soon as possible, reducing latency.
 
 

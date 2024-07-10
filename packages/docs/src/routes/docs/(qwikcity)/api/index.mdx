@@ -22,6 +22,7 @@ contributors:
   - billykwok
   - julianobrasil
   - hamatoyogi
+  - srapport
 updated_at: '2023-10-03T18:53:23Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
@@ -172,15 +173,19 @@ The above code would generate:
 <p>skuId: 1234</p>
 ```
 
+### `useLocation` in `root.tsx` is not supported
+
+To access the current url from `root.tsx` use this pattern:
+```ts
+const serverDataUrl = useServerData<string>('url');
+const url = new URL(serverDataUrl || 'https://unknown');
+```
+
 > Notice that `useLocation` is a read-only API, you should never attempt to mutate the values of the `loc` object returned. Instead look into the `useNavigate()` API.
 
 ## `useNavigate()`
 
-The `useNavigate()` function allows to programmatically navigate to the next page without involving a user click or causing a full-page reload. This is the API used by the `<Link>` component internally to support SPA navigation.
-
-This function returns a `nav()` function that can be used to "push" to a new path.
-
-Also, `useNavigate` can be used to SPA refresh the current page, by calling the `nav()` function without arguments.
+The `useNavigate()` hook returns a function that programmatically navigates to the next page without requiring a user click or causing a full-page reload. This function can be called with a string argument to "push" a new path, or without arguments to cause an SPA refresh of the page. This is the API used by the `<Link>` component internally to support SPA navigation.
 
 ```tsx {12,21} /useNavigate/
 import { component$ } from '@builder.io/qwik';
@@ -213,9 +218,32 @@ export default component$(() => {
 });
 ```
 
-This component will have a button then when clicked, Qwik City will navigate to `/dashboard` without causing a page to reload.
+This component has a button that when clicked, will navigate to `/dashboard` without causing a page reload.
 
 > Notice that for SEO, and accessibility it's better to use the `<Link>` component instead of `useNavigate()` programmatically to navigate to a new page after some user interaction.
+
+### Going back
+
+To programmatically navigate back to the previous page, use the useNavigate and useLocation hooks.
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { useNavigate, useLocation } from '@builder.io/qwik-city';
+
+export const BackButton = component$(() => {
+  const nav = useNavigate();
+  const loc = useLocation();
+
+  return (
+    <button onClick$={() => loc.prevUrl ? window.history.back() : nav('/')}>
+      Go Back
+    </button>
+  );
+});
+
+```
+
+The fallback in the nav function ensures that if the previous URL (loc.prevUrl) is not available, the user is redirected to a default path (eg. the root path /). This is useful in scenarios where the navigation history might not include a previous URL, such as when the user directly lands on a specific page without navigating from another page within the app.
 
 ## `routeLoader$()`
 
@@ -381,7 +409,7 @@ export default component$(() => {
 
 The `Link` component works like the `<a>` anchor element, but instead of causing a full page to reload, it will navigate as a SPA (Single Page Navigation). This is useful if you need to navigate without losing your current state.
 
-> Notice that full-page reloads in Qwik are extremely cheap, other frameworks abuse SPA links because a full-page reload requires JS to hydrate and re-execute everything. This is not the case for Qwik. We found in our internal testing that using `<a>` usually leads to the most snappy interactions.
+> Notice that full-page reloads in Qwik are extremely cheap. Other frameworks abuse SPA links because a full-page reload requires JS to hydrate and re-execute everything. This is not the case for Qwik. Through investigation of internal testing, using `<a>` usually leads to the most snappy interactions.
 
 Under the hood, the `<Link>` component uses the [`useNavigate()`](/docs/(qwikcity)/api/index.mdx#usenavigate) API and prevents the default behavior of the native `<a>`:
 

@@ -79,7 +79,12 @@ export const _serializeData = async (data: any, pureQRL?: boolean) => {
   let promises: Promise<any>[];
   while ((promises = collector.$promises$).length > 0) {
     collector.$promises$ = [];
-    await Promise.all(promises);
+    const results = await Promise.allSettled(promises);
+    for (const result of results) {
+      if (result.status === 'rejected') {
+        console.error(result.reason);
+      }
+    }
   }
 
   const objs = Array.from(collector.$objSet$.keys());
@@ -139,6 +144,7 @@ export const _serializeData = async (data: any, pureQRL?: boolean) => {
 // (edit ../readme.md#pauseContainer instead)
 // </docs>
 /** This pauses a running container in the browser. It is not used for SSR */
+// TODO(mhevery): this is a remnant when you could have paused on client. Should be deleted.
 export const pauseContainer = async (
   elmOrDoc: Element | Document,
   defaultParentJSON?: Element

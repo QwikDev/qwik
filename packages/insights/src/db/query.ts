@@ -47,7 +47,7 @@ export async function getEdges(
       .from(edgeTable)
       .where(where)
       .groupBy(edgeTable.from, edgeTable.to)
-      .limit(limit || 100_000); // TODO: The 100_000 limit is due to Turso serialization format not being efficient, upgrade this once Turso is fixed.
+      .limit(limit || 10_000); // TODO: The 10_000 limit is due to Turso serialization format not being efficient, upgrade this once Turso is fixed.
     const rows = await query.all();
     return rows.map((e) => ({
       from: e.from,

@@ -40,6 +40,8 @@ export type {
   RequestEventBase,
   JSONObject,
   JSONValue,
+  ValidatorErrorType,
+  ValidatorErrorKeyDotNotation,
 } from './types';
 
 export { RouterOutlet } from './router-outlet-component';
@@ -48,6 +50,7 @@ export {
   QwikCityProvider,
   type QwikCityMockProps,
   QwikCityMockProvider,
+  QWIK_CITY_SCROLLER,
 } from './qwik-city-component';
 export { type LinkProps, Link } from './link-component';
 export { ServiceWorkerRegister } from './sw-component';

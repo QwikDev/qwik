@@ -90,7 +90,7 @@ export type ScrollState = {
 /** @public */
 export type RouteNavigate = QRL<
   (
-    path?: string,
+    path?: string | number,
     options?:
       | {
           type?: Exclude<NavigationType, 'initial'>;
@@ -362,6 +362,29 @@ export type FailOfRest<REST extends readonly DataValidator[]> = REST extends rea
   : never;
 
 /** @public */
+export type ValidatorErrorKeyDotNotation<T, Prefix extends string = ''> = T extends object
+  ? {
+      [K in keyof T & string]: T[K] extends (infer U)[]
+        ? U extends object
+          ? `${Prefix}${K}[]` | `${Prefix}${K}[]${ValidatorErrorKeyDotNotation<U, '.'>}`
+          : `${Prefix}${K}[]`
+        : T[K] extends object
+          ? ValidatorErrorKeyDotNotation<T[K], `${Prefix}${K}.`>
+          : `${Prefix}${K}`;
+    }[keyof T & string]
+  : never;
+
+/** @public */
+export type ValidatorErrorType<T, U = string> = {
+  formErrors: U[];
+  fieldErrors: Partial<{
+    [K in ValidatorErrorKeyDotNotation<T>]: K extends `${infer _Prefix}[]${infer _Suffix}`
+      ? U[]
+      : U;
+  }>;
+};
+
+/** @public */
 export type ActionConstructor = {
   // Use options object, use typed data validator, use data validator
   <
@@ -380,7 +403,7 @@ export type ActionConstructor = {
   ): Action<
     StrictUnion<
       | OBJ
-      | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>
+      | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>
       | FailReturn<FailOfRest<REST>>
     >,
     GetValidatorType<VALIDATOR>,
@@ -398,7 +421,7 @@ export type ActionConstructor = {
       readonly validation: [VALIDATOR];
     }
   ): Action<
-    StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>>,
+    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>>,
     GetValidatorType<VALIDATOR>,
     false
   >;
@@ -427,7 +450,7 @@ export type ActionConstructor = {
   ): Action<
     StrictUnion<
       | OBJ
-      | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>
+      | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>
       | FailReturn<FailOfRest<REST>>
     >,
     GetValidatorType<VALIDATOR>,
@@ -442,7 +465,7 @@ export type ActionConstructor = {
     ) => ValueOrPromise<OBJ>,
     options: VALIDATOR
   ): Action<
-    StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>>,
+    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>>,
     GetValidatorType<VALIDATOR>,
     false
   >;
@@ -480,7 +503,7 @@ export type ActionConstructorQRL = {
   ): Action<
     StrictUnion<
       | OBJ
-      | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>
+      | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>
       | FailReturn<FailOfRest<REST>>
     >,
     GetValidatorType<VALIDATOR>,
@@ -497,7 +520,7 @@ export type ActionConstructorQRL = {
       readonly validation: [VALIDATOR];
     }
   ): Action<
-    StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>>,
+    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>>,
     GetValidatorType<VALIDATOR>,
     false
   >;
@@ -525,7 +548,7 @@ export type ActionConstructorQRL = {
   ): Action<
     StrictUnion<
       | OBJ
-      | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>
+      | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>
       | FailReturn<FailOfRest<REST>>
     >,
     GetValidatorType<VALIDATOR>,
@@ -539,7 +562,7 @@ export type ActionConstructorQRL = {
     >,
     options: VALIDATOR
   ): Action<
-    StrictUnion<OBJ | FailReturn<zod.typeToFlattenedError<GetValidatorType<VALIDATOR>>>>,
+    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>>,
     GetValidatorType<VALIDATOR>,
     false
   >;
@@ -677,6 +700,8 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
       ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
       : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>
   >;
+  /** Is action.submit was submitted */
+  readonly submitted: boolean;
 };
 
 type Failed = {
@@ -788,8 +813,25 @@ export type ZodConstructorQRL = {
 };
 
 /** @public */
+export interface ServerConfig {
+  // TODO: create id registry
+  // id?: string;
+  origin?: string;
+  // TODO: recreate sending arguments as queryParams
+  // only support "get" and "post" for now
+  method?: 'get' | 'post'; // | 'patch' | 'delete';
+  headers?: Record<string, string>;
+  // TODO: add cache interface
+  // cache?: any,
+  // TODO: cancel with signal
+  // signal?: Signal<boolean>;
+  fetchOptions?: any;
+}
+
+/** @public */
 export type ServerFunction = {
   (this: RequestEventBase, ...args: any[]): any;
+  options?: ServerConfig;
 };
 
 /**

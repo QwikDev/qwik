@@ -50,7 +50,7 @@ Originally it was called _qoot_, but we thought it would be too hard to search f
 
 ## How is Qwik different from other frameworks?
 
-Qwik is the first framework that has similar DX (Developer Experience) as _React_, _Vue_, or _Svelte_ in how you author components, while delivering **Live HTML** that is instantly interactive. Qwik achieves this property by completely removing the need for hydration. Instead, Qwik applications immediately execute the event handlers on user interaction, without having to bootstrap all the app state. This technique is called [Resumability](../concepts/resumable/index.mdx).
+Qwik is the first framework that has a DX (developer experience) similar to _React_, _Vue_, or _Svelte_ when authoring components. It delivers **Live HTML** that is instantly interactive, Qwik achieves this property by completely removing the need for hydration. Now, Qwik applications immediately execute the event handlers on user interaction, without having to bootstrap all the app states. This technique is called [Resumability](../concepts/resumable/index.mdx).
 
 The outcome is that developers write extremely performant applications by default, without even worrying about it. Applications built with Qwik are fast regardless of the number of components or complexity, they are O(1) (constant time) in terms of JS payload.
 
@@ -144,7 +144,7 @@ As a result, Qwik apps get to be responsive much faster, especially on slow netw
 
 ## Does Qwik generate too many small files?
 
-In dev mode Qwik generates a lot of small files because it uses the Dev [Vite.js](https://vitejs.dev/) server, but in production mode Qwik bundles files in a more efficient way.
+In dev mode, Qwik generates a lot of small files because it uses the Dev [Vite.js](https://vitejs.dev/) server, but in production mode, Qwik bundles files more efficiently.
 
 ## Why does Qwik use JSX? Is it React under the hood?
 
@@ -178,7 +178,7 @@ export const NoStructuralChange = component$(() => {
 });
 ```
 
-Qwik will use vDOM when the change is structural. In the following example the DOM structure needs to be updated (replace `<h1>` with `<button>`) and so vDOM will be used for rendering:
+When there is a structural change, Qwik utilizes the virtual DOM (vDOM). In the following example, the DOM structure needs to be updated (replace `<h1>` with `<button>`), so vDOM will be used for rendering:
 ```ts title="DOM structure change"
 export const StructuralChange = component$(() => {
   const isLoggedIn = useSignal(false);
@@ -191,7 +191,7 @@ export const StructuralChange = component$(() => {
 
 ```
 
-The big thing to understand (and the reason vDOM is not a performance problem in Qwik) is that in React when you invalidate a root component the vDOM for the whole tree gets created. In Qwik, the decision is made on a per-component basis.  And only for components that have structural change AND are actually changing their structure. If a component is structural (vDOM) but no change in structure is detected, then Qwik skips the component. You can think of it as auto-memoization of all components, this means that vDOM is only employed when the view is changing structurally. This is rare because in most cases the view only changes its values. 
+The important thing to understand is that vDOM doesn't cause performance issues in Qwik. In React, however, invalidating a root component results in vDOM for the whole tree getting created. In Qwik, the decision is made on a per-component basis.  And only for components that have structural change AND are changing their structure. If a component is structural (vDOM) but no change in structure is detected, then Qwik skips the component. You can think of it as auto-memoization of all components, this means that vDOM is only employed when the view is changing structurally. This is rare because in most cases the view only changes its values. 
 
 > In short, Qwik uses vDOM, but significantly less than React in comparable situations.
 
@@ -235,7 +235,7 @@ If there is no need for SSR, you can deploy your Qwik app as a static site thank
 
 It depends. For SPAs, most of the cost is paid upfront by downloading everything at the beginning of the session. So when a user interacts with the app, the cost is minimal.
 
-MPAs are extremely fast to load as they don't need to download as much JS as their SPA counterparts. However, when the user navigates, it usually requires a full page reload. A full page reload is usually super fast because browsers are extremely fast to download and parse HTML, but the MPA approach is not ideal for every project since sometimes, it's ideal to keep state between navigation, and SPA does that very well.
+MPAs are extremely fast to load as they don't need to download as much JS as their SPA counterparts. However, when the user navigates, it usually requires a full page reload. A full-page reload is typically super fast because browsers are extremely fast at downloading and parsing HTML. But, since sometimes, it's ideal to keep state between navigation, the MPA approach is not ideal for every project. In this case, SPA does that very well.
 
 Qwik is a unique framework that is both an MPA and an SPA at the same time.
 
@@ -250,7 +250,7 @@ MPA vs SPA is no longer an architectural decision taken at the beginning of the 
 
 Yes! It's part of all Qwik City starters. Learn how to do [Static Site Generation here](/docs/(qwikcity)/guides/static-site-generation/index.mdx).
 
-## But... with other frameworks I can also create an MPA or an SPA?
+## Can't I create an MPA or SPA with other frameworks?
 
 Not quite, other frameworks suggest removing all the `<Scripts>` at the root to generate an MPA, effectively removing all the interactivity along with the SPA navigation.
 

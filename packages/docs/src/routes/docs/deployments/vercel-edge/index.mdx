@@ -91,3 +91,15 @@ The compiled middleware will be built in the `.vercel/output` directory.
 Edge Functions use the Vercel Edge Runtime, which is built on the same high-performance V8 JavaScript and WebAssembly engine that is used by the Chrome browser. By taking advantage of this small runtime, Edge Functions can have faster cold boots and higher scalability than Serverless Functions.
 
 Edge Functions run after the cache, and can both cache and return responses.
+
+### Drizzle with Vercel Edge Functions
+
+Running Postgres on edge requires edge-compatible drivers since Postgres relies on Node.js APIs. 
+When no adapter is used, the below errors might appear during the deployment process:
+```tsx 
+└── The Edge Function "_qwik-city" is referencing unsupported modules
+└── Cannot bundle Node.js built-in "node:events" imported from "node_modules\postgres\cf\polyfills.js"
+```
+Luckily, drizzle has a [section](https://orm.drizzle.team/learn/tutorials/drizzle-with-vercel-edge-functions#edge-compatible-driver) that can be followed to implement the right adapter of choice.
+
+

@@ -3,8 +3,14 @@ import { assert, test } from 'vitest';
 import type { QwikManifest } from '../types';
 import { createPlugin } from './plugin';
 import { normalizePath } from '../../../testing/util';
+import { qwikVite } from './vite';
 
 const cwd = process.cwd();
+
+test('types', () => () => {
+  qwikVite({ csr: true });
+  qwikVite({ csr: false, ssr: {} });
+});
 
 test('defaults', async () => {
   const plugin = await mockPlugin();

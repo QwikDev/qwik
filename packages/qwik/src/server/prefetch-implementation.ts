@@ -8,6 +8,7 @@ import {
 import type { PrefetchImplementation, PrefetchResource, PrefetchStrategy } from './types';
 
 export function applyPrefetchImplementation(
+  base: string,
   prefetchStrategy: PrefetchStrategy | undefined,
   prefetchResources: PrefetchResource[],
   nonce?: string
@@ -19,7 +20,7 @@ export function applyPrefetchImplementation(
   const prefetchNodes: JSXNode[] = [];
 
   if (prefetchImpl.prefetchEvent === 'always') {
-    prefetchUrlsEvent(prefetchNodes, prefetchResources, nonce);
+    prefetchUrlsEvent(base, prefetchNodes, prefetchResources, nonce);
   }
 
   if (prefetchImpl.linkInsert === 'html-append') {
@@ -40,6 +41,7 @@ export function applyPrefetchImplementation(
 }
 
 function prefetchUrlsEvent(
+  base: string,
   prefetchNodes: JSXNode[],
   prefetchResources: PrefetchResource[],
   nonce?: string
@@ -58,8 +60,8 @@ function prefetchUrlsEvent(
     jsx('script', {
       'q:type': 'prefetch-bundles',
       dangerouslySetInnerHTML:
-        prefetchUrlsEventScript(prefetchResources) +
-        `;document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`,
+        prefetchUrlsEventScript(base, prefetchResources) +
+        `document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`,
       nonce,
     })
   );

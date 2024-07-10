@@ -1,117 +1,117 @@
-import { server$ } from '@builder.io/qwik-city';
-import { createClient } from '@supabase/supabase-js';
+// import { server$ } from '@builder.io/qwik-city';
+// import { createClient } from '@supabase/supabase-js';
 import gpt from './gpt.md?raw';
-import { chatCompletion } from './streaming-gpt';
+// import { chatCompletion } from './streaming-gpt';
 
 const files = new Map<string, Promise<string>>();
 
-export const qwikGPT = server$(async function* (query: string) {
-  const supabase = createClient(this.env.get('SUPABASE_URL')!, this.env.get('SUPABASE_KEY')!);
-  const normalizedQuery = normalizeLine(query);
-  const response = await fetch('https://api.openai.com/v1/embeddings', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${this.env.get('OPENAI_KEY')}`,
-    },
-    body: JSON.stringify({
-      input: normalizedQuery,
-      model: 'text-embedding-ada-002',
-    }),
-  });
-  const data = await response.json();
-  const embeddings = data.data[0].embedding;
+// export const qwikGPT = server$(async function* (query: string) {
+//   const supabase = createClient(this.env.get('SUPABASE_URL')!, this.env.get('SUPABASE_KEY')!);
+//   const normalizedQuery = normalizeLine(query);
+//   const response = await fetch('https://api.openai.com/v1/embeddings', {
+//     method: 'POST',
+//     headers: {
+//       'Content-Type': 'application/json',
+//       Authorization: `Bearer ${this.env.get('OPENAI_KEY')}`,
+//     },
+//     body: JSON.stringify({
+//       input: normalizedQuery,
+//       model: 'text-embedding-ada-002',
+//     }),
+//   });
+//   const data = await response.json();
+//   const embeddings = data.data[0].embedding;
 
-  const docs = await supabase.rpc('match_docs_10', {
-    query_text: normalizedQuery.replaceAll(' ', '|'),
-    query_embedding: embeddings,
-    match_count: 6,
-    similarity_threshold: 0.79,
-  });
+//   const docs = await supabase.rpc('match_docs_10', {
+//     query_text: normalizedQuery.replaceAll(' ', '|'),
+//     query_embedding: embeddings,
+//     match_count: 6,
+//     similarity_threshold: 0.79,
+//   });
 
-  const resultsHash = await getResultsHash(docs.data);
-  const existingQuery = await supabase.rpc('match_query_3', {
-    query_embedding: embeddings,
-    similarity_threshold: 0.95,
-    hash: resultsHash,
-  });
-  if (existingQuery.data.length === 1) {
-    const entry = existingQuery.data[0];
-    yield {
-      type: 'id',
-      content: entry.id,
-    };
-    yield entry.output;
-    return;
-  }
+//   const resultsHash = await getResultsHash(docs.data);
+//   const existingQuery = await supabase.rpc('match_query_3', {
+//     query_embedding: embeddings,
+//     similarity_threshold: 0.95,
+//     hash: resultsHash,
+//   });
+//   if (existingQuery.data.length === 1) {
+//     const entry = existingQuery.data[0];
+//     yield {
+//       type: 'id',
+//       content: entry.id,
+//     };
+//     yield entry.output;
+//     return;
+//   }
 
-  // Download docs
-  try {
-    const docsStr = await resolveContext(docs.data);
-    let model = 'gpt-4';
-    if (docsStr.length < 3500 * 3 && Math.random() < 0.5) {
-      model = 'gpt-3.5-turbo';
-    }
-    const insert = supabase
-      .from('search_queries')
-      .insert({
-        query: query,
-        embedding: embeddings,
-        results: docs.data,
-        results_hash: resultsHash,
-        model,
-      })
-      .select('id');
+//   // Download docs
+//   try {
+//     const docsStr = await resolveContext(docs.data);
+//     let model = 'gpt-4';
+//     if (docsStr.length < 3500 * 3 && Math.random() < 0.5) {
+//       model = 'gpt-3.5-turbo';
+//     }
+//     const insert = supabase
+//       .from('search_queries')
+//       .insert({
+//         query: query,
+//         embedding: embeddings,
+//         results: docs.data,
+//         results_hash: resultsHash,
+//         model,
+//       })
+//       .select('id');
 
-    const id = (await insert).data?.[0].id as string;
-    yield {
-      type: 'id',
-      content: id,
-    };
+//     const id = (await insert).data?.[0].id as string;
+//     yield {
+//       type: 'id',
+//       content: id,
+//     };
 
-    if (docs.data.length === 0) {
-      yield 'We could not find any documentation that matches your question. Please try again rephrasing your question to be more factual.';
-      return;
-    }
+//     if (docs.data.length === 0) {
+//       yield 'We could not find any documentation that matches your question. Please try again rephrasing your question to be more factual.';
+//       return;
+//     }
 
-    const generator = chatCompletion(this.env.get('OPENAI_KEY')!, {
-      model: model,
-      temperature: 0,
-      messages: [
-        {
-          role: 'system',
-          content:
-            'You are QwikGPT, your job is to answer questions about Qwik, a new javascript framework focused on instant interactivity and server-side rendering.\nRelevant Qwik documentation and the user question will be provided. Try to answer the question in a short and concise way.',
-        },
-        {
-          role: 'user',
-          content: docsStr,
-        },
-        {
-          role: 'user',
-          content: `User question, respond in markdown including links to the sources, if you are not sure about the answer, say that you do not know:\n\n${query}`,
-        },
-      ],
-    });
+//     const generator = chatCompletion(this.env.get('OPENAI_KEY')!, {
+//       model: model,
+//       temperature: 0,
+//       messages: [
+//         {
+//           role: 'system',
+//           content:
+//             'You are QwikGPT, your job is to answer questions about Qwik, a new javascript framework focused on instant interactivity and server-side rendering.\nRelevant Qwik documentation and the user question will be provided. Try to answer the question in a short and concise way.',
+//         },
+//         {
+//           role: 'user',
+//           content: docsStr,
+//         },
+//         {
+//           role: 'user',
+//           content: `User question, respond in markdown including links to the sources, if you are not sure about the answer, say that you do not know:\n\n${query}`,
+//         },
+//       ],
+//     });
 
-    let output = '';
-    for await (const chunk of generator) {
-      output += chunk;
-      yield chunk as string;
-    }
-    await supabase.from('search_queries').update({ output }).eq('id', id);
-  } catch (e) {
-    console.error(e);
-  }
-});
+//     let output = '';
+//     for await (const chunk of generator) {
+//       output += chunk;
+//       yield chunk as string;
+//     }
+//     await supabase.from('search_queries').update({ output }).eq('id', id);
+//   } catch (e) {
+//     console.error(e);
+//   }
+// });
 
-export const rateResponse = server$(async function (query_id: string, rate: number) {
-  const supabase = createClient(this.env.get('SUPABASE_URL')!, this.env.get('SUPABASE_KEY')!);
-  await supabase.from('search_rate').insert({
-    query_id: query_id,
-    rate: rate,
-  });
-});
+// export const rateResponse = server$(async function (query_id: string, rate: number) {
+//   const supabase = createClient(this.env.get('SUPABASE_URL')!, this.env.get('SUPABASE_KEY')!);
+//   await supabase.from('search_rate').insert({
+//     query_id: query_id,
+//     rate: rate,
+//   });
+// });
 
 export function normalizeLine(line: string) {
   line = line.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');

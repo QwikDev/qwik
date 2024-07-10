@@ -50,7 +50,7 @@ export default component$(() => {
 
 Remember that Qwik uses `class` instead of `className` for CSS classes.
 
-To assign multiple classes qwik accepts also Arrays, Objects or a mix of them:
+Qwik also accepts arrays, objects, or a combination of them to assign multiple classes:
 ```tsx title="src/components/MyComponent/MyComponent.tsx"
 import { component$ } from '@builder.io/qwik';
 import styles from './MyComponent.module.css';
@@ -72,9 +72,9 @@ export default component$((props) => {
 });
 ```
 
-## Global styles
+## Global Styles
 
-Many apps use a global stylesheet to do browser resets and/or defining global styles. This is a good practice, but it is not recommended to use it for styling your components. Qwik is optimized to let the browser just download the styles that are needed for the current view. If you use a global stylesheet, all the styles will be downloaded on the first load, even if they are not needed for the current view.
+Many apps use a global stylesheet for browser resets and defining global styles. This is a good practice, but it is not recommended to use it for styling your components. Qwik is optimized to let the browser download the styles that are needed for the current view. If you use a global stylesheet, all of the styles will be downloaded on the first load, even if they are not needed for the current view.
 
 ```tsx
 import './global.css';
@@ -84,7 +84,7 @@ import './global.css';
 
 ## CSS-in-JS
 
-Qwik has first-class CSS-in-JS support using [styled-vanilla-extract](https://github.com/wmertens/styled-vanilla-extract), which provides a extremely efficient css-in-js solution without any runtime!
+Qwik has first-class CSS-in-JS support using [styled-vanilla-extract](https://github.com/wmertens/styled-vanilla-extract), which provides an extremely efficient css-in-js solution without any runtime!
 
 ```tsx title="style.css.ts"
 import { style } from 'styled-vanilla-extract/qwik';
@@ -116,7 +116,7 @@ Please refer to the [docs of our official integration](/docs/integrations/styled
 
 ## Styled-components
 
-Styled components is a popular tool in React-land to write CSS-in-JS. Thanks to the same [styled-vanilla-extract](https://github.com/wmertens/styled-vanilla-extract) plugin, you can write your styles with styled-components syntax in Qwik with zero-runtime cost!
+The styled-components library is a popular tool in React-land for writing CSS-in-JS. Thanks to the same [styled-vanilla-extract](https://github.com/wmertens/styled-vanilla-extract) plugin, you can write your styles with styled-components syntax in Qwik with zero-runtime cost!
 
 ```shell
 npm run qwik add styled-vanilla-extract
@@ -216,7 +216,7 @@ This will render a css selector of `.list.⭐️8vzca0-0 > *:nth-child(3)`, allo
 
 A lazy-loadable reference to component's styles.
 
-Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
+Component styles allow Qwik to lazy load the style information for the component only when needed, which avoids double loading during SSR hydration.
 
 ```tsx
 import { useStyles$, component$ } from '@builder.io/qwik';

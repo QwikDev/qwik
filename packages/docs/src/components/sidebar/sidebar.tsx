@@ -70,19 +70,23 @@ export const SideBar = component$((props: { allOpen?: boolean }) => {
   useOnDocument(
     'DOMContentLoaded',
     sync$(() => {
-      const val = sessionStorage.getItem('qwik-sidebar');
-      const savedScroll = !val || /null|NaN/.test(val) ? 0 : +val;
-      const el = document.getElementById('qwik-sidebar');
-      if (el) {
-        el.scrollTop = savedScroll;
-        el.style.visibility = 'visible';
+      try {
+        const val = sessionStorage.getItem('qwik-sidebar');
+        const savedScroll = !val || /null|NaN/.test(val) ? 0 : +val;
+        const el = document.getElementById('qwik-sidebar');
+        if (el) {
+          el.scrollTop = savedScroll;
+          el.style.visibility = 'visible';
+        }
+      } catch (err) {
+        //
       }
     })
   );
 
   return (
     <aside class="sidebar">
-      <nav id="qwik-sidebar" class="menu" style="visibility: hidden">
+      <nav id="qwik-sidebar" class="menu">
         <button
           class="menu-close lg:hidden"
           onClick$={() => (globalStore.sideMenuOpen = !globalStore.sideMenuOpen)}
@@ -96,8 +100,12 @@ export const SideBar = component$((props: { allOpen?: boolean }) => {
           allOpen={allOpen}
           markdownItems={markdownItems.value}
           onClick$={sync$(() => {
-            const scrollTop = document.getElementById('qwik-sidebar')!.scrollTop;
-            sessionStorage.setItem('qwik-sidebar', String(scrollTop));
+            try {
+              const scrollTop = document.getElementById('qwik-sidebar')!.scrollTop;
+              sessionStorage.setItem('qwik-sidebar', String(scrollTop));
+            } catch (err) {
+              //
+            }
           })}
         />
       </nav>

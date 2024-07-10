@@ -27,7 +27,7 @@ The `$` suffix is used to signal both the optimizer and the developer when this 
 
 ## Compiler-time implications
 
-[Optimizer](../optimizer/index.mdx) runs as a Vite plugin during bundling. The purpose of the Optimizer is to break up the application into many small lazy-loadable chunks. The Optimizer moves expressions (usually functions) into new files and leaves behind a reference pointing to where the expression was moved from.
+The [optimizer](../optimizer/index.mdx) runs as a Vite plugin during bundling. The purpose of the Optimizer is to break up the application into many small lazy-loadable chunks. The Optimizer moves expressions (usually functions) into new files and leaves behind a reference pointing to where the expression was moved from.
 
 The `$` tells the optimizer which functions to extract into a separate file and which ones to leave untouched. The optimizer does not keep an internal list of magic functions, instead, it solely relies on the `$` suffix to know which functions to transform. The system is extendable and developers can create their own `$` functions, such as `myCustomFunction$()`.
 
@@ -57,23 +57,23 @@ import { jsx as _jsx } from '@builder.io/qwik/jsx-runtime';
 import { qrl } from '@builder.io/qwik';
 export const App_component_AkbU84a8zes = () => {
   console.log('render');
-  return /*#__PURE__*/ _jsx('p', {
+  return /*#__PURE__*/ _jsx('button', {
     onClick$: qrl(
-      () => import('./app_component_p_onclick_01pegc10cpw'),
-      'App_component_p_onClick_01pEgC10cpw'
+      () => import('./app_component_button_onclick_01pegc10cpw'),
+      'App_component_button_onClick_01pEgC10cpw'
     ),
     children: 'Hello Qwik',
   });
 };
 ```
 
-```js title="app_component_p_onclick_01pegc10cpw.js"
-export const App_component_p_onClick_01pEgC10cpw = () => console.log('hello');
+```js title="app_component_button_onclick_01pegc10cpw.js"
+export const App_component_button_onClick_01pEgC10cpw = () => console.log('hello');
 ```
 
 ## Rules
 
-The optimizer uses `$` as a signal to extract the code. The developer needs to understand that the extraction comes with constraints and therefore special rules apply whenever the `$` is present. (Not all valid JavaScript code is valid code for the Optimizer.)
+The Optimizer uses `$` as a signal to extract the code. The developer needs to understand that the extraction comes with constraints and therefore special rules apply whenever the `$` is present. (Not all valid JavaScript code is valid code for the Optimizer.)
 
 > The worst kind of code magic is the kind that's invisible to the developer.
 
@@ -262,6 +262,8 @@ The original file:
 ```tsx
 const MyComp = component(qrl('./chunk-a.js', 'MyComp_onMount'));
 ```
+
+and a chunk
 
 ```tsx title="chunk-a.js"
 export const MyComp_onMount = () => {

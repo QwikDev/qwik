@@ -28,8 +28,14 @@ export const reflectPreference = (theme: ThemePreference) => {
 };
 
 export const getColorPreference = (): ThemePreference => {
-  if (localStorage.getItem(themeStorageKey)) {
-    return localStorage.getItem(themeStorageKey) as ThemePreference;
+  let theme;
+  try {
+    theme = localStorage.getItem(themeStorageKey);
+  } catch (err) {
+    //
+  }
+  if (theme) {
+    return theme as ThemePreference;
   } else {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }

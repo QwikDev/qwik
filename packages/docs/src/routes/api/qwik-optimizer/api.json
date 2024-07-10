@@ -400,7 +400,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikManifest \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[bundles](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[fileName: string\\]: [QwikBundle](#qwikbundle)<!-- -->; }\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[injections?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[GlobalInjections](#globalinjections)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[manifestHash](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[mapping](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[symbolName: string\\]: string; }\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[options?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ target?: string; buildMode?: string; entryStrategy?: { \\[key: string\\]: any; }; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[platform?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[name: string\\]: string; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[symbols](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[symbolName: string\\]: [QwikSymbol](#qwiksymbol)<!-- -->; }\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[version](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "The metadata of the build. One of its uses is storing where QRL symbols are located.\n\n\n```typescript\nexport interface QwikManifest \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[bundles](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[fileName: string\\]: [QwikBundle](#qwikbundle)<!-- -->; }\n\n\n</td><td>\n\nAll code bundles, used to know the import graph\n\n\n</td></tr>\n<tr><td>\n\n[injections?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[GlobalInjections](#globalinjections)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ CSS etc to inject in the document head\n\n\n</td></tr>\n<tr><td>\n\n[manifestHash](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nContent hash of the manifest, if this changes, the code changed\n\n\n</td></tr>\n<tr><td>\n\n[mapping](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[symbolName: string\\]: string; }\n\n\n</td><td>\n\nWhere QRLs are located\n\n\n</td></tr>\n<tr><td>\n\n[options?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ target?: string; buildMode?: string; entryStrategy?: { \\[key: string\\]: any; }; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[platform?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[name: string\\]: string; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[symbols](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[symbolName: string\\]: [QwikSymbol](#qwiksymbol)<!-- -->; }\n\n\n</td><td>\n\nQRL symbols\n\n\n</td></tr>\n<tr><td>\n\n[version](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "qwik.qwikmanifest.md"
     },
@@ -498,7 +498,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikVitePluginApi \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[getClientOutDir](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; string \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getClientPublicOutDir](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; string \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getInsightsManifest](#)\n\n\n</td><td>\n\n\n</td><td>\n\n(clientOutDir?: string \\| null) =&gt; Promise&lt;[InsightManifest](#insightmanifest) \\| null&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getManifest](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; [QwikManifest](#qwikmanifest) \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getOptimizer](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; [Optimizer](#optimizer) \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getOptions](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; NormalizedQwikPluginOptions\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getRootDir](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; string \\| null\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface QwikVitePluginApi \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[getAssetsDir](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; string \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getClientOutDir](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; string \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getClientPublicOutDir](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; string \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getInsightsManifest](#)\n\n\n</td><td>\n\n\n</td><td>\n\n(clientOutDir?: string \\| null) =&gt; Promise&lt;[InsightManifest](#insightmanifest) \\| null&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getManifest](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; [QwikManifest](#qwikmanifest) \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getOptimizer](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; [Optimizer](#optimizer) \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getOptions](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; NormalizedQwikPluginOptions\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getRootDir](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; string \\| null\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts",
       "mdFile": "qwik.qwikvitepluginapi.md"
     },
@@ -621,6 +621,20 @@
       "mdFile": "qwik.sourcemapsoption.md"
     },
     {
+      "name": "symbolMapper",
+      "id": "symbolmapper",
+      "hierarchy": [
+        {
+          "name": "symbolMapper",
+          "id": "symbolmapper"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nFor a given symbol (QRL such as `onKeydown$`<!-- -->) the server needs to know which bundle the symbol is in.\n\nNormally this is provided by Qwik's `q-manifest` . But `q-manifest` only exists after a full client build.\n\nThis would be a problem in dev mode. So in dev mode the symbol is mapped to the expected URL using the symbolMapper function below. For Vite the given path is fixed for a given symbol.\n\n\n```typescript\nsymbolMapper: ReturnType<typeof createSymbolMapper>\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite-dev-server.ts",
+      "mdFile": "qwik.symbolmapper.md"
+    },
+    {
       "name": "SymbolMapper",
       "id": "symbolmapper",
       "hierarchy": [
@@ -630,7 +644,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type SymbolMapper = Record<string, readonly [symbol: string, chunk: string]>;\n```",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nFor a given symbol (QRL such as `onKeydown$`<!-- -->) the server needs to know which bundle the symbol is in.\n\nNormally this is provided by Qwik's `q-manifest` . But `q-manifest` only exists after a full client build.\n\nThis would be a problem in dev mode. So in dev mode the symbol is mapped to the expected URL using the symbolMapper function below. For Vite the given path is fixed for a given symbol.\n\n\n```typescript\nsymbolMapper: ReturnType<typeof createSymbolMapper>\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "qwik.symbolmapper.md"
     },
@@ -644,7 +658,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined) => readonly [symbol: string, chunk: string] | undefined;\n```\n**References:** [SymbolMapper](#symbolmapper)",
+      "content": "```typescript\nexport type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined, parent?: string) => readonly [symbol: string, chunk: string] | undefined;\n```\n**References:** [SymbolMapper](#symbolmapper)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "qwik.symbolmapperfn.md"
     },

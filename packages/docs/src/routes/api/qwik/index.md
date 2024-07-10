@@ -1408,6 +1408,14 @@ componentQrl
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
+## ComputedFn
+
+```typescript
+export type ComputedFn<T> = () => T;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+
 ## ContextId
 
 ContextId is a typesafe ID for your context.
@@ -1515,9 +1523,9 @@ A unique ID for the context.
 
 Low-level API for platform abstraction.
 
-Different platforms (browser, node, service workers) may have different ways of handling things such as `requestAnimationFrame` and imports. To make Qwik platform independent, the `CorePlatform` API is used to access platform specific APIs.
+Different platforms (browser, node, service workers) may have different ways of handling things such as `requestAnimationFrame` and imports. To make Qwik platform-independent Qwik uses the `CorePlatform` API to access the platform API.
 
-`CorePlatform` is also responsible for importing symbols. Because the import map is different on the client (browser) than on the server, the server uses a manifest to map symbols to javascript chunks. Since this manifest is encapsulated in `CorePlatform`, `CorePlatform` cannot be global as there may be multiple applications running on the server concurrently.
+`CorePlatform` also is responsible for importing symbols. The import map is different on the client (browser) then on the server. For this reason, the server has a manifest that is used to map symbols to javascript chunks. The manifest is encapsulated in `CorePlatform`, for this reason, the `CorePlatform` can't be global as there may be multiple applications running at server concurrently.
 
 This is a low-level API and there should not be a need for you to access this.
 
@@ -1550,7 +1558,7 @@ Description
 
 </td><td>
 
-(symbolName: string, chunk: string \| null) =&gt; readonly [symbol: string, chunk: string] \| undefined
+(symbolName: string, chunk: string \| null, parent?: string) =&gt; readonly [symbol: string, chunk: string] \| undefined
 
 </td><td>
 
@@ -1688,13 +1696,93 @@ Description
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
+## createComputed$
+
+> Warning: This API is now obsolete.
+>
+> This is a technology preview
+
+Returns read-only signal that updates when signals used in the `ComputedFn` change. Unlike useComputed$, this is not a hook and it always creates a new signal.
+
+```typescript
+createComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+qrl
+
+</td><td>
+
+[ComputedFn](#computedfn)&lt;T&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+[Signal](#signal)&lt;Awaited&lt;T&gt;&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+
+## createComputedQrl
+
+```typescript
+createComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => Signal<Awaited<T>>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+qrl
+
+</td><td>
+
+[QRL](#qrl)&lt;[ComputedFn](#computedfn)&lt;T&gt;&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+[Signal](#signal)&lt;Awaited&lt;T&gt;&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+
 ## createContextId
 
 Create a context ID to be used in your application. The name should be written with no spaces.
 
 Context is a way to pass stores to the child components without prop-drilling.
 
-Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that it can track context providers and consumers in a way that survives resumability.
+Use `createContextId()` to create a `ContextId`. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.
 
 ### Example
 
@@ -1768,6 +1856,22 @@ The name of the context.
 [ContextId](#contextid)&lt;STATE&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
+
+## createSignal
+
+> Warning: This API is now obsolete.
+>
+> This is a technology preview
+
+Creates a signal.
+
+If the initial state is a function, the function is invoked to calculate the actual initial state.
+
+```typescript
+createSignal: UseSignal;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts)
 
 ## CSSProperties
 
@@ -2061,7 +2165,7 @@ any \| undefined
 ## event$
 
 ```typescript
-event$: <T>(first: T) => QRL<T>;
+event$: <T>(qrl: T) => QRL<T>;
 ```
 
 <table><thead><tr><th>
@@ -2079,7 +2183,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-first
+qrl
 
 </td><td>
 
@@ -2571,9 +2675,9 @@ export const callback = () => console.log("callback");
 
 ```typescript
 implicit$FirstArg: <FIRST, REST extends any[], RET>(
-    fn: (first: QRL<FIRST>, ...rest: REST) => RET,
+    fn: (qrl: QRL<FIRST>, ...rest: REST) => RET,
   ) =>
-  (first: FIRST, ...rest: REST) =>
+  (qrl: FIRST, ...rest: REST) =>
     RET;
 ```
 
@@ -2596,7 +2700,7 @@ fn
 
 </td><td>
 
-(first: [QRL](#qrl)&lt;FIRST&gt;, ...rest: REST) =&gt; RET
+(qrl: [QRL](#qrl)&lt;FIRST&gt;, ...rest: REST) =&gt; RET
 
 </td><td>
 
@@ -2606,7 +2710,7 @@ A function that should have its first argument automatically `$`.
 </tbody></table>
 **Returns:**
 
-((first: FIRST, ...rest: REST) =&gt; RET)
+((qrl: FIRST, ...rest: REST) =&gt; RET)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/util/implicit_dollar.ts)
 
@@ -3486,7 +3590,8 @@ PrefetchGraph: (opts?: {
   base?: string;
   manifestHash?: string;
   manifestURL?: string;
-}) => import("@builder.io/qwik/jsx-runtime").JSXNode<"script">;
+  nonce?: string;
+}) => JSXNode<"script">;
 ```
 
 <table><thead><tr><th>
@@ -3508,19 +3613,19 @@ opts
 
 </td><td>
 
-{ base?: string; manifestHash?: string; manifestURL?: string; }
+{ base?: string; manifestHash?: string; manifestURL?: string; nonce?: string; }
 
 </td><td>
 
 _(Optional)_ Options for the loading prefetch graph.
 
-- `base` - Base of the graph. For a default installation this will default to `/build/`. But if more than one MFE is installed on the page, then each MFE needs to have its own base. - `manifestHash` - Hash of the manifest file to load. If not provided the hash will be extracted from the container attribute `q:manifest-hash` and assume the default build file `${base}/q-bundle-graph-${manifestHash}.json`. - `manifestURL` - URL of the manifest file to load if non-standard bundle graph location name.
+- `base` - Base of the graph. For a default installation this will default to the q:base value `/build/`. But if more than one MFE is installed on the page, then each MFE needs to have its own base. - `manifestHash` - Hash of the manifest file to load. If not provided the hash will be extracted from the container attribute `q:manifest-hash` and assume the default build file `${base}/q-bundle-graph-${manifestHash}.json`. - `manifestURL` - URL of the manifest file to load if non-standard bundle graph location name.
 
 </td></tr>
 </tbody></table>
 **Returns:**
 
-import("@builder.io/qwik/jsx-runtime").JSXNode&lt;"script"&gt;
+JSXNode&lt;"script"&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -3535,10 +3640,12 @@ There can only be one service worker per page. Because there can be many separat
 ```typescript
 PrefetchServiceWorker: (opts: {
   base?: string;
+  scope?: string;
   path?: string;
   verbose?: boolean;
   fetchBundleGraph?: boolean;
-}) => import("@builder.io/qwik/jsx-runtime").JSXNode<"script">;
+  nonce?: string;
+}) => JSXNode<"script">;
 ```
 
 <table><thead><tr><th>
@@ -3560,19 +3667,19 @@ opts
 
 </td><td>
 
-{ base?: string; path?: string; verbose?: boolean; fetchBundleGraph?: boolean; }
+{ base?: string; scope?: string; path?: string; verbose?: boolean; fetchBundleGraph?: boolean; nonce?: string; }
 
 </td><td>
 
 Options for the prefetch service worker.
 
-- `base` - Base URL for the service worker. - `path` - Path to the service worker.
+- `base` - Base URL for the service worker `import.meta.env.BASE_URL` or `/`. Default is `import.meta.env.BASE_URL` - `scope` - Base URL for when the service-worker will activate. Default is `/` - `path` - Path to the service worker. Default is `qwik-prefetch-service-worker.js` unless you pass a path that starts with a `/` then the base is ignored. Default is `qwik-prefetch-service-worker.js` - `verbose` - Verbose logging for the service worker installation. Default is `false` - `nonce` - Optional nonce value for security purposes, defaults to `undefined`.
 
 </td></tr>
 </tbody></table>
 **Returns:**
 
-import("@builder.io/qwik/jsx-runtime").JSXNode&lt;"script"&gt;
+JSXNode&lt;'script'&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -3922,7 +4029,8 @@ export type QRLEventHandlerMulti<EV extends Event, EL> =
   | QRL<EventHandler<EV, EL>>
   | undefined
   | null
-  | QRLEventHandlerMulti<EV, EL>[];
+  | QRLEventHandlerMulti<EV, EL>[]
+  | EventHandler<EV, EL>;
 ```
 
 **References:** [QRL](#qrl), [EventHandler](#eventhandler), [QRLEventHandlerMulti](#qrleventhandlermulti)
@@ -5222,6 +5330,10 @@ plt
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/platform/platform.ts)
 
 ## Signal
+
+A signal is a reactive value which can be read and written. When the signal is written, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.
+
+Furthermore, when a signal value is passed as a prop to a component, the optimizer will automatically forward the signal. This means that `return <div title={signal.value}>hi</div>` will update the `title` attribute when the signal changes without having to re-render the component.
 
 ```typescript
 export interface Signal<T = any>
@@ -10009,19 +10121,124 @@ T
 
 ## useComputed$
 
+Hook that returns a read-only signal that updates when signals used in the `ComputedFn` change.
+
 ```typescript
-useComputed$: Computed;
+useComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>;
 ```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+qrl
+
+</td><td>
+
+[ComputedFn](#computedfn)&lt;T&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+[Signal](#signal)&lt;Awaited&lt;T&gt;&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## useComputedQrl
 
 ```typescript
-useComputedQrl: ComputedQRL;
+useComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => Signal<Awaited<T>>;
 ```
 
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+qrl
+
+</td><td>
+
+[QRL](#qrl)&lt;[ComputedFn](#computedfn)&lt;T&gt;&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+[Signal](#signal)&lt;Awaited&lt;T&gt;&gt;
+
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+
+## useConstant
+
+> Warning: This API is now obsolete.
+>
+> This is a technology preview
+
+Stores a value which is retained for the lifetime of the component.
+
+If the value is a function, the function is invoked to calculate the actual value.
+
+```typescript
+useConstant: <T>(value: (() => T) | T) => T;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+value
+
+</td><td>
+
+(() =&gt; T) \| T
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+T
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts)
 
 ## useContext
 
@@ -10443,7 +10660,9 @@ This method works like an async memoized function that runs whenever some tracke
 
 The status can be one of the following:
 
-- 'pending' - the data is not yet available. - 'resolved' - the data is available. - 'rejected' - the data is not available due to an error or timeout.
+- `pending` - the data is not yet available. - `resolved` - the data is available. - `rejected` - the data is not available due to an error or timeout.
+
+Avoid using a `try/catch` statement in `useResource$`. If you catch the error instead of passing it, the resource status will never be `rejected`.
 
 ### Example
 
@@ -10566,6 +10785,8 @@ T \| undefined
 
 ## useSignal
 
+Hook that creates a signal that is retained for the lifetime of the component.
+
 ```typescript
 useSignal: UseSignal;
 ```
@@ -10573,6 +10794,8 @@ useSignal: UseSignal;
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts)
 
 ## UseSignal
+
+Hook that creates a signal that is retained for the lifetime of the component.
 
 ```typescript
 useSignal: UseSignal;
@@ -10723,7 +10946,7 @@ boolean
 
 </td><td>
 
-_(Optional)_ If `true` then all nested objects and arrays will be tracked as well. Default is `false`.
+_(Optional)_ If `true` then all nested objects and arrays will be tracked as well. Default is `true`.
 
 </td></tr>
 <tr><td>
@@ -10762,7 +10985,7 @@ export const CmpStyles = component$(() => {
 ```
 
 ```typescript
-useStyles$: (first: string) => void
+useStyles$: (qrl: string) => void
 ```
 
 <table><thead><tr><th>
@@ -10780,7 +11003,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-first
+qrl
 
 </td><td>
 
@@ -10904,7 +11127,7 @@ export const CmpScopedStyles = component$(() => {
 ```
 
 ```typescript
-useStylesScoped$: (first: string) => UseStylesScoped;
+useStylesScoped$: (qrl: string) => UseStylesScoped;
 ```
 
 <table><thead><tr><th>
@@ -10922,7 +11145,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-first
+qrl
 
 </td><td>
 
@@ -10998,7 +11221,7 @@ Use `useTask` to observe changes on a set of inputs, and then re-execute the `ta
 The `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.
 
 ```typescript
-useTask$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void
+useTask$: (qrl: TaskFn, opts?: UseTaskOptions | undefined) => void
 ```
 
 <table><thead><tr><th>
@@ -11016,7 +11239,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-first
+qrl
 
 </td><td>
 
@@ -11166,7 +11389,7 @@ const Timer = component$(() => {
 ```
 
 ```typescript
-useVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void
+useVisibleTask$: (qrl: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void
 ```
 
 <table><thead><tr><th>
@@ -11184,7 +11407,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-first
+qrl
 
 </td><td>
 

@@ -1,49 +1,52 @@
 import {
   $,
-  implicit$FirstArg,
-  noSerialize,
-  type QRL,
-  useContext,
-  type ValueOrPromise,
-  useStore,
-  _serializeData,
   _deserializeData,
   _getContextElement,
   _getContextEvent,
+  _serializeData,
   _wrapProp,
+  implicit$FirstArg,
+  noSerialize,
+  useContext,
+  useStore,
+  type QRL,
+  type ValueOrPromise,
 } from '@builder.io/qwik';
 
+import { z } from 'zod';
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
-import { QACTION_KEY, QFN_KEY } from './constants';
+import { QACTION_KEY, QDATA_KEY, QFN_KEY } from './constants';
 import { RouteStateContext } from './contexts';
 import type {
   ActionConstructor,
-  ZodConstructor,
-  JSONObject,
-  RouteActionResolver,
-  RouteLocation,
-  Editable,
-  ActionStore,
-  RequestEvent,
+  ActionConstructorQRL,
   ActionInternal,
-  LoaderInternal,
-  RequestEventAction,
+  ActionStore,
   CommonLoaderActionOptions,
   DataValidator,
-  ValidatorReturn,
+  Editable,
+  JSONObject,
   LoaderConstructor,
-  ValidatorConstructor,
-  ActionConstructorQRL,
   LoaderConstructorQRL,
-  ZodConstructorQRL,
-  ValidatorConstructorQRL,
+  LoaderInternal,
+  RequestEvent,
+  RequestEventAction,
+  RequestEventBase,
+  RouteActionResolver,
+  RouteLocation,
+  ServerConfig,
   ServerFunction,
   ServerQRL,
-  RequestEventBase,
+  ValidatorConstructor,
+  ValidatorConstructorQRL,
+  ValidatorReturn,
+  ZodConstructor,
+  ZodConstructorQRL,
 } from './types';
 import { useAction, useLocation, useQwikCityEnv } from './use-functions';
-import { z } from 'zod';
+
 import { isDev, isServer } from '@builder.io/qwik/build';
+
 import type { FormSubmitCompletedDetail } from './form-component';
 
 /** @public */
@@ -57,6 +60,7 @@ export const routeActionQrl = ((
     const currentAction = useAction();
     const initialState: Editable<Partial<ActionStore<unknown, unknown>>> = {
       actionPath: `?${QACTION_KEY}=${id}`,
+      submitted: false,
       isRunning: false,
       status: undefined,
       value: undefined,
@@ -104,6 +108,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
         if (data instanceof FormData) {
           state.formData = data;
         }
+        state.submitted = true;
         state.isRunning = true;
         loc.isNavigating = true;
         currentAction.value = {
@@ -250,10 +255,15 @@ export const zodQrl = ((
               result.error.issues
             );
           }
+          const zodErrorsFlatten = result.error.flatten();
+          const fieldErrors = flattenZodIssues(result.error.issues);
           return {
             success: false,
             status: 400,
-            error: result.error.flatten(),
+            error: {
+              formErrors: zodErrorsFlatten.formErrors,
+              fieldErrors: fieldErrors,
+            },
           };
         }
       },
@@ -262,11 +272,50 @@ export const zodQrl = ((
   return undefined as any;
 }) as ZodConstructorQRL;
 
+const flattenZodIssues = (issues: z.ZodIssue | z.ZodIssue[]) => {
+  issues = Array.isArray(issues) ? issues : [issues];
+  return issues.reduce<Record<string, string | string[]>>((acc, issue) => {
+    const isExpectingArray = 'expected' in issue && issue.expected === 'array';
+    const hasArrayType = issue.path.some((path) => typeof path === 'number') || isExpectingArray;
+    if (hasArrayType) {
+      const keySuffix = 'expected' in issue && issue.expected === 'array' ? '[]' : '';
+      const key =
+        issue.path
+          .map((path) => (typeof path === 'number' ? '*' : path))
+          .join('.')
+          .replace(/\.\*/g, '[]') + keySuffix;
+
+      acc[key] = acc[key] || [];
+      if (Array.isArray(acc[key])) {
+        (acc[key] as string[]).push(issue.message);
+      }
+      return acc;
+    } else {
+      acc[issue.path.join('.')] = issue.message;
+    }
+    return acc;
+  }, {});
+};
+
 /** @public */
 export const zod$ = /*#__PURE__*/ implicit$FirstArg(zodQrl) as ZodConstructor;
 
+const deepFreeze = (obj: any) => {
+  Object.getOwnPropertyNames(obj).forEach((prop) => {
+    const value = obj[prop];
+    // we assume that a frozen object is a circular reference and fully deep frozen
+    if (value && typeof value === 'object' && !Object.isFrozen(value)) {
+      deepFreeze(value);
+    }
+  });
+  return Object.freeze(obj);
+};
+
 /** @public */
-export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> => {
+export const serverQrl = <T extends ServerFunction>(
+  qrl: QRL<T>,
+  options?: ServerConfig
+): ServerQRL<T> => {
   if (isServer) {
     const captured = qrl.getCaptured();
     if (captured && captured.length > 0 && !_getContextElement()) {
@@ -274,15 +323,23 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
     }
   }
 
-  function stuff() {
+  const method = options?.method?.toUpperCase?.() || 'POST';
+  const headers = options?.headers || {};
+  const origin = options?.origin || '';
+  const fetchOptions = options?.fetchOptions || {};
+
+  function rpc() {
     return $(async function (this: RequestEventBase, ...args: Parameters<T>) {
-      const signal =
+      // move to ServerConfig
+      const abortSignal =
         args.length > 0 && args[0] instanceof AbortSignal
           ? (args.shift() as AbortSignal)
           : undefined;
+
       if (isServer) {
         // Running during SSR, we can call the function directly
         let requestEvent = globalThis.qcAsyncRequestStore?.getStore() as RequestEvent | undefined;
+
         if (!requestEvent) {
           const contexts = [useQwikCityEnv()?.ev, this, _getContextEvent()] as RequestEvent[];
           requestEvent = contexts.find(
@@ -292,11 +349,12 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
               Object.prototype.hasOwnProperty.call(v, 'cookie')
           );
         }
-        return qrl.apply(requestEvent, args);
+
+        return qrl.apply(requestEvent, isDev ? deepFreeze(args) : args);
       } else {
         // Running on the client, we need to call the function via HTTP
         const ctxElm = _getContextElement();
-        const filtered = args.map((arg: unknown) => {
+        const filteredArgs = args.map((arg: unknown) => {
           if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
             return new FormData(arg.target);
           } else if (arg instanceof Event) {
@@ -306,18 +364,28 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
           }
           return arg;
         });
-        const hash = qrl.getHash();
+        const qrlHash = qrl.getHash();
         // Handled by `pureServerFunction` middleware
-        const res = await fetch(`?${QFN_KEY}=${hash}`, {
-          method: 'POST',
+        let query = '';
+        const config = {
+          ...fetchOptions,
+          method,
           headers: {
+            ...headers,
             'Content-Type': 'application/qwik-json',
             // Required so we don't call accidentally
-            'X-QRL': hash,
+            'X-QRL': qrlHash,
           },
-          signal,
-          body: await _serializeData([qrl, ...filtered], false),
-        });
+          signal: abortSignal,
+        };
+        const body = await _serializeData([qrl, ...filteredArgs], false);
+        if (method === 'GET') {
+          query += `&${QDATA_KEY}=${encodeURIComponent(body)}`;
+        } else {
+          // PatrickJS: sorry Ryan Florence I prefer const still
+          config.body = body;
+        }
+        const res = await fetch(`${origin}?${QFN_KEY}=${qrlHash}${query}`, config);
 
         const contentType = res.headers.get('Content-Type');
         if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {
@@ -326,12 +394,12 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
               for await (const result of deserializeStream(
                 res.body!,
                 ctxElm ?? document.documentElement,
-                signal
+                abortSignal
               )) {
                 yield result;
               }
             } finally {
-              if (!signal?.aborted) {
+              if (!abortSignal?.aborted) {
                 await res.body!.cancel();
               }
             }
@@ -343,11 +411,23 @@ export const serverQrl = <T extends ServerFunction>(qrl: QRL<T>): ServerQRL<T> =
             throw obj;
           }
           return obj;
+        } else if (contentType === 'application/json') {
+          const obj = await res.json();
+          if (res.status === 500) {
+            throw obj;
+          }
+          return obj;
+        } else if (contentType === 'text/plain' || contentType === 'text/html') {
+          const str = await res.text();
+          if (res.status === 500) {
+            throw str;
+          }
+          return str;
         }
       }
     }) as ServerQRL<T>;
   }
-  return stuff();
+  return rpc();
 };
 
 /** @public */
@@ -391,13 +471,13 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
 const deserializeStream = async function* (
   stream: ReadableStream<Uint8Array>,
   ctxElm: unknown,
-  signal?: AbortSignal
+  abortSignal?: AbortSignal
 ) {
   const reader = stream.getReader();
   try {
     let buffer = '';
     const decoder = new TextDecoder();
-    while (!signal?.aborted) {
+    while (!abortSignal?.aborted) {
       const result = await reader.read();
       if (result.done) {
         break;

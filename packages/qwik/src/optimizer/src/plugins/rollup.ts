@@ -6,7 +6,6 @@ import type {
   OptimizerOptions,
   QwikManifest,
   TransformModuleInput,
-  Path,
   TransformModule,
 } from '../types';
 import {
@@ -69,11 +68,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     },
 
     outputOptions(rollupOutputOpts) {
-      return normalizeRollupOutputOptions(
-        qwikPlugin.getPath(),
-        qwikPlugin.getOptions(),
-        rollupOutputOpts
-      );
+      return normalizeRollupOutputOptionsObject(qwikPlugin.getOptions(), rollupOutputOpts, false);
     },
 
     async buildStart() {
@@ -117,22 +112,8 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 
       if (opts.target === 'client') {
         // client build
-        const outputAnalyzer = qwikPlugin.createOutputAnalyzer();
-
-        for (const fileName in rollupBundle) {
-          const b = rollupBundle[fileName];
-          if (b.type === 'chunk') {
-            outputAnalyzer.addBundle({
-              fileName,
-              modules: b.modules,
-              imports: b.imports,
-              dynamicImports: b.dynamicImports,
-              size: b.code.length,
-            });
-          }
-        }
-
         const optimizer = qwikPlugin.getOptimizer();
+        const outputAnalyzer = qwikPlugin.createOutputAnalyzer(rollupBundle);
         const manifest = await outputAnalyzer.generateManifest();
         manifest.platform = {
           ...versions,
@@ -165,35 +146,61 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 }
 
 export function normalizeRollupOutputOptions(
-  path: Path,
   opts: NormalizedQwikPluginOptions,
-  rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined
-) {
-  const outputOpts: Rollup.OutputOptions = {};
-  if (rollupOutputOpts && !Array.isArray(rollupOutputOpts)) {
-    Object.assign(outputOpts, rollupOutputOpts);
+  rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined,
+  useAssetsDir: boolean
+): Rollup.OutputOptions[] {
+  const outputOpts: Rollup.OutputOptions[] = Array.isArray(rollupOutputOpts)
+    ? // fill the `outputOpts` array with all existing option entries
+      [...rollupOutputOpts]
+    : // use the existing rollupOutputOpts object or create a new one
+      [rollupOutputOpts || {}];
+
+  // make sure at least one output is present in every case
+  if (!outputOpts.length) {
+    outputOpts.push({});
   }
+
+  return outputOpts.map((outputOptsObj) =>
+    normalizeRollupOutputOptionsObject(opts, outputOptsObj, useAssetsDir)
+  );
+}
+
+export function normalizeRollupOutputOptionsObject(
+  opts: NormalizedQwikPluginOptions,
+  rollupOutputOptsObj: Rollup.OutputOptions | undefined,
+  useAssetsDir: boolean
+): Rollup.OutputOptions {
+  const outputOpts: Rollup.OutputOptions = { ...rollupOutputOptsObj };
+
   if (!outputOpts.assetFileNames) {
     outputOpts.assetFileNames = 'build/q-[hash].[ext]';
   }
   if (opts.target === 'client') {
     // client output
+    outputOpts.assetFileNames = useAssetsDir
+      ? `${opts.assetsDir}/${outputOpts.assetFileNames}`
+      : outputOpts.assetFileNames;
 
     if (opts.buildMode === 'production') {
       // client production output
       if (!outputOpts.entryFileNames) {
-        outputOpts.entryFileNames = 'build/q-[hash].js';
+        const fileName = 'build/q-[hash].js';
+        outputOpts.entryFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
       }
       if (!outputOpts.chunkFileNames) {
-        outputOpts.chunkFileNames = 'build/q-[hash].js';
+        const fileName = 'build/q-[hash].js';
+        outputOpts.chunkFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
       }
     } else {
       // client development output
       if (!outputOpts.entryFileNames) {
-        outputOpts.entryFileNames = 'build/[name].js';
+        const fileName = 'build/[name].js';
+        outputOpts.entryFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
       }
       if (!outputOpts.chunkFileNames) {
-        outputOpts.chunkFileNames = 'build/[name].js';
+        const fileName = 'build/[name].js';
+        outputOpts.chunkFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
       }
     }
   } else if (opts.buildMode === 'production') {

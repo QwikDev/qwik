@@ -426,12 +426,9 @@ importers:
 
   packages/insights:
     dependencies:
-      '@auth/core':
-        specifier: 0.30.0
-        version: 0.30.0
-      '@builder.io/qwik-auth':
-        specifier: workspace:^
-        version: link:../qwik-auth
+      '@auth/qwik':
+        specifier: 0.2.2
+        version: 0.2.2
       '@libsql/client':
         specifier: ^0.5.6
         version: 0.5.6(bufferutil@4.0.8)(utf-8-validate@5.0.10)
@@ -865,6 +862,24 @@ packages:
         optional: true
       nodemailer:
         optional: true
+
+  '@auth/core@0.34.1':
+    resolution: {integrity: sha512-tuYU2VIbI8rFbkSwP710LmybB2FXJsPN7j3sjRVfN9SXVQBK2ej6LdewQaofpBGp4Mk+cC2UeiGNH0or4tgaeA==}
+    peerDependencies:
+      '@simplewebauthn/browser': ^9.0.1
+      '@simplewebauthn/server': ^9.0.2
+      nodemailer: ^6.8.0
+    peerDependenciesMeta:
+      '@simplewebauthn/browser':
+        optional: true
+      '@simplewebauthn/server':
+        optional: true
+      nodemailer:
+        optional: true
+
+  '@auth/qwik@0.2.2':
+    resolution: {integrity: sha512-H8ke+7Y1unvciFQ62zGiWS12KB6JgU2HOkG0usxL19B1PJ1j6ShZJsEONuih8XD7qCqR1N5E75h4auoldYuaiQ==}
+    engines: {node: '>=18.17'}
 
   '@azure/functions@3.5.1':
     resolution: {integrity: sha512-6UltvJiuVpvHSwLcK/Zc6NfUwlkDLOFFx97BHCJzlWNsfiWwzwmTsxJXg4kE/LemKTHxPpfoPE+kOJ8hAdiKFQ==}
@@ -7319,6 +7334,9 @@ packages:
   oauth4webapi@2.10.3:
     resolution: {integrity: sha512-9FkXEXfzVKzH63GUOZz1zMr3wBaICSzk6DLXx+CGdrQ10ItNk2ePWzYYc1fdmKq1ayGFb2aX97sRCoZ2s0mkDw==}
 
+  oauth4webapi@2.11.1:
+    resolution: {integrity: sha512-aNzOnL98bL6izG97zgnZs1PFEyO4WDVRhz2Pd066NPak44w5ESLRCYmJIyey8avSBPOMtBjhF3ZDDm7bIb7UOg==}
+
   object-assign@4.1.1:
     resolution: {integrity: sha512-rJgTQnkUnH1sFw8yT6VSU3zD3sWmu6sZhIseY8VX+GRu3P6F7Fu+JNDoXfklElbLJSnc3FUQHVe4cU5hj+BcUg==}
     engines: {node: '>=0.10.0'}
@@ -9909,6 +9927,25 @@ snapshots:
       oauth4webapi: 2.10.3
       preact: 10.11.3
       preact-render-to-string: 5.2.3(preact@10.11.3)
+
+  '@auth/core@0.34.1':
+    dependencies:
+      '@panva/hkdf': 1.1.1
+      '@types/cookie': 0.6.0
+      cookie: 0.6.0
+      jose: 5.2.2
+      oauth4webapi: 2.11.1
+      preact: 10.11.3
+      preact-render-to-string: 5.2.3(preact@10.11.3)
+
+  '@auth/qwik@0.2.2':
+    dependencies:
+      '@auth/core': 0.34.1
+      set-cookie-parser: 2.6.0
+    transitivePeerDependencies:
+      - '@simplewebauthn/browser'
+      - '@simplewebauthn/server'
+      - nodemailer
 
   '@azure/functions@3.5.1':
     dependencies:
@@ -17362,6 +17399,8 @@ snapshots:
   number-is-nan@1.0.1: {}
 
   oauth4webapi@2.10.3: {}
+
+  oauth4webapi@2.11.1: {}
 
   object-assign@4.1.1: {}
 

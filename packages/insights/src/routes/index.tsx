@@ -3,10 +3,10 @@ import Button from '~/components/button';
 import Container from '~/components/container';
 import GithubIcon from '~/components/icons/github';
 import Layout from '~/components/layout';
-import { useAuthSignin } from './plugin@auth';
+import { useSignIn } from './plugin@auth';
 
 export default component$(() => {
-  const signInSig = useAuthSignin();
+  const signInSig = useSignIn();
 
   return (
     <Layout>

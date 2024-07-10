@@ -41,6 +41,7 @@ import {
   type SSRStreamChildren,
 } from '../../render/jsx/utils.public';
 import { isAsyncGenerator } from '../../util/async-generator';
+import { qInspector } from '../../util/qdev';
 
 class SetScopedStyle {
   constructor(public $scopedStyle$: string | null) {}
@@ -174,6 +175,8 @@ function processJSXNode(
           }
           jsx.constProps['class'] = '';
         }
+
+        appendQwikInspectorAttribute(jsx);
 
         const innerHTML = ssr.openElement(
           type,
@@ -500,4 +503,18 @@ function getSlotName(host: ISsrNode, jsx: JSXNode): string {
     }
   }
   return (jsx.props.name as string) || QDefaultSlot;
+}
+
+function appendQwikInspectorAttribute(jsx: JSXNode) {
+  if (isDev && qInspector && jsx.dev && jsx.type !== 'head') {
+    const sanitizedFileName = jsx.dev.fileName?.replace(/\\/g, '/');
+    const qwikInspectorAttr = 'data-qwik-inspector';
+    if (sanitizedFileName && !(qwikInspectorAttr in jsx.props)) {
+      if (!jsx.constProps) {
+        jsx.constProps = {};
+      }
+      jsx.constProps[qwikInspectorAttr] =
+        `${sanitizedFileName}:${jsx.dev.lineNumber}:${jsx.dev.columnNumber}`;
+    }
+  }
 }

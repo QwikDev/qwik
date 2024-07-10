@@ -82,12 +82,12 @@ A [routeAction$](/docs/action/) used to initiate a signin flow or send the user 
 
 * `providerId`: An optional string parameter with the name of the provider. When supplied will initiate the Authorization Request to your Identity Provider. When omitted will redirect to the built-in/unbranded sign-in page.
 * `options`: An optional object of options.
-  * `callbackUrl`: An optional string specifying to which URL the user will be redirected after signing in. Defaults to the page URL the sign-in is initiated from.
+  * `redirectTo`: An optional string specifying to which URL the user will be redirected after signing in. Defaults to the page URL the sign-in is initiated from.
 * `authorizationParams`: An optional object of additional parameters sent to the /authorize endpoint. See the Authorization Request OIDC spec for some ideas.
 
 > **NOTE:** You can also set the `authorizationParams` through the provider.authorizationParams configuration
 
-Example using `useSignIn` with the [&lt;Form&gt;](/docs/action/#using-actions-with-form) component and optional `providerId` and `options.callbackUrl`:
+Example using `useSignIn` with the [&lt;Form&gt;](/docs/action/#using-actions-with-form) component and optional `providerId` and `options.redirectTo`:
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
@@ -99,14 +99,14 @@ export default component$(() => {
   return (
     <Form action={signIn}>
       <input type="hidden" name="providerId" value="github" />
-      <input type="hidden" name="options.callbackUrl" value="http://qwik-auth-example.com/dashboard" />
+      <input type="hidden" name="options.redirectTo" value="http://qwik-auth-example.com/dashboard" />
       <button>Sign In</button>
     </Form>
   );
 });
 ```
 
-Example using `useSignIn` programmatically with optional `providerId` and `options.callbackUrl`:
+Example using `useSignIn` programmatically with optional `providerId` and `options.redirectTo`:
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
@@ -115,7 +115,7 @@ import { useSignIn } from '~/routes/plugin@auth';
 export default component$(() => {
   const signIn = useSignIn();
   return (
-    <button onClick$={() => signIn.submit({ providerId: 'github', options: { callbackUrl: 'http://qwik-auth-example.com/dashboard' } })}>Sign In</button>
+    <button onClick$={() => signIn.submit({ providerId: 'github', options: { redirectTo: 'http://qwik-auth-example.com/dashboard' } })}>Sign In</button>
   );
 });
 ```
@@ -126,11 +126,11 @@ A [routeAction$](/docs/action/) used to initiate a signout flow. The user sessio
 
 #### Parameters
 
-* `callbackUrl`: An optional string specifying to which URL the user will be redirected after signing out. Defaults to the page URL the sign-in is initiated from.
+* `redirectTo`: An optional string specifying to which URL the user will be redirected after signing out. Defaults to the page URL the sign-in is initiated from.
 
-The 'callbackUrl' must be considered valid by the redirect callback handler. By default, it requires the URL to be an absolute URL at the same host name, or you can also supply a relative URL starting with a slash. If it does not match it will redirect to the homepage. You can define your own redirect callback to allow other URLs.
+The 'redirectTo' must be considered valid by the redirect callback handler. By default, it requires the URL to be an absolute URL at the same host name, or you can also supply a relative URL starting with a slash. If it does not match it will redirect to the homepage. You can define your own redirect callback to allow other URLs.
 
-Example using `useSignOut` with the [&lt;Form&gt;](/docs/action/#using-actions-with-form) component and optional `callbackUrl`:
+Example using `useSignOut` with the [&lt;Form&gt;](/docs/action/#using-actions-with-form) component and optional `redirectTo`:
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
@@ -141,14 +141,14 @@ export default component$(() => {
   const signOut = useSignOut();
   return (
     <Form action={signOut}>
-      <input type="hidden" name="callbackUrl" value="/signedout" />
+      <input type="hidden" name="redirectTo" value="/signedout" />
       <button>Sign Out</button>
     </Form>
   );
 });
 ```
 
-Example using `useSignOut` programmatically with optional `callbackUrl`:
+Example using `useSignOut` programmatically with optional `redirectTo`:
 
 ```tsx
 import { component$ } from '@builder.io/qwik';
@@ -156,7 +156,7 @@ import { useSignOut } from '~/routes/plugin@auth';
 
 export default component$(() => {
   const signOut = useSignOut();
-  return <button onClick$={() => signOut.submit({ callbackUrl: '/signedout' })}>Sign Out</button>;
+  return <button onClick$={() => signOut.submit({ redirectTo: '/signedout' })}>Sign Out</button>;
 });
 ```
 
@@ -292,7 +292,7 @@ Session data can be accessed via the route `event.sharedMap`.  So a route can be
 export const onRequest: RequestHandler = (event) => {
   const session: Session | null = event.sharedMap.get('session');
   if (!session || new Date(session.expires) < new Date()) {
-    throw event.redirect(302, `/api/auth/signin?callbackUrl=${event.url.pathname}`);
+    throw event.redirect(302, `/api/auth/signin?redirectTo=${event.url.pathname}`);
   }
 };
 ```

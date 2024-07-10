@@ -21,7 +21,7 @@ export default component$(() => {
           <Link
             class="cursor-pointer"
             onClick$={() => {
-              signOutSig.submit({ callbackUrl: '/' });
+              signOutSig.submit({ redirectTo: '/' });
             }}
           >
             Logout

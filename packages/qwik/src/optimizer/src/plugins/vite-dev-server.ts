@@ -4,8 +4,13 @@ import { magenta } from 'kleur/colors';
 import type { IncomingMessage, ServerResponse } from 'http';
 
 import type { Connect, ViteDevServer } from 'vite';
-import type { OptimizerSystem, Path, QwikManifest } from '../types';
-import { type NormalizedQwikPluginOptions, parseId } from './plugin';
+import type { OptimizerSystem, Path, QwikManifest, SymbolMapper, SymbolMapperFn } from '../types';
+import {
+  type NormalizedQwikPluginOptions,
+  parseId,
+  getSymbolHash,
+  makeNormalizePath,
+} from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { formatError } from './vite-utils';
 import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
@@ -27,6 +32,71 @@ function getOrigin(req: IncomingMessage) {
   return `${protocol}://${host}`;
 }
 
+// We must encode the chunk so that e.g. + doesn't get converted to space etc
+const encode = (url: string) =>
+  encodeURIComponent(url).replaceAll('%2F', '/').replaceAll('%40', '@');
+
+function createSymbolMapper(
+  base: string,
+  opts: NormalizedQwikPluginOptions,
+  foundQrls: Map<string, string>,
+  path: Path,
+  sys: OptimizerSystem
+): SymbolMapperFn {
+  const normalizePath = makeNormalizePath(sys);
+  return (
+    symbolName: string,
+    mapper: SymbolMapper | undefined,
+    parent: string | undefined
+  ): [string, string] => {
+    if (symbolName === SYNC_QRL) {
+      return [symbolName, ''];
+    }
+    const hash = getSymbolHash(symbolName);
+    if (!parent) {
+      console.warn(
+        `qwik vite-dev-server symbolMapper: parent not provided for ${symbolName}, falling back to foundQrls.`
+      );
+      parent = foundQrls.get(hash);
+    }
+    if (!parent) {
+      console.warn(
+        `qwik vite-dev-server symbolMapper: ${symbolName} not in foundQrls, falling back to mapper.`
+      );
+      const chunk = mapper && mapper[hash];
+      if (chunk) {
+        return [chunk[0], chunk[1]];
+      }
+      console.error(
+        'qwik vite-dev-server symbolMapper: unknown qrl requested without parent:',
+        symbolName
+      );
+      return [symbolName, `${base}${symbolName.toLowerCase()}.js`];
+    }
+    // on windows, absolute paths don't start with a slash
+    const maybeSlash = sys.os === 'win32' ? '/' : '';
+    const parentPath = normalizePath(path.dirname(parent));
+    const parentFile = path.basename(parent);
+    const qrlPath = parentPath.startsWith(opts.rootDir)
+      ? path.relative(opts.rootDir, parentPath)
+      : `@fs${maybeSlash}${parentPath}`;
+    const qrlFile = `${encode(qrlPath)}/${symbolName.toLowerCase()}.js?_qrl_parent=${encode(parentFile)}`;
+    return [symbolName, `${base}${qrlFile}`];
+  };
+}
+
+/**
+ * @alpha
+ *   For a given symbol (QRL such as `onKeydown$`) the server needs to know which bundle the symbol is in.
+ *
+ *   Normally this is provided by Qwik's `q-manifest` . But `q-manifest` only exists after a full client build.
+ *
+ *   This would be a problem in dev mode. So in dev mode the symbol is mapped to the expected URL using the symbolMapper function below. For Vite the given path is fixed for a given symbol.
+ */
+export let symbolMapper: ReturnType<typeof createSymbolMapper> = (symbolName, mapper, parent) => {
+  throw new Error('symbolMapper not initialized');
+};
+
 export async function configureDevServer(
   base: string,
   server: ViteDevServer,
@@ -35,8 +105,10 @@ export async function configureDevServer(
   path: Path,
   isClientDevOnly: boolean,
   clientDevInput: string | undefined,
-  foundQrls: Map<string, string>
+  foundQrls: Map<string, string>,
+  devSsrServer: boolean
 ) {
+  symbolMapper = createSymbolMapper(base, opts, foundQrls, path, sys);
   if (typeof fetch !== 'function' && sys.env === 'node') {
     // polyfill fetch() when not available in Node.js
 
@@ -53,6 +125,10 @@ export async function configureDevServer(
       console.warn('Global fetch() was not installed');
       // Nothing
     }
+  }
+  if (!devSsrServer) {
+    // we just needed the symbolMapper
+    return;
   }
 
   // qwik middleware injected BEFORE vite internal middlewares
@@ -126,49 +202,20 @@ export async function configureDevServer(
                   location: 'head',
                   attributes: {
                     rel: 'stylesheet',
-                    href: url,
+                    href: `${base}${url.slice(1)}`,
                   },
                 });
               }
             });
           });
 
-          // We must encode the chunk so that e.g. + doesn't get converted to space etc
-          const encode = (url: string) => encodeURIComponent(url).replaceAll('%2F', '/');
           const renderOpts: RenderToStreamOptions = {
             debug: true,
             locale: serverData.locale,
             stream: res,
             snapshot: !isClientDevOnly,
             manifest: isClientDevOnly ? undefined : manifest,
-            symbolMapper: isClientDevOnly
-              ? undefined
-              : (symbolName, mapper, parent) => {
-                  if (symbolName === SYNC_QRL) {
-                    return [symbolName, ''];
-                  }
-                  const hash = getSymbolHash(symbolName);
-                  const chunk = mapper && mapper[hash];
-                  if (chunk) {
-                    return [chunk[0], encode(chunk[1])];
-                  }
-                  parent ||= foundQrls.get(hash);
-                  if (!parent) {
-                    console.error(
-                      'qwik vite-dev-server symbolMapper: unknown qrl requested without parent:',
-                      symbolName
-                    );
-                    return [symbolName, `${base}${symbolName.toLowerCase()}.js`];
-                  }
-                  const parentPath = path.dirname(parent);
-                  // DX: if the file isn't under the source dir (e.g. a symlink from node_modules)
-                  // use the full path, otherwise relative to the source
-                  const qrlPath = parentPath.startsWith(opts.rootDir)
-                    ? path.relative(opts.rootDir, parentPath)
-                    : `@fs${parentPath}`;
-                  const qrlFile = `${encode(qrlPath)}/${symbolName.toLowerCase()}.js?_qrl_parent=${encode(parent)}`;
-                  return [symbolName, `${base}${qrlFile}`];
-                },
+            symbolMapper: isClientDevOnly ? undefined : symbolMapper,
             prefetchStrategy: null,
             serverData,
             containerAttributes: { ...serverData.containerAttributes },
@@ -193,7 +240,7 @@ export async function configureDevServer(
                   pathId.endsWith(ext)
                 )
               ) {
-                res.write(`<link rel="stylesheet" href="${v.url}">`);
+                res.write(`<link rel="stylesheet" href="${base}${v.url.slice(1)}">`);
               }
             });
           });
@@ -414,11 +461,3 @@ function getViteDevIndexHtml(entryUrl: string, serverData: Record<string, any>) 
 }
 
 export const VITE_DEV_CLIENT_QS = `qwik-vite-dev-client`;
-
-export const getSymbolHash = (symbolName: string) => {
-  const index = symbolName.lastIndexOf('_');
-  if (index > -1) {
-    return symbolName.slice(index + 1);
-  }
-  return symbolName;
-};

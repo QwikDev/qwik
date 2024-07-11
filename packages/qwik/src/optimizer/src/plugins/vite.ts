@@ -558,23 +558,26 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             fileName: Q_MANIFEST_FILENAME,
             source: clientManifestStr,
           });
+          const assetsDir = qwikPlugin.getOptions().assetsDir || '';
+          const useAssetsDir = !!assetsDir && assetsDir !== '_astro';
           const sys = qwikPlugin.getSys();
-          const filePath = sys.path.dirname(_.chunkFileNames as string);
           this.emitFile({
             type: 'asset',
-            fileName: sys.path.join(filePath, `q-bundle-graph-${manifest.manifestHash}.json`),
+            fileName: sys.path.join(
+              useAssetsDir ? assetsDir : '',
+              'build',
+              `q-bundle-graph-${manifest.manifestHash}.json`
+            ),
             source: JSON.stringify(convertManifestToBundleGraph(manifest)),
           });
           const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
           const workerScriptPath = (await this.resolve('@builder.io/qwik/qwik-prefetch.js'))!.id;
           const workerScript = await fs.promises.readFile(workerScriptPath, 'utf-8');
-          const assetsDir = qwikPlugin.getOptions().assetsDir || '';
-          const useAssetsDir = !!assetsDir && assetsDir !== '_astro';
           const qwikPrefetchServiceWorkerFile = 'qwik-prefetch-service-worker.js';
           this.emitFile({
             type: 'asset',
             fileName: useAssetsDir
-              ? sys.path.join(filePath, qwikPrefetchServiceWorkerFile)
+              ? sys.path.join(assetsDir, 'build', qwikPrefetchServiceWorkerFile)
               : qwikPrefetchServiceWorkerFile,
             source: workerScript,
           });

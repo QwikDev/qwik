@@ -70,7 +70,7 @@ bun create qwik@latest
 
 <table align="center">
   <tr align="center">
-    <td style="text-align: center;">special sponsor</td>
+    <td>special sponsor</td>
   </tr>
   <tr>
     <td align="center">

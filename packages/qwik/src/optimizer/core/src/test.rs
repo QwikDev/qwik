@@ -3214,7 +3214,7 @@ fn example_qwik_sdk_inline() {
 		filename: "../node_modules/@builder.io/qwik-city/index.qwik.mjs".to_string(),
 		entry_strategy: EntryStrategy::Smart,
 		explicit_extensions: true,
-		mode: EmitMode::Prod,
+		// mode: EmitMode::Prod,
 		..TestInput::default()
 	});
 }

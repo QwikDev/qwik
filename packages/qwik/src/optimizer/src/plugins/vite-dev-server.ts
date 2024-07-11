@@ -85,6 +85,7 @@ function createSymbolMapper(
   };
 }
 
+let lazySymbolMapper: ReturnType<typeof createSymbolMapper> | null = null;
 /**
  * @alpha
  *   For a given symbol (QRL such as `onKeydown$`) the server needs to know which bundle the symbol is in.
@@ -94,6 +95,10 @@ function createSymbolMapper(
  *   This would be a problem in dev mode. So in dev mode the symbol is mapped to the expected URL using the symbolMapper function below. For Vite the given path is fixed for a given symbol.
  */
 export let symbolMapper: ReturnType<typeof createSymbolMapper> = (symbolName, mapper, parent) => {
+  // This is a fallback in case the symbolMapper is copied early
+  if (lazySymbolMapper) {
+    return lazySymbolMapper(symbolName, mapper, parent);
+  }
   throw new Error('symbolMapper not initialized');
 };
 
@@ -108,7 +113,7 @@ export async function configureDevServer(
   foundQrls: Map<string, string>,
   devSsrServer: boolean
 ) {
-  symbolMapper = createSymbolMapper(base, opts, foundQrls, path, sys);
+  symbolMapper = lazySymbolMapper = createSymbolMapper(base, opts, foundQrls, path, sys);
   if (typeof fetch !== 'function' && sys.env === 'node') {
     // polyfill fetch() when not available in Node.js
 

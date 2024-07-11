@@ -148,7 +148,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.assetsDir = updatedOpts.assetsDir;
     }
 
-    updatedOpts.target === 'test';
     if (
       updatedOpts.target === 'ssr' ||
       updatedOpts.target === 'client' ||
@@ -403,23 +402,26 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         sourceMaps: opts.sourcemap,
       };
 
+      let outputs = clientTransformedOutputs;
       if (opts.target === 'client') {
+        // Building for client only
         transformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
         transformOpts.stripExports = SERVER_STRIP_EXPORTS;
         transformOpts.isServer = false;
       } else if (opts.target === 'ssr') {
+        // Building for server
         transformOpts.stripCtxName = CLIENT_STRIP_CTX_NAME;
         transformOpts.stripEventHandlers = true;
         transformOpts.isServer = true;
         transformOpts.regCtxName = REG_CTX_NAME;
+        outputs = serverTransformedOutputs;
       }
 
       const result = await optimizer.transformFs(transformOpts);
       for (const output of result.modules) {
         const key = normalizePath(path.join(srcDir, output.path)!);
         debug(`buildStart() add transformedOutput`, key, output.hook?.displayName);
-        clientTransformedOutputs.set(key, [output, key]);
-        serverTransformedOutputs.set(key, [output, key]);
+        outputs.set(key, [output, key]);
         if (opts.target === 'client' && output.isEntry) {
           ctx.emitFile({
             id: key,
@@ -516,12 +518,18 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       importerId = normalizePath(importerId);
       const parsedImporterId = parseId(importerId);
       const dir = path.dirname(parsedImporterId.pathId);
+      const outputs = isSSR ? serverTransformedOutputs : clientTransformedOutputs;
       if (
-        opts.target === 'ssr' &&
-        !isSSR &&
-        importerId.endsWith('.html') &&
+        // vite dev mode
         server &&
-        id.startsWith('/')
+        // client code
+        !isSSR &&
+        // browser requests
+        importerId.endsWith('.html') &&
+        // looks like a url pathname
+        id.startsWith('/') &&
+        // not a known output
+        !outputs.has(id)
       ) {
         // This is a request from a dev-mode browser
         // we uri-encode chunk paths in dev mode, and other imported files don't have % in their paths (hopefully)
@@ -531,8 +539,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         if (id.startsWith('/@fs/')) {
           id = id.slice(4);
         } else {
-          // We know for sure that the path is relative to the html importer even though it starts with /
-          id = path.join(dir, id);
+          // Now paths could be either relative or absolute, we're not sure.
+          // If the first path segment is the same as that of the importer dir, we assume it's absolute
+          if (!id.startsWith(dir.slice(0, dir.indexOf('/', 1)))) {
+            id = path.join(dir, id);
+          }
         }
         id = normalizePath(id);
         // Check for parent passed via QRL
@@ -613,7 +624,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       if (parentId) {
         // building here via ctx.load doesn't seem to work (no transform), instead we use the devserver directly
         debug(`load()`, 'transforming QRL parent', parentId);
-        await server.transformRequest(parentId);
+        // We need to encode it as an absolute path
+        await server.transformRequest(`/@fs${parentId.startsWith('/') ? '' : '/'}${parentId}`);
         // The QRL segment should exist now
       }
     }
@@ -625,7 +637,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       let { code } = transformedModule[0];
       const { map, hook } = transformedModule[0];
 
-      if (opts.target === 'ssr') {
+      if (server) {
         const firstInput = Object.values(opts.input)[0];
         // doing this because vite will not use resolveId() when "noExternal" is false
         // so we need to turn the @qwik-client-manifest import into a relative import
@@ -670,7 +682,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       TRANSFORM_REGEX.test(pathId) ||
       insideRoots(ext, dir, opts.srcDir, opts.vendorRoots)
     ) {
-      /** Strip client|server code from server|client */
+      /** Strip client|server code from qwik server|client, but not in lib/test */
       const strip = opts.target === 'client' || opts.target === 'ssr';
       const normalizedID = normalizePath(pathId);
       debug(
@@ -689,7 +701,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       const entryStrategy: EntryStrategy = opts.entryStrategy;
       const transformOpts: TransformModulesOptions = {
         input: [{ code, path: filePath }],
-        entryStrategy,
+        entryStrategy: isSSR ? { type: 'hoist' } : entryStrategy,
         minify: 'simplify',
         // Always enable sourcemaps in dev for click-to-source
         sourceMaps: opts.sourcemap || 'development' === opts.buildMode,
@@ -701,12 +713,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         rootDir: opts.rootDir,
         mode,
         scope: opts.scope || undefined,
+        isServer: isSSR,
       };
 
-      if (isSSR) {
-        transformOpts.isServer = true;
-        transformOpts.entryStrategy = { type: 'hoist' };
-      }
       if (strip) {
         if (isSSR) {
           transformOpts.stripCtxName = CLIENT_STRIP_CTX_NAME;
@@ -720,7 +729,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       const newOutput = optimizer.transformModulesSync(transformOpts);
       const module = newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
-      if (opts.target === 'ssr') {
+      if (server && isSSR) {
         // we're in dev mode. All QRLs that might be emitted in SSR HTML are defined here.
         // register them so that they can be resolved by the dev server
         const matches = module.code.matchAll(/_([a-zA-Z0-9]{11,11})['"][,)]/g);

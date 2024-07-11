@@ -77,7 +77,7 @@ bun create qwik@latest
       <a href="https://www.builder.io/m/developers">
         <picture>
           <source media="(prefers-color-scheme: dark)" srcset="https://i.imgur.com/eT9FjKT.png">
-          <img width="250" alt="Made with love by Builder.io" src="https://i.imgur.com/32mv01X.png">
+          <img width="250" alt="Special sponsor Builder.io" src="https://i.imgur.com/32mv01X.png">
         </picture>
       </a>
     </td>

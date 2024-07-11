@@ -202,10 +202,14 @@ jobs:
 
       - name: Upload Qwik artifact
         uses: actions/upload-artifact@v4
+        id: upload-qwik-artifact
         with:
           name: dist-qwik
           path: packages/qwik/dist/
           if-no-files-found: error
+
+      - name: Output artifact URL
+        run: echo 'Artifact URL is ${{ steps.upload-qwik-artifact.outputs.artifact-url }}'
 
   ############ BUILD PACKAGE ############
   build-package:

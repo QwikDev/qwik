@@ -208,9 +208,6 @@ jobs:
           path: packages/qwik/dist/
           if-no-files-found: error
 
-      - name: Output artifact URL
-        run: echo 'Artifact URL is ${{ steps.upload-qwik-artifact.outputs.artifact-url }}'
-
   ############ BUILD PACKAGE ############
   build-package:
     name: Build Other Packages
@@ -512,14 +509,14 @@ jobs:
       - name: Build Qwik Docs
         run: pnpm run build.packages.docs
 
-      # - name: Cloudflare Pages Deployment
-      #   uses: cloudflare/pages-action@v1
-      #   with:
-      #     apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      #     accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      #     projectName: 'qwik-docs'
-      #     directory: '/packages/docs/dist'
-      #     gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+      - name: Cloudflare Pages Deployment
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: 'qwik-docs'
+          directory: '/packages/docs/dist'
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   ############ RELEASE ############
   release:

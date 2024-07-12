@@ -838,7 +838,6 @@ function serialize(serializationContext: SerializationContext): void {
         $addRoot$
       );
     } else if (value instanceof Signal2) {
-      console.log('SERIALIZE', String(value));
       if (value instanceof DerivedSignal2) {
         writeString(
           SerializationConstant.DerivedSignal_CHAR +
@@ -1069,7 +1068,6 @@ function deserializeSignal2(
   signal.$container$ = container;
   const parts = data.substring(1).split(';');
   let idx = 0;
-  console.log('DESERIALIZE', parts);
   if (readFn) {
     const derivedSignal = signal as DerivedSignal2<any>
     derivedSignal.$invalid$ = false;
@@ -1090,7 +1088,6 @@ function deserializeSignal2(
     const effect = parts[idx++].split(' ').map((obj, idx) => idx == 1 ? obj : container.$getObjectById$(obj));
     (signal.$effects$ || (signal.$effects$ = [])).push(effect as fixMeAny);
   }
-  console.log(signal.toString())
 }
 
 function setSerializableDataRootId($addRoot$: (value: any) => number, obj: object, value: any) {

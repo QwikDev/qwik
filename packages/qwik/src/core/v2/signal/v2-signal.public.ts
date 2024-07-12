@@ -5,6 +5,8 @@ import {
   createComputedSignal2 as _createComputedSignal2,
 } from './v2-signal';
 
+export { isSignal2 as isSignal } from './v2-signal';
+
 export interface ReadonlySignal2<T> {
   readonly untrackedValue: T;
   readonly value: T;
@@ -22,6 +24,7 @@ export interface ComputedSignal2<T> extends ReadonlySignal2<T> {
    */
   force(): void;
 }
+
 
 export const createSignal2: {
   <T>(): Signal2<T | undefined>;

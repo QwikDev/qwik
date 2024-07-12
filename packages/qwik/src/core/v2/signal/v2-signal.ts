@@ -29,7 +29,7 @@ import { ChoreType } from '../shared/scheduler';
 import type { Container2, HostElement, fixMeAny } from '../shared/types';
 import type { Signal2 as ISignal2 } from './v2-signal.public';
 
-const DEBUG = true;
+const DEBUG = false;
 
 /**
  * Special value used to mark that a given signal needs to be computed. This is essentially a

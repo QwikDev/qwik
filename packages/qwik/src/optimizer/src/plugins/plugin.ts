@@ -761,8 +761,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           debug(`transform()`, `segment ${key}`, mod.hook?.displayName);
           currentOutputs.set(key, [mod, id]);
           deps.add(key);
-          // rollup must be told about entry points
-          if (opts.target === 'client' && mod.isEntry) {
+          // rollup must be told about all entry points
+          if (!devServer && opts.target === 'client') {
             ctx.emitFile({
               id: key,
               type: 'chunk',

@@ -179,7 +179,6 @@ export default component$(() => {
 
 Unpic is a third-party image optimization library that works with existing image optimization CDNs. It provides an `Image` component that can be used to optimize images.
 
-<CodeSandbox src="/src/routes/demo/integration/img/unpic/simple/index.tsx" style={{ height: '40em' }}>
 ```tsx {6} /Slot/
 import { component$ } from '@builder.io/qwik';
 import { Image } from '@unpic/qwik';
@@ -196,7 +195,6 @@ export default component$(() => {
   );
 });
 ```
-</CodeSandbox>
 
 > **Note:** qwik-image and unpic are not a CDN and does not host your images. They work with existing image optimization CDNs. We suggest using some of the popular CDNs:
 > - Cloudinary

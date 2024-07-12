@@ -303,7 +303,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
     if (typeof id === 'string') {
       id = parseFloat(id);
     }
-    assertTrue(id < this.$rawStateData$.length, 'Invalid reference');
+    assertTrue(id < this.$rawStateData$.length, `Invalid reference: ${id} < ${this.$rawStateData$.length}`);
     return this.stateData[id];
   };
 

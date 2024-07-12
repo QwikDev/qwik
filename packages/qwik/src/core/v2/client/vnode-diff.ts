@@ -86,7 +86,7 @@ import {
   type VNodeJournal,
 } from './vnode';
 import { getNewElementNamespaceData } from './vnode-namespace';
-import { DerivedSignal2, isSignal2 } from '../signal/v2-signal';
+import { DerivedSignal2, EffectProperty, isSignal2 } from '../signal/v2-signal';
 import type { Signal2 } from '../signal/v2-signal.public';
 
 export type ComponentQueue = Array<VNode>;
@@ -182,7 +182,7 @@ export const vnode_diff = (
               trackSignal2(
                 () => jsxValue.value,
                 vCurrent || (vNewNode as fixMeAny), // This should be host, but not sure why
-                false,
+                EffectProperty.VNODE,
                 container
               ),
               true
@@ -489,7 +489,7 @@ export const vnode_diff = (
     if (constProps && typeof constProps == 'object' && 'name' in constProps) {
       const constValue = constProps.name;
       if (constValue instanceof DerivedSignal2) {
-        return trackSignal2(() => constValue.value, vHost as fixMeAny, true, container);
+        return trackSignal2(() => constValue.value, vHost as fixMeAny, EffectProperty.COMPONENT, container);
       }
     }
     return jsxValue.props.name || QDefaultSlot;

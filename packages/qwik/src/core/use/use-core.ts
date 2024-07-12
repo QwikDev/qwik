@@ -265,7 +265,7 @@ export const trackSignal = <T>(signal: Signal, sub: Subscriber): T => {
  * @param container 
  * @returns 
  */
-export const trackSignal2 = <T>(fn: () => T, subscriber: Effect, property: string | boolean, container: Container2): T => {
+export const trackSignal2 = <T>(fn: () => T, subscriber: Effect, property: string, container: Container2): T => {
   console.log(">>>>>>>>>> PROPERTY", property);
   const previousSubscriber = trackInvocation.$effectSubscriber$;
   const previousContainer = trackInvocation.$container2$;

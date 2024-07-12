@@ -47,6 +47,7 @@ import {
   Signal2,
   type EffectSubscriptions,
 } from '../signal/v2-signal';
+import type { fixMeAny } from './types';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 
@@ -277,35 +278,13 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
     case SerializationConstant.Store_VALUE:
       break;
     case SerializationConstant.Signal_VALUE:
-      const signal = target as Signal2<unknown>;
-      signal.$container$ = container;
-      const semiIdx = rest.indexOf(';');
-      let signalValue = container.$getObjectById$(
-        rest.substring(1, semiIdx === -1 ? rest.length : semiIdx)
-      );
-      if (vnode_isVNode(signalValue)) {
-        signalValue = vnode_getNode(signalValue);
-      }
-      signal.$untrackedValue$ = signalValue;
-      signal.$effects$ = deserializeDerivedSignal2(container.$getObjectById$, rest);
+      deserializeSignal2(target as Signal2<unknown>, container, rest, false, false);
       break;
     case SerializationConstant.DerivedSignal_VALUE:
-      const derivedSignal = target as DerivedSignal2<unknown>;
-      derivedSignal.$container$ = container;
-      derivedSignal.$func$ = container.getSyncFn(restInt());
-      const args: any[] = (derivedSignal.$args$ = []);
-      while (restIdx < rest.length) {
-        args.push(container.$getObjectById$(restInt()));
-      }
+      deserializeSignal2(target as Signal2<unknown>, container, rest, true, false);
       break;
     case SerializationConstant.ComputedSignal_VALUE:
-      const computedSignal = target as ComputedSignal2<any>;
-      computedSignal.$container$ = container;
-      computedSignal.$untrackedValue$ = container.$getObjectById$(restInt()) as Record<
-        string,
-        unknown
-      >;
-      computedSignal.$computeQrl$ = container.$getObjectById$(restInt()) as QRLInternal<() => any>;
+      deserializeSignal2(target as Signal2<unknown>, container, rest, false, true);
       break;
     case SerializationConstant.Error_VALUE:
       Object.assign(target, container.$getObjectById$(restInt()));
@@ -861,20 +840,23 @@ function serialize(serializationContext: SerializationContext): void {
     } else if (value instanceof Signal2) {
       console.log('SERIALIZE', String(value));
       if (value instanceof DerivedSignal2) {
-        const serializedDerivedSignal2 = serializeDerivedSignal2(
-          serializationContext,
-          value,
-          $addRoot$
-        );
-        writeString(serializedDerivedSignal2);
-      } else if (value instanceof ComputedSignal2) {
-        writeString(SerializationConstant.ComputedSignal_CHAR + $addRoot$(value.$computeQrl$));
-      } else {
         writeString(
-          SerializationConstant.Signal_CHAR +
-          $addRoot$(value.untrackedValue) +
-          serializeSubscriptions($addRoot$, value.$effects$)
+          SerializationConstant.DerivedSignal_CHAR +
+          serializeDerivedFn(serializationContext, value, $addRoot$) +
+          ';' +
+          $addRoot$(value.$untrackedValue$) +
+          serializeEffectSubs($addRoot$, value.$effects$)
         );
+      } else if (value instanceof ComputedSignal2) {
+        writeString(SerializationConstant.ComputedSignal_CHAR
+          + qrlToString(serializationContext, value.$computeQrl$)
+          + ';'
+          + ($addRoot$(value.$untrackedValue$))
+          + serializeEffectSubs($addRoot$, value.$effects$))
+      } else {
+        writeString(SerializationConstant.Signal_CHAR
+          + ($addRoot$(value.$untrackedValue$))
+          + (serializeEffectSubs($addRoot$, value.$effects$)));
       }
     } else if (value instanceof URL) {
       writeString(SerializationConstant.URL_CHAR + value.href);
@@ -992,7 +974,7 @@ function serialize(serializationContext: SerializationContext): void {
   writeValue(serializationContext.$roots$, -1);
 }
 
-function serializeSubscriptions(
+function serializeEffectSubs(
   addRoot: (obj: unknown) => number,
   effects: EffectSubscriptions[] | null
 ): string {
@@ -1002,7 +984,10 @@ function serializeSubscriptions(
       const effectSubscription = effects[i];
       const effect = effectSubscription[EffectSubscriptionsProp.EFFECT];
       const prop = effectSubscription[EffectSubscriptionsProp.PROPERTY];
-      data += ' ' + addRoot(effect) + (typeof prop === 'string' ? ':' + prop : '');
+      data += ';' + addRoot(effect) + ' ' + prop;
+      for (let j = EffectSubscriptionsProp.FIRST_BACK_REF; j < effectSubscription.length; j++) {
+        data += ' ' + addRoot(effectSubscription[j]);
+      }
     }
   }
   return data;
@@ -1056,7 +1041,7 @@ function serializeObjectProperties(
   }
 }
 
-function serializeDerivedSignal2(
+function serializeDerivedFn(
   serializationContext: SerializationContext,
   value: DerivedSignal2<any>,
   $addRoot$: (obj: unknown) => number
@@ -1071,17 +1056,41 @@ function serializeDerivedSignal2(
     value.$func$
   );
   const args = value.$args$.map($addRoot$).join(' ');
-  return SerializationConstant.DerivedSignal_CHAR + syncFnId + (args.length ? ' ' + args : '');
+  return syncFnId + (args.length ? ' ' + args : '');
 }
 
-function deserializeDerivedSignal2(
-  getObjectById: (id: number | string) => any,
-  rest: string,
-): EffectSubscriptions {
-  const [effectId, prop] = rest.split(' ');
-  const effect = getObjectById(effectId);
-  console.log('DESERIALIZE', effectId, prop)
-  return [[effect, prop]];
+function deserializeSignal2(
+  signal: Signal2,
+  container: DomContainer,
+  data: string,
+  readFn: boolean,
+  readQrl: boolean,
+) {
+  signal.$container$ = container;
+  const parts = data.substring(1).split(';');
+  let idx = 0;
+  console.log('DESERIALIZE', parts);
+  if (readFn) {
+    const derivedSignal = signal as DerivedSignal2<any>
+    derivedSignal.$invalid$ = false;
+    const fnParts = parts[idx++].split(' ');
+    derivedSignal.$func$ = container.getSyncFn(parseInt(fnParts[0]));
+    for (let i = 1; i < fnParts.length; i++) {
+      (derivedSignal.$args$ || (derivedSignal.$args$ = []))
+        .push(container.$getObjectById$(parseInt(fnParts[i])));
+    }
+  }
+  if (readQrl) {
+    const computedSignal = signal as ComputedSignal2<any>;
+    computedSignal.$computeQrl$ = parseQRL(parts[idx++]) as fixMeAny;
+  }
+  signal.$untrackedValue$ = container.$getObjectById$(parts[idx++]);
+  while (idx < parts.length) {
+    // idx == 1 is the attribute name
+    const effect = parts[idx++].split(' ').map((obj, idx) => idx == 1 ? obj : container.$getObjectById$(obj));
+    (signal.$effects$ || (signal.$effects$ = [])).push(effect as fixMeAny);
+  }
+  console.log(signal.toString())
 }
 
 function setSerializableDataRootId($addRoot$: (value: any) => number, obj: object, value: any) {

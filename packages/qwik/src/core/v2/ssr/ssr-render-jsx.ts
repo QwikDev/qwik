@@ -39,7 +39,7 @@ import {
   type SSRStreamChildren,
 } from '../../render/jsx/utils.public';
 import { isAsyncGenerator } from '../../util/async-generator';
-import { DerivedSignal2, isSignal2 } from '../signal/v2-signal';
+import { DerivedSignal2, EffectProperty, isSignal2 } from '../signal/v2-signal';
 import { trackSignal2 } from '../../use/use-core';
 
 class SetScopedStyle {
@@ -145,7 +145,7 @@ function processJSXNode(
       // TODO(mhevery): It is unclear to me why we need to serialize host for SignalDerived.
       // const host = ssr.getComponentFrame(0)!.componentNode as fixMeAny;
       enqueue(ssr.closeFragment);
-      enqueue(trackSignal2(() => (value.value as any), signalNode, false, ssr));
+      enqueue(trackSignal2(() => (value.value as any), signalNode, EffectProperty.VNODE, ssr));
     } else if (isPromise(value)) {
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Awaited] : EMPTY_ARRAY);
       enqueue(ssr.closeFragment);
@@ -494,7 +494,7 @@ function getSlotName(host: ISsrNode, jsx: JSXNode, ssr: SSRContainer): string {
   if (constProps && typeof constProps == 'object' && 'name' in constProps) {
     const constValue = constProps.name;
     if (constValue instanceof DerivedSignal2) {
-      return trackSignal2(() => constValue.value, host as fixMeAny, false, ssr);
+      return trackSignal2(() => constValue.value, host as fixMeAny, EffectProperty.VNODE, ssr);
     }
   }
   return (jsx.props.name as string) || QDefaultSlot;

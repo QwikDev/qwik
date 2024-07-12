@@ -107,17 +107,21 @@ export type Effect = Task | VNode | Signal2;
  * 
  * The second position `string|boolean` store the property name of the effect.
  * - property name of the VNode
- * - `true` if component.
- * - `false` if VNode update. (not component)
+ * - `EffectProperty.COMPONENT` if component 
+ * - `EffectProperty.VNODE` if  VNode
  */
 export type EffectSubscriptions = [
   Effect, // EffectSubscriptionsProp.EFFECT
-  string | boolean,  // EffectSubscriptionsProp.PROPERTY
+  string,  // EffectSubscriptionsProp.PROPERTY
   ...Signal2[]];
 export const enum EffectSubscriptionsProp {
   EFFECT = 0,
   PROPERTY = 1,
   FIRST_BACK_REF = 2,
+}
+export const enum EffectProperty {
+  COMPONENT = ':',
+  VNODE = '.'
 }
 
 export class Signal2<T = any> implements ISignal2<T> {
@@ -156,7 +160,7 @@ export class Signal2<T = any> implements ISignal2<T> {
       if (!effectSubscriber && ctx.$hostElement$) {
         const host: VNode | null = ctx.$hostElement$ as any;
         if (host) {
-          effectSubscriber = [host, true /* component */];
+          effectSubscriber = [host, EffectProperty.COMPONENT];
         }
       }
       if (effectSubscriber) {
@@ -210,13 +214,13 @@ export class Signal2<T = any> implements ISignal2<T> {
           } finally {
             signal = previousSignal;
           }
-        } else if (property === true) {
+        } else if (property === EffectProperty.COMPONENT) {
           const host: HostElement = effect as any;
           const qrl = this.$container$.getHostProp<QRL<(...args: any[]) => any>>(host, OnRenderProp);
           assertDefined(qrl, 'Component must have QRL');
           const props = this.$container$.getHostProp<any>(host, ELEMENT_PROPS);
           this.$container$.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
-        } else if (property === false) {
+        } else if (property === EffectProperty.VNODE) {
           const host: HostElement = effect as any;
           const target = host;
           this.$container$.$scheduler$(ChoreType.NODE_DIFF, host, target, signal as fixMeAny);
@@ -321,7 +325,7 @@ export class ComputedSignal2<T> extends Signal2<T> {
     const ctx = tryGetInvokeContext();
     assertDefined(computeQrl, 'Signal is marked as dirty, but no compute function is provided.');
     const previousEffectSubscription = ctx?.$effectSubscriber$;
-    ctx && (ctx.$effectSubscriber$ = [this, false]);
+    ctx && (ctx.$effectSubscriber$ = [this, EffectProperty.VNODE]);
     assertTrue(
       !!computeQrl.resolved,
       'Computed signals must run sync. Expected the QRL to be resolved at this point.'
@@ -404,7 +408,7 @@ export class DerivedSignal2<T> extends Signal2<T> {
     if (!this.$invalid$) {
       return false;
     }
-    this.$untrackedValue$ = trackSignal2(() => this.$func$(...this.$args$), this, false, this.$container$!);
+    this.$untrackedValue$ = trackSignal2(() => this.$func$(...this.$args$), this, EffectProperty.VNODE, this.$container$!);
   }
 
   // Getters don't get inherited

@@ -106,7 +106,7 @@ export const createProxy = <T extends object>(
       serializedArrayTarget,
       new ReadWriteProxyHandler(storeTracker, manager)
     ) as T;
-    storeTracker.$proxyMap$.set(serializedArrayTarget, proxy);
+    storeTracker.$proxyMap$.set(target, proxy);
     const serializedState = getSerializedState(target);
     if (serializedState) {
       addSubscriptions(serializedState, target, serializedArrayTarget);

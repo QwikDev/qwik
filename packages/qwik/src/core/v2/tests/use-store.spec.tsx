@@ -396,6 +396,76 @@ describe.each([
     });
   });
 
+  it('should deep watch store', async () => {
+    const Cmp = component$(() => {
+      const store = useStore({
+        nested: {
+          fields: { are: 'also tracked' },
+        },
+        list: ['Item 1'],
+      });
+
+      return (
+        <>
+          <p>{store.nested.fields.are}</p>
+          <button
+            id="tracked"
+            onClick$={() => {
+              // Even though we are mutating a nested object, this will trigger a re-render
+              store.nested.fields.are = 'tracked';
+            }}
+          ></button>
+          <button
+            id="add-item"
+            onClick$={() => {
+              // Because store is deep watched, this will trigger a re-render
+              store.list.push(`Item ${store.list.length}`);
+            }}
+          ></button>
+          <ul>
+            {store.list.map((item, key) => (
+              <li key={key}>{item}</li>
+            ))}
+          </ul>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <p>
+            <Signal>also tracked</Signal>
+          </p>
+          <button id="tracked"></button>
+          <button id="add-item"></button>
+          <ul>
+            <li key="0">Item 1</li>
+          </ul>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button#add-item', 'click');
+    await trigger(document.body, 'button#add-item', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <p>
+            <Signal>also tracked</Signal>
+          </p>
+          <button id="tracked"></button>
+          <button id="add-item"></button>
+          <ul>
+            <li key="0">Item 1</li>
+            <li key="1">Item 1</li>
+            <li key="2">Item 2</li>
+          </ul>
+        </Fragment>
+      </Component>
+    );
+  });
+
   describe('regression', () => {
     it('#5597 - should update value', async () => {
       (globalThis as any).clicks = 0;

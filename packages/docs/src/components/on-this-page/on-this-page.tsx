@@ -124,7 +124,6 @@ export const OnThisPage = component$(() => {
       icon: TwitterLogo,
     },
   ];
-  const ActiveElement = useSignal<string>("hello")
 
 
   const useActiveItem = (itemIds: string[]) => {
@@ -163,28 +162,27 @@ export const OnThisPage = component$(() => {
     return activeId;
   };
 
-  ActiveElement.value = useActiveItem(contentHeadings.map((h) => h.id))
+  const active = useActiveItem(contentHeadings.map((h) => h.id))
 
 
   return (
-    <aside class="on-this-page text-sm overflow-y-auto hidden xl:block">
+     <aside class="on-this-page text-sm overflow-y-auto hidden xl:block">
       {contentHeadings.length > 0 ? (
         <>
           <h6>On This Page</h6>
-          <h6>{ActiveElement.value}</h6>
           <ul class="px-2 font-medium text-[var(--interactive-text-color)]">
             {contentHeadings.map((h) => (
               <li
                 key={h.id}
-
-                class={`${theme.theme === 'light'
-                  ? 'hover:bg-[var(--qwik-light-blue)]'
-                  : 'hover:bg-[var(--on-this-page-hover-bg-color)]'
-                  }`}
+                class={`${
+                  theme.theme === 'light'
+                    ? 'hover:bg-[var(--qwik-light-blue)]'
+                    : 'hover:bg-[var(--on-this-page-hover-bg-color)]'
+                }`}
               >
+            {active.value  == h.id && <h1> am active{h.text}</h1>}
                 <a href={`#${h.id}`} class={`${h.level > 2 ? 'ml-4' : null} on-this-page-item`}>
-                  <h1> {ActiveElement.value} <br /> {h.id} </h1>
-                  {ActiveElement.value === h.id ? <h1>same thing </h1> : null}
+                  {h.text}
                 </a>
               </li>
             ))}
@@ -197,10 +195,11 @@ export const OnThisPage = component$(() => {
         {OnThisPageMore.map((el, index) => {
           return (
             <li
-              class={`${theme.theme === 'light'
-                ? 'hover:bg-[var(--qwik-light-blue)]'
-                : 'hover:bg-[var(--on-this-page-hover-bg-color)]'
-                } rounded-lg`}
+              class={`${
+                theme.theme === 'light'
+                  ? 'hover:bg-[var(--qwik-light-blue)]'
+                  : 'hover:bg-[var(--on-this-page-hover-bg-color)]'
+              } rounded-lg`}
               key={`more-items-on-this-page-${index}`}
             >
               <a class="more-item" href={el.href} rel="noopener" target="_blank">

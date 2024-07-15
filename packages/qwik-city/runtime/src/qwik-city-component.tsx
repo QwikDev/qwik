@@ -16,7 +16,7 @@ import {
 } from '@builder.io/qwik';
 import { isBrowser, isDev, isServer } from '@builder.io/qwik/build';
 import * as qwikCity from '@qwik-city-plan';
-import { CLIENT_DATA_CACHE } from './constants';
+import { CLIENT_DATA_CACHE, QACTION_KEY } from './constants';
 import {
   ContentContext,
   ContentInternalContext,
@@ -263,6 +263,12 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         }
         const newHref = pageData.href;
         const newURL = new URL(newHref, trackUrl);
+
+        // Remove qaction internal key to prevent unwanted redirects.
+        // See: https://github.com/QwikDev/qwik/issues/6660
+        // @octet-stream: I don't think this is a perfect solution, but it works. I would rather find where the context element get `href` parameter assined and remove it there.
+        newURL.searchParams.delete(QACTION_KEY);
+
         if (!isSamePath(newURL, trackUrl)) {
           trackUrl = newURL;
           loadRoutePromise = loadRoute(

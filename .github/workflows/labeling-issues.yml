@@ -10,8 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: ensure STATUS-1 label is present
+        id: status-1-label-presence
+        # GH's built-in functions do not allow to search for array values that start with something, so we're using node for this
+        run: |
+          echo present=$( 
+            node -e '
+              const labels = JSON.parse(`${{ toJSON(github.event.issue.labels.*.name) }}`);
+              console.log(labels.some(l => l.startsWith("STATUS-1:")));
+            ' 
+          ) >> $GITHUB_OUTPUT
       - name: remove needs triage
-        if: contains(github.event.issue.labels.*.name, 'STATUS-1') && (contains(github.event.label.name, 'STATUS-2:') || contains(github.event.label.name, 'STATUS-3:'))
+        if: steps.status-1-label-presence.outputs.present == 'true' && (contains(github.event.label.name, 'STATUS-2:') || contains(github.event.label.name, 'STATUS-3:'))
         uses: actions-cool/issues-helper@v3
         with:
           actions: 'remove-labels'

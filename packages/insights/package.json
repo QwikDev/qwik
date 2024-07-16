@@ -3,8 +3,7 @@
   "description": "Qwik Insights dashboard",
   "version": "0.1.0",
   "dependencies": {
-    "@auth/core": "0.30.0",
-    "@builder.io/qwik-auth": "workspace:^",
+    "@auth/qwik": "0.2.2",
     "@libsql/client": "^0.5.6",
     "@modular-forms/qwik": "^0.23.1",
     "@typescript/analyze-trace": "^0.10.1",

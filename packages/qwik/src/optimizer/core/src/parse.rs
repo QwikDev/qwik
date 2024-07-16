@@ -91,7 +91,7 @@ pub struct TransformCodeOptions<'a> {
 	pub strip_exports: Option<&'a [JsWord]>,
 	pub strip_ctx_name: Option<&'a [JsWord]>,
 	pub strip_event_handlers: bool,
-	pub is_server: Option<bool>,
+	pub is_server: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -304,13 +304,11 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 					);
 
 					// Replace const values
-					if let Some(is_server) = config.is_server {
-						if config.mode != EmitMode::Lib {
-							let is_dev = config.mode == EmitMode::Dev;
-							let mut const_replacer =
-								ConstReplacerVisitor::new(is_server, is_dev, &collect);
-							main_module.visit_mut_with(&mut const_replacer);
-						}
+					if config.mode != EmitMode::Lib {
+						let is_dev = config.mode == EmitMode::Dev;
+						let mut const_replacer =
+							ConstReplacerVisitor::new(config.is_server, is_dev, &collect);
+						main_module.visit_mut_with(&mut const_replacer);
 					}
 					let mut qwik_transform = QwikTransform::new(QwikTransformOptions {
 						path_data: &path_data,
@@ -358,9 +356,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							&path_data,
 							config.src_dir,
 						));
-					} else if config.minify != MinifyMode::None
-						&& matches!(config.is_server, Some(false))
-					{
+					} else if config.minify != MinifyMode::None && !config.is_server {
 						main_module.visit_mut_with(&mut treeshaker.cleaner);
 						if treeshaker.cleaner.did_drop {
 							main_module = main_module.fold_with(&mut simplify::simplifier(

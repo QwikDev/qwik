@@ -1,0 +1,30 @@
+{
+  "name": "@qwikdev/just-for-checking-changesets",
+  "description": "just-for-checking-changesets",
+  "version": "0.0.1",
+  "dependencies": {},
+  "devDependencies": {},
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "import": "./lib/index.qwik.mjs",
+      "require": "./lib/index.qwik.cjs"
+    }
+  },
+  "files": [
+    "lib"
+  ],
+  "license": "MIT",
+  "main": "./lib/index.qwik.mjs",
+  "qwik": "./lib/index.qwik.mjs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QwikDev/qwik.git",
+    "directory": "packages/qwik-auth"
+  },
+  "scripts": {
+    "build": "mkdir -p lib && cp -f src/index.js lib/"
+  },
+  "type": "module",
+  "types": "./lib/types/index.d.ts"
+}

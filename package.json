@@ -1,6 +1,6 @@
 {
   "name": "qwik-monorepo",
-  "version": "1.7.1",
+  "version": "0.0.0",
   "comments": {
     "01": "devDependencies includes reference to @builder.io/qwik: workspace: *. This is needed or e2e tests will fail",
     "02": "  It would be nice to be able to remove this dependency and fix the test.",
@@ -198,7 +198,7 @@
     "prettier.fix": "prettier --cache --write .",
     "qwik-save-artifacts": "tsm ./scripts/qwik-save-artifacts.ts",
     "release.prepare": "pnpm build --prepare-release",
-    "release.publish": "changeset publish",
+    "release": "pnpm build.full && changeset publish",
     "serve": "tsm --inspect --conditions=development starters/dev-server.ts 3300",
     "serve.debug": "tsm --inspect-brk --conditions=development starters/dev-server.ts 3300",
     "start": "concurrently \"npm:build.watch\"  \"npm:tsc.watch\" -n build,tsc -c green,cyan",

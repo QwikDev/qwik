@@ -1,0 +1,1 @@
+const ignoreThis = 'ignore this';

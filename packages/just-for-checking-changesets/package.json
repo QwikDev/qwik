@@ -6,21 +6,18 @@
   "devDependencies": {},
   "exports": {
     ".": {
-      "types": "./lib/types/index.d.ts",
-      "import": "./lib/index.qwik.mjs",
-      "require": "./lib/index.qwik.cjs"
+      "import": "./lib/index.js"
     }
   },
   "files": [
     "lib"
   ],
   "license": "MIT",
-  "main": "./lib/index.qwik.mjs",
-  "qwik": "./lib/index.qwik.mjs",
+  "main": "./lib/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/QwikDev/qwik.git",
-    "directory": "packages/qwik-auth"
+    "directory": "packages/just-for-checking-changesets"
   },
   "scripts": {
     "build": "mkdir -p lib && cp -f src/index.js lib/"

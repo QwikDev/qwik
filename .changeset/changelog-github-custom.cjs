@@ -39,9 +39,7 @@ var __awaiter =
         }
       }
       function step(result) {
-        result.done
-          ? resolve(result.value)
-          : adopt(result.value).then(fulfilled, rejected);
+        result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
       }
       step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
@@ -86,8 +84,8 @@ var __generator =
                 op[0] & 2
                   ? y['return']
                   : op[0]
-                  ? y['throw'] || ((t = y['return']) && t.call(y), 0)
-                  : y.next) &&
+                    ? y['throw'] || ((t = y['return']) && t.call(y), 0)
+                    : y.next) &&
               !(t = t.call(y, op[1])).done)
           )
             return t;
@@ -172,7 +170,7 @@ var changelogFunctions = {
           case 0:
             if (!options.repo) {
               throw new Error(
-                'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]',
+                'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]'
               );
             }
             if (dependenciesUpdated.length === 0) return [2 /*return*/, ''];
@@ -202,7 +200,7 @@ var changelogFunctions = {
                       }
                     });
                   });
-                }),
+                })
               ),
             ];
           case 1:
@@ -245,7 +243,7 @@ var changelogFunctions = {
           case 0:
             if (!options || !options.repo) {
               throw new Error(
-                'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]',
+                'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]'
               );
             }
             usersFromSummary = [];
@@ -272,7 +270,7 @@ var changelogFunctions = {
                     .concat(issueHash, '](https://github.com/')
                     .concat(options.repo, '/issues/')
                     .concat(issueHash.substring(1), ')');
-                },
+                }
               );
             };
             (_a = replacedChangelog.split('\n').map(function (l) {
@@ -369,7 +367,7 @@ var changelogFunctions = {
                     .map(function (l) {
                       return '  '.concat(l);
                     })
-                    .join('\n'),
+                    .join('\n')
                 ),
             ];
         }

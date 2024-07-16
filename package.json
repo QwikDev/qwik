@@ -66,6 +66,7 @@
     "@builder.io/qwik": "workspace:^",
     "@builder.io/qwik-city": "workspace:^",
     "@changesets/cli": "^2.27.5",
+    "@changesets/get-github-info": "^0.6.0",
     "@changesets/types": "^6.0.0",
     "@clack/prompts": "^0.7.0",
     "@eslint/eslintrc": "^3.0.2",
@@ -156,6 +157,7 @@
   "private": true,
   "scripts": {
     "api.update": "tsm scripts/index.ts --tsc --api --dev",
+    "build.changelog-formatter": "tsc .changeset/changelog-github-custom.ts && mv .changeset/changelog-github-custom.js .changeset/changelog-github-custom.cjs",
     "build": "tsm scripts/index.ts",
     "build.clean": "rm -rf packages/qwik/dist/ && rm -rf packages/qwik-city/lib/ && rm -rf packages/docs/dist/ && rm -rf packages/insights/dist/ && rm -rf packages/qwik-labs/lib/ && rm -rf packages/qwik-labs/vite/",
     "build.cli": "tsm scripts/index.ts --cli --dev",

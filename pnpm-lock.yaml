@@ -35,6 +35,9 @@ importers:
       '@changesets/cli':
         specifier: ^2.27.5
         version: 2.27.5
+      '@changesets/get-github-info':
+        specifier: ^0.6.0
+        version: 0.6.0
       '@changesets/types':
         specifier: ^6.0.0
         version: 6.0.0
@@ -536,6 +539,8 @@ importers:
         specifier: ^1.5.0
         version: 1.6.0(@types/node@20.12.8)(terser@5.31.0)
 
+  packages/just-for-checking-changesets: {}
+
   packages/qwik:
     dependencies:
       csstype:
@@ -988,6 +993,9 @@ packages:
 
   '@changesets/get-dependents-graph@2.1.0':
     resolution: {integrity: sha512-QOt6pQq9RVXKGHPVvyKimJDYJumx7p4DO5MO9AhRJYgAPgv0emhNqAqqysSVKHBm4sxKlGN4S1zXOIb5yCFuhQ==}
+
+  '@changesets/get-github-info@0.6.0':
+    resolution: {integrity: sha512-v/TSnFVXI8vzX9/w3DU2Ol+UlTZcu3m0kXTjTT4KlAdwSvwutcByYwyYn9hwerPWfPkT2JfpoX0KgvCEi8Q/SA==}
 
   '@changesets/get-release-plan@4.0.2':
     resolution: {integrity: sha512-rOalz7nMuMV2vyeP7KBeAhqEB7FM2GFPO5RQSoOoUKKH9L6wW3QyPA2K+/rG9kBrWl2HckPVES73/AuwPvbH3w==}
@@ -4424,6 +4432,9 @@ packages:
   data-uri-to-buffer@6.0.2:
     resolution: {integrity: sha512-7hvf7/GW8e86rW0ptuwS3OcBGDjIi6SZva7hCyWC0yYry2cOPmLIjXAUHI6DK2HsnwJd9ifmt57i8eV2n4YNpw==}
     engines: {node: '>= 14'}
+
+  dataloader@1.4.0:
+    resolution: {integrity: sha512-68s5jYdlvasItOJnCuI2Q9s4q98g0pCyL3HrcKJu8KNugUl8ahgmZYg38ysLTgQjjXX3H8CJLkAvWrclWfcalw==}
 
   date-fns@1.30.1:
     resolution: {integrity: sha512-hBSVCvSmWC+QypYObzwGOd9wqdDpOt+0wl0KbU+R+uuZBS1jN8VsD1ss3irQDknRj5NvxiTF6oj/nDRnN/UQNw==}
@@ -10410,6 +10421,13 @@ snapshots:
       fs-extra: 7.0.1
       semver: 7.6.0
 
+  '@changesets/get-github-info@0.6.0':
+    dependencies:
+      dataloader: 1.4.0
+      node-fetch: 2.7.0
+    transitivePeerDependencies:
+      - encoding
+
   '@changesets/get-release-plan@4.0.2':
     dependencies:
       '@babel/runtime': 7.23.9
@@ -14102,6 +14120,8 @@ snapshots:
   data-uri-to-buffer@4.0.1: {}
 
   data-uri-to-buffer@6.0.2: {}
+
+  dataloader@1.4.0: {}
 
   date-fns@1.30.1: {}
 

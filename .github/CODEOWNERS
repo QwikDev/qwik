@@ -11,6 +11,9 @@ CODE_OF_CONDUCT.md @QwikDev/docs-team @QwikDev/qwik-team
 # For API changes
 api.json @QwikDev/api-guards
 
+# For releases
+CHANGELOG.md @QwikDev/api-guards
+
 # Protect the code owners file
 .github/CODEOWNERS @mhevery @shairez
 

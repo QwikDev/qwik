@@ -36,7 +36,7 @@
     "vite"
   ],
   "main": "./lib/index.qwik.mjs",
-  "private": false,
+  "private": true,
   "qwik": "./lib/index.qwik.mjs",
   "scripts": {
     "build": "pnpm build.vite && qwik build",

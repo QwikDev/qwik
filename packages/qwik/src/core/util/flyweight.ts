@@ -1,3 +1,4 @@
+/** @internal */
 export const EMPTY_ARRAY = [] as any[];
 export const EMPTY_OBJ = {} as Record<string, any>;
 

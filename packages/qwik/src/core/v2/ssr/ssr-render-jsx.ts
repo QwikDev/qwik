@@ -141,7 +141,7 @@ function processJSXNode(
         enqueue(value[i]);
       }
     } else if (isSignal(value)) {
-      ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.DerivedSignal] : []);
+      ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.DerivedSignal] : EMPTY_ARRAY);
       const signalNode = ssr.getLastNode() as fixMeAny;
       // TODO(mhevery): It is unclear to me why we need to serialize host for SignalDerived.
       // const host = ssr.getComponentFrame(0)!.componentNode as fixMeAny;
@@ -266,7 +266,7 @@ function processJSXNode(
           ssr.htmlNode(jsx.props.data as string);
           ssr.commentNode(QContainerAttrEnd);
         } else if (isQwikComponent(type)) {
-          ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
+          ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : EMPTY_ARRAY);
           const host = ssr.getLastNode();
           ssr.getComponentFrame(0)!.distributeChildrenIntoSlots(jsx.children, styleScoped);
           const jsxOutput = applyQwikComponentBody(ssr, jsx, type);
@@ -277,7 +277,7 @@ function processJSXNode(
           isPromise(jsxOutput) && enqueue(Promise);
           enqueue(new SetScopedStyle(compStyleComponentId));
         } else {
-          ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.InlineComponent] : []);
+          ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.InlineComponent] : EMPTY_ARRAY);
           enqueue(ssr.closeFragment);
           const component = ssr.getComponentFrame(0)!;
           const jsxOutput = applyInlineComponent(

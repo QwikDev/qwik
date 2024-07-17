@@ -547,13 +547,14 @@ jobs:
       - changes
     # Either one of the packages changed or we need to merge changesets
     if: |
-      always() &&
-      ((needs.changes.outputs.build-qwik == 'true' ||
-       needs.changes.outputs.build-others == 'true' ||
-       needs.changes.outputs.build-rust == 'true') &&
-      needs.test-e2e.result == 'success'
-      ) ||
-      (github.ref == 'refs/heads/main' && github.event_name != 'workflow_dispatch')
+      always() && (
+        github.ref == 'refs/heads/main' ||
+        ((needs.changes.outputs.build-qwik == 'true' ||
+           needs.changes.outputs.build-others == 'true' ||
+           needs.changes.outputs.build-rust == 'true') &&
+         needs.test-e2e.result == 'success'
+        )
+      )
 
     steps:
       - name: Checkout
@@ -622,7 +623,11 @@ jobs:
     # Sometimes the tests just hang
     timeout-minutes: 20
     name: E2E Tests
-    if: always() && (needs.changes.outputs.build-qwik == 'true' || needs.changes.outputs.build-others == 'true' || needs.changes.outputs.build-rust == 'true') && needs.build-other-packages.result == 'success' && needs.test-unit.result == 'success'
+    if: |
+      always() && (
+      (needs.changes.outputs.build-qwik == 'true' || needs.changes.outputs.build-others == 'true' || needs.changes.outputs.build-rust == 'true') && needs.build-other-packages.result == 'success' && needs.test-unit.result == 'success') || 
+      github.ref == 'refs/heads/main'
+
     needs:
       - build-other-packages
       - changes

@@ -346,6 +346,9 @@ string | undefined,
 export interface EmbedHTMLAttributes<T extends Element> extends Attrs<'embed', T> {
 }
 
+// @internal (undocumented)
+export const _EMPTY_ARRAY: any[];
+
 // @public (undocumented)
 export interface ErrorBoundaryStore {
     // (undocumented)

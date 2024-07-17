@@ -266,7 +266,7 @@ function processJSXNode(
           ssr.htmlNode(jsx.props.data as string);
           ssr.commentNode(QContainerAttrEnd);
         } else if (isQwikComponent(type)) {
-          ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
+          ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : EMPTY_ARRAY);
           const host = ssr.getLastNode();
           ssr.getComponentFrame(0)!.distributeChildrenIntoSlots(jsx.children, styleScoped);
           const jsxOutput = applyQwikComponentBody(ssr, jsx, type);

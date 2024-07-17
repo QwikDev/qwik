@@ -122,7 +122,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -141,6 +141,7 @@ jobs:
         run: pnpm build --qwik --set-dist-tag="${{ github.event.inputs.disttag }}"
 
       - name: Print Qwik Dist Build
+        continue-on-error: true
         run: tree packages/qwik/dist/
 
       - name: Save cache
@@ -156,15 +157,118 @@ jobs:
           path: packages/qwik/dist/
           if-no-files-found: error
 
+  ############ BUILD RUST ############
+  build-linux-wasm-bindings:
+    if: needs.changes.outputs.build-rust == 'true'
+    name: Build optimizer x86 Linux + wasm
+    needs: changes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          # additionally install wasm32-unknown-unknown target
+          target: wasm32-unknown-unknown
+
+      - uses: pnpm/action-setup@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+      # This installs everything + the latest wasm-pack binary
+      - run: pnpm install wasm-pack
+
+      - name: Build x86 Platform Binding
+        run: pnpm build --platform-binding
+
+      - name: Build wasm Platform Binding
+        run: pnpm build --wasm
+
+      - name: Print Packages Dist Build
+        continue-on-error: true
+        run: ls -lR packages/qwik/dist/bindings/
+
+      - name: Upload Platform Binding Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-bindings-wasm
+          path: packages/qwik/dist/bindings/*
+          if-no-files-found: error
+
+  ############ BUILD PLATFORM BINDINGS ############
+  build-other-bindings:
+    if: needs.changes.outputs.build-rust == 'true'
+    strategy:
+      matrix:
+        settings:
+          # the last x86 macos available as a standard runner
+          - host: macos-13
+            target: x86_64-apple-darwin
+
+          - host: macos-latest
+            target: aarch64-apple-darwin
+
+          - host: windows-latest
+            target: x86_64-pc-windows-msvc
+
+    name: Build optimizer ${{ matrix.settings.target }}
+    runs-on: ${{ matrix.settings.host }}
+
+    needs: changes
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - uses: pnpm/action-setup@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+      - run: pnpm install
+
+      - name: Build Platform Binding
+        run: pnpm build --platform-binding
+
+      - name: Print Packages Dist Build
+        continue-on-error: true
+        run: ls -lR packages/qwik/dist/bindings/
+
+      - name: Upload Platform Binding Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-bindings-${{ matrix.settings.target }}
+          path: packages/qwik/dist/bindings/*.node
+          if-no-files-found: error
+
+  ############ BUILD PACKAGE ############
   combined-qwik:
     name: Bundle Qwik
-    if: always() && (needs.build-qwik.result == 'success' || needs.build-qwik.result == 'skipped') && (needs.build-rust.result == 'success' || needs.build-rust.result == 'skipped') && (needs.build-bindings.result == 'success' || needs.build-bindings.result == 'skipped')
+    if: |
+      always() &&
+      (needs.build-qwik.result == 'success' ||
+       needs.build-qwik.result == 'skipped') &&
+      (needs.build-linux-wasm-bindings.result == 'success' ||
+       needs.build-linux-wasm-bindings.result == 'skipped') &&
+      (needs.build-other-bindings.result == 'success' ||
+       needs.build-other-bindings.result == 'skipped')
     runs-on: ubuntu-latest
     needs:
       - build-qwik
-      - build-rust
-      - build-bindings
+      - build-linux-wasm-bindings
+      - build-other-bindings
       - changes
+
     steps:
       - name: Restore artifacts
         uses: actions/download-artifact@v4
@@ -207,8 +311,7 @@ jobs:
           path: packages/qwik/dist/
           if-no-files-found: error
 
-  ############ BUILD PACKAGE ############
-  build-package:
+  build-other-packages:
     name: Build Other Packages
     needs:
       - changes
@@ -220,7 +323,7 @@ jobs:
         if: needs.changes.outputs.build-others == 'true'
         uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
         if: needs.changes.outputs.build-others == 'true'
       - name: Setup Node
         if: needs.changes.outputs.build-others == 'true'
@@ -329,115 +432,20 @@ jobs:
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
 
-  ############ BUILD RUST ############
-  build-rust:
-    if: needs.changes.outputs.build-rust == 'true'
-    name: Build optimizer x86 Linux + wasm
-    needs: changes
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          # additionally install wasm32-unknown-unknown target
-          target: wasm32-unknown-unknown
-
-      - uses: pnpm/action-setup@v3
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-          cache: 'pnpm'
-          registry-url: https://registry.npmjs.org/
-      # This installs everything + the latest wasm-pack binary
-      - run: pnpm install wasm-pack
-
-      - name: Build x86 Platform Binding
-        run: pnpm build --platform-binding
-
-      - name: Build wasm Platform Binding
-        run: pnpm build --wasm
-
-      - name: Print Packages Dist Build
-        continue-on-error: true
-        run: ls -lR packages/qwik/dist/bindings/
-
-      - name: Upload Platform Binding Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-bindings-wasm
-          path: packages/qwik/dist/bindings/*
-          if-no-files-found: error
-
-  ############ BUILD PLATFORM BINDINGS ############
-  build-bindings:
-    if: needs.changes.outputs.build-rust == 'true'
-    strategy:
-      matrix:
-        settings:
-          # the last x86 macos available as a standard runner
-          - host: macos-13
-            target: x86_64-apple-darwin
-
-          - host: macos-latest
-            target: aarch64-apple-darwin
-
-          - host: windows-latest
-            target: x86_64-pc-windows-msvc
-
-    name: Build optimizer ${{ matrix.settings.target }}
-    runs-on: ${{ matrix.settings.host }}
-
-    needs: changes
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-
-      - uses: pnpm/action-setup@v3
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-          cache: 'pnpm'
-          registry-url: https://registry.npmjs.org/
-      - run: pnpm install
-
-      - name: Build Platform Binding
-        run: pnpm build --platform-binding
-
-      - name: Print Packages Dist Build
-        continue-on-error: true
-        run: ls -lR packages/qwik/dist/bindings/
-
-      - name: Upload Platform Binding Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-bindings-${{ matrix.settings.target }}
-          path: packages/qwik/dist/bindings/*.node
-          if-no-files-found: error
-
   ############ BUILD INSIGHTS ############
   build-insights:
-    # it seems that skipped grandparents cause the children to be skipped as well
-    if: always() && needs.changes.outputs.build-insights == 'true' && needs.build-package.result == 'success'
+    if: always() && needs.changes.outputs.build-insights == 'true' && needs.build-other-packages.result == 'success'
     name: Build Insights
     needs:
       - changes
-      - build-package
+      - build-other-packages
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -467,18 +475,18 @@ jobs:
 
   ############ BUILD DOCS ############
   build-docs:
-    if: always() && needs.changes.outputs.build-docs == 'true' && needs.build-package.result == 'success'
+    if: always() && needs.changes.outputs.build-docs == 'true' && needs.build-other-packages.result == 'success'
     name: Build Docs
     needs:
       - changes
-      - build-package
+      - build-other-packages
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -533,7 +541,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -587,9 +595,9 @@ jobs:
     # Sometimes the tests just hang
     timeout-minutes: 10
     name: E2E Tests
-    if: always() && (needs.changes.outputs.build-qwik == 'true' || needs.changes.outputs.build-others == 'true' || needs.changes.outputs.build-rust == 'true') && needs.build-package.result == 'success' && needs.test-unit.result == 'success'
+    if: always() && (needs.changes.outputs.build-qwik == 'true' || needs.changes.outputs.build-others == 'true' || needs.changes.outputs.build-rust == 'true') && needs.build-other-packages.result == 'success' && needs.test-unit.result == 'success'
     needs:
-      - build-package
+      - build-other-packages
       - changes
       - test-unit
 
@@ -600,6 +608,8 @@ jobs:
             browser: chromium
           - host: macos-latest
             browser: webkit
+          - host: windows-latest
+            browser: firefox
 
     runs-on: ${{ matrix.settings.host }}
 
@@ -607,7 +617,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -644,17 +654,17 @@ jobs:
   ############ UNIT TEST ############
   test-unit:
     name: Unit Tests
-    if: always() && (needs.changes.outputs.build-qwik == 'true' || needs.changes.outputs.build-others == 'true' || needs.changes.outputs.build-rust == 'true') && needs.build-package.result == 'success'
+    if: always() && (needs.changes.outputs.build-qwik == 'true' || needs.changes.outputs.build-others == 'true' || needs.changes.outputs.build-rust == 'true') && needs.build-other-packages.result == 'success'
     runs-on: ubuntu-latest
     needs:
       - changes
-      - build-package
+      - build-other-packages
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -682,7 +692,7 @@ jobs:
       - name: Unit Tests
         run: pnpm run test.unit
 
-  ########### VALIDATE RUST ############
+  ########### LINT RUST ############
   validate-rust:
     if: needs.changes.outputs.build-rust == 'true'
     name: Validate Rust
@@ -709,7 +719,7 @@ jobs:
       - name: Unit tests
         run: make test
 
-  ########### LINT PACKAGE ############
+  ########### LINT PACKAGES ############
   lint-package:
     name: Lint Package
     runs-on: ubuntu-latest
@@ -717,7 +727,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
       - name: Setup Node
         uses: actions/setup-node@v4
         with:

@@ -35,3 +35,4 @@ export {
   DomContainer as _DomContainer,
   getDomContainer as _getDomContainer,
 } from './v2/client/dom-container';
+export { EMPTY_ARRAY as _EMPTY_ARRAY } from '../core/util/flyweight';

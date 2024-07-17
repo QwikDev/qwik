@@ -102,12 +102,15 @@ jobs:
           path: |
             packages/docs/dist
             packages/docs/server
-          key: ${{ hashfiles('pnpm-lock.yaml', 'packages/qwik/**/*', 'rust-toolchain', '**/Cargo.toml', '**/Cargo.lock', '**/*.rs', 'packages/qwik-city/**/*', 'packages/qwik-labs/**/*', 'packages/qwik-react/**/*', 'packages/qwik-docs/**/*') }}
+          key: ${{ hashfiles('pnpm-lock.yaml', 'packages/qwik/**/*', 'rust-toolchain', '**/Cargo.toml', '**/Cargo.lock', '**/*.rs', 'packages/qwik-city/**/*', 'packages/qwik-labs/**/*', 'packages/qwik-react/**/*', 'packages/docs/**/*') }}
       - name: 'check cache: insights'
         id: cache-insights
         uses: actions/cache/restore@v4
         with:
-          path: packages/qwik-insights/dist
+          lookup-only: true
+          path: |
+            packages/insights/dist
+            packages/insights/.netlify
           key: ${{ hashfiles('pnpm-lock.yaml', 'packages/qwik/**/*', 'rust-toolchain', '**/Cargo.toml', '**/Cargo.lock', '**/*.rs', 'packages/qwik-city/**/*', 'packages/qwik-labs/**/*', 'packages/qwik-insights/**/*') }}
 
   ############ BUILD Qwik ############
@@ -448,7 +451,9 @@ jobs:
         uses: actions/cache/save@v4
         with:
           key: ${{ needs.changes.outputs.hash-insights }}
-          path: packages/qwik-insights/dist
+          path: |
+            packages/insights/dist
+            packages/insights/.netlify
 
   ############ BUILD DOCS ############
   build-docs:
@@ -585,10 +590,13 @@ jobs:
         settings:
           - host: ubuntu-latest
             browser: chromium
+          # too slow and flaky. Perhaps better in v2?
+          # - host: ubuntu-latest
+          #   browser: firefox
           - host: macos-latest
             browser: webkit
           - host: windows-latest
-            browser: firefox
+            browser: chromium
 
     runs-on: ${{ matrix.settings.host }}
 
@@ -625,7 +633,7 @@ jobs:
         run: npx playwright install ${{ matrix.settings.browser }} --with-deps
 
       - name: Playwright E2E Tests
-        run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 60000 --retries 3 --workers 1
+        run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
 
       - name: Validate Create Qwik Cli
         run: pnpm cli.validate

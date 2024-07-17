@@ -15,6 +15,10 @@ import qJsxDts from '../../node_modules/@builder.io/qwik/dist/jsx-runtime.d.ts?r
 import qOptimizerCjs from '../../node_modules/@builder.io/qwik/dist/optimizer.cjs?raw';
 import qServerCjs from '../../node_modules/@builder.io/qwik/dist/server.cjs?raw';
 import qServerDts from '../../node_modules/@builder.io/qwik/dist/server.d.ts?raw';
+import qWasmCjs from '../../node_modules/@builder.io/qwik/dist/bindings/qwik.wasm.cjs?raw';
+// we can use the wasm binary directly, it doesn't get processed
+import qWasmBinUrl from '../../node_modules/@builder.io/qwik/dist/bindings/qwik_wasm_bg.wasm?url';
+
 import { isServer } from '@builder.io/qwik/build';
 
 export const QWIK_PKG_NAME = '@builder.io/qwik';
@@ -36,18 +40,18 @@ export const getNpmCdnUrl = (
       }
     } else {
       // fall back to latest
-      pkgVersion = '';
+      pkgVersion = pkgName === QWIK_PKG_NAME ? qwikVersion.split('-dev')[0] : '';
     }
   }
   return `https://cdn.jsdelivr.net/npm/${pkgName}${pkgVersion ? '@' + pkgVersion : ''}${pkgPath}`;
 };
 
 // https://github.com/vitejs/vite/issues/15753
-const blobUrl = (code: string) => {
+const blobUrl = (code: string, type: string = 'application/javascript') => {
   if (isServer) {
     return '';
   }
-  const blob = new Blob([code], { type: 'application/javascript' });
+  const blob = new Blob([code], { type });
   return URL.createObjectURL(blob);
 };
 
@@ -63,6 +67,8 @@ const bundled: PkgUrls = {
     '/optimizer.cjs': blobUrl(qOptimizerCjs),
     '/server.cjs': blobUrl(qServerCjs),
     '/server.d.ts': blobUrl(qServerDts),
+    '/bindings/qwik.wasm.cjs': blobUrl(qWasmCjs),
+    '/bindings/qwik_wasm_bg.wasm': qWasmBinUrl,
   },
   prettier: {
     version: prettierPkgJson.version,

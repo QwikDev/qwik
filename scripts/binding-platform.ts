@@ -1,7 +1,6 @@
 import { type BuildConfig, ensureDir } from './util';
 import spawn from 'cross-spawn';
 import { join } from 'node:path';
-import { fetch } from 'undici';
 import semver from 'semver';
 import { existsSync } from 'node:fs';
 import { copyFile, readdir, writeFile } from 'fs/promises';
@@ -50,6 +49,7 @@ export async function buildPlatformBinding(config: BuildConfig) {
   console.log('🐯 native binding');
 }
 
+// TODO only download current target and wasm
 export async function copyPlatformBindingWasm(config: BuildConfig) {
   ensureDir(config.distQwikPkgDir);
   ensureDir(config.distBindingsDir);

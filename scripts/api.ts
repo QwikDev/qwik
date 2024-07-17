@@ -217,10 +217,19 @@ function createTypesApi(
     showDiagnostics: true,
     messageCallback(msg) {
       msg.handled = true;
-      if (msg.logLevel === 'verbose' || msg.logLevel === 'warning') {
+      if (msg.logLevel === 'verbose') {
         return;
       }
       if (msg.text.includes('Analysis will use')) {
+        return;
+      }
+      if (msg.messageId === 'console-api-report-copied') {
+        if (config.dev) {
+          return;
+        }
+        console.error(
+          `❌ API Extractor, submodule: "${inPath}"\n${extractorConfigPath} has API changes.\n`
+        );
         return;
       }
       if (
@@ -233,6 +242,14 @@ function createTypesApi(
     },
   });
   if (!result.succeeded) {
+    console.log(
+      'API build results: API changed',
+      result.apiReportChanged,
+      'errors',
+      result.errorCount,
+      'warnings',
+      result.warningCount
+    );
     panic(
       `Use "pnpm api.update" to automatically update the .md files if the api changes were expected`
     );

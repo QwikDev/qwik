@@ -37,6 +37,7 @@ const exec = async (pkgName: string, pkgPath: string) => {
 const _loadDependencies = async (replOptions: ReplInputOptions) => {
   options = replOptions;
   const qwikVersion = options.version;
+  const realQwikVersion = options.deps[QWIK_PKG_NAME].version;
 
   cache = await caches.open(QWIK_REPL_DEPS_CACHE);
 
@@ -45,6 +46,22 @@ const _loadDependencies = async (replOptions: ReplInputOptions) => {
     isBrowser: false,
     isDev: false,
   };
+
+  const cachedCjsCode = `qwikWasmCjs${realQwikVersion}`;
+  const cachedWasmRsp = `qwikWasmRsp${realQwikVersion}`;
+
+  // Store the optimizer where platform.ts can find it
+  let cjsCode: string = (globalThis as any)[cachedCjsCode];
+  let wasmRsp: Response = (globalThis as any)[cachedWasmRsp];
+  if (!cjsCode || !wasmRsp) {
+    const cjsRes = await depResponse(QWIK_PKG_NAME, '/bindings/qwik.wasm.cjs');
+    cjsCode = await cjsRes.text();
+    (globalThis as any)[cachedCjsCode] = cjsCode;
+    const res = await depResponse(QWIK_PKG_NAME, '/bindings/qwik_wasm_bg.wasm');
+    wasmRsp = res;
+    (globalThis as any)[cachedWasmRsp] = wasmRsp;
+    console.debug(`Loaded Qwik WASM bindings ${realQwikVersion}`);
+  }
 
   if (!isSameQwikVersion(self.qwikCore?.version)) {
     await exec(QWIK_PKG_NAME, '/core.cjs');

@@ -9,6 +9,9 @@ updated_at: '2023-07-18T17:52:09Z'
 created_at: '2023-05-14T08:01:52Z'
 ---
 
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
+
 # Tauri
 
 Tauri is a framework to build desktop applications with any frontend framework and a Rust core.
@@ -20,9 +23,28 @@ Make sure you use the [Static Adapter](https://qwik.dev/docs/deployments/static/
 
 Then you can build your app with 
 
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run build
+```
+</span>
+<span q:slot="npm">
 ```shell
 npm run build
 ```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run build
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run build
+```
+</span>
+</PackageManagerTabs>
 
 ## Add Tauri
 

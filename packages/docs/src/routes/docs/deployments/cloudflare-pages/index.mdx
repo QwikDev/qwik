@@ -73,9 +73,28 @@ When using `npm create qwik@latest` to setup your Qwik app it will likely use a 
 
 To build the application for production, use the `build` command, this command will automatically run `npm run build.server` and `npm run build.client`:
 
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run build
+```
+</span>
+<span q:slot="npm">
 ```shell
 npm run build
 ```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run build
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run build
+```
+</span>
+</PackageManagerTabs>
 
 [Read the full guide here](https://github.com/QwikDev/qwik/tree/main/starters/adapters/cloudflare-pages/README.md)
 

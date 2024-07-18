@@ -51,9 +51,28 @@ When a new integration is added to the project, a `build.server` script is added
 
 The only thing you need to do is to run the following command:
 
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run build
+```
+</span>
+<span q:slot="npm">
 ```shell
 npm run build
 ```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run build
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run build
+```
+</span>
+</PackageManagerTabs>
 
 > Under the hood, the `build` script will execute, `build.server` and `build.client` scripts.
 

@@ -60,7 +60,7 @@ export async function build(config: BuildConfig) {
       `[node ${process.version}, ${process.platform}/${process.arch}]`
     );
 
-    if (config.tsc) {
+    if (config.tsc || (!config.dev && config.qwik)) {
       rmSync(config.tscDir, { recursive: true, force: true });
       rmSync(config.dtsDir, { recursive: true, force: true });
       await tscQwik(config);
@@ -91,12 +91,12 @@ export async function build(config: BuildConfig) {
       await Promise.all([submoduleServer(config), submoduleOptimizer(config)]);
     }
 
-    if (config.api) {
+    if (config.api || (!config.dev && config.qwik)) {
       rmSync(join(config.rootDir, 'dist-dev', 'api'), { recursive: true, force: true });
       rmSync(join(config.rootDir, 'dist-dev', 'api-docs'), { recursive: true, force: true });
       rmSync(join(config.rootDir, 'dist-dev', 'api-extractor'), { recursive: true, force: true });
     }
-    if (config.api || (config.tsc && config.qwik)) {
+    if (config.api || ((!config.dev || config.tsc) && config.qwik)) {
       await apiExtractorQwik(config);
     }
 

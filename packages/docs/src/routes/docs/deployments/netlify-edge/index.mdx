@@ -10,6 +10,8 @@ updated_at: '2023-06-25T19:43:33Z'
 created_at: '2023-04-06T21:28:28Z'
 ---
 
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
 # Netlify Edge Adapter
 
 Qwik City Netlify Edge adapter allows you to connect Qwik City to [Netlify Edge Functions](https://docs.netlify.com/edge-functions/overview/).
@@ -18,9 +20,29 @@ Qwik City Netlify Edge adapter allows you to connect Qwik City to [Netlify Edge 
 
 To integrate the `netlify-edge` adapter, use the `add` command:
 
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run qwik add netlify-edge
+```
+</span>
+<span q:slot="npm">
 ```shell
 npm run qwik add netlify-edge
 ```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run qwik add netlify-edge
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run qwik add netlify-edge
+```
+</span>
+</PackageManagerTabs>
 
 > It will automatically install the required dependencies, including the [Netlify CLI](https://cli.netlify.com/).
 

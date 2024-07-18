@@ -154,6 +154,35 @@ test.describe("actions", () => {
         await expect(count).toHaveText("Count: 1");
       });
     });
+
+    test("issue 6660 internal params should not trigger navigation", async ({
+      page,
+    }) => {
+      await page.goto("/qwikcity-test/issue6660/");
+      await expect(page.locator("#status")).toBeHidden();
+
+      {
+        const startUrl = page.url();
+
+        await page.getByText("Submit").click();
+        await page.waitForSelector("#status");
+
+        expect(page.url()).toBe(startUrl);
+      }
+
+      await page.goto("/qwikcity-test/issue6660/?var=1&hello");
+      await expect(page.locator("#status")).toBeHidden();
+
+      {
+        const startUrl = page.url();
+        expect(startUrl).toContain("var=1&hello");
+
+        await page.getByText("Submit").click();
+        await page.waitForSelector("#status");
+
+        expect(page.url()).toBe(startUrl);
+      }
+    });
   }
 
   function tests() {
@@ -364,6 +393,24 @@ test.describe("actions", () => {
         "naturalHeight",
         520,
       );
+    });
+
+    test("redirects, re-runs loaders and changes the url within the same page when search params changed", async ({
+      page,
+    }) => {
+      await page.goto("/qwikcity-test/search-params-redirect/");
+      await page.getByText("Submit").click();
+      await page.waitForURL(
+        "**/qwikcity-test/search-params-redirect/?redirected=true",
+      );
+
+      const url = new URL(page.url());
+
+      expect(url.href.replace(url.origin, "")).toEqual(
+        "/qwikcity-test/search-params-redirect/?redirected=true",
+      );
+
+      await expect(page.locator("#redirected-result")).toHaveText("true");
     });
   }
 });

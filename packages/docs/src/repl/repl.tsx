@@ -177,6 +177,18 @@ const getDependencies = (input: ReplAppInput) => {
       '/core.min.mjs': getNpmCdnUrl(bundled, QWIK_PKG_NAME, input.version, '/core.min.mjs'),
       '/optimizer.cjs': getNpmCdnUrl(bundled, QWIK_PKG_NAME, input.version, '/optimizer.cjs'),
       '/server.cjs': getNpmCdnUrl(bundled, QWIK_PKG_NAME, input.version, '/server.cjs'),
+      '/bindings/qwik.wasm.cjs': getNpmCdnUrl(
+        bundled,
+        QWIK_PKG_NAME,
+        input.version,
+        '/bindings/qwik.wasm.cjs'
+      ),
+      '/bindings/qwik_wasm_bg.wasm': getNpmCdnUrl(
+        bundled,
+        QWIK_PKG_NAME,
+        input.version,
+        '/bindings/qwik_wasm_bg.wasm'
+      ),
     };
   }
   return out;

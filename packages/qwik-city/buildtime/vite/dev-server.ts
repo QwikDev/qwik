@@ -412,7 +412,7 @@ export function staticDistMiddleware({ config }: ViteDevServer) {
       return;
     }
 
-    const relPath = url.pathname.slice(1);
+    const relPath = `${url.pathname.slice(1)}${url.search}`;
 
     const ext = getExtension(relPath);
     const contentType = STATIC_CONTENT_TYPES[ext];
@@ -498,7 +498,7 @@ function skipRequest(pathname: string) {
   if (pathname.includes('favicon')) {
     return true;
   }
-  if (pathname.startsWith('/src/')) {
+  if (pathname.startsWith('/src/') || pathname.startsWith('/@fs/')) {
     const ext = getExtension(pathname);
     if (SKIP_SRC_EXTS[ext]) {
       return true;

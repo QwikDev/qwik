@@ -47,7 +47,7 @@ import type {
 } from './types';
 import { loadClientData } from './use-endpoint';
 import { useQwikCityEnv } from './use-functions';
-import { isSameOrigin, isSamePath, isSamePathname, toUrl } from './utils';
+import { isSameOrigin, isSamePath, toUrl } from './utils';
 import { clientNavigate } from './client-navigate';
 import {
   currentScrollState,
@@ -263,7 +263,8 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         }
         const newHref = pageData.href;
         const newURL = new URL(newHref, trackUrl);
-        if (!isSamePathname(newURL, trackUrl)) {
+        if (!isSamePath(newURL, trackUrl)) {
+          // Change our path to the canonical path in the response.
           trackUrl = newURL;
           loadRoutePromise = loadRoute(
             qwikCity.routes,

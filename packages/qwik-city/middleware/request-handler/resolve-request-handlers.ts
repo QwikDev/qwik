@@ -144,15 +144,15 @@ const _resolveRequestHandlers = (
     }
 
     if (collectActions) {
-      const loaders = Object.values(routeModule).filter((e) =>
-        checkBrand(e, 'server_loader')
-      ) as LoaderInternal[];
-      routeLoaders.push(...loaders);
-
-      const actions = Object.values(routeModule).filter((e) =>
-        checkBrand(e, 'server_action')
-      ) as ActionInternal[];
-      routeActions.push(...actions);
+      for (const module of Object.values(routeModule)) {
+        if (typeof module === 'function') {
+          if (module.__brand === 'server_loader') {
+            routeLoaders.push(module as LoaderInternal);
+          } else if (module.__brand === 'server_action') {
+            routeActions.push(module as ActionInternal);
+          }
+        }
+      }
     }
   }
 };
@@ -407,7 +407,9 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
       url.pathname = url.pathname.slice(0, -1);
     }
   }
-  return url.toString().substring(url.origin.length);
+  // strip internal search params
+  const search = url.search.slice(1).replaceAll(/&?q(action|data|func)=[^&]+/g, '');
+  return `${url.pathname}${search ? `?${search}` : ''}${url.hash}`;
 }
 
 export const encoder = /*#__PURE__*/ new TextEncoder();

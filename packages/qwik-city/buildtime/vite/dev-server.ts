@@ -150,6 +150,23 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         return;
       }
 
+      // Normally, entries are served statically, so in dev mode we need to handle them here.
+      const matchRouteName = url.pathname.slice(1);
+      const entry = ctx.entries.find((e) => e.routeName === matchRouteName);
+      if (entry) {
+        const entryContents = await server.transformRequest(
+          `/@fs${entry.filePath.startsWith('/') ? '' : '/'}${entry.filePath}`
+        );
+
+        if (entryContents) {
+          res.setHeader('Content-Type', 'text/javascript');
+          res.end(entryContents.code);
+        } else {
+          next();
+        }
+        return;
+      }
+
       const routeModulePaths = new WeakMap<RouteModule, string>();
       try {
         const { serverPlugins, loadedRoute } = await resolveRoute(routeModulePaths, url);

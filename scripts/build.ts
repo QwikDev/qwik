@@ -110,7 +110,7 @@ export async function build(config: BuildConfig) {
       await buildWasmBinding(config);
     }
 
-    if (config.tsc) {
+    if (config.tsc || (!config.dev && config.qwikcity)) {
       await tscQwikCity(config);
     }
 
@@ -118,7 +118,7 @@ export async function build(config: BuildConfig) {
       await buildQwikCity(config);
     }
 
-    if (config.api || (config.tsc && config.qwikcity)) {
+    if (config.api || ((!config.dev || config.tsc) && config.qwikcity)) {
       await apiExtractorQwikCity(config);
     }
 

@@ -31,7 +31,7 @@ use swc_common::{sync::Lrc, FileName, Globals, Mark, SourceMap};
 use swc_ecmascript::ast;
 use swc_ecmascript::codegen::text_writer::JsWriter;
 use swc_ecmascript::parser::lexer::Lexer;
-use swc_ecmascript::parser::{EsConfig, PResult, Parser, StringInput, Syntax, TsConfig};
+use swc_ecmascript::parser::{EsSyntax, PResult, Parser, StringInput, Syntax, TsSyntax};
 use swc_ecmascript::transforms::{
 	fixer, hygiene::hygiene_with_config, optimization::simplify, react, resolver, typescript,
 };
@@ -255,7 +255,10 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
 					if transpile_ts && is_type_script {
 						did_transform = true;
-						program.visit_mut_with(&mut typescript::strip(top_level_mark))
+						program.visit_mut_with(&mut typescript::strip(
+							Default::default(),
+							top_level_mark,
+						))
 					}
 
 					if transpile_jsx && is_jsx {
@@ -506,18 +509,18 @@ fn parse(
 	} else {
 		path_data.abs_path.clone()
 	};
-	let source_file = source_map.new_source_file(FileName::Real(sm_path), code.into());
+	let source_file = source_map.new_source_file(FileName::Real(sm_path).into(), code.into());
 
 	let comments = SingleThreadedComments::default();
 	let (is_type_script, is_jsx) = parse_filename(path_data);
 	let syntax = if is_type_script {
-		Syntax::Typescript(TsConfig {
+		Syntax::Typescript(TsSyntax {
 			tsx: is_jsx,
 			decorators: true,
 			..Default::default()
 		})
 	} else {
-		Syntax::Es(EsConfig {
+		Syntax::Es(EsSyntax {
 			jsx: is_jsx,
 			export_default_from: true,
 			..Default::default()

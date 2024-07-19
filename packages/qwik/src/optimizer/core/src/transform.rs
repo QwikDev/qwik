@@ -30,14 +30,14 @@ use swc_ecmascript::visit::{noop_fold_type, Fold, FoldWith, VisitWith};
 
 macro_rules! id {
 	($ident: expr) => {
-		($ident.sym.clone(), $ident.span.ctxt())
+		($ident.sym.clone(), $ident.ctxt)
 	};
 }
 
 macro_rules! id_eq {
 	($ident: expr, $cid: expr) => {
 		if let Some(cid) = $cid {
-			cid.0 == $ident.sym && cid.1 == $ident.span.ctxt()
+			cid.0 == $ident.sym && cid.1 == $ident.ctxt
 		} else {
 			false
 		}
@@ -500,8 +500,6 @@ impl<'a> QwikTransform<'a> {
 						callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(
 							&new_callee,
 						)))),
-						span: DUMMY_SP,
-						type_args: None,
 						args: vec![
 							ast::ExprOrSpread {
 								spread: None,
@@ -517,6 +515,7 @@ impl<'a> QwikTransform<'a> {
 								}))),
 							},
 						],
+						..Default::default()
 					}
 				}
 				_ => node,
@@ -928,20 +927,13 @@ impl<'a> QwikTransform<'a> {
 	) -> ast::CallExpr {
 		let mut args = vec![
 			ast::Expr::Arrow(ast::ArrowExpr {
-				is_async: false,
-				is_generator: false,
-				span: DUMMY_SP,
-				params: vec![],
-				return_type: None,
-				type_params: None,
 				body: Box::new(ast::BlockStmtOrExpr::Expr(Box::new(ast::Expr::Call(
 					ast::CallExpr {
 						callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
 							js_word!("import"),
 							DUMMY_SP,
+							Default::default(),
 						)))),
-						span: DUMMY_SP,
-						type_args: None,
 						args: vec![ast::ExprOrSpread {
 							spread: None,
 							expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
@@ -950,8 +942,10 @@ impl<'a> QwikTransform<'a> {
 								raw: None,
 							}))),
 						}],
+						..Default::default()
 					},
 				)))),
+				..Default::default()
 			}),
 			ast::Expr::Lit(ast::Lit::Str(ast::Str {
 				span: DUMMY_SP,
@@ -1010,7 +1004,7 @@ impl<'a> QwikTransform<'a> {
 				name: symbol_name.clone(),
 				data: hook_data.clone(),
 				expr: Box::new(expr),
-				hash: new_ident.span.ctxt().as_u32() as u64,
+				hash: new_ident.ctxt.as_u32() as u64,
 			});
 			ast::Expr::Ident(new_ident)
 		};
@@ -1076,7 +1070,6 @@ impl<'a> QwikTransform<'a> {
 		ast::CallExpr {
 			callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(&local)))),
 			span,
-			type_args: None,
 			args: exprs
 				.into_iter()
 				.map(|expr| ast::ExprOrSpread {
@@ -1084,6 +1077,7 @@ impl<'a> QwikTransform<'a> {
 					expr: Box::new(expr),
 				})
 				.collect(),
+			..Default::default()
 		}
 	}
 
@@ -1265,10 +1259,13 @@ impl<'a> QwikTransform<'a> {
 									)));
 									let elm = private_ident!("elm");
 									let arrow_fn = ast::Expr::Arrow(ast::ArrowExpr {
-										span: DUMMY_SP,
 										params: vec![
 											ast::Pat::Ident(ast::BindingIdent::from(
-												ast::Ident::new("_".into(), DUMMY_SP),
+												ast::Ident::new(
+													"_".into(),
+													DUMMY_SP,
+													SyntaxContext::empty(),
+												),
 											)),
 											ast::Pat::Ident(ast::BindingIdent::from(elm.clone())),
 										],
@@ -1279,7 +1276,7 @@ impl<'a> QwikTransform<'a> {
 														ast::MemberExpr {
 															obj: folded.clone(),
 															prop: ast::MemberProp::Ident(
-																ast::Ident::new(
+																ast::IdentName::new(
 																	"value".into(),
 																	DUMMY_SP,
 																),
@@ -1293,7 +1290,9 @@ impl<'a> QwikTransform<'a> {
 													ast::MemberExpr {
 														obj: Box::new(ast::Expr::Ident(elm)),
 														prop: ast::MemberProp::Ident(
-															ast::Ident::new(prop_name, DUMMY_SP),
+															ast::IdentName::new(
+																prop_name, DUMMY_SP,
+															),
 														),
 														span: DUMMY_SP,
 													},
@@ -1301,10 +1300,7 @@ impl<'a> QwikTransform<'a> {
 												span: DUMMY_SP,
 											}),
 										))),
-										is_async: false,
-										is_generator: false,
-										type_params: None,
-										return_type: None,
+										..Default::default()
 									});
 									let event_handler = JsWord::from(match key_word.as_ref() {
 										"bind:value" => "onInput$",
@@ -1442,13 +1438,13 @@ impl<'a> QwikTransform<'a> {
 												type_ann: None,
 												key: key.clone(),
 												body: Some(ast::BlockStmt {
-													span: DUMMY_SP,
 													stmts: vec![ast::Stmt::Return(
 														ast::ReturnStmt {
 															span: DUMMY_SP,
 															arg: Some(node.value.clone()),
 														},
 													)],
+													..Default::default()
 												}),
 											}),
 										)));
@@ -1719,8 +1715,7 @@ impl<'a> Fold for QwikTransform<'a> {
 										definite: false,
 										span: DUMMY_SP,
 									}],
-									declare: false,
-									span: DUMMY_SP,
+									..Default::default()
 								},
 							))))
 						})
@@ -2205,7 +2200,11 @@ pub fn add_handle_watch(body: &mut Vec<ast::ModuleItem>, core_module: &JsWord) {
 			with: None,
 			type_only: false,
 			specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
-				orig: ast::ModuleExportName::Ident(ast::Ident::new(HANDLE_WATCH.clone(), DUMMY_SP)),
+				orig: ast::ModuleExportName::Ident(ast::Ident::new(
+					HANDLE_WATCH.clone(),
+					DUMMY_SP,
+					Default::default(),
+				)),
 				exported: None,
 				is_type_only: false,
 				span: DUMMY_SP,
@@ -2223,8 +2222,13 @@ pub fn create_synthetic_named_export(local: &Id, exported: Option<JsWord>) -> as
 			span: DUMMY_SP,
 			is_type_only: false,
 			orig: ast::ModuleExportName::Ident(new_ident_from_id(local)),
-			exported: exported
-				.map(|name| ast::ModuleExportName::Ident(ast::Ident::new(name, DUMMY_SP))),
+			exported: exported.map(|name| {
+				ast::ModuleExportName::Ident(ast::Ident::new(
+					name,
+					DUMMY_SP,
+					SyntaxContext::empty(),
+				))
+			}),
 		})],
 		src: None,
 	}))
@@ -2325,7 +2329,7 @@ fn get_qrl_dev_obj(abs_path: &Path, hook: &HookData, span: &Span) -> ast::Expr {
 		span: DUMMY_SP,
 		props: vec![
 			ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
-				key: ast::PropName::Ident(ast::Ident::new(js_word!("file"), DUMMY_SP)),
+				key: ast::PropName::Ident(ast::IdentName::new(js_word!("file"), DUMMY_SP)),
 				value: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
 					span: DUMMY_SP,
 					value: abs_path.to_str().unwrap().into(),
@@ -2333,7 +2337,7 @@ fn get_qrl_dev_obj(abs_path: &Path, hook: &HookData, span: &Span) -> ast::Expr {
 				}))),
 			}))),
 			ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
-				key: ast::PropName::Ident(ast::Ident::new(JsWord::from("lo"), DUMMY_SP)),
+				key: ast::PropName::Ident(ast::IdentName::new(JsWord::from("lo"), DUMMY_SP)),
 				value: Box::new(ast::Expr::Lit(ast::Lit::Num(ast::Number {
 					span: DUMMY_SP,
 					value: span.lo().0 as f64,
@@ -2341,7 +2345,7 @@ fn get_qrl_dev_obj(abs_path: &Path, hook: &HookData, span: &Span) -> ast::Expr {
 				}))),
 			}))),
 			ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
-				key: ast::PropName::Ident(ast::Ident::new(JsWord::from("hi"), DUMMY_SP)),
+				key: ast::PropName::Ident(ast::IdentName::new(JsWord::from("hi"), DUMMY_SP)),
 				value: Box::new(ast::Expr::Lit(ast::Lit::Num(ast::Number {
 					span: DUMMY_SP,
 					value: span.hi().0 as f64,
@@ -2349,7 +2353,10 @@ fn get_qrl_dev_obj(abs_path: &Path, hook: &HookData, span: &Span) -> ast::Expr {
 				}))),
 			}))),
 			ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
-				key: ast::PropName::Ident(ast::Ident::new(JsWord::from("displayName"), DUMMY_SP)),
+				key: ast::PropName::Ident(ast::IdentName::new(
+					JsWord::from("displayName"),
+					DUMMY_SP,
+				)),
 				value: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
 					span: DUMMY_SP,
 					value: hook.display_name.clone(),
@@ -2391,8 +2398,7 @@ fn make_wrap(method: &Id, obj: Box<ast::Expr>, prop: JsWord) -> ast::Expr {
 				prop,
 			))))),
 		],
-		span: DUMMY_SP,
-		type_args: None,
+		..Default::default()
 	})
 }
 

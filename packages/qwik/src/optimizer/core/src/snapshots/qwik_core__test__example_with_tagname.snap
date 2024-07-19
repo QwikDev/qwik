@@ -52,13 +52,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 export const Foo_component_1_DvU6FitWglY = ()=>{
     return <div>
-
             </div>;
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2CAIa;IACL,QACK,IAAI;;YACL,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2CAIa;IACL,QACK,IAAI;YACL,EAAE;AAEV\"}")
 /*
 {
   "origin": "test.tsx",

@@ -5,7 +5,7 @@ use swc_ecmascript::visit::{noop_visit_type, Visit};
 
 macro_rules! id {
 	($ident: expr) => {
-		($ident.sym.clone(), $ident.span.ctxt())
+		($ident.sym.clone(), $ident.ctxt)
 	};
 }
 

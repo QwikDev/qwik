@@ -77,6 +77,11 @@ export const ELEMENT_ID_SELECTOR = '[q\\:id]';
 export const ELEMENT_ID_PREFIX = '#';
 export const INLINE_FN_PREFIX = '@';
 
+/** Non serializable markers - always begins with `:` character */
+export const USE_ON_LOCAL = ':on';
+export const USE_ON_LOCAL_SEQ_IDX = ':onIdx';
+export const USE_ON_LOCAL_FLAGS = ':onFlags';
+
 // comment nodes
 export const FLUSH_COMMENT = 'qkssr-f';
 export const STREAM_BLOCK_START_COMMENT = 'qkssr-pu';

@@ -22,6 +22,7 @@ import {
   QSlotParent,
   QStyle,
   QStyleSelector,
+  USE_ON_LOCAL_SEQ_IDX,
 } from '../../util/markers';
 import { maybeThen } from '../../util/promises';
 import { isSlotProp } from '../../util/prop';
@@ -264,6 +265,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
         getObjectById = this.$getObjectById$;
         break;
       case ELEMENT_SEQ_IDX:
+      case USE_ON_LOCAL_SEQ_IDX:
         getObjectById = parseInt;
         break;
     }

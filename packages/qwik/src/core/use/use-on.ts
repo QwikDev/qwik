@@ -1,7 +1,4 @@
-import { assertQrl } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
-import { getContext, HOST_FLAG_NEED_ATTACH_LISTENER } from '../state/context';
-import { type Listener, normalizeOnProp } from '../state/listeners';
 import { useInvokeContext } from './use-core';
 import { type KnownEventNames } from '../render/jsx/types/jsx-qwik-events';
 import type {
@@ -9,7 +6,8 @@ import type {
   EventFromName,
   AllEventKeys,
 } from '../render/jsx/types/jsx-qwik-attributes';
-import type { fixMeAny, HostElement } from '../v2/shared/types';
+import type { HostElement } from '../v2/shared/types';
+import { USE_ON_LOCAL, USE_ON_LOCAL_FLAGS, USE_ON_LOCAL_SEQ_IDX } from '../util/markers';
 
 export type EventQRL<T extends string = AllEventKeys> =
   | QRL<EventHandler<EventFromName<T>, Element>>
@@ -29,7 +27,7 @@ export type EventQRL<T extends string = AllEventKeys> =
  */
 // </docs>
 export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn(createEventName(event, undefined), createEventName2(event, undefined), eventQrl);
+  _useOn(createEventName(event, undefined), eventQrl);
 };
 
 // <docs markdown="../readme.md#useOnDocument">
@@ -62,7 +60,7 @@ export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: Event
  */
 // </docs>
 export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn(createEventName(event, 'document'), createEventName2(event, 'document'), eventQrl);
+  _useOn(createEventName(event, 'document'), eventQrl);
 };
 
 // <docs markdown="../readme.md#useOnWindow">
@@ -96,21 +94,10 @@ export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQr
  */
 // </docs>
 export const useOnWindow = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn(createEventName(event, 'window'), createEventName2(event, 'window'), eventQrl);
+  _useOn(createEventName(event, 'window'), eventQrl);
 };
 
 const createEventName = (
-  event: KnownEventNames | KnownEventNames[],
-  eventType: 'window' | 'document' | undefined
-) => {
-  const formattedEventType = eventType !== undefined ? eventType + ':' : '';
-  const res = Array.isArray(event)
-    ? event.map((e) => `${formattedEventType}on-${e}`)
-    : `${formattedEventType}on-${event}`;
-  return res;
-};
-
-const createEventName2 = (
   event: KnownEventNames | KnownEventNames[],
   eventType: 'window' | 'document' | undefined
 ) => {
@@ -121,43 +108,64 @@ const createEventName2 = (
   return res;
 };
 
-const _useOn = (
-  eventName: string | string[],
-  eventName2: string | string[],
-  eventQrl: EventQRL
-) => {
+const _useOn = (eventName: string | string[], eventQrl: EventQRL) => {
+  const { isAdded, addEvent } = useOnEventsSequentialScope();
+  if (isAdded) {
+    return;
+  }
   if (eventQrl) {
-    const invokeCtx = useInvokeContext();
-    if (invokeCtx.$container2$) {
-      const host: HostElement = invokeCtx.$hostElement$ as fixMeAny;
-      const container = invokeCtx.$container2$;
-      let onMap = container.getHostProp<UseOnMap>(host, USE_ON_LOCAL);
-      if (!onMap) {
-        container.setHostProp<UseOnMap>(host, USE_ON_LOCAL, (onMap = {}));
-      }
-      const addEvent = (eventName: string) => {
-        let events = onMap![eventName];
-        if (!events) {
-          onMap![eventName] = events = [];
-        }
-        events.push(eventQrl);
-      };
-      Array.isArray(eventName2) ? eventName2.forEach(addEvent) : addEvent(eventName2);
-    } else {
-      const elCtx = getContext(
-        invokeCtx.$hostElement$,
-        invokeCtx.$renderCtx$.$static$.$containerState$
-      );
-      assertQrl(eventQrl as any);
-      if (typeof eventName === 'string') {
-        elCtx.li.push([normalizeOnProp(eventName), eventQrl] as Listener);
-      } else {
-        elCtx.li.push(...eventName.map((name) => [normalizeOnProp(name), eventQrl] as Listener));
-      }
-      elCtx.$flags$ |= HOST_FLAG_NEED_ATTACH_LISTENER;
-    }
+    Array.isArray(eventName)
+      ? eventName.forEach((event) => addEvent(event, eventQrl))
+      : addEvent(eventName, eventQrl);
   }
 };
 
-export const USE_ON_LOCAL = ':on';
+/**
+ * This hook is like the `useSequentialScope` but it is specifically for `useOn`. This is needed
+ * because we want to execute the `useOn` hooks only once and store the event listeners on the host
+ * element. From Qwik V2 the component is rerunning when the promise is thrown, so we need to make
+ * sure that the event listeners are not added multiple times.
+ *
+ * - The event listeners are stored in the `USE_ON_LOCAL` property.
+ * - The `USE_ON_LOCAL_SEQ_IDX` is used to keep track of the index of the hook that calls this.
+ * - The `USE_ON_LOCAL_FLAGS` is used to keep track of whether the event listener has been added or
+ *   not.
+ */
+const useOnEventsSequentialScope = () => {
+  const iCtx = useInvokeContext();
+  const hostElement = iCtx.$hostElement$;
+  const host: HostElement = hostElement as any;
+  let onMap = iCtx.$container2$.getHostProp<UseOnMap>(host, USE_ON_LOCAL);
+  if (onMap === null) {
+    onMap = {};
+    iCtx.$container2$.setHostProp(host, USE_ON_LOCAL, onMap);
+  }
+  let seqIdx = iCtx.$container2$.getHostProp<number>(host, USE_ON_LOCAL_SEQ_IDX);
+  if (seqIdx === null) {
+    seqIdx = 0;
+  }
+  iCtx.$container2$.setHostProp(host, USE_ON_LOCAL_SEQ_IDX, seqIdx + 1);
+  let addedFlags = iCtx.$container2$.getHostProp<boolean[]>(host, USE_ON_LOCAL_FLAGS);
+  if (addedFlags === null) {
+    addedFlags = [];
+    iCtx.$container2$.setHostProp(host, USE_ON_LOCAL_FLAGS, addedFlags);
+  }
+  while (addedFlags.length <= seqIdx) {
+    addedFlags.push(false);
+  }
+  const addEvent = (eventName: string, eventQrl: EventQRL<KnownEventNames>) => {
+    addedFlags[seqIdx] = true;
+    let events = onMap![eventName];
+    if (!events) {
+      onMap![eventName] = events = [];
+    }
+    events.push(eventQrl);
+  };
+
+  return {
+    isAdded: addedFlags[seqIdx],
+    addEvent,
+  };
+};
+
 export type UseOnMap = Record<string, EventQRL<KnownEventNames>[]>;

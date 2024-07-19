@@ -20,8 +20,8 @@ importers:
   .:
     dependencies:
       '@qwik-ui/headless':
-        specifier: ^0.4.4
-        version: 0.4.4(@builder.io/qwik@packages+qwik)
+        specifier: ^0.5.0
+        version: 0.5.0(@builder.io/qwik@packages+qwik)
       esbuild-plugin-raw:
         specifier: ^0.1.8
         version: 0.1.8(esbuild@0.20.2)
@@ -2851,6 +2851,12 @@ packages:
 
   '@qwik-ui/headless@0.4.4':
     resolution: {integrity: sha512-IL43yt5vdRt8FQGXVBhTAzMYnYm77+1AadFV/LHXDPwZ2oL7gBk774l2/8eXtHx0zm6GnP52HY9TLx8dXTvdxw==}
+    engines: {node: '>=16.0.0'}
+    peerDependencies:
+      '@builder.io/qwik': ^1.5.5
+
+  '@qwik-ui/headless@0.5.0':
+    resolution: {integrity: sha512-hplG9Dw5VR+k4N70TjchrCG2Sw/U4mNBLmed6EEgjkxg/zQrDaEfpw/2IzXSBqr2k98QFrKehJjvetLszmkPDQ==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
       '@builder.io/qwik': ^1.5.5
@@ -12307,6 +12313,15 @@ snapshots:
       - supports-color
 
   '@qwik-ui/headless@0.4.4(@builder.io/qwik@packages+qwik)':
+    dependencies:
+      '@builder.io/qwik': link:packages/qwik
+      '@floating-ui/core': 1.6.4
+      '@floating-ui/dom': 1.6.7
+      '@oddbird/popover-polyfill': 0.4.3
+      body-scroll-lock-upgrade: 1.1.0
+      focus-trap: 7.5.4
+
+  '@qwik-ui/headless@0.5.0(@builder.io/qwik@packages+qwik)':
     dependencies:
       '@builder.io/qwik': link:packages/qwik
       '@floating-ui/core': 1.6.4

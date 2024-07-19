@@ -19,9 +19,6 @@ importers:
 
   .:
     dependencies:
-      '@qwik-ui/headless':
-        specifier: ^0.5.0
-        version: 0.5.0(@builder.io/qwik@packages+qwik)
       esbuild-plugin-raw:
         specifier: ^0.1.8
         version: 0.1.8(esbuild@0.20.2)
@@ -309,8 +306,8 @@ importers:
         specifier: ^6.19.6
         version: 6.19.11(@mui/material@5.15.16(@emotion/react@11.11.4(@types/react@18.3.1)(react@18.2.0))(@emotion/styled@11.11.0(@emotion/react@11.11.4(@types/react@18.3.1)(react@18.2.0))(@types/react@18.3.1)(react@18.2.0))(@types/react@18.3.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(@mui/system@5.15.15(@emotion/react@11.11.4(@types/react@18.3.1)(react@18.2.0))(@emotion/styled@11.11.0(@emotion/react@11.11.4(@types/react@18.3.1)(react@18.2.0))(@types/react@18.3.1)(react@18.2.0))(@types/react@18.3.1)(react@18.2.0))(@types/react@18.3.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@qwik-ui/headless':
-        specifier: ^0.4.4
-        version: 0.4.4(@builder.io/qwik@packages+qwik)
+        specifier: ^0.5.0
+        version: 0.5.0(@builder.io/qwik@packages+qwik)
       '@supabase/supabase-js':
         specifier: ^2.39.8
         version: 2.43.1
@@ -1931,9 +1928,6 @@ packages:
   '@fastify/static@6.12.0':
     resolution: {integrity: sha512-KK1B84E6QD/FcQWxDI2aiUCwHxMJBI1KeCUzm1BwYpPY1b742+jeKruGHP2uOluuM6OkBPI8CIANrXcCRtC2oQ==}
 
-  '@floating-ui/core@1.6.0':
-    resolution: {integrity: sha512-PcF++MykgmTj3CIyOQbKA/hDzOAiqI3mhuoN44WRCopIs1sgoDoU4oty4Jtqaj/y3oDU6fnVSm4QG0a3t5i0+g==}
-
   '@floating-ui/core@1.6.4':
     resolution: {integrity: sha512-a4IowK4QkXl4SCWTGUR0INAfEOX3wtsYw3rKK5InQEHMGObkR8Xk44qYQD9P4r6HHw0iIfK6GUKECmY8sTkqRA==}
 
@@ -2848,12 +2842,6 @@ packages:
     resolution: {integrity: sha512-bJ0UBsk0ESOs6RFcLXOt99a3yTDcOKlzfjad+rhFwdaG1Lu/Wzq58GHYCDTlZ9z6mldf4g+NTb+TXEfe0PpnsQ==}
     engines: {node: '>=18'}
     hasBin: true
-
-  '@qwik-ui/headless@0.4.4':
-    resolution: {integrity: sha512-IL43yt5vdRt8FQGXVBhTAzMYnYm77+1AadFV/LHXDPwZ2oL7gBk774l2/8eXtHx0zm6GnP52HY9TLx8dXTvdxw==}
-    engines: {node: '>=16.0.0'}
-    peerDependencies:
-      '@builder.io/qwik': ^1.5.5
 
   '@qwik-ui/headless@0.5.0':
     resolution: {integrity: sha512-hplG9Dw5VR+k4N70TjchrCG2Sw/U4mNBLmed6EEgjkxg/zQrDaEfpw/2IzXSBqr2k98QFrKehJjvetLszmkPDQ==}
@@ -11150,17 +11138,13 @@ snapshots:
       glob: 8.1.0
       p-limit: 3.1.0
 
-  '@floating-ui/core@1.6.0':
-    dependencies:
-      '@floating-ui/utils': 0.2.1
-
   '@floating-ui/core@1.6.4':
     dependencies:
       '@floating-ui/utils': 0.2.4
 
   '@floating-ui/dom@1.6.3':
     dependencies:
-      '@floating-ui/core': 1.6.0
+      '@floating-ui/core': 1.6.4
       '@floating-ui/utils': 0.2.1
 
   '@floating-ui/dom@1.6.7':
@@ -12311,15 +12295,6 @@ snapshots:
       yargs: 17.7.2
     transitivePeerDependencies:
       - supports-color
-
-  '@qwik-ui/headless@0.4.4(@builder.io/qwik@packages+qwik)':
-    dependencies:
-      '@builder.io/qwik': link:packages/qwik
-      '@floating-ui/core': 1.6.4
-      '@floating-ui/dom': 1.6.7
-      '@oddbird/popover-polyfill': 0.4.3
-      body-scroll-lock-upgrade: 1.1.0
-      focus-trap: 7.5.4
 
   '@qwik-ui/headless@0.5.0(@builder.io/qwik@packages+qwik)':
     dependencies:

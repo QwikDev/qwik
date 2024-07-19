@@ -55,16 +55,13 @@ export const s_ckEPmXZlub0 = ()=>{
         console.log('server', mongodb());
     });
     return <Cmp>
-
             {<p>server</p>}
-
             {false}
-
         </Cmp>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAgB8B;IAC1B,UAAU;QAEF,QAAQ,GAAG,CAAC,UAAU;IAK9B;IACA,QACK,IAAI;;YACD,EAAc,EAAE,MAAM,EAAE,GAAG;;YAC3B,OAA4B;;QAChC,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAgB8B;IAC1B,UAAU;QAEF,QAAQ,GAAG,CAAC,UAAU;IAK9B;IACA,QACK,IAAI;YACD,EAAc,EAAE,MAAM,EAAE,GAAG;YAC3B,OAA4B;QAChC,EAAE;AAEV\"}")
 /*
 {
   "origin": "test.tsx",

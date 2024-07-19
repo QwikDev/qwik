@@ -1,13 +1,16 @@
 import {
   $,
   Fragment as Component,
+  Fragment,
   Fragment as Signal,
+  Fragment as Awaited,
   component$,
   useOn,
   useOnDocument,
   useOnWindow,
   useSignal,
   useVisibleTask$,
+  useTask$,
 } from '@builder.io/qwik';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../../testing/element-fixture';
@@ -488,5 +491,103 @@ describe.each([
         </button>
       </Component>
     );
+  });
+
+  it('should not add script node in empty components for specific events', async () => {
+    const Cmp = component$(() => {
+      const signal = useSignal('empty');
+      useOn(
+        'click',
+        $(() => {
+          signal.value = 'run';
+        })
+      );
+      return <>{signal.value}</>;
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    await trigger(document.body, 'script', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <Signal>{'empty'}</Signal>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should add event to element returned by promise', async () => {
+    const Cmp = component$(() => {
+      const signal = useSignal('empty');
+      useOn(
+        'click',
+        $(() => {
+          signal.value = 'run';
+        })
+      );
+      return <>{Promise.resolve(<div>{signal.value}</div>)}</>;
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    await trigger(document.body, 'div', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <Awaited>
+            <div>
+              <Signal>{'run'}</Signal>
+            </div>
+          </Awaited>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should add event to element returned by signal', async () => {
+    const Cmp = component$(() => {
+      const signal = useSignal('empty');
+      const jsx = useSignal(<div>{signal.value}</div>);
+      useOn(
+        'click',
+        $(() => {
+          signal.value = 'run';
+        })
+      );
+      return <>{jsx.value}</>;
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    await trigger(document.body, 'div', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <Awaited>
+            <div>
+              <Signal>{'run'}</Signal>
+            </div>
+          </Awaited>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should add only one event', async () => {
+    const Cmp = component$(() => {
+      const signal = useSignal(0);
+      useOn(
+        'click',
+        $(() => {
+          signal.value++;
+        })
+      );
+
+      useTask$(async ({ track }) => {
+        track(() => signal);
+        // rerender component twice
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      return <>{Promise.resolve(<div>{signal.value}</div>)}</>;
+    });
+    const { document } = await render(<Cmp />, { debug });
+    await trigger(document.body, 'div', 'click');
+    await expect(document.querySelector('div')).toMatchDOM(<div>1</div>);
   });
 });

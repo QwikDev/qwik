@@ -3,12 +3,21 @@ import { assertDefined } from '../../error/assert';
 import { isQrl, type QRLInternal } from '../../qrl/qrl-class';
 import { JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
+import type { KnownEventNames } from '../../render/jsx/types/jsx-qwik-events';
 import { SubscriptionType } from '../../state/common';
-import { invokeApply, newInvokeContext } from '../../use/use-core';
-import { USE_ON_LOCAL, type UseOnMap } from '../../use/use-on';
+import { isSignal } from '../../state/signal';
+import { invokeApply, newInvokeContext, untrack } from '../../use/use-core';
+import { type EventQRL, type UseOnMap } from '../../use/use-on';
 import { EMPTY_OBJ } from '../../util/flyweight';
-import { ELEMENT_PROPS, ELEMENT_SEQ_IDX, OnRenderProp, RenderEvent } from '../../util/markers';
-import { isPromise, safeCall } from '../../util/promises';
+import {
+  ELEMENT_PROPS,
+  ELEMENT_SEQ_IDX,
+  OnRenderProp,
+  RenderEvent,
+  USE_ON_LOCAL,
+  USE_ON_LOCAL_SEQ_IDX,
+} from '../../util/markers';
+import { isPromise, maybeThen, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { Container2, HostElement, fixMeAny } from './types';
 
@@ -73,12 +82,15 @@ export const executeComponent2 = (
     safeCall<JSXOutput, JSXOutput, JSXOutput>(
       () => {
         container.setHostProp(renderHost, ELEMENT_SEQ_IDX, null);
+        container.setHostProp(renderHost, USE_ON_LOCAL_SEQ_IDX, null);
         container.setHostProp(renderHost, ELEMENT_PROPS, props);
         return componentFn(props);
       },
       (jsx) => {
         const useOnEvents = container.getHostProp<UseOnMap>(renderHost, USE_ON_LOCAL);
-        useOnEvents && addUseOnEvents(jsx, useOnEvents);
+        if (useOnEvents) {
+          return maybeThen(addUseOnEvents(jsx, useOnEvents), () => jsx);
+        }
         return jsx;
       },
       (err) => {
@@ -104,45 +116,59 @@ export const executeComponent2 = (
  * So when executing a component we only care about its last JSX Output.
  */
 
-function addUseOnEvents(jsx: JSXOutput, useOnEvents: UseOnMap) {
-  let jsxElement = findFirstStringJSX(jsx);
-  let isInvisibleComponent = false;
-  if (!jsxElement) {
-    /**
-     * We did not find any jsx node with a string tag. This means that we should append:
-     *
-     * ```html
-     * <script type="placeholder" hidden on-document:qinit="..."></script>
-     * ```
-     *
-     * This is needed because use on events should have a node to attach them to.
-     */
-    isInvisibleComponent = true;
-    jsxElement = addScriptNodeForInvisibleComponents(jsx);
+function addUseOnEvents(
+  jsx: JSXOutput,
+  useOnEvents: UseOnMap
+): ValueOrPromise<JSXNode<string> | null> {
+  const jsxElement = findFirstStringJSX(jsx);
+  return maybeThen(jsxElement, (jsxElement) => {
+    let isInvisibleComponent = false;
     if (!jsxElement) {
-      return;
+      /**
+       * We did not find any jsx node with a string tag. This means that we should append:
+       *
+       * ```html
+       * <script type="placeholder" hidden on-document:qinit="..."></script>
+       * ```
+       *
+       * This is needed because use on events should have a node to attach them to.
+       */
+      isInvisibleComponent = true;
     }
-  }
-  for (const key in useOnEvents) {
-    if (Object.prototype.hasOwnProperty.call(useOnEvents, key)) {
-      let props = jsxElement.props;
-      if (props === EMPTY_OBJ) {
-        props = jsxElement.props = {};
+    for (const key in useOnEvents) {
+      if (Object.prototype.hasOwnProperty.call(useOnEvents, key)) {
+        if (isInvisibleComponent) {
+          if (key === 'onQvisible$') {
+            jsxElement = addScriptNodeForInvisibleComponents(jsx);
+            if (jsxElement) {
+              addUseOnEvent(jsxElement, 'document:onQinit$', useOnEvents[key]);
+            }
+          }
+        } else if (jsxElement) {
+          addUseOnEvent(jsxElement, key, useOnEvents[key]);
+        }
       }
-      let propValue = props[key] as UseOnMap['any'] | UseOnMap['any'][0] | undefined;
-      if (propValue === undefined) {
-        propValue = [];
-      } else if (!Array.isArray(propValue)) {
-        propValue = [propValue];
-      }
-      propValue.push(...useOnEvents[key]);
-      const eventKey = isInvisibleComponent ? 'document:onQinit$' : key;
-      props[eventKey] = propValue;
     }
-  }
+    return jsxElement;
+  });
 }
 
-function findFirstStringJSX(jsx: JSXOutput): JSXNode<string> | null {
+function addUseOnEvent(jsxElement: JSXNode, key: string, value: EventQRL<KnownEventNames>[]) {
+  let props = jsxElement.props;
+  if (props === EMPTY_OBJ) {
+    props = jsxElement.props = {};
+  }
+  let propValue = props[key] as UseOnMap['any'] | UseOnMap['any'][0] | undefined;
+  if (propValue === undefined) {
+    propValue = [];
+  } else if (!Array.isArray(propValue)) {
+    propValue = [propValue];
+  }
+  propValue.push(...value);
+  props[key] = propValue;
+}
+
+function findFirstStringJSX(jsx: JSXOutput): ValueOrPromise<JSXNode<string> | null> {
   const queue: any[] = [jsx];
   while (queue.length) {
     const jsx = queue.shift();
@@ -153,6 +179,10 @@ function findFirstStringJSX(jsx: JSXOutput): JSXNode<string> | null {
       queue.push(jsx.children);
     } else if (Array.isArray(jsx)) {
       queue.push(...jsx);
+    } else if (isPromise(jsx)) {
+      return maybeThen<JSXOutput, JSXNode<string> | null>(jsx, (jsx) => findFirstStringJSX(jsx));
+    } else if (isSignal(jsx)) {
+      return findFirstStringJSX(untrack(() => jsx.value as JSXOutput));
     }
   }
   return null;

@@ -136,10 +136,30 @@ bun run i18n-extract
 
 For auto translations, you can use the [deepl-localize](https://www.npmjs.com/package/deepl-localize) package. It will automatically translate your strings using the [deepl.com](https://deepl.com/) API.
 
-Use the `deepl-localize` command to translate your strings with npx:
-```bash
+Use the `deepl-localize` command to translate your strings with:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm dlx deepl-localize translate -b src/locales/message.en.json -l de-DE fr-FR -a "YOUR-DEEPL-API-KEY"
+```
+</span>
+<span q:slot="npm">
+```shell
 npx deepl-localize translate -b src/locales/message.en.json -l de-DE fr-FR -a "YOUR-DEEPL-API-KEY"
 ```
+</span>
+<span q:slot="yarn">
+```shell
+yarn dlx deepl-localize translate -b src/locales/message.en.json -l de-DE fr-FR -a "YOUR-DEEPL-API-KEY"
+```
+</span>
+<span q:slot="bun">
+```shell
+bunx deepl-localize translate -b src/locales/message.en.json -l de-DE fr-FR -a "YOUR-DEEPL-API-KEY"
+```
+</span>
+</PackageManagerTabs>
 
 Alternatively, you can use the `deepl-localize` command to translate your strings within your script section:
 ```json

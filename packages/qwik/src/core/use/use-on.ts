@@ -120,6 +120,17 @@ const _useOn = (eventName: string | string[], eventQrl: EventQRL) => {
   }
 };
 
+/**
+ * This hook is like the `useSequentialScope` but it is specifically for `useOn`. This is needed
+ * because we want to execute the `useOn` hooks only once and store the event listeners on the host
+ * element. From Qwik V2 the component is rerunning when the promise is thrown, so we need to make
+ * sure that the event listeners are not added multiple times.
+ *
+ * - The event listeners are stored in the `USE_ON_LOCAL` property.
+ * - The `USE_ON_LOCAL_SEQ_IDX` is used to keep track of the index of the hook that calls this.
+ * - The `USE_ON_LOCAL_FLAGS` is used to keep track of whether the event listener has been added or
+ *   not.
+ */
 const useOnEventsSequentialScope = () => {
   const iCtx = useInvokeContext();
   const hostElement = iCtx.$hostElement$;

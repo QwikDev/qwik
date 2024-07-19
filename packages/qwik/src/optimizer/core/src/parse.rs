@@ -389,7 +389,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							global: &qwik_transform.options.global_collect,
 							core_module: &qwik_transform.options.core_module,
 							need_handle_watch,
-							is_entry,
 							leading_comments: comments_maps.0.clone(),
 							trailing_comments: comments_maps.1.clone(),
 						})?;
@@ -680,7 +679,6 @@ pub struct PathData {
 	pub file_stem: String,
 	pub extension: String,
 	pub file_name: String,
-	pub file_prefix: String,
 }
 
 pub fn parse_path(src: &str, base_dir: &Path) -> Result<PathData, Error> {
@@ -699,10 +697,6 @@ pub fn parse_path(src: &str, base_dir: &Path) -> Result<PathData, Error> {
 		.file_name()
 		.and_then(OsStr::to_str)
 		.with_context(|| format!("Computing filename for {}", path.to_string_lossy()))?;
-	let file_prefix = file_name
-		.rsplitn(2, '.')
-		.last()
-		.with_context(|| format!("Computing file_prefix for {}", path.to_string_lossy()))?;
 
 	let abs_path = normalize_path(base_dir.join(path));
 	let abs_dir = normalize_path(abs_path.parent().unwrap());
@@ -715,7 +709,6 @@ pub fn parse_path(src: &str, base_dir: &Path) -> Result<PathData, Error> {
 		rel_dir,
 		extension: extension.into(),
 		file_name: file_name.into(),
-		file_prefix: file_prefix.into(),
 		file_stem,
 	})
 }

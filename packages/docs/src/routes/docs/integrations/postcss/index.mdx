@@ -69,9 +69,29 @@ module.exports = {
 
 If you wish to add a new plugin like [CssNano](https://cssnano.co/) run the following command and update the `postcss.config.js`.
 
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
 ```shell
-npm install cssnano --save-dev
+pnpm install cssnano
 ```
+</span>
+<span q:slot="npm">
+```shell
+npm install cssnano
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn add cssnano
+```
+</span>
+<span q:slot="bun">
+```shell
+bun install cssnano
+```
+</span>
+</PackageManagerTabs>
 
 ```ts title="postcss.config.js"
 module.exports = {

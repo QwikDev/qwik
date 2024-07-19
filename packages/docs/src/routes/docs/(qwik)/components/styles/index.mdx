@@ -108,7 +108,6 @@ export const Cmp = component$(() => {
 });
 ```
 
-
 <PackageManagerTabs>
 <span q:slot="pnpm">
 ```shell
@@ -139,7 +138,6 @@ Please refer to the [docs of our official integration](/docs/integrations/styled
 ## Styled-components
 
 The styled-components library is a popular tool in React-land for writing CSS-in-JS. Thanks to the same [styled-vanilla-extract](https://github.com/wmertens/styled-vanilla-extract) plugin, you can write your styles with styled-components syntax in Qwik with zero-runtime cost!
-
 
 <PackageManagerTabs>
 <span q:slot="pnpm">
@@ -286,7 +284,22 @@ Thanks to [Vite](https://vitejs.dev/guide/features.html#css-pre-processors), Qwi
 
 There is no need to install Qwik-specific plugins for them, but the corresponding pre-processor itself must be installed:
 
-```bash
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+# .scss and .sass
+pnpm add -D sass
+
+# .less
+pnpm add -D less
+
+# .styl and .stylus
+pnpm add -D stylus
+```
+</span>
+<span q:slot="npm">
+```shell
 # .scss and .sass
 npm add -D sass
 
@@ -296,6 +309,32 @@ npm add -D less
 # .styl and .stylus
 npm add -D stylus
 ```
+</span>
+<span q:slot="yarn">
+```shell
+# .scss and .sass
+yarn add -D sass
+
+# .less
+yarn add -D less
+
+# .styl and .stylus
+yarn add -D stylus
+```
+</span>
+<span q:slot="bun">
+```shell
+# .scss and .sass
+bun add -D sass
+
+# .less
+bun add -D less
+
+# .styl and .stylus
+bun add -D stylus
+```
+</span>
+</PackageManagerTabs>
 
 Check [Vite's docs](https://vitejs.dev/guide/features.html#css-pre-processors) for more information.
 

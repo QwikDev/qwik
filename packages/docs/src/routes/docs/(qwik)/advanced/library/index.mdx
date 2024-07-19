@@ -18,9 +18,28 @@ In order to create a component library for Qwik, you need to make sure of specif
 
 The easiest way to create a new component library is to use the build-in `library` starter:
 
-```bash
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
 pnpm create qwik library my-library
 ```
+</span>
+<span q:slot="npm">
+```shell
+npm create qwik library my-library
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn create qwik library my-library
+```
+</span>
+<span q:slot="bun">
+```shell
+bun create qwik library my-library
+```
+</span>
+</PackageManagerTabs>
 
 This will create a new folder called `my-library` with the following structure:
 
@@ -141,7 +160,7 @@ bun run build
 
 This will create a `lib` folder with the following structure. Then you can publish it to npm.
 
-```bash {2,11,14}
+```shell
 npm publish
 ```
 

@@ -78,9 +78,28 @@ Your build files will be generated into the `dist` folder.
 
 You can build your static site using:
 
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run build.server
+```
+</span>
+<span q:slot="npm">
 ```shell
 npm run build.server
 ```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run build.server
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run build.server
+```
+</span>
+</PackageManagerTabs>
 
 ### SSG Config
 

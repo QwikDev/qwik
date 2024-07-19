@@ -7,6 +7,8 @@ contributors:
   - hamatoyogi
 ---
 
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
 # Astro
 
 [Astro](https://astro.build/) is a flexible meta-framework that accommodates a wide range of tools and integrations, enabling you to leverage numerous ecosystems.
@@ -48,16 +50,28 @@ Astro comes with a command-line tool for incorporating built-in integrations: `a
 
 To install `@qwikdev/astro`, run the following from your project directory and follow the prompts:
 
-```sh
-# Using NPM
-npx astro add @qwikdev/astro
-
-# Using Yarn
-yarn astro add @qwikdev/astro
-
-# Using PNPM
-pnpm astro add @qwikdev/astro
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm dlx astro add @qwikdev/astro
 ```
+</span>
+<span q:slot="npm">
+```shell
+npx astro add @qwikdev/astro
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn dlx astro add @qwikdev/astro
+```
+</span>
+<span q:slot="bun">
+```shell
+bunx astro add @qwikdev/astro
+```
+</span>
+</PackageManagerTabs>
 
 ### Setting up the TypeScript Config
 
@@ -76,15 +90,53 @@ If you face any issues, please [post them on Github](https://github.com/QwikDev/
 
 First, install the `@qwikdev/astro` integration like so:
 
-```sh
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm install @qwikdev/astro
+```
+</span>
+<span q:slot="npm">
+```shell
 npm install @qwikdev/astro
 ```
+</span>
+<span q:slot="yarn">
+```shell
+yarn add @qwikdev/astro
+```
+</span>
+<span q:slot="bun">
+```shell
+bun install @qwikdev/astro
+```
+</span>
+</PackageManagerTabs>
 
 Typically, package managers install peer dependencies. However, if you get a `Cannot find package '@builder.io/qwik'` warning when starting Astro, install Qwik.
 
-```sh
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm install @builder.io/qwik
+```
+</span>
+<span q:slot="npm">
+```shell
 npm install @builder.io/qwik
 ```
+</span>
+<span q:slot="yarn">
+```shell
+yarn add @builder.io/qwik
+```
+</span>
+<span q:slot="bun">
+```shell
+bun install @builder.io/qwik
+```
+</span>
+</PackageManagerTabs>
 
 Now, add the integration to your `astro.config.*` file using the `integrations` property:
 

@@ -49,7 +49,7 @@ bun run qwik add deno
 
 ## Production build
 
-To build the application for production, use the `build` command, this command will automatically run `npm run build.server` and `npm run build.client`:
+To build the application for production, use the `build` command, this command will automatically run `build.server` and `build.client`:
 
 <PackageManagerTabs>
 <span q:slot="pnpm">
@@ -78,13 +78,32 @@ bun run build
 
 To start the Deno server after a build:
 
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run serve
+```
+</span>
+<span q:slot="npm">
 ```shell
 npm run serve
 ```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run serve
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run serve
+```
+</span>
+</PackageManagerTabs>
 
 ## Production deploy
 
-Since you are choosing Deno, here you are in your own, after running `npm run build`:
+Since you are choosing Deno, here you are in your own, after running the `build` command:
 
 - The `dist` folder will be created including all the static files.
 - The `server` folder will be created including all node server files.

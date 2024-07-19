@@ -1,3 +1,4 @@
+import { isDev } from '@builder.io/qwik/build';
 import { isQwikComponent, type OnRenderFn } from '../../component/component.public';
 import { assertDefined } from '../../error/assert';
 import { isQrl, type QRLInternal } from '../../qrl/qrl-class';
@@ -20,6 +21,7 @@ import {
 import { isPromise, maybeThen, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { Container2, HostElement, fixMeAny } from './types';
+import { logWarn } from '../../util/log';
 
 /**
  * Use `executeComponent2` to execute a component.
@@ -143,6 +145,12 @@ function addUseOnEvents(
             if (jsxElement) {
               addUseOnEvent(jsxElement, 'document:onQinit$', useOnEvents[key]);
             }
+          } else if (isDev) {
+            logWarn(
+              'You are trying to add an event using `useOn` hook, ' +
+                'but a node to which you can add an event is not found. ' +
+                'Please make sure that the component has a valid element node. '
+            );
           }
         } else if (jsxElement) {
           addUseOnEvent(jsxElement, key, useOnEvents[key]);

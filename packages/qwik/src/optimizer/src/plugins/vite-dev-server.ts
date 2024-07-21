@@ -12,7 +12,7 @@ import {
   makeNormalizePath,
 } from './plugin';
 import type { QwikViteDevResponse } from './vite';
-import { formatError } from './vite-utils';
+import { formatError, isWin } from './vite-utils';
 import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
 import imageDevTools from './image-size-runtime.html?raw';
 import clickToComponent from './click-to-component.html?raw';
@@ -34,7 +34,7 @@ function getOrigin(req: IncomingMessage) {
 
 // We must encode the chunk so that e.g. + doesn't get converted to space etc
 const encode = (url: string) =>
-  encodeURIComponent(url).replaceAll('%2F', '/').replaceAll('%40', '@');
+  encodeURIComponent(url).replaceAll('%2F', '/').replaceAll('%40', '@').replaceAll('%3A', ':');
 
 function createSymbolMapper(
   base: string,
@@ -74,11 +74,11 @@ function createSymbolMapper(
       return [symbolName, `${base}${symbolName.toLowerCase()}.js`];
     }
     // on windows, absolute paths don't start with a slash
-    const maybeSlash = sys.os === 'win32' ? '/' : '';
+    const maybeSlash = isWin(sys.os) ? '/' : '';
     const parentPath = normalizePath(path.dirname(parent));
     const parentFile = path.basename(parent);
     const qrlPath = parentPath.startsWith(opts.rootDir)
-      ? path.relative(opts.rootDir, parentPath)
+      ? normalizePath(path.relative(opts.rootDir, parentPath))
       : `@fs${maybeSlash}${parentPath}`;
     const qrlFile = `${encode(qrlPath)}/${symbolName.toLowerCase()}.js?_qrl_parent=${encode(parentFile)}`;
     return [symbolName, `${base}${qrlFile}`];

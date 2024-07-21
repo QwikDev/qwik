@@ -16,7 +16,7 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
   run(mod, mod.exports, noopRequire);
 
   const server: ServerModule = mod.exports;
-  const render = typeof server === 'function' ? server : server.default ?? server.render;
+  const render = typeof server === 'function' ? server : (server.default ?? server.render);
   if (typeof render !== 'function') {
     throw new Error(`Server module "${ssrModule.path}" does not export render()`);
   }

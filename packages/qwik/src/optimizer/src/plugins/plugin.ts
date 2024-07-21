@@ -20,6 +20,7 @@ import type {
 } from '../types';
 import { createLinter, type QwikLinter } from './eslint-plugin';
 import type { LoadResult, OutputBundle, TransformResult } from 'rollup';
+import { isWin } from './vite-utils';
 
 const REG_CTX_NAME = ['server'];
 
@@ -502,7 +503,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         moduleSideEffects: false,
       };
     }
-
+    const optimizer = getOptimizer();
     const path = getPath();
 
     // Requests originating from another file, or the browser
@@ -541,7 +542,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         id = decodeURIComponent(id);
         // Support absolute paths for qrl segments, due to e.g. pnpm linking
         if (id.startsWith('/@fs/')) {
-          id = id.slice(4);
+          // remove `/@fs/` prefix for Windows
+          // remove `/@fs` prefix for Unix
+          id = id.slice(isWin(optimizer.sys.os) ? 5 : 4);
         } else {
           // Now paths could be either relative or absolute, we're not sure.
           // If the first path segment is the same as that of the importer dir, we assume it's absolute
@@ -934,7 +937,7 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
 /** Convert windows backslashes to forward slashes */
 export const makeNormalizePath = (sys: OptimizerSystem) => (id: string) => {
   if (typeof id === 'string') {
-    if (sys.os === 'win32') {
+    if (isWin(sys.os)) {
       // MIT https://github.com/sindresorhus/slash/blob/main/license
       // Convert Windows backslash paths to slash paths: foo\\bar ➔ foo/bar
       const isExtendedLengthPath = /^\\\\\?\\/.test(id);

@@ -172,7 +172,7 @@ export const isConnected = (sub: SubscriberEffect | SubscriberHost): boolean => 
 
 /** @public */
 export const unwrapProxy = <T>(proxy: T): T => {
-  return isObject(proxy) ? getProxyTarget<any>(proxy) ?? proxy : proxy;
+  return isObject(proxy) ? (getProxyTarget<any>(proxy) ?? proxy) : proxy;
 };
 
 export const getProxyTarget = <T extends object>(obj: T): T | undefined => {

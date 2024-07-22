@@ -16,7 +16,13 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "minor",
-  "ignore": ["qwik-docs", "@builder.io/qwik-labs", "insights"],
+  "ignore": [
+    "qwik-docs",
+    "@builder.io/qwik-labs",
+    "insights",
+    "@builder.io/qwik-react",
+    "@builder.io/qwik-worker"
+  ],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
     "onlyUpdatePeerDependentsWhenOutOfRange": true
   }

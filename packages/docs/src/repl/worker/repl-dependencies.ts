@@ -7,6 +7,14 @@ let options: ReplInputOptions;
 let cache: Cache;
 
 export const depResponse = async (pkgName: string, pkgPath: string) => {
+  if (pkgName === QWIK_PKG_NAME && !pkgPath.startsWith('/bindings')) {
+    const version = options.deps[pkgName].version;
+    const isDev = version.includes('dev');
+    const v = version.split('-')[0].split('.').map(Number);
+    if (v[0] >= 1 && v[1] >= 7 && v[2] >= (isDev ? 1 : 2)) {
+      pkgPath = `/dist${pkgPath}`;
+    }
+  }
   const url = options.deps[pkgName][pkgPath];
   if (!url) {
     throw new Error(`No URL given for dep: ${pkgName}${pkgPath}`);

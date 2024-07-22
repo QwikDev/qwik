@@ -25,6 +25,10 @@
     "eslint",
     "qwik"
   ],
+  "files": [
+    "README.md",
+    "dist"
+  ],
   "license": "MIT",
   "main": "dist/index.js",
   "peerDependencies": {

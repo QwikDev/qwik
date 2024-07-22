@@ -15,9 +15,9 @@ import qJsxDts from '../../node_modules/@builder.io/qwik/dist/jsx-runtime.d.ts?r
 import qOptimizerCjs from '../../node_modules/@builder.io/qwik/dist/optimizer.cjs?raw';
 import qServerCjs from '../../node_modules/@builder.io/qwik/dist/server.cjs?raw';
 import qServerDts from '../../node_modules/@builder.io/qwik/dist/server.d.ts?raw';
-import qWasmCjs from '../../node_modules/@builder.io/qwik/dist/bindings/qwik.wasm.cjs?raw';
+import qWasmCjs from '../../node_modules/@builder.io/qwik/bindings/qwik.wasm.cjs?raw';
 // we can use the wasm binary directly, it doesn't get processed
-import qWasmBinUrl from '../../node_modules/@builder.io/qwik/dist/bindings/qwik_wasm_bg.wasm?url';
+import qWasmBinUrl from '../../node_modules/@builder.io/qwik/bindings/qwik_wasm_bg.wasm?url';
 
 import { isServer } from '@builder.io/qwik/build';
 
@@ -58,15 +58,16 @@ const blobUrl = (code: string, type: string = 'application/javascript') => {
 const bundled: PkgUrls = {
   [QWIK_PKG_NAME]: {
     version: qwikVersion,
-    '/build/index.d.ts': blobUrl(qBuild),
-    '/core.cjs': blobUrl(qCoreCjs),
-    '/core.d.ts': blobUrl(qCoreDts),
-    '/core.min.mjs': blobUrl(qCoreMinMjs),
-    '/core.mjs': blobUrl(qCoreMjs),
-    '/jsx-runtime.d.ts': blobUrl(qJsxDts),
-    '/optimizer.cjs': blobUrl(qOptimizerCjs),
-    '/server.cjs': blobUrl(qServerCjs),
-    '/server.d.ts': blobUrl(qServerDts),
+    '/dist/build/index.d.ts': blobUrl(qBuild),
+    '/dist/core.cjs': blobUrl(qCoreCjs),
+    '/dist/core.d.ts': blobUrl(qCoreDts),
+    '/dist/core.min.mjs': blobUrl(qCoreMinMjs),
+    '/dist/core.mjs': blobUrl(qCoreMjs),
+    '/dist/jsx-runtime.d.ts': blobUrl(qJsxDts),
+    '/dist/jsx-dev-runtime.d.ts': blobUrl(qJsxDts),
+    '/dist/optimizer.cjs': blobUrl(qOptimizerCjs),
+    '/dist/server.cjs': blobUrl(qServerCjs),
+    '/dist/server.d.ts': blobUrl(qServerDts),
     '/bindings/qwik.wasm.cjs': blobUrl(qWasmCjs),
     '/bindings/qwik_wasm_bg.wasm': qWasmBinUrl,
   },

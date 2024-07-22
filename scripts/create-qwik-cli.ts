@@ -24,10 +24,6 @@ export async function buildCreateQwikCli(config: BuildConfig) {
   await bundleCreateQwikCli(config, srcCliDir, distCliDir);
   await copyStartersDir(config, distCliDir, ['apps']);
 
-  await copyFile(join(srcCliDir, 'package.json'), join(distCliDir, 'package.json'));
-  await copyFile(join(srcCliDir, 'README.md'), join(distCliDir, 'README.md'));
-  await copyFile(join(srcCliDir, 'create-qwik.cjs'), join(distCliDir, 'create-qwik.cjs'));
-
   console.log('🐠 create-qwik cli');
 }
 
@@ -77,16 +73,10 @@ export async function publishCreateQwikCli(
   version: string,
   isDryRun: boolean
 ) {
-  const distCliDir = join(config.packagesDir, PACKAGE, 'dist');
-  const cliPkg = await readPackageJson(distCliDir);
-
-  // update the cli version
-  console.log(`   update version = "${version}"`);
-  cliPkg.version = version;
-  await writePackageJson(distCliDir, cliPkg);
+  const srcCliDir = join(config.packagesDir, PACKAGE);
 
   // update the base app's package.json
-  const distCliBaseAppDir = join(distCliDir, 'starters', 'apps', 'base');
+  const distCliBaseAppDir = join(srcCliDir, 'dist', 'starters', 'apps', 'base');
   const baseAppPkg = await readPackageJson(distCliBaseAppDir);
   baseAppPkg.devDependencies = baseAppPkg.devDependencies || {};
 
@@ -113,14 +103,14 @@ export async function publishCreateQwikCli(
   console.log(distCliBaseAppDir, JSON.stringify(baseAppPkg, null, 2));
   await writePackageJson(distCliBaseAppDir, baseAppPkg);
 
-  console.log(`⛴ publishing ${cliPkg.name} ${version}`, isDryRun ? '(dry-run)' : '');
+  console.log(`⛴ publishing ${PACKAGE} ${version}`, isDryRun ? '(dry-run)' : '');
 
   const npmPublishArgs = ['publish', '--tag', distTag];
 
-  await run('npm', npmPublishArgs, isDryRun, isDryRun, { cwd: distCliDir });
+  await run('npm', npmPublishArgs, isDryRun, isDryRun, { cwd: srcCliDir });
 
   console.log(
-    `🐳 published version "${version}" of ${cliPkg.name} with dist-tag "${distTag}" to npm`,
+    `🐳 published version "${version}" of ${PACKAGE} with dist-tag "${distTag}" to npm`,
     isDryRun ? '(dry-run)' : ''
   );
 }

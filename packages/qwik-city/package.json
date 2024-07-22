@@ -159,10 +159,13 @@
       "require": "./lib/service-worker.cjs"
     }
   },
+  "files": [
+    "README.md",
+    "lib"
+  ],
   "homepage": "https://qwik.dev/",
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
-  "private": true,
   "publishConfig": {
     "access": "public"
   },

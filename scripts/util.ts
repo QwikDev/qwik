@@ -110,7 +110,7 @@ export function loadConfig(args: string[] = []) {
       startersDir: join(rootDir, 'starters'),
       distQwikPkgDir,
       distQwikCityPkgDir: join(packagesDir, 'qwik-city', 'lib'),
-      distBindingsDir: join(distQwikPkgDir, 'bindings'),
+      distBindingsDir: join(packagesDir, 'qwik', 'bindings'),
       tscDir: join(tmpDir, 'tsc-out'),
       dtsDir: join(tmpDir, 'dts-out'),
       esmNode: parseInt(process.version.slice(1).split('.')[0], 10) >= 14,

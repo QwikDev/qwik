@@ -57,18 +57,8 @@ export async function setReleaseVersion(config: BuildConfig) {
   // check this @builder.io/qwik version isn't already published
   await checkExistingNpmVersion('@builder.io/qwik', config.distVersion);
 
-  // set @builder.io/qwik release version
-  const distQwikPkg = await readPackageJson(config.distQwikPkgDir);
-  distQwikPkg.version = config.distVersion;
-  await writePackageJson(config.distQwikPkgDir, distQwikPkg);
-
   // check this @builder.io/qwik-city version isn't already published
   await checkExistingNpmVersion('@builder.io/qwik-city', config.distVersion);
-
-  // set @builder.io/qwik-city release version
-  const distCityPkg = await readPackageJson(config.distQwikCityPkgDir);
-  distCityPkg.version = config.distVersion;
-  await writePackageJson(config.distQwikCityPkgDir, distCityPkg);
 }
 
 export async function prepareReleaseVersion(config: BuildConfig) {
@@ -139,7 +129,8 @@ export async function commitPrepareReleaseVersion(config: BuildConfig) {
 export async function publish(config: BuildConfig) {
   const isDryRun = !!config.dryRun;
 
-  const distPkg = await readPackageJson(config.distQwikPkgDir);
+  const qwikDir = join(config.packagesDir, 'qwik');
+  const distPkg = await readPackageJson(qwikDir);
   const gitTag = `v${distPkg.version}`;
   const distTag = config.setDistTag || 'dev';
 
@@ -147,8 +138,8 @@ export async function publish(config: BuildConfig) {
 
   // create a pack.tgz which is useful for debugging and uploaded as an artifact
   const pkgTarName = `builder.io-qwik-${distPkg.version}.tgz`;
-  await execa('npm', ['pack'], { cwd: config.distQwikPkgDir });
-  await execa('mv', [pkgTarName, '../'], { cwd: config.distQwikPkgDir });
+  await execa('npm', ['pack'], { cwd: qwikDir });
+  await execa('mv', [pkgTarName, '../'], { cwd: qwikDir });
 
   // make sure our build is good to go and has the files we expect
   // and each of the files can be parsed correctly
@@ -158,16 +149,12 @@ export async function publish(config: BuildConfig) {
   // dry-run does everything the same except actually publish to npm
   const npmPublishArgs = ['publish', '--tag', distTag, '--access', 'public'];
 
-  // fix qwik-city version
-  const distCityPkg = await readPackageJson(config.distQwikCityPkgDir);
-  distCityPkg.version = distPkg.version;
-  await writePackageJson(config.distQwikCityPkgDir, distCityPkg);
-
+  const qwikCityDir = join(config.packagesDir, 'qwik-city');
   // publish @builder.io/qwik-city (dry-run)
-  await run('npm', npmPublishArgs, true, true, { cwd: config.distQwikCityPkgDir });
+  await run('npm', npmPublishArgs, true, true, { cwd: qwikCityDir });
 
   // publish @builder.io/qwik (dry-run)
-  await run('npm', npmPublishArgs, true, true, { cwd: config.distQwikPkgDir });
+  await run('npm', npmPublishArgs, true, true, { cwd: qwikDir });
 
   // looks like the npm publish --dry-run was successful and
   // we have more confidence that it should work on a real publish
@@ -203,10 +190,10 @@ export async function publish(config: BuildConfig) {
     // ⛴ LET'S GO!!
 
     // publish @builder/qwik-city
-    await run('npm', npmPublishArgs, false, false, { cwd: config.distQwikCityPkgDir });
+    await run('npm', npmPublishArgs, false, false, { cwd: qwikCityDir });
 
     // publish @builder/qwik
-    await run('npm', npmPublishArgs, false, false, { cwd: config.distQwikPkgDir });
+    await run('npm', npmPublishArgs, false, false, { cwd: qwikDir });
 
     if (!config.devRelease) {
       // git push to the production repo w/out the dry-run flag

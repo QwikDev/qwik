@@ -605,11 +605,17 @@ export const vnode_diff = (
           continue;
         }
 
-        if (isSignal(value)) {
-          if (key === 'ref') {
+        if (key === 'ref') {
+          if (isSignal(value)) {
             value.value = element;
             continue;
+          } else if (typeof value === 'function') {
+            value(element);
+            continue;
           }
+        }
+
+        if (isSignal(value)) {
           value = trackSignal(value, [
             SubscriptionType.PROP_IMMUTABLE,
             vNewNode as fixMeAny,
@@ -749,10 +755,18 @@ export const vnode_diff = (
         vnode_setProp(vnode, key, value);
         return;
       }
+
       if (key === 'ref') {
-        value.value = vnode_getNode(vnode);
-        return;
+        const element = vnode_getNode(vnode) as Element;
+        if (isSignal(value)) {
+          value.value = element;
+          return;
+        } else if (typeof value === 'function') {
+          value(element);
+          return;
+        }
       }
+
       vnode_setAttr(journal, vnode, key, value);
       if (value === null) {
         // if we set `null` than attribute was removed and we need to shorten the dstLength

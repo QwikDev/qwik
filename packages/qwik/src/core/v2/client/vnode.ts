@@ -118,8 +118,8 @@
  */
 
 import { isDev } from '@builder.io/qwik/build';
+import { qwikDebugToString } from '../../debug';
 import { assertDefined, assertEqual, assertFalse, assertTrue } from '../../error/assert';
-import { isQrl } from '../../qrl/qrl-class';
 import { dangerouslySetInnerHTML } from '../../render/execute-component';
 import { isText } from '../../util/element';
 import { throwErrorAndStop } from '../../util/log';
@@ -142,7 +142,7 @@ import {
 import { isHtmlElement } from '../../util/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType, VirtualTypeName } from '../shared/types';
 import { VNodeDataChar } from '../shared/vnode-data-types';
-import { getDomContainer, _getQContainerElement } from './dom-container';
+import { getDomContainer } from './dom-container';
 import {
   ElementVNodeProps,
   TextVNodeProps,
@@ -162,7 +162,6 @@ import {
   vnode_getDomChildrenWithCorrectNamespacesToInsert,
   vnode_getElementNamespaceFlags,
 } from './vnode-namespace';
-import { qwikDebugToString } from '../../debug';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 

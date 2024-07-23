@@ -1,6 +1,5 @@
 import type { OnRenderFn } from '../component/component.public';
 import type { ContainerState, GetObjID, GetObject } from '../container/container';
-import { canSerialize } from '../container/serializers';
 import { assertDefined, assertFail, assertTrue } from '../error/assert';
 import { QError_verifySerializable, qError } from '../error/error';
 import type { QRL } from '../qrl/qrl.public';

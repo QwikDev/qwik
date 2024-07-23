@@ -9,7 +9,6 @@ import { isArray, isObject, isSerializableObject } from '../util/types';
 import {
   SERIALIZER_PROXY_UNWRAP,
   SerializationConstant,
-  subscriptionManagerFromString,
 } from '../v2/shared/shared-serialization';
 import {
   LocalSubscriptionManager,
@@ -77,6 +76,7 @@ export const createProxy = <T extends object>(
   const getSerializedState = (target: object): string | undefined => {
     return (target as any)[SerializationConstant.Store_CHAR];
   };
+  const subscriptionManagerFromString: any = null!
   const removeSerializedState = (target: object) => {
     delete (target as any)[SerializationConstant.Store_CHAR];
   };

@@ -8,12 +8,11 @@ import { DerivedSignal2, isSignal2 } from '../v2/signal/v2-signal';
 import { getStoreTarget2 } from '../v2/signal/v2-store';
 import {
   LocalSubscriptionManager,
-  getProxyTarget,
   getSubscriptionManager,
   verifySerializable,
   type Subscriber,
   type SubscriptionManager,
-  type Subscriptions,
+  type Subscriptions
 } from './common';
 import { QObjectManagerSymbol, _CONST_PROPS } from './constants';
 

@@ -336,7 +336,7 @@ export const createScheduler = (
           value = value.value as any;
         }
         // TODO(mhevery): Fix this hack
-        const journal = container.$journal$ as fixMeAny;
+        const journal = (container as fixMeAny).$journal$ as fixMeAny;
         const property = chore.$idx$ as string;
         value = serializeAttribute(property, value);
         vnode_setAttr(journal, virtualNode, property, value);

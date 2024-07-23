@@ -12,7 +12,7 @@ import { isPromise } from '../../util/promises';
 import { getDomContainer } from '../client/dom-container';
 import { ChoreType } from '../shared/scheduler';
 import type { Container2 } from '../shared/types';
-import type { EffectSubscriptions } from './v2-signal';
+import { EffectProperty, type EffectSubscriptions } from './v2-signal';
 import { createComputed2Qrl, createSignal2, type ReadonlySignal2 } from './v2-signal.public';
 
 describe('v2-signal', () => {
@@ -163,7 +163,7 @@ describe('v2-signal', () => {
     } else {
       const ctx = newInvokeContext();
       ctx.$container2$ = container;
-      const subscriber: EffectSubscriptions = [task, ctx];
+      const subscriber: EffectSubscriptions = [task, EffectProperty.COMPONENT, ctx];
       ctx.$effectSubscriber$ = subscriber;
       return invoke(ctx, qrl.getFn(ctx));
     }

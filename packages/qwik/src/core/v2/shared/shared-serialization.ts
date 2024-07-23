@@ -990,6 +990,8 @@ function serializeEffectSubs(
   return data;
 }
 
+const subscriptionManagerToString: any = null!;
+
 function serializeProxy(
   value: any,
   proxy: any,

@@ -763,8 +763,8 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nevent$: <T>(first: T) => QRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfirst\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[QRL](#qrl)<!-- -->&lt;T&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
+      "content": "```typescript\nevent$: <T>(first: T) => import(\"./qrl.public\").QRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfirst\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nimport(\"./qrl.public\").[QRL](#qrl)<!-- -->&lt;T&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.dollar.ts",
       "mdFile": "qwik.event_.md"
     },
     {
@@ -1130,8 +1130,8 @@
         }
       ],
       "kind": "Function",
-      "content": "Checks if a given object is a `Signal`<!-- -->.\n\n\n```typescript\nisSignal: <T = unknown>(obj: any) => obj is Signal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nobj\n\n\n</td><td>\n\nany\n\n\n</td><td>\n\nThe object to check if `Signal`<!-- -->.\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nobj is [Signal](#signal)<!-- -->&lt;T&gt;\n\nBoolean - True if the object is a `Signal`<!-- -->.",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/state/signal.ts",
+      "content": "```typescript\nisSignal2: (value: any) => value is ISignal2<unknown>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\nany\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvalue is ISignal2&lt;unknown&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.ts",
       "mdFile": "qwik.issignal.md"
     },
     {
@@ -2951,7 +2951,7 @@
       ],
       "kind": "Variable",
       "content": "```typescript\nuseComputed$: Computed\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task-dollar.ts",
       "mdFile": "qwik.usecomputed_.md"
     },
     {
@@ -3244,8 +3244,8 @@
         }
       ],
       "kind": "Function",
-      "content": "Reruns the `taskFn` when the observed inputs change.\n\nUse `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when those inputs change.\n\nThe `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.\n\n\n```typescript\nuseTask$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfirst\n\n\n</td><td>\n\n[TaskFn](#taskfn)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\n[UseTaskOptions](#usetaskoptions) \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvoid",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "content": "Reruns the `taskFn` when the observed inputs change.\n\nUse `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when those inputs change.\n\nThe `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.\n\n\n```typescript\nuseTask$: (first: import(\"./use-task\").TaskFn, opts?: import(\"./use-task\").UseTaskOptions | undefined) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfirst\n\n\n</td><td>\n\nimport(\"./use-task\").[TaskFn](#taskfn)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\nimport(\"./use-task\").[UseTaskOptions](#usetaskoptions) \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvoid",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task-dollar.ts",
       "mdFile": "qwik.usetask_.md"
     },
     {
@@ -3286,8 +3286,8 @@
         }
       ],
       "kind": "Function",
-      "content": "```tsx\nconst Timer = component$(() => {\n  const store = useStore({\n    count: 0,\n  });\n\n  useVisibleTask$(() => {\n    // Only runs in the client\n    const timer = setInterval(() => {\n      store.count++;\n    }, 500);\n    return () => {\n      clearInterval(timer);\n    };\n  });\n\n  return <div>{store.count}</div>;\n});\n```\n\n\n```typescript\nuseVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfirst\n\n\n</td><td>\n\n[TaskFn](#taskfn)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\n[OnVisibleTaskOptions](#onvisibletaskoptions) \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvoid",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "content": "```tsx\nconst Timer = component$(() => {\n  const store = useStore({\n    count: 0,\n  });\n\n  useVisibleTask$(() => {\n    // Only runs in the client\n    const timer = setInterval(() => {\n      store.count++;\n    }, 500);\n    return () => {\n      clearInterval(timer);\n    };\n  });\n\n  return <div>{store.count}</div>;\n});\n```\n\n\n```typescript\nuseVisibleTask$: (first: import(\"./use-task\").TaskFn, opts?: import(\"./use-task\").OnVisibleTaskOptions | undefined) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfirst\n\n\n</td><td>\n\nimport(\"./use-task\").[TaskFn](#taskfn)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\nimport(\"./use-task\").[OnVisibleTaskOptions](#onvisibletaskoptions) \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvoid",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task-dollar.ts",
       "mdFile": "qwik.usevisibletask_.md"
     },
     {

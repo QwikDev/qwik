@@ -60,6 +60,9 @@ export const createComputedSignal2 = <T>(qrl: QRL<() => T>) => {
   return new ComputedSignal2(null, qrl as QRLInternal<() => T>);
 };
 
+/**
+ * @public
+ */
 export const isSignal2 = (value: any): value is ISignal2<unknown> => {
   return value instanceof Signal2;
 };

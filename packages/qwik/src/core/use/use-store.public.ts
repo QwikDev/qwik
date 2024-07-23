@@ -1,5 +1,3 @@
-import { QObjectRecursive } from '../state/constants';
-import { getOrCreateProxy } from '../state/store';
 import { isFunction } from '../util/types';
 import { Store2Flags, getOrCreateStore2 } from '../v2/signal/v2-store';
 import { invoke } from './use-core';

@@ -361,10 +361,10 @@ export const eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 export interface FieldsetHTMLAttributes<T extends Element> extends Attrs<'fieldset', T> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "SignalDerived" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "DerivedSignal2" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export const _fnSignal: <T extends (...args: any) => any>(fn: T, args: Parameters<T>, fnStr?: string) => SignalDerived<ReturnType<T>, Parameters<T>>;
+export const _fnSignal: <T extends (...args: any) => any>(fn: T, args: Parameters<T>, fnStr?: string) => DerivedSignal2<any>;
 
 // @public (undocumented)
 export interface FormHTMLAttributes<T extends Element> extends Attrs<'form', T> {
@@ -507,8 +507,10 @@ export type IntrinsicSVGElements = {
 // @internal (undocumented)
 export const _isJSXNode: <T>(n: unknown) => n is JSXNode<T>;
 
-// @public
-export const isSignal: <T = unknown>(obj: any) => obj is Signal<T>;
+// Warning: (ae-forgotten-export) The symbol "Signal2_2" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export const isSignal: (value: any) => value is Signal2_2<unknown>;
 
 // @internal (undocumented)
 export function _isStringifiable(value: unknown): value is _Stringifiable;
@@ -1087,10 +1089,10 @@ export abstract class _SharedContainer implements Container2 {
     abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)
     abstract setHostProp<T>(host: HostElement, name: string, value: T): void;
-    // Warning: (ae-forgotten-export) The symbol "Subscriber" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "Effect" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    trackSignalValue<T>(signal: Signal, sub: Subscriber): T;
+    trackSignalValue<T>(signal: Signal, subscriber: Effect, property: string): T;
 }
 
 // @public (undocumented)

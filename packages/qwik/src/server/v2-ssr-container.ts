@@ -1073,14 +1073,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             value.value = lastNode;
             continue;
           } else {
-            value = this.trackSignalValue(value, lastNode as fixMeAny, key, [
+            value = (this.trackSignalValue as fixMeAny)(value, lastNode as fixMeAny, key, [
               immutable ? SubscriptionType.PROP_IMMUTABLE : SubscriptionType.PROP_MUTABLE,
               lastNode as fixMeAny,
               value,
               lastNode as fixMeAny,
               key,
               styleScopedId || undefined,
-            ]);
+            ] as fixMeAny);
           }
         }
 

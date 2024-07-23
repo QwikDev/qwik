@@ -2061,7 +2061,7 @@ any \| undefined
 ## event$
 
 ```typescript
-event$: <T>(first: T) => QRL<T>;
+event$: <T>(first: T) => import("./qrl.public").QRL<T>;
 ```
 
 <table><thead><tr><th>
@@ -2091,9 +2091,9 @@ T
 </tbody></table>
 **Returns:**
 
-[QRL](#qrl)&lt;T&gt;
+import("./qrl.public").[QRL](#qrl)&lt;T&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.dollar.ts)
 
 ## EventHandler
 
@@ -2613,10 +2613,8 @@ export interface IntrinsicElements extends IntrinsicHTMLElements, IntrinsicSVGEl
 
 ## isSignal
 
-Checks if a given object is a `Signal`.
-
 ```typescript
-isSignal: <T = unknown>(obj: any) => obj is Signal<T>
+isSignal2: (value: any) => value is ISignal2<unknown>
 ```
 
 <table><thead><tr><th>
@@ -2634,7 +2632,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-obj
+value
 
 </td><td>
 
@@ -2642,17 +2640,13 @@ any
 
 </td><td>
 
-The object to check if `Signal`.
-
 </td></tr>
 </tbody></table>
 **Returns:**
 
-obj is [Signal](#signal)&lt;T&gt;
+value is ISignal2&lt;unknown&gt;
 
-Boolean - True if the object is a `Signal`.
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.ts)
 
 ## jsx
 
@@ -10010,7 +10004,7 @@ T
 useComputed$: Computed;
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task-dollar.ts)
 
 ## useComputedQrl
 
@@ -10995,7 +10989,7 @@ Use `useTask` to observe changes on a set of inputs, and then re-execute the `ta
 The `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.
 
 ```typescript
-useTask$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void
+useTask$: (first: import("./use-task").TaskFn, opts?: import("./use-task").UseTaskOptions | undefined) => void
 ```
 
 <table><thead><tr><th>
@@ -11017,7 +11011,7 @@ first
 
 </td><td>
 
-[TaskFn](#taskfn)
+import("./use-task").[TaskFn](#taskfn)
 
 </td><td>
 
@@ -11028,7 +11022,7 @@ opts
 
 </td><td>
 
-[UseTaskOptions](#usetaskoptions) \| undefined
+import("./use-task").[UseTaskOptions](#usetaskoptions) \| undefined
 
 </td><td>
 
@@ -11040,7 +11034,7 @@ _(Optional)_
 
 void
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task-dollar.ts)
 
 ## UseTaskOptions
 
@@ -11163,7 +11157,7 @@ const Timer = component$(() => {
 ```
 
 ```typescript
-useVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void
+useVisibleTask$: (first: import("./use-task").TaskFn, opts?: import("./use-task").OnVisibleTaskOptions | undefined) => void
 ```
 
 <table><thead><tr><th>
@@ -11185,7 +11179,7 @@ first
 
 </td><td>
 
-[TaskFn](#taskfn)
+import("./use-task").[TaskFn](#taskfn)
 
 </td><td>
 
@@ -11196,7 +11190,7 @@ opts
 
 </td><td>
 
-[OnVisibleTaskOptions](#onvisibletaskoptions) \| undefined
+import("./use-task").[OnVisibleTaskOptions](#onvisibletaskoptions) \| undefined
 
 </td><td>
 
@@ -11208,7 +11202,7 @@ _(Optional)_
 
 void
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task-dollar.ts)
 
 ## useVisibleTaskQrl
 

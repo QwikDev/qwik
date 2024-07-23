@@ -524,7 +524,6 @@ jobs:
 
   deploy-docs:
     name: Cloudflare Pages Deployment
-    if: always() && needs.changes.outputs.build-docs == 'true'
     needs:
       - build-docs
       - changes

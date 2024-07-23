@@ -445,9 +445,6 @@ jobs:
           mv artifact-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
           mv artifact-qwiklabs/lib packages/qwik-labs/lib
           mv artifact-qwiklabs/vite packages/qwik-labs/vite
-          # temporary
-          cat packages/qwik-city/package.json
-          ls -l packages/qwik-city/lib/vite*
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node

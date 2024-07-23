@@ -160,8 +160,15 @@
     }
   },
   "files": [
+    "adapters",
+    "index.d.ts",
+    "lib",
+    "middleware",
+    "modules.d.ts",
     "README.md",
-    "lib"
+    "service-worker.d.ts",
+    "static.d.ts",
+    "vite.d.ts"
   ],
   "homepage": "https://qwik.dev/",
   "license": "MIT",
@@ -176,7 +183,7 @@
     "directory": "packages/qwik-city"
   },
   "scripts": {
-    "build": "cd runtime && vite build --mode lib"
+    "build": "cd src/runtime && vite build --mode lib"
   },
   "type": "module",
   "types": "./lib/index.d.ts"

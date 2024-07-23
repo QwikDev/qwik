@@ -103,7 +103,7 @@ export function loadConfig(args: string[] = []) {
       packagesDir,
       srcQwikDir,
       tmpDir,
-      srcQwikCityDir: join(packagesDir, 'qwik-city'),
+      srcQwikCityDir: join(packagesDir, 'qwik-city', 'src'),
       srcQwikLabsDir: join(packagesDir, 'qwik-labs'),
       srcNapiDir: join(srcQwikDir, 'napi'),
       scriptsDir: join(rootDir, 'scripts'),

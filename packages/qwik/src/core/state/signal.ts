@@ -5,6 +5,7 @@ import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
 import { qDev, qSerialize } from '../util/qdev';
 import { isObject } from '../util/types';
 import { DerivedSignal2, isSignal2 } from '../v2/signal/v2-signal';
+import { getStoreTarget2 } from '../v2/signal/v2-store';
 import {
   LocalSubscriptionManager,
   getProxyTarget,
@@ -208,10 +209,6 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T,
   if (!isObject(obj)) {
     return obj[prop];
   }
-  if (isSignal(obj)) {
-    assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
-    return new SignalDerived(getProp, [obj, prop as string]);
-  }
   if (isSignal2(obj)) {
     assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
     return new DerivedSignal2(null, getProp, [obj, prop as string], null);
@@ -223,12 +220,13 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T,
       return constProps[prop];
     }
   } else {
-    const target = getProxyTarget(obj);
+    const target = getStoreTarget2(obj);
     if (target) {
       const signal = target[prop];
-      return isSignal(signal) ? signal : new SignalDerived(getProp, [obj, prop as string]);
+      const wrappedValue = isSignal2(signal) ? signal : new DerivedSignal2(null, getProp, [obj, prop as string], null);
+      return wrappedValue
     }
   }
   // We need to forward the access to the original object
-  return new SignalDerived(getProp, [obj, prop as string]);
+  return new DerivedSignal2(null, getProp, [obj, prop as string], null);
 };

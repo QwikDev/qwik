@@ -27,8 +27,10 @@ import type { DomContainer } from '../v2/client/dom-container';
 import { ElementVNodeProps, type VNode, type VirtualVNode } from '../v2/client/types';
 import { VNodeJournalOpCode, vnode_setAttr } from '../v2/client/vnode';
 import { ChoreType } from '../v2/shared/scheduler';
+import { canSerialize2 } from '../v2/shared/shared-serialization';
 import { isContainer2, type fixMeAny } from '../v2/shared/types';
 import { isSignal2 } from '../v2/signal/v2-signal';
+import { unwrapStore2 } from '../v2/signal/v2-store';
 import { QObjectFlagsSymbol, QObjectManagerSymbol, QObjectTargetSymbol } from './constants';
 import { tryGetContext } from './context';
 import type { Signal } from './signal';
@@ -58,7 +60,7 @@ export const verifySerializable = <T>(value: T, preMessage?: string): T => {
 };
 
 const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessage?: string): T => {
-  const unwrapped = unwrapProxy(value);
+  const unwrapped = unwrapStore2(value);
   if (unwrapped == null) {
     return value;
   }
@@ -70,7 +72,7 @@ const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessag
     if (isSignal2(unwrapped)) {
       return value;
     }
-    if (canSerialize(unwrapped)) {
+    if (canSerialize2(unwrapped)) {
       return value;
     }
     const typeObj = typeof unwrapped;

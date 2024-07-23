@@ -28,6 +28,7 @@ import type { VNode } from '../client/types';
 import { ChoreType } from '../shared/scheduler';
 import type { Container2, HostElement, fixMeAny } from '../shared/types';
 import type { Signal2 as ISignal2 } from './v2-signal.public';
+import type { Store2 } from './v2-store';
 
 const DEBUG = false;
 
@@ -113,7 +114,11 @@ export type Effect = Task | VNode | Signal2;
 export type EffectSubscriptions = [
   Effect, // EffectSubscriptionsProp.EFFECT
   string,  // EffectSubscriptionsProp.PROPERTY
-  ...Signal2[]];
+  ...( // NOTE even thought this is shown as `...(string|Signal2)` 
+    // it is a list of strings  followed by a list of signals (not intermingled)
+    string | // List of properties (Only used with Store2 (not with Signal2))
+    Signal2 | Store2<any> // List of signals to release
+  )[]];
 export const enum EffectSubscriptionsProp {
   EFFECT = 0,
   PROPERTY = 1,
@@ -128,7 +133,6 @@ export class Signal2<T = any> implements ISignal2<T> {
   $untrackedValue$: T;
 
   /** Store a list of effects which are dependent on this signal. */
-  // TODO perf: use a set?
   $effects$: null | EffectSubscriptions[] = null;
 
   $container$: Container2 | null = null;
@@ -168,7 +172,7 @@ export class Signal2<T = any> implements ISignal2<T> {
         // Let's make sure that we have a reference to this effect.
         // Adding reference is essentially adding a subscription, so if the signal
         // changes we know who to notify.
-        ensureContains(effects, effectSubscriber);
+        ensureContainsEffect(effects, effectSubscriber);
         // But when effect is scheduled in needs to be able to know which signals
         // to unsubscribe from. So we need to store the reference from the effect back
         // to this signal.
@@ -183,57 +187,10 @@ export class Signal2<T = any> implements ISignal2<T> {
     if (value !== this.$untrackedValue$) {
       DEBUG && log('Signal.set', this.$untrackedValue$, '->', value, pad('\n' + this.toString(), "  "));
       this.$untrackedValue$ = value;
-      this.$triggerEffects$();
+      triggerEffects(this.$container$, this, this.$effects$);
     }
   }
 
-  protected $triggerEffects$() {
-    if (this.$effects$) {
-      let signal: Signal2 = this;
-      const scheduleEffect = (effectSubscriptions: EffectSubscriptions) => {
-        const effect = effectSubscriptions[EffectSubscriptionsProp.EFFECT];
-        const property = effectSubscriptions[EffectSubscriptionsProp.PROPERTY];
-        assertDefined(this.$container$, 'Scheduler must be defined.');
-        if (isTask(effect)) {
-          effect.$flags$ |= TaskFlags.DIRTY;
-          DEBUG && log('schedule.effect.task', pad('\n' + String(effect), '  '));
-          // TODO(mhevery): We should check if visible/resource task and scheduled differently.
-          this.$container$.$scheduler$(ChoreType.TASK, effectSubscriptions as fixMeAny);
-        } else if (effect instanceof Signal2) {
-          // we don't schedule ComputedSignal/DerivedSignal directly, instead we invalidate it and
-          // and schedule the signals effects (recursively)
-          if (effect instanceof ComputedSignal2) {
-            // TODO(misko): ensure that the computed signal's QRL is resolved.
-            // If not resolved scheduled it to be resolved.
-          }
-          (effect as ComputedSignal2<unknown> | DerivedSignal2<unknown>).$invalid$ = true;
-          const previousSignal = signal;
-          try {
-            signal = effect;
-            effect.$effects$?.forEach(scheduleEffect);
-          } finally {
-            signal = previousSignal;
-          }
-        } else if (property === EffectProperty.COMPONENT) {
-          const host: HostElement = effect as any;
-          const qrl = this.$container$.getHostProp<QRL<(...args: any[]) => any>>(host, OnRenderProp);
-          assertDefined(qrl, 'Component must have QRL');
-          const props = this.$container$.getHostProp<any>(host, ELEMENT_PROPS);
-          this.$container$.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
-        } else if (property === EffectProperty.VNODE) {
-          const host: HostElement = effect as any;
-          const target = host;
-          this.$container$.$scheduler$(ChoreType.NODE_DIFF, host, target, signal as fixMeAny);
-        } else {
-          const host: HostElement = effect as any;
-          this.$container$.$scheduler$(ChoreType.NODE_PROP, host, property, signal as fixMeAny);
-        }
-      };
-      this.$effects$.forEach(scheduleEffect);
-    }
-
-    DEBUG && log('done scheduling');
-  }
 
   // prevent accidental use as value
   valueOf() {
@@ -251,11 +208,68 @@ export class Signal2<T = any> implements ISignal2<T> {
 }
 
 /** Ensure the item is in array (do nothing if already there) */
-function ensureContains(array: any[], value: any) {
+export const ensureContains = (array: any[], value: any) => {
   const isMissing = array.indexOf(value) === -1;
   if (isMissing) {
     array.push(value);
   }
+}
+
+export const ensureContainsEffect = (array: EffectSubscriptions[], effect: EffectSubscriptions) => {
+  for (let i = 0; i < array.length; i++) {
+    const existingEffect = array[i];
+    if (existingEffect[0] === effect[0] && existingEffect[1] === effect[1]) {
+      return;
+    }
+  }
+  array.push(effect);
+}
+
+export const triggerEffects = (container: Container2 | null, signal: Signal2 | Store2<any>, effects: EffectSubscriptions[] | null) => {
+  if (effects) {
+    const scheduleEffect = (effectSubscriptions: EffectSubscriptions) => {
+      const effect = effectSubscriptions[EffectSubscriptionsProp.EFFECT];
+      const property = effectSubscriptions[EffectSubscriptionsProp.PROPERTY];
+      assertDefined(container, 'Scheduler must be defined.');
+      if (isTask(effect)) {
+        effect.$flags$ |= TaskFlags.DIRTY;
+        DEBUG && log('schedule.effect.task', pad('\n' + String(effect), '  '));
+      // TODO(mhevery): We should check if visible/resource task and scheduled differently.
+        container.$scheduler$(ChoreType.TASK, effectSubscriptions as fixMeAny);
+      } else if (effect instanceof Signal2) {
+        // we don't schedule ComputedSignal/DerivedSignal directly, instead we invalidate it and
+        // and schedule the signals effects (recursively)
+        if (effect instanceof ComputedSignal2) {
+          // TODO(misko): ensure that the computed signal's QRL is resolved.
+          // If not resolved scheduled it to be resolved.
+        }
+        (effect as ComputedSignal2<unknown> | DerivedSignal2<unknown>).$invalid$ = true;
+        const previousSignal = signal;
+        try {
+          signal = effect;
+          effect.$effects$?.forEach(scheduleEffect);
+        } finally {
+          signal = previousSignal;
+        }
+      } else if (property === EffectProperty.COMPONENT) {
+        const host: HostElement = effect as any;
+        const qrl = container.getHostProp<QRL<(...args: any[]) => any>>(host, OnRenderProp);
+        assertDefined(qrl, 'Component must have QRL');
+        const props = container.getHostProp<any>(host, ELEMENT_PROPS);
+        container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
+      } else if (property === EffectProperty.VNODE) {
+        const host: HostElement = effect as any;
+        const target = host;
+        container.$scheduler$(ChoreType.NODE_DIFF, host, target, signal as fixMeAny);
+      } else {
+        const host: HostElement = effect as any;
+        container.$scheduler$(ChoreType.NODE_PROP, host, property, signal as fixMeAny);
+      }
+    };
+    effects.forEach(scheduleEffect);
+  }
+
+  DEBUG && log('done scheduling');
 }
 
 
@@ -293,7 +307,7 @@ export class ComputedSignal2<T> extends Signal2<T> {
     // Therefore, we need to calculate the value now.
     // TODO move this calculation to the beginning of the next tick, add chores to that tick if necessary. New chore type?
     if (this.$computeIfNeeded$()) {
-      this.$triggerEffects$();
+      triggerEffects(this.$container$, this, this.$effects$);
     }
   }
 
@@ -303,7 +317,7 @@ export class ComputedSignal2<T> extends Signal2<T> {
    */
   force() {
     this.$invalid$ = true;
-    this.$triggerEffects$();
+    triggerEffects(this.$container$, this, this.$effects$);
   }
 
   get untrackedValue() {
@@ -381,7 +395,7 @@ export class DerivedSignal2<T> extends Signal2<T> {
     // Therefore, we need to calculate the value now.
     // TODO move this calculation to the beginning of the next tick, add chores to that tick if necessary. New chore type?
     if (this.$computeIfNeeded$()) {
-      this.$triggerEffects$();
+      triggerEffects(this.$container$, this, this.$effects$);
     }
   }
 
@@ -391,7 +405,7 @@ export class DerivedSignal2<T> extends Signal2<T> {
    */
   force() {
     this.$invalid$ = true;
-    this.$triggerEffects$();
+    triggerEffects(this.$container$, this, this.$effects$);
   }
 
   get untrackedValue() {

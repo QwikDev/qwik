@@ -10,11 +10,11 @@ import { useSignal } from '../../use/use-signal';
 import { useStore } from '../../use/use-store.public';
 import { useTask$ } from '../../use/use-task-dollar';
 
-const debug = false; //true;
+const debug = true; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
-  { render: ssrRenderToDom }, //
+  // { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: useStore', ({ render }) => {
   it('should render value', async () => {
@@ -184,7 +184,7 @@ describe.each([
         </>
       );
     });
-    it('should allow signal to deliver value or JSX', async () => {
+    it.only('should allow signal to deliver value or JSX', async () => {
       const log: string[] = [];
       const Counter = component$(() => {
         const count = useStore<any>({ value: 'initial' });

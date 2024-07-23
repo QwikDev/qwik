@@ -22,24 +22,20 @@ import {
 } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import {
-  SubscriptionProp,
   fastSkipSerialize,
   getProxyFlags,
   getSubscriptionManager,
-  unwrapProxy,
-  type LocalSubscriptionManager,
-  type Subscriber,
+  unwrapProxy
 } from '../../state/common';
 import { _CONST_PROPS, _VAR_PROPS } from '../../state/constants';
 import { getOrCreateProxy, isStore } from '../../state/store';
 import { Task, type ResourceReturnInternal } from '../../use/use-task';
 import { throwErrorAndStop } from '../../util/log';
+import { ELEMENT_ID } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { DomContainer } from '../client/dom-container';
-import { vnode_getNode, vnode_isVNode, vnode_locate } from '../client/vnode';
-import type { SymbolToChunkResolver } from '../ssr/ssr-types';
-import { ELEMENT_ID } from '../../util/markers';
+import { vnode_isVNode, vnode_locate } from '../client/vnode';
 import {
   ComputedSignal2,
   DerivedSignal2,
@@ -47,7 +43,9 @@ import {
   Signal2,
   type EffectSubscriptions,
 } from '../signal/v2-signal';
+import type { SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { fixMeAny } from './types';
+import { Store2, unwrapStore2 } from '../signal/v2-store';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 
@@ -1199,6 +1197,38 @@ const frameworkType = (obj: any) => {
     isQrl(obj)
   );
 };
+
+export const canSerialize2 = (value: any): boolean => {
+  if (value == null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return true;
+  } else if (typeof value === 'object') {
+    let proto = Object.getPrototypeOf(value);
+    if (proto === Store2.prototype) {
+      value = unwrapStore2(value);
+      proto = Object.prototype;
+    }
+    if (proto == Object.prototype) {
+      for (const key in value) {
+        if (!canSerialize2(value[key])) {
+          return false;
+        }
+      }
+      return true;
+    } else if (proto == Array.prototype) {
+      for (let i = 0; i < value.length; i++) {
+        if (!canSerialize2(value[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+  } else if (typeof value === 'function') {
+    if (isQrl(value) || isQwikComponent(value)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 const QRL_RUNTIME_CHUNK = 'qwik-runtime-mock-chunk';
 const SERIALIZABLE_ROOT_ID = Symbol('SERIALIZABLE_ROOT_ID');

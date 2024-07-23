@@ -741,7 +741,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             } else if (value === CLOSE_FRAGMENT) {
               // write out fragment attributes
               if (fragmentAttrs) {
-                for (let i = 0; i < fragmentAttrs.length; i++) {
+                for (let i = 1; i < fragmentAttrs.length; i += 2) {
                   const value = fragmentAttrs[i] as string;
                   if (typeof value !== 'string') {
                     fragmentAttrs[i] = String(this.addRoot(value));
@@ -1071,21 +1071,27 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           styleScopedId = styleId;
         }
 
-        if (isSignal(value)) {
+        if (key === 'ref') {
           const lastNode = this.getLastNode();
-          if (key === 'ref') {
+          if (isSignal(value)) {
             value.value = lastNode;
             continue;
-          } else {
-            value = this.trackSignalValue(value, [
-              immutable ? SubscriptionType.PROP_IMMUTABLE : SubscriptionType.PROP_MUTABLE,
-              lastNode as fixMeAny,
-              value,
-              lastNode as fixMeAny,
-              key,
-              styleScopedId || undefined,
-            ]);
+          } else if (typeof value === 'function') {
+            value(lastNode);
+            continue;
           }
+        }
+
+        if (isSignal(value)) {
+          const lastNode = this.getLastNode();
+          value = this.trackSignalValue(value, [
+            immutable ? SubscriptionType.PROP_IMMUTABLE : SubscriptionType.PROP_MUTABLE,
+            lastNode as fixMeAny,
+            value,
+            lastNode as fixMeAny,
+            key,
+            styleScopedId || undefined,
+          ]);
         }
 
         if (key === dangerouslySetInnerHTML) {

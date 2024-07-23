@@ -21,6 +21,7 @@ export async function buildEslint(config: BuildConfig) {
   });
   await copyFile(join(eslintDir, 'package.json'), join(eslintOutput, 'package.json'));
   await copyFile(join(eslintDir, 'README.md'), join(eslintOutput, 'README.md'));
+  await copyFile(join(eslintDir, 'index.d.ts'), join(eslintOutput, 'index.d.ts'));
 
   console.log(`📐 ${PACKAGE}`);
 }

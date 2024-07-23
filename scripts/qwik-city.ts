@@ -145,6 +145,7 @@ async function buildServiceWorker(config: BuildConfig) {
       config.tscDir,
       'packages',
       'qwik-city',
+      'src',
       'runtime',
       'src',
       'service-worker',

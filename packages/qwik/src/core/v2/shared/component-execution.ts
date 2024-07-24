@@ -145,9 +145,16 @@ function addUseOnEvents(
             if (jsxElement) {
               addUseOnEvent(jsxElement, 'document:onQinit$', useOnEvents[key]);
             }
+          } else if (key.startsWith('document:') || key.startsWith('window:')) {
+            jsxElement = addScriptNodeForInvisibleComponents(jsx);
+            if (jsxElement) {
+              addUseOnEvent(jsxElement, key, useOnEvents[key]);
+            }
           } else if (isDev) {
             logWarn(
-              'You are trying to add an event using `useOn` hook, ' +
+              'You are trying to add an event "' +
+                key +
+                '" using `useOn` hook, ' +
                 'but a node to which you can add an event is not found. ' +
                 'Please make sure that the component has a valid element node. '
             );

@@ -17,7 +17,7 @@ export const loadClientData = async (
   const pagePathname = url.pathname;
   const pageSearch = url.search;
   const clientDataPath = getClientDataPath(pagePathname, pageSearch, opts?.action);
-  let qData = undefined;
+  let qData: Promise<ClientPageData | undefined> | undefined;
   if (!opts?.action) {
     qData = CLIENT_DATA_CACHE.get(clientDataPath);
   }
@@ -33,17 +33,21 @@ export const loadClientData = async (
       opts.action.data = undefined;
     }
     qData = fetch(clientDataPath, fetchOptions).then((rsp) => {
-      const redirectedURL = new URL(rsp.url);
-      const isQData = redirectedURL.pathname.endsWith('/q-data.json');
-      if (redirectedURL.origin !== location.origin || !isQData) {
-        location.href = redirectedURL.href;
-        return;
+      if (rsp.redirected) {
+        const redirectedURL = new URL(rsp.url);
+        const isQData = redirectedURL.pathname.endsWith('/q-data.json');
+        if (!isQData || redirectedURL.origin !== location.origin) {
+          // Captive portal etc. We can't talk to the server, so redirect as asked
+          location.href = redirectedURL.href;
+          return;
+        }
       }
       if ((rsp.headers.get('content-type') || '').includes('json')) {
         // we are safe we are reading a q-data.json
         return rsp.text().then((text) => {
           const clientData = _deserializeData(text, element) as ClientPageData | null;
           if (!clientData) {
+            // Something went wrong, show to the user
             location.href = url.href;
             return;
           }
@@ -51,6 +55,7 @@ export const loadClientData = async (
             CLIENT_DATA_CACHE.delete(clientDataPath);
           }
           if (clientData.redirect) {
+            // server function asked for redirect
             location.href = clientData.redirect;
           } else if (opts?.action) {
             const { action } = opts;

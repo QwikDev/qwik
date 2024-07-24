@@ -32,6 +32,10 @@ export const QVersionAttr = 'q:version';
 export const QBaseAttr = 'q:base';
 export const QLocaleAttr = 'q:locale';
 export const QManifestHashAttr = 'q:manifest-hash';
+export const QContainerIsland = 'q:container';
+export const QContainerIslandEnd = '/' + QContainerIsland;
+export const QIgnore = 'q:ignore';
+export const QIgnoreEnd = '/' + QIgnore;
 export const QContainerAttr = 'q:container';
 export const QContainerAttrEnd = '/' + QContainerAttr;
 

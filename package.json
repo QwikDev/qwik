@@ -201,6 +201,7 @@
     "qwik-save-artifacts": "tsm ./scripts/qwik-save-artifacts.ts",
     "release": "changeset publish",
     "release.prepare": "pnpm build --prepare-release",
+    "release.pkg-pr-new": "pnpm dlx pkg-pr-new@^0.0.9 publish --compact --pnpm ./packages/qwik ./packages/qwik-city ./packages/eslint-plugin-qwik ./packages/create-qwik",
     "serve": "tsm --inspect --conditions=development starters/dev-server.ts 3300",
     "serve.debug": "tsm --inspect-brk --conditions=development starters/dev-server.ts 3300",
     "start": "concurrently \"npm:build.watch\"  \"npm:tsc.watch\" -n build,tsc -c green,cyan",

@@ -228,6 +228,35 @@ describe.each([
       );
     });
 
+    it('should work with empty component', async () => {
+      const Counter = component$((props: { initial: number }) => {
+        const count = useSignal(props.initial);
+        useOnDocument(
+          'click',
+          $(() => count.value++)
+        );
+        return <>Count: {count.value}!</>;
+      });
+
+      const { vNode, container } = await render(<Counter initial={123} />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            Count: <Signal>{'123'}</Signal>!<script type="placeholder" hidden></script>
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(container.element, 'script', ':document:click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            Count: <Signal>{'124'}</Signal>!<script type="placeholder" hidden></script>
+          </Fragment>
+        </Component>
+      );
+    });
+
     it('should update value with mixed listeners', async () => {
       const Counter = component$((props: { initial: number }) => {
         const count = useSignal(props.initial);
@@ -291,6 +320,35 @@ describe.each([
           <button>
             Count: <Signal>{'124'}</Signal>!
           </button>
+        </Component>
+      );
+    });
+
+    it('should work with empty component', async () => {
+      const Counter = component$((props: { initial: number }) => {
+        const count = useSignal(props.initial);
+        useOnWindow(
+          'click',
+          $(() => count.value++)
+        );
+        return <>Count: {count.value}!</>;
+      });
+
+      const { vNode, container } = await render(<Counter initial={123} />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            Count: <Signal>{'123'}</Signal>!<script type="placeholder" hidden></script>
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(container.element, 'script', ':window:click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            Count: <Signal>{'124'}</Signal>!<script type="placeholder" hidden></script>
+          </Fragment>
         </Component>
       );
     });

@@ -570,36 +570,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    * - `~` Store as reference for data deserialization.
    * - `!"#$%&'()*+'-./` are separators (sequential characters in ASCII table)
    *
-   * ## Attribute encoding:
-   *
-   * - `;` - `q:sstyle` - Style attribute.
-   * - `<` - `q:renderFn' - Component QRL render function (body)
-   * - `=` - `q:id` - ID of the element.
-   * - `>` - `q:props' - Component QRL Props
-   * - `?` - `q:sref` - Slot reference.
-   * - `@` - `q:key` - Element key.
-   * - `[` - `q:seq' - Seq value from `useSequentialScope()`
-   * - `\` - SKIP because `\` is used as escaping
-   * - `]` - `q:ctx' - Component context/props
-   * - `~` - `q:slot' - Slot name
-   *
-   * ## Separator Encoding:
-   *
-   * - `~` is a reference to the node. Save it.
-   * - `!` is vNodeData separator skipping 0. (ie next vNode)
-   * - `"` is vNodeData separator skipping 1.
-   * - `#` is vNodeData separator skipping 2.
-   * - `$` is vNodeData separator skipping 4.
-   * - `%` is vNodeData separator skipping 8.
-   * - `&` is vNodeData separator skipping 16.
-   * - `'` is vNodeData separator skipping 32.
-   * - `(` is vNodeData separator skipping 64.
-   * - `)` is vNodeData separator skipping 128.
-   * - `*` is vNodeData separator skipping 256.
-   * - `+` is vNodeData separator skipping 512.
-   * - `'` is vNodeData separator skipping 1024.
-   * - `.` is vNodeData separator skipping 2048.
-   * - `/` is vNodeData separator skipping 4096.
+   * Attribute and separators encoding described here:
+   * `packages/qwik/src/core/v2/shared/vnode-data-types.ts`
    *
    * NOTE: Not every element will need vNodeData. So we need to encode how many elements should be
    * skipped. By choosing different separators we can encode different numbers of elements to skip.

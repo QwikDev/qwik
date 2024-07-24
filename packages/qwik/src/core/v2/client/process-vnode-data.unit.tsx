@@ -144,6 +144,37 @@ describe('processVnodeData', () => {
       );
     });
   });
+  it('should not ignore island inside comment q:container', () => {
+    const [container1] = process(`
+      <html q:container="paused" :>
+        <head :></head>
+        <body :>
+          Before
+          <!--q:ignore=abc-->
+            Foo<i>Bar!</i>
+            <!--q:container-island=some-id-2-->
+              <button :>Click</button>
+            <!--/q:container-island-->
+            Abcd<b>Abcd!</b>
+          <!--/q:ignore-->
+          <b :>After!</b>
+          ${encodeVNode({ 2: 'G2', 4: 'FB' })}
+        </body>
+      </html>`);
+    expect(container1.rootVNode).toMatchVDOM(
+      <html {...qContainerPaused}>
+        <head />
+        <body>
+          {'Before'}
+          <button>Click</button>
+          <b>
+            {'After'}
+            {'!'}
+          </b>
+        </body>
+      </html>
+    );
+  });
 });
 
 const qContainerPaused = { 'q:container': 'paused' };

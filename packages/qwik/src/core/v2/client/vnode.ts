@@ -132,7 +132,11 @@ import {
   OnRenderProp,
   QContainerAttr,
   QContainerAttrEnd,
+  QContainerIsland,
+  QContainerIslandEnd,
   QCtxAttr,
+  QIgnore,
+  QIgnoreEnd,
   QScopedStyle,
   QSlot,
   QSlotParent,
@@ -1283,6 +1287,9 @@ export const fastNextSibling = (node: Node | null): Node | null => {
   if (!_fastNextSibling) {
     _fastNextSibling = fastGetter<typeof _fastNextSibling>(node, 'nextSibling')!;
   }
+  if (!_fastFirstChild) {
+    _fastFirstChild = fastGetter<typeof _fastFirstChild>(node, 'firstChild')!;
+  }
   while (node) {
     node = _fastNextSibling.call(node);
     if (node !== null) {
@@ -1290,7 +1297,12 @@ export const fastNextSibling = (node: Node | null): Node | null => {
       if (type === /* Node.TEXT_NODE */ 3 || type === /* Node.ELEMENT_NODE */ 1) {
         break;
       } else if (type === /* Node.COMMENT_NODE */ 8) {
-        if (node.nodeValue?.startsWith(QContainerAttr)) {
+        const nodeValue = node.nodeValue;
+        if (nodeValue?.startsWith(QIgnore)) {
+          return getNodeAfterCommentNode(node, QContainerIsland, _fastNextSibling, _fastFirstChild);
+        } else if (node.nodeValue?.startsWith(QContainerIslandEnd)) {
+          return getNodeAfterCommentNode(node, QIgnoreEnd, _fastNextSibling, _fastFirstChild);
+        } else if (nodeValue?.startsWith(QContainerAttr)) {
           while (node && (node = _fastNextSibling.call(node))) {
             if (
               fastNodeType(node) === /* Node.COMMENT_NODE */ 8 &&
@@ -1304,6 +1316,41 @@ export const fastNextSibling = (node: Node | null): Node | null => {
     }
   }
   return node;
+};
+
+function getNodeAfterCommentNode(
+  node: Node | null,
+  commentValue: string,
+  nextSibling: NonNullable<typeof _fastNextSibling>,
+  firstChild: NonNullable<typeof _fastFirstChild>
+): Node | null {
+  while (node) {
+    if (node.nodeValue?.startsWith(commentValue)) {
+      node = nextSibling.call(node) || null;
+      return node;
+    }
+
+    let nextNode: Node | null = firstChild.call(node);
+    if (!nextNode) {
+      nextNode = nextSibling.call(node);
+    }
+    if (!nextNode) {
+      nextNode = fastParentNode(node);
+      if (nextNode) {
+        nextNode = nextSibling.call(nextNode);
+      }
+    }
+    node = nextNode;
+  }
+  return null;
+}
+
+let _fastParentNode: ((this: Node) => Node | null) | null = null;
+const fastParentNode = (node: Node): Node | null => {
+  if (!_fastParentNode) {
+    _fastParentNode = fastGetter<typeof _fastParentNode>(node, 'parentNode')!;
+  }
+  return _fastParentNode.call(node);
 };
 
 let _fastFirstChild: ((this: Node) => Node | null) | null = null;

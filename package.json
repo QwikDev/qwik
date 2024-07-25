@@ -182,7 +182,7 @@
     "cli.validate": "tsm scripts/validate-cli.ts",
     "commit": "git-cz",
     "deps": "corepack pnpm upgrade -i -r --latest && syncpack fix-mismatches && corepack pnpm dedupe",
-    "docs.dev": "cd packages/docs && pnpm dev",
+    "docs.dev": "cd packages/docs && pnpm build.repl-sw && pnpm dev",
     "docs.preview": "cd packages/docs && pnpm preview",
     "docs.sync": "tsm scripts/docs_sync/index.ts && pnpm fmt",
     "eslint.update": "tsm scripts/eslint-docs.ts",

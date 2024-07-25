@@ -256,7 +256,7 @@ export function processVNodeData(document: Document) {
         do {
           nextNode = walker.nextNode();
           if (!nextNode) {
-            throw new Error(`Island container not closed!`);
+            throw new Error(`Ignore block not closed!`);
           }
         } while (getFastNodeType(nextNode) !== NodeType.COMMENT_IGNORE_END);
         nextNode = null;

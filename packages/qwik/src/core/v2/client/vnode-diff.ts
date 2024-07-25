@@ -106,7 +106,7 @@ export const vnode_diff = (
   vStartNode: VNode,
   scopedStyleIdPrefix: string | null
 ) => {
-  const journal = (container as DomContainer).$journal$;
+  let journal = (container as DomContainer).$journal$;
 
   /**
    * Stack is used to keep track of the state of the traversal.
@@ -232,6 +232,7 @@ export const vnode_diff = (
           }
         } else if (jsxValue === SkipRender) {
           // do nothing, we are skipping this node
+          journal = [];
         } else {
           expectText('');
         }

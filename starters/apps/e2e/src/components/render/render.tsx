@@ -13,6 +13,7 @@ import {
   Slot,
   type QRL,
   type JSXOutput,
+  SSRComment,
 } from "@builder.io/qwik";
 import { delay } from "../streaming/demo";
 import { isServer } from "@builder.io/qwik/build";
@@ -817,7 +818,9 @@ export const SSRRawTest = component$(() => {
       id="ssr-raw-test-result"
       data-mounted={isServer ? "server" : "browser"}
     >
+      <SSRComment data="q:container=html" />
       <SSRRaw data="<b>ssr raw test</b>" />
+      <SSRComment data="/q:container" />
     </div>
   );
 });

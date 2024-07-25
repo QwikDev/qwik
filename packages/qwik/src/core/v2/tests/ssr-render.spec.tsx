@@ -56,7 +56,9 @@ describe('v2 ssr render', () => {
       return (
         <div data-render={rerender.value} key={rerender.value}>
           <button onClick$={() => rerender.value++}></button>
+          <SSRComment data="q:container=html" />
           <SSRRaw data="<div>hello</div>" />
+          <SSRComment data="/q:container" />
           <TestCmp>
             <span>a</span>
           </TestCmp>

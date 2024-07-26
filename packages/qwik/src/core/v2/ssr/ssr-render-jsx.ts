@@ -256,7 +256,8 @@ function processJSXNode(
         } else if (type === SSRRaw) {
           ssr.htmlNode(jsx.props.data as string);
         } else if (isQwikComponent(type)) {
-          ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : EMPTY_ARRAY);
+          // prod: use new instance of an array for props, we always modify props for a component
+          ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
           const host = ssr.getLastNode();
           ssr.getComponentFrame(0)!.distributeChildrenIntoSlots(jsx.children, styleScoped);
           const jsxOutput = applyQwikComponentBody(ssr, jsx, type);

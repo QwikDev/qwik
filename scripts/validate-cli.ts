@@ -87,8 +87,8 @@ async function validateStarter(
   accessSync(tsconfigPath);
 
   const { execa } = await import('execa');
-  console.log(`${emoji} ${starterId}: pnpm install`);
-  await execa('pnpm', ['install'], { cwd: appDir, stdout: 'inherit' });
+  console.log(`${emoji} ${starterId}: npm install`);
+  await execa('npm', ['install'], { cwd: appDir, stdout: 'inherit' });
 
   // console.log(`${emoji} ${projectName}: copy @builder.io/qwik distribution`);
   // const qwikNodeModule = join(appDir, 'node_modules', '@builder.io', 'qwik');

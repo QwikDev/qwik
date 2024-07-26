@@ -221,6 +221,7 @@
     "tsc.trace": "tsc -p tsconfig.json --traceResolution > tsc.log",
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",
     "update.qwik.builds": "tsm scripts/update-qwik-builds.ts packages/docs && tsm scripts/update-qwik-builds.ts packages/insights; pnpm install",
+    "version": "changeset version && rm ./CHANGELOG.md",
     "vitest": "vitest"
   },
   "type": "module"

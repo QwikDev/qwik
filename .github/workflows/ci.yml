@@ -798,7 +798,6 @@ jobs:
           mv artifact-qwikreact/lib packages/qwik-react/lib
           mv artifact-qwikreact/vite packages/qwik-react/vite
           rm -rf artifact-*
-          rm -rf *.tgz
 
       - run: pnpm install --frozen-lockfile
 

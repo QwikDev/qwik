@@ -9,8 +9,8 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs';
-import { fileURLToPath, pathToFileURL } from 'node:url';
 import { join, relative } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readPackageJson, writePackageJson } from './package-json';
 
 import assert from 'assert';
@@ -87,8 +87,8 @@ async function validateStarter(
   accessSync(tsconfigPath);
 
   const { execa } = await import('execa');
-  console.log(`${emoji} ${starterId}: npm install`);
-  await execa('npm', ['install', '--legacy-peer-deps'], { cwd: appDir, stdout: 'inherit' });
+  console.log(`${emoji} ${starterId}: pnpm install`);
+  await execa('pnpm', ['install'], { cwd: appDir, stdout: 'inherit' });
 
   // console.log(`${emoji} ${projectName}: copy @builder.io/qwik distribution`);
   // const qwikNodeModule = join(appDir, 'node_modules', '@builder.io', 'qwik');

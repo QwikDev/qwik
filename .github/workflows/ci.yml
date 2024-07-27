@@ -100,7 +100,6 @@ jobs:
             packages/qwik-labs/lib
             packages/qwik-labs/vite
             packages/qwik-react/lib
-            packages/qwik-react/vite
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
           # note that all inputs need to be listed here, including qwik, for correct cache invalidation
@@ -360,7 +359,6 @@ jobs:
             packages/qwik-labs/lib
             packages/qwik-labs/vite
             packages/qwik-react/lib
-            packages/qwik-react/vite
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
 
@@ -373,7 +371,6 @@ jobs:
             packages/qwik-labs/lib
             packages/qwik-labs/vite
             packages/qwik-react/lib
-            packages/qwik-react/vite
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
           key: ${{ needs.changes.outputs.hash-others }}
@@ -402,7 +399,7 @@ jobs:
           if-no-files-found: error
 
       - name: Print qwik-react Lib Build
-        run: tree packages/qwik-react/lib/ packages/qwik-react/vite/
+        run: tree packages/qwik-react/lib/
 
       - name: Upload qwik-react Build Artifacts
         uses: actions/upload-artifact@v4
@@ -410,7 +407,6 @@ jobs:
           name: artifact-qwikreact
           path: |
             packages/qwik-react/lib/
-            packages/qwik-react/vite/
             packages/qwik-react/package.json
           if-no-files-found: error
 
@@ -526,7 +522,6 @@ jobs:
           mv artifact-qwiklabs/lib packages/qwik-labs/lib
           mv artifact-qwiklabs/vite packages/qwik-labs/vite
           mv artifact-qwikreact/lib packages/qwik-react/lib
-          mv artifact-qwikreact/vite packages/qwik-react/vite
 
       - run: corepack pnpm install --frozen-lockfile
       - name: Build Qwik Docs
@@ -796,7 +791,6 @@ jobs:
           mv artifact-qwiklabs/lib packages/qwik-labs/lib
           mv artifact-qwiklabs/vite packages/qwik-labs/vite
           mv artifact-qwikreact/lib packages/qwik-react/lib
-          mv artifact-qwikreact/vite packages/qwik-react/vite
           rm -rf artifact-*
 
       - run: pnpm install --frozen-lockfile

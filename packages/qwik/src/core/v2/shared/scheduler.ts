@@ -222,7 +222,11 @@ export const createScheduler = (
     }
     let chore: Chore = {
       $type$: type,
-      $idx$: isTask ? (hostOrTask as Task).$index$ : (typeof targetOrQrl === 'string' ? targetOrQrl : 0),
+      $idx$: isTask
+        ? (hostOrTask as Task).$index$
+        : typeof targetOrQrl === 'string'
+          ? targetOrQrl
+          : 0,
       $host$: isTask ? ((hostOrTask as Task).$el$ as fixMeAny) : (hostOrTask as HostElement),
       $target$: targetOrQrl as any,
       $payload$: isTask ? hostOrTask : payload,
@@ -321,7 +325,7 @@ export const createScheduler = (
         const task = chore.$payload$ as Task<TaskFn, TaskFn>;
         cleanupTask(task);
         break;
-      case ChoreType.NODE_DIFF: 
+      case ChoreType.NODE_DIFF:
         const parentVirtualNode = chore.$target$ as VirtualVNode;
         let jsx = chore.$payload$ as JSXOutput;
         if (isSignal2(jsx)) {
@@ -521,7 +525,7 @@ function debugTrace(
   if (arg) {
     lines.push(
       '    arg: ' +
-      ('$type$' in arg ? debugChoreToString(arg as Chore) : String(arg).replaceAll(/\n.*/gim, ''))
+        ('$type$' in arg ? debugChoreToString(arg as Chore) : String(arg).replaceAll(/\n.*/gim, ''))
     );
   }
   if (currentChore) {

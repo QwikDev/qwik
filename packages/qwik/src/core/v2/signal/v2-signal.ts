@@ -16,10 +16,7 @@ import { pad, qwikDebugToString } from '../../debug';
 import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
 import { type QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
-import {
-  trackSignal2,
-  tryGetInvokeContext
-} from '../../use/use-core';
+import { trackSignal2, tryGetInvokeContext } from '../../use/use-core';
 import { Task, TaskFlags, isTask } from '../../use/use-task';
 import { ELEMENT_PROPS, OnRenderProp } from '../../util/markers';
 import { isPromise } from '../../util/promises';
@@ -27,6 +24,7 @@ import { qDev } from '../../util/qdev';
 import type { VNode } from '../client/types';
 import { ChoreType } from '../shared/scheduler';
 import type { Container2, HostElement, fixMeAny } from '../shared/types';
+import type { ISsrNode } from '../ssr/ssr-types';
 import type { Signal2 as ISignal2 } from './v2-signal.public';
 import type { Store2 } from './v2-store';
 
@@ -41,7 +39,7 @@ const NEEDS_COMPUTATION: any = {
 };
 
 // eslint-disable-next-line no-console
-const log = (...args: any[]) => console.log('SIGNAL', ...(args).map(qwikDebugToString));
+const log = (...args: any[]) => console.log('SIGNAL', ...args.map(qwikDebugToString));
 
 export const createSignal2 = (value?: any) => {
   return new Signal2(null, value);
@@ -60,9 +58,7 @@ export const createComputedSignal2 = <T>(qrl: QRL<() => T>) => {
   return new ComputedSignal2(null, qrl as QRLInternal<() => T>);
 };
 
-/**
- * @public
- */
+/** @public */
 export const isSignal2 = (value: any): value is ISignal2<unknown> => {
   return value instanceof Signal2;
 };
@@ -73,10 +69,10 @@ export const isSignal2 = (value: any): value is ISignal2<unknown> => {
  * There are three types of effects:
  *
  * - `Task`: `useTask`, `useVisibleTask`, `useResource`
- * - `VNode`: Either a component or `<Signal>`
+ * - `VNode` and `ISsrNode`: Either a component or `<Signal>`
  * - `Signal2`: A derived signal which contains a computation function.
  */
-export type Effect = Task | VNode | Signal2;
+export type Effect = Task | VNode | ISsrNode | Signal2;
 
 /**
  * An effect plus a list of subscriptions effect depends on.
@@ -84,7 +80,6 @@ export type Effect = Task | VNode | Signal2;
  * An effect can be trigger by one or more of signal inputs. The first step of re-running an effect
  * is to clear its subscriptions so that the effect can re add new set of subscriptions. In order to
  * clear the subscriptions we need to store them here.
- *
  *
  * Imagine you have effect such as:
  *
@@ -108,20 +103,24 @@ export type Effect = Task | VNode | Signal2;
  * Both `signalA` as well as `signalB` will have a reference to `subscription` to the so that the
  * effect can be scheduled if either `signalA` or `signalB` triggers. The `subscription1` is shared
  * between the signals.
- * 
+ *
  * The second position `string|boolean` store the property name of the effect.
- * - property name of the VNode
- * - `EffectProperty.COMPONENT` if component 
- * - `EffectProperty.VNODE` if  VNode
+ *
+ * - Property name of the VNode
+ * - `EffectProperty.COMPONENT` if component
+ * - `EffectProperty.VNODE` if VNode
  */
 export type EffectSubscriptions = [
   Effect, // EffectSubscriptionsProp.EFFECT
-  string,  // EffectSubscriptionsProp.PROPERTY
-  ...( // NOTE even thought this is shown as `...(string|Signal2)` 
-    // it is a list of strings  followed by a list of signals (not intermingled)
-    string | // List of properties (Only used with Store2 (not with Signal2))
-    Signal2 | Store2<any> // List of signals to release
-  )[]];
+  string, // EffectSubscriptionsProp.PROPERTY
+  ...// NOTE even thought this is shown as `...(string|Signal2)`
+  // it is a list of strings  followed by a list of signals (not intermingled)
+  (
+    | string // List of properties (Only used with Store2 (not with Signal2))
+    | Signal2
+    | Store2<any> // List of signals to release
+  )[],
+];
 export const enum EffectSubscriptionsProp {
   EFFECT = 0,
   PROPERTY = 1,
@@ -129,7 +128,7 @@ export const enum EffectSubscriptionsProp {
 }
 export const enum EffectProperty {
   COMPONENT = ':',
-  VNODE = '.'
+  VNODE = '.',
 }
 
 export class Signal2<T = any> implements ISignal2<T> {
@@ -180,7 +179,7 @@ export class Signal2<T = any> implements ISignal2<T> {
         // to unsubscribe from. So we need to store the reference from the effect back
         // to this signal.
         ensureContains(effectSubscriber, this);
-        DEBUG && log("read->sub", pad('\n' + this.toString(), "  "))
+        DEBUG && log('read->sub', pad('\n' + this.toString(), '  '));
       }
     }
     return this.untrackedValue;
@@ -188,12 +187,12 @@ export class Signal2<T = any> implements ISignal2<T> {
 
   set value(value) {
     if (value !== this.$untrackedValue$) {
-      DEBUG && log('Signal.set', this.$untrackedValue$, '->', value, pad('\n' + this.toString(), "  "));
+      DEBUG &&
+        log('Signal.set', this.$untrackedValue$, '->', value, pad('\n' + this.toString(), '  '));
       this.$untrackedValue$ = value;
       triggerEffects(this.$container$, this, this.$effects$);
     }
   }
-
 
   // prevent accidental use as value
   valueOf() {
@@ -202,8 +201,10 @@ export class Signal2<T = any> implements ISignal2<T> {
     }
   }
   toString() {
-    return `[${this.constructor.name}${(this as any).$invalid$ ? " INVALID" : ''} ${String(this.$untrackedValue$)}]` +
-      this.$effects$?.map(e => '\n -> ' + pad(qwikDebugToString(e[0]), '    ')).join('\n') || '';
+    return (
+      `[${this.constructor.name}${(this as any).$invalid$ ? ' INVALID' : ''} ${String(this.$untrackedValue$)}]` +
+        this.$effects$?.map((e) => '\n -> ' + pad(qwikDebugToString(e[0]), '    ')).join('\n') || ''
+    );
   }
   toJSON() {
     return { value: this.$untrackedValue$ };
@@ -216,7 +217,7 @@ export const ensureContains = (array: any[], value: any) => {
   if (isMissing) {
     array.push(value);
   }
-}
+};
 
 export const ensureContainsEffect = (array: EffectSubscriptions[], effect: EffectSubscriptions) => {
   for (let i = 0; i < array.length; i++) {
@@ -226,9 +227,13 @@ export const ensureContainsEffect = (array: EffectSubscriptions[], effect: Effec
     }
   }
   array.push(effect);
-}
+};
 
-export const triggerEffects = (container: Container2 | null, signal: Signal2 | Store2<any>, effects: EffectSubscriptions[] | null) => {
+export const triggerEffects = (
+  container: Container2 | null,
+  signal: Signal2 | Store2<any>,
+  effects: EffectSubscriptions[] | null
+) => {
   if (effects) {
     const scheduleEffect = (effectSubscriptions: EffectSubscriptions) => {
       const effect = effectSubscriptions[EffectSubscriptionsProp.EFFECT];
@@ -237,8 +242,10 @@ export const triggerEffects = (container: Container2 | null, signal: Signal2 | S
       if (isTask(effect)) {
         effect.$flags$ |= TaskFlags.DIRTY;
         DEBUG && log('schedule.effect.task', pad('\n' + String(effect), '  '));
-      // TODO(mhevery): We should check if visible/resource task and scheduled differently.
-        container.$scheduler$(ChoreType.TASK, effectSubscriptions as fixMeAny);
+        container.$scheduler$(
+          effect.$flags$ & TaskFlags.VISIBLE_TASK ? ChoreType.VISIBLE : ChoreType.TASK,
+          effectSubscriptions as fixMeAny
+        );
       } else if (effect instanceof Signal2) {
         // we don't schedule ComputedSignal/DerivedSignal directly, instead we invalidate it and
         // and schedule the signals effects (recursively)
@@ -273,8 +280,7 @@ export const triggerEffects = (container: Container2 | null, signal: Signal2 | S
   }
 
   DEBUG && log('done scheduling');
-}
-
+};
 
 /**
  * A signal which is computed from other signals.
@@ -325,7 +331,7 @@ export class ComputedSignal2<T> extends Signal2<T> {
 
   get untrackedValue() {
     this.$computeIfNeeded$();
-    assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state')
+    assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state');
     return this.$untrackedValue$;
   }
 
@@ -382,7 +388,12 @@ export class DerivedSignal2<T> extends Signal2<T> {
   // we need the old value to know if effects need running after computation
   $invalid$: boolean = true;
 
-  constructor(container: Container2 | null, fn: (...args: any[]) => T, args: any[], fnStr: string | null) {
+  constructor(
+    container: Container2 | null,
+    fn: (...args: any[]) => T,
+    args: any[],
+    fnStr: string | null
+  ) {
     super(container, NEEDS_COMPUTATION);
     this.$args$ = args;
     this.$func$ = fn;
@@ -417,7 +428,7 @@ export class DerivedSignal2<T> extends Signal2<T> {
       return this.$func$(...this.$args$);
     }
     this.$computeIfNeeded$();
-    assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state')
+    assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state');
     return this.$untrackedValue$;
   }
 
@@ -425,7 +436,12 @@ export class DerivedSignal2<T> extends Signal2<T> {
     if (!this.$invalid$) {
       return false;
     }
-    this.$untrackedValue$ = trackSignal2(() => this.$func$(...this.$args$), this, EffectProperty.VNODE, this.$container$!);
+    this.$untrackedValue$ = trackSignal2(
+      () => this.$func$(...this.$args$),
+      this,
+      EffectProperty.VNODE,
+      this.$container$!
+    );
   }
 
   // Getters don't get inherited

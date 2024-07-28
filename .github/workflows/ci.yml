@@ -73,8 +73,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Print GitHub event payload
-        run: cat $GITHUB_EVENT_PATH
+      - name: Print GitHub event removed
+        run: echo "$(jq '.head_commit.removed' $GITHUB_EVENT_PATH)"
+
+      - name: Print GitHub event removed
+        run: echo "$(jq '.head_commit' $GITHUB_EVENT_PATH)"
 
       - name: Check for removed .mock_changesets files and directory contents
         id: check_changesets

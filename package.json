@@ -29,15 +29,6 @@
           ],
           "pinVersion": "1.40.0"
         }
-      ],
-      "semverGroups": [
-        {
-          "label": "Undici should always be * until we remove it",
-          "range": "*",
-          "dependencies": [
-            "undici"
-          ]
-        }
       ]
     }
   },
@@ -123,7 +114,6 @@
     "terser": "^5.31.0",
     "tsm": "^2.3.0",
     "typescript": "5.4.5",
-    "undici": "*",
     "vfile": "^6.0.1",
     "vite": "^5.2.11",
     "vite-imagetools": "^6.2.9",
@@ -135,7 +125,7 @@
     "zod": "^3.23.8"
   },
   "engines": {
-    "node": ">=16.8.0 <18.0.0 || >=18.11",
+    "node": "^18.17.0 || ^20.3.0 || >=21.0.0",
     "npm": "please-use-pnpm",
     "yarn": "please-use-pnpm",
     "pnpm": ">=9.0.5"

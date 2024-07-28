@@ -57,6 +57,36 @@ and create a new file named `plugin@auth.ts` with an example configuration.
 >	- HOST_HEADER: This header helps identify the original host requested by the client. It is particularly necessary when your Node environment is behind a proxy or load balancer. Set this variable to:
 >	HOST_HEADER=X-Forwarded-Host
 
+### Migrating from `@builder.io/qwik-auth`
+
+When migrating from `@builder.io/qwik-auth` to `@auth/qwik`, there are a couple changes that need to be made.
+
+1. The routes provided by the auth library are no longer prefixed with `/api`. If your are using previous guidance for protected routes or calling the auth routes directly, please be sure to update accordingly.
+
+    ```diff
+    export const onRequest: RequestHandler = (event) => {
+      const session: Session | null = event.sharedMap.get('session');
+      if (!session || new Date(session.expires) < new Date()) {
+    -    throw event.redirect(302, `/api/auth/signin?redirectTo=${event.url.pathname}`);
+    +    throw event.redirect(302, `/auth/signin?redirectTo=${event.url.pathname}`);
+      }
+    };
+    ```
+
+2. The setup function and and methods exported by it have changed in `plugin@auth.ts`. Be sure to update the imports for the `useAuthSession`, `useAuthSignin`, and `useAuthSignout` methods anywhere you use them in your app.
+
+    ```diff
+    import Auth0Provider from "@auth/core/providers/auth0";
+    -import { serverAuth$ } from "@builder.io/qwik-auth";
+    +import { QwikAuth$ } from "@auth/qwik";
+
+    -export const { onRequest, useAuthSession, useAuthSignin, useAuthSignout } =
+    -  serverAuth$(({ env }) => ({
+    +export const { onRequest, useSession, useSignIn, useSignOut } = 
+    +  QwikAuth$(({ env }) => ({
+   ```
+
+
 
 ## Qwik API
 

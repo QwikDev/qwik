@@ -19,9 +19,9 @@
   },
   "engines-annotation": "Mostly required by sharp which needs a Node-API v9 compatible runtime",
   "files": [
+    "README.md",
     "create-qwik.cjs",
-    "index.cjs",
-    "starters/"
+    "dist"
   ],
   "homepage": "https://qwik.dev/",
   "keywords": [
@@ -32,7 +32,7 @@
     "template"
   ],
   "license": "MIT",
-  "main": "./index.cjs",
+  "main": "./dist/index.cjs",
   "repository": {
     "type": "git",
     "url": "https://github.com/QwikDev/qwik.git",

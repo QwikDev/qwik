@@ -206,7 +206,10 @@ impl Emitter for ErrorBuffer {
 
 pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, anyhow::Error> {
 	let source_map = Lrc::new(SourceMap::default());
-	let path_data = parse_path(config.relative_path, config.src_dir)?;
+	let path_data = parse_path(
+		config.relative_path.replace('\\', "/").as_str(),
+		config.src_dir,
+	)?;
 	let module = parse(
 		config.code,
 		&path_data,
@@ -470,7 +473,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 					} else {
 						path_data.file_name
 					};
-					let path = path_data.rel_dir.join(a).to_string_lossy().to_string();
+					let path = path_data.rel_dir.join(a).to_slash_lossy().to_string();
 
 					let mut hasher = DefaultHasher::new();
 					hasher.write(path.as_bytes());
@@ -703,6 +706,8 @@ pub struct PathData {
 
 pub fn parse_path(src: &str, base_dir: &Path) -> Result<PathData, Error> {
 	let path = Path::new(src);
+	let lossy = path.to_slash_lossy();
+	let path = Path::new(lossy.as_ref());
 	let file_stem = path
 		.file_stem()
 		.and_then(OsStr::to_str)

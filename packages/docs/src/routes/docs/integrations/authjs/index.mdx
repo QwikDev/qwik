@@ -255,7 +255,7 @@ export const { onRequest, useSession, useSignIn, useSignOut } = QwikAuth$(
 );
 ```
 
-> *IMPORTANT*: Make sure to keep the `onRequest` export as it is used to handle the oAuth flow redirects. Once the user finished oAuth flow, GitHub (or any other provider) will redirect the user back to the application to `/auth/callback/github` (or `/auth/callback/[otherProvider]`). The `onRequest` middleware function will handle requests to this endpoint and finish the oAuth flow.
+> *IMPORTANT*: Make sure to keep the `onRequest` export as it is used to handle the OAuth flow redirects. Once the user finished OAuth flow, GitHub (or any other provider) will redirect the user back to the application to `/auth/callback/github` (or `/auth/callback/[otherProvider]`). The `onRequest` middleware function will handle requests to this endpoint and finish the OAuth flow.
 
 3. Create or edit the `.env.local` file at the root of your project to store secrets
 

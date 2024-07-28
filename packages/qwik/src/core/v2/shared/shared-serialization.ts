@@ -25,11 +25,11 @@ import {
   fastSkipSerialize,
   getProxyFlags,
   getSubscriptionManager,
-  unwrapProxy
+  unwrapProxy,
 } from '../../state/common';
 import { _CONST_PROPS, _VAR_PROPS } from '../../state/constants';
 import { getOrCreateProxy, isStore } from '../../state/store';
-import { Task, type ResourceReturnInternal } from '../../use/use-task';
+import { isTask, Task, type ResourceReturnInternal } from '../../use/use-task';
 import { throwErrorAndStop } from '../../util/log';
 import { ELEMENT_ID } from '../../util/markers';
 import { isPromise } from '../../util/promises';
@@ -839,21 +839,25 @@ function serialize(serializationContext: SerializationContext): void {
       if (value instanceof DerivedSignal2) {
         writeString(
           SerializationConstant.DerivedSignal_CHAR +
-          serializeDerivedFn(serializationContext, value, $addRoot$) +
-          ';' +
-          $addRoot$(value.$untrackedValue$) +
-          serializeEffectSubs($addRoot$, value.$effects$)
+            serializeDerivedFn(serializationContext, value, $addRoot$) +
+            ';' +
+            $addRoot$(value.$untrackedValue$) +
+            serializeEffectSubs($addRoot$, value.$effects$)
         );
       } else if (value instanceof ComputedSignal2) {
-        writeString(SerializationConstant.ComputedSignal_CHAR
-          + qrlToString(serializationContext, value.$computeQrl$)
-          + ';'
-          + ($addRoot$(value.$untrackedValue$))
-          + serializeEffectSubs($addRoot$, value.$effects$))
+        writeString(
+          SerializationConstant.ComputedSignal_CHAR +
+            qrlToString(serializationContext, value.$computeQrl$) +
+            ';' +
+            $addRoot$(value.$untrackedValue$) +
+            serializeEffectSubs($addRoot$, value.$effects$)
+        );
       } else {
-        writeString(SerializationConstant.Signal_CHAR
-          + ($addRoot$(value.$untrackedValue$))
-          + (serializeEffectSubs($addRoot$, value.$effects$)));
+        writeString(
+          SerializationConstant.Signal_CHAR +
+            $addRoot$(value.$untrackedValue$) +
+            serializeEffectSubs($addRoot$, value.$effects$)
+        );
       }
     } else if (value instanceof URL) {
       writeString(SerializationConstant.URL_CHAR + value.href);
@@ -1063,19 +1067,20 @@ function deserializeSignal2(
   container: DomContainer,
   data: string,
   readFn: boolean,
-  readQrl: boolean,
+  readQrl: boolean
 ) {
   signal.$container$ = container;
   const parts = data.substring(1).split(';');
   let idx = 0;
   if (readFn) {
-    const derivedSignal = signal as DerivedSignal2<any>
+    const derivedSignal = signal as DerivedSignal2<any>;
     derivedSignal.$invalid$ = false;
     const fnParts = parts[idx++].split(' ');
     derivedSignal.$func$ = container.getSyncFn(parseInt(fnParts[0]));
     for (let i = 1; i < fnParts.length; i++) {
-      (derivedSignal.$args$ || (derivedSignal.$args$ = []))
-        .push(container.$getObjectById$(parseInt(fnParts[i])));
+      (derivedSignal.$args$ || (derivedSignal.$args$ = [])).push(
+        container.$getObjectById$(parseInt(fnParts[i]))
+      );
     }
   }
   if (readQrl) {
@@ -1085,7 +1090,9 @@ function deserializeSignal2(
   signal.$untrackedValue$ = container.$getObjectById$(parts[idx++]);
   while (idx < parts.length) {
     // idx == 1 is the attribute name
-    const effect = parts[idx++].split(' ').map((obj, idx) => idx == 1 ? obj : container.$getObjectById$(obj));
+    const effect = parts[idx++]
+      .split(' ')
+      .map((obj, idx) => (idx == 1 ? obj : container.$getObjectById$(obj)));
     (signal.$effects$ || (signal.$effects$ = [])).push(effect as fixMeAny);
   }
 }
@@ -1201,7 +1208,12 @@ const frameworkType = (obj: any) => {
 };
 
 export const canSerialize2 = (value: any): boolean => {
-  if (value == null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+  if (
+    value == null ||
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
     return true;
   } else if (typeof value === 'object') {
     let proto = Object.getPrototypeOf(value);
@@ -1223,6 +1235,8 @@ export const canSerialize2 = (value: any): boolean => {
         }
       }
       return true;
+    } else if (isTask(value)) {
+      return true;
     }
   } else if (typeof value === 'function') {
     if (isQrl(value) || isQwikComponent(value)) {
@@ -1230,7 +1244,7 @@ export const canSerialize2 = (value: any): boolean => {
     }
   }
   return false;
-}
+};
 
 const QRL_RUNTIME_CHUNK = 'qwik-runtime-mock-chunk';
 const SERIALIZABLE_ROOT_ID = Symbol('SERIALIZABLE_ROOT_ID');

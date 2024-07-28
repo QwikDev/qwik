@@ -61,6 +61,7 @@ jobs:
       build-unit: ${{ steps.cache-unit.outputs.cache-hit != 'true' }}
       build-e2e: ${{ steps.cache-e2e.outputs.cache-hit != 'true' }}
       is_release: ${{ steps.check_changesets.outputs.is_release }}
+      disttag: ${{ steps.check_changesets.outputs.is_release == 'true' && 'latest' || github.event.inputs.disttag }}
 
     steps:
       - name: Branch
@@ -174,13 +175,13 @@ jobs:
           path: e2e-tests-completed.txt
           key: ${{ hashfiles('others-key.txt', 'starters/e2e/**/*', 'starters/apps/e2e/**/*') }}
 
-  log_is_release:
+  log_disttag:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     needs: changes
     steps:
-      - name: Log is_release
-        run: echo "is_release=${{ needs.changes.outputs.is_release }}"
+      - name: Log disttag
+        run: echo "is_release=${{ needs.changes.outputs.disttag }}"
 
   ############ BUILD Qwik ############
   build-qwik:

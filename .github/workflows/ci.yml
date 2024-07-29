@@ -121,6 +121,7 @@ jobs:
         with:
           lookup-only: true
           path: packages/qwik/dist
+          # Note that this includes the package.json of qwik
           key: ${{ hashfiles('pnpm-lock.yaml', 'scripts.json', 'packages/qwik/**/*', '!**/*.unit.*', '!**/*.rs') }}
       - run: 'echo ${{ steps.cache-qwik.outputs.cache-primary-key }} > qwik-key.txt'
       - name: 'check cache: rust'
@@ -622,11 +623,7 @@ jobs:
   ############ UNIT TEST ############
   test-unit:
     name: Unit Tests
-    if: |
-      always() && (
-        github.ref == 'refs/heads/main' || 
-        needs.changes.outputs.build-unit == 'true'
-      )
+    if: always() && needs.changes.outputs.build-unit == 'true'
     runs-on: ubuntu-latest
     needs:
       - changes
@@ -678,11 +675,7 @@ jobs:
     # Sometimes the tests just hang
     timeout-minutes: 20
     name: E2E Tests
-    if: |
-      always() && (
-        github.ref == 'refs/heads/main' || 
-        needs.changes.outputs.build-e2e == 'true'
-      )
+    if: always() && needs.changes.outputs.build-e2e == 'true'
 
     needs:
       - build-other-packages
@@ -782,7 +775,8 @@ jobs:
       - changes
       - test-unit
       - test-e2e
-    # test-unit runs when any packages changes
+    # test-unit runs when any packages changes, so we have to release
+    # on main, we always check if we have something to release
     if: |
       always() && (
         github.ref == 'refs/heads/main' ||

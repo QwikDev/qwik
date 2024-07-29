@@ -80,7 +80,9 @@ async function validateStarter(
   const appPkgJsonPath = join(result.outDir, 'package.json');
   const appPkgJson = JSON.parse(readFileSync(appPkgJsonPath, 'utf-8'));
 
+  // Ensure that npm will use an existing version
   appPkgJson.devDependencies['@builder.io/qwik'] = 'latest';
+  appPkgJson.devDependencies['@builder.io/qwik-city'] = 'latest';
   writeFileSync(appPkgJsonPath, JSON.stringify(appPkgJson, null, 2));
 
   const tsconfigPath = join(result.outDir, 'tsconfig.json');

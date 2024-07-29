@@ -1,7 +1,5 @@
 # Changelogs Index
 
-## 1.7.2
-
 Here is an index file of all the changelogs in this repo:
 
 | Package              | File                                                  |

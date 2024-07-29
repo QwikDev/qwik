@@ -18,7 +18,7 @@ export async function getVersion(distTag?: string, rootDir?: string) {
     rootDir ||= resolve(__dirname, '..');
     const rootPkg = await readPackageJson(rootDir);
     let v = rootPkg.version;
-    if (distTag === 'dev') {
+    if (!distTag || distTag === 'dev') {
       const d = new Date();
       v += '-dev';
       v += String(d.getUTCFullYear());

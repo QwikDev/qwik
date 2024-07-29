@@ -1,5 +1,11 @@
 # create-qwik
 
+## 1.7.3
+
+### Patch Changes
+
+- 🐞🩹 get the right version number in starter apps (by [@shairez](https://github.com/shairez) in [#6742](https://github.com/QwikDev/qwik/pull/6742))
+
 ## 1.7.2
 
 ### Patch Changes

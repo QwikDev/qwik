@@ -89,14 +89,14 @@ jobs:
 
           md_file_removed=false
           for file in $removed_files; do
-            if [[ $file == .changesets/*.md ]]; then
+            if [[ $file == .changeset/*.md ]]; then
               md_file_removed=true
               break
             fi
           done
 
-          if [ -d ".changesets" ]; then
-            md_files=$(find .changesets -name '*.md')
+          if [ -d ".changeset" ]; then
+            md_files=$(find .changeset -name '*.md')
             if [ -z "$md_files" ] && [ "$md_file_removed" = true ]; then
               is_release=true
             fi

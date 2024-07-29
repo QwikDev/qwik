@@ -83,6 +83,7 @@ async function validateStarter(
   // Ensure that npm will use an existing version
   appPkgJson.devDependencies['@builder.io/qwik'] = 'latest';
   appPkgJson.devDependencies['@builder.io/qwik-city'] = 'latest';
+  appPkgJson.devDependencies['eslint-plugin-qwik'] = 'latest';
   writeFileSync(appPkgJsonPath, JSON.stringify(appPkgJson, null, 2));
 
   const tsconfigPath = join(result.outDir, 'tsconfig.json');

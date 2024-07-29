@@ -46,15 +46,16 @@ const defaultManifest: QwikManifest = {
   manifestHash: 'manifest-hash',
   symbols: {},
   bundles: {},
-  mapping: {},
+  mapping: {
+    click: 'click.js',
+    s_counter: 's_counter.js',
+    s_click: 's_click.js',
+  },
   version: '1',
 };
 
 const defaultCounterManifest: QwikManifest = {
   ...defaultManifest,
-  mapping: {
-    click: 'click.js',
-  },
 };
 
 const ManyEventsComponent = component$(() => {
@@ -268,7 +269,7 @@ describe('render api', () => {
       });
 
       it('should escape invalid characters', async () => {
-        const Cmp = component$(() => {
+        const Cmp = componentQrl(inlinedQrl(() => {
           const obj = {
             a: '123',
             b: '<script />',
@@ -279,7 +280,7 @@ describe('render api', () => {
               {JSON.stringify(obj)}
             </div>
           );
-        });
+        }, 's_counter'));
         const result = await renderToStringAndSetPlatform(<Cmp />, {
           containerTagName: 'div',
           manifest: defaultManifest,
@@ -774,6 +775,7 @@ describe('render api', () => {
           },
           mapping: {
             counter: 'counter.js',
+            s_click: 's_click.js'
           },
           version: '1',
         };

@@ -182,14 +182,6 @@ jobs:
           path: e2e-tests-completed.txt
           key: ${{ hashfiles('others-key.txt', 'starters/e2e/**/*', 'starters/apps/e2e/**/*') }}
 
-  log_disttag:
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    needs: changes
-    steps:
-      - name: Log disttag
-        run: echo "disttag=${{ needs.changes.outputs.disttag }}"
-
   ############ BUILD Qwik ############
   build-qwik:
     if: needs.changes.outputs.build-qwik == 'true'

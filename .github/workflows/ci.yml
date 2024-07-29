@@ -75,8 +75,19 @@ jobs:
 
       - name: Set Dist Tag
         id: set_dist_tag
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: |
+          github.ref == 'refs/heads/main' && (
+            github.event_name == 'push' ||
+            github.event_name == 'workflow_dispatch'
+          )
         run: |
+          if [ ${{ github.event_name }} == 'workflow_dispatch' ]; then
+            disttag="${{ github.event.inputs.disttag }}"
+            echo "Overriding disttag with input: $disttag"
+            echo "disttag=${disttag}" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
           is_release=false
           commit_id=${{ github.sha }}
           owner=${{ github.repository_owner }}
@@ -833,7 +844,7 @@ jobs:
       # Do this before other release steps to avoid
       # publishing temporary files
       - name: Create Release Pull Request or Publish to npm
-        if: github.ref == 'refs/heads/main' && github.event_name != 'workflow_dispatch'
+        if: github.ref == 'refs/heads/main'
         id: changesets
         uses: changesets/action@v1
         with:
@@ -854,13 +865,6 @@ jobs:
         run: pnpm release.pkg-pr-new
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish manually
-        if: github.event_name == 'workflow_dispatch'
-        run: pnpm build --set-dist-tag="${{ needs.changes.outputs.disttag }}" --validate --release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   ############ TRIGGER QWIKCITY E2E TEST ############
   trigger-qwikcity-e2e:

@@ -1,6 +1,6 @@
 import { Octokit } from '@octokit/action';
 import { execa } from 'execa';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import prompts from 'prompts';
 import semver from 'semver';
@@ -12,28 +12,42 @@ import { validateBuild } from './validate-build';
 
 let version: string;
 
-export async function getVersion(distTag?: string, rootDir?: string) {
+export async function getVersion(distTag?: string) {
   if (!version) {
     const __dirname = fileURLToPath(new URL('.', import.meta.url));
-    rootDir ||= resolve(__dirname, '..');
-    const rootPkg = await readPackageJson(rootDir);
-    let v = rootPkg.version;
-    if (distTag === 'dev') {
-      const d = new Date();
+    // Qwik is the source of truth for the version
+    const qwikDir = join(__dirname, '..', 'packages', 'qwik');
+    const qwikPkg = await readPackageJson(qwikDir);
+    let v = qwikPkg.version;
+    if (!distTag || distTag === 'dev') {
       v += '-dev';
-      v += String(d.getUTCFullYear());
-      v += String(d.getUTCMonth() + 1).padStart(2, '0');
-      v += String(d.getUTCDate()).padStart(2, '0');
-      v += String(d.getUTCHours()).padStart(2, '0');
-      v += String(d.getUTCMinutes()).padStart(2, '0');
-      v += String(d.getUTCSeconds()).padStart(2, '0');
+      // add the current short commit hash
+      // when in github actions, get from environment
+      try {
+        const gitSha = process.env.GITHUB_SHA;
+        const gitCommit = gitSha || (await execa('git', ['rev-parse', 'HEAD'])).stdout;
+        v += `+${gitCommit.slice(0, 7)}`;
+      } catch (e) {
+        // git not found
+      }
+      const gitStatus = await execa('git', ['status', '--porcelain']);
+      if (gitStatus.stdout !== '') {
+        const d = new Date();
+        v += '-';
+        v += String(d.getUTCFullYear());
+        v += String(d.getUTCMonth() + 1).padStart(2, '0');
+        v += String(d.getUTCDate()).padStart(2, '0');
+        v += String(d.getUTCHours()).padStart(2, '0');
+        v += String(d.getUTCMinutes()).padStart(2, '0');
+        v += String(d.getUTCSeconds()).padStart(2, '0');
+      }
     }
     version = v;
   }
   return version;
 }
 export async function setDistVersion(config: BuildConfig) {
-  config.distVersion = await getVersion(config.setDistTag, config.rootDir);
+  config.distVersion = await getVersion(config.setDistTag);
 }
 
 export async function setReleaseVersion(config: BuildConfig) {
@@ -45,7 +59,7 @@ export async function setReleaseVersion(config: BuildConfig) {
 
   console.log(`💫 Set release npm dist tag: ${distTag}`);
 
-  config.distVersion = await getVersion('release', config.rootDir);
+  config.distVersion = await getVersion('release');
 
   const validVersion = semver.valid(config.distVersion)!;
   if (!validVersion) {

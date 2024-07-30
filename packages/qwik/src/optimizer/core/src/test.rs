@@ -744,6 +744,7 @@ export default component$(() => {
 		transpile_ts: true,
 		transpile_jsx: true,
 		is_server: Some(false),
+		mode: EmitMode::Dev,
 		..TestInput::default()
 	});
 }
@@ -3531,6 +3532,33 @@ export const App = component$(() => {
 		transpile_jsx: true,
 		strip_event_handlers: true,
 		strip_ctx_name: Some(vec!["server".into()]),
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn lib_mode_fn_signal() {
+	test_input!(TestInput {
+		code: r#"
+    import { component$ } from '@builder.io/qwik';
+export const Counter = component$(() => {
+  const count = useSignal(0);
+
+  return (
+    <div>
+      <p>Count: {count.value}</p>
+      <p>
+        <button onClick$={() => count.value++}>Increment</button>
+      </p>
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		mode: EmitMode::Lib,
+		// make sure it overrides it
+		is_server: Some(false),
 		..TestInput::default()
 	});
 }

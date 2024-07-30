@@ -41,6 +41,9 @@
       ]
     }
   },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm pretty-quick --staged"
+  },
   "contributors": [
     {
       "name": "Miško Hevery",
@@ -118,6 +121,7 @@
     "prompts": "2.4.2",
     "rollup": "^4.13.0",
     "semver": "7.6.0",
+    "simple-git-hooks": "^2.11.1",
     "snoop": "^1.0.4",
     "source-map": "0.7.4",
     "svgo": "^3.2.0",
@@ -196,6 +200,7 @@
     "lint.fix": "eslint --fix \"**/*.ts*\" && pnpm prettier.fix",
     "lint.prettier": "prettier --cache --check .",
     "lint.rust": "make lint",
+    "prepare": "simple-git-hooks",
     "preinstall": "npx only-allow pnpm",
     "prettier.fix": "prettier --cache --write .",
     "qwik-save-artifacts": "tsm ./scripts/qwik-save-artifacts.ts",

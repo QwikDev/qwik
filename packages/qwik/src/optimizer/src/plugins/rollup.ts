@@ -7,6 +7,7 @@ import type {
   QwikManifest,
   TransformModuleInput,
   TransformModule,
+  Optimizer,
 } from '../types';
 import {
   createPlugin,
@@ -17,6 +18,11 @@ import {
   Q_MANIFEST_FILENAME,
 } from './plugin';
 import { versions } from '../versions';
+
+type QwikRollupPluginApi = {
+  getOptimizer: () => Optimizer;
+  getOptions: () => NormalizedQwikPluginOptions;
+};
 
 /** @public */
 export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
@@ -323,5 +329,5 @@ export interface QwikRollupPluginOptions {
    */
   lint?: boolean;
 }
-
-export interface QwikRollupPlugin extends Rollup.Plugin {}
+type P<T> = Rollup.Plugin<T> & { api: T };
+export interface QwikRollupPlugin extends P<QwikRollupPluginApi> {}

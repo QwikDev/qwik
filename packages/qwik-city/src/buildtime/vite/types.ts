@@ -3,6 +3,7 @@ import type { MdxTransform } from '../markdown/mdx';
 import type { BuildContext, BuildEntry, BuildRoute, PluginOptions, MdxPlugins } from '../types';
 import type { Config as SVGOConfig } from 'svgo';
 import type { BuiltinsWithOptionalParams as SVGOBuiltinPluginsWithOptionalParams } from 'svgo/plugins/plugins-types';
+import type { Plugin as VitePlugin } from 'vite';
 
 /** @public */
 export interface ImageOptimizationOptions {
@@ -39,10 +40,11 @@ export interface PluginContext {
   mdxTransform: MdxTransform | null;
 }
 
+type P<T> = VitePlugin<T> & { api: T };
+
 /** @public */
-export interface QwikCityPlugin {
+export interface QwikCityPlugin extends P<QwikCityPluginApi> {
   name: 'vite-plugin-qwik-city';
-  api: QwikCityPluginApi;
 }
 
 /** @public */

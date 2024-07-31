@@ -38,7 +38,7 @@ Before submitting a pull request, consider the following guidelines:
 - In your forked repository, create a new branch: `git checkout -b my-branch main`
 - Make your changes/fixes.
 - Run `pnpm fmt` to lint the code.
-- Commit your code with a good commit message [using "Commitizen"](#committing-using-commitizen).
+- Add a changeset with `pnpm change` if needed ([follow this tutorial](https://go.screenpal.com/watch/cZivIcVPJQV))
 - Push your branch to GitHub: `git push origin my-branch`
 - In GitHub, send a pull request to `QwikDev:main`.
 
@@ -325,15 +325,19 @@ This will show an interactive UI to update all dependencies. Be careful about pe
 - Review PR in StackBlitz
   ![image](https://user-images.githubusercontent.com/4918140/195581745-8dfca1f9-2dcd-4f6a-b7aa-705f3627f8fa.png)
 
-### Committing using "Commitizen":
+### Adding a changeset:
 
-Instead of using `git commit` please use the following command:
+Whenever you make a change that requires documentation or a new release, you should add a changeset. This will help us to keep track of changes and generate meaningful release notes and changelog files.
+
+You create a new changeset file by running:
 
 ```shell
-pnpm commit
+pnpm change
 ```
 
-You'll be asked guiding questions which will eventually create a descriptive commit message and necessary to generate meaningful release notes / CHANGELOG automatically.
+For your convenience, we prepared a video tutorial that covers the process of adding a changeset:
+
+[📽 TUTORIAL: Adding a changeset](https://go.screenpal.com/watch/cZivIcVPJQV)
 
 ### Pre-submit hooks
 

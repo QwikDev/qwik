@@ -10,7 +10,7 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "typescript": "5.4.5",
-    "vite": "5.3.4"
+    "vite": "5.3.5"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"
@@ -35,11 +35,11 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "@builder.io/qwik": "1.7.3",
-    "@types/react": "18.3.3",
-    "@types/react-dom": "18.3.0",
-    "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "@builder.io/qwik": "workspace:^",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "react": "^18",
+    "react-dom": "^18"
   },
   "qwik": "./lib/index.qwik.mjs",
   "repository": {

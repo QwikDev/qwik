@@ -10,11 +10,14 @@
     "syncpack": {
       "versionGroups": [
         {
-          "label": "Separate prod deps from dev deps",
+          "label": "Be lenient in vite versions for prod. v4 is broken, v5 is good",
           "dependencyTypes": [
-            "prod",
-            "peer"
-          ]
+            "prod"
+          ],
+          "dependencies": [
+            "vite"
+          ],
+          "pinVersion": "^5"
         },
         {
           "label": "use workspace protocol for local packages and allow patch versions (used in e.g. qwik-react)",
@@ -36,6 +39,13 @@
             "dev"
           ],
           "pinVersion": "workspace:^"
+        },
+        {
+          "label": "Separate prod deps from dev deps",
+          "dependencyTypes": [
+            "prod",
+            "peer"
+          ]
         }
       ],
       "semverGroups": [
@@ -149,11 +159,11 @@
     "typescript": "5.4.5",
     "undici": "*",
     "vfile": "6.0.1",
-    "vite": "5.3.4",
+    "vite": "5.3.5",
     "vite-imagetools": "7.0.4",
     "vite-plugin-dts": "3.9.1",
     "vite-tsconfig-paths": "4.3.2",
-    "vitest": "1.6.0",
+    "vitest": "2.0.5",
     "watchlist": "0.3.1",
     "which-pm-runs": "1.1.0",
     "zod": "3.22.4"

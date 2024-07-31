@@ -15,7 +15,7 @@ import type { ReplStore, ReplUpdateMessage, ReplMessage, ReplAppInput } from './
 import { ReplDetailPanel } from './repl-detail-panel';
 import { getReplVersion } from './repl-version';
 import { updateReplOutput } from './repl-output-update';
-import { QWIK_PKG_NAME, getBundled, getNpmCdnUrl } from './bundled';
+import { QWIK_PKG_NAME, bundled, getNpmCdnUrl } from './bundled';
 import { isServer } from '@builder.io/qwik/build';
 
 export const Repl = component$((props: ReplProps) => {
@@ -165,7 +165,6 @@ export const receiveMessageFromReplServer = (
   }
 };
 
-const bundled = getBundled();
 const getDependencies = (input: ReplAppInput) => {
   const out = { ...bundled };
   if (input.version !== 'bundled') {

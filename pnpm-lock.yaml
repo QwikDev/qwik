@@ -335,6 +335,9 @@ importers:
       leaflet:
         specifier: 1.9.4
         version: 1.9.4
+      magic-string:
+        specifier: 0.30.11
+        version: 0.30.11
       openai:
         specifier: 3.3.0
         version: 3.3.0

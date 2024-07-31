@@ -1,5 +1,4 @@
 packages:
-  - '.'
   - 'packages/*'
   # - 'starters/adapter/*'
   # - 'starters/features/*'

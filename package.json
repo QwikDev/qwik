@@ -1,15 +1,12 @@
 {
   "name": "qwik-monorepo",
-  "version": "1.7.1",
+  "version": "0.0.0-read-qwik-package-json",
   "comments": {
     "01": "devDependencies includes reference to @builder.io/qwik: workspace: *. This is needed or e2e tests will fail",
     "02": "  It would be nice to be able to remove this dependency and fix the test.",
     "03": "devDependencies can't include reference to @builder.io/qwik-city or e2e test will fail."
   },
   "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    },
     "syncpack": {
       "versionGroups": [
         {
@@ -40,6 +37,9 @@
         }
       ]
     }
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm pretty-quick --staged"
   },
   "contributors": [
     {
@@ -95,12 +95,10 @@
     "@typescript-eslint/utils": "^7.7.1",
     "all-contributors-cli": "6.26.1",
     "brotli": "1.3.3",
-    "commitizen": "4.3.0",
     "concurrently": "^8.2.2",
     "create-qwik": "workspace:^",
     "cross-spawn": "7.0.3",
     "csstype": "^3.1.3",
-    "cz-conventional-changelog": "3.3.0",
     "dotenv": "^16.4.5",
     "esbuild": "^0.20.2",
     "eslint": "^8.57.0",
@@ -118,6 +116,7 @@
     "prompts": "2.4.2",
     "rollup": "^4.13.0",
     "semver": "7.6.0",
+    "simple-git-hooks": "^2.11.1",
     "snoop": "^1.0.4",
     "source-map": "0.7.4",
     "svgo": "^3.2.0",
@@ -180,7 +179,6 @@
     "cli": "pnpm build.cli && node packages/create-qwik/dist/create-qwik.cjs && tsm scripts/validate-cli.ts --copy-local-qwik-dist",
     "cli.qwik": "pnpm build.cli && node packages/qwik/dist/qwik-cli.cjs",
     "cli.validate": "tsm scripts/validate-cli.ts",
-    "commit": "git-cz",
     "deps": "corepack pnpm upgrade -i -r --latest && syncpack fix-mismatches && corepack pnpm dedupe",
     "docs.dev": "cd packages/docs && pnpm build.repl-sw && pnpm dev",
     "docs.preview": "cd packages/docs && pnpm preview",
@@ -196,6 +194,7 @@
     "lint.fix": "eslint --fix \"**/*.ts*\" && pnpm prettier.fix",
     "lint.prettier": "prettier --cache --check .",
     "lint.rust": "make lint",
+    "prepare": "simple-git-hooks",
     "preinstall": "npx only-allow pnpm",
     "prettier.fix": "prettier --cache --write .",
     "qwik-save-artifacts": "tsm ./scripts/qwik-save-artifacts.ts",

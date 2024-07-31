@@ -29,7 +29,7 @@ import {
 } from '../../state/common';
 import { _CONST_PROPS, _VAR_PROPS } from '../../state/constants';
 import { getOrCreateProxy, isStore } from '../../state/store';
-import { isTask, Task, type ResourceReturnInternal } from '../../use/use-task';
+import { Task, isTask, type ResourceReturnInternal } from '../../use/use-task';
 import { throwErrorAndStop } from '../../util/log';
 import { ELEMENT_ID } from '../../util/markers';
 import { isPromise } from '../../util/promises';
@@ -43,9 +43,9 @@ import {
   Signal2,
   type EffectSubscriptions,
 } from '../signal/v2-signal';
+import { Store2, unwrapStore2 } from '../signal/v2-store';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { fixMeAny } from './types';
-import { Store2, unwrapStore2 } from '../signal/v2-store';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 

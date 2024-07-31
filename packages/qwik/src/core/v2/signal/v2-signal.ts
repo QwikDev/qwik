@@ -200,6 +200,7 @@ export class Signal2<T = any> implements ISignal2<T> {
       throw new TypeError('Cannot coerce a Signal, use `.value` instead');
     }
   }
+
   toString() {
     return (
       `[${this.constructor.name}${(this as any).$invalid$ ? ' INVALID' : ''} ${String(this.$untrackedValue$)}]` +
@@ -226,6 +227,8 @@ export const ensureContainsEffect = (array: EffectSubscriptions[], effect: Effec
       return;
     }
   }
+  console.log('array', array);
+  console.log('array.push', array.push);
   array.push(effect);
 };
 

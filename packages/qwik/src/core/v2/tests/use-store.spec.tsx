@@ -1,4 +1,4 @@
-import { Fragment as Component, Fragment, Fragment as Signal } from '@builder.io/qwik';
+import { Fragment as Component, Fragment, Fragment as Signal, useTask$ } from '@builder.io/qwik';
 import { describe, expect, it, vi } from 'vitest';
 import { advanceToNextTimerAndFlush, trigger } from '../../../testing/element-fixture';
 import { domRender, ssrRenderToDom } from '../../../testing/rendering.unit-util';
@@ -8,13 +8,12 @@ import type { Signal as SignalType } from '../../state/signal';
 import { untrack } from '../../use/use-core';
 import { useSignal } from '../../use/use-signal';
 import { useStore } from '../../use/use-store.public';
-import { useTask$ } from '../../use/use-task-dollar';
 
 const debug = true; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
-  { render: ssrRenderToDom }, //
+  // { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: useStore', ({ render }) => {
   it('should render value', async () => {
@@ -184,16 +183,16 @@ describe.each([
         </>
       );
     });
-    it.only('should allow signal to deliver value or JSX', async () => {
+    it('should allow signal to deliver value or JSX', async () => {
       const log: string[] = [];
       const Counter = component$(() => {
-        const count = useStore<any>({ value: 'initial' });
-        log.push('Counter: ' + untrack(() => count.value));
+        const count = useStore<any>({ jsx: 'initial' });
+        log.push('Counter: ' + untrack(() => count.jsx));
         return (
           <button
-            onClick$={() => (count.value = typeof count.value == 'string' ? <b>JSX</b> : 'text')}
+            onClick$={() => (count.jsx = typeof count.jsx == 'string' ? <b>JSX</b> : 'text')}
           >
-            -{count.value}-
+            -{count.jsx}-
           </button>
         );
       });

@@ -70,7 +70,7 @@ test('command: serve, mode: development', async () => {
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev')));
 
-  assert.deepEqual(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
+  assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
   assert.deepEqual(outputOptions.chunkFileNames, 'build/[name].js');
   assert.deepEqual(outputOptions.entryFileNames, 'build/[name].js');
   assert.deepEqual(outputOptions.format, 'es');
@@ -106,8 +106,7 @@ test('command: serve, mode: production', async () => {
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev')));
-
-  assert.deepEqual(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
+  assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
   assert.deepEqual(outputOptions.chunkFileNames, 'build/q-[hash].js');
   assert.deepEqual(outputOptions.entryFileNames, 'build/q-[hash].js');
   assert.deepEqual(outputOptions.format, 'es');
@@ -144,7 +143,7 @@ test('command: build, mode: development', async () => {
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
 
-  assert.deepEqual(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
+  assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
   assert.deepEqual(outputOptions.chunkFileNames, 'build/[name].js');
   assert.deepEqual(outputOptions.entryFileNames, 'build/[name].js');
 
@@ -183,7 +182,7 @@ test('command: build, mode: production', async () => {
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
 
-  assert.deepEqual(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
+  assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
   assert.deepEqual(outputOptions.chunkFileNames, 'build/q-[hash].js');
   assert.deepEqual(outputOptions.entryFileNames, 'build/q-[hash].js');
 
@@ -249,7 +248,7 @@ test('command: build, --ssr entry.server.tsx', async () => {
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'entry.server.tsx'))]);
 
-  assert.deepEqual(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
+  assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
   assert.deepEqual(outputOptions.chunkFileNames, undefined);
   assert.deepEqual(outputOptions.entryFileNames, undefined);
 
@@ -390,7 +389,7 @@ test('command: build, --mode lib', async () => {
   assert.deepEqual(build.ssr, undefined);
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'index.ts'))]);
 
-  assert.deepEqual(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
+  assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
   assert.deepEqual(outputOptions.chunkFileNames, undefined);
 
   assert.deepEqual(c.build.outDir, normalizePath(resolve(cwd, 'lib')));
@@ -448,7 +447,7 @@ test('command: build, --mode lib with multiple outputs', async () => {
   assert.lengthOf(outputOptions, 4);
 
   outputOptions.forEach((outputOptionsObj) => {
-    assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');
+    assert.deepEqual(outputOptionsObj.assetFileNames, 'assets/[hash]-[name].[ext]');
     assert.deepEqual(outputOptionsObj.chunkFileNames, undefined);
   });
 

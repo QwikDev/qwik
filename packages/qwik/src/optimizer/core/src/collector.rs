@@ -1,28 +1,21 @@
 use std::collections::{HashMap, HashSet};
 
 use swc_atoms::{js_word, JsWord};
-use swc_common::{BytePos, Span, SyntaxContext};
+use swc_common::{Span, SyntaxContext, DUMMY_SP};
 use swc_ecmascript::ast;
 use swc_ecmascript::utils::private_ident;
-use swc_ecmascript::visit::{noop_visit_type, visit_expr, visit_stmt, Visit, VisitWith};
+use swc_ecmascript::visit::{noop_visit_type, Visit, VisitWith};
 
 macro_rules! id {
 	($ident: expr) => {
-		($ident.sym.clone(), $ident.span.ctxt())
+		($ident.sym.clone(), $ident.ctxt)
 	};
 }
 
 pub type Id = (JsWord, SyntaxContext);
 
 pub fn new_ident_from_id(id: &Id) -> ast::Ident {
-	ast::Ident::new(
-		id.0.clone(),
-		Span {
-			lo: BytePos(0),
-			hi: BytePos(0),
-			ctxt: id.1,
-		},
-	)
+	ast::Ident::new(id.0.clone(), DUMMY_SP, id.1)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy)]
@@ -51,7 +44,7 @@ pub struct GlobalCollect {
 	in_export_decl: bool,
 }
 
-pub fn global_collect(module: &ast::Module) -> GlobalCollect {
+pub fn global_collect(program: &ast::Program) -> GlobalCollect {
 	let mut collect = GlobalCollect {
 		synthetic: vec![],
 		imports: HashMap::with_capacity(16),
@@ -62,7 +55,7 @@ pub fn global_collect(module: &ast::Module) -> GlobalCollect {
 
 		in_export_decl: false,
 	};
-	module.visit_with(&mut collect);
+	program.visit_with(&mut collect);
 	collect
 }
 
@@ -93,7 +86,7 @@ impl GlobalCollect {
 			.cloned()
 			.map_or_else(
 				|| {
-					let local = id!(private_ident!(specifier));
+					let local = id!(private_ident!(specifier.clone()));
 					self.add_import(
 						local.clone(),
 						Import {
@@ -175,7 +168,7 @@ impl Visit for GlobalCollect {
 							specifier: imported,
 							kind: ImportKind::Named,
 							synthetic: false,
-							asserts: node.asserts.clone(),
+							asserts: node.with.clone(),
 						},
 					);
 				}
@@ -187,7 +180,7 @@ impl Visit for GlobalCollect {
 							specifier: js_word!("default"),
 							kind: ImportKind::Default,
 							synthetic: false,
-							asserts: node.asserts.clone(),
+							asserts: node.with.clone(),
 						},
 					);
 				}
@@ -199,7 +192,7 @@ impl Visit for GlobalCollect {
 							specifier: "*".into(),
 							kind: ImportKind::All,
 							synthetic: false,
-							asserts: node.asserts.clone(),
+							asserts: node.with.clone(),
 						},
 					);
 				}
@@ -335,13 +328,13 @@ impl Visit for IdentCollector {
 
 	fn visit_expr(&mut self, node: &ast::Expr) {
 		self.expr_ctxt.push(ExprOrSkip::Expr);
-		visit_expr(self, node);
+		node.visit_children_with(self);
 		self.expr_ctxt.pop();
 	}
 
 	fn visit_stmt(&mut self, node: &ast::Stmt) {
 		self.expr_ctxt.push(ExprOrSkip::Skip);
-		visit_stmt(self, node);
+		node.visit_children_with(self);
 		self.expr_ctxt.pop();
 	}
 
@@ -375,7 +368,7 @@ impl Visit for IdentCollector {
 
 	fn visit_ident(&mut self, node: &ast::Ident) {
 		if matches!(self.expr_ctxt.last(), Some(ExprOrSkip::Expr))
-			&& node.span.ctxt() != SyntaxContext::empty()
+			&& node.ctxt != SyntaxContext::empty()
 		{
 			self.local_idents.insert(id!(node));
 		}

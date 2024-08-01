@@ -5,7 +5,6 @@
 #![feature(box_patterns)]
 #![allow(clippy::option_if_let_else)]
 #![allow(clippy::iter_with_drain)]
-#![feature(extract_if)]
 #[cfg(test)]
 mod test;
 
@@ -226,6 +225,7 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
 		iterator.reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)));
 
 	#[cfg(not(feature = "parallel"))]
+	#[allow(clippy::manual_try_fold)]
 	let final_output: Result<TransformOutput, Error> =
 		iterator.fold(Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)));
 

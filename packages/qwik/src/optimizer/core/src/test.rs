@@ -26,10 +26,10 @@ macro_rules! snapshot_res {
 					to_string_pretty(&v.diagnostics).unwrap()
 				)
 				.as_str();
-				insta::assert_display_snapshot!(output);
+				insta::assert_snapshot!(output);
 			}
 			Err(err) => {
-				insta::assert_display_snapshot!(err);
+				insta::assert_snapshot!(err);
 			}
 		}
 	};
@@ -2233,7 +2233,7 @@ fn example_transpile_jsx_only() {
 		code: r#"
 import { component$, useStore } from '@builder.io/qwik';
 
-export const App = component$((props: Stuff) => {
+export const App = component$((props) => {
     return (
         <Cmp>
             <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
@@ -2569,7 +2569,7 @@ fn example_preserve_filenames() {
 		code: r#"
 import { component$, useStore } from '@builder.io/qwik';
 
-export const App = component$((props: Stuff) => {
+export const App = component$((props) => {
     return (
         <Cmp>
             <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>

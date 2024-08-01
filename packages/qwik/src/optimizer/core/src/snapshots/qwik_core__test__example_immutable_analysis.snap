@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2024
+assertion_line: 2025
 expression: output
 ---
 ==INPUT==
@@ -127,7 +127,7 @@ export const App_component_Fragment_Div_transparent_eeDEK6EM1oo = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kEAuB8B,IAAM;IAAC,QAAQ,GAAG,CAAC;AAAQ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kEAuB8B;IAAO,QAAQ,GAAG,CAAC;AAAQ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -184,11 +184,9 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                 onEvent$: /*#__PURE__*/ qrl(()=>import("./app_component_fragment_div_onevent_zrfduybt3xm"), "App_component_Fragment_Div_onEvent_zrFduYbT3xM"),
                 transparent$: /*#__PURE__*/ qrl(()=>import("./app_component_fragment_div_transparent_eedek6em1oo"), "App_component_Fragment_Div_transparent_eeDEK6EM1oo"),
                 immutable1: "stuff",
-                get immutable2 () {
-                    return {
-                        foo: 'bar',
-                        baz: importedValue ? true : false
-                    };
+                immutable2: {
+                    foo: 'bar',
+                    baz: importedValue ? true : false
                 },
                 immutable3: 2,
                 immutable4$: /*#__PURE__*/ qrl(()=>import("./app_component_fragment_div_immutable4_2zf7ja3yti0"), "App_component_Fragment_Div_immutable4_2zF7jA3Yti0", [
@@ -250,7 +248,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;yCAK8B,CAAC,QAAU;IAErC,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACI;;0BACI,MAAC;gBAAgB,UAAU,MAAM,QAAQ;;gBAAtC,OAAM;eAAkC;0BAC3C,MAAC;oBACG;2BAAO,OAAO,GAAG;;oBACjB;2BAAU,OAAO,QAAQ;;gBACzB,UAAU,MAAM,QAAQ;gBACxB,QAAQ;gBACR,YAAY;gBACZ,YAAW;oBACX;2BAAY;wBACR,KAAK;wBACL,KAAK,gBAAgB,IAAI,GAAG,KAAK;oBACrC;;gBACA,YAAY;gBACZ,WAAW;;;gBACX,YAAY;oBAAC;oBAAG;oBAAG;oBAAe,IAAI;oBAAE,CAAC;iBAAE;0BAE3C,cAAA,MAAC,iBAAE;;oBAdH,KAAK;oBACL,QAAQ;oBAER,QAAQ;oBACR,YAAY;oBACZ,UAAU;oBACV,UAAU;oBAIV,UAAU;oBACV,WAAW;oBACX,UAAU;;;YAGR;0BAEF,MA9BI,MAAT;gBA+BS,OAAO;gBACP,SAAS;oBACT;2BAAU;wBACN,KAAK;wBACL,KAAK,MAAM,KAAK,GAAG,IAAI,GAAG,KAAK;oBACnC;;gBACA,UAAU,AAAC,CAAA,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAA;gBACxC,UAAU;oBAAC;oBAAG;oBAAG;oBAAO,IAAI;oBAAE,CAAC;iBAAE;;oBAPjC,KAAK;oBACL,OAAO;oBACP,QAAQ,kBAAE,CAAA;4BACN,KAAK;4BACL,KAAK,GAAM,KAAK,GAAG,IAAI,GAAG,KAAK;wBACnC,CAAA;;;oBAEA,QAAQ;;;YACV;;;AAIlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;yCAK8B,CAAC;IAE3B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACI;;0BACI,MAAC;gBAAgB,UAAU,MAAM,QAAQ;;gBAAtC,OAAM;eAAkC;0BAC3C,MAAC;oBACG;2BAAO,OAAO,GAAG;;oBACjB;2BAAU,OAAO,QAAQ;;gBACzB,UAAU,MAAM,QAAQ;gBACxB,QAAQ;gBACR,YAAY;gBACZ,YAAW;gBACX,YAAY;oBACR,KAAK;oBACL,KAAK,gBAAgB,OAAO;gBAChC;gBACA,YAAY;gBACZ,WAAW;;;gBACX,YAAY;oBAAC;oBAAG;oBAAG;oBAAe;oBAAM,CAAC;iBAAE;0BAE3C,cAAA,MAAC,iBAAE;;oBAdH,KAAK;oBACL,QAAQ;oBAER,QAAQ;oBACR,YAAY;oBACZ,UAAU;oBACV,UAAU;oBAIV,UAAU;oBACV,WAAW;oBACX,UAAU;;;YAGR;0BAEF,MA9BI,MAAT;gBA+BS,OAAO;gBACP,SAAS;oBACT;2BAAU;wBACN,KAAK;wBACL,KAAK,MAAM,KAAK,GAAG,OAAO;oBAC9B;;gBACA,UAAU,CAAC,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAC;gBACzC,UAAU;oBAAC;oBAAG;oBAAG;oBAAO;oBAAM,CAAC;iBAAE;;oBAPjC,KAAK;oBACL,OAAO;oBACP,QAAQ,kBAAE,CAAA;4BACN,KAAK;4BACL,KAAK,GAAM,KAAK,GAAG,OAAO;wBAC9B,CAAA;;;oBAEA,QAAQ;;;YACV;;;AAIlB\"}")
 /*
 {
   "origin": "test.tsx",

@@ -19,7 +19,6 @@ export const useDotNotationAction = globalAction$(
           firstName: z.string(),
         }),
       }),
-      someAny: z.any(), // test for making sure it does not add it to the fieldErrors see #6719
       persons: z.array(z.object({ name: z.string() })),
     }),
   ),

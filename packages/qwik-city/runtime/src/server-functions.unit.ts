@@ -1,6 +1,7 @@
 import { describe, expectTypeOf, test } from 'vitest';
+import { z } from '.';
 import { server$ } from './server-functions';
-import type { RequestEventBase } from './types';
+import type { RequestEventBase, ValidatorErrorType } from './types';
 
 describe('types', () => {
   test('matching', () => () => {
@@ -63,5 +64,100 @@ describe('types', () => {
         source: string;
       }>
     >();
+  });
+
+  test('easy zod type', () => {
+    const zodSchema = z.object({
+      username: z.string(),
+      password: z.string(),
+    });
+    type ErrorType = ValidatorErrorType<z.infer<typeof zodSchema>>['fieldErrors'];
+
+    expectTypeOf<ErrorType>().toEqualTypeOf<{
+      username?: string;
+      password?: string;
+    }>();
+  });
+
+  test('array zod type with string', () => {
+    const zodSchema = z.object({
+      arrayWithStrings: z.array(z.string()),
+    });
+    type ErrorType = ValidatorErrorType<z.infer<typeof zodSchema>>['fieldErrors'];
+
+    expectTypeOf<ErrorType>().toEqualTypeOf<{
+      ['arrayWithStrings[]']?: string[];
+    }>();
+  });
+
+  test('array zod type with object', () => {
+    const zodSchema = z.object({
+      persons: z.array(
+        z.object({
+          name: z.string(),
+          age: z.number(),
+        })
+      ),
+    });
+    type ErrorType = ValidatorErrorType<z.infer<typeof zodSchema>>['fieldErrors'];
+
+    expectTypeOf<ErrorType>().toEqualTypeOf<{
+      'persons[]'?: string[];
+      'persons[].name'?: string[];
+      'persons[].age'?: string[];
+    }>();
+  });
+
+  test('Complex zod type', () => {
+    const BaseUserSchema = z.object({
+      id: z.string().uuid(),
+      username: z.string().min(3).max(20),
+      email: z.string().email(),
+      createdAt: z.date().default(new Date()),
+      isActive: z.boolean().default(true),
+      somePayload: z.any(),
+      roles: z.array(z.enum(['user', 'admin', 'moderator'])).default(['user']),
+      preferences: z
+        .object({
+          theme: z.enum(['light', 'dark']).default('light'),
+          notifications: z.boolean().default(true),
+        })
+        .optional(),
+    });
+
+    // Schema for an Admin user with additional fields
+    const AdminUserSchema = BaseUserSchema.extend({
+      adminSince: z.date(),
+      permissions: z.array(z.string()),
+    }).refine((data) => data.roles.includes('admin'), {
+      message: 'Admin role must be included in roles',
+    });
+
+    // Schema for a Moderator user with additional fields
+    const ModeratorUserSchema = BaseUserSchema.extend({
+      moderatedSections: z.array(z.string()),
+    }).refine((data) => data.roles.includes('moderator'), {
+      message: 'Moderator role must be included in roles',
+    });
+
+    // Union of all user types
+    const UserSchema = z.union([AdminUserSchema, ModeratorUserSchema, BaseUserSchema]);
+
+    type ErrorType = ValidatorErrorType<z.infer<typeof UserSchema>>['fieldErrors'];
+
+    expectTypeOf<ErrorType>().toEqualTypeOf<{
+      username?: string;
+      id?: string;
+      email?: string;
+      isActive?: string;
+      preferences?: string;
+      'roles[]'?: string[];
+      'permissions[]'?: string[];
+      'moderatedSections[]'?: string[];
+    }>();
+
+    expectTypeOf<ErrorType>().not.toEqualTypeOf<{
+      somePayload?: string;
+    }>();
   });
 });

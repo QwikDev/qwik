@@ -1,19 +1,19 @@
-import {
-  type BuildConfig,
-  copyFile,
-  emptyDir,
-  mkdir,
-  nodeTarget,
-  stat,
-  getBanner,
-  readdir,
-  run,
-} from './util';
 import { build } from 'esbuild';
 import { existsSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import { readPackageJson, writePackageJson } from './package-json';
+import {
+  type BuildConfig,
+  copyFile,
+  emptyDir,
+  getBanner,
+  mkdir,
+  nodeTarget,
+  readdir,
+  run,
+  stat,
+} from './util';
 
 const PACKAGE = 'create-qwik';
 
@@ -23,10 +23,7 @@ export async function buildCreateQwikCli(config: BuildConfig) {
 
   await bundleCreateQwikCli(config, srcCliDir, distCliDir);
   await copyStartersDir(config, distCliDir, ['apps']);
-
-  await copyFile(join(srcCliDir, 'package.json'), join(distCliDir, 'package.json'));
-  await copyFile(join(srcCliDir, 'README.md'), join(distCliDir, 'README.md'));
-  await copyFile(join(srcCliDir, 'create-qwik.cjs'), join(distCliDir, 'create-qwik.cjs'));
+  await syncBaseStarterVersionsFromQwik(config);
 
   console.log('🐠 create-qwik cli');
 }
@@ -77,16 +74,34 @@ export async function publishCreateQwikCli(
   version: string,
   isDryRun: boolean
 ) {
-  const distCliDir = join(config.packagesDir, PACKAGE, 'dist');
-  const cliPkg = await readPackageJson(distCliDir);
+  const srcCliDir = join(config.packagesDir, PACKAGE);
 
-  // update the cli version
-  console.log(`   update version = "${version}"`);
-  cliPkg.version = version;
-  await writePackageJson(distCliDir, cliPkg);
+  await updateBaseVersions(config, version);
+
+  console.log(`⛴ publishing ${PACKAGE} ${version}`, isDryRun ? '(dry-run)' : '');
+
+  const npmPublishArgs = ['publish', '--tag', distTag];
+
+  await run('npm', npmPublishArgs, isDryRun, isDryRun, { cwd: srcCliDir });
+
+  console.log(
+    `🐳 published version "${version}" of ${PACKAGE} with dist-tag "${distTag}" to npm`,
+    isDryRun ? '(dry-run)' : ''
+  );
+}
+
+async function syncBaseStarterVersionsFromQwik(config: BuildConfig) {
+  const qwikDir = join(config.packagesDir, 'qwik');
+  const distPkg = await readPackageJson(qwikDir);
+
+  await updateBaseVersions(config, distPkg.version);
+}
+
+async function updateBaseVersions(config: BuildConfig, version: string) {
+  const srcCliDir = join(config.packagesDir, PACKAGE);
 
   // update the base app's package.json
-  const distCliBaseAppDir = join(distCliDir, 'starters', 'apps', 'base');
+  const distCliBaseAppDir = join(srcCliDir, 'dist', 'starters', 'apps', 'base');
   const baseAppPkg = await readPackageJson(distCliBaseAppDir);
   baseAppPkg.devDependencies = baseAppPkg.devDependencies || {};
 
@@ -112,17 +127,6 @@ export async function publishCreateQwikCli(
 
   console.log(distCliBaseAppDir, JSON.stringify(baseAppPkg, null, 2));
   await writePackageJson(distCliBaseAppDir, baseAppPkg);
-
-  console.log(`⛴ publishing ${cliPkg.name} ${version}`, isDryRun ? '(dry-run)' : '');
-
-  const npmPublishArgs = ['publish', '--tag', distTag];
-
-  await run('npm', npmPublishArgs, isDryRun, isDryRun, { cwd: distCliDir });
-
-  console.log(
-    `🐳 published version "${version}" of ${cliPkg.name} with dist-tag "${distTag}" to npm`,
-    isDryRun ? '(dry-run)' : ''
-  );
 }
 
 export async function copyStartersDir(

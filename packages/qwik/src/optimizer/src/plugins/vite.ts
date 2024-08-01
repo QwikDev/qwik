@@ -143,9 +143,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       const shouldFindVendors =
         !qwikViteOpts.disableVendorScan && (target !== 'lib' || viteCommand === 'serve');
-      const vendorRoots = shouldFindVendors
-        ? await findQwikRoots(sys, path.join(sys.cwd(), 'package.json'))
-        : [];
+      const vendorRoots = shouldFindVendors ? await findQwikRoots(sys, sys.cwd()) : [];
       viteAssetsDir = viteConfig.build?.assetsDir;
       const useAssetsDir = target === 'client' && !!viteAssetsDir && viteAssetsDir !== '_astro';
       const pluginOpts: QwikPluginOptions = {
@@ -341,11 +339,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           output: normalizeRollupOutputOptions(
             opts,
             viteConfig.build?.rollupOptions?.output,
-            useAssetsDir
-          ).map((outputOptsObj) => {
-            outputOptsObj.dir = buildOutputDir;
-            return outputOptsObj;
-          }),
+            useAssetsDir,
+            buildOutputDir
+          ),
           preserveEntrySignatures: 'exports-only',
           onwarn: (warning, warn) => {
             if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
@@ -560,19 +556,27 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             fileName: Q_MANIFEST_FILENAME,
             source: clientManifestStr,
           });
+          const assetsDir = qwikPlugin.getOptions().assetsDir || '';
+          const useAssetsDir = !!assetsDir && assetsDir !== '_astro';
           const sys = qwikPlugin.getSys();
-          const filePath = sys.path.dirname(_.chunkFileNames as string);
           this.emitFile({
             type: 'asset',
-            fileName: sys.path.join(filePath, `q-bundle-graph-${manifest.manifestHash}.json`),
+            fileName: sys.path.join(
+              useAssetsDir ? assetsDir : '',
+              'build',
+              `q-bundle-graph-${manifest.manifestHash}.json`
+            ),
             source: JSON.stringify(convertManifestToBundleGraph(manifest)),
           });
           const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
           const workerScriptPath = (await this.resolve('@builder.io/qwik/qwik-prefetch.js'))!.id;
           const workerScript = await fs.promises.readFile(workerScriptPath, 'utf-8');
+          const qwikPrefetchServiceWorkerFile = 'qwik-prefetch-service-worker.js';
           this.emitFile({
             type: 'asset',
-            fileName: `qwik-prefetch-service-worker.js`,
+            fileName: useAssetsDir
+              ? sys.path.join(assetsDir, 'build', qwikPrefetchServiceWorkerFile)
+              : qwikPrefetchServiceWorkerFile,
             source: workerScript,
           });
 
@@ -648,7 +652,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     configureServer(server: ViteDevServer) {
       qwikPlugin.configureServer(server);
-      const devSsrServer = 'devSsrServer' in qwikViteOpts ? qwikViteOpts.devSsrServer : true;
+      const devSsrServer = 'devSsrServer' in qwikViteOpts ? !!qwikViteOpts.devSsrServer : true;
       const imageDevTools =
         qwikViteOpts.devTools && 'imageDevTools' in qwikViteOpts.devTools
           ? qwikViteOpts.devTools.imageDevTools
@@ -658,7 +662,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         server.middlewares.use(getImageSizeServer(qwikPlugin.getSys(), rootDir!, srcDir!));
       }
 
-      if (!qwikViteOpts.csr && devSsrServer) {
+      if (!qwikViteOpts.csr) {
         const plugin = async () => {
           const opts = qwikPlugin.getOptions();
           const sys = qwikPlugin.getSys();
@@ -671,7 +675,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             path,
             isClientDevOnly,
             clientDevInput,
-            qwikPlugin.foundQrls
+            qwikPlugin.foundQrls,
+            devSsrServer
           );
         };
         const isNEW = (globalThis as any).__qwikCityNew === true;
@@ -692,18 +697,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     handleHotUpdate(ctx) {
-      qwikPlugin.debug('handleHotUpdate()', ctx);
+      qwikPlugin.handleHotUpdate(ctx);
 
-      for (const mod of ctx.modules) {
-        const deps = mod.info?.meta?.qwikdeps;
-        if (deps && deps.length > 0) {
-          for (const dep of deps) {
-            const mod = ctx.server.moduleGraph.getModuleById(dep);
-            if (mod) {
-              ctx.server.moduleGraph.invalidateModule(mod);
-            }
-          }
-        }
+      // Tell the client to reload the page if any modules were used in ssr or client
+      // this needs to be refined
+      if (ctx.modules.length) {
+        ctx.server.hot.send({
+          type: 'full-reload',
+        });
       }
     },
 
@@ -814,53 +815,64 @@ async function findDepPkgJsonPath(sys: OptimizerSystem, dep: string, parent: str
 
 const findQwikRoots = async (
   sys: OptimizerSystem,
-  packageJsonPath: string
+  packageJsonDir: string
 ): Promise<QwikPackages[]> => {
+  const paths = new Map<string, string>();
   if (sys.env === 'node') {
     const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-
-    try {
-      const data = await fs.promises.readFile(packageJsonPath, { encoding: 'utf-8' });
-
+    let prevPackageJsonDir: string | undefined;
+    do {
       try {
-        const packageJson = JSON.parse(data);
-        const dependencies = packageJson['dependencies'];
-        const devDependencies = packageJson['devDependencies'];
+        const data = await fs.promises.readFile(sys.path.join(packageJsonDir, 'package.json'), {
+          encoding: 'utf-8',
+        });
 
-        const packages: string[] = [];
-        if (typeof dependencies === 'object') {
-          packages.push(...Object.keys(dependencies));
-        }
-        if (typeof devDependencies === 'object') {
-          packages.push(...Object.keys(devDependencies));
-        }
+        try {
+          const packageJson = JSON.parse(data);
+          const dependencies = packageJson['dependencies'];
+          const devDependencies = packageJson['devDependencies'];
 
-        const basedir = sys.cwd();
-        const qwikDirs = await Promise.all(
-          packages.map(async (id) => {
-            const pkgJsonPath = await findDepPkgJsonPath(sys, id, basedir);
-            if (pkgJsonPath) {
-              const pkgJsonContent = await fs.promises.readFile(pkgJsonPath, 'utf-8');
-              const pkgJson = JSON.parse(pkgJsonContent);
-              const qwikPath = pkgJson['qwik'];
-              if (qwikPath) {
-                return {
-                  id,
-                  path: sys.path.resolve(sys.path.dirname(pkgJsonPath), qwikPath),
-                };
+          const packages: string[] = [];
+          if (typeof dependencies === 'object') {
+            packages.push(...Object.keys(dependencies));
+          }
+          if (typeof devDependencies === 'object') {
+            packages.push(...Object.keys(devDependencies));
+          }
+
+          const basedir = sys.cwd();
+          await Promise.all(
+            packages.map(async (id) => {
+              const pkgJsonPath = await findDepPkgJsonPath(sys, id, basedir);
+              if (pkgJsonPath) {
+                const pkgJsonContent = await fs.promises.readFile(pkgJsonPath, 'utf-8');
+                const pkgJson = JSON.parse(pkgJsonContent);
+                const qwikPath = pkgJson['qwik'];
+                if (!qwikPath) {
+                  return;
+                }
+                // Support multiple paths
+                const allPaths = Array.isArray(qwikPath) ? qwikPath : [qwikPath];
+                for (const p of allPaths) {
+                  paths.set(
+                    await fs.promises.realpath(sys.path.resolve(sys.path.dirname(pkgJsonPath), p)),
+                    id
+                  );
+                }
               }
-            }
-          })
-        );
-        return qwikDirs.filter(isNotNullable);
+            })
+          );
+        } catch (e) {
+          console.error(e);
+        }
       } catch (e) {
-        console.error(e);
+        // ignore errors if package.json not found
       }
-    } catch (e) {
-      // ignore errors if root package.json not found
-    }
+      prevPackageJsonDir = packageJsonDir;
+      packageJsonDir = sys.path.dirname(packageJsonDir);
+    } while (packageJsonDir !== prevPackageJsonDir);
   }
-  return [];
+  return Array.from(paths).map(([path, id]) => ({ path, id }));
 };
 
 export const isNotNullable = <T>(v: T): v is NonNullable<T> => {

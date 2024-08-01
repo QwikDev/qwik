@@ -34,6 +34,7 @@ dist-dev
 external
 lib
 tsdoc-metadata.json
+packages/qwik/bindings
 
 # IDE and local environment
 .idea
@@ -51,3 +52,5 @@ test-results
 sandbox
 
 .gitpod.yml
+# We need to ignore this because "changesets" will try to replace it
+/CHANGELOG.md

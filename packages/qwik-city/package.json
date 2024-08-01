@@ -1,7 +1,7 @@
 {
   "name": "@builder.io/qwik-city",
   "description": "The meta-framework for Qwik.",
-  "version": "1.6.0",
+  "version": "1.7.3",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@mdx-js/mdx": "^3.0.1",
@@ -178,10 +178,20 @@
       "require": "./lib/service-worker.cjs"
     }
   },
+  "files": [
+    "adapters",
+    "index.d.ts",
+    "lib",
+    "middleware",
+    "modules.d.ts",
+    "README.md",
+    "service-worker.d.ts",
+    "static.d.ts",
+    "vite.d.ts"
+  ],
   "homepage": "https://qwik.dev/",
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
-  "private": true,
   "publishConfig": {
     "access": "public"
   },
@@ -192,7 +202,7 @@
     "directory": "packages/qwik-city"
   },
   "scripts": {
-    "build": "cd runtime && vite build --mode lib"
+    "build": "cd src/runtime && vite build --mode lib"
   },
   "type": "module",
   "types": "./lib/index.d.ts"

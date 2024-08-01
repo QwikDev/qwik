@@ -1,19 +1,21 @@
-import { type BuildConfig, ensureDir, panic } from './util';
+import { rmSync } from 'fs';
+import { copyFile, watch } from 'fs/promises';
+import { join } from 'path';
 import { apiExtractorQwik, apiExtractorQwikCity } from './api';
+import { buildPlatformBinding, copyPlatformBindingWasm } from './binding-platform';
+import { buildWasmBinding } from './binding-wasm';
 import { buildCreateQwikCli } from './create-qwik-cli';
 import { buildEslint } from './eslint';
-import { buildPlatformBinding, copyPlatformBindingWasm } from './binding-platform';
+import { buildQwikAuth } from './qwik-auth';
 import { buildQwikCity } from './qwik-city';
+import { buildQwikLabs } from './qwik-labs';
 import { buildQwikReact } from './qwik-react';
-import { buildWasmBinding } from './binding-wasm';
-import { copyFiles } from './copy-files';
-import { emptyDir } from './util';
-import { generatePackageJson } from './package-json';
+import { buildQwikWorker } from './qwik-worker';
 import {
   commitPrepareReleaseVersion,
   prepareReleaseVersion,
   publish,
-  setDevVersion,
+  setDistVersion,
   setReleaseVersion,
 } from './release';
 import { submoduleBuild } from './submodule-build';
@@ -24,16 +26,11 @@ import { submoduleQwikLoader } from './submodule-qwikloader';
 import { submoduleQwikPrefetch } from './submodule-qwikprefetch';
 import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
+import { buildSupabaseAuthHelpers } from './supabase-auth-helpers';
 import { tsc, tscQwik, tscQwikCity } from './tsc';
 import { tscDocs } from './tsc-docs';
+import { type BuildConfig, emptyDir, ensureDir, panic } from './util';
 import { validateBuild } from './validate-build';
-import { buildQwikAuth } from './qwik-auth';
-import { buildSupabaseAuthHelpers } from './supabase-auth-helpers';
-import { buildQwikWorker } from './qwik-worker';
-import { buildQwikLabs } from './qwik-labs';
-import { watch, copyFile } from 'fs/promises';
-import { join } from 'path';
-import { rmSync } from 'fs';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in config has all the correct
@@ -51,8 +48,8 @@ export async function build(config: BuildConfig) {
       // ci release, npm publish
       await setReleaseVersion(config);
     } else {
-      // local build or ci commit that's not for publishing
-      await setDevVersion(config);
+      // local build or dev build
+      await setDistVersion(config);
     }
 
     console.log(
@@ -60,7 +57,7 @@ export async function build(config: BuildConfig) {
       `[node ${process.version}, ${process.platform}/${process.arch}]`
     );
 
-    if (config.tsc) {
+    if (config.tsc || (!config.dev && config.qwik)) {
       rmSync(config.tscDir, { recursive: true, force: true });
       rmSync(config.dtsDir, { recursive: true, force: true });
       await tscQwik(config);
@@ -73,9 +70,6 @@ export async function build(config: BuildConfig) {
         emptyDir(config.distQwikPkgDir);
       }
 
-      // create the dist package.json first so we get the version set
-      await generatePackageJson(config);
-
       await Promise.all([
         submoduleCore(config),
         submoduleQwikLoader(config),
@@ -83,7 +77,6 @@ export async function build(config: BuildConfig) {
         submoduleBuild(config),
         submoduleTesting(config),
         submoduleCli(config),
-        copyFiles(config),
       ]);
 
       // server bundling must happen after the results from the others
@@ -91,12 +84,12 @@ export async function build(config: BuildConfig) {
       await Promise.all([submoduleServer(config), submoduleOptimizer(config)]);
     }
 
-    if (config.api) {
+    if (config.api || (!config.dev && config.qwik)) {
       rmSync(join(config.rootDir, 'dist-dev', 'api'), { recursive: true, force: true });
       rmSync(join(config.rootDir, 'dist-dev', 'api-docs'), { recursive: true, force: true });
       rmSync(join(config.rootDir, 'dist-dev', 'api-extractor'), { recursive: true, force: true });
     }
-    if (config.api || (config.tsc && config.qwik)) {
+    if (config.api || ((!config.dev || config.tsc) && config.qwik)) {
       await apiExtractorQwik(config);
     }
 
@@ -110,7 +103,7 @@ export async function build(config: BuildConfig) {
       await buildWasmBinding(config);
     }
 
-    if (config.tsc) {
+    if (config.tsc || (!config.dev && config.qwikcity)) {
       await tscQwikCity(config);
     }
 
@@ -118,7 +111,7 @@ export async function build(config: BuildConfig) {
       await buildQwikCity(config);
     }
 
-    if (config.api || (config.tsc && config.qwikcity)) {
+    if (config.api || ((!config.dev || config.tsc) && config.qwikcity)) {
       await apiExtractorQwikCity(config);
     }
 

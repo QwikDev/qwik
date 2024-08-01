@@ -130,7 +130,7 @@ pub struct QwikTransformOptions<'a> {
 	pub reg_ctx_name: Option<&'a [JsWord]>,
 	pub strip_ctx_name: Option<&'a [JsWord]>,
 	pub strip_event_handlers: bool,
-	pub is_server: Option<bool>,
+	pub is_server: bool,
 	pub cm: Lrc<SourceMap>,
 }
 
@@ -265,12 +265,7 @@ impl<'a> QwikTransform<'a> {
 
 	fn get_dev_location(&self, span: Span) -> ast::ExprOrSpread {
 		let loc = self.options.cm.lookup_char_pos(span.lo);
-		let file_name = self
-			.options
-			.path_data
-			.rel_path
-			.to_string_lossy()
-			.to_string();
+		let file_name = self.options.path_data.rel_path.to_slash_lossy().to_string();
 		ast::ExprOrSpread {
 			spread: None,
 			expr: Box::new(ast::Expr::Object(ast::ObjectLit {
@@ -574,7 +569,7 @@ impl<'a> QwikTransform<'a> {
 		}
 		scoped_idents.sort();
 
-		let serialize_fn = matches!(self.options.is_server, None | Some(true));
+		let serialize_fn = self.options.is_server;
 		let (scoped_idents, _) = compute_scoped_idents(&descendent_idents, &decl_collect);
 		let inlined_fn = self.ensure_core_import(&_INLINED_FN);
 		convert_inlined_fn(

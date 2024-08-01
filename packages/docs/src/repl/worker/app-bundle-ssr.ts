@@ -14,7 +14,7 @@ export const appBundleSsr = async (options: ReplInputOptions, result: ReplResult
     buildMode: options.buildMode,
     debug: options.debug,
     srcInputs: getInputs(options),
-    entryStrategy: { type: 'inline' },
+    entryStrategy: { type: 'hoist' },
     manifestInput: result.manifest,
   };
 

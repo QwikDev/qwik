@@ -13,6 +13,7 @@ import {
   type ValueOrPromise,
 } from '@builder.io/qwik';
 
+import * as v from 'valibot';
 import { z } from 'zod';
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
 import { QACTION_KEY, QDATA_KEY, QFN_KEY } from './constants';
@@ -40,8 +41,12 @@ import type {
   ValidatorConstructor,
   ValidatorConstructorQRL,
   ValidatorReturn,
+  ValibotConstructor,
+  ValibotConstructorQRL,
+  ValibotDataValidator,
   ZodConstructor,
   ZodConstructorQRL,
+  ZodDataValidator,
 } from './types';
 import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 
@@ -224,53 +229,72 @@ export const validatorQrl = ((
 /** @public */
 export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
 
+const flattenValibotIssues = (issues: v.GenericIssue[]) => {
+  return issues.reduce<Record<string, string | string[]>>((acc, issue) => {
+    if (issue.path) {
+      const hasArrayType = issue.path.some((path) => path.type === 'array');
+      if (hasArrayType) {
+        const keySuffix = issue.expected === 'Array' ? '[]' : '';
+        const key =
+          issue.path
+            .map((item) => (item.type === 'array' ? '*' : item.key))
+            .join('.')
+            .replace(/\.\*/g, '[]') + keySuffix;
+        acc[key] = acc[key] || [];
+        if (Array.isArray(acc[key])) {
+          (acc[key] as string[]).push(issue.message);
+        }
+        return acc;
+      } else {
+        acc[issue.path.map((item) => item.key).join('.')] = issue.message;
+      }
+    }
+    return acc;
+  }, {});
+};
+
 /** @public */
-export const zodQrl = ((
+export const valibotQrl: ValibotConstructorQRL = (
   qrl: QRL<
-    z.ZodRawShape | z.Schema | ((z: typeof import('zod').z, ev: RequestEvent) => z.ZodRawShape)
+    | v.GenericSchema
+    | v.GenericSchemaAsync
+    | ((ev: RequestEvent) => v.GenericSchema | v.GenericSchemaAsync)
   >
-): DataValidator => {
+): ValibotDataValidator => {
   if (isServer) {
     return {
       async validate(ev, inputData) {
-        const schema: Promise<z.Schema> = qrl.resolve().then((obj) => {
-          if (typeof obj === 'function') {
-            obj = obj(z, ev);
-          }
-          if (obj instanceof z.Schema) {
-            return obj;
-          } else {
-            return z.object(obj);
-          }
-        });
+        const schema: v.GenericSchema | v.GenericSchemaAsync = await qrl
+          .resolve()
+          .then((obj) => (typeof obj === 'function' ? obj(ev) : obj));
         const data = inputData ?? (await ev.parseBody());
-        const result = await (await schema).safeParseAsync(data);
+        const result = await v.safeParseAsync(schema, data);
         if (result.success) {
-          return result;
+          return {
+            success: true,
+            data: result.output,
+          };
         } else {
           if (isDev) {
-            console.error(
-              '\nVALIDATION ERROR\naction$() zod validated failed',
-              '\n  - Issues:',
-              result.error.issues
-            );
+            console.error('ERROR: Valibot validation failed', result.issues);
           }
-          const zodErrorsFlatten = result.error.flatten();
-          const fieldErrors = flattenZodIssues(result.error.issues);
           return {
             success: false,
             status: 400,
             error: {
-              formErrors: zodErrorsFlatten.formErrors,
-              fieldErrors: fieldErrors,
+              formErrors: v.flatten(result.issues).root ?? [],
+              fieldErrors: flattenValibotIssues(result.issues),
             },
           };
         }
       },
     };
   }
-  return undefined as any;
-}) as ZodConstructorQRL;
+  return undefined as never;
+};
+
+/** @public */
+export const valibot$: ValibotConstructor = /*#__PURE__*/ implicit$FirstArg(valibotQrl);
 
 const flattenZodIssues = (issues: z.ZodIssue | z.ZodIssue[]) => {
   issues = Array.isArray(issues) ? issues : [issues];
@@ -284,7 +308,6 @@ const flattenZodIssues = (issues: z.ZodIssue | z.ZodIssue[]) => {
           .map((path) => (typeof path === 'number' ? '*' : path))
           .join('.')
           .replace(/\.\*/g, '[]') + keySuffix;
-
       acc[key] = acc[key] || [];
       if (Array.isArray(acc[key])) {
         (acc[key] as string[]).push(issue.message);
@@ -298,7 +321,49 @@ const flattenZodIssues = (issues: z.ZodIssue | z.ZodIssue[]) => {
 };
 
 /** @public */
-export const zod$ = /*#__PURE__*/ implicit$FirstArg(zodQrl) as ZodConstructor;
+export const zodQrl: ZodConstructorQRL = (
+  qrl: QRL<
+    z.ZodRawShape | z.Schema | ((z: typeof import('zod').z, ev: RequestEvent) => z.ZodRawShape)
+  >
+): ZodDataValidator => {
+  if (isServer) {
+    return {
+      async validate(ev, inputData) {
+        const schema: z.Schema = await qrl.resolve().then((obj) => {
+          if (typeof obj === 'function') {
+            obj = obj(z, ev);
+          }
+          if (obj instanceof z.Schema) {
+            return obj;
+          } else {
+            return z.object(obj);
+          }
+        });
+        const data = inputData ?? (await ev.parseBody());
+        const result = await schema.safeParseAsync(data);
+        if (result.success) {
+          return result;
+        } else {
+          if (isDev) {
+            console.error('ERROR: Zod validation failed', result.error.issues);
+          }
+          return {
+            success: false,
+            status: 400,
+            error: {
+              formErrors: result.error.flatten().formErrors,
+              fieldErrors: flattenZodIssues(result.error.issues),
+            },
+          };
+        }
+      },
+    };
+  }
+  return undefined as never;
+};
+
+/** @public */
+export const zod$: ZodConstructor = /*#__PURE__*/ implicit$FirstArg(zodQrl);
 
 const deepFreeze = (obj: any) => {
   Object.getOwnPropertyNames(obj).forEach((prop) => {

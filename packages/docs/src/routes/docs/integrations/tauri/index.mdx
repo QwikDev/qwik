@@ -9,6 +9,8 @@ updated_at: '2023-07-18T17:52:09Z'
 created_at: '2023-05-14T08:01:52Z'
 ---
 
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
 # Tauri
 
 Tauri is a framework to build desktop applications with any frontend framework and a Rust core.
@@ -20,17 +22,55 @@ Make sure you use the [Static Adapter](https://qwik.dev/docs/deployments/static/
 
 Then you can build your app with 
 
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run build
+```
+</span>
+<span q:slot="npm">
 ```shell
 npm run build
 ```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run build
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run build
+```
+</span>
+</PackageManagerTabs>
 
 ## Add Tauri
 
-To install Tauri via npm run:
+To install Tauri:
 
+<PackageManagerTabs>
+<span q:slot="pnpm">
 ```shell
-npm install -D @tauri-apps/cli
+pnpm install @tauri-apps/cli
 ```
+</span>
+<span q:slot="npm">
+```shell
+npm install @tauri-apps/cli
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn add @tauri-apps/cli
+```
+</span>
+<span q:slot="bun">
+```shell
+bun install @tauri-apps/cli
+```
+</span>
+</PackageManagerTabs>
 
 In your `package.json`, add this script:
 
@@ -41,9 +81,30 @@ In your `package.json`, add this script:
 ```
 
 Then, to scaffold a minimal Rust project that is pre-configured to use Tauri, open a terminal and run the following command:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run tauri init
+```
+</span>
+<span q:slot="npm">
 ```shell
 npm run tauri init
 ```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run tauri init
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run tauri init
+```
+</span>
+</PackageManagerTabs>
+
 This command will walk you through a quick setup:
 1. *What is your app name?*
 This will be the name of your final bundle and what the OS will call your app. You can use any name you want here.
@@ -57,12 +118,32 @@ This can be either a URL or a file path that Tauri will load during development.
 Use `http://localhost:5173` for this value.
 5. *What is your frontend dev command?*
 This is the command used to start your frontend dev server.
-Use `npm run dev` **(make sure to adapt this to use the package manager of your choice)**.
+Use `dev` command **(make sure to adapt this to use the package manager of your choice)**.
 6. *What is your frontend build command?*
 This is the command to build your frontend files.
-Use `npm run build` **(make sure to adapt this to use the package manager of your choice)**.
+Use `build` command **(make sure to adapt this to use the package manager of your choice)**.
 
 That's it! Finally you can run this command to start developing your app:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run tauri dev
+```
+</span>
+<span q:slot="npm">
 ```shell
 npm run tauri dev
 ```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run tauri dev
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run tauri dev
+```
+</span>
+</PackageManagerTabs>

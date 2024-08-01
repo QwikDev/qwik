@@ -20,6 +20,7 @@ updated_at: '2023-09-15T18:19:48Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 import ImgRoutingFiles from '~/media/docs/qwikcity/routing-files.png?jsx';
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 # Qwik City
 
@@ -55,12 +56,28 @@ Use Qwik City to build an e-commerce website, blog site, or any other website th
 
 Visit [Create an app using the CLI](/docs/getting-started/#create-an-app-using-the-cli) to see how to create a new Qwik City starter project. It is as simple as:
 
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm create qwik@latest
+```
+</span>
+<span q:slot="npm">
 ```shell
 npm create qwik@latest
-pnpm create qwik@latest
+```
+</span>
+<span q:slot="yarn">
+```shell
 yarn create qwik
+```
+</span>
+<span q:slot="bun">
+```shell
 bun create qwik@latest
 ```
+</span>
+</PackageManagerTabs>
 
 ## High Level API Overview
 

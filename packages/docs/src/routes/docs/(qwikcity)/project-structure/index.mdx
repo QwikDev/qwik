@@ -14,6 +14,9 @@ updated_at: '2023-09-21T06:23:47Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
+
 # Project Structure
 
 A typical Qwik project looks like this:
@@ -71,9 +74,9 @@ Refer to [Vite configuration for more information](https://vitejs.dev/guide/buil
 The SSR entry point is the common entry point in all cases where the application is rendered outside of the browser.
 
 - Server (express, cloudflare...)
-- npm run start
-- npm run preview
-- npm run build
+- `start` command
+- `preview` command
+- `build` command
 
 ### `src/root.tsx`
 
@@ -98,14 +101,54 @@ Qwik uses Vite to build the project. The `vite.config.ts` file contains the Vite
 Qwik has a utility command called `new` that allows developers to easily create new components and routes.
 
 Let's say you wanted to create a new component called `Button`, you would run the command:
-```tsx
-pnpm qwik new Button
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run qwik new Button
 ```
+</span>
+<span q:slot="npm">
+```shell
+npm run qwik new Button
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run qwik new Button
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run qwik new Button
+```
+</span>
+</PackageManagerTabs>
 
 Maybe you want to create a new route for the /contact page. To do that, you could use the command:
-```tsx
-pnpm qwik new /contact
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run qwik new /contact
 ```
+</span>
+<span q:slot="npm">
+```shell
+npm run qwik new /contact
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run qwik new /contact
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run qwik new /contact
+```
+</span>
+</PackageManagerTabs>
 
 The following commands are consistent with Qwik's directory file structure, allowing you to scaffold components more quickly.
 
@@ -140,9 +183,29 @@ qwik-app-demo
 ```
 
 If you prefer to generate the `Button` component with the `Button/index.tsx` naming convention, you could use the command:
-```tsx
-pnpm qwik new --barrel Button
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run qwik new --barrel Button
 ```
+</span>
+<span q:slot="npm">
+```shell
+npm run qwik new --barrel Button
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run qwik new --barrel Button
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run qwik new --barrel Button
+```
+</span>
+</PackageManagerTabs>
 
 In that case, the `src/components` folder would look like this:
 ```bash

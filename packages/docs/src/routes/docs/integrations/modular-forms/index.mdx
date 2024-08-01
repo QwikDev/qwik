@@ -13,16 +13,36 @@ created_at: '2023-04-28T22:00:03Z'
 ---
 
 import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 # Modular Forms
 
 [Modular Forms](https://modularforms.dev/) is a type-safe form library built natively on Qwik. The headless design gives you full control over the visual appearance of your form. The library takes care of state management and input validation.
 
-To get started, install the npm package:
+To get started, install the `@modular-forms/qwik` package:
 
-```bash
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm install @modular-forms/qwik
+```
+</span>
+<span q:slot="npm">
+```shell
 npm install @modular-forms/qwik
 ```
+</span>
+<span q:slot="yarn">
+```shell
+yarn add @modular-forms/qwik
+```
+</span>
+<span q:slot="bun">
+```shell
+bun install @modular-forms/qwik
+```
+</span>
+</PackageManagerTabs>
 
 ## Define your form
 

@@ -115,7 +115,7 @@ describe('types', () => {
       email: z.string().email(),
       createdAt: z.date().default(new Date()),
       isActive: z.boolean().default(true),
-      somePayload: z.any(),
+      someAnyType: z.any(),
       roles: z.array(z.enum(['user', 'admin', 'moderator'])).default(['user']),
       preferences: z
         .object({
@@ -144,8 +144,7 @@ describe('types', () => {
     const UserSchema = z.union([AdminUserSchema, ModeratorUserSchema, BaseUserSchema]);
 
     type ErrorType = ValidatorErrorType<z.infer<typeof UserSchema>>['fieldErrors'];
-
-    expectTypeOf<ErrorType>().toEqualTypeOf<{
+    type EqualType = {
       username?: string;
       id?: string;
       email?: string;
@@ -154,10 +153,12 @@ describe('types', () => {
       'roles[]'?: string[];
       'permissions[]'?: string[];
       'moderatedSections[]'?: string[];
-    }>();
+    };
+
+    expectTypeOf<ErrorType>().toEqualTypeOf<EqualType>();
 
     expectTypeOf<ErrorType>().not.toEqualTypeOf<{
-      somePayload?: string;
+      someAnyType?: string;
     }>();
   });
 });

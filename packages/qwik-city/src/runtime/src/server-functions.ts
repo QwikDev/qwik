@@ -263,6 +263,7 @@ export const valibotQrl: ValibotConstructorQRL = (
 ): ValibotDataValidator => {
   if (isServer) {
     return {
+      __brand: 'valibot',
       async validate(ev, inputData) {
         const schema: v.GenericSchema | v.GenericSchemaAsync = await qrl
           .resolve()
@@ -328,6 +329,7 @@ export const zodQrl: ZodConstructorQRL = (
 ): ZodDataValidator => {
   if (isServer) {
     return {
+      __brand: 'zod',
       async validate(ev, inputData) {
         const schema: z.Schema = await qrl.resolve().then((obj) => {
           if (typeof obj === 'function') {

@@ -810,6 +810,7 @@ export type ValidatorConstructorQRL = {
 export type ValibotDataValidator<
   T extends v.GenericSchema | v.GenericSchemaAsync = v.GenericSchema | v.GenericSchemaAsync,
 > = {
+  readonly __brand: 'valibot';
   validate(
     ev: RequestEvent,
     data: unknown
@@ -834,6 +835,7 @@ export type ValibotConstructorQRL = {
 
 /** @public */
 export type ZodDataValidator<T extends z.ZodType = z.ZodType> = {
+  readonly __brand: 'zod';
   validate(
     ev: RequestEvent,
     data: unknown

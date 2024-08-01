@@ -694,7 +694,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             path,
             isClientDevOnly,
             clientDevInput,
-            qwikPlugin.foundQrls,
             devSsrServer
           );
         };

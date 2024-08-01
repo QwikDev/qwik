@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city/middleware/vercel API Reference
+title: \@builder.io/qwik-city/middleware/vercel/serverless API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city/middleware/vercel
+# [API](/api) &rsaquo; @builder.io/qwik-city/middleware/vercel/serverless
 
 ## createQwikCity
 

@@ -1,15 +1,15 @@
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
-import { getParentDir, type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
+import { getParentDir, type ServerAdapterOptions, viteAdapter } from '../../../shared/vite';
 import fs from 'node:fs';
 import { dirname, join } from 'node:path';
 
 /** @public */
-export const FUNCTION_DIRECTORY = '_qwik-city-edge';
+export const FUNCTION_DIRECTORY = '_qwik-city-serverless';
 
 /** @public */
-export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
+export function vercelServerlessAdapter(opts: VercelServerlessAdapterOptions = {}): any {
   return viteAdapter({
-    name: 'vercel-edge',
+    name: 'vercel-serverless',
     origin: process?.env?.VERCEL_URL || 'https://yoursitename.vercel.app',
     ssg: opts.ssg,
     staticPaths: opts.staticPaths,
@@ -27,7 +27,7 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
               : ['edge-light', 'webworker', 'worker', 'browser', 'module', 'main'],
         },
         ssr: {
-          target: opts.target === 'node' ? 'node' : 'webworker',
+          target: 'node',
           noExternal: true,
         },
         build: {
@@ -68,19 +68,26 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
 
       let entrypoint = opts.vcConfigEntryPoint;
       if (!entrypoint) {
-        if (outputEntries.some((n) => n === 'entry.vercel-edge.mjs')) {
-          entrypoint = 'entry.vercel-edge.mjs';
+        if (outputEntries.some((n) => n === 'entry.vercel-serverless.mjs')) {
+          entrypoint = 'entry.vercel-serverless.mjs';
         } else {
-          entrypoint = 'entry.vercel-edge.js';
+          entrypoint = 'entry.vercel-serverless.js';
         }
       }
 
-      // https://vercel.com/docs/build-output-api/v3#vercel-primitives/edge-functions/configuration
+      // https://vercel.com/docs/build-output-api/v3/primitives#serverless-functions
       const vcConfigPath = join(serverOutDir, '.vc-config.json');
       const vcConfig = {
-        runtime: 'edge',
-        entrypoint,
-        envVarsInUse: opts.vcConfigEnvVarsInUse,
+        launcherType: 'Nodejs',
+        runtime: opts.runtime || 'nodejs20.x',
+        handler: entrypoint,
+        memory: opts.memory,
+        maxDuration: opts.maxDuration,
+        environment: opts.environment,
+        regions: opts.regions,
+        shouldAddHelpers: opts.shouldAddHelpers,
+        shouldAddSourcemapSupport: opts.shouldAddSourceMapSupport,
+        awsLambdaHandler: opts.awsLambdaHandler,
       };
       await fs.promises.writeFile(vcConfigPath, JSON.stringify(vcConfig, null, 2));
 
@@ -107,13 +114,74 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
 }
 
 /** @public */
-export interface VercelEdgeAdapterOptions extends ServerAdapterOptions {
+export interface ServerlessFunctionConfig {
+  /**
+   * Specifies which "runtime" will be used to execute the Serverless Function.
+   *
+   * Required: Yes
+   */
+  runtime: string;
+
+  /**
+   * Indicates the initial file where code will be executed for the Serverless Function.
+   *
+   * Required: Yes
+   */
+  handler: string;
+
+  /**
+   * Amount of memory (RAM in MB) that will be allocated to the Serverless Function.
+   *
+   * Required: No
+   */
+  memory?: number;
+
+  /**
+   * Maximum duration (in seconds) that will be allowed for the Serverless Function.
+   *
+   * Required: No
+   */
+  maxDuration?: number;
+
+  /**
+   * Map of additional environment variables that will be available to the Serverless Function, in
+   * addition to the env vars specified in the Project Settings.
+   *
+   * Required: No
+   */
+  environment?: Record<string, string>[];
+
+  /**
+   * List of Vercel Regions where the Serverless Function will be deployed to.
+   *
+   * Required: No
+   */
+  regions?: string[];
+
+  /**
+   * True if a custom runtime has support for Lambda runtime wrappers.
+   *
+   * Required: No
+   */
+  supportsWrapper?: boolean;
+
+  /**
+   * When true, the Serverless Function will stream the response to the client.
+   *
+   * Required: No
+   */
+  supportsResponseStreaming?: boolean;
+}
+
+/** @public */
+export interface VercelServerlessAdapterOptions extends ServerAdapterOptions {
   /**
    * Determines if the build should auto-generate the `.vercel/output/config.json` config.
    *
    * Defaults to `true`.
    */
   outputConfig?: boolean;
+
   /**
    * The `entrypoint` property in the `.vc-config.json` file. Indicates the initial file where code
    * will be executed for the Edge Function.
@@ -121,13 +189,7 @@ export interface VercelEdgeAdapterOptions extends ServerAdapterOptions {
    * Defaults to `entry.vercel-edge.js`.
    */
   vcConfigEntryPoint?: string;
-  /**
-   * The `envVarsInUse` property in the `.vc-config.json` file. List of environment variable names
-   * that will be available for the Edge Function to utilize.
-   *
-   * Defaults to `undefined`.
-   */
-  vcConfigEnvVarsInUse?: string[];
+
   /**
    * Manually add pathnames that should be treated as static paths and not SSR. For example, when
    * these pathnames are requested, their response should come from a static file, rather than a
@@ -136,11 +198,67 @@ export interface VercelEdgeAdapterOptions extends ServerAdapterOptions {
   staticPaths?: string[];
 
   /**
-   * Define the `target` property in the `ssr` object in the `vite.config.ts` file.
+   * Enables request and response helpers methods.
    *
-   * Defaults to `webworker`.
+   * Required: No Default: false
    */
-  target?: 'webworker' | 'node';
+  shouldAddHelpers?: boolean;
+
+  /**
+   * Enables source map generation.
+   *
+   * Required: No Default: false
+   */
+  shouldAddSourceMapSupport?: boolean;
+
+  /**
+   * AWS Handler Value for when the serverless function uses AWS Lambda syntax.
+   *
+   * Required: No
+   */
+  awsLambdaHandler?: string;
+
+  /**
+   * Specifies the target platform for the deployment, such as Vercel, AWS, etc.
+   *
+   * Required: No
+   */
+  target?: string;
+
+  /**
+   * Specifies the runtime environment for the function, for example, Node.js, Deno, etc.
+   *
+   * Required: No
+   */
+  runtime?: string;
+
+  /**
+   * Specifies the memory allocation for the serverless function.
+   *
+   * Required: No
+   */
+  memory?: number;
+
+  /**
+   * Specifies the maximum duration that the serverless function can run.
+   *
+   * Required: No
+   */
+  maxDuration?: number;
+
+  /**
+   * Specifies environment variables for the serverless function.
+   *
+   * Required: No
+   */
+  environment?: { [key: string]: string };
+
+  /**
+   * Specifies the regions in which the serverless function should run.
+   *
+   * Required: No
+   */
+  regions?: string[];
 }
 
 /** @public */

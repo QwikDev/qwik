@@ -420,54 +420,72 @@ async function buildAdapterStaticVite(config: BuildConfig) {
 }
 
 async function buildAdapterVercelEdgeVite(config: BuildConfig) {
-  const entryPoints = [join(config.srcQwikCityDir, 'adapters', 'vercel', 'edge', 'index.ts')];
+  const entryPoints = [
+    join(config.srcQwikCityDir, 'adapters', 'vercel', 'edge', 'vite', 'index.ts'),
+  ];
 
   await build({
     entryPoints,
-    outfile: join(config.distQwikCityPkgDir, 'adapters', 'vercel', 'edge', 'index.mjs'),
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'vercel', 'edge', 'vite', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
     external: ADAPTER_EXTERNALS,
-    plugins: [resolveAdapterShared('../../vercel/edge/index.mjs')],
+    plugins: [resolveAdapterShared('../../vercel/edge/vite/index.mjs')],
   });
 
   await build({
     entryPoints,
-    outfile: join(config.distQwikCityPkgDir, 'adapters', 'vercel', 'edge', 'index.cjs'),
+    outfile: join(config.distQwikCityPkgDir, 'adapters', 'vercel', 'edge', 'vite', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
     format: 'cjs',
     external: ADAPTER_EXTERNALS,
-    plugins: [resolveAdapterShared('../../vercel/edge/index.cjs')],
+    plugins: [resolveAdapterShared('../../vercel/edge/vite/index.cjs')],
   });
 }
 
 async function buildAdapterVercelServerlessVite(config: BuildConfig) {
-  const entryPoints = [join(config.srcQwikCityDir, 'adapters', 'vercel', 'serverless', 'index.ts')];
+  const entryPoints = [
+    join(config.srcQwikCityDir, 'adapters', 'vercel', 'serverless', 'vite', 'index.ts'),
+  ];
 
   await build({
     entryPoints,
-    outfile: join(config.distQwikCityPkgDir, 'adapters', 'vercel', 'serverless', 'index.mjs'),
+    outfile: join(
+      config.distQwikCityPkgDir,
+      'adapters',
+      'vercel',
+      'serverless',
+      'vite',
+      'index.mjs'
+    ),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
     external: ADAPTER_EXTERNALS,
-    plugins: [resolveAdapterShared('../../vercel/serverless/index.mjs')],
+    plugins: [resolveAdapterShared('../../vercel/serverless/vite/index.mjs')],
   });
 
   await build({
     entryPoints,
-    outfile: join(config.distQwikCityPkgDir, 'adapters', 'vercel', 'serverless', 'index.cjs'),
+    outfile: join(
+      config.distQwikCityPkgDir,
+      'adapters',
+      'vercel',
+      'serverless',
+      'vite',
+      'index.cjs'
+    ),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
     format: 'cjs',
     external: ADAPTER_EXTERNALS,
-    plugins: [resolveAdapterShared('../../vercel/serverless/index.cjs')],
+    plugins: [resolveAdapterShared('../../vercel/serverless/vite/index.cjs')],
   });
 }
 

@@ -4,7 +4,7 @@
 
 ```ts
 
-import { ServerAdapterOptions } from '../../shared/vite';
+import { ServerAdapterOptions } from '../../../shared/vite';
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
 
 // @public (undocumented)

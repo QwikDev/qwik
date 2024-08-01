@@ -1,7 +1,7 @@
 import {
   vercelEdgeAdapter,
   FUNCTION_DIRECTORY,
-} from "@builder.io/qwik-city/adapters/vercel/edge";
+} from "@builder.io/qwik-city/adapters/vercel/edge/vite";
 import { extendConfig } from "@builder.io/qwik-city/vite";
 import baseConfig from "../../vite.config";
 

@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city/vite/vercel API Reference
+title: \@builder.io/qwik-city/vite/vercel/serverless API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city/vite/vercel
+# [API](/api) &rsaquo; @builder.io/qwik-city/vite/vercel/serverless
 
 ## FUNCTION_DIRECTORY
 
@@ -10,7 +10,7 @@ title: \@builder.io/qwik-city/vite/vercel API Reference
 FUNCTION_DIRECTORY = "_qwik-city-serverless";
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/vercel/serverless/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/adapters/vercel/serverless/vite/index.ts)
 
 ## ServerlessFunctionConfig
 
@@ -173,7 +173,7 @@ Required: No
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/vercel/serverless/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/vercel/serverless/vite/index.ts)
 
 ## vercelServerlessAdapter
 
@@ -214,7 +214,7 @@ _(Optional)_
 
 any
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/vercel/serverless/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/adapters/vercel/serverless/vite/index.ts)
 
 ## VercelServerlessAdapterOptions
 
@@ -445,4 +445,4 @@ Defaults to `entry.vercel-edge.js`.
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/adapters/vercel/serverless/index.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/adapters/vercel/serverless/vite/index.ts)

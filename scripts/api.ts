@@ -142,7 +142,7 @@ export async function apiExtractorQwikCity(config: BuildConfig) {
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'adapters', 'vercel', 'serverless'),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'vercel', 'serverless'),
     join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'vercel', 'serverless', 'index.d.ts')
   );
   createTypesApi(
@@ -202,7 +202,7 @@ export async function apiExtractorQwikCity(config: BuildConfig) {
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'middleware', 'vercel', 'serverless'),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'vercel', 'serverless'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'vercel', 'serverless', 'index.d.ts')
   );
   generateQwikCityReferenceModules(config);

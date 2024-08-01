@@ -1,6 +1,6 @@
 {
-  "id": "qwik-city-middleware-vercel",
-  "package": "@builder.io/qwik-city/middleware/vercel",
+  "id": "qwik-city-middleware-vercel-serverless",
+  "package": "@builder.io/qwik-city/middleware/vercel/serverless",
   "members": [
     {
       "name": "createQwikCity",

@@ -10,6 +10,7 @@ import qwikCityMiddlewareNetlifyEdgeApiData from './qwik-city-middleware-netlify
 import qwikCityMiddlewareNodeApiData from './qwik-city-middleware-node/api.json';
 import qwikCityMiddlewareRequestHandlerApiData from './qwik-city-middleware-request-handler/api.json';
 import qwikCityMiddlewareVercelEdgeApiData from './qwik-city-middleware-vercel-edge/api.json';
+import qwikCityMiddlewareVercelServerlessApiData from './qwik-city-middleware-vercel-serverless/api.json';
 import qwikCityStaticApiData from './qwik-city-static/api.json';
 import qwikCityViteAzureSwaApiData from './qwik-city-vite-azure-swa/api.json';
 import qwikCityViteCloudRunApiData from './qwik-city-vite-cloud-run/api.json';
@@ -17,7 +18,8 @@ import qwikCityViteCloudflarePagesApiData from './qwik-city-vite-cloudflare-page
 import qwikCityViteNetlifyEdgeApiData from './qwik-city-vite-netlify-edge/api.json';
 import qwikCityViteNodeServerApiData from './qwik-city-vite-node-server/api.json';
 import qwikCityViteStaticApiData from './qwik-city-vite-static/api.json';
-import qwikCityViteVercelApiData from './qwik-city-vite-vercel/api.json';
+import qwikCityViteVercelServerlessApiData from './qwik-city-vite-vercel-serverless/api.json';
+import qwikCityViteVercelEdgeApiData from './qwik-city-vite-vercel-edge/api.json';
 import qwikCityApiData from './qwik-city/api.json';
 import qwikOptimizerApiData from './qwik-optimizer/api.json';
 import qwikServerApiData from './qwik-server/api.json';
@@ -35,6 +37,7 @@ const apiData = {
   'qwik-city-middleware-node': qwikCityMiddlewareNodeApiData,
   'qwik-city-middleware-request-handler': qwikCityMiddlewareRequestHandlerApiData,
   'qwik-city-middleware-vercel-edge': qwikCityMiddlewareVercelEdgeApiData,
+  'qwik-city-middleware-vercel-serverless': qwikCityMiddlewareVercelServerlessApiData,
   'qwik-city-middleware-firebase': qwikCityMiddlewareFirebaseApiData,
   'qwik-city-static': qwikCityStaticApiData,
   'qwik-city-vite-azure-swa': qwikCityViteAzureSwaApiData,
@@ -43,7 +46,8 @@ const apiData = {
   'qwik-city-vite-node-server': qwikCityViteNodeServerApiData,
   'qwik-city-vite-netlify-edge': qwikCityViteNetlifyEdgeApiData,
   'qwik-city-vite-static': qwikCityViteStaticApiData,
-  'qwik-city-vite-vercel': qwikCityViteVercelApiData,
+  'qwik-city-vite-vercel-edge': qwikCityViteVercelEdgeApiData,
+  'qwik-city-vite-vercel-serverless': qwikCityViteVercelServerlessApiData,
   'qwik-optimizer': qwikOptimizerApiData,
   'qwik-server': qwikServerApiData,
   'qwik-testing': qwikTestingApiData,

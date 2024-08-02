@@ -1,5 +1,16 @@
 import { useContent, useLocation } from '@builder.io/qwik-city';
-import { component$, useContext, $, useStyles$, useOnDocument, useSignal, useTask$, useVisibleTask$ } from '@builder.io/qwik';
+import {
+  component$,
+  useContext,
+  $,
+  useStyles$,
+  useOnDocument,
+  useOnWindow,
+  useSignal,
+  useTask$,
+  useVisibleTask$,
+  useOn,
+} from '@builder.io/qwik';
 import type { Signal } from '@builder.io/qwik';
 import { ChatIcon } from '../svgs/chat-icon';
 import { GithubLogo } from '../svgs/github-logo';
@@ -125,48 +136,39 @@ export const OnThisPage = component$(() => {
     },
   ];
 
-
   const useActiveItem = (itemIds: string[]) => {
-    const activeId = useSignal<string>('');
+    const activeId = useSignal<string | null>(null);
+    useOnDocument(
+      'scroll',
+      $(() => {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                activeId.value = entry.target.id;
+              }
+            });
+          },
+          { rootMargin: `0% 0% -85% 0%` }
+        );
 
-    useVisibleTask$(({ cleanup }) => {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              activeId.value = entry.target.id;
-            }
-          });
-        },
-        { rootMargin: `0% 0% -85% 0%` },
-      );
-
-      itemIds.forEach((id) => {
-        const element = document.getElementById(id);
-        if (element) {
-          observer.observe(element);
-        }
-      });
-
-      cleanup(() => {
         itemIds.forEach((id) => {
           const element = document.getElementById(id);
           if (element) {
-            observer.unobserve(element);
+            observer.observe(element);
           }
         });
-      });
-    });
-
+      })
+    );
 
     return activeId;
+    // Put code here to periodically call updateClock().
   };
 
-  const active = useActiveItem(contentHeadings.map((h) => h.id))
-
+  const activeId = useActiveItem(contentHeadings.map((h) => h.id));
 
   return (
-     <aside class="on-this-page text-sm overflow-y-auto hidden xl:block">
+    <aside class="on-this-page text-sm overflow-y-auto hidden xl:block">
       {contentHeadings.length > 0 ? (
         <>
           <h6>On This Page</h6>
@@ -180,10 +182,13 @@ export const OnThisPage = component$(() => {
                     : 'hover:bg-[var(--on-this-page-hover-bg-color)]'
                 }`}
               >
-            {active.value  == h.id && <h1> am active{h.text}</h1>}
-                <a href={`#${h.id}`} class={`${h.level > 2 ? 'ml-4' : null} on-this-page-item`}>
-                  {h.text}
-                </a>
+                {activeId.value === h.id ? (
+                  <span class="active-item">{h.text}</span>
+                ) : (
+                  <a href={`#${h.id}`} class={`${h.level > 2 ? 'ml-4' : null} on-this-page-item`}>
+                    {h.text}
+                  </a>
+                )}
               </li>
             ))}
           </ul>

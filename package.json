@@ -31,21 +31,21 @@
           "pinVersion": "workspace:^"
         },
         {
-          "label": "use workspace protocol for local packages and allow patch versions (used in e.g. qwik-react)",
+          "label": "dev: use workspace protocol for local packages - split from prod and peer version group",
           "dependencies": [
             "$LOCAL"
           ],
           "dependencyTypes": [
-            "!local"
+            "dev"
           ],
           "pinVersion": "workspace:^"
         },
         {
-          "label": "Playwright should have the same version as in flake.nix",
-          "dependencies": [
-            "@playwright/test"
-          ],
-          "pinVersion": "1.40.0"
+          "label": "Separate prod deps from dev deps",
+          "dependencyTypes": [
+            "prod",
+            "peer"
+          ]
         }
       ],
       "semverGroups": [
@@ -64,14 +64,17 @@
           "range": "*"
         },
         {
-          "label": "Undici should always be * until we remove it",
-          "range": "*",
-          "dependencies": [
-            "undici"
-          ]
+          "label": "use exact version numbers for devDependencies",
+          "dependencyTypes": [
+            "dev"
+          ],
+          "range": ""
         }
       ]
     }
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm pretty-quick --staged"
   },
   "contributors": [
     {
@@ -146,6 +149,7 @@
     "prompts": "2.4.2",
     "rollup": "4.19.0",
     "semver": "7.6.3",
+    "simple-git-hooks": "2.11.1",
     "snoop": "1.0.4",
     "source-map": "0.7.4",
     "svgo": "3.3.2",
@@ -162,8 +166,7 @@
     "vitest": "2.0.5",
     "watchlist": "0.3.1",
     "which-pm-runs": "1.1.0",
-    "zod": "3.22.4",
-    "simple-git-hooks": "2.11.1"
+    "zod": "3.22.4"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11",
@@ -186,8 +189,8 @@
   "private": true,
   "scripts": {
     "api.update": "tsm scripts/index.ts --tsc --api --dev",
-    "build.changelog-formatter": "tsc .changeset/changelog-github-custom.ts && mv .changeset/changelog-github-custom.js .changeset/changelog-github-custom.cjs",
     "build": "tsm scripts/index.ts",
+    "build.changelog-formatter": "tsc .changeset/changelog-github-custom.ts && mv .changeset/changelog-github-custom.js .changeset/changelog-github-custom.cjs",
     "build.clean": "rm -rf packages/qwik/dist/ && rm -rf packages/qwik-city/lib/ && rm -rf packages/docs/dist/ && rm -rf packages/insights/dist/ && rm -rf packages/qwik-labs/lib/ && rm -rf packages/qwik-labs/vite/",
     "build.cli": "tsm scripts/index.ts --cli --dev",
     "build.cli.prod": "tsm scripts/index.ts --cli",
@@ -224,11 +227,14 @@
     "lint.fix": "eslint --fix \"**/*.ts*\" && pnpm prettier.fix",
     "lint.prettier": "prettier --cache --check .",
     "lint.rust": "make lint",
+    "lint.syncpack": "syncpack list-mismatches",
+    "prepare": "simple-git-hooks",
     "preinstall": "npx only-allow pnpm",
     "prettier.fix": "prettier --cache --write .",
     "qwik-save-artifacts": "tsm ./scripts/qwik-save-artifacts.ts",
-    "release.prepare": "pnpm build --prepare-release",
     "release": "changeset publish",
+    "release.prepare": "pnpm build --prepare-release",
+    "release.pkg-pr-new": "pnpm dlx pkg-pr-new@^0.0.9 publish --compact --pnpm ./packages/qwik ./packages/qwik-city ./packages/eslint-plugin-qwik ./packages/create-qwik",
     "serve": "tsm --inspect --conditions=development starters/dev-server.ts 3300",
     "serve.debug": "tsm --inspect-brk --conditions=development starters/dev-server.ts 3300",
     "start": "concurrently \"npm:build.watch\"  \"npm:tsc.watch\" -n build,tsc -c green,cyan",
@@ -248,13 +254,7 @@
     "tsc.trace": "tsc -p tsconfig.json --traceResolution > tsc.log",
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",
     "update.qwik.builds": "tsm scripts/update-qwik-builds.ts packages/docs && tsm scripts/update-qwik-builds.ts packages/insights; pnpm install",
-    "vitest": "vitest",
-    "release.pkg-pr-new": "pnpm dlx pkg-pr-new@^0.0.9 publish --compact --pnpm ./packages/qwik ./packages/qwik-city ./packages/eslint-plugin-qwik ./packages/create-qwik",
-    "prepare": "simple-git-hooks",
-    "lint.syncpack": "syncpack list-mismatches"
+    "vitest": "vitest"
   },
-  "type": "module",
-  "simple-git-hooks": {
-    "pre-commit": "pnpm pretty-quick --staged"
-  }
+  "type": "module"
 }

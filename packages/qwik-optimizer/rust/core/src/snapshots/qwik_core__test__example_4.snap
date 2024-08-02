@@ -1,0 +1,90 @@
+---
+source: packages/qwik-optimizer/rust/core/src/test.rs
+assertion_line: 149
+expression: output
+---
+==INPUT==
+
+
+import { $, component$ } from '@builder.io/qwik';
+export function App() {
+	const Header = component$(() => {
+		console.log("mount");
+		return (
+			<div onClick={$((ctx) => console.log(ctx))}/>
+		);
+	});
+	return Header;
+}
+
+============================= app_header_component_b9f3yeqco1w.tsx (ENTRY POINT)==
+
+import { qrl } from "@builder.io/qwik";
+export const App_Header_component_B9F3YeqcO1w = ()=>{
+    console.log("mount");
+    return <div onClick={/*#__PURE__*/ qrl(()=>import("./app_header_component_div_onclick_ao7ui7iw6oq"), "App_Header_component_div_onClick_aO7uI7Iw6oQ")}/>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gDAG2B;IACzB,QAAQ,GAAG,CAAC;IACZ,QACE,IAAI;AAEP\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_Header_component_B9F3YeqcO1w",
+  "entry": null,
+  "displayName": "App_Header_component",
+  "hash": "B9F3YeqcO1w",
+  "canonicalFilename": "app_header_component_b9f3yeqco1w",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    103,
+    202
+  ]
+}
+*/
+============================= app_header_component_div_onclick_ao7ui7iw6oq.tsx (ENTRY POINT)==
+
+export const App_Header_component_div_onClick_aO7uI7Iw6oQ = (ctx)=>console.log(ctx);
+export { _hW } from "@builder.io/qwik";
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"4DAMmB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_Header_component_div_onClick_aO7uI7Iw6oQ",
+  "entry": null,
+  "displayName": "App_Header_component_div_onClick",
+  "hash": "aO7uI7Iw6oQ",
+  "canonicalFilename": "app_header_component_div_onclick_ao7ui7iw6oq",
+  "path": "",
+  "extension": "tsx",
+  "parent": "App_Header_component_B9F3YeqcO1w",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    165,
+    190
+  ]
+}
+*/
+============================= test.tsx ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export function App() {
+    const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_header_component_b9f3yeqco1w"), "App_Header_component_B9F3YeqcO1w"));
+    return Header;
+}
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,OAAO,SAAS;IACf,MAAM,uBAAS;IAMf,OAAO;AACR\"}")
+== DIAGNOSTICS ==
+
+[]

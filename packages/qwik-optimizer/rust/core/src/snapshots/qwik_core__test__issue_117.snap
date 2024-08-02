@@ -1,0 +1,19 @@
+---
+source: packages/qwik-optimizer/rust/core/src/test.rs
+assertion_line: 1130
+expression: output
+---
+==INPUT==
+
+
+export const cache = patternCache[cacheKey] || (patternCache[cacheKey]={});
+
+============================= project/test.tsx ==
+
+export const cache = patternCache[cacheKey] || (patternCache[cacheKey] = {});
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"AACA,OAAO,MAAM,QAAQ,YAAY,CAAC,SAAS,IAAI,CAAC,YAAY,CAAC,SAAS,GAAC,CAAC,CAAC,EAAE\"}")
+== DIAGNOSTICS ==
+
+[]

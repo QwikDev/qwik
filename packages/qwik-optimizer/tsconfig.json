@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "incremental": true,
+    "target": "ES2020",
+    "module": "ES2020",
+    "lib": ["es2021"],
+    "resolveJsonModule": true,
+    "allowArbitraryExtensions": true,
+    "declaration": true,
+    "strict": true,
+    "verbatimModuleSyntax": true,
+    "moduleResolution": "Bundler",
+    "baseUrl": ".",
+    "assumeChangesOnlyAffectDirectDependencies": true,
+    "noUnusedLocals": true,
+    "types": ["node", "vite/client"],
+    "esModuleInterop": true,
+    "sourceRoot": ".",
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src"]
+}

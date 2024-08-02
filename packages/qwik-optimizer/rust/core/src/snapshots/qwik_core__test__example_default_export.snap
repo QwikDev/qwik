@@ -1,0 +1,89 @@
+---
+source: packages/qwik-optimizer/rust/core/src/test.rs
+assertion_line: 1548
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@builder.io/qwik';
+import { sibling } from './sibling';
+
+export default component$(() => {
+	return (
+		<div onClick$={() => console.log(mongodb, sibling)}>
+		</div>
+	);
+});
+
+
+============================= src/routes/_repl/[id]/[[...slug]].js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./slug_component_0am8hpnkns4.js"), "slug_component_0AM8HPnkNs4"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;AAIA,6BAAe,6GAKZ\"}")
+============================= src/routes/_repl/[id]/slug_component_div_onclick_xevvy0qc7pa.js (ENTRY POINT)==
+
+import { sibling } from "./sibling";
+export const slug_component_div_onClick_xevvy0Qc7pA = ()=>console.log(mongodb, sibling);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";sDAMiB,IAAM,QAAQ,GAAG,CAAC,SAAS\"}")
+/*
+{
+  "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
+  "name": "slug_component_div_onClick_xevvy0Qc7pA",
+  "entry": null,
+  "displayName": "slug_component_div_onClick",
+  "hash": "xevvy0Qc7pA",
+  "canonicalFilename": "slug_component_div_onclick_xevvy0qc7pa",
+  "path": "src/routes/_repl/[id]",
+  "extension": "js",
+  "parent": "slug_component_0AM8HPnkNs4",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    148,
+    183
+  ]
+}
+*/
+============================= src/routes/_repl/[id]/slug_component_0am8hpnkns4.js ==
+
+import { _jsxSorted } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const slug_component_0AM8HPnkNs4 = ()=>{
+    return /*#__PURE__*/ _jsxSorted("div", null, {
+        onClick$: /*#__PURE__*/ qrl(()=>import("./slug_component_div_onclick_xevvy0qc7pa.js"), "slug_component_div_onClick_xevvy0Qc7pA")
+    }, null, 3, "W4_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;0CAI0B;IACzB,qBACC,WAAC;QAAI,QAAQ;;AAGf\"}")
+/*
+{
+  "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
+  "name": "slug_component_0AM8HPnkNs4",
+  "entry": "src/routes/_repl/[id]/[[...slug]].tsx_entry_[[...slug]]",
+  "displayName": "slug_component",
+  "hash": "0AM8HPnkNs4",
+  "canonicalFilename": "slug_component_0am8hpnkns4",
+  "path": "src/routes/_repl/[id]",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    113,
+    200
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

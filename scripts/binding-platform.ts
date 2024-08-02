@@ -17,7 +17,7 @@ export async function buildPlatformBinding(config: BuildConfig) {
         `--cargo-name`,
         'qwik_napi',
         `--platform`,
-        `--config=packages/qwik/src/napi/napi.config.json`,
+        `--config=packages/qwik-optimizer/rust/napi/napi.config.json`,
         config.distBindingsDir,
       ];
 

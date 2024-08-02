@@ -1,0 +1,71 @@
+---
+source: packages/qwik-optimizer/rust/core/src/test.rs
+assertion_line: 2225
+expression: output
+---
+==INPUT==
+
+
+import { component$, useStore } from '@builder.io/qwik';
+
+export enum Thing {
+	A,
+	B
+}
+
+export const App = component$(() => {
+	console.log(Thing.A);
+	return (
+		<>
+			<p class="stuff">Hello Qwik</p>
+		</>
+	);
+});
+
+============================= test.tsx ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export enum Thing {
+    A,
+    B
+}
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,YAAY;IACX;IACA;;AAGD,OAAO,MAAM,oBAAM,wGAOhB\"}")
+============================= app_component_ckepmxzlub0.tsx (ENTRY POINT)==
+
+import { Thing } from "./test";
+export const App_component_ckEPmXZlub0 = ()=>{
+    console.log(Thing.A);
+    return <>
+			<p class="stuff">Hello Qwik</p>
+		</>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAQ8B;IAC7B,QAAQ,GAAG,CAAC,MAAM,CAAC;IACnB,SACG;GACD,CAAC,EAAE,MAAM,QAAQ,UAAU,EAAE,EAAE;EAChC;AAEF\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "app_component_ckepmxzlub0",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    120,
+    212
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

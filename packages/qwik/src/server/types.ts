@@ -4,7 +4,7 @@ import type {
   SymbolMapperFn,
   SymbolMapper,
   ResolvedManifest,
-} from '@builder.io/qwik/optimizer';
+} from '@builder.io/qwik-optimizer';
 
 /** @public */
 export interface SerializeDocumentOptions {

@@ -1,0 +1,28 @@
+{
+  "annotation": "This package is for internal use in the monorepo, the build gets copied into qwik",
+  "name": "@builder.io/qwik-optimizer",
+  "version": "1.5.1",
+  "files": [
+    "bindings",
+    "lib"
+  ],
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "import": "./lib/index.mjs",
+      "require": "./lib/index.cjs",
+      "types": "./lib/index.d.ts"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BuilderIO/qwik.git",
+    "directory": "packages/qwik-optimizer"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "devDependencies": {
+    "image-size": "1.1.1",
+    "kleur": "4.1.5"
+  }
+}

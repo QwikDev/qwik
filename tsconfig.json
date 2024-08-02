@@ -55,7 +55,9 @@
     "packages/qwik-react/vite",
     "@types/deno.d.ts",
     "@types/bun.d.ts",
-    "types.d.ts"
+    "types.d.ts",
+    "packages/qwik-optimizer/src/hash_code.ts",
+    "packages/qwik-optimizer/src/plugins"
   ],
   "exclude": [
     "packages/create-qwik/dist",

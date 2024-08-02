@@ -13,7 +13,7 @@ add-target:
 install-all: install-rust install-rust-deps
 
 install-cli:
-	cd src/optimizer/cli && cargo install --path .
+	cd rust/cli && cargo install --path .
 
 fix:
 	cargo fmt
@@ -26,21 +26,21 @@ lint:
 
 # We only test core because there are no other tests and qwik-napi breaks the build
 test:
-	cargo test --manifest-path packages/qwik/src/optimizer/core/Cargo.toml
+	cargo test --manifest-path packages/qwik-optimizer/rust/core/Cargo.toml
 
 test-update:
-	if ! cargo test --manifest-path packages/qwik/src/optimizer/core/Cargo.toml; then \
-		cd packages/qwik/src/optimizer/core/src/snapshots/; \
+	if ! cargo test --manifest-path packages/qwik-optimizer/rust/core/Cargo.toml; then \
+		cd packages/qwik-optimizer/rust/core/src/snapshots/; \
 		for i in *.new; do f=$$(basename $$i .new); mv $$i $$f; done; \
 		cd -; \
-		cargo test --manifest-path packages/qwik/src/optimizer/core/Cargo.toml; \
+		cargo test --manifest-path packages/qwik-optimizer/rust/core/Cargo.toml; \
 	fi
 
 publish-core:
-	cd src/optimizer/core && cargo publish --all-features
+	cd rust/core && cargo publish --all-features
 
 publish-cli:
-	cd src/optimizer/cli && cargo publish
+	cd rust/cli && cargo publish
 
 publish: publish-core publish-cli
 

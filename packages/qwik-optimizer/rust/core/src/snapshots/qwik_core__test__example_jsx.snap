@@ -1,0 +1,165 @@
+---
+source: packages/qwik-optimizer/rust/core/src/test.rs
+assertion_line: 1143
+expression: output
+---
+==INPUT==
+
+
+import { $, component$, h, Fragment } from '@builder.io/qwik';
+
+export const Lightweight = (props) => {
+	return (
+		<div>
+			<>
+				<div/>
+				<button {...props}/>
+			</>
+		</div>
+	)
+};
+
+export const Foo = component$((props) => {
+	return $(() => {
+		return (
+			<div>
+				<>
+					<div class="class"/>
+					<div class="class"></div>
+					<div class="class">12</div>
+				</>
+				<div class="class">
+					<Lightweight {...props}/>
+				</div>
+				<div class="class">
+					<div/>
+					<div/>
+					<div/>
+				</div>
+				<div class="class">
+					{children}
+				</div>
+			</div>
+		)
+	});
+}, {
+	tagName: "my-foo",
+});
+
+============================= test.js ==
+
+import { _jsxSorted } from "@builder.io/qwik";
+import { _jsxSplit } from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+export const Lightweight = (props)=>{
+    return /*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, null),
+        /*#__PURE__*/ _jsxSplit("button", {
+            ...props
+        }, null, null, 0, null)
+    ], 1, "u6_0"), 1, "u6_1");
+};
+export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
+    tagName: "my-foo"
+});
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,cAAc,CAAC;IAC3B,qBACC,WAAC,iCACA;sBACC,WAAC;sBACD,UAAC;YAAQ,GAAG,KAAK;;;AAIrB,EAAE;AAEF,OAAO,MAAM,oBAAM,wGAuBhB;IACF,SAAS;AACV,GAAG\"}")
+============================= foo_component_htdrsvublie.js (ENTRY POINT)==
+
+import { qrl } from "@builder.io/qwik";
+export const Foo_component_HTDRsvUbLiE = (props)=>{
+    return /*#__PURE__*/ qrl(()=>import("./foo_component_1_dvu6fitwgly"), "Foo_component_1_DvU6FitWglY", [
+        props
+    ]);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAc8B,CAAC;IAC9B;;;AAsBD\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_HTDRsvUbLiE",
+  "entry": null,
+  "displayName": "Foo_component",
+  "hash": "HTDRsvUbLiE",
+  "canonicalFilename": "foo_component_htdrsvublie",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    219,
+    583
+  ]
+}
+*/
+============================= foo_component_1_dvu6fitwgly.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@builder.io/qwik";
+import { Lightweight } from "./test";
+import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+import { _jsxSorted } from "@builder.io/qwik";
+import { _jsxSplit } from "@builder.io/qwik";
+export const Foo_component_1_DvU6FitWglY = ()=>{
+    const [props] = useLexicalScope();
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+            /*#__PURE__*/ _jsxSorted("div", null, {
+                class: "class"
+            }, null, 3, null),
+            /*#__PURE__*/ _jsxSorted("div", null, {
+                class: "class"
+            }, null, 3, null),
+            /*#__PURE__*/ _jsxSorted("div", null, {
+                class: "class"
+            }, "12", 3, null)
+        ], 3, "u6_2"),
+        /*#__PURE__*/ _jsxSorted("div", null, {
+            class: "class"
+        }, /*#__PURE__*/ _jsxSplit(Lightweight, {
+            ...props
+        }, null, null, 0, "u6_3"), 1, null),
+        /*#__PURE__*/ _jsxSorted("div", null, {
+            class: "class"
+        }, [
+            /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, null),
+            /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, null),
+            /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, null)
+        ], 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, {
+            class: "class"
+        }, children, 1, null)
+    ], 1, "u6_4");
+};
+export { _hW } from "@builder.io/qwik";
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAeU;;IACR,qBACC,WAAC;sBACA;0BACC,WAAC;gBAAI,OAAM;;0BACX,WAAC;gBAAI,OAAM;;0BACX,WAAC;gBAAI,OAAM;eAAQ;;sBAEpB,WAAC;YAAI,OAAM;yBACV,UAAC;YAAa,GAAG,KAAK;;sBAEvB,WAAC;YAAI,OAAM;;0BACV,WAAC;0BACD,WAAC;0BACD,WAAC;;sBAEF,WAAC;YAAI,OAAM;WACT\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_component_1_DvU6FitWglY",
+  "entry": null,
+  "displayName": "Foo_component_1",
+  "hash": "DvU6FitWglY",
+  "canonicalFilename": "foo_component_1_dvu6fitwgly",
+  "path": "",
+  "extension": "js",
+  "parent": "Foo_component_HTDRsvUbLiE",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    242,
+    579
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

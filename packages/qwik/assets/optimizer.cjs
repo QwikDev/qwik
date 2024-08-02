@@ -1,0 +1,1 @@
+../../qwik-optimizer/lib/index.cjs

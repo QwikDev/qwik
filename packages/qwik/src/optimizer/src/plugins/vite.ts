@@ -40,7 +40,20 @@ const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 const STYLING = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
 const FONTS = ['.woff', '.woff2', '.ttf'];
 
-/** @public */
+/**
+ * Workaround to make the api be defined in the type.
+ *
+ * @internal
+ */
+type P<T> = VitePlugin<T> & { api: T; config: Extract<VitePlugin<T>['config'], Function> };
+
+/**
+ * The types for Vite/Rollup don't allow us to be too specific about the return type. The correct
+ * return type is `[QwikVitePlugin, VitePlugin<never>]`, and if you search the plugin by name you'll
+ * get the `QwikVitePlugin`.
+ *
+ * @public
+ */
 export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let isClientDevOnly = false;
   let clientDevInput: undefined | string = undefined;
@@ -91,7 +104,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   // Vite hooks. The second plugin is a post plugin that is called after the build has finished.
   // The post plugin is used to generate the Qwik manifest file that is used during SSR to
   // generate QRLs for event handlers.
-  const vitePluginPre: VitePlugin = {
+  const vitePluginPre: P<QwikVitePluginApi> = {
     name: 'vite-plugin-qwik',
     enforce: 'pre',
     api,
@@ -317,6 +330,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           dynamicImportVarsOptions: {
             exclude: [/./],
           },
+          rollupOptions: {
+            output: {
+              manualChunks: qwikPlugin.manualChunks,
+            },
+          },
         },
         define: {
           [qDevKey]: qDev,
@@ -339,11 +357,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           output: normalizeRollupOutputOptions(
             opts,
             viteConfig.build?.rollupOptions?.output,
-            useAssetsDir
-          ).map((outputOptsObj) => {
-            outputOptsObj.dir = buildOutputDir;
-            return outputOptsObj;
-          }),
+            useAssetsDir,
+            qwikPlugin.manualChunks,
+            buildOutputDir
+          ),
           preserveEntrySignatures: 'exports-only',
           onwarn: (warning, warn) => {
             if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
@@ -480,7 +497,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
   };
 
-  const vitePluginPost: VitePlugin = {
+  const vitePluginPost: VitePlugin<never> = {
     name: 'vite-plugin-qwik-post',
     enforce: 'post',
 
@@ -677,7 +694,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             path,
             isClientDevOnly,
             clientDevInput,
-            qwikPlugin.foundQrls,
             devSsrServer
           );
         };
@@ -1064,11 +1080,15 @@ export interface QwikVitePluginApi {
   getAssetsDir: () => string | undefined;
 }
 
-/** @public */
-export interface QwikVitePlugin {
+/**
+ * This is the type of the "pre" Qwik Vite plugin. `qwikVite` actually returns a tuple of two
+ * plugins, but after Vite flattens them, you can find the plugin by name.
+ *
+ * @public
+ */
+export type QwikVitePlugin = P<QwikVitePluginApi> & {
   name: 'vite-plugin-qwik';
-  api: QwikVitePluginApi;
-}
+};
 
 /** @public */
 export interface QwikViteDevResponse {

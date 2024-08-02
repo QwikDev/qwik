@@ -7,6 +7,7 @@ import type {
   QwikManifest,
   TransformModuleInput,
   TransformModule,
+  Optimizer,
 } from '../types';
 import {
   createPlugin,
@@ -17,6 +18,11 @@ import {
   Q_MANIFEST_FILENAME,
 } from './plugin';
 import { versions } from '../versions';
+
+type QwikRollupPluginApi = {
+  getOptimizer: () => Optimizer;
+  getOptions: () => NormalizedQwikPluginOptions;
+};
 
 /** @public */
 export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
@@ -68,7 +74,12 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     },
 
     outputOptions(rollupOutputOpts) {
-      return normalizeRollupOutputOptionsObject(qwikPlugin.getOptions(), rollupOutputOpts, false);
+      return normalizeRollupOutputOptionsObject(
+        qwikPlugin.getOptions(),
+        rollupOutputOpts,
+        false,
+        qwikPlugin.manualChunks
+      );
     },
 
     async buildStart() {
@@ -148,60 +159,53 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 export function normalizeRollupOutputOptions(
   opts: NormalizedQwikPluginOptions,
   rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined,
-  useAssetsDir: boolean
-): Rollup.OutputOptions[] {
-  const outputOpts: Rollup.OutputOptions[] = Array.isArray(rollupOutputOpts)
-    ? // fill the `outputOpts` array with all existing option entries
-      [...rollupOutputOpts]
-    : // use the existing rollupOutputOpts object or create a new one
-      [rollupOutputOpts || {}];
+  useAssetsDir: boolean,
+  manualChunks: Rollup.GetManualChunk,
+  outDir?: string
+): Rollup.OutputOptions | Rollup.OutputOptions[] {
+  if (Array.isArray(rollupOutputOpts)) {
+    // make sure at least one output is present in every case
+    if (!rollupOutputOpts.length) {
+      rollupOutputOpts.push({});
+    }
 
-  // make sure at least one output is present in every case
-  if (!outputOpts.length) {
-    outputOpts.push({});
+    return rollupOutputOpts.map((outputOptsObj) => ({
+      ...normalizeRollupOutputOptionsObject(opts, outputOptsObj, useAssetsDir, manualChunks),
+      dir: outDir || outputOptsObj.dir,
+    }));
   }
 
-  return outputOpts.map((outputOptsObj) =>
-    normalizeRollupOutputOptionsObject(opts, outputOptsObj, useAssetsDir)
-  );
+  return {
+    ...normalizeRollupOutputOptionsObject(opts, rollupOutputOpts, useAssetsDir, manualChunks),
+    dir: outDir || rollupOutputOpts?.dir,
+  };
 }
 
 export function normalizeRollupOutputOptionsObject(
   opts: NormalizedQwikPluginOptions,
   rollupOutputOptsObj: Rollup.OutputOptions | undefined,
-  useAssetsDir: boolean
+  useAssetsDir: boolean,
+  manualChunks: Rollup.GetManualChunk
 ): Rollup.OutputOptions {
   const outputOpts: Rollup.OutputOptions = { ...rollupOutputOptsObj };
 
-  if (!outputOpts.assetFileNames) {
-    outputOpts.assetFileNames = 'build/q-[hash].[ext]';
-  }
   if (opts.target === 'client') {
     // client output
-    outputOpts.assetFileNames = useAssetsDir
-      ? `${opts.assetsDir}/${outputOpts.assetFileNames}`
-      : outputOpts.assetFileNames;
-
-    if (opts.buildMode === 'production') {
-      // client production output
-      if (!outputOpts.entryFileNames) {
-        const fileName = 'build/q-[hash].js';
-        outputOpts.entryFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
-      }
-      if (!outputOpts.chunkFileNames) {
-        const fileName = 'build/q-[hash].js';
-        outputOpts.chunkFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
-      }
-    } else {
-      // client development output
-      if (!outputOpts.entryFileNames) {
-        const fileName = 'build/[name].js';
-        outputOpts.entryFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
-      }
-      if (!outputOpts.chunkFileNames) {
-        const fileName = 'build/[name].js';
-        outputOpts.chunkFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
-      }
+    if (!outputOpts.assetFileNames) {
+      // SEO likes readable asset names
+      const assetFileNames = 'assets/[hash]-[name].[ext]';
+      outputOpts.assetFileNames = useAssetsDir
+        ? `${opts.assetsDir}/${assetFileNames}`
+        : assetFileNames;
+    }
+    // Friendly name in dev
+    const fileName = opts.buildMode == 'production' ? 'build/q-[hash].js' : 'build/[name].js';
+    // client production output
+    if (!outputOpts.entryFileNames) {
+      outputOpts.entryFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
+    }
+    if (!outputOpts.chunkFileNames) {
+      outputOpts.chunkFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
     }
   } else if (opts.buildMode === 'production') {
     // server production output
@@ -209,14 +213,22 @@ export function normalizeRollupOutputOptionsObject(
     if (!outputOpts.chunkFileNames) {
       outputOpts.chunkFileNames = 'q-[hash].js';
     }
-    if (!outputOpts.assetFileNames) {
-      outputOpts.assetFileNames = 'assets/[hash].[ext]';
-    }
+  }
+  // all other cases, like lib output
+  if (!outputOpts.assetFileNames) {
+    outputOpts.assetFileNames = 'assets/[hash]-[name].[ext]';
   }
 
   if (opts.target === 'client') {
     // client should always be es
     outputOpts.format = 'es';
+    const prevManualChunks = outputOpts.manualChunks;
+    if (prevManualChunks && typeof prevManualChunks !== 'function') {
+      throw new Error('manualChunks must be a function');
+    }
+    outputOpts.manualChunks = prevManualChunks
+      ? (id, meta) => prevManualChunks(id, meta) || manualChunks(id, meta)
+      : manualChunks;
   }
 
   if (!outputOpts.dir) {
@@ -320,5 +332,5 @@ export interface QwikRollupPluginOptions {
    */
   lint?: boolean;
 }
-
-export interface QwikRollupPlugin extends Rollup.Plugin {}
+type P<T> = Rollup.Plugin<T> & { api: T };
+export interface QwikRollupPlugin extends P<QwikRollupPluginApi> {}

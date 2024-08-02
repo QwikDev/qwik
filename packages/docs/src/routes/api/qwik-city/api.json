@@ -866,7 +866,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ValidatorErrorKeyDotNotation<T, Prefix extends string = ''> = T extends object ? {\n    [K in keyof T & string]: {} extends T[K] ? never : T[K] extends (infer U)[] ? U extends object ? `${Prefix}${K}[]` | `${Prefix}${K}[]${ValidatorErrorKeyDotNotation<U, '.'>}` : `${Prefix}${K}[]` : T[K] extends object ? ValidatorErrorKeyDotNotation<T[K], `${Prefix}${K}.`> : `${Prefix}${K}`;\n}[keyof T & string] : never;\n```\n**References:** [ValidatorErrorKeyDotNotation](#validatorerrorkeydotnotation)",
+      "content": "```typescript\nexport type ValidatorErrorKeyDotNotation<T, Prefix extends string = ''> = T extends object ? {\n    [K in keyof T & string]: T[K] extends (infer U)[] ? U extends object ? `${Prefix}${K}[]` | `${Prefix}${K}[]${ValidatorErrorKeyDotNotation<U, '.'>}` : `${Prefix}${K}[]` : T[K] extends object ? ValidatorErrorKeyDotNotation<T[K], `${Prefix}${K}.`> : `${Prefix}${K}`;\n}[keyof T & string] : never;\n```\n**References:** [ValidatorErrorKeyDotNotation](#validatorerrorkeydotnotation)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/runtime/src/types.ts",
       "mdFile": "qwik-city.validatorerrorkeydotnotation.md"
     },

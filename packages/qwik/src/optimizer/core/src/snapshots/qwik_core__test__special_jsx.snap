@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2167
+assertion_line: 2168
 expression: output
 ---
 ==INPUT==
@@ -24,7 +24,7 @@ export const App = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,kDAAkD;AAClD,SAAS,GAAG,QAAQ,mBAAmB;AAEvC,OAAO,MAAM,MAAM,IAAM;IACrB,MAAM,QAAQ,CAAC;IACf,OAAO,IAAI,OAAO,OAAO;AAC7B,EAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,kDAAkD;AAClD,SAAS,GAAG,QAAQ,mBAAmB;AAEvC,OAAO,MAAM,MAAM;IACf,MAAM,QAAQ,CAAC;IACf,OAAO,IAAI,OAAO,OAAO;AAC7B,EAAC\"}")
 == DIAGNOSTICS ==
 
 []

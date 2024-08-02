@@ -3,7 +3,12 @@ import type { Rollup } from 'vite';
 import { assert, expect, suite, test } from 'vitest';
 import { normalizePath } from '../../../testing/util';
 import type { OptimizerOptions, QwikBundle, QwikManifest } from '../types';
-import { convertManifestToBundleGraph, qwikVite } from './vite';
+import {
+  convertManifestToBundleGraph,
+  qwikVite,
+  type QwikVitePlugin,
+  type QwikVitePluginOptions,
+} from './vite';
 
 const cwd = process.cwd();
 
@@ -43,16 +48,19 @@ const excludeDeps = [
   '@builder.io/qwik-city',
 ];
 
+const getPlugin = (opts: QwikVitePluginOptions | undefined) =>
+  (qwikVite(opts) as any)[0] as QwikVitePlugin;
+
 test('command: serve, mode: development', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = qwikVite(initOpts)[0];
+  const plugin = getPlugin(initOpts);
   const c = (await plugin.config({}, { command: 'serve', mode: 'development' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as Rollup.OutputOptions[];
+  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'development');
@@ -62,15 +70,10 @@ test('command: serve, mode: development', async () => {
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev')));
 
-  assert.ok(Array.isArray(outputOptions));
-  assert.lengthOf(outputOptions, 1);
-
-  outputOptions.forEach((outputOptionsObj) => {
-    assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');
-    assert.deepEqual(outputOptionsObj.chunkFileNames, 'build/[name].js');
-    assert.deepEqual(outputOptionsObj.entryFileNames, 'build/[name].js');
-    assert.deepEqual(outputOptionsObj.format, 'es');
-  });
+  assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
+  assert.deepEqual(outputOptions.chunkFileNames, 'build/[name].js');
+  assert.deepEqual(outputOptions.entryFileNames, 'build/[name].js');
+  assert.deepEqual(outputOptions.format, 'es');
 
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
   assert.deepEqual(build.ssr, undefined);
@@ -87,12 +90,12 @@ test('command: serve, mode: production', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = qwikVite(initOpts)[0];
+  const plugin = getPlugin(initOpts);
   const c = (await plugin.config({}, { command: 'serve', mode: 'production' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as Rollup.OutputOptions[];
+  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'production');
@@ -103,16 +106,10 @@ test('command: serve, mode: production', async () => {
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev')));
-
-  assert.ok(Array.isArray(outputOptions));
-  assert.lengthOf(outputOptions, 1);
-
-  outputOptions.forEach((outputOptionsObj) => {
-    assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');
-    assert.deepEqual(outputOptionsObj.chunkFileNames, 'build/q-[hash].js');
-    assert.deepEqual(outputOptionsObj.entryFileNames, 'build/q-[hash].js');
-    assert.deepEqual(outputOptionsObj.format, 'es');
-  });
+  assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
+  assert.deepEqual(outputOptions.chunkFileNames, 'build/q-[hash].js');
+  assert.deepEqual(outputOptions.entryFileNames, 'build/q-[hash].js');
+  assert.deepEqual(outputOptions.format, 'es');
 
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
   assert.deepEqual(build.ssr, undefined);
@@ -128,12 +125,12 @@ test('command: build, mode: development', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = qwikVite(initOpts)[0];
+  const plugin = getPlugin(initOpts);
   const c = (await plugin.config({}, { command: 'build', mode: 'development' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as Rollup.OutputOptions[];
+  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'development');
@@ -146,14 +143,9 @@ test('command: build, mode: development', async () => {
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
 
-  assert.ok(Array.isArray(outputOptions));
-  assert.lengthOf(outputOptions, 1);
-
-  outputOptions.forEach((outputOptionsObj) => {
-    assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');
-    assert.deepEqual(outputOptionsObj.chunkFileNames, 'build/[name].js');
-    assert.deepEqual(outputOptionsObj.entryFileNames, 'build/[name].js');
-  });
+  assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
+  assert.deepEqual(outputOptions.chunkFileNames, 'build/[name].js');
+  assert.deepEqual(outputOptions.entryFileNames, 'build/[name].js');
 
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
   assert.deepEqual(build.ssr, undefined);
@@ -172,12 +164,12 @@ test('command: build, mode: production', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = qwikVite(initOpts)[0];
+  const plugin = getPlugin(initOpts);
   const c = (await plugin.config({}, { command: 'build', mode: 'production' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as Rollup.OutputOptions[];
+  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'production');
@@ -190,14 +182,9 @@ test('command: build, mode: production', async () => {
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
 
-  assert.ok(Array.isArray(outputOptions));
-  assert.lengthOf(outputOptions, 1);
-
-  outputOptions.forEach((outputOptionsObj) => {
-    assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');
-    assert.deepEqual(outputOptionsObj.chunkFileNames, 'build/q-[hash].js');
-    assert.deepEqual(outputOptionsObj.entryFileNames, 'build/q-[hash].js');
-  });
+  assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
+  assert.deepEqual(outputOptions.chunkFileNames, 'build/q-[hash].js');
+  assert.deepEqual(outputOptions.entryFileNames, 'build/q-[hash].js');
 
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
@@ -222,7 +209,7 @@ test('command: build, --mode production (client)', async () => {
     },
   };
 
-  const plugin = qwikVite(initOpts)[0];
+  const plugin = getPlugin(initOpts);
   const c: any = (await plugin.config({}, { command: 'build', mode: 'production' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
@@ -240,7 +227,7 @@ test('command: build, --ssr entry.server.tsx', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = qwikVite(initOpts)[0];
+  const plugin = getPlugin(initOpts);
   const c = (await plugin.config(
     { build: { ssr: resolve(cwd, 'src', 'entry.server.tsx') } },
     { command: 'build', mode: '' }
@@ -248,7 +235,7 @@ test('command: build, --ssr entry.server.tsx', async () => {
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as Rollup.OutputOptions[];
+  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
 
   assert.deepEqual(opts.target, 'ssr');
   assert.deepEqual(opts.buildMode, 'development');
@@ -261,14 +248,9 @@ test('command: build, --ssr entry.server.tsx', async () => {
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'entry.server.tsx'))]);
 
-  assert.ok(Array.isArray(outputOptions));
-  assert.lengthOf(outputOptions, 1);
-
-  outputOptions.forEach((outputOptionsObj) => {
-    assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');
-    assert.deepEqual(outputOptionsObj.chunkFileNames, undefined);
-    assert.deepEqual(outputOptionsObj.entryFileNames, undefined);
-  });
+  assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
+  assert.deepEqual(outputOptions.chunkFileNames, undefined);
+  assert.deepEqual(outputOptions.entryFileNames, undefined);
 
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'server')));
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
@@ -290,7 +272,7 @@ test('command: serve, --mode ssr', async () => {
       outDir: resolve(cwd, 'ssr-dist'),
     },
   };
-  const plugin = qwikVite(initOpts)[0];
+  const plugin = getPlugin(initOpts);
   const c: any = (await plugin.config(
     { build: { emptyOutDir: true } },
     { command: 'serve', mode: 'ssr' }
@@ -318,7 +300,7 @@ test('command: serve, --mode ssr with build.assetsDir', async () => {
       outDir: resolve(cwd, 'ssr-dist'),
     },
   };
-  const plugin = qwikVite(initOpts)[0];
+  const plugin = getPlugin(initOpts);
   const c: any = (await plugin.config(
     { build: { emptyOutDir: true, assetsDir: 'my-assets-dir' } },
     { command: 'serve', mode: 'ssr' }
@@ -342,10 +324,10 @@ test('should use the dist/ fallback with client target', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = qwikVite(initOpts)[0];
+  const plugin = getPlugin(initOpts);
   const c: any = (await plugin.config(
     { build: { assetsDir: 'my-assets-dir/' } },
-    { command: 'serve' }
+    { command: 'serve', mode: 'development' }
   ))!;
 
   assert.equal(c.build.outDir, normalizePath(resolve(cwd, `dist`)));
@@ -355,10 +337,10 @@ test('should use build.outDir config with client target', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = qwikVite(initOpts)[0];
+  const plugin = getPlugin(initOpts);
   const c: any = (await plugin.config(
     { build: { outDir: 'my-dist/', assetsDir: 'my-assets-dir' } },
-    { command: 'serve' }
+    { command: 'serve', mode: 'development' }
   ))!;
 
   assert.equal(c.build.outDir, normalizePath(resolve(cwd, `my-dist`)));
@@ -369,10 +351,13 @@ test('should use build.outDir config when assetsDir is _astro', async () => {
     optimizerOptions: mockOptimizerOptions(),
   };
 
-  const plugin = qwikVite(initOpts)[0];
+  const plugin = getPlugin(initOpts);
 
   // Astro sets a build.assetsDir of _astro, but we don't want to change that
-  const c: any = (await plugin.config({ build: { assetsDir: '_astro' } }, { command: 'serve' }))!;
+  const c: any = (await plugin.config(
+    { build: { assetsDir: '_astro' } },
+    { command: 'serve', mode: 'development' }
+  ))!;
 
   assert.equal(c.build.outDir, normalizePath(resolve(cwd, `dist/`)));
 });
@@ -381,7 +366,7 @@ test('command: build, --mode lib', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = qwikVite(initOpts)[0];
+  const plugin = getPlugin(initOpts);
   const c: any = (await plugin.config(
     {
       build: {
@@ -396,7 +381,7 @@ test('command: build, --mode lib', async () => {
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as Rollup.OutputOptions[];
+  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
 
   assert.deepEqual(opts.target, 'lib');
   assert.deepEqual(opts.buildMode, 'development');
@@ -404,13 +389,8 @@ test('command: build, --mode lib', async () => {
   assert.deepEqual(build.ssr, undefined);
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'index.ts'))]);
 
-  assert.ok(Array.isArray(outputOptions));
-  assert.lengthOf(outputOptions, 1);
-
-  outputOptions.forEach((outputOptionsObj) => {
-    assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');
-    assert.deepEqual(outputOptionsObj.chunkFileNames, undefined);
-  });
+  assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
+  assert.deepEqual(outputOptions.chunkFileNames, undefined);
 
   assert.deepEqual(c.build.outDir, normalizePath(resolve(cwd, 'lib')));
   assert.deepEqual(build.emptyOutDir, undefined);
@@ -421,7 +401,7 @@ test('command: build, --mode lib with multiple outputs', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = qwikVite(initOpts)[0];
+  const plugin = getPlugin(initOpts);
   const c: any = (await plugin.config(
     {
       build: {
@@ -467,7 +447,7 @@ test('command: build, --mode lib with multiple outputs', async () => {
   assert.lengthOf(outputOptions, 4);
 
   outputOptions.forEach((outputOptionsObj) => {
-    assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');
+    assert.deepEqual(outputOptionsObj.assetFileNames, 'assets/[hash]-[name].[ext]');
     assert.deepEqual(outputOptionsObj.chunkFileNames, undefined);
   });
 

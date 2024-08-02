@@ -20,7 +20,7 @@ import type { QwikManifest } from "@builder.io/qwik/optimizer";
 import type { Render, RenderToStreamOptions } from "@builder.io/qwik/server";
 import type { PackageJSON } from "../scripts/util";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { getErrorHtml } from "../packages/qwik-city/middleware/request-handler/error-handler";
+import { getErrorHtml } from "../packages/qwik-city/src/middleware/request-handler/error-handler";
 
 const isWindows = process.platform === "win32";
 
@@ -175,7 +175,7 @@ export {
             },
           },
         ],
-      }),
+      }) as PluginOption,
     );
   }
 
@@ -351,8 +351,8 @@ async function main() {
   app.use(`/~partytown`, express.static(partytownPath));
 
   appNames.forEach((appName) => {
-    const buildPath = join(startersAppsDir, appName, "dist", appName, "build");
-    app.use(`/${appName}/build`, express.static(buildPath));
+    const buildPath = join(startersAppsDir, appName, "dist", appName);
+    app.use(`/${appName}`, express.static(buildPath));
 
     const publicPath = join(startersAppsDir, appName, "public");
     app.use(`/${appName}`, express.static(publicPath));

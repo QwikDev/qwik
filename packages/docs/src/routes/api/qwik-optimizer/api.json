@@ -456,7 +456,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nexport declare function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqwikViteOpts\n\n\n</td><td>\n\n[QwikVitePluginOptions](#qwikvitepluginoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nany",
+      "content": "The types for Vite/Rollup don't allow us to be too specific about the return type. The correct return type is `[QwikVitePlugin, VitePlugin<never>]`<!-- -->, and if you search the plugin by name you'll get the `QwikVitePlugin`<!-- -->.\n\n\n```typescript\nexport declare function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqwikViteOpts\n\n\n</td><td>\n\n[QwikVitePluginOptions](#qwikvitepluginoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nany",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts",
       "mdFile": "qwik.qwikvite.md"
     },
@@ -483,8 +483,8 @@
           "id": "qwikviteplugin"
         }
       ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface QwikVitePlugin \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[api](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[QwikVitePluginApi](#qwikvitepluginapi)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[name](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'vite-plugin-qwik'\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "kind": "TypeAlias",
+      "content": "This is the type of the \"pre\" Qwik Vite plugin. `qwikVite` actually returns a tuple of two plugins, but after Vite flattens them, you can find the plugin by name.\n\n\n```typescript\nexport type QwikVitePlugin = P<QwikVitePluginApi> & {\n    name: 'vite-plugin-qwik';\n};\n```\n**References:** [QwikVitePluginApi](#qwikvitepluginapi)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts",
       "mdFile": "qwik.qwikviteplugin.md"
     },

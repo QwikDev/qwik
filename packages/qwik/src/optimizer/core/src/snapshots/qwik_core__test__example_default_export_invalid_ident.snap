@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1482
+assertion_line: 1483
 expression: output
 ---
 ==INPUT==
@@ -29,12 +29,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
 import { qrl } from "@builder.io/qwik";
 export const _404_component_zRvoWc98eqo = ()=>{
     return <div onClick$={/*#__PURE__*/ qrl(()=>import("./_404_component_div_onclick_oimo9dvew9q"), "_404_component_div_onClick_OiMo9dvEW9Q")}>
-
         </div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";0CAG0B,IAAM;IAC5B,QACK,IAAI,+HAAsC;;QAC3C,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";0CAG0B;IACtB,QACK,IAAI,+HAAsC;QAC3C,EAAE;AAEV\"}")
 /*
 {
   "origin": "src/components/mongo/404.tsx",

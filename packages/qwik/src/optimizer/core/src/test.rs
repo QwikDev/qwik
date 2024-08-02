@@ -3,54 +3,6 @@
 use super::*;
 use serde_json::to_string_pretty;
 
-macro_rules! test_input {
-	($input: expr) => {
-		let input = $input;
-		let strip_exports: Option<Vec<JsWord>> = input
-			.strip_exports
-			.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
-
-		let reg_ctx_name: Option<Vec<JsWord>> = input
-			.reg_ctx_name
-			.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
-
-		let strip_ctx_name: Option<Vec<JsWord>> = input
-			.strip_ctx_name
-			.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
-
-		let res = transform_modules(TransformModulesOptions {
-			src_dir: input.src_dir,
-			root_dir: input.root_dir,
-			input: vec![TransformModuleInput {
-				code: input.code.clone(),
-				path: input.filename,
-			}],
-			source_maps: true,
-			minify: input.minify,
-			transpile_ts: input.transpile_ts,
-			transpile_jsx: input.transpile_jsx,
-			preserve_filenames: input.preserve_filenames,
-			explicit_extensions: input.explicit_extensions,
-			manual_chunks: input.manual_chunks,
-			entry_strategy: input.entry_strategy,
-			mode: input.mode,
-			scope: input.scope,
-			core_module: input.core_module,
-			strip_exports,
-			strip_ctx_name,
-			reg_ctx_name,
-			strip_event_handlers: input.strip_event_handlers,
-			is_server: input.is_server,
-		});
-		if input.snapshot {
-			let input = input.code.to_string();
-			let output = format!("==INPUT==\n\n{}", input);
-			snapshot_res!(&res, output);
-		}
-		drop(res)
-	};
-}
-
 macro_rules! snapshot_res {
 	($res: expr, $prefix: expr) => {
 		match $res {
@@ -68,21 +20,69 @@ macro_rules! snapshot_res {
 						let hook = to_string_pretty(&hook).unwrap();
 						output += &format!("\n/*\n{}\n*/", hook);
 					}
-					// let map = if let Some(map) = s.map { map } else { "".to_string() };
-					// output += format!("\n== MAP ==\n{}", map).as_str();
 				}
 				output += format!(
 					"\n== DIAGNOSTICS ==\n\n{}",
 					to_string_pretty(&v.diagnostics).unwrap()
 				)
 				.as_str();
-				insta::assert_display_snapshot!(output);
+				insta::assert_snapshot!(output);
 			}
 			Err(err) => {
-				insta::assert_display_snapshot!(err);
+				insta::assert_snapshot!(err);
 			}
 		}
 	};
+}
+
+macro_rules! test_input {
+	($input: expr) => {{
+		let input = $input;
+		let code = input.code.to_string();
+		let snapshot = input.snapshot;
+		let res = test_input_fn(input);
+		if snapshot {
+			snapshot_res!(&res, format!("==INPUT==\n\n{}", code.to_string()));
+		}
+		res
+	}};
+}
+
+fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
+	let strip_exports: Option<Vec<JsWord>> = input
+		.strip_exports
+		.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
+	let reg_ctx_name: Option<Vec<JsWord>> = input
+		.reg_ctx_name
+		.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
+	let strip_ctx_name: Option<Vec<JsWord>> = input
+		.strip_ctx_name
+		.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
+
+	transform_modules(TransformModulesOptions {
+		src_dir: input.src_dir,
+		root_dir: input.root_dir,
+		input: vec![TransformModuleInput {
+			code: input.code.clone(),
+			path: input.filename,
+		}],
+		source_maps: true,
+		minify: input.minify,
+		transpile_ts: input.transpile_ts,
+		transpile_jsx: input.transpile_jsx,
+		preserve_filenames: input.preserve_filenames,
+		explicit_extensions: input.explicit_extensions,
+		manual_chunks: input.manual_chunks,
+		entry_strategy: input.entry_strategy,
+		mode: input.mode,
+		scope: input.scope,
+		core_module: input.core_module,
+		strip_exports,
+		strip_ctx_name,
+		reg_ctx_name,
+		strip_event_handlers: input.strip_event_handlers,
+		is_server: input.is_server,
+	})
 }
 
 #[test]
@@ -744,6 +744,7 @@ export default component$(() => {
 		transpile_ts: true,
 		transpile_jsx: true,
 		is_server: Some(false),
+		mode: EmitMode::Dev,
 		..TestInput::default()
 	});
 }
@@ -1857,7 +1858,7 @@ export const Parent = component$(() => {
 		transpile_ts: true,
 		transpile_jsx: true,
 		entry_strategy: EntryStrategy::Inline,
-		strip_ctx_name: Some(vec!["useClientMount$".into(),]),
+		strip_ctx_name: Some(vec!["useClientMount$".into()]),
 		strip_event_handlers: true,
 		..TestInput::default()
 	});
@@ -1943,34 +1944,34 @@ export const Greeter = component$(() => {
 	});
 }
 
-#[cfg(target_os = "windows")]
 #[test]
-fn issue_188() {
-	let res = test_input!({
+fn support_windows_paths() {
+	let res = test_input!(TestInput {
 		filename: r"components\apps\apps.tsx".to_string(),
 		src_dir: r"C:\users\apps".to_string(),
 		code: r#"
-import { component$, $ } from '@builder.io/qwik';
-
-export const Greeter = component$(() => {
-    return $(() => {
-        return (
-            <div/>
-        )
-    });
-});
-
-const d = $(()=>console.log('thing'));
+import { component$ } from '@builder.io/qwik';
+export const Greeter = component$(() => <div/>)
 "#
 		.to_string(),
-		transpile_ts: true,
 		transpile_jsx: true,
-		snapshot: false,
+		is_server: Some(false),
+		entry_strategy: EntryStrategy::Hook,
+		..TestInput::default()
 	})
 	.unwrap();
-	let last_module = res.modules.last().unwrap();
-	assert_eq!(last_module.path, r"C:/users/apps/components/apps/apps.tsx")
+	// verify that none of the modules have a path that contains backslashes
+	for module in res.modules {
+		assert!(!module.path.contains('\\'));
+	}
 }
+// filler to retain assertion line numbers
+//
+//
+//
+//
+//
+
 #[test]
 fn issue_476() {
 	test_input!(TestInput {
@@ -2232,7 +2233,7 @@ fn example_transpile_jsx_only() {
 		code: r#"
 import { component$, useStore } from '@builder.io/qwik';
 
-export const App = component$((props: Stuff) => {
+export const App = component$((props) => {
     return (
         <Cmp>
             <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
@@ -2568,7 +2569,7 @@ fn example_preserve_filenames() {
 		code: r#"
 import { component$, useStore } from '@builder.io/qwik';
 
-export const App = component$((props: Stuff) => {
+export const App = component$((props) => {
     return (
         <Cmp>
             <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
@@ -3531,6 +3532,33 @@ export const App = component$(() => {
 		transpile_jsx: true,
 		strip_event_handlers: true,
 		strip_ctx_name: Some(vec!["server".into()]),
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn lib_mode_fn_signal() {
+	test_input!(TestInput {
+		code: r#"
+    import { component$ } from '@builder.io/qwik';
+export const Counter = component$(() => {
+  const count = useSignal(0);
+
+  return (
+    <div>
+      <p>Count: {count.value}</p>
+      <p>
+        <button onClick$={() => count.value++}>Increment</button>
+      </p>
+    </div>
+  );
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		mode: EmitMode::Lib,
+		// make sure it overrides it
+		is_server: Some(false),
 		..TestInput::default()
 	});
 }

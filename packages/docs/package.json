@@ -20,6 +20,7 @@
     "@mui/material": "5.16.4",
     "@mui/system": "5.16.4",
     "@mui/x-data-grid": "6.20.4",
+    "@qwik-ui/headless": "0.5.0",
     "@supabase/supabase-js": "2.44.4",
     "@types/leaflet": "1.9.12",
     "@types/prismjs": "1.26.4",
@@ -53,8 +54,7 @@
     "valibot": "0.33.3",
     "vite": "5.3.5",
     "vite-plugin-inspect": "0.8.5",
-    "wrangler": "3.65.1",
-    "@qwik-ui/headless": "0.5.0"
+    "wrangler": "3.65.1"
   },
   "engines": {
     "node": ">=18.11",
@@ -68,8 +68,8 @@
   "scripts": {
     "build": "qwik build",
     "build.client": "vite build",
-    "build.repl-sw": "vite --config vite.config-repl-sw.mts build",
     "build.preview": "vite build --ssr src/entry.preview.tsx",
+    "build.repl-sw": "vite --config vite.config-repl-sw.mts build",
     "build.server": "vite build -c adapters/cloudflare-pages/vite.config.mts",
     "build.showcase": "pnpm node scripts/showcase.js",
     "codesandbox.sync": "tsm codesandbox.sync.ts",

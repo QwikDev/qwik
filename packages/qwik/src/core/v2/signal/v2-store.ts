@@ -31,13 +31,18 @@ export type Store2<T> = T & {
   __BRAND__: 'Store';
 };
 
-let _lastTarget: undefined | StoreHandler<object>;
+let _lastHandler: undefined | StoreHandler<any>;
+
+export const getStoreHandler2 = <T extends object>(value: T): StoreHandler<T> | null => {
+  _lastHandler = undefined as any;
+  return typeof value === 'object' && value && STORE in value // this implicitly sets the `_lastHandler` as a side effect.
+    ? (_lastHandler!)
+    : null;
+};
 
 export const getStoreTarget2 = <T extends object>(value: T): T | null => {
-  _lastTarget = undefined as any;
-  return typeof value === 'object' && value && STORE in value // this implicitly sets the `_lastTarget` as a side effect.
-    ? (_lastTarget!.$target$ as T)
-    : null;
+  const handler = getStoreHandler2(value);
+  return handler ? handler.$target$ : null;
 };
 
 export const unwrapStore2 = <T>(value: T): T => {
@@ -48,6 +53,13 @@ export const isStore2 = <T extends object>(value: T): value is Store2<T> => {
   return value instanceof Store;
 };
 
+export function createStore2<T extends object>(container: Container2 | null | undefined, obj: T & Record<string, unknown>, flags: Store2Flags) {
+  return new Proxy(
+    new Store(),
+    new StoreHandler<T>(obj, flags, container || null)
+  ) as Store2<T>;
+}
+
 export const getOrCreateStore2 = <T extends object>(
   obj: T,
   flags: Store2Flags,
@@ -56,10 +68,7 @@ export const getOrCreateStore2 = <T extends object>(
   if (isSerializableObject(obj)) {
     let store: Store2<T> | undefined = storeWeakMap.get(obj) as Store2<T> | undefined;
     if (!store) {
-      store = new Proxy(
-        new Store(),
-        new StoreHandler<T>(obj, flags, container || null)
-      ) as Store2<T>;
+      store = createStore2<T>(container, obj, flags);
       storeWeakMap.set(obj, store as any);
     }
     return store as Store2<T>;
@@ -75,7 +84,7 @@ class Store {
 
 export const Store2 = Store;
 
-class StoreHandler<T extends Record<string | symbol, any>> implements ProxyHandler<T> {
+export class StoreHandler<T extends Record<string | symbol, any>> implements ProxyHandler<T> {
   $effects$: null | Record<string, EffectSubscriptions[]> = null;
   constructor(
     public $target$: T,
@@ -138,7 +147,7 @@ class StoreHandler<T extends Record<string | symbol, any>> implements ProxyHandl
         // But when effect is scheduled in needs to be able to know which signals
         // to unsubscribe from. So we need to store the reference from the effect back
         // to this signal.
-        ensureContains(effectSubscriber, this);
+        ensureContains(effectSubscriber, this.$target$);
         DEBUG && log('read->sub', pad('\n' + this.toString(), '  '));
       }
     }
@@ -173,7 +182,7 @@ class StoreHandler<T extends Record<string | symbol, any>> implements ProxyHandl
 
   has(_: T, p: string | symbol) {
     if (p === STORE) {
-      _lastTarget = this;
+      _lastHandler = this;
       return true;
     }
     return Object.prototype.hasOwnProperty.call(this.$target$, p);

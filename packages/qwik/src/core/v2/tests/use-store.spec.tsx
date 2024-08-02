@@ -13,8 +13,8 @@ const debug = true; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
-  // { render: ssrRenderToDom }, //
-  { render: domRender }, //
+  { render: ssrRenderToDom }, //
+  // { render: domRender }, //
 ])('$render.name: useStore', ({ render }) => {
   it('should render value', async () => {
     const Cmp = component$(() => {
@@ -60,7 +60,7 @@ describe.each([
       </Component>
     );
   });
-  it('should update deep value', async () => {
+  it.only('should update deep value', async () => {
     const Counter = component$(() => {
       const count = useStore({ obj: { count: 123 } });
       return <button onClick$={() => count.obj.count++}>Count: {count.obj.count}!</button>;

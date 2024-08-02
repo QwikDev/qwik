@@ -24,12 +24,11 @@ import { Slot } from '../../render/jsx/slot.public';
 import {
   fastSkipSerialize,
   getProxyFlags,
-  getSubscriptionManager,
-  unwrapProxy,
+  getSubscriptionManager
 } from '../../state/common';
 import { _CONST_PROPS, _VAR_PROPS } from '../../state/constants';
-import { getOrCreateProxy, isStore } from '../../state/store';
 import { Task, isTask, type ResourceReturnInternal } from '../../use/use-task';
+import { EMPTY_OBJ } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
 import { ELEMENT_ID } from '../../util/markers';
 import { isPromise } from '../../util/promises';
@@ -43,7 +42,7 @@ import {
   Signal2,
   type EffectSubscriptions,
 } from '../signal/v2-signal';
-import { Store2, unwrapStore2 } from '../signal/v2-store';
+import { Store2, createStore2, getStoreHandler2, unwrapStore2, type StoreHandler } from '../signal/v2-store';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { fixMeAny } from './types';
 
@@ -114,14 +113,6 @@ class DeserializationHandler implements ProxyHandler<object> {
           propValue === SerializationConstant.VNode_CHAR
             ? container.element.ownerDocument
             : vnode_locate(container.rootVNode, propValue.substring(1));
-      } else if (typeCode === SerializationConstant.Store_VALUE) {
-        // Special case of Store.
-        // Stores are proxies, Proxies need to get their target eagerly. So we can't use inflate()
-        // because that would not allow us to get a hold of the target.
-        const target = container.$getObjectById$(propValue.substring(1)) as {
-          [SerializationConstant.Store_CHAR]: string | undefined;
-        };
-        propValue = getOrCreateProxy(target, container);
       } else if (typeCode === SerializationConstant.DerivedSignal_VALUE && !Array.isArray(target)) {
         // Special case of derived signal. We need to create a [_CONST_PROPS] property.
         return wrapDeserializerProxy(
@@ -274,6 +265,21 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
       inflateQRL(container, target[SERIALIZABLE_STATE][0]);
       break;
     case SerializationConstant.Store_VALUE:
+      const storeHandler = getStoreHandler2(target)!;
+      storeHandler.$container$ = container;
+      storeHandler.$target$ = container.$getObjectById$(restInt());
+      storeHandler.$flags$ = restInt();
+      const effectProps = rest.substring(restIdx).split('|');
+      if (effectProps.length) {
+        const effects: Record<string, EffectSubscriptions[]> = (storeHandler.$effects$ = {});
+        for (let i = 0; i < effectProps.length; i++) {
+          const effect = effectProps[i];
+          const idx = effect.indexOf(';');
+          const prop = effect.substring(0, idx);
+          const effectStr = effect.substring(idx + 1);
+          deserializeSignal2Effect(0, effectStr.split(';'), container, effects[prop] = [])
+        }
+      }
       break;
     case SerializationConstant.Signal_VALUE:
       deserializeSignal2(target as Signal2<unknown>, container, rest, false, false);
@@ -413,6 +419,8 @@ const allocate = <T>(value: string): any => {
       return new Uint8Array(decodedLength);
     case SerializationConstant.PropsProxy_VALUE:
       return createPropsProxy(null!, null);
+    case SerializationConstant.Store_VALUE:
+      return createStore2(null, EMPTY_OBJ, 0);
     default:
       throw new Error('unknown allocate type: ' + value.charCodeAt(0));
   }
@@ -633,9 +641,6 @@ export const createSerializationContext = (
     // As we walk the object graph we insert newly discovered objects which need to be scanned here.
     const discoveredValues: unknown[] = [rootObj];
     // discoveredValues.push = (...value: unknown[]) => {
-    //   if (isSignal(value[0])) {
-    //     debugger;
-    //   }
     //   Array.prototype.push.apply(discoveredValues, value);
     // };
     // let count = 100;
@@ -648,7 +653,7 @@ export const createSerializationContext = (
         const isRoot = obj === rootObj;
         // For root objects we pretend we have not seen them to force scan.
         const id = $wasSeen$(obj);
-        const unwrapObj = unwrapProxy(obj);
+        const unwrapObj = unwrapStore2(obj);
         if (unwrapObj !== obj) {
           discoveredValues.push(unwrapObj);
         } else if (id === undefined || isRoot) {
@@ -803,12 +808,13 @@ function serialize(serializationContext: SerializationContext): void {
     }
   };
 
-  const writeObjectValue = (value: unknown, idx: number) => {
+  const writeObjectValue = (value: {}, idx: number) => {
     // Objects are the only way to create circular dependencies.
     // So the first thing to to is to see if we have a circular dependency.
     // (NOTE: For root objects we need to serialize them regardless if we have seen
     //        them before, otherwise the root object reference will point to itself.)
     const seen = depth <= 1 ? undefined : serializationContext.$wasSeen$(value);
+    let storeHandler: null | StoreHandler<any> = null;
     if (fastSkipSerialize(value as object)) {
       writeString(SerializationConstant.UNDEFINED_CHAR);
     } else if (typeof seen === 'number' && seen >= 0) {
@@ -820,9 +826,18 @@ function serialize(serializationContext: SerializationContext): void {
       const varId = $addRoot$(varProps);
       const constProps = value[_CONST_PROPS];
       const constId = $addRoot$(constProps);
-      writeString(SerializationConstant.PropsProxy_CHAR + varId + ' ' + constId);
-    } else if (isStore(value)) {
-      writeString(SerializationConstant.Store_CHAR + $addRoot$(unwrapProxy(value)));
+      writeString(SerializationConstant.PropsProxy_CHAR + varId + '|' + constId);
+    } else if ((storeHandler = getStoreHandler2(value))) {
+      let store = SerializationConstant.Store_CHAR + $addRoot$(storeHandler.$target$) + ' ' + storeHandler.$flags$;
+      const effects = storeHandler.$effects$;
+      if (effects) {
+        let sep = ' ';
+        for (const propName in effects) {
+          store += sep + propName + serializeEffectSubs($addRoot$, effects[propName])
+          sep = '|';
+        }
+      }
+      writeString(store);
     } else if (isObjectLiteral(value)) {
       if (isResource(value)) {
         serializationContext.$resources$.add(value);
@@ -931,7 +946,7 @@ function serialize(serializationContext: SerializationContext): void {
       const out = btoa(buf).replace(/=+$/, '');
       writeString(SerializationConstant.Uint8Array_CHAR + out);
     } else {
-      throw new Error('implement: ' + JSON.stringify(value));
+      throw new Error('implement');
     }
   };
 
@@ -1088,13 +1103,21 @@ function deserializeSignal2(
     computedSignal.$computeQrl$ = parseQRL(parts[idx++]) as fixMeAny;
   }
   signal.$untrackedValue$ = container.$getObjectById$(parts[idx++]);
+  if (idx < parts.length) {
+    const effects = signal.$effects$ || (signal.$effects$ = []);
+    idx = deserializeSignal2Effect(idx, parts, container, effects);
+  }
+}
+
+function deserializeSignal2Effect(idx: number, parts: string[], container: DomContainer, effects: EffectSubscriptions[]) {
   while (idx < parts.length) {
     // idx == 1 is the attribute name
     const effect = parts[idx++]
       .split(' ')
       .map((obj, idx) => (idx == 1 ? obj : container.$getObjectById$(obj)));
-    (signal.$effects$ || (signal.$effects$ = [])).push(effect as fixMeAny);
+    effects.push(effect as fixMeAny);
   }
+  return idx;
 }
 
 function setSerializableDataRootId($addRoot$: (value: any) => number, obj: object, value: any) {

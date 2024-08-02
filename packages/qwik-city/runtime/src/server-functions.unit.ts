@@ -66,7 +66,7 @@ describe('types', () => {
     >();
   });
 
-  test('easy zod type', () => {
+  test('easy zod type', () => () => {
     const zodSchema = z.object({
       username: z.string(),
       password: z.string(),
@@ -79,7 +79,7 @@ describe('types', () => {
     }>();
   });
 
-  test('array zod type with string', () => {
+  test('array zod type with string', () => () => {
     const zodSchema = z.object({
       arrayWithStrings: z.array(z.string()),
     });
@@ -90,7 +90,7 @@ describe('types', () => {
     }>();
   });
 
-  test('array zod type with object', () => {
+  test('array zod type with object', () => () => {
     const zodSchema = z.object({
       persons: z.array(
         z.object({
@@ -108,7 +108,7 @@ describe('types', () => {
     }>();
   });
 
-  test('Complex zod type', () => {
+  test('Complex zod type', () => () => {
     const BaseUserSchema = z.object({
       id: z.string().uuid(),
       username: z.string().min(3).max(20),

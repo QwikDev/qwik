@@ -1,7 +1,12 @@
-import { describe, it, expect } from 'vitest';
-import { SerializationConstant, createSerializationContext } from './shared-serialization';
+import { describe, it, expect, expectTypeOf } from 'vitest';
+import {
+  SerializationConstant,
+  _deserialize,
+  createSerializationContext,
+} from './shared-serialization';
 import { Task } from '../../use/use-task';
 import { inlinedQrl } from '../../qrl/qrl';
+import { isQrl } from '../../qrl/qrl-class';
 
 const DEBUG = false;
 
@@ -58,6 +63,19 @@ describe('shared-serialization', () => {
         shared1,
         shared2,
       ]);
+    });
+  });
+
+  describe('server side deserialization', () => {
+    it('should deserialize data', async () => {
+      const stateData = JSON.stringify([
+        SerializationConstant.QRL_CHAR + 'entry_hooks.js#Root_component_arKLnchfR8k',
+        SerializationConstant.UNDEFINED_CHAR,
+        SerializationConstant.URL_CHAR + 'http://example.com',
+      ]);
+      expect(isQrl(_deserialize(stateData)?.[0])).toBeTruthy();
+      expect(_deserialize(stateData)?.[1]).toBeUndefined();
+      expectTypeOf(_deserialize(stateData)?.[2]).toBeConstructibleWith(URL);
     });
   });
 });

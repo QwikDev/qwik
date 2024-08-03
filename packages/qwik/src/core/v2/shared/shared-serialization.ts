@@ -49,6 +49,7 @@ import { vnode_getNode, vnode_isVNode, vnode_locate } from '../client/vnode';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
 import { ELEMENT_ID } from '../../util/markers';
 import { getPlatform } from '../../platform/platform';
+import type { DeserializeContainer } from './types';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 
@@ -292,7 +293,7 @@ const restString = () => {
   return rest.substring(start, restIdx - 1);
 };
 
-const inflate = (container: DomContainer, target: any, needsInflationData: string) => {
+const inflate = (container: DeserializeContainer, target: any, needsInflationData: string) => {
   restStack.push(rest, restIdx);
   rest = needsInflationData;
   restIdx = 1;
@@ -327,6 +328,9 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
     case SerializationConstant.Store_VALUE:
       break;
     case SerializationConstant.Signal_VALUE:
+      if (!container.$subsManager$) {
+        break;
+      }
       const signal = target as SignalImpl<unknown>;
       const semiIdx = rest.indexOf(';');
       const manager = (signal[QObjectManagerSymbol] = container.$subsManager$.$createManager$());
@@ -518,12 +522,14 @@ export function parseQRL(qrl: string): QRLInternal<any> {
   return createQRL(chunk, symbol, qrlRef, null, captureIds, null, null);
 }
 
-export function inflateQRL(container: DomContainer, qrl: QRLInternal<any>) {
+export function inflateQRL(container: DeserializeContainer, qrl: QRLInternal<any>) {
   const captureIds = qrl.$capture$;
   qrl.$captureRef$ = captureIds
     ? captureIds.map((id) => container.$getObjectById$(parseInt(id)))
     : null;
-  qrl.$setContainer$(container.element);
+  if (container.element) {
+    qrl.$setContainer$(container.element);
+  }
   return qrl;
 }
 
@@ -1235,6 +1241,57 @@ export function qrlToString(
   return qrlStringInline;
 }
 
+export function _deserialize(rawStateData: string) {
+  const stateData = JSON.parse(rawStateData);
+  if (!Array.isArray(stateData)) {
+    return null;
+  }
+  for (let i = 0; i < stateData.length; i++) {
+    const data = stateData[i];
+    stateData[i] = deserializeData(stateData, data);
+  }
+  return stateData;
+}
+
+function deserializeData(stateData: unknown[], data: string) {
+  let typeCode: number;
+  if (
+    typeof data === 'string' &&
+    data.length >= 1 &&
+    (typeCode = data.charCodeAt(0)) < SerializationConstant.LAST_VALUE
+  ) {
+    let propValue = data;
+    propValue = allocate(propValue);
+
+    if (typeCode >= SerializationConstant.Error_VALUE) {
+      inflateWithoutContainer(propValue, data, stateData);
+    }
+    return propValue;
+  }
+  return data;
+}
+
+const inflateWithoutContainer = (target: any, needsInflationData: string, stateData: unknown[]) => {
+  const container: DeserializeContainer = {
+    $getObjectById$: (id: number | string) => getObjectById(id, stateData),
+    getSyncFn: (_: number) => {
+      const fn = () => {};
+      return fn;
+    },
+    $subsManager$: null,
+    element: null,
+  };
+  inflate(container, target, needsInflationData);
+};
+
+function getObjectById(id: number | string, stateData: unknown[]): unknown {
+  if (typeof id === 'string') {
+    id = parseFloat(id);
+  }
+  assertTrue(id < stateData.length, 'Invalid reference');
+  return stateData[id];
+}
+
 /**
  * Tracking all objects in the map would be expensive. For this reason we only track some of the
  * objects.
@@ -1370,7 +1427,10 @@ function serializeJSXType($addRoot$: (obj: unknown) => number, type: string | Fu
   }
 }
 
-function deserializeJSXType(container: DomContainer, type: string): string | FunctionComponent {
+function deserializeJSXType(
+  container: DeserializeContainer,
+  type: string
+): string | FunctionComponent {
   if (type === ':slot') {
     return Slot;
   } else if (type === ':fragment') {

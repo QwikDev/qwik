@@ -1241,7 +1241,25 @@ export function qrlToString(
   return qrlStringInline;
 }
 
-export function _deserialize(rawStateData: string) {
+/** @internal */
+export async function _serialize(roots: unknown[]): Promise<string> {
+  const serializationContext = createSerializationContext(
+    null,
+    new WeakMap(),
+    () => '',
+    () => {}
+  );
+
+  for (const root of roots) {
+    serializationContext.$addRoot$(root);
+  }
+  await serializationContext.$breakCircularDepsAndAwaitPromises$();
+  serializationContext.$serialize$();
+  return serializationContext.$writer$.toString();
+}
+
+/** @internal */
+export function _deserialize(rawStateData: string): unknown[] | null {
   const stateData = JSON.parse(rawStateData);
   if (!Array.isArray(stateData)) {
     return null;

@@ -1,4 +1,4 @@
-import { describe, it, expect, expectTypeOf } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   SerializationConstant,
   _deserialize,
@@ -75,7 +75,7 @@ describe('shared-serialization', () => {
       ]);
       expect(isQrl(_deserialize(stateData)?.[0])).toBeTruthy();
       expect(_deserialize(stateData)?.[1]).toBeUndefined();
-      expectTypeOf(_deserialize(stateData)?.[2]).toBeConstructibleWith(URL);
+      expect(_deserialize(stateData)?.[2] instanceof URL).toBeTruthy();
     });
   });
 });

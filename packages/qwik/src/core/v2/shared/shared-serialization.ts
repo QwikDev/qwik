@@ -44,12 +44,13 @@ import { Task, type ResourceReturnInternal } from '../../use/use-task';
 import { throwErrorAndStop } from '../../util/log';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
-import type { DomContainer } from '../client/dom-container';
+import { getDomContainer, type DomContainer } from '../client/dom-container';
 import { vnode_getNode, vnode_isVNode, vnode_locate } from '../client/vnode';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
 import { ELEMENT_ID } from '../../util/markers';
 import { getPlatform } from '../../platform/platform';
 import type { DeserializeContainer } from './types';
+import { isElement, isNode } from '../../util/element';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 
@@ -1242,13 +1243,15 @@ export function qrlToString(
 }
 
 /** @internal */
-export async function _serialize(roots: unknown[]): Promise<string> {
+export async function _serialize(data: unknown): Promise<string> {
   const serializationContext = createSerializationContext(
     null,
     new WeakMap(),
     () => '',
     () => {}
   );
+
+  const roots = Array.isArray(data) ? data : [data];
 
   for (const root of roots) {
     serializationContext.$addRoot$(root);
@@ -1259,19 +1262,24 @@ export async function _serialize(roots: unknown[]): Promise<string> {
 }
 
 /** @internal */
-export function _deserialize(rawStateData: string): unknown[] | null {
+export function _deserialize(rawStateData: string, element?: unknown): unknown[] | unknown {
   const stateData = JSON.parse(rawStateData);
+
+  let container: DomContainer | undefined = undefined;
+  if (isNode(element) && isElement(element)) {
+    container = getDomContainer(element) as DomContainer;
+  }
   if (!Array.isArray(stateData)) {
-    return null;
+    return deserializeData([], stateData, container);
   }
   for (let i = 0; i < stateData.length; i++) {
     const data = stateData[i];
-    stateData[i] = deserializeData(stateData, data);
+    stateData[i] = deserializeData(stateData, data, container);
   }
   return stateData;
 }
 
-function deserializeData(stateData: unknown[], data: string) {
+function deserializeData(stateData: unknown[], data: string, container?: DeserializeContainer) {
   let typeCode: number;
   if (
     typeof data === 'string' &&
@@ -1282,7 +1290,11 @@ function deserializeData(stateData: unknown[], data: string) {
     propValue = allocate(propValue);
 
     if (typeCode >= SerializationConstant.Error_VALUE) {
-      inflateWithoutContainer(propValue, data, stateData);
+      if (container) {
+        inflate(container, propValue, data);
+      } else {
+        inflateWithoutContainer(propValue, data, stateData);
+      }
     }
     return propValue;
   }

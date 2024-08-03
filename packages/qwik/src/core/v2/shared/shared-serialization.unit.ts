@@ -73,9 +73,10 @@ describe('shared-serialization', () => {
         SerializationConstant.UNDEFINED_CHAR,
         SerializationConstant.URL_CHAR + 'http://example.com',
       ]);
-      expect(isQrl(_deserialize(stateData)?.[0])).toBeTruthy();
-      expect(_deserialize(stateData)?.[1]).toBeUndefined();
-      expect(_deserialize(stateData)?.[2] instanceof URL).toBeTruthy();
+      const deserializedData = _deserialize(stateData) as unknown[];
+      expect(isQrl(deserializedData[0])).toBeTruthy();
+      expect(deserializedData[1]).toBeUndefined();
+      expect(deserializedData[2] instanceof URL).toBeTruthy();
     });
   });
 });

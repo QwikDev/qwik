@@ -8,6 +8,7 @@ import {
   copyFile,
   emptyDir,
   getBanner,
+  getQwikVersion,
   mkdir,
   nodeTarget,
   readdir,
@@ -91,10 +92,9 @@ export async function publishCreateQwikCli(
 }
 
 async function syncBaseStarterVersionsFromQwik(config: BuildConfig) {
-  const qwikDir = join(config.packagesDir, 'qwik');
-  const distPkg = await readPackageJson(qwikDir);
+  const qwikVersion = await getQwikVersion(config);
 
-  await updateBaseVersions(config, distPkg.version);
+  await updateBaseVersions(config, qwikVersion);
 }
 
 async function updateBaseVersions(config: BuildConfig, version: string) {
@@ -190,6 +190,7 @@ async function copyDir(config: BuildConfig, srcDir: string, destDir: string) {
 async function updatePackageJson(config: BuildConfig, destDir: string) {
   const rootPkg = await readPackageJson(config.rootDir);
   const pkgJson = await readPackageJson(destDir);
+  const qwikVersion = await getQwikVersion(config);
 
   const setVersionFromRoot = (pkgName: string) => {
     if (pkgJson.devDependencies && pkgJson.devDependencies[pkgName]) {
@@ -205,12 +206,11 @@ async function updatePackageJson(config: BuildConfig, destDir: string) {
   };
 
   if (pkgJson.devDependencies && pkgJson.devDependencies['@builder.io/qwik']) {
-    if (
-      pkgJson.devDependencies['@builder.io/qwik'] !== 'next' &&
-      pkgJson.devDependencies['@builder.io/qwik'] !== 'dev'
-    ) {
-      pkgJson.devDependencies['@builder.io/qwik'] = rootPkg.version;
-    }
+    pkgJson.devDependencies['@builder.io/qwik'] = qwikVersion;
+  }
+
+  if (pkgJson.devDependencies && pkgJson.devDependencies['eslint-plugin-qwik']) {
+    pkgJson.devDependencies['eslint-plugin-qwik'] = qwikVersion;
   }
 
   setVersionFromRoot('@types/eslint');

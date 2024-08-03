@@ -30,6 +30,7 @@ async function validateCreateQwikCli() {
   const cliPkgJsonPath = join(cliDir, 'package.json');
   const cliPkgJson = JSON.parse(readFileSync(cliPkgJsonPath, 'utf-8'));
   assert.strictEqual(cliPkgJson.name, 'create-qwik');
+  const qwikVersion = cliPkgJson.version;
 
   const startersDir = join(cliDir, 'dist', 'starters');
   accessSync(startersDir);
@@ -44,9 +45,9 @@ async function validateCreateQwikCli() {
   const tmpDir = join(__dirname, '..', 'dist-dev');
 
   await Promise.all([
-    validateStarter(api, tmpDir, 'playground', true, `👻`),
-    validateStarter(api, tmpDir, 'empty', true, `🫙`),
-    validateStarter(api, tmpDir, 'library', false, `📚`),
+    validateStarter(api, tmpDir, 'playground', true, `👻`, qwikVersion),
+    validateStarter(api, tmpDir, 'empty', true, `🫙`, qwikVersion),
+    validateStarter(api, tmpDir, 'library', false, `📚`, qwikVersion),
   ]).catch((e) => {
     console.error(e);
     panic(String(e));
@@ -60,7 +61,8 @@ async function validateStarter(
   distDir: string,
   starterId: string,
   app: boolean,
-  emoji: string
+  emoji: string,
+  qwikVersion: string
 ) {
   const appDir = join(distDir, 'e2e-' + starterId);
 
@@ -79,6 +81,8 @@ async function validateStarter(
 
   const appPkgJsonPath = join(result.outDir, 'package.json');
   const appPkgJson = JSON.parse(readFileSync(appPkgJsonPath, 'utf-8'));
+
+  assertRightQwikDepsVersions(appPkgJson, qwikVersion, starterId);
 
   // Ensure that npm will use an existing version
   appPkgJson.devDependencies['@builder.io/qwik'] = 'latest';
@@ -141,6 +145,28 @@ async function validateStarter(
   // accessSync(join(appDir, 'tsconfig.tsbuildinfo'));
 
   console.log(`${emoji} ${starterId} validated\n`);
+}
+
+function assertRightQwikDepsVersions(appPkgJson: any, qwikVersion: string, starterType: string) {
+  assert.strictEqual(
+    appPkgJson.devDependencies['@builder.io/qwik'].includes(qwikVersion),
+    true,
+    `Qwik version mismatch for "${starterType}" starter`
+  );
+  if (appPkgJson.devDependencies.hasOwnProperty('@builder.io/qwik-city')) {
+    assert.strictEqual(
+      appPkgJson.devDependencies['@builder.io/qwik-city'].includes(qwikVersion),
+      true,
+      `Qwik City version mismatch for "${starterType}" starter`
+    );
+  }
+  if (appPkgJson.devDependencies.hasOwnProperty('eslint-plugin-qwik')) {
+    assert.strictEqual(
+      appPkgJson.devDependencies['eslint-plugin-qwik'].includes(qwikVersion),
+      true,
+      `ESlint plugin version mismatch for "${starterType}" starter`
+    );
+  }
 }
 
 function cpSync(src: string, dest: string) {

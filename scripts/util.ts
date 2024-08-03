@@ -1,23 +1,24 @@
 import type { Plugin } from 'esbuild';
-import { join } from 'node:path';
+import { execa, type Options } from 'execa';
 import mri from 'mri';
 import {
   access as fsAccess,
   copyFile as fsCopyFile,
-  mkdirSync,
+  mkdir as fsMkdir,
   readdir as fsReaddir,
   readFile as fsReadFile,
-  rmSync,
   stat as fsStat,
   unlink as fsUnlink,
   writeFile as fsWriteFile,
-  mkdir as fsMkdir,
+  mkdirSync,
+  rmSync,
 } from 'node:fs';
-import { promisify } from 'util';
-import { minify, type MinifyOptions } from 'terser';
-import type { Plugin as RollupPlugin } from 'rollup';
-import { execa, type Options } from 'execa';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import type { Plugin as RollupPlugin } from 'rollup';
+import { minify, type MinifyOptions } from 'terser';
+import { promisify } from 'util';
+import { readPackageJson } from './package-json';
 
 const stringOptions = [
   'distBindingsDir',
@@ -358,3 +359,9 @@ export const recursiveChangePrefix = <T>(obj: T, prefix: string, replace: string
   }
   return obj;
 };
+
+export async function getQwikVersion(config: BuildConfig) {
+  const qwikDir = join(config.packagesDir, 'qwik');
+  const qwikPkgJson = await readPackageJson(qwikDir);
+  return qwikPkgJson.version;
+}

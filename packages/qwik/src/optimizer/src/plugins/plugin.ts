@@ -740,7 +740,14 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         .map((mod) => mod.hook)
         .filter((h) => !!h) as HookAnalysis[];
 
-      const manifest = generateManifestFromBundles(path, hooks, injections, rollupBundle, opts);
+      const manifest = generateManifestFromBundles(
+        path,
+        hooks,
+        injections,
+        rollupBundle,
+        opts,
+        debug
+      );
 
       for (const symbol of Object.values(manifest.symbols)) {
         if (symbol.origin) {

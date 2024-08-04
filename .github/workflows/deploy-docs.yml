@@ -1,5 +1,5 @@
 # a workflow that runs after the "Qwik CI" workflow is successful
-# and deploys the documentation to GitHub Pages.
+# and deploys the documentation to CloudFlare Pages.
 
 name: Deploy Docs
 

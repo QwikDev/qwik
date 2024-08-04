@@ -43,7 +43,7 @@ import { getOrCreateProxy, isStore } from '../../state/store';
 import { Task, type ResourceReturnInternal } from '../../use/use-task';
 import { throwErrorAndStop } from '../../util/log';
 import { isPromise } from '../../util/promises';
-import type { ValueOrPromise } from '../../util/types';
+import { isSerializableObject, type ValueOrPromise } from '../../util/types';
 import { getDomContainer, type DomContainer } from '../client/dom-container';
 import { vnode_getNode, vnode_isVNode, vnode_locate } from '../client/vnode';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
@@ -1243,7 +1243,7 @@ export function qrlToString(
 }
 
 /** @internal */
-export async function _serialize(data: unknown): Promise<string> {
+export async function _serialize(data: unknown[]): Promise<string> {
   const serializationContext = createSerializationContext(
     null,
     new WeakMap(),
@@ -1251,9 +1251,7 @@ export async function _serialize(data: unknown): Promise<string> {
     () => {}
   );
 
-  const roots = Array.isArray(data) ? data : [data];
-
-  for (const root of roots) {
+  for (const root of data) {
     serializationContext.$addRoot$(root);
   }
   await serializationContext.$breakCircularDepsAndAwaitPromises$();
@@ -1262,10 +1260,13 @@ export async function _serialize(data: unknown): Promise<string> {
 }
 
 /** @internal */
-export function _deserialize(rawStateData: string, element?: unknown): unknown[] | unknown {
+export function _deserialize(rawStateData: string | null, element?: unknown): unknown[] {
+  if (rawStateData == null) {
+    return [];
+  }
   const stateData = JSON.parse(rawStateData);
   if (!Array.isArray(stateData)) {
-    return null;
+    return [];
   }
 
   let container: DomContainer | undefined = undefined;
@@ -1281,7 +1282,7 @@ export function _deserialize(rawStateData: string, element?: unknown): unknown[]
 
 function deserializeData(
   stateData: unknown[],
-  serializedData: string,
+  serializedData: unknown,
   container?: DeserializeContainer
 ) {
   let typeCode: number;
@@ -1301,6 +1302,41 @@ function deserializeData(
       }
     }
     return propValue;
+  } else if (serializedData && typeof serializedData === 'object') {
+    if (Array.isArray(serializedData)) {
+      return deserializeArray(stateData, serializedData, container);
+    } else {
+      return deserializeObject(stateData, serializedData, container);
+    }
+  }
+  return serializedData;
+}
+
+function deserializeObject(
+  stateData: unknown[],
+  serializedData: object,
+  container?: DeserializeContainer
+) {
+  if (!isSerializableObject(serializedData)) {
+    return serializedData;
+  }
+  for (const key in serializedData) {
+    if (Object.prototype.hasOwnProperty.call(serializedData, key)) {
+      const value = serializedData[key];
+      serializedData[key] = deserializeData(stateData, value, container);
+    }
+  }
+  return serializedData;
+}
+
+function deserializeArray(
+  stateData: unknown[],
+  serializedData: Array<unknown>,
+  container?: DeserializeContainer
+) {
+  for (let i = 0; i < serializedData.length; i++) {
+    const value = serializedData[i];
+    serializedData[i] = deserializeData(stateData, value, container);
   }
   return serializedData;
 }

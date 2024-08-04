@@ -243,7 +243,10 @@ export const zodQrl = ((
             return z.object(obj);
           }
         });
-        const data = inputData ?? (await ev.parseBody());
+        let data = inputData;
+        if (!data) {
+          data = await ev.parseBody();
+        }
         const result = await (await schema).safeParseAsync(data);
         if (result.success) {
           return result;
@@ -376,7 +379,7 @@ export const serverQrl = <T extends ServerFunction>(
           })();
         } else if (contentType === 'application/qwik-json') {
           const str = await res.text();
-          const obj = _deserialize(str, ctxElm ?? document.documentElement);
+          const [obj] = _deserialize(str, ctxElm ?? document.documentElement);
           if (res.status === 500) {
             throw obj;
           }
@@ -456,7 +459,8 @@ const deserializeStream = async function* (
       const lines = buffer.split(/\n/);
       buffer = lines.pop()!;
       for (const line of lines) {
-        yield _deserialize(line, ctxElm);
+        const [deserializedData] = _deserialize(line, ctxElm);
+        yield deserializedData;
       }
     }
   } finally {

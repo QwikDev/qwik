@@ -1264,13 +1264,13 @@ export async function _serialize(data: unknown): Promise<string> {
 /** @internal */
 export function _deserialize(rawStateData: string, element?: unknown): unknown[] | unknown {
   const stateData = JSON.parse(rawStateData);
+  if (!Array.isArray(stateData)) {
+    return null;
+  }
 
   let container: DomContainer | undefined = undefined;
   if (isNode(element) && isElement(element)) {
     container = getDomContainer(element) as DomContainer;
-  }
-  if (!Array.isArray(stateData)) {
-    return deserializeData([], stateData, container);
   }
   for (let i = 0; i < stateData.length; i++) {
     const data = stateData[i];
@@ -1279,26 +1279,30 @@ export function _deserialize(rawStateData: string, element?: unknown): unknown[]
   return stateData;
 }
 
-function deserializeData(stateData: unknown[], data: string, container?: DeserializeContainer) {
+function deserializeData(
+  stateData: unknown[],
+  serializedData: string,
+  container?: DeserializeContainer
+) {
   let typeCode: number;
   if (
-    typeof data === 'string' &&
-    data.length >= 1 &&
-    (typeCode = data.charCodeAt(0)) < SerializationConstant.LAST_VALUE
+    typeof serializedData === 'string' &&
+    serializedData.length >= 1 &&
+    (typeCode = serializedData.charCodeAt(0)) < SerializationConstant.LAST_VALUE
   ) {
-    let propValue = data;
+    let propValue = serializedData;
     propValue = allocate(propValue);
 
     if (typeCode >= SerializationConstant.Error_VALUE) {
       if (container) {
-        inflate(container, propValue, data);
+        inflate(container, propValue, serializedData);
       } else {
-        inflateWithoutContainer(propValue, data, stateData);
+        inflateWithoutContainer(propValue, serializedData, stateData);
       }
     }
     return propValue;
   }
-  return data;
+  return serializedData;
 }
 
 const inflateWithoutContainer = (target: any, needsInflationData: string, stateData: unknown[]) => {

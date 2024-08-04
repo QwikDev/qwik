@@ -65,6 +65,11 @@ This command will add a new package:
 - `@auth/qwik`
 
 and create a new file named `plugin@auth.ts` with an example configuration.
+the command will also prompt you to add a code snippet into your `vite.config.ts`
+
+```
+optimizeDeps: { include: ['@auth/core'] }
+```
 
 > **Note on Manual Deployments with Node**
 

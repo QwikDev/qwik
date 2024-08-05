@@ -6,7 +6,7 @@ import type {
   Diagnostic,
   EntryStrategy,
   GlobalInjections,
-  HookAnalysis,
+  SegmentAnalysis,
   InsightManifest,
   Optimizer,
   OptimizerOptions,
@@ -178,7 +178,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         if (opts.buildMode === 'production') {
           opts.entryStrategy = { type: 'smart' };
         } else {
-          opts.entryStrategy = { type: 'hook' };
+          opts.entryStrategy = { type: 'segment' };
         }
       }
     }
@@ -573,7 +573,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (transformedModule) {
       debug(`load()`, 'Found', id);
       let { code } = transformedModule[0];
-      const { map, hook } = transformedModule[0];
+      const { map, segment } = transformedModule[0];
 
       if (devServer) {
         const firstInput = Object.values(opts.input)[0];
@@ -584,7 +584,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           normalizePath(path.resolve(firstInput, QWIK_CLIENT_MANIFEST_ID))
         );
       }
-      return { code, map, meta: { hook } };
+      return { code, map, meta: { segment } };
     }
 
     debug('load()', 'Not found', id);
@@ -688,7 +688,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       for (const mod of newOutput.modules) {
         if (mod !== module) {
           const key = normalizePath(path.join(srcDir, mod.path));
-          debug(`transform()`, `segment ${key}`, mod.hook?.displayName);
+          debug(`transform()`, `segment ${key}`, mod.segment?.displayName);
           currentOutputs.set(key, [mod, id]);
           deps.add(key);
           // rollup must be told about all entry points
@@ -716,7 +716,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         code: module.code,
         map: module.map,
         meta: {
-          hook: module.hook,
+          segment: module.segment,
           qwikdeps: Array.from(deps),
         },
       };
@@ -735,14 +735,14 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       const optimizer = getOptimizer();
       const path = optimizer.sys.path;
 
-      const hooks = Array.from(clientResults.values())
+      const segments = Array.from(clientResults.values())
         .flatMap((r) => r.modules)
-        .map((mod) => mod.hook)
-        .filter((h) => !!h) as HookAnalysis[];
+        .map((mod) => mod.segment)
+        .filter((h) => !!h) as SegmentAnalysis[];
 
       const manifest = generateManifestFromBundles(
         path,
-        hooks,
+        segments,
         injections,
         rollupBundle,
         opts,
@@ -847,8 +847,8 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
   // order by discovery time, so that related segments are more likely to group together
   function manualChunks(id: string, { getModuleInfo }: Rollup.ManualChunkMeta) {
     const module = getModuleInfo(id)!;
-    const hook = module.meta.hook as HookAnalysis | undefined;
-    return hook?.entry;
+    const segment = module.meta.segment as SegmentAnalysis | undefined;
+    return segment?.entry;
   }
 
   return {
@@ -901,7 +901,7 @@ export const makeNormalizePath = (sys: OptimizerSystem) => (id: string) => {
 };
 
 function isAdditionalFile(mod: TransformModule) {
-  return mod.isEntry || mod.hook;
+  return mod.isEntry || mod.segment;
 }
 
 export function parseId(originalId: string) {

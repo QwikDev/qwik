@@ -1240,7 +1240,12 @@ export function qrlToString(
   return qrlStringInline;
 }
 
-/** @internal */
+/**
+ * Serialize data to string using SerializationContext.
+ *
+ * @param data - Data to serialize
+ * @internal
+ */
 export async function _serialize(data: unknown[]): Promise<string> {
   const serializationContext = createSerializationContext(
     null,
@@ -1257,7 +1262,13 @@ export async function _serialize(data: unknown[]): Promise<string> {
   return serializationContext.$writer$.toString();
 }
 
-/** @internal */
+/**
+ * Deserialize data from string to an array of objects.
+ *
+ * @param rawStateData - Data to deserialize
+ * @param element - Container element
+ * @internal
+ */
 export function _deserialize(rawStateData: string | null, element?: unknown): unknown[] {
   if (rawStateData == null) {
     return [];

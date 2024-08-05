@@ -1,7 +1,7 @@
 import { getClientDataPath } from './utils';
 import { CLIENT_DATA_CACHE } from './constants';
 import type { ClientPageData, RouteActionValue } from './types';
-import { _deserializeData } from '@builder.io/qwik';
+import { _deserialize } from '@builder.io/qwik';
 import { prefetchSymbols } from './client-navigate';
 
 export const loadClientData = async (
@@ -42,7 +42,7 @@ export const loadClientData = async (
       if ((rsp.headers.get('content-type') || '').includes('json')) {
         // we are safe we are reading a q-data.json
         return rsp.text().then((text) => {
-          const clientData = _deserializeData(text, element) as ClientPageData | null;
+          const [clientData] = _deserialize(text, element) as [ClientPageData];
           if (!clientData) {
             location.href = url.href;
             return;

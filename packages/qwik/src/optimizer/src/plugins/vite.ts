@@ -352,6 +352,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
         updatedViteConfig.build!.cssCodeSplit = false;
         updatedViteConfig.build!.outDir = buildOutputDir;
+        const origOnwarn = updatedViteConfig.build!.rollupOptions?.onwarn;
         updatedViteConfig.build!.rollupOptions = {
           input: opts.input,
           output: normalizeRollupOutputOptions(
@@ -366,7 +367,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
               return;
             }
-            warn(warning);
+            origOnwarn ? origOnwarn(warning, warn) : warn(warning);
           },
         };
 

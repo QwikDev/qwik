@@ -219,7 +219,7 @@ export interface DataHTMLAttributes<T extends Element> extends Attrs<'data', T> 
 export interface DelHTMLAttributes<T extends Element> extends Attrs<'del', T> {
 }
 
-// @internal (undocumented)
+// @internal
 export function _deserialize(rawStateData: string | null, element?: unknown): unknown[];
 
 // @internal (undocumented)
@@ -1046,7 +1046,7 @@ export interface ScriptHTMLAttributes<T extends Element> extends Attrs<'script',
 export interface SelectHTMLAttributes<T extends Element> extends Attrs<'select', T> {
 }
 
-// @internal (undocumented)
+// @internal
 export function _serialize(data: unknown[]): Promise<string>;
 
 // @internal (undocumented)

@@ -17,6 +17,7 @@ pub enum EntryStrategy {
 	Inline,
 	Hoist,
 	Single,
+	Hook,
 	Segment,
 	Component,
 	Smart,
@@ -180,6 +181,7 @@ pub fn parse_entry_strategy(
 ) -> Box<dyn EntryPolicy> {
 	match strategy {
 		EntryStrategy::Inline | EntryStrategy::Hoist => Box::<InlineStrategy>::default(),
+		EntryStrategy::Hook => Box::new(PerSegmentStrategy::new(manual_chunks)),
 		EntryStrategy::Segment => Box::new(PerSegmentStrategy::new(manual_chunks)),
 		EntryStrategy::Single => Box::new(SingleStrategy::new(manual_chunks)),
 		EntryStrategy::Component => Box::new(PerComponentStrategy::new(manual_chunks)),

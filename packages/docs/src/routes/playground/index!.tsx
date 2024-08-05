@@ -18,7 +18,7 @@ export default component$(() => {
       files: playgroundApp.inputs,
       version: '',
       buildMode: 'development',
-      entryStrategy: 'hook',
+      entryStrategy: 'segment',
       colResizeActive: false,
       colLeft: 50,
       shareUrlTmr: null,

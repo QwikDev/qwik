@@ -25,7 +25,7 @@ export default component$(() => {
       appId: app ? app.id : '',
       buildId: 0,
       buildMode: 'development',
-      entryStrategy: 'hook',
+      entryStrategy: 'segment',
       files: app?.inputs || [],
       version: '',
       shareUrlTmr: undefined,

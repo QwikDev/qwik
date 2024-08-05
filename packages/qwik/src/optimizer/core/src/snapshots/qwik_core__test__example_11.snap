@@ -37,7 +37,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 {
   "origin": "project/test.tsx",
   "name": "Header_component_Header_onClick_KjD9TCNkNxY",
-  "entry": "entry_hooks",
+  "entry": "entry_segments",
   "displayName": "Header_component_Header_onClick",
   "hash": "KjD9TCNkNxY",
   "canonicalFilename": "header_component_header_onclick_kjd9tcnknxy",
@@ -71,7 +71,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 {
   "origin": "project/test.tsx",
   "name": "Header_component_UVBJuFYfvDo",
-  "entry": "entry_hooks",
+  "entry": "entry_segments",
   "displayName": "Header_component",
   "hash": "UVBJuFYfvDo",
   "canonicalFilename": "header_component_uvbjufyfvdo",
@@ -101,7 +101,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 {
   "origin": "project/test.tsx",
   "name": "App_component_wGkRHWXaqjs",
-  "entry": "entry_hooks",
+  "entry": "entry_segments",
   "displayName": "App_component",
   "hash": "wGkRHWXaqjs",
   "canonicalFilename": "app_component_wgkrhwxaqjs",

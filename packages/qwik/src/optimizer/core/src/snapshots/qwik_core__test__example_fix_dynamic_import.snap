@@ -38,7 +38,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"
 {
   "origin": "project/folder/test.tsx",
   "name": "Header_component_RGgm7Ks9QWI",
-  "entry": "entry_hooks",
+  "entry": "entry_segments",
   "displayName": "Header_component",
   "hash": "RGgm7Ks9QWI",
   "canonicalFilename": "header_component_rggm7ks9qwi",

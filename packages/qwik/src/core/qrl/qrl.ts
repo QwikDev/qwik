@@ -98,7 +98,7 @@ export const qrl = <T = any>(
     announcedQRL.add(symbol);
     emitEvent('qprefetch', {
       symbols: [getSymbolHash(symbol)],
-      bundles: [chunk],
+      bundles: chunk && [chunk],
     });
   }
 

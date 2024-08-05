@@ -295,7 +295,7 @@ async function pureServerFunction(ev: RequestEvent) {
     ev.exit();
     const isDev = getRequestMode(ev) === 'dev';
     const qwikSerializer = (ev as RequestEventInternal)[RequestEvQwikSerializer];
-    const [data] = (await ev.parseBody()) as unknown[];
+    const data = await ev.parseBody();
     if (Array.isArray(data)) {
       const [qrl, ...args] = data;
       if (isQrl(qrl) && qrl.getHash() === fn) {

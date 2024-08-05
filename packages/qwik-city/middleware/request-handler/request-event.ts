@@ -331,15 +331,13 @@ const parseRequest = async (
       const data = query.get(QDATA_KEY);
       if (data) {
         try {
-          const deserializedData = qwikSerializer._deserialize(decodeURIComponent(data));
-          return [deserializedData] as JSONValue | undefined;
+          return qwikSerializer._deserialize(decodeURIComponent(data)) as JSONValue | undefined;
         } catch (err) {
           //
         }
       }
     }
-    const deserializedData = qwikSerializer._deserialize(await request.text());
-    return [deserializedData] as JSONValue | undefined;
+    return qwikSerializer._deserialize(await request.text()) as JSONValue | undefined;
   }
   return undefined;
 };

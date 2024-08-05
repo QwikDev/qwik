@@ -12,10 +12,10 @@ import type { SerializationContext } from './shared-serialization';
 export type fixMeAny = any;
 
 export interface DeserializeContainer {
-  readonly $getObjectById$: (id: number | string) => unknown;
-  readonly $subsManager$: SubscriptionManager | null;
-  readonly element: HTMLElement | null;
-  readonly getSyncFn: (id: number) => (...args: unknown[]) => unknown;
+  $getObjectById$: (id: number | string) => unknown;
+  $subsManager$: SubscriptionManager;
+  element: HTMLElement | null;
+  getSyncFn: (id: number) => (...args: unknown[]) => unknown;
 }
 
 export interface Container2 {

@@ -23,6 +23,7 @@ import { type FunctionComponent } from '../../render/jsx/types/jsx-node';
 import { Slot } from '../../render/jsx/slot.public';
 import {
   SubscriptionProp,
+  createSubscriptionManager,
   fastSkipSerialize,
   getProxyFlags,
   getProxyTarget,
@@ -44,12 +45,12 @@ import { Task, type ResourceReturnInternal } from '../../use/use-task';
 import { throwErrorAndStop } from '../../util/log';
 import { isPromise } from '../../util/promises';
 import { isSerializableObject, type ValueOrPromise } from '../../util/types';
-import { getDomContainer, type DomContainer } from '../client/dom-container';
+import { type DomContainer } from '../client/dom-container';
 import { vnode_getNode, vnode_isVNode, vnode_locate } from '../client/vnode';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
 import { ELEMENT_ID } from '../../util/markers';
 import { getPlatform } from '../../platform/platform';
-import type { DeserializeContainer } from './types';
+import type { DeserializeContainer, fixMeAny } from './types';
 import { isElement, isNode } from '../../util/element';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
@@ -329,9 +330,6 @@ const inflate = (container: DeserializeContainer, target: any, needsInflationDat
     case SerializationConstant.Store_VALUE:
       break;
     case SerializationConstant.Signal_VALUE:
-      if (!container.$subsManager$) {
-        break;
-      }
       const signal = target as SignalImpl<unknown>;
       const semiIdx = rest.indexOf(';');
       const manager = (signal[QObjectManagerSymbol] = container.$subsManager$.$createManager$());
@@ -1269,9 +1267,11 @@ export function _deserialize(rawStateData: string | null, element?: unknown): un
     return [];
   }
 
-  let container: DomContainer | undefined = undefined;
+  let container: DeserializeContainer | undefined = undefined;
   if (isNode(element) && isElement(element)) {
-    container = getDomContainer(element) as DomContainer;
+    container = createDeserializeContainer(stateData, element as HTMLElement);
+  } else {
+    container = createDeserializeContainer(stateData);
   }
   for (let i = 0; i < stateData.length; i++) {
     const data = stateData[i];
@@ -1283,7 +1283,7 @@ export function _deserialize(rawStateData: string | null, element?: unknown): un
 function deserializeData(
   stateData: unknown[],
   serializedData: unknown,
-  container?: DeserializeContainer
+  container: DeserializeContainer
 ) {
   let typeCode: number;
   if (
@@ -1295,11 +1295,7 @@ function deserializeData(
     propValue = allocate(propValue);
 
     if (typeCode >= SerializationConstant.Error_VALUE) {
-      if (container) {
-        inflate(container, propValue, serializedData);
-      } else {
-        inflateWithoutContainer(propValue, serializedData, stateData);
-      }
+      inflate(container, propValue, serializedData);
     }
     return propValue;
   } else if (serializedData && typeof serializedData === 'object') {
@@ -1315,7 +1311,7 @@ function deserializeData(
 function deserializeObject(
   stateData: unknown[],
   serializedData: object,
-  container?: DeserializeContainer
+  container: DeserializeContainer
 ) {
   if (!isSerializableObject(serializedData)) {
     return serializedData;
@@ -1332,7 +1328,7 @@ function deserializeObject(
 function deserializeArray(
   stateData: unknown[],
   serializedData: Array<unknown>,
-  container?: DeserializeContainer
+  container: DeserializeContainer
 ) {
   for (let i = 0; i < serializedData.length; i++) {
     const value = serializedData[i];
@@ -1341,25 +1337,33 @@ function deserializeArray(
   return serializedData;
 }
 
-const inflateWithoutContainer = (target: any, needsInflationData: string, stateData: unknown[]) => {
-  const container: DeserializeContainer = {
-    $getObjectById$: (id: number | string) => getObjectById(id, stateData),
-    getSyncFn: (_: number) => {
-      const fn = () => {};
-      return fn;
-    },
-    $subsManager$: null,
-    element: null,
-  };
-  inflate(container, target, needsInflationData);
-};
-
 function getObjectById(id: number | string, stateData: unknown[]): unknown {
   if (typeof id === 'string') {
     id = parseFloat(id);
   }
   assertTrue(id < stateData.length, 'Invalid reference');
   return stateData[id];
+}
+
+function createDeserializeContainer(
+  stateData: unknown[],
+  element?: HTMLElement
+): DeserializeContainer {
+  const container: DeserializeContainer = {
+    $getObjectById$: (id: number | string) => getObjectById(id, stateData),
+    getSyncFn: (_: number) => {
+      const fn = () => {};
+      return fn;
+    },
+    $subsManager$: null!,
+    element: null,
+  };
+  const subsManager = createSubscriptionManager(container as fixMeAny);
+  container.$subsManager$ = subsManager;
+  if (element) {
+    container.element = element;
+  }
+  return container;
 }
 
 /**

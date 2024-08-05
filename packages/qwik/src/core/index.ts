@@ -84,6 +84,7 @@ export { render2 as render } from './v2/client/dom-render';
 export { getDomContainer, _getQContainerElement } from './v2/client/dom-container';
 export type { RenderSSROptions, StreamWriter } from './render/ssr/render-ssr';
 export type { RenderOptions, RenderResult } from './render/dom/render.public';
+export { _serialize, _deserialize } from './v2/shared/shared-serialization';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // use API

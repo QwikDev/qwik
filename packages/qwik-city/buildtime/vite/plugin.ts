@@ -158,7 +158,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
         const isSwRegister = id.endsWith(QWIK_CITY_SW_REGISTER);
 
         if (isSerializer) {
-          return `export {_deserializeData, _serializeData, _verifySerializable} from '@builder.io/qwik'`;
+          return `export {_deserialize, _serialize, _verifySerializable} from '@builder.io/qwik'`;
         }
         if (isCityPlan || isSwRegister) {
           if (!ctx.isDevServer && ctx.isDirty) {

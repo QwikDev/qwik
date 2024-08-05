@@ -11,6 +11,13 @@ import type { SerializationContext } from './shared-serialization';
 /// Temporary type left behind which needs to be fixed.
 export type fixMeAny = any;
 
+export interface DeserializeContainer {
+  $getObjectById$: (id: number | string) => unknown;
+  $subsManager$: SubscriptionManager;
+  element: HTMLElement | null;
+  getSyncFn: (id: number) => (...args: unknown[]) => unknown;
+}
+
 export interface Container2 {
   readonly $version$: string;
   readonly $scheduler$: Scheduler;

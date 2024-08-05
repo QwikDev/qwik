@@ -5,7 +5,7 @@
 ```ts
 
 import type { Action } from '@builder.io/qwik-city';
-import type { _deserializeData } from '@builder.io/qwik';
+import type { _deserialize } from '@builder.io/qwik';
 import type { EnvGetter as EnvGetter_2 } from '@builder.io/qwik-city/middleware/request-handler';
 import type { FailReturn } from '@builder.io/qwik-city';
 import type { Loader as Loader_2 } from '@builder.io/qwik-city';
@@ -16,7 +16,7 @@ import type { RenderOptions } from '@builder.io/qwik/server';
 import type { RequestEvent as RequestEvent_2 } from '@builder.io/qwik-city';
 import type { RequestHandler as RequestHandler_2 } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ResolveSyncValue as ResolveSyncValue_2 } from '@builder.io/qwik-city/middleware/request-handler';
-import type { _serializeData } from '@builder.io/qwik';
+import type { _serialize } from '@builder.io/qwik';
 import type { ValueOrPromise } from '@builder.io/qwik';
 import type { _verifySerializable } from '@builder.io/qwik';
 

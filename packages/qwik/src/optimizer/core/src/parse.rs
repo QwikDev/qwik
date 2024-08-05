@@ -13,7 +13,7 @@ use crate::const_replace::ConstReplacerVisitor;
 use crate::entry_strategy::EntryPolicy;
 use crate::filter_exports::StripExportsVisitor;
 use crate::props_destructuring::transform_props_destructuring;
-use crate::transform::{HookKind, QwikTransform, QwikTransformOptions};
+use crate::transform::{QwikTransform, QwikTransformOptions, SegmentKind};
 use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
 use crate::EntryStrategy;
 use path_slash::PathExt;
@@ -39,7 +39,7 @@ use swc_ecmascript::visit::{FoldWith, VisitMutWith};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct HookAnalysis {
+pub struct SegmentAnalysis {
 	pub origin: JsWord,
 	pub name: JsWord,
 	pub entry: Option<JsWord>,
@@ -49,7 +49,7 @@ pub struct HookAnalysis {
 	pub path: JsWord,
 	pub extension: JsWord,
 	pub parent: Option<JsWord>,
-	pub ctx_kind: HookKind,
+	pub ctx_kind: SegmentKind,
 	pub ctx_name: JsWord,
 	pub captures: bool,
 	pub loc: (u32, u32),
@@ -114,7 +114,7 @@ pub struct QwikBundle {
 #[serde(rename_all = "camelCase")]
 pub struct QwikManifest {
 	pub version: JsWord,
-	pub symbols: HashMap<JsWord, HookAnalysis>,
+	pub symbols: HashMap<JsWord, SegmentAnalysis>,
 	pub bundles: HashMap<JsWord, QwikBundle>,
 	pub mapping: HashMap<JsWord, JsWord>,
 }
@@ -140,15 +140,21 @@ impl TransformOutput {
 			version: "1".into(),
 		};
 		for module in &self.modules {
-			if let Some(hook) = &module.hook {
-				let filename =
-					JsWord::from(format!("{}.{}", hook.canonical_filename, hook.extension));
-				manifest.mapping.insert(hook.name.clone(), filename.clone());
-				manifest.symbols.insert(hook.name.clone(), hook.clone());
+			if let Some(segment) = &module.segment {
+				let filename = JsWord::from(format!(
+					"{}.{}",
+					segment.canonical_filename, segment.extension
+				));
+				manifest
+					.mapping
+					.insert(segment.name.clone(), filename.clone());
+				manifest
+					.symbols
+					.insert(segment.name.clone(), segment.clone());
 				manifest.bundles.insert(
 					filename.clone(),
 					QwikBundle {
-						symbols: vec![hook.name.clone()],
+						symbols: vec![segment.name.clone()],
 						size: module.code.len(),
 					},
 				);
@@ -188,7 +194,7 @@ pub struct TransformModule {
 
 	pub map: Option<String>,
 
-	pub hook: Option<HookAnalysis>,
+	pub segment: Option<SegmentAnalysis>,
 	pub is_entry: bool,
 
 	#[serde(skip_serializing)]
@@ -361,11 +367,11 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 					program.visit_mut_with(&mut hygiene_with_config(Default::default()));
 					program.visit_mut_with(&mut fixer(None));
 
-					let hooks = qwik_transform.hooks;
-					let mut modules: Vec<TransformModule> = Vec::with_capacity(hooks.len() + 10);
+					let segments = qwik_transform.segments;
+					let mut modules: Vec<TransformModule> = Vec::with_capacity(segments.len() + 10);
 
 					let comments_maps = comments.clone().take_all();
-					for h in hooks.into_iter() {
+					for h in segments.into_iter() {
 						let is_entry = h.entry.is_none();
 						let path_str = h.data.path.to_string();
 						let path = if path_str.is_empty() {
@@ -373,15 +379,15 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 						} else {
 							[&path_str, "/"].concat()
 						};
-						let hook_path = [
+						let segment_path = [
 							path,
 							[&h.canonical_filename, ".", &h.data.extension].concat(),
 						]
 						.concat();
 						let need_handle_watch =
-							might_need_handle_watch(&h.data.ctx_kind, &h.data.ctx_name) && is_entry;
+							might_need_handle_watch(&h.data.ctx_kind, &h.data.ctx_name);
 
-						let (mut hook_module, comments) = new_module(NewModuleCtx {
+						let (mut segment_module, comments) = new_module(NewModuleCtx {
 							expr: h.expr,
 							path: &path_data,
 							name: &h.name,
@@ -396,7 +402,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							trailing_comments: comments_maps.1.clone(),
 						})?;
 						if config.minify != MinifyMode::None {
-							hook_module = hook_module.fold_with(&mut simplify::simplifier(
+							segment_module = segment_module.fold_with(&mut simplify::simplifier(
 								unresolved_mark,
 								simplify::Config {
 									dce: simplify::dce::Config {
@@ -407,13 +413,13 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 								},
 							));
 						}
-						hook_module.visit_mut_with(&mut hygiene_with_config(Default::default()));
-						hook_module.visit_mut_with(&mut fixer(None));
+						segment_module.visit_mut_with(&mut hygiene_with_config(Default::default()));
+						segment_module.visit_mut_with(&mut fixer(None));
 
 						let (code, map) = emit_source_code(
 							Lrc::clone(&source_map),
 							Some(comments),
-							&hook_module,
+							&segment_module,
 							config.root_dir,
 							config.source_maps,
 						)
@@ -423,16 +429,16 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							code,
 							map,
 							is_entry,
-							path: hook_path,
+							path: segment_path,
 							order: h.hash,
-							hook: Some(HookAnalysis {
+							segment: Some(SegmentAnalysis {
 								origin: h.data.origin,
 								name: h.name,
 								entry: h.entry,
 								extension: h.data.extension,
 								canonical_filename: h.canonical_filename,
 								path: h.data.path,
-								parent: h.data.parent_hook,
+								parent: h.data.parent_segment,
 								ctx_kind: h.data.ctx_kind,
 								ctx_name: h.data.ctx_name,
 								captures: !h.data.scoped_idents.is_empty(),
@@ -470,7 +476,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 						code,
 						map,
 						order: hasher.finish(),
-						hook: None,
+						segment: None,
 					});
 
 					let diagnostics = handle_error(&error_buffer, origin, &source_map);
@@ -676,7 +682,6 @@ fn handle_error(
 pub struct PathData {
 	pub abs_path: PathBuf,
 	pub rel_path: PathBuf,
-	pub base_dir: PathBuf,
 	pub abs_dir: PathBuf,
 	pub rel_dir: PathBuf,
 	pub file_stem: String,
@@ -706,7 +711,6 @@ pub fn parse_path(src: &str, base_dir: &Path) -> Result<PathData, Error> {
 
 	Ok(PathData {
 		abs_path,
-		base_dir: base_dir.to_path_buf(),
 		rel_path: path.into(),
 		abs_dir,
 		rel_dir,
@@ -737,8 +741,8 @@ pub fn normalize_path<P: AsRef<Path>>(path: P) -> PathBuf {
 	normalized
 }
 
-pub fn might_need_handle_watch(ctx_kind: &HookKind, ctx_name: &str) -> bool {
-	if !matches!(ctx_kind, HookKind::Function) {
+pub fn might_need_handle_watch(ctx_kind: &SegmentKind, ctx_name: &str) -> bool {
+	if !matches!(ctx_kind, SegmentKind::Function) {
 		return false;
 	}
 	matches!(

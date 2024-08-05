@@ -39,11 +39,12 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     async options(inputOpts) {
       await qwikPlugin.init();
 
+      const origOnwarn = inputOpts.onwarn;
       inputOpts.onwarn = (warning, warn) => {
         if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
           return;
         }
-        warn(warning);
+        origOnwarn ? origOnwarn(warning, warn) : warn(warning);
       };
 
       const pluginOpts: QwikPluginOptions = {
@@ -74,7 +75,12 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     },
 
     outputOptions(rollupOutputOpts) {
-      return normalizeRollupOutputOptionsObject(qwikPlugin.getOptions(), rollupOutputOpts, false);
+      return normalizeRollupOutputOptionsObject(
+        qwikPlugin.getOptions(),
+        rollupOutputOpts,
+        false,
+        qwikPlugin.manualChunks
+      );
     },
 
     async buildStart() {
@@ -155,6 +161,7 @@ export function normalizeRollupOutputOptions(
   opts: NormalizedQwikPluginOptions,
   rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined,
   useAssetsDir: boolean,
+  manualChunks: Rollup.GetManualChunk,
   outDir?: string
 ): Rollup.OutputOptions | Rollup.OutputOptions[] {
   if (Array.isArray(rollupOutputOpts)) {
@@ -164,13 +171,13 @@ export function normalizeRollupOutputOptions(
     }
 
     return rollupOutputOpts.map((outputOptsObj) => ({
-      ...normalizeRollupOutputOptionsObject(opts, outputOptsObj, useAssetsDir),
+      ...normalizeRollupOutputOptionsObject(opts, outputOptsObj, useAssetsDir, manualChunks),
       dir: outDir || outputOptsObj.dir,
     }));
   }
 
   return {
-    ...normalizeRollupOutputOptionsObject(opts, rollupOutputOpts, useAssetsDir),
+    ...normalizeRollupOutputOptionsObject(opts, rollupOutputOpts, useAssetsDir, manualChunks),
     dir: outDir || rollupOutputOpts?.dir,
   };
 }
@@ -178,7 +185,8 @@ export function normalizeRollupOutputOptions(
 export function normalizeRollupOutputOptionsObject(
   opts: NormalizedQwikPluginOptions,
   rollupOutputOptsObj: Rollup.OutputOptions | undefined,
-  useAssetsDir: boolean
+  useAssetsDir: boolean,
+  manualChunks: Rollup.GetManualChunk
 ): Rollup.OutputOptions {
   const outputOpts: Rollup.OutputOptions = { ...rollupOutputOptsObj };
 
@@ -215,6 +223,13 @@ export function normalizeRollupOutputOptionsObject(
   if (opts.target === 'client') {
     // client should always be es
     outputOpts.format = 'es';
+    const prevManualChunks = outputOpts.manualChunks;
+    if (prevManualChunks && typeof prevManualChunks !== 'function') {
+      throw new Error('manualChunks must be a function');
+    }
+    outputOpts.manualChunks = prevManualChunks
+      ? (id, meta) => prevManualChunks(id, meta) || manualChunks(id, meta)
+      : manualChunks;
   }
 
   if (!outputOpts.dir) {
@@ -265,7 +280,7 @@ export interface QwikRollupPluginOptions {
   debug?: boolean;
   /**
    * The Qwik entry strategy to use while building for production. During development the type is
-   * always `hook`.
+   * always `segment`.
    *
    * Default `{ type: "smart" }`)
    */

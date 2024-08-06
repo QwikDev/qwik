@@ -137,7 +137,7 @@ export const OnThisPage = component$(() => {
               }
             });
           },
-          { rootMargin: `0% 0% -85% 0%` }
+          { rootMargin: '0% 0% -85% 0%' }
         );
 
         itemIds.forEach((id) => {
@@ -146,11 +146,19 @@ export const OnThisPage = component$(() => {
             observer.observe(element);
           }
         });
+
+        return () => {
+          itemIds.forEach((id) => {
+            const element = document.getElementById(id);
+            if (element) {
+              observer.unobserve(element);
+            }
+          });
+        };
       })
     );
 
     return activeId;
-    // Put code here to periodically call updateClock().
   };
 
   const activeId = useActiveItem(contentHeadings.map((h) => h.id));

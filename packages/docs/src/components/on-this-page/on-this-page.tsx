@@ -137,7 +137,7 @@ export const OnThisPage = component$(() => {
               }
             });
           },
-          { rootMargin: '0% 0% -85% 0%' }
+          { rootMargin: '0% 0% -80% 0%' }
         );
 
         itemIds.forEach((id) => {
@@ -179,9 +179,9 @@ export const OnThisPage = component$(() => {
                 }`}
               >
                 {activeId.value === h.id ? (
-                  <span class="active-item">{h.text}</span>
+                  <span class="on-this-page-item">{h.text}</span>
                 ) : (
-                  <a href={`#${h.id}`} class={`${h.level > 2 ? 'ml-4' : null} on-this-page-item`}>
+                  <a href={`#${h.id}`} class={`${h.level > 2 ? 'ml-0' : null} on-this-page-item`}>
                     {h.text}
                   </a>
                 )}

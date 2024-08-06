@@ -227,8 +227,6 @@ export const ensureContainsEffect = (array: EffectSubscriptions[], effect: Effec
       return;
     }
   }
-  console.log('array', array);
-  console.log('array.push', array.push);
   array.push(effect);
 };
 

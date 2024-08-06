@@ -21,11 +21,7 @@ import {
   isPropsProxy,
 } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
-import {
-  fastSkipSerialize,
-  getProxyFlags,
-  getSubscriptionManager
-} from '../../state/common';
+import { fastSkipSerialize, getProxyFlags, getSubscriptionManager } from '../../state/common';
 import { _CONST_PROPS, _VAR_PROPS } from '../../state/constants';
 import { Task, isTask, type ResourceReturnInternal } from '../../use/use-task';
 import { EMPTY_OBJ } from '../../util/flyweight';
@@ -42,7 +38,13 @@ import {
   Signal2,
   type EffectSubscriptions,
 } from '../signal/v2-signal';
-import { Store2, createStore2, getStoreHandler2, unwrapStore2, type StoreHandler } from '../signal/v2-store';
+import {
+  Store2,
+  createStore2,
+  getStoreHandler2,
+  unwrapStore2,
+  type StoreHandler,
+} from '../signal/v2-store';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { fixMeAny } from './types';
 
@@ -277,7 +279,7 @@ const inflate = (container: DomContainer, target: any, needsInflationData: strin
           const idx = effect.indexOf(';');
           const prop = effect.substring(0, idx);
           const effectStr = effect.substring(idx + 1);
-          deserializeSignal2Effect(0, effectStr.split(';'), container, effects[prop] = [])
+          deserializeSignal2Effect(0, effectStr.split(';'), container, (effects[prop] = []));
         }
       }
       break;
@@ -826,14 +828,18 @@ function serialize(serializationContext: SerializationContext): void {
       const varId = $addRoot$(varProps);
       const constProps = value[_CONST_PROPS];
       const constId = $addRoot$(constProps);
-      writeString(SerializationConstant.PropsProxy_CHAR + varId + '|' + constId);
+      writeString(SerializationConstant.PropsProxy_CHAR + varId + ' ' + constId);
     } else if ((storeHandler = getStoreHandler2(value))) {
-      let store = SerializationConstant.Store_CHAR + $addRoot$(storeHandler.$target$) + ' ' + storeHandler.$flags$;
+      let store =
+        SerializationConstant.Store_CHAR +
+        $addRoot$(storeHandler.$target$) +
+        ' ' +
+        storeHandler.$flags$;
       const effects = storeHandler.$effects$;
       if (effects) {
         let sep = ' ';
         for (const propName in effects) {
-          store += sep + propName + serializeEffectSubs($addRoot$, effects[propName])
+          store += sep + propName + serializeEffectSubs($addRoot$, effects[propName]);
           sep = '|';
         }
       }
@@ -1109,7 +1115,12 @@ function deserializeSignal2(
   }
 }
 
-function deserializeSignal2Effect(idx: number, parts: string[], container: DomContainer, effects: EffectSubscriptions[]) {
+function deserializeSignal2Effect(
+  idx: number,
+  parts: string[],
+  container: DomContainer,
+  effects: EffectSubscriptions[]
+) {
   while (idx < parts.length) {
     // idx == 1 is the attribute name
     const effect = parts[idx++]

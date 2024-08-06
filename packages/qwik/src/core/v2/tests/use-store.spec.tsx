@@ -9,12 +9,12 @@ import { untrack } from '../../use/use-core';
 import { useSignal } from '../../use/use-signal';
 import { useStore } from '../../use/use-store.public';
 
-const debug = true; //true;
+const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  // { render: domRender }, //
+  { render: domRender }, //
 ])('$render.name: useStore', ({ render }) => {
   it('should render value', async () => {
     const Cmp = component$(() => {
@@ -60,7 +60,7 @@ describe.each([
       </Component>
     );
   });
-  it.only('should update deep value', async () => {
+  it('should update deep value', async () => {
     const Counter = component$(() => {
       const count = useStore({ obj: { count: 123 } });
       return <button onClick$={() => count.obj.count++}>Count: {count.obj.count}!</button>;
@@ -189,9 +189,7 @@ describe.each([
         const count = useStore<any>({ jsx: 'initial' });
         log.push('Counter: ' + untrack(() => count.jsx));
         return (
-          <button
-            onClick$={() => (count.jsx = typeof count.jsx == 'string' ? <b>JSX</b> : 'text')}
-          >
+          <button onClick$={() => (count.jsx = typeof count.jsx == 'string' ? <b>JSX</b> : 'text')}>
             -{count.jsx}-
           </button>
         );
@@ -460,8 +458,7 @@ describe.each([
       );
     });
 
-    // TODO(optimizer-test): this is failing also in v1
-    it.skip('#5017 - should update child nodes for direct array', async () => {
+    it('#5017 - should update child nodes for direct array', async () => {
       const Child = component$<{ columns: string }>(({ columns }) => {
         return <div>Child: {columns}</div>;
       });
@@ -488,13 +485,13 @@ describe.each([
             <Component>
               <div>
                 {'Child: '}
-                {'INITIAL'}
+                <Signal>{'INITIAL'}</Signal>
               </div>
             </Component>
             <Component>
               <div>
                 {'Child: '}
-                {'INITIAL'}
+                <Signal>{'INITIAL'}</Signal>
               </div>
             </Component>
           </Fragment>
@@ -508,13 +505,13 @@ describe.each([
             <Component>
               <div>
                 {'Child: '}
-                {'UPDATE'}
+                <Signal>{'UPDATE'}</Signal>
               </div>
             </Component>
             <Component>
               <div>
                 {'Child: '}
-                {'UPDATE'}
+                <Signal>{'UPDATE'}</Signal>
               </div>
             </Component>
           </Fragment>

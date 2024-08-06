@@ -103,7 +103,7 @@ import { EffectSubscriptionsProp, isSignal2, type EffectSubscriptions } from '..
 import { serializeAttribute } from '../../render/execute-component';
 
 // Turn this on to get debug output of what the scheduler is doing.
-const DEBUG: boolean = true;
+const DEBUG: boolean = false;
 
 export const enum ChoreType {
   /// MASKS defining three levels of sorting

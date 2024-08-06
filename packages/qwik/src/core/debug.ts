@@ -1,9 +1,9 @@
-import { isQrl } from "../server/prefetch-strategy";
-import { isJSXNode } from "./render/jsx/jsx-runtime";
-import { isTask } from "./use/use-task";
-import { vnode_isVNode, vnode_toString } from "./v2/client/vnode";
-import { isSignal2 } from "./v2/signal/v2-signal";
-import { isStore2 } from "./v2/signal/v2-store";
+import { isQrl } from '../server/prefetch-strategy';
+import { isJSXNode } from './render/jsx/jsx-runtime';
+import { isTask } from './use/use-task';
+import { vnode_isVNode, vnode_toString } from './v2/client/vnode';
+import { isSignal2 } from './v2/signal/v2-signal';
+import { isStore2 } from './v2/signal/v2-store';
 
 const stringifyPath: any[] = [];
 export function qwikDebugToString(value: any): any {
@@ -15,12 +15,16 @@ export function qwikDebugToString(value: any): any {
     return '"' + value + '"';
   } else if (typeof value === 'number' || typeof value === 'boolean') {
     return String(value);
+  } else if (isTask(value)) {
+    return `Task(${qwikDebugToString(value.$qrl$)})`;
+  } else if (isQrl(value)) {
+    return `Qrl(${value.$symbol$})`;
   } else if (typeof value === 'object' || typeof value === 'function') {
     if (stringifyPath.includes(value)) {
       return '*';
     }
     if (stringifyPath.length > 10) {
-      debugger;
+      // debugger;
     }
     try {
       stringifyPath.push(value);
@@ -34,10 +38,6 @@ export function qwikDebugToString(value: any): any {
         return value.toString();
       } else if (isJSXNode(value)) {
         return jsxToString(value);
-      } else if (isTask(value)) {
-        return `Task(${qwikDebugToString(value.$qrl$)})`
-      } else if (isQrl(value)) {
-        return `Qrl(${value.$symbol$})`
       }
     } finally {
       stringifyPath.pop();
@@ -46,11 +46,12 @@ export function qwikDebugToString(value: any): any {
   return value;
 }
 
-
-
 export const pad = (text: string, prefix: string) => {
-  return String(text).split('\n').map((line, idx) => (idx ? prefix : '') + line).join('\n');
-}
+  return String(text)
+    .split('\n')
+    .map((line, idx) => (idx ? prefix : '') + line)
+    .join('\n');
+};
 
 export const jsxToString = (value: any): string => {
   if (isJSXNode(value)) {
@@ -82,4 +83,4 @@ export const jsxToString = (value: any): string => {
   } else {
     return String(value);
   }
-}
+};

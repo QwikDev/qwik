@@ -1,7 +1,7 @@
 import { pad, qwikDebugToString } from '../../debug';
 import { assertDefined, assertTrue } from '../../error/assert';
 import { tryGetInvokeContext } from '../../use/use-core';
-import { isObject, isSerializableObject } from '../../util/types';
+import { isSerializableObject } from '../../util/types';
 import type { VNode } from '../client/types';
 import type { Container2, fixMeAny } from '../shared/types';
 import {
@@ -12,7 +12,7 @@ import {
   type EffectSubscriptions,
 } from './v2-signal';
 
-const DEBUG = true;
+const DEBUG = false;
 
 // eslint-disable-next-line no-console
 const log = (...args: any[]) => console.log('STORE', ...args.map(qwikDebugToString));
@@ -36,7 +36,7 @@ let _lastHandler: undefined | StoreHandler<any>;
 export const getStoreHandler2 = <T extends object>(value: T): StoreHandler<T> | null => {
   _lastHandler = undefined as any;
   return typeof value === 'object' && value && STORE in value // this implicitly sets the `_lastHandler` as a side effect.
-    ? (_lastHandler!)
+    ? _lastHandler!
     : null;
 };
 
@@ -53,11 +53,12 @@ export const isStore2 = <T extends object>(value: T): value is Store2<T> => {
   return value instanceof Store;
 };
 
-export function createStore2<T extends object>(container: Container2 | null | undefined, obj: T & Record<string, unknown>, flags: Store2Flags) {
-  return new Proxy(
-    new Store(),
-    new StoreHandler<T>(obj, flags, container || null)
-  ) as Store2<T>;
+export function createStore2<T extends object>(
+  container: Container2 | null | undefined,
+  obj: T & Record<string, unknown>,
+  flags: Store2Flags
+) {
+  return new Proxy(new Store(), new StoreHandler<T>(obj, flags, container || null)) as Store2<T>;
 }
 
 export const getOrCreateStore2 = <T extends object>(
@@ -69,11 +70,11 @@ export const getOrCreateStore2 = <T extends object>(
     let store: Store2<T> | undefined = storeWeakMap.get(obj) as Store2<T> | undefined;
     if (!store) {
       store = createStore2<T>(container, obj, flags);
-      storeWeakMap.set(obj, store as any);
+      storeWeakMap.set(obj, store);
     }
     return store as Store2<T>;
   }
-  return obj as any;
+  return obj as Store2<T>;
 };
 
 class Store {
@@ -90,7 +91,7 @@ export class StoreHandler<T extends Record<string | symbol, any>> implements Pro
     public $target$: T,
     public $flags$: Store2Flags,
     public $container$: Container2 | null
-  ) { }
+  ) {}
 
   toString() {
     const flags = [];
@@ -158,6 +159,7 @@ export class StoreHandler<T extends Record<string | symbol, any>> implements Pro
     const flags = this.$flags$;
     if (flags & Store2Flags.RECURSIVE && typeof value === 'object' && value !== null) {
       value = getOrCreateStore2(value, this.$flags$, this.$container$);
+      (target as Record<string | symbol, any>)[p] = value;
     }
     return value;
   }
@@ -168,7 +170,7 @@ export class StoreHandler<T extends Record<string | symbol, any>> implements Pro
     if (value !== oldValue) {
       DEBUG && log('Signal.set', oldValue, '->', value, pad('\n' + this.toString(), '  '));
       (target as any)[p] = value;
-      triggerEffects(this.$container$, this, this.$effects$?.[String(p)]);
+      triggerEffects(this.$container$, this, this.$effects$ ? this.$effects$[String(p)] : null);
     }
     return true;
   }

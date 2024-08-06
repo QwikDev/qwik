@@ -465,7 +465,6 @@ export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<
   return signal;
 };
 
-
 // <docs markdown="../readme.md#useVisibleTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useVisibleTask instead)
@@ -530,7 +529,6 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
     }
   }
 };
-
 
 export type TaskDescriptor = DescriptorBase<TaskFn>;
 

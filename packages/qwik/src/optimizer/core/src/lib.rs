@@ -47,7 +47,9 @@ use crate::entry_strategy::parse_entry_strategy;
 pub use crate::entry_strategy::EntryStrategy;
 pub use crate::parse::EmitMode;
 use crate::parse::{transform_code, TransformCodeOptions};
-pub use crate::parse::{ErrorBuffer, HookAnalysis, MinifyMode, TransformModule, TransformOutput};
+pub use crate::parse::{
+	ErrorBuffer, MinifyMode, SegmentAnalysis, TransformModule, TransformOutput,
+};
 
 #[cfg(feature = "fs")]
 #[derive(Serialize, Debug, Deserialize)]

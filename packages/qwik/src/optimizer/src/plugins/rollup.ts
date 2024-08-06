@@ -39,11 +39,12 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     async options(inputOpts) {
       await qwikPlugin.init();
 
+      const origOnwarn = inputOpts.onwarn;
       inputOpts.onwarn = (warning, warn) => {
         if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
           return;
         }
-        warn(warning);
+        origOnwarn ? origOnwarn(warning, warn) : warn(warning);
       };
 
       const pluginOpts: QwikPluginOptions = {
@@ -279,7 +280,7 @@ export interface QwikRollupPluginOptions {
   debug?: boolean;
   /**
    * The Qwik entry strategy to use while building for production. During development the type is
-   * always `hook`.
+   * always `segment`.
    *
    * Default `{ type: "smart" }`)
    */

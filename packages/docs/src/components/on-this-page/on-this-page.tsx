@@ -1,17 +1,5 @@
 import { useContent, useLocation } from '@builder.io/qwik-city';
-import {
-  component$,
-  useContext,
-  $,
-  useStyles$,
-  useOnDocument,
-  useOnWindow,
-  useSignal,
-  useTask$,
-  useVisibleTask$,
-  useOn,
-} from '@builder.io/qwik';
-import type { Signal } from '@builder.io/qwik';
+import { component$, useContext, $, useStyles$, useOnDocument, useSignal } from '@builder.io/qwik';
 import { ChatIcon } from '../svgs/chat-icon';
 import { GithubLogo } from '../svgs/github-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';

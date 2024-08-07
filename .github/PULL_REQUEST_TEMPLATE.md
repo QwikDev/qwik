@@ -19,7 +19,7 @@ If you believe your functionality is valuable to the entire Qwik Community, disc
 
 # Description
 
-<!-- 
+<!--
 * Include a summary of the motivation and context for this PR
 * Is it related to any opened issues? (please add them here)
 -->

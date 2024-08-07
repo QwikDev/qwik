@@ -1,24 +1,22 @@
-import { isBrowser } from '@builder.io/qwik/build';
 import type { JsxChild } from 'typescript';
-import { isQwikComponent, type OnRenderFn } from '../../component/component.public';
+import { type OnRenderFn } from '../../component/component.public';
 import { _CONST_PROPS } from '../../internal';
-import { isQrl, type QRLInternal } from '../../qrl/qrl-class';
-import { verifySerializable } from '../../state/common';
+import { type QRLInternal } from '../../qrl/qrl-class';
 import { _VAR_PROPS } from '../../state/constants';
 import { isSignal, SignalDerived } from '../../state/signal';
-import { invoke, untrack } from '../../use/use-core';
+import { untrack } from '../../use/use-core';
 import { EMPTY_OBJ } from '../../util/flyweight';
-import { logError, logOnceWarn, logWarn } from '../../util/log';
+import { logOnceWarn, logWarn } from '../../util/log';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS } from '../../util/markers';
 import { isPromise } from '../../util/promises';
-import { qDev, qRuntimeQrl, seal } from '../../util/qdev';
-import { isArray, isFunction, isObject, isString } from '../../util/types';
+import { qDev, seal } from '../../util/qdev';
+import { isArray, isObject, isString } from '../../util/types';
+import { isSignal2 } from '../../v2/signal/v2-signal';
 import { static_subtree } from '../execute-component';
 import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 import { SkipRender } from './utils.public';
-import { isSignal2 } from '../../v2/signal/v2-signal';
 
 export type Props = Record<string, unknown>;
 
@@ -62,7 +60,6 @@ export const _jsxSorted = <T>(
       ...dev,
     };
   }
-  validateJSXNode(node);
   seal(node);
   return node;
 };
@@ -222,131 +219,6 @@ export const RenderOnce: FunctionComponent<{
   return new JSXNodeImpl(Virtual, EMPTY_OBJ, null, props.children, static_subtree, key);
 };
 
-const validateJSXNode = (node: JSXNode<any>) => {
-  if (qDev) {
-    const { type, varProps, constProps, children } = node;
-    invoke(undefined, () => {
-      const isQwikC = isQwikComponent(type);
-      if (!isString(type) && !isFunction(type)) {
-        throw new Error(
-          `The <Type> of the JSX element must be either a string or a function. Instead, it's a "${typeof type}": ${String(
-            type
-          )}.`
-        );
-      }
-      if (children) {
-        const flatChildren = isArray(children) ? children.flat() : [children];
-        if (isString(type) || isQwikC) {
-          flatChildren.forEach((child: unknown) => {
-            if (!isValidJSXChild(child)) {
-              const typeObj = typeof child;
-              let explanation = '';
-              if (typeObj === 'object') {
-                if (child?.constructor) {
-                  explanation = `it's an instance of "${child?.constructor.name}".`;
-                } else {
-                  explanation = `it's a object literal: ${printObjectLiteral(child as {})} `;
-                }
-              } else if (typeObj === 'function') {
-                explanation += `it's a function named "${(child as Function).name}".`;
-              } else {
-                explanation = `it's a "${typeObj}": ${String(child)}.`;
-              }
-
-              throw new Error(
-                `One of the children of <${type}> is not an accepted value. JSX children must be either: string, boolean, number, <element>, Array, undefined/null, or a Promise/Signal. Instead, ${explanation}\n`
-              );
-            }
-          });
-        }
-        if (isBrowser) {
-          if (isFunction(type) || constProps) {
-            const keys: Record<string, boolean> = {};
-            flatChildren.forEach((child: unknown) => {
-              if (isJSXNode(child) && child.key != null) {
-                const key = String(child.type) + ':' + child.key;
-                if (keys[key]) {
-                  const err = createJSXError(
-                    `Multiple JSX sibling nodes with the same key.\nThis is likely caused by missing a custom key in a for loop`,
-                    child
-                  );
-                  if (err) {
-                    if (isString(child.type)) {
-                      logOnceWarn(err);
-                    } else {
-                      logOnceWarn(err);
-                    }
-                  }
-                } else {
-                  keys[key] = true;
-                }
-              }
-            });
-          }
-        }
-      }
-
-      const allProps = [
-        ...(varProps ? Object.entries(varProps) : []),
-        ...(constProps ? Object.entries(constProps) : []),
-      ];
-      if (!qRuntimeQrl) {
-        for (const [prop, value] of allProps) {
-          if (prop.endsWith('$') && value) {
-            if (!isQrl(value) && !Array.isArray(value)) {
-              throw new Error(
-                `The value passed in ${prop}={...}> must be a QRL, instead you passed a "${typeof value}". Make sure your ${typeof value} is wrapped with $(...), so it can be serialized. Like this:\n$(${String(
-                  value
-                )})`
-              );
-            }
-          }
-          if (prop !== 'children' && isQwikC && value) {
-            verifySerializable(
-              value,
-              `The value of the JSX attribute "${prop}" can not be serialized`
-            );
-          }
-        }
-      }
-      if (isString(type)) {
-        const hasSetInnerHTML = allProps.some((a) => a[0] === 'dangerouslySetInnerHTML');
-        if (hasSetInnerHTML && children && (Array.isArray(children) ? children.length > 0 : true)) {
-          const err = createJSXError(
-            `The JSX element <${type}> can not have both 'dangerouslySetInnerHTML' and children.`,
-            node
-          );
-          logError(err);
-        }
-        // if (allProps.some((a) => a[0] === 'children')) {
-        //   throw new Error(`The JSX element <${type}> can not have both 'children' as a property.`);
-        // }
-        if (type === 'style') {
-          if (children) {
-            logOnceWarn(`jsx: Using <style>{content}</style> will escape the content, effectively breaking the CSS.
-In order to disable content escaping use '<style dangerouslySetInnerHTML={content}/>'
-
-However, if the use case is to inject component styleContent, use 'useStyles$()' instead, it will be a lot more efficient.
-See https://qwik.dev/docs/components/styles/#usestyles for more information.`);
-          }
-        }
-        if (type === 'script') {
-          if (children) {
-            logOnceWarn(`jsx: Using <script>{content}</script> will escape the content, effectively breaking the inlined JS.
-In order to disable content escaping use '<script dangerouslySetInnerHTML={content}/>'`);
-          }
-        }
-      }
-    });
-  }
-};
-
-const printObjectLiteral = (obj: Props) => {
-  return `{ ${Object.keys(obj)
-    .map((key) => `"${key}"`)
-    .join(', ')} }`;
-};
-
 /** @internal */
 export const isJSXNode = <T>(n: unknown): n is JSXNode<T> => {
   if (qDev) {
@@ -427,7 +299,6 @@ export const jsxDEV = <T extends string | FunctionComponent<Props>>(
     stack: new Error().stack,
     ...opts,
   };
-  validateJSXNode(node);
   seal(node);
   return node;
 };

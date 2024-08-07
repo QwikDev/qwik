@@ -184,3 +184,4 @@ export { PrefetchServiceWorker, PrefetchGraph } from './components/prefetch';
 // INTERNAL
 //////////////////////////////////////////////////////////////////////////////////////////
 export * from './internal';
+export * from './v2/signal/v2-signal.public';

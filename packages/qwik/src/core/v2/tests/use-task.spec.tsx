@@ -1,15 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { trigger } from '../../../testing/element-fixture';
-import { getTestPlatform } from '../../../testing/platform';
-import { ErrorProvider, domRender, ssrRenderToDom } from '../../../testing/rendering.unit-util';
-import '../../../testing/vdom-diff.unit-util';
-import { component$ } from '../../component/component.public';
-import { Fragment as Component, Fragment, Fragment as Signal } from '../../render/jsx/jsx-runtime';
-import { SignalDerived, type Signal as SignalType } from '../../state/signal';
-import { useSignal } from '../../use/use-signal';
-import { useStore } from '../../use/use-store.public';
-import { useTask$ } from '../../use/use-task-dollar';
+import { ErrorProvider } from '../../../testing/rendering.unit-util';
+import { domRender, ssrRenderToDom, getTestPlatform, trigger } from '@builder.io/qwik/testing';
 import { delay } from '../../util/promises';
+import {
+  useSignal,
+  useStore,
+  useTask$,
+  Fragment as Component,
+  Fragment,
+  Fragment as Signal,
+  component$,
+  type Signal as SignalType,
+} from '@builder.io/qwik';
+import { DerivedSignal2 } from '../signal/v2-signal';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -180,7 +183,12 @@ describe.each([
     it('should rerun on track derived signal', async () => {
       const Counter = component$(() => {
         const countRaw = useStore({ count: 10 });
-        const count = new SignalDerived((o: any, prop: string) => o[prop], [countRaw, 'count']);
+        const count = new DerivedSignal2(
+          null,
+          (o: any, prop: string) => o[prop],
+          [countRaw, 'count'],
+          null
+        );
         const double = useSignal(0);
         useTask$(({ track }) => {
           double.value = 2 * track(() => count.value);

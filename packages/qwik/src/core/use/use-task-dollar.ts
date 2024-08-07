@@ -1,9 +1,9 @@
-import type { ReadonlySignal } from '../state/signal';
 import { implicit$FirstArg } from '../util/implicit_dollar';
+import type { ReadonlySignal2 } from '../v2/signal/v2-signal.public';
 import { useComputedQrl, useTaskQrl, useVisibleTaskQrl, type ComputedFn } from './use-task';
 
 interface Computed {
-  <T>(qrl: ComputedFn<T>): ReadonlySignal<Awaited<T>>;
+  <T>(qrl: ComputedFn<T>): ReadonlySignal2<T>;
 }
 
 /** @public */

@@ -507,6 +507,20 @@
       "mdFile": "qwik.componentqrl.md"
     },
     {
+      "name": "ComputedSignal2",
+      "id": "computedsignal2",
+      "hierarchy": [
+        {
+          "name": "ComputedSignal2",
+          "id": "computedsignal2"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ComputedSignal2<T> extends ReadonlySignal2<T> \n```\n**Extends:** [ReadonlySignal2](#readonlysignal2)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[force()](#computedsignal2-force)\n\n\n</td><td>\n\nUse this to force recalculation and running subscribers, for example when the calculated value mutates but remains the same object. Useful for third-party libraries.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts",
+      "mdFile": "qwik.computedsignal2.md"
+    },
+    {
       "name": "ContextId",
       "id": "contextid",
       "hierarchy": [
@@ -549,6 +563,34 @@
       "mdFile": "qwik.correctedtoggleevent.md"
     },
     {
+      "name": "createComputed2$",
+      "id": "createcomputed2_",
+      "hierarchy": [
+        {
+          "name": "createComputed2$",
+          "id": "createcomputed2_"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\ncreateComputed2$: <T>(first: () => T) => ComputedSignal2<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfirst\n\n\n</td><td>\n\n() =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[ComputedSignal2](#computedsignal2)<!-- -->&lt;T&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts",
+      "mdFile": "qwik.createcomputed2_.md"
+    },
+    {
+      "name": "createComputed2Qrl",
+      "id": "createcomputed2qrl",
+      "hierarchy": [
+        {
+          "name": "createComputed2Qrl",
+          "id": "createcomputed2qrl"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\ncreateComputed2Qrl: <T>(qrl: QRL<() => T>) => ComputedSignal2<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[QRL](#qrl)<!-- -->&lt;() =&gt; T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[ComputedSignal2](#computedsignal2)<!-- -->&lt;T&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts",
+      "mdFile": "qwik.createcomputed2qrl.md"
+    },
+    {
       "name": "createContextId",
       "id": "createcontextid",
       "hierarchy": [
@@ -561,6 +603,20 @@
       "content": "Create a context ID to be used in your application. The name should be written with no spaces.\n\nContext is a way to pass stores to the child components without prop-drilling.\n\nUse `createContextId()` to create a `ContextId`<!-- -->. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.\n\n\\#\\#\\# Example\n\n```tsx\n// Declare the Context type.\ninterface TodosStore {\n  items: string[];\n}\n// Create a Context ID (no data is saved here.)\n// You will use this ID to both create and retrieve the Context.\nexport const TodosContext = createContextId<TodosStore>('Todos');\n\n// Example of providing context to child components.\nexport const App = component$(() => {\n  useContextProvider(\n    TodosContext,\n    useStore<TodosStore>({\n      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],\n    })\n  );\n\n  return <Items />;\n});\n\n// Example of retrieving the context provided by a parent component.\nexport const Items = component$(() => {\n  const todos = useContext(TodosContext);\n  return (\n    <ul>\n      {todos.items.map((item) => (\n        <li>{item}</li>\n      ))}\n    </ul>\n  );\n});\n\n```\n\n\n```typescript\ncreateContextId: <STATE = unknown>(name: string) => ContextId<STATE>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nname\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nThe name of the context.\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[ContextId](#contextid)<!-- -->&lt;STATE&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts",
       "mdFile": "qwik.createcontextid.md"
+    },
+    {
+      "name": "createSignal2",
+      "id": "createsignal2",
+      "hierarchy": [
+        {
+          "name": "createSignal2",
+          "id": "createsignal2"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\ncreateSignal2: {\n    <T>(): Signal2<T | undefined>;\n    <T>(value: T): Signal2<T>;\n}\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts",
+      "mdFile": "qwik.createsignal2.md"
     },
     {
       "name": "CSSProperties",
@@ -808,6 +864,23 @@
       "content": "```typescript\nexport interface FieldsetHTMLAttributes<T extends Element> extends Attrs<'fieldset', T> \n```\n**Extends:** Attrs&lt;'fieldset', T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts",
       "mdFile": "qwik.fieldsethtmlattributes.md"
+    },
+    {
+      "name": "force",
+      "id": "computedsignal2-force",
+      "hierarchy": [
+        {
+          "name": "ComputedSignal2",
+          "id": "computedsignal2-force"
+        },
+        {
+          "name": "force",
+          "id": "computedsignal2-force"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "Use this to force recalculation and running subscribers, for example when the calculated value mutates but remains the same object. Useful for third-party libraries.\n\n\n```typescript\nforce(): void;\n```\n**Returns:**\n\nvoid",
+      "mdFile": "qwik.computedsignal2.force.md"
     },
     {
       "name": "FormHTMLAttributes",
@@ -1130,7 +1203,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nisSignal2: (value: any) => value is ISignal2<unknown>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\nany\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvalue is ISignal2&lt;unknown&gt;",
+      "content": "```typescript\nisSignal2: (value: any) => value is ISignal2<unknown>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\nany\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvalue is [ISignal2](#signal2)<!-- -->&lt;unknown&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.ts",
       "mdFile": "qwik.issignal.md"
     },
@@ -2213,6 +2286,20 @@
       "mdFile": "qwik.readonlysignal.md"
     },
     {
+      "name": "ReadonlySignal2",
+      "id": "readonlysignal2",
+      "hierarchy": [
+        {
+          "name": "ReadonlySignal2",
+          "id": "readonlysignal2"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ReadonlySignal2<T> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[untrackedValue](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[value](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts",
+      "mdFile": "qwik.readonlysignal2.md"
+    },
+    {
       "name": "render",
       "id": "render",
       "hierarchy": [
@@ -2463,6 +2550,20 @@
       "content": "```typescript\nexport interface Signal<T = any> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[value](#)\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/state/signal.ts",
       "mdFile": "qwik.signal.md"
+    },
+    {
+      "name": "Signal2",
+      "id": "signal2",
+      "hierarchy": [
+        {
+          "name": "Signal2",
+          "id": "signal2"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface Signal2<T> extends ReadonlySignal2<T> \n```\n**Extends:** [ReadonlySignal2](#readonlysignal2)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[untrackedValue](#)\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[value](#)\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts",
+      "mdFile": "qwik.signal2.md"
     },
     {
       "name": "Size",

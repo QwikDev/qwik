@@ -1408,6 +1408,36 @@ componentQrl
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
+## ComputedSignal2
+
+```typescript
+export interface ComputedSignal2<T> extends ReadonlySignal2<T>
+```
+
+**Extends:** [ReadonlySignal2](#readonlysignal2)&lt;T&gt;
+
+<table><thead><tr><th>
+
+Method
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[force()](#computedsignal2-force)
+
+</td><td>
+
+Use this to force recalculation and running subscribers, for example when the calculated value mutates but remains the same object. Useful for third-party libraries.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts)
+
 ## ContextId
 
 ContextId is a typesafe ID for your context.
@@ -1688,6 +1718,80 @@ Description
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
+## createComputed2$
+
+```typescript
+createComputed2$: <T>(first: () => T) => ComputedSignal2<T>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+first
+
+</td><td>
+
+() =&gt; T
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+[ComputedSignal2](#computedsignal2)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts)
+
+## createComputed2Qrl
+
+```typescript
+createComputed2Qrl: <T>(qrl: QRL<() => T>) => ComputedSignal2<T>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+qrl
+
+</td><td>
+
+[QRL](#qrl)&lt;() =&gt; T&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+[ComputedSignal2](#computedsignal2)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts)
+
 ## createContextId
 
 Create a context ID to be used in your application. The name should be written with no spaces.
@@ -1768,6 +1872,17 @@ The name of the context.
 [ContextId](#contextid)&lt;STATE&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
+
+## createSignal2
+
+```typescript
+createSignal2: {
+    <T>(): Signal2<T | undefined>;
+    <T>(value: T): Signal2<T>;
+}
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts)
 
 ## CSSProperties
 
@@ -2153,6 +2268,18 @@ export interface FieldsetHTMLAttributes<T extends Element> extends Attrs<'fields
 **Extends:** Attrs&lt;'fieldset', T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
+
+## force
+
+Use this to force recalculation and running subscribers, for example when the calculated value mutates but remains the same object. Useful for third-party libraries.
+
+```typescript
+force(): void;
+```
+
+**Returns:**
+
+void
 
 ## FormHTMLAttributes
 
@@ -2644,7 +2771,7 @@ any
 </tbody></table>
 **Returns:**
 
-value is ISignal2&lt;unknown&gt;
+value is [ISignal2](#signal2)&lt;unknown&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.ts)
 
@@ -4368,6 +4495,63 @@ export type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
 
+## ReadonlySignal2
+
+```typescript
+export interface ReadonlySignal2<T>
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[untrackedValue](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+T
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[value](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+T
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts)
+
 ## render
 
 Render JSX.
@@ -5244,6 +5428,61 @@ T
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
+
+## Signal2
+
+```typescript
+export interface Signal2<T> extends ReadonlySignal2<T>
+```
+
+**Extends:** [ReadonlySignal2](#readonlysignal2)&lt;T&gt;
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[untrackedValue](#)
+
+</td><td>
+
+</td><td>
+
+T
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[value](#)
+
+</td><td>
+
+</td><td>
+
+T
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts)
 
 ## Size
 

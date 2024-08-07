@@ -300,8 +300,7 @@ export class ComputedSignal2<T> extends Signal2<T> {
   // we need the old value to know if effects need running after computation
   $invalid$: boolean = true;
 
-  constructor(container: Container2 | null, computeTask: QRLInternal<() => T> | null) {
-    assertDefined(computeTask, 'compute QRL must be provided');
+  constructor(container: Container2 | null, computeTask: QRLInternal<() => T>) {
     // The value is used for comparison when signals trigger, which can only happen
     // when it was calculated before. Therefore we can pass whatever we like.
     super(container, NEEDS_COMPUTATION);

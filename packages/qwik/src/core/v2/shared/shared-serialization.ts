@@ -1106,7 +1106,7 @@ function deserializeSignal2(
   }
   if (readQrl) {
     const computedSignal = signal as ComputedSignal2<any>;
-    computedSignal.$computeQrl$ = parseQRL(parts[idx++]) as fixMeAny;
+    computedSignal.$computeQrl$ = inflateQRL(container, parseQRL(parts[idx++])) as fixMeAny;
   }
   signal.$untrackedValue$ = container.$getObjectById$(parts[idx++]);
   if (idx < parts.length) {

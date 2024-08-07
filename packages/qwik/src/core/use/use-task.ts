@@ -18,11 +18,8 @@ import {
 import { QObjectManagerSymbol } from '../state/constants';
 import {
   QObjectSignalFlags,
-  SIGNAL_IMMUTABLE,
   SIGNAL_UNASSIGNED,
-  _createSignal,
   isSignal,
-  type ReadonlySignal,
   type Signal,
   type SignalInternal,
 } from '../state/signal';
@@ -32,6 +29,11 @@ import { delay, isPromise, maybeThen, safeCall } from '../util/promises';
 import { isFunction, isObject, type ValueOrPromise } from '../util/types';
 import { ChoreType } from '../v2/shared/scheduler';
 import { isContainer2, type Container2, type HostElement, type fixMeAny } from '../v2/shared/types';
+import {
+  createComputed2Qrl,
+  type ReadonlySignal2,
+  type Signal2,
+} from '../v2/signal/v2-signal.public';
 import { invoke, newInvokeContext, untrack, waitAndRun } from './use-core';
 import { useOn, useOnDocument } from './use-on';
 import { useSequentialScope } from './use-sequential-scope';
@@ -430,39 +432,18 @@ export const runComputed2 = (
 };
 
 interface ComputedQRL {
-  <T>(qrl: QRL<ComputedFn<T>>): ReadonlySignal<Awaited<T>>;
+  <T>(qrl: QRL<ComputedFn<T>>): ReadonlySignal2<T>;
 }
 
 /** @public */
-export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<Awaited<T>> => {
-  const { val, set, iCtx, i } = useSequentialScope<Signal<Awaited<T>>>();
+export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal2<T> => {
+  const { val, set } = useSequentialScope<Signal2<T>>();
   if (val) {
     return val;
   }
   assertQrl(qrl);
-
-  const host = iCtx.$hostElement$ as unknown as HostElement;
-  const signal = _createSignal(
-    undefined as Awaited<T>,
-    iCtx.$container2$.$subsManager$,
-    SIGNAL_UNASSIGNED | SIGNAL_IMMUTABLE,
-    undefined
-  );
-  const task = new Task(
-    TaskFlags.DIRTY | TaskFlags.TASK | TaskFlags.COMPUTED,
-    i,
-    iCtx.$hostElement$,
-    qrl,
-    signal,
-    null
-  );
-  set(signal);
-  qrl.$resolveLazy$(host as fixMeAny);
-  const result = runComputed2(task, iCtx.$container2$, host);
-  if (isPromise(result)) {
-    throw result;
-  }
-  return signal;
+  const signal = createComputed2Qrl(qrl);
+  return set(signal);
 };
 
 // <docs markdown="../readme.md#useVisibleTask">

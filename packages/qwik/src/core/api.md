@@ -162,6 +162,11 @@ export interface ComponentBaseProps {
 // @public
 export const componentQrl: <PROPS extends Record<any, any>>(componentQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
 
+// @public (undocumented)
+export interface ComputedSignal2<T> extends ReadonlySignal2<T> {
+    force(): void;
+}
+
 // @internal (undocumented)
 export const _CONST_PROPS: unique symbol;
 
@@ -197,8 +202,20 @@ export interface CorrectedToggleEvent extends Event {
     readonly prevState: 'open' | 'closed';
 }
 
+// @public (undocumented)
+export const createComputed2$: <T>(first: () => T) => ComputedSignal2<T>;
+
+// @public (undocumented)
+export const createComputed2Qrl: <T>(qrl: QRL<() => T>) => ComputedSignal2<T>;
+
 // @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
+
+// @public (undocumented)
+export const createSignal2: {
+    <T>(): Signal2<T | undefined>;
+    <T>(value: T): Signal2<T>;
+};
 
 // @public (undocumented)
 export interface CSSProperties extends CSS_2.Properties<string | number>, CSS_2.PropertiesHyphen<string | number> {
@@ -507,10 +524,8 @@ export type IntrinsicSVGElements = {
 // @internal (undocumented)
 export const _isJSXNode: <T>(n: unknown) => n is JSXNode<T>;
 
-// Warning: (ae-forgotten-export) The symbol "Signal2_2" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export const isSignal: (value: any) => value is Signal2_2<unknown>;
+export const isSignal: (value: any) => value is Signal2<unknown>;
 
 // @internal (undocumented)
 export function _isStringifiable(value: unknown): value is _Stringifiable;
@@ -916,6 +931,14 @@ export type QwikWheelEvent<T = Element> = NativeWheelEvent;
 // @public (undocumented)
 export type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;
 
+// @public (undocumented)
+export interface ReadonlySignal2<T> {
+    // (undocumented)
+    readonly untrackedValue: T;
+    // (undocumented)
+    readonly value: T;
+}
+
 // @internal (undocumented)
 export const _regSymbol: (symbol: any, hash: string) => any;
 
@@ -1097,6 +1120,14 @@ export abstract class _SharedContainer implements Container2 {
 
 // @public (undocumented)
 export interface Signal<T = any> {
+    // (undocumented)
+    value: T;
+}
+
+// @public (undocumented)
+export interface Signal2<T> extends ReadonlySignal2<T> {
+    // (undocumented)
+    untrackedValue: T;
     // (undocumented)
     value: T;
 }
@@ -1893,9 +1924,9 @@ export function useServerData<T, B = T>(key: string, defaultValue: B): T | B;
 // @public (undocumented)
 export interface UseSignal {
     // (undocumented)
-    <T>(): Signal<T | undefined>;
+    <T>(): Signal2<T | undefined>;
     // (undocumented)
-    <T>(value: T | (() => T)): Signal<T>;
+    <T>(value: T | (() => T)): Signal2<T>;
 }
 
 // @public (undocumented)

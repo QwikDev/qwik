@@ -294,7 +294,7 @@ describe.each([
         const double = useSignal(0);
 
         useVisibleTask$(({ track }) => {
-          double.value = 2 * track(count);
+          double.value = 2 * track(() => count.value);
         });
         return (
           <button

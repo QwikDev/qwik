@@ -29,6 +29,7 @@ import { delay, isPromise, maybeThen, safeCall } from '../util/promises';
 import { isFunction, isObject, type ValueOrPromise } from '../util/types';
 import { ChoreType } from '../v2/shared/scheduler';
 import { isContainer2, type Container2, type HostElement, type fixMeAny } from '../v2/shared/types';
+import { EffectProperty } from '../v2/signal/v2-signal';
 import {
   createComputed2Qrl,
   type ReadonlySignal2,
@@ -344,36 +345,28 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
   }
 };
 
-export const runTask2 = (
-  task: TaskDescriptor | ComputedDescriptor<unknown>,
-  container: Container2,
-  host: HostElement
-) => {
+export const runTask2 = (task: Task, container: Container2, host: HostElement) => {
   task.$flags$ &= ~TaskFlags.DIRTY;
   const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, TaskEvent);
-  const taskFn = task.$qrl$.getFn(iCtx, () => {
-    container.$subsManager$.$clearSub$(task);
-  }) as TaskFn;
+  iCtx.$container2$ = container;
+  const taskFn = task.$qrl$.getFn(iCtx) as TaskFn;
 
   const track: Tracker = (obj: (() => unknown) | object | Signal, prop?: string) => {
-    if (isFunction(obj)) {
-      const ctx = newInvokeContext();
-      ctx.$subscriber$ = [SubscriptionType.HOST, task];
-      return invoke(ctx, obj);
-    }
-    const manager = getSubscriptionManager(obj);
-    if (manager) {
-      manager.$addSub$([SubscriptionType.HOST, task], prop);
-    } else {
-      logErrorAndStop(codeToText(QError_trackUseStore), obj);
-    }
-    if (prop) {
-      return (obj as Record<string, unknown>)[prop];
-    } else if (isSignal(obj)) {
-      return obj.value;
-    } else {
-      return obj;
-    }
+    const ctx = newInvokeContext();
+    ctx.$effectSubscriber$ = [task, EffectProperty.COMPONENT];
+    ctx.$container2$ = container;
+    return invoke(ctx, () => {
+      if (isFunction(obj)) {
+        return obj();
+      }
+      if (prop) {
+        return (obj as Record<string, unknown>)[prop];
+      } else if (isSignal(obj)) {
+        return obj.value;
+      } else {
+        return obj;
+      }
+    });
   };
   const handleError = (reason: unknown) => container.handleError(reason, host);
   let cleanupFns: (() => void)[] | null = null;
@@ -558,7 +551,7 @@ export const runSubscriber2 = async (
   } else if (isComputedTask(task)) {
     return runComputed2(task, container, host);
   } else {
-    return runTask2(task, container, host);
+    return runTask2(task as Task, container, host);
   }
 };
 
@@ -706,7 +699,7 @@ export const runTask = (
 ): ValueOrPromise<void> => {
   task.$flags$ &= ~TaskFlags.DIRTY;
 
-  cleanupTask(task);
+  cleanupTask(task as Task);
   const hostElement = task.$el$;
   const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, TaskEvent);
   iCtx.$renderCtx$ = rCtx;
@@ -791,7 +784,7 @@ export const runComputed = (
   );
 };
 
-export const cleanupTask = (task: SubscriberEffect) => {
+export const cleanupTask = (task: Task) => {
   const destroy = task.$destroy$;
   if (destroy) {
     task.$destroy$ = null;

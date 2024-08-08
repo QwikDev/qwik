@@ -1271,6 +1271,10 @@ export const canSerialize2 = (value: any): boolean => {
       return true;
     } else if (isTask(value)) {
       return true;
+    } else if (value instanceof Error) {
+      return true;
+    } else if (isPromise(value)) {
+      return true;
     }
   } else if (typeof value === 'function') {
     if (isQrl(value) || isQwikComponent(value)) {

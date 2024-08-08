@@ -406,44 +406,44 @@ describe.each([
       (globalThis as any).log = undefined;
     });
     it('should handle promises and tasks', async () => {
-      const log: string[] = [];
+      (global as any).log = [] as string[];
       const MyComp = component$(() => {
-        log.push('render');
         const promise = useSignal<Promise<number>>();
+        (global as any).log.push('render');
 
         // Tasks should run one after the other, awaiting returned promises.
         // Here we "sideload" a promise via the signal
         useTask$(() => {
           promise.value = Promise.resolve(0)
             .then(() => {
-              log.push('inside.1');
+              (global as any).log.push('inside.1');
               return delay(10);
             })
             .then(() => {
-              log.push('1b');
+              (global as any).log.push('1b');
               return 1;
             });
-          log.push('1a');
+          (global as any).log.push('1a');
         });
 
         useTask$(async () => {
-          log.push('2a');
+          (global as any).log.push('2a');
           await delay(10);
-          log.push('2b');
+          (global as any).log.push('2b');
         });
 
         useTask$(() => {
           promise.value = promise.value!.then(() => {
-            log.push('3b');
+            (global as any).log.push('3b');
             return 3;
           });
-          log.push('3a');
+          (global as any).log.push('3a');
         });
 
         return <p>Should have a number: "{promise.value}"</p>;
       });
       const { vNode } = await render(<MyComp />, { debug });
-      expect(log).toEqual([
+      expect((global as any).log).toEqual([
         // 1st render
         'render',
         // task 1 returns sync and sideloads promise

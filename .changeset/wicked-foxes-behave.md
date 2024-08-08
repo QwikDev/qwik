@@ -2,4 +2,4 @@
 'create-qwik': patch
 ---
 
-feat: improves library bundling / tree-shaking
+feat: added `preserveModules` to library starters to improve library bundling / tree-shaking

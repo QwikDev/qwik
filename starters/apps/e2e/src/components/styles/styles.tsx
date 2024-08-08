@@ -1,5 +1,6 @@
 import {
   component$,
+  useStyles$,
   useStylesScoped$,
   useStore,
   Slot,
@@ -48,6 +49,7 @@ export const StylesChildren = component$<{ v: number }>(({ v }) => {
       </div>
       <Issue1945 />
       <IssueScopedAndFineGrained />
+      <StylesWithOptions />
     </div>
   );
 });
@@ -157,5 +159,41 @@ export const IssueScopedAndFineGrained = component$(() => {
     >
       Hello
     </button>
+  );
+});
+
+const StylesWithOptions = component$(() => {
+  const ComponentInScope = component$(() => {
+    return (
+      <div id="swo-inside-scope" class="link">
+        Text B
+      </div>
+    );
+  });
+  const ScopingComponent = component$(() => {
+    const transform = (css: string, scopeId: string) => {
+      return css.replace(/:q-scope\b/g, "." + scopeId);
+    };
+    useStyles$(
+      `
+    :q-scope div.link {
+      background-color: red;
+    }
+    `,
+      { transform, scoped: true },
+    );
+    return (
+      <div>
+        <ComponentInScope />
+      </div>
+    );
+  });
+  return (
+    <div id="styles-with-options">
+      <div id="swo-outside-scope" class="link">
+        Text A
+      </div>
+      <ScopingComponent />
+    </div>
   );
 });

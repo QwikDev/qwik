@@ -13,6 +13,12 @@ export interface UseStylesScoped {
   scopeId: string;
 }
 
+/** @public */
+export interface UseStylesOptions {
+  transform: (str: string, scopeId: string) => string;
+  scoped: boolean;
+}
+
 // <docs markdown="../readme.md#useStyles">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useStyles instead)
@@ -36,8 +42,15 @@ export interface UseStylesScoped {
  * @see `useStylesScoped`
  */
 // </docs>
-export const useStylesQrl = (styles: QRL<string>): void => {
-  _useStyles(styles, (str) => str, false);
+export const useStylesQrl = (
+  styles: QRL<string>,
+  options: Partial<UseStylesOptions> = {}
+): UseStylesScoped => {
+  const transform = options.transform ?? ((str) => str);
+  const scoped = options.scoped ?? false;
+  return {
+    scopeId: ComponentStylesPrefixContent + _useStyles(styles, transform, scoped),
+  };
 };
 
 // <docs markdown="../readme.md#useStyles">
@@ -89,9 +102,7 @@ export const useStyles$ = /*#__PURE__*/ implicit$FirstArg(useStylesQrl);
  */
 // </docs>
 export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
-  return {
-    scopeId: ComponentStylesPrefixContent + _useStyles(styles, getScopedStyles, true),
-  };
+  return useStylesQrl(styles, { transform: getScopedStyles, scoped: true });
 };
 
 // <docs markdown="../readme.md#useStylesScoped">
@@ -121,7 +132,7 @@ export const useStylesScoped$ = /*#__PURE__*/ implicit$FirstArg(useStylesScopedQ
 
 const _useStyles = (
   styleQrl: QRL<string>,
-  transform: (str: string, styleId: string) => string,
+  transform: (str: string, scopeId: string) => string,
   scoped: boolean
 ): string => {
   assertQrl(styleQrl);
@@ -152,7 +163,7 @@ const _useStyles = (
     assertDefined(elCtx.$appendStyles$, 'appendStyles must be defined');
     elCtx.$appendStyles$.push({
       styleId,
-      content: transform(styleText, styleId),
+      content: transform(styleText, ComponentStylesPrefixContent + styleId),
     });
   };
   if (isPromise(value)) {

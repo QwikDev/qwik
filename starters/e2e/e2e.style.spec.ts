@@ -38,7 +38,7 @@ test.describe("styles", () => {
       await expect(inline2).toHaveCSS("font-size", "40px");
 
       const el = await page.$$("[q\\:style]");
-      expect(el.length).toBe(9);
+      expect(el.length).toBe(10);
       await addChild.click();
       await expect(parent).toHaveClass(/count-11/);
 
@@ -53,7 +53,7 @@ test.describe("styles", () => {
       await expect(inline10).toHaveCSS("font-size", "40px");
 
       const el2 = await page.$$("[q\\:style]");
-      expect(el2.length).toBe(9);
+      expect(el2.length).toBe(10);
     });
 
     test("issue 1945", async ({ page }) => {
@@ -93,6 +93,13 @@ test.describe("styles", () => {
       await button.click();
       await expect(button).toHaveClass(/even/);
       await expect(button).toHaveCSS("background-color", "rgb(0, 128, 0)");
+    });
+
+    test("styles with options", async ({ page }) => {
+      const inside = page.locator("#swo-inside-scope");
+      await expect(inside).toHaveCSS("background-color", "rgb(255, 0, 0)");
+      const outside = page.locator("#swo-outside-scope");
+      await expect(outside).not.toHaveCSS("background-color", "rgb(255, 0, 0)");
     });
   }
 });

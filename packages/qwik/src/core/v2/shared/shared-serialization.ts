@@ -30,7 +30,7 @@ import { ELEMENT_ID } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { DomContainer } from '../client/dom-container';
-import { vnode_isVNode, vnode_locate } from '../client/vnode';
+import { vnode_getNode, vnode_isVNode, vnode_locate } from '../client/vnode';
 import {
   ComputedSignal2,
   DerivedSignal2,
@@ -1108,7 +1108,11 @@ function deserializeSignal2(
     const computedSignal = signal as ComputedSignal2<any>;
     computedSignal.$computeQrl$ = inflateQRL(container, parseQRL(parts[idx++])) as fixMeAny;
   }
-  signal.$untrackedValue$ = container.$getObjectById$(parts[idx++]);
+  let signalValue = container.$getObjectById$(parts[idx++]);
+  if (vnode_isVNode(signalValue)) {
+    signalValue = vnode_getNode(signalValue);
+  }
+  signal.$untrackedValue$ = signalValue;
   if (idx < parts.length) {
     const effects = signal.$effects$ || (signal.$effects$ = []);
     idx = deserializeSignal2Effect(idx, parts, container, effects);

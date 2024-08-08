@@ -11,7 +11,7 @@ import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../../render/jsx/utils.public';
 import { trackSignal2 } from '../../use/use-core';
-import { TaskFlags, cleanupTask, isTask, type SubscriberEffect } from '../../use/use-task';
+import { TaskFlags, cleanupTask, isTask } from '../../use/use-task';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import {
   ELEMENT_KEY,
@@ -489,7 +489,12 @@ export const vnode_diff = (
     if (constProps && typeof constProps == 'object' && 'name' in constProps) {
       const constValue = constProps.name;
       if (constValue instanceof DerivedSignal2) {
-        return trackSignal2(() => constValue.value, vHost as fixMeAny, EffectProperty.COMPONENT, container);
+        return trackSignal2(
+          () => constValue.value,
+          vHost as fixMeAny,
+          EffectProperty.COMPONENT,
+          container
+        );
       }
     }
     return jsxValue.props.name || QDefaultSlot;
@@ -579,7 +584,12 @@ export const vnode_diff = (
             value.value = element;
             continue;
           }
-          value = trackSignal2(() => (value as Signal2<unknown>).value, vNewNode as fixMeAny, key, container);
+          value = trackSignal2(
+            () => (value as Signal2<unknown>).value,
+            vNewNode as fixMeAny,
+            key,
+            container
+          );
         }
 
         if (key === dangerouslySetInnerHTML) {
@@ -1138,14 +1148,12 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
       // Only elements and virtual nodes need to be traversed for children
       if (type & VNodeFlags.Virtual) {
         // Only virtual nodes have subscriptions
-        container.$subsManager$.$clearSub$(vCursor as fixMeAny);
         const seq = container.getHostProp<Array<any>>(vCursor as fixMeAny, ELEMENT_SEQ);
         if (seq) {
           for (let i = 0; i < seq.length; i++) {
             const obj = seq[i];
             if (isTask(obj)) {
-              const task = obj as SubscriberEffect;
-              container.$subsManager$.$clearSub$(task);
+              const task = obj;
               if (obj.$flags$ & TaskFlags.VISIBLE_TASK) {
                 container.$scheduler$(ChoreType.CLEANUP_VISIBLE, obj);
               } else {

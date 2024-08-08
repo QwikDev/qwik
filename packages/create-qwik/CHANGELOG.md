@@ -1,5 +1,11 @@
 # create-qwik
 
+## 1.8.0
+
+### Patch Changes
+
+- 🐞🩹 wrong version when creating a library (by [@shairez](https://github.com/shairez) in [#6757](https://github.com/QwikDev/qwik/pull/6757))
+
 ## 1.7.3
 
 ### Patch Changes

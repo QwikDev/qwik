@@ -48,6 +48,25 @@ describe.each([
       </>
     );
   });
+  it('should render correctly with falsy value', async () => {
+    const Cmp = component$((props: { initial: number }) => {
+      const count = useSignal(props.initial);
+      const doubleCount = useComputed$(() => count.value * 2);
+      return (
+        <div>
+          Double count: {doubleCount.value}! {count.value}
+        </div>
+      );
+    });
+    const { vNode } = await render(<Cmp initial={0} />, { debug });
+    expect(vNode).toMatchVDOM(
+      <>
+        <div>
+          Double count: <Signal>{'0'}</Signal>! <Signal>{'0'}</Signal>
+        </div>
+      </>
+    );
+  });
   it('should update value based on signal', async () => {
     const DoubleCounter = component$((props: { initial: number }) => {
       const count = useSignal(props.initial);

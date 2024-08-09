@@ -8,8 +8,9 @@ import {
 } from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
-import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import { _deserialize, _serialize, _verifySerializable } from '@builder.io/qwik';
 import { setServerPlatform } from '@builder.io/qwik/server';
+import type { QwikSerializer } from '../request-handler/types';
 
 // @builder.io/qwik-city/middleware/vercel-edge
 const COUNTRY_HEADER_NAME = 'x-vercel-ip-country';
@@ -21,9 +22,9 @@ const BASE_URL = 'BASE_URL';
 
 /** @public */
 export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
-  const qwikSerializer = {
-    _deserializeData,
-    _serializeData,
+  const qwikSerializer: QwikSerializer = {
+    _deserialize,
+    _serialize,
     _verifySerializable,
   };
   if (opts.manifest) {

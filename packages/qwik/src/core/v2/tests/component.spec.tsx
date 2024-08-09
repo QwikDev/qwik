@@ -13,9 +13,14 @@ import {
   type JSXOutput,
   useSignal,
   useStore,
+  type JSXOutput,
+  useSignal,
+  useStore,
 } from '@builder.io/qwik';
 import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
+import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
 import { describe, expect, it } from 'vitest';
+import { cleanupAttrs } from '../../../testing/element-fixture';
 import { ErrorProvider } from '../../../testing/rendering.unit-util';
 import { HTML_NS, MATH_NS, SVG_NS } from '../../util/markers';
 import { delay } from '../../util/promises';
@@ -451,7 +456,7 @@ describe.each([
         <a></a>
       </p>
     );
-    expect(document.querySelector('p')?.innerHTML).toEqual(
+    expect(cleanupAttrs(document.querySelector('p')?.innerHTML)).toEqual(
       '<b>Test</b>124xx<span>123</span>XXX<a></a>'
     );
   });
@@ -492,18 +497,46 @@ describe.each([
 
   it('should escape html tags', async () => {
     const Cmp = component$(() => {
+      const counter = useSignal(0);
       const b = '<script></script>';
-      return <p>{JSON.stringify(b)}</p>;
+      return (
+        <button onClick$={() => counter.value++}>
+          {JSON.stringify(b)}
+          {`&<'"`}
+          {counter.value}
+        </button>
+      );
     });
 
     const { vNode, document } = await render(<Cmp />, { debug });
     expect(vNode).toMatchVDOM(
       <Component>
-        <p>{'"<script></script>"'}</p>
+        <button>
+          {'"<script></script>"'}
+          {`&<'"`}
+          <Signal>{0}</Signal>
+        </button>
       </Component>
     );
 
-    expect(document.querySelector('p')).toMatchDOM(<p>{'"<script></script>"'}</p>);
+    await expect(document.querySelector('button')).toMatchDOM(
+      <button>{`"<script></script>"&<'"0`}</button>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          {'"<script></script>"'}
+          {`&<'"`}
+          <Signal>{1}</Signal>
+        </button>
+      </Component>
+    );
+
+    await expect(document.querySelector('button')).toMatchDOM(
+      <button>{`"<script></script>"&<'"1`}</button>
+    );
   });
 
   it('should render correctly with comment nodes', async () => {
@@ -1562,7 +1595,7 @@ describe.each([
     await delay(10);
     // console.log('vNode', String(vNode));
     // console.log('>>>>', div.outerHTML);
-    expect(div.innerHTML).toEqual('<b>(</b>SomeErrorPOST<b>)</b>');
+    expect(cleanupAttrs(div.innerHTML)).toEqual('<b>(</b>SomeErrorPOST<b>)</b>');
   });
 
   describe('regression', () => {

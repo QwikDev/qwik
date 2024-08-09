@@ -6,8 +6,8 @@ import {
   useContext,
   type ValueOrPromise,
   useStore,
-  _serializeData,
-  _deserializeData,
+  _serialize,
+  _deserialize,
   _getContextElement,
   _getContextEvent,
   _wrapProp,
@@ -243,7 +243,10 @@ export const zodQrl = ((
             return z.object(obj);
           }
         });
-        const data = inputData ?? (await ev.parseBody());
+        let data = inputData;
+        if (!data) {
+          data = await ev.parseBody();
+        }
         const result = await (await schema).safeParseAsync(data);
         if (result.success) {
           return result;
@@ -273,7 +276,8 @@ export const zod$ = /*#__PURE__*/ implicit$FirstArg(zodQrl) as ZodConstructor;
 const deepFreeze = (obj: any) => {
   Object.getOwnPropertyNames(obj).forEach((prop) => {
     const value = obj[prop];
-    if (value && typeof value === 'object') {
+    // we assume that a frozen object is a circular reference and fully deep frozen
+    if (value && typeof value === 'object' && !Object.isFrozen(value)) {
       deepFreeze(value);
     }
   });
@@ -347,7 +351,7 @@ export const serverQrl = <T extends ServerFunction>(
           },
           signal,
         };
-        const body = await _serializeData([qrl, ...filtered], false);
+        const body = await _serialize([qrl, ...filtered]);
         if (method === 'GET') {
           query += `&${QDATA_KEY}=${encodeURIComponent(body)}`;
         } else {
@@ -375,7 +379,7 @@ export const serverQrl = <T extends ServerFunction>(
           })();
         } else if (contentType === 'application/qwik-json') {
           const str = await res.text();
-          const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
+          const [obj] = _deserialize(str, ctxElm ?? document.documentElement);
           if (res.status === 500) {
             throw obj;
           }
@@ -455,7 +459,8 @@ const deserializeStream = async function* (
       const lines = buffer.split(/\n/);
       buffer = lines.pop()!;
       for (const line of lines) {
-        yield await _deserializeData(line, ctxElm);
+        const [deserializedData] = _deserialize(line, ctxElm);
+        yield deserializedData;
       }
     }
   } finally {

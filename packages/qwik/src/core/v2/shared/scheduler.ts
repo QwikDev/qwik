@@ -84,9 +84,19 @@ import { assertEqual } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
-import { Task, TaskFlags, cleanupTask, runTask2, type TaskFn } from '../../use/use-task';
+import {
+  Task,
+  TaskFlags,
+  cleanupTask,
+  runTask2,
+  runResource,
+  type ResourceDescriptor,
+  type TaskFn,
+} from '../../use/use-task';
+import { logWarn } from '../../util/log';
 import { isPromise, maybeThen, maybeThenPassError, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
+import { isDomContainer } from '../client/dom-container';
 import type { VirtualVNode } from '../client/types';
 import { vnode_documentPosition, vnode_isVNode, vnode_setAttr } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
@@ -165,7 +175,10 @@ export const createScheduler = (
    * @param props- Props to pass to the component.
    * @param waitForChore? = false
    */
-  function schedule(type: ChoreType.TASK | ChoreType.VISIBLE, task: Task): ValueOrPromise<void>;
+  function schedule(
+    type: ChoreType.TASK | ChoreType.VISIBLE | ChoreType.RESOURCE | ChoreType.COMPUTED,
+    task: Task
+  ): ValueOrPromise<void>;
   function schedule(
     type: ChoreType.COMPONENT,
     host: HostElement,
@@ -203,7 +216,10 @@ export const createScheduler = (
       type !== ChoreType.WAIT_FOR_COMPONENTS &&
       type !== ChoreType.COMPONENT_SSR;
     const isTask =
-      type === ChoreType.TASK || type === ChoreType.VISIBLE || type === ChoreType.CLEANUP_VISIBLE;
+      type === ChoreType.TASK ||
+      type === ChoreType.VISIBLE ||
+      type === ChoreType.RESOURCE ||
+      type === ChoreType.CLEANUP_VISIBLE;
     if (isTask) {
       (hostOrTask as Task).$flags$ |= TaskFlags.DIRTY;
     }
@@ -223,7 +239,7 @@ export const createScheduler = (
     };
     chore.$promise$ = new Promise((resolve) => (chore.$resolve$ = resolve));
     DEBUG && debugTrace('schedule', chore, currentChore, choreQueue);
-    chore = sortedInsert(choreQueue, chore, choreComparator, choreUpdate);
+    chore = sortedInsert(choreQueue, chore);
     if (!journalFlushScheduled && runLater) {
       // If we are not currently draining, we need to schedule a drain.
       journalFlushScheduled = true;
@@ -249,7 +265,10 @@ export const createScheduler = (
     }
     while (choreQueue.length) {
       const nextChore = choreQueue.shift()!;
-      const comp = choreComparator(nextChore, runUptoChore);
+      const comp = choreComparator(nextChore, runUptoChore, false);
+      if (comp === null) {
+        continue;
+      }
       if (comp > 0) {
         // we have processed all of the chores up to the given chore.
         break;
@@ -291,6 +310,14 @@ export const createScheduler = (
           },
           (err: any) => container.handleError(err, host)
         );
+        break;
+      case ChoreType.RESOURCE:
+        // Don't await the return value of the resource, because async resources should not be awaited.
+        // The reason for this is that we should be able to update for example a node with loading
+        // text. If we await the resource, the loading text will not be displayed until the resource
+        // is loaded.
+        const result = runResource(chore.$payload$ as ResourceDescriptor<TaskFn>, container, host);
+        returnValue = isDomContainer(container) ? null : result;
         break;
       case ChoreType.TASK:
         returnValue = runTask2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
@@ -336,25 +363,6 @@ export const createScheduler = (
   }
 };
 
-export const hostElementPredicate = (aHost: HostElement, bHost: HostElement): number => {
-  if (aHost === bHost) {
-    return 0;
-  } else {
-    if (vnode_isVNode(aHost) && vnode_isVNode(bHost)) {
-      // we are running on the client.
-      return vnode_documentPosition(aHost, bHost);
-    } else {
-      // we are running on the server.
-      // On server we can't schedule task for a different host!
-      // Server is SSR, and therefore scheduling for anything but the current host
-      // implies that things need to be re-run nad that is not supported because of streaming.
-      throw new Error(
-        'SERVER: during HTML streaming, it is not possible to cause a re-run of tasks on a different host'
-      );
-    }
-  }
-};
-
 const toNumber = (value: number | string): number => {
   return typeof value === 'number' ? value : -1;
 };
@@ -370,7 +378,9 @@ const choreUpdate = (existing: Chore, newChore: Chore): void => {
   }
 };
 
-export const choreComparator = (a: Chore, b: Chore): number => {
+function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: true): number;
+function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: false): number | null;
+function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: boolean): number | null {
   const macroTypeDiff = (a.$type$ & ChoreType.MACRO) - (b.$type$ & ChoreType.MACRO);
   if (macroTypeDiff !== 0) {
     return macroTypeDiff;
@@ -392,9 +402,13 @@ export const choreComparator = (a: Chore, b: Chore): number => {
         // On server we can't schedule task for a different host!
         // Server is SSR, and therefore scheduling for anything but the current host
         // implies that things need to be re-run nad that is not supported because of streaming.
-        throw new Error(
-          'SERVER: during HTML streaming, it is not possible to cause a re-run of tasks on a different host'
-        );
+        const errorMessage =
+          'SERVER: during HTML streaming, it is not possible to cause a re-run of tasks on a different host';
+        if (shouldThrowOnHostMismatch) {
+          throw new Error(errorMessage);
+        }
+        logWarn(errorMessage);
+        return null;
       }
     }
 
@@ -410,7 +424,7 @@ export const choreComparator = (a: Chore, b: Chore): number => {
   }
 
   return 0;
-};
+}
 
 export const intraHostPredicate = (a: Chore, b: Chore): number => {
   const idxDiff = toNumber(a.$idx$) - toNumber(b.$idx$);
@@ -432,11 +446,7 @@ export const intraHostPredicate = (a: Chore, b: Chore): number => {
   return 0;
 };
 
-function sortedFindIndex<T>(
-  sortedArray: T[],
-  value: T,
-  comparator: (a: T, b: T) => number
-): number {
+function sortedFindIndex(sortedArray: Chore[], value: Chore): number {
   /// We need to ensure that the `queue` is sorted by priority.
   /// 1. Find a place where to insert into.
   let bottom = 0;
@@ -444,7 +454,7 @@ function sortedFindIndex<T>(
   while (bottom < top) {
     const middle = bottom + ((top - bottom) >> 1);
     const midChore = sortedArray[middle];
-    const comp = comparator(value, midChore);
+    const comp = choreComparator(value, midChore, true);
     if (comp < 0) {
       top = middle;
     } else if (comp > 0) {
@@ -457,22 +467,17 @@ function sortedFindIndex<T>(
   return ~bottom;
 }
 
-function sortedInsert<T>(
-  sortedArray: T[],
-  value: T,
-  comparator: (a: T, b: T) => number,
-  updater?: (a: T, b: T) => void
-): T {
+function sortedInsert(sortedArray: Chore[], value: Chore): Chore {
   /// We need to ensure that the `queue` is sorted by priority.
   /// 1. Find a place where to insert into.
-  const idx = sortedFindIndex(sortedArray, value, comparator);
+  const idx = sortedFindIndex(sortedArray, value);
   if (idx < 0) {
     /// 2. Insert the chore into the queue.
     sortedArray.splice(~idx, 0, value);
     return value;
   }
   const existing = sortedArray[idx];
-  updater && updater(existing, value);
+  choreUpdate(existing, value);
   return existing;
 }
 

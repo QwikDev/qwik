@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2471
+assertion_line: 2490
 expression: output
 ---
 ==INPUT==
@@ -177,7 +177,7 @@ const AppStatic_component_gYRXqF3G5nE = (props)=>{
         /*#__PURE__*/ _jsxSorted("div", null, null, "Static", 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, [
             "Static ",
-            _wrapProp(props, "value")
+            _wrapProp(props)
         ], 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, [
             "Static ",

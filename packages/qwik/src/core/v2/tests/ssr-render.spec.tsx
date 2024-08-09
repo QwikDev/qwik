@@ -56,7 +56,9 @@ describe('v2 ssr render', () => {
       return (
         <div data-render={rerender.value} key={rerender.value}>
           <button onClick$={() => rerender.value++}></button>
+          <SSRComment data="q:container=html" />
           <SSRRaw data="<div>hello</div>" />
+          <SSRComment data="/q:container" />
           <TestCmp>
             <span>a</span>
           </TestCmp>
@@ -176,8 +178,10 @@ describe('v2 ssr render', () => {
         </div>
       );
       // we should not stream the comment nodes of the SSRStreamBlock
-      expect(document.querySelector('#stream-block')?.innerHTML).toEqual(
-        '<div>stream content</div>'
+      expect(document.querySelector('#stream-block')).toMatchDOM(
+        <div id="stream-block">
+          <div>stream content</div>
+        </div>
       );
     });
 

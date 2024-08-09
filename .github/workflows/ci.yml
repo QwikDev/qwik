@@ -51,9 +51,7 @@ jobs:
       build-qwik: ${{ steps.cache-qwik.outputs.cache-hit != 'true' }}
       build-rust: ${{ steps.cache-rust.outputs.cache-hit != 'true' }}
       build-others: ${{ steps.cache-others.outputs.cache-hit != 'true' }}
-      # TEMP v2: disable docs build until we have v2 deps building (qwik-ui, qwik-sdk)
-      # build-docs: ${{ steps.cache-docs.outputs.cache-hit != 'true' }}
-      build-docs: false
+      build-docs: ${{ steps.cache-docs.outputs.cache-hit != 'true' }}
       # TEMP v2: disable insights build
       # build-insights: ${{ steps.cache-insights.outputs.cache-hit != 'true' }}
       build-insights: false
@@ -509,6 +507,15 @@ jobs:
       - run: corepack pnpm install --frozen-lockfile
       - name: Build Qwik Docs
         run: pnpm run build.packages.docs
+
+      - name: Cloudflare Pages Deployment
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: 'qwik-docs'
+          directory: packages/docs/dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   ############ RELEASE ############
   release:

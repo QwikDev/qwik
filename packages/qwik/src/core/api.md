@@ -230,6 +230,9 @@ export interface DataHTMLAttributes<T extends Element> extends Attrs<'data', T> 
 export interface DelHTMLAttributes<T extends Element> extends Attrs<'del', T> {
 }
 
+// @internal
+export function _deserialize(rawStateData: string | null, element?: unknown): unknown[];
+
 // @internal (undocumented)
 export const _deserializeData: (data: string, element?: unknown) => any;
 
@@ -357,6 +360,9 @@ string | undefined,
 export interface EmbedHTMLAttributes<T extends Element> extends Attrs<'embed', T> {
 }
 
+// @internal (undocumented)
+export const _EMPTY_ARRAY: any[];
+
 // @public (undocumented)
 export interface ErrorBoundaryStore {
     // (undocumented)
@@ -364,7 +370,7 @@ export interface ErrorBoundaryStore {
 }
 
 // @public (undocumented)
-export const event$: <T>(first: T) => QRL<T>;
+export const event$: <T>(qrl: T) => QRL<T>;
 
 // @public
 export type EventHandler<EV = Event, EL = Element> = {
@@ -474,7 +480,7 @@ export interface ImgHTMLAttributes<T extends Element> extends Attrs<'img', T> {
 }
 
 // @public
-export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (first: QRL<FIRST>, ...rest: REST) => RET) => (first: FIRST, ...rest: REST) => RET;
+export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (qrl: QRL<FIRST>, ...rest: REST) => RET) => ((qrl: FIRST, ...rest: REST) => RET);
 
 // Warning: (ae-internal-missing-underscore) The name "inlinedQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -1059,6 +1065,9 @@ export interface ScriptHTMLAttributes<T extends Element> extends Attrs<'script',
 export interface SelectHTMLAttributes<T extends Element> extends Attrs<'select', T> {
 }
 
+// @internal
+export function _serialize(data: unknown[]): Promise<string>;
+
 // @internal (undocumented)
 export const _serializeData: (data: any, pureQRL?: boolean) => Promise<string>;
 
@@ -1118,7 +1127,7 @@ export abstract class _SharedContainer implements Container2 {
     trackSignalValue<T>(signal: Signal, subscriber: Effect, property: string): T;
 }
 
-// @public (undocumented)
+// @public
 export interface Signal<T = any> {
     // (undocumented)
     value: T;
@@ -1879,6 +1888,9 @@ export const useComputed$: Computed;
 // @public (undocumented)
 export const useComputedQrl: ComputedQRL;
 
+// @public @deprecated
+export const useConstant: <T>(value: (() => T) | T) => T;
+
 // Warning: (ae-forgotten-export) The symbol "UseContext" needs to be exported by the entry point index.d.ts
 //
 // @public
@@ -1929,7 +1941,7 @@ export interface UseSignal {
     <T>(value: T | (() => T)): Signal2<T>;
 }
 
-// @public (undocumented)
+// @public
 export const useSignal: UseSignal;
 
 // @public
@@ -1944,13 +1956,13 @@ export interface UseStoreOptions {
 // Warning: (ae-forgotten-export) The symbol "UseStyles" needs to be exported by the entry point index.d.ts
 //
 // @public
-export const useStyles$: (first: string) => UseStyles;
+export const useStyles$: (qrl: string) => UseStyles;
 
 // @public
 export const useStylesQrl: (styles: QRL<string>) => UseStyles;
 
 // @public
-export const useStylesScoped$: (first: string) => UseStylesScoped;
+export const useStylesScoped$: (qrl: string) => UseStylesScoped;
 
 // @public (undocumented)
 export interface UseStylesScoped {
@@ -1962,7 +1974,7 @@ export interface UseStylesScoped {
 export const useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
 
 // @public
-export const useTask$: (first: TaskFn, opts?: UseTaskOptions | undefined) => void;
+export const useTask$: (qrl: TaskFn, opts?: UseTaskOptions | undefined) => void;
 
 // @public (undocumented)
 export interface UseTaskOptions {
@@ -1973,7 +1985,7 @@ export interface UseTaskOptions {
 export const useTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void;
 
 // @public
-export const useVisibleTask$: (first: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
+export const useVisibleTask$: (qrl: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
 
 // @public
 export const useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
@@ -2108,7 +2120,7 @@ export interface WebViewHTMLAttributes<T extends Element> extends HTMLAttributes
 export function withLocale<T>(locale: string, fn: () => T): T;
 
 // @internal (undocumented)
-export const _wrapProp: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;
+export const _wrapProp: <T extends Record<any, any>, P extends keyof T>(obj: T, prop?: P | undefined) => any;
 
 // (No @packageDocumentation comment for this package)
 

@@ -35,25 +35,25 @@ import { renderToStream2, renderToString2 } from '../../../server/v2-ssr-render2
 import { _fnSignal } from '../../internal';
 import { render2 } from '../client/dom-render';
 import { vnode_getFirstChild } from '../client/vnode';
+import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
   vi.stubGlobal('QWIK_LOADER_DEFAULT_DEBUG', 'debug');
 });
 
+const mapping = {
+  click: 'click.js',
+  s_counter: 's_counter.js',
+  s_click: 's_click.js',
+};
+
 const defaultManifest: QwikManifest = {
   manifestHash: 'manifest-hash',
   symbols: {},
   bundles: {},
-  mapping: {},
+  mapping,
   version: '1',
-};
-
-const defaultCounterManifest: QwikManifest = {
-  ...defaultManifest,
-  mapping: {
-    click: 'click.js',
-  },
 };
 
 const ManyEventsComponent = component$(() => {
@@ -264,6 +264,30 @@ describe('render api', () => {
         expect(timing.firstFlush).toBeGreaterThan(0);
         expect(timing.render).toBeGreaterThan(0);
         expect(timing.snapshot).toBeGreaterThan(0);
+      });
+
+      it('should escape invalid characters', async () => {
+        const Cmp = componentQrl(
+          inlinedQrl(() => {
+            const obj = {
+              a: '123',
+              b: '<script />',
+              c: '&foo',
+            };
+            return (
+              <div data-amp="foo&bar" data-lt="foo<bar" data-gt="foo>bar" data-a='"' data-b="'">
+                {JSON.stringify(obj)}
+              </div>
+            );
+          }, 's_counter')
+        );
+        const result = await renderToStringAndSetPlatform(<Cmp />, {
+          containerTagName: 'div',
+          manifest: defaultManifest,
+        });
+        expect(cleanupAttrs(result.html)).toContain(
+          `<div data-amp="foo&amp;bar" data-lt="foo&lt;bar" data-gt="foo&gt;bar" data-a="&quot;" data-b="&#39;">{&quot;a&quot;:&quot;123&quot;,&quot;b&quot;:&quot;&lt;script /&gt;&quot;,&quot;c&quot;:&quot;&amp;foo&quot;}</div>`
+        );
       });
     });
     describe('version', () => {
@@ -481,7 +505,7 @@ describe('render api', () => {
           prefetchStrategy: {
             symbolsToPrefetch: 'auto',
           },
-          manifest: defaultCounterManifest,
+          manifest: defaultManifest,
         });
         expect(result.prefetchResources).toEqual(expect.any(Array));
         const document = createDocument(result.html);
@@ -499,7 +523,7 @@ describe('render api', () => {
               linkInsert: 'html-append',
             },
           },
-          manifest: defaultCounterManifest,
+          manifest: defaultManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -516,7 +540,7 @@ describe('render api', () => {
               linkInsert: 'js-append',
             },
           },
-          manifest: defaultCounterManifest,
+          manifest: defaultManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -536,7 +560,7 @@ describe('render api', () => {
               linkRel: 'modulepreload',
             },
           },
-          manifest: defaultCounterManifest,
+          manifest: defaultManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -554,7 +578,7 @@ describe('render api', () => {
               linkRel: 'modulepreload',
             },
           },
-          manifest: defaultCounterManifest,
+          manifest: defaultManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -574,7 +598,7 @@ describe('render api', () => {
               linkRel: 'preload',
             },
           },
-          manifest: defaultCounterManifest,
+          manifest: defaultManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -592,7 +616,7 @@ describe('render api', () => {
               linkRel: 'preload',
             },
           },
-          manifest: defaultCounterManifest,
+          manifest: defaultManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -611,7 +635,7 @@ describe('render api', () => {
               prefetchEvent: null,
             },
           },
-          manifest: defaultCounterManifest,
+          manifest: defaultManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(0);
@@ -628,7 +652,7 @@ describe('render api', () => {
               workerFetchInsert: 'always',
             },
           },
-          manifest: defaultCounterManifest,
+          manifest: defaultManifest,
         });
         const document = createDocument(result.html);
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
@@ -749,9 +773,7 @@ describe('render api', () => {
               dynamicImports: [],
             },
           },
-          mapping: {
-            counter: 'counter.js',
-          },
+          mapping,
           version: '1',
         };
         const result = await renderToStringAndSetPlatform(<Counter />, {
@@ -825,7 +847,7 @@ describe('render api', () => {
           containerTagName: 'div',
           debug: true,
         });
-        expect(result.html).toContain('<script id="qwikloader">debug</script>');
+        expect(cleanupAttrs(result.html)).toContain('<script id="qwikloader">debug</script>');
       });
 
       it('should emit qwik loader without debug mode', async () => {
@@ -833,7 +855,7 @@ describe('render api', () => {
           containerTagName: 'div',
           debug: false,
         });
-        expect(result.html).toContain('<script id="qwikloader">min</script>');
+        expect(cleanupAttrs(result.html)).toContain('<script id="qwikloader">min</script>');
       });
     });
     describe('snapshotResult', () => {

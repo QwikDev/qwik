@@ -8,12 +8,12 @@ import { ERROR_CONTEXT, isRecoverable } from '../../render/error-handling';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { StoreTracker } from '../../state/store';
 import type { ContextId } from '../../use/use-context';
-import { SEQ_IDX_LOCAL } from '../../use/use-sequential-scope';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
 import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
+  ELEMENT_SEQ_IDX,
   OnRenderProp,
   QContainerAttr,
   QContainerSelector,
@@ -22,8 +22,10 @@ import {
   QSlotParent,
   QStyle,
   QStyleSelector,
+  USE_ON_LOCAL_SEQ_IDX,
 } from '../../util/markers';
 import { maybeThen } from '../../util/promises';
+import { isSlotProp } from '../../util/prop';
 import { qDev } from '../../util/qdev';
 import type { ValueOrPromise } from '../../util/types';
 import { ChoreType } from '../shared/scheduler';
@@ -262,7 +264,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       case QCtxAttr:
         getObjectById = this.$getObjectById$;
         break;
-      case SEQ_IDX_LOCAL:
+      case ELEMENT_SEQ_IDX:
+      case USE_ON_LOCAL_SEQ_IDX:
         getObjectById = parseInt;
         break;
     }
@@ -289,7 +292,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       vNode[VNodeProps.flags] |= VNodeFlags.Resolved;
       for (let i = vnode_getPropStartIndex(vNode); i < vNode.length; i = i + 2) {
         const prop = vNode[i] as string;
-        if (!prop.startsWith('q:')) {
+        if (isSlotProp(prop)) {
           const value = vNode[i + 1];
           if (typeof value == 'string') {
             vNode[i + 1] = this.$vnodeLocate$(value);

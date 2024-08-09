@@ -1,7 +1,7 @@
 import type { QwikSymbolEvent, QwikVisibleEvent } from './core/render/jsx/types/jsx-qwik-events';
 import type { QContainerElement } from './core/container/container';
 import type { QContext } from './core/state/context';
-import type { QElement2, QwikLoaderEventScope } from './core/v2/shared/types';
+import type { QElement2, QwikLoaderEventScope, qWindow } from './core/v2/shared/types';
 
 /**
  * Set up event listening for browser.
@@ -17,11 +17,6 @@ export const qwikLoader = (
   hasInitialized?: number
 ) => {
   const Q_CONTEXT = '__q_context__';
-  type qWindow = Window & {
-    qwikevents: {
-      push: (...e: string[]) => void;
-    };
-  };
   const win = window as unknown as qWindow;
   const events = new Set();
 

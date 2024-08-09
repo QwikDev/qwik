@@ -133,9 +133,6 @@ describe('types', () => {
       popovertarget?: string;
     }>();
     expectTypeOf<{
-      popovertarget?: string;
-    }>().not.toMatchTypeOf<PropsOf<'input'>>();
-    expectTypeOf<{
       type: 'button';
       popovertarget?: string;
     }>().toMatchTypeOf<PropsOf<'input'>>();

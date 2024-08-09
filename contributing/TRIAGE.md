@@ -38,7 +38,7 @@ flowchart TD
     maj --YES--> P4[P4: urgent]
     maj --NO--> P3[P3: important]
     unusable --NO--> workarounds{Are there\nworkarounds for\nthe bug?}
-    workarounds --NO--> P2[P2: minor bug]
+    workarounds --NO--> P2[P2: minor]
     workarounds --YES--> P1[P1: nice to have / fix]
 ```
 
@@ -74,7 +74,7 @@ flowchart TD
     discussion --YES--> close3[Tag with\n 'STATUS-2: requires discussion'\nand 'WAITING FOR: team'\nor 'WAITING FOR: user']
     discussion --NO--> implement{Should it be\nimplemented by core?}
     implement --NO--> community{Should it be implemented\nby the community?}
-    community --YES--> incubate[Close and tag with\n'STATUS-3: incubation']
+    community --YES--> incubate[Close and tag with either\n'STATUS-3: incubation'\nor 'STATUS-2: waiting for community PR'\nand 'COMMUNITY: PR is welcomed']
     community --NO--> wontfix[Close and tag with\n'STATUS-3: won't be worked on']
     implement --YES--> doimplement["1. Tag with 'STATUS-2: team is working on this'\n2. Add related feature label if\napplicable (e.g. 'COMP: runtime')\n3. Add version \nlabels (e.g. 'VERSION: upcoming major')"]
 ```

@@ -154,7 +154,10 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
             const mod = await sys.dynamicImport(`./bindings/${triple.platformArchABI}`);
             return mod;
           } catch (e) {
-            console.warn(e);
+            console.warn(
+              `Unable to load native binding ${triple.platformArchABI}. Falling back to wasm build.`,
+              (e as Error)?.message
+            );
           }
         }
       }
@@ -186,7 +189,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
 
     if (sysEnv === 'webworker' || sysEnv === 'browsermain') {
       // CJS WASM Browser
-      const version = versions.qwik.split('-dev')[0];
+      let version = versions.qwik;
       const cachedCjsCode = `qwikWasmCjs${version}`;
       const cachedWasmRsp = `qwikWasmRsp${version}`;
 
@@ -194,6 +197,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
       let wasmRsp: Response = (globalThis as any)[cachedWasmRsp];
 
       if (!cjsCode || !wasmRsp) {
+        version = versions.qwik.split('-dev')[0];
         const cdnUrl = `https://cdn.jsdelivr.net/npm/@builder.io/qwik@${version}/bindings/`;
         const cjsModuleUrl = new URL(`./qwik.wasm.cjs`, cdnUrl).href;
         const wasmUrl = new URL(`./qwik_wasm_bg.wasm`, cdnUrl).href;

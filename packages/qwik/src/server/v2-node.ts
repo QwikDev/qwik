@@ -1,4 +1,4 @@
-import { _isJSXNode as isJSXNode, type JSXNode } from '@builder.io/qwik';
+import { _isJSXNode as isJSXNode, type JSXNode, _EMPTY_ARRAY } from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
 import {
   QSlotParent,
@@ -56,6 +56,9 @@ export class SsrNode implements ISsrNode {
   }
 
   setProp(name: string, value: any): void {
+    if (this.attrs === _EMPTY_ARRAY) {
+      this.attrs = [];
+    }
     if (name.startsWith(':')) {
       mapArray_set(this.locals || (this.locals = []), name, value, 0);
     } else {
@@ -84,6 +87,20 @@ export class SsrNode implements ISsrNode {
     } else {
       mapApp_remove(this.attrs, name, 0);
     }
+  }
+
+  toString(): string {
+    let stringifiedAttrs = '';
+    for (let i = 0; i < this.attrs.length; i += 2) {
+      const key = this.attrs[i];
+      const value = this.attrs[i + 1];
+      stringifiedAttrs += `${key}=`;
+      stringifiedAttrs += `${typeof value === 'string' || typeof value === 'number' ? JSON.stringify(value) : '*'}`;
+      if (i < this.attrs.length - 2) {
+        stringifiedAttrs += ', ';
+      }
+    }
+    return `SSRNode [<${this.id}> ${stringifiedAttrs}]`;
   }
 }
 

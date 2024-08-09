@@ -32,6 +32,10 @@ export const QVersionAttr = 'q:version';
 export const QBaseAttr = 'q:base';
 export const QLocaleAttr = 'q:locale';
 export const QManifestHashAttr = 'q:manifest-hash';
+export const QContainerIsland = 'q:container-island';
+export const QContainerIslandEnd = '/' + QContainerIsland;
+export const QIgnore = 'q:ignore';
+export const QIgnoreEnd = '/' + QIgnore;
 export const QContainerAttr = 'q:container';
 export const QContainerAttrEnd = '/' + QContainerAttr;
 
@@ -71,10 +75,16 @@ export const ELEMENT_ID = 'q:id';
 export const ELEMENT_KEY = 'q:key';
 export const ELEMENT_PROPS = 'q:props';
 export const ELEMENT_SEQ = 'q:seq';
+export const ELEMENT_SEQ_IDX = 'q:seqIdx';
 export const ELEMENT_SELF_ID = -1;
 export const ELEMENT_ID_SELECTOR = '[q\\:id]';
 export const ELEMENT_ID_PREFIX = '#';
 export const INLINE_FN_PREFIX = '@';
+
+/** Non serializable markers - always begins with `:` character */
+export const USE_ON_LOCAL = ':on';
+export const USE_ON_LOCAL_SEQ_IDX = ':onIdx';
+export const USE_ON_LOCAL_FLAGS = ':onFlags';
 
 // comment nodes
 export const FLUSH_COMMENT = 'qkssr-f';

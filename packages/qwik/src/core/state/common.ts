@@ -10,6 +10,7 @@ import { trackSignal } from '../use/use-core';
 import {
   TaskFlags,
   isComputedTask,
+  isResourceTask,
   isSubscriberDescriptor,
   isTask,
   type SubscriberEffect,
@@ -493,6 +494,8 @@ export class LocalSubscriptionManager {
           if (isTask(host)) {
             if (isComputedTask(host)) {
               scheduler(ChoreType.COMPUTED, host);
+            } else if (isResourceTask(host)) {
+              scheduler(ChoreType.RESOURCE, host);
             } else {
               const task = host as Task;
               scheduler(

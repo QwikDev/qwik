@@ -10,8 +10,8 @@ describe('processVnodeData', () => {
   it('should parse simple case', () => {
     const [container] = process(`
       <html q:container="paused">
-        <head></head>
-        <body>
+        <head :></head>
+        <body :>
           HelloWorld
           ${encodeVNode({ 2: 'FF' })}
         </body>
@@ -30,10 +30,10 @@ describe('processVnodeData', () => {
   it('should ignore inner HTML', () => {
     const [container] = process(`
     <html q:container="paused">
-      <head></head>
-      <body>
+      <head :></head>
+      <body :>
         <div q:container="html"><span></span></div>
-        <b>HelloWorld</b>
+        <b :>HelloWorld</b>
         ${encodeVNode({ 2: '2', 4: 'FF' })}
     </body>
     </html>
@@ -51,18 +51,45 @@ describe('processVnodeData', () => {
       </html>
     );
   });
+
+  it('should ignore elements without `:`', async () => {
+    const [container] = process(`
+      <html q:container="paused">
+        <head :></head>
+        <body :>
+          <div q:container="html"><span></span></div>
+          <div>ignore this</div>
+          <b :>HelloWorld</b>
+          ${encodeVNode({ 2: '3', 4: 'FF' })}
+      </body>
+      </html>
+    `);
+    expect(container.rootVNode).toMatchVDOM(
+      <html {...qContainerPaused}>
+        <head />
+        <body>
+          <div dangerouslySetInnerHTML="<span></span>" {...qContainerHtml} />
+          <div>ignore this</div>
+          <b>
+            {'Hello'}
+            {'World'}
+          </b>
+        </body>
+      </html>
+    );
+  });
   describe('nested containers', () => {
     it('should parse', () => {
       const [container1, container2] = process(`
         <html q:container="paused">
-          <head></head>
-          <body>
+          <head :></head>
+          <body :>
             Before
             <div q:container="paused">
-              Foo<b>Bar!</b>
+              Foo<b :>Bar!</b>
               ${encodeVNode({ 0: 'D1', 1: 'DB' })}
             </div>
-            <b>After!</b>
+            <b :>After!</b>
             ${encodeVNode({ 2: 'G2', 4: 'FB' })}
           </body>
         </html>`);
@@ -91,15 +118,15 @@ describe('processVnodeData', () => {
     });
     it('should ignore comments and comment blocks', () => {
       const [container1] = process(`
-        <html q:container="paused">
-          <head></head>
-          <body>
+        <html q:container="paused" :>
+          <head :></head>
+          <body :>
             <!-- comment -->
             Before
             <!--q:container=some-id-->
               Foo<i>Bar!</i>
             <!--/q:container-->
-            <b>After!</b>
+            <b :>After!</b>
             ${encodeVNode({ 2: 'G1', 3: 'FB' })}
           </body>
         </html>`);
@@ -116,6 +143,37 @@ describe('processVnodeData', () => {
         </html>
       );
     });
+  });
+  it('should not ignore island inside comment q:container', () => {
+    const [container1] = process(`
+      <html q:container="paused" :>
+        <head :></head>
+        <body :>
+          Before
+          <!--q:ignore=abc-->
+            Foo<i>Bar!</i>
+            <!--q:container-island=some-id-2-->
+              <button :>Click</button>
+            <!--/q:container-island-->
+            Abcd<b>Abcd!</b>
+          <!--/q:ignore-->
+          <b :>After!</b>
+          ${encodeVNode({ 2: 'G2', 4: 'FB' })}
+        </body>
+      </html>`);
+    expect(container1.rootVNode).toMatchVDOM(
+      <html {...qContainerPaused}>
+        <head />
+        <body>
+          {'Before'}
+          <button>Click</button>
+          <b>
+            {'After'}
+            {'!'}
+          </b>
+        </body>
+      </html>
+    );
   });
 });
 
@@ -149,7 +207,7 @@ function emitVNodeSeparators(lastSerializedIdx: number, elementIdx: number): str
   let skipCount = elementIdx - lastSerializedIdx;
   // console.log('emitVNodeSeparators', lastSerializedIdx, elementIdx, skipCount);
   while (skipCount != 0) {
-    if (skipCount >= 4096) {
+    if (skipCount > 4096) {
       result += VNodeDataSeparator.ADVANCE_8192_CH;
       skipCount -= 8192;
     } else {

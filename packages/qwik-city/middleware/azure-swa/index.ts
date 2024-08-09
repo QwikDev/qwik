@@ -6,9 +6,10 @@ import type {
   ServerRequestEvent,
 } from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
-import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import { _deserialize, _serialize, _verifySerializable } from '@builder.io/qwik';
 import { parseString } from 'set-cookie-parser';
 import { isStaticPath } from '@qwik-city-static-paths';
+import type { QwikSerializer } from '../request-handler/types';
 
 // @builder.io/qwik-city/middleware/azure-swa
 
@@ -49,9 +50,9 @@ interface AzureCookie {
 
 /** @public */
 export function createQwikCity(opts: QwikCityAzureOptions): AzureFunction {
-  const qwikSerializer = {
-    _deserializeData,
-    _serializeData,
+  const qwikSerializer: QwikSerializer = {
+    _deserialize,
+    _serialize,
     _verifySerializable,
   };
   if (opts.manifest) {

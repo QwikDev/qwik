@@ -557,6 +557,18 @@ test.describe("signals", () => {
         `Card useComputed$: https://placehold.co/400x400?text=1&useComputed$`,
       );
     });
+
+    test.skip("createSignal/createComputed$", async ({ page }) => {
+      const button = page.locator("#many-signals-button");
+      const result = page.locator("#many-signals-result");
+      // TODO createComputed$
+      // const doubles = page.locator("#many-doubles-result");
+      await expect(result).toHaveText("0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ");
+      // await expect(doubles).toHaveText("0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ");
+      await button.click();
+      await expect(result).toHaveText("1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ");
+      // await expect(doubles).toHaveText("2, 2, 2, 2, 2, 2, 2, 2, 2, 2, ");
+    });
   }
 
   tests();

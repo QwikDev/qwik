@@ -26,10 +26,17 @@ import type { ContainerElement, ElementVNode, QDocument } from './types';
  *     </div>
  *     <div q:container="html">...</div>
  *     before
- *     <!--q:container="ABC"-->
+ *     <!--q:container=ABC-->
  *     ...
- *     <!--/q:container="ABC"-->
+ *     <!--/q:container-->
  *     after
+ *     <!--q:ignore=FOO-->
+ *     ...
+ *        <!--q:container-island=BAR-->
+ *        <div>some interactive island</div>
+ *        <!--/q:container-island-->
+ *     ...
+ *     <!--/q:ignore-->
  *     <textarea q:container="text">...</textarea>
  *     <script type="qwik/vnode">...</script>
  *   </body>
@@ -49,6 +56,11 @@ import type { ContainerElement, ElementVNode, QDocument } from './types';
 export function processVNodeData(document: Document) {
   const Q_CONTAINER = 'q:container';
   const Q_CONTAINER_END = '/' + Q_CONTAINER;
+  const Q_PROPS_SEPARATOR = ':';
+  const Q_IGNORE = 'q:ignore';
+  const Q_IGNORE_END = '/' + Q_IGNORE;
+  const Q_CONTAINER_ISLAND = 'q:container-island';
+  const Q_CONTAINER_ISLAND_END = '/' + Q_CONTAINER_ISLAND;
   const qDocument = document as QDocument;
   const vNodeDataMap =
     qDocument.qVNodeData || (qDocument.qVNodeData = new WeakMap<Element, string>());
@@ -66,6 +78,7 @@ export function processVNodeData(document: Document) {
     );
   };
   const getAttribute = prototype.getAttribute as (this: Node, name: string) => string | null;
+  const hasAttribute = prototype.hasAttribute as (this: Node, name: string) => boolean;
   const getNodeType = getter(prototype, 'nodeType') as (this: Node) => number;
 
   // Process all of the `qwik/vnode` script tags by attaching them to the corresponding containers.
@@ -81,12 +94,16 @@ export function processVNodeData(document: Document) {
   ///////////////////////////////
 
   const enum NodeType {
-    CONTAINER_MASK /* ******* */ = 0b0001,
-    ELEMENT /* ************** */ = 0b0010, // regular element
-    ELEMENT_CONTAINER /* **** */ = 0b0011, // container element need to descend into it
-    COMMENT_SKIP_START /* *** */ = 0b0101, // Comment but skip the content until COMMENT_SKIP_END
-    COMMENT_SKIP_END /* ***** */ = 0b1000, // Comment end
-    OTHER /* **************** */ = 0b0000,
+    CONTAINER_MASK /* ***************** */ = 0b00000001,
+    ELEMENT /* ************************ */ = 0b00000010, // regular element
+    ELEMENT_CONTAINER /* ************** */ = 0b00000011, // container element need to descend into it
+    COMMENT_SKIP_START /* ************* */ = 0b00000101, // Comment but skip the content until COMMENT_SKIP_END
+    COMMENT_SKIP_END /* *************** */ = 0b00001000, // Comment end
+    COMMENT_IGNORE_START /* *********** */ = 0b00010000, // Comment ignore, descend into children and skip the content until COMMENT_ISLAND_START
+    COMMENT_IGNORE_END /* ************* */ = 0b00100000, // Comment ignore end
+    COMMENT_ISLAND_START /* *********** */ = 0b01000001, // Comment island, count elements for parent container until COMMENT_ISLAND_END
+    COMMENT_ISLAND_END /* ************* */ = 0b10000000, // Comment island end
+    OTHER /* ************************** */ = 0b00000000,
   }
 
   /**
@@ -98,11 +115,24 @@ export function processVNodeData(document: Document) {
     const nodeType = getNodeType.call(node);
     if (nodeType === 1 /* Node.ELEMENT_NODE */) {
       const qContainer = getAttribute.call(node, Q_CONTAINER);
-      return qContainer === null ? NodeType.ELEMENT : NodeType.ELEMENT_CONTAINER;
+      if (qContainer === null) {
+        const isQElement = hasAttribute.call(node, Q_PROPS_SEPARATOR);
+        return isQElement ? NodeType.ELEMENT : NodeType.OTHER;
+      } else {
+        return NodeType.ELEMENT_CONTAINER;
+      }
     } else if (nodeType === 8 /* Node.COMMENT_NODE */) {
       const nodeValue = node.nodeValue || ''; // nodeValue is monomorphic so it does not need fast path
-      if (nodeValue.startsWith(Q_CONTAINER)) {
+      if (nodeValue.startsWith(Q_CONTAINER_ISLAND)) {
+        return NodeType.COMMENT_ISLAND_START;
+      } else if (nodeValue.startsWith(Q_IGNORE)) {
+        return NodeType.COMMENT_IGNORE_START;
+      } else if (nodeValue.startsWith(Q_CONTAINER)) {
         return NodeType.COMMENT_SKIP_START;
+      } else if (nodeValue.startsWith(Q_CONTAINER_ISLAND_END)) {
+        return NodeType.COMMENT_ISLAND_END;
+      } else if (nodeValue.startsWith(Q_IGNORE_END)) {
+        return NodeType.COMMENT_IGNORE_END;
       } else if (nodeValue.startsWith(Q_CONTAINER_END)) {
         return NodeType.COMMENT_SKIP_END;
       }
@@ -110,7 +140,8 @@ export function processVNodeData(document: Document) {
     return NodeType.OTHER;
   };
 
-  const isSeparator = (ch: number) => /* `!` */ 33 <= ch && ch <= 47; /* `/` */
+  const isSeparator = (ch: number) =>
+    /* `!` */ VNodeDataSeparator.ADVANCE_1 <= ch && ch <= VNodeDataSeparator.ADVANCE_8192; /* `.` */
   /**
    * Given the `vData` string, `start` index, and `end` index, find the end of the VNodeData
    * section.
@@ -211,6 +242,24 @@ export function processVNodeData(document: Document) {
           container.qVNodeRefs!,
           prefix + '  '
         );
+      } else if (nodeType === NodeType.COMMENT_IGNORE_START) {
+        let islandNode = node;
+        do {
+          islandNode = walker.nextNode();
+          if (!islandNode) {
+            throw new Error(`Island inside <!--${node?.nodeValue}--> not found!`);
+          }
+        } while (getFastNodeType(islandNode) !== NodeType.COMMENT_ISLAND_START);
+        nextNode = null;
+      } else if (nodeType === NodeType.COMMENT_ISLAND_END) {
+        nextNode = node;
+        do {
+          nextNode = walker.nextNode();
+          if (!nextNode) {
+            throw new Error(`Ignore block not closed!`);
+          }
+        } while (getFastNodeType(nextNode) !== NodeType.COMMENT_IGNORE_END);
+        nextNode = null;
       } else if (nodeType === NodeType.COMMENT_SKIP_START) {
         // If we are in a container, we need to skip the children.
         nextNode = node;
@@ -245,7 +294,6 @@ export function processVNodeData(document: Document) {
                 ch = VNodeDataSeparator.ADVANCE_1;
               }
             }
-            vData_end = vData_start;
             vData_end = findVDataSectionEnd(vData, vData_start, vData_length);
           } else {
             vNodeElementIndex = Number.MAX_SAFE_INTEGER;

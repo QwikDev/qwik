@@ -241,6 +241,63 @@ describe.each([
         </Component>
       );
     });
+
+    it('should unsubscribe from removed component', async () => {
+      (global as any).logs = [] as string[];
+
+      const ToggleChild = component$((props: { name: string; count: number }) => {
+        useTask$(({ track }) => {
+          const count = track(() => props.count);
+          const logText = `Child of "${props.name}" (${count})`;
+          (global as any).logs.push(logText);
+        });
+
+        return (
+          <div>
+            <h1>Toggle {props.name}</h1>
+          </div>
+        );
+      });
+
+      const Toggle = component$(() => {
+        const store = useStore({
+          count: 0,
+          cond: false,
+        });
+        return (
+          <div>
+            <button id="increment" type="button" onClick$={() => store.count++}>
+              Root increment
+            </button>
+            <div>
+              {!store.cond ? (
+                <ToggleChild name="A" count={store.count} />
+              ) : (
+                <ToggleChild name="B" count={store.count} />
+              )}
+              <button type="button" id="toggle" onClick$={() => (store.cond = !store.cond)}>
+                Toggle
+              </button>
+            </div>
+          </div>
+        );
+      });
+
+      const { document } = await render(<Toggle />, { debug });
+
+      await trigger(document.body, '#increment', 'click');
+      await trigger(document.body, '#toggle', 'click');
+      await trigger(document.body, '#increment', 'click');
+      await trigger(document.body, '#toggle', 'click');
+
+      expect((global as any).logs).toEqual([
+        'Child of "A" (0)', // init
+        'Child of "A" (1)', // increment
+        'Child of "B" (1)', // toggle
+        'Child of "B" (2)', // increment
+        'Child of "A" (2)', // toggle
+      ]);
+    });
   });
   describe('queue', () => {
     it('should execute dependant tasks', async () => {
@@ -478,8 +535,7 @@ describe.each([
   });
 
   describe('regression', () => {
-    // TODO(optimizer-test): problem still exists with the optimizer!
-    it.skip('#5782', async () => {
+    it('#5782', async () => {
       const Child = component$(({ sig }: { sig: SignalType<SignalType<number>> }) => {
         const counter = useSignal(0);
         useTask$(({ track }) => {

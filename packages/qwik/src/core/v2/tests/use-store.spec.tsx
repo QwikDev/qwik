@@ -1,13 +1,15 @@
 import { Fragment as Component, Fragment, Fragment as Signal, useTask$ } from '@builder.io/qwik';
 import { describe, expect, it, vi } from 'vitest';
-import { advanceToNextTimerAndFlush, trigger } from '../../../testing/element-fixture';
-import { domRender, ssrRenderToDom } from '../../../testing/rendering.unit-util';
-import '../../../testing/vdom-diff.unit-util';
-import { component$ } from '@builder.io/qwik';
-import type { Signal as SignalType } from '../../state/signal';
-import { untrack } from '../../use/use-core';
-import { useSignal } from '../../use/use-signal';
-import { useStore } from '../../use/use-store.public';
+import { advanceToNextTimerAndFlush } from '../../../testing/element-fixture';
+import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
+import {
+  component$,
+  type Signal as SignalType,
+  untrack,
+  useSignal,
+  useStore,
+  useTask$,
+} from '@builder.io/qwik';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -279,6 +281,187 @@ describe.each([
         </Fragment>
       );
     });
+  });
+
+  describe('SerializationConstant at the start', () => {
+    it('should set the value with SerializationConstant at the start for initial empty value', async () => {
+      const DataCmp = component$(() => {
+        const data = useStore({ logs: '' });
+        return <button onClick$={() => (data.logs = '\n test')}>Data: {data.logs}!</button>;
+      });
+
+      const { vNode, container } = await render(<DataCmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Data: <Signal>{''}</Signal>!
+          </button>
+        </Component>
+      );
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Data: <Signal>{'\n test'}</Signal>!
+          </button>
+        </Component>
+      );
+    });
+
+    it('should set the value with SerializationConstant at the start', async () => {
+      const DataCmp = component$(() => {
+        const data = useStore({ logs: '\n abcd' });
+        return <button onClick$={() => (data.logs = '\n test')}>Data: {data.logs}!</button>;
+      });
+
+      const { vNode, container } = await render(<DataCmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Data: <Signal>{'\n abcd'}</Signal>!
+          </button>
+        </Component>
+      );
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Data: <Signal>{'\n test'}</Signal>!
+          </button>
+        </Component>
+      );
+    });
+
+    it('should update the value with SerializationConstant at the start', async () => {
+      const DataCmp = component$(() => {
+        const data = useStore({ logs: '\n abcd' });
+        return <button onClick$={() => (data.logs += '\n test')}>Data: {data.logs}!</button>;
+      });
+
+      const { vNode, container } = await render(<DataCmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Data: <Signal>{'\n abcd'}</Signal>!
+          </button>
+        </Component>
+      );
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Data: <Signal>{'\n abcd\n test'}</Signal>!
+          </button>
+        </Component>
+      );
+    });
+
+    it('should push the value with SerializationConstant at the start to array', async () => {
+      const DataCmp = component$(() => {
+        const data = useStore({ logs: ['\n abcd'] });
+        return (
+          <button onClick$={() => data.logs.push('\n test')}>
+            Data:
+            {data.logs.map((d) => (
+              <span>{d}</span>
+            ))}
+            !
+          </button>
+        );
+      });
+
+      const { vNode, container } = await render(<DataCmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            {'Data:'}
+            <span>{'\n abcd'}</span>
+            {'!'}
+          </button>
+        </Component>
+      );
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            {'Data:'}
+            <span>{'\n abcd'}</span>
+            <span>{'\n test'}</span>
+            {'!'}
+          </button>
+        </Component>
+      );
+    });
+  });
+
+  it('should deep watch store', async () => {
+    const Cmp = component$(() => {
+      const store = useStore({
+        nested: {
+          fields: { are: 'also tracked' },
+        },
+        list: ['Item 1'],
+      });
+
+      return (
+        <>
+          <p>{store.nested.fields.are}</p>
+          <button
+            id="tracked"
+            onClick$={() => {
+              // Even though we are mutating a nested object, this will trigger a re-render
+              store.nested.fields.are = 'tracked';
+            }}
+          ></button>
+          <button
+            id="add-item"
+            onClick$={() => {
+              // Because store is deep watched, this will trigger a re-render
+              store.list.push(`Item ${store.list.length}`);
+            }}
+          ></button>
+          <ul>
+            {store.list.map((item, key) => (
+              <li key={key}>{item}</li>
+            ))}
+          </ul>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <p>
+            <Signal>also tracked</Signal>
+          </p>
+          <button id="tracked"></button>
+          <button id="add-item"></button>
+          <ul>
+            <li key="0">Item 1</li>
+          </ul>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button#add-item', 'click');
+    await trigger(document.body, 'button#add-item', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <p>
+            <Signal>also tracked</Signal>
+          </p>
+          <button id="tracked"></button>
+          <button id="add-item"></button>
+          <ul>
+            <li key="0">Item 1</li>
+            <li key="1">Item 1</li>
+            <li key="2">Item 2</li>
+          </ul>
+        </Fragment>
+      </Component>
+    );
   });
 
   describe('regression', () => {

@@ -13,7 +13,6 @@ import { build } from '../build';
 import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
-import { patchGlobalThis } from '../../middleware/node/node-fetch';
 import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import {
@@ -41,9 +40,6 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
   let qwikPlugin: QwikVitePlugin | null;
   let ssrFormat: 'esm' | 'cjs' = 'esm';
   let outDir: string | null = null;
-
-  // Patch Stream APIs
-  patchGlobalThis();
 
   globalThis.__qwikCityNew = true;
 
@@ -162,7 +158,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
         const isSwRegister = id.endsWith(QWIK_CITY_SW_REGISTER);
 
         if (isSerializer) {
-          return `export {_deserializeData, _serializeData, _verifySerializable} from '@builder.io/qwik'`;
+          return `export {_deserialize, _serialize, _verifySerializable} from '@builder.io/qwik'`;
         }
         if (isCityPlan || isSwRegister) {
           if (!ctx.isDevServer && ctx.isDirty) {

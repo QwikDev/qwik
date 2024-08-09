@@ -594,26 +594,6 @@ describe.each([
     });
   });
 
-  describe('ref', () => {
-    it('should handle ref prop', async () => {
-      const Cmp = component$(() => {
-        const v = useSignal<Element>();
-        useVisibleTask$(() => {
-          v.value!.textContent = 'Abcd';
-        });
-        return <p ref={v}>Hello Qwik</p>;
-      });
-
-      const { document } = await render(<Cmp />, { debug });
-
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'p', 'qvisible');
-      }
-
-      await expect(document.querySelector('p')).toMatchDOM(<p>Abcd</p>);
-    });
-  });
-
   describe('regression', () => {
     it('#1717 - custom hooks should work', async () => {
       const Issue1717 = component$(() => {

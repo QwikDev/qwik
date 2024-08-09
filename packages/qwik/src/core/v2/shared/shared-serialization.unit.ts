@@ -1,7 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { SerializationConstant, createSerializationContext } from './shared-serialization';
+import {
+  SerializationConstant,
+  _deserialize,
+  _serialize,
+  createSerializationContext,
+} from './shared-serialization';
 import { Task } from '../../use/use-task';
 import { inlinedQrl } from '../../qrl/qrl';
+import { isQrl } from '../../qrl/qrl-class';
 
 const DEBUG = false;
 
@@ -58,6 +64,63 @@ describe('shared-serialization', () => {
         shared1,
         shared2,
       ]);
+    });
+  });
+
+  describe('server side serialization', () => {
+    it('should serialize data', async () => {
+      const serializedData = await _serialize([
+        inlinedQrl(0, 'Root_component_arKLnchfR8k'),
+        undefined,
+        new URL('http://example.com'),
+      ]);
+
+      const stateData = JSON.stringify([
+        SerializationConstant.QRL_CHAR + 'qwik-runtime-mock-chunk#Root_component_arKLnchfR8k',
+        SerializationConstant.UNDEFINED_CHAR,
+        SerializationConstant.URL_CHAR + 'http://example.com/',
+      ]);
+      expect(serializedData).toEqual(stateData);
+    });
+
+    it('should serialize nested data', async () => {
+      const serializedData = await _serialize([
+        { foo: new URL('http://example.com'), bar: [undefined] },
+      ]);
+
+      const stateData = JSON.stringify([
+        {
+          foo: SerializationConstant.URL_CHAR + 'http://example.com/',
+          bar: [SerializationConstant.UNDEFINED_CHAR],
+        },
+      ]);
+      expect(serializedData).toEqual(stateData);
+    });
+  });
+
+  describe('server side deserialization', () => {
+    it('should deserialize data', async () => {
+      const stateData = JSON.stringify([
+        SerializationConstant.QRL_CHAR + 'entry_hooks.js#Root_component_arKLnchfR8k',
+        SerializationConstant.UNDEFINED_CHAR,
+        SerializationConstant.URL_CHAR + 'http://example.com',
+      ]);
+      const deserializedData = _deserialize(stateData) as unknown[];
+      expect(isQrl(deserializedData[0])).toBeTruthy();
+      expect(deserializedData[1]).toBeUndefined();
+      expect(deserializedData[2] instanceof URL).toBeTruthy();
+    });
+
+    it('should deserialize nested data', async () => {
+      const stateData = JSON.stringify([
+        {
+          foo: SerializationConstant.URL_CHAR + 'http://example.com',
+          bar: [SerializationConstant.String_CHAR + 'abcd'],
+        },
+      ]);
+      const [deserializedData] = _deserialize(stateData) as any[];
+      expect(deserializedData.foo instanceof URL).toBeTruthy();
+      expect(deserializedData.bar[0]).toEqual('abcd');
     });
   });
 });

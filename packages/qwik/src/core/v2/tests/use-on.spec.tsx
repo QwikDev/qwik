@@ -1,13 +1,16 @@
 import {
   $,
   Fragment as Component,
+  Fragment,
   Fragment as Signal,
+  Fragment as Awaited,
   component$,
   useOn,
   useOnDocument,
   useOnWindow,
   useSignal,
   useVisibleTask$,
+  useTask$,
 } from '@builder.io/qwik';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../../testing/element-fixture';
@@ -225,6 +228,35 @@ describe.each([
       );
     });
 
+    it('should work with empty component', async () => {
+      const Counter = component$((props: { initial: number }) => {
+        const count = useSignal(props.initial);
+        useOnDocument(
+          'click',
+          $(() => count.value++)
+        );
+        return <>Count: {count.value}!</>;
+      });
+
+      const { vNode, container } = await render(<Counter initial={123} />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            Count: <Signal>{'123'}</Signal>!<script type="placeholder" hidden></script>
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(container.element, 'script', ':document:click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            Count: <Signal>{'124'}</Signal>!<script type="placeholder" hidden></script>
+          </Fragment>
+        </Component>
+      );
+    });
+
     it('should update value with mixed listeners', async () => {
       const Counter = component$((props: { initial: number }) => {
         const count = useSignal(props.initial);
@@ -288,6 +320,35 @@ describe.each([
           <button>
             Count: <Signal>{'124'}</Signal>!
           </button>
+        </Component>
+      );
+    });
+
+    it('should work with empty component', async () => {
+      const Counter = component$((props: { initial: number }) => {
+        const count = useSignal(props.initial);
+        useOnWindow(
+          'click',
+          $(() => count.value++)
+        );
+        return <>Count: {count.value}!</>;
+      });
+
+      const { vNode, container } = await render(<Counter initial={123} />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            Count: <Signal>{'123'}</Signal>!<script type="placeholder" hidden></script>
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(container.element, 'script', ':window:click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            Count: <Signal>{'124'}</Signal>!<script type="placeholder" hidden></script>
+          </Fragment>
         </Component>
       );
     });
@@ -488,5 +549,103 @@ describe.each([
         </button>
       </Component>
     );
+  });
+
+  it('should not add script node in empty components for specific events', async () => {
+    const Cmp = component$(() => {
+      const signal = useSignal('empty');
+      useOn(
+        'click',
+        $(() => {
+          signal.value = 'run';
+        })
+      );
+      return <>{signal.value}</>;
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    await trigger(document.body, 'script', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <Signal>{'empty'}</Signal>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should add event to element returned by promise', async () => {
+    const Cmp = component$(() => {
+      const signal = useSignal('empty');
+      useOn(
+        'click',
+        $(() => {
+          signal.value = 'run';
+        })
+      );
+      return <>{Promise.resolve(<div>{signal.value}</div>)}</>;
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    await trigger(document.body, 'div', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <Awaited>
+            <div>
+              <Signal>{'run'}</Signal>
+            </div>
+          </Awaited>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should add event to element returned by signal', async () => {
+    const Cmp = component$(() => {
+      const signal = useSignal('empty');
+      const jsx = useSignal(<div>{signal.value}</div>);
+      useOn(
+        'click',
+        $(() => {
+          signal.value = 'run';
+        })
+      );
+      return <>{jsx.value}</>;
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    await trigger(document.body, 'div', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <Awaited>
+            <div>
+              <Signal>{'run'}</Signal>
+            </div>
+          </Awaited>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should add only one event', async () => {
+    const Cmp = component$(() => {
+      const signal = useSignal(0);
+      useOn(
+        'click',
+        $(() => {
+          signal.value++;
+        })
+      );
+
+      useTask$(async ({ track }) => {
+        track(() => signal);
+        // rerender component twice
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      return <>{Promise.resolve(<div>{signal.value}</div>)}</>;
+    });
+    const { document } = await render(<Cmp />, { debug });
+    await trigger(document.body, 'div', 'click');
+    await expect(document.querySelector('div')).toMatchDOM(<div>1</div>);
   });
 });

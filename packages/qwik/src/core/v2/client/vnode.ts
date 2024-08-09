@@ -128,10 +128,15 @@ import {
   ELEMENT_KEY,
   ELEMENT_PROPS,
   ELEMENT_SEQ,
+  ELEMENT_SEQ_IDX,
   OnRenderProp,
   QContainerAttr,
   QContainerAttrEnd,
+  QContainerIsland,
+  QContainerIslandEnd,
   QCtxAttr,
+  QIgnore,
+  QIgnoreEnd,
   QScopedStyle,
   QSlot,
   QSlotParent,
@@ -162,6 +167,8 @@ import {
   vnode_getDomChildrenWithCorrectNamespacesToInsert,
   vnode_getElementNamespaceFlags,
 } from './vnode-namespace';
+import { escapeHTML } from '../shared/character-escaping';
+import { SignalImpl } from '../../state/signal';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -185,7 +192,7 @@ export type VNodeJournal = Array<VNodeJournalOpCode | Document | Element | Text 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const vnode_newElement = (element: Element, tag: string): ElementVNode => {
+export const vnode_newElement = (element: Element, elementName: string): ElementVNode => {
   assertEqual(fastNodeType(element), 1 /* ELEMENT_NODE */, 'Expecting element node.');
   const vnode: ElementVNode = VNodeArray.createElement(
     VNodeFlags.Element | VNodeFlags.Inflated | (-1 << VNodeFlagsIndex.shift), // Flag
@@ -195,7 +202,7 @@ export const vnode_newElement = (element: Element, tag: string): ElementVNode =>
     null,
     null,
     element,
-    tag
+    elementName
   );
   assertTrue(vnode_isElementVNode(vnode), 'Incorrect format of ElementVNode.');
   assertFalse(vnode_isTextVNode(vnode), 'Incorrect format of ElementVNode.');
@@ -399,6 +406,53 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
     }
   }
 };
+
+/** Walks the VNode tree and materialize it using `vnode_getFirstChild`. */
+export function vnode_walkVNode(vNode: VNode) {
+  let vCursor: VNode | null = vNode;
+  // Depth first traversal
+  if (vnode_isTextVNode(vNode)) {
+    // Text nodes don't have subscriptions or children;
+    return;
+  }
+  let vParent: VNode | null = null;
+  do {
+    const vFirstChild = vnode_getFirstChild(vCursor);
+    if (vFirstChild) {
+      vCursor = vFirstChild;
+      continue;
+    }
+    // Out of children
+    if (vCursor === vNode) {
+      // we are where we started, this means that vNode has no children, so we are done.
+      return;
+    }
+    // Out of children, go to next sibling
+    const vNextSibling = vnode_getNextSibling(vCursor);
+    if (vNextSibling) {
+      vCursor = vNextSibling;
+      continue;
+    }
+    // Out of siblings, go to parent
+    vParent = vnode_getParent(vCursor);
+    while (vParent) {
+      if (vParent === vNode) {
+        // We are back where we started, we are done.
+        return;
+      }
+      const vNextParentSibling = vnode_getNextSibling(vParent);
+      if (vNextParentSibling) {
+        vCursor = vNextParentSibling;
+        break;
+      }
+      vParent = vnode_getParent(vParent);
+    }
+    if (vParent == null) {
+      // We are done.
+      return;
+    }
+  } while (true as boolean);
+}
 
 export function vnode_getDOMChildNodes(
   journal: VNodeJournal,
@@ -614,10 +668,10 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
     refElement = id;
   }
   assertDefined(refElement, 'Missing refElement.');
-  if (!Array.isArray(refElement)) {
+  if (!vnode_isVNode(refElement)) {
     assertTrue(
       containerElement.contains(refElement),
-      'refElement must be a child of containerElement.'
+      `Couldn't find the element inside the container while locating the VNode.`
     );
     // We need to find the vnode.
     let parent = refElement;
@@ -842,7 +896,7 @@ export const vnode_applyJournal = (journal: VNodeJournal) => {
         if (isBooleanAttr(element, key)) {
           (element as any)[key] = parseBoolean(value);
         } else if (key === 'value' && key in element) {
-          (element as any).value = String(value);
+          (element as any).value = escapeHTML(String(value));
         } else if (key === dangerouslySetInnerHTML) {
           (element as any).innerHTML = value!;
         } else {
@@ -1233,6 +1287,9 @@ export const fastNextSibling = (node: Node | null): Node | null => {
   if (!_fastNextSibling) {
     _fastNextSibling = fastGetter<typeof _fastNextSibling>(node, 'nextSibling')!;
   }
+  if (!_fastFirstChild) {
+    _fastFirstChild = fastGetter<typeof _fastFirstChild>(node, 'firstChild')!;
+  }
   while (node) {
     node = _fastNextSibling.call(node);
     if (node !== null) {
@@ -1240,7 +1297,12 @@ export const fastNextSibling = (node: Node | null): Node | null => {
       if (type === /* Node.TEXT_NODE */ 3 || type === /* Node.ELEMENT_NODE */ 1) {
         break;
       } else if (type === /* Node.COMMENT_NODE */ 8) {
-        if (node.nodeValue?.startsWith(QContainerAttr)) {
+        const nodeValue = node.nodeValue;
+        if (nodeValue?.startsWith(QIgnore)) {
+          return getNodeAfterCommentNode(node, QContainerIsland, _fastNextSibling, _fastFirstChild);
+        } else if (node.nodeValue?.startsWith(QContainerIslandEnd)) {
+          return getNodeAfterCommentNode(node, QIgnoreEnd, _fastNextSibling, _fastFirstChild);
+        } else if (nodeValue?.startsWith(QContainerAttr)) {
           while (node && (node = _fastNextSibling.call(node))) {
             if (
               fastNodeType(node) === /* Node.COMMENT_NODE */ 8 &&
@@ -1254,6 +1316,41 @@ export const fastNextSibling = (node: Node | null): Node | null => {
     }
   }
   return node;
+};
+
+function getNodeAfterCommentNode(
+  node: Node | null,
+  commentValue: string,
+  nextSibling: NonNullable<typeof _fastNextSibling>,
+  firstChild: NonNullable<typeof _fastFirstChild>
+): Node | null {
+  while (node) {
+    if (node.nodeValue?.startsWith(commentValue)) {
+      node = nextSibling.call(node) || null;
+      return node;
+    }
+
+    let nextNode: Node | null = firstChild.call(node);
+    if (!nextNode) {
+      nextNode = nextSibling.call(node);
+    }
+    if (!nextNode) {
+      nextNode = fastParentNode(node);
+      if (nextNode) {
+        nextNode = nextSibling.call(nextNode);
+      }
+    }
+    node = nextNode;
+  }
+  return null;
+}
+
+let _fastParentNode: ((this: Node) => Node | null) | null = null;
+const fastParentNode = (node: Node): Node | null => {
+  if (!_fastParentNode) {
+    _fastParentNode = fastGetter<typeof _fastParentNode>(node, 'parentNode')!;
+  }
+  return _fastParentNode.call(node);
 };
 
 let _fastFirstChild: ((this: Node) => Node | null) | null = null;
@@ -1641,6 +1738,8 @@ function materializeFromVNodeData(
       vnode_setAttr(null, vParent, ELEMENT_KEY, consumeValue());
     } else if (peek() === VNodeDataChar.SEQ) {
       vnode_setAttr(null, vParent, ELEMENT_SEQ, consumeValue());
+    } else if (peek() === VNodeDataChar.SEQ_IDX) {
+      vnode_setAttr(null, vParent, ELEMENT_SEQ_IDX, consumeValue());
     } else if (peek() === VNodeDataChar.CONTEXT) {
       vnode_setAttr(null, vParent, QCtxAttr, consumeValue());
     } else if (peek() === VNodeDataChar.OPEN) {
@@ -1813,10 +1912,10 @@ const VNodeArray = class VNode extends Array {
     firstChild: VNode | null | undefined,
     lastChild: VNode | null | undefined,
     element: Element,
-    tag: string | undefined
+    elementName: string | undefined
   ) {
     const vnode = new VNode(flags, parent, previousSibling, nextSibling) as any;
-    vnode.push(firstChild, lastChild, element, tag);
+    vnode.push(firstChild, lastChild, element, elementName);
     return vnode;
   }
 

@@ -17,15 +17,7 @@ import { trackSignal2 } from '../../use/use-core';
 import { isAsyncGenerator } from '../../util/async-generator';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
-import {
-  ELEMENT_KEY,
-  FLUSH_COMMENT,
-  QContainerAttr,
-  QContainerAttrEnd,
-  QDefaultSlot,
-  QScopedStyle,
-  QSlot,
-} from '../../util/markers';
+import { ELEMENT_KEY, FLUSH_COMMENT, QDefaultSlot, QScopedStyle, QSlot } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { isFunction, type ValueOrPromise } from '../../util/types';
 import {
@@ -36,10 +28,11 @@ import {
 } from '../shared/event-names';
 import { addComponentStylePrefix, hasClassAttr, isClassAttr } from '../shared/scoped-styles';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
-import { DEBUG_TYPE, QContainerValue, VirtualType, type fixMeAny } from '../shared/types';
+import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { DerivedSignal2, EffectProperty, isSignal2 } from '../signal/v2-signal';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
+import { qInspector } from '../../util/qdev';
 
 class SetScopedStyle {
   constructor(public $scopedStyle$: string | null) {}
@@ -144,12 +137,13 @@ function processJSXNode(
       // TODO(mhevery): It is unclear to me why we need to serialize host for SignalDerived.
       // const host = ssr.getComponentFrame(0)!.componentNode as fixMeAny;
       enqueue(ssr.closeFragment);
-      enqueue(trackSignal2(() => (value.value as any), signalNode, EffectProperty.VNODE, ssr));
+      enqueue(trackSignal2(() => value.value as any, signalNode, EffectProperty.VNODE, ssr));
     } else if (isPromise(value)) {
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Awaited] : EMPTY_ARRAY);
       enqueue(ssr.closeFragment);
       enqueue(value);
       enqueue(Promise);
+      enqueue(() => ssr.commentNode(FLUSH_COMMENT));
     } else if (isAsyncGenerator(value)) {
       enqueue(async () => {
         for await (const chunk of value) {
@@ -171,6 +165,8 @@ function processJSXNode(
           }
           jsx.constProps['class'] = '';
         }
+
+        appendQwikInspectorAttribute(jsx);
 
         const innerHTML = ssr.openElement(
           type,
@@ -256,10 +252,9 @@ function processJSXNode(
           enqueue(value as StackValue);
           isPromise(value) && enqueue(Promise);
         } else if (type === SSRRaw) {
-          ssr.commentNode(QContainerAttr + '=' + QContainerValue.HTML);
           ssr.htmlNode(jsx.props.data as string);
-          ssr.commentNode(QContainerAttrEnd);
         } else if (isQwikComponent(type)) {
+          // prod: use new instance of an array for props, we always modify props for a component
           ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
           const host = ssr.getLastNode();
           ssr.getComponentFrame(0)!.distributeChildrenIntoSlots(jsx.children, styleScoped);
@@ -497,4 +492,18 @@ function getSlotName(host: ISsrNode, jsx: JSXNode, ssr: SSRContainer): string {
     }
   }
   return (jsx.props.name as string) || QDefaultSlot;
+}
+
+function appendQwikInspectorAttribute(jsx: JSXNode) {
+  if (isDev && qInspector && jsx.dev && jsx.type !== 'head') {
+    const sanitizedFileName = jsx.dev.fileName?.replace(/\\/g, '/');
+    const qwikInspectorAttr = 'data-qwik-inspector';
+    if (sanitizedFileName && !(qwikInspectorAttr in jsx.props)) {
+      if (!jsx.constProps) {
+        jsx.constProps = {};
+      }
+      jsx.constProps[qwikInspectorAttr] =
+        `${sanitizedFileName}:${jsx.dev.lineNumber}:${jsx.dev.columnNumber}`;
+    }
+  }
 }

@@ -1,7 +1,7 @@
 import { assertEqual } from '../error/assert';
 import { tryGetInvokeContext } from '../use/use-core';
 import { logWarn } from '../util/log';
-import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
+import { ComputedEvent, RenderEvent } from '../util/markers';
 import { qDev, qSerialize } from '../util/qdev';
 import { isObject } from '../util/types';
 import { DerivedSignal2, isSignal2 } from '../v2/signal/v2-signal';
@@ -16,7 +16,18 @@ import {
 } from './common';
 import { QObjectManagerSymbol, _CONST_PROPS } from './constants';
 
-/** @public */
+/**
+ * A signal is a reactive value which can be read and written. When the signal is written, all tasks
+ * which are tracking the signal will be re-run and all components that read the signal will be
+ * re-rendered.
+ *
+ * Furthermore, when a signal value is passed as a prop to a component, the optimizer will
+ * automatically forward the signal. This means that `return <div title={signal.value}>hi</div>`
+ * will update the `title` attribute when the signal changes without having to re-render the
+ * component.
+ *
+ * @public
+ */
 export interface Signal<T = any> {
   value: T;
 }
@@ -103,17 +114,12 @@ export class SignalImpl<T> extends SignalBase implements Signal<T> {
         if (invokeCtx.$event$ === RenderEvent) {
           logWarn(
             'State mutation inside render function. Use useTask$() instead.',
-            invokeCtx.$hostElement$
+            String(invokeCtx.$hostElement$)
           );
         } else if (invokeCtx.$event$ === ComputedEvent) {
           logWarn(
             'State mutation inside useComputed$() is an antipattern. Use useTask$() instead',
-            invokeCtx.$hostElement$
-          );
-        } else if (invokeCtx.$event$ === ResourceEvent) {
-          logWarn(
-            'State mutation inside useResource$() is an antipattern. Use useTask$() instead',
-            invokeCtx.$hostElement$
+            String(invokeCtx.$hostElement$)
           );
         }
       }
@@ -204,7 +210,10 @@ export const isSignal = <T = unknown>(obj: any): obj is Signal<T> => {
 const getProp = (obj: any, prop: string) => obj[prop];
 
 /** @internal */
-export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P): any => {
+export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(
+  obj: T,
+  prop: P | undefined = 'value' as P
+): any => {
   if (!isObject(obj)) {
     return obj[prop];
   }

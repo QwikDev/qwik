@@ -40,11 +40,9 @@ import { dollar, type QRL } from '../qrl/qrl.public';
  * @public
  */
 // </docs>
-export const implicit$FirstArg: <FIRST, REST extends any[], RET>(
-  fn: (first: QRL<FIRST>, ...rest: REST) => RET
-) => (first: FIRST, ...rest: REST) => RET = <FIRST, REST extends any[], RET>(
-  fn: (first: QRL<FIRST>, ...rest: REST) => RET
-): ((first: FIRST, ...rest: REST) => RET) => {
+export const implicit$FirstArg = <FIRST, REST extends any[], RET>(
+  fn: (qrl: QRL<FIRST>, ...rest: REST) => RET
+): ((qrl: FIRST, ...rest: REST) => RET) => {
   return function (first: FIRST, ...rest: REST): RET {
     return fn.call(null, dollar(first), ...rest);
   };

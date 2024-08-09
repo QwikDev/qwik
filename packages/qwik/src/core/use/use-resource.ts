@@ -1,7 +1,7 @@
 import { isServerPlatform } from '../platform/platform';
 import { assertQrl } from '../qrl/qrl-class';
 import { dollar, type QRL } from '../qrl/qrl.public';
-import { Fragment, jsx } from '../render/jsx/jsx-runtime';
+import { Fragment, _jsxSorted } from '../render/jsx/jsx-runtime';
 import { untrack, useBindInvokeContext } from './use-core';
 import {
   Task,
@@ -21,7 +21,14 @@ import { createProxy, type StoreTracker } from '../state/store';
 import { isPromise } from '../util/promises';
 import { isObject } from '../util/types';
 import { useSequentialScope } from './use-sequential-scope';
-import { EMPTY_ARRAY } from '../util/flyweight';
+import type { fixMeAny } from '../../server/qwik-types';
+
+const DEBUG: boolean = false;
+
+function debugLog(...arg: any) {
+  // eslint-disable-next-line no-console
+  console.log(arg.join(', '));
+}
 
 /**
  * Options to pass to `useResource$()`
@@ -49,9 +56,12 @@ export interface ResourceOptions {
  *
  * The status can be one of the following:
  *
- * - 'pending' - the data is not yet available.
- * - 'resolved' - the data is available.
- * - 'rejected' - the data is not available due to an error or timeout.
+ * - `pending` - the data is not yet available.
+ * - `resolved` - the data is available.
+ * - `rejected` - the data is not available due to an error or timeout.
+ *
+ * Avoid using a `try/catch` statement in `useResource$`. If you catch the error instead of passing
+ * it, the resource status will never be `rejected`.
  *
  * ### Example
  *
@@ -96,14 +106,14 @@ export const useResourceQrl = <T>(
   qrl: QRL<ResourceFn<T>>,
   opts?: ResourceOptions
 ): ResourceReturn<T> => {
-  const { val, set, i, iCtx, elCtx } = useSequentialScope<ResourceReturn<T>>();
+  const { val, set, i, iCtx } = useSequentialScope<ResourceReturn<T>>();
   if (val != null) {
     return val;
   }
   assertQrl(qrl);
 
-  const containerState = iCtx.$container2$ || iCtx.$renderCtx$.$static$.$containerState$;
-  const resource = createResourceReturn<T>(containerState, opts);
+  const container = iCtx.$container2$;
+  const resource = createResourceReturn<T>(container, opts);
   const el = iCtx.$hostElement$;
   const task = new Task(
     TaskFlags.DIRTY | TaskFlags.RESOURCE,
@@ -113,14 +123,7 @@ export const useResourceQrl = <T>(
     resource,
     null
   ) as ResourceDescriptor<any>;
-  const previousWait = Promise.all(iCtx.$waitOn$ ? iCtx.$waitOn$.slice() : EMPTY_ARRAY);
-  runResource(task, containerState, iCtx.$renderCtx$, previousWait);
-  if (!iCtx.$container2$) {
-    if (!elCtx.$tasks$) {
-      elCtx.$tasks$ = [];
-    }
-    elCtx.$tasks$.push(task);
-  }
+  runResource(task, container, iCtx.$hostElement$ as fixMeAny);
   set(resource);
 
   return resource;
@@ -252,48 +255,48 @@ export interface ResourceProps<T> {
  */
 // </docs>
 export const Resource = <T>(props: ResourceProps<T>): JSXOutput => {
-  const isBrowser = !isServerPlatform();
+  // Resource path
+  return _jsxSorted(Fragment, null, null, getResourceValueAsPromise(props), 0, null);
+};
+
+function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutput> | JSXOutput {
   const resource = props.value as ResourceReturnInternal<T> | Promise<T> | Signal<T>;
-  let promise: Promise<T> | undefined;
   if (isResourceReturn(resource)) {
+    const isBrowser = !isServerPlatform();
     if (isBrowser) {
-      if (props.onRejected) {
-        resource.value.catch(() => {});
-        if (resource._state === 'rejected') {
-          return props.onRejected(resource._error!);
-        }
-      }
-      if (props.onPending) {
-        const state = resource._state;
-        if (state === 'resolved') {
-          return props.onResolved(resource._resolved!);
-        } else if (state === 'pending') {
-          return props.onPending();
-        } else if (state === 'rejected') {
-          throw resource._error;
-        }
-      }
-      if (untrack(() => resource._resolved) !== undefined) {
-        return props.onResolved(resource._resolved!);
+      const state = resource._state;
+      DEBUG && debugLog(`RESOURCE_CMP.${state}`, 'VALUE: ' + untrack(() => resource._resolved));
+
+      if (state === 'pending' && props.onPending) {
+        return Promise.resolve(props.onPending());
+      } else if (state === 'rejected' && props.onRejected) {
+        return Promise.resolve(resource._error!).then(props.onRejected);
+      } else {
+        // resolved, pending without onPending prop or rejected with onRejected prop
+        return Promise.resolve(resource._resolved as T).then(props.onResolved);
       }
     }
-    promise = resource.value;
-  } else if (isPromise(resource)) {
-    promise = resource;
-  } else if (isSignal(resource)) {
-    promise = Promise.resolve(resource.value);
-  } else {
-    return props.onResolved(resource as T);
-  }
-
-  // Resource path
-  return jsx(Fragment, {
-    children: promise.then(
+    return resource.value.then(
       useBindInvokeContext(props.onResolved),
       useBindInvokeContext(props.onRejected)
-    ),
-  });
-};
+    );
+  } else if (isPromise(resource)) {
+    return resource.then(
+      useBindInvokeContext(props.onResolved),
+      useBindInvokeContext(props.onRejected)
+    );
+  } else if (isSignal(resource)) {
+    return Promise.resolve(resource.value).then(
+      useBindInvokeContext(props.onResolved),
+      useBindInvokeContext(props.onRejected)
+    );
+  } else {
+    return Promise.resolve(resource as T).then(
+      useBindInvokeContext(props.onResolved),
+      useBindInvokeContext(props.onRejected)
+    );
+  }
+}
 
 export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturnInternal<T> => {
   const resource: ResourceReturnInternal<T> = {
@@ -315,7 +318,7 @@ export const createResourceReturn = <T>(
   initialPromise?: Promise<T>
 ): ResourceReturnInternal<T> => {
   const result = _createResourceReturn<T>(opts);
-  result.value = initialPromise as any;
+  result.value = initialPromise as Promise<T>;
   const resource = createProxy(result, containerState, undefined);
   return resource;
 };
@@ -328,6 +331,7 @@ export const isResourceReturn = (obj: any): obj is ResourceReturn<unknown> => {
   return isObject(obj) && (getProxyTarget(obj as any) || obj).__brand === 'resource';
 };
 
+// TODO: to remove - serializers v1
 export const serializeResource = (
   resource: ResourceReturnInternal<unknown>,
   getObjId: GetObjID
@@ -342,9 +346,10 @@ export const serializeResource = (
   }
 };
 
+// TODO: to remove - serializers v1
 export const parseResourceReturn = <T>(data: string): ResourceReturnInternal<T> => {
   const [first, id] = data.split(' ');
-  const result = _createResourceReturn<T>(undefined);
+  const result = _createResourceReturn<T>();
   result.value = Promise.resolve() as any;
   if (first === '0') {
     result._state = 'resolved';

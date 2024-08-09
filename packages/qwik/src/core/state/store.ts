@@ -3,13 +3,10 @@ import { assertEqual, assertNumber, assertTrue } from '../error/assert';
 import { QError_immutableProps, qError } from '../error/error';
 import { tryGetInvokeContext } from '../use/use-core';
 import { logError, logWarn } from '../util/log';
-import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
+import { ComputedEvent, RenderEvent } from '../util/markers';
 import { qDev, qSerialize } from '../util/qdev';
 import { isArray, isObject, isSerializableObject } from '../util/types';
-import {
-  SERIALIZER_PROXY_UNWRAP,
-  SerializationConstant,
-} from '../v2/shared/shared-serialization';
+import { SERIALIZER_PROXY_UNWRAP, SerializationConstant } from '../v2/shared/shared-serialization';
 import {
   LocalSubscriptionManager,
   fastSkipSerialize,
@@ -76,7 +73,7 @@ export const createProxy = <T extends object>(
   const getSerializedState = (target: object): string | undefined => {
     return (target as any)[SerializationConstant.Store_CHAR];
   };
-  const subscriptionManagerFromString: any = null!
+  const subscriptionManagerFromString: any = null!;
   const removeSerializedState = (target: object) => {
     delete (target as any)[SerializationConstant.Store_CHAR];
   };
@@ -105,7 +102,7 @@ export const createProxy = <T extends object>(
       serializedArrayTarget,
       new ReadWriteProxyHandler(storeTracker, manager)
     ) as T;
-    storeTracker.$proxyMap$.set(serializedArrayTarget, proxy);
+    storeTracker.$proxyMap$.set(target, proxy);
     const serializedState = getSerializedState(target);
     if (serializedState) {
       addSubscriptions(serializedState, target, serializedArrayTarget);
@@ -183,22 +180,14 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     const invokeCtx = tryGetInvokeContext();
     const recursive = (flags & QObjectRecursive) !== 0;
     const immutable = (flags & QObjectImmutable) !== 0;
-    const hiddenSignal = target['_IMMUTABLE_PREFIX' + prop];
     let subscriber: Subscriber | undefined | null;
-    let value;
     if (invokeCtx) {
       subscriber = invokeCtx.$subscriber$;
     }
     if (immutable && (!(prop in target) || immutableValue(target[_CONST_PROPS]?.[prop]))) {
       subscriber = null;
     }
-    if (hiddenSignal) {
-      assertTrue(isSignal(hiddenSignal), '$$ prop must be a signal');
-      value = hiddenSignal.value;
-      subscriber = null;
-    } else {
-      value = target[prop];
-    }
+    const value = target[prop];
     if (subscriber) {
       const isA = isArray(target);
       this.$manager$.$addSub$(subscriber, isA ? undefined : prop);
@@ -207,6 +196,8 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   }
 
   set(target: TargetType, prop: string | symbol, newValue: any): boolean {
+    // we need deserializer proxy only to get the value, not to set it
+    target = unwrapDeserializerProxy(target) as TargetType;
     if (typeof prop === 'symbol') {
       target[prop] = newValue;
       return true;
@@ -233,12 +224,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
         } else if (invokeCtx.$event$ === ComputedEvent) {
           logWarn(
             'State mutation inside useComputed$() is an antipattern. Use useTask$() instead',
-            invokeCtx.$hostElement$
-          );
-        } else if (invokeCtx.$event$ === ResourceEvent) {
-          logWarn(
-            'State mutation inside useResource$() is an antipattern. Use useTask$() instead',
-            invokeCtx.$hostElement$
+            String(invokeCtx.$hostElement$)
           );
         }
       }
@@ -266,12 +252,6 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     if (hasOwnProperty.call(target, property)) {
       return true;
     }
-    if (
-      typeof property === 'string' &&
-      hasOwnProperty.call(target, '_IMMUTABLE_PREFIX' + property)
-    ) {
-      return true;
-    }
     return false;
   }
 
@@ -289,14 +269,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
         this.$manager$.$addSub$(subscriber);
       }
     }
-    if (isArray(target)) {
-      return Reflect.ownKeys(target);
-    }
-    return Reflect.ownKeys(target).map((a) => {
-      return typeof a === 'string' && a.startsWith('_IMMUTABLE_PREFIX')
-        ? a.slice('_IMMUTABLE_PREFIX'.length)
-        : a;
-    });
+    return Reflect.ownKeys(target);
   }
 
   getOwnPropertyDescriptor(

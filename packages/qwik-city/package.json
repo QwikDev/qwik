@@ -8,19 +8,18 @@
     "@types/mdx": "^2.0.13",
     "source-map": "0.7.4",
     "svgo": "^3.2.0",
-    "undici": "*",
     "vfile": "^6.0.1",
     "vite": "^5.2.11",
     "vite-imagetools": "^6.2.9",
-    "zod": "^3.23.6"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@azure/functions": "^3.5.1",
     "@builder.io/qwik": "workspace:^",
-    "@microsoft/api-extractor": "^7.43.1",
+    "@microsoft/api-extractor": "7.43.1",
     "@netlify/edge-functions": "^2.3.1",
     "@types/mdast": "^4.0.1",
-    "@types/node": "^20.12.8",
+    "@types/node": "^20.14.1",
     "@types/refractor": "^3.4.1",
     "@types/set-cookie-parser": "^2.4.7",
     "estree-util-value-to-estree": "3.1.1",
@@ -43,7 +42,7 @@
     "yaml": "^2.4.2"
   },
   "engines": {
-    "node": ">=16.8.0 <18.0.0 || >=18.11"
+    "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
   },
   "exports": {
     ".": {

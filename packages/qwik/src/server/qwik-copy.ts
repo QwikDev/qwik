@@ -20,6 +20,7 @@ export {
   ELEMENT_KEY,
   ELEMENT_PROPS,
   ELEMENT_SEQ,
+  ELEMENT_SEQ_IDX,
   OnRenderProp,
   QContainerAttr,
   QCtxAttr,
@@ -50,3 +51,4 @@ export {
 export { DEBUG_TYPE, VirtualType, QContainerValue } from '../core/v2/shared/types';
 export { VNodeDataChar } from '../core/v2/shared/vnode-data-types';
 export { VNodeDataSeparator } from '../core/v2/shared/vnode-data-types';
+export { escapeHTML } from '../core/v2/shared/character-escaping';

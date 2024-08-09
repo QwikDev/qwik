@@ -20,8 +20,7 @@ describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: useComputed', ({ render }) => {
-  // TODO: for some reason there is an infinity loop
-  it.skip('should compute signals synchronously', async () => {
+  it('should compute signals synchronously', async () => {
     const Counter = component$(() => {
       const count = useSignal(123);
       const doubleCount = useComputedQrl<number>(

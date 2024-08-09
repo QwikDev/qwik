@@ -46,15 +46,6 @@ export const createSignal2 = (value?: any) => {
 };
 
 export const createComputedSignal2 = <T>(qrl: QRL<() => T>) => {
-  const resolved = qrl.resolved;
-  if (!resolved) {
-    // When we are creating a signal using a use method, we need to ensure
-    // that the computation can be lazy and therefore we need to unsure
-    // that the QRL is resolved.
-    // When we re-create the signal from serialization (we don't create the signal
-    // using useMethod) it is OK to not resolve it until the graph is marked as dirty.
-    throw qrl.resolve();
-  }
   return new ComputedSignal2(null, qrl as QRLInternal<() => T>);
 };
 

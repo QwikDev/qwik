@@ -436,7 +436,18 @@ export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal2
   }
   assertQrl(qrl);
   const signal = createComputed2Qrl(qrl);
-  return set(signal);
+  set(signal);
+
+  const resolved = qrl.resolved;
+  if (!resolved) {
+    // When we are creating a signal using a use method, we need to ensure
+    // that the computation can be lazy and therefore we need to unsure
+    // that the QRL is resolved.
+    // When we re-create the signal from serialization (we don't create the signal
+    // using useMethod) it is OK to not resolve it until the graph is marked as dirty.
+    throw qrl.resolve();
+  }
+  return signal;
 };
 
 // <docs markdown="../readme.md#useVisibleTask">

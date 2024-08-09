@@ -775,5 +775,21 @@
     },
     "href": "https://www.placementpreparation.io/",
     "tags": "aptitude,learning,platform"
+  },
+  {
+    "title": "さけのわ",
+    "imgSrc": "/showcases/sakenowa_com.webp",
+    "perf": {
+      "score": 0.99,
+      "fcpDisplay": "1.5 s",
+      "fcpScore": 0.95,
+      "lcpDisplay": "1.5 s",
+      "lcpScore": 0.99,
+      "ttiDisplay": "1.7 s",
+      "ttiScore": 1,
+      "ttiTime": 1673.9
+    },
+    "href": "https://sakenowa.com",
+    "tags": "sns,app"
   }
 ]

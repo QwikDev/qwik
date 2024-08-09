@@ -24,12 +24,17 @@ export async function runBuildCommand(app: AppCommand) {
   const isPreviewBuild = app.args.includes('preview');
   const buildLibScript = getScript('build.lib');
   const isLibraryBuild = !!buildLibScript;
-  const buildClientScript = getScript('build.client');
-  const buildPreviewScript = isPreviewBuild ? getScript('build.preview') : undefined;
-  const buildServerScript = !isPreviewBuild ? getScript('build.server') : undefined;
-  const buildStaticScript = getScript('build.static');
+  const buildClientCommand = app.getArg("client-script") || "build.client"
+  const buildTypesCommand = app.getArg("types-script") || "build.types"
+  const buildPreviewCommand = app.getArg("preview-script") || "build.preview"
+  const buildServerCommand = app.getArg("server-script") || "build.server"
+  const buildStaticCommand = app.getArg("static-script") || "build.static"
+  const buildClientScript = getScript(buildClientCommand);
+  const buildPreviewScript = isPreviewBuild ? getScript(buildPreviewCommand) : undefined;
+  const buildServerScript = !isPreviewBuild ? getScript(buildServerCommand) : undefined;
+  const buildStaticScript = getScript(buildStaticCommand);
   const runSsgScript = getScript('ssg');
-  const buildTypes = getScript('build.types');
+  const buildTypes = getScript(buildTypesCommand);
   const lint = getScript('lint');
   const mode = app.getArg('mode');
 
@@ -55,12 +60,12 @@ export async function runBuildCommand(app: AppCommand) {
 
   if (!isLibraryBuild && !buildClientScript) {
     console.log(pkgJsonScripts);
-    throw new Error(`"build.client" script not found in package.json`);
+    throw new Error(`"${buildClientCommand}" script not found in package.json`);
   }
 
   if (isPreviewBuild && !buildPreviewScript && !buildStaticScript) {
     throw new Error(
-      `Neither "build.preview" or "build.static" script found in package.json for preview`
+      `Neither "${buildPreviewCommand}" or "${buildStaticCommand}" script found in package.json for preview`
     );
   }
 

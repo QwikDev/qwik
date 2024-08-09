@@ -594,6 +594,9 @@ importers:
       undici:
         specifier: '*'
         version: 6.6.2
+      valibot:
+        specifier: '>=0.33.0 <2'
+        version: 0.33.3
       vfile:
         specifier: 6.0.1
         version: 6.0.1
@@ -6540,7 +6543,6 @@ packages:
 
   libsql@0.3.18:
     resolution: {integrity: sha512-lvhKr7WV3NLWRbXkjn/MeKqXOAqWKU0PX9QYrvDh7fneukapj+iUQ4qgJASrQyxcCrEsClXCQiiK5W6OoYPAlA==}
-    cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
 
   light-my-request@5.11.1:

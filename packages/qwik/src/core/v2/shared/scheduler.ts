@@ -101,6 +101,7 @@ import { executeComponent2 } from './component-execution';
 import type { Container2, HostElement, fixMeAny } from './types';
 import { EffectSubscriptionsProp, isSignal2, type EffectSubscriptions } from '../signal/v2-signal';
 import { serializeAttribute } from '../../render/execute-component';
+import { type DomContainer } from '../client/dom-container';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -159,8 +160,7 @@ export const createScheduler = (
   function schedule(
     type: ChoreType.QRL_RESOLVE,
     ignore0: null,
-    ignore1: null,
-    promise: Promise<any>
+    ignore1: QRLInternal<any>
   ): ValueOrPromise<void>;
   function schedule(type: ChoreType.JOURNAL_FLUSH): ValueOrPromise<void>;
   function schedule(type: ChoreType.WAIT_FOR_ALL): ValueOrPromise<void>;
@@ -331,7 +331,7 @@ export const createScheduler = (
         if (isSignal2(jsx)) {
           jsx = jsx.value as any;
         }
-        returnValue = vnode_diff(container as fixMeAny, jsx, parentVirtualNode, null);
+        returnValue = vnode_diff(container as DomContainer, jsx, parentVirtualNode, null);
         break;
       case ChoreType.NODE_PROP:
         const virtualNode = chore.$host$ as VirtualVNode;
@@ -339,12 +339,16 @@ export const createScheduler = (
         if (isSignal2(value)) {
           value = value.value as any;
         }
-        // TODO(mhevery): Fix this hack
-        const journal = (container as fixMeAny).$journal$ as fixMeAny;
+        const journal = (container as DomContainer).$journal$;
         const property = chore.$idx$ as string;
         value = serializeAttribute(property, value);
         vnode_setAttr(journal, virtualNode, property, value);
         break;
+      case ChoreType.QRL_RESOLVE: {
+        const target = chore.$target$ as QRLInternal<any>;
+        returnValue = target.resolve();
+        break;
+      }
     }
     return maybeThenPassError(returnValue, (value) => {
       DEBUG && debugTrace('execute.DONE', null, currentChore, choreQueue);

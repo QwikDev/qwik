@@ -242,8 +242,11 @@ export const triggerEffects = (
         // we don't schedule ComputedSignal/DerivedSignal directly, instead we invalidate it and
         // and schedule the signals effects (recursively)
         if (effect instanceof ComputedSignal2) {
-          // TODO(misko): ensure that the computed signal's QRL is resolved.
-          // If not resolved scheduled it to be resolved.
+          // Ensure that the computed signal's QRL is resolved.
+          // If not resolved schedule it to be resolved.
+          if (!effect.$computeQrl$.resolved) {
+            container.$scheduler$(ChoreType.QRL_RESOLVE, null, effect.$computeQrl$);
+          }
         }
         (effect as ComputedSignal2<unknown> | DerivedSignal2<unknown>).$invalid$ = true;
         const previousSignal = signal;

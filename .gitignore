@@ -51,5 +51,6 @@ test-results
 .netlify
 sandbox
 
+.gitpod.yml
 # We need to ignore this because "changesets" will try to replace it
 /CHANGELOG.md

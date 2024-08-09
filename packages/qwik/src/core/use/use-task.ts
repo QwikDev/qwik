@@ -29,12 +29,8 @@ import { delay, isPromise, maybeThen, safeCall } from '../util/promises';
 import { isFunction, isObject, type ValueOrPromise } from '../util/types';
 import { ChoreType } from '../v2/shared/scheduler';
 import { isContainer2, type Container2, type HostElement, type fixMeAny } from '../v2/shared/types';
-import { EffectProperty } from '../v2/signal/v2-signal';
-import {
-  createComputed2Qrl,
-  type ReadonlySignal2,
-  type Signal2,
-} from '../v2/signal/v2-signal.public';
+import { ComputedSignal2, EffectProperty, throwIfQRLNotResolved } from '../v2/signal/v2-signal';
+import { type ReadonlySignal2, type Signal2 } from '../v2/signal/v2-signal.public';
 import { invoke, newInvokeContext, untrack, waitAndRun } from './use-core';
 import { useOn, useOnDocument } from './use-on';
 import { useSequentialScope } from './use-sequential-scope';
@@ -435,18 +431,10 @@ export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal2
     return val;
   }
   assertQrl(qrl);
-  const signal = createComputed2Qrl(qrl);
+  const signal = new ComputedSignal2(null, qrl);
   set(signal);
 
-  const resolved = qrl.resolved;
-  if (!resolved) {
-    // When we are creating a signal using a use method, we need to ensure
-    // that the computation can be lazy and therefore we need to unsure
-    // that the QRL is resolved.
-    // When we re-create the signal from serialization (we don't create the signal
-    // using useMethod) it is OK to not resolve it until the graph is marked as dirty.
-    throw qrl.resolve();
-  }
+  throwIfQRLNotResolved(qrl);
   return signal;
 };
 

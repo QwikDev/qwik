@@ -559,8 +559,6 @@ export const runSubscriber2 = async (
   assertEqual(!!(task.$flags$ & TaskFlags.DIRTY), true, 'Task is not dirty', task);
   if (isResourceTask(task)) {
     return runResource(task, container, host as fixMeAny);
-  } else if (isComputedTask(task)) {
-    return runComputed2(task, container, host);
   } else {
     return runTask2(task as Task, container, host);
   }

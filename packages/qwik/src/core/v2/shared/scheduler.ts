@@ -84,14 +84,7 @@ import { assertEqual } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
-import {
-  Task,
-  TaskFlags,
-  cleanupTask,
-  runComputed2,
-  runSubscriber2,
-  type TaskFn,
-} from '../../use/use-task';
+import { Task, TaskFlags, cleanupTask, runTask2, type TaskFn } from '../../use/use-task';
 import { isPromise, maybeThen, maybeThenPassError, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { VirtualVNode } from '../client/types';
@@ -99,7 +92,7 @@ import { vnode_documentPosition, vnode_isVNode, vnode_setAttr } from '../client/
 import { vnode_diff } from '../client/vnode-diff';
 import { executeComponent2 } from './component-execution';
 import type { Container2, HostElement, fixMeAny } from './types';
-import { EffectSubscriptionsProp, isSignal2, type EffectSubscriptions } from '../signal/v2-signal';
+import { isSignal2 } from '../signal/v2-signal';
 import { serializeAttribute } from '../../render/execute-component';
 import { type DomContainer } from '../client/dom-container';
 
@@ -113,9 +106,7 @@ export const enum ChoreType {
   MICRO /* ***************** */ = 0b000_1111,
 
   /** Ensure tha the QRL promise is resolved before processing next chores in the queue */
-  QRL_RESOLVE /* *********** */ = 0b000_0000,
-  // TODO(mhevery): COMPUTED should be deleted because it is handled synchronously.
-  COMPUTED /* ************** */ = 0b000_0001,
+  QRL_RESOLVE /* *********** */ = 0b000_0001,
   RESOURCE /* ************** */ = 0b000_0010,
   TASK /* ****************** */ = 0b000_0011,
   NODE_DIFF /* ************* */ = 0b000_0100,
@@ -187,7 +178,6 @@ export const createScheduler = (
     qrl: QRL<(...args: any[]) => any>,
     props: any
   ): ValueOrPromise<JSXOutput>;
-  function schedule(type: ChoreType.COMPUTED, task: Task): ValueOrPromise<void>;
   function schedule(
     type: ChoreType.NODE_DIFF,
     host: HostElement,
@@ -213,10 +203,7 @@ export const createScheduler = (
       type !== ChoreType.WAIT_FOR_COMPONENTS &&
       type !== ChoreType.COMPONENT_SSR;
     const isTask =
-      type === ChoreType.TASK ||
-      type === ChoreType.VISIBLE ||
-      type === ChoreType.COMPUTED ||
-      type === ChoreType.CLEANUP_VISIBLE;
+      type === ChoreType.TASK || type === ChoreType.VISIBLE || type === ChoreType.CLEANUP_VISIBLE;
     if (isTask) {
       (hostOrTask as Task).$flags$ |= TaskFlags.DIRTY;
     }
@@ -305,21 +292,11 @@ export const createScheduler = (
           (err: any) => container.handleError(err, host)
         );
         break;
-      case ChoreType.COMPUTED:
-        returnValue = runComputed2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
-        break;
       case ChoreType.TASK:
-        const payload = chore.$payload$;
-        if (Array.isArray(payload)) {
-          // This is a hack to see if the scheduling will work.
-          const effectSubscriber = payload as fixMeAny as EffectSubscriptions;
-          const effect = effectSubscriber[EffectSubscriptionsProp.EFFECT];
-          returnValue = runSubscriber2(effect as Task<TaskFn, TaskFn>, container, host);
-          break;
-        }
-      // eslint-disable-next-line no-fallthrough
+        returnValue = runTask2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
+        break;
       case ChoreType.VISIBLE:
-        returnValue = runSubscriber2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
+        returnValue = runTask2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
         break;
       case ChoreType.CLEANUP_VISIBLE:
         const task = chore.$payload$ as Task<TaskFn, TaskFn>;
@@ -503,7 +480,7 @@ function debugChoreToString(chore: Chore): string {
   const type =
     (
       {
-        [ChoreType.COMPUTED]: 'COMPUTED',
+        [ChoreType.QRL_RESOLVE]: 'QRL_RESOLVE',
         [ChoreType.RESOURCE]: 'RESOURCE',
         [ChoreType.TASK]: 'TASK',
         [ChoreType.NODE_DIFF]: 'NODE_DIFF',

@@ -4,6 +4,7 @@ import { componentQrl, isQwikComponent } from '../../component/component.public'
 import type { ObjToProxyMap } from '../../container/container';
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertTrue } from '../../error/assert';
+import { getPlatform } from '../../platform/platform';
 import {
   createQRL,
   isQrl,
@@ -19,13 +20,15 @@ import {
   isJSXNode,
   isPropsProxy,
 } from '../../render/jsx/jsx-runtime';
-import { type FunctionComponent } from '../../render/jsx/types/jsx-node';
 import { Slot } from '../../render/jsx/slot.public';
-import { fastSkipSerialize, getProxyFlags, getSubscriptionManager } from '../../state/common';
+import { type FunctionComponent } from '../../render/jsx/types/jsx-node';
+import { fastSkipSerialize } from '../../state/common';
 import { _CONST_PROPS, _VAR_PROPS } from '../../state/constants';
 import { Task, isTask, type ResourceReturnInternal } from '../../use/use-task';
+import { isElement, isNode } from '../../util/element';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
+import { ELEMENT_ID } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { isSerializableObject, type ValueOrPromise } from '../../util/types';
 import { type DomContainer } from '../client/dom-container';
@@ -46,10 +49,7 @@ import {
   type StoreHandler,
 } from '../signal/v2-store';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
-import { ELEMENT_ID } from '../../util/markers';
-import { getPlatform } from '../../platform/platform';
 import type { DeserializeContainer, fixMeAny } from './types';
-import { isElement, isNode } from '../../util/element';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 
@@ -703,17 +703,6 @@ export const createSerializationContext = (
         const unwrapObj = unwrapStore2(obj);
         if (unwrapObj !== obj) {
           discoveredValues.push(unwrapObj);
-          const storeHandler = getStoreHandler2(obj as object);
-          const effects = storeHandler?.$effects$;
-
-          if (effects) {
-            // add effect to the discovered values
-            for (const propName in effects) {
-              for (const effect of effects[propName]) {
-                discoveredValues.push(effect);
-              }
-            }
-          }
         } else if (id === undefined || isRoot) {
           // Object has not been seen yet, must scan content
           // But not for root.
@@ -904,14 +893,7 @@ function serialize(serializationContext: SerializationContext): void {
       if (isResource(value)) {
         serializationContext.$resources$.add(value);
       }
-      serializeObjectLiteral(
-        value,
-        $writer$,
-        writeValue,
-        writeString,
-        serializationContext.$proxyMap$,
-        $addRoot$
-      );
+      serializeObjectLiteral(value, $writer$, writeValue, writeString);
     } else if (value instanceof Signal2) {
       if (value instanceof DerivedSignal2) {
         writeString(
@@ -1016,35 +998,15 @@ function serialize(serializationContext: SerializationContext): void {
     value: any,
     $writer$: StreamWriter,
     writeValue: (value: any, idx: number) => void,
-    writeString: (text: string) => void,
-    objectMap: ObjToProxyMap,
-    $addRoot$: (obj: unknown) => number
+    writeString: (text: string) => void
   ) => {
     if (Array.isArray(value)) {
-      const proxy = objectMap.get(value);
-      if (proxy !== undefined) {
-        $writer$.write('{');
-        serializeProxy(value, proxy, $writer$, writeString, $addRoot$);
-        $writer$.write(',');
-        // for an array we have to add property key (undefined)
-        writeString(SerializationConstant.UNDEFINED_CHAR);
-        $writer$.write(':');
-      }
-
       // Serialize as array.
       serializeArray(value, $writer$, writeValue);
-
-      if (proxy !== undefined) {
-        $writer$.write('}');
-      }
     } else {
       // Serialize as object.
       $writer$.write('{');
-      const proxy = objectMap.get(value);
-      if (proxy !== undefined) {
-        serializeProxy(value, proxy, $writer$, writeString, $addRoot$);
-      }
-      serializeObjectProperties(value, $writer$, writeValue, writeString, proxy !== undefined);
+      serializeObjectProperties(value, $writer$, writeValue, writeString);
       $writer$.write('}');
     }
   };
@@ -1071,22 +1033,6 @@ function serializeEffectSubs(
   return data;
 }
 
-const subscriptionManagerToString: any = null!;
-
-function serializeProxy(
-  value: any,
-  proxy: any,
-  $writer$: StreamWriter,
-  writeString: (text: string) => void,
-  $addRoot$: (obj: unknown) => number
-) {
-  const flags = getProxyFlags(value) || 0;
-  writeString(SerializationConstant.Store_CHAR);
-  $writer$.write(':');
-  const manager = getSubscriptionManager(proxy)!;
-  writeString(String(flags) + subscriptionManagerToString(manager, $addRoot$));
-}
-
 function serializeArray(
   value: any,
   $writer$: StreamWriter,
@@ -1106,10 +1052,9 @@ function serializeObjectProperties(
   value: any,
   $writer$: StreamWriter,
   writeValue: (value: any, idx: number) => void,
-  writeString: (text: string) => void,
-  startWithDelimiter: boolean
+  writeString: (text: string) => void
 ) {
-  let delimiter = startWithDelimiter;
+  let delimiter = false;
   for (const key in value) {
     if (Object.prototype.hasOwnProperty.call(value, key) && !fastSkipSerialize(value[key])) {
       delimiter && $writer$.write(',');

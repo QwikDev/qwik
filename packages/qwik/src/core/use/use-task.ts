@@ -12,7 +12,6 @@ import {
   SubscriptionType,
   getSubscriptionManager,
   noSerialize,
-  unwrapProxy,
   type NoSerialize,
 } from '../state/common';
 import { QObjectManagerSymbol } from '../state/constants';
@@ -29,8 +28,14 @@ import { delay, isPromise, safeCall } from '../util/promises';
 import { isFunction, isObject, type ValueOrPromise } from '../util/types';
 import { ChoreType } from '../v2/shared/scheduler';
 import { type Container2, type HostElement, type fixMeAny } from '../v2/shared/types';
-import { ComputedSignal2, EffectProperty, throwIfQRLNotResolved } from '../v2/signal/v2-signal';
+import {
+  ComputedSignal2,
+  EffectProperty,
+  isSignal2,
+  throwIfQRLNotResolved,
+} from '../v2/signal/v2-signal';
 import { type ReadonlySignal2, type Signal2 } from '../v2/signal/v2-signal.public';
+import { unwrapStore2 } from '../v2/signal/v2-store';
 import { invoke, newInvokeContext, untrack, waitAndRun } from './use-core';
 import { useOn, useOnDocument } from './use-on';
 import { useSequentialScope } from './use-sequential-scope';
@@ -178,7 +183,7 @@ export interface ResourceRejected<T> {
   readonly loading: boolean;
 }
 
-export interface ResourceReturnInternal<T> {
+export interface ResourceReturnInternal<T> extends Record<string, unknown> {
   __brand: 'resource';
   _state: 'pending' | 'resolved' | 'rejected';
   _resolved: T | undefined;
@@ -357,7 +362,7 @@ export const runTask2 = (task: Task, container: Container2, host: HostElement) =
       }
       if (prop) {
         return (obj as Record<string, unknown>)[prop];
-      } else if (isSignal(obj)) {
+      } else if (isSignal2(obj)) {
         return obj.value;
       } else {
         return obj;
@@ -561,10 +566,9 @@ export const runResource = <T>(
   cleanupTask(task);
 
   const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, ResourceEvent);
+  iCtx.$container2$ = container;
 
-  const taskFn = task.$qrl$.getFn(iCtx, () => {
-    container.$subsManager$.$clearSub$(task);
-  });
+  const taskFn = task.$qrl$.getFn(iCtx);
 
   const resource = task.$state$;
   assertDefined(
@@ -574,24 +578,21 @@ export const runResource = <T>(
   );
 
   const track: Tracker = (obj: (() => unknown) | object | Signal, prop?: string) => {
-    if (isFunction(obj)) {
-      const ctx = newInvokeContext();
-      ctx.$subscriber$ = [SubscriptionType.HOST, task];
-      return invoke(ctx, obj);
-    }
-    const manager = getSubscriptionManager(obj);
-    if (manager) {
-      manager.$addSub$([SubscriptionType.HOST, task], prop);
-    } else {
-      logErrorAndStop(codeToText(QError_trackUseStore), obj);
-    }
-    if (prop) {
-      return (obj as Record<string, unknown>)[prop];
-    } else if (isSignal(obj)) {
-      return obj.value;
-    } else {
-      return obj;
-    }
+    const ctx = newInvokeContext();
+    ctx.$effectSubscriber$ = [task, EffectProperty.COMPONENT];
+    ctx.$container2$ = container;
+    return invoke(ctx, () => {
+      if (isFunction(obj)) {
+        return obj();
+      }
+      if (prop) {
+        return (obj as Record<string, unknown>)[prop];
+      } else if (isSignal2(obj)) {
+        return obj.value;
+      } else {
+        return obj;
+      }
+    });
   };
 
   const handleError = (reason: unknown) => container.handleError(reason, host);
@@ -608,7 +609,7 @@ export const runResource = <T>(
     done = true;
   });
 
-  const resourceTarget = unwrapProxy(resource);
+  const resourceTarget = unwrapStore2(resource);
   const opts: ResourceCtx<T> = {
     track,
     cleanup(fn) {

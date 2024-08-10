@@ -176,7 +176,7 @@ export const createScheduler = (
    * @param waitForChore? = false
    */
   function schedule(
-    type: ChoreType.TASK | ChoreType.VISIBLE | ChoreType.RESOURCE | ChoreType.COMPUTED,
+    type: ChoreType.TASK | ChoreType.VISIBLE | ChoreType.RESOURCE,
     task: Task
   ): ValueOrPromise<void>;
   function schedule(

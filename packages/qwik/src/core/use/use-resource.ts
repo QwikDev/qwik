@@ -13,15 +13,14 @@ import {
   type ResourceReturnInternal,
 } from './use-task';
 
+import type { Container2, fixMeAny } from '../../server/qwik-types';
 import type { GetObjID } from '../container/container';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
-import { getProxyTarget } from '../state/common';
 import { isSignal, type Signal } from '../state/signal';
-import { createProxy, type StoreTracker } from '../state/store';
 import { isPromise } from '../util/promises';
 import { isObject } from '../util/types';
+import { Store2Flags, createStore2, getStoreTarget2 } from '../v2/signal/v2-store';
 import { useSequentialScope } from './use-sequential-scope';
-import type { fixMeAny } from '../../server/qwik-types';
 
 const DEBUG: boolean = false;
 
@@ -313,22 +312,22 @@ export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn
 };
 
 export const createResourceReturn = <T>(
-  containerState: StoreTracker,
+  container: Container2,
   opts?: ResourceOptions,
   initialPromise?: Promise<T>
 ): ResourceReturnInternal<T> => {
   const result = _createResourceReturn<T>(opts);
   result.value = initialPromise as Promise<T>;
-  const resource = createProxy(result, containerState, undefined);
-  return resource;
+
+  return createStore2(container, result, Store2Flags.RECURSIVE);
 };
 
 export const getInternalResource = <T>(resource: ResourceReturn<T>): ResourceReturnInternal<T> => {
-  return getProxyTarget(resource) as any;
+  return getStoreTarget2(resource) as any;
 };
 
 export const isResourceReturn = (obj: any): obj is ResourceReturn<unknown> => {
-  return isObject(obj) && (getProxyTarget(obj as any) || obj).__brand === 'resource';
+  return isObject(obj) && (getStoreTarget2(obj as any) || obj).__brand === 'resource';
 };
 
 // TODO: to remove - serializers v1

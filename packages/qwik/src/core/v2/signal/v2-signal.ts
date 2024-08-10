@@ -247,10 +247,13 @@ export const triggerEffects = (
       if (isTask(effect)) {
         effect.$flags$ |= TaskFlags.DIRTY;
         DEBUG && log('schedule.effect.task', pad('\n' + String(effect), '  '));
-        container.$scheduler$(
-          effect.$flags$ & TaskFlags.VISIBLE_TASK ? ChoreType.VISIBLE : ChoreType.TASK,
-          effect
-        );
+        let choreType = ChoreType.TASK;
+        if (effect.$flags$ & TaskFlags.VISIBLE_TASK) {
+          choreType = ChoreType.VISIBLE;
+        } else if (effect.$flags$ & TaskFlags.RESOURCE) {
+          choreType = ChoreType.RESOURCE;
+        }
+        container.$scheduler$(choreType, effect);
       } else if (effect instanceof Signal2) {
         // we don't schedule ComputedSignal/DerivedSignal directly, instead we invalidate it and
         // and schedule the signals effects (recursively)

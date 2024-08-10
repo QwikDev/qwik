@@ -1427,6 +1427,8 @@ export const canSerialize2 = (value: any): boolean => {
       return true;
     } else if (isPromise(value)) {
       return true;
+    } else if (isJSXNode(value)) {
+      return true;
     }
   } else if (typeof value === 'function') {
     if (isQrl(value) || isQwikComponent(value)) {

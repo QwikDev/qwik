@@ -42,18 +42,18 @@ describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: projection', ({ render }) => {
-  it.only('should render basic projection', async () => {
+  it('should render basic projection', async () => {
     const Child = component$(() => {
       return (
         <div>
-          <Slot name="shai">misko</Slot>
+          <Slot>misko</Slot>
         </div>
       );
     });
     const Parent = component$(() => {
       return (
         <Child>
-          <b q:slot="shai">parent-content</b>
+          <b>parent-content</b>
         </Child>
       );
     });
@@ -62,7 +62,9 @@ describe.each([
       <Component>
         <Component>
           <div>
-            <Projection>parent-content</Projection>
+            <Projection>
+              <b>parent-content</b>
+            </Projection>
           </div>
         </Component>
       </Component>
@@ -619,7 +621,7 @@ describe.each([
       );
     });
 
-    const { vNode, document } = await render(<Parent />, { debug });
+    const { vNode, document } = await render(<Parent />, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
       <Component>
         <Fragment>

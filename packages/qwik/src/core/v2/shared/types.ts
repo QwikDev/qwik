@@ -13,7 +13,6 @@ export type fixMeAny = any;
 
 export interface DeserializeContainer {
   $getObjectById$: (id: number | string) => unknown;
-  $subsManager$: SubscriptionManager;
   element: HTMLElement | null;
   getSyncFn: (id: number) => (...args: unknown[]) => unknown;
 }

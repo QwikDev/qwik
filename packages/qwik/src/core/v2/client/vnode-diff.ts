@@ -762,7 +762,7 @@ export const vnode_diff = (
 
       if (key === 'ref') {
         const element = vnode_getNode(vnode) as Element;
-        if (isSignal(value)) {
+        if (isSignal2(value)) {
           value.value = element;
           return;
         } else if (typeof value === 'function') {

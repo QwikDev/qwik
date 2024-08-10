@@ -197,7 +197,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 
   set(target: TargetType, prop: string | symbol, newValue: any): boolean {
     // we need deserializer proxy only to get the value, not to set it
-    target = unwrapDeserializerProxy(target) as TargetType;
+    // target = unwrapDeserializerProxy(target) as TargetType;
     if (typeof prop === 'symbol') {
       target[prop] = newValue;
       return true;

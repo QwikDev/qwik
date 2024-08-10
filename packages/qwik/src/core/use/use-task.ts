@@ -28,7 +28,7 @@ import { ComputedEvent, ResourceEvent, TaskEvent } from '../util/markers';
 import { delay, isPromise, safeCall } from '../util/promises';
 import { isFunction, isObject, type ValueOrPromise } from '../util/types';
 import { ChoreType } from '../v2/shared/scheduler';
-import { isContainer2, type Container2, type HostElement, type fixMeAny } from '../v2/shared/types';
+import { type Container2, type HostElement, type fixMeAny } from '../v2/shared/types';
 import { ComputedSignal2, EffectProperty, throwIfQRLNotResolved } from '../v2/signal/v2-signal';
 import { type ReadonlySignal2, type Signal2 } from '../v2/signal/v2-signal.public';
 import { invoke, newInvokeContext, untrack, waitAndRun } from './use-core';

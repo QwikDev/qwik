@@ -26,7 +26,6 @@ import { _CONST_PROPS, _VAR_PROPS } from '../../state/constants';
 import { Task, isTask, type ResourceReturnInternal } from '../../use/use-task';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
-import { ELEMENT_ID } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { isSerializableObject, type ValueOrPromise } from '../../util/types';
 import { type DomContainer } from '../client/dom-container';
@@ -42,6 +41,7 @@ import {
   Store2,
   createStore2,
   getStoreHandler2,
+  getStoreTarget2,
   unwrapStore2,
   type StoreHandler,
 } from '../signal/v2-store';
@@ -97,7 +97,7 @@ class DeserializationHandler implements ProxyHandler<object> {
     if (property === SERIALIZER_PROXY_UNWRAP) {
       return target;
     }
-    if (getProxyTarget(target) !== undefined) {
+    if (getStoreTarget2(target) !== undefined) {
       /**
        * If we modify string value by for example `+=` operator, we need to get the old value first.
        * If the target is a store proxy, we need to unwrap it and get the real object. This is
@@ -109,7 +109,7 @@ class DeserializationHandler implements ProxyHandler<object> {
        * constant character, we need to have the SerializationConstant.String_CHAR prefix character.
        * Otherwise the system will try to deserialize the value again.
        */
-      const unwrapped = unwrapDeserializerProxy(unwrapProxy(target)) as object;
+      const unwrapped = unwrapDeserializerProxy(unwrapStore2(target)) as object;
       const unwrappedPropValue = Reflect.get(unwrapped, property, receiver);
       if (
         typeof unwrappedPropValue === 'string' &&
@@ -311,7 +311,7 @@ const inflate = (container: DeserializeContainer, target: any, needsInflationDat
       break;
     case SerializationConstant.Store_VALUE:
       const storeHandler = getStoreHandler2(target)!;
-      storeHandler.$container$ = container;
+      storeHandler.$container$ = container as DomContainer;
       storeHandler.$target$ = container.$getObjectById$(restInt());
       storeHandler.$flags$ = restInt();
       const effectProps = rest.substring(restIdx).split('|');
@@ -703,12 +703,15 @@ export const createSerializationContext = (
         const unwrapObj = unwrapStore2(obj);
         if (unwrapObj !== obj) {
           discoveredValues.push(unwrapObj);
-          const manager = getSubscriptionManager(obj as object)!;
+          const storeHandler = getStoreHandler2(obj as object);
+          const effects = storeHandler?.$effects$;
 
-          // add subscription host to the discovered values
-          for (const sub of manager.$subs$) {
-            for (let i = SubscriptionProp.HOST; i < sub.length; i++) {
-              discoveredValues.push(sub[i]);
+          if (effects) {
+            // add effect to the discovered values
+            for (const propName in effects) {
+              for (const effect of effects[propName]) {
+                discoveredValues.push(effect);
+              }
             }
           }
         } else if (id === undefined || isRoot) {
@@ -1138,12 +1141,12 @@ function serializeDerivedFn(
 
 function deserializeSignal2(
   signal: Signal2,
-  container: DomContainer,
+  container: DeserializeContainer,
   data: string,
   readFn: boolean,
   readQrl: boolean
 ) {
-  signal.$container$ = container;
+  signal.$container$ = container as DomContainer;
   const parts = data.substring(1).split(';');
   let idx = 0;
   if (readFn) {
@@ -1175,7 +1178,7 @@ function deserializeSignal2(
 function deserializeSignal2Effect(
   idx: number,
   parts: string[],
-  container: DomContainer,
+  container: DeserializeContainer,
   effects: EffectSubscriptions[]
 ) {
   while (idx < parts.length) {
@@ -1385,11 +1388,8 @@ function createDeserializeContainer(
       const fn = () => {};
       return fn;
     },
-    $subsManager$: null!,
     element: null,
   };
-  const subsManager = createSubscriptionManager(container as fixMeAny);
-  container.$subsManager$ = subsManager;
   if (element) {
     container.element = element;
   }

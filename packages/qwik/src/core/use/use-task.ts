@@ -363,7 +363,7 @@ export const runTask2 = (task: Task, container: Container2, host: HostElement) =
       if (prop) {
         return (obj as Record<string, unknown>)[prop];
       } else if (isSignal2(obj)) {
-        return obj.value;
+        return obj.untrackedValue;
       } else {
         return obj;
       }
@@ -588,7 +588,7 @@ export const runResource = <T>(
       if (prop) {
         return (obj as Record<string, unknown>)[prop];
       } else if (isSignal2(obj)) {
-        return obj.value;
+        return obj.untrackedValue;
       } else {
         return obj;
       }

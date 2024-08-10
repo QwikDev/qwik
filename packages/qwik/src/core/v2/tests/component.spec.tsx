@@ -10,14 +10,10 @@ import {
   jsx,
   useComputed$,
   useVisibleTask$,
-  type JSXOutput,
   useSignal,
   useStore,
   type JSXOutput,
-  useSignal,
-  useStore,
 } from '@builder.io/qwik';
-import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
 import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
 import { describe, expect, it } from 'vitest';
 import { cleanupAttrs } from '../../../testing/element-fixture';

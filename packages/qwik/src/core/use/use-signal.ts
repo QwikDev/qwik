@@ -24,3 +24,21 @@ export const useSignal: UseSignal = <STATE>(initialState?: STATE): Signal2<STATE
   const signal = createSignal2<STATE>(value);
   return set(signal);
 };
+
+/**
+ * Stores a value which is retained for the lifetime of the component.
+ *
+ * If the value is a function, the function is invoked to calculate the actual value.
+ *
+ * @deprecated This is a technology preview
+ * @public
+ */
+export const useConstant = <T>(value: (() => T) | T): T => {
+  const { val, set } = useSequentialScope<T>();
+  if (val != null) {
+    return val;
+  }
+  // Note: We are not using `invoke` here because we don't want to clear the context
+  value = isFunction(value) && !isQwikComponent(value) ? value() : value;
+  return set(value as T);
+};

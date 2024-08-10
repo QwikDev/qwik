@@ -1408,6 +1408,14 @@ componentQrl
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
+## ComputedFn
+
+```typescript
+export type ComputedFn<T> = () => T;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+
 ## ComputedSignal2
 
 ```typescript
@@ -1721,7 +1729,7 @@ Description
 ## createComputed2$
 
 ```typescript
-createComputed2$: <T>(first: () => T) => ComputedSignal2<T>;
+createComputed2$: <T>(qrl: () => T) => ComputedSignal2<T>;
 ```
 
 <table><thead><tr><th>
@@ -1739,7 +1747,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-first
+qrl
 
 </td><td>
 
@@ -2176,7 +2184,7 @@ any \| undefined
 ## event$
 
 ```typescript
-event$: <T>(first: T) => import("./qrl.public").QRL<T>;
+event$: <T>(qrl: T) => import("./qrl.public").QRL<T>;
 ```
 
 <table><thead><tr><th>
@@ -10847,8 +10855,6 @@ T \| undefined
 
 ## useSignal
 
-Hook that creates a signal that is retained for the lifetime of the component.
-
 ```typescript
 useSignal: UseSignal;
 ```
@@ -10856,8 +10862,6 @@ useSignal: UseSignal;
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts)
 
 ## UseSignal
-
-Hook that creates a signal that is retained for the lifetime of the component.
 
 ```typescript
 useSignal: UseSignal;
@@ -11283,7 +11287,7 @@ Use `useTask` to observe changes on a set of inputs, and then re-execute the `ta
 The `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.
 
 ```typescript
-useTask$: (first: import("./use-task").TaskFn, opts?: import("./use-task").UseTaskOptions | undefined) => void
+useTask$: (qrl: import("./use-task").TaskFn, opts?: import("./use-task").UseTaskOptions | undefined) => void
 ```
 
 <table><thead><tr><th>
@@ -11451,7 +11455,7 @@ const Timer = component$(() => {
 ```
 
 ```typescript
-useVisibleTask$: (first: import("./use-task").TaskFn, opts?: import("./use-task").OnVisibleTaskOptions | undefined) => void
+useVisibleTask$: (qrl: import("./use-task").TaskFn, opts?: import("./use-task").OnVisibleTaskOptions | undefined) => void
 ```
 
 <table><thead><tr><th>

@@ -27,7 +27,7 @@ export const useLexicalScope = <VARS extends any[]>(): VARS => {
   if (!qrl) {
     const el = context.$element$;
     assertDefined(el, 'invoke: element must be defined inside useLexicalScope()', context);
-    const containerElement = getWrappingContainer(el) as HTMLElement;
+    const containerElement = _getQContainerElement(el) as HTMLElement;
     assertDefined(containerElement, `invoke: cant find parent q:container of`, el);
     if (containerElement.getAttribute('q:runtime') == '2') {
       const container = getDomContainer(containerElement);

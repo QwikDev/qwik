@@ -49,6 +49,7 @@ import {
   cleanupTask,
   isResourceTask,
   type ResourceReturnInternal,
+  type Task,
 } from '../use/use-task';
 import { isNotNullable, isPromise } from '../util/promises';
 import { isArray, isObject, isSerializableObject } from '../util/types';
@@ -244,7 +245,7 @@ Task Symbol: ${task.$qrl$.$symbol$}
         if (isResourceTask(task)) {
           collector.$resources$.push(task.$state$!);
         }
-        cleanupTask(task);
+        cleanupTask(task as Task);
       }
     }
   }

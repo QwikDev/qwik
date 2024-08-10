@@ -1,15 +1,17 @@
-import { Fragment as Component, Fragment, Fragment as Signal, useTask$ } from '@builder.io/qwik';
-import { describe, expect, it, vi } from 'vitest';
-import { advanceToNextTimerAndFlush } from '../../../testing/element-fixture';
-import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
 import {
+  Fragment as Component,
+  Fragment,
+  Fragment as Signal,
+  useTask$,
   component$,
   type Signal as SignalType,
   untrack,
   useSignal,
   useStore,
-  useTask$,
 } from '@builder.io/qwik';
+import { describe, expect, it, vi } from 'vitest';
+import { advanceToNextTimerAndFlush } from '../../../testing/element-fixture';
+import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

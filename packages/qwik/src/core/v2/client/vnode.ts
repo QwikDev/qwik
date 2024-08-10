@@ -168,7 +168,6 @@ import {
   vnode_getElementNamespaceFlags,
 } from './vnode-namespace';
 import { escapeHTML } from '../shared/character-escaping';
-import { SignalImpl } from '../../state/signal';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -163,6 +163,9 @@ export interface ComponentBaseProps {
 export const componentQrl: <PROPS extends Record<any, any>>(componentQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
 
 // @public (undocumented)
+export type ComputedFn<T> = () => T;
+
+// @public (undocumented)
 export interface ComputedSignal2<T> extends ReadonlySignal2<T> {
     force(): void;
 }
@@ -203,7 +206,7 @@ export interface CorrectedToggleEvent extends Event {
 }
 
 // @public (undocumented)
-export const createComputed2$: <T>(first: () => T) => ComputedSignal2<T>;
+export const createComputed2$: <T>(qrl: () => T) => ComputedSignal2<T>;
 
 // @public (undocumented)
 export const createComputed2Qrl: <T>(qrl: QRL<() => T>) => ComputedSignal2<T>;
@@ -1941,7 +1944,7 @@ export interface UseSignal {
     <T>(value: T | (() => T)): Signal2<T>;
 }
 
-// @public
+// @public (undocumented)
 export const useSignal: UseSignal;
 
 // @public

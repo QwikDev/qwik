@@ -262,8 +262,9 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
   const resource = props.value as ResourceReturnInternal<T> | Promise<T> | Signal<T>;
   if (isResourceReturn(resource)) {
     const isBrowser = !isServerPlatform();
+    // create a subscription for the resource._state changes
+    const state = resource._state;
     if (isBrowser) {
-      const state = resource._state;
       DEBUG && debugLog(`RESOURCE_CMP.${state}`, 'VALUE: ' + untrack(() => resource._resolved));
 
       if (state === 'pending' && props.onPending) {
@@ -272,7 +273,7 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
         return Promise.resolve(resource._error!).then(props.onRejected);
       } else {
         // resolved, pending without onPending prop or rejected with onRejected prop
-        return Promise.resolve(resource._resolved as T).then(props.onResolved);
+        return Promise.resolve(untrack(() => resource._resolved) as T).then(props.onResolved);
       }
     }
     return resource.value.then(

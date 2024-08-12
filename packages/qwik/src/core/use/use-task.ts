@@ -588,7 +588,7 @@ export const runResource = <T>(
       if (prop) {
         return (obj as Record<string, unknown>)[prop];
       } else if (isSignal2(obj)) {
-        return obj.untrackedValue;
+        return obj.value;
       } else {
         return obj;
       }

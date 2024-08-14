@@ -33,7 +33,6 @@
 - [Re-exporting loaders](/docs/(qwikcity)/re-exporting-loaders/index.mdx)
 - [Caching](</docs/(qwikcity)/caching/index.mdx>)
 - [HTML attributes](</docs/(qwikcity)/html-attributes/index.mdx>)
-- [Env variables](</docs/(qwikcity)/env-variables/index.mdx>)
 - [API reference](</docs/(qwikcity)/api/index.mdx>)
 
 ## Cookbook
@@ -106,6 +105,7 @@
 - [React Cheat Sheet](</docs/(qwikcity)/guides/react-cheat-sheet/index.mdx>)
 - [Best Practices](</docs/(qwikcity)/guides/best-practices/index.mdx>)
 - [Bundle Optimization](</docs/(qwikcity)/guides/bundle/index.mdx>)
+- [Env variables](</docs/(qwikcity)/guides/env-variables/index.mdx>)
 
 ## Concepts
 

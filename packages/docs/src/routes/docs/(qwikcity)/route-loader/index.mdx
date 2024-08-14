@@ -24,7 +24,7 @@ Route Loaders load data in the server so it becomes available to use inside Qwik
 
 Route Loaders can only be declared inside the `src/routes` folder, in a `layout.tsx` or `index.tsx` file, and they MUST be exported.
 
-> If you want to manage common reusable routeLoaders$ it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception. For more information [check the cookbook](/docs/cookbook/re-exporting-loaders/index.mdx).
+> If you want to manage common reusable routeLoaders$ it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception. For more information [check this section](/docs/(qwikcity)/re-exporting-loaders/index.mdx).
 
 ```tsx /routeLoader$/ /useProductData/#a title="src/routes/product/[productId]/index.tsx"
 import { component$ } from '@builder.io/qwik';
@@ -238,5 +238,3 @@ export default component$(() => {
 Route Loaders are executed on the server, after every navigation. This means that they are executed every time a user navigates to a page in an SPA or MPA, and they are executed even if the user is navigating to the same page.
 
 Loaders execute after the Qwik Middleware handlers (`onRequest`, `onGet`, `onPost`, etc), and before the Qwik Components are rendered. This allows the loaders to start fetching data as soon as possible, reducing latency.
-
-

@@ -48,6 +48,7 @@ import {
   unwrapStore2,
   type StoreHandler,
 } from '../signal/v2-store';
+import type { Subscriber } from '../signal/v2-subscriber';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { DeserializeContainer, fixMeAny } from './types';
 
@@ -298,6 +299,7 @@ const inflate = (container: DeserializeContainer, target: any, needsInflationDat
       task.$flags$ = restInt();
       task.$index$ = restInt();
       task.$el$ = container.$getObjectById$(restInt()) as Element;
+      task.$dependencies$ = container.$getObjectById$(restInt()) as Subscriber[] | null;
       task.$qrl$ = inflateQRL(container, parseQRL(restString()));
       const taskState = restString();
       task.$state$ = taskState
@@ -736,9 +738,14 @@ export const createSerializationContext = (
             discoveredValues.push(tuples);
           } else if (obj instanceof Signal2) {
             discoveredValues.push(obj.$untrackedValue$);
+            if (obj.$effects$) {
+              for (const effect of obj.$effects$) {
+                discoveredValues.push(effect[EffectSubscriptionsProp.EFFECT]);
+              }
+            }
             // TODO(mhevery): should scan the QRLs???
           } else if (obj instanceof Task) {
-            discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$);
+            discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$, obj.$dependencies$);
           } else if (NodeConstructor && obj instanceof NodeConstructor) {
             // ignore the nodes
             // debugger;
@@ -900,6 +907,8 @@ function serialize(serializationContext: SerializationContext): void {
           SerializationConstant.DerivedSignal_CHAR +
             serializeDerivedFn(serializationContext, value, $addRoot$) +
             ';' +
+            $addRoot$(value.$dependencies$) +
+            ';' +
             $addRoot$(value.$untrackedValue$) +
             serializeEffectSubs($addRoot$, value.$effects$)
         );
@@ -908,12 +917,16 @@ function serialize(serializationContext: SerializationContext): void {
           SerializationConstant.ComputedSignal_CHAR +
             qrlToString(serializationContext, value.$computeQrl$) +
             ';' +
+            $addRoot$(value.$dependencies$) +
+            ';' +
             $addRoot$(value.$untrackedValue$) +
             serializeEffectSubs($addRoot$, value.$effects$)
         );
       } else {
         writeString(
           SerializationConstant.Signal_CHAR +
+            $addRoot$(value.$dependencies$) +
+            ';' +
             $addRoot$(value.$untrackedValue$) +
             serializeEffectSubs($addRoot$, value.$effects$)
         );
@@ -976,6 +989,8 @@ function serialize(serializationContext: SerializationContext): void {
           value.$index$ +
           ' ' +
           $addRoot$(value.$el$) +
+          ' ' +
+          $addRoot$(value.$dependencies$) +
           ' ' +
           qrlToString(serializationContext, value.$qrl$) +
           (value.$state$ == null ? '' : ' ' + $addRoot$(value.$state$))
@@ -1109,6 +1124,8 @@ function deserializeSignal2(
     const computedSignal = signal as ComputedSignal2<any>;
     computedSignal.$computeQrl$ = inflateQRL(container, parseQRL(parts[idx++])) as fixMeAny;
   }
+  const dependencies = container.$getObjectById$(parts[idx++]) as Subscriber[] | null;
+  signal.$dependencies$ = dependencies;
   let signalValue = container.$getObjectById$(parts[idx++]);
   if (vnode_isVNode(signalValue)) {
     signalValue = vnode_getNode(signalValue);

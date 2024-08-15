@@ -18,15 +18,17 @@ import { type QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
 import { trackSignal2, tryGetInvokeContext } from '../../use/use-core';
 import { Task, TaskFlags, isTask } from '../../use/use-task';
-import { ELEMENT_PROPS, OnRenderProp } from '../../util/markers';
+import { ELEMENT_PROPS, OnRenderProp, QSubscribers } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { qDev } from '../../util/qdev';
 import type { VNode } from '../client/types';
+import { vnode_getProp, vnode_isVirtualVNode, vnode_isVNode, vnode_setProp } from '../client/vnode';
 import { ChoreType } from '../shared/scheduler';
 import type { Container2, HostElement, fixMeAny } from '../shared/types';
 import type { ISsrNode } from '../ssr/ssr-types';
 import type { Signal2 as ISignal2 } from './v2-signal.public';
 import type { Store2 } from './v2-store';
+import { isSubscriber, Subscriber } from './v2-subscriber';
 
 const DEBUG = false;
 
@@ -135,7 +137,7 @@ export const enum EffectProperty {
   VNODE = '.',
 }
 
-export class Signal2<T = any> implements ISignal2<T> {
+export class Signal2<T = any> extends Subscriber implements ISignal2<T> {
   $untrackedValue$: T;
 
   /** Store a list of effects which are dependent on this signal. */
@@ -144,6 +146,7 @@ export class Signal2<T = any> implements ISignal2<T> {
   $container$: Container2 | null = null;
 
   constructor(container: Container2 | null, value: T) {
+    super();
     this.$container$ = container;
     this.$untrackedValue$ = value;
     DEBUG && log('new', this);
@@ -183,6 +186,8 @@ export class Signal2<T = any> implements ISignal2<T> {
         // to unsubscribe from. So we need to store the reference from the effect back
         // to this signal.
         ensureContains(effectSubscriber, this);
+        // We need to add the subscriber to the effect so that we can clean it up later
+        ensureEffectContainsSubscriber(effectSubscriber[EffectSubscriptionsProp.EFFECT], this);
         DEBUG && log('read->sub', pad('\n' + this.toString(), '  '));
       }
     }
@@ -224,14 +229,51 @@ export const ensureContains = (array: any[], value: any) => {
   }
 };
 
-export const ensureContainsEffect = (array: EffectSubscriptions[], effect: EffectSubscriptions) => {
+export const ensureContainsEffect = (
+  array: EffectSubscriptions[],
+  effectSubscriptions: EffectSubscriptions
+) => {
   for (let i = 0; i < array.length; i++) {
     const existingEffect = array[i];
-    if (existingEffect[0] === effect[0] && existingEffect[1] === effect[1]) {
+    if (
+      existingEffect[0] === effectSubscriptions[0] &&
+      existingEffect[1] === effectSubscriptions[1]
+    ) {
       return;
     }
   }
-  array.push(effect);
+  array.push(effectSubscriptions);
+};
+
+export const ensureEffectContainsSubscriber = (effect: Effect, subscriber: Subscriber) => {
+  if (isSubscriber(effect)) {
+    effect.$dependencies$ ||= [];
+
+    if (subscriberExistInSubscribers(effect.$dependencies$, subscriber)) {
+      return;
+    }
+
+    effect.$dependencies$.push(subscriber);
+  } else if (vnode_isVNode(effect) && vnode_isVirtualVNode(effect)) {
+    let subscribers = vnode_getProp<Subscriber[]>(effect, QSubscribers, null);
+    subscribers ||= [];
+
+    if (subscriberExistInSubscribers(subscribers, subscriber)) {
+      return;
+    }
+
+    subscribers.push(subscriber);
+    vnode_setProp(effect, QSubscribers, subscribers);
+  }
+};
+
+const subscriberExistInSubscribers = (subscribers: Subscriber[], subscriber: Subscriber) => {
+  for (let i = 0; i < subscribers.length; i++) {
+    if (subscribers[i] === subscriber) {
+      return true;
+    }
+  }
+  return false;
 };
 
 export const triggerEffects = (
@@ -388,7 +430,8 @@ export class ComputedSignal2<T> extends Signal2<T> {
     throw new TypeError('ComputedSignal is read-only');
   }
 }
-
+// TO DISCUSS (with Misko): Shouldn't it be called a "WrappedSignal" ?
+// Plus - shouldn't this type of signal have the $dependencies$ array instead of EVERY type of signal?
 export class DerivedSignal2<T> extends Signal2<T> {
   $args$: any[];
   $func$: (...args: any[]) => T;

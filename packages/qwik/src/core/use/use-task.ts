@@ -36,6 +36,7 @@ import {
 } from '../v2/signal/v2-signal';
 import { type ReadonlySignal2, type Signal2 } from '../v2/signal/v2-signal.public';
 import { unwrapStore2 } from '../v2/signal/v2-store';
+import { clearSubscriberDependencies, Subscriber } from '../v2/signal/v2-subscriber';
 import { invoke, newInvokeContext, untrack, waitAndRun } from './use-core';
 import { useOn, useOnDocument } from './use-on';
 import { useSequentialScope } from './use-sequential-scope';
@@ -194,7 +195,7 @@ export interface ResourceReturnInternal<T> extends Record<string, unknown> {
   loading: boolean;
 }
 /** @public */
-export interface DescriptorBase<T = unknown, B = unknown> {
+export interface DescriptorBase<T = unknown, B = unknown> extends Subscriber {
   $flags$: number;
   $index$: number;
   $el$: QwikElement;
@@ -350,7 +351,7 @@ export const runTask2 = (task: Task, container: Container2, host: HostElement) =
   task.$flags$ &= ~TaskFlags.DIRTY;
   const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, TaskEvent);
   iCtx.$container2$ = container;
-  const taskFn = task.$qrl$.getFn(iCtx) as TaskFn;
+  const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberDependencies(task)) as TaskFn;
 
   const track: Tracker = (obj: (() => unknown) | object | Signal, prop?: string) => {
     const ctx = newInvokeContext();
@@ -363,7 +364,7 @@ export const runTask2 = (task: Task, container: Container2, host: HostElement) =
       if (prop) {
         return (obj as Record<string, unknown>)[prop];
       } else if (isSignal2(obj)) {
-        return obj.untrackedValue;
+        return obj.value;
       } else {
         return obj;
       }
@@ -568,7 +569,7 @@ export const runResource = <T>(
   const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, ResourceEvent);
   iCtx.$container2$ = container;
 
-  const taskFn = task.$qrl$.getFn(iCtx);
+  const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberDependencies(task));
 
   const resource = task.$state$;
   assertDefined(
@@ -859,7 +860,10 @@ export const parseTask = (data: string) => {
   return new Task(strToInt(flags), strToInt(index), el as any, qrl as any, resource as any, null);
 };
 
-export class Task<T = unknown, B = T> implements DescriptorBase<unknown, Signal<B>> {
+export class Task<T = unknown, B = T>
+  extends Subscriber
+  implements DescriptorBase<unknown, Signal<B>>
+{
   constructor(
     public $flags$: number,
     public $index$: number,
@@ -867,7 +871,9 @@ export class Task<T = unknown, B = T> implements DescriptorBase<unknown, Signal<
     public $qrl$: QRLInternal<T>,
     public $state$: Signal<B> | undefined,
     public $destroy$: NoSerialize<() => void> | null
-  ) {}
+  ) {
+    super();
+  }
 }
 
 export const isTask = (value: any): value is Task => {

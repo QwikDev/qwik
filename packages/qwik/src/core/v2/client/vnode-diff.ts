@@ -97,6 +97,7 @@ import type { Signal2 } from '../signal/v2-signal.public';
 import { executeComponent2 } from '../shared/component-execution';
 import { isParentSlotProp, isSlotProp } from '../../util/prop';
 import { escapeHTML } from '../shared/character-escaping';
+import { clearSubscriberDependencies, clearVNodeDependencies } from '../signal/v2-subscriber';
 
 export type ComponentQueue = Array<VNode>;
 
@@ -1206,12 +1207,14 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
       // Only elements and virtual nodes need to be traversed for children
       if (type & VNodeFlags.Virtual) {
         // Only virtual nodes have subscriptions
-        const seq = container.getHostProp<Array<any>>(vCursor as fixMeAny, ELEMENT_SEQ);
+        clearVNodeDependencies(vCursor);
+        const seq = container.getHostProp<Array<any>>(vCursor as VirtualVNode, ELEMENT_SEQ);
         if (seq) {
           for (let i = 0; i < seq.length; i++) {
             const obj = seq[i];
             if (isTask(obj)) {
               const task = obj;
+              clearSubscriberDependencies(task);
               if (obj.$flags$ & TaskFlags.VISIBLE_TASK) {
                 container.$scheduler$(ChoreType.CLEANUP_VISIBLE, obj);
               } else {

@@ -60,8 +60,9 @@ describe('shared-serialization', () => {
         new Task(0, 0, shared1 as any, qrl, shared2 as any, null)
       );
       expect(objs).toEqual([
-        SerializationConstant.Task_CHAR + '0 0 1 qwik-runtime-mock-chunk#s_zero 2',
+        SerializationConstant.Task_CHAR + '0 0 1 2 qwik-runtime-mock-chunk#s_zero 3',
         shared1,
+        null,
         shared2,
       ]);
     });

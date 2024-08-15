@@ -2,7 +2,7 @@ import { isQrl } from '../server/prefetch-strategy';
 import { isJSXNode } from './render/jsx/jsx-runtime';
 import { isTask } from './use/use-task';
 import { vnode_isVNode, vnode_toString } from './v2/client/vnode';
-import { isSignal2 } from './v2/signal/v2-signal';
+import { ComputedSignal2, DerivedSignal2, isSignal2 } from './v2/signal/v2-signal';
 import { isStore2 } from './v2/signal/v2-store';
 
 const stringifyPath: any[] = [];
@@ -34,8 +34,16 @@ export function qwikDebugToString(value: any): any {
         } else {
           return value.map(qwikDebugToString);
         }
-      } else if (isStore2(value) || isSignal2(value)) {
-        return value.toString();
+      } else if (isSignal2(value)) {
+        if (value instanceof DerivedSignal2) {
+          return 'DerivedSignal(' + qwikDebugToString(value.untrackedValue) + ')';
+        } else if (value instanceof ComputedSignal2) {
+          return 'ComputedSignal(' + qwikDebugToString(value.untrackedValue) + ')';
+        } else {
+          return 'Signal(' + qwikDebugToString(value.untrackedValue) + ')';
+        }
+      } else if (isStore2(value)) {
+        return 'Store(' + qwikDebugToString(value) + ')';
       } else if (isJSXNode(value)) {
         return jsxToString(value);
       }

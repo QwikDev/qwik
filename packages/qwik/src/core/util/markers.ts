@@ -25,6 +25,7 @@ export const QStyleSSelector = 'style[q\\:sstyle]';
 export const QStylesAllSelector = QStyleSelector + ',' + QStyleSSelector;
 export const QScopedStyle = 'q:sstyle';
 export const QCtxAttr = 'q:ctx';
+export const QSubscribers = 'q:subs';
 
 export const QRenderAttr = 'q:render';
 export const QRuntimeAttr = 'q:runtime';

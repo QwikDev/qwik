@@ -114,5 +114,6 @@ function mockTask(host: VNode, opts: { index?: number; qrl?: QRL; visible?: bool
     $qrl$: opts.qrl || ($(() => null) as any),
     $state$: null!,
     $destroy$: null!,
+    $dependencies$: null,
   };
 }

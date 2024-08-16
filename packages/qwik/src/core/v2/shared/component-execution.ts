@@ -6,7 +6,6 @@ import { JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { KnownEventNames } from '../../render/jsx/types/jsx-qwik-events';
 import { SubscriptionType } from '../../state/common';
-import { isSignal } from '../../state/signal';
 import { invokeApply, newInvokeContext, untrack } from '../../use/use-core';
 import { type EventQRL, type UseOnMap } from '../../use/use-on';
 import { EMPTY_OBJ } from '../../util/flyweight';
@@ -22,6 +21,7 @@ import { isPromise, maybeThen, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { Container2, HostElement, fixMeAny } from './types';
 import { logWarn } from '../../util/log';
+import { isSignal2 } from '../signal/v2-signal';
 
 /**
  * Use `executeComponent2` to execute a component.
@@ -196,7 +196,7 @@ function findFirstStringJSX(jsx: JSXOutput): ValueOrPromise<JSXNode<string> | nu
       queue.push(...jsx);
     } else if (isPromise(jsx)) {
       return maybeThen<JSXOutput, JSXNode<string> | null>(jsx, (jsx) => findFirstStringJSX(jsx));
-    } else if (isSignal(jsx)) {
+    } else if (isSignal2(jsx)) {
       return findFirstStringJSX(untrack(() => jsx.value as JSXOutput));
     }
   }

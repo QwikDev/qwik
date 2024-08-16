@@ -178,7 +178,15 @@ export class StoreHandler<T extends Record<string | symbol, any>> implements Pro
     if (value !== oldValue) {
       DEBUG && log('Signal.set', oldValue, '->', value, pad('\n' + this.toString(), '  '));
       (target as any)[p] = value;
-      triggerEffects(this.$container$, this, this.$effects$ ? this.$effects$[String(p)] : null);
+      triggerEffects(
+        this.$container$,
+        this,
+        this.$effects$
+          ? Array.isArray(target)
+            ? Object.values(this.$effects$).flatMap((effects) => effects)
+            : this.$effects$[String(p)]
+          : null
+      );
     }
     return true;
   }

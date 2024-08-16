@@ -28,7 +28,7 @@ export const loadClientData = async (
   let resolveFn: () => void | undefined;
 
   if (!qData) {
-    const fetchOptions = getFetchOptions(opts?.action, opts?.clearCache) ?? {};
+    const fetchOptions = getFetchOptions(opts?.action, opts?.clearCache);
     if (opts?.action) {
       opts.action.data = undefined;
     }

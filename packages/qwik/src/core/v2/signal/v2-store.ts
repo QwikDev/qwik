@@ -3,6 +3,7 @@ import { assertDefined, assertTrue } from '../../error/assert';
 import { tryGetInvokeContext } from '../../use/use-core';
 import { isSerializableObject } from '../../util/types';
 import type { VNode } from '../client/types';
+import { SERIALIZER_PROXY_UNWRAP } from '../shared/shared-serialization';
 import type { Container2, fixMeAny } from '../shared/types';
 import {
   EffectProperty,
@@ -116,6 +117,13 @@ export class StoreHandler<T extends Record<string | symbol, any>> implements Pro
   }
 
   get(_: T, p: string | symbol) {
+    if (p === SERIALIZER_PROXY_UNWRAP) {
+      // SERIALIZER_PROXY_UNWRAP is used by v2 serialization to unwrap proxies.
+      // Our target may be a v2 serialization proxy so if we let it through
+      // we will return the naked object which removes ourselves,
+      // and that is not the intention so prevent of SERIALIZER_PROXY_UNWRAP.
+      return undefined;
+    }
     const target = this.$target$;
     const ctx = tryGetInvokeContext();
     if (ctx) {

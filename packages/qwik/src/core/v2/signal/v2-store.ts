@@ -1,5 +1,5 @@
 import { pad, qwikDebugToString } from '../../debug';
-import { assertDefined, assertTrue } from '../../error/assert';
+import { assertTrue } from '../../error/assert';
 import { tryGetInvokeContext } from '../../use/use-core';
 import { isSerializableObject } from '../../util/types';
 import type { VNode } from '../client/types';
@@ -126,9 +126,12 @@ export class StoreHandler<T extends Record<string | symbol, any>> implements Pro
     }
     const target = this.$target$;
     const ctx = tryGetInvokeContext();
+    let value = target[p];
     if (ctx) {
       if (this.$container$ === null) {
-        assertDefined(ctx.$container2$, 'container should be in context ');
+        if (!ctx.$container2$) {
+          return value;
+        }
         // Grab the container now we have access to it
         this.$container$ = ctx.$container2$;
       } else {
@@ -160,7 +163,6 @@ export class StoreHandler<T extends Record<string | symbol, any>> implements Pro
         DEBUG && log('read->sub', pad('\n' + this.toString(), '  '));
       }
     }
-    let value = target[p];
     if (p === 'toString' && value === Object.prototype.toString) {
       return Store.prototype.toString;
     }

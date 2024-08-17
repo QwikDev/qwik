@@ -160,7 +160,9 @@ export class Signal2<T = any> extends Subscriber implements ISignal2<T> {
     const ctx = tryGetInvokeContext();
     if (ctx) {
       if (this.$container$ === null) {
-        assertDefined(ctx.$container2$, 'container should be in context ');
+        if (!ctx.$container2$) {
+          return this.untrackedValue;
+        }
         // Grab the container now we have access to it
         this.$container$ = ctx.$container2$;
       } else {

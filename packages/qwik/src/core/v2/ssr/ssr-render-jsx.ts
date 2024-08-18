@@ -488,7 +488,7 @@ function getSlotName(host: ISsrNode, jsx: JSXNode, ssr: SSRContainer): string {
   if (constProps && typeof constProps == 'object' && 'name' in constProps) {
     const constValue = constProps.name;
     if (constValue instanceof DerivedSignal2) {
-      return trackSignal2(() => constValue.value, host as fixMeAny, EffectProperty.VNODE, ssr);
+      return trackSignal2(() => constValue.value, host as fixMeAny, EffectProperty.COMPONENT, ssr);
     }
   }
   return (jsx.props.name as string) || QDefaultSlot;

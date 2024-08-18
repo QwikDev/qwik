@@ -12,8 +12,7 @@ test.describe("signals", () => {
   });
 
   function tests() {
-    // TODO(v2): fix this
-    test.skip("should do its thing", async ({ page }) => {
+    test("should do its thing", async ({ page }) => {
       const incrementBtn = page.locator("#count");
       const clickBtn = page.locator("#click");
       const incrementIdBtn = page.locator("#increment-id");

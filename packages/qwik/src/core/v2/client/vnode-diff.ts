@@ -625,9 +625,10 @@ export const vnode_diff = (
         if (isSignal2(value)) {
           value = trackSignal2(
             () => (value as Signal2<unknown>).value,
-            vNewNode as fixMeAny,
+            vNewNode as ElementVNode,
             key,
-            container
+            container,
+            scopedStyleIdPrefix
           );
         }
 

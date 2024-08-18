@@ -1039,7 +1039,8 @@ function serializeEffectSubs(
       const effectSubscription = effects[i];
       const effect = effectSubscription[EffectSubscriptionsProp.EFFECT];
       const prop = effectSubscription[EffectSubscriptionsProp.PROPERTY];
-      data += ';' + addRoot(effect) + ' ' + prop;
+      const additionalData = effectSubscription[EffectSubscriptionsProp.DATA];
+      data += ';' + addRoot(effect) + ' ' + prop + ' ' + addRoot(additionalData);
       for (let j = EffectSubscriptionsProp.FIRST_BACK_REF; j < effectSubscription.length; j++) {
         data += ' ' + addRoot(effectSubscription[j]);
       }

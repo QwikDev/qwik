@@ -60,7 +60,7 @@ describe.each([
     );
   });
 
-  it('should render style', async () => {
+  it('should render object style', async () => {
     (globalThis as any).rawStyleId = '';
 
     const StyledComponent = component$(() => {

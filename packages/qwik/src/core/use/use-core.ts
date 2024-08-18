@@ -25,7 +25,7 @@ import type { Container2 } from '../v2/shared/types';
 import { vnode_getNode, vnode_isElementVNode, vnode_isVNode } from '../v2/client/vnode';
 import { _getQContainerElement } from '../v2/client/dom-container';
 import type { ContainerElement } from '../v2/client/types';
-import type { Effect, EffectSubscriptions } from '../v2/signal/v2-signal';
+import type { EffectSubscriptions, EffectSubscriptionsProp } from '../v2/signal/v2-signal';
 
 declare const document: QwikDocument;
 
@@ -253,14 +253,15 @@ export const trackSignal = <T>(signal: Signal, sub: Subscriber): T => {
  */
 export const trackSignal2 = <T>(
   fn: () => T,
-  subscriber: Effect,
-  property: string,
-  container: Container2
+  subscriber: EffectSubscriptions[EffectSubscriptionsProp.EFFECT],
+  property: EffectSubscriptions[EffectSubscriptionsProp.PROPERTY],
+  container: Container2,
+  data: EffectSubscriptions[EffectSubscriptionsProp.DATA] = null
 ): T => {
   const previousSubscriber = trackInvocation.$effectSubscriber$;
   const previousContainer = trackInvocation.$container2$;
   try {
-    trackInvocation.$effectSubscriber$ = [subscriber, property];
+    trackInvocation.$effectSubscriber$ = [subscriber, property, data];
     trackInvocation.$container2$ = container;
     return invoke(trackInvocation, fn);
   } finally {

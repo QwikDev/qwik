@@ -56,7 +56,7 @@ export const executeComponent2 = (
     undefined,
     RenderEvent
   );
-  iCtx.$effectSubscriber$ = [subscriptionHost, EffectProperty.COMPONENT];
+  iCtx.$effectSubscriber$ = [subscriptionHost, EffectProperty.COMPONENT, null];
   iCtx.$container2$ = container;
   let componentFn: (props: unknown) => ValueOrPromise<JSXOutput>;
   container.ensureProjectionResolved(renderHost);

@@ -1054,7 +1054,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
         if (isSignal(value)) {
           const lastNode = this.getLastNode();
-          value = this.trackSignalValue(value, lastNode, key);
+          value = this.trackSignalValue(value, lastNode, key, styleScopedId);
         }
 
         if (key === dangerouslySetInnerHTML) {

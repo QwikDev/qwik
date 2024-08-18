@@ -163,7 +163,7 @@ describe('v2-signal', () => {
     } else {
       const ctx = newInvokeContext();
       ctx.$container2$ = container;
-      const subscriber: EffectSubscriptions = [task, EffectProperty.COMPONENT, ctx];
+      const subscriber: EffectSubscriptions = [task, EffectProperty.COMPONENT, null, ctx];
       ctx.$effectSubscriber$ = subscriber;
       return invoke(ctx, qrl.getFn(ctx));
     }

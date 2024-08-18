@@ -23,7 +23,7 @@ import { isPromise } from '../../util/promises';
 import { qDev } from '../../util/qdev';
 import type { VNode } from '../client/types';
 import { vnode_getProp, vnode_isVirtualVNode, vnode_isVNode, vnode_setProp } from '../client/vnode';
-import { ChoreType } from '../shared/scheduler';
+import { ChoreType, type NodePropPayload } from '../shared/scheduler';
 import type { Container2, HostElement, fixMeAny } from '../shared/types';
 import type { ISsrNode } from '../ssr/ssr-types';
 import type { Signal2 as ISignal2 } from './v2-signal.public';
@@ -119,6 +119,7 @@ export type Effect = Task | VNode | ISsrNode | Signal2;
 export type EffectSubscriptions = [
   Effect, // EffectSubscriptionsProp.EFFECT
   string, // EffectSubscriptionsProp.PROPERTY
+  any | null, // EffectSubscriptionsProp.DATA
   ...// NOTE even thought this is shown as `...(string|Signal2)`
   // it is a list of strings  followed by a list of signals (not intermingled)
   (
@@ -130,7 +131,8 @@ export type EffectSubscriptions = [
 export const enum EffectSubscriptionsProp {
   EFFECT = 0,
   PROPERTY = 1,
-  FIRST_BACK_REF = 2,
+  DATA = 2,
+  FIRST_BACK_REF = 3,
 }
 export const enum EffectProperty {
   COMPONENT = ':',
@@ -322,7 +324,13 @@ export const triggerEffects = (
         container.$scheduler$.schedule(ChoreType.NODE_DIFF, host, target, signal as fixMeAny);
       } else {
         const host: HostElement = effect as any;
-        container.$scheduler$.schedule(ChoreType.NODE_PROP, host, property, signal as fixMeAny);
+        const scopedStyleIdPrefix: string | null =
+          effectSubscriptions[EffectSubscriptionsProp.DATA];
+        const payload: NodePropPayload = {
+          value: signal,
+          scopedStyleIdPrefix,
+        };
+        container.$scheduler$.schedule(ChoreType.NODE_PROP, host, property, payload);
       }
     };
     effects.forEach(scheduleEffect);
@@ -396,7 +404,7 @@ export class ComputedSignal2<T> extends Signal2<T> {
     const ctx = tryGetInvokeContext();
     assertDefined(computeQrl, 'Signal is marked as dirty, but no compute function is provided.');
     const previousEffectSubscription = ctx?.$effectSubscriber$;
-    ctx && (ctx.$effectSubscriber$ = [this, EffectProperty.VNODE]);
+    ctx && (ctx.$effectSubscriber$ = [this, EffectProperty.VNODE, null]);
     assertTrue(
       !!computeQrl.resolved,
       'Computed signals must run sync. Expected the QRL to be resolved at this point.'

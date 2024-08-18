@@ -141,6 +141,11 @@ export interface Chore {
   $returnValue$: any;
 }
 
+export interface NodePropPayload {
+  value: string;
+  scopedStyleIdPrefix: string | null;
+}
+
 export type Scheduler = ReturnType<typeof createScheduler>;
 
 export const createScheduler = (
@@ -339,13 +344,14 @@ export const createScheduler = (
         break;
       case ChoreType.NODE_PROP:
         const virtualNode = chore.$host$ as VirtualVNode;
-        let value = chore.$payload$ as any;
+        const payload = chore.$payload$ as NodePropPayload;
+        let value = payload.value;
         if (isSignal2(value)) {
           value = value.value as any;
         }
         const journal = (container as DomContainer).$journal$;
         const property = chore.$idx$ as string;
-        value = serializeAttribute(property, value);
+        value = serializeAttribute(property, value, payload.scopedStyleIdPrefix);
         vnode_setAttr(journal, virtualNode, property, value);
         break;
       case ChoreType.QRL_RESOLVE: {

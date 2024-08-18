@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { Store2Flags, getOrCreateStore2, isStore2 } from "./v2-store";
+import { describe, it, expect } from 'vitest';
+import { Store2Flags, getOrCreateStore2, isStore2 } from './v2-store';
 
 describe('v2/store', () => {
   it('should create and toString', () => {

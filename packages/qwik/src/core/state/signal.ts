@@ -12,7 +12,7 @@ import {
   verifySerializable,
   type Subscriber,
   type SubscriptionManager,
-  type Subscriptions
+  type Subscriptions,
 } from './common';
 import { QObjectManagerSymbol, _CONST_PROPS } from './constants';
 
@@ -231,8 +231,10 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(
     const target = getStoreTarget2(obj);
     if (target) {
       const signal = target[prop];
-      const wrappedValue = isSignal2(signal) ? signal : new DerivedSignal2(null, getProp, [obj, prop as string], null);
-      return wrappedValue
+      const wrappedValue = isSignal2(signal)
+        ? signal
+        : new DerivedSignal2(null, getProp, [obj, prop as string], null);
+      return wrappedValue;
     }
   }
   // We need to forward the access to the original object

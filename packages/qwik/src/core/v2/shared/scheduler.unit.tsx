@@ -54,10 +54,13 @@ describe('scheduler', () => {
   });
 
   it('should execute sort tasks', async () => {
-    scheduler(ChoreType.TASK, mockTask(vBHost1, { index: 2, qrl: $(() => testLog.push('b1.2')) }));
-    scheduler(ChoreType.TASK, mockTask(vAHost, { qrl: $(() => testLog.push('a1')) }));
-    scheduler(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0')) }));
-    await scheduler(ChoreType.WAIT_FOR_ALL);
+    scheduler.schedule(
+      ChoreType.TASK,
+      mockTask(vBHost1, { index: 2, qrl: $(() => testLog.push('b1.2')) })
+    );
+    scheduler.schedule(ChoreType.TASK, mockTask(vAHost, { qrl: $(() => testLog.push('a1')) }));
+    scheduler.schedule(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0')) }));
+    await scheduler.schedule(ChoreType.WAIT_FOR_ALL);
     expect(testLog).toEqual([
       'a1', // DepthFirst a host component is before b host component.
       'b1.0', // Same component but smaller index.
@@ -66,12 +69,15 @@ describe('scheduler', () => {
     ]);
   });
   it('should execute visible tasks after journal flush', async () => {
-    scheduler(
+    scheduler.schedule(
       ChoreType.TASK,
       mockTask(vBHost2, { index: 2, qrl: $(() => testLog.push('b2.2: Task')) })
     );
-    scheduler(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0: Task')) }));
-    scheduler(
+    scheduler.schedule(
+      ChoreType.TASK,
+      mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0: Task')) })
+    );
+    scheduler.schedule(
       ChoreType.VISIBLE,
       mockTask(vBHost2, {
         index: 2,
@@ -79,7 +85,7 @@ describe('scheduler', () => {
         visible: true,
       })
     );
-    scheduler(
+    scheduler.schedule(
       ChoreType.VISIBLE,
       mockTask(vBHost1, {
         qrl: $(() => {
@@ -88,13 +94,13 @@ describe('scheduler', () => {
         visible: true,
       })
     );
-    scheduler(
+    scheduler.schedule(
       ChoreType.COMPONENT,
       vBHost1,
       $(() => testLog.push('b1: Render')),
       {}
     );
-    await scheduler(ChoreType.WAIT_FOR_ALL);
+    await scheduler.schedule(ChoreType.WAIT_FOR_ALL);
     expect(testLog).toEqual([
       'b1.0: Task',
       'b1: Render',

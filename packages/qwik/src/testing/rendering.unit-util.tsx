@@ -197,7 +197,7 @@ export async function rerenderComponent(element: HTMLElement) {
   const host = getHostVNode(vElement)!;
   const qrl = container.getHostProp<QRL<OnRenderFn<any>>>(host, OnRenderProp)!;
   const props = container.getHostProp(host, ELEMENT_PROPS);
-  await container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
+  await container.$scheduler$.schedule(ChoreType.COMPONENT, host, qrl, props);
   await getTestPlatform().flush();
 }
 

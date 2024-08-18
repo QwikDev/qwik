@@ -1014,7 +1014,7 @@ export const vnode_diff = (
         const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
         shouldRender = shouldRender || propsDiffer(jsxProps, vNodeProps);
         if (shouldRender) {
-          container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
+          container.$scheduler$.schedule(ChoreType.COMPONENT, host, componentQRL, jsxProps);
         }
       }
       jsxValue.children != null && descendContentToProject(jsxValue.children, host);
@@ -1216,7 +1216,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
               const task = obj;
               clearSubscriberDependencies(task);
               if (obj.$flags$ & TaskFlags.VISIBLE_TASK) {
-                container.$scheduler$(ChoreType.CLEANUP_VISIBLE, obj);
+                container.$scheduler$.schedule(ChoreType.CLEANUP_VISIBLE, obj);
               } else {
                 cleanupTask(task);
               }
@@ -1253,14 +1253,20 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
         }
       }
 
-      const isSlot =
+      const isProjection =
         type & VNodeFlags.Virtual && vnode_getProp(vCursor as VirtualVNode, QSlot, null) !== null;
       // Descend into children
-      if (!isSlot) {
+      if (!isProjection) {
         // Only if it is not a projection
         const vFirstChild = vnode_getFirstChild(vCursor);
         if (vFirstChild) {
           vCursor = vFirstChild;
+          /**
+           * Cleanup stale chores for current vCursor, but only if it is not a projection. We need
+           * to do this to prevent stale chores from running after the vnode is removed. (for
+           * example signal subscriptions)
+           */
+          container.$scheduler$.cleanupStaleChores(vCursor as VirtualVNode);
           continue;
         }
       } else if (vCursor === vNode) {

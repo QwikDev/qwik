@@ -496,10 +496,10 @@ export class LocalSubscriptionManager {
             if (isComputedTask(host)) {
               // scheduler(ChoreType.COMPUTED, host);
             } else if (isResourceTask(host)) {
-              scheduler(ChoreType.RESOURCE, host);
+              scheduler.schedule(ChoreType.RESOURCE, host);
             } else {
               const task = host as Task;
-              scheduler(
+              scheduler.schedule(
                 task.$flags$ & TaskFlags.VISIBLE_TASK ? ChoreType.VISIBLE : ChoreType.TASK,
                 task
               );
@@ -514,7 +514,7 @@ export class LocalSubscriptionManager {
               host as fixMeAny,
               ELEMENT_PROPS
             );
-            scheduler(ChoreType.COMPONENT, host as fixMeAny, componentQrl, componentProps);
+            scheduler.schedule(ChoreType.COMPONENT, host as fixMeAny, componentQrl, componentProps);
           }
         } else {
           const signal = sub[SubscriptionProp.SIGNAL];
@@ -563,7 +563,7 @@ export class LocalSubscriptionManager {
               type == SubscriptionType.PROP_IMMUTABLE
             );
           } else {
-            scheduler(
+            scheduler.schedule(
               ChoreType.NODE_DIFF,
               host as fixMeAny,
               sub[SubscriptionProp.ELEMENT] as fixMeAny,
@@ -598,7 +598,7 @@ function updateNodeProp(
     const element = target[ElementVNodeProps.element] as Element;
     container.$journal$.push(VNodeJournalOpCode.SetAttribute, element, propKey, value);
   }
-  container.$scheduler$(ChoreType.JOURNAL_FLUSH);
+  container.$scheduler$.schedule(ChoreType.JOURNAL_FLUSH);
 }
 
 let __lastSubscription: Subscriptions | undefined;

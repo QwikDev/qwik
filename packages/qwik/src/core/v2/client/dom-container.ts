@@ -278,7 +278,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       this.rendering = true;
       this.renderDone = getPlatform().nextTick(() => {
         // console.log('>>>> scheduleRender nextTick', !!this.rendering);
-        return maybeThen(this.$scheduler$(ChoreType.WAIT_FOR_ALL), () => {
+        return maybeThen(this.$scheduler$.schedule(ChoreType.WAIT_FOR_ALL), () => {
           // console.log('>>>> scheduleRender done', !!this.rendering);
           this.rendering = false;
         });
@@ -306,7 +306,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
     if (typeof id === 'string') {
       id = parseFloat(id);
     }
-    assertTrue(id < this.$rawStateData$.length, `Invalid reference: ${id} < ${this.$rawStateData$.length}`);
+    assertTrue(
+      id < this.$rawStateData$.length,
+      `Invalid reference: ${id} < ${this.$rawStateData$.length}`
+    );
     return this.stateData[id];
   };
 

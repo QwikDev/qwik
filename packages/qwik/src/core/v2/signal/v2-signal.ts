@@ -291,7 +291,7 @@ export const triggerEffects = (
         } else if (effect.$flags$ & TaskFlags.RESOURCE) {
           choreType = ChoreType.RESOURCE;
         }
-        container.$scheduler$(choreType, effect);
+        container.$scheduler$.schedule(choreType, effect);
       } else if (effect instanceof Signal2) {
         // we don't schedule ComputedSignal/DerivedSignal directly, instead we invalidate it and
         // and schedule the signals effects (recursively)
@@ -299,7 +299,7 @@ export const triggerEffects = (
           // Ensure that the computed signal's QRL is resolved.
           // If not resolved schedule it to be resolved.
           if (!effect.$computeQrl$.resolved) {
-            container.$scheduler$(ChoreType.QRL_RESOLVE, null, effect.$computeQrl$);
+            container.$scheduler$.schedule(ChoreType.QRL_RESOLVE, null, effect.$computeQrl$);
           }
         }
         (effect as ComputedSignal2<unknown> | DerivedSignal2<unknown>).$invalid$ = true;
@@ -315,14 +315,14 @@ export const triggerEffects = (
         const qrl = container.getHostProp<QRL<(...args: any[]) => any>>(host, OnRenderProp);
         assertDefined(qrl, 'Component must have QRL');
         const props = container.getHostProp<any>(host, ELEMENT_PROPS);
-        container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
+        container.$scheduler$.schedule(ChoreType.COMPONENT, host, qrl, props);
       } else if (property === EffectProperty.VNODE) {
         const host: HostElement = effect as any;
         const target = host;
-        container.$scheduler$(ChoreType.NODE_DIFF, host, target, signal as fixMeAny);
+        container.$scheduler$.schedule(ChoreType.NODE_DIFF, host, target, signal as fixMeAny);
       } else {
         const host: HostElement = effect as any;
-        container.$scheduler$(ChoreType.NODE_PROP, host, property, signal as fixMeAny);
+        container.$scheduler$.schedule(ChoreType.NODE_PROP, host, property, signal as fixMeAny);
       }
     };
     effects.forEach(scheduleEffect);

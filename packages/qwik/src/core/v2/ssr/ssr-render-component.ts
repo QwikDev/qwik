@@ -33,5 +33,5 @@ export const applyQwikComponentBody = (
   if (jsx.key !== null) {
     host.setProp(ELEMENT_KEY, jsx.key);
   }
-  return scheduler(ChoreType.COMPONENT_SSR, host, componentQrl, srcProps);
+  return scheduler.schedule(ChoreType.COMPONENT_SSR, host, componentQrl, srcProps);
 };

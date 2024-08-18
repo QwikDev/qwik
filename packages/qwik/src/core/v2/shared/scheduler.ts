@@ -153,7 +153,7 @@ export const createScheduler = (
   let currentChore: Chore | null = null;
   let journalFlushScheduled: boolean = false;
 
-  return schedule;
+  return { schedule, cleanupStaleChores };
 
   ////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////
@@ -360,6 +360,14 @@ export const createScheduler = (
       currentChore = null;
       return (chore.$returnValue$ = value);
     });
+  }
+
+  function cleanupStaleChores(host: HostElement): void {
+    for (let i = choreQueue.length - 1; i >= 0; i--) {
+      if (choreQueue[i].$host$ === host) {
+        choreQueue.splice(i, 1);
+      }
+    }
   }
 };
 

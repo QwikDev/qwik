@@ -60,7 +60,7 @@ export type QRLInternalMethods<TYPE> = {
   ): TYPE extends (...args: any) => any
     ? (...args: Parameters<TYPE>) => ValueOrPromise<ReturnType<TYPE>>
     : // unknown so we allow assigning function QRLs to any
-    unknown;
+      unknown;
 
   $setContainer$(containerEl: Element | undefined): Element | undefined;
   $resolveLazy$(containerEl?: Element): ValueOrPromise<TYPE>;

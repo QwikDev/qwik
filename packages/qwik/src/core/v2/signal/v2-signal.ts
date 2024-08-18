@@ -171,13 +171,7 @@ export class Signal2<T = any> extends Subscriber implements ISignal2<T> {
           'Do not use signals across containers'
         );
       }
-      let effectSubscriber = ctx.$effectSubscriber$;
-      if (!effectSubscriber && ctx.$hostElement$) {
-        const host: VNode | null = ctx.$hostElement$ as any;
-        if (host) {
-          effectSubscriber = [host, EffectProperty.COMPONENT];
-        }
-      }
+      const effectSubscriber = ctx.$effectSubscriber$;
       if (effectSubscriber) {
         const effects = (this.$effects$ ||= []);
         // Let's make sure that we have a reference to this effect.

@@ -123,7 +123,7 @@ export const useInvokeContext = (): RenderInvokeContext => {
     throw qError(QError_useInvokeContext);
   }
   assertDefined(ctx.$hostElement$, `invoke: $hostElement$ must be defined`, ctx);
-  assertDefined(ctx.$subscriber$, `invoke: $subscriber$ must be defined`, ctx);
+  assertDefined(ctx.$effectSubscriber$, `invoke: $effectSubscriber$ must be defined`, ctx);
 
   return ctx as RenderInvokeContext;
 };
@@ -244,16 +244,19 @@ export const trackSignal = <T>(signal: Signal, sub: Subscriber): T => {
 };
 
 /**
- * 
- * @param fn 
- * @param subscriber 
- * @param property  `true` - subscriber is component
- *                  `false` - subscriber is VNode
- *                  `string` - subscriber is property
- * @param container 
- * @returns 
+ * @param fn
+ * @param subscriber
+ * @param property `true` - subscriber is component `false` - subscriber is VNode `string` -
+ *   subscriber is property
+ * @param container
+ * @returns
  */
-export const trackSignal2 = <T>(fn: () => T, subscriber: Effect, property: string, container: Container2): T => {
+export const trackSignal2 = <T>(
+  fn: () => T,
+  subscriber: Effect,
+  property: string,
+  container: Container2
+): T => {
   const previousSubscriber = trackInvocation.$effectSubscriber$;
   const previousContainer = trackInvocation.$container2$;
   try {
@@ -265,7 +268,6 @@ export const trackSignal2 = <T>(fn: () => T, subscriber: Effect, property: strin
     trackInvocation.$container2$ = previousContainer;
   }
 };
-
 
 export const trackRead = <T>(readFn: () => T, sub: Subscriber): T => {
   trackInvocation.$subscriber$ = sub;

@@ -5,7 +5,6 @@ import { isQrl, type QRLInternal } from '../../qrl/qrl-class';
 import { JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { KnownEventNames } from '../../render/jsx/types/jsx-qwik-events';
-import { SubscriptionType } from '../../state/common';
 import { invokeApply, newInvokeContext, untrack } from '../../use/use-core';
 import { type EventQRL, type UseOnMap } from '../../use/use-on';
 import { EMPTY_OBJ } from '../../util/flyweight';
@@ -21,7 +20,7 @@ import { isPromise, maybeThen, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { Container2, HostElement, fixMeAny } from './types';
 import { logWarn } from '../../util/log';
-import { isSignal2 } from '../signal/v2-signal';
+import { EffectProperty, isSignal2 } from '../signal/v2-signal';
 
 /**
  * Use `executeComponent2` to execute a component.
@@ -57,7 +56,7 @@ export const executeComponent2 = (
     undefined,
     RenderEvent
   );
-  iCtx.$subscriber$ = [SubscriptionType.HOST, subscriptionHost as fixMeAny];
+  iCtx.$effectSubscriber$ = [subscriptionHost, EffectProperty.COMPONENT];
   iCtx.$container2$ = container;
   let componentFn: (props: unknown) => ValueOrPromise<JSXOutput>;
   container.ensureProjectionResolved(renderHost);

@@ -2,11 +2,9 @@ import { pad, qwikDebugToString } from '../../debug';
 import { assertTrue } from '../../error/assert';
 import { tryGetInvokeContext } from '../../use/use-core';
 import { isSerializableObject } from '../../util/types';
-import type { VNode } from '../client/types';
 import { SERIALIZER_PROXY_UNWRAP } from '../shared/shared-serialization';
 import type { Container2, fixMeAny } from '../shared/types';
 import {
-  EffectProperty,
   ensureContains,
   ensureContainsEffect,
   triggerEffects,
@@ -140,13 +138,7 @@ export class StoreHandler<T extends Record<string | symbol, any>> implements Pro
           'Do not use signals across containers'
         );
       }
-      let effectSubscriber = ctx.$effectSubscriber$;
-      if (!effectSubscriber && ctx.$hostElement$) {
-        const host: VNode | null = ctx.$hostElement$ as any;
-        if (host) {
-          effectSubscriber = [host, EffectProperty.COMPONENT];
-        }
-      }
+      const effectSubscriber = ctx.$effectSubscriber$;
       if (effectSubscriber) {
         const effectsMap = (this.$effects$ ||= {});
         const effects =

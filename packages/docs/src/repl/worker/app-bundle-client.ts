@@ -17,7 +17,9 @@ export const appBundleClient = async (
     buildMode: options.buildMode,
     debug: options.debug,
     srcInputs: getInputs(options),
-    entryStrategy: options.entryStrategy,
+    // Older versions don't support `segment`
+    entryStrategy:
+      options.entryStrategy?.type === 'segment' ? { type: 'hook' } : options.entryStrategy,
     manifestOutput: (m) => {
       result.manifest = m;
     },

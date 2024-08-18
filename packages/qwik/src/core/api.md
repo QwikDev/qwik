@@ -338,6 +338,14 @@ export { DomContainer as _DomContainer }
 // @public (undocumented)
 export type EagernessOptions = 'visible' | 'load' | 'idle';
 
+// Warning: (ae-forgotten-export) The symbol "Task" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ISsrNode" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "Signal2_2" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "Effect" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export type Effect = Task | _VNode | ISsrNode | Signal2_2;
+
 // @internal (undocumented)
 export type _ElementVNode = [
 _VNodeFlags.Element,
@@ -1124,10 +1132,8 @@ export abstract class _SharedContainer implements Container2 {
     abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)
     abstract setHostProp<T>(host: HostElement, name: string, value: T): void;
-    // Warning: (ae-forgotten-export) The symbol "Effect" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    trackSignalValue<T>(signal: Signal, subscriber: Effect, property: string): T;
+    trackSignalValue<T>(signal: Signal, subscriber: Effect, property: string, data: any): T;
 }
 
 // @public

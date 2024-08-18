@@ -7,6 +7,8 @@ import {
 
 export { isSignal2 as isSignal } from './v2-signal';
 
+export type { Effect } from './v2-signal';
+
 /** @public */
 export interface ReadonlySignal2<T> {
   readonly untrackedValue: T;

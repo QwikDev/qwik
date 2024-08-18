@@ -77,6 +77,8 @@ export const isSignal2 = (value: any): value is ISignal2<unknown> => {
  * - `Task`: `useTask`, `useVisibleTask`, `useResource`
  * - `VNode` and `ISsrNode`: Either a component or `<Signal>`
  * - `Signal2`: A derived signal which contains a computation function.
+ *
+ * @internal
  */
 export type Effect = Task | VNode | ISsrNode | Signal2;
 

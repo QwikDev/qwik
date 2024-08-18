@@ -16,11 +16,12 @@ import {
 import type { Container2, fixMeAny } from '../../server/qwik-types';
 import type { GetObjID } from '../container/container';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
-import { isSignal, type Signal } from '../state/signal';
+import { type Signal } from '../state/signal';
 import { isPromise } from '../util/promises';
 import { isObject } from '../util/types';
 import { Store2Flags, createStore2, getStoreTarget2 } from '../v2/signal/v2-store';
 import { useSequentialScope } from './use-sequential-scope';
+import { isSignal2 } from '../v2/signal/v2-signal';
 
 const DEBUG: boolean = false;
 
@@ -285,7 +286,7 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
       useBindInvokeContext(props.onResolved),
       useBindInvokeContext(props.onRejected)
     );
-  } else if (isSignal(resource)) {
+  } else if (isSignal2(resource)) {
     return Promise.resolve(resource.value).then(
       useBindInvokeContext(props.onResolved),
       useBindInvokeContext(props.onRejected)

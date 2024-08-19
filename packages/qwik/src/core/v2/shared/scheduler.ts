@@ -97,8 +97,13 @@ import { logWarn } from '../../util/log';
 import { isPromise, maybeThen, maybeThenPassError, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import { isDomContainer } from '../client/dom-container';
-import type { VirtualVNode } from '../client/types';
-import { vnode_documentPosition, vnode_isVNode, vnode_setAttr } from '../client/vnode';
+import { ElementVNodeProps, type ElementVNode, type VirtualVNode } from '../client/types';
+import {
+  vnode_documentPosition,
+  vnode_isVNode,
+  vnode_setAttr,
+  VNodeJournalOpCode,
+} from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
 import { executeComponent2 } from './component-execution';
 import type { Container2, HostElement, fixMeAny } from './types';
@@ -343,16 +348,24 @@ export const createScheduler = (
         returnValue = vnode_diff(container as DomContainer, jsx, parentVirtualNode, null);
         break;
       case ChoreType.NODE_PROP:
-        const virtualNode = chore.$host$ as VirtualVNode;
+        const virtualNode = chore.$host$ as unknown as ElementVNode;
         const payload = chore.$payload$ as NodePropPayload;
         let value = payload.value;
+        // TODO: temp solution!
+        let isConst = false;
         if (isSignal2(value)) {
           value = value.value as any;
+          isConst = true;
         }
         const journal = (container as DomContainer).$journal$;
         const property = chore.$idx$ as string;
         value = serializeAttribute(property, value, payload.scopedStyleIdPrefix);
-        vnode_setAttr(journal, virtualNode, property, value);
+        if (isConst) {
+          const element = virtualNode[ElementVNodeProps.element] as Element;
+          journal.push(VNodeJournalOpCode.SetAttribute, element, property, value);
+        } else {
+          vnode_setAttr(journal, virtualNode, property, value);
+        }
         break;
       case ChoreType.QRL_RESOLVE: {
         const target = chore.$target$ as QRLInternal<any>;

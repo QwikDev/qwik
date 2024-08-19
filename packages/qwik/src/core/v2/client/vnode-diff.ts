@@ -10,7 +10,7 @@ import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../../render/jsx/utils.public';
-import { trackSignal2 } from '../../use/use-core';
+import { trackSignal2, untrack } from '../../use/use-core';
 import { TaskFlags, cleanupTask, isTask } from '../../use/use-task';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import {
@@ -771,6 +771,10 @@ export const vnode_diff = (
           value(element);
           return;
         }
+      }
+
+      if (isSignal2(value)) {
+        value = untrack(() => value.value);
       }
 
       vnode_setAttr(journal, vnode, key, value);

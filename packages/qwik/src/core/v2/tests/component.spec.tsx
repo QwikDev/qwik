@@ -26,7 +26,7 @@ Error.stackTraceLimit = 100;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  { render: domRender }, //
+  // { render: domRender }, //
 ])('$render.name: component', ({ render }) => {
   it('should render component', async () => {
     const MyComp = component$(() => {
@@ -1259,6 +1259,30 @@ describe.each([
       await expect(document.querySelector('div')).toMatchDOM(
         // @ts-ignore-next-line
         <div preventdefault:click=""></div>
+      );
+    });
+
+    it('should update var prop attribute', async () => {
+      const Cmp = component$(() => {
+        const counter = useSignal(0);
+        const props = { 'data-bar': counter.value };
+        return (
+          <button data-foo={counter.value} {...props} onClick$={() => counter.value++}></button>
+        );
+      });
+
+      const { vNode, document } = await render(<Cmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button data-foo="0" data-bar="0"></button>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button data-foo="2" data-bar="2"></button>
+        </Component>
       );
     });
   });

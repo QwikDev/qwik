@@ -1,5 +1,6 @@
 import { pad, qwikDebugToString } from '../../debug';
 import { assertTrue } from '../../error/assert';
+import { _wrapProp } from '../../state/signal';
 import { tryGetInvokeContext } from '../../use/use-core';
 import { isSerializableObject } from '../../util/types';
 import { SERIALIZER_PROXY_UNWRAP } from '../shared/shared-serialization';
@@ -121,6 +122,18 @@ export class StoreHandler<T extends Record<string | symbol, any>> implements Pro
       // we will return the naked object which removes ourselves,
       // and that is not the intention so prevent of SERIALIZER_PROXY_UNWRAP.
       return undefined;
+    } else if (p === 'toJSON') {
+      return () => {
+        // we need to add subscription to all properties
+        // TODO: could this be done another way?
+        for (const key in this.$target$) {
+          if (isStore2(this.$target$[key])) {
+            continue;
+          }
+          this.get(this.$target$, key);
+        }
+        return this.$target$;
+      };
     }
     const target = this.$target$;
     const ctx = tryGetInvokeContext();

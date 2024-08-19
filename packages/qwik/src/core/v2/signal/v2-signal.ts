@@ -213,7 +213,7 @@ export class Signal2<T = any> extends Subscriber implements ISignal2<T> {
   toString() {
     return (
       `[${this.constructor.name}${(this as any).$invalid$ ? ' INVALID' : ''} ${String(this.$untrackedValue$)}]` +
-        this.$effects$?.map((e) => '\n -> ' + pad(qwikDebugToString(e[0]), '    ')).join('\n') || ''
+      (this.$effects$?.map((e) => '\n -> ' + pad(qwikDebugToString(e[0]), '    ')).join('\n') || '')
     );
   }
   toJSON() {

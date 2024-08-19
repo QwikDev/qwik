@@ -466,6 +466,73 @@ describe.each([
     );
   });
 
+  it('should render value via JSON.stringify', async () => {
+    const Stringify = component$<{
+      data: any;
+      style?: any;
+    }>((props) => {
+      return <>{JSON.stringify(props.data)}</>;
+    });
+
+    const Cmp = component$(() => {
+      const group = useStore({
+        controls: {
+          ctrl: {
+            value: '',
+          },
+        },
+      });
+
+      return (
+        <button onClick$={() => (group.controls.ctrl.value = 'test')}>
+          <Stringify data={group} />
+          <Stringify data={group.controls} />
+          <Stringify data={group.controls.ctrl} />
+          <Stringify data={group.controls.ctrl.value} />
+        </button>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          <Component>
+            <Signal>{'{"controls":{"ctrl":{"value":""}}}'}</Signal>
+          </Component>
+          <Component>
+            <Signal>{'{"ctrl":{"value":""}}'}</Signal>
+          </Component>
+          <Component>
+            <Signal>{'{"value":""}'}</Signal>
+          </Component>
+          <Component>
+            <Signal>{'""'}</Signal>
+          </Component>
+        </button>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          <Component>
+            <Signal>{'{"controls":{"ctrl":{"value":"test"}}}'}</Signal>
+          </Component>
+          <Component>
+            <Signal>{'{"ctrl":{"value":"test"}}'}</Signal>
+          </Component>
+          <Component>
+            <Signal>{'{"value":"test"}'}</Signal>
+          </Component>
+          <Component>
+            <Signal>{'"test"'}</Signal>
+          </Component>
+        </button>
+      </Component>
+    );
+  });
+
   describe('regression', () => {
     it('#5597 - should update value', async () => {
       (globalThis as any).clicks = 0;

@@ -703,9 +703,7 @@ export const createSerializationContext = (
         // For root objects we pretend we have not seen them to force scan.
         const id = $wasSeen$(obj);
         const unwrapObj = unwrapStore2(obj);
-        if (unwrapObj !== obj) {
-          discoveredValues.push(unwrapObj);
-        } else if (id === undefined || isRoot) {
+        if (id === undefined || isRoot) {
           // Object has not been seen yet, must scan content
           // But not for root.
           !isRoot && $seen$(obj);
@@ -724,6 +722,8 @@ export const createSerializationContext = (
             // skip as these are primitives
           } else if (fastSkipSerialize(obj as object)) {
             // Ignore the no serialize objects
+          } else if (unwrapObj !== obj) {
+            discoveredValues.push(unwrapObj);
           } else if (obj instanceof Set) {
             const contents = Array.from(obj.values());
             setSerializableDataRootId($addRoot$, obj, contents);

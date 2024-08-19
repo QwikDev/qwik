@@ -1256,22 +1256,18 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
 
       const isProjection =
         type & VNodeFlags.Virtual && vnode_getProp(vCursor as VirtualVNode, QSlot, null) !== null;
-
-      if (!isProjection) {
-        /**
-         * Cleanup stale chores for current vCursor, but only if it is not a projection. We need to
-         * do this to prevent stale chores from running after the vnode is removed. (for example
-         * signal subscriptions)
-         */
-        container.$scheduler$.cleanupStaleChores(vCursor as VirtualVNode);
-      }
-
       // Descend into children
       if (!isProjection) {
         // Only if it is not a projection
         const vFirstChild = vnode_getFirstChild(vCursor);
         if (vFirstChild) {
           vCursor = vFirstChild;
+          /**
+           * Cleanup stale chores for current vCursor, but only if it is not a projection. We need
+           * to do this to prevent stale chores from running after the vnode is removed. (for
+           * example signal subscriptions)
+           */
+          container.$scheduler$.cleanupStaleChores(vCursor as VirtualVNode);
           continue;
         }
       } else if (vCursor === vNode) {

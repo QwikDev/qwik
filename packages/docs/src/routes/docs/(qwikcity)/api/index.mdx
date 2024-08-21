@@ -453,3 +453,38 @@ export default component$(() => {
   );
 });
 ```
+
+### Prefetch
+
+Whether Qwik should prefetch and cache the target page of this `Link`, this includes invoking any `routeLoader$`, `onGet`, etc.
+
+This **improves UX performance** for client-side (**SPA**) navigations.
+
+Prefetching occurs when a the Link enters the viewport in production (`on:qvisibile`), or with `mouseover`/`focus` during dev.
+
+Prefetching will not occur if the user has the **data saver** setting enabled.
+
+Setting this value to `"js"` will prefetch only javascript bundles required to render this page on the client, `false` will disable prefetching altogether.
+
+> Warning: if you have a menu with many links, all of them will be loaded immediately when you enter the production page, which may result with too many requests
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { Link } from '@builder.io/qwik-city';
+
+export default component$(() => {
+  return (
+    <div>
+      <Link href="/a" prefetch={false}>
+        page will not be prefetched
+      </Link>
+      <Link href="/b" prefetch="js">
+        page js will be prefetched
+      </Link>
+      <Link href="/c">
+        page content & js will be prefetched
+      </Link>
+    </div>
+  );
+});
+```

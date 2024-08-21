@@ -575,7 +575,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       let { code } = transformedModule[0];
       const { map, segment } = transformedModule[0];
 
-      if (devServer) {
+      if (devServer && !opts.csr) {
         const firstInput = Object.values(opts.input)[0];
         // doing this because vite will not use resolveId() when "noExternal" is false
         // so we need to turn the @qwik-client-manifest import into a relative import

@@ -25,6 +25,13 @@ export const QStyleSSelector = 'style[q\\:sstyle]';
 export const QStylesAllSelector = QStyleSelector + ',' + QStyleSSelector;
 export const QScopedStyle = 'q:sstyle';
 export const QCtxAttr = 'q:ctx';
+export const QManifestHash = 'q:manifest-hash';
+export const QInstance = 'q:instance';
+export const QFuncsPrefix = 'qFuncs_';
+
+export const getQFuncs = (document: Document, hash: string): Function[] => {
+  return (document as any)[QFuncsPrefix + hash] || [];
+};
 
 export const QRenderAttr = 'q:render';
 export const QRuntimeAttr = 'q:runtime';

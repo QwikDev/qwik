@@ -1,0 +1,107 @@
+# disabled for now, not working as expected and not checking qwik runtime performance
+name: Benchmark
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      optimizer: ${{ steps.filter.outputs.optimizer }}
+
+    steps:
+      - uses: actions/checkout@v4.1.1
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            optimizer:
+              - 'src/optimizer/core/**'
+
+  benchmark:
+    name: Performance regression check
+    needs: changes
+    if: ${{ needs.changes.outputs.optimizer == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: cargo-bench-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-bench-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly-2021-09-30
+          override: true
+
+      - name: Run benchmark
+        run: cargo +nightly-2021-09-30 bench --workspace | tee output.txt
+
+      - name: Download previous benchmark results
+        run: mkdir raw-data && curl -o raw-data/benchmark-data.json https://raw.githubusercontent.com/QwikDev/qwik-raw-data/gh-pages/benchmark-data.json
+
+      - name: Analyze benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          # What benchmark tool the output.txt came from
+          tool: 'cargo'
+          # Where the output from the benchmark tool is stored
+          output-file-path: output.txt
+          external-data-json-path: ./raw-data/${{ github.sha }}/benchmark-data.json
+          # Workflow will fail when an alert happens
+          fail-on-alert: false
+          # GitHub API token to make a commit comment
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Enable alert commit comment
+          comment-on-alert: true
+          comment-always: true
+          alert-comment-cc-users: '@manucorporat'
+          skip-fetch-gh-pages: true
+
+      - name: Analyze benchmark result (root)
+        if: ${{ github.event_name == 'push' }}
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          # What benchmark tool the output.txt came from
+          tool: 'cargo'
+          # Where the output from the benchmark tool is stored
+          output-file-path: output.txt
+          external-data-json-path: ./raw-data/benchmark-data.json
+          # Workflow will fail when an alert happens
+          # fail-on-alert: true
+          # GitHub API token to make a commit comment
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Enable alert commit comment
+          comment-on-alert: true
+          comment-always: true
+          alert-comment-cc-users: '@manucorporat'
+          max-items-in-chart: 250
+          skip-fetch-gh-pages: true
+          auto-push: false
+
+      - name: Deploy to qwik-raw-data
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: JamesIves/github-pages-deploy-action@4.1.0
+        with:
+          token: ${{ secrets.PAT_GITHUB_TOKEN }}
+          branch: gh-pages
+          folder: raw-data
+          clean: false
+          single-commit: false
+          git-config-email: github-bot@builder.io
+          repository-name: QwikDev/qwik-raw-data
+          commit-message: 'Update'

@@ -9,6 +9,7 @@ import type { PrefetchImplementation, PrefetchResource, PrefetchStrategy } from 
 import type { SsrAttrs, SSRContainer } from './qwik-types';
 
 export function applyPrefetchImplementation(
+  base: string,
   prefetchStrategy: PrefetchStrategy | undefined,
   prefetchResources: PrefetchResource[],
   nonce?: string
@@ -20,7 +21,7 @@ export function applyPrefetchImplementation(
   const prefetchNodes: JSXNode[] = [];
 
   if (prefetchImpl.prefetchEvent === 'always') {
-    prefetchUrlsEvent(prefetchNodes, prefetchResources, nonce);
+    prefetchUrlsEvent(base, prefetchNodes, prefetchResources, nonce);
   }
 
   if (prefetchImpl.linkInsert === 'html-append') {
@@ -66,6 +67,7 @@ export function applyPrefetchImplementation2(
 }
 
 function prefetchUrlsEvent(
+  base: string,
   prefetchNodes: JSXNode[],
   prefetchResources: PrefetchResource[],
   nonce?: string
@@ -84,8 +86,8 @@ function prefetchUrlsEvent(
     jsx('script', {
       'q:type': 'prefetch-bundles',
       dangerouslySetInnerHTML:
-        prefetchUrlsEventScript(prefetchResources) +
-        `;document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`,
+        prefetchUrlsEventScript(base, prefetchResources) +
+        `document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`,
       nonce,
     })
   );
@@ -110,7 +112,7 @@ function prefetchUrlsEvent2(
     scriptAttrs.push('nonce', nonce);
   }
   container.openElement('script', null, scriptAttrs);
-  container.writer.write(prefetchUrlsEventScript(prefetchResources));
+  container.writer.write(prefetchUrlsEventScript(container.buildBase, prefetchResources));
   container.writer.write(
     `;document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`
   );

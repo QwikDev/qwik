@@ -55,7 +55,7 @@ Resumability is "Lazy execution", it's the ability to build the "framework state
 The application environment—whether client-side or server-side—is determined by user interactions. In server-side rendering, the application initially renders on the server.
 When the user interacts with the application, it resumes on the client-side, continuing from the state left by the server. This approach ensures efficient and responsive user experiences by leveraging both environments based on interaction.
 
-> **Note**: For systems that use hydration the execution of the application happens twice. Once on a server (SSR/SSG) and once on the browser (hydration). This is why many frameworks have "effects" which only execute on the browser. That means that the code that runs on the server is different than the code that runs on the browser. Qwik execution is unified, meaning if the code has already been executed on the server it does not re-execute it on the browser.
+> **Note**: For systems that use hydration, the execution of the application happens twice. Once on a server (SSR/SSG) and once on the browser (hydration). This is why many frameworks have "effects" which only execute on the browser. That means that the code that runs on the server is different than the code that runs on the browser. Qwik execution is unified, meaning if the code has already been executed on the server, it does not re-execute it on the browser.
 
 **In Qwik, there are only 3 lifecycle stages:**
 
@@ -112,7 +112,7 @@ Additionally, this task can be reactive and will re-execute when **tracked** [st
 
 `useTask$()` will block the rendering of the component until after its async callback resolves, in other words, tasks execute sequentially even if they are asynchronous. (Only one task executes at a time).
 
-Let's look at the simplest use case of the task to run some asynchronous work on component initialization.
+Take a look at the simplest use case of the task to run some asynchronous work on component initialization:
 
 <CodeSandbox src="/src/routes/demo/tasks/use-task/index.tsx" style={{ height: '6em' }}>
 ```tsx
@@ -235,7 +235,7 @@ const delay = (time: number) => new Promise((res) => setTimeout(res, time));
 
 ### `track()` as a function
 
-In the above example `track()` was used to track a specific signal. However, `track()` can also be used as a function to track multiple signals at once.
+In the above example, `track()` was used to track a specific signal. However, `track()` can also be used as a function to track multiple signals at once.
 
 <CodeSandbox src="/src/routes/demo/tasks/track-fn/index.tsx" style={{ height: '6em' }} >
 ```tsx
@@ -276,7 +276,7 @@ function delay(time: number) {
 ```
 </CodeSandbox>
 
-> In this example the `track()` takes a function that not only reads the signal but also transforms its value to uppercase/lowercase. The `track()` subscribes to multiple signals and computes their value.
+> In this example, the `track()` takes a function that not only reads the signal but also transforms its value to uppercase/lowercase. The `track()` subscribes to multiple signals and computes their value.
 
 ### `cleanup()`
 
@@ -362,7 +362,7 @@ Sometimes a task needs to run only on the browser and after rendering, in that c
 > ```
 > </CodeSandbox>
 >
-> In the above example the `useTask$()` is guarded by `isServer`. The `track()` function is placed before the guard, which
+> In the above example, the `useTask$()` is guarded by `isServer`. The `track()` function is placed before the guard, which
 > allows the server to set up the subscription without executing any code on the server. The client
 > then executes the `useTask$()` once the `text` signal changes.
 
@@ -454,7 +454,7 @@ const Clock = component$<{ isRunning: Signal<boolean> }>(({ isRunning }) => {
 ```
 </CodeSandbox>
 
-> In this example the clock starts running immediately on the browser regardless of whether it is visible or not.
+> In this example, the clock starts running immediately on the browser regardless of whether it is visible or not.
 
 ### Advanced: Time of running, and managing visibility with CSS
 

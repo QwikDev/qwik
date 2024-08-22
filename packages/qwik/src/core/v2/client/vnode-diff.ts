@@ -867,7 +867,7 @@ export const vnode_diff = (
   function registerQwikLoaderEvent(eventName: string) {
     const window = container.document.defaultView as qWindow | null;
     if (window) {
-      (window.qwikevents ||= [] as string[]).push(eventName);
+      (window.qwikevents ||= [] as any).push(eventName);
     }
   }
 

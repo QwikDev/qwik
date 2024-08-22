@@ -144,6 +144,7 @@ export const _serializeData = async (data: any, pureQRL?: boolean) => {
 // (edit ../readme.md#pauseContainer instead)
 // </docs>
 /** This pauses a running container in the browser. It is not used for SSR */
+// TODO(mhevery): this is a remnant when you could have paused on client. Should be deleted.
 export const pauseContainer = async (
   elmOrDoc: Element | Document,
   defaultParentJSON?: Element

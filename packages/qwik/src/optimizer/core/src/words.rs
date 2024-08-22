@@ -14,8 +14,9 @@ lazy_static! {
 	pub static ref _INLINED_QRL: JsWord = JsWord::from("inlinedQrl");
 	pub static ref _INLINED_QRL_DEV: JsWord = JsWord::from("inlinedQrlDEV");
 	pub static ref _NOOP_QRL: JsWord = JsWord::from("_noopQrl");
+	pub static ref _NOOP_QRL_DEV: JsWord = JsWord::from("_noopQrlDEV");
 	pub static ref _REST_PROPS: JsWord = JsWord::from("_restProps");
-	pub static ref QHOOK: JsWord = JsWord::from("$");
+	pub static ref QSEGMENT: JsWord = JsWord::from("$");
 	pub static ref Q_SYNC: JsWord = JsWord::from("sync$");
 	pub static ref QWIK_INTERNAL: JsWord = JsWord::from("qwik");
 	pub static ref BUILDER_IO_QWIK: JsWord = JsWord::from("@builder.io/qwik");
@@ -25,7 +26,6 @@ lazy_static! {
 		JsWord::from("@builder.io/qwik/jsx-dev-runtime");
 	pub static ref QCOMPONENT: JsWord = JsWord::from("component$");
 	pub static ref USE_LEXICAL_SCOPE: JsWord = JsWord::from("useLexicalScope");
-	pub static ref USE_SERVER_MOUNT: JsWord = JsWord::from("useServerMount$");
 	pub static ref H: JsWord = JsWord::from("h");
 	pub static ref FRAGMENT: JsWord = JsWord::from("Fragment");
 	pub static ref _INLINED_FN: JsWord = JsWord::from("_fnSignal");

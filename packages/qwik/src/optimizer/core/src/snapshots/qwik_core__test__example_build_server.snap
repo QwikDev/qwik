@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2726
+assertion_line: 2730
 expression: output
 ---
 ==INPUT==
@@ -46,7 +46,7 @@ export const functionThatNeedsWindow = ()=>{};
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./s_ckepmxzlub0"), "s_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAQA,OAAO,MAAM,0BAA0B,IAAM,CAM7C,EAAE;AAEF,OAAO,MAAM,oBAAM,gFAehB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAQA,OAAO,MAAM,0BAA0B,KAMvC,EAAE;AAEF,OAAO,MAAM,oBAAM,gFAehB\"}")
 ============================= s_ckepmxzlub0.tsx (ENTRY POINT)==
 
 import { mongodb } from "mondodb";
@@ -55,16 +55,13 @@ export const s_ckEPmXZlub0 = ()=>{
         console.log('server', mongodb());
     });
     return <Cmp>
-
 			{<p>server</p>}
-
 			{false}
-
 		</Cmp>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAgB8B,IAAM;IACnC,UAAU,IAAM;QAEd,QAAQ,GAAG,CAAC,UAAU;IAKxB;IACA,QACE,IAAI;;GACJ,EAAc,EAAE,MAAM,EAAE,GAAG;;GAC3B,OAA4B;;EAC7B,EAAE;AAEJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAgB8B;IAC7B,UAAU;QAER,QAAQ,GAAG,CAAC,UAAU;IAKxB;IACA,QACE,IAAI;GACJ,EAAc,EAAE,MAAM,EAAE,GAAG;GAC3B,OAA4B;EAC7B,EAAE;AAEJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -73,6 +70,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "App_component",
   "hash": "ckEPmXZlub0",
   "canonicalFilename": "s_ckepmxzlub0",
+  "path": "",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",

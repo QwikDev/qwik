@@ -21,12 +21,12 @@ const Header = component$(() => {
 import { useStore } from "@builder.io/qwik";
 export const Header_component_J4uyIhaBNR4 = ()=>{
     const thing = useStore();
-    const { foo , bar  } = foo();
+    const { foo, bar } = foo();
     return <div>{thing}</div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAE0B,IAAM;IAC/B,MAAM,QAAQ;IACd,MAAM,EAAC,IAAG,EAAE,IAAG,EAAC,GAAG;IAEnB,QACE,KAAK,QAAQ;AAEhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAE0B;IACzB,MAAM,QAAQ;IACd,MAAM,EAAC,GAAG,EAAE,GAAG,EAAC,GAAG;IAEnB,QACE,KAAK,QAAQ;AAEhB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -35,6 +35,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Header_component",
   "hash": "J4uyIhaBNR4",
   "canonicalFilename": "header_component_j4uyihabnr4",
+  "path": "",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",

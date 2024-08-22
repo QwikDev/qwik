@@ -67,7 +67,7 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
         "stuffDefault"
     ]);
     console.log(props.stuff, props.some ?? 3);
-    useTaskQrl(/*#__PURE__*/ inlinedQrl(({ track  })=>{
+    useTaskQrl(/*#__PURE__*/ inlinedQrl(({ track })=>{
         const [props, rest] = useLexicalScope();
         track(()=>props.count);
         console.log(props.count, rest, props.stuff, props.some ?? 3, props.stuffDefault ?? 123);
@@ -90,9 +90,9 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
         override: true
     }, _wrapProp(props, "count"), 0, "u6_0");
 }, "Works_component_t45qL4vNGv0"));
-export const NoWorks2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ count , stuff: { hey  }  })=>{
+export const NoWorks2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ count, stuff: { hey } })=>{
     console.log(hey);
-    useTaskQrl(/*#__PURE__*/ inlinedQrl(({ track  })=>{
+    useTaskQrl(/*#__PURE__*/ inlinedQrl(({ track })=>{
         const [count] = useLexicalScope();
         track(()=>count);
         console.log(count);
@@ -103,9 +103,9 @@ export const NoWorks2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ c
         class: count
     }, null, count, 1, "u6_1");
 }, "NoWorks2_component_JPD9t2HyEKg"));
-export const NoWorks3 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ count , stuff =hola()  })=>{
+export const NoWorks3 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ count, stuff = hola() })=>{
     console.log(stuff);
-    useTaskQrl(/*#__PURE__*/ inlinedQrl(({ track  })=>{
+    useTaskQrl(/*#__PURE__*/ inlinedQrl(({ track })=>{
         const [count] = useLexicalScope();
         track(()=>count);
         console.log(count);
@@ -118,7 +118,7 @@ export const NoWorks3 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ c
 }, "NoWorks3_component_fc13h5yYn14"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW,SAMlB;;;;;;;;IACb,QAAQ,GAAG,OAHX,aAFA,QAAO;IAMP,oCAAS,CAAC,EAAC,MAAK,EAAC;;QAChB,MAAM,UARP;QASC,QAAQ,GAAG,OATZ,OASoB,YANpB,aAFA,QAAO,SAGP,gBAAqB;;;;;IAOrB,qBACC,UAAC;QAAI,IAAI,qBAXV,QAAO;;;QAWW,MAAM,kBAAE,CAAA;gBAAE,IAAI,KAXhC,QAAO;YAW0B,CAAA;;;QAAG,KAAK;QAAU,GAAG,IAAI;;QAAE,QAAQ;;AAErE,mCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAO,EAAC,IAAG,EAAC,CAAA,EAAC,GAAK;IAC7D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QAChB,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB,sCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,MAAK,EAAE,OAAQ,OAAM,EAAC,GAAK;IAC/D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,MAAK,EAAC;;QAChB,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB,sCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW;;;;;;;;IAO/B,QAAQ,GAAG,OAHX,aAFA,QAAO;IAMP,oCAAS,CAAC,EAAC,KAAK,EAAC;;QAChB,MAAM,UARP;QASC,QAAQ,GAAG,OATZ,OASoB,YANpB,aAFA,QAAO,SAGP,gBAAqB;;;;;IAOrB,qBACC,UAAC;QAAI,IAAI,qBAXV,QAAO;;;QAWW,MAAM,kBAAE,CAAA;gBAAE,IAAI,KAXhC,QAAO;YAW0B,CAAA;;;QAAG,KAAK;QAAU,GAAG,IAAI;;QAAE,QAAQ;;AAErE,mCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,KAAK,EAAE,OAAO,EAAC,GAAG,EAAC,EAAC;IACxD,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,KAAK,EAAC;;QAChB,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB,sCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,KAAK,EAAE,QAAQ,MAAM,EAAC;IAC1D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,KAAK,EAAC;;QAChB,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB,sCAAG\"}")
 == DIAGNOSTICS ==
 
 []

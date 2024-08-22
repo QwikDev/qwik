@@ -13,4 +13,4 @@
  *   this file, which is only allowed to import types)
  */
 
-export type { QPrefetchData } from '../../../qwik-city/runtime/src/service-worker/types';
+export type { QPrefetchData } from '../../../qwik-city/src/runtime/src/service-worker/types';

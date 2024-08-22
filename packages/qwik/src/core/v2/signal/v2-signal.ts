@@ -161,6 +161,11 @@ export class Signal2<T = any> extends Subscriber implements ISignal2<T> {
     return this.$untrackedValue$;
   }
 
+  // TODO: should we disallow setting the value directly?
+  set untrackedValue(value: T) {
+    this.$untrackedValue$ = value;
+  }
+
   get value() {
     const ctx = tryGetInvokeContext();
     if (ctx) {

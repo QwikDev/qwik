@@ -23,7 +23,7 @@ export interface ImageOptimizationOptions {
     format?: string | ((extname: string) => string);
     w?: string;
     h?: string;
-    [key: string]: any;
+    [key: string]:  string | ((extname: string) => string) | undefined;
   };
   svgo?: Pick<SVGOConfig, 'floatPrecision' | 'multipass' | 'plugins'> & {
     defaultPresetOverrides?: SVGOBuiltinPluginsWithOptionalParams['preset-default']['overrides'];

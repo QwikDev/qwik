@@ -170,8 +170,8 @@ export const createScheduler = (
 
   function schedule(
     type: ChoreType.QRL_RESOLVE,
-    ignore0: null,
-    ignore1: QRLInternal<any>
+    ignore: null,
+    target: QRLInternal<any>
   ): ValueOrPromise<void>;
   function schedule(type: ChoreType.JOURNAL_FLUSH): ValueOrPromise<void>;
   function schedule(type: ChoreType.WAIT_FOR_ALL): ValueOrPromise<void>;
@@ -369,7 +369,7 @@ export const createScheduler = (
         break;
       case ChoreType.QRL_RESOLVE: {
         const target = chore.$target$ as QRLInternal<any>;
-        returnValue = target.resolve();
+        returnValue = !target.resolved ? target.resolve() : null;
         break;
       }
     }
@@ -417,7 +417,12 @@ function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: boolean)
   if (a.$type$ !== ChoreType.JOURNAL_FLUSH) {
     const aHost = a.$host$;
     const bHost = b.$host$;
-    if (aHost !== bHost) {
+
+    const aHostIsQrlResolve = a.$type$ === ChoreType.QRL_RESOLVE;
+    const bHostIsQrlResolve = b.$type$ === ChoreType.QRL_RESOLVE;
+
+    // QRL_RESOLVE does not have a host.
+    if (aHost !== bHost && !aHostIsQrlResolve && !bHostIsQrlResolve) {
       if (vnode_isVNode(aHost) && vnode_isVNode(bHost)) {
         // we are running on the client.
         const hostDiff = vnode_documentPosition(aHost, bHost);
@@ -444,6 +449,18 @@ function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: boolean)
       return microTypeDiff;
     }
 
+    /**
+     * QRL_RESOLVE is a special case. It does not have a host nor $idx$. We want to process
+     * QRL_RESOLVE chores as FIFO, so we need to return 1.
+     */
+    if (
+      aHostIsQrlResolve &&
+      bHostIsQrlResolve &&
+      (a.$target$ as QRLInternal<any>).$symbol$ !== (b.$target$ as QRLInternal<any>).$symbol$
+    ) {
+      return 1;
+    }
+
     const idxDiff = toNumber(a.$idx$) - toNumber(b.$idx$);
     if (idxDiff !== 0) {
       return idxDiff;
@@ -452,26 +469,6 @@ function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: boolean)
 
   return 0;
 }
-
-export const intraHostPredicate = (a: Chore, b: Chore): number => {
-  const idxDiff = toNumber(a.$idx$) - toNumber(b.$idx$);
-  if (idxDiff !== 0) {
-    return idxDiff;
-  }
-  const typeDiff = a.$type$ - b.$type$;
-  if (typeDiff !== 0) {
-    return typeDiff;
-  }
-  if (a.$payload$ !== b.$payload$) {
-    return 0;
-  }
-  if (a.$payload$ instanceof Task && b.$payload$ instanceof Task) {
-    const aHash = a.$payload$.$qrl$.$hash$;
-    const bHash = b.$payload$.$qrl$.$hash$;
-    return aHash === bHash ? 0 : aHash < bHash ? -1 : 1;
-  }
-  return 0;
-};
 
 function sortedFindIndex(sortedArray: Chore[], value: Chore): number {
   /// We need to ensure that the `queue` is sorted by priority.
@@ -525,7 +522,8 @@ function debugChoreToString(chore: Chore): string {
       } as any
     )[chore.$type$] || 'UNKNOWN: ' + chore.$type$;
   const host = String(chore.$host$).replaceAll(/\n.*/gim, '');
-  return `Chore(${type} ${host} ${chore.$idx$})`;
+  const qrlTarget = (chore.$target$ as QRLInternal<any>).$symbol$;
+  return `Chore(${type} ${chore.$type$ === ChoreType.QRL_RESOLVE ? qrlTarget : host} ${chore.$idx$})`;
 }
 
 function debugTrace(

@@ -18,6 +18,7 @@ import { type QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
 import { trackSignal2, tryGetInvokeContext } from '../../use/use-core';
 import { Task, TaskFlags, isTask } from '../../use/use-task';
+import { logError } from '../../util/log';
 import { ELEMENT_PROPS, OnRenderProp, QSubscribers } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { qDev } from '../../util/qdev';
@@ -311,6 +312,8 @@ export const triggerEffects = (
         try {
           signal = effect;
           effect.$effects$?.forEach(scheduleEffect);
+        } catch (e: unknown) {
+          logError(e);
         } finally {
           signal = previousSignal;
         }

@@ -20,6 +20,7 @@ updated_at: '2023-09-15T18:19:48Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 import ImgRoutingFiles from '~/media/docs/qwikcity/routing-files.png?jsx';
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 # Qwik City
 
@@ -43,7 +44,7 @@ While Qwik focuses on the Component API, Qwik City provides APIs that support co
 >
 > [**City²**](/docs/(qwikcity)/routing/index.mdx): Opinionated file-based router, middleware, endpoints, and data fetching and update.
 
-We call it a **meta-framework** for Qwik. Qwik City is to Qwik, what [Next.js](https://nextjs.org/) is to React, what [Nuxt](https://nuxt.com/) is to Vue, [SvelteKit](https://kit.svelte.dev/) to Svelte and [Analog](https://analogjs.org/) is to Angular.
+Qwik City is a **meta-framework** for Qwik. Qwik City is to Qwik, what [Next.js](https://nextjs.org/) is to React, [Nuxt](https://nuxt.com/) is to Vue, [SvelteKit](https://kit.svelte.dev/) to Svelte, and [Analog](https://analogjs.org/) is to Angular.
 
 **Qwik** (core) and **Qwik City** (routing) solve problems at two layers of abstraction. **Qwik**, focuses on component and state management primitives, while **Qwik City** brings an **opinionated and performant way to build sites at scale**. We don't want to lock the ecosystem into a single correct way of building sites; in fact, we encourage the community to build alternative solutions on top of **Qwik**.
 
@@ -55,12 +56,28 @@ Use Qwik City to build an e-commerce website, blog site, or any other website th
 
 Visit [Create an app using the CLI](/docs/getting-started/#create-an-app-using-the-cli) to see how to create a new Qwik City starter project. It is as simple as:
 
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm create qwik@latest
+```
+</span>
+<span q:slot="npm">
 ```shell
 npm create qwik@latest
-pnpm create qwik@latest
+```
+</span>
+<span q:slot="yarn">
+```shell
 yarn create qwik
+```
+</span>
+<span q:slot="bun">
+```shell
 bun create qwik@latest
 ```
+</span>
+</PackageManagerTabs>
 
 ## High Level API Overview
 

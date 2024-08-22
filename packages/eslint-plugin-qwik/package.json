@@ -10,15 +10,19 @@
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
     "@builder.io/qwik-city": "workspace:^",
-    "@types/eslint": "^8.56.10",
-    "@types/estree": "^1.0.2",
-    "@typescript-eslint/rule-tester": "^7.8.0",
-    "@typescript-eslint/utils": "^7.8.0",
-    "redent": "^4.0.0"
+    "@types/eslint": "8.56.10",
+    "@types/estree": "1.0.5",
+    "@typescript-eslint/rule-tester": "7.8.0",
+    "@typescript-eslint/utils": "7.8.0",
+    "redent": "4.0.0"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
   },
+  "files": [
+    "README.md",
+    "dist"
+  ],
   "homepage": "https://github.com/QwikDev/qwik#readme",
   "keywords": [
     "builder.io",

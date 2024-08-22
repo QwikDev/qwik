@@ -9,8 +9,8 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs';
-import { fileURLToPath, pathToFileURL } from 'node:url';
 import { join, relative } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readPackageJson, writePackageJson } from './package-json';
 
 import assert from 'assert';
@@ -21,7 +21,7 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 async function validateCreateQwikCli() {
   console.log(`👾 validating create-qwik...`);
 
-  const cliDir = join(__dirname, '..', 'packages', 'create-qwik', 'dist');
+  const cliDir = join(__dirname, '..', 'packages', 'create-qwik');
   accessSync(cliDir);
 
   const cliBin = join(cliDir, 'create-qwik.cjs');
@@ -30,24 +30,24 @@ async function validateCreateQwikCli() {
   const cliPkgJsonPath = join(cliDir, 'package.json');
   const cliPkgJson = JSON.parse(readFileSync(cliPkgJsonPath, 'utf-8'));
   assert.strictEqual(cliPkgJson.name, 'create-qwik');
+  const qwikVersion = cliPkgJson.version;
 
-  const startersDir = join(cliDir, 'starters');
+  const startersDir = join(cliDir, 'dist', 'starters');
   accessSync(startersDir);
 
   const appsDir = join(startersDir, 'apps');
   accessSync(appsDir);
 
-  const cliApi = join(cliDir, 'index.cjs');
+  const cliApi = join(cliDir, 'dist', 'index.cjs');
   console.log(`💫 import cli api: ${cliApi}`);
   const api: typeof import('create-qwik') = await import(pathToFileURL(cliApi).href);
 
   const tmpDir = join(__dirname, '..', 'dist-dev');
 
   await Promise.all([
-    validateStarter(api, tmpDir, 'basic', true, `👻`),
-    validateStarter(api, tmpDir, 'empty', true, `🫙`),
-    validateStarter(api, tmpDir, 'site-with-visual-cms', true, `😈`),
-    validateStarter(api, tmpDir, 'library', false, `📚`),
+    validateStarter(api, tmpDir, 'playground', true, `👻`, qwikVersion),
+    validateStarter(api, tmpDir, 'empty', true, `🫙`, qwikVersion),
+    validateStarter(api, tmpDir, 'library', false, `📚`, qwikVersion),
   ]).catch((e) => {
     console.error(e);
     panic(String(e));
@@ -61,7 +61,8 @@ async function validateStarter(
   distDir: string,
   starterId: string,
   app: boolean,
-  emoji: string
+  emoji: string,
+  qwikVersion: string
 ) {
   const appDir = join(distDir, 'e2e-' + starterId);
 
@@ -81,7 +82,12 @@ async function validateStarter(
   const appPkgJsonPath = join(result.outDir, 'package.json');
   const appPkgJson = JSON.parse(readFileSync(appPkgJsonPath, 'utf-8'));
 
+  assertRightQwikDepsVersions(appPkgJson, qwikVersion, starterId);
+
+  // Ensure that npm will use an existing version
   appPkgJson.devDependencies['@builder.io/qwik'] = 'latest';
+  appPkgJson.devDependencies['@builder.io/qwik-city'] = 'latest';
+  appPkgJson.devDependencies['eslint-plugin-qwik'] = 'latest';
   writeFileSync(appPkgJsonPath, JSON.stringify(appPkgJson, null, 2));
 
   const tsconfigPath = join(result.outDir, 'tsconfig.json');
@@ -89,7 +95,7 @@ async function validateStarter(
 
   const { execa } = await import('execa');
   console.log(`${emoji} ${starterId}: npm install`);
-  await execa('npm', ['install', '--legacy-peer-deps'], { cwd: appDir, stdout: 'inherit' });
+  await execa('npm', ['install'], { cwd: appDir, stdout: 'inherit' });
 
   // console.log(`${emoji} ${projectName}: copy @builder.io/qwik distribution`);
   // const qwikNodeModule = join(appDir, 'node_modules', '@builder.io', 'qwik');
@@ -141,6 +147,28 @@ async function validateStarter(
   console.log(`${emoji} ${starterId} validated\n`);
 }
 
+function assertRightQwikDepsVersions(appPkgJson: any, qwikVersion: string, starterType: string) {
+  assert.strictEqual(
+    appPkgJson.devDependencies['@builder.io/qwik'].includes(qwikVersion),
+    true,
+    `Qwik version mismatch for "${starterType}" starter`
+  );
+  if (appPkgJson.devDependencies.hasOwnProperty('@builder.io/qwik-city')) {
+    assert.strictEqual(
+      appPkgJson.devDependencies['@builder.io/qwik-city'].includes(qwikVersion),
+      true,
+      `Qwik City version mismatch for "${starterType}" starter`
+    );
+  }
+  if (appPkgJson.devDependencies.hasOwnProperty('eslint-plugin-qwik')) {
+    assert.strictEqual(
+      appPkgJson.devDependencies['eslint-plugin-qwik'].includes(qwikVersion),
+      true,
+      `ESlint plugin version mismatch for "${starterType}" starter`
+    );
+  }
+}
+
 function cpSync(src: string, dest: string) {
   // cpSync() not available until Node v16.7.0
   try {
@@ -159,9 +187,9 @@ function cpSync(src: string, dest: string) {
 }
 
 async function copyLocalQwikDistToTestApp(appDir: string) {
-  const srcQwikDir = join(__dirname, '..', 'packages', 'qwik', 'dist');
+  const srcQwikDir = join(__dirname, '..', 'packages', 'qwik');
   const destQwikDir = join(appDir, 'node_modules', '@builder.io', 'qwik');
-  const srcQwikCityDir = join(__dirname, '..', 'packages', 'qwik-city', 'lib');
+  const srcQwikCityDir = join(__dirname, '..', 'packages', 'qwik-city');
   const destQwikCityDir = join(appDir, 'node_modules', '@builder.io', 'qwik-city');
   const destQwikBin = relative(appDir, join(destQwikDir, 'qwik.cjs'));
 

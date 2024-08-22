@@ -27,7 +27,7 @@ export async function enqueueFileAndDependencies(
   filenames.forEach((filename) => addDependencies(base.$graph$, fetchSet, filename));
   await Promise.all(
     Array.from(fetchSet).map((filename) =>
-      enqueueFetchIfNeeded(swState, new URL(base.$path$ + filename, swState.$url$), priority)
+      enqueueFetchIfNeeded(swState, new URL(base.$path$ + filename, swState.$url$.origin), priority)
     )
   );
   taskTick(swState);

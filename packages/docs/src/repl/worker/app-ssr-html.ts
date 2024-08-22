@@ -16,7 +16,7 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
   run(mod, mod.exports, noopRequire);
 
   const server: ServerModule = mod.exports;
-  const render = typeof server === 'function' ? server : server.default ?? server.render;
+  const render = typeof server === 'function' ? server : (server.default ?? server.render);
   if (typeof render !== 'function') {
     throw new Error(`Server module "${ssrModule.path}" does not export render()`);
   }
@@ -71,6 +71,11 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
     base: baseUrl,
     manifest: result.manifest,
     prefetchStrategy: null as any,
+  }).catch((e) => {
+    console.error('SSR failed', e);
+    return {
+      html: `<html><h1>SSR Error</h1><pre><code>${String(e).replaceAll('<', '&lt;')}</code></pre></html>`,
+    };
   });
 
   console.log = log;

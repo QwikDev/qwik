@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1976
+assertion_line: 1980
 expression: output
 ---
 ==INPUT==
@@ -50,6 +50,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "d",
   "hash": "wKNFJEIQVUA",
   "canonicalFilename": "d_wknfjeiqvua",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -79,7 +80,7 @@ export const Greeter_component_1_krCndSwhX4U = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;+CAMU;;IACR,qBACC,WAAC;QACA,OAAO;YACN,OAAO,IAAI;YACX,OAAO,MAAM,SAAS;YACtB,OAAO,OAAO,SAAS,OAAO;QAC/B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;+CAMU;;IACR,qBACC,WAAC;QACA,OAAO;YACN,OAAO;YACP,OAAO,MAAM,SAAS;YACtB,OAAO,OAAO,SAAS;QACxB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -88,6 +89,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Greeter_component_1",
   "hash": "krCndSwhX4U",
   "canonicalFilename": "greeter_component_1_krcndswhx4u",
+  "path": "",
   "extension": "js",
   "parent": "Greeter_component_n7HuG2hhU0Q",
   "ctxKind": "function",
@@ -110,7 +112,7 @@ export const Greeter_component_n7HuG2hhU0Q = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6CAIkC,IAAM;IACvC,MAAM,QAAQ;IACd;;;AAWD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6CAIkC;IACjC,MAAM,QAAQ;IACd;;;AAWD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -119,6 +121,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Greeter_component",
   "hash": "n7HuG2hhU0Q",
   "canonicalFilename": "greeter_component_n7hug2hhu0q",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

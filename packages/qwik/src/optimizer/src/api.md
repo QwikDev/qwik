@@ -4,6 +4,8 @@
 
 ```ts
 
+import type { Plugin as Plugin_2 } from 'vite';
+
 // @public (undocumented)
 export interface ComponentEntryStrategy {
     // (undocumented)
@@ -37,9 +39,10 @@ export interface Diagnostic {
 export type DiagnosticCategory = 'error' | 'warning' | 'sourceError';
 
 // Warning: (ae-forgotten-export) The symbol "HoistEntryStrategy" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "HookEntryStrategy_2" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEntryStrategy | HookEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy;
+export type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEntryStrategy | HookEntryStrategy_2 | SegmentEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy;
 
 // @public (undocumented)
 export interface GlobalInjections {
@@ -51,42 +54,6 @@ export interface GlobalInjections {
     location: 'head' | 'body';
     // (undocumented)
     tag: string;
-}
-
-// @public (undocumented)
-export interface HookAnalysis {
-    // (undocumented)
-    canonicalFilename: string;
-    // (undocumented)
-    captures: boolean;
-    // (undocumented)
-    ctxKind: 'event' | 'function';
-    // (undocumented)
-    ctxName: string;
-    // (undocumented)
-    displayName: string;
-    // (undocumented)
-    entry: string | null;
-    // (undocumented)
-    extension: string;
-    // (undocumented)
-    hash: string;
-    // (undocumented)
-    loc: [number, number];
-    // (undocumented)
-    name: string;
-    // (undocumented)
-    origin: string;
-    // (undocumented)
-    parent: string | null;
-}
-
-// @public (undocumented)
-export interface HookEntryStrategy {
-    // (undocumented)
-    manual?: Record<string, string>;
-    // (undocumented)
-    type: 'hook';
 }
 
 // @public (undocumented)
@@ -212,17 +179,13 @@ export interface QwikBundle {
     symbols?: string[];
 }
 
-// @public (undocumented)
+// @public
 export interface QwikManifest {
-    // (undocumented)
     bundles: {
         [fileName: string]: QwikBundle;
     };
-    // (undocumented)
     injections?: GlobalInjections[];
-    // (undocumented)
     manifestHash: string;
-    // (undocumented)
     mapping: {
         [symbolName: string]: string;
     };
@@ -238,7 +201,6 @@ export interface QwikManifest {
     platform?: {
         [name: string]: string;
     };
-    // (undocumented)
     symbols: {
         [symbolName: string]: QwikSymbol;
     };
@@ -290,7 +252,7 @@ export interface QwikSymbol {
     parent: string | null;
 }
 
-// @public (undocumented)
+// @public
 export function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;
 
 // @public (undocumented)
@@ -301,16 +263,17 @@ export interface QwikViteDevResponse {
     _qwikRenderResolve?: () => void;
 }
 
-// @public (undocumented)
-export interface QwikVitePlugin {
-    // (undocumented)
-    api: QwikVitePluginApi;
-    // (undocumented)
+// Warning: (ae-forgotten-export) The symbol "P" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type QwikVitePlugin = P<QwikVitePluginApi> & {
     name: 'vite-plugin-qwik';
-}
+};
 
 // @public (undocumented)
 export interface QwikVitePluginApi {
+    // (undocumented)
+    getAssetsDir: () => string | undefined;
     // (undocumented)
     getClientOutDir: () => string | null;
     // (undocumented)
@@ -342,6 +305,46 @@ export interface ResolvedManifest {
     // (undocumented)
     mapper: SymbolMapper;
 }
+
+// @public (undocumented)
+interface SegmentAnalysis {
+    // (undocumented)
+    canonicalFilename: string;
+    // (undocumented)
+    captures: boolean;
+    // (undocumented)
+    ctxKind: 'event' | 'function';
+    // (undocumented)
+    ctxName: string;
+    // (undocumented)
+    displayName: string;
+    // (undocumented)
+    entry: string | null;
+    // (undocumented)
+    extension: string;
+    // (undocumented)
+    hash: string;
+    // (undocumented)
+    loc: [number, number];
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    origin: string;
+    // (undocumented)
+    parent: string | null;
+}
+export { SegmentAnalysis as HookAnalysis }
+export { SegmentAnalysis }
+
+// @public (undocumented)
+interface SegmentEntryStrategy {
+    // (undocumented)
+    manual?: Record<string, string>;
+    // (undocumented)
+    type: 'segment';
+}
+export { SegmentEntryStrategy as HookEntryStrategy }
+export { SegmentEntryStrategy }
 
 // @public (undocumented)
 export interface SingleEntryStrategy {
@@ -381,8 +384,13 @@ export type SourceMapsOption = 'external' | 'inline' | undefined | null;
 // @public (undocumented)
 export type SymbolMapper = Record<string, readonly [symbol: string, chunk: string]>;
 
+// Warning: (ae-forgotten-export) The symbol "createSymbolMapper" needs to be exported by the entry point index.d.ts
+//
+// @alpha
+export let symbolMapper: ReturnType<typeof createSymbolMapper>;
+
 // @public (undocumented)
-export type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined) => readonly [symbol: string, chunk: string] | undefined;
+export type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined, parent?: string) => readonly [symbol: string, chunk: string] | undefined;
 
 // @public (undocumented)
 export type SystemEnvironment = 'node' | 'deno' | 'bun' | 'webworker' | 'browsermain' | 'unknown';
@@ -398,8 +406,6 @@ export interface TransformModule {
     // (undocumented)
     code: string;
     // (undocumented)
-    hook: HookAnalysis | null;
-    // (undocumented)
     isEntry: boolean;
     // (undocumented)
     map: string | null;
@@ -407,6 +413,8 @@ export interface TransformModule {
     origPath: string | null;
     // (undocumented)
     path: string;
+    // (undocumented)
+    segment: SegmentAnalysis | null;
 }
 
 // @public (undocumented)

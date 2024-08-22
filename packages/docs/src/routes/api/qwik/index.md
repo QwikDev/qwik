@@ -1558,7 +1558,7 @@ Description
 
 </td><td>
 
-(symbolName: string, chunk: string \| null) =&gt; readonly [symbol: string, chunk: string] \| undefined
+(symbolName: string, chunk: string \| null, parent?: string) =&gt; readonly [symbol: string, chunk: string] \| undefined
 
 </td><td>
 
@@ -3522,7 +3522,7 @@ opts
 
 _(Optional)_ Options for the loading prefetch graph.
 
-- `base` - Base of the graph. For a default installation this will default to `/build/`. But if more than one MFE is installed on the page, then each MFE needs to have its own base. - `manifestHash` - Hash of the manifest file to load. If not provided the hash will be extracted from the container attribute `q:manifest-hash` and assume the default build file `${base}/q-bundle-graph-${manifestHash}.json`. - `manifestURL` - URL of the manifest file to load if non-standard bundle graph location name.
+- `base` - Base of the graph. For a default installation this will default to the q:base value `/build/`. But if more than one MFE is installed on the page, then each MFE needs to have its own base. - `manifestHash` - Hash of the manifest file to load. If not provided the hash will be extracted from the container attribute `q:manifest-hash` and assume the default build file `${base}/q-bundle-graph-${manifestHash}.json`. - `manifestURL` - URL of the manifest file to load if non-standard bundle graph location name.
 
 </td></tr>
 </tbody></table>
@@ -3932,7 +3932,8 @@ export type QRLEventHandlerMulti<EV extends Event, EL> =
   | QRL<EventHandler<EV, EL>>
   | undefined
   | null
-  | QRLEventHandlerMulti<EV, EL>[];
+  | QRLEventHandlerMulti<EV, EL>[]
+  | EventHandler<EV, EL>;
 ```
 
 **References:** [QRL](#qrl), [EventHandler](#eventhandler), [QRLEventHandlerMulti](#qrleventhandlermulti)

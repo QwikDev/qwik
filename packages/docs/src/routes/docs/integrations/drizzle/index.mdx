@@ -7,6 +7,8 @@ updated_at: '2024-02-27T18:53:23Z'
 created_at: '2024-03-05T23:00:50Z'
 ---
 
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
 # Drizzle
 
 [Drizzle ORM](https://orm.drizzle.team/) is a headless TypeScript ORM with a head 🐲
@@ -17,11 +19,30 @@ While also being usable in serverless environments
 
 Drizzle can be used in Qwik with `routeLoader$`, `routeAction$` and `server$` functions. These are Qwik APIs to allow code to execute only on the server-side.
 
-The easiest way to add Drizzle to Qwik is using the `npm qwik add drizzle` command. This will install the required dependencies and create a `db` folder with the drizzle schema.
+The easiest way to add Drizzle to Qwik is using the Qwik CLI command. This will install the required dependencies and create a `db` folder with the drizzle schema.
 
-```bash
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run qwik add drizzle
+```
+</span>
+<span q:slot="npm">
+```shell
 npm run qwik add drizzle
 ```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run qwik add drizzle
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run qwik add drizzle
+```
+</span>
+</PackageManagerTabs>
 
 > Drizzle is an ORM that embraces SQL. Unlike other ORMs, it doesn't deviate from SQL, eliminating the double learning curve of SQL and the framework's API. If you know SQL, you can easily use Drizzle to its full potential.
 

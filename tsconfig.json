@@ -19,16 +19,16 @@
     "noUnusedLocals": true,
     "paths": {
       "@qwik-client-manifest": ["packages/qwik/dist/server-modules.d.ts"],
-      "@qwik-city-plan": ["packages/qwik-city/runtime/src/qwik-city-plan.ts"],
+      "@qwik-city-plan": ["packages/qwik-city/src/runtime/src/qwik-city-plan.ts"],
       "@qwik-city-sw-register-build": [
-        "packages/qwik-city/buildtime/runtime-generation/sw-register-build.ts"
+        "packages/qwik-city/src/buildtime/runtime-generation/sw-register-build.ts"
       ],
-      "@qwik-city-sw-register": ["packages/qwik-city/runtime/src/sw-register-runtime.ts"],
+      "@qwik-city-sw-register": ["packages/qwik-city/src/runtime/src/sw-register-runtime.ts"],
       "@qwik-city-not-found-paths": [
-        "packages/qwik-city/middleware/request-handler/generated/not-found-paths.ts"
+        "packages/qwik-city/src/middleware/request-handler/generated/not-found-paths.ts"
       ],
       "@qwik-city-static-paths": [
-        "packages/qwik-city/middleware/request-handler/generated/static-paths.ts"
+        "packages/qwik-city/src/middleware/request-handler/generated/static-paths.ts"
       ]
     },
     "types": ["node", "vite/client"],

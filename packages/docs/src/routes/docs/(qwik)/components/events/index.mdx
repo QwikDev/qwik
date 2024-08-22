@@ -64,7 +64,7 @@ Notice that `onClick$` ends with [`$`](/docs/(qwik)/advanced/dollar/index.mdx). 
 
 ## Reusing Event Handlers
 
-If we want to reuse the same event handler for multiple elements or events, we need to wrap the event handler into the `$()` function exported by `@builder.io/qwik` to transform it into a [`QRL`](/docs/advanced/qrl/).
+To reuse the same event handler for multiple elements or events, you have to wrap the event handler into the `$()` function exported by `@builder.io/qwik`. This transforms it into a [`QRL`](/docs/advanced/qrl/).
 
 <CodeSandbox src="/src/routes/demo/events/extracted-handler/index.tsx" style={{ height: '6em' }}>
 ```tsx {5} /increment/#a
@@ -86,9 +86,9 @@ export default component$(() => {
 
 > **Note:** If you extract the event handler, you must manually wrap it in the `$(...handler...)`. This ensures that it is lazily attached.
 
-## Multiple event handlers
+## Multiple Event Handlers
 
-If we want to register multiple event handlers for the same event, we can pass an array of event handlers to the `on{EventName}$` attribute.
+To register multiple event handlers for the same event, you can pass an array of event handlers to the `on{EventName}$` attribute.
 
 ```tsx /onClick$/
 import { component$, useSignal, $ } from '@builder.io/qwik';
@@ -137,14 +137,14 @@ export default component$(() => {
 
 ## Asynchronous Events
 
-Because of the async nature of Qwik, an event's handler execution might be delayed because the implementation has not been loaded into the JavaScript VM yet. Because of the asynchronous nature of event processing in Qwik the following APIs on an `Event` object will not work:
+Due to Qwik's asynchronous nature, the execution of an event handler might be delayed if the implementation has not yet been loaded into the JavaScript VM. Consequently, the following APIs on an Event object will not work:
 
 - `event.preventDefault()`
 - `event.currentTarget`
 
 ### Prevent Default
 
-Because event handling is asynchronous, you can't use `event.preventDefault()`. To solve this Qwik introduces a declarative way to prevent default through `preventdefault:{eventName}` attribute.
+Because event handling is asynchronous, you can't use `event.preventDefault()`. To solve this, Qwik introduces a declarative way to prevent default through `preventdefault:{eventName}` attribute.
 
 <CodeSandbox src="/src/routes/demo/events/preventdefault/index.tsx" style={{ height: '6em' }}>
 ```tsx {7}
@@ -169,7 +169,7 @@ export default component$(() => {
 
 ### Event Target
 
-Because event handling is asynchronous, you can't use `event.currentTarget`. To solve this Qwik handlers provide a `currentTarget` as a second argument.
+Because event handling is asynchronous, you can't use `event.currentTarget`. To solve this, Qwik handlers provide a `currentTarget` as a second argument.
 
 <CodeSandbox src="/src/routes/demo/events/target/index.tsx" style={{ height: '10em' }}>
 ```tsx /currentTarget/
@@ -204,7 +204,7 @@ export default component$(() => {
 
 In some cases, it is necessary to handle an event traditionally, because some APIs need to be used synchronously. For example, `dragstart` event must be processed synchronously and therefore it can't be combined with Qwik's lazy code execution.
 
-To do this, we can leverage a `useVisibleTask` to programmatically add an event listener using the DOM API directly.
+To do this, you can leverage a `useVisibleTask` to programmatically add an event listener using the DOM API directly.
 
 <CodeSandbox src="/src/routes/demo/events/synchronous/index.tsx" style={{ height: '10em' }}>
 ```tsx {7-20}
@@ -298,7 +298,7 @@ export const Button = component$<ButtonProps>(({ onTripleClick$ }) => {
 
 ## Window and Document Events
 
-So far, we have discussed how to listen to events that originate from elements. There are events such as `scroll` and `mousemove` that need to be listened to on the `window` or `document`. Qwik allows this by providing the `document:on` and `window:on` prefixes when listening for events.
+So far, the discussion has focused on listening to events originating from elements. There are events such as `scroll` and `mousemove` that need to be listened to on the `window` or `document`. Qwik allows this by providing the `document:on` and `window:on` prefixes when listening for events.
 
 The `window:on`/`document:` prefixes are used to register an event at the current DOM location of the component while allowing it to receive events from the `window`/`document`. There are two advantages to this:
 

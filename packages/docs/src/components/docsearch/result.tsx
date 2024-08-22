@@ -4,6 +4,7 @@ import { SearchContext } from './context';
 import { AiResultOpenContext, type DocSearchState } from './doc-search';
 import { Snippet } from './snippet';
 import type { InternalDocSearchHit } from './types';
+import { Link } from '@builder.io/qwik-city';
 
 export const Result = component$(
   ({ state, item }: { state: DocSearchState; item: InternalDocSearchHit }) => {
@@ -49,7 +50,9 @@ export const Result = component$(
           .filter(Boolean)
           .join(' ')}
       >
-        <a href={item.url}>
+        <Link
+          href={item.url.replace('https://qwik.dev/', '/').replace('https://qwik.builder.io/', '/')}
+        >
           <div class="DocSearch-Hit-Container">
             <Slot name="start-action"></Slot>
             {/* @ts-ignore */}
@@ -98,7 +101,7 @@ export const Result = component$(
             )}
             <Slot name="end-action"></Slot>
           </div>
-        </a>
+        </Link>
       </li>
     );
   }

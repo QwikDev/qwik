@@ -17,7 +17,9 @@ export const appBundleClient = async (
     buildMode: options.buildMode,
     debug: options.debug,
     srcInputs: getInputs(options),
-    entryStrategy: options.entryStrategy,
+    // Older versions don't support `segment`
+    entryStrategy:
+      options.entryStrategy.type === 'segment' ? { type: 'hook' } : options.entryStrategy,
     manifestOutput: (m) => {
       result.manifest = m;
     },
@@ -76,7 +78,7 @@ export const appBundleClient = async (
     });
 
     result.clientBundles = generated.output.map(getOutput).filter((f) => {
-      return !f.path.endsWith('app.js') && !f.path.endsWith('q-manifest.json');
+      return !f.path.endsWith('q-manifest.json');
     });
 
     await Promise.all(

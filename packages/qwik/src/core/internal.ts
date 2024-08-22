@@ -1,5 +1,5 @@
 export { _pauseFromContexts, _serializeData } from './container/pause';
-export { _noopQrl, _regSymbol } from './qrl/qrl';
+export { _noopQrl, _noopQrlDEV, _regSymbol } from './qrl/qrl';
 export { _renderSSR } from './render/ssr/render-ssr';
 export { _walkJSX } from './v2/ssr/ssr-render-jsx';
 export { _SharedContainer } from './v2/shared/shared-container';

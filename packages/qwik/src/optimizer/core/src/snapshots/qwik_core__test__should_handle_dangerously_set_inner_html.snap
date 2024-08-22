@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3640
+assertion_line: 3644
 expression: output
 ---
 ==INPUT==
@@ -55,6 +55,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Cmp_component_div_div_button_onClick",
   "hash": "3Ra5dio0eSA",
   "canonicalFilename": "cmp_component_div_div_button_onclick_3ra5dio0esa",
+  "path": "",
   "extension": "js",
   "parent": "Cmp_component_4ryKJTOKjWE",
   "ctxKind": "eventHandler",
@@ -99,7 +100,7 @@ export const Cmp_component_4ryKJTOKjWE = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAEyB,IAAM;IAC5B,MAAM,aAAa,UAAU;IAC7B,qBACC,WAAC;sBACA,WAAC,iCACA,WAAC;YAAK,IAAG;YAAQ,yBAAwB;;sBAE1C,WAAC,iCACA,WAAC;YAAK,IAAG;YAAS,yBAAwB;YAAsB,OAAM;;sBAEvE,WAAC;0BACA,WAAC;gBAAK,IAAG;gBAAQ,uBAAuB,YAAE;gBAAkB,OAAM;;0BAClE,WAAC;gBACA,QAAQ;;;;;;AAOb\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAEyB;IACtB,MAAM,aAAa,UAAU;IAC7B,qBACC,WAAC;sBACA,WAAC,iCACA,WAAC;YAAK,IAAG;YAAQ,yBAAwB;;sBAE1C,WAAC,iCACA,WAAC;YAAK,IAAG;YAAS,yBAAwB;YAAsB,OAAM;;sBAEvE,WAAC;0BACA,WAAC;gBAAK,IAAG;gBAAQ,uBAAuB,YAAE;gBAAkB,OAAM;;0BAClE,WAAC;gBACA,QAAQ;;;;;;AAOb\"}")
 /*
 {
   "origin": "test.tsx",
@@ -108,6 +109,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Cmp_component",
   "hash": "4ryKJTOKjWE",
   "canonicalFilename": "cmp_component_4rykjtokjwe",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

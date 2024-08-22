@@ -1,10 +1,27 @@
+import {
+  createContainerState,
+  getEventName,
+  setRef,
+  type ContainerState,
+} from '../../container/container';
+import {
+  PREVENT_DEFAULT,
+  groupListeners,
+  isOnProp,
+  setEvent,
+  type Listener,
+} from '../../state/listeners';
+import { logError, logWarn } from '../../util/log';
+import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
 import { isPromise, maybeThen } from '../../util/promises';
 import { type InvokeContext, newInvokeContext, invoke, trackSignal } from '../../use/use-core';
 import { Virtual, _jsxSorted, createJSXError, isJSXNode } from '../jsx/jsx-runtime';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../../util/types';
-import type { FunctionComponent, JSXNode, JSXOutput } from '../jsx/types/jsx-node';
+import { version } from '../../version';
+import type { QwikElement } from '../dom/virtual-element';
 import {
   createRenderContext,
+  dangerouslySetInnerHTML,
   executeComponent,
   getNextIndex,
   isAriaAttribute,
@@ -14,25 +31,9 @@ import {
   shouldWrapFunctional,
   static_subtree,
   stringifyStyle,
-  dangerouslySetInnerHTML,
 } from '../execute-component';
-import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
+import type { FunctionComponent, JSXNode, JSXOutput } from '../jsx/types/jsx-node';
 import { InternalSSRStream, SSRRaw } from '../jsx/utils.public';
-import { logError, logWarn } from '../../util/log';
-import {
-  groupListeners,
-  isOnProp,
-  type Listener,
-  PREVENT_DEFAULT,
-  setEvent,
-} from '../../state/listeners';
-import { version } from '../../version';
-import {
-  type ContainerState,
-  createContainerState,
-  setRef,
-  getEventName,
-} from '../../container/container';
 import type { RenderContext } from '../types';
 import { assertDefined } from '../../error/assert';
 import { serializeSStyle } from '../../style/qrl-styles';
@@ -40,7 +41,6 @@ import { qDev, qInspector, seal } from '../../util/qdev';
 import { qError, QError_canNotRenderHTML } from '../../error/error';
 import { isSignal } from '../../state/signal';
 import { serializeQRLs } from '../../qrl/qrl';
-import type { QwikElement } from '../dom/virtual-element';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import {
   createContext,
@@ -149,19 +149,17 @@ export const _renderSSR = async (node: JSXOutput, opts: RenderSSROptions) => {
   };
   seal(ssrCtx);
 
-  let qRender = qDev ? 'ssr-dev' : 'ssr';
-  if (opts.containerAttributes['q:render']) {
-    qRender = `${opts.containerAttributes['q:render']}-${qRender}`;
-  }
-  const containerAttributes: Record<string, any> = {
-    ...opts.containerAttributes,
-    'q:container': 'paused',
-    'q:version': version ?? 'dev',
-    'q:render': qRender,
-    'q:base': opts.base,
-    'q:locale': opts.serverData?.locale,
-    'q:manifest-hash': opts.manifestHash,
-  };
+  const locale = opts.serverData?.locale;
+  const containerAttributes = opts.containerAttributes;
+  const qRender = containerAttributes['q:render'];
+  containerAttributes['q:container'] = 'paused';
+  containerAttributes['q:version'] = version ?? 'dev';
+  containerAttributes['q:render'] = (qRender ? qRender + '-' : '') + (qDev ? 'ssr-dev' : 'ssr');
+  containerAttributes['q:base'] = opts.base || '';
+  containerAttributes['q:locale'] = locale;
+  containerAttributes['q:manifest-hash'] = opts.manifestHash;
+  containerAttributes['q:instance'] = hash();
+
   const children = root === 'html' ? [node] : [headNodes, node];
   if (root !== 'html') {
     containerAttributes.class =
@@ -184,6 +182,8 @@ export const _renderSSR = async (node: JSXOutput, opts: RenderSSROptions) => {
     renderRoot(rootNode, rCtx, ssrCtx, opts.stream, containerState, opts)
   );
 };
+
+const hash = () => Math.random().toString(36).slice(2);
 
 const renderRoot = async (
   node: JSXNode,
@@ -615,7 +615,7 @@ const renderNode = (
           }
         } else {
           openingElement +=
-            ' ' + (value === true ? prop : prop + '="' + escapeAttr(attrValue) + '"');
+            ' ' + (value === true ? prop : prop + '="' + escapeHtml(attrValue) + '"');
         }
       }
     };
@@ -729,7 +729,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
     }
 
     if (classStr) {
-      openingElement += ' class="' + escapeAttr(classStr) + '"';
+      openingElement += ' class="' + escapeHtml(classStr) + '"';
     }
 
     if (listeners.length > 0) {
@@ -747,7 +747,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
       }
     }
     if (key != null) {
-      openingElement += ' q:key="' + escapeAttr(key) + '"';
+      openingElement += ' q:key="' + escapeHtml(key) + '"';
     }
     if (hasRef || useSignal || listeners.length > 0) {
       if (hasRef || useSignal || listenersNeedId(listeners)) {
@@ -763,7 +763,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
     if (qDev && qInspector && node.dev && !(flags & IS_HEAD)) {
       const sanitizedFileName = node?.dev?.fileName?.replace(/\\/g, '/');
       if (sanitizedFileName && !/data-qwik-inspector/.test(openingElement)) {
-        openingElement += ` data-qwik-inspector="${escapeAttr(
+        openingElement += ` data-qwik-inspector="${escapeHtml(
           `${sanitizedFileName}:${node.dev.lineNumber}:${node.dev.columnNumber}`
         )}"`;
       }
@@ -1182,8 +1182,7 @@ export interface ServerDocument {
   createElement(tagName: string): any;
 }
 
-const ESCAPE_HTML = /[&<>]/g;
-const ESCAPE_ATTRIBUTES = /[&"]/g;
+const ESCAPE_HTML = /[&<>'"]/g;
 
 export const registerQwikEvent = (prop: string, containerState: ContainerState) => {
   containerState.$events$.add(getEventName(prop));
@@ -1198,19 +1197,10 @@ const escapeHtml = (s: string) => {
         return '&lt;';
       case '>':
         return '&gt;';
-      default:
-        return '';
-    }
-  });
-};
-
-const escapeAttr = (s: string) => {
-  return s.replace(ESCAPE_ATTRIBUTES, (c) => {
-    switch (c) {
-      case '&':
-        return '&amp;';
       case '"':
         return '&quot;';
+      case "'":
+        return '&#39;';
       default:
         return '';
     }

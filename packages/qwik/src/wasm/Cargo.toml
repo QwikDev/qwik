@@ -13,14 +13,15 @@ categories = ["development-tools", "development-tools::cargo-plugins"]
 crate-type = ["cdylib"]
 
 [dependencies]
-js-sys = "0.3.37"
+js-sys = "0.3"
 qwik-core = { path = "../optimizer/core" }
-serde = "1.0.160"
-serde-wasm-bindgen = "0.3.0"
-wasm-bindgen = "0.2.80"
-parking_lot_core = "=0.9.3"
-console_error_panic_hook = { version = "0.1.1", optional = true }
-wee_alloc = { version = "0.4.2" }
+serde = "1"
+serde-wasm-bindgen = "0.6"
+wasm-bindgen = "0.2"
+parking_lot_core = "=0.9"
+console_error_panic_hook = { version = "0.1", optional = true }
+wee_alloc = { version = "0.4" }
+getrandom = { version = "0.2", features = ["js"] }
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false

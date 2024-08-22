@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1235
+assertion_line: 1236
 expression: output
 ---
 ==INPUT==
@@ -72,7 +72,7 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAU8B,IAAM;IACnC,WAAW;IACX,MAAM,OAAO,KAAK;IAClB,QAAQ,GAAG,CAAC;IAEZ,qBACC,WAAC;QAAI,QAAQ;;AAEf\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAU8B;IAC7B,WAAW;IACX,MAAM,OAAO,KAAK;IAClB,QAAQ,GAAG,CAAC;IAEZ,qBACC,WAAC;QAAI,QAAQ;;AAEf\"}")
 /*
 {
   "origin": "test.tsx",
@@ -81,6 +81,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Foo_component",
   "hash": "HTDRsvUbLiE",
   "canonicalFilename": "foo_component_htdrsvublie",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -107,6 +108,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Root_component_useStyles",
   "hash": "u5DkUxGrGnU",
   "canonicalFilename": "root_component_usestyles_u5dkuxgrgnu",
+  "path": "",
   "extension": "js",
   "parent": "Root_component_royhjYaCbYE",
   "ctxKind": "function",
@@ -128,7 +130,7 @@ export const Root_component_royhjYaCbYE = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAsB+B,IAAM;IACpC;IACA;AAKD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAsB+B;IAC9B;IACA;AAKD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -137,6 +139,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Root_component",
   "hash": "royhjYaCbYE",
   "canonicalFilename": "root_component_royhjyacbye",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -157,7 +160,7 @@ export const Root_component_1_cBpQNYDUHI4 = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAwBU,IAAM;IACd,qBACC,WAAC;AAEH\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAwBU;IACR,qBACC,WAAC;AAEH\"}")
 /*
 {
   "origin": "test.tsx",
@@ -166,6 +169,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Root_component_1",
   "hash": "cBpQNYDUHI4",
   "canonicalFilename": "root_component_1_cbpqnyduhi4",
+  "path": "",
   "extension": "js",
   "parent": "Root_component_royhjYaCbYE",
   "ctxKind": "function",
@@ -191,6 +195,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Foo_component_div_onClick",
   "hash": "M48DYiidSJw",
   "canonicalFilename": "foo_component_div_onclick_m48dyiidsjw",
+  "path": "",
   "extension": "js",
   "parent": "Foo_component_HTDRsvUbLiE",
   "ctxKind": "eventHandler",

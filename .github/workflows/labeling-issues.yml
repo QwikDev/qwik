@@ -1,4 +1,4 @@
-name: Labling Issues
+name: Labeling Issues
 
 on:
   issues:
@@ -10,8 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: ensure STATUS-1 label is present
+        id: status-1-label-presence
+        # GH's built-in functions do not allow to search for array values that start with something, so we're using node for this
+        run: |
+          echo present=$( 
+            node -e '
+              const labels = JSON.parse(`${{ toJSON(github.event.issue.labels.*.name) }}`);
+              console.log(labels.some(l => l.startsWith("STATUS-1:")));
+            ' 
+          ) >> $GITHUB_OUTPUT
       - name: remove needs triage
-        if: contains(github.event.issue.labels.*.name, 'STATUS-1') && (contains(github.event.label.name, 'STATUS-2:') || contains(github.event.label.name, 'STATUS-3:'))
+        if: steps.status-1-label-presence.outputs.present == 'true' && (contains(github.event.label.name, 'STATUS-2:') || contains(github.event.label.name, 'STATUS-3:'))
         uses: actions-cool/issues-helper@v3
         with:
           actions: 'remove-labels'
@@ -28,6 +38,7 @@ jobs:
           issue-number: ${{ github.event.issue.number }}
           body: |
             Hello @${{ github.event.issue.user.login }}. Please provide a [minimal reproduction](https://stackoverflow.com/help/minimal-reproducible-example) using a GitHub repository or [StackBlitz](https://qwik.new). 
+            [Here](https://antfu.me/posts/why-reproductions-are-required#why-reproduction) is why we really need a minimal reproduction. 
             Issues marked with `STATUS-2: needs reproduction` will be automatically closed if they have no activity within 14 days.
             Thanks 🙏
 

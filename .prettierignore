@@ -24,6 +24,7 @@ build
 .rollup.cache
 tsconfig.tsbuildinfo
 packages/docs/api/**/*
+packages/docs/public/repl/repl-sw.js*
 packages/docs/src/routes/**/*.mdx
 **/server/**/*.js
 starters/**/*.js
@@ -33,7 +34,6 @@ packages/docs/server
 packages/docs/src/routes/api
 packages/docs/**/*.md
 packages/docs/**/*.mdx
-packages/docs/public/repl/bundled
 packages/insights/drizzle
 packages/insights/.netlify
 packages/insights/scripts

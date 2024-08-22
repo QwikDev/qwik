@@ -56,18 +56,38 @@ export const Container = component$((props: ContainerProps) => {
   );
 
   return (
-    <div class="container">
-      <Resource
-        value={resource}
-        onResolved={({ url, html }) => {
-          return (
-            <>
-              <div class="url">{url}</div>
-              <div class="frame" dangerouslySetInnerHTML={html} />
-            </>
-          );
-        }}
-      />
+    <div>
+      <div class="inline-container">
+        <Resource
+          value={resource}
+          onResolved={({ url, html }) => {
+            return (
+              <>
+                <div class="url">{url}</div>
+                <div class="frame" dangerouslySetInnerHTML={html} />
+              </>
+            );
+          }}
+        />
+      </div>
+      <div style={{ border: "1px solid red" }}>
+        Shadow DOM
+        <div q:shadowRoot>
+          <template shadowRootMode="open">
+            <Resource
+              value={resource}
+              onResolved={({ url, html }) => {
+                return (
+                  <>
+                    <div class="url">{url}</div>
+                    <div class="frame" dangerouslySetInnerHTML={html} />
+                  </>
+                );
+              }}
+            />
+          </template>
+        </div>
+      </div>
     </div>
   );
 });

@@ -4,16 +4,17 @@
   "version": "0.0.1",
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
-    "@types/eslint": "^8.56.10",
-    "@types/node": "^20.14.1",
-    "@typescript-eslint/eslint-plugin": "^7.8.0",
-    "@typescript-eslint/parser": "^7.8.0",
-    "eslint": "^8.57.0",
+    "@types/eslint": "8.56.10",
+    "@types/node": "20.14.11",
+    "@typescript-eslint/eslint-plugin": "7.16.1",
+    "@typescript-eslint/parser": "7.16.1",
+    "eslint": "8.57.0",
     "eslint-plugin-qwik": "workspace:^",
-    "np": "^10.0.5",
-    "prettier": "^3.2.5",
+    "np": "10.0.1",
+    "prettier": "3.3.3",
     "typescript": "5.4.5",
-    "vite": "^5.2.11"
+    "undici": "*",
+    "vite": "5.3.5"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
@@ -35,7 +36,7 @@
     "vite"
   ],
   "main": "./lib/index.qwik.mjs",
-  "private": false,
+  "private": true,
   "qwik": "./lib/index.qwik.mjs",
   "scripts": {
     "build": "pnpm build.vite && qwik build",

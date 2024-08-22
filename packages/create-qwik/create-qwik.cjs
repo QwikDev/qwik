@@ -1,3 +1,3 @@
 #!/usr/bin/env node
-const createQwik = require('./index.cjs');
+const createQwik = require('./dist/index.cjs');
 createQwik.runCli();

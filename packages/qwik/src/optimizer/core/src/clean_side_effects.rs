@@ -1,59 +1,91 @@
-use swc_common::{Mark, Spanned};
-use swc_ecmascript::ast;
+use std::cell::RefCell;
+use std::collections::HashSet;
+use std::rc::Rc;
+
+use swc_common::Span;
+use swc_common::Spanned;
+use swc_ecmascript::ast::Module;
+use swc_ecmascript::ast::{Expr, ModuleItem, Stmt};
 use swc_ecmascript::visit::VisitMut;
+
+/// This is a simple treeshaker that removes anything with side effects from the module.
+/// These are:
+/// - `new` expressions
+/// - `call` expressions
+///
+/// but only when they are not assigned and used elsewhere, or when they were already present before simplifying.
+///
+/// - First it marks top-level expressions
+/// - Then the code needs to be simplified by you
+/// - Then it removes all top-level expressions that are not marked. Those will be expressions that were
+///   assigned to unused variables etc.
+
 pub struct Treeshaker {
 	pub marker: CleanMarker,
 	pub cleaner: CleanSideEffects,
 }
 
-pub struct CleanSideEffects {
-	pub did_drop: bool,
-	pub mark: Mark,
+pub struct CleanMarker {
+	set: Rc<RefCell<HashSet<Span>>>,
 }
 
-pub struct CleanMarker {
-	pub mark: Mark,
+pub struct CleanSideEffects {
+	pub did_drop: bool,
+	set: Rc<RefCell<HashSet<Span>>>,
 }
 
 impl Treeshaker {
 	pub fn new() -> Self {
-		let mark = Mark::new();
+		let set = Rc::new(RefCell::new(HashSet::new()));
 		Self {
-			marker: CleanMarker { mark },
+			marker: CleanMarker {
+				set: Rc::clone(&set),
+			},
 			cleaner: CleanSideEffects {
 				did_drop: false,
-				mark,
+				set: Rc::clone(&set),
 			},
 		}
 	}
 }
 
 impl VisitMut for CleanMarker {
-	fn visit_mut_module_item(&mut self, node: &mut ast::ModuleItem) {
-		if let ast::ModuleItem::Stmt(ast::Stmt::Expr(expr)) = node {
-			expr.span = expr.span.apply_mark(self.mark);
+	fn visit_mut_module_item(&mut self, node: &mut ModuleItem) {
+		if let ModuleItem::Stmt(Stmt::Expr(expr)) = node {
+			match &*expr.expr {
+				Expr::New(e) => {
+					self.set.borrow_mut().insert(e.span());
+				}
+				Expr::Call(e) => {
+					self.set.borrow_mut().insert(e.span());
+				}
+				_ => {}
+			}
 		}
 	}
 }
 
 impl VisitMut for CleanSideEffects {
-	fn visit_mut_module(&mut self, node: &mut ast::Module) {
-		let it = node.body.extract_if(|item| {
-			if item.span().has_mark(self.mark) {
-				return false;
-			}
-			match item {
-				ast::ModuleItem::Stmt(ast::Stmt::Expr(expr)) => match *expr.expr {
-					ast::Expr::New(_) | ast::Expr::Call(_) => {
-						self.did_drop = true;
-						true
+	fn visit_mut_module(&mut self, node: &mut Module) {
+		node.body.retain(|item| match item {
+			ModuleItem::Stmt(Stmt::Expr(expr)) => match &*expr.expr {
+				Expr::New(e) => {
+					if self.set.borrow().contains(&e.span()) {
+						return true;
 					}
-					_ => false,
-				},
-				_ => false,
-			}
+					self.did_drop = true;
+					false
+				}
+				Expr::Call(e) => {
+					if self.set.borrow().contains(&e.span()) {
+						return true;
+					}
+					self.did_drop = true;
+					false
+				}
+				_ => true,
+			},
+			_ => true,
 		});
-		// Consume the iterator to force the extraction.
-		for _ in it {}
 	}
 }

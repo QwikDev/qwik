@@ -7,7 +7,7 @@
 - [Project structure](</docs/(qwikcity)/project-structure/index.mdx>)
 - [FAQ](</docs/(qwik)/faq/index.mdx>)
 
-## Component
+## Components
 
 - [Overview](</docs/(qwik)/components/overview/index.mdx>)
 - [State](</docs/(qwik)/components/state/index.mdx>)

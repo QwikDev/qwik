@@ -10,7 +10,7 @@ title: \@builder.io/qwik-city/middleware/request-handler API Reference
 export declare class AbortMessage
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/redirect-handler.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/redirect-handler.ts)
 
 ## append
 
@@ -90,7 +90,7 @@ export type CacheControl =
   | "private";
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
 ## ClientConn
 
@@ -147,7 +147,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
 ## Cookie
 
@@ -231,7 +231,7 @@ Sets a `Response` cookie header using the `Set-Cookie` header.
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
 ## CookieOptions
 
@@ -365,7 +365,7 @@ _(Optional)_ Indicates that the cookie is sent to the server only when a request
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
 ## CookieValue
 
@@ -431,7 +431,7 @@ string
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
 ## data
 
@@ -445,7 +445,7 @@ data: T;
 export type DeferReturn<T> = () => Promise<T>;
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
 ## delete
 
@@ -521,7 +521,7 @@ Description
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
 ## get
 
@@ -618,7 +618,7 @@ any
 
 string
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/error-handler.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/error-handler.ts)
 
 ## has
 
@@ -715,7 +715,7 @@ cookies
 
 Headers
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/cookie.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/cookie.ts)
 
 ## RedirectMessage
 
@@ -725,7 +725,7 @@ export declare class RedirectMessage extends AbortMessage
 
 **Extends:** [AbortMessage](#abortmessage)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/redirect-handler.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/redirect-handler.ts)
 
 ## RequestEvent
 
@@ -824,7 +824,7 @@ NOTE: Ensure that the call to `next()` is `await`ed.
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
 ## RequestEventAction
 
@@ -866,7 +866,7 @@ Description
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
 ## RequestEventBase
 
@@ -1179,7 +1179,7 @@ HTTP request URL.
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
 ## RequestEventCommon
 
@@ -1365,7 +1365,7 @@ Convenience method to send an text body response. The response will be automatic
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
 ## RequestEventLoader
 
@@ -1420,7 +1420,7 @@ Description
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
 ## requestHandler
 
@@ -1432,7 +1432,7 @@ export type RequestHandler<PLATFORM = QwikCityPlatform> = (
 
 **References:** [RequestEvent](#requestevent)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/request-handler.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/request-handler.ts)
 
 ## RequestHandler
 
@@ -1444,7 +1444,7 @@ export type RequestHandler<PLATFORM = QwikCityPlatform> = (
 
 **References:** [RequestEvent](#requestevent)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
 ## ResolveSyncValue
 
@@ -1452,7 +1452,7 @@ export type RequestHandler<PLATFORM = QwikCityPlatform> = (
 export interface ResolveSyncValue
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
 ## ResolveValue
 
@@ -1460,7 +1460,7 @@ export interface ResolveSyncValue
 export interface ResolveValue
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
 ## ServerError
 
@@ -1541,7 +1541,7 @@ number
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/error-handler.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/error-handler.ts)
 
 ## ServerRenderOptions
 
@@ -1617,7 +1617,7 @@ Render
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
 ## ServerRequestEvent
 
@@ -1750,7 +1750,7 @@ URL
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
 ## ServerRequestMode
 
@@ -1758,7 +1758,7 @@ URL
 export type ServerRequestMode = "dev" | "static" | "server";
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
 ## ServerResponseHandler
 
@@ -1774,7 +1774,7 @@ export type ServerResponseHandler<T = any> = (
 
 **References:** [Cookie](#cookie)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/request-handler/types.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
 ## set
 

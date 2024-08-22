@@ -5,6 +5,7 @@
 ```ts
 
 import * as CSS_2 from 'csstype';
+import type { JSXNode as JSXNode_2 } from '@builder.io/qwik';
 import type { StreamWriter as StreamWriter_2 } from '@builder.io/qwik';
 
 // @public
@@ -185,7 +186,7 @@ export interface ContextId<STATE> {
 
 // @public
 export interface CorePlatform {
-    chunkForSymbol: (symbolName: string, chunk: string | null) => readonly [symbol: string, chunk: string] | undefined;
+    chunkForSymbol: (symbolName: string, chunk: string | null, parent?: string) => readonly [symbol: string, chunk: string] | undefined;
     importSymbol: (containerEl: Element | undefined, url: string | URL | undefined | null, symbol: string) => ValueOrPromise<any>;
     isServer: boolean;
     nextTick: (fn: () => any) => Promise<any>;
@@ -666,6 +667,9 @@ export type NativeWheelEvent = WheelEvent;
 // @internal (undocumented)
 export const _noopQrl: <T>(symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>;
 
+// @internal (undocumented)
+export const _noopQrlDEV: <T>(symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
+
 // @public
 export type NoSerialize<T> = (T & {
     __no_serialize__: true;
@@ -727,7 +731,7 @@ export const PrefetchGraph: (opts?: {
     manifestHash?: string;
     manifestURL?: string;
     nonce?: string;
-}) => JSXNode<string>;
+}) => JSXNode_2<string>;
 
 // @alpha
 export const PrefetchServiceWorker: (opts: {
@@ -737,7 +741,7 @@ export const PrefetchServiceWorker: (opts: {
     verbose?: boolean;
     fetchBundleGraph?: boolean;
     nonce?: string;
-}) => JSXNode<'script'>;
+}) => JSXNode_2<'script'>;
 
 // @public (undocumented)
 export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progress', T> {
@@ -800,7 +804,7 @@ export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: st
 export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @beta
-export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[];
+export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[] | EventHandler<EV, EL>;
 
 // @alpha
 export const _qrlSync: <TYPE extends Function>(fn: TYPE, serializedFn?: string) => SyncQRL<TYPE>;

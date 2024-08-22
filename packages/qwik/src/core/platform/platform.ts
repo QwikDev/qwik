@@ -25,7 +25,6 @@ export const createPlatform = (): CorePlatform => {
       const urlDoc = toUrl(containerEl.ownerDocument, containerEl, url).toString();
       const urlCopy = new URL(urlDoc);
       urlCopy.hash = '';
-      urlCopy.search = '';
       const importURL = urlCopy.href;
       return import(/* @vite-ignore */ importURL).then((mod) => {
         return mod[symbolName];

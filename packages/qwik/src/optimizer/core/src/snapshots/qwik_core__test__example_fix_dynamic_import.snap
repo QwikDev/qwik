@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1278
+assertion_line: 1279
 expression: output
 ---
 ==INPUT==
@@ -10,49 +10,47 @@ import { $, component$ } from '@builder.io/qwik';
 import thing from "../state";
 
 export function foo() {
-	return import("../state")
+	return import("../foo/state2")
 }
 
 export const Header = component$(() => {
 	return (
 		<div>
-			{import("../state")}
+			{import("../folder/state3")}
 			{thing}
 		</div>
 	);
 });
 
-============================= header_component_rggm7ks9qwi.tsx ==
+============================= project/folder/header_component_rggm7ks9qwi.tsx ==
 
-import thing from "./project/state";
+import thing from "../state";
 export const Header_component_RGgm7Ks9QWI = ()=>{
     return <div>
-
-			{import("./project/state")}
-
+			{import("../folder/state3")}
 			{thing}
-
 		</div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";4CAQiC,IAAM;IACtC,QACE,IAAI;;GACJ,CAAC,MAAM,CAAC,mBAAY;;GACpB,CAAC,MAAM;;EACR,EAAE;AAEJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";4CAQiC;IAChC,QACE,IAAI;GACJ,CAAC,MAAM,CAAC,oBAAoB;GAC5B,CAAC,MAAM;EACR,EAAE;AAEJ\"}")
 /*
 {
   "origin": "project/folder/test.tsx",
   "name": "Header_component_RGgm7Ks9QWI",
-  "entry": "entry_hooks",
+  "entry": "entry_segments",
   "displayName": "Header_component",
   "hash": "RGgm7Ks9QWI",
   "canonicalFilename": "header_component_rggm7ks9qwi",
+  "path": "project/folder",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    170,
-    245
+    175,
+    258
   ]
 }
 */
@@ -61,18 +59,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export function foo() {
-    return import("../state");
+    return import("../foo/state2");
 }
-export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("../../entry_hooks"), "Header_component_RGgm7Ks9QWI"));
+export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./header_component_rggm7ks9qwi"), "Header_component_RGgm7Ks9QWI"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,SAAS,MAAM;IACrB,OAAO,MAAM,CAAC;AACf,CAAC;AAED,OAAO,MAAM,uBAAS,iGAOnB\"}")
-============================= entry_hooks.js (ENTRY POINT)==
-
-export { Header_component_RGgm7Ks9QWI } from "./header_component_rggm7ks9qwi";
-
-
-None
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,SAAS;IACf,OAAO,MAAM,CAAC;AACf;AAEA,OAAO,MAAM,uBAAS,8GAOnB\"}")
 == DIAGNOSTICS ==
 
 []

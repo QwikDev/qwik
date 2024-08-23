@@ -329,7 +329,9 @@ describe('serializer v2', () => {
         expect(qrl1._devOnlySymbolRef).toEqual((obj[1] as any)._devOnlySymbolRef);
         expect(qrl2.$hash$).toEqual(obj[2].$hash$);
         expect(qrl2.$captureRef$).toEqual(obj[2].$captureRef$);
-        expect(qrl2._devOnlySymbolRef).toEqual((obj[2] as any)._devOnlySymbolRef);
+        expect(qrl2._devOnlySymbolRef.toString()).toEqual(
+          (obj[2] as any)._devOnlySymbolRef.toString()
+        );
       });
     });
 

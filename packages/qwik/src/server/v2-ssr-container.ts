@@ -88,6 +88,7 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './v2-vnode-data';
+import { QInstance } from '../core/util/markers';
 
 export function ssrCreateContainer(
   opts: {
@@ -204,6 +205,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private unclaimedProjections: Array<ISsrComponentFrame | string | JSXChildren> = [];
   unclaimedProjectionComponentFrameQueue: Array<ISsrComponentFrame> = [];
   private cleanupQueue: CleanupQueue = [];
+  private instanceHash = hash();
 
   constructor(opts: Required<Required<Parameters<typeof ssrCreateContainer>>[0]>) {
     super(
@@ -296,19 +298,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (this.tag == 'html') {
       this.write('<!DOCTYPE html>');
     }
-    let qRender = isDev ? 'ssr-dev' : 'ssr';
-    if (this.renderOptions.containerAttributes?.[QRenderAttr]) {
-      qRender = `${this.renderOptions.containerAttributes[QRenderAttr]}-${qRender}`;
-    }
+
+    const qRender = this.renderOptions.containerAttributes?.[QRenderAttr];
     const containerAttributes: Record<string, string> = {
       ...this.renderOptions.containerAttributes,
       [QRuntimeAttr]: '2',
       [QContainerAttr]: QContainerValue.PAUSED,
       [QVersionAttr]: this.$version$ ?? 'dev',
-      [QRenderAttr]: qRender,
+      [QRenderAttr]: (qRender ? qRender + '-' : '') + (isDev ? 'ssr-dev' : 'ssr'),
       [QBaseAttr]: this.buildBase,
       [QLocaleAttr]: this.$locale$,
       [QManifestHashAttr]: this.resolvedManifest.manifest.manifestHash,
+      [QInstance]: this.instanceHash,
     };
 
     const containerAttributeArray = Object.entries(containerAttributes).reduce<string[]>(
@@ -757,7 +758,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
       }
       this.openElement('script', scriptAttrs);
-      this.write(Q_FUNCS_PREFIX);
+      this.write(Q_FUNCS_PREFIX.replace('HASH', this.instanceHash));
       this.write('[');
       this.writeArray(fns, ',');
       this.write(']');
@@ -1132,4 +1133,8 @@ function hasDestroy(obj: any): obj is { $destroy$(): void } {
 const unsafeAttrCharRE = /[>/="'\u0009\u000a\u000c\u0020]/; // eslint-disable-line no-control-regex
 function isSSRUnsafeAttr(name: string): boolean {
   return unsafeAttrCharRE.test(name);
+}
+
+function hash() {
+  return Math.random().toString(36).slice(2);
 }

@@ -428,7 +428,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         };
       }
 
-      const firstInput = Object.values(opts.input)[0];
+      const firstInput = Object.values(opts.input || [])[0];
       return {
         id: normalizePath(getPath().resolve(firstInput, QWIK_CLIENT_MANIFEST_ID)),
         moduleSideEffects: false,
@@ -574,10 +574,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       debug(`load()`, 'Found', id);
       let { code } = transformedModule[0];
       const { map, segment } = transformedModule[0];
-      const firstInput = Object.values(opts.input)?.[0];
+      const firstInput = Object.values(opts.input || [])[0];
 
       if (devServer && firstInput) {
-        const firstInput = Object.values(opts.input)[0];
         // doing this because vite will not use resolveId() when "noExternal" is false
         // so we need to turn the @qwik-client-manifest import into a relative import
         code = code.replace(

@@ -418,11 +418,8 @@ function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: boolean)
     const aHost = a.$host$;
     const bHost = b.$host$;
 
-    const aHostIsQrlResolve = a.$type$ === ChoreType.QRL_RESOLVE;
-    const bHostIsQrlResolve = b.$type$ === ChoreType.QRL_RESOLVE;
-
     // QRL_RESOLVE does not have a host.
-    if (aHost !== bHost && !aHostIsQrlResolve && !bHostIsQrlResolve) {
+    if (aHost !== bHost && aHost !== null && bHost !== null) {
       if (vnode_isVNode(aHost) && vnode_isVNode(bHost)) {
         // we are running on the client.
         const hostDiff = vnode_documentPosition(aHost, bHost);
@@ -449,21 +446,19 @@ function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: boolean)
       return microTypeDiff;
     }
 
-    /**
-     * QRL_RESOLVE is a special case. It does not have a host nor $idx$. We want to process
-     * QRL_RESOLVE chores as FIFO, so we need to return 1.
-     */
-    if (
-      aHostIsQrlResolve &&
-      bHostIsQrlResolve &&
-      (a.$target$ as QRLInternal<any>).$symbol$ !== (b.$target$ as QRLInternal<any>).$symbol$
-    ) {
-      return 1;
-    }
-
     const idxDiff = toNumber(a.$idx$) - toNumber(b.$idx$);
     if (idxDiff !== 0) {
       return idxDiff;
+    }
+
+    // If the host is the same, we need to compare the target.
+    if (
+      a.$target$ !== b.$target$ &&
+      ((a.$type$ === ChoreType.QRL_RESOLVE && b.$type$ === ChoreType.QRL_RESOLVE) ||
+        (a.$type$ === ChoreType.NODE_PROP && b.$type$ === ChoreType.NODE_PROP))
+    ) {
+      // 1 means that we are going to process chores as FIFO
+      return 1;
     }
   }
 

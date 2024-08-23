@@ -135,8 +135,8 @@ test.describe("attributes", () => {
     test("should update required", async ({ page }) => {
       const input = page.locator("#input");
       const renders = page.locator("#renders");
-      const countBtn = page.locator("#required");
-      await countBtn.click();
+      const requiredBtn = page.locator("#required");
+      await requiredBtn.click();
 
       await expect(input).toHaveAttribute("aria-hidden", "true");
       await expect(input).toHaveAttribute("aria-label", "even");

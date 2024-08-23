@@ -26,7 +26,7 @@ Error.stackTraceLimit = 100;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  // { render: domRender }, //
+  { render: domRender }, //
 ])('$render.name: component', ({ render }) => {
   it('should render component', async () => {
     const MyComp = component$(() => {

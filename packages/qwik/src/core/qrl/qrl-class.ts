@@ -105,26 +105,24 @@ export const createQRL = <TYPE>(
       return fn;
     }
     return function (this: unknown, ...args: QrlArgs<TYPE>) {
-      let context = tryGetInvokeContext();
-      if (context) {
-        const prevQrl = context.$qrl$;
-        context.$qrl$ = qrl;
-        const prevEvent = context.$event$;
-        if (context.$event$ === undefined) {
-          context.$event$ = this as Event;
-        }
-        // const result = invoke.call(this, context, f, ...(args as Parameters<typeof f>));
-        try {
-          return fn.apply(this, args);
-        } finally {
-          context.$qrl$ = prevQrl;
-          context.$event$ = prevEvent;
-        }
+      const currentCtx = tryGetInvokeContext();
+      const prevQrl = currentCtx?.$qrl$;
+      const prevEvent = currentCtx?.$event$;
+
+      const baseContext = createOrReuseInvocationContext(currentCtx);
+      const context: InvokeContext = {
+        ...baseContext,
+        $qrl$: qrl as QRLInternal,
+      };
+      if (context.$event$ === undefined) {
+        context.$event$ = this as Event;
       }
-      context = newInvokeContext();
-      context.$qrl$ = qrl;
-      context.$event$ = this as Event;
-      return invoke.call(this, context, fn as any, ...args);
+      try {
+        return fn.apply(this, args);
+      } finally {
+        context.$qrl$ = prevQrl;
+        context.$event$ = prevEvent;
+      }
     } as TYPE;
   };
 
@@ -176,7 +174,15 @@ export const createQRL = <TYPE>(
         if (beforeFn && beforeFn() === false) {
           return;
         }
-        const context = createOrReuseInvocationContext(currentCtx);
+
+        const baseContext = createOrReuseInvocationContext(currentCtx);
+        const context: InvokeContext = {
+          ...baseContext,
+          $qrl$: qrl as QRLInternal,
+        };
+        if (context.$event$ === undefined) {
+          context.$event$ = this as Event;
+        }
         return invoke.call(this, context, f, ...(args as Parameters<typeof f>));
       });
   }

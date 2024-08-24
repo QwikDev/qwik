@@ -23,7 +23,7 @@ import type {
   StreamWriter,
 } from './types';
 import { createTimer, getBuildBase } from './utils';
-import { QInstance } from '../core/util/markers';
+import { QInstanceAttr } from '../core/util/markers';
 
 const DOCTYPE = '<!DOCTYPE html>';
 
@@ -210,7 +210,7 @@ export async function renderToStream(
         })
       );
       if (snapshotResult.funcs.length > 0) {
-        const hash = containerAttributes[QInstance];
+        const hash = containerAttributes[QInstanceAttr];
         children.push(
           jsx('script', {
             'q:func': 'qwik/json',

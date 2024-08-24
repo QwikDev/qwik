@@ -3528,7 +3528,7 @@ _(Optional)_ Options for the loading prefetch graph.
 </tbody></table>
 **Returns:**
 
-[JSXNode](#jsxnode)&lt;string&gt;
+JSXNode&lt;string&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -3582,7 +3582,7 @@ Options for the prefetch service worker.
 </tbody></table>
 **Returns:**
 
-[JSXNode](#jsxnode)&lt;'script'&gt;
+JSXNode&lt;'script'&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 

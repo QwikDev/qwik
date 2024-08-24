@@ -12,7 +12,7 @@ import {
   type InvokeContext,
   type InvokeTuple,
 } from '../use/use-core';
-import { getQFuncs, QInstance } from '../util/markers';
+import { getQFuncs, QInstanceAttr } from '../util/markers';
 import { maybeThen } from '../util/promises';
 import { qDev, qSerialize, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../util/types';
@@ -137,7 +137,7 @@ export const createQRL = <TYPE>(
     if (chunk === '') {
       // Sync QRL
       assertDefined(_containerEl, 'Sync QRL must have container element');
-      const hash = _containerEl.getAttribute(QInstance)!;
+      const hash = _containerEl.getAttribute(QInstanceAttr)!;
       const doc = _containerEl.ownerDocument!;
       const qFuncs = getQFuncs(doc, hash);
       // No need to wrap, syncQRLs can't have captured scope

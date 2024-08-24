@@ -2,6 +2,7 @@ import { isDev } from '@builder.io/qwik/build';
 import type { JSXNode } from '@builder.io/qwik';
 import { _jsxSorted } from '../internal';
 import { useServerData } from '../use/use-env-data';
+import { QBaseAttr, QManifestHashAttr } from '../util/markers';
 
 /**
  * Install a service worker which will prefetch the bundles.
@@ -135,8 +136,8 @@ export const PrefetchGraph = (
   const serverData = useServerData<Record<string, string>>('containerAttributes', {});
   const resolvedOpts = {
     // /build/q-bundle-graph-${manifestHash}.json is always within the q:base location /build/
-    base: serverData['q:base'],
-    manifestHash: serverData['q:manifest-hash'],
+    base: serverData[QBaseAttr],
+    manifestHash: serverData[QManifestHashAttr],
     scope: '/',
     verbose: false,
     path: 'qwik-prefetch-service-worker.js',

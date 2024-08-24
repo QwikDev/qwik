@@ -100,6 +100,9 @@ importers:
       '@types/semver':
         specifier: 7.5.8
         version: 7.5.8
+      '@types/tmp':
+        specifier: 0.2.6
+        version: 0.2.6
       '@types/which-pm-runs':
         specifier: 1.0.2
         version: 1.0.2
@@ -199,6 +202,12 @@ importers:
       terser:
         specifier: 5.31.3
         version: 5.31.3
+      tmp:
+        specifier: 0.2.3
+        version: 0.2.3
+      tree-kill:
+        specifier: 1.2.2
+        version: 1.2.2
       tsm:
         specifier: 2.3.0
         version: 2.3.0
@@ -232,6 +241,12 @@ importers:
       zod:
         specifier: 3.22.4
         version: 3.22.4
+
+  e2e/qwik-cli-e2e:
+    dependencies:
+      kleur:
+        specifier: 4.1.5
+        version: 4.1.5
 
   packages/create-qwik:
     devDependencies:
@@ -3380,6 +3395,9 @@ packages:
 
   '@types/set-cookie-parser@2.4.10':
     resolution: {integrity: sha512-GGmQVGpQWUe5qglJozEjZV/5dyxbOOZ0LHe/lqyWssB88Y4svNfst0uqBVscdDeIKl5Jy5+aPSvy7mI9tYRguw==}
+
+  '@types/tmp@0.2.6':
+    resolution: {integrity: sha512-chhaNf2oKHlRkDGt+tiKE2Z5aJ6qalm7Z9rlLdBwmOiAAf09YQvvoLXjWK4HWPF1xU/fqvMgfNfpVoBscA/tKA==}
 
   '@types/triple-beam@1.3.5':
     resolution: {integrity: sha512-6WaYesThRMCl19iryMYP7/x2OVgCtbIVflDGFpWnb9irXI3UjYE4AzmYuiUKY1AJstGijoY+MgUszMgRxIYTYw==}
@@ -12472,6 +12490,8 @@ snapshots:
   '@types/set-cookie-parser@2.4.10':
     dependencies:
       '@types/node': 20.14.11
+
+  '@types/tmp@0.2.6': {}
 
   '@types/triple-beam@1.3.5': {}
 

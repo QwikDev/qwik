@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "types": ["vitest/globals"],
+    "esModuleInterop": true
+  },
+  "include": ["utils", "tests"]
+}

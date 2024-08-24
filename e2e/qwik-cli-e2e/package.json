@@ -1,0 +1,11 @@
+{
+  "name": "qwik-cli-e2e",
+  "private": true,
+  "scripts": {
+    "e2e": "vitest run --config=vite.config.ts",
+    "e2e:watch": "vitest watch --config=vite.config.ts"
+  },
+  "dependencies": {
+    "kleur": "4.1.5"
+  }
+}

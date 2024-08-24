@@ -26,10 +26,12 @@ export const QStylesAllSelector = QStyleSelector + ',' + QStyleSSelector;
 export const QScopedStyle = 'q:sstyle';
 export const QCtxAttr = 'q:ctx';
 export const QManifestHash = 'q:manifest-hash';
-export const QInstance = 'q:instance';
 export const QFuncsPrefix = 'qFuncs_';
 
-export const getQFuncs = (document: Document, hash: string): Function[] => {
+export const getQFuncs = (
+  document: Document,
+  hash: string
+): Array<(...args: unknown[]) => unknown> => {
   return (document as any)[QFuncsPrefix + hash] || [];
 };
 
@@ -39,6 +41,7 @@ export const QVersionAttr = 'q:version';
 export const QBaseAttr = 'q:base';
 export const QLocaleAttr = 'q:locale';
 export const QManifestHashAttr = 'q:manifest-hash';
+export const QInstanceAttr = 'q:instance';
 export const QContainerIsland = 'q:container-island';
 export const QContainerIslandEnd = '/' + QContainerIsland;
 export const QIgnore = 'q:ignore';

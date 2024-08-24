@@ -173,7 +173,6 @@ export const _CONST_PROPS: unique symbol;
 export interface _ContainerElement extends HTMLElement {
     // (undocumented)
     qContainer?: ClientContainer;
-    qFuncs?: Array<Function>;
     qVnodeData?: string;
     qVNodeRefs?: Map<number, Element | _ElementVNode>;
 }
@@ -263,6 +262,8 @@ class DomContainer extends _SharedContainer implements ClientContainer, StoreTra
     $appendStyle$(content: string, styleId: string, host: _VirtualVNode, scoped: boolean): void;
     // (undocumented)
     $getObjectById$: (id: number | string) => unknown;
+    // (undocumented)
+    $instanceHash$: string;
     // (undocumented)
     $journal$: VNodeJournal;
     // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
@@ -1067,6 +1068,8 @@ export abstract class _SharedContainer implements Container2 {
     $currentUniqueId$: number;
     // (undocumented)
     readonly $getObjectById$: (id: number | string) => any;
+    // (undocumented)
+    $instanceHash$: string | null;
     // (undocumented)
     readonly $locale$: string;
     // (undocumented)

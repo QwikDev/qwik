@@ -88,7 +88,7 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './v2-vnode-data';
-import { QInstance } from '../core/util/markers';
+import { QInstanceAttr } from '../core/util/markers';
 
 export function ssrCreateContainer(
   opts: {
@@ -205,7 +205,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private unclaimedProjections: Array<ISsrComponentFrame | string | JSXChildren> = [];
   unclaimedProjectionComponentFrameQueue: Array<ISsrComponentFrame> = [];
   private cleanupQueue: CleanupQueue = [];
-  private instanceHash = hash();
+  $instanceHash$ = hash();
 
   constructor(opts: Required<Required<Parameters<typeof ssrCreateContainer>>[0]>) {
     super(
@@ -309,7 +309,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       [QBaseAttr]: this.buildBase,
       [QLocaleAttr]: this.$locale$,
       [QManifestHashAttr]: this.resolvedManifest.manifest.manifestHash,
-      [QInstance]: this.instanceHash,
+      [QInstanceAttr]: this.$instanceHash$,
     };
 
     const containerAttributeArray = Object.entries(containerAttributes).reduce<string[]>(
@@ -758,7 +758,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
       }
       this.openElement('script', scriptAttrs);
-      this.write(Q_FUNCS_PREFIX.replace('HASH', this.instanceHash));
+      this.write(Q_FUNCS_PREFIX.replace('HASH', this.$instanceHash$));
       this.write('[');
       this.writeArray(fns, ',');
       this.write(']');

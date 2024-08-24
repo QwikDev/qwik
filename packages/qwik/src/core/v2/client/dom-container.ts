@@ -14,10 +14,13 @@ import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
+  getQFuncs,
   OnRenderProp,
+  QBaseAttr,
   QContainerAttr,
   QContainerSelector,
   QCtxAttr,
+  QInstanceAttr,
   QScopedStyle,
   QSlotParent,
   QStyle,
@@ -112,6 +115,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   public $rawStateData$: unknown[];
   public $proxyMap$: ObjToProxyMap = new WeakMap();
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
+  public $instanceHash$: string;
 
   private stateData: unknown[];
   private $styleIds$: Set<string> | null = null;
@@ -139,7 +143,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
     ];
     this.document = element.ownerDocument as QDocument;
     this.element = element;
-    this.qBase = element.getAttribute('q:base')!;
+    this.qBase = element.getAttribute(QBaseAttr)!;
+    this.$instanceHash$ = element.getAttribute(QInstanceAttr)!;
     // this.containerState = createContainerState(element, this.qBase);
     this.qManifestHash = element.getAttribute('q:manifest-hash')!;
     this.rootVNode = vnode_newUnMaterializedElement(this.element);
@@ -158,7 +163,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       this.$rawStateData$ = JSON.parse(lastState.textContent!);
       this.stateData = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
     }
-    this.$qFuncs$ = element.qFuncs || EMPTY_ARRAY;
+    this.$qFuncs$ = getQFuncs(document, this.$instanceHash$) || EMPTY_ARRAY;
   }
 
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void {

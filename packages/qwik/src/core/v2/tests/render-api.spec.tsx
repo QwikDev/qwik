@@ -489,7 +489,7 @@ describe('render api', () => {
         const qwikFuncScriptElements = document.querySelectorAll('script[q\\:func=qwik/json]');
         expect(qwikFuncScriptElements).toHaveLength(1);
         expect(qwikFuncScriptElements[0].textContent).toMatch(
-          /document\["qFuncs_(\w{11})"\]=\[\(p0\)=>p0\.value\]/
+          /document\["qFuncs_(\w{11})"\]=\[\(p0\)=>p0.value\]/
         );
       });
     });

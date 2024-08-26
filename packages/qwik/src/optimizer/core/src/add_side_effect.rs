@@ -51,8 +51,7 @@ impl<'a> VisitMut for SideEffectVisitor<'a> {
 					node.body.insert(
 						0,
 						ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(ast::ImportDecl {
-							with: None,
-							phase: Default::default(),
+							asserts: None,
 							span: DUMMY_SP,
 							specifiers: vec![],
 							type_only: false,

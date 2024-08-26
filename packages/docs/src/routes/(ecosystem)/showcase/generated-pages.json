@@ -1,5 +1,39 @@
 [
   {
+    "title": "SEYPH | Landing pages de alta conversão",
+    "imgSrc": "/showcases/seyph_com_.webp",
+    "perf": {
+      "score": 0.99,
+      "fcpDisplay": "1.1 s",
+      "fcpScore": 0.99,
+      "lcpDisplay": "2.0 s",
+      "lcpScore": 0.97,
+      "ttiDisplay": "1.1 s",
+      "ttiScore": 1,
+      "ttiTime": 1149.0029164682232
+    },
+    "href": "https://seyph.com/",
+    "size": "large",
+    "tags": "software development, landing pages, agency, site"
+  },
+  {
+    "title": "Learn Qwik | Start building with Qwik",
+    "imgSrc": "/showcases/www_learn-qwik_com_.webp",
+    "perf": {
+      "score": 0.98,
+      "fcpDisplay": "1.3 s",
+      "fcpScore": 0.98,
+      "lcpDisplay": "1.3 s",
+      "lcpScore": 1,
+      "ttiDisplay": "1.7 s",
+      "ttiScore": 1,
+      "ttiTime": 1734.3063735433216
+    },
+    "href": "https://www.learn-qwik.com/",
+    "size": "large",
+    "tags": "site,tutorial,learn"
+  },
+  {
     "title": "Book Doctor Appointment and Ambulance Service Online | Sasthya Seba",
     "imgSrc": "/showcases/sasthyaseba_com.webp",
     "perf": {

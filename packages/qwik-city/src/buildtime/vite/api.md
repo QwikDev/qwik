@@ -8,7 +8,6 @@ import type { BuiltinsWithOptionalParams } from 'svgo/plugins/plugins-types';
 import type { CompileOptions } from '@mdx-js/mdx';
 import type { Config } from 'svgo';
 import { ConfigEnv } from 'vite';
-import type { Plugin as Plugin_2 } from 'vite';
 import type { PluginOption } from 'vite';
 import { UserConfigExport } from 'vite';
 
@@ -21,11 +20,12 @@ export type MdxOptions = CompileOptions;
 // @public (undocumented)
 export function qwikCity(userOpts?: QwikCityVitePluginOptions): PluginOption[];
 
-// Warning: (ae-forgotten-export) The symbol "P" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "QwikCityPluginApi" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export interface QwikCityPlugin extends P<QwikCityPluginApi> {
+export interface QwikCityPlugin {
+    // Warning: (ae-forgotten-export) The symbol "QwikCityPluginApi" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    api: QwikCityPluginApi;
     // (undocumented)
     name: 'vite-plugin-qwik-city';
 }

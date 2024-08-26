@@ -5,6 +5,7 @@
 #![feature(box_patterns)]
 #![allow(clippy::option_if_let_else)]
 #![allow(clippy::iter_with_drain)]
+#![feature(extract_if)]
 #[cfg(test)]
 mod test;
 

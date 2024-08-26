@@ -183,7 +183,7 @@ Run without arguments for all supported flags. Notable:
 - `--build`: Qwik (you'll probably also need `--api`)
 - `--qwikcity`: Qwik City (you'll probably also need `--api`)
 - `--qwikreact`: Qwik React
-- `--qwiklabs`: Qwik Labs
+- `--qwiklabs`: Qwik React
 - `--eslint`: Eslint plugin
 
 ### Full build without Rust

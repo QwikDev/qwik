@@ -1,5 +1,5 @@
-use crate::transform::SegmentData;
-use crate::transform::SegmentKind;
+use crate::transform::HookData;
+use crate::transform::HookKind;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use swc_atoms::JsWord;
@@ -7,7 +7,7 @@ use swc_atoms::JsWord;
 use lazy_static::lazy_static;
 
 lazy_static! {
-	static ref ENTRY_SEGMENTS: JsWord = JsWord::from("entry_segments");
+	static ref ENTRY_HOOKS: JsWord = JsWord::from("entry_hooks");
 }
 
 // EntryStrategies
@@ -17,7 +17,7 @@ pub enum EntryStrategy {
 	Inline,
 	Hoist,
 	Single,
-	Segment,
+	Hook,
 	Component,
 	Smart,
 }
@@ -27,7 +27,7 @@ pub trait EntryPolicy: Send + Sync {
 		&self,
 		hash: &str,
 		context: &[String],
-		segment: &SegmentData,
+		hook_data: &HookData,
 	) -> Option<JsWord>;
 }
 
@@ -39,9 +39,9 @@ impl EntryPolicy for InlineStrategy {
 		&self,
 		_hash: &str,
 		_context: &[String],
-		_segment: &SegmentData,
+		_hook_data: &HookData,
 	) -> Option<JsWord> {
-		Some(ENTRY_SEGMENTS.clone())
+		Some(ENTRY_HOOKS.clone())
 	}
 }
 
@@ -61,7 +61,7 @@ impl EntryPolicy for SingleStrategy {
 		&self,
 		hash: &str,
 		_context: &[String],
-		_segment: &SegmentData,
+		_hook_data: &HookData,
 	) -> Option<JsWord> {
 		if let Some(map) = &self.map {
 			let entry = map.get(hash);
@@ -69,27 +69,27 @@ impl EntryPolicy for SingleStrategy {
 				return Some(entry.clone());
 			}
 		}
-		Some(ENTRY_SEGMENTS.clone())
+		Some(ENTRY_HOOKS.clone())
 	}
 }
 
 #[derive(Clone)]
-pub struct PerSegmentStrategy {
+pub struct PerHookStrategy {
 	map: Option<HashMap<String, JsWord>>,
 }
 
-impl PerSegmentStrategy {
+impl PerHookStrategy {
 	pub const fn new(map: Option<HashMap<String, JsWord>>) -> Self {
 		Self { map }
 	}
 }
 
-impl EntryPolicy for PerSegmentStrategy {
+impl EntryPolicy for PerHookStrategy {
 	fn get_entry_for_sym(
 		&self,
 		hash: &str,
 		_context: &[String],
-		_segment: &SegmentData,
+		_hook_data: &HookData,
 	) -> Option<JsWord> {
 		if let Some(map) = &self.map {
 			let entry = map.get(hash);
@@ -117,7 +117,7 @@ impl EntryPolicy for PerComponentStrategy {
 		&self,
 		hash: &str,
 		context: &[String],
-		segment: &SegmentData,
+		hook_data: &HookData,
 	) -> Option<JsWord> {
 		if let Some(map) = &self.map {
 			let entry = map.get(hash);
@@ -126,8 +126,8 @@ impl EntryPolicy for PerComponentStrategy {
 			}
 		}
 		context.first().map_or_else(
-			|| Some(ENTRY_SEGMENTS.clone()),
-			|root| Some(JsWord::from([&segment.origin, "_entry_", root].concat())),
+			|| Some(ENTRY_HOOKS.clone()),
+			|root| Some(JsWord::from([&hook_data.origin, "_entry_", root].concat())),
 		)
 	}
 }
@@ -147,11 +147,11 @@ impl EntryPolicy for SmartStrategy {
 		&self,
 		hash: &str,
 		context: &[String],
-		segment: &SegmentData,
+		hook_data: &HookData,
 	) -> Option<JsWord> {
 		// Event handlers without scope variables are put into a separate file
-		if segment.scoped_idents.is_empty()
-			&& (segment.ctx_kind != SegmentKind::Function || &segment.ctx_name == "event$")
+		if hook_data.scoped_idents.is_empty()
+			&& (hook_data.ctx_kind != HookKind::Function || &hook_data.ctx_name == "event$")
 		{
 			return None;
 		}
@@ -169,7 +169,7 @@ impl EntryPolicy for SmartStrategy {
 			// Top-level QRLs are put into a separate file
 			|| None,
 			// Other QRLs are put into a file named after the original file + the root component
-			|root| Some(JsWord::from([&segment.origin, "_entry_", root].concat())),
+			|root| Some(JsWord::from([&hook_data.origin, "_entry_", root].concat())),
 		)
 	}
 }
@@ -180,7 +180,7 @@ pub fn parse_entry_strategy(
 ) -> Box<dyn EntryPolicy> {
 	match strategy {
 		EntryStrategy::Inline | EntryStrategy::Hoist => Box::<InlineStrategy>::default(),
-		EntryStrategy::Segment => Box::new(PerSegmentStrategy::new(manual_chunks)),
+		EntryStrategy::Hook => Box::new(PerHookStrategy::new(manual_chunks)),
 		EntryStrategy::Single => Box::new(SingleStrategy::new(manual_chunks)),
 		EntryStrategy::Component => Box::new(PerComponentStrategy::new(manual_chunks)),
 		EntryStrategy::Smart => Box::new(SmartStrategy::new(manual_chunks)),

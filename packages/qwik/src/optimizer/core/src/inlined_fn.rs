@@ -22,7 +22,7 @@ macro_rules! id {
 pub fn convert_inlined_fn(
 	mut expr: ast::Expr,
 	scoped_idents: Vec<Id>,
-	qqsegment: &Id,
+	qqhook: &Id,
 	accept_call_expr: bool,
 	serialize_fn: bool,
 ) -> (Option<ast::Expr>, bool) {
@@ -93,7 +93,7 @@ pub fn convert_inlined_fn(
 
 	(
 		Some(ast::Expr::Call(ast::CallExpr {
-			callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(qqsegment)))),
+			callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(qqhook)))),
 			args,
 			..Default::default()
 		})),

@@ -7,6 +7,9 @@
     "03": "devDependencies can't include reference to @builder.io/qwik-city or e2e test will fail."
   },
   "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    },
     "syncpack": {
       "versionGroups": [
         {
@@ -95,10 +98,12 @@
     "@typescript-eslint/utils": "^7.7.1",
     "all-contributors-cli": "6.26.1",
     "brotli": "1.3.3",
+    "commitizen": "4.3.0",
     "concurrently": "^8.2.2",
     "create-qwik": "workspace:^",
     "cross-spawn": "7.0.3",
     "csstype": "^3.1.3",
+    "cz-conventional-changelog": "3.3.0",
     "dotenv": "^16.4.5",
     "esbuild": "^0.20.2",
     "eslint": "^8.57.0",
@@ -179,6 +184,7 @@
     "cli": "pnpm build.cli && node packages/create-qwik/dist/create-qwik.cjs && tsm scripts/validate-cli.ts --copy-local-qwik-dist",
     "cli.qwik": "pnpm build.cli && node packages/qwik/dist/qwik-cli.cjs",
     "cli.validate": "tsm scripts/validate-cli.ts",
+    "commit": "git-cz",
     "deps": "corepack pnpm upgrade -i -r --latest && syncpack fix-mismatches && corepack pnpm dedupe",
     "docs.dev": "cd packages/docs && pnpm build.repl-sw && pnpm dev",
     "docs.preview": "cd packages/docs && pnpm preview",

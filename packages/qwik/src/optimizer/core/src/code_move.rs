@@ -1,12 +1,19 @@
 use crate::collector::{new_ident_from_id, GlobalCollect, Id, ImportKind};
-use crate::parse::PathData;
+use crate::parse::{
+	emit_source_code, might_need_handle_watch, HookAnalysis, PathData, TransformModule,
+	TransformOutput,
+};
 use crate::transform::{add_handle_watch, create_synthetic_named_import};
 use crate::words::*;
 
-use anyhow::Error;
+use std::collections::BTreeMap;
+use std::path::Path;
+
+use anyhow::{Context, Error};
+use path_slash::PathExt;
 use swc_atoms::JsWord;
 use swc_common::comments::{SingleThreadedComments, SingleThreadedCommentsMap};
-use swc_common::DUMMY_SP;
+use swc_common::{sync::Lrc, SourceMap, DUMMY_SP};
 use swc_ecmascript::ast;
 use swc_ecmascript::utils::private_ident;
 
@@ -151,6 +158,32 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
 	Ok((module, comments))
 }
 
+pub fn fix_path<S: AsRef<Path>, D: AsRef<Path>>(
+	src: S,
+	dest: D,
+	ident: &str,
+) -> Result<JsWord, Error> {
+	let src = src.as_ref();
+	let dest = dest.as_ref();
+	if ident.starts_with('.') {
+		let diff = pathdiff::diff_paths(src, dest);
+
+		if let Some(diff) = diff {
+			let normalize = diff.to_slash_lossy();
+			let relative = relative_path::RelativePath::new(&normalize);
+			let final_path = relative.join(ident).normalize();
+			let final_str = final_path.as_str();
+			return Ok(if final_str.starts_with('.') {
+				JsWord::from(final_str)
+			} else {
+				JsWord::from(format!("./{}", final_str))
+			});
+		}
+	}
+
+	Ok(JsWord::from(ident))
+}
+
 fn create_named_export(expr: Box<ast::Expr>, name: &str) -> ast::ModuleItem {
 	ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(ast::ExportDecl {
 		span: DUMMY_SP,
@@ -171,6 +204,123 @@ fn create_named_export(expr: Box<ast::Expr>, name: &str) -> ast::ModuleItem {
 			}],
 		})),
 	}))
+}
+
+#[test]
+fn test_fix_path() {
+	assert_eq!(
+		fix_path("src", "", "./state.qwik.mjs").unwrap(),
+		JsWord::from("./src/state.qwik.mjs")
+	);
+
+	assert_eq!(
+		fix_path("src/path", "", "./state").unwrap(),
+		JsWord::from("./src/path/state")
+	);
+
+	assert_eq!(
+		fix_path("src", "", "../state").unwrap(),
+		JsWord::from("./state")
+	);
+	assert_eq!(
+		fix_path("a", "a", "./state").unwrap(),
+		JsWord::from("./state")
+	);
+}
+
+pub fn generate_entries(
+	mut output: TransformOutput,
+	core_module: &JsWord,
+	explicit_extensions: bool,
+	root_dir: Option<&Path>,
+) -> Result<TransformOutput, anyhow::Error> {
+	let source_map = Lrc::new(SourceMap::default());
+	let mut entries_map: BTreeMap<&str, Vec<&HookAnalysis>> = BTreeMap::new();
+	let mut new_modules = Vec::with_capacity(output.modules.len());
+	{
+		let hooks: Vec<&HookAnalysis> = output.modules.iter().flat_map(|m| &m.hook).collect();
+		for hook in hooks {
+			if let Some(ref e) = hook.entry {
+				entries_map.entry(e.as_ref()).or_default().push(hook);
+			}
+		}
+
+		for (entry, hooks) in &entries_map {
+			let module = new_entry_module(entry, hooks, core_module, explicit_extensions);
+			let (code, map) =
+				emit_source_code(Lrc::clone(&source_map), None, &module, root_dir, false)
+					.context("Emitting source code")?;
+			new_modules.push(TransformModule {
+				path: [entry, ".js"].concat(),
+				code,
+				map,
+				is_entry: true,
+				hook: None,
+				order: 0,
+			});
+		}
+	}
+	output.modules.append(&mut new_modules);
+
+	Ok(output)
+}
+
+fn new_entry_module(
+	path: &str,
+	hooks: &[&HookAnalysis],
+	core_module: &JsWord,
+	explicit_extensions: bool,
+) -> ast::Module {
+	let mut module = ast::Module {
+		span: DUMMY_SP,
+		body: Vec::with_capacity(hooks.len()),
+		shebang: None,
+	};
+	let mut need_handle_watch = false;
+	for hook in hooks {
+		// TODO fix the path from the entry to the hook in case of mismatched location
+		let mut src = fix_path(
+			hook.path.to_string(),
+			Path::new(path).parent().unwrap().to_str().unwrap(),
+			&["./", &hook.canonical_filename].concat(),
+		)
+		.unwrap()
+		.to_string();
+		if explicit_extensions {
+			src = src + "." + hook.extension.as_ref();
+		}
+		if might_need_handle_watch(&hook.ctx_kind, &hook.ctx_name) {
+			need_handle_watch = true;
+		}
+		module
+			.body
+			.push(ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(
+				ast::NamedExport {
+					span: DUMMY_SP,
+					type_only: false,
+					with: None,
+					src: Some(Box::new(ast::Str {
+						span: DUMMY_SP,
+						value: JsWord::from(src),
+						raw: None,
+					})),
+					specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
+						is_type_only: false,
+						span: DUMMY_SP,
+						orig: ast::ModuleExportName::Ident(ast::Ident::new(
+							hook.name.clone(),
+							DUMMY_SP,
+							Default::default(),
+						)),
+						exported: None,
+					})],
+				},
+			)));
+	}
+	if need_handle_watch {
+		add_handle_watch(&mut module.body, core_module);
+	}
+	module
 }
 
 pub fn transform_function_expr(

@@ -6,8 +6,6 @@ export default defineConfig({
   test: {
     include: [
       'packages/**/*.unit.?(c|m)[jt]s?(x)',
-      // Rust build cache
-      '!packages/qwik/**/target',
       '!packages/qwik/dist',
       '!packages/*/lib',
       '!starters',

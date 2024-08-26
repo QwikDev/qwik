@@ -39,12 +39,11 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     async options(inputOpts) {
       await qwikPlugin.init();
 
-      const origOnwarn = inputOpts.onwarn;
       inputOpts.onwarn = (warning, warn) => {
         if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
           return;
         }
-        origOnwarn ? origOnwarn(warning, warn) : warn(warning);
+        warn(warning);
       };
 
       const pluginOpts: QwikPluginOptions = {

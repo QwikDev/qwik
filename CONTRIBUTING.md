@@ -327,7 +327,7 @@ This will show an interactive UI to update all dependencies. Be careful about pe
 
 ### Adding a changeset:
 
-Whenever you make a change that requires documentation or a new release, you should add a changeset. This will help us to keep track of changes and generate meaningful release notes and changelog files.
+Whenever you make a change that requires documentation or a new release, you should add a changeset. This will help us to keep track of changes and generate meaningful release notes and changelog files. 
 
 You create a new changeset file by running:
 
@@ -335,9 +335,11 @@ You create a new changeset file by running:
 pnpm change
 ```
 
-For your convenience, we prepared a video tutorial that covers the process of adding a changeset:
+For your convenience, we prepared a video tutorial that covers the process of adding a changeset: 
 
 [📽 TUTORIAL: Adding a changeset](https://go.screenpal.com/watch/cZivIcVPJQV)
+
+
 
 ### Pre-submit hooks
 

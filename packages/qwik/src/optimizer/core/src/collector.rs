@@ -1,21 +1,28 @@
 use std::collections::{HashMap, HashSet};
 
 use swc_atoms::{js_word, JsWord};
-use swc_common::{Span, SyntaxContext, DUMMY_SP};
+use swc_common::{BytePos, Span, SyntaxContext};
 use swc_ecmascript::ast;
 use swc_ecmascript::utils::private_ident;
-use swc_ecmascript::visit::{noop_visit_type, Visit, VisitWith};
+use swc_ecmascript::visit::{noop_visit_type, visit_expr, visit_stmt, Visit, VisitWith};
 
 macro_rules! id {
 	($ident: expr) => {
-		($ident.sym.clone(), $ident.ctxt)
+		($ident.sym.clone(), $ident.span.ctxt())
 	};
 }
 
 pub type Id = (JsWord, SyntaxContext);
 
 pub fn new_ident_from_id(id: &Id) -> ast::Ident {
-	ast::Ident::new(id.0.clone(), DUMMY_SP, id.1)
+	ast::Ident::new(
+		id.0.clone(),
+		Span {
+			lo: BytePos(0),
+			hi: BytePos(0),
+			ctxt: id.1,
+		},
+	)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy)]
@@ -328,13 +335,13 @@ impl Visit for IdentCollector {
 
 	fn visit_expr(&mut self, node: &ast::Expr) {
 		self.expr_ctxt.push(ExprOrSkip::Expr);
-		node.visit_children_with(self);
+		visit_expr(self, node);
 		self.expr_ctxt.pop();
 	}
 
 	fn visit_stmt(&mut self, node: &ast::Stmt) {
 		self.expr_ctxt.push(ExprOrSkip::Skip);
-		node.visit_children_with(self);
+		visit_stmt(self, node);
 		self.expr_ctxt.pop();
 	}
 
@@ -368,7 +375,7 @@ impl Visit for IdentCollector {
 
 	fn visit_ident(&mut self, node: &ast::Ident) {
 		if matches!(self.expr_ctxt.last(), Some(ExprOrSkip::Expr))
-			&& node.ctxt != SyntaxContext::empty()
+			&& node.span.ctxt() != SyntaxContext::empty()
 		{
 			self.local_idents.insert(id!(node));
 		}

@@ -91,13 +91,16 @@ import { f } from "./test";
 import { foo } from "./test";
 import { expr2 as internal } from "./test";
 export const Header_component_1_uWM1kg0IGO0 = ()=><Footer>
+
             <div>{a}{b}{c}{d}{e}{f}{exp1}{internal}{foo}{bar}{DefaultFn}</div>
+
             <div>{v1}{v2}{v3}{obj}</div>
+
         </Footer>;
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;8CAea,KACJ,OAAO;YACJ,CAAC,KAAK,GAAG,GAAG,GAAG,GAAG,GAAG,GAAG,MAAM,UAAU,KAAK,KAAK,YAAY,IAAI;YAClE,CAAC,KAAK,IAAI,IAAI,IAAI,MAAM,IAAI;QAChC,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;8CAea,KACJ,OAAO;;YACJ,CAAC,KAAK,GAAG,GAAG,GAAG,GAAG,GAAG,GAAG,MAAM,UAAU,KAAK,KAAK,YAAY,IAAI;;YAClE,CAAC,KAAK,IAAI,IAAI,IAAI,MAAM,IAAI;;QAChC,EAAE\"}")
 /*
 {
   "origin": "project/test.tsx",

@@ -28,7 +28,7 @@ export const ReplOutputSymbols = component$(({ outputs }: ReplOutputSymbolsProps
                 class={{ 'in-view': selectedPath.value === o.path }}
                 preventdefault:click
               >
-                {o.segment?.canonicalFilename}
+                {o.hook?.canonicalFilename}
               </a>
             </div>
           ))}
@@ -36,11 +36,11 @@ export const ReplOutputSymbols = component$(({ outputs }: ReplOutputSymbolsProps
       </div>
       <div class="file-modules" id={FILE_MODULE_DIV_ID}>
         {outputs
-          .filter((o) => !!o.segment)
+          .filter((o) => !!o.hook)
           .map((o, i) => (
             <div class="file-item" data-symbol-item={i} key={o.path}>
               <div class="file-info">
-                <span>{o.segment?.canonicalFilename}</span>
+                <span>{o.hook?.canonicalFilename}</span>
               </div>
               <div class="file-text">
                 <CodeBlock

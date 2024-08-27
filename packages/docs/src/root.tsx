@@ -1,11 +1,5 @@
-import {
-  PrefetchGraph,
-  PrefetchServiceWorker,
-  component$,
-  useContextProvider,
-  useStore,
-} from '@builder.io/qwik';
-import { QwikCityProvider, RouterOutlet } from '@builder.io/qwik-city';
+import { component$, useContextProvider, useStore } from '@builder.io/qwik';
+import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';
 import { GlobalStore, type SiteStore } from './context';
@@ -60,8 +54,7 @@ export default component$(() => {
         <meta charset="utf-8" />
         <script dangerouslySetInnerHTML={uwu} />
         <RouterHead />
-        <PrefetchServiceWorker />
-        <PrefetchGraph />
+        <ServiceWorkerRegister />
         {/* <script dangerouslySetInnerHTML={`(${collectSymbols})()`} /> */}
         <Insights publicApiKey={import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY} />
       </head>

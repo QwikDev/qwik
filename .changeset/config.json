@@ -7,5 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["qwik-docs", "@builder.io/qwik-labs"]
+  "ignore": ["qwik-docs"]
 }

@@ -33,8 +33,7 @@ contributors:
   - kushalvmahajan
   - daniela-bonvini
   - jemsco
-  - maiieul
-updated_at: '2024-15-30T18:34:34Z'
+updated_at: '2023-09-30T18:34:34Z'
 created_at: '2023-04-02T16:36:48Z'
 ---
 
@@ -544,20 +543,22 @@ export default component$(() => {
 
 ### 7. Preview
 
-Up until now, you've been using the dev server to make your application.
+This tutorial has a basic example application as an overview of the key Qwik concepts and its API. The application is running in dev mode, which uses hot-module-reloading (HMR) to continuously update the application while changing the code.
 
-This is great to see your changes in real time, but it doesn't work the same way as in production:
+While in dev mode:
 
 - Each file is loaded individually, which may cause waterfalls in the network tab.
 - There is no speculative loading of bundles, so there may be a delay on the first interaction.
 
-To make sure everything is ready for production and eliminate these issues, you can run your app in preview:
+Let's create a production build that eliminates these issues.
 
-1. Run `npm run preview` to create a production build and run it.
+To create a preview build:
+
+1. Run `npm run preview` to create a production build.
 
 NOTE:
 
-- Your application should now have a production build running on localhost:4173.
+- Your application should now have a production build running on a different port.
 - If you interact with the application now, the network tab of the dev tools should show that the bundles are instantly delivered from the [ServiceWorker cache](/docs/advanced/speculative-module-fetching/).
 
 ## Review

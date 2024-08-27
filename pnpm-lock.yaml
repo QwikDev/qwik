@@ -539,6 +539,8 @@ importers:
         specifier: ^1.5.0
         version: 1.6.0(@types/node@20.12.8)(terser@5.31.0)
 
+  packages/just-for-checking-changesets: {}
+
   packages/qwik:
     dependencies:
       csstype:

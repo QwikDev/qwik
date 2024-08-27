@@ -20,7 +20,6 @@ jobs:
     name: Cloudflare Pages Deployment
     if: >
       github.repository == 'QwikDev/qwik' &&
-      github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:

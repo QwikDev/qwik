@@ -1,10 +1,7 @@
 {
   "name": "@qwikdev/just-for-checking-changesets",
   "description": "just-for-checking-changesets",
-  "version": "0.0.1",
-  "publishConfig": {
-    "access": "public"
-  },
+  "version": "0.0.2",
   "dependencies": {},
   "devDependencies": {},
   "exports": {

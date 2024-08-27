@@ -34,7 +34,6 @@ dist-dev
 external
 lib
 tsdoc-metadata.json
-packages/qwik/bindings
 
 # IDE and local environment
 .idea

@@ -703,8 +703,6 @@ pub struct PathData {
 
 pub fn parse_path(src: &str, base_dir: &Path) -> Result<PathData, Error> {
 	let path = Path::new(src);
-	let lossy = path.to_slash_lossy();
-	let path = Path::new(lossy.as_ref());
 	let file_stem = path
 		.file_stem()
 		.and_then(OsStr::to_str)

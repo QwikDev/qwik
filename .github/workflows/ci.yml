@@ -77,7 +77,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           lookup-only: true
-          path: packages/qwik/bindings
+          path: packages/qwik/dist/bindings
           key: ${{ hashfiles('rust-toolchain', '**/Cargo.toml', '**/Cargo.lock', '**/*.rs') }}
       - name: 'check cache: others'
         id: cache-others
@@ -135,7 +135,7 @@ jobs:
         run: |
           corepack enable
           # Ensure that the qwik binary gets made
-          mkdir -p packages/qwik/bindings/
+          mkdir -p packages/qwik/dist/bindings/
           pnpm install --frozen-lockfile
 
       - name: 'build: qwik'
@@ -148,7 +148,7 @@ jobs:
       - name: Save artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: artifact-qwik-no-optimizer
+          name: dist-qwik-no-optimizer
           path: packages/qwik/dist/
           if-no-files-found: error
 
@@ -186,13 +186,13 @@ jobs:
 
       - name: Print Packages Dist Build
         continue-on-error: true
-        run: ls -lR packages/qwik/bindings/
+        run: ls -lR packages/qwik/dist/bindings/
 
       - name: Upload Platform Binding Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: artifact-bindings-wasm
-          path: packages/qwik/bindings/*
+          name: dist-bindings-wasm
+          path: packages/qwik/dist/bindings/*
           if-no-files-found: error
 
   ############ BUILD PLATFORM BINDINGS ############
@@ -237,13 +237,13 @@ jobs:
 
       - name: Print Packages Dist Build
         continue-on-error: true
-        run: ls -lR packages/qwik/bindings/
+        run: ls -lR packages/qwik/dist/bindings/
 
       - name: Upload Platform Binding Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: artifact-bindings-${{ matrix.settings.target }}
-          path: packages/qwik/bindings/*.node
+          name: dist-bindings-${{ matrix.settings.target }}
+          path: packages/qwik/dist/bindings/*.node
           if-no-files-found: error
 
   ############ BUILD PACKAGE ############
@@ -280,28 +280,26 @@ jobs:
         if: needs.changes.outputs.build-qwik == 'true'
         run: |
           mkdir -p packages/qwik/dist/
-          mv artifact-qwik-no-optimizer/* packages/qwik/dist/
+          mv dist-qwik-no-optimizer/* packages/qwik/dist/
 
       - name: Restore Rust from cache
         if: needs.changes.outputs.build-rust != 'true'
         uses: actions/cache/restore@v4
         with:
-          path: packages/qwik/bindings
+          path: packages/qwik/dist/bindings
           key: ${{ needs.changes.outputs.hash-rust }}
 
       - name: Move Rust Artifacts
         if: needs.changes.outputs.build-rust == 'true'
         run: |
-          mkdir -p packages/qwik/bindings
-          mv artifact-bindings-*/* packages/qwik/bindings
+          mkdir -p packages/qwik/dist/bindings
+          mv dist-bindings-*/* packages/qwik/dist/bindings
 
       - name: Upload Qwik artifact
         uses: actions/upload-artifact@v4
         with:
-          name: artifact-qwik
-          path: |
-            packages/qwik/bindings
-            packages/qwik/dist
+          name: dist-qwik
+          path: packages/qwik/dist/
           if-no-files-found: error
 
   build-other-packages:
@@ -333,8 +331,8 @@ jobs:
       - name: Restore Qwik artifact
         uses: actions/download-artifact@v4
         with:
-          name: artifact-qwik
-          path: packages/qwik/
+          name: dist-qwik
+          path: packages/qwik/dist/
 
       - name: Install NPM Dependencies
         if: needs.changes.outputs.build-others == 'true'
@@ -364,7 +362,7 @@ jobs:
       - name: Upload QwikCity Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: artifact-qwikcity
+          name: dist-qwikcity
           path: packages/qwik-city/lib/
           if-no-files-found: error
 
@@ -374,7 +372,7 @@ jobs:
       - name: Upload QwikLabs+React Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: artifact-qwiklabs
+          name: dist-qwiklabs
           path: |
             packages/qwik-labs/lib/
             packages/qwik-labs/vite/
@@ -387,7 +385,7 @@ jobs:
       - name: Upload qwik-react Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: artifact-qwikreact
+          name: dist-qwikreact
           path: |
             packages/qwik-react/lib/
             packages/qwik-react/vite/
@@ -400,7 +398,7 @@ jobs:
       - name: Upload Create Qwik CLI Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: artifact-create-qwik
+          name: dist-create-qwik
           path: packages/create-qwik/dist/
           if-no-files-found: error
 
@@ -410,7 +408,7 @@ jobs:
       - name: Upload Eslint rules Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: artifact-eslint-plugin-qwik
+          name: dist-eslint-plugin-qwik
           path: packages/eslint-plugin-qwik/dist/
           if-no-files-found: error
 
@@ -431,24 +429,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
-
-      - name: Move Distribution Artifacts
-        run: |
-          mv artifact-qwik/* packages/qwik/
-          mkdir -p packages/qwik-city/lib/
-          mv artifact-qwikcity/* packages/qwik-city/lib/
-          mkdir -p packages/create-qwik/dist/
-          mv artifact-create-qwik/* packages/create-qwik/dist/
-          mkdir -p packages/eslint-plugin-qwik/dist/
-          mv artifact-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
-          mv artifact-qwiklabs/lib packages/qwik-labs/lib
-          mv artifact-qwiklabs/vite packages/qwik-labs/vite
-          # temporary
-          cat packages/qwik-city/package.json
-          ls -l packages/qwik-city/lib/vite*
-
       - uses: pnpm/action-setup@v4
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -456,6 +436,22 @@ jobs:
           node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Move Distribution Artifacts
+        run: |
+          mkdir -p packages/qwik/dist/
+          mv dist-qwik/* packages/qwik/dist/
+          mkdir -p packages/qwik-city/lib/
+          mv dist-qwikcity/* packages/qwik-city/lib/
+          mkdir -p packages/create-qwik/dist/
+          mv dist-create-qwik/* packages/create-qwik/dist/
+          mkdir -p packages/eslint-plugin-qwik/dist/
+          mv dist-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
+          mv dist-qwiklabs/lib packages/qwik-labs/lib
+          mv dist-qwiklabs/vite packages/qwik-labs/vite
 
       - run: corepack pnpm install --frozen-lockfile
       - name: Build Qwik Insights
@@ -499,29 +495,22 @@ jobs:
 
       - name: Move Distribution Artifacts
         run: |
-          mv artifact-qwik/* packages/qwik/
+          mkdir -p packages/qwik/dist/
+          mv dist-qwik/* packages/qwik/dist/
           mkdir -p packages/qwik-city/lib/
-          mv artifact-qwikcity/* packages/qwik-city/lib/
+          mv dist-qwikcity/* packages/qwik-city/lib/
           mkdir -p packages/create-qwik/dist/
-          mv artifact-create-qwik/* packages/create-qwik/dist/
+          mv dist-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
-          mv artifact-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
-          mv artifact-qwiklabs/lib packages/qwik-labs/lib
-          mv artifact-qwiklabs/vite packages/qwik-labs/vite
-          mv artifact-qwikreact/lib packages/qwik-react/lib
-          mv artifact-qwikreact/vite packages/qwik-react/vite
+          mv dist-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
+          mv dist-qwiklabs/lib packages/qwik-labs/lib
+          mv dist-qwiklabs/vite packages/qwik-labs/vite
+          mv dist-qwikreact/lib packages/qwik-react/lib
+          mv dist-qwikreact/vite packages/qwik-react/vite
 
       - run: corepack pnpm install --frozen-lockfile
       - name: Build Qwik Docs
         run: pnpm run build.packages.docs
-
-      - name: Save Docs Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: artifact-docs
-          path: |
-            packages/docs/dist
-            packages/docs/server
 
       - name: Save Docs Cache
         uses: actions/cache/save@v4
@@ -531,7 +520,6 @@ jobs:
             packages/docs/dist
             packages/docs/server
 
-  # TODO: move this to a run_workflow action that has repository permissions and grabs the artifact
   deploy-docs:
     name: Cloudflare Pages Deployment
     if: always() && needs.changes.outputs.build-docs == 'true'
@@ -603,13 +591,14 @@ jobs:
 
       - name: Move Distribution Artifacts
         run: |
-          mv artifact-qwik/* packages/qwik/
+          mkdir -p packages/qwik/dist/
+          mv dist-qwik/* packages/qwik/dist/
           mkdir -p packages/qwik-city/lib/
-          mv artifact-qwikcity/* packages/qwik-city/lib/
+          mv dist-qwikcity/* packages/qwik-city/lib/
           mkdir -p packages/create-qwik/dist/
-          mv artifact-create-qwik/* packages/create-qwik/dist/
+          mv dist-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
-          mv artifact-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
+          mv dist-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
 
       - run: pnpm install --frozen-lockfile
 
@@ -671,13 +660,14 @@ jobs:
 
       - name: Move Distribution Artifacts
         run: |
-          mv artifact-qwik/* packages/qwik/
+          mkdir -p packages/qwik/dist/
+          mv dist-qwik/* packages/qwik/dist/
           mkdir -p packages/qwik-city/lib/
-          mv artifact-qwikcity/* packages/qwik-city/lib/
+          mv dist-qwikcity/* packages/qwik-city/lib/
           mkdir -p packages/create-qwik/dist/
-          mv artifact-create-qwik/* packages/create-qwik/dist/
+          mv dist-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
-          mv artifact-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
+          mv dist-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
 
       - run: pnpm install --frozen-lockfile
 
@@ -748,6 +738,31 @@ jobs:
         if: always()
         run: pnpm run lint.eslint
 
+  ############ Everything is fine ############
+  requirements-passed:
+    name: All requirements are met
+    runs-on: ubuntu-latest
+    needs:
+      - test-unit
+      - test-e2e
+      - validate-rust
+      - lint-package
+      - build-docs
+      - build-insights
+    if: always()
+    steps:
+      - name: check status
+        if: |
+          !(
+            (needs.test-unit.result == 'success' || needs.test-unit.result == 'skipped') &&
+            (needs.test-e2e.result == 'success' || needs.test-e2e.result == 'skipped') &&
+            (needs.validate-rust.result == 'success' || needs.validate-rust.result == 'skipped') &&
+            (needs.lint-package.result == 'success' || needs.lint-package.result == 'skipped') &&
+            (needs.build-docs.result == 'success' || needs.build-docs.result == 'skipped') &&
+            (needs.build-insights.result == 'success' || needs.build-insights.result == 'skipped')
+          )
+        run: exit 1
+
   ############ RELEASE ############
   release:
     name: Release
@@ -786,18 +801,18 @@ jobs:
 
       - name: Move Distribution Artifacts
         run: |
-          mv artifact-qwik/* packages/qwik/
+          mkdir -p packages/qwik/dist/
+          mv dist-qwik/* packages/qwik/dist/
           mkdir -p packages/qwik-city/lib/
-          mv artifact-qwikcity/* packages/qwik-city/lib/
+          mv dist-qwikcity/* packages/qwik-city/lib/
           mkdir -p packages/create-qwik/dist/
-          mv artifact-create-qwik/* packages/create-qwik/dist/
+          mv dist-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
-          mv artifact-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
-          mv artifact-qwiklabs/lib packages/qwik-labs/lib
-          mv artifact-qwiklabs/vite packages/qwik-labs/vite
-          mv artifact-qwikreact/lib packages/qwik-react/lib
-          mv artifact-qwikreact/vite packages/qwik-react/vite
-          rm -rf artifact-*
+          mv dist-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
+          mv dist-qwiklabs/lib packages/qwik-labs/lib
+          mv dist-qwiklabs/vite packages/qwik-labs/vite
+          mv dist-qwikreact/lib packages/qwik-react/lib
+          mv dist-qwikreact/vite packages/qwik-react/vite
 
       - run: pnpm install --frozen-lockfile
 
@@ -812,7 +827,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           key: ${{ needs.changes.outputs.hash-rust }}
-          path: packages/qwik/bindings
+          path: packages/qwik/dist/bindings
       - name: Save others cache
         if: needs.changes.outputs.build-others == 'true'
         uses: actions/cache/save@v4
@@ -835,7 +850,7 @@ jobs:
 
       - name: Publish packages for testing
         if: ${{ github.event_name != 'workflow_dispatch' }}
-        run: pnpm dlx pkg-pr-new@^0.0.9 publish --compact --pnpm ./packages/qwik ./packages/qwik-city ./packages/eslint-plugin-qwik ./packages/create-qwik
+        run: pnpm dlx pkg-pr-new@^0.0.9 publish --compact --pnpm ./packages/qwik/dist ./packages/qwik-city/lib ./packages/eslint-plugin-qwik/dist ./packages/create-qwik/dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -861,11 +876,16 @@ jobs:
   trigger-qwikcity-e2e:
     name: Trigger Qwik City E2E
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
 
     needs:
       - changes
       - release
+
+    if: |
+      always() && (
+        github.ref == 'refs/heads/main' ||
+        needs.release.result == 'success'
+      )
 
     steps:
       - name: Repository Dispatch
@@ -874,28 +894,3 @@ jobs:
           token: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
           repository: builderIO/qwik-city-e2e
           event-type: main-updated
-
-  ############ Everything is fine ############
-  requirements-passed:
-    name: All requirements are met
-    runs-on: ubuntu-latest
-    needs:
-      - test-unit
-      - test-e2e
-      - validate-rust
-      - lint-package
-      - build-docs
-      - build-insights
-    if: always()
-    steps:
-      - name: check status
-        if: |
-          !(
-            (needs.test-unit.result == 'success' || needs.test-unit.result == 'skipped') &&
-            (needs.test-e2e.result == 'success' || needs.test-e2e.result == 'skipped') &&
-            (needs.validate-rust.result == 'success' || needs.validate-rust.result == 'skipped') &&
-            (needs.lint-package.result == 'success' || needs.lint-package.result == 'skipped') &&
-            (needs.build-docs.result == 'success' || needs.build-docs.result == 'skipped') &&
-            (needs.build-insights.result == 'success' || needs.build-insights.result == 'skipped')
-          )
-        run: exit 1

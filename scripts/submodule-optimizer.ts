@@ -11,7 +11,8 @@ import {
 import { join } from 'node:path';
 import { minify } from 'terser';
 import { platformArchTriples } from '@napi-rs/triples';
-import { constants, existsSync } from 'node:fs';
+import { readPackageJson } from './package-json';
+import { constants } from 'node:fs';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
 import RawPlugin from 'esbuild-plugin-raw';
 
@@ -125,6 +126,11 @@ async function generatePlatformBindingsData(config: BuildConfig) {
   // - node_modules/@node-rs/helper/lib/loader.js
   // - node_modules/@napi-rs/triples/index.js
 
+  const pkg = await readPackageJson(join(config.packagesDir, 'qwik'));
+  const bindingFiles = pkg
+    .files!.filter((f) => f.startsWith('bindings/'))
+    .map((f) => f.replace('bindings/', ''));
+
   const qwikArchTriples: typeof platformArchTriples = {};
 
   for (const platformName in platformArchTriples) {
@@ -133,7 +139,7 @@ async function generatePlatformBindingsData(config: BuildConfig) {
       const triples = platform[archName];
       for (const triple of triples) {
         const qwikArchABI = `qwik.${triple.platformArchABI}.node`;
-        if (existsSync(join(config.distBindingsDir, qwikArchABI))) {
+        if (bindingFiles.includes(qwikArchABI)) {
           const qwikTriple = {
             platform: triple.platform,
             arch: triple.arch,

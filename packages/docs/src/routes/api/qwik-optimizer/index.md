@@ -315,11 +315,12 @@ export type EntryStrategy =
   | HoistEntryStrategy
   | SingleEntryStrategy
   | HookEntryStrategy
+  | SegmentEntryStrategy
   | ComponentEntryStrategy
   | SmartEntryStrategy;
 ```
 
-**References:** [InlineEntryStrategy](#inlineentrystrategy), [SingleEntryStrategy](#singleentrystrategy), [HookEntryStrategy](#hookentrystrategy), [ComponentEntryStrategy](#componententrystrategy), [SmartEntryStrategy](#smartentrystrategy)
+**References:** [InlineEntryStrategy](#inlineentrystrategy), [SingleEntryStrategy](#singleentrystrategy), [SegmentEntryStrategy](#segmententrystrategy), [ComponentEntryStrategy](#componententrystrategy), [SmartEntryStrategy](#smartentrystrategy)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
@@ -459,244 +460,6 @@ _(Optional)_
 </td><td>
 
 string
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-## HookAnalysis
-
-```typescript
-export interface HookAnalysis
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[canonicalFilename](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[captures](#)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[ctxKind](#)
-
-</td><td>
-
-</td><td>
-
-'event' \| 'function'
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[ctxName](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[displayName](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[entry](#)
-
-</td><td>
-
-</td><td>
-
-string \| null
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[extension](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[hash](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[loc](#)
-
-</td><td>
-
-</td><td>
-
-[number, number]
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[name](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[origin](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[parent](#)
-
-</td><td>
-
-</td><td>
-
-string \| null
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-## HookEntryStrategy
-
-```typescript
-export interface HookEntryStrategy
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[manual?](#)
-
-</td><td>
-
-</td><td>
-
-Record&lt;string, string&gt;
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[type](#)
-
-</td><td>
-
-</td><td>
-
-'hook'
 
 </td><td>
 
@@ -1817,7 +1580,7 @@ Default `false`
 
 </td><td>
 
-_(Optional)_ The Qwik entry strategy to use while building for production. During development the type is always `hook`.
+_(Optional)_ The Qwik entry strategy to use while building for production. During development the type is always `segment`.
 
 Default `{ type: "smart" }`)
 
@@ -2504,6 +2267,244 @@ Description
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
+## SegmentAnalysis
+
+```typescript
+export interface SegmentAnalysis
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[canonicalFilename](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[captures](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[ctxKind](#)
+
+</td><td>
+
+</td><td>
+
+'event' \| 'function'
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[ctxName](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[displayName](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[entry](#)
+
+</td><td>
+
+</td><td>
+
+string \| null
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[extension](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[hash](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[loc](#)
+
+</td><td>
+
+</td><td>
+
+[number, number]
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[name](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[origin](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[parent](#)
+
+</td><td>
+
+</td><td>
+
+string \| null
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+
+## SegmentEntryStrategy
+
+```typescript
+export interface SegmentEntryStrategy
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[manual?](#)
+
+</td><td>
+
+</td><td>
+
+Record&lt;string, string&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[type](#)
+
+</td><td>
+
+</td><td>
+
+'segment'
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+
 ## SingleEntryStrategy
 
 ```typescript
@@ -2941,19 +2942,6 @@ string
 </td></tr>
 <tr><td>
 
-[hook](#)
-
-</td><td>
-
-</td><td>
-
-[HookAnalysis](#hookanalysis) \| null
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
 [isEntry](#)
 
 </td><td>
@@ -3000,6 +2988,19 @@ string \| null
 </td><td>
 
 string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[segment](#)
+
+</td><td>
+
+</td><td>
+
+[SegmentAnalysis](#segmentanalysis) \| null
 
 </td><td>
 

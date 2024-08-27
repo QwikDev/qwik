@@ -160,13 +160,13 @@ export async function configureDevServer(
           const added = new Set();
           Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
             entry[1].forEach((v) => {
-              const hook = v.info?.meta?.hook;
+              const segment = v.info?.meta?.segment;
               let url = v.url;
               if (v.lastHMRTimestamp) {
                 url += `?t=${v.lastHMRTimestamp}`;
               }
-              if (hook) {
-                manifest.mapping[hook.name] = relativeURL(url, opts.rootDir);
+              if (segment) {
+                manifest.mapping[segment.name] = relativeURL(url, opts.rootDir);
               }
 
               const { pathId, query } = parseId(v.url);

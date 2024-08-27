@@ -16,9 +16,9 @@ macro_rules! snapshot_res {
 						module.path, is_entry, module.code, module.map
 					)
 					.as_str();
-					if let Some(hook) = &module.hook {
-						let hook = to_string_pretty(&hook).unwrap();
-						output += &format!("\n/*\n{}\n*/", hook);
+					if let Some(segment) = &module.segment {
+						let segment = to_string_pretty(&segment).unwrap();
+						output += &format!("\n/*\n{}\n*/", segment);
 					}
 				}
 				output += format!(
@@ -739,7 +739,7 @@ export default component$(() => {
   });
 "#
 		.to_string(),
-		entry_strategy: EntryStrategy::Hook,
+		entry_strategy: EntryStrategy::Segment,
 		strip_ctx_name: Some(vec!["server".into()]),
 		transpile_ts: true,
 		transpile_jsx: true,
@@ -750,7 +750,7 @@ export default component$(() => {
 }
 
 #[test]
-fn example_reg_ctx_name_hooks() {
+fn example_reg_ctx_name_segments() {
 	test_input!(TestInput {
 		code: r#"
 import { $, component$, server$ } from '@builder.io/qwik';
@@ -776,7 +776,7 @@ export const Works = component$((props) => {
 }
 
 #[test]
-fn example_reg_ctx_name_hooks_inlined() {
+fn example_reg_ctx_name_segments_inlined() {
 	test_input!(TestInput {
 		code: r#"
 import { $, component$, server$ } from '@builder.io/qwik';
@@ -797,7 +797,7 @@ export const Works = component$((props) => {
 }
 
 #[test]
-fn example_reg_ctx_name_hooks_hoisted() {
+fn example_reg_ctx_name_segments_hoisted() {
 	test_input!(TestInput {
 		code: r#"
 import { $, component$, server$, useStyle$ } from '@builder.io/qwik';
@@ -883,7 +883,7 @@ export const App = component$(({count}) => {
 }
 
 #[test]
-fn example_invalid_hook_expr1() {
+fn example_invalid_segment_expr1() {
 	test_input!(TestInput {
 		code: r#"
 import { $, component$, useStyles$ } from '@builder.io/qwik';
@@ -1755,7 +1755,7 @@ export const Parent = component$(() => {
         .to_string(),
         transpile_ts: true,
         transpile_jsx: true,
-        entry_strategy: EntryStrategy::Hook,
+        entry_strategy: EntryStrategy::Segment,
         strip_ctx_name: Some(vec!["server".into()]),
         ..TestInput::default()
     });
@@ -1807,7 +1807,7 @@ export const { onRequest, logout, getSession, signup } = auth$({
 		.to_string(),
 		transpile_ts: true,
 		transpile_jsx: true,
-		entry_strategy: EntryStrategy::Hook,
+		entry_strategy: EntryStrategy::Segment,
 		..TestInput::default()
 	});
 }
@@ -1956,7 +1956,7 @@ export const Greeter = component$(() => <div/>)
 		.to_string(),
 		transpile_jsx: true,
 		is_server: Some(false),
-		entry_strategy: EntryStrategy::Hook,
+		entry_strategy: EntryStrategy::Segment,
 		..TestInput::default()
 	})
 	.unwrap();
@@ -2588,7 +2588,7 @@ export const App = component$((props) => {
 }
 
 #[test]
-fn example_preserve_filenames_hooks() {
+fn example_preserve_filenames_segments() {
 	test_input!(TestInput {
 		code: r#"
 import { component$, useStore } from '@builder.io/qwik';
@@ -2605,7 +2605,7 @@ export const App = component$((props: Stuff) => {
 export const foo = () => console.log('foo');
 "#
 		.to_string(),
-		entry_strategy: EntryStrategy::Hook,
+		entry_strategy: EntryStrategy::Segment,
 		transpile_ts: true,
 		transpile_jsx: true,
 		preserve_filenames: true,
@@ -3099,7 +3099,7 @@ export { qwikify$, qwikifyQrl, renderToString };
         "#
         .to_string(),
         filename: "../node_modules/@builder.io/qwik-react/index.qwik.mjs".to_string(),
-        entry_strategy: EntryStrategy::Hook,
+        entry_strategy: EntryStrategy::Segment,
         explicit_extensions: true,
         ..TestInput::default()
     });
@@ -3287,7 +3287,7 @@ export const Local = component$(() => {
 		explicit_extensions: true,
 		mode: EmitMode::Lib,
 		manual_chunks: None,
-		entry_strategy: EntryStrategy::Hook,
+		entry_strategy: EntryStrategy::Segment,
 		transpile_ts: true,
 		transpile_jsx: true,
 		preserve_filenames: false,
@@ -3323,27 +3323,27 @@ export const Greeter = component$(() => {
 
 "#;
 	let options = vec![
-		(EmitMode::Lib, EntryStrategy::Hook, true),
+		(EmitMode::Lib, EntryStrategy::Segment, true),
 		(EmitMode::Lib, EntryStrategy::Single, true),
 		(EmitMode::Lib, EntryStrategy::Component, true),
 		// (EmitMode::Lib, EntryStrategy::Inline, true),
-		(EmitMode::Prod, EntryStrategy::Hook, true),
+		(EmitMode::Prod, EntryStrategy::Segment, true),
 		(EmitMode::Prod, EntryStrategy::Single, true),
 		(EmitMode::Prod, EntryStrategy::Component, true),
 		// (EmitMode::Prod, EntryStrategy::Inline, true),
-		(EmitMode::Dev, EntryStrategy::Hook, true),
+		(EmitMode::Dev, EntryStrategy::Segment, true),
 		(EmitMode::Dev, EntryStrategy::Single, true),
 		(EmitMode::Dev, EntryStrategy::Component, true),
 		// (EmitMode::Dev, EntryStrategy::Inline, true),
-		(EmitMode::Lib, EntryStrategy::Hook, false),
+		(EmitMode::Lib, EntryStrategy::Segment, false),
 		(EmitMode::Lib, EntryStrategy::Single, false),
 		(EmitMode::Lib, EntryStrategy::Component, false),
 		// (EmitMode::Lib, EntryStrategy::Inline, false),
-		(EmitMode::Prod, EntryStrategy::Hook, false),
+		(EmitMode::Prod, EntryStrategy::Segment, false),
 		(EmitMode::Prod, EntryStrategy::Single, false),
 		(EmitMode::Prod, EntryStrategy::Component, false),
 		// (EmitMode::Prod, EntryStrategy::Inline, false),
-		(EmitMode::Dev, EntryStrategy::Hook, false),
+		(EmitMode::Dev, EntryStrategy::Segment, false),
 		(EmitMode::Dev, EntryStrategy::Single, false),
 		(EmitMode::Dev, EntryStrategy::Component, false),
 		// (EmitMode::Dev, EntryStrategy::Inline, false),
@@ -3367,7 +3367,7 @@ export const Greeter = component$(() => {
 		explicit_extensions: true,
 		mode: EmitMode::Lib,
 		manual_chunks: None,
-		entry_strategy: EntryStrategy::Hook,
+		entry_strategy: EntryStrategy::Segment,
 		transpile_ts: true,
 		transpile_jsx: true,
 		preserve_filenames: false,
@@ -3379,11 +3379,11 @@ export const Greeter = component$(() => {
 		strip_event_handlers: false,
 		is_server: None,
 	});
-	let ref_hooks: Vec<_> = res
+	let ref_segments: Vec<_> = res
 		.unwrap()
 		.modules
 		.into_iter()
-		.flat_map(|module| module.hook)
+		.flat_map(|module| module.segment)
 		.collect();
 
 	for (i, option) in options.into_iter().enumerate() {
@@ -3418,16 +3418,16 @@ export const Greeter = component$(() => {
 			is_server: None,
 		});
 
-		let hooks: Vec<_> = res
+		let segments: Vec<_> = res
 			.unwrap()
 			.modules
 			.into_iter()
-			.flat_map(|module| module.hook)
+			.flat_map(|module| module.segment)
 			.collect();
 
-		assert_eq!(hooks.len(), ref_hooks.len());
+		assert_eq!(segments.len(), ref_segments.len());
 
-		for (a, b) in hooks.iter().zip(ref_hooks.iter()) {
+		for (a, b) in segments.iter().zip(ref_segments.iter()) {
 			assert_eq!(
 				get_hash(a.name.as_ref()),
 				get_hash(b.name.as_ref()),
@@ -3435,8 +3435,8 @@ export const Greeter = component$(() => {
 				i,
 				a,
 				b,
-				hooks,
-				ref_hooks
+				segments,
+				ref_segments
 			);
 		}
 	}
@@ -3620,7 +3620,7 @@ impl TestInput {
 			root_dir: None,
 			code: "/user/qwik/src/".to_string(),
 			manual_chunks: None,
-			entry_strategy: EntryStrategy::Hook,
+			entry_strategy: EntryStrategy::Segment,
 			minify: MinifyMode::Simplify,
 			transpile_ts: false,
 			transpile_jsx: false,

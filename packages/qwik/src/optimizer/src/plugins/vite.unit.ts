@@ -64,7 +64,7 @@ test('command: serve, mode: development', async () => {
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'development');
-  assert.deepEqual(opts.entryStrategy, { type: 'segment' });
+  assert.deepEqual(opts.entryStrategy, { type: 'hook' });
   assert.deepEqual(opts.debug, false);
 
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
@@ -99,7 +99,7 @@ test('command: serve, mode: production', async () => {
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'production');
-  assert.deepEqual(opts.entryStrategy, { type: 'segment' });
+  assert.deepEqual(opts.entryStrategy, { type: 'hook' });
   assert.deepEqual(opts.debug, false);
   assert.deepEqual(opts.resolveQwikBuild, true);
 
@@ -134,7 +134,7 @@ test('command: build, mode: development', async () => {
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'development');
-  assert.deepEqual(opts.entryStrategy, { type: 'segment' });
+  assert.deepEqual(opts.entryStrategy, { type: 'hook' });
   assert.deepEqual(opts.debug, false);
   assert.deepEqual(opts.resolveQwikBuild, true);
 

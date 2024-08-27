@@ -33,7 +33,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "App_component_useStyles_t35nSa5UV7U",
-  "entry": "entry_segments",
+  "entry": "entry_hooks",
   "displayName": "App_component_useStyles",
   "hash": "t35nSa5UV7U",
   "canonicalFilename": "app_component_usestyles_t35nsa5uv7u",
@@ -64,7 +64,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "App_component_ckEPmXZlub0",
-  "entry": "entry_segments",
+  "entry": "entry_hooks",
   "displayName": "App_component",
   "hash": "ckEPmXZlub0",
   "canonicalFilename": "app_component_ckepmxzlub0",
@@ -91,7 +91,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "App_component_1_w0t0o3QMovU",
-  "entry": "entry_segments",
+  "entry": "entry_hooks",
   "displayName": "App_component_1",
   "hash": "w0t0o3QMovU",
   "canonicalFilename": "app_component_1_w0t0o3qmovu",

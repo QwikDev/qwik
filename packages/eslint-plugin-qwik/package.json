@@ -19,15 +19,15 @@
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"
   },
-  "files": [
-    "README.md",
-    "dist"
-  ],
   "homepage": "https://github.com/QwikDev/qwik#readme",
   "keywords": [
     "builder.io",
     "eslint",
     "qwik"
+  ],
+  "files": [
+    "README.md",
+    "dist"
   ],
   "license": "MIT",
   "main": "dist/index.js",

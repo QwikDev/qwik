@@ -158,9 +158,9 @@ function cpSync(src: string, dest: string) {
 }
 
 async function copyLocalQwikDistToTestApp(appDir: string) {
-  const srcQwikDir = join(__dirname, '..', 'packages', 'qwik');
+  const srcQwikDir = join(__dirname, '..', 'packages', 'qwik', 'dist');
   const destQwikDir = join(appDir, 'node_modules', '@builder.io', 'qwik');
-  const srcQwikCityDir = join(__dirname, '..', 'packages', 'qwik-city');
+  const srcQwikCityDir = join(__dirname, '..', 'packages', 'qwik-city', 'lib');
   const destQwikCityDir = join(appDir, 'node_modules', '@builder.io', 'qwik-city');
   const destQwikBin = relative(appDir, join(destQwikDir, 'qwik.cjs'));
 

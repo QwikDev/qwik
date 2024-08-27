@@ -7,11 +7,11 @@
     "@mdx-js/mdx": "^3.0.1",
     "@types/mdx": "^2.0.13",
     "source-map": "^0.7.4",
-    "svgo": "3.3.2",
+    "svgo": "^3.2.0",
     "undici": "*",
     "vfile": "6.0.1",
-    "vite": "5.3.4",
-    "vite-imagetools": "7.0.4",
+    "vite": "^5.2.10",
+    "vite-imagetools": "^6.2.9",
     "zod": "^3.22.4"
   },
   "devDependencies": {

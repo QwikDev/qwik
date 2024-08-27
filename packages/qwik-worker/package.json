@@ -24,7 +24,7 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "@builder.io/qwik": "1.7.3"
+    "@builder.io/qwik": "workspace:^"
   },
   "qwik": "./lib/index.qwik.mjs",
   "repository": {

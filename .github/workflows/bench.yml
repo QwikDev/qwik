@@ -1,4 +1,3 @@
-# disabled for now, not working as expected and not checking qwik runtime performance
 name: Benchmark
 
 on:

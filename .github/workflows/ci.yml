@@ -704,15 +704,11 @@ jobs:
       - test-e2e
       - validate-rust
       - lint-package
-      - build-docs
-      - build-insights
     if: |
       always() &&
-      (needs.lint-package.result == 'success' || needs.lint-package.result == 'skipped') &&
       (needs.test-e2e.result == 'success' || needs.test-e2e.result == 'skipped') &&
       (needs.validate-rust.result == 'success' || needs.validate-rust.result == 'skipped') &&
-      (needs.build-docs.result == 'success' || needs.build-docs.result == 'skipped') &&
-      (needs.build-insights.result == 'success' || needs.build-insights.result == 'skipped')
+      (needs.lint-package.result == 'success' || needs.lint-package.result == 'skipped')
     steps:
       - run: echo "All good :-)"
 

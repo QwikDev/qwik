@@ -412,7 +412,7 @@ export function staticDistMiddleware({ config }: ViteDevServer) {
       return;
     }
 
-    const relPath = `${url.pathname.slice(1)}${url.search}`;
+    const relPath = url.pathname.slice(1);
 
     const ext = getExtension(relPath);
     const contentType = STATIC_CONTENT_TYPES[ext];

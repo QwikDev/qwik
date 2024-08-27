@@ -95,10 +95,13 @@ jobs:
             fi
           done
 
-          if [ $md_file_removed = true ]; then
-            if ! ls .changeset/*.md > /dev/null 2>&1; then
+          if [ -d ".changeset" ]; then
+            md_files=$(find .changeset -name '*.md')
+            if [ -z "$md_files" ] && [ "$md_file_removed" = true ]; then
               is_release=true
             fi
+          elif [ "$md_file_removed" = true ]; then
+            is_release=true
           fi
 
           echo "is_release: $is_release"

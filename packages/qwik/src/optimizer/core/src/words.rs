@@ -1,7 +1,7 @@
 use lazy_static::lazy_static;
 use swc_atoms::JsWord;
 
-pub const QRL_SUFFIX: char = '$';
+pub const SIGNAL: char = '$';
 pub const LONG_SUFFIX: &str = "Qrl";
 
 lazy_static! {

@@ -163,7 +163,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           lookup-only: true
-          path: docs-build-completed.txt
+          path: |
+            packages/docs/dist
+            packages/docs/server
           key: ${{ hashfiles('others-key.txt', 'packages/docs/**/*') }}
       - name: 'check cache: insights'
         id: cache-insights
@@ -576,7 +578,7 @@ jobs:
 
       - run: corepack pnpm install --frozen-lockfile
       - name: Build Qwik Docs
-        run: pnpm run build.packages.docs && echo ok > docs-build-completed.txt
+        run: pnpm run build.packages.docs
 
       - name: Save Docs Artifacts
         uses: actions/upload-artifact@v4
@@ -590,7 +592,44 @@ jobs:
         uses: actions/cache/save@v4
         with:
           key: ${{ needs.changes.outputs.hash-docs }}
-          path: docs-build-completed.txt
+          path: |
+            packages/docs/dist
+            packages/docs/server
+
+  # TODO: move this to a run_workflow action that has repository permissions and grabs the artifact
+  deploy-docs:
+    name: Cloudflare Pages Deployment
+    if: always() && needs.changes.outputs.build-docs == 'true'
+    needs:
+      - build-docs
+      - changes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check docs status
+        if: needs.build-docs.result != 'success'
+        run: exit 1
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Restore docs cache
+        uses: actions/cache/restore@v4
+        with:
+          key: ${{ needs.changes.outputs.hash-docs }}
+          path: |
+            packages/docs/dist
+            packages/docs/server
+
+      # not the official version, so be careful when updating
+      - name: Deploy to Cloudflare Pages
+        uses: AdrianGonz97/refined-cf-pages-action@c7b767eef599f127d8ce2388d4ed2270d3b750af
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: 'qwik-docs'
+          directory: packages/docs/dist
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
 
   ############ UNIT TEST ############
   test-unit:
@@ -753,10 +792,8 @@ jobs:
       - test-e2e
     # test-unit runs when any packages changes, so we have to release
     # on main, we always check if we have something to release
-    # don't run on forks
     if: |
-      always() && 
-      github.repository == 'QwikDev/qwik' && (
+      always() && (
         github.ref == 'refs/heads/main' ||
         needs.test-unit.result == 'success'
       )

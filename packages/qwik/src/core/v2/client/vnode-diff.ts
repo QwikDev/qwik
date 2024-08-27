@@ -1213,6 +1213,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
       if (type & VNodeFlags.Virtual) {
         // Only virtual nodes have subscriptions
         clearVNodeDependencies(vCursor);
+        cleanupVNodeChores(vNode, vParent, vCursor, container);
         const seq = container.getHostProp<Array<any>>(vCursor as VirtualVNode, ELEMENT_SEQ);
         if (seq) {
           for (let i = 0; i < seq.length; i++) {
@@ -1266,12 +1267,6 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
         const vFirstChild = vnode_getFirstChild(vCursor);
         if (vFirstChild) {
           vCursor = vFirstChild;
-          /**
-           * Cleanup stale chores for current vCursor, but only if it is not a projection. We need
-           * to do this to prevent stale chores from running after the vnode is removed. (for
-           * example signal subscriptions)
-           */
-          container.$scheduler$.cleanupStaleChores(vCursor as VirtualVNode);
           continue;
         }
       } else if (vCursor === vNode) {
@@ -1332,6 +1327,29 @@ function cleanupStaleUnclaimedProjection(journal: VNodeJournal, projection: VNod
     ) {
       // if parent is the q:template element then projection is still unclaimed - remove it
       vnode_remove(journal, projectionParent, projection, true);
+    }
+  }
+}
+
+function cleanupVNodeChores(
+  vNode: VNode,
+  vParent: VNode | null,
+  vCursor: VNode,
+  container: ClientContainer
+) {
+  /**
+   * Cleanup stale chores for current vCursor, but only if it is not a projection. We need to do
+   * this to prevent stale chores from running after the vnode is removed. (for example signal
+   * subscriptions)
+   */
+  if (vNode !== vCursor) {
+    container.$scheduler$.cleanupStaleChores(vCursor as VirtualVNode);
+  } else {
+    const currentVParent = vParent || vnode_getParent(vNode);
+    const isParentProjection =
+      currentVParent && vnode_getProp(currentVParent, QSlot, null) !== null;
+    if (!isParentProjection) {
+      container.$scheduler$.cleanupStaleChores(vCursor as VirtualVNode);
     }
   }
 }

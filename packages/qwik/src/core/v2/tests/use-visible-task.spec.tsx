@@ -7,6 +7,10 @@ import {
   useSignal,
   useStore,
   useVisibleTask$,
+  useContext,
+  useComputed$,
+  useContextProvider,
+  createContextId,
 } from '@builder.io/qwik';
 import { trigger, domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 import { ErrorProvider } from '../../../testing/rendering.unit-util';
@@ -623,6 +627,82 @@ describe.each([
               <Signal>{'valueB'}</Signal>
             </p>
           </div>
+        </Component>
+      );
+    });
+
+    it('#4432 - should cleanup child visible task with correct value', async () => {
+      const ContextIssue4432 = createContextId<{ url: URL; logs: string }>('issue-4432');
+
+      const Issue4432Child = component$(() => {
+        const state = useContext(ContextIssue4432);
+
+        const pathname = useComputed$(() => state.url.pathname);
+
+        useVisibleTask$(({ track, cleanup }) => {
+          track(() => pathname.value);
+
+          // This should only run on page load for path '/'
+          state.logs += `VisibleTask ChildA ${pathname.value}\n`;
+
+          // This should only run when leaving the page
+          cleanup(() => {
+            state.logs += `Cleanup ChildA ${pathname.value}\n`;
+          });
+        });
+
+        return <p>Child A</p>;
+      });
+
+      const Issue4432 = component$(() => {
+        const loc = useStore({
+          url: new URL('http://localhost:3000/'),
+          logs: '',
+        });
+        useContextProvider(ContextIssue4432, loc);
+
+        return (
+          <>
+            <button onClick$={() => (loc.url = new URL('http://localhost:3000/other'))}>
+              Change
+            </button>
+            <pre>{loc.logs}</pre>
+            {loc.url.pathname === '/' && <Issue4432Child />}
+          </>
+        );
+      });
+
+      const { vNode, document } = await render(<Issue4432 />, { debug });
+
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'p', 'qvisible');
+      }
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button>Change</button>
+            <pre>
+              <Signal>{'VisibleTask ChildA /\n'}</Signal>
+            </pre>
+            <Component>
+              <p>Child A</p>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(document.body, 'button', 'click');
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button>Change</button>
+            <pre>
+              <Signal>{'VisibleTask ChildA /\nCleanup ChildA /other\n'}</Signal>
+            </pre>
+            {''}
+          </Fragment>
         </Component>
       );
     });

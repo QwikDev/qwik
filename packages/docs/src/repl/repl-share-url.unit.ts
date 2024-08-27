@@ -12,7 +12,7 @@ import { strFromU8 } from 'fflate';
 const data = {
   version: '1.2.3',
   buildMode: 'development',
-  entryStrategy: 'segment',
+  entryStrategy: 'hook',
   files: [
     {
       path: 'foo.js',

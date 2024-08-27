@@ -129,8 +129,7 @@
   "files": [
     "README.md",
     "LICENSE",
-    "dist",
-    "bindings"
+    "dist"
   ],
   "homepage": "https://qwik.dev/",
   "keywords": [

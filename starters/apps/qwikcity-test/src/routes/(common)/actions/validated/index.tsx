@@ -11,7 +11,7 @@ import type {
   JSONObject,
   RequestEventAction,
   ValidatorErrorType,
-} from "packages/qwik-city/src/runtime/src/types";
+} from "packages/qwik-city/runtime/src/types";
 
 type TypedDataValidatorError = ValidatorErrorType<{
   category: "bird" | "dog" | "rat";

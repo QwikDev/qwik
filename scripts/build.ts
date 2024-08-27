@@ -6,7 +6,9 @@ import { buildPlatformBinding, copyPlatformBindingWasm } from './binding-platfor
 import { buildQwikCity } from './qwik-city';
 import { buildQwikReact } from './qwik-react';
 import { buildWasmBinding } from './binding-wasm';
+import { copyFiles } from './copy-files';
 import { emptyDir } from './util';
+import { generatePackageJson } from './package-json';
 import {
   commitPrepareReleaseVersion,
   prepareReleaseVersion,
@@ -71,6 +73,9 @@ export async function build(config: BuildConfig) {
         emptyDir(config.distQwikPkgDir);
       }
 
+      // create the dist package.json first so we get the version set
+      await generatePackageJson(config);
+
       await Promise.all([
         submoduleCore(config),
         submoduleQwikLoader(config),
@@ -78,6 +83,7 @@ export async function build(config: BuildConfig) {
         submoduleBuild(config),
         submoduleTesting(config),
         submoduleCli(config),
+        copyFiles(config),
       ]);
 
       // server bundling must happen after the results from the others

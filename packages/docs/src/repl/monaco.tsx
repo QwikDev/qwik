@@ -212,42 +212,33 @@ export const addQwikLibs = async (version: string) => {
 };
 
 const loadDeps = async (qwikVersion: string) => {
-  const isDev = qwikVersion.includes('dev');
-  const v = qwikVersion.split('-')[0].split('.').map(Number);
-  const prefix = v[0] >= 1 && v[1] >= 7 && v[2] >= (isDev ? 1 : 2) ? '/dist/' : '/';
   const deps: NodeModuleDep[] = [
     // qwik
     {
       pkgName: '@builder.io/qwik',
       pkgVersion: qwikVersion,
-      pkgPath: `${prefix}core.d.ts`,
+      pkgPath: '/core.d.ts',
       import: '',
     },
     // JSX runtime
     {
       pkgName: '@builder.io/qwik',
       pkgVersion: qwikVersion,
-      pkgPath: `${prefix}jsx-runtime.d.ts`,
+      pkgPath: '/jsx-runtime.d.ts',
       import: '/jsx-runtime',
-    },
-    {
-      pkgName: '@builder.io/qwik',
-      pkgVersion: qwikVersion,
-      pkgPath: `${prefix}jsx-runtime.d.ts`,
-      import: '/jsx-dev-runtime',
     },
     // server API
     {
       pkgName: '@builder.io/qwik',
       pkgVersion: qwikVersion,
-      pkgPath: `${prefix}server.d.ts`,
+      pkgPath: '/server.d.ts',
       import: '/server',
     },
     // build constants
     {
       pkgName: '@builder.io/qwik',
       pkgVersion: qwikVersion,
-      pkgPath: `${prefix}build/index.d.ts`,
+      pkgPath: '/build/index.d.ts',
       import: '/build',
     },
   ];

@@ -801,20 +801,6 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Do this before other release steps to avoid
-      # publishing temporary files
-      - name: Create Release Pull Request or Publish to npm
-        if: github.ref == 'refs/heads/main' && github.event_name != 'workflow_dispatch'
-        id: changesets
-        uses: changesets/action@v1
-        with:
-          version: pnpm version
-          publish: pnpm release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Commit Build Artifacts
         if: github.event_name == 'push'
         env:
@@ -826,6 +812,18 @@ jobs:
         run: pnpm release.pkg-pr-new
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release Pull Request or Publish to npm
+        if: github.ref == 'refs/heads/main' && github.event_name != 'workflow_dispatch'
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          #version: pnpm version
+          publish: pnpm release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish manually
         if: github.event_name == 'workflow_dispatch'

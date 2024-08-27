@@ -32,14 +32,14 @@ pub fn transform_props_destructuring(
 
 macro_rules! id {
 	($ident: expr) => {
-		($ident.sym.clone(), $ident.span.ctxt())
+		($ident.sym.clone(), $ident.ctxt)
 	};
 }
 
 macro_rules! id_eq {
 	($ident: expr, $cid: expr) => {
 		if let Some(cid) = $cid {
-			cid.0 == $ident.sym && cid.1 == $ident.span.ctxt()
+			cid.0 == $ident.sym && cid.1 == $ident.ctxt
 		} else {
 			false
 		}
@@ -269,7 +269,7 @@ impl<'a> VisitMut for PropsDestructuring<'a> {
 		if let ast::Prop::Shorthand(short) = node {
 			if let Some(expr) = self.identifiers.get(&id!(short)) {
 				*node = ast::Prop::KeyValue(ast::KeyValueProp {
-					key: ast::PropName::Ident(short.clone()),
+					key: ast::PropName::Ident(short.clone().into()),
 					value: Box::new(expr.clone()),
 				});
 			}
@@ -391,8 +391,8 @@ fn transform_rest(
 		}
 		box ast::BlockStmtOrExpr::Expr(ref expr) => {
 			arrow.body = Box::new(ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
-				span: DUMMY_SP,
 				stmts: vec![new_stmt, create_return_stmt(expr.clone())],
+				..Default::default()
 			}));
 		}
 	}
@@ -405,16 +405,12 @@ fn create_omit_props(
 	omit: Vec<JsWord>,
 ) -> ast::Stmt {
 	ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
-		span: DUMMY_SP,
-		declare: false,
 		kind: ast::VarDeclKind::Const,
 		decls: vec![ast::VarDeclarator {
 			definite: false,
 			span: DUMMY_SP,
 			init: Some(Box::new(ast::Expr::Call(ast::CallExpr {
 				callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(omit_fn)))),
-				span: DUMMY_SP,
-				type_args: None,
 				args: vec![
 					ast::ExprOrSpread {
 						spread: None,
@@ -440,8 +436,10 @@ fn create_omit_props(
 						})),
 					},
 				],
+				..Default::default()
 			}))),
 			name: ast::Pat::Ident(ast::BindingIdent::from(new_ident_from_id(rest_id))),
 		}],
+		..Default::default()
 	})))
 }

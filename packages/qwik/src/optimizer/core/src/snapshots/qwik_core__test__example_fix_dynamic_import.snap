@@ -27,16 +27,13 @@ export const Header = component$(() => {
 import thing from "../state";
 export const Header_component_RGgm7Ks9QWI = ()=>{
     return <div>
-
             {import("../folder/state3")}
-
             {thing}
-
         </div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";4CAQiC;IAC7B,QACK,IAAI;;YACD,CAAC,MAAM,CAAC,oBAAoB;;YAC5B,CAAC,MAAM;;QACX,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";4CAQiC;IAC7B,QACK,IAAI;YACD,CAAC,MAAM,CAAC,oBAAoB;YAC5B,CAAC,MAAM;QACX,EAAE;AAEV\"}")
 /*
 {
   "origin": "project/folder/test.tsx",

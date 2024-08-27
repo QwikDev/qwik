@@ -60,7 +60,7 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
       .catch((err) => {
         console.error('Error loading vite-imagetools, image imports are not available', err);
         return null;
-      }) as PluginOption,
+      }),
     {
       name: 'qwik-city-image-jsx',
       load: {

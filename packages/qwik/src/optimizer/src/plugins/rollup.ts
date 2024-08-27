@@ -280,7 +280,7 @@ export interface QwikRollupPluginOptions {
   debug?: boolean;
   /**
    * The Qwik entry strategy to use while building for production. During development the type is
-   * always `segment`.
+   * always `hook`.
    *
    * Default `{ type: "smart" }`)
    */

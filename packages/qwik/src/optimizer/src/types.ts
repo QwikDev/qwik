@@ -97,7 +97,7 @@ export interface TransformOutput {
 }
 
 /** @public */
-export interface SegmentAnalysis {
+export interface HookAnalysis {
   origin: string;
   name: string;
   entry: string | null;
@@ -120,7 +120,7 @@ export interface TransformModule {
   isEntry: boolean;
   code: string;
   map: string | null;
-  segment: SegmentAnalysis | null;
+  hook: HookAnalysis | null;
   origPath: string | null;
 }
 
@@ -158,7 +158,6 @@ export type EntryStrategy =
   | HoistEntryStrategy
   | SingleEntryStrategy
   | HookEntryStrategy
-  | SegmentEntryStrategy
   | ComponentEntryStrategy
   | SmartEntryStrategy;
 
@@ -178,15 +177,9 @@ export interface HoistEntryStrategy {
   type: 'hoist';
 }
 
-/** @deprecated Use SegmentStrategy instead */
+/** @public */
 export interface HookEntryStrategy {
   type: 'hook';
-  manual?: Record<string, string>;
-}
-
-/** @public */
-export interface SegmentEntryStrategy {
-  type: 'segment';
   manual?: Record<string, string>;
 }
 

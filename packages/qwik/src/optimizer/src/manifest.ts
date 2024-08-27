@@ -1,6 +1,6 @@
 import type { OutputBundle } from 'rollup';
 import { type NormalizedQwikPluginOptions } from './plugins/plugin';
-import type { GlobalInjections, SegmentAnalysis, Path, QwikBundle, QwikManifest } from './types';
+import type { GlobalInjections, HookAnalysis, Path, QwikBundle, QwikManifest } from './types';
 
 // This is just the initial prioritization of the symbols and entries
 // at build time so there's less work during each SSR. However, SSR should
@@ -238,11 +238,10 @@ export function getValidManifest(manifest: QwikManifest | undefined | null) {
 
 export function generateManifestFromBundles(
   path: Path,
-  segments: SegmentAnalysis[],
+  hooks: HookAnalysis[],
   injections: GlobalInjections[],
   outputBundles: OutputBundle,
-  opts: NormalizedQwikPluginOptions,
-  debug: (...args: any[]) => void
+  opts: NormalizedQwikPluginOptions
 ) {
   const manifest: QwikManifest = {
     manifestHash: '',
@@ -260,7 +259,7 @@ export function generateManifestFromBundles(
 
   const buildPath = path.resolve(opts.rootDir, opts.outDir, 'build');
   // We need to find our QRL exports
-  const qrlNames = new Set([...segments.map((h) => h.name)]);
+  const qrlNames = new Set([...hooks.map((h) => h.name)]);
   for (const outputBundle of Object.values(outputBundles)) {
     if (outputBundle.type !== 'chunk') {
       continue;
@@ -277,8 +276,8 @@ export function generateManifestFromBundles(
 
     for (const symbol of outputBundle.exports) {
       if (qrlNames.has(symbol)) {
-        // When not minifying we see both the entry and the segment file
-        // The segment file will only have 1 export, we want the entry
+        // When not minifying we see both the entry and the hook file
+        // The hook file will only have 1 export, we want the entry
         if (!manifest.mapping[symbol] || outputBundle.exports.length !== 1) {
           manifest.mapping[symbol] = bundleFileName;
         }
@@ -311,24 +310,24 @@ export function generateManifestFromBundles(
     manifest.bundles[bundleFileName] = bundle;
   }
 
-  for (const segment of segments) {
-    const symbol = segment.name;
+  for (const hook of hooks) {
+    const symbol = hook.name;
     const bundle = manifest.mapping[symbol];
     if (!bundle) {
-      debug(`Note: qrl ${segment.name} is not in the bundle, likely tree shaken`, manifest);
-      continue;
+      console.error(`Unable to find bundle for hook: ${hook.name}`, manifest);
+      throw new Error(`Unable to find bundle for hook: ${hook.hash}`);
     }
     (manifest.bundles[bundle].symbols ||= []).push(symbol);
     manifest.symbols[symbol] = {
-      origin: segment.origin,
-      displayName: segment.displayName,
-      canonicalFilename: segment.canonicalFilename,
-      hash: segment.hash,
-      ctxKind: segment.ctxKind,
-      ctxName: segment.ctxName,
-      captures: segment.captures,
-      parent: segment.parent,
-      loc: segment.loc,
+      origin: hook.origin,
+      displayName: hook.displayName,
+      canonicalFilename: hook.canonicalFilename,
+      hash: hook.hash,
+      ctxKind: hook.ctxKind,
+      ctxName: hook.ctxName,
+      captures: hook.captures,
+      parent: hook.parent,
+      loc: hook.loc,
     };
   }
   // To inspect the bundles, uncomment the following lines

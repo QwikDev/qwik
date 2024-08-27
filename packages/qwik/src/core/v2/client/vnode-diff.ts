@@ -1019,7 +1019,7 @@ export const vnode_diff = (
         const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
         shouldRender = shouldRender || propsDiffer(jsxProps, vNodeProps);
         if (shouldRender) {
-          container.$scheduler$.schedule(ChoreType.COMPONENT, host, componentQRL, jsxProps);
+          container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
         }
       }
       jsxValue.children != null && descendContentToProject(jsxValue.children, host);
@@ -1213,7 +1213,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
       if (type & VNodeFlags.Virtual) {
         // Only virtual nodes have subscriptions
         clearVNodeDependencies(vCursor);
-        cleanupVNodeChores(vNode, vParent, vCursor, container);
+        markVNodeAsDeleted(vNode, vParent, vCursor);
         const seq = container.getHostProp<Array<any>>(vCursor as VirtualVNode, ELEMENT_SEQ);
         if (seq) {
           for (let i = 0; i < seq.length; i++) {
@@ -1222,7 +1222,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
               const task = obj;
               clearSubscriberDependencies(task);
               if (obj.$flags$ & TaskFlags.VISIBLE_TASK) {
-                container.$scheduler$.schedule(ChoreType.CLEANUP_VISIBLE, obj);
+                container.$scheduler$(ChoreType.CLEANUP_VISIBLE, obj);
               } else {
                 cleanupTask(task);
               }
@@ -1331,25 +1331,19 @@ function cleanupStaleUnclaimedProjection(journal: VNodeJournal, projection: VNod
   }
 }
 
-function cleanupVNodeChores(
-  vNode: VNode,
-  vParent: VNode | null,
-  vCursor: VNode,
-  container: ClientContainer
-) {
+function markVNodeAsDeleted(vNode: VNode, vParent: VNode | null, vCursor: VNode) {
   /**
-   * Cleanup stale chores for current vCursor, but only if it is not a projection. We need to do
-   * this to prevent stale chores from running after the vnode is removed. (for example signal
-   * subscriptions)
+   * Marks vCursor as deleted, but only if it is not a projection. We need to do this to prevent
+   * chores from running after the vnode is removed. (for example signal subscriptions)
    */
   if (vNode !== vCursor) {
-    container.$scheduler$.cleanupStaleChores(vCursor as VirtualVNode);
+    vCursor[VNodeProps.flags] |= VNodeFlags.Deleted;
   } else {
     const currentVParent = vParent || vnode_getParent(vNode);
     const isParentProjection =
       currentVParent && vnode_getProp(currentVParent, QSlot, null) !== null;
     if (!isParentProjection) {
-      container.$scheduler$.cleanupStaleChores(vCursor as VirtualVNode);
+      vCursor[VNodeProps.flags] |= VNodeFlags.Deleted;
     }
   }
 }

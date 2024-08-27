@@ -137,7 +137,7 @@ export const _hW = () => {
   const [task] = useLexicalScope<[SubscriberEffect]>();
   const container = getDomContainer(task.$el$ as Element);
   const type = task.$flags$ & TaskFlags.VISIBLE_TASK ? ChoreType.VISIBLE : ChoreType.TASK;
-  container.$scheduler$.schedule(type, task as Task);
+  container.$scheduler$(type, task as Task);
 };
 
 const renderMarked = async (containerState: ContainerState): Promise<void> => {

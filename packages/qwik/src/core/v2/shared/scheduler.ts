@@ -97,7 +97,13 @@ import { logWarn } from '../../util/log';
 import { isPromise, maybeThen, maybeThenPassError, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import { isDomContainer } from '../client/dom-container';
-import { ElementVNodeProps, type ElementVNode, type VirtualVNode } from '../client/types';
+import {
+  ElementVNodeProps,
+  VNodeFlags,
+  VNodeProps,
+  type ElementVNode,
+  type VirtualVNode,
+} from '../client/types';
 import {
   vnode_documentPosition,
   vnode_isVNode,
@@ -163,7 +169,7 @@ export const createScheduler = (
   let currentChore: Chore | null = null;
   let journalFlushScheduled: boolean = false;
 
-  return { schedule, cleanupStaleChores };
+  return schedule;
 
   ////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////
@@ -283,6 +289,17 @@ export const createScheduler = (
         // we have processed all of the chores up to the given chore.
         break;
       }
+      const isDeletedVNode =
+        nextChore.$host$ &&
+        vnode_isVNode(nextChore.$host$) &&
+        nextChore.$host$[VNodeProps.flags] & VNodeFlags.Deleted;
+      if (
+        isDeletedVNode &&
+        // we need to process cleanup tasks for deleted nodes
+        nextChore.$type$ !== ChoreType.CLEANUP_VISIBLE
+      ) {
+        continue;
+      }
       const returnValue = executeChore(nextChore);
       if (isPromise(returnValue)) {
         return returnValue.then(() => drainUpTo(runUptoChore));
@@ -379,14 +396,6 @@ export const createScheduler = (
       currentChore = null;
       return (chore.$returnValue$ = value);
     });
-  }
-
-  function cleanupStaleChores(host: HostElement): void {
-    for (let i = choreQueue.length - 1; i >= 0; i--) {
-      if (choreQueue[i].$host$ === host) {
-        choreQueue.splice(i, 1);
-      }
-    }
   }
 };
 

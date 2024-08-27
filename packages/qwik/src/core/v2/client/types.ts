@@ -80,29 +80,31 @@ export interface QNode extends Node {
  * @internal
  */
 export const enum VNodeFlags {
-  Element /* ****************** */ = 0b00_00001,
-  Virtual /* ****************** */ = 0b00_00010,
-  ELEMENT_OR_VIRTUAL_MASK /* ** */ = 0b00_00011,
-  ELEMENT_OR_TEXT_MASK /* ***** */ = 0b00_00101,
-  TYPE_MASK /* **************** */ = 0b00_00111,
-  INFLATED_TYPE_MASK /* ******* */ = 0b00_01111,
-  Text /* ********************* */ = 0b00_00100,
+  Element /* ****************** */ = 0b00_000001,
+  Virtual /* ****************** */ = 0b00_000010,
+  ELEMENT_OR_VIRTUAL_MASK /* ** */ = 0b00_000011,
+  ELEMENT_OR_TEXT_MASK /* ***** */ = 0b00_000101,
+  TYPE_MASK /* **************** */ = 0b00_000111,
+  INFLATED_TYPE_MASK /* ******* */ = 0b00_001111,
+  Text /* ********************* */ = 0b00_000100,
   /// Extra flag which marks if a node needs to be inflated.
-  Inflated /* ***************** */ = 0b00_01000,
+  Inflated /* ***************** */ = 0b00_001000,
   /// Marks if the `ensureProjectionResolved` has been called on the node.
-  Resolved /* ***************** */ = 0b00_10000,
+  Resolved /* ***************** */ = 0b00_010000,
+  /// Marks if the vnode is deleted.
+  Deleted /* ****************** */ = 0b00_100000,
   /// Flags for Namespace
-  NAMESPACE_MASK /* *********** */ = 0b11_00000,
-  NEGATED_NAMESPACE_MASK /* ** */ = ~0b11_00000,
-  NS_html /* ****************** */ = 0b00_00000, // http://www.w3.org/1999/xhtml
-  NS_svg /* ******************* */ = 0b01_00000, // http://www.w3.org/2000/svg
-  NS_math /* ****************** */ = 0b10_00000, // http://www.w3.org/1998/Math/MathML
+  NAMESPACE_MASK /* *********** */ = 0b11_000000,
+  NEGATED_NAMESPACE_MASK /* ** */ = ~0b11_000000,
+  NS_html /* ****************** */ = 0b00_000000, // http://www.w3.org/1999/xhtml
+  NS_svg /* ******************* */ = 0b01_000000, // http://www.w3.org/2000/svg
+  NS_math /* ****************** */ = 0b10_000000, // http://www.w3.org/1998/Math/MathML
 }
 
 export const enum VNodeFlagsIndex {
-  mask /* ************* */ = ~0b11_11111,
-  negated_mask /* ****** */ = 0b11_11111,
-  shift /* ************* */ = 7,
+  mask /* ************* */ = ~0b11_111111,
+  negated_mask /* ****** */ = 0b11_111111,
+  shift /* ************* */ = 8,
 }
 
 export const enum VNodeProps {

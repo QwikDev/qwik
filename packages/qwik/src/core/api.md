@@ -2042,6 +2042,8 @@ export type _VNode = _ElementVNode | _TextVNode | _VirtualVNode;
 // @internal
 export const enum _VNodeFlags {
     // (undocumented)
+    Deleted = 32,
+    // (undocumented)
     Element = 1,
     // (undocumented)
     ELEMENT_OR_TEXT_MASK = 5,
@@ -2052,15 +2054,15 @@ export const enum _VNodeFlags {
     // (undocumented)
     INFLATED_TYPE_MASK = 15,
     // (undocumented)
-    NAMESPACE_MASK = 96,
+    NAMESPACE_MASK = 192,
     // (undocumented)
-    NEGATED_NAMESPACE_MASK = -97,
+    NEGATED_NAMESPACE_MASK = -193,
     // (undocumented)
     NS_html = 0,
     // (undocumented)
-    NS_math = 64,
+    NS_math = 128,
     // (undocumented)
-    NS_svg = 32,
+    NS_svg = 64,
     // (undocumented)
     Resolved = 16,
     // (undocumented)

@@ -155,33 +155,17 @@ test.describe("actions", () => {
       });
     });
 
-    test("issue 6660 internal params should not trigger navigation", async ({
+    test("issue 6660 internal params should no trigger navigation", async ({
       page,
     }) => {
       await page.goto("/qwikcity-test/issue6660/");
-      await expect(page.locator("#status")).toBeHidden();
 
-      {
-        const startUrl = page.url();
+      const startUrl = page.url();
 
-        await page.getByText("Submit").click();
-        await page.waitForSelector("#status");
+      await page.getByText("Submit").click();
+      await page.waitForSelector("span");
 
-        expect(page.url()).toBe(startUrl);
-      }
-
-      await page.goto("/qwikcity-test/issue6660/?var=1&hello");
-      await expect(page.locator("#status")).toBeHidden();
-
-      {
-        const startUrl = page.url();
-        expect(startUrl).toContain("var=1&hello");
-
-        await page.getByText("Submit").click();
-        await page.waitForSelector("#status");
-
-        expect(page.url()).toBe(startUrl);
-      }
+      expect(page.url()).toBe(startUrl);
     });
   }
 

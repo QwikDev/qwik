@@ -144,15 +144,15 @@ const _resolveRequestHandlers = (
     }
 
     if (collectActions) {
-      for (const module of Object.values(routeModule)) {
-        if (typeof module === 'function') {
-          if (module.__brand === 'server_loader') {
-            routeLoaders.push(module as LoaderInternal);
-          } else if (module.__brand === 'server_action') {
-            routeActions.push(module as ActionInternal);
-          }
-        }
-      }
+      const loaders = Object.values(routeModule).filter((e) =>
+        checkBrand(e, 'server_loader')
+      ) as LoaderInternal[];
+      routeLoaders.push(...loaders);
+
+      const actions = Object.values(routeModule).filter((e) =>
+        checkBrand(e, 'server_action')
+      ) as ActionInternal[];
+      routeActions.push(...actions);
     }
   }
 };
@@ -407,9 +407,7 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
       url.pathname = url.pathname.slice(0, -1);
     }
   }
-  // strip internal search params
-  const search = url.search.slice(1).replaceAll(/&?q(action|data|func)=[^&]+/g, '');
-  return `${url.pathname}${search ? `?${search}` : ''}${url.hash}`;
+  return url.toString().substring(url.origin.length);
 }
 
 export const encoder = /*#__PURE__*/ new TextEncoder();

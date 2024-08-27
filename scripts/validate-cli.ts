@@ -21,7 +21,7 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 async function validateCreateQwikCli() {
   console.log(`👾 validating create-qwik...`);
 
-  const cliDir = join(__dirname, '..', 'packages', 'create-qwik');
+  const cliDir = join(__dirname, '..', 'packages', 'create-qwik', 'dist');
   accessSync(cliDir);
 
   const cliBin = join(cliDir, 'create-qwik.cjs');
@@ -31,13 +31,13 @@ async function validateCreateQwikCli() {
   const cliPkgJson = JSON.parse(readFileSync(cliPkgJsonPath, 'utf-8'));
   assert.strictEqual(cliPkgJson.name, 'create-qwik');
 
-  const startersDir = join(cliDir, 'dist', 'starters');
+  const startersDir = join(cliDir, 'starters');
   accessSync(startersDir);
 
   const appsDir = join(startersDir, 'apps');
   accessSync(appsDir);
 
-  const cliApi = join(cliDir, 'dist', 'index.cjs');
+  const cliApi = join(cliDir, 'index.cjs');
   console.log(`💫 import cli api: ${cliApi}`);
   const api: typeof import('create-qwik') = await import(pathToFileURL(cliApi).href);
 

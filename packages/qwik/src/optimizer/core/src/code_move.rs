@@ -19,7 +19,7 @@ use swc_ecmascript::utils::private_ident;
 
 macro_rules! id {
 	($ident: expr) => {
-		($ident.sym.clone(), $ident.ctxt)
+		($ident.sym.clone(), $ident.span.ctxt())
 	};
 }
 
@@ -73,7 +73,6 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
 						Some(ast::ModuleExportName::Ident(ast::Ident::new(
 							import.specifier.clone(),
 							DUMMY_SP,
-							Default::default(),
 						)))
 					},
 					local: new_ident_from_id(id),
@@ -109,13 +108,9 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
 			} else {
 				&ctx.path.file_stem
 			};
-			let imported = export.as_ref().map(|e| {
-				ast::ModuleExportName::Ident(ast::Ident::new(
-					e.clone(),
-					DUMMY_SP,
-					Default::default(),
-				))
-			});
+			let imported = export
+				.as_ref()
+				.map(|e| ast::ModuleExportName::Ident(ast::Ident::new(e.clone(), DUMMY_SP)));
 			module
 				.body
 				.push(ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(
@@ -189,7 +184,6 @@ fn create_named_export(expr: Box<ast::Expr>, name: &str) -> ast::ModuleItem {
 		span: DUMMY_SP,
 		decl: ast::Decl::Var(Box::new(ast::VarDecl {
 			span: DUMMY_SP,
-			ctxt: Default::default(),
 			kind: ast::VarDeclKind::Const,
 			declare: false,
 			decls: vec![ast::VarDeclarator {
@@ -198,7 +192,6 @@ fn create_named_export(expr: Box<ast::Expr>, name: &str) -> ast::ModuleItem {
 				name: ast::Pat::Ident(ast::BindingIdent::from(ast::Ident::new(
 					JsWord::from(name),
 					DUMMY_SP,
-					Default::default(),
 				))),
 				init: Some(expr),
 			}],
@@ -310,7 +303,6 @@ fn new_entry_module(
 						orig: ast::ModuleExportName::Ident(ast::Ident::new(
 							hook.name.clone(),
 							DUMMY_SP,
-							Default::default(),
 						)),
 						exported: None,
 					})],
@@ -350,7 +342,6 @@ fn transform_arrow_fn(
 			ast::ArrowExpr {
 				body: Box::new(ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
 					span: DUMMY_SP,
-					ctxt: Default::default(),
 					stmts,
 				})),
 				..arrow
@@ -365,7 +356,6 @@ fn transform_arrow_fn(
 			ast::ArrowExpr {
 				body: Box::new(ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
 					span: DUMMY_SP,
-					ctxt: Default::default(),
 					stmts,
 				})),
 				..arrow
@@ -392,7 +382,6 @@ fn transform_fn(node: ast::FnExpr, use_lexical_scope: &Id, scoped_idents: &[Id])
 		function: Box::new(ast::Function {
 			body: Some(ast::BlockStmt {
 				span: DUMMY_SP,
-				ctxt: Default::default(),
 				stmts,
 			}),
 			..*node.function
@@ -411,7 +400,6 @@ pub const fn create_return_stmt(expr: Box<ast::Expr>) -> ast::Stmt {
 fn create_use_lexical_scope(use_lexical_scope: &Id, scoped_idents: &[Id]) -> ast::Stmt {
 	ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
 		span: DUMMY_SP,
-		ctxt: Default::default(),
 		declare: false,
 		kind: ast::VarDeclKind::Const,
 		decls: vec![ast::VarDeclarator {
@@ -421,7 +409,9 @@ fn create_use_lexical_scope(use_lexical_scope: &Id, scoped_idents: &[Id]) -> ast
 				callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(
 					use_lexical_scope,
 				)))),
-				..Default::default()
+				span: DUMMY_SP,
+				type_args: None,
+				args: vec![],
 			}))),
 			name: ast::Pat::Array(ast::ArrayPat {
 				span: DUMMY_SP,

@@ -52,7 +52,7 @@ test('command: serve, mode: development', async () => {
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
+  const outputOptions = rollupOptions.output as Rollup.OutputOptions[];
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'development');
@@ -62,10 +62,15 @@ test('command: serve, mode: development', async () => {
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev')));
 
-  assert.deepEqual(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
-  assert.deepEqual(outputOptions.chunkFileNames, 'build/[name].js');
-  assert.deepEqual(outputOptions.entryFileNames, 'build/[name].js');
-  assert.deepEqual(outputOptions.format, 'es');
+  assert.ok(Array.isArray(outputOptions));
+  assert.lengthOf(outputOptions, 1);
+
+  outputOptions.forEach((outputOptionsObj) => {
+    assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');
+    assert.deepEqual(outputOptionsObj.chunkFileNames, 'build/[name].js');
+    assert.deepEqual(outputOptionsObj.entryFileNames, 'build/[name].js');
+    assert.deepEqual(outputOptionsObj.format, 'es');
+  });
 
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
   assert.deepEqual(build.ssr, undefined);
@@ -87,7 +92,7 @@ test('command: serve, mode: production', async () => {
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
+  const outputOptions = rollupOptions.output as Rollup.OutputOptions[];
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'production');
@@ -99,10 +104,15 @@ test('command: serve, mode: production', async () => {
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev')));
 
-  assert.deepEqual(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
-  assert.deepEqual(outputOptions.chunkFileNames, 'build/q-[hash].js');
-  assert.deepEqual(outputOptions.entryFileNames, 'build/q-[hash].js');
-  assert.deepEqual(outputOptions.format, 'es');
+  assert.ok(Array.isArray(outputOptions));
+  assert.lengthOf(outputOptions, 1);
+
+  outputOptions.forEach((outputOptionsObj) => {
+    assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');
+    assert.deepEqual(outputOptionsObj.chunkFileNames, 'build/q-[hash].js');
+    assert.deepEqual(outputOptionsObj.entryFileNames, 'build/q-[hash].js');
+    assert.deepEqual(outputOptionsObj.format, 'es');
+  });
 
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
   assert.deepEqual(build.ssr, undefined);
@@ -123,7 +133,7 @@ test('command: build, mode: development', async () => {
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
+  const outputOptions = rollupOptions.output as Rollup.OutputOptions[];
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'development');
@@ -136,9 +146,14 @@ test('command: build, mode: development', async () => {
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
 
-  assert.deepEqual(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
-  assert.deepEqual(outputOptions.chunkFileNames, 'build/[name].js');
-  assert.deepEqual(outputOptions.entryFileNames, 'build/[name].js');
+  assert.ok(Array.isArray(outputOptions));
+  assert.lengthOf(outputOptions, 1);
+
+  outputOptions.forEach((outputOptionsObj) => {
+    assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');
+    assert.deepEqual(outputOptionsObj.chunkFileNames, 'build/[name].js');
+    assert.deepEqual(outputOptionsObj.entryFileNames, 'build/[name].js');
+  });
 
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
   assert.deepEqual(build.ssr, undefined);
@@ -162,7 +177,7 @@ test('command: build, mode: production', async () => {
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
+  const outputOptions = rollupOptions.output as Rollup.OutputOptions[];
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'production');
@@ -175,9 +190,14 @@ test('command: build, mode: production', async () => {
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
 
-  assert.deepEqual(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
-  assert.deepEqual(outputOptions.chunkFileNames, 'build/q-[hash].js');
-  assert.deepEqual(outputOptions.entryFileNames, 'build/q-[hash].js');
+  assert.ok(Array.isArray(outputOptions));
+  assert.lengthOf(outputOptions, 1);
+
+  outputOptions.forEach((outputOptionsObj) => {
+    assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');
+    assert.deepEqual(outputOptionsObj.chunkFileNames, 'build/q-[hash].js');
+    assert.deepEqual(outputOptionsObj.entryFileNames, 'build/q-[hash].js');
+  });
 
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
@@ -228,7 +248,7 @@ test('command: build, --ssr entry.server.tsx', async () => {
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
+  const outputOptions = rollupOptions.output as Rollup.OutputOptions[];
 
   assert.deepEqual(opts.target, 'ssr');
   assert.deepEqual(opts.buildMode, 'development');
@@ -241,9 +261,14 @@ test('command: build, --ssr entry.server.tsx', async () => {
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'entry.server.tsx'))]);
 
-  assert.deepEqual(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
-  assert.deepEqual(outputOptions.chunkFileNames, undefined);
-  assert.deepEqual(outputOptions.entryFileNames, undefined);
+  assert.ok(Array.isArray(outputOptions));
+  assert.lengthOf(outputOptions, 1);
+
+  outputOptions.forEach((outputOptionsObj) => {
+    assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');
+    assert.deepEqual(outputOptionsObj.chunkFileNames, undefined);
+    assert.deepEqual(outputOptionsObj.entryFileNames, undefined);
+  });
 
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'server')));
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
@@ -371,7 +396,7 @@ test('command: build, --mode lib', async () => {
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
-  const outputOptions = rollupOptions.output as Rollup.OutputOptions;
+  const outputOptions = rollupOptions.output as Rollup.OutputOptions[];
 
   assert.deepEqual(opts.target, 'lib');
   assert.deepEqual(opts.buildMode, 'development');
@@ -379,8 +404,13 @@ test('command: build, --mode lib', async () => {
   assert.deepEqual(build.ssr, undefined);
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'index.ts'))]);
 
-  assert.deepEqual(outputOptions.assetFileNames, 'build/q-[hash].[ext]');
-  assert.deepEqual(outputOptions.chunkFileNames, undefined);
+  assert.ok(Array.isArray(outputOptions));
+  assert.lengthOf(outputOptions, 1);
+
+  outputOptions.forEach((outputOptionsObj) => {
+    assert.deepEqual(outputOptionsObj.assetFileNames, 'build/q-[hash].[ext]');
+    assert.deepEqual(outputOptionsObj.chunkFileNames, undefined);
+  });
 
   assert.deepEqual(c.build.outDir, normalizePath(resolve(cwd, 'lib')));
   assert.deepEqual(build.emptyOutDir, undefined);

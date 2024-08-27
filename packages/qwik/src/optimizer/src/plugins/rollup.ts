@@ -148,25 +148,22 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 export function normalizeRollupOutputOptions(
   opts: NormalizedQwikPluginOptions,
   rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined,
-  useAssetsDir: boolean,
-  outDir?: string
-): Rollup.OutputOptions | Rollup.OutputOptions[] {
-  if (Array.isArray(rollupOutputOpts)) {
-    // make sure at least one output is present in every case
-    if (!rollupOutputOpts.length) {
-      rollupOutputOpts.push({});
-    }
+  useAssetsDir: boolean
+): Rollup.OutputOptions[] {
+  const outputOpts: Rollup.OutputOptions[] = Array.isArray(rollupOutputOpts)
+    ? // fill the `outputOpts` array with all existing option entries
+      [...rollupOutputOpts]
+    : // use the existing rollupOutputOpts object or create a new one
+      [rollupOutputOpts || {}];
 
-    return rollupOutputOpts.map((outputOptsObj) => ({
-      ...normalizeRollupOutputOptionsObject(opts, outputOptsObj, useAssetsDir),
-      dir: outDir || outputOptsObj.dir,
-    }));
+  // make sure at least one output is present in every case
+  if (!outputOpts.length) {
+    outputOpts.push({});
   }
 
-  return {
-    ...normalizeRollupOutputOptionsObject(opts, rollupOutputOpts, useAssetsDir),
-    dir: outDir || rollupOutputOpts?.dir,
-  };
+  return outputOpts.map((outputOptsObj) =>
+    normalizeRollupOutputOptionsObject(opts, outputOptsObj, useAssetsDir)
+  );
 }
 
 export function normalizeRollupOutputOptionsObject(

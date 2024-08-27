@@ -202,7 +202,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
         const fileName = basename(id);
         if (isMenuFileName(fileName)) {
           const menuCode = await transformMenu(ctx.opts, id, code);
-          return { code: menuCode, map: null };
+          return menuCode;
         }
         if (mdxTransform) {
           try {

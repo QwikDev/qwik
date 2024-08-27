@@ -1416,7 +1416,8 @@ export const canSerialize2 = (value: any): boolean => {
     value == null ||
     typeof value === 'string' ||
     typeof value === 'number' ||
-    typeof value === 'boolean'
+    typeof value === 'boolean' ||
+    typeof value === 'bigint'
   ) {
     return true;
   } else if (typeof value === 'object') {
@@ -1441,11 +1442,29 @@ export const canSerialize2 = (value: any): boolean => {
       return true;
     } else if (isTask(value)) {
       return true;
-    } else if (value instanceof Error) {
+    } else if (isPropsProxy(value)) {
       return true;
     } else if (isPromise(value)) {
       return true;
     } else if (isJSXNode(value)) {
+      return true;
+    } else if (value instanceof Error) {
+      return true;
+    } else if (value instanceof URL) {
+      return true;
+    } else if (value instanceof Date) {
+      return true;
+    } else if (value instanceof RegExp) {
+      return true;
+    } else if (value instanceof URLSearchParams) {
+      return true;
+    } else if (value instanceof FormData) {
+      return true;
+    } else if (value instanceof Set) {
+      return true;
+    } else if (value instanceof Map) {
+      return true;
+    } else if (value instanceof Uint8Array) {
       return true;
     }
   } else if (typeof value === 'function') {

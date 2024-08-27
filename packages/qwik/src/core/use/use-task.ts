@@ -347,7 +347,12 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
   }
 };
 
-export const runTask2 = (task: Task, container: Container2, host: HostElement) => {
+export const runTask2 = (
+  task: Task,
+  container: Container2,
+  host: HostElement,
+  isRerunning = false
+): ValueOrPromise<void> => {
   task.$flags$ &= ~TaskFlags.DIRTY;
   const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, TaskEvent);
   iCtx.$container2$ = container;
@@ -393,35 +398,16 @@ export const runTask2 = (task: Task, container: Container2, host: HostElement) =
 
   const taskApi: TaskCtx = { track, cleanup };
   cleanupTask(task);
-  const result = safeCall(() => taskFn(taskApi), cleanup, handleError);
-  return result;
-};
-
-export const runComputed2 = (
-  task: TaskDescriptor | ComputedDescriptor<unknown>,
-  container: Container2,
-  host: HostElement
-): ValueOrPromise<void> => {
-  assertSignal(task.$state$);
-  task.$flags$ &= ~TaskFlags.DIRTY;
-  const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, ComputedEvent);
-  iCtx.$subscriber$ = [SubscriptionType.HOST, task];
-
-  const taskFn = task.$qrl$.getFn(iCtx, () => {
-    container.$subsManager$.$clearSub$(task);
-  }) as ComputedFn<unknown>;
-
-  const handleError = (reason: unknown) => container.handleError(reason, host);
-  const result = safeCall(
-    taskFn,
-    (returnValue) =>
-      untrack(() => {
-        const signal = task.$state$! as SignalInternal<unknown>;
-        signal[QObjectSignalFlags] &= ~SIGNAL_UNASSIGNED;
-        signal.untrackedValue = returnValue;
-        signal[QObjectManagerSymbol].$notifySubs$();
-      }),
-    handleError
+  const result: ValueOrPromise<void> = safeCall(
+    () => taskFn(taskApi),
+    cleanup,
+    (err: unknown) => {
+      if (isPromise(err)) {
+        return err.then(() => runTask2(task, container, host, true));
+      } else {
+        return handleError(err);
+      }
+    }
   );
   return result;
 };
@@ -678,13 +664,17 @@ export const runResource = <T>(
     promise.catch(ignoreErrorToPreventNodeFromCrashing);
   });
 
-  const promise = safeCall(
+  const promise: ValueOrPromise<void> = safeCall(
     () => Promise.resolve(taskFn(opts)),
     (value) => {
       setState(true, value);
     },
-    (reason) => {
-      setState(false, reason);
+    (err) => {
+      if (isPromise(err)) {
+        return err.then(() => runResource(task, container, host));
+      } else {
+        setState(false, err);
+      }
     }
   );
 

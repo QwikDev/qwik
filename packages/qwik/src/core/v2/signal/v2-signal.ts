@@ -410,6 +410,7 @@ export class ComputedSignal2<T> extends Signal2<T> {
       computeQrl.resolved,
       'Computed signals must run sync. Expected the QRL to be resolved at this point.'
     );
+    throwIfQRLNotResolved(computeQrl);
 
     const ctx = tryGetInvokeContext();
     assertDefined(computeQrl, 'Signal is marked as dirty, but no compute function is provided.');

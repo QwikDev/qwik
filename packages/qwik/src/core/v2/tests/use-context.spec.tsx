@@ -25,7 +25,6 @@ import {
   createDocument,
   emulateExecutionOfQwikFuncs,
 } from '@builder.io/qwik/testing';
-import '../../../testing/vdom-diff.unit-util';
 import { renderToString2 } from 'packages/qwik/src/server/v2-ssr-render2';
 import type { Signal2 } from '../signal/v2-signal.public';
 

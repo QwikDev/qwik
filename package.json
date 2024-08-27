@@ -73,7 +73,7 @@
     "@mdx-js/mdx": "^3.0.1",
     "@microsoft/api-documenter": "7.24.2",
     "@microsoft/api-extractor": "7.43.1",
-    "@napi-rs/cli": "^2.18.4",
+    "@napi-rs/cli": "^2.18.0",
     "@napi-rs/triples": "^1.2.0",
     "@node-rs/helper": "^1.5.0",
     "@octokit/action": "6.0.7",

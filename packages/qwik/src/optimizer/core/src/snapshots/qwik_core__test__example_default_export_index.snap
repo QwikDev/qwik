@@ -22,11 +22,12 @@ import { componentQrl } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     return <div onClick$={/*#__PURE__*/ inlinedQrl(()=>console.log(mongodb), "mongo_component_div_onClick_2EK0wZbP8qw")}>
+
         </div>;
 }, "mongo_component_ouWLj4jA2oI"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/index.tsx\"],\"names\":[],\"mappings\":\";;AAGA,6BAAe,sCAAW;IACtB,QACK,IAAI,mCAAU,IAAM,QAAQ,GAAG,CAAC,sDAAU;QAC3C,EAAE;AAEV,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/index.tsx\"],\"names\":[],\"mappings\":\";;AAGA,6BAAe,sCAAW;IACtB,QACK,IAAI,mCAAU,IAAM,QAAQ,GAAG,CAAC,sDAAU;;QAC3C,EAAE;AAEV,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

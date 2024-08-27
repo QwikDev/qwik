@@ -1,4 +1,4 @@
-use crate::code_move::transform_function_expr;
+use crate::code_move::{fix_path, transform_function_expr};
 use crate::collector::{
 	collect_from_pat, new_ident_from_id, GlobalCollect, Id, IdentCollector, ImportKind,
 };
@@ -732,8 +732,7 @@ impl<'a> QwikTransform<'a> {
 	}
 
 	/// Removes `expr` from the AST and moves it to a separate import.
-	/// These import are then grouped into entry files depending on strategy, which is used to
-	/// determine the chunks for bundling.
+	/// These import are then grouped into entry files depending on strategy.
 	fn create_hook(
 		&mut self,
 		hook_data: HookData,
@@ -744,19 +743,31 @@ impl<'a> QwikTransform<'a> {
 	) -> ast::CallExpr {
 		let canonical_filename = get_canonical_filename(&symbol_name);
 
-		// We import from the hook file directly but store the entry for later chunking by the bundler
 		let entry = self.options.entry_policy.get_entry_for_sym(
 			&hook_data.hash,
 			&self.stack_ctxt,
 			&hook_data,
 		);
 
-		let mut import_path = ["./", &canonical_filename].concat();
+		// We import from the given entry, or from the hook file directly
+		let mut url = entry
+			.as_ref()
+			.map(|e| {
+				fix_path(
+					&self.options.path_data.base_dir,
+					&self.options.path_data.abs_dir,
+					&["./", e.as_ref()].concat(),
+				)
+				.map(|f| f.to_string())
+			})
+			.unwrap_or_else(|| Ok(["./", &canonical_filename].concat()))
+			.unwrap();
 		if self.options.explicit_extensions {
-			import_path.push('.');
-			import_path.push_str(&self.options.extension);
+			url.push('.');
+			url.push_str(&self.options.extension);
 		}
-		let import_expr = self.create_qrl(import_path.into(), &symbol_name, &hook_data, &span);
+
+		let import_expr = self.create_qrl(url.into(), &symbol_name, &hook_data, &span);
 		self.hooks.push(Hook {
 			entry,
 			span,
@@ -909,7 +920,7 @@ impl<'a> QwikTransform<'a> {
 
 	fn create_qrl(
 		&mut self,
-		path: JsWord,
+		url: JsWord,
 		symbol: &str,
 		hook_data: &HookData,
 		span: &Span,
@@ -927,7 +938,7 @@ impl<'a> QwikTransform<'a> {
 							spread: None,
 							expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
 								span: DUMMY_SP,
-								value: path,
+								value: url,
 								raw: None,
 							}))),
 						}],

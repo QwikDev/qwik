@@ -55,7 +55,6 @@ export const Parent_component_useTask_gDH1EtUWqBU = async ()=>{
     state.text = await mongo.users();
     redis.set(state.text);
 };
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;oDAWa;;IACL,MAAM,IAAI,GAAG,MAAM,MAAM,KAAK;IAC9B,MAAM,GAAG,CAAC,MAAM,IAAI\"}")
@@ -83,11 +82,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./parent_component_0taidayhrlo"), "Parent_component_0TaiDayHrlo"));
-export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./child_component_9gyf01gdkqw"), "Child_component_9GyF01GDKqw"));
+export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_entry_Parent"), "Parent_component_0TaiDayHrlo"));
+export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_entry_Child"), "Child_component_9GyF01GDKqw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,uBAAS,8GAgBnB;AAEH,OAAO,MAAM,sBAAQ,4GAelB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,uBAAS,uGAgBnB;AAEH,OAAO,MAAM,sBAAQ,qGAelB\"}")
 ============================= child_component_usetask_oh4n7zeqjku.js ==
 
 import { useLexicalScope } from "@builder.io/qwik";
@@ -96,7 +95,6 @@ export const Child_component_useTask_Oh4n7ZeqJkU = async ()=>{
     const [state] = useLexicalScope();
     state.text = await mongo.users();
 };
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mDA6Ba;;IACL,MAAM,IAAI,GAAG,MAAM,MAAM,KAAK\"}")
@@ -132,7 +130,7 @@ export const Parent_component_0TaiDayHrlo = ()=>{
         text: ''
     });
     // Double count watch
-    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./parent_component_usetask_gdh1etuwqbu"), "Parent_component_useTask_gDH1EtUWqBU", [
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_entry_Parent"), "Parent_component_useTask_gDH1EtUWqBU", [
         state
     ]));
     return /*#__PURE__*/ _jsxQ("div", null, {
@@ -202,7 +200,7 @@ export const Child_component_9GyF01GDKqw = ()=>{
         text: ''
     });
     // Double count watch
-    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./child_component_usetask_oh4n7zeqjku"), "Child_component_useTask_Oh4n7ZeqJkU", [
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_entry_Child"), "Child_component_useTask_Oh4n7ZeqJkU", [
         state
     ]));
     return /*#__PURE__*/ _jsxQ("div", null, {
@@ -260,6 +258,22 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
+============================= test.tsx_entry_Child.js (ENTRY POINT)==
+
+export { Child_component_useTask_Oh4n7ZeqJkU } from "./child_component_usetask_oh4n7zeqjku";
+export { Child_component_9GyF01GDKqw } from "./child_component_9gyf01gdkqw";
+export { _hW } from "@builder.io/qwik";
+
+
+None
+============================= test.tsx_entry_Parent.js (ENTRY POINT)==
+
+export { Parent_component_useTask_gDH1EtUWqBU } from "./parent_component_usetask_gdh1etuwqbu";
+export { Parent_component_0TaiDayHrlo } from "./parent_component_0taidayhrlo";
+export { _hW } from "@builder.io/qwik";
+
+
+None
 == DIAGNOSTICS ==
 
 []

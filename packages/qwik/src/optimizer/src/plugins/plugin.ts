@@ -95,6 +95,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     insightsManifest: null,
     manifestOutput: null,
     transformedModuleOutput: null,
+    vendorRoots: [],
     scope: null,
     devTools: {
       imageDevTools: true,
@@ -285,6 +286,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.transformedModuleOutput = updatedOpts.transformedModuleOutput;
     }
 
+    opts.vendorRoots = updatedOpts.vendorRoots ? updatedOpts.vendorRoots : [];
     opts.scope = updatedOpts.scope ?? null;
 
     if (typeof updatedOpts.resolveQwikBuild === 'boolean') {
@@ -615,7 +617,11 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const dir = parsedPathId.dir;
     const base = parsedPathId.base;
     const ext = parsedPathId.ext.toLowerCase();
-    if (ext in TRANSFORM_EXTS || TRANSFORM_REGEX.test(pathId)) {
+    if (
+      ext in TRANSFORM_EXTS ||
+      TRANSFORM_REGEX.test(pathId) ||
+      insideRoots(ext, dir, opts.srcDir, opts.vendorRoots)
+    ) {
       /** Strip client|server code from qwik server|client, but not in lib/test */
       const strip = opts.target === 'client' || opts.target === 'ssr';
       const normalizedID = normalizePath(pathId);
@@ -893,6 +899,21 @@ export const makeNormalizePath = (sys: OptimizerSystem) => (id: string) => {
   return id;
 };
 
+const insideRoots = (ext: string, dir: string, srcDir: string | null, vendorRoots: string[]) => {
+  if (ext !== '.js') {
+    return false;
+  }
+  if (srcDir != null && dir.startsWith(srcDir)) {
+    return true;
+  }
+  for (const root of vendorRoots) {
+    if (dir.startsWith(root)) {
+      return true;
+    }
+  }
+  return false;
+};
+
 function isAdditionalFile(mod: TransformModule) {
   return mod.isEntry || mod.hook;
 }
@@ -973,7 +994,6 @@ export interface QwikPluginOptions {
   entryStrategy?: EntryStrategy;
   rootDir?: string;
   tsconfigFileNames?: string[];
-  /** @deprecated No longer used */
   vendorRoots?: string[];
   manifestOutput?: ((manifest: QwikManifest) => Promise<void> | void) | null;
   manifestInput?: QwikManifest | null;
@@ -1004,8 +1024,7 @@ export interface QwikPluginOptions {
   lint?: boolean;
 }
 
-export interface NormalizedQwikPluginOptions
-  extends Omit<Required<QwikPluginOptions>, 'vendorRoots'> {
+export interface NormalizedQwikPluginOptions extends Required<QwikPluginOptions> {
   input: string[] | { [entry: string]: string };
 }
 

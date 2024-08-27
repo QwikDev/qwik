@@ -251,9 +251,12 @@ jobs:
     name: Bundle Qwik
     if: |
       always() &&
-      (needs.build-qwik.result == 'success' || needs.build-qwik.result == 'skipped') &&
-      (needs.build-linux-wasm-bindings.result == 'success' || needs.build-linux-wasm-bindings.result == 'skipped') &&
-      (needs.build-other-bindings.result == 'success' || needs.build-other-bindings.result == 'skipped')
+      (needs.build-qwik.result == 'success' ||
+       needs.build-qwik.result == 'skipped') &&
+      (needs.build-linux-wasm-bindings.result == 'success' ||
+       needs.build-linux-wasm-bindings.result == 'skipped') &&
+      (needs.build-other-bindings.result == 'success' ||
+       needs.build-other-bindings.result == 'skipped')
     runs-on: ubuntu-latest
     needs:
       - build-qwik
@@ -504,28 +507,25 @@ jobs:
             packages/docs/server
 
       - name: Cloudflare Pages Deployment
-        # not the official version, so be careful when updating
-        uses: AdrianGonz97/refined-cf-pages-action@c7b767eef599f127d8ce2388d4ed2270d3b750af
+        uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: 'qwik-docs'
           directory: packages/docs/dist
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   ############ UNIT TEST ############
   test-unit:
     name: Unit Tests
     if: |
       always() && (
-        github.ref == 'refs/heads/main' || (
-          (
-            needs.changes.outputs.build-qwik == 'true' ||
+        ((needs.changes.outputs.build-qwik == 'true' ||
             needs.changes.outputs.build-others == 'true' ||
-            needs.changes.outputs.build-rust == 'true'
-          ) &&
+            needs.changes.outputs.build-rust == 'true') &&
           needs.build-other-packages.result == 'success'
-        )
+        ) || 
+        github.ref == 'refs/heads/main'
       )
     runs-on: ubuntu-latest
     needs:
@@ -571,14 +571,13 @@ jobs:
     name: E2E Tests
     if: |
       always() && (
-        github.ref == 'refs/heads/main' || (
-          needs.build-other-packages.result == 'success' &&
-          needs.test-unit.result == 'success' && (
-            needs.changes.outputs.build-qwik == 'true' ||
+        ((needs.changes.outputs.build-qwik == 'true' ||
             needs.changes.outputs.build-others == 'true' ||
-            needs.changes.outputs.build-rust == 'true'
-          )
-        )
+            needs.changes.outputs.build-rust == 'true') &&
+          needs.build-other-packages.result == 'success' &&
+          needs.test-unit.result == 'success'
+        ) || 
+        github.ref == 'refs/heads/main'
       )
 
     needs:
@@ -834,15 +833,7 @@ jobs:
       - changes
       - release
 
-    if: |
-      always() &&
-      (
-        needs.changes.outputs.build-qwik == 'true' ||
-        needs.changes.outputs.build-rust == 'true' ||
-        needs.changes.outputs.build-others == 'true'
-      ) &&
-      needs.release.result == 'success' &&
-      github.ref_name == 'main'
+    if: always() && (needs.changes.outputs.build-qwik == 'true' || needs.changes.outputs.build-rust == 'true' || needs.changes.outputs.build-others == 'true') && needs.release.result == 'success' && github.ref_name == 'main'
 
     steps:
       - name: Repository Dispatch

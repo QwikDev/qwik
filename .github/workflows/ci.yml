@@ -114,7 +114,7 @@ jobs:
 
           echo "disttag: $disttag"
 
-          echo "disttag=${disttag}" >> $GITHUB_OUTPUT
+          echo "disttag=${disttag}" >> $GITHUB_ENV
 
       - run: jq .scripts package.json > scripts.json
 

@@ -1,14 +1,14 @@
-import { Octokit } from '@octokit/action';
+import { type BuildConfig, panic, run } from './util';
 import { execa } from 'execa';
 import { join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { Octokit } from '@octokit/action';
 import prompts from 'prompts';
+import { readPackageJson, writePackageJson } from './package-json';
 import semver from 'semver';
+import { validateBuild } from './validate-build';
 import { publishCreateQwikCli } from './create-qwik-cli';
 import { publishEslint } from './eslint';
-import { readPackageJson, writePackageJson } from './package-json';
-import { type BuildConfig, panic, run } from './util';
-import { validateBuild } from './validate-build';
+import { fileURLToPath } from 'node:url';
 
 let version: string;
 
@@ -18,7 +18,7 @@ export async function getVersion(distTag?: string, rootDir?: string) {
     rootDir ||= resolve(__dirname, '..');
     const rootPkg = await readPackageJson(rootDir);
     let v = rootPkg.version;
-    if (distTag === 'dev') {
+    if (!distTag || distTag === 'dev') {
       const d = new Date();
       v += '-dev';
       v += String(d.getUTCFullYear());
@@ -32,7 +32,7 @@ export async function getVersion(distTag?: string, rootDir?: string) {
   }
   return version;
 }
-export async function setDistVersion(config: BuildConfig) {
+export async function setDevVersion(config: BuildConfig) {
   config.distVersion = await getVersion(config.setDistTag, config.rootDir);
 }
 

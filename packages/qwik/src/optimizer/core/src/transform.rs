@@ -265,7 +265,12 @@ impl<'a> QwikTransform<'a> {
 
 	fn get_dev_location(&self, span: Span) -> ast::ExprOrSpread {
 		let loc = self.options.cm.lookup_char_pos(span.lo);
-		let file_name = self.options.path_data.rel_path.to_slash_lossy().to_string();
+		let file_name = self
+			.options
+			.path_data
+			.rel_path
+			.to_string_lossy()
+			.to_string();
 		ast::ExprOrSpread {
 			spread: None,
 			expr: Box::new(ast::Expr::Object(ast::ObjectLit {

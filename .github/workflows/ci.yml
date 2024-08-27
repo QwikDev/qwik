@@ -249,7 +249,11 @@ jobs:
   ############ BUILD PACKAGE ############
   combined-qwik:
     name: Bundle Qwik
-    if: always()
+    if: |
+      always() &&
+      (needs.build-qwik.result == 'success' || needs.build-qwik.result == 'skipped') &&
+      (needs.build-linux-wasm-bindings.result == 'success' || needs.build-linux-wasm-bindings.result == 'skipped') &&
+      (needs.build-other-bindings.result == 'success' || needs.build-other-bindings.result == 'skipped')
     runs-on: ubuntu-latest
     needs:
       - build-qwik
@@ -258,15 +262,6 @@ jobs:
       - changes
 
     steps:
-      - name: Verify builds
-        if: |
-          !(
-            (needs.build-qwik.result == 'success' || needs.build-qwik.result == 'skipped') &&
-            (needs.build-linux-wasm-bindings.result == 'success' || needs.build-linux-wasm-bindings.result == 'skipped') &&
-            (needs.build-other-bindings.result == 'success' || needs.build-other-bindings.result == 'skipped')
-          )
-        run: exit 1
-
       - name: Restore artifacts
         uses: actions/download-artifact@v4
 
@@ -307,13 +302,9 @@ jobs:
     needs:
       - changes
       - combined-qwik
-    if: always()
+    if: always() && needs.combined-qwik.result == 'success'
     runs-on: ubuntu-latest
     steps:
-      - name: Verify combined-qwik
-        if: needs.combined-qwik.result != 'success'
-        run: exit 1
-
       - name: Checkout
         if: needs.changes.outputs.build-others == 'true'
         uses: actions/checkout@v4
@@ -414,7 +405,7 @@ jobs:
 
   ############ BUILD INSIGHTS ############
   build-insights:
-    if: always() && needs.changes.outputs.build-insights == 'true'
+    if: always() && needs.changes.outputs.build-insights == 'true' && needs.build-other-packages.result == 'success'
     name: Build Insights
     needs:
       - changes
@@ -422,10 +413,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Verify build-other-packages
-        if: needs.build-other-packages.result != 'success'
-        run: exit 1
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -467,7 +454,7 @@ jobs:
 
   ############ BUILD DOCS ############
   build-docs:
-    if: always() && needs.changes.outputs.build-docs == 'true'
+    if: always() && needs.changes.outputs.build-docs == 'true' && needs.build-other-packages.result == 'success'
     name: Build Docs
     needs:
       - changes
@@ -475,10 +462,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Verify build-other-packages
-        if: needs.build-other-packages.result != 'success'
-        run: exit 1
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -559,10 +542,14 @@ jobs:
     name: Unit Tests
     if: |
       always() && (
-        github.ref == 'refs/heads/main' || 
-        needs.changes.outputs.build-qwik == 'true' ||
-        needs.changes.outputs.build-others == 'true' ||
-        needs.changes.outputs.build-rust == 'true'
+        github.ref == 'refs/heads/main' || (
+          (
+            needs.changes.outputs.build-qwik == 'true' ||
+            needs.changes.outputs.build-others == 'true' ||
+            needs.changes.outputs.build-rust == 'true'
+          ) &&
+          needs.build-other-packages.result == 'success'
+        )
       )
     runs-on: ubuntu-latest
     needs:
@@ -570,10 +557,6 @@ jobs:
       - build-other-packages
 
     steps:
-      - name: Verify build-other-packages
-        if: needs.build-other-packages.result != 'success'
-        run: exit 1
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -743,7 +726,6 @@ jobs:
     name: All requirements are met
     runs-on: ubuntu-latest
     needs:
-      - test-unit
       - test-e2e
       - validate-rust
       - lint-package
@@ -754,10 +736,9 @@ jobs:
       - name: check status
         if: |
           !(
-            (needs.test-unit.result == 'success' || needs.test-unit.result == 'skipped') &&
+            (needs.lint-package.result == 'success' || needs.lint-package.result == 'skipped') &&
             (needs.test-e2e.result == 'success' || needs.test-e2e.result == 'skipped') &&
             (needs.validate-rust.result == 'success' || needs.validate-rust.result == 'skipped') &&
-            (needs.lint-package.result == 'success' || needs.lint-package.result == 'skipped') &&
             (needs.build-docs.result == 'success' || needs.build-docs.result == 'skipped') &&
             (needs.build-insights.result == 'success' || needs.build-insights.result == 'skipped')
           )
@@ -769,21 +750,20 @@ jobs:
     runs-on: ubuntu-latest
 
     needs:
-      - changes
-      - test-unit
       - test-e2e
-    # test-unit runs when any packages changes
+      - changes
+    # Either one of the packages changed or we need to merge changesets
     if: |
       always() && (
         github.ref == 'refs/heads/main' ||
-        needs.test-unit.result == 'success'
+        ((needs.changes.outputs.build-qwik == 'true' ||
+           needs.changes.outputs.build-others == 'true' ||
+           needs.changes.outputs.build-rust == 'true') &&
+         needs.test-e2e.result == 'success'
+        )
       )
 
     steps:
-      - name: Verify test-e2e
-        if: needs.test-e2e.result != 'success'
-        run: exit 1
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -882,10 +862,14 @@ jobs:
       - release
 
     if: |
-      always() && (
-        github.ref == 'refs/heads/main' ||
-        needs.release.result == 'success'
-      )
+      always() &&
+      (
+        needs.changes.outputs.build-qwik == 'true' ||
+        needs.changes.outputs.build-rust == 'true' ||
+        needs.changes.outputs.build-others == 'true'
+      ) &&
+      needs.release.result == 'success' &&
+      github.ref_name == 'main'
 
     steps:
       - name: Repository Dispatch

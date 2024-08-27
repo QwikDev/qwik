@@ -31,6 +31,7 @@ pub struct NewModuleCtx<'a> {
 	pub scoped_idents: &'a [Id],
 	pub global: &'a GlobalCollect,
 	pub core_module: &'a JsWord,
+	pub is_entry: bool,
 	pub need_handle_watch: bool,
 	pub need_transform: bool,
 	pub explicit_extensions: bool,
@@ -273,7 +274,7 @@ fn new_entry_module(
 	for hook in hooks {
 		// TODO fix the path from the entry to the hook in case of mismatched location
 		let mut src = fix_path(
-			hook.path.to_string(),
+			&hook.path.to_string(),
 			Path::new(path).parent().unwrap().to_str().unwrap(),
 			&["./", &hook.canonical_filename].concat(),
 		)

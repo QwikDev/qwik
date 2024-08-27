@@ -257,17 +257,13 @@ export function generateManifestFromBundles(
     },
   };
 
-  const buildPath = path.resolve(opts.rootDir, opts.outDir, 'build');
   // We need to find our QRL exports
   const qrlNames = new Set([...hooks.map((h) => h.name)]);
-  for (const outputBundle of Object.values(outputBundles)) {
+  for (const [fileName, outputBundle] of Object.entries(outputBundles)) {
     if (outputBundle.type !== 'chunk') {
       continue;
     }
-    const bundleFileName = path.relative(
-      buildPath,
-      path.resolve(opts.outDir, outputBundle.fileName)
-    );
+    const bundleFileName = path.basename(fileName);
 
     const buildDirName = path.dirname(outputBundle.fileName);
     const bundle: QwikBundle = {
@@ -286,23 +282,21 @@ export function generateManifestFromBundles(
 
     const bundleImports = outputBundle.imports
       .filter((i) => path.dirname(i) === buildDirName)
-      .map((i) => path.relative(buildDirName, outputBundles[i].fileName));
+      .map((i) => path.relative(buildDirName, i));
     if (bundleImports.length > 0) {
       bundle.imports = bundleImports;
     }
 
     const bundleDynamicImports = outputBundle.dynamicImports
       .filter((i) => path.dirname(i) === buildDirName)
-      .map((i) => path.relative(buildDirName, outputBundles[i].fileName));
+      .map((i) => path.relative(buildDirName, i));
     if (bundleDynamicImports.length > 0) {
       bundle.dynamicImports = bundleDynamicImports;
     }
 
     // Rollup doesn't provide the moduleIds in the outputBundle but Vite does
     const ids = outputBundle.moduleIds || Object.keys(outputBundle.modules);
-    const modulePaths = ids
-      .filter((m) => !m.startsWith(`\u0000`))
-      .map((m) => path.relative(opts.rootDir, m));
+    const modulePaths = ids.filter((m) => !m.startsWith(`\u0000`));
     if (modulePaths.length > 0) {
       bundle.origins = modulePaths;
     }
@@ -330,30 +324,6 @@ export function generateManifestFromBundles(
       loc: hook.loc,
     };
   }
-  // To inspect the bundles, uncomment the following lines
-  // and temporarily add the writeFileSync import from fs
-  // writeFileSync(
-  //   'output-bundles.json',
-  //   JSON.stringify(
-  //     Object.entries(outputBundles).map(([n, b]) => [
-  //       n,
-  //       {
-  //         ...b,
-  //         code: '<removed>',
-  //         map: '<removed>',
-  //         source: '<removed>',
-  //         modules:
-  //           'modules' in b
-  //             ? Object.fromEntries(
-  //                 Object.entries(b.modules).map(([k, v]) => [k, { ...v, code: '<removed>' }])
-  //               )
-  //             : undefined,
-  //       },
-  //     ]),
-  //     null,
-  //     '\t'
-  //   )
-  // );
 
   return updateSortAndPriorities(manifest);
 }

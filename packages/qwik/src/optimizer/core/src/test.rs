@@ -26,10 +26,10 @@ macro_rules! snapshot_res {
 					to_string_pretty(&v.diagnostics).unwrap()
 				)
 				.as_str();
-				insta::assert_snapshot!(output);
+				insta::assert_display_snapshot!(output);
 			}
 			Err(err) => {
-				insta::assert_snapshot!(err);
+				insta::assert_display_snapshot!(err);
 			}
 		}
 	};

@@ -73,12 +73,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Log removed files using GitHub Script
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          echo "Removed files:"
+          echo "${{ toJSON(github.event.head_commit.removed) }}"
+
       - name: Check for removed .mock_changesets files and directory contents
         id: check_changesets
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           is_release=false
-          removed_files=$(jq -r '.head_commit.removed | @sh' < $GITHUB_EVENT_PATH)
+          removed_files="${{ github.event.head_commit.removed }}"
 
           echo "Removed files: $removed_files"
 

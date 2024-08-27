@@ -17,6 +17,7 @@
 - [Slots](</docs/(qwik)/components/slots/index.mdx>)
 - [Rendering](</docs/(qwik)/components/rendering/index.mdx>)
 - [Styling](</docs/(qwik)/components/styles/index.mdx>)
+- [API Reference](</api/qwik/>)
 
 ## Qwik City
 
@@ -30,9 +31,9 @@
 - [Endpoints](</docs/(qwikcity)/endpoints/index.mdx>)
 - [Middleware](</docs/(qwikcity)/middleware/index.mdx>)
 - [server$](</docs/(qwikcity)/server$/index.mdx>)
+- [Re-exporting loaders](/docs/(qwikcity)/re-exporting-loaders/index.mdx)
 - [Caching](</docs/(qwikcity)/caching/index.mdx>)
 - [HTML attributes](</docs/(qwikcity)/html-attributes/index.mdx>)
-- [Env variables](</docs/(qwikcity)/env-variables/index.mdx>)
 - [API reference](</docs/(qwikcity)/api/index.mdx>)
 
 ## Cookbook
@@ -47,7 +48,6 @@
 - [NavLink](/docs/cookbook/nav-link/index.mdx)
 - [Node Docker deploy](/docs/cookbook/node-docker-deploy/index.mdx)
 - [Portals](/docs/cookbook/portals/index.mdx)
-- [Re-exporting loaders](/docs/cookbook/re-exporting-loaders/index.mdx)
 - [Streaming loaders](/docs/cookbook/streaming-deferred-loaders/index.mdx)
 - [Sync events w state](/docs/cookbook/sync-events/index.mdx)
 - [Theme Managment](/docs/cookbook/theme-management/index.mdx)
@@ -106,6 +106,7 @@
 - [React Cheat Sheet](</docs/(qwikcity)/guides/react-cheat-sheet/index.mdx>)
 - [Best Practices](</docs/(qwikcity)/guides/best-practices/index.mdx>)
 - [Bundle Optimization](</docs/(qwikcity)/guides/bundle/index.mdx>)
+- [Env variables](</docs/(qwikcity)/guides/env-variables/index.mdx>)
 
 ## Concepts
 

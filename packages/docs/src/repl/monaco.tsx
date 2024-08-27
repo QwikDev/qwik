@@ -218,10 +218,9 @@ export const addQwikLibs = async (version: string) => {
 };
 
 const loadDeps = async (qwikVersion: string) => {
-  const isDev = qwikVersion.includes('dev');
-  const v = qwikVersion.split('-')[0].split('.').map(Number);
+  const [M, m, p] = qwikVersion.split('-')[0].split('.').map(Number);
   const prefix =
-    qwikVersion === 'bundled' || (v[0] >= 1 && v[1] >= 7 && v[2] >= (isDev ? 1 : 2))
+    qwikVersion === 'bundled' || M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2)))
       ? '/dist/'
       : '/';
   const deps: NodeModuleDep[] = [

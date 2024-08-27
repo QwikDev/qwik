@@ -73,9 +73,6 @@
       ]
     }
   },
-  "simple-git-hooks": {
-    "pre-commit": "pnpm pretty-quick --staged"
-  },
   "contributors": [
     {
       "name": "Miško Hevery",
@@ -205,7 +202,7 @@
     "build.platform.copy": "tsm scripts/index.ts --platform-binding-wasm-copy",
     "build.qwik-city": "tsm scripts/index.ts --tsc --qwikcity",
     "build.validate": "tsm scripts/index.ts --tsc --build --api --eslint --qwikcity --platform-binding --wasm --validate",
-    "build.vite": "tsm scripts/index.ts --tsc --build --api --qwikcity --eslint --qwiklabs --platform-binding-wasm-copy",
+    "build.vite": "tsm scripts/index.ts --tsc --build --api --qwikcity --eslint --platform-binding-wasm-copy",
     "build.wasm": "tsm scripts/index.ts --wasm",
     "build.watch": "tsm scripts/index.ts --build  --qwikcity --watch --dev --platform-binding",
     "change": "changeset",
@@ -228,13 +225,13 @@
     "lint.prettier": "prettier --cache --check .",
     "lint.rust": "make lint",
     "lint.syncpack": "syncpack list-mismatches",
-    "prepare": "simple-git-hooks",
     "preinstall": "npx only-allow pnpm",
+    "prepare": "simple-git-hooks",
     "prettier.fix": "prettier --cache --write .",
     "qwik-save-artifacts": "tsm ./scripts/qwik-save-artifacts.ts",
     "release": "changeset publish",
-    "release.prepare": "pnpm build --prepare-release",
     "release.pkg-pr-new": "pnpm dlx pkg-pr-new@^0.0.9 publish --compact --pnpm ./packages/qwik ./packages/qwik-city ./packages/eslint-plugin-qwik ./packages/create-qwik",
+    "release.prepare": "pnpm build --prepare-release",
     "serve": "tsm --inspect --conditions=development starters/dev-server.ts 3300",
     "serve.debug": "tsm --inspect-brk --conditions=development starters/dev-server.ts 3300",
     "start": "concurrently \"npm:build.watch\"  \"npm:tsc.watch\" -n build,tsc -c green,cyan",
@@ -255,6 +252,9 @@
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",
     "update.qwik.builds": "tsm scripts/update-qwik-builds.ts packages/docs && tsm scripts/update-qwik-builds.ts packages/insights; pnpm install",
     "vitest": "vitest"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm pretty-quick --staged"
   },
   "type": "module"
 }

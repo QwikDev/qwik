@@ -168,9 +168,8 @@ export const receiveMessageFromReplServer = (
 const getDependencies = (input: ReplAppInput) => {
   const out = { ...bundled };
   if (input.version !== 'bundled') {
-    const isDev = input.version.includes('dev');
-    const v = input.version.split('-')[0].split('.').map(Number);
-    const prefix = v[0] >= 1 && v[1] >= 7 && v[2] >= (isDev ? 1 : 2) ? '/dist/' : '/';
+    const [M, m, p] = input.version.split('-')[0].split('.').map(Number);
+    const prefix = M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2))) ? '/dist/' : '/';
     out[QWIK_PKG_NAME] = {
       version: input.version,
     };

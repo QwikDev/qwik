@@ -952,7 +952,13 @@ const RESOLVE_EXTS = {
   '.cjs': true,
 } as const;
 
-const TRANSFORM_REGEX = /\.qwik\.[mc]?js$/;
+/**
+ * Any file that matches this needs to be processed by Qwik to extract QRL segments etc. Used in
+ * libraries.
+ *
+ * @internal
+ */
+export const TRANSFORM_REGEX = /\.qwik\.[mc]?js$/;
 
 export const QWIK_CORE_ID = '@builder.io/qwik';
 

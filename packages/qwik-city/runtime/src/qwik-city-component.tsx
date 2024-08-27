@@ -264,7 +264,6 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         const newHref = pageData.href;
         const newURL = new URL(newHref, trackUrl);
         if (!isSamePath(newURL, trackUrl)) {
-          // Change our path to the canonical path in the response.
           trackUrl = newURL;
           loadRoutePromise = loadRoute(
             qwikCity.routes,

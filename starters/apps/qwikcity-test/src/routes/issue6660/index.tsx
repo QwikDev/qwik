@@ -12,7 +12,7 @@ export default component$(() => {
         Submit
       </button>
 
-      {action.value?.ok && <span id="status">Submitted</span>}
+      {action.value?.ok && <span id="#status">Submitted</span>}
     </Form>
   );
 });

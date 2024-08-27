@@ -1,17 +1,17 @@
 /* eslint-disable */
 import {
   component$,
-  createContextId,
-  Slot,
-  useComputed$,
-  useContext,
-  useContextProvider,
-  useSignal,
+  useVisibleTask$,
   useStore,
   useStyles$,
+  Slot,
+  useSignal,
   useTask$,
-  useVisibleTask$,
   type Signal,
+  useComputed$,
+  useContext,
+  createContextId,
+  useContextProvider,
 } from "@builder.io/qwik";
 import { delay } from "../streaming/streaming";
 
@@ -66,11 +66,11 @@ export const Timer = component$(() => {
   // Double count watch
   useVisibleTask$(() => {
     state.count = 10;
-    const timer = setTimeout(() => {
+    const timer = setInterval(() => {
       state.count++;
     }, 500);
     return () => {
-      clearTimeout(timer);
+      clearInterval(timer);
     };
   });
 

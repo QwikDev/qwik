@@ -24,14 +24,13 @@ check:
 lint:
 	cargo clippy --all-features && cargo check --all-features && cargo fmt -- --check
 
-# We only test core because there are no other tests and qwik-napi breaks the build
 test:
-	cargo test --manifest-path packages/qwik/src/optimizer/core/Cargo.toml
+	cargo test
 
 test-update:
-	if ! cargo test --manifest-path packages/qwik/src/optimizer/core/Cargo.toml; then \
+	if ! cargo test; then \
 		cd packages/qwik/src/optimizer/core/src/snapshots/ && for i in *.new; do f=$$(basename $$i .new); mv $$i $$f; done; \
-		cargo test --manifest-path packages/qwik/src/optimizer/core/Cargo.toml; \
+		cargo test; \
 	fi
 
 publish-core:

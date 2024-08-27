@@ -2119,8 +2119,6 @@ string \| null
 
 ## qwikVite
 
-The types for Vite/Rollup don't allow us to be too specific about the return type. The correct return type is `[QwikVitePlugin, VitePlugin<never>]`, and if you search the plugin by name you'll get the `QwikVitePlugin`.
-
 ```typescript
 export declare function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;
 ```
@@ -2217,15 +2215,54 @@ _(Optional)_
 
 ## QwikVitePlugin
 
-This is the type of the "pre" Qwik Vite plugin. `qwikVite` actually returns a tuple of two plugins, but after Vite flattens them, you can find the plugin by name.
-
 ```typescript
-export type QwikVitePlugin = P<QwikVitePluginApi> & {
-  name: "vite-plugin-qwik";
-};
+export interface QwikVitePlugin
 ```
 
-**References:** [QwikVitePluginApi](#qwikvitepluginapi)
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[api](#)
+
+</td><td>
+
+</td><td>
+
+[QwikVitePluginApi](#qwikvitepluginapi)
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[name](#)
+
+</td><td>
+
+</td><td>
+
+'vite-plugin-qwik'
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
 

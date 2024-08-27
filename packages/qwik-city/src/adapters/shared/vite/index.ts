@@ -21,7 +21,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
   let format = 'esm';
   const outputEntries: string[] = [];
 
-  const plugin: Plugin<never> = {
+  const plugin: Plugin = {
     name: `vite-plugin-qwik-city-${opts.name}`,
     enforce: 'post',
     apply: 'build',

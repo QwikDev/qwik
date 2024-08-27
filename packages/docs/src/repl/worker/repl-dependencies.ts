@@ -9,8 +9,8 @@ let cache: Cache;
 export const depResponse = async (pkgName: string, pkgPath: string) => {
   if (pkgName === QWIK_PKG_NAME && !pkgPath.startsWith('/bindings')) {
     const version = options.deps[pkgName].version;
-    const v = version.split('-')[0].split('.').map(Number);
-    if (v[0] > 1 || (v[0] == 1 && (v[1] > 7 || (v[1] == 7 && v[2] >= 2)))) {
+    const [M, m, p] = version.split('-')[0].split('.').map(Number);
+    if (M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2)))) {
       pkgPath = `/dist${pkgPath}`;
     }
   }

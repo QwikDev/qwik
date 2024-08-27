@@ -1,13 +1,18 @@
+# Overview
+
 <!--
-The Qwik Team and Community appreciate all PRs. Thank you for your effort! Not all PRs can be merged, but those that meet the following criteria will be prioritized:
+The Qwik Team and Qwik Community are grateful for all PRs that improve Qwik. Thank you for your time and effort! Please be aware that not all PRs can be merged, but PRs that meet the following criteria will receive the highest priority:
 
-a) Core fixes, and
+a) Fixes to the core, and
 
-b) Framework functionality achievable only by the core.
+b) Framework functionality that can only be achieved by the core.
 
-If this PR can be done as a 3rd-Party Community Add-On, we encourage that for quicker adoption.
+If your functionality can be delivered as a 3rd-Party Community Add-On, we encourage that route as it will likely provide a faster path to adoption.
 
-If you believe your functionality is valuable to the entire Qwik Community, discuss it in the Qwik Discord channels for potential inclusion in the core.
+If you feel your functionality is of high value to everybody in the Qwik Community, we encourage socializing it in the Qwik Discord channels as the core team may take this up for inclusion in the core.
+
+_— Build primitives is our mantra_
+
 -->
 
 # What is it?
@@ -15,19 +20,21 @@ If you believe your functionality is valuable to the entire Qwik Community, disc
 - [ ] Feature / enhancement
 - [ ] Bug
 - [ ] Docs / tests / types / typos
-- [ ] Infra
 
 # Description
 
-<!-- 
-* Include a summary of the motivation and context for this PR
-* Is it related to any opened issues? (please add them here)
--->
+Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context. List any dependencies that are required for this change.
+
+# Use cases and why
+
+<!-- Actual / expected behavior if it's a bug -->
+
+- 1. One use case
+- 2. Another use case
 
 # Checklist:
 
 - [ ] My code follows the [developer guidelines of this project](https://github.com/QwikDev/qwik/blob/main/CONTRIBUTING.md)
 - [ ] I have performed a self-review of my own code
-- [ ] I have ran `pnpm change` and documented my changes
-- [ ] I have made corresponding changes to the Qwik docs
+- [ ] I have made corresponding changes to the documentation
 - [ ] Added new tests to cover the fix / functionality

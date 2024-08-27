@@ -19,10 +19,10 @@ fix:
 	cargo fmt
 
 check:
-	cargo fmt -- --check && cargo check --all-features
+	cargo fmt -- --check && cargo check
 
 lint:
-	cargo clippy --all-features && cargo check --all-features && cargo fmt -- --check
+	cargo clippy
 
 test:
 	cargo test

@@ -130,15 +130,7 @@
     "README.md",
     "LICENSE",
     "dist",
-    "bindings",
-    "build.d.ts",
-    "cli.d.ts",
-    "jsx-dev-runtime.d.ts",
-    "jsx-runtime.d.ts",
-    "loader.d.ts",
-    "optimizer.d.ts",
-    "server.d.ts",
-    "testing.d.ts"
+    "bindings"
   ],
   "homepage": "https://qwik.dev/",
   "keywords": [

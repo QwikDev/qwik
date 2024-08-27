@@ -1,6 +1,6 @@
 import { Octokit } from '@octokit/action';
 import { execa } from 'execa';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import prompts from 'prompts';
 import semver from 'semver';
@@ -12,40 +12,28 @@ import { validateBuild } from './validate-build';
 
 let version: string;
 
-export async function getVersion(distTag?: string) {
+export async function getVersion(distTag?: string, rootDir?: string) {
   if (!version) {
     const __dirname = fileURLToPath(new URL('.', import.meta.url));
-    // Qwik is the source of truth for the version
-    const qwikDir = join(__dirname, '..', 'packages', 'qwik');
-    const qwikPkg = await readPackageJson(qwikDir);
-    let v = qwikPkg.version;
+    rootDir ||= resolve(__dirname, '..');
+    const rootPkg = await readPackageJson(rootDir);
+    let v = rootPkg.version;
     if (!distTag || distTag === 'dev') {
+      const d = new Date();
       v += '-dev';
-      // add the current short commit hash
-      try {
-        const gitCommit = await execa('git', ['rev-parse', 'HEAD']);
-        v += `+${gitCommit.stdout.slice(0, 7)}`;
-      } catch (e) {
-        // git not found
-      }
-      const gitStatus = await execa('git', ['status', '--porcelain']);
-      if (gitStatus.stdout !== '') {
-        const d = new Date();
-        v += '-';
-        v += String(d.getUTCFullYear());
-        v += String(d.getUTCMonth() + 1).padStart(2, '0');
-        v += String(d.getUTCDate()).padStart(2, '0');
-        v += String(d.getUTCHours()).padStart(2, '0');
-        v += String(d.getUTCMinutes()).padStart(2, '0');
-        v += String(d.getUTCSeconds()).padStart(2, '0');
-      }
+      v += String(d.getUTCFullYear());
+      v += String(d.getUTCMonth() + 1).padStart(2, '0');
+      v += String(d.getUTCDate()).padStart(2, '0');
+      v += String(d.getUTCHours()).padStart(2, '0');
+      v += String(d.getUTCMinutes()).padStart(2, '0');
+      v += String(d.getUTCSeconds()).padStart(2, '0');
     }
     version = v;
   }
   return version;
 }
 export async function setDistVersion(config: BuildConfig) {
-  config.distVersion = await getVersion(config.setDistTag);
+  config.distVersion = await getVersion(config.setDistTag, config.rootDir);
 }
 
 export async function setReleaseVersion(config: BuildConfig) {
@@ -57,7 +45,7 @@ export async function setReleaseVersion(config: BuildConfig) {
 
   console.log(`💫 Set release npm dist tag: ${distTag}`);
 
-  config.distVersion = await getVersion('release');
+  config.distVersion = await getVersion('release', config.rootDir);
 
   const validVersion = semver.valid(config.distVersion)!;
   if (!validVersion) {

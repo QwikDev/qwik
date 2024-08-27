@@ -503,32 +503,8 @@ jobs:
             packages/docs/dist
             packages/docs/server
 
-  deploy-docs:
-    name: Cloudflare Pages Deployment
-    if: always() && needs.changes.outputs.build-docs == 'true'
-    needs:
-      - build-docs
-      - changes
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check docs status
-        if: needs.build-docs.result != 'success'
-        run: exit 1
-
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Restore docs cache
-        uses: actions/cache/restore@v4
-        with:
-          key: ${{ needs.changes.outputs.hash-docs }}
-          path: |
-            packages/docs/dist
-            packages/docs/server
-
-      # not the official version, so be careful when updating
-      - name: Deploy to Cloudflare Pages
+      - name: Cloudflare Pages Deployment
+        # not the official version, so be careful when updating
         uses: AdrianGonz97/refined-cf-pages-action@c7b767eef599f127d8ce2388d4ed2270d3b750af
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

@@ -57,9 +57,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
     },
   };
 
-  type P<T> = Plugin<T> & { api: T };
-
-  const plugin: P<QwikCityPluginApi> = {
+  const plugin: Plugin = {
     name: 'vite-plugin-qwik-city',
     enforce: 'pre',
     api,

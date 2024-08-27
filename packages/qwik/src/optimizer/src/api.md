@@ -4,8 +4,6 @@
 
 ```ts
 
-import type { Plugin as Plugin_2 } from 'vite';
-
 // @public (undocumented)
 export interface ComponentEntryStrategy {
     // (undocumented)
@@ -287,7 +285,7 @@ export interface QwikSymbol {
     parent: string | null;
 }
 
-// @public
+// @public (undocumented)
 export function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;
 
 // @public (undocumented)
@@ -298,12 +296,13 @@ export interface QwikViteDevResponse {
     _qwikRenderResolve?: () => void;
 }
 
-// Warning: (ae-forgotten-export) The symbol "P" needs to be exported by the entry point index.d.ts
-//
-// @public
-export type QwikVitePlugin = P<QwikVitePluginApi> & {
+// @public (undocumented)
+export interface QwikVitePlugin {
+    // (undocumented)
+    api: QwikVitePluginApi;
+    // (undocumented)
     name: 'vite-plugin-qwik';
-};
+}
 
 // @public (undocumented)
 export interface QwikVitePluginApi {

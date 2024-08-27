@@ -182,23 +182,35 @@ export function normalizeRollupOutputOptionsObject(
 ): Rollup.OutputOptions {
   const outputOpts: Rollup.OutputOptions = { ...rollupOutputOptsObj };
 
+  if (!outputOpts.assetFileNames) {
+    outputOpts.assetFileNames = 'build/q-[hash].[ext]';
+  }
   if (opts.target === 'client') {
     // client output
-    if (!outputOpts.assetFileNames) {
-      // SEO likes readable asset names
-      const assetFileNames = 'assets/[hash]-[name].[ext]';
-      outputOpts.assetFileNames = useAssetsDir
-        ? `${opts.assetsDir}/${assetFileNames}`
-        : assetFileNames;
-    }
-    // Friendly name in dev
-    const fileName = opts.buildMode == 'production' ? 'build/q-[hash].js' : 'build/[name].js';
-    // client production output
-    if (!outputOpts.entryFileNames) {
-      outputOpts.entryFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
-    }
-    if (!outputOpts.chunkFileNames) {
-      outputOpts.chunkFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
+    outputOpts.assetFileNames = useAssetsDir
+      ? `${opts.assetsDir}/${outputOpts.assetFileNames}`
+      : outputOpts.assetFileNames;
+
+    if (opts.buildMode === 'production') {
+      // client production output
+      if (!outputOpts.entryFileNames) {
+        const fileName = 'build/q-[hash].js';
+        outputOpts.entryFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
+      }
+      if (!outputOpts.chunkFileNames) {
+        const fileName = 'build/q-[hash].js';
+        outputOpts.chunkFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
+      }
+    } else {
+      // client development output
+      if (!outputOpts.entryFileNames) {
+        const fileName = 'build/[name].js';
+        outputOpts.entryFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
+      }
+      if (!outputOpts.chunkFileNames) {
+        const fileName = 'build/[name].js';
+        outputOpts.chunkFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
+      }
     }
   } else if (opts.buildMode === 'production') {
     // server production output
@@ -206,10 +218,9 @@ export function normalizeRollupOutputOptionsObject(
     if (!outputOpts.chunkFileNames) {
       outputOpts.chunkFileNames = 'q-[hash].js';
     }
-  }
-  // all other cases, like lib output
-  if (!outputOpts.assetFileNames) {
-    outputOpts.assetFileNames = 'assets/[hash]-[name].[ext]';
+    if (!outputOpts.assetFileNames) {
+      outputOpts.assetFileNames = 'assets/[hash].[ext]';
+    }
   }
 
   if (opts.target === 'client') {

@@ -177,7 +177,6 @@
     "build.wasm": "tsm scripts/index.ts --wasm",
     "build.watch": "tsm scripts/index.ts --build  --qwikcity --watch --dev --platform-binding",
     "change": "changeset",
-    "changeset.version": "changeset version && rm CHANGELOG.md",
     "cli": "pnpm build.cli && node packages/create-qwik/dist/create-qwik.cjs && tsm scripts/validate-cli.ts --copy-local-qwik-dist",
     "cli.qwik": "pnpm build.cli && node packages/qwik/dist/qwik-cli.cjs",
     "cli.validate": "tsm scripts/validate-cli.ts",
@@ -222,6 +221,7 @@
     "tsc.trace": "tsc -p tsconfig.json --traceResolution > tsc.log",
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",
     "update.qwik.builds": "tsm scripts/update-qwik-builds.ts packages/docs && tsm scripts/update-qwik-builds.ts packages/insights; pnpm install",
+    "version": "changeset version && rm CHANGELOG.md",
     "vitest": "vitest"
   },
   "type": "module"

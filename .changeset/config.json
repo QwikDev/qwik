@@ -1,8 +1,17 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@3.0.1/schema.json",
   "changelog": ["./changelog-github-custom.cjs", { "repo": "QwikDev/qwik" }],
+  "privatePackages": { "version": true },
   "commit": false,
-  "fixed": [["@builder.io/qwik", "@builder.io/qwik-city", "eslint-plugin-qwik", "create-qwik"]],
+  "fixed": [
+    [
+      "@builder.io/qwik",
+      "@builder.io/qwik-city",
+      "eslint-plugin-qwik",
+      "create-qwik",
+      "qwik-monorepo"
+    ]
+  ],
   "linked": [],
   "access": "public",
   "baseBranch": "main",

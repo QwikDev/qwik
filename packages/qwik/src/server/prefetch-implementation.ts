@@ -75,11 +75,15 @@ function linkHtmlImplementation(
 ) {
   const urls = flattenPrefetchResources(prefetchResources);
   const rel = prefetchImpl.linkRel || 'prefetch';
+  const priority = prefetchImpl.linkFetchPriority;
 
   for (const url of urls) {
     const attributes: Record<string, string> = {};
     attributes['href'] = url;
     attributes['rel'] = rel;
+    if (priority) {
+      attributes['fetchpriority'] = priority;
+    }
     if (rel === 'prefetch' || rel === 'preload') {
       if (url.endsWith('.js')) {
         attributes['as'] = 'script';
@@ -101,6 +105,7 @@ function linkJsImplementation(
   nonce?: string
 ) {
   const rel = prefetchImpl.linkRel || 'prefetch';
+  const priority = prefetchImpl.linkFetchPriority;
   let s = ``;
 
   if (prefetchImpl.workerFetchInsert === 'no-link-support') {
@@ -113,6 +118,9 @@ function linkJsImplementation(
   s += `const l=document.createElement('link');`;
   s += `l.setAttribute("href",u);`;
   s += `l.setAttribute("rel","${rel}");`;
+  if (priority) {
+    s += `l.setAttribute("fetchpriority","${priority}");`;
+  }
 
   if (prefetchImpl.workerFetchInsert === 'no-link-support') {
     s += `if(i===0){`;
@@ -173,6 +181,7 @@ function normalizePrefetchImplementation(
 const PrefetchImplementationDefault: Required<PrefetchImplementation> = {
   linkInsert: null,
   linkRel: null,
+  linkFetchPriority: null,
   workerFetchInsert: null,
   prefetchEvent: 'always',
 };

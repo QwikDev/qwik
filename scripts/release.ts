@@ -22,11 +22,9 @@ export async function getVersion(distTag?: string) {
     if (!distTag || distTag === 'dev') {
       v += '-dev';
       // add the current short commit hash
-      // when in github actions, get from environment
       try {
-        const gitSha = process.env.GITHUB_SHA;
-        const gitCommit = gitSha || (await execa('git', ['rev-parse', 'HEAD'])).stdout;
-        v += `+${gitCommit.slice(0, 7)}`;
+        const gitCommit = await execa('git', ['rev-parse', 'HEAD']);
+        v += `+${gitCommit.stdout.slice(0, 7)}`;
       } catch (e) {
         // git not found
       }

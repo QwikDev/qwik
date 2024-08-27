@@ -75,9 +75,11 @@ jobs:
 
       - name: Log removed files using GitHub Script
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: |
-          echo "Removed files:"
-          echo "${{ toJSON(github.event.head_commit.removed) }}"
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const removedFiles = context.payload.head_commit.removed;
+            console.log("Removed files:", removedFiles);
 
       - name: Check for removed .mock_changesets files and directory contents
         id: check_changesets

@@ -41,6 +41,14 @@ import { serverQrl } from "@builder.io/qwik-city";
 import { _noopQrlDEV } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
 import { qrlDEV } from "@builder.io/qwik";
+import { sideEffect } from './secret';
+(function() {
+    console.log('run');
+})();
+(()=>{
+    console.log('run');
+})();
+sideEffect();
 export const api = serverQrl(/*#__PURE__*/ _noopQrlDEV("api_server_JonPp043gH0", {
     file: "/user/qwik/src/test.tsx",
     lo: 0,
@@ -55,7 +63,7 @@ export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./tes
 }));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAoBA,OAAO,MAAM,MAAM;;;;;IAEhB;AAEH,6BAAe;;;;;IAIV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAMA,SAAS,UAAU,QAAQ,WAAW;AAKtC,CAAC;IACG,QAAQ,GAAG,CAAC;AACd,CAAC;AACD,CAAC;IACC,QAAQ,GAAG,CAAC;AACd,CAAC;AAEH;AAEA,OAAO,MAAM,MAAM;;;;;IAEhB;AAEH,6BAAe;;;;;IAIV\"}")
 ============================= test_component_button_onclick_dgk9xlyroka.js (ENTRY POINT)==
 
 import { api } from "./test";

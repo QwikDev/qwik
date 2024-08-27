@@ -2233,7 +2233,7 @@ fn example_transpile_jsx_only() {
 		code: r#"
 import { component$, useStore } from '@builder.io/qwik';
 
-export const App = component$((props) => {
+export const App = component$((props: Stuff) => {
     return (
         <Cmp>
             <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
@@ -2569,7 +2569,7 @@ fn example_preserve_filenames() {
 		code: r#"
 import { component$, useStore } from '@builder.io/qwik';
 
-export const App = component$((props) => {
+export const App = component$((props: Stuff) => {
     return (
         <Cmp>
             <p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>

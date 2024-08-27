@@ -122,7 +122,7 @@ jobs:
           lookup-only: true
           path: packages/qwik/dist
           # Note that this includes the package.json of qwik
-          key: ${{ hashfiles('.github/workflows/ci.yml', 'pnpm-lock.yaml', 'scripts.json', 'scripts/**/*', 'packages/qwik/**/*', '!**/*.unit.*', '!**/*.rs') }}
+          key: ${{ hashfiles('pnpm-lock.yaml', 'scripts.json', 'packages/qwik/**/*', '!**/*.unit.*', '!**/*.rs') }}
       - run: 'echo ${{ steps.cache-qwik.outputs.cache-primary-key }} > qwik-key.txt'
       - name: 'check cache: rust'
         id: cache-rust

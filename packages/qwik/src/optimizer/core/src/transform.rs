@@ -1114,7 +1114,7 @@ impl<'a> QwikTransform<'a> {
 						))),
 					}),
 					value: Box::new(ast::Expr::Object(ast::ObjectLit {
-						props: immutable_props.drain(..).collect(),
+						props: std::mem::take(&mut immutable_props),
 						span: DUMMY_SP,
 					})),
 				},
@@ -1274,18 +1274,20 @@ impl<'a> QwikTransform<'a> {
 										],
 										body: Box::new(ast::BlockStmtOrExpr::Expr(Box::new(
 											ast::Expr::Assign(ast::AssignExpr {
-												left: ast::PatOrExpr::Expr(Box::new(
-													ast::Expr::Member(ast::MemberExpr {
-														obj: folded.clone(),
-														prop: ast::MemberProp::Ident(
-															ast::Ident::new(
-																"value".into(),
-																DUMMY_SP,
+												left: ast::AssignTarget::Simple(
+													ast::SimpleAssignTarget::Member(
+														ast::MemberExpr {
+															obj: folded.clone(),
+															prop: ast::MemberProp::Ident(
+																ast::Ident::new(
+																	"value".into(),
+																	DUMMY_SP,
+																),
 															),
-														),
-														span: DUMMY_SP,
-													}),
-												)),
+															span: DUMMY_SP,
+														},
+													),
+												),
 												op: ast::AssignOp::Assign,
 												right: Box::new(ast::Expr::Member(
 													ast::MemberExpr {
@@ -1482,9 +1484,9 @@ impl<'a> QwikTransform<'a> {
 				let mut flags = 0;
 				if static_listeners {
 					flags |= 1 << 0;
-					immutable_props.extend(event_handlers.into_iter());
+					immutable_props.extend(event_handlers);
 				} else {
-					mutable_props.extend(event_handlers.into_iter());
+					mutable_props.extend(event_handlers);
 				}
 
 				if static_subtree {
@@ -1649,10 +1651,14 @@ impl<'a> QwikTransform<'a> {
 		true
 	}
 
-	fn create_noop_qrl(&mut self, symbol_name: &JsWord, hook_data: HookData) -> ast::CallExpr {
+	fn create_noop_qrl(
+		&mut self,
+		symbol_name: &swc_atoms::JsWord,
+		hook_data: HookData,
+	) -> ast::CallExpr {
 		let mut args = vec![ast::Expr::Lit(ast::Lit::Str(ast::Str {
 			span: DUMMY_SP,
-			value: symbol_name.into(),
+			value: symbol_name.clone(),
 			raw: None,
 		}))];
 
@@ -2196,7 +2202,7 @@ pub fn add_handle_watch(body: &mut Vec<ast::ModuleItem>, core_module: &JsWord) {
 				raw: None,
 			})),
 			span: DUMMY_SP,
-			asserts: None,
+			with: None,
 			type_only: false,
 			specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
 				orig: ast::ModuleExportName::Ident(ast::Ident::new(HANDLE_WATCH.clone(), DUMMY_SP)),
@@ -2212,7 +2218,7 @@ pub fn create_synthetic_named_export(local: &Id, exported: Option<JsWord>) -> as
 	ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(ast::NamedExport {
 		span: DUMMY_SP,
 		type_only: false,
-		asserts: None,
+		with: None,
 		specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
 			span: DUMMY_SP,
 			is_type_only: false,
@@ -2226,13 +2232,14 @@ pub fn create_synthetic_named_export(local: &Id, exported: Option<JsWord>) -> as
 
 pub fn create_synthetic_named_import(local: &Id, src: &JsWord) -> ast::ModuleItem {
 	ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(ast::ImportDecl {
+		phase: Default::default(),
 		span: DUMMY_SP,
 		src: Box::new(ast::Str {
 			span: DUMMY_SP,
 			value: src.clone(),
 			raw: None,
 		}),
-		asserts: None,
+		with: None,
 		type_only: false,
 		specifiers: vec![ast::ImportSpecifier::Named(ast::ImportNamedSpecifier {
 			is_type_only: false,

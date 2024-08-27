@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 912
+assertion_line: 913
 expression: output
 ---
 ==INPUT==
@@ -62,7 +62,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAM8B,IAAM;IAChC;IACA;AACJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAM8B;IAC1B;IACA;AACJ\"}")
 /*
 {
   "origin": "test.tsx",

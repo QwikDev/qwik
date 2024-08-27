@@ -189,8 +189,6 @@ fn transform_todo_app(b: &mut Bencher) {
               code: code.into(),
               path: "file.tsx".into(),
           }],
-          root_dir: None,
-          core_module: None,
           source_maps: false,
           explicit_extensions: false,
           minify: MinifyMode::Simplify,

@@ -350,8 +350,7 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
 export const runTask2 = (
   task: Task,
   container: Container2,
-  host: HostElement,
-  isRerunning = false
+  host: HostElement
 ): ValueOrPromise<void> => {
   task.$flags$ &= ~TaskFlags.DIRTY;
   const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, TaskEvent);
@@ -403,7 +402,7 @@ export const runTask2 = (
     cleanup,
     (err: unknown) => {
       if (isPromise(err)) {
-        return err.then(() => runTask2(task, container, host, true));
+        return err.then(() => runTask2(task, container, host));
       } else {
         return handleError(err);
       }

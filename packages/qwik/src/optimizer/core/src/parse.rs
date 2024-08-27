@@ -379,7 +379,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 						]
 						.concat();
 						let need_handle_watch =
-							might_need_handle_watch(&h.data.ctx_kind, &h.data.ctx_name);
+							might_need_handle_watch(&h.data.ctx_kind, &h.data.ctx_name) && is_entry;
 
 						let (mut hook_module, comments) = new_module(NewModuleCtx {
 							expr: h.expr,
@@ -676,6 +676,7 @@ fn handle_error(
 pub struct PathData {
 	pub abs_path: PathBuf,
 	pub rel_path: PathBuf,
+	pub base_dir: PathBuf,
 	pub abs_dir: PathBuf,
 	pub rel_dir: PathBuf,
 	pub file_stem: String,
@@ -705,6 +706,7 @@ pub fn parse_path(src: &str, base_dir: &Path) -> Result<PathData, Error> {
 
 	Ok(PathData {
 		abs_path,
+		base_dir: base_dir.to_path_buf(),
 		rel_path: path.into(),
 		abs_dir,
 		rel_dir,

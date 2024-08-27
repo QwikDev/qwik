@@ -175,7 +175,7 @@ export {
             },
           },
         ],
-      }) as PluginOption,
+      }),
     );
   }
 

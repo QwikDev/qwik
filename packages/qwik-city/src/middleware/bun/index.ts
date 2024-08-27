@@ -144,15 +144,6 @@ export function createQwikCity(opts: QwikCityBunOptions) {
 
       if (isStaticPath(request.method || 'GET', url)) {
         const { filePath, content } = await openStaticFile(url);
-        // We know that it's in the static folder, but it could still be missing
-        // If we start the stream with a missing file, it will throw a 500 error during the stream
-        if (!(await content.exists())) {
-          return new Response('Not Found', {
-            status: 404,
-            headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Not-Found': url.pathname },
-          });
-        }
-
         const ext = extname(filePath).replace(/^\./, '');
 
         return new Response(await content.stream(), {

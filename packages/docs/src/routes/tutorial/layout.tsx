@@ -32,7 +32,7 @@ export default component$(() => {
       next: t.next,
       buildId: 0,
       buildMode: 'development',
-      entryStrategy: 'segment',
+      entryStrategy: 'hook',
       files: ensureDefaultFiles(t.app.problemInputs),
       version: '',
     };

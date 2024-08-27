@@ -73,17 +73,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check for removed .mock_changesets files and directory contents
-        id: check_changesets
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      - name: Get removed files using GitHub API
+        id: get_removed_files
         run: |
-          is_release=false
           commit_id=${{ github.sha }}
           owner=${{ github.repository_owner }}
           repo=${{ github.event.repository.name }}
 
           removed_files=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/repos/$owner/$repo/commits/$commit_id" | jq -r '.files[] | select(.status == "removed") | .filename')
+
+          echo "Removed files: $removed_files"
+          echo "::set-output name=removed_files::$removed_files"
+
+      - name: Check for removed .mock_changesets files and directory contents
+        id: check_changesets
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          is_release=false
+          removed_files=$(jq -r '.head_commit.removed | @sh' < $GITHUB_EVENT_PATH)
 
           echo "Removed files: $removed_files"
 
@@ -103,8 +111,6 @@ jobs:
           elif [ "$md_file_removed" = true ]; then
             is_release=true
           fi
-
-          echo "is_release: $is_release"
 
           echo "is_release=${is_release}" >> $GITHUB_ENV
 

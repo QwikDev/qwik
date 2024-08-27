@@ -73,18 +73,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Get removed files using GitHub API
-        id: get_removed_files
-        run: |
-          commit_id=${{ github.sha }}
-          owner=${{ github.repository_owner }}
-          repo=${{ github.event.repository.name }}
+      - name: Print GitHub event removed
+        run: echo "$(jq '.head_commit.removed' $GITHUB_EVENT_PATH)"
 
-          removed_files=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/$owner/$repo/commits/$commit_id" | jq -r '.files[] | select(.status == "removed") | .filename')
-
-          echo "Removed files: $removed_files"
-          echo "::set-output name=removed_files::$removed_files"
+      - name: Print GitHub event removed
+        run: echo "$(jq '.head_commit' $GITHUB_EVENT_PATH)"
 
       - name: Check for removed .mock_changesets files and directory contents
         id: check_changesets

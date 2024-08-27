@@ -39,7 +39,6 @@ const encode = (url: string) =>
 function createSymbolMapper(
   base: string,
   opts: NormalizedQwikPluginOptions,
-  foundQrls: Map<string, string>,
   path: Path,
   sys: OptimizerSystem
 ): SymbolMapperFn {
@@ -55,13 +54,7 @@ function createSymbolMapper(
     const hash = getSymbolHash(symbolName);
     if (!parent) {
       console.warn(
-        `qwik vite-dev-server symbolMapper: parent not provided for ${symbolName}, falling back to foundQrls.`
-      );
-      parent = foundQrls.get(hash);
-    }
-    if (!parent) {
-      console.warn(
-        `qwik vite-dev-server symbolMapper: ${symbolName} not in foundQrls, falling back to mapper.`
+        `qwik vite-dev-server symbolMapper: parent not provided for ${symbolName}, falling back to mapper.`
       );
       const chunk = mapper && mapper[hash];
       if (chunk) {
@@ -110,10 +103,9 @@ export async function configureDevServer(
   path: Path,
   isClientDevOnly: boolean,
   clientDevInput: string | undefined,
-  foundQrls: Map<string, string>,
   devSsrServer: boolean
 ) {
-  symbolMapper = lazySymbolMapper = createSymbolMapper(base, opts, foundQrls, path, sys);
+  symbolMapper = lazySymbolMapper = createSymbolMapper(base, opts, path, sys);
   if (!devSsrServer) {
     // we just needed the symbolMapper
     return;

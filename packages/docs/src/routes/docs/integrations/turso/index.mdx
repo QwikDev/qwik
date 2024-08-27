@@ -7,8 +7,6 @@ updated_at: '2024-04-10T01:34:03Z'
 created_at: '2023-07-23T00:17:06Z'
 ---
 
-import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
-
 # Turso
 
 [Turso] is the edge database based on [libSQL] - the open-source
@@ -21,29 +19,9 @@ around the world.
 
 You can easily add Turso by using the following Qwik starter script:
 
-
-<PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm run qwik add turso
-```
-</span>
-<span q:slot="npm">
 ```shell
 npm run qwik add turso
 ```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add turso
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add turso
-```
-</span>
-</PackageManagerTabs>
 
 This command will add the necessary dependencies to use Turso.
 

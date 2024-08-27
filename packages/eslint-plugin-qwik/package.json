@@ -10,11 +10,11 @@
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
     "@builder.io/qwik-city": "workspace:^",
-    "@types/eslint": "8.56.10",
-    "@types/estree": "1.0.2",
-    "@typescript-eslint/rule-tester": "7.7.1",
-    "@typescript-eslint/utils": "7.7.1",
-    "redent": "4.0.0"
+    "@types/eslint": "^8.56.10",
+    "@types/estree": "^1.0.2",
+    "@typescript-eslint/rule-tester": "^7.7.1",
+    "@typescript-eslint/utils": "^7.7.1",
+    "redent": "^4.0.0"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"

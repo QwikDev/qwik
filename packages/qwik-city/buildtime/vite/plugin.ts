@@ -84,7 +84,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
 
       ctx = createBuildContext(rootDir!, config.base, userOpts, target);
 
-      ctx.isDevServer = config.command === 'serve' && config.mode !== 'production';
+      ctx.isDevServer = config.command === 'serve';
       ctx.isDevServerClientOnly = ctx.isDevServer && config.mode !== 'ssr';
 
       await validatePlugin(ctx.opts);
@@ -105,17 +105,14 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
 
     configureServer(server) {
       return () => {
-        if (!ctx) {
-          throw new Error('configureServer: Missing ctx from configResolved');
+        // handles static files physically found in the dist directory
+        server.middlewares.use(staticDistMiddleware(server));
+        if (ctx) {
+          // qwik city middleware injected BEFORE vite internal middlewares
+          // and BEFORE @builder.io/qwik/optimizer/vite middlewares
+          // handles only known user defined routes
+          server.middlewares.use(ssrDevMiddleware(ctx, server));
         }
-        if (!ctx.isDevServer) {
-          // preview server: serve static files from the dist directory
-          server.middlewares.use(staticDistMiddleware(server));
-        }
-        // qwik city middleware injected BEFORE vite internal middlewares
-        // and BEFORE @builder.io/qwik/optimizer/vite middlewares
-        // handles only known user defined routes
-        server.middlewares.use(ssrDevMiddleware(ctx, server));
       };
     },
 

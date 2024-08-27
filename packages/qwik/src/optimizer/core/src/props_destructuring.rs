@@ -18,11 +18,11 @@ struct PropsDestructuring<'a> {
 }
 
 pub fn transform_props_destructuring(
-	program: &mut ast::Program,
+	main_module: &mut ast::Module,
 	global_collect: &mut GlobalCollect,
 	core_module: &JsWord,
 ) {
-	program.visit_mut_with(&mut PropsDestructuring {
+	main_module.visit_mut_with(&mut PropsDestructuring {
 		component_ident: global_collect.get_imported_local(&COMPONENT, core_module),
 		identifiers: HashMap::new(),
 		global_collect,
@@ -292,7 +292,7 @@ fn transform_pat(
 			ast::ObjectPatProp::Assign(ref v) => {
 				let access = ast::Expr::Member(ast::MemberExpr {
 					obj: Box::new(new_ident.clone()),
-					prop: ast::MemberProp::Ident(v.key.clone().into()),
+					prop: ast::MemberProp::Ident(v.key.clone()),
 					span: DUMMY_SP,
 				});
 				if let Some(value) = &v.value {

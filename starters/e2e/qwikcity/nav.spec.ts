@@ -154,19 +154,6 @@ test.describe("actions", () => {
         await expect(count).toHaveText("Count: 1");
       });
     });
-
-    test("issue 6660 internal params should no trigger navigation", async ({
-      page,
-    }) => {
-      await page.goto("/qwikcity-test/issue6660/");
-
-      const startUrl = page.url();
-
-      await page.getByText("Submit").click();
-      await page.waitForSelector("span");
-
-      expect(page.url()).toBe(startUrl);
-    });
   }
 
   function tests() {

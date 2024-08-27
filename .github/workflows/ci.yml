@@ -189,7 +189,7 @@ jobs:
         with:
           lookup-only: true
           path: e2e-tests-completed.txt
-          key: ${{ hashfiles('others-key.txt', 'starters/**/*') }}
+          key: ${{ hashfiles('others-key.txt', 'starters/e2e/**/*', 'starters/apps/e2e/**/*') }}
 
   ############ BUILD Qwik ############
   build-qwik:

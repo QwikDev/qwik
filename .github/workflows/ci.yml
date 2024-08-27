@@ -60,7 +60,8 @@ jobs:
       build-insights: ${{ steps.cache-insights.outputs.cache-hit != 'true' }}
       build-unit: ${{ steps.cache-unit.outputs.cache-hit != 'true' }}
       build-e2e: ${{ steps.cache-e2e.outputs.cache-hit != 'true' }}
-      disttag: ${{ steps.check_changesets.outputs.disttag }}
+      is_release: ${{ steps.check_changesets.outputs.is_release }}
+      disttag: ${{ steps.check_changesets.outputs.is_release == 'true' && 'latest' || github.event.inputs.disttag }}
 
     steps:
       - name: Branch
@@ -106,15 +107,7 @@ jobs:
 
           echo "is_release: $is_release"
 
-          if [ "$is_release" = true ]; then
-            disttag='latest'
-          else 
-            disttag="${{github.event.inputs.disttag}}"
-          fi
-
-          echo "disttag: $disttag"
-
-          echo "disttag=${disttag}" >> $GITHUB_ENV
+          echo "is_release=${is_release}" >> $GITHUB_ENV
 
       - run: jq .scripts package.json > scripts.json
 
@@ -188,7 +181,7 @@ jobs:
     needs: changes
     steps:
       - name: Log disttag
-        run: echo "disttag=${{ needs.changes.outputs.disttag }}"
+        run: echo "is_release=${{ needs.changes.outputs.disttag }}"
 
   ############ BUILD Qwik ############
   build-qwik:

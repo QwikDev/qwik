@@ -3,12 +3,7 @@ import type { Rollup } from 'vite';
 import { assert, expect, suite, test } from 'vitest';
 import { normalizePath } from '../../../testing/util';
 import type { OptimizerOptions, QwikBundle, QwikManifest } from '../types';
-import {
-  convertManifestToBundleGraph,
-  qwikVite,
-  type QwikVitePlugin,
-  type QwikVitePluginOptions,
-} from './vite';
+import { convertManifestToBundleGraph, qwikVite } from './vite';
 
 const cwd = process.cwd();
 
@@ -48,14 +43,11 @@ const excludeDeps = [
   '@builder.io/qwik-city',
 ];
 
-const getPlugin = (opts: QwikVitePluginOptions | undefined) =>
-  (qwikVite(opts) as any)[0] as QwikVitePlugin;
-
 test('command: serve, mode: development', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = getPlugin(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c = (await plugin.config({}, { command: 'serve', mode: 'development' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
@@ -90,7 +82,7 @@ test('command: serve, mode: production', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = getPlugin(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c = (await plugin.config({}, { command: 'serve', mode: 'production' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
@@ -126,7 +118,7 @@ test('command: build, mode: development', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = getPlugin(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c = (await plugin.config({}, { command: 'build', mode: 'development' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
@@ -165,7 +157,7 @@ test('command: build, mode: production', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = getPlugin(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c = (await plugin.config({}, { command: 'build', mode: 'production' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
@@ -210,7 +202,7 @@ test('command: build, --mode production (client)', async () => {
     },
   };
 
-  const plugin = getPlugin(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c: any = (await plugin.config({}, { command: 'build', mode: 'production' }))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
@@ -228,7 +220,7 @@ test('command: build, --ssr entry.server.tsx', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = getPlugin(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c = (await plugin.config(
     { build: { ssr: resolve(cwd, 'src', 'entry.server.tsx') } },
     { command: 'build', mode: '' }
@@ -273,7 +265,7 @@ test('command: serve, --mode ssr', async () => {
       outDir: resolve(cwd, 'ssr-dist'),
     },
   };
-  const plugin = getPlugin(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c: any = (await plugin.config(
     { build: { emptyOutDir: true } },
     { command: 'serve', mode: 'ssr' }
@@ -301,7 +293,7 @@ test('command: serve, --mode ssr with build.assetsDir', async () => {
       outDir: resolve(cwd, 'ssr-dist'),
     },
   };
-  const plugin = getPlugin(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c: any = (await plugin.config(
     { build: { emptyOutDir: true, assetsDir: 'my-assets-dir' } },
     { command: 'serve', mode: 'ssr' }
@@ -325,10 +317,10 @@ test('should use the dist/ fallback with client target', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = getPlugin(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c: any = (await plugin.config(
     { build: { assetsDir: 'my-assets-dir/' } },
-    { command: 'serve', mode: 'development' }
+    { command: 'serve' }
   ))!;
 
   assert.equal(c.build.outDir, normalizePath(resolve(cwd, `dist`)));
@@ -338,10 +330,10 @@ test('should use build.outDir config with client target', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = getPlugin(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c: any = (await plugin.config(
     { build: { outDir: 'my-dist/', assetsDir: 'my-assets-dir' } },
-    { command: 'serve', mode: 'development' }
+    { command: 'serve' }
   ))!;
 
   assert.equal(c.build.outDir, normalizePath(resolve(cwd, `my-dist`)));
@@ -352,13 +344,10 @@ test('should use build.outDir config when assetsDir is _astro', async () => {
     optimizerOptions: mockOptimizerOptions(),
   };
 
-  const plugin = getPlugin(initOpts);
+  const plugin = qwikVite(initOpts)[0];
 
   // Astro sets a build.assetsDir of _astro, but we don't want to change that
-  const c: any = (await plugin.config(
-    { build: { assetsDir: '_astro' } },
-    { command: 'serve', mode: 'development' }
-  ))!;
+  const c: any = (await plugin.config({ build: { assetsDir: '_astro' } }, { command: 'serve' }))!;
 
   assert.equal(c.build.outDir, normalizePath(resolve(cwd, `dist/`)));
 });
@@ -367,7 +356,7 @@ test('command: build, --mode lib', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = getPlugin(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c: any = (await plugin.config(
     {
       build: {
@@ -402,7 +391,7 @@ test('command: build, --mode lib with multiple outputs', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
-  const plugin = getPlugin(initOpts);
+  const plugin = qwikVite(initOpts)[0];
   const c: any = (await plugin.config(
     {
       build: {

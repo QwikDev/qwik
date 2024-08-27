@@ -339,9 +339,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           output: normalizeRollupOutputOptions(
             opts,
             viteConfig.build?.rollupOptions?.output,
-            useAssetsDir,
-            buildOutputDir
-          ),
+            useAssetsDir
+          ).map((outputOptsObj) => {
+            outputOptsObj.dir = buildOutputDir;
+            return outputOptsObj;
+          }),
           preserveEntrySignatures: 'exports-only',
           onwarn: (warning, warn) => {
             if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {

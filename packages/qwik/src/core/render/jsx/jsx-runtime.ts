@@ -127,6 +127,21 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
   return _jsxSorted(type, sortedProps, constProps, children, flags, key, dev);
 };
 
+/** @internal @deprecated v1 compat */
+export const _jsxC = (type: any, mutable: any, _flags: any, key: any) => jsx(type, mutable, key);
+/** @internal @deprecated v1 compat */
+export const _jsxS = (type: any, mutable: any, immutable: any, _flags: any, key: any) =>
+  jsx(type, { ...immutable, ...mutable }, key);
+/** @internal @deprecated v1 compat */
+export const _jsxQ = (
+  type: any,
+  mutable: any,
+  immutable: any,
+  children: any,
+  _flags: any,
+  key: any
+) => jsx(type, { ...immutable, ...mutable, children }, key);
+
 /**
  * @public
  * Used by the JSX transpilers to create a JSXNode.

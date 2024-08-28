@@ -308,7 +308,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       [QRenderAttr]: (qRender ? qRender + '-' : '') + (isDev ? 'ssr-dev' : 'ssr'),
       [QBaseAttr]: this.buildBase,
       [QLocaleAttr]: this.$locale$,
-      [QManifestHashAttr]: this.resolvedManifest.manifest.manifestHash,
+      [QManifestHashAttr]:
+        this.resolvedManifest.manifest.manifestHash || 'dev' + this.$instanceHash$,
       [QInstanceAttr]: this.$instanceHash$,
     };
 

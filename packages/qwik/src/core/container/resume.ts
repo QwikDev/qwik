@@ -1,6 +1,6 @@
 import { assertDefined, assertTrue } from '../error/assert';
 import { getDocument } from '../util/dom';
-import { isComment, isElement, isNode, isQwikElement, isText } from '../util/element';
+import { isComment, isElement, isText } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
 import { ELEMENT_ID, QContainerAttr, QInstanceAttr, getQFuncs } from '../util/markers';
 
@@ -46,41 +46,6 @@ export const getPauseState = (containerEl: Element): SnapshotState | undefined =
     const data = (script.firstChild! as any).data;
     return JSON.parse(unescapeText(data) || '{}') as SnapshotState;
   }
-};
-
-/** @internal */
-export const _deserializeData = (data: string, element?: unknown) => {
-  const obj = JSON.parse(data);
-  if (typeof obj !== 'object') {
-    return null;
-  }
-  const { _objs, _entry } = obj;
-  if (typeof _objs === 'undefined' || typeof _entry === 'undefined') {
-    return null;
-  }
-  let doc = {} as Document;
-  let containerState = {} as any;
-  if (isNode(element) && isQwikElement(element)) {
-    const containerEl = _getQContainerElement(element);
-    if (containerEl) {
-      containerState = _getContainerState(containerEl);
-      doc = containerEl.ownerDocument;
-    }
-  }
-  const parser = createParser(containerState, doc);
-
-  for (let i = 0; i < _objs.length; i++) {
-    const value = _objs[i];
-    if (isString(value)) {
-      _objs[i] = value === UNDEFINED_PREFIX ? undefined : parser.prepare(value);
-    }
-  }
-
-  const getObject: GetObject = (id) => _objs[strToInt(id)];
-  for (const obj of _objs) {
-    reviveNestedObjects(obj, getObject, parser);
-  }
-  return getObject(_entry);
 };
 
 export const resumeContainer = (containerEl: Element) => {

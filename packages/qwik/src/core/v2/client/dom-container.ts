@@ -84,7 +84,20 @@ export function getDomContainerFromQContainerElement(qContainerElement: Element)
   const qElement = qContainerElement as ContainerElement;
   let container = qElement.qContainer;
   if (!container) {
-    qElement.qContainer = container = new DomContainer(qElement);
+    container = new DomContainer(qElement);
+
+    const containerAttributes: Record<string, string> = {};
+    if (qElement) {
+      const attrs = qElement.attributes;
+      if (attrs) {
+        for (let index = 0; index < attrs.length; index++) {
+          const attr = attrs[index];
+          containerAttributes[attr.name] = attr.value;
+        }
+      }
+    }
+    (container as DomContainer).$serverData$ = { containerAttributes };
+    qElement.qContainer = container;
   }
   return container;
 }

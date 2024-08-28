@@ -537,6 +537,9 @@ export { jsx as jsxs }
 // @internal (undocumented)
 export const _jsxBranch: <T>(input?: T) => T | undefined;
 
+// @internal @deprecated (undocumented)
+export const _jsxC: (type: any, mutable: any, _flags: any, key: any) => JSXNode<any>;
+
 // @public (undocumented)
 export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;
 
@@ -569,6 +572,12 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
 
 // @public
 export type JSXOutput = JSXNode | string | number | boolean | null | undefined | JSXOutput[];
+
+// @internal @deprecated (undocumented)
+export const _jsxQ: (type: any, mutable: any, immutable: any, children: any, _flags: any, key: any) => JSXNode<any>;
+
+// @internal @deprecated (undocumented)
+export const _jsxS: (type: any, mutable: any, immutable: any, _flags: any, key: any) => JSXNode<any>;
 
 // @internal
 export const _jsxSorted: <T>(type: T, varProps: Props | null, constProps: Props | null, children: JSXChildren | null, flags: number, key: string | number | null | undefined, dev?: DevJSX) => JSXNode<T>;

@@ -110,7 +110,7 @@ function diffJsxVNode(received: _VNode, expected: JSXNode | string, path: string
         receivedElement?.getAttribute(prop) ||
         receivedElement?.getAttribute(propLowerCased);
       let expectedValue =
-        prop === 'key' || prop === 'q:key' ? expected.key ?? receivedValue : expected.props[prop];
+        prop === 'key' || prop === 'q:key' ? (expected.key ?? receivedValue) : expected.props[prop];
       if (typeof receivedValue === 'boolean' || typeof receivedValue === 'number') {
         receivedValue = serializeBooleanOrNumberAttribute(receivedValue);
       }

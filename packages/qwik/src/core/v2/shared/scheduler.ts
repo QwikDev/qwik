@@ -298,6 +298,7 @@ export const createScheduler = (
         // we need to process cleanup tasks for deleted nodes
         nextChore.$type$ !== ChoreType.CLEANUP_VISIBLE
       ) {
+        DEBUG && debugTrace('skip chore', nextChore, currentChore, choreQueue);
         continue;
       }
       const returnValue = executeChore(nextChore);
@@ -521,12 +522,13 @@ function debugChoreToString(chore: Chore): string {
         [ChoreType.COMPONENT_SSR]: 'COMPONENT_SSR',
         [ChoreType.JOURNAL_FLUSH]: 'JOURNAL_FLUSH',
         [ChoreType.VISIBLE]: 'VISIBLE',
+        [ChoreType.CLEANUP_VISIBLE]: 'CLEANUP_VISIBLE',
         [ChoreType.WAIT_FOR_ALL]: 'WAIT_FOR_ALL',
         [ChoreType.WAIT_FOR_COMPONENTS]: 'WAIT_FOR_COMPONENTS',
       } as any
     )[chore.$type$] || 'UNKNOWN: ' + chore.$type$;
   const host = String(chore.$host$).replaceAll(/\n.*/gim, '');
-  const qrlTarget = (chore.$target$ as QRLInternal<any>).$symbol$;
+  const qrlTarget = (chore.$target$ as QRLInternal<any>)?.$symbol$;
   return `Chore(${type} ${chore.$type$ === ChoreType.QRL_RESOLVE ? qrlTarget : host} ${chore.$idx$})`;
 }
 

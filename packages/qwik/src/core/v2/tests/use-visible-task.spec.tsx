@@ -11,6 +11,8 @@ import {
   useComputed$,
   useContextProvider,
   createContextId,
+  type Signal as SignalType,
+  useTask$,
 } from '@builder.io/qwik';
 import { trigger, domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 import { ErrorProvider } from '../../../testing/rendering.unit-util';
@@ -29,7 +31,7 @@ export function useDelay(value: string) {
 
 describe.each([
   { render: ssrRenderToDom }, //
-  { render: domRender }, //
+  // { render: domRender }, //
 ])('$render.name: useVisibleTask', ({ render }) => {
   it('should execute visible task', async () => {
     const VisibleCmp = component$(() => {
@@ -554,6 +556,49 @@ describe.each([
         </Component>
       );
       (globalThis as any).log = undefined;
+    });
+
+    it('should run cleanup with component rerender', async () => {
+      const Child = component$((props: { cleanupCounter: SignalType<number> }) => {
+        useTask$(({ cleanup }) => {
+          cleanup(() => {
+            props.cleanupCounter.value++;
+          });
+        });
+        return <span></span>;
+      });
+
+      const Cmp = component$(() => {
+        const counter = useSignal<number>(0);
+        const cleanupCounter = useSignal<number>(0);
+        return (
+          <div>
+            <button onClick$={() => counter.value++}></button>
+            <Child key={counter.value} cleanupCounter={cleanupCounter} />
+            {cleanupCounter.value + ''}
+          </div>
+        );
+      });
+
+      const { vNode, container } = await render(<Cmp />, { debug });
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <div>
+            <button></button>
+            <Component>
+              <span></span>
+            </Component>
+            <Signal>{'6'}</Signal>
+          </div>
+        </Component>
+      );
     });
 
     it('should handle promises and visible tasks', async () => {

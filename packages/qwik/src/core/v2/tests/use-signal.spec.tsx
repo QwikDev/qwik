@@ -14,6 +14,8 @@ import { Slot } from '../../render/jsx/slot.public';
 import type { Signal as SignalType } from '../../state/signal';
 import { untrack } from '../../use/use-core';
 import { useSignal } from '../../use/use-signal';
+import { vnode_getFirstChild, vnode_getProp, vnode_locate } from '../client/vnode';
+import { QSubscribers } from '../../util/markers';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -260,6 +262,38 @@ describe.each([
         </div>
       </Component>
     );
+  });
+
+  it("should don't add multiple the same subscribers", async () => {
+    const Child = component$(() => {
+      return <></>;
+    });
+
+    const Cmp = component$(() => {
+      const counter = useSignal<number>(0);
+      const cleanupCounter = useSignal<number>(0);
+
+      return (
+        <>
+          <button onClick$={() => counter.value++}></button>
+          <Child key={counter.value} />
+          <pre>{cleanupCounter.value + ''}</pre>
+        </>
+      );
+    });
+
+    const { container } = await render(<Cmp />, { debug });
+
+    await trigger(container.element, 'button', 'click');
+    await trigger(container.element, 'button', 'click');
+    await trigger(container.element, 'button', 'click');
+    await trigger(container.element, 'button', 'click');
+
+    const signalVNode = vnode_getFirstChild(
+      vnode_locate(container.rootVNode, container.element.querySelector('pre')!)
+    )!;
+    const subscribers = vnode_getProp<unknown[]>(signalVNode, QSubscribers, null);
+    expect(subscribers).toHaveLength(1);
   });
 
   describe('derived', () => {

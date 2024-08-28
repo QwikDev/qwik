@@ -62,6 +62,9 @@ export {
   jsxs,
   h,
   h as createElement,
+  _jsxC,
+  _jsxS,
+  _jsxQ,
 } from './render/jsx/jsx-runtime';
 export type * from './render/jsx/types/jsx-generated';
 export type {

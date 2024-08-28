@@ -78,7 +78,9 @@ export default event$((container: HTMLElement) => {
 
         if (link) {
           // Re-acquire container, link may be in a nested container.
-          const container = link.closest('[q\\:container]')!;
+          const containerSelector =
+            '[q\\:container]:not([q\\:container=html]):not([q\\:container=text])';
+          const container = link.closest(containerSelector)!;
           const bootstrapLink = link.cloneNode() as HTMLAnchorElement;
           bootstrapLink.setAttribute('q:nbs', '');
           bootstrapLink.style.display = 'none';

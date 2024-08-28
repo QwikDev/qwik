@@ -158,9 +158,7 @@ export const qwikLoader = (
         if (element[isConnected]) {
           try {
             doc[Q_CONTEXT] = [element, ev, url];
-            if (!isSync) {
-              emitEvent<QwikSymbolEvent>('qsymbol', eventData);
-            }
+            isSync || emitEvent<QwikSymbolEvent>('qsymbol', { ...eventData });
             const results = handler(ev, element);
             // only await if there is a promise returned
             if (isPromise(results)) {
@@ -180,7 +178,7 @@ export const qwikLoader = (
     doc.dispatchEvent(createEvent<T>(eventName, detail));
   };
 
-  const camelToKebab = (str: string) => str[replace](/([A-Z-])/g, (a) => '-' + a.toLowerCase());
+  const camelToKebab = (str: string) => str[replace](/([A-Z])/g, (a) => '-' + a.toLowerCase());
 
   /**
    * Event handler responsible for processing browser events.

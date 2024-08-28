@@ -222,9 +222,6 @@ export interface DelHTMLAttributes<T extends Element> extends Attrs<'del', T> {
 // @internal
 export function _deserialize(rawStateData: string | null, element?: unknown): unknown[];
 
-// @internal (undocumented)
-export const _deserializeData: (data: string, element?: unknown) => any;
-
 // @public (undocumented)
 export interface DetailsHTMLAttributes<T extends Element> extends Attrs<'details', T> {
 }
@@ -1053,9 +1050,6 @@ export interface SelectHTMLAttributes<T extends Element> extends Attrs<'select',
 
 // @internal
 export function _serialize(data: unknown[]): Promise<string>;
-
-// @internal (undocumented)
-export const _serializeData: (data: any, pureQRL?: boolean) => Promise<string>;
 
 // @public
 export const setPlatform: (plt: CorePlatform) => CorePlatform;

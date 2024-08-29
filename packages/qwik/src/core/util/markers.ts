@@ -48,6 +48,7 @@ export const QIgnore = 'q:ignore';
 export const QIgnoreEnd = '/' + QIgnore;
 export const QContainerAttr = 'q:container';
 export const QContainerAttrEnd = '/' + QContainerAttr;
+export const QShadowRoot = 'q:shadowroot';
 
 export const QTemplate = 'q:template';
 

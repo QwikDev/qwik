@@ -82,6 +82,7 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 		reg_ctx_name,
 		strip_event_handlers: input.strip_event_handlers,
 		is_server: input.is_server,
+		is_dev: input.is_dev,
 	})
 }
 
@@ -3409,6 +3410,7 @@ export const Local = component$(() => {
 		strip_event_handlers: false,
 		reg_ctx_name: None,
 		is_server: None,
+		is_dev: None,
 	});
 	snapshot_res!(&res, "".into());
 }
@@ -3489,6 +3491,7 @@ export const Greeter = component$(() => {
 		strip_ctx_name: None,
 		strip_event_handlers: false,
 		is_server: None,
+		is_dev: None,
 	});
 	let ref_segments: Vec<_> = res
 		.unwrap()
@@ -3527,6 +3530,7 @@ export const Greeter = component$(() => {
 			strip_event_handlers: false,
 			reg_ctx_name: None,
 			is_server: None,
+			is_dev: None,
 		});
 
 		let segments: Vec<_> = res
@@ -3785,6 +3789,7 @@ struct TestInput {
 	pub strip_ctx_name: Option<Vec<String>>,
 	pub strip_event_handlers: bool,
 	pub is_server: Option<bool>,
+	pub is_dev: Option<bool>,
 }
 
 impl TestInput {
@@ -3810,6 +3815,7 @@ impl TestInput {
 			strip_ctx_name: None,
 			strip_event_handlers: false,
 			is_server: None,
+			is_dev: None,
 		}
 	}
 }

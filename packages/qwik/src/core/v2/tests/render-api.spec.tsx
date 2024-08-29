@@ -700,7 +700,7 @@ describe('render api', () => {
           const result = await renderToStringAndSetPlatform(<Counter />, {
             containerTagName: 'div',
           });
-          expect(result.html.includes('q:render="ssr-dev"')).toBeTruthy();
+          expect(result.html.includes('q:render="ssr"')).toBeTruthy();
         });
         it('should render qRender with custom value in dev mode', async () => {
           const testRender = 'ssr-test';
@@ -723,7 +723,7 @@ describe('render api', () => {
               'q:render': testRender,
             },
           });
-          expect(result.html.includes(`q:render="${testRender}-ssr-dev"`)).toBeTruthy();
+          expect(result.html.includes(`q:render="${testRender}-ssr"`)).toBeTruthy();
         });
       });
     });

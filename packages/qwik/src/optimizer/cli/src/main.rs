@@ -57,9 +57,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .arg(
                     Arg::new("strategy")
                     .long("strategy")
-                        .possible_values(["inline","single", "hook", "smart", "component"])
+                        .possible_values(["inline","single", "hook", "segment", "smart", "component"])
                         .takes_value(true)
-                        .help("entry strategy used to group hooks"),
+                        .help("entry strategy used to group segments"),
                 )
                 .arg(
                     Arg::new("manifest")
@@ -91,7 +91,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 		// "$ myapp test" was run
 		let strategy = match matches.value_of("strategy") {
 			Some("inline") => EntryStrategy::Inline,
-			Some("hook") => EntryStrategy::Hook,
+			Some("hook") => EntryStrategy::Segment,
+			Some("segment") => EntryStrategy::Segment,
 			Some("single") => EntryStrategy::Single,
 			Some("component") => EntryStrategy::Component,
 			Some("smart") | None => EntryStrategy::Smart,
@@ -159,6 +160,7 @@ fn optimize(
 		strip_event_handlers: false,
 		reg_ctx_name: None,
 		is_server: None,
+		is_dev: None,
 	})?;
 
 	result.write_to_fs(

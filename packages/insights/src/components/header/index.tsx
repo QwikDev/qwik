@@ -1,12 +1,12 @@
 import { component$ } from '@builder.io/qwik';
 import { Link } from '@builder.io/qwik-city';
-import { useAuthSession, useAuthSignout } from '~/routes/plugin@auth';
+import { useSession, useSignOut } from '~/routes/plugin@auth';
 import Avatar from '../avatar';
 import { QwikIcon } from '../icons/qwik';
 
 export default component$(() => {
-  const signOutSig = useAuthSignout();
-  const userCtx = useAuthSession();
+  const signOutSig = useSignOut();
+  const userCtx = useSession();
 
   return (
     <header class="flex items-center gap-3 border border-b-slate-200 px-6 py-3">
@@ -21,7 +21,7 @@ export default component$(() => {
           <Link
             class="cursor-pointer"
             onClick$={() => {
-              signOutSig.submit({ callbackUrl: '/' });
+              signOutSig.submit({ redirectTo: '/' });
             }}
           >
             Logout

@@ -29,7 +29,7 @@ The goal of Qwik is having only to download and execute the bare minimum of the 
 
 Qwik applications startup fast because there is a minimal amount of JavaScript code to execute. (At its simplest, a Qwik application only needs about 1KB of JavaScript to become interactive.)
 
-By aggressively delaying the application download and execution, Qwik can provide near-instant startup performance that the current generation of web frameworks can't match.
+By aggressively delaying the application download and execution, Qwik can provide near-instant startup performance. No current generation of web frameworks can match this implementation.
 
 Qwik is fast not because it uses clever algorithms but because it is designed in a way where most of the JavaScript never needs to be downloaded or executed. Its speed comes from not doing things (such as hydration) that other frameworks have to do.
 
@@ -46,21 +46,21 @@ Modern websites require vast amounts of JavaScript to become interactive. Too mu
 1. **Network bandwidth**: A large amount of code is shipped to the client, which may take a long time on slow networks.
 2. **Startup time**: Once on the client, the code needs to be executed (as part of hydration) to get the site interactive.
 
-As our applications get more complex with a higher fidelity of interactivity, the amount of code has steadily increased over the years with no sign of stopping. Simply put, our sites are getting more complex. An increase in site complexity, in turn, requires more code. All of this code negatively impacts site startup performance.
+As Qwik applications get more complex with a higher fidelity of interactivity, the amount of code has steadily increased over the years, with no sign of stopping. Simply put, Qwik sites are getting more complex. An increase in site complexity, in turn, requires more code. All of this code negatively impacts site startup performance.
 
-To make matters worse, JavaScript is single-threaded; therefore, our complex sites can't take advantage of modern multi-core CPUs.
+To make matters worse, JavaScript is single-threaded; therefore, Qwik’s complex sites can't take advantage of modern multi-core CPUs.
 
 ### How did we get here?
 
 The solution to the above problem is both obvious and hard: Ship less JavaScript.
 
-It's obvious because we all agree that sites with less JavaScript would perform better.
+The obvious part is that sites with less JavaScript will perform better.
 
-It is hard because our tools don't help us to get there. Almost all of our tools solve problems in a way that makes shipping less JavaScript hard. This is because most of our tools are designed to solve a specific problem without thinking about the amount of JavaScript they generate.
+The hard part is our tools don't help us to get there. The majority of  Qwik's tools solve problems in a way that makes shipping less JavaScript hard. These tools are designed to solve a specific problem without thinking about the amount of JavaScript they generate.
 
 Do you need to solve rendering, styling, animation, A/B testing, analytics, etc.? There is a tool for that. Just import or add a `<script>` tag, and these tools will solve your problems, but at the expense of making the initial bundle bigger.
 
-As an industry, we have failed to think about the implication of bundle size. Each tool solves a specific problem individually, but the size is not part of the equation. Size is the problem that emerges when you put all of the tools together, and by that point, there is very little the developer can do about it.
+As an industry, the implication of bundle size has often been overlooked. Each tool solves a specific problem individually, but size is not part of the equation. Size becomes a problem when all the tools are combined, and by that point, there is very little the developer can do about it.
 
 ### What's the solution?
 
@@ -74,7 +74,7 @@ Yes, Qwik requires a different way of thinking and designing your application, b
 
 Today, size is the developers' problem. If you follow best practices for each of the frameworks, tools, etc., you will have a large bundle size. It is at that time when developers start to mitigate the problem with some sort of lazy loading boundaries etc. (But as anyone who has done this will tell you: the options are limited.)
 
-Our industry best practices lead to large bundles, and the web is full of examples.
+Industry best practices lead to large bundles, and the web is full of examples.
 
 The mantra of Qwik is that bundle size should not be something that developers should think about. It should just naturally emerge as part of how the framework is designed.
 

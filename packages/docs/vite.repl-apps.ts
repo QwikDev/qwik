@@ -7,6 +7,7 @@ import type { PlaygroundApp } from './src/routes/playground/playground-data';
 import type { TutorialSection } from './src/routes/tutorial/tutorial-data';
 import type { PluginContext } from 'rollup';
 import type { ReplModuleInput } from './src/repl/types';
+import MagicString from 'magic-string';
 
 export function playgroundData(routesDir: string): Plugin {
   const playgroundAppDir = join(routesDir, 'playground', 'app');
@@ -255,6 +256,112 @@ export function tutorialData(routesDir: string): Plugin {
         return `const tutorialSections = ${JSON.stringify(data)};export default tutorialSections;`;
       }
       return null;
+    },
+  };
+}
+
+// Workaround for https://github.com/vitejs/vite/issues/15753
+// A vite plugin that implements what `?raw&url` should do
+// Use `import url from 'file?raw-source'` to get the url for the raw file content
+export function rawSource(): Plugin {
+  let base: string;
+  let isDev: boolean = false;
+  let doSourceMap: boolean = false;
+  const extToMime = {
+    js: 'application/javascript',
+    css: 'text/css',
+    html: 'text/html',
+    json: 'application/json',
+    wasm: 'application/wasm',
+  };
+  return {
+    name: 'raw-source',
+
+    configResolved(config) {
+      base = config.base;
+      isDev = config.command === 'serve';
+      doSourceMap = !!config.build.sourcemap;
+    },
+
+    configureServer(server) {
+      // Vite still processes /@fs urls, so we need to run our own static server
+      server.middlewares.use((req, res, next) => {
+        if (req.url!.startsWith('/@raw-fs')) {
+          const filePath = req.url!.slice('/@raw-fs'.length);
+          if (existsSync(filePath)) {
+            const ext = filePath.split('.').pop()! as keyof typeof extToMime;
+            const contentType = extToMime[ext] || 'application/octet-stream';
+            res.setHeader('Content-Type', contentType);
+            res.end(readFileSync(filePath));
+          } else {
+            res.statusCode = 404;
+            res.end('File not found');
+          }
+        } else {
+          next();
+        }
+      });
+    },
+
+    resolveId: {
+      order: 'pre',
+      async handler(id, importer) {
+        const match = /^(?<path>.*)\?(|(?<before>.+)&)raw-source($|&(?<after>.*))/.exec(id);
+
+        if (match) {
+          const newQuery = [match.groups!.before, match.groups!.after].filter(Boolean).join('&');
+          const newId = `${match.groups!.path}${newQuery ? `?${newQuery}` : ''}`;
+          const resolved = await this.resolve(newId, importer, {
+            skipSelf: true,
+          });
+          if (!resolved) {
+            throw new Error(`Could not resolve "${id}" from "${importer}"`);
+          }
+          return `\0raw-source:${resolved!.id.split('?')[0]}`;
+        }
+      },
+    },
+
+    load(id) {
+      if (id.startsWith('\0raw-source:')) {
+        let path = id.slice('\0raw-source:'.length);
+        if (path.startsWith('/@fs/')) {
+          path = path.slice('/@fs'.length);
+        }
+        if (isDev) {
+          const devUrl = `${base}@raw-fs${path}`;
+          return `export default "${devUrl}";`;
+        }
+        const fileContent = readFileSync(path);
+        const ref = this.emitFile({
+          type: 'asset',
+          name: basename(path),
+          source: fileContent,
+        });
+        return {
+          code: `export default "__RAW-URL_${ref}__";`,
+          map: { version: 3, sources: [path], mappings: '' },
+        };
+      }
+    },
+
+    renderChunk(code, chunk) {
+      // Copied from vite assets code and simplified
+      let s, match;
+      const regex = /__RAW-URL_([^_]+)__/g;
+      while ((match = regex.exec(code))) {
+        s ||= new MagicString(code);
+        const ref = match[1];
+        const fileName = this.getFileName(ref);
+        chunk.viteMetadata!.importedAssets.add(fileName);
+        s.overwrite(match.index, match.index + match[0].length, base + fileName);
+      }
+      return s
+        ? {
+            code: s ? s.toString() : code,
+            map: doSourceMap ? s.generateMap({ hires: true }) : null,
+          }
+        : null;
     },
   };
 }

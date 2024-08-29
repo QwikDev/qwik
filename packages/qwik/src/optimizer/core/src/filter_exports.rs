@@ -47,9 +47,7 @@ fn empty_module_item(ident: ast::Ident) -> ast::ModuleItem {
 	ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportDecl(ast::ExportDecl {
         span: DUMMY_SP,
         decl: ast::Decl::Var(Box::new(ast::VarDecl {
-            span: DUMMY_SP,
             kind: ast::VarDeclKind::Const,
-            declare: false,
             decls: vec![ast::VarDeclarator {
                 definite: true,
                 span: DUMMY_SP,
@@ -58,14 +56,7 @@ fn empty_module_item(ident: ast::Ident) -> ast::ModuleItem {
                     type_ann: None,
                 }),
                 init: Some(Box::new(ast::Expr::Arrow(ast::ArrowExpr {
-                    is_async: false,
-                    is_generator: false,
-                    params: vec![],
-                    return_type: None,
-                    span: DUMMY_SP,
-                    type_params: None,
                     body: Box::new(ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
-                        span: DUMMY_SP,
                         stmts: vec![ast::Stmt::Throw(ast::ThrowStmt {
                             span: DUMMY_SP,
                             arg: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
@@ -74,9 +65,12 @@ fn empty_module_item(ident: ast::Ident) -> ast::ModuleItem {
                                 raw: None,
                             }))),
                         })],
+                        ..Default::default()
                     })),
+                    ..Default::default()
                 }))),
             }],
+            ..Default::default()
         })),
     }))
 }

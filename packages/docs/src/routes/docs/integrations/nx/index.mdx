@@ -10,6 +10,8 @@ updated_at: '2023-07-18T17:48:46Z'
 created_at: '2023-04-29T15:28:06Z'
 ---
 
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
 # Nx and enterprise scale monorepos
 
 [Nx](https://nx.dev/) is a robust and extensible development platform designed to simplify the management 
@@ -32,15 +34,54 @@ Qwik integrates with nx beautifully by using the [qwik-nx](https://github.com/qw
 
 You can generate a new workspace by running:
 
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm dlx create-nx-workspace@latest org-workspace --preset=qwik-nx
+```
+</span>
+<span q:slot="npm">
 ```shell
 npx create-nx-workspace@latest org-workspace --preset=qwik-nx
 ```
+</span>
+<span q:slot="yarn">
+```shell
+yarn dlx create-nx-workspace@latest org-workspace --preset=qwik-nx
+```
+</span>
+<span q:slot="bun">
+```shell
+bunx create-nx-workspace@latest org-workspace --preset=qwik-nx
+```
+</span>
+</PackageManagerTabs>
 
 Or add a new Qwik application to an existing workspace by running:
 
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
 ```shell
-npm install -D qwik-nx
+pnpm install qwik-nx
 ```
+</span>
+<span q:slot="npm">
+```shell
+npm install qwik-nx
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn add qwik-nx
+```
+</span>
+<span q:slot="bun">
+```shell
+bun install qwik-nx
+```
+</span>
+</PackageManagerTabs>
 
 and then
 

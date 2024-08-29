@@ -41,7 +41,7 @@ Reactivity can be done in a few ways:
 
 Qwik uses proxies for a few reasons:
 
-1. Using explicit registration such as `.subscribe()` would require the system to serialize all of the subscribed listeners to avoid hydration. Serializing subscribed closures would not be possible as all the subscribe functions would have to be lazy-loaded and asynchronous (too expensive).
+1. Using explicit registration such as `.subscribe()` would require the system to serialize all of the subscribed listeners to avoid hydration. Serializing subscribed closures would not be possible, as all the subscribe functions would have to be lazy-loaded and asynchronous (too expensive).
 2. Using the compiler to create graphs implicitly would work, but only for components. Intra component communications would still require `.subscribe()` methods and hence suffer the issues described above.
 
 Because of the above constraints, Qwik uses proxies to keep track of the reactivity graph.

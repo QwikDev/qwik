@@ -1,18 +1,9 @@
 import { build, type Plugin, transform } from 'esbuild';
 import { execa } from 'execa';
-import { copyFile, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { rollup } from 'rollup';
-import { readPackageJson, writePackageJson } from './package-json';
-import {
-  type BuildConfig,
-  emptyDir,
-  importPath,
-  nodeTarget,
-  panic,
-  type PackageJSON,
-  recursiveChangePrefix,
-} from './util';
+import { type BuildConfig, emptyDir, importPath, nodeTarget, panic } from './util';
 
 export async function buildQwikCity(config: BuildConfig) {
   if (!config.dev) {
@@ -48,42 +39,6 @@ export async function buildQwikCity(config: BuildConfig) {
   ]);
 
   await buildRuntime(config);
-
-  let srcQwikCityPkg = await readPackageJson(config.srcQwikCityDir);
-
-  const diskQwikCityPkg: PackageJSON = {
-    ...srcQwikCityPkg,
-    version: config.distVersion,
-    main: './index.qwik.mjs',
-    qwik: './index.qwik.mjs',
-    types: './index.d.ts',
-    type: 'module',
-    exports: recursiveChangePrefix(srcQwikCityPkg.exports!, './lib/', './'),
-    files: [
-      'adapters',
-      'index.d.ts',
-      'index.qwik.mjs',
-      'index.qwik.cjs',
-      'service-worker.mjs',
-      'service-worker.cjs',
-      'service-worker.d.ts',
-      'modules.d.ts',
-      'middleware',
-      'static',
-      'vite',
-    ],
-    publishConfig: {
-      access: 'public',
-    },
-    private: undefined,
-    devDependencies: undefined,
-    scripts: undefined,
-  };
-  await writePackageJson(config.distQwikCityPkgDir, diskQwikCityPkg);
-
-  const srcReadmePath = join(config.srcQwikCityDir, 'README.md');
-  const distReadmePath = join(config.distQwikCityPkgDir, 'README.md');
-  await copyFile(srcReadmePath, distReadmePath);
 
   console.log(`🏙  qwik-city`);
 }
@@ -190,6 +145,7 @@ async function buildServiceWorker(config: BuildConfig) {
       config.tscDir,
       'packages',
       'qwik-city',
+      'src',
       'runtime',
       'src',
       'service-worker',

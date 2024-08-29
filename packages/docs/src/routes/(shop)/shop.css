@@ -1,5 +1,6 @@
 .shop .purple-gradient {
   position: fixed;
+  pointer-events: none;
   width: 1400px;
   height: 800px;
   top: 100px;
@@ -14,6 +15,7 @@
 
 .shop .blue-gradient {
   position: fixed;
+  pointer-events: none;
   width: 1400px;
   height: 1200px;
   top: 600px;

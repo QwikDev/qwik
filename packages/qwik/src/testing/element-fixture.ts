@@ -11,6 +11,7 @@ import type { MockDocument, MockWindow } from './types';
 import { delay } from '../core/util/promises';
 import type { QElement2, QwikLoaderEventScope } from '../core/v2/shared/types';
 import { fromCamelToKebabCase } from '../core/v2/shared/event-names';
+import { QFuncsPrefix, QInstanceAttr } from '../core/util/markers';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -46,10 +47,12 @@ export class ElementFixture {
       assertDefined(this.host, 'host element must be defined');
       this.host.querySelectorAll('script[q\\:func="qwik/json"]').forEach((script) => {
         const code = script.textContent;
-        if (code?.startsWith(Q_FUNCS_PREFIX)) {
-          const qFuncs = (0, eval)(code.substring(Q_FUNCS_PREFIX.length));
-          const container = this.host.closest(QContainerSelector);
-          (container as any as { qFuncs?: Function[] }).qFuncs = qFuncs;
+        if (code?.match(Q_FUNCS_PREFIX)) {
+          const equal = code.indexOf('=');
+          const qFuncs = (0, eval)(code.substring(equal + 1));
+          const container = this.host.closest(QContainerSelector)!;
+          const hash = container.getAttribute(QInstanceAttr);
+          (document as any)[QFuncsPrefix + hash] = qFuncs;
         }
       });
       this.child = null!;
@@ -121,7 +124,7 @@ export async function trigger(
 
 const PREVENT_DEFAULT = 'preventdefault:';
 const STOP_PROPAGATION = 'stoppropagation:';
-const Q_FUNCS_PREFIX = 'document.currentScript.closest("[q\\\\:container]").qFuncs=';
+const Q_FUNCS_PREFIX = /document.qdata\["qFuncs_(.+)"\]=/;
 const QContainerSelector = '[q\\:container]';
 
 /**

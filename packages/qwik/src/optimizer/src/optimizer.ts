@@ -86,6 +86,8 @@ const transformFsAsync = async (
       stripCtxName: fsOpts.stripCtxName!,
       stripExports: fsOpts.stripExports!,
       isServer: fsOpts.isServer!,
+      // slight hack, it's actually undefined most of the time
+      isDev: fsOpts.isDev!,
     };
     return binding.transform_modules(convertOptions(modulesOpts));
   }

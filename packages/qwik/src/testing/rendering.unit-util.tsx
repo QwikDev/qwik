@@ -17,7 +17,15 @@ import type { QRL } from '../core/qrl/qrl.public';
 import { ERROR_CONTEXT } from '../core/render/error-handling';
 import { Slot } from '../core/render/jsx/slot.public';
 import { useContextProvider } from '../core/use/use-context';
-import { ELEMENT_PROPS, OnRenderProp, QScopedStyle, QStyle } from '../core/util/markers';
+import {
+  ELEMENT_PROPS,
+  OnRenderProp,
+  QContainerSelector,
+  QFuncsPrefix,
+  QInstanceAttr,
+  QScopedStyle,
+  QStyle,
+} from '../core/util/markers';
 import { render2 } from '../core/v2/client/dom-render';
 import {
   vnode_getAttr,
@@ -170,12 +178,13 @@ export async function ssrRenderToDom(
 /** @public */
 export function emulateExecutionOfQwikFuncs(document: Document) {
   const qFuncs = document.body.querySelector('[q\\:func]');
-  const containerElement = document.querySelector('[q\\:container]') as _ContainerElement;
-  if (qFuncs) {
+  const containerElement = document.querySelector(QContainerSelector) as _ContainerElement;
+  const hash = containerElement.getAttribute(QInstanceAttr);
+  if (qFuncs && hash) {
     let code = qFuncs.textContent || '';
-    code = code.replace(Q_FUNCS_PREFIX, '');
+    code = code.replace(Q_FUNCS_PREFIX.replace('HASH', hash), '');
     if (code) {
-      containerElement.qFuncs = eval(code);
+      (document as any)[QFuncsPrefix + hash] = eval(code);
     }
   }
 }

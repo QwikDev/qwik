@@ -27,7 +27,7 @@ impl ConstReplacerVisitor {
 macro_rules! id_eq {
 	($ident: expr, $cid: expr) => {
 		if let Some(cid) = $cid {
-			cid.0 == $ident.sym && cid.1 == $ident.span.ctxt()
+			cid.0 == $ident.sym && cid.1 == $ident.ctxt
 		} else {
 			false
 		}

@@ -76,6 +76,10 @@ function lookup(buffer: Buffer) {
   }
 }
 export async function getInfoForSrc(src: string) {
+  // Put all supported protocols here
+  if (!/^(https?|file|capacitor):/.test(src)) {
+    return undefined;
+  }
   try {
     const res = await fetch(src, {
       headers: { Accept: 'image/*,*/*' },
@@ -117,7 +121,7 @@ export const getImageSizeServer = (
         const info = await getInfoForSrc(imageURL);
         res.setHeader('cache-control', 'public, max-age=31536000, immutable');
         if (!info) {
-          res.statusCode = 500;
+          res.statusCode = 404;
         } else {
           res.write(JSON.stringify(info));
         }

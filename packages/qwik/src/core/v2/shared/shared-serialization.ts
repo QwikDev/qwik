@@ -1302,8 +1302,15 @@ function deserializeData(
     serializedData.length >= 1 &&
     (typeCode = serializedData.charCodeAt(0)) < SerializationConstant.LAST_VALUE
   ) {
-    let propValue = serializedData;
-    propValue = allocate(propValue);
+    let propValue: any = serializedData;
+    if (typeCode === SerializationConstant.REFERENCE_VALUE) {
+      // Special case of Reference, we don't go through allocation/inflation
+      propValue = unwrapDeserializerProxy(
+        container.$getObjectById$(parseInt(propValue.substring(1)))
+      );
+    } else {
+      propValue = allocate(propValue);
+    }
 
     if (typeCode >= SerializationConstant.Error_VALUE) {
       inflate(container, propValue, serializedData);

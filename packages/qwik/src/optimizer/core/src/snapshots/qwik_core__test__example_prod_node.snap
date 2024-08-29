@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1455
+assertion_line: 1456
 expression: output
 ---
 ==INPUT==
@@ -23,18 +23,14 @@ export const Foo = component$(() => {
 import { qrl } from "@builder.io/qwik";
 export const s_HTDRsvUbLiE = ()=>{
     return <div>
-
 			<div onClick$={/*#__PURE__*/ qrl(()=>import("./s_9dcjc0ujddo"), "s_9DcJc0uJDDo")}/>
-
 			<div onClick$={/*#__PURE__*/ qrl(()=>import("./s_rjqdy8i0mxc"), "s_RjQdy8I0MXc")}/>
-
 			<div onClick$={/*#__PURE__*/ qrl(()=>import("./s_w9ptfrbvk1e"), "s_w9ptFRBVK1E")}/>
-
 		</div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAG8B,IAAM;IACnC,QACE,IAAI;;GACJ,CAAC,IAAI,8EAAuC;;GAC5C,CAAC,IAAI,8EAAwC;;GAC7C,CAAC,IAAI,8EAAuC;;EAC7C,EAAE;AAEJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAG8B;IAC7B,QACE,IAAI;GACJ,CAAC,IAAI,8EAAuC;GAC5C,CAAC,IAAI,8EAAwC;GAC7C,CAAC,IAAI,8EAAuC;EAC7C,EAAE;AAEJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -43,6 +39,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Foo_component",
   "hash": "HTDRsvUbLiE",
   "canonicalFilename": "s_htdrsvublie",
+  "path": "",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -68,6 +65,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Foo_component_div_div_onClick",
   "hash": "9DcJc0uJDDo",
   "canonicalFilename": "s_9dcjc0ujddo",
+  "path": "",
   "extension": "tsx",
   "parent": "s_HTDRsvUbLiE",
   "ctxKind": "jSXProp",
@@ -93,6 +91,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Foo_component_div_div_onClick_2",
   "hash": "w9ptFRBVK1E",
   "canonicalFilename": "s_w9ptfrbvk1e",
+  "path": "",
   "extension": "tsx",
   "parent": "s_HTDRsvUbLiE",
   "ctxKind": "jSXProp",
@@ -118,6 +117,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Foo_component_div_div_onClick_1",
   "hash": "RjQdy8I0MXc",
   "canonicalFilename": "s_rjqdy8i0mxc",
+  "path": "",
   "extension": "tsx",
   "parent": "s_HTDRsvUbLiE",
   "ctxKind": "jSXProp",

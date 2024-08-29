@@ -1,8 +1,8 @@
 import { assertDefined, assertTrue } from '../error/assert';
 import { getDocument } from '../util/dom';
-import { isComment, isElement, isNode, isQwikElement, isText } from '../util/element';
+import { isComment, isElement, isText } from '../util/element';
 import { logDebug, logWarn } from '../util/log';
-import { ELEMENT_ID, QContainerAttr } from '../util/markers';
+import { ELEMENT_ID, QContainerAttr, QInstanceAttr, getQFuncs } from '../util/markers';
 
 import { emitEvent } from '../util/event';
 
@@ -17,7 +17,6 @@ import {
   SHOW_COMMENT,
   type SnapshotState,
   strToInt,
-  type QContainerElement,
 } from './container';
 import { getVirtualElement } from '../render/dom/virtual-element';
 import { getSubscriptionManager, parseSubscription, type Subscriptions } from '../state/common';
@@ -26,7 +25,6 @@ import { qDev, qSerialize } from '../util/qdev';
 import { pauseContainer } from './pause';
 import { isPrimitive } from '../render/dom/render-dom';
 import { getContext } from '../state/context';
-import { EMPTY_ARRAY } from '../util/flyweight';
 import { _getQContainerElement } from '../v2/client/dom-container';
 
 export const resumeIfNeeded = (containerEl: Element): void => {
@@ -50,41 +48,6 @@ export const getPauseState = (containerEl: Element): SnapshotState | undefined =
   }
 };
 
-/** @internal */
-export const _deserializeData = (data: string, element?: unknown) => {
-  const obj = JSON.parse(data);
-  if (typeof obj !== 'object') {
-    return null;
-  }
-  const { _objs, _entry } = obj;
-  if (typeof _objs === 'undefined' || typeof _entry === 'undefined') {
-    return null;
-  }
-  let doc = {} as Document;
-  let containerState = {} as any;
-  if (isNode(element) && isQwikElement(element)) {
-    const containerEl = _getQContainerElement(element);
-    if (containerEl) {
-      containerState = _getContainerState(containerEl);
-      doc = containerEl.ownerDocument;
-    }
-  }
-  const parser = createParser(containerState, doc);
-
-  for (let i = 0; i < _objs.length; i++) {
-    const value = _objs[i];
-    if (isString(value)) {
-      _objs[i] = value === UNDEFINED_PREFIX ? undefined : parser.prepare(value);
-    }
-  }
-
-  const getObject: GetObject = (id) => _objs[strToInt(id)];
-  for (const obj of _objs) {
-    reviveNestedObjects(obj, getObject, parser);
-  }
-  return getObject(_entry);
-};
-
 export const resumeContainer = (containerEl: Element) => {
   if (!isContainer(containerEl)) {
     logWarn('Skipping resuming because parent element is not q:container');
@@ -101,6 +64,7 @@ export const resumeContainer = (containerEl: Element) => {
   }
 
   const doc = getDocument(containerEl);
+  const hash = containerEl.getAttribute(QInstanceAttr)!;
   const isDocElement = containerEl === doc.documentElement;
   const parentJSON = isDocElement ? doc.body : containerEl;
   if (qDev) {
@@ -111,7 +75,7 @@ export const resumeContainer = (containerEl: Element) => {
     }
   }
 
-  const inlinedFunctions = getQwikInlinedFuncs(containerEl);
+  const inlinedFunctions = getQFuncs(doc, hash);
   const containerState = _getContainerState(containerEl);
 
   // Collect all elements
@@ -310,10 +274,6 @@ const reviveNestedObjects = (obj: unknown, getObject: GetObject, parser: Parser)
 
 const unescapeText = (str: string) => {
   return str.replace(/\\x3C(\/?script)/gi, '<$1');
-};
-
-export const getQwikInlinedFuncs = (containerEl: Element): Function[] => {
-  return (containerEl as QContainerElement).qFuncs ?? EMPTY_ARRAY;
 };
 
 export const getQwikJSON = (

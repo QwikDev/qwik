@@ -1,14 +1,14 @@
-export { _pauseFromContexts, _serializeData } from './container/pause';
-export { _noopQrl, _regSymbol } from './qrl/qrl';
+export { _pauseFromContexts } from './container/pause';
+export { _noopQrl, _noopQrlDEV, _regSymbol } from './qrl/qrl';
 export { _renderSSR } from './render/ssr/render-ssr';
 export { _walkJSX } from './v2/ssr/ssr-render-jsx';
 export { _SharedContainer } from './v2/shared/shared-container';
 export { _hW } from './render/dom/notify-render';
-export { _wrapProp } from './state/signal';
+export { _wrapSignal, _wrapProp } from './state/signal';
 export { _restProps } from './state/store';
+export { _IMMUTABLE } from './state/constants';
 export { _CONST_PROPS, _VAR_PROPS } from './state/constants';
 export { _weakSerialize } from './state/common';
-export { _deserializeData } from './container/resume';
 export { verifySerializable as _verifySerializable } from './state/common';
 export {
   _getContextElement,
@@ -36,3 +36,5 @@ export {
   getDomContainer as _getDomContainer,
 } from './v2/client/dom-container';
 export { EMPTY_ARRAY as _EMPTY_ARRAY } from '../core/util/flyweight';
+export { _serialize, _deserialize } from './v2/shared/shared-serialization';
+export { _jsxQ, _jsxC, _jsxS } from './render/jsx/jsx-runtime';

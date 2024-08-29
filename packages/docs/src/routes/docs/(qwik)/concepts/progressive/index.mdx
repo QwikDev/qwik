@@ -18,7 +18,7 @@ created_at: '2023-03-20T23:45:13Z'
 
 Progressive is about downloading code according to the application's needs, without eagerly downloading the entire code base.
 
-This connects us to the [core principle](../../concepts/think-qwik/index.mdx) of Qwik which focuses on delaying **the loading** and execution of JavaScript for as long as possible. Qwik needs to break up the application into many lazy loadable chunks to achieve that.
+This connects  to the [core principle](../../concepts/think-qwik/index.mdx) of Qwik which focuses on delaying **the loading** and execution of JavaScript for as long as possible. Qwik needs to break up the application into many lazy loadable chunks to achieve that.
 
 ## Current state-of-the-art
 
@@ -27,7 +27,7 @@ This connects us to the [core principle](../../concepts/think-qwik/index.mdx) of
 - Lazy loading boundaries are completely delegated to the developer
 - Frameworks can only lazy load components that are not in the current render tree.
 
-The problem is that the frameworks need to reconcile their internal state with the DOM. And this means that at least once in the application [hydration](../../concepts/resumable/#resumable-vs-hydration) occurs. Frameworks are required to be able to do a full render to rebuild the framework's internal state. After the first render, the frameworks can be more surgical about their updates, but the damage has been done, the code has been downloaded. So now we have two issues:
+The problem is that the frameworks need to reconcile their internal state with the DOM. And this means that at least once in the application [hydration](../../concepts/resumable/#resumable-vs-hydration) occurs. Frameworks are required to be able to do a full render to rebuild the framework's internal state. After the first render, the frameworks can be more surgical about their updates, but the damage has been done, the code has been downloaded. So, two issues now arise:
 
 - Frameworks need to download and execute components to rebuild the render tree on startup. (See [hydration is pure overhead](https://www.builder.io/blog/hydration-is-pure-overhead)) This forces eager download and execution of all components in the render tree.
 - The event handlers come with the components even though they are not needed at the time of rendering. The inclusion of event handlers forces the download of unnecessary code.
@@ -66,7 +66,7 @@ Lazy-loading is a core property of the framework and not an afterthought.
 
 ### Optimizer and `$`
 
-Let's look at our example again:
+Take a look at this example again:
 
 ```tsx
 // the `$` suffix for `component` indicates that the component should be

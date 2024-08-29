@@ -41,13 +41,13 @@ export const Issue3561 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=
             }
         }
     });
-    const { currentVariant: { variantImage , variantNumber , setContents  } = {}  } = props.product;
+    const { currentVariant: { variantImage, variantNumber, setContents } = {} } = props.product;
     console.log(variantImage, variantNumber, setContents);
     return <p></p>;
 }, "Issue3561_component_hHTw654BZB8"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,0BAAY,sCAAW,IAAM;IACzC,MAAM,QAAQ,SAAS;QACtB,SAAS;YACT,gBAAgB;gBACf,cAAc;gBACd,eAAe;gBACf,aAAa;YACd;QACA;IACD;IACA,MAAM,EACL,gBAAgB,EAAE,aAAY,EAAE,cAAa,EAAE,YAAW,EAAE,GAAG,CAAC,CAAC,CAAA,EACjE,GAAG,MAAM,OAAO;IAEjB,QAAQ,GAAG,CAAC,cAAc,eAAe;IAEzC,QAAQ,IAAI;AACZ,uCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,0BAAY,sCAAW;IACnC,MAAM,QAAQ,SAAS;QACtB,SAAS;YACT,gBAAgB;gBACf,cAAc;gBACd,eAAe;gBACf,aAAa;YACd;QACA;IACD;IACA,MAAM,EACL,gBAAgB,EAAE,YAAY,EAAE,aAAa,EAAE,WAAW,EAAE,GAAG,CAAC,CAAC,EACjE,GAAG,MAAM,OAAO;IAEjB,QAAQ,GAAG,CAAC,cAAc,eAAe;IAEzC,QAAQ,IAAI;AACZ,uCAAG\"}")
 == DIAGNOSTICS ==
 
 []

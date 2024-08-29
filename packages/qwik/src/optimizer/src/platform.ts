@@ -147,11 +147,11 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
             if (globalThis.IS_ESM) {
               const module = await sys.dynamicImport('node:module');
               const mod = module.default.createRequire(import.meta.url)(
-                `./bindings/${triple.platformArchABI}`
+                `../bindings/${triple.platformArchABI}`
               );
               return mod;
             }
-            const mod = await sys.dynamicImport(`./bindings/${triple.platformArchABI}`);
+            const mod = await sys.dynamicImport(`../bindings/${triple.platformArchABI}`);
             return mod;
           } catch (e) {
             console.warn(
@@ -169,8 +169,8 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
 
     if (sysEnv === 'node' || sysEnv === 'bun') {
       // CJS WASM Node.js
-      const wasmPath = sys.path.join(__dirname, 'bindings', 'qwik_wasm_bg.wasm');
-      const mod = await sys.dynamicImport(`./bindings/qwik.wasm.cjs`);
+      const wasmPath = sys.path.join(__dirname, '..', 'bindings', 'qwik_wasm_bg.wasm');
+      const mod = await sys.dynamicImport(`../bindings/qwik.wasm.cjs`);
       const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
 
       return new Promise<Buffer>((resolve, reject) => {
@@ -233,8 +233,8 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
       // CJS WASM Node.js
       const url: typeof import('url') = await sys.dynamicImport('node:url');
       const __dirname = sys.path.dirname(url.fileURLToPath(import.meta.url));
-      const wasmPath = sys.path.join(__dirname, 'bindings', 'qwik_wasm_bg.wasm');
-      const mod = await sys.dynamicImport(`./bindings/qwik.wasm.mjs`);
+      const wasmPath = sys.path.join(__dirname, '..', 'bindings', 'qwik_wasm_bg.wasm');
+      const mod = await sys.dynamicImport(`../bindings/qwik.wasm.mjs`);
       const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
 
       return new Promise<Buffer>((resolve, reject) => {
@@ -250,7 +250,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
         .then((wasm) => mod.default(wasm))
         .then(() => mod);
     } else {
-      const module = await sys.dynamicImport(`./bindings/qwik.wasm.mjs`);
+      const module = await sys.dynamicImport(`../bindings/qwik.wasm.mjs`);
       await module.default();
       return module;
     }

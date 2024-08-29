@@ -17,7 +17,7 @@ test('defaults', async () => {
   const opts = plugin.normalizeOptions();
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'development');
-  assert.deepEqual(opts.entryStrategy, { type: 'hook' });
+  assert.deepEqual(opts.entryStrategy, { type: 'segment' });
   assert.deepEqual(opts.debug, false);
   assert.deepEqual(opts.rootDir, normalizePath(cwd));
   assert.deepEqual(opts.tsconfigFileNames, ['./tsconfig.json']);
@@ -107,19 +107,19 @@ test('entryStrategy, smart', async () => {
   assert.deepEqual(opts.entryStrategy.type, 'smart');
 });
 
-test('entryStrategy, hook no forceFullBuild', async () => {
+test('entryStrategy, segment no forceFullBuild', async () => {
   const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({ entryStrategy: { type: 'hook' } });
-  assert.deepEqual(opts.entryStrategy.type, 'hook');
+  const opts = plugin.normalizeOptions({ entryStrategy: { type: 'segment' } });
+  assert.deepEqual(opts.entryStrategy.type, 'segment');
 });
 
-test('entryStrategy, hook and srcInputs', async () => {
+test('entryStrategy, segment and srcInputs', async () => {
   const plugin = await mockPlugin();
   const opts = plugin.normalizeOptions({
-    entryStrategy: { type: 'hook' },
+    entryStrategy: { type: 'segment' },
     srcInputs: [],
   });
-  assert.deepEqual(opts.entryStrategy.type, 'hook');
+  assert.deepEqual(opts.entryStrategy.type, 'segment');
 });
 
 test('rootDir, abs path', async () => {

@@ -26,10 +26,6 @@ export const render2 = async (
   jsxNode: JSXOutput | FunctionComponent<any>,
   opts: RenderOptions = {}
 ): Promise<RenderResult> => {
-  opts = {
-    serverData: {},
-    ...opts,
-  };
   if (isDocument(parent)) {
     let child: Node | null = parent.firstChild;
     while (child && !isElement(child)) {
@@ -40,7 +36,7 @@ export const render2 = async (
   (parent as Element).setAttribute(QContainerAttr, QContainerValue.RESUMED);
 
   const container = getDomContainer(parent as HTMLElement) as DomContainer;
-  container.$serverData$ = opts.serverData!;
+  container.$serverData$ = opts.serverData || {};
   const host: HostElement = container.rootVNode as fixMeAny;
   container.$scheduler$(ChoreType.NODE_DIFF, host, host, jsxNode as JSXNode);
   await container.$scheduler$(ChoreType.WAIT_FOR_ALL);

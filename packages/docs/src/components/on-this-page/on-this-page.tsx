@@ -1,5 +1,5 @@
 import { useContent, useLocation } from '@builder.io/qwik-city';
-import { component$, useContext, useStyles$ } from '@builder.io/qwik';
+import { component$, useContext, $, useStyles$, useOnDocument, useSignal } from '@builder.io/qwik';
 import { ChatIcon } from '../svgs/chat-icon';
 import { GithubLogo } from '../svgs/github-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
@@ -124,6 +124,45 @@ export const OnThisPage = component$(() => {
     },
   ];
 
+  const useActiveItem = (itemIds: string[]) => {
+    const activeId = useSignal<string | null>(null);
+    useOnDocument(
+      'scroll',
+      $(() => {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                activeId.value = entry.target.id;
+              }
+            });
+          },
+          { rootMargin: '0% 0% -80% 0%' }
+        );
+
+        itemIds.forEach((id) => {
+          const element = document.getElementById(id);
+          if (element) {
+            observer.observe(element);
+          }
+        });
+
+        return () => {
+          itemIds.forEach((id) => {
+            const element = document.getElementById(id);
+            if (element) {
+              observer.unobserve(element);
+            }
+          });
+        };
+      })
+    );
+
+    return activeId;
+  };
+
+  const activeId = useActiveItem(contentHeadings.map((h) => h.id));
+
   return (
     <aside class="on-this-page text-sm overflow-y-auto hidden xl:block">
       {contentHeadings.length > 0 ? (
@@ -139,9 +178,13 @@ export const OnThisPage = component$(() => {
                     : 'hover:bg-[var(--on-this-page-hover-bg-color)]'
                 }`}
               >
-                <a href={`#${h.id}`} class={`${h.level > 2 ? 'ml-4' : null} on-this-page-item`}>
-                  {h.text}
-                </a>
+                {activeId.value === h.id ? (
+                  <span class="on-this-page-item">{h.text}</span>
+                ) : (
+                  <a href={`#${h.id}`} class={`${h.level > 2 ? 'ml-0' : null} on-this-page-item`}>
+                    {h.text}
+                  </a>
+                )}
               </li>
             ))}
           </ul>

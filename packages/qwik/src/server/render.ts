@@ -23,6 +23,7 @@ import type {
   StreamWriter,
 } from './types';
 import { createTimer, getBuildBase } from './utils';
+import { QInstanceAttr } from './qwik-copy';
 
 const DOCTYPE = '<!DOCTYPE html>';
 
@@ -187,8 +188,10 @@ export async function renderToStream(
       if (opts.prefetchStrategy !== null) {
         // skip prefetch implementation if prefetchStrategy === null
         const prefetchResources = getPrefetchResources(snapshotResult.qrls, opts, resolvedManifest);
+        const base = containerAttributes['q:base']!;
         if (prefetchResources.length > 0) {
           const prefetchImpl = applyPrefetchImplementation(
+            base,
             opts.prefetchStrategy,
             prefetchResources,
             opts.serverData?.nonce
@@ -207,10 +210,11 @@ export async function renderToStream(
         })
       );
       if (snapshotResult.funcs.length > 0) {
+        const hash = containerAttributes[QInstanceAttr];
         children.push(
           jsx('script', {
             'q:func': 'qwik/json',
-            dangerouslySetInnerHTML: serializeFunctions(snapshotResult.funcs),
+            dangerouslySetInnerHTML: serializeFunctions(hash, snapshotResult.funcs),
             nonce: opts.serverData?.nonce,
           })
         );
@@ -249,7 +253,7 @@ export async function renderToStream(
       snapshotTime = snapshotTimer();
       return jsx(Fragment, { children });
     },
-    manifestHash: resolvedManifest?.manifest.manifestHash || 'dev',
+    manifestHash: resolvedManifest?.manifest.manifestHash || 'dev' + hash(),
   });
 
   // End of container
@@ -276,6 +280,10 @@ export async function renderToStream(
     _symbols: renderSymbols,
   };
   return result;
+}
+
+function hash() {
+  return Math.random().toString(36).slice(2);
 }
 
 /**
@@ -355,8 +363,8 @@ function collectRenderSymbols(renderSymbols: string[], elements: QContext[]) {
   }
 }
 
-export const Q_FUNCS_PREFIX = 'document.currentScript.closest("[q\\\\:container]").qFuncs=';
+export const Q_FUNCS_PREFIX = 'document["qFuncs_HASH"]=';
 
-function serializeFunctions(funcs: string[]) {
-  return Q_FUNCS_PREFIX + `[${funcs.join(',\n')}]`;
+function serializeFunctions(hash: string, funcs: string[]) {
+  return Q_FUNCS_PREFIX.replace('HASH', hash) + `[${funcs.join(',\n')}]`;
 }

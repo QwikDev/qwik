@@ -68,11 +68,18 @@ bun create qwik@latest
 <br>
 <br>
 
-<p align="center">
-   <a href="https://www.builder.io/m/developers">
-      <picture>
-         <source media="(prefers-color-scheme: dark)" srcset="https://user-images.githubusercontent.com/844291/230786554-eb225eeb-2f6b-4286-b8c2-535b1131744a.png">
-         <img width="250" alt="Made with love by Builder.io" src="https://user-images.githubusercontent.com/844291/230786555-a58479e4-75f3-4222-a6eb-74c5af953eac.png">
-       </picture>
-   </a>
-</p>
+<table align="center">
+  <tr align="center">
+    <td>special sponsor</td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="https://www.builder.io/m/developers">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://i.imgur.com/eT9FjKT.png">
+          <img width="250" alt="Special sponsor Builder.io" src="https://i.imgur.com/32mv01X.png">
+        </picture>
+      </a>
+    </td>
+  </tr>
+</table>

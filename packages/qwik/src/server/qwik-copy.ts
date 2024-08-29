@@ -36,6 +36,7 @@ export {
   QBaseAttr,
   QLocaleAttr,
   QManifestHashAttr,
+  QInstanceAttr,
   FLUSH_COMMENT,
   STREAM_BLOCK_END_COMMENT,
   STREAM_BLOCK_START_COMMENT,

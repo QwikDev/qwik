@@ -7,12 +7,12 @@
 import type { NextFunction, Request, Response } from "express";
 import express from "express";
 import { build, type InlineConfig, type PluginOption } from "vite";
-import { join, resolve } from "node:path";
+import { join, relative, resolve } from "node:path";
 import {
   readdirSync,
   statSync,
   unlinkSync,
-  rmdirSync,
+  rmSync,
   existsSync,
   readFileSync,
 } from "node:fs";
@@ -20,7 +20,7 @@ import type { QwikManifest } from "@builder.io/qwik/optimizer";
 import type { Render, RenderToStreamOptions } from "@builder.io/qwik/server";
 import type { PackageJSON } from "../scripts/util";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { getErrorHtml } from "../packages/qwik-city/middleware/request-handler/error-handler";
+import { getErrorHtml } from "../packages/qwik-city/src/middleware/request-handler/error-handler";
 
 const isWindows = process.platform === "win32";
 
@@ -61,11 +61,17 @@ const cache = new Map<string, Promise<QwikManifest>>();
 async function handleApp(req: Request, res: Response, next: NextFunction) {
   try {
     const url = new URL(req.url, address);
+    if (existsSync(url.pathname)) {
+      const relPath = relative(startersAppsDir, url.pathname);
+      if (!relPath.startsWith(".")) {
+        url.pathname = relPath;
+      }
+    }
     const paths = url.pathname.split("/");
     const appName = paths[1];
     const appDir = join(startersAppsDir, appName);
     if (!existsSync(appDir)) {
-      res.send(`❌ Invalid dev-server path: ${appDir}`);
+      res.status(404).send(`❌ Invalid dev-server path: ${appDir}`);
       return;
     }
 
@@ -169,7 +175,7 @@ export {
             },
           },
         ],
-      }),
+      }) as PluginOption,
     );
   }
 
@@ -250,7 +256,7 @@ function removeDir(dir: string) {
         unlinkSync(itemPath);
       }
     });
-    rmdirSync(dir);
+    rmSync(dir);
   } catch (e) {
     /**/
   }
@@ -343,8 +349,8 @@ async function main() {
   app.use(`/~partytown`, express.static(partytownPath));
 
   appNames.forEach((appName) => {
-    const buildPath = join(startersAppsDir, appName, "dist", appName, "build");
-    app.use(`/${appName}/build`, express.static(buildPath));
+    const buildPath = join(startersAppsDir, appName, "dist", appName);
+    app.use(`/${appName}`, express.static(buildPath));
 
     const publicPath = join(startersAppsDir, appName, "public");
     app.use(`/${appName}`, express.static(publicPath));

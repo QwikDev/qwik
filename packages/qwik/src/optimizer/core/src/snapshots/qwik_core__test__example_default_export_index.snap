@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1571
+assertion_line: 1572
 expression: output
 ---
 ==INPUT==
@@ -22,12 +22,11 @@ import { componentQrl } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     return <div onClick$={/*#__PURE__*/ inlinedQrl(()=>console.log(mongodb), "mongo_component_div_onClick_2EK0wZbP8qw")}>
-
 		</div>;
 }, "mongo_component_ouWLj4jA2oI"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/index.tsx\"],\"names\":[],\"mappings\":\";;AAGA,6BAAe,sCAAW,IAAM;IAC/B,QACE,IAAI,mCAAU,IAAM,QAAQ,GAAG,CAAC,sDAAU;;EAC3C,EAAE;AAEJ,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/index.tsx\"],\"names\":[],\"mappings\":\";;AAGA,6BAAe,sCAAW;IACzB,QACE,IAAI,mCAAU,IAAM,QAAQ,GAAG,CAAC,sDAAU;EAC3C,EAAE;AAEJ,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

@@ -27,7 +27,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Props are immutable by default.', // 19
       `Calling a 'use*()' method outside 'component$(() => { HERE })' is not allowed. 'use*()' methods provide hooks to the 'component$' state and lifecycle, ie 'use' hooks can only be called synchronously within the 'component$' function or another 'use' method.\nSee https://qwik.dev/docs/components/tasks/#use-method-rules`, // 20
       'Container is already paused. Skipping', // 21
-      'Components using useServerMount() can only be mounted in the server, if you need your component to be mounted in the client, use "useMount$()" instead', // 22
+      '', // 22 -- unused
       'When rendering directly on top of Document, the root node must be a <html>', // 23
       'A <html> node must have 2 children. The first one <head> and the second one a <body>', // 24
       'Invalid JSXNode type "{{0}}". It must be either a function or a string. Found:', // 25
@@ -78,7 +78,7 @@ export const QError_hostCanOnlyBeAtRoot = 18;
 export const QError_immutableJsxProps = 19;
 export const QError_useInvokeContext = 20;
 export const QError_containerAlreadyPaused = 21;
-export const QError_canNotMountUseServerMount = 22;
+export const QError_unused_please_reuse = 22;
 export const QError_rootNodeMustBeHTML = 23;
 export const QError_strictHTMLChildren = 24;
 export const QError_invalidJsxNodeType = 25;

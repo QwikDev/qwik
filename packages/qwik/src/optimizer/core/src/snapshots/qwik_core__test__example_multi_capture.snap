@@ -40,7 +40,7 @@ export const Foo_component_HTDRsvUbLiE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,SAAW;IAExC;;;AAQD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B;IAE7B;;;AAQD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -49,6 +49,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Foo_component",
   "hash": "HTDRsvUbLiE",
   "canonicalFilename": "foo_component_htdrsvublie",
+  "path": "",
   "extension": "jsx",
   "parent": null,
   "ctxKind": "function",
@@ -79,7 +80,7 @@ export const Bar_component_L80pS8Hxf1Y = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAe8B,SAAW;IACxC;;;AAOD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAe8B;IAC7B;;;AAOD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -88,6 +89,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Bar_component",
   "hash": "L80pS8Hxf1Y",
   "canonicalFilename": "bar_component_l80ps8hxf1y",
+  "path": "",
   "extension": "jsx",
   "parent": null,
   "ctxKind": "function",
@@ -104,17 +106,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { useLexicalScope } from "@builder.io/qwik";
 export const Foo_component_1_DvU6FitWglY = ()=>{
     const [props] = useLexicalScope();
-    const fn = ({ aaa  })=>aaa;
+    const fn = ({ aaa })=>aaa;
     return <div>
-
 				{props.foo}{fn()}{20}
-
 			</div>;
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKU;;IACR,MAAM,KAAK,CAAC,EAAC,IAAG,EAAC,GAAK;IACtB,QACE,IAAI;;IACJ,OAN4B,KAMtB,MALI,GAKO;;GAClB,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKU;;IACR,MAAM,KAAK,CAAC,EAAC,GAAG,EAAC,GAAK;IACtB,QACE,IAAI;IACJ,OAN4B,KAMtB,MALI,GAKO;GAClB,EAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -123,6 +123,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Foo_component_1",
   "hash": "DvU6FitWglY",
   "canonicalFilename": "foo_component_1_dvu6fitwgly",
+  "path": "",
   "extension": "jsx",
   "parent": "Foo_component_HTDRsvUbLiE",
   "ctxKind": "function",
@@ -140,15 +141,13 @@ import { useLexicalScope } from "@builder.io/qwik";
 export const Bar_component_1_0xSyNSnVu3k = ()=>{
     const [props] = useLexicalScope();
     return <div>
-
 				{props.bar}
-
 			</div>;
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAgBU;;IACR,QACE,IAAI;;IACJ,OAJ4B,IAIvB;;GACN,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAgBU;;IACR,QACE,IAAI;IACJ,OAJ4B,IAIvB;GACN,EAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -157,6 +156,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Bar_component_1",
   "hash": "0xSyNSnVu3k",
   "canonicalFilename": "bar_component_1_0xsynsnvu3k",
+  "path": "",
   "extension": "jsx",
   "parent": "Bar_component_L80pS8Hxf1Y",
   "ctxKind": "function",

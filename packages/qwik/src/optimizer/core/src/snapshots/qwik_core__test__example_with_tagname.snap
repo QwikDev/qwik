@@ -27,7 +27,7 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B,IAAM;IACnC;AAMD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B;IAC7B;AAMD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -36,6 +36,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Foo_component",
   "hash": "HTDRsvUbLiE",
   "canonicalFilename": "foo_component_htdrsvublie",
+  "path": "",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -51,13 +52,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 export const Foo_component_1_DvU6FitWglY = ()=>{
     return <div>
-
 			</div>;
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2CAIU,IAAM;IACd,QACE,IAAI;;GACL,EAAE;AAEJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2CAIU;IACR,QACE,IAAI;GACL,EAAE;AAEJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -66,6 +66,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Foo_component_1",
   "hash": "DvU6FitWglY",
   "canonicalFilename": "foo_component_1_dvu6fitwgly",
+  "path": "",
   "extension": "tsx",
   "parent": "Foo_component_HTDRsvUbLiE",
   "ctxKind": "function",

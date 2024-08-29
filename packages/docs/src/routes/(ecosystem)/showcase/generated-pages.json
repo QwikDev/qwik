@@ -743,5 +743,53 @@
     },
     "href": "https://numeia.com",
     "tags": "saas, marketing, ai"
+  },
+  {
+    "title": "Qit.tools 🪄 online web tools",
+    "imgSrc": "/showcases/qit_tools_.webp",
+    "perf": {
+      "score": 0.79,
+      "fcpDisplay": "1.3 s",
+      "fcpScore": 0.98,
+      "lcpDisplay": "1.3 s",
+      "lcpScore": 1,
+      "ttiDisplay": "2.5 s",
+      "ttiScore": 0.98,
+      "ttiTime": 2480.2104514805424
+    },
+    "href": "https://qit.tools/",
+    "tags": "online,tools,converters"
+  },
+  {
+    "title": "Placement Preparation | Learn Aptitude the Right Way",
+    "imgSrc": "/showcases/www_placementpreparation_io_.webp",
+    "perf": {
+      "score": 0.95,
+      "fcpDisplay": "1.3 s",
+      "fcpScore": 0.98,
+      "lcpDisplay": "2.9 s",
+      "lcpScore": 0.82,
+      "ttiDisplay": "1.9 s",
+      "ttiScore": 1,
+      "ttiTime": 1861.5315195055591
+    },
+    "href": "https://www.placementpreparation.io/",
+    "tags": "aptitude,learning,platform"
+  },
+  {
+    "title": "さけのわ",
+    "imgSrc": "/showcases/sakenowa_com.webp",
+    "perf": {
+      "score": 0.99,
+      "fcpDisplay": "1.5 s",
+      "fcpScore": 0.95,
+      "lcpDisplay": "1.5 s",
+      "lcpScore": 0.99,
+      "ttiDisplay": "1.7 s",
+      "ttiScore": 1,
+      "ttiTime": 1673.9
+    },
+    "href": "https://sakenowa.com",
+    "tags": "sns,app"
   }
 ]

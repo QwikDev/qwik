@@ -5,6 +5,7 @@
 ```ts
 
 import * as CSS_2 from 'csstype';
+import type { JSXNode as JSXNode_2 } from '@builder.io/qwik';
 import type { StreamWriter as StreamWriter_2 } from '@builder.io/qwik';
 
 // @public
@@ -172,7 +173,6 @@ export const _CONST_PROPS: unique symbol;
 export interface _ContainerElement extends HTMLElement {
     // (undocumented)
     qContainer?: ClientContainer;
-    qFuncs?: Array<Function>;
     qVnodeData?: string;
     qVNodeRefs?: Map<number, Element | _ElementVNode>;
 }
@@ -185,7 +185,7 @@ export interface ContextId<STATE> {
 
 // @public
 export interface CorePlatform {
-    chunkForSymbol: (symbolName: string, chunk: string | null) => readonly [symbol: string, chunk: string] | undefined;
+    chunkForSymbol: (symbolName: string, chunk: string | null, parent?: string) => readonly [symbol: string, chunk: string] | undefined;
     importSymbol: (containerEl: Element | undefined, url: string | URL | undefined | null, symbol: string) => ValueOrPromise<any>;
     isServer: boolean;
     nextTick: (fn: () => any) => Promise<any>;
@@ -221,9 +221,6 @@ export interface DelHTMLAttributes<T extends Element> extends Attrs<'del', T> {
 
 // @internal
 export function _deserialize(rawStateData: string | null, element?: unknown): unknown[];
-
-// @internal (undocumented)
-export const _deserializeData: (data: string, element?: unknown) => any;
 
 // @public (undocumented)
 export interface DetailsHTMLAttributes<T extends Element> extends Attrs<'details', T> {
@@ -262,6 +259,8 @@ class DomContainer extends _SharedContainer implements ClientContainer, StoreTra
     $appendStyle$(content: string, styleId: string, host: _VirtualVNode, scoped: boolean): void;
     // (undocumented)
     $getObjectById$: (id: number | string) => unknown;
+    // (undocumented)
+    $instanceHash$: string;
     // (undocumented)
     $journal$: VNodeJournal;
     // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
@@ -468,6 +467,9 @@ export interface IframeHTMLAttributes<T extends Element> extends Attrs<'iframe',
 export interface ImgHTMLAttributes<T extends Element> extends Attrs<'img', T> {
 }
 
+// @internal @deprecated (undocumented)
+export const _IMMUTABLE: unique symbol;
+
 // @public
 export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (qrl: QRL<FIRST>, ...rest: REST) => RET) => ((qrl: FIRST, ...rest: REST) => RET);
 
@@ -535,6 +537,9 @@ export { jsx as jsxs }
 // @internal (undocumented)
 export const _jsxBranch: <T>(input?: T) => T | undefined;
 
+// @internal @deprecated (undocumented)
+export const _jsxC: (type: any, mutable: any, _flags: any, key: any) => JSXNode<any>;
+
 // @public (undocumented)
 export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;
 
@@ -567,6 +572,12 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
 
 // @public
 export type JSXOutput = JSXNode | string | number | boolean | null | undefined | JSXOutput[];
+
+// @internal @deprecated (undocumented)
+export const _jsxQ: (type: any, mutable: any, immutable: any, children: any, _flags: any, key: any) => JSXNode<any>;
+
+// @internal @deprecated (undocumented)
+export const _jsxS: (type: any, mutable: any, immutable: any, _flags: any, key: any) => JSXNode<any>;
 
 // @internal
 export const _jsxSorted: <T>(type: T, varProps: Props | null, constProps: Props | null, children: JSXChildren | null, flags: number, key: string | number | null | undefined, dev?: DevJSX) => JSXNode<T>;
@@ -666,6 +677,9 @@ export type NativeWheelEvent = WheelEvent;
 // @internal (undocumented)
 export const _noopQrl: <T>(symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>;
 
+// @internal (undocumented)
+export const _noopQrlDEV: <T>(symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
+
 // @public
 export type NoSerialize<T> = (T & {
     __no_serialize__: true;
@@ -727,7 +741,7 @@ export const PrefetchGraph: (opts?: {
     manifestHash?: string;
     manifestURL?: string;
     nonce?: string;
-}) => JSXNode<string>;
+}) => JSXNode_2<string>;
 
 // @alpha
 export const PrefetchServiceWorker: (opts: {
@@ -737,7 +751,7 @@ export const PrefetchServiceWorker: (opts: {
     verbose?: boolean;
     fetchBundleGraph?: boolean;
     nonce?: string;
-}) => JSXNode<'script'>;
+}) => JSXNode_2<'script'>;
 
 // @public (undocumented)
 export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progress', T> {
@@ -800,7 +814,7 @@ export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: st
 export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @beta
-export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[];
+export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[] | EventHandler<EV, EL>;
 
 // @alpha
 export const _qrlSync: <TYPE extends Function>(fn: TYPE, serializedFn?: string) => SyncQRL<TYPE>;
@@ -1049,9 +1063,6 @@ export interface SelectHTMLAttributes<T extends Element> extends Attrs<'select',
 // @internal
 export function _serialize(data: unknown[]): Promise<string>;
 
-// @internal (undocumented)
-export const _serializeData: (data: any, pureQRL?: boolean) => Promise<string>;
-
 // @public
 export const setPlatform: (plt: CorePlatform) => CorePlatform;
 
@@ -1063,6 +1074,8 @@ export abstract class _SharedContainer implements Container2 {
     $currentUniqueId$: number;
     // (undocumented)
     readonly $getObjectById$: (id: number | string) => any;
+    // (undocumented)
+    $instanceHash$: string | null;
     // (undocumented)
     readonly $locale$: string;
     // (undocumented)
@@ -2094,6 +2107,9 @@ export function withLocale<T>(locale: string, fn: () => T): T;
 
 // @internal (undocumented)
 export const _wrapProp: <T extends Record<any, any>, P extends keyof T>(obj: T, prop?: P | undefined) => any;
+
+// @internal @deprecated (undocumented)
+export const _wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;
 
 // (No @packageDocumentation comment for this package)
 

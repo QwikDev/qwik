@@ -41,9 +41,6 @@ export interface ContainerElement extends HTMLElement {
 
   /** String from `<script type="qwik/vnode">` tag. */
   qVnodeData?: string;
-
-  /** Map of Synchronous functions. */
-  qFuncs?: Array<Function>;
 }
 
 /** @internal */

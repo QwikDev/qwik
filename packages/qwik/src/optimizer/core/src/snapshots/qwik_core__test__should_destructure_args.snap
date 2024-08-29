@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3610
+assertion_line: 3614
 expression: output
 ---
 ==INPUT==
@@ -71,7 +71,7 @@ export const test_component_LUXeXe0DQrg = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAK4B,SAA6D;;;;;;IACtF,MAAM,UAAU,SAAS;QAAE,SAAS;IAAE,GAAG;QAAE,UAAU,KAAK;IAAC;IAC3D,QAAQ,OAAO;IACf,MAAM,YAAY,QAAQ,OAAO,GAAG;IACpC,qBACC,WAAC;QAAI,EAAE;;sBACN,UAAC;YAAM,GAAG,IAAI;;;YACL;;;sBAET,WAAC;YAAI,OAAM;WAAW;;AAGzB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAK4B;;;;;;IACzB,MAAM,UAAU,SAAS;QAAE,SAAS;IAAE,GAAG;QAAE,UAAU;IAAM;IAC3D,QAAQ,OAAO;IACf,MAAM,YAAY,QAAQ,OAAO,GAAG;IACpC,qBACC,WAAC;QAAI,EAAE;;sBACN,UAAC;YAAM,GAAG,IAAI;;;YACL;;;sBAET,WAAC;YAAI,OAAM;WAAW;;AAGzB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -80,6 +80,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "test_component",
   "hash": "LUXeXe0DQrg",
   "canonicalFilename": "test_component_luxexe0dqrg",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

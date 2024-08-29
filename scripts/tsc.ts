@@ -15,7 +15,7 @@ export async function tscQwik(config: BuildConfig) {
 
 export async function tscQwikCity(config: BuildConfig) {
   console.log('tsc qwik-city');
-  const result = await execa('tsc', ['-p', join(config.srcQwikCityDir, 'tsconfig.json')], {
+  const result = await execa('tsc', ['-p', join(config.srcQwikCityDir, '..', 'tsconfig.json')], {
     stdout: 'inherit',
   });
   if (result.failed) {

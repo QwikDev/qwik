@@ -33,17 +33,19 @@ contributors:
   - kushalvmahajan
   - daniela-bonvini
   - jemsco
-updated_at: '2023-09-30T18:34:34Z'
+  - maiieul
+updated_at: '2024-15-30T18:34:34Z'
 created_at: '2023-04-02T16:36:48Z'
 ---
 
 import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 # Getting Started Qwikly
 
 Qwik is a new kind of framework that is [resumable](../concepts/resumable/index.mdx) (no eager JS execution and no hydration), built for the edge and [familiar to React developers](/docs/integrations/react/index.mdx).
 
-To play with it right away, check out our in-browser playgrounds:
+To play with it right away, check out Qwik’s in-browser playgrounds:
 
 - [StackBlitz Qwik](https://qwik.new) (Full Qwik + Qwikcity integration)
 - [Examples playground](/examples/reactivity/counter/) (Qwik only, no routing)
@@ -60,25 +62,57 @@ To get started with Qwik locally, you need the following:
 
 First, use the Qwik CLI to generate a blank starter application, to quickly familiarize yourself with it.  The same command can be used to create projects for either Qwik or Qwik city.
 
-Run the Qwik CLI in your shell. Qwik supports npm, yarn, pnpm and bun. Choose the package manager you prefer and run one of the following commands:
+Run the Qwik CLI in your shell. Qwik supports pnpm, npm, yarn and bun. Choose the package manager you prefer and run one of the following commands:
 
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm create qwik@latest
+```
+</span>
+<span q:slot="npm">
 ```shell
 npm create qwik@latest
-pnpm create qwik@latest
+```
+</span>
+<span q:slot="yarn">
+```shell
 yarn create qwik
+```
+</span>
+<span q:slot="bun">
+```shell
 bun create qwik@latest
 ```
+</span>
+</PackageManagerTabs>
 
 The CLI guides you through an interactive menu to set the project-name, select one of the starters, and ask if you want to install the dependencies.  To find out more about the files generated, refer to the [Project Structure](/docs/project-structure/) documentation.
 
 Start the development server:
 
+<PackageManagerTabs>
+<span q:slot="pnpm">
 ```shell
-npm start
-pnpm start
-yarn start
-bun start (on windows: bun run start)
+pnpm run start
 ```
+</span>
+<span q:slot="npm">
+```shell
+npm run start
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run start
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run start
+```
+</span>
+</PackageManagerTabs>
 
 ## Qwik Joke App
 
@@ -102,7 +136,7 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-3. Navigate to `http://127.0.0.1:5173/joke/` to see your new page working.
+3. Navigate to `localhost:5173/joke/` to see your new page working.
 
 > NOTE:
 >
@@ -112,7 +146,7 @@ export default component$(() => {
 
 ### 2. Loading Data
 
-We will use the external JSON API at https://icanhazdadjoke.com to load random jokes. We will use [route loaders](/docs/route-loader/) to load this data into the server and render it in the component.
+Use the external JSON API at https://icanhazdadjoke.com to load random jokes. You can use [route loaders](/docs/route-loader/) to load this data into the server and render it in the component.
 
 1. Open `src/routes/joke/index.tsx` and add this code:
 
@@ -159,7 +193,7 @@ Code explanation:
 
 ### 3. Posting Data to the Server
 
-Previously, we used `routeLoader$` to send data from the server to the client. To post (send) data from the client back to the server, we use [`routeAction$`](/docs/action/).
+Previously, the component `routeLoader$` was used to send data from the server to the client. To post (send) data from the client back to the server, use [`routeAction$`](/docs/action/).
 
 NOTE: `routeAction$` is the preferred way to send data to the server because it uses the browser native form API, which works even if JavaScript is disabled.
 
@@ -543,28 +577,49 @@ export default component$(() => {
 
 ### 7. Preview
 
-We've built a basic application as an overview of the key Qwik concepts and its API. The application is running in dev mode, which uses hot-module-reloading (HMR) to continuously update the application while changing the code.
+Up until now, you've been using the dev server to make your application.
 
-While in dev mode:
+This is great to see your changes in real time, but it doesn't work the same way as in production:
 
 - Each file is loaded individually, which may cause waterfalls in the network tab.
 - There is no speculative loading of bundles, so there may be a delay on the first interaction.
 
-Let's create a production build that eliminates these issues.
+To make sure everything is ready for production and eliminate these issues, you can run your app in preview:
 
-To create a preview build:
+1. Run `preview` command to create a production build and run it.
 
-1. Run `npm run preview` to create a production build.
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run preview
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run preview
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run preview
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run preview
+```
+</span>
+</PackageManagerTabs>
 
 NOTE:
 
-- Your application should now have a production build running on a different port.
+- Your application should now have a production build running on localhost:4173.
 - If you interact with the application now, the network tab of the dev tools should show that the bundles are instantly delivered from the [ServiceWorker cache](/docs/advanced/speculative-module-fetching/).
 
 ## Review
 
-Congratulations! You've learned a lot about Qwik!
-For more on just how much you can achieve with Qwik, we recommend reading the dedicated docs on each of the topics touched on in this tutorial:
+Congratulations, you've learned a lot about Qwik!
+For more on just how much you can achieve with Qwik, check out the dedicated docs on each of the topics touched on in this tutorial:
 
 - [Project structure](/docs/(qwikcity)/project-structure/index.mdx)
 - [Directory-based routing](/docs/(qwikcity)/routing/index.mdx#directory-based-routing)

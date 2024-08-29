@@ -35,7 +35,7 @@ export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
 }, "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,cAAc;IAC1B,GAAG;IACH,GAAG;IACH,GAAG;AACH,EAAE;AAEF,6BAAe,sCAAW,IAAM;IAIhC,UAFc,WAAW,CADb,IACkB;AAG9B,kCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,cAAc;IAC1B,GAAG;IACH,GAAG;IACH,GAAG;AACH,EAAE;AAEF,6BAAe,sCAAW;IAI1B,UAFc,WAAW,CADb,IACkB;AAG9B,kCAAG\"}")
 == DIAGNOSTICS ==
 
 []

@@ -123,7 +123,7 @@ export const head: DocumentHead = ({resolveValue, params}) => {
 
 ### Nested Layouts and Head
 
-In an advanced case, a [layout](/docs/(qwikcity)/layout/index.mdx) may want to modify the document title of an already resolved document head. In the example below, the page component returns the title of `Foo`. The the containing layout component can read the value of the page's document head and modify it. In this example, the layout component is adding `MyCompany - ` to the title, so that when rendered, the title will be `MyCompany - Foo`. Every layout in the stack has the opportunity to return a new value.
+In an advanced case, a [layout](/docs/(qwikcity)/layout/index.mdx) may want to modify the document title of an already resolved document head. In the example below, the page component returns the title of `Foo`. The containing layout component can read the value of the page's document head and modify it. In this example, the layout component is adding `MyCompany - ` to the title, so that when rendered, the title will be `MyCompany - Foo`. Every layout in the stack has the opportunity to return a new value.
 
 ```bash
 ──src/
@@ -149,7 +149,7 @@ export const head: DocumentHead = ({ head }) => {
 ### Google Structured Data
 
 This example integrates [Google Structured Data](https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data)
-this helps by providing explicit clues about the meaning of a page to Google.
+which helps by providing explicit clues about the meaning of a page to Google.
 If you want to embed custom JavaScript code, it would be ideal to do it lazily with [Partytown](https://partytown.builder.io/).
 Sometimes, however, you are forced to load them immediately. The following example illustrates this.
 

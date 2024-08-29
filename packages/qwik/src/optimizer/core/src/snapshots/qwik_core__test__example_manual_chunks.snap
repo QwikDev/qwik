@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1710
+assertion_line: 1711
 expression: output
 ---
 ==INPUT==
@@ -55,6 +55,7 @@ export const Parent_component_useTask_gDH1EtUWqBU = async ()=>{
     state.text = await mongo.users();
     redis.set(state.text);
 };
+export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;oDAWU;;IACR,MAAM,IAAI,GAAG,MAAM,MAAM,KAAK;IAC9B,MAAM,GAAG,CAAC,MAAM,IAAI\"}")
@@ -62,10 +63,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "Parent_component_useTask_gDH1EtUWqBU",
-  "entry": "entry_Parent",
+  "entry": "test.tsx_entry_Parent",
   "displayName": "Parent_component_useTask",
   "hash": "gDH1EtUWqBU",
   "canonicalFilename": "parent_component_usetask_gdh1etuwqbu",
+  "path": "",
   "extension": "js",
   "parent": "Parent_component_0TaiDayHrlo",
   "ctxKind": "function",
@@ -81,11 +83,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./entry_Parent"), "Parent_component_0TaiDayHrlo"));
-export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./entry_Child"), "Child_component_9GyF01GDKqw"));
+export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./parent_component_0taidayhrlo"), "Parent_component_0TaiDayHrlo"));
+export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./child_component_9gyf01gdkqw"), "Child_component_9GyF01GDKqw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,uBAAS,8FAgBnB;AAEH,OAAO,MAAM,sBAAQ,4FAelB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,uBAAS,8GAgBnB;AAEH,OAAO,MAAM,sBAAQ,4GAelB\"}")
 ============================= child_component_usetask_oh4n7zeqjku.js ==
 
 import { useLexicalScope } from "@builder.io/qwik";
@@ -94,6 +96,7 @@ export const Child_component_useTask_Oh4n7ZeqJkU = async ()=>{
     const [state] = useLexicalScope();
     state.text = await mongo.users();
 };
+export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mDA6BU;;IACR,MAAM,IAAI,GAAG,MAAM,MAAM,KAAK\"}")
@@ -101,10 +104,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "Child_component_useTask_Oh4n7ZeqJkU",
-  "entry": "entry_Child",
+  "entry": "test.tsx_entry_Child",
   "displayName": "Child_component_useTask",
   "hash": "Oh4n7ZeqJkU",
   "canonicalFilename": "child_component_usetask_oh4n7zeqjku",
+  "path": "",
   "extension": "js",
   "parent": "Child_component_9GyF01GDKqw",
   "ctxKind": "function",
@@ -128,7 +132,7 @@ export const Parent_component_0TaiDayHrlo = ()=>{
         text: ''
     });
     // Double count watch
-    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./entry_Parent"), "Parent_component_useTask_gDH1EtUWqBU", [
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./parent_component_usetask_gdh1etuwqbu"), "Parent_component_useTask_gDH1EtUWqBU", [
         state
     ]));
     return /*#__PURE__*/ _jsxSorted("div", null, {
@@ -137,15 +141,16 @@ export const Parent_component_0TaiDayHrlo = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;4CAKiC,IAAM;IACtC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA,qBACC,WAAC;QAAI,QAAQ;iBACX;AAGJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;4CAKiC;IAChC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA,qBACC,WAAC;QAAI,QAAQ;iBACX;AAGJ\"}")
 /*
 {
   "origin": "test.tsx",
   "name": "Parent_component_0TaiDayHrlo",
-  "entry": "entry_Parent",
+  "entry": "test.tsx_entry_Parent",
   "displayName": "Parent_component",
   "hash": "0TaiDayHrlo",
   "canonicalFilename": "parent_component_0taidayhrlo",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -171,6 +176,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Parent_component_div_onClick",
   "hash": "C5XE49Nqd3A",
   "canonicalFilename": "parent_component_div_onclick_c5xe49nqd3a",
+  "path": "",
   "extension": "js",
   "parent": "Parent_component_0TaiDayHrlo",
   "ctxKind": "eventHandler",
@@ -194,7 +200,7 @@ export const Child_component_9GyF01GDKqw = ()=>{
         text: ''
     });
     // Double count watch
-    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./entry_Child"), "Child_component_useTask_Oh4n7ZeqJkU", [
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./child_component_usetask_oh4n7zeqjku"), "Child_component_useTask_Oh4n7ZeqJkU", [
         state
     ]));
     return /*#__PURE__*/ _jsxSorted("div", null, {
@@ -203,15 +209,16 @@ export const Child_component_9GyF01GDKqw = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAuBgC,IAAM;IACrC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAIA,qBACC,WAAC;QAAI,QAAQ;iBACX;AAGJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAuBgC;IAC/B,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAIA,qBACC,WAAC;QAAI,QAAQ;iBACX;AAGJ\"}")
 /*
 {
   "origin": "test.tsx",
   "name": "Child_component_9GyF01GDKqw",
-  "entry": "entry_Child",
+  "entry": "test.tsx_entry_Child",
   "displayName": "Child_component",
   "hash": "9GyF01GDKqw",
   "canonicalFilename": "child_component_9gyf01gdkqw",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -237,6 +244,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "displayName": "Child_component_div_onClick",
   "hash": "elliVSnAiOQ",
   "canonicalFilename": "child_component_div_onclick_ellivsnaioq",
+  "path": "",
   "extension": "js",
   "parent": "Child_component_9GyF01GDKqw",
   "ctxKind": "eventHandler",
@@ -248,22 +256,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= entry_Child.js (ENTRY POINT)==
-
-export { Child_component_useTask_Oh4n7ZeqJkU } from "./child_component_usetask_oh4n7zeqjku";
-export { Child_component_9GyF01GDKqw } from "./child_component_9gyf01gdkqw";
-export { _hW } from "@builder.io/qwik";
-
-
-None
-============================= entry_Parent.js (ENTRY POINT)==
-
-export { Parent_component_useTask_gDH1EtUWqBU } from "./parent_component_usetask_gdh1etuwqbu";
-export { Parent_component_0TaiDayHrlo } from "./parent_component_0taidayhrlo";
-export { _hW } from "@builder.io/qwik";
-
-
-None
 == DIAGNOSTICS ==
 
 []

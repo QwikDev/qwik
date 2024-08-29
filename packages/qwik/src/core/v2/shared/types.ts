@@ -63,7 +63,9 @@ export interface QElement2 extends HTMLElement {
 
 export type qWindow = Window & {
   qwikevents: {
-    push: (...e: string[]) => void;
+    events: Set<string>;
+    roots: Set<Node>;
+    push: (...e: (string | (EventTarget & ParentNode))[]) => void;
   };
 };
 

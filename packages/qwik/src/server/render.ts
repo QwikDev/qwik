@@ -23,7 +23,7 @@ import type {
   StreamWriter,
 } from './types';
 import { createTimer, getBuildBase } from './utils';
-import { QInstanceAttr } from '../core/util/markers';
+import { QInstanceAttr } from './qwik-copy';
 
 const DOCTYPE = '<!DOCTYPE html>';
 

@@ -46,6 +46,7 @@ import {
   QBaseAttr,
   QLocaleAttr,
   QManifestHashAttr,
+  QInstanceAttr,
   escapeHTML,
 } from './qwik-copy';
 import {
@@ -88,7 +89,6 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './v2-vnode-data';
-import { QInstanceAttr } from '../core/util/markers';
 import { qDev } from '../core/util/qdev';
 
 export interface SSRRenderOptions {

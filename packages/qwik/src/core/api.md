@@ -467,6 +467,9 @@ export interface IframeHTMLAttributes<T extends Element> extends Attrs<'iframe',
 export interface ImgHTMLAttributes<T extends Element> extends Attrs<'img', T> {
 }
 
+// @internal @deprecated (undocumented)
+export const _IMMUTABLE: unique symbol;
+
 // @public
 export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (qrl: QRL<FIRST>, ...rest: REST) => RET) => ((qrl: FIRST, ...rest: REST) => RET);
 
@@ -2104,6 +2107,9 @@ export function withLocale<T>(locale: string, fn: () => T): T;
 
 // @internal (undocumented)
 export const _wrapProp: <T extends Record<any, any>, P extends keyof T>(obj: T, prop?: P | undefined) => any;
+
+// @internal @deprecated (undocumented)
+export const _wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;
 
 // (No @packageDocumentation comment for this package)
 

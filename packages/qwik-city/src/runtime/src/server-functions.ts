@@ -406,7 +406,7 @@ export const serverQrl = <T extends ServerFunction>(
           })();
         } else if (contentType === 'application/qwik-json') {
           const str = await res.text();
-          const obj = _deserialize(str, ctxElm ?? document.documentElement);
+          const [obj] = _deserialize(str, ctxElm ?? document.documentElement);
           if (res.status === 500) {
             throw obj;
           }

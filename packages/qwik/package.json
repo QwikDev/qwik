@@ -28,6 +28,18 @@
     "csstype": "^3.1",
     "vite": "^5"
   },
+  "peerDependencies": {
+    "vitest": "^2",
+    "prettier": "*"
+  },
+  "peerDependenciesMeta": {
+    "vitest": {
+      "optional": true
+    },
+    "prettier": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
     "@builder.io/qwik-dom": "workspace:^",

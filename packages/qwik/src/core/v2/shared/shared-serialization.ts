@@ -1189,7 +1189,7 @@ export function qrlToString(
   const refSymbol = value.$refSymbol$ ?? symbol;
   const platform = getPlatform();
   if (platform) {
-    const result = platform.chunkForSymbol(refSymbol, chunk);
+    const result = platform.chunkForSymbol(refSymbol, chunk, value.dev?.file);
     if (result) {
       chunk = result[1];
       if (!value.$refSymbol$) {

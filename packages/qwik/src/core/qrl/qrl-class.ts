@@ -1,4 +1,4 @@
-import { isDev } from '../../build/index.dev';
+import { isDev } from '@builder.io/qwik/build';
 import { assertDefined } from '../error/assert';
 import { qError, QError_qrlIsNotFunction } from '../error/error';
 import { getPlatform, isServerPlatform } from '../platform/platform';

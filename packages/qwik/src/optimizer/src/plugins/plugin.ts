@@ -102,6 +102,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     },
     inlineStylesUpToBytes: null as any,
     lint: true,
+    isDev: false,
   };
 
   let lazyNormalizePath: (id: string) => string;
@@ -165,6 +166,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     } else {
       opts.buildMode = 'development';
     }
+
+    opts.isDev = updatedOpts.isDev ?? opts.buildMode === 'development';
 
     if (updatedOpts.entryStrategy && typeof updatedOpts.entryStrategy === 'object') {
       opts.entryStrategy = { ...updatedOpts.entryStrategy };
@@ -648,6 +651,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         mode,
         scope: opts.scope || undefined,
         isServer,
+        isDev: opts.isDev,
       };
 
       if (strip) {
@@ -801,11 +805,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const normalizePath = (id: string) => lazyNormalizePath(id);
 
   function getQwikBuildModule(isServer: boolean, target: QwikBuildTarget) {
-    const isDev = opts.buildMode === 'development';
     return `// @builder.io/qwik/build
 export const isServer = ${JSON.stringify(isServer)};
 export const isBrowser = ${JSON.stringify(!isServer)};
-export const isDev = ${JSON.stringify(isDev)};
+export const isDev = ${JSON.stringify(opts.isDev)};
 `;
   }
 
@@ -1009,11 +1012,14 @@ export interface QwikPluginOptions {
    * large projects. Defaults to `true`
    */
   lint?: boolean;
+  /** Override isDev for testing purposes */
+  isDev?: boolean;
 }
 
 export interface NormalizedQwikPluginOptions
   extends Omit<Required<QwikPluginOptions>, 'vendorRoots'> {
   input: string[] | { [entry: string]: string };
+  isDev: boolean;
 }
 
 /** @public */

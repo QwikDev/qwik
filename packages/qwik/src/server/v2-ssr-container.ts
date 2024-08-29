@@ -89,7 +89,6 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './v2-vnode-data';
-import { qDev } from '../core/util/qdev';
 
 export interface SSRRenderOptions {
   locale?: string;
@@ -306,7 +305,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     containerAttributes[QContainerAttr] = QContainerValue.PAUSED;
     containerAttributes[QRuntimeAttr] = '2';
     containerAttributes[QVersionAttr] = this.$version$ ?? 'dev';
-    containerAttributes[QRenderAttr] = (qRender ? qRender + '-' : '') + (qDev ? 'ssr-dev' : 'ssr');
+    containerAttributes[QRenderAttr] = (qRender ? qRender + '-' : '') + (isDev ? 'ssr-dev' : 'ssr');
     containerAttributes[QBaseAttr] = this.buildBase || '';
     containerAttributes[QLocaleAttr] = this.$locale$;
     containerAttributes[QManifestHashAttr] = this.resolvedManifest.manifest.manifestHash;

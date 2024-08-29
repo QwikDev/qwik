@@ -92,6 +92,7 @@ pub struct TransformCodeOptions<'a> {
 	pub strip_ctx_name: Option<&'a [JsWord]>,
 	pub strip_event_handlers: bool,
 	pub is_server: bool,
+	pub is_dev: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -211,6 +212,8 @@ impl Emitter for ErrorBuffer {
 }
 
 pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, anyhow::Error> {
+	let is_dev = config.is_dev.unwrap_or(config.mode == EmitMode::Dev);
+	let is_lib = config.mode == EmitMode::Lib;
 	let source_map = Lrc::new(SourceMap::default());
 	let path_data = parse_path(
 		config.relative_path.replace('\\', "/").as_str(),
@@ -297,8 +300,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 					transform_props_destructuring(&mut program, &mut collect, &config.core_module);
 
 					// Replace const values
-					if config.mode != EmitMode::Lib {
-						let is_dev = config.mode == EmitMode::Dev;
+					if !is_lib {
 						let mut const_replacer =
 							ConstReplacerVisitor::new(config.is_server, is_dev, &collect);
 						program.visit_mut_with(&mut const_replacer);
@@ -311,7 +313,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 						comments: Some(&comments),
 						global_collect: collect,
 						scope: config.scope,
-						mode: config.mode,
 						core_module: config.core_module,
 						entry_strategy: config.entry_strategy,
 						reg_ctx_name: config.reg_ctx_name,
@@ -319,6 +320,9 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 						strip_event_handlers: config.strip_event_handlers,
 						is_server: config.is_server,
 						cm: Lrc::clone(&source_map),
+						// The transform should always respect the emit mode
+						is_dev: config.mode == EmitMode::Dev,
+						is_lib,
 					});
 
 					// print before transform, for debugging

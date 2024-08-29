@@ -3233,6 +3233,21 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
+[isDev?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
 [isServer?](#)
 
 </td><td>

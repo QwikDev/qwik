@@ -160,6 +160,7 @@ fn optimize(
 		strip_event_handlers: false,
 		reg_ctx_name: None,
 		is_server: None,
+		is_dev: None,
 	})?;
 
 	result.write_to_fs(

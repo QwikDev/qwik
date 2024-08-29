@@ -1,3 +1,4 @@
+// same as isDev but separate so we can test
 export const qDev = globalThis.qDev !== false;
 export const qInspector = globalThis.qInspector === true;
 export const qSerialize = globalThis.qSerialize !== false;

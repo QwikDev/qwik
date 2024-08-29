@@ -76,6 +76,7 @@ pub struct TransformFsOptions {
 	pub strip_event_handlers: bool,
 	pub reg_ctx_name: Option<Vec<JsWord>>,
 	pub is_server: Option<bool>,
+	pub is_dev: Option<bool>,
 }
 
 #[derive(Serialize, Debug, Deserialize)]
@@ -108,6 +109,7 @@ pub struct TransformModulesOptions {
 	pub strip_event_handlers: bool,
 	pub reg_ctx_name: Option<Vec<JsWord>>,
 	pub is_server: Option<bool>,
+	pub is_dev: Option<bool>,
 }
 
 #[cfg(feature = "fs")]
@@ -156,6 +158,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
 				// If you don't specify is_server, the safe value is true
 				// For libraries, is_server has to be true because we neet to emit extra code
 				is_server: config.mode == EmitMode::Lib || config.is_server.unwrap_or(true),
+				is_dev: config.is_dev,
 			})
 		})
 		.reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
@@ -202,6 +205,7 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
 			// If you don't specify is_server, the safe value is true
 			// For libraries, is_server has to be true because we neet to emit extra code
 			is_server: config.mode == EmitMode::Lib || config.is_server.unwrap_or(true),
+			is_dev: config.is_dev,
 		})
 	});
 

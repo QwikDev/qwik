@@ -1023,7 +1023,7 @@ export const vnode_diff = (
         vCurrent && getInsertBefore()
       );
       isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.InlineComponent);
-      vnode_setProp(vNewNode, ELEMENT_PROPS, jsxValue.propsC);
+      vnode_setProp(vNewNode, ELEMENT_PROPS, jsxValue.props);
 
       host = vNewNode;
       let component$Host: VNode | null = host;
@@ -1041,7 +1041,7 @@ export const vnode_diff = (
         host,
         (component$Host || container.rootVNode) as HostElement,
         component as OnRenderFn<unknown>,
-        jsxValue.propsC
+        jsxValue.props
       );
       asyncQueue.push(jsxOutput, host);
     }
@@ -1162,8 +1162,8 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
   if (!src || !dst) {
     return true;
   }
-  let srcKeys = Object.keys(src);
-  let dstKeys = Object.keys(dst);
+  let srcKeys = removeChildrenKey(Object.keys(src));
+  let dstKeys = removeChildrenKey(Object.keys(dst));
   if (srcKeys.length !== dstKeys.length) {
     return true;
   }
@@ -1177,6 +1177,14 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
     }
   }
   return false;
+}
+
+function removeChildrenKey(keys: string[]): string[] {
+  const childrenIdx = keys.indexOf('children');
+  if (childrenIdx !== -1) {
+    keys.splice(childrenIdx, 1);
+  }
+  return keys;
 }
 
 /**

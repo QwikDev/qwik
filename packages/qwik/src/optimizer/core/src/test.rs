@@ -3781,6 +3781,32 @@ fn transform_qrl_in_regular_prop() {
 	});
 }
 
+#[test]
+fn calculated_rest_props() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@builder.io/qwik';
+		export const Cmp0a = component$(({ foo, ...rest }) => {
+			return <div f={foo} {...rest} />;
+		});
+		export const Cmp0b = component$((props) => {
+			const { foo, ...rest } = props;
+			return <div f={foo} {...rest} />;
+		});
+		export const Cmp1 = component$(({ foo, "hello": bar, [`hi` + 2]: meep, ...rest }) => {
+			return <div f={foo} b={bar} m={meep} {...rest} />;
+		});
+		export const Cmp2 = component$((props) => {
+			const { foo, "hello": bar, [`hi` + 2]: meep, ...rest } = props;
+			return <div f={foo} b={bar} m={meep} {...rest} />;
+		});
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 // TODO(misko): Make this test work by implementing strict serialization.
 // #[test]
 // fn example_of_synchronous_qrl_that_cant_be_serialized() {

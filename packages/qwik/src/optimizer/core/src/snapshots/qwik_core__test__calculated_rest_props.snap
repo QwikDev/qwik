@@ -1,0 +1,185 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 3786
+expression: output
+---
+==INPUT==
+
+
+		import { component$ } from '@builder.io/qwik';
+		export const Cmp0a = component$(({ foo, ...rest }) => {
+			return <div f={foo} {...rest} />;
+		});
+		export const Cmp0b = component$((props) => {
+			const { foo, ...rest } = props;
+			return <div f={foo} {...rest} />;
+		});
+		export const Cmp1 = component$(({ foo, "hello": bar, [`hi` + 2]: meep, ...rest }) => {
+			return <div f={foo} b={bar} m={meep} {...rest} />;
+		});
+		export const Cmp2 = component$((props) => {
+			const { foo, "hello": bar, [`hi` + 2]: meep, ...rest } = props;
+			return <div f={foo} b={bar} m={meep} {...rest} />;
+		});
+		
+============================= cmp0a_component_7xvknrco9re.ts (ENTRY POINT)==
+
+import { _jsxSplit } from "@builder.io/qwik";
+import { _restProps } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
+export const Cmp0a_component_7xvKnrco9RE = (props)=>{
+    const rest = _restProps(props, [
+        "foo"
+    ]);
+    return /*#__PURE__*/ _jsxSplit("div", {
+        f: _wrapProp(props, "foo"),
+        ...rest
+    }, null, null, 0, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAEkC;;;;IAC/B,qBAAO,UAAC;QAAI,CAAC;QAAQ,GAAG,IAAI;;AAC7B\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp0a_component_7xvKnrco9RE",
+  "entry": null,
+  "displayName": "Cmp0a_component",
+  "hash": "7xvKnrco9RE",
+  "canonicalFilename": "cmp0a_component_7xvknrco9re",
+  "path": "",
+  "extension": "ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    85,
+    149
+  ]
+}
+*/
+============================= cmp1_component_u2t03012214.ts (ENTRY POINT)==
+
+import { _jsxSplit } from "@builder.io/qwik";
+import { _restProps } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
+export const Cmp1_component_U2t03012214 = (props)=>{
+    return /*#__PURE__*/ _jsxSplit("div", {
+        f: _wrapProp(props, "foo"),
+        b: _wrapProp(props, "hello"),
+        m: _wrapProp(props, `hi` + 2),
+        ...rest
+    }, null, null, 0, "u6_2");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";0CASiC,CAAC,EAAE,GAAG,EAAE,SAAS,GAAG,EAAE,CAAC,CAAC,EAAE,CAAC,GAAG,EAAE,EAAE,IAAI,EAAE,GAAG,MAAM;IAC/E,qBAAO,UAAC;QAAI,GAAG;QAAK,GAAG;QAAK,GAAG;QAAO,GAAG,IAAI;;AAC9C\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp1_component_U2t03012214",
+  "entry": null,
+  "displayName": "Cmp1_component",
+  "hash": "U2t03012214",
+  "canonicalFilename": "cmp1_component_u2t03012214",
+  "path": "",
+  "extension": "ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    310,
+    423
+  ]
+}
+*/
+============================= cmp2_component_fnoz26imyam.ts (ENTRY POINT)==
+
+import { _jsxSplit } from "@builder.io/qwik";
+import { _restProps } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
+export const Cmp2_component_FnOz26iMYaM = (props)=>{
+    const { foo, "hello": bar, [`hi` + 2]: meep, ...rest } = props;
+    return /*#__PURE__*/ _jsxSplit("div", {
+        f: _wrapProp(props, "foo"),
+        b: _wrapProp(props, "hello"),
+        m: _wrapProp(props, `hi` + 2),
+        ...rest
+    }, null, null, 0, "u6_3");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";0CAYiC,CAAC;IAC/B,MAAM,EAAE,GAAG,EAAE,SAAS,GAAG,EAAE,CAAC,CAAC,EAAE,CAAC,GAAG,EAAE,EAAE,IAAI,EAAE,GAAG,MAAM,GAAG;IACzD,qBAAO,UAAC;QAAI,GAAG;QAAK,GAAG;QAAK,GAAG;QAAO,GAAG,IAAI;;AAC9C\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp2_component_FnOz26iMYaM",
+  "entry": null,
+  "displayName": "Cmp2_component",
+  "hash": "FnOz26iMYaM",
+  "canonicalFilename": "cmp2_component_fnoz26imyam",
+  "path": "",
+  "extension": "ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    459,
+    596
+  ]
+}
+*/
+============================= test.ts ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const Cmp0a = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./cmp0a_component_7xvknrco9re"), "Cmp0a_component_7xvKnrco9RE"));
+export const Cmp0b = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./cmp0b_component_aqgyd0voyvk"), "Cmp0b_component_aQgYd0VoYvk"));
+export const Cmp1 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./cmp1_component_u2t03012214"), "Cmp1_component_U2t03012214"));
+export const Cmp2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./cmp2_component_fnoz26imyam"), "Cmp2_component_FnOz26iMYaM"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEE,OAAO,MAAM,sBAAQ,4GAElB;AACH,OAAO,MAAM,sBAAQ,4GAGlB;AACH,OAAO,MAAM,qBAAO,0GAEjB;AACH,OAAO,MAAM,qBAAO,0GAGjB\"}")
+============================= cmp0b_component_aqgyd0voyvk.ts (ENTRY POINT)==
+
+import { _jsxSplit } from "@builder.io/qwik";
+import { _restProps } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
+export const Cmp0b_component_aQgYd0VoYvk = (props)=>{
+    const rest = _restProps(props, [
+        "foo"
+    ]);
+    return /*#__PURE__*/ _jsxSplit("div", {
+        f: _wrapProp(props, "foo"),
+        ...rest
+    }, null, null, 0, "u6_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAKkC,CAAC;4BACP;;;IACzB,qBAAO,UAAC;QAAI,CAAC,YADY;QACJ,GAAG,IAAI;;AAC7B\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Cmp0b_component_aQgYd0VoYvk",
+  "entry": null,
+  "displayName": "Cmp0b_component",
+  "hash": "aQgYd0VoYvk",
+  "canonicalFilename": "cmp0b_component_aqgyd0voyvk",
+  "path": "",
+  "extension": "ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    186,
+    274
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

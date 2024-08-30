@@ -1504,6 +1504,12 @@ impl<'a> QwikTransform<'a> {
 				};
 				None
 			}
+			// tagged template functions can also be mutable
+			ast::Expr::TaggedTpl(_) => {
+				// We don't export template functions so no need to check
+				self.jsx_mutable = true;
+				None
+			}
 			ast::Expr::Array(array) => Some(ast::Expr::Array(ast::ArrayLit {
 				span: array.span,
 				elems: array

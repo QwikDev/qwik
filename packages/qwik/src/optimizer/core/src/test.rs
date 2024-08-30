@@ -3742,6 +3742,31 @@ fn lib_mode_fn_signal() {
 	});
 }
 
+#[test]
+fn ternary_prop() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, $, useSignal } from '@builder.io/qwik';
+		export const Cmp = component$(() => {
+			const toggleSig = useSignal(false);
+
+			const handleClick$ = $(() => {
+				toggleSig.value = !toggleSig.value;
+			});
+
+			return (
+				<button onClick$={handleClick$} data-open={toggleSig.value ? true : undefined}>
+					Removing data-open re-renders
+				</button>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 // TODO(misko): Make this test work by implementing strict serialization.
 // #[test]
 // fn example_of_synchronous_qrl_that_cant_be_serialized() {

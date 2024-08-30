@@ -370,6 +370,10 @@ impl Visit for IdentCollector {
 	fn visit_ident(&mut self, node: &ast::Ident) {
 		if matches!(self.expr_ctxt.last(), Some(ExprOrSkip::Expr))
 			&& node.ctxt != SyntaxContext::empty()
+			&& (node.sym != *"undefined"
+				&& node.sym != *"NaN"
+				&& node.sym != *"Infinity"
+				&& node.sym != *"null")
 		{
 			self.local_idents.insert(id!(node));
 		}

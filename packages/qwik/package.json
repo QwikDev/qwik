@@ -29,8 +29,8 @@
     "vite": "^5"
   },
   "peerDependencies": {
-    "vitest": "^2",
-    "prettier": "*"
+    "prettier": "*",
+    "vitest": "^2"
   },
   "peerDependenciesMeta": {
     "vitest": {
@@ -44,7 +44,9 @@
     "@builder.io/qwik": "workspace:^",
     "@builder.io/qwik-dom": "workspace:^",
     "image-size": "1.1.1",
-    "kleur": "4.1.5"
+    "kleur": "4.1.5",
+    "vitest": "^2",
+    "prettier": "*"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"

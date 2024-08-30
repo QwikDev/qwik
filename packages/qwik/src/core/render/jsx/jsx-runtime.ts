@@ -203,13 +203,6 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
   get props(): T extends FunctionComponent<infer PROPS> ? PROPS : Props {
     // We use a proxy to merge the constProps if they exist and to evaluate derived signals
     if (!this._proxy) {
-      this._proxy = createPropsProxy(this.varProps, this.constProps, undefined);
-    }
-    return this._proxy as typeof this.props;
-  }
-  get propsC(): T extends FunctionComponent<infer PROPS> ? PROPS : Props {
-    // We use a proxy to merge the constProps if they exist and to evaluate derived signals
-    if (!this._proxy) {
       this._proxy = createPropsProxy(this.varProps, this.constProps, this.children);
     }
     return this._proxy as typeof this.props;
@@ -481,7 +474,7 @@ class PropsProxyHandler implements ProxyHandler<any> {
     if (prop === _VAR_PROPS) {
       return this.$varProps$;
     }
-    if (this.$children$ !== undefined && prop === 'children') {
+    if (this.$children$ != null && prop === 'children') {
       return this.$children$;
     }
     const value =
@@ -515,11 +508,14 @@ class PropsProxyHandler implements ProxyHandler<any> {
     if (this.$constProps$) {
       didDelete = delete this.$constProps$[prop as string] || didDelete;
     }
+    if (this.$children$ != null && prop === 'children') {
+      this.$children$ = null;
+    }
     return didDelete;
   }
   has(_: any, prop: string | symbol) {
     const hasProp =
-      (prop === 'children' && this.$children$ !== undefined) ||
+      (prop === 'children' && this.$children$ != null) ||
       prop === _CONST_PROPS ||
       prop === _VAR_PROPS ||
       prop in this.$varProps$ ||
@@ -528,7 +524,7 @@ class PropsProxyHandler implements ProxyHandler<any> {
   }
   getOwnPropertyDescriptor(target: any, p: string | symbol): PropertyDescriptor | undefined {
     const value =
-      p === 'children' && this.$children$ !== undefined
+      p === 'children' && this.$children$ != null
         ? this.$children$
         : this.$constProps$ && p in this.$constProps$
           ? this.$constProps$[p as string]
@@ -541,7 +537,7 @@ class PropsProxyHandler implements ProxyHandler<any> {
   }
   ownKeys() {
     const out = Object.keys(this.$varProps$);
-    if (this.$children$ !== undefined) {
+    if (this.$children$ != null && out.indexOf('children') === -1) {
       out.push('children');
     }
     if (this.$constProps$) {

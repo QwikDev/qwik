@@ -155,6 +155,21 @@ export const jsx = <T extends string | FunctionComponent<any>>(
   return _jsxSplit(type, props, null, null, 0, key || null);
 };
 
+export const flattenArray = <T>(array: (T | T[])[], dst?: T[]): T[] => {
+  // Yes this function is just Array.flat, but we need to run on old versions of Node.
+  if (!dst) {
+    dst = [];
+  }
+  for (const item of array) {
+    if (isArray(item)) {
+      flattenArray(item, dst);
+    } else {
+      dst.push(item);
+    }
+  }
+  return dst;
+};
+
 /**
  * The legacy transform, used in special cases like `<div {...props} key="key" />`. Note that the
  * children are spread arguments, instead of a prop like in jsx() calls.
@@ -168,7 +183,14 @@ export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends 
   props?: PROPS | null,
   ...children: any[]
 ): JSXNode<TYPE> {
-  return _jsxSplit(type, props!, null, children, 0, null);
+  return _jsxSplit(
+    type,
+    props!,
+    null,
+    arguments.length > 2 ? flattenArray(children) : undefined,
+    0,
+    null
+  );
 }
 
 export const SKIP_RENDER_TYPE = ':skipRender';

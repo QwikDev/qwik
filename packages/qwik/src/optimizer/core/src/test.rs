@@ -3767,6 +3767,20 @@ fn ternary_prop() {
 	});
 }
 
+#[test]
+fn transform_qrl_in_regular_prop() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, $ } from '@builder.io/qwik';
+		export const Cmp = component$(() =>
+			<Cmp foo={$(() => console.log('hi there'))}>Hello Qwik</Cmp>);
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 // TODO(misko): Make this test work by implementing strict serialization.
 // #[test]
 // fn example_of_synchronous_qrl_that_cant_be_serialized() {

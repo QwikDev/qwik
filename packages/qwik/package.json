@@ -45,8 +45,8 @@
     "@builder.io/qwik-dom": "workspace:^",
     "image-size": "1.1.1",
     "kleur": "4.1.5",
-    "vitest": "^2",
-    "prettier": "*"
+    "vitest": "2.0.5",
+    "prettier": "3.3.3"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"

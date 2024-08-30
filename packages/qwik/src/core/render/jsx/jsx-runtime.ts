@@ -183,14 +183,24 @@ export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends 
   props?: PROPS | null,
   ...children: any[]
 ): JSXNode<TYPE> {
-  return _jsxSplit(
-    type,
-    props!,
-    null,
-    arguments.length > 2 ? flattenArray(children) : undefined,
-    0,
-    null
-  );
+  const normalizedProps: any = {
+    children: arguments.length > 2 ? flattenArray(children) : null,
+  };
+
+  let key: any = null;
+
+  for (const i in props) {
+    if (i == 'key') {
+      key = (props as Record<string, any>)[i];
+    } else {
+      normalizedProps[i] = (props as Record<string, any>)[i];
+    }
+  }
+
+  if (typeof type === 'string' && !key && 'dangerouslySetInnerHTML' in normalizedProps) {
+    key = 'innerhtml';
+  }
+  return _jsxSplit(type, props!, null, normalizedProps.children, 0, key);
 }
 
 export const SKIP_RENDER_TYPE = ':skipRender';

@@ -394,10 +394,10 @@ export const eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 export interface FieldsetHTMLAttributes<T extends Element> extends Attrs<'fieldset', T> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "DerivedSignal2" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "WrappedSignal" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export const _fnSignal: <T extends (...args: any) => any>(fn: T, args: Parameters<T>, fnStr?: string) => DerivedSignal2<any>;
+export const _fnSignal: <T extends (...args: any) => any>(fn: T, args: Parameters<T>, fnStr?: string) => WrappedSignal<any>;
 
 // @public (undocumented)
 export interface FormHTMLAttributes<T extends Element> extends Attrs<'form', T> {

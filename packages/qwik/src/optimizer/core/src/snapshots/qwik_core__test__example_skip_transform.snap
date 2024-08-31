@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1368
+assertion_line: 1369
 expression: output
 ---
 ==INPUT==
@@ -27,7 +27,7 @@ export const App = component$((props)=>{
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AAGA,OAAO,MAAM,UAAU,EAAE,IAAI,QAAQ,GAAG,CAAC,SAAS;AAElD,OAAO,MAAM,MAAM,WAAW,CAAC,QAAU;IACxC,WAAW;IACX,OAAO,EAAE,kBACR,WAAC,mBAAK,MAAM,KAAK;AAEnB,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AAGA,OAAO,MAAM,UAAU,EAAE,IAAI,QAAQ,GAAG,CAAC,SAAS;AAElD,OAAO,MAAM,MAAM,WAAW,CAAC;IAC9B,WAAW;IACX,OAAO,EAAE,kBACR,WAAC,mBAAK,MAAM,KAAK;AAEnB,GAAG\"}")
 == DIAGNOSTICS ==
 
 []

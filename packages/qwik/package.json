@@ -3,7 +3,9 @@
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
   "version": "2.0.0-0",
   "annotation": "This package.json is for internal use in the monorepo, the build actually makes a new package.json for the published package via scripts/package-json.ts",
-  "bin": "./qwik-cli.cjs",
+  "bin": {
+    "qwik": "./dist/qwik-cli.cjs"
+  },
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "contributors": [
     {
@@ -23,14 +25,28 @@
     }
   ],
   "dependencies": {
-    "csstype": "^3.1.3",
-    "vite": "^5.2.11"
+    "csstype": "^3.1",
+    "vite": "^5"
+  },
+  "peerDependencies": {
+    "prettier": "*",
+    "vitest": "^2"
+  },
+  "peerDependenciesMeta": {
+    "vitest": {
+      "optional": true
+    },
+    "prettier": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
     "@builder.io/qwik-dom": "workspace:^",
-    "image-size": "^1.0.2",
-    "kleur": "4.1.5"
+    "image-size": "1.1.1",
+    "kleur": "4.1.5",
+    "vitest": "2.0.5",
+    "prettier": "3.3.3"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
@@ -126,71 +142,18 @@
   },
   "exports_annotation": "We use the build for the optimizer because esbuild doesn't like the html?raw imports in the server plugin and it's only used in the vite configs",
   "files": [
-    "bindings/qwik.darwin-x64.node",
-    "bindings/qwik.darwin-arm64.node",
-    "bindings/qwik.linux-x64-gnu.node",
-    "bindings/qwik.win32-x64-msvc.node",
-    "bindings/qwik_wasm_bg.wasm",
-    "bindings/qwik.wasm.cjs",
-    "bindings/qwik.wasm.mjs",
-    "build/index.cjs",
-    "build/index.cjs.map",
-    "build/index.mjs",
-    "build/index.mjs.map",
-    "build/index.dev.mjs",
-    "build/index.dev.mjs.map",
-    "build/index.prod.mjs",
-    "build/index.prod.mjs.map",
-    "build/index.dev.cjs",
-    "build/index.dev.cjs.map",
-    "build/index.prod.cjs",
-    "build/index.prod.cjs.map",
-    "build/index.d.ts",
-    "build/package.json",
-    "cli.cjs",
-    "core/package.json",
-    "core.cjs",
-    "core.cjs.map",
-    "core.min.mjs",
-    "core.mjs",
-    "core.mjs.map",
-    "core.prod.cjs",
-    "core.prod.mjs",
-    "core.d.ts",
-    "index.d.ts",
-    "jsx-dev-runtime/package.json",
-    "jsx-runtime/package.json",
-    "jsx-runtime/index.d.ts",
+    "README.md",
+    "LICENSE",
+    "dist",
+    "bindings",
+    "build.d.ts",
+    "cli.d.ts",
+    "jsx-dev-runtime.d.ts",
     "jsx-runtime.d.ts",
-    "loader/index.cjs",
-    "loader/index.mjs",
-    "loader/index.d.ts",
-    "loader/package.json",
-    "optimizer/package.json",
-    "optimizer.cjs",
-    "optimizer.mjs",
+    "loader.d.ts",
     "optimizer.d.ts",
-    "prefetch/index.cjs",
-    "prefetch/index.d.ts",
-    "prefetch/index.mjs",
-    "prefetch/package.json",
-    "qwik-prefetch.debug.js",
-    "qwik-prefetch.js",
-    "qwikloader.js",
-    "qwikloader.debug.js",
-    "qwik-cli.cjs",
-    "server.cjs",
-    "server.mjs",
     "server.d.ts",
-    "server-modules.d.ts",
-    "server/package.json",
-    "starters/adapters",
-    "starters/features",
-    "templates",
-    "testing/index.cjs",
-    "testing/index.mjs",
-    "testing/index.d.ts",
-    "testing/package.json"
+    "testing.d.ts"
   ],
   "homepage": "https://qwik.dev/",
   "keywords": [
@@ -213,8 +176,6 @@
     "url": "https://github.com/QwikDev/qwik.git",
     "directory": "packages/qwik"
   },
-  "sideEffects": [
-    "src/testing/vdom-diff.unit-util.ts"
-  ],
-  "type": "module"
+  "type": "module",
+  "types": "./dist/core.d.ts"
 }

@@ -25,6 +25,7 @@ export abstract class _SharedContainer implements Container2 {
   readonly $getObjectById$: (id: number | string) => any;
   $serverData$: Record<string, any>;
   $currentUniqueId$ = 0;
+  $instanceHash$: string | null = null;
 
   constructor(
     scheduleDrain: () => void,

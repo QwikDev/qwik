@@ -2,6 +2,7 @@ import {
   $,
   Fragment as Component,
   Fragment,
+  Fragment as InlineComponent,
   SSRComment,
   Fragment as Signal,
   SkipRender,
@@ -23,6 +24,10 @@ import { delay } from '../../util/promises';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
+
+function Hola(props: any) {
+  return <div {...props}></div>;
+}
 
 describe.each([
   { render: ssrRenderToDom }, //
@@ -228,6 +233,36 @@ describe.each([
     expect(log).toEqual(['no children']);
   });
 
+  it('should remove children from child component$', async () => {
+    const log: string[] = [];
+    const ChildMyComp = component$((props: any) => {
+      log.push('children' in props ? 'children' : 'no children');
+      return <span>Hello world</span>;
+    });
+    const MyComp = component$((props: any) => {
+      log.push('children' in props ? 'children' : 'no children');
+      return (
+        <span>
+          <ChildMyComp />
+          Hello world
+        </span>
+      );
+    });
+
+    const { vNode } = await render(<MyComp>CHILDREN</MyComp>, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <span>
+          <Component>
+            <span>Hello world</span>
+          </Component>
+          Hello world
+        </span>
+      </Component>
+    );
+    expect(log).toEqual(['no children', 'no children']);
+  });
+
   it('should NOT remove children from inline component', async () => {
     const log: string[] = [];
     const MyComp = (props: any) => {
@@ -242,6 +277,58 @@ describe.each([
       </Component>
     );
     expect(log).toEqual(['has children']);
+  });
+
+  it('should render children from dynamic props', async () => {
+    const IssueChildrenSpread = component$(() => {
+      const signal = useSignal({
+        type: 'div',
+        children: ['Hello'],
+      });
+      const Type = signal.value.type;
+      return (
+        <div>
+          <button
+            onClick$={() => {
+              signal.value = {
+                type: 'div',
+                children: ['Changed'],
+              };
+            }}
+          >
+            Change
+          </button>
+          <Hola>
+            <div>1</div>
+            <div>2</div>
+          </Hola>
+          <div>
+            <Type {...(signal.value as any)}></Type>
+          </div>
+        </div>
+      );
+    });
+
+    const { vNode } = await render(<IssueChildrenSpread />, { debug });
+
+    const props = { type: 'div' };
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <button>Change</button>
+          <InlineComponent>
+            <div>
+              <div>1</div>
+              <div>2</div>
+            </div>
+          </InlineComponent>
+          <div>
+            <div {...props}>Hello</div>
+          </div>
+        </div>
+      </Component>
+    );
   });
 
   it('should insert dangerouslySetInnerHTML', async () => {

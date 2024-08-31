@@ -57,6 +57,7 @@ export function processVNodeData(document: Document) {
   const Q_CONTAINER = 'q:container';
   const Q_CONTAINER_END = '/' + Q_CONTAINER;
   const Q_PROPS_SEPARATOR = ':';
+  const Q_SHADOW_ROOT = 'q:shadowroot';
   const Q_IGNORE = 'q:ignore';
   const Q_IGNORE_END = '/' + Q_IGNORE;
   const Q_CONTAINER_ISLAND = 'q:container-island';
@@ -82,12 +83,19 @@ export function processVNodeData(document: Document) {
   const getNodeType = getter(prototype, 'nodeType') as (this: Node) => number;
 
   // Process all of the `qwik/vnode` script tags by attaching them to the corresponding containers.
-  Array.from(document.querySelectorAll('script[type="qwik/vnode"]')).forEach((script) => {
-    script.setAttribute('type', 'x-qwik/vnode');
-    const qContainerElement = script.closest('[q\\:container]') as ContainerElement | null;
-    qContainerElement!.qVnodeData = script.textContent!;
-    qContainerElement!.qVNodeRefs = new Map<number, Element | ElementVNode>();
-  });
+  const attachVnodeDataAndRefs = (element: Document | ShadowRoot) => {
+    Array.from(element.querySelectorAll('script[type="qwik/vnode"]')).forEach((script) => {
+      script.setAttribute('type', 'x-qwik/vnode');
+      const qContainerElement = script.closest('[q\\:container]') as ContainerElement | null;
+      qContainerElement!.qVnodeData = script.textContent!;
+      qContainerElement!.qVNodeRefs = new Map<number, Element | ElementVNode>();
+    });
+    element.querySelectorAll('[q\\:shadowroot]').forEach((parent) => {
+      const shadowRoot = parent.shadowRoot;
+      shadowRoot && attachVnodeDataAndRefs(shadowRoot);
+    });
+  };
+  attachVnodeDataAndRefs(document);
 
   ///////////////////////////////
   // Functions to consume the tree.
@@ -97,6 +105,7 @@ export function processVNodeData(document: Document) {
     CONTAINER_MASK /* ***************** */ = 0b00000001,
     ELEMENT /* ************************ */ = 0b00000010, // regular element
     ELEMENT_CONTAINER /* ************** */ = 0b00000011, // container element need to descend into it
+    ELEMENT_SHADOW_ROOT /* ************ */ = 0b00000110, // shadow root element
     COMMENT_SKIP_START /* ************* */ = 0b00000101, // Comment but skip the content until COMMENT_SKIP_END
     COMMENT_SKIP_END /* *************** */ = 0b00001000, // Comment end
     COMMENT_IGNORE_START /* *********** */ = 0b00010000, // Comment ignore, descend into children and skip the content until COMMENT_ISLAND_START
@@ -116,6 +125,9 @@ export function processVNodeData(document: Document) {
     if (nodeType === 1 /* Node.ELEMENT_NODE */) {
       const qContainer = getAttribute.call(node, Q_CONTAINER);
       if (qContainer === null) {
+        if (hasAttribute.call(node, Q_SHADOW_ROOT)) {
+          return NodeType.ELEMENT_SHADOW_ROOT;
+        }
         const isQElement = hasAttribute.call(node, Q_PROPS_SEPARATOR);
         return isQElement ? NodeType.ELEMENT : NodeType.OTHER;
       } else {
@@ -172,6 +184,12 @@ export function processVNodeData(document: Document) {
   const nextSibling = (node: Node | null) => {
     // eslint-disable-next-line no-empty
     while (node && (node = node.nextSibling) && getFastNodeType(node) === NodeType.OTHER) {}
+    return node;
+  };
+
+  const firstChild = (node: Node | null) => {
+    // eslint-disable-next-line no-empty
+    while (node && (node = node.firstChild) && getFastNodeType(node) === NodeType.OTHER) {}
     return node;
   };
 
@@ -271,6 +289,26 @@ export function processVNodeData(document: Document) {
         } while (getFastNodeType(nextNode) !== NodeType.COMMENT_SKIP_END);
         // console.log('EXIT', nextNode?.outerHTML);
         walkContainer(walker, node, node, nextNode, '', null!, prefix + '  ');
+      } else if (nodeType === NodeType.ELEMENT_SHADOW_ROOT) {
+        // If we are in a shadow root, we need to get the shadow root element.
+        nextNode = nextSibling(node);
+        const shadowRootContainer = node as Element | null;
+        const shadowRoot = shadowRootContainer?.shadowRoot;
+        if (shadowRoot) {
+          walkContainer(
+            // we need to create a new walker for the shadow root
+            document.createTreeWalker(
+              shadowRoot,
+              0x1 /* NodeFilter.SHOW_ELEMENT  */ | 0x80 /*  NodeFilter.SHOW_COMMENT */
+            ),
+            null,
+            firstChild(shadowRoot),
+            null,
+            '',
+            null!,
+            prefix + '  '
+          );
+        }
       }
 
       if ((nodeType & NodeType.ELEMENT) === NodeType.ELEMENT) {

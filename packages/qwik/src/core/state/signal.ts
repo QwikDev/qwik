@@ -14,7 +14,7 @@ import {
   type SubscriptionManager,
   type Subscriptions,
 } from './common';
-import { QObjectManagerSymbol, _CONST_PROPS } from './constants';
+import { QObjectManagerSymbol, _CONST_PROPS, _IMMUTABLE } from './constants';
 
 /**
  * A signal is a reactive value which can be read and written. When the signal is written, all tasks
@@ -239,4 +239,16 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(
   }
   // We need to forward the access to the original object
   return new DerivedSignal2(null, getProp, [obj, prop as string], null);
+};
+
+/** @internal @deprecated v1 compat */
+export const _wrapSignal = <T extends Record<any, any>, P extends keyof T>(
+  obj: T,
+  prop: P
+): any => {
+  const r = _wrapProp(obj, prop);
+  if (r === _IMMUTABLE) {
+    return obj[prop];
+  }
+  return r;
 };

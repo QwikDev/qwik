@@ -69,27 +69,27 @@ export async function apiExtractorQwikCity(config: BuildConfig) {
   // qwik-city
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'runtime', 'src'),
+    join(config.packagesDir, 'qwik-city', 'src', 'runtime', 'src'),
     join(config.packagesDir, 'qwik-city', 'lib', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'runtime', 'src', 'service-worker'),
+    join(config.packagesDir, 'qwik-city', 'src', 'runtime', 'src', 'service-worker'),
     join(config.packagesDir, 'qwik-city', 'lib', 'service-worker.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'buildtime', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'src', 'buildtime', 'vite'),
     join(config.packagesDir, 'qwik-city', 'lib', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'adapters', 'azure-swa', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'azure-swa', 'vite'),
     join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'azure-swa', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'adapters', 'cloudflare-pages', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'cloudflare-pages', 'vite'),
     join(
       config.packagesDir,
       'qwik-city',
@@ -102,97 +102,97 @@ export async function apiExtractorQwikCity(config: BuildConfig) {
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'adapters', 'cloud-run', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'cloud-run', 'vite'),
     join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'cloud-run', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'adapters', 'deno-server', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'deno-server', 'vite'),
     join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'deno-server', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'adapters', 'bun-server', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'bun-server', 'vite'),
     join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'bun-server', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'adapters', 'node-server', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'node-server', 'vite'),
     join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'node-server', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'adapters', 'netlify-edge', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'netlify-edge', 'vite'),
     join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'netlify-edge', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'adapters', 'shared', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'shared', 'vite'),
     join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'shared', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'adapters', 'static', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'static', 'vite'),
     join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'static', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'adapters', 'vercel-edge', 'vite'),
+    join(config.packagesDir, 'qwik-city', 'src', 'adapters', 'vercel-edge', 'vite'),
     join(config.packagesDir, 'qwik-city', 'lib', 'adapters', 'vercel-edge', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'middleware', 'azure-swa'),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'azure-swa'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'azure-swa', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'middleware', 'aws-lambda'),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'aws-lambda'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'aws-lambda', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'middleware', 'cloudflare-pages'),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'cloudflare-pages'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'cloudflare-pages', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'middleware', 'bun'),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'bun'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'bun', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'middleware', 'deno'),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'deno'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'deno', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'middleware', 'netlify-edge'),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'netlify-edge'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'netlify-edge', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'middleware', 'node'),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'node'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'node', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'middleware', 'request-handler'),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'request-handler'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'request-handler', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'middleware', 'firebase'),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'firebase'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'firebase', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'static'),
+    join(config.packagesDir, 'qwik-city', 'src', 'static'),
     join(config.packagesDir, 'qwik-city', 'lib', 'static', 'index.d.ts')
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-city', 'middleware', 'vercel-edge'),
+    join(config.packagesDir, 'qwik-city', 'src', 'middleware', 'vercel-edge'),
     join(config.packagesDir, 'qwik-city', 'lib', 'middleware', 'vercel-edge', 'index.d.ts')
   );
   generateQwikCityReferenceModules(config);

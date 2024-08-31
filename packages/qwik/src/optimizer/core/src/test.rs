@@ -3,54 +3,6 @@
 use super::*;
 use serde_json::to_string_pretty;
 
-macro_rules! test_input {
-	($input: expr) => {
-		let input = $input;
-		let strip_exports: Option<Vec<JsWord>> = input
-			.strip_exports
-			.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
-
-		let reg_ctx_name: Option<Vec<JsWord>> = input
-			.reg_ctx_name
-			.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
-
-		let strip_ctx_name: Option<Vec<JsWord>> = input
-			.strip_ctx_name
-			.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
-
-		let res = transform_modules(TransformModulesOptions {
-			src_dir: input.src_dir,
-			root_dir: input.root_dir,
-			input: vec![TransformModuleInput {
-				code: input.code.clone(),
-				path: input.filename,
-			}],
-			source_maps: true,
-			minify: input.minify,
-			transpile_ts: input.transpile_ts,
-			transpile_jsx: input.transpile_jsx,
-			preserve_filenames: input.preserve_filenames,
-			explicit_extensions: input.explicit_extensions,
-			manual_chunks: input.manual_chunks,
-			entry_strategy: input.entry_strategy,
-			mode: input.mode,
-			scope: input.scope,
-			core_module: input.core_module,
-			strip_exports,
-			strip_ctx_name,
-			reg_ctx_name,
-			strip_event_handlers: input.strip_event_handlers,
-			is_server: input.is_server,
-		});
-		if input.snapshot {
-			let input = input.code.to_string();
-			let output = format!("==INPUT==\n\n{}", input);
-			snapshot_res!(&res, output);
-		}
-		drop(res)
-	};
-}
-
 macro_rules! snapshot_res {
 	($res: expr, $prefix: expr) => {
 		match $res {
@@ -64,25 +16,74 @@ macro_rules! snapshot_res {
 						module.path, is_entry, module.code, module.map
 					)
 					.as_str();
-					if let Some(hook) = &module.hook {
-						let hook = to_string_pretty(&hook).unwrap();
-						output += &format!("\n/*\n{}\n*/", hook);
+					if let Some(segment) = &module.segment {
+						let segment = to_string_pretty(&segment).unwrap();
+						output += &format!("\n/*\n{}\n*/", segment);
 					}
-					// let map = if let Some(map) = s.map { map } else { "".to_string() };
-					// output += format!("\n== MAP ==\n{}", map).as_str();
 				}
 				output += format!(
 					"\n== DIAGNOSTICS ==\n\n{}",
 					to_string_pretty(&v.diagnostics).unwrap()
 				)
 				.as_str();
-				insta::assert_display_snapshot!(output);
+				insta::assert_snapshot!(output);
 			}
 			Err(err) => {
-				insta::assert_display_snapshot!(err);
+				insta::assert_snapshot!(err);
 			}
 		}
 	};
+}
+
+macro_rules! test_input {
+	($input: expr) => {{
+		let input = $input;
+		let code = input.code.to_string();
+		let snapshot = input.snapshot;
+		let res = test_input_fn(input);
+		if snapshot {
+			snapshot_res!(&res, format!("==INPUT==\n\n{}", code.to_string()));
+		}
+		res
+	}};
+}
+
+fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
+	let strip_exports: Option<Vec<JsWord>> = input
+		.strip_exports
+		.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
+	let reg_ctx_name: Option<Vec<JsWord>> = input
+		.reg_ctx_name
+		.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
+	let strip_ctx_name: Option<Vec<JsWord>> = input
+		.strip_ctx_name
+		.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
+
+	transform_modules(TransformModulesOptions {
+		src_dir: input.src_dir,
+		root_dir: input.root_dir,
+		input: vec![TransformModuleInput {
+			code: input.code.clone(),
+			path: input.filename,
+		}],
+		source_maps: true,
+		minify: input.minify,
+		transpile_ts: input.transpile_ts,
+		transpile_jsx: input.transpile_jsx,
+		preserve_filenames: input.preserve_filenames,
+		explicit_extensions: input.explicit_extensions,
+		manual_chunks: input.manual_chunks,
+		entry_strategy: input.entry_strategy,
+		mode: input.mode,
+		scope: input.scope,
+		core_module: input.core_module,
+		strip_exports,
+		strip_ctx_name,
+		reg_ctx_name,
+		strip_event_handlers: input.strip_event_handlers,
+		is_server: input.is_server,
+		is_dev: input.is_dev,
+	})
 }
 
 #[test]
@@ -849,17 +850,18 @@ export default component$(() => {
 	});
 "#
 		.to_string(),
-		entry_strategy: EntryStrategy::Hook,
+		entry_strategy: EntryStrategy::Segment,
 		strip_ctx_name: Some(vec!["server".into()]),
 		transpile_ts: true,
 		transpile_jsx: true,
 		is_server: Some(false),
+		mode: EmitMode::Dev,
 		..TestInput::default()
 	});
 }
 
 #[test]
-fn example_reg_ctx_name_hooks() {
+fn example_reg_ctx_name_segments() {
 	test_input!(TestInput {
 		code: r#"
 import { $, component$, server$ } from '@builder.io/qwik';
@@ -885,7 +887,7 @@ export const Works = component$((props) => {
 }
 
 #[test]
-fn example_reg_ctx_name_hooks_inlined() {
+fn example_reg_ctx_name_segments_inlined() {
 	test_input!(TestInput {
 		code: r#"
 import { $, component$, server$ } from '@builder.io/qwik';
@@ -906,7 +908,7 @@ export const Works = component$((props) => {
 }
 
 #[test]
-fn example_reg_ctx_name_hooks_hoisted() {
+fn example_reg_ctx_name_segments_hoisted() {
 	test_input!(TestInput {
 		code: r#"
 import { $, component$, server$, useStyle$ } from '@builder.io/qwik';
@@ -992,7 +994,7 @@ export const App = component$(({count}) => {
 }
 
 #[test]
-fn example_invalid_hook_expr1() {
+fn example_invalid_segment_expr1() {
 	test_input!(TestInput {
 		code: r#"
 import { $, component$, useStyles$ } from '@builder.io/qwik';
@@ -1282,13 +1284,13 @@ import { $, component$ } from '@builder.io/qwik';
 import thing from "../state";
 
 export function foo() {
-	return import("../state")
+	return import("../foo/state2")
 }
 
 export const Header = component$(() => {
 	return (
 		<div>
-			{import("../state")}
+			{import("../folder/state3")}
 			{thing}
 		</div>
 	);
@@ -1658,7 +1660,7 @@ export const STYLES = ".red { color: red; }";
 fn example_use_server_mount() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useServerMount$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useTask$, useStore, useStyles$ } from '@builder.io/qwik';
 import mongo from 'mongodb';
 import redis from 'redis';
 
@@ -1668,7 +1670,7 @@ export const Parent = component$(() => {
 	});
 
 	// Double count watch
-	useServerMount$(async () => {
+	useTask$(async () => {
 		state.text = await mongo.users();
 		redis.set(state.text);
 	});
@@ -1686,7 +1688,7 @@ export const Child = component$(() => {
 	});
 
 	// Double count watch
-	useServerMount$(async () => {
+	useTask$(async () => {
 		state.text = await mongo.users();
 	});
 
@@ -1819,7 +1821,8 @@ export default component$(()=> {
 fn example_strip_server_code() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useServerMount$, serverLoader$, serverStuff$, $, client$, useStore, useTask$ } from '@builder.io/qwik';
+import { component$, serverLoader$, serverStuff$, $, client$, useStore, useTask$ } from '@builder.io/qwik';
+import { isServer } from '@builder.io/qwik/build';
 import mongo from 'mongodb';
 import redis from 'redis';
 import { handler } from 'serverless';
@@ -1830,7 +1833,8 @@ export const Parent = component$(() => {
 	});
 
 	// Double count watch
-	useServerMount$(async () => {
+	useTask$(async () => {
+		if (!isServer) return;
 		state.text = await mongo.users();
 		redis.set(state.text);
 	});
@@ -1862,8 +1866,9 @@ export const Parent = component$(() => {
 		.to_string(),
 		transpile_ts: true,
 		transpile_jsx: true,
-		entry_strategy: EntryStrategy::Hook,
-		strip_ctx_name: Some(vec!["useServerMount$".into(), "server".into()]),
+		entry_strategy: EntryStrategy::Segment,
+		strip_ctx_name: Some(vec!["server".into()]),
+		mode: EmitMode::Prod,
 		..TestInput::default()
 	});
 }
@@ -1914,7 +1919,7 @@ export const { onRequest, logout, getSession, signup } = auth$({
 		.to_string(),
 		transpile_ts: true,
 		transpile_jsx: true,
-		entry_strategy: EntryStrategy::Hook,
+		entry_strategy: EntryStrategy::Segment,
 		..TestInput::default()
 	});
 }
@@ -1965,7 +1970,7 @@ export const Parent = component$(() => {
 		transpile_ts: true,
 		transpile_jsx: true,
 		entry_strategy: EntryStrategy::Inline,
-		strip_ctx_name: Some(vec!["useClientMount$".into(),]),
+		strip_ctx_name: Some(vec!["useClientMount$".into()]),
 		strip_event_handlers: true,
 		..TestInput::default()
 	});
@@ -2051,34 +2056,34 @@ export const Greeter = component$(() => {
 	});
 }
 
-#[cfg(target_os = "windows")]
 #[test]
-fn issue_188() {
-	let res = test_input!({
+fn support_windows_paths() {
+	let res = test_input!(TestInput {
 		filename: r"components\apps\apps.tsx".to_string(),
 		src_dir: r"C:\users\apps".to_string(),
 		code: r#"
-import { component$, $ } from '@builder.io/qwik';
-
-export const Greeter = component$(() => {
-	return $(() => {
-		return (
-			<div/>
-		)
-	});
-});
-
-const d = $(()=>console.log('thing'));
+import { component$ } from '@builder.io/qwik';
+export const Greeter = component$(() => <div/>)
 "#
 		.to_string(),
-		transpile_ts: true,
 		transpile_jsx: true,
-		snapshot: false,
+		is_server: Some(false),
+		entry_strategy: EntryStrategy::Segment,
+		..TestInput::default()
 	})
 	.unwrap();
-	let last_module = res.modules.last().unwrap();
-	assert_eq!(last_module.path, r"C:/users/apps/components/apps/apps.tsx")
+	// verify that none of the modules have a path that contains backslashes
+	for module in res.modules {
+		assert!(!module.path.contains('\\'));
+	}
 }
+// filler to retain assertion line numbers
+//
+//
+//
+//
+//
+
 #[test]
 fn issue_476() {
 	test_input!(TestInput {
@@ -2340,7 +2345,7 @@ fn example_transpile_jsx_only() {
 		code: r#"
 import { component$, useStore } from '@builder.io/qwik';
 
-export const App = component$((props: Stuff) => {
+export const App = component$((props) => {
 	return (
 		<Cmp>
 			<p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
@@ -2676,7 +2681,7 @@ fn example_preserve_filenames() {
 		code: r#"
 import { component$, useStore } from '@builder.io/qwik';
 
-export const App = component$((props: Stuff) => {
+export const App = component$((props) => {
 	return (
 		<Cmp>
 			<p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
@@ -2695,7 +2700,7 @@ export const App = component$((props: Stuff) => {
 }
 
 #[test]
-fn example_preserve_filenames_hooks() {
+fn example_preserve_filenames_segments() {
 	test_input!(TestInput {
 		code: r#"
 import { component$, useStore } from '@builder.io/qwik';
@@ -2712,7 +2717,7 @@ export const App = component$((props: Stuff) => {
 export const foo = () => console.log('foo');
 "#
 		.to_string(),
-		entry_strategy: EntryStrategy::Hook,
+		entry_strategy: EntryStrategy::Segment,
 		transpile_ts: true,
 		transpile_jsx: true,
 		preserve_filenames: true,
@@ -3206,7 +3211,7 @@ export { qwikify$, qwikifyQrl, renderToString };
 		"#
 		.to_string(),
 		filename: "../node_modules/@builder.io/qwik-react/index.qwik.mjs".to_string(),
-		entry_strategy: EntryStrategy::Hook,
+		entry_strategy: EntryStrategy::Segment,
 		explicit_extensions: true,
 		..TestInput::default()
 	});
@@ -3316,13 +3321,13 @@ export { qwikify$, qwikifyQrl, renderToString };
 }
 
 #[test]
-fn example_qwik_sdk_inline() {
+fn example_qwik_city_inline() {
 	test_input!(TestInput {
 		code: include_str!("fixtures/index.qwik.mjs").to_string(),
 		filename: "../node_modules/@builder.io/qwik-city/index.qwik.mjs".to_string(),
 		entry_strategy: EntryStrategy::Smart,
 		explicit_extensions: true,
-		mode: EmitMode::Prod,
+		mode: EmitMode::Lib,
 		..TestInput::default()
 	});
 }
@@ -3394,7 +3399,7 @@ export const Local = component$(() => {
 		explicit_extensions: true,
 		mode: EmitMode::Lib,
 		manual_chunks: None,
-		entry_strategy: EntryStrategy::Hook,
+		entry_strategy: EntryStrategy::Segment,
 		transpile_ts: true,
 		transpile_jsx: true,
 		preserve_filenames: false,
@@ -3405,6 +3410,7 @@ export const Local = component$(() => {
 		strip_event_handlers: false,
 		reg_ctx_name: None,
 		is_server: None,
+		is_dev: None,
 	});
 	snapshot_res!(&res, "".into());
 }
@@ -3416,7 +3422,7 @@ import mongo from 'mongodb';
 
 export const Greeter = component$(() => {
 	// Double count watch
-	useServerMount$(async () => {
+	useTask$(async () => {
 		await mongo.users();
 	});
 	return (
@@ -3430,27 +3436,27 @@ export const Greeter = component$(() => {
 
 "#;
 	let options = vec![
-		(EmitMode::Lib, EntryStrategy::Hook, true),
+		(EmitMode::Lib, EntryStrategy::Segment, true),
 		(EmitMode::Lib, EntryStrategy::Single, true),
 		(EmitMode::Lib, EntryStrategy::Component, true),
 		// (EmitMode::Lib, EntryStrategy::Inline, true),
-		(EmitMode::Prod, EntryStrategy::Hook, true),
+		(EmitMode::Prod, EntryStrategy::Segment, true),
 		(EmitMode::Prod, EntryStrategy::Single, true),
 		(EmitMode::Prod, EntryStrategy::Component, true),
 		// (EmitMode::Prod, EntryStrategy::Inline, true),
-		(EmitMode::Dev, EntryStrategy::Hook, true),
+		(EmitMode::Dev, EntryStrategy::Segment, true),
 		(EmitMode::Dev, EntryStrategy::Single, true),
 		(EmitMode::Dev, EntryStrategy::Component, true),
 		// (EmitMode::Dev, EntryStrategy::Inline, true),
-		(EmitMode::Lib, EntryStrategy::Hook, false),
+		(EmitMode::Lib, EntryStrategy::Segment, false),
 		(EmitMode::Lib, EntryStrategy::Single, false),
 		(EmitMode::Lib, EntryStrategy::Component, false),
 		// (EmitMode::Lib, EntryStrategy::Inline, false),
-		(EmitMode::Prod, EntryStrategy::Hook, false),
+		(EmitMode::Prod, EntryStrategy::Segment, false),
 		(EmitMode::Prod, EntryStrategy::Single, false),
 		(EmitMode::Prod, EntryStrategy::Component, false),
 		// (EmitMode::Prod, EntryStrategy::Inline, false),
-		(EmitMode::Dev, EntryStrategy::Hook, false),
+		(EmitMode::Dev, EntryStrategy::Segment, false),
 		(EmitMode::Dev, EntryStrategy::Single, false),
 		(EmitMode::Dev, EntryStrategy::Component, false),
 		// (EmitMode::Dev, EntryStrategy::Inline, false),
@@ -3474,7 +3480,7 @@ export const Greeter = component$(() => {
 		explicit_extensions: true,
 		mode: EmitMode::Lib,
 		manual_chunks: None,
-		entry_strategy: EntryStrategy::Hook,
+		entry_strategy: EntryStrategy::Segment,
 		transpile_ts: true,
 		transpile_jsx: true,
 		preserve_filenames: false,
@@ -3485,12 +3491,13 @@ export const Greeter = component$(() => {
 		strip_ctx_name: None,
 		strip_event_handlers: false,
 		is_server: None,
+		is_dev: None,
 	});
-	let ref_hooks: Vec<_> = res
+	let ref_segments: Vec<_> = res
 		.unwrap()
 		.modules
 		.into_iter()
-		.flat_map(|module| module.hook)
+		.flat_map(|module| module.segment)
 		.collect();
 
 	for (i, option) in options.into_iter().enumerate() {
@@ -3523,18 +3530,19 @@ export const Greeter = component$(() => {
 			strip_event_handlers: false,
 			reg_ctx_name: None,
 			is_server: None,
+			is_dev: None,
 		});
 
-		let hooks: Vec<_> = res
+		let segments: Vec<_> = res
 			.unwrap()
 			.modules
 			.into_iter()
-			.flat_map(|module| module.hook)
+			.flat_map(|module| module.segment)
 			.collect();
 
-		assert_eq!(hooks.len(), ref_hooks.len());
+		assert_eq!(segments.len(), ref_segments.len());
 
-		for (a, b) in hooks.iter().zip(ref_hooks.iter()) {
+		for (a, b) in segments.iter().zip(ref_segments.iter()) {
 			assert_eq!(
 				get_hash(a.name.as_ref()),
 				get_hash(b.name.as_ref()),
@@ -3542,8 +3550,8 @@ export const Greeter = component$(() => {
 				i,
 				a,
 				b,
-				hooks,
-				ref_hooks
+				segments,
+				ref_segments
 			);
 		}
 	}
@@ -3669,6 +3677,142 @@ fn should_handle_dangerously_set_inner_html() {
 	});
 }
 
+#[test]
+fn example_noop_dev_mode() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useStore, serverStuff$, $ } from '@builder.io/qwik';
+
+export const App = component$(() => {
+	const stuff = useStore();
+	serverStuff$(async () => {
+		// should be removed but keep scope
+		console.log(stuff.count)
+	})
+	serverStuff$(async () => {
+		// should be removed
+	})
+
+	return (
+		<Cmp>
+			<p class="stuff" 
+				shouldRemove$={() => stuff.count}
+				onClick$={() => console.log('warn')}
+			>
+				Hello Qwik
+			</p>
+		</Cmp>
+	);
+});
+"#
+		.to_string(),
+		mode: EmitMode::Dev,
+		transpile_ts: true,
+		transpile_jsx: true,
+		strip_event_handlers: true,
+		strip_ctx_name: Some(vec!["server".into()]),
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn lib_mode_fn_signal() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@builder.io/qwik';
+		export const Counter = component$(() => {
+			const count = useSignal(0);
+
+			return (
+				<div>
+					<p>Count: {count.value}</p>
+					<p>
+						<button onClick$={() => count.value++}>Increment</button>
+					</p>
+				</div>
+			);
+		});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		mode: EmitMode::Lib,
+		// make sure it overrides it
+		is_server: Some(false),
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn ternary_prop() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, $, useSignal } from '@builder.io/qwik';
+		export const Cmp = component$(() => {
+			const toggleSig = useSignal(false);
+
+			const handleClick$ = $(() => {
+				toggleSig.value = !toggleSig.value;
+			});
+
+			return (
+				<button onClick$={handleClick$} data-open={toggleSig.value ? true : undefined}>
+					Removing data-open re-renders
+				</button>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn transform_qrl_in_regular_prop() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, $ } from '@builder.io/qwik';
+		export const Cmp = component$(() =>
+			<Cmp foo={$(() => console.log('hi there'))}>Hello Qwik</Cmp>);
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn impure_template_fns() {
+	// Should not mark the template function as static
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from '@builder.io/qwik';
+		const useFoo = (count) => {
+			const tag = (s) => {
+				const value = typeof s === "string" ? s : s[0];
+				return `${value}-${count.value}`;
+			}
+			return tag;
+		}
+
+		export default component$(() => {
+			const count = useSignal(0);
+			const foo = useFoo(count);
+			return (
+				<>
+					<p>{foo("test")}</p>
+					<p>{foo`test`}</p>
+					<button onClick$={() => count.value++}>Count up</button>
+				</>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 // TODO(misko): Make this test work by implementing strict serialization.
 // #[test]
 // fn example_of_synchronous_qrl_that_cant_be_serialized() {
@@ -3716,6 +3860,7 @@ struct TestInput {
 	pub strip_ctx_name: Option<Vec<String>>,
 	pub strip_event_handlers: bool,
 	pub is_server: Option<bool>,
+	pub is_dev: Option<bool>,
 }
 
 impl TestInput {
@@ -3726,7 +3871,7 @@ impl TestInput {
 			root_dir: None,
 			code: "/user/qwik/src/".to_string(),
 			manual_chunks: None,
-			entry_strategy: EntryStrategy::Hook,
+			entry_strategy: EntryStrategy::Segment,
 			minify: MinifyMode::Simplify,
 			transpile_ts: false,
 			transpile_jsx: false,
@@ -3741,6 +3886,7 @@ impl TestInput {
 			strip_ctx_name: None,
 			strip_event_handlers: false,
 			is_server: None,
+			is_dev: None,
 		}
 	}
 }

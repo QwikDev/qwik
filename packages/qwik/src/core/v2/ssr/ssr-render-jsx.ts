@@ -219,7 +219,7 @@ function processJSXNode(
             projectionAttrs.push(QSlot, slotName);
             enqueue(new SetScopedStyle(styleScoped));
             enqueue(ssr.closeProjection);
-            const slotDefaultChildren = (jsx.children || null) as JSXChildren | null;
+            const slotDefaultChildren: JSXChildren | null = jsx.children || null;
             const slotChildren =
               componentFrame.consumeChildrenForSlot(node, slotName) || slotDefaultChildren;
             if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {

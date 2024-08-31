@@ -106,6 +106,16 @@ export const _getContainerState = (containerEl: Element): ContainerState => {
 };
 
 export const createContainerState = (containerEl: Element, base: string) => {
+  const containerAttributes: Record<string, string> = {};
+  if (containerEl) {
+    const attrs = containerEl.attributes;
+    if (attrs) {
+      for (let index = 0; index < attrs.length; index++) {
+        const attr = attrs[index];
+        containerAttributes[attr.name] = attr.value;
+      }
+    }
+  }
   // @ts-expect-error - v1 code missing StoreTracker
   const containerState: ContainerState = {
     $containerEl$: containerEl,
@@ -126,7 +136,7 @@ export const createContainerState = (containerEl: Element, base: string) => {
     $styleIds$: new Set(),
     $events$: new Set(),
 
-    $serverData$: {},
+    $serverData$: { containerAttributes },
     $base$: base,
     $renderPromise$: undefined,
     $hostsRendering$: undefined,

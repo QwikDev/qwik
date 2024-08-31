@@ -125,6 +125,21 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
   return _jsxSorted(type, sortedProps, constProps, children, flags, key, dev);
 };
 
+/** @internal @deprecated v1 compat */
+export const _jsxC = (type: any, mutable: any, _flags: any, key: any) => jsx(type, mutable, key);
+/** @internal @deprecated v1 compat */
+export const _jsxS = (type: any, mutable: any, immutable: any, _flags: any, key: any) =>
+  jsx(type, { ...immutable, ...mutable }, key);
+/** @internal @deprecated v1 compat */
+export const _jsxQ = (
+  type: any,
+  mutable: any,
+  immutable: any,
+  children: any,
+  _flags: any,
+  key: any
+) => jsx(type, { ...immutable, ...mutable, children }, key);
+
 /**
  * @public
  * Used by the JSX transpilers to create a JSXNode.
@@ -136,6 +151,21 @@ export const jsx = <T extends string | FunctionComponent<any>>(
   key?: string | number | null
 ): JSXNode<T> => {
   return _jsxSplit(type, props, null, null, 0, key || null);
+};
+
+export const flattenArray = <T>(array: (T | T[])[], dst?: T[]): T[] => {
+  // Yes this function is just Array.flat, but we need to run on old versions of Node.
+  if (!dst) {
+    dst = [];
+  }
+  for (const item of array) {
+    if (isArray(item)) {
+      flattenArray(item, dst);
+    } else {
+      dst.push(item);
+    }
+  }
+  return dst;
 };
 
 /**
@@ -151,7 +181,24 @@ export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends 
   props?: PROPS | null,
   ...children: any[]
 ): JSXNode<TYPE> {
-  return _jsxSplit(type, props!, null, children, 0, null);
+  const normalizedProps: any = {
+    children: arguments.length > 2 ? flattenArray(children) : null,
+  };
+
+  let key: any = null;
+
+  for (const i in props) {
+    if (i == 'key') {
+      key = (props as Record<string, any>)[i];
+    } else {
+      normalizedProps[i] = (props as Record<string, any>)[i];
+    }
+  }
+
+  if (typeof type === 'string' && !key && 'dangerouslySetInnerHTML' in normalizedProps) {
+    key = 'innerhtml';
+  }
+  return _jsxSplit(type, props!, null, normalizedProps.children, 0, key);
 }
 
 export const SKIP_RENDER_TYPE = ':skipRender';
@@ -184,13 +231,6 @@ export class JSXNodeImpl<T> implements JSXNode<T> {
 
   private _proxy: Props | null = null;
   get props(): T extends FunctionComponent<infer PROPS> ? PROPS : Props {
-    // We use a proxy to merge the constProps if they exist and to evaluate derived signals
-    if (!this._proxy) {
-      this._proxy = createPropsProxy(this.varProps, this.constProps, undefined);
-    }
-    return this._proxy as typeof this.props;
-  }
-  get propsC(): T extends FunctionComponent<infer PROPS> ? PROPS : Props {
     // We use a proxy to merge the constProps if they exist and to evaluate derived signals
     if (!this._proxy) {
       this._proxy = createPropsProxy(this.varProps, this.constProps, this.children);
@@ -340,7 +380,7 @@ class PropsProxyHandler implements ProxyHandler<any> {
     if (prop === _VAR_PROPS) {
       return this.$varProps$;
     }
-    if (this.$children$ !== undefined && prop === 'children') {
+    if (this.$children$ != null && prop === 'children') {
       return this.$children$;
     }
     const value =
@@ -374,11 +414,14 @@ class PropsProxyHandler implements ProxyHandler<any> {
     if (this.$constProps$) {
       didDelete = delete this.$constProps$[prop as string] || didDelete;
     }
+    if (this.$children$ != null && prop === 'children') {
+      this.$children$ = null;
+    }
     return didDelete;
   }
   has(_: any, prop: string | symbol) {
     const hasProp =
-      (prop === 'children' && this.$children$ !== undefined) ||
+      (prop === 'children' && this.$children$ != null) ||
       prop === _CONST_PROPS ||
       prop === _VAR_PROPS ||
       prop in this.$varProps$ ||
@@ -387,7 +430,7 @@ class PropsProxyHandler implements ProxyHandler<any> {
   }
   getOwnPropertyDescriptor(target: any, p: string | symbol): PropertyDescriptor | undefined {
     const value =
-      p === 'children' && this.$children$ !== undefined
+      p === 'children' && this.$children$ != null
         ? this.$children$
         : this.$constProps$ && p in this.$constProps$
           ? this.$constProps$[p as string]
@@ -400,7 +443,7 @@ class PropsProxyHandler implements ProxyHandler<any> {
   }
   ownKeys() {
     const out = Object.keys(this.$varProps$);
-    if (this.$children$ !== undefined) {
+    if (this.$children$ != null && out.indexOf('children') === -1) {
       out.push('children');
     }
     if (this.$constProps$) {

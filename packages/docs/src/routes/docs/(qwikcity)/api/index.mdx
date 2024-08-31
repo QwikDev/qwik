@@ -22,6 +22,7 @@ contributors:
   - billykwok
   - julianobrasil
   - hamatoyogi
+  - srapport
 updated_at: '2023-10-03T18:53:23Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
@@ -170,6 +171,14 @@ The above code would generate:
 <h1>SKU</h1>
 <p>pathname: /sku/1234/</p>
 <p>skuId: 1234</p>
+```
+
+### `useLocation` in `root.tsx` is not supported
+
+To access the current url from `root.tsx` use this pattern:
+```ts
+const serverDataUrl = useServerData<string>('url');
+const url = new URL(serverDataUrl || 'https://unknown');
 ```
 
 > Notice that `useLocation` is a read-only API, you should never attempt to mutate the values of the `loc` object returned. Instead look into the `useNavigate()` API.
@@ -400,7 +409,7 @@ export default component$(() => {
 
 The `Link` component works like the `<a>` anchor element, but instead of causing a full page to reload, it will navigate as a SPA (Single Page Navigation). This is useful if you need to navigate without losing your current state.
 
-> Notice that full-page reloads in Qwik are extremely cheap, other frameworks abuse SPA links because a full-page reload requires JS to hydrate and re-execute everything. This is not the case for Qwik. We found in our internal testing that using `<a>` usually leads to the most snappy interactions.
+> Notice that full-page reloads in Qwik are extremely cheap. Other frameworks abuse SPA links because a full-page reload requires JS to hydrate and re-execute everything. This is not the case for Qwik. Through investigation of internal testing, using `<a>` usually leads to the most snappy interactions.
 
 Under the hood, the `<Link>` component uses the [`useNavigate()`](/docs/(qwikcity)/api/index.mdx#usenavigate) API and prevents the default behavior of the native `<a>`:
 

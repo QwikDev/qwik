@@ -16,7 +16,7 @@ export const applyInlineComponent = (
   jsx: JSXNode
 ) => {
   const host = ssr.getLastNode();
-  return executeComponent2(ssr, host, component$Host, component, jsx.propsC);
+  return executeComponent2(ssr, host, component$Host, component, jsx.props);
 };
 
 export const applyQwikComponentBody = (
@@ -27,6 +27,9 @@ export const applyQwikComponentBody = (
   const host = ssr.getLastNode();
   const [componentQrl] = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
   const srcProps = jsx.props;
+  if (srcProps && srcProps.children) {
+    delete srcProps.children;
+  }
   const scheduler = ssr.$scheduler$;
   host.setProp(OnRenderProp, componentQrl);
   host.setProp(ELEMENT_PROPS, srcProps);

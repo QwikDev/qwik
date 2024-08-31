@@ -18,7 +18,8 @@ export const qwikLoader = (
 ) => {
   const Q_CONTEXT = '__q_context__';
   const win = window as unknown as qWindow;
-  const events = new Set();
+  const events = new Set<string>();
+  const roots = new Set<EventTarget & ParentNode>([doc]);
 
   // Some shortenings for minification
   const replace = 'replace';
@@ -28,8 +29,19 @@ export const qwikLoader = (
   const isConnected = 'isConnected';
   const qvisible = 'qvisible';
   const Q_JSON = '_qwikjson_';
+  const nativeQuerySelectorAll = (root: ParentNode, selector: string) =>
+    Array.from(root.querySelectorAll(selector));
   const querySelectorAll = (query: string) => {
-    return doc.querySelectorAll(query);
+    const elements: Element[] = [];
+    roots.forEach((root) => elements.push(...nativeQuerySelectorAll(root, query)));
+    return elements;
+  };
+  const findShadowRoots = (fragment: EventTarget & ParentNode) => {
+    processEventOrNode(fragment);
+    nativeQuerySelectorAll(fragment, '[q\\:shadowroot]').forEach((parent) => {
+      const shadowRoot = parent.shadowRoot;
+      shadowRoot && findShadowRoots(shadowRoot);
+    });
   };
 
   const isPromise = (promise: Promise<any>) => promise && typeof promise.then === 'function';
@@ -110,12 +122,13 @@ export const qwikLoader = (
         const symbol = url.hash[replace](/^#?([^?[|]*).*$/, '$1') || 'default';
         const reqTime = performance.now();
         let handler: undefined | any;
-        let importError: undefined | 'sync' | 'async';
+        let importError: undefined | 'sync' | 'async' | 'no-symbol';
         let error: undefined | Error;
         const isSync = qrl.startsWith('#');
         const eventData = { qBase, qManifest, qVersion, href, symbol, element, reqTime };
         if (isSync) {
-          handler = (container.qFuncs || [])[Number.parseInt(symbol)];
+          const hash = container.getAttribute('q:instance')!;
+          handler = ((doc as any)['qFuncs_' + hash] || [])[Number.parseInt(symbol)];
           if (!handler) {
             importError = 'sync';
             error = new Error('sync handler error for symbol: ' + symbol);
@@ -126,13 +139,18 @@ export const qwikLoader = (
             const module = import(/* @vite-ignore */ uri);
             resolveContainer(container);
             handler = (await module)[symbol];
+            if (!handler) {
+              importError = 'no-symbol';
+              error = new Error(`${symbol} not in ${uri}`);
+            }
           } catch (err) {
-            importError = 'async';
+            importError ||= 'async';
             error = err as Error;
           }
         }
         if (!handler) {
           emitEvent('qerror', { importError, error, ...eventData });
+          console.error(error);
           // break out of the loop if handler is not found
           break;
         }
@@ -140,9 +158,7 @@ export const qwikLoader = (
         if (element[isConnected]) {
           try {
             doc[Q_CONTEXT] = [element, ev, url];
-            if (!isSync) {
-              emitEvent<QwikSymbolEvent>('qsymbol', eventData);
-            }
+            isSync || emitEvent<QwikSymbolEvent>('qsymbol', { ...eventData });
             const results = handler(ev, element);
             // only await if there is a promise returned
             if (isPromise(results)) {
@@ -162,7 +178,7 @@ export const qwikLoader = (
     doc.dispatchEvent(createEvent<T>(eventName, detail));
   };
 
-  const camelToKebab = (str: string) => str[replace](/([A-Z-])/g, (a) => '-' + a.toLowerCase());
+  const camelToKebab = (str: string) => str[replace](/([A-Z])/g, (a) => '-' + a.toLowerCase());
 
   /**
    * Event handler responsible for processing browser events.
@@ -198,6 +214,7 @@ export const qwikLoader = (
   const processReadyStateChange = () => {
     const readyState = doc.readyState;
     if (!hasInitialized && (readyState == 'interactive' || readyState == 'complete')) {
+      roots.forEach(findShadowRoots);
       // document is ready
       hasInitialized = 1;
 
@@ -221,7 +238,7 @@ export const qwikLoader = (
   };
 
   const addEventListener = (
-    el: Document | Window,
+    el: EventTarget,
     eventName: string,
     handler: (ev: Event) => void,
     capture = false
@@ -229,12 +246,25 @@ export const qwikLoader = (
     return el.addEventListener(eventName, handler, { capture, passive: false });
   };
 
-  const push = (eventNames: string[]) => {
-    for (const eventName of eventNames) {
-      if (!events.has(eventName)) {
-        addEventListener(doc, eventName, processDocumentEvent, true);
-        addEventListener(win, eventName, processWindowEvent, true);
-        events.add(eventName);
+  const processEventOrNode = (...eventNames: (string | (EventTarget & ParentNode))[]) => {
+    for (const eventNameOrNode of eventNames) {
+      if (typeof eventNameOrNode === 'string') {
+        // If it is string we just add the event to window and each of our roots.
+        if (!events.has(eventNameOrNode)) {
+          roots.forEach((root) =>
+            addEventListener(root, eventNameOrNode, processDocumentEvent, true)
+          );
+          addEventListener(win, eventNameOrNode, processWindowEvent, true);
+          events.add(eventNameOrNode);
+        }
+      } else {
+        // If it is a new root, we also need this root to catch up to all of the events sofar.
+        if (!roots.has(eventNameOrNode)) {
+          events.forEach((eventName) =>
+            addEventListener(eventNameOrNode, eventName, processDocumentEvent, true)
+          );
+          roots.add(eventNameOrNode);
+        }
       }
     }
   };
@@ -245,11 +275,13 @@ export const qwikLoader = (
     const qwikevents = win.qwikevents;
     // If `qwikEvents` is an array, process it.
     if (Array.isArray(qwikevents)) {
-      push(qwikevents);
+      processEventOrNode(...qwikevents);
     }
     // Now rig up `qwikEvents` so we get notified of new registrations by other containers.
     win.qwikevents = {
-      push: (...e: string[]) => push(e),
+      events: events,
+      roots: roots,
+      push: processEventOrNode,
     };
     addEventListener(doc, 'readystatechange', processReadyStateChange);
     processReadyStateChange();

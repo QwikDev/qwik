@@ -145,3 +145,7 @@ export function generateCodeFrame(
   }
   return res.join('\n');
 }
+
+export function isWin(os: string): boolean {
+  return os === 'win32';
+}

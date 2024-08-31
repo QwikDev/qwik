@@ -45,6 +45,7 @@ import {
   QBaseAttr,
   QLocaleAttr,
   QManifestHashAttr,
+  QInstanceAttr,
   escapeHTML,
 } from './qwik-copy';
 import {
@@ -87,17 +88,18 @@ import {
   type VNodeData,
 } from './v2-vnode-data';
 
-export function ssrCreateContainer(
-  opts: {
-    locale?: string;
-    tagName?: string;
-    writer?: StreamWriter;
-    timing?: RenderToStreamResult['timing'];
-    buildBase?: string;
-    resolvedManifest?: ResolvedManifest;
-    renderOptions?: RenderOptions;
-  } = {}
-): ISSRContainer {
+export interface SSRRenderOptions {
+  locale?: string;
+  tagName?: string;
+  writer?: StreamWriter;
+  timing?: RenderToStreamResult['timing'];
+  buildBase?: string;
+  resolvedManifest?: ResolvedManifest;
+  renderOptions?: RenderOptions;
+}
+
+export function ssrCreateContainer(opts: SSRRenderOptions): ISSRContainer {
+  opts.renderOptions ||= {};
   return new SSRContainer({
     tagName: opts.tagName || 'div',
     writer: opts.writer || new StringBufferWriter(),
@@ -118,7 +120,7 @@ export function ssrCreateContainer(
         version: 'dev-mode',
       },
     },
-    renderOptions: opts.renderOptions || {},
+    renderOptions: opts.renderOptions,
   });
 }
 
@@ -202,8 +204,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private unclaimedProjections: Array<ISsrComponentFrame | string | JSXChildren> = [];
   unclaimedProjectionComponentFrameQueue: Array<ISsrComponentFrame> = [];
   private cleanupQueue: CleanupQueue = [];
+  $instanceHash$ = hash();
 
-  constructor(opts: Required<Required<Parameters<typeof ssrCreateContainer>>[0]>) {
+  constructor(opts: Required<SSRRenderOptions>) {
     super(
       () => null,
       () => null,
@@ -294,20 +297,19 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (this.tag == 'html') {
       this.write('<!DOCTYPE html>');
     }
-    let qRender = isDev ? 'ssr-dev' : 'ssr';
-    if (this.renderOptions.containerAttributes?.[QRenderAttr]) {
-      qRender = `${this.renderOptions.containerAttributes[QRenderAttr]}-${qRender}`;
-    }
-    const containerAttributes: Record<string, string> = {
-      ...this.renderOptions.containerAttributes,
-      [QRuntimeAttr]: '2',
-      [QContainerAttr]: QContainerValue.PAUSED,
-      [QVersionAttr]: this.$version$ ?? 'dev',
-      [QRenderAttr]: qRender,
-      [QBaseAttr]: this.buildBase,
-      [QLocaleAttr]: this.$locale$,
-      [QManifestHashAttr]: this.resolvedManifest.manifest.manifestHash,
-    };
+
+    const containerAttributes = this.renderOptions.containerAttributes || {};
+    const qRender = containerAttributes[QRenderAttr];
+    containerAttributes[QContainerAttr] = QContainerValue.PAUSED;
+    containerAttributes[QRuntimeAttr] = '2';
+    containerAttributes[QVersionAttr] = this.$version$ ?? 'dev';
+    containerAttributes[QRenderAttr] = (qRender ? qRender + '-' : '') + (isDev ? 'ssr-dev' : 'ssr');
+    containerAttributes[QBaseAttr] = this.buildBase || '';
+    containerAttributes[QLocaleAttr] = this.$locale$;
+    containerAttributes[QManifestHashAttr] = this.resolvedManifest.manifest.manifestHash;
+    containerAttributes[QInstanceAttr] = this.$instanceHash$;
+
+    this.$serverData$.containerAttributes = containerAttributes;
 
     const containerAttributeArray = Object.entries(containerAttributes).reduce<string[]>(
       (acc, [key, value]) => {
@@ -755,7 +757,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
       }
       this.openElement('script', scriptAttrs);
-      this.write(Q_FUNCS_PREFIX);
+      this.write(Q_FUNCS_PREFIX.replace('HASH', this.$instanceHash$));
       this.write('[');
       this.writeArray(fns, ',');
       this.write(']');
@@ -1123,4 +1125,8 @@ function hasDestroy(obj: any): obj is { $destroy$(): void } {
 const unsafeAttrCharRE = /[>/="'\u0009\u000a\u000c\u0020]/; // eslint-disable-line no-control-regex
 function isSSRUnsafeAttr(name: string): boolean {
   return unsafeAttrCharRE.test(name);
+}
+
+function hash() {
+  return Math.random().toString(36).slice(2);
 }

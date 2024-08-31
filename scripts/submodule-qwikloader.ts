@@ -97,7 +97,6 @@ export async function submoduleQwikLoader(config: BuildConfig) {
       }),
     ],
   };
-
   const build = await rollup(input);
 
   await Promise.all([build.write(defaultMinified), build.write(defaultDebug)]);

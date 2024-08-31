@@ -66,6 +66,9 @@ export const executeComponent2 = (
   }
   if (isQrl(componentQRL)) {
     props = props || container.getHostProp(renderHost, ELEMENT_PROPS) || EMPTY_OBJ;
+    if (props && props.children) {
+      delete props.children;
+    }
     componentFn = componentQRL.getFn(iCtx);
   } else if (isQwikComponent(componentQRL)) {
     const qComponentFn = componentQRL as (

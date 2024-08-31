@@ -4,42 +4,43 @@
   "version": "2.0.0-0",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
-    "@mdx-js/mdx": "^3.0.1",
-    "@types/mdx": "^2.0.13",
-    "source-map": "0.7.4",
-    "svgo": "^3.2.0",
-    "vfile": "^6.0.1",
-    "vite": "^5.2.11",
-    "vite-imagetools": "^6.2.9",
-    "zod": "^3.23.8"
+    "@mdx-js/mdx": "^3",
+    "@types/mdx": "^2",
+    "source-map": "^0.7.4",
+    "svgo": "^3.3",
+    "undici": "*",
+    "vfile": "6.0.1",
+    "vite": "^5",
+    "vite-imagetools": "^7",
+    "zod": "3.22.4"
   },
   "devDependencies": {
-    "@azure/functions": "^3.5.1",
+    "@azure/functions": "3.5.1",
     "@builder.io/qwik": "workspace:^",
     "@microsoft/api-extractor": "7.43.1",
-    "@netlify/edge-functions": "^2.3.1",
-    "@types/mdast": "^4.0.1",
-    "@types/node": "^20.14.1",
-    "@types/refractor": "^3.4.1",
-    "@types/set-cookie-parser": "^2.4.7",
-    "estree-util-value-to-estree": "3.1.1",
+    "@netlify/edge-functions": "2.10.0",
+    "@types/mdast": "4.0.4",
+    "@types/node": "20.14.11",
+    "@types/refractor": "3.4.1",
+    "@types/set-cookie-parser": "2.4.10",
+    "estree-util-value-to-estree": "3.1.2",
     "github-slugger": "2.0.0",
     "hast-util-heading-rank": "2.1.1",
     "hast-util-to-string": "2.0.0",
     "kleur": "4.1.5",
-    "marked": "^12.0.2",
-    "mdast-util-mdx": "^3.0.0",
+    "marked": "12.0.2",
+    "mdast-util-mdx": "3.0.0",
     "refractor": "4.8.1",
     "rehype-autolink-headings": "7.1.0",
     "remark-frontmatter": "5.0.0",
     "remark-gfm": "4.0.0",
-    "set-cookie-parser": "^2.6.0",
-    "tsm": "^2.3.0",
+    "set-cookie-parser": "2.6.0",
+    "tsm": "2.3.0",
     "typescript": "5.4.5",
-    "unified": "11.0.4",
+    "unified": "11.0.5",
     "unist-util-visit": "5.0.0",
     "uvu": "0.5.6",
-    "yaml": "^2.4.2"
+    "yaml": "2.4.5"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
@@ -158,10 +159,20 @@
       "require": "./lib/service-worker.cjs"
     }
   },
+  "files": [
+    "adapters",
+    "index.d.ts",
+    "lib",
+    "middleware",
+    "modules.d.ts",
+    "README.md",
+    "service-worker.d.ts",
+    "static.d.ts",
+    "vite.d.ts"
+  ],
   "homepage": "https://qwik.dev/",
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
-  "private": true,
   "publishConfig": {
     "access": "public"
   },
@@ -172,7 +183,7 @@
     "directory": "packages/qwik-city"
   },
   "scripts": {
-    "build": "cd runtime && vite build --mode lib"
+    "build": "cd src/runtime && vite build --mode lib"
   },
   "type": "module",
   "types": "./lib/index.d.ts"

@@ -488,8 +488,8 @@ describe('render api', () => {
         const document = createDocument(result.html);
         const qwikFuncScriptElements = document.querySelectorAll('script[q\\:func=qwik/json]');
         expect(qwikFuncScriptElements).toHaveLength(1);
-        expect(qwikFuncScriptElements[0].textContent).toEqual(
-          'document.currentScript.closest("[q\\\\:container]").qFuncs=[(p0)=>p0.value]'
+        expect(qwikFuncScriptElements[0].textContent).toMatch(
+          /document\["qFuncs_(\w+)"\]=\[\(p0\)=>p0\.value\]/
         );
       });
     });

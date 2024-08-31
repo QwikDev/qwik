@@ -17,6 +17,23 @@
     "tags": "software development, landing pages, agency, site"
   },
   {
+    "title": "Türkiye'nin En Yenilikçi Yazılım Şirketi - Hypecode Teknoloji",
+    "imgSrc": "/showcases/hypecode_tech_.webp",
+    "perf": {
+      "score": 0.98,
+      "fcpDisplay": "1.5 s",
+      "fcpScore": 0.95,
+      "lcpDisplay": "1.7 s",
+      "lcpScore": 0.99,
+      "ttiDisplay": "2.5 s",
+      "ttiScore": 0.98,
+      "ttiTime": 2488.5
+    },
+    "href": "https://hypecode.tech/",
+    "size": "large",
+    "tags": "software development, landing pages, agency, site"
+  },
+  {
     "title": "Learn Qwik | Start building with Qwik",
     "imgSrc": "/showcases/www_learn-qwik_com_.webp",
     "perf": {

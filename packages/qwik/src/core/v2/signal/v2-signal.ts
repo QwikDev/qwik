@@ -291,7 +291,7 @@ export const triggerEffects = (
     const scheduleEffect = (effectSubscriptions: EffectSubscriptions) => {
       const effect = effectSubscriptions[EffectSubscriptionsProp.EFFECT];
       const property = effectSubscriptions[EffectSubscriptionsProp.PROPERTY];
-      assertDefined(container, 'Scheduler must be defined.');
+      assertDefined(container, 'Container must be defined.');
       if (isTask(effect)) {
         effect.$flags$ |= TaskFlags.DIRTY;
         DEBUG && log('schedule.effect.task', pad('\n' + String(effect), '  '));
@@ -312,7 +312,7 @@ export const triggerEffects = (
             container.$scheduler$(ChoreType.QRL_RESOLVE, null, effect.$computeQrl$);
           }
         }
-        (effect as ComputedSignal2<unknown> | DerivedSignal2<unknown>).$invalid$ = true;
+        (effect as ComputedSignal2<unknown> | WrappedSignal<unknown>).$invalid$ = true;
         const previousSignal = signal;
         try {
           signal = effect;
@@ -445,9 +445,9 @@ export class ComputedSignal2<T> extends Signal2<T> {
     throw new TypeError('ComputedSignal is read-only');
   }
 }
-// TO DISCUSS (with Misko): Shouldn't it be called a "WrappedSignal" ?
-// Plus - shouldn't this type of signal have the $dependencies$ array instead of EVERY type of signal?
-export class DerivedSignal2<T> extends Signal2<T> {
+
+// TO DISCUSS: shouldn't this type of signal have the $dependencies$ array instead of EVERY type of signal?
+export class WrappedSignal<T> extends Signal2<T> {
   $args$: any[];
   $func$: (...args: any[]) => T;
   $funcStr$: string | null;
@@ -518,6 +518,6 @@ export class DerivedSignal2<T> extends Signal2<T> {
   }
 
   set value(_: any) {
-    throw new TypeError('DerivedSignal is read-only');
+    throw new TypeError('WrappedSignal is read-only');
   }
 }

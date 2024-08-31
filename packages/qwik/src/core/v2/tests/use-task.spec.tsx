@@ -12,7 +12,7 @@ import {
   component$,
   type Signal as SignalType,
 } from '@builder.io/qwik';
-import { DerivedSignal2 } from '../signal/v2-signal';
+import { WrappedSignal } from '../signal/v2-signal';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -183,7 +183,7 @@ describe.each([
     it('should rerun on track derived signal', async () => {
       const Counter = component$(() => {
         const countRaw = useStore({ count: 10 });
-        const count = new DerivedSignal2(
+        const count = new WrappedSignal(
           null,
           (o: any, prop: string) => o[prop],
           [countRaw, 'count'],

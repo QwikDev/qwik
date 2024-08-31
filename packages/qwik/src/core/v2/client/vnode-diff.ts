@@ -92,7 +92,7 @@ import {
   type VNodeJournal,
 } from './vnode';
 import { getNewElementNamespaceData } from './vnode-namespace';
-import { DerivedSignal2, EffectProperty, isSignal2 } from '../signal/v2-signal';
+import { WrappedSignal, EffectProperty, isSignal2 } from '../signal/v2-signal';
 import type { Signal2 } from '../signal/v2-signal.public';
 import { executeComponent2 } from '../shared/component-execution';
 import { isParentSlotProp, isSlotProp } from '../../util/prop';
@@ -513,7 +513,7 @@ export const vnode_diff = (
     const constProps = jsxValue.constProps;
     if (constProps && typeof constProps == 'object' && 'name' in constProps) {
       const constValue = constProps.name;
-      if (constValue instanceof DerivedSignal2) {
+      if (constValue instanceof WrappedSignal) {
         return trackSignal2(
           () => constValue.value,
           vHost as fixMeAny,

@@ -11,7 +11,7 @@ import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS } from '../../uti
 import { isPromise } from '../../util/promises';
 import { qDev, seal } from '../../util/qdev';
 import { isArray, isObject, isString } from '../../util/types';
-import { DerivedSignal2, isSignal2 } from '../../v2/signal/v2-signal';
+import { WrappedSignal, isSignal2 } from '../../v2/signal/v2-signal';
 import { static_subtree } from '../execute-component';
 import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
@@ -388,7 +388,7 @@ class PropsProxyHandler implements ProxyHandler<any> {
         ? this.$constProps$[prop as string]
         : this.$varProps$[prop as string];
     // a proxied value that the optimizer made
-    return value instanceof DerivedSignal2 ? value.value : value;
+    return value instanceof WrappedSignal ? value.value : value;
   }
   set(_: any, prop: string | symbol, value: any) {
     if (prop === _CONST_PROPS) {

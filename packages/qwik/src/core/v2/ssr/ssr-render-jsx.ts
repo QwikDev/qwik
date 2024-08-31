@@ -29,7 +29,7 @@ import {
 import { addComponentStylePrefix, hasClassAttr, isClassAttr } from '../shared/scoped-styles';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
-import { DerivedSignal2, EffectProperty, isSignal2 } from '../signal/v2-signal';
+import { WrappedSignal, EffectProperty, isSignal2 } from '../signal/v2-signal';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
 import { qInspector } from '../../util/qdev';
@@ -487,7 +487,7 @@ function getSlotName(host: ISsrNode, jsx: JSXNode, ssr: SSRContainer): string {
   const constProps = jsx.constProps;
   if (constProps && typeof constProps == 'object' && 'name' in constProps) {
     const constValue = constProps.name;
-    if (constValue instanceof DerivedSignal2) {
+    if (constValue instanceof WrappedSignal) {
       return trackSignal2(() => constValue.value, host as fixMeAny, EffectProperty.COMPONENT, ssr);
     }
   }

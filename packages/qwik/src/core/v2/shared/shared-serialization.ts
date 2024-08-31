@@ -35,7 +35,7 @@ import { type DomContainer } from '../client/dom-container';
 import { vnode_getNode, vnode_isVNode, vnode_locate } from '../client/vnode';
 import {
   ComputedSignal2,
-  DerivedSignal2,
+  WrappedSignal,
   EffectSubscriptionsProp,
   Signal2,
   type EffectSubscriptions,
@@ -235,7 +235,7 @@ function upgradePropsWithDerivedSignal(
   target: Record<string | symbol, any>,
   property: string | symbol | number
 ): any {
-  const immutable: Record<string, DerivedSignal2<unknown>> = {};
+  const immutable: Record<string, WrappedSignal<unknown>> = {};
   for (const key in target) {
     if (Object.prototype.hasOwnProperty.call(target, key)) {
       const value = target[key];
@@ -243,7 +243,7 @@ function upgradePropsWithDerivedSignal(
         typeof value === 'string' &&
         value.charCodeAt(0) === SerializationConstant.DerivedSignal_VALUE
       ) {
-        const derivedSignal = (immutable[key] = allocate(value) as DerivedSignal2<unknown>);
+        const derivedSignal = (immutable[key] = allocate(value) as WrappedSignal<unknown>);
         Object.defineProperty(target, key, {
           get() {
             return derivedSignal.value;
@@ -422,7 +422,7 @@ const allocate = <T>(value: string): any => {
     case SerializationConstant.Signal_VALUE:
       return new Signal2(null!, 0);
     case SerializationConstant.DerivedSignal_VALUE:
-      return new DerivedSignal2(null!, null!, null!, null!);
+      return new WrappedSignal(null!, null!, null!, null!);
     case SerializationConstant.ComputedSignal_VALUE:
       return new ComputedSignal2(null!, null!);
     case SerializationConstant.NotFinite_VALUE:
@@ -902,7 +902,7 @@ function serialize(serializationContext: SerializationContext): void {
       }
       serializeObjectLiteral(value, $writer$, writeValue, writeString);
     } else if (value instanceof Signal2) {
-      if (value instanceof DerivedSignal2) {
+      if (value instanceof WrappedSignal) {
         writeString(
           SerializationConstant.DerivedSignal_CHAR +
             serializeDerivedFn(serializationContext, value, $addRoot$) +
@@ -1084,7 +1084,7 @@ function serializeObjectProperties(
 
 function serializeDerivedFn(
   serializationContext: SerializationContext,
-  value: DerivedSignal2<any>,
+  value: WrappedSignal<any>,
   $addRoot$: (obj: unknown) => number
 ) {
   // if value is an object then we need to wrap this in ()
@@ -1111,7 +1111,7 @@ function deserializeSignal2(
   const parts = data.substring(1).split(';');
   let idx = 0;
   if (readFn) {
-    const derivedSignal = signal as DerivedSignal2<any>;
+    const derivedSignal = signal as WrappedSignal<any>;
     derivedSignal.$invalid$ = false;
     const fnParts = parts[idx++].split(' ');
     derivedSignal.$func$ = container.getSyncFn(parseInt(fnParts[0]));

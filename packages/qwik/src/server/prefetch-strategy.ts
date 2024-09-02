@@ -54,7 +54,8 @@ function getAutoPrefetch(qrls: QRL[], resolvedManifest: ResolvedManifest, buildB
       const qrlSymbolName = obj.getHash();
       const resolvedSymbol = mapper[qrlSymbolName];
       if (resolvedSymbol) {
-        addBundle(manifest, urls, prefetchResources, buildBase, resolvedSymbol[1]);
+        const bundleFileName = resolvedSymbol[1];
+        addBundle(manifest, urls, prefetchResources, buildBase, bundleFileName);
       }
     }
   }

@@ -1,6 +1,21 @@
-import type { ViteDevServer, Connect } from 'vite';
+import type { QwikManifest, QwikViteDevResponse } from '@builder.io/qwik/optimizer';
+import fs from 'node:fs';
 import type { ServerResponse } from 'node:http';
-import type { BuildContext, BuildRoute } from '../types';
+import { join, resolve } from 'node:path';
+import type { Connect, ViteDevServer } from 'vite';
+import { computeOrigin, fromNodeHttp, getUrl } from '../../middleware/node/http';
+import {
+  checkBrand,
+  resolveRequestHandlers,
+} from '../../middleware/request-handler/resolve-request-handlers';
+import { getQwikCityServerData } from '../../middleware/request-handler/response-page';
+import {
+  getRouteMatchPathname,
+  QDATA_JSON,
+  runQwikCity,
+} from '../../middleware/request-handler/user-response';
+import { matchRoute } from '../../runtime/src/route-matcher';
+import { getMenuLoader } from '../../runtime/src/routing';
 import type {
   ActionInternal,
   ContentMenu,
@@ -13,23 +28,9 @@ import type {
   RequestEvent,
   RouteModule,
 } from '../../runtime/src/types';
-import type { QwikManifest, QwikViteDevResponse } from '@builder.io/qwik/optimizer';
-import fs from 'node:fs';
-import { join, resolve } from 'node:path';
-import {
-  getRouteMatchPathname,
-  QDATA_JSON,
-  runQwikCity,
-} from '../../middleware/request-handler/user-response';
-import { getQwikCityServerData } from '../../middleware/request-handler/response-page';
-import { updateBuildContext } from '../build';
 import { getExtension, normalizePath } from '../../utils/fs';
-import { getMenuLoader } from '../../runtime/src/routing';
-import { computeOrigin, fromNodeHttp, getUrl } from '../../middleware/node/http';
-import {
-  checkBrand,
-  resolveRequestHandlers,
-} from '../../middleware/request-handler/resolve-request-handlers';
+import { updateBuildContext } from '../build';
+import type { BuildContext, BuildRoute } from '../types';
 import { formatError } from './format-error';
 import { matchRoute } from '../../runtime/src/route-matcher';
 import type { QwikSerializer } from 'packages/qwik-city/src/middleware/request-handler/types';
@@ -146,7 +147,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
     try {
       const url = getUrl(req, computeOrigin(req));
 
-      if (skipRequest(url.pathname) || isVitePing(url.pathname, req.headers)) {
+      if (shouldSkipRequest(url.pathname) || isVitePing(url.pathname, req.headers)) {
         next();
         return;
       }
@@ -425,7 +426,7 @@ export function staticDistMiddleware({ config }: ViteDevServer) {
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     const url = new URL(req.originalUrl!, `http://${req.headers.host}`);
 
-    if (skipRequest(url.pathname)) {
+    if (shouldSkipRequest(url.pathname)) {
       next();
       return;
     }
@@ -502,7 +503,7 @@ const VITE_PUBLIC_PATH = `/@vite/`;
 const internalPrefixes = [FS_PREFIX, VALID_ID_PREFIX, VITE_PUBLIC_PATH];
 const InternalPrefixRE = new RegExp(`^(?:${internalPrefixes.join('|')})`);
 
-function skipRequest(pathname: string) {
+function shouldSkipRequest(pathname: string) {
   if (pathname.startsWith('/@qwik-city-')) {
     return true;
   }

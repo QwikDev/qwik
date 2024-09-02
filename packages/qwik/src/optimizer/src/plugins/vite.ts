@@ -487,11 +487,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     transform(code, id, transformOpts) {
-      if (id.startsWith('\0') || !fileFilter(id, 'transform')) {
-        return null;
-      }
-
-      if (id.endsWith('?raw')) {
+      if (id.startsWith('\0') || !fileFilter(id, 'transform') || id.includes('?raw')) {
         return null;
       }
 

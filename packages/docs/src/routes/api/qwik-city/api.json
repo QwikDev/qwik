@@ -880,7 +880,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nvalibot$: ValibotConstructor\n```",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nvalibot$: ValibotConstructor\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
       "mdFile": "qwik-city.valibot_.md"
     },
@@ -894,7 +894,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nvalibotQrl: ValibotConstructorQRL\n```",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nvalibotQrl: ValibotConstructorQRL\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
       "mdFile": "qwik-city.valibotqrl.md"
     },

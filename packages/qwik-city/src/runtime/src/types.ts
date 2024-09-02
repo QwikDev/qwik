@@ -810,7 +810,7 @@ export type ValidatorConstructorQRL = {
   ): T extends ValidatorReturnFail<infer ERROR> ? DataValidator<ERROR> : DataValidator<never>;
 };
 
-/** @public */
+/** @alpha */
 export type ValibotDataValidator<
   T extends v.GenericSchema | v.GenericSchemaAsync = v.GenericSchema | v.GenericSchemaAsync,
 > = {
@@ -821,7 +821,7 @@ export type ValibotDataValidator<
   ): Promise<ValidatorReturn<ValidatorErrorType<v.InferInput<T>>>>;
 };
 
-/** @public */
+/** @alpha */
 export type ValibotConstructor = {
   <T extends v.GenericSchema | v.GenericSchemaAsync>(schema: T): ValibotDataValidator<T>;
   <T extends v.GenericSchema | v.GenericSchemaAsync>(
@@ -829,7 +829,7 @@ export type ValibotConstructor = {
   ): ValibotDataValidator<T>;
 };
 
-/** @public */
+/** @alpha */
 export type ValibotConstructorQRL = {
   <T extends v.GenericSchema | v.GenericSchemaAsync>(schema: QRL<T>): ValibotDataValidator<T>;
   <T extends v.GenericSchema | v.GenericSchemaAsync>(

@@ -2413,6 +2413,8 @@ useNavigate: () => RouteNavigate;
 
 ## valibot$
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
 ```typescript
 valibot$: ValibotConstructor;
 ```
@@ -2420,6 +2422,8 @@ valibot$: ValibotConstructor;
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts)
 
 ## valibotQrl
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
 ```typescript
 valibotQrl: ValibotConstructorQRL;

@@ -253,7 +253,7 @@ const flattenValibotIssues = (issues: v.GenericIssue[]) => {
   }, {});
 };
 
-/** @public */
+/** @alpha */
 export const valibotQrl: ValibotConstructorQRL = (
   qrl: QRL<
     | v.GenericSchema
@@ -294,7 +294,7 @@ export const valibotQrl: ValibotConstructorQRL = (
   return undefined as never;
 };
 
-/** @public */
+/** @alpha */
 export const valibot$: ValibotConstructor = /*#__PURE__*/ implicit$FirstArg(valibotQrl);
 
 const flattenZodIssues = (issues: z.ZodIssue | z.ZodIssue[]) => {

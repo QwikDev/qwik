@@ -924,7 +924,7 @@ The base pathname of the request, which can be configured at build time. Default
 
 Convenience method to set the Cache-Control header. Depending on your CDN, you may want to add another cacheControl with the second argument set to `CDN-Cache-Control` or any other value (we provide the most common values for auto-complete, but you can use any string you want).
 
-See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control and https://qwik.dev/docs/caching/\#CDN-Cache-Controls for more information.
+See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control and https://qwik.dev/docs/caching/#CDN-Cache-Controls for more information.
 
 </td></tr>
 <tr><td>

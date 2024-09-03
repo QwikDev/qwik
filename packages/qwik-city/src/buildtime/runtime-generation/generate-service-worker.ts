@@ -1,7 +1,7 @@
-import type { BuildContext } from '../types';
-import type { QwikManifest, InsightManifest } from '@builder.io/qwik/optimizer';
+import type { InsightManifest, QwikManifest } from '@builder.io/qwik/optimizer';
 import type { AppBundle } from '../../runtime/src/service-worker/types';
 import { removeExtension } from '../../utils/fs';
+import type { BuildContext } from '../types';
 
 export function generateServiceWorkerRegister(ctx: BuildContext, swRegister: string) {
   let swReg: string;
@@ -46,21 +46,24 @@ export function prependManifestToServiceWorker(
   return [key, appBundlesCode, libraryBundlesCode, linkBundlesCode, swCode].join('\n');
 }
 
-function generateAppBundles(appBundles: AppBundle[], manifest: QwikManifest) {
-  for (const appBundleName in manifest.bundles) {
-    appBundles.push([appBundleName, []]);
-  }
+export function generateAppBundles(appBundles: AppBundle[], manifest: QwikManifest) {
+  const sortedBundles = Object.keys(manifest.bundles).sort();
+  for (const appBundleName of sortedBundles) {
+    const appBundle: AppBundle = [appBundleName, []];
+    appBundles.push(appBundle);
 
-  for (const appBundle of appBundles) {
-    const appBundleName = appBundle[0];
-    const importedBundleIds = appBundle[1];
     const symbolHashesInBundle: string[] = [];
 
     const manifestBundle = manifest.bundles[appBundleName];
     const importedBundleNames = Array.isArray(manifestBundle.imports) ? manifestBundle.imports : [];
+
+    const depsSet = new Set(importedBundleNames);
+
     for (const importedBundleName of importedBundleNames) {
-      importedBundleIds.push(getAppBundleId(appBundles, importedBundleName));
+      clearTransitiveDeps(depsSet, new Set(), importedBundleName);
     }
+    // set the imports based on the sorted index number
+    appBundle[1] = Array.from(depsSet).map((dep) => sortedBundles.indexOf(dep));
 
     if (manifestBundle.symbols) {
       for (const manifestBundleSymbolName of manifestBundle.symbols) {
@@ -72,7 +75,24 @@ function generateAppBundles(appBundles: AppBundle[], manifest: QwikManifest) {
     }
 
     if (symbolHashesInBundle.length > 0) {
-      appBundle[2] = symbolHashesInBundle;
+      if (appBundle.length === 2) {
+        // If the tuple has 2 elements, you can safely add the third one
+      }
+      (appBundle as unknown as any)[2] = symbolHashesInBundle;
+    }
+  }
+
+  function clearTransitiveDeps(deps: Set<string>, seen: Set<string>, depName: string) {
+    const childBundle = manifest.bundles[depName];
+
+    for (const childDepImport of childBundle.imports || []) {
+      if (deps.has(childDepImport)) {
+        deps.delete(childDepImport);
+      }
+      if (!seen.has(childDepImport)) {
+        seen.add(childDepImport);
+        clearTransitiveDeps(deps, seen, childDepImport);
+      }
     }
   }
 
@@ -84,7 +104,7 @@ function generateLibraryBundles(appBundles: AppBundle[], manifest: QwikManifest)
 
   for (const [bundleName, bundle] of Object.entries(manifest.bundles)) {
     if (bundle.origins && bundle.origins.includes('@qwik-city-plan')) {
-      libraryBundleIds.push(getAppBundleId(appBundles, bundleName));
+      libraryBundleIds.push(getAppBundleIndex(appBundles, bundleName));
       break;
     }
   }
@@ -158,7 +178,7 @@ export function generateLinkBundles(
 
     linkBundles.push(
       `[${r.pattern.toString()},${JSON.stringify(
-        linkBundleNames.map((bundleName) => getAppBundleId(appBundles, bundleName))
+        linkBundleNames.map((bundleName) => getAppBundleIndex(appBundles, bundleName))
       )}]`
     );
     routeToBundles[r.routeName] = linkBundleNames;
@@ -170,7 +190,7 @@ export function generateLinkBundles(
   ];
 }
 
-function getAppBundleId(appBundles: AppBundle[], bundleName: string) {
+function getAppBundleIndex(appBundles: AppBundle[], bundleName: string) {
   return appBundles.findIndex((b) => b[0] === bundleName);
 }
 

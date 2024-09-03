@@ -487,9 +487,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     transform(code, id, transformOpts) {
-      if (id.startsWith('\0') || !fileFilter(id, 'transform')) {
+      if (id.startsWith('\0') || !fileFilter(id, 'transform') || id.includes('?raw')) {
         return null;
       }
+
       if (isClientDevOnly) {
         const parsedId = parseId(id);
         if (parsedId.params.has(VITE_DEV_CLIENT_QS)) {

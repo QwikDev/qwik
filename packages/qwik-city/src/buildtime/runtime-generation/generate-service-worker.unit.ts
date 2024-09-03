@@ -1,8 +1,13 @@
-import type { BuildContext, BuildRoute } from '../types';
-import type { QwikManifest, InsightManifest } from '@builder.io/qwik/optimizer';
+import type {
+  InsightManifest,
+  QwikBundle,
+  QwikManifest,
+  QwikSymbol,
+} from '@builder.io/qwik/optimizer';
+import { assert, expect, test } from 'vitest';
 import type { AppBundle } from '../../runtime/src/service-worker/types';
-import { generateLinkBundles } from './generate-service-worker';
-import { assert, test } from 'vitest';
+import type { BuildContext, BuildRoute } from '../types';
+import { generateAppBundles, generateLinkBundles } from './generate-service-worker';
 
 test('incorporate qwik-insights', () => {
   const routes: BuildRoute[] = [
@@ -53,4 +58,57 @@ test('incorporate qwik-insights', () => {
   const [_, routeToBundles] = generateLinkBundles(ctx, appBundles, manifest, prefetch);
   assert.deepEqual(routeToBundles['/'], ['q-bundle-123.js', 'q-bundle-234.js', 'q-bundle-a.js']);
   assert.deepEqual(routeToBundles['/routeA'], ['q-bundle-345.js', 'q-bundle-b.js']);
+});
+
+test('generateAppBundles', () => {
+  const fakeManifest = {
+    symbols: {
+      s_aaa123: { hash: 'aaa123' } as QwikSymbol,
+      s_bbb123: { hash: 'bbb123' } as QwikSymbol,
+      s_ccc123: { hash: 'ccc123' } as QwikSymbol,
+      s_ddd123: { hash: 'ddd123' } as QwikSymbol,
+      s_eee123: { hash: 'eee123' } as QwikSymbol,
+    } as Record<string, QwikSymbol>,
+    bundles: {
+      'a.js': {
+        size: 0,
+        imports: ['b.js', 'c.js'],
+        symbols: ['s_aaa123'],
+      },
+      'b.js': {
+        size: 0,
+        imports: ['c.js', 'd.js'],
+        dynamicImports: ['e.js'],
+        symbols: ['s_bbb123'],
+      },
+      'c.js': {
+        size: 0,
+        imports: ['d.js'],
+        symbols: ['s_ccc123'],
+      },
+      'd.js': {
+        size: 0,
+        imports: [],
+        symbols: ['s_ddd123'],
+      },
+      'e.js': {
+        size: 0,
+        imports: [],
+        symbols: ['s_eee123'],
+      },
+    } as Record<string, QwikBundle>,
+  } as QwikManifest;
+
+  const actualAppBundles = generateAppBundles([], fakeManifest);
+
+  const expectedAppBundles = [
+    ['a.js', [1], ['aaa123']],
+    ['b.js', [2], ['bbb123']],
+    ['c.js', [3], ['ccc123']],
+    ['d.js', [], ['ddd123']],
+    ['e.js', [], ['eee123']],
+  ];
+  const expectedResult = `const appBundles=${JSON.stringify(expectedAppBundles)};`;
+
+  expect(actualAppBundles).toEqual(expectedResult);
 });

@@ -1,6 +1,6 @@
-import type { AppBundle, Fetch, LinkBundle } from './types';
-import { awaitingRequests, existingPrefetchUrls, prefetchQueue } from './constants';
 import { cachedFetch } from './cached-fetch';
+import { awaitingRequests, existingPrefetchUrls, prefetchQueue } from './constants';
+import type { AppBundle, Fetch, LinkBundle } from './types';
 import { getAppBundleByName, getAppBundlesNamesFromIds } from './utils';
 
 export const prefetchBundleNames = (
@@ -28,7 +28,7 @@ export const prefetchBundleNames = (
     }
   };
 
-  const prefetchAppBundle = (prefetchAppBundleName: string | null) => {
+  const addBundleToPrefetchQueue = (prefetchAppBundleName: string | null) => {
     try {
       const appBundle = getAppBundleByName(appBundles, prefetchAppBundleName);
 
@@ -54,7 +54,7 @@ export const prefetchBundleNames = (
           }
         }
 
-        importedBundleNames.forEach(prefetchAppBundle);
+        importedBundleNames.forEach(addBundleToPrefetchQueue);
       }
     } catch (e) {
       console.error(e);
@@ -62,7 +62,7 @@ export const prefetchBundleNames = (
   };
 
   if (Array.isArray(prefetchAppBundleNames)) {
-    prefetchAppBundleNames.forEach(prefetchAppBundle);
+    prefetchAppBundleNames.forEach(addBundleToPrefetchQueue);
   }
   drainQueue();
 };
@@ -117,13 +117,22 @@ export const prefetchWaterfall = (
   requestedBuildUrl: URL
 ) => {
   try {
-    const segments = requestedBuildUrl.href.split('/');
-    const requestedBundleName = segments[segments.length - 1];
-    segments[segments.length - 1] = '';
-    const baseUrl = new URL(segments.join('/'));
+    const { baseUrl, requestedBundleName } = splitUrlToBaseAndBundle(requestedBuildUrl);
 
     prefetchBundleNames(appBundles, qBuildCache, fetch, baseUrl, [requestedBundleName], true);
   } catch (e) {
     console.error(e);
   }
 };
+
+function splitUrlToBaseAndBundle(fullUrl: URL) {
+  const segments = fullUrl.href.split('/');
+  const requestedBundleName = segments[segments.length - 1];
+  segments[segments.length - 1] = '';
+  const baseUrl = new URL(segments.join('/'));
+
+  return {
+    baseUrl,
+    requestedBundleName,
+  };
+}

@@ -16,8 +16,10 @@ import tga_1 from 'image-size/dist/types/tga.js';
 import webp_1 from 'image-size/dist/types/webp.js';
 import heif_1 from 'image-size/dist/types/heif.js';
 
-import type { Connect } from 'vite';
+import type { Connect, ViteDevServer } from 'vite';
 import type { OptimizerSystem } from '../types';
+import { formatError } from './vite-utils';
+import type { QwikViteDevResponse } from './vite';
 
 // This map helps avoid validating for every single image type
 const firstBytes: Record<number, keyof typeof types> = {
@@ -107,33 +109,34 @@ export async function getInfoForSrc(src: string) {
 export const getImageSizeServer = (
   sys: OptimizerSystem,
   rootDir: string,
-  srcDir: string
+  srcDir: string,
+  server: ViteDevServer
 ): Connect.NextHandleFunction => {
   return async (req, res, next) => {
-    const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-    const path: typeof import('path') = await sys.dynamicImport('node:path');
+    try {
+      const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+      const path: typeof import('path') = await sys.dynamicImport('node:path');
 
-    const url = new URL(req.url!, 'http://localhost:3000/');
-    if (req.method === 'GET' && url.pathname === '/__image_info') {
-      const imageURL = url.searchParams.get('url');
-      res.setHeader('content-type', 'application/json');
-      if (imageURL) {
-        const info = await getInfoForSrc(imageURL);
-        res.setHeader('cache-control', 'public, max-age=31536000, immutable');
-        if (!info) {
-          res.statusCode = 404;
+      const url = new URL(req.url!, 'http://localhost:3000/');
+      if (req.method === 'GET' && url.pathname === '/__image_info') {
+        const imageURL = url.searchParams.get('url');
+        res.setHeader('content-type', 'application/json');
+        if (imageURL) {
+          const info = await getInfoForSrc(imageURL);
+          res.setHeader('cache-control', 'public, max-age=31536000, immutable');
+          if (!info) {
+            res.statusCode = 404;
+          } else {
+            res.write(JSON.stringify(info));
+          }
         } else {
+          res.statusCode = 500;
+          const info = { message: 'error' };
           res.write(JSON.stringify(info));
         }
-      } else {
-        res.statusCode = 500;
-        const info = { message: 'error' };
-        res.write(JSON.stringify(info));
-      }
-      res.end();
-      return;
-    } else if (req.method === 'POST' && url.pathname === '/__image_fix') {
-      try {
+        res.end();
+        return;
+      } else if (req.method === 'POST' && url.pathname === '/__image_fix') {
         const loc = url.searchParams.get('loc') as string;
         const width = url.searchParams.get('width');
         const height = url.searchParams.get('height');
@@ -232,11 +235,19 @@ export const getImageSizeServer = (
         }
         text = text.slice(0, offset) + imgTag + text.slice(end);
         fs.writeFileSync(filePath, text);
-      } catch (e) {
-        console.error('Error auto fixing image', e, url);
+      } else {
+        next();
       }
-    } else {
-      next();
+    } catch (e) {
+      if (e instanceof Error) {
+        server.ssrFixStacktrace(e);
+        await formatError(sys, e);
+      }
+      next(e);
+    } finally {
+      if (typeof (res as QwikViteDevResponse)._qwikRenderResolve === 'function') {
+        (res as QwikViteDevResponse)._qwikRenderResolve!();
+      }
     }
   };
 };

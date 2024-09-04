@@ -38,6 +38,9 @@ export function prependManifestToServiceWorker(
     return null;
   }
 
+  // TODO: add dynamic imports that don't import routes
+  // (anything that doesn't contain _hw export)
+
   const appBundles: AppBundle[] = [];
   const appBundlesCode = generateAppBundles(appBundles, manifest);
   const libraryBundlesCode = generateLibraryBundles(appBundles, manifest);

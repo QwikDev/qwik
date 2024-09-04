@@ -20,6 +20,17 @@ function createFakeFetch(): Fetch {
   };
 }
 
+/*
+ a. Populating the queue
+    - Queue all the imports
+    - Queue each bundle only once
+    - Change priority if already queued
+    - skip if already prefetched (existingPrefetchUrls)
+  b. Draining the queue
+    - 
+  1. imports 
+*/
+
 test('getCacheToDelete, delete bundles no longer possible', () => {
   const appBundles: AppBundle[] = createLongAppBundels();
   const bundlesToPrefetch = createBundlesToPrefetch();

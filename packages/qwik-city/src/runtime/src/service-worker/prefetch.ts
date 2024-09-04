@@ -11,24 +11,19 @@ export const prefetchBundleNames = (
   prefetchAppBundleNames: (string | null)[] | undefined | null,
   highPriority = false
 ) => {
-  const drainQueue = () => {
-    while (prefetchQueue.length > 0 && awaitingRequests.size < 6) {
-      // do not prefetch more than 6 requests at a time to ensure
-      // the browser is able to handle a user request as soon as possible
-      const url = prefetchQueue.shift()!;
-      const request = new Request(url);
-      if (existingPrefetchUrls.has(url!)) {
-        // already prefetched this url once before
-        // optimization to skip some async work
-        drainQueue();
-      } else {
-        existingPrefetchUrls.add(url!);
-        cachedFetch(qBuildCache, fetch, awaitingRequests, request).finally(drainQueue);
-      }
-    }
-  };
+  if (Array.isArray(prefetchAppBundleNames)) {
+    addBundlesToPrefetchQueue(prefetchAppBundleNames, appBundles, baseUrl, highPriority);
+  }
+  drainQueue(qBuildCache, fetch);
+};
 
-  const addBundleToPrefetchQueue = (prefetchAppBundleName: string | null) => {
+export function addBundlesToPrefetchQueue(
+  bundlesToPrefetch: (string | null)[],
+  appBundles: AppBundle[],
+  baseUrl: URL,
+  highPriority: boolean
+) {
+  for (const prefetchAppBundleName of bundlesToPrefetch) {
     try {
       const appBundle = getAppBundleByName(appBundles, prefetchAppBundleName);
 
@@ -53,19 +48,32 @@ export const prefetchBundleNames = (
             prefetchQueue.push(url);
           }
         }
-
-        importedBundleNames.forEach(addBundleToPrefetchQueue);
+        addBundlesToPrefetchQueue(importedBundleNames, appBundles, baseUrl, highPriority);
       }
     } catch (e) {
       console.error(e);
     }
-  };
-
-  if (Array.isArray(prefetchAppBundleNames)) {
-    prefetchAppBundleNames.forEach(addBundleToPrefetchQueue);
   }
-  drainQueue();
-};
+}
+
+export function drainQueue(qBuildCache: Cache, fetch: Fetch) {
+  while (prefetchQueue.length > 0 && awaitingRequests.size < 6) {
+    // do not prefetch more than 6 requests at a time to ensure
+    // the browser is able to handle a user request as soon as possible
+    const url = prefetchQueue.shift()!;
+    const request = new Request(url);
+    if (existingPrefetchUrls.has(url!)) {
+      // already prefetched this url once before
+      // optimization to skip some async work
+      drainQueue(qBuildCache, fetch); // DO WE NEED THIS?
+    } else {
+      existingPrefetchUrls.add(url!); // TODO: add it into .then()
+      cachedFetch(qBuildCache, fetch, awaitingRequests, request).finally(() =>
+        drainQueue(qBuildCache, fetch)
+      );
+    }
+  }
+}
 
 export const prefetchLinkBundles = (
   appBundles: AppBundle[],

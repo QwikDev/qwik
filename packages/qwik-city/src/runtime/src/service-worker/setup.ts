@@ -1,8 +1,8 @@
-import type { AppBundle, LinkBundle, ServiceWorkerMessageEvent } from './types';
-import { awaitingRequests, qBuildCacheName } from './constants';
 import { cachedFetch } from './cached-fetch';
-import { computeAppSymbols, getCacheToDelete, isAppBundleRequest, resolveSymbols } from './utils';
+import { awaitingRequests, qBuildCacheName } from './constants';
 import { prefetchBundleNames, prefetchLinkBundles, prefetchWaterfall } from './prefetch';
+import type { AppBundle, LinkBundle, ServiceWorkerMessageEvent } from './types';
+import { computeAppSymbols, getCacheToDelete, isAppBundleRequest, resolveSymbols } from './utils';
 
 export const setupServiceWorkerScope = (
   swScope: ServiceWorkerGlobalScope,
@@ -63,9 +63,22 @@ export const setupServiceWorkerScope = (
     }
   });
 
-  swScope.addEventListener('activate', () => {
+  swScope.addEventListener('activate', (event) => {
     (async () => {
       try {
+        // Delete any other caches that are not the current SW cache name
+        await event.waitUntil(
+          swScope.caches.keys().then((keys) =>
+            Promise.all(
+              keys.map((key) => {
+                if (key !== qBuildCacheName) {
+                  return caches.delete(key);
+                }
+              })
+            )
+          )
+        );
+
         const qBuildCache = await swScope.caches.open(qBuildCacheName);
         const cachedRequestKeys = await qBuildCache.keys();
         const cachedUrls = cachedRequestKeys.map((r) => r.url);

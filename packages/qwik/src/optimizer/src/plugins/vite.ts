@@ -1120,30 +1120,48 @@ function absolutePathAwareJoin(path: Path, ...segments: string[]): string {
 export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundleGraph {
   const bundleGraph: QwikBundleGraph = [];
   const graph = manifest.bundles;
-  const map = new Map<string, { index: number; deps: string[] }>();
-  for (const bundleName in graph) {
+  if (!graph) {
+    return [];
+  }
+  const names = Object.keys(graph).sort();
+  const map = new Map<string, { index: number; deps: Set<string> }>();
+  const clearTransitiveDeps = (deps: Set<string>, seen: Set<string>, bundleName: string) => {
+    const bundle = graph[bundleName];
+    for (const dep of bundle.imports || []) {
+      if (deps.has(dep)) {
+        deps.delete(dep);
+      }
+      if (!seen.has(dep)) {
+        seen.add(dep);
+        clearTransitiveDeps(deps, seen, dep);
+      }
+    }
+  };
+  for (const bundleName of names) {
     const bundle = graph[bundleName];
     const index = bundleGraph.length;
-    const deps: string[] = [];
-    bundle.imports && deps.push(...bundle.imports);
-    bundle.dynamicImports && deps.push(...bundle.dynamicImports);
+    const deps = new Set(bundle.imports);
+    for (const depName of deps) {
+      clearTransitiveDeps(deps, new Set(), depName);
+    }
     map.set(bundleName, { index, deps });
     bundleGraph.push(bundleName);
-    while (index + deps.length >= bundleGraph.length) {
+    while (index + deps.size >= bundleGraph.length) {
       bundleGraph.push(null!);
     }
   }
   // Second pass to to update dependency pointers
-  for (const bundleName in graph) {
-    const { index, deps } = map.get(bundleName)!;
-    for (let i = 0; i < deps.length; i++) {
-      const depName = deps[i];
+  for (const bundleName of names) {
+    // eslint-disable-next-line prefer-const
+    let { index, deps } = map.get(bundleName)!;
+    index++;
+    for (const depName of deps) {
       const dep = map.get(depName);
       const depIndex = dep?.index;
       if (depIndex == undefined) {
         throw new Error(`Missing dependency: ${depName}`);
       }
-      bundleGraph[index + i + 1] = depIndex;
+      bundleGraph[index++] = depIndex;
     }
   }
   return bundleGraph;

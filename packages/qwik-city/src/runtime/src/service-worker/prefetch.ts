@@ -47,8 +47,8 @@ export function addBundlesToPrefetchQueue(
             // add to the end of the queue
             prefetchQueue.push(url);
           }
+          addBundlesToPrefetchQueue(importedBundleNames, appBundles, baseUrl, highPriority);
         }
-        addBundlesToPrefetchQueue(importedBundleNames, appBundles, baseUrl, highPriority);
       }
     } catch (e) {
       console.error(e);

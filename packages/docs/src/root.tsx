@@ -1,4 +1,4 @@
-import { component$, useContextProvider, useStore } from '@builder.io/qwik';
+import { component$, useContextProvider, useStore, useVisibleTask$ } from '@builder.io/qwik';
 import { QwikCityProvider, RouterOutlet } from '@builder.io/qwik-city';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';
@@ -48,6 +48,19 @@ export default component$(() => {
 
   useContextProvider(GlobalStore, store);
 
+  useVisibleTask$(
+    () => {
+      navigator.serviceWorker?.getRegistrations().then((regs) => {
+        for (const reg of regs) {
+          if (reg.active?.scriptURL.includes('service-worker.js')) {
+            reg.unregister();
+          }
+        }
+      });
+    },
+    { strategy: 'document-idle' }
+  );
+
   return (
     <QwikCityProvider>
       <head>
@@ -56,6 +69,7 @@ export default component$(() => {
         <RouterHead />
         {/* Core Web Vitals experiment until October 1: Do not bring back any SW until then! Reach out to @maiieul first if you believe you have a good reason to change this. */}
         {/* <ServiceWorkerRegister /> */}
+
         {/* <script dangerouslySetInnerHTML={`(${collectSymbols})()`} /> */}
         <Insights publicApiKey={import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY} />
       </head>

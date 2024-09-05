@@ -27,7 +27,6 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Download docs artifact
-        continue-on-error: true
         uses: actions/download-artifact@v4
         id: download-artifact
         with:
@@ -41,7 +40,7 @@ jobs:
       - name: Deploy to Cloudflare Pages
         # if the docs didn't build, don't deploy but don't fail the workflow
         if: success()
-        uses: AdrianGonz97/refined-cf-pages-action@11cfce77186cf1bd43f2fe42a84ea1996bcfe3c9
+        uses: AdrianGonz97/refined-cf-pages-action@f026b5a7c0cb4a05ecb63871c5fc4992cf036d7f
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

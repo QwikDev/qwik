@@ -346,22 +346,6 @@ test('should use build.outDir config with client target', async () => {
   assert.equal(c.build.outDir, normalizePath(resolve(cwd, `my-dist`)));
 });
 
-test('should use build.outDir config when assetsDir is _astro', async () => {
-  const initOpts = {
-    optimizerOptions: mockOptimizerOptions(),
-  };
-
-  const plugin = getPlugin(initOpts);
-
-  // Astro sets a build.assetsDir of _astro, but we don't want to change that
-  const c: any = (await plugin.config(
-    { build: { assetsDir: '_astro' } },
-    { command: 'serve', mode: 'development' }
-  ))!;
-
-  assert.equal(c.build.outDir, normalizePath(resolve(cwd, `dist/`)));
-});
-
 test('command: build, --mode lib', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),

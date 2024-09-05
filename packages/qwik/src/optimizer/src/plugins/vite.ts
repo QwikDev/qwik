@@ -160,7 +160,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       const shouldFindVendors =
         !qwikViteOpts.disableVendorScan && (target !== 'lib' || viteCommand === 'serve');
       viteAssetsDir = viteConfig.build?.assetsDir;
-      const useAssetsDir = target === 'client' && !!viteAssetsDir && viteAssetsDir !== '_astro';
+      const useAssetsDir = target === 'client' && !!viteAssetsDir;
       const pluginOpts: QwikPluginOptions = {
         target,
         buildMode,
@@ -580,7 +580,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             source: clientManifestStr,
           });
           const assetsDir = qwikPlugin.getOptions().assetsDir || '';
-          const useAssetsDir = !!assetsDir && assetsDir !== '_astro';
+          const useAssetsDir = !!assetsDir;
           const sys = qwikPlugin.getSys();
           this.emitFile({
             type: 'asset',

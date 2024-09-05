@@ -52,7 +52,10 @@ export default component$(() => {
     () => {
       navigator.serviceWorker?.getRegistrations().then((regs) => {
         for (const reg of regs) {
-          if (reg.active?.scriptURL.includes('service-worker.js')) {
+          if (
+            reg.active?.scriptURL.includes('service-worker.js') ||
+            reg.active?.scriptURL.includes('qwik-prefetch-service-worker.js')
+          ) {
             reg.unregister();
           }
         }

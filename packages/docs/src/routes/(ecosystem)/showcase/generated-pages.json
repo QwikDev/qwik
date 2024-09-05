@@ -842,5 +842,21 @@
     },
     "href": "https://sakenowa.com",
     "tags": "sns,app"
+  },
+  {
+    "title": "QwikPDF",
+    "imgSrc": "/showcases/qwikpdf_alexismoren_fr_.webp",
+    "perf": {
+      "score": 1,
+      "fcpDisplay": "0.8 s",
+      "fcpScore": 1,
+      "lcpDisplay": "0.9 s",
+      "lcpScore": 1,
+      "ttiDisplay": "0.9 s",
+      "ttiScore": 1,
+      "ttiTime": 901
+    },
+    "href": "https://qwikpdf.alexismoren.fr/",
+    "tags": "pdf,services,free"
   }
 ]

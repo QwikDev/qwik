@@ -39,6 +39,22 @@ export const uwu = /*javascript*/ `
   } catch (err) { }
 })();
 `;
+
+const unregisterPrefetchServiceWorkers = /*javascript*/ `
+;(function () {
+  navigator.serviceWorker?.getRegistrations().then((regs) => {
+    for (const reg of regs) {
+      if (
+        reg.active?.scriptURL.includes('service-worker.js') ||
+        reg.active?.scriptURL.includes('qwik-prefetch-service-worker.js')
+      ) {
+        reg.unregister();
+      }
+    }
+  });
+})();
+`;
+
 export default component$(() => {
   const store = useStore<SiteStore>({
     headerMenuOpen: false,
@@ -48,29 +64,16 @@ export default component$(() => {
 
   useContextProvider(GlobalStore, store);
 
-  useVisibleTask$(
-    () => {
-      navigator.serviceWorker?.getRegistrations().then((regs) => {
-        for (const reg of regs) {
-          if (
-            reg.active?.scriptURL.includes('service-worker.js') ||
-            reg.active?.scriptURL.includes('qwik-prefetch-service-worker.js')
-          ) {
-            reg.unregister();
-          }
-        }
-      });
-    },
-    { strategy: 'document-idle' }
-  );
+  useVisibleTask$(() => {}, { strategy: 'document-idle' });
 
   return (
     <QwikCityProvider>
       <head>
         <meta charset="utf-8" />
         <script dangerouslySetInnerHTML={uwu} />
+        <script dangerouslySetInnerHTML={unregisterPrefetchServiceWorkers} />
         <RouterHead />
-        {/* Core Web Vitals experiment until October 1: Do not bring back any SW until then! Reach out to @maiieul first if you believe you have a good reason to change this. */}
+        {/* Core Web Vitals experiment until October 9: Do not bring back any SW until then! Reach out to @maiieul first if you believe you have a good reason to change this. */}
         {/* <ServiceWorkerRegister /> */}
 
         {/* <script dangerouslySetInnerHTML={`(${collectSymbols})()`} /> */}
@@ -84,7 +87,7 @@ export default component$(() => {
       >
         <RouterOutlet />
         <RealMetricsOptimization builderApiKey={BUILDER_PUBLIC_API_KEY} />
-        {/* Core Web Vitals experiment until October 1: Do not bring back any SW until then! Reach out to @maiieul first if you believe you have a good reason to change this. */}
+        {/* Core Web Vitals experiment until October 9: Do not bring back any SW until then! Reach out to @maiieul first if you believe you have a good reason to change this. */}
       </body>
     </QwikCityProvider>
   );

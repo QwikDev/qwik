@@ -13,21 +13,32 @@ export const setupServiceWorkerScope = (
   const swFetch = swScope.fetch.bind(swScope);
   const appSymbols = computeAppSymbols(appBundles);
 
-  swScope.addEventListener('fetch', (ev) => {
-    const request = ev.request;
-
-    if (request.method === 'GET') {
-      const url = new URL(request.url);
-
-      if (isAppBundleRequest(appBundles, url.pathname)) {
-        ev.respondWith(
-          swScope.caches.open(qBuildCacheName).then((qBuildCache) => {
-            prefetchWaterfall(appBundles, qBuildCache, swFetch, url);
-            return cachedFetch(qBuildCache, swFetch, awaitingRequests, request);
-          })
+  swScope.addEventListener('activate', (event) => {
+    (async () => {
+      try {
+        // Delete any other caches that are not the current SW cache name
+        event.waitUntil(
+          swScope.caches.keys().then((keys) =>
+            Promise.all(
+              keys.map((key) => {
+                if (key !== qBuildCacheName) {
+                  return caches.delete(key);
+                }
+              })
+            )
+          )
         );
+
+        // Delete old bundles
+        const qBuildCache = await swScope.caches.open(qBuildCacheName);
+        const cachedRequestKeys = await qBuildCache.keys();
+        const cachedUrls = cachedRequestKeys.map((r) => r.url);
+        const cachedRequestsToDelete = getCacheToDelete(appBundles, cachedUrls);
+        await Promise.all(cachedRequestsToDelete.map((r) => qBuildCache.delete(r)));
+      } catch (e) {
+        console.error(e);
       }
-    }
+    })();
   });
 
   swScope.addEventListener('message', async ({ data }: ServiceWorkerMessageEvent) => {
@@ -63,31 +74,21 @@ export const setupServiceWorkerScope = (
     }
   });
 
-  swScope.addEventListener('activate', (event) => {
-    (async () => {
-      try {
-        // Delete any other caches that are not the current SW cache name
-        await event.waitUntil(
-          swScope.caches.keys().then((keys) =>
-            Promise.all(
-              keys.map((key) => {
-                if (key !== qBuildCacheName) {
-                  return caches.delete(key);
-                }
-              })
-            )
-          )
-        );
+  swScope.addEventListener('fetch', (event: FetchEvent) => {
+    const request = event.request;
 
-        const qBuildCache = await swScope.caches.open(qBuildCacheName);
-        const cachedRequestKeys = await qBuildCache.keys();
-        const cachedUrls = cachedRequestKeys.map((r) => r.url);
-        const cachedRequestsToDelete = getCacheToDelete(appBundles, cachedUrls);
-        await Promise.all(cachedRequestsToDelete.map((r) => qBuildCache.delete(r)));
-      } catch (e) {
-        console.error(e);
+    if (request.method === 'GET') {
+      const url = new URL(request.url);
+
+      if (isAppBundleRequest(appBundles, url.pathname)) {
+        event.respondWith(
+          swScope.caches.open(qBuildCacheName).then((qBuildCache) => {
+            prefetchWaterfall(appBundles, qBuildCache, swFetch, url);
+            return cachedFetch(qBuildCache, swFetch, awaitingRequests, request);
+          })
+        );
       }
-    })();
+    }
   });
 };
 

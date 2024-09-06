@@ -1,8 +1,11 @@
 import { describe } from 'node:test';
-import { afterEach, expect, test } from 'vitest';
-import { prefetchQueue } from './constants';
-import { addBundlesToPrefetchQueue, prefetchBundleNames } from './prefetch';
+import { afterEach, expect, test, vi } from 'vitest';
+import { cachedFetch } from './cached-fetch';
+import { awaitingRequests, existingPrefetchUrls, prefetchQueue } from './constants';
+import { addBundlesToPrefetchQueue, drainQueue } from './prefetch';
 import type { AppBundle, Fetch } from './types';
+
+vi.mock('./cached-fetch');
 
 function getStubWorkerCache() {
   return {
@@ -22,19 +25,11 @@ function createFakeFetch(): Fetch {
   };
 }
 
-/*
- a. Populating the queue
-    - Queue all the imports
-    - Queue each bundle only once
-    - Change priority if already queued
-    - skip if already prefetched (existingPrefetchUrls)
-  b. Draining the queue
-    - 
-  1. imports 
-*/
-
 afterEach(() => {
   prefetchQueue.length = 0;
+  awaitingRequests.clear();
+  existingPrefetchUrls.clear();
+  vi.restoreAllMocks();
 });
 
 const urlPrefix = 'http://localhost';
@@ -144,27 +139,62 @@ describe('addBundlesToPrefetchQueue', () => {
   });
 });
 
-test.skip('getCacheToDelete, delete bundles no longer possible', () => {
-  const appBundles: AppBundle[] = createLongAppBundels();
-  const bundlesToPrefetch = createBundlesToPrefetch();
-  const fakeBaseUrl = new URL('');
-  const fakeFetch = createFakeFetch();
-  const fakeCache = getStubWorkerCache();
+describe('drainQueue', () => {
+  test(`GIVEN queue with 3 urls which are successfully fetched
+        THEN fetch should be called 3 times
+        and the requests should be added to the already cached requests`, async () => {
+    prefetchQueue.push(`${urlPrefix}/a.js`, `${urlPrefix}/b.js`, `${urlPrefix}/c.js`);
 
-  const actualResult = prefetchBundleNames(
-    appBundles,
-    fakeCache,
-    fakeFetch,
-    fakeBaseUrl,
-    bundlesToPrefetch
-  );
+    vi.mocked(cachedFetch).mockResolvedValue(new Response());
+
+    drainQueue(getStubWorkerCache(), createFakeFetch());
+
+    expect(cachedFetch).toHaveBeenCalledTimes(3);
+    await vi.waitUntil(() => existingPrefetchUrls.size > 0);
+
+    expect(existingPrefetchUrls.size).toBe(3);
+  });
+
+  test(`GIVEN queue with 4 urls which are successfully fetched
+        with one repeating url
+        THEN fetch should be called 3 times
+        and the requests should be added to the already cached requests`, async () => {
+    prefetchQueue.push(
+      `${urlPrefix}/a.js`,
+      `${urlPrefix}/b.js`,
+      `${urlPrefix}/c.js`,
+      `${urlPrefix}/a.js`
+    );
+
+    vi.mocked(cachedFetch).mockResolvedValue(new Response());
+
+    drainQueue(getStubWorkerCache(), createFakeFetch());
+
+    expect(cachedFetch).toHaveBeenCalledTimes(3);
+    await vi.waitUntil(() => existingPrefetchUrls.size > 0);
+
+    expect(existingPrefetchUrls.size).toBe(3);
+  });
+
+  test(`GIVEN queue with 2 urls, one succeed and the second fails
+        THEN fetch should be called 2 times
+        and the "already cached requests" set should be set to 1`, async () => {
+    prefetchQueue.push(`${urlPrefix}/a.js`, `${urlPrefix}/b.js`);
+
+    let requestCount = 0;
+
+    vi.mocked(cachedFetch).mockImplementation(async (): Promise<Response> => {
+      if (requestCount === 1) {
+        throw new Error('Failed to fetch');
+      }
+      requestCount++;
+      return new Response();
+    });
+
+    drainQueue(getStubWorkerCache(), createFakeFetch());
+
+    expect(cachedFetch).toHaveBeenCalledTimes(2);
+    await vi.waitUntil(() => existingPrefetchUrls.size > 0);
+    expect(existingPrefetchUrls.size).toBe(1);
+  });
 });
-
-const createBundlesToPrefetch = () => ['q-BCeDlcZU.js'];
-
-const createLongAppBundels = () =>
-  [
-    ['../service-worker.js', []],
-    ['q--8Iw-f3z.js', [7, 32, 263, 285, 300, 420, 433, 460], ['o0CELjO7sfc']],
-    ['q-01Q7cml5.js', [7, 32, 263, 285, 300, 460], ['kvx7djE5ihw']],
-  ] as AppBundle[];

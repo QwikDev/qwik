@@ -32,6 +32,7 @@ export interface SWStateBase {
   /// Base path for the container.
   $path$: string;
   $graph$: SWGraph;
+  $processed$: Map<string, { $direct$: string[]; $indirect$: string[] }> | undefined;
 }
 
 /** Task to download a bundle. */

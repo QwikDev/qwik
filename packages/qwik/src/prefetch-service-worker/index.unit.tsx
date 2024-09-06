@@ -1,6 +1,6 @@
 import { setupServiceWorker } from './setup';
 import { expect, describe, it, vi } from 'vitest';
-import { createState, type SWTask } from './state';
+import { createState, type SWStateBase, type SWTask } from './state';
 import { processMessage } from './process-message';
 import { addDependencies, directFetch } from './direct-fetch';
 import { delay } from '../core/util/promises';
@@ -70,29 +70,42 @@ describe('service-worker', async () => {
 
   describe('addDependencies', async () => {
     it('no dependencies', async () => {
-      const deps = addDependencies([], new Set(), 'abc.js');
-      expect(deps).toEqual(new Set(['abc.js']));
+      const deps = addDependencies(createBaseState([]), new Map(), 'abc.js', 10);
+      expect(deps).toEqual(new Map([['abc.js', 10]]));
     });
 
     it('one level deps', async () => {
       const deps = addDependencies(
-        createGraph([['a.js', 'b.js'], ['b.js'], ['unrelated.js']]),
-        new Set(),
-        'a.js'
+        createBaseState([['a.js', 'b.js'], ['b.js'], ['unrelated.js']]),
+        new Map(),
+        'a.js',
+        10
       );
-      expect(deps).toEqual(new Set(['a.js', 'b.js']));
+      expect(deps).toEqual(
+        new Map([
+          ['a.js', 10],
+          ['b.js', 10],
+        ])
+      );
     });
     it('two level deps', async () => {
       const deps = addDependencies(
-        createGraph([['a.js', 'b.js', 'c.js'], ['b.js', 'c.js'], ['c.js'], ['unrelated.js']]),
-        new Set(),
-        'a.js'
+        createBaseState([['a.js', 'b.js', 'c.js'], ['b.js', 'c.js'], ['c.js'], ['unrelated.js']]),
+        new Map(),
+        'a.js',
+        10
       );
-      expect(deps).toEqual(new Set(['a.js', 'b.js', 'c.js']));
+      expect(deps).toEqual(
+        new Map([
+          ['a.js', 10],
+          ['b.js', 10],
+          ['c.js', 10],
+        ])
+      );
     });
     it('multi level deps', async () => {
       const deps = addDependencies(
-        createGraph([
+        createBaseState([
           ['a.js', 'b.js', 'c.js', 'd.js'],
           ['b.js', 'c.js', 'e.js'],
           ['c.js', 'e.js', 'a.js'],
@@ -100,10 +113,43 @@ describe('service-worker', async () => {
           ['d.js'],
           ['unrelated.js'],
         ]),
-        new Set(),
-        'a.js'
+        new Map(),
+        'a.js',
+        10
       );
-      expect(deps).toEqual(new Set(['a.js', 'b.js', 'c.js', 'e.js', 'd.js']));
+      expect(deps).toEqual(
+        new Map([
+          ['a.js', 10],
+          ['b.js', 10],
+          ['c.js', 10],
+          ['e.js', 10],
+          ['d.js', 10],
+        ])
+      );
+    });
+    it('multi level indirect deps', async () => {
+      const deps = addDependencies(
+        createBaseState([
+          ['a.js', 'b.js', -1, 'c.js', 'd.js'],
+          ['b.js', 'c.js', -1, 'e.js'],
+          ['c.js', -1, 'e.js', 'a.js'],
+          ['e.js'],
+          ['d.js'],
+          ['unrelated.js'],
+        ]),
+        new Map(),
+        'a.js',
+        10
+      );
+      expect(deps).toEqual(
+        new Map([
+          ['a.js', 10],
+          ['b.js', 10],
+          ['c.js', 10],
+          ['e.js', 9],
+          ['d.js', 9],
+        ])
+      );
     });
   });
 
@@ -375,11 +421,11 @@ function mockSwState() {
   };
 }
 
-function createGraph(graph: Array<string[]>): Array<string | number> {
+function createGraph(graph: Array<(string | number)[]>): Array<string | number> {
   const map = new Map<string, number>();
   const swGraph: Array<string | number> = [];
   for (const bundleDeps of graph) {
-    const bundleName = bundleDeps[0];
+    const bundleName = bundleDeps[0] as string;
     const index = swGraph.length;
     map.set(bundleName, index);
     swGraph.push(bundleName);
@@ -389,10 +435,14 @@ function createGraph(graph: Array<string[]>): Array<string | number> {
   }
   // Second pass to to update dependency pointers
   for (const bundleDeps of graph) {
-    const bundleName = bundleDeps[0];
+    const bundleName = bundleDeps[0] as string;
     const index = map.get(bundleName)!;
     for (let i = 1; i < bundleDeps.length; i++) {
       const depName = bundleDeps[i];
+      if (typeof depName === 'number') {
+        swGraph[index + i] = -1;
+        continue;
+      }
       const depIndex = map.get(depName)!;
       if (depIndex == undefined) {
         throw new Error(`Missing dependency: ${depName}`);
@@ -401,6 +451,9 @@ function createGraph(graph: Array<string[]>): Array<string | number> {
     }
   }
   return swGraph;
+}
+function createBaseState(graph: Array<(string | number)[]>): SWStateBase {
+  return { $path$: '/', $graph$: createGraph(graph), $processed$: undefined };
 }
 const areFetching = (q: SWTask): boolean => q.$isFetching$;
 const getPathname = (q: SWTask): string => q.$url$.pathname;

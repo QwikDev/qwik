@@ -1,4 +1,3 @@
-import type { SWGraph } from './process-message';
 import type { SWState, SWStateBase, SWTask } from './state';
 
 const DIRECT_PRIORITY = Number.MAX_SAFE_INTEGER >>> 1;
@@ -24,7 +23,7 @@ export async function enqueueFileAndDependencies(
   priority: number
 ) {
   const fetchMap = new Map<string, number>();
-  filenames.forEach((filename) => addDependencies(base.$graph$, fetchMap, filename, priority));
+  filenames.forEach((filename) => addDependencies(base, fetchMap, filename, priority));
   await Promise.all(
     Array.from(fetchMap.entries()).map(([filename, prio]) =>
       enqueueFetchIfNeeded(swState, new URL(base.$path$ + filename, swState.$url$.origin), prio)
@@ -109,28 +108,48 @@ export function byFetchOrder(a: SWTask, b: SWTask) {
 }
 
 export function addDependencies(
-  graph: SWGraph,
-  fetchSet: Map<string, number>,
+  base: SWStateBase,
+  fetchMap: Map<string, number>,
   filename: string,
   priority: number
 ) {
-  if (!fetchSet.has(filename)) {
-    fetchSet.set(filename, priority);
-    let index = graph.findIndex((file) => file === filename);
-    if (index !== -1) {
-      let dependentIdx: number | string;
-      while (((dependentIdx = graph[++index]), typeof dependentIdx === 'number')) {
-        if (dependentIdx < 0) {
-          // the following deps are lower priority
-          priority += dependentIdx;
-          continue;
+  if (!fetchMap.has(filename)) {
+    fetchMap.set(filename, priority);
+    if (!base.$processed$) {
+      base.$processed$ = new Map();
+      // Process the graph so we don't walk thousands of entries on every lookup.
+      let current: { $direct$: string[]; $indirect$: string[] }, isDirect;
+      for (let i = 0; i < base.$graph$.length; i++) {
+        const item = base.$graph$[i];
+        if (typeof item === 'string') {
+          current = { $direct$: [], $indirect$: [] };
+          isDirect = true;
+          base.$processed$.set(item, current);
+        } else if (item === -1) {
+          isDirect = false;
+        } else {
+          const depName = base.$graph$[item] as string;
+          if (isDirect) {
+            current!.$direct$.push(depName);
+          } else {
+            current!.$indirect$.push(depName);
+          }
         }
-        const dependentFilename = graph[dependentIdx] as string;
-        addDependencies(graph, fetchSet, dependentFilename, priority);
       }
     }
+    const deps = base.$processed$.get(filename);
+    if (!deps) {
+      return fetchMap;
+    }
+    for (const dependentFilename of deps.$direct$) {
+      addDependencies(base, fetchMap, dependentFilename, priority);
+    }
+    priority--;
+    for (const dependentFilename of deps.$indirect$) {
+      addDependencies(base, fetchMap, dependentFilename, priority);
+    }
   }
-  return fetchSet;
+  return fetchMap;
 }
 export function parseBaseFilename(url: URL): [string, string] {
   const pathname = new URL(url).pathname;

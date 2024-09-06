@@ -1,4 +1,4 @@
-import { component$, useContextProvider, useStore, useVisibleTask$ } from '@builder.io/qwik';
+import { component$, useContextProvider, useStore } from '@builder.io/qwik';
 import { QwikCityProvider, RouterOutlet } from '@builder.io/qwik-city';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';
@@ -63,8 +63,6 @@ export default component$(() => {
   });
 
   useContextProvider(GlobalStore, store);
-
-  useVisibleTask$(() => {}, { strategy: 'document-idle' });
 
   return (
     <QwikCityProvider>

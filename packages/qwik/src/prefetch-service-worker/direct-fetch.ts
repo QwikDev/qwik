@@ -23,11 +23,11 @@ export async function enqueueFileAndDependencies(
   filenames: string[],
   priority: number
 ) {
-  const fetchSet = new Set<string>();
-  filenames.forEach((filename) => addDependencies(base.$graph$, fetchSet, filename));
+  const fetchMap = new Map<string, number>();
+  filenames.forEach((filename) => addDependencies(base.$graph$, fetchMap, filename, priority));
   await Promise.all(
-    Array.from(fetchSet).map((filename) =>
-      enqueueFetchIfNeeded(swState, new URL(base.$path$ + filename, swState.$url$.origin), priority)
+    Array.from(fetchMap.entries()).map(([filename, prio]) =>
+      enqueueFetchIfNeeded(swState, new URL(base.$path$ + filename, swState.$url$.origin), prio)
     )
   );
   taskTick(swState);
@@ -108,15 +108,25 @@ export function byFetchOrder(a: SWTask, b: SWTask) {
   return b.$priority$ - a.$priority$;
 }
 
-export function addDependencies(graph: SWGraph, fetchSet: Set<string>, filename: string) {
+export function addDependencies(
+  graph: SWGraph,
+  fetchSet: Map<string, number>,
+  filename: string,
+  priority: number
+) {
   if (!fetchSet.has(filename)) {
-    fetchSet.add(filename);
+    fetchSet.set(filename, priority);
     let index = graph.findIndex((file) => file === filename);
     if (index !== -1) {
-      while (typeof graph[++index] === 'number') {
-        const dependentIdx = graph[index] as number;
+      let dependentIdx: number | string;
+      while (((dependentIdx = graph[++index]), typeof dependentIdx === 'number')) {
+        if (dependentIdx < 0) {
+          // the following deps are lower priority
+          priority += dependentIdx;
+          continue;
+        }
         const dependentFilename = graph[dependentIdx] as string;
-        addDependencies(graph, fetchSet, dependentFilename);
+        addDependencies(graph, fetchSet, dependentFilename, priority);
       }
     }
   }

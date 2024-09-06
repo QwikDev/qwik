@@ -1125,15 +1125,15 @@ export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundle
   }
   const names = Object.keys(graph).sort();
   const map = new Map<string, { index: number; deps: Set<string> }>();
-  const clearTransitiveDeps = (deps: Set<string>, seen: Set<string>, bundleName: string) => {
+  const clearTransitiveDeps = (parentDeps: Set<string>, seen: Set<string>, bundleName: string) => {
     const bundle = graph[bundleName];
     for (const dep of bundle.imports || []) {
-      if (deps.has(dep)) {
-        deps.delete(dep);
+      if (parentDeps.has(dep)) {
+        parentDeps.delete(dep);
       }
       if (!seen.has(dep)) {
         seen.add(dep);
-        clearTransitiveDeps(deps, seen, dep);
+        clearTransitiveDeps(parentDeps, seen, dep);
       }
     }
   };
@@ -1142,7 +1142,27 @@ export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundle
     const index = bundleGraph.length;
     const deps = new Set(bundle.imports);
     for (const depName of deps) {
+      if (!graph[depName]) {
+        // weird but ok
+        continue;
+      }
       clearTransitiveDeps(deps, new Set(), depName);
+    }
+    let didAdd = false;
+    for (const depName of bundle.dynamicImports || []) {
+      // If we dynamically import a qrl segment that is not a handler, we'll probably need it soon
+      const dep = graph[depName];
+      if (!graph[depName]) {
+        // weird but ok
+        continue;
+      }
+      if (dep.isTask) {
+        if (!didAdd) {
+          deps.add('<dynamic>');
+          didAdd = true;
+        }
+        deps.add(depName);
+      }
     }
     map.set(bundleName, { index, deps });
     bundleGraph.push(bundleName);
@@ -1152,15 +1172,25 @@ export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundle
   }
   // Second pass to to update dependency pointers
   for (const bundleName of names) {
+    const bundle = map.get(bundleName);
+    if (!bundle) {
+      console.warn(`Bundle ${bundleName} not found in the bundle graph.`);
+      continue;
+    }
     // eslint-disable-next-line prefer-const
-    let { index, deps } = map.get(bundleName)!;
+    let { index, deps } = bundle;
     index++;
     for (const depName of deps) {
-      const dep = map.get(depName);
-      const depIndex = dep?.index;
-      if (depIndex == undefined) {
-        throw new Error(`Missing dependency: ${depName}`);
+      if (depName === '<dynamic>') {
+        bundleGraph[index++] = -1;
+        continue;
       }
+      const dep = map.get(depName);
+      if (!dep) {
+        console.warn(`Dependency ${depName} of ${bundleName} not found in the bundle graph.`);
+        continue;
+      }
+      const depIndex = dep.index;
       bundleGraph[index++] = depIndex;
     }
   }

@@ -57,20 +57,20 @@ export function addBundlesToPrefetchQueue(
 }
 
 export function drainQueue(qBuildCache: Cache, fetch: Fetch) {
+  // do not prefetch more than 6 requests at a time to ensure
+  // the browser is able to handle a user request as soon as possible
   while (prefetchQueue.length > 0 && awaitingRequests.size < 6) {
-    // do not prefetch more than 6 requests at a time to ensure
-    // the browser is able to handle a user request as soon as possible
     const url = prefetchQueue.shift()!;
-    const request = new Request(url);
-    if (existingPrefetchUrls.has(url!)) {
-      // already prefetched this url once before
-      // optimization to skip some async work
-      drainQueue(qBuildCache, fetch); // DO WE NEED THIS?
-    } else {
-      existingPrefetchUrls.add(url!); // TODO: add it into .then()
-      cachedFetch(qBuildCache, fetch, awaitingRequests, request).finally(() =>
-        drainQueue(qBuildCache, fetch)
-      );
+
+    if (!existingPrefetchUrls.has(url!)) {
+      const request = new Request(url);
+
+      existingPrefetchUrls.add(url!);
+      cachedFetch(qBuildCache, fetch, awaitingRequests, request)
+        .catch(() => {
+          existingPrefetchUrls.delete(url!);
+        })
+        .finally(() => drainQueue(qBuildCache, fetch));
     }
   }
 }

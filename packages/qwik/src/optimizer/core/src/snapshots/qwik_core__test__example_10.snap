@@ -48,7 +48,6 @@ export const Header_WlR3xnI6u38 = (decl1, { decl2 }, [decl3])=>{
     }
     return <div onClick={(ident11)=>ident11 + ident12} required={false}/>;
 };
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"kCAEiB,CAAC,OAAO,EAAC,KAAK,EAAC,EAAE,CAAC,MAAM;IAExB,OAAO,EAAE;IACtB;IACU,QAAS;IACT,QAAS;IACnB,OAAO,QAAQ;QAAC;KAAO,EAAE;QAAC;IAAM,GAAG;QAAC,KAAK;IAAM;IAC/C,MAAM;QACF,OAAO,OAAO;QACd,SAAS;YACL,OAAO;QACX;IACJ;IAEA,QACK,IAAI,SAAS,CAAC,UAAY,UAAU,SAAS,UAAU;AAEhE\"}")

@@ -2186,31 +2186,6 @@ impl<'a> Fold for QwikTransform<'a> {
 	}
 }
 
-pub fn add_handle_watch(body: &mut Vec<ast::ModuleItem>, core_module: &JsWord) {
-	body.push(ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(
-		ast::NamedExport {
-			src: Some(Box::new(ast::Str {
-				span: DUMMY_SP,
-				value: core_module.clone(),
-				raw: None,
-			})),
-			span: DUMMY_SP,
-			with: None,
-			type_only: false,
-			specifiers: vec![ast::ExportSpecifier::Named(ast::ExportNamedSpecifier {
-				orig: ast::ModuleExportName::Ident(ast::Ident::new(
-					HANDLE_WATCH.clone(),
-					DUMMY_SP,
-					Default::default(),
-				)),
-				exported: None,
-				is_type_only: false,
-				span: DUMMY_SP,
-			})],
-		},
-	)));
-}
-
 pub fn create_synthetic_named_export(local: &Id, exported: Option<JsWord>) -> ast::ModuleItem {
 	ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(ast::NamedExport {
 		span: DUMMY_SP,

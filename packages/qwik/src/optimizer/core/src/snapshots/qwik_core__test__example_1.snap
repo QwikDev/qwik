@@ -24,7 +24,6 @@ import { qrl } from "@builder.io/qwik";
 export const renderHeader_zBbHWn4e8Cg = ()=>{
     return <div onClick={/*#__PURE__*/ qrl(()=>import("./renderheader_div_onclick_fv2uzal99u4"), "renderHeader_div_onClick_fV2uzAL99u4")}/>;
 };
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wCAG8B;IAC1B,QACK,IAAI;AAEb\"}")
@@ -54,7 +53,6 @@ export const renderHeader_component_U6Kkv07sbpQ = ()=>{
     console.log("mount");
     return render;
 };
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kDAQiC;IAC/B,QAAQ,GAAG,CAAC;IACZ,OAAO;AACT\"}")
@@ -90,7 +88,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= renderheader_div_onclick_fv2uzal99u4.tsx (ENTRY POINT)==
 
 export const renderHeader_div_onClick_fV2uzAL99u4 = (ctx)=>console.log(ctx);
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAKwB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")

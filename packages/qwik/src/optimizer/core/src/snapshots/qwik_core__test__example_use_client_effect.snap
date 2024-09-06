@@ -43,7 +43,6 @@ export const Child_component_useBrowserVisibleTask_0IGFPOyJmQA = ()=>{
         clearInterval(timer);
     };
 };
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iEAS2B;;IACnB,MAAM,QAAQ,YAAY;QAC1B,MAAM,KAAK;IACX,GAAG;IACH,OAAO;QACP,cAAc;IACd\"}")

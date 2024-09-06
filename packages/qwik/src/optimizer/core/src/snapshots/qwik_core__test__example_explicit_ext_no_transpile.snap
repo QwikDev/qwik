@@ -83,7 +83,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= app_component_1_w0t0o3qmovu.tsx ==
 
 export const App_component_1_w0t0o3QMovU = ()=><div></div>;
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2CAKa,KACJ,MAAM\"}")

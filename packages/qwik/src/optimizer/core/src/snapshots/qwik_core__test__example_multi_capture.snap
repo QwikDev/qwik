@@ -111,7 +111,6 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
               {props.foo}{fn()}{20}
             </div>;
 };
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKa;;IACL,MAAM,KAAK,CAAC,EAAC,GAAG,EAAC,GAAK;IACtB,QACK,IAAI;cACH,OANkB,KAMZ,MALH,GAKc;YACnB,EAAE\"}")
@@ -144,7 +143,6 @@ export const Bar_component_1_0xSyNSnVu3k = ()=>{
               {props.bar}
             </div>;
 };
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAgBa;;IACL,QACK,IAAI;cACH,OAJkB,IAIb;YACP,EAAE\"}")

@@ -89,7 +89,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
 
 export const App_component_1_w0t0o3QMovU = render;
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2CAaa\"}")

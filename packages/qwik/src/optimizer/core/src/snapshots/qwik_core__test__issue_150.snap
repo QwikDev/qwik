@@ -38,7 +38,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= d_wknfjeiqvua.js (ENTRY POINT)==
 
 export const d_wKNFJEIQVUA = ()=>console.log('thing');
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAmBY,IAAI,QAAQ,GAAG,CAAC\"}")
@@ -77,7 +76,6 @@ export const Greeter_component_1_krCndSwhX4U = ()=>{
         }
     }, null, null, 3, "u6_0");
 };
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;+CAMa;;IACL,qBACI,MAAC;QACG,OAAO;YACH,OAAO;YACP,OAAO,MAAM,SAAS;YACtB,OAAO,OAAO,SAAS;QAC3B\"}")

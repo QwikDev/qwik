@@ -29,7 +29,6 @@ export const App = component$(() => {
 
 import dep3 from "dep3/something";
 export const Header_component_Header_onClick_KjD9TCNkNxY = (ev)=>dep3(ev);
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";2DAQ2B,CAAC,KAAO,KAAK\"}")

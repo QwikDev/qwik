@@ -60,7 +60,6 @@ export const Parent_component_useTask_gDH1EtUWqBU = async ()=>{
     state.text = await mongo.users();
     redis.set(state.text);
 };
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;oDAaa;;IACL,IAAI,CAAC,UAAU;IACf,MAAM,IAAI,GAAG,MAAM,MAAM,KAAK;IAC9B,MAAM,GAAG,CAAC,MAAM,IAAI\"}")
@@ -97,7 +96,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const Parent_component_serverStuff_a_2ca3HLDC7yc = ()=>{
 // from $(), should not be removed
 };
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0DAqBoB;AACR,kCAAkC;AACtC\"}")
@@ -230,7 +228,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const Parent_component_useTask_1_P8oRQhHsurk = ()=>{
 // Code
 };
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"sDAgCa;AACL,OAAO;AACX\"}")

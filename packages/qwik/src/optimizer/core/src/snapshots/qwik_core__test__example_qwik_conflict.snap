@@ -96,7 +96,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= root_component_usestyles_u5dkuxgrgnu.js (ENTRY POINT)==
 
 export const Root_component_useStyles_u5DkUxGrGnU = 'thing';
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAuBgB\"}")
@@ -157,7 +156,6 @@ import { _jsxQ } from "@builder.io/qwik";
 export const Root_component_1_cBpQNYDUHI4 = ()=>{
     return /*#__PURE__*/ _jsxQ("div", null, null, null, 3, "u6_1");
 };
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAwBa;IACL,qBACI,MAAC;AAET\"}")

@@ -35,7 +35,6 @@ export const App_Component_1_A08tXHb9pEk = ()=>{
         state
     ], "p0.thing"), 3, "u6_0");
 };
-export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAMoB;;yBACZ,MAAC,mCAAK,GAAM,KAAK\"}")

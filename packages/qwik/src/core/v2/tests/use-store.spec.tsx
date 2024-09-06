@@ -533,6 +533,29 @@ describe.each([
     );
   });
 
+  it('should work with frozen store', async () => {
+    const Cmp = component$(() => {
+      const store = useStore({ items: [{ num: 0 }] });
+      Object.freeze(store);
+      return (
+        <>
+          {store.items.map((item, key) => (
+            <div key={key}>{item.num}</div>
+          ))}
+        </>
+      );
+    });
+
+    const { vNode } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <div key="0">0</div>
+        </Fragment>
+      </Component>
+    );
+  });
+
   describe('regression', () => {
     it('#5597 - should update value', async () => {
       (globalThis as any).clicks = 0;

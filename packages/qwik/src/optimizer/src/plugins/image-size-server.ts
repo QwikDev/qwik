@@ -19,7 +19,6 @@ import heif_1 from 'image-size/dist/types/heif.js';
 import type { Connect, ViteDevServer } from 'vite';
 import type { OptimizerSystem } from '../types';
 import { formatError } from './vite-utils';
-import type { QwikViteDevResponse } from './vite';
 
 // This map helps avoid validating for every single image type
 const firstBytes: Record<number, keyof typeof types> = {
@@ -240,14 +239,9 @@ export const getImageSizeServer = (
       }
     } catch (e) {
       if (e instanceof Error) {
-        server.ssrFixStacktrace(e);
         await formatError(sys, e);
       }
       next(e);
-    } finally {
-      if (typeof (res as QwikViteDevResponse)._qwikRenderResolve === 'function') {
-        (res as QwikViteDevResponse)._qwikRenderResolve!();
-      }
     }
   };
 };

@@ -1,4 +1,7 @@
 contact_links:
+  - name: ✨ Feature requests Ideas
+    url: https://github.com/QwikDev/qwik-evolution/discussions
+    about: Propose new features and improvements and help shape Qwik
   - name: 🤔 Support Question
     url: https://qwik.dev/chat
     about: This issue tracker is not for support questions. Please post your question on the Discord chat.

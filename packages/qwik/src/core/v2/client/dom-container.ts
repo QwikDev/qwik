@@ -16,6 +16,7 @@ import {
   ELEMENT_SEQ_IDX,
   getQFuncs,
   OnRenderProp,
+  Q_PROPS_SEPARATOR,
   QBaseAttr,
   QContainerAttr,
   QContainerSelector,
@@ -92,6 +93,9 @@ export function getDomContainerFromQContainerElement(qContainerElement: Element)
       if (attrs) {
         for (let index = 0; index < attrs.length; index++) {
           const attr = attrs[index];
+          if (attr.name === Q_PROPS_SEPARATOR) {
+            continue;
+          }
           containerAttributes[attr.name] = attr.value;
         }
       }

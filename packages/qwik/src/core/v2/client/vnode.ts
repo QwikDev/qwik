@@ -143,6 +143,7 @@ import {
   QSlotRef,
   QStyle,
   QStylesAllSelector,
+  Q_PROPS_SEPARATOR,
 } from '../../util/markers';
 import { isHtmlElement } from '../../util/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType, VirtualTypeName } from '../shared/types';
@@ -378,7 +379,7 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
     for (let idx = 0; idx < attributes.length; idx++) {
       const attr = attributes[idx];
       const key = attr.name;
-      if (key == ':' || !key) {
+      if (key == Q_PROPS_SEPARATOR || !key) {
         // SVG in Domino does not support ':' so it becomes an empty string.
         // all attributes after the ':' are considered immutable, and so we ignore them.
         break;

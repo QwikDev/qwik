@@ -102,3 +102,5 @@ export const USE_ON_LOCAL_FLAGS = ':onFlags';
 export const FLUSH_COMMENT = 'qkssr-f';
 export const STREAM_BLOCK_START_COMMENT = 'qkssr-pu';
 export const STREAM_BLOCK_END_COMMENT = 'qkssr-po';
+
+export const Q_PROPS_SEPARATOR = ':';

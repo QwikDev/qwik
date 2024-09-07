@@ -47,6 +47,7 @@ import {
   QManifestHashAttr,
   QInstanceAttr,
   escapeHTML,
+  Q_PROPS_SEPARATOR,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -345,7 +346,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (varAttrs) {
       innerHTML = this.writeAttrs(elementName, varAttrs, false);
     }
-    this.write(' :');
+    this.write(' ' + Q_PROPS_SEPARATOR);
     // Domino sometimes does not like empty attributes, so we need to add a empty value
     isDev && this.write('=""');
     if (constAttrs && constAttrs.length) {

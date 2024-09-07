@@ -78,9 +78,6 @@ export function generateAppBundles(appBundles: AppBundle[], manifest: QwikManife
     }
 
     if (symbolHashesInBundle.length > 0) {
-      if (appBundle.length === 2) {
-        // If the tuple has 2 elements, you can safely add the third one
-      }
       (appBundle as unknown as any)[2] = symbolHashesInBundle;
     }
   }

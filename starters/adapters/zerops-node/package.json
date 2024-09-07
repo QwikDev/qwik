@@ -1,35 +1,35 @@
 {
-    "description": "Zerops Express Node",
-    "scripts": {
-        "build.server": "vite build -c adapters/express/vite.config.ts",
-        "serve": "node server/entry.express",
-        "deploy": "zcli push"
-    },
-    "dependencies": {
-        "express": "4.19.2",
-        "@zerops/zcli": "latest"
-    },
-    "devDependencies": {
-        "@types/compression": "^1.7.2",
-        "@types/express": "^4.17.19",
-        "compression": "^1.7.4",
-        "dotenv": "^16.3.2"
-    },
-    "__qwik__": {
-        "priority": 20,
-        "displayName": "Adapter: Zerops Express Node",
-        "docs": [
-            "https://qwik.dev/deployments/zerops-node/",
-            "https://expressjs.com/"
-        ],
-        "nextSteps": {
-            "title": "Next Steps",
-            "lines": [
-                "Now you can build a production-ready Zerops + Express app:",
-                "",
-                "- pnpm run build: production build",
-                "- pnpm run serve: runs the production server locally"
-            ]
-        }
+  "description": "Zerops Express Node",
+  "scripts": {
+    "build.server": "vite build -c adapters/express/vite.config.ts",
+    "serve": "node server/entry.express",
+    "deploy": "zcli push"
+  },
+  "dependencies": {
+    "express": "4.19.2",
+    "@zerops/zcli": "latest"
+  },
+  "devDependencies": {
+    "@types/compression": "^1.7.2",
+    "@types/express": "^4.17.19",
+    "compression": "^1.7.4",
+    "dotenv": "^16.3.2"
+  },
+  "__qwik__": {
+    "priority": 20,
+    "displayName": "Adapter: Zerops Express Node",
+    "docs": [
+      "https://qwik.dev/deployments/zerops-node/",
+      "https://expressjs.com/"
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        "Now you can build a production-ready Zerops + Express app:",
+        "",
+        "- pnpm run build: production build",
+        "- pnpm run serve: runs the production server locally"
+      ]
     }
+  }
 }

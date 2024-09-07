@@ -20,7 +20,7 @@ import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 
 declare global {
-  interface QwikCityPlatform extends PlatformNode { }
+  interface QwikCityPlatform extends PlatformNode {}
 }
 
 const distDir = join(fileURLToPath(import.meta.url), "..", "..", "dist");

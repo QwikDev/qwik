@@ -216,4 +216,14 @@ export class StoreHandler<T extends Record<string | symbol, any>> implements Pro
   ownKeys(): ArrayLike<string | symbol> {
     return Reflect.ownKeys(this.$target$);
   }
+
+  getOwnPropertyDescriptor(_: T, prop: string | symbol): PropertyDescriptor | undefined {
+    if (Array.isArray(this.$target$) || typeof prop === 'symbol') {
+      return Object.getOwnPropertyDescriptor(this.$target$, prop);
+    }
+    return {
+      enumerable: true,
+      configurable: true,
+    };
+  }
 }

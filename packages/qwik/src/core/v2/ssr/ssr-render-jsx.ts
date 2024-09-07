@@ -132,9 +132,9 @@ function processJSXNode(
         enqueue(value[i]);
       }
     } else if (isSignal2(value)) {
-      ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.DerivedSignal] : EMPTY_ARRAY);
+      ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.WrappedSignal] : EMPTY_ARRAY);
       const signalNode = ssr.getLastNode() as fixMeAny;
-      // TODO(mhevery): It is unclear to me why we need to serialize host for SignalDerived.
+      // TODO(mhevery): It is unclear to me why we need to serialize host for WrappedSignal.
       // const host = ssr.getComponentFrame(0)!.componentNode as fixMeAny;
       enqueue(ssr.closeFragment);
       enqueue(trackSignal2(() => value.value as any, signalNode, EffectProperty.VNODE, ssr));

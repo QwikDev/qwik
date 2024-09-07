@@ -86,7 +86,7 @@ export const DEBUG_TYPE = 'q:type';
 export enum VirtualType {
   Virtual = 'V',
   Fragment = 'F',
-  DerivedSignal = 'D',
+  WrappedSignal = 'S',
   Awaited = 'A',
   Component = 'C',
   InlineComponent = 'I',
@@ -99,7 +99,7 @@ const END = '\x1b[0m';
 export const VirtualTypeName: Record<string, string> = {
   [VirtualType.Virtual]: /* ********* */ START + 'Virtual' + END, //
   [VirtualType.Fragment]: /* ******** */ START + 'Fragment' + END, //
-  [VirtualType.DerivedSignal]: /* *** */ START + 'Signal' + END, //
+  [VirtualType.WrappedSignal]: /* *** */ START + 'Signal' + END, //
   [VirtualType.Awaited]: /* ********* */ START + 'Awaited' + END, //
   [VirtualType.Component]: /* ******* */ START + 'Component' + END, //
   [VirtualType.InlineComponent]: /* * */ START + 'InlineComponent' + END, //

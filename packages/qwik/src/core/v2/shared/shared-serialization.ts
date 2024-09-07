@@ -909,7 +909,9 @@ function serialize(serializationContext: SerializationContext): void {
             ';' +
             $addRoot$(value.$dependencies$) +
             ';' +
-            $addRoot$(value.$untrackedValue$) +
+            // `.untrackedValue` implicitly calls `$computeIfNeeded$`, which is what we want in case
+            // the signal is not computed yet.
+            $addRoot$(value.untrackedValue) +
             serializeEffectSubs($addRoot$, value.$effects$)
         );
       } else if (value instanceof ComputedSignal2) {
@@ -919,7 +921,9 @@ function serialize(serializationContext: SerializationContext): void {
             ';' +
             $addRoot$(value.$dependencies$) +
             ';' +
-            $addRoot$(value.$untrackedValue$) +
+            // `.untrackedValue` implicitly calls `$computeIfNeeded$`, which is what we want in case
+            // the signal is not computed yet.
+            $addRoot$(value.untrackedValue) +
             serializeEffectSubs($addRoot$, value.$effects$)
         );
       } else {

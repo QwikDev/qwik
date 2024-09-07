@@ -187,7 +187,7 @@ export const vnode_diff = (
           if (Array.isArray(jsxValue)) {
             descend(jsxValue, false);
           } else if (isSignal2(jsxValue)) {
-            expectVirtual(VirtualType.DerivedSignal, null);
+            expectVirtual(VirtualType.WrappedSignal, null);
             descend(
               trackSignal2(
                 () => jsxValue.value,

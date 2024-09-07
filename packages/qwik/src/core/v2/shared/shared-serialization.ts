@@ -921,9 +921,7 @@ function serialize(serializationContext: SerializationContext): void {
             ';' +
             $addRoot$(value.$dependencies$) +
             ';' +
-            // `.untrackedValue` implicitly calls `$computeIfNeeded$`, which is what we want in case
-            // the signal is not computed yet.
-            $addRoot$(value.untrackedValue) +
+            $addRoot$(value.$untrackedValue$) +
             serializeEffectSubs($addRoot$, value.$effects$)
         );
       } else {

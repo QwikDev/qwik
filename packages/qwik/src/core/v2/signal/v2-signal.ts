@@ -491,10 +491,6 @@ export class WrappedSignal<T> extends Signal2<T> {
   }
 
   get untrackedValue() {
-    if (this.$invalid$ && !this.$container$) {
-      // This is a hack to handle isValidJSXChild. Unsure why this is needed.
-      return this.$func$(...this.$args$);
-    }
     this.$computeIfNeeded$();
     assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state');
     return this.$untrackedValue$;

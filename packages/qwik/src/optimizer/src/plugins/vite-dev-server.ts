@@ -110,7 +110,9 @@ export async function configureDevServer(
     // we just needed the symbolMapper
     return;
   }
-
+  const hasQwikCity = server.config.plugins?.some(
+    (plugin) => plugin.name === 'vite-plugin-qwik-city'
+  );
   // qwik middleware injected BEFORE vite internal middlewares
   server.middlewares.use(async (req, res, next) => {
     try {
@@ -119,8 +121,17 @@ export async function configureDevServer(
       const url = new URL(req.originalUrl!, domain);
 
       if (shouldSsrRender(req, url)) {
+        const { _qwikEnvData } = res as QwikViteDevResponse;
+        if (!_qwikEnvData && hasQwikCity) {
+          console.error(`not SSR rendering ${url} because Qwik City Env data did not populate`);
+          res.statusCode ||= 404;
+          res.setHeader('Content-Type', 'text/plain');
+          res.writeHead(res.statusCode);
+          res.end('Not a SSR URL according to Qwik City');
+          return;
+        }
         const serverData: Record<string, any> = {
-          ...(res as QwikViteDevResponse)._qwikEnvData,
+          ..._qwikEnvData,
           url: url.href,
         };
 

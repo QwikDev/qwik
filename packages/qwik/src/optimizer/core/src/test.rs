@@ -1731,10 +1731,10 @@ export const Parent = component$(() => {
     serverStuff$(async () => {
         // should be removed too
         const a = $(() => {
-            // from $(), should not be removed
+            dontRemoveThisDollar();
         });
         const b = client$(() => {
-            // from clien$(), should not be removed
+            dontRemoveThisClient();
         });
         return [a,b];
     })
@@ -1742,7 +1742,7 @@ export const Parent = component$(() => {
     serverLoader$(handler);
 
     useTask$(() => {
-        // Code
+        runSomething();
     });
 
     return (
@@ -1836,7 +1836,7 @@ export const Parent = component$(() => {
     });
 
     useTask$(() => {
-        // Code
+        runSomething();
     });
 
     return (
@@ -3285,7 +3285,7 @@ export const Local = component$(() => {
 		source_maps: true,
 		minify: MinifyMode::Simplify,
 		explicit_extensions: true,
-		mode: EmitMode::Lib,
+		mode: EmitMode::Test,
 		manual_chunks: None,
 		entry_strategy: EntryStrategy::Segment,
 		transpile_ts: true,
@@ -3323,10 +3323,10 @@ export const Greeter = component$(() => {
 
 "#;
 	let options = vec![
-		(EmitMode::Lib, EntryStrategy::Segment, true),
-		(EmitMode::Lib, EntryStrategy::Single, true),
-		(EmitMode::Lib, EntryStrategy::Component, true),
-		// (EmitMode::Lib, EntryStrategy::Inline, true),
+		(EmitMode::Test, EntryStrategy::Segment, true),
+		(EmitMode::Test, EntryStrategy::Single, true),
+		(EmitMode::Test, EntryStrategy::Component, true),
+		// (EmitMode::Test, EntryStrategy::Inline, true),
 		(EmitMode::Prod, EntryStrategy::Segment, true),
 		(EmitMode::Prod, EntryStrategy::Single, true),
 		(EmitMode::Prod, EntryStrategy::Component, true),
@@ -3335,10 +3335,10 @@ export const Greeter = component$(() => {
 		(EmitMode::Dev, EntryStrategy::Single, true),
 		(EmitMode::Dev, EntryStrategy::Component, true),
 		// (EmitMode::Dev, EntryStrategy::Inline, true),
-		(EmitMode::Lib, EntryStrategy::Segment, false),
-		(EmitMode::Lib, EntryStrategy::Single, false),
-		(EmitMode::Lib, EntryStrategy::Component, false),
-		// (EmitMode::Lib, EntryStrategy::Inline, false),
+		(EmitMode::Test, EntryStrategy::Segment, false),
+		(EmitMode::Test, EntryStrategy::Single, false),
+		(EmitMode::Test, EntryStrategy::Component, false),
+		// (EmitMode::Test, EntryStrategy::Inline, false),
 		(EmitMode::Prod, EntryStrategy::Segment, false),
 		(EmitMode::Prod, EntryStrategy::Single, false),
 		(EmitMode::Prod, EntryStrategy::Component, false),
@@ -3365,7 +3365,7 @@ export const Greeter = component$(() => {
 		minify: MinifyMode::Simplify,
 		root_dir: None,
 		explicit_extensions: true,
-		mode: EmitMode::Lib,
+		mode: EmitMode::Test,
 		manual_chunks: None,
 		entry_strategy: EntryStrategy::Segment,
 		transpile_ts: true,
@@ -3556,9 +3556,35 @@ export const Counter = component$(() => {
 "#
 		.to_string(),
 		transpile_jsx: true,
-		mode: EmitMode::Lib,
-		// make sure it overrides it
-		is_server: Some(false),
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn empty_fn_to_noop() {
+	test_input!(TestInput {
+		code: r#"
+		import { isServer } from '@builder.io/qwik/build';
+		import { component$ } from '@builder.io/qwik';
+		export const Cmp0 = component$(() => {
+			return undefined;
+		 });
+		export const Cmp1 = component$(() => {
+			if (!isServer) {
+				return <div>hello</div>;
+			}
+		});
+		export const Cmp2 = component$(function(_unused) {
+			if (isServer) {
+				return;
+			}
+			return <div>hello</div>;
+		});
+		export const Cmp3 = component$(function() { });
+		"#
+		.to_string(),
+		mode: EmitMode::Prod,
+		is_server: Some(true),
 		..TestInput::default()
 	});
 }
@@ -3627,7 +3653,7 @@ impl TestInput {
 			preserve_filenames: false,
 			explicit_extensions: false,
 			snapshot: true,
-			mode: EmitMode::Lib,
+			mode: EmitMode::Test,
 			scope: None,
 			core_module: None,
 			reg_ctx_name: None,

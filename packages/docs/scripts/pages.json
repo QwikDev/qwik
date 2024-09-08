@@ -10,6 +10,11 @@
     "tags": "software development, landing pages, agency, site"
   },
   {
+    "href": "https://hypecode.tech/",
+    "size": "large",
+    "tags": "software development, landing pages, agency, site"
+  },
+  {
     "href": "https://www.learn-qwik.com/",
     "size": "large",
     "tags": "site,tutorial,learn"
@@ -218,5 +223,9 @@
   {
     "href": "https://sakenowa.com",
     "tags": "sns,app"
+  },
+  {
+    "href": "https://qwikpdf.alexismoren.fr/",
+    "tags": "pdf,services,free"
   }
 ]

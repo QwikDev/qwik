@@ -1,25 +1,28 @@
 import { basename } from 'path';
 import { isBinaryPath } from './tools/binary-extensions';
 import { visitNotIgnoredFiles } from './tools/visit-not-ignored-files';
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { log } from '@clack/prompts';
 
-function writeFileSync(path: string, content: string) {
+function updateFileContent(path: string, content: string) {
+  writeFileSync(path, content);
   log.info(`"${path}" has been updated`);
 }
 
 export function replacePackage(
   oldPackageName: string,
-  newPackageName: string
+  newPackageName: string,
+  newPackageVersion: string
 ): void {
-  replacePackageInDependencies(oldPackageName, newPackageName);
+  replacePackageInDependencies(oldPackageName, newPackageName, newPackageVersion);
 
   replaceMentions(oldPackageName, newPackageName);
 }
 
 function replacePackageInDependencies(
   oldPackageName: string,
-  newPackageName: string
+  newPackageName: string,
+  newPackageVersion: string
 ) {
   visitNotIgnoredFiles('.', (path) => {
     if (basename(path) !== 'package.json') {
@@ -35,24 +38,18 @@ function replacePackageInDependencies(
         packageJson.optionalDependencies ?? {},
       ]) {
         if (oldPackageName in deps) {
-          deps[newPackageName] = deps[oldPackageName];
+          deps[newPackageName] = newPackageVersion;
           delete deps[oldPackageName];
         }
       }
-      writeFileSync(path, JSON.stringify(packageJson, null, 2));
+      updateFileContent(path, JSON.stringify(packageJson, null, 2));
     } catch (e) {
-      console.warn(
-        `Could not replace ${oldPackageName} with ${newPackageName} in ${path}.`
-      );
+      console.warn(`Could not replace ${oldPackageName} with ${newPackageName} in ${path}.`);
     }
   });
 }
 
-
-function replaceMentions(
-  oldPackageName: string,
-  newPackageName: string
-) {
+function replaceMentions(oldPackageName: string, newPackageName: string) {
   visitNotIgnoredFiles('.', (path) => {
     if (isBinaryPath(path)) {
       return;
@@ -76,10 +73,7 @@ function replaceMentions(
         return;
       }
 
-      writeFileSync(
-        path,
-        contents.replace(new RegExp(oldPackageName, 'g'), newPackageName)
-      );
+      updateFileContent(path, contents.replace(new RegExp(oldPackageName, 'g'), newPackageName));
     } catch {
       // Its **probably** ok, contents can be null if the file is too large or
       // there was an access exception.

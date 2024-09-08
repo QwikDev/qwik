@@ -49,10 +49,10 @@ const COMMANDS = [
   {
     value: 'migrate-v2',
     label: 'migrate-v2',
-    //   TODO: package names
+    // TODO(migrate-v2): package names
     hint: 'Rescopes the application from @builder.io/* namespace to @qwik.dev/*',
     run: (app: AppCommand) => runV2Migration(app),
-    showInHelp: true,
+    showInHelp: false,
   },
   {
     value: 'help',

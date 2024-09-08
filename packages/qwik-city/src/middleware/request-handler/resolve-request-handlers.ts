@@ -361,13 +361,16 @@ function fixTrailingSlash(ev: RequestEvent) {
       // must have a trailing slash
       if (!pathname.endsWith('/')) {
         // add slash to existing pathname
-        throw ev.redirect(HttpStatus.Found, pathname + '/' + url.search);
+        throw ev.redirect(HttpStatus.MovedPermanently, pathname + '/' + url.search);
       }
     } else {
       // should not have a trailing slash
       if (pathname.endsWith('/')) {
         // remove slash from existing pathname
-        throw ev.redirect(HttpStatus.Found, pathname.slice(0, pathname.length - 1) + url.search);
+        throw ev.redirect(
+          HttpStatus.MovedPermanently,
+          pathname.slice(0, pathname.length - 1) + url.search
+        );
       }
     }
   }

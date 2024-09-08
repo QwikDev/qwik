@@ -54,7 +54,7 @@ class SWStateImpl implements SWState {
     readonly $fetch$: ServiceWorkerGlobalScope['fetch'],
     readonly $url$: URL,
     // We initialize here so the minifier works correctly
-    public $maxPrefetchRequests$ = 10,
+    public $maxPrefetchRequests$ = 4,
     public $cache$: SWState['$cache$'] = null,
     public $msgQueuePromise$ = null,
     readonly $queue$ = [],

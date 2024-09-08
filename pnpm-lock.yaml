@@ -600,6 +600,9 @@ importers:
       undici:
         specifier: '*'
         version: 6.18.2
+      valibot:
+        specifier: '>=0.36.0 <2'
+        version: 0.42.1(typescript@5.4.5)
       vfile:
         specifier: 6.0.1
         version: 6.0.1
@@ -9425,6 +9428,14 @@ packages:
 
   valibot@0.33.3:
     resolution: {integrity: sha512-/fuY1DlX8uiQ7aphlzrrI2DbG0YJk84JMgvz2qKpUIdXRNsS53varfo4voPjSrjUr5BSV2K0miSEJUOlA5fQFg==}
+
+  valibot@0.42.1:
+    resolution: {integrity: sha512-3keXV29Ar5b//Hqi4MbSdV7lfVp6zuYLZuA9V1PvQUsXqogr+u5lvLPLk3A4f74VUXDnf/JfWMN6sB+koJ/FFw==}
+    peerDependencies:
+      typescript: 5.4.5
+    peerDependenciesMeta:
+      typescript:
+        optional: true
 
   validate-npm-package-license@3.0.4:
     resolution: {integrity: sha512-DpKm2Ui/xN7/HQKCtpZxoRWBhZ9Z0kqtygG8XCgNQ8ZlDnxuQmWhj566j8fN4Cu3/JmbhsDo7fcAJq4s9h27Ew==}
@@ -19560,6 +19571,10 @@ snapshots:
   v8-compile-cache-lib@3.0.1: {}
 
   valibot@0.33.3: {}
+
+  valibot@0.42.1(typescript@5.4.5):
+    optionalDependencies:
+      typescript: 5.4.5
 
   validate-npm-package-license@3.0.4:
     dependencies:

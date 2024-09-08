@@ -1,6 +1,6 @@
 import type { OutputBundle } from 'rollup';
-import { type NormalizedQwikPluginOptions } from './plugins/plugin';
-import type { GlobalInjections, SegmentAnalysis, Path, QwikBundle, QwikManifest } from './types';
+import type { NormalizedQwikPluginOptions } from './plugin';
+import type { GlobalInjections, SegmentAnalysis, Path, QwikBundle, QwikManifest } from '../types';
 
 // This is just the initial prioritization of the symbols and entries
 // at build time so there's less work during each SSR. However, SSR should

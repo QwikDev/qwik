@@ -1,1 +1,0 @@
-../../qwik-optimizer/lib/index.d.ts

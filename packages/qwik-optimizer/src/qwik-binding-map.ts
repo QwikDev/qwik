@@ -3,13 +3,13 @@
 
 // prettier-ignore
 export const QWIK_BINDING_MAP = {
-  "win32": {
+  "linux": {
     "x64": [
       {
-        "platform": "win32",
+        "platform": "linux",
         "arch": "x64",
-        "abi": "msvc",
-        "platformArchABI": "qwik.win32-x64-msvc.node"
+        "abi": "gnu",
+        "platformArchABI": "qwik.linux-x64-gnu.node"
       }
     ]
   }

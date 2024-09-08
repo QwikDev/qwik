@@ -1,4 +1,4 @@
-import type { SymbolMapper, SymbolMapperFn } from '../../optimizer/src/types';
+import type { SymbolMapper, SymbolMapperFn } from '@builder.io/qwik-optimizer';
 import { componentQrl } from '../component/component.public';
 import { useComputedQrl } from '../use/use-task';
 import { useSignal } from '../use/use-signal';

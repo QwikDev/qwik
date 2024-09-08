@@ -1,8 +1,4 @@
 import type { UserConfig, ViteDevServer, Plugin as VitePlugin } from 'vite';
-import {
-  QWIK_LOADER_DEFAULT_DEBUG,
-  QWIK_LOADER_DEFAULT_MINIFIED,
-} from '../../../qwik/src/optimizer/scripts';
 import type {
   EntryStrategy,
   GlobalInjections,
@@ -15,7 +11,6 @@ import type {
   Path,
   QwikBundleGraph,
 } from '@builder.io/qwik-optimizer';
-import { versions } from '../../../qwik/src/optimizer/versions';
 import { getImageSizeServer } from './image-size-server';
 import {
   CLIENT_OUT_DIR,
@@ -38,6 +33,8 @@ import {
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { VITE_DEV_CLIENT_QS, configureDevServer, configurePreviewServer } from './vite-dev-server';
+import { versions } from '../versions';
+import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from './scripts';
 
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 
@@ -783,6 +780,7 @@ function updateEntryDev(code: string) {
 }
 
 function getViteDevModule(opts: NormalizedQwikPluginOptions) {
+  // TODO this shouldn't be part of the optimizer probably?
   const qwikLoader = JSON.stringify(
     opts.debug ? QWIK_LOADER_DEFAULT_DEBUG : QWIK_LOADER_DEFAULT_MINIFIED
   );

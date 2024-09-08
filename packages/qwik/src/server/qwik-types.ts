@@ -32,6 +32,6 @@ export type {
   SsrAttrValue,
   StreamWriter,
 } from '../core/v2/ssr/ssr-types';
-export type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
+export type { ResolvedManifest, SymbolMapper } from '@builder.io/qwik-optimizer';
 export type { SymbolToChunkResolver } from '../core/v2/ssr/ssr-types';
 export type { fixMeAny } from '../core/v2/shared/types';

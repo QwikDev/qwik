@@ -111,7 +111,8 @@ export function addDependencies(
   base: SWStateBase,
   fetchMap: Map<string, number>,
   filename: string,
-  priority: number
+  priority: number,
+  addIndirect: boolean = true
 ) {
   if (!fetchMap.has(filename)) {
     fetchMap.set(filename, priority);
@@ -144,9 +145,12 @@ export function addDependencies(
     for (const dependentFilename of deps.$direct$) {
       addDependencies(base, fetchMap, dependentFilename, priority);
     }
-    priority--;
-    for (const dependentFilename of deps.$indirect$) {
-      addDependencies(base, fetchMap, dependentFilename, priority);
+    if (addIndirect) {
+      priority--;
+      for (const dependentFilename of deps.$indirect$) {
+        // don't add indirect deps of indirect deps
+        addDependencies(base, fetchMap, dependentFilename, priority, false);
+      }
     }
   }
   return fetchMap;

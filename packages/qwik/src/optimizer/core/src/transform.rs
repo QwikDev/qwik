@@ -335,7 +335,7 @@ impl<'a> QwikTransform<'a> {
 		let hash = hasher.finish();
 		let hash64 = base64(hash);
 
-		let symbol_name = if matches!(self.options.mode, EmitMode::Dev | EmitMode::Lib) {
+		let symbol_name = if matches!(self.options.mode, EmitMode::Dev | EmitMode::Test) {
 			format!("{}_{}", display_name, hash64)
 		} else {
 			format!("s_{}", hash64)
@@ -386,7 +386,7 @@ impl<'a> QwikTransform<'a> {
 			};
 			parse_symbol_name(
 				symbol_name,
-				matches!(self.options.mode, EmitMode::Dev | EmitMode::Lib),
+				matches!(self.options.mode, EmitMode::Dev | EmitMode::Test),
 			)
 		};
 

@@ -16,7 +16,7 @@ import tga_1 from 'image-size/dist/types/tga.js';
 import webp_1 from 'image-size/dist/types/webp.js';
 import heif_1 from 'image-size/dist/types/heif.js';
 
-import type { Connect, ViteDevServer } from 'vite';
+import type { Connect } from 'vite';
 import type { OptimizerSystem } from '../types';
 import { formatError } from './vite-utils';
 

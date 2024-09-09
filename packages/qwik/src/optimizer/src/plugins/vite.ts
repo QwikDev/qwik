@@ -682,7 +682,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           : true;
 
       if (imageDevTools) {
-        server.middlewares.use(getImageSizeServer(qwikPlugin.getSys(), rootDir!, srcDir!, server));
+        server.middlewares.use(getImageSizeServer(qwikPlugin.getSys(), rootDir!, srcDir!));
       }
 
       if (!qwikViteOpts.csr) {

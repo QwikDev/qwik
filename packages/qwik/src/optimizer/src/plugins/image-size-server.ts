@@ -108,8 +108,7 @@ export async function getInfoForSrc(src: string) {
 export const getImageSizeServer = (
   sys: OptimizerSystem,
   rootDir: string,
-  srcDir: string,
-  server: ViteDevServer
+  srcDir: string
 ): Connect.NextHandleFunction => {
   return async (req, res, next) => {
     try {

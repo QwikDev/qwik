@@ -15,7 +15,8 @@ import type {
   ResolveSyncValue,
   EnvGetter,
 } from '@builder.io/qwik-city/middleware/request-handler';
-import type * as zod from 'zod';
+import type * as v from 'valibot';
+import type * as z from 'zod';
 
 export type {
   Cookie,
@@ -345,8 +346,24 @@ export type JSONValue = string | number | boolean | { [x: string]: JSONValue } |
 export type JSONObject = { [x: string]: JSONValue };
 
 /** @public */
+export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> =
+  VALIDATOR extends ValibotDataValidator<infer TYPE>
+    ? v.InferInput<TYPE>
+    : VALIDATOR extends ZodDataValidator<infer TYPE>
+      ? z.input<TYPE>
+      : never;
+
+/** @public */
+export type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> =
+  VALIDATOR extends ValibotDataValidator<infer TYPE>
+    ? v.InferOutput<TYPE>
+    : VALIDATOR extends ZodDataValidator<infer TYPE>
+      ? z.output<TYPE>
+      : never;
+
+/** @public */
 export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
-  VALIDATOR extends TypedDataValidator<infer TYPE> ? zod.infer<TYPE> : never;
+  GetValidatorOutputType<VALIDATOR>;
 
 /** @public */
 export interface CommonLoaderActionOptions {
@@ -361,18 +378,27 @@ export type FailOfRest<REST extends readonly DataValidator[]> = REST extends rea
   ? ERROR
   : never;
 
+type IsAny<Type> = 0 extends 1 & Type ? true : false;
+
 /** @public */
-export type ValidatorErrorKeyDotNotation<T, Prefix extends string = ''> = T extends object
-  ? {
-      [K in keyof T & string]: T[K] extends (infer U)[]
-        ? U extends object
-          ? `${Prefix}${K}[]` | `${Prefix}${K}[]${ValidatorErrorKeyDotNotation<U, '.'>}`
-          : `${Prefix}${K}[]`
-        : T[K] extends object
-          ? ValidatorErrorKeyDotNotation<T[K], `${Prefix}${K}.`>
-          : `${Prefix}${K}`;
-    }[keyof T & string]
-  : never;
+export type ValidatorErrorKeyDotNotation<T, Prefix extends string = ''> =
+  IsAny<T> extends true
+    ? never
+    : T extends object
+      ? {
+          [K in keyof T & string]: IsAny<T[K]> extends true
+            ? never
+            : T[K] extends (infer U)[]
+              ? IsAny<U> extends true
+                ? never
+                : U extends object
+                  ? `${Prefix}${K}[]` | ValidatorErrorKeyDotNotation<U, `${Prefix}${K}[].`>
+                  : `${Prefix}${K}[]`
+              : T[K] extends object
+                ? ValidatorErrorKeyDotNotation<T[K], `${Prefix}${K}.`>
+                : `${Prefix}${K}`;
+        }[keyof T & string]
+      : never;
 
 /** @public */
 export type ValidatorErrorType<T, U = string> = {
@@ -393,7 +419,7 @@ export type ActionConstructor = {
     REST extends [DataValidator, ...DataValidator[]],
   >(
     actionQrl: (
-      data: GetValidatorType<VALIDATOR>,
+      data: GetValidatorOutputType<VALIDATOR>,
       event: RequestEventAction
     ) => ValueOrPromise<OBJ>,
     options: {
@@ -403,17 +429,17 @@ export type ActionConstructor = {
   ): Action<
     StrictUnion<
       | OBJ
-      | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>
+      | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
       | FailReturn<FailOfRest<REST>>
     >,
-    GetValidatorType<VALIDATOR>,
+    GetValidatorInputType<VALIDATOR>,
     false
   >;
 
   // Use options object, use typed data validator
   <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(
     actionQrl: (
-      data: GetValidatorType<VALIDATOR>,
+      data: GetValidatorOutputType<VALIDATOR>,
       event: RequestEventAction
     ) => ValueOrPromise<OBJ>,
     options: {
@@ -421,8 +447,8 @@ export type ActionConstructor = {
       readonly validation: [VALIDATOR];
     }
   ): Action<
-    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>>,
-    GetValidatorType<VALIDATOR>,
+    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>,
+    GetValidatorInputType<VALIDATOR>,
     false
   >;
 
@@ -442,7 +468,7 @@ export type ActionConstructor = {
     REST extends [DataValidator, ...DataValidator[]],
   >(
     actionQrl: (
-      data: GetValidatorType<VALIDATOR>,
+      data: GetValidatorOutputType<VALIDATOR>,
       event: RequestEventAction
     ) => ValueOrPromise<OBJ>,
     options: VALIDATOR,
@@ -450,23 +476,23 @@ export type ActionConstructor = {
   ): Action<
     StrictUnion<
       | OBJ
-      | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>
+      | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
       | FailReturn<FailOfRest<REST>>
     >,
-    GetValidatorType<VALIDATOR>,
+    GetValidatorInputType<VALIDATOR>,
     false
   >;
 
   // Use typed data validator
   <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(
     actionQrl: (
-      data: GetValidatorType<VALIDATOR>,
+      data: GetValidatorOutputType<VALIDATOR>,
       event: RequestEventAction
     ) => ValueOrPromise<OBJ>,
     options: VALIDATOR
   ): Action<
-    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>>,
-    GetValidatorType<VALIDATOR>,
+    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>,
+    GetValidatorInputType<VALIDATOR>,
     false
   >;
 
@@ -494,7 +520,7 @@ export type ActionConstructorQRL = {
     REST extends [DataValidator, ...DataValidator[]],
   >(
     actionQrl: QRL<
-      (data: GetValidatorType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>
+      (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>
     >,
     options: {
       readonly id?: string;
@@ -503,25 +529,25 @@ export type ActionConstructorQRL = {
   ): Action<
     StrictUnion<
       | OBJ
-      | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>
+      | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
       | FailReturn<FailOfRest<REST>>
     >,
-    GetValidatorType<VALIDATOR>,
+    GetValidatorInputType<VALIDATOR>,
     false
   >;
 
   // Use options object, use typed data validator
   <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(
     actionQrl: QRL<
-      (data: GetValidatorType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>
+      (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>
     >,
     options: {
       readonly id?: string;
       readonly validation: [VALIDATOR];
     }
   ): Action<
-    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>>,
-    GetValidatorType<VALIDATOR>,
+    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>,
+    GetValidatorInputType<VALIDATOR>,
     false
   >;
 
@@ -541,29 +567,29 @@ export type ActionConstructorQRL = {
     REST extends [DataValidator, ...DataValidator[]],
   >(
     actionQrl: QRL<
-      (data: GetValidatorType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>
+      (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>
     >,
     options: VALIDATOR,
     ...rest: REST
   ): Action<
     StrictUnion<
       | OBJ
-      | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>
+      | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
       | FailReturn<FailOfRest<REST>>
     >,
-    GetValidatorType<VALIDATOR>,
+    GetValidatorInputType<VALIDATOR>,
     false
   >;
 
   // Use typed data validator
   <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(
     actionQrl: QRL<
-      (data: GetValidatorType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>
+      (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>
     >,
     options: VALIDATOR
   ): Action<
-    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>>,
-    GetValidatorType<VALIDATOR>,
+    StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>,
+    GetValidatorInputType<VALIDATOR>,
     false
   >;
 
@@ -772,12 +798,6 @@ export type DataValidator<T extends Record<string, any> = {}> = {
   validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn<T>>;
 };
 
-/** @public */
-export type TypedDataValidator<T extends zod.ZodType = zod.ZodType> = {
-  __zod: zod.ZodSchema<T>;
-  validate(ev: RequestEvent, data: unknown): Promise<zod.SafeParseReturnType<T, T>>;
-};
-
 export type ValidatorConstructor = {
   <T extends ValidatorReturn>(
     validator: (ev: RequestEvent, data: unknown) => ValueOrPromise<T>
@@ -790,27 +810,64 @@ export type ValidatorConstructorQRL = {
   ): T extends ValidatorReturnFail<infer ERROR> ? DataValidator<ERROR> : DataValidator<never>;
 };
 
+/** @alpha */
+export type ValibotDataValidator<
+  T extends v.GenericSchema | v.GenericSchemaAsync = v.GenericSchema | v.GenericSchemaAsync,
+> = {
+  readonly __brand: 'valibot';
+  validate(
+    ev: RequestEvent,
+    data: unknown
+  ): Promise<ValidatorReturn<ValidatorErrorType<v.InferInput<T>>>>;
+};
+
+/** @alpha */
+export type ValibotConstructor = {
+  <T extends v.GenericSchema | v.GenericSchemaAsync>(schema: T): ValibotDataValidator<T>;
+  <T extends v.GenericSchema | v.GenericSchemaAsync>(
+    schema: (ev: RequestEvent) => T
+  ): ValibotDataValidator<T>;
+};
+
+/** @alpha */
+export type ValibotConstructorQRL = {
+  <T extends v.GenericSchema | v.GenericSchemaAsync>(schema: QRL<T>): ValibotDataValidator<T>;
+  <T extends v.GenericSchema | v.GenericSchemaAsync>(
+    schema: QRL<(ev: RequestEvent) => T>
+  ): ValibotDataValidator<T>;
+};
+
+/** @public */
+export type ZodDataValidator<T extends z.ZodType = z.ZodType> = {
+  readonly __brand: 'zod';
+  validate(
+    ev: RequestEvent,
+    data: unknown
+  ): Promise<ValidatorReturn<ValidatorErrorType<z.input<T>>>>;
+};
+
 /** @public */
 export type ZodConstructor = {
-  <T extends zod.ZodRawShape>(schema: T): TypedDataValidator<zod.ZodObject<T>>;
-  <T extends zod.ZodRawShape>(
-    schema: (z: typeof zod, ev: RequestEvent) => T
-  ): TypedDataValidator<zod.ZodObject<T>>;
-  <T extends zod.Schema>(schema: T): TypedDataValidator<T>;
-  <T extends zod.Schema>(schema: (z: typeof zod, ev: RequestEvent) => T): TypedDataValidator<T>;
+  <T extends z.ZodRawShape>(schema: T): ZodDataValidator<z.ZodObject<T>>;
+  <T extends z.ZodRawShape>(
+    schema: (zod: typeof z.z, ev: RequestEvent) => T
+  ): ZodDataValidator<z.ZodObject<T>>;
+  <T extends z.Schema>(schema: T): ZodDataValidator<T>;
+  <T extends z.Schema>(schema: (zod: typeof z.z, ev: RequestEvent) => T): ZodDataValidator<T>;
 };
 
 /** @public */
 export type ZodConstructorQRL = {
-  <T extends zod.ZodRawShape>(schema: QRL<T>): TypedDataValidator<zod.ZodObject<T>>;
-  <T extends zod.ZodRawShape>(
-    schema: QRL<(zs: typeof zod, ev: RequestEvent) => T>
-  ): TypedDataValidator<zod.ZodObject<T>>;
-  <T extends zod.Schema>(schema: QRL<T>): TypedDataValidator<T>;
-  <T extends zod.Schema>(
-    schema: QRL<(z: typeof zod, ev: RequestEvent) => T>
-  ): TypedDataValidator<T>;
+  <T extends z.ZodRawShape>(schema: QRL<T>): ZodDataValidator<z.ZodObject<T>>;
+  <T extends z.ZodRawShape>(
+    schema: QRL<(zod: typeof z.z, ev: RequestEvent) => T>
+  ): ZodDataValidator<z.ZodObject<T>>;
+  <T extends z.Schema>(schema: QRL<T>): ZodDataValidator<T>;
+  <T extends z.Schema>(schema: QRL<(zod: typeof z.z, ev: RequestEvent) => T>): ZodDataValidator<T>;
 };
+
+/** @public */
+export type TypedDataValidator = ValibotDataValidator | ZodDataValidator;
 
 /** @public */
 export interface ServerConfig {

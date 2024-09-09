@@ -286,14 +286,20 @@ export function generateManifestFromBundles(
     }
 
     const bundleImports = outputBundle.imports
-      .filter((i) => path.dirname(i) === buildDirName)
+      // Tree shaking can maybe remove imports
+      .filter(
+        (i) => path.dirname(i) === buildDirName && outputBundle.code.includes(path.basename(i))
+      )
       .map((i) => path.relative(buildDirName, outputBundles[i].fileName));
     if (bundleImports.length > 0) {
       bundle.imports = bundleImports;
     }
 
     const bundleDynamicImports = outputBundle.dynamicImports
-      .filter((i) => path.dirname(i) === buildDirName)
+      .filter(
+        // Tree shaking can remove dynamic imports
+        (i) => path.dirname(i) === buildDirName && outputBundle.code.includes(path.basename(i))
+      )
       .map((i) => path.relative(buildDirName, outputBundles[i].fileName));
     if (bundleDynamicImports.length > 0) {
       bundle.dynamicImports = bundleDynamicImports;

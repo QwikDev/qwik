@@ -154,8 +154,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
 				strip_ctx_name: config.strip_ctx_name.as_deref(),
 				strip_event_handlers: config.strip_event_handlers,
 				// If you don't specify is_server, the safe value is true
-				// For libraries, is_server has to be true because we neet to emit extra code
-				is_server: config.mode == EmitMode::Lib || config.is_server.unwrap_or(true),
+				is_server: config.is_server.unwrap_or(true),
 			})
 		})
 		.reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
@@ -200,8 +199,7 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
 			strip_ctx_name: config.strip_ctx_name.as_deref(),
 			strip_event_handlers: config.strip_event_handlers,
 			// If you don't specify is_server, the safe value is true
-			// For libraries, is_server has to be true because we neet to emit extra code
-			is_server: config.mode == EmitMode::Lib || config.is_server.unwrap_or(true),
+			is_server: config.is_server.unwrap_or(true),
 		})
 	});
 

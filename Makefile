@@ -30,7 +30,9 @@ test:
 
 test-update:
 	if ! cargo test --manifest-path packages/qwik/src/optimizer/core/Cargo.toml; then \
-		cd packages/qwik/src/optimizer/core/src/snapshots/ && for i in *.new; do f=$$(basename $$i .new); mv $$i $$f; done; \
+		cd packages/qwik/src/optimizer/core/src/snapshots/; \
+		for i in *.new; do f=$$(basename $$i .new); mv $$i $$f; done; \
+		cd -; \
 		cargo test --manifest-path packages/qwik/src/optimizer/core/Cargo.toml; \
 	fi
 

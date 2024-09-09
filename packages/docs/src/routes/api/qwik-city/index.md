@@ -30,7 +30,7 @@ export type ActionConstructor = {
     REST extends [DataValidator, ...DataValidator[]],
   >(
     actionQrl: (
-      data: GetValidatorType<VALIDATOR>,
+      data: GetValidatorOutputType<VALIDATOR>,
       event: RequestEventAction,
     ) => ValueOrPromise<OBJ>,
     options: {
@@ -40,10 +40,10 @@ export type ActionConstructor = {
   ): Action<
     StrictUnion<
       | OBJ
-      | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>
+      | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
       | FailReturn<FailOfRest<REST>>
     >,
-    GetValidatorType<VALIDATOR>,
+    GetValidatorInputType<VALIDATOR>,
     false
   >;
   <
@@ -51,7 +51,7 @@ export type ActionConstructor = {
     VALIDATOR extends TypedDataValidator,
   >(
     actionQrl: (
-      data: GetValidatorType<VALIDATOR>,
+      data: GetValidatorOutputType<VALIDATOR>,
       event: RequestEventAction,
     ) => ValueOrPromise<OBJ>,
     options: {
@@ -60,9 +60,9 @@ export type ActionConstructor = {
     },
   ): Action<
     StrictUnion<
-      OBJ | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>
+      OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
     >,
-    GetValidatorType<VALIDATOR>,
+    GetValidatorInputType<VALIDATOR>,
     false
   >;
   <
@@ -84,7 +84,7 @@ export type ActionConstructor = {
     REST extends [DataValidator, ...DataValidator[]],
   >(
     actionQrl: (
-      data: GetValidatorType<VALIDATOR>,
+      data: GetValidatorOutputType<VALIDATOR>,
       event: RequestEventAction,
     ) => ValueOrPromise<OBJ>,
     options: VALIDATOR,
@@ -92,10 +92,10 @@ export type ActionConstructor = {
   ): Action<
     StrictUnion<
       | OBJ
-      | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>
+      | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
       | FailReturn<FailOfRest<REST>>
     >,
-    GetValidatorType<VALIDATOR>,
+    GetValidatorInputType<VALIDATOR>,
     false
   >;
   <
@@ -103,15 +103,15 @@ export type ActionConstructor = {
     VALIDATOR extends TypedDataValidator,
   >(
     actionQrl: (
-      data: GetValidatorType<VALIDATOR>,
+      data: GetValidatorOutputType<VALIDATOR>,
       event: RequestEventAction,
     ) => ValueOrPromise<OBJ>,
     options: VALIDATOR,
   ): Action<
     StrictUnion<
-      OBJ | FailReturn<ValidatorErrorType<GetValidatorType<VALIDATOR>>>
+      OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
     >,
-    GetValidatorType<VALIDATOR>,
+    GetValidatorInputType<VALIDATOR>,
     false
   >;
   <
@@ -136,7 +136,7 @@ export type ActionConstructor = {
 };
 ```
 
-**References:** [TypedDataValidator](#typeddatavalidator), [DataValidator](#datavalidator), [GetValidatorType](#getvalidatortype), [Action](#action), [StrictUnion](#strictunion), [FailReturn](#failreturn), [ValidatorErrorType](#validatorerrortype), [FailOfRest](#failofrest), [JSONObject](#jsonobject)
+**References:** [TypedDataValidator](#typeddatavalidator), [DataValidator](#datavalidator), [GetValidatorOutputType](#getvalidatoroutputtype), [Action](#action), [StrictUnion](#strictunion), [FailReturn](#failreturn), [ValidatorErrorType](#validatorerrortype), [GetValidatorInputType](#getvalidatorinputtype), [FailOfRest](#failofrest), [JSONObject](#jsonobject)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
 
@@ -1376,14 +1376,44 @@ T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/form-component.tsx)
 
+## GetValidatorInputType
+
+```typescript
+export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> =
+  VALIDATOR extends ValibotDataValidator<infer TYPE>
+    ? v.InferInput<TYPE>
+    : VALIDATOR extends ZodDataValidator<infer TYPE>
+      ? z.input<TYPE>
+      : never;
+```
+
+**References:** [TypedDataValidator](#typeddatavalidator)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+
+## GetValidatorOutputType
+
+```typescript
+export type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> =
+  VALIDATOR extends ValibotDataValidator<infer TYPE>
+    ? v.InferOutput<TYPE>
+    : VALIDATOR extends ZodDataValidator<infer TYPE>
+      ? z.output<TYPE>
+      : never;
+```
+
+**References:** [TypedDataValidator](#typeddatavalidator)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+
 ## GetValidatorType
 
 ```typescript
 export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
-  VALIDATOR extends TypedDataValidator<infer TYPE> ? zod.infer<TYPE> : never;
+  GetValidatorOutputType<VALIDATOR>;
 ```
 
-**References:** [TypedDataValidator](#typeddatavalidator)
+**References:** [TypedDataValidator](#typeddatavalidator), [GetValidatorOutputType](#getvalidatoroutputtype)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
 
@@ -2324,13 +2354,7 @@ export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 ## TypedDataValidator
 
 ```typescript
-export type TypedDataValidator<T extends zod.ZodType = zod.ZodType> = {
-  __zod: zod.ZodSchema<T>;
-  validate(
-    ev: RequestEvent,
-    data: unknown,
-  ): Promise<zod.SafeParseReturnType<T, T>>;
-};
+export type TypedDataValidator = ValibotDataValidator | ZodDataValidator;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
@@ -2387,6 +2411,26 @@ useNavigate: () => RouteNavigate;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/use-functions.ts)
 
+## valibot$
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+```typescript
+valibot$: ValibotConstructor;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts)
+
+## valibotQrl
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+```typescript
+valibotQrl: ValibotConstructorQRL;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts)
+
 ## validator$
 
 ```typescript
@@ -2398,22 +2442,26 @@ validator$: ValidatorConstructor;
 ## ValidatorErrorKeyDotNotation
 
 ```typescript
-export type ValidatorErrorKeyDotNotation<
-  T,
-  Prefix extends string = "",
-> = T extends object
-  ? {
-      [K in keyof T & string]: T[K] extends (infer U)[]
-        ? U extends object
-          ?
-              | `${Prefix}${K}[]`
-              | `${Prefix}${K}[]${ValidatorErrorKeyDotNotation<U, ".">}`
-          : `${Prefix}${K}[]`
-        : T[K] extends object
-          ? ValidatorErrorKeyDotNotation<T[K], `${Prefix}${K}.`>
-          : `${Prefix}${K}`;
-    }[keyof T & string]
-  : never;
+export type ValidatorErrorKeyDotNotation<T, Prefix extends string = ""> =
+  IsAny<T> extends true
+    ? never
+    : T extends object
+      ? {
+          [K in keyof T & string]: IsAny<T[K]> extends true
+            ? never
+            : T[K] extends (infer U)[]
+              ? IsAny<U> extends true
+                ? never
+                : U extends object
+                  ?
+                      | `${Prefix}${K}[]`
+                      | ValidatorErrorKeyDotNotation<U, `${Prefix}${K}[].`>
+                  : `${Prefix}${K}[]`
+              : T[K] extends object
+                ? ValidatorErrorKeyDotNotation<T[K], `${Prefix}${K}.`>
+                : `${Prefix}${K}`;
+        }[keyof T & string]
+      : never;
 ```
 
 **References:** [ValidatorErrorKeyDotNotation](#validatorerrorkeydotnotation)
@@ -2467,18 +2515,16 @@ zod$: ZodConstructor;
 
 ```typescript
 export type ZodConstructor = {
-  <T extends zod.ZodRawShape>(schema: T): TypedDataValidator<zod.ZodObject<T>>;
-  <T extends zod.ZodRawShape>(
-    schema: (z: typeof zod, ev: RequestEvent) => T,
-  ): TypedDataValidator<zod.ZodObject<T>>;
-  <T extends zod.Schema>(schema: T): TypedDataValidator<T>;
-  <T extends zod.Schema>(
-    schema: (z: typeof zod, ev: RequestEvent) => T,
-  ): TypedDataValidator<T>;
+  <T extends z.ZodRawShape>(schema: T): ZodDataValidator<z.ZodObject<T>>;
+  <T extends z.ZodRawShape>(
+    schema: (zod: typeof z.z, ev: RequestEvent) => T,
+  ): ZodDataValidator<z.ZodObject<T>>;
+  <T extends z.Schema>(schema: T): ZodDataValidator<T>;
+  <T extends z.Schema>(
+    schema: (zod: typeof z.z, ev: RequestEvent) => T,
+  ): ZodDataValidator<T>;
 };
 ```
-
-**References:** [TypedDataValidator](#typeddatavalidator)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
 

@@ -349,6 +349,12 @@ test.describe("actions", () => {
       );
     });
 
+    test("issue4956", async ({ page }) => {
+      await page.goto("/qwikcity-test/issue4956?id=1");
+      const textContent = await page.locator("#routeId");
+      await expect(textContent).toHaveText("1");
+    });
+
     test("issue4531", async ({ page }) => {
       const res = await page.goto("/qwikcity-test/issue4531/");
       await expect(page.locator("#route")).toHaveText("should render");

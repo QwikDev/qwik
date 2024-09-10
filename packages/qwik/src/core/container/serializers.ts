@@ -39,7 +39,6 @@ import { assertString, assertTrue } from '../error/assert';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
-import { isBrowser, isDev } from '@builder.io/qwik/build';
 
 /**
  * - 0, 8, 9, A, B, C, D
@@ -194,12 +193,7 @@ const URLSerializer = /*#__PURE__*/ serializer<URL>({
   $prefix$: '\u0005',
   $test$: (v) => v instanceof URL,
   $serialize$: (obj) => obj.href,
-  $prepare$: (data) => {
-    if (isBrowser && !isDev) {
-      return new URL(data + document.location.search);
-    }
-    return new URL(data);
-  },
+  $prepare$: (data) => new URL(data),
 });
 
 const DateSerializer = /*#__PURE__*/ serializer<Date>({

@@ -171,6 +171,7 @@ export interface QwikBundle {
     dynamicImports?: string[];
     // (undocumented)
     imports?: string[];
+    isTask?: boolean;
     // (undocumented)
     origins?: string[];
     // (undocumented)

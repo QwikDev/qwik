@@ -219,7 +219,7 @@ jobs:
 
       - name: Print Qwik Dist Build
         continue-on-error: true
-        run: tree packages/qwik/dist/
+        run: tree -a packages/qwik/dist/
 
       - name: Save qwik cache
         uses: actions/cache/save@v4
@@ -427,7 +427,7 @@ jobs:
           key: ${{ needs.changes.outputs.hash-others }}
 
       - name: Print QwikCity Lib Build
-        run: tree packages/qwik-city/lib/
+        run: tree -a packages/qwik-city/lib/
 
       - name: Upload QwikCity Build Artifacts
         uses: actions/upload-artifact@v4
@@ -437,7 +437,7 @@ jobs:
           if-no-files-found: error
 
       - name: Print QwikLabs Lib Build
-        run: tree packages/qwik-labs/lib/ packages/qwik-labs/vite/
+        run: tree -a packages/qwik-labs/lib/ packages/qwik-labs/vite/
 
       - name: Upload QwikLabs+React Build Artifacts
         uses: actions/upload-artifact@v4
@@ -450,7 +450,7 @@ jobs:
           if-no-files-found: error
 
       - name: Print qwik-react Lib Build
-        run: tree packages/qwik-react/lib/
+        run: tree -a packages/qwik-react/lib/
 
       - name: Upload qwik-react Build Artifacts
         uses: actions/upload-artifact@v4
@@ -462,7 +462,7 @@ jobs:
           if-no-files-found: error
 
       - name: Print Create Qwik CLI Dist Build
-        run: tree packages/create-qwik/dist/
+        run: tree -a packages/create-qwik/dist/
 
       - name: Upload Create Qwik CLI Build Artifacts
         uses: actions/upload-artifact@v4
@@ -472,7 +472,7 @@ jobs:
           if-no-files-found: error
 
       - name: Print Eslint rules Dist Build
-        run: tree packages/eslint-plugin-qwik/dist/
+        run: tree -a packages/eslint-plugin-qwik/dist/
 
       - name: Upload Eslint rules Build Artifacts
         uses: actions/upload-artifact@v4

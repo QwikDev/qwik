@@ -259,6 +259,8 @@ export function generateManifestFromBundles(
   };
 
   const buildPath = path.resolve(opts.rootDir, opts.outDir, 'build');
+  const canonPath = (p: string) =>
+    path.relative(buildPath, path.resolve(opts.rootDir, opts.outDir, p));
   // We need to find our QRL exports
   const qrlNames = new Set([...segments.map((h) => h.name)]);
   for (const outputBundle of Object.values(outputBundles)) {
@@ -270,7 +272,6 @@ export function generateManifestFromBundles(
       path.resolve(opts.outDir, outputBundle.fileName)
     );
 
-    const buildDirName = path.dirname(outputBundle.fileName);
     const bundle: QwikBundle = {
       size: outputBundle.code.length,
     };
@@ -296,10 +297,8 @@ export function generateManifestFromBundles(
 
     const bundleImports = outputBundle.imports
       // Tree shaking can maybe remove imports
-      .filter(
-        (i) => path.dirname(i) === buildDirName && outputBundle.code.includes(path.basename(i))
-      )
-      .map((i) => path.relative(buildDirName, outputBundles[i].fileName || i));
+      .filter((i) => outputBundle.code.includes(path.basename(i)))
+      .map((i) => canonPath(outputBundles[i].fileName || i));
     if (bundleImports.length > 0) {
       bundle.imports = bundleImports;
     }
@@ -307,9 +306,9 @@ export function generateManifestFromBundles(
     const bundleDynamicImports = outputBundle.dynamicImports
       .filter(
         // Tree shaking can remove dynamic imports
-        (i) => path.dirname(i) === buildDirName && outputBundle.code.includes(path.basename(i))
+        (i) => outputBundle.code.includes(path.basename(i))
       )
-      .map((i) => path.relative(buildDirName, outputBundles[i].fileName || i));
+      .map((i) => canonPath(outputBundles[i].fileName || i));
     if (bundleDynamicImports.length > 0) {
       bundle.dynamicImports = bundleDynamicImports;
     }

@@ -259,6 +259,8 @@ export function generateManifestFromBundles(
   };
 
   const buildPath = path.resolve(opts.rootDir, opts.outDir, 'build');
+  const canonPath = (p: string) =>
+    path.relative(buildPath, path.resolve(opts.rootDir, opts.outDir, p));
   // We need to find our QRL exports
   const qrlNames = new Set([...segments.map((h) => h.name)]);
   for (const outputBundle of Object.values(outputBundles)) {
@@ -270,31 +272,43 @@ export function generateManifestFromBundles(
       path.resolve(opts.outDir, outputBundle.fileName)
     );
 
-    const buildDirName = path.dirname(outputBundle.fileName);
     const bundle: QwikBundle = {
       size: outputBundle.code.length,
     };
 
+    let hasSymbols = false;
+    let hasHW = false;
     for (const symbol of outputBundle.exports) {
       if (qrlNames.has(symbol)) {
         // When not minifying we see both the entry and the segment file
         // The segment file will only have 1 export, we want the entry
         if (!manifest.mapping[symbol] || outputBundle.exports.length !== 1) {
+          hasSymbols = true;
           manifest.mapping[symbol] = bundleFileName;
         }
       }
+      if (symbol === '_hW') {
+        hasHW = true;
+      }
+    }
+    if (hasSymbols && hasHW) {
+      bundle.isTask = true;
     }
 
     const bundleImports = outputBundle.imports
-      .filter((i) => path.dirname(i) === buildDirName)
-      .map((i) => path.relative(buildDirName, outputBundles[i].fileName));
+      // Tree shaking can maybe remove imports
+      .filter((i) => outputBundle.code.includes(path.basename(i)))
+      .map((i) => canonPath(outputBundles[i].fileName || i));
     if (bundleImports.length > 0) {
       bundle.imports = bundleImports;
     }
 
     const bundleDynamicImports = outputBundle.dynamicImports
-      .filter((i) => path.dirname(i) === buildDirName)
-      .map((i) => path.relative(buildDirName, outputBundles[i].fileName));
+      .filter(
+        // Tree shaking can remove dynamic imports
+        (i) => outputBundle.code.includes(path.basename(i))
+      )
+      .map((i) => canonPath(outputBundles[i].fileName || i));
     if (bundleDynamicImports.length > 0) {
       bundle.dynamicImports = bundleDynamicImports;
     }

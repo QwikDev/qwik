@@ -96,6 +96,7 @@ async function processBundleGraph(
   swState.$bases$.push({
     $path$: base,
     $graph$: graph,
+    $processed$: undefined,
   });
   if (cleanup) {
     const bundles = new Set<string>(graph.filter((item) => typeof item === 'string') as string[]);

@@ -577,6 +577,24 @@ describe.each([
     );
   });
 
+  it('should assign a store property to undefined', async () => {
+    (global as any).logs = [] as string[];
+
+    const Cmp = component$(() => {
+      const store = useStore<Record<string, any>>({});
+      useTask$(({ track }) => {
+        track(() => store.someId);
+        (global as any).logs.push('someId' in store);
+      });
+
+      return <button onClick$={() => (store['someId'] = undefined)}></button>;
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    await trigger(document.body, 'button', 'click');
+    expect((global as any).logs).toEqual([false, true]);
+  });
+
   describe('regression', () => {
     it('#5597 - should update value', async () => {
       (globalThis as any).clicks = 0;

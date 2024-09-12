@@ -179,21 +179,20 @@ export class StoreHandler<T extends Record<string | symbol, any>> implements Pro
     return value;
   }
 
-  set(_: T, p: string | symbol, value: any): boolean {
+  /** In the case of oldValue and value are the same, the effects are not triggered. */
+  set(_: T, prop: string | symbol, value: any): boolean {
     const target = this.$target$;
-    const oldValue = target[p];
-    if (value !== oldValue) {
-      DEBUG && log('Signal.set', oldValue, '->', value, pad('\n' + this.toString(), '  '));
-      (target as any)[p] = value;
-      triggerEffects(
-        this.$container$,
-        this,
-        this.$effects$
-          ? Array.isArray(target)
-            ? Object.values(this.$effects$).flatMap((effects) => effects)
-            : this.$effects$[String(p)]
-          : null
-      );
+
+    if (prop in target) {
+      const oldValue = target[prop];
+
+      if (value !== oldValue) {
+        DEBUG && log('Signal.set', oldValue, '->', value, pad('\n' + this.toString(), '  '));
+        setNewValueAndTriggerEffects(prop, value, this);
+      }
+    } else {
+      DEBUG && log('Signal.set', 'create property', value, pad('\n' + this.toString(), '  '));
+      setNewValueAndTriggerEffects(prop, value, this);
     }
     return true;
   }
@@ -226,4 +225,21 @@ export class StoreHandler<T extends Record<string | symbol, any>> implements Pro
       configurable: true,
     };
   }
+}
+
+function setNewValueAndTriggerEffects<T extends Record<string | symbol, any>>(
+  prop: string | symbol,
+  value: any,
+  currentStore: StoreHandler<T>
+): void {
+  (currentStore.$target$ as any)[prop] = value;
+  triggerEffects(
+    currentStore.$container$,
+    currentStore,
+    currentStore.$effects$
+      ? Array.isArray(currentStore.$target$)
+        ? Object.values(currentStore.$effects$).flatMap((effects) => effects)
+        : currentStore.$effects$[String(prop)]
+      : null
+  );
 }

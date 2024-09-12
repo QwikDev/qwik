@@ -135,7 +135,7 @@
     "eslint-plugin-no-only-tests": "3.1.0",
     "eslint-plugin-qwik": "workspace:^",
     "execa": "8.0.1",
-    "express": "4.19.2",
+    "express": "4.20.0",
     "install": "0.13.0",
     "monaco-editor": "0.45.0",
     "mri": "1.2.0",

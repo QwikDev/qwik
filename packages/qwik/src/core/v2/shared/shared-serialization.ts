@@ -316,15 +316,19 @@ const inflate = (container: DeserializeContainer, target: any, needsInflationDat
       storeHandler.$container$ = container as DomContainer;
       storeHandler.$target$ = container.$getObjectById$(restInt());
       storeHandler.$flags$ = restInt();
-      const effectProps = rest.substring(restIdx).split('|');
-      if (effectProps.length) {
-        const effects: Record<string, EffectSubscriptions[]> = (storeHandler.$effects$ = {});
-        for (let i = 0; i < effectProps.length; i++) {
-          const effect = effectProps[i];
-          const idx = effect.indexOf(';');
-          const prop = effect.substring(0, idx);
-          const effectStr = effect.substring(idx + 1);
-          deserializeSignal2Effect(0, effectStr.split(';'), container, (effects[prop] = []));
+      const effectSerializedString = rest.substring(restIdx);
+      const storeHasEffects = !!effectSerializedString.length;
+      if (storeHasEffects) {
+        const effectProps = effectSerializedString.split('|');
+        if (effectProps.length) {
+          const effects: Record<string, EffectSubscriptions[]> = (storeHandler.$effects$ = {});
+          for (let i = 0; i < effectProps.length; i++) {
+            const effect = effectProps[i];
+            const idx = effect.indexOf(';');
+            const prop = effect.substring(0, idx);
+            const effectStr = effect.substring(idx + 1);
+            deserializeSignal2Effect(0, effectStr.split(';'), container, (effects[prop] = []));
+          }
         }
       }
       break;

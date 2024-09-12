@@ -28,7 +28,7 @@ import {
   QStyleSelector,
   USE_ON_LOCAL_SEQ_IDX,
 } from '../../util/markers';
-import { maybeThen } from '../../util/promises';
+import { isPromise } from '../../util/promises';
 import { isSlotProp } from '../../util/prop';
 import { qDev } from '../../util/qdev';
 import type { ValueOrPromise } from '../../util/types';
@@ -127,8 +127,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   public rootVNode: ElementVNode;
   public document: QDocument;
   public $journal$: VNodeJournal;
-  public renderDone: Promise<void> = Promise.resolve();
-  public rendering: boolean = false;
+  public renderDone: Promise<void> | null = null;
   public $rawStateData$: unknown[];
   public $proxyMap$: ObjToProxyMap = new WeakMap();
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
@@ -137,6 +136,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   private stateData: unknown[];
   private $styleIds$: Set<string> | null = null;
   private $vnodeLocate$: (id: string) => VNode = (id) => vnode_locate(this.rootVNode, id);
+  private $renderCount$ = 0;
 
   constructor(element: ContainerElement) {
     super(
@@ -295,18 +295,28 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   }
 
   scheduleRender() {
-    // console.log('>>>> scheduleRender', !!this.rendering);
-    if (!this.rendering) {
-      this.rendering = true;
-      this.renderDone = getPlatform().nextTick(() => {
-        // console.log('>>>> scheduleRender nextTick', !!this.rendering);
-        return maybeThen(this.$scheduler$(ChoreType.WAIT_FOR_ALL), () => {
-          // console.log('>>>> scheduleRender done', !!this.rendering);
-          this.rendering = false;
-        });
+    this.$renderCount$++;
+    this.renderDone ||= getPlatform().nextTick(() => this.processChores());
+    return this.renderDone;
+  }
+
+  private processChores() {
+    let renderCount = this.$renderCount$;
+    const result = this.$scheduler$(ChoreType.WAIT_FOR_ALL);
+    if (isPromise(result)) {
+      return result.then(async () => {
+        while (renderCount !== this.$renderCount$) {
+          renderCount = this.$renderCount$;
+          await this.$scheduler$(ChoreType.WAIT_FOR_ALL);
+        }
+        this.renderDone = null;
       });
     }
-    return this.renderDone;
+    if (renderCount !== this.$renderCount$) {
+      this.processChores();
+      return;
+    }
+    this.renderDone = null;
   }
 
   ensureProjectionResolved(vNode: VirtualVNode): void {

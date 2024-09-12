@@ -18,7 +18,7 @@ export interface ClientContainer extends Container2 {
   qManifestHash: string;
   rootVNode: ElementVNode;
   $journal$: VNodeJournal;
-  renderDone: Promise<void>;
+  renderDone: Promise<void> | null;
   parseQRL<T = unknown>(qrl: string): QRL<T>;
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
 }

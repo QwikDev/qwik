@@ -14,6 +14,8 @@ import {
   useSignal,
   useStore,
   type JSXOutput,
+  useTask$,
+  type Signal as SignalType,
 } from '@builder.io/qwik';
 import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
 import { describe, expect, it } from 'vitest';
@@ -1703,6 +1705,73 @@ describe.each([
     // console.log('vNode', String(vNode));
     // console.log('>>>>', div.outerHTML);
     expect(cleanupAttrs(div.innerHTML)).toEqual('<b>(</b>SomeErrorPOST<b>)</b>');
+  });
+
+  it('should render items in order', async () => {
+    const Item = component$(({ countSig }: { countSig: SignalType<number> }) => {
+      const itemNum = useSignal(0);
+
+      useTask$(() => {
+        itemNum.value = ++countSig.value;
+      });
+
+      return <div>Item {itemNum.value}</div>;
+    });
+
+    const Cmp = component$(() => {
+      const countSig = useSignal(0);
+
+      return (
+        <div id="container">
+          <Item countSig={countSig} />
+          <Item countSig={countSig} />
+          <Item countSig={countSig} />
+          <Item countSig={countSig} />
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div id="container">
+          <Component>
+            <div>
+              {'Item '}
+              <Signal>1</Signal>
+            </div>
+          </Component>
+          <Component>
+            <div>
+              {'Item '}
+              <Signal>2</Signal>
+            </div>
+          </Component>
+          <Component>
+            <div>
+              {'Item '}
+              <Signal>3</Signal>
+            </div>
+          </Component>
+          <Component>
+            <div>
+              {'Item '}
+              <Signal>4</Signal>
+            </div>
+          </Component>
+        </div>
+      </Component>
+    );
+
+    expect(document.querySelector('#container')).toMatchDOM(
+      <div id="container">
+        <div>Item 1</div>
+        <div>Item 2</div>
+        <div>Item 3</div>
+        <div>Item 4</div>
+      </div>
+    );
   });
 
   describe('regression', () => {

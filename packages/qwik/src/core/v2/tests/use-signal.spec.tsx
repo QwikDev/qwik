@@ -4,6 +4,7 @@ import {
   Fragment,
   Fragment as Projection,
   Fragment as Signal,
+  useVisibleTask$,
 } from '@builder.io/qwik';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../../testing/element-fixture';
@@ -294,6 +295,26 @@ describe.each([
     )!;
     const subscribers = vnode_getProp<unknown[]>(signalVNode, QSubscribers, null);
     expect(subscribers).toHaveLength(1);
+  });
+
+  it('should deserialize signal without effects', async () => {
+    const Cmp = component$(() => {
+      const counter = useSignal(0);
+      useVisibleTask$(() => {
+        counter.value++;
+      });
+      return <div></div>;
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'div', 'qvisible');
+    }
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div></div>
+      </Component>
+    );
   });
 
   describe('derived', () => {

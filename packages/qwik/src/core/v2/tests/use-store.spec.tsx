@@ -8,6 +8,7 @@ import {
   untrack,
   useSignal,
   useStore,
+  useVisibleTask$,
 } from '@builder.io/qwik';
 import { describe, expect, it, vi } from 'vitest';
 import { advanceToNextTimerAndFlush } from '../../../testing/element-fixture';
@@ -552,6 +553,26 @@ describe.each([
         <Fragment>
           <div key="0">0</div>
         </Fragment>
+      </Component>
+    );
+  });
+
+  it('should deserialize store without effects', async () => {
+    const Cmp = component$(() => {
+      const store = useStore({ counter: 0 });
+      useVisibleTask$(() => {
+        store.counter++;
+      });
+      return <div></div>;
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'div', 'qvisible');
+    }
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div></div>
       </Component>
     );
   });

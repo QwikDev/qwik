@@ -133,7 +133,7 @@ export interface ClientContainer extends Container2 {
     // (undocumented)
     qManifestHash: string;
     // (undocumented)
-    renderDone: Promise<void>;
+    renderDone: Promise<void> | null;
     // (undocumented)
     rootVNode: _ElementVNode;
 }
@@ -315,9 +315,7 @@ class DomContainer extends _SharedContainer implements ClientContainer, StoreTra
     // (undocumented)
     qManifestHash: string;
     // (undocumented)
-    renderDone: Promise<void>;
-    // (undocumented)
-    rendering: boolean;
+    renderDone: Promise<void> | null;
     // (undocumented)
     resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
     // (undocumented)

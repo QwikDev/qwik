@@ -150,6 +150,7 @@ export interface Chore {
   $resolve$: (value: any) => void;
   $promise$: Promise<any>;
   $returnValue$: any;
+  $executed$: boolean;
 }
 
 export interface NodePropPayload {
@@ -252,6 +253,7 @@ export const createScheduler = (
       $resolve$: null!,
       $promise$: null!,
       $returnValue$: null,
+      $executed$: false,
     };
     chore.$promise$ = new Promise((resolve) => (chore.$resolve$ = resolve));
     DEBUG && debugTrace('schedule', chore, currentChore, choreQueue);
@@ -275,24 +277,25 @@ export const createScheduler = (
    * @param runUptoChore
    */
   function drainUpTo(runUptoChore: Chore): ValueOrPromise<unknown> {
+    // If it already ran, it's not in the queue
+    if (runUptoChore.$executed$) {
+      return runUptoChore.$returnValue$;
+    }
     if (currentChore) {
-      // Already running chore
+      // Already running chore, which means we're waiting for async completion
       return runUptoChore.$promise$;
     }
     while (choreQueue.length) {
       const nextChore = choreQueue.shift()!;
-      const comp = choreComparator(nextChore, runUptoChore, false);
-      if (comp === null) {
+      const order = choreComparator(nextChore, runUptoChore, false);
+      if (order === null) {
         continue;
       }
-      if (comp > 0) {
-        // we have processed all of the chores up to the given chore.
+      if (order > 0) {
+        // we have processed all of the chores up to and including the given chore.
         break;
       }
-      const isDeletedVNode =
-        nextChore.$host$ &&
-        vnode_isVNode(nextChore.$host$) &&
-        nextChore.$host$[VNodeProps.flags] & VNodeFlags.Deleted;
+      const isDeletedVNode = vNodeAlreadyDeleted(nextChore);
       if (
         isDeletedVNode &&
         // we need to process cleanup tasks for deleted nodes
@@ -303,7 +306,8 @@ export const createScheduler = (
       }
       const returnValue = executeChore(nextChore);
       if (isPromise(returnValue)) {
-        return returnValue.then(() => drainUpTo(runUptoChore));
+        const promise = returnValue.then(() => drainUpTo(runUptoChore));
+        return promise;
       }
     }
     return runUptoChore.$returnValue$;
@@ -393,7 +397,10 @@ export const createScheduler = (
     }
     return maybeThenPassError(returnValue, (value) => {
       DEBUG && debugTrace('execute.DONE', null, currentChore, choreQueue);
-      currentChore?.$resolve$?.(value);
+      if (currentChore) {
+        currentChore.$executed$ = true;
+        currentChore.$resolve$?.(value);
+      }
       currentChore = null;
       return (chore.$returnValue$ = value);
     });
@@ -415,6 +422,23 @@ const choreUpdate = (existing: Chore, newChore: Chore): void => {
   }
 };
 
+function vNodeAlreadyDeleted(chore: Chore): boolean {
+  return !!(
+    chore.$host$ &&
+    vnode_isVNode(chore.$host$) &&
+    chore.$host$[VNodeProps.flags] & VNodeFlags.Deleted
+  );
+}
+
+/**
+ * Compares two chores to determine their execution order in the scheduler's queue.
+ *
+ * @param a - The first chore to compare
+ * @param b - The second chore to compare
+ * @param shouldThrowOnHostMismatch - Controls error behavior for mismatched hosts
+ * @returns A number indicating the relative order of the chores, or null if invalid. A negative
+ *   number means `a` runs before `b`.
+ */
 function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: true): number;
 function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: false): number | null;
 function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: boolean): number | null {
@@ -518,6 +542,7 @@ function debugChoreToString(chore: Chore): string {
         [ChoreType.RESOURCE]: 'RESOURCE',
         [ChoreType.TASK]: 'TASK',
         [ChoreType.NODE_DIFF]: 'NODE_DIFF',
+        [ChoreType.NODE_PROP]: 'NODE_PROP',
         [ChoreType.COMPONENT]: 'COMPONENT',
         [ChoreType.COMPONENT_SSR]: 'COMPONENT_SSR',
         [ChoreType.JOURNAL_FLUSH]: 'JOURNAL_FLUSH',

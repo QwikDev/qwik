@@ -36,14 +36,14 @@ export function qwikDebugToString(value: any): any {
         }
       } else if (isSignal2(value)) {
         if (value instanceof WrappedSignal) {
-          return 'WrappedSignal(' + qwikDebugToString(value.untrackedValue) + ')';
+          return 'WrappedSignal';
         } else if (value instanceof ComputedSignal2) {
-          return 'ComputedSignal(' + qwikDebugToString(value.untrackedValue) + ')';
+          return 'ComputedSignal';
         } else {
-          return 'Signal(' + qwikDebugToString(value.untrackedValue) + ')';
+          return 'Signal';
         }
       } else if (isStore2(value)) {
-        return 'Store(' + qwikDebugToString(value) + ')';
+        return 'Store';
       } else if (isJSXNode(value)) {
         return jsxToString(value);
       }

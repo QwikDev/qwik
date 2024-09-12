@@ -231,6 +231,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: artifact-qwik-no-optimizer
+          include-hidden-files: true
           path: packages/qwik/dist/
           if-no-files-found: error
 
@@ -300,6 +301,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: artifact-bindings-${{ matrix.settings.target }}
+          include-hidden-files: true
           path: packages/qwik/bindings/
           if-no-files-found: error
 
@@ -356,6 +358,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: artifact-qwik
+          include-hidden-files: true
           path: |
             packages/qwik/bindings
             packages/qwik/dist
@@ -433,6 +436,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: artifact-qwikcity
+          include-hidden-files: true
           path: packages/qwik-city/lib/
           if-no-files-found: error
 
@@ -443,6 +447,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: artifact-qwiklabs
+          include-hidden-files: true
           path: |
             packages/qwik-labs/lib/
             packages/qwik-labs/vite/
@@ -456,6 +461,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: artifact-qwikreact
+          include-hidden-files: true
           path: |
             packages/qwik-react/lib/
             packages/qwik-react/package.json
@@ -468,6 +474,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: artifact-create-qwik
+          include-hidden-files: true
           path: packages/create-qwik/dist/
           if-no-files-found: error
 
@@ -478,6 +485,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: artifact-eslint-plugin-qwik
+          include-hidden-files: true
           path: packages/eslint-plugin-qwik/dist/
           if-no-files-found: error
 
@@ -582,6 +590,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: artifact-docs
+          include-hidden-files: true
           path: |
             packages/docs/dist
             packages/docs/server

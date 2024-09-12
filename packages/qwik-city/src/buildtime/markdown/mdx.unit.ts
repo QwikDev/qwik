@@ -64,10 +64,9 @@ describe('mdx', async () => {
       export default function MDXContent() {
         const key = "eB2HIyA1";
         const content = _jsxC(_createMdxContent, {}, 3, null);
+        const children = typeof MDXLayout === "undefined" ? content : _jsxC(MDXLayout, { children: content }, 3);
 
-        return typeof MDXLayout === "undefined" ?
-          _jsxC(RenderOnce, { children: content }, 3, key) :
-          _jsxC(RenderOnce, { children: _jsxC(MDXLayout, { children: content }, 3, key)});
+        return _jsxC(RenderOnce, children, 3, key);
       };
       ",
         "map": {
@@ -141,10 +140,9 @@ export default function Layout({ children: content }) {
       export default function MDXContent() {
         const key = "UdQmQWC3";
         const content = _jsxC(_createMdxContent, {}, 3, null);
+        const children = typeof MDXLayout === "undefined" ? content : _jsxC(MDXLayout, { children: content }, 3);
 
-        return typeof MDXLayout === "undefined" ?
-          _jsxC(RenderOnce, { children: content }, 3, key) :
-          _jsxC(RenderOnce, { children: _jsxC(MDXLayout, { children: content }, 3, key)});
+        return _jsxC(RenderOnce, children, 3, key);
       };
       ",
         "map": {

@@ -23,7 +23,7 @@ export default component$(() => {
       <button
         onClick$={() => {
           // Because store is deep watched, this will trigger a re-render
-          store.list.push(`Item ${store.list.length}`);
+          store.list.push(`Item ${store.list.length + 1}`);
         }}
       >
         Add to list

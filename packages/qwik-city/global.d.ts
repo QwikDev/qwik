@@ -11,3 +11,9 @@ declare var QWIK_MANIFEST: import('@builder.io/qwik/optimizer').QwikManifest | u
 declare var qcAsyncRequestStore: AsyncStore | undefined;
 declare var _qwikActionsMap: Map<string, ActionInternal> | undefined;
 declare var __qwikCityNew: boolean | undefined;
+
+type ExperimentalFeatures = import('@builder.io/qwik/optimizer').ExperimentalFeatures;
+
+declare var __EXPERIMENTAL__: {
+  [K in ExperimentalFeatures]: boolean;
+};

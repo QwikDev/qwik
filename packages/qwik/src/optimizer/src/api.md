@@ -44,6 +44,11 @@ export type DiagnosticCategory = 'error' | 'warning' | 'sourceError';
 // @public (undocumented)
 export type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEntryStrategy | HookEntryStrategy_2 | SegmentEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy;
 
+// Warning: (ae-forgotten-export) The symbol "experimental" needs to be exported by the entry point index.d.ts
+//
+// @alpha
+export type ExperimentalFeatures = (typeof experimental)[number];
+
 // @public (undocumented)
 export interface GlobalInjections {
     // (undocumented)
@@ -219,6 +224,8 @@ export interface QwikRollupPluginOptions {
     csr?: boolean;
     debug?: boolean;
     entryStrategy?: EntryStrategy;
+    // Warning: (ae-incompatible-release-tags) The symbol "experimental" is marked as @public, but its signature references "ExperimentalFeatures" which is marked as @alpha
+    experimental?: ExperimentalFeatures[];
     lint?: boolean;
     manifestInput?: QwikManifest;
     manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;

@@ -27,6 +27,7 @@ import {
   TRANSFORM_REGEX,
   createPlugin,
   parseId,
+  type ExperimentalFeatures,
   type NormalizedQwikPluginOptions,
   type QwikBuildMode,
   type QwikBuildTarget,
@@ -177,6 +178,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         devTools: qwikViteOpts.devTools,
         sourcemap: !!viteConfig.build?.sourcemap,
         lint: qwikViteOpts.lint,
+        experimental: qwikViteOpts.experimental,
       };
       if (!qwikViteOpts.csr) {
         if (target === 'ssr') {
@@ -979,6 +981,11 @@ interface QwikVitePluginCommonOptions {
    * large projects. Defaults to `true`
    */
   lint?: boolean;
+  /**
+   * Experimental features. These can come and go in patch releases, and their API is not guaranteed
+   * to be stable between releaeses
+   */
+  experimental?: ExperimentalFeatures[];
 }
 
 interface QwikVitePluginCSROptions extends QwikVitePluginCommonOptions {
@@ -1067,6 +1074,7 @@ interface QwikVitePluginCSROptions extends QwikVitePluginCommonOptions {
 
 /** @public */
 export type QwikVitePluginOptions = QwikVitePluginCSROptions | QwikVitePluginSSROptions;
+export type { ExperimentalFeatures } from './plugin';
 
 /** @public */
 export interface QwikVitePluginApi {

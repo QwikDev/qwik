@@ -324,6 +324,18 @@ export type EntryStrategy =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
+## ExperimentalFeatures
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.
+
+```typescript
+export type ExperimentalFeatures = (typeof experimental)[number];
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts)
+
 ## extname
 
 ```typescript
@@ -1598,6 +1610,21 @@ Default `false`
 _(Optional)_ The Qwik entry strategy to use while building for production. During development the type is always `segment`.
 
 Default `{ type: "smart" }`)
+
+</td></tr>
+<tr><td>
+
+[experimental?](#)
+
+</td><td>
+
+</td><td>
+
+[ExperimentalFeatures](#experimentalfeatures)[]
+
+</td><td>
+
+_(Optional)_ Experimental features. These can come and go in patch releases, and their API is not guaranteed to be stable between releases.
 
 </td></tr>
 <tr><td>

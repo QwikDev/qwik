@@ -1,5 +1,5 @@
 ---
-'create-qwik': major
+'create-qwik': minor
 ---
 
 zerops adapters

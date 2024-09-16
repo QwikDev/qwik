@@ -2,4 +2,4 @@
 'create-qwik': patch
 ---
 
-refactor: tailwind starter dependencies upgraded to latest
+feat: tailwind starter dependencies upgraded to latest

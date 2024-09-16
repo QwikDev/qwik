@@ -176,7 +176,6 @@
     "overrides": {
       "typescript": "5.4.5",
       "vfile": "6.0.1",
-      "sharp": ">=0.33",
       "@supabase/realtime-js": "2.8.4"
     },
     "patchedDependencies": {

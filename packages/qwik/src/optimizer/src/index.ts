@@ -38,7 +38,7 @@ export type {
   TranspileOption,
 } from './types';
 
-export type { QwikBuildMode, QwikBuildTarget } from './plugins/plugin';
+export type { QwikBuildMode, QwikBuildTarget, ExperimentalFeatures } from './plugins/plugin';
 export type { QwikRollupPluginOptions } from './plugins/rollup';
 export type {
   QwikViteDevResponse,

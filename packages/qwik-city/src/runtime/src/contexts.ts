@@ -6,6 +6,7 @@ import type {
   RouteAction,
   RouteLocation,
   RouteNavigate,
+  RoutePreventNavigate,
   RouteStateInternal,
 } from './types';
 
@@ -25,3 +26,6 @@ export const RouteActionContext = /*#__PURE__*/ createContextId<RouteAction>('qc
 
 export const RouteInternalContext =
   /*#__PURE__*/ createContextId<Signal<RouteStateInternal>>('qc-ir');
+
+export const RoutePreventNavigateContext =
+  /*#__PURE__*/ createContextId<RoutePreventNavigate>('qc-p');

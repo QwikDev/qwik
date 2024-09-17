@@ -3,14 +3,14 @@ import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scri
 import type {
   EntryStrategy,
   GlobalInjections,
+  InsightManifest,
   Optimizer,
   OptimizerOptions,
   OptimizerSystem,
-  QwikManifest,
-  TransformModule,
-  InsightManifest,
   Path,
   QwikBundleGraph,
+  QwikManifest,
+  TransformModule,
 } from '../types';
 import { versions } from '../versions';
 import { getImageSizeServer } from './image-size-server';
@@ -989,7 +989,7 @@ interface QwikVitePluginCommonOptions {
   lint?: boolean;
   /**
    * Experimental features. These can come and go in patch releases, and their API is not guaranteed
-   * to be stable between releaeses
+   * to be stable between releases
    */
   experimental?: ExperimentalFeatures[];
 }

@@ -595,6 +595,30 @@ describe.each([
     expect((global as any).logs).toEqual([false, true]);
   });
 
+  it('should trigger effects on property delete', async () => {
+    const Cmp = component$(() => {
+      const store = useStore<{ delete?: string }>({ delete: 'test' });
+      return <div onClick$={() => delete store.delete}>{store.delete}</div>;
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Signal>{'test'}</Signal>
+        </div>
+      </Component>
+    );
+    await trigger(document.body, 'div', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Signal></Signal>
+        </div>
+      </Component>
+    );
+  });
+
   describe('regression', () => {
     it('#5597 - should update value', async () => {
       (globalThis as any).clicks = 0;

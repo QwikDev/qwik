@@ -167,6 +167,7 @@ export class StoreHandler implements ProxyHandler<TargetType> {
     if (typeof prop != 'string' || !delete target[prop]) {
       return false;
     }
+    triggerEffects(this.$container$, this, getEffects(target, prop, this.$effects$));
     return true;
   }
 

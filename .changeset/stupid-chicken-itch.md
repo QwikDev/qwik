@@ -2,7 +2,7 @@
 '@builder.io/qwik-city': minor
 ---
 
-FEAT: **(EXPERIMENTAL)** `valibot$` validator and a fix for `zod$` types.
+FEAT: **(EXPERIMENTAL)** `valibot\$` validator and a fix for `zod\$` types.
 
 To use it, you need to pass `experimental: ['valibot']` as an option to the `qwikVite` plugin as such:
 

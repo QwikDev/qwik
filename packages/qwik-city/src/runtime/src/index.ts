@@ -1,47 +1,48 @@
 export type { FormSubmitCompletedDetail as FormSubmitSuccessDetail } from './form-component';
 
 export type {
-  MenuData,
+  Action,
+  ActionConstructor,
+  ActionStore,
   ContentHeading,
   ContentMenu,
   Cookie,
   CookieOptions,
   CookieValue,
+  DeferReturn,
   DocumentHead,
   DocumentHeadProps,
   DocumentHeadValue,
   DocumentLink,
   DocumentMeta,
-  DocumentStyle,
   DocumentScript,
+  DocumentStyle,
+  FailReturn,
+  JSONObject,
+  JSONValue,
+  Loader,
+  LoaderSignal,
+  MenuData,
+  NavigationType,
   PageModule,
   PathParams,
-  RequestHandler,
-  RequestEvent,
-  RequestEventLoader,
-  RequestEventAction,
-  RequestEventCommon,
+  PreventNavigateCallback,
   QwikCityPlan,
+  RequestEvent,
+  RequestEventAction,
+  RequestEventBase,
+  RequestEventCommon,
+  RequestEventLoader,
+  RequestHandler,
   ResolvedDocumentHead,
   RouteData,
   RouteLocation,
-  StaticGenerateHandler,
-  Action,
-  Loader,
-  ActionStore,
-  LoaderSignal,
-  ActionConstructor,
-  FailReturn,
-  ZodConstructor,
-  StaticGenerate,
   RouteNavigate,
-  NavigationType,
-  DeferReturn,
-  RequestEventBase,
-  JSONObject,
-  JSONValue,
-  ValidatorErrorType,
+  StaticGenerate,
+  StaticGenerateHandler,
   ValidatorErrorKeyDotNotation,
+  ValidatorErrorType,
+  ZodConstructor,
 } from './types';
 
 export { RouterOutlet } from './router-outlet-component';
@@ -55,6 +56,7 @@ export {
 export { type LinkProps, Link } from './link-component';
 export { ServiceWorkerRegister } from './sw-component';
 export { useDocumentHead, useLocation, useContent, useNavigate } from './use-functions';
+export { usePreventNavigate$, usePreventNavigateQrl } from './use-functions';
 export { routeAction$, routeActionQrl } from './server-functions';
 export { globalAction$, globalActionQrl } from './server-functions';
 export { routeLoader$, routeLoaderQrl } from './server-functions';

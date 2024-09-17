@@ -215,7 +215,7 @@ test('experimental[]', async () => {
     return;
   }
   const opts = plugin.normalizeOptions({ experimental: [flag] });
-  assert.deepEqual(opts.experimental, { [flag]: true });
+  assert.deepEqual(opts.experimental, { [flag]: true } as any);
 });
 
 async function mockPlugin() {

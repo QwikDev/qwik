@@ -183,6 +183,69 @@ test.describe("actions", () => {
         expect(page.url()).toBe(startUrl);
       }
     });
+
+    test("preventNavigate", async ({ page }) => {
+      await page.goto("/qwikcity-test/prevent-navigate/");
+      const toggleDirty = page.locator("#pn-button");
+      const link = page.locator("#pn-link");
+      const count = page.locator("#pn-runcount");
+      const mpaLink = page.locator("#pn-a");
+      const itemLink = page.locator("#pn-link-5");
+      const confirmText = page.locator("#pn-confirm-text");
+      const confirmYes = page.locator("#pn-confirm-yes");
+      // clean SPA nav
+      await expect(count).toHaveText("0");
+      await link.click();
+      await expect(link).not.toBeVisible();
+      expect(new URL(page.url()).pathname).toBe("/qwikcity-test/");
+      await page.goBack();
+      await expect(count).toHaveText("0");
+      await expect(toggleDirty).toHaveText("is clean");
+      await toggleDirty.click();
+      await expect(toggleDirty).toHaveText("is dirty");
+      // dirty browser nav
+      let didTrigger = false;
+      page.once("dialog", async (dialog) => {
+        didTrigger = true;
+        expect(dialog.type()).toBe("beforeunload");
+        await dialog.accept();
+      });
+      await page.reload();
+      expect(didTrigger).toBe(true);
+      await expect(count).toHaveText("0");
+      await toggleDirty.click();
+
+      // dirty SPA nav
+      await link.click();
+      await expect(count).toHaveText("1");
+      await link.click();
+      await expect(count).toHaveText("2");
+      expect(new URL(page.url()).pathname).toBe(
+        "/qwikcity-test/prevent-navigate/",
+      );
+      await expect(confirmText).toContainText("/qwikcity-test/?");
+      await itemLink.click();
+      await expect(confirmText).toContainText(
+        "/qwikcity-test/prevent-navigate/5/?",
+      );
+      await confirmYes.click();
+      await expect(page.locator("#pn-main")).toBeVisible();
+      expect(new URL(page.url()).pathname).toBe(
+        "/qwikcity-test/prevent-navigate/5/",
+      );
+
+      // dirty browser nav w/ prevent
+      await toggleDirty.click();
+      didTrigger = false;
+      page.once("dialog", async (dialog) => {
+        didTrigger = true;
+        expect(dialog.type()).toBe("beforeunload");
+        // dismissing doesn't work, ah well
+        await dialog.accept();
+      });
+      await mpaLink.click();
+      expect(didTrigger).toBe(true);
+    });
   }
 
   function tests() {

@@ -81,6 +81,22 @@ export type RouteStateInternal = {
   scroll?: boolean;
 };
 
+/**
+ * @param url - The URL that the user is trying to navigate to, or a number to indicate the user is
+ *   trying to navigate back/forward in the application history. If it is missing, the event is sent
+ *   by the browser and the user is trying to reload or navigate away from the page. In this case,
+ *   the function should decide the answer synchronously.
+ * @returns `true` to prevent navigation, `false` to allow navigation, or a Promise that resolves to
+ *   `true` or `false`. For browser events, returning `true` or a Promise may show a confirmation
+ *   dialog, at the browser's discretion. If the user confirms, the navigation will still be
+ *   allowed.
+ * @public
+ */
+export type PreventNavigateCallback = (url?: number | URL) => ValueOrPromise<boolean>;
+
+/** @internal registers prevent navigate handler and returns cleanup function */
+export type RoutePreventNavigate = QRL<(cb$: QRL<PreventNavigateCallback>) => () => void>;
+
 export type ScrollState = {
   x: number;
   y: number;
@@ -91,7 +107,7 @@ export type ScrollState = {
 /** @public */
 export type RouteNavigate = QRL<
   (
-    path?: string | number,
+    path?: string | number | URL,
     options?:
       | {
           type?: Exclude<NavigationType, 'initial'>;

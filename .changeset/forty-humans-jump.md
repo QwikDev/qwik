@@ -2,4 +2,4 @@
 '@builder.io/qwik': patch
 ---
 
-gracefully handle image dimensions service errors
+FIX: gracefully handle image dimensions service errors

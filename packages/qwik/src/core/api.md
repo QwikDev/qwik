@@ -1104,8 +1104,6 @@ export abstract class _SharedContainer implements Container2 {
     $instanceHash$: string | null;
     // (undocumented)
     readonly $locale$: string;
-    // (undocumented)
-    readonly $proxyMap$: ObjToProxyMap;
     // Warning: (ae-forgotten-export) The symbol "Scheduler" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)

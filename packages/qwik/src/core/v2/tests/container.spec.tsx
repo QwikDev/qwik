@@ -361,7 +361,7 @@ describe('serializer v2', () => {
       });
     });
 
-    describe('DerivedSignalSerializer, / ' + SerializationConstant.DerivedSignal_CHAR, () => {
+    describe('WrappedSignalSerializer, / ' + SerializationConstant.WrappedSignal_CHAR, () => {
       it.todo('should serialize and deserialize', () => {
         ///
       });

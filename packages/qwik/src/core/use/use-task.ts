@@ -184,7 +184,7 @@ export interface ResourceRejected<T> {
   readonly loading: boolean;
 }
 
-export interface ResourceReturnInternal<T> extends Record<string, unknown> {
+export interface ResourceReturnInternal<T> {
   __brand: 'resource';
   _state: 'pending' | 'resolved' | 'rejected';
   _resolved: T | undefined;

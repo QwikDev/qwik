@@ -1,4 +1,3 @@
-import type { ObjToProxyMap } from '../../container/container';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import { createSubscriptionManager, type SubscriptionManager } from '../../state/common';
 import type { Signal } from '../../state/signal';
@@ -18,7 +17,6 @@ export abstract class _SharedContainer implements Container2 {
   readonly $version$: string;
   readonly $scheduler$: Scheduler;
   readonly $subsManager$: SubscriptionManager;
-  readonly $proxyMap$: ObjToProxyMap;
   /// Current language locale
   readonly $locale$: string;
   /// Retrieve Object from paused serialized state.
@@ -36,7 +34,6 @@ export abstract class _SharedContainer implements Container2 {
     this.$serverData$ = serverData;
     this.$locale$ = locale;
     this.$version$ = version;
-    this.$proxyMap$ = new WeakMap();
     this.$getObjectById$ = (id: number | string) => {
       throw Error('Not implemented');
     };
@@ -56,7 +53,6 @@ export abstract class _SharedContainer implements Container2 {
   ): SerializationContext {
     return createSerializationContext(
       NodeConstructor,
-      this.$proxyMap$,
       symbolToChunkResolver,
       this.setHostProp.bind(this),
       writer

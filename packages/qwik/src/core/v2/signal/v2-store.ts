@@ -3,7 +3,7 @@ import { assertTrue } from '../../error/assert';
 import { _wrapProp } from '../../state/signal';
 import { tryGetInvokeContext } from '../../use/use-core';
 import { isSerializableObject } from '../../util/types';
-import { SERIALIZER_PROXY_UNWRAP } from '../shared/shared-serialization';
+import { SERIALIZER_PROXY_UNWRAP, unwrapDeserializerProxy } from '../shared/shared-serialization';
 import type { Container2, fixMeAny } from '../shared/types';
 import {
   ensureContains,
@@ -17,9 +17,13 @@ const DEBUG = false;
 // eslint-disable-next-line no-console
 const log = (...args: any[]) => console.log('STORE', ...args.map(qwikDebugToString));
 
-const storeWeakMap = new WeakMap<object, Store2<object>>();
+export const storeWeakMap = new WeakMap<object, any>();
 
-const STORE = Symbol('store');
+const STORE_TARGET = Symbol('store.target');
+const STORE_HANDLER = Symbol('store.handler');
+export const STORE_ARRAY_PROP = Symbol('store.array');
+
+export type TargetType = Record<string | symbol, any>;
 
 export const enum Store2Flags {
   NONE = 0,
@@ -27,117 +31,78 @@ export const enum Store2Flags {
   IMMUTABLE = 2,
 }
 
-export type Store2<T> = T & {
-  __BRAND__: 'Store';
+export const getStoreHandler2 = (value: TargetType): StoreHandler | null => {
+  return value[STORE_HANDLER] as StoreHandler | null;
 };
 
-let _lastHandler: undefined | StoreHandler<any>;
-
-export const getStoreHandler2 = <T extends object>(value: T): StoreHandler<T> | null => {
-  _lastHandler = undefined as any;
-  return typeof value === 'object' && value && STORE in value // this implicitly sets the `_lastHandler` as a side effect.
-    ? _lastHandler!
-    : null;
-};
-
-export const getStoreTarget2 = <T extends object>(value: T): T | null => {
-  const handler = getStoreHandler2(value);
-  return handler ? handler.$target$ : null;
+export const getStoreTarget2 = <T extends TargetType>(value: T): T | null => {
+  return value?.[STORE_TARGET] || null;
 };
 
 export const unwrapStore2 = <T>(value: T): T => {
-  return (getStoreTarget2(value as fixMeAny) as T) || value;
+  return getStoreTarget2<any>(value) || value;
 };
 
-export const isStore2 = <T extends object>(value: T): value is Store2<T> => {
-  return value instanceof Store;
+export const isStore2 = (value: TargetType): boolean => {
+  const unwrap = unwrapStore2(value);
+  return unwrap !== value;
 };
 
 export function createStore2<T extends object>(
   container: Container2 | null | undefined,
-  obj: T & Record<string, unknown>,
+  obj: T,
   flags: Store2Flags
-) {
-  return new Proxy(new Store(), new StoreHandler<T>(obj, flags, container || null)) as Store2<T>;
+): T {
+  return new Proxy(obj, new StoreHandler(flags, container || null)) as T;
 }
 
 export const getOrCreateStore2 = <T extends object>(
   obj: T,
   flags: Store2Flags,
   container?: Container2 | null
-): Store2<T> => {
+): T => {
   if (isSerializableObject(obj)) {
-    let store: Store2<T> | undefined = storeWeakMap.get(obj) as Store2<T> | undefined;
+    let store: T | undefined = storeWeakMap.get(obj);
     if (!store) {
-      store = createStore2<T>(container, obj, flags);
+      store = createStore2(container, obj, flags);
       storeWeakMap.set(obj, store);
     }
-    return store as Store2<T>;
+    return store;
   }
-  return obj as Store2<T>;
+  return obj;
 };
 
-class Store {
-  toString() {
-    return '[Store]';
-  }
-}
+export class StoreHandler implements ProxyHandler<TargetType> {
+  $effects$: null | Record<string | symbol, EffectSubscriptions[]> = null;
 
-export const Store2 = Store;
-
-export class StoreHandler<T extends Record<string | symbol, any>> implements ProxyHandler<T> {
-  $effects$: null | Record<string, EffectSubscriptions[]> = null;
   constructor(
-    public $target$: T,
     public $flags$: Store2Flags,
     public $container$: Container2 | null
   ) {}
 
-  toString() {
-    const flags = [];
-    if (this.$flags$ & Store2Flags.RECURSIVE) {
-      flags.push('RECURSIVE');
-    }
-    if (this.$flags$ & Store2Flags.IMMUTABLE) {
-      flags.push('IMMUTABLE');
-    }
-    let str = '[Store: ' + flags.join('|') + '\n';
-    for (const key in this.$target$) {
-      const value = this.$target$[key];
-      str += '  ' + key + ': ' + qwikDebugToString(value) + ',\n';
-      const effects = this.$effects$?.[key];
-      effects?.forEach(([effect, prop, ...subs]) => {
-        str += '    ' + qwikDebugToString(effect) + '\n';
-        str += '    ' + qwikDebugToString(prop) + '\n';
-        // str += '    ' + subs.map(qwikDebugToString).join(';') + '\n';
-      });
-    }
-    return str + ']';
+  toString(): string {
+    return '[Store]';
   }
 
-  get(_: T, p: string | symbol) {
-    if (p === SERIALIZER_PROXY_UNWRAP) {
-      // SERIALIZER_PROXY_UNWRAP is used by v2 serialization to unwrap proxies.
-      // Our target may be a v2 serialization proxy so if we let it through
-      // we will return the naked object which removes ourselves,
-      // and that is not the intention so prevent of SERIALIZER_PROXY_UNWRAP.
-      return undefined;
-    } else if (p === 'toJSON') {
-      return () => {
-        // we need to add subscription to all properties
-        // TODO: could this be done another way?
-        for (const key in this.$target$) {
-          if (isStore2(this.$target$[key])) {
-            continue;
-          }
-          this.get(this.$target$, key);
-        }
-        return this.$target$;
-      };
+  get(target: TargetType, prop: string | symbol) {
+    if (typeof prop === 'symbol') {
+      if (prop === STORE_TARGET) {
+        return target;
+      }
+      if (prop === STORE_HANDLER) {
+        return this;
+      }
+      if (prop === SERIALIZER_PROXY_UNWRAP) {
+        // SERIALIZER_PROXY_UNWRAP is used by v2 serialization to unwrap proxies.
+        // Our target may be a v2 serialization proxy so if we let it through
+        // we will return the naked object which removes ourselves,
+        // and that is not the intention so prevent of SERIALIZER_PROXY_UNWRAP.
+        return undefined;
+      }
+      return target[prop];
     }
-    const target = this.$target$;
     const ctx = tryGetInvokeContext();
-    let value = target[p];
+    let value = target[prop];
     if (ctx) {
       if (this.$container$ === null) {
         if (!ctx.$container2$) {
@@ -153,72 +118,80 @@ export class StoreHandler<T extends Record<string | symbol, any>> implements Pro
       }
       const effectSubscriber = ctx.$effectSubscriber$;
       if (effectSubscriber) {
-        const effectsMap = (this.$effects$ ||= {});
-        const effects =
-          (Object.prototype.hasOwnProperty.call(effectsMap, p) && effectsMap[p as fixMeAny]) ||
-          (effectsMap[p as fixMeAny] = []);
-        // Let's make sure that we have a reference to this effect.
-        // Adding reference is essentially adding a subscription, so if the signal
-        // changes we know who to notify.
-        ensureContainsEffect(effects, effectSubscriber);
-        // But when effect is scheduled in needs to be able to know which signals
-        // to unsubscribe from. So we need to store the reference from the effect back
-        // to this signal.
-        ensureContains(effectSubscriber, this.$target$);
-        DEBUG && log('read->sub', pad('\n' + this.toString(), '  '));
+        addEffect(target, Array.isArray(target) ? STORE_ARRAY_PROP : prop, this, effectSubscriber);
       }
     }
-    if (p === 'toString' && value === Object.prototype.toString) {
-      return Store.prototype.toString;
+
+    if (prop === 'toString' && value === Object.prototype.toString) {
+      return this.toString;
     }
+
     const flags = this.$flags$;
-    if (flags & Store2Flags.RECURSIVE && typeof value === 'object' && value !== null) {
+    if (
+      flags & Store2Flags.RECURSIVE &&
+      typeof value === 'object' &&
+      value !== null &&
+      !Object.isFrozen(value) &&
+      !isStore2(value) &&
+      !Object.isFrozen(target)
+    ) {
       value = getOrCreateStore2(value, this.$flags$, this.$container$);
-      (target as Record<string | symbol, any>)[p] = value;
+      (target as Record<string | symbol, any>)[prop] = value;
     }
     return value;
   }
 
   /** In the case of oldValue and value are the same, the effects are not triggered. */
-  set(_: T, prop: string | symbol, value: any): boolean {
-    const target = this.$target$;
-
+  set(target: TargetType, prop: string | symbol, value: any): boolean {
+    target = unwrapDeserializerProxy(target) as TargetType;
+    if (typeof prop === 'symbol') {
+      target[prop] = value;
+      return true;
+    }
+    const newValue = this.$flags$ & Store2Flags.RECURSIVE ? unwrapStore2(value) : value;
     if (prop in target) {
       const oldValue = target[prop];
 
-      if (value !== oldValue) {
-        DEBUG && log('Signal.set', oldValue, '->', value, pad('\n' + this.toString(), '  '));
-        setNewValueAndTriggerEffects(prop, value, this);
+      if (newValue !== oldValue) {
+        DEBUG && log('Signal.set', oldValue, '->', newValue, pad('\n' + this.toString(), '  '));
+        setNewValueAndTriggerEffects(prop, newValue, target, this);
       }
     } else {
-      DEBUG && log('Signal.set', 'create property', value, pad('\n' + this.toString(), '  '));
-      setNewValueAndTriggerEffects(prop, value, this);
+      DEBUG && log('Signal.set', 'create property', newValue, pad('\n' + this.toString(), '  '));
+      setNewValueAndTriggerEffects(prop, newValue, target, this);
     }
     return true;
   }
 
-  deleteProperty(_: T, prop: string | symbol): boolean {
-    if (typeof prop != 'string' || !delete this.$target$[prop]) {
+  deleteProperty(target: TargetType, prop: string | symbol): boolean {
+    if (typeof prop != 'string' || !delete target[prop]) {
       return false;
     }
     return true;
   }
 
-  has(_: T, p: string | symbol) {
-    if (p === STORE) {
-      _lastHandler = this;
+  has(target: TargetType, prop: string | symbol) {
+    if (prop === STORE_TARGET) {
       return true;
     }
-    return Object.prototype.hasOwnProperty.call(this.$target$, p);
+    return Object.prototype.hasOwnProperty.call(target, prop);
   }
 
-  ownKeys(): ArrayLike<string | symbol> {
-    return Reflect.ownKeys(this.$target$);
+  ownKeys(target: TargetType): ArrayLike<string | symbol> {
+    const ctx = tryGetInvokeContext();
+    const effectSubscriber = ctx?.$effectSubscriber$;
+    if (effectSubscriber) {
+      addEffect(target, STORE_ARRAY_PROP, this, effectSubscriber);
+    }
+    return Reflect.ownKeys(target);
   }
 
-  getOwnPropertyDescriptor(_: T, prop: string | symbol): PropertyDescriptor | undefined {
-    if (Array.isArray(this.$target$) || typeof prop === 'symbol') {
-      return Object.getOwnPropertyDescriptor(this.$target$, prop);
+  getOwnPropertyDescriptor(
+    target: TargetType,
+    prop: string | symbol
+  ): PropertyDescriptor | undefined {
+    if (Array.isArray(target) || typeof prop === 'symbol') {
+      return Object.getOwnPropertyDescriptor(target, prop);
     }
     return {
       enumerable: true,
@@ -227,19 +200,56 @@ export class StoreHandler<T extends Record<string | symbol, any>> implements Pro
   }
 }
 
+function addEffect<T extends Record<string | symbol, any>>(
+  target: T,
+  prop: string | symbol,
+  store: StoreHandler,
+  effectSubscriber: EffectSubscriptions
+) {
+  const effectsMap = (store.$effects$ ||= {});
+  const effects =
+    (Object.prototype.hasOwnProperty.call(effectsMap, prop) && effectsMap[prop as fixMeAny]) ||
+    (effectsMap[prop] = []);
+  // Let's make sure that we have a reference to this effect.
+  // Adding reference is essentially adding a subscription, so if the signal
+  // changes we know who to notify.
+  ensureContainsEffect(effects, effectSubscriber);
+  // But when effect is scheduled in needs to be able to know which signals
+  // to unsubscribe from. So we need to store the reference from the effect back
+  // to this signal.
+  ensureContains(effectSubscriber, target);
+
+  DEBUG && log('sub', pad('\n' + store.$effects$.toString(), '  '));
+}
+
 function setNewValueAndTriggerEffects<T extends Record<string | symbol, any>>(
   prop: string | symbol,
   value: any,
-  currentStore: StoreHandler<T>
+  target: T,
+  currentStore: StoreHandler
 ): void {
-  (currentStore.$target$ as any)[prop] = value;
+  (target as any)[prop] = value;
   triggerEffects(
     currentStore.$container$,
     currentStore,
-    currentStore.$effects$
-      ? Array.isArray(currentStore.$target$)
-        ? Object.values(currentStore.$effects$).flatMap((effects) => effects)
-        : currentStore.$effects$[String(prop)]
-      : null
+    getEffects(target, prop, currentStore.$effects$)
   );
+}
+
+function getEffects<T extends Record<string | symbol, any>>(
+  target: T,
+  prop: string | symbol,
+  storeEffects: Record<string | symbol, EffectSubscriptions[]> | null
+) {
+  let effectsToTrigger = storeEffects
+    ? Array.isArray(target)
+      ? Object.values(storeEffects).flatMap((effects) => effects)
+      : storeEffects[prop]
+    : null;
+  const storeArrayValue = storeEffects?.[STORE_ARRAY_PROP as fixMeAny];
+  if (storeArrayValue) {
+    effectsToTrigger ||= [];
+    effectsToTrigger.push(...storeArrayValue);
+  }
+  return effectsToTrigger;
 }

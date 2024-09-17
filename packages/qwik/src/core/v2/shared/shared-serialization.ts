@@ -1,7 +1,6 @@
 import { isDev } from '../../../build/index.dev';
 import type { StreamWriter } from '../../../server/types';
 import { componentQrl, isQwikComponent } from '../../component/component.public';
-import type { ObjToProxyMap } from '../../container/container';
 import { SERIALIZABLE_STATE } from '../../container/serializers';
 import { assertDefined, assertTrue } from '../../error/assert';
 import { getPlatform } from '../../platform/platform';
@@ -26,7 +25,6 @@ import { fastSkipSerialize } from '../../state/common';
 import { _CONST_PROPS, _VAR_PROPS } from '../../state/constants';
 import { Task, isTask, type ResourceReturnInternal } from '../../use/use-task';
 import { isElement, isNode } from '../../util/element';
-import { EMPTY_OBJ } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
 import { ELEMENT_ID } from '../../util/markers';
 import { isPromise } from '../../util/promises';
@@ -41,12 +39,12 @@ import {
   type EffectSubscriptions,
 } from '../signal/v2-signal';
 import {
-  Store2,
+  STORE_ARRAY_PROP,
   createStore2,
   getStoreHandler2,
   getStoreTarget2,
+  isStore2,
   unwrapStore2,
-  type StoreHandler,
 } from '../signal/v2-store';
 import type { Subscriber } from '../signal/v2-subscriber';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
@@ -141,7 +139,9 @@ class DeserializationHandler implements ProxyHandler<object> {
           propValue === SerializationConstant.VNode_CHAR
             ? container.element.ownerDocument
             : vnode_locate(container.rootVNode, propValue.substring(1));
-      } else if (typeCode === SerializationConstant.DerivedSignal_VALUE && !Array.isArray(target)) {
+      } else if (typeCode === SerializationConstant.Store_VALUE) {
+        propValue = deserializeStore2(container, propValue);
+      } else if (typeCode === SerializationConstant.WrappedSignal_VALUE && !Array.isArray(target)) {
         // Special case of derived signal. We need to create a [_CONST_PROPS] property.
         return wrapDeserializerProxy(
           container,
@@ -241,16 +241,16 @@ function upgradePropsWithDerivedSignal(
       const value = target[key];
       if (
         typeof value === 'string' &&
-        value.charCodeAt(0) === SerializationConstant.DerivedSignal_VALUE
+        value.charCodeAt(0) === SerializationConstant.WrappedSignal_VALUE
       ) {
-        const derivedSignal = (immutable[key] = allocate(value) as WrappedSignal<unknown>);
+        const wrappedSignal = (immutable[key] = allocate(value) as WrappedSignal<unknown>);
         Object.defineProperty(target, key, {
           get() {
-            return derivedSignal.value;
+            return wrappedSignal.value;
           },
           enumerable: true,
         });
-        inflate(container, derivedSignal, value);
+        inflate(container, wrappedSignal, value);
       }
     }
   }
@@ -312,30 +312,11 @@ const inflate = (container: DeserializeContainer, target: any, needsInflationDat
       inflateQRL(container, target[SERIALIZABLE_STATE][0]);
       break;
     case SerializationConstant.Store_VALUE:
-      const storeHandler = getStoreHandler2(target)!;
-      storeHandler.$container$ = container as DomContainer;
-      storeHandler.$target$ = container.$getObjectById$(restInt());
-      storeHandler.$flags$ = restInt();
-      const effectSerializedString = rest.substring(restIdx);
-      const storeHasEffects = !!effectSerializedString.length;
-      if (storeHasEffects) {
-        const effectProps = effectSerializedString.split('|');
-        if (effectProps.length) {
-          const effects: Record<string, EffectSubscriptions[]> = (storeHandler.$effects$ = {});
-          for (let i = 0; i < effectProps.length; i++) {
-            const effect = effectProps[i];
-            const idx = effect.indexOf(';');
-            const prop = effect.substring(0, idx);
-            const effectStr = effect.substring(idx + 1);
-            deserializeSignal2Effect(0, effectStr.split(';'), container, (effects[prop] = []));
-          }
-        }
-      }
       break;
     case SerializationConstant.Signal_VALUE:
       deserializeSignal2(target as Signal2<unknown>, container, rest, false, false);
       break;
-    case SerializationConstant.DerivedSignal_VALUE:
+    case SerializationConstant.WrappedSignal_VALUE:
       deserializeSignal2(target as Signal2<unknown>, container, rest, true, false);
       break;
     case SerializationConstant.ComputedSignal_VALUE:
@@ -425,7 +406,7 @@ const allocate = <T>(value: string): any => {
       return componentQrl(parseQRL(value) as any);
     case SerializationConstant.Signal_VALUE:
       return new Signal2(null!, 0);
-    case SerializationConstant.DerivedSignal_VALUE:
+    case SerializationConstant.WrappedSignal_VALUE:
       return new WrappedSignal(null!, null!, null!, null!);
     case SerializationConstant.ComputedSignal_VALUE:
       return new ComputedSignal2(null!, null!);
@@ -470,8 +451,6 @@ const allocate = <T>(value: string): any => {
       return new Uint8Array(decodedLength);
     case SerializationConstant.PropsProxy_VALUE:
       return createPropsProxy(null!, null);
-    case SerializationConstant.Store_VALUE:
-      return createStore2(null, EMPTY_OBJ, 0);
     default:
       throw new Error('unknown allocate type: ' + value.charCodeAt(0));
   }
@@ -565,8 +544,6 @@ export interface SerializationContext {
 
   $addSyncFn$($funcStr$: string | null, argsCount: number, fn: Function): number;
 
-  $proxyMap$: ObjToProxyMap;
-
   $breakCircularDepsAndAwaitPromises$: () => ValueOrPromise<void>;
 
   /**
@@ -592,7 +569,6 @@ export interface SerializationContext {
 
 export const createSerializationContext = (
   NodeConstructor: SerializationContext['$NodeConstructor$'] | null,
-  $proxyMap$: ObjToProxyMap,
   symbolToChunkResolver: SymbolToChunkResolver,
   setProp: (obj: any, prop: string, value: any) => void,
   writer?: StreamWriter
@@ -641,7 +617,6 @@ export const createSerializationContext = (
       }
       return id;
     },
-    $proxyMap$,
     $syncFns$: syncFns,
     $addSyncFn$: (funcStr: string | null, argCount: number, fn: Function) => {
       const isFullFn = funcStr == null;
@@ -872,7 +847,6 @@ function serialize(serializationContext: SerializationContext): void {
     // (NOTE: For root objects we need to serialize them regardless if we have seen
     //        them before, otherwise the root object reference will point to itself.)
     const seen = depth <= 1 ? undefined : serializationContext.$wasSeen$(value);
-    let storeHandler: null | StoreHandler<any> = null;
     if (fastSkipSerialize(value as object)) {
       writeString(SerializationConstant.UNDEFINED_CHAR);
     } else if (typeof seen === 'number' && seen >= 0) {
@@ -885,10 +859,11 @@ function serialize(serializationContext: SerializationContext): void {
       const constProps = value[_CONST_PROPS];
       const constId = $addRoot$(constProps);
       writeString(SerializationConstant.PropsProxy_CHAR + varId + ' ' + constId);
-    } else if ((storeHandler = getStoreHandler2(value))) {
+    } else if (isStore2(value)) {
+      const storeHandler = getStoreHandler2(value)!;
       let store =
         SerializationConstant.Store_CHAR +
-        $addRoot$(storeHandler.$target$) +
+        $addRoot$(unwrapStore2(value)) +
         ' ' +
         storeHandler.$flags$;
       const effects = storeHandler.$effects$;
@@ -897,6 +872,12 @@ function serialize(serializationContext: SerializationContext): void {
         for (const propName in effects) {
           store += sep + propName + serializeEffectSubs($addRoot$, effects[propName]);
           sep = '|';
+        }
+        if (effects[STORE_ARRAY_PROP]) {
+          store +=
+            sep +
+            SerializationConstant.UNDEFINED_CHAR +
+            serializeEffectSubs($addRoot$, effects[STORE_ARRAY_PROP]);
         }
       }
       writeString(store);
@@ -908,7 +889,7 @@ function serialize(serializationContext: SerializationContext): void {
     } else if (value instanceof Signal2) {
       if (value instanceof WrappedSignal) {
         writeString(
-          SerializationConstant.DerivedSignal_CHAR +
+          SerializationConstant.WrappedSignal_CHAR +
             serializeDerivedFn(serializationContext, value, $addRoot$) +
             ';' +
             $addRoot$(value.$dependencies$) +
@@ -1144,6 +1125,42 @@ function deserializeSignal2(
   }
 }
 
+function deserializeStore2(container: DomContainer, data: string) {
+  restStack.push(rest, restIdx);
+  rest = data;
+  restIdx = 1;
+
+  const target: Record<string, unknown> = container.$getObjectById$(restInt()) as Record<
+    string,
+    unknown
+  >;
+  const store = createStore2(container, target, restInt());
+  const storeHandler = getStoreHandler2(store)!;
+  const effectSerializedString = rest.substring(restIdx);
+  const storeHasEffects = !!effectSerializedString.length;
+  if (storeHasEffects) {
+    const effectProps = effectSerializedString.split('|');
+    if (effectProps.length) {
+      const effects: Record<string | symbol, EffectSubscriptions[]> = (storeHandler.$effects$ = {});
+      for (let i = 0; i < effectProps.length; i++) {
+        const effect = effectProps[i];
+        const idx = effect.indexOf(';');
+        let prop: string | symbol = effect.substring(0, idx);
+        if (prop === SerializationConstant.UNDEFINED_CHAR) {
+          prop = STORE_ARRAY_PROP;
+        }
+        const effectStr = effect.substring(idx + 1);
+        deserializeSignal2Effect(0, effectStr.split(';'), container, (effects[prop] = []));
+      }
+    }
+  }
+
+  restIdx = restStack.pop() as number;
+  rest = restStack.pop() as string;
+
+  return store;
+}
+
 function deserializeSignal2Effect(
   idx: number,
   parts: string[],
@@ -1240,7 +1257,6 @@ export function qrlToString(
 export async function _serialize(data: unknown[]): Promise<string> {
   const serializationContext = createSerializationContext(
     null,
-    new WeakMap(),
     () => '',
     () => {}
   );
@@ -1434,10 +1450,9 @@ export const canSerialize2 = (value: any): boolean => {
   ) {
     return true;
   } else if (typeof value === 'object') {
-    let proto = Object.getPrototypeOf(value);
-    if (proto === Store2.prototype) {
+    const proto = Object.getPrototypeOf(value);
+    if (isStore2(value)) {
       value = unwrapStore2(value);
-      proto = Object.prototype;
     }
     if (proto == Object.prototype) {
       for (const key in value) {
@@ -1535,8 +1550,8 @@ export const enum SerializationConstant {
   Component_VALUE = /* ------------------- */ 0x13,
   Signal_CHAR = /* -------------------- */ '\u0014',
   Signal_VALUE = /* ---------------------- */ 0x14,
-  DerivedSignal_CHAR = /* ------------- */ '\u0015',
-  DerivedSignal_VALUE = /* --------------- */ 0x15,
+  WrappedSignal_CHAR = /* ------------- */ '\u0015',
+  WrappedSignal_VALUE = /* --------------- */ 0x15,
   ComputedSignal_CHAR = /* ------------ */ '\u0016',
   ComputedSignal_VALUE = /* -------------- */ 0x16,
   Store_CHAR = /* --------------------- */ '\u0017',
@@ -1625,7 +1640,7 @@ export const codeToName = (code: number) => {
       return 'VNode';
     case SerializationConstant.Component_VALUE:
       return 'Component';
-    case SerializationConstant.DerivedSignal_VALUE:
+    case SerializationConstant.WrappedSignal_VALUE:
       return 'DerivedSignal';
     case SerializationConstant.Store_VALUE:
       return 'Store';

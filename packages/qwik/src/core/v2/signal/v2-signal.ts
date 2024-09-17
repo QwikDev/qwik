@@ -28,7 +28,7 @@ import { ChoreType, type NodePropPayload } from '../shared/scheduler';
 import type { Container2, HostElement, fixMeAny } from '../shared/types';
 import type { ISsrNode } from '../ssr/ssr-types';
 import type { Signal2 as ISignal2 } from './v2-signal.public';
-import type { Store2 } from './v2-store';
+import type { TargetType } from './v2-store';
 import { isSubscriber, Subscriber } from './v2-subscriber';
 
 const DEBUG = false;
@@ -128,7 +128,7 @@ export type EffectSubscriptions = [
   (
     | string // List of properties (Only used with Store2 (not with Signal2))
     | Signal2
-    | Store2<any> // List of signals to release
+    | TargetType // List of signals to release
   )[],
 ];
 export const enum EffectSubscriptionsProp {
@@ -284,7 +284,7 @@ const subscriberExistInSubscribers = (subscribers: Subscriber[], subscriber: Sub
 
 export const triggerEffects = (
   container: Container2 | null,
-  signal: Signal2 | Store2<any>,
+  signal: Signal2 | TargetType,
   effects: EffectSubscriptions[] | null
 ) => {
   if (effects) {
@@ -337,7 +337,7 @@ export const triggerEffects = (
         const scopedStyleIdPrefix: string | null =
           effectSubscriptions[EffectSubscriptionsProp.DATA];
         const payload: NodePropPayload = {
-          value: signal,
+          value: signal as Signal2<any>,
           scopedStyleIdPrefix,
         };
         container.$scheduler$(ChoreType.NODE_PROP, host, property, payload);

@@ -177,7 +177,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         devTools: qwikViteOpts.devTools,
         sourcemap: !!viteConfig.build?.sourcemap,
         lint: qwikViteOpts.lint,
-        isDev: qwikViteOpts.isDev,
       };
       if (!qwikViteOpts.csr) {
         if (target === 'ssr') {
@@ -979,8 +978,6 @@ interface QwikVitePluginCommonOptions {
    * large projects. Defaults to `true`
    */
   lint?: boolean;
-  /** @internal Override isDev for testing purposes */
-  isDev?: boolean;
 }
 
 interface QwikVitePluginCSROptions extends QwikVitePluginCommonOptions {

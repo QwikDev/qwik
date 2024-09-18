@@ -1,5 +1,5 @@
+import type { ObjToProxyMap } from '../../container/container';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
-import type { SubscriptionManager } from '../../state/common';
 import type { ContextId } from '../../use/use-context';
 import type { ValueOrPromise } from '../../util/types';
 import type { VirtualVNode } from '../client/types';
@@ -19,7 +19,7 @@ export interface DeserializeContainer {
 export interface Container2 {
   readonly $version$: string;
   readonly $scheduler$: Scheduler;
-  readonly $subsManager$: SubscriptionManager;
+  readonly $storeProxyMap$: ObjToProxyMap;
   /// Current language locale
   readonly $locale$: string;
   /// Retrieve Object from paused serialized state.

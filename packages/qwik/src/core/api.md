@@ -265,10 +265,8 @@ export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>
     class?: ClassList | Signal<ClassList> | undefined;
 }
 
-// Warning: (ae-forgotten-export) The symbol "StoreTracker" needs to be exported by the entry point index.d.ts
-//
 // @internal (undocumented)
-class DomContainer extends _SharedContainer implements ClientContainer, StoreTracker {
+class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     $appendStyle$(content: string, styleId: string, host: _VirtualVNode, scoped: boolean): void;
     // (undocumented)
@@ -277,16 +275,16 @@ class DomContainer extends _SharedContainer implements ClientContainer, StoreTra
     $instanceHash$: string;
     // (undocumented)
     $journal$: VNodeJournal;
-    // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    $proxyMap$: ObjToProxyMap;
     // (undocumented)
     $qFuncs$: Array<(...args: unknown[]) => unknown>;
     // (undocumented)
     $rawStateData$: unknown[];
     // (undocumented)
     $setRawState$(id: number, vParent: _ElementVNode | _VirtualVNode): void;
+    // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    $storeProxyMap$: ObjToProxyMap;
     constructor(element: _ContainerElement);
     // (undocumented)
     document: _QDocument;
@@ -1110,6 +1108,8 @@ export abstract class _SharedContainer implements Container2 {
     readonly $scheduler$: Scheduler;
     // (undocumented)
     $serverData$: Record<string, any>;
+    // (undocumented)
+    readonly $storeProxyMap$: ObjToProxyMap;
     // Warning: (ae-forgotten-export) The symbol "SubscriptionManager" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)

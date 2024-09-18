@@ -17,8 +17,6 @@ const DEBUG = false;
 // eslint-disable-next-line no-console
 const log = (...args: any[]) => console.log('STORE', ...args.map(qwikDebugToString));
 
-export const storeWeakMap = new WeakMap<object, any>();
-
 const STORE_TARGET = Symbol('store.target');
 const STORE_HANDLER = Symbol('store.handler');
 export const STORE_ARRAY_PROP = Symbol('store.array');
@@ -61,11 +59,11 @@ export const getOrCreateStore2 = <T extends object>(
   flags: Store2Flags,
   container?: Container2 | null
 ): T => {
-  if (isSerializableObject(obj)) {
-    let store: T | undefined = storeWeakMap.get(obj);
+  if (isSerializableObject(obj) && container) {
+    let store: T | undefined = container.$storeProxyMap$.get(obj);
     if (!store) {
       store = createStore2(container, obj, flags);
-      storeWeakMap.set(obj, store);
+      container.$storeProxyMap$.set(obj, store);
     }
     return store;
   }

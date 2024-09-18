@@ -6,7 +6,6 @@ import { getPlatform } from '../../platform/platform';
 import type { QRL } from '../../qrl/qrl.public';
 import { ERROR_CONTEXT, isRecoverable } from '../../render/error-handling';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
-import type { StoreTracker } from '../../state/store';
 import type { ContextId } from '../../use/use-context';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
@@ -119,7 +118,7 @@ export const isDomContainer = (container: any): container is DomContainer => {
 };
 
 /** @internal */
-export class DomContainer extends _SharedContainer implements IClientContainer, StoreTracker {
+export class DomContainer extends _SharedContainer implements IClientContainer {
   public element: ContainerElement;
   public qContainer: string;
   public qBase: string;
@@ -129,7 +128,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   public $journal$: VNodeJournal;
   public renderDone: Promise<void> | null = null;
   public $rawStateData$: unknown[];
-  public $proxyMap$: ObjToProxyMap = new WeakMap();
+  public $storeProxyMap$: ObjToProxyMap = new WeakMap();
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
   public $instanceHash$: string;
 

@@ -1,5 +1,5 @@
+import type { ObjToProxyMap } from '../../container/container';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
-import { createSubscriptionManager, type SubscriptionManager } from '../../state/common';
 import type { Signal } from '../../state/signal';
 import type { ContextId } from '../../use/use-context';
 import { trackSignal2 } from '../../use/use-core';
@@ -10,13 +10,13 @@ import type { StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { Scheduler } from './scheduler';
 import { createScheduler } from './scheduler';
 import { createSerializationContext, type SerializationContext } from './shared-serialization';
-import type { Container2, HostElement, fixMeAny } from './types';
+import type { Container2, HostElement } from './types';
 
 /** @internal */
 export abstract class _SharedContainer implements Container2 {
   readonly $version$: string;
   readonly $scheduler$: Scheduler;
-  readonly $subsManager$: SubscriptionManager;
+  readonly $storeProxyMap$: ObjToProxyMap;
   /// Current language locale
   readonly $locale$: string;
   /// Retrieve Object from paused serialized state.
@@ -34,11 +34,11 @@ export abstract class _SharedContainer implements Container2 {
     this.$serverData$ = serverData;
     this.$locale$ = locale;
     this.$version$ = version;
+    this.$storeProxyMap$ = new WeakMap();
     this.$getObjectById$ = (id: number | string) => {
       throw Error('Not implemented');
     };
 
-    this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
     this.$scheduler$ = createScheduler(this, scheduleDrain, journalFlush);
   }
 

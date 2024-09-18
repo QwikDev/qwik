@@ -261,16 +261,21 @@ export function generateManifestFromBundles(
   const buildPath = path.resolve(opts.rootDir, opts.outDir, 'build');
   const canonPath = (p: string) =>
     path.relative(buildPath, path.resolve(opts.rootDir, opts.outDir, p));
+  const getBundleName = (name: string) => {
+    const bundle = outputBundles[name];
+    if (!bundle) {
+      console.warn(`Client manifest generation: skipping external import "${name}"`);
+      return;
+    }
+    return canonPath(bundle.fileName);
+  };
   // We need to find our QRL exports
   const qrlNames = new Set([...segments.map((h) => h.name)]);
   for (const outputBundle of Object.values(outputBundles)) {
     if (outputBundle.type !== 'chunk') {
       continue;
     }
-    const bundleFileName = path.relative(
-      buildPath,
-      path.resolve(opts.outDir, outputBundle.fileName)
-    );
+    const bundleFileName = canonPath(outputBundle.fileName);
 
     const bundle: QwikBundle = {
       size: outputBundle.code.length,
@@ -296,19 +301,18 @@ export function generateManifestFromBundles(
     }
 
     const bundleImports = outputBundle.imports
-      // Tree shaking can maybe remove imports
+      // Tree shaking might remove imports
       .filter((i) => outputBundle.code.includes(path.basename(i)))
-      .map((i) => canonPath(outputBundles[i].fileName || i));
+      .map((i) => getBundleName(i))
+      .filter(Boolean) as string[];
     if (bundleImports.length > 0) {
       bundle.imports = bundleImports;
     }
 
     const bundleDynamicImports = outputBundle.dynamicImports
-      .filter(
-        // Tree shaking can remove dynamic imports
-        (i) => outputBundle.code.includes(path.basename(i))
-      )
-      .map((i) => canonPath(outputBundles[i].fileName || i));
+      .filter((i) => outputBundle.code.includes(path.basename(i)))
+      .map((i) => getBundleName(i))
+      .filter(Boolean) as string[];
     if (bundleDynamicImports.length > 0) {
       bundle.dynamicImports = bundleDynamicImports;
     }

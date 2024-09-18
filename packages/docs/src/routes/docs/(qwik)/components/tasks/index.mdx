@@ -19,7 +19,8 @@ contributors:
   - adamdbradley
   - aendel
   - jemsco
-updated_at: '2023-10-18T07:33:22Z'
+  - czuma
+updated_at: '2024-09-18T02:08:00Z'
 created_at: '2023-03-31T02:40:50Z'
 ---
 
@@ -232,6 +233,7 @@ const delay = (time: number) => new Promise((res) => setTimeout(res, time));
 
 > Sometimes it is required to only run code either in the server or in the client. This can be achieved by using the `isServer` and `isBrowser` booleans exported from `@builder.io/qwik/build` as shown above.
 
+> If you want to track `useStore()` objects and execute something when any of their internal values change, use `track(myExampleStore)` directly without the anonymous function. This prevents `track()` from losing the reference to the original reactive object.
 
 ### `track()` as a function
 

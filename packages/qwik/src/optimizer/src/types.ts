@@ -66,7 +66,6 @@ export interface TransformOptions {
   stripCtxName?: string[];
   stripEventHandlers?: boolean;
   isServer?: boolean;
-  isDev?: boolean;
 }
 
 /** @public */

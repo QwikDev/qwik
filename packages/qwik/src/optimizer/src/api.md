@@ -438,8 +438,6 @@ export interface TransformOptions {
     // (undocumented)
     explicitExtensions?: boolean;
     // (undocumented)
-    isDev?: boolean;
-    // (undocumented)
     isServer?: boolean;
     // (undocumented)
     minify?: MinifyMode;

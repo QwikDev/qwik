@@ -5,7 +5,6 @@
  */
 import { build } from './build';
 import { loadConfig } from './util';
-import { polyfill } from './runBefore';
 
 const args = process.argv.slice(2);
 
@@ -14,6 +13,5 @@ const args = process.argv.slice(2);
 const config = loadConfig(args);
 config.esmNode = true;
 
-polyfill();
 // let's do this!
 build(config);

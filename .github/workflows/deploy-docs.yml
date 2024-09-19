@@ -38,12 +38,11 @@ jobs:
 
       # not the official version, so be careful when updating
       - name: Deploy to Cloudflare Pages
-        uses: AdrianGonz97/refined-cf-pages-action@f026b5a7c0cb4a05ecb63871c5fc4992cf036d7f
+        # Replace this with the main commit when this lands
+        uses: AdrianGonz97/refined-cf-pages-action@fix/deploy-prod-on-workflow_run
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: 'qwik-docs'
           directory: packages/docs/dist
           githubToken: ${{ secrets.GITHUB_TOKEN }}
-          # force production when running on main
-          branch: ${{ (github.event.workflow_run.head_branch == 'main' && 'main') || '' }}

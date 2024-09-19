@@ -286,7 +286,9 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         const [routeName, params, mods, menu] = loadedRoute;
         const contentModules = mods as ContentModule[];
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
-
+        if (navigation.dest.search) {
+          trackUrl.search = navigation.dest.search;
+        }
         // Update route location
         routeLocation.prevUrl = prevUrl;
         routeLocation.url = trackUrl;

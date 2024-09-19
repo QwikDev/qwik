@@ -1,14 +1,11 @@
-declare global {
-  var qTest: boolean;
-  var qRuntimeQrl: boolean;
-  var qDev: boolean;
-  var qInspector: boolean;
-}
-
-export function polyfill() {
+function polyfill() {
+  // @ts-ignore
   globalThis.qTest = true;
+  // @ts-ignore
   globalThis.qRuntimeQrl = true;
+  // @ts-ignore
   globalThis.qDev = true;
+  // @ts-ignore
   globalThis.qInspector = false;
   if (
     typeof global !== 'undefined' &&
@@ -26,3 +23,5 @@ export function polyfill() {
     }
   }
 }
+
+polyfill();

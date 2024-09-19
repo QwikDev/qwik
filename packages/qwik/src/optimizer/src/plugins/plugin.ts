@@ -53,6 +53,17 @@ const CLIENT_STRIP_CTX_NAME = [
   'browser',
   'event$',
 ];
+
+/** List experimental features here */
+export const experimental = ['preventNavigate', 'valibot'] as const;
+/**
+ * Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or
+ * `false` via an exact string replacement.
+ *
+ * @alpha
+ */
+export type ExperimentalFeatures = (typeof experimental)[number];
+
 export interface QwikPackages {
   id: string;
   path: string;
@@ -102,6 +113,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     },
     inlineStylesUpToBytes: null as any,
     lint: true,
+    experimental: undefined,
   };
 
   let lazyNormalizePath: (id: string) => string;
@@ -312,6 +324,16 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     } else {
       opts.lint = updatedOpts.buildMode === 'development';
     }
+
+    opts.experimental = undefined;
+    for (const feature of updatedOpts.experimental ?? []) {
+      if (!experimental.includes(feature as ExperimentalFeatures)) {
+        console.error(`Qwik plugin: Unknown experimental feature: ${feature}`);
+      } else {
+        (opts.experimental ||= {} as any)[feature as ExperimentalFeatures] = true;
+      }
+    }
+
     return { ...opts };
   };
 
@@ -624,14 +646,25 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         `Transforming ${id} (for: ${isServer ? 'server' : 'client'}${strip ? ', strip' : ''})`
       );
 
+      const mode =
+        opts.target === 'lib' ? 'lib' : opts.buildMode === 'development' ? 'dev' : 'prod';
+
+      if (mode !== 'lib') {
+        // this messes a bit with the source map, but it's ok for if statements
+        code = code.replaceAll(/__EXPERIMENTAL__\.(\w+)/g, (_, feature) => {
+          if (opts.experimental?.[feature as ExperimentalFeatures]) {
+            return 'true';
+          }
+          return 'false';
+        });
+      }
+
       let filePath = base;
       if (opts.srcDir) {
         filePath = path.relative(opts.srcDir, pathId);
       }
       filePath = normalizePath(filePath);
       const srcDir = opts.srcDir ? opts.srcDir : normalizePath(dir);
-      const mode =
-        opts.target === 'lib' ? 'lib' : opts.buildMode === 'development' ? 'dev' : 'prod';
       const entryStrategy: EntryStrategy = opts.entryStrategy;
       const transformOpts: TransformModulesOptions = {
         input: [{ code, path: filePath }],
@@ -1009,11 +1042,17 @@ export interface QwikPluginOptions {
    * large projects. Defaults to `true`
    */
   lint?: boolean;
+  /**
+   * Experimental features. These can come and go in patch releases, and their API is not guaranteed
+   * to be stable between releases
+   */
+  experimental?: ExperimentalFeatures[];
 }
 
 export interface NormalizedQwikPluginOptions
-  extends Omit<Required<QwikPluginOptions>, 'vendorRoots'> {
+  extends Omit<Required<QwikPluginOptions>, 'vendorRoots' | 'experimental'> {
   input: string[] | { [entry: string]: string };
+  experimental?: Record<ExperimentalFeatures, boolean>;
 }
 
 /** @public */

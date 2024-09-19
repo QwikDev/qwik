@@ -1,7 +1,7 @@
 import path, { resolve } from 'node:path';
 import { assert, test } from 'vitest';
 import type { QwikManifest } from '../types';
-import { createPlugin } from './plugin';
+import { createPlugin, experimental } from './plugin';
 import { normalizePath } from '../../../testing/util';
 import { qwikVite } from './vite';
 
@@ -205,6 +205,17 @@ test('resolveQwikBuild false', async () => {
   const plugin = await mockPlugin();
   const opts = plugin.normalizeOptions({ resolveQwikBuild: false });
   assert.deepEqual(opts.resolveQwikBuild, false);
+});
+
+test('experimental[]', async () => {
+  const plugin = await mockPlugin();
+  const flag = experimental[0];
+  if (!flag) {
+    // we can't test this without a flag
+    return;
+  }
+  const opts = plugin.normalizeOptions({ experimental: [flag] });
+  assert.deepEqual(opts.experimental, { [flag]: true } as any);
 });
 
 async function mockPlugin() {

@@ -1110,10 +1110,6 @@ export abstract class _SharedContainer implements Container2 {
     $serverData$: Record<string, any>;
     // (undocumented)
     readonly $storeProxyMap$: ObjToProxyMap;
-    // Warning: (ae-forgotten-export) The symbol "SubscriptionManager" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    readonly $subsManager$: SubscriptionManager;
     // (undocumented)
     readonly $version$: string;
     constructor(scheduleDrain: () => void, journalFlush: () => void, serverData: Record<string, any>, locale: string);

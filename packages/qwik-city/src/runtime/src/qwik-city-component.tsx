@@ -13,6 +13,7 @@ import {
   _weakSerialize,
   useStyles$,
   _waitUntilRendered,
+  type QRL,
 } from '@builder.io/qwik';
 import { isBrowser, isDev, isServer } from '@builder.io/qwik/build';
 import * as qwikCity from '@qwik-city-plan';
@@ -25,6 +26,7 @@ import {
   RouteInternalContext,
   RouteLocationContext,
   RouteNavigateContext,
+  RoutePreventNavigateContext,
   RouteStateContext,
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
@@ -39,6 +41,7 @@ import type {
   LoadedRoute,
   MutableRouteLocation,
   PageModule,
+  PreventNavigateCallback,
   ResolvedDocumentHead,
   RouteActionValue,
   RouteNavigate,
@@ -87,6 +90,16 @@ export interface QwikCityProps {
    */
   viewTransition?: boolean;
 }
+
+// Gets populated by registerPreventNav on the client
+const preventNav: {
+  $cbs$?: Set<QRL<PreventNavigateCallback>> | undefined;
+  $handler$?: (event: BeforeUnloadEvent) => void;
+} = {};
+
+// Track navigations during prevent so we don't overwrite
+// We need to use an object so we can write into it from qrls
+const internalState = { navCount: 0 };
 
 /** @public */
 export const QwikCityProvider = component$<QwikCityProps>((props) => {
@@ -145,6 +158,46 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
       : undefined
   );
 
+  const registerPreventNav = $((fn$: QRL<PreventNavigateCallback>) => {
+    if (!isBrowser) {
+      return;
+    }
+    preventNav.$handler$ ||= (event: BeforeUnloadEvent) => {
+      // track navigations during prevent so we don't overwrite
+      internalState.navCount++;
+      if (!preventNav.$cbs$) {
+        return;
+      }
+      const prevents = [...preventNav.$cbs$.values()].map((cb) =>
+        cb.resolved ? cb.resolved() : cb()
+      );
+      // this catches both true and Promise<any>
+      // we assume a Promise means to prevent the navigation
+      if (prevents.some(Boolean)) {
+        event.preventDefault();
+        // legacy support
+        event.returnValue = true;
+      }
+    };
+
+    (preventNav.$cbs$ ||= new Set()).add(fn$);
+    // we need the QRLs to be synchronous if possible, for the beforeunload event
+    fn$.resolve();
+    // TS thinks we're a webworker and doesn't know about beforeunload
+    (window as any).addEventListener('beforeunload', preventNav.$handler$);
+
+    return () => {
+      if (preventNav.$cbs$) {
+        preventNav.$cbs$.delete(fn$);
+        if (!preventNav.$cbs$.size) {
+          preventNav.$cbs$ = undefined;
+          // unregister the event listener if no more callbacks, to make older Firefox happy
+          (window as any).removeEventListener('beforeunload', preventNav.$handler$);
+        }
+      }
+    };
+  });
+
   const goto: RouteNavigate = $(async (path, opt) => {
     const {
       type = 'link',
@@ -152,14 +205,41 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
       replaceState = false,
       scroll = true,
     } = typeof opt === 'object' ? opt : { forceReload: opt };
-    if (typeof path === 'number') {
+    internalState.navCount++;
+
+    const lastDest = routeInternal.value.dest;
+    const dest =
+      path === undefined
+        ? lastDest
+        : typeof path === 'number'
+          ? path
+          : toUrl(path, routeLocation.url);
+
+    if (
+      preventNav.$cbs$ &&
+      (forceReload ||
+        typeof dest === 'number' ||
+        !isSamePath(dest, lastDest) ||
+        !isSameOrigin(dest, lastDest))
+    ) {
+      const ourNavId = internalState.navCount;
+      const prevents = await Promise.all([...preventNav.$cbs$.values()].map((cb) => cb(dest)));
+      if (ourNavId !== internalState.navCount || prevents.some(Boolean)) {
+        if (ourNavId === internalState.navCount && type === 'popstate') {
+          // Popstate events are not cancellable, so we push to undo
+          // TODO keep state?
+          history.pushState(null, '', lastDest);
+        }
+        return;
+      }
+    }
+
+    if (typeof dest === 'number') {
       if (isBrowser) {
-        history.go(path);
+        history.go(dest);
       }
       return;
     }
-    const lastDest = routeInternal.value.dest;
-    const dest = path === undefined ? lastDest : toUrl(path, routeLocation.url);
 
     if (!isSameOrigin(dest, lastDest)) {
       // Cross-origin nav() should always abort early.
@@ -215,6 +295,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   useContextProvider(RouteStateContext, loaderState);
   useContextProvider(RouteActionContext, actionState);
   useContextProvider(RouteInternalContext, routeInternal);
+  useContextProvider<any>(RoutePreventNavigateContext, registerPreventNav);
 
   useTask$(({ track }) => {
     async function run() {

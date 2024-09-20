@@ -534,6 +534,49 @@ describe.each([
     });
   });
 
+  it('should run cleanup with component rerender', async () => {
+    const Child = component$((props: { cleanupCounter: SignalType<number> }) => {
+      useTask$(({ cleanup }) => {
+        cleanup(() => {
+          props.cleanupCounter.value++;
+        });
+      });
+      return <span></span>;
+    });
+
+    const Cmp = component$(() => {
+      const counter = useSignal<number>(0);
+      const cleanupCounter = useSignal<number>(0);
+      return (
+        <div>
+          <button onClick$={() => counter.value++}></button>
+          <Child key={counter.value} cleanupCounter={cleanupCounter} />
+          {cleanupCounter.value}
+        </div>
+      );
+    });
+
+    const { vNode, container } = await render(<Cmp />, { debug });
+    await trigger(container.element, 'button', 'click');
+    await trigger(container.element, 'button', 'click');
+    await trigger(container.element, 'button', 'click');
+    await trigger(container.element, 'button', 'click');
+    await trigger(container.element, 'button', 'click');
+    await trigger(container.element, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <button></button>
+          <Component>
+            <span></span>
+          </Component>
+          <Signal>{'6'}</Signal>
+        </div>
+      </Component>
+    );
+  });
+
   describe('regression', () => {
     it('#5782', async () => {
       const Child = component$(({ sig }: { sig: SignalType<SignalType<number>> }) => {

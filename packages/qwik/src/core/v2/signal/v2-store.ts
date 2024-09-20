@@ -57,7 +57,7 @@ export function createStore2<T extends object>(
 export const getOrCreateStore2 = <T extends object>(
   obj: T,
   flags: Store2Flags,
-  container?: Container2 | null
+  container: Container2 | null
 ): T => {
   if (isSerializableObject(obj) && container) {
     let store: T | undefined = container.$storeProxyMap$.get(obj);

@@ -12,7 +12,6 @@ import {
   useContextProvider,
   createContextId,
   type Signal as SignalType,
-  useTask$,
 } from '@builder.io/qwik';
 import { trigger, domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 import { ErrorProvider } from '../../../testing/rendering.unit-util';
@@ -31,7 +30,7 @@ export function useDelay(value: string) {
 
 describe.each([
   { render: ssrRenderToDom }, //
-  // { render: domRender }, //
+  { render: domRender }, //
 ])('$render.name: useVisibleTask', ({ render }) => {
   it('should execute visible task', async () => {
     const VisibleCmp = component$(() => {
@@ -560,7 +559,7 @@ describe.each([
 
     it('should run cleanup with component rerender', async () => {
       const Child = component$((props: { cleanupCounter: SignalType<number> }) => {
-        useTask$(({ cleanup }) => {
+        useVisibleTask$(({ cleanup }) => {
           cleanup(() => {
             props.cleanupCounter.value++;
           });
@@ -575,12 +574,17 @@ describe.each([
           <div>
             <button onClick$={() => counter.value++}></button>
             <Child key={counter.value} cleanupCounter={cleanupCounter} />
-            {cleanupCounter.value + ''}
+            {cleanupCounter.value}
           </div>
         );
       });
 
       const { vNode, container } = await render(<Cmp />, { debug });
+
+      if (render === ssrRenderToDom) {
+        await trigger(container.element, 'span', 'qvisible');
+      }
+
       await trigger(container.element, 'button', 'click');
       await trigger(container.element, 'button', 'click');
       await trigger(container.element, 'button', 'click');

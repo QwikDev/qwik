@@ -191,7 +191,7 @@ export const vnode_diff = (
             descend(
               trackSignal2(
                 () => jsxValue.value,
-                vCurrent || (vNewNode as fixMeAny), // This should be host, but not sure why
+                (vNewNode || vCurrent)!,
                 EffectProperty.VNODE,
                 container
               ),
@@ -1229,8 +1229,8 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
             if (isTask(obj)) {
               const task = obj;
               clearSubscriberDependencies(task);
-              if (obj.$flags$ & TaskFlags.VISIBLE_TASK) {
-                container.$scheduler$(ChoreType.CLEANUP_VISIBLE, obj);
+              if (task.$flags$ & TaskFlags.VISIBLE_TASK) {
+                container.$scheduler$(ChoreType.CLEANUP_VISIBLE, task);
               } else {
                 cleanupTask(task);
               }

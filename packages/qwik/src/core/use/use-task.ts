@@ -353,6 +353,7 @@ export const runTask2 = (
   host: HostElement
 ): ValueOrPromise<void> => {
   task.$flags$ &= ~TaskFlags.DIRTY;
+  cleanupTask(task);
   const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, TaskEvent);
   iCtx.$container2$ = container;
   const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberDependencies(task)) as TaskFn;
@@ -396,7 +397,6 @@ export const runTask2 = (
   };
 
   const taskApi: TaskCtx = { track, cleanup };
-  cleanupTask(task);
   const result: ValueOrPromise<void> = safeCall(
     () => taskFn(taskApi),
     cleanup,

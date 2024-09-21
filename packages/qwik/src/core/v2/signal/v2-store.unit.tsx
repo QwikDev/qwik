@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Store2Flags, getOrCreateStore2, isStore2 } from './v2-store';
+import { StoreFlags, getOrCreateStore, isStore } from './v2-store';
 import { getDomContainer } from '@builder.io/qwik';
 import type { Container2 } from '../shared/types';
 import { createDocument } from '@builder.io/qwik-dom';
@@ -12,15 +12,15 @@ describe('v2/store', () => {
   });
 
   it('should create and toString', () => {
-    const store = getOrCreateStore2({ name: 'foo' }, Store2Flags.NONE, container);
-    expect(isStore2({})).toEqual(false);
-    expect(isStore2(store)).toEqual(true);
+    const store = getOrCreateStore({ name: 'foo' }, StoreFlags.NONE, container);
+    expect(isStore({})).toEqual(false);
+    expect(isStore(store)).toEqual(true);
     expect(store.toString()).toEqual('[Store]');
   });
   it('should respond to instanceof', () => {
     const target = { name: 'foo' };
     Object.freeze(target);
-    const store = getOrCreateStore2(target, Store2Flags.NONE, container);
+    const store = getOrCreateStore(target, StoreFlags.NONE, container);
     expect(store instanceof Array).toEqual(false);
     expect(target instanceof Object).toEqual(true);
   });

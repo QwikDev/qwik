@@ -13,7 +13,7 @@ import {
   SSRStream,
   type SSRStreamChildren,
 } from '../../render/jsx/utils.public';
-import { trackSignal2 } from '../../use/use-core';
+import { trackSignal } from '../../use/use-core';
 import { isAsyncGenerator } from '../../util/async-generator';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
@@ -29,7 +29,7 @@ import {
 import { addComponentStylePrefix, hasClassAttr, isClassAttr } from '../shared/scoped-styles';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
-import { WrappedSignal, EffectProperty, isSignal2 } from '../signal/v2-signal';
+import { WrappedSignal, EffectProperty, isSignal } from '../signal/v2-signal';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
 import { qInspector } from '../../util/qdev';
@@ -131,13 +131,13 @@ function processJSXNode(
       for (let i = value.length - 1; i >= 0; i--) {
         enqueue(value[i]);
       }
-    } else if (isSignal2(value)) {
+    } else if (isSignal(value)) {
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.WrappedSignal] : EMPTY_ARRAY);
       const signalNode = ssr.getLastNode() as fixMeAny;
       // TODO(mhevery): It is unclear to me why we need to serialize host for WrappedSignal.
       // const host = ssr.getComponentFrame(0)!.componentNode as fixMeAny;
       enqueue(ssr.closeFragment);
-      enqueue(trackSignal2(() => value.value as any, signalNode, EffectProperty.VNODE, ssr));
+      enqueue(trackSignal(() => value.value as any, signalNode, EffectProperty.VNODE, ssr));
     } else if (isPromise(value)) {
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Awaited] : EMPTY_ARRAY);
       enqueue(ssr.closeFragment);
@@ -371,7 +371,7 @@ export function toSsrAttrs(
       continue;
     }
 
-    if (isSignal2(value)) {
+    if (isSignal(value)) {
       // write signal as is. We will track this signal inside `writeAttrs`
       if (isClassAttr(key)) {
         // additionally append styleScopedId for class attr
@@ -488,7 +488,7 @@ function getSlotName(host: ISsrNode, jsx: JSXNode, ssr: SSRContainer): string {
   if (constProps && typeof constProps == 'object' && 'name' in constProps) {
     const constValue = constProps.name;
     if (constValue instanceof WrappedSignal) {
-      return trackSignal2(() => constValue.value, host as fixMeAny, EffectProperty.COMPONENT, ssr);
+      return trackSignal(() => constValue.value, host as fixMeAny, EffectProperty.COMPONENT, ssr);
     }
   }
   return (jsx.props.name as string) || QDefaultSlot;

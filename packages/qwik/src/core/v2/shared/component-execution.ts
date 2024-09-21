@@ -20,9 +20,9 @@ import { isPromise, maybeThen, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import type { Container2, HostElement, fixMeAny } from './types';
 import { logWarn } from '../../util/log';
-import { EffectProperty, isSignal2 } from '../signal/v2-signal';
+import { EffectProperty, isSignal } from '../signal/v2-signal';
 import { vnode_isVNode } from '../client/vnode';
-import { clearVNodeDependencies } from '../signal/v2-subscriber';
+import { clearVNodeEffectDependencies } from '../signal/v2-subscriber';
 
 /**
  * Use `executeComponent2` to execute a component.
@@ -92,7 +92,7 @@ export const executeComponent2 = (
         container.setHostProp(renderHost, ELEMENT_PROPS, props);
 
         if (vnode_isVNode(renderHost)) {
-          clearVNodeDependencies(renderHost);
+          clearVNodeEffectDependencies(renderHost);
         }
 
         return componentFn(props);
@@ -205,7 +205,7 @@ function findFirstStringJSX(jsx: JSXOutput): ValueOrPromise<JSXNode<string> | nu
       queue.push(...jsx);
     } else if (isPromise(jsx)) {
       return maybeThen<JSXOutput, JSXNode<string> | null>(jsx, (jsx) => findFirstStringJSX(jsx));
-    } else if (isSignal2(jsx)) {
+    } else if (isSignal(jsx)) {
       return findFirstStringJSX(untrack(() => jsx.value as JSXOutput));
     }
   }

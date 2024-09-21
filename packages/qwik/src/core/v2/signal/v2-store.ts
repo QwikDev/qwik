@@ -23,46 +23,46 @@ export const STORE_ARRAY_PROP = Symbol('store.array');
 
 export type TargetType = Record<string | symbol, any>;
 
-export const enum Store2Flags {
+export const enum StoreFlags {
   NONE = 0,
   RECURSIVE = 1,
   IMMUTABLE = 2,
 }
 
-export const getStoreHandler2 = (value: TargetType): StoreHandler | null => {
+export const getStoreHandler = (value: TargetType): StoreHandler | null => {
   return value[STORE_HANDLER] as StoreHandler | null;
 };
 
-export const getStoreTarget2 = <T extends TargetType>(value: T): T | null => {
+export const getStoreTarget = <T extends TargetType>(value: T): T | null => {
   return value?.[STORE_TARGET] || null;
 };
 
-export const unwrapStore2 = <T>(value: T): T => {
-  return getStoreTarget2<any>(value) || value;
+export const unwrapStore = <T>(value: T): T => {
+  return getStoreTarget<any>(value) || value;
 };
 
-export const isStore2 = (value: TargetType): boolean => {
-  const unwrap = unwrapStore2(value);
+export const isStore = (value: TargetType): boolean => {
+  const unwrap = unwrapStore(value);
   return unwrap !== value;
 };
 
-export function createStore2<T extends object>(
+export function createStore<T extends object>(
   container: Container2 | null | undefined,
   obj: T,
-  flags: Store2Flags
+  flags: StoreFlags
 ): T {
   return new Proxy(obj, new StoreHandler(flags, container || null)) as T;
 }
 
-export const getOrCreateStore2 = <T extends object>(
+export const getOrCreateStore = <T extends object>(
   obj: T,
-  flags: Store2Flags,
+  flags: StoreFlags,
   container: Container2 | null
 ): T => {
   if (isSerializableObject(obj) && container) {
     let store: T | undefined = container.$storeProxyMap$.get(obj);
     if (!store) {
-      store = createStore2(container, obj, flags);
+      store = createStore(container, obj, flags);
       container.$storeProxyMap$.set(obj, store);
     }
     return store;
@@ -74,7 +74,7 @@ export class StoreHandler implements ProxyHandler<TargetType> {
   $effects$: null | Record<string | symbol, EffectSubscriptions[]> = null;
 
   constructor(
-    public $flags$: Store2Flags,
+    public $flags$: StoreFlags,
     public $container$: Container2 | null
   ) {}
 
@@ -126,14 +126,14 @@ export class StoreHandler implements ProxyHandler<TargetType> {
 
     const flags = this.$flags$;
     if (
-      flags & Store2Flags.RECURSIVE &&
+      flags & StoreFlags.RECURSIVE &&
       typeof value === 'object' &&
       value !== null &&
       !Object.isFrozen(value) &&
-      !isStore2(value) &&
+      !isStore(value) &&
       !Object.isFrozen(target)
     ) {
-      value = getOrCreateStore2(value, this.$flags$, this.$container$);
+      value = getOrCreateStore(value, this.$flags$, this.$container$);
       (target as Record<string | symbol, any>)[prop] = value;
     }
     return value;
@@ -146,16 +146,16 @@ export class StoreHandler implements ProxyHandler<TargetType> {
       target[prop] = value;
       return true;
     }
-    const newValue = this.$flags$ & Store2Flags.RECURSIVE ? unwrapStore2(value) : value;
+    const newValue = this.$flags$ & StoreFlags.RECURSIVE ? unwrapStore(value) : value;
     if (prop in target) {
       const oldValue = target[prop];
 
       if (newValue !== oldValue) {
-        DEBUG && log('Signal.set', oldValue, '->', newValue, pad('\n' + this.toString(), '  '));
+        DEBUG && log('Store.set', oldValue, '->', newValue, pad('\n' + this.toString(), '  '));
         setNewValueAndTriggerEffects(prop, newValue, target, this);
       }
     } else {
-      DEBUG && log('Signal.set', 'create property', newValue, pad('\n' + this.toString(), '  '));
+      DEBUG && log('Store.set', 'create property', newValue, pad('\n' + this.toString(), '  '));
       setNewValueAndTriggerEffects(prop, newValue, target, this);
     }
     return true;

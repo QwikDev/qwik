@@ -1,47 +1,47 @@
 import { QSubscribers } from '../../util/markers';
 import type { VNode } from '../client/types';
 import { vnode_getProp } from '../client/vnode';
-import { EffectSubscriptionsProp, isSignal2, type Signal2 } from './v2-signal';
+import { EffectSubscriptionsProp, isSignal, type Signal } from './v2-signal';
 
 export abstract class Subscriber {
-  $dependencies$: Subscriber[] | null = null;
+  $effectDependencies$: Subscriber[] | null = null;
 }
 
 export function isSubscriber(value: unknown): value is Subscriber {
   return value instanceof Subscriber;
 }
 
-export function clearVNodeDependencies(value: VNode): void {
+export function clearVNodeEffectDependencies(value: VNode): void {
   const effects = vnode_getProp<Subscriber[]>(value, QSubscribers, null);
   if (!effects) {
     return;
   }
   for (let i = effects.length - 1; i >= 0; i--) {
     const subscriber = effects[i];
-    const subscriptionRemoved = clearSubscriptions(subscriber, value);
+    const subscriptionRemoved = clearEffects(subscriber, value);
     if (subscriptionRemoved) {
       effects.splice(i, 1);
     }
   }
 }
 
-export function clearSubscriberDependencies(value: Subscriber): void {
-  if (value.$dependencies$) {
-    for (let i = value.$dependencies$.length - 1; i >= 0; i--) {
-      const subscriber = value.$dependencies$[i];
-      const subscriptionRemoved = clearSubscriptions(subscriber, value);
+export function clearSubscriberEffectDependencies(value: Subscriber): void {
+  if (value.$effectDependencies$) {
+    for (let i = value.$effectDependencies$.length - 1; i >= 0; i--) {
+      const subscriber = value.$effectDependencies$[i];
+      const subscriptionRemoved = clearEffects(subscriber, value);
       if (subscriptionRemoved) {
-        value.$dependencies$.splice(i, 1);
+        value.$effectDependencies$.splice(i, 1);
       }
     }
   }
 }
 
-function clearSubscriptions(subscriber: Subscriber, value: Subscriber | VNode): boolean {
-  if (!isSignal2(subscriber)) {
+function clearEffects(subscriber: Subscriber, value: Subscriber | VNode): boolean {
+  if (!isSignal(subscriber)) {
     return false;
   }
-  const effectSubscriptions = (subscriber as Signal2<unknown>).$effects$;
+  const effectSubscriptions = (subscriber as Signal<unknown>).$effects$;
   if (!effectSubscriptions) {
     return false;
   }

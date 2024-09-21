@@ -16,7 +16,7 @@ import { getQFuncs, QInstanceAttr } from '../util/markers';
 import { maybeThen } from '../util/promises';
 import { qDev, qSerialize, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../util/types';
-import { isSignal2 } from '../v2/signal/v2-signal';
+import { isSignal } from '../v2/signal/v2-signal';
 import type { QRLDev } from './qrl';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 
@@ -247,7 +247,7 @@ export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {
 
 export function assertSignal<T>(obj: unknown): asserts obj is SignalInternal<T> {
   if (qDev) {
-    if (!isSignal(obj) && !isSignal2(obj)) {
+    if (!isSignal(obj) && !isSignal(obj)) {
       throw new Error('Not a Signal');
     }
   }

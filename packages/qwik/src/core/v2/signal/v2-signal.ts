@@ -15,7 +15,7 @@ import { pad, qwikDebugToString } from '../../debug';
 import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
 import { type QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
-import { trackSignal2, tryGetInvokeContext } from '../../use/use-core';
+import { trackSignal, tryGetInvokeContext } from '../../use/use-core';
 import { Task, TaskFlags, isTask } from '../../use/use-task';
 import { logError } from '../../util/log';
 import { ELEMENT_PROPS, OnRenderProp, QSubscribers } from '../../util/markers';
@@ -26,7 +26,7 @@ import { vnode_getProp, vnode_isVirtualVNode, vnode_isVNode, vnode_setProp } fro
 import { ChoreType, type NodePropPayload } from '../shared/scheduler';
 import type { Container2, HostElement, fixMeAny } from '../shared/types';
 import type { ISsrNode } from '../ssr/ssr-types';
-import type { Signal2 as ISignal2 } from './v2-signal.public';
+import type { Signal as ISignal } from './v2-signal.public';
 import type { TargetType } from './v2-store';
 import { isSubscriber, Subscriber } from './v2-subscriber';
 
@@ -43,13 +43,13 @@ const NEEDS_COMPUTATION: any = {
 // eslint-disable-next-line no-console
 const log = (...args: any[]) => console.log('SIGNAL', ...args.map(qwikDebugToString));
 
-export const createSignal2 = (value?: any) => {
-  return new Signal2(null, value);
+export const createSignal = (value?: any) => {
+  return new Signal(null, value);
 };
 
-export const createComputedSignal2 = <T>(qrl: QRL<() => T>) => {
+export const createComputedSignal = <T>(qrl: QRL<() => T>) => {
   throwIfQRLNotResolved(qrl);
-  return new ComputedSignal2(null, qrl as QRLInternal<() => T>);
+  return new ComputedSignal(null, qrl as QRLInternal<() => T>);
 };
 
 export const throwIfQRLNotResolved = <T>(qrl: QRL<() => T>) => {
@@ -65,8 +65,8 @@ export const throwIfQRLNotResolved = <T>(qrl: QRL<() => T>) => {
 };
 
 /** @public */
-export const isSignal2 = (value: any): value is ISignal2<unknown> => {
-  return value instanceof Signal2;
+export const isSignal = (value: any): value is ISignal<unknown> => {
+  return value instanceof Signal;
 };
 
 /**
@@ -80,7 +80,7 @@ export const isSignal2 = (value: any): value is ISignal2<unknown> => {
  *
  * @internal
  */
-export type Effect = Task | VNode | ISsrNode | Signal2;
+export type Effect = Task | VNode | ISsrNode | Signal;
 
 /**
  * An effect plus a list of subscriptions effect depends on.
@@ -126,7 +126,7 @@ export type EffectSubscriptions = [
   // it is a list of strings  followed by a list of signals (not intermingled)
   (
     | string // List of properties (Only used with Store2 (not with Signal2))
-    | Signal2
+    | Signal
     | TargetType // List of signals to release
   )[],
 ];
@@ -141,7 +141,7 @@ export const enum EffectProperty {
   VNODE = '.',
 }
 
-export class Signal2<T = any> extends Subscriber implements ISignal2<T> {
+export class Signal<T = any> extends Subscriber implements ISignal<T> {
   $untrackedValue$: T;
 
   /** Store a list of effects which are dependent on this signal. */
@@ -260,13 +260,13 @@ export const ensureEffectContainsSubscriber = (
   container: Container2 | null
 ) => {
   if (isSubscriber(effect)) {
-    effect.$dependencies$ ||= [];
+    effect.$effectDependencies$ ||= [];
 
-    if (subscriberExistInSubscribers(effect.$dependencies$, subscriber)) {
+    if (subscriberExistInSubscribers(effect.$effectDependencies$, subscriber)) {
       return;
     }
 
-    effect.$dependencies$.push(subscriber);
+    effect.$effectDependencies$.push(subscriber);
   } else if (vnode_isVNode(effect) && vnode_isVirtualVNode(effect)) {
     let subscribers = vnode_getProp<Subscriber[]>(
       effect,
@@ -309,7 +309,7 @@ const subscriberExistInSubscribers = (subscribers: Subscriber[], subscriber: Sub
 
 export const triggerEffects = (
   container: Container2 | null,
-  signal: Signal2 | TargetType,
+  signal: Signal | TargetType,
   effects: EffectSubscriptions[] | null
 ) => {
   if (effects) {
@@ -327,17 +327,17 @@ export const triggerEffects = (
           choreType = ChoreType.RESOURCE;
         }
         container.$scheduler$(choreType, effect);
-      } else if (effect instanceof Signal2) {
+      } else if (effect instanceof Signal) {
         // we don't schedule ComputedSignal/DerivedSignal directly, instead we invalidate it and
         // and schedule the signals effects (recursively)
-        if (effect instanceof ComputedSignal2) {
+        if (effect instanceof ComputedSignal) {
           // Ensure that the computed signal's QRL is resolved.
           // If not resolved schedule it to be resolved.
           if (!effect.$computeQrl$.resolved) {
             container.$scheduler$(ChoreType.QRL_RESOLVE, null, effect.$computeQrl$);
           }
         }
-        (effect as ComputedSignal2<unknown> | WrappedSignal<unknown>).$invalid$ = true;
+        (effect as ComputedSignal<unknown> | WrappedSignal<unknown>).$invalid$ = true;
         const previousSignal = signal;
         try {
           signal = effect;
@@ -362,7 +362,7 @@ export const triggerEffects = (
         const scopedStyleIdPrefix: string | null =
           effectSubscriptions[EffectSubscriptionsProp.DATA];
         const payload: NodePropPayload = {
-          value: signal as Signal2<any>,
+          value: signal as Signal<any>,
           scopedStyleIdPrefix,
         };
         container.$scheduler$(ChoreType.NODE_PROP, host, property, payload);
@@ -379,7 +379,7 @@ export const triggerEffects = (
  *
  * The value is available synchronously, but the computation is done lazily.
  */
-export class ComputedSignal2<T> extends Signal2<T> {
+export class ComputedSignal<T> extends Signal<T> {
   /**
    * The compute function is stored here.
    *
@@ -472,7 +472,7 @@ export class ComputedSignal2<T> extends Signal2<T> {
 }
 
 // TO DISCUSS: shouldn't this type of signal have the $dependencies$ array instead of EVERY type of signal?
-export class WrappedSignal<T> extends Signal2<T> {
+export class WrappedSignal<T> extends Signal<T> {
   $args$: any[];
   $func$: (...args: any[]) => T;
   $funcStr$: string | null;
@@ -525,7 +525,7 @@ export class WrappedSignal<T> extends Signal2<T> {
     if (!this.$invalid$) {
       return false;
     }
-    this.$untrackedValue$ = trackSignal2(
+    this.$untrackedValue$ = trackSignal(
       () => this.$func$(...this.$args$),
       this,
       EffectProperty.VNODE,

@@ -32,19 +32,19 @@ import { isSerializableObject, type ValueOrPromise } from '../../util/types';
 import { type DomContainer } from '../client/dom-container';
 import { vnode_getNode, vnode_isVNode, vnode_locate } from '../client/vnode';
 import {
-  ComputedSignal2,
+  ComputedSignal,
   WrappedSignal,
   EffectSubscriptionsProp,
-  Signal2,
+  Signal,
   type EffectSubscriptions,
 } from '../signal/v2-signal';
 import {
   STORE_ARRAY_PROP,
-  createStore2,
-  getStoreHandler2,
-  getStoreTarget2,
-  isStore2,
-  unwrapStore2,
+  createStore,
+  getStoreHandler,
+  getStoreTarget,
+  isStore,
+  unwrapStore,
 } from '../signal/v2-store';
 import type { Subscriber } from '../signal/v2-subscriber';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
@@ -96,7 +96,7 @@ class DeserializationHandler implements ProxyHandler<object> {
     if (property === SERIALIZER_PROXY_UNWRAP) {
       return target;
     }
-    if (getStoreTarget2(target) !== undefined) {
+    if (getStoreTarget(target) !== undefined) {
       /**
        * If we modify string value by for example `+=` operator, we need to get the old value first.
        * If the target is a store proxy, we need to unwrap it and get the real object. This is
@@ -108,7 +108,7 @@ class DeserializationHandler implements ProxyHandler<object> {
        * constant character, we need to have the SerializationConstant.String_CHAR prefix character.
        * Otherwise the system will try to deserialize the value again.
        */
-      const unwrapped = unwrapDeserializerProxy(unwrapStore2(target)) as object;
+      const unwrapped = unwrapDeserializerProxy(unwrapStore(target)) as object;
       const unwrappedPropValue = Reflect.get(unwrapped, property, receiver);
       if (
         typeof unwrappedPropValue === 'string' &&
@@ -299,11 +299,11 @@ const inflate = (container: DeserializeContainer, target: any, needsInflationDat
       task.$flags$ = restInt();
       task.$index$ = restInt();
       task.$el$ = container.$getObjectById$(restInt()) as Element;
-      task.$dependencies$ = container.$getObjectById$(restInt()) as Subscriber[] | null;
+      task.$effectDependencies$ = container.$getObjectById$(restInt()) as Subscriber[] | null;
       task.$qrl$ = inflateQRL(container, parseQRL(restString()));
       const taskState = restString();
       task.$state$ = taskState
-        ? (container.$getObjectById$(taskState) as Signal2<unknown>)
+        ? (container.$getObjectById$(taskState) as Signal<unknown>)
         : undefined;
       break;
     case SerializationConstant.Resource_VALUE:
@@ -314,13 +314,13 @@ const inflate = (container: DeserializeContainer, target: any, needsInflationDat
     case SerializationConstant.Store_VALUE:
       break;
     case SerializationConstant.Signal_VALUE:
-      deserializeSignal2(target as Signal2<unknown>, container, rest, false, false);
+      deserializeSignal2(target as Signal<unknown>, container, rest, false, false);
       break;
     case SerializationConstant.WrappedSignal_VALUE:
-      deserializeSignal2(target as Signal2<unknown>, container, rest, true, false);
+      deserializeSignal2(target as Signal<unknown>, container, rest, true, false);
       break;
     case SerializationConstant.ComputedSignal_VALUE:
-      deserializeSignal2(target as Signal2<unknown>, container, rest, false, true);
+      deserializeSignal2(target as Signal<unknown>, container, rest, false, true);
       break;
     case SerializationConstant.Error_VALUE:
       Object.assign(target, container.$getObjectById$(restInt()));
@@ -405,11 +405,11 @@ const allocate = <T>(value: string): any => {
     case SerializationConstant.Component_VALUE:
       return componentQrl(parseQRL(value) as any);
     case SerializationConstant.Signal_VALUE:
-      return new Signal2(null!, 0);
+      return new Signal(null!, 0);
     case SerializationConstant.WrappedSignal_VALUE:
       return new WrappedSignal(null!, null!, null!, null!);
     case SerializationConstant.ComputedSignal_VALUE:
-      return new ComputedSignal2(null!, null!);
+      return new ComputedSignal(null!, null!);
     case SerializationConstant.NotFinite_VALUE:
       const type = value.substring(1);
       const isNaN = type.length === 0;
@@ -681,7 +681,7 @@ export const createSerializationContext = (
         const isRoot = obj === rootObj;
         // For root objects we pretend we have not seen them to force scan.
         const id = $wasSeen$(obj);
-        const unwrapObj = unwrapStore2(obj);
+        const unwrapObj = unwrapStore(obj);
         if (id === undefined || isRoot) {
           // Object has not been seen yet, must scan content
           // But not for root.
@@ -715,19 +715,19 @@ export const createSerializationContext = (
             });
             setSerializableDataRootId($addRoot$, obj, tuples);
             discoveredValues.push(tuples);
-          } else if (obj instanceof Signal2) {
+          } else if (obj instanceof Signal) {
             discoveredValues.push(obj.$untrackedValue$);
             if (obj.$effects$) {
               for (const effect of obj.$effects$) {
                 discoveredValues.push(effect[EffectSubscriptionsProp.EFFECT]);
               }
             }
-            if (obj.$dependencies$) {
-              discoveredValues.push(obj.$dependencies$);
+            if (obj.$effectDependencies$) {
+              discoveredValues.push(obj.$effectDependencies$);
             }
             // TODO(mhevery): should scan the QRLs???
           } else if (obj instanceof Task) {
-            discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$, obj.$dependencies$);
+            discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$, obj.$effectDependencies$);
           } else if (NodeConstructor && obj instanceof NodeConstructor) {
             // ignore the nodes
             // debugger;
@@ -862,11 +862,11 @@ function serialize(serializationContext: SerializationContext): void {
       const constProps = value[_CONST_PROPS];
       const constId = $addRoot$(constProps);
       writeString(SerializationConstant.PropsProxy_CHAR + varId + ' ' + constId);
-    } else if (isStore2(value)) {
-      const storeHandler = getStoreHandler2(value)!;
+    } else if (isStore(value)) {
+      const storeHandler = getStoreHandler(value)!;
       let store =
         SerializationConstant.Store_CHAR +
-        $addRoot$(unwrapStore2(value)) +
+        $addRoot$(unwrapStore(value)) +
         ' ' +
         storeHandler.$flags$;
       const effects = storeHandler.$effects$;
@@ -889,25 +889,25 @@ function serialize(serializationContext: SerializationContext): void {
         serializationContext.$resources$.add(value);
       }
       serializeObjectLiteral(value, $writer$, writeValue, writeString);
-    } else if (value instanceof Signal2) {
+    } else if (value instanceof Signal) {
       if (value instanceof WrappedSignal) {
         writeString(
           SerializationConstant.WrappedSignal_CHAR +
             serializeDerivedFn(serializationContext, value, $addRoot$) +
             ';' +
-            $addRoot$(value.$dependencies$) +
+            $addRoot$(value.$effectDependencies$) +
             ';' +
             // `.untrackedValue` implicitly calls `$computeIfNeeded$`, which is what we want in case
             // the signal is not computed yet.
             $addRoot$(value.untrackedValue) +
             serializeEffectSubs($addRoot$, value.$effects$)
         );
-      } else if (value instanceof ComputedSignal2) {
+      } else if (value instanceof ComputedSignal) {
         writeString(
           SerializationConstant.ComputedSignal_CHAR +
             qrlToString(serializationContext, value.$computeQrl$) +
             ';' +
-            $addRoot$(value.$dependencies$) +
+            $addRoot$(value.$effectDependencies$) +
             ';' +
             $addRoot$(value.$untrackedValue$) +
             serializeEffectSubs($addRoot$, value.$effects$)
@@ -915,7 +915,7 @@ function serialize(serializationContext: SerializationContext): void {
       } else {
         writeString(
           SerializationConstant.Signal_CHAR +
-            $addRoot$(value.$dependencies$) +
+            $addRoot$(value.$effectDependencies$) +
             ';' +
             $addRoot$(value.$untrackedValue$) +
             serializeEffectSubs($addRoot$, value.$effects$)
@@ -980,7 +980,7 @@ function serialize(serializationContext: SerializationContext): void {
           ' ' +
           $addRoot$(value.$el$) +
           ' ' +
-          $addRoot$(value.$dependencies$) +
+          $addRoot$(value.$effectDependencies$) +
           ' ' +
           qrlToString(serializationContext, value.$qrl$) +
           (value.$state$ == null ? '' : ' ' + $addRoot$(value.$state$))
@@ -1091,7 +1091,7 @@ function serializeDerivedFn(
 }
 
 function deserializeSignal2(
-  signal: Signal2,
+  signal: Signal,
   container: DeserializeContainer,
   data: string,
   readFn: boolean,
@@ -1112,11 +1112,11 @@ function deserializeSignal2(
     }
   }
   if (readQrl) {
-    const computedSignal = signal as ComputedSignal2<any>;
+    const computedSignal = signal as ComputedSignal<any>;
     computedSignal.$computeQrl$ = inflateQRL(container, parseQRL(parts[idx++])) as fixMeAny;
   }
   const dependencies = container.$getObjectById$(parts[idx++]) as Subscriber[] | null;
-  signal.$dependencies$ = dependencies;
+  signal.$effectDependencies$ = dependencies;
   let signalValue = container.$getObjectById$(parts[idx++]);
   if (vnode_isVNode(signalValue)) {
     signalValue = vnode_getNode(signalValue);
@@ -1137,8 +1137,8 @@ function deserializeStore2(container: DomContainer, data: string) {
     string,
     unknown
   >;
-  const store = createStore2(container, target, restInt());
-  const storeHandler = getStoreHandler2(store)!;
+  const store = createStore(container, target, restInt());
+  const storeHandler = getStoreHandler(store)!;
   const effectSerializedString = rest.substring(restIdx);
   const storeHasEffects = !!effectSerializedString.length;
   if (storeHasEffects) {
@@ -1438,7 +1438,7 @@ const frameworkType = (obj: any) => {
   return (
     (typeof obj === 'object' &&
       obj !== null &&
-      (obj instanceof Signal2 || obj instanceof Task || isJSXNode(obj))) ||
+      (obj instanceof Signal || obj instanceof Task || isJSXNode(obj))) ||
     isQrl(obj)
   );
 };
@@ -1454,8 +1454,8 @@ export const canSerialize2 = (value: any): boolean => {
     return true;
   } else if (typeof value === 'object') {
     const proto = Object.getPrototypeOf(value);
-    if (isStore2(value)) {
-      value = unwrapStore2(value);
+    if (isStore(value)) {
+      value = unwrapStore(value);
     }
     if (proto == Object.prototype) {
       for (const key in value) {

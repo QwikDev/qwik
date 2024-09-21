@@ -4,8 +4,8 @@ import { logWarn } from '../util/log';
 import { ComputedEvent, RenderEvent } from '../util/markers';
 import { qDev, qSerialize } from '../util/qdev';
 import { isObject } from '../util/types';
-import { WrappedSignal, isSignal2 } from '../v2/signal/v2-signal';
-import { getStoreTarget2 } from '../v2/signal/v2-store';
+import { WrappedSignal, isSignal } from '../v2/signal/v2-signal';
+import { getStoreTarget } from '../v2/signal/v2-store';
 import {
   LocalSubscriptionManager,
   getSubscriptionManager,
@@ -217,7 +217,7 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(
   if (!isObject(obj)) {
     return obj[prop];
   }
-  if (isSignal2(obj)) {
+  if (isSignal(obj)) {
     assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
     return new WrappedSignal(null, getProp, [obj, prop as string], null);
   }
@@ -228,10 +228,10 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(
       return constProps[prop];
     }
   } else {
-    const target = getStoreTarget2(obj);
+    const target = getStoreTarget(obj);
     if (target) {
       const signal = target[prop];
-      const wrappedValue = isSignal2(signal)
+      const wrappedValue = isSignal(signal)
         ? signal
         : new WrappedSignal(null, getProp, [obj, prop as string], null);
       return wrappedValue;

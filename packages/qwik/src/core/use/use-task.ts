@@ -29,14 +29,14 @@ import { isFunction, isObject, type ValueOrPromise } from '../util/types';
 import { ChoreType } from '../v2/shared/scheduler';
 import { type Container2, type HostElement, type fixMeAny } from '../v2/shared/types';
 import {
-  ComputedSignal2,
+  ComputedSignal,
   EffectProperty,
-  isSignal2,
+  isSignal,
   throwIfQRLNotResolved,
 } from '../v2/signal/v2-signal';
-import { type ReadonlySignal2, type Signal2 } from '../v2/signal/v2-signal.public';
-import { unwrapStore2 } from '../v2/signal/v2-store';
-import { clearSubscriberDependencies, Subscriber } from '../v2/signal/v2-subscriber';
+import { type ReadonlySignal, type Signal } from '../v2/signal/v2-signal.public';
+import { unwrapStore } from '../v2/signal/v2-store';
+import { clearSubscriberEffectDependencies, Subscriber } from '../v2/signal/v2-subscriber';
 import { invoke, newInvokeContext, untrack, waitAndRun } from './use-core';
 import { useOn, useOnDocument } from './use-on';
 import { useSequentialScope } from './use-sequential-scope';
@@ -356,7 +356,7 @@ export const runTask2 = (
   cleanupTask(task);
   const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, TaskEvent);
   iCtx.$container2$ = container;
-  const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberDependencies(task)) as TaskFn;
+  const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberEffectDependencies(task)) as TaskFn;
 
   const track: Tracker = (obj: (() => unknown) | object | Signal, prop?: string) => {
     const ctx = newInvokeContext();
@@ -368,7 +368,7 @@ export const runTask2 = (
       }
       if (prop) {
         return (obj as Record<string, unknown>)[prop];
-      } else if (isSignal2(obj)) {
+      } else if (isSignal(obj)) {
         return obj.value;
       } else {
         return obj;
@@ -412,17 +412,17 @@ export const runTask2 = (
 };
 
 interface ComputedQRL {
-  <T>(qrl: QRL<ComputedFn<T>>): ReadonlySignal2<T>;
+  <T>(qrl: QRL<ComputedFn<T>>): ReadonlySignal<T>;
 }
 
 /** @public */
-export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal2<T> => {
-  const { val, set } = useSequentialScope<Signal2<T>>();
+export const useComputedQrl: ComputedQRL = <T>(qrl: QRL<ComputedFn<T>>): Signal<T> => {
+  const { val, set } = useSequentialScope<Signal<T>>();
   if (val) {
     return val;
   }
   assertQrl(qrl);
-  const signal = new ComputedSignal2(null, qrl);
+  const signal = new ComputedSignal(null, qrl);
   set(signal);
 
   throwIfQRLNotResolved(qrl);
@@ -551,7 +551,7 @@ export const runResource = <T>(
   const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, ResourceEvent);
   iCtx.$container2$ = container;
 
-  const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberDependencies(task));
+  const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberEffectDependencies(task));
 
   const resource = task.$state$;
   assertDefined(
@@ -570,7 +570,7 @@ export const runResource = <T>(
       }
       if (prop) {
         return (obj as Record<string, unknown>)[prop];
-      } else if (isSignal2(obj)) {
+      } else if (isSignal(obj)) {
         return obj.value;
       } else {
         return obj;
@@ -592,7 +592,7 @@ export const runResource = <T>(
     done = true;
   });
 
-  const resourceTarget = unwrapStore2(resource);
+  const resourceTarget = unwrapStore(resource);
   const opts: ResourceCtx<T> = {
     track,
     cleanup(fn) {

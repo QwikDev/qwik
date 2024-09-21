@@ -2,7 +2,7 @@ import type { ObjToProxyMap } from '../../container/container';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { Signal } from '../../state/signal';
 import type { ContextId } from '../../use/use-context';
-import { trackSignal2 } from '../../use/use-core';
+import { trackSignal } from '../../use/use-core';
 import type { ValueOrPromise } from '../../util/types';
 import { version } from '../../version';
 import type { Effect } from '../signal/v2-signal';
@@ -43,7 +43,7 @@ export abstract class _SharedContainer implements Container2 {
   }
 
   trackSignalValue<T>(signal: Signal, subscriber: Effect, property: string, data: any): T {
-    return trackSignal2(() => signal.value, subscriber, property, this, data);
+    return trackSignal(() => signal.value, subscriber, property, this, data);
   }
 
   serializationCtxFactory(

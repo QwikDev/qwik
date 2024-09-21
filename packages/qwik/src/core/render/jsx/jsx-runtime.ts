@@ -1,22 +1,18 @@
-import type { JsxChild } from 'typescript';
 import { type OnRenderFn } from '../../component/component.public';
 import { _CONST_PROPS } from '../../internal';
 import { type QRLInternal } from '../../qrl/qrl-class';
 import { _VAR_PROPS } from '../../state/constants';
-import { isSignal } from '../../state/signal';
 import { untrack } from '../../use/use-core';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { logOnceWarn, logWarn } from '../../util/log';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS } from '../../util/markers';
-import { isPromise } from '../../util/promises';
 import { qDev, seal } from '../../util/qdev';
 import { isArray, isObject, isString } from '../../util/types';
-import { WrappedSignal, isSignal2 } from '../../v2/signal/v2-signal';
+import { WrappedSignal } from '../../v2/signal/v2-signal';
 import { static_subtree } from '../execute-component';
 import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
-import { SkipRender } from './utils.public';
 
 export type Props = Record<string, unknown>;
 
@@ -273,28 +269,6 @@ export const isJSXNode = <T>(n: unknown): n is JSXNode<T> => {
   } else {
     return n instanceof JSXNodeImpl;
   }
-};
-
-export const isValidJSXChild = (node: unknown): node is JsxChild => {
-  if (!node) {
-    return true;
-  } else if (node === SkipRender) {
-    return true;
-  } else if (isString(node) || typeof node === 'number' || typeof node === 'boolean') {
-    return true;
-  } else if (isJSXNode(node)) {
-    return true;
-  } else if (isArray(node)) {
-    return node.every(isValidJSXChild);
-  }
-  if (isSignal(node)) {
-    return isValidJSXChild(node.value);
-  } else if (isSignal2(node)) {
-    return isValidJSXChild(node.untrackedValue);
-  } else if (isPromise(node)) {
-    return true;
-  }
-  return false;
 };
 
 /** @public */

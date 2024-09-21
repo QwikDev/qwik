@@ -242,7 +242,7 @@ const trackInvocation = /*#__PURE__*/ newInvokeContext(
  *
  * @public
  */
-export const trackSignal = <T>(signal: Signal, sub: Subscriber): T => {
+export const trackSignalV1 = <T>(signal: Signal, sub: Subscriber): T => {
   trackInvocation.$subscriber$ = sub; // todo(mhevery): delete me after signal 2
   return invoke(trackInvocation, () => signal.value);
 };
@@ -255,7 +255,7 @@ export const trackSignal = <T>(signal: Signal, sub: Subscriber): T => {
  * @param container
  * @returns
  */
-export const trackSignal2 = <T>(
+export const trackSignal = <T>(
   fn: () => T,
   subscriber: EffectSubscriptions[EffectSubscriptionsProp.EFFECT],
   property: EffectSubscriptions[EffectSubscriptionsProp.PROPERTY],

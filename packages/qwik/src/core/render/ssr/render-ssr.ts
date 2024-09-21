@@ -14,7 +14,7 @@ import {
 import { logError, logWarn } from '../../util/log';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
 import { isPromise, maybeThen } from '../../util/promises';
-import { type InvokeContext, newInvokeContext, invoke, trackSignal } from '../../use/use-core';
+import { type InvokeContext, newInvokeContext, invoke, trackSignalV1 } from '../../use/use-core';
 import { Virtual, _jsxSorted, createJSXError, isJSXNode } from '../jsx/jsx-runtime';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../../util/types';
 import { version } from '../../version';
@@ -565,7 +565,7 @@ const renderNode = (
       if (isSignal(value)) {
         assertDefined(hostCtx, 'Signals can not be used outside the root');
         if (isImmutable) {
-          value = trackSignal(value, [
+          value = trackSignalV1(value, [
             SubscriptionType.PROP_IMMUTABLE,
             elm,
             value,
@@ -574,7 +574,7 @@ const renderNode = (
             undefined,
           ]);
         } else {
-          value = trackSignal(value, [
+          value = trackSignalV1(value, [
             SubscriptionType.PROP_MUTABLE,
             hostCtx.$element$,
             value,
@@ -897,7 +897,7 @@ const processData = (
               ] as const)
             : ([SubscriptionType.TEXT_MUTABLE, hostEl, node, ('#' + id) as any] as const);
 
-        value = trackSignal(node, subs);
+        value = trackSignalV1(node, subs);
         if (isString(value)) {
           const str = jsxToString(value);
           ssrCtx.$static$.$textNodes$.set(str, id);

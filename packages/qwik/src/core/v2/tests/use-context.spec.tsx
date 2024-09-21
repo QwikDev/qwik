@@ -26,7 +26,7 @@ import {
   emulateExecutionOfQwikFuncs,
 } from '@builder.io/qwik/testing';
 import { renderToString2 } from 'packages/qwik/src/server/v2-ssr-render2';
-import type { Signal2 } from '../signal/v2-signal.public';
+import type { Signal } from '../signal/v2-signal.public';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -265,7 +265,7 @@ describe.each([
 
 describe('html wrapper', () => {
   it('should provide and retrieve a context in client', async () => {
-    const contextId = createContextId<Signal2<NoSerialize<{ value: string }>>>('myTest');
+    const contextId = createContextId<Signal<NoSerialize<{ value: string }>>>('myTest');
     const Consumer = component$(() => {
       const ctxValue = useContext(contextId);
       return <span>{ctxValue.value?.value}</span>;

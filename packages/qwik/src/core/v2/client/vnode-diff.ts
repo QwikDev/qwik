@@ -10,7 +10,7 @@ import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../../render/jsx/utils.public';
-import { trackSignal2, untrack } from '../../use/use-core';
+import { trackSignal, untrack } from '../../use/use-core';
 import { TaskFlags, cleanupTask, isTask } from '../../use/use-task';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import {
@@ -92,12 +92,15 @@ import {
   type VNodeJournal,
 } from './vnode';
 import { getNewElementNamespaceData } from './vnode-namespace';
-import { WrappedSignal, EffectProperty, isSignal2 } from '../signal/v2-signal';
-import type { Signal2 } from '../signal/v2-signal.public';
+import { WrappedSignal, EffectProperty, isSignal } from '../signal/v2-signal';
+import type { Signal } from '../signal/v2-signal.public';
 import { executeComponent2 } from '../shared/component-execution';
 import { isParentSlotProp, isSlotProp } from '../../util/prop';
 import { escapeHTML } from '../shared/character-escaping';
-import { clearSubscriberDependencies, clearVNodeDependencies } from '../signal/v2-subscriber';
+import {
+  clearSubscriberEffectDependencies,
+  clearVNodeEffectDependencies,
+} from '../signal/v2-subscriber';
 
 export type ComponentQueue = Array<VNode>;
 
@@ -186,13 +189,13 @@ export const vnode_diff = (
         } else if (jsxValue && typeof jsxValue === 'object') {
           if (Array.isArray(jsxValue)) {
             descend(jsxValue, false);
-          } else if (isSignal2(jsxValue)) {
+          } else if (isSignal(jsxValue)) {
             if (vCurrent) {
-              clearVNodeDependencies(vCurrent);
+              clearVNodeEffectDependencies(vCurrent);
             }
             expectVirtual(VirtualType.WrappedSignal, null);
             descend(
-              trackSignal2(
+              trackSignal(
                 () => jsxValue.value,
                 (vNewNode || vCurrent)!,
                 EffectProperty.VNODE,
@@ -517,7 +520,7 @@ export const vnode_diff = (
     if (constProps && typeof constProps == 'object' && 'name' in constProps) {
       const constValue = constProps.name;
       if (constValue instanceof WrappedSignal) {
-        return trackSignal2(
+        return trackSignal(
           () => constValue.value,
           vHost as fixMeAny,
           EffectProperty.COMPONENT,
@@ -616,7 +619,7 @@ export const vnode_diff = (
         }
 
         if (key === 'ref') {
-          if (isSignal2(value)) {
+          if (isSignal(value)) {
             value.value = element;
             continue;
           } else if (typeof value === 'function') {
@@ -625,9 +628,9 @@ export const vnode_diff = (
           }
         }
 
-        if (isSignal2(value)) {
-          value = trackSignal2(
-            () => (value as Signal2<unknown>).value,
+        if (isSignal(value)) {
+          value = trackSignal(
+            () => (value as Signal<unknown>).value,
             vNewNode as ElementVNode,
             key,
             container,
@@ -767,7 +770,7 @@ export const vnode_diff = (
 
       if (key === 'ref') {
         const element = vnode_getNode(vnode) as Element;
-        if (isSignal2(value)) {
+        if (isSignal(value)) {
           value.value = element;
           return;
         } else if (typeof value === 'function') {
@@ -776,7 +779,7 @@ export const vnode_diff = (
         }
       }
 
-      if (isSignal2(value)) {
+      if (isSignal(value)) {
         value = untrack(() => value.value);
       }
 
@@ -1065,7 +1068,7 @@ export const vnode_diff = (
     jsxProps: Props
   ) {
     if (host) {
-      clearVNodeDependencies(host);
+      clearVNodeEffectDependencies(host);
     }
     vnode_insertBefore(
       journal,
@@ -1226,7 +1229,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
       // Only elements and virtual nodes need to be traversed for children
       if (type & VNodeFlags.Virtual) {
         // Only virtual nodes have subscriptions
-        clearVNodeDependencies(vCursor);
+        clearVNodeEffectDependencies(vCursor);
         markVNodeAsDeleted(vNode, vParent, vCursor);
         const seq = container.getHostProp<Array<any>>(vCursor as VirtualVNode, ELEMENT_SEQ);
         if (seq) {
@@ -1234,7 +1237,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
             const obj = seq[i];
             if (isTask(obj)) {
               const task = obj;
-              clearSubscriberDependencies(task);
+              clearSubscriberEffectDependencies(task);
               if (task.$flags$ & TaskFlags.VISIBLE_TASK) {
                 container.$scheduler$(ChoreType.CLEANUP_VISIBLE, task);
               } else {

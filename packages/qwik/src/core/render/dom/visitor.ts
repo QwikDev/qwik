@@ -67,7 +67,7 @@ import {
 } from '../../state/context';
 import { isSignal } from '../../state/signal';
 import { ReadWriteProxyHandler, createPropsState, createProxy } from '../../state/store';
-import { trackSignal } from '../../use/use-core';
+import { trackSignalV1 } from '../../use/use-core';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import {
   appendChild,
@@ -393,7 +393,7 @@ export const diffVnode = (
     const signal = newVnode.$signal$;
     if (signal) {
       newVnode.$text$ = jsxToString(
-        trackSignal(signal, [
+        trackSignalV1(signal, [
           SubscriptionType.TEXT_MUTABLE,
           currentComponent.$element$,
           signal,
@@ -444,7 +444,7 @@ export const diffVnode = (
         }
 
         if (isSignal(newValue)) {
-          newValue = trackSignal(newValue, [
+          newValue = trackSignalV1(newValue, [
             SubscriptionType.PROP_IMMUTABLE,
             currentComponent.$element$,
             newValue,
@@ -682,7 +682,7 @@ export const createElm = (
         // crate elements
         const elm = createElm(rCtx, processedSignal as ProcessedJSXNode, flags, promises);
         // create subscription
-        trackSignal(
+        trackSignalV1(
           signal,
           flags & IS_IMMUTABLE
             ? ([SubscriptionType.TEXT_IMMUTABLE, elm, signal, elm] as TextSubscriber)
@@ -701,7 +701,7 @@ export const createElm = (
       const elm = doc.createTextNode(vnode.$text$);
       elm.data = vnode.$text$ = jsxToString(signalValue);
       // create subscription
-      trackSignal(
+      trackSignalV1(
         signal,
         flags & IS_IMMUTABLE
           ? ([SubscriptionType.TEXT_IMMUTABLE, elm, signal, elm] as TextSubscriber)
@@ -1086,7 +1086,7 @@ export const setProperties = (
 
     if (isSignal(newValue)) {
       assertDefined(hostCtx, 'Signals can only be used in components');
-      newValue = trackSignal(
+      newValue = trackSignalV1(
         newValue,
         immutable
           ? [SubscriptionType.PROP_IMMUTABLE, elm, newValue, hostCtx.$element$, prop, undefined]

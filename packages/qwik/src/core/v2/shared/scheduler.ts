@@ -113,7 +113,7 @@ import {
 import { vnode_diff } from '../client/vnode-diff';
 import { executeComponent2 } from './component-execution';
 import type { Container2, HostElement, fixMeAny } from './types';
-import { isSignal2, type Signal2 } from '../signal/v2-signal';
+import { isSignal, type Signal } from '../signal/v2-signal';
 import { serializeAttribute } from '../../render/execute-component';
 import { type DomContainer } from '../client/dom-container';
 
@@ -154,7 +154,7 @@ export interface Chore {
 }
 
 export interface NodePropPayload {
-  value: Signal2;
+  value: Signal;
   scopedStyleIdPrefix: string | null;
 }
 
@@ -364,7 +364,7 @@ export const createScheduler = (
       case ChoreType.NODE_DIFF:
         const parentVirtualNode = chore.$target$ as VirtualVNode;
         let jsx = chore.$payload$ as JSXOutput;
-        if (isSignal2(jsx)) {
+        if (isSignal(jsx)) {
           jsx = jsx.value as any;
         }
         returnValue = vnode_diff(container as DomContainer, jsx, parentVirtualNode, null);
@@ -372,10 +372,10 @@ export const createScheduler = (
       case ChoreType.NODE_PROP:
         const virtualNode = chore.$host$ as unknown as ElementVNode;
         const payload = chore.$payload$ as NodePropPayload;
-        let value: Signal2<any> | string = payload.value;
+        let value: Signal<any> | string = payload.value;
         // TODO: temp solution!
         let isConst = false;
-        if (isSignal2(value)) {
+        if (isSignal(value)) {
           value = value.value as any;
           isConst = true;
         }

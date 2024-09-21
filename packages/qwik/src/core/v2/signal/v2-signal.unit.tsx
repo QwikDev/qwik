@@ -13,7 +13,7 @@ import { getDomContainer } from '../client/dom-container';
 import { ChoreType } from '../shared/scheduler';
 import type { Container2 } from '../shared/types';
 import { EffectProperty, type EffectSubscriptions } from './v2-signal';
-import { createComputed2Qrl, createSignal2, type ReadonlySignal2 } from './v2-signal.public';
+import { createComputedQrl, createSignal, type ReadonlySignal } from './v2-signal.public';
 
 describe('v2-signal', () => {
   const log: any[] = [];
@@ -35,14 +35,14 @@ describe('v2-signal', () => {
   describe('primitive', () => {
     it('basic read operation', async () => {
       await withContainer(() => {
-        const signal = createSignal2(123);
+        const signal = createSignal(123);
         expect(signal.value).toEqual(123);
       });
     });
 
     it('basic subscription operation', async () => {
       await withContainer(async () => {
-        const signal = createSignal2(123);
+        const signal = createSignal(123);
         expect(signal.value).toEqual(123);
         effect$(() => log.push(signal.value));
         expect(log).toEqual([123]);
@@ -64,14 +64,14 @@ describe('v2-signal', () => {
 
     it('basic subscription operation', async () => {
       await withContainer(async () => {
-        const a = createSignal2(2);
-        const b = createSignal2(10);
+        const a = createSignal(2);
+        const b = createSignal(10);
         await retry(() => {
-          let signal!: ReadonlySignal2<number>;
+          let signal!: ReadonlySignal<number>;
           effect$(() => {
             signal =
               signal ||
-              createComputed2Qrl(
+              createComputedQrl(
                 delayQrl(
                   $(() => {
                     return a.value + b.value;
@@ -98,7 +98,7 @@ describe('v2-signal', () => {
       withContainer(async () => {
         const obj = { count: 0 };
         const computed = await retry(() => {
-          return createComputed2Qrl(
+          return createComputedQrl(
             delayQrl(
               $(() => {
                 obj.count++;

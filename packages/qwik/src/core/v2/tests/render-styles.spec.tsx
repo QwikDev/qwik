@@ -1,8 +1,12 @@
 import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
 import { describe, expect, it } from 'vitest';
-import { component$ } from '../../component/component.public';
-import { Fragment as Component, Fragment } from '../../render/jsx/jsx-runtime';
-import { useStore } from '../../use/use-store.public';
+import {
+  Fragment as Component,
+  Fragment,
+  Fragment as Signal,
+  useStore,
+  component$,
+} from '@builder.io/qwik';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -45,7 +49,9 @@ describe.each([
         <Fragment>
           <button />
           <Component>
-            <span class="even stable0">0</span>
+            <span class="even stable0">
+              <Signal>0</Signal>
+            </span>
           </Component>
         </Fragment>
       </Component>
@@ -56,7 +62,9 @@ describe.each([
         <Fragment>
           <button />
           <Component>
-            <span class="odd stable0">1</span>
+            <span class="odd stable0">
+              <Signal>1</Signal>
+            </span>
           </Component>
         </Fragment>
       </Component>

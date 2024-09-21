@@ -3,22 +3,21 @@ import {
   Fragment,
   Fragment as Projection,
   Fragment as Signal,
+  component$,
+  inlinedQrl,
+  Slot,
+  useSignal,
+  useStylesScopedQrl,
 } from '@builder.io/qwik';
 import { createDocument } from '@builder.io/qwik-dom';
 import { afterEach, describe, expect, it } from 'vitest';
 import { useStore } from '../..';
-import { renderToString2 } from '../../../server/v2-ssr-render2';
-import { cleanupAttrs, trigger } from '../../../testing/element-fixture';
-import { domRender, ssrRenderToDom } from '../../../testing/rendering.unit-util';
-import '../../../testing/vdom-diff.unit-util';
-import { component$ } from '../../component/component.public';
+import { renderToString } from '@builder.io/qwik/server';
+import { trigger, domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 import { getPlatform, setPlatform } from '../../platform/platform';
-import { inlinedQrl } from '../../qrl/qrl';
-import { Slot } from '../../render/jsx/slot.public';
 import { getScopedStyles } from '../../style/scoped-stylesheet';
-import { useSignal } from '../../use/use-signal';
-import { useStylesScopedQrl } from '../../use/use-styles';
 import { QStyleSelector } from '../../util/markers';
+import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -60,7 +59,7 @@ describe.each([
     );
   });
 
-  it('should render style', async () => {
+  it('should render object style', async () => {
     (globalThis as any).rawStyleId = '';
 
     const StyledComponent = component$(() => {
@@ -698,7 +697,7 @@ describe('html wrapper', () => {
     let document = createDocument();
     const platform = getPlatform();
     try {
-      const result = await renderToString2(
+      const result = await renderToString(
         <Wrapper>
           <head>
             <script></script>

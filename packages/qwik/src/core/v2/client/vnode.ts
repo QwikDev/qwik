@@ -118,8 +118,8 @@
  */
 
 import { isDev } from '@builder.io/qwik/build';
+import { qwikDebugToString } from '../../debug';
 import { assertDefined, assertEqual, assertFalse, assertTrue } from '../../error/assert';
-import { isQrl } from '../../qrl/qrl-class';
 import { dangerouslySetInnerHTML } from '../../render/execute-component';
 import { isText } from '../../util/element';
 import { throwErrorAndStop } from '../../util/log';
@@ -143,11 +143,12 @@ import {
   QSlotRef,
   QStyle,
   QStylesAllSelector,
+  Q_PROPS_SEPARATOR,
 } from '../../util/markers';
 import { isHtmlElement } from '../../util/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType, VirtualTypeName } from '../shared/types';
 import { VNodeDataChar } from '../shared/vnode-data-types';
-import { getDomContainer, _getQContainerElement } from './dom-container';
+import { getDomContainer } from './dom-container';
 import {
   ElementVNodeProps,
   TextVNodeProps,
@@ -168,7 +169,6 @@ import {
   vnode_getElementNamespaceFlags,
 } from './vnode-namespace';
 import { escapeHTML } from '../shared/character-escaping';
-import { SignalImpl } from '../../state/signal';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -284,11 +284,6 @@ export const vnode_newVirtual = (): VirtualVNode => {
 
 export const vnode_isVNode = (vNode: any): vNode is VNode => {
   return vNode instanceof VNodeArray;
-  // if (Array.isArray(vNode) && vNode.length > 0) {
-  //   const flag = (vNode as VNode)[VNodeProps.flags];
-  //   return typeof flag === 'number' && (flag & VNodeFlags.TYPE_MASK) !== 0;
-  // }
-  // return false;
 };
 
 export const vnode_isElementVNode = (vNode: VNode): vNode is ElementVNode => {
@@ -379,7 +374,7 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
     for (let idx = 0; idx < attributes.length; idx++) {
       const attr = attributes[idx];
       const key = attr.name;
-      if (key == ':' || !key) {
+      if (key == Q_PROPS_SEPARATOR || !key) {
         // SVG in Domino does not support ':' so it becomes an empty string.
         // all attributes after the ':' are considered immutable, and so we ignore them.
         break;
@@ -408,7 +403,10 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
 };
 
 /** Walks the VNode tree and materialize it using `vnode_getFirstChild`. */
-export function vnode_walkVNode(vNode: VNode) {
+export function vnode_walkVNode(
+  vNode: VNode,
+  callback?: (vNode: VNode, vParent: VNode | null) => void
+): void {
   let vCursor: VNode | null = vNode;
   // Depth first traversal
   if (vnode_isTextVNode(vNode)) {
@@ -417,6 +415,7 @@ export function vnode_walkVNode(vNode: VNode) {
   }
   let vParent: VNode | null = null;
   do {
+    callback?.(vCursor, vParent);
     const vFirstChild = vnode_getFirstChild(vCursor);
     if (vFirstChild) {
       vCursor = vFirstChild;
@@ -1572,14 +1571,14 @@ export function vnode_toString(
   const strings: string[] = [];
   do {
     if (vnode_isTextVNode(vnode)) {
-      strings.push(stringify(vnode_getText(vnode)));
+      strings.push(qwikDebugToString(vnode_getText(vnode)));
     } else if (vnode_isVirtualVNode(vnode)) {
       const idx = vnode[VNodeProps.flags] >>> VNodeFlagsIndex.shift;
       const attrs: string[] = ['[' + String(idx) + ']'];
       vnode_getAttrKeys(vnode).forEach((key) => {
         if (key !== DEBUG_TYPE) {
           const value = vnode_getAttr(vnode!, key);
-          attrs.push(' ' + key + '=' + stringify(value));
+          attrs.push(' ' + key + '=' + qwikDebugToString(value));
         }
       });
       const name =
@@ -1595,20 +1594,20 @@ export function vnode_toString(
       const keys = vnode_getAttrKeys(vnode);
       keys.forEach((key) => {
         const value = vnode_getAttr(vnode!, key);
-        attrs.push(' ' + key + '=' + stringify(value));
+        attrs.push(' ' + key + '=' + qwikDebugToString(value));
       });
       const node = vnode_getNode(vnode) as HTMLElement;
       if (node) {
         const vnodeData = (node.ownerDocument as QDocument).qVNodeData?.get(node);
         if (vnodeData) {
-          attrs.push(' q:vnodeData=' + stringify(vnodeData));
+          attrs.push(' q:vnodeData=' + qwikDebugToString(vnodeData));
         }
       }
       const domAttrs = node.attributes;
       for (let i = 0; i < domAttrs.length; i++) {
         const attr = domAttrs[i];
         if (keys.indexOf(attr.name) === -1) {
-          attrs.push(' ' + attr.name + (attr.value ? '=' + stringify(attr.value) : ''));
+          attrs.push(' ' + attr.name + (attr.value ? '=' + qwikDebugToString(attr.value) : ''));
         }
       }
       strings.push('<' + tag + attrs.join('') + '>');
@@ -1901,45 +1900,6 @@ export const vnode_getProjectionParentComponent = (
     }
   }
   return vHost as VirtualVNode | null;
-};
-
-const stringifyPath: any[] = [];
-const stringify = (value: any): any => {
-  stringifyPath.push(value);
-  try {
-    if (value === null) {
-      return 'null';
-    } else if (value === undefined) {
-      return 'undefined';
-    } else if (typeof value === 'string') {
-      return '"' + value + '"';
-    } else if (typeof value === 'function') {
-      if (isQrl(value)) {
-        return '"' + (value.$chunk$ || '') + '#' + value.$hash$ + '"';
-      } else {
-        return '"' + value.name + '()"';
-      }
-    } else if (vnode_isVNode(value)) {
-      if (stringifyPath.indexOf(value) !== -1) {
-        return '*';
-      } else {
-        return '"' + String(value).replaceAll(/\n\s*/gm, '') + '"';
-      }
-    } else if (Array.isArray(value)) {
-      return '[' + value.map(stringify).join(', ') + ']';
-    }
-    if (value instanceof SignalImpl) {
-      return stringify(value.value);
-    } else {
-      if (value.toString) {
-        return String(value);
-      } else {
-        return JSON.stringify(value);
-      }
-    }
-  } finally {
-    stringifyPath.pop();
-  }
 };
 
 const VNodeArray = class VNode extends Array {

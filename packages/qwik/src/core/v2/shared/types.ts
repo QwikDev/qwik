@@ -1,6 +1,5 @@
 import type { ObjToProxyMap } from '../../container/container';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
-import type { SubscriptionManager } from '../../state/common';
 import type { ContextId } from '../../use/use-context';
 import type { ValueOrPromise } from '../../util/types';
 import type { VirtualVNode } from '../client/types';
@@ -13,7 +12,6 @@ export type fixMeAny = any;
 
 export interface DeserializeContainer {
   $getObjectById$: (id: number | string) => unknown;
-  $subsManager$: SubscriptionManager;
   element: HTMLElement | null;
   getSyncFn: (id: number) => (...args: unknown[]) => unknown;
 }
@@ -21,8 +19,7 @@ export interface DeserializeContainer {
 export interface Container2 {
   readonly $version$: string;
   readonly $scheduler$: Scheduler;
-  readonly $subsManager$: SubscriptionManager;
-  readonly $proxyMap$: ObjToProxyMap;
+  readonly $storeProxyMap$: ObjToProxyMap;
   /// Current language locale
   readonly $locale$: string;
   /// Retrieve Object from paused serialized state.
@@ -87,7 +84,7 @@ export const DEBUG_TYPE = 'q:type';
 export enum VirtualType {
   Virtual = 'V',
   Fragment = 'F',
-  DerivedSignal = 'D',
+  WrappedSignal = 'S',
   Awaited = 'A',
   Component = 'C',
   InlineComponent = 'I',
@@ -100,7 +97,7 @@ const END = '\x1b[0m';
 export const VirtualTypeName: Record<string, string> = {
   [VirtualType.Virtual]: /* ********* */ START + 'Virtual' + END, //
   [VirtualType.Fragment]: /* ******** */ START + 'Fragment' + END, //
-  [VirtualType.DerivedSignal]: /* *** */ START + 'Signal' + END, //
+  [VirtualType.WrappedSignal]: /* *** */ START + 'Signal' + END, //
   [VirtualType.Awaited]: /* ********* */ START + 'Awaited' + END, //
   [VirtualType.Component]: /* ******* */ START + 'Component' + END, //
   [VirtualType.InlineComponent]: /* * */ START + 'InlineComponent' + END, //

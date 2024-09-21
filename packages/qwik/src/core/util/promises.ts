@@ -5,7 +5,7 @@ export type PromiseTree<T> = T | Promise<T> | Promise<T[]> | Array<PromiseTree<T
 
 export const isPromise = (value: any): value is Promise<any> => {
   // not using "value instanceof Promise" to have zone.js support
-  return value && typeof value == 'object' && typeof value.then === 'function';
+  return !!value && typeof value == 'object' && typeof value.then === 'function';
 };
 
 export const safeCall = <T, B, C>(
@@ -26,17 +26,21 @@ export const safeCall = <T, B, C>(
 };
 
 export const maybeThen = <T, B>(
-  promise: ValueOrPromise<T>,
+  valueOrPromise: ValueOrPromise<T>,
   thenFn: (arg: Awaited<T>) => ValueOrPromise<B>
 ): ValueOrPromise<B> => {
-  return isPromise(promise) ? promise.then(thenFn as any, shouldNotError) : thenFn(promise as any);
+  return isPromise(valueOrPromise)
+    ? valueOrPromise.then(thenFn as any, shouldNotError)
+    : thenFn(valueOrPromise as any);
 };
 
 export const maybeThenPassError = <T, B>(
-  promise: ValueOrPromise<T>,
+  valueOrPromise: ValueOrPromise<T>,
   thenFn: (arg: Awaited<T>) => ValueOrPromise<B>
 ): ValueOrPromise<B> => {
-  return isPromise(promise) ? promise.then(thenFn as any) : thenFn(promise as any);
+  return isPromise(valueOrPromise)
+    ? valueOrPromise.then(thenFn as any)
+    : thenFn(valueOrPromise as any);
 };
 
 export const shouldNotError = (reason: any): any => {

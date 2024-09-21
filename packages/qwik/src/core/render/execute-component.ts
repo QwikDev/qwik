@@ -13,7 +13,7 @@ import { seal } from '../util/qdev';
 import { SkipRender } from './jsx/utils.public';
 import { handleError } from './error-handling';
 import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, type QContext } from '../state/context';
-import { isSignal, SignalUnassignedException } from '../state/signal';
+import { isSignalV1, SignalUnassignedException } from '../state/signal';
 import { isJSXNode } from './jsx/jsx-runtime';
 import { isUnitlessNumber } from '../util/unitless_number';
 import { isServerPlatform } from '../platform/platform';
@@ -269,7 +269,7 @@ export const setQId = (rCtx: RenderContext, elCtx: QContext) => {
 };
 
 export const jsxToString = (data: any): string => {
-  if (isSignal(data)) {
+  if (isSignalV1(data)) {
     return jsxToString(data.value);
   }
   return data == null || typeof data === 'boolean' ? '' : String(data);

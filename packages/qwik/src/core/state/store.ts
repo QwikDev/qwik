@@ -6,12 +6,7 @@ import { logError, logWarn } from '../util/log';
 import { ComputedEvent, RenderEvent } from '../util/markers';
 import { qDev, qSerialize } from '../util/qdev';
 import { isArray, isObject, isSerializableObject } from '../util/types';
-import {
-  SERIALIZER_PROXY_UNWRAP,
-  SerializationConstant,
-  subscriptionManagerFromString,
-  unwrapDeserializerProxy,
-} from '../v2/shared/shared-serialization';
+import { SERIALIZER_PROXY_UNWRAP, SerializationConstant } from '../v2/shared/shared-serialization';
 import {
   LocalSubscriptionManager,
   fastSkipSerialize,
@@ -29,7 +24,7 @@ import {
   QObjectTargetSymbol,
   _CONST_PROPS,
 } from './constants';
-import { isSignal } from './signal';
+import { isSignalV1 } from './signal';
 
 export interface StoreTracker {
   $proxyMap$: ObjToProxyMap;
@@ -78,6 +73,7 @@ export const createProxy = <T extends object>(
   const getSerializedState = (target: object): string | undefined => {
     return (target as any)[SerializationConstant.Store_CHAR];
   };
+  const subscriptionManagerFromString: any = null!;
   const removeSerializedState = (target: object) => {
     delete (target as any)[SerializationConstant.Store_CHAR];
   };
@@ -201,7 +197,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 
   set(target: TargetType, prop: string | symbol, newValue: any): boolean {
     // we need deserializer proxy only to get the value, not to set it
-    target = unwrapDeserializerProxy(target) as TargetType;
+    // target = unwrapDeserializerProxy(target) as TargetType;
     if (typeof prop === 'symbol') {
       target[prop] = newValue;
       return true;
@@ -291,7 +287,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 }
 
 const immutableValue = (value: any) => {
-  return value === _CONST_PROPS || isSignal(value);
+  return value === _CONST_PROPS || isSignalV1(value);
 };
 
 const wrap = <T>(value: T, storeTracker: StoreTracker): T => {

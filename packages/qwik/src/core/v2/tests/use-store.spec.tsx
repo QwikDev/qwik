@@ -1,15 +1,17 @@
-import { Fragment as Component, Fragment, Fragment as Signal } from '@builder.io/qwik';
-import { describe, expect, it, vi } from 'vitest';
-import { advanceToNextTimerAndFlush } from '../../../testing/element-fixture';
-import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
 import {
+  Fragment as Component,
+  Fragment,
+  Fragment as Signal,
+  useTask$,
   component$,
-  type Signal as SignalType,
   untrack,
   useSignal,
   useStore,
-  useTask$,
+  useVisibleTask$,
 } from '@builder.io/qwik';
+import { describe, expect, it, vi } from 'vitest';
+import { advanceToNextTimerAndFlush } from '../../../testing/element-fixture';
+import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -188,13 +190,11 @@ describe.each([
     it('should allow signal to deliver value or JSX', async () => {
       const log: string[] = [];
       const Counter = component$(() => {
-        const count = useStore<any>({ value: 'initial' });
-        log.push('Counter: ' + untrack(() => count.value));
+        const count = useStore<any>({ jsx: 'initial' });
+        log.push('Counter: ' + untrack(() => count.jsx));
         return (
-          <button
-            onClick$={() => (count.value = typeof count.value == 'string' ? <b>JSX</b> : 'text')}
-          >
-            -{count.value}-
+          <button onClick$={() => (count.jsx = typeof count.jsx == 'string' ? <b>JSX</b> : 'text')}>
+            -{count.jsx}-
           </button>
         );
       });
@@ -240,7 +240,7 @@ describe.each([
         renderLog.push('Display');
         return <>Count: {props.displayValue}!</>;
       });
-      const Incrementor = component$((props: { countSignal: SignalType<number> }) => {
+      const Incrementor = component$((props: { countSignal: { value: number } }) => {
         renderLog.push('Incrementor');
         return (
           <button
@@ -462,6 +462,158 @@ describe.each([
             <li key="2">Item 2</li>
           </ul>
         </Fragment>
+      </Component>
+    );
+  });
+
+  it('should render value via JSON.stringify', async () => {
+    const Stringify = component$<{
+      data: any;
+      style?: any;
+    }>((props) => {
+      return <>{JSON.stringify(props.data)}</>;
+    });
+
+    const Cmp = component$(() => {
+      const group = useStore({
+        controls: {
+          ctrl: {
+            value: '',
+          },
+        },
+      });
+
+      return (
+        <button onClick$={() => (group.controls.ctrl.value = 'test')}>
+          <Stringify data={group} />
+          <Stringify data={group.controls} />
+          <Stringify data={group.controls.ctrl} />
+          <Stringify data={group.controls.ctrl.value} />
+        </button>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          <Component>
+            <Signal>{'{"controls":{"ctrl":{"value":""}}}'}</Signal>
+          </Component>
+          <Component>
+            <Signal>{'{"ctrl":{"value":""}}'}</Signal>
+          </Component>
+          <Component>
+            <Signal>{'{"value":""}'}</Signal>
+          </Component>
+          <Component>
+            <Signal>{'""'}</Signal>
+          </Component>
+        </button>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          <Component>
+            <Signal>{'{"controls":{"ctrl":{"value":"test"}}}'}</Signal>
+          </Component>
+          <Component>
+            <Signal>{'{"ctrl":{"value":"test"}}'}</Signal>
+          </Component>
+          <Component>
+            <Signal>{'{"value":"test"}'}</Signal>
+          </Component>
+          <Component>
+            <Signal>{'"test"'}</Signal>
+          </Component>
+        </button>
+      </Component>
+    );
+  });
+
+  it('should work with frozen store', async () => {
+    const Cmp = component$(() => {
+      const store = useStore({ items: [{ num: 0 }] });
+      Object.freeze(store);
+      return (
+        <>
+          {store.items.map((item, key) => (
+            <div key={key}>{item.num}</div>
+          ))}
+        </>
+      );
+    });
+
+    const { vNode } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <div key="0">0</div>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should deserialize store without effects', async () => {
+    const Cmp = component$(() => {
+      const store = useStore({ counter: 0 });
+      useVisibleTask$(() => {
+        store.counter++;
+      });
+      return <div></div>;
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'div', 'qvisible');
+    }
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div></div>
+      </Component>
+    );
+  });
+
+  it('should assign a store property to undefined', async () => {
+    (global as any).logs = [] as string[];
+
+    const Cmp = component$(() => {
+      const store = useStore<Record<string, any>>({});
+      useTask$(({ track }) => {
+        track(() => store.someId);
+        (global as any).logs.push('someId' in store);
+      });
+
+      return <button onClick$={() => (store['someId'] = undefined)}></button>;
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    await trigger(document.body, 'button', 'click');
+    expect((global as any).logs).toEqual([false, true]);
+  });
+
+  it('should trigger effects on property delete', async () => {
+    const Cmp = component$(() => {
+      const store = useStore<{ delete?: string }>({ delete: 'test' });
+      return <div onClick$={() => delete store.delete}>{store.delete}</div>;
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Signal>{'test'}</Signal>
+        </div>
+      </Component>
+    );
+    await trigger(document.body, 'div', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Signal></Signal>
+        </div>
       </Component>
     );
   });

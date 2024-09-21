@@ -3,7 +3,7 @@ import { component$ } from '../component/component.public';
 import { useResource$ } from './use-resource';
 import { useSignal } from './use-signal';
 import { useStore } from './use-store.public';
-import { useTask$ } from './use-task';
+import { useTask$ } from './use-task-dollar';
 
 describe('types', () => {
   test('track', () => () => {

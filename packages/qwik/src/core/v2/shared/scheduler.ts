@@ -88,9 +88,8 @@ import {
   Task,
   TaskFlags,
   cleanupTask,
-  runComputed2,
+  runTask2,
   runResource,
-  runSubscriber2,
   type ResourceDescriptor,
   type TaskFn,
 } from '../../use/use-task';
@@ -98,32 +97,48 @@ import { logWarn } from '../../util/log';
 import { isPromise, maybeThen, maybeThenPassError, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import { isDomContainer } from '../client/dom-container';
-import type { VirtualVNode } from '../client/types';
-import { vnode_documentPosition, vnode_isVNode } from '../client/vnode';
+import {
+  ElementVNodeProps,
+  VNodeFlags,
+  VNodeProps,
+  type ElementVNode,
+  type VirtualVNode,
+} from '../client/types';
+import {
+  vnode_documentPosition,
+  vnode_isVNode,
+  vnode_setAttr,
+  VNodeJournalOpCode,
+} from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
 import { executeComponent2 } from './component-execution';
 import type { Container2, HostElement, fixMeAny } from './types';
+import { isSignal, type Signal } from '../signal/v2-signal.public';
+import { serializeAttribute } from '../../render/execute-component';
+import { type DomContainer } from '../client/dom-container';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
 
 export const enum ChoreType {
   /// MASKS defining three levels of sorting
-  MACRO /* ***************** */ = 0b111_000,
+  MACRO /* ***************** */ = 0b111_0000,
   /* order of elements (not encoded here) */
-  MICRO /* ***************** */ = 0b000_111,
+  MICRO /* ***************** */ = 0b000_1111,
 
-  COMPUTED /* ************** */ = 0b000_001,
-  RESOURCE /* ************** */ = 0b000_010,
-  TASK /* ****************** */ = 0b000_011,
-  NODE_DIFF /* ************* */ = 0b000_100,
-  COMPONENT_SSR /* ********* */ = 0b000_101,
-  COMPONENT /* ************* */ = 0b000_110,
-  WAIT_FOR_COMPONENTS /* *** */ = 0b001_000,
-  JOURNAL_FLUSH /* ********* */ = 0b011_000,
-  VISIBLE /* *************** */ = 0b100_000,
-  CLEANUP_VISIBLE /* ******* */ = 0b101_000,
-  WAIT_FOR_ALL /* ********** */ = 0b111_111,
+  /** Ensure tha the QRL promise is resolved before processing next chores in the queue */
+  QRL_RESOLVE /* *********** */ = 0b000_0001,
+  RESOURCE /* ************** */ = 0b000_0010,
+  TASK /* ****************** */ = 0b000_0011,
+  NODE_DIFF /* ************* */ = 0b000_0100,
+  NODE_PROP /* ************* */ = 0b000_0101,
+  COMPONENT_SSR /* ********* */ = 0b000_0110,
+  COMPONENT /* ************* */ = 0b000_0111,
+  WAIT_FOR_COMPONENTS /* *** */ = 0b001_0000,
+  JOURNAL_FLUSH /* ********* */ = 0b011_0000,
+  VISIBLE /* *************** */ = 0b100_0000,
+  CLEANUP_VISIBLE /* ******* */ = 0b101_0000,
+  WAIT_FOR_ALL /* ********** */ = 0b111_1111,
 }
 
 export interface Chore {
@@ -135,6 +150,16 @@ export interface Chore {
   $resolve$: (value: any) => void;
   $promise$: Promise<any>;
   $returnValue$: any;
+  $executed$: boolean;
+}
+
+export interface NodePropData {
+  $scopedStyleIdPrefix$: string | null;
+  $isConst$: boolean;
+}
+
+export interface NodePropPayload extends NodePropData {
+  $value$: Signal<unknown>;
 }
 
 export type Scheduler = ReturnType<typeof createScheduler>;
@@ -154,6 +179,11 @@ export const createScheduler = (
   ////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////
 
+  function schedule(
+    type: ChoreType.QRL_RESOLVE,
+    ignore: null,
+    target: QRLInternal<any>
+  ): ValueOrPromise<void>;
   function schedule(type: ChoreType.JOURNAL_FLUSH): ValueOrPromise<void>;
   function schedule(type: ChoreType.WAIT_FOR_ALL): ValueOrPromise<void>;
   function schedule(type: ChoreType.WAIT_FOR_COMPONENTS): ValueOrPromise<void>;
@@ -167,7 +197,7 @@ export const createScheduler = (
    * @param waitForChore? = false
    */
   function schedule(
-    type: ChoreType.TASK | ChoreType.VISIBLE | ChoreType.RESOURCE | ChoreType.COMPUTED,
+    type: ChoreType.TASK | ChoreType.VISIBLE | ChoreType.RESOURCE,
     task: Task
   ): ValueOrPromise<void>;
   function schedule(
@@ -188,12 +218,18 @@ export const createScheduler = (
     target: HostElement,
     value: JSXOutput
   ): ValueOrPromise<void>;
+  function schedule(
+    type: ChoreType.NODE_PROP,
+    host: HostElement,
+    prop: string,
+    value: any
+  ): ValueOrPromise<void>;
   function schedule(type: ChoreType.CLEANUP_VISIBLE, task: Task): ValueOrPromise<JSXOutput>;
   ///// IMPLEMENTATION /////
   function schedule(
     type: ChoreType,
-    hostOrTask: HostElement | Task = null!,
-    targetOrQrl: HostElement | QRL<(...args: any[]) => any> | null = null,
+    hostOrTask: HostElement | Task | null = null,
+    targetOrQrl: HostElement | QRL<(...args: any[]) => any> | string | null = null,
     payload: any = null
   ): ValueOrPromise<any> {
     const runLater: boolean =
@@ -203,7 +239,6 @@ export const createScheduler = (
     const isTask =
       type === ChoreType.TASK ||
       type === ChoreType.VISIBLE ||
-      type === ChoreType.COMPUTED ||
       type === ChoreType.RESOURCE ||
       type === ChoreType.CLEANUP_VISIBLE;
     if (isTask) {
@@ -211,13 +246,18 @@ export const createScheduler = (
     }
     let chore: Chore = {
       $type$: type,
-      $idx$: isTask ? (hostOrTask as Task).$index$ : 0,
+      $idx$: isTask
+        ? (hostOrTask as Task).$index$
+        : typeof targetOrQrl === 'string'
+          ? targetOrQrl
+          : 0,
       $host$: isTask ? ((hostOrTask as Task).$el$ as fixMeAny) : (hostOrTask as HostElement),
       $target$: targetOrQrl as any,
       $payload$: isTask ? hostOrTask : payload,
       $resolve$: null!,
       $promise$: null!,
       $returnValue$: null,
+      $executed$: false,
     };
     chore.$promise$ = new Promise((resolve) => (chore.$resolve$ = resolve));
     DEBUG && debugTrace('schedule', chore, currentChore, choreQueue);
@@ -241,23 +281,37 @@ export const createScheduler = (
    * @param runUptoChore
    */
   function drainUpTo(runUptoChore: Chore): ValueOrPromise<unknown> {
+    // If it already ran, it's not in the queue
+    if (runUptoChore.$executed$) {
+      return runUptoChore.$returnValue$;
+    }
     if (currentChore) {
-      // Already running chore
+      // Already running chore, which means we're waiting for async completion
       return runUptoChore.$promise$;
     }
     while (choreQueue.length) {
       const nextChore = choreQueue.shift()!;
-      const comp = choreComparator(nextChore, runUptoChore, false);
-      if (comp === null) {
+      const order = choreComparator(nextChore, runUptoChore, false);
+      if (order === null) {
         continue;
       }
-      if (comp > 0) {
-        // we have processed all of the chores up to the given chore.
+      if (order > 0) {
+        // we have processed all of the chores up to and including the given chore.
         break;
+      }
+      const isDeletedVNode = vNodeAlreadyDeleted(nextChore);
+      if (
+        isDeletedVNode &&
+        // we need to process cleanup tasks for deleted nodes
+        nextChore.$type$ !== ChoreType.CLEANUP_VISIBLE
+      ) {
+        DEBUG && debugTrace('skip chore', nextChore, currentChore, choreQueue);
+        continue;
       }
       const returnValue = executeChore(nextChore);
       if (isPromise(returnValue)) {
-        return returnValue.then(() => drainUpTo(runUptoChore));
+        const promise = returnValue.then(() => drainUpTo(runUptoChore));
+        return promise;
       }
     }
     return runUptoChore.$returnValue$;
@@ -293,9 +347,6 @@ export const createScheduler = (
           (err: any) => container.handleError(err, host)
         );
         break;
-      case ChoreType.COMPUTED:
-        returnValue = runComputed2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
-        break;
       case ChoreType.RESOURCE:
         // Don't await the return value of the resource, because async resources should not be awaited.
         // The reason for this is that we should be able to update for example a node with loading
@@ -305,23 +356,53 @@ export const createScheduler = (
         returnValue = isDomContainer(container) ? null : result;
         break;
       case ChoreType.TASK:
+        returnValue = runTask2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
+        break;
       case ChoreType.VISIBLE:
-        returnValue = runSubscriber2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
+        returnValue = runTask2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
         break;
       case ChoreType.CLEANUP_VISIBLE:
         const task = chore.$payload$ as Task<TaskFn, TaskFn>;
         cleanupTask(task);
         break;
-      case ChoreType.NODE_DIFF: {
+      case ChoreType.NODE_DIFF:
         const parentVirtualNode = chore.$target$ as VirtualVNode;
-        const jsx = chore.$payload$ as JSXOutput;
-        returnValue = vnode_diff(container as fixMeAny, jsx, parentVirtualNode, null);
+        let jsx = chore.$payload$ as JSXOutput;
+        if (isSignal(jsx)) {
+          jsx = jsx.value as any;
+        }
+        returnValue = vnode_diff(container as DomContainer, jsx, parentVirtualNode, null);
+        break;
+      case ChoreType.NODE_PROP:
+        const virtualNode = chore.$host$ as unknown as ElementVNode;
+        const payload = chore.$payload$ as NodePropPayload;
+        let value: Signal<any> | string = payload.$value$;
+        if (isSignal(value)) {
+          value = value.value as any;
+        }
+        const isConst = payload.$isConst$;
+        const journal = (container as DomContainer).$journal$;
+        const property = chore.$idx$ as string;
+        value = serializeAttribute(property, value, payload.$scopedStyleIdPrefix$);
+        if (isConst) {
+          const element = virtualNode[ElementVNodeProps.element] as Element;
+          journal.push(VNodeJournalOpCode.SetAttribute, element, property, value);
+        } else {
+          vnode_setAttr(journal, virtualNode, property, value);
+        }
+        break;
+      case ChoreType.QRL_RESOLVE: {
+        const target = chore.$target$ as QRLInternal<any>;
+        returnValue = !target.resolved ? target.resolve() : null;
         break;
       }
     }
     return maybeThenPassError(returnValue, (value) => {
       DEBUG && debugTrace('execute.DONE', null, currentChore, choreQueue);
-      currentChore?.$resolve$?.(value);
+      if (currentChore) {
+        currentChore.$executed$ = true;
+        currentChore.$resolve$?.(value);
+      }
       currentChore = null;
       return (chore.$returnValue$ = value);
     });
@@ -343,6 +424,23 @@ const choreUpdate = (existing: Chore, newChore: Chore): void => {
   }
 };
 
+function vNodeAlreadyDeleted(chore: Chore): boolean {
+  return !!(
+    chore.$host$ &&
+    vnode_isVNode(chore.$host$) &&
+    chore.$host$[VNodeProps.flags] & VNodeFlags.Deleted
+  );
+}
+
+/**
+ * Compares two chores to determine their execution order in the scheduler's queue.
+ *
+ * @param a - The first chore to compare
+ * @param b - The second chore to compare
+ * @param shouldThrowOnHostMismatch - Controls error behavior for mismatched hosts
+ * @returns A number indicating the relative order of the chores, or null if invalid. A negative
+ *   number means `a` runs before `b`.
+ */
 function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: true): number;
 function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: false): number | null;
 function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: boolean): number | null {
@@ -355,7 +453,9 @@ function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: boolean)
   if (a.$type$ !== ChoreType.JOURNAL_FLUSH) {
     const aHost = a.$host$;
     const bHost = b.$host$;
-    if (aHost !== bHost) {
+
+    // QRL_RESOLVE does not have a host.
+    if (aHost !== bHost && aHost !== null && bHost !== null) {
       if (vnode_isVNode(aHost) && vnode_isVNode(bHost)) {
         // we are running on the client.
         const hostDiff = vnode_documentPosition(aHost, bHost);
@@ -386,30 +486,20 @@ function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: boolean)
     if (idxDiff !== 0) {
       return idxDiff;
     }
+
+    // If the host is the same, we need to compare the target.
+    if (
+      a.$target$ !== b.$target$ &&
+      ((a.$type$ === ChoreType.QRL_RESOLVE && b.$type$ === ChoreType.QRL_RESOLVE) ||
+        (a.$type$ === ChoreType.NODE_PROP && b.$type$ === ChoreType.NODE_PROP))
+    ) {
+      // 1 means that we are going to process chores as FIFO
+      return 1;
+    }
   }
 
   return 0;
 }
-
-export const intraHostPredicate = (a: Chore, b: Chore): number => {
-  const idxDiff = toNumber(a.$idx$) - toNumber(b.$idx$);
-  if (idxDiff !== 0) {
-    return idxDiff;
-  }
-  const typeDiff = a.$type$ - b.$type$;
-  if (typeDiff !== 0) {
-    return typeDiff;
-  }
-  if (a.$payload$ !== b.$payload$) {
-    return 0;
-  }
-  if (a.$payload$ instanceof Task && b.$payload$ instanceof Task) {
-    const aHash = a.$payload$.$qrl$.$hash$;
-    const bHash = b.$payload$.$qrl$.$hash$;
-    return aHash === bHash ? 0 : aHash < bHash ? -1 : 1;
-  }
-  return 0;
-};
 
 function sortedFindIndex(sortedArray: Chore[], value: Chore): number {
   /// We need to ensure that the `queue` is sorted by priority.
@@ -450,20 +540,23 @@ function debugChoreToString(chore: Chore): string {
   const type =
     (
       {
-        [ChoreType.COMPUTED]: 'COMPUTED',
+        [ChoreType.QRL_RESOLVE]: 'QRL_RESOLVE',
         [ChoreType.RESOURCE]: 'RESOURCE',
         [ChoreType.TASK]: 'TASK',
         [ChoreType.NODE_DIFF]: 'NODE_DIFF',
+        [ChoreType.NODE_PROP]: 'NODE_PROP',
         [ChoreType.COMPONENT]: 'COMPONENT',
         [ChoreType.COMPONENT_SSR]: 'COMPONENT_SSR',
         [ChoreType.JOURNAL_FLUSH]: 'JOURNAL_FLUSH',
         [ChoreType.VISIBLE]: 'VISIBLE',
+        [ChoreType.CLEANUP_VISIBLE]: 'CLEANUP_VISIBLE',
         [ChoreType.WAIT_FOR_ALL]: 'WAIT_FOR_ALL',
         [ChoreType.WAIT_FOR_COMPONENTS]: 'WAIT_FOR_COMPONENTS',
       } as any
     )[chore.$type$] || 'UNKNOWN: ' + chore.$type$;
   const host = String(chore.$host$).replaceAll(/\n.*/gim, '');
-  return `Chore(${type} ${host} ${chore.$idx$})`;
+  const qrlTarget = (chore.$target$ as QRLInternal<any>)?.$symbol$;
+  return `Chore(${type} ${chore.$type$ === ChoreType.QRL_RESOLVE ? qrlTarget : host} ${chore.$idx$})`;
 }
 
 function debugTrace(

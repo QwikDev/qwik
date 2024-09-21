@@ -11,13 +11,13 @@ import { Resource, useResource$ } from '../../use/use-resource';
 import { useSignal } from '../../use/use-signal';
 import { useStore } from '../../use/use-store.public';
 import { useStylesQrl, useStylesScopedQrl } from '../../use/use-styles';
-import { useTask$, useVisibleTask$ } from '../../use/use-task';
 import { delay } from '../../util/promises';
 import { jsx } from '../jsx/jsx-runtime';
 import { Slot } from '../jsx/slot.public';
 import type { JSXOutput } from '../jsx/types/jsx-node';
 import { SSRComment, SSRRaw } from '../jsx/utils.public';
 import { _renderSSR, type RenderSSROptions } from './render-ssr';
+import { useTask$, useVisibleTask$ } from '../../use/use-task-dollar';
 
 test.skip('render attributes', async () => {
   await testSSR(

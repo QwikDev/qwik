@@ -13,15 +13,15 @@ import {
   type ResourceReturnInternal,
 } from './use-task';
 
+import type { Container2, fixMeAny } from '../../server/qwik-types';
 import type { GetObjID } from '../container/container';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
-import { getProxyTarget } from '../state/common';
-import { isSignal, type Signal } from '../state/signal';
-import { createProxy, type StoreTracker } from '../state/store';
+import { type Signal } from '../state/signal';
 import { isPromise } from '../util/promises';
 import { isObject } from '../util/types';
+import { StoreFlags, createStore, getStoreTarget } from '../v2/signal/v2-store';
 import { useSequentialScope } from './use-sequential-scope';
-import type { fixMeAny } from '../../server/qwik-types';
+import { isSignal } from '../v2/signal/v2-signal';
 
 const DEBUG: boolean = false;
 
@@ -264,6 +264,7 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
   if (isResourceReturn(resource)) {
     const isBrowser = !isServerPlatform();
     if (isBrowser) {
+      // create a subscription for the resource._state changes
       const state = resource._state;
       DEBUG && debugLog(`RESOURCE_CMP.${state}`, 'VALUE: ' + untrack(() => resource._resolved));
 
@@ -273,7 +274,7 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
         return Promise.resolve(resource._error!).then(props.onRejected);
       } else {
         // resolved, pending without onPending prop or rejected with onRejected prop
-        return Promise.resolve(resource._resolved as T).then(props.onResolved);
+        return Promise.resolve(untrack(() => resource._resolved) as T).then(props.onResolved);
       }
     }
     return resource.value.then(
@@ -313,22 +314,22 @@ export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn
 };
 
 export const createResourceReturn = <T>(
-  containerState: StoreTracker,
+  container: Container2,
   opts?: ResourceOptions,
   initialPromise?: Promise<T>
 ): ResourceReturnInternal<T> => {
   const result = _createResourceReturn<T>(opts);
   result.value = initialPromise as Promise<T>;
-  const resource = createProxy(result, containerState, undefined);
-  return resource;
+
+  return createStore(container, result, StoreFlags.RECURSIVE);
 };
 
 export const getInternalResource = <T>(resource: ResourceReturn<T>): ResourceReturnInternal<T> => {
-  return getProxyTarget(resource) as any;
+  return getStoreTarget(resource) as any;
 };
 
 export const isResourceReturn = (obj: any): obj is ResourceReturn<unknown> => {
-  return isObject(obj) && (getProxyTarget(obj as any) || obj).__brand === 'resource';
+  return isObject(obj) && (getStoreTarget(obj as any) || obj).__brand === 'resource';
 };
 
 // TODO: to remove - serializers v1

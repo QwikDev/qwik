@@ -28,7 +28,8 @@ export type {
 // Internal Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
 export { $, sync$, _qrlSync, type SyncQRL } from './qrl/qrl.public';
-export { event$, eventQrl } from './qrl/qrl.public';
+export { eventQrl } from './qrl/qrl.public';
+export { event$ } from './qrl/qrl.public.dollar';
 
 export { qrl, inlinedQrl, inlinedQrlDEV, qrlDEV } from './qrl/qrl';
 export type { QRL, PropFunction, PropFnInterface } from './qrl/qrl.public';
@@ -96,7 +97,7 @@ export { useContext, useContextProvider, createContextId } from './use/use-conte
 export { useServerData } from './use/use-env-data';
 export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
 export { useOn, useOnDocument, useOnWindow } from './use/use-on';
-export { useSignal, useConstant, createSignal } from './use/use-signal';
+export { useSignal, useConstant } from './use/use-signal';
 export { withLocale, getLocale } from './use/use-locale';
 
 export type { UseStylesScoped } from './use/use-styles';
@@ -121,25 +122,29 @@ export type {
 } from './use/use-task';
 export type { ResourceProps, ResourceOptions } from './use/use-resource';
 export { useResource$, useResourceQrl, Resource } from './use/use-resource';
-export { useTask$, useTaskQrl } from './use/use-task';
-export { useVisibleTask$, useVisibleTaskQrl } from './use/use-task';
-export {
-  useComputed$,
-  useComputedQrl,
-  // TODO
-  // createComputed$, createComputedQrl
-} from './use/use-task';
+export { useTaskQrl, useVisibleTaskQrl, useComputedQrl } from './use/use-task';
+export { useComputed$, useTask$, useVisibleTask$ } from './use/use-task-dollar';
 export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './render/error-handling';
+export {
+  type ReadonlySignal,
+  type Signal,
+  type ComputedSignal,
+} from './v2/signal/v2-signal.public';
+export {
+  isSignal,
+  createSignal,
+  createComputedQrl,
+  createComputed$,
+} from './v2/signal/v2-signal.public';
+export { EffectData as _EffectData } from './v2/signal/v2-signal';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API
 //////////////////////////////////////////////////////////////////////////////////////////
 export type { ValueOrPromise } from './util/types';
-export type { Signal, ReadonlySignal } from './state/signal';
 export { type NoSerialize, SubscriptionType } from './state/common';
 export { noSerialize } from './state/common';
-export { isSignal } from './state/signal';
 export { version } from './version';
 
 //////////////////////////////////////////////////////////////////////////////////////////

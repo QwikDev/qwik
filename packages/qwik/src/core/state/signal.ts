@@ -4,9 +4,10 @@ import { logWarn } from '../util/log';
 import { ComputedEvent, RenderEvent } from '../util/markers';
 import { qDev, qSerialize } from '../util/qdev';
 import { isObject } from '../util/types';
+import { WrappedSignal, isSignal } from '../v2/signal/v2-signal';
+import { getStoreTarget } from '../v2/signal/v2-store';
 import {
   LocalSubscriptionManager,
-  getProxyTarget,
   getSubscriptionManager,
   verifySerializable,
   type Subscriber,
@@ -202,7 +203,7 @@ export class SignalWrapper<T extends Record<string, any>, P extends keyof T> ext
  * @returns Boolean - True if the object is a `Signal`.
  * @public
  */
-export const isSignal = <T = unknown>(obj: any): obj is Signal<T> => {
+export const isSignalV1 = <T = unknown>(obj: any): obj is Signal<T> => {
   return obj instanceof SignalBase;
 };
 
@@ -218,7 +219,7 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(
   }
   if (isSignal(obj)) {
     assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
-    return new SignalDerived(getProp, [obj, prop as string]);
+    return new WrappedSignal(null, getProp, [obj, prop as string], null);
   }
   if (_CONST_PROPS in obj) {
     const constProps = (obj as any)[_CONST_PROPS];
@@ -227,14 +228,17 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(
       return constProps[prop];
     }
   } else {
-    const target = getProxyTarget(obj);
+    const target = getStoreTarget(obj);
     if (target) {
       const signal = target[prop];
-      return isSignal(signal) ? signal : new SignalDerived(getProp, [obj, prop as string]);
+      const wrappedValue = isSignal(signal)
+        ? signal
+        : new WrappedSignal(null, getProp, [obj, prop as string], null);
+      return wrappedValue;
     }
   }
   // We need to forward the access to the original object
-  return new SignalDerived(getProp, [obj, prop as string]);
+  return new WrappedSignal(null, getProp, [obj, prop as string], null);
 };
 
 /** @internal @deprecated v1 compat */

@@ -284,11 +284,6 @@ export const vnode_newVirtual = (): VirtualVNode => {
 
 export const vnode_isVNode = (vNode: any): vNode is VNode => {
   return vNode instanceof VNodeArray;
-  // if (Array.isArray(vNode) && vNode.length > 0) {
-  //   const flag = (vNode as VNode)[VNodeProps.flags];
-  //   return typeof flag === 'number' && (flag & VNodeFlags.TYPE_MASK) !== 0;
-  // }
-  // return false;
 };
 
 export const vnode_isElementVNode = (vNode: VNode): vNode is ElementVNode => {

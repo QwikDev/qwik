@@ -11,8 +11,6 @@
  *   - It needs to store a function which needs to re-run.
  *   - It is `Readonly` because it is computed.
  */
-
-import { SsrNode } from '../../../server/v2-node';
 import { pad, qwikDebugToString } from '../../debug';
 import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
 import { type QRLInternal } from '../../qrl/qrl-class';
@@ -283,7 +281,7 @@ export const ensureEffectContainsSubscriber = (
 
     subscribers.push(subscriber);
     vnode_setProp(effect, QSubscribers, subscribers);
-  } else if (effect instanceof SsrNode) {
+  } else if (isSSRNode(effect)) {
     let subscribers = effect.getProp(QSubscribers) as Subscriber[];
     subscribers ||= [];
 
@@ -294,6 +292,10 @@ export const ensureEffectContainsSubscriber = (
     subscribers.push(subscriber);
     effect.setProp(QSubscribers, subscribers);
   }
+};
+
+const isSSRNode = (effect: Effect): effect is ISsrNode => {
+  return 'setProp' in effect && 'getProp' in effect && 'removeProp' in effect && 'id' in effect;
 };
 
 const subscriberExistInSubscribers = (subscribers: Subscriber[], subscriber: Subscriber) => {

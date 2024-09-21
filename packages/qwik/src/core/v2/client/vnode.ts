@@ -408,7 +408,10 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
 };
 
 /** Walks the VNode tree and materialize it using `vnode_getFirstChild`. */
-export function vnode_walkVNode(vNode: VNode) {
+export function vnode_walkVNode(
+  vNode: VNode,
+  callback?: (vNode: VNode, vParent: VNode | null) => void
+): void {
   let vCursor: VNode | null = vNode;
   // Depth first traversal
   if (vnode_isTextVNode(vNode)) {
@@ -417,6 +420,7 @@ export function vnode_walkVNode(vNode: VNode) {
   }
   let vParent: VNode | null = null;
   do {
+    callback?.(vCursor, vParent);
     const vFirstChild = vnode_getFirstChild(vCursor);
     if (vFirstChild) {
       vCursor = vFirstChild;

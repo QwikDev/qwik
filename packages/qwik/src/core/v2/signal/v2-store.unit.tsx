@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Store2Flags, getOrCreateStore2, isStore2 } from './v2-store';
-import type { Container2 } from '../shared/types';
-import { createDocument } from '@builder.io/qwik/testing';
 import { getDomContainer } from '@builder.io/qwik';
+import type { Container2 } from '../shared/types';
+import { createDocument } from '@builder.io/qwik-dom';
 
 describe('v2/store', () => {
   let container: Container2 | null = null;
   beforeEach(() => {
-    const document = createDocument({ html: '<html><body q:container="paused"></body></html>' });
+    const document = createDocument('<html><body q:container="paused"></body></html>');
     container = getDomContainer(document.body);
   });
 

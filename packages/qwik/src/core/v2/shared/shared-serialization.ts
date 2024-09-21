@@ -722,6 +722,9 @@ export const createSerializationContext = (
                 discoveredValues.push(effect[EffectSubscriptionsProp.EFFECT]);
               }
             }
+            if (obj.$dependencies$) {
+              discoveredValues.push(obj.$dependencies$);
+            }
             // TODO(mhevery): should scan the QRLs???
           } else if (obj instanceof Task) {
             discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$, obj.$dependencies$);

@@ -707,8 +707,7 @@ describe.each([
       );
     });
 
-    // TODO(optimizer-test): problem still exists with the optimizer!
-    it.skip('#4332', async () => {
+    it('#4332', async () => {
       const Child = component$((props: { val: string }) => {
         useTask$(({ track }) => {
           track(() => props.val);

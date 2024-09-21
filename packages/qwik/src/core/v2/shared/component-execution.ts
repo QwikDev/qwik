@@ -21,6 +21,8 @@ import type { ValueOrPromise } from '../../util/types';
 import type { Container2, HostElement, fixMeAny } from './types';
 import { logWarn } from '../../util/log';
 import { EffectProperty, isSignal2 } from '../signal/v2-signal';
+import { vnode_isVNode } from '../client/vnode';
+import { clearVNodeDependencies } from '../signal/v2-subscriber';
 
 /**
  * Use `executeComponent2` to execute a component.
@@ -88,6 +90,11 @@ export const executeComponent2 = (
         container.setHostProp(renderHost, ELEMENT_SEQ_IDX, null);
         container.setHostProp(renderHost, USE_ON_LOCAL_SEQ_IDX, null);
         container.setHostProp(renderHost, ELEMENT_PROPS, props);
+
+        if (vnode_isVNode(renderHost)) {
+          clearVNodeDependencies(renderHost);
+        }
+
         return componentFn(props);
       },
       (jsx) => {

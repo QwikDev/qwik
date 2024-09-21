@@ -12,6 +12,7 @@
  *   - It is `Readonly` because it is computed.
  */
 
+import { SsrNode } from '../../../server/v2-node';
 import { pad, qwikDebugToString } from '../../debug';
 import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
 import { type QRLInternal } from '../../qrl/qrl-class';
@@ -193,7 +194,11 @@ export class Signal2<T = any> extends Subscriber implements ISignal2<T> {
         // to this signal.
         ensureContains(effectSubscriber, this);
         // We need to add the subscriber to the effect so that we can clean it up later
-        ensureEffectContainsSubscriber(effectSubscriber[EffectSubscriptionsProp.EFFECT], this);
+        ensureEffectContainsSubscriber(
+          effectSubscriber[EffectSubscriptionsProp.EFFECT],
+          this,
+          this.$container$
+        );
         DEBUG && log('read->sub', pad('\n' + this.toString(), '  '));
       }
     }
@@ -251,7 +256,11 @@ export const ensureContainsEffect = (
   array.push(effectSubscriptions);
 };
 
-export const ensureEffectContainsSubscriber = (effect: Effect, subscriber: Subscriber) => {
+export const ensureEffectContainsSubscriber = (
+  effect: Effect,
+  subscriber: Subscriber,
+  container: Container2 | null
+) => {
   if (isSubscriber(effect)) {
     effect.$dependencies$ ||= [];
 
@@ -261,7 +270,11 @@ export const ensureEffectContainsSubscriber = (effect: Effect, subscriber: Subsc
 
     effect.$dependencies$.push(subscriber);
   } else if (vnode_isVNode(effect) && vnode_isVirtualVNode(effect)) {
-    let subscribers = vnode_getProp<Subscriber[]>(effect, QSubscribers, null);
+    let subscribers = vnode_getProp<Subscriber[]>(
+      effect,
+      QSubscribers,
+      container ? container.$getObjectById$ : null
+    );
     subscribers ||= [];
 
     if (subscriberExistInSubscribers(subscribers, subscriber)) {
@@ -270,6 +283,16 @@ export const ensureEffectContainsSubscriber = (effect: Effect, subscriber: Subsc
 
     subscribers.push(subscriber);
     vnode_setProp(effect, QSubscribers, subscribers);
+  } else if (effect instanceof SsrNode) {
+    let subscribers = effect.getProp(QSubscribers) as Subscriber[];
+    subscribers ||= [];
+
+    if (subscriberExistInSubscribers(subscribers, subscriber)) {
+      return;
+    }
+
+    subscribers.push(subscriber);
+    effect.setProp(QSubscribers, subscribers);
   }
 };
 

@@ -25,6 +25,7 @@ import {
   QSlotParent,
   QStyle,
   QStyleSelector,
+  QSubscribers,
   USE_ON_LOCAL_SEQ_IDX,
 } from '../../util/markers';
 import { isPromise } from '../../util/promises';
@@ -283,6 +284,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       case ELEMENT_PROPS:
       case OnRenderProp:
       case QCtxAttr:
+      case QSubscribers:
         getObjectById = this.$getObjectById$;
         break;
       case ELEMENT_SEQ_IDX:

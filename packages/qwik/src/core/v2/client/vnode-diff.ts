@@ -187,6 +187,9 @@ export const vnode_diff = (
           if (Array.isArray(jsxValue)) {
             descend(jsxValue, false);
           } else if (isSignal2(jsxValue)) {
+            if (vCurrent) {
+              clearVNodeDependencies(vCurrent);
+            }
             expectVirtual(VirtualType.WrappedSignal, null);
             descend(
               trackSignal2(
@@ -1061,6 +1064,9 @@ export const vnode_diff = (
     componentQRL: QRLInternal<OnRenderFn<any>>,
     jsxProps: Props
   ) {
+    if (host) {
+      clearVNodeDependencies(host);
+    }
     vnode_insertBefore(
       journal,
       vParent as VirtualVNode,

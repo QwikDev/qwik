@@ -25,6 +25,7 @@ export const QStyleSSelector = 'style[q\\:sstyle]';
 export const QStylesAllSelector = QStyleSelector + ',' + QStyleSSelector;
 export const QScopedStyle = 'q:sstyle';
 export const QCtxAttr = 'q:ctx';
+export const QSubscribers = 'q:subs';
 export const QManifestHash = 'q:manifest-hash';
 export const QFuncsPrefix = 'qFuncs_';
 
@@ -101,3 +102,5 @@ export const USE_ON_LOCAL_FLAGS = ':onFlags';
 export const FLUSH_COMMENT = 'qkssr-f';
 export const STREAM_BLOCK_START_COMMENT = 'qkssr-pu';
 export const STREAM_BLOCK_END_COMMENT = 'qkssr-po';
+
+export const Q_PROPS_SEPARATOR = ':';

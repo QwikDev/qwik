@@ -1,13 +1,12 @@
 import type { OnRenderFn } from '../component/component.public';
 import type { ContainerState, GetObjID, GetObject } from '../container/container';
-import { canSerialize } from '../container/serializers';
 import { assertDefined, assertFail, assertTrue } from '../error/assert';
 import { QError_verifySerializable, qError } from '../error/error';
 import type { QRL } from '../qrl/qrl.public';
 import { notifyChange } from '../render/dom/notify-render';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { serializeAttribute } from '../render/execute-component';
-import { trackSignal } from '../use/use-core';
+import { trackSignalV1 } from '../use/use-core';
 import {
   TaskFlags,
   isComputedTask,
@@ -28,7 +27,10 @@ import type { DomContainer } from '../v2/client/dom-container';
 import { ElementVNodeProps, type VNode, type VirtualVNode } from '../v2/client/types';
 import { VNodeJournalOpCode, vnode_setAttr } from '../v2/client/vnode';
 import { ChoreType } from '../v2/shared/scheduler';
+import { canSerialize2 } from '../v2/shared/shared-serialization';
 import { isContainer2, type fixMeAny } from '../v2/shared/types';
+import { isSignal } from '../v2/signal/v2-signal';
+import { unwrapStore } from '../v2/signal/v2-store';
 import { QObjectFlagsSymbol, QObjectManagerSymbol, QObjectTargetSymbol } from './constants';
 import { tryGetContext } from './context';
 import type { Signal } from './signal';
@@ -58,7 +60,7 @@ export const verifySerializable = <T>(value: T, preMessage?: string): T => {
 };
 
 const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessage?: string): T => {
-  const unwrapped = unwrapProxy(value);
+  const unwrapped = unwrapStore(value);
   if (unwrapped == null) {
     return value;
   }
@@ -67,7 +69,10 @@ const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessag
       return value;
     }
     seen.add(unwrapped);
-    if (canSerialize(unwrapped)) {
+    if (isSignal(unwrapped)) {
+      return value;
+    }
+    if (canSerialize2(unwrapped)) {
       return value;
     }
     const typeObj = typeof unwrapped;
@@ -489,7 +494,7 @@ export class LocalSubscriptionManager {
         if (type == SubscriptionType.HOST) {
           if (isTask(host)) {
             if (isComputedTask(host)) {
-              scheduler(ChoreType.COMPUTED, host);
+              // scheduler(ChoreType.COMPUTED, host);
             } else if (isResourceTask(host)) {
               scheduler(ChoreType.RESOURCE, host);
             } else {
@@ -541,7 +546,7 @@ export class LocalSubscriptionManager {
            * subscription is not created.
            */
           this.$containerState$.$subsManager$.$clearSignal$(sub);
-          const value = trackSignal<fixMeAny>(signal, sub as fixMeAny);
+          const value = trackSignalV1<fixMeAny>(signal, sub as fixMeAny);
           // end HACK
 
           if (type == SubscriptionType.PROP_IMMUTABLE || type == SubscriptionType.PROP_MUTABLE) {

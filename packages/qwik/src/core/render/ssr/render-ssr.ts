@@ -14,7 +14,7 @@ import {
 import { logError, logWarn } from '../../util/log';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
 import { isPromise, maybeThen } from '../../util/promises';
-import { type InvokeContext, newInvokeContext, invoke, trackSignal } from '../../use/use-core';
+import { type InvokeContext, newInvokeContext, invoke, trackSignalV1 } from '../../use/use-core';
 import { Virtual, _jsxSorted, createJSXError, isJSXNode } from '../jsx/jsx-runtime';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../../util/types';
 import { version } from '../../version';
@@ -39,7 +39,7 @@ import { assertDefined } from '../../error/assert';
 import { serializeSStyle } from '../../style/qrl-styles';
 import { qDev, qInspector, seal } from '../../util/qdev';
 import { qError, QError_canNotRenderHTML } from '../../error/error';
-import { isSignal } from '../../state/signal';
+import { isSignalV1 } from '../../state/signal';
 import { serializeQRLs } from '../../qrl/qrl';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import {
@@ -562,10 +562,10 @@ const renderNode = (
         setEvent(elCtx.li, rawProp, value, undefined);
         return;
       }
-      if (isSignal(value)) {
+      if (isSignalV1(value)) {
         assertDefined(hostCtx, 'Signals can not be used outside the root');
         if (isImmutable) {
-          value = trackSignal(value, [
+          value = trackSignalV1(value, [
             SubscriptionType.PROP_IMMUTABLE,
             elm,
             value,
@@ -574,7 +574,7 @@ const renderNode = (
             undefined,
           ]);
         } else {
-          value = trackSignal(value, [
+          value = trackSignalV1(value, [
             SubscriptionType.PROP_MUTABLE,
             hostCtx.$element$,
             value,
@@ -880,7 +880,7 @@ const processData = (
     return renderNode(node, rCtx, ssrCtx, stream, flags, beforeClose);
   } else if (isArray(node)) {
     return walkChildren(node, rCtx, ssrCtx, stream, flags);
-  } else if (isSignal(node)) {
+  } else if (isSignalV1(node)) {
     const insideText = flags & IS_TEXT;
     const hostEl = rCtx.$cmpCtx$?.$element$ as QwikElement;
     let value;
@@ -897,7 +897,7 @@ const processData = (
               ] as const)
             : ([SubscriptionType.TEXT_MUTABLE, hostEl, node, ('#' + id) as any] as const);
 
-        value = trackSignal(node, subs);
+        value = trackSignalV1(node, subs);
         if (isString(value)) {
           const str = jsxToString(value);
           ssrCtx.$static$.$textNodes$.set(str, id);
@@ -1038,7 +1038,7 @@ const setComponentProps = (
     if (prop === 'children' || prop === QSlot) {
       continue;
     }
-    if (isSignal(immutableMeta[prop])) {
+    if (isSignalV1(immutableMeta[prop])) {
       target['_IMMUTABLE_PREFIX' + prop] = immutableMeta[prop];
     } else {
       target[prop] = expectProps[prop];

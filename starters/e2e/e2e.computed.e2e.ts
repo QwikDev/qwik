@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("slot", () => {
+test.describe("computed", () => {
   function tests() {
     test("should implement basic computed values", async ({ page }) => {
       const result = page.locator(".result");

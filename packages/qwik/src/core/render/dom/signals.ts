@@ -1,6 +1,6 @@
 import { getLastSubscription, type SubscriberSignal } from '../../state/common';
 import { getContext, tryGetContext } from '../../state/context';
-import { trackSignal } from '../../use/use-core';
+import { trackSignalV1 } from '../../use/use-core';
 import { logError } from '../../util/log';
 import { serializeClassWithHost, stringifyStyle } from '../execute-component';
 import type { RenderContext } from '../types';
@@ -37,7 +37,7 @@ export const executeSignalOperation = (rCtx: RenderContext, operation: Subscribe
         const prop = operation[4];
         const isSVG = elm.namespaceURI === SVG_NS;
         staticCtx.$containerState$.$subsManager$.$clearSignal$(operation);
-        let value = trackSignal(operation[2], operation.slice(0, -1) as any) as any;
+        let value = trackSignalV1(operation[2], operation.slice(0, -1) as any) as any;
         if (prop === 'class') {
           value = serializeClassWithHost(value, tryGetContext(hostElm));
         } else if (prop === 'style') {
@@ -59,7 +59,7 @@ export const executeSignalOperation = (rCtx: RenderContext, operation: Subscribe
           // MISKO: I believe no `invocationContext` is OK because the JSX in signal
           // has already been converted to JSX and there is nothing to execute there.
           const invocationContext = undefined;
-          let signalValue = trackSignal(operation[2], operation.slice(0, -1) as any);
+          let signalValue = trackSignalV1(operation[2], operation.slice(0, -1) as any);
           const subscription = getLastSubscription()!;
 
           if (Array.isArray(signalValue)) {

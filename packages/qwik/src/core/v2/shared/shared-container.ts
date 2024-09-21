@@ -1,27 +1,22 @@
 import type { ObjToProxyMap } from '../../container/container';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
-import {
-  createSubscriptionManager,
-  type Subscriber,
-  type SubscriptionManager,
-} from '../../state/common';
-import type { ContextId } from '../../use/use-context';
-import type { ValueOrPromise } from '../../util/types';
-import type { Scheduler } from './scheduler';
-import { createSerializationContext, type SerializationContext } from './shared-serialization';
-import type { Container2, fixMeAny, HostElement } from './types';
-import { createScheduler } from './scheduler';
-import type { StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
-import { version } from '../../version';
-import { trackSignal } from '../../use/use-core';
 import type { Signal } from '../../state/signal';
+import type { ContextId } from '../../use/use-context';
+import { trackSignal } from '../../use/use-core';
+import type { ValueOrPromise } from '../../util/types';
+import { version } from '../../version';
+import type { Effect, EffectData } from '../signal/v2-signal';
+import type { StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
+import type { Scheduler } from './scheduler';
+import { createScheduler } from './scheduler';
+import { createSerializationContext, type SerializationContext } from './shared-serialization';
+import type { Container2, HostElement } from './types';
 
 /** @internal */
 export abstract class _SharedContainer implements Container2 {
   readonly $version$: string;
   readonly $scheduler$: Scheduler;
-  readonly $subsManager$: SubscriptionManager;
-  readonly $proxyMap$: ObjToProxyMap;
+  readonly $storeProxyMap$: ObjToProxyMap;
   /// Current language locale
   readonly $locale$: string;
   /// Retrieve Object from paused serialized state.
@@ -39,17 +34,16 @@ export abstract class _SharedContainer implements Container2 {
     this.$serverData$ = serverData;
     this.$locale$ = locale;
     this.$version$ = version;
-    this.$proxyMap$ = new WeakMap();
+    this.$storeProxyMap$ = new WeakMap();
     this.$getObjectById$ = (id: number | string) => {
       throw Error('Not implemented');
     };
 
-    this.$subsManager$ = createSubscriptionManager(this as fixMeAny);
     this.$scheduler$ = createScheduler(this, scheduleDrain, journalFlush);
   }
 
-  trackSignalValue<T>(signal: Signal, sub: Subscriber): T {
-    return trackSignal(signal, sub);
+  trackSignalValue<T>(signal: Signal, subscriber: Effect, property: string, data: EffectData): T {
+    return trackSignal(() => signal.value, subscriber, property, this, data);
   }
 
   serializationCtxFactory(
@@ -59,7 +53,6 @@ export abstract class _SharedContainer implements Container2 {
   ): SerializationContext {
     return createSerializationContext(
       NodeConstructor,
-      this.$proxyMap$,
       symbolToChunkResolver,
       this.setHostProp.bind(this),
       writer

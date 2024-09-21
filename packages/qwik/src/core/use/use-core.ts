@@ -25,6 +25,11 @@ import type { Container2 } from '../v2/shared/types';
 import { vnode_getNode, vnode_isElementVNode, vnode_isVNode } from '../v2/client/vnode';
 import { _getQContainerElement } from '../v2/client/dom-container';
 import type { ContainerElement } from '../v2/client/types';
+import type {
+  EffectData,
+  EffectSubscriptions,
+  EffectSubscriptionsProp,
+} from '../v2/signal/v2-signal';
 
 declare const document: QwikDocument;
 
@@ -85,6 +90,7 @@ export interface InvokeContext {
   $waitOn$: Promise<unknown>[] | undefined;
   /** The current subscriber for registering signal reads */
   $subscriber$: Subscriber | null | undefined;
+  $effectSubscriber$: EffectSubscriptions | undefined;
   $renderCtx$: RenderContext | undefined;
   $locale$: string | undefined;
   $container2$: Container2 | undefined;
@@ -121,7 +127,7 @@ export const useInvokeContext = (): RenderInvokeContext => {
     throw qError(QError_useInvokeContext);
   }
   assertDefined(ctx.$hostElement$, `invoke: $hostElement$ must be defined`, ctx);
-  assertDefined(ctx.$subscriber$, `invoke: $subscriber$ must be defined`, ctx);
+  assertDefined(ctx.$effectSubscriber$, `invoke: $effectSubscriber$ must be defined`, ctx);
 
   return ctx as RenderInvokeContext;
 };
@@ -210,6 +216,7 @@ export const newInvokeContext = (
     $qrl$: undefined,
     $waitOn$: undefined,
     $subscriber$: undefined,
+    $effectSubscriber$: undefined,
     $renderCtx$: undefined,
     $locale$,
     $container2$: undefined,
@@ -239,9 +246,39 @@ const trackInvocation = /*#__PURE__*/ newInvokeContext(
  *
  * @public
  */
-export const trackSignal = <T>(signal: Signal, sub: Subscriber): T => {
-  trackInvocation.$subscriber$ = sub;
+export const trackSignalV1 = <T>(signal: Signal, sub: Subscriber): T => {
+  trackInvocation.$subscriber$ = sub; // todo(mhevery): delete me after signal 2
   return invoke(trackInvocation, () => signal.value);
+};
+
+/**
+ * @param fn
+ * @param subscriber
+ * @param property `true` - subscriber is component `false` - subscriber is VNode `string` -
+ *   subscriber is property
+ * @param container
+ * @returns
+ */
+export const trackSignal = <T>(
+  fn: () => T,
+  subscriber: EffectSubscriptions[EffectSubscriptionsProp.EFFECT],
+  property: EffectSubscriptions[EffectSubscriptionsProp.PROPERTY],
+  container: Container2,
+  data?: EffectData
+): T => {
+  const previousSubscriber = trackInvocation.$effectSubscriber$;
+  const previousContainer = trackInvocation.$container2$;
+  try {
+    trackInvocation.$effectSubscriber$ = [subscriber, property];
+    if (data) {
+      trackInvocation.$effectSubscriber$.push(data);
+    }
+    trackInvocation.$container2$ = container;
+    return invoke(trackInvocation, fn);
+  } finally {
+    trackInvocation.$effectSubscriber$ = previousSubscriber;
+    trackInvocation.$container2$ = previousContainer;
+  }
 };
 
 export const trackRead = <T>(readFn: () => T, sub: Subscriber): T => {

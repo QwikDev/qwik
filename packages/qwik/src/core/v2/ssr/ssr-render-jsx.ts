@@ -7,9 +7,14 @@ import { Fragment } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
-import { SubscriptionType } from '../../state/common';
-import { SignalDerived, isSignal } from '../../state/signal';
+import {
+  SSRComment,
+  SSRRaw,
+  SSRStream,
+  type SSRStreamChildren,
+} from '../../render/jsx/utils.public';
 import { trackSignal } from '../../use/use-core';
+import { isAsyncGenerator } from '../../util/async-generator';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
 import { ELEMENT_KEY, FLUSH_COMMENT, QDefaultSlot, QScopedStyle, QSlot } from '../../util/markers';
@@ -24,15 +29,9 @@ import {
 import { addComponentStylePrefix, hasClassAttr, isClassAttr } from '../shared/scoped-styles';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
+import { WrappedSignal, EffectProperty, isSignal } from '../signal/v2-signal';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
-import {
-  SSRComment,
-  SSRRaw,
-  SSRStream,
-  type SSRStreamChildren,
-} from '../../render/jsx/utils.public';
-import { isAsyncGenerator } from '../../util/async-generator';
 import { qInspector } from '../../util/qdev';
 
 class SetScopedStyle {
@@ -133,13 +132,12 @@ function processJSXNode(
         enqueue(value[i]);
       }
     } else if (isSignal(value)) {
-      ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.DerivedSignal] : EMPTY_ARRAY);
+      ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.WrappedSignal] : EMPTY_ARRAY);
       const signalNode = ssr.getLastNode() as fixMeAny;
-      // TODO(mhevery): It is unclear to me why we need to serialize host for SignalDerived.
+      // TODO(mhevery): It is unclear to me why we need to serialize host for WrappedSignal.
       // const host = ssr.getComponentFrame(0)!.componentNode as fixMeAny;
-      const host = signalNode;
       enqueue(ssr.closeFragment);
-      enqueue(trackSignal(value, [SubscriptionType.TEXT_MUTABLE, host, value, signalNode]));
+      enqueue(trackSignal(() => value.value as any, signalNode, EffectProperty.VNODE, ssr));
     } else if (isPromise(value)) {
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Awaited] : EMPTY_ARRAY);
       enqueue(ssr.closeFragment);
@@ -217,7 +215,7 @@ function processJSXNode(
             ssr.openProjection(projectionAttrs);
             const host = componentFrame.componentNode;
             const node = ssr.getLastNode();
-            const slotName = getSlotName(host, jsx);
+            const slotName = getSlotName(host, jsx, ssr);
             projectionAttrs.push(QSlot, slotName);
             enqueue(new SetScopedStyle(styleScoped));
             enqueue(ssr.closeProjection);
@@ -485,12 +483,12 @@ function addPreventDefaultEventToSerializationContext(
   }
 }
 
-function getSlotName(host: ISsrNode, jsx: JSXNode): string {
+function getSlotName(host: ISsrNode, jsx: JSXNode, ssr: SSRContainer): string {
   const constProps = jsx.constProps;
   if (constProps && typeof constProps == 'object' && 'name' in constProps) {
     const constValue = constProps.name;
-    if (constValue instanceof SignalDerived) {
-      return trackSignal(constValue, [SubscriptionType.HOST, host as fixMeAny]);
+    if (constValue instanceof WrappedSignal) {
+      return trackSignal(() => constValue.value, host as fixMeAny, EffectProperty.COMPONENT, ssr);
     }
   }
   return (jsx.props.name as string) || QDefaultSlot;

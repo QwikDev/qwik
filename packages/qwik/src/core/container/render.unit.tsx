@@ -1,10 +1,7 @@
 import { assert, suite, test } from 'vitest';
-import { renderToString } from '../../server/render';
+import { renderToString } from '@builder.io/qwik/server';
 import { createDocument, createDOM } from '@builder.io/qwik/testing';
-import { component$ } from '../component/component.public';
-import { _fnSignal } from '../internal';
-import { useSignal } from '../use/use-signal';
-import type { JSXOutput } from '../render/jsx/types/jsx-node';
+import { component$, useSignal, type JSXOutput, _fnSignal } from '@builder.io/qwik';
 
 suite('jsx signals', () => {
   const RenderJSX = component$(() => {

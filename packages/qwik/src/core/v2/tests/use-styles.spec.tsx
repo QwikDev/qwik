@@ -1,16 +1,17 @@
-import { Fragment as Component, Fragment as Signal } from '@builder.io/qwik';
+import {
+  Fragment as Component,
+  Fragment as Signal,
+  component$,
+  inlinedQrl,
+  Slot,
+  useSignal,
+  useStylesQrl,
+} from '@builder.io/qwik';
 import { createDocument } from '@builder.io/qwik-dom';
 import { afterEach, describe, expect, it } from 'vitest';
-import { renderToString2 } from '../../../server/v2-ssr-render2';
-import { trigger } from '../../../testing/element-fixture';
-import { domRender, ssrRenderToDom } from '../../../testing/rendering.unit-util';
-import '../../../testing/vdom-diff.unit-util';
-import { component$ } from '../../component/component.public';
+import { renderToString } from '@builder.io/qwik/server';
+import { trigger, domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 import { getPlatform, setPlatform } from '../../platform/platform';
-import { inlinedQrl } from '../../qrl/qrl';
-import { Slot } from '../../render/jsx/slot.public';
-import { useSignal } from '../../use/use-signal';
-import { useStylesQrl } from '../../use/use-styles';
 import { QStyleSelector } from '../../util/markers';
 
 const debug = false; //true;
@@ -201,7 +202,7 @@ describe('html wrapper', () => {
     let document = createDocument();
     const platform = getPlatform();
     try {
-      const result = await renderToString2(
+      const result = await renderToString(
         <Wrapper>
           <head>
             <script></script>

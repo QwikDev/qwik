@@ -23,7 +23,7 @@ import { vnode_getNextSibling } from '../client/vnode';
 import { HTML_NS, SVG_NS } from '../../util/markers';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 
-const debug = false;
+const DEBUG = false;
 
 /**
  * Below are helper components that are constant. They have to be in the top level scope so that the
@@ -46,22 +46,28 @@ describe.each([
     const Child = component$(() => {
       return (
         <div>
-          <Slot />
+          <Slot>misko</Slot>
         </div>
       );
     });
     const Parent = component$(() => {
-      return <Child>parent-content</Child>;
+      return (
+        <Child>
+          <b>parent-content</b>
+        </Child>
+      );
     });
-    const { vNode } = await render(<Parent>render-content</Parent>, { debug });
+    const { vNode } = await render(<Parent>render-content</Parent>, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
-      <Fragment>
-        <Fragment>
+      <Component>
+        <Component>
           <div>
-            <Fragment>parent-content</Fragment>
+            <Projection>
+              <b>parent-content</b>
+            </Projection>
           </div>
-        </Fragment>
-      </Fragment>
+        </Component>
+      </Component>
     );
   });
   it('should render unused projection into template', async () => {
@@ -71,7 +77,7 @@ describe.each([
     const Parent = component$(() => {
       return <Child>parent-content</Child>;
     });
-    const { vNode } = await render(<Parent>render-content</Parent>, { debug });
+    const { vNode } = await render(<Parent>render-content</Parent>, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
       <Fragment>
         <Fragment>
@@ -95,7 +101,7 @@ describe.each([
     const Parent = component$(() => {
       return <Child />;
     });
-    const { vNode } = await render(<Parent />, { debug });
+    const { vNode } = await render(<Parent />, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
       <Fragment>
         <Fragment>
@@ -111,7 +117,7 @@ describe.each([
     const Parent = component$(() => {
       return <Child>projection-value</Child>;
     });
-    const { vNode } = await render(<Parent />, { debug });
+    const { vNode } = await render(<Parent />, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
       <Fragment>
         <Fragment>
@@ -137,7 +143,7 @@ describe.each([
         </Child>
       );
     });
-    const { vNode } = await render(<Parent>second 3</Parent>, { debug });
+    const { vNode } = await render(<Parent>second 3</Parent>, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
       <Component>
         <Component>
@@ -177,7 +183,7 @@ describe.each([
       <Parent>
         <b q:slot="parent">parent</b>
       </Parent>,
-      { debug }
+      { debug: DEBUG }
     );
     expect(vNode).toMatchVDOM(
       <Component>
@@ -212,7 +218,7 @@ describe.each([
         </Child>
       );
     });
-    const { vNode } = await render(<Parent />, { debug });
+    const { vNode } = await render(<Parent />, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
       <Component>
         <Component>
@@ -235,7 +241,7 @@ describe.each([
     const Parent = component$(() => {
       return <Child>parent-content</Child>;
     });
-    const { vNode, container } = await render(<Parent>render-content</Parent>, { debug });
+    const { vNode, container } = await render(<Parent>render-content</Parent>, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
       <Fragment>
         <Fragment>
@@ -262,7 +268,7 @@ describe.each([
         </span>
       );
     };
-    const { vNode } = await render(<Child>render-content</Child>, { debug });
+    const { vNode } = await render(<Child>render-content</Child>, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
       <InlineComponent>
         <span>
@@ -278,7 +284,7 @@ describe.each([
     const Parent = component$(() => {
       return <ChildSlotInline>child-content</ChildSlotInline>;
     });
-    const { vNode } = await render(<Parent>parent-content</Parent>, { debug });
+    const { vNode } = await render(<Parent>parent-content</Parent>, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
       <Component>
         <InlineComponent>
@@ -320,7 +326,7 @@ describe.each([
       );
     });
     const log = (globalThis as any).log;
-    const { document } = await render(<Parent />, { debug });
+    const { document } = await render(<Parent />, { debug: DEBUG });
     const isSsr = render === ssrRenderToDom;
     expect(log).toEqual(isSsr ? ['task', 'cleanup'] : ['task']);
     log.length = 0;
@@ -363,7 +369,7 @@ describe.each([
       );
     });
 
-    const { vNode, document } = await render(<Parent />, { debug });
+    const { vNode, document } = await render(<Parent />, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
       <Component>
         <div>
@@ -467,7 +473,7 @@ describe.each([
         </>
       );
     });
-    const { vNode, document } = await render(<SlotParent />, { debug });
+    const { vNode, document } = await render(<SlotParent />, { debug: DEBUG });
 
     await trigger(document.body, 'button', 'click');
     await trigger(document.body, 'button', 'click');
@@ -535,7 +541,7 @@ describe.each([
         </>
       );
     });
-    const { vNode, document } = await render(<SlotParent />, { debug });
+    const { vNode, document } = await render(<SlotParent />, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
       <Component>
         <Fragment>
@@ -615,7 +621,7 @@ describe.each([
       );
     });
 
-    const { vNode, document } = await render(<Parent />, { debug });
+    const { vNode, document } = await render(<Parent />, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
       <Component>
         <Fragment>
@@ -744,7 +750,7 @@ describe.each([
       );
     });
 
-    const { vNode } = await render(<SlotParent />, { debug });
+    const { vNode } = await render(<SlotParent />, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
       <Component>
         <Component>
@@ -786,7 +792,7 @@ describe.each([
       );
     });
 
-    const { vNode } = await render(<SlotParent />, { debug });
+    const { vNode } = await render(<SlotParent />, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
       <Component>
         <Component>
@@ -841,7 +847,7 @@ describe.each([
     });
     it('should work when parent removes content', async () => {
       const { vNode, document } = await render(<Parent content={true} slot={true} />, {
-        debug,
+        debug: DEBUG,
       });
       expect(vNode).toMatchVDOM(
         <Component>
@@ -875,7 +881,7 @@ describe.each([
     });
     it('should work when child removes projection', async () => {
       const { vNode, document } = await render(<Parent content={true} slot={true} />, {
-        debug,
+        debug: DEBUG,
       });
       expect(vNode).toMatchVDOM(
         <Component>
@@ -977,7 +983,7 @@ describe.each([
     });
     it('should work when parent adds content', async () => {
       const { vNode, document } = await render(<Parent content={false} slot={true} />, {
-        debug,
+        debug: DEBUG,
       });
       expect(vNode).toMatchVDOM(
         <Component>
@@ -1011,7 +1017,7 @@ describe.each([
     });
     it('should work when child adds projection', async () => {
       const { vNode, document } = await render(<Parent content={true} slot={false} />, {
-        debug,
+        debug: DEBUG,
       });
       expect(vNode).toMatchVDOM(
         <Component>
@@ -1062,7 +1068,7 @@ describe.each([
           </Child>
         );
       });
-      const { document } = await render(<Parent />, { debug });
+      const { document } = await render(<Parent />, { debug: DEBUG });
       await expect(document.querySelector('#first')).toMatchDOM(
         <div id="first" q:slot="content-1">
           <strong>A variable here!</strong>
@@ -1090,7 +1096,7 @@ describe.each([
 
       const content = <span>Some content</span>;
 
-      const { document, vNode } = await render(<Cmp>{content}</Cmp>, { debug });
+      const { document, vNode } = await render(<Cmp>{content}</Cmp>, { debug: DEBUG });
       if (render == ssrRenderToDom) {
         await expect(document.querySelector('q\\:template')).toMatchDOM(
           <q:template key={undefined}>{content}</q:template>
@@ -1149,7 +1155,7 @@ describe.each([
 
       const content = <span>Some content</span>;
 
-      const { document } = await render(<Cmp>{content}</Cmp>, { debug });
+      const { document } = await render(<Cmp>{content}</Cmp>, { debug: DEBUG });
       expect(document.querySelector('q\\:template')).toBeUndefined();
     });
 
@@ -1178,7 +1184,7 @@ describe.each([
         );
       });
 
-      const { document } = await render(<Parent />, { debug });
+      const { document } = await render(<Parent />, { debug: DEBUG });
       if (render == ssrRenderToDom) {
         await expect(document.querySelector('q\\:template')).toMatchDOM(
           <q:template key={undefined}>{content}</q:template>
@@ -1234,7 +1240,7 @@ describe.each([
         );
       });
 
-      const { document } = await render(<Parent />, { debug });
+      const { document } = await render(<Parent />, { debug: DEBUG });
       if (render == ssrRenderToDom) {
         await expect(document.querySelector('q\\:template')).toMatchDOM(
           <q:template key={undefined}>{content}</q:template>
@@ -1269,7 +1275,7 @@ describe.each([
         );
       });
 
-      const { document, vNode } = await render(<SlotParent />, { debug });
+      const { document, vNode } = await render(<SlotParent />, { debug: DEBUG });
       expect(vNode).toMatchVDOM(
         <Component>
           <Fragment>
@@ -1339,7 +1345,7 @@ describe.each([
           </>
         );
       });
-      const { container, document, vNode } = await render(<Parent />, { debug });
+      const { container, document, vNode } = await render(<Parent />, { debug: DEBUG });
       expect(vNode).toMatchVDOM(
         <Component>
           <Fragment>
@@ -1434,7 +1440,7 @@ describe.each([
           </>
         );
       });
-      const { container, document, vNode } = await render(<Parent />, { debug });
+      const { container, document, vNode } = await render(<Parent />, { debug: DEBUG });
 
       expect(vNode).toMatchVDOM(
         <Component>
@@ -1514,7 +1520,7 @@ describe.each([
           </>
         );
       });
-      const { container, document, vNode } = await render(<Parent />, { debug });
+      const { container, document, vNode } = await render(<Parent />, { debug: DEBUG });
 
       expect(vNode).toMatchVDOM(
         <Component>
@@ -1603,7 +1609,7 @@ describe.each([
             </foreignObject>
           </filter>
         </Parent>,
-        { debug }
+        { debug: DEBUG }
       );
       expect(vNode).toMatchVDOM(
         <Component>
@@ -1686,7 +1692,7 @@ describe.each([
           <p q:slot="static"></p>
           DYNAMIC
         </Issue1630>,
-        { debug }
+        { debug: DEBUG }
       );
       expect(cleanupAttrs(document.querySelector('div')?.innerHTML || '')).toContain(
         '</p><b>CHILD</b>DYNAMIC'
@@ -1754,7 +1760,7 @@ describe.each([
           <p q:slot="static"></p>
           DYNAMIC
         </Issue1630>,
-        { debug }
+        { debug: DEBUG }
       );
       await expect(document.querySelector('div')).toMatchDOM(
         <div>
@@ -1812,7 +1818,7 @@ describe.each([
         <section>
           <Issue2688 count={123} />
         </section>,
-        { debug }
+        { debug: DEBUG }
       );
       expect(vNode).toMatchVDOM(
         <section>
@@ -1896,7 +1902,7 @@ describe.each([
         );
       });
 
-      const { vNode, document } = await render(<Parent />, { debug });
+      const { vNode, document } = await render(<Parent />, { debug: DEBUG });
       await trigger(document.body, '#flip', 'click');
       await trigger(document.body, '#counter', 'click');
       expect(vNode).toMatchVDOM(
@@ -1995,7 +2001,7 @@ describe.each([
         return cmp;
       });
 
-      const { vNode, document } = await render(<Issue3727 />, { debug });
+      const { vNode, document } = await render(<Issue3727 />, { debug: DEBUG });
 
       expect(vNode).toMatchVDOM(
         <Component>
@@ -2116,7 +2122,7 @@ describe.each([
         <Issue4283>
           <p>index page</p>
         </Issue4283>,
-        { debug }
+        { debug: DEBUG }
       );
       if (render === ssrRenderToDom) {
         await trigger(document.body, 'div', ':document:qinit');
@@ -2189,7 +2195,7 @@ describe.each([
         );
       });
 
-      const { vNode, document } = await render(<SlotParent />, { debug });
+      const { vNode, document } = await render(<SlotParent />, { debug: DEBUG });
       if (render === ssrRenderToDom) {
         await trigger(document.body, 'div', ':document:qinit');
       }

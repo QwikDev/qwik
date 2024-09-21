@@ -1,12 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { trigger } from '../../../testing/element-fixture';
-import { ErrorProvider, domRender, ssrRenderToDom } from '../../../testing/rendering.unit-util';
-import '../../../testing/vdom-diff.unit-util';
-import { component$ } from '../../component/component.public';
-import { Fragment as Component, Fragment, Fragment as Signal } from '../../render/jsx/jsx-runtime';
-import { useSignal } from '../../use/use-signal';
-import { useStore } from '../../use/use-store.public';
-import { useVisibleTask$ } from '../../use/use-task';
+import {
+  component$,
+  Fragment as Component,
+  Fragment,
+  Fragment as Signal,
+  useSignal,
+  useStore,
+  useVisibleTask$,
+  useContext,
+  useComputed$,
+  useContextProvider,
+  createContextId,
+  type Signal as SignalType,
+} from '@builder.io/qwik';
+import { trigger, domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
+import { ErrorProvider } from '../../../testing/rendering.unit-util';
 import { delay } from '../../util/promises';
 
 const debug = false; //true;
@@ -291,7 +299,7 @@ describe.each([
         const double = useSignal(0);
 
         useVisibleTask$(({ track }) => {
-          double.value = 2 * track(count);
+          double.value = 2 * track(() => count.value);
         });
         return (
           <button
@@ -549,6 +557,54 @@ describe.each([
       (globalThis as any).log = undefined;
     });
 
+    it('should run cleanup with component rerender', async () => {
+      const Child = component$((props: { cleanupCounter: SignalType<number> }) => {
+        useVisibleTask$(({ cleanup }) => {
+          cleanup(() => {
+            props.cleanupCounter.value++;
+          });
+        });
+        return <span></span>;
+      });
+
+      const Cmp = component$(() => {
+        const counter = useSignal<number>(0);
+        const cleanupCounter = useSignal<number>(0);
+        return (
+          <div>
+            <button onClick$={() => counter.value++}></button>
+            <Child key={counter.value} cleanupCounter={cleanupCounter} />
+            {cleanupCounter.value}
+          </div>
+        );
+      });
+
+      const { vNode, container } = await render(<Cmp />, { debug });
+
+      if (render === ssrRenderToDom) {
+        await trigger(container.element, 'span', 'qvisible');
+      }
+
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <div>
+            <button></button>
+            <Component>
+              <span></span>
+            </Component>
+            <Signal>{'6'}</Signal>
+          </div>
+        </Component>
+      );
+    });
+
     it('should handle promises and visible tasks', async () => {
       // vi.useFakeTimers();
       const MyComp = component$(() => {
@@ -620,6 +676,82 @@ describe.each([
               <Signal>{'valueB'}</Signal>
             </p>
           </div>
+        </Component>
+      );
+    });
+
+    it('#4432 - should cleanup child visible task with correct value', async () => {
+      const ContextIssue4432 = createContextId<{ url: URL; logs: string }>('issue-4432');
+
+      const Issue4432Child = component$(() => {
+        const state = useContext(ContextIssue4432);
+
+        const pathname = useComputed$(() => state.url.pathname);
+
+        useVisibleTask$(({ track, cleanup }) => {
+          track(() => pathname.value);
+
+          // This should only run on page load for path '/'
+          state.logs += `VisibleTask ChildA ${pathname.value}\n`;
+
+          // This should only run when leaving the page
+          cleanup(() => {
+            state.logs += `Cleanup ChildA ${pathname.value}\n`;
+          });
+        });
+
+        return <p>Child A</p>;
+      });
+
+      const Issue4432 = component$(() => {
+        const loc = useStore({
+          url: new URL('http://localhost:3000/'),
+          logs: '',
+        });
+        useContextProvider(ContextIssue4432, loc);
+
+        return (
+          <>
+            <button onClick$={() => (loc.url = new URL('http://localhost:3000/other'))}>
+              Change
+            </button>
+            <pre>{loc.logs}</pre>
+            {loc.url.pathname === '/' && <Issue4432Child />}
+          </>
+        );
+      });
+
+      const { vNode, document } = await render(<Issue4432 />, { debug });
+
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'p', 'qvisible');
+      }
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button>Change</button>
+            <pre>
+              <Signal>{'VisibleTask ChildA /\n'}</Signal>
+            </pre>
+            <Component>
+              <p>Child A</p>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(document.body, 'button', 'click');
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button>Change</button>
+            <pre>
+              <Signal>{'VisibleTask ChildA /\nCleanup ChildA /other\n'}</Signal>
+            </pre>
+            {''}
+          </Fragment>
         </Component>
       );
     });

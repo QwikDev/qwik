@@ -189,7 +189,7 @@ export const createContext = (element: Element | VirtualElement): QContext => {
 export const cleanupContext = (elCtx: QContext, subsManager: SubscriptionManager) => {
   elCtx.$tasks$?.forEach((task) => {
     subsManager.$clearSub$(task);
-    cleanupTask(task);
+    cleanupTask(task as any);
   });
   elCtx.$componentQrl$ = null;
   elCtx.$seq$ = null;

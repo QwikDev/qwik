@@ -39,6 +39,7 @@ import {
 } from '../core/v2/shared/event-names';
 import { createDocument } from './document';
 import { isElement } from './html';
+import { Q_PROPS_SEPARATOR } from '../core/util/markers';
 
 expect.extend({
   toMatchVDOM(this: { isNot: boolean }, received: _VNode, expected: JSXNode) {
@@ -303,7 +304,7 @@ function constPropsFromElement(element: Element) {
   const props: string[] = [];
   for (let i = 0; i < element.attributes.length; i++) {
     const attr = element.attributes[i];
-    if (attr.name !== '' && attr.name !== ':') {
+    if (attr.name !== '' && attr.name !== Q_PROPS_SEPARATOR) {
       props.push(attr.name);
     }
   }

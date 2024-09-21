@@ -7,8 +7,7 @@ test.describe("Qwik City Page", () => {
     tests();
   });
 
-  // TODO(v2): this should be fixed after signals v2 is implemented
-  test.describe.skip("spa", () => {
+  test.describe("spa", () => {
     test.use({ javaScriptEnabled: true });
     tests();
   });

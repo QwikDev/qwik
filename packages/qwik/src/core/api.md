@@ -133,7 +133,7 @@ export interface ClientContainer extends Container2 {
     // (undocumented)
     qManifestHash: string;
     // (undocumented)
-    renderDone: Promise<void>;
+    renderDone: Promise<void> | null;
     // (undocumented)
     rootVNode: _ElementVNode;
 }
@@ -165,6 +165,11 @@ export const componentQrl: <PROPS extends Record<any, any>>(componentQrl: QRL<On
 
 // @public (undocumented)
 export type ComputedFn<T> = () => T;
+
+// @public (undocumented)
+export interface ComputedSignal<T> extends ReadonlySignal<T> {
+    force(): void;
+}
 
 // @internal (undocumented)
 export const _CONST_PROPS: unique symbol;
@@ -200,11 +205,20 @@ export interface CorrectedToggleEvent extends Event {
     readonly prevState: 'open' | 'closed';
 }
 
+// @public (undocumented)
+export const createComputed$: <T>(qrl: () => T) => ComputedSignal<T>;
+
+// @public (undocumented)
+export const createComputedQrl: <T>(qrl: QRL<() => T>) => ComputedSignal<T>;
+
 // @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
 
-// @public @deprecated
-export const createSignal: UseSignal;
+// @public (undocumented)
+export const createSignal: {
+    <T>(): Signal<T | undefined>;
+    <T>(value: T): Signal<T>;
+};
 
 // @public (undocumented)
 export interface CSSProperties extends CSS_2.Properties<string | number>, CSS_2.PropertiesHyphen<string | number> {
@@ -247,14 +261,14 @@ export interface DialogHTMLAttributes<T extends Element> extends Attrs<'dialog',
 //
 // @public
 export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>, QwikEvents<EL> {
+    // Warning: (ae-forgotten-export) The symbol "Signal_2" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    class?: ClassList | Signal<ClassList> | undefined;
+    class?: ClassList | Signal_2<ClassList> | undefined;
 }
 
-// Warning: (ae-forgotten-export) The symbol "StoreTracker" needs to be exported by the entry point index.d.ts
-//
 // @internal (undocumented)
-class DomContainer extends _SharedContainer implements ClientContainer, StoreTracker {
+class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     $appendStyle$(content: string, styleId: string, host: _VirtualVNode, scoped: boolean): void;
     // (undocumented)
@@ -263,16 +277,16 @@ class DomContainer extends _SharedContainer implements ClientContainer, StoreTra
     $instanceHash$: string;
     // (undocumented)
     $journal$: VNodeJournal;
-    // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    $proxyMap$: ObjToProxyMap;
     // (undocumented)
     $qFuncs$: Array<(...args: unknown[]) => unknown>;
     // (undocumented)
     $rawStateData$: unknown[];
     // (undocumented)
     $setRawState$(id: number, vParent: _ElementVNode | _VirtualVNode): void;
+    // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    $storeProxyMap$: ObjToProxyMap;
     constructor(element: _ContainerElement);
     // (undocumented)
     document: _QDocument;
@@ -301,9 +315,7 @@ class DomContainer extends _SharedContainer implements ClientContainer, StoreTra
     // (undocumented)
     qManifestHash: string;
     // (undocumented)
-    renderDone: Promise<void>;
-    // (undocumented)
-    rendering: boolean;
+    renderDone: Promise<void> | null;
     // (undocumented)
     resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
     // (undocumented)
@@ -322,6 +334,13 @@ export { DomContainer as _DomContainer }
 
 // @public (undocumented)
 export type EagernessOptions = 'visible' | 'load' | 'idle';
+
+// @internal (undocumented)
+export class _EffectData<T extends Record<string, any> = Record<string, any>> {
+    constructor(data: T);
+    // (undocumented)
+    data: T;
+}
 
 // @internal (undocumented)
 export type _ElementVNode = [
@@ -372,10 +391,10 @@ export const eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 export interface FieldsetHTMLAttributes<T extends Element> extends Attrs<'fieldset', T> {
 }
 
-// Warning: (ae-forgotten-export) The symbol "SignalDerived" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "WrappedSignal" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export const _fnSignal: <T extends (...args: any) => any>(fn: T, args: Parameters<T>, fnStr?: string) => SignalDerived<ReturnType<T>, Parameters<T>>;
+export const _fnSignal: <T extends (...args: any) => any>(fn: T, args: Parameters<T>, fnStr?: string) => WrappedSignal<any>;
 
 // @public (undocumented)
 export interface FormHTMLAttributes<T extends Element> extends Attrs<'form', T> {
@@ -521,8 +540,8 @@ export type IntrinsicSVGElements = {
 // @internal (undocumented)
 export const _isJSXNode: <T>(n: unknown) => n is JSXNode<T>;
 
-// @public
-export const isSignal: <T = unknown>(obj: any) => obj is Signal<T>;
+// @public (undocumented)
+export const isSignal: (value: any) => value is Signal<unknown>;
 
 // @internal (undocumented)
 export function _isStringifiable(value: unknown): value is _Stringifiable;
@@ -541,7 +560,7 @@ export const _jsxBranch: <T>(input?: T) => T | undefined;
 export const _jsxC: (type: any, mutable: any, _flags: any, key: any) => JSXNode<any>;
 
 // @public (undocumented)
-export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;
+export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal_2<JSXChildren> | JSXNode;
 
 // Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
 //
@@ -936,7 +955,10 @@ export type QwikVisibleEvent = CustomEvent<IntersectionObserverEntry>;
 export type QwikWheelEvent<T = Element> = NativeWheelEvent;
 
 // @public (undocumented)
-export type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;
+export interface ReadonlySignal<T = unknown> {
+    // (undocumented)
+    readonly value: T;
+}
 
 // @internal (undocumented)
 export const _regSymbol: (symbol: any, hash: string) => any;
@@ -1025,7 +1047,7 @@ export interface ResourceProps<T> {
     // (undocumented)
     onResolved: (value: T) => JSXOutput;
     // (undocumented)
-    readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
+    readonly value: ResourceReturn<T> | Signal_2<Promise<T> | T> | Promise<T>;
 }
 
 // @public (undocumented)
@@ -1076,18 +1098,14 @@ export abstract class _SharedContainer implements Container2 {
     $instanceHash$: string | null;
     // (undocumented)
     readonly $locale$: string;
-    // (undocumented)
-    readonly $proxyMap$: ObjToProxyMap;
     // Warning: (ae-forgotten-export) The symbol "Scheduler" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     readonly $scheduler$: Scheduler;
     // (undocumented)
     $serverData$: Record<string, any>;
-    // Warning: (ae-forgotten-export) The symbol "SubscriptionManager" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    readonly $subsManager$: SubscriptionManager;
+    readonly $storeProxyMap$: ObjToProxyMap;
     // (undocumented)
     readonly $version$: string;
     constructor(scheduleDrain: () => void, journalFlush: () => void, serverData: Record<string, any>, locale: string);
@@ -1113,14 +1131,14 @@ export abstract class _SharedContainer implements Container2 {
     abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)
     abstract setHostProp<T>(host: HostElement, name: string, value: T): void;
-    // Warning: (ae-forgotten-export) The symbol "Subscriber" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "Effect" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    trackSignalValue<T>(signal: Signal, sub: Subscriber): T;
+    trackSignalValue<T>(signal: Signal_2, subscriber: Effect, property: string, data: _EffectData): T;
 }
 
 // @public
-export interface Signal<T = any> {
+export interface Signal<T = any> extends ReadonlySignal<T> {
     // (undocumented)
     value: T;
 }
@@ -1925,7 +1943,7 @@ export interface UseSignal {
     <T>(value: T | (() => T)): Signal<T>;
 }
 
-// @public
+// @public (undocumented)
 export const useSignal: UseSignal;
 
 // @public
@@ -2017,6 +2035,8 @@ export type _VNode = _ElementVNode | _TextVNode | _VirtualVNode;
 // @internal
 export const enum _VNodeFlags {
     // (undocumented)
+    Deleted = 32,
+    // (undocumented)
     Element = 1,
     // (undocumented)
     ELEMENT_OR_TEXT_MASK = 5,
@@ -2027,15 +2047,15 @@ export const enum _VNodeFlags {
     // (undocumented)
     INFLATED_TYPE_MASK = 15,
     // (undocumented)
-    NAMESPACE_MASK = 96,
+    NAMESPACE_MASK = 192,
     // (undocumented)
-    NEGATED_NAMESPACE_MASK = -97,
+    NEGATED_NAMESPACE_MASK = -193,
     // (undocumented)
     NS_html = 0,
     // (undocumented)
-    NS_math = 64,
+    NS_math = 128,
     // (undocumented)
-    NS_svg = 32,
+    NS_svg = 64,
     // (undocumented)
     Resolved = 16,
     // (undocumented)

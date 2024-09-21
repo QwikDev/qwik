@@ -9,9 +9,7 @@ import {
   useStore,
 } from '@builder.io/qwik';
 import { describe, expect, it } from 'vitest';
-import { trigger } from '../../../testing/element-fixture';
-import { domRender, ssrRenderToDom } from '../../../testing/rendering.unit-util';
-import '../../../testing/vdom-diff.unit-util';
+import { trigger, domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -45,6 +43,25 @@ describe.each([
         <span>
           <Signal>{'246'}</Signal>
         </span>
+      </>
+    );
+  });
+  it('should render correctly with falsy value', async () => {
+    const Cmp = component$((props: { initial: number }) => {
+      const count = useSignal(props.initial);
+      const doubleCount = useComputed$(() => count.value * 2);
+      return (
+        <div>
+          Double count: {doubleCount.value}! {count.value}
+        </div>
+      );
+    });
+    const { vNode } = await render(<Cmp initial={0} />, { debug });
+    expect(vNode).toMatchVDOM(
+      <>
+        <div>
+          Double count: <Signal>{'0'}</Signal>! <Signal>{'0'}</Signal>
+        </div>
       </>
     );
   });
@@ -223,18 +240,18 @@ describe.each([
       );
     });
 
-    it.skip('#3294 - improvement(after v2): should lazily evaluate the function with useSignal', async () => {
-      let useComputedCount = 0;
+    it('#3294 - should lazily evaluate the function with useSignal', async () => {
+      (global as any).useComputedCount = 0;
       const Issue3294 = component$(() => {
         const firstName = useSignal('Misko');
         const lastName = useSignal('Hevery');
         const execFirstUseComputed = useSignal(true);
         const firstUseComputed = useComputed$(() => {
-          useComputedCount++;
+          (global as any).useComputedCount++;
           return lastName.value + ' ' + firstName.value;
         });
         const secondUseComputed = useComputed$(() => {
-          useComputedCount++;
+          (global as any).useComputedCount++;
           return firstName.value + ' ' + lastName.value;
         });
         return (
@@ -252,24 +269,26 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <>
           <div>
-            <span>Hevery Misko</span>
+            <span>
+              <Signal>Hevery Misko</Signal>
+            </span>
           </div>
         </>
       );
-      expect(useComputedCount).toBe(1);
+      expect((global as any).useComputedCount).toBe(1);
     });
 
-    it.skip('#3294 - improvement(after v2): should lazily evaluate the function with store', async () => {
-      let useComputedCount = 0;
+    it('#3294 - should lazily evaluate the function with store', async () => {
+      (global as any).useComputedCount = 0;
       const Issue3294 = component$(() => {
         const store = useStore({ firstName: 'Misko', lastName: 'Hevery' });
         const execFirstUseComputed = useSignal(true);
         const firstUseComputed = useComputed$(() => {
-          useComputedCount++;
+          (global as any).useComputedCount++;
           return store.lastName + ' ' + store.firstName;
         });
         const secondUseComputed = useComputed$(() => {
-          useComputedCount++;
+          (global as any).useComputedCount++;
           return store.firstName + ' ' + store.lastName;
         });
         return (
@@ -287,11 +306,13 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <>
           <div>
-            <span>Hevery Misko</span>
+            <span>
+              <Signal>Hevery Misko</Signal>
+            </span>
           </div>
         </>
       );
-      expect(useComputedCount).toBe(1);
+      expect((global as any).useComputedCount).toBe(1);
     });
   });
 });

@@ -65,9 +65,9 @@ import {
   tryGetContext,
   type QContext,
 } from '../../state/context';
-import { isSignal } from '../../state/signal';
+import { isSignalV1 } from '../../state/signal';
 import { ReadWriteProxyHandler, createPropsState, createProxy } from '../../state/store';
-import { trackSignal } from '../../use/use-core';
+import { trackSignalV1 } from '../../use/use-core';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import {
   appendChild,
@@ -393,7 +393,7 @@ export const diffVnode = (
     const signal = newVnode.$signal$;
     if (signal) {
       newVnode.$text$ = jsxToString(
-        trackSignal(signal, [
+        trackSignalV1(signal, [
           SubscriptionType.TEXT_MUTABLE,
           currentComponent.$element$,
           signal,
@@ -443,8 +443,8 @@ export const diffVnode = (
           continue;
         }
 
-        if (isSignal(newValue)) {
-          newValue = trackSignal(newValue, [
+        if (isSignalV1(newValue)) {
+          newValue = trackSignalV1(newValue, [
             SubscriptionType.PROP_IMMUTABLE,
             currentComponent.$element$,
             newValue,
@@ -674,7 +674,7 @@ export const createElm = (
     if (isJSXNode(signalValue)) {
       // convert signal value to ProcessedJSXNode
       const processedSignal = processData(signalValue);
-      if (isSignal(processedSignal)) {
+      if (isSignalV1(processedSignal)) {
         throw new Error('NOT IMPLEMENTED: Promise');
       } else if (Array.isArray(processedSignal)) {
         throw new Error('NOT IMPLEMENTED: Array');
@@ -682,7 +682,7 @@ export const createElm = (
         // crate elements
         const elm = createElm(rCtx, processedSignal as ProcessedJSXNode, flags, promises);
         // create subscription
-        trackSignal(
+        trackSignalV1(
           signal,
           flags & IS_IMMUTABLE
             ? ([SubscriptionType.TEXT_IMMUTABLE, elm, signal, elm] as TextSubscriber)
@@ -701,7 +701,7 @@ export const createElm = (
       const elm = doc.createTextNode(vnode.$text$);
       elm.data = vnode.$text$ = jsxToString(signalValue);
       // create subscription
-      trackSignal(
+      trackSignalV1(
         signal,
         flags & IS_IMMUTABLE
           ? ([SubscriptionType.TEXT_IMMUTABLE, elm, signal, elm] as TextSubscriber)
@@ -812,7 +812,7 @@ export const createElm = (
       for (const prop in expectProps) {
         if (prop !== 'children' && prop !== QSlot) {
           const immutableValue = immutableMeta[prop];
-          if (isSignal(immutableValue)) {
+          if (isSignalV1(immutableValue)) {
             target['_IMMUTABLE_PREFIX' + prop] = immutableValue;
           } else {
             target[prop] = expectProps[prop];
@@ -1084,9 +1084,9 @@ export const setProperties = (
       continue;
     }
 
-    if (isSignal(newValue)) {
+    if (isSignalV1(newValue)) {
       assertDefined(hostCtx, 'Signals can only be used in components');
-      newValue = trackSignal(
+      newValue = trackSignalV1(
         newValue,
         immutable
           ? [SubscriptionType.PROP_IMMUTABLE, elm, newValue, hostCtx.$element$, prop, undefined]

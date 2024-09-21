@@ -1,7 +1,7 @@
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
 import { SubscriptionType } from '../../state/common';
 import { HOST_FLAG_MOUNTED, type QContext } from '../../state/context';
-import { isSignal, type Signal } from '../../state/signal';
+import { isSignalV1, type Signal } from '../../state/signal';
 import { invoke, newInvokeContext, type InvokeContext } from '../../use/use-core';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
@@ -167,7 +167,7 @@ export const processData = (
     return newNode;
   } else if (isJSXNode(node)) {
     return processNode(node, invocationContext);
-  } else if (isSignal(node)) {
+  } else if (isSignalV1(node)) {
     const newNode = new ProcessedJSXNodeImpl('#signal', EMPTY_OBJ, null, EMPTY_ARRAY, 0, null);
     newNode.$signal$ = node;
     return newNode;

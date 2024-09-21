@@ -1,4 +1,4 @@
-import { HTML_NS, MATH_NS, SVG_NS } from '../../util/markers';
+import { HTML_NS, MATH_NS, Q_PROPS_SEPARATOR, SVG_NS } from '../../util/markers';
 import { getDomContainerFromQContainerElement } from './dom-container';
 import {
   ElementVNodeProps,
@@ -107,7 +107,7 @@ function cloneElementWithNamespace(
   for (const attribute of attributes) {
     const name = attribute.name;
     const value = attribute.value;
-    if (!name || name === ':') {
+    if (!name || name === Q_PROPS_SEPARATOR) {
       continue;
     }
     newElement.setAttribute(name, value);

@@ -292,4 +292,51 @@ describe.each([
       </Component>
     );
   });
+
+  it('should render component on resolved', async () => {
+    const MyButton = component$(() => {
+      return <div></div>;
+    });
+
+    const Cmp = component$(() => {
+      const text = useSignal('');
+
+      const textResource = useResource$(async (ctx) => {
+        return ctx.track(() => text.value);
+      });
+
+      return (
+        <>
+          <Resource
+            value={textResource}
+            onResolved={() => (
+              <>
+                <MyButton />
+              </>
+            )}
+          />
+        </>
+      );
+    });
+
+    const { vNode } = await render(<Cmp />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <InlineComponent>
+            <Fragment>
+              <Awaited>
+                <Fragment>
+                  <Component>
+                    <div></div>
+                  </Component>
+                </Fragment>
+              </Awaited>
+            </Fragment>
+          </InlineComponent>
+        </Fragment>
+      </Component>
+    );
+  });
 });

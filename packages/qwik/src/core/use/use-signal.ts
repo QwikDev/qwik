@@ -1,7 +1,7 @@
 import { isQwikComponent } from '../component/component.public';
-import { _createSignal, type Signal } from '../state/signal';
 import { isFunction } from '../util/types';
-import { invoke, useInvokeContext } from './use-core';
+import { createSignal, type Signal } from '../v2/signal/v2-signal.public';
+import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 
 /** @public */
@@ -10,24 +10,19 @@ export interface UseSignal {
   <T>(value: T | (() => T)): Signal<T>;
 }
 
-/**
- * Creates a signal.
- *
- * If the initial state is a function, the function is invoked to calculate the actual initial
- * state.
- *
- * @deprecated This is a technology preview
- * @public
- */
-export const createSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STATE> => {
-  const iCtx = useInvokeContext();
-  const subsManager =
-    iCtx.$container2$?.$subsManager$ || iCtx.$renderCtx$.$static$.$containerState$.$subsManager$;
+/** @public */
+export const useSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STATE> => {
+  const { val, set } = useSequentialScope<Signal<STATE>>();
+  if (val != null) {
+    return val;
+  }
+
   const value =
     isFunction(initialState) && !isQwikComponent(initialState)
       ? invoke(undefined, initialState as any)
       : initialState;
-  return _createSignal(value, subsManager, 0, undefined) as Signal<STATE>;
+  const signal = createSignal<STATE>(value);
+  return set(signal);
 };
 
 /**
@@ -46,13 +41,4 @@ export const useConstant = <T>(value: (() => T) | T): T => {
   // Note: We are not using `invoke` here because we don't want to clear the context
   value = isFunction(value) && !isQwikComponent(value) ? value() : value;
   return set(value as T);
-};
-
-/**
- * Hook that creates a signal that is retained for the lifetime of the component.
- *
- * @public
- */
-export const useSignal: UseSignal = (initialState?: any) => {
-  return useConstant(() => createSignal(initialState));
 };

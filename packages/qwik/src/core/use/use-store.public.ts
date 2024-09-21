@@ -1,6 +1,5 @@
-import { QObjectRecursive } from '../state/constants';
-import { getOrCreateProxy } from '../state/store';
 import { isFunction } from '../util/types';
+import { StoreFlags, getOrCreateStore } from '../v2/signal/v2-store';
 import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 
@@ -89,10 +88,10 @@ export const useStore = <STATE extends object>(
     set(value);
     return value;
   } else {
-    const containerState = iCtx.$container2$ || iCtx.$renderCtx$.$static$.$containerState$;
+    const containerState = iCtx.$container2$;
     const recursive = opts?.deep ?? true;
-    const flags = recursive ? QObjectRecursive : 0;
-    const newStore = getOrCreateProxy(value, containerState, flags);
+    const flags = recursive ? StoreFlags.RECURSIVE : StoreFlags.NONE;
+    const newStore = getOrCreateStore(value, flags, containerState);
     set(newStore);
     return newStore;
   }

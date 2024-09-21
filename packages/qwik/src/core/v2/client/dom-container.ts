@@ -6,7 +6,6 @@ import { getPlatform } from '../../platform/platform';
 import type { QRL } from '../../qrl/qrl.public';
 import { ERROR_CONTEXT, isRecoverable } from '../../render/error-handling';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
-import type { StoreTracker } from '../../state/store';
 import type { ContextId } from '../../use/use-context';
 import { EMPTY_ARRAY } from '../../util/flyweight';
 import { throwErrorAndStop } from '../../util/log';
@@ -16,6 +15,7 @@ import {
   ELEMENT_SEQ_IDX,
   getQFuncs,
   OnRenderProp,
+  Q_PROPS_SEPARATOR,
   QBaseAttr,
   QContainerAttr,
   QContainerSelector,
@@ -25,9 +25,10 @@ import {
   QSlotParent,
   QStyle,
   QStyleSelector,
+  QSubscribers,
   USE_ON_LOCAL_SEQ_IDX,
 } from '../../util/markers';
-import { maybeThen } from '../../util/promises';
+import { isPromise } from '../../util/promises';
 import { isSlotProp } from '../../util/prop';
 import { qDev } from '../../util/qdev';
 import type { ValueOrPromise } from '../../util/types';
@@ -92,6 +93,9 @@ export function getDomContainerFromQContainerElement(qContainerElement: Element)
       if (attrs) {
         for (let index = 0; index < attrs.length; index++) {
           const attr = attrs[index];
+          if (attr.name === Q_PROPS_SEPARATOR) {
+            continue;
+          }
           containerAttributes[attr.name] = attr.value;
         }
       }
@@ -115,7 +119,7 @@ export const isDomContainer = (container: any): container is DomContainer => {
 };
 
 /** @internal */
-export class DomContainer extends _SharedContainer implements IClientContainer, StoreTracker {
+export class DomContainer extends _SharedContainer implements IClientContainer {
   public element: ContainerElement;
   public qContainer: string;
   public qBase: string;
@@ -123,16 +127,16 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   public rootVNode: ElementVNode;
   public document: QDocument;
   public $journal$: VNodeJournal;
-  public renderDone: Promise<void> = Promise.resolve();
-  public rendering: boolean = false;
+  public renderDone: Promise<void> | null = null;
   public $rawStateData$: unknown[];
-  public $proxyMap$: ObjToProxyMap = new WeakMap();
+  public $storeProxyMap$: ObjToProxyMap = new WeakMap();
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
   public $instanceHash$: string;
 
   private stateData: unknown[];
   private $styleIds$: Set<string> | null = null;
   private $vnodeLocate$: (id: string) => VNode = (id) => vnode_locate(this.rootVNode, id);
+  private $renderCount$ = 0;
 
   constructor(element: ContainerElement) {
     super(
@@ -280,6 +284,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
       case ELEMENT_PROPS:
       case OnRenderProp:
       case QCtxAttr:
+      case QSubscribers:
         getObjectById = this.$getObjectById$;
         break;
       case ELEMENT_SEQ_IDX:
@@ -291,18 +296,28 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
   }
 
   scheduleRender() {
-    // console.log('>>>> scheduleRender', !!this.rendering);
-    if (!this.rendering) {
-      this.rendering = true;
-      this.renderDone = getPlatform().nextTick(() => {
-        // console.log('>>>> scheduleRender nextTick', !!this.rendering);
-        return maybeThen(this.$scheduler$(ChoreType.WAIT_FOR_ALL), () => {
-          // console.log('>>>> scheduleRender done', !!this.rendering);
-          this.rendering = false;
-        });
+    this.$renderCount$++;
+    this.renderDone ||= getPlatform().nextTick(() => this.processChores());
+    return this.renderDone;
+  }
+
+  private processChores() {
+    let renderCount = this.$renderCount$;
+    const result = this.$scheduler$(ChoreType.WAIT_FOR_ALL);
+    if (isPromise(result)) {
+      return result.then(async () => {
+        while (renderCount !== this.$renderCount$) {
+          renderCount = this.$renderCount$;
+          await this.$scheduler$(ChoreType.WAIT_FOR_ALL);
+        }
+        this.renderDone = null;
       });
     }
-    return this.renderDone;
+    if (renderCount !== this.$renderCount$) {
+      this.processChores();
+      return;
+    }
+    this.renderDone = null;
   }
 
   ensureProjectionResolved(vNode: VirtualVNode): void {
@@ -324,7 +339,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer, 
     if (typeof id === 'string') {
       id = parseFloat(id);
     }
-    assertTrue(id < this.$rawStateData$.length, 'Invalid reference');
+    assertTrue(
+      id < this.$rawStateData$.length,
+      `Invalid reference: ${id} < ${this.$rawStateData$.length}`
+    );
     return this.stateData[id];
   };
 

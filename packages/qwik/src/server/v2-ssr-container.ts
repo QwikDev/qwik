@@ -6,6 +6,7 @@ import {
   _walkJSX,
   isSignal,
   type JSXNode,
+  _EffectData as EffectData,
 } from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
@@ -29,7 +30,6 @@ import {
   QStyle,
   QContainerAttr,
   QTemplate,
-  SubscriptionType,
   VNodeDataChar,
   VirtualType,
   convertStyleIdsToString,
@@ -48,6 +48,7 @@ import {
   QManifestHashAttr,
   QInstanceAttr,
   escapeHTML,
+  Q_PROPS_SEPARATOR,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -57,6 +58,7 @@ import {
   type ISsrNode,
   type JSXChildren,
   type JSXOutput,
+  type NodePropData,
   type SerializationContext,
   type SsrAttrKey,
   type SsrAttrValue,
@@ -64,7 +66,6 @@ import {
   type StreamWriter,
   type SymbolToChunkResolver,
   type ValueOrPromise,
-  type fixMeAny,
 } from './qwik-types';
 import { Q_FUNCS_PREFIX } from './render';
 import type { PrefetchResource, RenderOptions, RenderToStreamResult } from './types';
@@ -347,7 +348,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (varAttrs) {
       innerHTML = this.writeAttrs(elementName, varAttrs, false);
     }
-    this.write(' :');
+    this.write(' ' + Q_PROPS_SEPARATOR);
     // Domino sometimes does not like empty attributes, so we need to add a empty value
     isDev && this.write('=""');
     if (constAttrs && constAttrs.length) {
@@ -1023,7 +1024,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  private writeAttrs(tag: string, attrs: SsrAttrs, immutable: boolean): string | undefined {
+  private writeAttrs(tag: string, attrs: SsrAttrs, isConst: boolean): string | undefined {
     let innerHTML: string | undefined = undefined;
     if (attrs.length) {
       for (let i = 0; i < attrs.length; i++) {
@@ -1058,14 +1059,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
         if (isSignal(value)) {
           const lastNode = this.getLastNode();
-          value = this.trackSignalValue(value, [
-            immutable ? SubscriptionType.PROP_IMMUTABLE : SubscriptionType.PROP_MUTABLE,
-            lastNode as fixMeAny,
-            value,
-            lastNode as fixMeAny,
-            key,
-            styleScopedId || undefined,
-          ]);
+          const signalData = new EffectData<NodePropData>({
+            $scopedStyleIdPrefix$: styleScopedId,
+            $isConst$: isConst,
+          });
+          value = this.trackSignalValue(value, lastNode, key, signalData);
         }
 
         if (key === dangerouslySetInnerHTML) {

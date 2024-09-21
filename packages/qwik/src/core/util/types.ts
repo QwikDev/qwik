@@ -5,7 +5,7 @@ export const isHtmlElement = (node: unknown): node is Element => {
 
 export const isSerializableObject = (v: unknown): v is Record<string, unknown> => {
   const proto = Object.getPrototypeOf(v);
-  return proto === Object.prototype || proto === null;
+  return proto === Object.prototype || proto === Array.prototype || proto === null;
 };
 
 export const isObject = (v: unknown): v is object => {

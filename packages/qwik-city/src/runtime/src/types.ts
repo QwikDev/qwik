@@ -711,10 +711,12 @@ type Failed = {
 /** @public */
 export type FailReturn<T> = T & Failed;
 
+type ReadonlySignalValue<T> = Pick<ReadonlySignal<T>, 'value'>;
+
 /** @public */
 export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<infer VALIDATOR>
-  ? ReadonlySignal<ValueOrPromise<VALIDATOR>>
-  : ReadonlySignal<TYPE>;
+  ? ReadonlySignalValue<ValueOrPromise<VALIDATOR>>
+  : ReadonlySignalValue<TYPE>;
 
 /** @public */
 export type Loader<RETURN> = {

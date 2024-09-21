@@ -24,7 +24,7 @@ import {
   QObjectTargetSymbol,
   _CONST_PROPS,
 } from './constants';
-import { isSignal } from './signal';
+import { isSignalV1 } from './signal';
 
 export interface StoreTracker {
   $proxyMap$: ObjToProxyMap;
@@ -287,7 +287,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 }
 
 const immutableValue = (value: any) => {
-  return value === _CONST_PROPS || isSignal(value);
+  return value === _CONST_PROPS || isSignalV1(value);
 };
 
 const wrap = <T>(value: T, storeTracker: StoreTracker): T => {

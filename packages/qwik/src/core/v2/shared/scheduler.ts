@@ -113,7 +113,7 @@ import {
 import { vnode_diff } from '../client/vnode-diff';
 import { executeComponent2 } from './component-execution';
 import type { Container2, HostElement, fixMeAny } from './types';
-import { isSignal, type Signal } from '../signal/v2-signal';
+import { isSignal, type Signal } from '../signal/v2-signal.public';
 import { serializeAttribute } from '../../render/execute-component';
 import { type DomContainer } from '../client/dom-container';
 
@@ -154,7 +154,7 @@ export interface Chore {
 }
 
 export interface NodePropPayload {
-  value: Signal;
+  value: Signal<unknown>;
   scopedStyleIdPrefix: string | null;
 }
 

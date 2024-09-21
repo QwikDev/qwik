@@ -39,7 +39,7 @@ import { assertDefined } from '../../error/assert';
 import { serializeSStyle } from '../../style/qrl-styles';
 import { qDev, qInspector, seal } from '../../util/qdev';
 import { qError, QError_canNotRenderHTML } from '../../error/error';
-import { isSignal } from '../../state/signal';
+import { isSignalV1 } from '../../state/signal';
 import { serializeQRLs } from '../../qrl/qrl';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import {
@@ -562,7 +562,7 @@ const renderNode = (
         setEvent(elCtx.li, rawProp, value, undefined);
         return;
       }
-      if (isSignal(value)) {
+      if (isSignalV1(value)) {
         assertDefined(hostCtx, 'Signals can not be used outside the root');
         if (isImmutable) {
           value = trackSignalV1(value, [
@@ -880,7 +880,7 @@ const processData = (
     return renderNode(node, rCtx, ssrCtx, stream, flags, beforeClose);
   } else if (isArray(node)) {
     return walkChildren(node, rCtx, ssrCtx, stream, flags);
-  } else if (isSignal(node)) {
+  } else if (isSignalV1(node)) {
     const insideText = flags & IS_TEXT;
     const hostEl = rCtx.$cmpCtx$?.$element$ as QwikElement;
     let value;
@@ -1038,7 +1038,7 @@ const setComponentProps = (
     if (prop === 'children' || prop === QSlot) {
       continue;
     }
-    if (isSignal(immutableMeta[prop])) {
+    if (isSignalV1(immutableMeta[prop])) {
       target['_IMMUTABLE_PREFIX' + prop] = immutableMeta[prop];
     } else {
       target[prop] = expectProps[prop];

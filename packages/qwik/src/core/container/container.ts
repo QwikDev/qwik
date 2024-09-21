@@ -7,7 +7,7 @@ import { fromKebabToCamelCase } from '../util/case';
 import { QContainerAttr } from '../util/markers';
 import { isElement } from '../util/element';
 import { createSubscriptionManager, type SubscriberSignal } from '../state/common';
-import { isSignal, type Signal, type SignalImpl } from '../state/signal';
+import { isSignalV1, type Signal, type SignalImpl } from '../state/signal';
 import { directGetAttribute } from '../render/fast-calls';
 import type { QContext } from '../state/context';
 import { isServerPlatform } from '../platform/platform';
@@ -156,7 +156,7 @@ export const removeContainerState = (containerEl: Element) => {
 export const setRef = (value: any, elm: Element) => {
   if (isFunction(value)) {
     return value(elm);
-  } else if (isSignal(value)) {
+  } else if (isSignalV1(value)) {
     if (isServerPlatform()) {
       // During SSR, assigning a ref should not cause reactivity because
       // the expectation is that the ref is filled in on the client

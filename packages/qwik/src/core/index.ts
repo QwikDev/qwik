@@ -126,15 +126,14 @@ export { useTaskQrl, useVisibleTaskQrl, useComputedQrl } from './use/use-task';
 export { useComputed$, useTask$, useVisibleTask$ } from './use/use-task-dollar';
 export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './render/error-handling';
+export * from './v2/signal/v2-signal.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API
 //////////////////////////////////////////////////////////////////////////////////////////
 export type { ValueOrPromise } from './util/types';
-export type { Signal, ReadonlySignal } from './state/signal';
 export { type NoSerialize, SubscriptionType } from './state/common';
 export { noSerialize } from './state/common';
-export { isSignal } from './v2/signal/v2-signal.public';
 export { version } from './version';
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -185,4 +184,3 @@ export { PrefetchServiceWorker, PrefetchGraph } from './components/prefetch';
 // INTERNAL
 //////////////////////////////////////////////////////////////////////////////////////////
 export * from './internal';
-export * from './v2/signal/v2-signal.public';

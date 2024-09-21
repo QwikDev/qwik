@@ -1557,8 +1557,8 @@ export type Loader<RETURN> = {
 export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<
   infer VALIDATOR
 >
-  ? ReadonlySignal<ValueOrPromise<VALIDATOR>>
-  : ReadonlySignal<TYPE>;
+  ? ReadonlySignalValue<ValueOrPromise<VALIDATOR>>
+  : ReadonlySignalValue<TYPE>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)

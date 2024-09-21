@@ -3,7 +3,7 @@ import { assertDefined } from '../error/assert';
 import { qError, QError_qrlIsNotFunction } from '../error/error';
 import { getPlatform, isServerPlatform } from '../platform/platform';
 import { verifySerializable } from '../state/common';
-import { isSignal, type SignalInternal } from '../state/signal';
+import { type SignalInternal } from '../state/signal';
 import {
   invoke,
   newInvokeContext,

@@ -203,7 +203,7 @@ export class SignalWrapper<T extends Record<string, any>, P extends keyof T> ext
  * @returns Boolean - True if the object is a `Signal`.
  * @public
  */
-export const isSignal = <T = unknown>(obj: any): obj is Signal<T> => {
+export const isSignalV1 = <T = unknown>(obj: any): obj is Signal<T> => {
   return obj instanceof SignalBase;
 };
 

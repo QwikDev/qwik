@@ -4,7 +4,6 @@ import {
   Fragment as Signal,
   useTask$,
   component$,
-  type Signal as SignalType,
   untrack,
   useSignal,
   useStore,
@@ -241,7 +240,7 @@ describe.each([
         renderLog.push('Display');
         return <>Count: {props.displayValue}!</>;
       });
-      const Incrementor = component$((props: { countSignal: SignalType<number> }) => {
+      const Incrementor = component$((props: { countSignal: { value: number } }) => {
         renderLog.push('Incrementor');
         return (
           <button

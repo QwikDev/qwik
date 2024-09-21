@@ -167,7 +167,7 @@ export const componentQrl: <PROPS extends Record<any, any>>(componentQrl: QRL<On
 export type ComputedFn<T> = () => T;
 
 // @public (undocumented)
-export interface ComputedSignal2<T> extends ReadonlySignal2<T> {
+export interface ComputedSignal<T> extends ReadonlySignal<T> {
     force(): void;
 }
 
@@ -206,18 +206,18 @@ export interface CorrectedToggleEvent extends Event {
 }
 
 // @public (undocumented)
-export const createComputed2$: <T>(qrl: () => T) => ComputedSignal2<T>;
+export const createComputed$: <T>(qrl: () => T) => ComputedSignal<T>;
 
 // @public (undocumented)
-export const createComputed2Qrl: <T>(qrl: QRL<() => T>) => ComputedSignal2<T>;
+export const createComputedQrl: <T>(qrl: QRL<() => T>) => ComputedSignal<T>;
 
 // @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
 
 // @public (undocumented)
-export const createSignal2: {
-    <T>(): Signal2<T | undefined>;
-    <T>(value: T): Signal2<T>;
+export const createSignal: {
+    <T>(): Signal<T | undefined>;
+    <T>(value: T): Signal<T>;
 };
 
 // @public (undocumented)
@@ -261,8 +261,10 @@ export interface DialogHTMLAttributes<T extends Element> extends Attrs<'dialog',
 //
 // @public
 export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>, QwikEvents<EL> {
+    // Warning: (ae-forgotten-export) The symbol "Signal_2" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    class?: ClassList | Signal<ClassList> | undefined;
+    class?: ClassList | Signal_2<ClassList> | undefined;
 }
 
 // @internal (undocumented)
@@ -335,11 +337,11 @@ export type EagernessOptions = 'visible' | 'load' | 'idle';
 
 // Warning: (ae-forgotten-export) The symbol "Task" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ISsrNode" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "Signal2_2" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "Signal_3" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "Effect" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
-export type Effect = Task | _VNode | ISsrNode | Signal2_2;
+export type Effect = Task | _VNode | ISsrNode | Signal_3;
 
 // @internal (undocumented)
 export type _ElementVNode = [
@@ -540,7 +542,7 @@ export type IntrinsicSVGElements = {
 export const _isJSXNode: <T>(n: unknown) => n is JSXNode<T>;
 
 // @public (undocumented)
-export const isSignal: (value: any) => value is Signal2<unknown>;
+export const isSignal: (value: any) => value is Signal<unknown>;
 
 // @internal (undocumented)
 export function _isStringifiable(value: unknown): value is _Stringifiable;
@@ -559,7 +561,7 @@ export const _jsxBranch: <T>(input?: T) => T | undefined;
 export const _jsxC: (type: any, mutable: any, _flags: any, key: any) => JSXNode<any>;
 
 // @public (undocumented)
-export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;
+export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal_2<JSXChildren> | JSXNode;
 
 // Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
 //
@@ -954,10 +956,7 @@ export type QwikVisibleEvent = CustomEvent<IntersectionObserverEntry>;
 export type QwikWheelEvent<T = Element> = NativeWheelEvent;
 
 // @public (undocumented)
-export type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;
-
-// @public (undocumented)
-export interface ReadonlySignal2<T> {
+export interface ReadonlySignal<T = unknown> {
     // (undocumented)
     readonly untrackedValue: T;
     // (undocumented)
@@ -1051,7 +1050,7 @@ export interface ResourceProps<T> {
     // (undocumented)
     onResolved: (value: T) => JSXOutput;
     // (undocumented)
-    readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
+    readonly value: ResourceReturn<T> | Signal_2<Promise<T> | T> | Promise<T>;
 }
 
 // @public (undocumented)
@@ -1136,17 +1135,11 @@ export abstract class _SharedContainer implements Container2 {
     // (undocumented)
     abstract setHostProp<T>(host: HostElement, name: string, value: T): void;
     // (undocumented)
-    trackSignalValue<T>(signal: Signal, subscriber: Effect, property: string, data: any): T;
-}
-
-// @public
-export interface Signal<T = any> {
-    // (undocumented)
-    value: T;
+    trackSignalValue<T>(signal: Signal_2, subscriber: Effect, property: string, data: any): T;
 }
 
 // @public (undocumented)
-export interface Signal2<T> extends ReadonlySignal2<T> {
+export interface Signal<T = any> extends ReadonlySignal<T> {
     // (undocumented)
     untrackedValue: T;
     // (undocumented)
@@ -1948,9 +1941,9 @@ export function useServerData<T, B = T>(key: string, defaultValue: B): T | B;
 // @public (undocumented)
 export interface UseSignal {
     // (undocumented)
-    <T>(): Signal2<T | undefined>;
+    <T>(): Signal<T | undefined>;
     // (undocumented)
-    <T>(value: T | (() => T)): Signal2<T>;
+    <T>(value: T | (() => T)): Signal<T>;
 }
 
 // @public (undocumented)

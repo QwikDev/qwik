@@ -1416,13 +1416,13 @@ export type ComputedFn<T> = () => T;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-## ComputedSignal2
+## ComputedSignal
 
 ```typescript
-export interface ComputedSignal2<T> extends ReadonlySignal2<T>
+export interface ComputedSignal<T> extends ReadonlySignal<T>
 ```
 
-**Extends:** [ReadonlySignal2](#readonlysignal2)&lt;T&gt;
+**Extends:** [ReadonlySignal](#readonlysignal)&lt;T&gt;
 
 <table><thead><tr><th>
 
@@ -1435,7 +1435,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[force()](#computedsignal2-force)
+[force()](#computedsignal-force)
 
 </td><td>
 
@@ -1726,10 +1726,10 @@ Description
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
-## createComputed2$
+## createComputed$
 
 ```typescript
-createComputed2$: <T>(qrl: () => T) => ComputedSignal2<T>;
+createComputed$: <T>(qrl: () => T) => ComputedSignal<T>;
 ```
 
 <table><thead><tr><th>
@@ -1759,14 +1759,14 @@ qrl
 </tbody></table>
 **Returns:**
 
-[ComputedSignal2](#computedsignal2)&lt;T&gt;
+[ComputedSignal](#computedsignal)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts)
 
-## createComputed2Qrl
+## createComputedQrl
 
 ```typescript
-createComputed2Qrl: <T>(qrl: QRL<() => T>) => ComputedSignal2<T>;
+createComputedQrl: <T>(qrl: QRL<() => T>) => ComputedSignal<T>;
 ```
 
 <table><thead><tr><th>
@@ -1796,7 +1796,7 @@ qrl
 </tbody></table>
 **Returns:**
 
-[ComputedSignal2](#computedsignal2)&lt;T&gt;
+[ComputedSignal](#computedsignal)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts)
 
@@ -1881,12 +1881,12 @@ The name of the context.
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
 
-## createSignal2
+## createSignal
 
 ```typescript
-createSignal2: {
-    <T>(): Signal2<T | undefined>;
-    <T>(value: T): Signal2<T>;
+createSignal: {
+    <T>(): Signal<T | undefined>;
+    <T>(value: T): Signal<T>;
 }
 ```
 
@@ -2058,7 +2058,7 @@ Description
 
 </td><td>
 
-[ClassList](#classlist) \| [Signal](#signal)&lt;[ClassList](#classlist)&gt; \| undefined
+[ClassList](#classlist) \| Signal&lt;[ClassList](#classlist)&gt; \| undefined
 
 </td><td>
 
@@ -2749,7 +2749,7 @@ export interface IntrinsicElements extends IntrinsicHTMLElements, IntrinsicSVGEl
 ## isSignal
 
 ```typescript
-isSignal2: (value: any) => value is ISignal2<unknown>
+isSignal: (value: any) => value is ISignal<unknown>
 ```
 
 <table><thead><tr><th>
@@ -2779,7 +2779,7 @@ any
 </tbody></table>
 **Returns:**
 
-value is [ISignal2](#signal2)&lt;unknown&gt;
+value is [ISignal](#signal)&lt;unknown&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.ts)
 
@@ -2867,7 +2867,7 @@ export type JSXChildren =
   | JSXNode;
 ```
 
-**References:** [JSXChildren](#jsxchildren), [Signal](#signal), [JSXNode](#jsxnode)
+**References:** [JSXChildren](#jsxchildren), [JSXNode](#jsxnode)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
@@ -4484,17 +4484,7 @@ export type QwikWheelEvent<T = Element> = NativeWheelEvent;
 ## ReadonlySignal
 
 ```typescript
-export type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;
-```
-
-**References:** [Signal](#signal)
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
-
-## ReadonlySignal2
-
-```typescript
-export interface ReadonlySignal2<T>
+export interface ReadonlySignal<T = unknown>
 ```
 
 <table><thead><tr><th>
@@ -5188,7 +5178,7 @@ _(Optional)_
 
 </td><td>
 
-[ResourceReturn](#resourcereturn)&lt;T&gt; \| [Signal](#signal)&lt;Promise&lt;T&gt; \| T&gt; \| Promise&lt;T&gt;
+[ResourceReturn](#resourcereturn)&lt;T&gt; \| Signal&lt;Promise&lt;T&gt; \| T&gt; \| Promise&lt;T&gt;
 
 </td><td>
 
@@ -5387,55 +5377,11 @@ plt
 
 ## Signal
 
-A signal is a reactive value which can be read and written. When the signal is written, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.
-
-Furthermore, when a signal value is passed as a prop to a component, the optimizer will automatically forward the signal. This means that `return <div title={signal.value}>hi</div>` will update the `title` attribute when the signal changes without having to re-render the component.
-
 ```typescript
-export interface Signal<T = any>
+export interface Signal<T = any> extends ReadonlySignal<T>
 ```
 
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[value](#)
-
-</td><td>
-
-</td><td>
-
-T
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
-
-## Signal2
-
-```typescript
-export interface Signal2<T> extends ReadonlySignal2<T>
-```
-
-**Extends:** [ReadonlySignal2](#readonlysignal2)&lt;T&gt;
+**Extends:** [ReadonlySignal](#readonlysignal)&lt;T&gt;
 
 <table><thead><tr><th>
 

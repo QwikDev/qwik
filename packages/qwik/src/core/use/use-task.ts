@@ -15,13 +15,7 @@ import {
   type NoSerialize,
 } from '../state/common';
 import { QObjectManagerSymbol } from '../state/constants';
-import {
-  QObjectSignalFlags,
-  SIGNAL_UNASSIGNED,
-  isSignal,
-  type Signal,
-  type SignalInternal,
-} from '../state/signal';
+import { QObjectSignalFlags, SIGNAL_UNASSIGNED, type SignalInternal } from '../state/signal';
 import { logError, logErrorAndStop } from '../util/log';
 import { ComputedEvent, ResourceEvent, TaskEvent } from '../util/markers';
 import { delay, isPromise, safeCall } from '../util/promises';
@@ -358,7 +352,7 @@ export const runTask2 = (
   iCtx.$container2$ = container;
   const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberEffectDependencies(task)) as TaskFn;
 
-  const track: Tracker = (obj: (() => unknown) | object | Signal, prop?: string) => {
+  const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
     const ctx = newInvokeContext();
     ctx.$effectSubscriber$ = [task, EffectProperty.COMPONENT, null];
     ctx.$container2$ = container;
@@ -560,7 +554,7 @@ export const runResource = <T>(
     task
   );
 
-  const track: Tracker = (obj: (() => unknown) | object | Signal, prop?: string) => {
+  const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
     const ctx = newInvokeContext();
     ctx.$effectSubscriber$ = [task, EffectProperty.COMPONENT, null];
     ctx.$container2$ = container;
@@ -711,7 +705,7 @@ export const runTask = (
   const taskFn = task.$qrl$.getFn(iCtx, () => {
     subsManager.$clearSub$(task);
   }) as TaskFn;
-  const track: Tracker = (obj: (() => unknown) | object | Signal, prop?: string) => {
+  const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
     if (isFunction(obj)) {
       const ctx = newInvokeContext();
       ctx.$subscriber$ = [SubscriptionType.HOST, task];
@@ -852,14 +846,14 @@ export const parseTask = (data: string) => {
 
 export class Task<T = unknown, B = T>
   extends Subscriber
-  implements DescriptorBase<unknown, Signal<B>>
+  implements DescriptorBase<unknown, Signal<B> | ResourceReturnInternal<B>>
 {
   constructor(
     public $flags$: number,
     public $index$: number,
     public $el$: QwikElement,
     public $qrl$: QRLInternal<T>,
-    public $state$: Signal<B> | undefined,
+    public $state$: Signal<B> | ResourceReturnInternal<B> | undefined,
     public $destroy$: NoSerialize<() => void> | null
   ) {
     super();

@@ -5,18 +5,18 @@ import {
   createComputedSignal as _createComputedSignal,
 } from './v2-signal';
 
-export { isSignal as isSignal } from './v2-signal';
+export { isSignal } from './v2-signal';
 
 export type { Effect } from './v2-signal';
 
 /** @public */
-export interface ReadonlySignal<T> {
+export interface ReadonlySignal<T = unknown> {
   readonly untrackedValue: T;
   readonly value: T;
 }
 
 /** @public */
-export interface Signal<T> extends ReadonlySignal<T> {
+export interface Signal<T = any> extends ReadonlySignal<T> {
   untrackedValue: T;
   value: T;
 }

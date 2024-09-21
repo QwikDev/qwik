@@ -6,7 +6,9 @@ const deepUpdate = (prev: any, next: any) => {
     if (prev[key] && typeof next[key] === 'object' && typeof prev[key] === 'object') {
       deepUpdate(prev[key], next[key]);
     } else {
-      prev[key] = next[key];
+      if (prev[key] !== next[key]) {
+        prev[key] = next[key];
+      }
     }
   }
   for (const key in prev) {
@@ -17,10 +19,12 @@ const deepUpdate = (prev: any, next: any) => {
 };
 
 export const updateReplOutput = async (store: ReplStore, result: ReplResult) => {
-  store.diagnostics = result.diagnostics;
+  deepUpdate(store.diagnostics, result.diagnostics);
 
-  if (store.diagnostics.length === 0) {
-    store.html = result.html;
+  if (result.diagnostics.length === 0) {
+    if (store.html !== result.html) {
+      store.html = result.html;
+    }
     deepUpdate(store.transformedModules, result.transformedModules);
     deepUpdate(store.clientBundles, result.clientBundles);
     deepUpdate(store.ssrModules, result.ssrModules);

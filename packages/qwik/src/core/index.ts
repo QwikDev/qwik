@@ -127,7 +127,6 @@ export { useComputed$, useTask$, useVisibleTask$ } from './use/use-task-dollar';
 export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './render/error-handling';
 export {
-  type Effect,
   type ReadonlySignal,
   type Signal,
   type ComputedSignal,
@@ -138,6 +137,7 @@ export {
   createComputedQrl,
   createComputed$,
 } from './v2/signal/v2-signal.public';
+export { EffectData as _EffectData } from './v2/signal/v2-signal';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

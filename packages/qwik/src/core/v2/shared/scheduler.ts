@@ -153,9 +153,13 @@ export interface Chore {
   $executed$: boolean;
 }
 
-export interface NodePropPayload {
-  value: Signal<unknown>;
-  scopedStyleIdPrefix: string | null;
+export interface NodePropData {
+  $scopedStyleIdPrefix$: string | null;
+  $isConst$: boolean;
+}
+
+export interface NodePropPayload extends NodePropData {
+  $value$: Signal<unknown>;
 }
 
 export type Scheduler = ReturnType<typeof createScheduler>;
@@ -372,16 +376,14 @@ export const createScheduler = (
       case ChoreType.NODE_PROP:
         const virtualNode = chore.$host$ as unknown as ElementVNode;
         const payload = chore.$payload$ as NodePropPayload;
-        let value: Signal<any> | string = payload.value;
-        // TODO: temp solution!
-        let isConst = false;
+        let value: Signal<any> | string = payload.$value$;
         if (isSignal(value)) {
           value = value.value as any;
-          isConst = true;
         }
+        const isConst = payload.$isConst$;
         const journal = (container as DomContainer).$journal$;
         const property = chore.$idx$ as string;
-        value = serializeAttribute(property, value, payload.scopedStyleIdPrefix);
+        value = serializeAttribute(property, value, payload.$scopedStyleIdPrefix$);
         if (isConst) {
           const element = virtualNode[ElementVNodeProps.element] as Element;
           journal.push(VNodeJournalOpCode.SetAttribute, element, property, value);

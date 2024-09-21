@@ -23,7 +23,7 @@ import { isPromise } from '../../util/promises';
 import { qDev } from '../../util/qdev';
 import type { VNode } from '../client/types';
 import { vnode_getProp, vnode_isVirtualVNode, vnode_isVNode, vnode_setProp } from '../client/vnode';
-import { ChoreType, type NodePropPayload } from '../shared/scheduler';
+import { ChoreType, type NodePropData, type NodePropPayload } from '../shared/scheduler';
 import type { Container2, HostElement, fixMeAny } from '../shared/types';
 import type { ISsrNode } from '../ssr/ssr-types';
 import type { Signal as ISignal, ReadonlySignal } from './v2-signal.public';
@@ -77,10 +77,17 @@ export const isSignal = (value: any): value is ISignal<unknown> => {
  * - `Task`: `useTask`, `useVisibleTask`, `useResource`
  * - `VNode` and `ISsrNode`: Either a component or `<Signal>`
  * - `Signal2`: A derived signal which contains a computation function.
- *
- * @internal
  */
 export type Effect = Task | VNode | ISsrNode | Signal;
+
+/** @internal */
+export class EffectData<T extends Record<string, any> = Record<string, any>> {
+  data: T;
+
+  constructor(data: T) {
+    this.data = data;
+  }
+}
 
 /**
  * An effect plus a list of subscriptions effect depends on.
@@ -121,11 +128,12 @@ export type Effect = Task | VNode | ISsrNode | Signal;
 export type EffectSubscriptions = [
   Effect, // EffectSubscriptionsProp.EFFECT
   string, // EffectSubscriptionsProp.PROPERTY
-  any | null, // EffectSubscriptionsProp.DATA
-  ...// NOTE even thought this is shown as `...(string|Signal2)`
-  // it is a list of strings  followed by a list of signals (not intermingled)
+  ...// NOTE even thought this is shown as `...(string|Signal)`
+  // it is a list of strings  followed by optional EffectData
+  // and a list of signals (not intermingled)
   (
-    | string // List of properties (Only used with Store2 (not with Signal2))
+    | EffectData // only used at the start
+    | string // List of properties (Only used with Store (not with Signal))
     | Signal
     | TargetType // List of signals to release
   )[],
@@ -133,8 +141,7 @@ export type EffectSubscriptions = [
 export const enum EffectSubscriptionsProp {
   EFFECT = 0,
   PROPERTY = 1,
-  DATA = 2,
-  FIRST_BACK_REF = 3,
+  FIRST_BACK_REF_OR_DATA = 2,
 }
 export const enum EffectProperty {
   COMPONENT = ':',
@@ -359,13 +366,15 @@ export const triggerEffects = (
         container.$scheduler$(ChoreType.NODE_DIFF, host, target, signal as fixMeAny);
       } else {
         const host: HostElement = effect as any;
-        const scopedStyleIdPrefix: string | null =
-          effectSubscriptions[EffectSubscriptionsProp.DATA];
-        const payload: NodePropPayload = {
-          value: signal as Signal<any>,
-          scopedStyleIdPrefix,
-        };
-        container.$scheduler$(ChoreType.NODE_PROP, host, property, payload);
+        let effectData = effectSubscriptions[EffectSubscriptionsProp.FIRST_BACK_REF_OR_DATA];
+        if (effectData instanceof EffectData) {
+          effectData = effectData as EffectData<NodePropData>;
+          const payload: NodePropPayload = {
+            ...effectData.data,
+            $value$: signal,
+          };
+          container.$scheduler$(ChoreType.NODE_PROP, host, property, payload);
+        }
       }
     };
     effects.forEach(scheduleEffect);
@@ -440,7 +449,7 @@ export class ComputedSignal<T> extends Signal<T> {
     const ctx = tryGetInvokeContext();
     assertDefined(computeQrl, 'Signal is marked as dirty, but no compute function is provided.');
     const previousEffectSubscription = ctx?.$effectSubscriber$;
-    ctx && (ctx.$effectSubscriber$ = [this, EffectProperty.VNODE, null]);
+    ctx && (ctx.$effectSubscriber$ = [this, EffectProperty.VNODE]);
     assertTrue(
       !!computeQrl.resolved,
       'Computed signals must run sync. Expected the QRL to be resolved at this point.'

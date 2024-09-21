@@ -35,3 +35,4 @@ export type {
 export type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
 export type { SymbolToChunkResolver } from '../core/v2/ssr/ssr-types';
 export type { fixMeAny } from '../core/v2/shared/types';
+export type { NodePropData } from '../core/v2/shared/scheduler';

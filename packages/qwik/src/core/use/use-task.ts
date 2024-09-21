@@ -354,7 +354,7 @@ export const runTask2 = (
 
   const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
     const ctx = newInvokeContext();
-    ctx.$effectSubscriber$ = [task, EffectProperty.COMPONENT, null];
+    ctx.$effectSubscriber$ = [task, EffectProperty.COMPONENT];
     ctx.$container2$ = container;
     return invoke(ctx, () => {
       if (isFunction(obj)) {
@@ -556,7 +556,7 @@ export const runResource = <T>(
 
   const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
     const ctx = newInvokeContext();
-    ctx.$effectSubscriber$ = [task, EffectProperty.COMPONENT, null];
+    ctx.$effectSubscriber$ = [task, EffectProperty.COMPONENT];
     ctx.$container2$ = container;
     return invoke(ctx, () => {
       if (isFunction(obj)) {

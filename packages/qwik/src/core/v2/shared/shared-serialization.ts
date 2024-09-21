@@ -37,6 +37,7 @@ import {
   EffectSubscriptionsProp,
   Signal,
   type EffectSubscriptions,
+  EffectData,
 } from '../signal/v2-signal';
 import {
   STORE_ARRAY_PROP,
@@ -1029,9 +1030,14 @@ function serializeEffectSubs(
       const effectSubscription = effects[i];
       const effect = effectSubscription[EffectSubscriptionsProp.EFFECT];
       const prop = effectSubscription[EffectSubscriptionsProp.PROPERTY];
-      const additionalData = effectSubscription[EffectSubscriptionsProp.DATA];
-      data += ';' + addRoot(effect) + ' ' + prop + ' ' + addRoot(additionalData);
-      for (let j = EffectSubscriptionsProp.FIRST_BACK_REF; j < effectSubscription.length; j++) {
+      data += ';' + addRoot(effect) + ' ' + prop;
+      let effectSubscriptionDataIndex = EffectSubscriptionsProp.FIRST_BACK_REF_OR_DATA;
+      const effectSubscriptionData = effectSubscription[effectSubscriptionDataIndex];
+      if (effectSubscriptionData instanceof EffectData) {
+        data += ' |' + addRoot(effectSubscriptionData.data);
+        effectSubscriptionDataIndex++;
+      }
+      for (let j = effectSubscriptionDataIndex; j < effectSubscription.length; j++) {
         data += ' ' + addRoot(effectSubscription[j]);
       }
     }
@@ -1172,10 +1178,17 @@ function deserializeSignal2Effect(
 ) {
   while (idx < parts.length) {
     // idx == 1 is the attribute name
-    const effect = parts[idx++]
-      .split(' ')
-      .map((obj, idx) => (idx == 1 ? obj : container.$getObjectById$(obj)));
-    effects.push(effect as fixMeAny);
+    const effect = parts[idx++].split(' ').map((obj, idx) => {
+      if (idx === EffectSubscriptionsProp.PROPERTY) {
+        return obj;
+      } else {
+        if (obj[0] === '|') {
+          return new EffectData<any>(container.$getObjectById$(parseInt(obj.substring(1))));
+        }
+        return container.$getObjectById$(obj);
+      }
+    }) as EffectSubscriptions;
+    effects.push(effect);
   }
   return idx;
 }

@@ -6,6 +6,7 @@ import {
   _walkJSX,
   isSignal,
   type JSXNode,
+  _EffectData as EffectData,
 } from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
@@ -57,6 +58,7 @@ import {
   type ISsrNode,
   type JSXChildren,
   type JSXOutput,
+  type NodePropData,
   type SerializationContext,
   type SsrAttrKey,
   type SsrAttrValue,
@@ -1022,7 +1024,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  private writeAttrs(tag: string, attrs: SsrAttrs, immutable: boolean): string | undefined {
+  private writeAttrs(tag: string, attrs: SsrAttrs, isConst: boolean): string | undefined {
     let innerHTML: string | undefined = undefined;
     if (attrs.length) {
       for (let i = 0; i < attrs.length; i++) {
@@ -1057,7 +1059,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
         if (isSignal(value)) {
           const lastNode = this.getLastNode();
-          value = this.trackSignalValue(value, lastNode, key, styleScopedId);
+          const signalData = new EffectData<NodePropData>({
+            $scopedStyleIdPrefix$: styleScopedId,
+            $isConst$: isConst,
+          });
+          value = this.trackSignalValue(value, lastNode, key, signalData);
         }
 
         if (key === dangerouslySetInnerHTML) {

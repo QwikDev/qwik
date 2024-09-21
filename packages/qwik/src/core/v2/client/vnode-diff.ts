@@ -34,7 +34,7 @@ import {
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
 } from '../shared/event-names';
-import { ChoreType } from '../shared/scheduler';
+import { ChoreType, type NodePropData } from '../shared/scheduler';
 import { hasClassAttr } from '../shared/scoped-styles';
 import type {
   HostElement,
@@ -92,7 +92,7 @@ import {
   type VNodeJournal,
 } from './vnode';
 import { getNewElementNamespaceData } from './vnode-namespace';
-import { WrappedSignal, EffectProperty, isSignal } from '../signal/v2-signal';
+import { WrappedSignal, EffectProperty, isSignal, EffectData } from '../signal/v2-signal';
 import type { Signal } from '../signal/v2-signal.public';
 import { executeComponent2 } from '../shared/component-execution';
 import { isParentSlotProp, isSlotProp } from '../../util/prop';
@@ -629,12 +629,16 @@ export const vnode_diff = (
         }
 
         if (isSignal(value)) {
+          const signalData = new EffectData<NodePropData>({
+            $scopedStyleIdPrefix$: scopedStyleIdPrefix,
+            $isConst$: true,
+          });
           value = trackSignal(
             () => (value as Signal<unknown>).value,
             vNewNode as ElementVNode,
             key,
             container,
-            scopedStyleIdPrefix
+            signalData
           );
         }
 

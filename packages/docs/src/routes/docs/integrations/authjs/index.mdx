@@ -303,7 +303,7 @@ AUTH_SECRET=
 
 ```ts title="src/routes/plugin@auth.ts"
 import { QwikAuth$ } from "@auth/qwik";
-import GitHub from "@auth/qwik/providers/github";
+import Credentials from "@auth/qwik/providers/credentials";
 
 export const { onRequest, useSession, useSignIn, useSignOut } = QwikAuth$(
   () => ({

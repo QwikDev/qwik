@@ -12,8 +12,13 @@ import { isPromise } from '../../util/promises';
 import { getDomContainer } from '../client/dom-container';
 import { ChoreType } from '../shared/scheduler';
 import type { Container2 } from '../shared/types';
-import { EffectProperty, type EffectSubscriptions } from './v2-signal';
-import { createComputedQrl, createSignal, type ReadonlySignal } from './v2-signal.public';
+import {
+  EffectProperty,
+  type EffectSubscriptions,
+  type InternalReadonlySignal,
+  type InternalSignal,
+} from './v2-signal';
+import { createComputedQrl, createSignal } from './v2-signal.public';
 
 describe('v2-signal', () => {
   const log: any[] = [];
@@ -64,10 +69,10 @@ describe('v2-signal', () => {
 
     it('basic subscription operation', async () => {
       await withContainer(async () => {
-        const a = createSignal(2);
-        const b = createSignal(10);
+        const a = createSignal(2) as InternalSignal<number>;
+        const b = createSignal(10) as InternalSignal<number>;
         await retry(() => {
-          let signal!: ReadonlySignal<number>;
+          let signal!: InternalReadonlySignal<number>;
           effect$(() => {
             signal =
               signal ||

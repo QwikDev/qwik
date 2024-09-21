@@ -26,7 +26,7 @@ import { vnode_getProp, vnode_isVirtualVNode, vnode_isVNode, vnode_setProp } fro
 import { ChoreType, type NodePropPayload } from '../shared/scheduler';
 import type { Container2, HostElement, fixMeAny } from '../shared/types';
 import type { ISsrNode } from '../ssr/ssr-types';
-import type { Signal as ISignal } from './v2-signal.public';
+import type { Signal as ISignal, ReadonlySignal } from './v2-signal.public';
 import type { TargetType } from './v2-store';
 import { isSubscriber, Subscriber } from './v2-subscriber';
 
@@ -43,14 +43,14 @@ const NEEDS_COMPUTATION: any = {
 // eslint-disable-next-line no-console
 const log = (...args: any[]) => console.log('SIGNAL', ...args.map(qwikDebugToString));
 
-export const createSignal = (value?: any) => {
-  return new Signal(null, value);
-};
+export interface InternalReadonlySignal<T = unknown> extends ReadonlySignal<T> {
+  readonly untrackedValue: T;
+}
 
-export const createComputedSignal = <T>(qrl: QRL<() => T>) => {
-  throwIfQRLNotResolved(qrl);
-  return new ComputedSignal(null, qrl as QRLInternal<() => T>);
-};
+export interface InternalSignal<T = any> extends InternalReadonlySignal<T> {
+  value: T;
+  untrackedValue: T;
+}
 
 export const throwIfQRLNotResolved = <T>(qrl: QRL<() => T>) => {
   const resolved = qrl.resolved;

@@ -278,10 +278,8 @@ type Loader_2<RETURN> = {
 };
 export { Loader_2 as Loader }
 
-// Warning: (ae-forgotten-export) The symbol "ReadonlySignalValue" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<infer VALIDATOR> ? ReadonlySignalValue<ValueOrPromise<VALIDATOR>> : ReadonlySignalValue<TYPE>;
+export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<infer VALIDATOR> ? ReadonlySignal<ValueOrPromise<VALIDATOR>> : ReadonlySignal<TYPE>;
 
 // Warning: (ae-forgotten-export) The symbol "MenuModuleLoader" needs to be exported by the entry point index.d.ts
 //

@@ -958,8 +958,6 @@ export type QwikWheelEvent<T = Element> = NativeWheelEvent;
 // @public (undocumented)
 export interface ReadonlySignal<T = unknown> {
     // (undocumented)
-    readonly untrackedValue: T;
-    // (undocumented)
     readonly value: T;
 }
 
@@ -1138,10 +1136,8 @@ export abstract class _SharedContainer implements Container2 {
     trackSignalValue<T>(signal: Signal_2, subscriber: Effect, property: string, data: any): T;
 }
 
-// @public (undocumented)
+// @public
 export interface Signal<T = any> extends ReadonlySignal<T> {
-    // (undocumented)
-    untrackedValue: T;
     // (undocumented)
     value: T;
 }

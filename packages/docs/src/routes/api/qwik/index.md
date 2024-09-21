@@ -4506,21 +4506,6 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[untrackedValue](#)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-T
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
 [value](#)
 
 </td><td>
@@ -5377,6 +5362,10 @@ plt
 
 ## Signal
 
+A signal is a reactive value which can be read and written. When the signal is written, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.
+
+Furthermore, when a signal value is passed as a prop to a component, the optimizer will automatically forward the signal. This means that `return <div title={signal.value}>hi</div>` will update the `title` attribute when the signal changes without having to re-render the component.
+
 ```typescript
 export interface Signal<T = any> extends ReadonlySignal<T>
 ```
@@ -5401,19 +5390,6 @@ Description
 
 </th></tr></thead>
 <tbody><tr><td>
-
-[untrackedValue](#)
-
-</td><td>
-
-</td><td>
-
-T
-
-</td><td>
-
-</td></tr>
-<tr><td>
 
 [value](#)
 

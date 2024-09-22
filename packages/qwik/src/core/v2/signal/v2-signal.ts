@@ -148,7 +148,7 @@ export const enum EffectProperty {
   VNODE = '.',
 }
 
-export class Signal<T = any> extends Subscriber implements ISignal<T> {
+export class Signal<T = any> implements ISignal<T> {
   $untrackedValue$: T;
 
   /** Store a list of effects which are dependent on this signal. */
@@ -157,7 +157,6 @@ export class Signal<T = any> extends Subscriber implements ISignal<T> {
   $container$: Container2 | null = null;
 
   constructor(container: Container2 | null, value: T) {
-    super();
     this.$container$ = container;
     this.$untrackedValue$ = value;
     DEBUG && log('new', this);
@@ -198,12 +197,14 @@ export class Signal<T = any> extends Subscriber implements ISignal<T> {
         // to unsubscribe from. So we need to store the reference from the effect back
         // to this signal.
         ensureContains(effectSubscriber, this);
-        // We need to add the subscriber to the effect so that we can clean it up later
-        ensureEffectContainsSubscriber(
-          effectSubscriber[EffectSubscriptionsProp.EFFECT],
-          this,
-          this.$container$
-        );
+        if (isSubscriber(this)) {
+          // We need to add the subscriber to the effect so that we can clean it up later
+          ensureEffectContainsSubscriber(
+            effectSubscriber[EffectSubscriptionsProp.EFFECT],
+            this,
+            this.$container$
+          );
+        }
         DEBUG && log('read->sub', pad('\n' + this.toString(), '  '));
       }
     }
@@ -481,7 +482,7 @@ export class ComputedSignal<T> extends Signal<T> {
 }
 
 // TO DISCUSS: shouldn't this type of signal have the $dependencies$ array instead of EVERY type of signal?
-export class WrappedSignal<T> extends Signal<T> {
+export class WrappedSignal<T> extends Signal<T> implements Subscriber {
   $args$: any[];
   $func$: (...args: any[]) => T;
   $funcStr$: string | null;
@@ -489,6 +490,7 @@ export class WrappedSignal<T> extends Signal<T> {
   // We need a separate flag to know when the computation needs running because
   // we need the old value to know if effects need running after computation
   $invalid$: boolean = true;
+  $effectDependencies$: Subscriber[] | null = null;
 
   constructor(
     container: Container2 | null,

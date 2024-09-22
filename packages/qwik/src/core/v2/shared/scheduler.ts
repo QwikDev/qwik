@@ -93,7 +93,7 @@ import {
   type ResourceDescriptor,
   type TaskFn,
 } from '../../use/use-task';
-import { logWarn } from '../../util/log';
+import { logWarn, throwErrorAndStop } from '../../util/log';
 import { isPromise, maybeThen, maybeThenPassError, safeCall } from '../../util/promises';
 import type { ValueOrPromise } from '../../util/types';
 import { isDomContainer } from '../client/dom-container';
@@ -470,7 +470,7 @@ function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: boolean)
         const errorMessage =
           'SERVER: during HTML streaming, it is not possible to cause a re-run of tasks on a different host';
         if (shouldThrowOnHostMismatch) {
-          throw new Error(errorMessage);
+          throwErrorAndStop(errorMessage);
         }
         logWarn(errorMessage);
         return null;

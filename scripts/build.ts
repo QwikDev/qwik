@@ -57,6 +57,11 @@ export async function build(config: BuildConfig) {
       `[node ${process.version}, ${process.platform}/${process.arch}]`
     );
 
+    // we need the optimizer and its types before building the rest
+    if (config.qwik) {
+      await submoduleOptimizer(config);
+    }
+
     if (config.tsc || (!config.dev && config.qwik)) {
       rmSync(config.tscDir, { recursive: true, force: true });
       rmSync(config.dtsDir, { recursive: true, force: true });
@@ -81,7 +86,7 @@ export async function build(config: BuildConfig) {
 
       // server bundling must happen after the results from the others
       // because it inlines the qwik loader and prefetch scripts
-      await Promise.all([submoduleServer(config), submoduleOptimizer(config)]);
+      await submoduleServer(config);
     }
 
     if (config.api || (!config.dev && config.qwik)) {
@@ -188,7 +193,7 @@ export async function build(config: BuildConfig) {
       });
     }
   } catch (e: any) {
-    panic(String(e ? e.stack || e : 'Error'));
+    panic(e);
   }
 }
 

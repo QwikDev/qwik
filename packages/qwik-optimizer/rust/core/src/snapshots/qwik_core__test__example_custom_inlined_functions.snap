@@ -1,0 +1,181 @@
+---
+source: packages/qwik-optimizer/rust/core/src/test.rs
+assertion_line: 1307
+expression: output
+---
+==INPUT==
+
+
+import { component$, $, useStore, wrap, useEffect } from '@builder.io/qwik';
+
+export const useMemoQrl = (qrt) => {
+	useEffect(qrt);
+};
+
+export const useMemo$ = wrap(useMemoQrl);
+
+export const App = component$((props) => {
+	const state = useStore({count: 0});
+	useMemo$(() => {
+		console.log(state.count);
+	});
+	return $(() => (
+		<div>{state.count}</div>
+	));
+});
+
+export const Lightweight = (props) => {
+	useMemo$(() => {
+		console.log(state.count);
+	});
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+import { wrap, useEffect } from '@builder.io/qwik';
+export const useMemoQrl = (qrt)=>{
+    useEffect(qrt);
+};
+export const useMemo$ = wrap(useMemoQrl);
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const Lightweight = (props)=>{
+    useMemoQrl(/*#__PURE__*/ qrl(()=>import("./lightweight_usememo_uicxvtqf1a8"), "Lightweight_useMemo_UIcxVTQF1a8"));
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAkC,IAAI,EAAE,SAAS,QAAQ,mBAAmB;AAE5E,OAAO,MAAM,aAAa,CAAC;IAC1B,UAAU;AACX,EAAE;AAEF,OAAO,MAAM,WAAW,KAAK,YAAY;AAEzC,OAAO,MAAM,oBAAM,wGAQhB;AAEH,OAAO,MAAM,cAAc,CAAC;IAC3B;AAGD,EAAG\"}")
+============================= app_component_usememo_6sc9kvki3y0.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@builder.io/qwik";
+export const App_component_useMemo_6Sc9KVki3Y0 = ()=>{
+    const [state] = useLexicalScope();
+    console.log(state.count);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iDAWU;;IACR,QAAQ,GAAG,CAAC,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_useMemo_6Sc9KVki3Y0",
+  "entry": null,
+  "displayName": "App_component_useMemo",
+  "hash": "6Sc9KVki3Y0",
+  "canonicalFilename": "app_component_usememo_6sc9kvki3y0",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "useMemo$",
+  "captures": true,
+  "loc": [
+    271,
+    309
+  ]
+}
+*/
+============================= lightweight_usememo_uicxvtqf1a8.js (ENTRY POINT)==
+
+export const Lightweight_useMemo_UIcxVTQF1a8 = ()=>{
+    console.log(state.count);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+CAoBU;IACR,QAAQ,GAAG,CAAC,MAAM,KAAK;AACxB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Lightweight_useMemo_UIcxVTQF1a8",
+  "entry": null,
+  "displayName": "Lightweight_useMemo",
+  "hash": "UIcxVTQF1a8",
+  "canonicalFilename": "lightweight_usememo_uicxvtqf1a8",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useMemo$",
+  "captures": false,
+  "loc": [
+    417,
+    455
+  ]
+}
+*/
+============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
+
+import { qrl } from "@builder.io/qwik";
+import { useMemoQrl } from "./test";
+import { useStore } from "@builder.io/qwik";
+export const App_component_ckEPmXZlub0 = (props)=>{
+    const state = useStore({
+        count: 0
+    });
+    useMemoQrl(/*#__PURE__*/ qrl(()=>import("./app_component_usememo_6sc9kvki3y0"), "App_component_useMemo_6Sc9KVki3Y0", [
+        state
+    ]));
+    return /*#__PURE__*/ qrl(()=>import("./app_component_1_w0t0o3qmovu"), "App_component_1_w0t0o3QMovU", [
+        state
+    ]);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAS8B,CAAC;IAC9B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC;;;IAGA;;;AAGD\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "app_component_ckepmxzlub0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    211,
+    363
+  ]
+}
+*/
+============================= app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
+export const App_component_1_w0t0o3QMovU = ()=>{
+    const [state] = useLexicalScope();
+    return /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(state, "count"), 3, "u6_0");
+};
+export { _hW } from "@builder.io/qwik";
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAcU;;yBACR,WAAC,6BAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_1_w0t0o3QMovU",
+  "entry": null,
+  "displayName": "App_component_1",
+  "hash": "w0t0o3QMovU",
+  "canonicalFilename": "app_component_1_w0t0o3qmovu",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    322,
+    359
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

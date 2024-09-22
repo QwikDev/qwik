@@ -4,11 +4,11 @@
 
 ```ts
 
-import type { QwikManifest } from '@builder.io/qwik/optimizer';
-import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
+import type { QwikManifest } from '@builder.io/qwik-optimizer';
+import type { ResolvedManifest } from '@builder.io/qwik-optimizer';
 import type { SnapshotResult } from '@builder.io/qwik';
 import type { StreamWriter } from '@builder.io/qwik';
-import type { SymbolMapperFn } from '@builder.io/qwik/optimizer';
+import type { SymbolMapperFn } from '@builder.io/qwik-optimizer';
 
 // @public
 export function getQwikLoaderScript(opts?: {

@@ -1,0 +1,49 @@
+---
+source: packages/qwik-optimizer/rust/core/src/test.rs
+assertion_line: 2061
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@builder.io/qwik';
+export const Greeter = component$(() => <div/>)
+
+============================= components/apps/greeter_component_0jjovx068y0.ts (ENTRY POINT)==
+
+import { _jsxSorted } from "@builder.io/qwik";
+export const Greeter_component_0jjOvx068y0 = ()=>/*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "KD_0");
+
+
+Some("{\"version\":3,\"sources\":[\"C:\\\\users\\\\apps/components/apps/apps.tsx\"],\"names\":[],\"mappings\":\";6CAEkC,kBAAM,WAAC\"}")
+/*
+{
+  "origin": "components/apps/apps.tsx",
+  "name": "Greeter_component_0jjOvx068y0",
+  "entry": null,
+  "displayName": "Greeter_component",
+  "hash": "0jjOvx068y0",
+  "canonicalFilename": "greeter_component_0jjovx068y0",
+  "path": "components/apps",
+  "extension": "ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    83,
+    95
+  ]
+}
+*/
+============================= components/apps/apps.ts ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./greeter_component_0jjovx068y0"), "Greeter_component_0jjOvx068y0"));
+
+
+Some("{\"version\":3,\"sources\":[\"C:\\\\users\\\\apps/components/apps/apps.tsx\"],\"names\":[],\"mappings\":\";;AAEA,OAAO,MAAM,wBAAU,gHAAwB\"}")
+== DIAGNOSTICS ==
+
+[]

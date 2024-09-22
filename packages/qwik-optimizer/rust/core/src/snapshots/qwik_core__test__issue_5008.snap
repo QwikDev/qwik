@@ -1,0 +1,119 @@
+---
+source: packages/qwik-optimizer/rust/core/src/test.rs
+assertion_line: 3562
+expression: output
+---
+==INPUT==
+
+
+		import { component$, useStore } from "@builder.io/qwik";
+
+		export default component$(() => {
+		const store = useStore([{ value: 0 }]);
+		return (
+			<>
+			<button onClick$={() => store[0].value++}>+1</button>
+			{store.map(function (v, idx) {
+				return <div key={"fn_" + idx}>Function: {v.value}</div>;
+			})}
+			{store.map((v, idx) => (
+				<div key={"arrow_" + idx}>Arrow: {v.value}</div>
+			))}
+			</>
+		);
+		});
+		
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGE,6BAAe,0GAaZ\"}")
+============================= test_component_luxexe0dqrg.js (ENTRY POINT)==
+
+import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+import { _jsxSorted } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+import { useStore } from "@builder.io/qwik";
+export const test_component_LUXeXe0DQrg = ()=>{
+    const store = useStore([
+        {
+            value: 0
+        }
+    ]);
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("button", null, {
+            onClick$: /*#__PURE__*/ qrl(()=>import("./test_component_fragment_button_onclick_ef3qezgqwcy"), "test_component_Fragment_button_onClick_eF3QEzgQWcY", [
+                store
+            ])
+        }, "+1", 3, null),
+        store.map(function(v, idx) {
+            return /*#__PURE__*/ _jsxSorted("div", null, null, [
+                "Function: ",
+                v.value
+            ], 1, "fn_" + idx);
+        }),
+        store.map((v, idx)=>/*#__PURE__*/ _jsxSorted("div", null, null, [
+                "Arrow: ",
+                v.value
+            ], 1, "arrow_" + idx))
+    ], 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAG4B;IAC1B,MAAM,QAAQ,SAAS;QAAC;YAAE,OAAO;QAAE;KAAE;IACrC,qBACC;sBACA,WAAC;YAAO,QAAQ;;;WAA0B;QACzC,MAAM,GAAG,CAAC,SAAU,CAAC,EAAE,GAAG;YAC1B,qBAAO,WAAC;gBAAsB;gBAAW,EAAE,KAAK;kBAA/B,QAAQ;QAC1B;QACC,MAAM,GAAG,CAAC,CAAC,GAAG,oBACd,WAAC;gBAAyB;gBAAQ,EAAE,KAAK;kBAA/B,WAAW;;AAIvB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test_component_luxexe0dqrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    90,
+    419
+  ]
+}
+*/
+============================= test_component_fragment_button_onclick_ef3qezgqwcy.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@builder.io/qwik";
+export const test_component_Fragment_button_onClick_eF3QEzgQWcY = ()=>{
+    const [store] = useLexicalScope();
+    return store[0].value++;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEAOqB;;WAAM,KAAK,CAAC,EAAE,CAAC,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_Fragment_button_onClick_eF3QEzgQWcY",
+  "entry": null,
+  "displayName": "test_component_Fragment_button_onClick",
+  "hash": "eF3QEzgQWcY",
+  "canonicalFilename": "test_component_fragment_button_onclick_ef3qezgqwcy",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    178,
+    200
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

@@ -1,12 +1,12 @@
 [workspace]
 
 members = [
-    "packages/qwik/src/napi",
-    "packages/qwik/src/wasm",
-    "packages/qwik/src/optimizer/cli",
-    "packages/qwik/src/optimizer/core",
+    "packages/qwik-optimizer/rust/napi",
+    "packages/qwik-optimizer/rust/wasm",
+    "packages/qwik-optimizer/rust/cli",
+    "packages/qwik-optimizer/rust/core",
 ]
-exclude = ["packages/qwik/src/wasm"]
+exclude = ["packages/qwik-optimizer/rust/wasm"]
 resolver = "2"
 
 [profile.release]

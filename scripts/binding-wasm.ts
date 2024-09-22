@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { rollup } from 'rollup';
 
 export async function buildWasmBinding(config: BuildConfig) {
-  const srcWasmDir = join(config.srcQwikDir, `wasm`);
+  const srcWasmDir = join(config.packagesDir, 'qwik-optimizer', 'rust', 'wasm');
   const tmpBuildDir = join(config.tmpDir, `wasm-out`);
 
   ensureDir(config.distQwikPkgDir);

@@ -8,7 +8,7 @@ import {
 } from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import { getValidManifest } from '../optimizer/src/manifest';
+import { getValidManifest } from '@builder.io/qwik-optimizer';
 import { getSymbolHash, setServerPlatform } from './platform';
 import { applyPrefetchImplementation } from './prefetch-implementation';
 import { getPrefetchResources } from './prefetch-strategy';

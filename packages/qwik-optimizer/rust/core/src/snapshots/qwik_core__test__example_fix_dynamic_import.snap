@@ -1,0 +1,70 @@
+---
+source: packages/qwik-optimizer/rust/core/src/test.rs
+assertion_line: 1280
+expression: output
+---
+==INPUT==
+
+
+import { $, component$ } from '@builder.io/qwik';
+import thing from "../state";
+
+export function foo() {
+	return import("../foo/state2")
+}
+
+export const Header = component$(() => {
+	return (
+		<div>
+			{import("../folder/state3")}
+			{thing}
+		</div>
+	);
+});
+
+============================= project/folder/header_component_rggm7ks9qwi.tsx ==
+
+import thing from "../state";
+export const Header_component_RGgm7Ks9QWI = ()=>{
+    return <div>
+			{import("../folder/state3")}
+			{thing}
+		</div>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";4CAQiC;IAChC,QACE,IAAI;GACJ,CAAC,MAAM,CAAC,oBAAoB;GAC5B,CAAC,MAAM;EACR,EAAE;AAEJ\"}")
+/*
+{
+  "origin": "project/folder/test.tsx",
+  "name": "Header_component_RGgm7Ks9QWI",
+  "entry": "entry_segments",
+  "displayName": "Header_component",
+  "hash": "RGgm7Ks9QWI",
+  "canonicalFilename": "header_component_rggm7ks9qwi",
+  "path": "project/folder",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    175,
+    258
+  ]
+}
+*/
+============================= project/folder/test.tsx ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export function foo() {
+    return import("../foo/state2");
+}
+export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./header_component_rggm7ks9qwi"), "Header_component_RGgm7Ks9QWI"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,SAAS;IACf,OAAO,MAAM,CAAC;AACf;AAEA,OAAO,MAAM,uBAAS,8GAOnB\"}")
+== DIAGNOSTICS ==
+
+[]

@@ -1,0 +1,120 @@
+---
+source: packages/qwik-optimizer/rust/core/src/test.rs
+assertion_line: 1479
+expression: output
+---
+==INPUT==
+
+
+import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
+
+export const Child = component$(() => {
+	const state = useStore({
+		count: 0
+	});
+
+	// Double count watch
+	useBrowserVisibleTask$(() => {
+		const timer = setInterval(() => {
+		state.count++;
+		}, 1000);
+		return () => {
+		clearInterval(timer);
+		}
+	});
+
+	return (
+		<div>
+		{state.count}
+	</div>
+	);
+});
+
+
+============================= child_component_usebrowservisibletask_0igfpoyjmqa.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@builder.io/qwik";
+export const Child_component_useBrowserVisibleTask_0IGFPOyJmQA = ()=>{
+    const [state] = useLexicalScope();
+    const timer = setInterval(()=>{
+        state.count++;
+    }, 1000);
+    return ()=>{
+        clearInterval(timer);
+    };
+};
+export { _hW } from "@builder.io/qwik";
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iEASwB;;IACtB,MAAM,QAAQ,YAAY;QAC1B,MAAM,KAAK;IACX,GAAG;IACH,OAAO;QACP,cAAc;IACd\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_useBrowserVisibleTask_0IGFPOyJmQA",
+  "entry": null,
+  "displayName": "Child_component_useBrowserVisibleTask",
+  "hash": "0IGFPOyJmQA",
+  "canonicalFilename": "child_component_usebrowservisibletask_0igfpoyjmqa",
+  "path": "",
+  "extension": "js",
+  "parent": "Child_component_9GyF01GDKqw",
+  "ctxKind": "function",
+  "ctxName": "useBrowserVisibleTask$",
+  "captures": true,
+  "loc": [
+    226,
+    346
+  ]
+}
+*/
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./child_component_9gyf01gdkqw"), "Child_component_9GyF01GDKqw"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,sBAAQ,4GAoBlB\"}")
+============================= child_component_9gyf01gdkqw.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+import { useBrowserVisibleTaskQrl } from "@builder.io/qwik";
+import { useStore } from "@builder.io/qwik";
+export const Child_component_9GyF01GDKqw = ()=>{
+    const state = useStore({
+        count: 0
+    });
+    // Double count watch
+    useBrowserVisibleTaskQrl(/*#__PURE__*/ qrl(()=>import("./child_component_usebrowservisibletask_0igfpoyjmqa"), "Child_component_useBrowserVisibleTask_0IGFPOyJmQA", [
+        state
+    ]));
+    return /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(state, "count"), 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAGgC;IAC/B,MAAM,QAAQ,SAAS;QACtB,OAAO;IACR;IAEA,qBAAqB;IACrB;;;IASA,qBACC,WAAC,6BACA;AAGH\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_9GyF01GDKqw",
+  "entry": null,
+  "displayName": "Child_component",
+  "hash": "9GyF01GDKqw",
+  "canonicalFilename": "child_component_9gyf01gdkqw",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    128,
+    397
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

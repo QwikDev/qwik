@@ -43,6 +43,7 @@
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
     "@builder.io/qwik-dom": "workspace:^",
+    "@builder.io/qwik-optimizer": "workspace:*",
     "image-size": "1.1.1",
     "kleur": "4.1.5",
     "vitest": "2.0.5",
@@ -137,8 +138,7 @@
     "./qwikloader.js": "./dist/qwikloader.js",
     "./qwikloader.debug.js": "./dist/qwikloader.debug.js",
     "./qwik-prefetch.js": "./dist/qwik-prefetch.js",
-    "./qwik-prefetch.debug.js": "./dist/qwik-prefetch.debug.js",
-    "./package.json": "./dist/package.json"
+    "./qwik-prefetch.debug.js": "./dist/qwik-prefetch.debug.js"
   },
   "exports_annotation": "We use the build for the optimizer because esbuild doesn't like the html?raw imports in the server plugin and it's only used in the vite configs",
   "files": [

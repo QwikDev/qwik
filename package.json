@@ -20,6 +20,16 @@
           "pinVersion": "^5"
         },
         {
+          "label": "The optimizer version must be fixed",
+          "dependencies": [
+            "@builder.io/qwik-optimizer"
+          ],
+          "dependencyTypes": [
+            "!local"
+          ],
+          "pinVersion": "workspace:*"
+        },
+        {
           "label": "use workspace protocol for local packages and allow patch versions (used in e.g. qwik-react)",
           "dependencies": [
             "$LOCAL"
@@ -167,10 +177,11 @@
   "packageManager": "pnpm@9.1.2",
   "pnpm": {
     "overrides": {
-      "typescript": "5.4.5",
-      "vfile": "6.0.1",
+      "@microsoft/api-extractor": "$@microsoft/api-extractor",
+      "@supabase/realtime-js": "2.8.4",
       "sharp": ">=0.33",
-      "@supabase/realtime-js": "2.8.4"
+      "typescript": "$typescript",
+      "vfile": "$vfile"
     },
     "patchedDependencies": {
       "density-clustering@1.3.0": "patches/density-clustering@1.3.0.patch"

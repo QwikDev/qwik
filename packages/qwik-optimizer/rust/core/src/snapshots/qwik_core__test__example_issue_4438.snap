@@ -1,0 +1,43 @@
+---
+source: packages/qwik-optimizer/rust/core/src/test.rs
+assertion_line: 2838
+expression: output
+---
+==INPUT==
+
+
+import { component$, useSignal } from '@builder.io/qwik';
+
+export const App = component$(() => {
+	const toggle = useSignal(false);
+	return (
+		<>
+			<div data-nu={toggle.value ? $localize`singular` : 'plural'}></div>
+			<div>{toggle.value ? $localize`singular` : $localize`plural`}</div>
+		</>
+	);
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { _jsxSorted } from "@builder.io/qwik";
+import { inlinedQrl } from "@builder.io/qwik";
+import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+import { useSignal } from '@builder.io/qwik';
+const App_component_ckEPmXZlub0 = ()=>{
+    const toggle = useSignal(false);
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted("div", {
+            "data-nu": toggle.value ? $localize`singular` : 'plural'
+        }, null, null, 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, toggle.value ? $localize`singular` : $localize`plural`, 1, null)
+    ], 1, "u6_0");
+};
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AACA,SAAqB,SAAS,QAAQ,mBAAmB;kCAE3B;IAC7B,MAAM,SAAS,UAAU;IACzB,qBACC;sBACC,WAAC;YAAI,WAAS,OAAO,KAAK,GAAG,SAAS,CAAC,QAAQ,CAAC,GAAG;;sBACnD,WAAC,mBAAK,OAAO,KAAK,GAAG,SAAS,CAAC,QAAQ,CAAC,GAAG,SAAS,CAAC,MAAM,CAAC;;AAG/D;AARA,OAAO,MAAM,oBAAM,+FAQhB\"}")
+== DIAGNOSTICS ==
+
+[]

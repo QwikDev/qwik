@@ -1,0 +1,255 @@
+---
+source: packages/qwik-optimizer/rust/core/src/test.rs
+assertion_line: 1822
+expression: output
+---
+==INPUT==
+
+
+import { component$, serverLoader$, serverStuff$, $, client$, useStore, useTask$ } from '@builder.io/qwik';
+import { isServer } from '@builder.io/qwik/build';
+import mongo from 'mongodb';
+import redis from 'redis';
+import { handler } from 'serverless';
+
+export const Parent = component$(() => {
+	const state = useStore({
+		text: ''
+	});
+
+	// Double count watch
+	useTask$(async () => {
+		if (!isServer) return;
+		state.text = await mongo.users();
+		redis.set(state.text);
+	});
+
+	serverStuff$(async () => {
+		// should be removed too
+		const a = $(() => {
+			// from $(), should not be removed
+		});
+		const b = client$(() => {
+			// from clien$(), should not be removed
+		});
+		return [a,b];
+	})
+
+	serverLoader$(handler);
+
+	useTask$(() => {
+		// Code
+	});
+
+	return (
+		<div onClick$={() => console.log('parent')}>
+			{state.text}
+		</div>
+	);
+});
+
+============================= s_gdh1etuwqbu.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@builder.io/qwik";
+import mongo from "mongodb";
+import redis from "redis";
+export const s_gDH1EtUWqBU = async ()=>{
+    const [state] = useLexicalScope();
+    state.text = await mongo.users();
+    redis.set(state.text);
+};
+export { _hW } from "@builder.io/qwik";
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;6BAaU;;IAER,MAAM,IAAI,GAAG,MAAM,MAAM,KAAK;IAC9B,MAAM,GAAG,CAAC,MAAM,IAAI\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_gDH1EtUWqBU",
+  "entry": null,
+  "displayName": "Parent_component_useTask",
+  "hash": "gDH1EtUWqBU",
+  "canonicalFilename": "s_gdh1etuwqbu",
+  "path": "",
+  "extension": "js",
+  "parent": "s_0TaiDayHrlo",
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": true,
+  "loc": [
+    373,
+    475
+  ]
+}
+*/
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./s_0taidayhrlo"), "s_0TaiDayHrlo"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAOA,OAAO,MAAM,uBAAS,gFAkCnB\"}")
+============================= s_2ca3hldc7yc.js (ENTRY POINT)==
+
+export const s_2ca3HLDC7yc = ()=>{
+// from $(), should not be removed
+};
+export { _hW } from "@builder.io/qwik";
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAqBc;AACX,kCAAkC;AACnC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_2ca3HLDC7yc",
+  "entry": null,
+  "displayName": "Parent_component_serverStuff_a",
+  "hash": "2ca3HLDC7yc",
+  "canonicalFilename": "s_2ca3hldc7yc",
+  "path": "",
+  "extension": "js",
+  "parent": "s_r1qAHX7Opp0",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    548,
+    597
+  ]
+}
+*/
+============================= s_v9qawr2inkk.js (ENTRY POINT)==
+
+export const s_v9qawr2Inkk = ()=>{
+// from clien$(), should not be removed
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAwBoB;AACjB,uCAAuC;AACxC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_v9qawr2Inkk",
+  "entry": null,
+  "displayName": "Parent_component_serverStuff_b_client",
+  "hash": "v9qawr2Inkk",
+  "canonicalFilename": "s_v9qawr2inkk",
+  "path": "",
+  "extension": "js",
+  "parent": "s_r1qAHX7Opp0",
+  "ctxKind": "function",
+  "ctxName": "client$",
+  "captures": false,
+  "loc": [
+    620,
+    674
+  ]
+}
+*/
+============================= s_0taidayhrlo.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@builder.io/qwik";
+import { _noopQrl } from "@builder.io/qwik";
+import { _wrapProp } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+import { serverLoaderQrl } from "@builder.io/qwik";
+import { serverStuffQrl } from "@builder.io/qwik";
+import { useStore } from "@builder.io/qwik";
+import { useTaskQrl } from "@builder.io/qwik";
+export const s_0TaiDayHrlo = ()=>{
+    const state = useStore({
+        text: ''
+    });
+    // Double count watch
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./s_gdh1etuwqbu"), "s_gDH1EtUWqBU", [
+        state
+    ]));
+    serverStuffQrl(/*#__PURE__*/ _noopQrl("s_r1qAHX7Opp0"));
+    serverLoaderQrl(/*#__PURE__*/ _noopQrl("s_k1L0DiPQV1I"));
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./s_p8orqhhsurk"), "s_P8oRQhHsurk"));
+    return /*#__PURE__*/ _jsxSorted("div", null, {
+        onClick$: /*#__PURE__*/ qrl(()=>import("./s_c5xe49nqd3a"), "s_C5XE49Nqd3A")
+    }, _wrapProp(state, "text"), 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;6BAOiC;IAChC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAMA;IAWA;IAEA;IAIA,qBACC,WAAC;QAAI,QAAQ;iBACX;AAGJ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_0TaiDayHrlo",
+  "entry": null,
+  "displayName": "Parent_component",
+  "hash": "0TaiDayHrlo",
+  "canonicalFilename": "s_0taidayhrlo",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    289,
+    845
+  ]
+}
+*/
+============================= s_c5xe49nqd3a.js (ENTRY POINT)==
+
+export const s_C5XE49Nqd3A = ()=>console.log('parent');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAqCiB,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_C5XE49Nqd3A",
+  "entry": null,
+  "displayName": "Parent_component_div_onClick",
+  "hash": "C5XE49Nqd3A",
+  "canonicalFilename": "s_c5xe49nqd3a",
+  "path": "",
+  "extension": "js",
+  "parent": "s_0TaiDayHrlo",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    785,
+    812
+  ]
+}
+*/
+============================= s_p8orqhhsurk.js (ENTRY POINT)==
+
+export const s_P8oRQhHsurk = ()=>{
+// Code
+};
+export { _hW } from "@builder.io/qwik";
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAgCU;AACR,OAAO;AACR\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_P8oRQhHsurk",
+  "entry": null,
+  "displayName": "Parent_component_useTask_1",
+  "hash": "P8oRQhHsurk",
+  "canonicalFilename": "s_p8orqhhsurk",
+  "path": "",
+  "extension": "js",
+  "parent": "s_0TaiDayHrlo",
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": false,
+  "loc": [
+    734,
+    754
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

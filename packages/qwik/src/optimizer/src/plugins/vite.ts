@@ -1135,6 +1135,10 @@ export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundle
   const map = new Map<string, { index: number; deps: Set<string> }>();
   const clearTransitiveDeps = (parentDeps: Set<string>, seen: Set<string>, bundleName: string) => {
     const bundle = graph[bundleName];
+    if (!bundle) {
+      // external dependency
+      return;
+    }
     for (const dep of bundle.imports || []) {
       if (parentDeps.has(dep)) {
         parentDeps.delete(dep);
@@ -1151,7 +1155,7 @@ export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundle
     const deps = new Set(bundle.imports);
     for (const depName of deps) {
       if (!graph[depName]) {
-        // weird but ok
+        // external dependency
         continue;
       }
       clearTransitiveDeps(deps, new Set(), depName);
@@ -1161,7 +1165,7 @@ export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundle
       // If we dynamically import a qrl segment that is not a handler, we'll probably need it soon
       const dep = graph[depName];
       if (!graph[depName]) {
-        // weird but ok
+        // external dependency
         continue;
       }
       if (dep.isTask) {

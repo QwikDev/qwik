@@ -147,7 +147,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     );
     this.qContainer = element.getAttribute(QContainerAttr)!;
     if (!this.qContainer) {
-      throw new Error("Element must have 'q:container' attribute.");
+      throwErrorAndStop("Element must have 'q:container' attribute.");
     }
     this.$journal$ = [
       // The first time we render we need to hoist the styles.

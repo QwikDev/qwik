@@ -308,7 +308,7 @@ const inflate = (container: DeserializeContainer, target: any, needsInflationDat
         : undefined;
       break;
     case SerializationConstant.Resource_VALUE:
-      throw new Error('Not implemented');
+      return throwErrorAndStop('Not implemented');
     case SerializationConstant.Component_VALUE:
       inflateQRL(container, target[SERIALIZABLE_STATE][0]);
       break;
@@ -378,7 +378,7 @@ const inflate = (container: DeserializeContainer, target: any, needsInflationDat
       propsProxy[_CONST_PROPS] = container.$getObjectById$(restInt()) as any;
       break;
     default:
-      throw new Error('Not implemented');
+      return throwErrorAndStop('Not implemented');
   }
   restIdx = restStack.pop() as number;
   rest = restStack.pop() as string;
@@ -393,7 +393,7 @@ const allocate = <T>(value: string): any => {
     case SerializationConstant.Task_VALUE:
       return new Task(-1, -1, null!, null!, null!, null);
     case SerializationConstant.Resource_VALUE:
-      throw new Error('Not implemented');
+      return throwErrorAndStop('Not implemented');
     case SerializationConstant.URL_VALUE:
       return new URL(value.substring(1));
     case SerializationConstant.Date_VALUE:
@@ -453,7 +453,7 @@ const allocate = <T>(value: string): any => {
     case SerializationConstant.PropsProxy_VALUE:
       return createPropsProxy(null!, null);
     default:
-      throw new Error('unknown allocate type: ' + value.charCodeAt(0));
+      return throwErrorAndStop('unknown allocate type: ' + value.charCodeAt(0));
   }
 };
 
@@ -761,7 +761,7 @@ export const createSerializationContext = (
               }
             }
           } else {
-            throw new Error('Unknown type: ' + obj);
+            return throwErrorAndStop('Unknown type: ' + obj);
           }
         } else if (id === Number.MIN_SAFE_INTEGER) {
           // We are seeing this object second time => promoted it.
@@ -841,7 +841,7 @@ function serialize(serializationContext: SerializationContext): void {
     } else if (typeof value === 'undefined') {
       writeString(SerializationConstant.UNDEFINED_CHAR);
     } else {
-      throw new Error('Unknown type: ' + typeof value);
+      return throwErrorAndStop('Unknown type: ' + typeof value);
     }
   };
 
@@ -996,7 +996,7 @@ function serialize(serializationContext: SerializationContext): void {
       const out = btoa(buf).replace(/=+$/, '');
       writeString(SerializationConstant.Uint8Array_CHAR + out);
     } else {
-      throw new Error('implement');
+      return throwErrorAndStop('implement');
     }
   };
 

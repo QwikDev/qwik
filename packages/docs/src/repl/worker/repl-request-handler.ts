@@ -169,5 +169,5 @@ const injectDevHtml = (clientId: string, html?: string) => {
   }, true);
 })();`;
 
-  return `<script>${s}</script>${html || ''}`;
+  return `<script :>${s}</script>${html || ''}`;
 };

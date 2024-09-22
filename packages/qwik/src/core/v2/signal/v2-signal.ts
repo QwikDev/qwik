@@ -17,7 +17,7 @@ import { type QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
 import { trackSignal, tryGetInvokeContext } from '../../use/use-core';
 import { Task, TaskFlags, isTask } from '../../use/use-task';
-import { logError } from '../../util/log';
+import { logError, throwErrorAndStop } from '../../util/log';
 import { ELEMENT_PROPS, OnRenderProp, QSubscribers } from '../../util/markers';
 import { isPromise } from '../../util/promises';
 import { qDev } from '../../util/qdev';
@@ -222,7 +222,7 @@ export class Signal<T = any> extends Subscriber implements ISignal<T> {
   // prevent accidental use as value
   valueOf() {
     if (qDev) {
-      throw new TypeError('Cannot coerce a Signal, use `.value` instead');
+      return throwErrorAndStop('Cannot coerce a Signal, use `.value` instead');
     }
   }
 
@@ -476,7 +476,7 @@ export class ComputedSignal<T> extends Signal<T> {
   }
 
   set value(_: any) {
-    throw new TypeError('ComputedSignal is read-only');
+    throwErrorAndStop('ComputedSignal is read-only');
   }
 }
 
@@ -548,6 +548,6 @@ export class WrappedSignal<T> extends Signal<T> {
   }
 
   set value(_: any) {
-    throw new TypeError('WrappedSignal is read-only');
+    throwErrorAndStop('WrappedSignal is read-only');
   }
 }

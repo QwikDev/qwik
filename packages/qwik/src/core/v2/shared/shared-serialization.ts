@@ -723,7 +723,7 @@ export const createSerializationContext = (
                 discoveredValues.push(effect[EffectSubscriptionsProp.EFFECT]);
               }
             }
-            if (obj.$effectDependencies$) {
+            if (obj instanceof WrappedSignal && obj.$effectDependencies$) {
               discoveredValues.push(obj.$effectDependencies$);
             }
             // TODO(mhevery): should scan the QRLs???
@@ -908,16 +908,12 @@ function serialize(serializationContext: SerializationContext): void {
           SerializationConstant.ComputedSignal_CHAR +
             qrlToString(serializationContext, value.$computeQrl$) +
             ';' +
-            $addRoot$(value.$effectDependencies$) +
-            ';' +
             $addRoot$(value.$untrackedValue$) +
             serializeEffectSubs($addRoot$, value.$effects$)
         );
       } else {
         writeString(
           SerializationConstant.Signal_CHAR +
-            $addRoot$(value.$effectDependencies$) +
-            ';' +
             $addRoot$(value.$untrackedValue$) +
             serializeEffectSubs($addRoot$, value.$effects$)
         );
@@ -1116,13 +1112,13 @@ function deserializeSignal2(
         container.$getObjectById$(parseInt(fnParts[i]))
       );
     }
+    const dependencies = container.$getObjectById$(parts[idx++]) as Subscriber[] | null;
+    derivedSignal.$effectDependencies$ = dependencies;
   }
   if (readQrl) {
     const computedSignal = signal as ComputedSignal<any>;
     computedSignal.$computeQrl$ = inflateQRL(container, parseQRL(parts[idx++])) as fixMeAny;
   }
-  const dependencies = container.$getObjectById$(parts[idx++]) as Subscriber[] | null;
-  signal.$effectDependencies$ = dependencies;
   let signalValue = container.$getObjectById$(parts[idx++]);
   if (vnode_isVNode(signalValue)) {
     signalValue = vnode_getNode(signalValue);

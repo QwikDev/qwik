@@ -1,14 +1,14 @@
 import { QSubscribers } from '../../util/markers';
 import type { VNode } from '../client/types';
 import { vnode_getProp } from '../client/vnode';
-import { EffectSubscriptionsProp, isSignal, type Signal } from './v2-signal';
+import { EffectSubscriptionsProp, WrappedSignal, isSignal } from './v2-signal';
 
 export abstract class Subscriber {
   $effectDependencies$: Subscriber[] | null = null;
 }
 
 export function isSubscriber(value: unknown): value is Subscriber {
-  return value instanceof Subscriber;
+  return value instanceof Subscriber || value instanceof WrappedSignal;
 }
 
 export function clearVNodeEffectDependencies(value: VNode): void {
@@ -41,7 +41,7 @@ function clearEffects(subscriber: Subscriber, value: Subscriber | VNode): boolea
   if (!isSignal(subscriber)) {
     return false;
   }
-  const effectSubscriptions = (subscriber as Signal<unknown>).$effects$;
+  const effectSubscriptions = (subscriber as WrappedSignal<unknown>).$effects$;
   if (!effectSubscriptions) {
     return false;
   }

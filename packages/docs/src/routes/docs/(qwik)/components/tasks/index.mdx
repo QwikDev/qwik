@@ -181,7 +181,14 @@ One unique aspect of Qwik, is that components are mounted only **once** across t
 
 ### `track()`
 
-There are times when it is desirable to re-run a task when a component state changes. This is done by using the `track()` function. The `track()` function allows you to set up a dependency on a component's state when initially rendered on the server, and then re-execute the task when the state changes in the browser.  The same task will never be executed twice on the server.
+There are times when it is desirable to re-run a task when a component state changes. This is done by using the `track()` function. The `track()` function allows you to set up a dependency on a component's state when initially rendered on the server, and then re-execute the task when the state changes in the browser.
+
+Track accepts signals, stores and functions. It returns the value of the signal, the store itself, or the function call result.
+
+When you pass a store, the track will be called when the store gets or removes properties as well as mutations of properties.
+Note that deep store updates don't mutate the store itself, so `store[item].count++` will not trigger an update. Instead, you should individually track each `store[item]` (which are also automatically created stores).
+
+During SSR, each component will wait until all tasks are completed before outputting the HTML for that component. So a task can be called multiple times during SSR if the tracked state changes due to other tasks.
 
 > **Note**: If all you want to do is compute a new state from an existing state synchronously, you should use [`useComputed$()`](/docs/components/state/#usecomputed) instead.
 
@@ -195,9 +202,9 @@ export default component$(() => {
   const delayText = useSignal('');
 
   useTask$(({ track }) => {
-    track(() => text.value);
-    const value = text.value;
-    const update = () => (delayText.value = value);
+    // Passing a signal directly is more efficient than using a function.
+    const newText = track(text);
+    const update = () => (delayText.value = newText);
     isServer
       ? update() // don't delay on server render value as part of SSR
       : delay(500).then(update); // Delay in browser

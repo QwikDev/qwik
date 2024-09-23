@@ -2,7 +2,7 @@ import { isDev } from '@builder.io/qwik/build';
 import { isQwikComponent, type OnRenderFn } from '../../component/component.public';
 import { assertDefined } from '../../error/assert';
 import { isQrl, type QRLInternal } from '../../qrl/qrl-class';
-import { JSXNodeImpl, isJSXNode } from '../../render/jsx/jsx-runtime';
+import { JSXNodeImpl, isJSXNode, type Props } from '../../render/jsx/jsx-runtime';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { KnownEventNames } from '../../render/jsx/types/jsx-qwik-events';
 import { invokeApply, newInvokeContext, untrack } from '../../use/use-core';
@@ -23,6 +23,7 @@ import { logWarn } from '../../util/log';
 import { EffectProperty, isSignal } from '../signal/v2-signal';
 import { vnode_isVNode } from '../client/vnode';
 import { clearVNodeEffectDependencies } from '../signal/v2-subscriber';
+import { _CONST_PROPS, _VAR_PROPS } from '../../internal';
 
 /**
  * Use `executeComponent2` to execute a component.
@@ -50,7 +51,7 @@ export const executeComponent2 = (
   renderHost: HostElement,
   subscriptionHost: HostElement,
   componentQRL: OnRenderFn<unknown> | QRLInternal<OnRenderFn<unknown>> | null,
-  props: Record<string, unknown> | null
+  props: Props | null
 ): ValueOrPromise<JSXOutput> => {
   const iCtx = newInvokeContext(
     container.$locale$,
@@ -74,7 +75,7 @@ export const executeComponent2 = (
     componentFn = componentQRL.getFn(iCtx);
   } else if (isQwikComponent(componentQRL)) {
     const qComponentFn = componentQRL as (
-      props: Record<string, unknown>,
+      props: Props,
       key: string | null,
       flags: number
     ) => JSXNode;

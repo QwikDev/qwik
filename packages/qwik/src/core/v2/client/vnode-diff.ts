@@ -5,7 +5,14 @@ import { assertDefined, assertFalse, assertTrue } from '../../error/assert';
 import type { QRLInternal } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
 import { dangerouslySetInnerHTML, serializeAttribute } from '../../render/execute-component';
-import { Fragment, JSXNodeImpl, isJSXNode, type Props } from '../../render/jsx/jsx-runtime';
+import {
+  Fragment,
+  JSXNodeImpl,
+  directGetPropsProxyProp,
+  getMergedProps,
+  isJSXNode,
+  type Props,
+} from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
@@ -425,7 +432,10 @@ export const vnode_diff = (
       /// STEP 1: Bucketize the children based on the projection name.
       for (let i = 0; i < children.length; i++) {
         const child = children[i];
-        const slotName = String((isJSXNode(child) && child.props[QSlot]) || QDefaultSlot);
+        const slotName = String(
+          (isJSXNode(child) && directGetPropsProxyProp(child.varProps, child.constProps, QSlot)) ||
+            QDefaultSlot
+        );
         const idx = mapApp_findIndx(projections, slotName, 0);
         let jsxBucket: JSXNodeImpl<typeof Projection>;
         if (idx >= 0) {
@@ -529,7 +539,7 @@ export const vnode_diff = (
         );
       }
     }
-    return jsxValue.props.name || QDefaultSlot;
+    return directGetPropsProxyProp(jsxValue.varProps, jsxValue.constProps, 'name') || QDefaultSlot;
   }
 
   function drainAsyncQueue(): ValueOrPromise<void> {
@@ -987,8 +997,9 @@ export const vnode_diff = (
   function expectComponent(component: Function) {
     const componentMeta = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
     let host = (vNewNode || vCurrent) as VirtualVNode | null;
+    const currentJSX: JSXNode = jsxValue;
     if (componentMeta) {
-      const jsxProps = jsxValue.props;
+      const jsxProps = currentJSX.props;
       // QComponent
       let shouldRender = false;
       const [componentQRL] = componentMeta;
@@ -996,7 +1007,7 @@ export const vnode_diff = (
       const componentHash = componentQRL.$hash$;
       const vNodeComponentHash = getComponentHash(host, container.$getObjectById$);
 
-      const lookupKey = jsxValue.key || componentHash;
+      const lookupKey = currentJSX.key || componentHash;
       const vNodeLookupKey = getKey(host) || vNodeComponentHash;
 
       const lookupKeysAreEqual = lookupKey === vNodeLookupKey;
@@ -1033,7 +1044,7 @@ export const vnode_diff = (
           container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
         }
       }
-      jsxValue.children != null && descendContentToProject(jsxValue.children, host);
+      currentJSX.children != null && descendContentToProject(currentJSX.children, host);
     } else {
       // Inline Component
       vnode_insertBefore(
@@ -1043,7 +1054,7 @@ export const vnode_diff = (
         vCurrent && getInsertBefore()
       );
       isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.InlineComponent);
-      vnode_setProp(vNewNode, ELEMENT_PROPS, jsxValue.props);
+      vnode_setProp(vNewNode, ELEMENT_PROPS, currentJSX.props);
 
       host = vNewNode;
       let component$Host: VNode | null = host;
@@ -1061,7 +1072,7 @@ export const vnode_diff = (
         host,
         (component$Host || container.rootVNode) as HostElement,
         component as OnRenderFn<unknown>,
-        jsxValue.props
+        getMergedProps(currentJSX.props)
       );
       asyncQueue.push(jsxOutput, host);
     }

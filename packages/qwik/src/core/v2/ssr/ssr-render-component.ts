@@ -8,6 +8,7 @@ import { executeComponent2 } from '../shared/component-execution';
 import { ChoreType } from '../shared/scheduler';
 import type { ValueOrPromise } from '../../util/types';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
+import { getMergedProps } from '../../render/jsx/jsx-runtime';
 
 export const applyInlineComponent = (
   ssr: SSRContainer,
@@ -16,7 +17,7 @@ export const applyInlineComponent = (
   jsx: JSXNode
 ) => {
   const host = ssr.getLastNode();
-  return executeComponent2(ssr, host, component$Host, component, jsx.props);
+  return executeComponent2(ssr, host, component$Host, component, getMergedProps(jsx.props));
 };
 
 export const applyQwikComponentBody = (

@@ -3,7 +3,7 @@ import { isQwikComponent } from '../../component/component.public';
 import { isQrl } from '../../qrl/qrl-class';
 import type { QRL } from '../../qrl/qrl.public';
 import { serializeAttribute } from '../../render/execute-component';
-import { Fragment } from '../../render/jsx/jsx-runtime';
+import { Fragment, directGetPropsProxyProp } from '../../render/jsx/jsx-runtime';
 import { Slot } from '../../render/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { JSXChildren } from '../../render/jsx/types/jsx-qwik-attributes';
@@ -26,7 +26,7 @@ import {
   isJsxPropertyAnEventName,
   isPreventDefault,
 } from '../shared/event-names';
-import { addComponentStylePrefix, hasClassAttr, isClassAttr } from '../shared/scoped-styles';
+import { addComponentStylePrefix, isClassAttr } from '../shared/scoped-styles';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
 import { WrappedSignal, EffectProperty, isSignal } from '../signal/v2-signal';
@@ -157,8 +157,7 @@ function processJSXNode(
       // Below, JSXChildren allows functions and regexes, but we assume the dev only uses those as appropriate.
       if (typeof type === 'string') {
         // append class attribute if styleScopedId exists and there is no class attribute
-        const classAttributeExists =
-          hasClassAttr(jsx.varProps) || (jsx.constProps && hasClassAttr(jsx.constProps));
+        const classAttributeExists = directGetPropsProxyProp(jsx.varProps, jsx.constProps, 'class');
         if (!classAttributeExists && styleScoped) {
           if (!jsx.constProps) {
             jsx.constProps = {};
@@ -233,7 +232,7 @@ function processJSXNode(
             ssr.closeFragment();
           }
         } else if (type === SSRComment) {
-          ssr.commentNode((jsx.props.data as string) || '');
+          ssr.commentNode(directGetPropsProxyProp(jsx.varProps, jsx.constProps, 'data') || '');
         } else if (type === SSRStream) {
           ssr.commentNode(FLUSH_COMMENT);
           const generator = jsx.children as SSRStreamChildren;
@@ -252,7 +251,7 @@ function processJSXNode(
           enqueue(value as StackValue);
           isPromise(value) && enqueue(Promise);
         } else if (type === SSRRaw) {
-          ssr.htmlNode(jsx.props.data as string);
+          ssr.htmlNode(directGetPropsProxyProp(jsx.varProps, jsx.constProps, 'data'));
         } else if (isQwikComponent(type)) {
           // prod: use new instance of an array for props, we always modify props for a component
           ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
@@ -491,14 +490,17 @@ function getSlotName(host: ISsrNode, jsx: JSXNode, ssr: SSRContainer): string {
       return trackSignal(() => constValue.value, host as fixMeAny, EffectProperty.COMPONENT, ssr);
     }
   }
-  return (jsx.props.name as string) || QDefaultSlot;
+  return directGetPropsProxyProp(jsx.varProps, jsx.constProps, 'name') || QDefaultSlot;
 }
 
 function appendQwikInspectorAttribute(jsx: JSXNode) {
   if (isDev && qInspector && jsx.dev && jsx.type !== 'head') {
     const sanitizedFileName = jsx.dev.fileName?.replace(/\\/g, '/');
     const qwikInspectorAttr = 'data-qwik-inspector';
-    if (sanitizedFileName && !(qwikInspectorAttr in jsx.props)) {
+    if (
+      sanitizedFileName &&
+      !directGetPropsProxyProp(jsx.varProps, jsx.constProps, qwikInspectorAttr)
+    ) {
       if (!jsx.constProps) {
         jsx.constProps = {};
       }

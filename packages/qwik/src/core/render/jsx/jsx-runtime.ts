@@ -271,6 +271,26 @@ export const isJSXNode = <T>(n: unknown): n is JSXNode<T> => {
   }
 };
 
+/**
+ * Instead of using PropsProxyHandler getter (which could create a component-level subscription).
+ * Use this function to get the props directly from a const or var props.
+ */
+export const directGetPropsProxyProp = <T>(
+  varProps: Props,
+  constProps: Props | null,
+  prop: string
+): T => {
+  return (constProps && prop in constProps ? constProps[prop] : varProps[prop]) as T;
+};
+
+export const getMergedProps = (props: Props): Props => {
+  return {
+    ...(props as any)[_VAR_PROPS],
+    ...(props as any)[_CONST_PROPS],
+    children: props.children,
+  };
+};
+
 /** @public */
 export const Fragment: FunctionComponent<{ children?: any; key?: string | number | null }> = (
   props
@@ -357,10 +377,7 @@ class PropsProxyHandler implements ProxyHandler<any> {
     if (this.$children$ != null && prop === 'children') {
       return this.$children$;
     }
-    const value =
-      this.$constProps$ && prop in this.$constProps$
-        ? this.$constProps$[prop as string]
-        : this.$varProps$[prop as string];
+    const value = directGetPropsProxyProp(this.$varProps$, this.$constProps$, prop as string);
     // a proxied value that the optimizer made
     return value instanceof WrappedSignal ? value.value : value;
   }

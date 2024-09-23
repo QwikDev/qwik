@@ -1,6 +1,8 @@
 import {
   Fragment as Signal,
   component$,
+  createComputed$,
+  createSignal,
   qrl,
   useComputed$,
   useComputedQrl,
@@ -23,6 +25,7 @@ describe.each([
       const count = useSignal(123);
       const doubleCount = useComputedQrl<number>(
         qrl(
+          // pretend to be an async import
           () =>
             Promise.resolve({
               lazy: () => {
@@ -208,6 +211,35 @@ describe.each([
       </>
     );
   });
+
+  describe('createComputed$', () => {
+    it('can be created anywhere', async () => {
+      const count = createSignal(1);
+      const doubleCount = createComputed$(() => count.value * 2);
+
+      const Counter = component$(() => {
+        return <button onClick$={() => count.value++}>{doubleCount.value}</button>;
+      });
+
+      const { vNode, container } = await render(<Counter />, { debug });
+      expect(vNode).toMatchVDOM(
+        <>
+          <button>
+            <Signal>{'2'}</Signal>
+          </button>
+        </>
+      );
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <>
+          <button>
+            <Signal>{'4'}</Signal>
+          </button>
+        </>
+      );
+    });
+  });
+
   describe('regression', () => {
     it('#4979 - should work with inner computed', async () => {
       const InnerComponent = component$((props: { value: number }) => {
@@ -314,5 +346,23 @@ describe.each([
       );
       expect((global as any).useComputedCount).toBe(1);
     });
+  });
+
+  // TODO by throwing during render, this breaks the tests that follow
+  it('should disallow Promise in computed result', async () => {
+    const Counter = component$(() => {
+      const count = useSignal(1);
+      const doubleCount = useComputed$(() => Promise.resolve(count.value * 2));
+      return (
+        <button onClick$={() => count.value++}>
+          {
+            // @ts-expect-error
+            doubleCount.value
+          }
+        </button>
+      );
+    });
+
+    await expect(() => render(<Counter />, { debug })).rejects.toThrowError(/Promise/);
   });
 });

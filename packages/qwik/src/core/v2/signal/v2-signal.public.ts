@@ -28,7 +28,13 @@ export interface Signal<T = any> extends ReadonlySignal<T> {
   value: T;
 }
 
-/** @public */
+/**
+ * A computed signal is a signal which is calculated from other signals. When the signals change,
+ * the computed signal is recalculated, and if the result changed, all tasks which are tracking the
+ * signal will be re-run and all components that read the signal will be re-rendered.
+ *
+ * @public
+ */
 export interface ComputedSignal<T> extends ReadonlySignal<T> {
   /**
    * Use this to force recalculation and running subscribers, for example when the calculated value
@@ -37,14 +43,32 @@ export interface ComputedSignal<T> extends ReadonlySignal<T> {
   force(): void;
 }
 
-/** @public */
+/**
+ * Creates a Signal with the given value. If no value is given, the signal is created with
+ * `undefined`.
+ *
+ * @public
+ */
 export const createSignal: {
   <T>(): Signal<T | undefined>;
   <T>(value: T): Signal<T>;
 } = _createSignal;
 
 /** @public */
-export const createComputedQrl: <T>(qrl: QRL<() => T>) => ComputedSignal<T> = _createComputedSignal;
+export const createComputedQrl: <T>(
+  qrl: QRL<() => T>
+) => T extends Promise<any> ? never : ComputedSignal<T> = _createComputedSignal as any;
 
-/** @public */
+/**
+ * Create a computed signal which is calculated from the given QRL. A computed signal is a signal
+ * which is calculated from other signals. When the signals change, the computed signal is
+ * recalculated.
+ *
+ * The QRL must be a function which returns the value of the signal. The function must not have side
+ * effects, and it mus be synchronous.
+ *
+ * If you need the function to be async, use `useSignal` and `useTask$` instead.
+ *
+ * @public
+ */
 export const createComputed$ = /*#__PURE__*/ implicit$FirstArg(createComputedQrl);

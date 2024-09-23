@@ -1,13 +1,17 @@
 import { implicit$FirstArg } from '../util/implicit_dollar';
-import type { ReadonlySignal } from '../v2/signal/v2-signal.public';
-import { useComputedQrl, useTaskQrl, useVisibleTaskQrl, type ComputedFn } from './use-task';
+import { useComputedQrl, useTaskQrl, useVisibleTaskQrl } from './use-task';
 
-interface Computed {
-  <T>(qrl: ComputedFn<T>): ReadonlySignal<T>;
-}
-
-/** @public */
-export const useComputed$: Computed = implicit$FirstArg(useComputedQrl);
+/**
+ * Creates a computed signal which is calculated from the given function. A computed signal is a
+ * signal which is calculated from other signals. When the signals change, the computed signal is
+ * recalculated, and if the result changed, all tasks which are tracking the signal will be re-run
+ * and all components that read the signal will be re-rendered.
+ *
+ * The function must be synchronous and must not have any side effects.
+ *
+ * @public
+ */
+export const useComputed$ = implicit$FirstArg(useComputedQrl);
 
 // <docs markdown="../readme.md#useTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

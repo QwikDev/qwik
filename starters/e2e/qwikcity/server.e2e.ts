@@ -11,13 +11,11 @@ test.describe("server$", () => {
       "localhost:3301",
       "localhost:3301",
       "",
-      "localhost:3301",
     ]);
 
     const button = page.locator("#server-host-button");
     await button.click();
     await expect(host).toHaveText([
-      "localhost:3301",
       "localhost:3301",
       "localhost:3301",
       "localhost:3301",

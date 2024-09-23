@@ -1418,6 +1418,8 @@ export type ComputedFn<T> = () => T;
 
 ## ComputedSignal
 
+A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.
+
 ```typescript
 export interface ComputedSignal<T> extends ReadonlySignal<T>
 ```
@@ -1728,8 +1730,14 @@ Description
 
 ## createComputed$
 
+Create a computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated.
+
+The QRL must be a function which returns the value of the signal. The function must not have side effects, and it mus be synchronous.
+
+If you need the function to be async, use `useSignal` and `useTask$` instead.
+
 ```typescript
-createComputed$: <T>(qrl: () => T) => ComputedSignal<T>;
+createComputed$: <T>(qrl: () => T) => T extends Promise<any> ? never : ComputedSignal<T>
 ```
 
 <table><thead><tr><th>
@@ -1759,14 +1767,14 @@ qrl
 </tbody></table>
 **Returns:**
 
-[ComputedSignal](#computedsignal)&lt;T&gt;
+T extends Promise&lt;any&gt; ? never : [ComputedSignal](#computedsignal)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts)
 
 ## createComputedQrl
 
 ```typescript
-createComputedQrl: <T>(qrl: QRL<() => T>) => ComputedSignal<T>;
+createComputedQrl: <T>(qrl: QRL<() => T>) => T extends Promise<any> ? never : ComputedSignal<T>
 ```
 
 <table><thead><tr><th>
@@ -1796,7 +1804,7 @@ qrl
 </tbody></table>
 **Returns:**
 
-[ComputedSignal](#computedsignal)&lt;T&gt;
+T extends Promise&lt;any&gt; ? never : [ComputedSignal](#computedsignal)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts)
 
@@ -1882,6 +1890,8 @@ The name of the context.
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
 
 ## createSignal
+
+Creates a Signal with the given value. If no value is given, the signal is created with `undefined`.
 
 ```typescript
 createSignal: {
@@ -10161,29 +10171,87 @@ T
 
 ## useComputed$
 
+Creates a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.
+
+The function must be synchronous and must not have any side effects.
+
 ```typescript
-useComputed$: Computed;
+useComputed$: <T>(qrl: import("./use-task").ComputedFn<T>) => T extends Promise<any> ? never : import("..").ReadonlySignal<T>
 ```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+qrl
+
+</td><td>
+
+import("./use-task").[ComputedFn](#computedfn)&lt;T&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+T extends Promise&lt;any&gt; ? never : import("..").[ReadonlySignal](#readonlysignal)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task-dollar.ts)
 
 ## useComputedQrl
 
 ```typescript
-useComputedQrl: ComputedQRL;
+useComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => T extends Promise<any> ? never : ReadonlySignal<T>
 ```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+qrl
+
+</td><td>
+
+[QRL](#qrl)&lt;[ComputedFn](#computedfn)&lt;T&gt;&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+T extends Promise&lt;any&gt; ? never : [ReadonlySignal](#readonlysignal)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## useConstant
 
-> Warning: This API is now obsolete.
->
-> This is a technology preview
+Stores a value which is retained for the lifetime of the component. Subsequent calls to `useConstant` will always return the first value given.
 
-Stores a value which is retained for the lifetime of the component.
-
-If the value is a function, the function is invoked to calculate the actual value.
+If the value is a function, the function is invoked once to calculate the actual value.
 
 ```typescript
 useConstant: <T>(value: (() => T) | T) => T;

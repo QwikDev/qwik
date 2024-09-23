@@ -219,6 +219,9 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(
   }
   if (isSignal(obj)) {
     assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
+    if (obj instanceof WrappedSignal) {
+      return obj;
+    }
     return new WrappedSignal(null, getProp, [obj, prop as string], null);
   }
   if (_CONST_PROPS in obj) {

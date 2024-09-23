@@ -481,7 +481,6 @@ export class ComputedSignal<T> extends Signal<T> {
   }
 }
 
-// TO DISCUSS: shouldn't this type of signal have the $dependencies$ array instead of EVERY type of signal?
 export class WrappedSignal<T> extends Signal<T> implements Subscriber {
   $args$: any[];
   $func$: (...args: any[]) => T;

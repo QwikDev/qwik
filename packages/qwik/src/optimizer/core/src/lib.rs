@@ -16,7 +16,6 @@ mod const_replace;
 mod entry_strategy;
 mod errors;
 mod filter_exports;
-mod has_branches;
 mod inlined_fn;
 mod is_const;
 mod package_json;

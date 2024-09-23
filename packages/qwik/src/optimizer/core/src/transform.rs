@@ -3,7 +3,6 @@ use crate::collector::{
 	collect_from_pat, new_ident_from_id, GlobalCollect, Id, IdentCollector, ImportKind,
 };
 use crate::entry_strategy::EntryPolicy;
-use crate::has_branches::{is_conditional_jsx, is_conditional_jsx_block};
 use crate::inlined_fn::{convert_inlined_fn, render_expr};
 use crate::is_const::is_const_expr;
 use crate::parse::PathData;
@@ -1761,11 +1760,6 @@ impl<'a> Fold for QwikTransform<'a> {
 
 		let is_component = self.in_component;
 		self.in_component = false;
-		let is_condition = is_conditional_jsx_block(
-			node.body.as_ref().unwrap(),
-			&self.jsx_functions,
-			&self.immutable_function_cmp,
-		);
 		let current_scope = self
 			.decl_stack
 			.last_mut()
@@ -1781,22 +1775,7 @@ impl<'a> Fold for QwikTransform<'a> {
 					.map(|(id, _)| (id, IdentType::Var(is_constant))),
 			);
 		}
-		let mut o = node.fold_children_with(self);
-		if is_condition {
-			if let Some(body) = &mut o.body {
-				body.stmts.insert(
-					0,
-					ast::Stmt::Expr(ast::ExprStmt {
-						span: DUMMY_SP,
-						expr: Box::new(ast::Expr::Call(self.create_internal_call(
-							&_JSX_BRANCH,
-							vec![],
-							false,
-						))),
-					}),
-				);
-			}
-		}
+		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
 		self.jsx_mutable = prev_jsx_mutable;
 		self.decl_stack.pop();
@@ -1814,11 +1793,6 @@ impl<'a> Fold for QwikTransform<'a> {
 
 		let is_component = self.in_component;
 		self.in_component = false;
-		let is_condition = is_conditional_jsx(
-			&node.body,
-			&self.jsx_functions,
-			&self.immutable_function_cmp,
-		);
 		let current_scope = self
 			.decl_stack
 			.last_mut()
@@ -1834,31 +1808,7 @@ impl<'a> Fold for QwikTransform<'a> {
 			);
 		}
 
-		let mut o = node.fold_children_with(self);
-		if is_condition {
-			match &mut o.body {
-				box ast::BlockStmtOrExpr::BlockStmt(block) => {
-					block.stmts.insert(
-						0,
-						ast::Stmt::Expr(ast::ExprStmt {
-							span: DUMMY_SP,
-							expr: Box::new(ast::Expr::Call(self.create_internal_call(
-								&_JSX_BRANCH,
-								vec![],
-								false,
-							))),
-						}),
-					);
-				}
-				box ast::BlockStmtOrExpr::Expr(expr) => {
-					*expr = Box::new(ast::Expr::Call(self.create_internal_call(
-						&_JSX_BRANCH,
-						vec![*expr.to_owned()],
-						true,
-					)));
-				}
-			}
-		}
+		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
 		self.jsx_mutable = prev_jsx_mutable;
 		self.decl_stack.pop();

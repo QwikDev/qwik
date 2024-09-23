@@ -3560,6 +3560,38 @@ export const Counter = component$(() => {
 	});
 }
 
+#[test]
+fn impure_template_fns() {
+	// Should not mark the template function as static
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from '@builder.io/qwik';
+		const useFoo = (count) => {
+			const tag = (s) => {
+				const value = typeof s === "string" ? s : s[0];
+				return `${value}-${count.value}`;
+			}
+			return tag;
+		}
+
+		export default component$(() => {
+			const count = useSignal(0);
+			const foo = useFoo(count);
+			return (
+				<>
+					<p>{foo("test")}</p>
+					<p>{foo`test`}</p>
+					<button onClick$={() => count.value++}>Count up</button>
+				</>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 // TODO(misko): Make this test work by implementing strict serialization.
 // #[test]
 // fn example_of_synchronous_qrl_that_cant_be_serialized() {

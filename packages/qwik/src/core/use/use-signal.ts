@@ -12,25 +12,21 @@ export interface UseSignal {
 
 /** @public */
 export const useSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STATE> => {
-  const { val, set } = useSequentialScope<Signal<STATE>>();
-  if (val != null) {
-    return val;
-  }
-
-  const value =
-    isFunction(initialState) && !isQwikComponent(initialState)
-      ? invoke(undefined, initialState as any)
-      : initialState;
-  const signal = createSignal<STATE>(value);
-  return set(signal);
+  return useConstant(() => {
+    const value =
+      isFunction(initialState) && !isQwikComponent(initialState)
+        ? invoke(undefined, initialState as any)
+        : initialState;
+    return createSignal<STATE>(value);
+  });
 };
 
 /**
- * Stores a value which is retained for the lifetime of the component.
+ * Stores a value which is retained for the lifetime of the component. Subsequent calls to
+ * `useConstant` will always return the first value given.
  *
- * If the value is a function, the function is invoked to calculate the actual value.
+ * If the value is a function, the function is invoked once to calculate the actual value.
  *
- * @deprecated This is a technology preview
  * @public
  */
 export const useConstant = <T>(value: (() => T) | T): T => {

@@ -67,7 +67,8 @@ export const onGet: RequestHandler = async ({ url, redirect }) => {
   async function fetchRules(): Promise<
     { source: string; destination: string; permanent: boolean }[]
   > {
-    // Simulating fetched data
+    // Fetch data from a CMS or API, and add more rules as needed.
+    // Filter and map your data to make it easier to handle, as simulated here:
     return [
       { source: "/old-path", destination: "/new-path", permanent: true },
       {
@@ -75,31 +76,10 @@ export const onGet: RequestHandler = async ({ url, redirect }) => {
         destination: "/another-new-path",
         permanent: false,
       },
-      // Add more rules as needed. These properties above can be data grabbed from a CMS or API.
     ];
   }
 
-  const redirectData = fetchRules().then(
-    (results) =>
-      results
-        .filter((content) => {
-          return !!(content.source && content.destination);
-        })
-        // Create the "redirect" object Qwik expects
-        .map((data) => ({
-          source: data.source,
-          destination: data.destination,
-          permanent: !!data.permanent,
-        })),
-    (error) => {
-      // Logs issues with redirects without failing the deployment.
-      // Remove this function to stop deployment on redirect issues.
-      console.error("Error setting up redirects", error);
-      return [];
-    },
-  );
-
-  const redirectRules = await redirectData;
+  const redirectRules = await fetchRules();
   const redirectUrl = redirectRules.find((rule) => {
     if (url.pathname.endsWith("/")) {
       return rule.source + "/" === url.pathname;

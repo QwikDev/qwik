@@ -14,7 +14,6 @@ import {
   QDATA_JSON,
   runQwikCity,
 } from '../../middleware/request-handler/user-response';
-import { matchRoute } from '../../runtime/src/route-matcher';
 import { getMenuLoader } from '../../runtime/src/routing';
 import type {
   ActionInternal,

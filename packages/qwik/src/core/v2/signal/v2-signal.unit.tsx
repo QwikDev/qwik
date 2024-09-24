@@ -4,14 +4,13 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { inlinedQrl } from '../../qrl/qrl';
 import { type QRLInternal } from '../../qrl/qrl-class';
 import { type QRL } from '../../qrl/qrl.public';
-import type { VirtualElement } from '../../render/dom/virtual-element';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import { Task } from '../../use/use-task';
 import { implicit$FirstArg } from '../../util/implicit_dollar';
 import { isPromise } from '../../util/promises';
 import { getDomContainer } from '../client/dom-container';
 import { ChoreType } from '../shared/scheduler';
-import type { Container2 } from '../shared/types';
+import type { Container2, HostElement } from '../shared/types';
 import {
   EffectProperty,
   type EffectSubscriptions,
@@ -161,7 +160,7 @@ describe('v2-signal', () => {
 
   function effectQrl(fnQrl: QRL<() => void>) {
     const qrl = fnQrl as QRLInternal<() => void>;
-    const element: VirtualElement = null!;
+    const element: HostElement = null!;
     const task = new Task(0, 0, element, fnQrl as QRLInternal, undefined, null);
     if (!qrl.resolved) {
       throw qrl.resolve();

@@ -12,17 +12,14 @@
  *   this file, which is only allowed to import types)
  */
 
-export type { ObjToProxyMap } from '../core/container/container';
 export type { CorePlatformServer } from '../core/platform/types';
 export type { QRLInternal } from '../core/qrl/qrl-class';
 export type { JSXOutput } from '../core/render/jsx/types/jsx-node';
 export type { JSXChildren } from '../core/render/jsx/types/jsx-qwik-attributes';
-export type { SubscriptionManager } from '../core/state/common';
-export type { QContext } from '../core/state/context';
 export type { ContextId } from '../core/use/use-context';
 export type { ValueOrPromise } from '../core/util/types';
 export type { SerializationContext } from '../core/v2/shared/shared-serialization';
-export type { Container2, HostElement } from '../core/v2/shared/types';
+export type { Container2, HostElement, ObjToProxyMap } from '../core/v2/shared/types';
 export type {
   ISsrComponentFrame,
   ISsrNode,

@@ -1,6 +1,5 @@
 /** @file Public APIs for the SSR */
 
-import type { ObjToProxyMap } from '../../container/container';
 import { assertTrue } from '../../error/assert';
 import { getPlatform } from '../../platform/platform';
 import type { QRL } from '../../qrl/qrl.public';
@@ -40,7 +39,7 @@ import {
 } from '../shared/scoped-styles';
 import { _SharedContainer } from '../shared/shared-container';
 import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
-import { type HostElement } from '../shared/types';
+import { type HostElement, type ObjToProxyMap } from '../shared/types';
 import { processVNodeData } from './process-vnode-data';
 import {
   VNodeFlags,
@@ -73,7 +72,7 @@ import {
 import { vnode_diff } from './vnode-diff';
 
 /** @public */
-export function getDomContainer(element: Element | ElementVNode): IClientContainer {
+export function getDomContainer(element: Element | VNode): IClientContainer {
   const qContainerElement = _getQContainerElement(element);
   if (!qContainerElement) {
     throwErrorAndStop('Unable to find q:container.');
@@ -107,7 +106,7 @@ export function getDomContainerFromQContainerElement(qContainerElement: Element)
 }
 
 /** @internal */
-export function _getQContainerElement(element: Element | ElementVNode): Element | null {
+export function _getQContainerElement(element: Element | VNode): Element | null {
   const qContainerElement: Element | null = Array.isArray(element)
     ? (vnode_getDomParent(element) as Element)
     : element;

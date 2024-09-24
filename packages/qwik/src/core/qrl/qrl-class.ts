@@ -3,7 +3,6 @@ import { assertDefined } from '../error/assert';
 import { qError, QError_qrlIsNotFunction } from '../error/error';
 import { getPlatform, isServerPlatform } from '../platform/platform';
 import { verifySerializable } from '../state/common';
-import { type SignalInternal } from '../state/signal';
 import {
   invoke,
   newInvokeContext,
@@ -19,6 +18,7 @@ import { isArray, isFunction, type ValueOrPromise } from '../util/types';
 import { isSignal } from '../v2/signal/v2-signal';
 import type { QRLDev } from './qrl';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
+import type { Signal } from '../v2/signal/v2-signal.public';
 
 export const isQrl = <T = unknown>(value: unknown): value is QRLInternal<T> => {
   return typeof value === 'function' && typeof (value as any).getSymbol === 'function';
@@ -245,7 +245,7 @@ export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {
   }
 }
 
-export function assertSignal<T>(obj: unknown): asserts obj is SignalInternal<T> {
+export function assertSignal<T>(obj: unknown): asserts obj is Signal<T> {
   if (qDev) {
     if (!isSignal(obj) && !isSignal(obj)) {
       throw new Error('Not a Signal');

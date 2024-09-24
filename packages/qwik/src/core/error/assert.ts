@@ -1,5 +1,3 @@
-import type { QwikElement, VirtualElement } from '../render/dom/virtual-element';
-import { isElement, isQwikElement } from '../util/element';
 import { throwErrorAndStop } from '../util/log';
 import { qDev } from '../util/qdev';
 
@@ -72,23 +70,5 @@ export function assertString(value1: any, text: string, ...parts: any[]): assert
       return;
     }
     throwErrorAndStop(ASSERT_DISCLAIMER + text, ...parts);
-  }
-}
-
-export function assertQwikElement(el: any): asserts el is QwikElement {
-  if (qDev) {
-    if (!isQwikElement(el)) {
-      console.error('Not a Qwik Element, got', el.nodeType, el);
-      throwErrorAndStop(ASSERT_DISCLAIMER + 'Not a Qwik Element');
-    }
-  }
-}
-
-export function assertElement(el: Node | VirtualElement): asserts el is Element {
-  if (qDev) {
-    if (!isElement(el)) {
-      console.error('Not a Element, got', el);
-      throwErrorAndStop(ASSERT_DISCLAIMER + 'Not an Element');
-    }
   }
 }

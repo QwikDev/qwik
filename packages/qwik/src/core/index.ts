@@ -22,7 +22,7 @@ export type {
   SnapshotMeta,
   SnapshotMetaValue,
   SnapshotListener,
-} from './container/container';
+} from './v2/ssr/ssr-types';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Internal Runtime
@@ -83,8 +83,8 @@ export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements
 export type { QwikHTMLElements, QwikSVGElements } from './render/jsx/types/jsx-generated';
 export { render2 as render } from './v2/client/dom-render';
 export { getDomContainer, _getQContainerElement } from './v2/client/dom-container';
-export type { RenderSSROptions, StreamWriter } from './render/ssr/render-ssr';
-export type { RenderOptions, RenderResult } from './render/dom/render.public';
+export type { StreamWriter, RenderSSROptions } from './v2/ssr/ssr-types';
+export type { RenderOptions, RenderResult } from './v2/client/types';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // use API
@@ -143,7 +143,7 @@ export { EffectData as _EffectData } from './v2/signal/v2-signal';
 // Developer Low-Level API
 //////////////////////////////////////////////////////////////////////////////////////////
 export type { ValueOrPromise } from './util/types';
-export { type NoSerialize, SubscriptionType } from './state/common';
+export { type NoSerialize } from './state/common';
 export { noSerialize } from './state/common';
 export { version } from './version';
 

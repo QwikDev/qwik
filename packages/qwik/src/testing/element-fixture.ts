@@ -1,9 +1,6 @@
 import { vi } from 'vitest';
 import { assertDefined } from '../core/error/assert';
 import type { QRLInternal } from '../core/qrl/qrl-class';
-import { tryGetContext, type QContext } from '../core/state/context';
-import { normalizeOnProp } from '../core/state/listeners';
-import { type PossibleEvents } from '../core/use/use-core';
 import { _getQContainerElement, getDomContainer } from '@builder.io/qwik';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';
@@ -154,20 +151,7 @@ export const dispatch = async (
     if (stopPropagation) {
       event.stopPropagation();
     }
-    const ctx = tryGetContext(element);
-    if (ctx) {
-      for (const li of ctx.li) {
-        if (li[0] === attrName) {
-          // Ensure this is correct event type
-          const qrl = li[1];
-          if (isSyncQrl(qrl)) {
-            qrl(event, element);
-          } else {
-            collectListeners.push({ element, qrl: qrl });
-          }
-        }
-      }
-    } else if ('qDispatchEvent' in (element as QElement2)) {
+    if ('qDispatchEvent' in (element as QElement2)) {
       await (element as QElement2).qDispatchEvent!(event, scope);
       await delay(0); // Unsure why this is needed for tests
       return;
@@ -188,29 +172,6 @@ export const dispatch = async (
     await (qrl.getFn([element, event], () => element.isConnected) as Function)(event, element);
   }
 };
-export function getEvent(elCtx: QContext, prop: string): any {
-  return qPropReadQRL(elCtx, normalizeOnProp(prop));
-}
-
-export function qPropReadQRL(elCtx: QContext, prop: string): ((event: Event) => void) | null {
-  const allListeners = elCtx.li;
-  const containerEl = _getQContainerElement(elCtx.$element$ as Element);
-  assertDefined(containerEl, 'container element must be defined');
-
-  return (event) => {
-    return Promise.all(
-      allListeners
-        .filter((li) => li[0] === prop)
-        .map(([_, qrl]) => {
-          qrl.$setContainer$(containerEl);
-          return qrl(event);
-        })
-    );
-  };
-}
-function isSyncQrl(qrl: QRLInternal<(event: PossibleEvents, elem?: Element | undefined) => any>) {
-  return qrl.$chunk$ == '';
-}
 
 export async function advanceToNextTimerAndFlush() {
   vi.advanceTimersToNextTimer();

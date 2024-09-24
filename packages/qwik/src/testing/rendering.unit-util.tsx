@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { expect } from 'vitest';
-import { Q_FUNCS_PREFIX, renderToString } from '../server/render';
+import { Q_FUNCS_PREFIX, renderToString2 as renderToString } from '../server/v2-ssr-render2';
 import { createDocument } from './document';
 import { getTestPlatform } from './platform';
 import { _getDomContainer, componentQrl, type OnRenderFn } from '@builder.io/qwik';

@@ -1,5 +1,5 @@
 import type { QRL } from '../../../qrl/qrl.public';
-import type { Signal } from '../../../state/signal';
+import type { Signal } from '../../../v2/signal/v2-signal.public';
 import type { JSXNode } from './jsx-node';
 import type {
   QwikIdleEvent,

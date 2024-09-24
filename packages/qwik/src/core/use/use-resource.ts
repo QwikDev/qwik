@@ -14,14 +14,13 @@ import {
 } from './use-task';
 
 import type { Container2, fixMeAny } from '../../server/qwik-types';
-import type { GetObjID } from '../container/container';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
-import { type Signal } from '../state/signal';
 import { isPromise } from '../util/promises';
 import { isObject } from '../util/types';
 import { StoreFlags, createStore, getStoreTarget } from '../v2/signal/v2-store';
 import { useSequentialScope } from './use-sequential-scope';
 import { isSignal } from '../v2/signal/v2-signal';
+import type { Signal } from '../v2/signal/v2-signal.public';
 
 const DEBUG: boolean = false;
 
@@ -330,40 +329,4 @@ export const getInternalResource = <T>(resource: ResourceReturn<T>): ResourceRet
 
 export const isResourceReturn = (obj: any): obj is ResourceReturn<unknown> => {
   return isObject(obj) && (getStoreTarget(obj as any) || obj).__brand === 'resource';
-};
-
-// TODO: to remove - serializers v1
-export const serializeResource = (
-  resource: ResourceReturnInternal<unknown>,
-  getObjId: GetObjID
-) => {
-  const state = resource._state;
-  if (state === 'resolved') {
-    return `0 ${getObjId(resource._resolved)}`;
-  } else if (state === 'pending') {
-    return `1`;
-  } else {
-    return `2 ${getObjId(resource._error)}`;
-  }
-};
-
-// TODO: to remove - serializers v1
-export const parseResourceReturn = <T>(data: string): ResourceReturnInternal<T> => {
-  const [first, id] = data.split(' ');
-  const result = _createResourceReturn<T>();
-  result.value = Promise.resolve() as any;
-  if (first === '0') {
-    result._state = 'resolved';
-    result._resolved = id as any;
-    result.loading = false;
-  } else if (first === '1') {
-    result._state = 'pending';
-    result.value = new Promise(() => {});
-    result.loading = true;
-  } else if (first === '2') {
-    result._state = 'rejected';
-    result._error = id as any;
-    result.loading = false;
-  }
-  return result;
 };

@@ -1,7 +1,6 @@
 import { isServer } from '@builder.io/qwik/build';
 import { qError, QError_qrlMissingChunk, QError_qrlMissingContainer } from '../error/error';
 import { getSymbolHash } from '../qrl/qrl-class';
-import type { QwikElement } from '../render/dom/virtual-element';
 import { qDynamicPlatform } from '../util/qdev';
 import type { CorePlatform } from './types';
 
@@ -63,7 +62,7 @@ export const createPlatform = (): CorePlatform => {
  * @param url - Relative URL
  * @returns Fully qualified URL.
  */
-export const toUrl = (doc: Document, containerEl: QwikElement, url: string | URL): URL => {
+export const toUrl = (doc: Document, containerEl: Element, url: string | URL): URL => {
   const baseURI = doc.baseURI;
   const base = new URL(containerEl.getAttribute('q:base') ?? baseURI, baseURI);
   return new URL(url, base);

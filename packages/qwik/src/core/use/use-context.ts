@@ -1,15 +1,6 @@
-import type { ContainerState } from '../container/container';
 import { assertTrue } from '../error/assert';
 import { qError, QError_invalidContext, QError_notFoundContext } from '../error/error';
-import {
-  getVirtualElement,
-  type QwikElement,
-  type VirtualElement,
-} from '../render/dom/virtual-element';
 import { verifySerializable } from '../state/common';
-import { Q_CTX, VIRTUAL_SYMBOL } from '../state/constants';
-import { getContext, type QContext } from '../state/context';
-import { isComment } from '../util/element';
 import { qDev, qSerialize } from '../util/qdev';
 import { isObject } from '../util/types';
 import { fromCamelToKebabCase } from '../v2/shared/event-names';
@@ -194,7 +185,7 @@ export const createContextId = <STATE = unknown>(name: string): ContextId<STATE>
  */
 // </docs>
 export const useContextProvider = <STATE>(context: ContextId<STATE>, newValue: STATE) => {
-  const { val, set, elCtx, iCtx } = useSequentialScope<1>();
+  const { val, set, iCtx } = useSequentialScope<1>();
   if (val !== undefined) {
     return;
   }
@@ -204,12 +195,7 @@ export const useContextProvider = <STATE>(context: ContextId<STATE>, newValue: S
   if (qDev && qSerialize) {
     verifySerializable(newValue);
   }
-  if (iCtx.$container2$) {
-    iCtx.$container2$.setContext(iCtx.$hostElement$ as fixMeAny as HostElement, context, newValue);
-  } else {
-    const contexts = (elCtx.$contexts$ ||= new Map());
-    contexts.set(context.id, newValue);
-  }
+  iCtx.$container2$.setContext(iCtx.$hostElement$ as fixMeAny as HostElement, context, newValue);
   set(1);
 };
 
@@ -273,7 +259,7 @@ export const useContext: UseContext = <STATE>(
   context: ContextId<STATE>,
   defaultValue?: STATE | ((current: STATE | undefined) => STATE)
 ) => {
-  const { val, set, iCtx, elCtx } = useSequentialScope<STATE>();
+  const { val, set, iCtx } = useSequentialScope<STATE>();
   if (val !== undefined) {
     return val;
   }
@@ -281,15 +267,10 @@ export const useContext: UseContext = <STATE>(
     validateContext(context);
   }
 
-  let value: STATE | undefined;
-  if (iCtx.$container2$) {
-    value = iCtx.$container2$.resolveContext(
-      iCtx.$hostElement$ as fixMeAny as HostElement,
-      context
-    );
-  } else {
-    value = resolveContext<STATE>(context, elCtx, iCtx.$renderCtx$.$static$.$containerState$);
-  }
+  const value: STATE | undefined = iCtx.$container2$.resolveContext(
+    iCtx.$hostElement$ as fixMeAny as HostElement,
+    context
+  );
   if (typeof defaultValue === 'function') {
     return set(invoke(undefined, defaultValue as any, value));
   }
@@ -300,80 +281,6 @@ export const useContext: UseContext = <STATE>(
     return set(defaultValue);
   }
   throw qError(QError_notFoundContext, context.id);
-};
-
-/** Find a wrapping Virtual component in the DOM */
-const findParentCtx = (el: QwikElement | null, containerState: ContainerState) => {
-  let node = el;
-  let stack = 1;
-  while (node && !node.hasAttribute?.('q:container')) {
-    // Walk the siblings backwards, each comment might be the Virtual wrapper component
-    while ((node = node.previousSibling as QwikElement | null)) {
-      if (isComment(node)) {
-        const virtual = (node as any)[VIRTUAL_SYMBOL] as VirtualElement;
-        if (virtual) {
-          const qtx = (virtual as any)[Q_CTX] as QContext | undefined;
-          if (node === virtual.open) {
-            // We started inside this node so this is our parent
-            return qtx ?? getContext(virtual, containerState);
-          }
-          // This is a sibling, check if it knows our parent
-          if (qtx?.$parentCtx$) {
-            return qtx.$parentCtx$;
-          }
-          // Skip over this entire virtual sibling
-          node = virtual;
-          continue;
-        }
-        if (node.data === '/qv') {
-          stack++;
-        } else if (node.data.startsWith('qv ')) {
-          stack--;
-          if (stack === 0) {
-            return getContext(getVirtualElement(node)!, containerState);
-          }
-        }
-      }
-    }
-    // No more siblings, walk up the DOM tree. The parent will never be a Virtual component.
-    node = el!.parentElement;
-    el = node;
-  }
-  return null;
-};
-
-const getParentProvider = (ctx: QContext, containerState: ContainerState): QContext | null => {
-  // `null` means there's no parent, `undefined` means we don't know yet.
-  if (ctx.$parentCtx$ === undefined) {
-    // Not fully resumed container, find context from DOM
-    // We cannot recover $realParentCtx$ from this but that's fine because we don't need to pause on the client
-    ctx.$parentCtx$ = findParentCtx(ctx.$element$, containerState);
-  }
-  /**
-   * Note, the parentCtx is used during pause to to get the immediate parent, so we can't shortcut
-   * the search for $contexts$ here. If that turns out to be needed, it needs to be cached in a
-   * separate property.
-   */
-  return ctx.$parentCtx$;
-};
-
-export const resolveContext = <STATE>(
-  context: ContextId<STATE>,
-  hostCtx: QContext,
-  containerState: ContainerState
-): STATE | undefined => {
-  const contextID = context.id;
-  if (!hostCtx) {
-    return;
-  }
-  let ctx = hostCtx;
-  while (ctx) {
-    const found = ctx.$contexts$?.get(contextID);
-    if (found) {
-      return found;
-    }
-    ctx = getParentProvider(ctx, containerState)!;
-  }
 };
 
 export const validateContext = (context: ContextId<any>) => {

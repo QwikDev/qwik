@@ -7,7 +7,6 @@ import type {
   QRLEventHandlerMulti,
 } from '../render/jsx/types/jsx-qwik-attributes';
 import type { FunctionComponent } from '../render/jsx/types/jsx-node';
-import { SERIALIZABLE_STATE } from '../container/serializers';
 import { _CONST_PROPS, _VAR_PROPS, _jsxSorted } from '../internal';
 import type { QwikIntrinsicElements } from '../render/jsx/types/jsx-qwik-elements';
 
@@ -185,6 +184,8 @@ export const componentQrl = <PROPS extends Record<any, any>>(
   (QwikComponent as any)[SERIALIZABLE_STATE] = [componentQrl];
   return QwikComponent as any;
 };
+
+export const SERIALIZABLE_STATE = Symbol('serializable-data');
 
 export const isQwikComponent = <T extends Component<any>>(component: unknown): component is T => {
   return typeof component == 'function' && (component as any)[SERIALIZABLE_STATE] !== undefined;

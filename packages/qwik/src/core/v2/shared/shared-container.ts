@@ -1,16 +1,15 @@
-import type { ObjToProxyMap } from '../../container/container';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
-import type { Signal } from '../../state/signal';
 import type { ContextId } from '../../use/use-context';
 import { trackSignal } from '../../use/use-core';
 import type { ValueOrPromise } from '../../util/types';
 import { version } from '../../version';
 import type { Effect, EffectData } from '../signal/v2-signal';
+import type { Signal } from '../signal/v2-signal.public';
 import type { StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { Scheduler } from './scheduler';
 import { createScheduler } from './scheduler';
 import { createSerializationContext, type SerializationContext } from './shared-serialization';
-import type { Container2, HostElement } from './types';
+import type { Container2, HostElement, ObjToProxyMap } from './types';
 
 /** @internal */
 export abstract class _SharedContainer implements Container2 {

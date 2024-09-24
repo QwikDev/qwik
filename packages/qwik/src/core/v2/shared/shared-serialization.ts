@@ -1,7 +1,10 @@
 import { isDev } from '../../../build/index.dev';
 import type { StreamWriter } from '../../../server/types';
-import { componentQrl, isQwikComponent } from '../../component/component.public';
-import { SERIALIZABLE_STATE } from '../../container/serializers';
+import {
+  SERIALIZABLE_STATE,
+  componentQrl,
+  isQwikComponent,
+} from '../../component/component.public';
 import { assertDefined, assertTrue } from '../../error/assert';
 import { getPlatform } from '../../platform/platform';
 import {
@@ -49,7 +52,7 @@ import {
 } from '../signal/v2-store';
 import type { Subscriber } from '../signal/v2-subscriber';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
-import type { DeserializeContainer, fixMeAny } from './types';
+import type { DeserializeContainer, HostElement, fixMeAny } from './types';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 
@@ -299,7 +302,7 @@ const inflate = (container: DeserializeContainer, target: any, needsInflationDat
       const task = target as Task;
       task.$flags$ = restInt();
       task.$index$ = restInt();
-      task.$el$ = container.$getObjectById$(restInt()) as Element;
+      task.$el$ = container.$getObjectById$(restInt()) as HostElement;
       task.$effectDependencies$ = container.$getObjectById$(restInt()) as Subscriber[] | null;
       task.$qrl$ = inflateQRL(container, parseQRL(restString()));
       const taskState = restString();

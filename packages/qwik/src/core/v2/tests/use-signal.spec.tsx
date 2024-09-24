@@ -12,7 +12,7 @@ import { domRender, ssrRenderToDom } from '../../../testing/rendering.unit-util'
 import '../../../testing/vdom-diff.unit-util';
 import { component$ } from '@builder.io/qwik';
 import { Slot } from '../../render/jsx/slot.public';
-import type { Signal as SignalType } from '../../state/signal';
+import type { Signal as SignalType } from '../signal/v2-signal.public';
 import { untrack } from '../../use/use-core';
 import { useSignal } from '../../use/use-signal';
 import { vnode_getFirstChild, vnode_getProp, vnode_locate } from '../client/vnode';

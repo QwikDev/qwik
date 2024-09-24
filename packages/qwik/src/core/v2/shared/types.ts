@@ -1,4 +1,3 @@
-import type { ObjToProxyMap } from '../../container/container';
 import type { JSXOutput } from '../../render/jsx/types/jsx-node';
 import type { ContextId } from '../../use/use-context';
 import type { ValueOrPromise } from '../../util/types';
@@ -112,4 +111,11 @@ export const enum QContainerValue {
   HTML = 'html',
   // textarea
   TEXT = 'text',
+}
+
+export type ObjToProxyMap = WeakMap<any, any>;
+
+export interface QContainerElement extends Element {
+  qFuncs?: Function[];
+  _qwikjson_?: any;
 }

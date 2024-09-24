@@ -110,10 +110,10 @@ export interface RenderResult {
 // @public (undocumented)
 export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;
 
-// Warning: (ae-forgotten-export) The symbol "renderToStream_2" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "JSXOutput" needs to be exported by the entry point index.d.ts
 //
 // @public
-export const renderToStream: typeof renderToStream_2;
+export const renderToStream: (jsx: JSXOutput, opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;
 
 // @public (undocumented)
 export interface RenderToStreamOptions extends RenderOptions {
@@ -140,10 +140,8 @@ export interface RenderToStreamResult extends RenderResult {
 // @public (undocumented)
 export type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;
 
-// Warning: (ae-forgotten-export) The symbol "renderToString_2" needs to be exported by the entry point index.d.ts
-//
 // @public
-export const renderToString: typeof renderToString_2;
+export const renderToString: (jsx: JSXOutput, opts?: RenderToStringOptions) => Promise<RenderToStringResult>;
 
 // @public (undocumented)
 export interface RenderToStringOptions extends RenderOptions {

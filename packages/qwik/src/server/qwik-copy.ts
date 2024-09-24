@@ -14,7 +14,6 @@
  */
 
 export { dangerouslySetInnerHTML, serializeAttribute } from '../core/render/execute-component';
-export { SubscriptionType } from '../core/state/common';
 export {
   ELEMENT_ID,
   ELEMENT_KEY,
@@ -54,3 +53,4 @@ export { DEBUG_TYPE, VirtualType, QContainerValue } from '../core/v2/shared/type
 export { VNodeDataChar } from '../core/v2/shared/vnode-data-types';
 export { VNodeDataSeparator } from '../core/v2/shared/vnode-data-types';
 export { escapeHTML } from '../core/v2/shared/character-escaping';
+export { getValidManifest } from '../optimizer/src/manifest';

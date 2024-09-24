@@ -1,6 +1,6 @@
 import { STREAM_BLOCK_END_COMMENT, STREAM_BLOCK_START_COMMENT } from '../../util/markers';
+import type { StreamWriter } from '../../v2/ssr/ssr-types';
 import { jsx, RenderOnce } from '../jsx/jsx-runtime';
-import type { StreamWriter } from '../ssr/render-ssr';
 import type { FunctionComponent, JSXNode, JSXOutput } from './types/jsx-node';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 

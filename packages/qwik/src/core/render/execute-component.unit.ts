@@ -1,6 +1,5 @@
 import { suite, test, assert } from 'vitest';
-import { serializeClass, serializeClassWithHost } from './execute-component';
-import type { QContext } from '../state/context';
+import { serializeClass } from './execute-component';
 
 const obj = {
   foo: false,
@@ -140,40 +139,5 @@ suite('serializeClass', () => {
     assert.equal(serializeClass(' foo bar '), 'foo bar');
     assert.equal(serializeClass({ ' foo ': true, '  bar ': true }), 'foo bar');
     assert.equal(serializeClass(['  foo   ', '    bar  ', { ' baz  ': true }]), 'foo bar baz');
-  });
-});
-
-suite('serializeClassWithHost', () => {
-  test('should serialize null context', () => {
-    assert.equal(serializeClassWithHost(obj, null), 'bar bar-baz baz-bar');
-  });
-
-  test('should serialize undefined context', () => {
-    assert.equal(serializeClassWithHost(obj, undefined), 'bar bar-baz baz-bar');
-  });
-
-  test('should serialize empty context', () => {
-    assert.equal(serializeClassWithHost(obj, {} as QContext), 'bar bar-baz baz-bar');
-  });
-
-  test('should serialize context with empty $scopeIds$', () => {
-    assert.equal(
-      serializeClassWithHost(obj, { $scopeIds$: [] as string[] } as QContext),
-      'bar bar-baz baz-bar'
-    );
-  });
-
-  test('should serialize context with one item in $scopeIds$', () => {
-    assert.equal(
-      serializeClassWithHost(obj, { $scopeIds$: ['foo'] } as QContext),
-      'foo bar bar-baz baz-bar'
-    );
-  });
-
-  test('should serialize context with multiple items in $scopeIds$', () => {
-    assert.equal(
-      serializeClassWithHost(obj, { $scopeIds$: ['foo', 'baz'] } as QContext),
-      'foo baz bar bar-baz baz-bar'
-    );
   });
 });

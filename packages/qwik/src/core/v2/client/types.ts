@@ -174,3 +174,13 @@ export type VirtualVNode = [
 
 /** @internal */
 export type VNode = ElementVNode | TextVNode | VirtualVNode;
+
+/** @public */
+export interface RenderOptions {
+  serverData?: Record<string, any>;
+}
+
+/** @public */
+export interface RenderResult {
+  cleanup(): void;
+}

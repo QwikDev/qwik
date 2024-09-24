@@ -67,7 +67,7 @@ import {
   type SymbolToChunkResolver,
   type ValueOrPromise,
 } from './qwik-types';
-import { Q_FUNCS_PREFIX } from './render';
+import { Q_FUNCS_PREFIX } from './v2-ssr-render2';
 import type { PrefetchResource, RenderOptions, RenderToStreamResult } from './types';
 import { createTimer } from './utils';
 import { SsrComponentFrame, SsrNode } from './v2-node';

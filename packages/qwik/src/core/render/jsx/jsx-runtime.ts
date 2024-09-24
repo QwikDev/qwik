@@ -9,7 +9,6 @@ import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS } from '../../uti
 import { qDev, seal } from '../../util/qdev';
 import { isArray, isObject, isString } from '../../util/types';
 import { WrappedSignal } from '../../v2/signal/v2-signal';
-import { static_subtree } from '../execute-component';
 import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
@@ -252,7 +251,7 @@ export const RenderOnce: FunctionComponent<{
   children?: unknown;
   key?: string | number | null | undefined;
 }> = (props: any, key) => {
-  return new JSXNodeImpl(Virtual, EMPTY_OBJ, null, props.children, static_subtree, key);
+  return new JSXNodeImpl(Virtual, EMPTY_OBJ, null, props.children, 2, key);
 };
 
 /** @internal */

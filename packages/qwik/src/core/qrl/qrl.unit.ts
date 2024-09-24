@@ -1,9 +1,13 @@
-import { parseQRL, serializeQRL } from './qrl';
 import { createQRL } from './qrl-class';
 import { qrl } from './qrl';
 import { describe, test, assert, assertType, expectTypeOf } from 'vitest';
 import { $, type QRL } from './qrl.public';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
+import {
+  createSerializationContext,
+  parseQRL,
+  qrlToString,
+} from '../v2/shared/shared-serialization';
 
 function matchProps(obj: any, properties: Record<string, any>) {
   for (const [key, value] of Object.entries(properties)) {
@@ -99,19 +103,40 @@ describe('serialization', () => {
   });
 
   test('serialize qrls', () => {
-    assert.equal(serializeQRL(createQRL('./chunk', '', null, null, null, null, null)), 'chunk#');
-    assert.equal(serializeQRL(createQRL('./c', 's1', null, null, null, null, null)), 'c#s1');
-    assert.equal(serializeQRL(createQRL('./c', 's1', null, null, [], null, null)), 'c#s1');
+    const serializationContext = createSerializationContext(
+      null,
+      () => '',
+      () => {}
+    );
     assert.equal(
-      serializeQRL(createQRL('./c', 's1', null, null, [1, '2'] as any, null, null)),
+      qrlToString(serializationContext, createQRL('./chunk', '', null, null, null, null, null)),
+      'chunk#'
+    );
+    assert.equal(
+      qrlToString(serializationContext, createQRL('./c', 's1', null, null, null, null, null)),
+      'c#s1'
+    );
+    assert.equal(
+      qrlToString(serializationContext, createQRL('./c', 's1', null, null, [], null, null)),
+      'c#s1'
+    );
+    assert.equal(
+      qrlToString(
+        serializationContext,
+        createQRL('./c', 's1', null, null, [1, '2'] as any, null, null)
+      ),
       'c#s1[1 2]'
     );
     assert.equal(
-      serializeQRL(createQRL('c', 's1', null, null, [1 as any, '2'], null, null)),
+      qrlToString(
+        serializationContext,
+        createQRL('c', 's1', null, null, [1 as any, '2'], null, null)
+      ),
       'c#s1[1 2]'
     );
     assert.equal(
-      serializeQRL(
+      qrlToString(
+        serializationContext,
         createQRL('src/routes/[...index]/a+b/c?foo', 's1', null, null, [1 as any, '2'], null, null)
       ),
       'src/routes/[...index]/a+b/c?foo#s1[1 2]'

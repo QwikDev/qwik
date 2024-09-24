@@ -737,21 +737,25 @@ SnapshotResult \| undefined
 
 ## renderToStream
 
-Creates a server-side `document`, renders to root node to the document, then serializes the document to a string.
-
 ```typescript
-renderToStream2: typeof renderToStream;
+export type RenderToStream = (
+  opts: RenderToStreamOptions,
+) => Promise<RenderToStreamResult>;
 ```
+
+**References:** [RenderToStreamOptions](#rendertostreamoptions), [RenderToStreamResult](#rendertostreamresult)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/v2-ssr-render2.ts)
 
 ## RenderToStream
 
-Creates a server-side `document`, renders to root node to the document, then serializes the document to a string.
-
 ```typescript
-renderToStream2: typeof renderToStream;
+export type RenderToStream = (
+  opts: RenderToStreamOptions,
+) => Promise<RenderToStreamResult>;
 ```
+
+**References:** [RenderToStreamOptions](#rendertostreamoptions), [RenderToStreamResult](#rendertostreamresult)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
@@ -882,21 +886,25 @@ number
 
 ## renderToString
 
-Creates a server-side `document`, renders to root node to the document, then serializes the document to a string.
-
 ```typescript
-renderToString2: typeof renderToString;
+export type RenderToString = (
+  opts: RenderToStringOptions,
+) => Promise<RenderToStringResult>;
 ```
+
+**References:** [RenderToStringOptions](#rendertostringoptions), [RenderToStringResult](#rendertostringresult)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/v2-ssr-render2.ts)
 
 ## RenderToString
 
-Creates a server-side `document`, renders to root node to the document, then serializes the document to a string.
-
 ```typescript
-renderToString2: typeof renderToString;
+export type RenderToString = (
+  opts: RenderToStringOptions,
+) => Promise<RenderToStringResult>;
 ```
+
+**References:** [RenderToStringOptions](#rendertostringoptions), [RenderToStringResult](#rendertostringresult)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
@@ -1002,7 +1010,7 @@ QwikManifest \| ResolvedManifest \| undefined
 
 ResolvedManifest \| undefined
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/v2-ssr-render2.ts)
 
 ## SerializeDocumentOptions
 

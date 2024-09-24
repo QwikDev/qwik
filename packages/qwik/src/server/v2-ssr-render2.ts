@@ -1,14 +1,24 @@
-import { setServerPlatform } from './platform';
-import { FLUSH_COMMENT, STREAM_BLOCK_END_COMMENT, STREAM_BLOCK_START_COMMENT } from './qwik-copy';
-import type { JSXOutput, SSRContainer } from './qwik-types';
-import { renderToStream, resolveManifest, type renderToString } from './render';
+import { getSymbolHash, setServerPlatform } from './platform';
+import {
+  FLUSH_COMMENT,
+  STREAM_BLOCK_END_COMMENT,
+  STREAM_BLOCK_START_COMMENT,
+  getValidManifest,
+} from './qwik-copy';
 import type {
+  JSXOutput,
+  ResolvedManifest,
+  SSRContainer,
+  SymbolMapper,
+  StreamWriter,
+} from './qwik-types';
+import type {
+  QwikManifest,
   RenderToStreamOptions,
   RenderToStreamResult,
   RenderToStringOptions,
   RenderToStringResult,
   SnapshotResult,
-  StreamWriter,
 } from './types';
 import { createTimer, getBuildBase } from './utils';
 import { ssrCreateContainer } from './v2-ssr-container';
@@ -19,7 +29,7 @@ import { ssrCreateContainer } from './v2-ssr-container';
  *
  * @public
  */
-export const renderToString2: typeof renderToString = async (
+export const renderToString2 = async (
   jsx: JSXOutput,
   opts: RenderToStringOptions = {}
 ): Promise<RenderToStringResult> => {
@@ -59,7 +69,7 @@ export const renderToString2: typeof renderToString = async (
  *
  * @public
  */
-export const renderToStream2: typeof renderToStream = async (
+export const renderToStream2 = async (
   jsx: JSXOutput,
   opts: RenderToStreamOptions
 ): Promise<RenderToStreamResult> => {
@@ -235,3 +245,29 @@ function shouldSkipChunk(chunk: string): boolean {
     chunk === '<!--' + STREAM_BLOCK_END_COMMENT + '-->'
   );
 }
+
+/** @public */
+export function resolveManifest(
+  manifest: QwikManifest | ResolvedManifest | undefined
+): ResolvedManifest | undefined {
+  if (!manifest) {
+    return undefined;
+  }
+  if ('mapper' in manifest) {
+    return manifest;
+  }
+  manifest = getValidManifest(manifest);
+  if (manifest) {
+    const mapper: SymbolMapper = {};
+    Object.entries(manifest.mapping).forEach(([key, value]) => {
+      mapper[getSymbolHash(key)] = [key, value];
+    });
+    return {
+      mapper,
+      manifest,
+    };
+  }
+  return undefined;
+}
+
+export const Q_FUNCS_PREFIX = 'document["qFuncs_HASH"]=';

@@ -8,12 +8,16 @@ import type {
   ValueOrPromise,
 } from '../../../server/qwik-types';
 import type { PrefetchResource } from '../../../server/types';
+import type { QRL } from '../../qrl/qrl.public';
 import type { JSXNode } from '../../render/jsx/types/jsx-node';
-import type { Signal } from '../../state/signal';
+import type { ResourceReturnInternal } from '../../use/use-task';
+import type { Signal } from '../signal/v2-signal.public';
 
 export type SsrAttrKey = string;
 export type SsrAttrValue = string | Signal<any> | boolean | Object | null;
 export type SsrAttrs = Array<SsrAttrKey | SsrAttrValue>;
+
+/** @internal */
 export interface StreamWriter {
   write(chunk: string): void;
 }
@@ -83,4 +87,52 @@ export interface SSRContainer extends Container2 {
   render(jsx: JSXOutput): Promise<void>;
 
   emitQwikLoaderAtTopIfNeeded(): void;
+}
+
+/** @public */
+export interface SnapshotMetaValue {
+  w?: string; // q:watches
+  s?: string; // q:seq
+  h?: string; // q:host
+  c?: string; // q:context
+}
+
+/** @public */
+export type SnapshotMeta = Record<string, SnapshotMetaValue>;
+
+/** @public @deprecated not longer used in v2 */
+export interface SnapshotState {
+  ctx: SnapshotMeta;
+  refs: Record<string, string>;
+  objs: any[];
+  subs: any[];
+}
+
+/** @public */
+export interface SnapshotListener {
+  key: string;
+  qrl: QRL<any>;
+  el: Element;
+}
+
+/** @public */
+export interface SnapshotResult {
+  /** @deprecated Not longer used in v2 */
+  state?: SnapshotState;
+  funcs: string[];
+  qrls: QRL[];
+  /** @deprecated Not longer used in v2 */
+  objs?: any[];
+  resources: ResourceReturnInternal<any>[];
+  mode: 'render' | 'listeners' | 'static';
+}
+
+/** @public */
+export interface RenderSSROptions {
+  containerTagName: string;
+  containerAttributes: Record<string, string>;
+  stream: StreamWriter;
+  base?: string;
+  serverData?: Record<string, any>;
+  manifestHash: string;
 }

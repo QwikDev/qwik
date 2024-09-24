@@ -1,5 +1,4 @@
 import { verifySerializable } from '../state/common';
-import { type QContext } from '../state/context';
 import { ELEMENT_SEQ, ELEMENT_SEQ_IDX } from '../util/markers';
 import { qDev, qSerialize } from '../util/qdev';
 import type { fixMeAny, HostElement } from '../v2/shared/types';
@@ -13,7 +12,6 @@ export interface SequentialScope<T> {
   /** Index of the hook */
   readonly i: number;
   readonly iCtx: RenderInvokeContext;
-  readonly elCtx: QContext;
 }
 
 /**

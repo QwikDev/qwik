@@ -6,6 +6,8 @@
 
 import * as CSS_2 from 'csstype';
 import type { JSXNode as JSXNode_2 } from '@builder.io/qwik';
+import type { RenderOptions as RenderOptions_2 } from '@builder.io/qwik';
+import type { RenderResult as RenderResult_2 } from '@builder.io/qwik';
 import type { StreamWriter as StreamWriter_2 } from '@builder.io/qwik';
 
 // @public
@@ -261,10 +263,8 @@ export interface DialogHTMLAttributes<T extends Element> extends Attrs<'dialog',
 //
 // @public
 export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>, QwikEvents<EL> {
-    // Warning: (ae-forgotten-export) The symbol "Signal_2" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    class?: ClassList | Signal_2<ClassList> | undefined;
+    class?: ClassList | Signal<ClassList> | undefined;
 }
 
 // @internal (undocumented)
@@ -417,11 +417,11 @@ export const _getContextElement: () => unknown;
 // @internal (undocumented)
 export const _getContextEvent: () => unknown;
 
-// Warning: (ae-incompatible-release-tags) The symbol "getDomContainer" is marked as @public, but its signature references "_ElementVNode" which is marked as @internal
+// Warning: (ae-incompatible-release-tags) The symbol "getDomContainer" is marked as @public, but its signature references "_VNode" which is marked as @internal
 // Warning: (ae-incompatible-release-tags) The symbol "getDomContainer" is marked as @public, but its signature references "ClientContainer" which is marked as @internal
 //
 // @public (undocumented)
-function getDomContainer(element: Element | _ElementVNode): ClientContainer;
+function getDomContainer(element: Element | _VNode): ClientContainer;
 export { getDomContainer as _getDomContainer }
 export { getDomContainer }
 
@@ -434,7 +434,7 @@ export function getLocale(defaultLocale?: string): string;
 export const getPlatform: () => CorePlatform;
 
 // @internal (undocumented)
-export function _getQContainerElement(element: Element | _ElementVNode): Element | null;
+export function _getQContainerElement(element: Element | _VNode): Element | null;
 
 // @public
 function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;
@@ -560,7 +560,7 @@ export const _jsxBranch: <T>(input?: T) => T | undefined;
 export const _jsxC: (type: any, mutable: any, _flags: any, key: any) => JSXNode<any>;
 
 // @public (undocumented)
-export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal_2<JSXChildren> | JSXNode;
+export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;
 
 // Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
 //
@@ -744,13 +744,6 @@ export interface OutputHTMLAttributes<T extends Element> extends Attrs<'output',
 // @public @deprecated (undocumented)
 export interface ParamHTMLAttributes<T extends Element> extends Attrs<'base', T, HTMLParamElement> {
 }
-
-// Warning: (ae-forgotten-export) The symbol "QContext" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ContainerState" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "GetObjID" needs to be exported by the entry point index.d.ts
-//
-// @internal
-export const _pauseFromContexts: (allContexts: QContext[], containerState: ContainerState, fallbackGetObjId?: GetObjID, textNodes?: Map<string, string>) => Promise<SnapshotResult>;
 
 // @alpha
 export const PrefetchGraph: (opts?: {
@@ -964,7 +957,7 @@ export interface ReadonlySignal<T = unknown> {
 export const _regSymbol: (symbol: any, hash: string) => any;
 
 // @public
-export const render: (parent: Element | Document, jsxNode: JSXOutput | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>;
+export const render: (parent: Element | Document, jsxNode: JSXOutput | FunctionComponent<any>, opts?: RenderOptions_2) => Promise<RenderResult_2>;
 
 // @public (undocumented)
 export const RenderOnce: FunctionComponent<{
@@ -984,17 +977,10 @@ export interface RenderResult {
     cleanup(): void;
 }
 
-// @internal (undocumented)
-export const _renderSSR: (node: JSXOutput, opts: RenderSSROptions) => Promise<void>;
-
 // @public (undocumented)
 export interface RenderSSROptions {
     // (undocumented)
     base?: string;
-    // (undocumented)
-    beforeClose?: (contexts: QContext[], containerState: ContainerState, containsDynamic: boolean, textNodes: Map<string, string>) => Promise<JSXNode>;
-    // (undocumented)
-    beforeContent?: JSXNode<string>[];
     // (undocumented)
     containerAttributes: Record<string, string>;
     // (undocumented)
@@ -1003,6 +989,8 @@ export interface RenderSSROptions {
     manifestHash: string;
     // (undocumented)
     serverData?: Record<string, any>;
+    // Warning: (ae-incompatible-release-tags) The symbol "stream" is marked as @public, but its signature references "StreamWriter" which is marked as @internal
+    //
     // (undocumented)
     stream: StreamWriter;
 }
@@ -1047,7 +1035,7 @@ export interface ResourceProps<T> {
     // (undocumented)
     onResolved: (value: T) => JSXOutput;
     // (undocumented)
-    readonly value: ResourceReturn<T> | Signal_2<Promise<T> | T> | Promise<T>;
+    readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
 }
 
 // @public (undocumented)
@@ -1123,10 +1111,9 @@ export abstract class _SharedContainer implements Container2 {
     abstract resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
     // Warning: (ae-forgotten-export) The symbol "SerializationContext" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "StreamWriter_3" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    serializationCtxFactory(NodeConstructor: SerializationContext['$NodeConstructor$'] | null, symbolToChunkResolver: SymbolToChunkResolver, writer?: StreamWriter_3): SerializationContext;
+    serializationCtxFactory(NodeConstructor: SerializationContext['$NodeConstructor$'] | null, symbolToChunkResolver: SymbolToChunkResolver, writer?: StreamWriter): SerializationContext;
     // (undocumented)
     abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)
@@ -1134,7 +1121,7 @@ export abstract class _SharedContainer implements Container2 {
     // Warning: (ae-forgotten-export) The symbol "Effect" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    trackSignalValue<T>(signal: Signal_2, subscriber: Effect, property: string, data: _EffectData): T;
+    trackSignalValue<T>(signal: Signal, subscriber: Effect, property: string, data: _EffectData): T;
 }
 
 // @public
@@ -1241,6 +1228,8 @@ export const SSRStreamBlock: FunctionComponent<{
     children?: JSXOutput;
 }>;
 
+// Warning: (ae-incompatible-release-tags) The symbol "SSRStreamChildren" is marked as @public, but its signature references "StreamWriter" which is marked as @internal
+//
 // @public (undocumented)
 export type SSRStreamChildren = AsyncGenerator<JSXChildren, void, any> | ((stream: StreamWriter) => Promise<void>) | (() => AsyncGenerator<JSXChildren, void, any>);
 
@@ -1249,32 +1238,19 @@ export type SSRStreamProps = {
     children: SSRStreamChildren;
 };
 
-// @public (undocumented)
-export type StreamWriter = {
-    write: (chunk: string) => void;
-};
+// Warning: (ae-internal-missing-underscore) The name "StreamWriter" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface StreamWriter {
+    // (undocumented)
+    write(chunk: string): void;
+}
 
 // @internal (undocumented)
 export type _Stringifiable = string | boolean | number | null;
 
 // @public (undocumented)
 export interface StyleHTMLAttributes<T extends Element> extends Attrs<'style', T> {
-}
-
-// Warning: (ae-internal-missing-underscore) The name "SubscriptionType" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export const enum SubscriptionType {
-    // (undocumented)
-    HOST = 0,
-    // (undocumented)
-    PROP_IMMUTABLE = 1,
-    // (undocumented)
-    PROP_MUTABLE = 2,
-    // (undocumented)
-    TEXT_IMMUTABLE = 3,
-    // (undocumented)
-    TEXT_MUTABLE = 4
 }
 
 // @public

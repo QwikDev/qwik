@@ -2058,7 +2058,7 @@ Description
 
 </td><td>
 
-[ClassList](#classlist) \| Signal&lt;[ClassList](#classlist)&gt; \| undefined
+[ClassList](#classlist) \| [Signal](#signal)&lt;[ClassList](#classlist)&gt; \| undefined
 
 </td><td>
 
@@ -2335,7 +2335,7 @@ export type FunctionComponent<P = unknown> = {
 
 ```typescript
 export declare function getDomContainer(
-  element: Element | ElementVNode,
+  element: Element | VNode,
 ): IClientContainer;
 ```
 
@@ -2358,7 +2358,7 @@ element
 
 </td><td>
 
-Element \| ElementVNode
+Element \| VNode
 
 </td><td>
 
@@ -2867,7 +2867,7 @@ export type JSXChildren =
   | JSXNode;
 ```
 
-**References:** [JSXChildren](#jsxchildren), [JSXNode](#jsxnode)
+**References:** [JSXChildren](#jsxchildren), [Signal](#signal), [JSXNode](#jsxnode)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
@@ -4649,7 +4649,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/client/types.ts)
 
 ## RenderResult
 
@@ -4675,7 +4675,7 @@ Description
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/client/types.ts)
 
 ## RenderSSROptions
 
@@ -4709,36 +4709,6 @@ Description
 </td><td>
 
 string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[beforeClose?](#)
-
-</td><td>
-
-</td><td>
-
-(contexts: QContext[], containerState: ContainerState, containsDynamic: boolean, textNodes: Map&lt;string, string&gt;) =&gt; Promise&lt;[JSXNode](#jsxnode)&gt;
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[beforeContent?](#)
-
-</td><td>
-
-</td><td>
-
-[JSXNode](#jsxnode)&lt;string&gt;[]
 
 </td><td>
 
@@ -4807,14 +4777,14 @@ _(Optional)_
 
 </td><td>
 
-[StreamWriter](#streamwriter)
+StreamWriter
 
 </td><td>
 
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/ssr/ssr-types.ts)
 
 ## Resource
 
@@ -5163,7 +5133,7 @@ _(Optional)_
 
 </td><td>
 
-[ResourceReturn](#resourcereturn)&lt;T&gt; \| Signal&lt;Promise&lt;T&gt; \| T&gt; \| Promise&lt;T&gt;
+[ResourceReturn](#resourcereturn)&lt;T&gt; \| [Signal](#signal)&lt;Promise&lt;T&gt; \| T&gt; \| Promise&lt;T&gt;
 
 </td><td>
 
@@ -5509,7 +5479,7 @@ string
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/container/container.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/ssr/ssr-types.ts)
 
 ## SnapshotMeta
 
@@ -5519,7 +5489,7 @@ export type SnapshotMeta = Record<string, SnapshotMetaValue>;
 
 **References:** [SnapshotMetaValue](#snapshotmetavalue)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/container/container.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/ssr/ssr-types.ts)
 
 ## SnapshotMetaValue
 
@@ -5606,7 +5576,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/container/container.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/ssr/ssr-types.ts)
 
 ## SnapshotResult
 
@@ -5715,7 +5685,7 @@ _(Optional)_
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/container/container.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/ssr/ssr-types.ts)
 
 ## SnapshotState
 
@@ -5798,7 +5768,7 @@ any[]
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/container/container.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/ssr/ssr-types.ts)
 
 ## SourceHTMLAttributes
 
@@ -5867,7 +5837,7 @@ export type SSRStreamChildren =
   | (() => AsyncGenerator<JSXChildren, void, any>);
 ```
 
-**References:** [JSXChildren](#jsxchildren), [StreamWriter](#streamwriter)
+**References:** [JSXChildren](#jsxchildren)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
@@ -5882,16 +5852,6 @@ export type SSRStreamProps = {
 **References:** [SSRStreamChildren](#ssrstreamchildren)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
-
-## StreamWriter
-
-```typescript
-export type StreamWriter = {
-  write: (chunk: string) => void;
-};
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/ssr/render-ssr.ts)
 
 ## StyleHTMLAttributes
 

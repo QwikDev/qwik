@@ -1,6 +1,3 @@
-import type { QwikElement } from '../render/dom/virtual-element';
-import type { QContext } from '../state/context';
-import { isElement, isNode } from './element';
 import { qDev, qTest } from './qdev';
 
 const STYLE = qDev
@@ -39,44 +36,15 @@ export const logOnceWarn = (message?: any, ...optionalParams: any[]) => {
 
 export const logWarn = (message?: any, ...optionalParams: any[]) => {
   if (qDev) {
-    console.warn('%cQWIK WARN', STYLE, message, ...printParams(optionalParams));
+    console.warn('%cQWIK WARN', STYLE, message, ...optionalParams);
   }
 };
 
 export const logDebug = (message?: string, ...optionalParams: any[]) => {
   if (qDev) {
     // eslint-disable-next-line no-console
-    console.debug('%cQWIK', STYLE, message, ...printParams(optionalParams));
+    console.debug('%cQWIK', STYLE, message, ...optionalParams);
   }
-};
-
-export const tryGetContext = (element: QwikElement): QContext | undefined => {
-  return (element as any)['_qc_'];
-};
-
-const printParams = (optionalParams: any[]) => {
-  if (qDev) {
-    return optionalParams.map((p) => {
-      if (isNode(p) && isElement(p)) {
-        return printElement(p);
-      }
-      return p;
-    });
-  }
-  return optionalParams;
-};
-
-const printElement = (el: Element) => {
-  const ctx = tryGetContext(el);
-  const isServer: boolean = /*#__PURE__*/ (() =>
-    typeof process !== 'undefined' && !!process.versions && !!process.versions.node)();
-
-  return {
-    tagName: el.tagName,
-    renderQRL: ctx?.$componentQrl$?.getSymbol(),
-    element: isServer ? undefined : el,
-    ctx: isServer ? undefined : ctx,
-  };
 };
 
 const createAndLogError = (asyncThrow: boolean, message?: any, ...optionalParams: any[]) => {
@@ -85,7 +53,7 @@ const createAndLogError = (asyncThrow: boolean, message?: any, ...optionalParams
   // display the error message first, then the optional params, and finally the stack trace
   // the stack needs to be displayed last because the given params will be lost among large stack traces so it will
   // provide a bad developer experience
-  console.error('%cQWIK ERROR', STYLE, err.message, ...printParams(optionalParams), err.stack);
+  console.error('%cQWIK ERROR', STYLE, err.message, ...optionalParams, err.stack);
 
   asyncThrow &&
     !qTest &&

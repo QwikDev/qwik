@@ -52,3 +52,54 @@ throw redirect(302, '/login');
 If you do not provide a status code, Qwik City will default to a `302` Found status.
 
 Read more about redirect status codes [here](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages).
+
+## Managing multiple redirects
+
+In some cases, you may need to manage multiple redirects based on different conditions. For example, you might want to redirect users from old URLs to new URLs after a site restructure. Additionally, you may want editors in a CMS to manage these redirects as well. Here's one of the ways you can handle multiple redirects in Qwik:
+
+```tsx title="src/routes/layout.tsx"
+import { type RequestHandler } from "@builder.io/qwik-city";
+
+export const onGet: RequestHandler = async ({ url, redirect }) => {
+  // qwik city request caching ...
+
+  // example external data source
+  async function fetchRules(): Promise<
+    { source: string; destination: string; permanent: boolean }[]
+  > {
+    // Fetch data from a CMS or API, and add more rules as needed.
+    // Filter and map your data to make it easier to handle, as simulated here:
+    return [
+      { source: "/old-path", destination: "/new-path", permanent: true },
+      {
+        source: "/another-old-path",
+        destination: "/another-new-path",
+        permanent: false,
+      },
+    ];
+  }
+
+  const redirectRules = await fetchRules();
+  const redirectUrl = redirectRules.find((rule) => {
+    if (url.pathname.endsWith("/")) {
+      return rule.source + "/" === url.pathname;
+    }
+
+    return rule.source === url.pathname;
+  });
+
+  if (redirectUrl) {
+    throw redirect(redirectUrl.permanent ? 308 : 307, redirectUrl.destination);
+  }
+};
+```
+
+> Note: This code does not include caching mechanisms. Fetching redirect rules from an external source on every request can lead to performance issues. It's recommended to implement caching to improve efficiency.
+
+The above example demonstrates:
+
+- Layouts: Grabbing data inside a [root layout's onGet handler](https://qwik.dev/docs/routing/#middleware-layouts).
+- URL Matching: When a user requests a URL, the handler checks if it matches any source in the redirect rules.
+- Redirect Execution: If a match is found, it redirects the user to the corresponding destination URL.
+- HTTP Status Codes: Uses status code [308](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/308) for permanent redirects and [307](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/307) for temporary ones.
+- Content Management Integration: Enables content editors to control redirects through external data sources like a CMS or API.

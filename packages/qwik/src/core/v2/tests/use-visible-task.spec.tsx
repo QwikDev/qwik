@@ -687,6 +687,22 @@ describe.each([
       </Component>
     );
     await trigger(container.document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button></button>
+          <Component>
+            <div>
+              <Projection>
+                <Component>
+                  <div></div>
+                </Component>
+              </Projection>
+            </div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
   });
 
   describe('regression', () => {

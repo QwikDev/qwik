@@ -94,9 +94,10 @@ export const ELEMENT_ID_PREFIX = '#';
 export const INLINE_FN_PREFIX = '@';
 
 /** Non serializable markers - always begins with `:` character */
-export const USE_ON_LOCAL = ':on';
-export const USE_ON_LOCAL_SEQ_IDX = ':onIdx';
-export const USE_ON_LOCAL_FLAGS = ':onFlags';
+export const NON_SERIALIZABLE_MARKER_PREFIX = ':';
+export const USE_ON_LOCAL = NON_SERIALIZABLE_MARKER_PREFIX + 'on';
+export const USE_ON_LOCAL_SEQ_IDX = NON_SERIALIZABLE_MARKER_PREFIX + 'onIdx';
+export const USE_ON_LOCAL_FLAGS = NON_SERIALIZABLE_MARKER_PREFIX + 'onFlags';
 
 // comment nodes
 export const FLUSH_COMMENT = 'qkssr-f';

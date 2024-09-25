@@ -231,7 +231,6 @@
     "serve.debug": "tsm --inspect-brk --conditions=development starters/dev-server.ts 3300",
     "start": "concurrently \"npm:build.watch\"  \"npm:tsc.watch\" -n build,tsc -c green,cyan",
     "test": "pnpm build.full && pnpm test.unit && pnpm test.e2e",
-    "test.e2e-cli": "pnpm --filter qwik-cli-e2e e2e",
     "test.e2e": "pnpm test.e2e.chromium && pnpm test.e2e.webkit",
     "test.e2e-cli": "pnpm --filter qwik-cli-e2e e2e",
     "test.e2e.chromium": "playwright test starters --browser=chromium --config starters/playwright.config.ts",

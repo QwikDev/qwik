@@ -42,6 +42,7 @@ export {
   STREAM_BLOCK_START_COMMENT,
   QDefaultSlot,
   Q_PROPS_SEPARATOR,
+  NON_SERIALIZABLE_MARKER_PREFIX,
 } from '../core/util/markers';
 export { maybeThen } from '../core/util/promises';
 export { mapApp_remove, mapArray_get, mapArray_set } from '../core/v2/client/vnode';

@@ -21,11 +21,11 @@ export default component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./slug_component_0am8hpnkns4.js"), "slug_component_0AM8HPnkNs4"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./[[...slug]].tsx_slug_component_0am8hpnkns4.js"), "slug_component_0AM8HPnkNs4"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;AAIA,6BAAe,6GAKZ\"}")
-============================= src/routes/_repl/[id]/slug_component_div_onclick_xevvy0qc7pa.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;AAIA,6BAAe,6HAKZ\"}")
+============================= src/routes/_repl/[id]/[[...slug]].tsx_slug_component_div_onclick_xevvy0qc7pa.js (ENTRY POINT)==
 
 import { sibling } from "./sibling";
 export const slug_component_div_onClick_xevvy0Qc7pA = ()=>console.log(mongodb, sibling);
@@ -37,9 +37,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
   "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
   "name": "slug_component_div_onClick_xevvy0Qc7pA",
   "entry": null,
-  "displayName": "slug_component_div_onClick",
+  "displayName": "[[...slug]].tsx_slug_component_div_onClick",
   "hash": "xevvy0Qc7pA",
-  "canonicalFilename": "slug_component_div_onclick_xevvy0qc7pa",
+  "canonicalFilename": "[[...slug]].tsx_slug_component_div_onclick_xevvy0qc7pa",
   "path": "src/routes/_repl/[id]",
   "extension": "js",
   "parent": "slug_component_0AM8HPnkNs4",
@@ -52,13 +52,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
   ]
 }
 */
-============================= src/routes/_repl/[id]/slug_component_0am8hpnkns4.js ==
+============================= src/routes/_repl/[id]/[[...slug]].tsx_slug_component_0am8hpnkns4.js ==
 
 import { _jsxQ } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const slug_component_0AM8HPnkNs4 = ()=>{
     return /*#__PURE__*/ _jsxQ("div", null, {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./slug_component_div_onclick_xevvy0qc7pa.js"), "slug_component_div_onClick_xevvy0Qc7pA")
+        onClick$: /*#__PURE__*/ qrl(()=>import("./[[...slug]].tsx_slug_component_div_onclick_xevvy0qc7pa.js"), "slug_component_div_onClick_xevvy0Qc7pA")
     }, null, 3, "W4_0");
 };
 
@@ -69,9 +69,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
   "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
   "name": "slug_component_0AM8HPnkNs4",
   "entry": "src/routes/_repl/[id]/[[...slug]].tsx_entry_[[...slug]]",
-  "displayName": "slug_component",
+  "displayName": "[[...slug]].tsx_slug_component",
   "hash": "0AM8HPnkNs4",
-  "canonicalFilename": "slug_component_0am8hpnkns4",
+  "canonicalFilename": "[[...slug]].tsx_slug_component_0am8hpnkns4",
   "path": "src/routes/_repl/[id]",
   "extension": "js",
   "parent": null,

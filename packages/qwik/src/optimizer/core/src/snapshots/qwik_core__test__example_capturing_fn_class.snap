@@ -28,15 +28,15 @@ export const App = component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,wGAcjB\"}")
-============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAcjB\"}")
+============================= test.tsx_app_component_ckepmxzlub0.js (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = ()=>{
-    return /*#__PURE__*/ qrl(()=>import("./app_component_1_w0t0o3qmovu"), "App_component_1_w0t0o3QMovU");
+    return /*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_1_w0t0o3qmovu"), "App_component_1_w0t0o3QMovU");
 };
 
 
@@ -46,9 +46,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "App_component_ckEPmXZlub0",
   "entry": null,
-  "displayName": "App_component",
+  "displayName": "test.tsx_App_component",
   "hash": "ckEPmXZlub0",
-  "canonicalFilename": "app_component_ckepmxzlub0",
+  "canonicalFilename": "test.tsx_app_component_ckepmxzlub0",
   "path": "",
   "extension": "js",
   "parent": null,
@@ -61,7 +61,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
+============================= test.tsx_app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
 
 import { _jsxQ } from "@builder.io/qwik";
 export const App_component_1_w0t0o3QMovU = ()=>{
@@ -78,9 +78,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "App_component_1_w0t0o3QMovU",
   "entry": null,
-  "displayName": "App_component_1",
+  "displayName": "test.tsx_App_component_1",
   "hash": "w0t0o3QMovU",
-  "canonicalFilename": "app_component_1_w0t0o3qmovu",
+  "canonicalFilename": "test.tsx_app_component_1_w0t0o3qmovu",
   "path": "",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",

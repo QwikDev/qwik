@@ -1,7 +1,10 @@
-import type { QwikSymbolEvent, QwikVisibleEvent } from './core/render/jsx/types/jsx-qwik-events';
-import type { QContainerElement } from './core/container/container';
-import type { QContext } from './core/state/context';
-import type { QElement2, QwikLoaderEventScope, qWindow } from './core/v2/shared/types';
+import type { QwikSymbolEvent, QwikVisibleEvent } from './core/shared/jsx/types/jsx-qwik-events';
+import type {
+  QContainerElement,
+  QElement,
+  QwikLoaderEventScope,
+  qWindow,
+} from './core/shared/types';
 
 /**
  * Set up event listening for browser.
@@ -74,7 +77,7 @@ export const qwikLoader = (
     }) as T;
 
   const dispatch = async (
-    element: Element & { _qc_?: QContext | undefined },
+    element: Element,
     scope: QwikLoaderEventScope,
     ev: Event,
     eventName = ev.type
@@ -85,8 +88,8 @@ export const qwikLoader = (
     }
     // <DELETE ME LATER>: After Qwik 2.0 release
     // This needs to be here for backward compatibility with Qwik 1.0, but at some point we can drop it.
-    const ctx = element['_qc_'];
-    const relevantListeners = ctx && ctx.li.filter((li) => li[0] === attrName);
+    const ctx = (element as any)['_qc_'];
+    const relevantListeners = ctx && ctx.li.filter((li: string) => li[0] === attrName);
     if (relevantListeners && relevantListeners.length > 0) {
       for (const listener of relevantListeners) {
         // listener[1] holds the QRL
@@ -103,7 +106,7 @@ export const qwikLoader = (
       return;
     }
     // </DELETE ME LATER>
-    const qDispatchEvent = (element as QElement2)['qDispatchEvent'];
+    const qDispatchEvent = (element as QElement)['qDispatchEvent'];
     if (qDispatchEvent) {
       return qDispatchEvent(ev, scope);
     }

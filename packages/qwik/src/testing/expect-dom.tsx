@@ -1,6 +1,6 @@
 import { assert } from 'vitest';
-import { QSlot } from '../core/util/markers';
-import { isHtmlElement } from '../core/util/types';
+import { QSlot } from '../core/shared/utils/markers';
+import { isHtmlElement } from '../core/shared/utils/types';
 import { format } from 'prettier';
 
 /**

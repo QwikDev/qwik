@@ -428,10 +428,10 @@ export default component$(() => {
     count: number;
   }>(async ({ track, cleanup }) => {
     track(() => name.value);
-    const abortController = new AbortController();
-    cleanup(() => abortController.abort('cleanup'));
+    const controller = new AbortController();
+    cleanup(() => controller.abort());
     const res = await fetch(`https://api.agify.io?name=${name.value}`, {
-      signal: abortController.signal,
+      signal: controller.signal,
     });
     return res.json();
   });

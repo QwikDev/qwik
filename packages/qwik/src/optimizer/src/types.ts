@@ -97,7 +97,7 @@ export interface TransformOutput {
 }
 
 /** @public */
-export interface HookAnalysis {
+export interface SegmentAnalysis {
   origin: string;
   name: string;
   entry: string | null;
@@ -120,7 +120,7 @@ export interface TransformModule {
   isEntry: boolean;
   code: string;
   map: string | null;
-  hook: HookAnalysis | null;
+  segment: SegmentAnalysis | null;
   origPath: string | null;
 }
 
@@ -158,6 +158,7 @@ export type EntryStrategy =
   | HoistEntryStrategy
   | SingleEntryStrategy
   | HookEntryStrategy
+  | SegmentEntryStrategy
   | ComponentEntryStrategy
   | SmartEntryStrategy;
 
@@ -177,9 +178,15 @@ export interface HoistEntryStrategy {
   type: 'hoist';
 }
 
-/** @public */
+/** @deprecated Use SegmentStrategy instead */
 export interface HookEntryStrategy {
   type: 'hook';
+  manual?: Record<string, string>;
+}
+
+/** @public */
+export interface SegmentEntryStrategy {
+  type: 'segment';
   manual?: Record<string, string>;
 }
 
@@ -262,6 +269,8 @@ export interface QwikSymbol {
 /** @public */
 export interface QwikBundle {
   size: number;
+  /** Not precise, but an indication of whether this import may be a task */
+  isTask?: boolean;
   symbols?: string[];
   imports?: string[];
   dynamicImports?: string[];

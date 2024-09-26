@@ -315,13 +315,26 @@ export type EntryStrategy =
   | HoistEntryStrategy
   | SingleEntryStrategy
   | HookEntryStrategy
+  | SegmentEntryStrategy
   | ComponentEntryStrategy
   | SmartEntryStrategy;
 ```
 
-**References:** [InlineEntryStrategy](#inlineentrystrategy), [SingleEntryStrategy](#singleentrystrategy), [HookEntryStrategy](#hookentrystrategy), [ComponentEntryStrategy](#componententrystrategy), [SmartEntryStrategy](#smartentrystrategy)
+**References:** [InlineEntryStrategy](#inlineentrystrategy), [SingleEntryStrategy](#singleentrystrategy), [SegmentEntryStrategy](#segmententrystrategy), [ComponentEntryStrategy](#componententrystrategy), [SmartEntryStrategy](#smartentrystrategy)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+
+## ExperimentalFeatures
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.
+
+```typescript
+export type ExperimentalFeatures = (typeof experimental)[number];
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts)
 
 ## extname
 
@@ -459,244 +472,6 @@ _(Optional)_
 </td><td>
 
 string
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-## HookAnalysis
-
-```typescript
-export interface HookAnalysis
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[canonicalFilename](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[captures](#)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[ctxKind](#)
-
-</td><td>
-
-</td><td>
-
-'event' \| 'function'
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[ctxName](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[displayName](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[entry](#)
-
-</td><td>
-
-</td><td>
-
-string \| null
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[extension](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[hash](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[loc](#)
-
-</td><td>
-
-</td><td>
-
-[number, number]
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[name](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[origin](#)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[parent](#)
-
-</td><td>
-
-</td><td>
-
-string \| null
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-## HookEntryStrategy
-
-```typescript
-export interface HookEntryStrategy
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[manual?](#)
-
-</td><td>
-
-</td><td>
-
-Record&lt;string, string&gt;
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[type](#)
-
-</td><td>
-
-</td><td>
-
-'hook'
 
 </td><td>
 
@@ -1500,6 +1275,21 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
+[isTask?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Not precise, but an indication of whether this import may be a task
+
+</td></tr>
+<tr><td>
+
 [origins?](#)
 
 </td><td>
@@ -1817,9 +1607,24 @@ Default `false`
 
 </td><td>
 
-_(Optional)_ The Qwik entry strategy to use while building for production. During development the type is always `hook`.
+_(Optional)_ The Qwik entry strategy to use while building for production. During development the type is always `segment`.
 
 Default `{ type: "smart" }`)
+
+</td></tr>
+<tr><td>
+
+[experimental?](#)
+
+</td><td>
+
+</td><td>
+
+[ExperimentalFeatures](#experimentalfeatures)[]
+
+</td><td>
+
+_(Optional)_ Experimental features. These can come and go in patch releases, and their API is not guaranteed to be stable between releases.
 
 </td></tr>
 <tr><td>
@@ -2119,6 +1924,8 @@ string \| null
 
 ## qwikVite
 
+The types for Vite/Rollup don't allow us to be too specific about the return type. The correct return type is `[QwikVitePlugin, VitePlugin<never>]`, and if you search the plugin by name you'll get the `QwikVitePlugin`.
+
 ```typescript
 export declare function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;
 ```
@@ -2215,54 +2022,15 @@ _(Optional)_
 
 ## QwikVitePlugin
 
+This is the type of the "pre" Qwik Vite plugin. `qwikVite` actually returns a tuple of two plugins, but after Vite flattens them, you can find the plugin by name.
+
 ```typescript
-export interface QwikVitePlugin
+export type QwikVitePlugin = P<QwikVitePluginApi> & {
+  name: "vite-plugin-qwik";
+};
 ```
 
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[api](#)
-
-</td><td>
-
-</td><td>
-
-[QwikVitePluginApi](#qwikvitepluginapi)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[name](#)
-
-</td><td>
-
-</td><td>
-
-'vite-plugin-qwik'
-
-</td><td>
-
-</td></tr>
-</tbody></table>
+**References:** [QwikVitePluginApi](#qwikvitepluginapi)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)
 
@@ -2533,6 +2301,244 @@ Description
 </td><td>
 
 [SymbolMapper](#symbolmapper)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+
+## SegmentAnalysis
+
+```typescript
+export interface SegmentAnalysis
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[canonicalFilename](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[captures](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[ctxKind](#)
+
+</td><td>
+
+</td><td>
+
+'event' \| 'function'
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[ctxName](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[displayName](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[entry](#)
+
+</td><td>
+
+</td><td>
+
+string \| null
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[extension](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[hash](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[loc](#)
+
+</td><td>
+
+</td><td>
+
+[number, number]
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[name](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[origin](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[parent](#)
+
+</td><td>
+
+</td><td>
+
+string \| null
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+
+## SegmentEntryStrategy
+
+```typescript
+export interface SegmentEntryStrategy
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[manual?](#)
+
+</td><td>
+
+</td><td>
+
+Record&lt;string, string&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[type](#)
+
+</td><td>
+
+</td><td>
+
+'segment'
 
 </td><td>
 
@@ -2978,19 +2984,6 @@ string
 </td></tr>
 <tr><td>
 
-[hook](#)
-
-</td><td>
-
-</td><td>
-
-[HookAnalysis](#hookanalysis) \| null
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
 [isEntry](#)
 
 </td><td>
@@ -3037,6 +3030,19 @@ string \| null
 </td><td>
 
 string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[segment](#)
+
+</td><td>
+
+</td><td>
+
+[SegmentAnalysis](#segmentanalysis) \| null
 
 </td><td>
 

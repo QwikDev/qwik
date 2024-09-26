@@ -1,7 +1,7 @@
 import path, { resolve } from 'node:path';
 import { assert, test } from 'vitest';
 import type { QwikManifest } from '../types';
-import { createPlugin } from './plugin';
+import { createPlugin, experimental } from './plugin';
 import { normalizePath } from '../../../testing/util';
 import { qwikVite } from './vite';
 
@@ -17,7 +17,7 @@ test('defaults', async () => {
   const opts = plugin.normalizeOptions();
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'development');
-  assert.deepEqual(opts.entryStrategy, { type: 'hook' });
+  assert.deepEqual(opts.entryStrategy, { type: 'segment' });
   assert.deepEqual(opts.debug, false);
   assert.deepEqual(opts.rootDir, normalizePath(cwd));
   assert.deepEqual(opts.tsconfigFileNames, ['./tsconfig.json']);
@@ -107,19 +107,19 @@ test('entryStrategy, smart', async () => {
   assert.deepEqual(opts.entryStrategy.type, 'smart');
 });
 
-test('entryStrategy, hook no forceFullBuild', async () => {
+test('entryStrategy, segment no forceFullBuild', async () => {
   const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({ entryStrategy: { type: 'hook' } });
-  assert.deepEqual(opts.entryStrategy.type, 'hook');
+  const opts = plugin.normalizeOptions({ entryStrategy: { type: 'segment' } });
+  assert.deepEqual(opts.entryStrategy.type, 'segment');
 });
 
-test('entryStrategy, hook and srcInputs', async () => {
+test('entryStrategy, segment and srcInputs', async () => {
   const plugin = await mockPlugin();
   const opts = plugin.normalizeOptions({
-    entryStrategy: { type: 'hook' },
+    entryStrategy: { type: 'segment' },
     srcInputs: [],
   });
-  assert.deepEqual(opts.entryStrategy.type, 'hook');
+  assert.deepEqual(opts.entryStrategy.type, 'segment');
 });
 
 test('rootDir, abs path', async () => {
@@ -205,6 +205,17 @@ test('resolveQwikBuild false', async () => {
   const plugin = await mockPlugin();
   const opts = plugin.normalizeOptions({ resolveQwikBuild: false });
   assert.deepEqual(opts.resolveQwikBuild, false);
+});
+
+test('experimental[]', async () => {
+  const plugin = await mockPlugin();
+  const flag = experimental[0];
+  if (!flag) {
+    // we can't test this without a flag
+    return;
+  }
+  const opts = plugin.normalizeOptions({ experimental: [flag] });
+  assert.deepEqual(opts.experimental, { [flag]: true } as any);
 });
 
 async function mockPlugin() {

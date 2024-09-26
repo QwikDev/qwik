@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1345
+assertion_line: 1346
 expression: output
 ---
 ==INPUT==
@@ -23,18 +23,14 @@ export const Foo = component$(() => {
 import { qrl } from "@builder.io/qwik";
 export const s_HTDRsvUbLiE = ()=>{
     return <div>
-
             <div onClick$={/*#__PURE__*/ qrl(()=>import("./s_9dcjc0ujddo"), "s_9DcJc0uJDDo")}/>
-
             <div onClick$={/*#__PURE__*/ qrl(()=>import("./s_rjqdy8i0mxc"), "s_RjQdy8I0MXc")}/>
-
             <div onClick$={/*#__PURE__*/ qrl(()=>import("./s_w9ptfrbvk1e"), "s_w9ptFRBVK1E")}/>
-
         </div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAG8B,IAAM;IAChC,QACK,IAAI;;YACD,CAAC,IAAI,8EAAuC;;YAC5C,CAAC,IAAI,8EAAwC;;YAC7C,CAAC,IAAI,8EAAuC;;QAChD,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAG8B;IAC1B,QACK,IAAI;YACD,CAAC,IAAI,8EAAuC;YAC5C,CAAC,IAAI,8EAAwC;YAC7C,CAAC,IAAI,8EAAuC;QAChD,EAAE;AAEV\"}")
 /*
 {
   "origin": "test.tsx",

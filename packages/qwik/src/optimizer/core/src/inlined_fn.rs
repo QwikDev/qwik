@@ -15,14 +15,14 @@ use swc_ecmascript::{
 
 macro_rules! id {
 	($ident: expr) => {
-		($ident.sym.clone(), $ident.span.ctxt())
+		($ident.sym.clone(), $ident.ctxt)
 	};
 }
 
 pub fn convert_inlined_fn(
 	mut expr: ast::Expr,
 	scoped_idents: Vec<Id>,
-	qqhook: &Id,
+	qqsegment: &Id,
 	accept_call_expr: bool,
 	serialize_fn: bool,
 ) -> (Option<ast::Expr>, bool) {
@@ -68,12 +68,8 @@ pub fn convert_inlined_fn(
 	// Wrap around arrow functions
 	let expr = ast::Expr::Arrow(ast::ArrowExpr {
 		body: Box::new(ast::BlockStmtOrExpr::Expr(Box::new(expr))),
-		is_async: false,
-		is_generator: false,
 		params,
-		return_type: None,
-		span: DUMMY_SP,
-		type_params: None,
+		..Default::default()
 	});
 
 	let mut args = vec![
@@ -97,10 +93,9 @@ pub fn convert_inlined_fn(
 
 	(
 		Some(ast::Expr::Call(ast::CallExpr {
-			span: DUMMY_SP,
-			callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(qqhook)))),
-			type_args: None,
+			callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(qqsegment)))),
 			args,
+			..Default::default()
 		})),
 		true,
 	)
@@ -140,7 +135,7 @@ impl VisitMut for ReplaceIdentifiers {
 		if let ast::Prop::Shorthand(short) = node {
 			if let Some(expr) = self.identifiers.get(&id!(short)) {
 				*node = ast::Prop::KeyValue(ast::KeyValueProp {
-					key: ast::PropName::Ident(short.clone()),
+					key: ast::PropName::Ident(short.clone().into()),
 					value: Box::new(expr.clone()),
 				});
 			}
@@ -182,12 +177,7 @@ pub fn render_expr(expr: &ast::Expr) -> String {
 	let mut buf = Vec::new();
 	let source_map = Lrc::new(SourceMap::default());
 	let writer = Box::new(JsWriter::new(Lrc::clone(&source_map), "\n", &mut buf, None));
-	let config = swc_ecmascript::codegen::Config {
-		minify: true,
-		target: ast::EsVersion::latest(),
-		ascii_only: false,
-		omit_last_semi: false,
-	};
+	let config = swc_ecmascript::codegen::Config::default().with_minify(true);
 	let mut emitter = swc_ecmascript::codegen::Emitter {
 		cfg: config,
 		comments: None,

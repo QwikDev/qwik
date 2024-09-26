@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1168
+assertion_line: 1169
 expression: output
 ---
 ==INPUT==
@@ -27,21 +27,18 @@ export const Header = component$(() => {
 import thing from "../state";
 export const Header_component_RGgm7Ks9QWI = ()=>{
     return <div>
-
             {import("../folder/state3")}
-
             {thing}
-
         </div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";4CAQiC,IAAM;IACnC,QACK,IAAI;;YACD,CAAC,MAAM,CAAC,oBAAoB;;YAC5B,CAAC,MAAM;;QACX,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";4CAQiC;IAC7B,QACK,IAAI;YACD,CAAC,MAAM,CAAC,oBAAoB;YAC5B,CAAC,MAAM;QACX,EAAE;AAEV\"}")
 /*
 {
   "origin": "project/folder/test.tsx",
   "name": "Header_component_RGgm7Ks9QWI",
-  "entry": "entry_hooks",
+  "entry": "entry_segments",
   "displayName": "Header_component",
   "hash": "RGgm7Ks9QWI",
   "canonicalFilename": "header_component_rggm7ks9qwi",
@@ -64,16 +61,10 @@ import { qrl } from "@builder.io/qwik";
 export function foo() {
     return import("../foo/state2");
 }
-export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("../../entry_hooks"), "Header_component_RGgm7Ks9QWI"));
+export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./header_component_rggm7ks9qwi"), "Header_component_RGgm7Ks9QWI"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,SAAS,MAAM;IAClB,OAAO,MAAM,CAAC;AAClB,CAAC;AAED,OAAO,MAAM,uBAAS,iGAOnB\"}")
-============================= entry_hooks.js (ENTRY POINT)==
-
-export { Header_component_RGgm7Ks9QWI } from "./project/folder/header_component_rggm7ks9qwi";
-
-
-None
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,SAAS;IACZ,OAAO,MAAM,CAAC;AAClB;AAEA,OAAO,MAAM,uBAAS,8GAOnB\"}")
 == DIAGNOSTICS ==
 
 []

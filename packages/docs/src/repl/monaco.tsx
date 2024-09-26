@@ -4,8 +4,11 @@ import type MonacoTypes from 'monaco-editor';
 import type { EditorProps, EditorStore } from './editor';
 import type { ReplStore } from './types';
 import { getColorPreference } from '../components/theme-toggle/theme-toggle';
-import { getBundled, getNpmCdnUrl } from './bundled';
+import { bundled, getNpmCdnUrl } from './bundled';
 import { isServer } from '@builder.io/qwik/build';
+// We cannot use this, it causes the repl to use imports
+// import { QWIK_REPL_DEPS_CACHE } from './worker/repl-constants';
+const QWIK_REPL_DEPS_CACHE = 'QwikReplDeps';
 
 export const initMonacoEditor = async (
   containerElm: any,
@@ -207,15 +210,17 @@ export const addQwikLibs = async (version: string) => {
       );
     }
   });
-
+  typescriptDefaults.addExtraLib(
+    `declare module '@builder.io/qwik/jsx-runtime' { export * from '@builder.io/qwik' }`,
+    '/node_modules/@builder.io/qwik/dist/jsx-runtime.d.ts'
+  );
   typescriptDefaults.addExtraLib(CLIENT_LIB);
 };
 
 const loadDeps = async (qwikVersion: string) => {
-  const isDev = qwikVersion.includes('dev');
-  const v = qwikVersion.split('-')[0].split('.').map(Number);
+  const [M, m, p] = qwikVersion.split('-')[0].split('.').map(Number);
   const prefix =
-    qwikVersion === 'bundled' || (v[0] >= 1 && v[1] >= 7 && v[2] >= (isDev ? 1 : 2))
+    qwikVersion === 'bundled' || M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2)))
       ? '/dist/'
       : '/';
   const deps: NodeModuleDep[] = [
@@ -225,19 +230,6 @@ const loadDeps = async (qwikVersion: string) => {
       pkgVersion: qwikVersion,
       pkgPath: `${prefix}core.d.ts`,
       import: '',
-    },
-    // JSX runtime
-    {
-      pkgName: '@builder.io/qwik',
-      pkgVersion: qwikVersion,
-      pkgPath: `${prefix}jsx-runtime.d.ts`,
-      import: '/jsx-runtime',
-    },
-    {
-      pkgName: '@builder.io/qwik',
-      pkgVersion: qwikVersion,
-      pkgPath: `${prefix}jsx-runtime.d.ts`,
-      import: '/jsx-dev-runtime',
     },
     // server API
     {
@@ -255,7 +247,7 @@ const loadDeps = async (qwikVersion: string) => {
     },
   ];
 
-  const cache = await caches.open('QwikReplResults');
+  const cache = await caches.open(QWIK_REPL_DEPS_CACHE);
 
   await Promise.all(
     deps.map(async (dep) => {
@@ -286,7 +278,6 @@ const loadDeps = async (qwikVersion: string) => {
   return monacoCtx.deps;
 };
 
-const bundled = getBundled();
 const fetchDep = async (cache: Cache, dep: NodeModuleDep) => {
   const url = getNpmCdnUrl(bundled, dep.pkgName, dep.pkgVersion, dep.pkgPath);
   const req = new Request(url);

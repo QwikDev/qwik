@@ -163,9 +163,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           lookup-only: true
-          path: |
-            packages/docs/dist
-            packages/docs/server
+          path: docs-build-completed.txt
           key: ${{ hashfiles('others-key.txt', 'packages/docs/**/*') }}
       - name: 'check cache: insights'
         id: cache-insights
@@ -189,7 +187,7 @@ jobs:
         with:
           lookup-only: true
           path: e2e-tests-completed.txt
-          key: ${{ hashfiles('others-key.txt', 'starters/e2e/**/*', 'starters/apps/e2e/**/*') }}
+          key: ${{ hashfiles('others-key.txt', 'starters/**/*') }}
 
   ############ BUILD Qwik ############
   build-qwik:
@@ -221,7 +219,7 @@ jobs:
 
       - name: Print Qwik Dist Build
         continue-on-error: true
-        run: tree packages/qwik/dist/
+        run: tree -a packages/qwik/dist/
 
       - name: Save qwik cache
         uses: actions/cache/save@v4
@@ -233,6 +231,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: artifact-qwik-no-optimizer
+          include-hidden-files: true
           path: packages/qwik/dist/
           if-no-files-found: error
 
@@ -302,6 +301,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: artifact-bindings-${{ matrix.settings.target }}
+          include-hidden-files: true
           path: packages/qwik/bindings/
           if-no-files-found: error
 
@@ -358,6 +358,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: artifact-qwik
+          include-hidden-files: true
           path: |
             packages/qwik/bindings
             packages/qwik/dist
@@ -429,22 +430,24 @@ jobs:
           key: ${{ needs.changes.outputs.hash-others }}
 
       - name: Print QwikCity Lib Build
-        run: tree packages/qwik-city/lib/
+        run: tree -a packages/qwik-city/lib/
 
       - name: Upload QwikCity Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: artifact-qwikcity
+          include-hidden-files: true
           path: packages/qwik-city/lib/
           if-no-files-found: error
 
       - name: Print QwikLabs Lib Build
-        run: tree packages/qwik-labs/lib/ packages/qwik-labs/vite/
+        run: tree -a packages/qwik-labs/lib/ packages/qwik-labs/vite/
 
       - name: Upload QwikLabs+React Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: artifact-qwiklabs
+          include-hidden-files: true
           path: |
             packages/qwik-labs/lib/
             packages/qwik-labs/vite/
@@ -452,34 +455,37 @@ jobs:
           if-no-files-found: error
 
       - name: Print qwik-react Lib Build
-        run: tree packages/qwik-react/lib/
+        run: tree -a packages/qwik-react/lib/
 
       - name: Upload qwik-react Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: artifact-qwikreact
+          include-hidden-files: true
           path: |
             packages/qwik-react/lib/
             packages/qwik-react/package.json
           if-no-files-found: error
 
       - name: Print Create Qwik CLI Dist Build
-        run: tree packages/create-qwik/dist/
+        run: tree -a packages/create-qwik/dist/
 
       - name: Upload Create Qwik CLI Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: artifact-create-qwik
+          include-hidden-files: true
           path: packages/create-qwik/dist/
           if-no-files-found: error
 
       - name: Print Eslint rules Dist Build
-        run: tree packages/eslint-plugin-qwik/dist/
+        run: tree -a packages/eslint-plugin-qwik/dist/
 
       - name: Upload Eslint rules Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: artifact-eslint-plugin-qwik
+          include-hidden-files: true
           path: packages/eslint-plugin-qwik/dist/
           if-no-files-found: error
 
@@ -578,12 +584,13 @@ jobs:
 
       - run: corepack pnpm install --frozen-lockfile
       - name: Build Qwik Docs
-        run: pnpm run build.packages.docs
+        run: pnpm run build.packages.docs && echo ok > docs-build-completed.txt
 
       - name: Save Docs Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: artifact-docs
+          include-hidden-files: true
           path: |
             packages/docs/dist
             packages/docs/server
@@ -592,44 +599,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           key: ${{ needs.changes.outputs.hash-docs }}
-          path: |
-            packages/docs/dist
-            packages/docs/server
-
-  # TODO: move this to a run_workflow action that has repository permissions and grabs the artifact
-  deploy-docs:
-    name: Cloudflare Pages Deployment
-    if: always() && needs.changes.outputs.build-docs == 'true'
-    needs:
-      - build-docs
-      - changes
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check docs status
-        if: needs.build-docs.result != 'success'
-        run: exit 1
-
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Restore docs cache
-        uses: actions/cache/restore@v4
-        with:
-          key: ${{ needs.changes.outputs.hash-docs }}
-          path: |
-            packages/docs/dist
-            packages/docs/server
-
-      # not the official version, so be careful when updating
-      - name: Deploy to Cloudflare Pages
-        uses: AdrianGonz97/refined-cf-pages-action@c7b767eef599f127d8ce2388d4ed2270d3b750af
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: 'qwik-docs'
-          directory: packages/docs/dist
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          path: docs-build-completed.txt
 
   ############ UNIT TEST ############
   test-unit:
@@ -746,6 +716,56 @@ jobs:
         if: matrix.settings.host != 'windows-latest'
         run: pnpm cli.validate
 
+  ############ E2E CLI TEST ############
+  test-cli-e2e:
+    name: E2E CLI Tests
+    if: always() && needs.changes.outputs.build-e2e == 'true'
+
+    needs:
+      - build-other-packages
+      - changes
+      - test-unit
+
+    strategy:
+      matrix:
+        settings:
+          - host: ubuntu-latest
+          - host: macos-latest
+          - host: windows-latest
+
+    runs-on: ${{ matrix.settings.host }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+      - run: corepack enable
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Move Distribution Artifacts
+        run: |
+          mv artifact-qwik/* packages/qwik/
+          mkdir -p packages/qwik-city/lib/
+          mv artifact-qwikcity/* packages/qwik-city/lib/
+          mkdir -p packages/create-qwik/dist/
+          mv artifact-create-qwik/* packages/create-qwik/dist/
+          mkdir -p packages/eslint-plugin-qwik/dist/
+          mv artifact-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: CLI E2E Tests
+        run: pnpm run test.e2e-cli
+
   ########### LINT PACKAGES ############
   lint-package:
     name: Lint Package
@@ -764,6 +784,10 @@ jobs:
       - run: corepack enable
 
       - run: pnpm install --frozen-lockfile
+
+      - name: SyncPack Check
+        if: always()
+        run: pnpm run lint.syncpack
 
       - name: Prettier Check
         if: always()
@@ -788,8 +812,10 @@ jobs:
       - test-e2e
     # test-unit runs when any packages changes, so we have to release
     # on main, we always check if we have something to release
+    # don't run on forks
     if: |
-      always() && (
+      always() && 
+      github.repository == 'QwikDev/qwik' && (
         github.ref == 'refs/heads/main' ||
         needs.test-unit.result == 'success'
       )

@@ -57,7 +57,9 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
     },
   };
 
-  const plugin: Plugin = {
+  type P<T> = Plugin<T> & { api: T };
+
+  const plugin: P<QwikCityPluginApi> = {
     name: 'vite-plugin-qwik-city',
     enforce: 'pre',
     api,
@@ -200,7 +202,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
         const fileName = basename(id);
         if (isMenuFileName(fileName)) {
           const menuCode = await transformMenu(ctx.opts, id, code);
-          return menuCode;
+          return { code: menuCode, map: null };
         }
         if (mdxTransform) {
           try {

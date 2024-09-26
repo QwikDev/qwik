@@ -1,5 +1,19 @@
 # create-qwik
 
+## 1.9.0
+
+### Patch Changes
+
+- ✨ tailwind starter dependencies upgraded to latest (by [@thejackshelton](https://github.com/thejackshelton) in [#6783](https://github.com/QwikDev/qwik/pull/6783))
+
+- ✨ added `preserveModules` to library starters to improve library bundling / tree-shaking (by [@thejackshelton](https://github.com/thejackshelton) in [#6773](https://github.com/QwikDev/qwik/pull/6773))
+
+## 1.8.0
+
+### Patch Changes
+
+- 🐞🩹 wrong version when creating a library (by [@shairez](https://github.com/shairez) in [#6757](https://github.com/QwikDev/qwik/pull/6757))
+
 ## 1.7.3
 
 ### Patch Changes

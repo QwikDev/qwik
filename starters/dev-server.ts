@@ -175,7 +175,7 @@ export {
             },
           },
         ],
-      }),
+      }) as PluginOption,
     );
   }
 
@@ -213,13 +213,14 @@ export {
           disableVendorScan: true,
           vendorRoots: enableCityServer ? [qwikCityMjs] : [],
           entryStrategy: {
-            type: "single",
+            type: "segment",
           },
           client: {
             manifestOutput(manifest) {
               clientManifest = manifest;
             },
           },
+          experimental: ["preventNavigate"],
         }),
       ],
     }),
@@ -233,7 +234,12 @@ export {
           ? qwikCityVirtualEntry
           : resolve(appSrcDir, entrySsrFileName),
       },
-      plugins: [...plugins, optimizer.qwikVite()],
+      plugins: [
+        ...plugins,
+        optimizer.qwikVite({
+          experimental: ["preventNavigate"],
+        }),
+      ],
       define: {
         "globalThis.qDev": !isProd,
         "globalThis.qInspector": false,
@@ -351,8 +357,8 @@ async function main() {
   app.use(`/~partytown`, express.static(partytownPath));
 
   appNames.forEach((appName) => {
-    const buildPath = join(startersAppsDir, appName, "dist", appName, "build");
-    app.use(`/${appName}/build`, express.static(buildPath));
+    const buildPath = join(startersAppsDir, appName, "dist", appName);
+    app.use(`/${appName}`, express.static(buildPath));
 
     const publicPath = join(startersAppsDir, appName, "public");
     app.use(`/${appName}`, express.static(publicPath));

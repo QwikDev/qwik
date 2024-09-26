@@ -5,7 +5,7 @@ import { deflateSync, inflateSync, strFromU8, strToU8 } from 'fflate';
 const dataDefaults: PlaygroundShareUrl = {
   version: '',
   buildMode: 'development',
-  entryStrategy: 'hook',
+  entryStrategy: 'segment',
   files: [],
 };
 export const parsePlaygroundShareUrl = (shareable: string) => {

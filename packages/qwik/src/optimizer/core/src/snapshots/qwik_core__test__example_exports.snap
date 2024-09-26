@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 983
+assertion_line: 984
 expression: output
 ---
 ==INPUT==
@@ -38,7 +38,7 @@ export const Header_component_UVBJuFYfvDo = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";4CAciC,IAAM;IACnC;AAMJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";4CAciC;IAC7B;AAMJ\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -63,7 +63,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const [a, { b , v1: [c] , d =v2 , ...e }, f = v3, ...g] = obj;
+export const [a, { b, v1: [c], d = v2, ...e }, f = v3, ...g] = obj;
 const exp1 = 1;
 const internal = 2;
 export { exp1, internal as expr2 };
@@ -75,7 +75,7 @@ export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import(".
 export const Footer = /*#__PURE__*/ componentQrl();
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,CAAC,GAAG,EAAC,EAAC,EAAE,IAAI,CAAC,EAAE,CAAA,EAAE,GAAE,GAAE,EAAE,GAAG,GAAE,EAAE,IAAE,EAAE,EAAE,GAAG,EAAE,GAAG,IAAI;AAE7D,MAAM,OAAO;AACb,MAAM,WAAW;AACjB,SAAQ,IAAI,EAAE,YAAY,KAAK,GAAE;AAEjC,OAAO,SAAS,MAAM,CAAE,CAAC;AACzB,OAAO,MAAM;AAAK,CAAC;AAEnB,eAAe,SAAS,YAAY,CAAC,CAAC;AAEtC,OAAO,MAAM,uBAAS,8GAOnB;AAEH,OAAO,MAAM,uBAAS,eAAa\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,CAAC,GAAG,EAAC,CAAC,EAAE,IAAI,CAAC,EAAE,EAAE,IAAE,EAAE,EAAE,GAAG,GAAE,EAAE,IAAE,EAAE,EAAE,GAAG,EAAE,GAAG,IAAI;AAE7D,MAAM,OAAO;AACb,MAAM,WAAW;AACjB,SAAQ,IAAI,EAAE,YAAY,KAAK,GAAE;AAEjC,OAAO,SAAS,OAAQ;AACxB,OAAO,MAAM;AAAK;AAElB,eAAe,SAAS,aAAa;AAErC,OAAO,MAAM,uBAAS,8GAOnB;AAEH,OAAO,MAAM,uBAAS,eAAa\"}")
 ============================= project/header_component_1_uwm1kg0igo0.jsx (ENTRY POINT)==
 
 import { default as DefaultFn } from "./test";
@@ -91,16 +91,13 @@ import { f } from "./test";
 import { foo } from "./test";
 import { expr2 as internal } from "./test";
 export const Header_component_1_uWM1kg0IGO0 = ()=><Footer>
-
             <div>{a}{b}{c}{d}{e}{f}{exp1}{internal}{foo}{bar}{DefaultFn}</div>
-
             <div>{v1}{v2}{v3}{obj}</div>
-
         </Footer>;
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;8CAea,KACJ,OAAO;;YACJ,CAAC,KAAK,GAAG,GAAG,GAAG,GAAG,GAAG,GAAG,MAAM,UAAU,KAAK,KAAK,YAAY,IAAI;;YAClE,CAAC,KAAK,IAAI,IAAI,IAAI,MAAM,IAAI;;QAChC,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;8CAea,KACJ,OAAO;YACJ,CAAC,KAAK,GAAG,GAAG,GAAG,GAAG,GAAG,GAAG,MAAM,UAAU,KAAK,KAAK,YAAY,IAAI;YAClE,CAAC,KAAK,IAAI,IAAI,IAAI,MAAM,IAAI;QAChC,EAAE\"}")
 /*
 {
   "origin": "project/test.tsx",

@@ -8,17 +8,38 @@ updated_at: '2024-01-10T21:56:50Z'
 created_at: '2024-01-10T21:56:50Z'
 ---
 
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
 # OG Image (og-img)
 
 With [`og-img`](https://github.com/fabian-hiller/og-img) you can easily add dynamic Open Graph images to your Qwik website. These are displayed, for example, when your website is shared on social media or via messenger services.
 
 > `og-img` is a framework agnostic package for generating Open Graph images using [Satori](https://github.com/vercel/satori) and [resvg](https://github.com/RazrFalcon/resvg).
 
-To get started, install the npm package:
+To get started, install the `og-img` package:
 
-```bash
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm install og-img
+```
+</span>
+<span q:slot="npm">
+```shell
 npm install og-img
 ```
+</span>
+<span q:slot="yarn">
+```shell
+yarn add og-img
+```
+</span>
+<span q:slot="bun">
+```shell
+bun install og-img
+```
+</span>
+</PackageManagerTabs>
 
 ## How it works
 

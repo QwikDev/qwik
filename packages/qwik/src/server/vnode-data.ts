@@ -1,6 +1,6 @@
 import { type ISsrNode, type SsrAttrs } from './qwik-types';
-import { SsrNode, type SsrNodeType } from './v2-node';
-import type { CleanupQueue } from './v2-ssr-container';
+import { SsrNode, type SsrNodeType } from './ssr-node';
+import type { CleanupQueue } from './ssr-container';
 
 /**
  * Array of numbers which describes virtual nodes in the tree.

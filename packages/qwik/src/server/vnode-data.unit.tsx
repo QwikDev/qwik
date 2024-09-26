@@ -3,7 +3,7 @@ import { component$, componentQrl } from '../core/shared/component.public';
 import { inlinedQrl } from '../core/shared/qrl/qrl';
 import { useSignal } from '../core/use/use-signal';
 import { ssrRenderToDom } from '../testing/rendering.unit-util';
-import { encodeAsAlphanumeric } from './v2-vnode-data';
+import { encodeAsAlphanumeric } from './vnode-data';
 import { vnode_getProp, vnode_locate } from '../core/client/vnode';
 import { ELEMENT_PROPS, OnRenderProp } from '../core/shared/utils/markers';
 import { type QRLInternal } from '../core/shared/qrl/qrl-class';

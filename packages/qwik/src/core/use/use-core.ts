@@ -19,7 +19,7 @@ import { isPromise } from '../shared/utils/promises';
 import { seal } from '../shared/utils/qdev';
 import { isArray } from '../shared/utils/types';
 import { setLocale } from './use-locale';
-import type { Container2, HostElement } from '../shared/types';
+import type { Container, HostElement } from '../shared/types';
 import { vnode_getNode, vnode_isElementVNode, vnode_isVNode } from '../client/vnode';
 import { _getQContainerElement } from '../client/dom-container';
 import type { ContainerElement } from '../client/types';
@@ -59,7 +59,7 @@ export interface RenderInvokeContext extends InvokeContext {
   $hostElement$: HostElement;
   $event$: PossibleEvents;
   $waitOn$: Promise<unknown>[];
-  $container2$: Container2;
+  $container$: Container;
 }
 
 export type InvokeTuple = [Element, Event, URL?];
@@ -80,7 +80,7 @@ export interface InvokeContext {
   $qrl$: QRL | undefined;
   $effectSubscriber$: EffectSubscriptions | undefined;
   $locale$: string | undefined;
-  $container2$: Container2 | undefined;
+  $container$: Container | undefined;
 }
 
 let _context: InvokeContext | undefined;
@@ -199,7 +199,7 @@ export const newInvokeContext = (
     $qrl$: undefined,
     $effectSubscriber$: undefined,
     $locale$,
-    $container2$: undefined,
+    $container$: undefined,
   };
   seal(ctx);
   return ctx;
@@ -233,21 +233,21 @@ export const trackSignal = <T>(
   fn: () => T,
   subscriber: EffectSubscriptions[EffectSubscriptionsProp.EFFECT],
   property: EffectSubscriptions[EffectSubscriptionsProp.PROPERTY],
-  container: Container2,
+  container: Container,
   data?: EffectData
 ): T => {
   const previousSubscriber = trackInvocation.$effectSubscriber$;
-  const previousContainer = trackInvocation.$container2$;
+  const previousContainer = trackInvocation.$container$;
   try {
     trackInvocation.$effectSubscriber$ = [subscriber, property];
     if (data) {
       trackInvocation.$effectSubscriber$.push(data);
     }
-    trackInvocation.$container2$ = container;
+    trackInvocation.$container$ = container;
     return invoke(trackInvocation, fn);
   } finally {
     trackInvocation.$effectSubscriber$ = previousSubscriber;
-    trackInvocation.$container2$ = previousContainer;
+    trackInvocation.$container$ = previousContainer;
   }
 };
 

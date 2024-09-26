@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { expect } from 'vitest';
-import { Q_FUNCS_PREFIX, renderToString2 as renderToString } from '../server/v2-ssr-render2';
+import { Q_FUNCS_PREFIX } from '../server/ssr-render';
 import { createDocument } from './document';
 import { getTestPlatform } from './platform';
 import { _getDomContainer, componentQrl, type OnRenderFn } from '@builder.io/qwik';
@@ -26,7 +26,7 @@ import {
   QScopedStyle,
   QStyle,
 } from '../core/shared/utils/markers';
-import { render2 } from '../core/client/dom-render';
+import { render } from '../core/client/dom-render';
 import {
   vnode_getAttr,
   vnode_getFirstChild,
@@ -38,7 +38,7 @@ import {
 } from '../core/client/vnode';
 import { codeToName } from '../core/shared/shared-serialization';
 import './vdom-diff.unit-util';
-import { renderToString2 } from '../server/v2-ssr-render2';
+import { renderToString } from '../server/ssr-render';
 import { ChoreType } from '../core/shared/scheduler';
 
 /** @public */
@@ -47,12 +47,10 @@ export async function domRender(
   opts: {
     /// Print debug information to console.
     debug?: boolean;
-    /// Use old SSR rendering ond print out debug state. Useful for comparing difference between serialization.
-    oldSSR?: boolean;
   } = {}
 ) {
   const document = createDocument();
-  await render2(document.body, jsx);
+  await render(document.body, jsx);
   await getTestPlatform().flush();
   const getStyles = getStylesFactory(document);
   const container = _getDomContainer(document.body);
@@ -100,28 +98,10 @@ export async function ssrRenderToDom(
   opts: {
     /// Print debug information to console.
     debug?: boolean;
-    /// Use old SSR rendering ond print out debug state. Useful for comparing difference between serialization.
-    oldSSR?: boolean;
     /// Treat JSX as raw, (don't wrap in in head/body)
     raw?: boolean;
   } = {}
 ) {
-  if (opts.oldSSR) {
-    const platform = getPlatform();
-    try {
-      const ssr = await renderToString([
-        <head>
-          <title>{expect.getState().testPath}</title>
-        </head>,
-        <body>{jsx}</body>,
-      ]);
-      // restore platform
-      console.log('LEGACY HTML', ssr.html);
-    } finally {
-      setPlatform(platform);
-    }
-  }
-
   let html = '';
   const platform = getPlatform();
   try {
@@ -133,7 +113,7 @@ export async function ssrRenderToDom(
           </head>,
           <body>{jsx}</body>,
         ];
-    const result = await renderToString2(jsxToRender);
+    const result = await renderToString(jsxToRender);
     html = result.html;
   } finally {
     setPlatform(platform);

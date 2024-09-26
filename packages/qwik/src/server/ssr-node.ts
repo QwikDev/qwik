@@ -11,7 +11,7 @@ import {
   NON_SERIALIZABLE_MARKER_PREFIX,
 } from './qwik-copy';
 import type { SsrAttrs, ISsrNode, ISsrComponentFrame, JSXChildren } from './qwik-types';
-import type { CleanupQueue } from './v2-ssr-container';
+import type { CleanupQueue } from './ssr-container';
 
 /**
  * Server has no DOM, so we need to create a fake node to represent the DOM for serialization

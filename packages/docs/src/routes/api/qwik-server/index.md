@@ -745,7 +745,7 @@ export type RenderToStream = (
 
 **References:** [RenderToStreamOptions](#rendertostreamoptions), [RenderToStreamResult](#rendertostreamresult)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/v2-ssr-render2.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts)
 
 ## RenderToStream
 
@@ -894,7 +894,7 @@ export type RenderToString = (
 
 **References:** [RenderToStringOptions](#rendertostringoptions), [RenderToStringResult](#rendertostringresult)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/v2-ssr-render2.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts)
 
 ## RenderToString
 
@@ -1010,7 +1010,7 @@ QwikManifest \| ResolvedManifest \| undefined
 
 ResolvedManifest \| undefined
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/v2-ssr-render2.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts)
 
 ## SerializeDocumentOptions
 

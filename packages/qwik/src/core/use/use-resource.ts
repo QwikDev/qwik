@@ -13,7 +13,7 @@ import {
   type ResourceReturnInternal,
 } from './use-task';
 
-import type { Container2, fixMeAny } from '../../server/qwik-types';
+import type { Container, fixMeAny } from '../../server/qwik-types';
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import { isPromise } from '../shared/utils/promises';
 import { isObject } from '../shared/utils/types';
@@ -111,7 +111,7 @@ export const useResourceQrl = <T>(
   }
   assertQrl(qrl);
 
-  const container = iCtx.$container2$;
+  const container = iCtx.$container$;
   const resource = createResourceReturn<T>(container, opts);
   const el = iCtx.$hostElement$;
   const task = new Task(
@@ -313,7 +313,7 @@ export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn
 };
 
 export const createResourceReturn = <T>(
-  container: Container2,
+  container: Container,
   opts?: ResourceOptions,
   initialPromise?: Promise<T>
 ): ResourceReturnInternal<T> => {

@@ -1462,7 +1462,7 @@ const frameworkType = (obj: any) => {
   );
 };
 
-export const canSerialize2 = (value: any): boolean => {
+export const canSerialize = (value: any): boolean => {
   if (
     value == null ||
     typeof value === 'string' ||
@@ -1478,14 +1478,14 @@ export const canSerialize2 = (value: any): boolean => {
     }
     if (proto == Object.prototype) {
       for (const key in value) {
-        if (!canSerialize2(value[key])) {
+        if (!canSerialize(value[key])) {
           return false;
         }
       }
       return true;
     } else if (proto == Array.prototype) {
       for (let i = 0; i < value.length; i++) {
-        if (!canSerialize2(value[i])) {
+        if (!canSerialize(value[i])) {
           return false;
         }
       }

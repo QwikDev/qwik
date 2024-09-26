@@ -37,7 +37,7 @@ import { ChoreType, type NodePropData } from '../shared/scheduler';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
 import type {
   HostElement,
-  QElement2,
+  QElement,
   QwikLoaderEventScope,
   fixMeAny,
   qWindow,
@@ -93,7 +93,7 @@ import {
 import { getNewElementNamespaceData } from './vnode-namespace';
 import { WrappedSignal, EffectProperty, isSignal, EffectData } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
-import { executeComponent2 } from '../shared/component-execution';
+import { executeComponent } from '../shared/component-execution';
 import { isParentSlotProp, isSlotProp } from '../shared/utils/prop';
 import { escapeHTML } from '../shared/utils/character-escaping';
 import {
@@ -733,7 +733,7 @@ export const vnode_diff = (
     needsQDispatchEventPatch = setBulkProps(vNode, jsxAttrs) || needsQDispatchEventPatch;
     if (needsQDispatchEventPatch) {
       // Event handler needs to be patched onto the element.
-      const element = vnode_getNode(vNode) as QElement2;
+      const element = vnode_getNode(vNode) as QElement;
       if (!element.qDispatchEvent) {
         element.qDispatchEvent = (event: Event, scope: QwikLoaderEventScope) => {
           const eventName = event.type;
@@ -1056,7 +1056,7 @@ export const vnode_diff = (
       ) {
         component$Host = vnode_getParent(component$Host);
       }
-      const jsxOutput = executeComponent2(
+      const jsxOutput = executeComponent(
         container,
         host,
         (component$Host || container.rootVNode) as HostElement,

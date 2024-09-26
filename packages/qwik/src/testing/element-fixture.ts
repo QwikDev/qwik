@@ -6,7 +6,7 @@ import { createWindow } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
 import { delay } from '../core/shared/utils/promises';
-import type { QElement2, QwikLoaderEventScope } from '../core/shared/types';
+import type { QElement, QwikLoaderEventScope } from '../core/shared/types';
 import { fromCamelToKebabCase } from '../core/shared/utils/event-names';
 import { QFuncsPrefix, QInstanceAttr } from '../core/shared/utils/markers';
 
@@ -151,8 +151,8 @@ export const dispatch = async (
     if (stopPropagation) {
       event.stopPropagation();
     }
-    if ('qDispatchEvent' in (element as QElement2)) {
-      await (element as QElement2).qDispatchEvent!(event, scope);
+    if ('qDispatchEvent' in (element as QElement)) {
+      await (element as QElement).qDispatchEvent!(event, scope);
       await delay(0); // Unsure why this is needed for tests
       return;
     } else if (element.hasAttribute(attrName)) {

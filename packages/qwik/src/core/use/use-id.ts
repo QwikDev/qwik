@@ -13,16 +13,16 @@ export const useId = (): string => {
   if (val != null) {
     return val;
   }
-  const containerBase = isDomContainer(iCtx.$container2$)
+  const containerBase = isDomContainer(iCtx.$container$)
     ? ''
-    : (iCtx.$container2$ as SSRContainer).buildBase || '';
+    : (iCtx.$container$ as SSRContainer).buildBase || '';
   const base = containerBase ? hashCode(containerBase) : '';
-  const componentQrl = iCtx.$container2$.getHostProp(
+  const componentQrl = iCtx.$container$.getHostProp(
     iCtx.$hostElement$ as fixMeAny,
     OnRenderProp
   ) as QRL | null;
   const hash = componentQrl?.getHash() || '';
-  const counter = getNextUniqueIndex(iCtx.$container2$) || '';
+  const counter = getNextUniqueIndex(iCtx.$container$) || '';
   const id = `${base}-${hash}-${counter}`; // If no base and no hash, then "--#"
   return set(id);
 };

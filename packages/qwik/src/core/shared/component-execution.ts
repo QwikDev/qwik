@@ -18,14 +18,14 @@ import {
 } from './utils/markers';
 import { isPromise, maybeThen, safeCall } from './utils/promises';
 import type { ValueOrPromise } from './utils/types';
-import type { Container2, HostElement, fixMeAny } from './types';
+import type { Container, HostElement, fixMeAny } from './types';
 import { logWarn } from './utils/log';
 import { EffectProperty, isSignal } from '../signal/signal';
 import { vnode_isVNode } from '../client/vnode';
 import { clearVNodeEffectDependencies } from '../signal/signal-subscriber';
 
 /**
- * Use `executeComponent2` to execute a component.
+ * Use `executeComponent` to execute a component.
  *
  * Component execution can be complex because of:
  *
@@ -45,8 +45,8 @@ import { clearVNodeEffectDependencies } from '../signal/signal-subscriber';
  * @param props
  * @returns
  */
-export const executeComponent2 = (
-  container: Container2,
+export const executeComponent = (
+  container: Container,
   renderHost: HostElement,
   subscriptionHost: HostElement,
   componentQRL: OnRenderFn<unknown> | QRLInternal<OnRenderFn<unknown>> | null,
@@ -59,7 +59,7 @@ export const executeComponent2 = (
     RenderEvent
   );
   iCtx.$effectSubscriber$ = [subscriptionHost, EffectProperty.COMPONENT];
-  iCtx.$container2$ = container;
+  iCtx.$container$ = container;
   let componentFn: (props: unknown) => ValueOrPromise<JSXOutput>;
   container.ensureProjectionResolved(renderHost);
   if (componentQRL === null) {

@@ -67,17 +67,17 @@ import {
   type SymbolToChunkResolver,
   type ValueOrPromise,
 } from './qwik-types';
-import { Q_FUNCS_PREFIX } from './v2-ssr-render2';
+import { Q_FUNCS_PREFIX } from './ssr-render';
 import type { PrefetchResource, RenderOptions, RenderToStreamResult } from './types';
 import { createTimer } from './utils';
-import { SsrComponentFrame, SsrNode } from './v2-node';
+import { SsrComponentFrame, SsrNode } from './ssr-node';
 import {
   TagNesting,
   allowedContent,
   initialTag,
   isSelfClosingTag,
   isTagAllowed,
-} from './v2-tag-nesting';
+} from './tag-nesting';
 import {
   CLOSE_FRAGMENT,
   OPEN_FRAGMENT,
@@ -89,7 +89,7 @@ import {
   vNodeData_incrementElementCount,
   vNodeData_openFragment,
   type VNodeData,
-} from './v2-vnode-data';
+} from './vnode-data';
 
 export interface SSRRenderOptions {
   locale?: string;

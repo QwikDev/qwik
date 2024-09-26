@@ -20,7 +20,7 @@ import { QContainerAttr } from '../shared/utils/markers';
  * @returns An object containing a cleanup function.
  * @public
  */
-export const render2 = async (
+export const render = async (
   parent: Element | Document,
   jsxNode: JSXOutput | FunctionComponent<any>,
   opts: RenderOptions = {}

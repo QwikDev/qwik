@@ -1,7 +1,7 @@
 import type { QwikSymbolEvent, QwikVisibleEvent } from './core/shared/jsx/types/jsx-qwik-events';
 import type {
   QContainerElement,
-  QElement2,
+  QElement,
   QwikLoaderEventScope,
   qWindow,
 } from './core/shared/types';
@@ -106,7 +106,7 @@ export const qwikLoader = (
       return;
     }
     // </DELETE ME LATER>
-    const qDispatchEvent = (element as QElement2)['qDispatchEvent'];
+    const qDispatchEvent = (element as QElement)['qDispatchEvent'];
     if (qDispatchEvent) {
       return qDispatchEvent(ev, scope);
     }

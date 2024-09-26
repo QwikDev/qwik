@@ -1,7 +1,7 @@
 /** @file Public types for the SSR */
 
 import type {
-  Container2,
+  Container,
   JSXChildren,
   JSXOutput,
   SerializationContext,
@@ -45,7 +45,7 @@ export interface ISsrComponentFrame {
 
 export type SymbolToChunkResolver = (symbol: string) => string;
 
-export interface SSRContainer extends Container2 {
+export interface SSRContainer extends Container {
   readonly tag: string;
   readonly writer: StreamWriter;
   readonly prefetchResources: PrefetchResource[];

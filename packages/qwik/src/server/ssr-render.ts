@@ -21,7 +21,7 @@ import type {
   SnapshotResult,
 } from './types';
 import { createTimer, getBuildBase } from './utils';
-import { ssrCreateContainer } from './v2-ssr-container';
+import { ssrCreateContainer } from './ssr-container';
 
 /**
  * Creates a server-side `document`, renders to root node to the document, then serializes the
@@ -29,7 +29,7 @@ import { ssrCreateContainer } from './v2-ssr-container';
  *
  * @public
  */
-export const renderToString2 = async (
+export const renderToString = async (
   jsx: JSXOutput,
   opts: RenderToStringOptions = {}
 ): Promise<RenderToStringResult> => {
@@ -40,7 +40,7 @@ export const renderToString2 = async (
     },
   };
 
-  const result = await renderToStream2(jsx, {
+  const result = await renderToStream(jsx, {
     base: opts.base,
     containerAttributes: opts.containerAttributes,
     containerTagName: opts.containerTagName,
@@ -69,7 +69,7 @@ export const renderToString2 = async (
  *
  * @public
  */
-export const renderToStream2 = async (
+export const renderToStream = async (
   jsx: JSXOutput,
   opts: RenderToStreamOptions
 ): Promise<RenderToStreamResult> => {

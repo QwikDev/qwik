@@ -10,7 +10,7 @@ import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import { isPromise } from '../shared/utils/promises';
 import { getDomContainer } from '../client/dom-container';
 import { ChoreType } from '../shared/scheduler';
-import type { Container2, HostElement } from '../shared/types';
+import type { Container, HostElement } from '../shared/types';
 import {
   EffectProperty,
   type EffectSubscriptions,
@@ -22,7 +22,7 @@ import { createComputedQrl, createSignal } from './signal.public';
 describe('v2-signal', () => {
   const log: any[] = [];
   const delayMap = new Map();
-  let container: Container2 = null!;
+  let container: Container = null!;
   beforeEach(() => {
     log.length = 0;
     const document = createDocument({ html: '<html><body q:container="paused"></body></html>' });
@@ -133,7 +133,7 @@ describe('v2-signal', () => {
 
   function withContainer<T>(fn: () => T): T {
     const ctx = newInvokeContext();
-    ctx.$container2$ = container;
+    ctx.$container$ = container;
     return invoke(ctx, fn);
   }
 
@@ -166,7 +166,7 @@ describe('v2-signal', () => {
       throw qrl.resolve();
     } else {
       const ctx = newInvokeContext();
-      ctx.$container2$ = container;
+      ctx.$container$ = container;
       const subscriber: EffectSubscriptions = [task, EffectProperty.COMPONENT, ctx];
       ctx.$effectSubscriber$ = subscriber;
       return invoke(ctx, qrl.getFn(ctx));

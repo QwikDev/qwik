@@ -9,10 +9,10 @@ import type { StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { Scheduler } from './scheduler';
 import { createScheduler } from './scheduler';
 import { createSerializationContext, type SerializationContext } from './shared-serialization';
-import type { Container2, HostElement, ObjToProxyMap } from './types';
+import type { Container, HostElement, ObjToProxyMap } from './types';
 
 /** @internal */
-export abstract class _SharedContainer implements Container2 {
+export abstract class _SharedContainer implements Container {
   readonly $version$: string;
   readonly $scheduler$: Scheduler;
   readonly $storeProxyMap$: ObjToProxyMap;

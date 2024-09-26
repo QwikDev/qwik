@@ -3,7 +3,7 @@ import { assertTrue } from '../shared/error/assert';
 import { tryGetInvokeContext } from '../use/use-core';
 import { isSerializableObject } from '../shared/utils/types';
 import { SERIALIZER_PROXY_UNWRAP, unwrapDeserializerProxy } from '../shared/shared-serialization';
-import type { Container2, fixMeAny } from '../shared/types';
+import type { Container, fixMeAny } from '../shared/types';
 import {
   ensureContains,
   ensureContainsEffect,
@@ -46,7 +46,7 @@ export const isStore = (value: TargetType): boolean => {
 };
 
 export function createStore<T extends object>(
-  container: Container2 | null | undefined,
+  container: Container | null | undefined,
   obj: T,
   flags: StoreFlags
 ): T {
@@ -56,7 +56,7 @@ export function createStore<T extends object>(
 export const getOrCreateStore = <T extends object>(
   obj: T,
   flags: StoreFlags,
-  container: Container2 | null
+  container: Container | null
 ): T => {
   if (isSerializableObject(obj) && container) {
     let store: T | undefined = container.$storeProxyMap$.get(obj);
@@ -74,7 +74,7 @@ export class StoreHandler implements ProxyHandler<TargetType> {
 
   constructor(
     public $flags$: StoreFlags,
-    public $container$: Container2 | null
+    public $container$: Container | null
   ) {}
 
   toString(): string {
@@ -102,14 +102,14 @@ export class StoreHandler implements ProxyHandler<TargetType> {
     let value = target[prop];
     if (ctx) {
       if (this.$container$ === null) {
-        if (!ctx.$container2$) {
+        if (!ctx.$container$) {
           return value;
         }
         // Grab the container now we have access to it
-        this.$container$ = ctx.$container2$;
+        this.$container$ = ctx.$container$;
       } else {
         assertTrue(
-          !ctx.$container2$ || ctx.$container2$ === this.$container$,
+          !ctx.$container$ || ctx.$container$ === this.$container$,
           'Do not use signals across containers'
         );
       }

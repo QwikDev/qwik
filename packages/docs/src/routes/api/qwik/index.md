@@ -4540,7 +4540,7 @@ Render JSX.
 Use this method to render JSX. This function does reconciling which means it always tries to reuse what is already in the DOM (rather then destroy and recreate content.) It returns a cleanup function you could use for cleaning up subscriptions.
 
 ```typescript
-render2: (
+render: (
   parent: Element | Document,
   jsxNode: JSXOutput | FunctionComponent<any>,
   opts?: RenderOptions,

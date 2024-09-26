@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { TagNesting, isTagAllowed } from './v2-tag-nesting';
+import { TagNesting, isTagAllowed } from './tag-nesting';
 
 describe('tag-nesting', () => {
   it('debug', () => {

@@ -24,7 +24,7 @@ import { qDev } from '../shared/utils/qdev';
 import type { VNode } from '../client/types';
 import { vnode_getProp, vnode_isVirtualVNode, vnode_isVNode, vnode_setProp } from '../client/vnode';
 import { ChoreType, type NodePropData, type NodePropPayload } from '../shared/scheduler';
-import type { Container2, HostElement, fixMeAny } from '../shared/types';
+import type { Container, HostElement, fixMeAny } from '../shared/types';
 import type { ISsrNode } from '../ssr/ssr-types';
 import type { Signal as ISignal, ReadonlySignal } from './signal.public';
 import type { TargetType } from './store';
@@ -154,9 +154,9 @@ export class Signal<T = any> implements ISignal<T> {
   /** Store a list of effects which are dependent on this signal. */
   $effects$: null | EffectSubscriptions[] = null;
 
-  $container$: Container2 | null = null;
+  $container$: Container | null = null;
 
-  constructor(container: Container2 | null, value: T) {
+  constructor(container: Container | null, value: T) {
     this.$container$ = container;
     this.$untrackedValue$ = value;
     DEBUG && log('new', this);
@@ -175,14 +175,14 @@ export class Signal<T = any> implements ISignal<T> {
     const ctx = tryGetInvokeContext();
     if (ctx) {
       if (this.$container$ === null) {
-        if (!ctx.$container2$) {
+        if (!ctx.$container$) {
           return this.untrackedValue;
         }
         // Grab the container now we have access to it
-        this.$container$ = ctx.$container2$;
+        this.$container$ = ctx.$container$;
       } else {
         assertTrue(
-          !ctx.$container2$ || ctx.$container2$ === this.$container$,
+          !ctx.$container$ || ctx.$container$ === this.$container$,
           'Do not use signals across containers'
         );
       }
@@ -265,7 +265,7 @@ export const ensureContainsEffect = (
 export const ensureEffectContainsSubscriber = (
   effect: Effect,
   subscriber: Subscriber,
-  container: Container2 | null
+  container: Container | null
 ) => {
   if (isSubscriber(effect)) {
     effect.$effectDependencies$ ||= [];
@@ -316,7 +316,7 @@ const subscriberExistInSubscribers = (subscribers: Subscriber[], subscriber: Sub
 };
 
 export const triggerEffects = (
-  container: Container2 | null,
+  container: Container | null,
   signal: Signal | TargetType,
   effects: EffectSubscriptions[] | null
 ) => {
@@ -401,7 +401,7 @@ export class ComputedSignal<T> extends Signal<T> {
   // we need the old value to know if effects need running after computation
   $invalid$: boolean = true;
 
-  constructor(container: Container2 | null, fn: QRLInternal<() => T>) {
+  constructor(container: Container | null, fn: QRLInternal<() => T>) {
     // The value is used for comparison when signals trigger, which can only happen
     // when it was calculated before. Therefore we can pass whatever we like.
     super(container, NEEDS_COMPUTATION);
@@ -487,7 +487,7 @@ export class WrappedSignal<T> extends Signal<T> implements Subscriber {
   $effectDependencies$: Subscriber[] | null = null;
 
   constructor(
-    container: Container2 | null,
+    container: Container | null,
     fn: (...args: any[]) => T,
     args: any[],
     fnStr: string | null

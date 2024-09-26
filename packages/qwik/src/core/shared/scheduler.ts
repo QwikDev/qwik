@@ -88,7 +88,7 @@ import {
   Task,
   TaskFlags,
   cleanupTask,
-  runTask2,
+  runTask,
   runResource,
   type ResourceDescriptor,
   type TaskFn,
@@ -111,8 +111,8 @@ import {
   VNodeJournalOpCode,
 } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
-import { executeComponent2 } from './component-execution';
-import type { Container2, HostElement, fixMeAny } from './types';
+import { executeComponent } from './component-execution';
+import type { Container, HostElement, fixMeAny } from './types';
 import { isSignal, type Signal } from '../signal/signal.public';
 import { type DomContainer } from '../client/dom-container';
 import { serializeAttribute } from './utils/styles';
@@ -165,7 +165,7 @@ export interface NodePropPayload extends NodePropData {
 export type Scheduler = ReturnType<typeof createScheduler>;
 
 export const createScheduler = (
-  container: Container2,
+  container: Container,
   scheduleDrain: () => void,
   journalFlush: () => void
 ) => {
@@ -332,7 +332,7 @@ export const createScheduler = (
       case ChoreType.COMPONENT_SSR:
         returnValue = safeCall(
           () =>
-            executeComponent2(
+            executeComponent(
               container,
               host,
               host,
@@ -356,10 +356,10 @@ export const createScheduler = (
         returnValue = isDomContainer(container) ? null : result;
         break;
       case ChoreType.TASK:
-        returnValue = runTask2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
+        returnValue = runTask(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
         break;
       case ChoreType.VISIBLE:
-        returnValue = runTask2(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
+        returnValue = runTask(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
         break;
       case ChoreType.CLEANUP_VISIBLE:
         const task = chore.$payload$ as Task<TaskFn, TaskFn>;

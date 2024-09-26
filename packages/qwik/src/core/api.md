@@ -109,11 +109,11 @@ export interface CanvasHTMLAttributes<T extends Element> extends Attrs<'canvas',
 // @public
 export type ClassList = string | undefined | null | false | Record<string, boolean | string | number | null | undefined> | ClassList[];
 
-// Warning: (ae-forgotten-export) The symbol "Container2" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "Container" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "ClientContainer" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export interface ClientContainer extends Container2 {
+export interface ClientContainer extends Container {
     // Warning: (ae-forgotten-export) The symbol "VNodeJournal" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
@@ -1075,7 +1075,7 @@ export function _serialize(data: unknown[]): Promise<string>;
 export const setPlatform: (plt: CorePlatform) => CorePlatform;
 
 // @internal (undocumented)
-export abstract class _SharedContainer implements Container2 {
+export abstract class _SharedContainer implements Container {
     // (undocumented)
     abstract $appendStyle$(content: string, styleId: string, host: HostElement, scoped: boolean): void;
     // (undocumented)

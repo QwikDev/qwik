@@ -144,11 +144,11 @@ const _useStyles = (
   const value = styleQrl.$resolveLazy$(host);
   if (isPromise(value)) {
     value.then((val) =>
-      iCtx.$container2$.$appendStyle$(transform(val, styleId), styleId, host, scoped)
+      iCtx.$container$.$appendStyle$(transform(val, styleId), styleId, host, scoped)
     );
     throw value;
   } else {
-    iCtx.$container2$.$appendStyle$(transform(value, styleId), styleId, host, scoped);
+    iCtx.$container$.$appendStyle$(transform(value, styleId), styleId, host, scoped);
   }
 
   return styleId;

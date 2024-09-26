@@ -88,7 +88,7 @@ export const useStore = <STATE extends object>(
     set(value);
     return value;
   } else {
-    const containerState = iCtx.$container2$;
+    const containerState = iCtx.$container$;
     const recursive = opts?.deep ?? true;
     const flags = recursive ? StoreFlags.RECURSIVE : StoreFlags.NONE;
     const newStore = getOrCreateStore(value, flags, containerState);

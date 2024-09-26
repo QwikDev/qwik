@@ -8,7 +8,7 @@ import { ResourceEvent, TaskEvent } from '../shared/utils/markers';
 import { delay, isPromise, safeCall } from '../shared/utils/promises';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
 import { ChoreType } from '../shared/scheduler';
-import { type Container2, type HostElement, type fixMeAny } from '../shared/types';
+import { type Container, type HostElement, type fixMeAny } from '../shared/types';
 import { ComputedSignal, EffectProperty, isSignal, throwIfQRLNotResolved } from '../signal/signal';
 import { type ReadonlySignal, type Signal } from '../signal/signal.public';
 import { unwrapStore } from '../signal/store';
@@ -295,7 +295,7 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
   // in order to be able to retrieve it later when the parent element is
   // deleted and we need to be able to release the task subscriptions.
   set(task);
-  const result = runTask2(task, iCtx.$container2$, host);
+  const result = runTask(task, iCtx.$container$, host);
   if (isPromise(result)) {
     throw result;
   }
@@ -305,21 +305,21 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
   }
 };
 
-export const runTask2 = (
+export const runTask = (
   task: Task,
-  container: Container2,
+  container: Container,
   host: HostElement
 ): ValueOrPromise<void> => {
   task.$flags$ &= ~TaskFlags.DIRTY;
   cleanupTask(task);
   const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, TaskEvent);
-  iCtx.$container2$ = container;
+  iCtx.$container$ = container;
   const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberEffectDependencies(task)) as TaskFn;
 
   const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
     const ctx = newInvokeContext();
     ctx.$effectSubscriber$ = [task, EffectProperty.COMPONENT];
-    ctx.$container2$ = container;
+    ctx.$container$ = container;
     return invoke(ctx, () => {
       if (isFunction(obj)) {
         return obj();
@@ -360,7 +360,7 @@ export const runTask2 = (
     cleanup,
     (err: unknown) => {
       if (isPromise(err)) {
-        return err.then(() => runTask2(task, container, host));
+        return err.then(() => runTask(task, container, host));
       } else {
         return handleError(err);
       }
@@ -431,7 +431,7 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
   useRunTask(task, eagerness);
   if (!isServerPlatform()) {
     qrl.$resolveLazy$(iCtx.$hostElement$ as fixMeAny);
-    iCtx.$container2$.$scheduler$(ChoreType.VISIBLE, task);
+    iCtx.$container$.$scheduler$(ChoreType.VISIBLE, task);
   }
 };
 
@@ -444,14 +444,14 @@ export interface ComputedDescriptor<T> extends DescriptorBase<ComputedFn<T>, Sig
 
 export const runResource = <T>(
   task: ResourceDescriptor<T>,
-  container: Container2,
+  container: Container,
   host: HostElement
 ): ValueOrPromise<void> => {
   task.$flags$ &= ~TaskFlags.DIRTY;
   cleanupTask(task);
 
   const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, ResourceEvent);
-  iCtx.$container2$ = container;
+  iCtx.$container$ = container;
 
   const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberEffectDependencies(task));
 
@@ -465,7 +465,7 @@ export const runResource = <T>(
   const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
     const ctx = newInvokeContext();
     ctx.$effectSubscriber$ = [task, EffectProperty.COMPONENT];
-    ctx.$container2$ = container;
+    ctx.$container$ = container;
     return invoke(ctx, () => {
       if (isFunction(obj)) {
         return obj();

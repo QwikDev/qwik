@@ -1,5 +1,4 @@
 // NOTE: we want to move this function to qwikloader, and therefore this function should not have any external dependencies
-import { throwErrorAndStop } from '../shared/utils/log';
 import { VNodeDataChar, VNodeDataSeparator } from '../shared/vnode-data-types';
 import type { ContainerElement, ElementVNode, QDocument } from './types';
 
@@ -266,7 +265,7 @@ export function processVNodeData(document: Document) {
         do {
           islandNode = walker.nextNode();
           if (!islandNode) {
-            return throwErrorAndStop(`Island inside <!--${node?.nodeValue}--> not found!`);
+            throw new Error(`Island inside <!--${node?.nodeValue}--> not found!`);
           }
         } while (getFastNodeType(islandNode) !== NodeType.COMMENT_ISLAND_START);
         nextNode = null;
@@ -275,7 +274,7 @@ export function processVNodeData(document: Document) {
         do {
           nextNode = walker.nextNode();
           if (!nextNode) {
-            return throwErrorAndStop(`Ignore block not closed!`);
+            throw new Error(`Ignore block not closed!`);
           }
         } while (getFastNodeType(nextNode) !== NodeType.COMMENT_IGNORE_END);
         nextNode = null;
@@ -285,7 +284,7 @@ export function processVNodeData(document: Document) {
         do {
           nextNode = nextSibling(nextNode);
           if (!nextNode) {
-            return throwErrorAndStop(`<!--${node?.nodeValue}--> not closed!`);
+            throw new Error(`<!--${node?.nodeValue}--> not closed!`);
           }
         } while (getFastNodeType(nextNode) !== NodeType.COMMENT_SKIP_END);
         // console.log('EXIT', nextNode?.outerHTML);

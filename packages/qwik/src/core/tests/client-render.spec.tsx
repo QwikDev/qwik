@@ -13,7 +13,7 @@ import { describe, expect, it } from 'vitest';
 import { createDocument } from '../../testing/document';
 import { trigger } from '../../testing/element-fixture';
 import { getTestPlatform } from '../../testing/platform';
-import { render2 } from '../client/dom-render';
+import { render } from '../client/dom-render';
 import type { ContainerElement } from '../client/types';
 import { vnode_getFirstChild } from '../client/vnode';
 
@@ -194,7 +194,7 @@ describe('v2 client render', () => {
 async function clientRender(jsx: JSXOutput, rootSelector: string = 'body') {
   const document = createDocument();
   const root = document.querySelector(rootSelector)!;
-  await render2(root, jsx);
+  await render(root, jsx);
   await getTestPlatform().flush();
   const containerElement = root as ContainerElement;
   const container = containerElement.qContainer!;

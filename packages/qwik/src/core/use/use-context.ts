@@ -195,7 +195,7 @@ export const useContextProvider = <STATE>(context: ContextId<STATE>, newValue: S
   if (qDev && qSerialize) {
     verifySerializable(newValue);
   }
-  iCtx.$container2$.setContext(iCtx.$hostElement$ as fixMeAny as HostElement, context, newValue);
+  iCtx.$container$.setContext(iCtx.$hostElement$ as fixMeAny as HostElement, context, newValue);
   set(1);
 };
 
@@ -267,7 +267,7 @@ export const useContext: UseContext = <STATE>(
     validateContext(context);
   }
 
-  const value: STATE | undefined = iCtx.$container2$.resolveContext(
+  const value: STATE | undefined = iCtx.$container$.resolveContext(
     iCtx.$hostElement$ as fixMeAny as HostElement,
     context
   );

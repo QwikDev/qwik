@@ -1,8 +1,8 @@
 import { walkJSX } from '@builder.io/qwik/testing';
 import crypto from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { SsrNode } from '../../server/v2-node';
-import { ssrCreateContainer } from '../../server/v2-ssr-container';
+import { SsrNode } from '../../server/ssr-node';
+import { ssrCreateContainer } from '../../server/ssr-container';
 import { createDocument } from '../../testing/document';
 import { SERIALIZABLE_STATE, component$ } from '../shared/component.public';
 import { inlinedQrl, qrl } from '../shared/qrl/qrl';

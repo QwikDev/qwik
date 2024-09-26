@@ -3,7 +3,7 @@ import { isNode } from './element';
 import { throwErrorAndStop } from './log';
 import { isPromise } from './promises';
 import { isArray, isFunction, isObject, isSerializableObject } from './types';
-import { canSerialize2 } from '../shared-serialization';
+import { canSerialize } from '../shared-serialization';
 import { isSignal } from '../../signal/signal';
 import { unwrapStore } from '../../signal/store';
 
@@ -26,7 +26,7 @@ const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessag
     if (isSignal(unwrapped)) {
       return value;
     }
-    if (canSerialize2(unwrapped)) {
+    if (canSerialize(unwrapped)) {
       return value;
     }
     const typeObj = typeof unwrapped;

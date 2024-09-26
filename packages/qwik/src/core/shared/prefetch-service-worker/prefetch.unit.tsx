@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PrefetchServiceWorker, PrefetchGraph } from './prefetch';
-import { renderToString2 as renderToString } from '../../../server/v2-ssr-render2';
+import { renderToString as renderToString } from '../../../server/ssr-render';
 
 const DEBUG = false;
 function log(...args: any[]) {

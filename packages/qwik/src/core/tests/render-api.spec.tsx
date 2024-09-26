@@ -22,7 +22,7 @@ import { createDocument } from '@builder.io/qwik-dom';
 import type { GlobalInjections, QwikManifest } from '@builder.io/qwik/optimizer';
 import { renderToStream, renderToString } from '@builder.io/qwik/server';
 import { emulateExecutionOfQwikFuncs, getTestPlatform, trigger } from '@builder.io/qwik/testing';
-import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type {
   RenderToStreamOptions,
   RenderToStreamResult,
@@ -31,9 +31,7 @@ import type {
   StreamWriter,
   StreamingOptions,
 } from '../../server/types';
-import { renderToStream2, renderToString2 } from '../../server/v2-ssr-render2';
 import { _fnSignal } from '../internal';
-import { render2 } from '../client/dom-render';
 import { vnode_getFirstChild } from '../client/vnode';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 
@@ -99,7 +97,7 @@ const renderToStringAndSetPlatform = async (jsx: JSXOutput, opts: RenderToString
   const platform = getPlatform();
   let result: RenderToStringResult;
   try {
-    result = await renderToString2(jsx, opts);
+    result = await renderToString(jsx, opts);
   } finally {
     setPlatform(platform);
   }
@@ -110,7 +108,7 @@ const renderToStreamAndSetPlatform = async (jsx: JSXOutput, opts: RenderToStream
   const platform = getPlatform();
   let result: RenderToStreamResult;
   try {
-    result = await renderToStream2(jsx, opts);
+    result = await renderToStream(jsx, opts);
   } finally {
     setPlatform(platform);
   }
@@ -123,16 +121,9 @@ describe('render api', () => {
     document = createDocument();
   });
 
-  describe('types', () => {
-    it('should have same type signature()', () => {
-      expectTypeOf(render2).toEqualTypeOf(render);
-      expectTypeOf(renderToString2).toEqualTypeOf(renderToString);
-      expectTypeOf(renderToStream2).toEqualTypeOf(renderToStream);
-    });
-  });
   describe('render()', () => {
     it('should render counter', async () => {
-      await render2(document.body, <Counter />);
+      await render(document.body, <Counter />);
       await getTestPlatform().flush();
       const container = getDomContainer(document.body);
       const vNode = vnode_getFirstChild(container.rootVNode);
@@ -162,7 +153,7 @@ describe('render api', () => {
           </span>
         );
       });
-      await render2(document.body, <TestCmp />, { serverData: { 'my-key': 'my-value' } });
+      await render(document.body, <TestCmp />, { serverData: { 'my-key': 'my-value' } });
       await getTestPlatform().flush();
       const container = getDomContainer(document.body);
       const vNode = vnode_getFirstChild(container.rootVNode);
@@ -185,7 +176,7 @@ describe('render api', () => {
         });
         return <span />;
       });
-      const { cleanup } = await render2(document.body, <TestCmp />, {
+      const { cleanup } = await render(document.body, <TestCmp />, {
         serverData: { 'my-key': 'my-value' },
       });
       await getTestPlatform().flush();

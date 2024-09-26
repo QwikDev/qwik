@@ -1,7 +1,7 @@
 /** @file Public types for the client deserialization */
 
 import type { QRL } from '../shared/qrl/qrl.public';
-import type { Container2 } from '../shared/types';
+import type { Container } from '../shared/types';
 import type { VNodeJournal } from './vnode';
 
 export type ClientAttrKey = string;
@@ -9,7 +9,7 @@ export type ClientAttrValue = string | null;
 export type ClientAttrs = Array<ClientAttrKey | ClientAttrValue>;
 
 /** @internal */
-export interface ClientContainer extends Container2 {
+export interface ClientContainer extends Container {
   document: QDocument;
   element: ContainerElement;
   qContainer: string;

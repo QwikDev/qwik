@@ -22,16 +22,16 @@ export const useSequentialScope = <T>(): SequentialScope<T> => {
   const iCtx = useInvokeContext();
   const hostElement = iCtx.$hostElement$;
   const host: HostElement = hostElement as any;
-  let seq = iCtx.$container2$.getHostProp<any[]>(host, ELEMENT_SEQ);
+  let seq = iCtx.$container$.getHostProp<any[]>(host, ELEMENT_SEQ);
   if (seq === null) {
     seq = [];
-    iCtx.$container2$.setHostProp(host, ELEMENT_SEQ, seq);
+    iCtx.$container$.setHostProp(host, ELEMENT_SEQ, seq);
   }
-  let seqIdx = iCtx.$container2$.getHostProp<number>(host, ELEMENT_SEQ_IDX);
+  let seqIdx = iCtx.$container$.getHostProp<number>(host, ELEMENT_SEQ_IDX);
   if (seqIdx === null) {
     seqIdx = 0;
   }
-  iCtx.$container2$.setHostProp(host, ELEMENT_SEQ_IDX, seqIdx + 1);
+  iCtx.$container$.setHostProp(host, ELEMENT_SEQ_IDX, seqIdx + 1);
   while (seq.length <= seqIdx) {
     seq.push(undefined);
   }

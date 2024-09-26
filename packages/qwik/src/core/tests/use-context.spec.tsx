@@ -25,7 +25,7 @@ import {
   createDocument,
   emulateExecutionOfQwikFuncs,
 } from '@builder.io/qwik/testing';
-import { renderToString2 } from 'packages/qwik/src/server/v2-ssr-render2';
+import { renderToString } from '@builder.io/qwik/server';
 import type { Signal } from '../signal/signal.public';
 
 const debug = false; //true;
@@ -296,7 +296,7 @@ describe('html wrapper', () => {
     let document = createDocument();
     const platform = getPlatform();
     try {
-      const result = await renderToString2(
+      const result = await renderToString(
         <Provider>
           <head></head>
           <body>

@@ -15,7 +15,7 @@ export interface DeserializeContainer {
   getSyncFn: (id: number) => (...args: unknown[]) => unknown;
 }
 
-export interface Container2 {
+export interface Container {
   readonly $version$: string;
   readonly $scheduler$: Scheduler;
   readonly $storeProxyMap$: ObjToProxyMap;
@@ -53,7 +53,7 @@ export interface Container2 {
 
 export type HostElement = VirtualVNode | ISsrNode;
 
-export interface QElement2 extends HTMLElement {
+export interface QElement extends HTMLElement {
   qDispatchEvent?: (event: Event, scope: QwikLoaderEventScope) => boolean;
 }
 
@@ -67,7 +67,7 @@ export type qWindow = Window & {
 
 export type QwikLoaderEventScope = '-document' | '-window' | '';
 
-export const isContainer2 = (container: any): container is Container2 => {
+export const isContainer = (container: any): container is Container => {
   return container && typeof container === 'object' && typeof container.setHostProp === 'function';
 };
 

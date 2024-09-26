@@ -471,7 +471,8 @@ export function parseQRL(qrl: string): QRLInternal<any> {
   const chunk =
     hashIdx > -1
       ? qrl.substring(qrl.charCodeAt(0) < SerializationConstant.LAST_VALUE ? 1 : 0, hashIdx)
-      : qrl;
+      : qrl.substring(0, captureStart);
+
   const symbol =
     captureStart > -1 ? qrl.substring(hashIdx + 1, captureStart) : qrl.substring(hashIdx + 1);
   let qrlRef = null;
@@ -1248,6 +1249,9 @@ export function qrlToString(
     if (!chunk) {
       throwErrorAndStop('Missing chunk for: ' + value.$symbol$);
     }
+    if (chunk.startsWith('./')) {
+      chunk = chunk.slice(2);
+    }
   } else {
     const fn = value.resolved as Function;
     chunk = '';
@@ -1265,6 +1269,8 @@ export function qrlToString(
       serializedReferences += serializationContext.$addRoot$(value.$captureRef$[i]);
     }
     qrlStringInline += `[${serializedReferences}]`;
+  } else if (value.$capture$ && value.$capture$.length > 0) {
+    qrlStringInline += `[${value.$capture$.join(' ')}]`;
   }
 
   return qrlStringInline;

@@ -60,7 +60,7 @@ describe('serialization', () => {
     matchProps(parseQRL('./chunk#s1'), {
       $chunk$: './chunk',
       $symbol$: 's1',
-      $capture$: [],
+      $capture$: null,
     });
     matchProps(parseQRL('./chunk#s1[1 b]'), {
       $chunk$: './chunk',

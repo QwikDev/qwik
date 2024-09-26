@@ -2244,12 +2244,15 @@ describe.each([
         return (
           <div>
             <button onClick$={() => (signal.value = null)}>Sign out</button>
-            <Issue6900Image src={signal.value.url} />
+            <Issue6900Root>
+              <Issue6900Image src={signal.value.url} />
+            </Issue6900Root>
           </div>
         );
       });
 
       const { vNode, document } = await render(<Issue6900 />, { debug: DEBUG });
+
       if (render === ssrRenderToDom) {
         await trigger(document.body, 'div', ':document:qinit');
       }
@@ -2257,7 +2260,11 @@ describe.each([
         <Component>
           <div>
             <button>Sign out</button>
-            <Component>https://picsum.photos/200</Component>
+            <Component>
+              <Projection>
+                <Component>https://picsum.photos/200</Component>
+              </Projection>
+            </Component>
           </div>
         </Component>
       );

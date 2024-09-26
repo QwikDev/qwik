@@ -1,31 +1,30 @@
-import { assertDefined } from '../shared/error/assert';
+import { getDomContainer } from '../client/dom-container';
+import type { VNode } from '../client/types';
 import { isServerPlatform } from '../shared/platform/platform';
 import { assertQrl, createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { noSerialize, type NoSerialize } from '../shared/utils/serialize-utils';
-import { logError } from '../shared/utils/log';
-import { ResourceEvent, TaskEvent } from '../shared/utils/markers';
-import { delay, isPromise, safeCall } from '../shared/utils/promises';
-import { isFunction, type ValueOrPromise } from '../shared/utils/types';
 import { ChoreType } from '../shared/scheduler';
 import { type Container, type HostElement, type fixMeAny } from '../shared/types';
-import { ComputedSignal, EffectProperty, isSignal, throwIfQRLNotResolved } from '../signal/signal';
-import { type ReadonlySignal, type Signal } from '../signal/signal.public';
-import { unwrapStore } from '../signal/store';
+import { logError } from '../shared/utils/log';
+import { TaskEvent } from '../shared/utils/markers';
+import { isPromise, safeCall } from '../shared/utils/promises';
+import { noSerialize, type NoSerialize } from '../shared/utils/serialize-utils';
+import { isFunction, type ValueOrPromise } from '../shared/utils/types';
+import { EffectProperty, isSignal } from '../signal/signal';
 import { Subscriber, clearSubscriberEffectDependencies } from '../signal/signal-subscriber';
-import { invoke, newInvokeContext, untrack } from './use-core';
-import { useOn, useOnDocument } from './use-on';
-import { useSequentialScope } from './use-sequential-scope';
+import { type Signal } from '../signal/signal.public';
+import { invoke, newInvokeContext } from './use-core';
 import { useLexicalScope } from './use-lexical-scope.public';
-import { getDomContainer } from '../client/dom-container';
-import type { VNode } from '../client/types';
+import { useOn, useOnDocument } from './use-on';
+import type { ResourceReturnInternal } from './use-resource';
+import { useSequentialScope } from './use-sequential-scope';
+import type { VisibleTaskStrategy } from './use-visible-task';
 
 export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,
   TASK = 1 << 1,
   RESOURCE = 1 << 2,
-  COMPUTED = 1 << 3,
-  DIRTY = 1 << 4,
+  DIRTY = 1 << 3,
 }
 
 // <docs markdown="../readme.md#Tracker">
@@ -126,53 +125,8 @@ export interface TaskCtx {
 }
 
 /** @public */
-export interface ResourceCtx<T> {
-  readonly track: Tracker;
-  cleanup(callback: () => void): void;
-  cache(policyOrMilliseconds: number | 'immutable'): void;
-  readonly previous: T | undefined;
-}
-
-/** @public */
 export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 
-/** @public */
-export type ComputedFn<T> = () => T;
-
-/** @public */
-export type ResourceFn<T> = (ctx: ResourceCtx<unknown>) => ValueOrPromise<T>;
-
-/** @public */
-export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
-
-/** @public */
-export interface ResourcePending<T> {
-  readonly value: Promise<T>;
-  readonly loading: boolean;
-}
-
-/** @public */
-export interface ResourceResolved<T> {
-  readonly value: Promise<T>;
-  readonly loading: boolean;
-}
-
-/** @public */
-export interface ResourceRejected<T> {
-  readonly value: Promise<T>;
-  readonly loading: boolean;
-}
-
-export interface ResourceReturnInternal<T> {
-  __brand: 'resource';
-  _state: 'pending' | 'resolved' | 'rejected';
-  _resolved: T | undefined;
-  _error: Error | undefined;
-  _cache: number;
-  _timeout: number;
-  value: Promise<T>;
-  loading: boolean;
-}
 /** @public */
 export interface DescriptorBase<T = unknown, B = unknown> extends Subscriber {
   $flags$: number;
@@ -185,24 +139,6 @@ export interface DescriptorBase<T = unknown, B = unknown> extends Subscriber {
 
 /** @public */
 export type EagernessOptions = 'visible' | 'load' | 'idle';
-
-/** @public */
-export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
-
-/** @public */
-export interface OnVisibleTaskOptions {
-  /**
-   * The strategy to use to determine when the "VisibleTask" should first execute.
-   *
-   * - `intersection-observer`: the task will first execute when the element is visible in the
-   *   viewport, under the hood it uses the IntersectionObserver API.
-   * - `document-ready`: the task will first execute when the document is ready, under the hood it
-   *   uses the document `load` event.
-   * - `document-idle`: the task will first execute when the document is idle, under the hood it uses
-   *   the requestIdleCallback API.
-   */
-  strategy?: VisibleTaskStrategy;
-}
 
 /** @public */
 export interface UseTaskOptions {
@@ -369,234 +305,7 @@ export const runTask = (
   return result;
 };
 
-/** @public */
-export const useComputedQrl = <T>(
-  qrl: QRL<ComputedFn<T>>
-): T extends Promise<any> ? never : ReadonlySignal<T> => {
-  const { val, set } = useSequentialScope<Signal<T>>();
-  if (val) {
-    return val as any;
-  }
-  assertQrl(qrl);
-  const signal = new ComputedSignal(null, qrl);
-  set(signal);
-
-  // Note that we first save the signal
-  // and then we throw to load the qrl
-  // This is why we can't use useConstant, we need to keep using the same qrl object
-  throwIfQRLNotResolved(qrl);
-  return signal as any;
-};
-
-// <docs markdown="../readme.md#useVisibleTask">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useVisibleTask instead)
-/**
- * ```tsx
- * const Timer = component$(() => {
- *   const store = useStore({
- *     count: 0,
- *   });
- *
- *   useVisibleTask$(() => {
- *     // Only runs in the client
- *     const timer = setInterval(() => {
- *       store.count++;
- *     }, 500);
- *     return () => {
- *       clearInterval(timer);
- *     };
- *   });
- *
- *   return <div>{store.count}</div>;
- * });
- * ```
- *
- * @public
- */
-// </docs>
-export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions): void => {
-  const { val, set, i, iCtx } = useSequentialScope<Task<TaskFn>>();
-  const eagerness = opts?.strategy ?? 'intersection-observer';
-  if (val) {
-    if (isServerPlatform()) {
-      useRunTask(val, eagerness);
-    }
-    return;
-  }
-  assertQrl(qrl);
-
-  const task = new Task(TaskFlags.VISIBLE_TASK, i, iCtx.$hostElement$, qrl, undefined, null);
-  set(task);
-  useRunTask(task, eagerness);
-  if (!isServerPlatform()) {
-    qrl.$resolveLazy$(iCtx.$hostElement$ as fixMeAny);
-    iCtx.$container$.$scheduler$(ChoreType.VISIBLE, task);
-  }
-};
-
 export type TaskDescriptor = DescriptorBase<TaskFn>;
-
-export interface ResourceDescriptor<T>
-  extends DescriptorBase<ResourceFn<T>, ResourceReturnInternal<T>> {}
-
-export interface ComputedDescriptor<T> extends DescriptorBase<ComputedFn<T>, Signal<T>> {}
-
-export const runResource = <T>(
-  task: ResourceDescriptor<T>,
-  container: Container,
-  host: HostElement
-): ValueOrPromise<void> => {
-  task.$flags$ &= ~TaskFlags.DIRTY;
-  cleanupTask(task);
-
-  const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, ResourceEvent);
-  iCtx.$container$ = container;
-
-  const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberEffectDependencies(task));
-
-  const resource = task.$state$;
-  assertDefined(
-    resource,
-    'useResource: when running a resource, "task.resource" must be a defined.',
-    task
-  );
-
-  const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
-    const ctx = newInvokeContext();
-    ctx.$effectSubscriber$ = [task, EffectProperty.COMPONENT];
-    ctx.$container$ = container;
-    return invoke(ctx, () => {
-      if (isFunction(obj)) {
-        return obj();
-      }
-      if (prop) {
-        return (obj as Record<string, unknown>)[prop];
-      } else if (isSignal(obj)) {
-        return obj.value;
-      } else {
-        return obj;
-      }
-    });
-  };
-
-  const handleError = (reason: unknown) => container.handleError(reason, host);
-
-  const cleanups: (() => void)[] = [];
-  task.$destroy$ = noSerialize(() => {
-    cleanups.forEach((fn) => {
-      try {
-        fn();
-      } catch (err) {
-        handleError(err);
-      }
-    });
-    done = true;
-  });
-
-  const resourceTarget = unwrapStore(resource);
-  const opts: ResourceCtx<T> = {
-    track,
-    cleanup(fn) {
-      if (typeof fn === 'function') {
-        cleanups.push(fn);
-      }
-    },
-    cache(policy) {
-      let milliseconds = 0;
-      if (policy === 'immutable') {
-        milliseconds = Infinity;
-      } else {
-        milliseconds = policy;
-      }
-      resource._cache = milliseconds;
-    },
-    previous: resourceTarget._resolved,
-  };
-
-  let resolve: (v: T) => void;
-  let reject: (v: unknown) => void;
-  let done = false;
-
-  const setState = (resolved: boolean, value: T | Error) => {
-    if (!done) {
-      done = true;
-      if (resolved) {
-        done = true;
-        resource.loading = false;
-        resource._state = 'resolved';
-        resource._resolved = value as T;
-        resource._error = undefined;
-        // console.log('RESOURCE.resolved: ', value);
-
-        resolve(value as T);
-      } else {
-        done = true;
-        resource.loading = false;
-        resource._state = 'rejected';
-        resource._error = value as Error;
-        reject(value as Error);
-      }
-      return true;
-    }
-    return false;
-  };
-
-  /**
-   * Add cleanup to resolve the resource if we are trying to run the same resource again while the
-   * previous one is not resolved yet. The next `runResource` run will call this cleanup
-   */
-  cleanups.push(() => {
-    if (untrack(() => resource.loading) === true) {
-      const value = untrack(() => resource._resolved) as T;
-      setState(true, value);
-    }
-  });
-
-  // Execute mutation inside empty invocation
-  invoke(iCtx, () => {
-    // console.log('RESOURCE.pending: ');
-    resource._state = 'pending';
-    resource.loading = !isServerPlatform();
-    const promise = (resource.value = new Promise((r, re) => {
-      resolve = r;
-      reject = re;
-    }));
-    promise.catch(ignoreErrorToPreventNodeFromCrashing);
-  });
-
-  const promise: ValueOrPromise<void> = safeCall(
-    () => Promise.resolve(taskFn(opts)),
-    (value) => {
-      setState(true, value);
-    },
-    (err) => {
-      if (isPromise(err)) {
-        return err.then(() => runResource(task, container, host));
-      } else {
-        setState(false, err);
-      }
-    }
-  );
-
-  const timeout = resourceTarget._timeout;
-  if (timeout > 0) {
-    return Promise.race([
-      promise,
-      delay(timeout).then(() => {
-        if (setState(false, new Error('timeout'))) {
-          cleanupTask(task);
-        }
-      }),
-    ]);
-  }
-  return promise;
-};
-
-const ignoreErrorToPreventNodeFromCrashing = (err: unknown) => {
-  // ignore error to prevent node from crashing
-  // node will crash in promise is rejected and no one is listening to the rejection.
-};
 
 export const cleanupTask = (task: Task) => {
   const destroy = task.$destroy$;
@@ -610,7 +319,10 @@ export const cleanupTask = (task: Task) => {
   }
 };
 
-const useRunTask = (task: Task, eagerness: VisibleTaskStrategy | EagernessOptions | undefined) => {
+export const useRunTask = (
+  task: Task,
+  eagerness: VisibleTaskStrategy | EagernessOptions | undefined
+) => {
   if (eagerness === 'visible' || eagerness === 'intersection-observer') {
     useOn('qvisible', getTaskHandlerQrl(task));
   } else if (eagerness === 'load' || eagerness === 'document-ready') {

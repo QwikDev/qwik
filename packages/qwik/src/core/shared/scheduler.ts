@@ -84,15 +84,8 @@ import { assertEqual } from './error/assert';
 import type { QRLInternal } from './qrl/qrl-class';
 import type { QRL } from './qrl/qrl.public';
 import type { JSXOutput } from './jsx/types/jsx-node';
-import {
-  Task,
-  TaskFlags,
-  cleanupTask,
-  runTask,
-  runResource,
-  type ResourceDescriptor,
-  type TaskFn,
-} from '../use/use-task';
+import { Task, TaskFlags, cleanupTask, runTask, type TaskFn } from '../use/use-task';
+import { runResource, type ResourceDescriptor } from '../use/use-resource';
 import { logWarn, throwErrorAndStop } from './utils/log';
 import { isPromise, maybeThen, maybeThenPassError, safeCall } from './utils/promises';
 import type { ValueOrPromise } from './utils/types';

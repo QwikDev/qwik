@@ -104,26 +104,27 @@ export type { UseStylesScoped } from './use/use-styles';
 export type { UseSignal } from './use/use-signal';
 export type { ContextId } from './use/use-context';
 export type { UseStoreOptions } from './use/use-store.public';
+export type { ComputedFn } from './use/use-computed';
+export { useComputedQrl } from './use/use-computed';
+export type { OnVisibleTaskOptions, VisibleTaskStrategy } from './use/use-visible-task';
+export { useVisibleTaskQrl } from './use/use-visible-task';
+export type { EagernessOptions, TaskCtx, TaskFn, Tracker, UseTaskOptions } from './use/use-task';
 export type {
-  ComputedFn,
-  EagernessOptions,
-  OnVisibleTaskOptions,
+  ResourceProps,
+  ResourceOptions,
   ResourceCtx,
   ResourceFn,
   ResourcePending,
   ResourceRejected,
   ResourceResolved,
   ResourceReturn,
-  TaskCtx,
-  TaskFn,
-  Tracker,
-  UseTaskOptions,
-  VisibleTaskStrategy,
-} from './use/use-task';
-export type { ResourceProps, ResourceOptions } from './use/use-resource';
-export { useResource$, useResourceQrl, Resource } from './use/use-resource';
-export { useTaskQrl, useVisibleTaskQrl, useComputedQrl } from './use/use-task';
-export { useComputed$, useTask$, useVisibleTask$ } from './use/use-task-dollar';
+} from './use/use-resource';
+export { useResourceQrl, Resource } from './use/use-resource';
+export { useResource$ } from './use/use-resource-dollar';
+export { useTaskQrl } from './use/use-task';
+export { useTask$ } from './use/use-task-dollar';
+export { useVisibleTask$ } from './use/use-visible-task-dollar';
+export { useComputed$ } from './use/use-computed-dollar';
 export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './shared/error/error-handling';
 export { type ReadonlySignal, type Signal, type ComputedSignal } from './signal/signal.public';

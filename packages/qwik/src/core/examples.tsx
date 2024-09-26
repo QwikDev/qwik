@@ -12,7 +12,8 @@ import { $, type QRL } from './shared/qrl/qrl.public';
 import { useOn, useOnDocument, useOnWindow } from './use/use-on';
 import { useStore } from './use/use-store.public';
 import { useStyles$, useStylesScoped$ } from './use/use-styles';
-import { useVisibleTask$, useTask$ } from './use/use-task-dollar';
+import { useTask$ } from './use/use-task-dollar';
+import { useVisibleTask$ } from './use/use-visible-task-dollar';
 import { implicit$FirstArg } from './shared/qrl/implicit_dollar';
 import { isServer, isBrowser } from '../build';
 
@@ -474,7 +475,8 @@ function doExtraStuff() {
 // <docs anchor="qrl-capturing-rules">
 
 import { createContextId, useContext, useContextProvider } from './use/use-context';
-import { Resource, useResource$ } from './use/use-resource';
+import { Resource } from './use/use-resource';
+import { useResource$ } from './use/use-resource-dollar';
 import { useSignal } from './use/use-signal';
 
 export const greet = () => console.log('greet');

@@ -1414,7 +1414,7 @@ componentQrl
 export type ComputedFn<T> = () => T;
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts)
 
 ## ComputedSignal
 
@@ -3536,7 +3536,7 @@ _(Optional)_ The strategy to use to determine when the "VisibleTask" should firs
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-visible-task.ts)
 
 ## OptgroupHTMLAttributes
 
@@ -4954,7 +4954,7 @@ Description
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
 ## ResourceFn
 
@@ -4964,7 +4964,7 @@ export type ResourceFn<T> = (ctx: ResourceCtx<unknown>) => ValueOrPromise<T>;
 
 **References:** [ResourceCtx](#resourcectx), [ValueOrPromise](#valueorpromise)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
 ## ResourceOptions
 
@@ -5065,7 +5065,7 @@ Promise&lt;T&gt;
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
 ## ResourceProps
 
@@ -5207,7 +5207,7 @@ Promise&lt;T&gt;
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
 ## ResourceResolved
 
@@ -5264,7 +5264,7 @@ Promise&lt;T&gt;
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
 ## ResourceReturn
 
@@ -5277,7 +5277,7 @@ export type ResourceReturn<T> =
 
 **References:** [ResourcePending](#resourcepending), [ResourceResolved](#resourceresolved), [ResourceRejected](#resourcerejected)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
 ## ScriptHTMLAttributes
 
@@ -10136,7 +10136,7 @@ Creates a computed signal which is calculated from the given function. A compute
 The function must be synchronous and must not have any side effects.
 
 ```typescript
-useComputed$: <T>(qrl: import("./use-task").ComputedFn<T>) => T extends Promise<any> ? never : import("..").ReadonlySignal<T>
+useComputed$: <T>(qrl: import("./use-computed").ComputedFn<T>) => T extends Promise<any> ? never : import("..").ReadonlySignal<T>
 ```
 
 <table><thead><tr><th>
@@ -10158,7 +10158,7 @@ qrl
 
 </td><td>
 
-import("./use-task").[ComputedFn](#computedfn)&lt;T&gt;
+import("./use-computed").[ComputedFn](#computedfn)&lt;T&gt;
 
 </td><td>
 
@@ -10168,7 +10168,7 @@ import("./use-task").[ComputedFn](#computedfn)&lt;T&gt;
 
 T extends Promise&lt;any&gt; ? never : import("..").[ReadonlySignal](#readonlysignal)&lt;T&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task-dollar.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed-dollar.ts)
 
 ## useComputedQrl
 
@@ -10205,7 +10205,7 @@ qrl
 
 T extends Promise&lt;any&gt; ? never : [ReadonlySignal](#readonlysignal)&lt;T&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts)
 
 ## useConstant
 
@@ -10658,7 +10658,7 @@ _(Optional)_
 
 [ResourceReturn](#resourcereturn)&lt;T&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource-dollar.ts)
 
 ## useResourceQrl
 
@@ -11393,7 +11393,7 @@ const Timer = component$(() => {
 ```
 
 ```typescript
-useVisibleTask$: (qrl: import("./use-task").TaskFn, opts?: import("./use-task").OnVisibleTaskOptions | undefined) => void
+useVisibleTask$: (qrl: import("./use-task").TaskFn, opts?: import("./use-visible-task").OnVisibleTaskOptions | undefined) => void
 ```
 
 <table><thead><tr><th>
@@ -11426,7 +11426,7 @@ opts
 
 </td><td>
 
-import("./use-task").[OnVisibleTaskOptions](#onvisibletaskoptions) \| undefined
+import("./use-visible-task").[OnVisibleTaskOptions](#onvisibletaskoptions) \| undefined
 
 </td><td>
 
@@ -11438,7 +11438,7 @@ _(Optional)_
 
 void
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task-dollar.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-visible-task-dollar.ts)
 
 ## useVisibleTaskQrl
 
@@ -11508,7 +11508,7 @@ _(Optional)_
 
 void
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-visible-task.ts)
 
 ## ValueOrPromise
 
@@ -11549,7 +11549,7 @@ export type VisibleTaskStrategy =
   | "document-idle";
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-visible-task.ts)
 
 ## WebViewHTMLAttributes
 

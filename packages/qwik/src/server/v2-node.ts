@@ -8,6 +8,7 @@ import {
   ELEMENT_SEQ,
   QSlot,
   QDefaultSlot,
+  NON_SERIALIZABLE_MARKER_PREFIX,
 } from './qwik-copy';
 import type { SsrAttrs, ISsrNode, ISsrComponentFrame, JSXChildren } from './qwik-types';
 import type { CleanupQueue } from './v2-ssr-container';
@@ -59,7 +60,7 @@ export class SsrNode implements ISsrNode {
     if (this.attrs === _EMPTY_ARRAY) {
       this.attrs = [];
     }
-    if (name.startsWith(':')) {
+    if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
       mapArray_set(this.locals || (this.locals = []), name, value, 0);
     } else {
       mapArray_set(this.attrs, name, value, 0);
@@ -72,7 +73,7 @@ export class SsrNode implements ISsrNode {
   }
 
   getProp(name: string): any {
-    if (name.startsWith(':')) {
+    if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
       return this.locals ? mapArray_get(this.locals, name, 0) : null;
     } else {
       return mapArray_get(this.attrs, name, 0);
@@ -80,7 +81,7 @@ export class SsrNode implements ISsrNode {
   }
 
   removeProp(name: string): void {
-    if (name.startsWith(':')) {
+    if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
       if (this.locals) {
         mapApp_remove(this.locals, name, 0);
       }

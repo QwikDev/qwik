@@ -6,7 +6,7 @@ import { QACTION_KEY } from './constants';
 export const toPath = (url: URL) => url.pathname + url.search + url.hash;
 
 /** Create a URL from a string and baseUrl */
-export const toUrl = (url: string, baseUrl: SimpleURL) => new URL(url, baseUrl.href);
+export const toUrl = (url: string | URL, baseUrl: SimpleURL) => new URL(url, baseUrl.href);
 
 /** Checks only if the origins are the same. */
 export const isSameOrigin = (a: SimpleURL, b: SimpleURL) => a.origin === b.origin;

@@ -5,7 +5,8 @@ contributors:
   - Craiqser
   - mrhoodz
   - thejackshelton
-updated_at: '2023-07-05T08:00:42Z'
+  - wmertens
+updated_at: '2024-09-17T00:00:00Z'
 created_at: '2023-06-22T22:13:24Z'
 ---
 
@@ -37,40 +38,46 @@ Each Qwik Labs feature can roughly be thought of as going through these stages:
 
 ## Installation
 
-Qwik labs are distributed as a separate node package. Because Qwik Labs is "work in progress" the node package is not published to NPM but instead as a github URL. The package is continually updated and so it will always contains the latest build. (You may read up on installing node packages [here](https://docs.npmjs.com/cli/v8/commands/npm-install).)
+There are two ways experimental features are made available to the community:
 
+1. As an `experimental` flag.
+  Some features are distributed under an experimental flag. This means that the feature is already part of the main package but is not enabled by default. To enable the feature you need to set the corresponding flag in the `qwikVite` `experimental[]` array.
 
-<PackageManagerTabs>
-<span q:slot="pnpm">
-```shell
-pnpm install github:QwikDev/qwik-labs-build#main
-```
-</span>
-<span q:slot="npm">
-```shell
-npm install github:QwikDev/qwik-labs-build#main
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn add github:QwikDev/qwik-labs-build#main
-```
-</span>
-<span q:slot="bun">
-```shell
-bun install github:QwikDev/qwik-labs-build#main
-```
-</span>
-</PackageManagerTabs>
+2. As a separate node package.
+  Qwik labs are distributed as a separate node package. Because Qwik Labs is "work in progress" the node package is not published to NPM but instead as a github URL. The package is continually updated and so it will always contains the latest build. (You may read up on installing node packages [here](https://docs.npmjs.com/cli/v8/commands/npm-install).)
 
-Or just add this to your `package.json`
+  <PackageManagerTabs>
+  <span q:slot="pnpm">
+  ```shell
+  pnpm install github:QwikDev/qwik-labs-build#main
+  ```
+  </span>
+  <span q:slot="npm">
+  ```shell
+  npm install github:QwikDev/qwik-labs-build#main
+  ```
+  </span>
+  <span q:slot="yarn">
+  ```shell
+  yarn add github:QwikDev/qwik-labs-build#main
+  ```
+  </span>
+  <span q:slot="bun">
+  ```shell
+  bun install github:QwikDev/qwik-labs-build#main
+  ```
+  </span>
+  </PackageManagerTabs>
 
-```javascript
-{
-  ...
-  "dependencies": {
+  Or just add this to your `package.json`
+
+  ```javascript
+  {
     ...
-    "@builder.io/qwik-labs": "github:QwikDev/qwik-labs-build#main",
+    "dependencies": {
+      ...
+      "@builder.io/qwik-labs": "github:QwikDev/qwik-labs-build#main",
+    }
   }
-}
-```
+  ```
+

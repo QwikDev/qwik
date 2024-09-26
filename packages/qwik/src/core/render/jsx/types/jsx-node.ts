@@ -34,7 +34,8 @@ export interface DevJSX {
 export interface JSXNode<T extends string | FunctionComponent | unknown = unknown> {
   type: T;
   props: T extends FunctionComponent<infer P> ? P : Record<any, unknown>;
-  immutableProps: Record<any, unknown> | null;
+  varProps: Record<any, unknown>;
+  constProps: Record<any, unknown> | null;
   children: JSXChildren | null;
   flags: number;
   key: string | null;

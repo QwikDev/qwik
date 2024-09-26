@@ -1,20 +1,21 @@
-import { fromCamelToKebabCase } from '../util/case';
-import { qError, QError_invalidContext, QError_notFoundContext } from '../error/error';
-import { qDev, qSerialize } from '../util/qdev';
-import { isObject } from '../util/types';
-import { useSequentialScope } from './use-sequential-scope';
-import { assertTrue } from '../error/assert';
-import { verifySerializable } from '../state/common';
-import { getContext, type QContext } from '../state/context';
 import type { ContainerState } from '../container/container';
-import { invoke } from './use-core';
+import { assertTrue } from '../error/assert';
+import { qError, QError_invalidContext, QError_notFoundContext } from '../error/error';
 import {
+  getVirtualElement,
   type QwikElement,
   type VirtualElement,
-  getVirtualElement,
 } from '../render/dom/virtual-element';
-import { isComment } from '../util/element';
+import { verifySerializable } from '../state/common';
 import { Q_CTX, VIRTUAL_SYMBOL } from '../state/constants';
+import { getContext, type QContext } from '../state/context';
+import { isComment } from '../util/element';
+import { qDev, qSerialize } from '../util/qdev';
+import { isObject } from '../util/types';
+import { fromCamelToKebabCase } from '../v2/shared/event-names';
+import type { fixMeAny, HostElement } from '../v2/shared/types';
+import { invoke } from './use-core';
+import { useSequentialScope } from './use-sequential-scope';
 
 // <docs markdown="../readme.md#ContextId">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -193,19 +194,23 @@ export const createContextId = <STATE = unknown>(name: string): ContextId<STATE>
  */
 // </docs>
 export const useContextProvider = <STATE>(context: ContextId<STATE>, newValue: STATE) => {
-  const { val, set, elCtx } = useSequentialScope<boolean>();
+  const { val, set, elCtx, iCtx } = useSequentialScope<1>();
   if (val !== undefined) {
     return;
   }
   if (qDev) {
     validateContext(context);
   }
-  const contexts = (elCtx.$contexts$ ||= new Map());
   if (qDev && qSerialize) {
     verifySerializable(newValue);
   }
-  contexts.set(context.id, newValue);
-  set(true);
+  if (iCtx.$container2$) {
+    iCtx.$container2$.setContext(iCtx.$hostElement$ as fixMeAny as HostElement, context, newValue);
+  } else {
+    const contexts = (elCtx.$contexts$ ||= new Map());
+    contexts.set(context.id, newValue);
+  }
+  set(1);
 };
 
 export interface UseContext {
@@ -276,7 +281,15 @@ export const useContext: UseContext = <STATE>(
     validateContext(context);
   }
 
-  const value = resolveContext(context, elCtx, iCtx.$renderCtx$.$static$.$containerState$);
+  let value: STATE | undefined;
+  if (iCtx.$container2$) {
+    value = iCtx.$container2$.resolveContext(
+      iCtx.$hostElement$ as fixMeAny as HostElement,
+      context
+    );
+  } else {
+    value = resolveContext<STATE>(context, elCtx, iCtx.$renderCtx$.$static$.$containerState$);
+  }
   if (typeof defaultValue === 'function') {
     return set(invoke(undefined, defaultValue as any, value));
   }

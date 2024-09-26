@@ -1,27 +1,34 @@
-import { $, type QRL } from '../qrl/qrl.public';
+import { isServerPlatform } from '../platform/platform';
 import { assertQrl } from '../qrl/qrl-class';
+import { dollar, type QRL } from '../qrl/qrl.public';
+import { Fragment, _jsxSorted } from '../render/jsx/jsx-runtime';
+import { untrack, useBindInvokeContext } from './use-core';
 import {
-  type ResourceReturn,
+  Task,
+  TaskFlags,
+  runResource,
   type ResourceDescriptor,
   type ResourceFn,
-  runResource,
-  TaskFlagsIsDirty,
-  TaskFlagsIsResource,
-  Task,
+  type ResourceReturn,
   type ResourceReturnInternal,
 } from './use-task';
-import { Fragment, jsx } from '../render/jsx/jsx-runtime';
-import { isServerPlatform } from '../platform/platform';
-import { untrack, useBindInvokeContext } from './use-core';
 
-import type { ContainerState, GetObjID } from '../container/container';
-import { useSequentialScope } from './use-sequential-scope';
-import { createProxy } from '../state/store';
-import { getProxyTarget } from '../state/common';
-import { isSignal, type Signal } from '../state/signal';
-import { isObject } from '../util/types';
-import { isPromise } from '../util/promises';
+import type { Container2, fixMeAny } from '../../server/qwik-types';
+import type { GetObjID } from '../container/container';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
+import { type Signal } from '../state/signal';
+import { isPromise } from '../util/promises';
+import { isObject } from '../util/types';
+import { StoreFlags, createStore, getStoreTarget } from '../v2/signal/v2-store';
+import { useSequentialScope } from './use-sequential-scope';
+import { isSignal } from '../v2/signal/v2-signal';
+
+const DEBUG: boolean = false;
+
+function debugLog(...arg: any) {
+  // eslint-disable-next-line no-console
+  console.log(arg.join(', '));
+}
 
 /**
  * Options to pass to `useResource$()`
@@ -99,28 +106,24 @@ export const useResourceQrl = <T>(
   qrl: QRL<ResourceFn<T>>,
   opts?: ResourceOptions
 ): ResourceReturn<T> => {
-  const { val, set, i, iCtx, elCtx } = useSequentialScope<ResourceReturn<T>>();
+  const { val, set, i, iCtx } = useSequentialScope<ResourceReturn<T>>();
   if (val != null) {
     return val;
   }
   assertQrl(qrl);
 
-  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-  const resource = createResourceReturn<T>(containerState, opts);
-  const el = elCtx.$element$;
+  const container = iCtx.$container2$;
+  const resource = createResourceReturn<T>(container, opts);
+  const el = iCtx.$hostElement$;
   const task = new Task(
-    TaskFlagsIsDirty | TaskFlagsIsResource,
+    TaskFlags.DIRTY | TaskFlags.RESOURCE,
     i,
     el,
     qrl,
-    resource
+    resource,
+    null
   ) as ResourceDescriptor<any>;
-  const previousWait = Promise.all(iCtx.$waitOn$.slice());
-  runResource(task, containerState, iCtx.$renderCtx$, previousWait);
-  if (!elCtx.$tasks$) {
-    elCtx.$tasks$ = [];
-  }
-  elCtx.$tasks$.push(task);
+  runResource(task, container, iCtx.$hostElement$ as fixMeAny);
   set(resource);
 
   return resource;
@@ -185,7 +188,7 @@ export const useResource$ = <T>(
   generatorFn: ResourceFn<T>,
   opts?: ResourceOptions
 ): ResourceReturn<T> => {
-  return useResourceQrl<T>($(generatorFn), opts);
+  return useResourceQrl<T>(dollar(generatorFn), opts);
 };
 
 /** @public */
@@ -252,48 +255,49 @@ export interface ResourceProps<T> {
  */
 // </docs>
 export const Resource = <T>(props: ResourceProps<T>): JSXOutput => {
-  const isBrowser = !isServerPlatform();
+  // Resource path
+  return _jsxSorted(Fragment, null, null, getResourceValueAsPromise(props), 0, null);
+};
+
+function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutput> | JSXOutput {
   const resource = props.value as ResourceReturnInternal<T> | Promise<T> | Signal<T>;
-  let promise: Promise<T> | undefined;
   if (isResourceReturn(resource)) {
+    const isBrowser = !isServerPlatform();
     if (isBrowser) {
-      if (props.onRejected) {
-        resource.value.catch(() => {});
-        if (resource._state === 'rejected') {
-          return props.onRejected(resource._error!);
-        }
-      }
-      if (props.onPending) {
-        const state = resource._state;
-        if (state === 'resolved') {
-          return props.onResolved(resource._resolved!);
-        } else if (state === 'pending') {
-          return props.onPending();
-        } else if (state === 'rejected') {
-          throw resource._error;
-        }
-      }
-      if (untrack(() => resource._resolved) !== undefined) {
-        return props.onResolved(resource._resolved!);
+      // create a subscription for the resource._state changes
+      const state = resource._state;
+      DEBUG && debugLog(`RESOURCE_CMP.${state}`, 'VALUE: ' + untrack(() => resource._resolved));
+
+      if (state === 'pending' && props.onPending) {
+        return Promise.resolve(props.onPending());
+      } else if (state === 'rejected' && props.onRejected) {
+        return Promise.resolve(resource._error!).then(props.onRejected);
+      } else {
+        // resolved, pending without onPending prop or rejected with onRejected prop
+        return Promise.resolve(untrack(() => resource._resolved) as T).then(props.onResolved);
       }
     }
-    promise = resource.value;
-  } else if (isPromise(resource)) {
-    promise = resource;
-  } else if (isSignal(resource)) {
-    promise = Promise.resolve(resource.value);
-  } else {
-    return props.onResolved(resource as T);
-  }
-
-  // Resource path
-  return jsx(Fragment, {
-    children: promise.then(
+    return resource.value.then(
       useBindInvokeContext(props.onResolved),
       useBindInvokeContext(props.onRejected)
-    ),
-  });
-};
+    );
+  } else if (isPromise(resource)) {
+    return resource.then(
+      useBindInvokeContext(props.onResolved),
+      useBindInvokeContext(props.onRejected)
+    );
+  } else if (isSignal(resource)) {
+    return Promise.resolve(resource.value).then(
+      useBindInvokeContext(props.onResolved),
+      useBindInvokeContext(props.onRejected)
+    );
+  } else {
+    return Promise.resolve(resource as T).then(
+      useBindInvokeContext(props.onResolved),
+      useBindInvokeContext(props.onRejected)
+    );
+  }
+}
 
 export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturnInternal<T> => {
   const resource: ResourceReturnInternal<T> = {
@@ -310,24 +314,25 @@ export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn
 };
 
 export const createResourceReturn = <T>(
-  containerState: ContainerState,
+  container: Container2,
   opts?: ResourceOptions,
   initialPromise?: Promise<T>
 ): ResourceReturnInternal<T> => {
   const result = _createResourceReturn<T>(opts);
-  result.value = initialPromise as any;
-  const resource = createProxy(result, containerState, undefined);
-  return resource;
+  result.value = initialPromise as Promise<T>;
+
+  return createStore(container, result, StoreFlags.RECURSIVE);
 };
 
 export const getInternalResource = <T>(resource: ResourceReturn<T>): ResourceReturnInternal<T> => {
-  return getProxyTarget(resource) as any;
+  return getStoreTarget(resource) as any;
 };
 
 export const isResourceReturn = (obj: any): obj is ResourceReturn<unknown> => {
-  return isObject(obj) && (obj as any).__brand === 'resource';
+  return isObject(obj) && (getStoreTarget(obj as any) || obj).__brand === 'resource';
 };
 
+// TODO: to remove - serializers v1
 export const serializeResource = (
   resource: ResourceReturnInternal<unknown>,
   getObjId: GetObjID
@@ -342,9 +347,10 @@ export const serializeResource = (
   }
 };
 
+// TODO: to remove - serializers v1
 export const parseResourceReturn = <T>(data: string): ResourceReturnInternal<T> => {
   const [first, id] = data.split(' ');
-  const result = _createResourceReturn<T>(undefined);
+  const result = _createResourceReturn<T>();
   result.value = Promise.resolve() as any;
   if (first === '0') {
     result._state = 'resolved';

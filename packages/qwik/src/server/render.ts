@@ -1,13 +1,18 @@
-import type { SnapshotResult } from '@builder.io/qwik';
-import { _pauseFromContexts, _renderSSR, Fragment, jsx, type JSXNode } from '@builder.io/qwik';
+import {
+  Fragment,
+  _pauseFromContexts,
+  _renderSSR,
+  jsx,
+  type JSXNode,
+  type SnapshotResult,
+} from '@builder.io/qwik';
 import { isDev } from '@builder.io/qwik/build';
-import type { QContext } from '../core/state/context';
-import { QInstance } from '../core/util/markers';
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { getValidManifest } from '../optimizer/src/manifest';
-import type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
 import { getSymbolHash, setServerPlatform } from './platform';
 import { applyPrefetchImplementation } from './prefetch-implementation';
 import { getPrefetchResources } from './prefetch-strategy';
+import type { QContext, ResolvedManifest, SymbolMapper } from './qwik-types';
 import { getQwikLoaderScript } from './scripts';
 import type {
   QwikManifest,
@@ -18,6 +23,7 @@ import type {
   StreamWriter,
 } from './types';
 import { createTimer, getBuildBase } from './utils';
+import { QInstanceAttr } from './qwik-copy';
 
 const DOCTYPE = '<!DOCTYPE html>';
 
@@ -40,8 +46,8 @@ export async function renderToStream(
   let snapshotResult: SnapshotResult | undefined;
   const inOrderStreaming = opts.streaming?.inOrder ?? {
     strategy: 'auto',
-    maximunInitialChunk: 50000,
-    maximunChunk: 30000,
+    maximumInitialChunk: 50000,
+    maximumChunk: 30000,
   };
   const containerTagName = opts.containerTagName ?? 'html';
   const containerAttributes = opts.containerAttributes ?? {};
@@ -78,8 +84,8 @@ export async function renderToStream(
     case 'auto':
       let count = 0;
       let forceFlush = false;
-      const minimunChunkSize = inOrderStreaming.maximunChunk ?? 0;
-      const initialChunkSize = inOrderStreaming.maximunInitialChunk ?? 0;
+      const minimumChunkSize = inOrderStreaming.maximumChunk ?? 0;
+      const initialChunkSize = inOrderStreaming.maximumInitialChunk ?? 0;
       stream = {
         write(chunk) {
           if (chunk === '<!--qkssr-f-->') {
@@ -91,7 +97,7 @@ export async function renderToStream(
           } else {
             enqueue(chunk);
           }
-          const chunkSize = networkFlushes === 0 ? initialChunkSize : minimunChunkSize;
+          const chunkSize = networkFlushes === 0 ? initialChunkSize : minimumChunkSize;
           if (count === 0 && (forceFlush || bufferSize >= chunkSize)) {
             forceFlush = false;
             flush();
@@ -181,7 +187,7 @@ export async function renderToStream(
       const children: (JSXNode | null)[] = [];
       if (opts.prefetchStrategy !== null) {
         // skip prefetch implementation if prefetchStrategy === null
-        const prefetchResources = getPrefetchResources(snapshotResult, opts, resolvedManifest);
+        const prefetchResources = getPrefetchResources(snapshotResult.qrls, opts, resolvedManifest);
         const base = containerAttributes['q:base']!;
         if (prefetchResources.length > 0) {
           const prefetchImpl = applyPrefetchImplementation(
@@ -204,7 +210,7 @@ export async function renderToStream(
         })
       );
       if (snapshotResult.funcs.length > 0) {
-        const hash = containerAttributes[QInstance];
+        const hash = containerAttributes[QInstanceAttr];
         children.push(
           jsx('script', {
             'q:func': 'qwik/json',

@@ -4,17 +4,6 @@ import {
   setRef,
   type ContainerState,
 } from '../../container/container';
-import { assertDefined } from '../../error/assert';
-import { QError_canNotRenderHTML, qError } from '../../error/error';
-import { serializeQRLs } from '../../qrl/qrl';
-import { Q_CTX, _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
-import {
-  HOST_FLAG_DIRTY,
-  HOST_FLAG_DYNAMIC,
-  HOST_FLAG_NEED_ATTACH_LISTENER,
-  createContext,
-  type QContext,
-} from '../../state/context';
 import {
   PREVENT_DEFAULT,
   groupListeners,
@@ -22,15 +11,11 @@ import {
   setEvent,
   type Listener,
 } from '../../state/listeners';
-import { isSignal } from '../../state/signal';
-import { createPropsState, createProxy } from '../../state/store';
-import { serializeSStyle } from '../../style/qrl-styles';
-import { invoke, newInvokeContext, trackSignal, type InvokeContext } from '../../use/use-core';
-import { EMPTY_OBJ } from '../../util/flyweight';
 import { logError, logWarn } from '../../util/log';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
 import { isPromise, maybeThen } from '../../util/promises';
-import { qDev, qInspector, seal } from '../../util/qdev';
+import { type InvokeContext, newInvokeContext, invoke, trackSignalV1 } from '../../use/use-core';
+import { Virtual, _jsxSorted, createJSXError, isJSXNode } from '../jsx/jsx-runtime';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../../util/types';
 import { version } from '../../version';
 import type { QwikElement } from '../dom/virtual-element';
@@ -47,11 +32,27 @@ import {
   static_subtree,
   stringifyStyle,
 } from '../execute-component';
-import { Virtual, _jsxC, _jsxQ, createJSXError, isJSXNode } from '../jsx/jsx-runtime';
 import type { FunctionComponent, JSXNode, JSXOutput } from '../jsx/types/jsx-node';
-import type { ClassList, JSXChildren } from '../jsx/types/jsx-qwik-attributes';
 import { InternalSSRStream, SSRRaw } from '../jsx/utils.public';
 import type { RenderContext } from '../types';
+import { assertDefined } from '../../error/assert';
+import { serializeSStyle } from '../../style/qrl-styles';
+import { qDev, qInspector, seal } from '../../util/qdev';
+import { qError, QError_canNotRenderHTML } from '../../error/error';
+import { isSignalV1 } from '../../state/signal';
+import { serializeQRLs } from '../../qrl/qrl';
+import { EMPTY_OBJ } from '../../util/flyweight';
+import {
+  createContext,
+  HOST_FLAG_DIRTY,
+  HOST_FLAG_NEED_ATTACH_LISTENER,
+  HOST_FLAG_DYNAMIC,
+  type QContext,
+} from '../../state/context';
+import { createPropsState, createProxy } from '../../state/store';
+import { Q_CTX, _CONST_PROPS } from '../../state/constants';
+import type { ClassList, JSXChildren } from '../jsx/types/jsx-qwik-attributes';
+import { SubscriptionType } from '../../state/common';
 
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 
@@ -164,21 +165,13 @@ export const _renderSSR = async (node: JSXOutput, opts: RenderSSROptions) => {
     containerAttributes.class =
       'qc📦' + (containerAttributes.class ? ' ' + containerAttributes.class : '');
   }
-  const serverData = (containerState.$serverData$ = {
-    ...containerState.$serverData$,
-    ...opts.serverData,
-  });
-  serverData.containerAttributes = {
-    ...serverData['containerAttributes'],
-    ...containerAttributes,
-  };
-  const invokeCtx = (ssrCtx.$invocationContext$ = newInvokeContext(locale));
-  invokeCtx.$renderCtx$ = rCtx;
-  ssrCtx.$invocationContext$;
+  if (opts.serverData) {
+    containerState.$serverData$ = opts.serverData;
+  }
 
-  const rootNode = _jsxQ(
+  const rootNode = _jsxSorted(
     root,
-    null,
+    EMPTY_OBJ,
     containerAttributes,
     children,
     HOST_FLAG_DIRTY | HOST_FLAG_NEED_ATTACH_LISTENER,
@@ -398,7 +391,7 @@ const renderSSRComponent = (
     const hostElement = elCtx.$element$;
     const newRCtx = res.rCtx;
     const iCtx = newInvokeContext(ssrCtx.$static$.$locale$, hostElement, undefined);
-    iCtx.$subscriber$ = [0, hostElement];
+    iCtx.$subscriber$ = [SubscriptionType.HOST, hostElement];
     iCtx.$renderCtx$ = newRCtx;
     const newSSrContext: SSRContext = {
       $static$: ssrCtx.$static$,
@@ -413,12 +406,12 @@ const renderSSRComponent = (
       const array = isHTML ? ssrCtx.$static$.$headNodes$ : extraNodes;
       for (const style of elCtx.$appendStyles$) {
         array.push(
-          _jsxQ(
+          _jsxSorted(
             'style',
             {
-              [QStyle]: style.styleId,
               [dangerouslySetInnerHTML]: style.content,
               hidden: '',
+              [QStyle]: style.styleId,
             },
             null,
             null,
@@ -430,13 +423,14 @@ const renderSSRComponent = (
     }
     const newID = getNextIndex(rCtx);
     const scopeId = elCtx.$scopeIds$ ? serializeSStyle(elCtx.$scopeIds$) : undefined;
-    const processedNode = _jsxC(
+    const processedNode = _jsxSorted(
       node.type,
       {
-        [QScopedStyle]: scopeId,
         [ELEMENT_ID]: newID,
-        children: res.node,
+        [QScopedStyle]: scopeId,
       },
+      null,
+      res.node,
       0,
       node.key
     );
@@ -485,7 +479,7 @@ const renderSSRComponent = (
             const content = projectedChildren[slotName];
             // projectedChildren[slotName] = undefined;
             if (content) {
-              return _jsxQ(
+              return _jsxSorted(
                 'q:template',
                 { [QSlot]: slotName || true, hidden: true, 'aria-hidden': 'true' },
                 null,
@@ -543,7 +537,7 @@ const renderNode = (
   if (typeof tagName === 'string') {
     const key = node.key;
     const props = node.props;
-    const immutable = node.immutableProps || EMPTY_OBJ;
+    const immutable = node.constProps;
     const elCtx = createMockQContext(1);
     const elm = elCtx.$element$ as Element;
     const isHead = tagName === 'head';
@@ -560,16 +554,34 @@ const renderNode = (
         }
         return;
       }
+      if (rawProp === 'children') {
+        // Already passed to the JSXNode
+        return;
+      }
       if (isOnProp(rawProp)) {
         setEvent(elCtx.li, rawProp, value, undefined);
         return;
       }
-      if (isSignal(value)) {
+      if (isSignalV1(value)) {
         assertDefined(hostCtx, 'Signals can not be used outside the root');
         if (isImmutable) {
-          value = trackSignal(value, [1, elm, value, hostCtx.$element$, rawProp]);
+          value = trackSignalV1(value, [
+            SubscriptionType.PROP_IMMUTABLE,
+            elm,
+            value,
+            hostCtx.$element$,
+            rawProp,
+            undefined,
+          ]);
         } else {
-          value = trackSignal(value, [2, hostCtx.$element$, value, elm, rawProp]);
+          value = trackSignalV1(value, [
+            SubscriptionType.PROP_MUTABLE,
+            hostCtx.$element$,
+            value,
+            elm,
+            rawProp,
+            undefined,
+          ]);
         }
         useSignal = true;
       }
@@ -608,26 +620,11 @@ const renderNode = (
       }
     };
     for (const prop in props) {
-      let isImmutable = false;
-      let value;
-      if (prop in immutable) {
-        isImmutable = true;
-        value = immutable[prop];
-        if (value === _IMMUTABLE) {
-          value = props[prop];
-        }
-      } else {
-        value = props[prop];
-      }
-      handleProp(prop, value, isImmutable);
+      handleProp(prop, props[prop], false);
     }
-    for (const prop in immutable) {
-      if (prop in props) {
-        continue;
-      }
-      const value = immutable[prop];
-      if (value !== _IMMUTABLE) {
-        handleProp(prop, value, true);
+    if (immutable) {
+      for (const prop in immutable) {
+        handleProp(prop, props[prop], true);
       }
     }
     const listeners = elCtx.li;
@@ -856,7 +853,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
     return processData(res, rCtx, ssrCtx, stream, flags, beforeClose);
   }
   return renderNode(
-    _jsxC(Virtual, { children: res }, 0, node.key),
+    _jsxSorted(Virtual, EMPTY_OBJ, null, res, 0, node.key),
     rCtx,
     ssrCtx,
     stream,
@@ -883,7 +880,7 @@ const processData = (
     return renderNode(node, rCtx, ssrCtx, stream, flags, beforeClose);
   } else if (isArray(node)) {
     return walkChildren(node, rCtx, ssrCtx, stream, flags);
-  } else if (isSignal(node)) {
+  } else if (isSignalV1(node)) {
     const insideText = flags & IS_TEXT;
     const hostEl = rCtx.$cmpCtx$?.$element$ as QwikElement;
     let value;
@@ -892,10 +889,15 @@ const processData = (
         const id = getNextIndex(rCtx);
         const subs =
           flags & IS_IMMUTABLE
-            ? ([3, ('#' + id) as any, node, ('#' + id) as any] as const)
-            : ([4, hostEl, node, ('#' + id) as any] as const);
+            ? ([
+                SubscriptionType.TEXT_IMMUTABLE,
+                ('#' + id) as any,
+                node,
+                ('#' + id) as any,
+              ] as const)
+            : ([SubscriptionType.TEXT_MUTABLE, hostEl, node, ('#' + id) as any] as const);
 
-        value = trackSignal(node, subs);
+        value = trackSignalV1(node, subs);
         if (isString(value)) {
           const str = jsxToString(value);
           ssrCtx.$static$.$textNodes$.set(str, id);
@@ -977,7 +979,7 @@ const walkChildren = (
       currentIndex++;
       return undefined;
     }
-  }, undefined);
+  }, undefined) as ValueOrPromise<void>;
 };
 
 const flatVirtualChildren = (children: any, ssrCtx: SSRContext): any[] | null => {
@@ -1030,14 +1032,14 @@ const setComponentProps = (
   if (keys.length === 0) {
     return;
   }
-  const immutableMeta = ((target as any)[_IMMUTABLE] =
-    (expectProps as any)[_IMMUTABLE] ?? EMPTY_OBJ);
+  const immutableMeta = ((target as any)[_CONST_PROPS] =
+    (expectProps as any)[_CONST_PROPS] ?? EMPTY_OBJ);
   for (const prop of keys) {
     if (prop === 'children' || prop === QSlot) {
       continue;
     }
-    if (isSignal(immutableMeta[prop])) {
-      target[_IMMUTABLE_PREFIX + prop] = immutableMeta[prop];
+    if (isSignalV1(immutableMeta[prop])) {
+      target['_IMMUTABLE_PREFIX' + prop] = immutableMeta[prop];
     } else {
       target[prop] = expectProps[prop];
     }

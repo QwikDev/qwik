@@ -1,9 +1,9 @@
 import {
   $,
-  _deserializeData,
+  _deserialize,
   _getContextElement,
   _getContextEvent,
-  _serializeData,
+  _serialize,
   _wrapProp,
   implicit$FirstArg,
   noSerialize,
@@ -450,7 +450,7 @@ export const serverQrl = <T extends ServerFunction>(
           },
           signal: abortSignal,
         };
-        const body = await _serializeData([qrl, ...filteredArgs], false);
+        const body = await _serialize([qrl, ...filteredArgs]);
         if (method === 'GET') {
           query += `&${QDATA_KEY}=${encodeURIComponent(body)}`;
         } else {
@@ -478,7 +478,7 @@ export const serverQrl = <T extends ServerFunction>(
           })();
         } else if (contentType === 'application/qwik-json') {
           const str = await res.text();
-          const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
+          const [obj] = _deserialize(str, ctxElm ?? document.documentElement);
           if (res.status === 500) {
             throw obj;
           }
@@ -558,7 +558,8 @@ const deserializeStream = async function* (
       const lines = buffer.split(/\n/);
       buffer = lines.pop()!;
       for (const line of lines) {
-        yield await _deserializeData(line, ctxElm);
+        const [deserializedData] = _deserialize(line, ctxElm);
+        yield deserializedData;
       }
     }
   } finally {

@@ -1,65 +1,122 @@
+import type { ObjToProxyMap } from '../container/container';
 import { assertEqual, assertNumber, assertTrue } from '../error/assert';
-import { qError, QError_immutableProps } from '../error/error';
+import { QError_immutableProps, qError } from '../error/error';
 import { tryGetInvokeContext } from '../use/use-core';
+import { logError, logWarn } from '../util/log';
+import { ComputedEvent, RenderEvent } from '../util/markers';
 import { qDev, qSerialize } from '../util/qdev';
-import { ComputedEvent, RenderEvent, ResourceEvent } from '../util/markers';
 import { isArray, isObject, isSerializableObject } from '../util/types';
-import type { ContainerState } from '../container/container';
+import { SERIALIZER_PROXY_UNWRAP, SerializationConstant } from '../v2/shared/shared-serialization';
 import {
-  fastSkipSerialize,
   LocalSubscriptionManager,
-  type Subscriber,
-  type Subscriptions,
+  fastSkipSerialize,
   unwrapProxy,
   verifySerializable,
+  type Subscriber,
+  type SubscriptionManager,
+  type Subscriptions,
 } from './common';
-import { isSignal } from './signal';
 import {
   QObjectFlagsSymbol,
   QObjectImmutable,
   QObjectManagerSymbol,
   QObjectRecursive,
-  QOjectTargetSymbol,
-  _IMMUTABLE,
-  _IMMUTABLE_PREFIX,
+  QObjectTargetSymbol,
+  _CONST_PROPS,
 } from './constants';
-import { logError, logWarn } from '../util/log';
+import { isSignalV1 } from './signal';
+
+export interface StoreTracker {
+  $proxyMap$: ObjToProxyMap;
+  $subsManager$: SubscriptionManager;
+  $getObjectById$: (id: string | number) => any;
+}
 
 export type QObject<T extends {}> = T & { __brand__: 'QObject' };
 
 /** Creates a proxy that notifies of any writes. */
 export const getOrCreateProxy = <T extends object>(
   target: T,
-  containerState: ContainerState,
+  storeMgr: StoreTracker,
   flags = 0
 ): T => {
-  const proxy = containerState.$proxyMap$.get(target);
+  const proxy = storeMgr.$proxyMap$.get(target);
   if (proxy) {
     return proxy;
   }
   if (flags !== 0) {
     setObjectFlags(target, flags);
   }
-  return createProxy(target, containerState, undefined);
+  return createProxy(target, storeMgr, undefined);
+};
+
+export const isStore = (target: any): boolean => {
+  const unwrap = unwrapProxy(target);
+  return unwrap !== target;
 };
 
 export const createProxy = <T extends object>(
   target: T,
-  containerState: ContainerState,
+  storeTracker: StoreTracker,
   subs?: Subscriptions[]
 ): T => {
   assertEqual(unwrapProxy(target), target, 'Unexpected proxy at this location', target);
-  assertTrue(!containerState.$proxyMap$.has(target), 'Proxy was already created', target);
+  assertTrue(!storeTracker.$proxyMap$.has(target), 'Proxy was already created', target);
   assertTrue(isObject(target), 'Target must be an object');
   assertTrue(
     isSerializableObject(target) || isArray(target),
     'Target must be a serializable object'
   );
 
-  const manager = containerState.$subsManager$.$createManager$(subs);
-  const proxy = new Proxy(target, new ReadWriteProxyHandler(containerState, manager)) as any as T;
-  containerState.$proxyMap$.set(target, proxy);
-  return proxy;
+  const manager = storeTracker.$subsManager$.$createManager$(subs);
+
+  const getSerializedState = (target: object): string | undefined => {
+    return (target as any)[SerializationConstant.Store_CHAR];
+  };
+  const subscriptionManagerFromString: any = null!;
+  const removeSerializedState = (target: object) => {
+    delete (target as any)[SerializationConstant.Store_CHAR];
+  };
+  const addSubscriptions = (
+    serializedState: string,
+    serializedStateObject: object,
+    target: object
+  ) => {
+    removeSerializedState(serializedStateObject);
+    setObjectFlags(target, serializedState.charCodeAt(0) - 48 /*'0'*/);
+    subscriptionManagerFromString(
+      manager,
+      serializedState.substring(1),
+      storeTracker.$getObjectById$
+    );
+  };
+
+  /**
+   * If we have an `SerializationConstant.UNDEFINED_CHAR` as a prop, then this means that this is
+   * serialized store with an array as a value. We need to handle this separately, because the proxy
+   * target is now the value of the `SerializationConstant.UNDEFINED_CHAR` prop
+   */
+  const serializedArrayTarget = (target as any)[SerializationConstant.UNDEFINED_CHAR];
+  if (serializedArrayTarget) {
+    const proxy = new Proxy(
+      serializedArrayTarget,
+      new ReadWriteProxyHandler(storeTracker, manager)
+    ) as T;
+    storeTracker.$proxyMap$.set(target, proxy);
+    const serializedState = getSerializedState(target);
+    if (serializedState) {
+      addSubscriptions(serializedState, target, serializedArrayTarget);
+    }
+    return proxy;
+  } else {
+    const proxy = new Proxy(target, new ReadWriteProxyHandler(storeTracker, manager)) as T;
+    storeTracker.$proxyMap$.set(target, proxy);
+    const serializedState = getSerializedState(target);
+    if (serializedState) {
+      addSubscriptions(serializedState, target, target);
+    }
+    return proxy;
+  }
 };
 
 export const createPropsState = (): Record<string, any> => {
@@ -75,19 +132,18 @@ export const setObjectFlags = (obj: object, flags: number) => {
 export type TargetType = Record<string | symbol, any>;
 
 /** @internal */
-export const _restProps = (props: Record<string, any>, omit: string[]) => {
-  const rest: Record<string, any> = {};
+export const _restProps = (props: Record<string, any>, omit: string[], target = {}) => {
   for (const key in props) {
     if (!omit.includes(key)) {
-      rest[key] = props[key];
+      (target as any)[key] = props[key];
     }
   }
-  return rest;
+  return target;
 };
 
 export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   constructor(
-    private $containerState$: ContainerState,
+    private $storeTracker$: StoreTracker,
     private $manager$: LocalSubscriptionManager
   ) {}
 
@@ -104,11 +160,18 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 
   get(target: TargetType, prop: string | symbol): any {
     if (typeof prop === 'symbol') {
-      if (prop === QOjectTargetSymbol) {
+      if (prop === QObjectTargetSymbol) {
         return target;
       }
       if (prop === QObjectManagerSymbol) {
         return this.$manager$;
+      }
+      if (prop === SERIALIZER_PROXY_UNWRAP) {
+        // SERIALIZER_PROXY_UNWRAP is used by v2 serialization to unwrap proxies.
+        // Our target may be a v2 serialization proxy so if we let it through
+        // we will return the naked object which removes ourselves,
+        // and that is not the intention so prevent of SERIALIZER_PROXY_UNWRAP.
+        return undefined;
       }
       return target[prop];
     }
@@ -117,30 +180,24 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     const invokeCtx = tryGetInvokeContext();
     const recursive = (flags & QObjectRecursive) !== 0;
     const immutable = (flags & QObjectImmutable) !== 0;
-    const hiddenSignal = target[_IMMUTABLE_PREFIX + prop];
     let subscriber: Subscriber | undefined | null;
-    let value;
     if (invokeCtx) {
       subscriber = invokeCtx.$subscriber$;
     }
-    if (immutable && (!(prop in target) || immutableValue(target[_IMMUTABLE]?.[prop]))) {
+    if (immutable && (!(prop in target) || immutableValue(target[_CONST_PROPS]?.[prop]))) {
       subscriber = null;
     }
-    if (hiddenSignal) {
-      assertTrue(isSignal(hiddenSignal), '$$ prop must be a signal');
-      value = hiddenSignal.value;
-      subscriber = null;
-    } else {
-      value = target[prop];
-    }
+    const value = target[prop];
     if (subscriber) {
       const isA = isArray(target);
       this.$manager$.$addSub$(subscriber, isA ? undefined : prop);
     }
-    return recursive ? wrap(value, this.$containerState$) : value;
+    return recursive ? wrap(value, this.$storeTracker$) : value;
   }
 
   set(target: TargetType, prop: string | symbol, newValue: any): boolean {
+    // we need deserializer proxy only to get the value, not to set it
+    // target = unwrapDeserializerProxy(target) as TargetType;
     if (typeof prop === 'symbol') {
       target[prop] = newValue;
       return true;
@@ -167,12 +224,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
         } else if (invokeCtx.$event$ === ComputedEvent) {
           logWarn(
             'State mutation inside useComputed$() is an antipattern. Use useTask$() instead',
-            invokeCtx.$hostElement$
-          );
-        } else if (invokeCtx.$event$ === ResourceEvent) {
-          logWarn(
-            'State mutation inside useResource$() is an antipattern. Use useTask$() instead',
-            invokeCtx.$hostElement$
+            String(invokeCtx.$hostElement$)
           );
         }
       }
@@ -193,14 +245,11 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
   }
 
   has(target: TargetType, property: string | symbol): boolean {
-    if (property === QOjectTargetSymbol) {
+    if (property === QObjectTargetSymbol) {
       return true;
     }
     const hasOwnProperty = Object.prototype.hasOwnProperty;
     if (hasOwnProperty.call(target, property)) {
-      return true;
-    }
-    if (typeof property === 'string' && hasOwnProperty.call(target, _IMMUTABLE_PREFIX + property)) {
       return true;
     }
     return false;
@@ -220,14 +269,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
         this.$manager$.$addSub$(subscriber);
       }
     }
-    if (isArray(target)) {
-      return Reflect.ownKeys(target);
-    }
-    return Reflect.ownKeys(target).map((a) => {
-      return typeof a === 'string' && a.startsWith(_IMMUTABLE_PREFIX)
-        ? a.slice(_IMMUTABLE_PREFIX.length)
-        : a;
-    });
+    return Reflect.ownKeys(target);
   }
 
   getOwnPropertyDescriptor(
@@ -245,10 +287,10 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 }
 
 const immutableValue = (value: any) => {
-  return value === _IMMUTABLE || isSignal(value);
+  return value === _CONST_PROPS || isSignalV1(value);
 };
 
-const wrap = <T>(value: T, containerState: ContainerState): T => {
+const wrap = <T>(value: T, storeTracker: StoreTracker): T => {
   if (isObject(value)) {
     if (Object.isFrozen(value)) {
       return value;
@@ -262,8 +304,8 @@ const wrap = <T>(value: T, containerState: ContainerState): T => {
       return value;
     }
     if (isSerializableObject(nakedValue) || isArray(nakedValue)) {
-      const proxy = containerState.$proxyMap$.get(nakedValue);
-      return proxy ? proxy : getOrCreateProxy(nakedValue as any, containerState, QObjectRecursive);
+      const proxy = storeTracker.$proxyMap$.get(nakedValue);
+      return proxy ? proxy : getOrCreateProxy(nakedValue as any, storeTracker, QObjectRecursive);
     }
   }
   return value;

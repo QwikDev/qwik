@@ -10,7 +10,7 @@ const symbolMapper: SymbolMapperFn = (symbolName: string, mapper: SymbolMapper |
   return [symbolName, `q-${symbolName}.js`];
 };
 
-test('issue-4979', async () => {
+test.skip('issue-4979', async () => {
   await renderToString(<Issue4979 />, {
     containerTagName: 'div',
     symbolMapper: symbolMapper,

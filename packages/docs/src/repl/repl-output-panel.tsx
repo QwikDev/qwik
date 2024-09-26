@@ -1,4 +1,4 @@
-import { component$ } from '@builder.io/qwik';
+import { component$, useComputed$ } from '@builder.io/qwik';
 import { CodeBlock } from '../components/code-block/code-block';
 import { ReplOutputModules } from './repl-output-modules';
 import { ReplOutputSymbols } from './repl-output-symbols';
@@ -7,7 +7,9 @@ import { ReplTabButtons } from './repl-tab-buttons';
 import type { ReplAppInput, ReplStore } from './types';
 
 export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProps) => {
-  const diagnosticsLen = store.diagnostics.length + store.monacoDiagnostics.length;
+  const diagnosticsLen = useComputed$(
+    () => store.diagnostics.length + store.monacoDiagnostics.length
+  );
 
   return (
     <div class="repl-panel repl-output-panel">
@@ -61,8 +63,8 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
         ) : null}
 
         <ReplTabButton
-          text={`Diagnostics${diagnosticsLen > 0 ? ` (${diagnosticsLen})` : ``}`}
-          cssClass={{ 'repl-tab-diagnostics': true, 'has-errors': diagnosticsLen > 0 }}
+          text={`Diagnostics${diagnosticsLen.value > 0 ? ` (${diagnosticsLen.value})` : ``}`}
+          cssClass={{ 'repl-tab-diagnostics': true, 'has-errors': diagnosticsLen.value > 0 }}
           isActive={store.selectedOutputPanel === 'diagnostics'}
           onClick$={async () => {
             store.selectedOutputPanel = 'diagnostics';
@@ -120,7 +122,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
 
         {store.selectedOutputPanel === 'diagnostics' ? (
           <div class="output-result output-diagnostics">
-            {diagnosticsLen === 0 ? (
+            {diagnosticsLen.value === 0 ? (
               <p class="no-diagnostics">- No Reported Diagnostics -</p>
             ) : (
               [...store.diagnostics, ...store.monacoDiagnostics].map((d, key) => (

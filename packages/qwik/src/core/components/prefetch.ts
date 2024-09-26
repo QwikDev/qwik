@@ -1,7 +1,8 @@
 import { isDev } from '@builder.io/qwik/build';
-import { _jsxC } from '../internal';
-import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
+import type { JSXNode } from '@builder.io/qwik';
+import { _jsxSorted } from '../internal';
 import { useServerData } from '../use/use-env-data';
+import { QBaseAttr, QManifestHashAttr } from '../util/markers';
 
 /**
  * Install a service worker which will prefetch the bundles.
@@ -11,8 +12,8 @@ import { useServerData } from '../use/use-env-data';
  *
  * @param opts - Options for the prefetch service worker.
  *
- *   - `base` - Base URL for the service worker `import.meta.env.BASE_URL` or `/`. Default is
- *       `import.meta.env.BASE_URL`
+ *   - `base` - Base URL for the service worker. Default is `import.meta.env.BASE_URL`, which is defined
+ *       by Vite's `config.base` and defaults to `/`.
  *   - `scope` - Base URL for when the service-worker will activate. Default is `/`
  *   - `path` - Path to the service worker. Default is `qwik-prefetch-service-worker.js` unless you pass
  *       a path that starts with a `/` then the base is ignored. Default is
@@ -35,7 +36,7 @@ export const PrefetchServiceWorker = (opts: {
     const props = {
       dangerouslySetInnerHTML: '<!-- PrefetchServiceWorker is disabled in dev mode. -->',
     };
-    return _jsxC('script', props, 0, 'prefetch-service-worker');
+    return _jsxSorted('script', null, props, null, 0, 'prefetch-service-worker');
   }
 
   const serverData = useServerData<Record<string, string>>('containerAttributes', {});
@@ -77,7 +78,7 @@ export const PrefetchServiceWorker = (opts: {
     ].join(''),
     nonce: resolvedOpts.nonce,
   };
-  return _jsxC('script', props, 0, 'prefetch-service-worker');
+  return _jsxSorted('script', null, props, null, 0, 'prefetch-service-worker');
 };
 
 const PREFETCH_CODE = /*#__PURE__*/ ((
@@ -130,13 +131,13 @@ export const PrefetchGraph = (
     const props = {
       dangerouslySetInnerHTML: '<!-- PrefetchGraph is disabled in dev mode. -->',
     };
-    return _jsxC('script', props, 0, 'prefetch-graph');
+    return _jsxSorted('script', null, props, null, 0, 'prefetch-graph');
   }
   const serverData = useServerData<Record<string, string>>('containerAttributes', {});
   const resolvedOpts = {
     // /build/q-bundle-graph-${manifestHash}.json is always within the q:base location /build/
-    base: serverData['q:base'],
-    manifestHash: serverData['q:manifest-hash'],
+    base: serverData[QBaseAttr],
+    manifestHash: serverData[QManifestHashAttr],
     scope: '/',
     verbose: false,
     path: 'qwik-prefetch-service-worker.js',
@@ -152,5 +153,5 @@ export const PrefetchGraph = (
     dangerouslySetInnerHTML: code,
     nonce: opts.nonce,
   };
-  return _jsxC('script', props, 0, 'prefetch-graph');
+  return _jsxSorted('script', null, props, null, 0, 'prefetch-graph');
 };

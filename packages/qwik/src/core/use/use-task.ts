@@ -1,47 +1,47 @@
-import { newInvokeContext, invoke, waitAndRun, untrack, useInvokeContext } from './use-core';
-import { logError, logErrorAndStop } from '../util/log';
-import { delay, safeCall, maybeThen } from '../util/promises';
-import { isFunction, isObject, type ValueOrPromise } from '../util/types';
-import { isServerPlatform } from '../platform/platform';
-import { implicit$FirstArg } from '../util/implicit_dollar';
+import { intToStr, strToInt, type ContainerState, type MustGetObjID } from '../container/container';
 import { assertDefined, assertEqual } from '../error/assert';
-import type { QRL } from '../qrl/qrl.public';
+import { QError_trackUseStore, codeToText } from '../error/error';
+import { isServerPlatform } from '../platform/platform';
 import { assertQrl, assertSignal, createQRL, type QRLInternal } from '../qrl/qrl-class';
-import { codeToText, QError_trackUseStore } from '../error/error';
-import { useOn, useOnDocument } from './use-on';
-import { type ContainerState, intToStr, type MustGetObjID, strToInt } from '../container/container';
-import { notifyTask, _hW } from '../render/dom/notify-render';
-import { useSequentialScope } from './use-sequential-scope';
+import type { QRL } from '../qrl/qrl.public';
+import { _hW, notifyTask } from '../render/dom/notify-render';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { handleError } from '../render/error-handling';
 import type { RenderContext } from '../render/types';
 import {
+  SubscriptionType,
   getSubscriptionManager,
   noSerialize,
   type NoSerialize,
-  unwrapProxy,
 } from '../state/common';
-import {
-  isSignal,
-  QObjectSignalFlags,
-  type Signal,
-  type SignalInternal,
-  SIGNAL_IMMUTABLE,
-  SIGNAL_UNASSIGNED,
-  _createSignal,
-  type ReadonlySignal,
-} from '../state/signal';
 import { QObjectManagerSymbol } from '../state/constants';
-import { ComputedEvent, TaskEvent } from '../util/markers';
-import { getContext } from '../state/context';
-import { useConstant } from './use-signal';
+import { QObjectSignalFlags, SIGNAL_UNASSIGNED, type SignalInternal } from '../state/signal';
+import { logError, logErrorAndStop } from '../util/log';
+import { ComputedEvent, ResourceEvent, TaskEvent } from '../util/markers';
+import { delay, isPromise, safeCall } from '../util/promises';
+import { isFunction, isObject, type ValueOrPromise } from '../util/types';
+import { ChoreType } from '../v2/shared/scheduler';
+import { type Container2, type HostElement, type fixMeAny } from '../v2/shared/types';
+import {
+  ComputedSignal,
+  EffectProperty,
+  isSignal,
+  throwIfQRLNotResolved,
+} from '../v2/signal/v2-signal';
+import { type ReadonlySignal, type Signal } from '../v2/signal/v2-signal.public';
+import { unwrapStore } from '../v2/signal/v2-store';
+import { clearSubscriberEffectDependencies, Subscriber } from '../v2/signal/v2-subscriber';
+import { invoke, newInvokeContext, untrack, waitAndRun } from './use-core';
+import { useOn, useOnDocument } from './use-on';
+import { useSequentialScope } from './use-sequential-scope';
 
-export const TaskFlagsIsVisibleTask = 1 << 0;
-export const TaskFlagsIsTask = 1 << 1;
-export const TaskFlagsIsResource = 1 << 2;
-export const TaskFlagsIsComputed = 1 << 3;
-export const TaskFlagsIsDirty = 1 << 4;
-export const TaskFlagsIsCleanup = 1 << 5;
+export const enum TaskFlags {
+  VISIBLE_TASK = 1 << 0,
+  TASK = 1 << 1,
+  RESOURCE = 1 << 2,
+  COMPUTED = 1 << 3,
+  DIRTY = 1 << 4,
+}
 
 // <docs markdown="../readme.md#Tracker">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -120,6 +120,18 @@ export interface Tracker {
    * ```
    */
   <T extends object>(obj: T): T extends Signal<infer U> ? U : T;
+
+  /**
+   * Used to track to track a specific property of an object.
+   *
+   * Note that the change tracking is not deep. If you want to track changes to nested properties,
+   * you need to use `track` on each of them.
+   *
+   * ```tsx
+   * track(store, 'propA'); // returns store.propA
+   * ```
+   */
+  <T extends object, P extends keyof T>(obj: T, prop: P): T[P];
 }
 
 /** @public */
@@ -177,13 +189,13 @@ export interface ResourceReturnInternal<T> {
   loading: boolean;
 }
 /** @public */
-export interface DescriptorBase<T = unknown, B = unknown> {
-  $qrl$: QRLInternal<T>;
-  $el$: QwikElement;
+export interface DescriptorBase<T = unknown, B = unknown> extends Subscriber {
   $flags$: number;
   $index$: number;
-  $destroy$?: NoSerialize<() => void>;
+  $el$: QwikElement;
+  $qrl$: QRLInternal<T>;
   $state$: B | undefined;
+  $destroy$: NoSerialize<() => void> | null;
 }
 
 /** @public */
@@ -278,136 +290,139 @@ export interface UseTaskOptions {
  */
 // </docs>
 export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
-  const { val, set, iCtx, i, elCtx } = useSequentialScope<boolean>();
+  const { val, set, iCtx, i, elCtx } = useSequentialScope<1 | Task>();
   if (val) {
     return;
   }
   assertQrl(qrl);
+  set(1);
 
-  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-  const task = new Task(TaskFlagsIsDirty | TaskFlagsIsTask, i, elCtx.$element$, qrl, undefined);
-  set(true);
-  qrl.$resolveLazy$(containerState.$containerEl$);
-  if (!elCtx.$tasks$) {
-    elCtx.$tasks$ = [];
-  }
-  elCtx.$tasks$.push(task);
-  waitAndRun(iCtx, () => runTask(task, containerState, iCtx.$renderCtx$));
-  if (isServerPlatform()) {
-    useRunTask(task, opts?.eagerness);
+  if (iCtx.$container2$) {
+    const host = iCtx.$hostElement$ as unknown as HostElement;
+    const task = new Task(
+      TaskFlags.DIRTY | TaskFlags.TASK,
+      i,
+      iCtx.$hostElement$,
+      qrl,
+      undefined,
+      null
+    );
+    // In V2 we add the task to the sequential scope. We need to do this
+    // in order to be able to retrieve it later when the parent element is
+    // deleted and we need to be able to release the task subscriptions.
+    set(task);
+    const result = runTask2(task, iCtx.$container2$, host);
+    if (isPromise(result)) {
+      throw result;
+    }
+    qrl.$resolveLazy$(host as fixMeAny);
+    if (isServerPlatform()) {
+      useRunTask(task, opts?.eagerness);
+    }
+  } else {
+    const containerState = iCtx.$renderCtx$.$static$.$containerState$;
+    const task = new Task(
+      TaskFlags.DIRTY | TaskFlags.TASK,
+      i,
+      elCtx.$element$,
+      qrl,
+      undefined,
+      null
+    );
+    qrl.$resolveLazy$(containerState.$containerEl$);
+    if (!elCtx.$tasks$) {
+      elCtx.$tasks$ = [];
+    }
+    elCtx.$tasks$.push(task);
+    waitAndRun(iCtx, () => runTask(task, containerState, iCtx.$renderCtx$));
+    if (isServerPlatform()) {
+      useRunTask(task, opts?.eagerness);
+    }
   }
 };
 
+export const runTask2 = (
+  task: Task,
+  container: Container2,
+  host: HostElement
+): ValueOrPromise<void> => {
+  task.$flags$ &= ~TaskFlags.DIRTY;
+  cleanupTask(task);
+  const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, TaskEvent);
+  iCtx.$container2$ = container;
+  const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberEffectDependencies(task)) as TaskFn;
+
+  const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
+    const ctx = newInvokeContext();
+    ctx.$effectSubscriber$ = [task, EffectProperty.COMPONENT];
+    ctx.$container2$ = container;
+    return invoke(ctx, () => {
+      if (isFunction(obj)) {
+        return obj();
+      }
+      if (prop) {
+        return (obj as Record<string, unknown>)[prop];
+      } else if (isSignal(obj)) {
+        return obj.value;
+      } else {
+        return obj;
+      }
+    });
+  };
+  const handleError = (reason: unknown) => container.handleError(reason, host);
+  let cleanupFns: (() => void)[] | null = null;
+  const cleanup = (fn: () => void) => {
+    if (typeof fn == 'function') {
+      if (!cleanupFns) {
+        cleanupFns = [];
+        task.$destroy$ = noSerialize(() => {
+          task.$destroy$ = null;
+          cleanupFns!.forEach((fn) => {
+            try {
+              fn();
+            } catch (err) {
+              handleError(err);
+            }
+          });
+        });
+      }
+      cleanupFns.push(fn);
+    }
+  };
+
+  const taskApi: TaskCtx = { track, cleanup };
+  const result: ValueOrPromise<void> = safeCall(
+    () => taskFn(taskApi),
+    cleanup,
+    (err: unknown) => {
+      if (isPromise(err)) {
+        return err.then(() => runTask2(task, container, host));
+      } else {
+        return handleError(err);
+      }
+    }
+  );
+  return result;
+};
+
 /** @public */
-export const createComputedQrl = <T>(qrl: QRL<ComputedFn<T>>): Signal<Awaited<T>> => {
+export const useComputedQrl = <T>(
+  qrl: QRL<ComputedFn<T>>
+): T extends Promise<any> ? never : ReadonlySignal<T> => {
+  const { val, set } = useSequentialScope<Signal<T>>();
+  if (val) {
+    return val as any;
+  }
   assertQrl(qrl);
-  const iCtx = useInvokeContext();
-  const hostElement = iCtx.$hostElement$;
-  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-  const elCtx = getContext(hostElement, containerState);
-  const signal = _createSignal(
-    undefined as Awaited<T>,
-    containerState,
-    SIGNAL_UNASSIGNED | SIGNAL_IMMUTABLE,
-    undefined
-  );
+  const signal = new ComputedSignal(null, qrl);
+  set(signal);
 
-  const task = new Task(
-    TaskFlagsIsDirty | TaskFlagsIsTask | TaskFlagsIsComputed,
-    // Computed signals should update immediately
-    0,
-    elCtx.$element$,
-    qrl,
-    signal
-  );
-  qrl.$resolveLazy$(containerState.$containerEl$);
-  (elCtx.$tasks$ ||= []).push(task);
-
-  waitAndRun(iCtx, () => runComputed(task, containerState, iCtx.$renderCtx$));
-  return signal as ReadonlySignal<Awaited<T>>;
+  // Note that we first save the signal
+  // and then we throw to load the qrl
+  // This is why we can't use useConstant, we need to keep using the same qrl object
+  throwIfQRLNotResolved(qrl);
+  return signal as any;
 };
-/** @public */
-export const useComputedQrl = <T>(qrl: QRL<ComputedFn<T>>): Signal<Awaited<T>> => {
-  return useConstant(() => createComputedQrl(qrl));
-};
-
-/**
- * Hook that returns a read-only signal that updates when signals used in the `ComputedFn` change.
- *
- * @public
- */
-export const useComputed$ = implicit$FirstArg(useComputedQrl);
-/**
- * Returns read-only signal that updates when signals used in the `ComputedFn` change. Unlike
- * useComputed$, this is not a hook and it always creates a new signal.
- *
- * @deprecated This is a technology preview
- * @public
- */
-export const createComputed$ = implicit$FirstArg(createComputedQrl);
-
-// <docs markdown="../readme.md#useTask">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useTask instead)
-/**
- * Reruns the `taskFn` when the observed inputs change.
- *
- * Use `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when those
- * inputs change.
- *
- * The `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs`
- * function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to
- * rerun.
- *
- * @param task - Function which should be re-executed when changes to the inputs are detected
- * @public
- *
- * ### Example
- *
- * The `useTask` function is used to observe the `store.count` property. Any changes to the
- * `store.count` cause the `taskFn` to execute which in turn updates the `store.doubleCount` to
- * the double of `store.count`.
- *
- * ```tsx
- * const Cmp = component$(() => {
- *   const store = useStore({
- *     count: 0,
- *     doubleCount: 0,
- *     debounced: 0,
- *   });
- *
- *   // Double count task
- *   useTask$(({ track }) => {
- *     const count = track(() => store.count);
- *     store.doubleCount = 2 * count;
- *   });
- *
- *   // Debouncer task
- *   useTask$(({ track }) => {
- *     const doubleCount = track(() => store.doubleCount);
- *     const timer = setTimeout(() => {
- *       store.debounced = doubleCount;
- *     }, 2000);
- *     return () => {
- *       clearTimeout(timer);
- *     };
- *   });
- *   return (
- *     <div>
- *       <div>
- *         {store.count} / {store.doubleCount}
- *       </div>
- *       <div>{store.debounced}</div>
- *     </div>
- *   );
- * });
- * ```
- *
- * @public
- * @see `Tracker`
- */
-// </docs>
-export const useTask$ = /*#__PURE__*/ implicit$FirstArg(useTaskQrl);
 
 // <docs markdown="../readme.md#useVisibleTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -446,48 +461,30 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
     return;
   }
   assertQrl(qrl);
-  const task = new Task(TaskFlagsIsVisibleTask, i, elCtx.$element$, qrl, undefined);
-  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-  if (!elCtx.$tasks$) {
-    elCtx.$tasks$ = [];
-  }
-  elCtx.$tasks$.push(task);
-  set(task);
-  useRunTask(task, eagerness);
-  if (!isServerPlatform()) {
-    qrl.$resolveLazy$(containerState.$containerEl$);
-    notifyTask(task, containerState);
+
+  if (iCtx.$container2$) {
+    const task = new Task(TaskFlags.VISIBLE_TASK, i, iCtx.$hostElement$, qrl, undefined, null);
+    set(task);
+    useRunTask(task, eagerness);
+    if (!isServerPlatform()) {
+      qrl.$resolveLazy$(iCtx.$hostElement$ as fixMeAny);
+      iCtx.$container2$.$scheduler$(ChoreType.VISIBLE, task);
+    }
+  } else {
+    const task = new Task(TaskFlags.VISIBLE_TASK, i, elCtx.$element$, qrl, undefined, null);
+    const containerState = iCtx.$renderCtx$.$static$.$containerState$;
+    if (!elCtx.$tasks$) {
+      elCtx.$tasks$ = [];
+    }
+    elCtx.$tasks$.push(task);
+    set(task);
+    useRunTask(task, eagerness);
+    if (!isServerPlatform()) {
+      qrl.$resolveLazy$(containerState.$containerEl$);
+      notifyTask(task, containerState);
+    }
   }
 };
-
-// <docs markdown="../readme.md#useVisibleTask">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useVisibleTask instead)
-/**
- * ```tsx
- * const Timer = component$(() => {
- *   const store = useStore({
- *     count: 0,
- *   });
- *
- *   useVisibleTask$(() => {
- *     // Only runs in the client
- *     const timer = setInterval(() => {
- *       store.count++;
- *     }, 500);
- *     return () => {
- *       clearInterval(timer);
- *     };
- *   });
- *
- *   return <div>{store.count}</div>;
- * });
- * ```
- *
- * @public
- */
-// </docs>
-export const useVisibleTask$ = /*#__PURE__*/ implicit$FirstArg(useVisibleTaskQrl);
 
 export type TaskDescriptor = DescriptorBase<TaskFn>;
 
@@ -504,20 +501,20 @@ export type SubscriberEffect =
   | ComputedDescriptor<unknown>;
 
 export const isResourceTask = (task: SubscriberEffect): task is ResourceDescriptor<unknown> => {
-  return (task.$flags$ & TaskFlagsIsResource) !== 0;
+  return (task.$flags$ & TaskFlags.RESOURCE) !== 0;
 };
 
 export const isComputedTask = (task: SubscriberEffect): task is ComputedDescriptor<unknown> => {
-  return (task.$flags$ & TaskFlagsIsComputed) !== 0;
+  return (task.$flags$ & TaskFlags.COMPUTED) !== 0;
 };
 export const runSubscriber = async (
   task: SubscriberEffect,
   containerState: ContainerState,
   rCtx: RenderContext
 ) => {
-  assertEqual(!!(task.$flags$ & TaskFlagsIsDirty), true, 'Resource is not dirty', task);
+  assertEqual(!!(task.$flags$ & TaskFlags.DIRTY), true, 'Resource is not dirty', task);
   if (isResourceTask(task)) {
-    return runResource(task, containerState, rCtx);
+    return runResource(task, containerState as any, rCtx as any);
   } else if (isComputedTask(task)) {
     return runComputed(task, containerState, rCtx);
   } else {
@@ -525,57 +522,78 @@ export const runSubscriber = async (
   }
 };
 
+export const runSubscriber2 = async (
+  task: SubscriberEffect,
+  container: Container2,
+  host: HostElement
+) => {
+  assertEqual(!!(task.$flags$ & TaskFlags.DIRTY), true, 'Task is not dirty', task);
+  if (isResourceTask(task)) {
+    return runResource(task, container, host as fixMeAny);
+  } else {
+    return runTask2(task as Task, container, host);
+  }
+};
+
 export const runResource = <T>(
   task: ResourceDescriptor<T>,
-  containerState: ContainerState,
-  rCtx: RenderContext,
-  waitOn?: Promise<unknown>
+  container: Container2,
+  host: HostElement
 ): ValueOrPromise<void> => {
-  task.$flags$ &= ~TaskFlagsIsDirty;
+  task.$flags$ &= ~TaskFlags.DIRTY;
   cleanupTask(task);
 
-  const el = task.$el$;
-  const iCtx = newInvokeContext(rCtx.$static$.$locale$, el, undefined, TaskEvent);
-  const { $subsManager$: subsManager } = containerState;
-  iCtx.$renderCtx$ = rCtx;
-  const taskFn = task.$qrl$.getFn(iCtx, () => {
-    subsManager.$clearSub$(task);
-  });
+  const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, ResourceEvent);
+  iCtx.$container2$ = container;
 
-  const cleanups: (() => void)[] = [];
+  const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberEffectDependencies(task));
+
   const resource = task.$state$;
   assertDefined(
     resource,
-    'useResource: when running a resource, "task.r" must be a defined.',
+    'useResource: when running a resource, "task.resource" must be a defined.',
     task
   );
 
-  const track: Tracker = (obj: (() => unknown) | object | Signal, prop?: string) => {
-    if (isFunction(obj)) {
-      const ctx = newInvokeContext();
-      ctx.$renderCtx$ = rCtx;
-      ctx.$subscriber$ = [0, task];
-      return invoke(ctx, obj);
-    }
-    const manager = getSubscriptionManager(obj);
-    if (manager) {
-      manager.$addSub$([0, task], prop);
-    } else {
-      logErrorAndStop(codeToText(QError_trackUseStore), obj);
-    }
-    if (prop) {
-      return (obj as Record<string, unknown>)[prop];
-    } else if (isSignal(obj)) {
-      return obj.value;
-    } else {
-      return obj;
-    }
+  const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
+    const ctx = newInvokeContext();
+    ctx.$effectSubscriber$ = [task, EffectProperty.COMPONENT];
+    ctx.$container2$ = container;
+    return invoke(ctx, () => {
+      if (isFunction(obj)) {
+        return obj();
+      }
+      if (prop) {
+        return (obj as Record<string, unknown>)[prop];
+      } else if (isSignal(obj)) {
+        return obj.value;
+      } else {
+        return obj;
+      }
+    });
   };
-  const resourceTarget = unwrapProxy(resource);
+
+  const handleError = (reason: unknown) => container.handleError(reason, host);
+
+  const cleanups: (() => void)[] = [];
+  task.$destroy$ = noSerialize(() => {
+    cleanups.forEach((fn) => {
+      try {
+        fn();
+      } catch (err) {
+        handleError(err);
+      }
+    });
+    done = true;
+  });
+
+  const resourceTarget = unwrapStore(resource);
   const opts: ResourceCtx<T> = {
     track,
-    cleanup(callback) {
-      cleanups.push(callback);
+    cleanup(fn) {
+      if (typeof fn === 'function') {
+        cleanups.push(fn);
+      }
     },
     cache(policy) {
       let milliseconds = 0;
@@ -602,6 +620,7 @@ export const runResource = <T>(
         resource._state = 'resolved';
         resource._resolved = value as T;
         resource._error = undefined;
+        // console.log('RESOURCE.resolved: ', value);
 
         resolve(value as T);
       } else {
@@ -616,28 +635,40 @@ export const runResource = <T>(
     return false;
   };
 
+  /**
+   * Add cleanup to resolve the resource if we are trying to run the same resource again while the
+   * previous one is not resolved yet. The next `runResource` run will call this cleanup
+   */
+  cleanups.push(() => {
+    if (untrack(() => resource.loading) === true) {
+      const value = untrack(() => resource._resolved) as T;
+      setState(true, value);
+    }
+  });
+
   // Execute mutation inside empty invocation
   invoke(iCtx, () => {
+    // console.log('RESOURCE.pending: ');
     resource._state = 'pending';
     resource.loading = !isServerPlatform();
-    resource.value = new Promise((r, re) => {
+    const promise = (resource.value = new Promise((r, re) => {
       resolve = r;
       reject = re;
-    });
+    }));
+    promise.catch(ignoreErrorToPreventNodeFromCrashing);
   });
 
-  task.$destroy$ = noSerialize(() => {
-    done = true;
-    cleanups.forEach((fn) => fn());
-  });
-
-  const promise = safeCall(
-    () => maybeThen(waitOn, () => taskFn(opts)),
+  const promise: ValueOrPromise<void> = safeCall(
+    () => Promise.resolve(taskFn(opts)),
     (value) => {
       setState(true, value);
     },
-    (reason) => {
-      setState(false, reason);
+    (err) => {
+      if (isPromise(err)) {
+        return err.then(() => runResource(task, container, host));
+      } else {
+        setState(false, err);
+      }
     }
   );
 
@@ -655,14 +686,19 @@ export const runResource = <T>(
   return promise;
 };
 
+const ignoreErrorToPreventNodeFromCrashing = (err: unknown) => {
+  // ignore error to prevent node from crashing
+  // node will crash in promise is rejected and no one is listening to the rejection.
+};
+
 export const runTask = (
   task: TaskDescriptor | ComputedDescriptor<unknown>,
   containerState: ContainerState,
   rCtx: RenderContext
 ): ValueOrPromise<void> => {
-  task.$flags$ &= ~TaskFlagsIsDirty;
+  task.$flags$ &= ~TaskFlags.DIRTY;
 
-  cleanupTask(task);
+  cleanupTask(task as Task);
   const hostElement = task.$el$;
   const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, TaskEvent);
   iCtx.$renderCtx$ = rCtx;
@@ -670,15 +706,15 @@ export const runTask = (
   const taskFn = task.$qrl$.getFn(iCtx, () => {
     subsManager.$clearSub$(task);
   }) as TaskFn;
-  const track: Tracker = (obj: (() => unknown) | object | Signal, prop?: string) => {
+  const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
     if (isFunction(obj)) {
       const ctx = newInvokeContext();
-      ctx.$subscriber$ = [0, task];
+      ctx.$subscriber$ = [SubscriptionType.HOST, task];
       return invoke(ctx, obj);
     }
     const manager = getSubscriptionManager(obj);
     if (manager) {
-      manager.$addSub$([0, task], prop);
+      manager.$addSub$([SubscriptionType.HOST, task], prop);
     } else {
       logErrorAndStop(codeToText(QError_trackUseStore), obj);
     }
@@ -709,7 +745,7 @@ export const runTask = (
       }
     },
     (reason) => {
-      handleError(reason, hostElement, rCtx);
+      handleError(reason, hostElement, rCtx.$static$.$containerState$);
     }
   );
 };
@@ -720,11 +756,11 @@ export const runComputed = (
   rCtx: RenderContext
 ): ValueOrPromise<void> => {
   assertSignal(task.$state$);
-  task.$flags$ &= ~TaskFlagsIsDirty;
+  task.$flags$ &= ~TaskFlags.DIRTY;
   cleanupTask(task);
   const hostElement = task.$el$;
   const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, ComputedEvent);
-  iCtx.$subscriber$ = [0, task];
+  iCtx.$subscriber$ = [SubscriptionType.HOST, task];
   iCtx.$renderCtx$ = rCtx;
 
   const { $subsManager$: subsManager } = containerState;
@@ -742,30 +778,20 @@ export const runComputed = (
         signal[QObjectManagerSymbol].$notifySubs$();
       }),
     (reason) => {
-      handleError(reason, hostElement, rCtx);
+      handleError(reason, hostElement, rCtx.$static$.$containerState$);
     }
   );
 };
 
-export const cleanupTask = (task: SubscriberEffect) => {
+export const cleanupTask = (task: Task) => {
   const destroy = task.$destroy$;
   if (destroy) {
-    task.$destroy$ = undefined;
+    task.$destroy$ = null;
     try {
       destroy();
     } catch (err) {
       logError(err);
     }
-  }
-};
-
-export const destroyTask = (task: SubscriberEffect) => {
-  if (task.$flags$ & TaskFlagsIsCleanup) {
-    task.$flags$ &= ~TaskFlagsIsCleanup;
-    const cleanup = task.$qrl$;
-    (cleanup as Function)();
-  } else {
-    cleanupTask(task);
   }
 };
 
@@ -800,10 +826,6 @@ const getTaskHandlerQrl = (task: SubscriberEffect): QRL<(ev: Event) => void> => 
   return taskHandler;
 };
 
-export const isTaskCleanup = (obj: unknown): obj is TaskDescriptor => {
-  return isSubscriberDescriptor(obj) && !!(obj.$flags$ & TaskFlagsIsCleanup);
-};
-
 export const isSubscriberDescriptor = (obj: unknown): obj is SubscriberEffect => {
   return isObject(obj) && obj instanceof Task;
 };
@@ -820,15 +842,25 @@ export const serializeTask = (task: SubscriberEffect, getObjId: MustGetObjID) =>
 
 export const parseTask = (data: string) => {
   const [flags, index, qrl, el, resource] = data.split(' ');
-  return new Task(strToInt(flags), strToInt(index), el as any, qrl as any, resource as any);
+  return new Task(strToInt(flags), strToInt(index), el as any, qrl as any, resource as any, null);
 };
 
-export class Task<T = unknown, B = T> implements DescriptorBase<unknown, Signal<B>> {
+export class Task<T = unknown, B = T>
+  extends Subscriber
+  implements DescriptorBase<unknown, Signal<B> | ResourceReturnInternal<B>>
+{
   constructor(
     public $flags$: number,
     public $index$: number,
     public $el$: QwikElement,
     public $qrl$: QRLInternal<T>,
-    public $state$: Signal<B> | undefined
-  ) {}
+    public $state$: Signal<B> | ResourceReturnInternal<B> | undefined,
+    public $destroy$: NoSerialize<() => void> | null
+  ) {
+    super();
+  }
 }
+
+export const isTask = (value: any): value is Task => {
+  return value instanceof Task;
+};

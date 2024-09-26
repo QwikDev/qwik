@@ -26,6 +26,7 @@ export function isQSLotTemplateElement(node: Node | null | undefined): node is H
   return isTemplateElement(node) && node.hasAttribute(QSlot);
 }
 
+/** @public */
 export async function expectDOM(actual: Element, expected: string) {
   const options = { parser: 'html', htmlWhitespaceSensitivity: 'ignore' as const };
   assert.equal(await format(actual.outerHTML, options), await format(expected, options));

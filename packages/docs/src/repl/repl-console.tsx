@@ -7,9 +7,10 @@ export interface ReplConsoleProps {
 export const ReplConsole = component$(({ store }: ReplConsoleProps) => {
   return (
     <div class="detail-logs">
-      {store.events.map((ev) => (
-        <ReplLog log={ev} key={ev.start} />
-      ))}
+      {
+        // for some reason ev can be null, just skip it
+        store.events.map((ev) => ev && <ReplLog log={ev} key={ev.start} />)
+      }
     </div>
   );
 });

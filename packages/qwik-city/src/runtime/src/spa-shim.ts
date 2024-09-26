@@ -35,7 +35,9 @@ const shim = async (base: string, path: string, symbol: string) => {
     if (script) {
       // Inside shadow DOM, we can't get a hold of a container. So we can't
       // load the SPA shim.
-      const container = script!.closest('[q\\:container]')!;
+      const container = script!.closest(
+        '[q\\:container]:not([q\\:container=html]):not([q\\:container=text])'
+      )!;
       const url = new URL(path, new URL(base, document.baseURI));
 
       if (isDev) {

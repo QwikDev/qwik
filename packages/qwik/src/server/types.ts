@@ -85,6 +85,7 @@ export interface RenderToStreamResult extends RenderResult {
 export interface RenderToStringResult extends RenderResult {
   html: string;
   timing: {
+    firstFlush: number;
     render: number;
     snapshot: number;
   };
@@ -173,8 +174,8 @@ export interface RenderToStringOptions extends RenderOptions {}
 /** @public */
 export interface InOrderAuto {
   strategy: 'auto';
-  maximunInitialChunk?: number;
-  maximunChunk?: number;
+  maximumInitialChunk?: number;
+  maximumChunk?: number;
 }
 
 /** @public */

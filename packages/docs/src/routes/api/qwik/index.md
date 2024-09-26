@@ -1416,6 +1416,38 @@ export type ComputedFn<T> = () => T;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
+## ComputedSignal
+
+A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.
+
+```typescript
+export interface ComputedSignal<T> extends ReadonlySignal<T>
+```
+
+**Extends:** [ReadonlySignal](#readonlysignal)&lt;T&gt;
+
+<table><thead><tr><th>
+
+Method
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[force()](#computedsignal-force)
+
+</td><td>
+
+Use this to force recalculation and running subscribers, for example when the calculated value mutates but remains the same object. Useful for third-party libraries.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts)
+
 ## ContextId
 
 ContextId is a typesafe ID for your context.
@@ -1698,14 +1730,14 @@ Description
 
 ## createComputed$
 
-> Warning: This API is now obsolete.
->
-> This is a technology preview
+Create a computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated.
 
-Returns read-only signal that updates when signals used in the `ComputedFn` change. Unlike useComputed$, this is not a hook and it always creates a new signal.
+The QRL must be a function which returns the value of the signal. The function must not have side effects, and it mus be synchronous.
+
+If you need the function to be async, use `useSignal` and `useTask$` instead.
 
 ```typescript
-createComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>;
+createComputed$: <T>(qrl: () => T) => T extends Promise<any> ? never : ComputedSignal<T>
 ```
 
 <table><thead><tr><th>
@@ -1727,7 +1759,7 @@ qrl
 
 </td><td>
 
-[ComputedFn](#computedfn)&lt;T&gt;
+() =&gt; T
 
 </td><td>
 
@@ -1735,14 +1767,14 @@ qrl
 </tbody></table>
 **Returns:**
 
-[Signal](#signal)&lt;Awaited&lt;T&gt;&gt;
+T extends Promise&lt;any&gt; ? never : [ComputedSignal](#computedsignal)&lt;T&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts)
 
 ## createComputedQrl
 
 ```typescript
-createComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => Signal<Awaited<T>>;
+createComputedQrl: <T>(qrl: QRL<() => T>) => T extends Promise<any> ? never : ComputedSignal<T>
 ```
 
 <table><thead><tr><th>
@@ -1764,7 +1796,7 @@ qrl
 
 </td><td>
 
-[QRL](#qrl)&lt;[ComputedFn](#computedfn)&lt;T&gt;&gt;
+[QRL](#qrl)&lt;() =&gt; T&gt;
 
 </td><td>
 
@@ -1772,9 +1804,9 @@ qrl
 </tbody></table>
 **Returns:**
 
-[Signal](#signal)&lt;Awaited&lt;T&gt;&gt;
+T extends Promise&lt;any&gt; ? never : [ComputedSignal](#computedsignal)&lt;T&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts)
 
 ## createContextId
 
@@ -1859,19 +1891,16 @@ The name of the context.
 
 ## createSignal
 
-> Warning: This API is now obsolete.
->
-> This is a technology preview
-
-Creates a signal.
-
-If the initial state is a function, the function is invoked to calculate the actual initial state.
+Creates a Signal with the given value. If no value is given, the signal is created with `undefined`.
 
 ```typescript
-createSignal: UseSignal;
+createSignal: {
+    <T>(): Signal<T | undefined>;
+    <T>(value: T): Signal<T>;
+}
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts)
 
 ## CSSProperties
 
@@ -2039,7 +2068,7 @@ Description
 
 </td><td>
 
-[ClassList](#classlist) \| [Signal](#signal)&lt;[ClassList](#classlist)&gt; \| undefined
+[ClassList](#classlist) \| Signal&lt;[ClassList](#classlist)&gt; \| undefined
 
 </td><td>
 
@@ -2165,7 +2194,7 @@ any \| undefined
 ## event$
 
 ```typescript
-event$: <T>(qrl: T) => QRL<T>;
+event$: <T>(qrl: T) => import("./qrl.public").QRL<T>;
 ```
 
 <table><thead><tr><th>
@@ -2195,9 +2224,9 @@ T
 </tbody></table>
 **Returns:**
 
-[QRL](#qrl)&lt;T&gt;
+import("./qrl.public").[QRL](#qrl)&lt;T&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.dollar.ts)
 
 ## EventHandler
 
@@ -2258,6 +2287,18 @@ export interface FieldsetHTMLAttributes<T extends Element> extends Attrs<'fields
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
+## force
+
+Use this to force recalculation and running subscribers, for example when the calculated value mutates but remains the same object. Useful for third-party libraries.
+
+```typescript
+force(): void;
+```
+
+**Returns:**
+
+void
+
 ## FormHTMLAttributes
 
 ```typescript
@@ -2300,6 +2341,45 @@ export type FunctionComponent<P = unknown> = {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-node.ts)
 
+## getDomContainer
+
+```typescript
+export declare function getDomContainer(
+  element: Element | ElementVNode,
+): IClientContainer;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+element
+
+</td><td>
+
+Element \| ElementVNode
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+IClientContainer
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/client/dom-container.ts)
+
 ## getPlatform
 
 Retrieve the `CorePlatform`.
@@ -2318,13 +2398,24 @@ getPlatform: () => CorePlatform;
 
 ## h
 
+The legacy transform, used in special cases like `<div {...props} key="key" />`. Note that the children are spread arguments, instead of a prop like in jsx() calls.
+
+Also note that this disables optimizations.
+
 ```typescript
-export declare namespace h
+export declare function h<
+  TYPE extends string | FunctionComponent<PROPS>,
+  PROPS extends {} = {},
+>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;
 ```
 
 <table><thead><tr><th>
 
-Function
+Parameter
+
+</th><th>
+
+Type
 
 </th><th>
 
@@ -2333,124 +2424,45 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[h(type)](#)
+type
+
+</td><td>
+
+TYPE
 
 </td><td>
 
 </td></tr>
 <tr><td>
 
-[h(type, data)](#)
+props
 
 </td><td>
+
+PROPS \| null
+
+</td><td>
+
+_(Optional)_
 
 </td></tr>
 <tr><td>
 
-[h(type, text)](#)
+children
 
 </td><td>
 
-</td></tr>
-<tr><td>
-
-[h(type, children)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, data, text)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, data, children)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(sel, data, children)](#)
+any[]
 
 </td><td>
 
 </td></tr>
 </tbody></table>
+**Returns:**
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts)
+[JSXNode](#jsxnode)&lt;TYPE&gt;
 
-## h
-
-```typescript
-export declare namespace h
-```
-
-<table><thead><tr><th>
-
-Function
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[h(type)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, data)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, text)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, children)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, data, text)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(type, data, children)](#)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[h(sel, data, children)](#)
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/factory.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
 
 ## HrHTMLAttributes
 
@@ -2514,16 +2526,6 @@ export interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLEle
 **Extends:** HTMLAttributesBase, FilterBase&lt;HTMLElement&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
-
-## HTMLFragment
-
-```typescript
-HTMLFragment: FunctionComponent<{
-  dangerouslySetInnerHTML: string;
-}>;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/jsx-runtime.ts)
 
 ## HtmlHTMLAttributes
 
@@ -2756,10 +2758,8 @@ export interface IntrinsicElements extends IntrinsicHTMLElements, IntrinsicSVGEl
 
 ## isSignal
 
-Checks if a given object is a `Signal`.
-
 ```typescript
-isSignal: <T = unknown>(obj: any) => obj is Signal<T>
+isSignal: (value: any) => value is ISignal<unknown>
 ```
 
 <table><thead><tr><th>
@@ -2777,7 +2777,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-obj
+value
 
 </td><td>
 
@@ -2785,28 +2785,22 @@ any
 
 </td><td>
 
-The object to check if `Signal`.
-
 </td></tr>
 </tbody></table>
 **Returns:**
 
-obj is [Signal](#signal)&lt;T&gt;
+value is [ISignal](#signal)&lt;unknown&gt;
 
-Boolean - True if the object is a `Signal`.
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.ts)
 
 ## jsx
 
-Used by the JSX transpilers to create a JSXNode. Note that the optimizer will not use this, instead using \_jsxQ, \_jsxS, and \_jsxC directly.
+Used by the JSX transpilers to create a JSXNode. Note that the optimizer will not use this, instead using \_jsxSplit and \_jsxSorted directly.
 
 ```typescript
 jsx: <T extends string | FunctionComponent<any>>(
   type: T,
-  props: T extends FunctionComponent<infer PROPS>
-    ? PROPS
-    : Record<any, unknown>,
+  props: T extends FunctionComponent<infer PROPS> ? PROPS : Props,
   key?: string | number | null,
 ) => JSXNode<T>;
 ```
@@ -2841,7 +2835,7 @@ props
 
 </td><td>
 
-T extends [FunctionComponent](#functioncomponent)&lt;infer PROPS&gt; ? PROPS : Record&lt;any, unknown&gt;
+T extends [FunctionComponent](#functioncomponent)&lt;infer PROPS&gt; ? PROPS : Props
 
 </td><td>
 
@@ -2883,18 +2877,16 @@ export type JSXChildren =
   | JSXNode;
 ```
 
-**References:** [JSXChildren](#jsxchildren), [Signal](#signal), [JSXNode](#jsxnode)
+**References:** [JSXChildren](#jsxchildren), [JSXNode](#jsxnode)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-attributes.ts)
 
 ## jsxDEV
 
 ```typescript
-jsxDEV: <T extends string | FunctionComponent<Record<any, unknown>>>(
+jsxDEV: <T extends string | FunctionComponent<Props>>(
   type: T,
-  props: T extends FunctionComponent<infer PROPS>
-    ? PROPS
-    : Record<any, unknown>,
+  props: T extends FunctionComponent<infer PROPS> ? PROPS : Props,
   key: string | number | null | undefined,
   _isStatic: boolean,
   opts: JsxDevOpts,
@@ -2932,7 +2924,7 @@ props
 
 </td><td>
 
-T extends [FunctionComponent](#functioncomponent)&lt;infer PROPS&gt; ? PROPS : Record&lt;any, unknown&gt;
+T extends [FunctionComponent](#functioncomponent)&lt;infer PROPS&gt; ? PROPS : Props
 
 </td><td>
 
@@ -3028,6 +3020,19 @@ Description
 </td></tr>
 <tr><td>
 
+[constProps](#)
+
+</td><td>
+
+</td><td>
+
+Record&lt;any, unknown&gt; \| null
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
 [dev?](#)
 
 </td><td>
@@ -3050,19 +3055,6 @@ _(Optional)_
 </td><td>
 
 number
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[immutableProps](#)
-
-</td><td>
-
-</td><td>
-
-Record&lt;any, unknown&gt; \| null
 
 </td><td>
 
@@ -3102,6 +3094,19 @@ T extends [FunctionComponent](#functioncomponent)&lt;infer P&gt; ? P : Record&lt
 </td><td>
 
 T
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[varProps](#)
+
+</td><td>
+
+</td><td>
+
+Record&lt;any, unknown&gt;
 
 </td><td>
 
@@ -3591,7 +3596,7 @@ PrefetchGraph: (opts?: {
   manifestHash?: string;
   manifestURL?: string;
   nonce?: string;
-}) => JSXNode<"script">;
+}) => JSXNode<string>;
 ```
 
 <table><thead><tr><th>
@@ -3625,7 +3630,7 @@ _(Optional)_ Options for the loading prefetch graph.
 </tbody></table>
 **Returns:**
 
-[JSXNode](#jsxnode)&lt;"script"&gt;
+[JSXNode](#jsxnode)&lt;string&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -3673,7 +3678,7 @@ opts
 
 Options for the prefetch service worker.
 
-- `base` - Base URL for the service worker `import.meta.env.BASE_URL` or `/`. Default is `import.meta.env.BASE_URL` - `scope` - Base URL for when the service-worker will activate. Default is `/` - `path` - Path to the service worker. Default is `qwik-prefetch-service-worker.js` unless you pass a path that starts with a `/` then the base is ignored. Default is `qwik-prefetch-service-worker.js` - `verbose` - Verbose logging for the service worker installation. Default is `false` - `nonce` - Optional nonce value for security purposes, defaults to `undefined`.
+- `base` - Base URL for the service worker. Default is `import.meta.env.BASE_URL`, which is defined by Vite's `config.base` and defaults to `/`. - `scope` - Base URL for when the service-worker will activate. Default is `/` - `path` - Path to the service worker. Default is `qwik-prefetch-service-worker.js` unless you pass a path that starts with a `/` then the base is ignored. Default is `qwik-prefetch-service-worker.js` - `verbose` - Verbose logging for the service worker installation. Default is `false` - `nonce` - Optional nonce value for security purposes, defaults to `undefined`.
 
 </td></tr>
 </tbody></table>
@@ -4408,6 +4413,10 @@ Emitted by qwik-loader when a module was lazily loaded
 
 ```typescript
 export type QwikSymbolEvent = CustomEvent<{
+  qBase: string;
+  qManifest: string;
+  qVersion: string;
+  href: string;
   symbol: string;
   element: Element;
   reqTime: number;
@@ -4485,12 +4494,44 @@ export type QwikWheelEvent<T = Element> = NativeWheelEvent;
 ## ReadonlySignal
 
 ```typescript
-export type ReadonlySignal<T = unknown> = Readonly<Signal<T>>;
+export interface ReadonlySignal<T = unknown>
 ```
 
-**References:** [Signal](#signal)
+<table><thead><tr><th>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[value](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+T
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts)
 
 ## render
 
@@ -4499,9 +4540,9 @@ Render JSX.
 Use this method to render JSX. This function does reconciling which means it always tries to reuse what is already in the DOM (rather then destroy and recreate content.) It returns a cleanup function you could use for cleaning up subscriptions.
 
 ```typescript
-render: (
+render2: (
   parent: Element | Document,
-  jsxOutput: JSXOutput | FunctionComponent<any>,
+  jsxNode: JSXOutput | FunctionComponent<any>,
   opts?: RenderOptions,
 ) => Promise<RenderResult>;
 ```
@@ -4534,7 +4575,7 @@ Element which will act as a parent to `jsxNode`. When possible the rendering wil
 </td></tr>
 <tr><td>
 
-jsxOutput
+jsxNode
 
 </td><td>
 
@@ -4565,7 +4606,7 @@ Promise&lt;[RenderResult](#renderresult)&gt;
 
 An object containing a cleanup function.
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/dom/render.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/client/dom-render.ts)
 
 ## RenderOnce
 
@@ -5132,7 +5173,7 @@ _(Optional)_
 
 </td><td>
 
-[ResourceReturn](#resourcereturn)&lt;T&gt; \| [Signal](#signal)&lt;Promise&lt;T&gt; \| T&gt; \| Promise&lt;T&gt;
+[ResourceReturn](#resourcereturn)&lt;T&gt; \| Signal&lt;Promise&lt;T&gt; \| T&gt; \| Promise&lt;T&gt;
 
 </td><td>
 
@@ -5336,8 +5377,10 @@ A signal is a reactive value which can be read and written. When the signal is w
 Furthermore, when a signal value is passed as a prop to a component, the optimizer will automatically forward the signal. This means that `return <div title={signal.value}>hi</div>` will update the `title` attribute when the signal changes without having to re-render the component.
 
 ```typescript
-export interface Signal<T = any>
+export interface Signal<T = any> extends ReadonlySignal<T>
 ```
+
+**Extends:** [ReadonlySignal](#readonlysignal)&lt;T&gt;
 
 <table><thead><tr><th>
 
@@ -5371,7 +5414,7 @@ T
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/state/signal.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts)
 
 ## Size
 
@@ -5396,6 +5439,7 @@ Allows to project the children of the current component. <Slot/> can only be use
 ```typescript
 Slot: FunctionComponent<{
   name?: string;
+  children?: JSXChildren;
 }>;
 ```
 
@@ -5625,7 +5669,7 @@ string[]
 </td></tr>
 <tr><td>
 
-[objs](#)
+[objs?](#)
 
 </td><td>
 
@@ -5634,6 +5678,8 @@ string[]
 any[]
 
 </td><td>
+
+_(Optional)_
 
 </td></tr>
 <tr><td>
@@ -5664,7 +5710,7 @@ ResourceReturnInternal&lt;any&gt;[]
 </td></tr>
 <tr><td>
 
-[state](#)
+[state?](#)
 
 </td><td>
 
@@ -5674,12 +5720,18 @@ ResourceReturnInternal&lt;any&gt;[]
 
 </td><td>
 
+_(Optional)_
+
 </td></tr>
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/container/container.ts)
 
 ## SnapshotState
+
+> Warning: This API is now obsolete.
+>
+> not longer used in v2
 
 ```typescript
 export interface SnapshotState
@@ -5778,18 +5830,6 @@ SSRComment: FunctionComponent<{
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
-## SSRHint
-
-> Warning: This API is now obsolete.
->
-> - It has no effect
-
-```typescript
-SSRHint: FunctionComponent<SSRHintProps>;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
-
 ## SSRHintProps
 
 ```typescript
@@ -5822,9 +5862,22 @@ SSRStream: FunctionComponent<SSRStreamProps>;
 
 ```typescript
 SSRStreamBlock: FunctionComponent<{
-  children?: any;
+  children?: JSXOutput;
 }>;
 ```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
+
+## SSRStreamChildren
+
+```typescript
+export type SSRStreamChildren =
+  | AsyncGenerator<JSXChildren, void, any>
+  | ((stream: StreamWriter) => Promise<void>)
+  | (() => AsyncGenerator<JSXChildren, void, any>);
+```
+
+**References:** [JSXChildren](#jsxchildren), [StreamWriter](#streamwriter)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
@@ -5832,14 +5885,11 @@ SSRStreamBlock: FunctionComponent<{
 
 ```typescript
 export type SSRStreamProps = {
-  children:
-    | AsyncGenerator<JSXChildren, void, any>
-    | ((stream: StreamWriter) => Promise<void>)
-    | (() => AsyncGenerator<JSXChildren, void, any>);
+  children: SSRStreamChildren;
 };
 ```
 
-**References:** [JSXChildren](#jsxchildren), [StreamWriter](#streamwriter)
+**References:** [SSRStreamChildren](#ssrstreamchildren)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/utils.public.ts)
 
@@ -10121,10 +10171,12 @@ T
 
 ## useComputed$
 
-Hook that returns a read-only signal that updates when signals used in the `ComputedFn` change.
+Creates a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.
+
+The function must be synchronous and must not have any side effects.
 
 ```typescript
-useComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>;
+useComputed$: <T>(qrl: import("./use-task").ComputedFn<T>) => T extends Promise<any> ? never : import("..").ReadonlySignal<T>
 ```
 
 <table><thead><tr><th>
@@ -10146,7 +10198,7 @@ qrl
 
 </td><td>
 
-[ComputedFn](#computedfn)&lt;T&gt;
+import("./use-task").[ComputedFn](#computedfn)&lt;T&gt;
 
 </td><td>
 
@@ -10154,14 +10206,14 @@ qrl
 </tbody></table>
 **Returns:**
 
-[Signal](#signal)&lt;Awaited&lt;T&gt;&gt;
+T extends Promise&lt;any&gt; ? never : import("..").[ReadonlySignal](#readonlysignal)&lt;T&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task-dollar.ts)
 
 ## useComputedQrl
 
 ```typescript
-useComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => Signal<Awaited<T>>;
+useComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => T extends Promise<any> ? never : ReadonlySignal<T>
 ```
 
 <table><thead><tr><th>
@@ -10191,19 +10243,15 @@ qrl
 </tbody></table>
 **Returns:**
 
-[Signal](#signal)&lt;Awaited&lt;T&gt;&gt;
+T extends Promise&lt;any&gt; ? never : [ReadonlySignal](#readonlysignal)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## useConstant
 
-> Warning: This API is now obsolete.
->
-> This is a technology preview
+Stores a value which is retained for the lifetime of the component. Subsequent calls to `useConstant` will always return the first value given.
 
-Stores a value which is retained for the lifetime of the component.
-
-If the value is a function, the function is invoked to calculate the actual value.
+If the value is a function, the function is invoked once to calculate the actual value.
 
 ```typescript
 useConstant: <T>(value: (() => T) | T) => T;
@@ -10785,8 +10833,6 @@ T \| undefined
 
 ## useSignal
 
-Hook that creates a signal that is retained for the lifetime of the component.
-
 ```typescript
 useSignal: UseSignal;
 ```
@@ -10794,8 +10840,6 @@ useSignal: UseSignal;
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts)
 
 ## UseSignal
-
-Hook that creates a signal that is retained for the lifetime of the component.
 
 ```typescript
 useSignal: UseSignal;
@@ -10985,7 +11029,7 @@ export const CmpStyles = component$(() => {
 ```
 
 ```typescript
-useStyles$: (qrl: string) => void
+useStyles$: (qrl: string) => UseStyles;
 ```
 
 <table><thead><tr><th>
@@ -11015,7 +11059,7 @@ string
 </tbody></table>
 **Returns:**
 
-void
+UseStyles
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
@@ -11036,7 +11080,7 @@ export const CmpStyles = component$(() => {
 ```
 
 ```typescript
-useStylesQrl: (styles: QRL<string>) => void
+useStylesQrl: (styles: QRL<string>) => UseStyles;
 ```
 
 <table><thead><tr><th>
@@ -11066,7 +11110,7 @@ styles
 </tbody></table>
 **Returns:**
 
-void
+UseStyles
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
@@ -11221,7 +11265,7 @@ Use `useTask` to observe changes on a set of inputs, and then re-execute the `ta
 The `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.
 
 ```typescript
-useTask$: (qrl: TaskFn, opts?: UseTaskOptions | undefined) => void
+useTask$: (qrl: import("./use-task").TaskFn, opts?: import("./use-task").UseTaskOptions | undefined) => void
 ```
 
 <table><thead><tr><th>
@@ -11243,7 +11287,7 @@ qrl
 
 </td><td>
 
-[TaskFn](#taskfn)
+import("./use-task").[TaskFn](#taskfn)
 
 </td><td>
 
@@ -11254,7 +11298,7 @@ opts
 
 </td><td>
 
-[UseTaskOptions](#usetaskoptions) \| undefined
+import("./use-task").[UseTaskOptions](#usetaskoptions) \| undefined
 
 </td><td>
 
@@ -11266,7 +11310,7 @@ _(Optional)_
 
 void
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task-dollar.ts)
 
 ## UseTaskOptions
 
@@ -11389,7 +11433,7 @@ const Timer = component$(() => {
 ```
 
 ```typescript
-useVisibleTask$: (qrl: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void
+useVisibleTask$: (qrl: import("./use-task").TaskFn, opts?: import("./use-task").OnVisibleTaskOptions | undefined) => void
 ```
 
 <table><thead><tr><th>
@@ -11411,7 +11455,7 @@ qrl
 
 </td><td>
 
-[TaskFn](#taskfn)
+import("./use-task").[TaskFn](#taskfn)
 
 </td><td>
 
@@ -11422,7 +11466,7 @@ opts
 
 </td><td>
 
-[OnVisibleTaskOptions](#onvisibletaskoptions) \| undefined
+import("./use-task").[OnVisibleTaskOptions](#onvisibletaskoptions) \| undefined
 
 </td><td>
 
@@ -11434,7 +11478,7 @@ _(Optional)_
 
 void
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task-dollar.ts)
 
 ## useVisibleTaskQrl
 

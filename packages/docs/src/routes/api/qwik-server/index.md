@@ -113,7 +113,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[maximunChunk?](#)
+[maximumChunk?](#)
 
 </td><td>
 
@@ -128,7 +128,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[maximunInitialChunk?](#)
+[maximumInitialChunk?](#)
 
 </td><td>
 
@@ -737,25 +737,21 @@ SnapshotResult \| undefined
 
 ## renderToStream
 
+Creates a server-side `document`, renders to root node to the document, then serializes the document to a string.
+
 ```typescript
-export type RenderToStream = (
-  opts: RenderToStreamOptions,
-) => Promise<RenderToStreamResult>;
+renderToStream2: typeof renderToStream;
 ```
 
-**References:** [RenderToStreamOptions](#rendertostreamoptions), [RenderToStreamResult](#rendertostreamresult)
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/v2-ssr-render2.ts)
 
 ## RenderToStream
 
-```typescript
-export type RenderToStream = (
-  opts: RenderToStreamOptions,
-) => Promise<RenderToStreamResult>;
-```
+Creates a server-side `document`, renders to root node to the document, then serializes the document to a string.
 
-**References:** [RenderToStreamOptions](#rendertostreamoptions), [RenderToStreamResult](#rendertostreamresult)
+```typescript
+renderToStream2: typeof renderToStream;
+```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
@@ -886,25 +882,21 @@ number
 
 ## renderToString
 
+Creates a server-side `document`, renders to root node to the document, then serializes the document to a string.
+
 ```typescript
-export type RenderToString = (
-  opts: RenderToStringOptions,
-) => Promise<RenderToStringResult>;
+renderToString2: typeof renderToString;
 ```
 
-**References:** [RenderToStringOptions](#rendertostringoptions), [RenderToStringResult](#rendertostringresult)
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/v2-ssr-render2.ts)
 
 ## RenderToString
 
-```typescript
-export type RenderToString = (
-  opts: RenderToStringOptions,
-) => Promise<RenderToStringResult>;
-```
+Creates a server-side `document`, renders to root node to the document, then serializes the document to a string.
 
-**References:** [RenderToStringOptions](#rendertostringoptions), [RenderToStringResult](#rendertostringresult)
+```typescript
+renderToString2: typeof renderToString;
+```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
@@ -964,7 +956,7 @@ string
 
 </td><td>
 
-{ render: number; snapshot: number; }
+{ firstFlush: number; render: number; snapshot: number; }
 
 </td><td>
 

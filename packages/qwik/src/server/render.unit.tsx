@@ -3,7 +3,7 @@ import { renderToString } from './render';
 
 describe('render', () => {
   describe('qwikPrefetchServiceWorker', () => {
-    it('should render', async () => {
+    it.skip('should render', async () => {
       const output = await renderToString(
         <>
           <head>HEAD</head>

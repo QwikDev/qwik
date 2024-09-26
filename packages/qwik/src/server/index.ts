@@ -25,7 +25,14 @@ export type {
   InOrderStreaming,
   SymbolsToPrefetch,
 } from './types';
-export { renderToString, renderToStream, resolveManifest } from './render';
+export {
+  // renderToString, renderToStream,
+  resolveManifest,
+} from './render';
+export {
+  renderToString2 as renderToString,
+  renderToStream2 as renderToStream,
+} from './v2-ssr-render2';
 export { versions } from './utils';
 export { getQwikLoaderScript, getQwikPrefetchWorkerScript } from './scripts';
 

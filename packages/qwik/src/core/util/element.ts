@@ -14,16 +14,17 @@ export const isElement = (value: object): value is Element => {
 
 export const isQwikElement = (value: object): value is QwikElement => {
   const nodeType = (value as any).nodeType;
-  return nodeType === 1 || nodeType === 111;
+  return nodeType === 1 || nodeType === 11 || nodeType === 111;
 };
 
 export const isNodeElement = (value: object): value is QwikElement => {
   const nodeType = (value as any).nodeType;
-  return nodeType === 1 || nodeType === 111 || nodeType === 3;
+  return nodeType === 1 || nodeType === 11 || nodeType === 111 || nodeType === 3;
 };
 
 export const isVirtualElement = (value: object): value is VirtualElement => {
-  return (value as any).nodeType === 111;
+  const nodeType = (value as any).nodeType;
+  return nodeType === 11 || nodeType === 111;
 };
 
 export const isVirtualElementOpenComment = (value: Node | VirtualElement): value is Comment => {

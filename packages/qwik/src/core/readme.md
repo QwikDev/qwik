@@ -56,7 +56,7 @@ The status can be one of the following:
 - `resolved` - the data is available.
 - `rejected` - the data is not available due to an error or timeout.
 
-Avoid using a `try/catch` statement in `useResource$`. If you catch the error instead of passing it, the resource status will never be `rejected`.
+Be careful when using a `try/catch` statement in `useResource$`. If you catch the error and don't re-throw it (or a new Error), the resource status will never be `rejected`.
 
 ### Example
 

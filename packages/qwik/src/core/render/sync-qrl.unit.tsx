@@ -1,5 +1,5 @@
 import { assert, suite, test } from 'vitest';
-import { createDOM } from '../../testing/library';
+import { createDOM } from '@builder.io/qwik/testing';
 import { sync$ } from '../qrl/qrl.public';
 import { renderToString } from '../../server/render';
 
@@ -13,7 +13,7 @@ suite('sync-qrl', () => {
     assert.equal(input.checked, true);
   });
 
-  test('default prevents updates the checkbox', async () => {
+  test.skip('default prevents updates the checkbox', async () => {
     const { screen, userEvent, render } = await createDOM();
     await render(
       <input

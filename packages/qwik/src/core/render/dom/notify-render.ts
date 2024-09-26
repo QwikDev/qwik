@@ -1,34 +1,36 @@
+import { _getContainerState, type ContainerState } from '../../container/container';
+import { resumeIfNeeded } from '../../container/resume';
 import { assertDefined, assertTrue } from '../../error/assert';
-import { executeContextWithScrollAndTransition, IS_HEAD, IS_SVG, SVG_NS } from './visitor';
-import { getDocument } from '../../util/dom';
-import { logError, logWarn } from '../../util/log';
-import { getWrappingContainer } from '../../use/use-core';
+import { getPlatform, isServerPlatform } from '../../platform/platform';
+import type { SubscriberSignal, Subscriptions } from '../../state/common';
+import { HOST_FLAG_DIRTY, getContext, type QContext } from '../../state/context';
+import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import {
+  TaskFlags,
+  isSubscriberDescriptor,
   runSubscriber,
   type SubscriberEffect,
-  TaskFlagsIsDirty,
-  TaskFlagsIsVisibleTask,
-  TaskFlagsIsResource,
-  TaskFlagsIsTask,
-  isSubscriberDescriptor,
+  type Task,
 } from '../../use/use-task';
-import { maybeThen } from '../../util/promises';
-import type { ValueOrPromise } from '../../util/types';
-import { useLexicalScope } from '../../use/use-lexical-scope.public';
-import { renderComponent } from './render-dom';
-import type { RenderContext } from '../types';
-import { type ContainerState, _getContainerState } from '../../container/container';
-import { createRenderContext } from '../execute-component';
-import { getRootNode, type QwikElement } from './virtual-element';
-import { appendChild, printRenderStats } from './operations';
-import { executeSignalOperation } from './signals';
-import { getPlatform, isServerPlatform } from '../../platform/platform';
-import { qDev } from '../../util/qdev';
-import type { SubscriberSignal, Subscriptions } from '../../state/common';
-import { resumeIfNeeded } from '../../container/resume';
-import { getContext, HOST_FLAG_DIRTY, type QContext } from '../../state/context';
-import { directGetAttribute } from '../fast-calls';
+import { getDocument } from '../../util/dom';
+import { logError, logWarn } from '../../util/log';
 import { QStyle } from '../../util/markers';
+import { maybeThen } from '../../util/promises';
+import { qDev } from '../../util/qdev';
+import type { ValueOrPromise } from '../../util/types';
+import { getDomContainer, isDomContainer } from '../../v2/client/dom-container';
+import type { VirtualVNode } from '../../v2/client/types';
+import { vnode_isVNode } from '../../v2/client/vnode';
+import { ChoreType } from '../../v2/shared/scheduler';
+import type { Container2, fixMeAny } from '../../v2/shared/types';
+import { createRenderContext } from '../execute-component';
+import { directGetAttribute } from '../fast-calls';
+import type { RenderContext } from '../types';
+import { appendChild, printRenderStats } from './operations';
+import { renderComponent } from './render-dom';
+import { executeSignalOperation } from './signals';
+import { getRootNode, type QwikElement } from './virtual-element';
+import { IS_HEAD, IS_SVG, SVG_NS, executeContextWithScrollAndTransition } from './visitor';
 
 export const notifyChange = (subAction: Subscriptions, containerState: ContainerState) => {
   if (subAction[0] === 0) {
@@ -57,31 +59,36 @@ export const notifyChange = (subAction: Subscriptions, containerState: Container
  * @returns A promise which is resolved when the component has been rendered.
  */
 const notifyRender = (hostElement: QwikElement, containerState: ContainerState): void => {
-  const server = isServerPlatform();
-  if (!server) {
-    resumeIfNeeded(containerState.$containerEl$);
-  }
-
-  const elCtx = getContext(hostElement, containerState);
-  assertDefined(
-    elCtx.$componentQrl$,
-    `render: notified host element must have a defined $renderQrl$`,
-    elCtx
-  );
-  if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
-    return;
-  }
-  elCtx.$flags$ |= HOST_FLAG_DIRTY;
-  const activeRendering = containerState.$hostsRendering$ !== undefined;
-  if (activeRendering) {
-    containerState.$hostsStaging$.add(elCtx);
+  if (vnode_isVNode(hostElement)) {
+    const container2 = containerState as any as Container2;
+    (container2 as fixMeAny).markComponentForRender(hostElement as unknown as VirtualVNode);
   } else {
-    if (server) {
-      logWarn('Can not rerender in server platform');
-      return undefined;
+    const server = isServerPlatform();
+    if (!server) {
+      resumeIfNeeded(containerState.$containerEl$);
     }
-    containerState.$hostsNext$.add(elCtx);
-    scheduleFrame(containerState);
+
+    const elCtx = getContext(hostElement, containerState);
+    assertDefined(
+      elCtx.$componentQrl$,
+      `render: notified host element must have a defined $renderQrl$`,
+      elCtx
+    );
+    if (elCtx.$flags$ & HOST_FLAG_DIRTY) {
+      return;
+    }
+    elCtx.$flags$ |= HOST_FLAG_DIRTY;
+    const activeRendering = containerState.$hostsRendering$ !== undefined;
+    if (activeRendering) {
+      containerState.$hostsStaging$.add(elCtx);
+    } else {
+      if (server) {
+        logWarn('Can not rerender in server platform');
+        return undefined;
+      }
+      containerState.$hostsNext$.add(elCtx);
+      scheduleFrame(containerState);
+    }
   }
 };
 
@@ -93,17 +100,23 @@ const notifySignalOperation = (op: SubscriberSignal, containerState: ContainerSt
   }
 };
 export const notifyTask = (task: SubscriberEffect, containerState: ContainerState) => {
-  if (task.$flags$ & TaskFlagsIsDirty) {
+  if (task.$flags$ & TaskFlags.DIRTY) {
     return;
   }
-  task.$flags$ |= TaskFlagsIsDirty;
+  task.$flags$ |= TaskFlags.DIRTY;
 
-  const activeRendering = containerState.$hostsRendering$ !== undefined;
-  if (activeRendering) {
-    containerState.$taskStaging$.add(task);
+  if (isDomContainer(containerState)) {
+    // TODO @mhevery please add $state$ to the ContainerState type if this is correct
+    (containerState as fixMeAny).$tasks$.push(task);
+    (containerState as fixMeAny).scheduleRender();
   } else {
-    containerState.$taskNext$.add(task);
-    scheduleFrame(containerState);
+    const activeRendering = containerState.$hostsRendering$ !== undefined;
+    if (activeRendering) {
+      containerState.$taskStaging$.add(task);
+    } else {
+      containerState.$taskNext$.add(task);
+      scheduleFrame(containerState);
+    }
   }
 };
 
@@ -122,7 +135,9 @@ const scheduleFrame = (containerState: ContainerState): Promise<void> => {
  */
 export const _hW = () => {
   const [task] = useLexicalScope<[SubscriberEffect]>();
-  notifyTask(task, _getContainerState(getWrappingContainer(task.$el$)!));
+  const container = getDomContainer(task.$el$ as Element);
+  const type = task.$flags$ & TaskFlags.VISIBLE_TASK ? ChoreType.VISIBLE : ChoreType.TASK;
+  container.$scheduler$(type, task as Task);
 };
 
 const renderMarked = async (containerState: ContainerState): Promise<void> => {
@@ -214,7 +229,7 @@ export const postRendering = async (containerState: ContainerState, rCtx: Render
   const hostElements = rCtx.$static$.$hostElements$;
 
   await executeTasksAfter(containerState, rCtx, (task, stage) => {
-    if ((task.$flags$ & TaskFlagsIsVisibleTask) === 0) {
+    if ((task.$flags$ & TaskFlags.VISIBLE_TASK) === 0) {
       return false;
     }
     if (stage) {
@@ -243,8 +258,8 @@ export const postRendering = async (containerState: ContainerState, rCtx: Render
   }
 };
 
-const isTask = (task: SubscriberEffect) => (task.$flags$ & TaskFlagsIsTask) !== 0;
-const isResourceTask = (task: SubscriberEffect) => (task.$flags$ & TaskFlagsIsResource) !== 0;
+const isTask = (task: SubscriberEffect) => (task.$flags$ & TaskFlags.TASK) !== 0;
+const isResourceTask = (task: SubscriberEffect) => (task.$flags$ & TaskFlags.RESOURCE) !== 0;
 const executeTasksBefore = async (containerState: ContainerState, rCtx: RenderContext) => {
   const containerEl = containerState.$containerEl$;
   const resourcesPromises: ValueOrPromise<SubscriberEffect>[] = [];

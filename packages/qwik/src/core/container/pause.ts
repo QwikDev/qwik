@@ -45,10 +45,11 @@ import { groupListeners } from '../state/listeners';
 import { SignalImpl } from '../state/signal';
 import { serializeSStyle } from '../style/qrl-styles';
 import {
-  TaskFlagsIsDirty,
-  destroyTask,
+  TaskFlags,
+  cleanupTask,
   isResourceTask,
   type ResourceReturnInternal,
+  type Task,
 } from '../use/use-task';
 import { isNotNullable, isPromise } from '../util/promises';
 import { isArray, isObject, isSerializableObject } from '../util/types';
@@ -64,80 +65,9 @@ import {
   type SnapshotMeta,
   type SnapshotMetaValue,
   type SnapshotResult,
-  createContainerState,
 } from './container';
 import { UNDEFINED_PREFIX, collectDeps, serializeValue } from './serializers';
 import { isQrl } from '../qrl/qrl-class';
-
-/** @internal */
-export const _serializeData = async (data: any, pureQRL?: boolean) => {
-  const containerState = createContainerState(null!, null!);
-  const collector = createCollector(containerState);
-  collectValue(data, collector, false);
-
-  // Wait for remaining promises
-  let promises: Promise<any>[];
-  while ((promises = collector.$promises$).length > 0) {
-    collector.$promises$ = [];
-    const results = await Promise.allSettled(promises);
-    for (const result of results) {
-      if (result.status === 'rejected') {
-        console.error(result.reason);
-      }
-    }
-  }
-
-  const objs = Array.from(collector.$objSet$.keys());
-  let count = 0;
-
-  const objToId = new Map<any, string>();
-  for (const obj of objs) {
-    objToId.set(obj, intToStr(count));
-    count++;
-  }
-  if (collector.$noSerialize$.length > 0) {
-    const undefinedID = objToId.get(undefined);
-    assertDefined(undefinedID, 'undefined ID must be defined');
-    for (const obj of collector.$noSerialize$) {
-      objToId.set(obj, undefinedID);
-    }
-  }
-
-  const mustGetObjId = (obj: any): string => {
-    let suffix = '';
-    if (isPromise(obj)) {
-      const promiseValue = getPromiseValue(obj);
-      if (!promiseValue) {
-        throw qError(QError_missingObjectId, obj);
-      }
-      obj = promiseValue.value;
-      if (promiseValue.resolved) {
-        suffix += '~';
-      } else {
-        suffix += '_';
-      }
-    }
-    if (isObject(obj)) {
-      const target = getProxyTarget(obj);
-      if (target) {
-        suffix += '!';
-        obj = target;
-      }
-    }
-    const key = objToId.get(obj);
-    if (key === undefined) {
-      throw qError(QError_missingObjectId, obj);
-    }
-    return key + suffix;
-  };
-
-  const convertedObjs = serializeObjects(objs, mustGetObjId, null, collector, containerState);
-
-  return JSON.stringify({
-    _entry: mustGetObjId(data),
-    _objs: convertedObjs,
-  });
-};
 
 // <docs markdown="../readme.md#pauseContainer">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -231,7 +161,7 @@ export const _pauseFromContexts = async (
     if (ctx.$tasks$) {
       for (const task of ctx.$tasks$) {
         if (qDev) {
-          if (task.$flags$ & TaskFlagsIsDirty) {
+          if (task.$flags$ & TaskFlags.DIRTY) {
             logWarn(
               `Serializing dirty task. Looks like an internal error. 
 Task Symbol: ${task.$qrl$.$symbol$}
@@ -245,7 +175,7 @@ Task Symbol: ${task.$qrl$.$symbol$}
         if (isResourceTask(task)) {
           collector.$resources$.push(task.$state$!);
         }
-        destroyTask(task);
+        cleanupTask(task as Task);
       }
     }
   }
@@ -389,7 +319,7 @@ Task Symbol: ${task.$qrl$.$symbol$}
         throw qError(QError_missingObjectId, obj);
       }
     }
-    return key;
+    return key as string;
   };
 
   // Compute subscriptions
@@ -467,69 +397,17 @@ Task Symbol: ${task.$qrl$.$symbol$}
   // Write back to the dom
   for (const ctx of allContexts) {
     const node = ctx.$element$;
-    const elementID = ctx.$id$;
-    const ref = ctx.$refMap$;
-    const props = ctx.$props$;
-    const contexts = ctx.$contexts$;
-    const tasks = ctx.$tasks$;
-    const renderQrl = ctx.$componentQrl$;
-    const seq = ctx.$seq$;
-    const metaValue: SnapshotMetaValue = {};
     const elementCaptured = isVirtualElement(node) && collector.$elements$.includes(ctx);
-    assertDefined(elementID, `pause: can not generate ID for dom node`, node);
-
-    if (ref.length > 0) {
-      assertElement(node);
-      const value = mapJoin(ref, mustGetObjId, ' ');
-      if (value) {
-        refs[elementID] = value;
-      }
-    } else if (canRender) {
-      let add = false;
-      if (elementCaptured) {
-        assertDefined(renderQrl, 'renderQrl must be defined');
-        const propsId = getObjId(props);
-        metaValue.h = mustGetObjId(renderQrl) + (propsId ? ' ' + propsId : '');
-        add = true;
-      } else {
-        const propsId = getObjId(props);
-        if (propsId) {
-          metaValue.h = ' ' + propsId;
-          add = true;
-        }
-      }
-
-      if (tasks && tasks.length > 0) {
-        const value = mapJoin(tasks, getObjId, ' ');
-        if (value) {
-          metaValue.w = value;
-          add = true;
-        }
-      }
-
-      if (elementCaptured && seq && seq.length > 0) {
-        const value = mapJoin(seq, mustGetObjId, ' ');
-        metaValue.s = value;
-        add = true;
-      }
-
-      if (contexts) {
-        const serializedContexts: string[] = [];
-        contexts.forEach((value, key) => {
-          const id = getObjId(value);
-          if (id) {
-            serializedContexts.push(`${key}=${id}`);
-          }
-        });
-        const value = serializedContexts.join(' ');
-        if (value) {
-          metaValue.c = value;
-          add = true;
-        }
-      }
-      if (add) {
-        meta[elementID] = metaValue;
-      }
+    const value = serializeComponentContext(
+      ctx,
+      getObjId,
+      mustGetObjId,
+      elementCaptured,
+      canRender,
+      refs
+    );
+    if (value) {
+      meta[ctx.$id$] = value;
     }
   }
 
@@ -808,8 +686,7 @@ const getPromiseValue = (promise: Promise<any>): PromiseValue | undefined => {
 
 export const collectValue = (obj: unknown, collector: Collector, leaks: boolean | QwikElement) => {
   if (obj != null) {
-    const objType = typeof obj;
-    switch (objType) {
+    switch (typeof obj) {
       case 'function':
       case 'object': {
         if (collector.$seen$.has(obj)) {
@@ -857,7 +734,7 @@ export const collectValue = (obj: unknown, collector: Collector, leaks: boolean 
           return;
         }
 
-        if (objType === 'object') {
+        if (typeof obj === 'object') {
           if (isNode(obj)) {
             return;
           }
@@ -935,6 +812,79 @@ const getTextID = (node: Text, containerState: ContainerState) => {
 const isEmptyObj = (obj: Record<string, any>) => {
   return Object.keys(obj).length === 0;
 };
+export function serializeComponentContext(
+  ctx: QContext,
+  getObjId: GetObjID,
+  mustGetObjId: (obj: any) => string,
+  elementCaptured: boolean,
+  canRender: boolean,
+  refs: Record<string, string>
+) {
+  const node = ctx.$element$;
+  const ref = ctx.$refMap$;
+  const props = ctx.$props$;
+  const contexts = ctx.$contexts$;
+  const tasks = ctx.$tasks$;
+  const renderQrl = ctx.$componentQrl$;
+  const seq = ctx.$seq$;
+  const metaValue: SnapshotMetaValue = {};
+  assertDefined(ctx.$id$, `pause: can not generate ID for dom node`, node);
+
+  if (ref.length > 0) {
+    assertElement(node);
+    const value = mapJoin(ref, mustGetObjId, ' ');
+    if (value) {
+      refs[ctx.$id$] = value;
+    }
+  } else if (canRender) {
+    let add = false;
+    if (elementCaptured) {
+      assertDefined(renderQrl, 'renderQrl must be defined');
+      const propsId = getObjId(props);
+      metaValue.h = mustGetObjId(renderQrl) + (propsId ? ' ' + propsId : '');
+      add = true;
+    } else {
+      const propsId = getObjId(props);
+      if (propsId) {
+        metaValue.h = ' ' + propsId;
+        add = true;
+      }
+    }
+
+    if (tasks && tasks.length > 0) {
+      const value = mapJoin(tasks, getObjId, ' ');
+      if (value) {
+        metaValue.w = value;
+        add = true;
+      }
+    }
+
+    if (elementCaptured && seq && seq.length > 0) {
+      const value = mapJoin(seq, mustGetObjId, ' ');
+      metaValue.s = value;
+      add = true;
+    }
+
+    if (contexts) {
+      const serializedContexts: string[] = [];
+      contexts.forEach((value, key) => {
+        const id = getObjId(value);
+        if (id) {
+          serializedContexts.push(`${key}=${id}`);
+        }
+      });
+      const value = serializedContexts.join(' ');
+      if (value) {
+        metaValue.c = value;
+        add = true;
+      }
+    }
+    if (add) {
+      return metaValue;
+    }
+  }
+}
+
 function serializeObjects(
   objs: any[],
   mustGetObjId: (obj: any) => string,

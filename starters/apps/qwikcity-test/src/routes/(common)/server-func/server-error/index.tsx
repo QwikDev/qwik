@@ -30,8 +30,10 @@ export const MultipleServerFunctionsInvokedInTask = component$(() => {
 
   return (
     <div id="server-error">
+      <b>(</b>
       {methodA.value}
       {methodB.value}
+      <b>)</b>
     </div>
   );
 });

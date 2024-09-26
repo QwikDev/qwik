@@ -412,13 +412,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     async configResolved(config) {
       basePathname = config.base;
       if (!(basePathname.startsWith('/') && basePathname.endsWith('/'))) {
-        // TODO v2: make this an error
-        console.error(
-          `warning: vite's config.base must begin and end with /. This will be an error in v2. If you have a valid use case, please open an issue.`
-        );
-        if (!basePathname.endsWith('/')) {
-          basePathname += '/';
-        }
+        throw new Error(`Vite's config.base must begin and end with /`);
       }
       const sys = qwikPlugin.getSys();
       if (sys.env === 'node' && !qwikViteOpts.entryStrategy) {

@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2619
+assertion_line: 2730
 expression: output
 ---
 ==INPUT==
@@ -14,28 +14,28 @@ import { threejs } from 'threejs';
 import L from 'leaflet';
 
 export const functionThatNeedsWindow = () => {
-  if (isBrowser) {
-    console.log('l', L);
-    console.log('hey');
-    window.alert('hey');
-  }
+	if (isBrowser) {
+	console.log('l', L);
+	console.log('hey');
+	window.alert('hey');
+	}
 };
 
 export const App = component$(() => {
-    useMount$(() => {
-        if (isServer) {
-            console.log('server', mongodb());
-        }
-        if (isBrowser) {
-            console.log('browser', new threejs());
-        }
-    });
-    return (
-        <Cmp>
-            {isServer && <p>server</p>}
-            {isBrowser && <p>server</p>}
-        </Cmp>
-    );
+	useMount$(() => {
+		if (isServer) {
+			console.log('server', mongodb());
+		}
+		if (isBrowser) {
+			console.log('browser', new threejs());
+		}
+	});
+	return (
+		<Cmp>
+			{isServer && <p>server</p>}
+			{isBrowser && <p>server</p>}
+		</Cmp>
+	);
 });
 
 ============================= test.tsx ==
@@ -55,13 +55,13 @@ export const s_ckEPmXZlub0 = ()=>{
         console.log('server', mongodb());
     });
     return <Cmp>
-            {<p>server</p>}
-            {false}
-        </Cmp>;
+			{<p>server</p>}
+			{false}
+		</Cmp>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAgB8B;IAC1B,UAAU;QAEF,QAAQ,GAAG,CAAC,UAAU;IAK9B;IACA,QACK,IAAI;YACD,EAAc,EAAE,MAAM,EAAE,GAAG;YAC3B,OAA4B;QAChC,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAgB8B;IAC7B,UAAU;QAER,QAAQ,GAAG,CAAC,UAAU;IAKxB;IACA,QACE,IAAI;GACJ,EAAc,EAAE,MAAM,EAAE,GAAG;GAC3B,OAA4B;EAC7B,EAAE;AAEJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -77,8 +77,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    396,
-    731
+    385,
+    636
   ]
 }
 */

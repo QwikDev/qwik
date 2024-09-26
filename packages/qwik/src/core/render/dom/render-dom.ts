@@ -1,20 +1,21 @@
 import { qError, QError_invalidJsxNodeType } from '../../error/error';
-import { type InvokeContext, newInvokeContext, invoke } from '../../use/use-core';
+import { SubscriptionType } from '../../state/common';
+import { HOST_FLAG_MOUNTED, type QContext } from '../../state/context';
+import { isSignalV1, type Signal } from '../../state/signal';
+import { invoke, newInvokeContext, type InvokeContext } from '../../use/use-core';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../../util/flyweight';
 import { logWarn } from '../../util/log';
-import { isNotNullable, isPromise, promiseAll, maybeThen } from '../../util/promises';
+import { isNotNullable, isPromise, maybeThen, promiseAll } from '../../util/promises';
 import { qDev, qInspector, seal } from '../../util/qdev';
 import { isArray, isFunction, isObject, isString, type ValueOrPromise } from '../../util/types';
-import { domToVnode, smartUpdateChildren } from './visitor';
-import { SkipRender } from '../jsx/utils.public';
-import { isJSXNode, SKIP_RENDER_TYPE, _jsxC, Virtual } from '../jsx/jsx-runtime';
-import type { DevJSX, JSXNode } from '../jsx/types/jsx-node';
 import { executeComponent, shouldWrapFunctional } from '../execute-component';
+import { _jsxSorted, isJSXNode, SKIP_RENDER_TYPE, Virtual } from '../jsx/jsx-runtime';
+import type { DevJSX, JSXNode } from '../jsx/types/jsx-node';
+import { SkipRender } from '../jsx/utils.public';
 import type { RenderContext } from '../types';
-import { type QwikElement, VIRTUAL, type VirtualElement } from './virtual-element';
 import { appendHeadStyle } from './operations';
-import { isSignal, type Signal } from '../../state/signal';
-import { HOST_FLAG_MOUNTED, type QContext } from '../../state/context';
+import { VIRTUAL, type QwikElement, type VirtualElement } from './virtual-element';
+import { domToVnode, smartUpdateChildren } from './visitor';
 
 export const renderComponent = (
   rCtx: RenderContext,
@@ -35,7 +36,7 @@ export const renderComponent = (
     const newCtx = res.rCtx;
     const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement);
     staticCtx.$hostElements$.add(hostElement);
-    iCtx.$subscriber$ = [0, hostElement];
+    iCtx.$subscriber$ = [SubscriptionType.HOST, hostElement];
     iCtx.$renderCtx$ = newCtx;
     if (justMounted) {
       if (elCtx.$appendStyles$) {
@@ -46,6 +47,7 @@ export const renderComponent = (
     }
     const processedJSXNode = processData(res.node, iCtx);
     return maybeThen(processedJSXNode, (processedJSXNode) => {
+      // Old code path
       const newVdom = wrapJSX(hostElement, processedJSXNode);
       // const oldVdom = getVdom(hostElement);
       const oldVdom = getVdom(elCtx);
@@ -73,8 +75,8 @@ export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
 
   constructor(
     public $type$: string,
-    public $props$: Record<string, any>,
-    public $immutableProps$: Record<string, any> | null,
+    public $varProps$: Record<string, any>,
+    public $constProps$: Record<string, any> | null,
     public $children$: ProcessedJSXNode[],
     public $flags$: number,
     public $key$: string | null
@@ -91,18 +93,18 @@ export const processNode = (
   node: JSXNode,
   invocationContext?: InvokeContext
 ): ValueOrPromise<ProcessedJSXNode | ProcessedJSXNode[] | undefined> => {
-  const { key, type, props, children, flags, immutableProps } = node;
+  const { key, type, varProps, children, flags, constProps } = node;
   let textType = '';
   if (isString(type)) {
     textType = type;
   } else if (type === Virtual) {
     textType = VIRTUAL;
   } else if (isFunction(type)) {
-    const res = invoke(invocationContext, type, props, key, flags, node.dev);
+    const res = invoke(invocationContext, type, node.props, key, flags, node.dev);
     if (!shouldWrapFunctional(res, node)) {
       return processData(res, invocationContext);
     }
-    return processNode(_jsxC(Virtual, { children: res }, 0, key), invocationContext);
+    return processNode(_jsxSorted(Virtual, null, null, res, 0, key), invocationContext);
   } else {
     throw qError(QError_invalidJsxNodeType, type);
   }
@@ -114,8 +116,8 @@ export const processNode = (
       }
       const vnode = new ProcessedJSXNodeImpl(
         textType,
-        props,
-        immutableProps,
+        varProps,
+        constProps,
         convertedChildren,
         flags,
         key
@@ -128,8 +130,8 @@ export const processNode = (
   } else {
     const vnode = new ProcessedJSXNodeImpl(
       textType,
-      props,
-      immutableProps,
+      varProps,
+      constProps,
       convertedChildren,
       flags,
       key
@@ -165,13 +167,15 @@ export const processData = (
     return newNode;
   } else if (isJSXNode(node)) {
     return processNode(node, invocationContext);
-  } else if (isSignal(node)) {
+  } else if (isSignalV1(node)) {
     const newNode = new ProcessedJSXNodeImpl('#signal', EMPTY_OBJ, null, EMPTY_ARRAY, 0, null);
     newNode.$signal$ = node;
     return newNode;
   } else if (isArray(node)) {
     const output = promiseAll(node.flatMap((n) => processData(n, invocationContext)));
-    return maybeThen(output, (array) => array.flat(100).filter(isNotNullable));
+    return maybeThen(output, (array) => array.flat(100).filter(isNotNullable)) as ValueOrPromise<
+      ProcessedJSXNode[] | ProcessedJSXNode | undefined
+    >;
   } else if (isPromise(node)) {
     return node.then((node) => processData(node, invocationContext));
   } else if (node === SkipRender) {
@@ -210,8 +214,8 @@ export type ProcessedJSXNodeType =
 export interface ProcessedJSXNode {
   $type$: ProcessedJSXNodeType;
   $id$: string;
-  $props$: Record<string, any>;
-  $immutableProps$: Record<string, any> | null;
+  $varProps$: Record<string, any>;
+  $constProps$: Record<string, any> | null;
   $flags$: number;
   $children$: ProcessedJSXNode[];
   $key$: string | null;

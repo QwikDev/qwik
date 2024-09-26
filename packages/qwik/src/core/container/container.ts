@@ -6,18 +6,16 @@ import type { QRL } from '../qrl/qrl.public';
 import { fromKebabToCamelCase } from '../util/case';
 import { QContainerAttr } from '../util/markers';
 import { isElement } from '../util/element';
-import {
-  createSubscriptionManager,
-  type SubscriberSignal,
-  type SubscriptionManager,
-} from '../state/common';
-import { isSignal, type Signal, type SignalImpl } from '../state/signal';
+import { createSubscriptionManager, type SubscriberSignal } from '../state/common';
+import { isSignalV1, type Signal, type SignalImpl } from '../state/signal';
 import { directGetAttribute } from '../render/fast-calls';
 import type { QContext } from '../state/context';
 import { isServerPlatform } from '../platform/platform';
+import type { StoreTracker } from '../state/store';
 
 export type GetObject = (id: string) => any;
-export type GetObjID = (obj: any) => string | null;
+// v2 allows numbers
+export type GetObjID = (obj: any) => string | number | null;
 export type MustGetObjID = (obj: any) => string;
 
 /** @public */
@@ -31,7 +29,7 @@ export interface SnapshotMetaValue {
 /** @public */
 export type SnapshotMeta = Record<string, SnapshotMetaValue>;
 
-/** @public */
+/** @public @deprecated not longer used in v2 */
 export interface SnapshotState {
   ctx: SnapshotMeta;
   refs: Record<string, string>;
@@ -48,10 +46,12 @@ export interface SnapshotListener {
 
 /** @public */
 export interface SnapshotResult {
-  state: SnapshotState;
+  /** @deprecated Not longer used in v2 */
+  state?: SnapshotState;
   funcs: string[];
   qrls: QRL[];
-  objs: any[];
+  /** @deprecated Not longer used in v2 */
+  objs?: any[];
   resources: ResourceReturnInternal<any>[];
   mode: 'render' | 'listeners' | 'static';
 }
@@ -66,11 +66,8 @@ export interface PauseContext {
 }
 
 /** @public */
-export interface ContainerState {
+export interface ContainerState extends StoreTracker {
   readonly $containerEl$: Element;
-
-  readonly $proxyMap$: ObjToProxyMap;
-  $subsManager$: SubscriptionManager;
 
   readonly $taskNext$: Set<SubscriberEffect>;
   readonly $taskStaging$: Set<SubscriberEffect>;
@@ -119,6 +116,7 @@ export const createContainerState = (containerEl: Element, base: string) => {
       }
     }
   }
+  // @ts-expect-error - v1 code missing StoreTracker
   const containerState: ContainerState = {
     $containerEl$: containerEl,
 
@@ -143,11 +141,11 @@ export const createContainerState = (containerEl: Element, base: string) => {
     $renderPromise$: undefined,
     $hostsRendering$: undefined,
     $pauseCtx$: undefined,
-    $subsManager$: null as any,
+    $subsManager$: undefined as any,
     $inlineFns$: new Map(),
   };
+  (containerState as any).$subsManager$ = createSubscriptionManager(containerState);
   seal(containerState);
-  containerState.$subsManager$ = createSubscriptionManager(containerState);
   return containerState;
 };
 
@@ -158,7 +156,7 @@ export const removeContainerState = (containerEl: Element) => {
 export const setRef = (value: any, elm: Element) => {
   if (isFunction(value)) {
     return value(elm);
-  } else if (isSignal(value)) {
+  } else if (isSignalV1(value)) {
     if (isServerPlatform()) {
       // During SSR, assigning a ref should not cause reactivity because
       // the expectation is that the ref is filled in on the client
@@ -198,5 +196,6 @@ export const getEventName = (attribute: string) => {
 };
 
 export interface QContainerElement extends Element {
+  qFuncs?: Function[];
   _qwikjson_?: any;
 }

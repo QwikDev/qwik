@@ -13,6 +13,8 @@ import {
   _weakSerialize,
   useStyles$,
   _waitUntilRendered,
+  _getQContainerElement,
+  type _ElementVNode,
   type QRL,
 } from '@builder.io/qwik';
 import { isBrowser, isDev, isServer } from '@builder.io/qwik/build';
@@ -57,6 +59,7 @@ import {
   getScrollHistory,
   saveScrollHistory,
   restoreScroll,
+  callRestoreScrollOnDocument,
 } from './scroll-restoration';
 import spaInit from './spa-init';
 
@@ -591,11 +594,14 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
 
           clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
           _waitUntilRendered(elm as Element).then(() => {
-            const container = getContainer(elm as Element);
+            const container = _getQContainerElement(elm as _ElementVNode)!;
             container.setAttribute('q:route', routeName);
             const scrollState = currentScrollState(scroller);
             saveScrollHistory(scrollState);
             win._qCityScrollEnabled = true;
+            if (isBrowser) {
+              callRestoreScrollOnDocument();
+            }
 
             routeLocation.isNavigating = false;
             navResolver.r?.();
@@ -613,13 +619,6 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
 
   return <Slot />;
 });
-
-function getContainer(elm: Node): HTMLElement {
-  while (elm && elm.nodeType !== Node.ELEMENT_NODE) {
-    elm = elm.parentElement as Element;
-  }
-  return (elm as Element).closest('[q\\:container]') as HTMLElement;
-}
 
 /** @public */
 export interface QwikCityMockProps {

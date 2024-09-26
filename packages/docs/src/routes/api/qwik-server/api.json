@@ -40,7 +40,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface InOrderAuto \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[maximunChunk?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[maximunInitialChunk?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[strategy](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'auto'\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface InOrderAuto \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[maximumChunk?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[maximumInitialChunk?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[strategy](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'auto'\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "qwik.inorderauto.md"
     },
@@ -179,9 +179,9 @@
           "id": "rendertostream"
         }
       ],
-      "kind": "Function",
-      "content": "```typescript\nexport type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;\n```\n**References:** [RenderToStreamOptions](#rendertostreamoptions)<!-- -->, [RenderToStreamResult](#rendertostreamresult)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts",
+      "kind": "Variable",
+      "content": "Creates a server-side `document`<!-- -->, renders to root node to the document, then serializes the document to a string.\n\n\n```typescript\nrenderToStream2: typeof renderToStream\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/v2-ssr-render2.ts",
       "mdFile": "qwik.rendertostream.md"
     },
     {
@@ -194,7 +194,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;\n```\n**References:** [RenderToStreamOptions](#rendertostreamoptions)<!-- -->, [RenderToStreamResult](#rendertostreamresult)",
+      "content": "Creates a server-side `document`<!-- -->, renders to root node to the document, then serializes the document to a string.\n\n\n```typescript\nrenderToStream2: typeof renderToStream\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "qwik.rendertostream.md"
     },
@@ -235,9 +235,9 @@
           "id": "rendertostring"
         }
       ],
-      "kind": "Function",
-      "content": "```typescript\nexport type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;\n```\n**References:** [RenderToStringOptions](#rendertostringoptions)<!-- -->, [RenderToStringResult](#rendertostringresult)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts",
+      "kind": "Variable",
+      "content": "Creates a server-side `document`<!-- -->, renders to root node to the document, then serializes the document to a string.\n\n\n```typescript\nrenderToString2: typeof renderToString\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/v2-ssr-render2.ts",
       "mdFile": "qwik.rendertostring.md"
     },
     {
@@ -250,7 +250,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;\n```\n**References:** [RenderToStringOptions](#rendertostringoptions)<!-- -->, [RenderToStringResult](#rendertostringresult)",
+      "content": "Creates a server-side `document`<!-- -->, renders to root node to the document, then serializes the document to a string.\n\n\n```typescript\nrenderToString2: typeof renderToString\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "qwik.rendertostring.md"
     },
@@ -278,7 +278,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface RenderToStringResult extends RenderResult \n```\n**Extends:** [RenderResult](#renderresult)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[html](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[timing](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ render: number; snapshot: number; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface RenderToStringResult extends RenderResult \n```\n**Extends:** [RenderResult](#renderresult)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[html](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[timing](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ firstFlush: number; render: number; snapshot: number; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "qwik.rendertostringresult.md"
     },

@@ -25,7 +25,7 @@ The contents are `<q-template />` elements that are waiting for their slot to be
 
 Rendering happens in multple phases:
 
-- During compilations, the embedded `<Tag />` blocks are converted to nested `jsx(componentFn, props)` calls, with the children given as the `children` entry in `props`. (The optimizer converts those `jsx()` calls into `_jsxS()`, `_jsxC()` and `_jsxQ()` depending on the situation for performance reasons)
+- During compilations, the embedded `<Tag />` blocks are converted to nested `jsx(componentFn, props)` calls, with the children given as the `children` entry in `props`. (The optimizer converts those `jsx()` calls into `_jsxS()`, `_jsxSplit()` and `_jsxSorted()` depending on the situation for performance reasons)
 - At runtime, the `jsx()` calls are executed, and the result is a `JSXNode` object. The deepest children are executed first, and the result is passed as `props.children` to the parent, which is then executed, and so on until the root component is reached.
 - Then, the `JSXNode` objects are converted to DOM nodes, starting at the root, and inserted into the DOM.
 

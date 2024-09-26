@@ -1,12 +1,17 @@
+import { vi } from 'vitest';
 import { assertDefined } from '../core/error/assert';
 import type { QRLInternal } from '../core/qrl/qrl-class';
 import { tryGetContext, type QContext } from '../core/state/context';
 import { normalizeOnProp } from '../core/state/listeners';
-import { getWrappingContainer, type PossibleEvents } from '../core/use/use-core';
-import { fromCamelToKebabCase } from '../core/util/case';
+import { type PossibleEvents } from '../core/use/use-core';
+import { _getQContainerElement, getDomContainer } from '@builder.io/qwik';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
+import { delay } from '../core/util/promises';
+import type { QElement2, QwikLoaderEventScope } from '../core/v2/shared/types';
+import { fromCamelToKebabCase } from '../core/v2/shared/event-names';
+import { QFuncsPrefix, QInstanceAttr } from '../core/util/markers';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -44,9 +49,10 @@ export class ElementFixture {
         const code = script.textContent;
         if (code?.match(Q_FUNCS_PREFIX)) {
           const equal = code.indexOf('=');
-          const qFuncs = eval(code.substring(equal + 1));
-          const container = this.host.closest(QContainerSelector);
-          (container as any as { qFuncs?: Function[] }).qFuncs = qFuncs;
+          const qFuncs = (0, eval)(code.substring(equal + 1));
+          const container = this.host.closest(QContainerSelector)!;
+          const hash = container.getAttribute(QInstanceAttr);
+          (document as any)[QFuncsPrefix + hash] = qFuncs;
         }
       });
       this.child = null!;
@@ -65,15 +71,15 @@ export interface ElementFixtureOptions {
   html?: string;
 }
 
+function isDocumentOrWindowEvent(eventName: string): boolean {
+  return eventName.startsWith(':document:') || eventName.startsWith(':window:');
+}
+
 /**
  * Trigger an event in unit tests on an element.
  *
  * Future deprecation candidate.
  *
- * @param element
- * @param selector
- * @param event
- * @returns
  * @public
  */
 export async function trigger(
@@ -87,12 +93,31 @@ export async function trigger(
       ? Array.from(root.querySelectorAll(queryOrElement))
       : [queryOrElement];
   for (const element of elements) {
+    if (!element) {
+      continue;
+    }
     const kebabEventName = fromCamelToKebabCase(eventNameCamel);
-    const event = root.ownerDocument.createEvent('Event');
-    event.initEvent(kebabEventName, true, true);
+    const isDocumentOrWindow = isDocumentOrWindowEvent(kebabEventName);
+
+    let eventName = kebabEventName;
+    let scope: QwikLoaderEventScope = '';
+    if (eventName.startsWith(':')) {
+      // :document:event or :window:event
+      const colonIndex = eventName.substring(1).indexOf(':');
+      // we need to add `-` for event, because of scope of the qwik loader
+      scope = ('-' + eventName.substring(1, colonIndex + 1)) as '-document' | '-window';
+      eventName = eventName.substring(colonIndex + 2);
+    }
+
+    const event = new Event(eventName, {
+      bubbles: true,
+      cancelable: true,
+    });
     Object.assign(event, eventPayload);
-    const attrName = 'on:' + kebabEventName;
-    await dispatch(element, attrName, event);
+    const attrName = isDocumentOrWindow
+      ? `on-${kebabEventName.substring(1)}`
+      : `on:${kebabEventName}`;
+    await dispatch(element, attrName, event, scope);
   }
   await getTestPlatform().flush();
 }
@@ -109,8 +134,15 @@ const QContainerSelector = '[q\\:container]';
  * @param attrName
  * @param event
  */
-export const dispatch = async (element: Element | null, attrName: string, event: any) => {
-  const preventAttributeName = PREVENT_DEFAULT + event.type;
+export const dispatch = async (
+  element: Element | null,
+  attrName: string,
+  event: Event,
+  scope: QwikLoaderEventScope
+) => {
+  const isDocumentOrWindow = isDocumentOrWindowEvent(event.type);
+  const preventAttributeName =
+    PREVENT_DEFAULT + (isDocumentOrWindow ? event.type.substring(1) : event.type);
   const stopPropagationName = STOP_PROPAGATION + event.type;
   const collectListeners: { element: Element; qrl: QRLInternal }[] = [];
   while (element) {
@@ -135,6 +167,19 @@ export const dispatch = async (element: Element | null, attrName: string, event:
           }
         }
       }
+    } else if ('qDispatchEvent' in (element as QElement2)) {
+      await (element as QElement2).qDispatchEvent!(event, scope);
+      await delay(0); // Unsure why this is needed for tests
+      return;
+    } else if (element.hasAttribute(attrName)) {
+      const container = getDomContainer(element as HTMLElement);
+      const qrl = element.getAttribute(attrName)!;
+
+      qrl
+        .split('\n')
+        .map((qrl) => container.parseQRL(qrl.trim()))
+        .map((qrl) => qrl(event, element));
+      return;
     }
     element = element.parentElement;
   }
@@ -149,7 +194,7 @@ export function getEvent(elCtx: QContext, prop: string): any {
 
 export function qPropReadQRL(elCtx: QContext, prop: string): ((event: Event) => void) | null {
   const allListeners = elCtx.li;
-  const containerEl = getWrappingContainer(elCtx.$element$);
+  const containerEl = _getQContainerElement(elCtx.$element$ as Element);
   assertDefined(containerEl, 'container element must be defined');
 
   return (event) => {
@@ -165,4 +210,13 @@ export function qPropReadQRL(elCtx: QContext, prop: string): ((event: Event) => 
 }
 function isSyncQrl(qrl: QRLInternal<(event: PossibleEvents, elem?: Element | undefined) => any>) {
   return qrl.$chunk$ == '';
+}
+
+export async function advanceToNextTimerAndFlush() {
+  vi.advanceTimersToNextTimer();
+  await getTestPlatform().flush();
+}
+
+export function cleanupAttrs(innerHTML: string | undefined): any {
+  return innerHTML?.replaceAll(/ q:key="[^"]+"/g, '').replaceAll(/ :=""/g, '');
 }

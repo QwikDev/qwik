@@ -1,8 +1,9 @@
+import { isDev } from '@builder.io/qwik/build';
 import { assertDefined } from '../error/assert';
 import { qError, QError_qrlIsNotFunction } from '../error/error';
 import { getPlatform, isServerPlatform } from '../platform/platform';
 import { verifySerializable } from '../state/common';
-import { isSignal, type SignalInternal } from '../state/signal';
+import { type SignalInternal } from '../state/signal';
 import {
   invoke,
   newInvokeContext,
@@ -11,10 +12,11 @@ import {
   type InvokeContext,
   type InvokeTuple,
 } from '../use/use-core';
-import { getQFuncs, QInstance } from '../util/markers';
+import { getQFuncs, QInstanceAttr } from '../util/markers';
 import { maybeThen } from '../util/promises';
 import { qDev, qSerialize, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../util/types';
+import { isSignal } from '../v2/signal/v2-signal';
 import type { QRLDev } from './qrl';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 
@@ -25,8 +27,14 @@ export const isQrl = <T = unknown>(value: unknown): value is QRLInternal<T> => {
 // Make sure this value is same as value in `platform.ts`
 export const SYNC_QRL = '<sync>';
 
+interface SyncQRLSymbol {
+  $symbol$: typeof SYNC_QRL;
+}
+
+export type SyncQRLInternal = QRLInternal & SyncQRLSymbol;
+
 /** Sync QRL is a function which is serialized into `<script q:func="qwik/json">` tag. */
-export const isSyncQrl = (value: any): value is QRLInternal => {
+export const isSyncQrl = (value: any): value is SyncQRLInternal => {
   return isQrl(value) && value.$symbol$ == SYNC_QRL;
 };
 
@@ -55,7 +63,7 @@ export type QRLInternalMethods<TYPE> = {
       unknown;
 
   $setContainer$(containerEl: Element | undefined): Element | undefined;
-  $resolveLazy$(containerEl: Element): ValueOrPromise<TYPE>;
+  $resolveLazy$(containerEl?: Element): ValueOrPromise<TYPE>;
 };
 
 export type QRLInternal<TYPE = unknown> = QRL<TYPE> & QRLInternalMethods<TYPE>;
@@ -100,19 +108,7 @@ export const createQRL = <TYPE>(
     return function (this: unknown, ...args: QrlArgs<TYPE>) {
       let context = tryGetInvokeContext();
       if (context) {
-        const prevQrl = context.$qrl$;
-        context.$qrl$ = qrl;
-        const prevEvent = context.$event$;
-        if (context.$event$ === undefined) {
-          context.$event$ = this as Event;
-        }
-        // const result = invoke.call(this, context, f, ...(args as Parameters<typeof f>));
-        try {
-          return fn.apply(this, args);
-        } finally {
-          context.$qrl$ = prevQrl;
-          context.$event$ = prevEvent;
-        }
+        return fn.apply(this, args);
       }
       context = newInvokeContext();
       context.$qrl$ = qrl;
@@ -132,7 +128,7 @@ export const createQRL = <TYPE>(
     if (chunk === '') {
       // Sync QRL
       assertDefined(_containerEl, 'Sync QRL must have container element');
-      const hash = _containerEl.getAttribute(QInstance)!;
+      const hash = _containerEl.getAttribute(QInstanceAttr)!;
       const doc = _containerEl.ownerDocument!;
       const qFuncs = getQFuncs(doc, hash);
       // No need to wrap, syncQRLs can't have captured scope
@@ -148,7 +144,7 @@ export const createQRL = <TYPE>(
       symbolRef = maybeThen(imported, (ref) => (qrl.resolved = symbolRef = wrapFn(ref)));
     }
     (symbolRef as Promise<TYPE>).finally(() => emitUsedSymbol(symbol, ctx?.$element$, start));
-    return symbolRef;
+    return symbolRef!;
   };
 
   const resolveLazy = (containerEl?: Element): ValueOrPromise<TYPE> => {
@@ -170,7 +166,18 @@ export const createQRL = <TYPE>(
           return;
         }
         const context = createOrReuseInvocationContext(currentCtx);
-        return invoke.call(this, context, f, ...(args as Parameters<typeof f>));
+        const prevQrl = context.$qrl$;
+        const prevEvent = context.$event$;
+        // Note that we set the qrl here instead of in wrapFn because
+        // it is possible we're called on a copied qrl
+        context.$qrl$ = qrl;
+        context.$event$ ||= this as Event;
+        try {
+          return invoke.call(this, context, f, ...(args as Parameters<typeof f>));
+        } finally {
+          context.$qrl$ = prevQrl;
+          context.$event$ = prevEvent;
+        }
       });
   }
 
@@ -209,6 +216,13 @@ export const createQRL = <TYPE>(
     // Replace symbolRef with (a promise for) the value or wrapped function
     symbolRef = maybeThen(symbolRef, (resolved) => (qrl.resolved = symbolRef = wrapFn(resolved)));
   }
+  if (isDev) {
+    Object.defineProperty(qrl, '_devOnlySymbolRef', {
+      get() {
+        return symbolRef;
+      },
+    });
+  }
   if (qDev) {
     seal(qrl);
   }
@@ -233,7 +247,7 @@ export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {
 
 export function assertSignal<T>(obj: unknown): asserts obj is SignalInternal<T> {
   if (qDev) {
-    if (!isSignal(obj)) {
+    if (!isSignal(obj) && !isSignal(obj)) {
       throw new Error('Not a Signal');
     }
   }

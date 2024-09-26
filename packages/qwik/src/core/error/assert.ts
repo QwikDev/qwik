@@ -48,6 +48,15 @@ export function assertTrue(value1: any, text: string, ...parts: any[]): asserts 
   }
 }
 
+export function assertFalse(value1: any, text: string, ...parts: any[]): asserts value1 is true {
+  if (qDev) {
+    if (value1 === false) {
+      return;
+    }
+    throwErrorAndStop(ASSERT_DISCLAIMER + text, ...parts);
+  }
+}
+
 export function assertNumber(value1: any, text: string, ...parts: any[]): asserts value1 is number {
   if (qDev) {
     if (typeof value1 === 'number') {
@@ -69,7 +78,7 @@ export function assertString(value1: any, text: string, ...parts: any[]): assert
 export function assertQwikElement(el: any): asserts el is QwikElement {
   if (qDev) {
     if (!isQwikElement(el)) {
-      console.error('Not a Qwik Element, got', el);
+      console.error('Not a Qwik Element, got', el.nodeType, el);
       throwErrorAndStop(ASSERT_DISCLAIMER + 'Not a Qwik Element');
     }
   }

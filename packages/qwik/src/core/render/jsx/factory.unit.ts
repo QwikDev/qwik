@@ -1,5 +1,4 @@
-import { h } from './factory';
-import { isJSXNode, Fragment } from './jsx-runtime';
+import { h, isJSXNode, Fragment } from './jsx-runtime';
 import type { FunctionComponent } from './types/jsx-node';
 import { type ProcessedJSXNode, processNode } from '../dom/render-dom';
 import { test, assert } from 'vitest';
@@ -35,7 +34,7 @@ test('one child node', () => {
   const v = processNode(h('parent', null, h('child', null))) as ProcessedJSXNode;
   assert.deepEqual(v.$children$.length, 1);
   assert.deepEqual(v.$children$[0].$type$, 'child');
-  assert.deepEqual(v.$children$[0].$props$, {});
+  assert.deepEqual(v.$children$[0].$varProps$, {});
   assert.deepEqual(v.$children$[0].$children$, []);
 });
 

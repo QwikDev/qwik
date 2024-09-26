@@ -1,5 +1,5 @@
 import { assertDefined } from '../error/assert';
-import { RenderEvent } from '../util/markers';
+import { QScopedStyle, RenderEvent } from '../util/markers';
 import { maybeThen, promiseAllLazy, safeCall } from '../util/promises';
 import { newInvokeContext } from '../use/use-core';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../util/types';
@@ -13,12 +13,17 @@ import { seal } from '../util/qdev';
 import { SkipRender } from './jsx/utils.public';
 import { handleError } from './error-handling';
 import { HOST_FLAG_DIRTY, HOST_FLAG_MOUNTED, type QContext } from '../state/context';
-import { isSignal, SignalUnassignedException } from '../state/signal';
+import { isSignalV1, SignalUnassignedException } from '../state/signal';
 import { isJSXNode } from './jsx/jsx-runtime';
 import { isUnitlessNumber } from '../util/unitless_number';
 import { isServerPlatform } from '../platform/platform';
 import { executeSSRTasks } from './dom/notify-render';
 import { logWarn } from '../util/log';
+import { SubscriptionType } from '../state/common';
+import { type Container2, type HostElement } from '../../server/qwik-types';
+import { vnode_getProp, vnode_isVNode } from '../v2/client/vnode';
+import { isClassAttr } from '../v2/shared/scoped-styles';
+import { isPreventDefault } from '../v2/shared/event-names';
 
 export interface ExecuteComponentOutput {
   node: JSXOutput;
@@ -49,7 +54,7 @@ export const executeComponent = (
   newCtx.$slotCtx$ = undefined;
 
   // Invoke render hook
-  iCtx.$subscriber$ = [0, hostElement];
+  iCtx.$subscriber$ = [SubscriptionType.HOST, hostElement];
   iCtx.$renderCtx$ = rCtx;
 
   // Resolve render function
@@ -93,7 +98,7 @@ export const executeComponent = (
           });
         }
       }
-      handleError(err, hostElement, rCtx);
+      handleError(err, hostElement, rCtx.$static$.$containerState$);
       return {
         node: SkipRender,
         rCtx: newCtx,
@@ -142,6 +147,21 @@ export const serializeClassWithHost = (
 ): string => {
   if (hostCtx?.$scopeIds$?.length) {
     return hostCtx.$scopeIds$.join(' ') + ' ' + serializeClass(obj);
+  }
+  return serializeClass(obj);
+};
+
+export const serializeClassWithHost2 = (
+  obj: ClassList,
+  host: HostElement | undefined | null
+): string => {
+  if (host) {
+    const scopedStyleIdsString = vnode_isVNode(host)
+      ? vnode_getProp(host, QScopedStyle, null)
+      : host.getProp(QScopedStyle);
+    if (scopedStyleIdsString && scopedStyleIdsString.length) {
+      return scopedStyleIdsString + ' ' + serializeClass(obj);
+    }
   }
   return serializeClass(obj);
 };
@@ -201,6 +221,33 @@ export const stringifyStyle = (obj: any): string => {
   return String(obj);
 };
 
+export const serializeBooleanOrNumberAttribute = (value: any) => {
+  return value != null ? String(value) : null;
+};
+
+export function serializeAttribute(key: string, value: any, styleScopedId?: string | null): string {
+  if (isClassAttr(key)) {
+    const serializedClass = serializeClass(value as ClassList);
+    value = styleScopedId
+      ? styleScopedId + (serializedClass.length ? ' ' + serializedClass : serializedClass)
+      : serializedClass;
+  } else if (key === 'style') {
+    value = stringifyStyle(value);
+  } else if (isEnumeratedBooleanAttribute(key) || typeof value === 'number') {
+    // aria attrs, tabindex etc.
+    value = serializeBooleanOrNumberAttribute(value);
+  } else if (value === false || value == null) {
+    value = null;
+  } else if (value === true && isPreventDefault(key)) {
+    value = '';
+  }
+  return value;
+}
+
+function isEnumeratedBooleanAttribute(key: string) {
+  return isAriaAttribute(key) || ['spellcheck', 'draggable', 'contenteditable'].includes(key);
+}
+
 const setValueForStyle = (styleName: string, value: any) => {
   if (typeof value === 'number' && value !== 0 && !isUnitlessNumber(styleName)) {
     return value + 'px';
@@ -212,13 +259,17 @@ export const getNextIndex = (ctx: RenderContext) => {
   return intToStr(ctx.$static$.$containerState$.$elementIndex$++);
 };
 
+export const getNextUniqueIndex = (container: Container2) => {
+  return intToStr(container.$currentUniqueId$++);
+};
+
 export const setQId = (rCtx: RenderContext, elCtx: QContext) => {
   const id = getNextIndex(rCtx);
   elCtx.$id$ = id;
 };
 
 export const jsxToString = (data: any): string => {
-  if (isSignal(data)) {
+  if (isSignalV1(data)) {
     return jsxToString(data.value);
   }
   return data == null || typeof data === 'boolean' ? '' : String(data);

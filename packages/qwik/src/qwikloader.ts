@@ -1,6 +1,7 @@
 import type { QwikSymbolEvent, QwikVisibleEvent } from './core/render/jsx/types/jsx-qwik-events';
 import type { QContainerElement } from './core/container/container';
 import type { QContext } from './core/state/context';
+import type { QElement2, QwikLoaderEventScope, qWindow } from './core/v2/shared/types';
 
 /**
  * Set up event listening for browser.
@@ -16,13 +17,6 @@ export const qwikLoader = (
   hasInitialized?: number
 ) => {
   const Q_CONTEXT = '__q_context__';
-  type qWindow = Window & {
-    qwikevents: {
-      events: Set<string>;
-      roots: Set<Node>;
-      push: (...e: (string | (EventTarget & ParentNode))[]) => void;
-    };
-  };
   const win = window as unknown as qWindow;
   const events = new Set<string>();
   const roots = new Set<EventTarget & ParentNode>([doc]);
@@ -35,7 +29,6 @@ export const qwikLoader = (
   const isConnected = 'isConnected';
   const qvisible = 'qvisible';
   const Q_JSON = '_qwikjson_';
-  const qContainerAttr = '[q\\:container]';
   const nativeQuerySelectorAll = (root: ParentNode, selector: string) =>
     Array.from(root.querySelectorAll(selector));
   const querySelectorAll = (query: string) => {
@@ -53,7 +46,7 @@ export const qwikLoader = (
 
   const isPromise = (promise: Promise<any>) => promise && typeof promise.then === 'function';
 
-  const broadcast = (infix: string, ev: Event, type = ev.type) => {
+  const broadcast = (infix: QwikLoaderEventScope, ev: Event, type = ev.type) => {
     querySelectorAll('[on' + infix + '\\:' + type + ']')[forEach]((el) =>
       dispatch(el, infix, ev, type)
     );
@@ -82,14 +75,16 @@ export const qwikLoader = (
 
   const dispatch = async (
     element: Element & { _qc_?: QContext | undefined },
-    onPrefix: string,
+    scope: QwikLoaderEventScope,
     ev: Event,
     eventName = ev.type
   ) => {
-    const attrName = 'on' + onPrefix + ':' + eventName;
+    const attrName = 'on' + scope + ':' + eventName;
     if (element.hasAttribute('preventdefault:' + eventName)) {
       ev.preventDefault();
     }
+    // <DELETE ME LATER>: After Qwik 2.0 release
+    // This needs to be here for backward compatibility with Qwik 1.0, but at some point we can drop it.
     const ctx = element['_qc_'];
     const relevantListeners = ctx && ctx.li.filter((li) => li[0] === attrName);
     if (relevantListeners && relevantListeners.length > 0) {
@@ -107,9 +102,16 @@ export const qwikLoader = (
       }
       return;
     }
+    // </DELETE ME LATER>
+    const qDispatchEvent = (element as QElement2)['qDispatchEvent'];
+    if (qDispatchEvent) {
+      return qDispatchEvent(ev, scope);
+    }
     const attrValue = element[getAttribute](attrName);
     if (attrValue) {
-      const container = element.closest(qContainerAttr)! as QContainerElement;
+      const container = element.closest(
+        '[q\\:container]:not([q\\:container=html]):not([q\\:container=text])'
+      )! as QContainerElement;
       const qBase = container[getAttribute]('q:base')!;
       const qVersion = container[getAttribute]('q:version') || 'unknown';
       const qManifest = container[getAttribute]('q:manifest-hash') || 'dev';

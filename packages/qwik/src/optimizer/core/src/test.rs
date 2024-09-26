@@ -82,7 +82,6 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 		reg_ctx_name,
 		strip_event_handlers: input.strip_event_handlers,
 		is_server: input.is_server,
-		is_dev: input.is_dev,
 	})
 }
 
@@ -3397,7 +3396,7 @@ export const Local = component$(() => {
 		source_maps: true,
 		minify: MinifyMode::Simplify,
 		explicit_extensions: true,
-		mode: EmitMode::Lib,
+		mode: EmitMode::Test,
 		manual_chunks: None,
 		entry_strategy: EntryStrategy::Segment,
 		transpile_ts: true,
@@ -3410,7 +3409,6 @@ export const Local = component$(() => {
 		strip_event_handlers: false,
 		reg_ctx_name: None,
 		is_server: None,
-		is_dev: None,
 	});
 	snapshot_res!(&res, "".into());
 }
@@ -3436,10 +3434,10 @@ export const Greeter = component$(() => {
 
 "#;
 	let options = vec![
-		(EmitMode::Lib, EntryStrategy::Segment, true),
-		(EmitMode::Lib, EntryStrategy::Single, true),
-		(EmitMode::Lib, EntryStrategy::Component, true),
-		// (EmitMode::Lib, EntryStrategy::Inline, true),
+		(EmitMode::Test, EntryStrategy::Segment, true),
+		(EmitMode::Test, EntryStrategy::Single, true),
+		(EmitMode::Test, EntryStrategy::Component, true),
+		// (EmitMode::Test, EntryStrategy::Inline, true),
 		(EmitMode::Prod, EntryStrategy::Segment, true),
 		(EmitMode::Prod, EntryStrategy::Single, true),
 		(EmitMode::Prod, EntryStrategy::Component, true),
@@ -3448,10 +3446,10 @@ export const Greeter = component$(() => {
 		(EmitMode::Dev, EntryStrategy::Single, true),
 		(EmitMode::Dev, EntryStrategy::Component, true),
 		// (EmitMode::Dev, EntryStrategy::Inline, true),
-		(EmitMode::Lib, EntryStrategy::Segment, false),
-		(EmitMode::Lib, EntryStrategy::Single, false),
-		(EmitMode::Lib, EntryStrategy::Component, false),
-		// (EmitMode::Lib, EntryStrategy::Inline, false),
+		(EmitMode::Test, EntryStrategy::Segment, false),
+		(EmitMode::Test, EntryStrategy::Single, false),
+		(EmitMode::Test, EntryStrategy::Component, false),
+		// (EmitMode::Test, EntryStrategy::Inline, false),
 		(EmitMode::Prod, EntryStrategy::Segment, false),
 		(EmitMode::Prod, EntryStrategy::Single, false),
 		(EmitMode::Prod, EntryStrategy::Component, false),
@@ -3478,7 +3476,7 @@ export const Greeter = component$(() => {
 		minify: MinifyMode::Simplify,
 		root_dir: None,
 		explicit_extensions: true,
-		mode: EmitMode::Lib,
+		mode: EmitMode::Test,
 		manual_chunks: None,
 		entry_strategy: EntryStrategy::Segment,
 		transpile_ts: true,
@@ -3491,7 +3489,6 @@ export const Greeter = component$(() => {
 		strip_ctx_name: None,
 		strip_event_handlers: false,
 		is_server: None,
-		is_dev: None,
 	});
 	let ref_segments: Vec<_> = res
 		.unwrap()
@@ -3530,7 +3527,6 @@ export const Greeter = component$(() => {
 			strip_event_handlers: false,
 			reg_ctx_name: None,
 			is_server: None,
-			is_dev: None,
 		});
 
 		let segments: Vec<_> = res
@@ -3735,9 +3731,6 @@ fn lib_mode_fn_signal() {
 "#
 		.to_string(),
 		transpile_jsx: true,
-		mode: EmitMode::Lib,
-		// make sure it overrides it
-		is_server: Some(false),
 		..TestInput::default()
 	});
 }
@@ -3860,7 +3853,6 @@ struct TestInput {
 	pub strip_ctx_name: Option<Vec<String>>,
 	pub strip_event_handlers: bool,
 	pub is_server: Option<bool>,
-	pub is_dev: Option<bool>,
 }
 
 impl TestInput {
@@ -3878,7 +3870,7 @@ impl TestInput {
 			preserve_filenames: false,
 			explicit_extensions: false,
 			snapshot: true,
-			mode: EmitMode::Lib,
+			mode: EmitMode::Test,
 			scope: None,
 			core_module: None,
 			reg_ctx_name: None,
@@ -3886,7 +3878,6 @@ impl TestInput {
 			strip_ctx_name: None,
 			strip_event_handlers: false,
 			is_server: None,
-			is_dev: None,
 		}
 	}
 }

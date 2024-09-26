@@ -220,6 +220,7 @@ export {
               clientManifest = manifest;
             },
           },
+          experimental: ["preventNavigate"],
         }),
       ],
     }),
@@ -233,7 +234,12 @@ export {
           ? qwikCityVirtualEntry
           : resolve(appSrcDir, entrySsrFileName),
       },
-      plugins: [...plugins, optimizer.qwikVite()],
+      plugins: [
+        ...plugins,
+        optimizer.qwikVite({
+          experimental: ["preventNavigate"],
+        }),
+      ],
       define: {
         "globalThis.qDev": !isProd,
         "globalThis.qInspector": false,

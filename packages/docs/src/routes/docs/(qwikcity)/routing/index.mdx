@@ -19,7 +19,8 @@ contributors:
   - mrhoodz
   - chsanch
   - RumNCodeDev
-updated_at: '2023-10-02T22:44:45Z'
+  - wmertens
+updated_at: '2024-09-05T10:32:00Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
@@ -237,6 +238,10 @@ export default component$(() => {
 ```
 
 > The `Link` component uses the `useNavigate()` hook [internally](https://github.com/QwikDev/qwik/blob/e452582f4728cbcb7bf85d03293e757302286683/packages/qwik-city/runtime/src/link-component.tsx#L33).
+
+### Preventing navigation
+
+We have an experimental API to prevent navigation while your app's state is unsaved. See the [usePreventNavigate](/docs/labs/usePreventNavigate) documentation for more information.
 
 ### `<Link reload>`
 

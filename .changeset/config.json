@@ -12,7 +12,8 @@
     "@builder.io/qwik-labs",
     "insights",
     "@builder.io/qwik-react",
-    "@builder.io/qwik-worker"
+    "@builder.io/qwik-worker",
+    "qwik-cli-e2e"
   ],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
     "onlyUpdatePeerDependentsWhenOutOfRange": true

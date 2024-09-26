@@ -4,6 +4,7 @@ import {
   Fragment as Component,
   Fragment,
   Fragment as Signal,
+  Fragment as Projection,
   useSignal,
   useStore,
   useVisibleTask$,
@@ -12,6 +13,7 @@ import {
   useContextProvider,
   createContextId,
   type Signal as SignalType,
+  Slot,
 } from '@builder.io/qwik';
 import { trigger, domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 import { ErrorProvider } from '../../../testing/rendering.unit-util';
@@ -645,6 +647,62 @@ describe.each([
         </Component>
       );
     });
+  });
+
+  it('should not add useOn props as slot name', async () => {
+    const InnerCmp = component$(() => {
+      return <div></div>;
+    });
+
+    const Cmp = component$(() => {
+      useVisibleTask$(() => {});
+      return (
+        <div>
+          <Slot />
+        </div>
+      );
+    });
+
+    const Parent = component$(() => {
+      const show = useSignal(false);
+      return (
+        <>
+          <button onClick$={() => (show.value = true)}></button>
+          <Cmp>{show.value && <InnerCmp />}</Cmp>
+        </>
+      );
+    });
+
+    const { vNode, container } = await render(<Parent />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button></button>
+          <Component>
+            <div>
+              <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+            </div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+    await trigger(container.document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button></button>
+          <Component>
+            <div>
+              <Projection>
+                <Component>
+                  <div></div>
+                </Component>
+              </Projection>
+            </div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
   });
 
   describe('regression', () => {

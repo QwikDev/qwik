@@ -338,8 +338,8 @@ export function resolveManifest(
   manifest = getValidManifest(manifest);
   if (manifest) {
     const mapper: SymbolMapper = {};
-    Object.entries(manifest.mapping).forEach(([key, value]) => {
-      mapper[getSymbolHash(key)] = [key, value];
+    Object.entries(manifest.mapping).forEach(([symbol, bundleFilename]) => {
+      mapper[getSymbolHash(symbol)] = [symbol, bundleFilename];
     });
     return {
       mapper,

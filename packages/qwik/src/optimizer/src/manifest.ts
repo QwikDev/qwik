@@ -259,42 +259,60 @@ export function generateManifestFromBundles(
   };
 
   const buildPath = path.resolve(opts.rootDir, opts.outDir, 'build');
+  const canonPath = (p: string) =>
+    path.relative(buildPath, path.resolve(opts.rootDir, opts.outDir, p));
+  const getBundleName = (name: string) => {
+    const bundle = outputBundles[name];
+    if (!bundle) {
+      console.warn(`Client manifest generation: skipping external import "${name}"`);
+      return;
+    }
+    return canonPath(bundle.fileName);
+  };
   // We need to find our QRL exports
   const qrlNames = new Set([...segments.map((h) => h.name)]);
   for (const outputBundle of Object.values(outputBundles)) {
     if (outputBundle.type !== 'chunk') {
       continue;
     }
-    const bundleFileName = path.relative(
-      buildPath,
-      path.resolve(opts.outDir, outputBundle.fileName)
-    );
+    const bundleFileName = canonPath(outputBundle.fileName);
 
-    const buildDirName = path.dirname(outputBundle.fileName);
     const bundle: QwikBundle = {
       size: outputBundle.code.length,
     };
 
+    let hasSymbols = false;
+    let hasHW = false;
     for (const symbol of outputBundle.exports) {
       if (qrlNames.has(symbol)) {
         // When not minifying we see both the entry and the segment file
         // The segment file will only have 1 export, we want the entry
         if (!manifest.mapping[symbol] || outputBundle.exports.length !== 1) {
+          hasSymbols = true;
           manifest.mapping[symbol] = bundleFileName;
         }
       }
+      if (symbol === '_hW') {
+        hasHW = true;
+      }
+    }
+    if (hasSymbols && hasHW) {
+      bundle.isTask = true;
     }
 
     const bundleImports = outputBundle.imports
-      .filter((i) => path.dirname(i) === buildDirName)
-      .map((i) => path.relative(buildDirName, outputBundles[i].fileName));
+      // Tree shaking might remove imports
+      .filter((i) => outputBundle.code.includes(path.basename(i)))
+      .map((i) => getBundleName(i))
+      .filter(Boolean) as string[];
     if (bundleImports.length > 0) {
       bundle.imports = bundleImports;
     }
 
     const bundleDynamicImports = outputBundle.dynamicImports
-      .filter((i) => path.dirname(i) === buildDirName)
-      .map((i) => path.relative(buildDirName, outputBundles[i].fileName));
+      .filter((i) => outputBundle.code.includes(path.basename(i)))
+      .map((i) => getBundleName(i))
+      .filter(Boolean) as string[];
     if (bundleDynamicImports.length > 0) {
       bundle.dynamicImports = bundleDynamicImports;
     }

@@ -401,11 +401,11 @@ export class ComputedSignal<T> extends Signal<T> {
   // we need the old value to know if effects need running after computation
   $invalid$: boolean = true;
 
-  constructor(container: Container2 | null, computeTask: QRLInternal<() => T>) {
+  constructor(container: Container2 | null, fn: QRLInternal<() => T>) {
     // The value is used for comparison when signals trigger, which can only happen
     // when it was calculated before. Therefore we can pass whatever we like.
     super(container, NEEDS_COMPUTATION);
-    this.$computeQrl$ = computeTask;
+    this.$computeQrl$ = fn;
   }
 
   $invalidate$() {
@@ -441,23 +441,18 @@ export class ComputedSignal<T> extends Signal<T> {
       return false;
     }
     const computeQrl = this.$computeQrl$;
-    assertDefined(
-      computeQrl.resolved,
-      'Computed signals must run sync. Expected the QRL to be resolved at this point.'
-    );
     throwIfQRLNotResolved(computeQrl);
 
     const ctx = tryGetInvokeContext();
-    assertDefined(computeQrl, 'Signal is marked as dirty, but no compute function is provided.');
     const previousEffectSubscription = ctx?.$effectSubscriber$;
     ctx && (ctx.$effectSubscriber$ = [this, EffectProperty.VNODE]);
-    assertTrue(
-      !!computeQrl.resolved,
-      'Computed signals must run sync. Expected the QRL to be resolved at this point.'
-    );
     try {
       const untrackedValue = computeQrl.getFn(ctx)() as T;
-      assertFalse(isPromise(untrackedValue), 'Computed function must be synchronous.');
+      if (isPromise(untrackedValue)) {
+        throwErrorAndStop(
+          `useComputedSignal$ QRL ${computeQrl.dev ? `${computeQrl.dev.file} ` : ''}${computeQrl.$hash$} returned a Promise`
+        );
+      }
       DEBUG && log('Signal.$compute$', untrackedValue);
       this.$invalid$ = false;
 

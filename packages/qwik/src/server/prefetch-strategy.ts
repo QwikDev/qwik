@@ -50,11 +50,12 @@ function getAutoPrefetch(qrls: QRL[], resolvedManifest: ResolvedManifest, buildB
   const urls = new Map<string, PrefetchResource>();
 
   if (mapper && manifest) {
-    for (const obj of qrls) {
-      const qrlSymbolName = obj.getHash();
+    for (const qrl of qrls) {
+      const qrlSymbolName = qrl.getHash();
       const resolvedSymbol = mapper[qrlSymbolName];
       if (resolvedSymbol) {
-        addBundle(manifest, urls, prefetchResources, buildBase, resolvedSymbol[1]);
+        const bundleFileName = resolvedSymbol[1];
+        addBundle(manifest, urls, prefetchResources, buildBase, bundleFileName);
       }
     }
   }

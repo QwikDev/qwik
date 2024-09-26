@@ -3,10 +3,9 @@ use crate::collector::{
 	collect_from_pat, new_ident_from_id, GlobalCollect, Id, IdentCollector, ImportKind,
 };
 use crate::entry_strategy::EntryPolicy;
-use crate::has_branches::{is_conditional_jsx, is_conditional_jsx_block};
 use crate::inlined_fn::{convert_inlined_fn, render_expr};
 use crate::is_const::is_const_expr;
-use crate::parse::PathData;
+use crate::parse::{EmitMode, PathData};
 use crate::words::*;
 use crate::{errors, EntryStrategy};
 use base64::Engine;
@@ -125,12 +124,11 @@ pub struct QwikTransformOptions<'a> {
 	pub comments: Option<&'a SingleThreadedComments>,
 	pub global_collect: GlobalCollect,
 	pub scope: Option<&'a String>,
+	pub mode: EmitMode,
 	pub entry_strategy: EntryStrategy,
 	pub reg_ctx_name: Option<&'a [JsWord]>,
 	pub strip_ctx_name: Option<&'a [JsWord]>,
 	pub strip_event_handlers: bool,
-	pub is_dev: bool,
-	pub is_lib: bool,
 	pub is_server: bool,
 	pub cm: Lrc<SourceMap>,
 }
@@ -334,7 +332,7 @@ impl<'a> QwikTransform<'a> {
 		let hash = hasher.finish();
 		let hash64 = base64(hash);
 
-		let symbol_name = if self.options.is_dev || self.options.is_lib {
+		let symbol_name = if matches!(self.options.mode, EmitMode::Dev | EmitMode::Test) {
 			format!("{}_{}", display_name, hash64)
 		} else {
 			format!("s_{}", hash64)
@@ -383,7 +381,10 @@ impl<'a> QwikTransform<'a> {
 				ast::Expr::Lit(ast::Lit::Str(string)) => string.value,
 				_ => panic!("dfd"),
 			};
-			parse_symbol_name(symbol_name, self.options.is_dev || self.options.is_lib)
+			parse_symbol_name(
+				symbol_name,
+				matches!(self.options.mode, EmitMode::Dev | EmitMode::Test),
+			)
 		};
 
 		self.segment_stack.push(symbol_name.clone());
@@ -855,7 +856,7 @@ impl<'a> QwikTransform<'a> {
 				vec![node_type, var_props, const_props, children, flags, key],
 			)
 		};
-		if self.options.is_dev {
+		if self.options.mode == EmitMode::Dev {
 			args.push(self.get_dev_location(node.span));
 		}
 
@@ -960,7 +961,7 @@ impl<'a> QwikTransform<'a> {
 				raw: None,
 			})),
 		];
-		let fn_callee = if self.options.is_dev {
+		let fn_callee = if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
 				&self.options.path_data.abs_path,
 				segment_data,
@@ -1025,7 +1026,7 @@ impl<'a> QwikTransform<'a> {
 			})),
 		];
 
-		let fn_callee = if self.options.is_dev {
+		let fn_callee = if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
 				&self.options.path_data.abs_path,
 				&segment_data,
@@ -1619,7 +1620,7 @@ impl<'a> QwikTransform<'a> {
 		}))];
 
 		let mut fn_name: &JsWord = &_NOOP_QRL;
-		if self.options.is_dev {
+		if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
 				&self.options.path_data.abs_path,
 				&segment_data,
@@ -1761,11 +1762,6 @@ impl<'a> Fold for QwikTransform<'a> {
 
 		let is_component = self.in_component;
 		self.in_component = false;
-		let is_condition = is_conditional_jsx_block(
-			node.body.as_ref().unwrap(),
-			&self.jsx_functions,
-			&self.immutable_function_cmp,
-		);
 		let current_scope = self
 			.decl_stack
 			.last_mut()
@@ -1781,22 +1777,7 @@ impl<'a> Fold for QwikTransform<'a> {
 					.map(|(id, _)| (id, IdentType::Var(is_constant))),
 			);
 		}
-		let mut o = node.fold_children_with(self);
-		if is_condition {
-			if let Some(body) = &mut o.body {
-				body.stmts.insert(
-					0,
-					ast::Stmt::Expr(ast::ExprStmt {
-						span: DUMMY_SP,
-						expr: Box::new(ast::Expr::Call(self.create_internal_call(
-							&_JSX_BRANCH,
-							vec![],
-							false,
-						))),
-					}),
-				);
-			}
-		}
+		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
 		self.jsx_mutable = prev_jsx_mutable;
 		self.decl_stack.pop();
@@ -1814,11 +1795,6 @@ impl<'a> Fold for QwikTransform<'a> {
 
 		let is_component = self.in_component;
 		self.in_component = false;
-		let is_condition = is_conditional_jsx(
-			&node.body,
-			&self.jsx_functions,
-			&self.immutable_function_cmp,
-		);
 		let current_scope = self
 			.decl_stack
 			.last_mut()
@@ -1834,31 +1810,7 @@ impl<'a> Fold for QwikTransform<'a> {
 			);
 		}
 
-		let mut o = node.fold_children_with(self);
-		if is_condition {
-			match &mut o.body {
-				box ast::BlockStmtOrExpr::BlockStmt(block) => {
-					block.stmts.insert(
-						0,
-						ast::Stmt::Expr(ast::ExprStmt {
-							span: DUMMY_SP,
-							expr: Box::new(ast::Expr::Call(self.create_internal_call(
-								&_JSX_BRANCH,
-								vec![],
-								false,
-							))),
-						}),
-					);
-				}
-				box ast::BlockStmtOrExpr::Expr(expr) => {
-					*expr = Box::new(ast::Expr::Call(self.create_internal_call(
-						&_JSX_BRANCH,
-						vec![*expr.to_owned()],
-						true,
-					)));
-				}
-			}
-		}
+		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
 		self.jsx_mutable = prev_jsx_mutable;
 		self.decl_stack.pop();

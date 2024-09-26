@@ -168,7 +168,7 @@ export const componentQrl: <PROPS extends Record<any, any>>(componentQrl: QRL<On
 // @public (undocumented)
 export type ComputedFn<T> = () => T;
 
-// @public (undocumented)
+// @public
 export interface ComputedSignal<T> extends ReadonlySignal<T> {
     force(): void;
 }
@@ -207,16 +207,16 @@ export interface CorrectedToggleEvent extends Event {
     readonly prevState: 'open' | 'closed';
 }
 
-// @public (undocumented)
-export const createComputed$: <T>(qrl: () => T) => ComputedSignal<T>;
+// @public
+export const createComputed$: <T>(qrl: () => T) => T extends Promise<any> ? never : ComputedSignal<T>;
 
 // @public (undocumented)
-export const createComputedQrl: <T>(qrl: QRL<() => T>) => ComputedSignal<T>;
+export const createComputedQrl: <T>(qrl: QRL<() => T>) => T extends Promise<any> ? never : ComputedSignal<T>;
 
 // @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
 
-// @public (undocumented)
+// @public
 export const createSignal: {
     <T>(): Signal<T | undefined>;
     <T>(value: T): Signal<T>;
@@ -1856,17 +1856,13 @@ export interface TrackHTMLAttributes<T extends Element> extends Attrs<'track', T
 // @public
 export const untrack: <T>(fn: () => T) => T;
 
-// Warning: (ae-forgotten-export) The symbol "Computed" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export const useComputed$: Computed;
+// @public
+export const useComputed$: <T>(qrl: ComputedFn<T>) => T extends Promise<any> ? never : ReadonlySignal<T>;
 
-// Warning: (ae-forgotten-export) The symbol "ComputedQRL" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export const useComputedQrl: ComputedQRL;
+export const useComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => T extends Promise<any> ? never : ReadonlySignal<T>;
 
-// @public @deprecated
+// @public
 export const useConstant: <T>(value: (() => T) | T) => T;
 
 // Warning: (ae-forgotten-export) The symbol "UseContext" needs to be exported by the entry point index.d.ts

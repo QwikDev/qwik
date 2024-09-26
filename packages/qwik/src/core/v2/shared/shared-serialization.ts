@@ -720,10 +720,21 @@ export const createSerializationContext = (
             setSerializableDataRootId($addRoot$, obj, tuples);
             discoveredValues.push(tuples);
           } else if (obj instanceof Signal) {
+            $addRoot$(obj);
             discoveredValues.push(obj.$untrackedValue$);
             if (obj.$effects$) {
               for (const effect of obj.$effects$) {
-                discoveredValues.push(effect[EffectSubscriptionsProp.EFFECT]);
+                for (let i = 0; i <= effect.length; i++) {
+                  if (i === EffectSubscriptionsProp.PROPERTY) {
+                    // ignore EffectSubscriptions property
+                    continue;
+                  }
+                  const effectData = effect[i];
+                  // ignore current signal, we already added this, prevent infinity loop
+                  if (effectData instanceof Signal && effectData !== obj) {
+                    discoveredValues.push(effect[i]);
+                  }
+                }
               }
             }
             if (obj instanceof WrappedSignal && obj.$effectDependencies$) {

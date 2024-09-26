@@ -530,7 +530,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ComputedSignal<T> extends ReadonlySignal<T> \n```\n**Extends:** [ReadonlySignal](#readonlysignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[force()](#computedsignal-force)\n\n\n</td><td>\n\nUse this to force recalculation and running subscribers, for example when the calculated value mutates but remains the same object. Useful for third-party libraries.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\n\n```typescript\nexport interface ComputedSignal<T> extends ReadonlySignal<T> \n```\n**Extends:** [ReadonlySignal](#readonlysignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[force()](#computedsignal-force)\n\n\n</td><td>\n\nUse this to force recalculation and running subscribers, for example when the calculated value mutates but remains the same object. Useful for third-party libraries.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts",
       "mdFile": "qwik.computedsignal.md"
     },
@@ -586,7 +586,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\ncreateComputed$: <T>(qrl: () => T) => ComputedSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n() =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;",
+      "content": "Create a computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated.\n\nThe QRL must be a function which returns the value of the signal. The function must not have side effects, and it mus be synchronous.\n\nIf you need the function to be async, use `useSignal` and `useTask$` instead.\n\n\n```typescript\ncreateComputed$: <T>(qrl: () => T) => T extends Promise<any> ? never : ComputedSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n() =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nT extends Promise&lt;any&gt; ? never : [ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts",
       "mdFile": "qwik.createcomputed_.md"
     },
@@ -600,7 +600,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\ncreateComputedQrl: <T>(qrl: QRL<() => T>) => ComputedSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[QRL](#qrl)<!-- -->&lt;() =&gt; T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;",
+      "content": "```typescript\ncreateComputedQrl: <T>(qrl: QRL<() => T>) => T extends Promise<any> ? never : ComputedSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[QRL](#qrl)<!-- -->&lt;() =&gt; T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nT extends Promise&lt;any&gt; ? never : [ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts",
       "mdFile": "qwik.createcomputedqrl.md"
     },
@@ -628,7 +628,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\ncreateSignal: {\n    <T>(): Signal<T | undefined>;\n    <T>(value: T): Signal<T>;\n}\n```",
+      "content": "Creates a Signal with the given value. If no value is given, the signal is created with `undefined`<!-- -->.\n\n\n```typescript\ncreateSignal: {\n    <T>(): Signal<T | undefined>;\n    <T>(value: T): Signal<T>;\n}\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/v2/signal/v2-signal.public.ts",
       "mdFile": "qwik.createsignal.md"
     },
@@ -3022,8 +3022,8 @@
           "id": "usecomputed_"
         }
       ],
-      "kind": "Variable",
-      "content": "```typescript\nuseComputed$: Computed\n```",
+      "kind": "Function",
+      "content": "Creates a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nThe function must be synchronous and must not have any side effects.\n\n\n```typescript\nuseComputed$: <T>(qrl: import(\"./use-task\").ComputedFn<T>) => T extends Promise<any> ? never : import(\"..\").ReadonlySignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nimport(\"./use-task\").[ComputedFn](#computedfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nT extends Promise&lt;any&gt; ? never : import(\"..\").[ReadonlySignal](#readonlysignal)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task-dollar.ts",
       "mdFile": "qwik.usecomputed_.md"
     },
@@ -3036,8 +3036,8 @@
           "id": "usecomputedqrl"
         }
       ],
-      "kind": "Variable",
-      "content": "```typescript\nuseComputedQrl: ComputedQRL\n```",
+      "kind": "Function",
+      "content": "```typescript\nuseComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => T extends Promise<any> ? never : ReadonlySignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[QRL](#qrl)<!-- -->&lt;[ComputedFn](#computedfn)<!-- -->&lt;T&gt;&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nT extends Promise&lt;any&gt; ? never : [ReadonlySignal](#readonlysignal)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.usecomputedqrl.md"
     },
@@ -3051,7 +3051,7 @@
         }
       ],
       "kind": "Function",
-      "content": "> Warning: This API is now obsolete.\n> \n> This is a technology preview\n> \n\nStores a value which is retained for the lifetime of the component.\n\nIf the value is a function, the function is invoked to calculate the actual value.\n\n\n```typescript\nuseConstant: <T>(value: (() => T) | T) => T\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\n(() =&gt; T) \\| T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nT",
+      "content": "Stores a value which is retained for the lifetime of the component. Subsequent calls to `useConstant` will always return the first value given.\n\nIf the value is a function, the function is invoked once to calculate the actual value.\n\n\n```typescript\nuseConstant: <T>(value: (() => T) | T) => T\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\n(() =&gt; T) \\| T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nT",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts",
       "mdFile": "qwik.useconstant.md"
     },

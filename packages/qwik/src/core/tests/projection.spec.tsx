@@ -2230,5 +2230,45 @@ describe.each([
         </Component>
       );
     });
+
+    it('#6900 - signals should be ordered so parents run first', async () => {
+      const Issue6900Root = component$(() => <Slot />);
+      const Issue6900Image = component$<{ src: string }>(({ src }) => src);
+
+      const Issue6900 = component$(() => {
+        const signal = useSignal<null | { url: string }>({ url: 'https://picsum.photos/200' });
+        if (!signal.value) {
+          return <p>User is not signed in</p>;
+        }
+
+        return (
+          <div>
+            <button onClick$={() => (signal.value = null)}>Sign out</button>
+            <Issue6900Image src={signal.value.url} />
+          </div>
+        );
+      });
+
+      const { vNode, document } = await render(<Issue6900 />, { debug: DEBUG });
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'div', ':document:qinit');
+      }
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <div>
+            <button>Sign out</button>
+            <Component>https://picsum.photos/200</Component>
+          </div>
+        </Component>
+      );
+
+      await trigger(document.body, 'button', 'click');
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <p>User is not signed in</p>
+        </Component>
+      );
+    });
   });
 });

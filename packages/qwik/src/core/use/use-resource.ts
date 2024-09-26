@@ -17,10 +17,10 @@ import type { Container2, fixMeAny } from '../../server/qwik-types';
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import { isPromise } from '../shared/utils/promises';
 import { isObject } from '../shared/utils/types';
-import { StoreFlags, createStore, getStoreTarget } from '../signal/v2-store';
+import { StoreFlags, createStore, getStoreTarget } from '../signal/store';
 import { useSequentialScope } from './use-sequential-scope';
-import { isSignal } from '../signal/v2-signal';
-import type { Signal } from '../signal/v2-signal.public';
+import { isSignal } from '../signal/signal';
+import type { Signal } from '../signal/signal.public';
 
 const DEBUG: boolean = false;
 

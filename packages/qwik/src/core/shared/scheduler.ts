@@ -113,7 +113,7 @@ import {
 import { vnode_diff } from '../client/vnode-diff';
 import { executeComponent2 } from './component-execution';
 import type { Container2, HostElement, fixMeAny } from './types';
-import { isSignal, type Signal } from '../signal/v2-signal.public';
+import { isSignal, type Signal } from '../signal/signal.public';
 import { type DomContainer } from '../client/dom-container';
 import { serializeAttribute } from './utils/styles';
 

@@ -9,7 +9,7 @@ import {
   ensureContainsEffect,
   triggerEffects,
   type EffectSubscriptions,
-} from './v2-signal';
+} from './signal';
 
 const DEBUG = false;
 

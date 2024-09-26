@@ -37,7 +37,7 @@ import {
   Signal,
   type EffectSubscriptions,
   EffectData,
-} from '../signal/v2-signal';
+} from '../signal/signal';
 import {
   STORE_ARRAY_PROP,
   createStore,
@@ -45,8 +45,8 @@ import {
   getStoreTarget,
   isStore,
   unwrapStore,
-} from '../signal/v2-store';
-import type { Subscriber } from '../signal/v2-subscriber';
+} from '../signal/store';
+import type { Subscriber } from '../signal/signal-subscriber';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { DeserializeContainer, HostElement, fixMeAny } from './types';
 

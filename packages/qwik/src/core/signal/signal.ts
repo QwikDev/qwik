@@ -26,9 +26,9 @@ import { vnode_getProp, vnode_isVirtualVNode, vnode_isVNode, vnode_setProp } fro
 import { ChoreType, type NodePropData, type NodePropPayload } from '../shared/scheduler';
 import type { Container2, HostElement, fixMeAny } from '../shared/types';
 import type { ISsrNode } from '../ssr/ssr-types';
-import type { Signal as ISignal, ReadonlySignal } from './v2-signal.public';
-import type { TargetType } from './v2-store';
-import { isSubscriber, Subscriber } from './v2-subscriber';
+import type { Signal as ISignal, ReadonlySignal } from './signal.public';
+import type { TargetType } from './store';
+import { isSubscriber, Subscriber } from './signal-subscriber';
 
 const DEBUG = false;
 

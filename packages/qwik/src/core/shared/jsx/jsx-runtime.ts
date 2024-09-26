@@ -8,7 +8,7 @@ import { logOnceWarn, logWarn } from '../utils/log';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS } from '../utils/markers';
 import { qDev, seal } from '../utils/qdev';
 import { isArray, isObject, isString } from '../utils/types';
-import { WrappedSignal } from '../../signal/v2-signal';
+import { WrappedSignal } from '../../signal/signal';
 import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import type { JSXChildren } from './types/jsx-qwik-attributes';

@@ -23,7 +23,7 @@ import type { Container2, HostElement } from '../shared/types';
 import { vnode_getNode, vnode_isElementVNode, vnode_isVNode } from '../client/vnode';
 import { _getQContainerElement } from '../client/dom-container';
 import type { ContainerElement } from '../client/types';
-import type { EffectData, EffectSubscriptions, EffectSubscriptionsProp } from '../signal/v2-signal';
+import type { EffectData, EffectSubscriptions, EffectSubscriptionsProp } from '../signal/signal';
 
 declare const document: QwikDocument;
 

@@ -20,9 +20,9 @@ import { isPromise, maybeThen, safeCall } from './utils/promises';
 import type { ValueOrPromise } from './utils/types';
 import type { Container2, HostElement, fixMeAny } from './types';
 import { logWarn } from './utils/log';
-import { EffectProperty, isSignal } from '../signal/v2-signal';
+import { EffectProperty, isSignal } from '../signal/signal';
 import { vnode_isVNode } from '../client/vnode';
-import { clearVNodeEffectDependencies } from '../signal/v2-subscriber';
+import { clearVNodeEffectDependencies } from '../signal/signal-subscriber';
 
 /**
  * Use `executeComponent2` to execute a component.

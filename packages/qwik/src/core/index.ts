@@ -126,14 +126,9 @@ export { useTaskQrl, useVisibleTaskQrl, useComputedQrl } from './use/use-task';
 export { useComputed$, useTask$, useVisibleTask$ } from './use/use-task-dollar';
 export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './shared/error/error-handling';
-export { type ReadonlySignal, type Signal, type ComputedSignal } from './signal/v2-signal.public';
-export {
-  isSignal,
-  createSignal,
-  createComputedQrl,
-  createComputed$,
-} from './signal/v2-signal.public';
-export { EffectData as _EffectData } from './signal/v2-signal';
+export { type ReadonlySignal, type Signal, type ComputedSignal } from './signal/signal.public';
+export { isSignal, createSignal, createComputedQrl, createComputed$ } from './signal/signal.public';
+export { EffectData as _EffectData } from './signal/signal';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

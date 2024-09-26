@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { StoreFlags, getOrCreateStore, isStore } from './v2-store';
+import { StoreFlags, getOrCreateStore, isStore } from './store';
 import { getDomContainer } from '@builder.io/qwik';
 import type { Container2 } from '../shared/types';
 import { createDocument } from '@builder.io/qwik-dom';

@@ -3,9 +3,9 @@ import type { QRL } from '../shared/qrl/qrl.public';
 import {
   createSignal as _createSignal,
   createComputedSignal as _createComputedSignal,
-} from './v2-signal-api';
+} from './signal-api';
 
-export { isSignal } from './v2-signal';
+export { isSignal } from './signal';
 
 /** @public */
 export interface ReadonlySignal<T = unknown> {

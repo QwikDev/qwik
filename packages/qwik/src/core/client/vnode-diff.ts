@@ -91,15 +91,15 @@ import {
   type VNodeJournal,
 } from './vnode';
 import { getNewElementNamespaceData } from './vnode-namespace';
-import { WrappedSignal, EffectProperty, isSignal, EffectData } from '../signal/v2-signal';
-import type { Signal } from '../signal/v2-signal.public';
+import { WrappedSignal, EffectProperty, isSignal, EffectData } from '../signal/signal';
+import type { Signal } from '../signal/signal.public';
 import { executeComponent2 } from '../shared/component-execution';
 import { isParentSlotProp, isSlotProp } from '../shared/utils/prop';
 import { escapeHTML } from '../shared/utils/character-escaping';
 import {
   clearSubscriberEffectDependencies,
   clearVNodeEffectDependencies,
-} from '../signal/v2-subscriber';
+} from '../signal/signal-subscriber';
 import { throwErrorAndStop } from '../shared/utils/log';
 import { serializeAttribute } from '../shared/utils/styles';
 

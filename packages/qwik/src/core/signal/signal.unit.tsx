@@ -16,8 +16,8 @@ import {
   type EffectSubscriptions,
   type InternalReadonlySignal,
   type InternalSignal,
-} from './v2-signal';
-import { createComputedQrl, createSignal } from './v2-signal.public';
+} from './signal';
+import { createComputedQrl, createSignal } from './signal.public';
 
 describe('v2-signal', () => {
   const log: any[] = [];

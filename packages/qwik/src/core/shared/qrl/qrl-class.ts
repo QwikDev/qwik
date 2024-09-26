@@ -15,10 +15,10 @@ import { getQFuncs, QInstanceAttr } from '../utils/markers';
 import { maybeThen } from '../utils/promises';
 import { qDev, qSerialize, qTest, seal } from '../utils/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../utils/types';
-import { isSignal } from '../../signal/v2-signal';
+import { isSignal } from '../../signal/signal';
 import type { QRLDev } from './qrl';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
-import type { Signal } from '../../signal/v2-signal.public';
+import type { Signal } from '../../signal/signal.public';
 
 export const isQrl = <T = unknown>(value: unknown): value is QRLInternal<T> => {
   return typeof value === 'function' && typeof (value as any).getSymbol === 'function';

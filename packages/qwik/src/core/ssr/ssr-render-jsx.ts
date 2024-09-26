@@ -29,7 +29,7 @@ import {
 import { addComponentStylePrefix, hasClassAttr, isClassAttr } from '../shared/utils/scoped-styles';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
 import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
-import { WrappedSignal, EffectProperty, isSignal } from '../signal/v2-signal';
+import { WrappedSignal, EffectProperty, isSignal } from '../signal/signal';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
 import { qInspector } from '../shared/utils/qdev';

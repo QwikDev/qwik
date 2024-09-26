@@ -12,7 +12,7 @@ import {
   component$,
   type Signal as SignalType,
 } from '@builder.io/qwik';
-import { WrappedSignal } from '../signal/v2-signal';
+import { WrappedSignal } from '../signal/signal';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

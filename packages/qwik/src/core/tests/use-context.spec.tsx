@@ -26,7 +26,7 @@ import {
   emulateExecutionOfQwikFuncs,
 } from '@builder.io/qwik/testing';
 import { renderToString2 } from 'packages/qwik/src/server/v2-ssr-render2';
-import type { Signal } from '../signal/v2-signal.public';
+import type { Signal } from '../signal/signal.public';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

@@ -4,8 +4,8 @@ import { throwErrorAndStop } from './log';
 import { isPromise } from './promises';
 import { isArray, isFunction, isObject, isSerializableObject } from './types';
 import { canSerialize2 } from '../shared-serialization';
-import { isSignal } from '../../signal/v2-signal';
-import { unwrapStore } from '../../signal/v2-store';
+import { isSignal } from '../../signal/signal';
+import { unwrapStore } from '../../signal/store';
 
 /** @internal */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {

@@ -1,9 +1,9 @@
 import { _CONST_PROPS, _IMMUTABLE } from '../shared/utils/constants';
 import { assertEqual } from '../shared/error/assert';
 import { isObject } from '../shared/utils/types';
-import { WrappedSignal } from './v2-signal';
-import { isSignal } from './v2-signal.public';
-import { getStoreTarget } from './v2-store';
+import { WrappedSignal } from './signal';
+import { isSignal } from './signal.public';
+import { getStoreTarget } from './store';
 
 const getProp = (obj: any, prop: string) => obj[prop];
 

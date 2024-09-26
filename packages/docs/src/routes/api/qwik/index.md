@@ -1446,7 +1446,7 @@ Use this to force recalculation and running subscribers, for example when the ca
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/v2-signal.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts)
 
 ## ContextId
 
@@ -1769,7 +1769,7 @@ qrl
 
 T extends Promise&lt;any&gt; ? never : [ComputedSignal](#computedsignal)&lt;T&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/v2-signal.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts)
 
 ## createComputedQrl
 
@@ -1806,7 +1806,7 @@ qrl
 
 T extends Promise&lt;any&gt; ? never : [ComputedSignal](#computedsignal)&lt;T&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/v2-signal.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts)
 
 ## createContextId
 
@@ -1900,7 +1900,7 @@ createSignal: {
 }
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/v2-signal.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts)
 
 ## CSSProperties
 
@@ -2791,7 +2791,7 @@ any
 
 value is [ISignal](#signal)&lt;unknown&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/v2-signal.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.ts)
 
 ## jsx
 
@@ -4531,7 +4531,7 @@ T
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/v2-signal.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts)
 
 ## render
 
@@ -5384,7 +5384,7 @@ T
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/v2-signal.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts)
 
 ## Size
 

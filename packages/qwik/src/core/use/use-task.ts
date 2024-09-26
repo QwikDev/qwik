@@ -9,15 +9,10 @@ import { delay, isPromise, safeCall } from '../shared/utils/promises';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
 import { ChoreType } from '../shared/scheduler';
 import { type Container2, type HostElement, type fixMeAny } from '../shared/types';
-import {
-  ComputedSignal,
-  EffectProperty,
-  isSignal,
-  throwIfQRLNotResolved,
-} from '../signal/v2-signal';
-import { type ReadonlySignal, type Signal } from '../signal/v2-signal.public';
-import { unwrapStore } from '../signal/v2-store';
-import { Subscriber, clearSubscriberEffectDependencies } from '../signal/v2-subscriber';
+import { ComputedSignal, EffectProperty, isSignal, throwIfQRLNotResolved } from '../signal/signal';
+import { type ReadonlySignal, type Signal } from '../signal/signal.public';
+import { unwrapStore } from '../signal/store';
+import { Subscriber, clearSubscriberEffectDependencies } from '../signal/signal-subscriber';
 import { invoke, newInvokeContext, untrack } from './use-core';
 import { useOn, useOnDocument } from './use-on';
 import { useSequentialScope } from './use-sequential-scope';

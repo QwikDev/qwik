@@ -1,6 +1,6 @@
 import * as CSS from 'csstype';
 import type { DOMAttributes, ClassList, QwikAttributes } from './jsx-qwik-attributes';
-import type { Signal } from '../../../signal/v2-signal.public';
+import type { Signal } from '../../../signal/signal.public';
 /** @public */
 export type Booleanish = boolean | `${boolean}`;
 /** @public */

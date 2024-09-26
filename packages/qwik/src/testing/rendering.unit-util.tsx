@@ -11,11 +11,11 @@ import type {
   _VNode,
   _VirtualVNode,
 } from '@builder.io/qwik';
-import { getPlatform, setPlatform } from '../core/platform/platform';
-import { inlinedQrl } from '../core/qrl/qrl';
-import type { QRL } from '../core/qrl/qrl.public';
-import { ERROR_CONTEXT } from '../core/render/error-handling';
-import { Slot } from '../core/render/jsx/slot.public';
+import { getPlatform, setPlatform } from '../core/shared/platform/platform';
+import { inlinedQrl } from '../core/shared/qrl/qrl';
+import type { QRL } from '../core/shared/qrl/qrl.public';
+import { ERROR_CONTEXT } from '../core/shared/error/error-handling';
+import { Slot } from '../core/shared/jsx/slot.public';
 import { useContextProvider } from '../core/use/use-context';
 import {
   ELEMENT_PROPS,
@@ -25,8 +25,8 @@ import {
   QInstanceAttr,
   QScopedStyle,
   QStyle,
-} from '../core/util/markers';
-import { render2 } from '../core/v2/client/dom-render';
+} from '../core/shared/utils/markers';
+import { render2 } from '../core/client/dom-render';
 import {
   vnode_getAttr,
   vnode_getFirstChild,
@@ -35,11 +35,11 @@ import {
   vnode_isVNode,
   vnode_locate,
   vnode_toString,
-} from '../core/v2/client/vnode';
-import { codeToName } from '../core/v2/shared/shared-serialization';
+} from '../core/client/vnode';
+import { codeToName } from '../core/shared/shared-serialization';
 import './vdom-diff.unit-util';
 import { renderToString2 } from '../server/v2-ssr-render2';
-import { ChoreType } from '../core/v2/shared/scheduler';
+import { ChoreType } from '../core/shared/scheduler';
 
 /** @public */
 export async function domRender(

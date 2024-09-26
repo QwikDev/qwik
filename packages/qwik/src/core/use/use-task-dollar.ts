@@ -1,4 +1,4 @@
-import { implicit$FirstArg } from '../util/implicit_dollar';
+import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import { useComputedQrl, useTaskQrl, useVisibleTaskQrl } from './use-task';
 
 /**

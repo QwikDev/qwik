@@ -1,6 +1,6 @@
-import { isQwikComponent } from '../component/component.public';
-import { isFunction } from '../util/types';
-import { createSignal, type Signal } from '../v2/signal/v2-signal.public';
+import { isQwikComponent } from '../shared/component.public';
+import { isFunction } from '../shared/utils/types';
+import { createSignal, type Signal } from '../signal/v2-signal.public';
 import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 

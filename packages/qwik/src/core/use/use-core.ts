@@ -1,8 +1,12 @@
 import type { QwikDocument } from '../document';
-import { assertDefined } from '../error/assert';
-import { qError, QError_useInvokeContext, QError_useMethodOutsideContext } from '../error/error';
-import type { QRLInternal } from '../qrl/qrl-class';
-import type { QRL } from '../qrl/qrl.public';
+import { assertDefined } from '../shared/error/assert';
+import {
+  qError,
+  QError_useInvokeContext,
+  QError_useMethodOutsideContext,
+} from '../shared/error/error';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
+import type { QRL } from '../shared/qrl/qrl.public';
 import {
   ComputedEvent,
   QContainerSelector,
@@ -10,20 +14,16 @@ import {
   RenderEvent,
   ResourceEvent,
   TaskEvent,
-} from '../util/markers';
-import { isPromise } from '../util/promises';
-import { seal } from '../util/qdev';
-import { isArray } from '../util/types';
+} from '../shared/utils/markers';
+import { isPromise } from '../shared/utils/promises';
+import { seal } from '../shared/utils/qdev';
+import { isArray } from '../shared/utils/types';
 import { setLocale } from './use-locale';
-import type { Container2, HostElement } from '../v2/shared/types';
-import { vnode_getNode, vnode_isElementVNode, vnode_isVNode } from '../v2/client/vnode';
-import { _getQContainerElement } from '../v2/client/dom-container';
-import type { ContainerElement } from '../v2/client/types';
-import type {
-  EffectData,
-  EffectSubscriptions,
-  EffectSubscriptionsProp,
-} from '../v2/signal/v2-signal';
+import type { Container2, HostElement } from '../shared/types';
+import { vnode_getNode, vnode_isElementVNode, vnode_isVNode } from '../client/vnode';
+import { _getQContainerElement } from '../client/dom-container';
+import type { ContainerElement } from '../client/types';
+import type { EffectData, EffectSubscriptions, EffectSubscriptionsProp } from '../signal/v2-signal';
 
 declare const document: QwikDocument;
 

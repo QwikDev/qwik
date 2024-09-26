@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { component$, componentQrl } from '../core/component/component.public';
-import { inlinedQrl } from '../core/qrl/qrl';
+import { component$, componentQrl } from '../core/shared/component.public';
+import { inlinedQrl } from '../core/shared/qrl/qrl';
 import { useSignal } from '../core/use/use-signal';
 import { ssrRenderToDom } from '../testing/rendering.unit-util';
 import { encodeAsAlphanumeric } from './v2-vnode-data';
-import { vnode_getProp, vnode_locate } from '../core/v2/client/vnode';
-import { ELEMENT_PROPS, OnRenderProp } from '../core/util/markers';
-import { type QRLInternal } from '../core/qrl/qrl-class';
-import type { DomContainer } from '../core/v2/client/dom-container';
+import { vnode_getProp, vnode_locate } from '../core/client/vnode';
+import { ELEMENT_PROPS, OnRenderProp } from '../core/shared/utils/markers';
+import { type QRLInternal } from '../core/shared/qrl/qrl-class';
+import type { DomContainer } from '../core/client/dom-container';
 
 const debug = false;
 

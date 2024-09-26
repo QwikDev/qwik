@@ -1,7 +1,7 @@
-import { isServerPlatform } from '../platform/platform';
-import { assertQrl } from '../qrl/qrl-class';
-import { dollar, type QRL } from '../qrl/qrl.public';
-import { Fragment, _jsxSorted } from '../render/jsx/jsx-runtime';
+import { isServerPlatform } from '../shared/platform/platform';
+import { assertQrl } from '../shared/qrl/qrl-class';
+import { dollar, type QRL } from '../shared/qrl/qrl.public';
+import { Fragment, _jsxSorted } from '../shared/jsx/jsx-runtime';
 import { untrack, useBindInvokeContext } from './use-core';
 import {
   Task,
@@ -14,13 +14,13 @@ import {
 } from './use-task';
 
 import type { Container2, fixMeAny } from '../../server/qwik-types';
-import type { JSXOutput } from '../render/jsx/types/jsx-node';
-import { isPromise } from '../util/promises';
-import { isObject } from '../util/types';
-import { StoreFlags, createStore, getStoreTarget } from '../v2/signal/v2-store';
+import type { JSXOutput } from '../shared/jsx/types/jsx-node';
+import { isPromise } from '../shared/utils/promises';
+import { isObject } from '../shared/utils/types';
+import { StoreFlags, createStore, getStoreTarget } from '../signal/v2-store';
 import { useSequentialScope } from './use-sequential-scope';
-import { isSignal } from '../v2/signal/v2-signal';
-import type { Signal } from '../v2/signal/v2-signal.public';
+import { isSignal } from '../signal/v2-signal';
+import type { Signal } from '../signal/v2-signal.public';
 
 const DEBUG: boolean = false;
 

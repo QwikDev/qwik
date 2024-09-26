@@ -1,13 +1,13 @@
-import type { QRL } from '../qrl/qrl.public';
+import type { QRL } from '../shared/qrl/qrl.public';
 import { useInvokeContext } from './use-core';
-import { type KnownEventNames } from '../render/jsx/types/jsx-qwik-events';
+import { type KnownEventNames } from '../shared/jsx/types/jsx-qwik-events';
 import type {
   EventHandler,
   EventFromName,
   AllEventKeys,
-} from '../render/jsx/types/jsx-qwik-attributes';
-import type { HostElement } from '../v2/shared/types';
-import { USE_ON_LOCAL, USE_ON_LOCAL_FLAGS, USE_ON_LOCAL_SEQ_IDX } from '../util/markers';
+} from '../shared/jsx/types/jsx-qwik-attributes';
+import type { HostElement } from '../shared/types';
+import { USE_ON_LOCAL, USE_ON_LOCAL_FLAGS, USE_ON_LOCAL_SEQ_IDX } from '../shared/utils/markers';
 
 export type EventQRL<T extends string = AllEventKeys> =
   | QRL<EventHandler<EventFromName<T>, Element>>

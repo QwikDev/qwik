@@ -1,5 +1,5 @@
 import { describe, expectTypeOf, test } from 'vitest';
-import { component$ } from '../component/component.public';
+import { component$ } from '../shared/component.public';
 import { useResource$ } from './use-resource';
 import { useSignal } from './use-signal';
 import { useStore } from './use-store.public';

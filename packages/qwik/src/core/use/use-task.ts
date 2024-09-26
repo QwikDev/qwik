@@ -1,27 +1,29 @@
-import { assertDefined } from '../error/assert';
-import { isServerPlatform } from '../platform/platform';
-import { assertQrl, createQRL, type QRLInternal } from '../qrl/qrl-class';
-import type { QRL } from '../qrl/qrl.public';
-import { _hW } from '../render/dom/notify-render';
-import { noSerialize, type NoSerialize } from '../state/common';
-import { logError } from '../util/log';
-import { ResourceEvent, TaskEvent } from '../util/markers';
-import { delay, isPromise, safeCall } from '../util/promises';
-import { isFunction, type ValueOrPromise } from '../util/types';
-import { ChoreType } from '../v2/shared/scheduler';
-import { type Container2, type HostElement, type fixMeAny } from '../v2/shared/types';
+import { assertDefined } from '../shared/error/assert';
+import { isServerPlatform } from '../shared/platform/platform';
+import { assertQrl, createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
+import type { QRL } from '../shared/qrl/qrl.public';
+import { noSerialize, type NoSerialize } from '../shared/utils/serialize-utils';
+import { logError } from '../shared/utils/log';
+import { ResourceEvent, TaskEvent } from '../shared/utils/markers';
+import { delay, isPromise, safeCall } from '../shared/utils/promises';
+import { isFunction, type ValueOrPromise } from '../shared/utils/types';
+import { ChoreType } from '../shared/scheduler';
+import { type Container2, type HostElement, type fixMeAny } from '../shared/types';
 import {
   ComputedSignal,
   EffectProperty,
   isSignal,
   throwIfQRLNotResolved,
-} from '../v2/signal/v2-signal';
-import { type ReadonlySignal, type Signal } from '../v2/signal/v2-signal.public';
-import { unwrapStore } from '../v2/signal/v2-store';
-import { Subscriber, clearSubscriberEffectDependencies } from '../v2/signal/v2-subscriber';
+} from '../signal/v2-signal';
+import { type ReadonlySignal, type Signal } from '../signal/v2-signal.public';
+import { unwrapStore } from '../signal/v2-store';
+import { Subscriber, clearSubscriberEffectDependencies } from '../signal/v2-subscriber';
 import { invoke, newInvokeContext, untrack } from './use-core';
 import { useOn, useOnDocument } from './use-on';
 import { useSequentialScope } from './use-sequential-scope';
+import { useLexicalScope } from './use-lexical-scope.public';
+import { getDomContainer } from '../client/dom-container';
+import type { VNode } from '../client/types';
 
 export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,
@@ -659,4 +661,17 @@ export class Task<T = unknown, B = T>
 
 export const isTask = (value: any): value is Task => {
   return value instanceof Task;
+};
+
+/**
+ * Low-level API used by the Optimizer to process `useTask$()` API. This method is not intended to
+ * be used by developers.
+ *
+ * @internal
+ */
+export const _hW = () => {
+  const [task] = useLexicalScope<[Task]>();
+  const container = getDomContainer(task.$el$ as VNode);
+  const type = task.$flags$ & TaskFlags.VISIBLE_TASK ? ChoreType.VISIBLE : ChoreType.TASK;
+  container.$scheduler$(type, task);
 };

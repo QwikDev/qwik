@@ -1,14 +1,14 @@
 import { vi } from 'vitest';
-import { assertDefined } from '../core/error/assert';
-import type { QRLInternal } from '../core/qrl/qrl-class';
+import { assertDefined } from '../core/shared/error/assert';
+import type { QRLInternal } from '../core/shared/qrl/qrl-class';
 import { _getQContainerElement, getDomContainer } from '@builder.io/qwik';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
-import { delay } from '../core/util/promises';
-import type { QElement2, QwikLoaderEventScope } from '../core/v2/shared/types';
-import { fromCamelToKebabCase } from '../core/v2/shared/event-names';
-import { QFuncsPrefix, QInstanceAttr } from '../core/util/markers';
+import { delay } from '../core/shared/utils/promises';
+import type { QElement2, QwikLoaderEventScope } from '../core/shared/types';
+import { fromCamelToKebabCase } from '../core/shared/utils/event-names';
+import { QFuncsPrefix, QInstanceAttr } from '../core/shared/utils/markers';
 
 /**
  * Creates a simple DOM structure for testing components.

@@ -1,12 +1,12 @@
-import { assertTrue } from '../error/assert';
-import { qError, QError_invalidContext, QError_notFoundContext } from '../error/error';
-import { verifySerializable } from '../state/common';
-import { qDev, qSerialize } from '../util/qdev';
-import { isObject } from '../util/types';
-import { fromCamelToKebabCase } from '../v2/shared/event-names';
-import type { fixMeAny, HostElement } from '../v2/shared/types';
+import { assertTrue } from '../shared/error/assert';
+import { qError, QError_invalidContext, QError_notFoundContext } from '../shared/error/error';
+import { verifySerializable } from '../shared/utils/serialize-utils';
+import { qDev, qSerialize } from '../shared/utils/qdev';
+import { isObject } from '../shared/utils/types';
+import type { fixMeAny, HostElement } from '../shared/types';
 import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
+import { fromCamelToKebabCase } from '../shared/utils/event-names';
 
 // <docs markdown="../readme.md#ContextId">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

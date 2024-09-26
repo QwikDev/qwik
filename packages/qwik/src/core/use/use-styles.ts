@@ -1,12 +1,12 @@
-import { styleKey } from '../style/qrl-styles';
-import { type QRL } from '../qrl/qrl.public';
-import { implicit$FirstArg } from '../util/implicit_dollar';
-import { getScopedStyles } from '../style/scoped-stylesheet';
+import { type QRL } from '../shared/qrl/qrl.public';
+import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
+import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
 import { useSequentialScope } from './use-sequential-scope';
-import { assertQrl } from '../qrl/qrl-class';
-import { isPromise } from '../util/promises';
-import { ComponentStylesPrefixContent } from '../util/markers';
-import type { fixMeAny } from '../v2/shared/types';
+import { assertQrl } from '../shared/qrl/qrl-class';
+import { isPromise } from '../shared/utils/promises';
+import { ComponentStylesPrefixContent } from '../shared/utils/markers';
+import type { fixMeAny } from '../shared/types';
+import { styleKey } from '../shared/utils/styles';
 
 /** @public */
 export interface UseStylesScoped {

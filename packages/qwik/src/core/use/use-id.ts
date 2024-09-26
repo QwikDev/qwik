@@ -1,11 +1,11 @@
 import type { QRL } from '..';
-import { getNextUniqueIndex } from '../render/execute-component';
-import { hashCode } from '../util/hash_code';
-import { OnRenderProp } from '../util/markers';
-import { isDomContainer } from '../v2/client/dom-container';
-import type { fixMeAny } from '../v2/shared/types';
-import type { SSRContainer } from '../v2/ssr/ssr-types';
+import { hashCode } from '../shared/utils/hash_code';
+import { OnRenderProp } from '../shared/utils/markers';
+import { isDomContainer } from '../client/dom-container';
+import type { fixMeAny } from '../shared/types';
+import type { SSRContainer } from '../ssr/ssr-types';
 import { useSequentialScope } from './use-sequential-scope';
+import { getNextUniqueIndex } from '../shared/utils/unique-index-generator';
 
 /** @public */
 export const useId = (): string => {

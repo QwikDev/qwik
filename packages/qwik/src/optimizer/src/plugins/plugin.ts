@@ -1,5 +1,5 @@
 import type { Rollup, Plugin, ViteDevServer, HmrContext } from 'vite';
-import { hashCode } from '../../../core/util/hash_code';
+import { hashCode } from '../../../core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
 import { createOptimizer } from '../optimizer';
 import type {

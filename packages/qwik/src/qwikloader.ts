@@ -1,10 +1,10 @@
-import type { QwikSymbolEvent, QwikVisibleEvent } from './core/render/jsx/types/jsx-qwik-events';
+import type { QwikSymbolEvent, QwikVisibleEvent } from './core/shared/jsx/types/jsx-qwik-events';
 import type {
   QContainerElement,
   QElement2,
   QwikLoaderEventScope,
   qWindow,
-} from './core/v2/shared/types';
+} from './core/shared/types';
 
 /**
  * Set up event listening for browser.

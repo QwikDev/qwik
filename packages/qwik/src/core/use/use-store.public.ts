@@ -1,5 +1,5 @@
-import { isFunction } from '../util/types';
-import { StoreFlags, getOrCreateStore } from '../v2/signal/v2-store';
+import { isFunction } from '../shared/utils/types';
+import { StoreFlags, getOrCreateStore } from '../signal/v2-store';
 import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 

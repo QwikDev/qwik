@@ -1,7 +1,7 @@
-import { verifySerializable } from '../state/common';
-import { ELEMENT_SEQ, ELEMENT_SEQ_IDX } from '../util/markers';
-import { qDev, qSerialize } from '../util/qdev';
-import type { fixMeAny, HostElement } from '../v2/shared/types';
+import { verifySerializable } from '../shared/utils/serialize-utils';
+import { ELEMENT_SEQ, ELEMENT_SEQ_IDX } from '../shared/utils/markers';
+import { qDev, qSerialize } from '../shared/utils/qdev';
+import type { fixMeAny, HostElement } from '../shared/types';
 import { useInvokeContext, type RenderInvokeContext } from './use-core';
 
 export interface SequentialScope<T> {

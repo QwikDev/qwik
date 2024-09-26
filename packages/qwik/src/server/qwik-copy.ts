@@ -13,8 +13,8 @@
  *   file lists code which we are OK to have duplicated.
  */
 
-export { dangerouslySetInnerHTML, serializeAttribute } from '../core/render/execute-component';
-export { SubscriptionType } from '../core/state/common';
+export { serializeAttribute } from '../core/shared/utils/styles';
+export { dangerouslySetInnerHTML } from '../core/shared/utils/markers';
 export {
   ELEMENT_ID,
   ELEMENT_KEY,
@@ -43,15 +43,16 @@ export {
   QDefaultSlot,
   Q_PROPS_SEPARATOR,
   NON_SERIALIZABLE_MARKER_PREFIX,
-} from '../core/util/markers';
-export { maybeThen } from '../core/util/promises';
-export { mapApp_remove, mapArray_get, mapArray_set } from '../core/v2/client/vnode';
+} from '../core/shared/utils/markers';
+export { maybeThen } from '../core/shared/utils/promises';
+export { mapApp_remove, mapArray_get, mapArray_set } from '../core/client/vnode';
 export {
   convertStyleIdsToString,
   getScopedStyleIdsAsPrefix,
   isClassAttr,
-} from '../core/v2/shared/scoped-styles';
-export { DEBUG_TYPE, VirtualType, QContainerValue } from '../core/v2/shared/types';
-export { VNodeDataChar } from '../core/v2/shared/vnode-data-types';
-export { VNodeDataSeparator } from '../core/v2/shared/vnode-data-types';
-export { escapeHTML } from '../core/v2/shared/character-escaping';
+} from '../core/shared/utils/scoped-styles';
+export { DEBUG_TYPE, VirtualType, QContainerValue } from '../core/shared/types';
+export { VNodeDataChar } from '../core/shared/vnode-data-types';
+export { VNodeDataSeparator } from '../core/shared/vnode-data-types';
+export { escapeHTML } from '../core/shared/utils/character-escaping';
+export { getValidManifest } from '../optimizer/src/manifest';

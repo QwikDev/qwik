@@ -1,13 +1,13 @@
-import type { QRL } from '../qrl/qrl.public';
+import type { QRL } from '../shared/qrl/qrl.public';
 import { useInvokeContext } from './use-core';
-import { type KnownEventNames } from '../render/jsx/types/jsx-qwik-events';
+import { type KnownEventNames } from '../shared/jsx/types/jsx-qwik-events';
 import type {
   EventHandler,
   EventFromName,
   AllEventKeys,
-} from '../render/jsx/types/jsx-qwik-attributes';
-import type { HostElement } from '../v2/shared/types';
-import { USE_ON_LOCAL, USE_ON_LOCAL_FLAGS, USE_ON_LOCAL_SEQ_IDX } from '../util/markers';
+} from '../shared/jsx/types/jsx-qwik-attributes';
+import type { HostElement } from '../shared/types';
+import { USE_ON_LOCAL, USE_ON_LOCAL_FLAGS, USE_ON_LOCAL_SEQ_IDX } from '../shared/utils/markers';
 
 export type EventQRL<T extends string = AllEventKeys> =
   | QRL<EventHandler<EventFromName<T>, Element>>
@@ -135,20 +135,20 @@ const useOnEventsSequentialScope = () => {
   const iCtx = useInvokeContext();
   const hostElement = iCtx.$hostElement$;
   const host: HostElement = hostElement as any;
-  let onMap = iCtx.$container2$.getHostProp<UseOnMap>(host, USE_ON_LOCAL);
+  let onMap = iCtx.$container$.getHostProp<UseOnMap>(host, USE_ON_LOCAL);
   if (onMap === null) {
     onMap = {};
-    iCtx.$container2$.setHostProp(host, USE_ON_LOCAL, onMap);
+    iCtx.$container$.setHostProp(host, USE_ON_LOCAL, onMap);
   }
-  let seqIdx = iCtx.$container2$.getHostProp<number>(host, USE_ON_LOCAL_SEQ_IDX);
+  let seqIdx = iCtx.$container$.getHostProp<number>(host, USE_ON_LOCAL_SEQ_IDX);
   if (seqIdx === null) {
     seqIdx = 0;
   }
-  iCtx.$container2$.setHostProp(host, USE_ON_LOCAL_SEQ_IDX, seqIdx + 1);
-  let addedFlags = iCtx.$container2$.getHostProp<boolean[]>(host, USE_ON_LOCAL_FLAGS);
+  iCtx.$container$.setHostProp(host, USE_ON_LOCAL_SEQ_IDX, seqIdx + 1);
+  let addedFlags = iCtx.$container$.getHostProp<boolean[]>(host, USE_ON_LOCAL_FLAGS);
   if (addedFlags === null) {
     addedFlags = [];
-    iCtx.$container2$.setHostProp(host, USE_ON_LOCAL_FLAGS, addedFlags);
+    iCtx.$container$.setHostProp(host, USE_ON_LOCAL_FLAGS, addedFlags);
   }
   while (addedFlags.length <= seqIdx) {
     addedFlags.push(false);

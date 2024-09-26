@@ -32,7 +32,6 @@ export const createDOM: ({ html }?: {
 // @public (undocumented)
 export function domRender(jsx: JSXOutput, opts?: {
     debug?: boolean;
-    oldSSR?: boolean;
 }): Promise<{
     document: Document;
     container: ClientContainer;
@@ -76,7 +75,6 @@ export function getTestPlatform(): TestPlatform;
 // @public (undocumented)
 export function ssrRenderToDom(jsx: JSXOutput, opts?: {
     debug?: boolean;
-    oldSSR?: boolean;
     raw?: boolean;
 }): Promise<{
     container: _DomContainer;

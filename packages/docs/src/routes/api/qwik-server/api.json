@@ -179,9 +179,9 @@
           "id": "rendertostream"
         }
       ],
-      "kind": "Variable",
-      "content": "Creates a server-side `document`<!-- -->, renders to root node to the document, then serializes the document to a string.\n\n\n```typescript\nrenderToStream2: typeof renderToStream\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/v2-ssr-render2.ts",
+      "kind": "Function",
+      "content": "```typescript\nexport type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;\n```\n**References:** [RenderToStreamOptions](#rendertostreamoptions)<!-- -->, [RenderToStreamResult](#rendertostreamresult)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts",
       "mdFile": "qwik.rendertostream.md"
     },
     {
@@ -194,7 +194,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Creates a server-side `document`<!-- -->, renders to root node to the document, then serializes the document to a string.\n\n\n```typescript\nrenderToStream2: typeof renderToStream\n```",
+      "content": "```typescript\nexport type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;\n```\n**References:** [RenderToStreamOptions](#rendertostreamoptions)<!-- -->, [RenderToStreamResult](#rendertostreamresult)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "qwik.rendertostream.md"
     },
@@ -235,9 +235,9 @@
           "id": "rendertostring"
         }
       ],
-      "kind": "Variable",
-      "content": "Creates a server-side `document`<!-- -->, renders to root node to the document, then serializes the document to a string.\n\n\n```typescript\nrenderToString2: typeof renderToString\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/v2-ssr-render2.ts",
+      "kind": "Function",
+      "content": "```typescript\nexport type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;\n```\n**References:** [RenderToStringOptions](#rendertostringoptions)<!-- -->, [RenderToStringResult](#rendertostringresult)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts",
       "mdFile": "qwik.rendertostring.md"
     },
     {
@@ -250,7 +250,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Creates a server-side `document`<!-- -->, renders to root node to the document, then serializes the document to a string.\n\n\n```typescript\nrenderToString2: typeof renderToString\n```",
+      "content": "```typescript\nexport type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;\n```\n**References:** [RenderToStringOptions](#rendertostringoptions)<!-- -->, [RenderToStringResult](#rendertostringresult)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "qwik.rendertostring.md"
     },
@@ -293,7 +293,7 @@
       ],
       "kind": "Function",
       "content": "```typescript\nexport declare function resolveManifest(manifest: QwikManifest | ResolvedManifest | undefined): ResolvedManifest | undefined;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nmanifest\n\n\n</td><td>\n\nQwikManifest \\| ResolvedManifest \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nResolvedManifest \\| undefined",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts",
       "mdFile": "qwik.resolvemanifest.md"
     },
     {

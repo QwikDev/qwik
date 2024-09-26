@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { QContainerSelector } from "../../../packages/qwik/src/core/util/markers";
+import { QContainerSelector } from "../../../packages/qwik/src/core/shared/utils/markers";
 
 test.describe("Qwik City locale API", () => {
   test("pass locale to Qwik", async ({ page }) => {

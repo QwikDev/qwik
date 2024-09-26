@@ -1,7 +1,7 @@
 import { setPlatform } from '@builder.io/qwik';
 import { createPlatform } from './platform';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
-import { resolveManifest } from './render';
+import { resolveManifest } from './ssr-render';
 import type { QwikManifest } from './types';
 
 export type {
@@ -25,14 +25,7 @@ export type {
   InOrderStreaming,
   SymbolsToPrefetch,
 } from './types';
-export {
-  // renderToString, renderToStream,
-  resolveManifest,
-} from './render';
-export {
-  renderToString2 as renderToString,
-  renderToStream2 as renderToStream,
-} from './v2-ssr-render2';
+export { resolveManifest, renderToString, renderToStream } from './ssr-render';
 export { versions } from './utils';
 export { getQwikLoaderScript, getQwikPrefetchWorkerScript } from './scripts';
 

@@ -3,7 +3,7 @@ import { expect, describe, it, vi } from 'vitest';
 import { createState, type SWStateBase, type SWTask } from './state';
 import { processMessage } from './process-message';
 import { addDependencies, directFetch } from './direct-fetch';
-import { delay } from '../core/util/promises';
+import { delay } from '../core/shared/utils/promises';
 
 describe('service-worker', async () => {
   describe('registration', async () => {

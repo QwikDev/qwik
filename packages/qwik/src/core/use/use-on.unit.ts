@@ -1,6 +1,6 @@
 import { assertType, describe, expectTypeOf, test } from 'vitest';
 import { useOn, type EventQRL } from './use-on';
-import { $, type QRL, type QrlReturn } from '../qrl/qrl.public';
+import { $, type QRL, type QrlReturn } from '../shared/qrl/qrl.public';
 
 describe('types', () => {
   // Note, these type checks happen at compile time. We don't need to call anything, so we do ()=>()=>. We just need to

@@ -116,7 +116,6 @@ export declare function domRender(
   jsx: JSXOutput,
   opts?: {
     debug?: boolean;
-    oldSSR?: boolean;
   },
 ): Promise<{
   document: Document;
@@ -156,7 +155,7 @@ opts
 
 </td><td>
 
-{ debug?: boolean; oldSSR?: boolean; }
+{ debug?: boolean; }
 
 </td><td>
 
@@ -430,7 +429,6 @@ export declare function ssrRenderToDom(
   jsx: JSXOutput,
   opts?: {
     debug?: boolean;
-    oldSSR?: boolean;
     raw?: boolean;
   },
 ): Promise<{
@@ -471,7 +469,7 @@ opts
 
 </td><td>
 
-{ debug?: boolean; oldSSR?: boolean; raw?: boolean; }
+{ debug?: boolean; raw?: boolean; }
 
 </td><td>
 

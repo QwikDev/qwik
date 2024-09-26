@@ -1,17 +1,5 @@
-import { implicit$FirstArg } from '../util/implicit_dollar';
-import { useComputedQrl, useTaskQrl, useVisibleTaskQrl } from './use-task';
-
-/**
- * Creates a computed signal which is calculated from the given function. A computed signal is a
- * signal which is calculated from other signals. When the signals change, the computed signal is
- * recalculated, and if the result changed, all tasks which are tracking the signal will be re-run
- * and all components that read the signal will be re-rendered.
- *
- * The function must be synchronous and must not have any side effects.
- *
- * @public
- */
-export const useComputed$ = implicit$FirstArg(useComputedQrl);
+import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
+import { useTaskQrl } from './use-task';
 
 // <docs markdown="../readme.md#useTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -75,32 +63,3 @@ export const useComputed$ = implicit$FirstArg(useComputedQrl);
  */
 // </docs>
 export const useTask$ = /*#__PURE__*/ implicit$FirstArg(useTaskQrl);
-
-// <docs markdown="../readme.md#useVisibleTask">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useVisibleTask instead)
-/**
- * ```tsx
- * const Timer = component$(() => {
- *   const store = useStore({
- *     count: 0,
- *   });
- *
- *   useVisibleTask$(() => {
- *     // Only runs in the client
- *     const timer = setInterval(() => {
- *       store.count++;
- *     }, 500);
- *     return () => {
- *       clearInterval(timer);
- *     };
- *   });
- *
- *   return <div>{store.count}</div>;
- * });
- * ```
- *
- * @public
- */
-// </docs>
-export const useVisibleTask$ = /*#__PURE__*/ implicit$FirstArg(useVisibleTaskQrl);

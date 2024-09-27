@@ -82,7 +82,6 @@
 
 import { assertEqual } from './error/assert';
 import type { QRLInternal } from './qrl/qrl-class';
-import type { QRL } from './qrl/qrl.public';
 import type { JSXOutput } from './jsx/types/jsx-node';
 import { Task, TaskFlags, cleanupTask, runTask, type TaskFn } from '../use/use-task';
 import { runResource, type ResourceDescriptor } from '../use/use-resource';
@@ -105,10 +104,12 @@ import {
 } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
 import { executeComponent } from './component-execution';
-import type { Container, HostElement, fixMeAny } from './types';
+import type { Container, HostElement } from './types';
 import { isSignal, type Signal } from '../signal/signal.public';
 import { type DomContainer } from '../client/dom-container';
 import { serializeAttribute } from './utils/styles';
+import type { OnRenderFn } from './component.public';
+import type { Props } from './jsx/jsx-runtime';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -175,7 +176,7 @@ export const createScheduler = (
   function schedule(
     type: ChoreType.QRL_RESOLVE,
     ignore: null,
-    target: QRLInternal<any>
+    target: QRLInternal<(...args: unknown[]) => unknown>
   ): ValueOrPromise<void>;
   function schedule(type: ChoreType.JOURNAL_FLUSH): ValueOrPromise<void>;
   function schedule(type: ChoreType.WAIT_FOR_ALL): ValueOrPromise<void>;
@@ -196,20 +197,20 @@ export const createScheduler = (
   function schedule(
     type: ChoreType.COMPONENT,
     host: HostElement,
-    qrl: QRL<(...args: any[]) => any>,
-    props: any
+    qrl: QRLInternal<OnRenderFn<unknown>>,
+    props: Props | null
   ): ValueOrPromise<JSXOutput>;
   function schedule(
     type: ChoreType.COMPONENT_SSR,
     host: HostElement,
-    qrl: QRL<(...args: any[]) => any>,
-    props: any
+    qrl: QRLInternal<OnRenderFn<unknown>>,
+    props: Props | null
   ): ValueOrPromise<JSXOutput>;
   function schedule(
     type: ChoreType.NODE_DIFF,
     host: HostElement,
     target: HostElement,
-    value: JSXOutput
+    value: JSXOutput | Signal
   ): ValueOrPromise<void>;
   function schedule(
     type: ChoreType.NODE_PROP,
@@ -222,7 +223,7 @@ export const createScheduler = (
   function schedule(
     type: ChoreType,
     hostOrTask: HostElement | Task | null = null,
-    targetOrQrl: HostElement | QRL<(...args: any[]) => any> | string | null = null,
+    targetOrQrl: HostElement | QRLInternal<(...args: unknown[]) => unknown> | string | null = null,
     payload: any = null
   ): ValueOrPromise<any> {
     const runLater: boolean =
@@ -244,8 +245,8 @@ export const createScheduler = (
         : typeof targetOrQrl === 'string'
           ? targetOrQrl
           : 0,
-      $host$: isTask ? ((hostOrTask as Task).$el$ as fixMeAny) : (hostOrTask as HostElement),
-      $target$: targetOrQrl as any,
+      $host$: isTask ? (hostOrTask as Task).$el$ : (hostOrTask as HostElement),
+      $target$: targetOrQrl as QRLInternal<(...args: unknown[]) => unknown>,
       $payload$: isTask ? hostOrTask : payload,
       $resolve$: null!,
       $promise$: null!,
@@ -329,8 +330,8 @@ export const createScheduler = (
               container,
               host,
               host,
-              chore.$target$ as fixMeAny,
-              chore.$payload$ as fixMeAny
+              chore.$target$ as QRLInternal<OnRenderFn<unknown>>,
+              chore.$payload$ as Props | null
             ),
           (jsx) => {
             return chore.$type$ === ChoreType.COMPONENT

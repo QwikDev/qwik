@@ -10,13 +10,7 @@ import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ChoreType, type NodePropData } from '../shared/scheduler';
-import type {
-  HostElement,
-  QElement,
-  QwikLoaderEventScope,
-  fixMeAny,
-  qWindow,
-} from '../shared/types';
+import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import { escapeHTML } from '../shared/utils/character-escaping';
 import {
@@ -520,13 +514,8 @@ export const vnode_diff = (
     const constProps = jsxValue.constProps;
     if (constProps && typeof constProps == 'object' && 'name' in constProps) {
       const constValue = constProps.name;
-      if (constValue instanceof WrappedSignal) {
-        return trackSignal(
-          () => constValue.value,
-          vHost as fixMeAny,
-          EffectProperty.COMPONENT,
-          container
-        );
+      if (vHost && constValue instanceof WrappedSignal) {
+        return trackSignal(() => constValue.value, vHost, EffectProperty.COMPONENT, container);
       }
     }
     return jsxValue.props.name || QDefaultSlot;

@@ -18,7 +18,7 @@ export type { CorePlatformServer } from '../core/shared/platform/types';
 export type { QRLInternal } from '../core/shared/qrl/qrl-class';
 export type { NodePropData } from '../core/shared/scheduler';
 export type { SerializationContext } from '../core/shared/shared-serialization';
-export type { Container, HostElement, ObjToProxyMap, fixMeAny } from '../core/shared/types';
+export type { Container, HostElement, ObjToProxyMap } from '../core/shared/types';
 export type { ValueOrPromise } from '../core/shared/utils/types';
 export type {
   ISsrComponentFrame,

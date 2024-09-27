@@ -1,13 +1,10 @@
 import type { JSXOutput } from './jsx/types/jsx-node';
 import type { ContextId } from '../use/use-context';
 import type { ValueOrPromise } from './utils/types';
-import type { VirtualVNode } from '../client/types';
+import type { VNode } from '../client/types';
 import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { Scheduler } from './scheduler';
 import type { SerializationContext } from './shared-serialization';
-
-/// Temporary type left behind which needs to be fixed.
-export type fixMeAny = any;
 
 export interface DeserializeContainer {
   $getObjectById$: (id: number | string) => unknown;
@@ -51,7 +48,7 @@ export interface Container {
   ): SerializationContext;
 }
 
-export type HostElement = VirtualVNode | ISsrNode;
+export type HostElement = VNode | ISsrNode;
 
 export interface QElement extends HTMLElement {
   qDispatchEvent?: (event: Event, scope: QwikLoaderEventScope) => boolean;

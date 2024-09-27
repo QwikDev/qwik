@@ -5,7 +5,6 @@ import { useSequentialScope } from './use-sequential-scope';
 import { assertQrl } from '../shared/qrl/qrl-class';
 import { isPromise } from '../shared/utils/promises';
 import { ComponentStylesPrefixContent } from '../shared/utils/markers';
-import type { fixMeAny } from '../shared/types';
 import { styleKey } from '../shared/utils/styles';
 
 /** @public */
@@ -138,10 +137,10 @@ const _useStyles = (
     return val;
   }
   const styleId = styleKey(styleQrl, i);
-  const host = iCtx.$hostElement$ as fixMeAny;
+  const host = iCtx.$hostElement$;
   set(styleId);
 
-  const value = styleQrl.$resolveLazy$(host);
+  const value = styleQrl.$resolveLazy$(iCtx.$element$);
   if (isPromise(value)) {
     value.then((val) =>
       iCtx.$container$.$appendStyle$(transform(val, styleId), styleId, host, scoped)

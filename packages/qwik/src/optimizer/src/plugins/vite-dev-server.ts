@@ -1,24 +1,24 @@
 /* eslint-disable no-console */
-import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
-import { magenta } from 'kleur/colors';
+import type { Render, RenderToStreamOptions } from '@qwikdev/core/server';
 import type { IncomingMessage, ServerResponse } from 'http';
+import { magenta } from 'kleur/colors';
 
 import type { Connect, ViteDevServer } from 'vite';
+import { SYNC_QRL } from '../../../core/shared/qrl/qrl-class';
 import type { OptimizerSystem, Path, QwikManifest, SymbolMapper, SymbolMapperFn } from '../types';
+import clickToComponent from './click-to-component.html?raw';
+import errorHost from './error-host.html?raw';
+import imageDevTools from './image-size-runtime.html?raw';
+import perfWarning from './perf-warning.html?raw';
 import {
-  type NormalizedQwikPluginOptions,
-  parseId,
   getSymbolHash,
   makeNormalizePath,
+  type NormalizedQwikPluginOptions,
+  parseId,
 } from './plugin';
 import type { QwikViteDevResponse } from './vite';
-import { formatError, isWin } from './vite-utils';
 import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
-import imageDevTools from './image-size-runtime.html?raw';
-import clickToComponent from './click-to-component.html?raw';
-import perfWarning from './perf-warning.html?raw';
-import errorHost from './error-host.html?raw';
-import { SYNC_QRL } from '../../../core/shared/qrl/qrl-class';
+import { formatError, isWin } from './vite-utils';
 
 function getOrigin(req: IncomingMessage) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
@@ -371,7 +371,7 @@ const shouldSsrRender = (req: IncomingMessage, url: URL) => {
   if (InternalPrefixRE.test(url.pathname)) {
     return false;
   }
-  if (pathname.includes('@builder.io/qwik/build')) {
+  if (pathname.includes('@qwikdev/core/build')) {
     return false;
   }
   const acceptHeader = req.headers.accept || '';

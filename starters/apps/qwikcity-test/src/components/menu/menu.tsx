@@ -1,5 +1,5 @@
-import { component$, Fragment, useStyles$ } from "@builder.io/qwik";
-import { useContent, Link, useLocation } from "@builder.io/qwik-city";
+import { Link, useContent, useLocation } from "@qwikdev/city";
+import { component$, Fragment, useStyles$ } from "@qwikdev/core";
 import styles from "./menu.css?inline";
 
 export const Menu = component$(() => {

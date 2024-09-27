@@ -1,4 +1,4 @@
-import { type RequestHandler } from '@builder.io/qwik-city';
+import { type RequestHandler } from '@qwikdev/city';
 
 // Generic function `onRequest` is executed first
 export const onRequest: RequestHandler = async ({ next, sharedMap, json }) => {

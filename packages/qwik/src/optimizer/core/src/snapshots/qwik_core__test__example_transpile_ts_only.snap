@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwikdev/core';
 
 export const App = component$((props: Stuff) => {
 	return (
@@ -18,8 +18,8 @@ export const App = component$((props: Stuff) => {
 
 ============================= test.jsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { inlinedQrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwikdev/core";
+import { inlinedQrl } from "@qwikdev/core";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
     return <Cmp>
 			<p class="stuff" onClick$={/*#__PURE__*/ inlinedQrl(()=>console.log('warn'), "App_component_Cmp_p_onClick_vuXzfUTkpto")}>Hello Qwik</p>

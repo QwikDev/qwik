@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { StoreFlags, getOrCreateStore, isStore } from './store';
-import { getDomContainer } from '@builder.io/qwik';
+import { getDomContainer } from '@qwikdev/core';
 import type { Container } from '../shared/types';
 import { createDocument } from '@builder.io/qwik-dom';
 

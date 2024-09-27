@@ -92,8 +92,8 @@ src/
 > The folder `[username]` can be any of the thousands of users that you have in your database. It would be impractical to create a route for each user. Instead, you need to define a Route Parameter (a part of the URL) that will be used to extract the `[username]`.
 
 ```tsx title="src/routes/user/[username]/index.tsx"
-import { component$ } from '@builder.io/qwik';
-import { useLocation } from '@builder.io/qwik-city';
+import { component$ } from '@qwikdev/core';
+import { useLocation } from '@qwikdev/city';
 
 export default component$(() => {
   const loc = useLocation();
@@ -112,7 +112,7 @@ Pages/endpoint/middleware are the leaf nodes of the routing tree, i.e., **the mo
 When an `index.tsx` or `index.ts` file exports a Qwik component as the default export, Qwik City will render the component and return an HTML response as a webpage.
 
 ```tsx title="src/routes/index.tsx"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwikdev/core';
 
 export default component$(() => {
   return <h1>Hello World</h1>;
@@ -124,7 +124,7 @@ export default component$(() => {
 An `index.ts` file can access the HTTP request directly and return a raw HTTP response without involving any Qwik Component. This is done by exporting any of the following methods: `onRequest`, `onGet`, `onPost`, `onPut` or `onDelete` depending on how you want to handle a specific HTTP request.
 
 ```tsx title="src/routes/index.ts"
-import type { RequestHandler } from '@builder.io/qwik-city';
+import type { RequestHandler } from '@qwikdev/city';
 
 export const onGet: RequestHandler = ({ json }) => {
   json(200, { message: 'Hello World' });
@@ -138,8 +138,8 @@ export const onGet: RequestHandler = ({ json }) => {
 In Qwik City there is no clear separation between pages and endpoints. An `index.tsx` file handles both and exports a Qwik component or an `onRequest` method. However, it's possible to combine both approaches. For example, you can export an `onRequest` method that will handle the request, and then render a Qwik component.
 
 ```tsx title="src/routes/index.tsx"
-import { component$ } from '@builder.io/qwik';
-import type { RequestHandler } from '@builder.io/qwik-city';
+import { component$ } from '@qwikdev/core';
+import type { RequestHandler } from '@qwikdev/city';
 
 export const onRequest: RequestHandler = ({ headers, query, json }) => {
   headers.set('Cache-Control', 'private');
@@ -223,8 +223,8 @@ The `Link` component is the recommended way to navigate as it uses the HTML `<a>
 However, if you need to navigate programmatically, you can use the `useNavigate()` hook.
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
-import { Link, useNavigate } from '@builder.io/qwik-city';
+import { component$ } from '@qwikdev/core';
+import { Link, useNavigate } from '@qwikdev/city';
 
 export default component$(() => {
   const nav = useNavigate();
@@ -249,8 +249,8 @@ The `Link` component with the `reload` prop can be used together to refresh the 
 You can also call the `nav()` function from the `useNavigate()` hook, without arguments.
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
-import { Link, routeLoader$, useNavigate } from '@builder.io/qwik-city';
+import { component$ } from '@qwikdev/core';
+import { Link, routeLoader$, useNavigate } from '@qwikdev/city';
 
 export const useServerTime = routeLoader$(() => {
   // This will re-execute in the server when the page refreshes.
@@ -384,7 +384,7 @@ You can set the rewrite rules as follows in your `vite.config.ts`:
 
 ```tsx
 import { defineConfig } from 'vite';
-import { qwikCity } from '@builder.io/qwik-city/vite';
+import { qwikCity } from '@qwikdev/city/vite';
 
 export default defineConfig(async () => {
   return {

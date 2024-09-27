@@ -1,11 +1,4 @@
-import {
-  jsx,
-  component$,
-  Slot,
-  $,
-  type QwikJSX,
-  type QRLEventHandlerMulti,
-} from '@builder.io/qwik';
+import { jsx, component$, Slot, $, type QwikJSX, type QRLEventHandlerMulti } from '@qwikdev/core';
 import type { ActionStore } from './types';
 import { useNavigate } from './use-functions';
 

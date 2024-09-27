@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { $, component$, useSignal } from '@builder.io/qwik';
+import { $, component$, useSignal } from '@qwikdev/core';
 export const Works = component$(({fromProps}) => {
 	let fromLocal = useSignal(0);
 	return (
@@ -23,12 +23,12 @@ export const Works = component$(({fromProps}) => {
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { _fnSignal } from "@builder.io/qwik";
-import { _wrapProp } from "@builder.io/qwik";
-import { _jsxSorted } from "@builder.io/qwik";
-import { inlinedQrl } from "@builder.io/qwik";
-import { useSignal } from '@builder.io/qwik';
+import { componentQrl } from "@qwikdev/core";
+import { _fnSignal } from "@qwikdev/core";
+import { _wrapProp } from "@qwikdev/core";
+import { _jsxSorted } from "@qwikdev/core";
+import { inlinedQrl } from "@qwikdev/core";
+import { useSignal } from '@qwikdev/core';
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
     let fromLocal = useSignal(0);
     return /*#__PURE__*/ _jsxSorted("div", {

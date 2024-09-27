@@ -1,11 +1,11 @@
 /* eslint-disable */
 import {
   component$,
-  useStore,
-  useResource$,
   Resource,
+  useResource$,
   useSignal,
-} from "@builder.io/qwik";
+  useStore,
+} from "@qwikdev/core";
 import { delay } from "./resource";
 
 export const ResourceSerialization = component$(() => {

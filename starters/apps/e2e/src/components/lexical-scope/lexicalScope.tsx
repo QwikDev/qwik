@@ -1,11 +1,11 @@
 import {
-  component$,
   $,
-  useStore,
+  component$,
   noSerialize,
   useSignal,
+  useStore,
   type Signal,
-} from "@builder.io/qwik";
+} from "@qwikdev/core";
 
 export const LexicalScope = component$(() => {
   const signal = useSignal(0);

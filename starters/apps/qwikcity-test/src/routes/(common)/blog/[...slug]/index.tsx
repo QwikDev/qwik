@@ -1,9 +1,9 @@
-import { component$ } from "@builder.io/qwik";
 import {
   type DocumentHead,
   type StaticGenerateHandler,
   routeLoader$,
-} from "@builder.io/qwik-city";
+} from "@qwikdev/city";
+import { component$ } from "@qwikdev/core";
 
 export default component$(() => {
   const blog = useLoader();

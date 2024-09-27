@@ -119,15 +119,15 @@ The `outDir` is a file system output directory where the static files should be 
 
 ### Javascript Runtimes
 
-For a Javascript project, it's quite common for the build's runtime to be built on top of [Node.js](https://nodejs.org/en/docs/). However, the core of Qwik City static site generation isn't tied to using only Node.js, which is why the `qwikCityGenerate()` function is imported from `@builder.io/qwik-city/static/node`. By scoping the generate function to a specific runtime, such as Node.js, this gives Qwik City the flexibility to also generate SSG from other runtimes in the future, such as [Deno](https://deno.land/) or [Bun](https://bun.sh/).
+For a Javascript project, it's quite common for the build's runtime to be built on top of [Node.js](https://nodejs.org/en/docs/). However, the core of Qwik City static site generation isn't tied to using only Node.js, which is why the `qwikCityGenerate()` function is imported from `@qwikdev/city/static/node`. By scoping the generate function to a specific runtime, such as Node.js, this gives Qwik City the flexibility to also generate SSG from other runtimes in the future, such as [Deno](https://deno.land/) or [Bun](https://bun.sh/).
 
 ## Dynamic SSG Routes
 
 So far, we've only discussed how to generate static HTML files for a single route path. However, in most cases, you'll want to generate HTML files for multiple route paths that has dynamic params. For example, a product site may have a route path for each product, such as `/product/:id`. In this case, you'll want to generate HTML files for each product page, which would require generating HTML files for each product ID.
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
-import { useLocation, type StaticGenerateHandler } from '@builder.io/qwik-city';
+import { component$ } from '@qwikdev/core';
+import { useLocation, type StaticGenerateHandler } from '@qwikdev/city';
 import { loadProductIds } from './load-product-ids';
 
 export default component$(() => {

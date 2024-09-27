@@ -1,4 +1,4 @@
-import { $, component$, useSignal } from '@builder.io/qwik';
+import { $, component$, useSignal } from '@qwikdev/core';
 import { CodeBlock } from '../components/code-block/code-block';
 import type { ReplModuleOutput } from './types';
 const FILE_MODULE_DIV_ID = 'file-modules-client-modules';

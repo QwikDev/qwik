@@ -1,6 +1,6 @@
 {
   "id": "qwik-optimizer",
-  "package": "@builder.io/qwik/optimizer",
+  "package": "@qwikdev/core/optimizer",
   "members": [
     {
       "name": "basename",

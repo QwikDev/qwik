@@ -1,5 +1,5 @@
-import { getErrorHtml } from '@builder.io/qwik-city/middleware/request-handler';
-import type { RouteData } from '@builder.io/qwik-city';
+import type { RouteData } from '@qwikdev/city';
+import { getErrorHtml } from '@qwikdev/city/middleware/request-handler';
 import type { StaticGenerateOptions, System } from './types';
 
 export async function generateNotFoundPages(

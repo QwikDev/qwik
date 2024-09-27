@@ -23,8 +23,8 @@ describe('mdx', () => {
     // It could be that new mdx versions change this output, make sure it still makes sense
     expect(result).toMatchInlineSnapshot(`
       {
-        "code": "import { _jsxSorted, RenderOnce } from '@builder.io/qwik';
-      import {Fragment as _Fragment, jsx as _jsx, jsxs as _jsxs} from "@builder.io/qwik/jsx-runtime";
+        "code": "import { _jsxSorted, RenderOnce } from '@qwikdev/core';
+      import {Fragment as _Fragment, jsx as _jsx, jsxs as _jsxs} from "@qwikdev/core/jsx-runtime";
       export const headings = [{
         "text": "Hello",
         "id": "hello",

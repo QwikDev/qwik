@@ -1,10 +1,10 @@
 import type {
-  StaticGenerateRenderOptions,
   StaticGenerateOptions,
+  StaticGenerateRenderOptions,
   StaticGenerateResult,
 } from './types';
 
-// @builder.io/qwik-city/static
+// @qwikdev/city/static
 
 /**
  * Use this function when SSG should be generated from another module, such as a Vite plugin. This

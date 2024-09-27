@@ -1,6 +1,6 @@
 {
   "id": "qwik-city-static",
-  "package": "@builder.io/qwik-city/static",
+  "package": "@qwikdev/city/static",
   "members": [
     {
       "name": "generate",

@@ -1,6 +1,6 @@
-import { component$ } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
 import { PrismaClient } from "@prisma/client";
+import { routeLoader$ } from "@qwikdev/city";
+import { component$ } from "@qwikdev/core";
 
 export const useGetUsers = routeLoader$(async () => {
   const prisma = new PrismaClient();

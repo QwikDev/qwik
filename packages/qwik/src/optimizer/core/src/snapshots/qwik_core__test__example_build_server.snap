@@ -6,8 +6,8 @@ expression: output
 ==INPUT==
 
 
-import { component$, useStore } from '@builder.io/qwik';
-import { isServer, isBrowser } from '@builder.io/qwik/build';
+import { component$, useStore } from '@qwikdev/core';
+import { isServer, isBrowser } from '@qwikdev/core/build';
 import { mongodb } from 'mondodb';
 import { threejs } from 'threejs';
 
@@ -40,8 +40,8 @@ export const App = component$(() => {
 
 ============================= test.tsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwikdev/core";
+import { qrl } from "@qwikdev/core";
 export const functionThatNeedsWindow = ()=>{};
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./s_ckepmxzlub0"), "s_ckEPmXZlub0"));
 

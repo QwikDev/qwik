@@ -2,7 +2,7 @@
  * @file
  *
  *   Importing directly from `qwik` is not allowed because the SSR package would end up with two
- *   copies of the code. Instead, the SSR package should import from `@builder.io/qwik`.
+ *   copies of the code. Instead, the SSR package should import from `@qwikdev/core`.
  *
  *   The exception to this rule is importing types, because those get elided by TypeScript. To make
  *   ensuring that this rule is followed, this file is the only place where relative `../` imports
@@ -12,24 +12,23 @@
  *   this file, which is only allowed to import types)
  */
 
-export type { CorePlatformServer } from '../core/shared/platform/types';
-export type { QRLInternal } from '../core/shared/qrl/qrl-class';
 export type { JSXOutput } from '../core/shared/jsx/types/jsx-node';
 export type { JSXChildren } from '../core/shared/jsx/types/jsx-qwik-attributes';
-export type { ContextId } from '../core/use/use-context';
-export type { ValueOrPromise } from '../core/shared/utils/types';
+export type { CorePlatformServer } from '../core/shared/platform/types';
+export type { QRLInternal } from '../core/shared/qrl/qrl-class';
+export type { NodePropData } from '../core/shared/scheduler';
 export type { SerializationContext } from '../core/shared/shared-serialization';
-export type { Container, HostElement, ObjToProxyMap } from '../core/shared/types';
+export type { Container, HostElement, ObjToProxyMap, fixMeAny } from '../core/shared/types';
+export type { ValueOrPromise } from '../core/shared/utils/types';
 export type {
   ISsrComponentFrame,
   ISsrNode,
   SSRContainer,
-  SsrAttrs,
   SsrAttrKey,
   SsrAttrValue,
+  SsrAttrs,
   StreamWriter,
+  SymbolToChunkResolver,
 } from '../core/ssr/ssr-types';
+export type { ContextId } from '../core/use/use-context';
 export type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
-export type { SymbolToChunkResolver } from '../core/ssr/ssr-types';
-export type { fixMeAny } from '../core/shared/types';
-export type { NodePropData } from '../core/shared/scheduler';

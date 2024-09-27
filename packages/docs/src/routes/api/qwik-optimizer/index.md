@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik/optimizer API Reference
+title: \@qwikdev/core/optimizer API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik/optimizer
+# [API](/api) &rsaquo; @qwikdev/core/optimizer
 
 ## basename
 

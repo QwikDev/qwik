@@ -1,9 +1,4 @@
-import {
-  component$,
-  useResource$,
-  Resource,
-  useSignal,
-} from '@builder.io/qwik';
+import { component$, useResource$, Resource, useSignal } from '@qwikdev/core';
 
 export default component$(() => {
   const query = useSignal('busy');

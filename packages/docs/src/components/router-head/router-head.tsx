@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
-import { component$ } from '@builder.io/qwik';
-import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
+import { useDocumentHead, useLocation } from '@qwikdev/city';
+import { component$ } from '@qwikdev/core';
 import { Social } from './social';
-import { Vendor } from './vendor';
 import { ThemeScript } from './theme-script';
+import { Vendor } from './vendor';
 
 export const RouterHead = component$(() => {
   const { url } = useLocation();

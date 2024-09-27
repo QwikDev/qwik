@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city/middleware/node API Reference
+title: \@qwikdev/city/middleware/node API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city/middleware/node
+# [API](/api) &rsaquo; @qwikdev/city/middleware/node
 
 ## createQwikCity
 

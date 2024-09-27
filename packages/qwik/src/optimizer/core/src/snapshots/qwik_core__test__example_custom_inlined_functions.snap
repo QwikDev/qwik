@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, $, useStore, wrap, useEffect } from '@builder.io/qwik';
+import { component$, $, useStore, wrap, useEffect } from '@qwikdev/core';
 
 export const useMemoQrl = (qrt) => {
 	useEffect(qrt);
@@ -32,9 +32,9 @@ export const Lightweight = (props) => {
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-import { wrap, useEffect } from '@builder.io/qwik';
+import { componentQrl } from "@qwikdev/core";
+import { qrl } from "@qwikdev/core";
+import { wrap, useEffect } from '@qwikdev/core';
 export const useMemoQrl = (qrt)=>{
     useEffect(qrt);
 };
@@ -48,7 +48,7 @@ export const Lightweight = (props)=>{
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAkC,IAAI,EAAE,SAAS,QAAQ,mBAAmB;AAE5E,OAAO,MAAM,aAAa,CAAC;IAC1B,UAAU;AACX,EAAE;AAEF,OAAO,MAAM,WAAW,KAAK,YAAY;AAEzC,OAAO,MAAM,oBAAM,wGAQhB;AAEH,OAAO,MAAM,cAAc,CAAC;IAC3B;AAGD,EAAG\"}")
 ============================= app_component_usememo_6sc9kvki3y0.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
+import { useLexicalScope } from "@qwikdev/core";
 export const App_component_useMemo_6Sc9KVki3Y0 = ()=>{
     const [state] = useLexicalScope();
     console.log(state.count);
@@ -106,9 +106,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import { qrl } from "@builder.io/qwik";
+import { qrl } from "@qwikdev/core";
 import { useMemoQrl } from "./test";
-import { useStore } from "@builder.io/qwik";
+import { useStore } from "@qwikdev/core";
 export const App_component_ckEPmXZlub0 = (props)=>{
     const state = useStore({
         count: 0
@@ -145,14 +145,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
-import { _jsxSorted } from "@builder.io/qwik";
-import { _wrapProp } from "@builder.io/qwik";
+import { useLexicalScope } from "@qwikdev/core";
+import { _jsxSorted } from "@qwikdev/core";
+import { _wrapProp } from "@qwikdev/core";
 export const App_component_1_w0t0o3QMovU = ()=>{
     const [state] = useLexicalScope();
     return /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(state, "count"), 3, "u6_0");
 };
-export { _hW } from "@builder.io/qwik";
+export { _hW } from "@qwikdev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAcU;;yBACR,WAAC,6BAAK\"}")

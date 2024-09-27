@@ -1,12 +1,12 @@
-import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
-import { describe, expect, it } from 'vitest';
 import {
   Fragment as Component,
+  component$,
   Fragment,
   Fragment as Signal,
   useStore,
-  component$,
-} from '@builder.io/qwik';
+} from '@qwikdev/core';
+import { domRender, ssrRenderToDom, trigger } from '@qwikdev/core/testing';
+import { describe, expect, it } from 'vitest';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

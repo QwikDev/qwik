@@ -24,7 +24,7 @@ If you want to chain multiple request handlers together you can use this utility
 
 <CodeFile src="/src/routes/demo/cookbook/combine-request-handlers/index.tsx">
 ```tsx
-import type { RequestHandler } from '@builder.io/qwik-city';
+import type { RequestHandler } from '@qwikdev/city';
 
 /**
  * Combines multiple request handlers into a single request handler.
@@ -56,4 +56,5 @@ export const combineRequestHandlers = (...handlers: RequestHandler[]): RequestHa
     await lastNext();
   };
 ```
-</CodeFile>
+</CodeFile>import { CodeFile } from '../../../../components/code-sandbox/index.tsx';
+

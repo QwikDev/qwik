@@ -1,8 +1,8 @@
-import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
-import { type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
+import type { StaticGenerateRenderOptions } from '@qwikdev/city/static';
 import fs from 'node:fs';
 import { join, relative } from 'node:path';
 import { normalizePathSlash } from '../../../utils/fs';
+import { type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
 
 /** @public */
 export function cloudflarePagesAdapter(opts: CloudflarePagesAdapterOptions = {}): any {

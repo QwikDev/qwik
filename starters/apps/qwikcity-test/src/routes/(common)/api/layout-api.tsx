@@ -1,5 +1,5 @@
-import { component$, Slot, useStyles$ } from "@builder.io/qwik";
-import type { DocumentHead } from "@builder.io/qwik-city";
+import type { DocumentHead } from "@qwikdev/city";
+import { component$, Slot, useStyles$ } from "@qwikdev/core";
 import styles from "./layout-api.css?inline";
 
 export default component$(() => {

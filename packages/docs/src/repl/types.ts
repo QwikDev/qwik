@@ -1,10 +1,10 @@
+import type { NoSerialize } from '@qwikdev/core';
 import type {
   Diagnostic,
   QwikManifest,
   QwikRollupPluginOptions,
   TransformModule,
-} from '@builder.io/qwik/optimizer';
-import type { NoSerialize } from '@builder.io/qwik';
+} from '@qwikdev/core/optimizer';
 
 export interface ReplAppInput {
   buildId: number;

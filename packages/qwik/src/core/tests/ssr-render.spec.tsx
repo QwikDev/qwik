@@ -1,15 +1,15 @@
-import { ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
+import { Slot, useSignal } from '@qwikdev/core';
+import { ssrRenderToDom, trigger } from '@qwikdev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { component$ } from '../shared/component.public';
 import {
   Fragment as Component,
-  Fragment as Projection,
   Fragment,
   Fragment as InlineComponent,
+  Fragment as Projection,
 } from '../shared/jsx/jsx-runtime';
 import { SSRComment, SSRRaw, SSRStream, SSRStreamBlock } from '../shared/jsx/utils.public';
 import { delay } from '../shared/utils/promises';
-import { Slot, useSignal } from '@builder.io/qwik';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

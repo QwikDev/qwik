@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwikdev/core';
 
 export const App = component$((props: Stuff) => {
 	return (
@@ -22,16 +22,16 @@ export const App = component$((props: Stuff) => {
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwikdev/core";
+import { qrl } from "@qwikdev/core";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0.js"), "App_component_ckEPmXZlub0"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,2GAUhB\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { _jsxSorted } from "@builder.io/qwik";
+import { Fragment as _Fragment } from "@qwikdev/core/jsx-runtime";
+import { _jsxSorted } from "@qwikdev/core";
 export const App_component_ckEPmXZlub0 = (props)=>{
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
         /*#__PURE__*/ _jsxSorted(Cmp, null, null, null, 3, "stuff"),

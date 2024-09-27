@@ -1,7 +1,7 @@
 import { getClientDataPath } from './utils';
 import { CLIENT_DATA_CACHE } from './constants';
 import type { ClientPageData, RouteActionValue } from './types';
-import { _deserialize } from '@builder.io/qwik';
+import { _deserialize } from '@qwikdev/core';
 import { prefetchSymbols } from './client-navigate';
 
 export const loadClientData = async (

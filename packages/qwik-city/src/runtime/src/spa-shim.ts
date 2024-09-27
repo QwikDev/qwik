@@ -1,8 +1,8 @@
 import type { ClientSPAWindow } from './qwik-city-component';
 import type { ScrollHistoryState } from './scroll-restoration';
 
-import { isDev, isServer } from '@builder.io/qwik/build';
-import { getPlatform } from '@builder.io/qwik';
+import { getPlatform } from '@qwikdev/core';
+import { isDev, isServer } from '@qwikdev/core/build';
 
 import init from './spa-init';
 

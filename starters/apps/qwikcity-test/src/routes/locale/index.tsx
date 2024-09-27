@@ -1,5 +1,5 @@
-import { component$, getLocale } from "@builder.io/qwik";
-import type { RequestHandler } from "@builder.io/qwik-city";
+import type { RequestHandler } from "@qwikdev/city";
+import { component$, getLocale } from "@qwikdev/core";
 
 export const onRequest: RequestHandler = ({ locale }) => {
   locale("test-locale");

@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city/middleware/netlify-edge API Reference
+title: \@qwikdev/city/middleware/netlify-edge API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city/middleware/netlify-edge
+# [API](/api) &rsaquo; @qwikdev/city/middleware/netlify-edge
 
 ## createQwikCity
 

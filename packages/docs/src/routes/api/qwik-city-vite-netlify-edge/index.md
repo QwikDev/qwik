@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city/vite/netlify-edge API Reference
+title: \@qwikdev/city/vite/netlify-edge API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city/vite/netlify-edge
+# [API](/api) &rsaquo; @qwikdev/city/vite/netlify-edge
 
 ## netlifyEdgeAdapter
 

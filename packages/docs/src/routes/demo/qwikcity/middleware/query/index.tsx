@@ -1,4 +1,4 @@
-import { type RequestHandler } from '@builder.io/qwik-city';
+import { type RequestHandler } from '@qwikdev/city';
 
 export const onGet: RequestHandler = async ({ query, json }) => {
   const obj: Record<string, string> = {};

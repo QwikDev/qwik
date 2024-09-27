@@ -1,14 +1,14 @@
-import { component$, useStyles$, useTask$, useStore, useVisibleTask$ } from '@builder.io/qwik';
-import type { RequestHandler, PathParams, StaticGenerateHandler } from '@builder.io/qwik-city';
-import { Repl } from '../../../repl/repl';
-import styles from './examples.css?inline';
-import { Header } from '../../../components/header/header';
 import exampleSections, { type ExampleApp } from '@examples-data';
-import type { ReplAppInput } from '../../../repl/types';
-import { type DocumentHead, useLocation } from '@builder.io/qwik-city';
+import type { PathParams, RequestHandler, StaticGenerateHandler } from '@qwikdev/city';
+import { type DocumentHead, useLocation } from '@qwikdev/city';
+import { component$, useStore, useStyles$, useTask$, useVisibleTask$ } from '@qwikdev/core';
+import { isBrowser } from '@qwikdev/core/build';
+import { Header } from '../../../components/header/header';
 import { PanelToggle } from '../../../components/panel-toggle/panel-toggle';
-import { isBrowser } from '@builder.io/qwik/build';
+import { Repl } from '../../../repl/repl';
 import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../../repl/repl-share-url';
+import type { ReplAppInput } from '../../../repl/types';
+import styles from './examples.css?inline';
 
 export default component$(() => {
   useStyles$(styles);

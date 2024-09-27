@@ -48,7 +48,7 @@ The problem with `import.meta.glob` in Qwik, is that it currently either works i
 
 The reason for this behavior, is that `import.meta.glob` with `eager.false` breaks the production bundle as it creates lazy-loadable chunks that Qwik doesn't know how to handle. On the other hand, `eager:true` seemingly fixes the issue as it allows Qwik to normally bundle the files, but it also slows down the development server - especially when you import a lot of heavy components with it.
 
-As a workaround for now, you can use the build time `isDev` boolean from `"@builder.io/qwik/build"`:
+As a workaround for now, you can use the build time `isDev` boolean from `"@qwikdev/core/build"`:
 
 <CodeSandbox src="/src/routes/demo/cookbook/glob-import/">
 ```tsx
@@ -57,8 +57,8 @@ import {
   component$,
   useSignal,
   useTask$,
-} from '@builder.io/qwik';
-import { isDev } from '@builder.io/qwik/build';
+} from '@qwikdev/core';
+import { isDev } from '@qwikdev/core/build';
 
 const metaGlobComponents: Record<string, any> = import.meta.glob(
   '/src/examples/*',

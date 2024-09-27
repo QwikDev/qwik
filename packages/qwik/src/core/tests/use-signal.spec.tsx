@@ -5,12 +5,12 @@ import {
   Fragment as Projection,
   Fragment as Signal,
   useVisibleTask$,
-} from '@builder.io/qwik';
+} from '@qwikdev/core';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { domRender, ssrRenderToDom } from '../../testing/rendering.unit-util';
 import '../../testing/vdom-diff.unit-util';
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwikdev/core';
 import { Slot } from '../shared/jsx/slot.public';
 import type { Signal as SignalType } from '../signal/signal.public';
 import { untrack } from '../use/use-core';

@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { $, component$, useStore } from '@builder.io/qwik';
+import { $, component$, useStore } from '@qwikdev/core';
 const Header = component$(() => {
 	const thing = useStore();
 	const {foo, bar} = foo();
@@ -18,7 +18,7 @@ const Header = component$(() => {
 
 ============================= header_component_j4uyihabnr4.tsx (ENTRY POINT)==
 
-import { useStore } from "@builder.io/qwik";
+import { useStore } from "@qwikdev/core";
 export const Header_component_J4uyIhaBNR4 = ()=>{
     const thing = useStore();
     const { foo, bar } = foo();
@@ -49,9 +49,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-import { $, component$, useStore } from '@builder.io/qwik';
+import { componentQrl } from "@qwikdev/core";
+import { qrl } from "@qwikdev/core";
+import { $, component$, useStore } from '@qwikdev/core';
 const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./header_component_j4uyihabnr4"), "Header_component_J4uyIhaBNR4"));
 
 

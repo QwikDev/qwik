@@ -1,7 +1,7 @@
-import { domRender, ssrRenderToDom, trigger } from "@builder.io/qwik/testing";
+import type { ClientContainer, DomContainer } from "@qwikdev/core";
+import { domRender, ssrRenderToDom, trigger } from "@qwikdev/core/testing";
 import { beforeEach, describe, expect, it } from "vitest";
 import { Issue3948 } from "./events";
-import type { ClientContainer, DomContainer } from "@builder.io/qwik";
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

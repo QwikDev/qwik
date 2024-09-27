@@ -2,44 +2,40 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "paths": {
-      "@builder.io/qwik-city": ["packages/qwik-city/src/runtime/src/index.ts"],
-      "@builder.io/qwik-city/service-worker": [
+      "@qwikdev/city": ["packages/qwik-city/src/runtime/src/index.ts"],
+      "@qwikdev/city/service-worker": [
         "packages/qwik-city/src/runtime/src/service-worker/index.ts"
       ],
-      "@builder.io/qwik-city/adapters/azure-swa/vite": [
+      "@qwikdev/city/adapters/azure-swa/vite": [
         "packages/qwik-city/src/adapters/azure-swa/vite/index.ts"
       ],
-      "@builder.io/qwik-city/adapters/cloudflare-pages/vite": [
+      "@qwikdev/city/adapters/cloudflare-pages/vite": [
         "packages/qwik-city/src/adapters/cloudflare-pages/vite/index.ts"
       ],
-      "@builder.io/qwik-city/adapters/node-server/vite": [
+      "@qwikdev/city/adapters/node-server/vite": [
         "packages/qwik-city/src/adapters/node-server/vite/index.ts"
       ],
-      "@builder.io/qwik-city/adapters/netlify-edge/vite": [
+      "@qwikdev/city/adapters/netlify-edge/vite": [
         "packages/qwik-city/src/adapters/netlify-edge/vite/index.ts"
       ],
-      "@builder.io/qwik-city/adapters/shared/vite": [
+      "@qwikdev/city/adapters/shared/vite": [
         "packages/qwik-city/src/adapters/shared/vite/index.ts"
       ],
-      "@builder.io/qwik-city/adapters/static/vite": [
+      "@qwikdev/city/adapters/static/vite": [
         "packages/qwik-city/src/adapters/static/vite/index.ts"
       ],
-      "@builder.io/qwik-city/middleware/azure-swa": ["packages/qwik-city/src/middleware/azure-swa"],
-      "@builder.io/qwik-city/middleware/aws-lambda": [
-        "packages/qwik-city/src/middleware/aws-lambda"
-      ],
-      "@builder.io/qwik-city/middleware/cloudflare-pages": [
+      "@qwikdev/city/middleware/azure-swa": ["packages/qwik-city/src/middleware/azure-swa"],
+      "@qwikdev/city/middleware/aws-lambda": ["packages/qwik-city/src/middleware/aws-lambda"],
+      "@qwikdev/city/middleware/cloudflare-pages": [
         "packages/qwik-city/src/middleware/cloudflare-pages"
       ],
-      "@builder.io/qwik-city/middleware/request-handler": [
+      "@qwikdev/city/middleware/request-handler": [
         "packages/qwik-city/src/middleware/request-handler"
       ],
-      "@builder.io/qwik-city/middleware/node": ["packages/qwik-city/src/middleware/node"],
-      "@builder.io/qwik-city/middleware/netlify-edge": [
-        "packages/qwik-city/src/middleware/netlify-edge"
-      ],
-      "@builder.io/qwik-city/static": ["packages/qwik-city/src/static"],
-      "@builder.io/qwik-city/vite": ["packages/qwik-city/src/buildtime/vite"],
+      "@qwikdev/city/middleware/node": ["packages/qwik-city/src/middleware/node"],
+      "@qwikdev/city/middleware/netlify-edge": ["packages/qwik-city/src/middleware/netlify-edge"],
+      "@qwikdev/city/static": ["packages/qwik-city/src/static"],
+      "@qwikdev/city/vite": ["packages/qwik-city/src/buildtime/vite"],
 
       "@qwik-city-plan": ["packages/qwik-city/src/runtime/src/qwik-city-plan.ts"],
       "@qwik-city-sw-register-build": [

@@ -1,6 +1,6 @@
-import { qwikVite } from '@builder.io/qwik/optimizer';
+import { qwikVite } from '@qwikdev/core/optimizer';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import { defineConfig, configDefaults } from 'vitest/config';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [

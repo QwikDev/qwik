@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city/vite/static API Reference
+title: \@qwikdev/city/vite/static API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city/vite/static
+# [API](/api) &rsaquo; @qwikdev/city/vite/static
 
 ## staticAdapter
 

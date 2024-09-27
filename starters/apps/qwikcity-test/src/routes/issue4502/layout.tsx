@@ -1,4 +1,4 @@
-import { Slot, component$, useSignal } from "@builder.io/qwik";
+import { Slot, component$, useSignal } from "@qwikdev/core";
 
 export default component$(() => {
   const count = useSignal(0);

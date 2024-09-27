@@ -1,4 +1,4 @@
-import { component$, useStylesScoped$ } from '@builder.io/qwik';
+import { component$, useStylesScoped$ } from '@qwikdev/core';
 
 export default component$(() => {
   return (

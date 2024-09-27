@@ -142,7 +142,7 @@ export const QGreetings = qwikify$(Greetings);
 <div q:slot="1">
 <CodeFile src="/src/routes/demo/react/hello-world/index.tsx">
 ```tsx /QGreetings/
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwikdev/core';
 import { QGreetings } from './react';
 
 export default component$(() => {
@@ -194,7 +194,7 @@ export const QCounter = qwikify$(Counter);
 <div q:slot="1">
 <CodeFile src="/src/routes/demo/react/counter-simple/index.tsx">
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwikdev/core';
 import { QCounter } from './react';
 
 export default component$(() => {
@@ -240,7 +240,7 @@ export const QCounter = qwikify$(Counter, { eagerness: 'hover' });
 <div q:slot="1">
 <CodeFile src="/src/routes/demo/react/counter-simple-hover/index.tsx">
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwikdev/core';
 import { QCounter } from './react';
 
 export default component$(() => {
@@ -292,7 +292,7 @@ export const QDisplay = qwikify$(Display);
 <div q:slot="1">
 <CodeFile src="/src/routes/demo/react/counter-two-islands/index.tsx">
 ```tsx
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwikdev/core';
 import { QButton, QDisplay } from './react';
 
 export default component$(() => {
@@ -342,7 +342,7 @@ In the previous example, we had two islands. The `QButton` had to be eagerly hyd
 <div  q:slot="0">
 <CodeFile src="/src/routes/demo/react/counter-two-islands-host/index.tsx">
 ```tsx /host:onClick$/
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwikdev/core';
 import { QButton, QDisplay } from './react';
 
 export default component$(() => {
@@ -401,7 +401,7 @@ A common use case is to pass content children to components. This works with Qwi
 <div  q:slot="0">
 <CodeFile src="/src/routes/demo/react/children/index.tsx">
 ```tsx /host:onClick$/
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwikdev/core';
 import { QFrame } from './react';
 
 export default component$(() => {
@@ -508,7 +508,7 @@ export const Example = qwikify$(
 <div q:slot="1">
 <CodeFile src="/src/routes/demo/react/mui/index.tsx">
 ```tsx
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwikdev/core';
 import { Example } from './react';
 
 export default component$(() => {
@@ -558,7 +558,7 @@ In a nutshell, the rules are:
 Now your Qwik can import `MUIButton` and use it as any other Qwik component:
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwikdev/core';
 import { MUIAlert, MUIButton } from '~/integrations/react/mui';
 
 export default component$(() => {
@@ -597,7 +597,7 @@ export const MUISlider = qwikify$<typeof Slider>(
 <div q:slot="1">
 <CodeFile src="/src/routes/demo/react/children/index.tsx">
 ```tsx
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwikdev/core';
 import { QFrame } from './react';
 
 export default component$(() => {

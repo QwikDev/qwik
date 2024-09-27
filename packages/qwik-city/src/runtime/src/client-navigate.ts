@@ -1,7 +1,7 @@
-import { isBrowser } from '@builder.io/qwik/build';
+import { isBrowser } from '@qwikdev/core/build';
+import { PREFETCHED_NAVIGATE_PATHS } from './constants';
 import type { NavigationType, ScrollState } from './types';
 import { isSamePath, toPath } from './utils';
-import { PREFETCHED_NAVIGATE_PATHS } from './constants';
 
 export const clientNavigate = (
   win: Window,

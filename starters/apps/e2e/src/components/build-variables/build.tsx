@@ -1,6 +1,6 @@
-import { component$, useSignal, useTask$ } from "@builder.io/qwik";
-import { isBrowser, isServer } from "@builder.io/qwik/build";
-import * as build from "@builder.io/qwik/build";
+import { component$, useSignal, useTask$ } from "@qwikdev/core";
+import * as build from "@qwikdev/core/build";
+import { isBrowser, isServer } from "@qwikdev/core/build";
 
 export const BuildVariables = component$(() => {
   const json = useSignal("");

@@ -1,7 +1,7 @@
 import { type QRL, type Signal, Slot, SSRComment, SSRRaw, SSRStream } from '@builder.io/qwik';
-import { getHostProps, mainExactProps, getReactProps } from './slot';
+import { isServer } from '@qwikdev/core/build';
 import { renderToString } from 'react-dom/server';
-import { isServer } from '@builder.io/qwik/build';
+import { getHostProps, getReactProps, mainExactProps } from './slot';
 
 export async function renderFromServer(
   Host: any,

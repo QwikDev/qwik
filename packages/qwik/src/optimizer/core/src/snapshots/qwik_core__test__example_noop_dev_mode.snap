@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, useStore, serverStuff$, $ } from '@builder.io/qwik';
+import { component$, useStore, serverStuff$, $ } from '@qwikdev/core';
 
 export const App = component$(() => {
 	const stuff = useStore();
@@ -32,8 +32,8 @@ export const App = component$(() => {
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrlDEV } from "@builder.io/qwik";
+import { componentQrl } from "@qwikdev/core";
+import { qrlDEV } from "@qwikdev/core";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0", {
     file: "/user/qwik/src/test.tsx",
     lo: 107,
@@ -45,10 +45,10 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import(".
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM;;;;;IAoBhB\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import { _jsxSorted } from "@builder.io/qwik";
-import { _noopQrlDEV } from "@builder.io/qwik";
-import { serverStuffQrl } from "@builder.io/qwik";
-import { useStore } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwikdev/core";
+import { _noopQrlDEV } from "@qwikdev/core";
+import { serverStuffQrl } from "@qwikdev/core";
+import { useStore } from "@qwikdev/core";
 export const App_component_ckEPmXZlub0 = ()=>{
     const stuff = useStore();
     serverStuffQrl(/*#__PURE__*/ _noopQrlDEV("App_component_serverStuff_ebyHaP15ytQ", {

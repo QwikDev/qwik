@@ -24,8 +24,8 @@ A good default is to use [stale-while-revalidate](https://web.dev/stale-while-re
 For instance, we can add an `onGet` export to our root [layout](/docs/(qwikcity)/layout/index.mdx) (`src/routes/layout.tsx`) like so, to apply good caching defaults site-wide:
 
 ```tsx title="src/routes/layout.tsx"
-import { component$, Slot } from "@builder.io/qwik";
-import type { RequestHandler } from "@builder.io/qwik-city";
+import { component$, Slot } from "@qwikdev/core";
+import type { RequestHandler } from "@qwikdev/city";
 
 export const onGet: RequestHandler = async ({ cacheControl }) => {
   cacheControl({
@@ -52,7 +52,7 @@ With the above setup, you will not only have better performance (pages are alway
 Any method that takes a [request event](https://qwik.dev/docs/advanced/request-handling/#request-event) can call `request.cacheControl` to set the cache control headers for the response:
 
 ```tsx title="src/routes/layout.tsx"
-import type { RequestHandler } from "@builder.io/qwik-city";
+import type { RequestHandler } from "@qwikdev/city";
 
 export const onGet: RequestHandler = async ({ cacheControl }) => {
   cacheControl({
@@ -67,7 +67,7 @@ export const onGet: RequestHandler = async ({ cacheControl }) => {
 If you have default caching set at the root, but want to disable caching for a specific page, you can override this setting using nested layouts.  The below example overrides caching for dashboard pages.
 
 ```tsx title="src/routes/dashboard/layout.tsx"
-import type { RequestHandler } from "@builder.io/qwik-city";
+import type { RequestHandler } from "@qwikdev/city";
 
 // Override caching for /dashboard pages to not cache as they are unique per visitor
 export const onGet: RequestHandler = async ({ cacheControl }) => {
@@ -92,7 +92,7 @@ For high traffic pages that look the same to everyone, such as a homepage, cachi
 You can conditionally change cache behaviors with any logic you like:
 
 ```tsx title="src/routes/layout.tsx"
-import type { RequestHandler } from "@builder.io/qwik-city";
+import type { RequestHandler } from "@qwikdev/city";
 
 export const onGet: RequestHandler = async ({ cacheControl, url }) => {
   // Only our homepage is public and should be CDN cached. Other pages are unique per visitor
@@ -129,7 +129,7 @@ Some CDNs (such as Vercel Edge) may strip some of your "Cache-Control" headers.
 If your CDN, such as Vercel Edge, automatically removes certain cache control headers and you wish to implement caching strategies like "stale-while-revalidate" or "s-maxage" in the browser, you can specify an additional cacheControl:
 
 ```tsx title="src/routes/layout.tsx"
-import type { RequestHandler } from "@builder.io/qwik-city";
+import type { RequestHandler } from "@qwikdev/city";
 
 export const onGet: RequestHandler = async ({ cacheControl }) => {
     // If you want the browser to use "stale-while-revalidate" or "s-maxage" Cache Control headers, you have to add the second cacheControl with "CDN-Cache-Control" or "Vercel-CDN-Cache-Control" on Vercel Edge 

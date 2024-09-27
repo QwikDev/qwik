@@ -1,4 +1,4 @@
-import { component$, useErrorBoundary, Slot, type QRL } from '@builder.io/qwik';
+import { component$, useErrorBoundary, Slot, type QRL } from '@qwikdev/core';
 
 /** @public */
 export interface ErrorBoundaryProps {

@@ -6,8 +6,8 @@ expression: output
 ==INPUT==
 
 
-import { component$ } from '@builder.io/qwik';
-import { server$ } from '@builder.io/qwik-city';
+import { component$ } from '@qwikdev/core';
+import { server$ } from '@qwikdev/city';
 import { clientSupabase } from 'supabase';
 import { Client } from 'openai';
 import { secret } from './secret';
@@ -37,10 +37,10 @@ export default component$(() => {
 
 ============================= test.js ==
 
-import { serverQrl } from "@builder.io/qwik-city";
-import { _noopQrlDEV } from "@builder.io/qwik";
-import { componentQrl } from "@builder.io/qwik";
-import { qrlDEV } from "@builder.io/qwik";
+import { serverQrl } from "@qwikdev/city";
+import { _noopQrlDEV } from "@qwikdev/core";
+import { componentQrl } from "@qwikdev/core";
+import { qrlDEV } from "@qwikdev/core";
 import { sideEffect } from './secret';
 (function() {
     console.log('run');
@@ -93,8 +93,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test_component_luxexe0dqrg.js (ENTRY POINT)==
 
-import { _jsxSorted } from "@builder.io/qwik";
-import { qrlDEV } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwikdev/core";
+import { qrlDEV } from "@qwikdev/core";
 export const test_component_LUXeXe0DQrg = ()=>{
     return /*#__PURE__*/ _jsxSorted("button", null, {
         onClick$: /*#__PURE__*/ qrlDEV(()=>import("./test_component_button_onclick_dgk9xlyroka"), "test_component_button_onClick_DGk9xLyRokA", {

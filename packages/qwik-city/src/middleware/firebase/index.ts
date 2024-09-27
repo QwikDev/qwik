@@ -1,6 +1,6 @@
-import { createQwikCity as createQwikCityNode } from '@builder.io/qwik-city/middleware/node';
+import { createQwikCity as createQwikCityNode } from '@qwikdev/city/middleware/node';
 
-import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
+import type { ServerRenderOptions } from '@qwikdev/city/middleware/request-handler';
 
 /** @public */
 export function createQwikCity(opts: QwikCityFirebaseOptions) {

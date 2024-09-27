@@ -1,5 +1,5 @@
 import type { AutocompleteApi } from '@algolia/autocomplete-core';
-import { useTask$ } from '@builder.io/qwik';
+import { useTask$ } from '@qwikdev/core';
 
 interface UseTouchEventsProps {
   getEnvironmentProps: AutocompleteApi<any>['getEnvironmentProps'];

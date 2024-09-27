@@ -5,7 +5,7 @@ expression: output
 ---
 ============================= ../../node_modules/dep/dist/app_component_div_p_button_onclick_8dwua0cjar4.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
+import { useLexicalScope } from "@qwikdev/core";
 export const App_component_div_p_button_onClick_8dWUa0cJAr4 = ()=>{
     const [store] = useLexicalScope();
     return store.count++;
@@ -35,9 +35,9 @@ Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoo
 */
 ============================= ../../node_modules/dep/dist/app_component_akbu84a8zes.js (ENTRY POINT)==
 
-import { _jsxSorted } from "@builder.io/qwik";
-import { _wrapProp } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwikdev/core";
+import { _wrapProp } from "@qwikdev/core";
+import { qrl } from "@qwikdev/core";
 import { _auto_useData as useData } from "./lib.mjs";
 export const App_component_AkbU84a8zes = ()=>{
     const store = useData();
@@ -78,8 +78,8 @@ Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoo
 */
 ============================= ../../node_modules/dep/dist/lib.mjs ==
 
-import { qrl } from "@builder.io/qwik";
-import { componentQrl, useStore } from "@builder.io/qwik";
+import { qrl } from "@qwikdev/core";
+import { componentQrl, useStore } from "@qwikdev/core";
 const useData = ()=>{
     return useStore({
         count: 0
@@ -92,7 +92,7 @@ export { useData as _auto_useData };
 Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";AACA,SAAS,YAAY,EAAc,QAAQ,QAAyB,mBAAmB;AAIvF,MAAM,UAAU;IACf,OAAO,SAAS;QACf,OAAO;IACR;AACD;AAEA,OAAO,MAAM,MAAM,WAAW,GAAG,2GAuBA\"}")
 ============================= components/local_component_jj0v28bs0p8.js (ENTRY POINT)==
 
-import { _jsxSorted } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwikdev/core";
 import { state } from "./sibling";
 export const Local_component_jJ0v28bs0p8 = ()=>{
     return /*#__PURE__*/ _jsxSorted("div", null, null, state, 3, "zp_0");
@@ -122,8 +122,8 @@ Some("{\"version\":3,\"sources\":[\"src/thing/components/main.tsx\"],\"sourceRoo
 */
 ============================= components/main.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwikdev/core";
+import { qrl } from "@qwikdev/core";
 export const Local = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./local_component_jj0v28bs0p8.js"), "Local_component_jJ0v28bs0p8"));
 
 

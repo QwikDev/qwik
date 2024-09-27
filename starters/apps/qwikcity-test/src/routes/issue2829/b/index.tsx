@@ -1,4 +1,4 @@
-import { component$, useContext } from "@builder.io/qwik";
+import { component$, useContext } from "@qwikdev/core";
 import { SomeContext } from "../../../components/provider/provider";
 
 export default component$(() => {

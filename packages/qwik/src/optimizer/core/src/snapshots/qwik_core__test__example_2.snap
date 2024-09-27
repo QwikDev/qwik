@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwikdev/core';
 export const Header = component$(() => {
 	console.log("mount");
 	return (
@@ -16,7 +16,7 @@ export const Header = component$(() => {
 
 ============================= header_component_j4uyihabnr4.tsx (ENTRY POINT)==
 
-import { qrl } from "@builder.io/qwik";
+import { qrl } from "@qwikdev/core";
 export const Header_component_J4uyIhaBNR4 = ()=>{
     console.log("mount");
     return <div onClick={/*#__PURE__*/ qrl(()=>import("./header_component_div_onclick_i7ekvwh3674"), "Header_component_div_onClick_i7ekvWH3674")}/>;
@@ -46,8 +46,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwikdev/core";
+import { qrl } from "@qwikdev/core";
 export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./header_component_j4uyihabnr4"), "Header_component_J4uyIhaBNR4"));
 
 
@@ -55,7 +55,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= header_component_div_onclick_i7ekvwh3674.tsx (ENTRY POINT)==
 
 export const Header_component_div_onClick_i7ekvWH3674 = (ctx)=>console.log(ctx);
-export { _hW } from "@builder.io/qwik";
+export { _hW } from "@qwikdev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAKkB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")

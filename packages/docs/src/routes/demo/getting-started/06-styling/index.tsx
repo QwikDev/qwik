@@ -1,15 +1,10 @@
+import { Form, routeAction$, routeLoader$, server$ } from '@qwikdev/city';
 import {
   component$,
   useSignal,
   useStylesScoped$,
   useTask$,
-} from '@builder.io/qwik';
-import {
-  routeLoader$,
-  Form,
-  routeAction$,
-  server$,
-} from '@builder.io/qwik-city';
+} from '@qwikdev/core';
 import styles from './index.css?inline';
 
 export const useDadJoke = routeLoader$(async () => {

@@ -1,5 +1,5 @@
 // Expect error: { "messageId": "referencesOutside" }
-import { component$, useTask$ } from '@builder.io/qwik';
+import { component$, useTask$ } from '@qwikdev/core';
 export const HelloWorld = component$(() => {
   function getValue() {
     if (Math.random() < 0.5) {

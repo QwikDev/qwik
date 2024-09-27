@@ -1,4 +1,4 @@
-import { $, type QRL } from '@builder.io/qwik';
+import { $, type QRL } from '@qwikdev/core';
 import { createDocument } from '@builder.io/qwik-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { TaskFlags, type Task } from '../use/use-task';

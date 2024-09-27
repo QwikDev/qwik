@@ -1,18 +1,18 @@
 import {
   component$,
-  type Signal,
-  useSignal,
-  useStore,
-  useVisibleTask$,
-  useTask$,
-  Slot,
-  useStyles$,
-  useResource$,
   type QwikIntrinsicElements,
   Resource,
+  type Signal,
+  Slot,
   useComputed$,
-  // createComputed$,
-} from "@builder.io/qwik";
+  useResource$,
+  useSignal,
+  useStore,
+  useStyles$,
+  useTask$,
+  useVisibleTask$,
+} from "@qwikdev/core";
+import { isBrowser } from "@qwikdev/core/build";
 import { delay } from "../resource/resource";
 import {
   TestAC,
@@ -25,7 +25,6 @@ import {
   TestCStr,
   TestCWithFlag,
 } from "./utils/utils";
-import { isBrowser } from "@builder.io/qwik/build";
 
 export const Signals = component$(() => {
   const rerender = useSignal(0);

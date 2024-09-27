@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city/vite/node-server API Reference
+title: \@qwikdev/city/vite/node-server API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city/vite/node-server
+# [API](/api) &rsaquo; @qwikdev/city/vite/node-server
 
 ## nodeServerAdapter
 

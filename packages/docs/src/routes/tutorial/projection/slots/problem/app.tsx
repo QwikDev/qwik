@@ -1,4 +1,4 @@
-import { component$, Slot, useStore } from '@builder.io/qwik';
+import { component$, Slot, useStore } from '@qwikdev/core';
 
 export default component$(() => {
   console.log('Render: <App>');

@@ -1,5 +1,5 @@
-import { component$ } from '@builder.io/qwik';
-import { Form } from '@builder.io/qwik-city';
+import { Form } from '@qwikdev/city';
+import { component$ } from '@qwikdev/core';
 import { useCommonRouteAction, useCommonRouteLoader } from './shared/loaders';
 
 // As mentioned, here we are re-exporting them

@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-		import { component$, useStore } from "@builder.io/qwik";
+		import { component$, useStore } from "@qwikdev/core";
 
 		export default component$(() => {
 		const store = useStore([{ value: 0 }]);
@@ -25,18 +25,18 @@ expression: output
 		
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwikdev/core";
+import { qrl } from "@qwikdev/core";
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGE,6BAAe,0GAaZ\"}")
 ============================= test_component_luxexe0dqrg.js (ENTRY POINT)==
 
-import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { _jsxSorted } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-import { useStore } from "@builder.io/qwik";
+import { Fragment as _Fragment } from "@qwikdev/core/jsx-runtime";
+import { _jsxSorted } from "@qwikdev/core";
+import { qrl } from "@qwikdev/core";
+import { useStore } from "@qwikdev/core";
 export const test_component_LUXeXe0DQrg = ()=>{
     const store = useStore([
         {
@@ -86,7 +86,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test_component_fragment_button_onclick_ef3qezgqwcy.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
+import { useLexicalScope } from "@qwikdev/core";
 export const test_component_Fragment_button_onClick_eF3QEzgQWcY = ()=>{
     const [store] = useLexicalScope();
     return store[0].value++;

@@ -1,6 +1,6 @@
 {
   "id": "qwik-server",
-  "package": "@builder.io/qwik/server",
+  "package": "@qwikdev/core/server",
   "members": [
     {
       "name": "getQwikLoaderScript",

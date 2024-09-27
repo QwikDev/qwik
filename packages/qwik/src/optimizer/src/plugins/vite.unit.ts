@@ -28,10 +28,10 @@ function mockOptimizerOptions(): OptimizerOptions {
 
 const includeDeps = undefined;
 const noExternal = [
-  '@builder.io/qwik',
-  '@builder.io/qwik/server',
-  '@builder.io/qwik/build',
-  '@builder.io/qwik-city',
+  '@qwikdev/core',
+  '@qwikdev/core/server',
+  '@qwikdev/core/build',
+  '@qwikdev/city',
 ];
 
 const excludeDeps = [
@@ -39,13 +39,13 @@ const excludeDeps = [
   '@vite/env',
   'node-fetch',
   'undici',
-  '@builder.io/qwik',
-  '@builder.io/qwik/server',
-  '@builder.io/qwik/jsx-runtime',
-  '@builder.io/qwik/jsx-dev-runtime',
-  '@builder.io/qwik/build',
+  '@qwikdev/core',
+  '@qwikdev/core/server',
+  '@qwikdev/core/jsx-runtime',
+  '@qwikdev/core/jsx-dev-runtime',
+  '@qwikdev/core/build',
   '@qwik-client-manifest',
-  '@builder.io/qwik-city',
+  '@qwikdev/city',
 ];
 
 const getPlugin = (opts: QwikVitePluginOptions | undefined) =>

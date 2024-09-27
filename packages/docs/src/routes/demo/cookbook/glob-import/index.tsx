@@ -3,8 +3,8 @@ import {
   component$,
   useSignal,
   useTask$,
-} from '@builder.io/qwik';
-import { isDev } from '@builder.io/qwik/build';
+} from '@qwikdev/core';
+import { isDev } from '@qwikdev/core/build';
 
 const metaGlobComponents: Record<string, any> = import.meta.glob(
   '/src/routes/demo/cookbook/glob-import/examples/*',

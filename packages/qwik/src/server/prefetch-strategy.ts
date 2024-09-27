@@ -1,9 +1,9 @@
-import { getBuildBase } from './utils';
 import type { PrefetchResource, QwikManifest, RenderToStringOptions } from './types';
+import { getBuildBase } from './utils';
 
+import type { QRL } from '@qwikdev/core';
+import type { ResolvedManifest } from '@qwikdev/core/optimizer';
 import type { QRLInternal } from './qwik-types';
-import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
-import type { QRL } from '@builder.io/qwik';
 
 export function getPrefetchResources(
   qrls: QRL[],

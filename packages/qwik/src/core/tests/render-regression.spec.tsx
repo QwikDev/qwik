@@ -1,8 +1,8 @@
+import { Fragment as Component, component$, Fragment, useSignal } from '@qwikdev/core';
+import { trigger } from '@qwikdev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { domRender, ssrRenderToDom } from '../../testing/rendering.unit-util';
 import '../../testing/vdom-diff.unit-util';
-import { component$, useSignal, Fragment, Fragment as Component } from '@builder.io/qwik';
-import { trigger } from '@builder.io/qwik/testing';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

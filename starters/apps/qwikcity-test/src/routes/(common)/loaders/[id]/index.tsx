@@ -1,13 +1,13 @@
-import { component$, Resource } from "@builder.io/qwik";
 import {
   type DocumentHead,
   Form,
   Link,
-  routeLoader$,
   routeAction$,
+  routeLoader$,
   z,
   zod$,
-} from "@builder.io/qwik-city";
+} from "@qwikdev/city";
+import { component$, Resource } from "@qwikdev/core";
 import { delay } from "../../actions/login";
 
 export const useDateLoader = routeLoader$(

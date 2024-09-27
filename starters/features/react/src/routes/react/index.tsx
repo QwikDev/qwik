@@ -1,5 +1,5 @@
-import { component$, useSignal } from "@builder.io/qwik";
-import type { DocumentHead } from "@builder.io/qwik-city";
+import type { DocumentHead } from "@qwikdev/city";
+import { component$, useSignal } from "@qwikdev/core";
 import { MUIButton, MUISlider, TableApp } from "~/integrations/react/mui";
 
 export default component$(() => {

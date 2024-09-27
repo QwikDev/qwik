@@ -111,7 +111,7 @@ Thanks to `srcset` attribute the browser will load the most suitable image for t
 #### Example
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwikdev/core';
 import Image from '~/media/your_image.png?jsx';
 
 export default component$(() => {
@@ -145,7 +145,7 @@ Below you can see a simple trick to avoid having to manually set the `height`, w
 
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwikdev/core';
 import Image from '~/media/emote.png?jsx';
 
 export default component$(() => {
@@ -181,7 +181,7 @@ export default component$(() => {
 Unpic is a third-party image optimization library that works with existing image optimization CDNs. It provides an `Image` component that can be used to optimize images.
 
 ```tsx {6} /Slot/
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwikdev/core';
 import { Image } from '@unpic/qwik';
 
 export default component$(() => {
@@ -242,7 +242,7 @@ bun install qwik-image
 
 <CodeSandbox src="/src/routes/demo/integration/img/qwik-image/index.tsx" style={{ height: '40em' }}>
 ```tsx
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwikdev/core';
 import {
   Image,
   type ImageTransformerProps,

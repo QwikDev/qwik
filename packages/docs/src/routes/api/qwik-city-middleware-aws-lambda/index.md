@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city/middleware/aws-lambda API Reference
+title: \@qwikdev/city/middleware/aws-lambda API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city/middleware/aws-lambda
+# [API](/api) &rsaquo; @qwikdev/city/middleware/aws-lambda
 
 ## createQwikCity
 
@@ -12,7 +12,7 @@ export declare function createQwikCity(opts: AwsOpt): {
   router: (
     req: import("http").IncomingMessage | import("http2").Http2ServerRequest,
     res: import("http").ServerResponse<import("http").IncomingMessage>,
-    next: import("@builder.io/qwik-city/middleware/node").NodeRequestNextFunction,
+    next: import("@qwikdev/city/middleware/node").NodeRequestNextFunction,
   ) => Promise<void>;
   staticFile: (
     req: import("http").IncomingMessage | import("http2").Http2ServerRequest,
@@ -55,7 +55,7 @@ AwsOpt
 </tbody></table>
 **Returns:**
 
-{ fixPath: (pathT: string) =&gt; string; router: (req: import("http").IncomingMessage \| import("http2").Http2ServerRequest, res: import("http").ServerResponse&lt;import("http").IncomingMessage&gt;, next: import("@builder.io/qwik-city/middleware/node").NodeRequestNextFunction) =&gt; Promise&lt;void&gt;; staticFile: (req: import("http").IncomingMessage \| import("http2").Http2ServerRequest, res: import("http").ServerResponse&lt;import("http").IncomingMessage&gt;, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;; notFound: (req: import("http").IncomingMessage \| import("http2").Http2ServerRequest, res: import("http").ServerResponse&lt;import("http").IncomingMessage&gt;, next: (e: any) =&gt; void) =&gt; Promise&lt;void&gt;; handle: (req: any, res: any) =&gt; void; }
+{ fixPath: (pathT: string) =&gt; string; router: (req: import("http").IncomingMessage \| import("http2").Http2ServerRequest, res: import("http").ServerResponse&lt;import("http").IncomingMessage&gt;, next: import("@qwikdev/city/middleware/node").NodeRequestNextFunction) =&gt; Promise&lt;void&gt;; staticFile: (req: import("http").IncomingMessage \| import("http2").Http2ServerRequest, res: import("http").ServerResponse&lt;import("http").IncomingMessage&gt;, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;; notFound: (req: import("http").IncomingMessage \| import("http2").Http2ServerRequest, res: import("http").ServerResponse&lt;import("http").IncomingMessage&gt;, next: (e: any) =&gt; void) =&gt; Promise&lt;void&gt;; handle: (req: any, res: any) =&gt; void; }
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/aws-lambda/index.ts)
 

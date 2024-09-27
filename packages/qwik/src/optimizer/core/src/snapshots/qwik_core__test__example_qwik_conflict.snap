@@ -6,8 +6,8 @@ expression: output
 ==INPUT==
 
 
-import { $, component$, useStyles } from '@builder.io/qwik';
-import { qrl } from '@builder.io/qwik/what';
+import { $, component$, useStyles } from '@qwikdev/core';
+import { qrl } from '@qwikdev/core/what';
 
 export const hW = 12;
 export const handleWatch = 42;
@@ -40,9 +40,9 @@ export const Root = component$(() => {
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-import { qrl as qrl1 } from '@builder.io/qwik/what';
+import { componentQrl } from "@qwikdev/core";
+import { qrl } from "@qwikdev/core";
+import { qrl as qrl1 } from '@qwikdev/core/what';
 export const hW = 12;
 export const handleWatch = 42;
 const componentQrl1 = ()=>console.log('not this', qrl1());
@@ -58,10 +58,10 @@ export const Root = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./r
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,SAAS,OAAA,IAAG,QAAQ,wBAAwB;AAE5C,OAAO,MAAM,KAAK,GAAG;AACrB,OAAO,MAAM,cAAc,GAAG;AAE9B,MAAM,gBAAe,IAAM,QAAQ,GAAG,CAAC,YAAY;AAEnD;AACA,OAAO,MAAM,oBAAM,wGAQhB;IACF,SAAS;AACV,GAAG;AAEH,OAAO,MAAM,qBAAO,0GAOjB;IACF,SAAS;AACV,GAAG\"}")
 ============================= foo_component_htdrsvublie.js (ENTRY POINT)==
 
-import { _jsxSorted } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwikdev/core";
 import { hW } from "./test";
 import { handleWatch } from "./test";
-import { qrl } from "@builder.io/qwik";
+import { qrl } from "@qwikdev/core";
 export const Foo_component_HTDRsvUbLiE = ()=>{
     useStyles$('thing');
     const qwik = hW + handleWatch;
@@ -96,7 +96,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= root_component_usestyles_u5dkuxgrgnu.js (ENTRY POINT)==
 
 export const Root_component_useStyles_u5DkUxGrGnU = 'thing';
-export { _hW } from "@builder.io/qwik";
+export { _hW } from "@qwikdev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAuBa\"}")
@@ -122,8 +122,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= root_component_royhjyacbye.js (ENTRY POINT)==
 
-import { qrl } from "@builder.io/qwik";
-import { useStyles } from "@builder.io/qwik";
+import { qrl } from "@qwikdev/core";
+import { useStyles } from "@qwikdev/core";
 export const Root_component_royhjYaCbYE = ()=>{
     useStyles(/*#__PURE__*/ qrl(()=>import("./root_component_usestyles_u5dkuxgrgnu"), "Root_component_useStyles_u5DkUxGrGnU"));
     return /*#__PURE__*/ qrl(()=>import("./root_component_1_cbpqnyduhi4"), "Root_component_1_cBpQNYDUHI4");
@@ -153,11 +153,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= root_component_1_cbpqnyduhi4.js (ENTRY POINT)==
 
-import { _jsxSorted } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwikdev/core";
 export const Root_component_1_cBpQNYDUHI4 = ()=>{
     return /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "u6_1");
 };
-export { _hW } from "@builder.io/qwik";
+export { _hW } from "@qwikdev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAwBU;IACR,qBACC,WAAC;AAEH\"}")

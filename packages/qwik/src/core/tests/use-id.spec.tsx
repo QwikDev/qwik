@@ -1,4 +1,4 @@
-import { component$, componentQrl, inlinedQrl, useId } from '@builder.io/qwik';
+import { component$, componentQrl, inlinedQrl, useId } from '@qwikdev/core';
 import { describe, expect, it } from 'vitest';
 import { domRender, ssrRenderToDom } from '../../testing/rendering.unit-util';
 import '../../testing/vdom-diff.unit-util';

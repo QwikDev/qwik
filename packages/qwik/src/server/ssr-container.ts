@@ -1,20 +1,19 @@
 /** @file Public APIs for the SSR */
 import {
+  _EffectData as EffectData,
   _SharedContainer,
   _jsxSorted,
   _jsxSplit,
   _walkJSX,
   isSignal,
   type JSXNode,
-  _EffectData as EffectData,
-} from '@builder.io/qwik';
-import { isDev } from '@builder.io/qwik/build';
-import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
-import { getQwikLoaderScript } from '@builder.io/qwik/server';
+} from '@qwikdev/core';
+import { isDev } from '@qwikdev/core/build';
+import type { ResolvedManifest } from '@qwikdev/core/optimizer';
+import { getQwikLoaderScript } from '@qwikdev/core/server';
 import { applyPrefetchImplementation2 } from './prefetch-implementation';
 import { getPrefetchResources } from './prefetch-strategy';
 import {
-  dangerouslySetInnerHTML,
   DEBUG_TYPE,
   ELEMENT_ID,
   ELEMENT_KEY,
@@ -22,33 +21,34 @@ import {
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
   OnRenderProp,
+  QBaseAttr,
+  QContainerAttr,
+  QContainerValue,
   QCtxAttr,
+  QInstanceAttr,
+  QLocaleAttr,
+  QManifestHashAttr,
+  QRenderAttr,
+  QRuntimeAttr,
   QScopedStyle,
   QSlot,
   QSlotParent,
   QSlotRef,
   QStyle,
-  QContainerAttr,
   QTemplate,
+  QVersionAttr,
+  Q_PROPS_SEPARATOR,
   VNodeDataChar,
+  VNodeDataSeparator,
   VirtualType,
   convertStyleIdsToString,
+  dangerouslySetInnerHTML,
+  escapeHTML,
+  isClassAttr,
   mapArray_get,
   mapArray_set,
   maybeThen,
   serializeAttribute,
-  isClassAttr,
-  QContainerValue,
-  VNodeDataSeparator,
-  QRenderAttr,
-  QRuntimeAttr,
-  QVersionAttr,
-  QBaseAttr,
-  QLocaleAttr,
-  QManifestHashAttr,
-  QInstanceAttr,
-  escapeHTML,
-  Q_PROPS_SEPARATOR,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -67,10 +67,8 @@ import {
   type SymbolToChunkResolver,
   type ValueOrPromise,
 } from './qwik-types';
-import { Q_FUNCS_PREFIX } from './ssr-render';
-import type { PrefetchResource, RenderOptions, RenderToStreamResult } from './types';
-import { createTimer } from './utils';
 import { SsrComponentFrame, SsrNode } from './ssr-node';
+import { Q_FUNCS_PREFIX } from './ssr-render';
 import {
   TagNesting,
   allowedContent,
@@ -78,6 +76,8 @@ import {
   isSelfClosingTag,
   isTagAllowed,
 } from './tag-nesting';
+import type { PrefetchResource, RenderOptions, RenderToStreamResult } from './types';
+import { createTimer } from './utils';
 import {
   CLOSE_FRAGMENT,
   OPEN_FRAGMENT,

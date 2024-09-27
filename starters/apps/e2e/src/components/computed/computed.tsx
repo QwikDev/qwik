@@ -1,10 +1,5 @@
 /* eslint-disable */
-import {
-  component$,
-  useComputed$,
-  useSignal,
-  useTask$,
-} from "@builder.io/qwik";
+import { component$, useComputed$, useSignal, useTask$ } from "@qwikdev/core";
 
 export const ComputedRoot = component$(() => {
   const rerender = useSignal(0);

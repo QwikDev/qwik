@@ -1,5 +1,5 @@
-import { $, component$, useSignal } from "@builder.io/qwik";
-import { Form, routeAction$ } from "@builder.io/qwik-city";
+import { Form, routeAction$ } from "@qwikdev/city";
+import { $, component$, useSignal } from "@qwikdev/core";
 
 export const useDotNotationAction = routeAction$(async (payload) => {
   return {

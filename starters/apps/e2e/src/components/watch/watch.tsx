@@ -1,16 +1,16 @@
 /* eslint-disable */
 import {
+  $,
   component$,
-  useTask$,
-  useStore,
-  useSignal,
-  type Signal,
   createContextId,
   useContext,
   useContextProvider,
-  $,
-} from "@builder.io/qwik";
-import { isServer } from "@builder.io/qwik/build";
+  useSignal,
+  useStore,
+  useTask$,
+  type Signal,
+} from "@qwikdev/core";
+import { isServer } from "@qwikdev/core/build";
 
 interface State {
   count: number;

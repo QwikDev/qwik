@@ -23,11 +23,11 @@
  *   https://around.co/playback/370fe7fd-46f6-4768-a016-95e92e6ce521?sharedKey=dd856234-7619-4974-902b-f8be743249d7
  */
 
-import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
+import { domRender, ssrRenderToDom } from '@qwikdev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
+import { vnode_getNextSibling } from '../client/vnode';
 import { component$, componentQrl } from '../shared/component.public';
-import { inlinedQrl } from '../shared/qrl/qrl';
 import {
   Fragment as Component,
   Fragment,
@@ -35,8 +35,8 @@ import {
   Fragment as SignalTarget,
 } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
+import { inlinedQrl } from '../shared/qrl/qrl';
 import { useSignal } from '../use/use-signal';
-import { vnode_getNextSibling } from '../client/vnode';
 
 // To better understand what is going on in the test, set DEBUG to true and run the test.
 const DEBUG = false;

@@ -1,4 +1,4 @@
-import { component$, useStore } from "@builder.io/qwik";
+import { component$, useStore } from "@qwikdev/core";
 
 let idCounter = 1;
 const adjectives = [

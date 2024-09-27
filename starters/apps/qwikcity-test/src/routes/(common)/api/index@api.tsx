@@ -1,5 +1,5 @@
-import { component$, useVisibleTask$, useStore } from "@builder.io/qwik";
-import type { RequestHandler } from "@builder.io/qwik-city";
+import type { RequestHandler } from "@qwikdev/city";
+import { component$, useStore, useVisibleTask$ } from "@qwikdev/core";
 
 export default component$(() => {
   const store = useStore({ timestamp: "", os: "", arch: "", node: "" });

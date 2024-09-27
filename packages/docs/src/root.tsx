@@ -1,11 +1,11 @@
-import { component$, useContextProvider, useStore } from '@builder.io/qwik';
-import { QwikCityProvider, RouterOutlet } from '@builder.io/qwik-city';
+import { Insights } from '@builder.io/qwik-labs';
+import { QwikCityProvider, RouterOutlet } from '@qwikdev/city';
+import { component$, useContextProvider, useStore } from '@qwikdev/core';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';
+import { BUILDER_PUBLIC_API_KEY } from './constants';
 import { GlobalStore, type SiteStore } from './context';
 import './global.css';
-import { BUILDER_PUBLIC_API_KEY } from './constants';
-import { Insights } from '@builder.io/qwik-labs';
 
 export const uwu = /*javascript*/ `
 ;(function () {

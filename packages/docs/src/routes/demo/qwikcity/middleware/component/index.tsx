@@ -1,5 +1,5 @@
-import { component$ } from '@builder.io/qwik';
-import { type RequestHandler } from '@builder.io/qwik-city';
+import { type RequestHandler } from '@qwikdev/city';
+import { component$ } from '@qwikdev/core';
 
 export const onRequest: RequestHandler = async ({ redirect }) => {
   if (!isLoggedIn()) {

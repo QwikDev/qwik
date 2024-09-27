@@ -8,11 +8,11 @@
 import {
   Fragment as Component,
   Fragment as Signal,
-  component$,
   _jsxSorted,
+  component$,
   useSignal,
-} from '@builder.io/qwik';
-import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
+} from '@qwikdev/core';
+import { domRender, ssrRenderToDom, trigger } from '@qwikdev/core/testing';
 import { describe, expect, it } from 'vitest';
 import type { fixMeAny } from '../shared/types';
 

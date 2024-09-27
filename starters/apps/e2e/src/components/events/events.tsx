@@ -1,11 +1,11 @@
 import {
+  $,
   component$,
+  useOnWindow,
+  useSignal,
   useStore,
   type QRL,
-  useSignal,
-  useOnWindow,
-  $,
-} from "@builder.io/qwik";
+} from "@qwikdev/core";
 
 export const Events = component$(() => {
   const store = useStore({

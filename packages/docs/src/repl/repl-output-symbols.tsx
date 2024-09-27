@@ -1,6 +1,6 @@
-import type { TransformModule } from '@builder.io/qwik/optimizer';
+import { $, component$, useSignal } from '@qwikdev/core';
+import type { TransformModule } from '@qwikdev/core/optimizer';
 import { CodeBlock } from '../components/code-block/code-block';
-import { $, component$, useSignal } from '@builder.io/qwik';
 const FILE_MODULE_DIV_ID = 'file-modules-symbol';
 
 export const ReplOutputSymbols = component$(({ outputs }: ReplOutputSymbolsProps) => {

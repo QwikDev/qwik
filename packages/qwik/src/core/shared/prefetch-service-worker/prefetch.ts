@@ -1,5 +1,5 @@
-import { isDev } from '@builder.io/qwik/build';
-import type { JSXNode } from '@builder.io/qwik';
+import type { JSXNode } from '@qwikdev/core';
+import { isDev } from '@qwikdev/core/build';
 import { _jsxSorted } from '../../internal';
 import { useServerData } from '../../use/use-env-data';
 import { QBaseAttr, QManifestHashAttr } from '../utils/markers';

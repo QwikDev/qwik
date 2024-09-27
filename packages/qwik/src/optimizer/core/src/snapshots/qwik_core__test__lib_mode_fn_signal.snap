@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-		import { component$ } from '@builder.io/qwik';
+		import { component$ } from '@qwikdev/core';
 		export const Counter = component$(() => {
 			const count = useSignal(0);
 
@@ -22,9 +22,9 @@ expression: output
 
 ============================= counter_component_ztmrhll09gg.ts (ENTRY POINT)==
 
-import { _jsxSorted } from "@builder.io/qwik";
-import { _wrapProp } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwikdev/core";
+import { _wrapProp } from "@qwikdev/core";
+import { qrl } from "@qwikdev/core";
 export const Counter_component_zTmRHlL09Gg = ()=>{
     const count = useSignal(0);
     return /*#__PURE__*/ _jsxSorted("div", null, null, [
@@ -64,7 +64,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= counter_component_div_p_button_onclick_kqq00u8qaim.ts (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
+import { useLexicalScope } from "@qwikdev/core";
 export const Counter_component_div_p_button_onClick_Kqq00U8qaIM = ()=>{
     const [count] = useLexicalScope();
     return count.value++;
@@ -94,8 +94,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.ts ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwikdev/core";
+import { qrl } from "@qwikdev/core";
 export const Counter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./counter_component_ztmrhll09gg"), "Counter_component_zTmRHlL09Gg"));
 
 

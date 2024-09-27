@@ -1,17 +1,17 @@
-import { describe, expect, it } from 'vitest';
-import { ErrorProvider } from '../../testing/rendering.unit-util';
-import { domRender, ssrRenderToDom, getTestPlatform, trigger } from '@builder.io/qwik/testing';
-import { delay } from '../shared/utils/promises';
 import {
-  useSignal,
-  useStore,
-  useTask$,
   Fragment as Component,
   Fragment,
   Fragment as Signal,
   component$,
+  useSignal,
+  useStore,
+  useTask$,
   type Signal as SignalType,
-} from '@builder.io/qwik';
+} from '@qwikdev/core';
+import { domRender, getTestPlatform, ssrRenderToDom, trigger } from '@qwikdev/core/testing';
+import { describe, expect, it } from 'vitest';
+import { ErrorProvider } from '../../testing/rendering.unit-util';
+import { delay } from '../shared/utils/promises';
 import { WrappedSignal } from '../signal/signal';
 
 const debug = false; //true;

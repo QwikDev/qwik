@@ -1,6 +1,6 @@
 {
   "id": "qwik",
-  "package": "@builder.io/qwik",
+  "package": "@qwikdev/core",
   "members": [
     {
       "name": "_qrlSync",

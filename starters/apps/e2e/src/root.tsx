@@ -1,5 +1,5 @@
-import { component$ } from "@builder.io/qwik";
-import type { FunctionComponent } from "@builder.io/qwik";
+import type { FunctionComponent } from "@qwikdev/core";
+import { component$ } from "@qwikdev/core";
 import { Async } from "./components/async/async";
 import { Attributes } from "./components/attributes/attributes";
 import { BroadcastEvents } from "./components/broadcast-events/broadcast-event";
@@ -10,6 +10,7 @@ import { ContextRoot } from "./components/context/context";
 import { EffectClient } from "./components/effect-client/effect-client";
 import { Events } from "./components/events/events";
 import { EventsClient } from "./components/events/events-client";
+import { RenderExceptions, UseTaskExceptions } from "./components/exceptions";
 import { Factory } from "./components/factory/factory";
 import { LexicalScope } from "./components/lexical-scope/lexicalScope";
 import { MountRoot } from "./components/mount/mount";
@@ -26,13 +27,12 @@ import { Signals } from "./components/signals/signals";
 import { SlotParent } from "./components/slot/slot";
 import { StreamingRoot } from "./components/streaming/streaming";
 import { Styles } from "./components/styles/styles";
+import { SyncQRL } from "./components/sync-qrl/sync-qrl";
 import { Toggle } from "./components/toggle/toggle";
 import { TreeshakingApp } from "./components/treeshaking/treeshaking";
 import { TwoListeners } from "./components/two-listeners/twolisteners";
 import { UseId } from "./components/useid/useid";
 import { Watch } from "./components/watch/watch";
-import { SyncQRL } from "./components/sync-qrl/sync-qrl";
-import { RenderExceptions, UseTaskExceptions } from "./components/exceptions";
 
 import "./global.css";
 

@@ -4,7 +4,7 @@ import {
   Slot,
   useContextProvider,
   useStore,
-} from "@builder.io/qwik";
+} from "@qwikdev/core";
 
 export type SomeContextType = {
   value: string;

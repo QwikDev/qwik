@@ -1,4 +1,4 @@
-import { qwikVite } from '@qwikdev/core/optimizer';
+import { qwikVite } from '@builder.io/qwik/optimizer';
 import { defineConfig } from 'vite';
 import pkg from './package.json';
 
@@ -17,7 +17,7 @@ export default defineConfig((config) => {
         external: [
           '@builder.io/qwik',
           '@builder.io/qwik-city',
-          '@qwikdev/core/build',
+          '@builder.io/qwik/build',
           '@supabase/supabase-js',
           '@supabase/auth-helpers-shared',
         ],

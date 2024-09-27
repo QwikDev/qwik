@@ -1,4 +1,4 @@
-import { qwikVite } from '@qwikdev/core/optimizer';
+import { qwikVite } from '@builder.io/qwik/optimizer';
 import { defineConfig } from 'vite';
 
 export default defineConfig(() => {
@@ -16,7 +16,7 @@ export default defineConfig(() => {
         external: [
           '@builder.io/qwik',
           '@builder.io/qwik-city',
-          '@qwikdev/core/build',
+          '@builder.io/qwik/build',
           '@auth/core',
         ],
       },

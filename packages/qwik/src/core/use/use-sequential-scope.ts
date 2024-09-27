@@ -1,7 +1,7 @@
 import { verifySerializable } from '../shared/utils/serialize-utils';
 import { ELEMENT_SEQ, ELEMENT_SEQ_IDX } from '../shared/utils/markers';
 import { qDev, qSerialize } from '../shared/utils/qdev';
-import type { fixMeAny, HostElement } from '../shared/types';
+import type { HostElement } from '../shared/types';
 import { useInvokeContext, type RenderInvokeContext } from './use-core';
 
 export interface SequentialScope<T> {
@@ -47,5 +47,5 @@ export const useSequentialScope = <T>(): SequentialScope<T> => {
     set,
     i: seqIdx,
     iCtx,
-  } as fixMeAny;
+  };
 };

@@ -24,11 +24,13 @@ import { qDev } from '../shared/utils/qdev';
 import type { VNode } from '../client/types';
 import { vnode_getProp, vnode_isVirtualVNode, vnode_isVNode, vnode_setProp } from '../client/vnode';
 import { ChoreType, type NodePropData, type NodePropPayload } from '../shared/scheduler';
-import type { Container, HostElement, fixMeAny } from '../shared/types';
+import type { Container, HostElement } from '../shared/types';
 import type { ISsrNode } from '../ssr/ssr-types';
 import type { Signal as ISignal, ReadonlySignal } from './signal.public';
 import type { TargetType } from './store';
 import { isSubscriber, Subscriber } from './signal-subscriber';
+import type { Props } from '../shared/jsx/jsx-runtime';
+import type { OnRenderFn } from '../shared/component.public';
 
 const DEBUG = false;
 
@@ -357,14 +359,14 @@ export const triggerEffects = (
         }
       } else if (property === EffectProperty.COMPONENT) {
         const host: HostElement = effect as any;
-        const qrl = container.getHostProp<QRL<(...args: any[]) => any>>(host, OnRenderProp);
+        const qrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(host, OnRenderProp);
         assertDefined(qrl, 'Component must have QRL');
-        const props = container.getHostProp<any>(host, ELEMENT_PROPS);
+        const props = container.getHostProp<Props>(host, ELEMENT_PROPS);
         container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
       } else if (property === EffectProperty.VNODE) {
         const host: HostElement = effect as any;
         const target = host;
-        container.$scheduler$(ChoreType.NODE_DIFF, host, target, signal as fixMeAny);
+        container.$scheduler$(ChoreType.NODE_DIFF, host, target, signal as Signal);
       } else {
         const host: HostElement = effect as any;
         let effectData = effectSubscriptions[EffectSubscriptionsProp.FIRST_BACK_REF_OR_DATA];

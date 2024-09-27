@@ -3,7 +3,6 @@ import { qError, QError_invalidContext, QError_notFoundContext } from '../shared
 import { verifySerializable } from '../shared/utils/serialize-utils';
 import { qDev, qSerialize } from '../shared/utils/qdev';
 import { isObject } from '../shared/utils/types';
-import type { fixMeAny, HostElement } from '../shared/types';
 import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 import { fromCamelToKebabCase } from '../shared/utils/event-names';
@@ -195,7 +194,7 @@ export const useContextProvider = <STATE>(context: ContextId<STATE>, newValue: S
   if (qDev && qSerialize) {
     verifySerializable(newValue);
   }
-  iCtx.$container$.setContext(iCtx.$hostElement$ as fixMeAny as HostElement, context, newValue);
+  iCtx.$container$.setContext(iCtx.$hostElement$, context, newValue);
   set(1);
 };
 
@@ -267,10 +266,7 @@ export const useContext: UseContext = <STATE>(
     validateContext(context);
   }
 
-  const value: STATE | undefined = iCtx.$container$.resolveContext(
-    iCtx.$hostElement$ as fixMeAny as HostElement,
-    context
-  );
+  const value: STATE | undefined = iCtx.$container$.resolveContext(iCtx.$hostElement$, context);
   if (typeof defaultValue === 'function') {
     return set(invoke(undefined, defaultValue as any, value));
   }

@@ -13,7 +13,6 @@ import type {
 } from '@builder.io/qwik';
 import { getPlatform, setPlatform } from '../core/shared/platform/platform';
 import { inlinedQrl } from '../core/shared/qrl/qrl';
-import type { QRL } from '../core/shared/qrl/qrl.public';
 import { ERROR_CONTEXT } from '../core/shared/error/error-handling';
 import { Slot } from '../core/shared/jsx/slot.public';
 import { useContextProvider } from '../core/use/use-context';
@@ -40,6 +39,8 @@ import { codeToName } from '../core/shared/shared-serialization';
 import './vdom-diff.unit-util';
 import { renderToString } from '../server/ssr-render';
 import { ChoreType } from '../core/shared/scheduler';
+import type { Props } from '../core/shared/jsx/jsx-runtime';
+import type { HostElement, QRLInternal } from '../server/qwik-types';
 
 /** @public */
 export async function domRender(
@@ -183,9 +184,9 @@ function renderStyles(getStyles: () => Record<string, string | string[]>) {
 export async function rerenderComponent(element: HTMLElement) {
   const container = _getDomContainer(element);
   const vElement = vnode_locate(container.rootVNode, element);
-  const host = getHostVNode(vElement)!;
-  const qrl = container.getHostProp<QRL<OnRenderFn<any>>>(host, OnRenderProp)!;
-  const props = container.getHostProp(host, ELEMENT_PROPS);
+  const host = getHostVNode(vElement) as HostElement;
+  const qrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(host, OnRenderProp)!;
+  const props = container.getHostProp<Props>(host, ELEMENT_PROPS);
   await container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
   await getTestPlatform().flush();
 }

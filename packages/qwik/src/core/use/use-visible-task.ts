@@ -2,7 +2,6 @@ import { isServerPlatform } from '../shared/platform/platform';
 import { assertQrl } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ChoreType } from '../shared/scheduler';
-import type { fixMeAny } from '../shared/types';
 import { useSequentialScope } from './use-sequential-scope';
 import { Task, TaskFlags, useRunTask, type TaskFn } from './use-task';
 
@@ -66,7 +65,7 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
   set(task);
   useRunTask(task, eagerness);
   if (!isServerPlatform()) {
-    qrl.$resolveLazy$(iCtx.$hostElement$ as fixMeAny);
+    qrl.$resolveLazy$(iCtx.$element$);
     iCtx.$container$.$scheduler$(ChoreType.VISIBLE, task);
   }
 };

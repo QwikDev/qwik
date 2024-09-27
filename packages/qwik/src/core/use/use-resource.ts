@@ -5,7 +5,7 @@ import { Fragment, _jsxSorted } from '../shared/jsx/jsx-runtime';
 import { invoke, newInvokeContext, untrack, useBindInvokeContext } from './use-core';
 import { Task, TaskFlags, cleanupTask, type DescriptorBase, type Tracker } from './use-task';
 
-import type { Container, HostElement, ValueOrPromise, fixMeAny } from '../../server/qwik-types';
+import type { Container, HostElement, ValueOrPromise } from '../../server/qwik-types';
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import { delay, isPromise, safeCall } from '../shared/utils/promises';
 import { isFunction, isObject } from '../shared/utils/types';
@@ -161,7 +161,7 @@ export const useResourceQrl = <T>(
     resource,
     null
   ) as ResourceDescriptor<any>;
-  runResource(task, container, iCtx.$hostElement$ as fixMeAny);
+  runResource(task, container, iCtx.$hostElement$);
   set(resource);
 
   return resource;
@@ -319,7 +319,7 @@ export const runResource = <T>(
   task.$flags$ &= ~TaskFlags.DIRTY;
   cleanupTask(task);
 
-  const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, ResourceEvent);
+  const iCtx = newInvokeContext(container.$locale$, host, undefined, ResourceEvent);
   iCtx.$container$ = container;
 
   const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberEffectDependencies(task));

@@ -1,4 +1,4 @@
-import { type QwikVitePluginOptions } from '@qwikdev/core/optimizer';
+import { type QwikVitePluginOptions } from '@builder.io/qwik/optimizer';
 import { existsSync, mkdirSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'node:path';

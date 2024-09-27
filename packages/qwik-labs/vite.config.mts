@@ -1,4 +1,4 @@
-import { qwikVite } from '@qwikdev/core/optimizer';
+import { qwikVite } from '@builder.io/qwik/optimizer';
 import { defineConfig } from 'vite';
 import dtsPlugin from 'vite-plugin-dts';
 

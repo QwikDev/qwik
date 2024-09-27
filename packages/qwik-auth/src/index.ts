@@ -10,7 +10,7 @@ import {
   type RequestEvent,
   type RequestEventCommon,
 } from '@builder.io/qwik-city';
-import { isServer } from '@qwikdev/core/build';
+import { isServer } from '@builder.io/qwik/build';
 import { parseString, splitCookiesString } from 'set-cookie-parser';
 
 export type GetSessionResult = Promise<{ data: Session | null; cookie: any }>;

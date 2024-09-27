@@ -28,7 +28,7 @@ import {
 } from '../shared/utils/event-names';
 import { addComponentStylePrefix, hasClassAttr, isClassAttr } from '../shared/utils/scoped-styles';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
-import { DEBUG_TYPE, VirtualType, type fixMeAny } from '../shared/types';
+import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { WrappedSignal, EffectProperty, isSignal } from '../signal/signal';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
@@ -134,9 +134,7 @@ function processJSXNode(
       }
     } else if (isSignal(value)) {
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.WrappedSignal] : EMPTY_ARRAY);
-      const signalNode = ssr.getLastNode() as fixMeAny;
-      // TODO(mhevery): It is unclear to me why we need to serialize host for WrappedSignal.
-      // const host = ssr.getComponentFrame(0)!.componentNode as fixMeAny;
+      const signalNode = ssr.getLastNode();
       enqueue(ssr.closeFragment);
       enqueue(trackSignal(() => value.value as any, signalNode, EffectProperty.VNODE, ssr));
     } else if (isPromise(value)) {
@@ -273,7 +271,7 @@ function processJSXNode(
           const jsxOutput = applyInlineComponent(
             ssr,
             component && component.componentNode,
-            type as fixMeAny,
+            type,
             jsx
           );
           enqueue(jsxOutput);
@@ -489,7 +487,7 @@ function getSlotName(host: ISsrNode, jsx: JSXNode, ssr: SSRContainer): string {
   if (constProps && typeof constProps == 'object' && 'name' in constProps) {
     const constValue = constProps.name;
     if (constValue instanceof WrappedSignal) {
-      return trackSignal(() => constValue.value, host as fixMeAny, EffectProperty.COMPONENT, ssr);
+      return trackSignal(() => constValue.value, host, EffectProperty.COMPONENT, ssr);
     }
   }
   return (jsx.props.name as string) || QDefaultSlot;

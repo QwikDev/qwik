@@ -1,4 +1,4 @@
-import { $, type QRL } from '@builder.io/qwik';
+import { $, type OnRenderFn, type QRL } from '@builder.io/qwik';
 import { createDocument } from '@builder.io/qwik-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { TaskFlags, type Task } from '../use/use-task';
@@ -13,6 +13,9 @@ import {
   vnode_setProp,
 } from '../client/vnode';
 import { ChoreType, createScheduler } from './scheduler';
+import type { Props } from './jsx/jsx-runtime';
+import type { QRLInternal } from './qrl/qrl-class';
+import type { HostElement } from './types';
 
 declare global {
   let testLog: string[];
@@ -90,9 +93,9 @@ describe('scheduler', () => {
     );
     scheduler(
       ChoreType.COMPONENT,
-      vBHost1,
-      $(() => testLog.push('b1: Render')),
-      {}
+      vBHost1 as HostElement,
+      $(() => testLog.push('b1: Render')) as unknown as QRLInternal<OnRenderFn<unknown>>,
+      {} as Props
     );
     await scheduler(ChoreType.WAIT_FOR_ALL);
     expect(testLog).toEqual([

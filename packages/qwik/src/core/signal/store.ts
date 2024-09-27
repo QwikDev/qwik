@@ -3,7 +3,7 @@ import { assertTrue } from '../shared/error/assert';
 import { tryGetInvokeContext } from '../use/use-core';
 import { isSerializableObject } from '../shared/utils/types';
 import { SERIALIZER_PROXY_UNWRAP, unwrapDeserializerProxy } from '../shared/shared-serialization';
-import type { Container, fixMeAny } from '../shared/types';
+import type { Container } from '../shared/types';
 import {
   ensureContains,
   ensureContainsEffect,
@@ -206,7 +206,7 @@ function addEffect<T extends Record<string | symbol, any>>(
 ) {
   const effectsMap = (store.$effects$ ||= {});
   const effects =
-    (Object.prototype.hasOwnProperty.call(effectsMap, prop) && effectsMap[prop as fixMeAny]) ||
+    (Object.prototype.hasOwnProperty.call(effectsMap, prop) && effectsMap[prop]) ||
     (effectsMap[prop] = []);
   // Let's make sure that we have a reference to this effect.
   // Adding reference is essentially adding a subscription, so if the signal
@@ -244,7 +244,7 @@ function getEffects<T extends Record<string | symbol, any>>(
       ? Object.values(storeEffects).flatMap((effects) => effects)
       : storeEffects[prop]
     : null;
-  const storeArrayValue = storeEffects?.[STORE_ARRAY_PROP as fixMeAny];
+  const storeArrayValue = storeEffects?.[STORE_ARRAY_PROP];
   if (storeArrayValue) {
     effectsToTrigger ||= [];
     effectsToTrigger.push(...storeArrayValue);

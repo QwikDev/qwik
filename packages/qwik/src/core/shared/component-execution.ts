@@ -18,7 +18,7 @@ import {
 } from './utils/markers';
 import { isPromise, maybeThen, safeCall } from './utils/promises';
 import type { ValueOrPromise } from './utils/types';
-import type { Container, HostElement, fixMeAny } from './types';
+import type { Container, HostElement } from './types';
 import { logWarn } from './utils/log';
 import { EffectProperty, isSignal } from '../signal/signal';
 import { vnode_isVNode } from '../client/vnode';
@@ -52,12 +52,7 @@ export const executeComponent = (
   componentQRL: OnRenderFn<unknown> | QRLInternal<OnRenderFn<unknown>> | null,
   props: Record<string, unknown> | null
 ): ValueOrPromise<JSXOutput> => {
-  const iCtx = newInvokeContext(
-    container.$locale$,
-    subscriptionHost as fixMeAny,
-    undefined,
-    RenderEvent
-  );
+  const iCtx = newInvokeContext(container.$locale$, subscriptionHost, undefined, RenderEvent);
   iCtx.$effectSubscriber$ = [subscriptionHost, EffectProperty.COMPONENT];
   iCtx.$container$ = container;
   let componentFn: (props: unknown) => ValueOrPromise<JSXOutput>;

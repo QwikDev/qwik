@@ -14,7 +14,6 @@ import {
 } from '@builder.io/qwik';
 import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
 import { describe, expect, it } from 'vitest';
-import type { fixMeAny } from '../shared/types';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -78,11 +77,7 @@ describe.each([
       </b>
     ));
     const MyCmp = component$(() => {
-      return (
-        <button>
-          {_jsxSorted(Child as fixMeAny, null, { name: 'NAME', num: 123 }, null, 3, null)}
-        </button>
-      );
+      return <button>{_jsxSorted(Child, null, { name: 'NAME', num: 123 }, null, 3, null)}</button>;
     });
 
     const { vNode } = await render(<MyCmp />, { debug });

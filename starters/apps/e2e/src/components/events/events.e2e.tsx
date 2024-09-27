@@ -6,8 +6,6 @@ import type { ClientContainer, DomContainer } from "@builder.io/qwik";
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
-type fixMeAny = any;
-
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
@@ -22,7 +20,7 @@ describe.each([
       const result = await render(<Issue3948 />, { debug });
       document = result.document;
       // vNode = result.vNode!;
-      container = result.container as fixMeAny;
+      container = result.container;
       // getStyles = result.getStyles;
     });
 

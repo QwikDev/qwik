@@ -4,7 +4,7 @@ import { isServerPlatform } from '../shared/platform/platform';
 import { assertQrl, createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ChoreType } from '../shared/scheduler';
-import { type Container, type HostElement, type fixMeAny } from '../shared/types';
+import { type Container, type HostElement } from '../shared/types';
 import { logError } from '../shared/utils/log';
 import { TaskEvent } from '../shared/utils/markers';
 import { isPromise, safeCall } from '../shared/utils/promises';
@@ -235,7 +235,7 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
   if (isPromise(result)) {
     throw result;
   }
-  qrl.$resolveLazy$(host as fixMeAny);
+  qrl.$resolveLazy$(iCtx.$element$);
   if (isServerPlatform()) {
     useRunTask(task, opts?.eagerness);
   }
@@ -248,7 +248,7 @@ export const runTask = (
 ): ValueOrPromise<void> => {
   task.$flags$ &= ~TaskFlags.DIRTY;
   cleanupTask(task);
-  const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, TaskEvent);
+  const iCtx = newInvokeContext(container.$locale$, host, undefined, TaskEvent);
   iCtx.$container$ = container;
   const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberEffectDependencies(task)) as TaskFn;
 

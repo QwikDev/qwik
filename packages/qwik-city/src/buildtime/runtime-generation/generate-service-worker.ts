@@ -1,4 +1,4 @@
-import type { InsightManifest, QwikManifest } from '@builder.io/qwik/optimizer';
+import type { InsightManifest, QwikManifest } from '@qwikdev/core/optimizer';
 import type { AppBundle } from '../../runtime/src/service-worker/types';
 import { removeExtension } from '../../utils/fs';
 import type { BuildContext } from '../types';

@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwikdev/core';
 
 export const Issue3742 = component$(({description = '', other}: any) => {
 	const counter = useSignal(0);
@@ -24,12 +24,12 @@ export const Issue3742 = component$(({description = '', other}: any) => {
 	
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { _fnSignal } from "@builder.io/qwik";
-import { useLexicalScope } from "@builder.io/qwik";
-import { inlinedQrl } from "@builder.io/qwik";
-import { _jsxSorted } from "@builder.io/qwik";
-import { useSignal } from '@builder.io/qwik';
+import { componentQrl } from "@qwikdev/core";
+import { _fnSignal } from "@qwikdev/core";
+import { useLexicalScope } from "@qwikdev/core";
+import { inlinedQrl } from "@qwikdev/core";
+import { _jsxSorted } from "@qwikdev/core";
+import { useSignal } from '@qwikdev/core';
 const Issue3742_component_div_button_onClick_a504K2BCEXg = ()=>{
     const [counter] = useLexicalScope();
     return counter.value++;

@@ -1,16 +1,16 @@
-import { _isJSXNode as isJSXNode, type JSXNode, _EMPTY_ARRAY } from '@builder.io/qwik';
-import { isDev } from '@builder.io/qwik/build';
+import { _EMPTY_ARRAY, _isJSXNode as isJSXNode, type JSXNode } from '@qwikdev/core';
+import { isDev } from '@qwikdev/core/build';
 import {
+  ELEMENT_SEQ,
+  NON_SERIALIZABLE_MARKER_PREFIX,
+  QDefaultSlot,
+  QSlot,
   QSlotParent,
   mapApp_remove,
   mapArray_get,
   mapArray_set,
-  ELEMENT_SEQ,
-  QSlot,
-  QDefaultSlot,
-  NON_SERIALIZABLE_MARKER_PREFIX,
 } from './qwik-copy';
-import type { SsrAttrs, ISsrNode, ISsrComponentFrame, JSXChildren } from './qwik-types';
+import type { ISsrComponentFrame, ISsrNode, JSXChildren, SsrAttrs } from './qwik-types';
 import type { CleanupQueue } from './ssr-container';
 
 /**

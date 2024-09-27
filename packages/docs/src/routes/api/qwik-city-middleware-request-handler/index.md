@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city/middleware/request-handler API Reference
+title: \@qwikdev/city/middleware/request-handler API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city/middleware/request-handler
+# [API](/api) &rsaquo; @qwikdev/city/middleware/request-handler
 
 ## AbortMessage
 

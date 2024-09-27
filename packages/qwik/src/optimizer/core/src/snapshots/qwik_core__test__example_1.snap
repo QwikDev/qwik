@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { $, component, onRender } from '@builder.io/qwik';
+import { $, component, onRender } from '@qwikdev/core';
 
 export const renderHeader = $(() => {
 	return (
@@ -20,11 +20,11 @@ const renderHeader = component($(() => {
 
 ============================= renderheader_zbbhwn4e8cg.tsx (ENTRY POINT)==
 
-import { qrl } from "@builder.io/qwik";
+import { qrl } from "@qwikdev/core";
 export const renderHeader_zBbHWn4e8Cg = ()=>{
     return <div onClick={/*#__PURE__*/ qrl(()=>import("./renderheader_div_onclick_fv2uzal99u4"), "renderHeader_div_onClick_fV2uzAL99u4")}/>;
 };
-export { _hW } from "@builder.io/qwik";
+export { _hW } from "@qwikdev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wCAG8B;IAC7B,QACE,IAAI;AAEP\"}")
@@ -54,7 +54,7 @@ export const renderHeader_component_U6Kkv07sbpQ = ()=>{
     console.log("mount");
     return render;
 };
-export { _hW } from "@builder.io/qwik";
+export { _hW } from "@qwikdev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kDAQiC;IAChC,QAAQ,GAAG,CAAC;IACZ,OAAO;AACR\"}")
@@ -80,8 +80,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx ==
 
-import { qrl } from "@builder.io/qwik";
-import { component } from '@builder.io/qwik';
+import { qrl } from "@qwikdev/core";
+import { component } from '@qwikdev/core';
 export const renderHeader = /*#__PURE__*/ qrl(()=>import("./renderheader_zbbhwn4e8cg"), "renderHeader_zBbHWn4e8Cg");
 const renderHeader = component(/*#__PURE__*/ qrl(()=>import("./renderheader_component_u6kkv07sbpq"), "renderHeader_component_U6Kkv07sbpQ"));
 
@@ -90,7 +90,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= renderheader_div_onclick_fv2uzal99u4.tsx (ENTRY POINT)==
 
 export const renderHeader_div_onClick_fV2uzAL99u4 = (ctx)=>console.log(ctx);
-export { _hW } from "@builder.io/qwik";
+export { _hW } from "@qwikdev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAKkB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")

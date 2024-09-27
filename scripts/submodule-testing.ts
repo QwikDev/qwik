@@ -1,8 +1,14 @@
-import { getBanner, importPath, nodeTarget, target } from './util';
 import { build, type BuildOptions } from 'esbuild';
-import { type BuildConfig, type PackageJSON } from './util';
 import { join } from 'node:path';
 import { writePackageJson } from './package-json';
+import {
+  getBanner,
+  importPath,
+  nodeTarget,
+  target,
+  type BuildConfig,
+  type PackageJSON,
+} from './util';
 
 /** Builds @builder.io/testing */
 export async function submoduleTesting(config: BuildConfig) {
@@ -14,7 +20,7 @@ export async function submoduleTesting(config: BuildConfig) {
     sourcemap: config.dev,
     bundle: true,
     target,
-    external: ['@builder.io/qwik/build', 'prettier', 'vitest'],
+    external: ['@qwikdev/core/build', 'prettier', 'vitest'],
     platform: 'node',
     // external: [...nodeBuiltIns],
   };
@@ -22,7 +28,7 @@ export async function submoduleTesting(config: BuildConfig) {
   const esm = build({
     ...opts,
     format: 'esm',
-    banner: { js: getBanner('@builder.io/qwik/testing', config.distVersion) },
+    banner: { js: getBanner('@qwikdev/core/testing', config.distVersion) },
     outExtension: { '.js': '.mjs' },
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.mjs'),
@@ -41,7 +47,7 @@ export async function submoduleTesting(config: BuildConfig) {
     format: 'cjs',
     outExtension: { '.js': '.cjs' },
     banner: {
-      js: getBanner('@builder.io/qwik/testing', config.distVersion),
+      js: getBanner('@qwikdev/core/testing', config.distVersion),
     },
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.cjs'),
@@ -65,7 +71,7 @@ export async function submoduleTesting(config: BuildConfig) {
 
 async function generateTestingPackageJson(config: BuildConfig) {
   const pkg: PackageJSON = {
-    name: '@builder.io/qwik/testing',
+    name: '@qwikdev/core/testing',
     version: config.distVersion,
     main: 'index.mjs',
     types: 'index.d.ts',

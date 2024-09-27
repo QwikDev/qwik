@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { $, component$, server$ } from '@builder.io/qwik';
+import { $, component$, server$ } from '@qwikdev/core';
 import { foo } from './foo';
 export const Works = component$((props) => {
 	const text = 'hola';
@@ -21,13 +21,13 @@ export const Works = component$((props) => {
 ============================= test.js ==
 
 import "./foo";
-import { componentQrl } from "@builder.io/qwik";
-import { serverQrl } from "@builder.io/qwik";
-import { _regSymbol } from "@builder.io/qwik";
-import { inlinedQrl } from "@builder.io/qwik";
-import { _jsxSorted } from "@builder.io/qwik";
-import { _noopQrl } from "@builder.io/qwik";
-import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+import { componentQrl } from "@qwikdev/core";
+import { serverQrl } from "@qwikdev/core";
+import { _regSymbol } from "@qwikdev/core";
+import { inlinedQrl } from "@qwikdev/core";
+import { _jsxSorted } from "@qwikdev/core";
+import { _noopQrl } from "@qwikdev/core";
+import { Fragment as _Fragment } from "@qwikdev/core/jsx-runtime";
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
         /*#__PURE__*/ _jsxSorted("div", {

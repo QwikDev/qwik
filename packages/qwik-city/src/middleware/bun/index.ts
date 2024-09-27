@@ -1,24 +1,24 @@
 /// <reference types="bun" />
-import type {
-  ServerRenderOptions,
-  ServerRequestEvent,
-  ClientConn,
-} from '@builder.io/qwik-city/middleware/request-handler';
-import {
-  mergeHeadersCookies,
-  requestHandler,
-  _TextEncoderStream_polyfill,
-} from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
-import { _deserialize, _serialize, _verifySerializable } from '@builder.io/qwik';
-import { setServerPlatform } from '@builder.io/qwik/server';
+import type {
+  ClientConn,
+  ServerRenderOptions,
+  ServerRequestEvent,
+} from '@qwikdev/city/middleware/request-handler';
+import {
+  _TextEncoderStream_polyfill,
+  mergeHeadersCookies,
+  requestHandler,
+} from '@qwikdev/city/middleware/request-handler';
+import { _deserialize, _serialize, _verifySerializable } from '@qwikdev/core';
+import { setServerPlatform } from '@qwikdev/core/server';
+import { extname, join } from 'node:path';
 import { MIME_TYPES } from '../request-handler/mime-types';
-import { join, extname } from 'node:path';
 
 /** @public */
 export function createQwikCity(opts: QwikCityBunOptions) {
-  // @builder.io/qwik-city/middleware/bun
+  // @qwikdev/city/middleware/bun
   // still missing from bun: last check was bun version 1.1.8
   globalThis.TextEncoderStream ||= _TextEncoderStream_polyfill;
 

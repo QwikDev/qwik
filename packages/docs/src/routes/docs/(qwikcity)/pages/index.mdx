@@ -23,7 +23,7 @@ created_at: '2023-03-20T23:45:13Z'
 Pages are created by adding a new `index.tsx` file in the `src/routes` directory. Pages export a `default` Qwik component, which will be rendered as the content of the page.
 
 ```tsx title="src/routes/some/path/index.tsx"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwikdev/core';
 
 // Notice the default export
 export default component$(() => {
@@ -41,8 +41,8 @@ Every page can export a `head` property (or function) that returns a `DocumentHe
 This API allows you to set the title of the page, as well as the meta, open graph, twitter tags and links. This is useful for SEO and social sharing.
 
 ```tsx {8} /head/ title="src/routes/about/index.tsx"
-import { component$ } from '@builder.io/qwik';
-import type { DocumentHead } from '@builder.io/qwik-city';
+import { component$ } from '@qwikdev/core';
+import type { DocumentHead } from '@qwikdev/city';
 
 export default component$(() => {
   return <h1>About page</h1>;
@@ -90,9 +90,9 @@ This allows you to configure the `<head>`, including the title, meta or links us
 We can use the `resolveValue` method to get the value of a `routeLoader$()` or `routeAction$()` within the `head` function.
 
 ```tsx title="src/routes/jokes/[jokeId]/index.tsx"
-import { component$ } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
-import type { DocumentHead } from '@builder.io/qwik-city';
+import { component$ } from '@qwikdev/core';
+import { routeLoader$ } from '@qwikdev/city';
+import type { DocumentHead } from '@qwikdev/city';
 
 export const useJoke = routeLoader$(async (requestEvent) => {
   // Fetch a joke from a public API
@@ -154,8 +154,8 @@ If you want to embed custom JavaScript code, it would be ideal to do it lazily w
 Sometimes, however, you are forced to load them immediately. The following example illustrates this.
 
 ```tsx {8} /head/ title="src/routes/about/index.tsx"
-import { component$ } from '@builder.io/qwik';
-import type { DocumentHead } from '@builder.io/qwik-city';
+import { component$ } from '@qwikdev/core';
+import type { DocumentHead } from '@qwikdev/city';
 
 export default component$(() => {
   return <h1>About page</h1>;
@@ -180,8 +180,8 @@ The example above sets some [Structured Data Markup](https://developers.google.c
 > **Note**: You need to change `router-head` component to render `head.scripts`.
 
 ```tsx {8} /head/ title="src\components\router-head\router-head.tsx"
-import { component$ } from "@builder.io/qwik";
-import { useDocumentHead, useLocation } from "@builder.io/qwik-city";
+import { component$ } from "@qwikdev/core";
+import { useDocumentHead, useLocation } from "@qwikdev/city";
 
 export const RouterHead = component$(() => {
   const head = useDocumentHead();

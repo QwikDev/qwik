@@ -1,4 +1,4 @@
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwikdev/core';
 
 export interface Props {
   serializableTuple: [string, number, boolean];

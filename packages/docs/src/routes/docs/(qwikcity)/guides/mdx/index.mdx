@@ -72,7 +72,7 @@ This is a simple hello world component.
 ```
 
 ```tsx title="src/components/counter/counter.tsx"
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwikdev/core';
 
 export const Counter = component$(() => {
   const count = useSignal(0);
@@ -101,7 +101,7 @@ These plugins can be disabled independently in the following way:
 
 ```tsx title="vite.config.js"
 import { defineConfig } from 'vite';
-import { qwikCity } from '@builder.io/qwik-city/vite';
+import { qwikCity } from '@qwikdev/city/vite';
 // See below
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 export default defineConfig(() => {
@@ -177,8 +177,8 @@ This is a simple hello world component.
 ```
 
 ```tsx title="src/components/tags/tags.tsx"
-import { component$ } from '@builder.io/qwik';
-import { useDocumentHead } from '@builder.io/qwik-city';
+import { component$ } from '@qwikdev/core';
+import { useDocumentHead } from '@qwikdev/city';
 
 export const Tags = component$(() => {
   const { frontmatter } = useDocumentHead();

@@ -46,7 +46,7 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
 
   const options: CompileOptions = {
     SourceMapGenerator,
-    jsxImportSource: '@builder.io/qwik',
+    jsxImportSource: '@qwikdev/core',
     ...userMdxOpts,
     elementAttributeNameCase: 'html',
     remarkPlugins: [
@@ -77,7 +77,7 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
         .slice(0, 8)
         .replace('+', '-')
         .replace('/', '_');
-      const addImport = `import { _jsxSorted, RenderOnce } from '@builder.io/qwik';\n`;
+      const addImport = `import { _jsxSorted, RenderOnce } from '@qwikdev/core';\n`;
       const newDefault = `
 const WrappedMdxContent = () => {
   return _jsxSorted(RenderOnce, null, null, _jsxSorted(_createMdxContent, null, null, null, 3, null), 3, ${JSON.stringify(key)});

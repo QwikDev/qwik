@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwikdev/core';
 const Header = $((decl1, {decl2}, [decl3]) => {
 
 	const hola = ident1.no;
@@ -48,7 +48,7 @@ export const Header_WlR3xnI6u38 = (decl1, { decl2 }, [decl3])=>{
     }
     return <div onClick={(ident11)=>ident11 + ident12} required={false}/>;
 };
-export { _hW } from "@builder.io/qwik";
+export { _hW } from "@qwikdev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"kCAEiB,CAAC,OAAO,EAAC,KAAK,EAAC,EAAE,CAAC,MAAM;IAE3B,OAAO,EAAE;IACtB;IACU,QAAS;IACT,QAAS;IACnB,OAAO,QAAQ;QAAC;KAAO,EAAE;QAAC;IAAM,GAAG;QAAC,KAAK;IAAM;IAC/C,MAAM;QACL,OAAO,OAAO;QACd,SAAS;YACR,OAAO;QACR;IACD;IAEA,QACE,IAAI,SAAS,CAAC,UAAY,UAAU,SAAS,UAAU;AAE1D\"}")
@@ -74,7 +74,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 */
 ============================= project/test.tsx ==
 
-import { qrl } from "@builder.io/qwik";
+import { qrl } from "@qwikdev/core";
 /*#__PURE__*/ qrl(()=>import("./header_wlr3xni6u38"), "Header_WlR3xnI6u38");
 
 

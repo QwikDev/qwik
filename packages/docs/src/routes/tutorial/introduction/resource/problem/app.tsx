@@ -1,5 +1,5 @@
 // @ts-ignore: Unused import
-import { component$, useStore, Resource, useResource$ } from '@builder.io/qwik';
+import { component$, useStore, Resource, useResource$ } from '@qwikdev/core';
 
 export default component$(() => {
   const github = useStore({

@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { copyStartersDir } from './create-qwik-cli';
 import { type BuildConfig, copyDir, copyFile, getBanner, nodeTarget } from './util';
 
-/** Builds @builder.io/qwik/cli */
+/** Builds @qwikdev/core/cli */
 export async function submoduleCli(config: BuildConfig) {
   const submodule = 'cli';
 
@@ -16,7 +16,7 @@ export async function submoduleCli(config: BuildConfig) {
     target: nodeTarget,
     sourcemap: false,
     bundle: true,
-    banner: { js: getBanner('@builder.io/qwik/cli', config.distVersion) },
+    banner: { js: getBanner('@qwikdev/core/cli', config.distVersion) },
     outExtension: { '.js': '.cjs' },
     plugins: [
       {

@@ -1,5 +1,5 @@
 // @ts-ignore: Unused import
-import { component$, useStore, $ } from '@builder.io/qwik';
+import { component$, useStore, $ } from '@qwikdev/core';
 
 export default component$(() => {
   const store = useStore({ name: '' });

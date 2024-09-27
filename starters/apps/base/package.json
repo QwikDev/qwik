@@ -16,8 +16,8 @@
     "qwik": "qwik"
   },
   "devDependencies": {
-    "@builder.io/qwik": "latest",
-    "@builder.io/qwik-city": "latest",
+    "@qwikdev/core": "latest",
+    "@qwikdev/city": "latest",
     "@types/eslint": "latest",
     "@types/node": "latest",
     "@typescript-eslint/eslint-plugin": "latest",

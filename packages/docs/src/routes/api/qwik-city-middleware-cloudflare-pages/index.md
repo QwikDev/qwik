@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city/middleware/cloudflare-pages API Reference
+title: \@qwikdev/city/middleware/cloudflare-pages API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city/middleware/cloudflare-pages
+# [API](/api) &rsaquo; @qwikdev/city/middleware/cloudflare-pages
 
 ## createQwikCity
 

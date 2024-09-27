@@ -32,7 +32,7 @@ Here in this example we declare `routeAction$` and `routeLoader$` in a centraliz
 Example with `./shared/loaders.ts`
 <CodeFile src="/src/routes/demo/cookbook/re-exporting-loaders/shared/loaders.ts" >
 ```tsx
-import { routeAction$, routeLoader$ } from '@builder.io/qwik-city';
+import { routeAction$, routeLoader$ } from '@qwikdev/city';
 
 export const useCommonRouteAction = routeAction$(async () => {
   // ...
@@ -50,8 +50,8 @@ Now you can use your common `routeAction$` and `routeLoader$` in paths like this
 
 <CodeFile src="/src/routes/demo/cookbook/re-exporting-loaders/" >
 ```tsx
-import { component$ } from '@builder.io/qwik';
-import { Form } from '@builder.io/qwik-city';
+import { component$ } from '@qwikdev/core';
+import { Form } from '@qwikdev/city';
 import { useCommonRouteAction, useCommonRouteLoader } from './shared/loaders';
 
 // As mentioned, here we are re-exporting them
@@ -95,7 +95,7 @@ Here, if this library needs `routeAction$` or `routeLoader$` we must re-export t
 
 <CodeSandbox src="/src/routes/demo/cookbook/re-exporting-loaders/third-party/index.tsx"  style={{ height: '20em' }}>
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwikdev/core';
 import { ThirdPartyPaymentComponent } from './third-party-library';
 
 // As mentioned, here we are re-exporting the third-party loader
@@ -115,8 +115,8 @@ export default component$(() => {
 
 <CodeFile src="/src/routes/demo/cookbook/re-exporting-loaders/third-party/third-party-library.tsx" >
 ```tsx
-import { component$ } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { component$ } from '@qwikdev/core';
+import { routeLoader$ } from '@qwikdev/city';
 
 export const useThirdPartyPaymentLoader = routeLoader$(() => {
   return { name: 'John Doe' };
@@ -164,4 +164,5 @@ export const ThirdPartyPaymentComponent = component$(() => {
   );
 });
 ```
-</CodeFile>
+</CodeFile>import CodeSandbox, { CodeFile } from '../../../../components/code-sandbox/index.tsx';
+

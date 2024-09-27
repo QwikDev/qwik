@@ -1,4 +1,4 @@
-import { component$, useComputed$ } from '@builder.io/qwik';
+import { component$, useComputed$ } from '@qwikdev/core';
 import { CodeBlock } from '../components/code-block/code-block';
 import { ReplOutputModules } from './repl-output-modules';
 import { ReplOutputSymbols } from './repl-output-symbols';

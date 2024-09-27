@@ -1,13 +1,18 @@
-import { isDev } from '@builder.io/qwik/build';
+import { isDev } from '@qwikdev/core/build';
+import { vnode_isVNode } from '../client/vnode';
+import { EffectProperty, isSignal } from '../signal/signal';
+import { clearVNodeEffectDependencies } from '../signal/signal-subscriber';
+import { invokeApply, newInvokeContext, untrack } from '../use/use-core';
+import { type EventQRL, type UseOnMap } from '../use/use-on';
 import { isQwikComponent, type OnRenderFn } from './component.public';
 import { assertDefined } from './error/assert';
-import { isQrl, type QRLInternal } from './qrl/qrl-class';
 import { JSXNodeImpl, isJSXNode } from './jsx/jsx-runtime';
 import type { JSXNode, JSXOutput } from './jsx/types/jsx-node';
 import type { KnownEventNames } from './jsx/types/jsx-qwik-events';
-import { invokeApply, newInvokeContext, untrack } from '../use/use-core';
-import { type EventQRL, type UseOnMap } from '../use/use-on';
+import { isQrl, type QRLInternal } from './qrl/qrl-class';
+import type { Container, HostElement, fixMeAny } from './types';
 import { EMPTY_OBJ } from './utils/flyweight';
+import { logWarn } from './utils/log';
 import {
   ELEMENT_PROPS,
   ELEMENT_SEQ_IDX,
@@ -18,11 +23,6 @@ import {
 } from './utils/markers';
 import { isPromise, maybeThen, safeCall } from './utils/promises';
 import type { ValueOrPromise } from './utils/types';
-import type { Container, HostElement, fixMeAny } from './types';
-import { logWarn } from './utils/log';
-import { EffectProperty, isSignal } from '../signal/signal';
-import { vnode_isVNode } from '../client/vnode';
-import { clearVNodeEffectDependencies } from '../signal/signal-subscriber';
 
 /**
  * Use `executeComponent` to execute a component.

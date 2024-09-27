@@ -1,4 +1,7 @@
+import { transform } from 'esbuild';
+import { join } from 'node:path';
 import { type InputOptions, type OutputOptions, rollup } from 'rollup';
+import { writePackageJson } from './package-json';
 import {
   type BuildConfig,
   ensureDir,
@@ -9,9 +12,6 @@ import {
   terser,
   writeFile,
 } from './util';
-import { join } from 'node:path';
-import { transform } from 'esbuild';
-import { writePackageJson } from './package-json';
 
 /**
  * Builds the qwikloader javascript files. These files can be used by other tooling, and are
@@ -161,7 +161,7 @@ async function generateLoaderSubmodule(config: BuildConfig) {
   await writeFile(join(loaderDistDir, 'index.d.ts'), dtsCode.join('\n') + '\n');
 
   const loaderPkg: PackageJSON = {
-    name: `@builder.io/qwik/loader`,
+    name: `@qwikdev/core/loader`,
     version: config.distVersion,
     main: `index.mjs`,
     types: `index.d.ts`,

@@ -1,6 +1,6 @@
 {
   "id": "qwik-city-vite-node-server",
-  "package": "@builder.io/qwik-city/vite/node-server",
+  "package": "@qwikdev/city/vite/node-server",
   "members": [
     {
       "name": "nodeServerAdapter",

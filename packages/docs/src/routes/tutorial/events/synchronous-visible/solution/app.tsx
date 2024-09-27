@@ -1,4 +1,4 @@
-import { component$, useVisibleTask$, useSignal } from '@builder.io/qwik';
+import { component$, useVisibleTask$, useSignal } from '@qwikdev/core';
 
 export default component$(() => {
   const aHref = useSignal<Element>();

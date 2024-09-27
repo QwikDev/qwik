@@ -1,11 +1,11 @@
-import { noSerialize } from '@builder.io/qwik';
-import type { Diagnostic } from '@builder.io/qwik/optimizer';
+import { noSerialize } from '@qwikdev/core';
+import { isServer } from '@qwikdev/core/build';
+import type { Diagnostic } from '@qwikdev/core/optimizer';
 import type MonacoTypes from 'monaco-editor';
-import type { EditorProps, EditorStore } from './editor';
-import type { ReplStore } from './types';
 import { getColorPreference } from '../components/theme-toggle/theme-toggle';
 import { bundled, getNpmCdnUrl } from './bundled';
-import { isServer } from '@builder.io/qwik/build';
+import type { EditorProps, EditorStore } from './editor';
+import type { ReplStore } from './types';
 // We cannot use this, it causes the repl to use imports
 // import { QWIK_REPL_DEPS_CACHE } from './worker/repl-constants';
 const QWIK_REPL_DEPS_CACHE = 'QwikReplDeps';
@@ -26,7 +26,7 @@ export const initMonacoEditor = async (
     esModuleInterop: true,
     isolatedModules: true,
     jsx: ts.JsxEmit.ReactJSX,
-    jsxImportSource: '@builder.io/qwik',
+    jsxImportSource: '@qwikdev/core',
     moduleResolution: ts.ModuleResolutionKind.NodeJs,
     noEmit: true,
     skipLibCheck: true,
@@ -215,8 +215,8 @@ export const addQwikLibs = async (version: string) => {
     }
   });
   typescriptDefaults.addExtraLib(
-    `declare module '@builder.io/qwik/jsx-runtime' { export * from '@builder.io/qwik' }`,
-    '/node_modules/@builder.io/qwik/dist/jsx-runtime.d.ts'
+    `declare module '@qwikdev/core/jsx-runtime' { export * from '@qwikdev/core' }`,
+    '/node_modules/@qwikdev/core/dist/jsx-runtime.d.ts'
   );
   typescriptDefaults.addExtraLib(CLIENT_LIB);
 };
@@ -230,21 +230,21 @@ const loadDeps = async (qwikVersion: string) => {
   const deps: NodeModuleDep[] = [
     // qwik
     {
-      pkgName: '@builder.io/qwik',
+      pkgName: '@qwikdev/core',
       pkgVersion: qwikVersion,
       pkgPath: `${prefix}core.d.ts`,
       import: '',
     },
     // server API
     {
-      pkgName: '@builder.io/qwik',
+      pkgName: '@qwikdev/core',
       pkgVersion: qwikVersion,
       pkgPath: `${prefix}server.d.ts`,
       import: '/server',
     },
     // build constants
     {
-      pkgName: '@builder.io/qwik',
+      pkgName: '@qwikdev/core',
       pkgVersion: qwikVersion,
       pkgPath: `${prefix}build/index.d.ts`,
       import: '/build',

@@ -1,9 +1,9 @@
-import { component$, useStyles$, useTask$ } from "@builder.io/qwik";
-import { Link } from "@builder.io/qwik-city";
+import { Link } from "@qwikdev/city";
+import { component$, useStyles$, useTask$ } from "@qwikdev/core";
 import { useUserLoader } from "../../routes/layout";
 import { useRootLoader } from "../../routes/plugin@header";
-import styles from "./footer.css?inline";
 import { usePlugin } from "../../routes/plugin@issue4722";
+import styles from "./footer.css?inline";
 
 export default component$(() => {
   const serverData = useRootLoader();

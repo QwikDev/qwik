@@ -150,7 +150,7 @@ When the `cloudflare-pages` adapter is added, a new entry file will be created a
 import {
   createQwikCity,
   type PlatformCloudflarePages,
-} from '@builder.io/qwik-city/middleware/cloudflare-pages';
+} from '@qwikdev/city/middleware/cloudflare-pages';
 import qwikCityPlan from '@qwik-city-plan';
 import { manifest } from '@qwik-client-manifest';
 import render from './entry.ssr';
@@ -213,8 +213,8 @@ export const onRequest = async ({ platform }) => {
 Additionally, you may import the `RequestHandler` and `PlatformCloudflarePages` types to have type completions in your editor.
 
 ```tsx
-import { type RequestHandler } from '@builder.io/qwik-city';
-import { type PlatformCloudflarePages } from '@builder.io/qwik-city/middleware/cloudflare-pages';
+import { type RequestHandler } from '@qwikdev/city';
+import { type PlatformCloudflarePages } from '@qwikdev/city/middleware/cloudflare-pages';
 
 export const onGet: RequestHandler<PlatformCloudflarePages> = ({ platform }) => {
   //...

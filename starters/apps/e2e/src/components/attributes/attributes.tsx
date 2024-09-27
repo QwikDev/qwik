@@ -1,4 +1,4 @@
-import { component$, useSignal, useStore } from "@builder.io/qwik";
+import { component$, useSignal, useStore } from "@qwikdev/core";
 
 export const Attributes = component$(() => {
   const render = useSignal(0);

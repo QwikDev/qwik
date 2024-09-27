@@ -72,8 +72,8 @@ For example, let's say we have a product page with a URL such as `https://exampl
 In this example, `id` is used as a key to load the product data from the database. When the product data is found, great, we'll correctly render data. However, if the product data is not found in the database, we can still handle rendering the page, but instead respond with a 404 HTTP status code.
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { component$ } from '@qwikdev/core';
+import { routeLoader$ } from '@qwikdev/city';
 
 export const useProductLoader = routeLoader$(async ({ params, status }) => {
   // Example database call using the id param
@@ -207,7 +207,7 @@ In this case, the layouts will be nested within each other on the page.
 ```
 
 ```tsx title="src/routes/layout.tsx"
-import { component$, Slot } from '@builder.io/qwik';
+import { component$, Slot } from '@qwikdev/core';
 
 export default component$(() => {
   return (
@@ -219,7 +219,7 @@ export default component$(() => {
 ```
 
 ```tsx title="src/routes/about/layout.tsx"
-import { component$, Slot } from '@builder.io/qwik';
+import { component$, Slot } from '@qwikdev/core';
 
 export default component$(() => {
   return (
@@ -231,7 +231,7 @@ export default component$(() => {
 ```
 
 ```tsx title="src/routes/about/index.tsx"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwikdev/core';
 
 export default component$(() => {
   return <h1>About</h1>;

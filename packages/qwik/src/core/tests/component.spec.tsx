@@ -10,14 +10,14 @@ import {
   h,
   jsx,
   useComputed$,
-  useVisibleTask$,
   useSignal,
   useStore,
-  type JSXOutput,
   useTask$,
+  useVisibleTask$,
+  type JSXOutput,
   type Signal as SignalType,
-} from '@builder.io/qwik';
-import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
+} from '@qwikdev/core';
+import { domRender, ssrRenderToDom, trigger } from '@qwikdev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { cleanupAttrs } from '../../testing/element-fixture';
 import { ErrorProvider } from '../../testing/rendering.unit-util';

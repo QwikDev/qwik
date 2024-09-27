@@ -1,8 +1,8 @@
 import { build, type BuildOptions, type Plugin } from 'esbuild';
 import { join } from 'node:path';
-import { type BuildConfig, getBanner, importPath, nodeTarget, target } from './util';
-import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
 import { readPackageJson } from './package-json';
+import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
+import { type BuildConfig, getBanner, importPath, nodeTarget, target } from './util';
 
 /**
  * Builds @builder.io/server
@@ -26,16 +26,16 @@ export async function submoduleServer(config: BuildConfig) {
     target,
     external: [
       /* no Node.js built-in externals allowed! */ '@builder.io/qwik-dom',
-      '@builder.io/qwik/build',
+      '@qwikdev/core/build',
     ],
   };
 
   const esm = build({
     ...opts,
     format: 'esm',
-    banner: { js: getBanner('@builder.io/qwik/server', config.distVersion) },
+    banner: { js: getBanner('@qwikdev/core/server', config.distVersion) },
     outExtension: { '.js': '.mjs' },
-    plugins: [importPath(/^@builder\.io\/qwik$/, '@builder.io/qwik'), qwikDomPlugin],
+    plugins: [importPath(/^@builder\.io\/qwik$/, '@qwikdev/core'), qwikDomPlugin],
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
       'globalThis.IS_CJS': 'false',
@@ -46,7 +46,7 @@ export async function submoduleServer(config: BuildConfig) {
   });
 
   const cjsBanner = [
-    getBanner('@builder.io/qwik/server', config.distVersion),
+    getBanner('@qwikdev/core/server', config.distVersion),
     `globalThis.qwikServer = (function (module) {`,
     browserCjsRequireShim,
   ].join('\n');
@@ -61,7 +61,7 @@ export async function submoduleServer(config: BuildConfig) {
       js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
     },
     outExtension: { '.js': '.cjs' },
-    plugins: [importPath(/^@builder\.io\/qwik$/, '@builder.io/qwik'), qwikDomPlugin],
+    plugins: [importPath(/^@builder\.io\/qwik$/, '@qwikdev/core'), qwikDomPlugin],
     target: nodeTarget,
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
@@ -117,13 +117,13 @@ const browserCjsRequireShim = `
 if (typeof require !== 'function' && typeof location !== 'undefined' && typeof navigator !== 'undefined') {
   // shim cjs require() for core.cjs within a browser
   globalThis.require = function(path) {
-    if (path === './core.cjs' || path === '@builder.io/qwik') {
+    if (path === './core.cjs' || path === '@qwikdev/core') {
       if (!self.qwikCore) {
         throw new Error('Qwik Core global, "globalThis.qwikCore", must already be loaded for the Qwik Server to be used within a browser.');
       }
       return self.qwikCore;
     }
-    if (path === '@builder.io/qwik/build') {
+    if (path === '@qwikdev/core/build') {
       if (!self.qwikBuild) {
         throw new Error('Qwik Build global, "globalThis.qwikBuild", must already be loaded for the Qwik Server to be used within a browser.');
       }

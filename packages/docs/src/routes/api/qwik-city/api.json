@@ -1,6 +1,6 @@
 {
   "id": "qwik-city",
-  "package": "@builder.io/qwik-city",
+  "package": "@qwikdev/city",
   "members": [
     {
       "name": "Action",

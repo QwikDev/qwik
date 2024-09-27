@@ -1,4 +1,4 @@
-import { component$, event$, useContext, useStyles$ } from '@builder.io/qwik';
+import { component$, event$, useContext, useStyles$ } from '@qwikdev/core';
 import { SunAndMoon } from './sun-and-moon';
 import { themeStorageKey } from '../router-head/theme-script';
 import themeToggle from './theme-toggle.css?inline';

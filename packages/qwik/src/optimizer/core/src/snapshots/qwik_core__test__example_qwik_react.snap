@@ -6,9 +6,9 @@ expression: output
 ==INPUT==
 
 
-import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
-import { jsx, Fragment } from '@builder.io/qwik/jsx-runtime';
-import { isBrowser, isServer } from '@builder.io/qwik/build';
+import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@qwikdev/core';
+import { jsx, Fragment } from '@qwikdev/core/jsx-runtime';
+import { isBrowser, isServer } from '@qwikdev/core/build';
 
 function qwikifyQrl(reactCmpQrl) {
 	return /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
@@ -100,9 +100,9 @@ export { qwikify$, qwikifyQrl, renderToString };
 ============================= ../node_modules/@builder.io/qwik-react/qwikifyqrl_component_usewatch_x04jc5xep1u.mjs (ENTRY POINT)==
 
 import { _auto_filterProps as filterProps } from "./index.qwik.mjs";
-import { isBrowser } from "@builder.io/qwik/build";
-import { noSerialize } from "@builder.io/qwik";
-import { useLexicalScope } from "@builder.io/qwik";
+import { isBrowser } from "@qwikdev/core/build";
+import { noSerialize } from "@qwikdev/core";
+import { useLexicalScope } from "@qwikdev/core";
 export const qwikifyQrl_component_useWatch_x04JC5xeP1U = async (track)=>{
     const [hostElement, props, reactCmpQrl, store] = useLexicalScope();
     track(props);
@@ -127,7 +127,7 @@ export const qwikifyQrl_component_useWatch_x04JC5xeP1U = async (track)=>{
         }
     }
 };
-export { _hW } from "@builder.io/qwik";
+export { _hW } from "@qwikdev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-react/index.qwik.mjs\"],\"names\":[],\"mappings\":\";;;;yDAawB,OAAO;IAC5B,MAAM,CAAC,aAAa,OAAO,aAAa,MAAM,GAAG;IACjD,MAAM;IACN,IAAI;QACH,IAAI,MAAM,IAAI,EAAE,MAAM,IAAI,CAAC,IAAI,CAAC,MAAM,CAAC,MAAM,IAAI,CAAC,MAAM,CAAC,IAAI,CAAC,MAAM,IAAI,CAAC,GAAG,EAAE,YAAY;aACrF;YACJ,MAAM,CAAC,KAAK,OAAO,GAAG,MAAM,QAAQ,GAAG,CAAC;gBACvC,YAAY,OAAO;gBACnB,MAAM,CAAC;aACP;YACD,IAAI;YACJ,IAAI,YAAY,iBAAiB,GAAG,GAAG,OAAO,OAAO,WAAW,CAAC,aAAa,OAAO,IAAI,CAAC,KAAK,YAAY,QAAQ,MAAM,KAAK;iBACzH;gBACJ,OAAO,OAAO,UAAU,CAAC;gBACzB,KAAK,MAAM,CAAC,OAAO,IAAI,CAAC,KAAK,YAAY;YAC1C;YACA,MAAM,IAAI,GAAG,YAAY;gBACxB;gBACA,KAAK;gBACL;YACD;QACD;;AAEF\"}")
@@ -153,16 +153,16 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
 */
 ============================= ../node_modules/@builder.io/qwik-react/qwikifyqrl_component_zh94hie0ick.mjs (ENTRY POINT)==
 
-import { Fragment } from "@builder.io/qwik/jsx-runtime";
-import { SkipRerender } from "@builder.io/qwik";
-import { _jsxSorted } from "@builder.io/qwik";
+import { Fragment } from "@qwikdev/core/jsx-runtime";
+import { SkipRerender } from "@qwikdev/core";
+import { _jsxSorted } from "@qwikdev/core";
 import { _auto_filterProps as filterProps } from "./index.qwik.mjs";
-import { isServer } from "@builder.io/qwik/build";
-import { qrl } from "@builder.io/qwik";
-import { useHostElement } from "@builder.io/qwik";
-import { useLexicalScope } from "@builder.io/qwik";
-import { useStore } from "@builder.io/qwik";
-import { useTaskQrl } from "@builder.io/qwik";
+import { isServer } from "@qwikdev/core/build";
+import { qrl } from "@qwikdev/core";
+import { useHostElement } from "@qwikdev/core";
+import { useLexicalScope } from "@qwikdev/core";
+import { useStore } from "@qwikdev/core";
+import { useTaskQrl } from "@qwikdev/core";
 export const qwikifyQrl_component_zH94hIe0Ick = (props)=>{
     const [reactCmpQrl] = useLexicalScope();
     const hostElement = useHostElement();
@@ -220,8 +220,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
 */
 ============================= ../node_modules/@builder.io/qwik-react/index.qwik.mjs ==
 
-import { qrl } from "@builder.io/qwik";
-import { componentQrl, implicit$FirstArg } from '@builder.io/qwik';
+import { qrl } from "@qwikdev/core";
+import { componentQrl, implicit$FirstArg } from '@qwikdev/core';
 function qwikifyQrl(reactCmpQrl) {
     return /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./qwikifyqrl_component_zh94hie0ick.mjs"), "qwikifyQrl_component_zH94hIe0Ick", [
         reactCmpQrl

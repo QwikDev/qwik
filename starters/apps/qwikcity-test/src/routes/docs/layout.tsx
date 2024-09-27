@@ -1,5 +1,5 @@
-import { component$, Slot, useStyles$ } from "@builder.io/qwik";
-import type { DocumentHead } from "@builder.io/qwik-city";
+import type { DocumentHead } from "@qwikdev/city";
+import { component$, Slot, useStyles$ } from "@qwikdev/core";
 import { Breadcrumbs } from "../../components/breadcrumbs/breadcrumbs";
 import { ContentNav } from "../../components/content-nav/content-nav";
 import Footer from "../../components/footer/footer";

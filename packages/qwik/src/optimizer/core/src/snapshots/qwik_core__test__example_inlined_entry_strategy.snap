@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@builder.io/qwik';
+import { component$, useBrowserVisibleTask$, useStore, useStyles$ } from '@qwikdev/core';
 import { thing } from './sibling';
 import mongodb from 'mongodb';
 
@@ -31,12 +31,12 @@ export const Child = component$(() => {
 
 ============================= test.tsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { useStylesQrl } from "@builder.io/qwik";
-import { inlinedQrl } from "@builder.io/qwik";
-import { useBrowserVisibleTaskQrl } from "@builder.io/qwik";
-import { useLexicalScope } from "@builder.io/qwik";
-import { useStore } from '@builder.io/qwik';
+import { componentQrl } from "@qwikdev/core";
+import { useStylesQrl } from "@qwikdev/core";
+import { inlinedQrl } from "@qwikdev/core";
+import { useBrowserVisibleTaskQrl } from "@qwikdev/core";
+import { useLexicalScope } from "@qwikdev/core";
+import { useStore } from '@qwikdev/core';
 import { thing } from './sibling';
 import mongodb from 'mongodb';
 export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{

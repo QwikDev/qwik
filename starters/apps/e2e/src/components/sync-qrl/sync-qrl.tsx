@@ -1,4 +1,4 @@
-import { component$, sync$ } from "@builder.io/qwik";
+import { component$, sync$ } from "@qwikdev/core";
 
 export const SyncQRL = component$(() => {
   return (

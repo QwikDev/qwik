@@ -1,6 +1,6 @@
 {
   "id": "qwik-city-vite-cloudflare-pages",
-  "package": "@builder.io/qwik-city/vite/cloudflare-pages",
+  "package": "@qwikdev/city/vite/cloudflare-pages",
   "members": [
     {
       "name": "cloudflarePagesAdapter",

@@ -1,5 +1,5 @@
-import { component$, Slot, useStyles$ } from "@builder.io/qwik";
-import type { RequestEvent } from "@builder.io/qwik-city";
+import type { RequestEvent } from "@qwikdev/city";
+import { component$, Slot, useStyles$ } from "@qwikdev/core";
 import styles from "./layout.css?inline";
 
 export const onGet = ({ headers }: RequestEvent) => {

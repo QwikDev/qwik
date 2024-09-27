@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
 import { assertDefined } from '../core/shared/error/assert';
 import type { QRLInternal } from '../core/shared/qrl/qrl-class';
-import { _getQContainerElement, getDomContainer } from '@builder.io/qwik';
+import { _getQContainerElement, getDomContainer } from '@qwikdev/core';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';

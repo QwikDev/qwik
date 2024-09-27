@@ -1,10 +1,10 @@
 import {
   component$,
-  useStyles$,
-  useResource$,
   Resource,
+  useResource$,
   useSignal,
-} from "@builder.io/qwik";
+  useStyles$,
+} from "@qwikdev/core";
 
 interface ContainerProps {
   url: string;

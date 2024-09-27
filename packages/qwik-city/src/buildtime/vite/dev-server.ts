@@ -1,7 +1,8 @@
-import type { QwikManifest, QwikViteDevResponse } from '@builder.io/qwik/optimizer';
+import type { QwikManifest, QwikViteDevResponse } from '@qwikdev/core/optimizer';
 import fs from 'node:fs';
 import type { ServerResponse } from 'node:http';
 import { join, resolve } from 'node:path';
+import type { QwikSerializer } from 'packages/qwik-city/src/middleware/request-handler/types';
 import type { Connect, ViteDevServer } from 'vite';
 import { computeOrigin, fromNodeHttp, getUrl } from '../../middleware/node/http';
 import {
@@ -14,6 +15,7 @@ import {
   QDATA_JSON,
   runQwikCity,
 } from '../../middleware/request-handler/user-response';
+import { matchRoute } from '../../runtime/src/route-matcher';
 import { getMenuLoader } from '../../runtime/src/routing';
 import type {
   ActionInternal,
@@ -31,8 +33,6 @@ import { getExtension, normalizePath } from '../../utils/fs';
 import { updateBuildContext } from '../build';
 import type { BuildContext, BuildRoute } from '../types';
 import { formatError } from './format-error';
-import { matchRoute } from '../../runtime/src/route-matcher';
-import type { QwikSerializer } from 'packages/qwik-city/src/middleware/request-handler/types';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {

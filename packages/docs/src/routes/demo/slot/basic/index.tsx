@@ -1,4 +1,4 @@
-import { Slot, component$ } from '@builder.io/qwik';
+import { Slot, component$ } from '@qwikdev/core';
 
 const Button = component$(() => {
   return (

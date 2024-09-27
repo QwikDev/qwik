@@ -1,4 +1,4 @@
-import { component$, useContext, useSignal, $ } from '@builder.io/qwik';
+import { component$, useContext, useSignal, $ } from '@qwikdev/core';
 import { SHOP_CONTEXT, fetchFromShopify, formatPrice } from '../utils';
 import { Image } from 'qwik-image';
 import { modifyLineItemMutation, removeLineItemMutation } from '../mutation';

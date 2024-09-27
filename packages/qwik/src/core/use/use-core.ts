@@ -1,3 +1,6 @@
+import { _getQContainerElement } from '../client/dom-container';
+import type { ContainerElement } from '../client/types';
+import { vnode_getNode, vnode_isElementVNode, vnode_isVNode } from '../client/vnode';
 import type { QwikDocument } from '../document';
 import { assertDefined } from '../shared/error/assert';
 import {
@@ -7,6 +10,7 @@ import {
 } from '../shared/error/error';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
+import type { Container, HostElement } from '../shared/types';
 import {
   ComputedEvent,
   QContainerSelector,
@@ -18,16 +22,12 @@ import {
 import { isPromise } from '../shared/utils/promises';
 import { seal } from '../shared/utils/qdev';
 import { isArray } from '../shared/utils/types';
-import { setLocale } from './use-locale';
-import type { Container, HostElement } from '../shared/types';
-import { vnode_getNode, vnode_isElementVNode, vnode_isVNode } from '../client/vnode';
-import { _getQContainerElement } from '../client/dom-container';
-import type { ContainerElement } from '../client/types';
 import type { EffectData, EffectSubscriptions, EffectSubscriptionsProp } from '../signal/signal';
+import { setLocale } from './use-locale';
 
 declare const document: QwikDocument;
 
-// Simplified version of `ServerRequestEvent` from `@builder.io/qwik-city` package.
+// Simplified version of `ServerRequestEvent` from `@qwikdev/city` package.
 export interface SimplifiedServerRequestEvent<T = unknown> {
   url: URL;
   locale: string | undefined;
@@ -39,7 +39,7 @@ export interface StyleAppend {
   content: string | null;
 }
 
-// Simplified version of `ServerRequestEvent` from `@builder.io/qwik-city` package.
+// Simplified version of `ServerRequestEvent` from `@qwikdev/city` package.
 export interface ServerRequestEvent<T = unknown> {
   url: URL;
   locale: string | undefined;

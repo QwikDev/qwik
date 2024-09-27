@@ -1,6 +1,6 @@
 {
   "id": "qwik-city-middleware-azure-swa",
-  "package": "@builder.io/qwik-city/middleware/azure-swa",
+  "package": "@qwikdev/city/middleware/azure-swa",
   "members": [
     {
       "name": "createQwikCity",

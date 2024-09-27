@@ -1,33 +1,33 @@
-import { setPlatform } from '@builder.io/qwik';
+import { setPlatform } from '@qwikdev/core';
+import type { ResolvedManifest } from '@qwikdev/core/optimizer';
 import { createPlatform } from './platform';
-import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 import { resolveManifest } from './ssr-render';
 import type { QwikManifest } from './types';
 
+export { getQwikLoaderScript, getQwikPrefetchWorkerScript } from './scripts';
+export { renderToStream, renderToString, resolveManifest } from './ssr-render';
 export type {
-  PrefetchResource,
-  PrefetchImplementation,
-  PrefetchStrategy,
-  RenderToStringOptions,
-  RenderToStringResult,
-  Render,
-  RenderToStream,
-  RenderToString,
-  RenderOptions,
-  RenderResult,
-  RenderToStreamOptions,
-  SerializeDocumentOptions,
-  RenderToStreamResult,
-  QwikLoaderOptions,
-  StreamingOptions,
   InOrderAuto,
   InOrderDisabled,
   InOrderStreaming,
+  PrefetchImplementation,
+  PrefetchResource,
+  PrefetchStrategy,
+  QwikLoaderOptions,
+  Render,
+  RenderOptions,
+  RenderResult,
+  RenderToStream,
+  RenderToStreamOptions,
+  RenderToStreamResult,
+  RenderToString,
+  RenderToStringOptions,
+  RenderToStringResult,
+  SerializeDocumentOptions,
+  StreamingOptions,
   SymbolsToPrefetch,
 } from './types';
-export { resolveManifest, renderToString, renderToStream } from './ssr-render';
 export { versions } from './utils';
-export { getQwikLoaderScript, getQwikPrefetchWorkerScript } from './scripts';
 
 /** @public */
 export async function setServerPlatform(manifest: QwikManifest | ResolvedManifest | undefined) {

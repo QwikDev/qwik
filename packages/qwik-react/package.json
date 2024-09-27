@@ -4,7 +4,7 @@
   "version": "0.5.5",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "devDependencies": {
-    "@builder.io/qwik": "workspace:^",
+    "@builder.io/qwik": "^1.9.0",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
     "react": "18.3.1",
@@ -35,7 +35,7 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "@builder.io/qwik": "workspace:^",
+    "@builder.io/qwik": "^1.9.0",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "react": "^18",

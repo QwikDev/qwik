@@ -48,7 +48,7 @@ export const { onRequest, logout, getSession, signup } = auth$({
 ============================= test.js ==
 
 import { serverAuthQrl } from "@auth/qwik";
-import { qrl } from "@builder.io/qwik";
+import { qrl } from "@qwikdev/core";
 import { authQrl } from "@auth/qwik";
 export const { onRequest, logout, getSession, signup } = serverAuthQrl(/*#__PURE__*/ qrl(()=>import("./serverauth_qvqpx2a0p9y"), "serverAuth_qVqpX2a0p9Y"));
 export const { onRequest, logout, getSession, signup } = authQrl(/*#__PURE__*/ qrl(()=>import("./auth_gu0ay5qcety"), "auth_GU0aY5QCETY"));

@@ -1,5 +1,5 @@
-import { component$, useSignal, useVisibleTask$ } from "@builder.io/qwik";
-import { server$ } from "@builder.io/qwik-city";
+import { server$ } from "@qwikdev/city";
+import { component$, useSignal, useVisibleTask$ } from "@qwikdev/core";
 import { delay } from "../../actions/login";
 
 const customHeader = "x-custom-header";

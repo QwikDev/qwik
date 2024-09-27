@@ -1,22 +1,19 @@
-import type {
-  ServerRenderOptions,
-  ClientConn,
-} from '@builder.io/qwik-city/middleware/request-handler';
-import { requestHandler } from '@builder.io/qwik-city/middleware/request-handler';
-import { setServerPlatform } from '@builder.io/qwik/server';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
+import type { ClientConn, ServerRenderOptions } from '@qwikdev/city/middleware/request-handler';
+import { requestHandler } from '@qwikdev/city/middleware/request-handler';
+import { _deserialize, _serialize, _verifySerializable } from '@qwikdev/core';
+import { setServerPlatform } from '@qwikdev/core/server';
 import { createReadStream } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { extname, join, basename } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { computeOrigin, fromNodeHttp, getUrl } from './http';
-import { MIME_TYPES } from '../request-handler/mime-types';
-import { _deserialize, _serialize, _verifySerializable } from '@builder.io/qwik';
 import type { Http2ServerRequest } from 'node:http2';
+import { basename, extname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { MIME_TYPES } from '../request-handler/mime-types';
 import type { QwikSerializer } from '../request-handler/types';
+import { computeOrigin, fromNodeHttp, getUrl } from './http';
 
-// @builder.io/qwik-city/middleware/node
+// @qwikdev/city/middleware/node
 
 /** @public */
 export function createQwikCity(opts: QwikCityNodeRequestOptions) {

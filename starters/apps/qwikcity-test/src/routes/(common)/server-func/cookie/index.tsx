@@ -1,5 +1,5 @@
-import { component$, useSignal, useTask$ } from "@builder.io/qwik";
-import { server$ } from "@builder.io/qwik-city";
+import { server$ } from "@qwikdev/city";
+import { component$, useSignal, useTask$ } from "@qwikdev/core";
 import { delay } from "../../actions/login";
 
 const serverHost = server$(function () {

@@ -1,4 +1,4 @@
-import type { PropsOf } from '@builder.io/qwik';
+import type { PropsOf } from '@qwikdev/core';
 
 type DiscordLogoProps = {
   width: number;

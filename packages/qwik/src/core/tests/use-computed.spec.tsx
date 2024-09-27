@@ -9,9 +9,9 @@ import {
   useLexicalScope,
   useSignal,
   useStore,
-} from '@builder.io/qwik';
+} from '@qwikdev/core';
+import { domRender, ssrRenderToDom, trigger } from '@qwikdev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { trigger, domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

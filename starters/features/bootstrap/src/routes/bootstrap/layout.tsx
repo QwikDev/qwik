@@ -1,5 +1,5 @@
-import { component$, Slot, useStyles$ } from "@builder.io/qwik";
-import type { RequestHandler } from "@builder.io/qwik-city";
+import type { RequestHandler } from "@qwikdev/city";
+import { component$, Slot, useStyles$ } from "@qwikdev/core";
 import { Navbar } from "~/components/bootstrap";
 
 // Add bootstrap styles

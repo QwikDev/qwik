@@ -1,6 +1,6 @@
 {
   "id": "qwik-testing",
-  "package": "@builder.io/qwik/testing",
+  "package": "@qwikdev/core/testing",
   "members": [
     {
       "name": "child",

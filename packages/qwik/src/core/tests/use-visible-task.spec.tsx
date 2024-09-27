@@ -1,21 +1,21 @@
-import { describe, expect, it } from 'vitest';
 import {
-  component$,
   Fragment as Component,
+  component$,
+  createContextId,
   Fragment,
-  Fragment as Signal,
   Fragment as Projection,
+  Fragment as Signal,
+  type Signal as SignalType,
+  Slot,
+  useComputed$,
+  useContext,
+  useContextProvider,
   useSignal,
   useStore,
   useVisibleTask$,
-  useContext,
-  useComputed$,
-  useContextProvider,
-  createContextId,
-  type Signal as SignalType,
-  Slot,
-} from '@builder.io/qwik';
-import { trigger, domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
+} from '@qwikdev/core';
+import { domRender, ssrRenderToDom, trigger } from '@qwikdev/core/testing';
+import { describe, expect, it } from 'vitest';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
 

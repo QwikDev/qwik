@@ -1,6 +1,6 @@
-import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
+import { Fragment as Component, Fragment, component$ } from '@qwikdev/core';
+import { domRender, ssrRenderToDom } from '@qwikdev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { Fragment as Component, Fragment, component$ } from '@builder.io/qwik';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

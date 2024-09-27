@@ -1,4 +1,4 @@
-import { useStore, component$ } from "@builder.io/qwik";
+import { component$, useStore } from "@qwikdev/core";
 
 export function delay(time: number) {
   return new Promise<void>((resolve) => {

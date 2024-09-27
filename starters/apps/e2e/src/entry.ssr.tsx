@@ -1,7 +1,7 @@
 import {
   renderToStream,
   type RenderToStreamOptions,
-} from "@builder.io/qwik/server";
+} from "@qwikdev/core/server";
 import { Root } from "./root";
 
 /**

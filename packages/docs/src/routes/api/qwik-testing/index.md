@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik/testing API Reference
+title: \@qwikdev/core/testing API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik/testing
+# [API](/api) &rsaquo; @qwikdev/core/testing
 
 ## child
 
@@ -60,7 +60,7 @@ createDOM: ({ html }?: { html?: string }) =>
   Promise<{
     render: (
       jsxElement: JSXOutput,
-    ) => Promise<import("@builder.io/qwik").RenderResult>;
+    ) => Promise<import("@qwikdev/core").RenderResult>;
     screen: HTMLElement;
     userEvent: (
       queryOrElement: string | Element | keyof HTMLElementTagNameMap | null,
@@ -99,7 +99,7 @@ _(Optional)_
 </tbody></table>
 **Returns:**
 
-Promise&lt;{ render: (jsxElement: JSXOutput) =&gt; Promise&lt;import("@builder.io/qwik").RenderResult&gt;; screen: HTMLElement; userEvent: (queryOrElement: string \| Element \| keyof HTMLElementTagNameMap \| null, eventNameCamel: string \| keyof WindowEventMap, eventPayload?: any) =&gt; Promise&lt;void&gt;; }&gt;
+Promise&lt;{ render: (jsxElement: JSXOutput) =&gt; Promise&lt;import("@qwikdev/core").RenderResult&gt;; screen: HTMLElement; userEvent: (queryOrElement: string \| Element \| keyof HTMLElementTagNameMap \| null, eventNameCamel: string \| keyof WindowEventMap, eventPayload?: any) =&gt; Promise&lt;void&gt;; }&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/library.ts)
 
@@ -119,7 +119,7 @@ export declare function domRender(
   },
 ): Promise<{
   document: Document;
-  container: import("@builder.io/qwik").ClientContainer;
+  container: import("@qwikdev/core").ClientContainer;
   vNode: _VNode | null;
   getStyles: () => Record<string, string | string[]>;
 }>;
@@ -165,7 +165,7 @@ _(Optional)_
 </tbody></table>
 **Returns:**
 
-Promise&lt;{ document: Document; container: import("@builder.io/qwik").ClientContainer; vNode: \_VNode \| null; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
+Promise&lt;{ document: Document; container: import("@qwikdev/core").ClientContainer; vNode: \_VNode \| null; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/rendering.unit-util.tsx)
 

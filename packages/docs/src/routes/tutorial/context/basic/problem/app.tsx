@@ -1,4 +1,4 @@
-import { component$, createContextId, useContextProvider, useStore } from '@builder.io/qwik';
+import { component$, createContextId, useContextProvider, useStore } from '@qwikdev/core';
 
 interface TodosStore {
   items: string[];

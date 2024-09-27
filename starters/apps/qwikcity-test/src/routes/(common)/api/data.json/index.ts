@@ -1,8 +1,8 @@
-import type { RequestHandler } from "@builder.io/qwik-city";
-import os from "node:os";
-import url from "node:url";
-import path from "node:path";
+import type { RequestHandler } from "@qwikdev/city";
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import url from "node:url";
 
 export const onRequest: RequestHandler = ({
   request,

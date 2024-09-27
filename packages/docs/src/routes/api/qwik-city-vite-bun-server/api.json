@@ -1,6 +1,6 @@
 {
   "id": "qwik-city-vite-bun-server",
-  "package": "@builder.io/qwik-city/vite/bun-server",
+  "package": "@qwikdev/city/vite/bun-server",
   "members": [
     {
       "name": "bunServerAdapter",

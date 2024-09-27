@@ -1,4 +1,4 @@
-import { component$, type Signal } from '@builder.io/qwik';
+import { component$, type Signal } from '@qwikdev/core';
 import type { DocSearchState } from './doc-search';
 import type { ErrorScreenTranslations } from './error-screen';
 import { ErrorScreen } from './error-screen';

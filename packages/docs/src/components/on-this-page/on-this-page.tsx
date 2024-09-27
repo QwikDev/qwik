@@ -1,12 +1,12 @@
-import { useContent, useLocation } from '@builder.io/qwik-city';
-import { component$, useContext, $, useStyles$, useOnDocument, useSignal } from '@builder.io/qwik';
+import { useContent, useLocation } from '@qwikdev/city';
+import { $, component$, useContext, useOnDocument, useSignal, useStyles$ } from '@qwikdev/core';
+import { GlobalStore } from '../../context';
+import { AlertIcon } from '../svgs/alert-icon';
 import { ChatIcon } from '../svgs/chat-icon';
+import { EditIcon } from '../svgs/edit-icon';
 import { GithubLogo } from '../svgs/github-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './on-this-page.css?inline';
-import { EditIcon } from '../svgs/edit-icon';
-import { GlobalStore } from '../../context';
-import { AlertIcon } from '../svgs/alert-icon';
 
 const QWIK_GROUP = [
   'components',

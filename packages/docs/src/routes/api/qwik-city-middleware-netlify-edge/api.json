@@ -1,6 +1,6 @@
 {
   "id": "qwik-city-middleware-netlify-edge",
-  "package": "@builder.io/qwik-city/middleware/netlify-edge",
+  "package": "@qwikdev/city/middleware/netlify-edge",
   "members": [
     {
       "name": "createQwikCity",

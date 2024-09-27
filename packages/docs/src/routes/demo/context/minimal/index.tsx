@@ -1,9 +1,9 @@
-import { type Signal, component$, useSignal } from '@builder.io/qwik';
+import { type Signal, component$, useSignal } from '@qwikdev/core';
 import {
   useContext,
   useContextProvider,
   createContextId,
-} from '@builder.io/qwik';
+} from '@qwikdev/core';
 
 export const ThemeContext = createContextId<Signal<string>>(
   'docs.theme-context'

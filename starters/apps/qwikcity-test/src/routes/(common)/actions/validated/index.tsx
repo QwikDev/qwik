@@ -1,11 +1,5 @@
-import { component$ } from "@builder.io/qwik";
-import {
-  routeAction$,
-  routeLoader$,
-  validator$,
-  z,
-  zod$,
-} from "@builder.io/qwik-city";
+import { routeAction$, routeLoader$, validator$, z, zod$ } from "@qwikdev/city";
+import { component$ } from "@qwikdev/core";
 import type {
   CommonLoaderActionOptions,
   JSONObject,

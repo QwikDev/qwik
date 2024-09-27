@@ -1,4 +1,4 @@
-import { component$, useStore } from "@builder.io/qwik";
+import { component$, useStore } from "@qwikdev/core";
 
 export const App = component$(() => {
   const state = useStore({ name: "World", running: true });

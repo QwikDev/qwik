@@ -1,4 +1,4 @@
-import { component$, Slot, useStyles$ } from "@builder.io/qwik";
+import { component$, Slot, useStyles$ } from "@qwikdev/core";
 
 export default component$(() => {
   useStyles$(`

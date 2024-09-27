@@ -1,27 +1,28 @@
+import { createDocument } from '@builder.io/qwik-dom';
 import {
   Fragment as Component,
+  Resource,
   Fragment as Signal,
-  type JSXOutput,
   component$,
   componentQrl,
+  getDomContainer,
   getPlatform,
-  setPlatform,
   inlinedQrl,
   render,
-  useServerData,
+  setPlatform,
   useLexicalScope,
   useOn,
-  Resource,
   useResource$,
   useResourceQrl,
+  useServerData,
   useSignal,
   useTask$,
-  getDomContainer,
-} from '@builder.io/qwik';
-import { createDocument } from '@builder.io/qwik-dom';
-import type { GlobalInjections, QwikManifest } from '@builder.io/qwik/optimizer';
-import { renderToStream, renderToString } from '@builder.io/qwik/server';
-import { emulateExecutionOfQwikFuncs, getTestPlatform, trigger } from '@builder.io/qwik/testing';
+  type JSXOutput,
+} from '@qwikdev/core';
+import type { GlobalInjections, QwikManifest } from '@qwikdev/core/optimizer';
+import { renderToStream, renderToString } from '@qwikdev/core/server';
+import { emulateExecutionOfQwikFuncs, getTestPlatform, trigger } from '@qwikdev/core/testing';
+import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type {
   RenderToStreamOptions,
@@ -31,9 +32,8 @@ import type {
   StreamWriter,
   StreamingOptions,
 } from '../../server/types';
-import { _fnSignal } from '../internal';
 import { vnode_getFirstChild } from '../client/vnode';
-import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
+import { _fnSignal } from '../internal';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');

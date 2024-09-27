@@ -1,13 +1,13 @@
+import { useLocation } from '@qwikdev/city';
 import {
   $,
   component$,
   useContext,
   useStylesScoped$,
   useTask$,
-} from '@builder.io/qwik';
-import { PortalCloseAPIContextId, PortalAPI } from './portal-provider';
+} from '@qwikdev/core';
 import PopupExampleCSS from './popup-example.css?inline';
-import { useLocation } from '@builder.io/qwik-city';
+import { PortalAPI, PortalCloseAPIContextId } from './portal-provider';
 
 export default component$(() => {
   // Retrieve the portal API

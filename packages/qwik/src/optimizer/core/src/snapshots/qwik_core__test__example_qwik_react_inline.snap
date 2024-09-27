@@ -6,9 +6,9 @@ expression: output
 ==INPUT==
 
 
-import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
-import { jsx, Fragment } from '@builder.io/qwik/jsx-runtime';
-import { isBrowser, isServer } from '@builder.io/qwik/build';
+import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@qwikdev/core';
+import { jsx, Fragment } from '@qwikdev/core/jsx-runtime';
+import { isBrowser, isServer } from '@qwikdev/core/build';
 
 function qwikifyQrl(reactCmpQrl) {
 	return /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
@@ -99,10 +99,10 @@ export { qwikify$, qwikifyQrl, renderToString };
 		
 ============================= ../node_modules/@builder.io/qwik-react/index.qwik.mjs ==
 
-import { _jsxSorted } from "@builder.io/qwik";
-import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@builder.io/qwik';
-import { Fragment } from '@builder.io/qwik/jsx-runtime';
-import { isBrowser, isServer } from '@builder.io/qwik/build';
+import { _jsxSorted } from "@qwikdev/core";
+import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@qwikdev/core';
+import { Fragment } from '@qwikdev/core/jsx-runtime';
+import { isBrowser, isServer } from '@qwikdev/core/build';
 function qwikifyQrl(reactCmpQrl) {
     return /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
         const [reactCmpQrl] = useLexicalScope();

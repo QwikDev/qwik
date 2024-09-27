@@ -52,7 +52,7 @@ A Qwik component is a function that returns JSX wrapped in a `component$` call.
 
 <CodeSandbox src="/src/routes/demo/component/simple/index.tsx" style={{ height: '3em' }}>
 ```tsx /component$/
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwikdev/core';
 
 export default component$(() => {
   return <div>Hello World!</div>;
@@ -71,7 +71,7 @@ Components can be composed together to create more complex components.
 
 <CodeSandbox src="/src/routes/demo/component/child/index.tsx" style={{ height: '6em' }}>
 ```tsx {7}
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwikdev/core';
 
 export default component$(() => {
   return (
@@ -96,7 +96,7 @@ A slightly more complex example of a counter.
 
 <CodeSandbox src="/src/routes/demo/state/counter/index.tsx" style={{ height: '6em' }}>
 ```tsx
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwikdev/core';
 
 export default component$(() => {
   const count = useSignal(0);
@@ -125,8 +125,8 @@ In the first example, primitive data types are passed via props. The `price` pro
 
 <CodeSandbox src="/src/routes/demo/component/primitive-props/index.tsx" style={{ height: '10em' }}>
 ```tsx {3-8, 27} /ItemProps/
-import { component$, useSignal } from "@builder.io/qwik";
-import type { Signal } from "@builder.io/qwik";
+import { component$, useSignal } from "@qwikdev/core";
+import type { Signal } from "@qwikdev/core";
 
 interface ItemProps {
   name?: string;
@@ -166,7 +166,7 @@ In this second example, the props are passed as a single details object containi
 
 <CodeSandbox src="/src/routes/demo/component/reference-props/index.tsx" style={{ height: '10em' }}>
 ```tsx {3-8, 27} /ItemProps/
-import { component$ } from "@builder.io/qwik";
+import { component$ } from "@qwikdev/core";
 
 interface ItemProps {
   details: {
@@ -240,7 +240,7 @@ Use `ref` to get hold of a DOM element. Create a signal to store DOM element. Th
 
 <CodeSandbox src="/src/routes/demo/component/ref/index.tsx" style={{ height: '10em' }}>
 ```tsx /const outputRef = useSignal<Element>();/ /ref={outputRef}/
-import { component$, useVisibleTask$, useSignal } from '@builder.io/qwik';
+import { component$, useVisibleTask$, useSignal } from '@qwikdev/core';
 
 export default component$(() => {
   const width = useSignal(0);
@@ -290,7 +290,7 @@ import {
   useId,
   useSignal,
   useVisibleTask$,
-} from '@builder.io/qwik';
+} from '@qwikdev/core';
 
 export default component$(() => {
   const elemIdSignal = useSignal<string | null>(null);
@@ -337,7 +337,7 @@ To avoid the above problem we don't refer to components directly, instead, we re
 
 <CodeSandbox src="/src/routes/demo/component/lazy/index.tsx" style={{ height: '4em' }} sandbox={false}>
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwikdev/core';
 
 export const Child = component$(() => {
   return <p>child</p>;
@@ -393,7 +393,7 @@ like components in traditional frameworks.
 
 <CodeSandbox src="/src/routes/demo/component/inline-child/index.tsx" style={{height: '4em'}}>
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwikdev/core';
 
 // Inline component: declared using a standard function.
 export const MyButton = (props: { text: string }) => {

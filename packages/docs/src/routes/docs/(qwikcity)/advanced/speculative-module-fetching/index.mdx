@@ -147,7 +147,7 @@ The default service worker that is installed by Qwik City can still be controlle
 Below is an example of a default `src/routes/service-worker.ts` source file:
 
 ```ts
-import { setupServiceWorker } from '@builder.io/qwik-city/service-worker';
+import { setupServiceWorker } from '@qwikdev/city/service-worker';
 
 setupServiceWorker();
 
@@ -158,7 +158,7 @@ addEventListener('activate', (ev) => ev.waitUntil(self.clients.claim()));
 
 The source code for `src/routes/service-worker.ts` can be modified which includes opting-in, or opting-out, of setting up Qwik City's service worker.
 
-Notice that the `setupServiceWorker()` function is imported from `@builder.io/qwik-city/service-worker` and executed at the top of the source file. Developers have the flexibility to modify when and where this function is called according to their needs. For example, if a developer prefers to handle fetch requests first, they can add their fetch listener above the  `setupServiceWorker()`. Or if they didn't want to use Qwik City's service worker at all, they would just remove `setupServiceWorker()` from the file.
+Notice that the `setupServiceWorker()` function is imported from `@qwikdev/city/service-worker` and executed at the top of the source file. Developers have the flexibility to modify when and where this function is called according to their needs. For example, if a developer prefers to handle fetch requests first, they can add their fetch listener above the  `setupServiceWorker()`. Or if they didn't want to use Qwik City's service worker at all, they would just remove `setupServiceWorker()` from the file.
 
 Additionally, the default `src/routes/service-worker.ts` file comes with an [install](https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerGlobalScope/install_event) and [activate](https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerGlobalScope/activate_event) event listeners, each added at the bottom of the file. The callbacks provided are the recommended callbacks. However, the developer can modify these callbacks depending on their own app's requirements.
 

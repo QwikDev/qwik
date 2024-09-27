@@ -1,4 +1,4 @@
-import { domRender, ssrRenderToDom } from "@builder.io/qwik/testing";
+import { domRender, ssrRenderToDom } from "@qwikdev/core/testing";
 import { beforeEach, describe, it } from "vitest";
 import { Attributes } from "./attributes";
 

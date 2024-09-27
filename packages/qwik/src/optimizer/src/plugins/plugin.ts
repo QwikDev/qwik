@@ -1,4 +1,5 @@
-import type { Rollup, Plugin, ViteDevServer, HmrContext } from 'vite';
+import type { LoadResult, OutputBundle, TransformResult } from 'rollup';
+import type { HmrContext, Plugin, Rollup, ViteDevServer } from 'vite';
 import { hashCode } from '../../../core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
 import { createOptimizer } from '../optimizer';
@@ -6,19 +7,18 @@ import type {
   Diagnostic,
   EntryStrategy,
   GlobalInjections,
-  SegmentAnalysis,
   InsightManifest,
   Optimizer,
   OptimizerOptions,
   OptimizerSystem,
   QwikManifest,
+  SegmentAnalysis,
   TransformModule,
   TransformModuleInput,
   TransformModulesOptions,
   TransformOutput,
 } from '../types';
 import { createLinter, type QwikLinter } from './eslint-plugin';
-import type { LoadResult, OutputBundle, TransformResult } from 'rollup';
 import { isWin } from './vite-utils';
 
 const REG_CTX_NAME = ['server'];
@@ -835,7 +835,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   function getQwikBuildModule(isServer: boolean, target: QwikBuildTarget) {
     const isDev = opts.buildMode === 'development';
-    return `// @builder.io/qwik/build
+    return `// @qwikdev/core/build
 export const isServer = ${JSON.stringify(isServer)};
 export const isBrowser = ${JSON.stringify(!isServer)};
 export const isDev = ${JSON.stringify(isDev)};
@@ -979,15 +979,15 @@ const RESOLVE_EXTS = {
  */
 export const TRANSFORM_REGEX = /\.qwik\.[mc]?js$/;
 
-export const QWIK_CORE_ID = '@builder.io/qwik';
+export const QWIK_CORE_ID = '@qwikdev/core';
 
-export const QWIK_BUILD_ID = '@builder.io/qwik/build';
+export const QWIK_BUILD_ID = '@qwikdev/core/build';
 
-export const QWIK_JSX_RUNTIME_ID = '@builder.io/qwik/jsx-runtime';
+export const QWIK_JSX_RUNTIME_ID = '@qwikdev/core/jsx-runtime';
 
-export const QWIK_JSX_DEV_RUNTIME_ID = '@builder.io/qwik/jsx-dev-runtime';
+export const QWIK_JSX_DEV_RUNTIME_ID = '@qwikdev/core/jsx-dev-runtime';
 
-export const QWIK_CORE_SERVER = '@builder.io/qwik/server';
+export const QWIK_CORE_SERVER = '@qwikdev/core/server';
 
 export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 

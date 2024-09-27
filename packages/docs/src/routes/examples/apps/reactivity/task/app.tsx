@@ -1,4 +1,4 @@
-import { component$, useTask$, useStore } from '@builder.io/qwik';
+import { component$, useTask$, useStore } from '@qwikdev/core';
 
 interface State {
   count: number;

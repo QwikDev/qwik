@@ -1,10 +1,10 @@
-import { component$, useStore } from "@builder.io/qwik";
 import {
   Link,
+  routeLoader$,
   useLocation,
   type DocumentHead,
-  routeLoader$,
-} from "@builder.io/qwik-city";
+} from "@qwikdev/city";
+import { component$, useStore } from "@qwikdev/core";
 import os from "node:os";
 
 export default component$(() => {

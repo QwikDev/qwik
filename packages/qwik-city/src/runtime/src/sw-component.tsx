@@ -1,4 +1,4 @@
-import { jsx } from '@builder.io/qwik';
+import { jsx } from '@qwikdev/core';
 import swRegister from '@qwik-city-sw-register';
 
 /** @public */

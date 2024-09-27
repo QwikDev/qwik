@@ -1,4 +1,4 @@
-import { component$, Slot, useStyles$ } from '@builder.io/qwik';
+import { component$, Slot, useStyles$ } from '@qwikdev/core';
 import { SideBar } from '../../components/sidebar/sidebar';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';

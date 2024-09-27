@@ -1,13 +1,13 @@
 import {
-  useStore,
   component$,
   createContextId,
-  useContextProvider,
-  useContext,
   Slot,
+  useContext,
+  useContextProvider,
   useSignal,
+  useStore,
   useVisibleTask$,
-} from "@builder.io/qwik";
+} from "@qwikdev/core";
 
 export interface ContextI {
   displayName: string;

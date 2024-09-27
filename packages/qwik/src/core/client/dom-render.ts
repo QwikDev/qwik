@@ -2,7 +2,7 @@ import type { JSXNode, RenderOptions, RenderResult } from '@qwikdev/core';
 import type { FunctionComponent, JSXOutput } from '../shared/jsx/types/jsx-node';
 import { isDocument, isElement } from '../shared/utils/element';
 import { ChoreType } from '../shared/scheduler';
-import { QContainerValue, type HostElement, type fixMeAny } from '../shared/types';
+import { QContainerValue } from '../shared/types';
 import { DomContainer, getDomContainer } from './dom-container';
 import { cleanup } from './vnode-diff';
 import { QContainerAttr } from '../shared/utils/markers';
@@ -36,7 +36,7 @@ export const render = async (
 
   const container = getDomContainer(parent as HTMLElement) as DomContainer;
   container.$serverData$ = opts.serverData || {};
-  const host: HostElement = container.rootVNode as fixMeAny;
+  const host = container.rootVNode;
   container.$scheduler$(ChoreType.NODE_DIFF, host, host, jsxNode as JSXNode);
   await container.$scheduler$(ChoreType.WAIT_FOR_ALL);
   return {

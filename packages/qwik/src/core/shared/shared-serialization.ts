@@ -49,7 +49,7 @@ import {
 } from '../signal/store';
 import type { Subscriber } from '../signal/signal-subscriber';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
-import type { DeserializeContainer, HostElement, fixMeAny } from './types';
+import type { DeserializeContainer, HostElement } from './types';
 
 const deserializedProxyMap = new WeakMap<object, unknown>();
 
@@ -1129,7 +1129,9 @@ function deserializeSignal2(
   }
   if (readQrl) {
     const computedSignal = signal as ComputedSignal<any>;
-    computedSignal.$computeQrl$ = inflateQRL(container, parseQRL(parts[idx++])) as fixMeAny;
+    computedSignal.$computeQrl$ = inflateQRL(container, parseQRL(parts[idx++])) as QRLInternal<
+      () => any
+    >;
   }
   let signalValue = container.$getObjectById$(parts[idx++]);
   if (vnode_isVNode(signalValue)) {

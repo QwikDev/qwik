@@ -10,7 +10,7 @@ import { JSXNodeImpl, isJSXNode } from './jsx/jsx-runtime';
 import type { JSXNode, JSXOutput } from './jsx/types/jsx-node';
 import type { KnownEventNames } from './jsx/types/jsx-qwik-events';
 import { isQrl, type QRLInternal } from './qrl/qrl-class';
-import type { Container, HostElement, fixMeAny } from './types';
+import type { Container, HostElement } from './types';
 import { EMPTY_OBJ } from './utils/flyweight';
 import { logWarn } from './utils/log';
 import {
@@ -52,12 +52,7 @@ export const executeComponent = (
   componentQRL: OnRenderFn<unknown> | QRLInternal<OnRenderFn<unknown>> | null,
   props: Record<string, unknown> | null
 ): ValueOrPromise<JSXOutput> => {
-  const iCtx = newInvokeContext(
-    container.$locale$,
-    subscriptionHost as fixMeAny,
-    undefined,
-    RenderEvent
-  );
+  const iCtx = newInvokeContext(container.$locale$, subscriptionHost, undefined, RenderEvent);
   iCtx.$effectSubscriber$ = [subscriptionHost, EffectProperty.COMPONENT];
   iCtx.$container$ = container;
   let componentFn: (props: unknown) => ValueOrPromise<JSXOutput>;

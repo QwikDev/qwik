@@ -49,6 +49,7 @@ import {
   QInstanceAttr,
   escapeHTML,
   Q_PROPS_SEPARATOR,
+  logWarn,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -989,7 +990,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
               allowedContent(previousTagNesting)[0]
             }.`
           );
-          throw newTagError(text.join('\n'));
+          logWarn('SsrError(tag): ' + text.join('\n'));
         }
       }
     }
@@ -1119,10 +1120,6 @@ const isQwikStyleElement = (tag: string, attrs: SsrAttrs | null | undefined) => 
   }
   return false;
 };
-
-function newTagError(text: string) {
-  return new Error('SsrError(tag): ' + text);
-}
 
 function hasDestroy(obj: any): obj is { $destroy$(): void } {
   return obj && typeof obj === 'object' && typeof obj.$destroy$ === 'function';

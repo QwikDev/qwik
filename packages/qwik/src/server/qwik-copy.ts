@@ -56,3 +56,4 @@ export { VNodeDataChar } from '../core/shared/vnode-data-types';
 export { VNodeDataSeparator } from '../core/shared/vnode-data-types';
 export { escapeHTML } from '../core/shared/utils/character-escaping';
 export { getValidManifest } from '../optimizer/src/manifest';
+export { logWarn } from '../core/shared/utils/log';

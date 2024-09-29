@@ -1,3 +1,5 @@
+/** There's [documentation](./serialization.md) */
+
 import { isDev } from '../../build/index.dev';
 import type { StreamWriter } from '../../server/types';
 import { SERIALIZABLE_STATE, componentQrl, isQwikComponent } from './component.public';
@@ -30,7 +32,7 @@ import { ELEMENT_ID } from './utils/markers';
 import { isPromise } from './utils/promises';
 import { isSerializableObject, type ValueOrPromise } from './utils/types';
 import { type DomContainer } from '../client/dom-container';
-import { vnode_getNode, vnode_isVNode, vnode_locate } from '../client/vnode';
+import { vnode_isVNode, vnode_locate } from '../client/vnode';
 import {
   ComputedSignal,
   WrappedSignal,
@@ -38,20 +40,21 @@ import {
   Signal,
   type EffectSubscriptions,
   EffectData,
+  NEEDS_COMPUTATION,
 } from '../signal/signal';
 import {
   STORE_ARRAY_PROP,
   createStore,
   getStoreHandler,
-  getStoreTarget,
   isStore,
   unwrapStore,
 } from '../signal/store';
 import type { Subscriber } from '../signal/signal-subscriber';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { DeserializeContainer, HostElement } from './types';
+import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
 
-const deserializedProxyMap = new WeakMap<object, unknown>();
+const deserializedProxyMap = new WeakMap<object, unknown[]>();
 
 type DeserializerProxy<T extends object = object> = T & { [SERIALIZER_PROXY_UNWRAP]: object };
 
@@ -68,129 +71,73 @@ export const isDeserializerProxy = (value: unknown): value is DeserializerProxy 
 };
 
 export const SERIALIZER_PROXY_UNWRAP = Symbol('UNWRAP');
-export const wrapDeserializerProxy = (container: DomContainer, value: unknown) => {
+/** Call this on the serialized root state */
+export const wrapDeserializerProxy = (container: DomContainer, data: unknown): unknown[] => {
   if (
-    typeof value === 'object' && // Must be an object
-    value !== null && // which is not null
-    isObjectLiteral(value) && // and is object literal (not URL, Data, etc.)
-    !vnode_isVNode(value) // and is not a VNode or Slot
+    !Array.isArray(data) || // must be an array
+    vnode_isVNode(data) || // and not a VNode or Slot
+    isDeserializerProxy(data) // and not already wrapped
   ) {
-    if (isDeserializerProxy(value)) {
-      // already wrapped
-      return value;
-    } else {
-      let proxy = deserializedProxyMap.get(value);
-      if (!proxy) {
-        proxy = new Proxy(value, new DeserializationHandler(container));
-        deserializedProxyMap.set(value, proxy);
-      }
-      return proxy;
-    }
+    return data as any;
   }
-  return value;
+  let proxy = deserializedProxyMap.get(data);
+  if (!proxy) {
+    const target = Array(data.length / 2).fill(undefined);
+    proxy = new Proxy(target, new DeserializationHandler(container, data)) as unknown[];
+    deserializedProxyMap.set(data, proxy);
+  }
+  return proxy;
 };
 
 class DeserializationHandler implements ProxyHandler<object> {
-  constructor(private $container$: DomContainer) {}
+  constructor(
+    public $container$: DomContainer,
+    public $data$: unknown[]
+  ) {}
 
-  get(target: object, property: PropertyKey, receiver: object) {
+  public $length$ = this.$data$.length / 2;
+
+  get(target: unknown[], property: PropertyKey, receiver: object) {
     if (property === SERIALIZER_PROXY_UNWRAP) {
+      // Note that this will only be partially filled in
       return target;
     }
-    if (getStoreTarget(target) !== undefined) {
-      /**
-       * If we modify string value by for example `+=` operator, we need to get the old value first.
-       * If the target is a store proxy, we need to unwrap it and get the real object. This is
-       * because if we try to get the value, we will get deserialized value which is not what we
-       * want in case of string.
-       *
-       * For strings we always assume that they are not deserialized (cached), so we need to get the
-       * real value. The reason is that if we have a string which starts with a serialization
-       * constant character, we need to have the SerializationConstant.String_CHAR prefix character.
-       * Otherwise the system will try to deserialize the value again.
-       */
-      const unwrapped = unwrapDeserializerProxy(unwrapStore(target)) as object;
-      const unwrappedPropValue = Reflect.get(unwrapped, property, receiver);
-      if (
-        typeof unwrappedPropValue === 'string' &&
-        unwrappedPropValue.length >= 1 &&
-        unwrappedPropValue.charCodeAt(0) === SerializationConstant.String_VALUE
-      ) {
-        return allocate(unwrappedPropValue);
-      }
+    const i =
+      typeof property === 'number'
+        ? property
+        : typeof property === 'string'
+          ? parseInt(property as string, 10)
+          : NaN;
+    if (Number.isNaN(i) || i < 0 || i >= this.$length$) {
+      const out = Reflect.get(target, property, receiver);
+      return out;
     }
-    let propValue = Reflect.get(target, property, receiver);
-    let typeCode: number;
-    if (
-      typeof propValue === 'string' &&
-      propValue.length >= 1 &&
-      (typeCode = propValue.charCodeAt(0)) < SerializationConstant.LAST_VALUE
-    ) {
-      const container = this.$container$;
-      // It is a value which needs to be deserialized.
-      const serializedValue = propValue;
-      if (typeCode === SerializationConstant.REFERENCE_VALUE) {
-        // Special case of Reference, we don't go through allocation/inflation
-        propValue = unwrapDeserializerProxy(
-          container.$getObjectById$(parseInt(propValue.substring(1)))
-        );
-      } else if (typeCode === SerializationConstant.VNode_VALUE) {
-        // Special case of VNode, we go directly to VNode to retrieve the element.
-        propValue =
-          propValue === SerializationConstant.VNode_CHAR
-            ? container.element.ownerDocument
-            : vnode_locate(container.rootVNode, propValue.substring(1));
-      } else if (typeCode === SerializationConstant.Store_VALUE) {
-        propValue = deserializeStore2(container, propValue);
-      } else if (typeCode === SerializationConstant.WrappedSignal_VALUE && !Array.isArray(target)) {
-        // Special case of derived signal. We need to create a [_CONST_PROPS] property.
-        return wrapDeserializerProxy(
-          container,
-          upgradePropsWithDerivedSignal(container, target, property)
-        );
-      } else {
-        propValue = allocate(propValue);
-      }
-      if (
-        typeof propValue !== 'string' ||
-        (propValue.length > 0 && propValue.charCodeAt(0) >= SerializationConstant.LAST_VALUE)
-      ) {
-        /**
-         * So we want to cache the value so that we don't have to deserialize it again AND so that
-         * deserialized object identity does not change.
-         *
-         * Unfortunately, there is a corner case! The deserialized value might be a string which
-         * looks like a serialized value, so in that rare case we will not cache the value. But it
-         * is OK because even thought the identity of string may change on deserialization, the
-         * value string equality will not change.
-         */
-        Reflect.set(target, property, propValue, receiver);
-        /** After we set the value we can now inflate the value if needed. */
-        if (typeCode >= SerializationConstant.Error_VALUE) {
-          inflate(container, propValue, serializedValue);
-        }
-      }
+    // The serialized data is an array with 2 values for each item
+    const idx = i * 2;
+    const typeId = this.$data$[idx] as number;
+    const value = this.$data$[idx + 1];
+    if (typeId === undefined) {
+      // The value is already cached
+      return value;
     }
-    propValue = wrapDeserializerProxy(this.$container$, propValue);
-    return propValue;
-  }
+    // TODO do we need this?
+    // if (typeId === TypeIds.WrappedSignal && this.isObject) {
+    //   // Special case of derived signal. We need to create a [_CONST_PROPS] property.
+    //   return wrapDeserializerProxy(
+    //     container,
+    //     upgradePropsWithDerivedSignal(container, target, property)
+    //   );
 
-  set(target: object, property: string | symbol, newValue: any, receiver: any): boolean {
-    /**
-     * If we are setting a value which is a string and starts with a special character, we need to
-     * prefix it with a SerializationConstant character to indicate that it is a string.
-     *
-     * Without this later (when getting the value) we would try to deserialize the value incorrectly
-     * due to the special character at the start.
-     */
-    if (
-      typeof newValue === 'string' &&
-      newValue.length >= 1 &&
-      newValue.charCodeAt(0) < SerializationConstant.LAST_VALUE
-    ) {
-      return Reflect.set(target, property, SerializationConstant.String_CHAR + newValue, receiver);
+    const container = this.$container$;
+    const propValue = allocate(container, typeId, value);
+    Reflect.set(target, property, propValue);
+    this.$data$[idx] = undefined;
+    this.$data$[idx + 1] = propValue;
+    /** We stored the reference, so now we can inflate, allowing cycles. */
+    if (typeId >= TypeIds.Error) {
+      inflate(container, propValue, typeId, value);
     }
-    return Reflect.set(target, property, newValue, receiver);
+    return propValue;
   }
 
   has(target: object, property: PropertyKey) {
@@ -198,6 +145,21 @@ class DeserializationHandler implements ProxyHandler<object> {
       return true;
     }
     return Object.prototype.hasOwnProperty.call(target, property);
+  }
+
+  set(target: object, property: PropertyKey, value: any, receiver: object) {
+    if (property === SERIALIZER_PROXY_UNWRAP) {
+      return false;
+    }
+    const out = Reflect.set(target, property, value, receiver);
+    const i = typeof property === 'number' ? property : parseInt(property as string, 10);
+    if (Number.isNaN(i) || i < 0 || i >= this.$data$.length / 2) {
+      return out;
+    }
+    const idx = i * 2;
+    this.$data$[idx] = undefined;
+    this.$data$[idx + 1] = value;
+    return true;
   }
 }
 
@@ -237,21 +199,24 @@ function upgradePropsWithDerivedSignal(
   property: string | symbol | number
 ): any {
   const immutable: Record<string, WrappedSignal<unknown>> = {};
+  // TODO
   for (const key in target) {
     if (Object.prototype.hasOwnProperty.call(target, key)) {
       const value = target[key];
-      if (
-        typeof value === 'string' &&
-        value.charCodeAt(0) === SerializationConstant.WrappedSignal_VALUE
-      ) {
-        const wrappedSignal = (immutable[key] = allocate(value) as WrappedSignal<unknown>);
+      if (typeof value === 'string' && value.charCodeAt(0) === TypeIds.WrappedSignal) {
+        const wrappedSignal = (immutable[key] = allocate(
+          container,
+          TypeIds.WrappedSignal,
+          value
+        ) as WrappedSignal<unknown>);
         Object.defineProperty(target, key, {
           get() {
             return wrappedSignal.value;
           },
           enumerable: true,
         });
-        inflate(container, wrappedSignal, value);
+        // TODO
+        inflate(container, wrappedSignal, TypeIds.WrappedSignal, value);
       }
     }
   }
@@ -259,244 +224,314 @@ function upgradePropsWithDerivedSignal(
   return target[property];
 }
 
-const restStack: Array<number | string> = [];
-let rest: string = null!;
-let restIdx: number;
-const restInt = () => {
-  return parseInt(restString());
+/**
+ * Restores an array eagerly. If you need it lazily, use `deserializeData(container, TypeIds.Array,
+ * array)` instead
+ */
+export const _eagerDeserializeArray = (
+  container: DeserializeContainer,
+  data: unknown[]
+): unknown[] => {
+  const out = Array(data.length / 2);
+  for (let i = 0; i < data.length; i += 2) {
+    out[i / 2] = deserializeData(container, data[i] as TypeIds, data[i + 1]);
+  }
+  return out;
 };
 
-const restString = () => {
-  const start = restIdx;
-  const length = rest.length;
-  let depth = 0;
-  let ch: number;
-  do {
-    if (restIdx < length) {
-      ch = rest.charCodeAt(restIdx++);
-      if (ch === 91 /* [ */) {
-        depth++;
-      } else if (ch === 93 /* ] */) {
-        depth--;
+const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
+
+const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, data: unknown) => {
+  if (typeId === undefined) {
+    // Already processed
+    return;
+  }
+  // restore the complex data, except for plain objects
+  if (typeId !== TypeIds.Object && Array.isArray(data)) {
+    data = _eagerDeserializeArray(container, data);
+  }
+  switch (typeId) {
+    case TypeIds.Object:
+      // We use getters for making complex values lazy
+      for (let i = 0; i < (data as any[]).length; i += 4) {
+        const key = deserializeData(
+          container,
+          (data as any[])[i] as TypeIds,
+          (data as any[])[i + 1]
+        );
+        const valType = (data as TypeIds[])[i + 2];
+        const valData = (data as any[])[i + 3];
+        if (valType === TypeIds.RootRef || valType >= TypeIds.Error) {
+          Object.defineProperty(target, key, {
+            get() {
+              return deserializeData(container, valType, valData);
+            },
+            enumerable: true,
+          });
+        } else {
+          target[key] = deserializeData(container, valType, valData);
+        }
       }
-    } else {
-      restIdx = length + 1;
       break;
-    }
-  } while (depth > 0 || ch !== 32 /* space */);
-  return rest.substring(start, restIdx - 1);
-};
-
-const inflate = (container: DeserializeContainer, target: any, needsInflationData: string) => {
-  restStack.push(rest, restIdx);
-  rest = needsInflationData;
-  restIdx = 1;
-  switch (needsInflationData.charCodeAt(0)) {
-    case SerializationConstant.QRL_VALUE:
+    case TypeIds.QRL:
       inflateQRL(container, target);
       break;
-    case SerializationConstant.Task_VALUE:
+    case TypeIds.Task:
       const task = target as Task;
-      task.$flags$ = restInt();
-      task.$index$ = restInt();
-      task.$el$ = container.$getObjectById$(restInt()) as HostElement;
-      task.$effectDependencies$ = container.$getObjectById$(restInt()) as Subscriber[] | null;
-      task.$qrl$ = inflateQRL(container, parseQRL(restString()));
-      const taskState = restString();
-      task.$state$ = taskState
-        ? (container.$getObjectById$(taskState) as Signal<unknown>)
-        : undefined;
+      const v = data as any[];
+      task.$qrl$ = v[0];
+      task.$flags$ = v[1];
+      task.$index$ = v[2];
+      task.$el$ = v[3] as HostElement;
+      task.$effectDependencies$ = v[4] as Subscriber[] | null;
+      task.$state$ = v[5];
       break;
-    case SerializationConstant.Resource_VALUE:
+    case TypeIds.Resource:
       return throwErrorAndStop('Not implemented');
-    case SerializationConstant.Component_VALUE:
+    case TypeIds.Component:
       inflateQRL(container, target[SERIALIZABLE_STATE][0]);
       break;
-    case SerializationConstant.Store_VALUE:
+    case TypeIds.Store:
       break;
-    case SerializationConstant.Signal_VALUE:
-      deserializeSignal2(target as Signal<unknown>, container, rest, false, false);
+    case TypeIds.Signal: {
+      const signal = target as Signal<unknown>;
+      const d = data as [unknown, ...any[]];
+      signal.$untrackedValue$ = d[0];
+      signal.$effects$ = d.slice(1);
       break;
-    case SerializationConstant.WrappedSignal_VALUE:
-      deserializeSignal2(target as Signal<unknown>, container, rest, true, false);
+    }
+    case TypeIds.WrappedSignal: {
+      const signal = target as WrappedSignal<unknown>;
+      const d = data as [number, unknown[], Subscriber[], unknown, ...any[]];
+      signal.$func$ = container.getSyncFn(d[0]);
+      signal.$args$ = d[1];
+      signal.$effectDependencies$ = d[2];
+      signal.$untrackedValue$ = d[3];
+      signal.$effects$ = d.slice(4);
       break;
-    case SerializationConstant.ComputedSignal_VALUE:
-      deserializeSignal2(target as Signal<unknown>, container, rest, false, true);
+    }
+    case TypeIds.ComputedSignal: {
+      const computed = target as ComputedSignal<unknown>;
+      const d = data as [QRLInternal<() => {}>, unknown, boolean, ...any[]];
+      computed.$computeQrl$ = d[0];
+      computed.$untrackedValue$ = d[1];
+      computed.$invalid$ = d[2];
+      computed.$effects$ = d.slice(3);
       break;
-    case SerializationConstant.Error_VALUE:
-      Object.assign(target, container.$getObjectById$(restInt()));
-      break;
-    case SerializationConstant.FormData_VALUE:
-      const formData = target as FormData;
-      for (const [key, value] of container.$getObjectById$(restInt()) as Array<[string, string]>) {
-        formData.append(key, value);
-      }
-      break;
-    case SerializationConstant.JSXNode_VALUE:
-      const jsx = target as JSXNodeImpl<unknown>;
-      jsx.type = deserializeJSXType(container, restString());
-      jsx.varProps = container.$getObjectById$(restInt()) as any;
-      jsx.constProps = container.$getObjectById$(restInt()) as any;
-      jsx.children = container.$getObjectById$(restInt()) as any;
-      jsx.flags = restInt();
-      jsx.key = restString() || null;
-      break;
-    case SerializationConstant.Set_VALUE:
-      const set = target as Set<unknown>;
-      const setValues = container.$getObjectById$(restInt()) as Array<unknown>;
-      for (let i = 0; i < setValues.length; i++) {
-        set.add(setValues[i]);
-      }
-      break;
-    case SerializationConstant.Map_VALUE:
-      const map = target as Map<unknown, unknown>;
-      const mapKeyValue = container.$getObjectById$(restInt()) as Array<unknown>;
-      for (let i = 0; i < mapKeyValue.length; ) {
-        map.set(mapKeyValue[i++], mapKeyValue[i++]);
-      }
-      break;
-    case SerializationConstant.Promise_VALUE:
-      const promise = target as QPromise;
-      const id = restInt();
-      if (id >= 0) {
-        promise[PROMISE_RESOLVE](container.$getObjectById$(id));
+    }
+    case TypeIds.Error: {
+      const d = data as unknown[];
+      target.message = d[0];
+      const second = d[1];
+      if (second && Array.isArray(second)) {
+        for (let i = 0; i < second.length; i++) {
+          target[second[i++]] = d[i];
+        }
+        target.stack = d[2];
       } else {
-        promise[PROMISE_REJECT](container.$getObjectById$(~id));
+        target.stack = second;
       }
       break;
-    case SerializationConstant.Uint8Array_VALUE:
+    }
+    case TypeIds.FormData: {
+      const formData = target as FormData;
+      const d = data as any[];
+      for (let i = 0; i < d.length; i++) {
+        formData.append(d[i++], d[i]);
+      }
+      break;
+    }
+    case TypeIds.JSXNode: {
+      const jsx = target as JSXNodeImpl<unknown>;
+      const [type, varProps, constProps, children, flags, key] = data as any[];
+      jsx.type = type;
+      jsx.varProps = varProps;
+      jsx.constProps = constProps;
+      jsx.children = children;
+      jsx.flags = flags;
+      jsx.key = key;
+      break;
+    }
+    case TypeIds.Set: {
+      const set = target as Set<unknown>;
+      const d = data as any[];
+      for (let i = 0; i < d.length; i++) {
+        set.add(d[i]);
+      }
+      break;
+    }
+    case TypeIds.Map: {
+      const map = target as Map<unknown, unknown>;
+      const d = data as any[];
+      for (let i = 0; i < d.length; i++) {
+        map.set(d[i++], d[i]);
+      }
+      break;
+    }
+    case TypeIds.Promise: {
+      const promise = target as Promise<unknown>;
+      const [resolved, result] = data as [boolean, unknown];
+      const [resolve, reject] = resolvers.get(promise)!;
+      if (resolved) {
+        resolve(result);
+      } else {
+        reject(result);
+      }
+      break;
+    }
+    case TypeIds.Uint8Array:
       const bytes = target as Uint8Array;
-      const buf = atob(restString());
+      const buf = atob(data as string);
       let i = 0;
       for (const s of buf) {
         bytes[i++] = s.charCodeAt(0);
       }
       break;
-    case SerializationConstant.PropsProxy_VALUE:
+    case TypeIds.PropsProxy:
       const propsProxy = target as any;
-      propsProxy[_VAR_PROPS] = container.$getObjectById$(restInt()) as any;
-      propsProxy[_CONST_PROPS] = container.$getObjectById$(restInt()) as any;
+      propsProxy[_VAR_PROPS] = (data as any)[0];
+      propsProxy[_CONST_PROPS] = (data as any)[1];
       break;
     default:
       return throwErrorAndStop('Not implemented');
   }
-  restIdx = restStack.pop() as number;
-  rest = restStack.pop() as string;
 };
 
-const allocate = <T>(value: string): any => {
-  switch (value.charCodeAt(0)) {
-    case SerializationConstant.UNDEFINED_VALUE:
-      return undefined;
-    case SerializationConstant.QRL_VALUE:
-      return parseQRL(value);
-    case SerializationConstant.Task_VALUE:
+const constants = [
+  undefined,
+  null,
+  true,
+  false,
+  NaN,
+  Infinity,
+  -Infinity,
+  '',
+  EMPTY_ARRAY,
+  EMPTY_OBJ,
+  NEEDS_COMPUTATION,
+  Slot,
+  Fragment,
+] as const;
+const allocate = <T>(container: DeserializeContainer, typeId: number, value: unknown): any => {
+  if (value === undefined) {
+    // When a value was already processed, the result is stored in type
+    return typeId;
+  }
+  switch (typeId) {
+    case TypeIds.RootRef:
+      return container.$getObjectById$(value as number);
+    case TypeIds.Constant:
+      return constants[value as Constants];
+    case TypeIds.Number:
+      return value as number;
+    case TypeIds.Array:
+      return wrapDeserializerProxy(container as any, value as any[]);
+    case TypeIds.Object:
+      return {};
+    case TypeIds.QRL:
+      return parseQRL(value as any[]);
+    case TypeIds.Task:
       return new Task(-1, -1, null!, null!, null!, null);
-    case SerializationConstant.Resource_VALUE:
+    case TypeIds.Resource:
       return throwErrorAndStop('Not implemented');
-    case SerializationConstant.URL_VALUE:
-      return new URL(value.substring(1));
-    case SerializationConstant.Date_VALUE:
-      return new Date(value.substring(1));
-    case SerializationConstant.Regex_VALUE:
-      const idx = value.lastIndexOf('/');
-      return new RegExp(value.substring(2, idx), value.substring(idx + 1));
-    case SerializationConstant.Error_VALUE:
+    case TypeIds.URL:
+      return new URL(value as string);
+    case TypeIds.Date:
+      return new Date(value as string);
+    case TypeIds.Regex:
+      const idx = (value as string).lastIndexOf('/');
+      return new RegExp((value as string).slice(1, idx), (value as string).slice(idx + 1));
+    case TypeIds.Error:
       return new Error();
-    case SerializationConstant.Component_VALUE:
-      return componentQrl(parseQRL(value) as any);
-    case SerializationConstant.Signal_VALUE:
-      return new Signal(null!, 0);
-    case SerializationConstant.WrappedSignal_VALUE:
-      return new WrappedSignal(null!, null!, null!, null!);
-    case SerializationConstant.ComputedSignal_VALUE:
-      return new ComputedSignal(null!, null!);
-    case SerializationConstant.NotFinite_VALUE:
-      const type = value.substring(1);
-      const isNaN = type.length === 0;
-      if (isNaN) {
-        return Number.NaN;
-      } else {
-        const isNegativeInfinity = type === '-';
-        return isNegativeInfinity ? -Infinity : Infinity;
-      }
-    case SerializationConstant.URLSearchParams_VALUE:
-      return new URLSearchParams(value.substring(1));
-    case SerializationConstant.FormData_VALUE:
+    case TypeIds.Component:
+      return componentQrl(parseQRL(value as any) as any);
+    case TypeIds.Signal:
+      return new Signal(container as any, 0);
+    case TypeIds.WrappedSignal:
+      return new WrappedSignal(container as any, null!, null!, null!);
+    case TypeIds.ComputedSignal:
+      return new ComputedSignal(container as any, null!);
+    case TypeIds.Store:
+      return deserializeStore2(container as any, value as unknown[]);
+    case TypeIds.URLSearchParams:
+      return new URLSearchParams(value as string);
+    case TypeIds.FormData:
       return new FormData();
-    case SerializationConstant.JSXNode_VALUE:
+    case TypeIds.JSXNode:
       return new JSXNodeImpl(null!, null!, null!, null!, -1, null);
-    case SerializationConstant.BigInt_VALUE:
-      return BigInt(value.substring(1));
-    case SerializationConstant.Set_VALUE:
+    case TypeIds.BigInt:
+      return BigInt(value as string);
+    case TypeIds.Set:
       return new Set();
-    case SerializationConstant.Map_VALUE:
+    case TypeIds.Map:
       return new Map();
-    case SerializationConstant.String_VALUE:
-      return value.substring(1);
-    case SerializationConstant.Promise_VALUE:
+    case TypeIds.String:
+      return value as string;
+    case TypeIds.Promise:
       let resolve!: (value: any) => void;
       let reject!: (error: any) => void;
       const promise = new Promise((res, rej) => {
         resolve = res;
         reject = rej;
-      }) as QPromise;
-      promise[PROMISE_RESOLVE] = resolve;
-      promise[PROMISE_REJECT] = reject;
+      });
+      resolvers.set(promise, [resolve, reject]);
       return promise;
-    case SerializationConstant.Uint8Array_VALUE:
-      const encodedLength = value.length - 1;
+    case TypeIds.Uint8Array:
+      const encodedLength = (value as string).length;
       const blocks = encodedLength >>> 2;
       const rest = encodedLength & 3;
       const decodedLength = blocks * 3 + (rest ? rest - 1 : 0);
       return new Uint8Array(decodedLength);
-    case SerializationConstant.PropsProxy_VALUE:
+    case TypeIds.PropsProxy:
       return createPropsProxy(null!, null);
+    case TypeIds.VNode:
+      // Retrieve the VNode from the container
+      return value
+        ? (container as any).rootVNode
+          ? vnode_locate((container as any).rootVNode, value as string)
+          : undefined
+        : container.element?.ownerDocument;
+
     default:
-      return throwErrorAndStop('unknown allocate type: ' + value.charCodeAt(0));
+      return throwErrorAndStop('unknown allocate type: ' + typeId);
   }
 };
 
-interface QPromise extends Promise<unknown> {
-  [PROMISE_RESOLVE]: (value: any) => void;
-  [PROMISE_REJECT]: (error: any) => void;
-}
-
-const PROMISE_RESOLVE = Symbol('resolve');
-const PROMISE_REJECT = Symbol('reject');
-
-export function parseQRL(qrl: string): QRLInternal<any> {
+function parseQRLString(qrl: string) {
   const hashIdx = qrl.indexOf('#');
   const captureStart = qrl.indexOf('[', hashIdx);
   const captureEnd = qrl.indexOf(']', captureStart);
-  const chunk =
-    hashIdx > -1
-      ? qrl.substring(qrl.charCodeAt(0) < SerializationConstant.LAST_VALUE ? 1 : 0, hashIdx)
-      : qrl.substring(0, captureStart);
+  const chunk = hashIdx > -1 ? qrl.slice(0, hashIdx) : qrl.slice(0, captureStart);
 
-  const symbol =
-    captureStart > -1 ? qrl.substring(hashIdx + 1, captureStart) : qrl.substring(hashIdx + 1);
-  let qrlRef = null;
+  const symbol = captureStart > -1 ? qrl.slice(hashIdx + 1, captureStart) : qrl.slice(hashIdx + 1);
   const captureIds =
     captureStart > -1 && captureEnd > -1
       ? qrl
-          .substring(captureStart + 1, captureEnd)
+          .slice(captureStart + 1, captureEnd)
           .split(' ')
           .filter((v) => v.length)
-      : null;
+      : undefined;
+  return [chunk, symbol, captureIds] as const;
+}
+export function parseQRL(qrl: any[] | string): QRLInternal<any> {
+  let chunk, symbol, captureIds;
+  if (typeof qrl === 'string') {
+    [chunk, symbol, captureIds] = parseQRLString(qrl);
+  } else {
+    [chunk, symbol, ...captureIds] = _eagerDeserializeArray(null!, qrl) as any[];
+  }
+  let qrlRef = null;
   if (isDev && chunk === QRL_RUNTIME_CHUNK) {
     const backChannel: Map<string, Function> = (globalThis as any)[QRL_RUNTIME_CHUNK];
     assertDefined(backChannel, 'Missing QRL_RUNTIME_CHUNK');
     qrlRef = backChannel.get(symbol);
   }
-  return createQRL(chunk, symbol, qrlRef, null, captureIds, null, null);
+  return createQRL(chunk, symbol, qrlRef, null, captureIds?.length ? captureIds : null, null, null);
 }
 
 export function inflateQRL(container: DeserializeContainer, qrl: QRLInternal<any>) {
   const captureIds = qrl.$capture$;
-  qrl.$captureRef$ = captureIds
-    ? captureIds.map((id) => container.$getObjectById$(parseInt(id)))
-    : null;
+  qrl.$captureRef$ = captureIds ? captureIds.map((id) => container.$getObjectById$(id)) : null;
   if (container.element) {
     qrl.$setContainer$(container.element);
   }
@@ -517,8 +552,8 @@ export interface SerializationContext {
    * `objMap` return:
    *
    * - `>=0` - index of the object in `objRoots`.
-   * - `Number.MIN_SAFE_INTEGER` - object has been seen, only once, and therefor does not need to be
-   *   promoted into a root yet.
+   * - `-1` - object has been seen, only once, and therefore does not need to be promoted into a root
+   *   yet.
    */
   $wasSeen$: (obj: unknown) => number | undefined;
 
@@ -587,10 +622,10 @@ export const createSerializationContext = (
   const syncFns: string[] = [];
   const roots: any[] = [];
   const $wasSeen$ = (obj: any) => map.get(obj);
-  const $seen$ = (obj: any) => map.set(obj, Number.MIN_SAFE_INTEGER);
+  const $seen$ = (obj: any) => map.set(obj, -1);
   const $addRoot$ = (obj: any) => {
     let id = map.get(obj);
-    if (typeof id !== 'number' || id === Number.MIN_SAFE_INTEGER) {
+    if (typeof id !== 'number' || id === -1) {
       id = roots.length;
       map.set(obj, id);
       roots.push(obj);
@@ -609,13 +644,13 @@ export const createSerializationContext = (
     $seen$,
     $hasRootId$: (obj: any) => {
       const id = map.get(obj);
-      return id === undefined || id === Number.MIN_SAFE_INTEGER ? undefined : id;
+      return id === undefined || id === -1 ? undefined : id;
     },
     $addRoot$,
     $getRootId$: (obj: any) => {
       const id = map.get(obj);
-      if (!id || id === Number.MIN_SAFE_INTEGER) {
-        throw throwErrorAndStop('Missing root id for: ' + obj);
+      if (!id || id === -1) {
+        return throwErrorAndStop('Missing root id for: ' + obj);
       }
       return id;
     },
@@ -642,21 +677,7 @@ export const createSerializationContext = (
       return id;
     },
     $writer$: writer,
-    $breakCircularDepsAndAwaitPromises$: () => {
-      const promises: Promise<unknown>[] = [];
-      /// As `breakCircularDependencies` it is adding new roots
-      /// But we don't need te re-scan them.
-      const objRootsLength = roots.length;
-      for (let i = 0; i < objRootsLength; i++) {
-        breakCircularDependenciesAndResolvePromises(roots[i], promises);
-      }
-      const drain: () => ValueOrPromise<void> = () => {
-        if (promises.length) {
-          return Promise.allSettled(promises).then(drain, drain);
-        }
-      };
-      return drain();
-    },
+    $breakCircularDepsAndAwaitPromises$: breakCircularDependenciesAndResolvePromises,
     $eventQrls$: new Set<QRL>(),
     $eventNames$: new Set<string>(),
     $resources$: new Set<ResourceReturnInternal<unknown>>(),
@@ -664,196 +685,227 @@ export const createSerializationContext = (
     $setProp$: setProp,
   };
 
-  function breakCircularDependenciesAndResolvePromises(
-    rootObj: unknown,
-    promises: Promise<unknown>[]
-  ) {
+  async function breakCircularDependenciesAndResolvePromises() {
     // As we walk the object graph we insert newly discovered objects which need to be scanned here.
-    const discoveredValues: unknown[] = [rootObj];
-    // discoveredValues.push = (...value: unknown[]) => {
-    //   Array.prototype.push.apply(discoveredValues, value);
-    // };
-    // let count = 100;
-    while (discoveredValues.length) {
-      // if (count-- < 0) {
-      //   throw new Error('INFINITE LOOP');
-      // }
-      const obj = discoveredValues.pop();
-      if (shouldTrackObj(obj) || frameworkType(obj)) {
-        const isRoot = obj === rootObj;
-        // For root objects we pretend we have not seen them to force scan.
-        const id = $wasSeen$(obj);
-        const unwrapObj = unwrapStore(obj);
-        if (id === undefined || isRoot) {
-          // Object has not been seen yet, must scan content
-          // But not for root.
-          !isRoot && $seen$(obj);
-          if (
-            typeof obj !== 'object' ||
-            obj === null ||
-            obj instanceof URL ||
-            obj instanceof Date ||
-            obj instanceof RegExp ||
-            obj instanceof Error ||
-            obj instanceof Date ||
-            obj instanceof Uint8Array ||
-            obj instanceof URLSearchParams ||
-            (typeof FormData !== 'undefined' && obj instanceof FormData)
-          ) {
-            // skip as these are primitives
-          } else if (fastSkipSerialize(obj as object)) {
-            // Ignore the no serialize objects
-          } else if (unwrapObj !== obj) {
-            discoveredValues.push(unwrapObj);
-          } else if (obj instanceof Set) {
-            const contents = Array.from(obj.values());
-            setSerializableDataRootId($addRoot$, obj, contents);
-            discoveredValues.push(...contents);
-          } else if (obj instanceof Map) {
-            const tuples: any[] = [];
-            obj.forEach((v, k) => {
-              tuples.push(k, v);
-              discoveredValues.push(k, v);
-            });
-            setSerializableDataRootId($addRoot$, obj, tuples);
-            discoveredValues.push(tuples);
-          } else if (obj instanceof Signal) {
-            $addRoot$(obj);
-            discoveredValues.push(obj.$untrackedValue$);
-            if (obj.$effects$) {
-              for (const effect of obj.$effects$) {
-                for (let i = 0; i <= effect.length; i++) {
-                  if (i === EffectSubscriptionsProp.PROPERTY) {
-                    // ignore EffectSubscriptions property
-                    continue;
-                  }
-                  const effectData = effect[i];
-                  // ignore current signal, we already added this, prevent infinity loop
-                  if (effectData instanceof Signal && effectData !== obj) {
-                    discoveredValues.push(effect[i]);
-                  }
-                }
-              }
-            }
-            if (obj instanceof WrappedSignal && obj.$effectDependencies$) {
-              discoveredValues.push(obj.$effectDependencies$);
-            }
-            // TODO(mhevery): should scan the QRLs???
-          } else if (obj instanceof Task) {
-            discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$, obj.$effectDependencies$);
-          } else if (NodeConstructor && obj instanceof NodeConstructor) {
-            // ignore the nodes
-            // debugger;
-          } else if (isJSXNode(obj)) {
-            discoveredValues.push(obj.type, obj.props, obj.constProps, obj.children);
-          } else if (Array.isArray(obj)) {
-            discoveredValues.push(...obj);
-          } else if (isQrl(obj)) {
-            obj.$captureRef$ &&
-              obj.$captureRef$.length &&
-              discoveredValues.push(...obj.$captureRef$);
-          } else if (isPropsProxy(obj)) {
-            discoveredValues.push(obj[_VAR_PROPS], obj[_CONST_PROPS]);
-          } else if (isPromise(obj)) {
-            obj.then(
-              (value) => {
-                setSerializableDataRootId($addRoot$, obj as Promise<any>, value);
-                promises.splice(promises.indexOf(obj as Promise<void>), 1);
-              },
-              (error) => {
-                (obj as any)[SERIALIZABLE_ROOT_ID] = ~$addRoot$(error);
-                promises.splice(promises.indexOf(obj as Promise<void>), 1);
-              }
-            );
-            promises.push(obj);
-          } else if (isObjectLiteral(obj)) {
-            for (const key in obj as object) {
-              if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                discoveredValues.push((obj as any)[key]);
-              }
-            }
-          } else {
-            return throwErrorAndStop('Unknown type: ' + obj);
+    const discoveredValues: unknown[] = [];
+    const promises: Promise<unknown>[] = [];
+
+    /** Visit an object, adding anything that will be serialized as to scan */
+    const visit = (obj: unknown) => {
+      if (
+        // skip as these are primitives
+        typeof obj !== 'object' ||
+        obj === null ||
+        obj instanceof URL ||
+        obj instanceof Date ||
+        obj instanceof RegExp ||
+        obj instanceof Error ||
+        obj instanceof Date ||
+        obj instanceof Uint8Array ||
+        obj instanceof URLSearchParams ||
+        (typeof FormData !== 'undefined' && obj instanceof FormData) ||
+        // Ignore the no serialize objects
+        fastSkipSerialize(obj as object)
+      ) {
+        return;
+      }
+      const unwrapObj = unwrapStore(obj);
+      if (unwrapObj !== obj) {
+        discoveredValues.push(unwrapObj);
+      } else if (obj instanceof Set) {
+        discoveredValues.push(...obj.values());
+      } else if (obj instanceof Map) {
+        obj.forEach((v, k) => {
+          discoveredValues.push(k, v);
+        });
+      } else if (obj instanceof Signal) {
+        discoveredValues.push(obj.$untrackedValue$);
+        if (obj.$effects$) {
+          discoveredValues.push(...obj.$effects$);
+        }
+        if (obj instanceof WrappedSignal && obj.$effectDependencies$) {
+          discoveredValues.push(...obj.$effectDependencies$);
+        }
+        // TODO(mhevery): should scan the QRLs???
+      } else if (obj instanceof Task) {
+        discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$, obj.$effectDependencies$);
+      } else if (NodeConstructor && obj instanceof NodeConstructor) {
+        // ignore the nodes
+        // debugger;
+      } else if (isJSXNode(obj)) {
+        discoveredValues.push(obj.type, obj.props, obj.constProps, obj.children);
+      } else if (Array.isArray(obj)) {
+        discoveredValues.push(...obj);
+      } else if (isQrl(obj)) {
+        obj.$captureRef$ && obj.$captureRef$.length && discoveredValues.push(...obj.$captureRef$);
+      } else if (isPropsProxy(obj)) {
+        discoveredValues.push(obj[_VAR_PROPS], obj[_CONST_PROPS]);
+      } else if (isPromise(obj)) {
+        obj.then(
+          (value) => {
+            promiseResults.set(obj, [true, value]);
+            discoveredValues.push(value);
+          },
+          (error) => {
+            promiseResults.set(obj, [false, error]);
+            discoveredValues.push(error);
           }
-        } else if (id === Number.MIN_SAFE_INTEGER) {
-          // We are seeing this object second time => promoted it.
+        );
+        promises.push(obj);
+      } else if (isObjectLiteral(obj)) {
+        Object.entries(obj).forEach(([key, value]) => {
+          discoveredValues.push(key, value);
+        });
+      } else {
+        return throwErrorAndStop('Unknown type: ' + obj);
+      }
+    };
+
+    // Prime the pump with the root objects.
+    for (const root of roots) {
+      visit(root);
+    }
+
+    do {
+      while (discoveredValues.length) {
+        const obj = discoveredValues.pop();
+        if (!(shouldTrackObj(obj) || frameworkType(obj))) {
+          continue;
+        }
+        const id = $wasSeen$(obj);
+        if (id === undefined) {
+          // Object has not been seen yet, must scan content
+          $seen$(obj);
+          visit(obj);
+        } else if (id === -1) {
+          // We are seeing this object second time => promote it.
           $addRoot$(obj);
           // we don't need to scan the children, since we have already seen them.
         }
       }
-    }
+      // We have scanned all the objects, but we still have promises to resolve.
+      await Promise.allSettled(promises);
+      promises.length = 0;
+    } while (discoveredValues.length);
   }
 };
 
-function serialize(serializationContext: SerializationContext): void {
-  const { $writer$, $addRoot$, $NodeConstructor$, $setProp$ } = serializationContext;
-  let depth = -1;
+const promiseResults = new WeakMap<Promise<any>, [boolean, unknown]>();
 
-  const writeString = (text: string) => {
-    text = JSON.stringify(text);
-    let angleBracketIdx: number = -1;
-    let lastIdx = 0;
-    while ((angleBracketIdx = text.indexOf('</', lastIdx)) !== -1) {
-      $writer$.write(text.substring(lastIdx, angleBracketIdx));
-      $writer$.write('<\\/');
-      lastIdx = angleBracketIdx + 2;
+/**
+ * Format:
+ *
+ * - This encodes the $roots$ array.
+ * - The output is a string of comma separated JSON values.
+ * - Even values are always numbers, specifying the type of the next value.
+ * - Odd values are numbers, strings (JSON stringified with `</` escaping) or arrays (same format).
+ * - Therefore root indexes need to be doubled to get the actual index.
+ */
+function serialize(serializationContext: SerializationContext): void {
+  const { $writer$, $NodeConstructor$, $setProp$ } = serializationContext;
+  let depth = -1;
+  // Skip the type for the roots output
+  let writeType = false;
+
+  const output = (type: number, value: number | string | any[]) => {
+    if (writeType) {
+      $writer$.write(`${type},`);
+    } else {
+      writeType = true;
     }
-    $writer$.write(lastIdx === 0 ? text : text.substring(lastIdx));
+    if (typeof value === 'number') {
+      $writer$.write(value.toString());
+    } else if (typeof value === 'string') {
+      const s = JSON.stringify(value);
+      let angleBracketIdx: number = -1;
+      let lastIdx = 0;
+      while ((angleBracketIdx = s.indexOf('</', lastIdx)) !== -1) {
+        $writer$.write(s.slice(lastIdx, angleBracketIdx));
+        $writer$.write('<\\/');
+        lastIdx = angleBracketIdx + 2;
+      }
+      $writer$.write(lastIdx === 0 ? s : s.slice(lastIdx));
+    } else {
+      depth++;
+      $writer$.write('[');
+      let separator = false;
+      for (let i = 0; i < value.length; i++) {
+        if (separator) {
+          $writer$.write(',');
+        } else {
+          separator = true;
+        }
+        writeValue(value[i], i);
+      }
+      $writer$.write(']');
+      depth--;
+    }
   };
 
   const writeValue = (value: unknown, idx: number) => {
     if (fastSkipSerialize(value as object)) {
-      return writeString(SerializationConstant.UNDEFINED_CHAR);
+      output(TypeIds.Constant, Constants.Undefined);
     } else if (typeof value === 'bigint') {
-      return writeString(SerializationConstant.BigInt_CHAR + value.toString());
+      output(TypeIds.BigInt, value.toString());
     } else if (typeof value === 'boolean') {
-      $writer$.write(String(value));
+      output(TypeIds.Constant, value ? Constants.True : Constants.False);
     } else if (typeof value === 'function') {
       if (isQrl(value)) {
-        writeString(SerializationConstant.QRL_CHAR + qrlToString(serializationContext, value));
+        output(TypeIds.QRL, encodeQrl(serializationContext, value));
       } else if (isQwikComponent(value)) {
         const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];
         serializationContext.$renderSymbols$.add(qrl.$symbol$);
-        writeString(SerializationConstant.Component_CHAR + qrlToString(serializationContext, qrl));
+        output(TypeIds.Component, encodeQrl(serializationContext, qrl));
+      } else if (value === Slot) {
+        output(TypeIds.Constant, Constants.Slot);
+      } else if (value === Fragment) {
+        output(TypeIds.Constant, Constants.Fragment);
       } else {
-        // throw new Error('implement: ' + value);
-        writeString(value.toString());
+        throwErrorAndStop('Cannot serialize function: ' + value.toString());
       }
     } else if (typeof value === 'number') {
       if (Number.isNaN(value)) {
-        return writeString(SerializationConstant.NotFinite_CHAR);
+        output(TypeIds.Constant, Constants.NaN);
       } else if (!Number.isFinite(value)) {
-        return writeString(SerializationConstant.NotFinite_CHAR + (value > 0 ? '+' : '-'));
+        output(
+          TypeIds.Constant,
+          value < 0 ? Constants.NegativeInfinity : Constants.PositiveInfinity
+        );
       } else {
-        $writer$.write(String(value));
+        output(TypeIds.Number, value);
       }
     } else if (typeof value === 'object') {
-      depth++;
-      if (value === null) {
-        $writer$.write('null');
+      if (value === EMPTY_ARRAY) {
+        output(TypeIds.Constant, Constants.EMPTY_ARRAY);
+      } else if (value === EMPTY_OBJ) {
+        output(TypeIds.Constant, Constants.EMPTY_OBJ);
       } else {
-        writeObjectValue(value, idx);
+        depth++;
+        if (value === null) {
+          output(TypeIds.Constant, Constants.Null);
+        } else {
+          writeObjectValue(value, idx);
+        }
+        depth--;
       }
-      depth--;
     } else if (typeof value === 'string') {
-      let seenIdx: number | undefined;
-      if (
-        shouldTrackObj(value) &&
-        depth > 0 &&
-        (seenIdx = serializationContext.$hasRootId$(value)) !== undefined
-      ) {
-        assertTrue(seenIdx >= 0, 'seenIdx >= 0');
-        return writeString(SerializationConstant.REFERENCE_CHAR + seenIdx);
-      } else if (value.length > 0 && value.charCodeAt(0) < SerializationConstant.LAST_VALUE) {
-        // We need to escape the first character, because it is a special character.
-        writeString(SerializationConstant.String_CHAR + value);
+      if (value.length === 0) {
+        output(TypeIds.Constant, Constants.EmptyString);
       } else {
-        writeString(value);
+        // TODO reuse DOM text
+        const seen = depth > 1 && serializationContext.$wasSeen$(value);
+        if (typeof seen === 'number' && seen >= 0) {
+          output(TypeIds.RootRef, seen);
+        } else {
+          output(TypeIds.String, value);
+        }
       }
     } else if (typeof value === 'undefined') {
-      writeString(SerializationConstant.UNDEFINED_CHAR);
+      output(TypeIds.Constant, Constants.Undefined);
+    } else if (value === NEEDS_COMPUTATION) {
+      output(TypeIds.Constant, Constants.NEEDS_COMPUTATION);
     } else {
-      return throwErrorAndStop('Unknown type: ' + typeof value);
+      throwErrorAndStop('Unknown type: ' + typeof value);
     }
   };
 
@@ -862,235 +914,176 @@ function serialize(serializationContext: SerializationContext): void {
     // So the first thing to to is to see if we have a circular dependency.
     // (NOTE: For root objects we need to serialize them regardless if we have seen
     //        them before, otherwise the root object reference will point to itself.)
-    const seen = depth <= 1 ? undefined : serializationContext.$wasSeen$(value);
-    if (fastSkipSerialize(value as object)) {
-      writeString(SerializationConstant.UNDEFINED_CHAR);
-    } else if (typeof seen === 'number' && seen >= 0) {
-      // We have seen this object before, so we can serialize it as a reference.
-      // Otherwise serialize as normal
-      writeString(SerializationConstant.REFERENCE_CHAR + seen);
-    } else if (isPropsProxy(value)) {
+    // Also note that depth will be 2 for objects in root
+    if (depth > 2) {
+      const seen = serializationContext.$wasSeen$(value);
+      if (typeof seen === 'number' && seen >= 0) {
+        // We have seen this object before, so we can serialize it as a reference.
+        // Otherwise serialize as normal
+        output(TypeIds.RootRef, seen);
+        return;
+      }
+    }
+    if (isPropsProxy(value)) {
       const varProps = value[_VAR_PROPS];
-      const varId = $addRoot$(varProps);
       const constProps = value[_CONST_PROPS];
-      const constId = $addRoot$(constProps);
-      writeString(SerializationConstant.PropsProxy_CHAR + varId + ' ' + constId);
+      output(TypeIds.PropsProxy, [varProps, constProps]);
     } else if (isStore(value)) {
+      // storeValue, flags, ...effects
       const storeHandler = getStoreHandler(value)!;
-      let store =
-        SerializationConstant.Store_CHAR +
-        $addRoot$(unwrapStore(value)) +
-        ' ' +
-        storeHandler.$flags$;
+      const store: any[] = [unwrapStore(value), storeHandler.$flags$];
       const effects = storeHandler.$effects$;
       if (effects) {
-        let sep = ' ';
         for (const propName in effects) {
-          store += sep + propName + serializeEffectSubs($addRoot$, effects[propName]);
-          sep = '|';
+          store.push(propName, ...serializeEffectSubs(effects[propName]));
         }
         if (effects[STORE_ARRAY_PROP]) {
-          store +=
-            sep +
-            SerializationConstant.UNDEFINED_CHAR +
-            serializeEffectSubs($addRoot$, effects[STORE_ARRAY_PROP]);
+          store.push(undefined, ...serializeEffectSubs(effects[STORE_ARRAY_PROP]));
         }
       }
-      writeString(store);
+      output(TypeIds.Store, store);
     } else if (isObjectLiteral(value)) {
       if (isResource(value)) {
         serializationContext.$resources$.add(value);
       }
-      serializeObjectLiteral(value, $writer$, writeValue, writeString);
+      if (Array.isArray(value)) {
+        output(TypeIds.Array, value);
+      } else {
+        const out: any[] = [];
+        for (const key in value) {
+          if (
+            Object.prototype.hasOwnProperty.call(value, key) &&
+            !fastSkipSerialize((value as any)[key])
+          ) {
+            out.push(key, (value as any)[key]);
+          }
+        }
+        output(TypeIds.Object, out);
+      }
     } else if (value instanceof Signal) {
       if (value instanceof WrappedSignal) {
-        writeString(
-          SerializationConstant.WrappedSignal_CHAR +
-            serializeDerivedFn(serializationContext, value, $addRoot$) +
-            ';' +
-            $addRoot$(value.$effectDependencies$) +
-            ';' +
-            // `.untrackedValue` implicitly calls `$computeIfNeeded$`, which is what we want in case
-            // the signal is not computed yet.
-            $addRoot$(value.untrackedValue) +
-            serializeEffectSubs($addRoot$, value.$effects$)
-        );
+        output(TypeIds.WrappedSignal, [
+          ...serializeDerivedFn(serializationContext, value),
+          value.$effectDependencies$,
+          // `.untrackedValue` implicitly calls `$computeIfNeeded$`, which is what we want in case
+          // the signal is not computed yet.
+          value.untrackedValue,
+          ...serializeEffectSubs(value.$effects$),
+        ]);
       } else if (value instanceof ComputedSignal) {
-        writeString(
-          SerializationConstant.ComputedSignal_CHAR +
-            qrlToString(serializationContext, value.$computeQrl$) +
-            ';' +
-            $addRoot$(value.$untrackedValue$) +
-            serializeEffectSubs($addRoot$, value.$effects$)
-        );
+        output(TypeIds.ComputedSignal, [
+          value.$computeQrl$,
+          value.$untrackedValue$,
+          value.$invalid$,
+          ...serializeEffectSubs(value.$effects$),
+        ]);
       } else {
-        writeString(
-          SerializationConstant.Signal_CHAR +
-            $addRoot$(value.$untrackedValue$) +
-            serializeEffectSubs($addRoot$, value.$effects$)
-        );
+        output(TypeIds.Signal, [value.$untrackedValue$, ...serializeEffectSubs(value.$effects$)]);
       }
     } else if (value instanceof URL) {
-      writeString(SerializationConstant.URL_CHAR + value.href);
+      output(TypeIds.URL, value.href);
     } else if (value instanceof Date) {
-      writeString(SerializationConstant.Date_CHAR + value.toJSON());
+      output(TypeIds.Date, value.toJSON());
     } else if (value instanceof RegExp) {
-      writeString(SerializationConstant.Regex_CHAR + value.toString());
+      output(TypeIds.Regex, value.toString());
     } else if (value instanceof Error) {
-      const errorProps = Object.assign(
-        {
-          message: value.message,
-          /// In production we don't want to leak the stack trace.
-          stack: isDev ? value.stack : '<hidden>',
-        },
-        value
-      );
-      writeString(SerializationConstant.Error_CHAR + $addRoot$(errorProps));
+      const out: any[] = [value.message];
+      const extraProps = Object.entries(value).flat();
+      if (extraProps.length) {
+        out.push(extraProps);
+      }
+      /// In production we don't want to leak the stack trace.
+      if (isDev) {
+        out.push(value.stack);
+      }
+      output(TypeIds.Error, out);
     } else if ($NodeConstructor$ && value instanceof $NodeConstructor$) {
       $setProp$(value, ELEMENT_ID, String(idx));
-      writeString(SerializationConstant.VNode_CHAR + value.id);
+      output(TypeIds.VNode, value.id);
     } else if (typeof FormData !== 'undefined' && value instanceof FormData) {
-      const array: [string, string][] = [];
+      // FormData is generally used only once so don't bother with references
+      const array: string[] = [];
       value.forEach((value, key) => {
         if (typeof value === 'string') {
-          array.push([key, value]);
+          array.push(key, value);
         } else {
-          array.push([key, value.name]);
+          array.push(key, value.name);
         }
       });
-      writeString(SerializationConstant.FormData_CHAR + $addRoot$(array));
+      output(TypeIds.FormData, array);
     } else if (value instanceof URLSearchParams) {
-      writeString(SerializationConstant.URLSearchParams_CHAR + value.toString());
+      output(TypeIds.URLSearchParams, value.toString());
     } else if (value instanceof Set) {
-      writeString(SerializationConstant.Set_CHAR + getSerializableDataRootId(value));
+      output(TypeIds.Set, [...value.values()]);
     } else if (value instanceof Map) {
-      writeString(SerializationConstant.Map_CHAR + getSerializableDataRootId(value));
+      const combined = [];
+      for (const [k, v] of value.entries()) {
+        combined.push(k, v);
+      }
+      output(TypeIds.Map, combined);
     } else if (isJSXNode(value)) {
-      writeString(
-        SerializationConstant.JSXNode_CHAR +
-          serializeJSXType($addRoot$, value.type as string) +
-          ' ' +
-          $addRoot$(value.varProps) +
-          ' ' +
-          $addRoot$(value.constProps) +
-          ' ' +
-          $addRoot$(value.children) +
-          ' ' +
-          value.flags +
-          ' ' +
-          (value.key || '')
-      );
+      output(TypeIds.JSXNode, [
+        value.type,
+        value.varProps,
+        value.constProps,
+        value.children,
+        value.flags,
+        value.key,
+      ]);
     } else if (value instanceof Task) {
-      writeString(
-        SerializationConstant.Task_CHAR +
-          value.$flags$ +
-          ' ' +
-          value.$index$ +
-          ' ' +
-          $addRoot$(value.$el$) +
-          ' ' +
-          $addRoot$(value.$effectDependencies$) +
-          ' ' +
-          qrlToString(serializationContext, value.$qrl$) +
-          (value.$state$ == null ? '' : ' ' + $addRoot$(value.$state$))
-      );
+      const out: unknown[] = [
+        value.$qrl$,
+        value.$flags$,
+        value.$index$,
+        value.$el$,
+        value.$effectDependencies$,
+      ];
+      if (value.$state$) {
+        out.push(value.$state$);
+      }
+      output(TypeIds.Task, out);
     } else if (isPromise(value)) {
-      writeString(SerializationConstant.Promise_CHAR + getSerializableDataRootId(value));
+      const res = promiseResults.get(value);
+      if (!res) {
+        return throwErrorAndStop('Unvisited Promise');
+      }
+      output(TypeIds.Promise, res);
     } else if (value instanceof Uint8Array) {
       let buf = '';
       for (const c of value) {
         buf += String.fromCharCode(c);
       }
       const out = btoa(buf).replace(/=+$/, '');
-      writeString(SerializationConstant.Uint8Array_CHAR + out);
+      output(TypeIds.Uint8Array, out);
     } else {
       return throwErrorAndStop('implement');
-    }
-  };
-
-  const serializeObjectLiteral = (
-    value: any,
-    $writer$: StreamWriter,
-    writeValue: (value: any, idx: number) => void,
-    writeString: (text: string) => void
-  ) => {
-    if (Array.isArray(value)) {
-      // Serialize as array.
-      serializeArray(value, $writer$, writeValue);
-    } else {
-      // Serialize as object.
-      $writer$.write('{');
-      serializeObjectProperties(value, $writer$, writeValue, writeString);
-      $writer$.write('}');
     }
   };
 
   writeValue(serializationContext.$roots$, -1);
 }
 
-function serializeEffectSubs(
-  addRoot: (obj: unknown) => number,
-  effects: EffectSubscriptions[] | null
-): string {
-  let data = '';
+function serializeEffectSubs(effects: EffectSubscriptions[] | null) {
+  const out: any[] = [];
   if (effects) {
     for (let i = 0; i < effects.length; i++) {
       const effectSubscription = effects[i];
       const effect = effectSubscription[EffectSubscriptionsProp.EFFECT];
       const prop = effectSubscription[EffectSubscriptionsProp.PROPERTY];
-      data += ';' + addRoot(effect) + ' ' + prop;
       let effectSubscriptionDataIndex = EffectSubscriptionsProp.FIRST_BACK_REF_OR_DATA;
       const effectSubscriptionData = effectSubscription[effectSubscriptionDataIndex];
+      out.push(effect, prop);
       if (effectSubscriptionData instanceof EffectData) {
-        data += ' |' + addRoot(effectSubscriptionData.data);
+        out.push(effectSubscriptionData.data);
         effectSubscriptionDataIndex++;
       }
-      for (let j = effectSubscriptionDataIndex; j < effectSubscription.length; j++) {
-        data += ' ' + addRoot(effectSubscription[j]);
-      }
+      out.push(effectSubscription.slice(effectSubscriptionDataIndex));
     }
   }
-  return data;
+  return out;
 }
 
-function serializeArray(
-  value: any,
-  $writer$: StreamWriter,
-  writeValue: (value: any, idx: number) => void
-) {
-  $writer$.write('[');
-  for (let i = 0; i < value.length; i++) {
-    if (i !== 0) {
-      $writer$.write(',');
-    }
-    writeValue(value[i], i);
-  }
-  $writer$.write(']');
-}
-
-function serializeObjectProperties(
-  value: any,
-  $writer$: StreamWriter,
-  writeValue: (value: any, idx: number) => void,
-  writeString: (text: string) => void
-) {
-  let delimiter = false;
-  for (const key in value) {
-    if (Object.prototype.hasOwnProperty.call(value, key) && !fastSkipSerialize(value[key])) {
-      delimiter && $writer$.write(',');
-      writeString(key);
-      $writer$.write(':');
-      writeValue(value[key], -1);
-      delimiter = true;
-    }
-  }
-}
-
-function serializeDerivedFn(
-  serializationContext: SerializationContext,
-  value: WrappedSignal<any>,
-  $addRoot$: (obj: unknown) => number
-) {
+function serializeDerivedFn(serializationContext: SerializationContext, value: WrappedSignal<any>) {
   // if value is an object then we need to wrap this in ()
   if (value.$funcStr$ && value.$funcStr$[0] === '{') {
     value.$funcStr$ = `(${value.$funcStr$})`;
@@ -1100,62 +1093,22 @@ function serializeDerivedFn(
     value.$args$.length,
     value.$func$
   );
-  const args = value.$args$.map($addRoot$).join(' ');
-  return syncFnId + (args.length ? ' ' + args : '');
+  return [syncFnId, value.$args$] as const;
 }
 
-function deserializeSignal2(
-  signal: Signal,
-  container: DeserializeContainer,
-  data: string,
-  readFn: boolean,
-  readQrl: boolean
-) {
-  signal.$container$ = container as DomContainer;
-  const parts = data.substring(1).split(';');
-  let idx = 0;
-  if (readFn) {
-    const derivedSignal = signal as WrappedSignal<any>;
-    derivedSignal.$invalid$ = false;
-    const fnParts = parts[idx++].split(' ');
-    derivedSignal.$func$ = container.getSyncFn(parseInt(fnParts[0]));
-    for (let i = 1; i < fnParts.length; i++) {
-      (derivedSignal.$args$ || (derivedSignal.$args$ = [])).push(
-        container.$getObjectById$(parseInt(fnParts[i]))
-      );
-    }
-    const dependencies = container.$getObjectById$(parts[idx++]) as Subscriber[] | null;
-    derivedSignal.$effectDependencies$ = dependencies;
-  }
-  if (readQrl) {
-    const computedSignal = signal as ComputedSignal<any>;
-    computedSignal.$computeQrl$ = inflateQRL(container, parseQRL(parts[idx++])) as QRLInternal<
-      () => any
-    >;
-  }
-  let signalValue = container.$getObjectById$(parts[idx++]);
-  if (vnode_isVNode(signalValue)) {
-    signalValue = vnode_getNode(signalValue);
-  }
-  signal.$untrackedValue$ = signalValue;
-  if (idx < parts.length) {
-    const effects = signal.$effects$ || (signal.$effects$ = []);
-    idx = deserializeSignal2Effect(idx, parts, container, effects);
-  }
-}
-
-function deserializeStore2(container: DomContainer, data: string) {
+function deserializeStore2(container: DomContainer, data: any[]) {
   restStack.push(rest, restIdx);
   rest = data;
   restIdx = 1;
 
+  const [value, flags, ...effects] = data;
   const target: Record<string, unknown> = container.$getObjectById$(restInt()) as Record<
     string,
     unknown
   >;
   const store = createStore(container, target, restInt());
   const storeHandler = getStoreHandler(store)!;
-  const effectSerializedString = rest.substring(restIdx);
+  const effectSerializedString = rest.slice(restIdx);
   const storeHasEffects = !!effectSerializedString.length;
   if (storeHasEffects) {
     const effectProps = effectSerializedString.split('|');
@@ -1164,11 +1117,11 @@ function deserializeStore2(container: DomContainer, data: string) {
       for (let i = 0; i < effectProps.length; i++) {
         const effect = effectProps[i];
         const idx = effect.indexOf(';');
-        let prop: string | symbol = effect.substring(0, idx);
-        if (prop === SerializationConstant.UNDEFINED_CHAR) {
+        let prop: string | symbol = effect.slice(0, idx);
+        if (prop === TypeIds.UNDEFINED_CHAR) {
           prop = STORE_ARRAY_PROP;
         }
-        const effectStr = effect.substring(idx + 1);
+        const effectStr = effect.slice(idx + 1);
         deserializeSignal2Effect(0, effectStr.split(';'), container, (effects[prop] = []));
       }
     }
@@ -1193,7 +1146,7 @@ function deserializeSignal2Effect(
         return obj;
       } else {
         if (obj[0] === '|') {
-          return new EffectData<any>(container.$getObjectById$(parseInt(obj.substring(1))));
+          return new EffectData<any>(container.$getObjectById$(parseInt(obj.slice(1))));
         }
         return container.$getObjectById$(obj);
       }
@@ -1203,21 +1156,11 @@ function deserializeSignal2Effect(
   return idx;
 }
 
-function setSerializableDataRootId($addRoot$: (value: any) => number, obj: object, value: any) {
-  (obj as any)[SERIALIZABLE_ROOT_ID] = $addRoot$(value);
-}
-
-function getSerializableDataRootId(value: object) {
-  const id = (value as any)[SERIALIZABLE_ROOT_ID];
-  assertDefined(id, 'Missing SERIALIZABLE_ROOT_ID');
-  return id;
-}
-
-export function qrlToString(
+export function encodeQrl(
   serializationContext: SerializationContext,
   value: QRLInternal | SyncQRLInternal
 ) {
-  let symbol = value.$symbol$;
+  let symbol: string | number = value.$symbol$;
   let chunk = value.$chunk$;
 
   const refSymbol = value.$refSymbol$ ?? symbol;
@@ -1258,25 +1201,15 @@ export function qrlToString(
   } else {
     const fn = value.resolved as Function;
     chunk = '';
-    symbol = String(serializationContext.$addSyncFn$(null, 0, fn));
+    symbol = serializationContext.$addSyncFn$(null, 0, fn);
   }
 
-  let qrlStringInline = `${chunk}#${symbol}`;
-  if (Array.isArray(value.$captureRef$) && value.$captureRef$.length > 0) {
-    let serializedReferences = '';
-    // hot-path optimization
-    for (let i = 0; i < value.$captureRef$.length; i++) {
-      if (i > 0) {
-        serializedReferences += ' ';
-      }
-      serializedReferences += serializationContext.$addRoot$(value.$captureRef$[i]);
-    }
-    qrlStringInline += `[${serializedReferences}]`;
-  } else if (value.$capture$ && value.$capture$.length > 0) {
-    qrlStringInline += `[${value.$capture$.join(' ')}]`;
+  const out: [string, string | number, ...any[]] = [chunk, symbol];
+  if (value.$captureRef$) {
+    // We must store ids because they are used in the QRL event handler strings
+    out.push(...value.$captureRef$.map((v) => serializationContext.$addRoot$(v)));
   }
-
-  return qrlStringInline;
+  return out;
 }
 
 /**
@@ -1318,101 +1251,52 @@ export function _deserialize(rawStateData: string | null, element?: unknown): un
 
   let container: DeserializeContainer | undefined = undefined;
   if (isNode(element) && isElement(element)) {
-    container = createDeserializeContainer(stateData, element as HTMLElement);
+    container = _createDeserializeContainer(stateData, element as HTMLElement);
   } else {
-    container = createDeserializeContainer(stateData);
+    container = _createDeserializeContainer(stateData);
   }
-  for (let i = 0; i < stateData.length; i++) {
-    const data = stateData[i];
-    stateData[i] = deserializeData(stateData, data, container);
+  const output = [];
+  for (let i = 0; i < stateData.length; i += 2) {
+    output[i / 2] = deserializeData(container, stateData[i], stateData[i + 1]);
   }
-  return stateData;
+  return output;
 }
 
-function deserializeData(
-  stateData: unknown[],
-  serializedData: unknown,
-  container: DeserializeContainer
-) {
-  let typeCode: number;
-  if (
-    typeof serializedData === 'string' &&
-    serializedData.length >= 1 &&
-    (typeCode = serializedData.charCodeAt(0)) < SerializationConstant.LAST_VALUE
-  ) {
-    let propValue: any = serializedData;
-    if (typeCode === SerializationConstant.REFERENCE_VALUE) {
-      // Special case of Reference, we don't go through allocation/inflation
-      propValue = unwrapDeserializerProxy(
-        container.$getObjectById$(parseInt(propValue.substring(1)))
-      );
-    } else {
-      propValue = allocate(propValue);
-    }
-
-    if (typeCode >= SerializationConstant.Error_VALUE) {
-      inflate(container, propValue, serializedData);
-    }
+function deserializeData(container: DeserializeContainer, typeId: number, propValue: unknown) {
+  if (typeId === undefined) {
     return propValue;
-  } else if (serializedData && typeof serializedData === 'object') {
-    if (Array.isArray(serializedData)) {
-      return deserializeArray(stateData, serializedData, container);
-    } else {
-      return deserializeObject(stateData, serializedData, container);
-    }
   }
-  return serializedData;
-}
-
-function deserializeObject(
-  stateData: unknown[],
-  serializedData: object,
-  container: DeserializeContainer
-) {
-  if (!isSerializableObject(serializedData)) {
-    return serializedData;
+  const value = allocate(container, typeId, propValue);
+  if (typeId >= TypeIds.Error) {
+    inflate(container, value, typeId, propValue);
   }
-  for (const key in serializedData) {
-    if (Object.prototype.hasOwnProperty.call(serializedData, key)) {
-      const value = serializedData[key];
-      serializedData[key] = deserializeData(stateData, value, container);
-    }
-  }
-  return serializedData;
-}
-
-function deserializeArray(
-  stateData: unknown[],
-  serializedData: Array<unknown>,
-  container: DeserializeContainer
-) {
-  for (let i = 0; i < serializedData.length; i++) {
-    const value = serializedData[i];
-    serializedData[i] = deserializeData(stateData, value, container);
-  }
-  return serializedData;
+  return value;
 }
 
 function getObjectById(id: number | string, stateData: unknown[]): unknown {
   if (typeof id === 'string') {
-    id = parseFloat(id);
+    id = parseInt(id, 10);
   }
-  assertTrue(id < stateData.length, 'Invalid reference');
+  assertTrue(id < stateData.length, `Invalid reference ${id} >= ${stateData.length}`);
   return stateData[id];
 }
 
-function createDeserializeContainer(
+export function _createDeserializeContainer(
   stateData: unknown[],
   element?: HTMLElement
 ): DeserializeContainer {
+  // eslint-disable-next-line prefer-const
+  let state: unknown[];
   const container: DeserializeContainer = {
-    $getObjectById$: (id: number | string) => getObjectById(id, stateData),
+    $getObjectById$: (id: number | string) => getObjectById(id, state),
     getSyncFn: (_: number) => {
       const fn = () => {};
       return fn;
     },
     element: null,
   };
+  state = wrapDeserializerProxy(container as any, stateData);
+  container.$state$ = state;
   if (element) {
     container.element = element;
   }
@@ -1434,9 +1318,14 @@ function createDeserializeContainer(
 function shouldTrackObj(obj: unknown) {
   return (
     (typeof obj === 'object' && obj !== null) ||
+    /**
+     * We track all strings greater than 1 character, because those take at least 6 bytes to encode
+     * and even with 999 root objects it saves one byte per reference. Tracking more objects makes
+     * the map bigger so we want to strike a balance
+     */
+    (typeof obj === 'string' && obj.length > 1)
     // THINK: Not sure if we need to keep track of functions (QRLs) Let's skip them for now.
     // and see if we have a test case which requires them.
-    (typeof obj === 'string' && obj.length > 10)
   );
 }
 
@@ -1535,169 +1424,176 @@ export const canSerialize = (value: any): boolean => {
 };
 
 const QRL_RUNTIME_CHUNK = 'qwik-runtime-mock-chunk';
-const SERIALIZABLE_ROOT_ID = Symbol('SERIALIZABLE_ROOT_ID');
 
-export const enum SerializationConstant {
-  UNDEFINED_CHAR = /* ----------------- */ '\u0000',
-  UNDEFINED_VALUE = /* -------------------- */ 0x0,
-  REFERENCE_CHAR = /* ----------------- */ '\u0001',
-  REFERENCE_VALUE = /* -------------------- */ 0x1,
-  URL_CHAR = /* ----------------------- */ '\u0002',
-  URL_VALUE = /* -------------------------- */ 0x2,
-  Date_CHAR = /* ---------------------- */ '\u0003',
-  Date_VALUE = /* ------------------------- */ 0x3,
-  Regex_CHAR = /* --------------------- */ '\u0004',
-  Regex_VALUE = /* ------------------------ */ 0x4,
-  String_CHAR = /* -------------------- */ '\u0005',
-  String_VALUE = /* ----------------------- */ 0x5,
-  VNode_CHAR = /* --------------------- */ '\u0006',
-  VNode_VALUE = /* ------------------------ */ 0x6,
-  NotFinite_CHAR = /* ----------------- */ '\u0007',
-  NotFinite_VALUE = /* -------------------  */ 0x7,
-  BigInt_CHAR = /* -------------------- */ '\u0008',
-  BigInt_VALUE = /* ----------------------  */ 0x8,
-  UNUSED_HORIZONTAL_TAB_CHAR = /* ----- */ '\u0009',
-  UNUSED_HORIZONTAL_TAB_VALUE = /* -------- */ 0x9,
-  UNUSED_NEW_LINE_CHAR = /* ----------- */ '\u000a',
-  UNUSED_NEW_LINE_VALUE = /* -------------- */ 0xa,
-  UNUSED_VERTICAL_TAB_CHAR = /* ------- */ '\u000b',
-  UNUSED_VERTICAL_TAB_VALUE = /* ---------- */ 0xb,
-  UNUSED_FORM_FEED_CHAR = /* ---------- */ '\u000c',
-  UNUSED_FORM_FEED_VALUE = /* ------------- */ 0xc,
-  UNUSED_CARRIAGE_RETURN_CHAR = /* ---- */ '\u000d',
-  UNUSED_CARRIAGE_RETURN_VALUE = /* ------- */ 0xd,
-  URLSearchParams_CHAR = /* ----------- */ '\u000e',
-  URLSearchParams_VALUE = /* -------------- */ 0xe,
-  /// All values bellow need inflation
-  Error_CHAR = /* --------------------- */ '\u000f',
-  Error_VALUE = /* ------------------------ */ 0xf,
-  QRL_CHAR = /* ----------------------- */ '\u0010',
-  QRL_VALUE = /* ------------------------- */ 0x10,
-  Task_CHAR = /* ---------------------- */ '\u0011',
-  Task_VALUE = /* -------------------------*/ 0x11,
-  Resource_CHAR = /* ------------------ */ '\u0012',
-  Resource_VALUE = /* ---------------------*/ 0x12,
-  Component_CHAR = /* ----------------- */ '\u0013',
-  Component_VALUE = /* ------------------- */ 0x13,
-  Signal_CHAR = /* -------------------- */ '\u0014',
-  Signal_VALUE = /* ---------------------- */ 0x14,
-  WrappedSignal_CHAR = /* ------------- */ '\u0015',
-  WrappedSignal_VALUE = /* --------------- */ 0x15,
-  ComputedSignal_CHAR = /* ------------ */ '\u0016',
-  ComputedSignal_VALUE = /* -------------- */ 0x16,
-  Store_CHAR = /* --------------------- */ '\u0017',
-  Store_VALUE = /* ----------------------- */ 0x17,
-  FormData_CHAR = /* ------------------ */ '\u0018',
-  FormData_VALUE = /* -------------------- */ 0x18,
-  JSXNode_CHAR = /* ------------------- */ '\u0019',
-  JSXNode_VALUE = /* --------------------- */ 0x19,
-  Set_CHAR = /* ----------------------- */ '\u001a',
-  Set_VALUE = /* ------------------------- */ 0x1a,
-  Map_CHAR = /* ----------------------- */ '\u001b',
-  Map_VALUE = /* ------------------------- */ 0x1b,
-  Promise_CHAR = /* ------------------- */ '\u001c',
-  Promise_VALUE = /* --------------------- */ 0x1c,
-  Uint8Array_CHAR = /* ---------------- */ '\u001e',
-  Uint8Array_VALUE = /* ------------------- */ 0x1e,
-  PropsProxy_CHAR = /* ---------------- */ '\u001f',
-  PropsProxy_VALUE = /* ------------------- */ 0x1f,
-  /// Can't go past this value
-  LAST_VALUE = /* ------------------------ */ 0x20,
+export const enum TypeIds {
+  RootRef,
+  /** Undefined, null, true, false, NaN, +Inf, -Inf, Slot, Fragment */
+  Constant,
+  Number,
+  String,
+  Array,
+  URL,
+  Date,
+  Regex,
+  VNode,
+  BigInt,
+  URLSearchParams,
+  /// All values below need inflation because they may have reference cycles
+  Error,
+  Object,
+  Promise,
+  Set,
+  Map,
+  Uint8Array,
+  QRL,
+  Task,
+  Resource,
+  Component,
+  Signal,
+  WrappedSignal,
+  ComputedSignal,
+  Store,
+  FormData,
+  JSXNode,
+  PropsProxy,
 }
 
-function serializeJSXType($addRoot$: (obj: unknown) => number, type: string | FunctionComponent) {
-  if (typeof type === 'string') {
-    return type;
-  } else if (type === Slot) {
-    return ':slot';
-  } else if (type === Fragment) {
-    return ':fragment';
-  } else {
-    return $addRoot$(type);
-  }
+export const enum Constants {
+  Undefined,
+  Null,
+  True,
+  False,
+  NaN,
+  PositiveInfinity,
+  NegativeInfinity,
+  EmptyString,
+  EMPTY_ARRAY,
+  EMPTY_OBJ,
+  NEEDS_COMPUTATION,
+  Slot,
+  Fragment,
 }
 
-function deserializeJSXType(
-  container: DeserializeContainer,
-  type: string
-): string | FunctionComponent {
-  if (type === ':slot') {
-    return Slot;
-  } else if (type === ':fragment') {
-    return Fragment;
-  } else {
-    const ch = type.charCodeAt(0);
-    if (48 /* '0' */ <= ch && ch <= 57 /* '9' */) {
-      return container.$getObjectById$(type) as any;
+export const dumpState = (state: any[], prefix = '') => {
+  const out: any[] = [];
+  for (let i = 0; i < state.length; i++) {
+    if (i > 20) {
+      out.push('...');
+      break;
+    }
+    const key = state[i];
+    let value = state[++i];
+    if (key === undefined) {
+      out.push(`[raw] ${JSON.stringify(value)}`);
     } else {
-      return type;
+      if (key === TypeIds.Constant) {
+        value = constantToName(value);
+      } else if (typeof value === 'string') {
+        value = JSON.stringify(value);
+        if (value.length > 80) {
+          value = value.slice(0, 80) + '"...';
+        }
+      } else if (Array.isArray(value)) {
+        value = `\n${dumpState(value, `${prefix}  `)}`;
+      }
+      out.push(`${codeToName(key)} ${value}`);
     }
   }
-}
+  return out.map((v, i) => `${prefix}${i} ${v}`).join('\n');
+};
 
-export const codeToName = (code: number) => {
+export const codeToName = (code: TypeIds) => {
   switch (code) {
-    case SerializationConstant.UNDEFINED_VALUE:
-      return 'UNDEFINED';
-    case SerializationConstant.REFERENCE_VALUE:
-      return 'REFERENCE';
-    case SerializationConstant.QRL_VALUE:
+    case TypeIds.Constant:
+      return 'Constant';
+    case TypeIds.RootRef:
+      return 'RootRef';
+    case TypeIds.QRL:
       return 'QRL';
-    case SerializationConstant.Task_VALUE:
+    case TypeIds.Task:
       return 'Task';
-    case SerializationConstant.Resource_VALUE:
+    case TypeIds.Resource:
       return 'Resource';
-    case SerializationConstant.URL_VALUE:
+    case TypeIds.URL:
       return 'URL';
-    case SerializationConstant.Date_VALUE:
+    case TypeIds.Date:
       return 'Date';
-    case SerializationConstant.Regex_VALUE:
+    case TypeIds.Regex:
       return 'Regex';
-    case SerializationConstant.String_VALUE:
+    case TypeIds.String:
       return 'String';
-    case SerializationConstant.UNUSED_HORIZONTAL_TAB_VALUE:
-      return 'UNUSED_HORIZONTAL_TAB';
-    case SerializationConstant.UNUSED_NEW_LINE_VALUE:
-      return 'UNUSED_NEW_LINE';
-    case SerializationConstant.UNUSED_VERTICAL_TAB_VALUE:
-      return 'UNUSED_VERTICAL_TAB';
-    case SerializationConstant.UNUSED_FORM_FEED_VALUE:
-      return 'UNUSED_FORM_FEED';
-    case SerializationConstant.UNUSED_CARRIAGE_RETURN_VALUE:
-      return 'UNUSED_CARRIAGE_RETURN';
-    case SerializationConstant.Error_VALUE:
+    case TypeIds.Error:
       return 'Error';
-    case SerializationConstant.VNode_VALUE:
+    case TypeIds.VNode:
       return 'VNode';
-    case SerializationConstant.Component_VALUE:
+    case TypeIds.Component:
       return 'Component';
-    case SerializationConstant.WrappedSignal_VALUE:
+    case TypeIds.WrappedSignal:
       return 'DerivedSignal';
-    case SerializationConstant.Store_VALUE:
+    case TypeIds.Store:
       return 'Store';
-    case SerializationConstant.Signal_VALUE:
+    case TypeIds.Signal:
       return 'Signal';
-    case SerializationConstant.ComputedSignal_VALUE:
+    case TypeIds.ComputedSignal:
       return 'ComputedSignal';
-    case SerializationConstant.NotFinite_VALUE:
-      return 'NotFinite';
-    case SerializationConstant.URLSearchParams_VALUE:
+    case TypeIds.URLSearchParams:
       return 'URLSearchParams';
-    case SerializationConstant.FormData_VALUE:
+    case TypeIds.FormData:
       return 'FormData';
-    case SerializationConstant.JSXNode_VALUE:
+    case TypeIds.JSXNode:
       return 'JSXNode';
-    case SerializationConstant.BigInt_VALUE:
+    case TypeIds.BigInt:
       return 'BigInt';
-    case SerializationConstant.Set_VALUE:
+    case TypeIds.Set:
       return 'Set';
-    case SerializationConstant.Map_VALUE:
+    case TypeIds.Map:
       return 'Map';
-    case SerializationConstant.Promise_VALUE:
+    case TypeIds.Promise:
       return 'Promise';
-    case SerializationConstant.Uint8Array_VALUE:
+    case TypeIds.Uint8Array:
       return 'Uint8Array';
-    case SerializationConstant.PropsProxy_VALUE:
+    case TypeIds.PropsProxy:
       return 'Props';
+    case TypeIds.Array:
+      return 'Array';
+    case TypeIds.Object:
+      return 'Object';
+    case TypeIds.Number:
+      return 'Number';
+    default:
+      return `Unknown(${code})`;
+  }
+};
+
+const constantToName = (code: Constants) => {
+  switch (code) {
+    case Constants.Undefined:
+      return 'undefined';
+    case Constants.Null:
+      return 'null';
+    case Constants.True:
+      return 'true';
+    case Constants.False:
+      return 'false';
+    case Constants.NaN:
+      return 'NaN';
+    case Constants.PositiveInfinity:
+      return '+Inf';
+    case Constants.NegativeInfinity:
+      return '-Inf';
+    case Constants.EmptyString:
+      return '""';
+    case Constants.EMPTY_ARRAY:
+      return '[]';
+    case Constants.EMPTY_OBJ:
+      return '{}';
+    case Constants.NEEDS_COMPUTATION:
+      return 'NEEDS_COMPUTATION';
+    case Constants.Slot:
+      return 'Slot';
+    case Constants.Fragment:
+      return 'Fragment';
+    default:
+      return `Unknown(${code})`;
   }
 };

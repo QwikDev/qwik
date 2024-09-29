@@ -38,9 +38,7 @@ const DEBUG = false;
  * Special value used to mark that a given signal needs to be computed. This is essentially a
  * "marked as dirty" flag.
  */
-const NEEDS_COMPUTATION: any = {
-  __dirty__: true,
-};
+export const NEEDS_COMPUTATION: any = Symbol('invalid');
 
 // eslint-disable-next-line no-console
 const log = (...args: any[]) => console.log('SIGNAL', ...args.map(qwikDebugToString));
@@ -128,16 +126,16 @@ export class EffectData<T extends Record<string, any> = Record<string, any>> {
  * - `EffectProperty.VNODE` if VNode
  */
 export type EffectSubscriptions = [
-  Effect, // EffectSubscriptionsProp.EFFECT
-  string, // EffectSubscriptionsProp.PROPERTY
-  ...// NOTE even thought this is shown as `...(string|Signal)`
-  // it is a list of strings  followed by optional EffectData
-  // and a list of signals (not intermingled)
-  (
-    | EffectData // only used at the start
+  ...[
+    Effect, // EffectSubscriptionsProp.EFFECT
+    string, // EffectSubscriptionsProp.PROPERTY
+    EffectData?, // Metadata for the effect
+  ],
+  // List of signals to release
+  ...(
     | string // List of properties (Only used with Store (not with Signal))
     | Signal
-    | TargetType // List of signals to release
+    | TargetType
   )[],
 ];
 export const enum EffectSubscriptionsProp {

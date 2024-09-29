@@ -129,10 +129,10 @@ export type EffectSubscriptions = [
   ...[
     Effect, // EffectSubscriptionsProp.EFFECT
     string, // EffectSubscriptionsProp.PROPERTY
-    EffectData?, // Metadata for the effect
   ],
   // List of signals to release
   ...(
+    | EffectData // Metadata for the effect
     | string // List of properties (Only used with Store (not with Signal))
     | Signal
     | TargetType
@@ -370,9 +370,10 @@ export const triggerEffects = (
         let effectData = effectSubscriptions[EffectSubscriptionsProp.FIRST_BACK_REF_OR_DATA];
         if (effectData instanceof EffectData) {
           effectData = effectData as EffectData<NodePropData>;
+          const data = effectData.data as NodePropData;
           const payload: NodePropPayload = {
-            ...effectData.data,
-            $value$: signal,
+            ...data,
+            $value$: signal as Signal,
           };
           container.$scheduler$(ChoreType.NODE_PROP, host, property, payload);
         }

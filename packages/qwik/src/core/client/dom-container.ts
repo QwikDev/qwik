@@ -187,7 +187,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   }
 
   parseQRL<T = unknown>(qrl: string): QRL<T> {
-    return inflateQRL(this, parseQRL(qrl, this as any)) as QRL<T>;
+    return inflateQRL(this, parseQRL(qrl)) as QRL<T>;
   }
 
   processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void> {

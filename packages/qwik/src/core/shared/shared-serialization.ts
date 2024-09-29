@@ -192,36 +192,36 @@ class DeserializationHandler implements ProxyHandler<object> {
  * }
  * ```
  */
-function upgradePropsWithDerivedSignal(
-  container: DomContainer,
-  target: Record<string | symbol, any>,
-  property: string | symbol | number
-): any {
-  const immutable: Record<string, WrappedSignal<unknown>> = {};
-  // TODO
-  for (const key in target) {
-    if (Object.prototype.hasOwnProperty.call(target, key)) {
-      const value = target[key];
-      if (typeof value === 'string' && value.charCodeAt(0) === TypeIds.WrappedSignal) {
-        const wrappedSignal = (immutable[key] = allocate(
-          container,
-          TypeIds.WrappedSignal,
-          value
-        ) as WrappedSignal<unknown>);
-        Object.defineProperty(target, key, {
-          get() {
-            return wrappedSignal.value;
-          },
-          enumerable: true,
-        });
-        // TODO
-        inflate(container, wrappedSignal, TypeIds.WrappedSignal, value);
-      }
-    }
-  }
-  target[_CONST_PROPS] = immutable;
-  return target[property];
-}
+// function upgradePropsWithDerivedSignal(
+//   container: DomContainer,
+//   target: Record<string | symbol, any>,
+//   property: string | symbol | number
+// ): any {
+//   const immutable: Record<string, WrappedSignal<unknown>> = {};
+//   // TODO
+//   for (const key in target) {
+//     if (Object.prototype.hasOwnProperty.call(target, key)) {
+//       const value = target[key];
+//       if (typeof value === 'string' && value.charCodeAt(0) === TypeIds.WrappedSignal) {
+//         const wrappedSignal = (immutable[key] = allocate(
+//           container,
+//           TypeIds.WrappedSignal,
+//           value
+//         ) as WrappedSignal<unknown>);
+//         Object.defineProperty(target, key, {
+//           get() {
+//             return wrappedSignal.value;
+//           },
+//           enumerable: true,
+//         });
+//         // TODO
+//         inflate(container, wrappedSignal, TypeIds.WrappedSignal, value);
+//       }
+//     }
+//   }
+//   target[_CONST_PROPS] = immutable;
+//   return target[property];
+// }
 
 /**
  * Restores an array eagerly. If you need it lazily, use `deserializeData(container, TypeIds.Array,
@@ -760,6 +760,8 @@ export const createSerializationContext = (
           }
         );
         promises.push(obj);
+      } else if (obj instanceof EffectData) {
+        discoveredValues.push(obj.data);
       } else if (isObjectLiteral(obj)) {
         Object.entries(obj).forEach(([key, value]) => {
           discoveredValues.push(key, value);
@@ -1075,17 +1077,21 @@ function serializeEffectSubs(effects: EffectSubscriptions[] | null) {
   const out: any[] = [];
   if (effects) {
     for (let i = 0; i < effects.length; i++) {
+      const outEffect: any[] = [];
       const effectSubscription = effects[i];
       const effect = effectSubscription[EffectSubscriptionsProp.EFFECT];
       const prop = effectSubscription[EffectSubscriptionsProp.PROPERTY];
       let effectSubscriptionDataIndex = EffectSubscriptionsProp.FIRST_BACK_REF_OR_DATA;
       const effectSubscriptionData = effectSubscription[effectSubscriptionDataIndex];
-      out.push(effect, prop);
+      outEffect.push(effect, prop);
       if (effectSubscriptionData instanceof EffectData) {
-        out.push(effectSubscriptionData.data);
+        outEffect.push(effectSubscriptionData.data);
         effectSubscriptionDataIndex++;
       }
-      out.push(effectSubscription.slice(effectSubscriptionDataIndex));
+      for (let j = effectSubscriptionDataIndex; j < effectSubscription.length; j++) {
+        outEffect.push(effectSubscription[j]);
+      }
+      out.push(outEffect);
     }
   }
   return out;
@@ -1105,38 +1111,28 @@ function serializeDerivedFn(serializationContext: SerializationContext, value: W
 }
 
 function deserializeStore2(container: DomContainer, data: any[]) {
-  restStack.push(rest, restIdx);
-  rest = data;
-  restIdx = 1;
-
-  const [value, flags, ...effects] = data;
-  const target: Record<string, unknown> = container.$getObjectById$(restInt()) as Record<
+  const [value, flags, ...effectProps] = data;
+  const target: Record<string, unknown> = container.$getObjectById$(value) as Record<
     string,
     unknown
   >;
-  const store = createStore(container, target, restInt());
+  const store = createStore(container, target, flags);
   const storeHandler = getStoreHandler(store)!;
-  const effectSerializedString = rest.slice(restIdx);
-  const storeHasEffects = !!effectSerializedString.length;
+  const storeHasEffects = !!effectProps.length;
   if (storeHasEffects) {
-    const effectProps = effectSerializedString.split('|');
-    if (effectProps.length) {
-      const effects: Record<string | symbol, EffectSubscriptions[]> = (storeHandler.$effects$ = {});
-      for (let i = 0; i < effectProps.length; i++) {
-        const effect = effectProps[i];
-        const idx = effect.indexOf(';');
-        let prop: string | symbol = effect.slice(0, idx);
-        if (prop === TypeIds.UNDEFINED_CHAR) {
-          prop = STORE_ARRAY_PROP;
-        }
-        const effectStr = effect.slice(idx + 1);
-        deserializeSignal2Effect(0, effectStr.split(';'), container, (effects[prop] = []));
-      }
+    const effects: Record<string | symbol, EffectSubscriptions[]> = (storeHandler.$effects$ = {});
+    for (let i = 0; i < effectProps.length; i++) {
+      const effect = effectProps[i];
+      const idx = effect.indexOf(';');
+      const prop: string | symbol = effect.slice(0, idx);
+      // let prop: string | symbol = effect.slice(0, idx);
+      // if (prop === TypeIds.UNDEFINED_CHAR) {
+      //   prop = STORE_ARRAY_PROP;
+      // }
+      const effectStr = effect.slice(idx + 1);
+      deserializeSignal2Effect(0, effectStr.split(';'), container, (effects[prop] = []));
     }
   }
-
-  restIdx = restStack.pop() as number;
-  rest = restStack.pop() as string;
 
   return store;
 }

@@ -1,5 +1,5 @@
 // Expect error: { "messageId": "referencesOutside" }
-import { component$, useTask$ } from '@qwikdev/core';
+import { component$, useTask$ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const a = Symbol();

@@ -44,8 +44,8 @@ bun run qwik add static
 Above command will create a directory at project root named `adapters/static/vite.config.ts` with the below code.
 
 ```ts title="adapters/static/vite.config.ts"
-import { staticAdapter } from "@qwikdev/city/adapters/static/vite";
-import { extendConfig } from '@qwikdev/city/vite';
+import { staticAdapter } from "@qwik.dev/city/adapters/static/vite";
+import { extendConfig } from '@qwik.dev/city/vite';
 import baseConfig from '../../vite.config';
 
 export default extendConfig(baseConfig, () => {

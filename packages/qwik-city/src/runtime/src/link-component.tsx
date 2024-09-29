@@ -1,5 +1,5 @@
-import { $, component$, Slot, sync$, untrack, type QwikIntrinsicElements } from '@qwikdev/core';
-import { isDev } from '@qwikdev/core/build';
+import { $, component$, Slot, sync$, untrack, type QwikIntrinsicElements } from '@qwik.dev/core';
+import { isDev } from '@qwik.dev/core/build';
 import { prefetchSymbols } from './client-navigate';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';

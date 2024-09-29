@@ -1,4 +1,4 @@
-import { component$, useStyles$ } from '@qwikdev/core';
+import { component$, useStyles$ } from '@qwik.dev/core';
 import styles from './panel-toggle.css?inline';
 
 export interface PanelToggleProps {

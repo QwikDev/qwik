@@ -1,6 +1,6 @@
 import { Content, fetchOneEntry } from "@builder.io/sdk-qwik";
-import { routeLoader$ } from "@qwikdev/city";
-import { component$ } from "@qwikdev/core";
+import { routeLoader$ } from "@qwik.dev/city";
+import { component$ } from "@qwik.dev/core";
 import { CUSTOM_COMPONENTS } from "~/components/builder-registry";
 
 export const BUILDER_MODEL = "page";

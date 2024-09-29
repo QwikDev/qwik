@@ -9,8 +9,8 @@ import {
   useStore,
   useTask$,
   type Signal,
-} from "@qwikdev/core";
-import { isServer } from "@qwikdev/core/build";
+} from "@qwik.dev/core";
+import { isServer } from "@qwik.dev/core/build";
 
 interface State {
   count: number;

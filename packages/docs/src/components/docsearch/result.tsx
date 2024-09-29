@@ -1,6 +1,6 @@
-import { Slot, component$, useContext, useSignal, useStore, useTask$ } from '@qwikdev/core';
+import { Slot, component$, useContext, useSignal, useStore, useTask$ } from '@qwik.dev/core';
 // import { QwikGPT } from '../qwik-gpt';
-import { Link } from '@qwikdev/city';
+import { Link } from '@qwik.dev/city';
 import { SearchContext } from './context';
 import { AiResultOpenContext, type DocSearchState } from './doc-search';
 import { Snippet } from './snippet';

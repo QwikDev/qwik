@@ -288,7 +288,7 @@ export const jsxKey = {
 };
 
 const missingIterKeyGood = `
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 
 export const Person = component$(() => {
   const person  = {
@@ -307,7 +307,7 @@ export const Person = component$(() => {
 });`.trim();
 
 const missingIterKeyBad = `
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 
 export const Person = component$(() => {
   const person  = {
@@ -326,7 +326,7 @@ export const Person = component$(() => {
 });`.trim();
 
 const missingIterKeyUsePragGood = `
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 import Card from './Card';
 import Summary from './Summary';
 
@@ -348,7 +348,7 @@ export const Person = component$(() => {
 });`.trim();
 
 const missingIterKeyUsePragBad = `
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 import Card from './Card';
 import Summary from './Summary';
 
@@ -370,7 +370,7 @@ export const Person = component$(() => {
 });`.trim();
 
 const missingArrayKeyGood = `
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 
 export const ColorList = component$(() => {
   const colors = ['red', 'green', 'blue'];
@@ -385,7 +385,7 @@ export const ColorList = component$(() => {
 });`.trim();
 
 const missingArrayKeyBad = `
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 
 export const ColorList = component$(() => {
   const colors = ['red', 'green', 'blue'];
@@ -400,7 +400,7 @@ export const ColorList = component$(() => {
 });`.trim();
 
 const missingArrayKeyUsePragGood = `
-import { component$, Fragment } from '@qwikdev/core';
+import { component$, Fragment } from '@qwik.dev/core';
 
 export const ColorList = component$(() => {
   const colors = ['red', 'green', 'blue'];
@@ -416,7 +416,7 @@ export const ColorList = component$(() => {
 });`.trim();
 
 const missingArrayKeyUsePragBad = `
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 
 export const ColorList = component$(() => {
   const colors = ['red', 'green', 'blue'];
@@ -434,7 +434,7 @@ export const ColorList = component$(() => {
 const nonUniqueKeysGood = missingArrayKeyGood;
 
 const nonUniqueKeysBad = `
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 
 export const ColorList = component$(() => {
   const colors = ['red', 'green', 'blue'];

@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 
 export const Issue3561 = component$(() => {
 	const props = useStore({
@@ -29,8 +29,8 @@ export const Issue3561 = component$(() => {
 
 ============================= test.jsx ==
 
-import { componentQrl } from "@qwikdev/core";
-import { inlinedQrl } from "@qwikdev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
 export const Issue3561 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     const props = useStore({
         product: {

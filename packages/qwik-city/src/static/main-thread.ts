@@ -1,4 +1,4 @@
-import type { PageModule, PathParams, QwikCityPlan, RouteData } from '@qwikdev/city';
+import type { PageModule, PathParams, QwikCityPlan, RouteData } from '@qwik.dev/city';
 import { bold, dim, green, magenta, red } from 'kleur/colors';
 import { relative } from 'node:path';
 import { pathToFileURL } from 'node:url';

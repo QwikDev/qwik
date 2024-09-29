@@ -1,5 +1,5 @@
-import { $, type ValueOrPromise } from '@qwikdev/core';
-import { createDocument, getTestPlatform } from '@qwikdev/core/testing';
+import { $, type ValueOrPromise } from '@qwik.dev/core';
+import { createDocument, getTestPlatform } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { getDomContainer } from '../client/dom-container';
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';

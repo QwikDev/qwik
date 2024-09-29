@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 import { deps } from 'deps';
 
 export const Foo = component$(({foo}) => {
@@ -51,8 +51,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx ==
 
-import { componentQrl } from "@qwikdev/core";
-import { qrl } from "@qwikdev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"));
 
 

@@ -3,14 +3,14 @@ import { expect } from 'vitest';
 import { Q_FUNCS_PREFIX } from '../server/ssr-render';
 import { createDocument } from './document';
 import { getTestPlatform } from './platform';
-import { _getDomContainer, componentQrl, type OnRenderFn } from '@qwikdev/core';
+import { _getDomContainer, componentQrl, type OnRenderFn } from '@qwik.dev/core';
 import type {
   JSXOutput,
   _DomContainer,
   _ContainerElement,
   _VNode,
   _VirtualVNode,
-} from '@qwikdev/core';
+} from '@qwik.dev/core';
 import { getPlatform, setPlatform } from '../core/shared/platform/platform';
 import { inlinedQrl } from '../core/shared/qrl/qrl';
 import { ERROR_CONTEXT } from '../core/shared/error/error-handling';

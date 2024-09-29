@@ -116,7 +116,7 @@ When migrating from `@builder.io/qwik-auth` to `@auth/qwik`, there are a couple 
 A [routeLoader$](/docs/route-loader/) that returns a session object or an empty object if there is no session. The contents of the session object that is returned are configurable with the session callback. Session data can also be retrieved using the [session](#session) REST API.
 
 ```tsx
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 import { useSession } from '~/routes/plugin@auth';
 
 export default component$(() => {
@@ -142,8 +142,8 @@ A [routeAction$](/docs/action/) used to initiate a signin flow or send the user 
 Example using `useSignIn` with the [&lt;Form&gt;](/docs/action/#using-actions-with-form) component and optional `providerId` and `options.redirectTo`:
 
 ```tsx
-import { component$ } from '@qwikdev/core';
-import { Form } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+import { Form } from '@qwik.dev/city';
 import { useSignIn } from '~/routes/plugin@auth';
 
 export default component$(() => {
@@ -161,7 +161,7 @@ export default component$(() => {
 Example using `useSignIn` programmatically with optional `providerId` and `options.redirectTo`:
 
 ```tsx
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 import { useSignIn } from '~/routes/plugin@auth';
 
 export default component$(() => {
@@ -185,8 +185,8 @@ The 'redirectTo' must be considered valid by the redirect callback handler. By d
 Example using `useSignOut` with the [&lt;Form&gt;](/docs/action/#using-actions-with-form) component and optional `redirectTo`:
 
 ```tsx
-import { component$ } from '@qwikdev/core';
-import { Form } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+import { Form } from '@qwik.dev/city';
 import { useSignOut } from '~/routes/plugin@auth';
 
 export default component$(() => {
@@ -203,7 +203,7 @@ export default component$(() => {
 Example using `useSignOut` programmatically with optional `redirectTo`:
 
 ```tsx
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 import { useSignOut } from '~/routes/plugin@auth';
 
 export default component$(() => {

@@ -1,4 +1,4 @@
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 import { ErrorIcon } from './icons/ErrorIcon';
 
 export type ErrorScreenTranslations = Partial<{

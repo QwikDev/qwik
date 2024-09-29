@@ -1,4 +1,4 @@
-import type { CorePlatform } from '@qwikdev/core';
+import type { CorePlatform } from '@qwik.dev/core';
 
 /** @public */
 export interface MockDocument extends Document {}

@@ -17,7 +17,7 @@ fn transform_todo_app(b: &mut Bencher) {
           useStore,
           useHostElement,
           useEvent,
-        } from '@qwikdev/core';
+        } from '@qwik.dev/core';
         import {
           addItem,
           clearCompleted,

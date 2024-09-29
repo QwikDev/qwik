@@ -77,7 +77,7 @@ You might have noticed there are more [`$`](../advanced/dollar/index.mdx) signs 
 **Example:**
 
 ```tsx
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
   console.log('render');
@@ -88,7 +88,7 @@ export default component$(() => {
 Thanks to the `$` syntax, the component above is split into:
 
 ```js title="app.js"
-import { componentQrl, qrl } from '@qwikdev/core';
+import { componentQrl, qrl } from '@qwik.dev/core';
 
 const App = /*#__PURE__*/ componentQrl(
   qrl(() => import('./app_component_akbu84a8zes.js'), 'App_component_AkbU84a8zes')
@@ -98,8 +98,8 @@ export { App };
 ```
 
 ```js title="app_component_akbu84a8zes.js"
-import { jsx as _jsx } from '@qwikdev/core/jsx-runtime';
-import { qrl } from '@qwikdev/core';
+import { jsx as _jsx } from '@qwik.dev/core/jsx-runtime';
+import { qrl } from '@qwik.dev/core';
 export const App_component_AkbU84a8zes = () => {
   console.log('render');
   return /*#__PURE__*/ _jsx('p', {

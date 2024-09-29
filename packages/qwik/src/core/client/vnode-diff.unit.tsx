@@ -1,5 +1,5 @@
-import { _jsxSorted } from '@qwikdev/core';
-import { vnode_fromJSX } from '@qwikdev/core/testing';
+import { _jsxSorted } from '@qwik.dev/core';
+import { vnode_fromJSX } from '@qwik.dev/core/testing';
 import { afterEach, describe, expect, it } from 'vitest';
 import { vnode_applyJournal, vnode_getNode, type VNodeJournal } from './vnode';
 import { vnode_diff } from './vnode-diff';

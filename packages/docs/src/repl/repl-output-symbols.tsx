@@ -1,5 +1,5 @@
-import { $, component$, useSignal } from '@qwikdev/core';
-import type { TransformModule } from '@qwikdev/core/optimizer';
+import { $, component$, useSignal } from '@qwik.dev/core';
+import type { TransformModule } from '@qwik.dev/core/optimizer';
 import { CodeBlock } from '../components/code-block/code-block';
 const FILE_MODULE_DIV_ID = 'file-modules-symbol';
 

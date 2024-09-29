@@ -1,4 +1,4 @@
-import { component$, useSignal, sync$, $ } from '@qwikdev/core';
+import { component$, useSignal, sync$, $ } from '@qwik.dev/core';
 
 export default component$(() => {
   const shouldPreventDefault = useSignal(true);

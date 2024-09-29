@@ -1,5 +1,5 @@
-import { Fragment as Component, component$, Fragment, useSignal } from '@qwikdev/core';
-import { trigger } from '@qwikdev/core/testing';
+import { Fragment as Component, component$, Fragment, useSignal } from '@qwik.dev/core';
+import { trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { domRender, ssrRenderToDom } from '../../testing/rendering.unit-util';
 import '../../testing/vdom-diff.unit-util';

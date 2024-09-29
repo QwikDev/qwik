@@ -1,4 +1,4 @@
-import { component$, Slot, useStylesScoped$ } from "@qwikdev/core";
+import { component$, Slot, useStylesScoped$ } from "@qwik.dev/core";
 
 export interface ButtonProps {
   size?: "small" | "medium" | "large";

@@ -1,4 +1,4 @@
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 
 export const version = '0.13';
 

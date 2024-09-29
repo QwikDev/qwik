@@ -1,5 +1,5 @@
-import { useDocumentHead } from '@qwikdev/city';
-import { component$, useStylesScoped$ } from '@qwikdev/core';
+import { useDocumentHead } from '@qwik.dev/city';
+import { component$, useStylesScoped$ } from '@qwik.dev/core';
 import styles from './contributors.css?inline';
 
 export default component$(() => {

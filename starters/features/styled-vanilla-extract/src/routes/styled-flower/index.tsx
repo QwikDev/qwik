@@ -1,10 +1,10 @@
-import { DocumentHead, useLocation } from "@qwikdev/city";
+import { DocumentHead, useLocation } from "@qwik.dev/city";
 import {
   component$,
   FunctionComponent,
   useStore,
   useVisibleTask$,
-} from "@qwikdev/core";
+} from "@qwik.dev/core";
 import { Host, odd, pride, Range, Square } from "./flower.css";
 
 type StoredInputProps<

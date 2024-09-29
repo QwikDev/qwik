@@ -1,7 +1,7 @@
 import { qwikCity } from '@builder.io/qwik-city/vite';
 import { qwikInsights, qwikTypes } from '@builder.io/qwik-labs/vite';
 import { macroPlugin } from '@builder.io/vite-plugin-macro';
-import { qwikVite } from '@qwikdev/core/optimizer';
+import { qwikVite } from '@qwik.dev/core/optimizer';
 import { defineConfig, loadEnv } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 

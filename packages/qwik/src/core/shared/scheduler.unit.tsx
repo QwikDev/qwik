@@ -1,4 +1,4 @@
-import { $, type OnRenderFn, type QRL } from '@qwikdev/core';
+import { $, type OnRenderFn, type QRL } from '@qwik.dev/core';
 import { createDocument } from '@builder.io/qwik-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { TaskFlags, type Task } from '../use/use-task';

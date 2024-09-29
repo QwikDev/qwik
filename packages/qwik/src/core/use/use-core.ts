@@ -27,7 +27,7 @@ import { setLocale } from './use-locale';
 
 declare const document: QwikDocument;
 
-// Simplified version of `ServerRequestEvent` from `@qwikdev/city` package.
+// Simplified version of `ServerRequestEvent` from `@qwik.dev/city` package.
 export interface SimplifiedServerRequestEvent<T = unknown> {
   url: URL;
   locale: string | undefined;
@@ -39,7 +39,7 @@ export interface StyleAppend {
   content: string | null;
 }
 
-// Simplified version of `ServerRequestEvent` from `@qwikdev/city` package.
+// Simplified version of `ServerRequestEvent` from `@qwik.dev/city` package.
 export interface ServerRequestEvent<T = unknown> {
   url: URL;
   locale: string | undefined;

@@ -1,5 +1,11 @@
-import { routeAction$, routeLoader$, validator$, z, zod$ } from "@qwikdev/city";
-import { component$ } from "@qwikdev/core";
+import {
+  routeAction$,
+  routeLoader$,
+  validator$,
+  z,
+  zod$,
+} from "@qwik.dev/city";
+import { component$ } from "@qwik.dev/core";
 import type {
   CommonLoaderActionOptions,
   JSONObject,

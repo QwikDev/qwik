@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
 	return (
@@ -18,15 +18,15 @@ export default component$(() => {
 
 ============================= src/components/mongo/404.tsx ==
 
-import { componentQrl } from "@qwikdev/core";
-import { qrl } from "@qwikdev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./_404_component_zrvowc98eqo"), "_404_component_zRvoWc98eqo"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;AAGA,6BAAe,0GAKZ\"}")
 ============================= src/components/mongo/_404_component_zrvowc98eqo.tsx (ENTRY POINT)==
 
-import { qrl } from "@qwikdev/core";
+import { qrl } from "@qwik.dev/core";
 export const _404_component_zRvoWc98eqo = ()=>{
     return <div onClick$={/*#__PURE__*/ qrl(()=>import("./_404_component_div_onclick_oimo9dvew9q"), "_404_component_div_onClick_OiMo9dvEW9Q")}>
 		</div>;

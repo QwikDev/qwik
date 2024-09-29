@@ -1,6 +1,6 @@
-import type { ServerRequestEvent } from '@qwikdev/city/middleware/request-handler';
-import { requestHandler } from '@qwikdev/city/middleware/request-handler';
-import { _deserialize, _serialize, _verifySerializable } from '@qwikdev/core';
+import type { ServerRequestEvent } from '@qwik.dev/city/middleware/request-handler';
+import { requestHandler } from '@qwik.dev/city/middleware/request-handler';
+import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core';
 import { WritableStream } from 'node:stream/web';
 import { pathToFileURL } from 'node:url';
 import type { QwikSerializer } from '../middleware/request-handler/types';

@@ -1,6 +1,6 @@
 import { search } from "@orama/orama";
-import { server$ } from "@qwikdev/city";
-import { $, component$, useSignal, useStylesScoped$ } from "@qwikdev/core";
+import { server$ } from "@qwik.dev/city";
+import { $, component$, useSignal, useStylesScoped$ } from "@qwik.dev/core";
 import { type Pokemon, createOramaDb, oramaDb } from "~/orama";
 
 createOramaDb();

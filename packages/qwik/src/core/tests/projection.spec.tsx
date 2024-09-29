@@ -16,8 +16,8 @@ import {
   useVisibleTask$,
   type JSXNode,
   type Signal,
-} from '@qwikdev/core';
-import { domRender, ssrRenderToDom, trigger } from '@qwikdev/core/testing';
+} from '@qwik.dev/core';
+import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { vnode_getNextSibling } from '../client/vnode';

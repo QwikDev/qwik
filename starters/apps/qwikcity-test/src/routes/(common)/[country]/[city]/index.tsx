@@ -3,8 +3,8 @@ import {
   Link,
   routeLoader$,
   useLocation,
-} from "@qwikdev/city";
-import { component$ } from "@qwikdev/core";
+} from "@qwik.dev/city";
+import { component$ } from "@qwik.dev/core";
 
 export const useWeatherLoader = routeLoader$(({ params, query }) => {
   return {

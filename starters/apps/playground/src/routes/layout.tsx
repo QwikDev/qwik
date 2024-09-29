@@ -1,6 +1,6 @@
-import type { RequestHandler } from "@qwikdev/city";
-import { routeLoader$ } from "@qwikdev/city";
-import { component$, Slot, useStyles$ } from "@qwikdev/core";
+import type { RequestHandler } from "@qwik.dev/city";
+import { routeLoader$ } from "@qwik.dev/city";
+import { component$, Slot, useStyles$ } from "@qwik.dev/core";
 
 import Footer from "../components/starter/footer/footer";
 import Header from "../components/starter/header/header";

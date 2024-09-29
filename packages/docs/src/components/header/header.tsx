@@ -1,5 +1,5 @@
-import { useLocation } from '@qwikdev/city';
-import { component$, useContext, useStyles$, useVisibleTask$ } from '@qwikdev/core';
+import { useLocation } from '@qwik.dev/city';
+import { component$, useContext, useStyles$, useVisibleTask$ } from '@qwik.dev/core';
 import { GlobalStore } from '../../context';
 import { DocSearch } from '../docsearch/doc-search';
 import { CloseIcon } from '../svgs/close-icon';

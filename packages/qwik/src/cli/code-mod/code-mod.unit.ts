@@ -188,46 +188,46 @@ test('add vite config', () => {
 });
 
 test('add imports to side effect default import', () => {
-  const sourceText = `import a from "@qwikdev/core";`;
+  const sourceText = `import a from "@qwik.dev/core";`;
   const outputText = updateViteConfig(ts, sourceText, {
     imports: [
-      { namedImports: ['b'], importPath: '@qwikdev/core' },
+      { namedImports: ['b'], importPath: '@qwik.dev/core' },
       { namedImports: ['c', 'd'], importPath: '@builder.io/sdk-react' },
     ],
   })!;
-  assert.include(outputText, 'import a, { b } from "@qwikdev/core";');
+  assert.include(outputText, 'import a, { b } from "@qwik.dev/core";');
   assert.include(outputText, 'import { c, d } from "@builder.io/sdk-react";');
 });
 
 test('do not re-add named imports', () => {
   const sourceText = `
-    import { a } from "@qwikdev/core";
+    import { a } from "@qwik.dev/core";
     import { b, c } from "@builder.io/sdk-react";
     `;
   const outputText = updateViteConfig(ts, sourceText, {
     imports: [
-      { namedImports: ['a'], importPath: '@qwikdev/core' },
+      { namedImports: ['a'], importPath: '@qwik.dev/core' },
       { namedImports: ['b', 'c'], importPath: '@builder.io/sdk-react' },
     ],
   })!;
-  assert.include(outputText, 'import { a } from "@qwikdev/core";');
+  assert.include(outputText, 'import { a } from "@qwik.dev/core";');
   assert.include(outputText, 'import { b, c } from "@builder.io/sdk-react";');
 });
 
 test('add imports to side effect import', () => {
-  const sourceText = `import "@qwikdev/core";\nconsole.log(88);`;
+  const sourceText = `import "@qwik.dev/core";\nconsole.log(88);`;
   const outputText = updateViteConfig(ts, sourceText, {
-    imports: [{ namedImports: ['a'], importPath: '@qwikdev/core' }],
+    imports: [{ namedImports: ['a'], importPath: '@qwik.dev/core' }],
   })!;
-  assert.include(outputText, 'import { a } from "@qwikdev/core"');
+  assert.include(outputText, 'import { a } from "@qwik.dev/core"');
 });
 
 test('leave existing imports', () => {
-  const sourceText = `import { a } from "@qwikdev/core";`;
+  const sourceText = `import { a } from "@qwik.dev/core";`;
   const outputText = updateViteConfig(ts, sourceText, {
-    imports: [{ namedImports: ['b'], importPath: '@qwikdev/core' }],
+    imports: [{ namedImports: ['b'], importPath: '@qwik.dev/core' }],
   })!;
-  assert.include(outputText, 'import { a, b } from "@qwikdev/core";');
+  assert.include(outputText, 'import { a, b } from "@qwik.dev/core";');
 });
 
 test('renamed default import with existing named import', () => {
@@ -235,11 +235,11 @@ test('renamed default import with existing named import', () => {
   const outputText = updateViteConfig(ts, sourceText, {
     imports: [
       { defaultImport: 'c', importPath: '@builder.io/sdk-react' },
-      { namedImports: ['d'], importPath: '@qwikdev/core' },
+      { namedImports: ['d'], importPath: '@qwik.dev/core' },
     ],
   })!;
   assert.include(outputText, 'import c, { b } from "@builder.io/sdk-react";');
-  assert.include(outputText, 'import { d } from "@qwikdev/core";');
+  assert.include(outputText, 'import { d } from "@qwik.dev/core";');
 });
 
 test('renamed default import', () => {

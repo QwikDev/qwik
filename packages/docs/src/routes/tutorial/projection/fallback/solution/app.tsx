@@ -1,4 +1,4 @@
-import { component$, Slot, useStyles$ } from '@qwikdev/core';
+import { component$, Slot, useStyles$ } from '@qwik.dev/core';
 
 export const Card = component$(() => {
   useStyles$(CSS);

@@ -1,5 +1,5 @@
-import { component$, sync$ } from '@qwikdev/core';
-import { domRender, ssrRenderToDom, trigger } from '@qwikdev/core/testing';
+import { component$, sync$ } from '@qwik.dev/core';
+import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 
 const debug = false; //true;

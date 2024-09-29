@@ -1,7 +1,7 @@
-import { component$, useComputed$, useSignal } from '@qwikdev/core';
+import { component$, useComputed$, useSignal } from '@qwik.dev/core';
 // import { qwikGPT, rateResponse } from './search';
 import { CodeBlock } from '../code-block/code-block';
-// import { isBrowser } from '@qwikdev/core/build';
+// import { isBrowser } from '@qwik.dev/core/build';
 import snarkdown from 'snarkdown';
 
 const snarkdownEnhanced = (md: string) => {

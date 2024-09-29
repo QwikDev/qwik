@@ -1,5 +1,5 @@
-import { componentQrl, inlinedQrl } from '@qwikdev/core';
-import { domRender, ssrRenderToDom, trigger } from '@qwikdev/core/testing';
+import { componentQrl, inlinedQrl } from '@qwik.dev/core';
+import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { rerenderComponent } from '../../testing/rendering.unit-util';
 import { useSequentialScope } from '../use/use-sequential-scope';

@@ -1,4 +1,4 @@
-import { component$, useSignal } from '@qwikdev/core';
+import { component$, useSignal } from '@qwik.dev/core';
 import { QFrame } from './react';
 
 export default component$(() => {

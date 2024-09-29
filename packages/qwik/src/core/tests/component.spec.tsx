@@ -16,8 +16,8 @@ import {
   useVisibleTask$,
   type JSXOutput,
   type Signal as SignalType,
-} from '@qwikdev/core';
-import { domRender, ssrRenderToDom, trigger } from '@qwikdev/core/testing';
+} from '@qwik.dev/core';
+import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { cleanupAttrs } from '../../testing/element-fixture';
 import { ErrorProvider } from '../../testing/rendering.unit-util';

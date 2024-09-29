@@ -12,7 +12,7 @@ import { manifest } from "@qwik-client-manifest";
 import {
   createQwikCity,
   type PlatformCloudflarePages,
-} from "@qwikdev/city/middleware/cloudflare-pages";
+} from "@qwik.dev/city/middleware/cloudflare-pages";
 import render from "./entry.ssr";
 
 declare global {

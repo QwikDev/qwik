@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { routeLoader$ } from "@qwikdev/city";
-import { component$ } from "@qwikdev/core";
+import { routeLoader$ } from "@qwik.dev/city";
+import { component$ } from "@qwik.dev/core";
 
 export const useGetUser = routeLoader$(async ({ params, status }) => {
   const userId = parseInt(params["userId"], 10);

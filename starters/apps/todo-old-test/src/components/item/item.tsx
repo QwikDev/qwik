@@ -1,4 +1,4 @@
-import { component$, useSignal, useStore, useTask$ } from "@qwikdev/core";
+import { component$, useSignal, useStore, useTask$ } from "@qwik.dev/core";
 
 import type { TodoItem, Todos } from "../../state/state";
 

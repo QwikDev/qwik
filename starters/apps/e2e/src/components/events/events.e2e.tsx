@@ -1,5 +1,5 @@
-import type { ClientContainer, DomContainer } from "@qwikdev/core";
-import { domRender, ssrRenderToDom, trigger } from "@qwikdev/core/testing";
+import type { ClientContainer, DomContainer } from "@qwik.dev/core";
+import { domRender, ssrRenderToDom, trigger } from "@qwik.dev/core/testing";
 import { beforeEach, describe, expect, it } from "vitest";
 import { Issue3948 } from "./events";
 

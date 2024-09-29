@@ -30,8 +30,8 @@ import {
   useStylesQrl,
   useTaskQrl,
   withLocale,
-} from '@qwikdev/core';
-import { isBrowser, isDev, isServer } from '@qwikdev/core/build';
+} from '@qwik.dev/core';
+import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
 import { z, z as z2 } from 'zod';
 const RouteStateContext = /* @__PURE__ */ createContextId('qc-s');
 const ContentContext = /* @__PURE__ */ createContextId('qc-c');

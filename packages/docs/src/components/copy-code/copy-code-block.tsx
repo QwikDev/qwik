@@ -1,4 +1,4 @@
-import { component$, useSignal, useStyles$ } from '@qwikdev/core';
+import { component$, useSignal, useStyles$ } from '@qwik.dev/core';
 import { CopyCode as CopyCodeIcon } from '../svgs/copy-code-icon';
 import styles from './copy-code.css?inline';
 

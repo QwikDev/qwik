@@ -1,4 +1,4 @@
-import { component$, useSignal, useTask$ } from '@qwikdev/core';
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
 
 export default component$(() => {
   const fibonacci = useSignal<number[]>();

@@ -3,7 +3,7 @@ import {
   useContextProvider,
   useStore,
   useStyles$,
-} from "@qwikdev/core";
+} from "@qwik.dev/core";
 import { TODOS, type Todos } from "../../state/state";
 import { Body } from "../body/body";
 import { Footer } from "../footer/footer";

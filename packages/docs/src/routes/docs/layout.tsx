@@ -1,5 +1,5 @@
-import { useContent, useLocation } from '@qwikdev/city';
-import { component$, Slot, useContext, useStyles$ } from '@qwikdev/core';
+import { useContent, useLocation } from '@qwik.dev/city';
+import { component$, Slot, useContext, useStyles$ } from '@qwik.dev/core';
 import { ContentNav } from '../../components/content-nav/content-nav';
 import Contributors from '../../components/contributors';
 import { Footer } from '../../components/footer/footer';

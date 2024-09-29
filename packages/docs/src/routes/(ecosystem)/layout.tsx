@@ -1,4 +1,4 @@
-import { component$, Slot } from '@qwikdev/core';
+import { component$, Slot } from '@qwik.dev/core';
 import { Header } from '../../components/header/header';
 import { Footer } from '../../components/footer/footer';
 

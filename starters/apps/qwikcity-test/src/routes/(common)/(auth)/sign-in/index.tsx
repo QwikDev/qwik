@@ -8,8 +8,8 @@ import {
   type RequestHandler,
   globalAction$,
   zod$,
-} from "@qwikdev/city";
-import { component$ } from "@qwikdev/core";
+} from "@qwik.dev/city";
+import { component$ } from "@qwik.dev/core";
 import { z } from "zod";
 import { isUserAuthenticated, signIn } from "../../../../auth/auth";
 

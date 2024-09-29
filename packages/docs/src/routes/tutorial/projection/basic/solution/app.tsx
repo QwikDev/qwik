@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { component$, Slot, useStore } from '@qwikdev/core';
+import { component$, Slot, useStore } from '@qwik.dev/core';
 
 export default component$(() => {
   const store = useStore({ count: 0 });

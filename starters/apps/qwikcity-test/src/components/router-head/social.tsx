@@ -1,4 +1,4 @@
-import type { ResolvedDocumentHead, RouteLocation } from "@qwikdev/city";
+import type { ResolvedDocumentHead, RouteLocation } from "@qwik.dev/city";
 
 export const Social = ({ head, loc }: SocialProps) => {
   return (

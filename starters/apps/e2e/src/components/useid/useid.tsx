@@ -1,4 +1,4 @@
-import { component$, useId, useSignal, useVisibleTask$ } from "@qwikdev/core";
+import { component$, useId, useSignal, useVisibleTask$ } from "@qwik.dev/core";
 
 export const MIN_CHILDREN = 2;
 export const MAX_CHILDREN = 5;

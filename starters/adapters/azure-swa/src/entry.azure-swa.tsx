@@ -12,7 +12,7 @@ import { manifest } from "@qwik-client-manifest";
 import {
   createQwikCity,
   type PlatformAzure,
-} from "@qwikdev/city/middleware/azure-swa";
+} from "@qwik.dev/city/middleware/azure-swa";
 import render from "./entry.ssr";
 
 declare global {

@@ -106,11 +106,11 @@ async function updateBaseVersions(config: BuildConfig, version: string) {
   baseAppPkg.devDependencies = baseAppPkg.devDependencies || {};
 
   const semverQwik = config.devRelease ? `${version}` : `^${version}`;
-  console.log(`   update devDependencies["@qwikdev/core"] = "${semverQwik}"`);
-  baseAppPkg.devDependencies['@qwikdev/core'] = semverQwik;
+  console.log(`   update devDependencies["@qwik.dev/core"] = "${semverQwik}"`);
+  baseAppPkg.devDependencies['@qwik.dev/core'] = semverQwik;
 
-  console.log(`   update devDependencies["@qwikdev/city"] = "${semverQwik}"`);
-  baseAppPkg.devDependencies['@qwikdev/city'] = semverQwik;
+  console.log(`   update devDependencies["@qwik.dev/city"] = "${semverQwik}"`);
+  baseAppPkg.devDependencies['@qwik.dev/city'] = semverQwik;
 
   console.log(`   update devDependencies["eslint-plugin-qwik"] = "${semverQwik}"`);
   baseAppPkg.devDependencies['eslint-plugin-qwik'] = semverQwik;
@@ -205,8 +205,8 @@ async function updatePackageJson(config: BuildConfig, destDir: string) {
     }
   };
 
-  if (pkgJson.devDependencies && pkgJson.devDependencies['@qwikdev/core']) {
-    pkgJson.devDependencies['@qwikdev/core'] = qwikVersion;
+  if (pkgJson.devDependencies && pkgJson.devDependencies['@qwik.dev/core']) {
+    pkgJson.devDependencies['@qwik.dev/core'] = qwikVersion;
   }
 
   if (pkgJson.devDependencies && pkgJson.devDependencies['eslint-plugin-qwik']) {

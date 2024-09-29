@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-		import { component$, useSignal } from '@qwikdev/core';
+		import { component$, useSignal } from '@qwik.dev/core';
 		const useFoo = (count) => {
 			const tag = (s) => {
 				const value = typeof s === "string" ? s : s[0];
@@ -29,11 +29,11 @@ expression: output
 		
 ============================= test_component_luxexe0dqrg.ts (ENTRY POINT)==
 
-import { Fragment as _Fragment } from "@qwikdev/core/jsx-runtime";
-import { _jsxSorted } from "@qwikdev/core";
-import { qrl } from "@qwikdev/core";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 import { _auto_useFoo as useFoo } from "./test";
-import { useSignal } from "@qwikdev/core";
+import { useSignal } from "@qwik.dev/core";
 export const test_component_LUXeXe0DQrg = ()=>{
     const count = useSignal(0);
     const foo = useFoo(count);
@@ -72,7 +72,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test_component_fragment_button_onclick_ef3qezgqwcy.ts (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwikdev/core";
+import { useLexicalScope } from "@qwik.dev/core";
 export const test_component_Fragment_button_onClick_eF3QEzgQWcY = ()=>{
     const [count] = useLexicalScope();
     return count.value++;
@@ -102,8 +102,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.ts ==
 
-import { componentQrl } from "@qwikdev/core";
-import { qrl } from "@qwikdev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 const useFoo = (count)=>{
     const tag = (s)=>{
         const value = typeof s === "string" ? s : s[0];

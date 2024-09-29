@@ -9,9 +9,9 @@ import {
   Slot,
   useSignal,
   useStylesScopedQrl,
-} from '@qwikdev/core';
-import { renderToString } from '@qwikdev/core/server';
-import { domRender, ssrRenderToDom, trigger } from '@qwikdev/core/testing';
+} from '@qwik.dev/core';
+import { renderToString } from '@qwik.dev/core/server';
+import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 import { afterEach, describe, expect, it } from 'vitest';
 import { useStore } from '..';

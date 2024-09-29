@@ -72,10 +72,10 @@ test('frontmatter, attrs head title', async () => {
 
 test('frontmatter, attrs head title w/ yaml escaped \\@', async () => {
   const attrs: FrontmatterAttrs = {
-    title: '\\@qwikdev/core',
+    title: '\\@qwik.dev/core',
   };
   const head = frontmatterAttrsToDocumentHead(attrs);
-  assert.equal(head!.title, '@qwikdev/core');
+  assert.equal(head!.title, '@qwik.dev/core');
 });
 
 const metaNames = [

@@ -7,10 +7,10 @@ import {
   _walkJSX,
   isSignal,
   type JSXNode,
-} from '@qwikdev/core';
-import { isDev } from '@qwikdev/core/build';
-import type { ResolvedManifest } from '@qwikdev/core/optimizer';
-import { getQwikLoaderScript } from '@qwikdev/core/server';
+} from '@qwik.dev/core';
+import { isDev } from '@qwik.dev/core/build';
+import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
+import { getQwikLoaderScript } from '@qwik.dev/core/server';
 import { applyPrefetchImplementation2 } from './prefetch-implementation';
 import { getPrefetchResources } from './prefetch-strategy';
 import {

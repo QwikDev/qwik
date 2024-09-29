@@ -1,4 +1,4 @@
-import { component$, useComputed$, useSignal } from '@qwikdev/core';
+import { component$, useComputed$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
   const name = useSignal('Qwik');

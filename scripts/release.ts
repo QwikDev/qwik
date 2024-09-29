@@ -69,16 +69,16 @@ export async function setReleaseVersion(config: BuildConfig) {
   console.log(`🔥 Set release npm version: ${config.distVersion}`);
 
   // check this @builder.io/qwik version isn't already published
-  await checkExistingNpmVersion('@qwikdev/core', config.distVersion);
+  await checkExistingNpmVersion('@qwik.dev/core', config.distVersion);
 
-  // check this @qwikdev/city version isn't already published
-  await checkExistingNpmVersion('@qwikdev/city', config.distVersion);
+  // check this @qwik.dev/city version isn't already published
+  await checkExistingNpmVersion('@qwik.dev/city', config.distVersion);
 }
 
 export async function prepareReleaseVersion(config: BuildConfig) {
   const rootPkg = await readPackageJson(config.rootDir);
 
-  const answers = await releaseVersionPrompt('@qwikdev/core', rootPkg.version);
+  const answers = await releaseVersionPrompt('@qwik.dev/core', rootPkg.version);
   if (!semver.valid(answers.version)) {
     panic(`Invalid version`);
   }
@@ -164,7 +164,7 @@ export async function publish(config: BuildConfig) {
   const npmPublishArgs = ['publish', '--tag', distTag, '--access', 'public'];
 
   const qwikCityDir = join(config.packagesDir, 'qwik-city');
-  // publish @qwikdev/city (dry-run)
+  // publish @qwik.dev/city (dry-run)
   await run('npm', npmPublishArgs, true, true, { cwd: qwikCityDir });
 
   // publish @builder.io/qwik (dry-run)

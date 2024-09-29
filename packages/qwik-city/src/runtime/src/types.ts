@@ -6,7 +6,7 @@ import type {
   RequestEventLoader,
   RequestHandler,
   ResolveSyncValue,
-} from '@qwikdev/city/middleware/request-handler';
+} from '@qwik.dev/city/middleware/request-handler';
 import type {
   NoSerialize,
   QRL,
@@ -14,7 +14,7 @@ import type {
   ReadonlySignal,
   Signal,
   ValueOrPromise,
-} from '@qwikdev/core';
+} from '@qwik.dev/core';
 import type * as v from 'valibot';
 import type * as z from 'zod';
 
@@ -31,7 +31,7 @@ export type {
   RequestHandler,
   ResolveSyncValue,
   ResolveValue,
-} from '@qwikdev/city/middleware/request-handler';
+} from '@qwik.dev/city/middleware/request-handler';
 
 export interface RouteModule<BODY = unknown> {
   onDelete?: RequestHandler<BODY> | RequestHandler<BODY>[];
@@ -679,7 +679,7 @@ export type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {
    * Most of the time this property should not be used directly, instead use the `Form` component:
    *
    * ```tsx
-   * import {action$, Form} from '@qwikdev/city';
+   * import {action$, Form} from '@qwik.dev/city';
    *
    * export const useAddUser = action$(() => { ... });
    *

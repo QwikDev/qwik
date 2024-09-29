@@ -1,5 +1,5 @@
-import { Link } from "@qwikdev/city";
-import { component$, useStyles$, useTask$ } from "@qwikdev/core";
+import { Link } from "@qwik.dev/city";
+import { component$, useStyles$, useTask$ } from "@qwik.dev/core";
 import { useUserLoader } from "../../routes/layout";
 import { useRootLoader } from "../../routes/plugin@header";
 import { usePlugin } from "../../routes/plugin@issue4722";

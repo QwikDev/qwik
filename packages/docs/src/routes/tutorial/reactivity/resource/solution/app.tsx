@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { component$, useStore, Resource, useResource$ } from '@qwikdev/core';
+import { component$, useStore, Resource, useResource$ } from '@qwik.dev/core';
 
 export default component$(() => {
   const github = useStore({

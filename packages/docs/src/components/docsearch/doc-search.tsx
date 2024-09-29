@@ -9,7 +9,7 @@ import {
   type Signal,
   $,
   sync$,
-} from '@qwikdev/core';
+} from '@qwik.dev/core';
 import type { DocSearchHit, InternalDocSearchHit } from './types';
 import { type ButtonTranslations, DocSearchButton } from './doc-search-button';
 import { DocSearchModal, type ModalTranslations } from './doc-search-modal';

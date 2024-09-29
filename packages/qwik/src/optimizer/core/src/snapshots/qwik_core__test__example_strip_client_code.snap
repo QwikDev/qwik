@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, useClientMount$, useStore, useTask$ } from '@qwikdev/core';
+import { component$, useClientMount$, useStore, useTask$ } from '@qwik.dev/core';
 import mongo from 'mongodb';
 import redis from 'redis';
 import threejs from 'threejs';
@@ -47,15 +47,15 @@ export const Parent = component$(() => {
 
 import "./keep";
 import "../keep2";
-import { componentQrl } from "@qwikdev/core";
-import { useClientMountQrl } from "@qwikdev/core";
-import { _noopQrl } from "@qwikdev/core";
-import { useTaskQrl } from "@qwikdev/core";
-import { inlinedQrl } from "@qwikdev/core";
-import { _wrapProp } from "@qwikdev/core";
-import { useLexicalScope } from "@qwikdev/core";
-import { _jsxSorted } from "@qwikdev/core";
-import { useStore } from '@qwikdev/core';
+import { componentQrl } from "@qwik.dev/core";
+import { useClientMountQrl } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+import { useTaskQrl } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { useLexicalScope } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { useStore } from '@qwik.dev/core';
 export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     const state = useStore({
         text: ''

@@ -1,4 +1,4 @@
-import { component$, useStyles$, type QRL, useVisibleTask$, useSignal } from '@qwikdev/core';
+import { component$, useStyles$, type QRL, useVisibleTask$, useSignal } from '@qwik.dev/core';
 import prismjs from 'prismjs';
 // Set to global so that prism language plugins can find it.
 const _global =

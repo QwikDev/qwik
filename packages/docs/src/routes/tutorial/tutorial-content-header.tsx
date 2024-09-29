@@ -1,5 +1,5 @@
 import tutorialSections from '@tutorial-data';
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 import type { TutorialStore } from './layout';
 
 export const TutorialContentHeader = component$(({ store }: TutorialContentHeaderProps) => {

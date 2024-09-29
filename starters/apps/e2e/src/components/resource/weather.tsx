@@ -6,7 +6,7 @@ import {
   useStore,
   useTask$,
   type ResourceReturn,
-} from "@qwikdev/core";
+} from "@qwik.dev/core";
 
 export interface WeatherData {
   name: string;

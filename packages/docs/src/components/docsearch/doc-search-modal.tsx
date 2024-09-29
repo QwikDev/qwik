@@ -1,4 +1,4 @@
-import { component$, useSignal, noSerialize, useContextProvider, useTask$ } from '@qwikdev/core';
+import { component$, useSignal, noSerialize, useContextProvider, useTask$ } from '@qwik.dev/core';
 import { MAX_QUERY_SIZE } from './constants';
 import { SearchContext } from './context';
 import type { DocSearchProps, DocSearchState } from './doc-search';

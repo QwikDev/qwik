@@ -168,7 +168,7 @@ export function normalizePath(path: string) {
 }
 
 const invalidLoaderLocationGood = `
-import { routeLoader$ } from '@qwikdev/city';
+import { routeLoader$ } from '@qwik.dev/city';
  
 export const useProductDetails = routeLoader$(async (requestEvent) => {
   const res = await fetch(\`https://.../products/\${requestEvent.params.productId}\`);
@@ -181,7 +181,7 @@ const invalidLoaderLocationBad = invalidLoaderLocationGood;
 const missingExportGood = invalidLoaderLocationGood;
 
 const missingExportBad = `
-import { routeLoader$ } from '@qwikdev/city';
+import { routeLoader$ } from '@qwik.dev/city';
  
 const useProductDetails = routeLoader$(async (requestEvent) => {
   const res = await fetch(\`https://.../products/\${requestEvent.params.productId}\`);
@@ -192,7 +192,7 @@ const useProductDetails = routeLoader$(async (requestEvent) => {
 const wrongNameGood = invalidLoaderLocationGood;
 
 const wrongNameBad = `
-import { routeLoader$ } from '@qwikdev/city';
+import { routeLoader$ } from '@qwik.dev/city';
  
 export const getProductDetails = routeLoader$(async (requestEvent) => {
   const res = await fetch(\`https://.../products/\${requestEvent.params.productId}\`);
@@ -203,7 +203,7 @@ export const getProductDetails = routeLoader$(async (requestEvent) => {
 const recommendedValueGood = invalidLoaderLocationGood;
 
 const recommendedValueBad = `
-import { routeLoader$ } from '@qwikdev/city';
+import { routeLoader$ } from '@qwik.dev/city';
  
 async function fetcher() {
   const res = await fetch(\`https://.../products/\${requestEvent.params.productId}\`);

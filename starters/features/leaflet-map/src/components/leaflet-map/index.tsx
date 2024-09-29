@@ -4,7 +4,7 @@ import {
   useSignal,
   useStyles$,
   useVisibleTask$,
-} from "@qwikdev/core";
+} from "@qwik.dev/core";
 import { Map } from "leaflet";
 import type { MapProps } from "~/models/map";
 

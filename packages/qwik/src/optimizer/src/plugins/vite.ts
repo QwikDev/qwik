@@ -588,7 +588,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             source: JSON.stringify(convertManifestToBundleGraph(manifest)),
           });
           const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-          const workerScriptPath = (await this.resolve('@qwikdev/core/qwik-prefetch.js'))!.id;
+          const workerScriptPath = (await this.resolve('@qwik.dev/core/qwik-prefetch.js'))!.id;
           const workerScript = await fs.promises.readFile(workerScriptPath, 'utf-8');
           const qwikPrefetchServiceWorkerFile = 'qwik-prefetch-service-worker.js';
           this.emitFile({
@@ -787,7 +787,7 @@ function getViteDevModule(opts: NormalizedQwikPluginOptions) {
   );
 
   return `// Qwik Vite Dev Module
-import { render as qwikRender } from '@qwikdev/core';
+import { render as qwikRender } from '@qwik.dev/core';
 
 export async function render(document, rootNode, opts) {
 
@@ -897,7 +897,7 @@ export const isNotNullable = <T>(v: T): v is NonNullable<T> => {
   return v != null;
 };
 
-const VITE_CLIENT_MODULE = `@qwikdev/core/vite-client`;
+const VITE_CLIENT_MODULE = `@qwik.dev/core/vite-client`;
 const CLIENT_DEV_INPUT = 'entry.dev';
 
 interface QwikVitePluginCommonOptions {

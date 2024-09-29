@@ -4,7 +4,7 @@ import {
   useStore,
   useVisibleTask$,
   type PropsOf,
-} from "@qwikdev/core";
+} from "@qwik.dev/core";
 
 export const RefRoot = component$(() => {
   const state = useStore({

@@ -1,4 +1,4 @@
-import type { JSXNode, RenderOptions, RenderResult } from '@qwikdev/core';
+import type { JSXNode, RenderOptions, RenderResult } from '@qwik.dev/core';
 import type { FunctionComponent, JSXOutput } from '../shared/jsx/types/jsx-node';
 import { isDocument, isElement } from '../shared/utils/element';
 import { ChoreType } from '../shared/scheduler';

@@ -7,7 +7,7 @@ import {
   useSignal,
   useStore,
   useVisibleTask$,
-} from "@qwikdev/core";
+} from "@qwik.dev/core";
 
 export interface ContextI {
   displayName: string;

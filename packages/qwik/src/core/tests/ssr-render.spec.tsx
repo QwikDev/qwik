@@ -1,5 +1,5 @@
-import { Slot, useSignal } from '@qwikdev/core';
-import { ssrRenderToDom, trigger } from '@qwikdev/core/testing';
+import { Slot, useSignal } from '@qwik.dev/core';
+import { ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { component$ } from '../shared/component.public';
 import {

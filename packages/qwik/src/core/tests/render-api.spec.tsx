@@ -18,10 +18,10 @@ import {
   useSignal,
   useTask$,
   type JSXOutput,
-} from '@qwikdev/core';
-import type { GlobalInjections, QwikManifest } from '@qwikdev/core/optimizer';
-import { renderToStream, renderToString } from '@qwikdev/core/server';
-import { emulateExecutionOfQwikFuncs, getTestPlatform, trigger } from '@qwikdev/core/testing';
+} from '@qwik.dev/core';
+import type { GlobalInjections, QwikManifest } from '@qwik.dev/core/optimizer';
+import { renderToStream, renderToString } from '@qwik.dev/core/server';
+import { emulateExecutionOfQwikFuncs, getTestPlatform, trigger } from '@qwik.dev/core/testing';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type {

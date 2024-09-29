@@ -6,8 +6,8 @@ import {
   useContextProvider,
   useStore,
   useTask$,
-} from "@qwikdev/core";
-import { isBrowser, isServer } from "@qwikdev/core/build";
+} from "@qwik.dev/core";
+import { isBrowser, isServer } from "@qwik.dev/core/build";
 
 export const CTX = createContextId<{ message: string; count: number }>(
   "toggle",

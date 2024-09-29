@@ -1,4 +1,4 @@
-import { qwikVite } from '@qwikdev/core/optimizer';
+import { qwikVite } from '@qwik.dev/core/optimizer';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 

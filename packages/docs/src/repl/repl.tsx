@@ -7,8 +7,8 @@ import {
   useStyles$,
   useTask$,
   useVisibleTask$,
-} from '@qwikdev/core';
-import { isServer } from '@qwikdev/core/build';
+} from '@qwik.dev/core';
+import { isServer } from '@qwik.dev/core/build';
 import { QWIK_PKG_NAME, bundled, getNpmCdnUrl } from './bundled';
 import { ReplDetailPanel } from './repl-detail-panel';
 import { ReplInputPanel } from './repl-input-panel';

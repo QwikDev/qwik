@@ -1,5 +1,5 @@
-import { routeLoader$ } from "@qwikdev/city";
-import { component$ } from "@qwikdev/core";
+import { routeLoader$ } from "@qwik.dev/city";
+import { component$ } from "@qwik.dev/core";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { schema } from "../../../../drizzle/schema";

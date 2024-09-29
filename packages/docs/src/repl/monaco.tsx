@@ -1,6 +1,6 @@
-import { noSerialize } from '@qwikdev/core';
-import { isServer } from '@qwikdev/core/build';
-import type { Diagnostic } from '@qwikdev/core/optimizer';
+import { noSerialize } from '@qwik.dev/core';
+import { isServer } from '@qwik.dev/core/build';
+import type { Diagnostic } from '@qwik.dev/core/optimizer';
 import type MonacoTypes from 'monaco-editor';
 import { getColorPreference } from '../components/theme-toggle/theme-toggle';
 import { bundled, getNpmCdnUrl } from './bundled';
@@ -26,7 +26,7 @@ export const initMonacoEditor = async (
     esModuleInterop: true,
     isolatedModules: true,
     jsx: ts.JsxEmit.ReactJSX,
-    jsxImportSource: '@qwikdev/core',
+    jsxImportSource: '@qwik.dev/core',
     moduleResolution: ts.ModuleResolutionKind.NodeJs,
     noEmit: true,
     skipLibCheck: true,
@@ -215,8 +215,8 @@ export const addQwikLibs = async (version: string) => {
     }
   });
   typescriptDefaults.addExtraLib(
-    `declare module '@qwikdev/core/jsx-runtime' { export * from '@qwikdev/core' }`,
-    '/node_modules/@qwikdev/core/dist/jsx-runtime.d.ts'
+    `declare module '@qwik.dev/core/jsx-runtime' { export * from '@qwik.dev/core' }`,
+    '/node_modules/@qwik.dev/core/dist/jsx-runtime.d.ts'
   );
   typescriptDefaults.addExtraLib(CLIENT_LIB);
 };
@@ -230,21 +230,21 @@ const loadDeps = async (qwikVersion: string) => {
   const deps: NodeModuleDep[] = [
     // qwik
     {
-      pkgName: '@qwikdev/core',
+      pkgName: '@qwik.dev/core',
       pkgVersion: qwikVersion,
       pkgPath: `${prefix}core.d.ts`,
       import: '',
     },
     // server API
     {
-      pkgName: '@qwikdev/core',
+      pkgName: '@qwik.dev/core',
       pkgVersion: qwikVersion,
       pkgPath: `${prefix}server.d.ts`,
       import: '/server',
     },
     // build constants
     {
-      pkgName: '@qwikdev/core',
+      pkgName: '@qwik.dev/core',
       pkgVersion: qwikVersion,
       pkgPath: `${prefix}build/index.d.ts`,
       import: '/build',

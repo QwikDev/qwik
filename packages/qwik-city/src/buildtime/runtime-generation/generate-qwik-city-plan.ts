@@ -1,4 +1,4 @@
-import type { QwikVitePlugin } from '@qwikdev/core/optimizer';
+import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import type { BuildContext } from '../types';
 import { createEntries } from './generate-entries';
 import { createMenus } from './generate-menus';

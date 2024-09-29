@@ -1,5 +1,9 @@
-import { routeLoader$, type Cookie, type RequestHandler } from '@qwikdev/city';
-import { component$ } from '@qwikdev/core';
+import {
+  routeLoader$,
+  type Cookie,
+  type RequestHandler,
+} from '@qwik.dev/city';
+import { component$ } from '@qwik.dev/core';
 
 interface User {
   username: string;

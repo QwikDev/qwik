@@ -14,8 +14,8 @@ import {
   type JSXOutput,
   type PropsOf,
   type QRL,
-} from "@qwikdev/core";
-import { isServer } from "@qwikdev/core/build";
+} from "@qwik.dev/core";
+import { isServer } from "@qwik.dev/core/build";
 import { delay } from "../streaming/demo";
 
 export const Render = component$(() => {

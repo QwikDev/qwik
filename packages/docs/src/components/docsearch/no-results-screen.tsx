@@ -1,4 +1,4 @@
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 import type { DocSearchState } from './doc-search';
 import { NoResultsIcon } from './icons/NoResultsIcon';
 

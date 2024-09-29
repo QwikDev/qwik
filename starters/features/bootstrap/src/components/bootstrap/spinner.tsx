@@ -1,4 +1,4 @@
-import { component$ } from "@qwikdev/core";
+import { component$ } from "@qwik.dev/core";
 import { type BsSpinnerComponentProps } from "~/models/bootstrap";
 
 export const Spinner = component$<BsSpinnerComponentProps>(

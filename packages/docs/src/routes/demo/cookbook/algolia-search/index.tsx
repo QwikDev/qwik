@@ -1,4 +1,4 @@
-import { $, component$, useSignal, useStylesScoped$ } from '@qwikdev/core';
+import { $, component$, useSignal, useStylesScoped$ } from '@qwik.dev/core';
 
 type AlgoliaResult = {
   hits: {

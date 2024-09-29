@@ -1,4 +1,4 @@
-import type { TransformModuleInput } from '@qwikdev/core/optimizer';
+import type { TransformModuleInput } from '@qwik.dev/core/optimizer';
 import MagicString from 'magic-string';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, join } from 'node:path';

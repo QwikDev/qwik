@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { $, component$, useTask$ } from '@qwikdev/core';
+import { $, component$, useTask$ } from '@qwik.dev/core';
 import { CONST } from 'const';
 export const Works = component$((props) => {
 	const {countNested} = useStore({value:{count:0}}).value;
@@ -23,8 +23,8 @@ export const Works = component$((props) => {
 
 ============================= test.jsx ==
 
-import { componentQrl } from "@qwikdev/core";
-import { inlinedQrl } from "@qwikdev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
     const store = useStore({
         value: {

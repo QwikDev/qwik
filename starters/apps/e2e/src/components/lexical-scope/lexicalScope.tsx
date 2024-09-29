@@ -5,7 +5,7 @@ import {
   useSignal,
   useStore,
   type Signal,
-} from "@qwikdev/core";
+} from "@qwik.dev/core";
 
 export const LexicalScope = component$(() => {
   const signal = useSignal(0);

@@ -127,7 +127,7 @@ The main thing to note is the `on:click` attribute. This attribute gets read by 
    };
    ```
 6. At this point, the execution is handed off from Qwikloader to the lazy-loaded chunk. This is done so that the Qwikloader can be as small as possible as it is inlined into the HTML.
-7. `useLexicalScope` is imported from `@qwikdev/core` and is responsible for retrieving the `count` and `props`.
+7. `useLexicalScope` is imported from `@qwik.dev/core` and is responsible for retrieving the `count` and `props`.
    `const [count, props] = useLexicalScope();`
 8. Parse the `<script type="qwik/json">{...json...}</script>` JSON and distribute the deserialized objects per `q:obj` attribute. In our case
    - `<div q:id="123" q:obj="456" q:host>` gets object with id `123`. This will be the `count` created in the `Counter_onMount` function.

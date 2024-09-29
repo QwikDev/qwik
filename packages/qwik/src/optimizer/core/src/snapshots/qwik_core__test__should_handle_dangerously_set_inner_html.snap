@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-		import { component$ } from "@qwikdev/core";
+		import { component$ } from "@qwik.dev/core";
 		const Cmp = component$(() => {
 			const htmlSignal = useSignal("<h2><span>I'm a signal value!</span></h2>");
 			return (
@@ -31,15 +31,15 @@ expression: output
 		
 ============================= test.js ==
 
-import { componentQrl } from "@qwikdev/core";
-import { qrl } from "@qwikdev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./cmp_component_4rykjtokjwe"), "Cmp_component_4ryKJTOKjWE"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;cAEc\"}")
 ============================= cmp_component_div_div_button_onclick_3ra5dio0esa.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwikdev/core";
+import { useLexicalScope } from "@qwik.dev/core";
 export const Cmp_component_div_div_button_onClick_3Ra5dio0eSA = ()=>{
     const [htmlSignal] = useLexicalScope();
     return htmlSignal.value = "<h2><span>I'm a updated signal value!</span></h2>";
@@ -69,9 +69,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= cmp_component_4rykjtokjwe.js (ENTRY POINT)==
 
-import { _jsxSorted } from "@qwikdev/core";
-import { _wrapProp } from "@qwikdev/core";
-import { qrl } from "@qwikdev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export const Cmp_component_4ryKJTOKjWE = ()=>{
     const htmlSignal = useSignal("<h2><span>I'm a signal value!</span></h2>");
     return /*#__PURE__*/ _jsxSorted("div", null, null, [

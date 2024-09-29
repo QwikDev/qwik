@@ -1,4 +1,4 @@
-import { component$, useStyles$ } from '@qwikdev/core';
+import { component$, useStyles$ } from '@qwik.dev/core';
 
 export default component$(() => {
   return (

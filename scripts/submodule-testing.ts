@@ -20,7 +20,7 @@ export async function submoduleTesting(config: BuildConfig) {
     sourcemap: config.dev,
     bundle: true,
     target,
-    external: ['@qwikdev/core/build', 'prettier', 'vitest'],
+    external: ['@qwik.dev/core/build', 'prettier', 'vitest'],
     platform: 'node',
     // external: [...nodeBuiltIns],
   };
@@ -28,7 +28,7 @@ export async function submoduleTesting(config: BuildConfig) {
   const esm = build({
     ...opts,
     format: 'esm',
-    banner: { js: getBanner('@qwikdev/core/testing', config.distVersion) },
+    banner: { js: getBanner('@qwik.dev/core/testing', config.distVersion) },
     outExtension: { '.js': '.mjs' },
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.mjs'),
@@ -47,7 +47,7 @@ export async function submoduleTesting(config: BuildConfig) {
     format: 'cjs',
     outExtension: { '.js': '.cjs' },
     banner: {
-      js: getBanner('@qwikdev/core/testing', config.distVersion),
+      js: getBanner('@qwik.dev/core/testing', config.distVersion),
     },
     plugins: [
       importPath(/^@builder\.io\/qwik$/, '../core.cjs'),
@@ -71,7 +71,7 @@ export async function submoduleTesting(config: BuildConfig) {
 
 async function generateTestingPackageJson(config: BuildConfig) {
   const pkg: PackageJSON = {
-    name: '@qwikdev/core/testing',
+    name: '@qwik.dev/core/testing',
     version: config.distVersion,
     main: 'index.mjs',
     types: 'index.d.ts',

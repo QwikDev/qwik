@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 import mongodb from 'mongodb';
 
 export const onGet = () => {
@@ -24,8 +24,8 @@ export default component$(()=> {
 
 ============================= test.tsx ==
 
-import { componentQrl } from "@qwikdev/core";
-import { qrl } from "@qwikdev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export const onGet = ()=>{
     throw "Symbol removed by Qwik Optimizer, it can not be called from current platform";
 };

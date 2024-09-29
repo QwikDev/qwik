@@ -1,4 +1,4 @@
-import { createDOM } from "@qwikdev/core/testing";
+import { createDOM } from "@qwik.dev/core/testing";
 import { expect, test } from "vitest";
 import { ExampleTest } from "./example";
 

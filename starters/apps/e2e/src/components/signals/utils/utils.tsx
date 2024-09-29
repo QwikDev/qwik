@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 
-import { component$, Slot } from "@qwikdev/core";
+import { component$, Slot } from "@qwik.dev/core";
 
 export const TestC = component$((props: { color: string }) => {
   console.log("TestC");

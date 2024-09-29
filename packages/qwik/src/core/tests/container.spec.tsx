@@ -1,4 +1,4 @@
-import { walkJSX } from '@qwikdev/core/testing';
+import { walkJSX } from '@qwik.dev/core/testing';
 import crypto from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { ssrCreateContainer } from '../../server/ssr-container';

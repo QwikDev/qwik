@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { component$, Resource, useResource$, useSignal } from "@qwikdev/core";
+import { component$, Resource, useResource$, useSignal } from "@qwik.dev/core";
 
 export const ResourceFn = component$(() => {
   const resource = useResource$(({ track }) => {

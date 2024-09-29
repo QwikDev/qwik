@@ -1,4 +1,4 @@
-import type { StaticGenerateRenderOptions } from '@qwikdev/city/static';
+import type { StaticGenerateRenderOptions } from '@qwik.dev/city/static';
 import { viteAdapter, type ServerAdapterOptions } from '../../shared/vite';
 
 /** @alpha */

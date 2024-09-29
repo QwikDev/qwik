@@ -3,7 +3,7 @@ import type {
   QwikBundle,
   QwikManifest,
   QwikSymbol,
-} from '@qwikdev/core/optimizer';
+} from '@qwik.dev/core/optimizer';
 import { assert, expect, test } from 'vitest';
 import type { AppBundle } from '../../runtime/src/service-worker/types';
 import type { BuildContext, BuildRoute } from '../types';

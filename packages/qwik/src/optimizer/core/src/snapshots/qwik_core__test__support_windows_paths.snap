@@ -6,12 +6,12 @@ expression: output
 ==INPUT==
 
 
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 export const Greeter = component$(() => <div/>)
 
 ============================= components/apps/greeter_component_0jjovx068y0.ts (ENTRY POINT)==
 
-import { _jsxSorted } from "@qwikdev/core";
+import { _jsxSorted } from "@qwik.dev/core";
 export const Greeter_component_0jjOvx068y0 = ()=>/*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "KD_0");
 
 
@@ -38,8 +38,8 @@ Some("{\"version\":3,\"sources\":[\"C:\\\\users\\\\apps/components/apps/apps.tsx
 */
 ============================= components/apps/apps.ts ==
 
-import { componentQrl } from "@qwikdev/core";
-import { qrl } from "@qwikdev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./greeter_component_0jjovx068y0"), "Greeter_component_0jjOvx068y0"));
 
 

@@ -1,4 +1,4 @@
-import { component$, useSignal, useVisibleTask$ } from '@qwikdev/core';
+import { component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
 
 export default component$(() => {
   const draggableRef = useSignal<HTMLElement>();

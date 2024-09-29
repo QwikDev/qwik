@@ -1,4 +1,4 @@
-import { component$, useTask$, JSXOutput, useStore } from '@qwikdev/core';
+import { component$, useTask$, JSXOutput, useStore } from '@qwik.dev/core';
 
 type FooState = {
   foo?: JSXOutput;

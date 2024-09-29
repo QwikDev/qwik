@@ -1,4 +1,4 @@
-import { component$ } from "@qwikdev/core";
+import { component$ } from "@qwik.dev/core";
 import ImgThunder from "../../../media/thunder.png?jsx";
 import styles from "./hero.module.css";
 

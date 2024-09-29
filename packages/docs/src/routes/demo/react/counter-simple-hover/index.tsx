@@ -1,4 +1,4 @@
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 import { QCounter } from './react';
 
 export default component$(() => {

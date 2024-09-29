@@ -1,4 +1,4 @@
-import type { StaticGenerateRenderOptions } from '@qwikdev/city/static';
+import type { StaticGenerateRenderOptions } from '@qwik.dev/city/static';
 import fs from 'node:fs';
 import { join, relative } from 'node:path';
 import { normalizePathSlash } from '../../../utils/fs';

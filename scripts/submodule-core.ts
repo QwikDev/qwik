@@ -29,7 +29,7 @@ async function submoduleCoreProd(config: BuildConfig) {
   const input: InputOptions = {
     input: join(config.tscDir, 'packages', 'qwik', 'src', 'core', 'index.js'),
     onwarn: rollupOnWarn,
-    external: ['@qwikdev/core/build'],
+    external: ['@qwik.dev/core/build'],
     plugins: [
       {
         name: 'setVersion',
@@ -53,7 +53,7 @@ async function submoduleCoreProd(config: BuildConfig) {
     format: 'es',
     entryFileNames: 'core.mjs',
     sourcemap: true,
-    banner: getBanner('@qwikdev/core', config.distVersion),
+    banner: getBanner('@qwik.dev/core', config.distVersion),
   };
 
   const cjsOutput: OutputOptions = {
@@ -63,9 +63,9 @@ async function submoduleCoreProd(config: BuildConfig) {
     entryFileNames: 'core.cjs',
     sourcemap: true,
     globals: {
-      '@qwikdev/core/build': 'qwikBuild',
+      '@qwik.dev/core/build': 'qwikBuild',
     },
-    banner: getBanner('@qwikdev/core', config.distVersion),
+    banner: getBanner('@qwik.dev/core', config.distVersion),
   };
 
   const build = await rollup(input);
@@ -85,12 +85,12 @@ async function submoduleCoreProd(config: BuildConfig) {
           if (id === '@index.min') {
             return id;
           }
-          if (id === '@qwikdev/core/build') {
+          if (id === '@qwik.dev/core/build') {
             return id;
           }
         },
         load(id) {
-          if (id === '@qwikdev/core/build') {
+          if (id === '@qwik.dev/core/build') {
             return `
               export const isServer = false;
               export const isBrowser = true;
@@ -204,7 +204,7 @@ async function submoduleCoreProduction(config: BuildConfig, code: string, outPat
       comments: /__PURE__/,
       preserve_annotations: true,
       ecma: 2020,
-      preamble: getBanner('@qwikdev/core', config.distVersion),
+      preamble: getBanner('@qwik.dev/core', config.distVersion),
     },
     mangle: false,
   });
@@ -230,7 +230,7 @@ async function submoduleCoreDev(config: BuildConfig) {
 
   const esm = build({
     ...opts,
-    external: ['@qwikdev/core/build'],
+    external: ['@qwik.dev/core/build'],
     format: 'esm',
     outExtension: { '.js': '.mjs' },
   });

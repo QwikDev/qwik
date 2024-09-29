@@ -6,8 +6,8 @@ import {
   routeLoader$,
   z,
   zod$,
-} from "@qwikdev/city";
-import { component$, Resource } from "@qwikdev/core";
+} from "@qwik.dev/city";
+import { component$, Resource } from "@qwik.dev/core";
 import { delay } from "../../actions/login";
 
 export const useDateLoader = routeLoader$(

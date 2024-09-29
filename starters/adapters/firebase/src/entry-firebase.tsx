@@ -12,7 +12,7 @@ import { manifest } from "@qwik-client-manifest";
 import {
   createQwikCity,
   type PlatformFirebase,
-} from "@qwikdev/city/middleware/firebase";
+} from "@qwik.dev/city/middleware/firebase";
 import render from "./entry.ssr";
 
 declare global {

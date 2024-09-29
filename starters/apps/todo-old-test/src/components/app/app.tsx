@@ -1,4 +1,4 @@
-import { component$, useStore, useStyles$ } from "@qwikdev/core";
+import { component$, useStore, useStyles$ } from "@qwik.dev/core";
 import type { Todos } from "../../state/state";
 import { Body } from "../body/body";
 import { Footer } from "../footer/footer";

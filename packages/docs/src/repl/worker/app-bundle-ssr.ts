@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import type { Diagnostic, QwikRollupPluginOptions } from '@qwikdev/core/optimizer';
+import type { Diagnostic, QwikRollupPluginOptions } from '@qwik.dev/core/optimizer';
 import type { InputOptions } from 'rollup';
 import type { ReplInputOptions, ReplResult } from '../types';
 import { getInputs, getOutput } from './app-bundle-client';

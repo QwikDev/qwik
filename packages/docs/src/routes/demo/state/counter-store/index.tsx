@@ -1,4 +1,4 @@
-import { component$, useStore } from '@qwikdev/core';
+import { component$, useStore } from '@qwik.dev/core';
 
 export default component$(() => {
   const state = useStore({ count: 0, name: 'Qwik' });

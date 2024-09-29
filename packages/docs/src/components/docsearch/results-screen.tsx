@@ -1,4 +1,4 @@
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 import { Result } from './result';
 import { removeHighlightTags } from './utils';
 import { SelectIcon } from './icons/SelectIcon';

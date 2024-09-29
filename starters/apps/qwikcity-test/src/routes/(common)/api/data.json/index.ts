@@ -1,4 +1,4 @@
-import type { RequestHandler } from "@qwikdev/city";
+import type { RequestHandler } from "@qwik.dev/city";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";

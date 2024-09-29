@@ -1,5 +1,5 @@
-import { Link, useLocation } from "@qwikdev/city";
-import { component$, useStyles$ } from "@qwikdev/core";
+import { Link, useLocation } from "@qwik.dev/city";
+import { component$, useStyles$ } from "@qwik.dev/core";
 import { useUserLoader } from "../../routes/layout";
 import styles from "./header.css?inline";
 

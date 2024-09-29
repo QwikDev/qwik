@@ -1,4 +1,4 @@
-import { isServer } from '@qwikdev/core/build';
+import { isServer } from '@qwik.dev/core/build';
 import { qError, QError_qrlMissingChunk, QError_qrlMissingContainer } from '../error/error';
 import { getSymbolHash } from '../qrl/qrl-class';
 import { qDynamicPlatform } from '../utils/qdev';

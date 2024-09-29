@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 
 export const App2 = component$(() => {
 	const signal = useSignal();
@@ -28,17 +28,17 @@ export const App2 = component$(() => {
 
 ============================= test.js ==
 
-import { componentQrl } from "@qwikdev/core";
-import { qrl } from "@qwikdev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export const App2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app2_component_3yvemqbq3fs.js"), "App2_component_3yveMqbQ3Fs"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,qBAAO,6GAgBjB\"}")
 ============================= app2_component_3yvemqbq3fs.js (ENTRY POINT)==
 
-import { Fragment as _Fragment } from "@qwikdev/core/jsx-runtime";
-import { _jsxSorted } from "@qwikdev/core";
-import { _wrapProp } from "@qwikdev/core";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
 export const App2_component_3yveMqbQ3Fs = ()=>{
     const signal = useSignal();
     const computed = signal.value + 'foo';

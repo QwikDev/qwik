@@ -7,8 +7,8 @@ import {
   useStore,
   useTask$,
   type Signal as SignalType,
-} from '@qwikdev/core';
-import { domRender, getTestPlatform, ssrRenderToDom, trigger } from '@qwikdev/core/testing';
+} from '@qwik.dev/core';
+import { domRender, getTestPlatform, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';

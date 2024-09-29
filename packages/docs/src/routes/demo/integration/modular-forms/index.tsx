@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { InitialValues, SubmitHandler } from '@modular-forms/qwik';
 import { formAction$, useForm, valiForm$ } from '@modular-forms/qwik';
-import { routeLoader$ } from '@qwikdev/city';
-import { $, component$, type QRL } from '@qwikdev/core';
+import { routeLoader$ } from '@qwik.dev/city';
+import { $, component$, type QRL } from '@qwik.dev/core';
 import * as v from 'valibot';
 
 const LoginSchema = v.object({

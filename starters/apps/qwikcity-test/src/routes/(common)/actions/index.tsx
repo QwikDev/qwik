@@ -1,5 +1,5 @@
-import { globalAction$, routeLoader$, type DocumentHead } from "@qwikdev/city";
-import { component$ } from "@qwikdev/core";
+import { globalAction$, routeLoader$, type DocumentHead } from "@qwik.dev/city";
+import { component$ } from "@qwik.dev/core";
 import { SecretForm } from "./login";
 
 export const useDateLoader = routeLoader$(() => new Date());

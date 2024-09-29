@@ -1,5 +1,5 @@
-import { useContent, useLocation } from '@qwikdev/city';
-import { $, component$, useContext, useOnDocument, useSignal, useStyles$ } from '@qwikdev/core';
+import { useContent, useLocation } from '@qwik.dev/city';
+import { $, component$, useContext, useOnDocument, useSignal, useStyles$ } from '@qwik.dev/core';
 import { GlobalStore } from '../../context';
 import { AlertIcon } from '../svgs/alert-icon';
 import { ChatIcon } from '../svgs/chat-icon';

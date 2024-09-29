@@ -1,4 +1,4 @@
-import { withLocale } from '@qwikdev/core';
+import { withLocale } from '@qwik.dev/core';
 import type {
   ContentModule,
   RouteLocation,

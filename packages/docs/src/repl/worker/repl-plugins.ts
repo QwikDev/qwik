@@ -1,4 +1,4 @@
-import type { QwikRollupPluginOptions } from '@qwikdev/core/optimizer';
+import type { QwikRollupPluginOptions } from '@qwik.dev/core/optimizer';
 import type { Plugin } from 'rollup';
 import type { MinifyOptions } from 'terser';
 import type { ReplInputOptions } from '../types';
@@ -19,16 +19,16 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
         return id;
       }
       if (
-        id === '@qwikdev/core' ||
-        id === '@qwikdev/core/jsx-runtime' ||
-        id === '@qwikdev/core/jsx-dev-runtime'
+        id === '@qwik.dev/core' ||
+        id === '@qwik.dev/core/jsx-runtime' ||
+        id === '@qwik.dev/core/jsx-dev-runtime'
       ) {
         return '\0qwikCore';
       }
-      if (id === '@qwikdev/core/build') {
+      if (id === '@qwik.dev/core/build') {
         return '\0qwikBuild';
       }
-      if (id === '@qwikdev/core/server') {
+      if (id === '@qwik.dev/core/server') {
         return '\0qwikServer';
       }
       if (id.startsWith('./')) {
@@ -76,13 +76,13 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
       }
       if (id === '\0qwikCore') {
         if (options.buildMode === 'production') {
-          const rsp = await depResponse('@qwikdev/core', '/core.min.mjs');
+          const rsp = await depResponse('@qwik.dev/core', '/core.min.mjs');
           if (rsp) {
             return rsp.text();
           }
         }
 
-        const rsp = await depResponse('@qwikdev/core', '/core.mjs');
+        const rsp = await depResponse('@qwik.dev/core', '/core.mjs');
         if (rsp) {
           return rsp.text();
         }

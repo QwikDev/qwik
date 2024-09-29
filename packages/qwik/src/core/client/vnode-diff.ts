@@ -1,4 +1,4 @@
-import { isDev } from '@qwikdev/core/build';
+import { isDev } from '@qwik.dev/core/build';
 import { executeComponent } from '../shared/component-execution';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';

@@ -1,4 +1,4 @@
-import { qwikVite } from '@qwikdev/core/optimizer';
+import { qwikVite } from '@qwik.dev/core/optimizer';
 import { defineConfig } from 'vite';
 
 export default defineConfig(() => {

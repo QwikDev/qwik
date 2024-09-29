@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 
 export const AtomStatus = component$(({ctx,atom})=>{
 	let status = atom.status;
@@ -23,9 +23,9 @@ export const AtomStatus = component$(({ctx,atom})=>{
 
 ============================= test.jsx ==
 
-import { componentQrl } from "@qwikdev/core";
-import { useLexicalScope } from "@qwikdev/core";
-import { inlinedQrl } from "@qwikdev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { useLexicalScope } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
 export const AtomStatus = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
     let status = props.atom.status;
     if (!props.atom.real) status = "WILL-VANISH";

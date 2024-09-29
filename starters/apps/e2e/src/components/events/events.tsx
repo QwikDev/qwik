@@ -5,7 +5,7 @@ import {
   useSignal,
   useStore,
   type QRL,
-} from "@qwikdev/core";
+} from "@qwik.dev/core";
 
 export const Events = component$(() => {
   const store = useStore({

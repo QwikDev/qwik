@@ -1,4 +1,4 @@
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 import { ShopCart } from './shop-cart';
 import { ShopIcon } from './shop-icon';
 

@@ -3,13 +3,13 @@ import { isStaticPath } from '@qwik-city-static-paths';
 import type {
   ServerRenderOptions,
   ServerRequestEvent,
-} from '@qwikdev/city/middleware/request-handler';
-import { mergeHeadersCookies, requestHandler } from '@qwikdev/city/middleware/request-handler';
-import { _deserialize, _serialize, _verifySerializable } from '@qwikdev/core';
-import { setServerPlatform } from '@qwikdev/core/server';
+} from '@qwik.dev/city/middleware/request-handler';
+import { mergeHeadersCookies, requestHandler } from '@qwik.dev/city/middleware/request-handler';
+import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core';
+import { setServerPlatform } from '@qwik.dev/core/server';
 import type { QwikSerializer } from '../request-handler/types';
 
-// @qwikdev/city/middleware/vercel-edge
+// @qwik.dev/city/middleware/vercel-edge
 const COUNTRY_HEADER_NAME = 'x-vercel-ip-country';
 const IP_HEADER_NAME = 'x-real-ip';
 const VERCEL_COOKIE = '__vdpl';

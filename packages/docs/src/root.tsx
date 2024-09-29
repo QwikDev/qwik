@@ -1,6 +1,6 @@
 import { Insights } from '@builder.io/qwik-labs';
-import { QwikCityProvider, RouterOutlet } from '@qwikdev/city';
-import { component$, useContextProvider, useStore } from '@qwikdev/core';
+import { QwikCityProvider, RouterOutlet } from '@qwik.dev/city';
+import { component$, useContextProvider, useStore } from '@qwik.dev/core';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';
 import { BUILDER_PUBLIC_API_KEY } from './constants';

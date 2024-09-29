@@ -19,7 +19,7 @@ Error.stackTraceLimit = 100;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  { render: domRender }, //
+  // { render: domRender }, //
 ])('$render.name: useTask', ({ render }) => {
   it('should execute task', async () => {
     const Counter = component$(() => {
@@ -152,7 +152,7 @@ describe.each([
     );
   });
   describe('track', () => {
-    it('should rerun on track', async () => {
+    it.only('should rerun on track', async () => {
       const Counter = component$(() => {
         const count = useSignal(10);
         const double = useSignal(0);

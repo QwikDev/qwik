@@ -27,7 +27,7 @@ import {
   isPreventDefault,
 } from '../shared/utils/event-names';
 import { addComponentStylePrefix, hasClassAttr, isClassAttr } from '../shared/utils/scoped-styles';
-import { encodeQrl, type SerializationContext } from '../shared/shared-serialization';
+import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { WrappedSignal, EffectProperty, isSignal } from '../signal/signal';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
@@ -441,7 +441,7 @@ function setEvent(
     for (let i = 0; i <= qrls.length; i++) {
       const qrl: unknown = qrls[i];
       if (isQrl(qrl)) {
-        appendToValue(encodeQrl(serializationCtx, qrl));
+        appendToValue(qrlToString(serializationCtx, qrl));
         addQwikEventToSerializationContext(serializationCtx, key, qrl);
       } else if (qrl != null) {
         // nested arrays etc.
@@ -452,7 +452,7 @@ function setEvent(
       }
     }
   } else if (isQrl(qrls)) {
-    value = encodeQrl(serializationCtx, qrls);
+    value = qrlToString(serializationCtx, qrls);
     addQwikEventToSerializationContext(serializationCtx, key, qrls);
   }
 

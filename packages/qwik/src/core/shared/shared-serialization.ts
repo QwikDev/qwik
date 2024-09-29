@@ -21,7 +21,6 @@ import {
   isPropsProxy,
 } from './jsx/jsx-runtime';
 import { Slot } from './jsx/slot.public';
-import { type FunctionComponent } from './jsx/types/jsx-node';
 import { fastSkipSerialize } from './utils/serialize-utils';
 import { _CONST_PROPS, _VAR_PROPS } from './utils/constants';
 import { Task, isTask } from '../use/use-task';
@@ -30,7 +29,7 @@ import { isElement, isNode } from './utils/element';
 import { throwErrorAndStop } from './utils/log';
 import { ELEMENT_ID } from './utils/markers';
 import { isPromise } from './utils/promises';
-import { isSerializableObject, type ValueOrPromise } from './utils/types';
+import { type ValueOrPromise } from './utils/types';
 import { type DomContainer } from '../client/dom-container';
 import { vnode_isVNode, vnode_locate } from '../client/vnode';
 import {
@@ -279,7 +278,7 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
     case TypeIds.Task:
       const task = target as Task;
       const v = data as any[];
-      task.$qrl$ = v[0];
+      task.$qrl$ = inflateQRL(container, v[0]);
       task.$flags$ = v[1];
       task.$index$ = v[2];
       task.$el$ = v[3] as HostElement;
@@ -397,21 +396,37 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
   }
 };
 
-const constants = [
+export const _constants = [
   undefined,
   null,
   true,
   false,
-  NaN,
-  Infinity,
-  -Infinity,
   '',
   EMPTY_ARRAY,
   EMPTY_OBJ,
   NEEDS_COMPUTATION,
   Slot,
   Fragment,
+  NaN,
+  Infinity,
+  -Infinity,
 ] as const;
+const _constantNames = [
+  'undefined',
+  'null',
+  'true',
+  'false',
+  "''",
+  'EMPTY_ARRAY',
+  'EMPTY_OBJ',
+  'NEEDS_COMPUTATION',
+  'Slot',
+  'Fragment',
+  'NaN',
+  'Infinity',
+  '-Infinity',
+] as const;
+
 const allocate = <T>(container: DeserializeContainer, typeId: number, value: unknown): any => {
   if (value === undefined) {
     // When a value was already processed, the result is stored in type
@@ -421,7 +436,7 @@ const allocate = <T>(container: DeserializeContainer, typeId: number, value: unk
     case TypeIds.RootRef:
       return container.$getObjectById$(value as number);
     case TypeIds.Constant:
-      return constants[value as Constants];
+      return _constants[value as Constants];
     case TypeIds.Number:
       return value as number;
     case TypeIds.Array:
@@ -429,7 +444,7 @@ const allocate = <T>(container: DeserializeContainer, typeId: number, value: unk
     case TypeIds.Object:
       return {};
     case TypeIds.QRL:
-      return parseQRL(value as any[]);
+      return parseQRL(value as string);
     case TypeIds.Task:
       return new Task(-1, -1, null!, null!, null!, null);
     case TypeIds.Resource:
@@ -444,7 +459,7 @@ const allocate = <T>(container: DeserializeContainer, typeId: number, value: unk
     case TypeIds.Error:
       return new Error();
     case TypeIds.Component:
-      return componentQrl(parseQRL(value as any) as any);
+      return componentQrl(value as any);
     case TypeIds.Signal:
       return new Signal(container as any, 0);
     case TypeIds.WrappedSignal:
@@ -497,7 +512,8 @@ const allocate = <T>(container: DeserializeContainer, typeId: number, value: unk
   }
 };
 
-function parseQRLString(qrl: string) {
+/** Parses "chunk#hash[...rootRef]" */
+export function parseQRL(qrl: string): QRLInternal<any> {
   const hashIdx = qrl.indexOf('#');
   const captureStart = qrl.indexOf('[', hashIdx);
   const captureEnd = qrl.indexOf(']', captureStart);
@@ -510,23 +526,15 @@ function parseQRLString(qrl: string) {
           .slice(captureStart + 1, captureEnd)
           .split(' ')
           .filter((v) => v.length)
-      : undefined;
-  return [chunk, symbol, captureIds] as const;
-}
-export function parseQRL(qrl: any[] | string): QRLInternal<any> {
-  let chunk, symbol, captureIds;
-  if (typeof qrl === 'string') {
-    [chunk, symbol, captureIds] = parseQRLString(qrl);
-  } else {
-    [chunk, symbol, ...captureIds] = _eagerDeserializeArray(null!, qrl) as any[];
-  }
+          .map((s) => parseInt(s, 10))
+      : null;
   let qrlRef = null;
   if (isDev && chunk === QRL_RUNTIME_CHUNK) {
     const backChannel: Map<string, Function> = (globalThis as any)[QRL_RUNTIME_CHUNK];
     assertDefined(backChannel, 'Missing QRL_RUNTIME_CHUNK');
     qrlRef = backChannel.get(symbol);
   }
-  return createQRL(chunk, symbol, qrlRef, null, captureIds?.length ? captureIds : null, null, null);
+  return createQRL(chunk, symbol, qrlRef, null, captureIds, null, null);
 }
 
 export function inflateQRL(container: DeserializeContainer, qrl: QRLInternal<any>) {
@@ -851,11 +859,11 @@ function serialize(serializationContext: SerializationContext): void {
       output(TypeIds.Constant, value ? Constants.True : Constants.False);
     } else if (typeof value === 'function') {
       if (isQrl(value)) {
-        output(TypeIds.QRL, encodeQrl(serializationContext, value));
+        output(TypeIds.QRL, qrlToString(serializationContext, value));
       } else if (isQwikComponent(value)) {
         const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];
         serializationContext.$renderSymbols$.add(qrl.$symbol$);
-        output(TypeIds.Component, encodeQrl(serializationContext, qrl));
+        output(TypeIds.Component, qrlToString(serializationContext, qrl));
       } else if (value === Slot) {
         output(TypeIds.Constant, Constants.Slot);
       } else if (value === Fragment) {
@@ -1156,11 +1164,11 @@ function deserializeSignal2Effect(
   return idx;
 }
 
-export function encodeQrl(
+export function qrlToString(
   serializationContext: SerializationContext,
   value: QRLInternal | SyncQRLInternal
 ) {
-  let symbol: string | number = value.$symbol$;
+  let symbol = value.$symbol$;
   let chunk = value.$chunk$;
 
   const refSymbol = value.$refSymbol$ ?? symbol;
@@ -1201,15 +1209,25 @@ export function encodeQrl(
   } else {
     const fn = value.resolved as Function;
     chunk = '';
-    symbol = serializationContext.$addSyncFn$(null, 0, fn);
+    symbol = String(serializationContext.$addSyncFn$(null, 0, fn));
   }
 
-  const out: [string, string | number, ...any[]] = [chunk, symbol];
-  if (value.$captureRef$) {
-    // We must store ids because they are used in the QRL event handler strings
-    out.push(...value.$captureRef$.map((v) => serializationContext.$addRoot$(v)));
+  let qrlStringInline = `${chunk}#${symbol}`;
+  if (Array.isArray(value.$captureRef$) && value.$captureRef$.length > 0) {
+    let serializedReferences = '';
+    // hot-path optimization
+    for (let i = 0; i < value.$captureRef$.length; i++) {
+      if (i > 0) {
+        serializedReferences += ' ';
+      }
+      // We refer by id so every capture needs to be a root
+      serializedReferences += serializationContext.$addRoot$(value.$captureRef$[i]);
+    }
+    qrlStringInline += `[${serializedReferences}]`;
+  } else if (value.$capture$ && value.$capture$.length > 0) {
+    qrlStringInline += `[${value.$capture$.join(' ')}]`;
   }
-  return out;
+  return qrlStringInline;
 }
 
 /**
@@ -1423,7 +1441,7 @@ export const canSerialize = (value: any): boolean => {
   return false;
 };
 
-const QRL_RUNTIME_CHUNK = 'qwik-runtime-mock-chunk';
+const QRL_RUNTIME_CHUNK = 'mock-chunk';
 
 export const enum TypeIds {
   RootRef,
@@ -1457,27 +1475,57 @@ export const enum TypeIds {
   JSXNode,
   PropsProxy,
 }
+export const _typeIdNames = [
+  'RootRef',
+  'Constant',
+  'Number',
+  'String',
+  'Array',
+  'URL',
+  'Date',
+  'Regex',
+  'VNode',
+  'BigInt',
+  'URLSearchParams',
+  'Error',
+  'Object',
+  'Promise',
+  'Set',
+  'Map',
+  'Uint8Array',
+  'QRL',
+  'Task',
+  'Resource',
+  'Component',
+  'Signal',
+  'WrappedSignal',
+  'ComputedSignal',
+  'Store',
+  'FormData',
+  'JSXNode',
+  'PropsProxy',
+];
 
 export const enum Constants {
   Undefined,
   Null,
   True,
   False,
-  NaN,
-  PositiveInfinity,
-  NegativeInfinity,
   EmptyString,
   EMPTY_ARRAY,
   EMPTY_OBJ,
   NEEDS_COMPUTATION,
   Slot,
   Fragment,
+  NaN,
+  PositiveInfinity,
+  NegativeInfinity,
 }
 
 export const dumpState = (state: any[], prefix = '') => {
   const out: any[] = [];
   for (let i = 0; i < state.length; i++) {
-    if (i > 20) {
+    if (i > 2 * 20) {
       out.push('...');
       break;
     }
@@ -1490,8 +1538,8 @@ export const dumpState = (state: any[], prefix = '') => {
         value = constantToName(value);
       } else if (typeof value === 'string') {
         value = JSON.stringify(value);
-        if (value.length > 80) {
-          value = value.slice(0, 80) + '"...';
+        if (value.length > 120) {
+          value = value.slice(0, 120) + '"...';
         }
       } else if (Array.isArray(value)) {
         value = `\n${dumpState(value, `${prefix}  `)}`;
@@ -1503,97 +1551,9 @@ export const dumpState = (state: any[], prefix = '') => {
 };
 
 export const codeToName = (code: TypeIds) => {
-  switch (code) {
-    case TypeIds.Constant:
-      return 'Constant';
-    case TypeIds.RootRef:
-      return 'RootRef';
-    case TypeIds.QRL:
-      return 'QRL';
-    case TypeIds.Task:
-      return 'Task';
-    case TypeIds.Resource:
-      return 'Resource';
-    case TypeIds.URL:
-      return 'URL';
-    case TypeIds.Date:
-      return 'Date';
-    case TypeIds.Regex:
-      return 'Regex';
-    case TypeIds.String:
-      return 'String';
-    case TypeIds.Error:
-      return 'Error';
-    case TypeIds.VNode:
-      return 'VNode';
-    case TypeIds.Component:
-      return 'Component';
-    case TypeIds.WrappedSignal:
-      return 'DerivedSignal';
-    case TypeIds.Store:
-      return 'Store';
-    case TypeIds.Signal:
-      return 'Signal';
-    case TypeIds.ComputedSignal:
-      return 'ComputedSignal';
-    case TypeIds.URLSearchParams:
-      return 'URLSearchParams';
-    case TypeIds.FormData:
-      return 'FormData';
-    case TypeIds.JSXNode:
-      return 'JSXNode';
-    case TypeIds.BigInt:
-      return 'BigInt';
-    case TypeIds.Set:
-      return 'Set';
-    case TypeIds.Map:
-      return 'Map';
-    case TypeIds.Promise:
-      return 'Promise';
-    case TypeIds.Uint8Array:
-      return 'Uint8Array';
-    case TypeIds.PropsProxy:
-      return 'Props';
-    case TypeIds.Array:
-      return 'Array';
-    case TypeIds.Object:
-      return 'Object';
-    case TypeIds.Number:
-      return 'Number';
-    default:
-      return `Unknown(${code})`;
-  }
+  return _typeIdNames[code] || `Unknown(${code})`;
 };
 
 const constantToName = (code: Constants) => {
-  switch (code) {
-    case Constants.Undefined:
-      return 'undefined';
-    case Constants.Null:
-      return 'null';
-    case Constants.True:
-      return 'true';
-    case Constants.False:
-      return 'false';
-    case Constants.NaN:
-      return 'NaN';
-    case Constants.PositiveInfinity:
-      return '+Inf';
-    case Constants.NegativeInfinity:
-      return '-Inf';
-    case Constants.EmptyString:
-      return '""';
-    case Constants.EMPTY_ARRAY:
-      return '[]';
-    case Constants.EMPTY_OBJ:
-      return '{}';
-    case Constants.NEEDS_COMPUTATION:
-      return 'NEEDS_COMPUTATION';
-    case Constants.Slot:
-      return 'Slot';
-    case Constants.Fragment:
-      return 'Fragment';
-    default:
-      return `Unknown(${code})`;
-  }
+  return _constantNames[code] || `Unknown(${code})`;
 };

@@ -1,4 +1,4 @@
-import { isDev } from '@qwikdev/core/build';
+import { isDev } from '@qwik.dev/core/build';
 import { vnode_isVNode } from '../client/vnode';
 import { EffectProperty, isSignal } from '../signal/signal';
 import { clearVNodeEffectDependencies } from '../signal/signal-subscriber';

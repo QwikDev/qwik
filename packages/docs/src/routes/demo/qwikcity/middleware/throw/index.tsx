@@ -1,4 +1,4 @@
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onRequest: RequestHandler = async ({ next, sharedMap, json }) => {
   const log: string[] = [];

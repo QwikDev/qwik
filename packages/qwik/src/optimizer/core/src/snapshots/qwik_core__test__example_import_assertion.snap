@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, $ } from '@qwikdev/core';
+import { component$, $ } from '@qwik.dev/core';
 import json from "./foo.json" assert { type: "json" };
 
 export const Greeter = component$(() => {
@@ -15,8 +15,8 @@ export const Greeter = component$(() => {
 
 ============================= test.js ==
 
-import { componentQrl } from "@qwikdev/core";
-import { qrl } from "@qwikdev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./greeter_component_n7hug2hhu0q"), "Greeter_component_n7HuG2hhU0Q"));
 
 

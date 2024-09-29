@@ -19,10 +19,10 @@ lazy_static! {
 	pub static ref QSEGMENT: JsWord = JsWord::from("$");
 	pub static ref Q_SYNC: JsWord = JsWord::from("sync$");
 	pub static ref QWIK_INTERNAL: JsWord = JsWord::from("qwik");
-	pub static ref BUILDER_IO_QWIK: JsWord = JsWord::from("@qwikdev/core");
-	pub static ref BUILDER_IO_QWIK_BUILD: JsWord = JsWord::from("@qwikdev/core/build");
-	pub static ref BUILDER_IO_QWIK_JSX: JsWord = JsWord::from("@qwikdev/core/jsx-runtime");
-	pub static ref BUILDER_IO_QWIK_JSX_DEV: JsWord = JsWord::from("@qwikdev/core/jsx-dev-runtime");
+	pub static ref BUILDER_IO_QWIK: JsWord = JsWord::from("@qwik.dev/core");
+	pub static ref BUILDER_IO_QWIK_BUILD: JsWord = JsWord::from("@qwik.dev/core/build");
+	pub static ref BUILDER_IO_QWIK_JSX: JsWord = JsWord::from("@qwik.dev/core/jsx-runtime");
+	pub static ref BUILDER_IO_QWIK_JSX_DEV: JsWord = JsWord::from("@qwik.dev/core/jsx-dev-runtime");
 	pub static ref QCOMPONENT: JsWord = JsWord::from("component$");
 	pub static ref USE_LEXICAL_SCOPE: JsWord = JsWord::from("useLexicalScope");
 	pub static ref H: JsWord = JsWord::from("h");

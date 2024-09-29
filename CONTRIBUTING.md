@@ -240,24 +240,24 @@ To use your build in your project, follow these steps:
 
    ```shell
     pnpm install
-    pnpm link --global @builder.io/qwik @qwikdev/city
+    pnpm link --global @builder.io/qwik @qwik.dev/city
    ```
 
    or
 
    ```shell
    npm install
-   npm link @builder.io/qwik @qwikdev/city
+   npm link @builder.io/qwik @qwik.dev/city
    ```
 
    or
 
    ```shell
     yarn install
-    yarn link @builder.io/qwik @qwikdev/city
+    yarn link @builder.io/qwik @qwik.dev/city
    ```
 
-If you can't use package linking (npm link) just copy the contents of `packages/qwik/dist` into your projects' `node_modules/@qwikdev/core` folder, and/or the contents of `packages/qwik-city/lib` into your projects' `node_modules/@qwikdev/city` folder.
+If you can't use package linking (npm link) just copy the contents of `packages/qwik/dist` into your projects' `node_modules/@qwik.dev/core` folder, and/or the contents of `packages/qwik-city/lib` into your projects' `node_modules/@qwik.dev/city` folder.
 
 ### Test against the docs site:
 
@@ -360,6 +360,6 @@ pnpm fmt
 3. Create a PR with the `package.json` change to merge to `main`.
 4. After the `package.json` with the updated version is in `main`, click the [Run Workflow](https://github.com/QwikDev/qwik/actions/workflows/ci.yml) button from the "Qwik CI" GitHub Action workflow.
 5. Select the NPM dist-tag that should be used for this version, then click "Run Workflow".
-6. The GitHub Action will dispatch the workflow to build `@qwikdev/core`, `@qwikdev/city` and each of their submodules, build WASM and native bindings, and validate the package before publishing to NPM.
+6. The GitHub Action will dispatch the workflow to build `@qwik.dev/core`, `@qwik.dev/city` and each of their submodules, build WASM and native bindings, and validate the package before publishing to NPM.
 7. If the build is successful and all tests and validation passes, the workflow will automatically publish to NPM, commit a git tag to the repo, and create a GitHub release.
 8. ⚡️

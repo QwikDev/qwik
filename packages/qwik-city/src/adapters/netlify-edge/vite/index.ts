@@ -1,5 +1,5 @@
 import { basePathname } from '@qwik-city-plan';
-import type { StaticGenerateRenderOptions } from '@qwikdev/city/static';
+import type { StaticGenerateRenderOptions } from '@qwik.dev/city/static';
 import fs, { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { getParentDir, type ServerAdapterOptions, viteAdapter } from '../../shared/vite';

@@ -1,5 +1,5 @@
 // Expect error: { "messageId": "referencesOutside" }
-import { component$, useTask$, useSignal } from '@qwikdev/core';
+import { component$, useTask$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
   enum Color {

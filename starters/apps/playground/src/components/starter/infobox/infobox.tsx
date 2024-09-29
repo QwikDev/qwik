@@ -1,4 +1,4 @@
-import { Slot, component$ } from "@qwikdev/core";
+import { Slot, component$ } from "@qwik.dev/core";
 import styles from "./infobox.module.css";
 
 export default component$(() => {

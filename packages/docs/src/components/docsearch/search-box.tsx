@@ -1,4 +1,4 @@
-import { component$, useVisibleTask$, useContext, type Signal, type QRL } from '@qwikdev/core';
+import { component$, useVisibleTask$, useContext, type Signal, type QRL } from '@qwik.dev/core';
 
 import { MAX_QUERY_SIZE } from './constants';
 import { SearchContext } from './context';

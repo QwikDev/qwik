@@ -5,7 +5,7 @@ import {
   noSerialize,
   useVisibleTask$,
   type NoSerialize,
-} from '@qwikdev/core';
+} from '@qwik.dev/core';
 import type Monaco from './monaco';
 import { monacoEditor } from './monaco';
 

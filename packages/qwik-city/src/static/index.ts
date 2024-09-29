@@ -4,7 +4,7 @@ import type {
   StaticGenerateResult,
 } from './types';
 
-// @qwikdev/city/static
+// @qwik.dev/city/static
 
 /**
  * Use this function when SSG should be generated from another module, such as a Vite plugin. This

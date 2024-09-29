@@ -1,5 +1,5 @@
-import type { DocumentHead } from "@qwikdev/city";
-import { component$ } from "@qwikdev/core";
+import type { DocumentHead } from "@qwik.dev/city";
+import { component$ } from "@qwik.dev/core";
 import { Alert } from "~/components/bootstrap";
 import { colorVariantsList } from "~/constants/data";
 export default component$(() => {

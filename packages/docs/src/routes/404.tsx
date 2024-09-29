@@ -1,4 +1,4 @@
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 import BuilderContentComp from '../components/builder-content';
 import { Header } from '../components/header/header';
 import { QWIK_PUBLIC_API_KEY } from '../constants';

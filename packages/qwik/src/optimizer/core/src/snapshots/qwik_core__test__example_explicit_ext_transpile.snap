@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, $, useStyles$ } from '@qwikdev/core';
+import { component$, $, useStyles$ } from '@qwik.dev/core';
 
 export const App = component$((props) => {
 	useStyles$('hola');
@@ -17,8 +17,8 @@ export const App = component$((props) => {
 
 ============================= test.js ==
 
-import { componentQrl } from "@qwikdev/core";
-import { qrl } from "@qwikdev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0.js"), "App_component_ckEPmXZlub0"));
 
 
@@ -51,8 +51,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import { qrl } from "@qwikdev/core";
-import { useStylesQrl } from "@qwikdev/core";
+import { qrl } from "@qwik.dev/core";
+import { useStylesQrl } from "@qwik.dev/core";
 export const App_component_ckEPmXZlub0 = (props)=>{
     useStylesQrl(/*#__PURE__*/ qrl(()=>import("./app_component_usestyles_t35nsa5uv7u.js"), "App_component_useStyles_t35nSa5UV7U"));
     return /*#__PURE__*/ qrl(()=>import("./app_component_1_w0t0o3qmovu.js"), "App_component_1_w0t0o3QMovU");
@@ -82,9 +82,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
 
-import { _jsxSorted } from "@qwikdev/core";
+import { _jsxSorted } from "@qwik.dev/core";
 export const App_component_1_w0t0o3QMovU = ()=>/*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "u6_0");
-export { _hW } from "@qwikdev/core";
+export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKU,kBACR,WAAC\"}")

@@ -1,7 +1,7 @@
 import type {
   ServerRequestEvent,
   ServerRequestMode,
-} from '@qwikdev/city/middleware/request-handler';
+} from '@qwik.dev/city/middleware/request-handler';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { Http2ServerRequest } from 'node:http2';
 import type { QwikCityNodeRequestOptions } from '.';

@@ -1,5 +1,5 @@
-import { Form, globalAction$ } from "@qwikdev/city";
-import { component$ } from "@qwikdev/core";
+import { Form, globalAction$ } from "@qwik.dev/city";
+import { component$ } from "@qwik.dev/core";
 
 export const useAction = globalAction$(() => {
   return true;

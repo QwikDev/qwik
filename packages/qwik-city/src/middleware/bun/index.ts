@@ -5,20 +5,20 @@ import type {
   ClientConn,
   ServerRenderOptions,
   ServerRequestEvent,
-} from '@qwikdev/city/middleware/request-handler';
+} from '@qwik.dev/city/middleware/request-handler';
 import {
   _TextEncoderStream_polyfill,
   mergeHeadersCookies,
   requestHandler,
-} from '@qwikdev/city/middleware/request-handler';
-import { _deserialize, _serialize, _verifySerializable } from '@qwikdev/core';
-import { setServerPlatform } from '@qwikdev/core/server';
+} from '@qwik.dev/city/middleware/request-handler';
+import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core';
+import { setServerPlatform } from '@qwik.dev/core/server';
 import { extname, join } from 'node:path';
 import { MIME_TYPES } from '../request-handler/mime-types';
 
 /** @public */
 export function createQwikCity(opts: QwikCityBunOptions) {
-  // @qwikdev/city/middleware/bun
+  // @qwik.dev/city/middleware/bun
   // still missing from bun: last check was bun version 1.1.8
   globalThis.TextEncoderStream ||= _TextEncoderStream_polyfill;
 

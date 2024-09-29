@@ -1,4 +1,4 @@
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 
 type AlgoliaLogoTranslations = Partial<{
   searchByText: string;

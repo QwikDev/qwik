@@ -4,7 +4,7 @@ import {
   useSignal,
   useStore,
   useTask$,
-} from "@qwikdev/core";
+} from "@qwik.dev/core";
 
 import { type TodoItem, TODOS } from "../../state/state";
 

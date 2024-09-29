@@ -70,10 +70,10 @@ importers:
       '@playwright/test':
         specifier: 1.47.2
         version: 1.47.2
-      '@qwikdev/city':
+      '@qwik.dev/city':
         specifier: workspace:^
         version: link:packages/qwik-city
-      '@qwikdev/core':
+      '@qwik.dev/core':
         specifier: workspace:^
         version: link:packages/qwik
       '@types/brotli':
@@ -313,10 +313,10 @@ importers:
       '@qwik-ui/headless':
         specifier: 0.5.0
         version: 0.5.0(@builder.io/qwik@1.9.0(@types/node@20.14.11)(terser@5.31.3))
-      '@qwikdev/city':
+      '@qwik.dev/city':
         specifier: workspace:^
         version: link:../qwik-city
-      '@qwikdev/core':
+      '@qwik.dev/core':
         specifier: workspace:^
         version: link:../qwik
       '@supabase/supabase-js':
@@ -431,10 +431,10 @@ importers:
         specifier: ^3.3.5
         version: 3.3.5
     devDependencies:
-      '@qwikdev/city':
+      '@qwik.dev/city':
         specifier: workspace:^
         version: link:../qwik-city
-      '@qwikdev/core':
+      '@qwik.dev/core':
         specifier: workspace:^
         version: link:../qwik
       '@types/eslint':
@@ -568,7 +568,7 @@ importers:
       '@builder.io/qwik-dom':
         specifier: workspace:^
         version: link:../qwik-dom
-      '@qwikdev/core':
+      '@qwik.dev/core':
         specifier: workspace:^
         version: 'link:'
       image-size:
@@ -645,7 +645,7 @@ importers:
       '@netlify/edge-functions':
         specifier: 2.10.0
         version: 2.10.0
-      '@qwikdev/core':
+      '@qwik.dev/core':
         specifier: workspace:^
         version: link:../qwik
       '@types/mdast':

@@ -12,7 +12,7 @@ import { manifest } from "@qwik-client-manifest";
 import {
   createQwikCity,
   type PlatformNetlify,
-} from "@qwikdev/city/middleware/netlify-edge";
+} from "@qwik.dev/city/middleware/netlify-edge";
 import render from "./entry.ssr";
 
 declare global {

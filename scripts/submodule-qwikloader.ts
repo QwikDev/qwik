@@ -161,7 +161,7 @@ async function generateLoaderSubmodule(config: BuildConfig) {
   await writeFile(join(loaderDistDir, 'index.d.ts'), dtsCode.join('\n') + '\n');
 
   const loaderPkg: PackageJSON = {
-    name: `@qwikdev/core/loader`,
+    name: `@qwik.dev/core/loader`,
     version: config.distVersion,
     main: `index.mjs`,
     types: `index.d.ts`,

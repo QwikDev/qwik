@@ -3,8 +3,8 @@ import {
   Fragment,
   Fragment as Projection,
   type JSXOutput,
-} from "@qwikdev/core";
-import { domRender, ssrRenderToDom, trigger } from "@qwikdev/core/testing";
+} from "@qwik.dev/core";
+import { domRender, ssrRenderToDom, trigger } from "@qwik.dev/core/testing";
 import { beforeEach, describe, expect, it } from "vitest";
 import { Issue5506, SlotParent } from "./slot";
 

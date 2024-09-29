@@ -12,7 +12,7 @@ import {
   type FunctionComponent,
   type JSXNode,
   type Signal,
-} from "@qwikdev/core";
+} from "@qwik.dev/core";
 
 export const SlotParent = component$(() => {
   const state = useStore({

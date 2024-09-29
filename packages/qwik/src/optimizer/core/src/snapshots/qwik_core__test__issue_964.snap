@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 
 export const App = component$(() => {
 	console.log(function*(lo: any, t: any) {
@@ -18,15 +18,15 @@ export const App = component$(() => {
 
 ============================= test.js ==
 
-import { componentQrl } from "@qwikdev/core";
-import { qrl } from "@qwikdev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,wGAMhB\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import { _jsxSorted } from "@qwikdev/core";
+import { _jsxSorted } from "@qwik.dev/core";
 export const App_component_ckEPmXZlub0 = ()=>{
     console.log(function*(lo, t) {
         console.log((yield (yield lo)(t.href).then((r)=>r.json())));

@@ -4,7 +4,7 @@ import {
   component$,
   type QRL,
   useStylesScoped$,
-} from '@qwikdev/core';
+} from '@qwik.dev/core';
 
 export const useDebouncer = (fn: QRL<(args: any) => void>, delay: number) => {
   const timeoutId = useSignal<number>();

@@ -1,5 +1,5 @@
-import { component$ } from '@qwikdev/core';
-// import { routeLoader$ } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+// import { routeLoader$ } from '@qwik.dev/city';
 // import { createClient } from '@supabase/supabase-js';
 
 // export const useQueryData = routeLoader$(async (ev) => {

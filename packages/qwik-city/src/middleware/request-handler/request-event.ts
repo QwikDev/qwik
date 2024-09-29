@@ -1,5 +1,5 @@
-import type { ValueOrPromise } from '@qwikdev/core';
-import type { QwikManifest, ResolvedManifest } from '@qwikdev/core/optimizer';
+import type { ValueOrPromise } from '@qwik.dev/core';
+import type { QwikManifest, ResolvedManifest } from '@qwik.dev/core/optimizer';
 import { QDATA_KEY } from '../../runtime/src/constants';
 import type {
   ActionInternal,

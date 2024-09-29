@@ -8,8 +8,8 @@ import {
   component$,
   useResource$,
   useSignal,
-} from '@qwikdev/core';
-import { domRender, getTestPlatform, ssrRenderToDom, trigger } from '@qwikdev/core/testing';
+} from '@qwik.dev/core';
+import { domRender, getTestPlatform, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import '../../testing/vdom-diff.unit-util';
 

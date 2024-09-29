@@ -7,7 +7,7 @@ import {
   useSignal,
   useStore,
   useTask$,
-} from '@qwikdev/core';
+} from '@qwik.dev/core';
 import type { IStandaloneCodeEditor } from './monaco';
 import {
   addQwikLibs,

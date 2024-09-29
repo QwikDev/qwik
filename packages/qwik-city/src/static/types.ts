@@ -1,6 +1,6 @@
-import type { ServerRenderOptions } from '@qwikdev/city/middleware/request-handler';
-import type { StreamWriter } from '@qwikdev/core';
-import type { RenderOptions } from '@qwikdev/core/server';
+import type { ServerRenderOptions } from '@qwik.dev/city/middleware/request-handler';
+import type { StreamWriter } from '@qwik.dev/core';
+import type { RenderOptions } from '@qwik.dev/core/server';
 
 export interface System {
   createMainProcess: (() => Promise<MainContext>) | null;

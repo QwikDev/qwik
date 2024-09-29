@@ -11,8 +11,8 @@ import {
   useStyles$,
   useTask$,
   useVisibleTask$,
-} from "@qwikdev/core";
-import { isBrowser } from "@qwikdev/core/build";
+} from "@qwik.dev/core";
+import { isBrowser } from "@qwik.dev/core/build";
 import { delay } from "../resource/resource";
 import {
   TestAC,

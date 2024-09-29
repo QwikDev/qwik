@@ -6,13 +6,13 @@ type RequestEventInternal =
 type AsyncStore = import('node:async_hooks').AsyncLocalStorage<RequestEventInternal>;
 
 /** @deprecated Remove this in v2 */
-declare var QWIK_MANIFEST: import('@qwikdev/core/optimizer').QwikManifest | undefined | null;
+declare var QWIK_MANIFEST: import('@qwik.dev/core/optimizer').QwikManifest | undefined | null;
 
 declare var qcAsyncRequestStore: AsyncStore | undefined;
 declare var _qwikActionsMap: Map<string, ActionInternal> | undefined;
 declare var __qwikCityNew: boolean | undefined;
 
-type ExperimentalFeatures = import('@qwikdev/core/optimizer').ExperimentalFeatures;
+type ExperimentalFeatures = import('@qwik.dev/core/optimizer').ExperimentalFeatures;
 
 declare var __EXPERIMENTAL__: {
   [K in ExperimentalFeatures]: boolean;

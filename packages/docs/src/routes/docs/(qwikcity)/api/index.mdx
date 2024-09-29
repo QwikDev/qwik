@@ -80,8 +80,8 @@ export interface DocumentHead {
 All starters include a `<RouterHead>` component that is responsible for generating the `<head>` element of the document. It uses the `useDocumentHead()` function to retrieve the current head metadata and render the appropriate `<meta>`, `<link>`, `<style>` and `<title>` elements.
 
 ```tsx title="src/components/router-head/router-head.tsx"
-import { component$ } from '@qwikdev/core';
-import { useDocumentHead } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+import { useDocumentHead } from '@qwik.dev/city';
 
 /**
  * The RouterHead component is placed inside of the document `<head>` element.
@@ -148,8 +148,8 @@ Assume you have:
 - Then the `skuId` can be retrieved through `useLocation().params.skuId`
 
 ```tsx /useLocation/ title="src/routes/sku/[skuId]/index.tsx"
-import { component$ } from '@qwikdev/core';
-import { useLocation } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+import { useLocation } from '@qwik.dev/city';
 
 export default component$(() => {
   const loc = useLocation();
@@ -188,8 +188,8 @@ const url = new URL(serverDataUrl || 'https://unknown');
 The `useNavigate()` hook returns a function that programmatically navigates to the next page without requiring a user click or causing a full-page reload. This function can be called with a string argument to "push" a new path, or without arguments to cause an SPA refresh of the page. This is the API used by the `<Link>` component internally to support SPA navigation.
 
 ```tsx {12,21} /useNavigate/
-import { component$ } from '@qwikdev/core';
-import { useNavigate } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+import { useNavigate } from '@qwik.dev/city';
 
 export default component$(() => {
   const nav = useNavigate();
@@ -227,8 +227,8 @@ This component has a button that when clicked, will navigate to `/dashboard` wit
 To programmatically navigate back to the previous page, use the useNavigate and useLocation hooks.
 
 ```tsx
-import { component$ } from '@qwikdev/core';
-import { useNavigate, useLocation } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+import { useNavigate, useLocation } from '@qwik.dev/city';
 
 export const BackButton = component$(() => {
   const nav = useNavigate();
@@ -250,8 +250,8 @@ The fallback in the nav function ensures that if the previous URL (loc.prevUrl) 
 The `routeLoader$()` function is used to declare a new Server Loader in the given page/middleware or layout. Qwik City will execute all the declared loaders for the given route match. Qwik Components can later reference the loaders by importing them and calling the returned custom hook function in order to retrieve the data.
 
 ```tsx
-import { component$ } from '@qwikdev/core';
-import { routeLoader$ } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/city';
 
 export const useGetTime = routeLoader$(async () => {
   return { time: new Date() }
@@ -317,8 +317,8 @@ It is recommended that you use this in your test files.
 If you are looking for a general example on how to integrate vitest into your Qwik look checkout the [vitest integration documentation](/docs/integrations/vitest/index.mdx)
 
 ```tsx title="src/components/card.spec.tsx"
-import { createDOM } from '@qwikdev/core/testing';
-import { QwikCityMockProvider } from '@qwikdev/city';
+import { createDOM } from '@qwik.dev/core/testing';
+import { QwikCityMockProvider } from '@qwik.dev/city';
 import { test, expect } from 'vitest';
 
 // Component with two props. Uses <Link> internally. Omitted for brevity
@@ -343,8 +343,8 @@ test.each(cases)('should render card with %s %s', async ({text, link}) => {
 > a `goto` prop can be passed to customize the `navigate` behavior during tests
 
 ```tsx title="src/components/button.spec.tsx"
-import { $ } from '@qwikdev/core';
-import { createDOM } from '@qwikdev/core/testing';
+import { $ } from '@qwik.dev/core';
+import { createDOM } from '@qwik.dev/core/testing';
 import { test, expect, vi } from 'vitest';
 
 // Component with one prop. Uses useNavigate internally. Omitted for brevity
@@ -381,8 +381,8 @@ The `Form` component is a wrapper around the native `<form>` element, and it's d
 Since this component uses the native `<form>` element, it will work with any browser with and without JavaScript enabled. In addition, it enhances the native `<form>` element by capturing the `submit` event and preventing the default behavior, so it will behave like an SPA (Single Page Application) instead of a full page reload.
 
 ```tsx title="src/routes/login/index.tsx"
-import { component$ } from '@qwikdev/core';
-import { Form, routeAction$ } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+import { Form, routeAction$ } from '@qwik.dev/city';
 
 // this action will be called when the form is submitted
 export const useLoginAction = routeAction$((data, { cookies, redirect }) => {
@@ -414,8 +414,8 @@ The `Link` component works like the `<a>` anchor element, but instead of causing
 Under the hood, the `<Link>` component uses the [`useNavigate()`](/docs/(qwikcity)/api/index.mdx#usenavigate) API and prevents the default behavior of the native `<a>`:
 
 ```tsx
-import { component$ } from '@qwikdev/core';
-import { useNavigate } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+import { useNavigate } from '@qwik.dev/city';
 
 export const Link = component$<LinkProps>((props) => {
   const nav = useNavigate();
@@ -437,8 +437,8 @@ export const Link = component$<LinkProps>((props) => {
 ### Usage
 
 ```tsx
-import { component$ } from '@qwikdev/core';
-import { Link } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/city';
 
 export default component$(() => {
   return (
@@ -469,8 +469,8 @@ Setting this value to `"js"` will prefetch only javascript bundles required to r
 > Warning: if you have a menu with many links, all of them will be loaded immediately when you enter the production page, which may result with too many requests
 
 ```tsx
-import { component$ } from '@qwikdev/core';
-import { Link } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/city';
 
 export default component$(() => {
   return (

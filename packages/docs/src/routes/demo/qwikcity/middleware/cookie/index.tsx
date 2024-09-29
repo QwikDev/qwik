@@ -1,4 +1,4 @@
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({ cookie, json }) => {
   let count = cookie.get('Qwik.demo.count')?.number() || 0;

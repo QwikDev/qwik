@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import type { Render, RenderToStreamOptions } from '@qwikdev/core/server';
+import type { Render, RenderToStreamOptions } from '@qwik.dev/core/server';
 import type { IncomingMessage, ServerResponse } from 'http';
 import { magenta } from 'kleur/colors';
 
@@ -371,7 +371,7 @@ const shouldSsrRender = (req: IncomingMessage, url: URL) => {
   if (InternalPrefixRE.test(url.pathname)) {
     return false;
   }
-  if (pathname.includes('@qwikdev/core/build')) {
+  if (pathname.includes('@qwik.dev/core/build')) {
     return false;
   }
   const acceptHeader = req.headers.accept || '';

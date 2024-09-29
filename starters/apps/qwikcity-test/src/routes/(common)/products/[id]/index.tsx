@@ -3,8 +3,8 @@ import {
   routeLoader$,
   useLocation,
   type DocumentHead,
-} from "@qwikdev/city";
-import { component$, useStore } from "@qwikdev/core";
+} from "@qwik.dev/city";
+import { component$, useStore } from "@qwik.dev/core";
 import os from "node:os";
 
 export default component$(() => {

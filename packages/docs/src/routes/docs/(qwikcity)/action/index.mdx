@@ -33,11 +33,11 @@ created_at: '2023-03-20T23:45:13Z'
 
 `routeAction$()` is used to define functions called actions that execute exclusively on the server, and only when explicitly called. Actions can have side effects such as writing to a database or sending an email, that cannot happen during client-side rendering. This makes them ideal for handling form submissions, performing operations with side effects, and then returning data back to the client/browser where it can be used to update the UI.
 
-Actions can be declared using `routeAction$()` or `globalAction$()` exported from `@qwikdev/city`.
+Actions can be declared using `routeAction$()` or `globalAction$()` exported from `@qwik.dev/city`.
 
 ```tsx {4,16} /useAddUser/ /firstName/#a /lastName/#b /email/#c title="src/routes/layout.tsx"
-import { component$ } from '@qwikdev/core';
-import { routeAction$, Form } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+import { routeAction$, Form } from '@qwik.dev/city';
 
 export const useAddUser = routeAction$(async (data, requestEvent) => {
   // This will only run on the server when the user submits the form (or when the action is called programmatically)
@@ -75,11 +75,11 @@ export default component$(() => {
 
 ## Using actions with `<Form/>`
 
-The best way to call an action is using the `<Form/>` component exported in `@qwikdev/city`.
+The best way to call an action is using the `<Form/>` component exported in `@qwik.dev/city`.
 
 ```tsx title="src/routes/index.tsx"
-import { component$ } from '@qwikdev/core';
-import { routeAction$, Form } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+import { routeAction$, Form } from '@qwik.dev/city';
 
 export const useAddUser = routeAction$(async (user) => {
   const userID = await db.users.add(user);
@@ -114,8 +114,8 @@ When JS is enabled, the `<Form/>` component will intercept the form submission a
 Actions can also be triggered programmatically using the `action.submit()` method (i.e. you don't need a `<Form/>` component). However, you can trigger the action from a button click or any other event, just like you would do with a function.
 
 ```tsx {18} title="src/routes/index.tsx"
-import { component$ } from '@qwikdev/core';
-import { routeAction$ } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+import { routeAction$ } from '@qwik.dev/city';
 
 export const useAddUser = routeAction$(async (user) => {
   const userID = await db.users.add(user);
@@ -152,8 +152,8 @@ The `onSubmitCompleted$` event handler can be used after an action is successful
 Here's an example of the `onSubmitCompleted$` handler used to edit an item in a EditForm component of a todo app.
 
 ```tsx title="src/components/EditForm.tsx"
-import { component$, type Signal, useSignal } from '@qwikdev/core';
-import { Form } from '@qwikdev/city';
+import { component$, type Signal, useSignal } from '@qwik.dev/core';
+import { Form } from '@qwik.dev/city';
 import { type ListItem, useEditFromListAction } from '../../routes/index';
 
 export interface EditFormProps {
@@ -209,8 +209,8 @@ Qwik comes with built-in support for [Zod](https://zod.dev/), a TypeScript-first
 Actions + [Zod](https://zod.dev/) allows to create type safe forms, where the data is validated server side before the action is executed.
 
 ```tsx {16-20} /firstName/#a /lastName/#b title="src/routes/index.tsx"
-import { component$ } from '@qwikdev/core';
-import { routeAction$, zod$, z, Form } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+import { routeAction$, zod$, z, Form } from '@qwik.dev/city';
 
 export const useAddUser = routeAction$(
   async (user) => {
@@ -298,7 +298,7 @@ export const useAddUser = routeAction$(
 This allows actions to access the request headers, cookies, url and environment variables within the `routeAction$` function.
 
 ```tsx /requestEvent/ title="src/routes/product/[user]/index.tsx"
-import { routeAction$ } from '@qwikdev/city';
+import { routeAction$ } from '@qwik.dev/city';
 
 // The second argument of the action is the `RequestEvent` object
 export const useProductRecommendations = routeAction$(
@@ -318,7 +318,7 @@ export const useProductRecommendations = routeAction$(
 In order to return non-success values, the action must use the `fail()` method.
 
 ```tsx /fail/
-import { routeAction$, zod$, z } from '@qwikdev/city';
+import { routeAction$, zod$, z } from '@qwik.dev/city';
 
 export const useAddUser = routeAction$(
   async (user, { fail }) => {
@@ -344,8 +344,8 @@ Failures are stored in the `action.value` property, just like the success value.
 The `fieldErrors` become a dot notation object. See [Complex forms](/docs/advanced/complex-forms) for more information.
 
 ```tsx
-import { component$ } from '@qwikdev/core';
-import { Form } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+import { Form } from '@qwik.dev/city';
 
 export default component$(() => {
   const action = useAddUser();
@@ -367,8 +367,8 @@ Thanks to Typescript type discrimination, you can use the `action.value.failed` 
 When an action is triggered, the previous state is stored in the `action.formData` property. This is useful to display a loading state while the action is running.
 
 ```tsx {12} /action.formData/
-import { component$ } from '@qwikdev/core';
-import { routeAction$, Form, zod$, z } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+import { routeAction$, Form, zod$, z } from '@qwik.dev/city';
 
 export const useAddUser = routeAction$(async (user) => {
   // handle action...
@@ -389,7 +389,7 @@ The `action.formData` is especially useful for retaining user-filled form data e
 
 ## Route vs Global actions
 
-Actions can be declared using the `routeAction$()` or `globalAction$()` exported from `@qwikdev/city`, the only difference between the two is that `routeAction$()` is scoped to a route, while `globalAction$()` is globally available across the whole app.
+Actions can be declared using the `routeAction$()` or `globalAction$()` exported from `@qwik.dev/city`, the only difference between the two is that `routeAction$()` is scoped to a route, while `globalAction$()` is globally available across the whole app.
 
 It's recommended to start with `routeAction$()`. Use `globalAction$()` only when sharing an action across multiple routes, or if you wish to use the action in a component that is not a route.
 
@@ -400,7 +400,7 @@ It's recommended to start with `routeAction$()`. Use `globalAction$()` only when
 > If you want to manage common reusable routeAction$() it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception. For more information [check this section](/docs/(qwikcity)/re-exporting-loaders/index.mdx).
 
 ```tsx title="src/routes/form/index.tsx"
-import { routeAction$ } from '@qwikdev/city';
+import { routeAction$ } from '@qwik.dev/city';
 
 export const useChangePassword = routeAction$((data) => {
   // ...
@@ -412,7 +412,7 @@ export const useChangePassword = routeAction$((data) => {
 `globalAction$()` can be declared anywhere in the `src` folder. Since `globalAction$()` are globally available, they are recommended when the action needs to be shared across multiple routes, or when the action doesn't need to access any user data. For example, a `useLogin` action that logs in a user. Think about it like a "public" action.
 
 ```tsx title="src/components/login/login.tsx"
-import { globalAction$ } from '@qwikdev/city';
+import { globalAction$ } from '@qwik.dev/city';
 
 export const useLogin = globalAction$((data) => {
   // ...

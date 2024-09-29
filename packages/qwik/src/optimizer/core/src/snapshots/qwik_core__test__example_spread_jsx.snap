@@ -6,8 +6,8 @@ expression: output
 ==INPUT==
 
 
-import { component$ } from '@qwikdev/core';
-import { useDocumentHead, useLocation } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+import { useDocumentHead, useLocation } from '@qwik.dev/city';
 
 /**
  * The RouterHead component is placed inside of the document `<head>` element.
@@ -40,8 +40,8 @@ export const RouterHead = component$(() => {
 });
 ============================= test.js ==
 
-import { componentQrl } from "@qwikdev/core";
-import { qrl } from "@qwikdev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 /**
  * The RouterHead component is placed inside of the document `<head>` element.
  */ export const RouterHead = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./routerhead_component_dpa76mgiou0"), "RouterHead_component_DPA76mgIou0"));
@@ -50,13 +50,13 @@ import { qrl } from "@qwikdev/core";
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA;;CAEC,GACD,OAAO,MAAM,2BAAa,sHAyBvB\"}")
 ============================= routerhead_component_dpa76mgiou0.js (ENTRY POINT)==
 
-import { Fragment as _Fragment } from "@qwikdev/core/jsx-runtime";
-import { createElement as _createElement } from "@qwikdev/core";
-import { _jsxSorted } from "@qwikdev/core";
-import { _jsxSplit } from "@qwikdev/core";
-import { _wrapProp } from "@qwikdev/core";
-import { useDocumentHead } from "@qwikdev/city";
-import { useLocation } from "@qwikdev/city";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { createElement as _createElement } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _jsxSplit } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { useDocumentHead } from "@qwik.dev/city";
+import { useLocation } from "@qwik.dev/city";
 export const RouterHead_component_DPA76mgIou0 = ()=>{
     const head = useDocumentHead();
     const loc = useLocation();

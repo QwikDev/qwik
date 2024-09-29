@@ -103,8 +103,8 @@ The example above will return:
 While [`useContent()`](/docs/(qwikcity)/api/index.mdx#usecontent) can be invoked from any component that is part of the current route, it is typically used in a layout component (or a component used by layout) to render the menu. An example usage is shown here:
 
 ```tsx
-import { component$ } from '@qwikdev/core';
-import { useLocation, useContent } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+import { useLocation, useContent } from '@qwik.dev/city';
 export default component$(() => {
   const { menu } = useContent();
   const { url } = useLocation();

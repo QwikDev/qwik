@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { $, component$, useStyles$ } from '@qwikdev/core';
+import { $, component$, useStyles$ } from '@qwik.dev/core';
 
 export const Foo = component$(() => {
 	useStyles$('.class {}');
@@ -45,8 +45,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= foo_component_htdrsvublie.tsx (ENTRY POINT)==
 
-import { qrl } from "@qwikdev/core";
-import { useStylesQrl } from "@qwikdev/core";
+import { qrl } from "@qwik.dev/core";
+import { useStylesQrl } from "@qwik.dev/core";
 export const Foo_component_HTDRsvUbLiE = ()=>{
     useStylesQrl(/*#__PURE__*/ qrl(()=>import("./foo_component_usestyles_pv9tscbihw8"), "Foo_component_useStyles_pV9TSCBIhw8"));
     return <div class="class"/>;
@@ -76,8 +76,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx ==
 
-import { componentQrl } from "@qwikdev/core";
-import { qrl } from "@qwikdev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });

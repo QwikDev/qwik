@@ -6,7 +6,7 @@ import {
   useResource$,
   useStore,
   useStyles$,
-} from "@qwikdev/core";
+} from "@qwik.dev/core";
 
 export function delay(time: number) {
   return new Promise<void>((resolve) => {

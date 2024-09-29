@@ -12,7 +12,7 @@ import { manifest } from "@qwik-client-manifest";
 import {
   createQwikCity,
   type PlatformVercel,
-} from "@qwikdev/city/middleware/vercel-edge";
+} from "@qwik.dev/city/middleware/vercel-edge";
 import render from "./entry.ssr";
 
 declare global {

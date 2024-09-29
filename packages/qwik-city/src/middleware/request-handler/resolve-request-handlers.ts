@@ -1,5 +1,5 @@
-import type { QRL } from '@qwikdev/core';
-import type { Render, RenderToStringResult } from '@qwikdev/core/server';
+import type { QRL } from '@qwik.dev/core';
+import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
 import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
 import type {
   ActionInternal,

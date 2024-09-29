@@ -1,6 +1,6 @@
-import type { StaticGenerateOptions, StaticGenerateRenderOptions } from '@qwikdev/city/static';
-import type { QwikCityPlugin } from '@qwikdev/city/vite';
-import type { QwikVitePlugin } from '@qwikdev/core/optimizer';
+import type { StaticGenerateOptions, StaticGenerateRenderOptions } from '@qwik.dev/city/static';
+import type { QwikCityPlugin } from '@qwik.dev/city/vite';
+import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import fs from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import type { Plugin, UserConfig } from 'vite';

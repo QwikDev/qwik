@@ -1,4 +1,4 @@
-import { getErrorHtml } from '@qwikdev/city/middleware/request-handler';
+import { getErrorHtml } from '@qwik.dev/city/middleware/request-handler';
 import fs from 'node:fs';
 import { join } from 'node:path';
 

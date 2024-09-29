@@ -1,4 +1,4 @@
-import { isDev } from '@qwikdev/core/build';
+import { isDev } from '@qwik.dev/core/build';
 
 const LOG_TIMING: boolean = isDev;
 

@@ -17,8 +17,8 @@ import {
   useTask$,
   type _ElementVNode,
   type QRL,
-} from '@qwikdev/core';
-import { isBrowser, isDev, isServer } from '@qwikdev/core/build';
+} from '@qwik.dev/core';
+import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
 import { clientNavigate } from './client-navigate';
 import { CLIENT_DATA_CACHE } from './constants';
 import {

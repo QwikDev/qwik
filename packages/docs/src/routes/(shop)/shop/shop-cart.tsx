@@ -1,4 +1,4 @@
-import { $, component$, useComputed$, useContext, useSignal } from '@qwikdev/core';
+import { $, component$, useComputed$, useContext, useSignal } from '@qwik.dev/core';
 import { COOKIE_CART_ID_KEY, SHOP_CONTEXT, deleteCookie, formatPrice } from '../utils';
 import { ShopCartRows } from './shop-cart-rows';
 

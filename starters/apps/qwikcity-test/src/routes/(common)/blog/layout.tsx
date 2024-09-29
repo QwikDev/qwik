@@ -1,5 +1,5 @@
-import { Link } from "@qwikdev/city";
-import { component$, Slot } from "@qwikdev/core";
+import { Link } from "@qwik.dev/city";
+import { component$, Slot } from "@qwik.dev/core";
 
 export default component$(() => {
   return (

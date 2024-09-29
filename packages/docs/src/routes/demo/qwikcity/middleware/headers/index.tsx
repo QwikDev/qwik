@@ -1,4 +1,4 @@
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({ headers, json }) => {
   headers.set('X-SRF-TOKEN', Math.random().toString(36).replace('0.', ''));

@@ -1,4 +1,4 @@
-import { domRender, ssrRenderToDom, trigger } from "@qwikdev/core/testing";
+import { domRender, ssrRenderToDom, trigger } from "@qwik.dev/core/testing";
 import { beforeEach, describe, expect, it } from "vitest";
 import { RefRoot } from "./ref";
 

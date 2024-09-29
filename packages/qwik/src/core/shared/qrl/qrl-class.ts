@@ -1,4 +1,4 @@
-import { isDev } from '@qwikdev/core/build';
+import { isDev } from '@qwik.dev/core/build';
 import { isSignal } from '../../signal/signal';
 import type { Signal } from '../../signal/signal.public';
 import {

@@ -31,8 +31,8 @@ Your new function will have the following signature:
 > Please note that depending on your server runtime, the function on the server may not terminate immediately. It depends on how client disconnections are handled by the runtime.
 
 ```tsx
-import { component$, useSignal } from '@qwikdev/core';
-import { server$ } from '@qwikdev/city';
+import { component$, useSignal } from '@qwik.dev/core';
+import { server$ } from '@qwik.dev/city';
 
 // By wrapping a function with `server$()` we mark it to always
 // execute on the server. This is a form of RPC mechanism.
@@ -176,8 +176,8 @@ export const handleRequest = server$(
 Terminating the generator on the client side (e.g., by calling `.return()` on the generator or by breaking out from your async for-of loop) will terminate the connection. Similar to `AbortSignal`, how the generator terminates on the server side depends on the server runtime and how client disconnects are handled.
 
 ```tsx
-import { component$, useSignal } from '@qwikdev/core';
-import { server$ } from '@qwikdev/city';
+import { component$, useSignal } from '@qwik.dev/core';
+import { server$ } from '@qwik.dev/city';
 
 export const streamFromServer = server$(
   // Async Generator Function

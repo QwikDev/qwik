@@ -7,9 +7,9 @@ import {
   Slot,
   useSignal,
   useStylesQrl,
-} from '@qwikdev/core';
-import { renderToString } from '@qwikdev/core/server';
-import { domRender, ssrRenderToDom, trigger } from '@qwikdev/core/testing';
+} from '@qwik.dev/core';
+import { renderToString } from '@qwik.dev/core/server';
+import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { afterEach, describe, expect, it } from 'vitest';
 import { getPlatform, setPlatform } from '../shared/platform/platform';
 import { QStyleSelector } from '../shared/utils/markers';

@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, useStore, mutable } from '@qwikdev/core';
+import { component$, useStore, mutable } from '@qwik.dev/core';
 
 import {dep} from './file';
 
@@ -51,13 +51,13 @@ export const App = component$(() => {
 
 ============================= test.js ==
 
-import { componentQrl } from "@qwikdev/core";
-import { _wrapProp } from "@qwikdev/core";
-import { _jsxSorted } from "@qwikdev/core";
-import { inlinedQrl } from "@qwikdev/core";
-import { _fnSignal } from "@qwikdev/core";
-import { Fragment as _Fragment } from "@qwikdev/core/jsx-runtime";
-import { useStore, mutable } from '@qwikdev/core';
+import { componentQrl } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
+import { _fnSignal } from "@qwik.dev/core";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { useStore, mutable } from '@qwik.dev/core';
 import { dep } from './file';
 const TextContent_component_puSwpKXO7Kg = (props)=>{
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [

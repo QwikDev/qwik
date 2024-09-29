@@ -101,11 +101,11 @@ export const dictionary = strToU8(
     // The default hello world app + supporting files
     {
       path: '/app.tsx',
-      code: `import { component$ } from '@qwikdev/core';\n\nexport default component$(() => {\n  return <p>Hello Qwik</p>;\n});\n`,
+      code: `import { component$ } from '@qwik.dev/core';\n\nexport default component$(() => {\n  return <p>Hello Qwik</p>;\n});\n`,
     },
     {
       path: '/entry.server.tsx',
-      code: `import { renderToString, type RenderOptions } from '@qwikdev/core/server';\nimport { Root } from './root';\n\nexport default function (opts: RenderOptions) {\n  return renderToString(<Root />, opts);\n}\n`,
+      code: `import { renderToString, type RenderOptions } from '@qwik.dev/core/server';\nimport { Root } from './root';\n\nexport default function (opts: RenderOptions) {\n  return renderToString(<Root />, opts);\n}\n`,
     },
     {
       path: '/root.tsx',

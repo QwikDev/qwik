@@ -4,14 +4,14 @@ import { isStaticPath } from '@qwik-city-static-paths';
 import type {
   ServerRenderOptions,
   ServerRequestEvent,
-} from '@qwikdev/city/middleware/request-handler';
-import { requestHandler } from '@qwikdev/city/middleware/request-handler';
-import { _deserialize, _serialize, _verifySerializable } from '@qwikdev/core';
-import { setServerPlatform } from '@qwikdev/core/server';
+} from '@qwik.dev/city/middleware/request-handler';
+import { requestHandler } from '@qwik.dev/city/middleware/request-handler';
+import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core';
+import { setServerPlatform } from '@qwik.dev/core/server';
 import { parseString } from 'set-cookie-parser';
 import type { QwikSerializer } from '../request-handler/types';
 
-// @qwikdev/city/middleware/azure-swa
+// @qwik.dev/city/middleware/azure-swa
 
 interface AzureResponse {
   status: number;

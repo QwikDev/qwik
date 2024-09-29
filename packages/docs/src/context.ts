@@ -1,4 +1,4 @@
-import { createContextId } from '@qwikdev/core';
+import { createContextId } from '@qwik.dev/core';
 import type { ThemePreference } from './components/theme-toggle/theme-toggle';
 
 export interface SiteStore {

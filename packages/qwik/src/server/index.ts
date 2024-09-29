@@ -1,5 +1,5 @@
-import { setPlatform } from '@qwikdev/core';
-import type { ResolvedManifest } from '@qwikdev/core/optimizer';
+import { setPlatform } from '@qwik.dev/core';
+import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import { createPlatform } from './platform';
 import { resolveManifest } from './ssr-render';
 import type { QwikManifest } from './types';

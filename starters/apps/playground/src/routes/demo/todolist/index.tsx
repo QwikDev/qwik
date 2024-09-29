@@ -5,8 +5,8 @@ import {
   routeLoader$,
   z,
   zod$,
-} from "@qwikdev/city";
-import { component$ } from "@qwikdev/core";
+} from "@qwik.dev/city";
+import { component$ } from "@qwik.dev/core";
 import styles from "./todolist.module.css";
 
 interface ListItem {

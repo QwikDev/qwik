@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, useStore } from '@qwikdev/core';
+import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$(() => {
 	return (
@@ -18,8 +18,8 @@ export const App = component$(() => {
 
 ============================= test.js ==
 
-import { componentQrl } from "@qwikdev/core";
-import { qrlDEV } from "@qwikdev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrlDEV } from "@qwik.dev/core";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0", {
     file: "/user/qwik/src/test.tsx",
     lo: 90,
@@ -31,8 +31,8 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import(".
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM;;;;;IAMhB\"}")
 ============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import { _jsxSorted } from "@qwikdev/core";
-import { qrlDEV } from "@qwikdev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrlDEV } from "@qwik.dev/core";
 export const App_component_ckEPmXZlub0 = ()=>{
     return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", null, {
         class: "stuff",

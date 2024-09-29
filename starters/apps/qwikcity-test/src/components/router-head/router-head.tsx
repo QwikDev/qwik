@@ -1,5 +1,5 @@
-import { useDocumentHead, useLocation } from "@qwikdev/city";
-import { component$ } from "@qwikdev/core";
+import { useDocumentHead, useLocation } from "@qwik.dev/city";
+import { component$ } from "@qwik.dev/core";
 import { Social } from "./social";
 import { Vendor } from "./vendor";
 

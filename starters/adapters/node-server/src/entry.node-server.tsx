@@ -9,7 +9,7 @@
  */
 import qwikCityPlan from "@qwik-city-plan";
 import { manifest } from "@qwik-client-manifest";
-import { createQwikCity } from "@qwikdev/city/middleware/node";
+import { createQwikCity } from "@qwik.dev/city/middleware/node";
 import { createServer } from "node:http";
 import render from "./entry.ssr";
 

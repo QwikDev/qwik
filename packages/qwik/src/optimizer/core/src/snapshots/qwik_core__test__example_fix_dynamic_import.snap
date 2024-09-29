@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { $, component$ } from '@qwikdev/core';
+import { $, component$ } from '@qwik.dev/core';
 import thing from "../state";
 
 export function foo() {
@@ -56,8 +56,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"
 */
 ============================= project/folder/test.tsx ==
 
-import { componentQrl } from "@qwikdev/core";
-import { qrl } from "@qwikdev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export function foo() {
     return import("../foo/state2");
 }

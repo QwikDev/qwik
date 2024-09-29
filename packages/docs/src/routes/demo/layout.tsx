@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
-import { component$, Slot } from '@qwikdev/core';
-import { useStyles$ } from '@qwikdev/core';
+import { component$, Slot } from '@qwik.dev/core';
+import { useStyles$ } from '@qwik.dev/core';
 import STYLES from './demo-reset.css?inline';
 
 export default component$(() => {

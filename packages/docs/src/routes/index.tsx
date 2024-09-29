@@ -1,5 +1,5 @@
-import { type DocumentHead } from '@qwikdev/city';
-import { component$ } from '@qwikdev/core';
+import { type DocumentHead } from '@qwik.dev/city';
+import { component$ } from '@qwik.dev/core';
 import BuilderContentComp from '../components/builder-content';
 import { Footer } from '../components/footer/footer';
 import { Header } from '../components/header/header';

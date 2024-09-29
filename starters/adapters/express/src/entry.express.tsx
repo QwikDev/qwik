@@ -12,7 +12,7 @@ import { manifest } from "@qwik-client-manifest";
 import {
   createQwikCity,
   type PlatformNode,
-} from "@qwikdev/city/middleware/node";
+} from "@qwik.dev/city/middleware/node";
 import "dotenv/config";
 import express from "express";
 import { join } from "node:path";

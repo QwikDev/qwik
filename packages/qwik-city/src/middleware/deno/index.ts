@@ -4,16 +4,16 @@ import type {
   ClientConn,
   ServerRenderOptions,
   ServerRequestEvent,
-} from '@qwikdev/city/middleware/request-handler';
-import { mergeHeadersCookies, requestHandler } from '@qwikdev/city/middleware/request-handler';
-import { _deserialize, _serialize, _verifySerializable } from '@qwikdev/core';
-import { setServerPlatform } from '@qwikdev/core/server';
+} from '@qwik.dev/city/middleware/request-handler';
+import { mergeHeadersCookies, requestHandler } from '@qwik.dev/city/middleware/request-handler';
+import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core';
+import { setServerPlatform } from '@qwik.dev/core/server';
 import { MIME_TYPES } from '../request-handler/mime-types';
 // @ts-ignore
 import { extname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
 import type { QwikSerializer } from '../request-handler/types';
 
-// @qwikdev/city/middleware/deno
+// @qwik.dev/city/middleware/deno
 
 /** @public */
 export interface NetAddr {

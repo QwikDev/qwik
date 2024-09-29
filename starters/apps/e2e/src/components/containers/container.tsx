@@ -4,7 +4,7 @@ import {
   useResource$,
   useSignal,
   useStyles$,
-} from "@qwikdev/core";
+} from "@qwik.dev/core";
 
 interface ContainerProps {
   url: string;

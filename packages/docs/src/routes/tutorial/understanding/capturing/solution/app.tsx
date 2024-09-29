@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { component$, useStore } from '@qwikdev/core';
+import { component$, useStore } from '@qwik.dev/core';
 
 interface AppStore {
   counter: { count: number };

@@ -1,5 +1,5 @@
-import { routeLoader$ } from '@qwikdev/city';
-import { Resource, component$ } from '@qwikdev/core';
+import { routeLoader$ } from '@qwik.dev/city';
+import { Resource, component$ } from '@qwik.dev/core';
 
 export const useMyData = routeLoader$(() => {
   return async () => {

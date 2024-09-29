@@ -1,5 +1,5 @@
 // Expect error: { "messageId": "referencesOutside" }
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 export interface Props {
   nonserializableTuple: [string, number, boolean, Function];
 }

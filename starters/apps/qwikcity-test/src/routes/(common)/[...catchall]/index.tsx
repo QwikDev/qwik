@@ -2,8 +2,8 @@ import {
   type DocumentHead,
   type RequestHandler,
   useLocation,
-} from "@qwikdev/city";
-import { component$ } from "@qwikdev/core";
+} from "@qwik.dev/city";
+import { component$ } from "@qwik.dev/core";
 
 export default component$(() => {
   const loc = useLocation();

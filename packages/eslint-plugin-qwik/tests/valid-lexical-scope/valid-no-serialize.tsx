@@ -1,5 +1,5 @@
 export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
-import { useTask$, component$, noSerialize } from '@qwikdev/core';
+import { useTask$, component$, noSerialize } from '@qwik.dev/core';
 export interface Value {
   value: number;
   fn: NoSerialize<() => void>;

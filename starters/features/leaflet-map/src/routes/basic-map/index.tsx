@@ -1,4 +1,4 @@
-import { component$, useSignal, useStyles$ } from "@qwikdev/core";
+import { component$, useSignal, useStyles$ } from "@qwik.dev/core";
 
 // Leaflet map styles
 import leafletStyles from "../../../node_modules/leaflet/dist/leaflet.css?inline";

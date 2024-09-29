@@ -5,7 +5,7 @@ import {
   useSignal,
   useStore,
   useStylesScoped$,
-} from "@qwikdev/core";
+} from "@qwik.dev/core";
 import child from "./child.css?inline";
 import child2 from "./child2.css?inline";
 import empty from "./empty.css?inline";

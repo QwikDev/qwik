@@ -2,13 +2,13 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "paths": {
-      "@qwikdev/core": ["packages/qwik/src/core"],
-      "@qwikdev/core/jsx-runtime": ["packages/qwik/src/jsx-runtime"],
-      "@qwikdev/core/jsx-dev-runtime": ["packages/qwik/src/jsx-runtime"],
-      "@qwikdev/core/build": ["packages/qwik/src/build"],
-      "@qwikdev/core/optimizer": ["packages/qwik/src/optimizer/src"],
-      "@qwikdev/core/server": ["packages/qwik/src/server"],
-      "@qwikdev/core/testing": ["packages/qwik/src/testing"]
+      "@qwik.dev/core": ["packages/qwik/src/core"],
+      "@qwik.dev/core/jsx-runtime": ["packages/qwik/src/jsx-runtime"],
+      "@qwik.dev/core/jsx-dev-runtime": ["packages/qwik/src/jsx-runtime"],
+      "@qwik.dev/core/build": ["packages/qwik/src/build"],
+      "@qwik.dev/core/optimizer": ["packages/qwik/src/optimizer/src"],
+      "@qwik.dev/core/server": ["packages/qwik/src/server"],
+      "@qwik.dev/core/testing": ["packages/qwik/src/testing"]
     }
   },
   "include": ["src"],

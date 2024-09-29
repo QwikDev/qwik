@@ -1,4 +1,4 @@
-import { isDev } from '@qwikdev/core/build';
+import { isDev } from '@qwik.dev/core/build';
 import { isQwikComponent } from '../shared/component.public';
 import { Fragment } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';

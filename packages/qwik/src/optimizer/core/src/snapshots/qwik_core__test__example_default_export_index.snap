@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
 	return (
@@ -18,8 +18,8 @@ export default component$(() => {
 
 ============================= src/components/mongo/index.tsx ==
 
-import { componentQrl } from "@qwikdev/core";
-import { inlinedQrl } from "@qwikdev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     return <div onClick$={/*#__PURE__*/ inlinedQrl(()=>console.log(mongodb), "mongo_component_div_onClick_2EK0wZbP8qw")}>
 		</div>;

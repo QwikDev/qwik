@@ -1,5 +1,5 @@
-import { routeLoader$, type RequestHandler } from '@qwikdev/city';
-import { $, component$, Slot, useContextProvider, useStore, useTask$ } from '@qwikdev/core';
+import { routeLoader$, type RequestHandler } from '@qwik.dev/city';
+import { $, component$, Slot, useContextProvider, useStore, useTask$ } from '@qwik.dev/core';
 import { useImageProvider, type ImageTransformerProps } from 'qwik-image';
 import { Footer } from '../../components/footer/footer';
 import { Header } from '../../components/header/header';

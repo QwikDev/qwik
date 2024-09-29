@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 
 export const Foo = component$(() => {
 	return (
@@ -20,7 +20,7 @@ export const Foo = component$(() => {
 
 ============================= s_htdrsvublie.tsx (ENTRY POINT)==
 
-import { qrl } from "@qwikdev/core";
+import { qrl } from "@qwik.dev/core";
 export const s_HTDRsvUbLiE = ()=>{
     return <div>
 			<div onClick$={/*#__PURE__*/ qrl(()=>import("./s_9dcjc0ujddo"), "s_9DcJc0uJDDo")}/>
@@ -131,8 +131,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx ==
 
-import { componentQrl } from "@qwikdev/core";
-import { qrl } from "@qwikdev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./s_htdrsvublie"), "s_HTDRsvUbLiE"));
 
 

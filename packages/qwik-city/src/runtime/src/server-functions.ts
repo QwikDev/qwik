@@ -11,7 +11,7 @@ import {
   useStore,
   type QRL,
   type ValueOrPromise,
-} from '@qwikdev/core';
+} from '@qwik.dev/core';
 
 import * as v from 'valibot';
 import { z } from 'zod';
@@ -50,7 +50,7 @@ import type {
 } from './types';
 import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 
-import { isDev, isServer } from '@qwikdev/core/build';
+import { isDev, isServer } from '@qwik.dev/core/build';
 
 import type { FormSubmitCompletedDetail } from './form-component';
 

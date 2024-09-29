@@ -1,4 +1,4 @@
-import { component$, useTask$ } from '@qwikdev/core';
+import { component$, useTask$ } from '@qwik.dev/core';
 export const HelloWorld = component$(() => {
   async function getValue() {
     return 'ffg';

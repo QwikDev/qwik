@@ -1,6 +1,6 @@
-import type { Action, FailReturn, Loader, QwikCityPlan } from '@qwikdev/city';
-import type { _deserialize, _serialize, _verifySerializable } from '@qwikdev/core';
-import type { Render, RenderOptions } from '@qwikdev/core/server';
+import type { Action, FailReturn, Loader, QwikCityPlan } from '@qwik.dev/city';
+import type { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core';
+import type { Render, RenderOptions } from '@qwik.dev/core/server';
 import type { ErrorResponse } from './error-handler';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';

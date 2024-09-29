@@ -1,5 +1,5 @@
-import type { Cookie } from '@qwikdev/city';
-import { createContextId } from '@qwikdev/core';
+import type { Cookie } from '@qwik.dev/city';
+import { createContextId } from '@qwik.dev/core';
 import type { CookieOptions } from 'express';
 import type { Product, ShopApp } from './types';
 

@@ -1,5 +1,5 @@
-import type { RequestEvent, RequestHandler } from '@qwikdev/city';
-import type { QwikManifest, ResolvedManifest } from '@qwikdev/core/optimizer';
+import type { RequestEvent, RequestHandler } from '@qwik.dev/city';
+import type { QwikManifest, ResolvedManifest } from '@qwik.dev/core/optimizer';
 import type { LoadedRoute } from '../../runtime/src/types';
 import { ErrorResponse, getErrorHtml, minimalHtmlResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';

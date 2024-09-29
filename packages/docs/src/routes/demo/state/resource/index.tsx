@@ -1,4 +1,4 @@
-import { component$, Resource, useResource$, useSignal } from '@qwikdev/core';
+import { component$, Resource, useResource$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
   const prNumber = useSignal('3576');

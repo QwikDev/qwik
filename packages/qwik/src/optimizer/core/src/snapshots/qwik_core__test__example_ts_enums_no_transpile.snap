@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, useStore } from '@qwikdev/core';
+import { component$, useStore } from '@qwik.dev/core';
 
 export enum Thing {
 	A,
@@ -24,8 +24,8 @@ export const App = component$(() => {
 
 ============================= test.tsx ==
 
-import { componentQrl } from "@qwikdev/core";
-import { qrl } from "@qwikdev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export enum Thing {
     A,
     B

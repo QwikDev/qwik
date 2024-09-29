@@ -1,4 +1,4 @@
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 import { QwikLogo } from '~/components/svgs/qwik-logo';
 import { DiscordLogo } from '~/components/svgs/discord-logo';
 import { GithubLogo } from '~/components/svgs/github-logo';

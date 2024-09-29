@@ -6,7 +6,7 @@ import {
   useContextProvider,
   useSignal,
   useTask$,
-} from "@qwikdev/core";
+} from "@qwik.dev/core";
 
 export const CTXCount = createContextId<Signal<number>>("resuming-count");
 export const CTXShow = createContextId<Signal<boolean>>("resuming-show");

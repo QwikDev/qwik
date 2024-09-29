@@ -1,5 +1,5 @@
-import { Form, globalAction$, zod$ } from "@qwikdev/city";
-import { component$ } from "@qwikdev/core";
+import { Form, globalAction$, zod$ } from "@qwik.dev/city";
+import { component$ } from "@qwik.dev/core";
 
 export const useDotNotationAction = globalAction$(
   async (payload) => {

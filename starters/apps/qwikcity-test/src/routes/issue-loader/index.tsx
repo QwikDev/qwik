@@ -1,5 +1,5 @@
-import { routeLoader$ } from "@qwikdev/city";
-import { component$ } from "@qwikdev/core";
+import { routeLoader$ } from "@qwik.dev/city";
+import { component$ } from "@qwik.dev/core";
 import ActionForm from "./action";
 
 export const useRealDateLoader = routeLoader$(() => {

@@ -1,4 +1,4 @@
-import type { StaticGenerateRenderOptions } from '@qwikdev/city/static';
+import type { StaticGenerateRenderOptions } from '@qwik.dev/city/static';
 import fs from 'node:fs';
 import { join } from 'node:path';
 import { type ServerAdapterOptions, viteAdapter } from '../../shared/vite';

@@ -1,4 +1,4 @@
-import { Link } from "@qwikdev/city";
+import { Link } from "@qwik.dev/city";
 
 export default () => {
   return (

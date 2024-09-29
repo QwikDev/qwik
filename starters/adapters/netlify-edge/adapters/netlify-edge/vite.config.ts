@@ -1,5 +1,5 @@
-import { netlifyEdgeAdapter } from "@qwikdev/city/adapters/netlify-edge/vite";
-import { extendConfig } from "@qwikdev/city/vite";
+import { netlifyEdgeAdapter } from "@qwik.dev/city/adapters/netlify-edge/vite";
+import { extendConfig } from "@qwik.dev/city/vite";
 import baseConfig from "../../vite.config";
 
 export default extendConfig(baseConfig, () => {

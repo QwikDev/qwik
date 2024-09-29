@@ -4,11 +4,11 @@ import { join } from 'path';
 import { workspaceRoot } from '.';
 
 const packageCfg = {
-  '@qwikdev/core': {
+  '@qwik.dev/core': {
     packagePath: 'packages/qwik',
     distPath: 'packages/qwik/dist',
   },
-  '@qwikdev/city': {
+  '@qwik.dev/city': {
     packagePath: 'packages/qwik-city',
     distPath: 'packages/qwik-city/lib',
   },

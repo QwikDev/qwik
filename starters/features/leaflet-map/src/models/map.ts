@@ -1,4 +1,4 @@
-import { type Signal } from "@qwikdev/core";
+import { type Signal } from "@qwik.dev/core";
 import type { LocationsProps } from "./location";
 export interface MapProps {
   // default options

@@ -4,8 +4,8 @@
 
 /* eslint-disable no-console */
 
-import type { QwikManifest } from "@qwikdev/core/optimizer";
-import type { Render, RenderToStreamOptions } from "@qwikdev/core/server";
+import type { QwikManifest } from "@qwik.dev/core/optimizer";
+import type { Render, RenderToStreamOptions } from "@qwik.dev/core/server";
 import type { NextFunction, Request, Response } from "express";
 import express from "express";
 import {
@@ -110,7 +110,7 @@ async function buildApp(
   appName: string,
   enableCityServer: boolean,
 ) {
-  const optimizer = await import("@qwikdev/core/optimizer");
+  const optimizer = await import("@qwik.dev/core/optimizer");
   const appSrcDir = join(appDir, "src");
   const appDistDir = join(appDir, "dist");
   const appServerDir = join(appDir, "server");
@@ -139,7 +139,7 @@ async function buildApp(
       },
       load(id) {
         if (id.endsWith(qwikCityVirtualEntry)) {
-          return `import { createQwikCity } from '@qwikdev/city/middleware/node';
+          return `import { createQwikCity } from '@qwik.dev/city/middleware/node';
 import qwikCityPlan from '@qwik-city-plan';
 import render from '${escapeChars(resolve(appSrcDir, "entry.ssr"))}';
 const { router, notFound } = createQwikCity({
@@ -164,7 +164,7 @@ export {
         }
       },
     });
-    const qwikCityVite = await import("@qwikdev/city/vite");
+    const qwikCityVite = await import("@qwik.dev/city/vite");
 
     plugins.push(
       qwikCityVite.qwikCity({

@@ -6,13 +6,13 @@ expression: output
 ==INPUT==
 
 
-import { $, component$ } from '@qwikdev/core';
+import { $, component$ } from '@qwik.dev/core';
 export const sym1 = $((ctx) => console.log("1"));
 
 ============================= sym1_axurpxx5lak.tsx (ENTRY POINT)==
 
 export const sym1_aXUrPXX5Lak = (ctx)=>console.log("1");
-export { _hW } from "@qwikdev/core";
+export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"gCAEsB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
@@ -38,7 +38,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx ==
 
-import { qrl } from "@qwikdev/core";
+import { qrl } from "@qwik.dev/core";
 export const sym1 = /*#__PURE__*/ qrl(()=>import("./sym1_axurpxx5lak"), "sym1_aXUrPXX5Lak");
 
 

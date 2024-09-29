@@ -1,5 +1,5 @@
-import { _EMPTY_ARRAY, _isJSXNode as isJSXNode, type JSXNode } from '@qwikdev/core';
-import { isDev } from '@qwikdev/core/build';
+import { _EMPTY_ARRAY, _isJSXNode as isJSXNode, type JSXNode } from '@qwik.dev/core';
+import { isDev } from '@qwik.dev/core/build';
 import {
   ELEMENT_SEQ,
   NON_SERIALIZABLE_MARKER_PREFIX,

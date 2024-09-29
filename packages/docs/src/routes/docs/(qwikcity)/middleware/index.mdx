@@ -32,7 +32,7 @@ This example shows a simple `onRequest` middleware function that logs all reques
 
 File: `src/routes/layout.tsx`
 ```typescript
-import type { RequestHandler } from '@qwikdev/city';
+import type { RequestHandler } from '@qwik.dev/city';
  
 export const onRequest: RequestHandler = async ({next, url}) => {
   console.log('Before request', url);
@@ -79,8 +79,8 @@ You can think of component rendering as an implicit HTML endpoint. Therefore if 
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/component/index.tsx">
 ```tsx
-import { component$ } from '@qwikdev/core';
-import { type RequestHandler } from '@qwikdev/city';
+import { component$ } from '@qwik.dev/core';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onRequest: RequestHandler = async ({ redirect }) => {
   if (!isLoggedIn()) {
@@ -110,7 +110,7 @@ Use the `next()` function to execute the next middleware function in the chain. 
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/next/index.tsx">
 ```tsx /next()/
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 // Generic function `onRequest` is executed first
 export const onRequest: RequestHandler = async ({ next, sharedMap, json }) => {
@@ -141,7 +141,7 @@ In general, a normal (non-exception) return of a function will execute the next 
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/throw/index.tsx">
 ```tsx /next()/
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onRequest: RequestHandler = async ({ next, sharedMap, json }) => {
   const log: string[] = [];
@@ -175,12 +175,12 @@ Use `sharedMap` as a way to share data between middleware functions. The `shared
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/sharedMap/index.tsx">
 ```tsx
-import { component$ } from '@qwikdev/core';
+import { component$ } from '@qwik.dev/core';
 import {
   routeLoader$,
   type RequestHandler,
   type Cookie,
-} from '@qwikdev/city';
+} from '@qwik.dev/city';
 
 interface User {
   username: string;
@@ -237,7 +237,7 @@ Use `headers` to set response headers associated with the current request.
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/headers/index.tsx">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({ headers, json }) => {
   headers.set('X-SRF-TOKEN', Math.random().toString(36).replace('0.', ''));
@@ -254,7 +254,7 @@ Use `cookie` to set and retrieve cookie information for a request. Middleware ca
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/cookie/index.tsx">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({ cookie, json }) => {
   let count = cookie.get('Qwik.demo.count')?.number() || 0;
@@ -272,7 +272,7 @@ Returns current HTTP request method: `GET`, `POST`, `PATCH`, `PUT`, `DELETE`.
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/method/index.tsx">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onRequest: RequestHandler = async ({ method, json }) => {
   json(200, { method });
@@ -288,7 +288,7 @@ Returns current HTTP request URL. (Use `useLocation()` if you need the current U
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/url/index.tsx">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({ url, json }) => {
   json(200, { url: url.toString() });
@@ -307,7 +307,7 @@ Returns the current base pathname URL of where the application is mounted. Typic
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/basePathname/index.tsx">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({ basePathname, json }) => {
   json(200, { basePathname });
@@ -324,7 +324,7 @@ Retrieve the "params" of the URL. For example `params.myId` will allow you to re
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/params/[myId]/index.tsx" url="/src/routes/demo/qwikcity/middleware/params/some-id/">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({ params, json }) => {
   json(200, { params });
@@ -339,7 +339,7 @@ Use `query` to retrieve the URL query parameters. (This is a shorthand for `url.
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/query/index.tsx" url="/src/routes/demo/qwikcity/middleware/query/?someKey=someValue">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({ query, json }) => {
   const obj: Record<string, string> = {};
@@ -359,7 +359,7 @@ If the `Content-Type` header is not set, it will return `null`.
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/parseBody/index.tsx">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({ html }) => {
   html(
@@ -385,7 +385,7 @@ Convenience API for setting the cache header.
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/cacheControl/index.tsx">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({
   cacheControl,
@@ -406,7 +406,7 @@ Deployment platform (Azure, Bun, Cloudflare, Deno, Google Cloud Run, Netlify, No
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/platform/index.tsx">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({ platform, json }) => {
   json(200, Object.keys(platform));
@@ -421,7 +421,7 @@ Set or retrieve the current locale.
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/locale/index.tsx">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onRequest: RequestHandler = async ({ locale, request }) => {
   const acceptLanguage = request.headers.get('accept-language');
@@ -443,7 +443,7 @@ Set the status of the response independently of writing the response, useful for
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/status/index.tsx">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({ status, getWritableStream }) => {
   status(200);
@@ -462,7 +462,7 @@ Redirect to a new URL. Notice the importance of throwing to prevent other middle
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/redirect/index.tsx">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({ redirect, url }) => {
   throw redirect(
@@ -479,7 +479,7 @@ Set an error response.
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/error/index.tsx">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({ error }) => {
   throw error(500, 'ERROR: Demonstration of an error response.');
@@ -495,7 +495,7 @@ Send a text-based response. Creating a text endpoint is as simple as calling the
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/text/index.tsx">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({ text }) => {
   text(200, 'Text based response.');
@@ -511,7 +511,7 @@ Send an HTML response.
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/html/index.tsx">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({ html }) => {
   html(
@@ -535,7 +535,7 @@ Creating a JSON endpoint is as simple as calling the `json(status, object)` meth
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/json/index.tsx">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({ json }) => {
   json(200, { hello: 'world' });
@@ -549,7 +549,7 @@ Creating a raw endpoint is as simple as calling the `send(Response)` method. The
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/send/index.tsx">
 ```tsx
-import type { RequestHandler } from '@qwikdev/city';
+import type { RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({send}) => {
   const response = new Response('Hello World', {
@@ -569,7 +569,7 @@ Throw to stop the execution of the middleware functions.
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/exit/index.tsx">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({ exit }) => {
   throw exit();
@@ -583,7 +583,7 @@ Retrieve environmental property in a platform-independent way.
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/env/index.tsx">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({ env, json }) => {
   json(200, {
@@ -603,7 +603,7 @@ Set stream response.
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/getWritableStream/index.tsx">
 ```tsx
-import type { RequestHandler } from '@qwikdev/city';
+import type { RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async (requestEvent) => {
   const writableStream = requestEvent.getWritableStream();
@@ -632,7 +632,7 @@ Check to see if the header has been set.
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/headerSent/index.tsx">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({ headersSent, json }) => {
   if (!headersSent) {
@@ -654,7 +654,7 @@ Get the HTTP request object. Useful for getting hold of the request data such as
 
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/request/index.tsx">
 ```tsx
-import { type RequestHandler } from '@qwikdev/city';
+import { type RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler = async ({ json, request }) => {
   const obj: Record<string, string> = {};

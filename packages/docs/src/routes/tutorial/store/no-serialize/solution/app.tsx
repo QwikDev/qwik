@@ -1,4 +1,4 @@
-import { component$, noSerialize, type NoSerialize, useStore } from '@qwikdev/core';
+import { component$, noSerialize, type NoSerialize, useStore } from '@qwik.dev/core';
 
 interface AppStore {
   time: null | string;

@@ -1,3 +1,3 @@
-import { createContextId } from '@qwikdev/core';
+import { createContextId } from '@qwik.dev/core';
 
 export const SearchContext = createContextId<any>('docsearch');

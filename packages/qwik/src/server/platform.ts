@@ -1,5 +1,5 @@
-import { setPlatform } from '@qwikdev/core';
-import type { ResolvedManifest } from '@qwikdev/core/optimizer';
+import { setPlatform } from '@qwik.dev/core';
+import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import type { CorePlatformServer } from './qwik-types';
 import type { SerializeDocumentOptions } from './types';
 

@@ -1,4 +1,4 @@
-import { component$, useContext, useStylesScoped$, Slot, useSignal } from '@qwikdev/core';
+import { component$, useContext, useStylesScoped$, Slot, useSignal } from '@qwik.dev/core';
 import CSS from './index.css?inline';
 import { GlobalStore } from '../../context';
 import { EditIcon } from '../svgs/edit-icon';

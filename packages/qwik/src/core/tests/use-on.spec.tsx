@@ -11,8 +11,8 @@ import {
   useSignal,
   useTask$,
   useVisibleTask$,
-} from '@qwikdev/core';
-import { domRender, ssrRenderToDom } from '@qwikdev/core/testing';
+} from '@qwik.dev/core';
+import { domRender, ssrRenderToDom } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 

@@ -1,4 +1,4 @@
-import { $, component$, useStore } from "@qwikdev/core";
+import { $, component$, useStore } from "@qwik.dev/core";
 
 export const TwoListeners = component$(() => {
   const store1 = useStore({ count: 1 });

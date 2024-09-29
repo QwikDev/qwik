@@ -1,5 +1,5 @@
 import swRegister from '@qwik-city-sw-register-build';
-import type { QwikVitePlugin } from '@qwikdev/core/optimizer';
+import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import fs from 'node:fs';
 import { basename, extname, join, resolve } from 'node:path';
 import type { Plugin, PluginOption, Rollup, UserConfig } from 'vite';
@@ -111,7 +111,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
           server.middlewares.use(staticDistMiddleware(server));
         }
         // qwik city middleware injected BEFORE vite internal middlewares
-        // and BEFORE @qwikdev/core/optimizer/vite middlewares
+        // and BEFORE @qwik.dev/core/optimizer/vite middlewares
         // handles only known user defined routes
         server.middlewares.use(ssrDevMiddleware(ctx, server));
       };
@@ -163,7 +163,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
         const isSwRegister = id.endsWith(QWIK_CITY_SW_REGISTER);
 
         if (isSerializer) {
-          return `export {_deserialize, _serialize, _verifySerializable} from '@qwikdev/core'`;
+          return `export {_deserialize, _serialize, _verifySerializable} from '@qwik.dev/core'`;
         }
         if (isCityPlan || isSwRegister) {
           if (!ctx.isDevServer && ctx.isDirty) {
@@ -340,5 +340,5 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
 const QWIK_SERIALIZER = '@qwik-serializer';
 const QWIK_CITY_PLAN_ID = '@qwik-city-plan';
 const QWIK_CITY_ENTRIES_ID = '@qwik-city-entries';
-const QWIK_CITY = '@qwikdev/city';
+const QWIK_CITY = '@qwik.dev/city';
 const QWIK_CITY_SW_REGISTER = '@qwik-city-sw-register';

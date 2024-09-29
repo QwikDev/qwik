@@ -11,7 +11,7 @@ import {
   type QRL,
   type Signal,
   type JSXOutput,
-} from '@qwikdev/core';
+} from '@qwik.dev/core';
 import CSS from './portal-provider.css?inline';
 
 // Define public API for opening up Portals

@@ -1,4 +1,4 @@
-import { component$, useContext, useStore } from "@qwikdev/core";
+import { component$, useContext, useStore } from "@qwik.dev/core";
 import { TODOS } from "../../state/state";
 
 /**

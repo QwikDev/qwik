@@ -1,4 +1,4 @@
-import { routeLoader$ } from '@qwikdev/city';
+import { routeLoader$ } from '@qwik.dev/city';
 
 export const useProductDetails = routeLoader$(async (requestEvent) => {
   const res = await fetch(`https://.../products/\${requestEvent.params.productId}`);

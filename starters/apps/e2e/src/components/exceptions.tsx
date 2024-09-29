@@ -1,4 +1,4 @@
-import { component$, useTask$ } from "@qwikdev/core";
+import { component$, useTask$ } from "@qwik.dev/core";
 
 export const RenderExceptions = component$(() => {
   throw new Error("This is a render error");

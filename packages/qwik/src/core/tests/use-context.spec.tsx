@@ -16,15 +16,15 @@ import {
   useContextProvider,
   useSignal,
   type NoSerialize,
-} from '@qwikdev/core';
-import { renderToString } from '@qwikdev/core/server';
+} from '@qwik.dev/core';
+import { renderToString } from '@qwik.dev/core/server';
 import {
   createDocument,
   domRender,
   emulateExecutionOfQwikFuncs,
   ssrRenderToDom,
   trigger,
-} from '@qwikdev/core/testing';
+} from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import type { Signal } from '../signal/signal.public';
 

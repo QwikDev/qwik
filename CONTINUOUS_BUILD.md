@@ -4,8 +4,8 @@ This repo contains build artifacts that are generated as part of the continues b
 
 Currently supported artifacts:
 
-- [`@qwikdev/core`](https://github.com/QwikDev/qwik-build)
-- [`@qwikdev/city`](https://github.com/QwikDev/qwik-city-build)
+- [`@qwik.dev/core`](https://github.com/QwikDev/qwik-build)
+- [`@qwik.dev/city`](https://github.com/QwikDev/qwik-city-build)
 - [`@builder.io/qwik-labs`](https://github.com/QwikDev/qwik-labs-build)
 
 The build artifact is created if:
@@ -27,8 +27,8 @@ To install a specific build artifact change you `package.json` like so (not all 
 ```json
 {
   "dependencies": {
-    "@qwikdev/core": "github:QwikDev/qwik-build#SHA",
-    "@qwikdev/city": "github:QwikDev/qwik-city-build#SHA",
+    "@qwik.dev/core": "github:QwikDev/qwik-build#SHA",
+    "@qwik.dev/city": "github:QwikDev/qwik-city-build#SHA",
     "@builder.io/qwik-labs": "github:QwikDev/qwik-labs-build#SHA"
   }
 }
@@ -37,12 +37,12 @@ To install a specific build artifact change you `package.json` like so (not all 
 Where `#SHA` is one of the following:
 
 - `#SHA` - Install a specific build SHA. You can get the SHA from:
-  - [`@qwikdev/core`](https://github.com/QwikDev/qwik-build/commits/) commits
-  - [`@qwikdev/city`](https://github.com/QwikDev/qwik-city-build/commits/) commits
+  - [`@qwik.dev/core`](https://github.com/QwikDev/qwik-build/commits/) commits
+  - [`@qwik.dev/city`](https://github.com/QwikDev/qwik-city-build/commits/) commits
   - [`@builder.io/qwik-labs`](https://github.com/QwikDev/qwik-labs-build/commits/) commits
 - `#build/name` (or `#main`) - Install a specific `build/*` (or `#main`) branch:
-  - [`@qwikdev/core`](https://github.com/QwikDev/qwik-build/branches/) branches
-  - [`@qwikdev/city`](https://github.com/QwikDev/qwik-city-build/branches/) branches
+  - [`@qwik.dev/core`](https://github.com/QwikDev/qwik-build/branches/) branches
+  - [`@qwik.dev/city`](https://github.com/QwikDev/qwik-city-build/branches/) branches
   - [`@builder.io/qwik-labs`](https://github.com/QwikDev/qwik-labs-build/branches/) branches
     > NOTE: Package managers will treat any SHA in the lock file which is on the branch as valid, and so they will not auto upgrade to the latest. For this reason this is not recommended.
 

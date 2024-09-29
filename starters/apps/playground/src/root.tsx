@@ -2,9 +2,9 @@ import {
   QwikCityProvider,
   RouterOutlet,
   ServiceWorkerRegister,
-} from "@qwikdev/city";
-import { component$ } from "@qwikdev/core";
-import { isDev } from "@qwikdev/core/build";
+} from "@qwik.dev/city";
+import { component$ } from "@qwik.dev/core";
+import { isDev } from "@qwik.dev/core/build";
 import { RouterHead } from "./components/router-head/router-head";
 
 import "./global.css";

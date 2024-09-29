@@ -1,6 +1,6 @@
-import type { RequestHandler } from '@qwikdev/city';
-import { useLocation } from '@qwikdev/city';
-import { component$, Slot, useStore, useStyles$, useTask$ } from '@qwikdev/core';
+import type { RequestHandler } from '@qwik.dev/city';
+import { useLocation } from '@qwik.dev/city';
+import { component$, Slot, useStore, useStyles$, useTask$ } from '@qwik.dev/core';
 import tutorialSections, { type TutorialApp } from '@tutorial-data';
 import { Header } from '../../components/header/header';
 import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
@@ -124,7 +124,7 @@ export const ensureDefaultFiles = (appFiles: ReplModuleInput[]) => {
   const files: ReplModuleInput[] = JSON.parse(JSON.stringify(appFiles));
 
   const DEFAULT_ENTRY_SERVER = `
-import { renderToString, RenderOptions } from '@qwikdev/core/server';
+import { renderToString, RenderOptions } from '@qwik.dev/core/server';
 import { Root } from './root';
 
 export default function (opts: RenderOptions) {

@@ -1,5 +1,5 @@
-import { cloudRunAdapter } from "@qwikdev/city/adapters/cloud-run/vite";
-import { extendConfig } from "@qwikdev/city/vite";
+import { cloudRunAdapter } from "@qwik.dev/city/adapters/cloud-run/vite";
+import { extendConfig } from "@qwik.dev/city/vite";
 import baseConfig from "../../vite.config";
 
 export default extendConfig(baseConfig, () => {

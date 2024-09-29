@@ -1,6 +1,6 @@
 import { walkJSX } from '@builder.io/qwik/testing';
 import crypto from 'node:crypto';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { SsrNode } from '../../server/ssr-node';
 import { ssrCreateContainer } from '../../server/ssr-container';
 import { createDocument } from '../../testing/document';
@@ -497,18 +497,20 @@ describe('serializer v2', () => {
 
   describe('element nesting rules', () => {
     it('should throw when incorrectly nested elements', () => {
-      expect(() =>
-        withContainer(
-          (ssr) => {
-            ssr.openElement('body', []);
-            ssr.openElement('p', []);
-            ssr.openFragment([]);
-            ssr.openElement('b', []);
-            ssr.openElement('div', []);
-          },
-          { containerTag: 'html' }
-        )
-      ).toThrowError(
+      const consoleMock = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      withContainer(
+        (ssr) => {
+          ssr.openElement('body', []);
+          ssr.openElement('p', []);
+          ssr.openFragment([]);
+          ssr.openElement('b', []);
+          ssr.openElement('div', []);
+        },
+        { containerTag: 'html' }
+      );
+      expect(consoleMock).toHaveBeenCalledWith(
+        '%cQWIK WARN',
+        'background: #564CE0; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;',
         [
           `SsrError(tag): HTML rules do not allow '<div>' at this location.`,
           `  (The HTML parser will try to recover by auto-closing or inserting additional tags which will confuse Qwik when it resumes.)`,
@@ -523,13 +525,15 @@ describe('serializer v2', () => {
       );
     });
     it('should throw when adding content to empty elements', () => {
-      expect(() =>
-        withContainer((ssr) => {
-          ssr.openElement('img', []);
-          ssr.openFragment([]);
-          ssr.openElement('div', []);
-        })
-      ).toThrowError(
+      const consoleMock = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      withContainer((ssr) => {
+        ssr.openElement('img', []);
+        ssr.openFragment([]);
+        ssr.openElement('div', []);
+      });
+      expect(consoleMock).toHaveBeenCalledWith(
+        '%cQWIK WARN',
+        'background: #564CE0; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;',
         [
           `SsrError(tag): HTML rules do not allow '<div>' at this location.`,
           `  (The HTML parser will try to recover by auto-closing or inserting additional tags which will confuse Qwik when it resumes.)`,
@@ -556,7 +560,7 @@ function withContainer(
   ssrContainer.closeContainer();
   const html = ssrContainer.writer.toString();
   // console.log(html);
-  const container = getDomContainer(toDOM(html));
+  const container = getDomContainer(toDOM(html, opts.containerTag === 'html'));
   // console.log(JSON.stringify((container as any).rawStateData, null, 2));
   return container;
 }
@@ -610,10 +614,17 @@ function toHTML(jsx: JSXOutput): string {
   return html;
 }
 
-function toDOM(html: string): HTMLElement {
-  const document = createDocument();
-  document.body.innerHTML = html;
-  return document.body.firstElementChild! as HTMLElement;
+function toDOM(html: string, htmlContainer: boolean = false): HTMLElement {
+  if (htmlContainer) {
+    const document = createDocument({
+      html,
+    });
+    return document.body.firstElementChild! as HTMLElement;
+  } else {
+    const document = createDocument();
+    document.body.innerHTML = html;
+    return document.body.firstElementChild! as HTMLElement;
+  }
 }
 
 function toVNode(containerElement: HTMLElement): VNode {

@@ -19,7 +19,7 @@ import { _fnSignal, _wrapProp } from '../internal';
 import { $, component$, getDomContainer, type ClientContainer } from '@builder.io/qwik';
 import { createResourceReturn } from '../use/use-resource';
 import { StoreFlags, createStore } from '../signal/store';
-import type { Signal } from '../signal/signal';
+import { EffectData, type Signal } from '../signal/signal';
 import type { SSRContainer } from '../ssr/ssr-types';
 import { ssrCreateContainer } from '../../server/ssr-container';
 
@@ -435,6 +435,18 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.FormData));
     it.todo(title(TypeIds.JSXNode));
     it.todo(title(TypeIds.PropsProxy));
+    it(title(TypeIds.EffectData), async () => {
+      expect(await dump(new EffectData({ hi: true }))).toMatchInlineSnapshot(`
+        "
+        0 EffectData [
+          Object [
+            String "hi"
+            Constant true
+          ]
+        ]
+        (22 chars)"
+      `);
+    });
   });
 
   const deserialize = (data: unknown[]) => {
@@ -618,7 +630,15 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.FormData));
     it.todo(title(TypeIds.JSXNode));
     it.todo(title(TypeIds.PropsProxy));
+    it(title(TypeIds.EffectData), async () => {
+      const objs = await serialize(new EffectData({ hi: true }));
+      const effect = deserialize(objs)[0] as EffectData;
+      expect(effect).toBeInstanceOf(EffectData);
+      expect(effect.data).toEqual({ hi: true });
+    });
+  });
 
+  describe('special cases', () => {
     it('EMPTY_ARRAY vs []', async () => {
       const a: any[] = [];
       const objs = await serialize(EMPTY_ARRAY, a);

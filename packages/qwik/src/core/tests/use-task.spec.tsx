@@ -13,8 +13,9 @@ import {
   type Signal as SignalType,
 } from '@builder.io/qwik';
 import { WrappedSignal } from '../signal/signal';
+import { dumpState } from '../shared/shared-serialization';
 
-const debug = false; //true;
+const debug = !false; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
@@ -155,14 +156,26 @@ describe.each([
     it.only('should rerun on track', async () => {
       const Counter = component$(() => {
         const count = useSignal(10);
+        console.log(count);
         const double = useSignal(0);
         useTask$(({ track }) => {
           double.value = 2 * track(() => count.value);
+          console.log(count);
         });
-        return <button onClick$={() => count.value++}>{double.value}</button>;
+        return (
+          <button
+            onClick$={() => {
+              count.value++;
+              console.log(count);
+            }}
+          >
+            {double.value}
+          </button>
+        );
       });
 
-      const { vNode, document } = await render(<Counter />, { debug });
+      const { vNode, document, container } = await render(<Counter />, { debug });
+      console.log(dumpState(container.$rawStateData$, true));
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -171,6 +184,7 @@ describe.each([
         </Component>
       );
       await trigger(document.body, 'button', 'click');
+      console.log(dumpState(container.$rawStateData$, true));
       expect(vNode).toMatchVDOM(
         <Component>
           <button>

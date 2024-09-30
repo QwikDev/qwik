@@ -31,7 +31,7 @@ import { ELEMENT_ID } from './utils/markers';
 import { isPromise } from './utils/promises';
 import { type ValueOrPromise } from './utils/types';
 import { type DomContainer } from '../client/dom-container';
-import { vnode_isVNode, vnode_locate } from '../client/vnode';
+import { vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
 import {
   ComputedSignal,
   WrappedSignal,
@@ -310,7 +310,7 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
       const signal = target as Signal<unknown>;
       const d = data as [unknown, ...any[]];
       signal.$untrackedValue$ = d[0];
-      signal.$effects$ = d.slice(1);
+      signal.$effects$ = d[1];
       break;
     }
     case TypeIds.WrappedSignal: {
@@ -320,7 +320,7 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
       signal.$args$ = d[1];
       signal.$effectDependencies$ = d[2];
       signal.$untrackedValue$ = d[3];
-      signal.$effects$ = d.slice(4);
+      signal.$effects$ = d[4];
       break;
     }
     case TypeIds.ComputedSignal: {
@@ -329,7 +329,7 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
       computed.$computeQrl$ = d[0];
       computed.$untrackedValue$ = d[1];
       computed.$invalid$ = d[2];
-      computed.$effects$ = d.slice(3);
+      computed.$effects$ = d[3];
       break;
     }
     case TypeIds.Error: {
@@ -405,6 +405,11 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
       propsProxy[_VAR_PROPS] = (data as any)[0];
       propsProxy[_CONST_PROPS] = (data as any)[1];
       break;
+    case TypeIds.EffectData: {
+      const effectData = target as EffectData;
+      effectData.data = (data as any[])[0];
+      break;
+    }
     default:
       return throwErrorAndStop('Not implemented');
   }
@@ -527,6 +532,8 @@ const allocate = <T>(container: DeserializeContainer, typeId: number, value: unk
           ? vnode_locate((container as any).rootVNode, value as string)
           : undefined
         : container.element?.ownerDocument;
+    case TypeIds.EffectData:
+      return new EffectData(null!);
 
     default:
       return throwErrorAndStop('unknown allocate type: ' + typeId);
@@ -965,6 +972,8 @@ function serialize(serializationContext: SerializationContext): void {
       const varProps = value[_VAR_PROPS];
       const constProps = value[_CONST_PROPS];
       output(TypeIds.PropsProxy, [varProps, constProps]);
+    } else if (value instanceof EffectData) {
+      output(TypeIds.EffectData, [value.data]);
     } else if (isStore(value)) {
       if (isResource(value)) {
         // let render know about the resource
@@ -1014,17 +1023,17 @@ function serialize(serializationContext: SerializationContext): void {
           // `.untrackedValue` implicitly calls `$computeIfNeeded$`, which is what we want in case
           // the signal is not computed yet.
           value.untrackedValue,
-          ...serializeEffectSubs(value.$effects$),
+          value.$effects$,
         ]);
       } else if (value instanceof ComputedSignal) {
         output(TypeIds.ComputedSignal, [
           value.$computeQrl$,
           value.$untrackedValue$,
           value.$invalid$,
-          ...serializeEffectSubs(value.$effects$),
+          value.$effects$,
         ]);
       } else {
-        output(TypeIds.Signal, [value.$untrackedValue$, ...serializeEffectSubs(value.$effects$)]);
+        output(TypeIds.Signal, [value.$untrackedValue$, value.$effects$]);
       }
     } else if (value instanceof URL) {
       output(TypeIds.URL, value.href);
@@ -1083,9 +1092,10 @@ function serialize(serializationContext: SerializationContext): void {
         value.$index$,
         value.$el$,
         value.$effectDependencies$,
+        value.$state$,
       ];
-      if (value.$state$) {
-        out.push(value.$state$);
+      while (out[out.length - 1] == null) {
+        out.pop();
       }
       output(TypeIds.Task, out);
     } else if (isPromise(value)) {
@@ -1506,6 +1516,7 @@ export const enum TypeIds {
   FormData,
   JSXNode,
   PropsProxy,
+  EffectData,
 }
 export const _typeIdNames = [
   'RootRef',
@@ -1536,6 +1547,7 @@ export const _typeIdNames = [
   'FormData',
   'JSXNode',
   'PropsProxy',
+  'EffectData',
 ];
 
 export const enum Constants {
@@ -1554,12 +1566,40 @@ export const enum Constants {
   NegativeInfinity,
 }
 
-export const dumpState = (state: any[], prefix = '') => {
+const circularProofJson = (obj: unknown, indent?: string | number) => {
+  const seen = new WeakSet();
+  return JSON.stringify(
+    obj,
+    (key, value) => {
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) {
+          return `[Circular ${value.constructor.name}]`;
+        }
+        seen.add(value);
+      }
+      return value;
+    },
+    indent
+  );
+};
+const printRaw = (value: any, prefix: string) => {
+  let result = vnode_isVNode(value)
+    ? vnode_toString.call(value, 1, '', true).replaceAll(/\n.*/gm, '')
+    : typeof value === 'function'
+      ? String(value)
+      : circularProofJson(value, 2);
+  if (result.length > 500) {
+    result = result.slice(0, 500) + '"...';
+  }
+  result = result.replace(/\n/g, '\n' + prefix);
+  return result.includes('\n') ? (result = `\n${prefix}${result}`) : result;
+};
+let hasRaw = false;
+export const dumpState = (state: unknown[], color = false, prefix = '') => {
+  const RED = color ? '\x1b[31m' : '';
+  const RESET = color ? '\x1b[0m' : '';
   const isRoot = prefix === '';
   const out: any[] = [];
-  if (isRoot) {
-    out.push();
-  }
   for (let i = 0; i < state.length; i++) {
     if (i > 2 * 20) {
       out.push('...');
@@ -1568,26 +1608,34 @@ export const dumpState = (state: any[], prefix = '') => {
     const key = state[i];
     let value = state[++i];
     if (key === undefined) {
-      out.push(`[raw] ${JSON.stringify(value)}`);
+      hasRaw = true;
+      out.push(
+        `${RED}[raw${typeof value === 'object' && value ? ` ${value.constructor.name}` : ''}]${RESET} ${printRaw(value, `${prefix}  `)}`
+      );
     } else {
       if (key === TypeIds.Constant) {
-        value = constantToName(value);
+        value = constantToName(value as Constants);
       } else if (typeof value === 'string') {
         value = JSON.stringify(value);
-        if (value.length > 120) {
-          value = value.slice(0, 120) + '"...';
+        if ((value as string).length > 120) {
+          value = (value as string).slice(0, 120) + '"...';
         }
       } else if (Array.isArray(value)) {
-        value = value.length ? `[\n${dumpState(value, `${prefix}  `)}\n${prefix}]` : '[]';
+        value = value.length ? `[\n${dumpState(value, color, `${prefix}  `)}\n${prefix}]` : '[]';
       }
-      out.push(`${codeToName(key)} ${value}`);
+      out.push(`${RED}${typeIdToName(key as TypeIds)}${RESET} ${value}`);
     }
   }
   const result = out.map((v, i) => `${prefix}${isRoot ? `${i} ` : ''}${v}`).join('\n');
-  return isRoot ? `\n${result}\n(${JSON.stringify(state).length} chars)` : result;
+  if (isRoot) {
+    const count = hasRaw ? '' : `(${JSON.stringify(state).length} chars)`;
+    hasRaw = false;
+    return `\n${result}\n${count}`;
+  }
+  return result;
 };
 
-export const codeToName = (code: TypeIds) => {
+export const typeIdToName = (code: TypeIds) => {
   return _typeIdNames[code] || `Unknown(${code})`;
 };
 

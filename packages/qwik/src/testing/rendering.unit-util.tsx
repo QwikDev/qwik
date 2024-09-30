@@ -35,7 +35,7 @@ import {
   vnode_locate,
   vnode_toString,
 } from '../core/client/vnode';
-import { codeToName, type TypeIds } from '../core/shared/shared-serialization';
+import { dumpState, typeIdToName, type TypeIds } from '../core/shared/shared-serialization';
 import './vdom-diff.unit-util';
 import { renderToString } from '../server/ssr-render';
 import { ChoreType } from '../core/shared/scheduler';
@@ -133,14 +133,9 @@ export async function ssrRenderToDom(
     console.log('--------------------------------------------------------');
     console.log(vnode_toString.call(container.rootVNode, Number.MAX_SAFE_INTEGER, '', true));
     console.log('------------------- SERIALIZED STATE -------------------');
-    const state = container.$rawStateData$;
-    for (let i = 0; i < state.length; i += 2) {
-      console.log(
-        ('    ' + i / 2 + ':').substring(-4),
-        qwikStateTypeStringify(state[i] as TypeIds | undefined),
-        qwikStateValueStringify(state[i + 1])
-      );
-    }
+    // We use the original state so we don't get deserialized data
+    const origState = container.element.querySelector('script[type="qwik/state"]')?.textContent;
+    console.log(origState ? dumpState(JSON.parse(origState), true) : 'No state found', '\n');
     const funcs = container.$qFuncs$;
     console.log('------------------- SERIALIZED QFUNCS -------------------');
     for (let i = 0; i < funcs.length; i++) {
@@ -197,24 +192,6 @@ function getHostVNode(vElement: _VNode | null) {
     vElement = vnode_getParent(vElement);
   }
   return vElement;
-}
-
-function qwikStateTypeStringify(type: TypeIds | undefined): string {
-  const RED = '\x1b[31m';
-  const RESET = '\x1b[0m';
-
-  return RED + (type ? codeToName(type) : '[Deserialized]') + ':' + RESET;
-}
-
-function qwikStateValueStringify(value: any): string {
-  let stringifiedState = '';
-
-  if (vnode_isVNode(value)) {
-    stringifiedState += vnode_toString.call(value, 1, '', true).replaceAll(/\n.*/gm, '');
-  } else {
-    stringifiedState += value;
-  }
-  return stringifiedState;
 }
 
 export const ErrorProvider = Object.assign(

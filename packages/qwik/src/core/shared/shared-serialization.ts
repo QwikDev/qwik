@@ -2,8 +2,38 @@
 
 import { isDev } from '../../build/index.dev';
 import type { StreamWriter } from '../../server/types';
+import { type DomContainer } from '../client/dom-container';
+import { vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
+import {
+  ComputedSignal,
+  EffectData,
+  EffectSubscriptionsProp,
+  NEEDS_COMPUTATION,
+  Signal,
+  WrappedSignal,
+  type EffectSubscriptions,
+} from '../signal/signal';
+import type { Subscriber } from '../signal/signal-subscriber';
+import {
+  STORE_ARRAY_PROP,
+  createStore,
+  getStoreHandler,
+  getStoreTarget,
+  isStore,
+} from '../signal/store';
+import type { SymbolToChunkResolver } from '../ssr/ssr-types';
+import { type ResourceReturnInternal } from '../use/use-resource';
+import { Task, isTask } from '../use/use-task';
 import { SERIALIZABLE_STATE, componentQrl, isQwikComponent } from './component.public';
 import { assertDefined, assertTrue } from './error/assert';
+import {
+  Fragment,
+  JSXNodeImpl,
+  createPropsProxy,
+  isJSXNode,
+  isPropsProxy,
+} from './jsx/jsx-runtime';
+import { Slot } from './jsx/slot.public';
 import { getPlatform } from './platform/platform';
 import {
   createQRL,
@@ -13,47 +43,15 @@ import {
   type SyncQRLInternal,
 } from './qrl/qrl-class';
 import type { QRL } from './qrl/qrl.public';
-import {
-  Fragment,
-  JSXNodeImpl,
-  createPropsProxy,
-  isJSXNode,
-  isPropsProxy,
-} from './jsx/jsx-runtime';
-import { Slot } from './jsx/slot.public';
-import { fastSkipSerialize } from './utils/serialize-utils';
+import type { DeserializeContainer, HostElement } from './types';
 import { _CONST_PROPS, _VAR_PROPS } from './utils/constants';
-import { Task, isTask } from '../use/use-task';
-import { createResourceReturn, type ResourceReturnInternal } from '../use/use-resource';
 import { isElement, isNode } from './utils/element';
+import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
 import { throwErrorAndStop } from './utils/log';
 import { ELEMENT_ID } from './utils/markers';
 import { isPromise } from './utils/promises';
+import { fastSkipSerialize } from './utils/serialize-utils';
 import { type ValueOrPromise } from './utils/types';
-import { type DomContainer } from '../client/dom-container';
-import { vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
-import {
-  ComputedSignal,
-  WrappedSignal,
-  EffectSubscriptionsProp,
-  Signal,
-  type EffectSubscriptions,
-  EffectData,
-  NEEDS_COMPUTATION,
-} from '../signal/signal';
-import {
-  STORE_ARRAY_PROP,
-  createStore,
-  getStoreHandler,
-  getStoreTarget,
-  isStore,
-  unwrapStore,
-  type StoreFlags,
-} from '../signal/store';
-import type { Subscriber } from '../signal/signal-subscriber';
-import type { SymbolToChunkResolver } from '../ssr/ssr-types';
-import type { DeserializeContainer, HostElement } from './types';
-import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
 
 const deserializedProxyMap = new WeakMap<object, unknown[]>();
 
@@ -296,13 +294,17 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
     case TypeIds.Component:
       target[SERIALIZABLE_STATE][0] = (data as any[])[0];
       break;
-    case TypeIds.Store: {
-      const [value, flags, ...effects] = data as unknown[];
+    case TypeIds.Store:
+    case TypeIds.StoreArray: {
+      const [value, flags, effects, storeEffect] = data as unknown[];
       const handler = getStoreHandler(target)!;
       handler.$flags$ = flags as number;
       // First assign so it sets up the deep stores
-      Object.assign(target, value as object);
+      Object.assign(getStoreTarget(target), value as object);
       // Afterwards restore the effects so they don't get triggered
+      if (storeEffect) {
+        (effects as any)[STORE_ARRAY_PROP] = storeEffect;
+      }
       handler.$effects$ = effects as any;
       break;
     }
@@ -310,7 +312,7 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
       const signal = target as Signal<unknown>;
       const d = data as [unknown, ...any[]];
       signal.$untrackedValue$ = d[0];
-      signal.$effects$ = d[1];
+      signal.$effects$ = d.slice(1);
       break;
     }
     case TypeIds.WrappedSignal: {
@@ -320,7 +322,7 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
       signal.$args$ = d[1];
       signal.$effectDependencies$ = d[2];
       signal.$untrackedValue$ = d[3];
-      signal.$effects$ = d[4];
+      signal.$effects$ = d.slice(4);
       break;
     }
     case TypeIds.ComputedSignal: {
@@ -329,7 +331,7 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
       computed.$computeQrl$ = d[0];
       computed.$untrackedValue$ = d[1];
       computed.$invalid$ = d[2];
-      computed.$effects$ = d[3];
+      computed.$effects$ = d.slice(3);
       break;
     }
     case TypeIds.Error: {
@@ -494,6 +496,8 @@ const allocate = <T>(container: DeserializeContainer, typeId: number, value: unk
       return new ComputedSignal(container as any, null!);
     case TypeIds.Store:
       return createStore(container as any, {}, 0);
+    case TypeIds.StoreArray:
+      return createStore(container as any, [], 0);
     case TypeIds.URLSearchParams:
       return new URLSearchParams(value as string);
     case TypeIds.FormData:
@@ -745,9 +749,9 @@ export const createSerializationContext = (
       ) {
         return;
       }
-      const unwrapObj = unwrapStore(obj);
-      if (unwrapObj !== obj) {
-        discoveredValues.push(unwrapObj);
+      if (isStore(obj)) {
+        discoveredValues.push(getStoreTarget(obj));
+        discoveredValues.push(getStoreHandler(obj)!.$effects$);
       } else if (obj instanceof Set) {
         discoveredValues.push(...obj.values());
       } else if (obj instanceof Map) {
@@ -996,17 +1000,15 @@ function serialize(serializationContext: SerializationContext): void {
         // storeValue, flags, ...effects
       }
       const storeHandler = getStoreHandler(value)!;
-      const store: any[] = [unwrapStore(value), storeHandler.$flags$];
+      const store = getStoreTarget(value);
+      const flags = storeHandler.$flags$;
       const effects = storeHandler.$effects$;
-      if (effects) {
-        for (const propName in effects) {
-          store.push(propName, ...serializeEffectSubs(effects[propName]));
-        }
-        if (effects[STORE_ARRAY_PROP]) {
-          store.push(undefined, ...serializeEffectSubs(effects[STORE_ARRAY_PROP]));
-        }
+      const storeEffect = effects?.[STORE_ARRAY_PROP];
+      const out = [store, flags, effects, storeEffect];
+      while (out[out.length - 1] == null) {
+        out.pop();
       }
-      output(TypeIds.Store, store);
+      output(Array.isArray(store) ? TypeIds.StoreArray : TypeIds.Store, out);
     } else if (isObjectLiteral(value)) {
       if (Array.isArray(value)) {
         output(TypeIds.Array, value);
@@ -1030,17 +1032,17 @@ function serialize(serializationContext: SerializationContext): void {
           // `.untrackedValue` implicitly calls `$computeIfNeeded$`, which is what we want in case
           // the signal is not computed yet.
           value.untrackedValue,
-          value.$effects$,
+          ...(value.$effects$ || []),
         ]);
       } else if (value instanceof ComputedSignal) {
         output(TypeIds.ComputedSignal, [
           value.$computeQrl$,
           value.$untrackedValue$,
           value.$invalid$,
-          value.$effects$,
+          ...(value.$effects$ || []),
         ]);
       } else {
-        output(TypeIds.Signal, [value.$untrackedValue$, value.$effects$]);
+        output(TypeIds.Signal, [value.$untrackedValue$, ...(value.$effects$ || [])]);
       }
     } else if (value instanceof URL) {
       output(TypeIds.URL, value.href);
@@ -1446,7 +1448,7 @@ export const canSerialize = (value: any): boolean => {
   } else if (typeof value === 'object') {
     const proto = Object.getPrototypeOf(value);
     if (isStore(value)) {
-      value = unwrapStore(value);
+      value = getStoreTarget(value);
     }
     if (proto == Object.prototype) {
       for (const key in value) {
@@ -1527,6 +1529,7 @@ export const enum TypeIds {
   WrappedSignal,
   ComputedSignal,
   Store,
+  StoreArray,
   FormData,
   JSXNode,
   PropsProxy,
@@ -1558,6 +1561,7 @@ export const _typeIdNames = [
   'WrappedSignal',
   'ComputedSignal',
   'Store',
+  'StoreArray',
   'FormData',
   'JSXNode',
   'PropsProxy',

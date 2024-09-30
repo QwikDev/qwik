@@ -53,7 +53,7 @@ const Issue3742_component_svSy0PlWTAw = (props)=>{
 export const Issue3742 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(Issue3742_component_svSy0PlWTAw, "Issue3742_component_svSy0PlWTAw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,SAAS,QAAQ,mBAAmB;2DASrC;;WAAM,QAAQ,KAAK;;wCAPH;IACnC,MAAM,UAAU,UAAU;IAC1B,qBACC,WAAC;QACD,KAAK,sBAAE,AAAC,IAJ4B,eAAc,OAI3B,oBAJ+B,QAIL,CAAC,MAAM,EAAE,GAAQ,KAAK,CAAC,CAAC,GAAG,CAAC,IAAI,EAAE,GAAQ,KAAK,CAAC,CAAC;;;;;QACjG;sBAED,WAAC;YAAO,QAAQ;;;WAAyB;;AAK1C;AAZD,OAAO,MAAM,0BAAY,2GAYrB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,SAAS,QAAQ,iBAAiB;2DASnC;;WAAM,QAAQ,KAAK;;wCAPH;IACnC,MAAM,UAAU,UAAU;IAC1B,qBACC,WAAC;QACD,KAAK,sBAAE,AAAC,IAJ4B,eAAc,OAI3B,oBAJ+B,QAIL,CAAC,MAAM,EAAE,GAAQ,KAAK,CAAC,CAAC,GAAG,CAAC,IAAI,EAAE,GAAQ,KAAK,CAAC,CAAC;;;;;QACjG;sBAED,WAAC;YAAO,QAAQ;;;WAAyB;;AAK1C;AAZD,OAAO,MAAM,0BAAY,2GAYrB\"}")
 == DIAGNOSTICS ==
 
 []

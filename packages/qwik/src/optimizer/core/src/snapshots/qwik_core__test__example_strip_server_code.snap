@@ -77,8 +77,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useTask$",
   "captures": true,
   "loc": [
-    373,
-    475
+    369,
+    471
   ]
 }
 */
@@ -114,8 +114,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    548,
-    597
+    544,
+    593
   ]
 }
 */
@@ -142,8 +142,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "client$",
   "captures": false,
   "loc": [
-    620,
-    674
+    616,
+    670
   ]
 }
 */
@@ -190,8 +190,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    289,
-    845
+    285,
+    841
   ]
 }
 */
@@ -216,8 +216,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    785,
-    812
+    781,
+    808
   ]
 }
 */
@@ -245,8 +245,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useTask$",
   "captures": false,
   "loc": [
-    734,
-    754
+    730,
+    750
   ]
 }
 */

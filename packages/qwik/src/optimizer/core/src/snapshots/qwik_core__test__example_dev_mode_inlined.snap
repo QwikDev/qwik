@@ -26,8 +26,8 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
         class: "stuff",
         onClick$: /*#__PURE__*/ inlinedQrlDEV(()=>console.log('warn'), "App_component_Cmp_p_onClick_vuXzfUTkpto", {
             file: "/user/qwik/src/test.tsx",
-            lo: 146,
-            hi: 171,
+            lo: 144,
+            hi: 169,
             displayName: "App_component_Cmp_p_onClick"
         })
     }, "Hello Qwik", 3, null, {
@@ -41,8 +41,8 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
     });
 }, "App_component_ckEPmXZlub0", {
     file: "/user/qwik/src/test.tsx",
-    lo: 90,
-    hi: 202,
+    lo: 88,
+    hi: 200,
     displayName: "App_component"
 }));
 

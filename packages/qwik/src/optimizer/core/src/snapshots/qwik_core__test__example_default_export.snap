@@ -47,8 +47,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    148,
-    183
+    146,
+    181
   ]
 }
 */
@@ -79,8 +79,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    113,
-    200
+    111,
+    198
   ]
 }
 */

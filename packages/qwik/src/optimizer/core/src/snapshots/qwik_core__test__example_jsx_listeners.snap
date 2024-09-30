@@ -59,8 +59,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "host:onDocumentScroll$",
   "captures": false,
   "loc": [
-    592,
-    633
+    590,
+    631
   ]
 }
 */
@@ -98,8 +98,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    83,
-    847
+    81,
+    845
   ]
 }
 */
@@ -124,8 +124,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "host:onClick$",
   "captures": false,
   "loc": [
-    530,
-    562
+    528,
+    560
   ]
 }
 */
@@ -170,8 +170,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    102,
-    843
+    100,
+    841
   ]
 }
 */
@@ -196,8 +196,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "host:onDocumentScroll$",
   "captures": false,
   "loc": [
-    663,
-    702
+    661,
+    700
   ]
 }
 */
@@ -222,8 +222,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "custom$",
   "captures": false,
   "loc": [
-    804,
-    829
+    802,
+    827
   ]
 }
 */
@@ -248,8 +248,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onDocument-scroLL$",
   "captures": false,
   "loc": [
-    472,
-    508
+    470,
+    506
   ]
 }
 */
@@ -274,8 +274,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onDocumentScroll$",
   "captures": false,
   "loc": [
-    305,
-    338
+    303,
+    336
   ]
 }
 */
@@ -300,8 +300,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "on-cLick$",
   "captures": false,
   "loc": [
-    356,
-    384
+    354,
+    382
   ]
 }
 */
@@ -326,8 +326,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    193,
-    220
+    191,
+    218
   ]
 }
 */
@@ -352,8 +352,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onDocumentScroll$",
   "captures": false,
   "loc": [
-    245,
-    280
+    243,
+    278
   ]
 }
 */
@@ -379,8 +379,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    130,
-    157
+    128,
+    155
   ]
 }
 */
@@ -405,8 +405,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onDocument-sCroll$",
   "captures": false,
   "loc": [
-    410,
-    446
+    408,
+    444
   ]
 }
 */

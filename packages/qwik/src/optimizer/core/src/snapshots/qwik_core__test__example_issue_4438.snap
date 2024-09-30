@@ -37,7 +37,7 @@ const App_component_ckEPmXZlub0 = ()=>{
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AACA,SAAqB,SAAS,QAAQ,mBAAmB;kCAE3B;IAC7B,MAAM,SAAS,UAAU;IACzB,qBACC;sBACC,WAAC;YAAI,WAAS,OAAO,KAAK,GAAG,SAAS,CAAC,QAAQ,CAAC,GAAG;;sBACnD,WAAC,mBAAK,OAAO,KAAK,GAAG,SAAS,CAAC,QAAQ,CAAC,GAAG,SAAS,CAAC,MAAM,CAAC;;AAG/D;AARA,OAAO,MAAM,oBAAM,+FAQhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AACA,SAAqB,SAAS,QAAQ,iBAAiB;kCAEzB;IAC7B,MAAM,SAAS,UAAU;IACzB,qBACC;sBACC,WAAC;YAAI,WAAS,OAAO,KAAK,GAAG,SAAS,CAAC,QAAQ,CAAC,GAAG;;sBACnD,WAAC,mBAAK,OAAO,KAAK,GAAG,SAAS,CAAC,QAAQ,CAAC,GAAG,SAAS,CAAC,MAAM,CAAC;;AAG/D;AARA,OAAO,MAAM,oBAAM,+FAQhB\"}")
 == DIAGNOSTICS ==
 
 []

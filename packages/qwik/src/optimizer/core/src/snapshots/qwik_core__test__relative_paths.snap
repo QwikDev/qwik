@@ -28,8 +28,8 @@ Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoo
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    574,
-    655
+    570,
+    651
   ]
 }
 */
@@ -71,8 +71,8 @@ Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoo
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    303,
-    776
+    299,
+    772
   ]
 }
 */
@@ -89,7 +89,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./ap
 export { useData as _auto_useData };
 
 
-Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";AACA,SAAS,YAAY,EAAc,QAAQ,QAAyB,mBAAmB;AAIvF,MAAM,UAAU;IACf,OAAO,SAAS;QACf,OAAO;IACR;AACD;AAEA,OAAO,MAAM,MAAM,WAAW,GAAG,2GAuBA\"}")
+Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";AACA,SAAS,YAAY,EAAc,QAAQ,QAAyB,iBAAiB;AAIrF,MAAM,UAAU;IACf,OAAO,SAAS;QACf,OAAO;IACR;AACD;AAEA,OAAO,MAAM,MAAM,WAAW,GAAG,2GAuBA\"}")
 ============================= components/local_component_jj0v28bs0p8.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
@@ -115,8 +115,8 @@ Some("{\"version\":3,\"sources\":[\"src/thing/components/main.tsx\"],\"sourceRoo
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    120,
-    163
+    118,
+    161
   ]
 }
 */

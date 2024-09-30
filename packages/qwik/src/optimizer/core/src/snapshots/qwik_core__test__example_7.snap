@@ -46,8 +46,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    86,
-    181
+    84,
+    179
   ]
 }
 */
@@ -84,8 +84,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    208,
-    243
+    206,
+    241
   ]
 }
 */
@@ -111,8 +111,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    145,
-    170
+    143,
+    168
   ]
 }
 */

@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3787
+assertion_line: 3780
 expression: output
 ---
 ==INPUT==
@@ -65,8 +65,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    259,
-    476
+    257,
+    474
   ]
 }
 */
@@ -95,8 +95,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    420,
-    439
+    418,
+    437
   ]
 }
 */

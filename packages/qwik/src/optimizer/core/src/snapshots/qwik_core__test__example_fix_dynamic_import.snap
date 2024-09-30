@@ -49,8 +49,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    175,
-    258
+    173,
+    256
   ]
 }
 */

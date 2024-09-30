@@ -62,8 +62,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useBrowserVisibleTask$",
   "captures": true,
   "loc": [
-    226,
-    346
+    224,
+    344
   ]
 }
 */
@@ -110,8 +110,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    128,
-    397
+    126,
+    395
   ]
 }
 */

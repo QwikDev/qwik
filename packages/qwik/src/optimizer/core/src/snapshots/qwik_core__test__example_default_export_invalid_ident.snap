@@ -49,8 +49,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    76,
-    154
+    74,
+    152
   ]
 }
 */
@@ -75,8 +75,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    111,
-    137
+    109,
+    135
   ]
 }
 */

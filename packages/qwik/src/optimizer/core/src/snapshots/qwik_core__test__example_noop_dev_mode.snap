@@ -36,8 +36,8 @@ import { componentQrl } from "@qwik.dev/core";
 import { qrlDEV } from "@qwik.dev/core";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0", {
     file: "/user/qwik/src/test.tsx",
-    lo: 107,
-    hi: 455,
+    lo: 105,
+    hi: 453,
     displayName: "App_component"
 }));
 
@@ -109,8 +109,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    107,
-    455
+    105,
+    453
   ]
 }
 */

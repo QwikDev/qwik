@@ -43,8 +43,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    92,
-    163
+    90,
+    161
   ]
 }
 */
@@ -73,8 +73,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    199,
-    247
+    197,
+    245
   ]
 }
 */
@@ -86,7 +86,7 @@ export const renderHeader = /*#__PURE__*/ qrl(()=>import("./renderheader_zbbhwn4
 const renderHeader = component(/*#__PURE__*/ qrl(()=>import("./renderheader_component_u6kkv07sbpq"), "renderHeader_component_U6Kkv07sbpQ"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AACA,SAAY,SAAS,QAAkB,mBAAmB;AAE1D,OAAO,MAAM,uGAIV;AACH,MAAM,eAAe\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AACA,SAAY,SAAS,QAAkB,iBAAiB;AAExD,OAAO,MAAM,uGAIV;AACH,MAAM,eAAe\"}")
 ============================= renderheader_div_onclick_fv2uzal99u4.tsx (ENTRY POINT)==
 
 export const renderHeader_div_onClick_fV2uzAL99u4 = (ctx)=>console.log(ctx);
@@ -109,8 +109,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    128,
-    153
+    126,
+    151
   ]
 }
 */

@@ -56,8 +56,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    83,
-    223
+    81,
+    221
   ]
 }
 */
@@ -96,8 +96,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    256,
-    337
+    254,
+    335
   ]
 }
 */
@@ -130,8 +130,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": true,
   "loc": [
-    124,
-    219
+    122,
+    217
   ]
 }
 */
@@ -163,8 +163,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": true,
   "loc": [
-    279,
-    333
+    277,
+    331
   ]
 }
 */

@@ -22,8 +22,8 @@ import { componentQrl } from "@qwik.dev/core";
 import { qrlDEV } from "@qwik.dev/core";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0", {
     file: "/user/qwik/src/test.tsx",
-    lo: 90,
-    hi: 202,
+    lo: 88,
+    hi: 200,
     displayName: "App_component"
 }));
 
@@ -38,8 +38,8 @@ export const App_component_ckEPmXZlub0 = ()=>{
         class: "stuff",
         onClick$: /*#__PURE__*/ qrlDEV(()=>import("./app_component_cmp_p_onclick_vuxzfutkpto"), "App_component_Cmp_p_onClick_vuXzfUTkpto", {
             file: "/user/qwik/src/test.tsx",
-            lo: 146,
-            hi: 171,
+            lo: 144,
+            hi: 169,
             displayName: "App_component_Cmp_p_onClick"
         })
     }, "Hello Qwik", 3, null, {
@@ -70,8 +70,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    90,
-    202
+    88,
+    200
   ]
 }
 */
@@ -96,8 +96,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    146,
-    171
+    144,
+    169
   ]
 }
 */

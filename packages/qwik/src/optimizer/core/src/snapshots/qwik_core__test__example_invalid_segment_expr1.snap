@@ -50,8 +50,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useStyles$",
   "captures": false,
   "loc": [
-    213,
-    218
+    211,
+    216
   ]
 }
 */
@@ -81,8 +81,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    160,
-    299
+    158,
+    297
   ]
 }
 */
@@ -108,8 +108,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    289,
-    295
+    287,
+    293
   ]
 }
 */
@@ -123,8 +123,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     "message": "Qrl($) scope is not a function, but it's capturing local identifiers: style",
     "highlights": [
       {
-        "lo": 213,
-        "hi": 218,
+        "lo": 211,
+        "hi": 216,
         "startLine": 8,
         "startCol": 16,
         "endLine": 8,
@@ -141,8 +141,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     "message": "Qrl($) scope is not a function, but it's capturing local identifiers: render",
     "highlights": [
       {
-        "lo": 289,
-        "hi": 295,
+        "lo": 287,
+        "hi": 293,
         "startLine": 14,
         "startCol": 14,
         "endLine": 14,

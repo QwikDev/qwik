@@ -45,7 +45,7 @@ export const Lightweight = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAkC,IAAI,EAAE,SAAS,QAAQ,mBAAmB;AAE5E,OAAO,MAAM,aAAa,CAAC;IAC1B,UAAU;AACX,EAAE;AAEF,OAAO,MAAM,WAAW,KAAK,YAAY;AAEzC,OAAO,MAAM,oBAAM,wGAQhB;AAEH,OAAO,MAAM,cAAc,CAAC;IAC3B;AAGD,EAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAkC,IAAI,EAAE,SAAS,QAAQ,iBAAiB;AAE1E,OAAO,MAAM,aAAa,CAAC;IAC1B,UAAU;AACX,EAAE;AAEF,OAAO,MAAM,WAAW,KAAK,YAAY;AAEzC,OAAO,MAAM,oBAAM,wGAQhB;AAEH,OAAO,MAAM,cAAc,CAAC;IAC3B;AAGD,EAAG\"}")
 ============================= app_component_usememo_6sc9kvki3y0.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
@@ -71,8 +71,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useMemo$",
   "captures": true,
   "loc": [
-    271,
-    309
+    269,
+    307
   ]
 }
 */
@@ -99,8 +99,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useMemo$",
   "captures": false,
   "loc": [
-    417,
-    455
+    415,
+    453
   ]
 }
 */
@@ -138,8 +138,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    211,
-    363
+    209,
+    361
   ]
 }
 */
@@ -171,8 +171,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": true,
   "loc": [
-    322,
-    359
+    320,
+    357
   ]
 }
 */

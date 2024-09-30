@@ -49,8 +49,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useResource$",
   "captures": false,
   "loc": [
-    252,
-    280
+    250,
+    278
   ]
 }
 */
@@ -91,8 +91,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    231,
-    306
+    229,
+    304
   ]
 }
 */

@@ -55,7 +55,7 @@ export const Root = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./r
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,SAAS,OAAA,IAAG,QAAQ,wBAAwB;AAE5C,OAAO,MAAM,KAAK,GAAG;AACrB,OAAO,MAAM,cAAc,GAAG;AAE9B,MAAM,gBAAe,IAAM,QAAQ,GAAG,CAAC,YAAY;AAEnD;AACA,OAAO,MAAM,oBAAM,wGAQhB;IACF,SAAS;AACV,GAAG;AAEH,OAAO,MAAM,qBAAO,0GAOjB;IACF,SAAS;AACV,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,SAAS,OAAA,IAAG,QAAQ,sBAAsB;AAE1C,OAAO,MAAM,KAAK,GAAG;AACrB,OAAO,MAAM,cAAc,GAAG;AAE9B,MAAM,gBAAe,IAAM,QAAQ,GAAG,CAAC,YAAY;AAEnD;AACA,OAAO,MAAM,oBAAM,wGAQhB;IACF,SAAS;AACV,GAAG;AAEH,OAAO,MAAM,qBAAO,0GAOjB;IACF,SAAS;AACV,GAAG\"}")
 ============================= foo_component_htdrsvublie.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
@@ -88,8 +88,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    269,
-    424
+    265,
+    420
   ]
 }
 */
@@ -115,8 +115,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    505,
-    512
+    501,
+    508
   ]
 }
 */
@@ -146,8 +146,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    484,
-    565
+    480,
+    561
   ]
 }
 */
@@ -176,8 +176,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    526,
-    561
+    522,
+    557
   ]
 }
 */
@@ -202,8 +202,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    395,
-    416
+    391,
+    412
   ]
 }
 */

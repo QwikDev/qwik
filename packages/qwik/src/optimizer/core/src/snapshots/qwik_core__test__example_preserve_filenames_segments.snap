@@ -58,8 +58,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    90,
-    222
+    88,
+    220
   ]
 }
 */
@@ -84,8 +84,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    166,
-    191
+    164,
+    189
   ]
 }
 */

@@ -1,21 +1,29 @@
 /* eslint-disable no-console */
-import { expect } from 'vitest';
-import { Q_FUNCS_PREFIX } from '../server/ssr-render';
-import { createDocument } from './document';
-import { getTestPlatform } from './platform';
-import { _getDomContainer, componentQrl, type OnRenderFn } from '@builder.io/qwik';
 import type {
   JSXOutput,
-  _DomContainer,
   _ContainerElement,
+  _DomContainer,
   _VNode,
   _VirtualVNode,
 } from '@builder.io/qwik';
+import { _getDomContainer, componentQrl, type OnRenderFn } from '@builder.io/qwik';
+import { expect } from 'vitest';
+import { render } from '../core/client/dom-render';
+import {
+  vnode_getAttr,
+  vnode_getFirstChild,
+  vnode_getParent,
+  vnode_getVNodeForChildNode,
+  vnode_locate,
+  vnode_toString,
+} from '../core/client/vnode';
+import { ERROR_CONTEXT } from '../core/shared/error/error-handling';
+import type { Props } from '../core/shared/jsx/jsx-runtime';
+import { Slot } from '../core/shared/jsx/slot.public';
 import { getPlatform, setPlatform } from '../core/shared/platform/platform';
 import { inlinedQrl } from '../core/shared/qrl/qrl';
-import { ERROR_CONTEXT } from '../core/shared/error/error-handling';
-import { Slot } from '../core/shared/jsx/slot.public';
-import { useContextProvider } from '../core/use/use-context';
+import { ChoreType } from '../core/shared/scheduler';
+import { dumpState } from '../core/shared/shared-serialization';
 import {
   ELEMENT_PROPS,
   OnRenderProp,
@@ -25,22 +33,12 @@ import {
   QScopedStyle,
   QStyle,
 } from '../core/shared/utils/markers';
-import { render } from '../core/client/dom-render';
-import {
-  vnode_getAttr,
-  vnode_getFirstChild,
-  vnode_getParent,
-  vnode_getVNodeForChildNode,
-  vnode_isVNode,
-  vnode_locate,
-  vnode_toString,
-} from '../core/client/vnode';
-import { dumpState, typeIdToName, type TypeIds } from '../core/shared/shared-serialization';
-import './vdom-diff.unit-util';
-import { renderToString } from '../server/ssr-render';
-import { ChoreType } from '../core/shared/scheduler';
-import type { Props } from '../core/shared/jsx/jsx-runtime';
+import { useContextProvider } from '../core/use/use-context';
 import type { HostElement, QRLInternal } from '../server/qwik-types';
+import { Q_FUNCS_PREFIX, renderToString } from '../server/ssr-render';
+import { createDocument } from './document';
+import { getTestPlatform } from './platform';
+import './vdom-diff.unit-util';
 
 /** @public */
 export async function domRender(

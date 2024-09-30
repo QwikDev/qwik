@@ -1,27 +1,22 @@
-import { describe, it, expect } from 'vitest';
+import { $, component$ } from '@builder.io/qwik';
+import { describe, expect, it } from 'vitest';
+import { _fnSignal, _wrapProp } from '../internal';
+import { EffectData, type Signal } from '../signal/signal';
+import { createComputed$, createSignal, isSignal } from '../signal/signal.public';
+import { StoreFlags, createStore } from '../signal/store';
+import { createResourceReturn } from '../use/use-resource';
+import { Task } from '../use/use-task';
+import { inlinedQrl } from './qrl/qrl';
+import { isQrl, type QRLInternal } from './qrl/qrl-class';
 import {
   TypeIds,
   _constants,
   _createDeserializeContainer,
-  _deserialize,
-  _eagerDeserializeArray,
-  _serialize,
   _typeIdNames,
   createSerializationContext,
   dumpState,
 } from './shared-serialization';
-import { Task } from '../use/use-task';
-import { inlinedQrl } from './qrl/qrl';
-import { isQrl, type QRLInternal } from './qrl/qrl-class';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
-import { createComputed$, createSignal, isSignal } from '../signal/signal.public';
-import { _fnSignal, _wrapProp } from '../internal';
-import { $, component$, getDomContainer, type ClientContainer } from '@builder.io/qwik';
-import { createResourceReturn } from '../use/use-resource';
-import { StoreFlags, createStore } from '../signal/store';
-import { EffectData, type Signal } from '../signal/signal';
-import type { SSRContainer } from '../ssr/ssr-types';
-import { ssrCreateContainer } from '../../server/ssr-container';
 
 const DEBUG = false;
 

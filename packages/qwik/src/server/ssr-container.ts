@@ -254,7 +254,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   async render(jsx: JSXOutput) {
     this.openContainer();
     await _walkJSX(this, jsx, true, null);
-    this.closeContainer();
+    await this.closeContainer();
   }
 
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {

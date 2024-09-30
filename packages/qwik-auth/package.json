@@ -8,8 +8,8 @@
   },
   "devDependencies": {
     "@auth/core": "0.30.0",
-    "@builder.io/qwik": "^1.9.0",
-    "@builder.io/qwik-city": "^1.9.0",
+    "@builder.io/qwik": "1.9.0",
+    "@builder.io/qwik-city": "1.9.0",
     "@types/set-cookie-parser": "2.4.10",
     "set-cookie-parser": "2.6.0"
   },

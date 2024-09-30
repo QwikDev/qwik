@@ -26,10 +26,10 @@ importers:
         specifier: 0.10.2
         version: 0.10.2
       '@builder.io/qwik':
-        specifier: ^1.9.0
+        specifier: 1.9.0
         version: 1.9.0(@types/node@20.14.11)(terser@5.31.3)
       '@builder.io/qwik-city':
-        specifier: ^1.9.0
+        specifier: 1.9.0
         version: 1.9.0(@types/node@20.14.11)(rollup@4.19.0)(terser@5.31.3)(typescript@5.4.5)
       '@changesets/cli':
         specifier: 2.27.7
@@ -484,10 +484,10 @@ importers:
         version: 0.13.0
     devDependencies:
       '@builder.io/qwik':
-        specifier: ^1.9.0
+        specifier: 1.9.0
         version: 1.9.0(@types/node@20.14.11)(terser@5.31.3)
       '@builder.io/qwik-city':
-        specifier: ^1.9.0
+        specifier: 1.9.0
         version: 1.9.0(@types/node@20.14.11)(rollup@4.19.0)(terser@5.31.3)(typescript@5.4.5)
       '@builder.io/qwik-labs':
         specifier: workspace:^
@@ -591,10 +591,10 @@ importers:
         version: 0.30.0
     devDependencies:
       '@builder.io/qwik':
-        specifier: ^1.9.0
+        specifier: 1.9.0
         version: 1.9.0(@types/node@20.14.11)(terser@5.31.3)
       '@builder.io/qwik-city':
-        specifier: ^1.9.0
+        specifier: 1.9.0
         version: 1.9.0(@types/node@20.14.11)(rollup@4.19.0)(terser@5.31.3)(typescript@5.4.5)
       '@types/set-cookie-parser':
         specifier: 2.4.10
@@ -720,7 +720,7 @@ importers:
   packages/qwik-labs:
     devDependencies:
       '@builder.io/qwik':
-        specifier: ^1.9.0
+        specifier: 1.9.0
         version: 1.9.0(@types/node@20.14.11)(terser@5.31.3)
       '@types/eslint':
         specifier: 8.56.10
@@ -759,7 +759,7 @@ importers:
   packages/qwik-react:
     devDependencies:
       '@builder.io/qwik':
-        specifier: ^1.9.0
+        specifier: 1.9.0
         version: 1.9.0(@types/node@20.14.11)(terser@5.31.3)
       '@types/react':
         specifier: 18.3.3
@@ -783,7 +783,7 @@ importers:
   packages/qwik-worker:
     devDependencies:
       '@builder.io/qwik':
-        specifier: ^1.9.0
+        specifier: 1.9.0
         version: 1.9.0(@types/node@20.14.11)(terser@5.31.3)
       vite:
         specifier: 5.3.5
@@ -799,10 +799,10 @@ importers:
         version: 0.6.3(@supabase/supabase-js@2.44.4)
     devDependencies:
       '@builder.io/qwik':
-        specifier: ^1.9.0
+        specifier: 1.9.0
         version: 1.9.0(@types/node@20.14.11)(terser@5.31.3)
       '@builder.io/qwik-city':
-        specifier: ^1.9.0
+        specifier: 1.9.0
         version: 1.9.0(@types/node@20.14.11)(rollup@4.19.0)(terser@5.31.3)(typescript@5.4.5)
       '@supabase/supabase-js':
         specifier: 2.44.4

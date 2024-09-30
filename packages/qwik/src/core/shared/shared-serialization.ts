@@ -954,6 +954,13 @@ function serialize(serializationContext: SerializationContext): void {
   };
 
   const writeObjectValue = (value: {}, idx: number) => {
+    /**
+     * We start at -1 and then serialize the roots array, which is an object so increases depth to
+     * 0. The object writer then outputs an array object (without type prefix) and this increases
+     * the depth for the objects within (depth 1). Then when writeValue encounters each root object,
+     * it will increase the depth again, so it's at 2.
+     */
+    const isRootObject = depth === 2;
     // Objects are the only way to create circular dependencies.
     // So the first thing to to is to see if we have a circular dependency.
     // (NOTE: For root objects we need to serialize them regardless if we have seen
@@ -1053,8 +1060,15 @@ function serialize(serializationContext: SerializationContext): void {
       }
       output(TypeIds.Error, out);
     } else if ($NodeConstructor$ && value instanceof $NodeConstructor$) {
-      $setProp$(value, ELEMENT_ID, String(idx));
-      output(TypeIds.VNode, value.id);
+      if (isRootObject) {
+        // Tell the VNode which root id it is
+        $setProp$(value, ELEMENT_ID, String(idx));
+        output(TypeIds.VNode, value.id);
+      } else {
+        // Promote the vnode to a root
+        serializationContext.$addRoot$(value);
+        output(TypeIds.RootRef, serializationContext.$roots$.length - 1);
+      }
     } else if (typeof FormData !== 'undefined' && value instanceof FormData) {
       // FormData is generally used only once so don't bother with references
       const array: string[] = [];

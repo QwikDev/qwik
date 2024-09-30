@@ -18,21 +18,20 @@ import { useSignal } from '../use/use-signal';
 import { vnode_getFirstChild, vnode_getProp, vnode_locate } from '../client/vnode';
 import { QSubscribers } from '../shared/utils/markers';
 
-const debug = !false; //true;
+const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  // { render: domRender }, //
+  { render: domRender }, //
 ])('$render.name: useSignal', ({ render }) => {
-  it.only('should update value', async () => {
+  it('should update value', async () => {
     const Counter = component$((props: { initial: number }) => {
       const count = useSignal(props.initial);
       return (
         <button
           onClick$={() => {
             count.value++;
-            console.log('count.value', count, count.value);
           }}
         >
           Count: {count.value}!

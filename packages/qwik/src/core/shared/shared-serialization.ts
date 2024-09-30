@@ -7,11 +7,9 @@ import { vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
 import {
   ComputedSignal,
   EffectData,
-  EffectSubscriptionsProp,
   NEEDS_COMPUTATION,
   Signal,
   WrappedSignal,
-  type EffectSubscriptions,
 } from '../signal/signal';
 import type { Subscriber } from '../signal/signal-subscriber';
 import {
@@ -22,7 +20,7 @@ import {
   isStore,
 } from '../signal/store';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
-import { type ResourceReturnInternal } from '../use/use-resource';
+import { createResourceReturn, type ResourceReturnInternal } from '../use/use-resource';
 import { Task, isTask } from '../use/use-task';
 import { SERIALIZABLE_STATE, componentQrl, isQwikComponent } from './component.public';
 import { assertDefined, assertTrue } from './error/assert';
@@ -286,11 +284,19 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
       task.$state$ = v[5];
       break;
     case TypeIds.Resource:
-      /**
-       * Here we'd set the value to the promise and the _resolved or _rejected for sync use but we
-       * need to synchronously know what the result is
-       */
-      return throwErrorAndStop('Not implemented');
+      const [resolved, result, effects] = data as [boolean, unknown, any];
+      const resource = target as ResourceReturnInternal<unknown>;
+      if (resolved) {
+        resource.value = Promise.resolve(result);
+        resource._resolved = result;
+        resource._state = 'resolved';
+      } else {
+        resource.value = Promise.reject(result);
+        resource._error = result as Error;
+        resource._state = 'rejected';
+      }
+      getStoreHandler(target)!.$effects$ = effects;
+      break;
     case TypeIds.Component:
       target[SERIALIZABLE_STATE][0] = (data as any[])[0];
       break;
@@ -468,15 +474,16 @@ const allocate = <T>(container: DeserializeContainer, typeId: number, value: unk
       return parseQRL(value as string);
     case TypeIds.Task:
       return new Task(-1, -1, null!, null!, null!, null);
-    case TypeIds.Resource:
-      return throwErrorAndStop('Not implemented');
-    // return createResourceReturn(
-    //   container as any,
-    //   // we don't care about the timeout value
-    //   undefined,
-    //   // problem: we need the Promise result to populate the sync values
-    //   value as any
-    // );
+    case TypeIds.Resource: {
+      const res = createResourceReturn(
+        container as any,
+        // we don't care about the timeout value
+        undefined,
+        undefined
+      );
+      res.loading = false;
+      return res;
+    }
     case TypeIds.URL:
       return new URL(value as string);
     case TypeIds.Date:
@@ -909,7 +916,9 @@ function serialize(serializationContext: SerializationContext): void {
       } else if (value === Fragment) {
         output(TypeIds.Constant, Constants.Fragment);
       } else {
-        throwErrorAndStop('Cannot serialize function: ' + value.toString());
+        // TODO this happens for inline components with render props like Resource
+        console.error('Cannot serialize function (ignoring for now): ' + value.toString());
+        output(TypeIds.Constant, Constants.Undefined);
       }
     } else if (typeof value === 'number') {
       if (Number.isNaN(value)) {
@@ -989,7 +998,12 @@ function serialize(serializationContext: SerializationContext): void {
       if (isResource(value)) {
         // let render know about the resource
         serializationContext.$resources$.add(value);
-        // TODO think of a way to get the promise result so we only serialize that
+        const res = promiseResults.get(value.value);
+        if (!res) {
+          return throwErrorAndStop('Unvisited Resource');
+        }
+        output(TypeIds.Resource, [...res, getStoreHandler(value)!.$effects$]);
+
         //   /**
         //    * We always run on the server and the resource always resolved (until we implement resource
         //    * streaming)
@@ -998,17 +1012,18 @@ function serialize(serializationContext: SerializationContext): void {
         //   assertTrue(isPromise(value.value), 'Resource has no Promise');
         //   output(TypeIds.Resource, [value.value]);
         // storeValue, flags, ...effects
+      } else {
+        const storeHandler = getStoreHandler(value)!;
+        const store = getStoreTarget(value);
+        const flags = storeHandler.$flags$;
+        const effects = storeHandler.$effects$;
+        const storeEffect = effects?.[STORE_ARRAY_PROP];
+        const out = [store, flags, effects, storeEffect];
+        while (out[out.length - 1] == null) {
+          out.pop();
+        }
+        output(Array.isArray(store) ? TypeIds.StoreArray : TypeIds.Store, out);
       }
-      const storeHandler = getStoreHandler(value)!;
-      const store = getStoreTarget(value);
-      const flags = storeHandler.$flags$;
-      const effects = storeHandler.$effects$;
-      const storeEffect = effects?.[STORE_ARRAY_PROP];
-      const out = [store, flags, effects, storeEffect];
-      while (out[out.length - 1] == null) {
-        out.pop();
-      }
-      output(Array.isArray(store) ? TypeIds.StoreArray : TypeIds.Store, out);
     } else if (isObjectLiteral(value)) {
       if (Array.isArray(value)) {
         output(TypeIds.Array, value);
@@ -1135,30 +1150,6 @@ function serialize(serializationContext: SerializationContext): void {
   writeValue(serializationContext.$roots$, -1);
 }
 
-function serializeEffectSubs(effects: EffectSubscriptions[] | null) {
-  const out: any[] = [];
-  if (effects) {
-    for (let i = 0; i < effects.length; i++) {
-      const outEffect: any[] = [];
-      const effectSubscription = effects[i];
-      const effect = effectSubscription[EffectSubscriptionsProp.EFFECT];
-      const prop = effectSubscription[EffectSubscriptionsProp.PROPERTY];
-      let effectSubscriptionDataIndex = EffectSubscriptionsProp.FIRST_BACK_REF_OR_DATA;
-      const effectSubscriptionData = effectSubscription[effectSubscriptionDataIndex];
-      outEffect.push(effect, prop);
-      if (effectSubscriptionData instanceof EffectData) {
-        outEffect.push(effectSubscriptionData.data);
-        effectSubscriptionDataIndex++;
-      }
-      for (let j = effectSubscriptionDataIndex; j < effectSubscription.length; j++) {
-        outEffect.push(effectSubscription[j]);
-      }
-      out.push(outEffect);
-    }
-  }
-  return out;
-}
-
 function serializeDerivedFn(serializationContext: SerializationContext, value: WrappedSignal<any>) {
   // if value is an object then we need to wrap this in ()
   if (value.$funcStr$ && value.$funcStr$[0] === '{') {
@@ -1170,56 +1161,6 @@ function serializeDerivedFn(serializationContext: SerializationContext, value: W
     value.$func$
   );
   return [syncFnId, value.$args$] as const;
-}
-
-function deserializeStore2(container: DomContainer, data: any[]) {
-  const [value, flags, ...effectProps] = data;
-  const target: Record<string, unknown> = container.$getObjectById$(value) as Record<
-    string,
-    unknown
-  >;
-  const store = createStore(container, target, flags);
-  const storeHandler = getStoreHandler(store)!;
-  const storeHasEffects = !!effectProps.length;
-  if (storeHasEffects) {
-    const effects: Record<string | symbol, EffectSubscriptions[]> = (storeHandler.$effects$ = {});
-    for (let i = 0; i < effectProps.length; i++) {
-      const effect = effectProps[i];
-      const idx = effect.indexOf(';');
-      const prop: string | symbol = effect.slice(0, idx);
-      // let prop: string | symbol = effect.slice(0, idx);
-      // if (prop === TypeIds.UNDEFINED_CHAR) {
-      //   prop = STORE_ARRAY_PROP;
-      // }
-      const effectStr = effect.slice(idx + 1);
-      deserializeSignal2Effect(0, effectStr.split(';'), container, (effects[prop] = []));
-    }
-  }
-
-  return store;
-}
-
-function deserializeSignal2Effect(
-  idx: number,
-  parts: string[],
-  container: DeserializeContainer,
-  effects: EffectSubscriptions[]
-) {
-  while (idx < parts.length) {
-    // idx == 1 is the attribute name
-    const effect = parts[idx++].split(' ').map((obj, idx) => {
-      if (idx === EffectSubscriptionsProp.PROPERTY) {
-        return obj;
-      } else {
-        if (obj[0] === '|') {
-          return new EffectData<any>(container.$getObjectById$(parseInt(obj.slice(1))));
-        }
-        return container.$getObjectById$(obj);
-      }
-    }) as EffectSubscriptions;
-    effects.push(effect);
-  }
-  return idx;
 }
 
 export function qrlToString(

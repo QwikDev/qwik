@@ -312,31 +312,12 @@ describe('shared-serialization', () => {
       res._resolved = 123;
       expect(await dump(res)).toMatchInlineSnapshot(`
         "
-        0 Store [
-          Object [
-            String "__brand"
-            String "resource"
-            String "value"
-            Promise [
-              Constant true
-              Number 123
-            ]
-            String "loading"
-            Constant true
-            String "_resolved"
-            Number 123
-            String "_error"
-            Constant undefined
-            String "_state"
-            String "resolved"
-            String "_timeout"
-            Number -1
-            String "_cache"
-            Number 0
-          ]
-          Number 1
+        0 Resource [
+          Constant true
+          Number 123
+          Constant null
         ]
-        (173 chars)"
+        (20 chars)"
       `);
     });
     it(title(TypeIds.Component), async () => {

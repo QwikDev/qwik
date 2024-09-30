@@ -41,10 +41,7 @@ export const unwrapStore = <T>(value: T): T => {
 };
 
 export const isStore = (value: TargetType): boolean => {
-  // TODO does this work?
-  // return STORE_TARGET in value;
-  const unwrap = unwrapStore(value);
-  return unwrap !== value;
+  return STORE_TARGET in value;
 };
 
 export function createStore<T extends object>(

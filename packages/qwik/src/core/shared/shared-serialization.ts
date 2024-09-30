@@ -24,7 +24,7 @@ import { Slot } from './jsx/slot.public';
 import { fastSkipSerialize } from './utils/serialize-utils';
 import { _CONST_PROPS, _VAR_PROPS } from './utils/constants';
 import { Task, isTask } from '../use/use-task';
-import { type ResourceReturnInternal } from '../use/use-resource';
+import { createResourceReturn, type ResourceReturnInternal } from '../use/use-resource';
 import { isElement, isNode } from './utils/element';
 import { throwErrorAndStop } from './utils/log';
 import { ELEMENT_ID } from './utils/markers';
@@ -45,8 +45,10 @@ import {
   STORE_ARRAY_PROP,
   createStore,
   getStoreHandler,
+  getStoreTarget,
   isStore,
   unwrapStore,
+  type StoreFlags,
 } from '../signal/store';
 import type { Subscriber } from '../signal/signal-subscriber';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
@@ -286,12 +288,24 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
       task.$state$ = v[5];
       break;
     case TypeIds.Resource:
+      /**
+       * Here we'd set the value to the promise and the _resolved or _rejected for sync use but we
+       * need to synchronously know what the result is
+       */
       return throwErrorAndStop('Not implemented');
     case TypeIds.Component:
-      inflateQRL(container, target[SERIALIZABLE_STATE][0]);
+      target[SERIALIZABLE_STATE][0] = (data as any[])[0];
       break;
-    case TypeIds.Store:
+    case TypeIds.Store: {
+      const [value, flags, ...effects] = data as unknown[];
+      const handler = getStoreHandler(target)!;
+      handler.$flags$ = flags as number;
+      // First assign so it sets up the deep stores
+      Object.assign(target, value as object);
+      // Afterwards restore the effects so they don't get triggered
+      handler.$effects$ = effects as any;
       break;
+    }
     case TypeIds.Signal: {
       const signal = target as Signal<unknown>;
       const d = data as [unknown, ...any[]];
@@ -449,6 +463,13 @@ const allocate = <T>(container: DeserializeContainer, typeId: number, value: unk
       return new Task(-1, -1, null!, null!, null!, null);
     case TypeIds.Resource:
       return throwErrorAndStop('Not implemented');
+    // return createResourceReturn(
+    //   container as any,
+    //   // we don't care about the timeout value
+    //   undefined,
+    //   // problem: we need the Promise result to populate the sync values
+    //   value as any
+    // );
     case TypeIds.URL:
       return new URL(value as string);
     case TypeIds.Date:
@@ -459,7 +480,7 @@ const allocate = <T>(container: DeserializeContainer, typeId: number, value: unk
     case TypeIds.Error:
       return new Error();
     case TypeIds.Component:
-      return componentQrl(value as any);
+      return componentQrl(null!);
     case TypeIds.Signal:
       return new Signal(container as any, 0);
     case TypeIds.WrappedSignal:
@@ -467,7 +488,7 @@ const allocate = <T>(container: DeserializeContainer, typeId: number, value: unk
     case TypeIds.ComputedSignal:
       return new ComputedSignal(container as any, null!);
     case TypeIds.Store:
-      return deserializeStore2(container as any, value as unknown[]);
+      return createStore(container as any, {}, 0);
     case TypeIds.URLSearchParams:
       return new URLSearchParams(value as string);
     case TypeIds.FormData:
@@ -727,14 +748,20 @@ export const createSerializationContext = (
           discoveredValues.push(k, v);
         });
       } else if (obj instanceof Signal) {
-        discoveredValues.push(obj.$untrackedValue$);
+        if (obj.$untrackedValue$) {
+          discoveredValues.push(obj.$untrackedValue$);
+        }
         if (obj.$effects$) {
           discoveredValues.push(...obj.$effects$);
         }
-        if (obj instanceof WrappedSignal && obj.$effectDependencies$) {
-          discoveredValues.push(...obj.$effectDependencies$);
+        // WrappedSignal uses syncQrl which has no captured refs
+        if (obj instanceof WrappedSignal) {
+          if (obj.$effectDependencies$) {
+            discoveredValues.push(...obj.$effectDependencies$);
+          }
+        } else if (obj instanceof ComputedSignal) {
+          discoveredValues.push(obj.$computeQrl$);
         }
-        // TODO(mhevery): should scan the QRLs???
       } else if (obj instanceof Task) {
         discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$, obj.$effectDependencies$);
       } else if (NodeConstructor && obj instanceof NodeConstructor) {
@@ -865,7 +892,7 @@ function serialize(serializationContext: SerializationContext): void {
       } else if (isQwikComponent(value)) {
         const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];
         serializationContext.$renderSymbols$.add(qrl.$symbol$);
-        output(TypeIds.Component, qrlToString(serializationContext, qrl));
+        output(TypeIds.Component, [qrl]);
       } else if (value === Slot) {
         output(TypeIds.Constant, Constants.Slot);
       } else if (value === Fragment) {
@@ -939,7 +966,19 @@ function serialize(serializationContext: SerializationContext): void {
       const constProps = value[_CONST_PROPS];
       output(TypeIds.PropsProxy, [varProps, constProps]);
     } else if (isStore(value)) {
-      // storeValue, flags, ...effects
+      if (isResource(value)) {
+        // let render know about the resource
+        serializationContext.$resources$.add(value);
+        // TODO think of a way to get the promise result so we only serialize that
+        //   /**
+        //    * We always run on the server and the resource always resolved (until we implement resource
+        //    * streaming)
+        //    */
+        //   assertTrue(value._state !== 'pending', 'Resource still pending', value);
+        //   assertTrue(isPromise(value.value), 'Resource has no Promise');
+        //   output(TypeIds.Resource, [value.value]);
+        // storeValue, flags, ...effects
+      }
       const storeHandler = getStoreHandler(value)!;
       const store: any[] = [unwrapStore(value), storeHandler.$flags$];
       const effects = storeHandler.$effects$;
@@ -953,9 +992,6 @@ function serialize(serializationContext: SerializationContext): void {
       }
       output(TypeIds.Store, store);
     } else if (isObjectLiteral(value)) {
-      if (isResource(value)) {
-        serializationContext.$resources$.add(value);
-      }
       if (Array.isArray(value)) {
         output(TypeIds.Array, value);
       } else {
@@ -1519,7 +1555,11 @@ export const enum Constants {
 }
 
 export const dumpState = (state: any[], prefix = '') => {
+  const isRoot = prefix === '';
   const out: any[] = [];
+  if (isRoot) {
+    out.push();
+  }
   for (let i = 0; i < state.length; i++) {
     if (i > 2 * 20) {
       out.push('...');
@@ -1538,12 +1578,13 @@ export const dumpState = (state: any[], prefix = '') => {
           value = value.slice(0, 120) + '"...';
         }
       } else if (Array.isArray(value)) {
-        value = `\n${dumpState(value, `${prefix}  `)}`;
+        value = value.length ? `[\n${dumpState(value, `${prefix}  `)}\n${prefix}]` : '[]';
       }
       out.push(`${codeToName(key)} ${value}`);
     }
   }
-  return out.map((v, i) => `${prefix}${i} ${v}`).join('\n');
+  const result = out.map((v, i) => `${prefix}${isRoot ? `${i} ` : ''}${v}`).join('\n');
+  return isRoot ? `\n${result}\n(${JSON.stringify(state).length} chars)` : result;
 };
 
 export const codeToName = (code: TypeIds) => {

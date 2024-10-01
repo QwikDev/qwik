@@ -125,7 +125,7 @@ describe('shared-serialization', () => {
         `
         "
         0 BigInt "12345678901234567890"
-        (26 chars)"
+        (27 chars)"
       `
       );
     });
@@ -463,7 +463,7 @@ describe('shared-serialization', () => {
       expect(url.toString()).toBe('http://example.com/');
     });
     it(title(TypeIds.Date), async () => {
-      const objs = await serialize(new Date(1234567890000));
+      const objs = await serialize(new Date('2020-01-02T12:34Z"'));
       const date = deserialize(objs)[0] as Date;
       expect(date).toBeInstanceOf(Date);
       expect(date.toISOString()).toBe('2009-02-13T23:31:30.000Z');

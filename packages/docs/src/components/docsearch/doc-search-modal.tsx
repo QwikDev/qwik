@@ -12,7 +12,7 @@ import type { DocSearchHit } from './types';
 import { identity } from './utils';
 import { clearStalled, setStalled } from './utils/stalledControl';
 import { AIButton } from './result';
-import { isBrowser } from '@builder.io/qwik/build';
+import { isBrowser } from '@qwik.dev/core/build';
 
 export type ModalTranslations = Partial<{
   searchBox: SearchBoxTranslations;

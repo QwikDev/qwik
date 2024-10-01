@@ -1,4 +1,10 @@
-import { $, implicit$FirstArg, type QRL, _getContextElement, _serialize } from '@builder.io/qwik';
+import {
+  $,
+  implicit$FirstArg,
+  type QRL,
+  _getContextElement,
+  _serializeData,
+} from '@builder.io/qwik';
 
 //@ts-ignore
 import workerUrl from './worker.js?worker&url';
@@ -51,7 +57,10 @@ export const workerQrl: WorkerConstructorQRL = (qrl) => {
       }
       return arg;
     });
-    const data = await _serialize([qrl, ...filtered]);
+    // TODO: uncomment for v2 release
+    // const data = await _serialize([qrl, ...filtered]);
+
+    const data = await _serializeData([qrl, ...filtered]);
     return new Promise((resolve, reject) => {
       const handler = ({ data }: MessageEvent) => {
         if (Array.isArray(data) && data.length === 3 && data[0] === requestId) {

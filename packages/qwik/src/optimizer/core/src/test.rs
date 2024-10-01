@@ -3209,7 +3209,7 @@ async function renderToString(rootNode, opts) {
 export { qwikify$, qwikifyQrl, renderToString };
 		"#
 		.to_string(),
-		filename: "../node_modules/@builder.io/qwik-react/index.qwik.mjs".to_string(),
+		filename: "../node_modules/@qwik.dev/react/index.qwik.mjs".to_string(),
 		entry_strategy: EntryStrategy::Segment,
 		explicit_extensions: true,
 		..TestInput::default()
@@ -3312,7 +3312,7 @@ async function renderToString(rootNode, opts) {
 export { qwikify$, qwikifyQrl, renderToString };
 		"#
 		.to_string(),
-		filename: "../node_modules/@builder.io/qwik-react/index.qwik.mjs".to_string(),
+		filename: "../node_modules/@qwik.dev/react/index.qwik.mjs".to_string(),
 		entry_strategy: EntryStrategy::Inline,
 		explicit_extensions: true,
 		..TestInput::default()

@@ -283,9 +283,6 @@ importers:
       '@builder.io/qwik-labs':
         specifier: workspace:^
         version: link:../qwik-labs
-      '@builder.io/qwik-react':
-        specifier: workspace:^
-        version: link:../qwik-react
       '@builder.io/sdk-qwik':
         specifier: 0.14.31
         version: 0.14.31(@builder.io/qwik@1.9.0(@types/node@20.14.11)(terser@5.31.3))
@@ -319,6 +316,9 @@ importers:
       '@qwik.dev/core':
         specifier: workspace:^
         version: link:../qwik
+      '@qwik.dev/react':
+        specifier: workspace:^
+        version: link:../qwik-react
       '@supabase/supabase-js':
         specifier: 2.44.4
         version: 2.44.4
@@ -758,9 +758,9 @@ importers:
 
   packages/qwik-react:
     devDependencies:
-      '@builder.io/qwik':
-        specifier: 1.9.0
-        version: 1.9.0(@types/node@20.14.11)(terser@5.31.3)
+      '@qwik.dev/core':
+        specifier: workspace:^
+        version: link:../qwik
       '@types/react':
         specifier: 18.3.3
         version: 18.3.3

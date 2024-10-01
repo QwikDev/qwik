@@ -13,7 +13,7 @@ import {
 } from './util';
 
 /**
- * Build the core package which is also the root package: @builder.io/qwik
+ * Build the core package which is also the root package: @qwik.dev/core
  *
  * Uses esbuild during development (cuz it's super fast) and TSC + Rollup + Terser for production,
  * because it generates smaller code that minifies better.

@@ -11,7 +11,7 @@
     "@builder.io/qwik-auth": "0.2.2",
     "@builder.io/qwik-dom": "2.1.19",
     "@builder.io/qwik-labs": "0.0.1",
-    "@builder.io/qwik-react": "0.5.5",
+    "@qwik.dev/react": "2.0.0-0",
     "@builder.io/qwik-worker": "0.0.1",
     "supabase-auth-helpers-qwik": "0.0.3"
   },

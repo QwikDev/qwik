@@ -1,6 +1,6 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "jsxImportSource": "@builder.io/qwik"
+    "jsxImportSource": "@qwik.dev/core"
   }
 }

@@ -11,7 +11,7 @@
     "qwik-docs",
     "@builder.io/qwik-labs",
     "insights",
-    "@builder.io/qwik-react",
+    "@qwik.dev/react",
     "@builder.io/qwik-worker",
     "qwik-cli-e2e"
   ],

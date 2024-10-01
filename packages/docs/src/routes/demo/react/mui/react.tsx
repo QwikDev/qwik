@@ -1,5 +1,5 @@
 /** @jsxImportSource react */
-import { qwikify$ } from '@builder.io/qwik-react';
+import { qwikify$ } from '@qwik.dev/react';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';

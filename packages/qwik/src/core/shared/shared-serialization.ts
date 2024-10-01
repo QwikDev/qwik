@@ -264,7 +264,16 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
             get() {
               return deserializeData(container, valType, valData);
             },
+            set(value: unknown) {
+              Object.defineProperty(target, key, {
+                value,
+                writable: true,
+                enumerable: true,
+                configurable: true,
+              });
+            },
             enumerable: true,
+            configurable: true,
           });
         } else {
           target[key] = deserializeData(container, valType, valData);

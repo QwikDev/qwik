@@ -153,11 +153,11 @@ function qwikifyQrl(reactCmpQrl) {
                     [_IMMUTABLE]: [
                         "dangerouslySetInnerHTML"
                     ]
-                }, null, null, 3, "mR_0");
+                }, null, null, 3, "8p_0");
             });
-            return /*#__PURE__*/ _jsxSorted(Fragment, null, null, jsx$1, 1, "mR_1");
+            return /*#__PURE__*/ _jsxSorted(Fragment, null, null, jsx$1, 1, "8p_1");
         }
-        return /*#__PURE__*/ _jsxSorted(Host, null, null, /*#__PURE__*/ _jsxSorted(SkipRerender, null, null, null, 3, "mR_2"), 1, "mR_3");
+        return /*#__PURE__*/ _jsxSorted(Host, null, null, /*#__PURE__*/ _jsxSorted(SkipRerender, null, null, null, 3, "8p_2"), 1, "8p_3");
     }, "qwikifyQrl_component_zH94hIe0Ick", [
         reactCmpQrl
     ]), {

@@ -102,6 +102,7 @@ describe('serialization', () => {
     const serializationContext = createSerializationContext(
       null,
       () => '',
+      () => '',
       () => {}
     );
     assert.equal(

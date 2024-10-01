@@ -739,7 +739,12 @@ describe('shared-serialization', () => {
 });
 
 async function serialize(...roots: any[]): Promise<any[]> {
-  const sCtx = createSerializationContext(null, () => '', null!);
+  const sCtx = createSerializationContext(
+    null,
+    () => '',
+    () => '',
+    null!
+  );
   for (const root of roots) {
     sCtx.$addRoot$(root);
   }

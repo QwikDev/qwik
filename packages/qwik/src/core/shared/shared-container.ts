@@ -53,6 +53,7 @@ export abstract class _SharedContainer implements Container {
     return createSerializationContext(
       NodeConstructor,
       symbolToChunkResolver,
+      this.getHostProp.bind(this),
       this.setHostProp.bind(this),
       writer
     );

@@ -3,7 +3,8 @@
 import { isDev } from '../../build/index.dev';
 import type { StreamWriter } from '../../server/types';
 import { type DomContainer } from '../client/dom-container';
-import { vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
+import type { VNode } from '../client/types';
+import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
 import {
   ComputedSignal,
   EffectData,
@@ -46,7 +47,7 @@ import { _CONST_PROPS, _VAR_PROPS } from './utils/constants';
 import { isElement, isNode } from './utils/element';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
 import { throwErrorAndStop } from './utils/log';
-import { ELEMENT_ID } from './utils/markers';
+import { ELEMENT_ID, UNWRAP_VNODE_LOCAL } from './utils/markers';
 import { isPromise } from './utils/promises';
 import { fastSkipSerialize } from './utils/serialize-utils';
 import { type ValueOrPromise } from './utils/types';
@@ -538,11 +539,14 @@ const allocate = <T>(container: DeserializeContainer, typeId: number, value: unk
       return createPropsProxy(null!, null);
     case TypeIds.VNode:
       // Retrieve the VNode from the container
-      return value
-        ? (container as any).rootVNode
-          ? vnode_locate((container as any).rootVNode, value as string)
-          : undefined
-        : container.element?.ownerDocument;
+      return retrieveVNodeOrDocument(container, value);
+    case TypeIds.RefVNode:
+      const vNode = retrieveVNodeOrDocument(container, value);
+      if (vnode_isVNode(vNode)) {
+        return vnode_getNode(vNode);
+      } else {
+        return throwErrorAndStop('expected vnode for ref prop, but got ' + typeof vNode);
+      }
     case TypeIds.EffectData:
       return new EffectData(null!);
 
@@ -550,6 +554,17 @@ const allocate = <T>(container: DeserializeContainer, typeId: number, value: unk
       return throwErrorAndStop('unknown allocate type: ' + typeId);
   }
 };
+
+function retrieveVNodeOrDocument(
+  container: DeserializeContainer,
+  value: unknown | null
+): VNode | Document | undefined {
+  return value
+    ? (container as any).rootVNode
+      ? vnode_locate((container as any).rootVNode, value as string)
+      : undefined
+    : container.element?.ownerDocument;
+}
 
 /** Parses "chunk#hash[...rootRef]" */
 export function parseQRL(qrl: string): QRLInternal<any> {
@@ -648,12 +663,14 @@ export interface SerializationContext {
   $resources$: Set<ResourceReturnInternal<unknown>>;
   $renderSymbols$: Set<string>;
 
+  $getProp$: (obj: any, prop: string) => any;
   $setProp$: (obj: any, prop: string, value: any) => void;
 }
 
 export const createSerializationContext = (
   NodeConstructor: SerializationContext['$NodeConstructor$'] | null,
   symbolToChunkResolver: SymbolToChunkResolver,
+  getProp: (obj: any, prop: string) => any,
   setProp: (obj: any, prop: string, value: any) => void,
   writer?: StreamWriter
 ): SerializationContext => {
@@ -729,6 +746,7 @@ export const createSerializationContext = (
     $eventNames$: new Set<string>(),
     $resources$: new Set<ResourceReturnInternal<unknown>>(),
     $renderSymbols$: new Set<string>(),
+    $getProp$: getProp,
     $setProp$: setProp,
   };
 
@@ -857,7 +875,7 @@ const promiseResults = new WeakMap<Promise<any>, [boolean, unknown]>();
  * - Therefore root indexes need to be doubled to get the actual index.
  */
 function serialize(serializationContext: SerializationContext): void {
-  const { $writer$, $NodeConstructor$, $setProp$ } = serializationContext;
+  const { $writer$, $NodeConstructor$, $setProp$, $getProp$ } = serializationContext;
   let depth = -1;
   // Skip the type for the roots output
   let writeType = false;
@@ -1080,7 +1098,7 @@ function serialize(serializationContext: SerializationContext): void {
       if (isRootObject) {
         // Tell the VNode which root id it is
         $setProp$(value, ELEMENT_ID, String(idx));
-        output(TypeIds.VNode, value.id);
+        output($getProp$(value, UNWRAP_VNODE_LOCAL) ? TypeIds.RefVNode : TypeIds.VNode, value.id);
       } else {
         // Promote the vnode to a root
         serializationContext.$addRoot$(value);
@@ -1238,6 +1256,7 @@ export function qrlToString(
 export async function _serialize(data: unknown[]): Promise<string> {
   const serializationContext = createSerializationContext(
     null,
+    () => '',
     () => '',
     () => {}
   );
@@ -1453,6 +1472,7 @@ export const enum TypeIds {
   Date,
   Regex,
   VNode,
+  RefVNode,
   BigInt,
   URLSearchParams,
   /// All values below need inflation because they may have reference cycles
@@ -1486,6 +1506,7 @@ export const _typeIdNames = [
   'Date',
   'Regex',
   'VNode',
+  'RefVNode',
   'BigInt',
   'URLSearchParams',
   'Error',

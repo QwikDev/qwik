@@ -740,6 +740,15 @@ describe('shared-serialization', () => {
       expect(proxy).toEqual([obj, [obj]]);
       expect(stateData).toEqual([undefined, obj, undefined, [obj]]);
     });
+    it('should allow assign new value', async () => {
+      const stateData = await serialize({ shared: { shared1 } });
+      expect(stateData.every((v) => v != null)).toBeTruthy();
+      const proxy = deserialize(stateData);
+      const obj = proxy[0];
+      const newValue = { shared2 };
+      (obj as any).shared = newValue;
+      expect((obj as any).shared).toBe(newValue);
+    });
   });
 });
 

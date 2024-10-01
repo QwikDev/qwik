@@ -105,10 +105,15 @@ describe('shared-serialization', () => {
       `);
     });
     it(title(TypeIds.Date), async () => {
-      expect(await dump(new Date('2020-01-02T12:34'))).toMatchInlineSnapshot(`
+      expect(await dump(new Date('2020-01-02T12:34Z'))).toMatchInlineSnapshot(`
         "
-        0 Date "2020-01-02T11:34:00.000Z"
-        (30 chars)"
+        0 Date 1577968440000
+        (17 chars)"
+      `);
+      expect(await dump(new Date('invalid'))).toMatchInlineSnapshot(`
+        "
+        0 Date ""
+        (6 chars)"
       `);
     });
     it(title(TypeIds.Regex), async () => {
@@ -463,7 +468,7 @@ describe('shared-serialization', () => {
       expect(url.toString()).toBe('http://example.com/');
     });
     it(title(TypeIds.Date), async () => {
-      const objs = await serialize(new Date('2020-01-02T12:34Z"'));
+      const objs = await serialize(new Date(1234567890000));
       const date = deserialize(objs)[0] as Date;
       expect(date).toBeInstanceOf(Date);
       expect(date.toISOString()).toBe('2009-02-13T23:31:30.000Z');

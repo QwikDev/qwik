@@ -488,7 +488,7 @@ const allocate = <T>(container: DeserializeContainer, typeId: number, value: unk
     case TypeIds.URL:
       return new URL(value as string);
     case TypeIds.Date:
-      return new Date(value as string);
+      return new Date(value as number);
     case TypeIds.Regex:
       const idx = (value as string).lastIndexOf('/');
       return new RegExp((value as string).slice(1, idx), (value as string).slice(idx + 1));
@@ -1080,7 +1080,7 @@ function serialize(serializationContext: SerializationContext): void {
     } else if (value instanceof URL) {
       output(TypeIds.URL, value.href);
     } else if (value instanceof Date) {
-      output(TypeIds.Date, value.toJSON());
+      output(TypeIds.Date, Number.isNaN(value.valueOf()) ? '' : value.valueOf());
     } else if (value instanceof RegExp) {
       output(TypeIds.Regex, value.toString());
     } else if (value instanceof Error) {

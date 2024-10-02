@@ -19,7 +19,7 @@ const Header = $((decl1, {decl2}, [decl3]) => {
     try{}catch({decl19}){}
 });
 
-============================= header_wjuauqn7oxg.tsx (ENTRY POINT)==
+============================= test.tsx_header_wjuauqn7oxg.tsx (ENTRY POINT)==
 
 export const Header_WjUaUQN7Oxg = (decl1, { decl2 }, [decl3])=>{
     const { decl4, key: decl5 } = this;
@@ -34,9 +34,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "Header_WjUaUQN7Oxg",
   "entry": null,
-  "displayName": "Header",
+  "displayName": "test.tsx_Header",
   "hash": "WjUaUQN7Oxg",
-  "canonicalFilename": "header_wjuauqn7oxg",
+  "canonicalFilename": "test.tsx_header_wjuauqn7oxg",
   "path": "",
   "extension": "tsx",
   "parent": null,
@@ -52,7 +52,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx ==
 
 import { qrl } from "@builder.io/qwik";
-/*#__PURE__*/ qrl(()=>import("./header_wjuauqn7oxg"), "Header_WjUaUQN7Oxg");
+/*#__PURE__*/ qrl(()=>import("./test.tsx_header_wjuauqn7oxg"), "Header_WjUaUQN7Oxg");
 
 
 Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")

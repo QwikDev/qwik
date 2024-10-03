@@ -8,35 +8,39 @@ import { getDomContainer } from '../client/dom-container';
 import type { ClientContainer, VNode } from '../client/types';
 import { vnode_getAttr, vnode_getFirstChild, vnode_getText } from '../client/vnode';
 import { SERIALIZABLE_STATE, component$ } from '../shared/component.public';
-import { JSXNodeImpl, createPropsProxy } from '../shared/jsx/jsx-runtime';
-import { Slot } from '../shared/jsx/slot.public';
-import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import { inlinedQrl, qrl } from '../shared/qrl/qrl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import { SerializationConstant, isDeserializerProxy } from '../shared/shared-serialization';
+import { Fragment, JSXNodeImpl, createPropsProxy } from '../shared/jsx/jsx-runtime';
+import { Slot } from '../shared/jsx/slot.public';
+import type { JSXOutput } from '../shared/jsx/types/jsx-node';
+import { getDomContainer } from '../client/dom-container';
+import type { ClientContainer, VNode } from '../client/types';
+import { vnode_getAttr, vnode_getFirstChild, vnode_getText } from '../client/vnode';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
+import { TypeIds } from '../shared/shared-serialization';
 import { constPropsToSsrAttrs, varPropsToSsrAttrs } from '../ssr/ssr-render-jsx';
 import { type SSRContainer } from '../ssr/ssr-types';
+import { createSignal, createComputed$ } from '../signal/signal.public';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
-    it('should do basic serialize/deserialize', () => {
+    it('should do basic serialize/deserialize', async () => {
       const input = <span>test</span>;
-      const output = toVNode(toDOM(toHTML(input)));
+      const output = toVNode(toDOM(await toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
 
-    it('should handle multiple text nodes, and fragment', () => {
+    it('should handle multiple text nodes, and fragment', async () => {
       const input = (
         <>
           {'Hello'} <b>{'world'}</b>!
         </>
       );
-      const output = toVNode(toDOM(toHTML(input)));
+      const output = toVNode(toDOM(await toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
 
-    it('should render blog post example', () => {
+    it('should render blog post example', async () => {
       const state = { value: 123 };
       const input = (
         <main>
@@ -47,11 +51,11 @@ describe('serializer v2', () => {
           </>
         </main>
       );
-      const output = toVNode(toDOM(toHTML(input)));
+      const output = toVNode(toDOM(await toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
 
-    it('should handle more complex example', () => {
+    it('should handle more complex example', async () => {
       const input = (
         <div>
           <span>A</span>
@@ -64,22 +68,22 @@ describe('serializer v2', () => {
           </>
         </div>
       );
-      const output = toVNode(toDOM(toHTML(input)));
+      const output = toVNode(toDOM(await toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
 
-    it('should handle adjacent qwik/vnode data', () => {
+    it('should handle adjacent qwik/vnode data', async () => {
       const input = (
         <div>
           <span>A{'B'}</span>
           <span>C{'D'}</span>
         </div>
       );
-      const output = toVNode(toDOM(toHTML(input)));
+      const output = toVNode(toDOM(await toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
 
-    it('should handle long strings', () => {
+    it('should handle long strings', async () => {
       const string = (length: number) => new Array(length).fill('.').join('');
       const input = (
         <div>
@@ -88,13 +92,13 @@ describe('serializer v2', () => {
           {string(26)}
         </div>
       );
-      const output = toVNode(toDOM(toHTML(input)));
+      const output = toVNode(toDOM(await toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
 
     describe('node references', () => {
-      it('should retrieve element', () => {
-        const clientContainer = withContainer((ssr) => {
+      it('should retrieve element', async () => {
+        const clientContainer = await withContainer((ssr) => {
           ssr.openElement('div', ['id', 'parent']);
           ssr.textNode('Hello');
           ssr.openElement('span', ['id', 'myId']);
@@ -106,11 +110,11 @@ describe('serializer v2', () => {
           ssr.closeElement();
           ssr.closeElement();
         });
-        const vnodeSpan = clientContainer.$getObjectById$(0).someProp;
+        const vnodeSpan = await clientContainer.$getObjectById$(0).someProp;
         expect(vnode_getAttr(vnodeSpan, 'id')).toBe('myId');
       });
-      it('should retrieve text node', () => {
-        const clientContainer = withContainer((ssr) => {
+      it('should retrieve text node', async () => {
+        const clientContainer = await withContainer((ssr) => {
           ssr.openElement('div', ['id', 'parent']);
           ssr.textNode('Hello');
           ssr.openElement('span', ['id', 'div']);
@@ -126,11 +130,11 @@ describe('serializer v2', () => {
           ssr.closeElement();
           ssr.closeElement();
         });
-        const vnode = clientContainer.$getObjectById$(0).someProp;
+        const vnode = await clientContainer.$getObjectById$(0).someProp;
         expect(vnode_getText(vnode)).toBe('World');
       });
-      it('should retrieve text node in Fragments', () => {
-        const clientContainer = withContainer((ssr) => {
+      it('should retrieve text node in Fragments', async () => {
+        const clientContainer = await withContainer((ssr) => {
           ssr.openElement('div', ['id', 'parent']);
           ssr.textNode('Hello');
           ssr.openElement('span', ['id', 'div']); // 2
@@ -148,7 +152,7 @@ describe('serializer v2', () => {
           ssr.closeElement();
           ssr.closeElement();
         });
-        const vnode = clientContainer.$getObjectById$(0).someProp;
+        const vnode = await clientContainer.$getObjectById$(0).someProp;
         expect(vnode_getText(vnode)).toBe('World');
       });
       it.todo('should attach props to Fragment');
@@ -156,16 +160,16 @@ describe('serializer v2', () => {
   });
 
   describe('attributes', () => {
-    it('should serialize attributes', () => {
+    it('should serialize attributes', async () => {
       const input = <span id="test" class="test" />;
-      const output = toVNode(toDOM(toHTML(input)));
+      const output = toVNode(toDOM(await toHTML(input)));
       expect(output).toMatchVDOM(input);
     });
   });
 
   describe('object serialization', () => {
-    it('should serialize object', () => {
-      const container = withContainer((ssrContainer) => {
+    it('should serialize object', async () => {
+      const container = await withContainer((ssrContainer) => {
         const obj = { age: 1, child: { b: 'child' } };
         expect(ssrContainer.addRoot(obj)).toBe(0);
         expect(ssrContainer.addRoot(obj.child)).toBe(1);
@@ -175,8 +179,8 @@ describe('serializer v2', () => {
       expect(container.$getObjectById$(1)).toBe(obj.child);
     });
 
-    it('should escape string <>', () => {
-      const container = withContainer((ssrContainer) => {
+    it('should escape string <>', async () => {
+      const container = await withContainer((ssrContainer) => {
         ssrContainer.addRoot({ '</script>': '"<script></script>"', '<': '<script>' });
       });
       expect(container.$getObjectById$(0)).toEqual({
@@ -185,8 +189,8 @@ describe('serializer v2', () => {
       });
     });
 
-    it('should serialize non-standard objects', () => {
-      const container = withContainer((ssrContainer) => {
+    it('should serialize non-standard objects', async () => {
+      const container = await withContainer((ssrContainer) => {
         const obj = { null: null, undefined: undefined };
         expect(ssrContainer.addRoot(null)).toBe(0);
         expect(ssrContainer.addRoot(undefined)).toBe(1);
@@ -196,7 +200,6 @@ describe('serializer v2', () => {
         ).toBe(3);
       });
       const obj = container.$getObjectById$(2);
-      expect(isDeserializerProxy(obj)).toBe(true);
       expect(container.$getObjectById$(0)).toEqual(null);
       expect(container.$getObjectById$(1)).toBe(undefined);
       expect(obj).toEqual({ null: null, undefined: undefined });
@@ -208,9 +211,9 @@ describe('serializer v2', () => {
       ]);
     });
 
-    it('should de-dup long strings', () => {
+    it('should de-dup long strings', async () => {
       const str = new Array(100).fill('a').join('');
-      const container = withContainer((ssrContainer) => {
+      const container = await withContainer((ssrContainer) => {
         expect(ssrContainer.addRoot(str)).toBe(0);
         expect(ssrContainer.addRoot({ a: str, b: str })).toBe(1);
       });
@@ -222,96 +225,157 @@ describe('serializer v2', () => {
       expect(container.$getObjectById$(1)).toEqual({ a: str, b: str });
     });
 
-    describe('UndefinedSerializer, ///// ' + SerializationConstant.UNDEFINED_CHAR, () => {
-      it('should serialize and deserialize', () => {
-        const obj = undefined;
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+    describe('ReferenceSerializer, ///// ' + TypeIds.RootRef, () => {
+      it('should serialize and deserialize', async () => {
+        const obj1 = {};
+        const obj2 = { obj1 };
+        const c = await withContainer((ssr) => {
+          ssr.addRoot(obj1);
+          ssr.addRoot(obj2);
+        });
+        expect(c.$getObjectById$(1).obj1).toBe(c.$getObjectById$(0));
       });
     });
 
-    describe('ReferenceSerializer, ///// ' + SerializationConstant.REFERENCE_CHAR, () => {
-      it.todo('should serialize and deserialize', () => {
-        ///
+    describe('ConstantSerializer, ////// ' + TypeIds.Constant, async () => {
+      it('should serialize and deserialize', async () => {
+        const obj = [undefined, null, true, false, NaN, -Infinity, +Infinity, Slot, Fragment];
+        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
     });
 
-    describe('URLSerializer, /////////// ' + SerializationConstant.URL_CHAR, () => {
-      it('should serialize and deserialize', () => {
+    describe('URLSerializer, /////////// ' + TypeIds.URL, () => {
+      it('should serialize and deserialize', async () => {
         const obj = new URL('http://server/path#hash');
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
     });
 
-    describe('DateSerializer, ////////// ' + SerializationConstant.Date_CHAR, () => {
-      it('should serialize and deserialize', () => {
+    describe('DateSerializer, ////////// ' + TypeIds.Date, () => {
+      it('should serialize and deserialize', async () => {
         const obj = new Date();
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
     });
 
-    describe('RegexSerializer, ///////// ' + SerializationConstant.Regex_CHAR, () => {
-      it('should serialize and deserialize', () => {
+    describe('RegexSerializer, ///////// ' + TypeIds.Regex, () => {
+      it('should serialize and deserialize', async () => {
         const obj = /abc/gim;
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
     });
 
-    describe('StringSerializer, //////// ' + SerializationConstant.String_CHAR, () => {
-      it('should serialize and deserialize', () => {
+    describe('StringSerializer, //////// ' + TypeIds.String, () => {
+      it('should serialize and deserialize', async () => {
         const obj = '\u0010anything';
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
 
-      it('should serialize and deserialize strings in array', () => {
+      it('should serialize and deserialize strings in array', async () => {
         const obj = ['\b: backspace'];
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
     });
 
-    describe('VNodeSerializer, ///////// ' + SerializationConstant.VNode_CHAR, () => {
-      it.todo('should serialize and deserialize', () => {
+    describe('VNodeSerializer, ///////// ' + TypeIds.VNode, () => {
+      it.todo('should serialize and deserialize', async () => {
         ///
       });
     });
 
-    describe('NotFinite, /////////////// ' + SerializationConstant.NotFinite_CHAR, () => {
-      it('should serialize and deserialize', () => {
-        const obj = Number.NaN;
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
-      });
-      it('should serialize and deserialize positive', () => {
-        const obj = Infinity;
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
-      });
-      it('should serialize and deserialize negative', () => {
-        const obj = -Infinity;
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
-      });
-    });
-
-    describe('BigIntSerializer, //////// ' + SerializationConstant.BigInt_CHAR, () => {
-      it('should serialize and deserialize', () => {
+    describe('BigIntSerializer, //////// ' + TypeIds.BigInt, () => {
+      it('should serialize and deserialize', async () => {
         const obj = BigInt('12345678901234567890');
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
     });
 
-    describe('URLSearchParamsSerializer, ' + SerializationConstant.URLSearchParams_CHAR, () => {
-      it('should serialize and deserialize', () => {
+    describe('URLSearchParamsSerializer, ' + TypeIds.URLSearchParams, () => {
+      it('should serialize and deserialize', async () => {
         const obj = new URLSearchParams('a=1&b=2');
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
     });
 
-    describe('ErrorSerializer, ///////// ' + SerializationConstant.Error_CHAR, () => {
-      it('should serialize and deserialize', () => {
+    describe('ErrorSerializer, ///////// ' + TypeIds.Error, () => {
+      it('should serialize and deserialize', async () => {
         const obj = Object.assign(new Error('MyError'), { extra: 'property' });
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
     });
 
-    describe('QRLSerializer, /////////// ' + SerializationConstant.QRL_CHAR, () => {
-      it('should serialize and deserialize', () => {
+    describe('PromiseSerializer, /////// ' + TypeIds.Promise, () => {
+      it('should serialize and deserialize', async () => {
+        const obj1 = Promise.resolve('test');
+        const obj2 = Promise.reject(new Error('test'));
+        const result = (await withContainer((ssr) => ssr.addRoot([obj1, obj2]))).$getObjectById$(0);
+        expect(result).toEqual([obj1, obj2]);
+        expect(await result[0]).toBe('test');
+        await expect(result[1]).rejects.toThrowError('test');
+      });
+    });
+
+    describe('SetSerializer, /////////// ' + TypeIds.Set, () => {
+      it('should serialize and deserialize', async () => {
+        const obj = new Set(['a', 'b', 'c']);
+        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
+      });
+      it('should dedup internal state', async () => {
+        const a = { a: 'A' };
+        const b = { b: 'B', a: a };
+        const c = { c: 'C', a: a, b: b };
+        const obj = new Set([a, b, c]);
+        const value: Set<any> = (await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0);
+        expect(value).toEqual(obj);
+        const [valueA, valueB, valueC] = Array.from(value.values());
+        expect(valueB.a).toBe(valueA);
+        expect(valueC.a).toBe(valueA);
+        expect(valueC.b).toBe(valueB);
+      });
+    });
+
+    describe('MapSerializer, /////////// ' + TypeIds.Map, () => {
+      it('should serialize and deserialize', async () => {
+        const obj = new Map([
+          ['a', 1],
+          ['b', 3],
+          ['c', 4],
+        ]);
+        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
+      });
+      it('should dedup internal state', async () => {
+        const a = { a: 'A' };
+        const b = { b: 'B', a: a };
+        const c = { c: 'C', a: a, b: b };
+        const obj = new Map<string, any>([
+          ['a', a],
+          ['b', b],
+          ['c', c],
+        ]);
+        const value: Map<string, any> = (
+          await withContainer((ssr) => ssr.addRoot(obj))
+        ).$getObjectById$(0);
+        expect(value).toEqual(obj);
+        const [valueA, valueB, valueC] = Array.from(value.values());
+        expect(valueB.a).toBe(valueA);
+        expect(valueC.a).toBe(valueA);
+        expect(valueC.b).toBe(valueB);
+      });
+    });
+    describe('Uint8Serializer, ///////// ' + TypeIds.Uint8Array, () => {
+      it('should serialize and deserialize', async () => {
+        const obj = new Uint8Array([1, 2, 3, 4, 5, 0]);
+        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
+      });
+      it('should handle large arrays', async () => {
+        const obj = new Uint8Array(Math.floor(Math.random() * 65530 + 1));
+        crypto.getRandomValues(obj);
+        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
+      });
+    });
+
+    describe('QRLSerializer, /////////// ' + TypeIds.QRL, () => {
+      it('should serialize and deserialize', async () => {
         const testFn = () => 'test';
         const obj: QRLInternal[] = [
           // $(testFn) as QRLInternal,
@@ -319,7 +383,9 @@ describe('serializer v2', () => {
           qrl('chunk.js', 's_123', ['Hello', 'World']) as QRLInternal,
           inlinedQrl(testFn, 's_inline', ['Hello']) as QRLInternal,
         ];
-        const [qrl0, qrl1, qrl2] = withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0);
+        const [qrl0, qrl1, qrl2] = (await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(
+          0
+        );
         expect(qrl0.$hash$).toEqual(obj[0].$hash$);
         expect(qrl0.$captureRef$).toEqual(obj[0].$captureRef$);
         expect(qrl0._devOnlySymbolRef).toEqual((obj[0] as any)._devOnlySymbolRef);
@@ -334,22 +400,22 @@ describe('serializer v2', () => {
       });
     });
 
-    describe('TaskSerializer, ////////// ' + SerializationConstant.Task_CHAR, () => {
-      it.todo('should serialize and deserialize', () => {
+    describe('TaskSerializer, ////////// ' + TypeIds.Task, () => {
+      it.todo('should serialize and deserialize', async () => {
         ///
       });
     });
 
-    describe('ResourceSerializer, ////// ' + SerializationConstant.Resource_CHAR, () => {
-      it.todo('should serialize and deserialize', () => {
+    describe('ResourceSerializer, ////// ' + TypeIds.Resource, () => {
+      it.todo('should serialize and deserialize', async () => {
         ///
       });
     });
 
-    describe('ComponentSerializer, ///// ' + SerializationConstant.Component_CHAR, () => {
-      it('should serialize and deserialize', () => {
+    describe('ComponentSerializer, ///// ' + TypeIds.Component, () => {
+      it('should serialize and deserialize', async () => {
         const obj = component$(() => <div />);
-        const container = withContainer((ssr) => ssr.addRoot(obj));
+        const container = await withContainer((ssr) => ssr.addRoot(obj));
         const [srcQrl] = (obj as any)[SERIALIZABLE_STATE];
         const [dstQrl] = container.$getObjectById$(0)[SERIALIZABLE_STATE];
         expect(dstQrl.$hash$).toEqual(srcQrl.$hash$);
@@ -360,40 +426,51 @@ describe('serializer v2', () => {
       });
     });
 
-    describe('WrappedSignalSerializer, / ' + SerializationConstant.WrappedSignal_CHAR, () => {
-      it.todo('should serialize and deserialize', () => {
+    describe('SignalSerializer, //////// ' + TypeIds.Signal, () => {
+      it.todo('should serialize and deserialize', async () => {
         ///
       });
     });
 
-    describe('SignalSerializer, //////// ' + SerializationConstant.Signal_CHAR, () => {
-      it.todo('should serialize and deserialize', () => {
+    describe('WrappedSignalSerializer, / ' + TypeIds.WrappedSignal, () => {
+      it.todo('should serialize and deserialize', async () => {
         ///
       });
     });
 
-    describe('SignalWrapperSerializer, / ' + SerializationConstant.ComputedSignal_CHAR, () => {
-      it.todo('should serialize and deserialize', () => {
-        ///
+    describe('ComputedSignalSerializer,  ' + TypeIds.ComputedSignal, () => {
+      it('should serialize and deserialize', async () => {
+        const signal = createSignal('test');
+        const computed = createComputed$(() => signal.value + '!');
+        const container = await withContainer((ssr) => {
+          ssr.addRoot(computed);
+        });
+        const got = container.$getObjectById$(0);
+        expect(got).toMatchInlineSnapshot(`
+          {
+            "value": Symbol(invalid),
+          }
+        `);
+        expect(got.value).toBe('test!');
       });
     });
 
-    describe('FormDataSerializer, ////// ' + SerializationConstant.FormData_CHAR, () => {
-      it('should serialize and deserialize', () => {
+    describe('FormDataSerializer, ////// ' + TypeIds.FormData, () => {
+      it('should serialize and deserialize', async () => {
         const obj = new FormData();
         obj.append('someKey', 'someValue');
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
     });
 
-    describe('JSXNodeSerializer, /////// ' + SerializationConstant.JSXNode_CHAR, () => {
-      it('should serialize and deserialize', () => {
+    describe('JSXNodeSerializer, /////// ' + TypeIds.JSXNode, () => {
+      it('should serialize and deserialize', async () => {
         const obj = (
           <>
             Hello World <Slot />
           </>
         ) as JSXNodeImpl<any>;
-        const result = withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(
+        const result = (await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(
           0
         ) as JSXNodeImpl<any>;
         // be explicit about the contents so we don't check internal details
@@ -407,85 +484,21 @@ describe('serializer v2', () => {
       });
     });
 
-    describe('SetSerializer, /////////// ' + SerializationConstant.Set_CHAR, () => {
-      it('should serialize and deserialize', () => {
-        const obj = new Set(['a', 'b', 'c']);
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
-      });
-      it('should dedup internal state', () => {
-        const a = { a: 'A' };
-        const b = { b: 'B', a: a };
-        const c = { c: 'C', a: a, b: b };
-        const obj = new Set([a, b, c]);
-        const value: Set<any> = withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0);
-        expect(value).toEqual(obj);
-        const [valueA, valueB, valueC] = Array.from(value.values());
-        expect(valueB.a).toBe(valueA);
-        expect(valueC.a).toBe(valueA);
-        expect(valueC.b).toBe(valueB);
-      });
-    });
-
-    describe('MapSerializer, /////////// ' + SerializationConstant.Map_CHAR, () => {
-      it('should serialize and deserialize', () => {
-        const obj = new Map([
-          ['a', 1],
-          ['b', 3],
-          ['c', 4],
-        ]);
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
-      });
-      it('should dedup internal state', () => {
-        const a = { a: 'A' };
-        const b = { b: 'B', a: a };
-        const c = { c: 'C', a: a, b: b };
-        const obj = new Map<string, any>([
-          ['a', a],
-          ['b', b],
-          ['c', c],
-        ]);
-        const value: Map<string, any> = withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0);
-        expect(value).toEqual(obj);
-        const [valueA, valueB, valueC] = Array.from(value.values());
-        expect(valueB.a).toBe(valueA);
-        expect(valueC.a).toBe(valueA);
-        expect(valueC.b).toBe(valueB);
-      });
-    });
-
-    describe('PromiseSerializer, /////// ' + SerializationConstant.Promise_CHAR, () => {
-      it.todo('should serialize and deserialize', () => {
-        ///
-      });
-    });
-
-    describe('Uint8Serializer, ///////// ' + SerializationConstant.Uint8Array_CHAR, () => {
-      it('should serialize and deserialize', () => {
-        const obj = new Uint8Array([1, 2, 3, 4, 5, 0]);
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
-      });
-      it('should handle large arrays', () => {
-        const obj = new Uint8Array(Math.floor(Math.random() * 65530 + 1));
-        crypto.getRandomValues(obj);
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
-      });
-    });
-
-    describe('PropsProxySerializer, //// ' + SerializationConstant.PropsProxy_CHAR, () => {
-      it('should serialize and deserialize', () => {
+    describe('PropsProxySerializer, //// ' + TypeIds.PropsProxy, () => {
+      it('should serialize and deserialize', async () => {
         const obj = createPropsProxy({ number: 1, text: 'abc' }, { n: 2, t: 'test' });
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
-      it('should serialize and deserialize with null const props', () => {
+      it('should serialize and deserialize with null const props', async () => {
         const obj = createPropsProxy({ number: 1, text: 'abc' }, null);
-        expect(withContainer((ssr) => ssr.addRoot(obj)).$getObjectById$(0)).toEqual(obj);
+        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
     });
 
     describe('DocumentSerializer, //////', () => {
-      it('should serialize and deserialize', () => {
+      it('should serialize and deserialize', async () => {
         const obj = new SsrNode(null, SsrNode.DOCUMENT_NODE, '', [], []);
-        const container = withContainer((ssr) => ssr.addRoot(obj));
+        const container = await withContainer((ssr) => ssr.addRoot(obj));
         expect(container.$getObjectById$(0)).toEqual(container.element.ownerDocument);
       });
     });
@@ -496,8 +509,8 @@ describe('serializer v2', () => {
   });
 
   describe('element nesting rules', () => {
-    it('should throw when incorrectly nested elements', () => {
-      expect(() =>
+    it('should throw when incorrectly nested elements', async () => {
+      await expect(() =>
         withContainer(
           (ssr) => {
             ssr.openElement('body', []);
@@ -508,7 +521,7 @@ describe('serializer v2', () => {
           },
           { containerTag: 'html' }
         )
-      ).toThrowError(
+      ).rejects.toThrowError(
         [
           `SsrError(tag): HTML rules do not allow '<div>' at this location.`,
           `  (The HTML parser will try to recover by auto-closing or inserting additional tags which will confuse Qwik when it resumes.)`,
@@ -522,14 +535,14 @@ describe('serializer v2', () => {
         ].join('\n')
       );
     });
-    it('should throw when adding content to empty elements', () => {
-      expect(() =>
+    it('should throw when adding content to empty elements', async () => {
+      await expect(() =>
         withContainer((ssr) => {
           ssr.openElement('img', []);
           ssr.openFragment([]);
           ssr.openElement('div', []);
         })
-      ).toThrowError(
+      ).rejects.toThrowError(
         [
           `SsrError(tag): HTML rules do not allow '<div>' at this location.`,
           `  (The HTML parser will try to recover by auto-closing or inserting additional tags which will confuse Qwik when it resumes.)`,
@@ -544,16 +557,16 @@ describe('serializer v2', () => {
   });
 });
 
-function withContainer(
+async function withContainer(
   ssrFn: (ssrContainer: SSRContainer) => void,
   opts: { containerTag?: string } = {}
-): ClientContainer {
+): Promise<ClientContainer> {
   const ssrContainer: SSRContainer = ssrCreateContainer({
     tagName: opts.containerTag || 'div',
   });
   ssrContainer.openContainer();
   ssrFn(ssrContainer);
-  ssrContainer.closeContainer();
+  await ssrContainer.closeContainer();
   const html = ssrContainer.writer.toString();
   // console.log(html);
   const container = getDomContainer(toDOM(html));
@@ -561,7 +574,7 @@ function withContainer(
   return container;
 }
 
-function toHTML(jsx: JSXOutput): string {
+async function toHTML(jsx: JSXOutput): Promise<string> {
   const ssrContainer = ssrCreateContainer({ tagName: 'div' });
   ssrContainer.openContainer();
   walkJSX(jsx, {
@@ -604,7 +617,7 @@ function toHTML(jsx: JSXOutput): string {
     },
     text: (text) => ssrContainer.textNode(String(text)),
   });
-  ssrContainer.closeContainer();
+  await ssrContainer.closeContainer();
   const html = ssrContainer.writer.toString();
   // console.log(html);
   return html;

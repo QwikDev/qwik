@@ -10,6 +10,7 @@ export interface DeserializeContainer {
   $getObjectById$: (id: number | string) => unknown;
   element: HTMLElement | null;
   getSyncFn: (id: number) => (...args: unknown[]) => unknown;
+  $state$?: unknown[];
 }
 
 export interface Container {

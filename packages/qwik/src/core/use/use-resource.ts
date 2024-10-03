@@ -396,8 +396,6 @@ export const runResource = <T>(
         resource._state = 'resolved';
         resource._resolved = value as T;
         resource._error = undefined;
-        // console.log('RESOURCE.resolved: ', value);
-
         resolve(value as T);
       } else {
         done = true;

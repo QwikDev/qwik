@@ -28,7 +28,15 @@ describe.each([
   it('should update value', async () => {
     const Counter = component$((props: { initial: number }) => {
       const count = useSignal(props.initial);
-      return <button onClick$={() => count.value++}>Count: {count.value}!</button>;
+      return (
+        <button
+          onClick$={() => {
+            count.value++;
+          }}
+        >
+          Count: {count.value}!
+        </button>
+      );
     });
 
     const { vNode, container } = await render(<Counter initial={123} />, { debug });

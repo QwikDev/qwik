@@ -73,7 +73,7 @@ export const createQRL = <TYPE>(
   symbol: string,
   symbolRef: null | ValueOrPromise<TYPE>,
   symbolFn: null | (() => Promise<Record<string, TYPE>>),
-  capture: null | Readonly<string[]>,
+  capture: null | Readonly<number[]>,
   captureRef: Readonly<unknown[]> | null,
   refSymbol: string | null
 ): QRLInternal<TYPE> => {

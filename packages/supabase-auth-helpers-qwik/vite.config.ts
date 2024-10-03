@@ -1,4 +1,4 @@
-import { qwikVite } from '@builder.io/qwik/optimizer';
+import { qwikVite } from '@qwik.dev/core/optimizer';
 import { defineConfig } from 'vite';
 import pkg from './package.json';
 
@@ -15,9 +15,9 @@ export default defineConfig((config) => {
       },
       rollupOptions: {
         external: [
-          '@builder.io/qwik',
-          '@builder.io/qwik-city',
-          '@builder.io/qwik/build',
+          '@qwik.dev/core',
+          '@qwik.dev/city',
+          '@qwik.dev/core/build',
           '@supabase/supabase-js',
           '@supabase/auth-helpers-shared',
         ],

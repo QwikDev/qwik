@@ -68,7 +68,7 @@ export async function setReleaseVersion(config: BuildConfig) {
 
   console.log(`🔥 Set release npm version: ${config.distVersion}`);
 
-  // check this @builder.io/qwik version isn't already published
+  // check this @qwik.dev/core version isn't already published
   await checkExistingNpmVersion('@qwik.dev/core', config.distVersion);
 
   // check this @qwik.dev/city version isn't already published
@@ -167,7 +167,7 @@ export async function publish(config: BuildConfig) {
   // publish @qwik.dev/city (dry-run)
   await run('npm', npmPublishArgs, true, true, { cwd: qwikCityDir });
 
-  // publish @builder.io/qwik (dry-run)
+  // publish @qwik.dev/core (dry-run)
   await run('npm', npmPublishArgs, true, true, { cwd: qwikDir });
 
   // looks like the npm publish --dry-run was successful and

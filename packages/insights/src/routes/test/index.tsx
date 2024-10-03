@@ -1,4 +1,4 @@
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { AppLink } from '~/routes.config';
 
 export default component$(() => {

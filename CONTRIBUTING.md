@@ -210,7 +210,7 @@ It will build **everything**, including Rust packages and WASM.
 pnpm build.full
 ```
 
-The build output will be written to `packages/qwik/dist`, which will be the directory that is published to [@builder.io/qwik](https://www.npmjs.com/package/@builder.io/qwik).
+The build output will be written to `packages/qwik/dist`, which will be the directory that is published to [@qwik.dev/core](https://www.npmjs.com/package/@qwik.dev/core).
 
 ### Run in your own app:
 
@@ -240,21 +240,21 @@ To use your build in your project, follow these steps:
 
    ```shell
     pnpm install
-    pnpm link --global @builder.io/qwik @qwik.dev/city
+    pnpm link --global @builder.io/qwik @qwik.dev/core
    ```
 
    or
 
    ```shell
    npm install
-   npm link @builder.io/qwik @qwik.dev/city
+   npm link @builder.io/qwik-city @qwik.dev/city
    ```
 
    or
 
    ```shell
     yarn install
-    yarn link @builder.io/qwik @qwik.dev/city
+    yarn link @builder.io/qwik-city @qwik.dev/city
    ```
 
 If you can't use package linking (npm link) just copy the contents of `packages/qwik/dist` into your projects' `node_modules/@qwik.dev/core` folder, and/or the contents of `packages/qwik-city/lib` into your projects' `node_modules/@qwik.dev/city` folder.

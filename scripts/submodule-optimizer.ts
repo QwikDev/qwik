@@ -1,10 +1,4 @@
-import { platformArchTriples } from '@napi-rs/triples';
 import { build, type BuildOptions } from 'esbuild';
-import RawPlugin from 'esbuild-plugin-raw';
-import { constants, existsSync } from 'node:fs';
-import { join } from 'node:path';
-import { minify } from 'terser';
-import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
 import {
   access,
   type BuildConfig,
@@ -14,6 +8,12 @@ import {
   target,
   writeFile,
 } from './util';
+import { join } from 'node:path';
+import { minify } from 'terser';
+import { platformArchTriples } from '@napi-rs/triples';
+import { constants, existsSync } from 'node:fs';
+import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
+import RawPlugin from 'esbuild-plugin-raw';
 
 /** Builds @builder.io/optimizer */
 export async function submoduleOptimizer(config: BuildConfig) {

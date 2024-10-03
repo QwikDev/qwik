@@ -1,4 +1,4 @@
-import { component$, useStore, useComputed$, type QwikMouseEvent } from '@builder.io/qwik';
+import { component$, useStore, useComputed$, type QwikMouseEvent } from '@qwik.dev/core';
 import { vectorMax, type Bucket } from '~/stats/vector';
 
 const height = 75;

@@ -1,5 +1,5 @@
-import { type ReadonlySignal, component$ } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { type ReadonlySignal, component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/city';
 import { getDB } from '~/db';
 import { type OutgoingEdge, dbGetOutgoingEdges } from '~/db/sql-edges';
 import { BUCKETS, vectorSum } from '~/stats/vector';

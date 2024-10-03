@@ -1,4 +1,4 @@
-import { type RequestHandler } from '@builder.io/qwik-city';
+import { type RequestHandler } from '@qwik.dev/city';
 import { getDB, errorTable } from '~/db';
 import { InsightsError } from '@builder.io/qwik-labs';
 

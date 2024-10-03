@@ -73,9 +73,9 @@ const _loadDependencies = async (replOptions: ReplInputOptions) => {
   if (!isSameQwikVersion(self.qwikCore?.version)) {
     await exec(QWIK_PKG_NAME, '/core.cjs');
     if (self.qwikCore) {
-      console.debug(`Loaded @builder.io/qwik: ${self.qwikCore.version}`);
+      console.debug(`Loaded @qwik.dev/core: ${self.qwikCore.version}`);
     } else {
-      throw new Error(`Unable to load @builder.io/qwik ${qwikVersion}`);
+      throw new Error(`Unable to load @qwik.dev/core ${qwikVersion}`);
     }
   }
 

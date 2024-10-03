@@ -7,7 +7,7 @@ import { StoreFlags, createStore } from '../signal/store';
 import { createResourceReturn } from '../use/use-resource';
 import { Task } from '../use/use-task';
 import { inlinedQrl } from './qrl/qrl';
-import { isQrl, type QRLInternal } from './qrl/qrl-class';
+import { createQRL, isQrl, type QRLInternal } from './qrl/qrl-class';
 import {
   TypeIds,
   _constants,
@@ -721,6 +721,26 @@ describe('shared-serialization', () => {
         ]
         (51 chars)"
       `);
+    });
+    it('should dedupe function sub-data', async () => {
+      const objs = await serialize(
+        [shared1],
+        createQRL(null, 'foo', 123, null, null, [shared1], null)
+      );
+      expect(dumpState(objs)).toMatchInlineSnapshot(`
+        "
+        0 Array [
+          RootRef 2
+        ]
+        1 QRL "mock-chunk#foo[2]"
+        2 Object [
+          String "shared"
+          Number 1
+        ]
+        (52 chars)"
+      `);
+      // make sure shared1 is only serialized once
+      expect(objs[1]).toEqual([TypeIds.RootRef, 2]);
     });
   });
 

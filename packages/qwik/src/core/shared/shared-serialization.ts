@@ -766,24 +766,32 @@ export const createSerializationContext = (
 
     /** Visit an object, adding anything that will be serialized as to scan */
     const visit = (obj: unknown) => {
-      if (
+      if (typeof obj === 'function') {
+        if (isQrl(obj)) {
+          if (obj.$captureRef$) {
+            discoveredValues.push(...obj.$captureRef$);
+          }
+        } else if (isQwikComponent(obj)) {
+          const [qrl]: [QRLInternal] = (obj as any)[SERIALIZABLE_STATE];
+          discoveredValues.push(qrl);
+        }
+      } else if (
         // skip as these are primitives
         typeof obj !== 'object' ||
         obj === null ||
         obj instanceof URL ||
         obj instanceof Date ||
         obj instanceof RegExp ||
-        obj instanceof Error ||
-        obj instanceof Date ||
         obj instanceof Uint8Array ||
         obj instanceof URLSearchParams ||
         (typeof FormData !== 'undefined' && obj instanceof FormData) ||
         // Ignore the no serialize objects
         fastSkipSerialize(obj as object)
       ) {
-        return;
-      }
-      if (isStore(obj)) {
+        // ignore
+      } else if (obj instanceof Error) {
+        discoveredValues.push(...Object.values(obj));
+      } else if (isStore(obj)) {
         discoveredValues.push(getStoreTarget(obj));
         discoveredValues.push(getStoreHandler(obj)!.$effects$);
       } else if (obj instanceof Set) {
@@ -932,16 +940,16 @@ function serialize(serializationContext: SerializationContext): void {
     } else if (typeof value === 'boolean') {
       output(TypeIds.Constant, value ? Constants.True : Constants.False);
     } else if (typeof value === 'function') {
-      if (isQrl(value)) {
+      if (value === Slot) {
+        output(TypeIds.Constant, Constants.Slot);
+      } else if (value === Fragment) {
+        output(TypeIds.Constant, Constants.Fragment);
+      } else if (isQrl(value)) {
         output(TypeIds.QRL, qrlToString(serializationContext, value));
       } else if (isQwikComponent(value)) {
         const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];
         serializationContext.$renderSymbols$.add(qrl.$symbol$);
         output(TypeIds.Component, [qrl]);
-      } else if (value === Slot) {
-        output(TypeIds.Constant, Constants.Slot);
-      } else if (value === Fragment) {
-        output(TypeIds.Constant, Constants.Fragment);
       } else {
         // TODO this happens for inline components with render props like Resource
         console.error('Cannot serialize function (ignoring for now): ' + value.toString());
@@ -976,7 +984,7 @@ function serialize(serializationContext: SerializationContext): void {
       if (value.length === 0) {
         output(TypeIds.Constant, Constants.EmptyString);
       } else {
-        // TODO reuse DOM text
+        // Note, in v1 we were reusing DOM text, but that is too dangerous with translation extensions changing the text
         const seen = depth > 1 && serializationContext.$wasSeen$(value);
         if (typeof seen === 'number' && seen >= 0) {
           output(TypeIds.RootRef, seen);

@@ -159,7 +159,15 @@ describe.each([
         useTask$(({ track }) => {
           double.value = 2 * track(() => count.value);
         });
-        return <button onClick$={() => count.value++}>{double.value}</button>;
+        return (
+          <button
+            onClick$={() => {
+              count.value++;
+            }}
+          >
+            {double.value}
+          </button>
+        );
       });
 
       const { vNode, document } = await render(<Counter />, { debug });

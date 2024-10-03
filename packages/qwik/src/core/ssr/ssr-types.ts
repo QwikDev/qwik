@@ -57,7 +57,7 @@ export interface SSRContainer extends Container {
   unclaimedProjectionComponentFrameQueue: ISsrComponentFrame[];
 
   openContainer(): void;
-  closeContainer(): void;
+  closeContainer(): ValueOrPromise<void>;
 
   openElement(
     elementName: string,

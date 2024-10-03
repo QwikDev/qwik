@@ -1,5 +1,7 @@
 import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
-  return <p>Hello Qwik</p>;
+  return (<div>
+    Hello from Qwik!
+  </div>);
 });

@@ -59,7 +59,7 @@ describe('mdx', () => {
       }
 
       const WrappedMdxContent = () => {
-        return _jsxSorted(RenderOnce, null, null, _jsxSorted(_createMdxContent, null, null, null, 3, null), 3, "eB2HIyA1");
+        return _jsxSorted(RenderOnce, null, null, _jsxSorted(_createMdxContent, null, null, null, 3, null), 3, "TFua52vT");
       };
       export default WrappedMdxContent;
       ",

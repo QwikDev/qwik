@@ -1,14 +1,8 @@
+import { getBanner, importPath, nodeTarget, target } from './util';
 import { build, type BuildOptions } from 'esbuild';
+import { type BuildConfig, type PackageJSON } from './util';
 import { join } from 'node:path';
 import { writePackageJson } from './package-json';
-import {
-  getBanner,
-  importPath,
-  nodeTarget,
-  target,
-  type BuildConfig,
-  type PackageJSON,
-} from './util';
 
 /** Builds @builder.io/testing */
 export async function submoduleTesting(config: BuildConfig) {

@@ -15,7 +15,7 @@
   },
   "overrides": {
     "@builder.io/qwik": "npm:@qwik.dev/core",
-    "@qwik.dev/city": "npm:@qwik.dev/city"
+    "@builder.io/qwik-city": "npm:@qwik.dev/city"
   },
   "devDependencies": {
     "@qwik.dev/core": "workspace:^",

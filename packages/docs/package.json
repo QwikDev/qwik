@@ -6,12 +6,14 @@
   "bugs": "https://github.com/QwikDev/qwik",
   "overrides": {
     "@builder.io/qwik": "npm:@qwik.dev/core",
-    "@qwik.dev/city": "npm:@qwik.dev/city"
+    "@builder.io/qwik-city": "npm:@qwik.dev/city"
   },
   "devDependencies": {
     "@algolia/autocomplete-core": "1.7.4",
     "@algolia/client-search": "4.14.3",
     "@builder.io/partytown": "0.10.2",
+    "@builder.io/qwik": "1.9.0",
+    "@builder.io/qwik-city": "1.9.0",
     "@qwik.dev/core": "workspace:^",
     "@qwik.dev/city": "workspace:^",
     "@qwik.dev/react": "workspace:^",
@@ -44,7 +46,7 @@
     "prism-themes": "1.9.0",
     "prismjs": "1.29.0",
     "puppeteer": "22.13.1",
-    "qwik-image": "0.0.14-alpha",
+    "qwik-image": "0.0.15",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "rehype-pretty-code": "0.11.0",

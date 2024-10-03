@@ -240,21 +240,21 @@ To use your build in your project, follow these steps:
 
    ```shell
     pnpm install
-    pnpm link --global @builder.io/qwik @qwik.dev/core
+    pnpm link --global @qwik.dev/core @qwik.dev/city
    ```
 
    or
 
    ```shell
    npm install
-   npm link @builder.io/qwik-city @qwik.dev/city
+   npm link @qwik.dev/core @qwik.dev/city
    ```
 
    or
 
    ```shell
     yarn install
-    yarn link @builder.io/qwik-city @qwik.dev/city
+    yarn link @qwik.dev/core @qwik.dev/city
    ```
 
 If you can't use package linking (npm link) just copy the contents of `packages/qwik/dist` into your projects' `node_modules/@qwik.dev/core` folder, and/or the contents of `packages/qwik-city/lib` into your projects' `node_modules/@qwik.dev/city` folder.

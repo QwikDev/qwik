@@ -49,6 +49,7 @@ import {
   mapArray_set,
   maybeThen,
   serializeAttribute,
+  UNWRAP_VNODE_LOCAL,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -254,7 +255,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   async render(jsx: JSXOutput) {
     this.openContainer();
     await _walkJSX(this, jsx, true, null);
-    this.closeContainer();
+    await this.closeContainer();
   }
 
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
@@ -1048,6 +1049,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
         if (key === 'ref') {
           const lastNode = this.getLastNode();
+          lastNode.setProp(UNWRAP_VNODE_LOCAL, true);
           if (isSignal(value)) {
             value.value = lastNode;
             continue;

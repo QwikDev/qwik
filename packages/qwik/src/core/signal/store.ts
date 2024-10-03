@@ -2,7 +2,7 @@ import { pad, qwikDebugToString } from '../debug';
 import { assertTrue } from '../shared/error/assert';
 import { tryGetInvokeContext } from '../use/use-core';
 import { isSerializableObject } from '../shared/utils/types';
-import { SERIALIZER_PROXY_UNWRAP, unwrapDeserializerProxy } from '../shared/shared-serialization';
+import { unwrapDeserializerProxy } from '../shared/shared-serialization';
 import type { Container } from '../shared/types';
 import {
   ensureContains,
@@ -41,8 +41,7 @@ export const unwrapStore = <T>(value: T): T => {
 };
 
 export const isStore = (value: TargetType): boolean => {
-  const unwrap = unwrapStore(value);
-  return unwrap !== value;
+  return STORE_TARGET in value;
 };
 
 export function createStore<T extends object>(
@@ -88,13 +87,6 @@ export class StoreHandler implements ProxyHandler<TargetType> {
       }
       if (prop === STORE_HANDLER) {
         return this;
-      }
-      if (prop === SERIALIZER_PROXY_UNWRAP) {
-        // SERIALIZER_PROXY_UNWRAP is used by v2 serialization to unwrap proxies.
-        // Our target may be a v2 serialization proxy so if we let it through
-        // we will return the naked object which removes ourselves,
-        // and that is not the intention so prevent of SERIALIZER_PROXY_UNWRAP.
-        return undefined;
       }
       return target[prop];
     }

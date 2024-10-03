@@ -62,29 +62,29 @@ describe('serialization', () => {
       $symbol$: 's1',
       $capture$: null,
     });
-    matchProps(parseQRL('./chunk#s1[1 b]'), {
+    matchProps(parseQRL('./chunk#s1[1 2]'), {
       $chunk$: './chunk',
       $symbol$: 's1',
-      $capture$: ['1', 'b'],
+      $capture$: [1, 2],
     });
-    matchProps(parseQRL('./chunk#s1[1 b]'), {
+    matchProps(parseQRL('./chunk#s1[1 2]'), {
       $chunk$: './chunk',
       $symbol$: 's1',
-      $capture$: ['1', 'b'],
+      $capture$: [1, 2],
     });
-    matchProps(parseQRL('./chunk#s1[1 b]'), {
+    matchProps(parseQRL('./chunk#s1[1 2]'), {
       $chunk$: './chunk',
       $symbol$: 's1',
-      $capture$: ['1', 'b'],
+      $capture$: [1, 2],
     });
-    matchProps(parseQRL('./chunk[1 b]'), {
+    matchProps(parseQRL('./chunk[1 2]'), {
       $chunk$: './chunk',
-      $capture$: ['1', 'b'],
+      $capture$: [1, 2],
     });
     matchProps(parseQRL('./path#symbol[2]'), {
       $chunk$: './path',
       $symbol$: 'symbol',
-      $capture$: ['2'],
+      $capture$: [2],
     });
     matchProps(
       parseQRL(
@@ -93,7 +93,7 @@ describe('serialization', () => {
       {
         $chunk$: '/src/path%2d/foo_symbol.js?_qrl_parent=/home/user/project/src/path/foo.js',
         $symbol$: 'symbol',
-        $capture$: ['2'],
+        $capture$: [2],
       }
     );
   });
@@ -101,6 +101,7 @@ describe('serialization', () => {
   test('serialize qrls', () => {
     const serializationContext = createSerializationContext(
       null,
+      () => '',
       () => '',
       () => {}
     );

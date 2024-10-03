@@ -1,4 +1,4 @@
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { _fnSignal, _wrapProp } from '../internal';
 import { EffectData, type Signal } from '../signal/signal';

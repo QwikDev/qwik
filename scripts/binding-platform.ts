@@ -57,7 +57,7 @@ export async function copyPlatformBindingWasm(config: BuildConfig) {
 
   let buildVersion = '0.0.0';
   try {
-    const releaseDataUrl = `https://data.jsdelivr.com/v1/package/npm/@builder.io/qwik`;
+    const releaseDataUrl = `https://data.jsdelivr.com/v1/package/npm/@qwik.dev/core`;
     const releaseRsp = await fetch(releaseDataUrl);
     const releases = (await releaseRsp.json()) as any;
     buildVersion = releases.tags.latest;
@@ -94,7 +94,7 @@ export async function copyPlatformBindingWasm(config: BuildConfig) {
         const distPath = join(config.distBindingsDir, bindingFilename);
 
         if (!existsSync(cachedPath)) {
-          const cdnUrl = `https://cdn.jsdelivr.net/npm/@builder.io/qwik@${buildVersion}/bindings/${bindingFilename}`;
+          const cdnUrl = `https://cdn.jsdelivr.net/npm/@qwik.dev/core@${buildVersion}/bindings/${bindingFilename}`;
           const rsp = (await fetch(cdnUrl)) as any;
           await writeFile(cachedPath, rsp.body);
         }

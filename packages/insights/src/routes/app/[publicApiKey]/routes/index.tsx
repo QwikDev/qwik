@@ -1,5 +1,5 @@
-import { component$, type ReadonlySignal } from '@builder.io/qwik';
-import { routeLoader$, useLocation } from '@builder.io/qwik-city';
+import { component$, type ReadonlySignal } from '@qwik.dev/core';
+import { routeLoader$, useLocation } from '@qwik.dev/city';
 import { RoutesIcon } from '~/components/icons/routes';
 import { getDB } from '~/db';
 import { dbGetManifestHashes } from '~/db/sql-manifest';

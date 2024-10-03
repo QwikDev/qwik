@@ -4,6 +4,10 @@
   "version": "0.0.1",
   "author": "Builder.io Team",
   "bugs": "https://github.com/QwikDev/qwik",
+  "overrides": {
+    "@builder.io/qwik": "npm:@qwik.dev/core",
+    "@qwik.dev/city": "npm:@qwik.dev/city"
+  },
   "devDependencies": {
     "@algolia/autocomplete-core": "1.7.4",
     "@algolia/client-search": "4.14.3",

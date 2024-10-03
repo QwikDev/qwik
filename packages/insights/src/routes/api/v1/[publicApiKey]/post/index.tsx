@@ -1,4 +1,4 @@
-import { type RequestHandler } from '@builder.io/qwik-city';
+import { type RequestHandler } from '@qwik.dev/city';
 import { InsightsPayload } from '@builder.io/qwik-labs';
 import { getDB } from '~/db';
 import { getAppInfo, updateEdge, updateRoutes } from '~/db/query';

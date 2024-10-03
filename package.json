@@ -2,9 +2,9 @@
   "name": "qwik-monorepo",
   "version": "0.0.0-read-qwik-package-json",
   "comments": {
-    "01": "devDependencies includes reference to @builder.io/qwik: workspace: *. This is needed or e2e tests will fail",
+    "01": "devDependencies includes reference to @qwik.dev/core: workspace: *. This is needed or e2e tests will fail",
     "02": "  It would be nice to be able to remove this dependency and fix the test.",
-    "03": "devDependencies can't include reference to @builder.io/qwik-city or e2e test will fail."
+    "03": "devDependencies can't include reference to @qwik.dev/city or e2e test will fail."
   },
   "config": {
     "syncpack": {
@@ -88,8 +88,6 @@
   },
   "devDependencies": {
     "@builder.io/partytown": "0.10.2",
-    "@builder.io/qwik": "1.9.0",
-    "@builder.io/qwik-city": "1.9.0",
     "@changesets/cli": "2.27.7",
     "@changesets/get-github-info": "0.6.0",
     "@changesets/types": "6.0.0",

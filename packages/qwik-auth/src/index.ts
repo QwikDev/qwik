@@ -1,7 +1,7 @@
 import type { AuthConfig } from '@auth/core';
 import { Auth, skipCSRFCheck } from '@auth/core';
 import type { AuthAction, Session } from '@auth/core/types';
-import { implicit$FirstArg, type QRL } from '@builder.io/qwik';
+import { implicit$FirstArg, type QRL } from '@qwik.dev/core';
 import {
   globalAction$,
   routeLoader$,
@@ -9,8 +9,8 @@ import {
   zod$,
   type RequestEvent,
   type RequestEventCommon,
-} from '@builder.io/qwik-city';
-import { isServer } from '@builder.io/qwik/build';
+} from '@qwik.dev/city';
+import { isServer } from '@qwik.dev/core/build';
 import { parseString, splitCookiesString } from 'set-cookie-parser';
 
 export type GetSessionResult = Promise<{ data: Session | null; cookie: any }>;

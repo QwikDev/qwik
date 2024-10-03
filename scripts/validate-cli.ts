@@ -97,7 +97,7 @@ async function validateStarter(
   console.log(`${emoji} ${starterId}: npm install`);
   await execa('npm', ['install'], { cwd: appDir, stdout: 'inherit' });
 
-  // console.log(`${emoji} ${projectName}: copy @builder.io/qwik distribution`);
+  // console.log(`${emoji} ${projectName}: copy @qwik.dev/core distribution`);
   // const qwikNodeModule = join(appDir, 'node_modules', '@builder.io', 'qwik');
   // rmSync(qwikNodeModule, { force: true, recursive: true });
   // const distQwik = join(__dirname, '..', 'packages', 'qwik', 'dist');

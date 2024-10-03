@@ -3,13 +3,13 @@
 
 // prettier-ignore
 export const QWIK_BINDING_MAP = {
-  "darwin": {
-    "arm64": [
+  "linux": {
+    "x64": [
       {
-        "platform": "darwin",
-        "arch": "arm64",
-        "abi": null,
-        "platformArchABI": "qwik.darwin-arm64.node"
+        "platform": "linux",
+        "arch": "x64",
+        "abi": "gnu",
+        "platformArchABI": "qwik.linux-x64-gnu.node"
       }
     ]
   }

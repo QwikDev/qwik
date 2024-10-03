@@ -3630,7 +3630,7 @@ _(Optional)_ Options for the loading prefetch graph.
 </tbody></table>
 **Returns:**
 
-JSXNode&lt;string&gt;
+[JSXNode](#jsxnode)&lt;string&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/prefetch-service-worker/prefetch.ts)
 
@@ -3684,7 +3684,7 @@ Options for the prefetch service worker.
 </tbody></table>
 **Returns:**
 
-JSXNode&lt;'script'&gt;
+[JSXNode](#jsxnode)&lt;'script'&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/prefetch-service-worker/prefetch.ts)
 
@@ -4592,7 +4592,7 @@ opts
 
 </td><td>
 
-RenderOptions
+[RenderOptions](#renderoptions)
 
 </td><td>
 
@@ -4602,7 +4602,7 @@ _(Optional)_
 </tbody></table>
 **Returns:**
 
-Promise&lt;RenderResult&gt;
+Promise&lt;[RenderResult](#renderresult)&gt;
 
 An object containing a cleanup function.
 

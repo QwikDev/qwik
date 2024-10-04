@@ -2278,4 +2278,48 @@ describe.each([
       );
     });
   });
+
+  it('#6900 - should not execute chores for deleted nodes inside projection', async () => {
+    const Issue6900Root = component$(() => <Slot />);
+    const Issue6900Image = component$<{ src: string }>(({ src }) => src);
+
+    const Issue6900 = component$(() => {
+      const signal = useSignal<null | { url: string }>({ url: 'https://picsum.photos/200' });
+      if (!signal.value) {
+        return <p>User is not signed in</p>;
+      }
+
+      return (
+        <div>
+          <button onClick$={() => (signal.value = null)}>Sign out</button>
+          <Issue6900Root>
+            <Issue6900Image src={signal.value.url} />
+          </Issue6900Root>
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<Issue6900 />, { debug: DEBUG });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <button>Sign out</button>
+          <Component>
+            <Projection>
+              <Component>https://picsum.photos/200</Component>
+            </Projection>
+          </Component>
+        </div>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <p>User is not signed in</p>
+      </Component>
+    );
+  });
 });

@@ -1074,17 +1074,6 @@ export const vnode_diff = (
     container.setHostProp(vNewNode, OnRenderProp, componentQRL);
     container.setHostProp(vNewNode, ELEMENT_PROPS, jsxProps);
     container.setHostProp(vNewNode, ELEMENT_KEY, jsxValue.key);
-
-    // rewrite slot props to the new node
-    if (host) {
-      for (let i = vnode_getPropStartIndex(host); i < host.length; i = i + 2) {
-        const prop = host[i] as string;
-        if (isSlotProp(prop)) {
-          const value = host[i + 1];
-          container.setHostProp(vNewNode, prop, value);
-        }
-      }
-    }
   }
 
   function expectText(text: string) {
@@ -1224,7 +1213,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
       if (type & VNodeFlags.Virtual) {
         // Only virtual nodes have subscriptions
         clearVNodeEffectDependencies(vCursor);
-        markVNodeAsDeleted(vNode, vParent, vCursor);
+        markVNodeAsDeleted(vCursor);
         const seq = container.getHostProp<Array<any>>(vCursor as VirtualVNode, ELEMENT_SEQ);
         if (seq) {
           for (let i = 0; i < seq.length; i++) {
@@ -1342,21 +1331,13 @@ function cleanupStaleUnclaimedProjection(journal: VNodeJournal, projection: VNod
   }
 }
 
-function markVNodeAsDeleted(vNode: VNode, vParent: VNode | null, vCursor: VNode) {
+function markVNodeAsDeleted(vCursor: VNode) {
   /**
-   * Marks vCursor as deleted, but only if it is not a projection. We need to do this to prevent
-   * chores from running after the vnode is removed. (for example signal subscriptions)
+   * Marks vCursor as deleted. We need to do this to prevent chores from running after the vnode is
+   * removed. (for example signal subscriptions)
    */
-  if (vNode !== vCursor) {
-    vCursor[VNodeProps.flags] |= VNodeFlags.Deleted;
-  } else {
-    const currentVParent = vParent || vnode_getParent(vNode);
-    const isParentProjection =
-      currentVParent && vnode_getProp(currentVParent, QSlot, null) !== null;
-    if (!isParentProjection) {
-      vCursor[VNodeProps.flags] |= VNodeFlags.Deleted;
-    }
-  }
+
+  vCursor[VNodeProps.flags] |= VNodeFlags.Deleted;
 }
 
 /**

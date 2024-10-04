@@ -1,8 +1,7 @@
-import { verifySerializable } from '../state/common';
-import { type QContext } from '../state/context';
-import { ELEMENT_SEQ, ELEMENT_SEQ_IDX } from '../util/markers';
-import { qDev, qSerialize } from '../util/qdev';
-import type { fixMeAny, HostElement } from '../v2/shared/types';
+import { verifySerializable } from '../shared/utils/serialize-utils';
+import { ELEMENT_SEQ, ELEMENT_SEQ_IDX } from '../shared/utils/markers';
+import { qDev, qSerialize } from '../shared/utils/qdev';
+import type { HostElement } from '../shared/types';
 import { useInvokeContext, type RenderInvokeContext } from './use-core';
 
 export interface SequentialScope<T> {
@@ -13,7 +12,6 @@ export interface SequentialScope<T> {
   /** Index of the hook */
   readonly i: number;
   readonly iCtx: RenderInvokeContext;
-  readonly elCtx: QContext;
 }
 
 /**
@@ -24,16 +22,16 @@ export const useSequentialScope = <T>(): SequentialScope<T> => {
   const iCtx = useInvokeContext();
   const hostElement = iCtx.$hostElement$;
   const host: HostElement = hostElement as any;
-  let seq = iCtx.$container2$.getHostProp<any[]>(host, ELEMENT_SEQ);
+  let seq = iCtx.$container$.getHostProp<any[]>(host, ELEMENT_SEQ);
   if (seq === null) {
     seq = [];
-    iCtx.$container2$.setHostProp(host, ELEMENT_SEQ, seq);
+    iCtx.$container$.setHostProp(host, ELEMENT_SEQ, seq);
   }
-  let seqIdx = iCtx.$container2$.getHostProp<number>(host, ELEMENT_SEQ_IDX);
+  let seqIdx = iCtx.$container$.getHostProp<number>(host, ELEMENT_SEQ_IDX);
   if (seqIdx === null) {
     seqIdx = 0;
   }
-  iCtx.$container2$.setHostProp(host, ELEMENT_SEQ_IDX, seqIdx + 1);
+  iCtx.$container$.setHostProp(host, ELEMENT_SEQ_IDX, seqIdx + 1);
   while (seq.length <= seqIdx) {
     seq.push(undefined);
   }
@@ -49,5 +47,5 @@ export const useSequentialScope = <T>(): SequentialScope<T> => {
     set,
     i: seqIdx,
     iCtx,
-  } as fixMeAny;
+  };
 };

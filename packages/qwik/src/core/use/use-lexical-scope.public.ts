@@ -1,11 +1,7 @@
-import { assertDefined } from '../error/assert';
-import { inflateQrl, parseQRL } from '../qrl/qrl';
+import { assertDefined } from '../shared/error/assert';
 import { getInvokeContext } from './use-core';
-import { assertQrl, type QRLInternal } from '../qrl/qrl-class';
-import { getContext } from '../state/context';
-import { resumeIfNeeded } from '../container/resume';
-import { _getContainerState } from '../container/container';
-import { _getQContainerElement, getDomContainer } from '../v2/client/dom-container';
+import { assertQrl, type QRLInternal } from '../shared/qrl/qrl-class';
+import { _getQContainerElement, getDomContainer } from '../client/dom-container';
 
 // <docs markdown="../readme.md#useLexicalScope">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -29,16 +25,8 @@ export const useLexicalScope = <VARS extends any[]>(): VARS => {
     assertDefined(el, 'invoke: element must be defined inside useLexicalScope()', context);
     const containerElement = _getQContainerElement(el) as HTMLElement;
     assertDefined(containerElement, `invoke: cant find parent q:container of`, el);
-    if (containerElement.getAttribute('q:runtime') == '2') {
-      const container = getDomContainer(containerElement);
-      qrl = container.parseQRL(decodeURIComponent(String(context.$url$))) as QRLInternal<unknown>;
-    } else {
-      qrl = parseQRL(decodeURIComponent(String(context.$url$)), containerElement);
-      assertQrl(qrl);
-      resumeIfNeeded(containerElement);
-      const elCtx = getContext(el, _getContainerState(containerElement));
-      inflateQrl(qrl, elCtx);
-    }
+    const container = getDomContainer(containerElement);
+    qrl = container.parseQRL(decodeURIComponent(String(context.$url$))) as QRLInternal<unknown>;
   } else {
     assertQrl(qrl);
     assertDefined(

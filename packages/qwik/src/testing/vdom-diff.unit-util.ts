@@ -28,18 +28,18 @@ import {
   vnode_newUnMaterializedElement,
   vnode_setAttr,
   type VNodeJournal,
-} from '../core/v2/client/vnode';
+} from '../core/client/vnode';
 
 import { format } from 'prettier';
-import { serializeBooleanOrNumberAttribute } from '../core/render/execute-component';
-import { isText } from '../core/util/element';
+import { serializeBooleanOrNumberAttribute } from '../core/shared/utils/styles';
+import { isText } from '../core/shared/utils/element';
 import {
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
-} from '../core/v2/shared/event-names';
+} from '../core/shared/utils/event-names';
 import { createDocument } from './document';
 import { isElement } from './html';
-import { Q_PROPS_SEPARATOR } from '../core/util/markers';
+import { Q_PROPS_SEPARATOR } from '../core/shared/utils/markers';
 
 expect.extend({
   toMatchVDOM(this: { isNot: boolean }, received: _VNode, expected: JSXNode) {

@@ -2253,9 +2253,6 @@ describe.each([
 
       const { vNode, document } = await render(<Issue6900 />, { debug: DEBUG });
 
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'div', ':document:qinit');
-      }
       expect(vNode).toMatchVDOM(
         <Component>
           <div>

@@ -71,10 +71,10 @@ importers:
         specifier: 1.40.0
         version: 1.40.0
       '@swc/core':
-        specifier: ^1.7.25
+        specifier: 1.7.25
         version: 1.7.25(@swc/helpers@0.5.13)
       '@swc/helpers':
-        specifier: ^0.5.13
+        specifier: 0.5.13
         version: 0.5.13
       '@types/brotli':
         specifier: 1.3.4
@@ -182,7 +182,7 @@ importers:
         specifier: 2.4.2
         version: 2.4.2
       regenerator-runtime:
-        specifier: ^0.14.1
+        specifier: 0.14.1
         version: 0.14.1
       rollup:
         specifier: 4.19.0
@@ -215,7 +215,7 @@ importers:
         specifier: 1.2.2
         version: 1.2.2
       ts-node:
-        specifier: ^10.9.2
+        specifier: 10.9.2
         version: 10.9.2(@swc/core@1.7.25(@swc/helpers@0.5.13))(@types/node@20.14.11)(typescript@5.4.5)
       typescript:
         specifier: 5.4.5
@@ -3205,28 +3205,24 @@ packages:
     engines: {node: '>=10'}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   '@swc/core-linux-arm64-musl@1.7.25':
     resolution: {integrity: sha512-+/I7AzzY4066bvKLTyAZXLL0dPpWhRUh0ja4cZNZ+0Gpn8FmtWDwZKCriIWkDlD1gSuXm8+iOaaLGhEwIquOpQ==}
     engines: {node: '>=10'}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   '@swc/core-linux-x64-gnu@1.7.25':
     resolution: {integrity: sha512-BPtnKyiBVMZyN6ml7oHGX9wuSLHN06nT1x1TM9wcSKSx6y+BEKb8jSmzrKzM7K5LnfOiy4+ARCb4HrMkXIQjUg==}
     engines: {node: '>=10'}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@swc/core-linux-x64-musl@1.7.25':
     resolution: {integrity: sha512-ZlZztuvy2hvfoYg5gYHYuc2mssgzGq1kKanF9kPdICsTmze6t7AvkSfmlTN7/YGuO//yDDJR1GR0EuXwOAJqPw==}
     engines: {node: '>=10'}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   '@swc/core-win32-arm64-msvc@1.7.25':
     resolution: {integrity: sha512-k3QsHJ+53BVhRUeC7NJOMxdMGexBIhFmL8Ex39vqWVvDZgnOepMFu9/G1pm04xBHSqcb0lioDj5WirAoy4VusQ==}

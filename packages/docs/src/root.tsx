@@ -1,4 +1,4 @@
-import { Insights } from '@builder.io/qwik-labs';
+import { Insights } from '@qwik.dev/labs';
 import { QwikCityProvider, RouterOutlet } from '@qwik.dev/city';
 import { component$, useContextProvider, useStore } from '@qwik.dev/core';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';

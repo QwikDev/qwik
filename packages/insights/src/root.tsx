@@ -1,7 +1,7 @@
 import './global.css';
 import { component$ } from '@qwik.dev/core';
 import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister } from '@qwik.dev/city';
-import { Insights } from '@builder.io/qwik-labs';
+import { Insights } from '@qwik.dev/labs';
 import { RouterHead } from './components/router-head/router-head';
 export default component$(() => {
   return (

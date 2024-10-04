@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "@qwik.dev/core": "workspace:^",
-    "@builder.io/qwik-dom": "workspace:^",
+    "@qwik.dev/dom": "workspace:^",
     "image-size": "1.1.1",
     "kleur": "4.1.5",
     "vitest": "2.0.5",

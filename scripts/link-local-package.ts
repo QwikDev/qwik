@@ -7,14 +7,14 @@ const __dirname = dirname(new URL(import.meta.url).pathname);
 const workspace = resolve(join(__dirname, '..'));
 console.log('WORKSPACE', workspace);
 const node_modules = join(workspace, 'node_modules');
-const dstQwik = join(node_modules, '@builder.io', 'qwik');
-const dstQwikCity = join(node_modules, '@builder.io', 'qwik-city');
+const dstQwik = join(node_modules, '@qwik.dev', 'core');
+const dstQwikCity = join(node_modules, '@qwik.dev', 'city');
 const srcQwik = join(workspace, 'packages', 'qwik', 'dist');
 const srcQwikCity = join(workspace, 'packages', 'qwik-city', 'lib');
 main();
 
 async function main() {
-  await mkdir(join(node_modules, '@builder.io'), { recursive: true });
+  await mkdir(join(node_modules, '@qwik.dev'), { recursive: true });
   linkDirFiles(srcQwik, dstQwik);
   linkDirFiles(srcQwikCity, dstQwikCity);
 }

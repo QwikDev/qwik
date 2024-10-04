@@ -4,20 +4,16 @@
   "version": "0.0.1",
   "author": "Builder.io Team",
   "bugs": "https://github.com/QwikDev/qwik",
-  "overrides": {
-    "@builder.io/qwik": "npm:@qwik.dev/core",
-    "@builder.io/qwik-city": "npm:@qwik.dev/city"
-  },
   "devDependencies": {
     "@algolia/autocomplete-core": "1.7.4",
     "@algolia/client-search": "4.14.3",
     "@builder.io/partytown": "0.10.2",
-    "@builder.io/qwik": "1.9.0",
-    "@builder.io/qwik-city": "1.9.0",
+    "@builder.io/qwik": "workspace:@qwik.dev/core@*",
+    "@builder.io/qwik-city": "workspace:@qwik.dev/city@*",
     "@qwik.dev/core": "workspace:^",
     "@qwik.dev/city": "workspace:^",
     "@qwik.dev/react": "workspace:^",
-    "@builder.io/qwik-labs": "workspace:^",
+    "@qwik.dev/labs": "workspace:^",
     "@builder.io/sdk-qwik": "0.14.31",
     "@docsearch/css": "3.6.1",
     "@emotion/react": "11.13.0",

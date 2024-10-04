@@ -1,5 +1,5 @@
 import { $, type OnRenderFn, type QRL } from '@qwik.dev/core';
-import { createDocument } from '@builder.io/qwik-dom';
+import { createDocument } from '@qwik.dev/dom';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { TaskFlags, type Task } from '../use/use-task';
 import { QContainerAttr } from './utils/markers';

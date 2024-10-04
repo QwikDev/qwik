@@ -1,6 +1,6 @@
 import { type RequestHandler } from '@qwik.dev/city';
 import { getDB, errorTable } from '~/db';
-import { InsightsError } from '@builder.io/qwik-labs';
+import { InsightsError } from '@qwik.dev/labs';
 
 export const onPost: RequestHandler = async ({ exit, json, request, params }) => {
   // console.log('API: POST: symbol');

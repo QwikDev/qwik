@@ -15,7 +15,7 @@ import { constants, existsSync } from 'node:fs';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
 import RawPlugin from 'esbuild-plugin-raw';
 
-/** Builds @builder.io/optimizer */
+/** Builds @qwik.dev/core/optimizer */
 export async function submoduleOptimizer(config: BuildConfig) {
   const submodule = 'optimizer';
 

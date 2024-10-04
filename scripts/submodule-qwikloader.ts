@@ -15,7 +15,7 @@ import {
 
 /**
  * Builds the qwikloader javascript files. These files can be used by other tooling, and are
- * provided in the package so CDNs could point to them. The @builder.io/optimizer submodule also
+ * provided in the package so CDNs could point to them. The @qwik.dev/core/optimizer submodule also
  * provides a utility function.
  */
 export async function submoduleQwikLoader(config: BuildConfig) {

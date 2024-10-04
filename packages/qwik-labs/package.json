@@ -1,7 +1,7 @@
 {
-  "name": "@builder.io/qwik-labs",
+  "name": "@qwik.dev/labs",
   "description": "Qwik Labs - Where you can try the latest Qwik ideas.",
-  "version": "0.0.1",
+  "version": "2.0.0-0",
   "devDependencies": {
     "@qwik.dev/core": "workspace:*",
     "@types/eslint": "8.56.10",

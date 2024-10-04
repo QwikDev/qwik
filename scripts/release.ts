@@ -203,10 +203,10 @@ export async function publish(config: BuildConfig) {
     // and all of the git commands worked, time to publish!!
     // ⛴ LET'S GO!!
 
-    // publish @builder/qwik-city
+    // publish @qwik.dev/city
     await run('npm', npmPublishArgs, false, false, { cwd: qwikCityDir });
 
-    // publish @builder/qwik
+    // publish @qwik.dev/core
     await run('npm', npmPublishArgs, false, false, { cwd: qwikDir });
 
     if (!config.devRelease) {

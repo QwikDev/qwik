@@ -1,5 +1,5 @@
 import { type RequestHandler } from '@qwik.dev/city';
-import { InsightsPayload } from '@builder.io/qwik-labs';
+import { InsightsPayload } from '@qwik.dev/labs';
 import { getDB } from '~/db';
 import { getAppInfo, updateEdge, updateRoutes } from '~/db/query';
 import { dbGetManifestInfo } from '~/db/sql-manifest';

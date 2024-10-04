@@ -5,7 +5,7 @@ import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
 import { type BuildConfig, getBanner, importPath, nodeTarget, target } from './util';
 
 /**
- * Builds @builder.io/server
+ * Builds @qwik.dev/core/server
  *
  * This is submodule for helping to generate server-side rendered pages, along with providing
  * utilities for prerendering and unit testing.
@@ -25,7 +25,7 @@ export async function submoduleServer(config: BuildConfig) {
     platform: 'node',
     target,
     external: [
-      /* no Node.js built-in externals allowed! */ '@builder.io/qwik-dom',
+      /* no Node.js built-in externals allowed! */ '@qwik.dev/dom',
       '@qwik.dev/core/build',
     ],
   };
@@ -35,7 +35,7 @@ export async function submoduleServer(config: BuildConfig) {
     format: 'esm',
     banner: { js: getBanner('@qwik.dev/core/server', config.distVersion) },
     outExtension: { '.js': '.mjs' },
-    plugins: [importPath(/^@builder\.io\/qwik$/, '@qwik.dev/core'), qwikDomPlugin],
+    plugins: [importPath(/^@qwik\.dev\/core$/, '@qwik.dev/core'), qwikDomPlugin],
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
       'globalThis.IS_CJS': 'false',
@@ -61,7 +61,7 @@ export async function submoduleServer(config: BuildConfig) {
       js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
     },
     outExtension: { '.js': '.cjs' },
-    plugins: [importPath(/^@builder\.io\/qwik$/, '@qwik.dev/core'), qwikDomPlugin],
+    plugins: [importPath(/^@qwik\.dev\/core$/, '@qwik.dev/core'), qwikDomPlugin],
     target: nodeTarget,
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
@@ -96,7 +96,7 @@ async function bundleQwikDom(config: BuildConfig) {
   const qwikDomPlugin: Plugin = {
     name: 'qwikDomPlugin',
     setup(build) {
-      build.onResolve({ filter: /@builder.io\/qwik-dom/ }, () => {
+      build.onResolve({ filter: /@qwik.dev\/dom/ }, () => {
         return {
           path: outfile,
         };

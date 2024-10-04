@@ -1,5 +1,5 @@
 import { qwikCity } from '@qwik.dev/city/vite';
-import { qwikInsights, qwikTypes } from '@builder.io/qwik-labs/vite';
+import { qwikInsights, qwikTypes } from '@qwik.dev/labs/vite';
 import { macroPlugin } from '@builder.io/vite-plugin-macro';
 import { qwikVite } from '@qwik.dev/core/optimizer';
 import { defineConfig, loadEnv } from 'vite';

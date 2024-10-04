@@ -13,14 +13,12 @@
     "drizzle-orm": "0.29.4",
     "install": "^0.13.0"
   },
-  "overrides": {
-    "@builder.io/qwik": "npm:@qwik.dev/core",
-    "@builder.io/qwik-city": "npm:@qwik.dev/city"
-  },
   "devDependencies": {
     "@qwik.dev/core": "workspace:^",
     "@qwik.dev/city": "workspace:^",
-    "@builder.io/qwik-labs": "workspace:^",
+    "@qwik.dev/labs": "workspace:^",
+    "@builder.io/qwik": "workspace:@qwik.dev/core@*",
+    "@builder.io/qwik-city": "workspace:@qwik.dev/city@*",
     "@builder.io/vite-plugin-macro": "0.0.7",
     "@netlify/edge-functions": "2.10.0",
     "@types/density-clustering": "1.3.3",

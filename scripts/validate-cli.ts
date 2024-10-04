@@ -97,53 +97,6 @@ async function validateStarter(
   console.log(`${emoji} ${starterId}: npm install`);
   await execa('npm', ['install'], { cwd: appDir, stdout: 'inherit' });
 
-  // console.log(`${emoji} ${projectName}: copy @qwik.dev/core distribution`);
-  // const qwikNodeModule = join(appDir, 'node_modules', '@builder.io', 'qwik');
-  // rmSync(qwikNodeModule, { force: true, recursive: true });
-  // const distQwik = join(__dirname, '..', 'packages', 'qwik', 'dist');
-  // cpSync(distQwik, qwikNodeModule);
-
-  // console.log(`${emoji} ${projectName}: copy eslint-plugin-qwik distribution`);
-  // const eslintNodeModule = join(appDir, 'node_modules', 'eslint-plugin-qwik');
-  // rmSync(eslintNodeModule, { force: true, recursive: true });
-  // const distEslintQwik = join(__dirname, '..', 'packages', 'eslint-plugin-qwik', 'dist');
-  // cpSync(distEslintQwik, eslintNodeModule);
-
-  // console.log(`${emoji} ${projectName}: copy @types`);
-  // const typesNodeModule = join(appDir, 'node_modules', '@types');
-  // const distTypesQwik = join(__dirname, '..', 'node_modules', '@types');
-  // cpSync(distTypesQwik, typesNodeModule);
-
-  // console.log(`${emoji} ${projectName}: npm run build`);
-  // if (app) {
-  //   await execa('node', ['./node_modules/@qwik.dev/core/qwik.cjs', 'build'], {
-  //     cwd: appDir,
-  //     stdout: 'inherit',
-  //   });
-  // } else {
-  //   await execa('npm', ['run', 'build'], {
-  //     cwd: appDir,
-  //     stdout: 'inherit',
-  //   });
-  // }
-
-  // accessSync(join(appDir, '.vscode'));
-
-  // if (app) {
-  //   // app
-  //   accessSync(join(appDir, 'dist', 'favicon.ico'));
-  //   accessSync(join(appDir, 'dist', 'q-manifest.json'));
-  //   accessSync(join(appDir, 'dist', 'build'));
-  // } else {
-  //   // library
-  //   accessSync(join(appDir, 'lib', 'types'));
-  //   accessSync(join(appDir, 'lib', 'index.qwik.mjs'));
-  //   accessSync(join(appDir, 'lib', 'index.qwik.cjs'));
-  // }
-  // accessSync(join(appDir, 'README.md'));
-  // accessSync(join(appDir, 'tsconfig.json'));
-  // accessSync(join(appDir, 'tsconfig.tsbuildinfo'));
-
   console.log(`${emoji} ${starterId} validated\n`);
 }
 
@@ -188,9 +141,9 @@ function cpSync(src: string, dest: string) {
 
 async function copyLocalQwikDistToTestApp(appDir: string) {
   const srcQwikDir = join(__dirname, '..', 'packages', 'qwik');
-  const destQwikDir = join(appDir, 'node_modules', '@builder.io', 'qwik');
+  const destQwikDir = join(appDir, 'node_modules', '@qwik.dev', 'core');
   const srcQwikCityDir = join(__dirname, '..', 'packages', 'qwik-city');
-  const destQwikCityDir = join(appDir, 'node_modules', '@builder.io', 'qwik-city');
+  const destQwikCityDir = join(appDir, 'node_modules', '@qwik.dev', 'city');
   const destQwikBin = relative(appDir, join(destQwikDir, 'qwik.cjs'));
 
   if (existsSync(appDir) && existsSync(srcQwikDir) && existsSync(srcQwikCityDir)) {

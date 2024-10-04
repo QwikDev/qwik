@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { StoreFlags, getOrCreateStore, isStore } from './store';
 import { getDomContainer } from '@qwik.dev/core';
 import type { Container } from '../shared/types';
-import { createDocument } from '@builder.io/qwik-dom';
+import { createDocument } from '@qwik.dev/dom';
 
 describe('v2/store', () => {
   let container: Container | null = null;

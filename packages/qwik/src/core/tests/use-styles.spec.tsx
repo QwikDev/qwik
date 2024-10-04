@@ -1,4 +1,4 @@
-import { createDocument } from '@builder.io/qwik-dom';
+import { createDocument } from '@qwik.dev/dom';
 import {
   Fragment as Component,
   component$,

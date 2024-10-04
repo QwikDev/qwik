@@ -6,7 +6,7 @@ Currently supported artifacts:
 
 - [`@qwik.dev/core`](https://github.com/QwikDev/qwik-build)
 - [`@qwik.dev/city`](https://github.com/QwikDev/qwik-city-build)
-- [`@builder.io/qwik-labs`](https://github.com/QwikDev/qwik-labs-build)
+- [`@qwik.dev/labs`](https://github.com/QwikDev/qwik-labs-build)
 
 The build artifact is created if:
 
@@ -29,7 +29,7 @@ To install a specific build artifact change you `package.json` like so (not all 
   "dependencies": {
     "@qwik.dev/core": "github:QwikDev/qwik-build#SHA",
     "@qwik.dev/city": "github:QwikDev/qwik-city-build#SHA",
-    "@builder.io/qwik-labs": "github:QwikDev/qwik-labs-build#SHA"
+    "@qwik.dev/labs": "github:QwikDev/qwik-labs-build#SHA"
   }
 }
 ```
@@ -39,11 +39,11 @@ Where `#SHA` is one of the following:
 - `#SHA` - Install a specific build SHA. You can get the SHA from:
   - [`@qwik.dev/core`](https://github.com/QwikDev/qwik-build/commits/) commits
   - [`@qwik.dev/city`](https://github.com/QwikDev/qwik-city-build/commits/) commits
-  - [`@builder.io/qwik-labs`](https://github.com/QwikDev/qwik-labs-build/commits/) commits
+  - [`@qwik.dev/labs`](https://github.com/QwikDev/qwik-labs-build/commits/) commits
 - `#build/name` (or `#main`) - Install a specific `build/*` (or `#main`) branch:
   - [`@qwik.dev/core`](https://github.com/QwikDev/qwik-build/branches/) branches
   - [`@qwik.dev/city`](https://github.com/QwikDev/qwik-city-build/branches/) branches
-  - [`@builder.io/qwik-labs`](https://github.com/QwikDev/qwik-labs-build/branches/) branches
+  - [`@qwik.dev/labs`](https://github.com/QwikDev/qwik-labs-build/branches/) branches
     > NOTE: Package managers will treat any SHA in the lock file which is on the branch as valid, and so they will not auto upgrade to the latest. For this reason this is not recommended.
 
 ## Bisect for regression

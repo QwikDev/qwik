@@ -4,7 +4,7 @@ import { type BuildConfig, type PackageJSON } from './util';
 import { join } from 'node:path';
 import { writePackageJson } from './package-json';
 
-/** Builds @builder.io/testing */
+/** Builds @qwik.dev/core/testing */
 export async function submoduleTesting(config: BuildConfig) {
   const submodule = 'testing';
 
@@ -25,9 +25,9 @@ export async function submoduleTesting(config: BuildConfig) {
     banner: { js: getBanner('@qwik.dev/core/testing', config.distVersion) },
     outExtension: { '.js': '.mjs' },
     plugins: [
-      importPath(/^@builder\.io\/qwik$/, '../core.mjs'),
-      importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.mjs'),
-      importPath(/^@builder\.io\/qwik\/server$/, '../server.mjs'),
+      importPath(/^@qwik\.dev\/core$/, '../core.mjs'),
+      importPath(/^@qwik\.dev\/core\/optimizer$/, '../optimizer.mjs'),
+      importPath(/^@qwik\.dev\/core\/server$/, '../server.mjs'),
     ],
     define: {
       'globalThis.MODULE_EXT': `"mjs"`,
@@ -44,9 +44,9 @@ export async function submoduleTesting(config: BuildConfig) {
       js: getBanner('@qwik.dev/core/testing', config.distVersion),
     },
     plugins: [
-      importPath(/^@builder\.io\/qwik$/, '../core.cjs'),
-      importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.cjs'),
-      importPath(/^@builder\.io\/qwik\/server$/, '../server.cjs'),
+      importPath(/^@qwik\.dev\/core$/, '../core.cjs'),
+      importPath(/^@qwik\.dev\/core\/optimizer$/, '../optimizer.cjs'),
+      importPath(/^@qwik\.dev\/core\/server$/, '../server.cjs'),
     ],
     define: {
       'globalThis.MODULE_EXT': `"cjs"`,

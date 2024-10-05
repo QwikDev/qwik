@@ -23,7 +23,7 @@ export default (base: string) => {
 // - If the check here doesn't pass, your page was never SPA. (no SPA pops possible)
 
 // ! DO NOT IMPORT OR USE ANY EXTERNAL REFERENCES IN THIS SCRIPT.
-const shim = async (base: string, path: string, symbol: string) => {
+export const shim = async (base: string, path: string, symbol: string) => {
   if (!(window as ClientSPAWindow)._qcs && history.scrollRestoration === 'manual') {
     // TODO Option to remove this shim especially for MFEs, like loader, for now we only run once.
     (window as ClientSPAWindow)._qcs = true;

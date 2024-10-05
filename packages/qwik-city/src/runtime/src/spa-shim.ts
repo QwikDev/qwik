@@ -6,11 +6,13 @@ import { getPlatform } from '@builder.io/qwik';
 
 import init from './spa-init';
 
+const SPA_SHIM_MINFIED = `const shim=async(t,o,n)=>{if(!window._qcs&&"manual"===history.scrollRestoration){window._qcs=!0;const s=history.state?._qCityScroll;s&&window.scrollTo(s.x,s.y);const i=document.currentScript;if(i){const s=i?.closest("[q\\:container]"),c=new URL(o,new URL(t,document.baseURI));if(isDev){const t=new Function("url","return import(url)");(await t(c.href))[n](s)}else(await import(c.href))[n](s)}}};`;
+
 export default (base: string) => {
   if (isServer) {
     const [symbol, bundle] = getPlatform().chunkForSymbol(init.getSymbol(), null, init.dev?.file)!;
     const args = [base, bundle, symbol].map((x) => JSON.stringify(x)).join(',');
-    return `(${shim.toString()})(${args});`;
+    return isDev ? `(${shim.toString()})(${args})` : SPA_SHIM_MINFIED;
   }
 };
 

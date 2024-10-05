@@ -6,13 +6,13 @@ import { getPlatform } from '@builder.io/qwik';
 
 import init from './spa-init';
 
-const SPA_SHIM_MINFIED = `const shim=async(t,o,n)=>{if(!window._qcs&&"manual"===history.scrollRestoration){window._qcs=!0;const s=history.state?._qCityScroll;s&&window.scrollTo(s.x,s.y);const i=document.currentScript;if(i){const s=i?.closest("[q\\:container]"),c=new URL(o,new URL(t,document.baseURI));if(isDev){const t=new Function("url","return import(url)");(await t(c.href))[n](s)}else(await import(c.href))[n](s)}}};`;
+const SPA_SHIM_MINIFIED = `(t,e,l)=>{((r,c,o)=>{if(!r._qcs&&"manual"===c.scrollRestoration){r._qcs=!0;let s=c.state?._qCityScroll;s&&r.scrollTo(s.x,s.y);let n=o.currentScript;if(n){let i=n.closest("[q\\\\:container]"),a=new URL(e,new URL(t,o.baseURI));import(a.href).then(t=>t[l](i))}}})(window,history,document)};`;
 
 export default (base: string) => {
   if (isServer) {
     const [symbol, bundle] = getPlatform().chunkForSymbol(init.getSymbol(), null, init.dev?.file)!;
     const args = [base, bundle, symbol].map((x) => JSON.stringify(x)).join(',');
-    return isDev ? `(${shim.toString()})(${args})` : SPA_SHIM_MINFIED;
+    return isDev ? `(${shim.toString()})(${args})` : `(${SPA_SHIM_MINIFIED})(${args})`;
   }
 };
 

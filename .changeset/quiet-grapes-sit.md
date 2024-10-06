@@ -2,4 +2,4 @@
 '@builder.io/qwik': patch
 ---
 
-fix(optimizer): ignore unknown deps in graph causing crashes during build
+FIX: Optimizer now ignores unknown deps in graph that caused crashes during build

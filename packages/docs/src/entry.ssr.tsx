@@ -14,14 +14,14 @@ export default function (opts: RenderToStreamOptions) {
       lang: 'en',
       ...opts.containerAttributes,
     },
-    // Core Web Vitals experiment until October 9: Do not remove! Reach out to @maiieul first if you believe you have a good reason to change this.
+    // Core Web Vitals experiment until October 23: Do not remove! Reach out to @maiieul first if you believe you have a good reason to change this.
     prefetchStrategy: {
       implementation: {
         linkInsert: 'html-append',
         linkRel: 'modulepreload',
       },
     },
-    // Core Web Vitals experiment until October 9: Do not remove! Reach out to @maiieul first if you believe you have a good reason to change this.
+    // Core Web Vitals experiment until October 23: Do not remove! Reach out to @maiieul first if you believe you have a good reason to change this.
     qwikPrefetchServiceWorker: {
       include: false,
     },

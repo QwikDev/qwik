@@ -55,7 +55,14 @@ const CLIENT_STRIP_CTX_NAME = [
 ];
 
 /** List experimental features here */
-export const experimental = ['preventNavigate', 'valibot'] as const;
+export const experimental = [
+  /** Enable the usePreventNavigate hook */
+  'preventNavigate',
+  /** Enable the Valibot form validation */
+  'valibot',
+  /** Disable SPA navigation handler in Qwik City */
+  'noSPA',
+] as const;
 /**
  * Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or
  * `false` via an exact string replacement.

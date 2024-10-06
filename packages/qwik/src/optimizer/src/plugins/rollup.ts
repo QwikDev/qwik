@@ -338,8 +338,8 @@ export interface QwikRollupPluginOptions {
    * Experimental features. These can come and go in patch releases, and their API is not guaranteed
    * to be stable between releases.
    */
-  experimental?: ExperimentalFeatures[];
+  experimental?: (keyof typeof ExperimentalFeatures)[];
 }
-export type { ExperimentalFeatures } from './plugin';
+export { ExperimentalFeatures } from './plugin';
 type P<T> = Rollup.Plugin<T> & { api: T };
 export interface QwikRollupPlugin extends P<QwikRollupPluginApi> {}

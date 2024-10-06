@@ -54,22 +54,22 @@ const CLIENT_STRIP_CTX_NAME = [
   'event$',
 ];
 
-/** List experimental features here */
-export const experimental = [
-  /** Enable the usePreventNavigate hook */
-  'preventNavigate',
-  /** Enable the Valibot form validation */
-  'valibot',
-  /** Disable SPA navigation handler in Qwik City */
-  'noSPA',
-] as const;
 /**
  * Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or
  * `false` via an exact string replacement.
  *
+ * Add experimental features to this enum definition.
+ *
  * @alpha
  */
-export type ExperimentalFeatures = (typeof experimental)[number];
+export enum ExperimentalFeatures {
+  /** Enable the usePreventNavigate hook */
+  preventNavigate = 'preventNavigate',
+  /** Enable the Valibot form validation */
+  valibot = 'valibot',
+  /** Disable SPA navigation handler in Qwik City */
+  noSPA = 'noSPA',
+}
 
 export interface QwikPackages {
   id: string;
@@ -334,10 +334,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     opts.experimental = undefined;
     for (const feature of updatedOpts.experimental ?? []) {
-      if (!experimental.includes(feature as ExperimentalFeatures)) {
+      if (!ExperimentalFeatures[feature as ExperimentalFeatures]) {
         console.error(`Qwik plugin: Unknown experimental feature: ${feature}`);
       } else {
-        (opts.experimental ||= {} as any)[feature as ExperimentalFeatures] = true;
+        (opts.experimental ||= {} as any)[feature] = true;
       }
     }
 
@@ -1051,15 +1051,15 @@ export interface QwikPluginOptions {
   lint?: boolean;
   /**
    * Experimental features. These can come and go in patch releases, and their API is not guaranteed
-   * to be stable between releases
+   * to be stable between releases.
    */
-  experimental?: ExperimentalFeatures[];
+  experimental?: (keyof typeof ExperimentalFeatures)[];
 }
 
 export interface NormalizedQwikPluginOptions
   extends Omit<Required<QwikPluginOptions>, 'vendorRoots' | 'experimental'> {
   input: string[] | { [entry: string]: string };
-  experimental?: Record<ExperimentalFeatures, boolean>;
+  experimental?: Record<keyof typeof ExperimentalFeatures, boolean>;
 }
 
 /** @public */

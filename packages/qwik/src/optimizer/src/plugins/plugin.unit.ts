@@ -1,7 +1,7 @@
 import path, { resolve } from 'node:path';
 import { assert, test } from 'vitest';
 import type { QwikManifest } from '../types';
-import { createPlugin, experimental } from './plugin';
+import { ExperimentalFeatures, createPlugin } from './plugin';
 import { normalizePath } from '../../../testing/util';
 import { qwikVite } from './vite';
 
@@ -209,7 +209,7 @@ test('resolveQwikBuild false', async () => {
 
 test('experimental[]', async () => {
   const plugin = await mockPlugin();
-  const flag = experimental[0];
+  const flag = Object.values(ExperimentalFeatures)[0];
   if (!flag) {
     // we can't test this without a flag
     return;

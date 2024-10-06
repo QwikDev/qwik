@@ -991,7 +991,7 @@ interface QwikVitePluginCommonOptions {
    * Experimental features. These can come and go in patch releases, and their API is not guaranteed
    * to be stable between releases
    */
-  experimental?: ExperimentalFeatures[];
+  experimental?: (keyof typeof ExperimentalFeatures)[];
 }
 
 interface QwikVitePluginCSROptions extends QwikVitePluginCommonOptions {
@@ -1080,7 +1080,7 @@ interface QwikVitePluginCSROptions extends QwikVitePluginCommonOptions {
 
 /** @public */
 export type QwikVitePluginOptions = QwikVitePluginCSROptions | QwikVitePluginSSROptions;
-export type { ExperimentalFeatures } from './plugin';
+export { ExperimentalFeatures } from './plugin';
 
 /** @public */
 export interface QwikVitePluginApi {

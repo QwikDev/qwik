@@ -6,7 +6,7 @@ import { getPlatform } from '@builder.io/qwik';
 
 import init from './spa-init';
 
-const SPA_SHIM_MINIFIED = `(t,e,l)=>{((r,c,o)=>{if(!r._qcs&&"manual"===c.scrollRestoration){r._qcs=!0;let s=c.state?._qCityScroll;s&&r.scrollTo(s.x,s.y);let n=o.currentScript;if(n){let i=n.closest("[q\\\\:container]"),a=new URL(e,new URL(t,o.baseURI));import(a.href).then(t=>t[l](i))}}})(window,history,document)};`;
+const SPA_SHIM_MINIFIED = `(t,e,l)=>{((r,c,o,s,i)=>{if(!r._qcs&&"manual"===c.scrollRestoration){r._qcs=!0;s=c.state?._qCityScroll;s&&r.scrollTo(s.x,s.y);s=o.currentScript;if(s){i=s.closest("[q\\\\:container]"),s=new URL(e,new URL(t,o.baseURI));import(s.href).then(t=>t[l](i))}}})(window,history,document)};`;
 
 export default (base: string) => {
   if (isServer) {

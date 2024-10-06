@@ -3,7 +3,13 @@ import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public'
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { Fragment, JSXNodeImpl, isJSXNode, type Props } from '../shared/jsx/jsx-runtime';
+import {
+  Fragment,
+  JSXNodeImpl,
+  directGetPropsProxyProp,
+  isJSXNode,
+  type Props,
+} from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
@@ -419,7 +425,9 @@ export const vnode_diff = (
       /// STEP 1: Bucketize the children based on the projection name.
       for (let i = 0; i < children.length; i++) {
         const child = children[i];
-        const slotName = String((isJSXNode(child) && child.props[QSlot]) || QDefaultSlot);
+        const slotName = String(
+          (isJSXNode(child) && directGetPropsProxyProp(child, QSlot)) || QDefaultSlot
+        );
         const idx = mapApp_findIndx(projections, slotName, 0);
         let jsxBucket: JSXNodeImpl<typeof Projection>;
         if (idx >= 0) {
@@ -518,7 +526,7 @@ export const vnode_diff = (
         return trackSignal(() => constValue.value, vHost, EffectProperty.COMPONENT, container);
       }
     }
-    return jsxValue.props.name || QDefaultSlot;
+    return directGetPropsProxyProp(jsxValue, 'name') || QDefaultSlot;
   }
 
   function drainAsyncQueue(): ValueOrPromise<void> {

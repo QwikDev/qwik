@@ -2,7 +2,7 @@ import { isDev } from '@builder.io/qwik/build';
 import { isQwikComponent } from '../shared/component.public';
 import { isQrl } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { Fragment } from '../shared/jsx/jsx-runtime';
+import { Fragment, directGetPropsProxyProp } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
@@ -26,7 +26,7 @@ import {
   isJsxPropertyAnEventName,
   isPreventDefault,
 } from '../shared/utils/event-names';
-import { addComponentStylePrefix, hasClassAttr, isClassAttr } from '../shared/utils/scoped-styles';
+import { addComponentStylePrefix, isClassAttr } from '../shared/utils/scoped-styles';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { WrappedSignal, EffectProperty, isSignal } from '../signal/signal';
@@ -155,16 +155,7 @@ function processJSXNode(
       const type = jsx.type;
       // Below, JSXChildren allows functions and regexes, but we assume the dev only uses those as appropriate.
       if (typeof type === 'string') {
-        // append class attribute if styleScopedId exists and there is no class attribute
-        const classAttributeExists =
-          hasClassAttr(jsx.varProps) || (jsx.constProps && hasClassAttr(jsx.constProps));
-        if (!classAttributeExists && styleScoped) {
-          if (!jsx.constProps) {
-            jsx.constProps = {};
-          }
-          jsx.constProps['class'] = '';
-        }
-
+        appendClassIfScopedStyleExists(jsx, styleScoped);
         appendQwikInspectorAttribute(jsx);
 
         const innerHTML = ssr.openElement(
@@ -232,7 +223,7 @@ function processJSXNode(
             ssr.closeFragment();
           }
         } else if (type === SSRComment) {
-          ssr.commentNode((jsx.props.data as string) || '');
+          ssr.commentNode(directGetPropsProxyProp(jsx, 'data') || '');
         } else if (type === SSRStream) {
           ssr.commentNode(FLUSH_COMMENT);
           const generator = jsx.children as SSRStreamChildren;
@@ -251,7 +242,7 @@ function processJSXNode(
           enqueue(value as StackValue);
           isPromise(value) && enqueue(Promise);
         } else if (type === SSRRaw) {
-          ssr.htmlNode(jsx.props.data as string);
+          ssr.htmlNode(directGetPropsProxyProp(jsx, 'data'));
         } else if (isQwikComponent(type)) {
           // prod: use new instance of an array for props, we always modify props for a component
           ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
@@ -490,19 +481,27 @@ function getSlotName(host: ISsrNode, jsx: JSXNode, ssr: SSRContainer): string {
       return trackSignal(() => constValue.value, host, EffectProperty.COMPONENT, ssr);
     }
   }
-  return (jsx.props.name as string) || QDefaultSlot;
+  return directGetPropsProxyProp(jsx, 'name') || QDefaultSlot;
 }
 
 function appendQwikInspectorAttribute(jsx: JSXNode) {
   if (isDev && qInspector && jsx.dev && jsx.type !== 'head') {
     const sanitizedFileName = jsx.dev.fileName?.replace(/\\/g, '/');
     const qwikInspectorAttr = 'data-qwik-inspector';
-    if (sanitizedFileName && !(qwikInspectorAttr in jsx.props)) {
-      if (!jsx.constProps) {
-        jsx.constProps = {};
-      }
-      jsx.constProps[qwikInspectorAttr] =
+    if (sanitizedFileName && (!jsx.constProps || !(qwikInspectorAttr in jsx.constProps))) {
+      (jsx.constProps ||= {})[qwikInspectorAttr] =
         `${sanitizedFileName}:${jsx.dev.lineNumber}:${jsx.dev.columnNumber}`;
     }
+  }
+}
+
+// append class attribute if styleScopedId exists and there is no class attribute
+function appendClassIfScopedStyleExists(jsx: JSXNode, styleScoped: string | null) {
+  const classAttributeExists = directGetPropsProxyProp(jsx, 'class') != null;
+  if (!classAttributeExists && styleScoped) {
+    if (!jsx.constProps) {
+      jsx.constProps = {};
+    }
+    jsx.constProps['class'] = '';
   }
 }

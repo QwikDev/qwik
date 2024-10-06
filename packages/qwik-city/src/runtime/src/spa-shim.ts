@@ -40,14 +40,7 @@ export const shim = async (base: string, path: string, symbol: string) => {
       const container = script!.closest('[q\\:container]')!;
       const url = new URL(path, new URL(base, document.baseURI));
 
-      if (isDev) {
-        // Bypass dev import hijack. (not going to work here)
-        // eslint-disable-next-line no-new-func
-        const imp = new Function('url', 'return import(url)');
-        (await imp(url.href))[symbol](container);
-      } else {
-        (await import(url.href))[symbol](container);
-      }
+      (await import(url.href))[symbol](container);
     }
   }
 };

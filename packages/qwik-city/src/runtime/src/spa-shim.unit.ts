@@ -1,5 +1,22 @@
 import { assert, test, vi, beforeEach } from 'vitest';
-import { shim } from './spa-shim';
+import * as spaShimModule from './spa-shim';
+
+vi.mock('./spa-shim', async (importOriginal) => {
+  const mod = (await importOriginal()) as typeof spaShimModule;
+  return {
+    ...mod,
+    isDev: false,
+    shim: vi.fn(mod.shim),
+  };
+});
+
+const mockSPAInitModule = {
+  spaInit: vi.fn(),
+};
+
+vi.mock('http://localhost:3000/test-bundle.js', () => mockSPAInitModule);
+
+const { shim } = spaShimModule;
 
 const mockWindow: any = {
   scrollTo: vi.fn(),
@@ -20,62 +37,53 @@ const mockDocument: any = {
   baseURI: 'http://localhost:3000',
 };
 
-vi.mock('URL', () => {
-  return {
-    URL: vi.fn().mockImplementation(() => ({
-      href: 'http://localhost:3000/test-bundle.js',
-    })),
-  };
-});
-
-global.window = mockWindow;
-global.history = mockHistory;
-global.document = mockDocument;
-
 beforeEach(() => {
   vi.clearAllMocks();
   mockWindow._qcs = undefined;
+  mockHistory.scrollRestoration = 'manual';
+
+  global.window = mockWindow;
+  global.history = mockHistory;
+  global.document = mockDocument;
+
+  vi.mocked(mockSPAInitModule).spaInit.mockClear();
 });
 
-test('shim function sets _qcs and scrolls to saved position', async () => {
-  const mockContainer = { id: 'mock-container' };
-  mockDocument.currentScript.closest.mockReturnValue(mockContainer);
+test('shim function initializes SPA and restores scroll position', async () => {
+  const mockQwikContainer = { id: 'mock-qwik-container' };
+  mockDocument.currentScript.closest.mockReturnValue(mockQwikContainer);
 
-  const mockSymbol = 'testSymbol';
-  const mockModule = {
-    [mockSymbol]: vi.fn(),
-  };
+  const spaInitSymbol = 'spaInit';
 
-  vi.mock('http://localhost:3000/test-bundle.js', () => ({
-    default: mockModule,
-  }));
-
-  await shim('/', 'test-bundle.js', mockSymbol);
+  await shim('/', 'test-bundle.js', spaInitSymbol);
 
   assert.equal(mockWindow._qcs, true);
   assert.equal(mockWindow.scrollTo.mock.calls.length, 1);
   assert.deepEqual(mockWindow.scrollTo.mock.calls[0], [100, 200]);
   assert.equal(mockDocument.currentScript.closest.mock.calls.length, 1);
   assert.equal(mockDocument.currentScript.closest.mock.calls[0][0], '[q\\:container]');
-  assert.equal(mockModule[mockSymbol].mock.calls.length, 1);
-  assert.equal(mockModule[mockSymbol].mock.calls[0][0], mockContainer);
+
+  assert.equal(mockSPAInitModule.spaInit.mock.calls.length, 1);
+  assert.equal(mockSPAInitModule.spaInit.mock.calls[0][0], mockQwikContainer);
 });
 
-test('shim function does not run if _qcs is already set', async () => {
+test('shim function does not initialize SPA if already initialized', async () => {
   mockWindow._qcs = true;
 
-  await shim('/', 'test-bundle.js', 'testSymbol');
+  await shim('/', 'test-bundle.js', 'spaInit');
 
   assert.equal(mockWindow.scrollTo.mock.calls.length, 0);
   assert.equal(mockDocument.currentScript.closest.mock.calls.length, 0);
+  assert.equal(mockSPAInitModule.spaInit.mock.calls.length, 0);
 });
 
-test('shim function does not run if scrollRestoration is not manual', async () => {
+test('shim function does not initialize SPA if scrollRestoration is not manual', async () => {
   mockHistory.scrollRestoration = 'auto';
 
-  await shim('/', 'test-bundle.js', 'testSymbol');
+  await shim('/', 'test-bundle.js', 'spaInit');
 
   assert.equal(mockWindow._qcs, undefined);
   assert.equal(mockWindow.scrollTo.mock.calls.length, 0);
   assert.equal(mockDocument.currentScript.closest.mock.calls.length, 0);
+  assert.equal(mockSPAInitModule.spaInit.mock.calls.length, 0);
 });

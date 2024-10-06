@@ -1131,9 +1131,24 @@ function hasDestroy(obj: any): obj is { $destroy$(): void } {
 }
 
 // https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
-const unsafeAttrCharRE = /[>/="'\u0009\u000a\u000c\u0020]/; // eslint-disable-line no-control-regex
 function isSSRUnsafeAttr(name: string): boolean {
-  return unsafeAttrCharRE.test(name);
+  for (let idx = 0; idx < name.length; idx++) {
+    const ch = name.charCodeAt(idx);
+    if (
+      ch === 62 /* > */ ||
+      ch === 47 /* / */ ||
+      ch === 61 /* = */ ||
+      ch === 34 /* " */ ||
+      ch === 39 /* ' */ ||
+      ch === 9 /* \t */ ||
+      ch === 10 /* \n */ ||
+      ch === 12 /* \f */ ||
+      ch === 32 /* space */
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function hash() {

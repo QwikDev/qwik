@@ -5,7 +5,7 @@
     "serve": "node server/entry.express"
   },
   "dependencies": {
-    "express": "4.19.2"
+    "express": "4.20.0"
   },
   "devDependencies": {
     "@types/compression": "^1.7.2",

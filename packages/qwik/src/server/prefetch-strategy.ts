@@ -1,13 +1,13 @@
-import { getBuildBase } from './utils';
 import type {
   PrefetchResource,
   QwikManifest,
   RenderToStringOptions,
   SnapshotResult,
 } from './types';
+import { getBuildBase } from './utils';
 
-import type { QRLInternal } from '../core/qrl/qrl-class';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
+import type { QRLInternal } from '../core/qrl/qrl-class';
 
 export function getPrefetchResources(
   snapshotResult: SnapshotResult | null,
@@ -59,11 +59,12 @@ function getAutoPrefetch(
   const urls = new Map<string, PrefetchResource>();
 
   if (Array.isArray(qrls)) {
-    for (const obj of qrls) {
-      const qrlSymbolName = obj.getHash();
+    for (const qrl of qrls) {
+      const qrlSymbolName = qrl.getHash();
       const resolvedSymbol = mapper[qrlSymbolName];
       if (resolvedSymbol) {
-        addBundle(manifest, urls, prefetchResources, buildBase, resolvedSymbol[1]);
+        const bundleFileName = resolvedSymbol[1];
+        addBundle(manifest, urls, prefetchResources, buildBase, bundleFileName);
       }
     }
   }

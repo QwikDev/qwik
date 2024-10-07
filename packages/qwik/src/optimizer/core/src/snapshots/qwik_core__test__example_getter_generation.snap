@@ -43,12 +43,12 @@ export const Cmp = component$((props) => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
-export const Cmp = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./cmp_component_4rykjtokjwe"), "Cmp_component_4ryKJTOKjWE"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const Cmp = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_cmp_component_4rykjtokjwe"), "Cmp_component_4ryKJTOKjWE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,wGAoBhB;AAEH,OAAO,MAAM,oBAAM,wGAOhB\"}")
-============================= cmp_component_4rykjtokjwe.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAoBhB;AAEH,OAAO,MAAM,oBAAM,iHAOhB\"}")
+============================= test.tsx_cmp_component_4rykjtokjwe.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _fnSignal } from "@builder.io/qwik";
@@ -82,9 +82,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "Cmp_component_4ryKJTOKjWE",
   "entry": null,
-  "displayName": "Cmp_component",
+  "displayName": "test.tsx_Cmp_component",
   "hash": "4ryKJTOKjWE",
-  "canonicalFilename": "cmp_component_4rykjtokjwe",
+  "canonicalFilename": "test.tsx_cmp_component_4rykjtokjwe",
   "path": "",
   "extension": "js",
   "parent": null,
@@ -97,7 +97,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
+============================= test.tsx_app_component_ckepmxzlub0.js (ENTRY POINT)==
 
 import { Cmp } from "./test";
 import { _IMMUTABLE } from "@builder.io/qwik";
@@ -154,9 +154,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "App_component_ckEPmXZlub0",
   "entry": null,
-  "displayName": "App_component",
+  "displayName": "test.tsx_App_component",
   "hash": "ckEPmXZlub0",
-  "canonicalFilename": "app_component_ckepmxzlub0",
+  "canonicalFilename": "test.tsx_app_component_ckepmxzlub0",
   "path": "",
   "extension": "js",
   "parent": null,

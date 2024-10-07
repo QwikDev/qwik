@@ -2,7 +2,13 @@ import { isDev } from '@qwik.dev/core/build';
 import { executeComponent } from '../shared/component-execution';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
-import { Fragment, JSXNodeImpl, isJSXNode, type Props } from '../shared/jsx/jsx-runtime';
+import {
+  Fragment,
+  JSXNodeImpl,
+  directGetPropsProxyProp,
+  isJSXNode,
+  type Props,
+} from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
@@ -419,7 +425,9 @@ export const vnode_diff = (
       /// STEP 1: Bucketize the children based on the projection name.
       for (let i = 0; i < children.length; i++) {
         const child = children[i];
-        const slotName = String((isJSXNode(child) && child.props[QSlot]) || QDefaultSlot);
+        const slotName = String(
+          (isJSXNode(child) && directGetPropsProxyProp(child, QSlot)) || QDefaultSlot
+        );
         const idx = mapApp_findIndx(projections, slotName, 0);
         let jsxBucket: JSXNodeImpl<typeof Projection>;
         if (idx >= 0) {
@@ -518,7 +526,7 @@ export const vnode_diff = (
         return trackSignal(() => constValue.value, vHost, EffectProperty.COMPONENT, container);
       }
     }
-    return jsxValue.props.name || QDefaultSlot;
+    return directGetPropsProxyProp(jsxValue, 'name') || QDefaultSlot;
   }
 
   function drainAsyncQueue(): ValueOrPromise<void> {
@@ -1074,17 +1082,6 @@ export const vnode_diff = (
     container.setHostProp(vNewNode, OnRenderProp, componentQRL);
     container.setHostProp(vNewNode, ELEMENT_PROPS, jsxProps);
     container.setHostProp(vNewNode, ELEMENT_KEY, jsxValue.key);
-
-    // rewrite slot props to the new node
-    if (host) {
-      for (let i = vnode_getPropStartIndex(host); i < host.length; i = i + 2) {
-        const prop = host[i] as string;
-        if (isSlotProp(prop)) {
-          const value = host[i + 1];
-          container.setHostProp(vNewNode, prop, value);
-        }
-      }
-    }
   }
 
   function expectText(text: string) {
@@ -1224,7 +1221,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
       if (type & VNodeFlags.Virtual) {
         // Only virtual nodes have subscriptions
         clearVNodeEffectDependencies(vCursor);
-        markVNodeAsDeleted(vNode, vParent, vCursor);
+        markVNodeAsDeleted(vCursor);
         const seq = container.getHostProp<Array<any>>(vCursor as VirtualVNode, ELEMENT_SEQ);
         if (seq) {
           for (let i = 0; i < seq.length; i++) {
@@ -1342,21 +1339,13 @@ function cleanupStaleUnclaimedProjection(journal: VNodeJournal, projection: VNod
   }
 }
 
-function markVNodeAsDeleted(vNode: VNode, vParent: VNode | null, vCursor: VNode) {
+function markVNodeAsDeleted(vCursor: VNode) {
   /**
-   * Marks vCursor as deleted, but only if it is not a projection. We need to do this to prevent
-   * chores from running after the vnode is removed. (for example signal subscriptions)
+   * Marks vCursor as deleted. We need to do this to prevent chores from running after the vnode is
+   * removed. (for example signal subscriptions)
    */
-  if (vNode !== vCursor) {
-    vCursor[VNodeProps.flags] |= VNodeFlags.Deleted;
-  } else {
-    const currentVParent = vParent || vnode_getParent(vNode);
-    const isParentProjection =
-      currentVParent && vnode_getProp(currentVParent, QSlot, null) !== null;
-    if (!isParentProjection) {
-      vCursor[VNodeProps.flags] |= VNodeFlags.Deleted;
-    }
-  }
+
+  vCursor[VNodeProps.flags] |= VNodeFlags.Deleted;
 }
 
 /**

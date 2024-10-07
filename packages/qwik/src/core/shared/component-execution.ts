@@ -6,7 +6,7 @@ import { invokeApply, newInvokeContext, untrack } from '../use/use-core';
 import { type EventQRL, type UseOnMap } from '../use/use-on';
 import { isQwikComponent, type OnRenderFn } from './component.public';
 import { assertDefined } from './error/assert';
-import { JSXNodeImpl, isJSXNode } from './jsx/jsx-runtime';
+import { JSXNodeImpl, isJSXNode, type Props } from './jsx/jsx-runtime';
 import type { JSXNode, JSXOutput } from './jsx/types/jsx-node';
 import type { KnownEventNames } from './jsx/types/jsx-qwik-events';
 import { isQrl, type QRLInternal } from './qrl/qrl-class';
@@ -50,7 +50,7 @@ export const executeComponent = (
   renderHost: HostElement,
   subscriptionHost: HostElement,
   componentQRL: OnRenderFn<unknown> | QRLInternal<OnRenderFn<unknown>> | null,
-  props: Record<string, unknown> | null
+  props: Props | null
 ): ValueOrPromise<JSXOutput> => {
   const iCtx = newInvokeContext(container.$locale$, subscriptionHost, undefined, RenderEvent);
   iCtx.$effectSubscriber$ = [subscriptionHost, EffectProperty.COMPONENT];
@@ -69,13 +69,13 @@ export const executeComponent = (
     componentFn = componentQRL.getFn(iCtx);
   } else if (isQwikComponent(componentQRL)) {
     const qComponentFn = componentQRL as (
-      props: Record<string, unknown>,
+      props: Props,
       key: string | null,
       flags: number
     ) => JSXNode;
     componentFn = () => invokeApply(iCtx, qComponentFn, [props || EMPTY_OBJ, null, 0]);
   } else {
-    const inlineComponent = componentQRL as (props: Record<string, unknown>) => JSXOutput;
+    const inlineComponent = componentQRL as (props: Props) => JSXOutput;
     componentFn = () => invokeApply(iCtx, inlineComponent, [props || EMPTY_OBJ]);
   }
 

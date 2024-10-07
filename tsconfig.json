@@ -42,7 +42,6 @@
   },
   "include": [
     "packages/create-qwik",
-    "packages/qwik-auth",
     "packages/qwik-worker",
     "packages/supabase-auth-helpers-qwik",
     "packages/qwik-react/src",

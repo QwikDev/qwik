@@ -6,7 +6,6 @@ import { buildPlatformBinding, copyPlatformBindingWasm } from './binding-platfor
 import { buildWasmBinding } from './binding-wasm';
 import { buildCreateQwikCli } from './create-qwik-cli';
 import { buildEslint } from './eslint';
-import { buildQwikAuth } from './qwik-auth';
 import { buildQwikCity } from './qwik-city';
 import { buildQwikLabs } from './qwik-labs';
 import { buildQwikReact } from './qwik-react';
@@ -125,10 +124,6 @@ export async function build(config: BuildConfig) {
 
     if (config.qwikreact) {
       await buildQwikReact(config);
-    }
-
-    if (config.qwikauth) {
-      await buildQwikAuth(config);
     }
 
     if (config.qwikworker) {

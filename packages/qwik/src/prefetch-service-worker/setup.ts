@@ -1,5 +1,5 @@
 import { directFetch } from './direct-fetch';
-import { drainMsgQueue } from './process-message';
+import { drainMsgQueue, type SWMessages } from './process-message';
 import { createState, type SWState } from './state';
 
 export const setupServiceWorker = (swScope: ServiceWorkerGlobalScope) => {
@@ -25,8 +25,10 @@ export const setupServiceWorker = (swScope: ServiceWorkerGlobalScope) => {
     }
   });
   swScope.addEventListener('message', (ev) => {
-    swState.$msgQueue$.push(ev.data);
-    drainMsgQueue(swState);
+    if (isQwikMessages(ev.data)) {
+      swState.$msgQueue$.push(ev.data);
+      drainMsgQueue(swState);
+    }
   });
   swScope.addEventListener('install', () => {
     swScope.skipWaiting();
@@ -46,3 +48,8 @@ export const setupServiceWorker = (swScope: ServiceWorkerGlobalScope) => {
     event.waitUntil(swScope.clients.claim());
   });
 };
+
+const messageTypes = ['graph', 'graph-url', 'prefetch', 'prefetch-all', 'ping', 'verbose'];
+function isQwikMessages(msg: any): msg is SWMessages {
+  return msg[0] && messageTypes.includes(msg[0][0]);
+}

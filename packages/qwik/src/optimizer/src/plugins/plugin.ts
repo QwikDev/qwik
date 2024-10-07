@@ -54,15 +54,22 @@ const CLIENT_STRIP_CTX_NAME = [
   'event$',
 ];
 
-/** List experimental features here */
-export const experimental = ['preventNavigate', 'valibot'] as const;
 /**
  * Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or
  * `false` via an exact string replacement.
  *
+ * Add experimental features to this enum definition.
+ *
  * @alpha
  */
-export type ExperimentalFeatures = (typeof experimental)[number];
+export enum ExperimentalFeatures {
+  /** Enable the usePreventNavigate hook */
+  preventNavigate = 'preventNavigate',
+  /** Enable the Valibot form validation */
+  valibot = 'valibot',
+  /** Disable SPA navigation handler in Qwik City */
+  noSPA = 'noSPA',
+}
 
 export interface QwikPackages {
   id: string;
@@ -327,10 +334,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     opts.experimental = undefined;
     for (const feature of updatedOpts.experimental ?? []) {
-      if (!experimental.includes(feature as ExperimentalFeatures)) {
+      if (!ExperimentalFeatures[feature as ExperimentalFeatures]) {
         console.error(`Qwik plugin: Unknown experimental feature: ${feature}`);
       } else {
-        (opts.experimental ||= {} as any)[feature as ExperimentalFeatures] = true;
+        (opts.experimental ||= {} as any)[feature] = true;
       }
     }
 
@@ -724,13 +731,21 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           debug(`transform()`, `segment ${key}`, mod.segment?.displayName);
           currentOutputs.set(key, [mod, id]);
           deps.add(key);
-          // rollup must be told about all entry points
-          if (!devServer && opts.target === 'client') {
-            ctx.emitFile({
-              id: key,
-              type: 'chunk',
-              preserveSignature: 'allow-extension',
-            });
+          if (opts.target === 'client') {
+            if (devServer) {
+              // invalidate the segment so that the client will pick it up
+              const rollupModule = devServer.moduleGraph.getModuleById(key);
+              if (rollupModule) {
+                devServer.moduleGraph.invalidateModule(rollupModule);
+              }
+            } else {
+              // rollup must be told about all entry points
+              ctx.emitFile({
+                id: key,
+                type: 'chunk',
+                preserveSignature: 'allow-extension',
+              });
+            }
           }
         }
       }
@@ -1044,15 +1059,15 @@ export interface QwikPluginOptions {
   lint?: boolean;
   /**
    * Experimental features. These can come and go in patch releases, and their API is not guaranteed
-   * to be stable between releases
+   * to be stable between releases.
    */
-  experimental?: ExperimentalFeatures[];
+  experimental?: (keyof typeof ExperimentalFeatures)[];
 }
 
 export interface NormalizedQwikPluginOptions
   extends Omit<Required<QwikPluginOptions>, 'vendorRoots' | 'experimental'> {
   input: string[] | { [entry: string]: string };
-  experimental?: Record<ExperimentalFeatures, boolean>;
+  experimental?: Record<keyof typeof ExperimentalFeatures, boolean>;
 }
 
 /** @public */

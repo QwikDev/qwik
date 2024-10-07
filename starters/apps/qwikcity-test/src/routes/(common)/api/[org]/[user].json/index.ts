@@ -1,4 +1,4 @@
-import type { RequestHandler } from "@builder.io/qwik-city";
+import type { RequestHandler } from "@qwik.dev/city";
 import os from "node:os";
 
 export const onGet: RequestHandler = ({ request, params, json }) => {

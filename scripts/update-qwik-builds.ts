@@ -15,7 +15,7 @@ async function main(packageDir: string) {
 }
 
 async function updateDependency(deps: Record<string, string>, repo: Repos) {
-  const key = '@builder.io/' + repo;
+  const key = '@qwik.dev/' + repo;
   const value = deps[key];
   const prefix = `github:QwikDev/${repo}-build#`;
   if (value && value.startsWith(prefix)) {

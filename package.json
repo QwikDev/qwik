@@ -2,9 +2,9 @@
   "name": "qwik-monorepo",
   "version": "0.0.0-read-qwik-package-json",
   "comments": {
-    "01": "devDependencies includes reference to @builder.io/qwik: workspace: *. This is needed or e2e tests will fail",
+    "01": "devDependencies includes reference to @qwik.dev/core: workspace: *. This is needed or e2e tests will fail",
     "02": "  It would be nice to be able to remove this dependency and fix the test.",
-    "03": "devDependencies can't include reference to @builder.io/qwik-city or e2e test will fail."
+    "03": "devDependencies can't include reference to @qwik.dev/city or e2e test will fail."
   },
   "config": {
     "syncpack": {
@@ -88,8 +88,6 @@
   },
   "devDependencies": {
     "@builder.io/partytown": "0.10.2",
-    "@builder.io/qwik": "workspace:^",
-    "@builder.io/qwik-city": "workspace:^",
     "@changesets/cli": "2.27.7",
     "@changesets/get-github-info": "0.6.0",
     "@changesets/types": "6.0.0",
@@ -103,6 +101,8 @@
     "@node-rs/helper": "1.6.0",
     "@octokit/action": "6.1.0",
     "@playwright/test": "1.47.0",
+    "@qwik.dev/core": "workspace:^",
+    "@qwik.dev/city": "workspace:^",
     "@types/brotli": "1.3.4",
     "@types/bun": "1.1.6",
     "@types/cross-spawn": "6.0.6",
@@ -188,8 +188,8 @@
     "build.cli.prod": "tsm scripts/index.ts --cli",
     "build.core": "tsm scripts/index.ts --tsc --build --qwikcity --api --platform-binding",
     "build.eslint": "tsm scripts/index.ts --eslint",
-    "build.full": "tsm scripts/index.ts --tsc --tsc-docs --build --supabaseauthhelpers --api --eslint --qwikcity --qwikworker --qwiklabs --qwikreact --qwikauth --cli --platform-binding --wasm",
-    "build.local": "tsm scripts/index.ts --tsc --tsc-docs --build --supabaseauthhelpers --api --eslint --qwikcity --qwikworker --qwiklabs --qwikreact --qwikauth --cli --platform-binding-wasm-copy",
+    "build.full": "tsm scripts/index.ts --tsc --tsc-docs --build --supabaseauthhelpers --api --eslint --qwikcity --qwikworker --qwiklabs --qwikreact --cli --platform-binding --wasm",
+    "build.local": "tsm scripts/index.ts --tsc --tsc-docs --build --supabaseauthhelpers --api --eslint --qwikcity --qwikworker --qwiklabs --qwikreact --cli --platform-binding-wasm-copy",
     "build.only_javascript": "tsm scripts/index.ts --tsc --build --api",
     "build.packages.docs": "pnpm -C ./packages/docs/ run build",
     "build.packages.insights": "pnpm -C ./packages/insights/ run build",

@@ -1,5 +1,5 @@
 {
-  "name": "@builder.io/qwik",
+  "name": "@qwik.dev/core",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
   "version": "2.0.0-0",
   "annotation": "This package.json is for internal use in the monorepo, the build actually makes a new package.json for the published package via scripts/package-json.ts",
@@ -41,8 +41,8 @@
     }
   },
   "devDependencies": {
-    "@builder.io/qwik": "workspace:^",
-    "@builder.io/qwik-dom": "workspace:^",
+    "@qwik.dev/core": "workspace:^",
+    "@qwik.dev/dom": "workspace:^",
     "image-size": "1.1.1",
     "kleur": "4.1.5",
     "vitest": "2.0.5",

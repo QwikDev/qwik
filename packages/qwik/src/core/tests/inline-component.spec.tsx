@@ -4,8 +4,8 @@ import {
   Fragment as InlineComponent,
   component$,
   useSignal,
-} from '@builder.io/qwik';
-import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
+} from '@qwik.dev/core';
+import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 
 const debug = false; //true;

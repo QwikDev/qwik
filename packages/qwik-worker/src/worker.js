@@ -1,4 +1,4 @@
-import { _deserializeData } from '@builder.io/qwik';
+import { _deserializeData } from '@qwik.dev/core';
 
 globalThis.document = {
   nodeType: 9,

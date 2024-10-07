@@ -68,17 +68,17 @@ export async function setReleaseVersion(config: BuildConfig) {
 
   console.log(`🔥 Set release npm version: ${config.distVersion}`);
 
-  // check this @builder.io/qwik version isn't already published
-  await checkExistingNpmVersion('@builder.io/qwik', config.distVersion);
+  // check this @qwik.dev/core version isn't already published
+  await checkExistingNpmVersion('@qwik.dev/core', config.distVersion);
 
-  // check this @builder.io/qwik-city version isn't already published
-  await checkExistingNpmVersion('@builder.io/qwik-city', config.distVersion);
+  // check this @qwik.dev/city version isn't already published
+  await checkExistingNpmVersion('@qwik.dev/city', config.distVersion);
 }
 
 export async function prepareReleaseVersion(config: BuildConfig) {
   const rootPkg = await readPackageJson(config.rootDir);
 
-  const answers = await releaseVersionPrompt('@builder.io/qwik', rootPkg.version);
+  const answers = await releaseVersionPrompt('@qwik.dev/core', rootPkg.version);
   if (!semver.valid(answers.version)) {
     panic(`Invalid version`);
   }
@@ -164,10 +164,10 @@ export async function publish(config: BuildConfig) {
   const npmPublishArgs = ['publish', '--tag', distTag, '--access', 'public'];
 
   const qwikCityDir = join(config.packagesDir, 'qwik-city');
-  // publish @builder.io/qwik-city (dry-run)
+  // publish @qwik.dev/city (dry-run)
   await run('npm', npmPublishArgs, true, true, { cwd: qwikCityDir });
 
-  // publish @builder.io/qwik (dry-run)
+  // publish @qwik.dev/core (dry-run)
   await run('npm', npmPublishArgs, true, true, { cwd: qwikDir });
 
   // looks like the npm publish --dry-run was successful and
@@ -203,10 +203,10 @@ export async function publish(config: BuildConfig) {
     // and all of the git commands worked, time to publish!!
     // ⛴ LET'S GO!!
 
-    // publish @builder/qwik-city
+    // publish @qwik.dev/city
     await run('npm', npmPublishArgs, false, false, { cwd: qwikCityDir });
 
-    // publish @builder/qwik
+    // publish @qwik.dev/core
     await run('npm', npmPublishArgs, false, false, { cwd: qwikDir });
 
     if (!config.devRelease) {

@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city/vite/cloud-run API Reference
+title: \@qwik.dev/qwik-city/vite/cloud-run API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city/vite/cloud-run
+# [API](/api) &rsaquo; @qwik.dev/qwik-city/vite/cloud-run
 
 ## cloudRunAdapter
 

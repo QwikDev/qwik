@@ -5,7 +5,7 @@ import {
   SkipRender,
   useContext,
   useServerData,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
 
 import { ContentInternalContext } from './contexts';
 import shim from './spa-shim';

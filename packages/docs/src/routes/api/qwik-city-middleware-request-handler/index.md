@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city/middleware/request-handler API Reference
+title: \@qwik.dev/qwik-city/middleware/request-handler API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city/middleware/request-handler
+# [API](/api) &rsaquo; @qwik.dev/qwik-city/middleware/request-handler
 
 ## AbortMessage
 
@@ -117,7 +117,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[country?](#)
+[country?](./city.clientconn.country.md)
 
 </td><td>
 
@@ -132,7 +132,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[ip?](#)
+[ip?](./city.clientconn.ip.md)
 
 </td><td>
 
@@ -260,7 +260,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[domain?](#)
+[domain?](./city.cookieoptions.domain.md)
 
 </td><td>
 
@@ -275,7 +275,7 @@ _(Optional)_ Defines the host to which the cookie will be sent. If omitted, this
 </td></tr>
 <tr><td>
 
-[expires?](#)
+[expires?](./city.cookieoptions.expires.md)
 
 </td><td>
 
@@ -290,7 +290,7 @@ _(Optional)_ Indicates the maximum lifetime of the cookie as an HTTP-date timest
 </td></tr>
 <tr><td>
 
-[httpOnly?](#)
+[httpOnly?](./city.cookieoptions.httponly.md)
 
 </td><td>
 
@@ -305,7 +305,7 @@ _(Optional)_ Forbids JavaScript from accessing the cookie, for example, through 
 </td></tr>
 <tr><td>
 
-[maxAge?](#)
+[maxAge?](./city.cookieoptions.maxage.md)
 
 </td><td>
 
@@ -320,7 +320,7 @@ _(Optional)_ Indicates the number of seconds until the cookie expires. A zero or
 </td></tr>
 <tr><td>
 
-[path?](#)
+[path?](./city.cookieoptions.path.md)
 
 </td><td>
 
@@ -335,7 +335,7 @@ _(Optional)_ Indicates the path that must exist in the requested URL for the bro
 </td></tr>
 <tr><td>
 
-[sameSite?](#)
+[sameSite?](./city.cookieoptions.samesite.md)
 
 </td><td>
 
@@ -350,7 +350,7 @@ _(Optional)_ Controls whether or not a cookie is sent with cross-site requests, 
 </td></tr>
 <tr><td>
 
-[secure?](#)
+[secure?](./city.cookieoptions.secure.md)
 
 </td><td>
 
@@ -392,7 +392,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[json](#)
+[json](./city.cookievalue.json.md)
 
 </td><td>
 
@@ -405,7 +405,7 @@ Description
 </td></tr>
 <tr><td>
 
-[number](#)
+[number](./city.cookievalue.number.md)
 
 </td><td>
 
@@ -418,7 +418,7 @@ Description
 </td></tr>
 <tr><td>
 
-[value](#)
+[value](./city.cookievalue.value.md)
 
 </td><td>
 
@@ -514,7 +514,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[get(key)](#)
+[get(key)](./city.envgetter.get.md)
 
 </td><td>
 
@@ -754,7 +754,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[exited](#)
+[exited](./city.requestevent.exited.md)
 
 </td><td>
 
@@ -771,7 +771,7 @@ True if the middleware chain has finished executing.
 </td></tr>
 <tr><td>
 
-[getWritableStream](#)
+[getWritableStream](./city.requestevent.getwritablestream.md)
 
 </td><td>
 
@@ -788,7 +788,7 @@ Low-level access to write to the HTTP response stream. Once `getWritableStream()
 </td></tr>
 <tr><td>
 
-[headersSent](#)
+[headersSent](./city.requestevent.headerssent.md)
 
 </td><td>
 
@@ -805,7 +805,7 @@ True if headers have been sent, preventing any more headers from being set.
 </td></tr>
 <tr><td>
 
-[next](#)
+[next](./city.requestevent.next.md)
 
 </td><td>
 
@@ -853,7 +853,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[fail](#)
+[fail](./city.requesteventaction.fail.md)
 
 </td><td>
 
@@ -893,7 +893,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[basePathname](#)
+[basePathname](./city.requesteventbase.basepathname.md)
 
 </td><td>
 
@@ -910,7 +910,7 @@ The base pathname of the request, which can be configured at build time. Default
 </td></tr>
 <tr><td>
 
-[cacheControl](#)
+[cacheControl](./city.requesteventbase.cachecontrol.md)
 
 </td><td>
 
@@ -929,7 +929,7 @@ See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control and 
 </td></tr>
 <tr><td>
 
-[clientConn](#)
+[clientConn](./city.requesteventbase.clientconn.md)
 
 </td><td>
 
@@ -946,7 +946,7 @@ Provides information about the client connection, such as the IP address and the
 </td></tr>
 <tr><td>
 
-[cookie](#)
+[cookie](./city.requesteventbase.cookie.md)
 
 </td><td>
 
@@ -965,7 +965,7 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
 </td></tr>
 <tr><td>
 
-[env](#)
+[env](./city.requesteventbase.env.md)
 
 </td><td>
 
@@ -982,7 +982,7 @@ Platform provided environment variables.
 </td></tr>
 <tr><td>
 
-[headers](#)
+[headers](./city.requesteventbase.headers.md)
 
 </td><td>
 
@@ -1001,7 +1001,7 @@ https://developer.mozilla.org/en-US/docs/Glossary/Response\_header
 </td></tr>
 <tr><td>
 
-[method](#)
+[method](./city.requesteventbase.method.md)
 
 </td><td>
 
@@ -1020,7 +1020,7 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
 </td></tr>
 <tr><td>
 
-[params](#)
+[params](./city.requesteventbase.params.md)
 
 </td><td>
 
@@ -1037,7 +1037,7 @@ URL path params which have been parsed from the current url pathname segments. U
 </td></tr>
 <tr><td>
 
-[parseBody](#)
+[parseBody](./city.requesteventbase.parsebody.md)
 
 </td><td>
 
@@ -1056,7 +1056,7 @@ If the `Content-Type` header is not set, it will return `null`.
 </td></tr>
 <tr><td>
 
-[pathname](#)
+[pathname](./city.requesteventbase.pathname.md)
 
 </td><td>
 
@@ -1075,7 +1075,7 @@ https://developer.mozilla.org/en-US/docs/Web/API/URL/pathname
 </td></tr>
 <tr><td>
 
-[platform](#)
+[platform](./city.requesteventbase.platform.md)
 
 </td><td>
 
@@ -1092,7 +1092,7 @@ Platform specific data and functions
 </td></tr>
 <tr><td>
 
-[query](#)
+[query](./city.requesteventbase.query.md)
 
 </td><td>
 
@@ -1111,7 +1111,7 @@ https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
 </td></tr>
 <tr><td>
 
-[request](#)
+[request](./city.requesteventbase.request.md)
 
 </td><td>
 
@@ -1128,7 +1128,7 @@ HTTP request information.
 </td></tr>
 <tr><td>
 
-[sharedMap](#)
+[sharedMap](./city.requesteventbase.sharedmap.md)
 
 </td><td>
 
@@ -1145,7 +1145,7 @@ Shared Map across all the request handlers. Every HTTP request will get a new in
 </td></tr>
 <tr><td>
 
-[signal](#)
+[signal](./city.requesteventbase.signal.md)
 
 </td><td>
 
@@ -1162,7 +1162,7 @@ Request's AbortSignal (same as `request.signal`). This signal indicates that the
 </td></tr>
 <tr><td>
 
-[url](#)
+[url](./city.requesteventbase.url.md)
 
 </td><td>
 
@@ -1208,7 +1208,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[error](#)
+[error](./city.requesteventcommon.error.md)
 
 </td><td>
 
@@ -1225,7 +1225,7 @@ When called, the response will immediately end with the given status code. This 
 </td></tr>
 <tr><td>
 
-[exit](#)
+[exit](./city.requesteventcommon.exit.md)
 
 </td><td>
 
@@ -1240,7 +1240,7 @@ When called, the response will immediately end with the given status code. This 
 </td></tr>
 <tr><td>
 
-[html](#)
+[html](./city.requesteventcommon.html.md)
 
 </td><td>
 
@@ -1257,7 +1257,7 @@ Convenience method to send an HTML body response. The response will be automatic
 </td></tr>
 <tr><td>
 
-[json](#)
+[json](./city.requesteventcommon.json.md)
 
 </td><td>
 
@@ -1274,7 +1274,7 @@ Convenience method to JSON stringify the data and send it in the response. The r
 </td></tr>
 <tr><td>
 
-[locale](#)
+[locale](./city.requesteventcommon.locale.md)
 
 </td><td>
 
@@ -1293,7 +1293,7 @@ The locale value can be retrieved from selected methods using `getLocale()`:
 </td></tr>
 <tr><td>
 
-[redirect](#)
+[redirect](./city.requesteventcommon.redirect.md)
 
 </td><td>
 
@@ -1312,7 +1312,7 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
 </td></tr>
 <tr><td>
 
-[send](#)
+[send](./city.requesteventcommon.send.md)
 
 </td><td>
 
@@ -1329,7 +1329,7 @@ Send a body response. The `Content-Type` response header is not automatically se
 </td></tr>
 <tr><td>
 
-[status](#)
+[status](./city.requesteventcommon.status.md)
 
 </td><td>
 
@@ -1348,7 +1348,7 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 </td></tr>
 <tr><td>
 
-[text](#)
+[text](./city.requesteventcommon.text.md)
 
 </td><td>
 
@@ -1394,7 +1394,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[defer](#)
+[defer](./city.requesteventloader.defer.md)
 
 </td><td>
 
@@ -1407,7 +1407,7 @@ Description
 </td></tr>
 <tr><td>
 
-[resolveValue](#)
+[resolveValue](./city.requesteventloader.resolvevalue.md)
 
 </td><td>
 
@@ -1485,7 +1485,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[(constructor)(status, data)](#)
+[(constructor)(status, data)](./city.servererror._constructor_.md)
 
 </td><td>
 
@@ -1570,7 +1570,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[checkOrigin?](#)
+[checkOrigin?](./city.serverrenderoptions.checkorigin.md)
 
 </td><td>
 
@@ -1591,7 +1591,7 @@ Defaults to `true`.
 </td></tr>
 <tr><td>
 
-[qwikCityPlan](#)
+[qwikCityPlan](./city.serverrenderoptions.qwikcityplan.md)
 
 </td><td>
 
@@ -1604,7 +1604,7 @@ QwikCityPlan
 </td></tr>
 <tr><td>
 
-[render](#)
+[render](./city.serverrenderoptions.render.md)
 
 </td><td>
 
@@ -1646,7 +1646,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[env](#)
+[env](./city.serverrequestevent.env.md)
 
 </td><td>
 
@@ -1659,7 +1659,7 @@ Description
 </td></tr>
 <tr><td>
 
-[getClientConn](#)
+[getClientConn](./city.serverrequestevent.getclientconn.md)
 
 </td><td>
 
@@ -1672,7 +1672,7 @@ Description
 </td></tr>
 <tr><td>
 
-[getWritableStream](#)
+[getWritableStream](./city.serverrequestevent.getwritablestream.md)
 
 </td><td>
 
@@ -1685,7 +1685,7 @@ Description
 </td></tr>
 <tr><td>
 
-[locale](#)
+[locale](./city.serverrequestevent.locale.md)
 
 </td><td>
 
@@ -1698,7 +1698,7 @@ string \| undefined
 </td></tr>
 <tr><td>
 
-[mode](#)
+[mode](./city.serverrequestevent.mode.md)
 
 </td><td>
 
@@ -1711,7 +1711,7 @@ string \| undefined
 </td></tr>
 <tr><td>
 
-[platform](#)
+[platform](./city.serverrequestevent.platform.md)
 
 </td><td>
 
@@ -1724,7 +1724,7 @@ QwikCityPlatform
 </td></tr>
 <tr><td>
 
-[request](#)
+[request](./city.serverrequestevent.request.md)
 
 </td><td>
 
@@ -1737,7 +1737,7 @@ Request
 </td></tr>
 <tr><td>
 
-[url](#)
+[url](./city.serverrequestevent.url.md)
 
 </td><td>
 

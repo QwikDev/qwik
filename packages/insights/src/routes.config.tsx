@@ -4,9 +4,9 @@
  *
  * @file
  */
-import { untypedAppUrl, omitProps } from '@builder.io/qwik-labs';
+import { untypedAppUrl, omitProps } from '@qwik.dev/labs';
 import { type AppLinkProps, type AppRouteParamsFunction } from './routes.gen';
-import { type QwikIntrinsicElements } from '@builder.io/qwik';
+import { type QwikIntrinsicElements } from '@qwik.dev/core';
 
 /** Configure `appUrl` with the typed information of routes. */
 export const appUrl = untypedAppUrl as AppRouteParamsFunction;

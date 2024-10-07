@@ -1,7 +1,7 @@
 import { AppLink } from '~/routes.config';
 import { CopyIcon } from '../icons/copy';
 import Gauge from '../gauge';
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 type AppCardProps = {
   mode: 'show' | 'create' | 'link';

@@ -1,9 +1,4 @@
-import {
-  component$,
-  useSignal,
-  useResource$,
-  Resource,
-} from '@builder.io/qwik';
+import { component$, useSignal, useResource$, Resource } from '@qwik.dev/core';
 
 export default component$(() => {
   const name = useSignal<string>();

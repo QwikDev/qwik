@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city/middleware/node API Reference
+title: \@qwik.dev/qwik-city/middleware/node API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city/middleware/node
+# [API](/api) &rsaquo; @qwik.dev/qwik-city/middleware/node
 
 ## createQwikCity
 
@@ -90,7 +90,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[incomingMessage?](#)
+[incomingMessage?](./city.platformnode.incomingmessage.md)
 
 </td><td>
 
@@ -105,7 +105,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[node?](#)
+[node?](./city.platformnode.node.md)
 
 </td><td>
 
@@ -120,7 +120,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[ssr?](#)
+[ssr?](./city.platformnode.ssr.md)
 
 </td><td>
 
@@ -164,7 +164,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[getClientConn?](#)
+[getClientConn?](./city.qwikcitynoderequestoptions.getclientconn.md)
 
 </td><td>
 
@@ -179,7 +179,7 @@ _(Optional)_ Provide a function that returns a `ClientConn` for the given reques
 </td></tr>
 <tr><td>
 
-[getOrigin?](#)
+[getOrigin?](./city.qwikcitynoderequestoptions.getorigin.md)
 
 </td><td>
 
@@ -198,7 +198,7 @@ If `ORIGIN` is not set, it's derived from the incoming request, which is not rec
 </td></tr>
 <tr><td>
 
-[origin?](#)
+[origin?](./city.qwikcitynoderequestoptions.origin.md)
 
 </td><td>
 
@@ -213,7 +213,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[static?](#)
+[static?](./city.qwikcitynoderequestoptions.static.md)
 
 </td><td>
 

@@ -116,7 +116,7 @@ Take a look at the simplest use case of the task to run some asynchronous work o
 
 <CodeSandbox src="/src/routes/demo/tasks/use-task/index.tsx" style={{ height: '6em' }}>
 ```tsx
-import { component$, useSignal, useTask$ } from '@builder.io/qwik';
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
 
 export default component$(() => {
   const fibonacci = useSignal<number[]>();
@@ -164,7 +164,7 @@ This is without the inner track function, which is used to monitor specific piec
 `useTask$` runs always at least once when the component is first mounted.
 
 ```tsx {5-8}
-import { component$, useTask$ } from '@builder.io/qwik';
+import { component$, useTask$ } from '@qwik.dev/core';
 
 export default component$(() => {
 
@@ -194,8 +194,8 @@ During SSR, each component will wait until all tasks are completed before output
 
 <CodeSandbox src="/src/routes/demo/tasks/track/index.tsx" style={{ height: '6em' }} >
 ```tsx
-import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-import { isServer } from '@builder.io/qwik/build';
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+import { isServer } from '@qwik.dev/core/build';
 
 export default component$(() => {
   const text = useSignal('Initial text');
@@ -237,7 +237,7 @@ const delay = (time: number) => new Promise((res) => setTimeout(res, time));
 >
 > - The `useTask$()` blocks rendering until it completes. If you don't want to block rendering, make sure that the task is resolved, and run the delay work on a separate unconnected promise. In this example, we don't await `delay()` because it would block rendering.
 
-> Sometimes it is required to only run code either in the server or in the client. This can be achieved by using the `isServer` and `isBrowser` booleans exported from `@builder.io/qwik/build` as shown above.
+> Sometimes it is required to only run code either in the server or in the client. This can be achieved by using the `isServer` and `isBrowser` booleans exported from `@qwik.dev/core/build` as shown above.
 
 
 ### `track()` as a function
@@ -246,8 +246,8 @@ In the above example, `track()` was used to track a specific signal. However, `t
 
 <CodeSandbox src="/src/routes/demo/tasks/track-fn/index.tsx" style={{ height: '6em' }} >
 ```tsx
-import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-import { isServer } from '@builder.io/qwik/build';
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+import { isServer } from '@qwik.dev/core/build';
 
 export default component$(() => {
   const isUppercase = useSignal(false);
@@ -297,7 +297,7 @@ This example shows how to implement a debounce feature using the `cleanup()` fun
 
 <CodeSandbox src="/src/routes/demo/tasks/cleanup/index.tsx" style={{ height: '6em' }} >
 ```tsx
-import { component$, useSignal, useTask$ } from '@builder.io/qwik';
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
 
 export default component$(() => {
   const text = useSignal('');
@@ -337,8 +337,8 @@ Sometimes a task needs to run only on the browser and after rendering, in that c
 >
 > <CodeSandbox src="/src/routes/demo/tasks/track-server-guard/index.tsx" style={{ height: '6em' }}>
 > ```tsx
-> import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-> import { isServer } from '@builder.io/qwik/build';
+> import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+> import { isServer } from '@qwik.dev/core/build';
 >
 > export default component$(() => {
 >   const text = useSignal('Initial text');
@@ -382,7 +382,7 @@ import {
   useSignal,
   useVisibleTask$,
   type Signal,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
 
 export default component$(() => {
   const isClockRunning = useSignal(false);
@@ -428,7 +428,7 @@ import {
   useSignal,
   useVisibleTask$,
   type Signal,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
 
 export default component$(() => {
   const isClockRunning = useSignal(false);

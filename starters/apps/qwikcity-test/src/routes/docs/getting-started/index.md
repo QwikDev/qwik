@@ -1,5 +1,5 @@
 ---
-title: \@builder.io/qwik Getting Started
+title: \@qwik.dev/core Getting Started
 ---
 
 # Getting Started

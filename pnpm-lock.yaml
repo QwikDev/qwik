@@ -25,12 +25,6 @@ importers:
       '@builder.io/partytown':
         specifier: 0.10.2
         version: 0.10.2
-      '@builder.io/qwik':
-        specifier: workspace:^
-        version: link:packages/qwik
-      '@builder.io/qwik-city':
-        specifier: workspace:^
-        version: link:packages/qwik-city
       '@changesets/cli':
         specifier: 2.27.7
         version: 2.27.7
@@ -70,6 +64,12 @@ importers:
       '@playwright/test':
         specifier: 1.47.0
         version: 1.47.0
+      '@qwik.dev/city':
+        specifier: workspace:^
+        version: link:packages/qwik-city
+      '@qwik.dev/core':
+        specifier: workspace:^
+        version: link:packages/qwik
       '@types/brotli':
         specifier: 1.3.4
         version: 1.3.4
@@ -275,17 +275,11 @@ importers:
         specifier: 0.10.2
         version: 0.10.2
       '@builder.io/qwik':
-        specifier: workspace:^
+        specifier: workspace:@qwik.dev/core@*
         version: link:../qwik
       '@builder.io/qwik-city':
-        specifier: workspace:^
+        specifier: workspace:@qwik.dev/city@*
         version: link:../qwik-city
-      '@builder.io/qwik-labs':
-        specifier: workspace:^
-        version: link:../qwik-labs
-      '@builder.io/qwik-react':
-        specifier: workspace:^
-        version: link:../qwik-react
       '@builder.io/sdk-qwik':
         specifier: 0.14.31
         version: 0.14.31(@builder.io/qwik@packages+qwik)
@@ -313,6 +307,18 @@ importers:
       '@qwik-ui/headless':
         specifier: 0.5.0
         version: 0.5.0(@builder.io/qwik@packages+qwik)
+      '@qwik.dev/city':
+        specifier: workspace:^
+        version: link:../qwik-city
+      '@qwik.dev/core':
+        specifier: workspace:^
+        version: link:../qwik
+      '@qwik.dev/labs':
+        specifier: workspace:^
+        version: link:../qwik-labs
+      '@qwik.dev/react':
+        specifier: workspace:^
+        version: link:../qwik-react
       '@supabase/supabase-js':
         specifier: 2.44.4
         version: 2.44.4
@@ -371,8 +377,8 @@ importers:
         specifier: 22.13.1
         version: 22.13.1(bufferutil@4.0.8)(typescript@5.4.5)(utf-8-validate@5.0.10)
       qwik-image:
-        specifier: 0.0.14-alpha
-        version: 0.0.14-alpha
+        specifier: 0.0.15
+        version: 0.0.15
       react:
         specifier: 18.3.1
         version: 18.3.1
@@ -425,12 +431,12 @@ importers:
         specifier: ^3.3.5
         version: 3.3.5
     devDependencies:
-      '@builder.io/qwik':
-        specifier: workspace:^
-        version: link:../qwik
-      '@builder.io/qwik-city':
+      '@qwik.dev/city':
         specifier: workspace:^
         version: link:../qwik-city
+      '@qwik.dev/core':
+        specifier: workspace:^
+        version: link:../qwik
       '@types/eslint':
         specifier: 8.56.10
         version: 8.56.10
@@ -478,20 +484,26 @@ importers:
         version: 0.13.0
     devDependencies:
       '@builder.io/qwik':
-        specifier: workspace:^
+        specifier: workspace:@qwik.dev/core@*
         version: link:../qwik
       '@builder.io/qwik-city':
-        specifier: workspace:^
+        specifier: workspace:@qwik.dev/city@*
         version: link:../qwik-city
-      '@builder.io/qwik-labs':
-        specifier: workspace:^
-        version: link:../qwik-labs
       '@builder.io/vite-plugin-macro':
         specifier: 0.0.7
         version: 0.0.7(@types/node@20.14.11)(rollup@4.19.0)(terser@5.31.3)
       '@netlify/edge-functions':
         specifier: 2.10.0
         version: 2.10.0
+      '@qwik.dev/city':
+        specifier: workspace:^
+        version: link:../qwik-city
+      '@qwik.dev/core':
+        specifier: workspace:^
+        version: link:../qwik
+      '@qwik.dev/labs':
+        specifier: workspace:^
+        version: link:../qwik-labs
       '@types/density-clustering':
         specifier: 1.3.3
         version: 1.3.3
@@ -559,10 +571,10 @@ importers:
         specifier: ^5
         version: 5.3.5(@types/node@20.14.11)(terser@5.31.3)
     devDependencies:
-      '@builder.io/qwik':
+      '@qwik.dev/core':
         specifier: workspace:^
         version: 'link:'
-      '@builder.io/qwik-dom':
+      '@qwik.dev/dom':
         specifier: workspace:^
         version: link:../qwik-dom
       image-size:
@@ -577,25 +589,6 @@ importers:
       vitest:
         specifier: 2.0.5
         version: 2.0.5(@types/node@20.14.11)(terser@5.31.3)
-
-  packages/qwik-auth:
-    dependencies:
-      '@auth/core':
-        specifier: ^0.30.0
-        version: 0.30.0
-    devDependencies:
-      '@builder.io/qwik':
-        specifier: workspace:^
-        version: link:../qwik
-      '@builder.io/qwik-city':
-        specifier: workspace:^
-        version: link:../qwik-city
-      '@types/set-cookie-parser':
-        specifier: 2.4.10
-        version: 2.4.10
-      set-cookie-parser:
-        specifier: 2.6.0
-        version: 2.6.0
 
   packages/qwik-city:
     dependencies:
@@ -633,15 +626,15 @@ importers:
       '@azure/functions':
         specifier: 3.5.1
         version: 3.5.1
-      '@builder.io/qwik':
-        specifier: workspace:^
-        version: link:../qwik
       '@microsoft/api-extractor':
         specifier: 7.43.1
         version: 7.43.1(@types/node@20.14.11)
       '@netlify/edge-functions':
         specifier: 2.10.0
         version: 2.10.0
+      '@qwik.dev/core':
+        specifier: workspace:^
+        version: link:../qwik
       '@types/mdast':
         specifier: 4.0.4
         version: 4.0.4
@@ -713,8 +706,8 @@ importers:
 
   packages/qwik-labs:
     devDependencies:
-      '@builder.io/qwik':
-        specifier: workspace:^
+      '@qwik.dev/core':
+        specifier: workspace:*
         version: link:../qwik
       '@types/eslint':
         specifier: 8.56.10
@@ -732,7 +725,7 @@ importers:
         specifier: 8.57.0
         version: 8.57.0
       eslint-plugin-qwik:
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../eslint-plugin-qwik
       np:
         specifier: 10.0.1
@@ -752,7 +745,7 @@ importers:
 
   packages/qwik-react:
     devDependencies:
-      '@builder.io/qwik':
+      '@qwik.dev/core':
         specifier: workspace:^
         version: link:../qwik
       '@types/react':
@@ -776,8 +769,8 @@ importers:
 
   packages/qwik-worker:
     devDependencies:
-      '@builder.io/qwik':
-        specifier: workspace:^
+      '@qwik.dev/core':
+        specifier: workspace:*
         version: link:../qwik
       vite:
         specifier: 5.3.5
@@ -792,12 +785,12 @@ importers:
         specifier: ^0.6.3
         version: 0.6.3(@supabase/supabase-js@2.44.4)
     devDependencies:
-      '@builder.io/qwik':
-        specifier: workspace:^
-        version: link:../qwik
-      '@builder.io/qwik-city':
-        specifier: workspace:^
+      '@qwik.dev/city':
+        specifier: workspace:*
         version: link:../qwik-city
+      '@qwik.dev/core':
+        specifier: workspace:*
+        version: link:../qwik
       '@supabase/supabase-js':
         specifier: 2.44.4
         version: 2.44.4
@@ -880,20 +873,6 @@ packages:
 
   '@antfu/utils@0.7.10':
     resolution: {integrity: sha512-+562v9k4aI80m1+VuMHehNJWLOFjBnXn3tdOitzD0il5b7smkSBal4+a3oKiQTbrwMmN/TBUMDvbdoWDehgOww==}
-
-  '@auth/core@0.30.0':
-    resolution: {integrity: sha512-8AE4m/nk+4EIiVCJwxZAsJeAQuzpEC8M8768mmKVn60CGDdupKQkVhxbRlm5Qh7eNRCoFFME+0DvtaX2aXrYaA==}
-    peerDependencies:
-      '@simplewebauthn/browser': ^9.0.1
-      '@simplewebauthn/server': ^9.0.2
-      nodemailer: ^6.8.0
-    peerDependenciesMeta:
-      '@simplewebauthn/browser':
-        optional: true
-      '@simplewebauthn/server':
-        optional: true
-      nodemailer:
-        optional: true
 
   '@auth/core@0.34.1':
     resolution: {integrity: sha512-tuYU2VIbI8rFbkSwP710LmybB2FXJsPN7j3sjRVfN9SXVQBK2ej6LdewQaofpBGp4Mk+cC2UeiGNH0or4tgaeA==}
@@ -8174,8 +8153,8 @@ packages:
   quote-unquote@1.0.0:
     resolution: {integrity: sha512-twwRO/ilhlG/FIgYeKGFqyHhoEhqgnKVkcmqMKi2r524gz3ZbDTcyFt38E9xjJI2vT+KbRNHVbnJ/e0I25Azwg==}
 
-  qwik-image@0.0.14-alpha:
-    resolution: {integrity: sha512-Xj+Cc6em2eNRLLZ1PWsQG1wYwDHF4z8qJLMPJ4KD/1uRckv4YpfUcNXR64KTrdwehfXfYGSAmK/rBUrvbbFPgA==}
+  qwik-image@0.0.15:
+    resolution: {integrity: sha512-FvEGgM4FE0qh9ceHNvgaNkvJfoXMmSitAzEvCkeaCaoybLMU5odQvqmSple0fjD1bIE0j3TcPUmjlT3XdOnHbA==}
 
   radix3@1.1.2:
     resolution: {integrity: sha512-b484I/7b8rDEdSDKckSSBA8knMpcdsXudlE/LNL639wFoHKwLbEkQFZHWEYwDC0wa0FKUcCY+GAF73Z7wxNVFA==}
@@ -10043,16 +10022,6 @@ snapshots:
       '@jridgewell/trace-mapping': 0.3.25
 
   '@antfu/utils@0.7.10': {}
-
-  '@auth/core@0.30.0':
-    dependencies:
-      '@panva/hkdf': 1.1.1
-      '@types/cookie': 0.6.0
-      cookie: 0.6.0
-      jose: 5.4.0
-      oauth4webapi: 2.10.4
-      preact: 10.11.3
-      preact-render-to-string: 5.2.3(preact@10.11.3)
 
   '@auth/core@0.34.1':
     dependencies:
@@ -18261,7 +18230,7 @@ snapshots:
 
   quote-unquote@1.0.0: {}
 
-  qwik-image@0.0.14-alpha: {}
+  qwik-image@0.0.15: {}
 
   radix3@1.1.2: {}
 

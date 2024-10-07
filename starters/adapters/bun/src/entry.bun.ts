@@ -8,9 +8,9 @@
  * - https://bun.sh/docs/api/http
  *
  */
-import { createQwikCity } from "@builder.io/qwik-city/middleware/bun";
 import qwikCityPlan from "@qwik-city-plan";
 import { manifest } from "@qwik-client-manifest";
+import { createQwikCity } from "@qwik.dev/city/middleware/bun";
 import render from "./entry.ssr";
 
 // Create the Qwik City Bun middleware

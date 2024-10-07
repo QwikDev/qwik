@@ -1,10 +1,10 @@
 {
-  "name": "@builder.io/qwik-worker",
+  "name": "@qwik.dev/worker",
   "description": "Qwik Worker allows to use Web Worker with worker$. Experimental.",
-  "version": "0.0.1",
+  "version": "2.0.0-0",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "devDependencies": {
-    "@builder.io/qwik": "workspace:^",
+    "@qwik.dev/core": "workspace:*",
     "vite": "5.3.5",
     "vite-plugin-static-copy": "1.0.6"
   },
@@ -24,7 +24,7 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "@builder.io/qwik": "workspace:^"
+    "@qwik.dev/core": "workspace:^"
   },
   "qwik": "./lib/index.qwik.mjs",
   "repository": {

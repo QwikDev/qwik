@@ -1,27 +1,27 @@
-import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
-import { beforeEach, describe, expect, it } from 'vitest';
 import {
-  component$,
-  useSignal,
-  useStore,
-  Slot,
-  useTask$,
   Fragment as Component,
+  component$,
+  createContextId,
+  Fragment as DerivedSignal,
   Fragment,
   Fragment as InlineComponent,
-  Fragment as Projection,
-  Fragment as DerivedSignal,
-  useVisibleTask$,
-  useContextProvider,
-  createContextId,
-  type Signal,
-  type JSXNode,
   jsx,
+  Fragment as Projection,
+  Slot,
   useContext,
-} from '@builder.io/qwik';
+  useContextProvider,
+  useSignal,
+  useStore,
+  useTask$,
+  useVisibleTask$,
+  type JSXNode,
+  type Signal,
+} from '@qwik.dev/core';
+import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { vnode_getNextSibling } from '../client/vnode';
 import { HTML_NS, SVG_NS } from '../shared/utils/markers';
-import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 
 const DEBUG = false;
 

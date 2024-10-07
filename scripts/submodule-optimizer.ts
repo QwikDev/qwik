@@ -15,7 +15,7 @@ import { constants, existsSync } from 'node:fs';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
 import RawPlugin from 'esbuild-plugin-raw';
 
-/** Builds @builder.io/optimizer */
+/** Builds @qwik.dev/core/optimizer */
 export async function submoduleOptimizer(config: BuildConfig) {
   const submodule = 'optimizer';
 
@@ -41,7 +41,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
     const esmBuild = build({
       ...opts,
       format: 'esm',
-      banner: { js: getBanner('@builder.io/qwik/optimizer', config.distVersion) },
+      banner: { js: getBanner('@qwik.dev/core/optimizer', config.distVersion) },
       outExtension: { '.js': '.mjs' },
       define: {
         'globalThis.IS_CJS': 'false',
@@ -104,7 +104,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
               braces: true,
               beautify: true,
               indent_level: 2,
-              preamble: getBanner('@builder.io/qwik/optimizer', config.distVersion),
+              preamble: getBanner('@qwik.dev/core/optimizer', config.distVersion),
             },
             mangle: false,
           });

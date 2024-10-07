@@ -1,9 +1,9 @@
-import { defineConfig, loadEnv } from 'vite';
-import { qwikVite } from '@builder.io/qwik/optimizer';
-import { qwikCity } from '@builder.io/qwik-city/vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
-import { qwikInsights, qwikTypes } from '@builder.io/qwik-labs/vite';
+import { qwikCity } from '@qwik.dev/city/vite';
+import { qwikInsights, qwikTypes } from '@qwik.dev/labs/vite';
 import { macroPlugin } from '@builder.io/vite-plugin-macro';
+import { qwikVite } from '@qwik.dev/core/optimizer';
+import { defineConfig, loadEnv } from 'vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig(async () => {
   return {

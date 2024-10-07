@@ -1,4 +1,4 @@
-import { $, implicit$FirstArg, type QRL, _getContextElement, _serialize } from '@builder.io/qwik';
+import { $, implicit$FirstArg, type QRL, _getContextElement, _serialize } from '@qwik.dev/core';
 
 //@ts-ignore
 import workerUrl from './worker.js?worker&url';
@@ -51,6 +51,9 @@ export const workerQrl: WorkerConstructorQRL = (qrl) => {
       }
       return arg;
     });
+    // TODO: uncomment for v2 release
+    // const data = await _serialize([qrl, ...filtered]);
+
     const data = await _serialize([qrl, ...filtered]);
     return new Promise((resolve, reject) => {
       const handler = ({ data }: MessageEvent) => {

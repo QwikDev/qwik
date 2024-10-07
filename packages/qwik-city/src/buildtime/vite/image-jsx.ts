@@ -92,7 +92,7 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
               code:
                 code.slice(0, index) +
                 `
-  import { _jsxSorted } from '@builder.io/qwik';
+  import { _jsxSorted } from '@qwik.dev/core';
   const PROPS = {srcSet, width, height};
   export default function (props, key, _, dev) {
     return _jsxSorted('img', {...{decoding: 'async', loading: 'lazy'}, ...props}, PROPS, undefined, 3, key, dev);
@@ -103,7 +103,7 @@ export function imagePlugin(userOpts?: QwikCityVitePluginOptions): PluginOption[
             const { svgAttributes } = optimizeSvg({ code, path: pathId }, userOpts);
             return {
               code: `
-  import { _jsxSorted } from '@builder.io/qwik';
+  import { _jsxSorted } from '@qwik.dev/core';
   const PROPS = ${JSON.stringify(svgAttributes)};
   export default function (props, key, _, dev) {
     return _jsxSorted('svg', props, PROPS, undefined, 3, key, dev);

@@ -28,7 +28,7 @@ on:
   workflow_dispatch:
     inputs:
       disttag:
-        description: 'Publish "@builder.io/qwik" to NPM using this dist-tag, push the git-tag to the repo and create a GitHub release. The "latest" and "next" dist-tags will use the version number already committed in package.json.'
+        description: 'Publish "@qwik.dev/core" to NPM using this dist-tag, push the git-tag to the repo and create a GitHub release. The "latest" and "next" dist-tags will use the version number already committed in package.json.'
         required: true
         type: choice
         default: 'dev'
@@ -875,6 +875,8 @@ jobs:
         uses: changesets/action@v1
         with:
           publish: pnpm release
+          title: V2 Version Packages
+          branch: build/v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

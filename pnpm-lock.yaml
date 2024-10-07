@@ -590,25 +590,6 @@ importers:
         specifier: 2.0.5
         version: 2.0.5(@types/node@20.14.11)(terser@5.31.3)
 
-  packages/qwik-auth:
-    dependencies:
-      '@auth/core':
-        specifier: ^0.30.0
-        version: 0.30.0
-    devDependencies:
-      '@qwik.dev/city':
-        specifier: workspace:*
-        version: link:../qwik-city
-      '@qwik.dev/core':
-        specifier: workspace:*
-        version: link:../qwik
-      '@types/set-cookie-parser':
-        specifier: 2.4.10
-        version: 2.4.10
-      set-cookie-parser:
-        specifier: 2.6.0
-        version: 2.6.0
-
   packages/qwik-city:
     dependencies:
       '@mdx-js/mdx':
@@ -892,20 +873,6 @@ packages:
 
   '@antfu/utils@0.7.10':
     resolution: {integrity: sha512-+562v9k4aI80m1+VuMHehNJWLOFjBnXn3tdOitzD0il5b7smkSBal4+a3oKiQTbrwMmN/TBUMDvbdoWDehgOww==}
-
-  '@auth/core@0.30.0':
-    resolution: {integrity: sha512-8AE4m/nk+4EIiVCJwxZAsJeAQuzpEC8M8768mmKVn60CGDdupKQkVhxbRlm5Qh7eNRCoFFME+0DvtaX2aXrYaA==}
-    peerDependencies:
-      '@simplewebauthn/browser': ^9.0.1
-      '@simplewebauthn/server': ^9.0.2
-      nodemailer: ^6.8.0
-    peerDependenciesMeta:
-      '@simplewebauthn/browser':
-        optional: true
-      '@simplewebauthn/server':
-        optional: true
-      nodemailer:
-        optional: true
 
   '@auth/core@0.34.1':
     resolution: {integrity: sha512-tuYU2VIbI8rFbkSwP710LmybB2FXJsPN7j3sjRVfN9SXVQBK2ej6LdewQaofpBGp4Mk+cC2UeiGNH0or4tgaeA==}
@@ -10055,16 +10022,6 @@ snapshots:
       '@jridgewell/trace-mapping': 0.3.25
 
   '@antfu/utils@0.7.10': {}
-
-  '@auth/core@0.30.0':
-    dependencies:
-      '@panva/hkdf': 1.1.1
-      '@types/cookie': 0.6.0
-      cookie: 0.6.0
-      jose: 5.4.0
-      oauth4webapi: 2.10.4
-      preact: 10.11.3
-      preact-render-to-string: 5.2.3(preact@10.11.3)
 
   '@auth/core@0.34.1':
     dependencies:

@@ -36,7 +36,9 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <Fragment>
-          <div key="0">0</div>
+          <div key="0">
+            <Signal>0</Signal>
+          </div>
         </Fragment>
       </Component>
     );
@@ -550,7 +552,9 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <Fragment>
-          <div key="0">0</div>
+          <div key="0">
+            <Signal>0</Signal>
+          </div>
         </Fragment>
       </Component>
     );
@@ -651,7 +655,9 @@ describe.each([
               <Signal>{(globalThis as any).clicks}</Signal>
               {'!'}
             </button>
-            <div key="0">{(globalThis as any).clicks}</div>
+            <div key="0">
+              <Signal>{(globalThis as any).clicks}</Signal>
+            </div>
           </Fragment>
         </Component>
       );
@@ -667,7 +673,9 @@ describe.each([
               <Signal>{(globalThis as any).clicks}</Signal>
               {'!'}
             </button>
-            <div key="0">{(globalThis as any).clicks}</div>
+            <div key="0">
+              <Signal>{(globalThis as any).clicks}</Signal>
+            </div>
           </Fragment>
         </Component>
       );
@@ -710,7 +718,9 @@ describe.each([
               <Signal>{'0'}</Signal>
               {'!'}
             </div>
-            <div key="0">0</div>
+            <div key="0">
+              <Signal>0</Signal>
+            </div>
           </Fragment>
         </Component>
       );
@@ -723,7 +733,9 @@ describe.each([
               <Signal>{'1'}</Signal>
               {'!'}
             </div>
-            <div key="0">1</div>
+            <div key="0">
+              <Signal>1</Signal>
+            </div>
           </Fragment>
         </Component>
       );
@@ -736,7 +748,9 @@ describe.each([
               <Signal>{'2'}</Signal>
               {'!'}
             </div>
-            <div key="0">2</div>
+            <div key="0">
+              <Signal>2</Signal>
+            </div>
           </Fragment>
         </Component>
       );

@@ -71,7 +71,7 @@ export default component$(() => {
         <script dangerouslySetInnerHTML={uwu} />
         <script dangerouslySetInnerHTML={unregisterPrefetchServiceWorkers} />
         <RouterHead />
-        {/* Core Web Vitals experiment until October 9: Do not bring back any SW until then! Reach out to @maiieul first if you believe you have a good reason to change this. */}
+        {/* Core Web Vitals experiment until October 23: Do not bring back any SW until then! Reach out to @maiieul first if you believe you have a good reason to change this. */}
         {/* <ServiceWorkerRegister /> */}
 
         {/* <script dangerouslySetInnerHTML={`(${collectSymbols})()`} /> */}
@@ -85,7 +85,7 @@ export default component$(() => {
       >
         <RouterOutlet />
         <RealMetricsOptimization builderApiKey={BUILDER_PUBLIC_API_KEY} />
-        {/* Core Web Vitals experiment until October 9: Do not bring back any SW until then! Reach out to @maiieul first if you believe you have a good reason to change this. */}
+        {/* Core Web Vitals experiment until October 23: Do not bring back any SW until then! Reach out to @maiieul first if you believe you have a good reason to change this. */}
       </body>
     </QwikCityProvider>
   );

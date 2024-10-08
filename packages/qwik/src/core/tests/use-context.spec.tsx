@@ -4,7 +4,7 @@ import {
   Fragment as Component,
   Fragment,
   Fragment as Projection,
-  Fragment as DerivedSignal,
+  Fragment as WrappedSignal,
   createContextId,
   useContext,
   useContextProvider,
@@ -68,7 +68,7 @@ describe.each([
       <Component>
         <Component>
           <span>
-            <DerivedSignal>CONTEXT_VALUE</DerivedSignal>
+            <WrappedSignal>CONTEXT_VALUE</WrappedSignal>
           </span>
         </Component>
       </Component>
@@ -92,7 +92,7 @@ describe.each([
       <Component>
         <Component>
           <span>
-            <DerivedSignal>CONTEXT_VALUE</DerivedSignal>
+            <WrappedSignal>CONTEXT_VALUE</WrappedSignal>
           </span>
         </Component>
       </Component>
@@ -150,14 +150,12 @@ describe.each([
                 <Awaited>
                   <Component>
                     <Fragment>
-                      <p>
-                        <DerivedSignal>1</DerivedSignal>
-                      </p>
+                      <p>1</p>
                       <p>
                         <Awaited>0</Awaited>
                       </p>
                       <p>
-                        <DerivedSignal>0</DerivedSignal>
+                        <WrappedSignal>0</WrappedSignal>
                       </p>
                       <button>Increment</button>
                     </Fragment>
@@ -178,14 +176,12 @@ describe.each([
                 <Awaited>
                   <Component>
                     <Fragment>
-                      <p>
-                        <DerivedSignal>1</DerivedSignal>
-                      </p>
+                      <p>1</p>
                       <p>
                         <Awaited>2</Awaited>
                       </p>
                       <p>
-                        <DerivedSignal>2</DerivedSignal>
+                        <WrappedSignal>2</WrappedSignal>
                       </p>
                       <button>Increment</button>
                     </Fragment>
@@ -251,7 +247,7 @@ describe.each([
                 <Component>
                   <div id="issue-5270-div">
                     {'Ctx: '}
-                    <DerivedSignal>{'hello'}</DerivedSignal>
+                    <WrappedSignal>{'hello'}</WrappedSignal>
                   </div>
                 </Component>
               </Projection>

@@ -5,7 +5,7 @@ use crate::collector::{
 use crate::entry_strategy::EntryPolicy;
 use crate::inlined_fn::{convert_inlined_fn, render_expr};
 use crate::is_const::is_const_expr;
-use crate::parse::PathData;
+use crate::parse::{EmitMode, PathData};
 use crate::words::*;
 use crate::{errors, EntryStrategy};
 use base64::Engine;
@@ -123,12 +123,11 @@ pub struct QwikTransformOptions<'a> {
 	pub comments: Option<&'a SingleThreadedComments>,
 	pub global_collect: GlobalCollect,
 	pub scope: Option<&'a String>,
+	pub mode: EmitMode,
 	pub entry_strategy: EntryStrategy,
 	pub reg_ctx_name: Option<&'a [JsWord]>,
 	pub strip_ctx_name: Option<&'a [JsWord]>,
 	pub strip_event_handlers: bool,
-	pub is_dev: bool,
-	pub is_lib: bool,
 	pub is_server: bool,
 	pub cm: Lrc<SourceMap>,
 }
@@ -331,7 +330,7 @@ impl<'a> QwikTransform<'a> {
 		let hash = hasher.finish();
 		let hash64 = base64(hash);
 
-		let symbol_name = if self.options.is_dev || self.options.is_lib {
+		let symbol_name = if matches!(self.options.mode, EmitMode::Dev | EmitMode::Test) {
 			format!("{}_{}", display_name, hash64)
 		} else {
 			format!("s_{}", hash64)
@@ -380,7 +379,10 @@ impl<'a> QwikTransform<'a> {
 				ast::Expr::Lit(ast::Lit::Str(string)) => string.value,
 				_ => panic!("dfd"),
 			};
-			parse_symbol_name(symbol_name, self.options.is_dev || self.options.is_lib)
+			parse_symbol_name(
+				symbol_name,
+				matches!(self.options.mode, EmitMode::Dev | EmitMode::Test),
+			)
 		};
 
 		self.segment_stack.push(symbol_name.clone());
@@ -852,7 +854,7 @@ impl<'a> QwikTransform<'a> {
 				vec![node_type, var_props, const_props, children, flags, key],
 			)
 		};
-		if self.options.is_dev {
+		if self.options.mode == EmitMode::Dev {
 			args.push(self.get_dev_location(node.span));
 		}
 
@@ -957,7 +959,7 @@ impl<'a> QwikTransform<'a> {
 				raw: None,
 			})),
 		];
-		let fn_callee = if self.options.is_dev {
+		let fn_callee = if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
 				&self.options.path_data.abs_path,
 				segment_data,
@@ -1022,7 +1024,7 @@ impl<'a> QwikTransform<'a> {
 			})),
 		];
 
-		let fn_callee = if self.options.is_dev {
+		let fn_callee = if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
 				&self.options.path_data.abs_path,
 				&segment_data,
@@ -1616,7 +1618,7 @@ impl<'a> QwikTransform<'a> {
 		}))];
 
 		let mut fn_name: &JsWord = &_NOOP_QRL;
-		if self.options.is_dev {
+		if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
 				&self.options.path_data.abs_path,
 				&segment_data,

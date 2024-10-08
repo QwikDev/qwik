@@ -1,22 +1,29 @@
 /* eslint-disable no-console */
-import { expect } from 'vitest';
-import { Q_FUNCS_PREFIX, renderToString } from '../server/render';
-import { createDocument } from './document';
-import { getTestPlatform } from './platform';
-import { _getDomContainer, componentQrl, type OnRenderFn } from '@builder.io/qwik';
 import type {
   JSXOutput,
-  _DomContainer,
   _ContainerElement,
+  _DomContainer,
   _VNode,
   _VirtualVNode,
 } from '@builder.io/qwik';
-import { getPlatform, setPlatform } from '../core/platform/platform';
-import { inlinedQrl } from '../core/qrl/qrl';
-import type { QRL } from '../core/qrl/qrl.public';
-import { ERROR_CONTEXT } from '../core/render/error-handling';
-import { Slot } from '../core/render/jsx/slot.public';
-import { useContextProvider } from '../core/use/use-context';
+import { _getDomContainer, componentQrl, type OnRenderFn } from '@builder.io/qwik';
+import { expect } from 'vitest';
+import { render } from '../core/client/dom-render';
+import {
+  vnode_getAttr,
+  vnode_getFirstChild,
+  vnode_getParent,
+  vnode_getVNodeForChildNode,
+  vnode_locate,
+  vnode_toString,
+} from '../core/client/vnode';
+import { ERROR_CONTEXT } from '../core/shared/error/error-handling';
+import type { Props } from '../core/shared/jsx/jsx-runtime';
+import { Slot } from '../core/shared/jsx/slot.public';
+import { getPlatform, setPlatform } from '../core/shared/platform/platform';
+import { inlinedQrl } from '../core/shared/qrl/qrl';
+import { ChoreType } from '../core/shared/scheduler';
+import { dumpState } from '../core/shared/shared-serialization';
 import {
   ELEMENT_PROPS,
   OnRenderProp,
@@ -25,21 +32,13 @@ import {
   QInstanceAttr,
   QScopedStyle,
   QStyle,
-} from '../core/util/markers';
-import { render2 } from '../core/v2/client/dom-render';
-import {
-  vnode_getAttr,
-  vnode_getFirstChild,
-  vnode_getParent,
-  vnode_getVNodeForChildNode,
-  vnode_isVNode,
-  vnode_locate,
-  vnode_toString,
-} from '../core/v2/client/vnode';
-import { codeToName } from '../core/v2/shared/shared-serialization';
+} from '../core/shared/utils/markers';
+import { useContextProvider } from '../core/use/use-context';
+import type { HostElement, QRLInternal } from '../server/qwik-types';
+import { Q_FUNCS_PREFIX, renderToString } from '../server/ssr-render';
+import { createDocument } from './document';
+import { getTestPlatform } from './platform';
 import './vdom-diff.unit-util';
-import { renderToString2 } from '../server/v2-ssr-render2';
-import { ChoreType } from '../core/v2/shared/scheduler';
 
 /** @public */
 export async function domRender(
@@ -47,12 +46,10 @@ export async function domRender(
   opts: {
     /// Print debug information to console.
     debug?: boolean;
-    /// Use old SSR rendering ond print out debug state. Useful for comparing difference between serialization.
-    oldSSR?: boolean;
   } = {}
 ) {
   const document = createDocument();
-  await render2(document.body, jsx);
+  await render(document.body, jsx);
   await getTestPlatform().flush();
   const getStyles = getStylesFactory(document);
   const container = _getDomContainer(document.body);
@@ -100,28 +97,10 @@ export async function ssrRenderToDom(
   opts: {
     /// Print debug information to console.
     debug?: boolean;
-    /// Use old SSR rendering ond print out debug state. Useful for comparing difference between serialization.
-    oldSSR?: boolean;
     /// Treat JSX as raw, (don't wrap in in head/body)
     raw?: boolean;
   } = {}
 ) {
-  if (opts.oldSSR) {
-    const platform = getPlatform();
-    try {
-      const ssr = await renderToString([
-        <head>
-          <title>{expect.getState().testPath}</title>
-        </head>,
-        <body>{jsx}</body>,
-      ]);
-      // restore platform
-      console.log('LEGACY HTML', ssr.html);
-    } finally {
-      setPlatform(platform);
-    }
-  }
-
   let html = '';
   const platform = getPlatform();
   try {
@@ -133,7 +112,7 @@ export async function ssrRenderToDom(
           </head>,
           <body>{jsx}</body>,
         ];
-    const result = await renderToString2(jsxToRender);
+    const result = await renderToString(jsxToRender);
     html = result.html;
   } finally {
     setPlatform(platform);
@@ -152,22 +131,15 @@ export async function ssrRenderToDom(
     console.log('--------------------------------------------------------');
     console.log(vnode_toString.call(container.rootVNode, Number.MAX_SAFE_INTEGER, '', true));
     console.log('------------------- SERIALIZED STATE -------------------');
-    const state = container.$rawStateData$;
-    for (let i = 0; i < state.length; i++) {
-      console.log(('    ' + i + ':').substring(-4), qwikJsonStringify(state[i]));
-    }
+    // We use the original state so we don't get deserialized data
+    const origState = container.element.querySelector('script[type="qwik/state"]')?.textContent;
+    console.log(origState ? dumpState(JSON.parse(origState), true) : 'No state found', '\n');
     const funcs = container.$qFuncs$;
+    console.log('------------------- SERIALIZED QFUNCS -------------------');
     for (let i = 0; i < funcs.length; i++) {
       console.log(('    ' + i + ':').substring(-4), funcs[i].toString());
     }
-    if (false as boolean) {
-      // stateDate is private but it's not enforced so we can access it for the test
-      const proxyState = (container as any).stateData;
-      for (let i = 0; i < state.length; i++) {
-        console.log(('    ' + i + ':').substring(-4), proxyState[i]);
-      }
-    }
-    console.log('--------------------------------------------------------');
+    console.log('---------------------------------------------------------');
   }
   const containerVNode = opts.raw
     ? container.rootVNode
@@ -203,9 +175,9 @@ function renderStyles(getStyles: () => Record<string, string | string[]>) {
 export async function rerenderComponent(element: HTMLElement) {
   const container = _getDomContainer(element);
   const vElement = vnode_locate(container.rootVNode, element);
-  const host = getHostVNode(vElement)!;
-  const qrl = container.getHostProp<QRL<OnRenderFn<any>>>(host, OnRenderProp)!;
-  const props = container.getHostProp(host, ELEMENT_PROPS);
+  const host = getHostVNode(vElement) as HostElement;
+  const qrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(host, OnRenderProp)!;
+  const props = container.getHostProp<Props>(host, ELEMENT_PROPS);
   await container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
   await getTestPlatform().flush();
 }
@@ -218,20 +190,6 @@ function getHostVNode(vElement: _VNode | null) {
     vElement = vnode_getParent(vElement);
   }
   return vElement;
-}
-
-function qwikJsonStringify(value: any): string {
-  const RED = '\x1b[31m';
-  const RESET = '\x1b[0m';
-  if (vnode_isVNode(value)) {
-    return vnode_toString.call(value, 1, '', true).replaceAll(/\n.*/gm, '');
-  } else {
-    let json = JSON.stringify(value);
-    json = json.replace(/"\\u00([0-9a-f][0-9a-f])/gm, (_, value) => {
-      return '"' + RED + codeToName(parseInt(value, 16)) + ': ' + RESET;
-    });
-    return json;
-  }
 }
 
 export const ErrorProvider = Object.assign(

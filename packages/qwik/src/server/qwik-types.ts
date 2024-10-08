@@ -12,17 +12,14 @@
  *   this file, which is only allowed to import types)
  */
 
-export type { ObjToProxyMap } from '../core/container/container';
-export type { CorePlatformServer } from '../core/platform/types';
-export type { QRLInternal } from '../core/qrl/qrl-class';
-export type { JSXOutput } from '../core/render/jsx/types/jsx-node';
-export type { JSXChildren } from '../core/render/jsx/types/jsx-qwik-attributes';
-export type { SubscriptionManager } from '../core/state/common';
-export type { QContext } from '../core/state/context';
+export type { CorePlatformServer } from '../core/shared/platform/types';
+export type { QRLInternal } from '../core/shared/qrl/qrl-class';
+export type { JSXOutput } from '../core/shared/jsx/types/jsx-node';
+export type { JSXChildren } from '../core/shared/jsx/types/jsx-qwik-attributes';
 export type { ContextId } from '../core/use/use-context';
-export type { ValueOrPromise } from '../core/util/types';
-export type { SerializationContext } from '../core/v2/shared/shared-serialization';
-export type { Container2, HostElement } from '../core/v2/shared/types';
+export type { ValueOrPromise } from '../core/shared/utils/types';
+export type { SerializationContext } from '../core/shared/shared-serialization';
+export type { Container, HostElement, ObjToProxyMap } from '../core/shared/types';
 export type {
   ISsrComponentFrame,
   ISsrNode,
@@ -31,8 +28,7 @@ export type {
   SsrAttrKey,
   SsrAttrValue,
   StreamWriter,
-} from '../core/v2/ssr/ssr-types';
+} from '../core/ssr/ssr-types';
 export type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
-export type { SymbolToChunkResolver } from '../core/v2/ssr/ssr-types';
-export type { fixMeAny } from '../core/v2/shared/types';
-export type { NodePropData } from '../core/v2/shared/scheduler';
+export type { SymbolToChunkResolver } from '../core/ssr/ssr-types';
+export type { NodePropData } from '../core/shared/scheduler';

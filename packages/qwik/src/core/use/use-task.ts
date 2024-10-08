@@ -1,46 +1,30 @@
-import { intToStr, strToInt, type ContainerState, type MustGetObjID } from '../container/container';
-import { assertDefined, assertEqual } from '../error/assert';
-import { QError_trackUseStore, codeToText } from '../error/error';
-import { isServerPlatform } from '../platform/platform';
-import { assertQrl, assertSignal, createQRL, type QRLInternal } from '../qrl/qrl-class';
-import type { QRL } from '../qrl/qrl.public';
-import { _hW, notifyTask } from '../render/dom/notify-render';
-import type { QwikElement } from '../render/dom/virtual-element';
-import { handleError } from '../render/error-handling';
-import type { RenderContext } from '../render/types';
-import {
-  SubscriptionType,
-  getSubscriptionManager,
-  noSerialize,
-  type NoSerialize,
-} from '../state/common';
-import { QObjectManagerSymbol } from '../state/constants';
-import { QObjectSignalFlags, SIGNAL_UNASSIGNED, type SignalInternal } from '../state/signal';
-import { logError, logErrorAndStop } from '../util/log';
-import { ComputedEvent, ResourceEvent, TaskEvent } from '../util/markers';
-import { delay, isPromise, safeCall } from '../util/promises';
-import { isFunction, isObject, type ValueOrPromise } from '../util/types';
-import { ChoreType } from '../v2/shared/scheduler';
-import { type Container2, type HostElement, type fixMeAny } from '../v2/shared/types';
-import {
-  ComputedSignal,
-  EffectProperty,
-  isSignal,
-  throwIfQRLNotResolved,
-} from '../v2/signal/v2-signal';
-import { type ReadonlySignal, type Signal } from '../v2/signal/v2-signal.public';
-import { unwrapStore } from '../v2/signal/v2-store';
-import { clearSubscriberEffectDependencies, Subscriber } from '../v2/signal/v2-subscriber';
-import { invoke, newInvokeContext, untrack, waitAndRun } from './use-core';
+import { getDomContainer } from '../client/dom-container';
+import type { VNode } from '../client/types';
+import { isServerPlatform } from '../shared/platform/platform';
+import { assertQrl, createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
+import type { QRL } from '../shared/qrl/qrl.public';
+import { ChoreType } from '../shared/scheduler';
+import { type Container, type HostElement } from '../shared/types';
+import { logError } from '../shared/utils/log';
+import { TaskEvent } from '../shared/utils/markers';
+import { isPromise, safeCall } from '../shared/utils/promises';
+import { noSerialize, type NoSerialize } from '../shared/utils/serialize-utils';
+import { isFunction, type ValueOrPromise } from '../shared/utils/types';
+import { EffectProperty, isSignal } from '../signal/signal';
+import { Subscriber, clearSubscriberEffectDependencies } from '../signal/signal-subscriber';
+import { type Signal } from '../signal/signal.public';
+import { invoke, newInvokeContext } from './use-core';
+import { useLexicalScope } from './use-lexical-scope.public';
 import { useOn, useOnDocument } from './use-on';
+import type { ResourceReturnInternal } from './use-resource';
 import { useSequentialScope } from './use-sequential-scope';
+import type { VisibleTaskStrategy } from './use-visible-task';
 
 export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,
   TASK = 1 << 1,
   RESOURCE = 1 << 2,
-  COMPUTED = 1 << 3,
-  DIRTY = 1 << 4,
+  DIRTY = 1 << 3,
 }
 
 // <docs markdown="../readme.md#Tracker">
@@ -141,58 +125,13 @@ export interface TaskCtx {
 }
 
 /** @public */
-export interface ResourceCtx<T> {
-  readonly track: Tracker;
-  cleanup(callback: () => void): void;
-  cache(policyOrMilliseconds: number | 'immutable'): void;
-  readonly previous: T | undefined;
-}
-
-/** @public */
 export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 
-/** @public */
-export type ComputedFn<T> = () => T;
-
-/** @public */
-export type ResourceFn<T> = (ctx: ResourceCtx<unknown>) => ValueOrPromise<T>;
-
-/** @public */
-export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
-
-/** @public */
-export interface ResourcePending<T> {
-  readonly value: Promise<T>;
-  readonly loading: boolean;
-}
-
-/** @public */
-export interface ResourceResolved<T> {
-  readonly value: Promise<T>;
-  readonly loading: boolean;
-}
-
-/** @public */
-export interface ResourceRejected<T> {
-  readonly value: Promise<T>;
-  readonly loading: boolean;
-}
-
-export interface ResourceReturnInternal<T> {
-  __brand: 'resource';
-  _state: 'pending' | 'resolved' | 'rejected';
-  _resolved: T | undefined;
-  _error: Error | undefined;
-  _cache: number;
-  _timeout: number;
-  value: Promise<T>;
-  loading: boolean;
-}
 /** @public */
 export interface DescriptorBase<T = unknown, B = unknown> extends Subscriber {
   $flags$: number;
   $index$: number;
-  $el$: QwikElement;
+  $el$: HostElement;
   $qrl$: QRLInternal<T>;
   $state$: B | undefined;
   $destroy$: NoSerialize<() => void> | null;
@@ -200,24 +139,6 @@ export interface DescriptorBase<T = unknown, B = unknown> extends Subscriber {
 
 /** @public */
 export type EagernessOptions = 'visible' | 'load' | 'idle';
-
-/** @public */
-export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
-
-/** @public */
-export interface OnVisibleTaskOptions {
-  /**
-   * The strategy to use to determine when the "VisibleTask" should first execute.
-   *
-   * - `intersection-observer`: the task will first execute when the element is visible in the
-   *   viewport, under the hood it uses the IntersectionObserver API.
-   * - `document-ready`: the task will first execute when the document is ready, under the hood it
-   *   uses the document `load` event.
-   * - `document-idle`: the task will first execute when the document is idle, under the hood it uses
-   *   the requestIdleCallback API.
-   */
-  strategy?: VisibleTaskStrategy;
-}
 
 /** @public */
 export interface UseTaskOptions {
@@ -290,72 +211,51 @@ export interface UseTaskOptions {
  */
 // </docs>
 export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
-  const { val, set, iCtx, i, elCtx } = useSequentialScope<1 | Task>();
+  const { val, set, iCtx, i } = useSequentialScope<1 | Task>();
   if (val) {
     return;
   }
   assertQrl(qrl);
   set(1);
 
-  if (iCtx.$container2$) {
-    const host = iCtx.$hostElement$ as unknown as HostElement;
-    const task = new Task(
-      TaskFlags.DIRTY | TaskFlags.TASK,
-      i,
-      iCtx.$hostElement$,
-      qrl,
-      undefined,
-      null
-    );
-    // In V2 we add the task to the sequential scope. We need to do this
-    // in order to be able to retrieve it later when the parent element is
-    // deleted and we need to be able to release the task subscriptions.
-    set(task);
-    const result = runTask2(task, iCtx.$container2$, host);
-    if (isPromise(result)) {
-      throw result;
-    }
-    qrl.$resolveLazy$(host as fixMeAny);
-    if (isServerPlatform()) {
-      useRunTask(task, opts?.eagerness);
-    }
-  } else {
-    const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-    const task = new Task(
-      TaskFlags.DIRTY | TaskFlags.TASK,
-      i,
-      elCtx.$element$,
-      qrl,
-      undefined,
-      null
-    );
-    qrl.$resolveLazy$(containerState.$containerEl$);
-    if (!elCtx.$tasks$) {
-      elCtx.$tasks$ = [];
-    }
-    elCtx.$tasks$.push(task);
-    waitAndRun(iCtx, () => runTask(task, containerState, iCtx.$renderCtx$));
-    if (isServerPlatform()) {
-      useRunTask(task, opts?.eagerness);
-    }
+  const host = iCtx.$hostElement$ as unknown as HostElement;
+  const task = new Task(
+    TaskFlags.DIRTY | TaskFlags.TASK,
+    i,
+    iCtx.$hostElement$,
+    qrl,
+    undefined,
+    null
+  );
+  // In V2 we add the task to the sequential scope. We need to do this
+  // in order to be able to retrieve it later when the parent element is
+  // deleted and we need to be able to release the task subscriptions.
+  set(task);
+  const result = runTask(task, iCtx.$container$, host);
+  if (isPromise(result)) {
+    throw result;
+  }
+  qrl.$resolveLazy$(iCtx.$element$);
+  if (isServerPlatform()) {
+    useRunTask(task, opts?.eagerness);
   }
 };
 
-export const runTask2 = (
+export const runTask = (
   task: Task,
-  container: Container2,
+  container: Container,
   host: HostElement
 ): ValueOrPromise<void> => {
   task.$flags$ &= ~TaskFlags.DIRTY;
   cleanupTask(task);
-  const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, TaskEvent);
-  iCtx.$container2$ = container;
+  const iCtx = newInvokeContext(container.$locale$, host, undefined, TaskEvent);
+  iCtx.$container$ = container;
   const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberEffectDependencies(task)) as TaskFn;
 
   const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
     const ctx = newInvokeContext();
     ctx.$effectSubscriber$ = [task, EffectProperty.COMPONENT];
-    ctx.$container2$ = container;
+    ctx.$container$ = container;
     return invoke(ctx, () => {
       if (isFunction(obj)) {
         return obj();
@@ -396,7 +296,7 @@ export const runTask2 = (
     cleanup,
     (err: unknown) => {
       if (isPromise(err)) {
-        return err.then(() => runTask2(task, container, host));
+        return err.then(() => runTask(task, container, host));
       } else {
         return handleError(err);
       }
@@ -405,383 +305,7 @@ export const runTask2 = (
   return result;
 };
 
-/** @public */
-export const useComputedQrl = <T>(
-  qrl: QRL<ComputedFn<T>>
-): T extends Promise<any> ? never : ReadonlySignal<T> => {
-  const { val, set } = useSequentialScope<Signal<T>>();
-  if (val) {
-    return val as any;
-  }
-  assertQrl(qrl);
-  const signal = new ComputedSignal(null, qrl);
-  set(signal);
-
-  // Note that we first save the signal
-  // and then we throw to load the qrl
-  // This is why we can't use useConstant, we need to keep using the same qrl object
-  throwIfQRLNotResolved(qrl);
-  return signal as any;
-};
-
-// <docs markdown="../readme.md#useVisibleTask">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useVisibleTask instead)
-/**
- * ```tsx
- * const Timer = component$(() => {
- *   const store = useStore({
- *     count: 0,
- *   });
- *
- *   useVisibleTask$(() => {
- *     // Only runs in the client
- *     const timer = setInterval(() => {
- *       store.count++;
- *     }, 500);
- *     return () => {
- *       clearInterval(timer);
- *     };
- *   });
- *
- *   return <div>{store.count}</div>;
- * });
- * ```
- *
- * @public
- */
-// </docs>
-export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions): void => {
-  const { val, set, i, iCtx, elCtx } = useSequentialScope<Task<TaskFn>>();
-  const eagerness = opts?.strategy ?? 'intersection-observer';
-  if (val) {
-    if (isServerPlatform()) {
-      useRunTask(val, eagerness);
-    }
-    return;
-  }
-  assertQrl(qrl);
-
-  if (iCtx.$container2$) {
-    const task = new Task(TaskFlags.VISIBLE_TASK, i, iCtx.$hostElement$, qrl, undefined, null);
-    set(task);
-    useRunTask(task, eagerness);
-    if (!isServerPlatform()) {
-      qrl.$resolveLazy$(iCtx.$hostElement$ as fixMeAny);
-      iCtx.$container2$.$scheduler$(ChoreType.VISIBLE, task);
-    }
-  } else {
-    const task = new Task(TaskFlags.VISIBLE_TASK, i, elCtx.$element$, qrl, undefined, null);
-    const containerState = iCtx.$renderCtx$.$static$.$containerState$;
-    if (!elCtx.$tasks$) {
-      elCtx.$tasks$ = [];
-    }
-    elCtx.$tasks$.push(task);
-    set(task);
-    useRunTask(task, eagerness);
-    if (!isServerPlatform()) {
-      qrl.$resolveLazy$(containerState.$containerEl$);
-      notifyTask(task, containerState);
-    }
-  }
-};
-
 export type TaskDescriptor = DescriptorBase<TaskFn>;
-
-export interface ResourceDescriptor<T>
-  extends DescriptorBase<ResourceFn<T>, ResourceReturnInternal<T>> {}
-
-export interface ComputedDescriptor<T> extends DescriptorBase<ComputedFn<T>, Signal<T>> {}
-
-export type SubscriberHost = QwikElement;
-
-export type SubscriberEffect =
-  | TaskDescriptor
-  | ResourceDescriptor<unknown>
-  | ComputedDescriptor<unknown>;
-
-export const isResourceTask = (task: SubscriberEffect): task is ResourceDescriptor<unknown> => {
-  return (task.$flags$ & TaskFlags.RESOURCE) !== 0;
-};
-
-export const isComputedTask = (task: SubscriberEffect): task is ComputedDescriptor<unknown> => {
-  return (task.$flags$ & TaskFlags.COMPUTED) !== 0;
-};
-export const runSubscriber = async (
-  task: SubscriberEffect,
-  containerState: ContainerState,
-  rCtx: RenderContext
-) => {
-  assertEqual(!!(task.$flags$ & TaskFlags.DIRTY), true, 'Resource is not dirty', task);
-  if (isResourceTask(task)) {
-    return runResource(task, containerState as any, rCtx as any);
-  } else if (isComputedTask(task)) {
-    return runComputed(task, containerState, rCtx);
-  } else {
-    return runTask(task, containerState, rCtx);
-  }
-};
-
-export const runSubscriber2 = async (
-  task: SubscriberEffect,
-  container: Container2,
-  host: HostElement
-) => {
-  assertEqual(!!(task.$flags$ & TaskFlags.DIRTY), true, 'Task is not dirty', task);
-  if (isResourceTask(task)) {
-    return runResource(task, container, host as fixMeAny);
-  } else {
-    return runTask2(task as Task, container, host);
-  }
-};
-
-export const runResource = <T>(
-  task: ResourceDescriptor<T>,
-  container: Container2,
-  host: HostElement
-): ValueOrPromise<void> => {
-  task.$flags$ &= ~TaskFlags.DIRTY;
-  cleanupTask(task);
-
-  const iCtx = newInvokeContext(container.$locale$, host as fixMeAny, undefined, ResourceEvent);
-  iCtx.$container2$ = container;
-
-  const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberEffectDependencies(task));
-
-  const resource = task.$state$;
-  assertDefined(
-    resource,
-    'useResource: when running a resource, "task.resource" must be a defined.',
-    task
-  );
-
-  const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
-    const ctx = newInvokeContext();
-    ctx.$effectSubscriber$ = [task, EffectProperty.COMPONENT];
-    ctx.$container2$ = container;
-    return invoke(ctx, () => {
-      if (isFunction(obj)) {
-        return obj();
-      }
-      if (prop) {
-        return (obj as Record<string, unknown>)[prop];
-      } else if (isSignal(obj)) {
-        return obj.value;
-      } else {
-        return obj;
-      }
-    });
-  };
-
-  const handleError = (reason: unknown) => container.handleError(reason, host);
-
-  const cleanups: (() => void)[] = [];
-  task.$destroy$ = noSerialize(() => {
-    cleanups.forEach((fn) => {
-      try {
-        fn();
-      } catch (err) {
-        handleError(err);
-      }
-    });
-    done = true;
-  });
-
-  const resourceTarget = unwrapStore(resource);
-  const opts: ResourceCtx<T> = {
-    track,
-    cleanup(fn) {
-      if (typeof fn === 'function') {
-        cleanups.push(fn);
-      }
-    },
-    cache(policy) {
-      let milliseconds = 0;
-      if (policy === 'immutable') {
-        milliseconds = Infinity;
-      } else {
-        milliseconds = policy;
-      }
-      resource._cache = milliseconds;
-    },
-    previous: resourceTarget._resolved,
-  };
-
-  let resolve: (v: T) => void;
-  let reject: (v: unknown) => void;
-  let done = false;
-
-  const setState = (resolved: boolean, value: T | Error) => {
-    if (!done) {
-      done = true;
-      if (resolved) {
-        done = true;
-        resource.loading = false;
-        resource._state = 'resolved';
-        resource._resolved = value as T;
-        resource._error = undefined;
-        // console.log('RESOURCE.resolved: ', value);
-
-        resolve(value as T);
-      } else {
-        done = true;
-        resource.loading = false;
-        resource._state = 'rejected';
-        resource._error = value as Error;
-        reject(value as Error);
-      }
-      return true;
-    }
-    return false;
-  };
-
-  /**
-   * Add cleanup to resolve the resource if we are trying to run the same resource again while the
-   * previous one is not resolved yet. The next `runResource` run will call this cleanup
-   */
-  cleanups.push(() => {
-    if (untrack(() => resource.loading) === true) {
-      const value = untrack(() => resource._resolved) as T;
-      setState(true, value);
-    }
-  });
-
-  // Execute mutation inside empty invocation
-  invoke(iCtx, () => {
-    // console.log('RESOURCE.pending: ');
-    resource._state = 'pending';
-    resource.loading = !isServerPlatform();
-    const promise = (resource.value = new Promise((r, re) => {
-      resolve = r;
-      reject = re;
-    }));
-    promise.catch(ignoreErrorToPreventNodeFromCrashing);
-  });
-
-  const promise: ValueOrPromise<void> = safeCall(
-    () => Promise.resolve(taskFn(opts)),
-    (value) => {
-      setState(true, value);
-    },
-    (err) => {
-      if (isPromise(err)) {
-        return err.then(() => runResource(task, container, host));
-      } else {
-        setState(false, err);
-      }
-    }
-  );
-
-  const timeout = resourceTarget._timeout;
-  if (timeout > 0) {
-    return Promise.race([
-      promise,
-      delay(timeout).then(() => {
-        if (setState(false, new Error('timeout'))) {
-          cleanupTask(task);
-        }
-      }),
-    ]);
-  }
-  return promise;
-};
-
-const ignoreErrorToPreventNodeFromCrashing = (err: unknown) => {
-  // ignore error to prevent node from crashing
-  // node will crash in promise is rejected and no one is listening to the rejection.
-};
-
-export const runTask = (
-  task: TaskDescriptor | ComputedDescriptor<unknown>,
-  containerState: ContainerState,
-  rCtx: RenderContext
-): ValueOrPromise<void> => {
-  task.$flags$ &= ~TaskFlags.DIRTY;
-
-  cleanupTask(task as Task);
-  const hostElement = task.$el$;
-  const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, TaskEvent);
-  iCtx.$renderCtx$ = rCtx;
-  const { $subsManager$: subsManager } = containerState;
-  const taskFn = task.$qrl$.getFn(iCtx, () => {
-    subsManager.$clearSub$(task);
-  }) as TaskFn;
-  const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
-    if (isFunction(obj)) {
-      const ctx = newInvokeContext();
-      ctx.$subscriber$ = [SubscriptionType.HOST, task];
-      return invoke(ctx, obj);
-    }
-    const manager = getSubscriptionManager(obj);
-    if (manager) {
-      manager.$addSub$([SubscriptionType.HOST, task], prop);
-    } else {
-      logErrorAndStop(codeToText(QError_trackUseStore), obj);
-    }
-    if (prop) {
-      return (obj as Record<string, unknown>)[prop];
-    } else if (isSignal(obj)) {
-      return obj.value;
-    } else {
-      return obj;
-    }
-  };
-  const cleanups: (() => void)[] = [];
-  task.$destroy$ = noSerialize(() => {
-    cleanups.forEach((fn) => fn());
-  });
-
-  const opts: TaskCtx = {
-    track,
-    cleanup(callback) {
-      cleanups.push(callback);
-    },
-  };
-  return safeCall(
-    () => taskFn(opts),
-    (returnValue) => {
-      if (isFunction(returnValue)) {
-        cleanups.push(returnValue);
-      }
-    },
-    (reason) => {
-      handleError(reason, hostElement, rCtx.$static$.$containerState$);
-    }
-  );
-};
-
-export const runComputed = (
-  task: ComputedDescriptor<unknown>,
-  containerState: ContainerState,
-  rCtx: RenderContext
-): ValueOrPromise<void> => {
-  assertSignal(task.$state$);
-  task.$flags$ &= ~TaskFlags.DIRTY;
-  cleanupTask(task);
-  const hostElement = task.$el$;
-  const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, ComputedEvent);
-  iCtx.$subscriber$ = [SubscriptionType.HOST, task];
-  iCtx.$renderCtx$ = rCtx;
-
-  const { $subsManager$: subsManager } = containerState;
-  const taskFn = task.$qrl$.getFn(iCtx, () => {
-    subsManager.$clearSub$(task);
-  }) as ComputedFn<unknown>;
-
-  return safeCall(
-    taskFn,
-    (returnValue) =>
-      untrack(() => {
-        const signal = task.$state$! as SignalInternal<unknown>;
-        signal[QObjectSignalFlags] &= ~SIGNAL_UNASSIGNED;
-        signal.untrackedValue = returnValue;
-        signal[QObjectManagerSymbol].$notifySubs$();
-      }),
-    (reason) => {
-      handleError(reason, hostElement, rCtx.$static$.$containerState$);
-    }
-  );
-};
 
 export const cleanupTask = (task: Task) => {
   const destroy = task.$destroy$;
@@ -795,8 +319,8 @@ export const cleanupTask = (task: Task) => {
   }
 };
 
-const useRunTask = (
-  task: SubscriberEffect,
+export const useRunTask = (
+  task: Task,
   eagerness: VisibleTaskStrategy | EagernessOptions | undefined
 ) => {
   if (eagerness === 'visible' || eagerness === 'intersection-observer') {
@@ -808,7 +332,7 @@ const useRunTask = (
   }
 };
 
-const getTaskHandlerQrl = (task: SubscriberEffect): QRL<(ev: Event) => void> => {
+const getTaskHandlerQrl = (task: Task): QRL<(ev: Event) => void> => {
   const taskQrl = task.$qrl$;
   const taskHandler = createQRL<(ev: Event) => void>(
     taskQrl.$chunk$,
@@ -826,25 +350,6 @@ const getTaskHandlerQrl = (task: SubscriberEffect): QRL<(ev: Event) => void> => 
   return taskHandler;
 };
 
-export const isSubscriberDescriptor = (obj: unknown): obj is SubscriberEffect => {
-  return isObject(obj) && obj instanceof Task;
-};
-
-export const serializeTask = (task: SubscriberEffect, getObjId: MustGetObjID) => {
-  let value = `${intToStr(task.$flags$)} ${intToStr(task.$index$)} ${getObjId(
-    task.$qrl$
-  )} ${getObjId(task.$el$)}`;
-  if (task.$state$) {
-    value += ` ${getObjId(task.$state$)}`;
-  }
-  return value;
-};
-
-export const parseTask = (data: string) => {
-  const [flags, index, qrl, el, resource] = data.split(' ');
-  return new Task(strToInt(flags), strToInt(index), el as any, qrl as any, resource as any, null);
-};
-
 export class Task<T = unknown, B = T>
   extends Subscriber
   implements DescriptorBase<unknown, Signal<B> | ResourceReturnInternal<B>>
@@ -852,7 +357,7 @@ export class Task<T = unknown, B = T>
   constructor(
     public $flags$: number,
     public $index$: number,
-    public $el$: QwikElement,
+    public $el$: HostElement,
     public $qrl$: QRLInternal<T>,
     public $state$: Signal<B> | ResourceReturnInternal<B> | undefined,
     public $destroy$: NoSerialize<() => void> | null
@@ -863,4 +368,17 @@ export class Task<T = unknown, B = T>
 
 export const isTask = (value: any): value is Task => {
   return value instanceof Task;
+};
+
+/**
+ * Low-level API used by the Optimizer to process `useTask$()` API. This method is not intended to
+ * be used by developers.
+ *
+ * @internal
+ */
+export const _hW = () => {
+  const [task] = useLexicalScope<[Task]>();
+  const container = getDomContainer(task.$el$ as VNode);
+  const type = task.$flags$ & TaskFlags.VISIBLE_TASK ? ChoreType.VISIBLE : ChoreType.TASK;
+  container.$scheduler$(type, task);
 };

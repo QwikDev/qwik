@@ -9,7 +9,7 @@ import Inspect from 'vite-plugin-inspect';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
 
-export const PUBLIC_QWIK_INSIGHT_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
+const PUBLIC_QWIK_INSIGHTS_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
 const docsDir = new URL(import.meta.url).pathname;
 
 // https://github.com/vitejs/vite/issues/15012#issuecomment-1825035992
@@ -168,7 +168,7 @@ export default defineConfig(async () => {
       sourceResolver(docsDir),
       qwikReact(),
       Inspect(),
-      qwikInsights({ publicApiKey: loadEnv('', docsDir, '').PUBLIC_QWIK_INSIGHTS_KEY }),
+      qwikInsights({ publicApiKey: PUBLIC_QWIK_INSIGHTS_KEY }),
     ],
     build: {
       sourcemap: true,

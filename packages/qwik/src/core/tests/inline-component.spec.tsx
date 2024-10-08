@@ -4,6 +4,7 @@ import {
   Fragment as InlineComponent,
   component$,
   useSignal,
+  useStore,
 } from '@builder.io/qwik';
 import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
 import { describe, expect, it } from 'vitest';
@@ -26,6 +27,8 @@ const MyComp = () => {
 const InlineWrapper = () => {
   return <MyComp />;
 };
+
+const Id = (props: any) => <div>Id: {props.id}</div>;
 
 describe.each([
   { render: ssrRenderToDom }, //
@@ -143,6 +146,82 @@ describe.each([
               </Fragment>
             </InlineComponent>
           </InlineComponent>
+        </>
+      </Component>
+    );
+  });
+
+  it('should not rerender component', async () => {
+    const Child = component$((props: { id: number }) => {
+      const renders = useStore(
+        {
+          count: 0,
+        },
+        { reactive: false }
+      );
+      renders.count++;
+      const rerenders = renders.count + 0;
+      return (
+        <>
+          <Id id={props.id} />
+          {rerenders}
+        </>
+      );
+    });
+    const Cmp = component$(() => {
+      const id = useSignal(0);
+      return (
+        <>
+          <button
+            onClick$={() => {
+              id.value++;
+            }}
+          >
+            Increment ID
+          </button>
+          <Child id={id.value} />
+        </>
+      );
+    });
+
+    const { vNode, container } = await render(<Cmp />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <>
+          <button>Increment ID</button>
+          <Component>
+            <Fragment>
+              <InlineComponent>
+                <div>
+                  {'Id: '}
+                  <Fragment>{'0'}</Fragment>
+                </div>
+              </InlineComponent>
+              1
+            </Fragment>
+          </Component>
+        </>
+      </Component>
+    );
+
+    await trigger(container.document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <>
+          <button>Increment ID</button>
+          <Component>
+            <Fragment>
+              <InlineComponent>
+                <div>
+                  {'Id: '}
+                  <Fragment>{'1'}</Fragment>
+                </div>
+              </InlineComponent>
+              1
+            </Fragment>
+          </Component>
         </>
       </Component>
     );

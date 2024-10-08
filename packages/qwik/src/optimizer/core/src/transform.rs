@@ -96,7 +96,6 @@ pub struct QwikTransform<'a> {
 	extra_bottom_items: BTreeMap<Id, ast::ModuleItem>,
 	stack_ctxt: Vec<String>,
 	decl_stack: Vec<Vec<IdPlusType>>,
-	in_component: bool,
 	marker_functions: HashMap<Id, JsWord>,
 	jsx_functions: HashSet<Id>,
 	immutable_function_cmp: HashSet<Id>,
@@ -219,7 +218,6 @@ impl<'a> QwikTransform<'a> {
 			jsx_key_counter: 0,
 			stack_ctxt: Vec::with_capacity(16),
 			decl_stack: Vec::with_capacity(32),
-			in_component: false,
 			segments: Vec::with_capacity(16),
 			segment_stack: Vec::with_capacity(16),
 			// extra_top_items: BTreeMap::new(),
@@ -1760,8 +1758,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		let prev_jsx_mutable = self.jsx_mutable;
 		self.jsx_mutable = false;
 
-		let is_component = self.in_component;
-		self.in_component = false;
 		let current_scope = self
 			.decl_stack
 			.last_mut()
@@ -1770,7 +1766,7 @@ impl<'a> Fold for QwikTransform<'a> {
 		for param in &node.params {
 			let mut identifiers = vec![];
 			collect_from_pat(&param.pat, &mut identifiers);
-			let is_constant = is_component && matches!(param.pat, ast::Pat::Ident(_));
+			let is_constant = matches!(param.pat, ast::Pat::Ident(_));
 			current_scope.extend(
 				identifiers
 					.into_iter()
@@ -1793,8 +1789,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		let prev_jsx_mutable = self.jsx_mutable;
 		self.jsx_mutable = false;
 
-		let is_component = self.in_component;
-		self.in_component = false;
 		let current_scope = self
 			.decl_stack
 			.last_mut()
@@ -1802,7 +1796,7 @@ impl<'a> Fold for QwikTransform<'a> {
 		for param in &node.params {
 			let mut identifiers = vec![];
 			collect_from_pat(param, &mut identifiers);
-			let is_constant = is_component && matches!(param, ast::Pat::Ident(_));
+			let is_constant = matches!(param, ast::Pat::Ident(_));
 			current_scope.extend(
 				identifiers
 					.into_iter()
@@ -1822,7 +1816,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
-		self.in_component = false;
 		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
 		self.decl_stack.pop();
@@ -1834,7 +1827,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
-		self.in_component = false;
 		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
 		self.decl_stack.pop();
@@ -1873,7 +1865,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
-		self.in_component = false;
 		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
 		self.decl_stack.pop();
@@ -1896,7 +1887,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
-		self.in_component = false;
 
 		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
@@ -1914,7 +1904,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
-		self.in_component = false;
 		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
 		self.stack_ctxt.pop();
@@ -2021,7 +2010,6 @@ impl<'a> Fold for QwikTransform<'a> {
 				name_token = true;
 
 				if id_eq!(ident, &self.qcomponent_fn) {
-					self.in_component = true;
 					if let Some(comments) = self.options.comments {
 						comments.add_pure_comment(node.span.lo);
 					}
@@ -2094,7 +2082,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		if name_token {
 			self.stack_ctxt.pop();
 		}
-		self.in_component = false;
 		ast::CallExpr {
 			callee,
 			args,

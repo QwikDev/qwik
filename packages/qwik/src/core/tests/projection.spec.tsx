@@ -274,7 +274,7 @@ describe.each([
         <span>
           <Projection />
           {'('}
-          render-content
+          <DerivedSignal>render-content</DerivedSignal>
           {')'}
         </span>
       </InlineComponent>
@@ -291,7 +291,7 @@ describe.each([
           <span>
             <Projection>{'parent-content'}</Projection>
             {'('}
-            child-content
+            <DerivedSignal>child-content</DerivedSignal>
             {')'}
           </span>
         </InlineComponent>

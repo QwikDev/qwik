@@ -1,6 +1,8 @@
-import { $, implicit$FirstArg, type QRL, _getContextElement, _serialize } from '@qwik.dev/core';
-
 //@ts-ignore
+import { implicit$FirstArg } from '../core/shared/qrl/implicit_dollar';
+import { $, type QRL } from '../core/shared/qrl/qrl.public';
+import { _serialize } from '../core/shared/shared-serialization';
+import { _getContextElement } from '../core/use/use-core';
 import workerUrl from './worker.js?worker&url';
 
 export interface ServerFunction {
@@ -33,10 +35,16 @@ const getWorker = (qrl: QRL) => {
 };
 
 export const workerQrl: WorkerConstructorQRL = (qrl) => {
+  if (!__EXPERIMENTAL__.webWorker) {
+    throw new Error(
+      'worker$ is experimental and must be enabled with `experimental: ["webWorker"]` in the `qwikVite` plugin.'
+    );
+  }
   return $(async (...args: any[]) => {
     const containerEl =
-      (_getContextElement() as HTMLElement | undefined)?.closest('[q\\:container]') ??
-      document.documentElement;
+      (_getContextElement() as HTMLElement | undefined)?.closest(
+        '[q\\:container]:not([q\\:container=html]):not([q\\:container=text])'
+      ) ?? document.documentElement;
     const worker = getWorker(qrl);
     const requestId = getWorkerRequest();
     const qbase = containerEl.getAttribute('q:base') ?? '/';
@@ -51,8 +59,6 @@ export const workerQrl: WorkerConstructorQRL = (qrl) => {
       }
       return arg;
     });
-    // TODO: uncomment for v2 release
-    // const data = await _serialize([qrl, ...filtered]);
 
     const data = await _serialize([qrl, ...filtered]);
     return new Promise((resolve, reject) => {

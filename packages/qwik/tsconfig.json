@@ -8,9 +8,10 @@
       "@qwik.dev/core/build": ["packages/qwik/src/build"],
       "@qwik.dev/core/optimizer": ["packages/qwik/src/optimizer/src"],
       "@qwik.dev/core/server": ["packages/qwik/src/server"],
-      "@qwik.dev/core/testing": ["packages/qwik/src/testing"]
+      "@qwik.dev/core/testing": ["packages/qwik/src/testing"],
+      "@qwik.dev/core/worker": ["packages/qwik/src/web-worker"]
     }
   },
-  "include": ["src"],
+  "include": ["src", "global.d.ts"],
   "exclude": ["dist"]
 }

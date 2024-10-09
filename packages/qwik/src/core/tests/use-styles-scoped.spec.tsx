@@ -1,4 +1,3 @@
-import { createDocument } from '@qwik.dev/dom';
 import {
   Fragment as Component,
   component$,
@@ -11,7 +10,7 @@ import {
   useStylesScopedQrl,
 } from '@qwik.dev/core';
 import { renderToString } from '@qwik.dev/core/server';
-import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { createDocument, domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 import { afterEach, describe, expect, it } from 'vitest';
 import { useStore } from '..';
@@ -707,7 +706,7 @@ describe('html wrapper', () => {
           </body>
         </Wrapper>
       );
-      document = createDocument(result.html);
+      document = createDocument({ html: result.html });
     } finally {
       setPlatform(platform);
     }

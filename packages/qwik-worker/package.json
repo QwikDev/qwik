@@ -5,7 +5,7 @@
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
-    "vite": "5.3.5",
+    "vite": "5.3.6",
     "vite-plugin-static-copy": "1.0.6"
   },
   "engines": {

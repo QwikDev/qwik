@@ -180,7 +180,7 @@ export async function updateEdge(
   edge: {
     publicApiKey: string;
     manifestHash: string;
-    from: string | null;
+    from?: string | null;
     to: string;
     interaction: boolean;
     delayBucket: number;
@@ -202,7 +202,7 @@ export async function updateEdge(
       and(
         eq(edgeTable.manifestHash, edge.manifestHash),
         eq(edgeTable.publicApiKey, edge.publicApiKey),
-        edge.from === null ? isNull(edgeTable.from) : eq(edgeTable.from, edge.from),
+        edge.from == null ? isNull(edgeTable.from) : eq(edgeTable.from, edge.from),
         eq(edgeTable.to, edge.to)
       )
     )

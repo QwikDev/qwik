@@ -76,7 +76,7 @@ export function createEdgeRow({
 }: {
   publicApiKey: string;
   manifestHash: string;
-  from: string | null;
+  from?: string | null;
   to: string;
   interaction: boolean;
   delayBucket: number;

@@ -1,5 +1,13 @@
 # @builder.io/qwik
 
+## 1.9.2
+
+### Patch Changes
+
+- sync$ QRLs will now be serialized into the HTML in a shorter form (by [@wmertens](https://github.com/wmertens) in [#6944](https://github.com/QwikDev/qwik/pull/6944))
+
+- 🐞🩹 cli build command appearing to "hang" on errors (by [@shairez](https://github.com/shairez) in [#6943](https://github.com/QwikDev/qwik/pull/6943))
+
 ## 1.9.1
 
 ### Patch Changes

@@ -1077,7 +1077,7 @@ function serialize(serializationContext: SerializationContext): void {
     } else if (value instanceof Signal) {
       if (value instanceof WrappedSignal) {
         output(TypeIds.WrappedSignal, [
-          ...serializeDerivedFn(serializationContext, value),
+          ...serializeWrappingFn(serializationContext, value),
           value.$effectDependencies$,
           // `.untrackedValue` implicitly calls `$computeIfNeeded$`, which is what we want in case
           // the signal is not computed yet.
@@ -1185,7 +1185,10 @@ function serialize(serializationContext: SerializationContext): void {
   writeValue(serializationContext.$roots$, -1);
 }
 
-function serializeDerivedFn(serializationContext: SerializationContext, value: WrappedSignal<any>) {
+function serializeWrappingFn(
+  serializationContext: SerializationContext,
+  value: WrappedSignal<any>
+) {
   // if value is an object then we need to wrap this in ()
   if (value.$funcStr$ && value.$funcStr$[0] === '{') {
     value.$funcStr$ = `(${value.$funcStr$})`;
@@ -1195,6 +1198,7 @@ function serializeDerivedFn(serializationContext: SerializationContext, value: W
     value.$args$.length,
     value.$func$
   );
+  // TODO null if no args
   return [syncFnId, value.$args$] as const;
 }
 

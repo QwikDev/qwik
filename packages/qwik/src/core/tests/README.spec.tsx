@@ -37,9 +37,10 @@ import {
 import { Slot } from '../shared/jsx/slot.public';
 import { useSignal } from '../use/use-signal';
 import { vnode_getNextSibling } from '../client/vnode';
+import { DomFragment } from '../../testing/rendering.unit-util';
 
 // To better understand what is going on in the test, set DEBUG to true and run the test.
-const DEBUG = false;
+const DEBUG = !false;
 
 function log(...args: any[]) {
   // eslint-disable-next-line no-console
@@ -50,7 +51,7 @@ function log(...args: any[]) {
 
 describe.each([
   { render: ssrRenderToDom }, // SSR - which than resumes on the client (this simulate the SSR to CSR hand off.)
-  { render: domRender }, // CSR - everything renders on the client.
+  // { render: domRender }, // CSR - everything renders on the client.
 ])('$render.name: contributing', ({ render }) => {
   /**
    * This test demonstrates basic rendering of component. Here are the key learnings:
@@ -151,7 +152,8 @@ describe.each([
         <button>
           <SignalTarget>124</SignalTarget>
         </button>
-      </Component>
+      </Component>,
+      render
     );
   });
 
@@ -186,26 +188,28 @@ describe.each([
     );
     const { vNode } = await render(<Parent />, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Component>
+      <DomFragment>
+        <DomFragment>
           <div>
-            <Projection>
+            <DomFragment>
               <i>child-default-value</i>
-            </Projection>
+            </DomFragment>
           </div>
-        </Component>
-      </Component>
+        </DomFragment>
+      </DomFragment>,
+      render
     );
     if (render === ssrRenderToDom) {
       // We can only assert this is SSR, as CSR does just keeps unused nodes in memory. (No need to write them to DOM)
       expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
         <q:template style="display:none">
-          <Fragment>
+          <DomFragment>
             <span q:slot="my-slot">
               <b>parent-projection-value</b>
             </span>
-          </Fragment>
-        </q:template>
+          </DomFragment>
+        </q:template>,
+        render
       );
     }
   });

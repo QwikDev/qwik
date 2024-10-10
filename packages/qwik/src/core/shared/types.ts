@@ -43,7 +43,9 @@ export interface Container {
    */
   ensureProjectionResolved(host: HostElement): void;
   serializationCtxFactory(
-    NodeConstructor: SerializationContext['$NodeConstructor$'] | null,
+    NodeConstructor: {
+      new (...rest: any[]): { nodeType: number; id: string };
+    } | null,
     symbolToChunkResolver: SymbolToChunkResolver,
     writer?: StreamWriter
   ): SerializationContext;

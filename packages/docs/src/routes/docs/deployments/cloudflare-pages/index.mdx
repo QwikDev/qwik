@@ -11,6 +11,7 @@ contributors:
   - mrhoodz
   - dario-piotrowicz
   - matthewlal
+  - shairez
 updated_at: '2023-10-03T18:53:23Z'
 created_at: '2023-04-06T21:28:28Z'
 ---
@@ -159,7 +160,7 @@ export default extendConfig(baseConfig, () => {
        // 👇 THIS IS WHAT YOU NEED TO ADD 👇
        {
          ssg: {
-          include: ['/*'],
+           include: ['/*'],
            exclude: ['/shop/*'],
            origin: 'https://example.com',
        },

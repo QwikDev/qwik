@@ -90,7 +90,6 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './vnode-data';
-import type { VNode } from '../core/client/types';
 
 export interface SSRRenderOptions {
   locale?: string;
@@ -450,10 +449,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   openProjection(attrs: SsrAttrs) {
     this.openFragment(attrs);
-    const vNode = this.currentElementFrame!.vNodeData as any as VNode;
-    if (vNode) {
-      vNode[0] |= VNodeDataFlag.SERIALIZE;
-    }
+    this.currentElementFrame!.vNodeData[0] |= VNodeDataFlag.SERIALIZE;
     const componentFrame = this.getComponentFrame();
     if (componentFrame) {
       componentFrame.projectionDepth++;
@@ -596,14 +592,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   private emitContainerData(): ValueOrPromise<void> {
     // TODO first emit state, then only emit slots where the parent is serialized (so they could rerender)
-    return maybeThen(this.emitUnclaimedProjection(), () => {
-      return maybeThen(this.emitStateData(), () => {
-        this.$noMoreRoots$ = true;
-        this.emitVNodeData();
-        this.emitPrefetchResourcesData();
-        this.emitSyncFnsData();
-        this.emitQwikLoaderAtBottomIfNeeded();
-      });
+    this.emitUnclaimedProjection();
+    return maybeThen(this.emitStateData(), () => {
+      this.emitVNodeData();
+      this.emitPrefetchResourcesData();
+      this.emitSyncFnsData();
+      this.emitQwikLoaderAtBottomIfNeeded();
     });
   }
 
@@ -747,7 +741,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.closeElement();
   }
 
-  /** This adds the vnode's data to the serialization roots */
+  /**
+   * This is needed for the case when we have a component around the `<body>` tag. In this case we
+   * start emitting the vnode script tag before the `<body>` close tag.
+   */
   addVNodeToSerializationRoots(vNode: VNodeData) {
     const vNodeAttrsStack: SsrAttrs[] = [];
     const flag = vNode[0];
@@ -966,8 +963,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
               lastNode.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
             }
             ssrComponentNode?.setProp(value, lastNode.id);
-            await _walkJSX(this, children, {
-              allowPromises: true,
+            _walkJSX(this, children, {
+              allowPromises: false,
               currentStyleScoped: scopedStyleId,
               parentComponentFrame: null,
             });

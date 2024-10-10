@@ -49,7 +49,6 @@ import {
   QInstanceAttr,
   escapeHTML,
   Q_PROPS_SEPARATOR,
-  UNWRAP_VNODE_LOCAL,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -1049,7 +1048,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
         if (key === 'ref') {
           const lastNode = this.getLastNode();
-          lastNode.setProp(UNWRAP_VNODE_LOCAL, true);
           if (isSignal(value)) {
             value.value = lastNode;
             continue;

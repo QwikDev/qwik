@@ -60,7 +60,10 @@ describe('shared-serialization', () => {
         10 Constant NaN
         11 Constant Infinity
         12 Constant -Infinity
-        (56 chars)"
+        13 Constant MAX_SAFE_INTEGER
+        14 Constant MAX_SAFE_INTEGER-1
+        15 Constant MIN_SAFE_INTEGER
+        (71 chars)"
       `);
     });
     it(title(TypeIds.Number), async () => {

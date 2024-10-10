@@ -47,7 +47,7 @@ import { _CONST_PROPS, _VAR_PROPS } from './utils/constants';
 import { isElement, isNode } from './utils/element';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
 import { throwErrorAndStop } from './utils/log';
-import { ELEMENT_ID, UNWRAP_VNODE_LOCAL } from './utils/markers';
+import { ELEMENT_ID } from './utils/markers';
 import { isPromise } from './utils/promises';
 import { fastSkipSerialize } from './utils/serialize-utils';
 import { type ValueOrPromise } from './utils/types';
@@ -379,6 +379,9 @@ export const _constants = [
   NaN,
   Infinity,
   -Infinity,
+  Number.MAX_SAFE_INTEGER,
+  Number.MAX_SAFE_INTEGER - 1,
+  Number.MIN_SAFE_INTEGER,
 ] as const;
 const _constantNames = [
   'undefined',
@@ -394,9 +397,12 @@ const _constantNames = [
   'NaN',
   'Infinity',
   '-Infinity',
+  'MAX_SAFE_INTEGER',
+  'MAX_SAFE_INTEGER-1',
+  'MIN_SAFE_INTEGER',
 ] as const;
 
-const allocate = <T>(container: DeserializeContainer, typeId: number, value: unknown): any => {
+const allocate = (container: DeserializeContainer, typeId: number, value: unknown): any => {
   if (value === undefined) {
     // When a value was already processed, the result is stored in type
     return typeId;
@@ -541,6 +547,18 @@ export function inflateQRL(container: DeserializeContainer, qrl: QRLInternal<any
   return qrl;
 }
 
+/** A selection of attributes of the real thing */
+type SsrNode = {
+  nodeType: number;
+  id: string;
+  vnodeData?: VNode;
+};
+
+/** A ref to a DOM element */
+class DomVRef {
+  constructor(public id: string) {}
+}
+
 export interface SerializationContext {
   $serialize$: () => void;
 
@@ -586,15 +604,7 @@ export interface SerializationContext {
 
   $breakCircularDepsAndAwaitPromises$: () => ValueOrPromise<void>;
 
-  /**
-   * Node constructor, for instanceof checks.
-   *
-   * A node constructor can be null. For example on the client we can't serialize DOM nodes as
-   * server will not know what to do with them.
-   */
-  $NodeConstructor$: {
-    new (...rest: any[]): { nodeType: number; id: string };
-  } | null;
+  $isSsrNode$: (obj: unknown) => obj is SsrNode;
 
   $writer$: StreamWriter;
   $syncFns$: string[];
@@ -610,7 +620,15 @@ export interface SerializationContext {
 }
 
 export const createSerializationContext = (
-  NodeConstructor: SerializationContext['$NodeConstructor$'] | null,
+  /**
+   * Node constructor, for instanceof checks.
+   *
+   * A node constructor can be null. For example on the client we can't serialize DOM nodes as
+   * server will not know what to do with them.
+   */
+  NodeConstructor: {
+    new (...rest: any[]): { nodeType: number; id: string };
+  } | null,
   symbolToChunkResolver: SymbolToChunkResolver,
   getProp: (obj: any, prop: string) => any,
   setProp: (obj: any, prop: string, value: any) => void,
@@ -639,12 +657,15 @@ export const createSerializationContext = (
     }
     return id;
   };
+  const isSsrNode = (NodeConstructor ? (obj) => obj instanceof NodeConstructor : () => false) as (
+    obj: unknown
+  ) => obj is SsrNode;
 
   return {
     $serialize$(): void {
       serialize(this);
     },
-    $NodeConstructor$: NodeConstructor,
+    $isSsrNode$: isSsrNode,
     $symbolToChunkResolver$: symbolToChunkResolver,
     $wasSeen$,
     $roots$: roots,
@@ -699,6 +720,14 @@ export const createSerializationContext = (
     const discoveredValues: unknown[] = [];
     const promises: Promise<unknown>[] = [];
 
+    /**
+     * Note on out of order streaming:
+     *
+     * When we implement that, we may need to send a reference to an object that was streamed
+     * earlier but wasn't a root. This means we'll have to keep track of all objects on both send
+     * and receive ends, which means we'll just have to make everything a root anyway, so `visit()`
+     * won't be needed.
+     */
     /** Visit an object, adding anything that will be serialized as to scan */
     const visit = (obj: unknown) => {
       if (typeof obj === 'function') {
@@ -739,7 +768,17 @@ export const createSerializationContext = (
           discoveredValues.push(k, v);
         });
       } else if (obj instanceof Signal) {
-        if (obj.$untrackedValue$) {
+        /**
+         * WrappedSignal might not be calculated yet so we need to use `untrackedValue` to get the
+         * value. ComputedSignal can be left uncalculated.
+         */
+        const v =
+          obj instanceof WrappedSignal
+            ? obj.untrackedValue
+            : obj instanceof ComputedSignal && obj.$invalid$
+              ? NEEDS_COMPUTATION
+              : obj.$untrackedValue$;
+        if (v !== NEEDS_COMPUTATION && !isSsrNode(v)) {
           discoveredValues.push(obj.$untrackedValue$);
         }
         if (obj.$effects$) {
@@ -755,7 +794,7 @@ export const createSerializationContext = (
         }
       } else if (obj instanceof Task) {
         discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$, obj.$effectDependencies$);
-      } else if (NodeConstructor && obj instanceof NodeConstructor) {
+      } else if (isSsrNode(obj)) {
         // ignore the nodes
         // debugger;
       } else if (isJSXNode(obj)) {
@@ -830,8 +869,7 @@ const promiseResults = new WeakMap<Promise<any>, [boolean, unknown]>();
  * - Therefore root indexes need to be doubled to get the actual index.
  */
 function serialize(serializationContext: SerializationContext): void {
-  const { $writer$, $NodeConstructor$, $setProp$, $getProp$, $storeProxyMap$ } =
-    serializationContext;
+  const { $writer$, $isSsrNode$, $setProp$, $storeProxyMap$ } = serializationContext;
   let depth = -1;
   // Skip the type for the roots output
   let writeType = false;
@@ -858,6 +896,7 @@ function serialize(serializationContext: SerializationContext): void {
       depth++;
       $writer$.write('[');
       let separator = false;
+      // TODO only until last non-null value
       for (let i = 0; i < value.length; i++) {
         if (separator) {
           $writer$.write(',');
@@ -902,6 +941,12 @@ function serialize(serializationContext: SerializationContext): void {
           TypeIds.Constant,
           value < 0 ? Constants.NegativeInfinity : Constants.PositiveInfinity
         );
+      } else if (value === Number.MAX_SAFE_INTEGER) {
+        output(TypeIds.Constant, Constants.MaxSafeInt);
+      } else if (value === Number.MAX_SAFE_INTEGER - 1) {
+        output(TypeIds.Constant, Constants.AlmostMaxSafeInt);
+      } else if (value === Number.MIN_SAFE_INTEGER) {
+        output(TypeIds.Constant, Constants.MinSafeInt);
       } else {
         output(TypeIds.Number, value);
       }
@@ -1006,27 +1051,40 @@ function serialize(serializationContext: SerializationContext): void {
             out.push(key, (value as any)[key]);
           }
         }
+        // TODO if !out.length, output 0 and restore as {}
         output(TypeIds.Object, out);
       }
+    } else if (value instanceof DomVRef) {
+      output(TypeIds.RefVNode, value.id);
     } else if (value instanceof Signal) {
+      /**
+       * Special case: when a Signal value is an SSRNode, it always needs to be a DOM ref instead.
+       * It can never be meant to become a vNode, because vNodes are internal only.
+       */
+      let v =
+        value instanceof ComputedSignal && value.$invalid$
+          ? NEEDS_COMPUTATION
+          : value.$untrackedValue$;
+      if ($isSsrNode$(v)) {
+        v = new DomVRef(v.id);
+      }
       if (value instanceof WrappedSignal) {
         output(TypeIds.WrappedSignal, [
-          ...serializeDerivedFn(serializationContext, value),
+          ...serializeWrappingFn(serializationContext, value),
           value.$effectDependencies$,
-          // `.untrackedValue` implicitly calls `$computeIfNeeded$`, which is what we want in case
-          // the signal is not computed yet.
-          value.untrackedValue,
+          v,
           ...(value.$effects$ || []),
         ]);
       } else if (value instanceof ComputedSignal) {
         output(TypeIds.ComputedSignal, [
           value.$computeQrl$,
-          value.$untrackedValue$,
+          v,
           value.$invalid$,
+          // TODO check if we can use domVRef for effects
           ...(value.$effects$ || []),
         ]);
       } else {
-        output(TypeIds.Signal, [value.$untrackedValue$, ...(value.$effects$ || [])]);
+        output(TypeIds.Signal, [v, ...(value.$effects$ || [])]);
       }
     } else if (value instanceof URL) {
       output(TypeIds.URL, value.href);
@@ -1045,11 +1103,11 @@ function serialize(serializationContext: SerializationContext): void {
         out.push(value.stack);
       }
       output(TypeIds.Error, out);
-    } else if ($NodeConstructor$ && value instanceof $NodeConstructor$) {
+    } else if ($isSsrNode$(value)) {
       if (isRootObject) {
-        // Tell the VNode which root id it is
+        // Tell the SsrNode which root id it is
         $setProp$(value, ELEMENT_ID, String(idx));
-        output($getProp$(value, UNWRAP_VNODE_LOCAL) ? TypeIds.RefVNode : TypeIds.VNode, value.id);
+        output(TypeIds.VNode, value.id);
       } else {
         // Promote the vnode to a root
         serializationContext.$addRoot$(value);
@@ -1119,7 +1177,10 @@ function serialize(serializationContext: SerializationContext): void {
   writeValue(serializationContext.$roots$, -1);
 }
 
-function serializeDerivedFn(serializationContext: SerializationContext, value: WrappedSignal<any>) {
+function serializeWrappingFn(
+  serializationContext: SerializationContext,
+  value: WrappedSignal<any>
+) {
   // if value is an object then we need to wrap this in ()
   if (value.$funcStr$ && value.$funcStr$[0] === '{') {
     value.$funcStr$ = `(${value.$funcStr$})`;
@@ -1129,6 +1190,7 @@ function serializeDerivedFn(serializationContext: SerializationContext, value: W
     value.$args$.length,
     value.$func$
   );
+  // TODO null if no args
   return [syncFnId, value.$args$] as const;
 }
 
@@ -1496,6 +1558,10 @@ export const enum Constants {
   NaN,
   PositiveInfinity,
   NegativeInfinity,
+  MaxSafeInt,
+  // used for close fragment
+  AlmostMaxSafeInt,
+  MinSafeInt,
 }
 
 const circularProofJson = (obj: unknown, indent?: string | number) => {

@@ -43,7 +43,6 @@ export {
   QDefaultSlot,
   Q_PROPS_SEPARATOR,
   NON_SERIALIZABLE_MARKER_PREFIX,
-  UNWRAP_VNODE_LOCAL,
 } from '../core/shared/utils/markers';
 export { maybeThen } from '../core/shared/utils/promises';
 export { mapApp_remove, mapArray_get, mapArray_set } from '../core/client/vnode';

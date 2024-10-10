@@ -46,6 +46,8 @@ export const enum VNodeDataFlag {
   VIRTUAL_NODE = 2,
   /// Indicates that serialized data is referencing this node and so we need to retrieve a reference to it.
   REFERENCE = 4,
+  /// Should be output during serialization.
+  SERIALIZE = 8,
 }
 
 export function vNodeData_incrementElementCount(vNodeData: VNodeData) {
@@ -136,7 +138,7 @@ export function vNodeData_createSsrNodeReference(
       }
     }
     const type = stack[stack.length - 2] as SsrNodeType;
-    return new SsrNode(currentComponentNode, type, refId, fragmentAttrs, cleanupQueue);
+    return new SsrNode(currentComponentNode, type, refId, fragmentAttrs, cleanupQueue, vNodeData);
   }
 }
 

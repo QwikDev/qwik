@@ -10119,6 +10119,45 @@ T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-core.ts)
 
+## unwrapProxy
+
+Get the target value of the Proxy. Useful if you want to clone a store (structureClone, IndexedDB,...)
+
+```typescript
+unwrapProxy: <T>(proxy: T) => T;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+proxy
+
+</td><td>
+
+T
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+T
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/state/common.ts)
+
 ## useComputed$
 
 Hook that returns a read-only signal that updates when signals used in the `ComputedFn` change.

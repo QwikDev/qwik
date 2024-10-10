@@ -55,10 +55,10 @@ export default component$(() => {
 
       <button
         onClick$={
-          async () => {
+          $(async () => {
             const greeting = await serverGreeter(firstName.value, lastName.value);
             alert(greeting);
-          }
+          })
         }
       >
         greet

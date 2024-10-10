@@ -982,10 +982,10 @@ const serverGreeter = server$((firstName: string, lastName: string) => {
  
 export default component$(() => (
     <button
-      onClick$={async () => {
+      onClick$={$(async () => {
         const greeting = await serverGreeter('John', 'Doe');
         alert(greeting);
-      }}
+      })}
     >
       greet
     </button>

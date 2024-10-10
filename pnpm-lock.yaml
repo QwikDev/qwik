@@ -549,6 +549,9 @@ importers:
       vitest:
         specifier: 2.0.5
         version: 2.0.5(@types/node@20.14.11)(terser@5.31.3)
+      zod:
+        specifier: 3.22.4
+        version: 3.22.4
 
   packages/qwik:
     dependencies:
@@ -743,6 +746,9 @@ importers:
       vite:
         specifier: 5.3.5
         version: 5.3.5(@types/node@20.14.11)(terser@5.31.3)
+      zod:
+        specifier: 3.22.4
+        version: 3.22.4
 
   packages/qwik-react:
     devDependencies:

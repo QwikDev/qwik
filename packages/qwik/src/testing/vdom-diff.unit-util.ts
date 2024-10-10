@@ -40,11 +40,17 @@ import {
 import { createDocument } from './document';
 import { isElement } from './html';
 import { Q_PROPS_SEPARATOR } from '../core/shared/utils/markers';
+import { domRender, ssrRenderToDom, DomFragment } from './rendering.unit-util';
 
 expect.extend({
-  toMatchVDOM(this: { isNot: boolean }, received: _VNode, expected: JSXNode) {
+  toMatchVDOM(
+    this: { isNot: boolean },
+    received: _VNode,
+    expected: JSXNode,
+    render?: typeof domRender | typeof ssrRenderToDom
+  ) {
     const { isNot } = this;
-    const diffs = diffJsxVNode(received, expected);
+    const diffs = diffJsxVNode(received, expected, [], !render || render === ssrRenderToDom);
     return {
       pass: isNot ? diffs.length !== 0 : diffs.length === 0,
       message: () => diffs.join('\n'),
@@ -67,7 +73,21 @@ expect.extend({
   },
 });
 
-function diffJsxVNode(received: _VNode, expected: JSXNode | string, path: string[] = []): string[] {
+function diffJsxVNode(
+  received: _VNode,
+  expected: JSXNode | string,
+  path: string[] = [],
+  isSsr?: boolean
+): string[] {
+  if (isSsr && typeof expected !== 'string' && expected.type === DomFragment) {
+    // skip the fragment
+    const expectedChildren = getJSXChildren(expected);
+    if (expectedChildren.length === 1) {
+      return diffJsxVNode(received, expectedChildren[0], path, isSsr);
+    } else {
+      console.error('Expected fragment to have only one child', received, expected);
+    }
+  }
   if (!received) {
     return [path.join(' > ') + ' missing'];
   }
@@ -130,7 +150,7 @@ function diffJsxVNode(received: _VNode, expected: JSXNode | string, path: string
       for (let i = 0; i < receivedChildren.length; i++) {
         const receivedChild = receivedChildren[i];
         const expectedChild = expectedChildren[i];
-        diffs.push(...diffJsxVNode(receivedChild, expectedChild, path));
+        diffs.push(...diffJsxVNode(receivedChild, expectedChild, path, isSsr));
       }
     } else {
       diffs.push(

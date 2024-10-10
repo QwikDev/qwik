@@ -22,6 +22,7 @@ import {
 import { vnode_getNextSibling } from '../client/vnode';
 import { HTML_NS, SVG_NS } from '../shared/utils/markers';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
+import { DomFragment } from '../../testing/rendering.unit-util';
 
 const DEBUG = false;
 
@@ -59,15 +60,16 @@ describe.each([
     });
     const { vNode } = await render(<Parent>render-content</Parent>, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Component>
+      <DomFragment>
+        <DomFragment>
           <div>
-            <Projection>
+            <DomFragment>
               <b>parent-content</b>
-            </Projection>
+            </DomFragment>
           </div>
-        </Component>
-      </Component>
+        </DomFragment>
+      </DomFragment>,
+      render
     );
   });
   it('should render unused projection into template', async () => {
@@ -79,17 +81,17 @@ describe.each([
     });
     const { vNode } = await render(<Parent>render-content</Parent>, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
-      <Fragment>
-        <Fragment>
+      <DomFragment>
+        <DomFragment>
           <span>no-projection</span>
-        </Fragment>
-      </Fragment>
+        </DomFragment>
+      </DomFragment>
     );
     if (render === ssrRenderToDom) {
       expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
         <q:template style="display:none">
-          <Fragment>parent-content</Fragment>
-          <Fragment>render-content</Fragment>
+          <DomFragment>parent-content</DomFragment>
+          <DomFragment>render-content</DomFragment>
         </q:template>
       );
     }
@@ -103,11 +105,11 @@ describe.each([
     });
     const { vNode } = await render(<Parent />, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
-      <Fragment>
-        <Fragment>
-          <Fragment>default-value</Fragment>
-        </Fragment>
-      </Fragment>
+      <DomFragment>
+        <DomFragment>
+          <DomFragment>default-value</DomFragment>
+        </DomFragment>
+      </DomFragment>
     );
   });
   it('should save default value in q:template if not used', async () => {

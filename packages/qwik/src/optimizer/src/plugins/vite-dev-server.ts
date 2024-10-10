@@ -73,7 +73,7 @@ function createSymbolMapper(
     const qrlPath = parentPath.startsWith(opts.rootDir)
       ? normalizePath(path.relative(opts.rootDir, parentPath))
       : `@fs${maybeSlash}${parentPath}`;
-    const qrlFile = `${encode(qrlPath)}/${parentFile.toLowerCase()}_${symbolName.toLowerCase()}.js?_qrl_parent=${encode(parentFile)}`;
+    const qrlFile = `${encode(qrlPath)}/${parentFile.toLowerCase()}_${symbolName.toLowerCase()}.js`;
     return [symbolName, `${base}${qrlFile}`];
   };
 }

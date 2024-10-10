@@ -1,5 +1,13 @@
 # @builder.io/qwik-city
 
+## 1.9.2
+
+### Patch Changes
+
+- Fix action redirect regression where searchParams were appended (by [@brandonpittman](https://github.com/brandonpittman) in [#6927](https://github.com/QwikDev/qwik/pull/6927))
+
+- Prevent unexpected caching for q-data.json (by [@genki](https://github.com/genki) in [#6808](https://github.com/QwikDev/qwik/pull/6808))
+
 ## 1.9.1
 
 ### Patch Changes

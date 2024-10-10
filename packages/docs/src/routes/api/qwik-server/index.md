@@ -233,6 +233,21 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[linkFetchPriority?](#)
+
+</td><td>
+
+</td><td>
+
+'auto' \| 'low' \| 'high' \| null
+
+</td><td>
+
+_(Optional)_ Value of the `<link fetchpriority="...">` attribute when link is used. Defaults to `null` if links are inserted.
+
+</td></tr>
+<tr><td>
+
 [linkInsert?](#)
 
 </td><td>

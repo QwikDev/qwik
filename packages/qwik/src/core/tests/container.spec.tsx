@@ -27,7 +27,7 @@ describe('serializer v2', () => {
       expect(output).toMatchVDOM(input);
     });
 
-    it('should handle multiple text nodes, and fragment', async () => {
+    it.only('should handle multiple text nodes, and fragment', async () => {
       const input = (
         <>
           {'Hello'} <b>{'world'}</b>!
@@ -616,7 +616,7 @@ async function toHTML(jsx: JSXOutput): Promise<string> {
   });
   await ssrContainer.closeContainer();
   const html = ssrContainer.writer.toString();
-  // console.log(html);
+  console.log(html);
   return html;
 }
 

@@ -18,7 +18,7 @@ import {
   vnode_toString,
 } from '../core/client/vnode';
 import { ERROR_CONTEXT } from '../core/shared/error/error-handling';
-import type { Props } from '../core/shared/jsx/jsx-runtime';
+import { Fragment, type Props } from '../core/shared/jsx/jsx-runtime';
 import { Slot } from '../core/shared/jsx/slot.public';
 import { getPlatform, setPlatform } from '../core/shared/platform/platform';
 import { inlinedQrl } from '../core/shared/qrl/qrl';
@@ -39,6 +39,9 @@ import { Q_FUNCS_PREFIX, renderToString } from '../server/ssr-render';
 import { createDocument } from './document';
 import { getTestPlatform } from './platform';
 import './vdom-diff.unit-util';
+
+/** @public a fragment that doesn't render during SSR */
+export const DomFragment = (props: any) => <Fragment {...props} />;
 
 /** @public */
 export async function domRender(

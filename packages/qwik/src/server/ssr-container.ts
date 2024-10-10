@@ -552,6 +552,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   ////////////////////////////////////
 
   emitContainerData(): ValueOrPromise<void> {
+    // TODO first emit state, then only emit slots where the parent is serialized (so they could rerender)
     this.emitUnclaimedProjection();
     return maybeThen(this.emitStateData(), () => {
       this.emitVNodeData();
@@ -580,6 +581,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    * skipped. By choosing different separators we can encode different numbers of elements to skip.
    */
   emitVNodeData() {
+    if (!this.serializationCtx.$roots$.length) {
+      return;
+    }
     this.openElement('script', ['type', 'qwik/vnode']);
     const vNodeAttrsStack: SsrAttrs[] = [];
     const vNodeData = this.vNodeDatas;
@@ -742,6 +746,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   private emitStateData(): ValueOrPromise<void> {
+    if (!this.serializationCtx.$roots$.length) {
+      return;
+    }
     this.openElement('script', ['type', 'qwik/state']);
     return maybeThen(this.serializationCtx.$breakCircularDepsAndAwaitPromises$(), () => {
       this.serializationCtx.$serialize$();

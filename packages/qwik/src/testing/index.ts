@@ -1,6 +1,7 @@
 import type { JSXOutput } from '@builder.io/qwik';
 // register vitest matchers
 import './vdom-diff.unit-util';
+import type { domRender, ssrRenderToDom } from './rendering.unit-util';
 
 export { createDOM } from './library';
 export { expectDOM } from './expect-dom';
@@ -12,7 +13,7 @@ export { trigger, ElementFixture } from './element-fixture';
 
 // TODO get api-extractor to export this too
 interface CustomMatchers<R = unknown> {
-  toMatchVDOM(expectedJSX: JSXOutput): R;
+  toMatchVDOM(expectedJSX: JSXOutput, render?: typeof domRender | typeof ssrRenderToDom): R;
   toMatchDOM(expectedDOM: JSXOutput): Promise<R>;
 }
 

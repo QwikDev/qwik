@@ -972,7 +972,7 @@ export const ColorList = component$(() => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {4,12} /serverGreeter/#a
-import { component$ } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
 import { server$ } from '@builder.io/qwik-city';
  
 const serverGreeter = server$((firstName: string, lastName: string) => {
@@ -982,10 +982,10 @@ const serverGreeter = server$((firstName: string, lastName: string) => {
  
 export default component$(() => (
     <button
-      onClick$={async () => {
+      onClick$={$(async () => {
         const greeting = await serverGreeter('John', 'Doe');
         alert(greeting);
-      }}
+      })}
     >
       greet
     </button>

@@ -162,67 +162,6 @@ class DeserializationHandler implements ProxyHandler<object> {
 }
 
 /**
- * Convert an object (which is a component prop) to have derived signals (_CONST_PROPS).
- *
- * Input:
- *
- * ```
- * {
- *   "prop1": "DerivedSignal: ..",
- *   "prop2": "DerivedSignal: .."
- * }
- * ```
- *
- * Becomes
- *
- * ```
- * {
- *   get prop1 {
- *     return this[_CONST_PROPS].prop1.value;
- *   },
- *   get prop2 {
- *     return this[_CONST_PROPS].prop2.value;
- *   },
- *   prop2: 'DerivedSignal: ..',
- *   [_CONST_PROPS]: {
- *     prop1: _fnSignal(p0=>p0.value, [prop1], 'p0.value'),
- *     prop2: _fnSignal(p0=>p0.value, [prop1], 'p0.value')
- *   }
- * }
- * ```
- */
-// function upgradePropsWithDerivedSignal(
-//   container: DomContainer,
-//   target: Record<string | symbol, any>,
-//   property: string | symbol | number
-// ): any {
-//   const immutable: Record<string, WrappedSignal<unknown>> = {};
-//   // TODO
-//   for (const key in target) {
-//     if (Object.prototype.hasOwnProperty.call(target, key)) {
-//       const value = target[key];
-//       if (typeof value === 'string' && value.charCodeAt(0) === TypeIds.WrappedSignal) {
-//         const wrappedSignal = (immutable[key] = allocate(
-//           container,
-//           TypeIds.WrappedSignal,
-//           value
-//         ) as WrappedSignal<unknown>);
-//         Object.defineProperty(target, key, {
-//           get() {
-//             return wrappedSignal.value;
-//           },
-//           enumerable: true,
-//         });
-//         // TODO
-//         inflate(container, wrappedSignal, TypeIds.WrappedSignal, value);
-//       }
-//     }
-//   }
-//   target[_CONST_PROPS] = immutable;
-//   return target[property];
-// }
-
-/**
  * Restores an array eagerly. If you need it lazily, use `deserializeData(container, TypeIds.Array,
  * array)` instead
  */
@@ -447,6 +386,9 @@ export const _constants = [
   NaN,
   Infinity,
   -Infinity,
+  Number.MAX_SAFE_INTEGER,
+  Number.MAX_SAFE_INTEGER - 1,
+  Number.MIN_SAFE_INTEGER,
 ] as const;
 const _constantNames = [
   'undefined',
@@ -462,9 +404,12 @@ const _constantNames = [
   'NaN',
   'Infinity',
   '-Infinity',
+  'MAX_SAFE_INTEGER',
+  'MAX_SAFE_INTEGER-1',
+  'MIN_SAFE_INTEGER',
 ] as const;
 
-const allocate = <T>(container: DeserializeContainer, typeId: number, value: unknown): any => {
+const allocate = (container: DeserializeContainer, typeId: number, value: unknown): any => {
   if (value === undefined) {
     // When a value was already processed, the result is stored in type
     return typeId;
@@ -764,6 +709,14 @@ export const createSerializationContext = (
     const discoveredValues: unknown[] = [];
     const promises: Promise<unknown>[] = [];
 
+    /**
+     * Note on out of order streaming:
+     *
+     * When we implement that, we may need to send a reference to an object that was streamed
+     * earlier but wasn't a root. This means we'll have to keep track of all objects on both send
+     * and receive ends, which means we'll just have to make everything a root anyway, so `visit()`
+     * won't be needed.
+     */
     /** Visit an object, adding anything that will be serialized as to scan */
     const visit = (obj: unknown) => {
       if (typeof obj === 'function') {
@@ -919,6 +872,7 @@ function serialize(serializationContext: SerializationContext): void {
       depth++;
       $writer$.write('[');
       let separator = false;
+      // TODO only until last non-null value
       for (let i = 0; i < value.length; i++) {
         if (separator) {
           $writer$.write(',');
@@ -963,6 +917,12 @@ function serialize(serializationContext: SerializationContext): void {
           TypeIds.Constant,
           value < 0 ? Constants.NegativeInfinity : Constants.PositiveInfinity
         );
+      } else if (value === Number.MAX_SAFE_INTEGER) {
+        output(TypeIds.Constant, Constants.MaxSafeInt);
+      } else if (value === Number.MAX_SAFE_INTEGER - 1) {
+        output(TypeIds.Constant, Constants.AlmostMaxSafeInt);
+      } else if (value === Number.MIN_SAFE_INTEGER) {
+        output(TypeIds.Constant, Constants.MinSafeInt);
       } else {
         output(TypeIds.Number, value);
       }
@@ -1072,6 +1032,7 @@ function serialize(serializationContext: SerializationContext): void {
             out.push(key, (value as any)[key]);
           }
         }
+        // TODO if !out.length, output 0 and restore as {}
         output(TypeIds.Object, out);
       }
     } else if (value instanceof Signal) {
@@ -1089,6 +1050,7 @@ function serialize(serializationContext: SerializationContext): void {
           value.$computeQrl$,
           value.$untrackedValue$,
           value.$invalid$,
+          // TODO check if we can use domVRef for effects
           ...(value.$effects$ || []),
         ]);
       } else {
@@ -1565,6 +1527,10 @@ export const enum Constants {
   NaN,
   PositiveInfinity,
   NegativeInfinity,
+  MaxSafeInt,
+  // used for close fragment
+  AlmostMaxSafeInt,
+  MinSafeInt,
 }
 
 const circularProofJson = (obj: unknown, indent?: string | number) => {

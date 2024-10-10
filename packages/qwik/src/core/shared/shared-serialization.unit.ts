@@ -363,12 +363,11 @@ describe('shared-serialization', () => {
           Number 1
           Array [
             Object []
-            String "value"
           ]
           Constant null
           Constant undefined
         ]
-        (63 chars)"
+        (53 chars)"
       `);
     });
     it(title(TypeIds.ComputedSignal), async () => {

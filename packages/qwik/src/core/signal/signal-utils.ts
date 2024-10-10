@@ -4,14 +4,31 @@ import { isObject } from '../shared/utils/types';
 import { WrappedSignal } from './signal';
 import { isSignal } from './signal.public';
 import { getStoreTarget } from './store';
+import { isPropsProxy } from '../shared/jsx/jsx-runtime';
 
-const getProp = (obj: any, prop: string) => obj[prop];
+const getProp = (...args: [any, string?]) => {
+  const obj = args[0];
+  const prop = args.length < 2 ? 'value' : args[1]!;
+  return obj[prop];
+};
 
-/** @internal */
-export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(
-  obj: T,
-  prop: P | undefined = 'value' as P
-): any => {
+const getWrapped = (args: any[]) => new WrappedSignal(null, getProp, args, null);
+
+/**
+ * This wraps a property access of a possible Signal/Store into a WrappedSignal. The optimizer does
+ * this automatically when a prop is only used as a prop on JSX.
+ *
+ * When a WrappedSignal is read via the PropsProxy, it will be unwrapped. This allows forwarding the
+ * reactivity of a prop to the point of actual use.
+ *
+ * For efficiency, if you pass only one argument, the property is 'value'.
+ *
+ * @internal
+ */
+export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(...args: [T, P?]): any => {
+  const obj = args[0];
+  const prop = args.length < 2 ? 'value' : args[1]!;
+
   if (!isObject(obj)) {
     return obj[prop];
   }
@@ -20,10 +37,10 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(
     if (obj instanceof WrappedSignal) {
       return obj;
     }
-    return new WrappedSignal(null, getProp, [obj, prop as string], null);
+    return getWrapped(args);
   }
-  if (_CONST_PROPS in obj) {
-    const constProps = (obj as any)[_CONST_PROPS];
+  if (isPropsProxy(obj)) {
+    const constProps = obj[_CONST_PROPS] as any;
     if (constProps && prop in constProps) {
       // Const props don't need wrapping
       return constProps[prop];
@@ -31,15 +48,16 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(
   } else {
     const target = getStoreTarget(obj);
     if (target) {
-      const signal = target[prop];
-      const wrappedValue = isSignal(signal)
-        ? signal
-        : new WrappedSignal(null, getProp, [obj, prop as string], null);
+      const value = target[prop];
+      const wrappedValue = isSignal(value)
+        ? // If the value is already a signal, we don't need to wrap it again
+          value
+        : getWrapped(args);
       return wrappedValue;
     }
   }
   // We need to forward the access to the original object
-  return new WrappedSignal(null, getProp, [obj, prop as string], null);
+  return getWrapped(args);
 };
 
 /** @internal @deprecated v1 compat */

@@ -2,6 +2,7 @@
 
 import { isDev } from '../../build/index.dev';
 import type { StreamWriter } from '../../server/types';
+import { VNodeDataFlag } from '../../server/vnode-data';
 import { type DomContainer } from '../client/dom-container';
 import type { VNode } from '../client/types';
 import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
@@ -486,10 +487,12 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
       return new Uint8Array(decodedLength);
     case TypeIds.PropsProxy:
       return createPropsProxy(null!, null);
-    case TypeIds.VNode:
-      // Retrieve the VNode from the container
-      return retrieveVNodeOrDocument(container, value);
     case TypeIds.RefVNode:
+    case TypeIds.VNode:
+      const vnodeOrDocument = retrieveVNodeOrDocument(container, value);
+      if (typeId === TypeIds.VNode) {
+      return vnodeOrDocument;
+      }
       const vNode = retrieveVNodeOrDocument(container, value);
       if (vnode_isVNode(vNode)) {
         return vnode_getNode(vNode);
@@ -619,6 +622,7 @@ export interface SerializationContext {
 
   $getProp$: (obj: any, prop: string) => any;
   $setProp$: (obj: any, prop: string, value: any) => void;
+  prepVNode?: (vnode: VNode) => void;
 }
 
 export const createSerializationContext = (
@@ -635,7 +639,9 @@ export const createSerializationContext = (
   getProp: (obj: any, prop: string) => any,
   setProp: (obj: any, prop: string, value: any) => void,
   storeProxyMap: ObjToProxyMap,
-  writer?: StreamWriter
+  writer?: StreamWriter,
+  // temporary until we serdes the vnode here
+  prepVNode?: (vnode: VNode) => void
 ): SerializationContext => {
   if (!writer) {
     const buffer: string[] = [];
@@ -715,6 +721,7 @@ export const createSerializationContext = (
     $storeProxyMap$: storeProxyMap,
     $getProp$: getProp,
     $setProp$: setProp,
+    prepVNode,
   };
 
   async function breakCircularDependenciesAndResolvePromises() {
@@ -785,8 +792,8 @@ export const createSerializationContext = (
             : obj instanceof ComputedSignal && (obj.$invalid$ || fastSkipSerialize(obj))
               ? NEEDS_COMPUTATION
               : obj.$untrackedValue$;
-        if (v !== NEEDS_COMPUTATION && !isSsrNode(v)) {
-          discoveredValues.push(obj.$untrackedValue$);
+        if (v !== NEEDS_COMPUTATION) {
+          discoveredValues.push(v);
         }
         if (obj.$effects$) {
           discoveredValues.push(...obj.$effects$);
@@ -802,8 +809,7 @@ export const createSerializationContext = (
       } else if (obj instanceof Task) {
         discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$, obj.$effectDependencies$);
       } else if (isSsrNode(obj)) {
-        // ignore the nodes
-        // debugger;
+        discoveredValues.push(obj.vnodeData);
       } else if (isJSXNode(obj)) {
         discoveredValues.push(obj.type, obj.props, obj.constProps, obj.children);
       } else if (Array.isArray(obj)) {
@@ -1082,6 +1088,8 @@ function serialize(serializationContext: SerializationContext): void {
           ? NEEDS_COMPUTATION
           : value.$untrackedValue$;
       if ($isSsrNode$(v)) {
+        // TODO maybe we don't need to store all vnode data if it's only a ref
+        serializationContext.$addRoot$(v);
         v = new DomVRef(v.id);
       }
       if (value instanceof WrappedSignal) {
@@ -1123,7 +1131,13 @@ function serialize(serializationContext: SerializationContext): void {
       if (isRootObject) {
         // Tell the SsrNode which root id it is
         $setProp$(value, ELEMENT_ID, String(idx));
+        const vNode = value.vnodeData;
+        // we need to output before the vnode overwrites its values
         output(TypeIds.VNode, value.id);
+        if (vNode) {
+          serializationContext.prepVNode?.(vNode);
+          vNode[0] |= VNodeDataFlag.SERIALIZE;
+        }
       } else {
         // Promote the vnode to a root
         serializationContext.$addRoot$(value);

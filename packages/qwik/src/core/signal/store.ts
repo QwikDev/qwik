@@ -91,7 +91,7 @@ export class StoreHandler implements ProxyHandler<TargetType> {
       return target[prop];
     }
     const ctx = tryGetInvokeContext();
-    let value = target[prop];
+    const value = target[prop];
     if (ctx) {
       if (this.$container$ === null) {
         if (!ctx.$container$) {
@@ -124,8 +124,7 @@ export class StoreHandler implements ProxyHandler<TargetType> {
       !isStore(value) &&
       !Object.isFrozen(target)
     ) {
-      value = getOrCreateStore(value, this.$flags$, this.$container$);
-      (target as Record<string | symbol, any>)[prop] = value;
+      return getOrCreateStore(value, this.$flags$, this.$container$);
     }
     return value;
   }

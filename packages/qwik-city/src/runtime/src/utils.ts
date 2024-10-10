@@ -81,3 +81,14 @@ export const isPromise = (value: any): value is Promise<any> => {
   // not using "value instanceof Promise" to have zone.js support
   return value && typeof value.then === 'function';
 };
+
+export const deepFreeze = (obj: any) => {
+  Object.getOwnPropertyNames(obj).forEach((prop) => {
+    const value = obj[prop];
+    // we assume that a frozen object is a circular reference and fully deep frozen
+    if (value && typeof value === 'object' && !Object.isFrozen(value)) {
+      deepFreeze(value);
+    }
+  });
+  return Object.freeze(obj);
+};

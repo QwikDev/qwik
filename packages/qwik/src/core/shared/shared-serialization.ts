@@ -42,7 +42,7 @@ import {
   type SyncQRLInternal,
 } from './qrl/qrl-class';
 import type { QRL } from './qrl/qrl.public';
-import type { DeserializeContainer, HostElement } from './types';
+import type { DeserializeContainer, HostElement, ObjToProxyMap } from './types';
 import { _CONST_PROPS, _VAR_PROPS } from './utils/constants';
 import { isElement, isNode } from './utils/element';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
@@ -118,13 +118,6 @@ class DeserializationHandler implements ProxyHandler<object> {
       // The value is already cached
       return value;
     }
-    // TODO do we need this?
-    // if (typeId === TypeIds.WrappedSignal && this.isObject) {
-    //   // Special case of derived signal. We need to create a [_CONST_PROPS] property.
-    //   return wrapDeserializerProxy(
-    //     container,
-    //     upgradePropsWithDerivedSignal(container, target, property)
-    //   );
 
     const container = this.$container$;
     const propValue = allocate(container, typeId, value);
@@ -620,6 +613,7 @@ export interface SerializationContext {
   $eventNames$: Set<string>;
   $resources$: Set<ResourceReturnInternal<unknown>>;
   $renderSymbols$: Set<string>;
+  $storeProxyMap$: ObjToProxyMap;
 
   $getProp$: (obj: any, prop: string) => any;
   $setProp$: (obj: any, prop: string, value: any) => void;
@@ -638,6 +632,7 @@ export const createSerializationContext = (
   symbolToChunkResolver: SymbolToChunkResolver,
   getProp: (obj: any, prop: string) => any,
   setProp: (obj: any, prop: string, value: any) => void,
+  storeProxyMap: ObjToProxyMap,
   writer?: StreamWriter
 ): SerializationContext => {
   if (!writer) {
@@ -715,6 +710,7 @@ export const createSerializationContext = (
     $eventNames$: new Set<string>(),
     $resources$: new Set<ResourceReturnInternal<unknown>>(),
     $renderSymbols$: new Set<string>(),
+    $storeProxyMap$: storeProxyMap,
     $getProp$: getProp,
     $setProp$: setProp,
   };
@@ -762,6 +758,9 @@ export const createSerializationContext = (
       } else if (isStore(obj)) {
         discoveredValues.push(getStoreTarget(obj));
         discoveredValues.push(getStoreHandler(obj)!.$effects$);
+      } else if (storeProxyMap.has(obj)) {
+        const store = storeProxyMap.get(obj);
+        discoveredValues.push(store);
       } else if (obj instanceof Set) {
         discoveredValues.push(...obj.values());
       } else if (obj instanceof Map) {
@@ -870,8 +869,7 @@ const promiseResults = new WeakMap<Promise<any>, [boolean, unknown]>();
  * - Therefore root indexes need to be doubled to get the actual index.
  */
 function serialize(serializationContext: SerializationContext): void {
-  const { $writer$, $isSsrNode$, $setProp$ } = serializationContext;
-
+  const { $writer$, $isSsrNode$, $setProp$, $storeProxyMap$ } = serializationContext;
   let depth = -1;
   // Skip the type for the roots output
   let writeType = false;
@@ -1024,26 +1022,17 @@ function serialize(serializationContext: SerializationContext): void {
           return throwErrorAndStop('Unvisited Resource');
         }
         output(TypeIds.Resource, [...res, getStoreHandler(value)!.$effects$]);
-
-        //   /**
-        //    * We always run on the server and the resource always resolved (until we implement resource
-        //    * streaming)
-        //    */
-        //   assertTrue(value._state !== 'pending', 'Resource still pending', value);
-        //   assertTrue(isPromise(value.value), 'Resource has no Promise');
-        //   output(TypeIds.Resource, [value.value]);
-        // storeValue, flags, ...effects
       } else {
         const storeHandler = getStoreHandler(value)!;
-        const store = getStoreTarget(value);
+        const storeObject = getStoreTarget(value);
         const flags = storeHandler.$flags$;
         const effects = storeHandler.$effects$;
         const storeEffect = effects?.[STORE_ARRAY_PROP];
-        const out = [store, flags, effects, storeEffect];
+        const out = [storeObject, flags, effects, storeEffect];
         while (out[out.length - 1] == null) {
           out.pop();
         }
-        output(Array.isArray(store) ? TypeIds.StoreArray : TypeIds.Store, out);
+        output(Array.isArray(storeObject) ? TypeIds.StoreArray : TypeIds.Store, out);
       }
     } else if (isObjectLiteral(value)) {
       if (Array.isArray(value)) {
@@ -1055,6 +1044,10 @@ function serialize(serializationContext: SerializationContext): void {
             Object.prototype.hasOwnProperty.call(value, key) &&
             !fastSkipSerialize((value as any)[key])
           ) {
+            if ($storeProxyMap$.has(value)) {
+              // We should not lose store metadata
+              value = $storeProxyMap$.get(value);
+            }
             out.push(key, (value as any)[key]);
           }
         }
@@ -1278,7 +1271,8 @@ export async function _serialize(data: unknown[]): Promise<string> {
     null,
     () => '',
     () => '',
-    () => {}
+    () => {},
+    new WeakMap<any, any>()
   );
 
   for (const root of data) {

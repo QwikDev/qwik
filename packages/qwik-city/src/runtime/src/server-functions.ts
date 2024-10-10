@@ -53,6 +53,7 @@ import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 import { isDev, isServer } from '@builder.io/qwik/build';
 
 import type { FormSubmitCompletedDetail } from './form-component';
+import { deepFreeze } from './utils';
 
 /** @public */
 export const routeActionQrl = ((
@@ -371,17 +372,6 @@ export const zodQrl: ZodConstructorQRL = (
 
 /** @public */
 export const zod$: ZodConstructor = /*#__PURE__*/ implicit$FirstArg(zodQrl);
-
-const deepFreeze = (obj: any) => {
-  Object.getOwnPropertyNames(obj).forEach((prop) => {
-    const value = obj[prop];
-    // we assume that a frozen object is a circular reference and fully deep frozen
-    if (value && typeof value === 'object' && !Object.isFrozen(value)) {
-      deepFreeze(value);
-    }
-  });
-  return Object.freeze(obj);
-};
 
 /** @public */
 export const serverQrl = <T extends ServerFunction>(

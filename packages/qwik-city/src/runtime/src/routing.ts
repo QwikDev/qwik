@@ -56,7 +56,7 @@ export const loadRoute = async (
       await Promise.all(pendingLoads);
     }
 
-    return deepFreeze([routeName, params, modules, menu, routeBundleNames]);
+    return [routeName, params, modules, deepFreeze(menu), routeBundleNames];
   }
   return null;
 };

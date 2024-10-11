@@ -83,6 +83,9 @@ export const isPromise = (value: any): value is Promise<any> => {
 };
 
 export const deepFreeze = (obj: any) => {
+  if (obj == null) {
+    return obj;
+  }
   Object.getOwnPropertyNames(obj).forEach((prop) => {
     const value = obj[prop];
     // we assume that a frozen object is a circular reference and fully deep frozen

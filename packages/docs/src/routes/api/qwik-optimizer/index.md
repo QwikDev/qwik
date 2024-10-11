@@ -330,9 +330,65 @@ export type EntryStrategy =
 
 Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.
 
+Add experimental features to this enum definition.
+
 ```typescript
-export type ExperimentalFeatures = (typeof experimental)[number];
+export declare enum ExperimentalFeatures
 ```
+
+<table><thead><tr><th>
+
+Member
+
+</th><th>
+
+Value
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+noSPA
+
+</td><td>
+
+`"noSPA"`
+
+</td><td>
+
+**_(ALPHA)_** Disable SPA navigation handler in Qwik City
+
+</td></tr>
+<tr><td>
+
+preventNavigate
+
+</td><td>
+
+`"preventNavigate"`
+
+</td><td>
+
+**_(ALPHA)_** Enable the usePreventNavigate hook
+
+</td></tr>
+<tr><td>
+
+valibot
+
+</td><td>
+
+`"valibot"`
+
+</td><td>
+
+**_(ALPHA)_** Enable the Valibot form validation
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts)
 
@@ -698,6 +754,8 @@ string
 **Returns:**
 
 string
+
+## noSPA
 
 ## Optimizer
 
@@ -1204,6 +1262,8 @@ Description
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
+## preventNavigate
+
 ## QwikBuildMode
 
 ```typescript
@@ -1620,7 +1680,7 @@ Default `{ type: "smart" }`)
 
 </td><td>
 
-[ExperimentalFeatures](#experimentalfeatures)[]
+(keyof typeof [ExperimentalFeatures](#experimentalfeatures))[]
 
 </td><td>
 
@@ -3571,6 +3631,8 @@ export type TranspileOption = boolean | undefined | null;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+
+## valibot
 
 ## versions
 

@@ -29,11 +29,11 @@ import { qrl } from "@builder.io/qwik";
 export const onGet = ()=>{
     throw "Symbol removed by Qwik Optimizer, it can not be called from current platform";
 };
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;aAIa;;;AASb,6BAAe,0GAEZ\"}")
-============================= test_component_luxexe0dqrg.tsx (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;aAIa;;;AASb,6BAAe,mHAEZ\"}")
+============================= test.tsx_test_component_luxexe0dqrg.tsx (ENTRY POINT)==
 
 export const test_component_LUXeXe0DQrg = ()=>{
     return <div>cmp</div>;
@@ -46,9 +46,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "test_component_LUXeXe0DQrg",
   "entry": null,
-  "displayName": "test_component",
+  "displayName": "test.tsx_test_component",
   "hash": "LUXeXe0DQrg",
-  "canonicalFilename": "test_component_luxexe0dqrg",
+  "canonicalFilename": "test.tsx_test_component_luxexe0dqrg",
   "path": "",
   "extension": "tsx",
   "parent": null,

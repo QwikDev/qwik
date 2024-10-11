@@ -9,7 +9,7 @@ expression: output
 import { component$ } from '@builder.io/qwik';
 export const Greeter = component$(() => <div/>)
 
-============================= components/apps/greeter_component_0jjovx068y0.ts (ENTRY POINT)==
+============================= components/apps/apps.tsx_greeter_component_0jjovx068y0.ts (ENTRY POINT)==
 
 import { _jsxSorted } from "@builder.io/qwik";
 export const Greeter_component_0jjOvx068y0 = ()=>/*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "KD_0");
@@ -21,9 +21,9 @@ Some("{\"version\":3,\"sources\":[\"C:\\\\users\\\\apps/components/apps/apps.tsx
   "origin": "components/apps/apps.tsx",
   "name": "Greeter_component_0jjOvx068y0",
   "entry": null,
-  "displayName": "Greeter_component",
+  "displayName": "apps.tsx_Greeter_component",
   "hash": "0jjOvx068y0",
-  "canonicalFilename": "greeter_component_0jjovx068y0",
+  "canonicalFilename": "apps.tsx_greeter_component_0jjovx068y0",
   "path": "components/apps",
   "extension": "ts",
   "parent": null,
@@ -40,10 +40,10 @@ Some("{\"version\":3,\"sources\":[\"C:\\\\users\\\\apps/components/apps/apps.tsx
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./greeter_component_0jjovx068y0"), "Greeter_component_0jjOvx068y0"));
+export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./apps.tsx_greeter_component_0jjovx068y0"), "Greeter_component_0jjOvx068y0"));
 
 
-Some("{\"version\":3,\"sources\":[\"C:\\\\users\\\\apps/components/apps/apps.tsx\"],\"names\":[],\"mappings\":\";;AAEA,OAAO,MAAM,wBAAU,gHAAwB\"}")
+Some("{\"version\":3,\"sources\":[\"C:\\\\users\\\\apps/components/apps/apps.tsx\"],\"names\":[],\"mappings\":\";;AAEA,OAAO,MAAM,wBAAU,yHAAwB\"}")
 == DIAGNOSTICS ==
 
 []

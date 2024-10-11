@@ -14,7 +14,7 @@ import {
 import { describe, expect, it } from 'vitest';
 import { trigger, domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 
-const debug = !false; //true;
+const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([

@@ -3,7 +3,7 @@ source: packages/qwik/src/optimizer/core/src/test.rs
 assertion_line: 3413
 expression: output
 ---
-============================= ../../node_modules/dep/dist/app_component_div_p_button_onclick_8dwua0cjar4.js (ENTRY POINT)==
+============================= ../../node_modules/dep/dist/lib.mjs_app_component_div_p_button_onclick_8dwua0cjar4.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
 export const App_component_div_p_button_onClick_8dWUa0cJAr4 = ()=>{
@@ -18,9 +18,9 @@ Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoo
   "origin": "../../node_modules/dep/dist/lib.mjs",
   "name": "App_component_div_p_button_onClick_8dWUa0cJAr4",
   "entry": null,
-  "displayName": "App_component_div_p_button_onClick",
+  "displayName": "lib.mjs_App_component_div_p_button_onClick",
   "hash": "8dWUa0cJAr4",
-  "canonicalFilename": "app_component_div_p_button_onclick_8dwua0cjar4",
+  "canonicalFilename": "lib.mjs_app_component_div_p_button_onclick_8dwua0cjar4",
   "path": "../../node_modules/dep/dist",
   "extension": "js",
   "parent": "App_component_AkbU84a8zes",
@@ -33,7 +33,7 @@ Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoo
   ]
 }
 */
-============================= ../../node_modules/dep/dist/app_component_akbu84a8zes.js (ENTRY POINT)==
+============================= ../../node_modules/dep/dist/lib.mjs_app_component_akbu84a8zes.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@builder.io/qwik";
 import { _wrapProp } from "@builder.io/qwik";
@@ -47,7 +47,7 @@ export const App_component_AkbU84a8zes = ()=>{
             _wrapProp(store, "count")
         ], 3, null),
         /*#__PURE__*/ _jsxSorted("p", null, null, /*#__PURE__*/ _jsxSorted("button", {
-            onClick$: /*#__PURE__*/ qrl(()=>import("./app_component_div_p_button_onclick_8dwua0cjar4.js"), "App_component_div_p_button_onClick_8dWUa0cJAr4", [
+            onClick$: /*#__PURE__*/ qrl(()=>import("./lib.mjs_app_component_div_p_button_onclick_8dwua0cjar4.js"), "App_component_div_p_button_onClick_8dWUa0cJAr4", [
                 store
             ])
         }, null, "Click", 2, null), 1, null)
@@ -61,9 +61,9 @@ Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoo
   "origin": "../../node_modules/dep/dist/lib.mjs",
   "name": "App_component_AkbU84a8zes",
   "entry": null,
-  "displayName": "App_component",
+  "displayName": "lib.mjs_App_component",
   "hash": "AkbU84a8zes",
-  "canonicalFilename": "app_component_akbu84a8zes",
+  "canonicalFilename": "lib.mjs_app_component_akbu84a8zes",
   "path": "../../node_modules/dep/dist",
   "extension": "js",
   "parent": null,
@@ -85,12 +85,12 @@ const useData = ()=>{
         count: 0
     });
 };
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_akbu84a8zes.js"), "App_component_AkbU84a8zes"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./lib.mjs_app_component_akbu84a8zes.js"), "App_component_AkbU84a8zes"));
 export { useData as _auto_useData };
 
 
-Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";AACA,SAAS,YAAY,EAAc,QAAQ,QAAyB,mBAAmB;AAIvF,MAAM,UAAU;IACf,OAAO,SAAS;QACf,OAAO;IACR;AACD;AAEA,OAAO,MAAM,MAAM,WAAW,GAAG,2GAuBA\"}")
-============================= components/local_component_jj0v28bs0p8.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";AACA,SAAS,YAAY,EAAc,QAAQ,QAAyB,mBAAmB;AAIvF,MAAM,UAAU;IACf,OAAO,SAAS;QACf,OAAO;IACR;AACD;AAEA,OAAO,MAAM,MAAM,WAAW,GAAG,mHAuBA\"}")
+============================= components/main.tsx_local_component_jj0v28bs0p8.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@builder.io/qwik";
 import { state } from "./sibling";
@@ -105,9 +105,9 @@ Some("{\"version\":3,\"sources\":[\"src/thing/components/main.tsx\"],\"sourceRoo
   "origin": "components/main.tsx",
   "name": "Local_component_jJ0v28bs0p8",
   "entry": null,
-  "displayName": "Local_component",
+  "displayName": "main.tsx_Local_component",
   "hash": "jJ0v28bs0p8",
-  "canonicalFilename": "local_component_jj0v28bs0p8",
+  "canonicalFilename": "main.tsx_local_component_jj0v28bs0p8",
   "path": "components",
   "extension": "js",
   "parent": null,
@@ -124,10 +124,10 @@ Some("{\"version\":3,\"sources\":[\"src/thing/components/main.tsx\"],\"sourceRoo
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Local = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./local_component_jj0v28bs0p8.js"), "Local_component_jJ0v28bs0p8"));
+export const Local = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./main.tsx_local_component_jj0v28bs0p8.js"), "Local_component_jJ0v28bs0p8"));
 
 
-Some("{\"version\":3,\"sources\":[\"src/thing/components/main.tsx\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";;AAIA,OAAO,MAAM,sBAAQ,+GAIlB\"}")
+Some("{\"version\":3,\"sources\":[\"src/thing/components/main.tsx\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";;AAIA,OAAO,MAAM,sBAAQ,wHAIlB\"}")
 == DIAGNOSTICS ==
 
 []

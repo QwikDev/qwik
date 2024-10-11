@@ -49,7 +49,7 @@ export const stringifyStyle = (obj: any): string => {
       for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
           const value = obj[key];
-          if (value != null) {
+          if (value != null && typeof value !== 'function') {
             if (key.startsWith('--')) {
               chunks.push(key + ':' + value);
             } else {
@@ -91,7 +91,7 @@ function isEnumeratedBooleanAttribute(key: string) {
   return isAriaAttribute(key) || ['spellcheck', 'draggable', 'contenteditable'].includes(key);
 }
 
-const setValueForStyle = (styleName: string, value: any) => {
+export const setValueForStyle = (styleName: string, value: any) => {
   if (typeof value === 'number' && value !== 0 && !isUnitlessNumber(styleName)) {
     return value + 'px';
   }

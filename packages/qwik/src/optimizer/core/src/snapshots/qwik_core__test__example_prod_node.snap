@@ -18,27 +18,27 @@ export const Foo = component$(() => {
 	);
 });
 
-============================= s_htdrsvublie.tsx (ENTRY POINT)==
+============================= test.tsx_foo_component_htdrsvublie.tsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 export const s_HTDRsvUbLiE = ()=>{
     return <div>
-			<div onClick$={/*#__PURE__*/ qrl(()=>import("./s_9dcjc0ujddo"), "s_9DcJc0uJDDo")}/>
-			<div onClick$={/*#__PURE__*/ qrl(()=>import("./s_rjqdy8i0mxc"), "s_RjQdy8I0MXc")}/>
-			<div onClick$={/*#__PURE__*/ qrl(()=>import("./s_w9ptfrbvk1e"), "s_w9ptFRBVK1E")}/>
+			<div onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_foo_component_div_div_onclick_9dcjc0ujddo"), "s_9DcJc0uJDDo")}/>
+			<div onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_foo_component_div_div_onclick_1_rjqdy8i0mxc"), "s_RjQdy8I0MXc")}/>
+			<div onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_foo_component_div_div_onclick_2_w9ptfrbvk1e"), "s_w9ptFRBVK1E")}/>
 		</div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAG8B;IAC7B,QACE,IAAI;GACJ,CAAC,IAAI,8EAAuC;GAC5C,CAAC,IAAI,8EAAwC;GAC7C,CAAC,IAAI,8EAAuC;EAC7C,EAAE;AAEJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAG8B;IAC7B,QACE,IAAI;GACJ,CAAC,IAAI,mHAAuC;GAC5C,CAAC,IAAI,qHAAwC;GAC7C,CAAC,IAAI,qHAAuC;EAC7C,EAAE;AAEJ\"}")
 /*
 {
   "origin": "test.tsx",
   "name": "s_HTDRsvUbLiE",
   "entry": null,
-  "displayName": "Foo_component",
+  "displayName": "test.tsx_Foo_component",
   "hash": "HTDRsvUbLiE",
-  "canonicalFilename": "s_htdrsvublie",
+  "canonicalFilename": "test.tsx_foo_component_htdrsvublie",
   "path": "",
   "extension": "tsx",
   "parent": null,
@@ -51,7 +51,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= s_9dcjc0ujddo.tsx (ENTRY POINT)==
+============================= test.tsx_foo_component_div_div_onclick_9dcjc0ujddo.tsx (ENTRY POINT)==
 
 export const s_9DcJc0uJDDo = ()=>console.log('first');
 
@@ -62,9 +62,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "s_9DcJc0uJDDo",
   "entry": null,
-  "displayName": "Foo_component_div_div_onClick",
+  "displayName": "test.tsx_Foo_component_div_div_onClick",
   "hash": "9DcJc0uJDDo",
-  "canonicalFilename": "s_9dcjc0ujddo",
+  "canonicalFilename": "test.tsx_foo_component_div_div_onclick_9dcjc0ujddo",
   "path": "",
   "extension": "tsx",
   "parent": "s_HTDRsvUbLiE",
@@ -77,7 +77,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= s_w9ptfrbvk1e.tsx (ENTRY POINT)==
+============================= test.tsx_foo_component_div_div_onclick_2_w9ptfrbvk1e.tsx (ENTRY POINT)==
 
 export const s_w9ptFRBVK1E = ()=>console.log('third');
 
@@ -88,9 +88,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "s_w9ptFRBVK1E",
   "entry": null,
-  "displayName": "Foo_component_div_div_onClick_2",
+  "displayName": "test.tsx_Foo_component_div_div_onClick_2",
   "hash": "w9ptFRBVK1E",
-  "canonicalFilename": "s_w9ptfrbvk1e",
+  "canonicalFilename": "test.tsx_foo_component_div_div_onclick_2_w9ptfrbvk1e",
   "path": "",
   "extension": "tsx",
   "parent": "s_HTDRsvUbLiE",
@@ -103,7 +103,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= s_rjqdy8i0mxc.tsx (ENTRY POINT)==
+============================= test.tsx_foo_component_div_div_onclick_1_rjqdy8i0mxc.tsx (ENTRY POINT)==
 
 export const s_RjQdy8I0MXc = ()=>console.log('second');
 
@@ -114,9 +114,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "s_RjQdy8I0MXc",
   "entry": null,
-  "displayName": "Foo_component_div_div_onClick_1",
+  "displayName": "test.tsx_Foo_component_div_div_onClick_1",
   "hash": "RjQdy8I0MXc",
-  "canonicalFilename": "s_rjqdy8i0mxc",
+  "canonicalFilename": "test.tsx_foo_component_div_div_onclick_1_rjqdy8i0mxc",
   "path": "",
   "extension": "tsx",
   "parent": "s_HTDRsvUbLiE",
@@ -133,10 +133,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./s_htdrsvublie"), "s_HTDRsvUbLiE"));
+export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_foo_component_htdrsvublie"), "s_HTDRsvUbLiE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,gFAQhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,qGAQhB\"}")
 == DIAGNOSTICS ==
 
 []

@@ -27,11 +27,11 @@ expression: output
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGE,6BAAe,0GAaZ\"}")
-============================= test_component_luxexe0dqrg.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGE,6BAAe,mHAaZ\"}")
+============================= test.tsx_test_component_luxexe0dqrg.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _jsxSorted } from "@builder.io/qwik";
@@ -62,9 +62,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "test_component_LUXeXe0DQrg",
   "entry": null,
-  "displayName": "test_component",
+  "displayName": "test.tsx_test_component",
   "hash": "LUXeXe0DQrg",
-  "canonicalFilename": "test_component_luxexe0dqrg",
+  "canonicalFilename": "test.tsx_test_component_luxexe0dqrg",
   "path": "",
   "extension": "js",
   "parent": null,

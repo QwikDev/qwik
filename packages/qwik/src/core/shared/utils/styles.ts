@@ -1,6 +1,6 @@
 import type { ClassList } from '../jsx/types/jsx-qwik-attributes';
 import { QError_stringifyClassOrStyle, qError } from '../error/error';
-import { fromCamelToKebabCase, isPreventDefault } from './event-names';
+import { isPreventDefault } from './event-names';
 import { isClassAttr } from './scoped-styles';
 import { isArray, isString } from './types';
 import { isUnitlessNumber } from './unitless_number';
@@ -37,6 +37,11 @@ export const serializeClass = (obj: ClassList): string => {
   return classes.join(' ');
 };
 
+// Unlike fromCamelToKebabCase, this leaves `-` so that `background-color` stays `background-color`
+const fromCamelToKebabCaseWithDash = (text: string): string => {
+  return text.replace(/([A-Z])/g, '-$1').toLowerCase();
+};
+
 export const stringifyStyle = (obj: any): string => {
   if (obj == null) {
     return '';
@@ -53,7 +58,7 @@ export const stringifyStyle = (obj: any): string => {
             if (key.startsWith('--')) {
               chunks.push(key + ':' + value);
             } else {
-              chunks.push(fromCamelToKebabCase(key) + ':' + setValueForStyle(key, value));
+              chunks.push(fromCamelToKebabCaseWithDash(key) + ':' + setValueForStyle(key, value));
             }
           }
         }

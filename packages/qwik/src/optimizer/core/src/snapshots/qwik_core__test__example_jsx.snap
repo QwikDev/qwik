@@ -61,17 +61,17 @@ export const Lightweight = (props)=>{
         }, null, null, 0, null)
     ], 1, "u6_0"), 1, "u6_1");
 };
-export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
+export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,cAAc,CAAC;IAC3B,qBACC,WAAC,iCACA;sBACC,WAAC;sBACD,UAAC;YAAQ,GAAG,KAAK;;;AAIrB,EAAE;AAEF,OAAO,MAAM,oBAAM,wGAuBhB;IACF,SAAS;AACV,GAAG\"}")
-============================= foo_component_htdrsvublie.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,cAAc,CAAC;IAC3B,qBACC,WAAC,iCACA;sBACC,WAAC;sBACD,UAAC;YAAQ,GAAG,KAAK;;;AAIrB,EAAE;AAEF,OAAO,MAAM,oBAAM,iHAuBhB;IACF,SAAS;AACV,GAAG\"}")
+============================= test.tsx_foo_component_htdrsvublie.js (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 export const Foo_component_HTDRsvUbLiE = (props)=>{
-    return /*#__PURE__*/ qrl(()=>import("./foo_component_1_dvu6fitwgly"), "Foo_component_1_DvU6FitWglY", [
+    return /*#__PURE__*/ qrl(()=>import("./test.tsx_foo_component_1_dvu6fitwgly"), "Foo_component_1_DvU6FitWglY", [
         props
     ]);
 };
@@ -83,9 +83,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "Foo_component_HTDRsvUbLiE",
   "entry": null,
-  "displayName": "Foo_component",
+  "displayName": "test.tsx_Foo_component",
   "hash": "HTDRsvUbLiE",
-  "canonicalFilename": "foo_component_htdrsvublie",
+  "canonicalFilename": "test.tsx_foo_component_htdrsvublie",
   "path": "",
   "extension": "js",
   "parent": null,
@@ -98,7 +98,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= foo_component_1_dvu6fitwgly.js (ENTRY POINT)==
+============================= test.tsx_foo_component_1_dvu6fitwgly.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
 import { Lightweight } from "./test";
@@ -145,9 +145,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "Foo_component_1_DvU6FitWglY",
   "entry": null,
-  "displayName": "Foo_component_1",
+  "displayName": "test.tsx_Foo_component_1",
   "hash": "DvU6FitWglY",
-  "canonicalFilename": "foo_component_1_dvu6fitwgly",
+  "canonicalFilename": "test.tsx_foo_component_1_dvu6fitwgly",
   "path": "",
   "extension": "js",
   "parent": "Foo_component_HTDRsvUbLiE",

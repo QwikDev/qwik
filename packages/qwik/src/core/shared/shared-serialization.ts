@@ -776,7 +776,7 @@ export const createSerializationContext = (
         const v =
           obj instanceof WrappedSignal
             ? obj.untrackedValue
-            : obj instanceof ComputedSignal && obj.$invalid$
+            : obj instanceof ComputedSignal && (obj.$invalid$ || fastSkipSerialize(obj))
               ? NEEDS_COMPUTATION
               : obj.$untrackedValue$;
         if (v !== NEEDS_COMPUTATION && !isSsrNode(v)) {

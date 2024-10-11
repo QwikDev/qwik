@@ -44,6 +44,13 @@ export const Header = component$(() => {
               <QwikLogo width={130} height={44} />
             </a>
           </div>
+          <div class="absolute right-8 lg:hidden">
+            <DocSearch
+              appId={import.meta.env.VITE_ALGOLIA_APP_ID}
+              apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
+              indexName={import.meta.env.VITE_ALGOLIA_INDEX}
+            />
+          </div>
           <button
             onClick$={() => {
               globalStore.headerMenuOpen = !globalStore.headerMenuOpen;
@@ -99,7 +106,7 @@ export const Header = component$(() => {
                 <span>Shop</span>
               </a>
             </li>
-            <li>
+            <li class="hidden lg:block">
               <DocSearch
                 appId={import.meta.env.VITE_ALGOLIA_APP_ID}
                 apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}

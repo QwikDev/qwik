@@ -9,9 +9,11 @@ import {
   type Signal,
   $,
   sync$,
+  useTask$,
 } from '@builder.io/qwik';
+import { Modal } from '@qwik-ui/headless';
 import type { DocSearchHit, InternalDocSearchHit } from './types';
-import { type ButtonTranslations, DocSearchButton } from './doc-search-button';
+import { type ButtonTranslations } from './doc-search-button';
 import { DocSearchModal, type ModalTranslations } from './doc-search-modal';
 import styles from './doc-search.css?inline';
 
@@ -71,8 +73,16 @@ export const DocSearch = component$((props: DocSearchProps) => {
     status: 'idle',
     snippetLength: 10,
   });
-
   const searchButtonRef = useSignal<Element>();
+  const isOpen = useSignal(false);
+
+  useTask$((ctx) => {
+    ctx.track(() => {
+      if (state.isOpen != isOpen.value) {
+        isOpen.value = state.isOpen;
+      }
+    });
+  });
 
   return (
     <div
@@ -89,6 +99,7 @@ export const DocSearch = component$((props: DocSearchProps) => {
             // another one.
             if (!document.body.classList.contains('DocSearch--active')) {
               state.isOpen = true;
+              isOpen.value = true;
             }
           }
           if (
@@ -102,6 +113,7 @@ export const DocSearch = component$((props: DocSearchProps) => {
             event.preventDefault();
             if (state.isOpen) {
               state.isOpen = false;
+              isOpen.value = false;
             } else if (!document.body.classList.contains('DocSearch--active')) {
               open();
             }
@@ -110,27 +122,35 @@ export const DocSearch = component$((props: DocSearchProps) => {
           if (searchButtonRef && searchButtonRef.value === document.activeElement) {
             if (/[a-zA-Z0-9]/.test(String.fromCharCode(event.keyCode))) {
               state.isOpen = true;
+              isOpen.value = true;
               state.initialQuery = event.key;
             }
           }
         }),
       ]}
     >
-      <DocSearchButton
-        ref={searchButtonRef}
-        onClick$={() => {
-          state.isOpen = true;
-        }}
-      />
-      {state.isOpen && (
-        <DocSearchModal
-          aiResultOpen={aiResultOpen.value}
-          indexName={props.indexName}
-          apiKey={props.apiKey}
-          appId={props.appId}
-          state={state}
-        />
-      )}
+      <Modal.Root bind:show={isOpen}>
+        <Modal.Trigger
+          class="DocSearch DocSearch-Button"
+          onClick$={() => {
+            state.isOpen = true;
+            isOpen.value = true;
+          }}
+        >
+          Search
+        </Modal.Trigger>
+        <Modal.Panel class="w-full h-full">
+          {state.isOpen && (
+            <DocSearchModal
+              aiResultOpen={aiResultOpen.value}
+              indexName={props.indexName}
+              apiKey={props.apiKey}
+              appId={props.appId}
+              state={state}
+            />
+          )}
+        </Modal.Panel>
+      </Modal.Root>
     </div>
   );
 });

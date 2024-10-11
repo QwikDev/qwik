@@ -9,6 +9,7 @@ import type {
   RouteData,
   RouteModule,
 } from './types';
+import { deepFreeze } from './utils';
 
 export const CACHE = new Map<RouteData, Promise<any>>();
 /** LoadRoute() runs in both client and server. */
@@ -55,7 +56,7 @@ export const loadRoute = async (
       await Promise.all(pendingLoads);
     }
 
-    return [routeName, params, modules, menu, routeBundleNames];
+    return [routeName, params, modules, deepFreeze(menu), routeBundleNames];
   }
   return null;
 };

@@ -11,6 +11,7 @@ export interface DeserializeContainer {
   element: HTMLElement | null;
   getSyncFn: (id: number) => (...args: unknown[]) => unknown;
   $state$?: unknown[];
+  $storeProxyMap$: ObjToProxyMap;
 }
 
 export interface Container {

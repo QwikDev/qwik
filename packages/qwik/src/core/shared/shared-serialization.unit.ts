@@ -781,7 +781,6 @@ async function serialize(...roots: any[]): Promise<any[]> {
     () => '',
     () => '',
     new WeakMap<any, any>(),
-    new WeakSet<any>(),
     null!
   );
   for (const root of roots) {

@@ -209,8 +209,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private cleanupQueue: CleanupQueue = [];
   public $instanceHash$ = hash();
 
-  private $serializedStoreProxyMap$ = new WeakSet();
-
   constructor(opts: Required<SSRRenderOptions>) {
     super(
       () => null,
@@ -226,7 +224,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.serializationCtx = this.serializationCtxFactory(
       SsrNode,
       this.symbolToChunkResolver,
-      this.$serializedStoreProxyMap$,
       opts.writer
     );
     this.renderTimer = createTimer();

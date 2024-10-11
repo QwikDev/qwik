@@ -11,6 +11,7 @@ export interface DeserializeContainer {
   element: HTMLElement | null;
   getSyncFn: (id: number) => (...args: unknown[]) => unknown;
   $state$?: unknown[];
+  $storeProxyMap$: ObjToProxyMap;
 }
 
 export interface Container {
@@ -47,7 +48,6 @@ export interface Container {
       new (...rest: any[]): { nodeType: number; id: string };
     } | null,
     symbolToChunkResolver: SymbolToChunkResolver,
-    serializedStoreProxyMap: WeakSet<any>,
     writer?: StreamWriter
   ): SerializationContext;
 }

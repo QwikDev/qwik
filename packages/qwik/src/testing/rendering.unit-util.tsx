@@ -133,7 +133,10 @@ export async function ssrRenderToDom(
     console.log('------------------- SERIALIZED STATE -------------------');
     // We use the original state so we don't get deserialized data
     const origState = container.element.querySelector('script[type="qwik/state"]')?.textContent;
-    console.log(origState ? dumpState(JSON.parse(origState), true) : 'No state found', '\n');
+    console.log(
+      origState ? dumpState(JSON.parse(origState), true, '', null) : 'No state found',
+      '\n'
+    );
     const funcs = container.$qFuncs$;
     console.log('------------------- SERIALIZED QFUNCS -------------------');
     for (let i = 0; i < funcs.length; i++) {

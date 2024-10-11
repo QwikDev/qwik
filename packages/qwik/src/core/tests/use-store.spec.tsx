@@ -622,6 +622,131 @@ describe.each([
     );
   });
 
+  it('should update deep nested array of arrays inside object with inner component', async () => {
+    const Item = component$(({ item }: any) => {
+      return (
+        <div id={item.id} onClick$={() => (item.completed = true)}>
+          {item.title}
+        </div>
+      );
+    });
+
+    const Cmp = component$(() => {
+      const todos = useStore(
+        {
+          filter: 'all',
+          items: [
+            { completed: false, title: 'Read Qwik docs', id: '0' },
+            { completed: false, title: 'Build HelloWorld', id: '1' },
+            { completed: false, title: 'Profit', id: '2' },
+          ],
+        },
+        { deep: true }
+      );
+      const remaining = todos.items.filter((item) => item.completed === false).length;
+
+      return (
+        <div>
+          {remaining}
+          {todos.items.map((item, key) => (
+            <Item key={key} item={item} />
+          ))}
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          {'3'}
+          <Component>
+            <div id="0">
+              <Signal>Read Qwik docs</Signal>
+            </div>
+          </Component>
+          <Component>
+            <div id="1">
+              <Signal>Build HelloWorld</Signal>
+            </div>
+          </Component>
+          <Component>
+            <div id="2">
+              <Signal>Profit</Signal>
+            </div>
+          </Component>
+        </div>
+      </Component>
+    );
+
+    await trigger(document.body, 'div[id="0"]', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          {'2'}
+          <Component>
+            <div id="0">
+              <Signal>Read Qwik docs</Signal>
+            </div>
+          </Component>
+          <Component>
+            <div id="1">
+              <Signal>Build HelloWorld</Signal>
+            </div>
+          </Component>
+          <Component>
+            <div id="2">
+              <Signal>Profit</Signal>
+            </div>
+          </Component>
+        </div>
+      </Component>
+    );
+  });
+  it('should update deep nested array of arrays inside object', async () => {
+    const Cmp = component$(() => {
+      const todos = useStore(
+        {
+          filter: 'all',
+          items: [
+            { completed: false, title: 'Read Qwik docs', id: '0' },
+            { completed: false, title: 'Build HelloWorld', id: '1' },
+            { completed: false, title: 'Profit', id: '2' },
+          ],
+        },
+        { deep: true }
+      );
+      const remaining = todos.items.filter((item) => item.completed === false).length;
+
+      return (
+        <div>
+          {remaining}
+          <button onClick$={() => (todos.items[0].completed = true)}></button>
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          {'3'}
+          <button></button>
+        </div>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          {'2'}
+          <button></button>
+        </div>
+      </Component>
+    );
+  });
+
   describe('regression', () => {
     it('#5597 - should update value', async () => {
       (globalThis as any).clicks = 0;

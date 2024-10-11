@@ -115,8 +115,8 @@
           "id": "experimentalfeatures"
         }
       ],
-      "kind": "TypeAlias",
-      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nUse `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.\n\n\n```typescript\nexport type ExperimentalFeatures = (typeof experimental)[number];\n```",
+      "kind": "Enum",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nUse `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.\n\nAdd experimental features to this enum definition.\n\n\n```typescript\nexport declare enum ExperimentalFeatures \n```\n\n\n<table><thead><tr><th>\n\nMember\n\n\n</th><th>\n\nValue\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nnoSPA\n\n\n</td><td>\n\n`\"noSPA\"`\n\n\n</td><td>\n\n**_(ALPHA)_** Disable SPA navigation handler in Qwik City\n\n\n</td></tr>\n<tr><td>\n\npreventNavigate\n\n\n</td><td>\n\n`\"preventNavigate\"`\n\n\n</td><td>\n\n**_(ALPHA)_** Enable the usePreventNavigate hook\n\n\n</td></tr>\n<tr><td>\n\nvalibot\n\n\n</td><td>\n\n`\"valibot\"`\n\n\n</td><td>\n\n**_(ALPHA)_** Enable the Valibot form validation\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts",
       "mdFile": "qwik.experimentalfeatures.md"
     },
@@ -262,6 +262,23 @@
       "mdFile": "qwik.path.normalize.md"
     },
     {
+      "name": "noSPA",
+      "id": "experimentalfeatures-nospa",
+      "hierarchy": [
+        {
+          "name": "ExperimentalFeatures",
+          "id": "experimentalfeatures-nospa"
+        },
+        {
+          "name": "noSPA",
+          "id": "experimentalfeatures-nospa"
+        }
+      ],
+      "kind": "EnumMember",
+      "content": "",
+      "mdFile": "qwik.experimentalfeatures.nospa.md"
+    },
+    {
       "name": "Optimizer",
       "id": "optimizer",
       "hierarchy": [
@@ -333,6 +350,23 @@
       "content": "```typescript\nexport interface Path \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[delimiter](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[posix](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[Path](#path)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[sep](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[win32](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nnull\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[basename(path, ext)](#path-basename)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[dirname(path)](#path-dirname)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[extname(path)](#path-extname)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[format(pathObject)](#path-format)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[isAbsolute(path)](#path-isabsolute)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[join(paths)](#path-join)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[normalize(path)](#path-normalize)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[parse(path)](#path-parse)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[relative(from, to)](#path-relative)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[resolve(paths)](#path-resolve)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "qwik.path.md"
+    },
+    {
+      "name": "preventNavigate",
+      "id": "experimentalfeatures-preventnavigate",
+      "hierarchy": [
+        {
+          "name": "ExperimentalFeatures",
+          "id": "experimentalfeatures-preventnavigate"
+        },
+        {
+          "name": "preventNavigate",
+          "id": "experimentalfeatures-preventnavigate"
+        }
+      ],
+      "kind": "EnumMember",
+      "content": "",
+      "mdFile": "qwik.experimentalfeatures.preventnavigate.md"
     },
     {
       "name": "QwikBuildMode",
@@ -414,7 +448,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikRollupPluginOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[buildMode?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[QwikBuildMode](#qwikbuildmode)\n\n\n</td><td>\n\n_(Optional)_ Build `production` or `development`<!-- -->.\n\nDefault `development`\n\n\n</td></tr>\n<tr><td>\n\n[csr?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[debug?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Prints verbose Qwik plugin debug logs.\n\nDefault `false`\n\n\n</td></tr>\n<tr><td>\n\n[entryStrategy?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[EntryStrategy](#entrystrategy)\n\n\n</td><td>\n\n_(Optional)_ The Qwik entry strategy to use while building for production. During development the type is always `segment`<!-- -->.\n\nDefault `{ type: \"smart\" }`<!-- -->)\n\n\n</td></tr>\n<tr><td>\n\n[experimental?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[ExperimentalFeatures](#experimentalfeatures)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Experimental features. These can come and go in patch releases, and their API is not guaranteed to be stable between releases.\n\n\n</td></tr>\n<tr><td>\n\n[lint?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Run eslint on the source files for the ssr build or dev server. This can slow down startup on large projects. Defaults to `true`\n\n\n</td></tr>\n<tr><td>\n\n[manifestInput?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[QwikManifest](#qwikmanifest)\n\n\n</td><td>\n\n_(Optional)_ The SSR build requires the manifest generated during the client build. The `manifestInput` option can be used to manually provide a manifest.\n\nDefault `undefined`\n\n\n</td></tr>\n<tr><td>\n\n[manifestOutput?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n(manifest: [QwikManifest](#qwikmanifest)<!-- -->) =&gt; Promise&lt;void&gt; \\| void\n\n\n</td><td>\n\n_(Optional)_ The client build will create a manifest and this hook is called with the generated build data.\n\nDefault `undefined`\n\n\n</td></tr>\n<tr><td>\n\n[optimizerOptions?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[OptimizerOptions](#optimizeroptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[rootDir?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ The root of the application, which is commonly the same directory as `package.json` and `rollup.config.js`<!-- -->.\n\nDefault `process.cwd()`\n\n\n</td></tr>\n<tr><td>\n\n[srcDir?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ The source directory to find all the Qwik components. Since Qwik does not have a single input, the `srcDir` is used to recursively find Qwik files.\n\nDefault `src`\n\n\n</td></tr>\n<tr><td>\n\n[srcInputs?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[TransformModuleInput](#transformmoduleinput)<!-- -->\\[\\] \\| null\n\n\n</td><td>\n\n_(Optional)_ Alternative to `srcDir`<!-- -->, where `srcInputs` is able to provide the files manually. This option is useful for an environment without a file system, such as a webworker.\n\nDefault: `null`\n\n\n</td></tr>\n<tr><td>\n\n[target?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[QwikBuildTarget](#qwikbuildtarget)\n\n\n</td><td>\n\n_(Optional)_ Target `client` or `ssr`<!-- -->.\n\nDefault `client`\n\n\n</td></tr>\n<tr><td>\n\n[transformedModuleOutput?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n((transformedModules: [TransformModule](#transformmodule)<!-- -->\\[\\]) =&gt; Promise&lt;void&gt; \\| void) \\| null\n\n\n</td><td>\n\n_(Optional)_ Hook that's called after the build and provides all of the transformed modules that were used before bundling.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface QwikRollupPluginOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[buildMode?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[QwikBuildMode](#qwikbuildmode)\n\n\n</td><td>\n\n_(Optional)_ Build `production` or `development`<!-- -->.\n\nDefault `development`\n\n\n</td></tr>\n<tr><td>\n\n[csr?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[debug?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Prints verbose Qwik plugin debug logs.\n\nDefault `false`\n\n\n</td></tr>\n<tr><td>\n\n[entryStrategy?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[EntryStrategy](#entrystrategy)\n\n\n</td><td>\n\n_(Optional)_ The Qwik entry strategy to use while building for production. During development the type is always `segment`<!-- -->.\n\nDefault `{ type: \"smart\" }`<!-- -->)\n\n\n</td></tr>\n<tr><td>\n\n[experimental?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n(keyof typeof [ExperimentalFeatures](#experimentalfeatures)<!-- -->)\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Experimental features. These can come and go in patch releases, and their API is not guaranteed to be stable between releases.\n\n\n</td></tr>\n<tr><td>\n\n[lint?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Run eslint on the source files for the ssr build or dev server. This can slow down startup on large projects. Defaults to `true`\n\n\n</td></tr>\n<tr><td>\n\n[manifestInput?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[QwikManifest](#qwikmanifest)\n\n\n</td><td>\n\n_(Optional)_ The SSR build requires the manifest generated during the client build. The `manifestInput` option can be used to manually provide a manifest.\n\nDefault `undefined`\n\n\n</td></tr>\n<tr><td>\n\n[manifestOutput?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n(manifest: [QwikManifest](#qwikmanifest)<!-- -->) =&gt; Promise&lt;void&gt; \\| void\n\n\n</td><td>\n\n_(Optional)_ The client build will create a manifest and this hook is called with the generated build data.\n\nDefault `undefined`\n\n\n</td></tr>\n<tr><td>\n\n[optimizerOptions?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[OptimizerOptions](#optimizeroptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[rootDir?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ The root of the application, which is commonly the same directory as `package.json` and `rollup.config.js`<!-- -->.\n\nDefault `process.cwd()`\n\n\n</td></tr>\n<tr><td>\n\n[srcDir?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ The source directory to find all the Qwik components. Since Qwik does not have a single input, the `srcDir` is used to recursively find Qwik files.\n\nDefault `src`\n\n\n</td></tr>\n<tr><td>\n\n[srcInputs?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[TransformModuleInput](#transformmoduleinput)<!-- -->\\[\\] \\| null\n\n\n</td><td>\n\n_(Optional)_ Alternative to `srcDir`<!-- -->, where `srcInputs` is able to provide the files manually. This option is useful for an environment without a file system, such as a webworker.\n\nDefault: `null`\n\n\n</td></tr>\n<tr><td>\n\n[target?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[QwikBuildTarget](#qwikbuildtarget)\n\n\n</td><td>\n\n_(Optional)_ Target `client` or `ssr`<!-- -->.\n\nDefault `client`\n\n\n</td></tr>\n<tr><td>\n\n[transformedModuleOutput?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n((transformedModules: [TransformModule](#transformmodule)<!-- -->\\[\\]) =&gt; Promise&lt;void&gt; \\| void) \\| null\n\n\n</td><td>\n\n_(Optional)_ Hook that's called after the build and provides all of the transformed modules that were used before bundling.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/rollup.ts",
       "mdFile": "qwik.qwikrolluppluginoptions.md"
     },
@@ -855,6 +889,23 @@
       "content": "```typescript\nexport type TranspileOption = boolean | undefined | null;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "qwik.transpileoption.md"
+    },
+    {
+      "name": "valibot",
+      "id": "experimentalfeatures-valibot",
+      "hierarchy": [
+        {
+          "name": "ExperimentalFeatures",
+          "id": "experimentalfeatures-valibot"
+        },
+        {
+          "name": "valibot",
+          "id": "experimentalfeatures-valibot"
+        }
+      ],
+      "kind": "EnumMember",
+      "content": "",
+      "mdFile": "qwik.experimentalfeatures.valibot.md"
     },
     {
       "name": "versions",

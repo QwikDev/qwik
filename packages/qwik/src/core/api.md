@@ -1118,7 +1118,7 @@ export abstract class _SharedContainer implements Container {
             nodeType: number;
             id: string;
         };
-    } | null, symbolToChunkResolver: SymbolToChunkResolver, writer?: StreamWriter): SerializationContext;
+    } | null, symbolToChunkResolver: SymbolToChunkResolver, serializedStoreProxyMap: WeakSet<object>, writer?: StreamWriter): SerializationContext;
     // (undocumented)
     abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)

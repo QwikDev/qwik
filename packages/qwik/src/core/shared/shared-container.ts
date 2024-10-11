@@ -50,6 +50,7 @@ export abstract class _SharedContainer implements Container {
       new (...rest: any[]): { nodeType: number; id: string };
     } | null,
     symbolToChunkResolver: SymbolToChunkResolver,
+    serializedStoreProxyMap: WeakSet<object>,
     writer?: StreamWriter
   ): SerializationContext {
     return createSerializationContext(
@@ -58,6 +59,7 @@ export abstract class _SharedContainer implements Container {
       this.getHostProp.bind(this),
       this.setHostProp.bind(this),
       this.$storeProxyMap$,
+      serializedStoreProxyMap,
       writer
     );
   }

@@ -47,6 +47,7 @@ export interface Container {
       new (...rest: any[]): { nodeType: number; id: string };
     } | null,
     symbolToChunkResolver: SymbolToChunkResolver,
+    serializedStoreProxyMap: WeakSet<any>,
     writer?: StreamWriter
   ): SerializationContext;
 }

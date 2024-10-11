@@ -614,6 +614,7 @@ export interface SerializationContext {
   $resources$: Set<ResourceReturnInternal<unknown>>;
   $renderSymbols$: Set<string>;
   $storeProxyMap$: ObjToProxyMap;
+  $serializedStoreProxyMap$: WeakSet<object>;
 
   $getProp$: (obj: any, prop: string) => any;
   $setProp$: (obj: any, prop: string, value: any) => void;
@@ -633,6 +634,7 @@ export const createSerializationContext = (
   getProp: (obj: any, prop: string) => any,
   setProp: (obj: any, prop: string, value: any) => void,
   storeProxyMap: ObjToProxyMap,
+  serializedStoreProxyMap: WeakSet<object>,
   writer?: StreamWriter
 ): SerializationContext => {
   if (!writer) {
@@ -711,6 +713,7 @@ export const createSerializationContext = (
     $resources$: new Set<ResourceReturnInternal<unknown>>(),
     $renderSymbols$: new Set<string>(),
     $storeProxyMap$: storeProxyMap,
+    $serializedStoreProxyMap$: serializedStoreProxyMap,
     $getProp$: getProp,
     $setProp$: setProp,
   };
@@ -758,9 +761,6 @@ export const createSerializationContext = (
       } else if (isStore(obj)) {
         discoveredValues.push(getStoreTarget(obj));
         discoveredValues.push(getStoreHandler(obj)!.$effects$);
-      } else if (storeProxyMap.has(obj)) {
-        const store = storeProxyMap.get(obj);
-        discoveredValues.push(store);
       } else if (obj instanceof Set) {
         discoveredValues.push(...obj.values());
       } else if (obj instanceof Map) {
@@ -800,7 +800,13 @@ export const createSerializationContext = (
       } else if (isJSXNode(obj)) {
         discoveredValues.push(obj.type, obj.props, obj.constProps, obj.children);
       } else if (Array.isArray(obj)) {
-        discoveredValues.push(...obj);
+        for (const o of obj) {
+          if (storeProxyMap.has(o)) {
+            discoveredValues.push(storeProxyMap.get(o));
+          } else {
+            discoveredValues.push(o);
+          }
+        }
       } else if (isQrl(obj)) {
         obj.$captureRef$ && obj.$captureRef$.length && discoveredValues.push(...obj.$captureRef$);
       } else if (isPropsProxy(obj)) {
@@ -821,7 +827,12 @@ export const createSerializationContext = (
         discoveredValues.push(obj.data);
       } else if (isObjectLiteral(obj)) {
         Object.entries(obj).forEach(([key, value]) => {
-          discoveredValues.push(key, value);
+          discoveredValues.push(key);
+          if (storeProxyMap.has(value)) {
+            discoveredValues.push(storeProxyMap.get(value));
+          } else {
+            discoveredValues.push(value);
+          }
         });
       } else {
         return throwErrorAndStop('Unknown type: ' + obj);
@@ -869,7 +880,8 @@ const promiseResults = new WeakMap<Promise<any>, [boolean, unknown]>();
  * - Therefore root indexes need to be doubled to get the actual index.
  */
 function serialize(serializationContext: SerializationContext): void {
-  const { $writer$, $isSsrNode$, $setProp$, $storeProxyMap$ } = serializationContext;
+  const { $writer$, $isSsrNode$, $setProp$, $storeProxyMap$, $serializedStoreProxyMap$ } =
+    serializationContext;
   let depth = -1;
   // Skip the type for the roots output
   let writeType = false;
@@ -1013,7 +1025,13 @@ function serialize(serializationContext: SerializationContext): void {
       output(TypeIds.PropsProxy, [varProps, constProps]);
     } else if (value instanceof EffectData) {
       output(TypeIds.EffectData, [value.data]);
-    } else if (isStore(value)) {
+    } else if (
+      isStore(value) ||
+      ($storeProxyMap$.has(value) && !$serializedStoreProxyMap$.has(value))
+    ) {
+      if ($storeProxyMap$.has(value)) {
+        value = $storeProxyMap$.get(value);
+      }
       if (isResource(value)) {
         // let render know about the resource
         serializationContext.$resources$.add(value);
@@ -1032,6 +1050,9 @@ function serialize(serializationContext: SerializationContext): void {
         while (out[out.length - 1] == null) {
           out.pop();
         }
+        if (storeObject) {
+          $serializedStoreProxyMap$.add(storeObject);
+        }
         output(Array.isArray(storeObject) ? TypeIds.StoreArray : TypeIds.Store, out);
       }
     } else if (isObjectLiteral(value)) {
@@ -1044,10 +1065,6 @@ function serialize(serializationContext: SerializationContext): void {
             Object.prototype.hasOwnProperty.call(value, key) &&
             !fastSkipSerialize((value as any)[key])
           ) {
-            if ($storeProxyMap$.has(value)) {
-              // We should not lose store metadata
-              value = $storeProxyMap$.get(value);
-            }
             out.push(key, (value as any)[key]);
           }
         }
@@ -1272,7 +1289,8 @@ export async function _serialize(data: unknown[]): Promise<string> {
     () => '',
     () => '',
     () => {},
-    new WeakMap<any, any>()
+    new WeakMap<any, any>(),
+    new WeakSet<any>()
   );
 
   for (const root of data) {
@@ -1593,13 +1611,18 @@ const printRaw = (value: any, prefix: string) => {
   return result.includes('\n') ? (result = `\n${prefix}${result}`) : result;
 };
 let hasRaw = false;
-export const dumpState = (state: unknown[], color = false, prefix = '') => {
+export const dumpState = (
+  state: unknown[],
+  color = false,
+  prefix = '',
+  limit: number | null = 20
+) => {
   const RED = color ? '\x1b[31m' : '';
   const RESET = color ? '\x1b[0m' : '';
   const isRoot = prefix === '';
   const out: any[] = [];
   for (let i = 0; i < state.length; i++) {
-    if (i > 2 * 20) {
+    if (limit && i > 2 * limit) {
       out.push('...');
       break;
     }

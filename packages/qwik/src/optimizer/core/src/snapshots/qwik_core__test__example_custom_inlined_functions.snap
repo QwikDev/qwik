@@ -39,14 +39,14 @@ export const useMemoQrl = (qrt)=>{
     useEffect(qrt);
 };
 export const useMemo$ = wrap(useMemoQrl);
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 export const Lightweight = (props)=>{
-    useMemoQrl(/*#__PURE__*/ qrl(()=>import("./lightweight_usememo_uicxvtqf1a8"), "Lightweight_useMemo_UIcxVTQF1a8"));
+    useMemoQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_lightweight_usememo_uicxvtqf1a8"), "Lightweight_useMemo_UIcxVTQF1a8"));
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAkC,IAAI,EAAE,SAAS,QAAQ,mBAAmB;AAE5E,OAAO,MAAM,aAAa,CAAC;IAC1B,UAAU;AACX,EAAE;AAEF,OAAO,MAAM,WAAW,KAAK,YAAY;AAEzC,OAAO,MAAM,oBAAM,wGAQhB;AAEH,OAAO,MAAM,cAAc,CAAC;IAC3B;AAGD,EAAG\"}")
-============================= app_component_usememo_6sc9kvki3y0.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAkC,IAAI,EAAE,SAAS,QAAQ,mBAAmB;AAE5E,OAAO,MAAM,aAAa,CAAC;IAC1B,UAAU;AACX,EAAE;AAEF,OAAO,MAAM,WAAW,KAAK,YAAY;AAEzC,OAAO,MAAM,oBAAM,iHAQhB;AAEH,OAAO,MAAM,cAAc,CAAC;IAC3B;AAGD,EAAG\"}")
+============================= test.tsx_app_component_usememo_6sc9kvki3y0.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
 export const App_component_useMemo_6Sc9KVki3Y0 = ()=>{
@@ -61,9 +61,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "App_component_useMemo_6Sc9KVki3Y0",
   "entry": null,
-  "displayName": "App_component_useMemo",
+  "displayName": "test.tsx_App_component_useMemo",
   "hash": "6Sc9KVki3Y0",
-  "canonicalFilename": "app_component_usememo_6sc9kvki3y0",
+  "canonicalFilename": "test.tsx_app_component_usememo_6sc9kvki3y0",
   "path": "",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",
@@ -76,7 +76,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= lightweight_usememo_uicxvtqf1a8.js (ENTRY POINT)==
+============================= test.tsx_lightweight_usememo_uicxvtqf1a8.js (ENTRY POINT)==
 
 export const Lightweight_useMemo_UIcxVTQF1a8 = ()=>{
     console.log(state.count);
@@ -89,9 +89,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "Lightweight_useMemo_UIcxVTQF1a8",
   "entry": null,
-  "displayName": "Lightweight_useMemo",
+  "displayName": "test.tsx_Lightweight_useMemo",
   "hash": "UIcxVTQF1a8",
-  "canonicalFilename": "lightweight_usememo_uicxvtqf1a8",
+  "canonicalFilename": "test.tsx_lightweight_usememo_uicxvtqf1a8",
   "path": "",
   "extension": "js",
   "parent": null,
@@ -104,7 +104,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
+============================= test.tsx_app_component_ckepmxzlub0.js (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 import { useMemoQrl } from "./test";
@@ -113,10 +113,10 @@ export const App_component_ckEPmXZlub0 = (props)=>{
     const state = useStore({
         count: 0
     });
-    useMemoQrl(/*#__PURE__*/ qrl(()=>import("./app_component_usememo_6sc9kvki3y0"), "App_component_useMemo_6Sc9KVki3Y0", [
+    useMemoQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_usememo_6sc9kvki3y0"), "App_component_useMemo_6Sc9KVki3Y0", [
         state
     ]));
-    return /*#__PURE__*/ qrl(()=>import("./app_component_1_w0t0o3qmovu"), "App_component_1_w0t0o3QMovU", [
+    return /*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_1_w0t0o3qmovu"), "App_component_1_w0t0o3QMovU", [
         state
     ]);
 };
@@ -128,9 +128,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "App_component_ckEPmXZlub0",
   "entry": null,
-  "displayName": "App_component",
+  "displayName": "test.tsx_App_component",
   "hash": "ckEPmXZlub0",
-  "canonicalFilename": "app_component_ckepmxzlub0",
+  "canonicalFilename": "test.tsx_app_component_ckepmxzlub0",
   "path": "",
   "extension": "js",
   "parent": null,
@@ -143,7 +143,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
+============================= test.tsx_app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
 import { _jsxSorted } from "@builder.io/qwik";
@@ -161,9 +161,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "App_component_1_w0t0o3QMovU",
   "entry": null,
-  "displayName": "App_component_1",
+  "displayName": "test.tsx_App_component_1",
   "hash": "w0t0o3QMovU",
-  "canonicalFilename": "app_component_1_w0t0o3qmovu",
+  "canonicalFilename": "test.tsx_app_component_1_w0t0o3qmovu",
   "path": "",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",

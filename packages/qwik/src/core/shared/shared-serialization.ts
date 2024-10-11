@@ -691,7 +691,7 @@ export const createSerializationContext = (
     $addSyncFn$: (funcStr: string | null, argCount: number, fn: Function) => {
       const isFullFn = funcStr == null;
       if (isFullFn) {
-        funcStr = fn.toString();
+        funcStr = ((fn as any).serialized as string) || fn.toString();
       }
       let id = syncFnMap.get(funcStr!);
       if (id === undefined) {
@@ -925,6 +925,7 @@ function serialize(serializationContext: SerializationContext): void {
       } else if (value === Fragment) {
         output(TypeIds.Constant, Constants.Fragment);
       } else if (isQrl(value)) {
+        // TODO deduplicate the string
         output(TypeIds.QRL, qrlToString(serializationContext, value));
       } else if (isQwikComponent(value)) {
         const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];
@@ -1083,6 +1084,7 @@ function serialize(serializationContext: SerializationContext): void {
           ...(value.$effects$ || []),
         ]);
       } else if (value instanceof ComputedSignal) {
+        // TODO if value is not serializable, mark invalid so it recalculates
         output(TypeIds.ComputedSignal, [
           value.$computeQrl$,
           v,
@@ -1246,6 +1248,7 @@ export function qrlToString(
   } else {
     const fn = value.resolved as Function;
     chunk = '';
+    // TODO test that provided stringified fn is used
     symbol = String(serializationContext.$addSyncFn$(null, 0, fn));
   }
 

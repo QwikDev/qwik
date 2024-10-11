@@ -73,7 +73,7 @@ function createSymbolMapper(
     const qrlPath = parentPath.startsWith(opts.rootDir)
       ? normalizePath(path.relative(opts.rootDir, parentPath))
       : `@fs${maybeSlash}${parentPath}`;
-    const qrlFile = `${encode(qrlPath)}/${symbolName.toLowerCase()}.js?_qrl_parent=${encode(parentFile)}`;
+    const qrlFile = `${encode(qrlPath)}/${parentFile.toLowerCase()}_${symbolName.toLowerCase()}.js?_qrl_parent=${encode(parentFile)}`;
     return [symbolName, `${base}${qrlFile}`];
   };
 }
@@ -153,7 +153,7 @@ export async function configureDevServer(
           return;
         }
 
-        const firstInput = Object.values(opts.input)[0];
+        const firstInput = opts.input && Object.values(opts.input)[0];
         const ssrModule = await server.ssrLoadModule(firstInput);
 
         const render: Render = ssrModule.default ?? ssrModule.render;

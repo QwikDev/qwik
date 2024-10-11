@@ -14,44 +14,13 @@ import { event$ } from '@builder.io/qwik';
 // - Robust, fully relies only on history. (scrollRestoration = 'manual')
 
 // ! DO NOT IMPORT OR USE ANY EXTERNAL REFERENCES IN THIS SCRIPT.
-export default event$((container: HTMLElement) => {
+export default event$((_: Event, el: Element) => {
   const win: ClientSPAWindow = window;
-
-  const currentPath = location.pathname + location.search;
-
   const spa = '_qCitySPA';
-  const historyPatch = '_qCityHistoryPatch';
-  const bootstrap = '_qCityBootstrap';
   const initPopstate = '_qCityInitPopstate';
   const initAnchors = '_qCityInitAnchors';
   const initVisibility = '_qCityInitVisibility';
   const initScroll = '_qCityInitScroll';
-  const scrollEnabled = '_qCityScrollEnabled';
-  const debounceTimeout = '_qCityScrollDebounce';
-  const scrollHistory = '_qCityScroll';
-
-  const checkAndScroll = (scrollState: ScrollState | undefined) => {
-    if (scrollState) {
-      win.scrollTo(scrollState.x, scrollState.y);
-    }
-  };
-
-  const currentScrollState = (): ScrollState => {
-    const elm = document.documentElement;
-    return {
-      x: elm.scrollLeft,
-      y: elm.scrollTop,
-      w: Math.max(elm.scrollWidth, elm.clientWidth),
-      h: Math.max(elm.scrollHeight, elm.clientHeight),
-    };
-  };
-
-  const saveScrollState = (scrollState?: ScrollState) => {
-    const state: ScrollHistoryState = history.state || {};
-    state[scrollHistory] = scrollState || currentScrollState();
-    history.replaceState(state, '');
-  };
-
   if (
     !win[spa] &&
     !win[initPopstate] &&
@@ -59,6 +28,36 @@ export default event$((container: HTMLElement) => {
     !win[initVisibility] &&
     !win[initScroll]
   ) {
+    const currentPath = location.pathname + location.search;
+
+    const historyPatch = '_qCityHistoryPatch';
+    const bootstrap = '_qCityBootstrap';
+    const scrollEnabled = '_qCityScrollEnabled';
+    const debounceTimeout = '_qCityScrollDebounce';
+    const scrollHistory = '_qCityScroll';
+
+    const checkAndScroll = (scrollState: ScrollState | undefined) => {
+      if (scrollState) {
+        win.scrollTo(scrollState.x, scrollState.y);
+      }
+    };
+
+    const currentScrollState = (): ScrollState => {
+      const elm = document.documentElement;
+      return {
+        x: elm.scrollLeft,
+        y: elm.scrollTop,
+        w: Math.max(elm.scrollWidth, elm.clientWidth),
+        h: Math.max(elm.scrollHeight, elm.clientHeight),
+      };
+    };
+
+    const saveScrollState = (scrollState?: ScrollState) => {
+      const state: ScrollHistoryState = history.state || {};
+      state[scrollHistory] = scrollState || currentScrollState();
+      history.replaceState(state, '');
+    };
+
     saveScrollState();
 
     win[initPopstate] = () => {
@@ -71,16 +70,16 @@ export default event$((container: HTMLElement) => {
       clearTimeout(win[debounceTimeout]);
 
       if (currentPath !== location.pathname + location.search) {
+        const getContainer = (el: Element) =>
+          el.closest('[q\\:container]:not([q\\:container=html]):not([q\\:container=text])');
         // Hook into useNavigate context, if available.
         // We hijack a <Link> here, goes through the loader, resumes, app, etc. Simple.
         // TODO Will only work with <Link>, is there a better way?
-        const link = container.querySelector('a[q\\:link]');
+        const link = getContainer(el)?.querySelector('a[q\\:link]');
 
         if (link) {
           // Re-acquire container, link may be in a nested container.
-          const containerSelector =
-            '[q\\:container]:not([q\\:container=html]):not([q\\:container=text])';
-          const container = link.closest(containerSelector)!;
+          const container = getContainer(link)!;
           const bootstrapLink = link.cloneNode() as HTMLAnchorElement;
           bootstrapLink.setAttribute('q:nbs', '');
           bootstrapLink.style.display = 'none';

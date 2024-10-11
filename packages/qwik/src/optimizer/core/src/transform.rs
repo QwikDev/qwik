@@ -335,6 +335,7 @@ impl<'a> QwikTransform<'a> {
 		} else {
 			format!("s_{}", hash64)
 		};
+		display_name = format!("{}_{}", &self.options.path_data.file_name, display_name);
 		(
 			JsWord::from(symbol_name),
 			JsWord::from(display_name),
@@ -343,6 +344,7 @@ impl<'a> QwikTransform<'a> {
 		)
 	}
 
+	/** Parse inlinedQrl() (from library code) */
 	fn handle_inlined_qsegment(&mut self, mut node: ast::CallExpr) -> ast::CallExpr {
 		node.args.reverse();
 
@@ -382,6 +384,7 @@ impl<'a> QwikTransform<'a> {
 			parse_symbol_name(
 				symbol_name,
 				matches!(self.options.mode, EmitMode::Dev | EmitMode::Test),
+				&self.options.path_data.file_name,
 			)
 		};
 
@@ -765,7 +768,7 @@ impl<'a> QwikTransform<'a> {
 		span: Span,
 		segment_hash: u64,
 	) -> ast::CallExpr {
-		let canonical_filename = get_canonical_filename(&symbol_name);
+		let canonical_filename = get_canonical_filename(&segment_data.display_name, &symbol_name);
 
 		// We import from the segment file directly but store the entry for later chunking by the bundler
 		let entry = self.options.entry_policy.get_entry_for_sym(
@@ -1006,7 +1009,10 @@ impl<'a> QwikTransform<'a> {
 			self.segments.push(Segment {
 				entry: None,
 				span,
-				canonical_filename: get_canonical_filename(&symbol_name),
+				canonical_filename: get_canonical_filename(
+					&segment_data.display_name,
+					&symbol_name,
+				),
 				name: symbol_name.clone(),
 				data: segment_data.clone(),
 				expr: Box::new(expr),
@@ -2210,16 +2216,21 @@ fn compute_scoped_idents(all_idents: &[Id], all_decl: &[IdPlusType]) -> (Vec<Id>
 	(output, is_const, has_const)
 }
 
-fn get_canonical_filename(symbol_name: &JsWord) -> JsWord {
-	JsWord::from(symbol_name.as_ref().to_ascii_lowercase())
+fn get_canonical_filename(display_name: &JsWord, symbol_name: &JsWord) -> JsWord {
+	let hash = symbol_name.split('_').last().unwrap();
+	JsWord::from(format!("{}_{}", display_name, hash).to_ascii_lowercase())
 }
 
-fn parse_symbol_name(symbol_name: JsWord, dev: bool) -> (JsWord, JsWord, JsWord) {
+fn parse_symbol_name(
+	symbol_name: JsWord,
+	dev: bool,
+	file_name: &String,
+) -> (JsWord, JsWord, JsWord) {
 	let mut splitter = symbol_name.rsplitn(2, '_');
 	let hash = splitter
 		.next()
 		.expect("symbol_name always need to have a segment");
-	let display_name = splitter.next().unwrap_or(hash);
+	let display_name = format!("{}_{}", file_name, splitter.next().unwrap_or(hash));
 
 	let s_n = if dev {
 		symbol_name.clone()

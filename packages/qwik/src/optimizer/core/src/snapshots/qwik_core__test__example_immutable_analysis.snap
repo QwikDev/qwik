@@ -56,7 +56,7 @@ export const App = component$((props) => {
 	);
 });
 
-============================= app_component_fragment_div_onevent_zrfduybt3xm.js (ENTRY POINT)==
+============================= test.tsx_app_component_fragment_div_onevent_zrfduybt3xm.js (ENTRY POINT)==
 
 export const App_component_Fragment_Div_onEvent_zrFduYbT3xM = ()=>console.log('stuff');
 
@@ -67,9 +67,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "App_component_Fragment_Div_onEvent_zrFduYbT3xM",
   "entry": null,
-  "displayName": "App_component_Fragment_Div_onEvent",
+  "displayName": "test.tsx_App_component_Fragment_Div_onEvent",
   "hash": "zrFduYbT3xM",
-  "canonicalFilename": "app_component_fragment_div_onevent_zrfduybt3xm",
+  "canonicalFilename": "test.tsx_app_component_fragment_div_onevent_zrfduybt3xm",
   "path": "",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",
@@ -86,11 +86,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,oBAAM,wGA4ChB\"}")
-============================= app_component_fragment_div_immutable4_2zf7ja3yti0.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,oBAAM,iHA4ChB\"}")
+============================= test.tsx_app_component_fragment_div_immutable4_2zf7ja3yti0.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
 export const App_component_Fragment_Div_immutable4_2zF7jA3Yti0 = (ev)=>{
@@ -105,9 +105,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "App_component_Fragment_Div_immutable4_2zF7jA3Yti0",
   "entry": null,
-  "displayName": "App_component_Fragment_Div_immutable4",
+  "displayName": "test.tsx_App_component_Fragment_Div_immutable4",
   "hash": "2zF7jA3Yti0",
-  "canonicalFilename": "app_component_fragment_div_immutable4_2zf7ja3yti0",
+  "canonicalFilename": "test.tsx_app_component_fragment_div_immutable4_2zf7ja3yti0",
   "path": "",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",
@@ -120,7 +120,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= app_component_fragment_div_transparent_eedek6em1oo.js (ENTRY POINT)==
+============================= test.tsx_app_component_fragment_div_transparent_eedek6em1oo.js (ENTRY POINT)==
 
 export const App_component_Fragment_Div_transparent_eeDEK6EM1oo = ()=>{
     console.log('stuff');
@@ -133,9 +133,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "App_component_Fragment_Div_transparent_eeDEK6EM1oo",
   "entry": null,
-  "displayName": "App_component_Fragment_Div_transparent",
+  "displayName": "test.tsx_App_component_Fragment_Div_transparent",
   "hash": "eeDEK6EM1oo",
-  "canonicalFilename": "app_component_fragment_div_transparent_eedek6em1oo",
+  "canonicalFilename": "test.tsx_app_component_fragment_div_transparent_eedek6em1oo",
   "path": "",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",
@@ -148,7 +148,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
+============================= test.tsx_app_component_ckepmxzlub0.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _fnSignal } from "@builder.io/qwik";
@@ -161,7 +161,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
     const state = useStore({
         count: 0
     });
-    const remove = /*#__PURE__*/ qrl(()=>import("./app_component_remove_pu6yoc5p6sy"), "App_component_remove_pU6yOC5P6sY", [
+    const remove = /*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_remove_pu6yoc5p6sy"), "App_component_remove_pU6yOC5P6sY", [
         state
     ]);
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
@@ -175,15 +175,15 @@ export const App_component_ckEPmXZlub0 = (props)=>{
             onClick$: props.onClick$
         }, {
             class: styles.foo,
-            onEvent$: /*#__PURE__*/ qrl(()=>import("./app_component_fragment_div_onevent_zrfduybt3xm"), "App_component_Fragment_Div_onEvent_zrFduYbT3xM"),
-            transparent$: /*#__PURE__*/ qrl(()=>import("./app_component_fragment_div_transparent_eedek6em1oo"), "App_component_Fragment_Div_transparent_eeDEK6EM1oo"),
+            onEvent$: /*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_fragment_div_onevent_zrfduybt3xm"), "App_component_Fragment_Div_onEvent_zrFduYbT3xM"),
+            transparent$: /*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_fragment_div_transparent_eedek6em1oo"), "App_component_Fragment_Div_transparent_eeDEK6EM1oo"),
             immutable1: "stuff",
             immutable2: {
                 foo: 'bar',
                 baz: importedValue ? true : false
             },
             immutable3: 2,
-            immutable4$: /*#__PURE__*/ qrl(()=>import("./app_component_fragment_div_immutable4_2zf7ja3yti0"), "App_component_Fragment_Div_immutable4_2zF7jA3Yti0", [
+            immutable4$: /*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_fragment_div_immutable4_2zf7ja3yti0"), "App_component_Fragment_Div_immutable4_2zF7jA3Yti0", [
                 state
             ]),
             immutable5: [
@@ -225,9 +225,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "App_component_ckEPmXZlub0",
   "entry": null,
-  "displayName": "App_component",
+  "displayName": "test.tsx_App_component",
   "hash": "ckEPmXZlub0",
-  "canonicalFilename": "app_component_ckepmxzlub0",
+  "canonicalFilename": "test.tsx_app_component_ckepmxzlub0",
   "path": "",
   "extension": "js",
   "parent": null,
@@ -240,7 +240,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= app_component_remove_pu6yoc5p6sy.js (ENTRY POINT)==
+============================= test.tsx_app_component_remove_pu6yoc5p6sy.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
 export const App_component_remove_pU6yOC5P6sY = (id)=>{
@@ -257,9 +257,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "App_component_remove_pU6yOC5P6sY",
   "entry": null,
-  "displayName": "App_component_remove",
+  "displayName": "test.tsx_App_component_remove",
   "hash": "pU6yOC5P6sY",
-  "canonicalFilename": "app_component_remove_pu6yoc5p6sy",
+  "canonicalFilename": "test.tsx_app_component_remove_pu6yoc5p6sy",
   "path": "",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",

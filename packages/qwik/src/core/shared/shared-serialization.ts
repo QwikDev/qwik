@@ -1070,7 +1070,8 @@ function serialize(serializationContext: SerializationContext): void {
        * It can never be meant to become a vNode, because vNodes are internal only.
        */
       let v =
-        value instanceof ComputedSignal && value.$invalid$
+        value instanceof ComputedSignal &&
+        (value.$invalid$ || fastSkipSerialize(value.$untrackedValue$))
           ? NEEDS_COMPUTATION
           : value.$untrackedValue$;
       if ($isSsrNode$(v)) {
@@ -1084,11 +1085,10 @@ function serialize(serializationContext: SerializationContext): void {
           ...(value.$effects$ || []),
         ]);
       } else if (value instanceof ComputedSignal) {
-        // TODO if value is not serializable, mark invalid so it recalculates
         output(TypeIds.ComputedSignal, [
           value.$computeQrl$,
           v,
-          value.$invalid$,
+          v === NEEDS_COMPUTATION,
           // TODO check if we can use domVRef for effects
           ...(value.$effects$ || []),
         ]);

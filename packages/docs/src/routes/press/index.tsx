@@ -106,37 +106,39 @@ export default component$(() => {
 
   const Logo = component$((props: { title: string; alt: string; downloadHref: string }) => {
     return (
-      <div class="flex flex-col justify-start gap-4  h-72">
-        <p class="text-2xl font-bold text-center">{props.title}</p>
-        <div class="flex items-center justify-center h-32 overflow-hidden">
+      <div class="flex flex-col justify-between h-72 border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+        <p class="text-2xl font-bold text-center py-4 ">{props.title}</p>
+        <div class="flex-grow flex items-center justify-center overflow-hidden px-2">
           <Slot name="logo" />
         </div>
-        <div class="flex justify-center py-4">
+        <div class="flex justify-center mt-auto py-4">
           <DownloadButton href={props.downloadHref} />
         </div>
       </div>
     );
   });
 
-  const ColorButton = component$((props: { color: string; name: string; hexCode: string }) => {
-    return (
-      <button
-        onClick$={() => copyToClipboard(props.hexCode)}
-        style={`background-color:${props.color};`}
-        class="flex justify-center items-center cursor-pointer h-12"
-      >
-        {activeColor.value === props.hexCode ? (
-          <p class={props.color === 'var(--qwik-light-blue)' ? 'text-black' : 'text-white'}>
-            Copied ✓
-          </p>
-        ) : (
-          <p class={props.color === 'var(--qwik-light-blue)' ? 'text-black' : ''}>
-            {props.name} {props.hexCode}
-          </p>
-        )}
-      </button>
-    );
-  });
+  const ColorButton = component$(
+    (props: { color: string; name: string; hexCode: string; text: string | undefined }) => {
+      return (
+        <button
+          onClick$={() => copyToClipboard(props.hexCode)}
+          style={`background-color:${props.color};`}
+          class="flex justify-center text-white items-center cursor-pointer h-12  "
+        >
+          {activeColor.value === props.hexCode ? (
+            <p class={props.color === 'var(--qwik-light-blue)' ? 'text-black' : 'text-white'}>
+              Copied ✓
+            </p>
+          ) : (
+            <p class={props.color === 'var(--qwik-light-blue)' ? 'text-black' : ''}>
+              {props.name} {props.hexCode}
+            </p>
+          )}
+        </button>
+      );
+    }
+  );
 
   const qwikColors = [
     { color: 'var(--qwik-blue)', name: 'Qwik Blue', hexCode: color.qwikBlue },
@@ -147,6 +149,7 @@ export default component$(() => {
     {
       color: 'var(--qwik-dark-purple-bg)',
       name: 'Qwik Dark Purple Bg',
+      text: 'var(--qwik-light-blue)',
       hexCode: color.qwikDarkPurpleBg,
     },
   ];
@@ -158,22 +161,24 @@ export default component$(() => {
         {logos.map((item) => (
           <Logo key={item.title} title={item.title} alt={item.alt} downloadHref={item.downloadHref}>
             {item.Logo === 'img' ? (
-              <img q:slot="logo" src={item.src} alt={item.alt} />
+              <img q:slot="logo" src={item.src} alt={item.alt} class="bg-cover" />
             ) : (
               <item.Logo q:slot="logo" alt={item.alt} class={item.className} />
             )}
           </Logo>
         ))}
-        <div class="grid grid-rows-7 text-center">
-          <h1 class="text-2xl font-bold text-center">Qwik Colors</h1>
-          {qwikColors.map((colorItem) => (
-            <ColorButton
-              key={colorItem.name}
-              color={colorItem.color}
-              name={colorItem.name}
-              hexCode={colorItem.hexCode}
-            />
-          ))}
+        <div class="flex flex-col justify-between h-72 border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+          <div class="flex-grow grid grid-rows-6 text-center overflow-hidden px-2 py-2">
+            {qwikColors.map((colorItem) => (
+              <ColorButton
+                key={colorItem.name}
+                color={colorItem.color}
+                name={colorItem.name}
+                text={colorItem.text}
+                hexCode={colorItem.hexCode}
+              />
+            ))}
+          </div>
         </div>
       </div>
       <div class="flex justify-center mt-1">

@@ -140,7 +140,7 @@ export class SsrComponentFrame implements ISsrComponentFrame {
     }
   }
 
-  private updateSlot(slotName: string, child: JSXNode) {
+  private updateSlot(slotName: string, child: JSXChildren) {
     // we need to check if the slot already has a value
     let existingSlots = mapArray_get<JSXChildren>(this.slots, slotName, 0);
     if (existingSlots === null) {

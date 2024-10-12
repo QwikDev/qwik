@@ -810,6 +810,60 @@ describe.each([
     );
   });
 
+  it('should render nested projections', async () => {
+    const CompTwo = component$(() => {
+      return (
+        <div>
+          <Slot />
+        </div>
+      );
+    });
+
+    const CompThree = component$(() => {
+      return (
+        <div>
+          <Slot />
+        </div>
+      );
+    });
+
+    const CompOne = component$(() => {
+      return (
+        <CompTwo>
+          <CompThree>
+            <Slot />
+          </CompThree>
+        </CompTwo>
+      );
+    });
+
+    const Parent = component$(() => {
+      return <CompOne>Hey</CompOne>;
+    });
+
+    const { vNode } = await render(<Parent />, { debug: DEBUG });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <Component>
+            <div>
+              <Projection>
+                <Component>
+                  <div>
+                    <Projection>
+                      <Projection>{'Hey'}</Projection>
+                    </Projection>
+                  </div>
+                </Component>
+              </Projection>
+            </div>
+          </Component>
+        </Component>
+      </Component>
+    );
+  });
+
   describe('ensureProjectionResolved', () => {
     (globalThis as any).log = [] as string[];
     beforeEach(() => {

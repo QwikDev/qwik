@@ -96,7 +96,7 @@ export const SearchBox = component$((props: SearchBoxProps) => {
               }
             }
             if (event.key === 'Escape') {
-              props.state.isOpen = false;
+              props.state.isOpen.value = false;
             }
             if (event.key === 'Enter') {
               if (props.state.activeItemId !== null) {

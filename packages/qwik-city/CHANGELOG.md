@@ -1,5 +1,47 @@
 # @builder.io/qwik-city
 
+## 1.9.1
+
+### Patch Changes
+
+- ✨ Experimental feature - `noSPA`. (by [@wmertens](https://github.com/wmertens) in [#6937](https://github.com/QwikDev/qwik/pull/6937))
+  This disables history patching, slightly reducing code size and startup time. Use this when your application is MPA only, meaning you don't use the Link component. To enable this, add it to the `experimental` array of the `qwikVite` plugin (not the `qwikCity` plugin).
+
+## 1.9.0
+
+### Minor Changes
+
+- ✨ **(EXPERIMENTAL)** valibot$ validator and a fix for zod$ types. (by [@fabian-hiller](https://github.com/fabian-hiller) in [#6752](https://github.com/QwikDev/qwik/pull/6752))
+
+  To use it, you need to pass `experimental: ['valibot']` as an option to the `qwikVite` plugin as such:
+
+  ```ts
+  // vite.config.ts
+
+  export default defineConfig(({ command, mode }): UserConfig => {
+    return {
+      plugins: [
+        // ... other plugins like qwikCity() etc
+        qwikVite({
+          experimental: ['valibot']
+          // ... other options
+        }),
+
+      ],
+      // ... rest of the config
+    };
+  }
+
+  ```
+
+- ✨ **(EXPERIMENTAL)** `usePreventNavigate` lets you prevent navigation while your app's state is unsaved. It works asynchronously for SPA navigation and falls back to the browser's default dialogs for other navigations. To use it, add `experimental: ['preventNavigate']` to your `qwikVite` options. (by [@wmertens](https://github.com/wmertens) in [#6825](https://github.com/QwikDev/qwik/pull/6825))
+
+### Patch Changes
+
+- 🐞🩹 added .ico to be detected by isStaticFile (by [@intellix](https://github.com/intellix) in [#6860](https://github.com/QwikDev/qwik/pull/6860))
+
+- 🐞🩹 fixed delays caused from inefficient Service Worker prefetching (buffering) (by [@shairez](https://github.com/shairez) in [#6863](https://github.com/QwikDev/qwik/pull/6863))
+
 ## 1.8.0
 
 ## 1.7.3

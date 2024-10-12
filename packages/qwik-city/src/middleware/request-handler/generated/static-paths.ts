@@ -31,5 +31,5 @@ export function isStaticPath(method: string, url: URL) {
    * If (staticPaths.has(pWithoutQdata)) { return true; }
    */
 
-  return /\.(jpg|jpeg|png|webp|avif|gif|svg)$/.test(url.pathname);
+  return /\.(jpg|jpeg|png|webp|avif|gif|svg|ico)$/.test(url.pathname);
 }

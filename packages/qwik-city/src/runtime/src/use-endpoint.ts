@@ -88,10 +88,16 @@ export const loadClientData = async (
   });
 };
 
-const getFetchOptions = (action: RouteActionValue | undefined): RequestInit | undefined => {
+const getFetchOptions = (action: RouteActionValue | undefined): RequestInit => {
   const actionData = action?.data;
   if (!actionData) {
-    return undefined;
+    return {
+      cache: 'no-cache',
+      headers: {
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
+      },
+    };
   }
   if (actionData instanceof FormData) {
     return {

@@ -229,7 +229,7 @@ testWithDuplicatedRoutes(
   }
 );
 
-const testWithDuplicate = testAppSuite('ssss', {
+const testSameRoutes = testAppSuite('ssss', {
   rewriteRoutes: [
     {
       prefix: undefined,
@@ -247,10 +247,16 @@ const testWithDuplicate = testAppSuite('ssss', {
         booking: 'reservation',
       },
     },
+    {
+      prefix: undefined,
+      paths: {
+        booking: 'buchen',
+      },
+    },
   ],
 });
 
-testWithDuplicate(
+testSameRoutes(
   'Issue #6799: Bug while using rewrite routes pointing to the same file',
   ({ assertRoute }) => {
     const r = assertRoute('/produkt/');

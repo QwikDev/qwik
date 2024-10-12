@@ -228,3 +228,33 @@ testWithDuplicatedRoutes(
     assert.equal(r.pathname, '/produkt/');
   }
 );
+
+const testWithDuplicate = testAppSuite('ssss', {
+  rewriteRoutes: [
+    {
+      prefix: undefined,
+      paths: {},
+    },
+    {
+      prefix: undefined,
+      paths: {
+        produkt: 'produkt',
+      },
+    },
+    {
+      prefix: undefined,
+      paths: {
+        booking: 'reservation',
+      },
+    },
+  ],
+});
+
+testWithDuplicate(
+  'Issue #6799: Bug while using rewrite routes pointing to the same file',
+  ({ assertRoute }) => {
+    const r = assertRoute('/produkt/');
+
+    assert.equal(r.pathname, '/produkt/');
+  }
+);

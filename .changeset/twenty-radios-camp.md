@@ -1,5 +1,5 @@
 ---
-'@builder.io/qwik-city': major
+'@builder.io/qwik-city': patch
 ---
 
-fix: a bug while using rewrite routes pointing to the same file
+fix: Multiple rewrite routes pointing to the same route is no longer an error.

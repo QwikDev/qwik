@@ -247,7 +247,7 @@ function processJSXNode(
           // prod: use new instance of an array for props, we always modify props for a component
           ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
           const host = ssr.getLastNode();
-          ssr.getComponentFrame(0)!.distributeChildrenIntoSlots(jsx.children, styleScoped);
+          ssr.getNearestComponentFrame()!.distributeChildrenIntoSlots(jsx.children, styleScoped);
           const jsxOutput = applyQwikComponentBody(ssr, jsx, type);
           const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
           enqueue(new SetScopedStyle(styleScoped));
@@ -258,7 +258,7 @@ function processJSXNode(
         } else {
           ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.InlineComponent] : EMPTY_ARRAY);
           enqueue(ssr.closeFragment);
-          const component = ssr.getComponentFrame(0)!;
+          const component = ssr.getNearestComponentFrame()!;
           const jsxOutput = applyInlineComponent(
             ssr,
             component && component.componentNode,

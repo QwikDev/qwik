@@ -543,6 +543,32 @@ export const _isJSXNode: <T>(n: unknown) => n is JSXNode<T>;
 // @public (undocumented)
 export const isSignal: (value: any) => value is Signal<unknown>;
 
+// Warning: (ae-internal-missing-underscore) The name "ISsrComponentFrame" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface ISsrComponentFrame {
+    // Warning: (ae-forgotten-export) The symbol "ISsrNode" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    componentNode: ISsrNode;
+    // (undocumented)
+    consumeChildrenForSlot(projectionNode: ISsrNode, slotName: string): JSXChildren | null;
+    // (undocumented)
+    distributeChildrenIntoSlots(children: JSXChildren, parentScopedStyle: string | null, parentComponentFrame: ISsrComponentFrame | null): void;
+    // (undocumented)
+    hasSlot(slotName: string): boolean;
+    // (undocumented)
+    projectionComponentFrame: ISsrComponentFrame | null;
+    // (undocumented)
+    projectionDepth: number;
+    // (undocumented)
+    projectionScopedStyle: string | null;
+    // (undocumented)
+    releaseUnclaimedProjections(unclaimedProjections: (ISsrComponentFrame | JSXChildren | string)[]): void;
+    // (undocumented)
+    scopedStyleIds: Set<string>;
+}
+
 // @internal (undocumented)
 export function _isStringifiable(value: unknown): value is _Stringifiable;
 
@@ -2049,10 +2075,18 @@ export const _waitUntilRendered: (elm: Element) => Promise<void>;
 // Warning: (ae-forgotten-export) The symbol "SSRContainer" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export function _walkJSX(ssr: SSRContainer, value: JSXOutput, allowPromises: true, currentStyleScoped: string | null): ValueOrPromise<void>;
+export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: {
+    allowPromises: true;
+    currentStyleScoped: string | null;
+    parentComponentFrame: ISsrComponentFrame | null;
+}): ValueOrPromise<void>;
 
 // @internal (undocumented)
-export function _walkJSX(ssr: SSRContainer, value: JSXOutput, allowPromises: false, currentStyleScoped: string | null): false;
+export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: {
+    allowPromises: false;
+    currentStyleScoped: string | null;
+    parentComponentFrame: ISsrComponentFrame | null;
+}): false;
 
 // @internal (undocumented)
 export const _weakSerialize: <T extends object>(input: T) => Partial<T>;

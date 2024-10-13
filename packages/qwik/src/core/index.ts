@@ -22,6 +22,7 @@ export type {
   SnapshotMeta,
   SnapshotMetaValue,
   SnapshotListener,
+  ISsrComponentFrame,
 } from './ssr/ssr-types';
 
 //////////////////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,6 @@ import { rehypeSyntaxHighlight } from './syntax-highlight';
 import type { BuildContext } from '../types';
 import { parseFrontmatter } from './frontmatter';
 import { getExtension } from '../../utils/fs';
-import { createHash } from 'node:crypto';
 import type { CompileOptions } from '@mdx-js/mdx';
 
 export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransform> {
@@ -70,22 +69,13 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
       const file = new VFile({ value: code, path: id });
       const compiled = await compile(file, options);
       const output = String(compiled.value);
-      const hasher = createHash('sha256');
-      const key = hasher
-        .update(output)
-        .digest('base64')
-        .slice(0, 8)
-        .replace('+', '-')
-        .replace('/', '_');
-      const addImport = `import { _jsxC, RenderOnce } from '@builder.io/qwik';\n`;
+      const addImport = `import { jsx } from '@builder.io/qwik';\n`;
       const newDefault = `
-export default function MDXContent() {
-  const key = ${JSON.stringify(key)};
-  const content = _jsxC(_createMdxContent, {}, 3, null);
-  const children = typeof MDXLayout === "undefined" ? content : _jsxC(MDXLayout, { children: content }, 3);
-
-  return _jsxC(RenderOnce, children, 3, key);
+const WrappedMdxContent = () => {
+  const content = _createMdxContent({});
+  return typeof MDXLayout === 'function' ? jsx(MDXLayout, {children: content}) : content;
 };
+export default WrappedMdxContent;
 `;
       const exportIndex = output.lastIndexOf('export default ');
       if (exportIndex === -1) {

@@ -26,7 +26,7 @@ describe('mdx', async () => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        "code": "import { _jsxC, RenderOnce } from '@builder.io/qwik';
+        "code": "import { jsx } from '@builder.io/qwik';
       import {Fragment as _Fragment, jsx as _jsx, jsxs as _jsxs} from "@builder.io/qwik/jsx-runtime";
       export const headings = [{
         "text": "Hello",
@@ -61,13 +61,11 @@ describe('mdx', async () => {
         });
       }
 
-      export default function MDXContent() {
-        const key = "eB2HIyA1";
-        const content = _jsxC(_createMdxContent, {}, 3, null);
-        const children = typeof MDXLayout === "undefined" ? content : _jsxC(MDXLayout, { children: content }, 3);
-
-        return _jsxC(RenderOnce, children, 3, key);
+      const WrappedMdxContent = () => {
+        const content = _createMdxContent({});
+        return typeof MDXLayout === 'function' ? jsx(MDXLayout, {children: content}) : content;
       };
+      export default WrappedMdxContent;
       ",
         "map": {
           "file": "file.mdx",
@@ -97,7 +95,7 @@ export default function Layout({ children: content }) {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        "code": "import { _jsxC, RenderOnce } from '@builder.io/qwik';
+        "code": "import { jsx } from '@builder.io/qwik';
       import {Fragment as _Fragment, jsx as _jsx, jsxs as _jsxs} from "@builder.io/qwik/jsx-runtime";
       export const headings = [{
         "text": "Hello",
@@ -137,13 +135,11 @@ export default function Layout({ children: content }) {
         });
       }
 
-      export default function MDXContent() {
-        const key = "UdQmQWC3";
-        const content = _jsxC(_createMdxContent, {}, 3, null);
-        const children = typeof MDXLayout === "undefined" ? content : _jsxC(MDXLayout, { children: content }, 3);
-
-        return _jsxC(RenderOnce, children, 3, key);
+      const WrappedMdxContent = () => {
+        const content = _createMdxContent({});
+        return typeof MDXLayout === 'function' ? jsx(MDXLayout, {children: content}) : content;
       };
+      export default WrappedMdxContent;
       ",
         "map": {
           "file": "file.mdx",

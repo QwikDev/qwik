@@ -1,6 +1,15 @@
 import { directFetch, enqueueFileAndDependencies, parseBaseFilename } from './direct-fetch';
 import type { SWState } from './state';
 
+export enum MsgType {
+  Graph = 'graph',
+  GraphURL = 'graph-url',
+  Prefetch = 'prefetch',
+  PrefetchAll = 'prefetch-all',
+  Ping = 'ping',
+  Verbose = 'verbose',
+}
+
 /**
  * Initialize the service worker with a bundle graph.
  *
@@ -9,7 +18,7 @@ import type { SWState } from './state';
  */
 export type SWMsgBundleGraph = [
   /// Message type.
-  'graph',
+  MsgType.Graph,
   /// Base URL for the bundles
   string,
   ...SWGraph,
@@ -22,7 +31,7 @@ export type SWMsgBundleGraph = [
  */
 export type SWMsgBundleGraphUrl = [
   /// Message type.
-  'graph-url',
+  MsgType.GraphURL,
   /// Base URL for the bundles
   string,
   /// relative URL to the bundle graph.
@@ -39,7 +48,7 @@ export type SWGraph = Array<string | number>;
 
 export type SWMsgPrefetch = [
   /// Message type.
-  'prefetch',
+  MsgType.Prefetch,
   /// Base URL for the bundles
   string,
   /// List of bundles to prefetch.
@@ -48,7 +57,7 @@ export type SWMsgPrefetch = [
 
 export type SWMsgPrefetchAll = [
   /// Message type.
-  'prefetch-all',
+  MsgType.PrefetchAll,
   /// Base URL for the bundles
   string,
 ];
@@ -63,18 +72,18 @@ export const log = (...args: any[]) => {
 export const processMessage = async (state: SWState, msg: SWMessages) => {
   const type = msg[0];
   state.$log$('received message:', type, msg[1], msg.slice(2));
-  if (type === 'graph') {
+  if (type === MsgType.Graph) {
     await processBundleGraph(state, msg[1], msg.slice(2), true);
-  } else if (type === 'graph-url') {
+  } else if (type === MsgType.GraphURL) {
     await processBundleGraphUrl(state, msg[1], msg[2]);
-  } else if (type === 'prefetch') {
+  } else if (type === MsgType.Prefetch) {
     await processPrefetch(state, msg[1], msg.slice(2));
-  } else if (type === 'prefetch-all') {
+  } else if (type === MsgType.PrefetchAll) {
     await processPrefetchAll(state, msg[1]);
-  } else if (type === 'ping') {
+  } else if (type === MsgType.Ping) {
     // eslint-disable-next-line no-console
     log('ping');
-  } else if (type === 'verbose') {
+  } else if (type === MsgType.Verbose) {
     // eslint-disable-next-line no-console
     (state.$log$ = log)('mode: verbose');
   }

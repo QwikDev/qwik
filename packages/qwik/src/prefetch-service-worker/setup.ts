@@ -1,5 +1,5 @@
 import { directFetch } from './direct-fetch';
-import { drainMsgQueue, type SWMessages } from './process-message';
+import { MsgType, drainMsgQueue, type SWMessages } from './process-message';
 import { createState, type SWState } from './state';
 
 export const setupServiceWorker = (swScope: ServiceWorkerGlobalScope) => {
@@ -49,7 +49,6 @@ export const setupServiceWorker = (swScope: ServiceWorkerGlobalScope) => {
   });
 };
 
-const messageTypes = ['graph', 'graph-url', 'prefetch', 'prefetch-all', 'ping', 'verbose'];
 function isQwikMessages(msg: any): msg is SWMessages {
-  return msg[0] && messageTypes.includes(msg[0][0]);
+  return msg[0] && Object.values(MsgType).includes(msg[0][0]);
 }

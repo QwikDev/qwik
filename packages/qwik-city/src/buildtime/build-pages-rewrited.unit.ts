@@ -254,7 +254,8 @@ testSameRoutes(
   'Issue #6799: Bug while using rewrite routes pointing to the same file',
   ({ assertRoute }) => {
     const r = assertRoute('/produkt/');
-
+    const r2 = assertRoute('/test/');
     assert.equal(r.pathname, '/produkt/');
+    assert.equal(r2.pathname, '/test/');
   }
 );

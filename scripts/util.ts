@@ -176,7 +176,7 @@ export const getBanner = (moduleName: string, version: string) => {
 /**
  * @license
  * ${moduleName} ${version}
- * Copyright Builder.io, Inc. All Rights Reserved.
+ * Copyright QwikDev. All Rights Reserved.
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://github.com/QwikDev/qwik/blob/main/LICENSE
  */

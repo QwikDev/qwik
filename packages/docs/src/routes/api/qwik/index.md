@@ -10119,7 +10119,7 @@ T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-core.ts)
 
-## unwrapProxy
+## unwrapStore
 
 Get the target value of the Proxy. Useful if you want to clone a store (structureClone, IndexedDB,...)
 

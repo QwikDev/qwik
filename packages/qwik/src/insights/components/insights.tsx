@@ -240,6 +240,11 @@ declare var __QI_URL__: string;
 
 export const Insights = component$<{ publicApiKey: string; postUrl?: string }>(
   ({ publicApiKey, postUrl }) => {
+    if (!__EXPERIMENTAL__.insights) {
+      throw new Error(
+        'worker$ is experimental and must be enabled with `experimental: ["webWorker"]` in the `qwikVite` plugin.'
+      );
+    }
     if (!publicApiKey) {
       return null;
     }

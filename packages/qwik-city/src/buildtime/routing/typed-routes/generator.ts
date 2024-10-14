@@ -15,7 +15,7 @@ async function generateSrcRoutesConfig(srcDir: string) {
  *
  * @fileoverview
  */
-import { untypedAppUrl, omitProps } from '@qwik.dev/labs';
+import { untypedAppUrl, omitProps } from '@qwik.dev/city';
 import { type AppLinkProps, type AppRouteParamsFunction } from './routes.gen';
 import { type QwikIntrinsicElements } from '@qwik.dev/core';
 
@@ -47,7 +47,7 @@ export function AppLink(props: AppLinkProps & QwikIntrinsicElements['a']) {
 
   const file = join(srcDir, 'routes.config.tsx');
   const fileExists = await exists(file);
-  console.log('File exists', file, fileExists);
+
   if (!fileExists) {
     writeFile(file, CONFIG_FILE);
   }

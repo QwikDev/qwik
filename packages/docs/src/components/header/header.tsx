@@ -1,12 +1,5 @@
 import { useLocation } from '@builder.io/qwik-city';
-import {
-  component$,
-  useStyles$,
-  useContext,
-  useVisibleTask$,
-  useSignal,
-  useTask$,
-} from '@builder.io/qwik';
+import { component$, useStyles$, useContext, useVisibleTask$, useSignal } from '@builder.io/qwik';
 import { DocSearch } from '../docsearch/doc-search';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
@@ -22,7 +15,6 @@ import {
   setPreference,
   ThemeToggle,
 } from '../theme-toggle/theme-toggle';
-import { DocSearchButton } from '../docsearch/doc-search-button';
 import { SearchIcon } from '../docsearch/icons/SearchIcon';
 
 export const SearchButton = component$((props: { onClick$: () => void; className?: string }) => {
@@ -36,7 +28,7 @@ export const SearchButton = component$((props: { onClick$: () => void; className
       title="Search"
       aria-label="Search"
     >
-      <span class="mr-2">Search</span>
+      <span class="mr-2  md:inline-block sm:hiddenmr-2 hidden sm:visible">Search</span>
       <SearchIcon />
     </button>
   );
@@ -134,15 +126,13 @@ export const Header = component$(() => {
                 <span>Shop</span>
               </a>
             </li>
-            <li>
+            <li class="hidden lg:flex">
               <SearchButton
                 onClick$={() => {
                   shouldActivate.value = true;
                 }}
-                className="hidden lg:flex"
               />
             </li>
-
             <li>
               <ThemeToggle />
             </li>

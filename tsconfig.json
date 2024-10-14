@@ -40,16 +40,6 @@
     "forceConsistentCasingInFileNames": true,
     "rootDir": "."
   },
-  "ts-node": {
-    "experimentalSpecifierResolution": "node",
-    "transpileOnly": true,
-    "esm": true,
-    "swc": true,
-    "compilerOptions": {
-      "jsxFactory": "qwikJsx.h",
-      "jsxFragmentFactory": "qwikJsx.Fragment"
-    }
-  },
   "include": [
     "packages/create-qwik",
     "packages/qwik-auth",

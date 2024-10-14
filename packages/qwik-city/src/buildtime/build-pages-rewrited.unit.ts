@@ -247,6 +247,12 @@ const testSameRoutes = testAppSuite('Same route with undefined prefixes', {
         produkt: 'test',
       },
     },
+    {
+      prefix: undefined,
+      paths: {
+        test: 'test',
+      },
+    },
   ],
 });
 

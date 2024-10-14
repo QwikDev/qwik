@@ -2,4 +2,4 @@
 '@builder.io/qwik': patch
 ---
 
-fix modulepreload links href in devmode
+Allow setting `linkFetchPriority` for modulepreload links in the prefetch strategy. Also fix the links in dev mode

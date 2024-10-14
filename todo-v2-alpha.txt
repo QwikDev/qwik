@@ -1,0 +1,2 @@
+- [ ] Finalize all builds scripts for - worker, typed-routes, insights and devtools(?)
+- [ ] Remove all mentions to `labs`

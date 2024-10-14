@@ -22,7 +22,6 @@ on:
     branches:
       - main
       - next
-      - qwik-labs
       - vercelserverless
       - 'build/**'
   workflow_dispatch:
@@ -150,13 +149,11 @@ jobs:
           lookup-only: true
           path: |
             packages/qwik-city/lib
-            packages/qwik-labs/lib
-            packages/qwik-labs/vite
             packages/qwik-react/lib
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
           # note that all inputs need to be listed here, including qwik, for correct cache invalidation
-          key: ${{ hashfiles('qwik-key.txt', 'rust-key.txt', 'packages/qwik-city/**/*', 'packages/qwik-labs/**/*', 'packages/qwik-react/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', '!**/*.unit.*') }}
+          key: ${{ hashfiles('qwik-key.txt', 'rust-key.txt', 'packages/qwik-city/**/*', 'packages/qwik-react/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', '!**/*.unit.*') }}
       - run: 'echo ${{ steps.cache-others.outputs.cache-primary-key }} > others-key.txt'
       - name: 'check cache: docs'
         id: cache-docs
@@ -402,7 +399,7 @@ jobs:
 
       - name: 'build: qwik-city & others'
         if: needs.changes.outputs.build-others == 'true'
-        run: pnpm build --tsc --api --qwikcity --cli --qwiklabs --qwikreact --eslint --set-dist-tag="${{ needs.changes.outputs.disttag }}"
+        run: pnpm build --tsc --api --qwikcity --cli --qwikreact --eslint --set-dist-tag="${{ needs.changes.outputs.disttag }}"
       - name: Save others cache
         if: needs.changes.outputs.build-others == 'true'
         uses: actions/cache/save@v4
@@ -410,8 +407,6 @@ jobs:
           key: ${{ needs.changes.outputs.hash-others }}
           path: |
             packages/qwik-city/lib
-            packages/qwik-labs/lib
-            packages/qwik-labs/vite
             packages/qwik-react/lib
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
@@ -422,8 +417,6 @@ jobs:
         with:
           path: |
             packages/qwik-city/lib
-            packages/qwik-labs/lib
-            packages/qwik-labs/vite
             packages/qwik-react/lib
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
@@ -438,20 +431,6 @@ jobs:
           name: artifact-qwikcity
           include-hidden-files: true
           path: packages/qwik-city/lib/
-          if-no-files-found: error
-
-      - name: Print QwikLabs Lib Build
-        run: tree -a packages/qwik-labs/lib/ packages/qwik-labs/vite/
-
-      - name: Upload QwikLabs+React Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: artifact-qwiklabs
-          include-hidden-files: true
-          path: |
-            packages/qwik-labs/lib/
-            packages/qwik-labs/vite/
-            packages/qwik-labs/package.json
           if-no-files-found: error
 
       - name: Print qwik-react Lib Build
@@ -518,8 +497,6 @@ jobs:
           mv artifact-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
           mv artifact-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
-          mv artifact-qwiklabs/lib packages/qwik-labs/lib
-          mv artifact-qwiklabs/vite packages/qwik-labs/vite
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
@@ -578,8 +555,6 @@ jobs:
           mv artifact-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
           mv artifact-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
-          mv artifact-qwiklabs/lib packages/qwik-labs/lib
-          mv artifact-qwiklabs/vite packages/qwik-labs/vite
           mv artifact-qwikreact/lib packages/qwik-react/lib
 
       - run: corepack pnpm install --frozen-lockfile
@@ -860,8 +835,6 @@ jobs:
           mv artifact-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
           mv artifact-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
-          mv artifact-qwiklabs/lib packages/qwik-labs/lib
-          mv artifact-qwiklabs/vite packages/qwik-labs/vite
           mv artifact-qwikreact/lib packages/qwik-react/lib
           rm -rf artifact-*
 

@@ -1,5 +1,5 @@
-import { devtoolsJsonSRC } from '@qwik.dev/labs';
 import type { RequestHandler } from '@qwik.dev/city';
+import { devtoolsJsonSRC } from '@qwik.dev/core/devtools';
 
 export const onGet: RequestHandler = async ({ send, headers, cacheControl }) => {
   headers.set('Content-Type', 'application/javascript');

@@ -1,7 +1,6 @@
-import { qwikCity } from '@qwik.dev/city/vite';
-import { qwikInsights, qwikTypes } from '@qwik.dev/labs/vite';
 import { macroPlugin } from '@builder.io/vite-plugin-macro';
-import { qwikVite } from '@qwik.dev/core/optimizer';
+import { qwikCity } from '@qwik.dev/city/vite';
+import { qwikInsights, qwikVite } from '@qwik.dev/core/optimizer';
 import { defineConfig, loadEnv } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
@@ -10,7 +9,6 @@ export default defineConfig(async () => {
     plugins: [
       macroPlugin({ preset: 'pandacss' }),
       qwikCity(),
-      qwikTypes(),
       qwikVite(),
       tsconfigPaths({ projects: ['.'] }),
       qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),

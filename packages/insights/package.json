@@ -16,7 +16,6 @@
   "devDependencies": {
     "@qwik.dev/core": "workspace:^",
     "@qwik.dev/city": "workspace:^",
-    "@qwik.dev/labs": "workspace:^",
     "@builder.io/qwik": "workspace:@qwik.dev/core@*",
     "@builder.io/qwik-city": "workspace:@qwik.dev/city@*",
     "@builder.io/vite-plugin-macro": "0.0.7",

@@ -1,10 +1,9 @@
-import { component$, type ReadonlySignal } from '@qwik.dev/core';
 import { routeLoader$, useLocation } from '@qwik.dev/city';
+import { component$, type ReadonlySignal } from '@qwik.dev/core';
 import { RoutesIcon } from '~/components/icons/routes';
 import { getDB } from '~/db';
 import { dbGetManifestHashes } from '~/db/sql-manifest';
 import { getRouteNames, type RouteRow } from '~/db/sql-routes';
-import { AppLink } from '~/routes.config';
 
 export const useRouteData = routeLoader$(async ({ params }) => {
   const db = getDB();
@@ -17,6 +16,7 @@ export const useRouteData = routeLoader$(async ({ params }) => {
 export default component$(() => {
   const location = useLocation();
   const routesData: ReadonlySignal<RouteRow[]> = useRouteData();
+  const baseLink = `/app/${location.params.publicApiKey}/routes/`;
   return (
     <div>
       <h1 class="h3">
@@ -41,13 +41,7 @@ export default component$(() => {
                 <code>{route.route}</code>
               </th>
               <td scope="col" class="px-6 py-3 w-32">
-                <AppLink
-                  route="/app/[publicApiKey]/routes/[route]/"
-                  param:publicApiKey={location.params.publicApiKey}
-                  param:route={route.route}
-                >
-                  View details
-                </AppLink>
+                <a href={baseLink + route.route + '/'}>View details</a>
               </td>
             </tr>
           ))}

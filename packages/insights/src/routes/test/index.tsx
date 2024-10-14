@@ -1,15 +1,14 @@
 import { component$ } from '@qwik.dev/core';
-import { AppLink } from '~/routes.config';
 
 export default component$(() => {
   return (
     <div>
       <ul>
         <li>
-          <AppLink route="/test/visible-task/">Time (useVisibleTask)</AppLink>
+          <a href="/test/visible-task/">Time (useVisibleTask)</a>
         </li>
         <li>
-          <AppLink route="/test/counter/">Counter</AppLink>
+          <a href="/test/counter/">Counter</a>
         </li>
       </ul>
     </div>

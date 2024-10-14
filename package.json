@@ -91,7 +91,8 @@
     }
   ],
   "dependencies": {
-    "esbuild-plugin-raw": "^0.1.8"
+    "esbuild-plugin-raw": "^0.1.8",
+    "tsx": "4.19.1"
   },
   "devDependencies": {
     "@builder.io/partytown": "0.10.2",

@@ -14,6 +14,7 @@ const log = (message?: any) => {
   console.log('\x1b[35m%s\x1b[0m', `qwikInsight(): ${message}`);
 };
 
+/** @experimental */
 export async function qwikInsights(qwikInsightsOpts: {
   publicApiKey: string;
   baseUrl?: string;

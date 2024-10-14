@@ -31,7 +31,7 @@ Your new function will have the following signature:
 > Please note that depending on your server runtime, the function on the server may not terminate immediately. It depends on how client disconnections are handled by the runtime.
 
 ```tsx
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal, $ } from '@builder.io/qwik';
 import { server$ } from '@builder.io/qwik-city';
 
 // By wrapping a function with `server$()` we mark it to always
@@ -55,10 +55,10 @@ export default component$(() => {
 
       <button
         onClick$={
-          async () => {
+          $(async () => {
             const greeting = await serverGreeter(firstName.value, lastName.value);
             alert(greeting);
-          }
+          })
         }
       >
         greet
@@ -176,7 +176,7 @@ export const handleRequest = server$(
 Terminating the generator on the client side (e.g., by calling `.return()` on the generator or by breaking out from your async for-of loop) will terminate the connection. Similar to `AbortSignal`, how the generator terminates on the server side depends on the server runtime and how client disconnects are handled.
 
 ```tsx
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal, $ } from '@builder.io/qwik';
 import { server$ } from '@builder.io/qwik-city';
 
 export const streamFromServer = server$(
@@ -203,7 +203,7 @@ export default component$(() => {
     <div>
       <button
         onClick$={
-          async () => {
+          $(async () => {
             // call the async stream function and wait for the response
             const response = await streamFromServer(); 
             // use a for-await-of loop to asynchronously iterate over the response
@@ -212,7 +212,7 @@ export default component$(() => {
               message.value += ` ${value}`;
             }
             // do anything else
-          }
+          })
         }
       >
         start

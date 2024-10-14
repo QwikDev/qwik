@@ -1,4 +1,5 @@
-import { component$, sync$ } from '@qwik.dev/core';
+import { component$ } from '../shared/component.public';
+import { sync$ } from '../shared/qrl/qrl.public';
 
 export interface InsightsPayload {
   /** Qwik version */
@@ -203,7 +204,10 @@ const insightsPing = sync$(() =>
 declare var __QI_KEY__: string;
 declare var __QI_URL__: string;
 
-/** @experimental */
+/**
+ * @alpha
+ * @experimental
+ */
 export const Insights = component$<{ publicApiKey: string; postUrl?: string }>(
   ({ publicApiKey, postUrl }) => {
     if (!__EXPERIMENTAL__.insights) {

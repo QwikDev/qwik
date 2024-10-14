@@ -1,8 +1,8 @@
-import { type QwikVitePluginOptions } from '@qwik.dev/core/optimizer';
 import { existsSync, mkdirSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'node:path';
 import { type PluginOption } from 'vite';
+import { type QwikVitePluginOptions } from './vite';
 
 const logWarn = (message?: any, ...rest: any[]) => {
   // eslint-disable-next-line no-console
@@ -14,7 +14,10 @@ const log = (message?: any) => {
   console.log('\x1b[35m%s\x1b[0m', `qwikInsight(): ${message}`);
 };
 
-/** @experimental */
+/**
+ * @alpha
+ * @experimental
+ */
 export async function qwikInsights(qwikInsightsOpts: {
   publicApiKey: string;
   baseUrl?: string;

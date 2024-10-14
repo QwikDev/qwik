@@ -148,6 +148,7 @@
 - [Insights](/docs/labs/insights/index.mdx)
 - [Typed Routes](/docs/labs/typed-routes/index.mdx)
 - [Devtools](/docs/labs/devtools/index.mdx)
+- [usePreventNavigate](/docs/labs/usePreventNavigate/index.mdx)
 
 ## Community
 

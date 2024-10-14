@@ -20,7 +20,7 @@ export const Counter = component$(() => {
   );
 });
 
-============================= counter_component_ztmrhll09gg.ts (ENTRY POINT)==
+============================= test.tsx_counter_component_ztmrhll09gg.ts (ENTRY POINT)==
 
 import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
@@ -35,7 +35,7 @@ export const Counter_component_zTmRHlL09Gg = ()=>{
             ], "p0.value")
         ], 3, null),
         /*#__PURE__*/ _jsxQ("p", null, null, /*#__PURE__*/ _jsxQ("button", null, {
-            onClick$: /*#__PURE__*/ qrl(()=>import("./counter_component_div_p_button_onclick_kqq00u8qaim"), "Counter_component_div_p_button_onClick_Kqq00U8qaIM", [
+            onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_counter_component_div_p_button_onclick_kqq00u8qaim"), "Counter_component_div_p_button_onClick_Kqq00U8qaIM", [
                 count
             ])
         }, "Increment", 3, null), 3, null)
@@ -49,9 +49,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "Counter_component_zTmRHlL09Gg",
   "entry": null,
-  "displayName": "Counter_component",
+  "displayName": "test.tsx_Counter_component",
   "hash": "zTmRHlL09Gg",
-  "canonicalFilename": "counter_component_ztmrhll09gg",
+  "canonicalFilename": "test.tsx_counter_component_ztmrhll09gg",
   "path": "",
   "extension": "ts",
   "parent": null,
@@ -64,7 +64,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= counter_component_div_p_button_onclick_kqq00u8qaim.ts (ENTRY POINT)==
+============================= test.tsx_counter_component_div_p_button_onclick_kqq00u8qaim.ts (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
 export const Counter_component_div_p_button_onClick_Kqq00U8qaIM = ()=>{
@@ -79,9 +79,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "Counter_component_div_p_button_onClick_Kqq00U8qaIM",
   "entry": null,
-  "displayName": "Counter_component_div_p_button_onClick",
+  "displayName": "test.tsx_Counter_component_div_p_button_onClick",
   "hash": "Kqq00U8qaIM",
-  "canonicalFilename": "counter_component_div_p_button_onclick_kqq00u8qaim",
+  "canonicalFilename": "test.tsx_counter_component_div_p_button_onclick_kqq00u8qaim",
   "path": "",
   "extension": "ts",
   "parent": "Counter_component_zTmRHlL09Gg",
@@ -98,10 +98,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Counter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./counter_component_ztmrhll09gg"), "Counter_component_zTmRHlL09Gg"));
+export const Counter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_counter_component_ztmrhll09gg"), "Counter_component_zTmRHlL09Gg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,OAAO,MAAM,wBAAU,gHAWpB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,OAAO,MAAM,wBAAU,yHAWpB\"}")
 == DIAGNOSTICS ==
 
 []

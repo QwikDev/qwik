@@ -16,6 +16,7 @@ import {
   type QwikBuildTarget,
   type QwikPluginOptions,
   Q_MANIFEST_FILENAME,
+  type ExperimentalFeatures,
 } from './plugin';
 import { versions } from '../versions';
 
@@ -63,6 +64,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         transformedModuleOutput: qwikRollupOpts.transformedModuleOutput,
         inlineStylesUpToBytes: qwikRollupOpts.optimizerOptions?.inlineStylesUpToBytes,
         lint: qwikRollupOpts.lint,
+        experimental: qwikRollupOpts.experimental,
       };
 
       const opts = qwikPlugin.normalizeOptions(pluginOpts);
@@ -332,6 +334,12 @@ export interface QwikRollupPluginOptions {
    * large projects. Defaults to `true`
    */
   lint?: boolean;
+  /**
+   * Experimental features. These can come and go in patch releases, and their API is not guaranteed
+   * to be stable between releases.
+   */
+  experimental?: (keyof typeof ExperimentalFeatures)[];
 }
+export { ExperimentalFeatures } from './plugin';
 type P<T> = Rollup.Plugin<T> & { api: T };
 export interface QwikRollupPlugin extends P<QwikRollupPluginApi> {}

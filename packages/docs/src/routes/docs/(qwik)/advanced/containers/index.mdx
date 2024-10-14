@@ -10,7 +10,7 @@ contributors:
   - mhevery
   - bab2683
   - mrhoodz
-updated_at: '2023-08-23T23:06:42Z'
+updated_at: '2023-08-23T23:06:41Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
@@ -19,7 +19,14 @@ created_at: '2023-03-20T23:45:13Z'
 Every Qwik application is contained inside a element, usually the `<html>` element. This element becomes the container for the application. The container is the root element for the application and all components, state and events are contained within.
 
 ```html
-<html q:container="paused" q:version="0.12.1" q:base="/build">
+<html
+  q:container="paused"
+  q:version="1.9.0"
+  q:render="ssr"
+  q:base="/build/"
+  q:manifest-hash="ggb7b3"
+  q:instance="b0yf84vwuup"
+>
   ...
 </html>
 ```
@@ -39,7 +46,7 @@ renderToStream(<Root />, {
 The code above will render the following HTML:
 
 ```html
-<html lang="en" q:container="paused" q:version="0.12.1" q:base="/build">
+<html lang="en" q:container="paused" q:version="1.9.0" q:base="/build/">
   ...
 </html>
 ```
@@ -68,12 +75,12 @@ Since the runtime ensures isolation across containers, several containers can co
 Containers can be nested in a tree and can communicate and share data. The inter-component communication requires that the components have well-defined boundaries, which we call container protocols.
 
 ```html
-<html q:container="paused" q:version="0.12.1" q:base="/build">
+<html q:container="paused" q:version="1.9.0" q:base="/build/">
   <head>
     <title>My Qwik Application</title>
   </head>
   <body>
-    <header q:container="resumed" q:version="0.11.1" q:base="https://server.a/build">
+    <header q:container="resumed" q:version="1.8.0" q:base="https://server.a/build">
       <div>
         <h1>This is a header form a container</h1>
       </div>

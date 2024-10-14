@@ -53,6 +53,24 @@ const CLIENT_STRIP_CTX_NAME = [
   'browser',
   'event$',
 ];
+
+/**
+ * Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or
+ * `false` via an exact string replacement.
+ *
+ * Add experimental features to this enum definition.
+ *
+ * @alpha
+ */
+export enum ExperimentalFeatures {
+  /** Enable the usePreventNavigate hook */
+  preventNavigate = 'preventNavigate',
+  /** Enable the Valibot form validation */
+  valibot = 'valibot',
+  /** Disable SPA navigation handler in Qwik City */
+  noSPA = 'noSPA',
+}
+
 export interface QwikPackages {
   id: string;
   path: string;
@@ -102,6 +120,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     },
     inlineStylesUpToBytes: null as any,
     lint: true,
+    experimental: undefined,
   };
 
   let lazyNormalizePath: (id: string) => string;
@@ -312,6 +331,16 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     } else {
       opts.lint = updatedOpts.buildMode === 'development';
     }
+
+    opts.experimental = undefined;
+    for (const feature of updatedOpts.experimental ?? []) {
+      if (!ExperimentalFeatures[feature as ExperimentalFeatures]) {
+        console.error(`Qwik plugin: Unknown experimental feature: ${feature}`);
+      } else {
+        (opts.experimental ||= {} as any)[feature] = true;
+      }
+    }
+
     return { ...opts };
   };
 
@@ -428,7 +457,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         };
       }
 
-      const firstInput = Object.values(opts.input)[0];
+      const firstInput = opts.input && Object.values(opts.input)[0];
       return {
         id: normalizePath(getPath().resolve(firstInput, QWIK_CLIENT_MANIFEST_ID)),
         moduleSideEffects: false,
@@ -574,9 +603,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       debug(`load()`, 'Found', id);
       let { code } = transformedModule[0];
       const { map, segment } = transformedModule[0];
+      const firstInput = opts.input && Object.values(opts.input)[0];
 
-      if (devServer) {
-        const firstInput = Object.values(opts.input)[0];
+      if (devServer && firstInput) {
         // doing this because vite will not use resolveId() when "noExternal" is false
         // so we need to turn the @qwik-client-manifest import into a relative import
         code = code.replace(
@@ -624,14 +653,25 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         `Transforming ${id} (for: ${isServer ? 'server' : 'client'}${strip ? ', strip' : ''})`
       );
 
+      const mode =
+        opts.target === 'lib' ? 'lib' : opts.buildMode === 'development' ? 'dev' : 'prod';
+
+      if (mode !== 'lib') {
+        // this messes a bit with the source map, but it's ok for if statements
+        code = code.replaceAll(/__EXPERIMENTAL__\.(\w+)/g, (_, feature) => {
+          if (opts.experimental?.[feature as ExperimentalFeatures]) {
+            return 'true';
+          }
+          return 'false';
+        });
+      }
+
       let filePath = base;
       if (opts.srcDir) {
         filePath = path.relative(opts.srcDir, pathId);
       }
       filePath = normalizePath(filePath);
       const srcDir = opts.srcDir ? opts.srcDir : normalizePath(dir);
-      const mode =
-        opts.target === 'lib' ? 'lib' : opts.buildMode === 'development' ? 'dev' : 'prod';
       const entryStrategy: EntryStrategy = opts.entryStrategy;
       const transformOpts: TransformModulesOptions = {
         input: [{ code, path: filePath }],
@@ -691,13 +731,21 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           debug(`transform()`, `segment ${key}`, mod.segment?.displayName);
           currentOutputs.set(key, [mod, id]);
           deps.add(key);
-          // rollup must be told about all entry points
-          if (!devServer && opts.target === 'client') {
-            ctx.emitFile({
-              id: key,
-              type: 'chunk',
-              preserveSignature: 'allow-extension',
-            });
+          if (opts.target === 'client') {
+            if (devServer) {
+              // invalidate the segment so that the client will pick it up
+              const rollupModule = devServer.moduleGraph.getModuleById(key);
+              if (rollupModule) {
+                devServer.moduleGraph.invalidateModule(rollupModule);
+              }
+            } else {
+              // rollup must be told about all entry points
+              ctx.emitFile({
+                id: key,
+                type: 'chunk',
+                preserveSignature: 'allow-extension',
+              });
+            }
           }
         }
       }
@@ -1009,11 +1057,17 @@ export interface QwikPluginOptions {
    * large projects. Defaults to `true`
    */
   lint?: boolean;
+  /**
+   * Experimental features. These can come and go in patch releases, and their API is not guaranteed
+   * to be stable between releases.
+   */
+  experimental?: (keyof typeof ExperimentalFeatures)[];
 }
 
 export interface NormalizedQwikPluginOptions
-  extends Omit<Required<QwikPluginOptions>, 'vendorRoots'> {
+  extends Omit<Required<QwikPluginOptions>, 'vendorRoots' | 'experimental'> {
   input: string[] | { [entry: string]: string };
+  experimental?: Record<keyof typeof ExperimentalFeatures, boolean>;
 }
 
 /** @public */

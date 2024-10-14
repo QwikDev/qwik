@@ -339,7 +339,7 @@ export function rawSource(): Plugin {
           source: fileContent,
         });
         return {
-          code: `export default "__RAW-URL_${ref}__";`,
+          code: `export default "@@RAW-URL_${ref}@@";`,
           map: { version: 3, sources: [path], mappings: '' },
         };
       }
@@ -348,7 +348,7 @@ export function rawSource(): Plugin {
     renderChunk(code, chunk) {
       // Copied from vite assets code and simplified
       let s, match;
-      const regex = /__RAW-URL_([^_]+)__/g;
+      const regex = /@@RAW-URL_(.+)@@/g;
       while ((match = regex.exec(code))) {
         s ||= new MagicString(code);
         const ref = match[1];

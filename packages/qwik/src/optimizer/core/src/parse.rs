@@ -13,7 +13,7 @@ use crate::const_replace::ConstReplacerVisitor;
 use crate::entry_strategy::EntryPolicy;
 use crate::filter_exports::StripExportsVisitor;
 use crate::props_destructuring::transform_props_destructuring;
-use crate::transform::{QwikTransform, QwikTransformOptions, SegmentKind};
+use crate::transform::{QwikTransform, QwikTransformOptions, Segment, SegmentKind};
 use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
 use crate::EntryStrategy;
 use path_slash::PathExt;
@@ -68,6 +68,7 @@ pub enum EmitMode {
 	Prod,
 	Lib,
 	Dev,
+	Test,
 }
 
 pub struct TransformCodeOptions<'a> {
@@ -294,64 +295,57 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 					// Collect import/export metadata
 					let mut collect = global_collect(&program);
 
-					transform_props_destructuring(&mut program, &mut collect, &config.core_module);
+					let mut qt: Option<QwikTransform<'_>> = None;
+					let mut segments: Vec<Segment> = Vec::new();
 
-					// Replace const values
+					// Don't further process library code
+					// It will be processed during client build
+					// This way no internal API usage is published
 					if config.mode != EmitMode::Lib {
 						let is_dev = config.mode == EmitMode::Dev;
-						let mut const_replacer =
-							ConstReplacerVisitor::new(config.is_server, is_dev, &collect);
-						program.visit_mut_with(&mut const_replacer);
-					}
-					let mut qwik_transform = QwikTransform::new(QwikTransformOptions {
-						path_data: &path_data,
-						entry_policy: config.entry_policy,
-						explicit_extensions: config.explicit_extensions,
-						extension: extension.clone(),
-						comments: Some(&comments),
-						global_collect: collect,
-						scope: config.scope,
-						mode: config.mode,
-						core_module: config.core_module,
-						entry_strategy: config.entry_strategy,
-						reg_ctx_name: config.reg_ctx_name,
-						strip_ctx_name: config.strip_ctx_name,
-						strip_event_handlers: config.strip_event_handlers,
-						is_server: config.is_server,
-						cm: Lrc::clone(&source_map),
-					});
 
-					// Run main transform
-					program = program.fold_with(&mut qwik_transform);
+						// reconstruct destructured props for signal forwarding
+						transform_props_destructuring(
+							&mut program,
+							&mut collect,
+							&config.core_module,
+						);
 
-					let mut treeshaker = Treeshaker::new();
+						// replace const values
+						if config.mode != EmitMode::Test {
+							let mut const_replacer =
+								ConstReplacerVisitor::new(config.is_server, is_dev, &collect);
+							program.visit_mut_with(&mut const_replacer);
+						}
 
-					if config.minify != MinifyMode::None {
-						program.visit_mut_with(&mut treeshaker.marker);
+						// split into segments
+						let mut qwik_transform = QwikTransform::new(QwikTransformOptions {
+							path_data: &path_data,
+							entry_policy: config.entry_policy,
+							explicit_extensions: config.explicit_extensions,
+							extension: extension.clone(),
+							comments: Some(&comments),
+							global_collect: collect,
+							scope: config.scope,
+							mode: config.mode,
+							core_module: config.core_module,
+							entry_strategy: config.entry_strategy,
+							reg_ctx_name: config.reg_ctx_name,
+							strip_ctx_name: config.strip_ctx_name,
+							strip_event_handlers: config.strip_event_handlers,
+							is_server: config.is_server,
+							cm: Lrc::clone(&source_map),
+						});
+						program = program.fold_with(&mut qwik_transform);
 
-						program = program.fold_with(&mut simplify::simplifier(
-							unresolved_mark,
-							simplify::Config {
-								dce: simplify::dce::Config {
-									preserve_imports_with_side_effects: false,
-									..Default::default()
-								},
-								..Default::default()
-							},
-						));
-					}
-					if matches!(
-						config.entry_strategy,
-						EntryStrategy::Inline | EntryStrategy::Hoist
-					) {
-						program.visit_mut_with(&mut SideEffectVisitor::new(
-							&qwik_transform.options.global_collect,
-							&path_data,
-							config.src_dir,
-						));
-					} else if config.minify != MinifyMode::None && !config.is_server {
-						program.visit_mut_with(&mut treeshaker.cleaner);
-						if treeshaker.cleaner.did_drop {
+						let mut treeshaker = Treeshaker::new();
+						if config.minify != MinifyMode::None {
+							// remove all side effects from client, step 1
+							if !config.is_server {
+								program.visit_mut_with(&mut treeshaker.marker);
+							}
+
+							// simplify & strip unused code
 							program = program.fold_with(&mut simplify::simplifier(
 								unresolved_mark,
 								simplify::Config {
@@ -363,90 +357,123 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 								},
 							));
 						}
+						if matches!(
+							config.entry_strategy,
+							EntryStrategy::Inline | EntryStrategy::Hoist
+						) {
+							program.visit_mut_with(&mut SideEffectVisitor::new(
+								&qwik_transform.options.global_collect,
+								&path_data,
+								config.src_dir,
+							));
+						} else if config.minify != MinifyMode::None && !config.is_server {
+							// remove all side effects from client, step 2
+							program.visit_mut_with(&mut treeshaker.cleaner);
+							if treeshaker.cleaner.did_drop {
+								program = program.fold_with(&mut simplify::simplifier(
+									unresolved_mark,
+									simplify::Config {
+										dce: simplify::dce::Config {
+											preserve_imports_with_side_effects: false,
+											..Default::default()
+										},
+										..Default::default()
+									},
+								));
+							}
+						}
+						segments = qwik_transform.segments.clone();
+						qt = Some(qwik_transform);
 					}
 					program.visit_mut_with(&mut hygiene_with_config(Default::default()));
 					program.visit_mut_with(&mut fixer(None));
 
-					let segments = qwik_transform.segments;
 					let mut modules: Vec<TransformModule> = Vec::with_capacity(segments.len() + 10);
 
 					let comments_maps = comments.clone().take_all();
-					for h in segments.into_iter() {
-						let is_entry = h.entry.is_none();
-						let path_str = h.data.path.to_string();
-						let path = if path_str.is_empty() {
-							path_str
-						} else {
-							[&path_str, "/"].concat()
-						};
-						let segment_path = [
-							path,
-							[&h.canonical_filename, ".", &h.data.extension].concat(),
-						]
-						.concat();
-						let need_handle_watch =
-							might_need_handle_watch(&h.data.ctx_kind, &h.data.ctx_name);
+					// Now process each segment
+					if !segments.is_empty() {
+						let q = qt.as_ref().unwrap();
+						for h in segments.into_iter() {
+							let is_entry = h.entry.is_none();
+							let path_str = h.data.path.to_string();
+							let path = if path_str.is_empty() {
+								path_str
+							} else {
+								[&path_str, "/"].concat()
+							};
+							let segment_path = [
+								path,
+								[&h.canonical_filename, ".", &h.data.extension].concat(),
+							]
+							.concat();
+							let need_handle_watch =
+								might_need_handle_watch(&h.data.ctx_kind, &h.data.ctx_name);
 
-						let (mut segment_module, comments) = new_module(NewModuleCtx {
-							expr: h.expr,
-							path: &path_data,
-							name: &h.name,
-							local_idents: &h.data.local_idents,
-							scoped_idents: &h.data.scoped_idents,
-							need_transform: h.data.need_transform,
-							explicit_extensions: qwik_transform.options.explicit_extensions,
-							global: &qwik_transform.options.global_collect,
-							core_module: &qwik_transform.options.core_module,
-							need_handle_watch,
-							leading_comments: comments_maps.0.clone(),
-							trailing_comments: comments_maps.1.clone(),
-						})?;
-						if config.minify != MinifyMode::None {
-							segment_module = segment_module.fold_with(&mut simplify::simplifier(
-								unresolved_mark,
-								simplify::Config {
-									dce: simplify::dce::Config {
-										preserve_imports_with_side_effects: false,
-										..Default::default()
-									},
-									..Default::default()
-								},
-							));
+							let (mut segment_module, comments) = new_module(NewModuleCtx {
+								expr: h.expr,
+								path: &path_data,
+								name: &h.name,
+								local_idents: &h.data.local_idents,
+								scoped_idents: &h.data.scoped_idents,
+								need_transform: h.data.need_transform,
+								explicit_extensions: q.options.explicit_extensions,
+								global: &q.options.global_collect,
+								core_module: &q.options.core_module,
+								need_handle_watch,
+								leading_comments: comments_maps.0.clone(),
+								trailing_comments: comments_maps.1.clone(),
+							})?;
+							// we don't need to remove side effects because the optimizer only moves what's really used
+							if config.minify != MinifyMode::None {
+								segment_module =
+									segment_module.fold_with(&mut simplify::simplifier(
+										unresolved_mark,
+										simplify::Config {
+											dce: simplify::dce::Config {
+												preserve_imports_with_side_effects: false,
+												..Default::default()
+											},
+											..Default::default()
+										},
+									));
+							}
+							segment_module
+								.visit_mut_with(&mut hygiene_with_config(Default::default()));
+							segment_module.visit_mut_with(&mut fixer(None));
+
+							let (code, map) = emit_source_code(
+								Lrc::clone(&source_map),
+								Some(comments),
+								&segment_module,
+								config.root_dir,
+								config.source_maps,
+							)
+							.unwrap();
+
+							modules.push(TransformModule {
+								code,
+								map,
+								is_entry,
+								path: segment_path,
+								order: h.hash,
+								segment: Some(SegmentAnalysis {
+									origin: h.data.origin,
+									name: h.name,
+									entry: h.entry,
+									extension: h.data.extension,
+									canonical_filename: h.canonical_filename,
+									path: h.data.path,
+									parent: h.data.parent_segment,
+									ctx_kind: h.data.ctx_kind,
+									ctx_name: h.data.ctx_name,
+									captures: !h.data.scoped_idents.is_empty(),
+									display_name: h.data.display_name,
+									hash: h.data.hash,
+									loc: (h.span.lo.0, h.span.hi.0),
+								}),
+							});
 						}
-						segment_module.visit_mut_with(&mut hygiene_with_config(Default::default()));
-						segment_module.visit_mut_with(&mut fixer(None));
-
-						let (code, map) = emit_source_code(
-							Lrc::clone(&source_map),
-							Some(comments),
-							&segment_module,
-							config.root_dir,
-							config.source_maps,
-						)
-						.unwrap();
-
-						modules.push(TransformModule {
-							code,
-							map,
-							is_entry,
-							path: segment_path,
-							order: h.hash,
-							segment: Some(SegmentAnalysis {
-								origin: h.data.origin,
-								name: h.name,
-								entry: h.entry,
-								extension: h.data.extension,
-								canonical_filename: h.canonical_filename,
-								path: h.data.path,
-								parent: h.data.parent_segment,
-								ctx_kind: h.data.ctx_kind,
-								ctx_name: h.data.ctx_name,
-								captures: !h.data.scoped_idents.is_empty(),
-								display_name: h.data.display_name,
-								hash: h.data.hash,
-								loc: (h.span.lo.0, h.span.hi.0),
-							}),
-						});
 					}
 
 					let (code, map) = match program {

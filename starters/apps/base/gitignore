@@ -6,6 +6,7 @@
 
 # Development
 node_modules
+.env
 *.local
 
 # Cache

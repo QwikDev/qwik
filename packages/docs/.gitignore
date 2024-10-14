@@ -18,6 +18,7 @@ node_modules
 .vscode
 .rollup.cache
 tsconfig.tsbuildinfo
+q-insights.json
 
 # Logs
 logs

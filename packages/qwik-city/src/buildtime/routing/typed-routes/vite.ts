@@ -14,7 +14,13 @@ export function qwikTypes(): Plugin {
   };
 }
 
-async function regenerateRoutes(srcDir: string, routesDir: string): Promise<Set<string>> {
+/**
+ * Regenerates the route types for the given project.
+ *
+ * @experimental
+ */
+
+export async function regenerateRoutes(srcDir: string, routesDir: string): Promise<Set<string>> {
   assertDirectoryExists(srcDir);
   assertDirectoryExists(routesDir);
   const routes: string[] = [];

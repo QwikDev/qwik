@@ -5,6 +5,7 @@ import type {
   SnapshotResult,
 } from './types';
 import { getBuildBase } from './utils';
+import { qDev } from '../core/util/qdev';
 
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 import type { QRLInternal } from '../core/qrl/qrl-class';
@@ -78,7 +79,7 @@ function addBundle(
   buildBase: string,
   bundleFileName: string
 ) {
-  const url = buildBase + bundleFileName;
+  const url = qDev ? bundleFileName : buildBase + bundleFileName;
   let prefetchResource = urls.get(url);
   if (!prefetchResource) {
     prefetchResource = {

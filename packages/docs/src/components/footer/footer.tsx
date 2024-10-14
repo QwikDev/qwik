@@ -22,6 +22,7 @@ const linkColumns = [
     { title: 'Tutorial', href: `${baseUrl}/ecosystem/#courses` },
     { title: 'Presentations', href: `${baseUrl}/ecosystem/#presentations` },
     { title: 'Community', href: `${baseUrl}/ecosystem/#community` },
+    { title: 'Press', href: `${baseUrl}/press` },
   ],
 ];
 

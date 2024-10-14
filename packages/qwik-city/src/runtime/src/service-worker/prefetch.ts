@@ -1,6 +1,6 @@
-import type { AppBundle, Fetch, LinkBundle } from './types';
-import { awaitingRequests, existingPrefetchUrls, prefetchQueue } from './constants';
 import { cachedFetch } from './cached-fetch';
+import { awaitingRequests, existingPrefetchUrls, prefetchQueue } from './constants';
+import type { AppBundle, Fetch, LinkBundle } from './types';
 import { getAppBundleByName, getAppBundlesNamesFromIds } from './utils';
 
 export const prefetchBundleNames = (
@@ -11,24 +11,19 @@ export const prefetchBundleNames = (
   prefetchAppBundleNames: (string | null)[] | undefined | null,
   highPriority = false
 ) => {
-  const drainQueue = () => {
-    while (prefetchQueue.length > 0 && awaitingRequests.size < 6) {
-      // do not prefetch more than 6 requests at a time to ensure
-      // the browser is able to handle a user request as soon as possible
-      const url = prefetchQueue.shift()!;
-      const request = new Request(url);
-      if (existingPrefetchUrls.has(url!)) {
-        // already prefetched this url once before
-        // optimization to skip some async work
-        drainQueue();
-      } else {
-        existingPrefetchUrls.add(url!);
-        cachedFetch(qBuildCache, fetch, awaitingRequests, request).finally(drainQueue);
-      }
-    }
-  };
+  if (Array.isArray(prefetchAppBundleNames)) {
+    addBundlesToPrefetchQueue(prefetchAppBundleNames, appBundles, baseUrl, highPriority);
+  }
+  drainQueue(qBuildCache, fetch);
+};
 
-  const prefetchAppBundle = (prefetchAppBundleName: string | null) => {
+export function addBundlesToPrefetchQueue(
+  bundlesToPrefetch: (string | null)[],
+  appBundles: AppBundle[],
+  baseUrl: URL,
+  highPriority: boolean
+) {
+  for (const prefetchAppBundleName of bundlesToPrefetch) {
     try {
       const appBundle = getAppBundleByName(appBundles, prefetchAppBundleName);
 
@@ -52,20 +47,33 @@ export const prefetchBundleNames = (
             // add to the end of the queue
             prefetchQueue.push(url);
           }
+          addBundlesToPrefetchQueue(importedBundleNames, appBundles, baseUrl, highPriority);
         }
-
-        importedBundleNames.forEach(prefetchAppBundle);
       }
     } catch (e) {
       console.error(e);
     }
-  };
-
-  if (Array.isArray(prefetchAppBundleNames)) {
-    prefetchAppBundleNames.forEach(prefetchAppBundle);
   }
-  drainQueue();
-};
+}
+
+export function drainQueue(qBuildCache: Cache, fetch: Fetch) {
+  // do not prefetch more than 6 requests at a time to ensure
+  // the browser is able to handle a user request as soon as possible
+  while (prefetchQueue.length > 0 && awaitingRequests.size < 6) {
+    const url = prefetchQueue.shift()!;
+
+    if (!existingPrefetchUrls.has(url!)) {
+      const request = new Request(url);
+
+      existingPrefetchUrls.add(url!);
+      cachedFetch(qBuildCache, fetch, awaitingRequests, request)
+        .catch(() => {
+          existingPrefetchUrls.delete(url!);
+        })
+        .finally(() => drainQueue(qBuildCache, fetch));
+    }
+  }
+}
 
 export const prefetchLinkBundles = (
   appBundles: AppBundle[],
@@ -117,13 +125,22 @@ export const prefetchWaterfall = (
   requestedBuildUrl: URL
 ) => {
   try {
-    const segments = requestedBuildUrl.href.split('/');
-    const requestedBundleName = segments[segments.length - 1];
-    segments[segments.length - 1] = '';
-    const baseUrl = new URL(segments.join('/'));
+    const { baseUrl, requestedBundleName } = splitUrlToBaseAndBundle(requestedBuildUrl);
 
     prefetchBundleNames(appBundles, qBuildCache, fetch, baseUrl, [requestedBundleName], true);
   } catch (e) {
     console.error(e);
   }
 };
+
+function splitUrlToBaseAndBundle(fullUrl: URL) {
+  const segments = fullUrl.href.split('/');
+  const requestedBundleName = segments[segments.length - 1];
+  segments[segments.length - 1] = '';
+  const baseUrl = new URL(segments.join('/'));
+
+  return {
+    baseUrl,
+    requestedBundleName,
+  };
+}

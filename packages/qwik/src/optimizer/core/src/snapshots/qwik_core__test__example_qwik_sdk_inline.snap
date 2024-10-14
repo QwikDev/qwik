@@ -1079,7 +1079,7 @@ export {
   zodQrl,
 };
 
-============================= ../node_modules/@builder.io/qwik-city/routeroutlet_component_useondocument_event_knne9el0qfc.mjs (ENTRY POINT)==
+============================= ../node_modules/@builder.io/qwik-city/index.qwik.mjs_routeroutlet_component_useondocument_event_knne9el0qfc.mjs (ENTRY POINT)==
 
 export const RouterOutlet_component_useOnDocument_event_KnNE9eL0qfc = ()=>{
     const POPSTATE_FALLBACK_INITIALIZED = '_qCityPopstateFallback';
@@ -1101,9 +1101,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   "origin": "../node_modules/@builder.io/qwik-city/index.qwik.mjs",
   "name": "RouterOutlet_component_useOnDocument_event_KnNE9eL0qfc",
   "entry": null,
-  "displayName": "RouterOutlet_component_useOnDocument_event",
+  "displayName": "index.qwik.mjs_RouterOutlet_component_useOnDocument_event",
   "hash": "KnNE9eL0qfc",
-  "canonicalFilename": "routeroutlet_component_useondocument_event_knne9el0qfc",
+  "canonicalFilename": "index.qwik.mjs_routeroutlet_component_useondocument_event_knne9el0qfc",
   "path": "../node_modules/@builder.io/qwik-city",
   "extension": "mjs",
   "parent": "RouterOutlet_component_AKetNByE5TM",
@@ -1116,7 +1116,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   ]
 }
 */
-============================= ../node_modules/@builder.io/qwik-city/routeroutlet_component_aketnbye5tm.mjs ==
+============================= ../node_modules/@builder.io/qwik-city/index.qwik.mjs_routeroutlet_component_aketnbye5tm.mjs ==
 
 import { _auto_ContentInternalContext as ContentInternalContext } from "./index.qwik.mjs";
 import { SkipRender } from "@builder.io/qwik";
@@ -1128,7 +1128,7 @@ import { useContext } from "@builder.io/qwik";
 import { useOnDocument } from "@builder.io/qwik";
 export const RouterOutlet_component_AKetNByE5TM = ()=>{
     _jsxBranch();
-    useOnDocument('qinit', eventQrl(/*#__PURE__*/ qrl(()=>import("./routeroutlet_component_useondocument_event_knne9el0qfc.mjs"), "RouterOutlet_component_useOnDocument_event_KnNE9eL0qfc")));
+    useOnDocument('qinit', eventQrl(/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_routeroutlet_component_useondocument_event_knne9el0qfc.mjs"), "RouterOutlet_component_useOnDocument_event_KnNE9eL0qfc")));
     const context = useContext(ContentInternalContext);
     if (context.value && context.value.length > 0) {
         const contentsLen = context.value.length;
@@ -1148,9 +1148,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   "origin": "../node_modules/@builder.io/qwik-city/index.qwik.mjs",
   "name": "RouterOutlet_component_AKetNByE5TM",
   "entry": "../node_modules/@builder.io/qwik-city/index.qwik.mjs_entry_RouterOutlet",
-  "displayName": "RouterOutlet_component",
+  "displayName": "index.qwik.mjs_RouterOutlet_component",
   "hash": "AKetNByE5TM",
-  "canonicalFilename": "routeroutlet_component_aketnbye5tm",
+  "canonicalFilename": "index.qwik.mjs_routeroutlet_component_aketnbye5tm",
   "path": "../node_modules/@builder.io/qwik-city",
   "extension": "mjs",
   "parent": null,
@@ -1163,7 +1163,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   ]
 }
 */
-============================= ../node_modules/@builder.io/qwik-city/qwikcityprovider_component_usestyles_rpdjaz33wla.mjs ==
+============================= ../node_modules/@builder.io/qwik-city/index.qwik.mjs_qwikcityprovider_component_usestyles_rpdjaz33wla.mjs ==
 
 export const QwikCityProvider_component_useStyles_RPDJAz33WLA = `:root{view-transition-name: none}`;
 
@@ -1174,9 +1174,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   "origin": "../node_modules/@builder.io/qwik-city/index.qwik.mjs",
   "name": "QwikCityProvider_component_useStyles_RPDJAz33WLA",
   "entry": "../node_modules/@builder.io/qwik-city/index.qwik.mjs_entry_QwikCityProvider",
-  "displayName": "QwikCityProvider_component_useStyles",
+  "displayName": "index.qwik.mjs_QwikCityProvider_component_useStyles",
   "hash": "RPDJAz33WLA",
-  "canonicalFilename": "qwikcityprovider_component_usestyles_rpdjaz33wla",
+  "canonicalFilename": "index.qwik.mjs_qwikcityprovider_component_usestyles_rpdjaz33wla",
   "path": "../node_modules/@builder.io/qwik-city",
   "extension": "mjs",
   "parent": "QwikCityProvider_component_TxCFOy819ag",
@@ -1189,7 +1189,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   ]
 }
 */
-============================= ../node_modules/@builder.io/qwik-city/qwikcityprovider_component_goto_event_cbcjroynrvg.mjs ==
+============================= ../node_modules/@builder.io/qwik-city/index.qwik.mjs_qwikcityprovider_component_goto_event_cbcjroynrvg.mjs ==
 
 import { _getContextElement } from "@builder.io/qwik";
 import { isBrowser } from "@builder.io/qwik/build";
@@ -1223,9 +1223,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   "origin": "../node_modules/@builder.io/qwik-city/index.qwik.mjs",
   "name": "QwikCityProvider_component_goto_event_cBcjROynRVg",
   "entry": "../node_modules/@builder.io/qwik-city/index.qwik.mjs_entry_QwikCityProvider",
-  "displayName": "QwikCityProvider_component_goto_event",
+  "displayName": "index.qwik.mjs_QwikCityProvider_component_goto_event",
   "hash": "cBcjROynRVg",
-  "canonicalFilename": "qwikcityprovider_component_goto_event_cbcjroynrvg",
+  "canonicalFilename": "index.qwik.mjs_qwikcityprovider_component_goto_event_cbcjroynrvg",
   "path": "../node_modules/@builder.io/qwik-city",
   "extension": "mjs",
   "parent": "QwikCityProvider_component_TxCFOy819ag",
@@ -1238,7 +1238,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   ]
 }
 */
-============================= ../node_modules/@builder.io/qwik-city/qwikcityprovider_component_usetask_02wmimzeabk.mjs ==
+============================= ../node_modules/@builder.io/qwik-city/index.qwik.mjs_qwikcityprovider_component_usetask_02wmimzeabk.mjs ==
 
 import { _auto_CLIENT_DATA_CACHE as CLIENT_DATA_CACHE } from "./index.qwik.mjs";
 import { _getContextElement } from "@builder.io/qwik";
@@ -1330,9 +1330,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   "origin": "../node_modules/@builder.io/qwik-city/index.qwik.mjs",
   "name": "QwikCityProvider_component_useTask_02wMImzEAbk",
   "entry": "../node_modules/@builder.io/qwik-city/index.qwik.mjs_entry_QwikCityProvider",
-  "displayName": "QwikCityProvider_component_useTask",
+  "displayName": "index.qwik.mjs_QwikCityProvider_component_useTask",
   "hash": "02wMImzEAbk",
-  "canonicalFilename": "qwikcityprovider_component_usetask_02wmimzeabk",
+  "canonicalFilename": "index.qwik.mjs_qwikcityprovider_component_usetask_02wmimzeabk",
   "path": "../node_modules/@builder.io/qwik-city",
   "extension": "mjs",
   "parent": "QwikCityProvider_component_TxCFOy819ag",
@@ -1345,7 +1345,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   ]
 }
 */
-============================= ../node_modules/@builder.io/qwik-city/qwikcityprovider_component_txcfoy819ag.mjs ==
+============================= ../node_modules/@builder.io/qwik-city/index.qwik.mjs_qwikcityprovider_component_txcfoy819ag.mjs ==
 
 import { _auto_ContentContext as ContentContext } from "./index.qwik.mjs";
 import { _auto_ContentInternalContext as ContentInternalContext } from "./index.qwik.mjs";
@@ -1369,7 +1369,7 @@ import { useStore } from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
 import { useTaskQrl } from "@builder.io/qwik";
 export const QwikCityProvider_component_TxCFOy819ag = (props)=>{
-    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./qwikcityprovider_component_usestyles_rpdjaz33wla.mjs"), "QwikCityProvider_component_useStyles_RPDJAz33WLA"));
+    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_qwikcityprovider_component_usestyles_rpdjaz33wla.mjs"), "QwikCityProvider_component_useStyles_RPDJAz33WLA"));
     const env = useQwikCityEnv();
     if (!env?.params) throw new Error(`Missing Qwik City Env Data`);
     const urlEnv = useServerData('url');
@@ -1402,7 +1402,7 @@ export const QwikCityProvider_component_TxCFOy819ag = (props)=>{
             status: env.response.status
         }
     } : void 0);
-    const goto = eventQrl(/*#__PURE__*/ qrl(()=>import("./qwikcityprovider_component_goto_event_cbcjroynrvg.mjs"), "QwikCityProvider_component_goto_event_cBcjROynRVg", [
+    const goto = eventQrl(/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_qwikcityprovider_component_goto_event_cbcjroynrvg.mjs"), "QwikCityProvider_component_goto_event_cBcjROynRVg", [
         actionState,
         navPath,
         routeLocation
@@ -1414,7 +1414,7 @@ export const QwikCityProvider_component_TxCFOy819ag = (props)=>{
     useContextProvider(RouteNavigateContext, goto);
     useContextProvider(RouteStateContext, loaderState);
     useContextProvider(RouteActionContext, actionState);
-    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./qwikcityprovider_component_usetask_02wmimzeabk.mjs"), "QwikCityProvider_component_useTask_02wMImzEAbk", [
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_qwikcityprovider_component_usetask_02wmimzeabk.mjs"), "QwikCityProvider_component_useTask_02wMImzEAbk", [
         actionState,
         content,
         contentInternal,
@@ -1436,9 +1436,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   "origin": "../node_modules/@builder.io/qwik-city/index.qwik.mjs",
   "name": "QwikCityProvider_component_TxCFOy819ag",
   "entry": "../node_modules/@builder.io/qwik-city/index.qwik.mjs_entry_QwikCityProvider",
-  "displayName": "QwikCityProvider_component",
+  "displayName": "index.qwik.mjs_QwikCityProvider_component",
   "hash": "TxCFOy819ag",
-  "canonicalFilename": "qwikcityprovider_component_txcfoy819ag",
+  "canonicalFilename": "index.qwik.mjs_qwikcityprovider_component_txcfoy819ag",
   "path": "../node_modules/@builder.io/qwik-city",
   "extension": "mjs",
   "parent": null,
@@ -1451,7 +1451,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   ]
 }
 */
-============================= ../node_modules/@builder.io/qwik-city/qwikcitymockprovider_component_goto_bubtvtyvvre.mjs ==
+============================= ../node_modules/@builder.io/qwik-city/index.qwik.mjs_qwikcitymockprovider_component_goto_bubtvtyvvre.mjs ==
 
 export const QwikCityMockProvider_component_goto_BUbtvTyvVRE = async (path)=>{
     throw new Error('Not implemented');
@@ -1464,9 +1464,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   "origin": "../node_modules/@builder.io/qwik-city/index.qwik.mjs",
   "name": "QwikCityMockProvider_component_goto_BUbtvTyvVRE",
   "entry": "../node_modules/@builder.io/qwik-city/index.qwik.mjs_entry_QwikCityMockProvider",
-  "displayName": "QwikCityMockProvider_component_goto",
+  "displayName": "index.qwik.mjs_QwikCityMockProvider_component_goto",
   "hash": "BUbtvTyvVRE",
-  "canonicalFilename": "qwikcitymockprovider_component_goto_bubtvtyvvre",
+  "canonicalFilename": "index.qwik.mjs_qwikcitymockprovider_component_goto_bubtvtyvvre",
   "path": "../node_modules/@builder.io/qwik-city",
   "extension": "mjs",
   "parent": "QwikCityMockProvider_component_WmYC5H00wtI",
@@ -1479,7 +1479,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   ]
 }
 */
-============================= ../node_modules/@builder.io/qwik-city/qwikcitymockprovider_component_wmyc5h00wti.mjs ==
+============================= ../node_modules/@builder.io/qwik-city/index.qwik.mjs_qwikcitymockprovider_component_wmyc5h00wti.mjs ==
 
 import { _auto_ContentContext as ContentContext } from "./index.qwik.mjs";
 import { _auto_ContentInternalContext as ContentInternalContext } from "./index.qwik.mjs";
@@ -1505,7 +1505,7 @@ export const QwikCityMockProvider_component_WmYC5H00wtI = (props)=>{
         deep: false
     });
     const loaderState = useSignal({});
-    const goto = /*#__PURE__*/ qrl(()=>import("./qwikcitymockprovider_component_goto_bubtvtyvvre.mjs"), "QwikCityMockProvider_component_goto_BUbtvTyvVRE");
+    const goto = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_qwikcitymockprovider_component_goto_bubtvtyvvre.mjs"), "QwikCityMockProvider_component_goto_BUbtvTyvVRE");
     const documentHead = useStore(createDocumentHead, {
         deep: false
     });
@@ -1532,9 +1532,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   "origin": "../node_modules/@builder.io/qwik-city/index.qwik.mjs",
   "name": "QwikCityMockProvider_component_WmYC5H00wtI",
   "entry": "../node_modules/@builder.io/qwik-city/index.qwik.mjs_entry_QwikCityMockProvider",
-  "displayName": "QwikCityMockProvider_component",
+  "displayName": "index.qwik.mjs_QwikCityMockProvider_component",
   "hash": "WmYC5H00wtI",
-  "canonicalFilename": "qwikcitymockprovider_component_wmyc5h00wti",
+  "canonicalFilename": "index.qwik.mjs_qwikcitymockprovider_component_wmyc5h00wti",
   "path": "../node_modules/@builder.io/qwik-city",
   "extension": "mjs",
   "parent": null,
@@ -1547,7 +1547,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   ]
 }
 */
-============================= ../node_modules/@builder.io/qwik-city/link_component_event_event_5g4b0gd1wck.mjs (ENTRY POINT)==
+============================= ../node_modules/@builder.io/qwik-city/index.qwik.mjs_link_component_event_event_5g4b0gd1wck.mjs (ENTRY POINT)==
 
 import { _auto_prefetchLinkResources as prefetchLinkResources } from "./index.qwik.mjs";
 export const Link_component_event_event_5g4B0Gd1Wck = (ev, elm)=>prefetchLinkResources(elm, ev.type === 'qvisible');
@@ -1559,9 +1559,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   "origin": "../node_modules/@builder.io/qwik-city/index.qwik.mjs",
   "name": "Link_component_event_event_5g4B0Gd1Wck",
   "entry": null,
-  "displayName": "Link_component_event_event",
+  "displayName": "index.qwik.mjs_Link_component_event_event",
   "hash": "5g4B0Gd1Wck",
-  "canonicalFilename": "link_component_event_event_5g4b0gd1wck",
+  "canonicalFilename": "index.qwik.mjs_link_component_event_event_5g4b0gd1wck",
   "path": "../node_modules/@builder.io/qwik-city",
   "extension": "mjs",
   "parent": "Link_component_8gdLBszqbaM",
@@ -1574,7 +1574,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   ]
 }
 */
-============================= ../node_modules/@builder.io/qwik-city/link_component_a_onclick_kzjavhdi3l0.mjs ==
+============================= ../node_modules/@builder.io/qwik-city/index.qwik.mjs_link_component_a_onclick_kzjavhdi3l0.mjs ==
 
 import { useLexicalScope } from "@builder.io/qwik";
 export const Link_component_a_onClick_kzjavhDI3L0 = (_, elm)=>{
@@ -1589,9 +1589,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   "origin": "../node_modules/@builder.io/qwik-city/index.qwik.mjs",
   "name": "Link_component_a_onClick_kzjavhDI3L0",
   "entry": "../node_modules/@builder.io/qwik-city/index.qwik.mjs_entry_Link",
-  "displayName": "Link_component_a_onClick",
+  "displayName": "index.qwik.mjs_Link_component_a_onClick",
   "hash": "kzjavhDI3L0",
-  "canonicalFilename": "link_component_a_onclick_kzjavhdi3l0",
+  "canonicalFilename": "index.qwik.mjs_link_component_a_onclick_kzjavhdi3l0",
   "path": "../node_modules/@builder.io/qwik-city",
   "extension": "mjs",
   "parent": "Link_component_8gdLBszqbaM",
@@ -1604,7 +1604,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   ]
 }
 */
-============================= ../node_modules/@builder.io/qwik-city/link_component_8gdlbszqbam.mjs ==
+============================= ../node_modules/@builder.io/qwik-city/index.qwik.mjs_link_component_8gdlbszqbam.mjs ==
 
 import { Slot } from "@builder.io/qwik";
 import { _jsxC } from "@builder.io/qwik";
@@ -1627,12 +1627,12 @@ export const Link_component_8gdLBszqbaM = (props)=>{
     const reload = !!linkProps.reload;
     linkProps['preventdefault:click'] = !!clientNavPath;
     linkProps.href = clientNavPath || props.href;
-    const event = eventQrl(/*#__PURE__*/ qrl(()=>import("./link_component_event_event_5g4b0gd1wck.mjs"), "Link_component_event_event_5g4B0Gd1Wck"));
+    const event = eventQrl(/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_link_component_event_event_5g4b0gd1wck.mjs"), "Link_component_event_event_5g4B0Gd1Wck"));
     return /* @__PURE__ */ _jsxS('a', {
         ...linkProps,
         'data-prefetch': prefetchDataset,
         children: /* @__PURE__ */ _jsxC(Slot, null, 3, 'AD_0'),
-        onClick$: /*#__PURE__*/ qrl(()=>import("./link_component_a_onclick_kzjavhdi3l0.mjs"), "Link_component_a_onClick_kzjavhDI3L0", [
+        onClick$: /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_link_component_a_onclick_kzjavhdi3l0.mjs"), "Link_component_a_onClick_kzjavhDI3L0", [
             nav,
             reload
         ]),
@@ -1649,9 +1649,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   "origin": "../node_modules/@builder.io/qwik-city/index.qwik.mjs",
   "name": "Link_component_8gdLBszqbaM",
   "entry": "../node_modules/@builder.io/qwik-city/index.qwik.mjs_entry_Link",
-  "displayName": "Link_component",
+  "displayName": "index.qwik.mjs_Link_component",
   "hash": "8gdLBszqbaM",
-  "canonicalFilename": "link_component_8gdlbszqbam",
+  "canonicalFilename": "index.qwik.mjs_link_component_8gdlbszqbam",
   "path": "../node_modules/@builder.io/qwik-city",
   "extension": "mjs",
   "parent": null,
@@ -1664,7 +1664,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   ]
 }
 */
-============================= ../node_modules/@builder.io/qwik-city/routeactionqrl_action_submit_a5bzc7wo00a.mjs ==
+============================= ../node_modules/@builder.io/qwik-city/index.qwik.mjs_routeactionqrl_action_submit_a5bzc7wo00a.mjs ==
 
 import { isServer } from "@builder.io/qwik/build";
 import { noSerialize } from "@builder.io/qwik";
@@ -1722,9 +1722,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   "origin": "../node_modules/@builder.io/qwik-city/index.qwik.mjs",
   "name": "routeActionQrl_action_submit_A5bZC7WO00A",
   "entry": "../node_modules/@builder.io/qwik-city/index.qwik.mjs_entry_routeActionQrl",
-  "displayName": "routeActionQrl_action_submit",
+  "displayName": "index.qwik.mjs_routeActionQrl_action_submit",
   "hash": "A5bZC7WO00A",
-  "canonicalFilename": "routeactionqrl_action_submit_a5bzc7wo00a",
+  "canonicalFilename": "index.qwik.mjs_routeactionqrl_action_submit_a5bzc7wo00a",
   "path": "../node_modules/@builder.io/qwik-city",
   "extension": "mjs",
   "parent": null,
@@ -1737,7 +1737,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   ]
 }
 */
-============================= ../node_modules/@builder.io/qwik-city/serverqrl_stuff_woipfiq04l4.mjs ==
+============================= ../node_modules/@builder.io/qwik-city/index.qwik.mjs_serverqrl_stuff_woipfiq04l4.mjs ==
 
 import { _deserializeData } from "@builder.io/qwik";
 import { _getContextElement } from "@builder.io/qwik";
@@ -1795,9 +1795,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   "origin": "../node_modules/@builder.io/qwik-city/index.qwik.mjs",
   "name": "serverQrl_stuff_wOIPfiQ04l4",
   "entry": "../node_modules/@builder.io/qwik-city/index.qwik.mjs_entry_serverQrl",
-  "displayName": "serverQrl_stuff",
+  "displayName": "index.qwik.mjs_serverQrl_stuff",
   "hash": "wOIPfiQ04l4",
-  "canonicalFilename": "serverqrl_stuff_woipfiq04l4",
+  "canonicalFilename": "index.qwik.mjs_serverqrl_stuff_woipfiq04l4",
   "path": "../node_modules/@builder.io/qwik-city",
   "extension": "mjs",
   "parent": null,
@@ -1810,7 +1810,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   ]
 }
 */
-============================= ../node_modules/@builder.io/qwik-city/getform_component_form_onsubmit_p9msze0ojs4.mjs ==
+============================= ../node_modules/@builder.io/qwik-city/index.qwik.mjs_getform_component_form_onsubmit_p9msze0ojs4.mjs ==
 
 import { useLexicalScope } from "@builder.io/qwik";
 export const GetForm_component_form_onSubmit_p9MSze0ojs4 = async (_, form)=>{
@@ -1840,9 +1840,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   "origin": "../node_modules/@builder.io/qwik-city/index.qwik.mjs",
   "name": "GetForm_component_form_onSubmit_p9MSze0ojs4",
   "entry": "../node_modules/@builder.io/qwik-city/index.qwik.mjs_entry_GetForm",
-  "displayName": "GetForm_component_form_onSubmit",
+  "displayName": "index.qwik.mjs_GetForm_component_form_onSubmit",
   "hash": "p9MSze0ojs4",
-  "canonicalFilename": "getform_component_form_onsubmit_p9msze0ojs4",
+  "canonicalFilename": "index.qwik.mjs_getform_component_form_onsubmit_p9msze0ojs4",
   "path": "../node_modules/@builder.io/qwik-city",
   "extension": "mjs",
   "parent": "GetForm_component_Nk9PlpjQm9Y",
@@ -1855,7 +1855,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   ]
 }
 */
-============================= ../node_modules/@builder.io/qwik-city/getform_component_nk9plpjqm9y.mjs ==
+============================= ../node_modules/@builder.io/qwik-city/index.qwik.mjs_getform_component_nk9plpjqm9y.mjs ==
 
 import { Slot } from "@builder.io/qwik";
 import { _fnSignal } from "@builder.io/qwik";
@@ -1875,7 +1875,7 @@ export const GetForm_component_Nk9PlpjQm9Y = (props)=>{
     return /* @__PURE__ */ _jsxS('form', {
         ...rest,
         children: /* @__PURE__ */ _jsxC(Slot, null, 3, 'BC_0'),
-        onSubmit$: /*#__PURE__*/ qrl(()=>import("./getform_component_form_onsubmit_p9msze0ojs4.mjs"), "GetForm_component_form_onSubmit_p9MSze0ojs4", [
+        onSubmit$: /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_getform_component_form_onsubmit_p9msze0ojs4.mjs"), "GetForm_component_form_onSubmit_p9MSze0ojs4", [
             nav
         ])
     }, {
@@ -1896,9 +1896,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-cit
   "origin": "../node_modules/@builder.io/qwik-city/index.qwik.mjs",
   "name": "GetForm_component_Nk9PlpjQm9Y",
   "entry": "../node_modules/@builder.io/qwik-city/index.qwik.mjs_entry_GetForm",
-  "displayName": "GetForm_component",
+  "displayName": "index.qwik.mjs_GetForm_component",
   "hash": "Nk9PlpjQm9Y",
-  "canonicalFilename": "getform_component_nk9plpjqm9y",
+  "canonicalFilename": "index.qwik.mjs_getform_component_nk9plpjqm9y",
   "path": "../node_modules/@builder.io/qwik-city",
   "extension": "mjs",
   "parent": null,
@@ -1926,7 +1926,7 @@ const DocumentHeadContext = /* @__PURE__ */ createContextId('qc-h');
 const RouteLocationContext = /* @__PURE__ */ createContextId('qc-l');
 const RouteNavigateContext = /* @__PURE__ */ createContextId('qc-n');
 const RouteActionContext = /* @__PURE__ */ createContextId('qc-a');
-const RouterOutlet = /* @__PURE__ */ componentQrl(/*#__PURE__*/ qrl(()=>import("./routeroutlet_component_aketnbye5tm.mjs"), "RouterOutlet_component_AKetNByE5TM"));
+const RouterOutlet = /* @__PURE__ */ componentQrl(/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_routeroutlet_component_aketnbye5tm.mjs"), "RouterOutlet_component_AKetNByE5TM"));
 const MODULE_CACHE = /* @__PURE__ */ new WeakMap();
 const CLIENT_DATA_CACHE = /* @__PURE__ */ new Map();
 const QACTION_KEY = 'qaction';
@@ -2193,9 +2193,9 @@ const useLocation = ()=>useContext(RouteLocationContext);
 const useNavigate = ()=>useContext(RouteNavigateContext);
 const useAction = ()=>useContext(RouteActionContext);
 const useQwikCityEnv = ()=>noSerialize(useServerData('qwikcity'));
-const QwikCityProvider = /* @__PURE__ */ componentQrl(/*#__PURE__*/ qrl(()=>import("./qwikcityprovider_component_txcfoy819ag.mjs"), "QwikCityProvider_component_TxCFOy819ag"));
-const QwikCityMockProvider = /* @__PURE__ */ componentQrl(/*#__PURE__*/ qrl(()=>import("./qwikcitymockprovider_component_wmyc5h00wti.mjs"), "QwikCityMockProvider_component_WmYC5H00wtI"));
-const Link = /* @__PURE__ */ componentQrl(/*#__PURE__*/ qrl(()=>import("./link_component_8gdlbszqbam.mjs"), "Link_component_8gdLBszqbaM"));
+const QwikCityProvider = /* @__PURE__ */ componentQrl(/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_qwikcityprovider_component_txcfoy819ag.mjs"), "QwikCityProvider_component_TxCFOy819ag"));
+const QwikCityMockProvider = /* @__PURE__ */ componentQrl(/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_qwikcitymockprovider_component_wmyc5h00wti.mjs"), "QwikCityMockProvider_component_WmYC5H00wtI"));
+const Link = /* @__PURE__ */ componentQrl(/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_link_component_8gdlbszqbam.mjs"), "Link_component_8gdLBszqbaM"));
 const prefetchLinkResources = (elm, isOnVisible)=>{
     if (elm && elm.href && elm.hasAttribute('data-prefetch')) {
         if (!windowInnerWidth) windowInnerWidth = innerWidth;
@@ -2233,7 +2233,7 @@ const routeActionQrl = (actionQrl, ...rest)=>{
             }
             return initialState;
         });
-        const submit = /*#__PURE__*/ qrl(()=>import("./routeactionqrl_action_submit_a5bzc7wo00a.mjs"), "routeActionQrl_action_submit_A5bZC7WO00A", [
+        const submit = /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_routeactionqrl_action_submit_a5bzc7wo00a.mjs"), "routeActionQrl_action_submit_A5bZC7WO00A", [
             currentAction,
             id,
             loc,
@@ -2316,7 +2316,7 @@ const serverQrl = (qrl1)=>{
         if (captured && captured.length > 0 && !_getContextElement()) throw new Error('For security reasons, we cannot serialize QRLs that capture lexical scope.');
     }
     function stuff() {
-        return /*#__PURE__*/ qrl(()=>import("./serverqrl_stuff_woipfiq04l4.mjs"), "serverQrl_stuff_wOIPfiQ04l4", [
+        return /*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_serverqrl_stuff_woipfiq04l4.mjs"), "serverQrl_stuff_wOIPfiQ04l4", [
             qrl1
         ]);
     }
@@ -2416,7 +2416,7 @@ const Form = ({ action, spaReset, reloadDocument, onSubmit$, ...rest }, key)=>{
         ...rest
     }, 0, key);
 };
-const GetForm = /* @__PURE__ */ componentQrl(/*#__PURE__*/ qrl(()=>import("./getform_component_nk9plpjqm9y.mjs"), "GetForm_component_Nk9PlpjQm9Y"));
+const GetForm = /* @__PURE__ */ componentQrl(/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_getform_component_nk9plpjqm9y.mjs"), "GetForm_component_Nk9PlpjQm9Y"));
 export { Form, Link, QwikCityMockProvider, QwikCityProvider, RouterOutlet, ServiceWorkerRegister, globalAction$, globalActionQrl, routeAction$, routeActionQrl, routeLoader$, routeLoaderQrl, server$, serverQrl, useContent, useDocumentHead, useLocation, useNavigate, validator$, validatorQrl, z2 as z, zod$, zodQrl };
 export { CLIENT_DATA_CACHE as _auto_CLIENT_DATA_CACHE };
 export { ContentContext as _auto_ContentContext };

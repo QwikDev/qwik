@@ -451,6 +451,20 @@
       "mdFile": "city.navigationtype.md"
     },
     {
+      "name": "omitProps",
+      "id": "omitprops",
+      "hierarchy": [
+        {
+          "name": "omitProps",
+          "id": "omitprops"
+        }
+      ],
+      "kind": "Function",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nCreates a new object from `obj` by omitting a set of `keys`<!-- -->.\n\n\n```typescript\nexport declare function omitProps<T, KEYS extends keyof T>(obj: T, keys: KEYS[]): Omit<T, KEYS>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nobj\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nkeys\n\n\n</td><td>\n\nKEYS\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nOmit&lt;T, KEYS&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/typed-routes.ts",
+      "mdFile": "city.omitprops.md"
+    },
+    {
       "name": "PageModule",
       "id": "pagemodule",
       "hierarchy": [
@@ -827,6 +841,20 @@
       "content": "```typescript\nexport type TypedDataValidator = ValibotDataValidator | ZodDataValidator;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
       "mdFile": "city.typeddatavalidator.md"
+    },
+    {
+      "name": "untypedAppUrl",
+      "id": "untypedappurl",
+      "hierarchy": [
+        {
+          "name": "untypedAppUrl",
+          "id": "untypedappurl"
+        }
+      ],
+      "kind": "Function",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nuntypedAppUrl: (route: string, params?: Record<string, string>, paramsPrefix?: string) => string\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nroute\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nparams\n\n\n</td><td>\n\nRecord&lt;string, string&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nparamsPrefix\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nstring",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/typed-routes.ts",
+      "mdFile": "city.untypedappurl.md"
     },
     {
       "name": "useContent",

@@ -299,6 +299,9 @@ export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 // @public (undocumented)
 export type NavigationType = 'initial' | 'form' | 'link' | 'popstate';
 
+// @alpha
+export function omitProps<T, KEYS extends keyof T>(obj: T, keys: KEYS[]): Omit<T, KEYS>;
+
 // Warning: (ae-forgotten-export) The symbol "RouteModule" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -466,6 +469,9 @@ export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 
 // @public (undocumented)
 export type TypedDataValidator = ValibotDataValidator | ZodDataValidator;
+
+// @alpha (undocumented)
+export const untypedAppUrl: (route: string, params?: Record<string, string>, paramsPrefix?: string) => string;
 
 // Warning: (ae-forgotten-export) The symbol "ContentState" needs to be exported by the entry point index.d.ts
 //

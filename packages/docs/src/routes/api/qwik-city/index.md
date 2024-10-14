@@ -1609,6 +1609,61 @@ export type NavigationType = "initial" | "form" | "link" | "popstate";
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
 
+## omitProps
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+Creates a new object from `obj` by omitting a set of `keys`.
+
+```typescript
+export declare function omitProps<T, KEYS extends keyof T>(
+  obj: T,
+  keys: KEYS[],
+): Omit<T, KEYS>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+obj
+
+</td><td>
+
+T
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+keys
+
+</td><td>
+
+KEYS[]
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+Omit&lt;T, KEYS&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/typed-routes.ts)
+
 ## PageModule
 
 ```typescript
@@ -2368,6 +2423,75 @@ export type TypedDataValidator = ValibotDataValidator | ZodDataValidator;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+
+## untypedAppUrl
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+```typescript
+untypedAppUrl: (
+  route: string,
+  params?: Record<string, string>,
+  paramsPrefix?: string,
+) => string;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+route
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+params
+
+</td><td>
+
+Record&lt;string, string&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+paramsPrefix
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+string
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/typed-routes.ts)
 
 ## useContent
 

@@ -1,8 +1,7 @@
 import { partytownVite } from '@builder.io/partytown/utils';
-import { qwikInsights } from '@qwik.dev/labs/vite';
-import { qwikReact } from '@qwik.dev/react/vite';
 import { qwikCity } from '@qwik.dev/city/vite';
-import { qwikVite } from '@qwik.dev/core/optimizer';
+import { qwikInsights, qwikVite } from '@qwik.dev/core/optimizer';
+import { qwikReact } from '@qwik.dev/react/vite';
 import path, { resolve } from 'node:path';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import Inspect from 'vite-plugin-inspect';

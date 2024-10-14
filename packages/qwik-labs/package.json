@@ -14,7 +14,8 @@
     "prettier": "3.3.3",
     "typescript": "5.4.5",
     "undici": "*",
-    "vite": "5.3.5"
+    "vite": "5.3.5",
+    "zod": "3.22.4"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"
@@ -36,6 +37,9 @@
     "vite"
   ],
   "main": "./lib/index.qwik.mjs",
+  "peerDependencies": {
+    "zod": "3.22.4"
+  },
   "private": true,
   "qwik": "./lib/index.qwik.mjs",
   "scripts": {

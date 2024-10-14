@@ -37,7 +37,8 @@
     "undici": "*",
     "vite": "5.3.5",
     "vite-tsconfig-paths": "4.3.2",
-    "vitest": "2.0.5"
+    "vitest": "2.0.5",
+    "zod": "3.22.4"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"

@@ -3,7 +3,7 @@ title: Image Optimization | Integrations
 keywords: >-
   third party image optimization, image optimization, image optimization tools,
   image optimization services, image optimization service, image optimization
-  tool, image optimization api, im
+  tool, image optimization api, image optimization software
 contributors:
   - mhevery
   - gioboa
@@ -16,7 +16,8 @@ contributors:
   - fabian-hiller
   - manucorporat
   - aendel
-updated_at: '2023-10-03T18:53:23Z'
+  - maiieul
+updated_at: '2024-10-03T18:53:23Z'
 created_at: '2023-04-19T22:13:46Z'
 ---
 
@@ -62,11 +63,13 @@ The community and the Qwik team love this API for a number of reasons:
 
 #### Usage
 
-Add the `?jsx` suffix at the end of the import
+Add the `?jsx` suffix **at the end** of the import
 
 ```tsx
-import Image from '[IMAGE_PATH]?jsx';
+import Image from '[IMAGE_PATH]??w=24&h=24&jsx';
 ```
+
+> ⚠️ Make sure to put the `jsx` query parameter at the end of the import path, otherwise typescript might complain.
 
 Use the image in the template as a component:
 

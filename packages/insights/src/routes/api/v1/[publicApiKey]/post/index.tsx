@@ -45,10 +45,10 @@ export const onPost: RequestHandler = async ({ exit, json, request, params }) =>
   }
 };
 
-function cleanupSymbolName(symbolName: string | null): string | null {
-  if (!symbolName) return null;
+function cleanupSymbolName(symbolName?: string | null) {
+  if (!symbolName) return;
   const shortName = symbolName.substring(symbolName.lastIndexOf('_') + 1 || 0);
-  if (shortName == 'hW') return null;
+  if (shortName == 'hW') return;
   return shortName;
 }
 function migrate1(payloadJson: any) {

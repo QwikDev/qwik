@@ -27,7 +27,10 @@ export async function submoduleInsights(config: BuildConfig) {
     format: 'esm',
     banner: { js: getBanner('@qwik.dev/core/insights', config.distVersion) },
     outExtension: { '.js': '.mjs' },
-    plugins: [importPath(/^@qwik\.dev\/core$/, '@qwik.dev/core')],
+    plugins: [
+      importPath(/^@qwik\.dev\/core$/, '../core.mjs'),
+      importPath(/^@qwik\.dev\/core\/optimizer$/, '../optimizer.mjs'),
+    ],
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
       'globalThis.IS_CJS': 'false',
@@ -38,8 +41,7 @@ export async function submoduleInsights(config: BuildConfig) {
 
   const cjsBanner = [
     getBanner('@qwik.dev/core/insights', config.distVersion),
-    `globalThis.qwikServer = (function (module) {`,
-    browserCjsRequireShim,
+    `globalThis.qwikInsights = (function (module) {`,
   ].join('\n');
 
   const cjs = build({
@@ -66,23 +68,3 @@ export async function submoduleInsights(config: BuildConfig) {
 
   console.log('📈', submodule);
 }
-
-const browserCjsRequireShim = `
-if (typeof require !== 'function' && typeof location !== 'undefined' && typeof navigator !== 'undefined') {
-  // shim cjs require() for core.cjs within a browser
-  globalThis.require = function(path) {
-    if (path === './core.cjs' || path === '@qwik.dev/core') {
-      if (!self.qwikCore) {
-        throw new Error('Qwik Core global, "globalThis.qwikCore", must already be loaded for the Qwik Server to be used within a browser.');
-      }
-      return self.qwikCore;
-    }
-    if (path === '@qwik.dev/core/build') {
-      if (!self.qwikBuild) {
-        throw new Error('Qwik Build global, "globalThis.qwikBuild", must already be loaded for the Qwik Server to be used within a browser.');
-      }
-      return self.qwikBuild;
-    }
-    throw new Error('Unable to require() path "' + path + '" from a browser environment.');
-  };
-}`;

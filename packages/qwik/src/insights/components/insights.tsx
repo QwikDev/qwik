@@ -238,6 +238,7 @@ const insightsPing = sync$(() =>
 declare var __QI_KEY__: string;
 declare var __QI_URL__: string;
 
+/** @experimental */
 export const Insights = component$<{ publicApiKey: string; postUrl?: string }>(
   ({ publicApiKey, postUrl }) => {
     if (!__EXPERIMENTAL__.insights) {

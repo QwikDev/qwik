@@ -1,4 +1,7 @@
-/** @experimental */
+/**
+ * @alpha
+ * @experimental
+ */
 export const untypedAppUrl = function appUrl(
   route: string,
   params?: Record<string, string>,
@@ -34,6 +37,7 @@ export const untypedAppUrl = function appUrl(
 /**
  * Creates a new object from `obj` by omitting a set of `keys`.
  *
+ * @alpha
  * @experimental
  */
 export function omitProps<T, KEYS extends keyof T>(obj: T, keys: KEYS[]): Omit<T, KEYS> {

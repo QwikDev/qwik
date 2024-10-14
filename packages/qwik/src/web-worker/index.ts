@@ -34,7 +34,10 @@ const getWorker = (qrl: QRL) => {
   return worker;
 };
 
-/** @experimental */
+/**
+ * @alpha
+ * @experimental
+ */
 export const workerQrl: WorkerConstructorQRL = (qrl) => {
   if (!__EXPERIMENTAL__.webWorker) {
     throw new Error(
@@ -79,5 +82,8 @@ export const workerQrl: WorkerConstructorQRL = (qrl) => {
   }) as any;
 };
 
-/** @experimental */
+/**
+ * @alpha
+ * @experimental
+ */
 export const worker$ = implicit$FirstArg(workerQrl);

@@ -2738,6 +2738,19 @@ export interface InsHTMLAttributes<T extends Element> extends Attrs<'ins', T>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
 
+## Insights
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+```typescript
+Insights: import("../shared/component.public").Component<{
+  publicApiKey: string;
+  postUrl?: string | undefined;
+}>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/insights/insights.tsx)
+
 ## IntrinsicAttributes
 
 ```typescript
@@ -3630,7 +3643,7 @@ _(Optional)_ Options for the loading prefetch graph.
 </tbody></table>
 **Returns:**
 
-JSXNode&lt;string&gt;
+[JSXNode](#jsxnode)&lt;string&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/prefetch-service-worker/prefetch.ts)
 
@@ -3684,7 +3697,7 @@ Options for the prefetch service worker.
 </tbody></table>
 **Returns:**
 
-JSXNode&lt;'script'&gt;
+[JSXNode](#jsxnode)&lt;'script'&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/prefetch-service-worker/prefetch.ts)
 
@@ -4592,7 +4605,7 @@ opts
 
 </td><td>
 
-RenderOptions
+[RenderOptions](#renderoptions)
 
 </td><td>
 
@@ -4602,7 +4615,7 @@ _(Optional)_
 </tbody></table>
 **Returns:**
 
-Promise&lt;RenderResult&gt;
+Promise&lt;[RenderResult](#renderresult)&gt;
 
 An object containing a cleanup function.
 

@@ -8,9 +8,7 @@ export type {
   EntryStrategy,
   GlobalInjections,
   SegmentAnalysis as HookAnalysis,
-  SegmentAnalysis,
   SegmentEntryStrategy as HookEntryStrategy,
-  SegmentEntryStrategy,
   InlineEntryStrategy,
   InsightManifest,
   MinifyMode,
@@ -22,6 +20,8 @@ export type {
   QwikManifest,
   QwikSymbol,
   ResolvedManifest,
+  SegmentAnalysis,
+  SegmentEntryStrategy,
   SingleEntryStrategy,
   SmartEntryStrategy,
   SourceLocation,
@@ -38,7 +38,7 @@ export type {
   TranspileOption,
 } from './types';
 
-export type { QwikBuildMode, QwikBuildTarget, ExperimentalFeatures } from './plugins/plugin';
+export type { ExperimentalFeatures, QwikBuildMode, QwikBuildTarget } from './plugins/plugin';
 export type { QwikRollupPluginOptions } from './plugins/rollup';
 export type {
   QwikViteDevResponse,
@@ -47,6 +47,7 @@ export type {
   QwikVitePluginOptions,
 } from './plugins/vite';
 
+export { qwikInsights } from './plugins/insights-plugin';
 export { qwikRollup } from './plugins/rollup';
 export { qwikVite } from './plugins/vite';
 export { symbolMapper } from './plugins/vite-dev-server';

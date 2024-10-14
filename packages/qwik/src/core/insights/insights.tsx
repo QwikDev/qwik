@@ -1,5 +1,4 @@
 import { component$, sync$ } from '@qwik.dev/core';
-import { z } from 'zod';
 
 export interface InsightsPayload {
   /** Qwik version */
@@ -63,40 +62,6 @@ export interface InsightsError {
   message: string;
   stack: string;
 }
-
-export const InsightsError = /* @__PURE__ */ z.object({
-  manifestHash: z.string(),
-  url: z.string(),
-  timestamp: z.number(),
-  source: z.string(),
-  line: z.number(),
-  column: z.number(),
-  message: z.string(),
-  error: z.string(),
-  stack: z.string(),
-});
-
-export const InsightSymbol = /* @__PURE__ */ z.object({
-  symbol: z.string(),
-  route: z.string(),
-  delay: z.number(),
-  latency: z.number(),
-  timeline: z.number(),
-  interaction: z.boolean(),
-});
-
-export const InsightsPayload = /* @__PURE__ */ z.object({
-  qVersion: z.string(),
-  manifestHash: z.string(),
-  publicApiKey: z.string(),
-  // we retain nullable for older clients
-  previousSymbol: z.string().optional().nullable(),
-  symbols: z.array(InsightSymbol),
-});
-
-InsightSymbol._type satisfies InsightSymbol;
-InsightsPayload._type satisfies InsightsPayload;
-InsightsError._type satisfies InsightsError;
 
 interface QwikSymbolTrackerWindow extends Window {
   qSymbolTracker: {
@@ -243,7 +208,7 @@ export const Insights = component$<{ publicApiKey: string; postUrl?: string }>(
   ({ publicApiKey, postUrl }) => {
     if (!__EXPERIMENTAL__.insights) {
       throw new Error(
-        'worker$ is experimental and must be enabled with `experimental: ["webWorker"]` in the `qwikVite` plugin.'
+        'Insights is experimental and must be enabled with `experimental: ["insights"]` in the `qwikVite` plugin.'
       );
     }
     if (!publicApiKey) {

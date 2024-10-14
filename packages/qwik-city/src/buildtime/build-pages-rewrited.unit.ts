@@ -229,7 +229,7 @@ testWithDuplicatedRoutes(
   }
 );
 
-const testSameRoutes = testAppSuite('ssss', {
+const testSameRoutes = testAppSuite('Same route with undefined prefixes', {
   rewriteRoutes: [
     {
       prefix: undefined,

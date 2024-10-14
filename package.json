@@ -254,7 +254,7 @@
     "tsc.trace": "tsc -p tsconfig.json --traceResolution > tsc.log",
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",
     "update.qwik.builds": "tsm scripts/update-qwik-builds.ts packages/docs && tsm scripts/update-qwik-builds.ts packages/insights; pnpm install",
-    "vitest": "vitest run build-pages-rewrited.unit"
+    "vitest": "vitest"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm pretty-quick --staged"

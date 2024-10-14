@@ -30,16 +30,22 @@ export interface ISsrNode {
   removeProp(name: string): void;
 }
 
+/** @internal */
 export interface ISsrComponentFrame {
   componentNode: ISsrNode;
   scopedStyleIds: Set<string>;
-  childrenScopedStyle: string | null;
+  projectionScopedStyle: string | null;
+  projectionComponentFrame: ISsrComponentFrame | null;
   projectionDepth: number;
   releaseUnclaimedProjections(
     unclaimedProjections: (ISsrComponentFrame | JSXChildren | string)[]
   ): void;
   consumeChildrenForSlot(projectionNode: ISsrNode, slotName: string): JSXChildren | null;
-  distributeChildrenIntoSlots(children: JSXChildren, scopedStyle: string | null): void;
+  distributeChildrenIntoSlots(
+    children: JSXChildren,
+    parentScopedStyle: string | null,
+    parentComponentFrame: ISsrComponentFrame | null
+  ): void;
   hasSlot(slotName: string): boolean;
 }
 
@@ -74,7 +80,7 @@ export interface SSRContainer extends Container {
 
   openComponent(attrs: SsrAttrs): void;
   getComponentFrame(projectionDepth: number): ISsrComponentFrame | null;
-  getNearestComponentFrame(): ISsrComponentFrame | null;
+  getParentComponentFrame(): ISsrComponentFrame | null;
   closeComponent(): void;
 
   textNode(text: string): void;

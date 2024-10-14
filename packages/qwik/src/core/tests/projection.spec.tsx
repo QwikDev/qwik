@@ -810,6 +810,124 @@ describe.each([
     );
   });
 
+  it('should render nested projections in the same component with slots correctly', async () => {
+    const CompTwo = component$(() => {
+      return (
+        <div>
+          <Slot />
+        </div>
+      );
+    });
+
+    const CompThree = component$(() => {
+      return (
+        <div>
+          <Slot />
+        </div>
+      );
+    });
+
+    const CompFour = component$(() => {
+      return (
+        <div>
+          <Slot />
+        </div>
+      );
+    });
+
+    const CompOne = component$(() => {
+      return (
+        <CompTwo>
+          <CompThree>
+            <CompFour>
+              <Slot />
+            </CompFour>
+          </CompThree>
+        </CompTwo>
+      );
+    });
+
+    const { vNode } = await render(<CompOne>Hey</CompOne>, { debug: DEBUG });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <div>
+            <Projection>
+              <Component>
+                <div>
+                  <Projection>
+                    <Component>
+                      <div>
+                        <Projection>
+                          <Projection>{'Hey'}</Projection>
+                        </Projection>
+                      </div>
+                    </Component>
+                  </Projection>
+                </div>
+              </Component>
+            </Projection>
+          </div>
+        </Component>
+      </Component>
+    );
+  });
+
+  it('should render nested projections in the same component with slots correctly', async () => {
+    const Button = component$(() => {
+      return <Slot />;
+    });
+
+    const Thing = component$(() => {
+      return <Slot />;
+    });
+
+    const Projector = component$(() => {
+      return (
+        <Button>
+          <span>
+            <Slot />
+          </span>
+        </Button>
+      );
+    });
+
+    const Parent = component$(() => {
+      return (
+        <>
+          <Thing>
+            <Projector>{<>INSIDE THING</>}</Projector>
+          </Thing>
+        </>
+      );
+    });
+
+    const { vNode } = await render(<Parent />, { debug: DEBUG });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <Component>
+            <Projection>
+              <Component>
+                <Component>
+                  <Projection>
+                    <span>
+                      <Projection>
+                        <Fragment>{'INSIDE THING'}</Fragment>
+                      </Projection>
+                    </span>
+                  </Projection>
+                </Component>
+              </Component>
+            </Projection>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+  });
+
   describe('ensureProjectionResolved', () => {
     (globalThis as any).log = [] as string[];
     beforeEach(() => {
@@ -1672,7 +1790,7 @@ describe.each([
   describe('regression', () => {
     it('#1630', async () => {
       const Child = component$(() => <b>CHILD</b>);
-      const Issue1630 = component$((props) => {
+      const Issue1630 = component$(() => {
         const store = useStore({ open: true });
         return (
           <div>
@@ -1740,7 +1858,7 @@ describe.each([
           <Slot />
         </b>
       ));
-      const Issue1630 = component$((props) => {
+      const Issue1630 = component$(() => {
         const store = useStore({ open: true });
         return (
           <div>
@@ -2231,7 +2349,7 @@ describe.each([
       );
     });
 
-    it('#6900 - signals should be ordered so parents run first', async () => {
+    it('#6900 - should not execute chores for deleted nodes inside projection', async () => {
       const Issue6900Root = component$(() => <Slot />);
       const Issue6900Image = component$<{ src: string }>(({ src }) => src);
 
@@ -2274,49 +2392,5 @@ describe.each([
         </Component>
       );
     });
-  });
-
-  it('#6900 - should not execute chores for deleted nodes inside projection', async () => {
-    const Issue6900Root = component$(() => <Slot />);
-    const Issue6900Image = component$<{ src: string }>(({ src }) => src);
-
-    const Issue6900 = component$(() => {
-      const signal = useSignal<null | { url: string }>({ url: 'https://picsum.photos/200' });
-      if (!signal.value) {
-        return <p>User is not signed in</p>;
-      }
-
-      return (
-        <div>
-          <button onClick$={() => (signal.value = null)}>Sign out</button>
-          <Issue6900Root>
-            <Issue6900Image src={signal.value.url} />
-          </Issue6900Root>
-        </div>
-      );
-    });
-
-    const { vNode, document } = await render(<Issue6900 />, { debug: DEBUG });
-
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <div>
-          <button>Sign out</button>
-          <Component>
-            <Projection>
-              <Component>https://picsum.photos/200</Component>
-            </Projection>
-          </Component>
-        </div>
-      </Component>
-    );
-
-    await trigger(document.body, 'button', 'click');
-
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <p>User is not signed in</p>
-      </Component>
-    );
   });
 });

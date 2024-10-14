@@ -253,7 +253,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   async render(jsx: JSXOutput) {
     this.openContainer();
-    await _walkJSX(this, jsx, true, null);
+    await _walkJSX(this, jsx, {
+      allowPromises: true,
+      currentStyleScoped: null,
+      parentComponentFrame: this.getComponentFrame(),
+    });
     await this.closeContainer();
   }
 
@@ -458,7 +462,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   openComponent(attrs: SsrAttrs) {
     this.openFragment(attrs);
     this.currentComponentNode = this.getLastNode();
-    this.componentStack.push(new SsrComponentFrame(this.getLastNode()));
+    this.componentStack.push(new SsrComponentFrame(this.currentComponentNode));
   }
 
   /**
@@ -474,12 +478,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return idx >= 0 ? this.componentStack[idx] : null;
   }
 
-  getNearestComponentFrame(): ISsrComponentFrame | null {
-    const currentFrame = this.getComponentFrame(0);
-    if (!currentFrame) {
-      return null;
-    }
-    return this.getComponentFrame(currentFrame.projectionDepth);
+  getParentComponentFrame(): ISsrComponentFrame | null {
+    const localProjectionDepth = this.getComponentFrame()?.projectionDepth || 0;
+    return this.getComponentFrame(localProjectionDepth);
   }
 
   /** Writes closing data to vNodeData for component boundaries and mark unclaimed projections */
@@ -941,7 +942,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
                 : [QSlotParent, ssrComponentNode!.id]
             );
             ssrComponentNode?.setProp(value, this.getLastNode().id);
-            _walkJSX(this, children, false, scopedStyleId);
+            _walkJSX(this, children, {
+              allowPromises: false,
+              currentStyleScoped: scopedStyleId,
+              parentComponentFrame: null,
+            });
             this.closeFragment();
           } else {
             throw Error(); // 'should not get here'

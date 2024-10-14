@@ -244,13 +244,7 @@ const testSameRoutes = testAppSuite('Same route with undefined prefixes', {
     {
       prefix: undefined,
       paths: {
-        booking: 'reservation',
-      },
-    },
-    {
-      prefix: undefined,
-      paths: {
-        booking: 'buchen',
+        produkt: 'test',
       },
     },
   ],

@@ -51,7 +51,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-import { $, component$, useStore } from '@builder.io/qwik';
+import { $, component$, useStore } from '@qwik.dev/core';
 const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_header_component_j4uyihabnr4"), "Header_component_J4uyIhaBNR4"));
 
 

@@ -351,6 +351,19 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+insights
+
+</td><td>
+
+`"insights"`
+
+</td><td>
+
+**_(ALPHA)_** Enable the ability to use the Qwik Insights vite plugin and <Insights/> component
+
+</td></tr>
+<tr><td>
+
 noSPA
 
 </td><td>
@@ -386,6 +399,19 @@ valibot
 </td><td>
 
 **_(ALPHA)_** Enable the Valibot form validation
+
+</td></tr>
+<tr><td>
+
+webWorker
+
+</td><td>
+
+`"webWorker"`
+
+</td><td>
+
+**_(ALPHA)_** Enable worker$
 
 </td></tr>
 </tbody></table>
@@ -641,6 +667,8 @@ Record&lt;string, string&gt;
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+
+## insights
 
 ## isAbsolute
 
@@ -3686,3 +3714,5 @@ versions: {
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/versions.ts)
+
+## webWorker

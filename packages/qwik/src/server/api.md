@@ -43,6 +43,7 @@ export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 // @public (undocumented)
 export interface PrefetchImplementation {
+    linkFetchPriority?: 'auto' | 'low' | 'high' | null;
     linkInsert?: 'js-append' | 'html-append' | null;
     linkRel?: 'prefetch' | 'preload' | 'modulepreload' | null;
     prefetchEvent?: 'always' | null;

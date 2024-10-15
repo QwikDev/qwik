@@ -27,6 +27,7 @@ export const ReplOutputSymbols = component$(({ outputs }: ReplOutputSymbolsProps
                 }}
                 class={{ 'in-view': selectedPath.value === o.path }}
                 preventdefault:click
+                title={o.segment?.canonicalFilename}
               >
                 {o.segment?.canonicalFilename}
               </a>

@@ -10,12 +10,12 @@ import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 
 export const applyInlineComponent = (
   ssr: SSRContainer,
-  component$Host: ISsrNode,
-  component: OnRenderFn<any>,
+  componentHost: ISsrNode,
+  inlineComponentFunction: OnRenderFn<any>,
   jsx: JSXNode
 ) => {
   const host = ssr.getLastNode();
-  return executeComponent(ssr, host, component$Host, component, jsx.props);
+  return executeComponent(ssr, host, componentHost, inlineComponentFunction, jsx.props);
 };
 
 export const applyQwikComponentBody = (

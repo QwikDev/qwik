@@ -708,7 +708,7 @@ describe.each([
             <Component>
               <div>
                 {'Child '}
-                <Signal>{'1'}</Signal>
+                {'1'}
                 {', active: '}
                 <Signal>{'false'}</Signal>
               </div>
@@ -716,7 +716,7 @@ describe.each([
             <Component>
               <div>
                 {'Child '}
-                <Signal>{'2'}</Signal>
+                {'2'}
                 {', active: '}
                 <Signal>{'true'}</Signal>
               </div>
@@ -735,7 +735,7 @@ describe.each([
             <Component>
               <div>
                 {'Child '}
-                <Signal>{'1'}</Signal>
+                {'1'}
                 {', active: '}
                 <Signal>{'true'}</Signal>
               </div>
@@ -743,7 +743,7 @@ describe.each([
             <Component>
               <div>
                 {'Child '}
-                <Signal>{'2'}</Signal>
+                {'2'}
                 {', active: '}
                 <Signal>{'false'}</Signal>
               </div>

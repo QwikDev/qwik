@@ -61,7 +61,7 @@ export default component$(() => {
 </CodeSandbox>
 
 > The `component$` function, marked by the trailing `$`, enables the Optimizer to split components into separate chunks.
-This allows each chunk to be loaded independently as needed, rather than loading all components whenever the parent component is loaded.  
+This allows each chunk to be loaded independently as needed, rather than loading all components whenever the parent component is loaded.
 > Note: index.tsx, layout.tsx in routes folder, root.tsx and all entry files need **export default**. For other components you can use export const and export function.
 
 ### Composing Components
@@ -113,13 +113,13 @@ export default component$(() => {
 
 ## Props
 
-Props are used to pass data from the parent into the component. Data passed via props is accessible via the `props` argument to the `component$` function. 
+Props are used to pass data from the parent into the component. Data passed via props is accessible via the `props` argument to the `component$` function.
 
 Props are shallowly immutable, meaning primitive data types (strings, numbers, booleans) cannot be changed once passed. However, internal elements of reference types (objects, arrays, functions) can be changed despite the reference itself being immutable.
 
 To change primitive props data in the parent component from the child component, use signals. When updating data locally within the child component a signal is not necessary, destructure the props and use the values to define new local variables.
 
-The two examples below show a component `Item` that declares optional `name`, `quantity`, `description`, and `price` props. 
+The two examples below show a component `Item` that declares optional `name`, `quantity`, `description`, and `price` props.
 
 In the first example, primitive data types are passed via props. The `price` prop is passed as a signal and can be changed from the parent component. `quantity` is passed as a number value that is used to define a new signal in `Item` that can be reactively updated locally. Alternatively, if quantity did not need to be reactive it could be defined as a normal variable instead of a signal.
 
@@ -500,6 +500,7 @@ Note the `string extends C`, this is only true when TypeScript cannot infer the 
 - [`$()`](../../advanced/qrl/index.mdx) - creates a QRL
 - [`noSerialize()`](/docs/components/state/#noserialize)
 - `useErrorBoundary()`
+- [`qwikVite()`](../../advanced/vite/index.mdx#qwikvite) - entry point for qwik with vite
 
 ### Components
 
@@ -507,7 +508,6 @@ Note the `string extends C`, this is only true when TypeScript cannot infer the 
 - `<SSRStreamBlock>` - declares a stream block
 - `<SSRStream>` - declares a stream
 - `<Fragment>` - declares a JSX fragment
-
 ## See Also
 
 - [Inline components](../overview/index.mdx#inline-components)

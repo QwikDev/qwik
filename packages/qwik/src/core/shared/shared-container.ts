@@ -46,7 +46,9 @@ export abstract class _SharedContainer implements Container {
   }
 
   serializationCtxFactory(
-    NodeConstructor: SerializationContext['$NodeConstructor$'] | null,
+    NodeConstructor: {
+      new (...rest: any[]): { nodeType: number; id: string };
+    } | null,
     symbolToChunkResolver: SymbolToChunkResolver,
     writer?: StreamWriter
   ): SerializationContext {
@@ -55,6 +57,7 @@ export abstract class _SharedContainer implements Container {
       symbolToChunkResolver,
       this.getHostProp.bind(this),
       this.setHostProp.bind(this),
+      this.$storeProxyMap$,
       writer
     );
   }

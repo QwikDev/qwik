@@ -1,5 +1,6 @@
 import { suite, test, assert } from 'vitest';
 import { serializeClass } from './styles';
+import { setValueForStyle, stringifyStyle } from './styles';
 
 const obj = {
   foo: false,
@@ -139,5 +140,156 @@ suite('serializeClass', () => {
     assert.equal(serializeClass(' foo bar '), 'foo bar');
     assert.equal(serializeClass({ ' foo ': true, '  bar ': true }), 'foo bar');
     assert.equal(serializeClass(['  foo   ', '    bar  ', { ' baz  ': true }]), 'foo bar baz');
+  });
+});
+
+suite('stringifyStyle', () => {
+  test('should stringify null', () => {
+    assert.equal(stringifyStyle(null), '');
+  });
+
+  test('should stringify undefined', () => {
+    assert.equal(stringifyStyle(undefined), '');
+  });
+
+  test('should stringify string', () => {
+    assert.equal(stringifyStyle('color: red;'), 'color: red;');
+  });
+
+  test('should stringify number', () => {
+    assert.equal(stringifyStyle(10), '10');
+  });
+
+  test('should stringify boolean', () => {
+    assert.equal(stringifyStyle(true), 'true');
+    assert.equal(stringifyStyle(false), 'false');
+  });
+
+  suite('object values', () => {
+    test('should throw an error for array', () => {
+      assert.throws(
+        () => stringifyStyle([]),
+        'Code(0): Error while serializing class or style attributes'
+      );
+    });
+
+    suite('regular objects', () => {
+      test('should stringify object with nullish values', () => {
+        assert.equal(stringifyStyle({ color: null, backgroundColor: undefined }), '');
+      });
+
+      test('should stringify empty object', () => {
+        assert.equal(stringifyStyle({}), '');
+      });
+
+      test('should stringify object with single property', () => {
+        assert.equal(stringifyStyle({ color: 'red' }), 'color:red');
+      });
+
+      test('should stringify object with multiple properties', () => {
+        assert.equal(
+          stringifyStyle({ color: 'red', 'background-color': 'blue' }),
+          'color:red;background-color:blue'
+        );
+      });
+
+      test('should stringify object with numeric values', () => {
+        assert.equal(stringifyStyle({ width: 10, height: 20 }), 'width:10px;height:20px');
+      });
+
+      test('should convert camelCase to kebab-case', () => {
+        assert.equal(stringifyStyle({ backgroundColor: 'blue' }), 'background-color:blue');
+      });
+
+      test('should stringify object with unitless properties', () => {
+        assert.equal(stringifyStyle({ lineHeight: 1.5 }), 'line-height:1.5');
+      });
+
+      test('should stringify properties that start with two dashes', () => {
+        assert.equal(stringifyStyle({ '--foo': 'bar' }), '--foo:bar');
+      });
+
+      test('should stringify properties with numeric values that start with two dashes', () => {
+        assert.equal(stringifyStyle({ '--foo': 10 }), '--foo:10');
+      });
+    });
+
+    suite('objects with methods', () => {
+      test('should stringify object with own properties only', () => {
+        const obj = Object.create({ color: 'red' });
+        obj.marginTop = '10em';
+        assert.equal(obj.color, 'red');
+        assert.equal(stringifyStyle(obj), 'margin-top:10em');
+      });
+
+      test('should ignore object methods', () => {
+        const obj = {
+          margin: () => 10,
+          color: 'red',
+          backgroundColor: 'blue',
+        };
+        assert.equal(stringifyStyle(obj), 'color:red;background-color:blue');
+      });
+
+      test('should stringify object with custom hasOwnProperty method', () => {
+        const obj = {
+          hasOwnProperty: () => false,
+          color: 'red',
+          backgroundColor: 'blue',
+        };
+        assert.equal(stringifyStyle(obj), 'color:red;background-color:blue');
+      });
+    });
+  });
+});
+
+suite('setValueForStyle', () => {
+  suite('properties with units', () => {
+    test('should not add "px" to numeric zero value (= 0)', () => {
+      assert.equal(setValueForStyle('margin', 0), '0');
+    });
+
+    test('should add "px" to numeric value that is non-zero (<> 0)', () => {
+      assert.equal(setValueForStyle('margin', 10), '10px');
+    });
+
+    test('should not add "px" to string zero value (= "0")', () => {
+      assert.equal(setValueForStyle('margin', '0'), '0');
+    });
+
+    test('should not add "px" to string zero value ending with "px" (= "0px")', () => {
+      assert.equal(setValueForStyle('margin', '0px'), '0px');
+    });
+
+    test('should not add "px" to string zero value ending with "rem" (= "0rem")', () => {
+      assert.equal(setValueForStyle('margin', '0rem'), '0rem');
+    });
+
+    test('should not add "px" to string value that is word (= "red")', () => {
+      assert.equal(setValueForStyle('color', 'red'), 'red');
+    });
+
+    test('should not add "px" to string value that is non-zero ending with "px" (= "10px")', () => {
+      assert.equal(setValueForStyle('margin', '10px'), '10px');
+    });
+
+    test('should not add "px" to string value that is non-zero ending with "rem" (= "10rem")', () => {
+      assert.equal(setValueForStyle('margin', '10rem'), '10rem');
+    });
+  });
+
+  suite('unitless properties', () => {
+    test('should not add "px" to numeric zero value (= 0)', () => {
+      assert.equal(setValueForStyle('lineHeight', 0), '0');
+    });
+
+    test('should not add "px" to numeric value that is non-zero (<> 0)', () => {
+      assert.equal(setValueForStyle('lineHeight', 10), '10');
+    });
+
+    test('should not add "px" to string value', () => {
+      assert.equal(setValueForStyle('lineHeight', '0'), '0');
+      assert.equal(setValueForStyle('lineHeight', '10'), '10');
+    });
   });
 });

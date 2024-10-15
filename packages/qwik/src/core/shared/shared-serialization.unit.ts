@@ -60,7 +60,10 @@ describe('shared-serialization', () => {
         10 Constant NaN
         11 Constant Infinity
         12 Constant -Infinity
-        (56 chars)"
+        13 Constant MAX_SAFE_INTEGER
+        14 Constant MAX_SAFE_INTEGER-1
+        15 Constant MIN_SAFE_INTEGER
+        (71 chars)"
       `);
     });
     it(title(TypeIds.Number), async () => {
@@ -363,12 +366,11 @@ describe('shared-serialization', () => {
           Number 1
           Array [
             Object []
-            String "value"
           ]
           Constant null
           Constant undefined
         ]
-        (63 chars)"
+        (53 chars)"
       `);
     });
     it(title(TypeIds.ComputedSignal), async () => {
@@ -777,6 +779,8 @@ async function serialize(...roots: any[]): Promise<any[]> {
     null,
     () => '',
     () => '',
+    () => '',
+    new WeakMap<any, any>(),
     null!
   );
   for (const root of roots) {

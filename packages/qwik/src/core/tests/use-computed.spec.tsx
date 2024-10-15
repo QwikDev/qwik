@@ -3,6 +3,7 @@ import {
   component$,
   createComputed$,
   createSignal,
+  noSerialize,
   qrl,
   useComputed$,
   useComputedQrl,
@@ -20,6 +21,8 @@ describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: useComputed', ({ render }) => {
+  const isSsr = render === ssrRenderToDom;
+
   it('should compute signals synchronously', async () => {
     const Counter = component$(() => {
       const count = useSignal(123);
@@ -273,17 +276,17 @@ describe.each([
     });
 
     it('#3294 - should lazily evaluate the function with useSignal', async () => {
-      (global as any).useComputedCount = 0;
+      (globalThis as any).useComputedCount = 0;
       const Issue3294 = component$(() => {
         const firstName = useSignal('Misko');
         const lastName = useSignal('Hevery');
         const execFirstUseComputed = useSignal(true);
         const firstUseComputed = useComputed$(() => {
-          (global as any).useComputedCount++;
+          (globalThis as any).useComputedCount++;
           return lastName.value + ' ' + firstName.value;
         });
         const secondUseComputed = useComputed$(() => {
-          (global as any).useComputedCount++;
+          (globalThis as any).useComputedCount++;
           return firstName.value + ' ' + lastName.value;
         });
         return (
@@ -307,20 +310,20 @@ describe.each([
           </div>
         </>
       );
-      expect((global as any).useComputedCount).toBe(1);
+      expect((globalThis as any).useComputedCount).toBe(1);
     });
 
     it('#3294 - should lazily evaluate the function with store', async () => {
-      (global as any).useComputedCount = 0;
+      (globalThis as any).useComputedCount = 0;
       const Issue3294 = component$(() => {
         const store = useStore({ firstName: 'Misko', lastName: 'Hevery' });
         const execFirstUseComputed = useSignal(true);
         const firstUseComputed = useComputed$(() => {
-          (global as any).useComputedCount++;
+          (globalThis as any).useComputedCount++;
           return store.lastName + ' ' + store.firstName;
         });
         const secondUseComputed = useComputed$(() => {
-          (global as any).useComputedCount++;
+          (globalThis as any).useComputedCount++;
           return store.firstName + ' ' + store.lastName;
         });
         return (
@@ -344,11 +347,66 @@ describe.each([
           </div>
         </>
       );
-      expect((global as any).useComputedCount).toBe(1);
+      expect((globalThis as any).useComputedCount).toBe(1);
     });
   });
 
-  // TODO by throwing during render, this breaks the tests that follow
+  it('should mark noSerialize as invalid after deserialization', async () => {
+    const Counter = component$(() => {
+      const count = useSignal(1);
+      const runCount = useSignal(0);
+      const showCount = useSignal(false);
+      const doubleCount = useComputed$(() => {
+        runCount.value++;
+        return noSerialize({ double: count.value * 2 });
+      });
+      return (
+        <div>
+          Double count: {doubleCount.value?.double}
+          <button onClick$={() => (showCount.value = !showCount.value)}>
+            {showCount.value ? 'hide' : 'show'}
+          </button>
+          {showCount.value ? <span>{doubleCount.value?.double}</span> : '-'}
+          <div>Ran {runCount.value} times.</div>
+        </div>
+      );
+    });
+
+    const { vNode, container } = await render(<Counter />, { debug });
+    expect(vNode).toMatchVDOM(
+      <>
+        <div>
+          Double count: <Signal>{'2'}</Signal>
+          <button>
+            <Signal>show</Signal>
+          </button>
+          -
+          <div>
+            Ran <Signal>{'1'}</Signal> times.
+          </div>
+        </div>
+      </>
+    );
+    await trigger(container.element, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <>
+        <div>
+          Double count: <Signal>{'2'}</Signal>
+          <button>
+            <Signal>hide</Signal>
+          </button>
+          <span>
+            <Signal>{'2'}</Signal>
+          </span>
+          <div>
+            Ran <Signal>{isSsr ? '2' : '1'}</Signal> times.
+          </div>
+        </div>
+      </>
+    );
+  });
+
+  // TODO fix this: by throwing during render, this breaks the tests that follow
   it('should disallow Promise in computed result', async () => {
     const Counter = component$(() => {
       const count = useSignal(1);

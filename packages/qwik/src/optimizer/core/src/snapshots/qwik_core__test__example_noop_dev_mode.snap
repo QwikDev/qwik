@@ -34,16 +34,16 @@ export const App = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrlDEV } from "@qwik.dev/core";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0", {
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./test.tsx_app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0", {
     file: "/user/qwik/src/test.tsx",
-    lo: 105,
-    hi: 453,
-    displayName: "App_component"
+    lo: 107,
+    hi: 455,
+    displayName: "test.tsx_App_component"
 }));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM;;;;;IAoBhB\"}")
-============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
+============================= test.tsx_app_component_ckepmxzlub0.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { _noopQrlDEV } from "@qwik.dev/core";
@@ -55,7 +55,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
         file: "/user/qwik/src/test.tsx",
         lo: 0,
         hi: 0,
-        displayName: "App_component_serverStuff"
+        displayName: "test.tsx_App_component_serverStuff"
     }, [
         stuff
     ]));
@@ -63,7 +63,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
         file: "/user/qwik/src/test.tsx",
         lo: 0,
         hi: 0,
-        displayName: "App_component_serverStuff_1"
+        displayName: "test.tsx_App_component_serverStuff_1"
     }));
     return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", null, {
         class: "stuff",
@@ -71,7 +71,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
             file: "/user/qwik/src/test.tsx",
             lo: 0,
             hi: 0,
-            displayName: "App_component_Cmp_p_shouldRemove"
+            displayName: "test.tsx_App_component_Cmp_p_shouldRemove"
         }, [
             stuff
         ]),
@@ -79,7 +79,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
             file: "/user/qwik/src/test.tsx",
             lo: 0,
             hi: 0,
-            displayName: "App_component_Cmp_p_onClick"
+            displayName: "test.tsx_App_component_Cmp_p_onClick"
         })
     }, "Hello Qwik", 3, null, {
         fileName: "test.tsx",
@@ -99,9 +99,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "App_component_ckEPmXZlub0",
   "entry": null,
-  "displayName": "App_component",
+  "displayName": "test.tsx_App_component",
   "hash": "ckEPmXZlub0",
-  "canonicalFilename": "app_component_ckepmxzlub0",
+  "canonicalFilename": "test.tsx_app_component_ckepmxzlub0",
   "path": "",
   "extension": "js",
   "parent": null,

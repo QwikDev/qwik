@@ -31,11 +31,11 @@ let Thing;
     Thing[Thing["A"] = 0] = "A";
     Thing[Thing["B"] = 1] = "B";
 })(Thing || (Thing = {}));
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;UAGK;;;GAAA,UAAA;AAKL,OAAO,MAAM,oBAAM,wGAOhB\"}")
-============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;UAGK;;;GAAA,UAAA;AAKL,OAAO,MAAM,oBAAM,iHAOhB\"}")
+============================= test.tsx_app_component_ckepmxzlub0.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import { _jsxSorted } from "@qwik.dev/core";
@@ -53,9 +53,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "App_component_ckEPmXZlub0",
   "entry": null,
-  "displayName": "App_component",
+  "displayName": "test.tsx_App_component",
   "hash": "ckEPmXZlub0",
-  "canonicalFilename": "app_component_ckepmxzlub0",
+  "canonicalFilename": "test.tsx_app_component_ckepmxzlub0",
   "path": "",
   "extension": "js",
   "parent": null,

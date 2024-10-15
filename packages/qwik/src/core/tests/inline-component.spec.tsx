@@ -4,6 +4,7 @@ import {
   Fragment as InlineComponent,
   component$,
   useSignal,
+  useStore,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
@@ -26,6 +27,8 @@ const MyComp = () => {
 const InlineWrapper = () => {
   return <MyComp />;
 };
+
+const Id = (props: any) => <div>Id: {props.id}</div>;
 
 describe.each([
   { render: ssrRenderToDom }, //
@@ -144,6 +147,275 @@ describe.each([
             </InlineComponent>
           </InlineComponent>
         </>
+      </Component>
+    );
+  });
+
+  it('should not rerender component', async () => {
+    const Child = component$((props: { id: number }) => {
+      const renders = useStore(
+        {
+          count: 0,
+        },
+        { reactive: false }
+      );
+      renders.count++;
+      const rerenders = renders.count + 0;
+      return (
+        <>
+          <Id id={props.id} />
+          {rerenders}
+        </>
+      );
+    });
+    const Cmp = component$(() => {
+      const id = useSignal(0);
+      return (
+        <>
+          <button
+            onClick$={() => {
+              id.value++;
+            }}
+          >
+            Increment ID
+          </button>
+          <Child id={id.value} />
+        </>
+      );
+    });
+
+    const { vNode, container } = await render(<Cmp />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <>
+          <button>Increment ID</button>
+          <Component>
+            <Fragment>
+              <InlineComponent>
+                <div>
+                  {'Id: '}
+                  <Fragment>{'0'}</Fragment>
+                </div>
+              </InlineComponent>
+              1
+            </Fragment>
+          </Component>
+        </>
+      </Component>
+    );
+
+    await trigger(container.document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <>
+          <button>Increment ID</button>
+          <Component>
+            <Fragment>
+              <InlineComponent>
+                <div>
+                  {'Id: '}
+                  <Fragment>{'1'}</Fragment>
+                </div>
+              </InlineComponent>
+              1
+            </Fragment>
+          </Component>
+        </>
+      </Component>
+    );
+  });
+
+  it('should render array of inline components inside normal component', async () => {
+    const Cmp = component$(() => {
+      const items = useStore(['qwik', 'foo', 'bar']);
+
+      const Item = (props: { name: string }) => {
+        return <div>{props.name}</div>;
+      };
+
+      return (
+        <footer>
+          <button onClick$={() => items.sort()}></button>
+          {items.map((item, key) => (
+            <Item name={item} key={key} />
+          ))}
+        </footer>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <footer>
+          <button></button>
+          <InlineComponent>
+            <div>qwik</div>
+          </InlineComponent>
+          <InlineComponent>
+            <div>foo</div>
+          </InlineComponent>
+          <InlineComponent>
+            <div>bar</div>
+          </InlineComponent>
+        </footer>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <footer>
+          <button></button>
+          <InlineComponent>
+            <div>bar</div>
+          </InlineComponent>
+          <InlineComponent>
+            <div>foo</div>
+          </InlineComponent>
+          <InlineComponent>
+            <div>qwik</div>
+          </InlineComponent>
+        </footer>
+      </Component>
+    );
+  });
+
+  it('should conditionally render different inline component', async () => {
+    const Cmp = component$(() => {
+      const show = useSignal(true);
+
+      const Item = (props: { name: string }) => {
+        return <div>{props.name}</div>;
+      };
+
+      const Item2 = (props: { name: string }) => {
+        return <span>{props.name}</span>;
+      };
+
+      return (
+        <footer>
+          <button onClick$={() => (show.value = !show.value)}></button>
+          {show.value ? <Item name={'foo'} /> : <Item2 name={'bar'} />}
+        </footer>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <footer>
+          <button></button>
+          <InlineComponent>
+            <div>foo</div>
+          </InlineComponent>
+        </footer>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <footer>
+          <button></button>
+          <InlineComponent>
+            <span>bar</span>
+          </InlineComponent>
+        </footer>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <footer>
+          <button></button>
+          <InlineComponent>
+            <div>foo</div>
+          </InlineComponent>
+        </footer>
+      </Component>
+    );
+  });
+
+  it('should conditionally render different inline component inside inline component', async () => {
+    const Cmp = component$(() => {
+      const show = useSignal(true);
+
+      const Item = (props: { name: string }) => {
+        return <div>{props.name}</div>;
+      };
+
+      const Item2 = (props: { name: string }) => {
+        return <span>{props.name}</span>;
+      };
+
+      const Wrapper = () => {
+        return <>{show.value ? <Item name={'foo'} /> : <Item2 name={'bar'} />}</>;
+      };
+
+      return (
+        <footer>
+          <button onClick$={() => (show.value = !show.value)}></button>
+          <Wrapper />
+        </footer>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <footer>
+          <button></button>
+          <InlineComponent>
+            <Fragment>
+              <InlineComponent>
+                <div>foo</div>
+              </InlineComponent>
+            </Fragment>
+          </InlineComponent>
+        </footer>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <footer>
+          <button></button>
+          <InlineComponent>
+            <Fragment>
+              <InlineComponent>
+                <span>bar</span>
+              </InlineComponent>
+            </Fragment>
+          </InlineComponent>
+        </footer>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <footer>
+          <button></button>
+          <InlineComponent>
+            <Fragment>
+              <InlineComponent>
+                <div>foo</div>
+              </InlineComponent>
+            </Fragment>
+          </InlineComponent>
+        </footer>
       </Component>
     );
   });

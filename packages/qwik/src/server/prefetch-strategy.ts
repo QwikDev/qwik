@@ -1,9 +1,9 @@
-import type { PrefetchResource, QwikManifest, RenderToStringOptions } from './types';
-import { getBuildBase } from './utils';
-
 import type { QRL } from '@qwik.dev/core';
+import { isDev } from '@qwik.dev/core/build';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import type { QRLInternal } from './qwik-types';
+import type { PrefetchResource, QwikManifest, RenderToStringOptions } from './types';
+import { getBuildBase } from './utils';
 
 export function getPrefetchResources(
   qrls: QRL[],
@@ -69,7 +69,7 @@ function addBundle(
   buildBase: string,
   bundleFileName: string
 ) {
-  const url = buildBase + bundleFileName;
+  const url = isDev ? bundleFileName : buildBase + bundleFileName;
   let prefetchResource = urls.get(url);
   if (!prefetchResource) {
     prefetchResource = {

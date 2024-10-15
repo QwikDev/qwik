@@ -49,7 +49,6 @@ import {
   mapArray_set,
   maybeThen,
   serializeAttribute,
-  UNWRAP_VNODE_LOCAL,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -206,9 +205,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private vNodeData: VNodeData[] = [];
   private componentStack: ISsrComponentFrame[] = [];
   private unclaimedProjections: Array<ISsrComponentFrame | string | JSXChildren> = [];
-  unclaimedProjectionComponentFrameQueue: Array<ISsrComponentFrame> = [];
+  public unclaimedProjectionComponentFrameQueue: Array<ISsrComponentFrame> = [];
   private cleanupQueue: CleanupQueue = [];
-  $instanceHash$ = hash();
+  public $instanceHash$ = hash();
 
   constructor(opts: Required<SSRRenderOptions>) {
     super(
@@ -254,7 +253,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   async render(jsx: JSXOutput) {
     this.openContainer();
-    await _walkJSX(this, jsx, true, null);
+    await _walkJSX(this, jsx, {
+      allowPromises: true,
+      currentStyleScoped: null,
+      parentComponentFrame: this.getComponentFrame(),
+    });
     await this.closeContainer();
   }
 
@@ -297,6 +300,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return ssrNode.getProp(name);
   }
 
+  /**
+   * Renders opening tag for container. It could be a html tag for regular apps or custom element
+   * for micro-frontends
+   */
   openContainer() {
     if (this.tag == 'html') {
       this.write('<!DOCTYPE html>');
@@ -326,10 +333,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.openElement(this.tag, containerAttributeArray);
   }
 
+  /** Renders closing tag for current container */
   closeContainer(): ValueOrPromise<void> {
     return this.closeElement();
   }
 
+  /** Renders opening tag for DOM element */
   openElement(
     elementName: string,
     varAttrs: SsrAttrs | null,
@@ -360,33 +369,53 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return innerHTML;
   }
 
+  /** Renders closing tag for DOM element */
   closeElement(): ValueOrPromise<void> {
-    const currentFrame = this.currentElementFrame!;
-    if (
-      (currentFrame.parent === null && currentFrame.elementName !== 'html') ||
-      currentFrame.elementName === 'body'
-    ) {
-      this.drainCleanupQueue();
-      this.timing.render = this.renderTimer();
+    if (this.shouldEmitDataBeforeClosingElement()) {
+      // start snapshot timer
+      this.onRenderDone();
       const snapshotTimer = createTimer();
       return maybeThen(
         maybeThen(this.emitContainerData(), () => this._closeElement()),
         () => {
+          // set snapshot time
           this.timing.snapshot = snapshotTimer();
         }
       );
     }
     this._closeElement();
   }
-  drainCleanupQueue() {
-    for (let i = 0; i < this.cleanupQueue.length; i++) {
-      const sequences = this.cleanupQueue[i];
+
+  private shouldEmitDataBeforeClosingElement(): boolean {
+    const currentFrame = this.currentElementFrame!;
+    return (
+      /**
+       * - Micro-frontends don't have html tag, emit data before closing custom element
+       * - Regular applications should emit data inside body
+       */
+      (currentFrame.parent === null && currentFrame.elementName !== 'html') ||
+      currentFrame.elementName === 'body'
+    );
+  }
+
+  private onRenderDone() {
+    // cleanup tasks etc.
+    this.drainCleanupQueue();
+    // set render time
+    this.timing.render = this.renderTimer();
+  }
+
+  /** Drain cleanup queue and cleanup tasks etc. */
+  private drainCleanupQueue() {
+    let sequences = this.cleanupQueue.pop();
+    while (sequences) {
       for (let j = 0; j < sequences.length; j++) {
         const item = sequences[j];
         if (hasDestroy(item)) {
           item.$destroy$();
         }
       }
+      sequences = this.cleanupQueue.pop();
     }
   }
 
@@ -401,11 +430,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.lastNode = null;
   }
 
+  /** Writes opening data to vNodeData for fragment boundaries */
   openFragment(attrs: SsrAttrs) {
     this.lastNode = null;
     vNodeData_openFragment(this.currentElementFrame!.vNodeData, attrs);
   }
 
+  /** Writes closing data to vNodeData for fragment boundaries */
   closeFragment() {
     vNodeData_closeFragment(this.currentElementFrame!.vNodeData);
     this.lastNode = null;
@@ -427,10 +458,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.closeFragment();
   }
 
+  /** Writes opening data to vNodeData for component boundaries */
   openComponent(attrs: SsrAttrs) {
     this.openFragment(attrs);
     this.currentComponentNode = this.getLastNode();
-    this.componentStack.push(new SsrComponentFrame(this.getLastNode()));
+    this.componentStack.push(new SsrComponentFrame(this.currentComponentNode));
   }
 
   /**
@@ -446,14 +478,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return idx >= 0 ? this.componentStack[idx] : null;
   }
 
-  getNearestComponentFrame(): ISsrComponentFrame | null {
-    const currentFrame = this.getComponentFrame(0);
-    if (!currentFrame) {
-      return null;
-    }
-    return this.getComponentFrame(currentFrame.projectionDepth);
+  getParentComponentFrame(): ISsrComponentFrame | null {
+    const localProjectionDepth = this.getComponentFrame()?.projectionDepth || 0;
+    return this.getComponentFrame(localProjectionDepth);
   }
 
+  /** Writes closing data to vNodeData for component boundaries and mark unclaimed projections */
   closeComponent() {
     const componentFrame = this.componentStack.pop()!;
     componentFrame.releaseUnclaimedProjections(this.unclaimedProjections);
@@ -498,7 +528,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.unclaimedProjections.push(frame, null, name, children);
   }
 
-  $processInjectionsFromManifest$(): void {
+  private $processInjectionsFromManifest$(): void {
     const injections = this.resolvedManifest.manifest.injections;
     if (!injections) {
       return;
@@ -551,7 +581,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   ////////////////////////////////////
 
-  emitContainerData(): ValueOrPromise<void> {
+  private emitContainerData(): ValueOrPromise<void> {
     this.emitUnclaimedProjection();
     this.addVNodeDataToSerializationRoots();
     return maybeThen(this.emitStateData(), () => {
@@ -868,7 +898,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  private async emitUnclaimedProjection() {
+  private emitUnclaimedProjection() {
     const unclaimedProjections = this.unclaimedProjections;
     if (unclaimedProjections.length) {
       const previousCurrentComponentNode = this.currentComponentNode;
@@ -912,7 +942,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
                 : [QSlotParent, ssrComponentNode!.id]
             );
             ssrComponentNode?.setProp(value, this.getLastNode().id);
-            _walkJSX(this, children, false, scopedStyleId);
+            _walkJSX(this, children, {
+              allowPromises: false,
+              currentStyleScoped: scopedStyleId,
+              parentComponentFrame: null,
+            });
             this.closeFragment();
           } else {
             throw Error(); // 'should not get here'
@@ -1049,7 +1083,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
         if (key === 'ref') {
           const lastNode = this.getLastNode();
-          lastNode.setProp(UNWRAP_VNODE_LOCAL, true);
           if (isSignal(value)) {
             value.value = lastNode;
             continue;

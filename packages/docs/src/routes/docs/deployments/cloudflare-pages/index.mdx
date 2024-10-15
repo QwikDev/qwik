@@ -11,6 +11,7 @@ contributors:
   - mrhoodz
   - dario-piotrowicz
   - matthewlal
+  - shairez
 updated_at: '2023-10-03T18:53:23Z'
 created_at: '2023-04-06T21:28:28Z'
 ---
@@ -139,6 +140,58 @@ To do this in Cloudflare go to **Workers & Pages > YOUR_PROJECT > Settings > Env
 Please refer to the [Cloudflare Pages docs](https://developers.cloudflare.com/pages/framework-guides/deploy-a-qwik-site/) for more information on how to deploy your site.
 
 Note that you will need a [Cloudflare account](https://dash.cloudflare.com/sign-up?lang=en-US) in order to complete this step.
+
+## Static Site Generation (SSG)
+
+The Cloudflare Pages adapter also supports Static Site Generation (SSG) by using the `ssg` property. 
+This allows you to generate static HTML files for your application at build time, instead of rendering them at runtime.
+
+```ts title="adapters/cloudflare-pages/vite.config.ts"
+export default extendConfig(baseConfig, () => {
+  return {
+    build: {
+      ssr: true,
+      rollupOptions: {
+        input: ['src/entry.cloudflare-pages.tsx', '@qwik-city-plan'],
+      }
+    },
+    plugins: [
+      cloudflarePagesAdapter(
+       // 👇 THIS IS WHAT YOU NEED TO ADD 👇
+       {
+         ssg: {
+           include: ['/*'],
+           exclude: ['/shop/*'],
+           origin: 'https://example.com',
+       },
+      }),
+    ],
+  };
+});
+
+```
+
+
+#### `include`
+
+The `include` array is used to specify which paths should be statically generated. It accepts wildcard behavior. 
+
+#### `exclude`
+
+The `exclude` array defines routes that should not be static generated and accepts wildcard behavior. 
+`exclude` always take priority over include.
+
+#### `origin`
+
+The URL `origin`, which is a combination of the scheme (protocol) and hostname (domain). For example, `https://qwik.dev` has the protocol `https://` and domain `qwik.dev`. However, the `origin` does _not_ include a `pathname`.
+
+The `origin` is used to provide a full URL during Static Site Generation (SSG), and to simulate a complete URL rather than just the `pathname`. 
+For example, in order to render a correct canonical tag URL or URLs within the `sitemap.xml`, the `origin` must be provided too.
+
+This is important because if you don't set it, cloudflare will use the specific deployment url instead.
+
+
+
 
 ## Advanced
 

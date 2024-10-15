@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'node:path';
+import { resolve } from 'path';
 import { type PluginOption } from 'vite';
 import { type QwikVitePluginOptions } from './vite';
 
@@ -37,28 +38,18 @@ export async function qwikInsights(qwikInsightsOpts: {
           const response = await fetch(`${baseUrl}/api/v1/${publicApiKey}/bundles/strategy/`);
           const strategy = await response.json();
           Object.assign(qManifest, strategy);
+          const path = resolve(viteConfig.root || '.', outDir);
+          const pathJson = join(path, 'q-insights.json');
+          mkdirSync(path, { recursive: true });
+          log('Fetched latest Qwik Insight data into: ' + pathJson);
+          await writeFile(pathJson, JSON.stringify(qManifest));
         } catch (e) {
           logWarn('Failed to fetch manifest from Insights DB', e);
-        }
-        const cwdRelativePath = join(viteConfig.root || '.', outDir);
-        const cwdRelativePathJson = join(cwdRelativePath, 'q-insights.json');
-        if (!existsSync(join(process.cwd(), cwdRelativePath))) {
-          try {
-            mkdirSync(join(process.cwd(), cwdRelativePath), { recursive: true });
-          } catch (e) {
-            logWarn('Failed to create path to store the q-insights.json file', e);
-          }
-        }
-        log('Fetched latest Qwik Insight data into: ' + cwdRelativePathJson);
-        try {
-          await writeFile(join(process.cwd(), cwdRelativePathJson), JSON.stringify(qManifest));
-        } catch (e) {
-          logWarn('Failed to create manifest file', e);
         }
       }
     },
     closeBundle: async () => {
-      const path = join(process.cwd(), outDir, 'q-manifest.json');
+      const path = resolve(outDir, 'q-manifest.json');
       if (isProd && existsSync(path)) {
         const qManifest = await readFile(path, 'utf-8');
 

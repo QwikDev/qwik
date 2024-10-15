@@ -96,7 +96,6 @@ pub struct QwikTransform<'a> {
 	extra_bottom_items: BTreeMap<Id, ast::ModuleItem>,
 	stack_ctxt: Vec<String>,
 	decl_stack: Vec<Vec<IdPlusType>>,
-	in_component: bool,
 	marker_functions: HashMap<Id, JsWord>,
 	jsx_functions: HashSet<Id>,
 	immutable_function_cmp: HashSet<Id>,
@@ -219,7 +218,6 @@ impl<'a> QwikTransform<'a> {
 			jsx_key_counter: 0,
 			stack_ctxt: Vec::with_capacity(16),
 			decl_stack: Vec::with_capacity(32),
-			in_component: false,
 			segments: Vec::with_capacity(16),
 			segment_stack: Vec::with_capacity(16),
 			// extra_top_items: BTreeMap::new(),
@@ -337,6 +335,7 @@ impl<'a> QwikTransform<'a> {
 		} else {
 			format!("s_{}", hash64)
 		};
+		display_name = format!("{}_{}", &self.options.path_data.file_name, display_name);
 		(
 			JsWord::from(symbol_name),
 			JsWord::from(display_name),
@@ -345,6 +344,7 @@ impl<'a> QwikTransform<'a> {
 		)
 	}
 
+	/** Parse inlinedQrl() (from library code) */
 	fn handle_inlined_qsegment(&mut self, mut node: ast::CallExpr) -> ast::CallExpr {
 		node.args.reverse();
 
@@ -384,6 +384,7 @@ impl<'a> QwikTransform<'a> {
 			parse_symbol_name(
 				symbol_name,
 				matches!(self.options.mode, EmitMode::Dev | EmitMode::Test),
+				&self.options.path_data.file_name,
 			)
 		};
 
@@ -767,7 +768,7 @@ impl<'a> QwikTransform<'a> {
 		span: Span,
 		segment_hash: u64,
 	) -> ast::CallExpr {
-		let canonical_filename = get_canonical_filename(&symbol_name);
+		let canonical_filename = get_canonical_filename(&segment_data.display_name, &symbol_name);
 
 		// We import from the segment file directly but store the entry for later chunking by the bundler
 		let entry = self.options.entry_policy.get_entry_for_sym(
@@ -1008,7 +1009,10 @@ impl<'a> QwikTransform<'a> {
 			self.segments.push(Segment {
 				entry: None,
 				span,
-				canonical_filename: get_canonical_filename(&symbol_name),
+				canonical_filename: get_canonical_filename(
+					&segment_data.display_name,
+					&symbol_name,
+				),
 				name: symbol_name.clone(),
 				data: segment_data.clone(),
 				expr: Box::new(expr),
@@ -1760,8 +1764,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		let prev_jsx_mutable = self.jsx_mutable;
 		self.jsx_mutable = false;
 
-		let is_component = self.in_component;
-		self.in_component = false;
 		let current_scope = self
 			.decl_stack
 			.last_mut()
@@ -1770,7 +1772,7 @@ impl<'a> Fold for QwikTransform<'a> {
 		for param in &node.params {
 			let mut identifiers = vec![];
 			collect_from_pat(&param.pat, &mut identifiers);
-			let is_constant = is_component && matches!(param.pat, ast::Pat::Ident(_));
+			let is_constant = matches!(param.pat, ast::Pat::Ident(_));
 			current_scope.extend(
 				identifiers
 					.into_iter()
@@ -1793,8 +1795,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		let prev_jsx_mutable = self.jsx_mutable;
 		self.jsx_mutable = false;
 
-		let is_component = self.in_component;
-		self.in_component = false;
 		let current_scope = self
 			.decl_stack
 			.last_mut()
@@ -1802,7 +1802,7 @@ impl<'a> Fold for QwikTransform<'a> {
 		for param in &node.params {
 			let mut identifiers = vec![];
 			collect_from_pat(param, &mut identifiers);
-			let is_constant = is_component && matches!(param, ast::Pat::Ident(_));
+			let is_constant = matches!(param, ast::Pat::Ident(_));
 			current_scope.extend(
 				identifiers
 					.into_iter()
@@ -1822,7 +1822,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
-		self.in_component = false;
 		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
 		self.decl_stack.pop();
@@ -1834,7 +1833,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
-		self.in_component = false;
 		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
 		self.decl_stack.pop();
@@ -1873,7 +1871,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
-		self.in_component = false;
 		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
 		self.decl_stack.pop();
@@ -1896,7 +1893,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
-		self.in_component = false;
 
 		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
@@ -1914,7 +1910,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
-		self.in_component = false;
 		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
 		self.stack_ctxt.pop();
@@ -2021,7 +2016,6 @@ impl<'a> Fold for QwikTransform<'a> {
 				name_token = true;
 
 				if id_eq!(ident, &self.qcomponent_fn) {
-					self.in_component = true;
 					if let Some(comments) = self.options.comments {
 						comments.add_pure_comment(node.span.lo);
 					}
@@ -2094,7 +2088,6 @@ impl<'a> Fold for QwikTransform<'a> {
 		if name_token {
 			self.stack_ctxt.pop();
 		}
-		self.in_component = false;
 		ast::CallExpr {
 			callee,
 			args,
@@ -2223,16 +2216,21 @@ fn compute_scoped_idents(all_idents: &[Id], all_decl: &[IdPlusType]) -> (Vec<Id>
 	(output, is_const, has_const)
 }
 
-fn get_canonical_filename(symbol_name: &JsWord) -> JsWord {
-	JsWord::from(symbol_name.as_ref().to_ascii_lowercase())
+fn get_canonical_filename(display_name: &JsWord, symbol_name: &JsWord) -> JsWord {
+	let hash = symbol_name.split('_').last().unwrap();
+	JsWord::from(format!("{}_{}", display_name, hash).to_ascii_lowercase())
 }
 
-fn parse_symbol_name(symbol_name: JsWord, dev: bool) -> (JsWord, JsWord, JsWord) {
+fn parse_symbol_name(
+	symbol_name: JsWord,
+	dev: bool,
+	file_name: &String,
+) -> (JsWord, JsWord, JsWord) {
 	let mut splitter = symbol_name.rsplitn(2, '_');
 	let hash = splitter
 		.next()
 		.expect("symbol_name always need to have a segment");
-	let display_name = splitter.next().unwrap_or(hash);
+	let display_name = format!("{}_{}", file_name, splitter.next().unwrap_or(hash));
 
 	let s_n = if dev {
 		symbol_name.clone()

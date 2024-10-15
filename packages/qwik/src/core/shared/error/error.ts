@@ -5,7 +5,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
   if (qDev) {
     // Keep one error, one line to make it easier to search for the error message.
     const MAP = [
-      'Error while serializing class attribute', // 0
+      'Error while serializing class or style attributes', // 0
       'Can not serialize a HTML Node that is not an Element', // 1
       'Runtime but no instance found on element.', // 2
       'Only primitive and object literals can be serialized', // 3

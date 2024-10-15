@@ -8,14 +8,21 @@ b) Framework functionality achievable only by the core.
 If this PR can be done as a 3rd-Party Community Add-On, we encourage that for quicker adoption.
 
 If you believe your functionality is valuable to the entire Qwik Community, discuss it in the Qwik Discord channels for potential inclusion in the core.
+
+First of all, make sure your PR title is descriptive and matches our commit title guidelines.
+
+Also make sure your PR follows all the guidelines in the [CONTRIBUTING.md](./CONTRIBUTING.md) document.
+
 -->
 
 # What is it?
 
-- [ ] Feature / enhancement
-- [ ] Bug
-- [ ] Docs / tests / types / typos
-- [ ] Infra
+<!-- pick one and remove the others -->
+
+- Feature / enhancement
+- Bug
+- Docs / tests / types / typos
+- Infra
 
 # Description
 
@@ -24,10 +31,15 @@ If you believe your functionality is valuable to the entire Qwik Community, disc
 * Is it related to any opened issues? (please add them here)
 -->
 
-# Checklist:
+# Checklist
+
+<!--
+* delete the items that are not relevant, so it's easy to tell if the PR is ready to be merged
+* add items that are relevant and need to be done before merging
+-->
 
 - [ ] My code follows the [developer guidelines of this project](https://github.com/QwikDev/qwik/blob/main/CONTRIBUTING.md)
-- [ ] I have performed a self-review of my own code
-- [ ] I have ran `pnpm change` and documented my changes
-- [ ] I have made corresponding changes to the Qwik docs
-- [ ] Added new tests to cover the fix / functionality
+- [ ] I performed a self-review of my own code
+- [ ] I added a changeset with `pnpm change`
+- [ ] I made corresponding changes to the Qwik docs
+- [ ] I added new tests to cover the fix / functionality

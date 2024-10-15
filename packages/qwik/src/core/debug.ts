@@ -1,9 +1,10 @@
 import { isQrl } from '../server/prefetch-strategy';
 import { isJSXNode } from './shared/jsx/jsx-runtime';
 import { isTask } from './use/use-task';
-import { vnode_isVNode, vnode_toString } from './client/vnode';
+import { vnode_getProp, vnode_isVNode } from './client/vnode';
 import { ComputedSignal, WrappedSignal, isSignal } from './signal/signal';
 import { isStore } from './signal/store';
+import { DEBUG_TYPE } from './shared/types';
 
 const stringifyPath: any[] = [];
 export function qwikDebugToString(value: any): any {
@@ -30,7 +31,7 @@ export function qwikDebugToString(value: any): any {
       stringifyPath.push(value);
       if (Array.isArray(value)) {
         if (vnode_isVNode(value)) {
-          return vnode_toString.apply(value);
+          return '(' + vnode_getProp(value, DEBUG_TYPE, null) + ')';
         } else {
           return value.map(qwikDebugToString);
         }

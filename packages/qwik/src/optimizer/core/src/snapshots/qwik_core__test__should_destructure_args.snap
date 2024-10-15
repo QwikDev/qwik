@@ -31,11 +31,11 @@ import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 // the count results in _fnSignal because of the rename
 // would be nice to consider it a prop too
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGE,uDAAuD;AACvD,0CAA0C;AAC1C,6BAAe,0GAab\"}")
-============================= test_component_luxexe0dqrg.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGE,uDAAuD;AACvD,0CAA0C;AAC1C,6BAAe,mHAab\"}")
+============================= test.tsx_test_component_luxexe0dqrg.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
@@ -77,9 +77,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "test_component_LUXeXe0DQrg",
   "entry": null,
-  "displayName": "test_component",
+  "displayName": "test.tsx_test_component",
   "hash": "LUXeXe0DQrg",
-  "canonicalFilename": "test_component_luxexe0dqrg",
+  "canonicalFilename": "test.tsx_test_component_luxexe0dqrg",
   "path": "",
   "extension": "js",
   "parent": null,

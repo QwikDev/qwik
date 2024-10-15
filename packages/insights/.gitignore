@@ -14,6 +14,7 @@ node_modules
 .rollup.cache
 tsconfig.tsbuildinfo
 tmp
+q-insights.json
 
 # Logs
 logs

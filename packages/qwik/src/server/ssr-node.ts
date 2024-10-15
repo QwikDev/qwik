@@ -17,7 +17,7 @@ import type { CleanupQueue } from './ssr-container';
  * Server has no DOM, so we need to create a fake node to represent the DOM for serialization
  * purposes.
  *
- * Once deserialized the client, they will be turned to actual DOM nodes.
+ * Once deserialized the client, they will be turned to ElementVNodes.
  */
 export class SsrNode implements ISsrNode {
   __brand__!: 'HostElement';
@@ -111,11 +111,17 @@ export class SsrComponentFrame implements ISsrComponentFrame {
   public slots = [];
   public projectionDepth = 0;
   public scopedStyleIds = new Set<string>();
-  public childrenScopedStyle: string | null = null;
+  public projectionScopedStyle: string | null = null;
+  public projectionComponentFrame: SsrComponentFrame | null = null;
   constructor(public componentNode: ISsrNode) {}
 
-  distributeChildrenIntoSlots(children: JSXChildren, scopedStyle: string | null) {
-    this.childrenScopedStyle = scopedStyle;
+  distributeChildrenIntoSlots(
+    children: JSXChildren,
+    projectionScopedStyle: string | null,
+    projectionComponentFrame: SsrComponentFrame | null
+  ) {
+    this.projectionScopedStyle = projectionScopedStyle;
+    this.projectionComponentFrame = projectionComponentFrame;
     if (isJSXNode(children)) {
       const slotName = this.getSlotName(children);
       mapArray_set(this.slots, slotName, children, 0);
@@ -140,7 +146,7 @@ export class SsrComponentFrame implements ISsrComponentFrame {
     }
   }
 
-  private updateSlot(slotName: string, child: JSXNode) {
+  private updateSlot(slotName: string, child: JSXChildren) {
     // we need to check if the slot already has a value
     let existingSlots = mapArray_get<JSXChildren>(this.slots, slotName, 0);
     if (existingSlots === null) {
@@ -179,7 +185,7 @@ export class SsrComponentFrame implements ISsrComponentFrame {
   releaseUnclaimedProjections(unclaimedProjections: (ISsrComponentFrame | JSXChildren | string)[]) {
     if (this.slots.length) {
       unclaimedProjections.push(this);
-      unclaimedProjections.push(this.childrenScopedStyle);
+      unclaimedProjections.push(this.projectionScopedStyle);
       unclaimedProjections.push.apply(unclaimedProjections, this.slots);
     }
   }

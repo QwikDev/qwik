@@ -298,7 +298,12 @@ function processJSXNode(
           isPromise(jsxOutput) && enqueue(Promise);
           enqueue(new ParentComponentData(compStyleComponentId, componentFrame));
         } else {
-          ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.InlineComponent] : EMPTY_ARRAY);
+          const inlineComponentProps = [ELEMENT_KEY, jsx.key];
+          ssr.openFragment(
+            isDev
+              ? [DEBUG_TYPE, VirtualType.InlineComponent, ...inlineComponentProps]
+              : inlineComponentProps
+          );
           enqueue(ssr.closeFragment);
           const component = ssr.getComponentFrame(0)!;
           const jsxOutput = applyInlineComponent(

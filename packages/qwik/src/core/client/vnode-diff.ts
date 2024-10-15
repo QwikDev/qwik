@@ -1032,35 +1032,45 @@ export const vnode_diff = (
       }
       jsxValue.children != null && descendContentToProject(jsxValue.children, host);
     } else {
-      // Inline Component
-      vnode_insertBefore(
-        journal,
-        vParent as VirtualVNode,
-        (vNewNode = vnode_newVirtual()),
-        vCurrent && getInsertBefore()
-      );
-      isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.InlineComponent);
-      vnode_setProp(vNewNode, ELEMENT_PROPS, jsxValue.props);
+      const lookupKey = jsxValue.key;
+      const vNodeLookupKey = getKey(host);
+      const lookupKeysAreEqual = lookupKey === vNodeLookupKey;
 
-      host = vNewNode;
-      let component$Host: VNode | null = host;
-      // Find the closest component host which has `OnRender` prop.
-      while (
-        component$Host &&
-        (vnode_isVirtualVNode(component$Host)
-          ? vnode_getProp(component$Host, OnRenderProp, null) === null
-          : true)
-      ) {
-        component$Host = vnode_getParent(component$Host);
+      if (!lookupKeysAreEqual) {
+        // See if we already have this inline component later on.
+        vNewNode = retrieveChildWithKey(null, lookupKey);
+        if (vNewNode) {
+          // We found the inline component, move it up.
+          vnode_insertBefore(journal, vParent as VirtualVNode, vNewNode, vCurrent);
+        } else {
+          // We did not find the inline component, create it.
+          insertNewInlineComponent();
+        }
+        host = vNewNode as VirtualVNode;
       }
-      const jsxOutput = executeComponent(
-        container,
-        host,
-        (component$Host || container.rootVNode) as HostElement,
-        component as OnRenderFn<unknown>,
-        jsxValue.props
-      );
-      asyncQueue.push(jsxOutput, host);
+
+      if (host) {
+        let componentHost: VNode | null = host;
+        // Find the closest component host which has `OnRender` prop. This is need for subscriptions context.
+        while (
+          componentHost &&
+          (vnode_isVirtualVNode(componentHost)
+            ? vnode_getProp(componentHost, OnRenderProp, null) === null
+            : true)
+        ) {
+          componentHost = vnode_getParent(componentHost);
+        }
+
+        const jsxOutput = executeComponent(
+          container,
+          host,
+          (componentHost || container.rootVNode) as HostElement,
+          component as OnRenderFn<unknown>,
+          jsxValue.props
+        );
+
+        asyncQueue.push(jsxOutput, host);
+      }
     }
   }
 
@@ -1082,6 +1092,20 @@ export const vnode_diff = (
     container.setHostProp(vNewNode, OnRenderProp, componentQRL);
     container.setHostProp(vNewNode, ELEMENT_PROPS, jsxProps);
     container.setHostProp(vNewNode, ELEMENT_KEY, jsxValue.key);
+  }
+
+  function insertNewInlineComponent() {
+    vnode_insertBefore(
+      journal,
+      vParent as VirtualVNode,
+      (vNewNode = vnode_newVirtual()),
+      vCurrent && getInsertBefore()
+    );
+    isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.InlineComponent);
+    vnode_setProp(vNewNode, ELEMENT_PROPS, jsxValue.props);
+    if (jsxValue.key) {
+      vnode_setProp(vNewNode, ELEMENT_KEY, jsxValue.key);
+    }
   }
 
   function expectText(text: string) {

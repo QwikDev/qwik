@@ -306,6 +306,17 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         resolve: {
           dedupe: [...DEDUPE, ...vendorIds],
           conditions: buildMode === 'production' && target === 'client' ? ['min'] : [],
+          alias: {
+            '@builder.io/qwik': '@qwik.dev/core',
+            '@builder.io/qwik/build': '@qwik.dev/core/build',
+            '@builder.io/qwik/server': '@qwik.dev/core/server',
+            '@builder.io/qwik/jsx-runtime': '@qwik.dev/core/jsx-runtime',
+            '@builder.io/qwik/jsx-dev-runtime': '@qwik.dev/core/jsx-dev-runtime',
+            '@builder.io/qwik/optimizer': '@qwik.dev/core/optimizer',
+            '@builder.io/qwik/loader': '@qwik.dev/core/loader',
+            '@builder.io/qwik/cli': '@qwik.dev/core/cli',
+            '@builder.io/qwik/testing': '@qwik.dev/core/testing',
+          },
         },
         esbuild:
           viteCommand === 'serve'

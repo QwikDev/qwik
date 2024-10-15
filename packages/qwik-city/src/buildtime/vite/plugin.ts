@@ -63,6 +63,12 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
     async config() {
       const updatedViteConfig: UserConfig = {
         appType: 'custom',
+        resolve: {
+          alias: [
+            { find: '@builder.io/qwik-city', replacement: '@qwik.dev/city' },
+            { find: /^@builder\.io\/qwik-city\/(.*)/, replacement: '@qwik.dev/city/$1' },
+          ],
+        },
         optimizeDeps: {
           exclude: [QWIK_CITY, QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID, QWIK_CITY_SW_REGISTER],
         },

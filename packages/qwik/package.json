@@ -25,8 +25,7 @@
     }
   ],
   "dependencies": {
-    "csstype": "^3.1",
-    "vite": "^5"
+    "csstype": "^3.1"
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
@@ -156,6 +155,14 @@
   ],
   "license": "MIT",
   "main": "./dist/core.mjs",
+  "peerDependencies": {
+    "vite": "^5"
+  },
+  "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    }
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/QwikDev/qwik.git",

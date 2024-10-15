@@ -20,11 +20,11 @@ export const App = Component((props) => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_nuxfthrjvxe"), "App_Component_NuXFTHRjvXE"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_nuxfthrjvxe"), "App_Component_NuXFTHRjvXE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,wGAMhB\"}")
-============================= app_component_1_a08txhb9pek.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAMhB\"}")
+============================= test.tsx_app_component_1_a08txhb9pek.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
@@ -42,9 +42,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "App_Component_1_A08tXHb9pEk",
   "entry": null,
-  "displayName": "App_Component_1",
+  "displayName": "test.tsx_App_Component_1",
   "hash": "A08tXHb9pEk",
-  "canonicalFilename": "app_component_1_a08txhb9pek",
+  "canonicalFilename": "test.tsx_app_component_1_a08txhb9pek",
   "path": "",
   "extension": "js",
   "parent": "App_Component_NuXFTHRjvXE",
@@ -57,7 +57,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= app_component_nuxfthrjvxe.js (ENTRY POINT)==
+============================= test.tsx_app_component_nuxfthrjvxe.js (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
@@ -65,7 +65,7 @@ export const App_Component_NuXFTHRjvXE = (props)=>{
     const state = useStore({
         thing: 0
     });
-    return /*#__PURE__*/ qrl(()=>import("./app_component_1_a08txhb9pek"), "App_Component_1_A08tXHb9pEk", [
+    return /*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_1_a08txhb9pek"), "App_Component_1_A08tXHb9pEk", [
         state
     ]);
 };
@@ -77,9 +77,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "App_Component_NuXFTHRjvXE",
   "entry": null,
-  "displayName": "App_Component",
+  "displayName": "test.tsx_App_Component",
   "hash": "NuXFTHRjvXE",
-  "canonicalFilename": "app_component_nuxfthrjvxe",
+  "canonicalFilename": "test.tsx_app_component_nuxfthrjvxe",
   "path": "",
   "extension": "js",
   "parent": null,

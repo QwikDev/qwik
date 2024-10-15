@@ -64,13 +64,26 @@ This is the best approach because all required dependencies will be installed in
 
 You need to have these tools up and running in your local machine:
 
-- [VSCode](https://code.visualstudio.com/)
+- an editor. We recommend [VSCode](https://code.visualstudio.com/).
+- one of the following:
+  - [Nix](https://nixos.org)
+  - [Docker](https://www.docker.com/)
+  - Locally installed NodeJS v18+ and optionally Rust
 
-and either [Docker](https://www.docker.com/) or [Nix](https://nixos.org).
+#### Nix
 
-### Steps
+[Nix](https://nixos.org/download.html) can be used on macOS and Linux. It keeps installation files in `/nix` and doesn't write anywhere else. It has a declarative configuration in the `flake.nix` file, which describes all the tools needed to build the project.
 
-If you want to use Docker:
+- Install it on your machine and enable flakes. The [DetSys installer](https://github.com/DeterminateSystems/nix-installer) makes that easy.
+- run `nix develop` in the project root to open a shell with all the tools, or use `direnv` to have them automatically added into your current shell.
+
+##### Nix + Direnv (optional)
+
+You can additionally use [direnv](https://direnv.net/) to automatically load the dev environment when you enter the project directory.
+There is also a VSCode plugin for direnv that reloads the extensions so they get environment changes.
+When you install direnv, you'll need to allow it once with `direnv allow` in the project root. From then on, when you `cd` into the project, it will automatically have the correct tools installed.
+
+#### Docker
 
 - Install the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension in your VSCode.
 - Once installed you will be prompted to 'Reopen the folder to develop in a container [learn more](https://code.visualstudio.com/docs/devcontainers/containers) or Clone repository in Docker volume for [better I/O performance](https://code.visualstudio.com/docs/devcontainers/containers#_quick-start-open-a-git-repository-or-github-pr-in-an-isolated-container-volume)'. If you're not prompted, you can run the `Dev Containers: Open Folder in Container` command from the [VSCode Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette).
@@ -81,16 +94,7 @@ Alternatively you can use [devcontainers/cli](https://github.com/devcontainers/c
 - In your terminal navigate to the Qwik's project root directory.
 - Then run `devcontainer up --workspace-folder .`. This command will start a Docker container with all required environment dependencies.
 
-If you want to use Nix:
-
-- Install [Nix](https://nixos.org/download.html) on your machine and enable flakes. The [DetSys installer](https://github.com/DeterminateSystems/nix-installer) makes that easy.
-- run `nix develop` in the project root.
-
-Nix+Direnv (optional):
-
-You can additionally use [direnv](https://direnv.net/) to automatically load the dev environment when you enter the project directory.
-
-### Using development container without Dev Containers and VSCode
+##### Using development container without Dev Containers and VSCode
 
 If you would like to make use of the development container solution, but don't use VSCode or Dev Containers, you still can do so, by following steps:
 
@@ -105,7 +109,7 @@ Docker command does:
 - That exposes the ports `3300` and `9229`, and
 - Binds `qwik` project directory to container working directory.
 
-### Podman extras
+##### Podman extras
 
 > This section is highly influenced by SO answer: https://serverfault.com/a/1075838/352338
 > If you use [Podman](https://podman.io/) instead of Docker as your containers engine, then you need to know the following:
@@ -132,13 +136,11 @@ $ podman run --rm \
     -t qwik-container
 ```
 
-## Alternative way
+#### Locally installed tools
 
-If you're not able to use the dev container, follow these instructions:
+If you're not able to use the dev container, make sure you have NodeJS v18+ installed, as well as `pnpm`.
 
-### Installation
-
-> These are for a full build that includes Rust binaries.
+Furthermore, to build the optimizer you optionally need Rust.
 
 1. Make sure [Rust](https://www.rust-lang.org/tools/install) is installed.
 2. Install [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/) with `cargo install wasm-pack` .
@@ -149,21 +151,21 @@ If you're not able to use the dev container, follow these instructions:
 > On Windows, Rust requires [C++ build tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/). You can also select _Desktop development with C++_
 > while installing Visual Studio.
 
-> Alternatively, if Rust is not available you can run `pnpm build.platform.copy` to download bindings from CDN
-
 ---
 
 ## Development
 
-To build Qwik for local development, install the dev dependencies using [pnpm](https://pnpm.io/) and then do an initial build:
+To build Qwik for local development, install the dev dependencies using [pnpm](https://pnpm.io/) and then do an initial build.
 
 ```shell
 pnpm install && pnpm build.local
 ```
 
+If you want to work on the Rust code, use `build.full` instead of `build.local`.
+
 ### Fast build
 
-It will build only Qwik and Qwik City.
+This will build only Qwik and Qwik City and their types. This is not enough to run the docs.
 
 ```shell
 pnpm build.core
@@ -171,29 +173,34 @@ pnpm build.core
 
 ### Custom build
 
-E.g. to build only the react integration:
+Once you have done a full build, the types are built, and you can build just the code you're working on. For qwik and qwik-city, you can do very fast rebuilds with
 
 ```shell
-pnpm build --qwikreact
+pnpm build --dev --qwik --qwikcity
 ```
 
-Run without arguments for all supported flags. Notable:
+The `--dev` flag skips type checking and generating.
 
-- `--tsm`: typecheck
-- `--build`: Qwik (you'll probably also need `--api`)
-- `--qwikcity`: Qwik City (you'll probably also need `--api`)
+You can run `pnpm build` without parameters to see which flags are available. Notable:
+
+- `--tsc`: build types
+- `--api`: build API docs and type bundles. Requires `--tsc` to have run.
+- `--build`: Qwik (you'll probably also need `--dev`)
+- `--qwikcity`: Qwik City (you'll probably also need `--dev`)
 - `--qwikreact`: Qwik React
 - `--eslint`: Eslint plugin
 
+E.g. to build only the React integration, you'd run `pnpm build --qwikreact`.
+
 ### Full build without Rust
 
-It will build everything except Rust prerequisites and the optimizer binaries.
+This builds everything except Rust prerequisites and the optimizer binaries. Instead, those binaries are copied from the latest Qwik package on NPM.
 
 ```shell
 pnpm build.local
 ```
 
-### Full build
+### Full build with Rust
 
 It will build **everything**, including Rust packages and WASM.
 
@@ -211,68 +218,33 @@ pnpm build.full
 
 The build output will be written to `packages/qwik/dist`, which will be the directory that is published to [@qwik.dev/core](https://www.npmjs.com/package/@qwik.dev/core).
 
-### Run in your own app:
+To update the Rust test snapshots after you've made changes to the Rust code, run `pnpm test.rust.update`.
 
-Say you made changes to the repo. After you finished you'd need to run the build command (`pnpm build.full`/`pnpm build`).
+### Run in your own app
 
-To use your build in your project, follow these steps:
+Say you made changes to the repo and you want to try them out in your app. Once built, all the Qwik packages are directly usable in your project by using the linking in your package manager.
 
-1. Inside the root of the `qwik` project run:
-
-   ```shell
-   pnpm link.dist
-   ```
-
-   or
-
-   ```shell
-   pnpm link.dist.npm
-   ```
-
-   or
-
-   ```shell
-   pnpm link.dist.yarn
-   ```
-
-2. Inside the root of your project run:
-
-   ```shell
-    pnpm install
-    pnpm link --global @qwik.dev/core @qwik.dev/city
-   ```
-
-   or
-
-   ```shell
-   npm install
-   npm link @qwik.dev/core @qwik.dev/city
-   ```
-
-   or
-
-   ```shell
-    yarn install
-    yarn link @qwik.dev/core @qwik.dev/city
-   ```
-
-If you can't use package linking (npm link) just copy the contents of `packages/qwik/dist` into your projects' `node_modules/@qwik.dev/core` folder, and/or the contents of `packages/qwik-city/lib` into your projects' `node_modules/@qwik.dev/city` folder.
-
-### Test against the docs site:
-
-1. At the root of the Qwik repo folder run:
+This is very easy to do with `pnpm`:
+Assuming qwik is in `../qwik`, run this inside the root of your app:
 
 ```shell
-pnpm install
+pnpm link ../qwik/packages/qwik
+pnpm link ../qwik/packages/qwik-city
 ```
 
-2. Run the docs site:
+Other package managers probably need to first be told about the packages. For example, with `bun` you need to `cd ../qwik/packages/qwik` and `bun link`, repeat for `qwik-city`. Then in your app run `bun link @builder.io/qwik @builder.io/qwik-city`.
+
+If you can't use package linking, just copy the contents of `packages/qwik` into your projects' `node_modules/@builder.io/qwik` folder, and/or the contents of `packages/qwik-city` into your projects' `node_modules/@builder.io/qwik-city` folder.
+
+### Working on the docs site
+
+At the root of the Qwik repo folder run:
 
 ```shell
 pnpm docs.dev
 ```
 
-### To open the test apps for debugging run:
+### To open the test apps for debugging run
 
 ```shell
 pnpm serve
@@ -312,21 +284,69 @@ To update all dependencies, run:
 pnpm deps
 ```
 
-This will show an interactive UI to update all dependencies. Be careful about performing major updates, especially for the docs site, since not all functionality has test coverage there.
+This will show an interactive UI to update all dependencies. Be careful about performing major updates, especially for the docs site, since not all functionality has test coverage there. Be sure to test thoroughly.
 
 ## Starter CLI `create-qwik`
 
 - [Starter CLI](https://github.com/QwikDev/qwik/blob/main/starters/README.md)
 
-## Pull Request
+## Pull Requests
 
 - [Open Qwik in StackBlitz Codeflow](https://pr.new/github.com/QwikDev/qwik/)
 - Review PR in StackBlitz
   ![image](https://user-images.githubusercontent.com/4918140/195581745-8dfca1f9-2dcd-4f6a-b7aa-705f3627f8fa.png)
 
-### Adding a changeset:
+### Coding conventions
 
-Whenever you make a change that requires documentation or a new release, you should add a changeset. This will help us to keep track of changes and generate meaningful release notes and changelog files.
+Write code that is clean, simple and easy to understand. Complicated one-liners are generally frowned upon, unless they are for performance reasons and are clearly marked as such with a comment and explanation.
+
+When code does something unexpected, add a comment explaining why.
+
+When a comment is longer, prefer using `/** */` JSDoc comments as that will be auto-formatted as Markdown.
+JSDoc comments will also become part of the API documentation when they apply to exports, so write them as such.
+
+`pnpm fmt` is your friend, and we recommend setting up Prettier and using format-on-save in your editor.
+
+### Commit conventions
+
+If you don't follow these commit conventions, your PR will be squashed. This means your local branch will not be part of the commit history of the target branch.
+For larger PRs, it would really help if you follow these guidelines.
+
+- Create a commit for each logical unit and make sure it passes linting.
+- Keep your commits focused and atomic. Each commit should represent a single, coherent change.
+- If you have commits like `wip lol` or `fixup`, squash them. Use `git rebase -i`.
+- Commits must follow the format: `type(scope): description`
+  For example: `feat(qwik-city): confetti animations` or `chore: pnpm api.update`
+
+  Common types include:
+
+  - feat: A new feature
+  - fix: A bug fix
+  - docs: Documentation only changes
+  - lint: Changes that do not affect the meaning of the code (white-space, formatting, etc)
+  - refactor: A code change that neither fixes a bug nor adds a feature
+  - perf: A code change that improves performance
+  - test: Adding missing tests or correcting existing tests
+  - chore: Changes to the build process or auxiliary tools and libraries such as documentation generation
+
+  The `scope` is optional and should be a short identifier for the changed part of the code.
+
+- Use the imperative mood in the description. For example, use "add" instead of "added" or "adds".
+- For consistency, there should not be a period at the end of the commit message's summary line (the first line of the commit message).
+
+### Writing good commit messages
+
+In addition to writing properly formatted commit messages, it's important to include relevant information so other developers can later understand _why_ a change was made. While this information usually can be found by digging into the code, pull request discussions or upstream changes, it may require a lot of work.
+
+- Be clear and concise in your commit messages.
+- Explain the reason for the change, not just what was changed.
+- If the commit fixes a specific issue, reference it in the commit message (e.g., "Fixes #123").
+
+### Adding a changeset
+
+Whenever you make a change that requires mentioning in the changelog, you should add a changeset. This will automatically generate meaningful release notes and changelog files.
+
+You can add multiple changesets in a PR, for example because you implement different features for different packages, or because you have multiple noteworthy commits.
 
 You create a new changeset file by running:
 
@@ -334,31 +354,24 @@ You create a new changeset file by running:
 pnpm change
 ```
 
+This will ask you which packages should be included in the changeset, and if the changes require a new version bump. Generally you should not select `major`, and you should only select `minor` if there are new features or significant improvements. If you don't select either it will become `patch`.
+
 For your convenience, we prepared a video tutorial that covers the process of adding a changeset:
 
 [📽 TUTORIAL: Adding a changeset](https://go.screenpal.com/watch/cZivIcVPJQV)
 
-### Pre-submit hooks
+## PR merging (maintainers)
 
-The project has pre-submit hooks, which ensure that your code is correctly formatted. You can run them manually like so:
+Make sure the PR follows all the guidelines in this document. Once you think the PR is good to merge, if the commits are "nice", you can merge the PR. If not, squash the PR.
 
-```shell
-pnpm lint
-```
+In case the PR is stuck waiting for the original author to apply a trivial
+change (a typo, capitalisation change, etc.) and the author allowed the members
+to modify the PR, consider applying it yourself (or commit the existing review
+suggestion). You should pay extra attention to make sure the addition doesn't go
+against the idea of the original PR and would not be opposed by the author.
 
-Some issues can be fixed automatically by using:
+## Releasing (maintainers)
 
-```shell
-pnpm fmt
-```
+Merge the "version" PR, that is automatically created when a PR with a changeset is merged. You can first edit the files it created to get a nicer changelog.
 
-## Releasing (core-team)
-
-1. Run `pnpm release.prepare`, which will test, lint and build.
-2. Use the interactive UI to select the next version, which will update the `package.json` `version` property, add the git change, and start a commit message.
-3. Create a PR with the `package.json` change to merge to `main`.
-4. After the `package.json` with the updated version is in `main`, click the [Run Workflow](https://github.com/QwikDev/qwik/actions/workflows/ci.yml) button from the "Qwik CI" GitHub Action workflow.
-5. Select the NPM dist-tag that should be used for this version, then click "Run Workflow".
-6. The GitHub Action will dispatch the workflow to build `@qwik.dev/core`, `@qwik.dev/city` and each of their submodules, build WASM and native bindings, and validate the package before publishing to NPM.
-7. If the build is successful and all tests and validation passes, the workflow will automatically publish to NPM, commit a git tag to the repo, and create a GitHub release.
-8. ⚡️
+Once CI passes, the GitHub Action will publish the new version to NPM.

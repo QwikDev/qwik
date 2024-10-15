@@ -33,11 +33,11 @@ expression: output
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-/*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./cmp_component_4rykjtokjwe"), "Cmp_component_4ryKJTOKjWE"));
+/*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_cmp_component_4rykjtokjwe"), "Cmp_component_4ryKJTOKjWE"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;cAEc\"}")
-============================= cmp_component_div_div_button_onclick_3ra5dio0esa.js (ENTRY POINT)==
+============================= test.tsx_cmp_component_div_div_button_onclick_3ra5dio0esa.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
 export const Cmp_component_div_div_button_onClick_3Ra5dio0eSA = ()=>{
@@ -52,9 +52,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "Cmp_component_div_div_button_onClick_3Ra5dio0eSA",
   "entry": null,
-  "displayName": "Cmp_component_div_div_button_onClick",
+  "displayName": "test.tsx_Cmp_component_div_div_button_onClick",
   "hash": "3Ra5dio0eSA",
-  "canonicalFilename": "cmp_component_div_div_button_onclick_3ra5dio0esa",
+  "canonicalFilename": "test.tsx_cmp_component_div_div_button_onclick_3ra5dio0esa",
   "path": "",
   "extension": "js",
   "parent": "Cmp_component_4ryKJTOKjWE",
@@ -67,7 +67,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= cmp_component_4rykjtokjwe.js (ENTRY POINT)==
+============================= test.tsx_cmp_component_4rykjtokjwe.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
@@ -91,7 +91,7 @@ export const Cmp_component_4ryKJTOKjWE = ()=>{
                 class: "after"
             }, null, 3, null),
             /*#__PURE__*/ _jsxSorted("button", null, {
-                onClick$: /*#__PURE__*/ qrl(()=>import("./cmp_component_div_div_button_onclick_3ra5dio0esa"), "Cmp_component_div_div_button_onClick_3Ra5dio0eSA", [
+                onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_cmp_component_div_div_button_onclick_3ra5dio0esa"), "Cmp_component_div_div_button_onClick_3Ra5dio0eSA", [
                     htmlSignal
                 ])
             }, null, 3, null)
@@ -106,9 +106,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "Cmp_component_4ryKJTOKjWE",
   "entry": null,
-  "displayName": "Cmp_component",
+  "displayName": "test.tsx_Cmp_component",
   "hash": "4ryKJTOKjWE",
-  "canonicalFilename": "cmp_component_4rykjtokjwe",
+  "canonicalFilename": "test.tsx_cmp_component_4rykjtokjwe",
   "path": "",
   "extension": "js",
   "parent": null,

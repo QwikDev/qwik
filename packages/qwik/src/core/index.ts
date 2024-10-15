@@ -17,6 +17,7 @@ export type {
 // Developer Event API
 //////////////////////////////////////////////////////////////////////////////////////////
 export type {
+  ISsrComponentFrame,
   SnapshotListener,
   SnapshotMeta,
   SnapshotMetaValue,

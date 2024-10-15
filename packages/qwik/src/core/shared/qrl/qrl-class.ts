@@ -13,7 +13,7 @@ import { assertDefined } from '../error/assert';
 import { qError, QError_qrlIsNotFunction } from '../error/error';
 import { getPlatform, isServerPlatform } from '../platform/platform';
 import { getQFuncs, QInstanceAttr } from '../utils/markers';
-import { maybeThen } from '../utils/promises';
+import { isPromise, maybeThen } from '../utils/promises';
 import { qDev, qSerialize, qTest, seal } from '../utils/qdev';
 import { verifySerializable } from '../utils/serialize-utils';
 import { isArray, isFunction, type ValueOrPromise } from '../utils/types';
@@ -143,8 +143,18 @@ export const createQRL = <TYPE>(
       const imported = getPlatform().importSymbol(_containerEl, chunk, symbol);
       symbolRef = maybeThen(imported, (ref) => (qrl.resolved = symbolRef = wrapFn(ref)));
     }
-    (symbolRef as Promise<TYPE>).finally(() => emitUsedSymbol(symbol, ctx?.$element$, start));
-    return symbolRef!;
+    if (typeof symbolRef === 'object' && isPromise(symbolRef)) {
+      symbolRef.then(
+        () => emitUsedSymbol(symbol, ctx?.$element$, start),
+        (err) => {
+          console.error(`qrl ${symbol} failed to load`, err);
+          // We shouldn't cache rejections, we can try again later
+          symbolRef = null;
+          throw err;
+        }
+      );
+    }
+    return symbolRef;
   };
 
   const resolveLazy = (containerEl?: Element): ValueOrPromise<TYPE> => {

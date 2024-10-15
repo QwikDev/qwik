@@ -44,7 +44,6 @@ export {
   Q_PROPS_SEPARATOR,
   STREAM_BLOCK_END_COMMENT,
   STREAM_BLOCK_START_COMMENT,
-  UNWRAP_VNODE_LOCAL,
   dangerouslySetInnerHTML,
 } from '../core/shared/utils/markers';
 export { maybeThen } from '../core/shared/utils/promises';

@@ -370,9 +370,13 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         const [routeName, params, mods, menu] = loadedRoute;
         const contentModules = mods as ContentModule[];
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
-        if (navigation.dest.search) {
+
+        // Restore search params unless it's a redirect
+        const isRedirect = navType === 'form' && !isSamePath(trackUrl, prevUrl);
+        if (navigation.dest.search && !isRedirect) {
           trackUrl.search = navigation.dest.search;
         }
+
         // Update route location
         routeLocation.prevUrl = prevUrl;
         routeLocation.url = trackUrl;
@@ -412,8 +416,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             (navigation.scroll &&
               (!navigation.forceReload || !isSamePath(trackUrl, prevUrl)) &&
               (navType === 'link' || navType === 'popstate')) ||
-            // Action might have responded with a redirect.
-            (navType === 'form' && !isSamePath(trackUrl, prevUrl))
+            isRedirect
           ) {
             // Mark next DOM render to scroll.
             (document as any).__q_scroll_restore__ = () =>

@@ -11,6 +11,7 @@ export interface DeserializeContainer {
   element: HTMLElement | null;
   getSyncFn: (id: number) => (...args: unknown[]) => unknown;
   $state$?: unknown[];
+  $storeProxyMap$: ObjToProxyMap;
 }
 
 export interface Container {
@@ -43,7 +44,9 @@ export interface Container {
    */
   ensureProjectionResolved(host: HostElement): void;
   serializationCtxFactory(
-    NodeConstructor: SerializationContext['$NodeConstructor$'] | null,
+    NodeConstructor: {
+      new (...rest: any[]): { nodeType: number; id: string };
+    } | null,
     symbolToChunkResolver: SymbolToChunkResolver,
     writer?: StreamWriter
   ): SerializationContext;

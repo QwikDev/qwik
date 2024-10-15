@@ -17,7 +17,7 @@ export const Foo = component$(() => {
 	tagName: "my-foo",
 });
 
-============================= foo_component_usestyles_pv9tscbihw8.tsx (ENTRY POINT)==
+============================= test.tsx_foo_component_usestyles_pv9tscbihw8.tsx (ENTRY POINT)==
 
 export const Foo_component_useStyles_pV9TSCBIhw8 = '.class {}';
 
@@ -28,9 +28,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "Foo_component_useStyles_pV9TSCBIhw8",
   "entry": null,
-  "displayName": "Foo_component_useStyles",
+  "displayName": "test.tsx_Foo_component_useStyles",
   "hash": "pV9TSCBIhw8",
-  "canonicalFilename": "foo_component_usestyles_pv9tscbihw8",
+  "canonicalFilename": "test.tsx_foo_component_usestyles_pv9tscbihw8",
   "path": "",
   "extension": "tsx",
   "parent": "Foo_component_HTDRsvUbLiE",
@@ -43,12 +43,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= foo_component_htdrsvublie.tsx (ENTRY POINT)==
+============================= test.tsx_foo_component_htdrsvublie.tsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
 import { useStylesQrl } from "@qwik.dev/core";
 export const Foo_component_HTDRsvUbLiE = ()=>{
-    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./foo_component_usestyles_pv9tscbihw8"), "Foo_component_useStyles_pV9TSCBIhw8"));
+    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_foo_component_usestyles_pv9tscbihw8"), "Foo_component_useStyles_pV9TSCBIhw8"));
     return <div class="class"/>;
 };
 
@@ -59,9 +59,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "Foo_component_HTDRsvUbLiE",
   "entry": null,
-  "displayName": "Foo_component",
+  "displayName": "test.tsx_Foo_component",
   "hash": "HTDRsvUbLiE",
-  "canonicalFilename": "foo_component_htdrsvublie",
+  "canonicalFilename": "test.tsx_foo_component_htdrsvublie",
   "path": "",
   "extension": "tsx",
   "parent": null,
@@ -78,12 +78,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
+export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,wGAKhB;IACF,SAAS;AACV,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAKhB;IACF,SAAS;AACV,GAAG\"}")
 == DIAGNOSTICS ==
 
 []

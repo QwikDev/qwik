@@ -88,8 +88,11 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
     }
 
     const resolved = await clientManifest;
-
-    res.set("Content-Type", "text/html");
+    if (url.pathname.endsWith(".js")) {
+      res.set("Content-Type", "text/javascript");
+    } else {
+      res.set("Content-Type", "text/html");
+    }
     if (enableCityServer) {
       await cityApp(req, res, next, appDir);
     } else {

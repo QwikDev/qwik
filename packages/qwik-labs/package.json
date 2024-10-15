@@ -17,9 +17,6 @@
     "vite": "5.3.5",
     "zod": "3.22.4"
   },
-  "peerDependencies": {
-    "zod": "3.22.4"
-  },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
   },
@@ -40,6 +37,9 @@
     "vite"
   ],
   "main": "./lib/index.qwik.mjs",
+  "peerDependencies": {
+    "zod": "3.22.4"
+  },
   "private": true,
   "qwik": "./lib/index.qwik.mjs",
   "scripts": {

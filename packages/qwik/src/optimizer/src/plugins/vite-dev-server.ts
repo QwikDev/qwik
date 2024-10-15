@@ -5,14 +5,9 @@ import type { IncomingMessage, ServerResponse } from 'http';
 
 import type { Connect, ViteDevServer } from 'vite';
 import type { OptimizerSystem, Path, QwikManifest, SymbolMapper, SymbolMapperFn } from '../types';
-import {
-  type NormalizedQwikPluginOptions,
-  parseId,
-  getSymbolHash,
-  makeNormalizePath,
-} from './plugin';
+import { type NormalizedQwikPluginOptions, parseId, makeNormalizePath } from './plugin';
 import type { QwikViteDevResponse } from './vite';
-import { formatError, isWin } from './vite-utils';
+import { formatError } from './vite-utils';
 import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
 import imageDevTools from './image-size-runtime.html?raw';
 import clickToComponent from './click-to-component.html?raw';
@@ -34,8 +29,13 @@ function getOrigin(req: IncomingMessage) {
 
 // We must encode the chunk so that e.g. + doesn't get converted to space etc
 const encode = (url: string) =>
-  encodeURIComponent(url).replaceAll('%2F', '/').replaceAll('%40', '@').replaceAll('%3A', ':');
-
+  encodeURIComponent(url)
+    .replaceAll('%2F', '/')
+    .replaceAll('%40', '@')
+    .replaceAll('%3A', ':')
+    .replaceAll('%5B', '[')
+    .replaceAll('%5D', ']')
+    .replaceAll('%2C', ',');
 function createSymbolMapper(
   base: string,
   opts: NormalizedQwikPluginOptions,
@@ -45,21 +45,13 @@ function createSymbolMapper(
   const normalizePath = makeNormalizePath(sys);
   return (
     symbolName: string,
-    mapper: SymbolMapper | undefined,
+    _mapper: SymbolMapper | undefined,
     parent: string | undefined
   ): [string, string] => {
     if (symbolName === SYNC_QRL) {
       return [symbolName, ''];
     }
-    const hash = getSymbolHash(symbolName);
     if (!parent) {
-      console.warn(
-        `qwik vite-dev-server symbolMapper: parent not provided for ${symbolName}, falling back to mapper.`
-      );
-      const chunk = mapper && mapper[hash];
-      if (chunk) {
-        return [chunk[0], chunk[1]];
-      }
       console.error(
         'qwik vite-dev-server symbolMapper: unknown qrl requested without parent:',
         symbolName
@@ -67,13 +59,12 @@ function createSymbolMapper(
       return [symbolName, `${base}${symbolName.toLowerCase()}.js`];
     }
     // on windows, absolute paths don't start with a slash
-    const maybeSlash = isWin(sys.os) ? '/' : '';
     const parentPath = normalizePath(path.dirname(parent));
     const parentFile = path.basename(parent);
     const qrlPath = parentPath.startsWith(opts.rootDir)
       ? normalizePath(path.relative(opts.rootDir, parentPath))
-      : `@fs${maybeSlash}${parentPath}`;
-    const qrlFile = `${encode(qrlPath)}/${parentFile.toLowerCase()}_${symbolName.toLowerCase()}.js?_qrl_parent=${encode(parentFile)}`;
+      : `@fs/${parentPath}`;
+    const qrlFile = encode(`${qrlPath}/${parentFile.toLowerCase()}_${symbolName.toLowerCase()}.js`);
     return [symbolName, `${base}${qrlFile}`];
   };
 }

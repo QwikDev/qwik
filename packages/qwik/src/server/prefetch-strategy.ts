@@ -1,4 +1,5 @@
 import { getBuildBase } from './utils';
+import { isDev } from '@builder.io/qwik/build';
 import type { PrefetchResource, QwikManifest, RenderToStringOptions } from './types';
 
 import type { QRLInternal } from './qwik-types';
@@ -69,7 +70,7 @@ function addBundle(
   buildBase: string,
   bundleFileName: string
 ) {
-  const url = buildBase + bundleFileName;
+  const url = isDev ? bundleFileName : buildBase + bundleFileName;
   let prefetchResource = urls.get(url);
   if (!prefetchResource) {
     prefetchResource = {

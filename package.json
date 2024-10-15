@@ -54,7 +54,7 @@
           "dependencies": [
             "@playwright/test"
           ],
-          "pinVersion": "1.40.0"
+          "pinVersion": "1.47.0"
         },
         {
           "label": "use exact version numbers for devDependencies",

@@ -25,28 +25,15 @@
     }
   ],
   "dependencies": {
-    "csstype": "^3.1",
-    "vite": "^5"
-  },
-  "peerDependencies": {
-    "prettier": "*",
-    "vitest": "^2"
-  },
-  "peerDependenciesMeta": {
-    "vitest": {
-      "optional": true
-    },
-    "prettier": {
-      "optional": true
-    }
+    "csstype": "^3.1"
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
     "@builder.io/qwik-dom": "workspace:^",
     "image-size": "1.1.1",
     "kleur": "4.1.5",
-    "vitest": "2.0.5",
-    "prettier": "3.3.3"
+    "prettier": "3.3.3",
+    "vitest": "2.0.5"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
@@ -171,6 +158,22 @@
   ],
   "license": "MIT",
   "main": "./src/index.ts",
+  "peerDependencies": {
+    "prettier": "*",
+    "vite": "^5",
+    "vitest": "^2"
+  },
+  "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    },
+    "vitest": {
+      "optional": true
+    },
+    "prettier": {
+      "optional": true
+    }
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/QwikDev/qwik.git",

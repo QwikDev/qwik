@@ -47,9 +47,11 @@ export type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEnt
 
 // @alpha
 export enum ExperimentalFeatures {
+    insights = "insights",
     noSPA = "noSPA",
     preventNavigate = "preventNavigate",
-    valibot = "valibot"
+    valibot = "valibot",
+    webWorker = "webWorker"
 }
 
 // @public (undocumented)

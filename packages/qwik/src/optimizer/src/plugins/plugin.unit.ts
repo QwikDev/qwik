@@ -1,8 +1,8 @@
 import path, { resolve } from 'node:path';
 import { assert, describe, expect, test } from 'vitest';
+import { normalizePath } from '../../../testing/util';
 import type { QwikManifest } from '../types';
 import { ExperimentalFeatures, createPlugin } from './plugin';
-import { normalizePath } from '../../../testing/util';
 import { qwikVite } from './vite';
 
 const cwd = process.cwd();
@@ -271,13 +271,13 @@ describe('resolveId', () => {
   });
   test('libs', async () => {
     const plugin = await mockPlugin();
-    expect(plugin.resolveId(null!, '@builder.io/qwik/build', undefined)).toHaveProperty(
+    expect(plugin.resolveId(null!, '@qwik.dev/core/build', undefined)).toHaveProperty(
       'id',
-      '/@builder.io/qwik/build'
+      '/@qwik.dev/core/build'
     );
-    expect(plugin.resolveId(null!, '/@builder.io/qwik/build', undefined)).toHaveProperty(
+    expect(plugin.resolveId(null!, '/@qwik.dev/core/build', undefined)).toHaveProperty(
       'id',
-      '/@builder.io/qwik/build'
+      '/@qwik.dev/core/build'
     );
     expect(plugin.resolveId(null!, '@qwik-client-manifest', '/foo/bar')).toHaveProperty(
       'id',

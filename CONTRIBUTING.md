@@ -232,9 +232,9 @@ pnpm link ../qwik/packages/qwik
 pnpm link ../qwik/packages/qwik-city
 ```
 
-Other package managers probably need to first be told about the packages. For example, with `bun` you need to `cd ../qwik/packages/qwik` and `bun link`, repeat for `qwik-city`. Then in your app run `bun link @builder.io/qwik @builder.io/qwik-city`.
+Other package managers probably need to first be told about the packages. For example, with `bun` you need to `cd ../qwik/packages/qwik` and `bun link`, repeat for `qwik-city`. Then in your app run `bun link @qwik.dev/core @qwik.dev/city`.
 
-If you can't use package linking, just copy the contents of `packages/qwik` into your projects' `node_modules/@builder.io/qwik` folder, and/or the contents of `packages/qwik-city` into your projects' `node_modules/@builder.io/qwik-city` folder.
+If you can't use package linking, just copy the contents of `packages/qwik` into your projects' `node_modules/@qwik.dev/core` folder, and/or the contents of `packages/qwik-city` into your projects' `node_modules/@qwik.dev/city` folder.
 
 ### Working on the docs site
 

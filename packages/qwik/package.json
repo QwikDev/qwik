@@ -25,14 +25,17 @@
     }
   ],
   "dependencies": {
-    "csstype": "^3.1",
-    "vite": "^5"
+    "csstype": "^3.1"
   },
   "peerDependencies": {
     "prettier": "*",
+    "vite": "^5",
     "vitest": "^2"
   },
   "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    },
     "vitest": {
       "optional": true
     },

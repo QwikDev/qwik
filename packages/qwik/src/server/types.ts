@@ -33,6 +33,11 @@ export interface PrefetchImplementation {
    */
   linkRel?: 'prefetch' | 'preload' | 'modulepreload' | null;
   /**
+   * Value of the `<link fetchpriority="...">` attribute when link is used. Defaults to `null` if
+   * links are inserted.
+   */
+  linkFetchPriority?: 'auto' | 'low' | 'high' | null;
+  /**
    * `always`: Always include the worker fetch JS runtime.
    *
    * `no-link-support`: Only include the worker fetch JS runtime when the browser doesn't support

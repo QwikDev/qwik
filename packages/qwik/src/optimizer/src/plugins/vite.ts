@@ -392,6 +392,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         } else if (opts.target === 'lib') {
           // Library Build
           updatedViteConfig.build!.minify = false;
+          updatedViteConfig.build!.rollupOptions.external = [
+            QWIK_CORE_ID,
+            QWIK_CORE_SERVER,
+            QWIK_JSX_RUNTIME_ID,
+            QWIK_JSX_DEV_RUNTIME_ID,
+            QWIK_BUILD_ID,
+            QWIK_CLIENT_MANIFEST_ID,
+          ];
         } else {
           // Test Build
           updatedViteConfig.define = {

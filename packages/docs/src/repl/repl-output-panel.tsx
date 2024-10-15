@@ -10,6 +10,10 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
   const diagnosticsLen = useComputed$(
     () => store.diagnostics.length + store.monacoDiagnostics.length
   );
+  const clientBundlesNoCore = useComputed$(() =>
+    // Qwik Core is not interesting and is large, slowing down the UI
+    store.clientBundles.filter((b) => !b.path.endsWith('qwikCore.js'))
+  );
 
   return (
     <div class="repl-panel repl-output-panel">
@@ -113,7 +117,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
         ) : null}
 
         {store.selectedOutputPanel === 'clientBundles' ? (
-          <ReplOutputModules headerText="/build/" outputs={store.clientBundles} />
+          <ReplOutputModules headerText="/build/" outputs={clientBundlesNoCore.value} />
         ) : null}
 
         {store.selectedOutputPanel === 'serverModules' ? (

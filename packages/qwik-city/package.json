@@ -11,7 +11,6 @@
     "undici": "*",
     "valibot": ">=0.36.0 <2",
     "vfile": "6.0.1",
-    "vite": "^5",
     "vite-imagetools": "^7",
     "zod": "3.22.4"
   },
@@ -174,6 +173,9 @@
   "homepage": "https://qwik.dev/",
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
+  "peerDependencies": {
+    "vite": "^5"
+  },
   "publishConfig": {
     "access": "public"
   },

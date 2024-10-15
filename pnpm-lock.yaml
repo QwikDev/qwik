@@ -21,9 +21,6 @@ importers:
       esbuild-plugin-raw:
         specifier: ^0.1.8
         version: 0.1.8(esbuild@0.20.2)
-      tsx:
-        specifier: 4.19.1
-        version: 4.19.1
     devDependencies:
       '@builder.io/partytown':
         specifier: 0.10.2
@@ -73,12 +70,6 @@ importers:
       '@playwright/test':
         specifier: 1.40.0
         version: 1.40.0
-      '@swc/core':
-        specifier: 1.7.25
-        version: 1.7.25(@swc/helpers@0.5.13)
-      '@swc/helpers':
-        specifier: 0.5.13
-        version: 0.5.13
       '@types/brotli':
         specifier: 1.3.4
         version: 1.3.4
@@ -184,9 +175,6 @@ importers:
       prompts:
         specifier: 2.4.2
         version: 2.4.2
-      regenerator-runtime:
-        specifier: 0.14.1
-        version: 0.14.1
       rollup:
         specifier: 4.19.0
         version: 4.19.0
@@ -217,9 +205,9 @@ importers:
       tree-kill:
         specifier: 1.2.2
         version: 1.2.2
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@swc/core@1.7.25(@swc/helpers@0.5.13))(@types/node@20.14.11)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -405,7 +393,7 @@ importers:
         version: 2.0.0
       tailwindcss:
         specifier: 3.4.6
-        version: 3.4.6(ts-node@10.9.2(@swc/core@1.7.25(@swc/helpers@0.5.13))(@types/node@20.14.11)(typescript@5.4.5))
+        version: 3.4.6(ts-node@10.9.2(@types/node@20.14.11)(typescript@5.4.5))
       terser:
         specifier: 5.31.3
         version: 5.31.3
@@ -533,7 +521,7 @@ importers:
         version: link:../eslint-plugin-qwik
       netlify-cli:
         specifier: 17.33.4
-        version: 17.33.4(@swc/core@1.7.25(@swc/helpers@0.5.13))(@types/express@4.17.21)(@types/node@20.14.11)(bufferutil@4.0.8)(picomatch@3.0.1)(utf-8-validate@5.0.10)
+        version: 17.33.4(@types/express@4.17.21)(@types/node@20.14.11)(bufferutil@4.0.8)(picomatch@3.0.1)(utf-8-validate@5.0.10)
       postcss:
         specifier: 8.4.39
         version: 8.4.39
@@ -545,7 +533,7 @@ importers:
         version: 0.5.14(prettier-plugin-jsdoc@1.3.0(prettier@3.3.3))(prettier@3.3.3)
       tailwindcss:
         specifier: 3.4.6
-        version: 3.4.6(ts-node@10.9.2(@swc/core@1.7.25(@swc/helpers@0.5.13))(@types/node@20.14.11)(typescript@5.4.5))
+        version: 3.4.6(ts-node@10.9.2(@types/node@20.14.11)(typescript@5.4.5))
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -3335,88 +3323,6 @@ packages:
 
   '@supabase/supabase-js@2.44.4':
     resolution: {integrity: sha512-vqtUp8umqcgj+RPUc7LiEcQmgsEWFDPJdJizRJF/5tf2zSlVB+3YbUwyQE/hLagYA8TLvGXe7oAqtYyFde6llw==}
-
-  '@swc/core-darwin-arm64@1.7.25':
-    resolution: {integrity: sha512-cbLNV4vsqSbll7kehJ58hZ9lt+nLlUPF+fmSRVsb4Qasnr0IRDtpT+3Rc87bDNXfkc15Ii80xdp7sU2MVgHn7A==}
-    engines: {node: '>=10'}
-    cpu: [arm64]
-    os: [darwin]
-
-  '@swc/core-darwin-x64@1.7.25':
-    resolution: {integrity: sha512-kZswLBI8KWWV8VuGIJZd8GM7eWFY5srmlomiWw7j/OtRyRgr8qfX3EmxBAYYZqTEvWdooSc/y3I61lHn/a1tRg==}
-    engines: {node: '>=10'}
-    cpu: [x64]
-    os: [darwin]
-
-  '@swc/core-linux-arm-gnueabihf@1.7.25':
-    resolution: {integrity: sha512-DV/8BHwdtymoelC1KvefOoyXraIDK0rJIBqjPvtzW9YbkN1hepF7au1deiieJ6+A0smP+4fxtYhrnJ5EjPvylA==}
-    engines: {node: '>=10'}
-    cpu: [arm]
-    os: [linux]
-
-  '@swc/core-linux-arm64-gnu@1.7.25':
-    resolution: {integrity: sha512-lIx8BeKzpulL2PbLyMUln5Hk164M/PHXquHt6y86sD7Spza6zbCme+/Zr17PRiElqrP8byKC09UZj0K6hONDqQ==}
-    engines: {node: '>=10'}
-    cpu: [arm64]
-    os: [linux]
-    libc: [glibc]
-
-  '@swc/core-linux-arm64-musl@1.7.25':
-    resolution: {integrity: sha512-+/I7AzzY4066bvKLTyAZXLL0dPpWhRUh0ja4cZNZ+0Gpn8FmtWDwZKCriIWkDlD1gSuXm8+iOaaLGhEwIquOpQ==}
-    engines: {node: '>=10'}
-    cpu: [arm64]
-    os: [linux]
-    libc: [musl]
-
-  '@swc/core-linux-x64-gnu@1.7.25':
-    resolution: {integrity: sha512-BPtnKyiBVMZyN6ml7oHGX9wuSLHN06nT1x1TM9wcSKSx6y+BEKb8jSmzrKzM7K5LnfOiy4+ARCb4HrMkXIQjUg==}
-    engines: {node: '>=10'}
-    cpu: [x64]
-    os: [linux]
-    libc: [glibc]
-
-  '@swc/core-linux-x64-musl@1.7.25':
-    resolution: {integrity: sha512-ZlZztuvy2hvfoYg5gYHYuc2mssgzGq1kKanF9kPdICsTmze6t7AvkSfmlTN7/YGuO//yDDJR1GR0EuXwOAJqPw==}
-    engines: {node: '>=10'}
-    cpu: [x64]
-    os: [linux]
-    libc: [musl]
-
-  '@swc/core-win32-arm64-msvc@1.7.25':
-    resolution: {integrity: sha512-k3QsHJ+53BVhRUeC7NJOMxdMGexBIhFmL8Ex39vqWVvDZgnOepMFu9/G1pm04xBHSqcb0lioDj5WirAoy4VusQ==}
-    engines: {node: '>=10'}
-    cpu: [arm64]
-    os: [win32]
-
-  '@swc/core-win32-ia32-msvc@1.7.25':
-    resolution: {integrity: sha512-3PW8LDgS7eIdjeGLNYhO1XLXyZJZ+aLjf79am8+HqfzVkmz+uIK39FcFxeF6A/LUsuQBMa3Geg++rS38kviMEA==}
-    engines: {node: '>=10'}
-    cpu: [ia32]
-    os: [win32]
-
-  '@swc/core-win32-x64-msvc@1.7.25':
-    resolution: {integrity: sha512-iYpJNfIzPwahwPgddb9PHYichdFoS/2NR4Gaemv9s6nzTguS4vx/YT1oFGwuGMP0RyOdmAN2rEfPh7sJktqWfA==}
-    engines: {node: '>=10'}
-    cpu: [x64]
-    os: [win32]
-
-  '@swc/core@1.7.25':
-    resolution: {integrity: sha512-EWTWdb0GD+Z9CByvW5j5b9d1cFr9P6hy7TkGgAwnhKxGwzGu8BHTG3ou28KY6P57yZXDVKB0exWmSNRIv6LYCg==}
-    engines: {node: '>=10'}
-    peerDependencies:
-      '@swc/helpers': '*'
-    peerDependenciesMeta:
-      '@swc/helpers':
-        optional: true
-
-  '@swc/counter@0.1.3':
-    resolution: {integrity: sha512-e2BR4lsJkkRlKZ/qCHPw9ZaSxc0MVUd7gtbtaB7aMvHeJVYe8sOB8DBZkP2DtISHGSku9sCK6T6cnY0CtXrOCQ==}
-
-  '@swc/helpers@0.5.13':
-    resolution: {integrity: sha512-UoKGxQ3r5kYI9dALKJapMmuK+1zWM/H17Z1+iwnNmzcJRnfFuevZs375TA5rW31pu4BS4NoSy1fRsexDXfWn5w==}
-
-  '@swc/types@0.1.12':
-    resolution: {integrity: sha512-wBJA+SdtkbFhHjTMYH+dEH1y4VpfGdAc2Kw/LK09i9bXd/K6j6PkDcFCEzb6iVfZMkPRrl/q0e3toqTAJdkIVA==}
 
   '@szmarczak/http-timer@5.0.1':
     resolution: {integrity: sha512-+PmQX0PiAYPMeVYe237LJAYvOMYW1j2rH5YROyS3b4CTVJum34HfRvKvAzozHAQG0TnHNdUfY9nCeUyRAs//cw==}
@@ -11731,7 +11637,7 @@ snapshots:
       yaml: 2.4.5
       yargs: 17.7.2
 
-  '@netlify/build@29.51.3(@opentelemetry/api@1.8.0)(@swc/core@1.7.25(@swc/helpers@0.5.13))(@types/node@20.14.11)(picomatch@3.0.1)':
+  '@netlify/build@29.51.3(@opentelemetry/api@1.8.0)(@types/node@20.14.11)(picomatch@3.0.1)':
     dependencies:
       '@bugsnag/js': 7.25.0
       '@netlify/blobs': 7.4.0
@@ -11788,7 +11694,7 @@ snapshots:
       strip-ansi: 7.1.0
       supports-color: 9.4.0
       terminal-link: 3.0.0
-      ts-node: 10.9.2(@swc/core@1.7.25(@swc/helpers@0.5.13))(@types/node@20.14.11)(typescript@5.4.5)
+      ts-node: 10.9.2(@types/node@20.14.11)(typescript@5.4.5)
       typescript: 5.4.5
       uuid: 9.0.1
       yargs: 17.7.2
@@ -12456,63 +12362,6 @@ snapshots:
       '@supabase/storage-js': 2.6.0
     transitivePeerDependencies:
       - supports-color
-
-  '@swc/core-darwin-arm64@1.7.25':
-    optional: true
-
-  '@swc/core-darwin-x64@1.7.25':
-    optional: true
-
-  '@swc/core-linux-arm-gnueabihf@1.7.25':
-    optional: true
-
-  '@swc/core-linux-arm64-gnu@1.7.25':
-    optional: true
-
-  '@swc/core-linux-arm64-musl@1.7.25':
-    optional: true
-
-  '@swc/core-linux-x64-gnu@1.7.25':
-    optional: true
-
-  '@swc/core-linux-x64-musl@1.7.25':
-    optional: true
-
-  '@swc/core-win32-arm64-msvc@1.7.25':
-    optional: true
-
-  '@swc/core-win32-ia32-msvc@1.7.25':
-    optional: true
-
-  '@swc/core-win32-x64-msvc@1.7.25':
-    optional: true
-
-  '@swc/core@1.7.25(@swc/helpers@0.5.13)':
-    dependencies:
-      '@swc/counter': 0.1.3
-      '@swc/types': 0.1.12
-    optionalDependencies:
-      '@swc/core-darwin-arm64': 1.7.25
-      '@swc/core-darwin-x64': 1.7.25
-      '@swc/core-linux-arm-gnueabihf': 1.7.25
-      '@swc/core-linux-arm64-gnu': 1.7.25
-      '@swc/core-linux-arm64-musl': 1.7.25
-      '@swc/core-linux-x64-gnu': 1.7.25
-      '@swc/core-linux-x64-musl': 1.7.25
-      '@swc/core-win32-arm64-msvc': 1.7.25
-      '@swc/core-win32-ia32-msvc': 1.7.25
-      '@swc/core-win32-x64-msvc': 1.7.25
-      '@swc/helpers': 0.5.13
-
-  '@swc/counter@0.1.3': {}
-
-  '@swc/helpers@0.5.13':
-    dependencies:
-      tslib: 2.6.2
-
-  '@swc/types@0.1.12':
-    dependencies:
-      '@swc/counter': 0.1.3
 
   '@szmarczak/http-timer@5.0.1':
     dependencies:
@@ -17395,12 +17244,12 @@ snapshots:
 
   nested-error-stacks@2.1.1: {}
 
-  netlify-cli@17.33.4(@swc/core@1.7.25(@swc/helpers@0.5.13))(@types/express@4.17.21)(@types/node@20.14.11)(bufferutil@4.0.8)(picomatch@3.0.1)(utf-8-validate@5.0.10):
+  netlify-cli@17.33.4(@types/express@4.17.21)(@types/node@20.14.11)(bufferutil@4.0.8)(picomatch@3.0.1)(utf-8-validate@5.0.10):
     dependencies:
       '@bugsnag/js': 7.25.0
       '@fastify/static': 7.0.4
       '@netlify/blobs': 7.4.0
-      '@netlify/build': 29.51.3(@opentelemetry/api@1.8.0)(@swc/core@1.7.25(@swc/helpers@0.5.13))(@types/node@20.14.11)(picomatch@3.0.1)
+      '@netlify/build': 29.51.3(@opentelemetry/api@1.8.0)(@types/node@20.14.11)(picomatch@3.0.1)
       '@netlify/build-info': 7.14.1
       '@netlify/config': 20.17.1
       '@netlify/edge-bundler': 12.2.2(supports-color@9.4.0)
@@ -18146,13 +17995,13 @@ snapshots:
       camelcase-css: 2.0.1
       postcss: 8.4.39
 
-  postcss-load-config@4.0.2(postcss@8.4.39)(ts-node@10.9.2(@swc/core@1.7.25(@swc/helpers@0.5.13))(@types/node@20.14.11)(typescript@5.4.5)):
+  postcss-load-config@4.0.2(postcss@8.4.39)(ts-node@10.9.2(@types/node@20.14.11)(typescript@5.4.5)):
     dependencies:
       lilconfig: 3.1.1
       yaml: 2.4.5
     optionalDependencies:
       postcss: 8.4.39
-      ts-node: 10.9.2(@swc/core@1.7.25(@swc/helpers@0.5.13))(@types/node@20.14.11)(typescript@5.4.5)
+      ts-node: 10.9.2(@types/node@20.14.11)(typescript@5.4.5)
 
   postcss-nested@6.0.1(postcss@8.4.39):
     dependencies:
@@ -19382,7 +19231,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  tailwindcss@3.4.6(ts-node@10.9.2(@swc/core@1.7.25(@swc/helpers@0.5.13))(@types/node@20.14.11)(typescript@5.4.5)):
+  tailwindcss@3.4.6(ts-node@10.9.2(@types/node@20.14.11)(typescript@5.4.5)):
     dependencies:
       '@alloc/quick-lru': 5.2.0
       arg: 5.0.2
@@ -19401,7 +19250,7 @@ snapshots:
       postcss: 8.4.39
       postcss-import: 15.1.0(postcss@8.4.39)
       postcss-js: 4.0.1(postcss@8.4.39)
-      postcss-load-config: 4.0.2(postcss@8.4.39)(ts-node@10.9.2(@swc/core@1.7.25(@swc/helpers@0.5.13))(@types/node@20.14.11)(typescript@5.4.5))
+      postcss-load-config: 4.0.2(postcss@8.4.39)(ts-node@10.9.2(@types/node@20.14.11)(typescript@5.4.5))
       postcss-nested: 6.0.1(postcss@8.4.39)
       postcss-selector-parser: 6.0.15
       resolve: 1.22.8
@@ -19575,7 +19424,7 @@ snapshots:
 
   ts-interface-checker@0.1.13: {}
 
-  ts-node@10.9.2(@swc/core@1.7.25(@swc/helpers@0.5.13))(@types/node@20.14.11)(typescript@5.4.5):
+  ts-node@10.9.2(@types/node@20.14.11)(typescript@5.4.5):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.9
@@ -19592,8 +19441,6 @@ snapshots:
       typescript: 5.4.5
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
-    optionalDependencies:
-      '@swc/core': 1.7.25(@swc/helpers@0.5.13)
 
   ts-toolbelt@9.6.0: {}
 

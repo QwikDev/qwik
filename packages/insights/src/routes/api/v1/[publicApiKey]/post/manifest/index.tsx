@@ -22,6 +22,7 @@ export const onPost: RequestHandler = async ({ exit, json, request, params }) =>
           eq(symbolDetailTable.manifestHash, manifestHash)
         )
       )
+      .limit(1000)
       .all();
     const existingMap = new Map<string, (typeof existing)[0]>();
     existing.forEach((row) => existingMap.set(row.hash, row));

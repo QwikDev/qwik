@@ -1027,6 +1027,11 @@ export const vnode_diff = (
         const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
         shouldRender = shouldRender || propsDiffer(jsxProps, vNodeProps);
         if (shouldRender) {
+          /**
+           * Mark host as not deleted. The host could have been marked as deleted if it there was a
+           * cleanup run. Now we found it and want to reuse it, so we need to mark it as not
+           * deleted.
+           */
           host[VNodeProps.flags] &= ~VNodeFlags.Deleted;
           container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
         }

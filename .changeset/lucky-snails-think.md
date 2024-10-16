@@ -2,4 +2,4 @@
 '@builder.io/qwik': patch
 ---
 
-Validate prefetch service worker messages and ignore unknown messages
+Prefetch service worker is now robust against unknown messages

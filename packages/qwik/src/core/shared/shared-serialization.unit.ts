@@ -276,10 +276,11 @@ describe('shared-serialization', () => {
       const other = 'hello';
       expect(await dump($(() => myVar + other))).toMatchInlineSnapshot(`
         "
-        0 QRL "mock-chunk#describe_describe_it_expect_dump_cNbqnZa8lvE[1 2]"
+        0 QRL 3
         1 Number 123
         2 String "hello"
-        (83 chars)"
+        3 String "mock-chunk#describe_describe_it_expect_dump_cNbqnZa8lvE[1 2]"
+        (87 chars)"
       `);
     });
     it(title(TypeIds.Task), async () => {
@@ -290,7 +291,7 @@ describe('shared-serialization', () => {
       ).toMatchInlineSnapshot(`
         "
         0 Task [
-          QRL "mock-chunk#describe_describe_it_expect_dump_1_EfBKC5CDrtE[2]"
+          QRL 3
           Number 0
           Number 0
           RootRef 2
@@ -305,7 +306,8 @@ describe('shared-serialization', () => {
           RootRef 1
           Number 1
         ]
-        (125 chars)"
+        3 String "mock-chunk#describe_describe_it_expect_dump_1_EfBKC5CDrtE[2]"
+        (129 chars)"
       `);
     });
     it(title(TypeIds.Resource), async () => {
@@ -328,9 +330,10 @@ describe('shared-serialization', () => {
         `
         "
         0 Component [
-          QRL "mock-chunk#describe_describe_it_expect_dump_component_vSVQcZKRFqg"
+          QRL 1
         ]
-        (77 chars)"
+        1 String "mock-chunk#describe_describe_it_expect_dump_component_vSVQcZKRFqg"
+        (81 chars)"
       `
       );
     });
@@ -383,19 +386,20 @@ describe('shared-serialization', () => {
       expect(dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 ComputedSignal [
-          QRL "mock-chunk#describe_describe_it_dirty_createComputed_ThF0rSoSl0g[2]"
-          Constant NEEDS_COMPUTATION
-          Constant true
+          QRL 3
+          Constant null
         ]
         1 ComputedSignal [
-          QRL "mock-chunk#describe_describe_it_clean_createComputed_lg4WQTKvF1k[2]"
+          QRL 4
+          Constant null
           Number 2
-          Constant false
         ]
         2 Signal [
           Number 1
         ]
-        (182 chars)"
+        3 String "mock-chunk#describe_describe_it_dirty_createComputed_ThF0rSoSl0g[2]"
+        4 String "mock-chunk#describe_describe_it_clean_createComputed_lg4WQTKvF1k[2]"
+        (186 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {
@@ -734,12 +738,13 @@ describe('shared-serialization', () => {
         0 Array [
           RootRef 2
         ]
-        1 QRL "mock-chunk#foo[2]"
+        1 QRL 3
         2 Object [
           String "shared"
           Number 1
         ]
-        (52 chars)"
+        3 String "mock-chunk#foo[2]"
+        (56 chars)"
       `);
       // make sure shared1 is only serialized once
       expect(objs[1]).toEqual([TypeIds.RootRef, 2]);

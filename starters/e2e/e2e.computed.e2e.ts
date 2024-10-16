@@ -33,6 +33,17 @@ test.describe("computed", () => {
       ]);
     });
 
+    test("should early resolve computed qrl", async ({ page }) => {
+      const button = page.locator("#early-computed-qrl");
+      await expect(button).not.toHaveAttribute("data-test");
+      await expect(button).toContainText("Click me!");
+
+      await button.click();
+
+      await expect(button).toHaveAttribute("data-test", "5");
+      await expect(button).toContainText("Click me! 5");
+    });
+
     test("issue 3482", async ({ page }) => {
       const button = page.locator("#issue-3482-button");
       const div = page.locator("#issue-3482-div");

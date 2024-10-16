@@ -1,4 +1,4 @@
-import { _deserializeData } from '@builder.io/qwik';
+import { _deserialize } from '@builder.io/qwik';
 
 globalThis.document = {
   nodeType: 9,
@@ -30,7 +30,7 @@ globalThis.onmessage = async ({ data }) => {
     },
   };
   try {
-    const [qrl, ...args] = _deserializeData(data[3], containerEl);
+    const [qrl, ...args] = _deserialize(data[3], containerEl);
     const output = await qrl.apply(undefined, args);
     self.postMessage([requestId, true, output]);
   } catch (err) {

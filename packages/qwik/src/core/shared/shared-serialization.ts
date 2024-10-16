@@ -42,6 +42,7 @@ import {
   type SyncQRLInternal,
 } from './qrl/qrl-class';
 import type { QRL } from './qrl/qrl.public';
+import { ChoreType } from './scheduler';
 import type { DeserializeContainer, HostElement, ObjToProxyMap } from './types';
 import { _CONST_PROPS, _VAR_PROPS } from './utils/constants';
 import { isElement, isNode } from './utils/element';
@@ -282,6 +283,15 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
       computed.$untrackedValue$ = d[1];
       computed.$invalid$ = d[2];
       computed.$effects$ = d.slice(3);
+      /**
+       * If we try to compute value and the qrl is not resolved, then system throws an error with
+       * qrl promise. To prevent that we should early resolve computed qrl while computed
+       * deserialization. This also prevents anything from firing while computed qrls load, because
+       * of scheduler
+       */
+      // try to download qrl in this tick
+      computed.$computeQrl$.resolve();
+      (container as DomContainer).$scheduler$?.(ChoreType.QRL_RESOLVE, null, computed.$computeQrl$);
       break;
     }
     case TypeIds.Error: {

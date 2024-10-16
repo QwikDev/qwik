@@ -1628,6 +1628,9 @@ export interface TrackHTMLAttributes<T extends Element> extends Attrs<'track', T
 export const untrack: <T>(fn: () => T) => T;
 
 // @public
+export const unwrapStore: <T>(proxy: T) => T;
+
+// @public
 export const useComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>;
 
 // @public (undocumented)

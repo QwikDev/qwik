@@ -30,6 +30,7 @@ export async function getRoutes(
       .where(where)
       .groupBy(routesTable.route, routesTable.symbol)
       .orderBy(sql`${routesTable.route}`, desc(sumTimelineCount))
+      .limit(1000)
       .all();
     return query.map((row) => ({
       route: row.route,
@@ -63,6 +64,7 @@ export async function getRouteNames(
       .where(where)
       .groupBy(routesTable.route)
       .orderBy(sql`${routesTable.route}`)
+      .limit(1000)
       .all();
     return query.map((row) => ({
       route: row.route,
@@ -99,6 +101,7 @@ export async function getRouteTimeline(
       .where(where)
       .groupBy(routesTable.route, routesTable.symbol)
       .orderBy(sql`${routesTable.route}`, desc(sumTimelineCount))
+      .limit(1000)
       .all();
     return query.map((row) => ({
       route: row.route,

@@ -1027,6 +1027,7 @@ export const vnode_diff = (
         const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
         shouldRender = shouldRender || propsDiffer(jsxProps, vNodeProps);
         if (shouldRender) {
+          host[VNodeProps.flags] &= ~VNodeFlags.Deleted;
           container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
         }
       }

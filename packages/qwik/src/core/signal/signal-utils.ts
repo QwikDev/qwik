@@ -6,13 +6,12 @@ import { isSignal } from './signal.public';
 import { getStoreTarget } from './store';
 import { isPropsProxy } from '../shared/jsx/jsx-runtime';
 
-const getProp = (...args: [any, string?]) => {
-  const obj = args[0];
-  const prop = args.length < 2 ? 'value' : args[1]!;
-  return obj[prop];
-};
+// Keep these properties named like this so they're the same as from wrapSignal
+const getValueProp = (p0: any) => p0.value;
+const getProp = (p0: any, p1: string) => p0[p1];
 
-const getWrapped = (args: any[]) => new WrappedSignal(null, getProp, args, null);
+const getWrapped = (args: any[]) =>
+  new WrappedSignal(null, args.length === 1 ? getValueProp : getProp, args, null);
 
 /**
  * This wraps a property access of a possible Signal/Store into a WrappedSignal. The optimizer does

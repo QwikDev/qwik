@@ -1,6 +1,8 @@
 import type {
+  JSXChildren,
   JSXNode,
   JSXOutput,
+  _ContainerElement,
   _ElementVNode,
   _QDocument,
   _Stringifiable,
@@ -8,7 +10,15 @@ import type {
   _VNode,
   _VirtualVNode,
 } from '@builder.io/qwik';
-import { Fragment, _isJSXNode, _isStringifiable, isSignal } from '@builder.io/qwik';
+import {
+  Fragment,
+  Slot,
+  _CONST_PROPS,
+  _VAR_PROPS,
+  _isJSXNode,
+  _isStringifiable,
+  isSignal,
+} from '@builder.io/qwik';
 import { expect } from 'vitest';
 import {
   vnode_applyJournal,
@@ -40,11 +50,15 @@ import {
 import { createDocument } from './document';
 import { isElement } from './html';
 import { Q_PROPS_SEPARATOR } from '../core/shared/utils/markers';
+import { JSXNodeImpl } from '../core/shared/jsx/jsx-runtime';
 
 expect.extend({
-  toMatchVDOM(this: { isNot: boolean }, received: _VNode, expected: JSXNode) {
+  toMatchVDOM(this: { isNot: boolean }, received: _VNode, expected: JSXNode, isCsr?: boolean) {
     const { isNot } = this;
-    const diffs = diffJsxVNode(received, expected);
+    const isSsr = typeof isCsr === 'boolean' ? !isCsr : isSsrContainer(received);
+    const filtered = isSsr ? filterJsx(expected) : expected;
+    // const diffs = diffJsxVNode(received, filtered, []);
+    const diffs = diffJsxVNode(received, filtered, []);
     return {
       pass: isNot ? diffs.length !== 0 : diffs.length === 0,
       message: () => diffs.join('\n'),
@@ -67,6 +81,63 @@ expect.extend({
   },
 });
 
+function isSsrContainer(vNode: _VNode) {
+  let maybeParent: _VNode | null;
+  do {
+    maybeParent = vnode_getParent(vNode);
+    if (maybeParent) {
+      vNode = maybeParent;
+    }
+  } while (maybeParent);
+  const container = vnode_getNode(vNode) as _ContainerElement;
+  return container.hasAttribute('q:render');
+}
+
+const isJsxNode = (expected: JSXChildren): expected is JSXNode => {
+  return typeof expected === 'object' && expected !== null && expected instanceof JSXNodeImpl;
+};
+function filterJsx(expected: JSXChildren): JSXNode | string {
+  // console.log('filterJsx', expected?.type || expected);
+  if (!isJsxNode(expected)) {
+    return expected as any;
+  }
+  if (!expected.children) {
+    return expected;
+  }
+  const children = getJSXChildren(expected);
+  if (
+    expected.type === Fragment &&
+    !expected.constProps?.['ssr-required'] &&
+    children.length === 1
+  ) {
+    return filterJsx(children[0]);
+  }
+  const filterJoined: JSXChildren[] = [];
+  let lastString;
+  for (const child of children.map(filterJsx)) {
+    if (typeof child === 'string' || typeof child === 'number') {
+      lastString = typeof lastString === 'string' ? lastString + child : String(child);
+    } else {
+      if (lastString !== undefined) {
+        filterJoined.push(lastString);
+        lastString = undefined;
+      }
+      filterJoined.push(child);
+    }
+  }
+  if (lastString !== undefined) {
+    filterJoined.push(lastString);
+  }
+  return new JSXNodeImpl(
+    expected.type,
+    expected.varProps,
+    expected.constProps,
+    filterJoined.length === 1 ? filterJoined[0] : filterJoined,
+    expected.flags,
+    expected.key
+  );
+}
+
 function diffJsxVNode(received: _VNode, expected: JSXNode | string, path: string[] = []): string[] {
   if (!received) {
     return [path.join(' > ') + ' missing'];
@@ -80,7 +151,6 @@ function diffJsxVNode(received: _VNode, expected: JSXNode | string, path: string
       diffs.push('RECEIVED:', JSON.stringify(receivedText));
     }
   } else {
-    path.push(tagToString(expected.type));
     const receivedTag = vnode_isElementVNode(received)
       ? vnode_getElementName(received as _ElementVNode)
       : vnode_isVirtualVNode(received)
@@ -88,7 +158,9 @@ function diffJsxVNode(received: _VNode, expected: JSXNode | string, path: string
         : undefined;
     const isTagSame = String(expected.type).toLowerCase() == String(receivedTag).toLowerCase();
     if (!isTagSame) {
-      diffs.push(path.join(' > ') + ' expecting=' + expected.type + ' received=' + receivedTag);
+      diffs.push(
+        path.join(' > ') + ' expecting=' + tagToString(expected.type) + ' received=' + receivedTag
+      );
     }
     const allProps: string[] = [];
     expected.varProps && propsAdd(allProps, Object.keys(expected.varProps));
@@ -98,6 +170,9 @@ function diffJsxVNode(received: _VNode, expected: JSXNode | string, path: string
       : null;
     propsAdd(allProps, vnode_isElementVNode(received) ? vnode_getAttrKeys(received).sort() : []);
     receivedElement && propsAdd(allProps, constPropsFromElement(receivedElement));
+
+    path.push(tagToString(expected.type));
+
     allProps.sort();
     allProps.forEach((prop) => {
       if (isJsxPropertyAnEventName(prop) || isHtmlAttributeAnEventName(prop)) {
@@ -124,13 +199,13 @@ function diffJsxVNode(received: _VNode, expected: JSXNode | string, path: string
         diffs.push('  RECEIVED: ' + JSON.stringify(receivedValue));
       }
     });
-    const receivedChildren = getVNodeChildren(received);
     const expectedChildren = getJSXChildren(expected);
+    const receivedChildren = getVNodeChildren(received);
     if (receivedChildren.length === expectedChildren.length) {
       for (let i = 0; i < receivedChildren.length; i++) {
         const receivedChild = receivedChildren[i];
         const expectedChild = expectedChildren[i];
-        diffs.push(...diffJsxVNode(receivedChild, expectedChild, path));
+        diffs.push(...diffJsxVNode(receivedChild, expectedChild as JSXNode, path));
       }
     } else {
       diffs.push(
@@ -139,13 +214,13 @@ function diffJsxVNode(received: _VNode, expected: JSXNode | string, path: string
         }`
       );
       diffs.push('EXPECTED', jsxToHTML(expected, '  '));
-      diffs.push('RECEIVED:', vnodeToHTML(received, '  '));
+      diffs.push('RECEIVED', received.toString());
     }
     path.pop();
   }
   return diffs;
 }
-function getJSXChildren(jsx: JSXNode): JSXNode[] {
+function getJSXChildren(jsx: JSXNode): JSXChildren[] {
   const children = jsx.children;
   if (Array.isArray(children)) {
     return children as any;
@@ -171,7 +246,7 @@ export function jsxToHTML(jsx: JSXNode, pad: string = ''): string {
   if (jsx.type) {
     html.push(pad, '<', tagToString(jsx.type), '>\n');
     getJSXChildren(jsx).forEach((jsx) => {
-      html.push(jsxToHTML(jsx, pad + '  '));
+      html.push(jsxToHTML(jsx as JSXNode, pad + '  '));
     });
     html.push(pad, '</', tagToString(jsx.type), '>\n');
   } else {
@@ -200,6 +275,9 @@ export function vnodeToHTML(vNode: _VNode | null, pad: string = ''): string {
 function tagToString(tag: any): string {
   if (tag === Fragment) {
     return 'Fragment';
+  }
+  if (tag === Slot) {
+    return 'Slot';
   }
   return String(tag);
 }

@@ -14,7 +14,7 @@ export async function submoduleTesting(config: BuildConfig) {
     sourcemap: config.dev,
     bundle: true,
     target,
-    external: ['@builder.io/qwik/build', 'prettier', 'vitest'],
+    external: ['@builder.io/qwik/build', 'prettier', 'vitest', '@builder.io/qwik-external'],
     platform: 'node',
     // external: [...nodeBuiltIns],
   };
@@ -25,7 +25,7 @@ export async function submoduleTesting(config: BuildConfig) {
     banner: { js: getBanner('@builder.io/qwik/testing', config.distVersion) },
     outExtension: { '.js': '.mjs' },
     plugins: [
-      importPath(/^@builder\.io\/qwik$/, '../core.mjs'),
+      importPath(/^@builder\.io\/qwik$/, '../core.qwik.mjs'),
       importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.mjs'),
       importPath(/^@builder\.io\/qwik\/server$/, '../server.mjs'),
     ],
@@ -44,7 +44,7 @@ export async function submoduleTesting(config: BuildConfig) {
       js: getBanner('@builder.io/qwik/testing', config.distVersion),
     },
     plugins: [
-      importPath(/^@builder\.io\/qwik$/, '../core.cjs'),
+      importPath(/^@builder\.io\/qwik$/, '../core.qwik.cjs'),
       importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.cjs'),
       importPath(/^@builder\.io\/qwik\/server$/, '../server.cjs'),
     ],

@@ -3,6 +3,7 @@
   "compilerOptions": {
     "paths": {
       "@builder.io/qwik": ["packages/qwik/src/core"],
+      "@builder.io/qwik-external": ["@builder.io/qwik"],
       "@builder.io/qwik/jsx-runtime": ["packages/qwik/src/jsx-runtime"],
       "@builder.io/qwik/jsx-dev-runtime": ["packages/qwik/src/jsx-runtime"],
       "@builder.io/qwik/build": ["packages/qwik/src/build"],

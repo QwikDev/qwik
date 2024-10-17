@@ -42,6 +42,7 @@ export async function bundleIndex(config: BuildConfig, entryName: string) {
     bundle: true,
     sourcemap: true,
     target,
+    external: ['@builder.io/qwik-external'],
   };
 
   const esm = build({

@@ -27,6 +27,7 @@ export async function submoduleServer(config: BuildConfig) {
     external: [
       /* no Node.js built-in externals allowed! */ '@builder.io/qwik-dom',
       '@builder.io/qwik/build',
+      '@builder.io/qwik-external',
     ],
   };
 
@@ -115,9 +116,9 @@ async function getQwikDomVersion(config: BuildConfig) {
 
 const browserCjsRequireShim = `
 if (typeof require !== 'function' && typeof location !== 'undefined' && typeof navigator !== 'undefined') {
-  // shim cjs require() for core.cjs within a browser
+  // shim cjs require() for core.qwik.cjs within a browser
   globalThis.require = function(path) {
-    if (path === './core.cjs' || path === '@builder.io/qwik') {
+    if (path === './core.qwik.cjs' || path === '@builder.io/qwik') {
       if (!self.qwikCore) {
         throw new Error('Qwik Core global, "globalThis.qwikCore", must already be loaded for the Qwik Server to be used within a browser.');
       }

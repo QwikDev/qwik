@@ -33,6 +33,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
       external: [
         /* no Node.js built-in externals allowed! */
         'espree',
+        '@builder.io/qwik-external',
       ],
     };
 

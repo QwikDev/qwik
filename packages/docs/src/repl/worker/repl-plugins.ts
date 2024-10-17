@@ -24,7 +24,7 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
         id === '@builder.io/qwik/jsx-runtime' ||
         id === '@builder.io/qwik/jsx-dev-runtime'
       ) {
-        return '\0qwikCore';
+        return '/core.qwik.mjs';
       }
       if (id === '@builder.io/qwik/server') {
         return '\0qwikServer';
@@ -48,14 +48,14 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
         return input.code;
       }
       if (buildMode === 'ssr') {
-        if (id === '\0qwikCore') {
+        if (id === '/core.qwik.mjs') {
           return getRuntimeBundle('qwikCore');
         }
         if (id === '\0qwikServer') {
           return getRuntimeBundle('qwikServer');
         }
       }
-      if (id === '\0qwikCore') {
+      if (id === '/core.qwik.mjs') {
         if (options.buildMode === 'production') {
           const rsp = await depResponse('@builder.io/qwik', '/core.min.mjs');
           if (rsp) {

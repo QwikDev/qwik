@@ -22,7 +22,7 @@ async function submoduleCoreProd(config: BuildConfig) {
   const input: InputOptions = {
     input: join(config.tscDir, 'packages', 'qwik', 'src', 'core', 'index.js'),
     onwarn: rollupOnWarn,
-    external: ['@builder.io/qwik/build'],
+    external: ['@builder.io/qwik-external', '@builder.io/qwik/build'],
     plugins: [
       {
         name: 'setVersion',
@@ -34,6 +34,7 @@ async function submoduleCoreProd(config: BuildConfig) {
                 'globalThis.QWIK_VERSION',
                 JSON.stringify(config.distVersion)
               );
+              b.code = b.code.replaceAll('@builder.io/qwik-external', '@builder.io/qwik');
             }
           }
         },
@@ -71,6 +72,7 @@ async function submoduleCoreProd(config: BuildConfig) {
   const inputMin: InputOptions = {
     input: inputCore,
     onwarn: rollupOnWarn,
+    external: ['@builder.io/qwik-external'],
     plugins: [
       {
         name: 'build',
@@ -226,7 +228,7 @@ async function submoduleCoreDev(config: BuildConfig) {
 
   const esm = build({
     ...opts,
-    external: ['@builder.io/qwik/build'],
+    external: ['@builder.io/qwik/build', '@builder.io/qwik-external'],
     format: 'esm',
     outExtension: { '.js': '.qwik.mjs' },
   });
@@ -234,6 +236,7 @@ async function submoduleCoreDev(config: BuildConfig) {
   const cjs = build({
     ...opts,
     // we don't externalize qwik build because then the repl service worker sees require()
+    external: ['@builder.io/qwik-external'],
     define: {
       ...opts.define,
       // Vite's base url

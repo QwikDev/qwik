@@ -63,7 +63,7 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
           }
         }
 
-        const rsp = await depResponse('@builder.io/qwik', '/core.mjs');
+        const rsp = await depResponse('@builder.io/qwik', '/core.qwik.mjs');
         if (rsp) {
           return rsp.text();
         }

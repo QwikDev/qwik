@@ -21,7 +21,7 @@ export const useApps = routeLoader$<ApplicationRow[]>(async ({ sharedMap }) => {
     // The user has nothing attached to it.
     return [];
   }
-  return query.all();
+  return query.limit(1000).all();
 });
 
 export default component$(() => {

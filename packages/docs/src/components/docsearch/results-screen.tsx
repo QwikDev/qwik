@@ -21,8 +21,7 @@ export const ResultsScreen = component$((props: { state: DocSearchState }) => {
             <ul role="listbox" aria-labelledby="docsearch-label" id="docsearch-list">
               {collection.items.map((item, index) => {
                 return (
-                  // TODO: the key should be {item.objectID}, but for now in v2 there is a bug
-                  <Result state={props.state} item={item} key={item.__autocomplete_id}>
+                  <Result state={props.state} item={item} key={item.objectID}>
                     {item.__docsearch_parent && (
                       <svg q:slot="start-action" class="DocSearch-Hit-Tree" viewBox="0 0 24 54">
                         <g

@@ -3,9 +3,11 @@ import {
   Fragment as Component,
   Fragment,
   Fragment as InlineComponent,
+  Fragment as Projection,
   SSRComment,
   Fragment as Signal,
   SkipRender,
+  Slot,
   component$,
   h,
   jsx,
@@ -1771,6 +1773,147 @@ describe.each([
         <div>Item 3</div>
         <div>Item 4</div>
       </div>
+    );
+  });
+
+  it('should rerender components with projection and condition after sort', async () => {
+    interface Item {
+      id: string;
+      level: number;
+      value: {
+        title: string;
+      };
+    }
+
+    const SecondChild = component$((props: any) => {
+      return props.title + props.index;
+    });
+
+    const FirstChild = component$<{ item: Item; index: number }>((props) => {
+      return (
+        <div>
+          <Slot />
+          {props.item.level === 1 && (
+            <SecondChild title={props.item.value.title} index={props.index} />
+          )}
+        </div>
+      );
+    });
+
+    const Parent = component$(() => {
+      const data = useStore<{ items: Item[] }>({
+        items: [
+          {
+            id: 'foo',
+            level: 1,
+            value: {
+              title: 'qwik 1',
+            },
+          },
+          {
+            id: 'aaa',
+            level: 2,
+            value: {
+              title: 'qwik 2',
+            },
+          },
+          {
+            id: 'bar',
+            level: 1,
+            value: {
+              title: 'qwik 3',
+            },
+          },
+        ],
+      });
+
+      return (
+        <div>
+          <button
+            onClick$={() => {
+              data.items.sort((a, b) => a.id.localeCompare(b.id));
+            }}
+          ></button>
+          <section>
+            {data.items.map((item, index) => {
+              return (
+                <FirstChild key={item.id} item={item} index={index}>
+                  <span>{index}</span>
+                </FirstChild>
+              );
+            })}
+          </section>
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<Parent />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <button></button>
+          <section>
+            <Component>
+              <div>
+                <Projection>
+                  <span>0</span>
+                </Projection>
+                <Component>qwik 10</Component>
+              </div>
+            </Component>
+            <Component>
+              <div>
+                <Projection>
+                  <span>1</span>
+                </Projection>
+                {''}
+              </div>
+            </Component>
+            <Component>
+              <div>
+                <Projection>
+                  <span>2</span>
+                </Projection>
+                <Component>qwik 32</Component>
+              </div>
+            </Component>
+          </section>
+        </div>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <button></button>
+          <section>
+            <Component>
+              <div>
+                <Projection>
+                  <span>0</span>
+                </Projection>
+                {''}
+              </div>
+            </Component>
+            <Component>
+              <div>
+                <Projection>
+                  <span>1</span>
+                </Projection>
+                <Component>qwik 31</Component>
+              </div>
+            </Component>
+            <Component>
+              <div>
+                <Projection>
+                  <span>2</span>
+                </Projection>
+                <Component>qwik 12</Component>
+              </div>
+            </Component>
+          </section>
+        </div>
+      </Component>
     );
   });
 

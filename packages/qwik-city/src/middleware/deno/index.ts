@@ -9,11 +9,12 @@ import {
 } from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
-import { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import { _deserialize, _serialize, _verifySerializable } from '@builder.io/qwik';
 import { setServerPlatform } from '@builder.io/qwik/server';
 import { MIME_TYPES } from '../request-handler/mime-types';
 // @ts-ignore
 import { extname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
+import type { QwikSerializer } from '../request-handler/types';
 
 // @builder.io/qwik-city/middleware/deno
 
@@ -31,9 +32,9 @@ export interface ServeHandlerInfo {
 
 /** @public */
 export function createQwikCity(opts: QwikCityDenoOptions) {
-  const qwikSerializer = {
-    _deserializeData,
-    _serializeData,
+  const qwikSerializer: QwikSerializer = {
+    _deserialize,
+    _serialize,
     _verifySerializable,
   };
   if (opts.manifest) {

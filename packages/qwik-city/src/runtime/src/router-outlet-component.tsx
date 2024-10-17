@@ -4,7 +4,6 @@ import {
   type JSXNode,
   SkipRender,
   useContext,
-  _jsxBranch,
   useServerData,
   sync$,
 } from '@builder.io/qwik';
@@ -20,7 +19,6 @@ export const RouterOutlet = component$(() => {
   if (!serverData) {
     throw new Error('PrefetchServiceWorker component must be rendered on the server.');
   }
-  _jsxBranch();
 
   const { value } = useContext(ContentInternalContext);
   if (value && value.length > 0) {

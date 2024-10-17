@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1949
+assertion_line: 2060
 expression: output
 ---
 ==INPUT==
@@ -11,11 +11,11 @@ export const Greeter = component$(() => <div/>)
 
 ============================= components/apps/apps.tsx_greeter_component_0jjovx068y0.ts (ENTRY POINT)==
 
-import { _jsxQ } from "@builder.io/qwik";
-export const Greeter_component_0jjOvx068y0 = ()=>/*#__PURE__*/ _jsxQ("div", null, null, null, 3, "KD_0");
+import { _jsxSorted } from "@builder.io/qwik";
+export const Greeter_component_0jjOvx068y0 = ()=>/*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "KD_0");
 
 
-Some("{\"version\":3,\"sources\":[\"C:\\\\users\\\\apps/components/apps/apps.tsx\"],\"names\":[],\"mappings\":\";6CAEkC,kBAAM,MAAC\"}")
+Some("{\"version\":3,\"sources\":[\"C:\\\\users\\\\apps/components/apps/apps.tsx\"],\"names\":[],\"mappings\":\";6CAEkC,kBAAM,WAAC\"}")
 /*
 {
   "origin": "components/apps/apps.tsx",

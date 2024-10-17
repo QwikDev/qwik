@@ -8,12 +8,12 @@ expression: output
 
 import { $, component$, useStore } from '@builder.io/qwik';
 const Header = component$(() => {
-    const thing = useStore();
-    const {foo, bar} = foo();
+	const thing = useStore();
+	const {foo, bar} = foo();
 
-    return (
-        <div>{thing}</div>
-    );
+	return (
+		<div>{thing}</div>
+	);
 });
 
 ============================= test.tsx_header_component_j4uyihabnr4.tsx (ENTRY POINT)==
@@ -26,7 +26,7 @@ export const Header_component_J4uyIhaBNR4 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAE0B;IACtB,MAAM,QAAQ;IACd,MAAM,EAAC,GAAG,EAAE,GAAG,EAAC,GAAG;IAEnB,QACK,KAAK,QAAQ;AAEtB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAE0B;IACzB,MAAM,QAAQ;IACd,MAAM,EAAC,GAAG,EAAE,GAAG,EAAC,GAAG;IAEnB,QACE,KAAK,QAAQ;AAEhB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -43,7 +43,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     88,
-    205
+    187
   ]
 }
 */

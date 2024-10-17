@@ -47,7 +47,7 @@ export const SlotParent = component$(() => {
 
           <Projector state={state} id="btn2">
             {!state.removeContent && (
-              <div q:slot="start">START {state.count}</div>
+              <span q:slot="start">START {state.count}</span>
             )}
           </Projector>
 
@@ -176,9 +176,9 @@ export const Projector = component$((props: { state: any; id: string }) => {
         <Slot name="start"></Slot>
 
         {!props.state.disableButtons && (
-          <div>
+          <span>
             <Slot />
-          </div>
+          </span>
         )}
         <Slot name="end" />
       </Button>
@@ -188,9 +188,9 @@ export const Projector = component$((props: { state: any; id: string }) => {
 
 export const Button = component$((props: { id?: string }) => {
   return (
-    <button type="button" id={props.id}>
+    <div role="button" id={props.id}>
       <Slot />
-    </button>
+    </div>
   );
 });
 

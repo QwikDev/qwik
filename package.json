@@ -57,13 +57,6 @@
           "pinVersion": "1.47.0"
         },
         {
-          "label": "Undici should always be * until we remove it",
-          "dependencies": [
-            "undici"
-          ],
-          "range": "*"
-        },
-        {
           "label": "use exact version numbers for devDependencies",
           "dependencyTypes": [
             "dev"
@@ -133,6 +126,7 @@
     "dotenv": "16.4.5",
     "esbuild": "0.20.2",
     "eslint": "8.57.0",
+    "eslint-plugin-import": "2.29.1",
     "eslint-plugin-no-only-tests": "3.1.0",
     "eslint-plugin-qwik": "workspace:^",
     "execa": "8.0.1",
@@ -157,7 +151,6 @@
     "tree-kill": "1.2.2",
     "tsm": "2.3.0",
     "typescript": "5.4.5",
-    "undici": "*",
     "vfile": "6.0.1",
     "vite": "5.3.5",
     "vite-imagetools": "7.0.4",
@@ -169,12 +162,12 @@
     "zod": "3.22.4"
   },
   "engines": {
-    "node": ">=16.8.0 <18.0.0 || >=18.11",
+    "node": "^18.17.0 || ^20.3.0 || >=21.0.0",
     "npm": "please-use-pnpm",
     "yarn": "please-use-pnpm",
     "pnpm": ">=9.0.5"
   },
-  "packageManager": "pnpm@9.0.5",
+  "packageManager": "pnpm@9.1.2",
   "pnpm": {
     "overrides": {
       "typescript": "5.4.5",
@@ -243,6 +236,7 @@
     "test.e2e.chromium": "playwright test starters --browser=chromium --config starters/playwright.config.ts",
     "test.e2e.chromium.debug": "PWDEBUG=1 playwright test starters --browser=chromium --config starters/playwright.config.ts",
     "test.e2e.city": "playwright test starters/e2e/qwikcity --browser=chromium --config starters/playwright.config.ts",
+    "test.e2e.cli": "tsm scripts/e2e-cli.ts",
     "test.e2e.firefox": "playwright test starters --browser=firefox --config starters/playwright.config.ts",
     "test.e2e.webkit": "playwright test starters --browser=webkit --config starters/playwright.config.ts",
     "test.rust": "make test",

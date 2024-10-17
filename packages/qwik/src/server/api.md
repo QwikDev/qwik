@@ -23,9 +23,9 @@ export function getQwikPrefetchWorkerScript(opts?: {
 // @public (undocumented)
 export interface InOrderAuto {
     // (undocumented)
-    maximunChunk?: number;
+    maximumChunk?: number;
     // (undocumented)
-    maximunInitialChunk?: number;
+    maximumInitialChunk?: number;
     // (undocumented)
     strategy: 'auto';
 }
@@ -111,8 +111,10 @@ export interface RenderResult {
 // @public (undocumented)
 export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;
 
+// Warning: (ae-forgotten-export) The symbol "JSXOutput" needs to be exported by the entry point index.d.ts
+//
 // @public
-export function renderToStream(rootNode: any, opts: RenderToStreamOptions): Promise<RenderToStreamResult>;
+export const renderToStream: (jsx: JSXOutput, opts: RenderToStreamOptions) => Promise<RenderToStreamResult>;
 
 // @public (undocumented)
 export interface RenderToStreamOptions extends RenderOptions {
@@ -140,7 +142,7 @@ export interface RenderToStreamResult extends RenderResult {
 export type RenderToString = (opts: RenderToStringOptions) => Promise<RenderToStringResult>;
 
 // @public
-export function renderToString(rootNode: any, opts?: RenderToStringOptions): Promise<RenderToStringResult>;
+export const renderToString: (jsx: JSXOutput, opts?: RenderToStringOptions) => Promise<RenderToStringResult>;
 
 // @public (undocumented)
 export interface RenderToStringOptions extends RenderOptions {
@@ -152,6 +154,7 @@ export interface RenderToStringResult extends RenderResult {
     html: string;
     // (undocumented)
     timing: {
+        firstFlush: number;
         render: number;
         snapshot: number;
     };

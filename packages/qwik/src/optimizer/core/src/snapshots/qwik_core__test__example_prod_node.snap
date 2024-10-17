@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1346
+assertion_line: 1456
 expression: output
 ---
 ==INPUT==
@@ -9,13 +9,13 @@ expression: output
 import { component$ } from '@builder.io/qwik';
 
 export const Foo = component$(() => {
-    return (
-        <div>
-            <div onClick$={() => console.log('first')}/>
-            <div onClick$={() => console.log('second')}/>
-            <div onClick$={() => console.log('third')}/>
-        </div>
-    );
+	return (
+		<div>
+			<div onClick$={() => console.log('first')}/>
+			<div onClick$={() => console.log('second')}/>
+			<div onClick$={() => console.log('third')}/>
+		</div>
+	);
 });
 
 ============================= test.tsx_foo_component_htdrsvublie.tsx (ENTRY POINT)==
@@ -23,14 +23,14 @@ export const Foo = component$(() => {
 import { qrl } from "@builder.io/qwik";
 export const s_HTDRsvUbLiE = ()=>{
     return <div>
-            <div onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_foo_component_div_div_onclick_9dcjc0ujddo"), "s_9DcJc0uJDDo")}/>
-            <div onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_foo_component_div_div_onclick_1_rjqdy8i0mxc"), "s_RjQdy8I0MXc")}/>
-            <div onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_foo_component_div_div_onclick_2_w9ptfrbvk1e"), "s_w9ptFRBVK1E")}/>
-        </div>;
+			<div onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_foo_component_div_div_onclick_9dcjc0ujddo"), "s_9DcJc0uJDDo")}/>
+			<div onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_foo_component_div_div_onclick_1_rjqdy8i0mxc"), "s_RjQdy8I0MXc")}/>
+			<div onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_foo_component_div_div_onclick_2_w9ptfrbvk1e"), "s_w9ptFRBVK1E")}/>
+		</div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAG8B;IAC1B,QACK,IAAI;YACD,CAAC,IAAI,mHAAuC;YAC5C,CAAC,IAAI,qHAAwC;YAC7C,CAAC,IAAI,qHAAuC;QAChD,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAG8B;IAC7B,QACE,IAAI;GACJ,CAAC,IAAI,mHAAuC;GAC5C,CAAC,IAAI,qHAAwC;GAC7C,CAAC,IAAI,qHAAuC;EAC7C,EAAE;AAEJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -47,7 +47,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     80,
-    310
+    265
   ]
 }
 */
@@ -56,7 +56,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const s_9DcJc0uJDDo = ()=>console.log('first');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAM2B,IAAM,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAMkB,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -72,8 +72,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    142,
-    168
+    124,
+    150
   ]
 }
 */
@@ -82,7 +82,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const s_w9ptFRBVK1E = ()=>console.log('third');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAQ2B,IAAM,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAQkB,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -98,8 +98,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    257,
-    283
+    221,
+    247
   ]
 }
 */
@@ -108,7 +108,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const s_RjQdy8I0MXc = ()=>console.log('second');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAO2B,IAAM,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAOkB,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -124,8 +124,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    199,
-    226
+    172,
+    199
   ]
 }
 */

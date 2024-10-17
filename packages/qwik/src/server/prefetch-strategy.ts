@@ -1,17 +1,13 @@
-import type {
-  PrefetchResource,
-  QwikManifest,
-  RenderToStringOptions,
-  SnapshotResult,
-} from './types';
 import { getBuildBase } from './utils';
-import { qDev } from '../core/util/qdev';
+import { isDev } from '@builder.io/qwik/build';
+import type { PrefetchResource, QwikManifest, RenderToStringOptions } from './types';
 
+import type { QRLInternal } from './qwik-types';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
-import type { QRLInternal } from '../core/qrl/qrl-class';
+import type { QRL } from '@builder.io/qwik';
 
 export function getPrefetchResources(
-  snapshotResult: SnapshotResult | null,
+  qrls: QRL[],
   opts: RenderToStringOptions,
   resolvedManifest: ResolvedManifest | undefined
 ): PrefetchResource[] {
@@ -33,7 +29,7 @@ export function getPrefetchResources(
       // if prefetchStrategy is undefined
       // or prefetchStrategy.symbolsToPrefetch is undefined
       // get event QRLs used in this document
-      return getAutoPrefetch(snapshotResult, resolvedManifest, buildBase);
+      return getAutoPrefetch(qrls, resolvedManifest, buildBase);
     }
 
     if (typeof prefetchStrategy.symbolsToPrefetch === 'function') {
@@ -49,17 +45,12 @@ export function getPrefetchResources(
   return [];
 }
 
-function getAutoPrefetch(
-  snapshotResult: SnapshotResult | null,
-  resolvedManifest: ResolvedManifest,
-  buildBase: string
-) {
+function getAutoPrefetch(qrls: QRL[], resolvedManifest: ResolvedManifest, buildBase: string) {
   const prefetchResources: PrefetchResource[] = [];
-  const qrls = snapshotResult?.qrls;
   const { mapper, manifest } = resolvedManifest;
   const urls = new Map<string, PrefetchResource>();
 
-  if (Array.isArray(qrls)) {
+  if (mapper && manifest) {
     for (const qrl of qrls) {
       const qrlSymbolName = qrl.getHash();
       const resolvedSymbol = mapper[qrlSymbolName];
@@ -79,7 +70,7 @@ function addBundle(
   buildBase: string,
   bundleFileName: string
 ) {
-  const url = qDev ? bundleFileName : buildBase + bundleFileName;
+  const url = isDev ? bundleFileName : buildBase + bundleFileName;
   let prefetchResource = urls.get(url);
   if (!prefetchResource) {
     prefetchResource = {

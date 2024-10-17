@@ -1,9 +1,9 @@
 import {
   $,
-  _deserializeData,
+  _deserialize,
   _getContextElement,
   _getContextEvent,
-  _serializeData,
+  _serialize,
   _wrapProp,
   implicit$FirstArg,
   noSerialize,
@@ -53,6 +53,7 @@ import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 import { isDev, isServer } from '@builder.io/qwik/build';
 
 import type { FormSubmitCompletedDetail } from './form-component';
+import { deepFreeze } from './utils';
 
 /** @public */
 export const routeActionQrl = ((
@@ -372,17 +373,6 @@ export const zodQrl: ZodConstructorQRL = (
 /** @public */
 export const zod$: ZodConstructor = /*#__PURE__*/ implicit$FirstArg(zodQrl);
 
-const deepFreeze = (obj: any) => {
-  Object.getOwnPropertyNames(obj).forEach((prop) => {
-    const value = obj[prop];
-    // we assume that a frozen object is a circular reference and fully deep frozen
-    if (value && typeof value === 'object' && !Object.isFrozen(value)) {
-      deepFreeze(value);
-    }
-  });
-  return Object.freeze(obj);
-};
-
 /** @public */
 export const serverQrl = <T extends ServerFunction>(
   qrl: QRL<T>,
@@ -450,7 +440,7 @@ export const serverQrl = <T extends ServerFunction>(
           },
           signal: abortSignal,
         };
-        const body = await _serializeData([qrl, ...filteredArgs], false);
+        const body = await _serialize([qrl, ...filteredArgs]);
         if (method === 'GET') {
           query += `&${QDATA_KEY}=${encodeURIComponent(body)}`;
         } else {
@@ -478,7 +468,7 @@ export const serverQrl = <T extends ServerFunction>(
           })();
         } else if (contentType === 'application/qwik-json') {
           const str = await res.text();
-          const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
+          const [obj] = _deserialize(str, ctxElm ?? document.documentElement);
           if (res.status === 500) {
             throw obj;
           }
@@ -558,7 +548,8 @@ const deserializeStream = async function* (
       const lines = buffer.split(/\n/);
       buffer = lines.pop()!;
       for (const line of lines) {
-        yield await _deserializeData(line, ctxElm);
+        const [deserializedData] = _deserialize(line, ctxElm);
+        yield deserializedData;
       }
     }
   } finally {

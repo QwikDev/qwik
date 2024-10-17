@@ -18,6 +18,7 @@ export const ComputedRoot = component$(() => {
       <Issue3482 />
       <Issue3488 />
       <Issue5738 />
+      <ShouldResolveComputedQrlEarly />
     </div>
   );
 });
@@ -106,4 +107,33 @@ export const Issue5738 = component$(() => {
     foo.value = 1;
   });
   return <div id="issue-5738-result">Calc: {comp.value}</div>;
+});
+
+export const ShouldResolveComputedQrlEarly = component$(() => {
+  const isToggled = useSignal<boolean>(false);
+
+  const demo = useComputed$(() => 3);
+
+  // change attribute and read computed
+  const repro = useComputed$(() => {
+    if (!isToggled.value) {
+      return;
+    }
+
+    // happens when we read another computed value
+    return demo.value + 2;
+  });
+
+  return (
+    <>
+      <button
+        id="early-computed-qrl"
+        // also when tied to an attribute
+        data-test={repro.value}
+        onClick$={() => (isToggled.value = !isToggled.value)}
+      >
+        Click me! {repro.value}
+      </button>
+    </>
+  );
 });

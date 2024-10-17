@@ -3,6 +3,7 @@
 export function runQwikJsonDebug(window: Window, document: Document, debug: typeof qwikJsonDebug) {
   const parseQwikJSON = () => {
     const rawData = JSON.parse(document.querySelector('script[type="qwik/json"]')!.textContent!);
+    // TODO: update qFuncs with hash!
     const derivedFns =
       (
         document.querySelector('script[q\\:func="qwik/json"]') as any as {

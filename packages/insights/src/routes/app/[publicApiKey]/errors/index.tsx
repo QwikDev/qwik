@@ -11,7 +11,6 @@ export const useErrors = routeLoader$(async ({ params }) => {
     .select()
     .from(errorTable)
     .where(eq(errorTable.publicApiKey, params.publicApiKey))
-    .limit(1000)
     .orderBy(sql`${errorTable.timestamp} DESC`)
     .limit(1000)
     .all();

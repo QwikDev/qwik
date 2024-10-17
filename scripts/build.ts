@@ -8,7 +8,6 @@ import { buildCreateQwikCli } from './create-qwik-cli';
 import { buildEslint } from './eslint';
 import { buildQwikCity } from './qwik-city';
 import { buildQwikReact } from './qwik-react';
-import { buildQwikWorker } from './qwik-worker';
 import {
   commitPrepareReleaseVersion,
   prepareReleaseVersion,
@@ -126,10 +125,6 @@ export async function build(config: BuildConfig) {
 
     if (config.qwikreact) {
       await buildQwikReact(config);
-    }
-
-    if (config.qwikworker) {
-      await buildQwikWorker(config);
     }
 
     if (config.supabaseauthhelpers) {

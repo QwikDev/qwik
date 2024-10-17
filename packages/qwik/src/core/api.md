@@ -510,12 +510,6 @@ export type InputHTMLAttributes<T extends Element> = Attrs<'input', T, HTMLInput
 export interface InsHTMLAttributes<T extends Element> extends Attrs<'ins', T> {
 }
 
-// @alpha (undocumented)
-export const Insights: Component<    {
-publicApiKey: string;
-postUrl?: string | undefined;
-}>;
-
 // Warning: (ae-incompatible-release-tags) The symbol "IntrinsicElements" is marked as @public, but its signature references "IntrinsicHTMLElements" which is marked as @internal
 // Warning: (ae-incompatible-release-tags) The symbol "IntrinsicElements" is marked as @public, but its signature references "IntrinsicSVGElements" which is marked as @internal
 //

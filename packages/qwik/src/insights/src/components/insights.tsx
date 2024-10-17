@@ -1,5 +1,4 @@
-import { component$ } from '../shared/component.public';
-import { sync$ } from '../shared/qrl/qrl.public';
+import { component$, sync$ } from '@qwik.dev/core';
 
 export interface InsightsPayload {
   /** Qwik version */

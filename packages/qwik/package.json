@@ -102,6 +102,11 @@
       "import": "./dist/loader/index.mjs",
       "require": "./dist/loader/index.cjs"
     },
+    "./insights": {
+      "types": "./dist/insights/index.d.ts",
+      "import": "./dist/insights/index.mjs",
+      "require": "./dist/insights/index.cjs"
+    },
     "./optimizer.cjs": "./dist/optimizer.cjs",
     "./optimizer.mjs": "./dist/optimizer.mjs",
     "./optimizer": {
@@ -180,5 +185,8 @@
     "directory": "packages/qwik"
   },
   "type": "module",
-  "types": "./dist/core.d.ts"
+  "types": "./dist/core.d.ts",
+  "scripts": {
+    "build.insights": "cd src/insights && vite build --mode lib"
+  }
 }

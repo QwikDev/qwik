@@ -19,6 +19,7 @@ import {
 import { submoduleBuild } from './submodule-build';
 import { submoduleCli } from './submodule-cli';
 import { submoduleCore } from './submodule-core';
+import { submoduleInsights } from './submodule-insights';
 import { submoduleOptimizer } from './submodule-optimizer';
 import { submoduleQwikLoader } from './submodule-qwikloader';
 import { submoduleQwikPrefetch } from './submodule-qwikprefetch';
@@ -80,6 +81,8 @@ export async function build(config: BuildConfig) {
       // server bundling must happen after the results from the others
       // because it inlines the qwik loader and prefetch scripts
       await Promise.all([submoduleServer(config), submoduleOptimizer(config)]);
+
+      await submoduleInsights(config);
     }
 
     if (config.api || (!config.dev && config.qwik)) {

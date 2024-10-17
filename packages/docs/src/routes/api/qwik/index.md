@@ -2738,19 +2738,6 @@ export interface InsHTMLAttributes<T extends Element> extends Attrs<'ins', T>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
 
-## Insights
-
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-
-```typescript
-Insights: import("../shared/component.public").Component<{
-  publicApiKey: string;
-  postUrl?: string | undefined;
-}>;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/insights/insights.tsx)
-
 ## IntrinsicAttributes
 
 ```typescript

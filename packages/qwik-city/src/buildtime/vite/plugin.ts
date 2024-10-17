@@ -1,6 +1,6 @@
 import swRegister from '@qwik-city-sw-register-build';
 import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
-import { basename, join, resolve, extname } from 'node:path';
+import { basename, join, resolve } from 'node:path';
 import type { Plugin, PluginOption, UserConfig, Rollup } from 'vite';
 import { loadEnv } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-qwik-city-plan';
@@ -125,7 +125,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
       resetBuildContext(ctx);
     },
 
-    resolveId(id) {
+    async resolveId(id) {
       if (id === QWIK_SERIALIZER) {
         return join(rootDir!, id);
       }
@@ -152,6 +152,16 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
           id: './' + RESOLVED_NOT_FOUND_PATHS_ID,
           external: true,
         };
+      }
+      if (/\.mdx?.qwik.js$/i.test(id)) {
+        return { id, moduleSideEffects: false };
+      }
+      if (/\.mdx?$/i.test(id)) {
+        // check if the file exists on disk
+        const resolved = await this.resolve(id, id, { skipSelf: true });
+        if (resolved) {
+          return { id: `${resolved.id}.qwik.js`, moduleSideEffects: false };
+        }
       }
       return null;
     },
@@ -188,17 +198,18 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
             return generateServiceWorkerRegister(ctx, swRegister);
           }
         }
+        if (/\.mdx?\.qwik\.js$/i.test(id)) {
+          return fs.promises.readFile(id.slice(0, -8), 'utf-8');
+        }
       }
-      return null;
     },
 
     async transform(code, id) {
       if (id.startsWith('\0')) {
         return;
       }
-      const ext = extname(id).toLowerCase();
-      const isMD = ext === '.md' || ext === '.mdx';
-      if (ctx && isMD) {
+      if (ctx && /\.mdx?.qwik.js$/i.test(id)) {
+        id = id.slice(0, -8);
         const fileName = basename(id);
         if (isMenuFileName(fileName)) {
           const menuCode = await transformMenu(ctx.opts, id, code);

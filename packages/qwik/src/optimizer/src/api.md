@@ -5,7 +5,6 @@
 ```ts
 
 import type { Plugin as Plugin_2 } from 'vite';
-import { PluginOption } from 'vite';
 
 // @public (undocumented)
 export interface ComponentEntryStrategy {
@@ -189,13 +188,6 @@ export interface QwikBundle {
     // (undocumented)
     symbols?: string[];
 }
-
-// @alpha (undocumented)
-export function qwikInsights(qwikInsightsOpts: {
-    publicApiKey: string;
-    baseUrl?: string;
-    outDir?: string;
-}): Promise<PluginOption>;
 
 // @public
 export interface QwikManifest {

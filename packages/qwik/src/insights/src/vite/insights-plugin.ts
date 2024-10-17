@@ -1,9 +1,9 @@
+import type { QwikVitePluginOptions } from '@qwik.dev/core/optimizer';
 import { existsSync, mkdirSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'node:path';
 import { resolve } from 'path';
-import { type PluginOption } from 'vite';
-import { type QwikVitePluginOptions } from './vite';
+import type { PluginOption } from 'vite';
 
 const logWarn = (message?: any, ...rest: any[]) => {
   // eslint-disable-next-line no-console

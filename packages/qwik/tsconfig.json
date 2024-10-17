@@ -10,7 +10,8 @@
       "@qwik.dev/core/server": ["packages/qwik/src/server"],
       "@qwik.dev/core/testing": ["packages/qwik/src/testing"],
       "@qwik.dev/core/worker": ["packages/qwik/src/web-worker"],
-      "@qwik.dev/core/devtools": ["packages/qwik/src/devtools"]
+      "@qwik.dev/core/devtools": ["packages/qwik/src/devtools"],
+      "@qwik.dev/core/insights": ["packages/qwik/src/insights"]
     }
   },
   "include": ["src", "global.d.ts"],

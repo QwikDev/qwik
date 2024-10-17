@@ -47,7 +47,6 @@ export type {
   QwikVitePluginOptions,
 } from './plugins/vite';
 
-export { qwikInsights } from './plugins/insights-plugin';
 export { qwikRollup } from './plugins/rollup';
 export { qwikVite } from './plugins/vite';
 export { symbolMapper } from './plugins/vite-dev-server';

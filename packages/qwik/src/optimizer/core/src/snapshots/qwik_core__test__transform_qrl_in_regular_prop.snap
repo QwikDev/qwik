@@ -6,15 +6,15 @@ expression: output
 ==INPUT==
 
 
-		import { component$, $ } from '@builder.io/qwik';
+		import { component$, $ } from '@qwik.dev/core';
 		export const Cmp = component$(() =>
 			<Cmp foo={$(() => console.log('hi there'))}>Hello Qwik</Cmp>);
 		
 ============================= test.tsx_cmp_component_4rykjtokjwe.ts (ENTRY POINT)==
 
 import { Cmp } from "./test";
-import { _jsxSorted } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export const Cmp_component_4ryKJTOKjWE = ()=>/*#__PURE__*/ _jsxSorted(Cmp, {
         foo: /*#__PURE__*/ qrl(()=>import("./test.tsx_cmp_component_cmp_foo_ippdemxi0ue"), "Cmp_component_Cmp_foo_iPpdemxi0uE")
     }, null, "Hello Qwik", 3, "u6_0");
@@ -36,15 +36,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    86,
-    155
+    84,
+    153
   ]
 }
 */
 ============================= test.tsx_cmp_component_cmp_foo_ippdemxi0ue.ts (ENTRY POINT)==
 
 export const Cmp_component_Cmp_foo_iPpdemxi0uE = ()=>console.log('hi there');
-export { _hW } from "@builder.io/qwik";
+export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"iDAGe,IAAM,QAAQ,GAAG,CAAC\"}")
@@ -63,15 +63,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    107,
-    136
+    105,
+    134
   ]
 }
 */
 ============================= test.ts ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export const Cmp = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_cmp_component_4rykjtokjwe"), "Cmp_component_4ryKJTOKjWE"));
 
 

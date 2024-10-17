@@ -1,0 +1,17 @@
+{
+  "mode": "pre",
+  "tag": "alpha",
+  "initialVersions": {
+    "create-qwik": "2.0.0-0",
+    "qwik-docs": "0.0.1",
+    "eslint-plugin-qwik": "2.0.0-0",
+    "@qwik.dev/core": "2.0.0-0",
+    "@qwik.dev/city": "2.0.0-0",
+    "insights": "0.1.0",
+    "@qwik.dev/dom": "2.1.19",
+    "@qwik.dev/react": "2.0.0-0",
+    "supabase-auth-helpers-qwik": "0.0.3"
+  },
+  "branch": "main",
+  "changesets": []
+}

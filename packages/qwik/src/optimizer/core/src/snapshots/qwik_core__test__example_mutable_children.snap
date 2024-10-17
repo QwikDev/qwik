@@ -1,12 +1,12 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2495
+assertion_line: 2494
 expression: output
 ---
 ==INPUT==
 
 
-import { component$, useStore, Slot, Fragment } from '@builder.io/qwik';
+import { component$, useStore, Slot, Fragment } from '@qwik.dev/core';
 import Image from './image.jpg?jsx';
 
 export function Fn1(props: Stuff) {
@@ -103,12 +103,12 @@ export const AppStatic = component$((props: Stuff) => {
 
 ============================= test.js ==
 
-import { _jsxSorted } from "@builder.io/qwik";
-import { componentQrl } from "@builder.io/qwik";
-import { inlinedQrl } from "@builder.io/qwik";
-import { _wrapProp } from "@builder.io/qwik";
-import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { Slot, Fragment } from '@builder.io/qwik';
+import { _jsxSorted } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { Slot, Fragment } from '@qwik.dev/core';
 import Image from './image.jpg?jsx';
 export function Fn1(props) {
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxSorted("p", null, null, "1", 3, "u6_0") : /*#__PURE__*/ _jsxSorted(Stuff, null, null, "2", 3, "u6_1"), 1, null), 1, "u6_2");
@@ -182,7 +182,7 @@ const AppStatic_component_gYRXqF3G5nE = (props)=>{
 export const AppStatic = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(AppStatic_component_gYRXqF3G5nE, "AppStatic_component_gYRXqF3G5nE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAA+B,IAAI,EAAE,QAAQ,QAAQ,mBAAmB;AACxE,OAAO,WAAW,kBAAkB;AAEpC,OAAO,SAAS,IAAI,KAAY;IAC/B,qBACC,gDACC,WAAC,mBAAK,OAAO,kBAAI,WAAC,iBAAE,gCAAQ,WAAC,mBAAM;AAGtC;AAEA,OAAO,SAAS,IAAI,KAAY;IAC/B,qBACC,WAAC;QAAK,KAAK,KAAK,kBAAI,WAAC;sBAAe,WAAC;;AAEvC;AAEA,OAAO,SAAS,IAAI,KAAY;IAC/B,IAAI,KAAK,KAAK,EACb,qBACC,WAAC;IAGH,qBACC,WAAC;AAEH;AAEA,OAAO,SAAS,IAAI,KAAY;IAC/B,IAAI,KAAK,KAAK,EACb,qBACC,WAAC;IAGH,qBACC,WAAC;AAEH;AAEA,OAAO,MAAM,QAAQ,CAAC,sBAAiB,WAAC,mBAAK,OAAO,kBAAI,WAAC,iBAAE,gCAAQ,WAAC,mBAAM,8BAAiB;0CAErD,CAAC;IACtC,qBACC,gDACC,WAAC,mBAAK,OAAO,kBAAI,WAAC,iBAAE,iCAAQ,WAAC,mBAAM;AAGtC;AANA,OAAO,MAAM,4BAAc,+GAMxB;0CACmC,CAAC;IACtC,qBACC,WAAC;QAAK,KAAK,KAAK,kBAAI,WAAC;sBAAe,WAAC;;AAEvC;AAJA,OAAO,MAAM,4BAAc,+GAIxB;0CAEmC,CAAC;IACtC,IAAI,KAAK,KAAK,EACb,qBACC,WAAC;IAGH,qBACC,WAAC;AAEH;AATA,OAAO,MAAM,4BAAc,+GASxB;0CAEmC,CAAC;IACtC,IAAI,KAAK,KAAK,EACb,qBACC,WAAC;IAGH,qBACC,WAAC;AAEH;AATA,OAAO,MAAM,4BAAc,+GASxB;wCAEiC,CAAC;IACpC,qBACC;sBACC,WAAC;YAAI;YAAQ,IAAI,IAAI;;sBACrB,WAAC,mBAAK,OAAO,kBAAI,WAAC,iBAAE,iCAAQ,WAAC,iBAAE;sBAE/B,WAAC,mBAAK,KAAK,KAAK,kBAAI,WAAC;sBACrB,WAAC,mBAAK,KAAK,KAAK,kBAAI,WAAC,oCAAS,WAAC;sBAC/B,WAAC,mBAAK,KAAK,KAAK,kBAAI,gDAAE,WAAC;sBACvB,WAAC,mBAAK,KAAK,KAAK,kBAAI,WAAC;sBACrB,WAAC;YAAI;YAAQ,IAAI,IAAI;;sBACrB,WAAC,mBAAI;sBACL,WAAC;YAAI;sBAAQ;;sBACb,WAAC;YAAI;YAAQ;;sBACb,WAAC;YAAI;YAAQ;;;AAGhB;AAjBA,OAAO,MAAM,0BAAY,2GAiBtB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAA+B,IAAI,EAAE,QAAQ,QAAQ,iBAAiB;AACtE,OAAO,WAAW,kBAAkB;AAEpC,OAAO,SAAS,IAAI,KAAY;IAC/B,qBACC,gDACC,WAAC,mBAAK,OAAO,kBAAI,WAAC,iBAAE,gCAAQ,WAAC,mBAAM;AAGtC;AAEA,OAAO,SAAS,IAAI,KAAY;IAC/B,qBACC,WAAC;QAAK,KAAK,KAAK,kBAAI,WAAC;sBAAe,WAAC;;AAEvC;AAEA,OAAO,SAAS,IAAI,KAAY;IAC/B,IAAI,KAAK,KAAK,EACb,qBACC,WAAC;IAGH,qBACC,WAAC;AAEH;AAEA,OAAO,SAAS,IAAI,KAAY;IAC/B,IAAI,KAAK,KAAK,EACb,qBACC,WAAC;IAGH,qBACC,WAAC;AAEH;AAEA,OAAO,MAAM,QAAQ,CAAC,sBAAiB,WAAC,mBAAK,OAAO,kBAAI,WAAC,iBAAE,gCAAQ,WAAC,mBAAM,8BAAiB;0CAErD,CAAC;IACtC,qBACC,gDACC,WAAC,mBAAK,OAAO,kBAAI,WAAC,iBAAE,iCAAQ,WAAC,mBAAM;AAGtC;AANA,OAAO,MAAM,4BAAc,+GAMxB;0CACmC,CAAC;IACtC,qBACC,WAAC;QAAK,KAAK,KAAK,kBAAI,WAAC;sBAAe,WAAC;;AAEvC;AAJA,OAAO,MAAM,4BAAc,+GAIxB;0CAEmC,CAAC;IACtC,IAAI,KAAK,KAAK,EACb,qBACC,WAAC;IAGH,qBACC,WAAC;AAEH;AATA,OAAO,MAAM,4BAAc,+GASxB;0CAEmC,CAAC;IACtC,IAAI,KAAK,KAAK,EACb,qBACC,WAAC;IAGH,qBACC,WAAC;AAEH;AATA,OAAO,MAAM,4BAAc,+GASxB;wCAEiC,CAAC;IACpC,qBACC;sBACC,WAAC;YAAI;YAAQ,IAAI,IAAI;;sBACrB,WAAC,mBAAK,OAAO,kBAAI,WAAC,iBAAE,iCAAQ,WAAC,iBAAE;sBAE/B,WAAC,mBAAK,KAAK,KAAK,kBAAI,WAAC;sBACrB,WAAC,mBAAK,KAAK,KAAK,kBAAI,WAAC,oCAAS,WAAC;sBAC/B,WAAC,mBAAK,KAAK,KAAK,kBAAI,gDAAE,WAAC;sBACvB,WAAC,mBAAK,KAAK,KAAK,kBAAI,WAAC;sBACrB,WAAC;YAAI;YAAQ,IAAI,IAAI;;sBACrB,WAAC,mBAAI;sBACL,WAAC;YAAI;sBAAQ;;sBACb,WAAC;YAAI;YAAQ;;sBACb,WAAC;YAAI;YAAQ;;;AAGhB;AAjBA,OAAO,MAAM,0BAAY,2GAiBtB\"}")
 == DIAGNOSTICS ==
 
 []

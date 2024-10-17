@@ -1,5 +1,5 @@
-import { component$, useSignal, type ReadonlySignal, useComputed$ } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { component$, useSignal, type ReadonlySignal, useComputed$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/city';
 import { inArray } from 'drizzle-orm';
 import AppCard from '~/components/app-card';
 import Container from '~/components/container';

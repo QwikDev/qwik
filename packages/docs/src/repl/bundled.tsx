@@ -1,4 +1,4 @@
-import { version as qwikVersion } from '@builder.io/qwik';
+import { version as qwikVersion } from '@qwik.dev/core';
 import type { PkgUrls } from './types';
 
 import prettierPkgJson from 'prettier/package.json';
@@ -8,18 +8,18 @@ import prettierStandaloneJs from '../../node_modules/prettier/standalone.js?raw-
 import terserPkgJson from 'terser/package.json';
 import terserJs from '../../node_modules/terser/dist/bundle.min.js?raw-source';
 
-import qBuild from '../../node_modules/@builder.io/qwik/dist/build/index.d.ts?raw-source';
-import qCoreCjs from '../../node_modules/@builder.io/qwik/dist/core.cjs?raw-source';
-import qCoreDts from '../../node_modules/@builder.io/qwik/dist/core.d.ts?raw-source';
-import qCoreMinMjs from '../../node_modules/@builder.io/qwik/dist/core.min.mjs?raw-source';
-import qCoreMjs from '../../node_modules/@builder.io/qwik/dist/core.mjs?raw-source';
-import qOptimizerCjs from '../../node_modules/@builder.io/qwik/dist/optimizer.cjs?raw-source';
-import qServerCjs from '../../node_modules/@builder.io/qwik/dist/server.cjs?raw-source';
-import qServerDts from '../../node_modules/@builder.io/qwik/dist/server.d.ts?raw-source';
-import qWasmCjs from '../../node_modules/@builder.io/qwik/bindings/qwik.wasm.cjs?raw-source';
-import qWasmBinUrl from '../../node_modules/@builder.io/qwik/bindings/qwik_wasm_bg.wasm?raw-source';
+import qWasmCjs from '../../node_modules/@qwik.dev/core/bindings/qwik.wasm.cjs?raw-source';
+import qWasmBinUrl from '../../node_modules/@qwik.dev/core/bindings/qwik_wasm_bg.wasm?raw-source';
+import qBuild from '../../node_modules/@qwik.dev/core/dist/build/index.d.ts?raw-source';
+import qCoreCjs from '../../node_modules/@qwik.dev/core/dist/core.cjs?raw-source';
+import qCoreDts from '../../node_modules/@qwik.dev/core/dist/core.d.ts?raw-source';
+import qCoreMinMjs from '../../node_modules/@qwik.dev/core/dist/core.min.mjs?raw-source';
+import qCoreMjs from '../../node_modules/@qwik.dev/core/dist/core.mjs?raw-source';
+import qOptimizerCjs from '../../node_modules/@qwik.dev/core/dist/optimizer.cjs?raw-source';
+import qServerCjs from '../../node_modules/@qwik.dev/core/dist/server.cjs?raw-source';
+import qServerDts from '../../node_modules/@qwik.dev/core/dist/server.d.ts?raw-source';
 
-export const QWIK_PKG_NAME = '@builder.io/qwik';
+export const QWIK_PKG_NAME = '@qwik.dev/core';
 const ROLLUP_VERSION = '2.75.6';
 
 export const getNpmCdnUrl = (

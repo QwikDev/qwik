@@ -1,7 +1,7 @@
-import { Slot, component$ } from '@builder.io/qwik';
+import { Slot, component$ } from '@qwik.dev/core';
 
 import { PopupManager } from '~/components/popup-manager';
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { routeLoader$ } from '@qwik.dev/city';
 import type { GetSessionResult } from '@auth/qwik';
 
 export type SessionData = Awaited<GetSessionResult>['data'];

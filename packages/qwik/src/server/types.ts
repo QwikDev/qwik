@@ -1,10 +1,10 @@
-import type { SnapshotResult, StreamWriter } from '@builder.io/qwik';
+import type { SnapshotResult, StreamWriter } from '@qwik.dev/core';
 import type {
   QwikManifest,
-  SymbolMapperFn,
-  SymbolMapper,
   ResolvedManifest,
-} from '@builder.io/qwik/optimizer';
+  SymbolMapper,
+  SymbolMapperFn,
+} from '@qwik.dev/core/optimizer';
 
 /** @public */
 export interface SerializeDocumentOptions {
@@ -216,4 +216,4 @@ export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToSt
 /** @public */
 export type Render = RenderToString | RenderToStream;
 
-export type { SnapshotResult, SymbolMapper, QwikManifest, StreamWriter };
+export type { QwikManifest, SnapshotResult, StreamWriter, SymbolMapper };

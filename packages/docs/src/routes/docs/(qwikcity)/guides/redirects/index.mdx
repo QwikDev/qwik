@@ -18,7 +18,7 @@ Sometimes you want to redirect a user from the current page to another page.
 Let's say a user tries to go to a dashboard page but has not logged in yet. We want them to be redirected to a login page so they can be authenticated.
 
 ```tsx title="src/routes/dashboard.tsx"
-import type { RequestEvent } from '@builder.io/qwik-city';
+import type { RequestEvent } from '@qwik.dev/city';
 import { checkAuthorization } from '../auth'; // Your authorization code
 import type { DashboardData } from '../types'; // Your types
 
@@ -58,7 +58,7 @@ Read more about redirect status codes [here](https://developer.mozilla.org/en-US
 In some cases, you may need to manage multiple redirects based on different conditions. For example, you might want to redirect users from old URLs to new URLs after a site restructure. Additionally, you may want editors in a CMS to manage these redirects as well. Here's one of the ways you can handle multiple redirects in Qwik:
 
 ```tsx title="src/routes/layout.tsx"
-import { type RequestHandler } from "@builder.io/qwik-city";
+import { type RequestHandler } from "@qwik.dev/city";
 
 export const onGet: RequestHandler = async ({ url, redirect }) => {
   // qwik city request caching ...

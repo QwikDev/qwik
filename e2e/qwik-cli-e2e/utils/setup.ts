@@ -1,14 +1,14 @@
 import { execSync } from 'child_process';
+import { existsSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { workspaceRoot } from '.';
-import { existsSync, writeFileSync } from 'fs';
 
 const packageCfg = {
-  '@builder.io/qwik': {
+  '@qwik.dev/core': {
     packagePath: 'packages/qwik',
     distPath: 'packages/qwik/dist',
   },
-  '@builder.io/qwik-city': {
+  '@qwik.dev/city': {
     packagePath: 'packages/qwik-city',
     distPath: 'packages/qwik-city/lib',
   },

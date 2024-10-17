@@ -1,5 +1,5 @@
-import { component$, Slot } from "@builder.io/qwik";
-import { routeLoader$, type RequestHandler } from "@builder.io/qwik-city";
+import { routeLoader$, type RequestHandler } from "@qwik.dev/city";
+import { component$, Slot } from "@qwik.dev/core";
 import { isUserAuthenticated } from "../auth/auth";
 
 export const useUserLoader = routeLoader$(async ({ cookie }) => {

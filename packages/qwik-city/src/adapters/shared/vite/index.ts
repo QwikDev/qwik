@@ -1,13 +1,10 @@
-import type { Plugin, UserConfig } from 'vite';
-import type { QwikCityPlugin } from '@builder.io/qwik-city/vite';
-import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
-import type {
-  StaticGenerateOptions,
-  StaticGenerateRenderOptions,
-} from '@builder.io/qwik-city/static';
-import type { BuildRoute } from '../../../buildtime/types';
+import type { StaticGenerateOptions, StaticGenerateRenderOptions } from '@qwik.dev/city/static';
+import type { QwikCityPlugin } from '@qwik.dev/city/vite';
+import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import fs from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
+import type { Plugin, UserConfig } from 'vite';
+import type { BuildRoute } from '../../../buildtime/types';
 import { postBuild } from './post-build';
 
 /** @public */

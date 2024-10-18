@@ -23,7 +23,7 @@
  *   https://around.co/playback/370fe7fd-46f6-4768-a016-95e92e6ce521?sharedKey=dd856234-7619-4974-902b-f8be743249d7
  */
 
-import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
+import { domRender, ssrRenderToDom } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 import { component$, componentQrl } from '../shared/component.public';

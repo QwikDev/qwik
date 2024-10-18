@@ -1,20 +1,20 @@
 import {
   $,
+  Fragment as Awaited,
   Fragment as Component,
+  component$,
   Fragment,
   Fragment as Signal,
-  Fragment as Awaited,
-  component$,
   useOn,
   useOnDocument,
   useOnWindow,
   useSignal,
-  useVisibleTask$,
   useTask$,
-} from '@builder.io/qwik';
+  useVisibleTask$,
+} from '@qwik.dev/core';
+import { domRender, ssrRenderToDom } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
-import { domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

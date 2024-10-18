@@ -1,5 +1,10 @@
+import * as qwikCity from '@qwik-city-plan';
 import {
   $,
+  _getContextElement,
+  _getQContainerElement,
+  _waitUntilRendered,
+  _weakSerialize,
   component$,
   getLocale,
   noSerialize,
@@ -8,17 +13,13 @@ import {
   useServerData,
   useSignal,
   useStore,
-  useTask$,
-  _getContextElement,
-  _weakSerialize,
   useStyles$,
-  _waitUntilRendered,
-  _getQContainerElement,
+  useTask$,
   type _ElementVNode,
   type QRL,
-} from '@builder.io/qwik';
-import { isBrowser, isDev, isServer } from '@builder.io/qwik/build';
-import * as qwikCity from '@qwik-city-plan';
+} from '@qwik.dev/core';
+import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
+import { clientNavigate } from './client-navigate';
 import { CLIENT_DATA_CACHE } from './constants';
 import {
   ContentContext,
@@ -33,6 +34,14 @@ import {
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
 import { loadRoute } from './routing';
+import {
+  callRestoreScrollOnDocument,
+  currentScrollState,
+  getScrollHistory,
+  restoreScroll,
+  saveScrollHistory,
+} from './scroll-restoration';
+import spaInit from './spa-init';
 import type {
   ClientPageData,
   ContentModule,
@@ -53,15 +62,6 @@ import type {
 import { loadClientData } from './use-endpoint';
 import { useQwikCityEnv } from './use-functions';
 import { isSameOrigin, isSamePath, toUrl } from './utils';
-import { clientNavigate } from './client-navigate';
-import {
-  currentScrollState,
-  getScrollHistory,
-  saveScrollHistory,
-  restoreScroll,
-  callRestoreScrollOnDocument,
-} from './scroll-restoration';
-import spaInit from './spa-init';
 
 /** @public */
 export const QWIK_CITY_SCROLLER = '_qCityScroller';

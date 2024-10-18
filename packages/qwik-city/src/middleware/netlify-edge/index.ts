@@ -2,19 +2,16 @@ import type { Context } from '@netlify/edge-functions';
 import type {
   ServerRenderOptions,
   ServerRequestEvent,
-} from '@builder.io/qwik-city/middleware/request-handler';
+} from '@qwik.dev/city/middleware/request-handler';
 
-import {
-  mergeHeadersCookies,
-  requestHandler,
-} from '@builder.io/qwik-city/middleware/request-handler';
 import { getNotFound } from '@qwik-city-not-found-paths';
 import { isStaticPath } from '@qwik-city-static-paths';
-import { _deserialize, _serialize, _verifySerializable } from '@builder.io/qwik';
-import { setServerPlatform } from '@builder.io/qwik/server';
+import { mergeHeadersCookies, requestHandler } from '@qwik.dev/city/middleware/request-handler';
+import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core';
+import { setServerPlatform } from '@qwik.dev/core/server';
 import type { QwikSerializer } from '../request-handler/types';
 
-// @builder.io/qwik-city/middleware/netlify-edge
+// @qwik.dev/city/middleware/netlify-edge
 
 declare const Deno: any;
 /** @public */

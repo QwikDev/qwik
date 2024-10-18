@@ -102,8 +102,8 @@ async function buildVite(config: BuildConfig) {
     format: 'esm',
     external,
     alias: {
-      '@builder.io/qwik': 'noop',
-      '@builder.io/qwik/optimizer': 'noop',
+      '@qwik.dev/core': 'noop',
+      '@qwik.dev/core/optimizer': 'noop',
     },
     plugins: [serviceWorkerRegisterBuild(swRegisterCode)],
   });
@@ -167,7 +167,7 @@ async function buildServiceWorker(config: BuildConfig) {
 async function buildAdapterAzureSwaVite(config: BuildConfig) {
   const entryPoints = [join(config.srcQwikCityDir, 'adapters', 'azure-swa', 'vite', 'index.ts')];
 
-  const external = ['vite', 'fs', 'path', '@builder.io/qwik-city/static'];
+  const external = ['vite', 'fs', 'path', '@qwik.dev/city/static'];
 
   await build({
     entryPoints,
@@ -653,9 +653,9 @@ async function buildStaticNode(config: BuildConfig) {
   const entryPoints = [join(config.srcQwikCityDir, 'static', 'node', 'index.ts')];
 
   const external = [
-    '@builder.io/qwik',
-    '@builder.io/qwik/optimizer',
-    '@builder.io/qwik-city',
+    '@qwik.dev/core',
+    '@qwik.dev/core/optimizer',
+    '@qwik.dev/city',
     'fs',
     'http',
     'https',
@@ -708,20 +708,20 @@ const ADAPTER_EXTERNALS = [
   'vite',
   'fs',
   'path',
-  '@builder.io/qwik',
-  '@builder.io/qwik/server',
-  '@builder.io/qwik/optimizer',
-  '@builder.io/qwik-city',
-  '@builder.io/qwik-city/static',
-  '@builder.io/qwik-city/middleware/request-handler',
+  '@qwik.dev/core',
+  '@qwik.dev/core/server',
+  '@qwik.dev/core/optimizer',
+  '@qwik.dev/city',
+  '@qwik.dev/city/static',
+  '@qwik.dev/city/middleware/request-handler',
 ];
 
 const MIDDLEWARE_EXTERNALS = [
-  '@builder.io/qwik',
-  '@builder.io/qwik/optimizer',
-  '@builder.io/qwik/server',
-  '@builder.io/qwik-city',
-  '@builder.io/qwik-city/static',
+  '@qwik.dev/core',
+  '@qwik.dev/core/optimizer',
+  '@qwik.dev/core/server',
+  '@qwik.dev/city',
+  '@qwik.dev/city/static',
   '@qwik-city-plan',
   '@qwik-city-not-found-paths',
   '@qwik-city-static-paths',

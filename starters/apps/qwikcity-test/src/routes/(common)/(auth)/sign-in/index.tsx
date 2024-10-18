@@ -2,16 +2,16 @@
  * Simple Auth For Testing Only!!!
  */
 
-import { component$ } from "@builder.io/qwik";
 import {
   type DocumentHead,
   Form,
   type RequestHandler,
   globalAction$,
   zod$,
-} from "@builder.io/qwik-city";
-import { isUserAuthenticated, signIn } from "../../../../auth/auth";
+} from "@qwik.dev/city";
+import { component$ } from "@qwik.dev/core";
 import { z } from "zod";
+import { isUserAuthenticated, signIn } from "../../../../auth/auth";
 
 export const onGet: RequestHandler = async ({ redirect, cookie }) => {
   if (await isUserAuthenticated(cookie)) {

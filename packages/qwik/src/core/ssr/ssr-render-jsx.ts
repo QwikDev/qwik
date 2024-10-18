@@ -1,4 +1,4 @@
-import { isDev } from '@builder.io/qwik/build';
+import { isDev } from '@qwik.dev/core/build';
 import { isQwikComponent } from '../shared/component.public';
 import { isQrl } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';

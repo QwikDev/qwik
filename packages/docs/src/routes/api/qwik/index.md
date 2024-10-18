@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik API Reference
+title: \@qwik.dev/qwik API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik
+# [API](/api) &rsaquo; @qwik.dev/qwik
 
 ## \_qrlSync
 
@@ -4234,7 +4234,7 @@ export type QwikInitEvent = CustomEvent<{}>;
 The interface holds available attributes of both native DOM elements and custom Qwik elements. An example showing how to define a customizable wrapper component:
 
 ```tsx
-import { component$, Slot, type QwikIntrinsicElements } from "@builder.io/qwik";
+import { component$, Slot, type QwikIntrinsicElements } from "@qwik.dev/core";
 
 type WrapperProps = {
   attributes?: QwikIntrinsicElements["div"];

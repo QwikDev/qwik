@@ -6,8 +6,8 @@ expression: output
 ==INPUT==
 
 
-import { component$, serverLoader$, serverStuff$, $, client$, useStore, useTask$ } from '@builder.io/qwik';
-import { isServer } from '@builder.io/qwik/build';
+import { component$, serverLoader$, serverStuff$, $, client$, useStore, useTask$ } from '@qwik.dev/core';
+import { isServer } from '@qwik.dev/core/build';
 import mongo from 'mongodb';
 import redis from 'redis';
 import { handler } from 'serverless';
@@ -50,7 +50,7 @@ export const Parent = component$(() => {
 
 ============================= test.tsx_parent_component_usetask_gdh1etuwqbu.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
+import { useLexicalScope } from "@qwik.dev/core";
 import mongo from "mongodb";
 import redis from "redis";
 export const s_gDH1EtUWqBU = async ()=>{
@@ -58,7 +58,7 @@ export const s_gDH1EtUWqBU = async ()=>{
     state.text = await mongo.users();
     redis.set(state.text);
 };
-export { _hW } from "@builder.io/qwik";
+export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;6BAaU;;IAER,MAAM,IAAI,GAAG,MAAM,MAAM,KAAK;IAC9B,MAAM,GAAG,CAAC,MAAM,IAAI\"}")
@@ -77,15 +77,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useTask$",
   "captures": true,
   "loc": [
-    373,
-    475
+    369,
+    471
   ]
 }
 */
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_parent_component_0taidayhrlo"), "s_0TaiDayHrlo"));
 
 
@@ -95,7 +95,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const s_2ca3HLDC7yc = ()=>{
 // from $(), should not be removed
 };
-export { _hW } from "@builder.io/qwik";
+export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAqBc;AACX,kCAAkC;AACnC\"}")
@@ -114,8 +114,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    548,
-    597
+    544,
+    593
   ]
 }
 */
@@ -142,21 +142,21 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "client$",
   "captures": false,
   "loc": [
-    620,
-    674
+    616,
+    670
   ]
 }
 */
 ============================= test.tsx_parent_component_0taidayhrlo.js (ENTRY POINT)==
 
-import { _jsxSorted } from "@builder.io/qwik";
-import { _noopQrl } from "@builder.io/qwik";
-import { _wrapProp } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-import { serverLoaderQrl } from "@builder.io/qwik";
-import { serverStuffQrl } from "@builder.io/qwik";
-import { useStore } from "@builder.io/qwik";
-import { useTaskQrl } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { serverLoaderQrl } from "@qwik.dev/core";
+import { serverStuffQrl } from "@qwik.dev/core";
+import { useStore } from "@qwik.dev/core";
+import { useTaskQrl } from "@qwik.dev/core";
 export const s_0TaiDayHrlo = ()=>{
     const state = useStore({
         text: ''
@@ -190,8 +190,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    289,
-    845
+    285,
+    841
   ]
 }
 */
@@ -216,8 +216,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    785,
-    812
+    781,
+    808
   ]
 }
 */
@@ -226,7 +226,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const s_P8oRQhHsurk = ()=>{
 // Code
 };
-export { _hW } from "@builder.io/qwik";
+export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAgCU;AACR,OAAO;AACR\"}")
@@ -245,8 +245,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useTask$",
   "captures": false,
   "loc": [
-    734,
-    754
+    730,
+    750
   ]
 }
 */

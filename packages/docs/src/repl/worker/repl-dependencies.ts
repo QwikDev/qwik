@@ -7,11 +7,16 @@ let options: ReplInputOptions;
 let cache: Cache;
 
 export const depResponse = async (pkgName: string, pkgPath: string) => {
-  if (pkgName === QWIK_PKG_NAME && !pkgPath.startsWith('/bindings')) {
+  if (pkgName === QWIK_PKG_NAME) {
     const version = options.deps[pkgName].version;
-    const [M, m, p] = version.split('-')[0].split('.').map(Number);
-    if (M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2)))) {
-      pkgPath = `/dist${pkgPath}`;
+    if (!pkgPath.startsWith('/bindings')) {
+      const [M, m, p] = version.split('-')[0].split('.').map(Number);
+      if (M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2)))) {
+        pkgPath = `/dist${pkgPath}`;
+      }
+      if (version < '2') {
+        pkgName = '@builder.io/qwik';
+      }
     }
   }
   const url = options.deps[pkgName][pkgPath];
@@ -73,27 +78,27 @@ const _loadDependencies = async (replOptions: ReplInputOptions) => {
   if (!isSameQwikVersion(self.qwikCore?.version)) {
     await exec(QWIK_PKG_NAME, '/core.cjs');
     if (self.qwikCore) {
-      console.debug(`Loaded @builder.io/qwik: ${self.qwikCore.version}`);
+      console.debug(`Loaded @qwik.dev/core: ${self.qwikCore.version}`);
     } else {
-      throw new Error(`Unable to load @builder.io/qwik ${qwikVersion}`);
+      throw new Error(`Unable to load @qwik.dev/core ${qwikVersion}`);
     }
   }
 
   if (!isSameQwikVersion(self.qwikOptimizer?.versions.qwik)) {
     await exec(QWIK_PKG_NAME, '/optimizer.cjs');
     if (self.qwikOptimizer) {
-      console.debug(`Loaded @builder.io/qwik/optimizer: ${self.qwikOptimizer.versions.qwik}`);
+      console.debug(`Loaded @qwik.dev/core/optimizer: ${self.qwikOptimizer.versions.qwik}`);
     } else {
-      throw new Error(`Unable to load @builder.io/qwik/optimizer ${qwikVersion}`);
+      throw new Error(`Unable to load @qwik.dev/core/optimizer ${qwikVersion}`);
     }
   }
 
   if (!isSameQwikVersion(self.qwikServer?.versions.qwik)) {
     await exec(QWIK_PKG_NAME, '/server.cjs');
     if (self.qwikServer) {
-      console.debug(`Loaded @builder.io/qwik/server: ${self.qwikServer.versions.qwik}`);
+      console.debug(`Loaded @qwik.dev/core/server: ${self.qwikServer.versions.qwik}`);
     } else {
-      throw new Error(`Unable to load @builder.io/qwik/server ${qwikVersion}`);
+      throw new Error(`Unable to load @qwik.dev/core/server ${qwikVersion}`);
     }
   }
 

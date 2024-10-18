@@ -1,4 +1,4 @@
-import type { QwikIntrinsicElements } from '@builder.io/qwik';
+import type { QwikIntrinsicElements } from '@qwik.dev/core';
 
 export function LightModeIcon(props: QwikIntrinsicElements['svg'], key: string) {
   return (

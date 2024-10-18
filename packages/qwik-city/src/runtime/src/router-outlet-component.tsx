@@ -3,15 +3,15 @@ import {
   jsx,
   type JSXNode,
   SkipRender,
+  sync$,
   useContext,
   useServerData,
-  sync$,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
 
 import { ContentInternalContext } from './contexts';
-import spaInit from './spa-init';
 import type { ClientSPAWindow } from './qwik-city-component';
 import type { ScrollHistoryState } from './scroll-restoration';
+import spaInit from './spa-init';
 
 /** @public */
 export const RouterOutlet = component$(() => {

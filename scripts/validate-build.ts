@@ -1,11 +1,10 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { type BuildConfig, type PackageJSON, panic } from './util';
-import { access, readFile } from './util';
 import { basename, extname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { rollup } from 'rollup';
 import ts from 'typescript';
+import { access, type BuildConfig, type PackageJSON, panic, readFile } from './util';
 
 /**
  * This will validate a completed production build by triple checking all the files have been
@@ -105,7 +104,7 @@ export async function validateBuild(config: BuildConfig) {
     await validateModuleTreeshake(
       config,
       join(config.packagesDir, 'qwik-city', 'lib', 'index.qwik.mjs'),
-      ['@qwik-city-plan', '@qwik-city-sw-register', 'zod', '@builder.io/qwik/jsx-runtime']
+      ['@qwik-city-plan', '@qwik-city-sw-register', 'zod', '@qwik.dev/core/jsx-runtime']
     );
   }
 
@@ -225,7 +224,7 @@ async function validateModuleTreeshake(
     treeshake: {
       moduleSideEffects: 'no-external',
     },
-    external: ['@builder.io/qwik/build', '@builder.io/qwik', ...external],
+    external: ['@qwik.dev/core/build', '@qwik.dev/core', ...external],
     plugins: [
       {
         name: 'resolver',

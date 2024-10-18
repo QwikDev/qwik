@@ -69,7 +69,6 @@ export async function build(config: BuildConfig) {
       } else {
         emptyDir(config.distQwikPkgDir);
       }
-
       await Promise.all([
         submoduleCore(config),
         submoduleQwikLoader(config),
@@ -169,16 +168,16 @@ export async function build(config: BuildConfig) {
         [join(config.srcQwikDir, 'core')]: async () => {
           await submoduleCore({ ...config, dev: true });
           await copyFile(
-            join(config.srcQwikDir, '..', 'dist', 'core.cjs'),
-            join(config.srcQwikDir, '..', 'dist', 'core.prod.cjs')
+            join(config.srcQwikDir, '..', 'dist', 'core.qwik.cjs'),
+            join(config.srcQwikDir, '..', 'dist', 'core.prod.qwik.cjs')
           );
           await copyFile(
-            join(config.srcQwikDir, '..', 'dist', 'core.mjs'),
-            join(config.srcQwikDir, '..', 'dist', 'core.prod.mjs')
+            join(config.srcQwikDir, '..', 'dist', 'core.qwik.mjs'),
+            join(config.srcQwikDir, '..', 'dist', 'core.prod.qwik.mjs')
           );
           console.log(
-            join(config.srcQwikDir, '..', 'dist', 'core.cjs'),
-            join(config.srcQwikDir, '..', 'dist', 'core.prod.cjs')
+            join(config.srcQwikDir, '..', 'dist', 'core.qwik.cjs'),
+            join(config.srcQwikDir, '..', 'dist', 'core.prod.qwik.cjs')
           );
         },
         [join(config.srcQwikDir, 'optimizer')]: () => submoduleOptimizer(config),
@@ -188,7 +187,7 @@ export async function build(config: BuildConfig) {
       });
     }
   } catch (e: any) {
-    panic(String(e ? e.stack || e : 'Error'));
+    panic(e);
   }
 }
 

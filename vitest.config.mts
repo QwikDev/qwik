@@ -1,6 +1,6 @@
 import { qwikVite } from '@builder.io/qwik/optimizer';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import { defineConfig, configDefaults } from 'vitest/config';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [
@@ -10,6 +10,11 @@ export default defineConfig({
     }),
     tsconfigPaths({ ignoreConfigErrors: true }),
   ],
+  resolve: {
+    alias: {
+      '@builder.io/qwik-external': '@builder.io/qwik',
+    },
+  },
   test: {
     root: 'packages',
     include: ['**/*.spec.?(c|m)[jt]s?(x)', '**/*.unit.?(c|m)[jt]s?(x)', '!qwik/dist', '!*/lib'],

@@ -13,6 +13,9 @@ export const depResponse = async (pkgName: string, pkgPath: string) => {
     if (M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2)))) {
       pkgPath = `/dist${pkgPath}`;
     }
+    if (!(M > 2 || (M === 1 && (m > 8 || (m === 8 && version.includes('-dev')))))) {
+      pkgPath = pkgPath.replace('.qwik', '');
+    }
   }
   const url = options.deps[pkgName][pkgPath];
   if (!url) {
@@ -71,7 +74,7 @@ const _loadDependencies = async (replOptions: ReplInputOptions) => {
   }
 
   if (!isSameQwikVersion(self.qwikCore?.version)) {
-    await exec(QWIK_PKG_NAME, '/core.cjs');
+    await exec(QWIK_PKG_NAME, '/core.qwik.cjs');
     if (self.qwikCore) {
       console.debug(`Loaded @builder.io/qwik: ${self.qwikCore.version}`);
     } else {

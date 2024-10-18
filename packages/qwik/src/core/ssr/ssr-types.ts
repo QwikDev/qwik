@@ -14,7 +14,7 @@ import type { ResourceReturnInternal } from '../use/use-resource';
 import type { Signal } from '../signal/signal.public';
 
 export type SsrAttrKey = string;
-export type SsrAttrValue = string | Signal<any> | boolean | Object | null;
+export type SsrAttrValue = string | Signal<any> | boolean | object | null;
 export type SsrAttrs = Array<SsrAttrKey | SsrAttrValue>;
 
 /** @internal */

@@ -120,8 +120,6 @@
 import { isDev } from '@qwik.dev/core/build';
 import { qwikDebugToString } from '../debug';
 import { assertDefined, assertEqual, assertFalse, assertTrue } from '../shared/error/assert';
-import { DEBUG_TYPE, QContainerValue, VirtualType, VirtualTypeName } from '../shared/types';
-import { escapeHTML } from '../shared/utils/character-escaping';
 import { isText } from '../shared/utils/element';
 import { throwErrorAndStop } from '../shared/utils/log';
 import {
@@ -148,6 +146,7 @@ import {
   dangerouslySetInnerHTML,
 } from '../shared/utils/markers';
 import { isHtmlElement } from '../shared/utils/types';
+import { DEBUG_TYPE, QContainerValue, VirtualType, VirtualTypeName } from '../shared/types';
 import { VNodeDataChar } from '../shared/vnode-data-types';
 import { getDomContainer } from './dom-container';
 import {
@@ -169,6 +168,7 @@ import {
   vnode_getDomChildrenWithCorrectNamespacesToInsert,
   vnode_getElementNamespaceFlags,
 } from './vnode-namespace';
+import { escapeHTML } from '../shared/utils/character-escaping';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 

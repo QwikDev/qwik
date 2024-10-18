@@ -13,45 +13,46 @@
  *   file lists code which we are OK to have duplicated.
  */
 
-export { mapApp_remove, mapArray_get, mapArray_set } from '../core/client/vnode';
-export { DEBUG_TYPE, QContainerValue, VirtualType } from '../core/shared/types';
-export { escapeHTML } from '../core/shared/utils/character-escaping';
+export { serializeAttribute } from '../core/shared/utils/styles';
+export { dangerouslySetInnerHTML } from '../core/shared/utils/markers';
 export {
   ELEMENT_ID,
   ELEMENT_KEY,
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
-  FLUSH_COMMENT,
-  NON_SERIALIZABLE_MARKER_PREFIX,
   OnRenderProp,
-  QBaseAttr,
   QContainerAttr,
   QCtxAttr,
-  QDefaultSlot,
-  QInstanceAttr,
-  QLocaleAttr,
-  QManifestHashAttr,
-  QRenderAttr,
-  QRuntimeAttr,
   QScopedStyle,
   QSlot,
   QSlotParent,
   QSlotRef,
   QStyle,
   QTemplate,
+  QRenderAttr,
+  QRuntimeAttr,
   QVersionAttr,
-  Q_PROPS_SEPARATOR,
+  QBaseAttr,
+  QLocaleAttr,
+  QManifestHashAttr,
+  QInstanceAttr,
+  FLUSH_COMMENT,
   STREAM_BLOCK_END_COMMENT,
   STREAM_BLOCK_START_COMMENT,
-  dangerouslySetInnerHTML,
+  QDefaultSlot,
+  Q_PROPS_SEPARATOR,
+  NON_SERIALIZABLE_MARKER_PREFIX,
 } from '../core/shared/utils/markers';
 export { maybeThen } from '../core/shared/utils/promises';
+export { mapApp_remove, mapArray_get, mapArray_set } from '../core/client/vnode';
 export {
   convertStyleIdsToString,
   getScopedStyleIdsAsPrefix,
   isClassAttr,
 } from '../core/shared/utils/scoped-styles';
-export { serializeAttribute } from '../core/shared/utils/styles';
-export { VNodeDataChar, VNodeDataSeparator } from '../core/shared/vnode-data-types';
+export { DEBUG_TYPE, VirtualType, QContainerValue } from '../core/shared/types';
+export { VNodeDataChar } from '../core/shared/vnode-data-types';
+export { VNodeDataSeparator } from '../core/shared/vnode-data-types';
+export { escapeHTML } from '../core/shared/utils/character-escaping';
 export { getValidManifest } from '../optimizer/src/manifest';

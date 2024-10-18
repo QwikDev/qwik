@@ -1,7 +1,7 @@
 import { execSync } from 'child_process';
-import { existsSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { workspaceRoot } from '.';
+import { existsSync, writeFileSync } from 'fs';
 
 const packageCfg = {
   '@qwik.dev/core': {

@@ -12,23 +12,23 @@
  *   this file, which is only allowed to import types)
  */
 
-export type { JSXOutput } from '../core/shared/jsx/types/jsx-node';
-export type { JSXChildren } from '../core/shared/jsx/types/jsx-qwik-attributes';
 export type { CorePlatformServer } from '../core/shared/platform/types';
 export type { QRLInternal } from '../core/shared/qrl/qrl-class';
-export type { NodePropData } from '../core/shared/scheduler';
+export type { JSXOutput } from '../core/shared/jsx/types/jsx-node';
+export type { JSXChildren } from '../core/shared/jsx/types/jsx-qwik-attributes';
+export type { ContextId } from '../core/use/use-context';
+export type { ValueOrPromise } from '../core/shared/utils/types';
 export type { SerializationContext } from '../core/shared/shared-serialization';
 export type { Container, HostElement, ObjToProxyMap } from '../core/shared/types';
-export type { ValueOrPromise } from '../core/shared/utils/types';
 export type {
   ISsrComponentFrame,
   ISsrNode,
   SSRContainer,
+  SsrAttrs,
   SsrAttrKey,
   SsrAttrValue,
-  SsrAttrs,
   StreamWriter,
-  SymbolToChunkResolver,
 } from '../core/ssr/ssr-types';
-export type { ContextId } from '../core/use/use-context';
 export type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
+export type { SymbolToChunkResolver } from '../core/ssr/ssr-types';
+export type { NodePropData } from '../core/shared/scheduler';

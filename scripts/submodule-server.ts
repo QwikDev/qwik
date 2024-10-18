@@ -24,7 +24,13 @@ export async function submoduleServer(config: BuildConfig) {
     bundle: true,
     platform: 'node',
     target,
-    external: ['@builder.io/qwik', '@builder.io/qwik-dom', '@builder.io/qwik/build'],
+    external: [
+      '@builder.io/qwik',
+      '@builder.io/qwik-dom',
+      '@builder.io/qwik/build',
+      // uncomment this if you want to find what imports qwik-external
+      // '@builder.io/qwik-external',
+    ],
   };
 
   const esm = build({
@@ -32,7 +38,20 @@ export async function submoduleServer(config: BuildConfig) {
     format: 'esm',
     banner: { js: getBanner('@builder.io/qwik/server', config.distVersion) },
     outExtension: { '.js': '.mjs' },
-    plugins: [importPath(/^@builder\.io\/qwik$/, '@builder.io/qwik'), qwikDomPlugin],
+    plugins: [
+      // uncomment this if you want to find what imports qwik-external
+      // {
+      //   name: 'spy-resolve',
+      //   setup(build) {
+      //     build.onResolve({ filter: /./ }, (args) => {
+      //       console.log('spy-resolve', args);
+      //       return undefined;
+      //     });
+      //   },
+      // },
+      importPath(/^@builder\.io\/qwik$/, '@builder.io/qwik'),
+      qwikDomPlugin,
+    ],
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
       'globalThis.IS_CJS': 'false',

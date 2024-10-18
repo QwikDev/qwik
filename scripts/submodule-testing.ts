@@ -1,4 +1,4 @@
-import { getBanner, importPath, nodeTarget, target } from './util';
+import { getBanner, importPath, nodeTarget, target, externalImportNoEffects } from './util';
 import { build, type BuildOptions } from 'esbuild';
 import { type BuildConfig, type PackageJSON } from './util';
 import { join } from 'node:path';
@@ -14,9 +14,9 @@ export async function submoduleTesting(config: BuildConfig) {
     sourcemap: config.dev,
     bundle: true,
     target,
-    external: ['@builder.io/qwik/build', 'prettier', 'vitest', '@builder.io/qwik-external'],
     platform: 'node',
-    // external: [...nodeBuiltIns],
+    // uncomment this if you want to find what imports qwik-external
+    external: ['@builder.io/qwik-external'],
   };
 
   const esm = build({
@@ -25,9 +25,20 @@ export async function submoduleTesting(config: BuildConfig) {
     banner: { js: getBanner('@builder.io/qwik/testing', config.distVersion) },
     outExtension: { '.js': '.mjs' },
     plugins: [
+      // uncomment this if you want to find what imports qwik-external
+      {
+        name: 'spy-resolve',
+        setup(build) {
+          build.onResolve({ filter: /./ }, (args) => {
+            console.log('spy-resolve', args);
+            return undefined;
+          });
+        },
+      },
       importPath(/^@builder\.io\/qwik$/, '../core.qwik.mjs'),
       importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.mjs'),
       importPath(/^@builder\.io\/qwik\/server$/, '../server.mjs'),
+      externalImportNoEffects(/^(@builder\.io\/qwik\/build|prettier|vitest)$/),
     ],
     define: {
       'globalThis.MODULE_EXT': `"mjs"`,
@@ -47,6 +58,7 @@ export async function submoduleTesting(config: BuildConfig) {
       importPath(/^@builder\.io\/qwik$/, '../core.qwik.cjs'),
       importPath(/^@builder\.io\/qwik\/optimizer$/, '../optimizer.cjs'),
       importPath(/^@builder\.io\/qwik\/server$/, '../server.cjs'),
+      externalImportNoEffects(/^(@builder\.io\/qwik\/build|prettier|vitest)$/),
     ],
     define: {
       'globalThis.MODULE_EXT': `"cjs"`,

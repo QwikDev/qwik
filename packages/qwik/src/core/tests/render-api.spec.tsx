@@ -31,9 +31,16 @@ import type {
   StreamWriter,
   StreamingOptions,
 } from '../../server/types';
-import { _fnSignal } from '../internal';
+import {
+  _fnSignal,
+  _getDomContainer,
+  type _ContainerElement,
+  type _DomContainer,
+} from '../internal';
 import { vnode_getFirstChild } from '../client/vnode';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
+import { QContainerValue } from '../shared/types';
+import { QContainerAttr } from '../shared/utils/markers';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
@@ -297,6 +304,20 @@ describe('render api', () => {
         });
         expect(result.html).toContain(`q:version="${testVersion}"`);
         vi.clearAllMocks();
+      });
+    });
+    describe('container', () => {
+      it('should render', async () => {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
+          containerTagName: 'div',
+        });
+        const document = createDocument(result.html);
+        const containerElement = document.querySelector('[q\\:container]') as _ContainerElement;
+        emulateExecutionOfQwikFuncs(document);
+
+        expect(containerElement.getAttribute(QContainerAttr)).toEqual(QContainerValue.PAUSED);
+        await trigger(containerElement, 'button', 'click');
+        expect(containerElement.getAttribute(QContainerAttr)).toEqual(QContainerValue.RESUMED);
       });
     });
     describe('base', () => {

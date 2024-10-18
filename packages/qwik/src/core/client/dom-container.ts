@@ -39,7 +39,7 @@ import {
 } from '../shared/utils/scoped-styles';
 import { _SharedContainer } from '../shared/shared-container';
 import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
-import { type HostElement, type ObjToProxyMap } from '../shared/types';
+import { QContainerValue, type HostElement, type ObjToProxyMap } from '../shared/types';
 import { processVNodeData } from './process-vnode-data';
 import {
   VNodeFlags,
@@ -100,6 +100,9 @@ export function getDomContainerFromQContainerElement(qContainerElement: Element)
       }
     }
     (container as DomContainer).$serverData$ = { containerAttributes };
+
+    qElement.setAttribute(QContainerAttr, QContainerValue.RESUMED);
+
     qElement.qContainer = container;
   }
   return container;

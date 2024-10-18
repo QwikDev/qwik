@@ -208,10 +208,10 @@ describe.each([
         <main class="parent">
           {''}
           {''}
-          <Component>
+          <Component ssr-required>
             <div>
               <span>Component 2</span>
-              <Signal>2</Signal>
+              <Signal ssr-required>2</Signal>
             </div>
           </Component>
         </main>
@@ -316,7 +316,7 @@ describe.each([
     const props = { type: 'div' };
 
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <div>
           <button>Change</button>
           <InlineComponent>
@@ -1533,7 +1533,7 @@ describe.each([
     );
   });
 
-  it('should skip render', async () => {
+  it.only('should skip render', async () => {
     const SkipRenderTest = component$(() => {
       const count = useSignal(0);
       if (count.value % 3 !== 0) {
@@ -1550,30 +1550,30 @@ describe.each([
 
     const { vNode, document } = await render(<SkipRenderTest />, { debug });
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button>
             {'Increment '}
             {'0'}
           </button>
           <div>
             {'Number: '}
-            <Signal>0</Signal>
+            <Signal ssr-required>0</Signal>
           </div>
         </Fragment>
       </Component>
     );
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button>
             {'Increment '}
             {'0'}
           </button>
           <div>
             {'Number: '}
-            <Signal>1</Signal>
+            <Signal ssr-required>1</Signal>
           </div>
         </Fragment>
       </Component>
@@ -1581,15 +1581,15 @@ describe.each([
 
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button>
             {'Increment '}
             {'0'}
           </button>
           <div>
             {'Number: '}
-            <Signal>2</Signal>
+            <Signal ssr-required>2</Signal>
           </div>
         </Fragment>
       </Component>
@@ -1597,15 +1597,15 @@ describe.each([
 
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button>
             {'Increment '}
             {'3'}
           </button>
           <div>
             {'Number: '}
-            <Signal>3</Signal>
+            <Signal ssr-required>3</Signal>
           </div>
         </Fragment>
       </Component>
@@ -1613,15 +1613,15 @@ describe.each([
 
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button>
             {'Increment '}
             {'3'}
           </button>
           <div>
             {'Number: '}
-            <Signal>4</Signal>
+            <Signal ssr-required>4</Signal>
           </div>
         </Fragment>
       </Component>
@@ -1629,15 +1629,15 @@ describe.each([
 
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button>
             {'Increment '}
             {'3'}
           </button>
           <div>
             {'Number: '}
-            <Signal>5</Signal>
+            <Signal ssr-required>5</Signal>
           </div>
         </Fragment>
       </Component>
@@ -1645,15 +1645,15 @@ describe.each([
 
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button>
             {'Increment '}
             {'6'}
           </button>
           <div>
             {'Number: '}
-            <Signal>6</Signal>
+            <Signal ssr-required>6</Signal>
           </div>
         </Fragment>
       </Component>

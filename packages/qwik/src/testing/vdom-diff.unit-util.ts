@@ -52,11 +52,15 @@ import { isElement } from './html';
 import { QRenderAttr, Q_PROPS_SEPARATOR } from '../core/shared/utils/markers';
 import { JSXNodeImpl } from '../core/shared/jsx/jsx-runtime';
 
+const QCsrTestMarker = 'q:csr-test-marker';
+
 expect.extend({
   toMatchVDOM(this: { isNot: boolean }, received: _VNode, expected: JSXNode, isCsr?: boolean) {
     const { isNot } = this;
-    const isSsr = typeof isCsr === 'boolean' ? !isCsr : isSsrRenderer(received);
-    const filtered = isSsr ? filterJsx(expected) : expected;
+    const container = getContainerElement(received);
+    const isSsr = typeof isCsr === 'boolean' ? !isCsr : isSsrRenderer(container);
+    container.setAttribute(QCsrTestMarker, '');
+    const filtered = isSsr ? filterJsx(expected, isSsr) : expected;
     const diffs = diffJsxVNode(received, filtered, []);
     return {
       pass: isNot ? diffs.length !== 0 : diffs.length === 0,
@@ -80,7 +84,7 @@ expect.extend({
   },
 });
 
-function isSsrRenderer(vNode: _VNode) {
+function getContainerElement(vNode: _VNode) {
   let maybeParent: _VNode | null;
   do {
     maybeParent = vnode_getParent(vNode);
@@ -88,8 +92,11 @@ function isSsrRenderer(vNode: _VNode) {
       vNode = maybeParent;
     }
   } while (maybeParent);
-  const container = vnode_getNode(vNode) as _ContainerElement;
-  return container.hasAttribute(QRenderAttr);
+  return vnode_getNode(vNode) as _ContainerElement;
+}
+
+function isSsrRenderer(container: _ContainerElement) {
+  return container.hasAttribute(QRenderAttr) && !container.hasAttribute(QCsrTestMarker);
 }
 
 const isJsxNode = (expected: JSXChildren): expected is JSXNode => {
@@ -100,7 +107,7 @@ function isSkippableNode(node: JSXNode): boolean {
   return node.type === Fragment && !node.constProps?.['ssr-required'];
 }
 
-function filterJsx(expected: JSXChildren): JSXNode | string {
+function filterJsx(expected: JSXChildren, isSsr: boolean): JSXNode | string {
   // console.log('filterJsx', expected?.type || expected);
   if (!isJsxNode(expected)) {
     return expected as any;
@@ -110,11 +117,11 @@ function filterJsx(expected: JSXChildren): JSXNode | string {
   }
   const children = getJSXChildren(expected);
   if (isSkippableNode(expected) && children.length === 1) {
-    return filterJsx(children[0]);
+    return filterJsx(children[0], isSsr);
   }
   let filterJoined: JSXChildren[] = [];
   let lastString;
-  for (const child of children.map(filterJsx)) {
+  for (const child of children.map((child) => filterJsx(child, isSsr))) {
     if (typeof child === 'string' || typeof child === 'number') {
       lastString = typeof lastString === 'string' ? lastString + child : String(child);
     } else {
@@ -130,10 +137,10 @@ function filterJsx(expected: JSXChildren): JSXNode | string {
   }
   filterJoined = filterJoined.filter((child) => {
     // filter out empty strings
-    return !(typeof child === 'string' && child === '');
+    return isSsr ? !(typeof child === 'string' && child === '') : true;
   });
   if (isSkippableNode(expected) && filterJoined.length === 1) {
-    return filterJsx(filterJoined[0]);
+    return filterJsx(filterJoined[0], isSsr);
   }
   return new JSXNodeImpl(
     expected.type,

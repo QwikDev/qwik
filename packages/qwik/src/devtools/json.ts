@@ -12,6 +12,7 @@ export function runQwikJsonDebug(window: Window, document: Document, debug: type
       )?.qFuncs || [];
     const debugData = debug(document, rawData, derivedFns);
     (window as any).qwikJson = debugData;
+    // eslint-disable-next-line no-console
     console.log(debugData);
   };
   if (document.querySelector('script[type="qwik/json"]')) {
@@ -252,7 +253,9 @@ export function qwikJsonDebug(
       }
       idx = num;
     }
-    while (objs.length < idx) objs.push(null);
+    while (objs.length < idx) {
+      objs.push(null);
+    }
     let obj: undefined | Base = objs[idx];
     if (!obj) {
       const rawValue = qwikJson.objs[idx];
@@ -400,7 +403,9 @@ export function qwikJsonDebug(
   }
 
   function splitParse(text: string | null, sep: string, fn: (part: string) => any): any[] {
-    if (!text) return [];
+    if (!text) {
+      return [];
+    }
     return text.split(sep).map(fn);
   }
 

@@ -1,5 +1,5 @@
 import path, { resolve } from 'node:path';
-import { assert, test } from 'vitest';
+import { assert, describe, expect, test } from 'vitest';
 import type { QwikManifest } from '../types';
 import { ExperimentalFeatures, createPlugin } from './plugin';
 import { normalizePath } from '../../../testing/util';
@@ -218,12 +218,80 @@ test('experimental[]', async () => {
   assert.deepEqual(opts.experimental, { [flag]: true } as any);
 });
 
-async function mockPlugin() {
+describe('resolveId', () => {
+  test('qrls', async () => {
+    const plugin = await mockPlugin();
+    expect(plugin.resolveId(null!, 'foo', undefined)).toBeFalsy();
+    const ctx = { resolve: async () => ({ id: 'Yey' }) } as any;
+    await expect(
+      plugin.resolveId(
+        ctx,
+        '/root/src/routes/layout.tsx_layout_component_usetask_1_7xk04rim0vu.js',
+        undefined
+      )
+    ).resolves.toHaveProperty(
+      'id',
+      '/root/src/routes/layout.tsx_layout_component_usetask_1_7xk04rim0vu.js'
+    );
+    expect(
+      await plugin.resolveId(ctx, '/root/src/routes/layout.tsx_s_7xk04rim0vu.js', undefined)
+    ).toHaveProperty('id', '/root/src/routes/layout.tsx_s_7xk04rim0vu.js');
+    expect(plugin.resolveId(null!, './foo', '/root/src/routes/layout.tsx')).toBeFalsy();
+    expect(
+      await plugin.resolveId(
+        ctx,
+        './layout.tsx_layout_component_usetask_1_7xk04rim0vu.js',
+        '/root/src/routes/layout.tsx'
+      )
+    ).toHaveProperty('id', '/root/src/routes/layout.tsx_layout_component_usetask_1_7xk04rim0vu.js');
+    // this uses the already populated id we created above
+    expect(
+      await plugin.resolveId(
+        {
+          resolve: (id: string, importer: string) => {
+            expect(id).toBe('/root/src/routes/foo');
+            expect(importer).toBe('Yey');
+            return { id: 'hi' };
+          },
+        } as any,
+        './foo',
+        '/root/src/routes/layout.tsx_layout_component_usetask_1_7xk04rim0vu.js'
+      )
+    ).toEqual({ id: 'hi' });
+  });
+  test('win32', async () => {
+    const plugin = await mockPlugin('win32');
+    expect(
+      await plugin.resolveId(
+        { resolve: async () => 'Yey' } as any,
+        'C:\\src\\routes\\layout.tsx_s_7xk04rim0vu.js',
+        undefined
+      )
+    ).toHaveProperty('id', 'C:/src/routes/layout.tsx_s_7xk04rim0vu.js');
+  });
+  test('libs', async () => {
+    const plugin = await mockPlugin();
+    expect(plugin.resolveId(null!, '@builder.io/qwik/build', undefined)).toHaveProperty(
+      'id',
+      '/@builder.io/qwik/build'
+    );
+    expect(plugin.resolveId(null!, '/@builder.io/qwik/build', undefined)).toHaveProperty(
+      'id',
+      '/@builder.io/qwik/build'
+    );
+    expect(plugin.resolveId(null!, '@qwik-client-manifest', '/foo/bar')).toHaveProperty(
+      'id',
+      '/@qwik-client-manifest'
+    );
+  });
+});
+
+async function mockPlugin(os = process.platform) {
   const plugin = createPlugin({
     sys: {
       cwd: () => process.cwd(),
       env: 'node',
-      os: process.platform,
+      os,
       dynamicImport: async (path) => import(path),
       strictDynamicImport: async (path) => import(path),
       path: path as any,

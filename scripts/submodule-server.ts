@@ -24,10 +24,7 @@ export async function submoduleServer(config: BuildConfig) {
     bundle: true,
     platform: 'node',
     target,
-    external: [
-      /* no Node.js built-in externals allowed! */ '@builder.io/qwik-dom',
-      '@builder.io/qwik/build',
-    ],
+    external: ['@builder.io/qwik', '@builder.io/qwik-dom', '@builder.io/qwik/build'],
   };
 
   const esm = build({

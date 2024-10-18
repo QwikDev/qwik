@@ -1,8 +1,7 @@
 import type { QwikVitePluginOptions } from '@qwik.dev/core/optimizer';
 import { existsSync, mkdirSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
-import { join } from 'node:path';
-import { resolve } from 'path';
+import { join, resolve } from 'node:path';
 import type { PluginOption } from 'vite';
 
 const logWarn = (message?: any, ...rest: any[]) => {

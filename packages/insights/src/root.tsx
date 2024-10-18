@@ -1,7 +1,8 @@
 import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister, z } from '@qwik.dev/city';
-import { component$, Insights } from '@qwik.dev/core';
+import { component$ } from '@qwik.dev/core';
 import { RouterHead } from './components/router-head/router-head';
 import './global.css';
+import { Insights } from '@qwik.dev/core/insights';
 
 export const InsightsError = /* @__PURE__ */ z.object({
   manifestHash: z.string(),

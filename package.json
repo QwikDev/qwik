@@ -2,7 +2,7 @@
   "name": "qwik-monorepo",
   "version": "0.0.0-read-qwik-package-json",
   "comments": {
-    "01": "devDependencies includes reference to @qwik.dev/core: workspace: *. This is needed or e2e tests will fail",
+    "01": "devDependencies includes reference to @qwik.dev/core: workspace:*. This is needed or e2e tests will fail",
     "02": "  It would be nice to be able to remove this dependency and fix the test.",
     "03": "devDependencies can't include reference to @qwik.dev/city or e2e test will fail."
   },
@@ -38,7 +38,7 @@
           "dependencyTypes": [
             "dev"
           ],
-          "pinVersion": "workspace:^"
+          "pinVersion": "workspace:*"
         },
         {
           "label": "Separate prod deps from dev deps",
@@ -101,8 +101,8 @@
     "@node-rs/helper": "1.6.0",
     "@octokit/action": "6.1.0",
     "@playwright/test": "1.47.0",
-    "@qwik.dev/city": "workspace:^",
-    "@qwik.dev/core": "workspace:^",
+    "@qwik.dev/city": "workspace:*",
+    "@qwik.dev/core": "workspace:*",
     "@types/brotli": "1.3.4",
     "@types/bun": "1.1.6",
     "@types/cross-spawn": "6.0.6",
@@ -120,7 +120,7 @@
     "all-contributors-cli": "6.26.1",
     "brotli": "1.3.3",
     "concurrently": "8.2.2",
-    "create-qwik": "workspace:^",
+    "create-qwik": "workspace:*",
     "cross-spawn": "7.0.3",
     "csstype": "3.1.3",
     "dotenv": "16.4.5",
@@ -128,7 +128,7 @@
     "eslint": "8.57.0",
     "eslint-plugin-import": "2.29.1",
     "eslint-plugin-no-only-tests": "3.1.0",
-    "eslint-plugin-qwik": "workspace:^",
+    "eslint-plugin-qwik": "workspace:*",
     "execa": "8.0.1",
     "express": "4.20.0",
     "install": "0.13.0",

@@ -53,6 +53,7 @@ const booleanOptions = [
   'qwik',
   'qwikauth',
   'qwikcity',
+  'qwikinsights',
   'qwikreact',
   'qwikworker',
   'release',

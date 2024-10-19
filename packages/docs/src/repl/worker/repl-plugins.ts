@@ -4,6 +4,7 @@ import type { MinifyOptions } from 'terser';
 import type { ReplInputOptions } from '../types';
 import { depResponse } from './repl-dependencies';
 import type { QwikWorkerGlobal } from './repl-service-worker';
+import { QWIK_PKG_NAME } from './repl-constants';
 
 export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 'ssr'): Plugin => {
   const srcInputs = options.srcInputs;
@@ -20,13 +21,16 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
         return id;
       }
       if (
-        id === '@qwik.dev/core' ||
-        id === '@qwik.dev/core/jsx-runtime' ||
-        id === '@qwik.dev/core/jsx-dev-runtime'
+        id === '@builder.io/qwik' ||
+        id === '@builder.io/qwik/jsx-runtime' ||
+        id === '@builder.io/qwik/jsx-dev-runtime' ||
+        id === QWIK_PKG_NAME ||
+        id === `${QWIK_PKG_NAME}/jsx-runtime` ||
+        id === `${QWIK_PKG_NAME}/jsx-dev-runtime`
       ) {
         return '\0qwikCore';
       }
-      if (id === '@builder.io/qwik/server') {
+      if (id === '@builder.io/qwik/server' || id === `${QWIK_PKG_NAME}/server`) {
         return '\0qwikServer';
       }
       // Simple relative file resolution
@@ -57,13 +61,13 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
       }
       if (id === '\0qwikCore') {
         if (options.buildMode === 'production') {
-          const rsp = await depResponse('@qwik.dev/core', '/core.min.mjs');
+          const rsp = await depResponse(QWIK_PKG_NAME, '/core.min.mjs');
           if (rsp) {
             return rsp.text();
           }
         }
 
-        const rsp = await depResponse('@qwik.dev/core', '/core.mjs');
+        const rsp = await depResponse(QWIK_PKG_NAME, '/core.mjs');
         if (rsp) {
           return rsp.text();
         }

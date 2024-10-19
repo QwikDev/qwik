@@ -5,6 +5,7 @@
 ```ts
 
 import type { Plugin as Plugin_2 } from 'vite';
+import type { PluginOption } from 'vite';
 
 // @public (undocumented)
 export interface ComponentEntryStrategy {
@@ -188,6 +189,11 @@ export interface QwikBundle {
     // (undocumented)
     symbols?: string[];
 }
+
+// Warning: (ae-forgotten-export) The symbol "QwikInsightsOpts" needs to be exported by the entry point index.d.ts
+//
+// @alpha
+export function qwikInsights(qwikInsightsOpts: QwikInsightsOpts): Promise<PluginOption>;
 
 // @public
 export interface QwikManifest {

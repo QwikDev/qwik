@@ -1423,6 +1423,49 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
+## qwikInsights
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+This Vite plugin retrieves Insights data from the Insights DB and provides it to the Qwik optimizer.
+
+```typescript
+export declare function qwikInsights(
+  qwikInsightsOpts: QwikInsightsOpts,
+): Promise<PluginOption>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+qwikInsightsOpts
+
+</td><td>
+
+QwikInsightsOpts
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+Promise&lt;PluginOption&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/insights/src/vite/insights-plugin.ts)
+
 ## QwikManifest
 
 The metadata of the build. One of its uses is storing where QRL symbols are located.

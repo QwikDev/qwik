@@ -1,15 +1,10 @@
-import { build } from 'esbuild';
-import RawPlugin from 'esbuild-plugin-raw';
 import { execa } from 'execa';
-import { join } from 'node:path';
-import { rollup } from 'rollup';
-import { writePackageJson } from './package-json';
-import { type BuildConfig, nodeTarget, type PackageJSON, panic, unlink, writeFile } from './util';
+import { panic, type BuildConfig } from './util';
 
 export async function submoduleInsights(config: BuildConfig) {
   await buildComponents(config);
-  await buildVite(config);
-  await bundle(config);
+  // await buildVite(config);
+  // await bundle(config);
 
   console.log(`📈 insights`);
 }
@@ -37,62 +32,69 @@ async function buildComponents(config: BuildConfig) {
   }
 }
 
-const external = ['fs', 'path', 'vite', 'typescript', '@qwik.dev/core/optimizer'];
+// const external = ['fs', 'path', 'vite', 'typescript', '@qwik.dev/core/optimizer'];
 
-async function buildVite(config: BuildConfig) {
-  const entryPoints = [join(config.srcQwikDir, 'insights', 'src', 'vite', 'insights-plugin.ts')];
+// async function buildVite(config: BuildConfig) {
+//   const entryPoints = [join(config.srcQwikDir, 'insights', 'src', 'vite', 'insights-plugin.ts')];
 
-  await build({
-    entryPoints,
-    outfile: join(config.distQwikPkgDir, 'insights', 'vite.js'),
-    bundle: true,
-    platform: 'node',
-    target: nodeTarget,
-    format: 'esm',
-    external,
-    plugins: [RawPlugin()],
-  });
-}
+//   await build({
+//     entryPoints,
+//     outfile: join(config.distQwikPkgDir, 'insights', 'vite.js'),
+//     bundle: true,
+//     platform: 'node',
+//     target: nodeTarget,
+//     format: 'esm',
+//     external,
+//     plugins: [RawPlugin()],
+//   });
+// }
 
-async function bundle(config: BuildConfig) {
-  const distBase = join(config.distQwikPkgDir, 'insights');
+// async function bundle(config: BuildConfig) {
+//   const distBase = join(config.distQwikPkgDir, 'insights');
 
-  const indexCode = ["export * from './insights';", "export * from './vite';"];
+//   const indexCode = ["export * from './insights.qwik';", "export * from './vite';"];
 
-  await writeFile(join(distBase, 'index.js'), indexCode.join('\n'));
+//   await writeFile(join(distBase, 'index.js'), indexCode.join('\n'));
 
-  const entryPoint = join(distBase, 'index.js');
+//   const entryPoint = join(distBase, 'index.js');
 
-  const build = await rollup({
-    input: entryPoint,
-  });
+//   const build = await rollup({
+//     input: entryPoint,
+//     external: [
+//       '@qwik.dev/core',
+//       '@qwik.dev/core/jsx-runtime',
+//       'node:fs',
+//       'node:fs/promises',
+//       'node:path',
+//     ],
+//   });
 
-  await build.write({
-    file: join(distBase, 'index.mjs'),
-    format: 'es',
-  });
+//   await build.write({
+//     file: join(distBase, 'index.qwik.mjs'),
+//     format: 'es',
+//   });
 
-  await build.write({
-    file: join(distBase, 'index.cjs'),
-    format: 'cjs',
-  });
+//   await build.write({
+//     file: join(distBase, 'index.qwik.cjs'),
+//     format: 'cjs',
+//   });
 
-  // Delete leftovers
-  await Promise.all([
-    unlink(join(distBase, 'vite.js')),
-    unlink(join(distBase, 'insights.js')),
-    unlink(join(distBase, 'index.js')),
-  ]);
+//   // Delete leftovers
+//   await Promise.all([
+//     unlink(join(distBase, 'vite.js')),
+//     unlink(join(distBase, 'insights.qwik.js')),
+//     unlink(join(distBase, 'index.js')),
+//   ]);
 
-  // Create package.json
+//   // Create package.json
 
-  const insightsPkg: PackageJSON = {
-    name: `@qwik.dev/core/insights`,
-    version: config.distVersion,
-    main: `index.mjs`,
-    types: `index.d.ts`,
-    private: true,
-    type: 'module',
-  };
-  await writePackageJson(distBase, insightsPkg);
-}
+//   const insightsPkg: PackageJSON = {
+//     name: `@qwik.dev/core/insights`,
+//     version: config.distVersion,
+//     main: `index.qwik.mjs`,
+//     types: `index.d.ts`,
+//     private: true,
+//     type: 'module',
+//   };
+//   await writePackageJson(distBase, insightsPkg);
+// }

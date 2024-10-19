@@ -10,12 +10,12 @@ export default defineConfig(() => {
       lib: {
         entry: './src/components/insights.tsx',
         formats: ['es'] as const,
-        fileName: (format) => `insights.${format === 'es' ? 'js' : 'cjs'}`,
+        fileName: (format) => `insights.qwik.${format === 'es' ? 'js' : 'cjs'}`,
       },
       minify: false,
 
       rollupOptions: {
-        external: ['@qwik.dev/core'],
+        external: ['@qwik.dev/core', '@qwik.dev/core/jsx-runtime'],
       },
     },
     plugins: [

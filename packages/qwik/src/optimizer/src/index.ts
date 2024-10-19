@@ -50,3 +50,5 @@ export type {
 export { qwikRollup } from './plugins/rollup';
 export { qwikVite } from './plugins/vite';
 export { symbolMapper } from './plugins/vite-dev-server';
+
+export { qwikInsights } from '../../insights/src/vite/insights-plugin';

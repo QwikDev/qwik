@@ -1,7 +1,6 @@
 import { partytownVite } from '@builder.io/partytown/utils';
 import { qwikCity } from '@qwik.dev/city/vite';
-import { qwikInsights } from '@qwik.dev/core/insights';
-import { qwikVite } from '@qwik.dev/core/optimizer';
+import { qwikVite, qwikInsights } from '@qwik.dev/core/optimizer';
 import { qwikReact } from '@qwik.dev/react/vite';
 import path, { resolve } from 'node:path';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
@@ -53,6 +52,7 @@ const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
 };
 
 export default defineConfig(async () => {
+  console.log('docs vite config');
   const { default: rehypePrettyCode } = await import('rehype-pretty-code');
 
   const routesDir = resolve('src', 'routes');
@@ -158,7 +158,7 @@ export default defineConfig(async () => {
           ],
         },
       }),
-      qwikVite(),
+      qwikVite({ debug: true, experimental: ['insights'] }),
       partytownVite({
         dest: resolve('dist', '~partytown'),
       }),
@@ -176,7 +176,7 @@ export default defineConfig(async () => {
         output: {
           assetFileNames: 'assets/[hash]-[name].[ext]',
         },
-        external: ['@builder.io/qwik', '@builder.io/qwik/jsx-runtime'],
+        // external: ['@builder.io/qwik', '@builder.io/qwik/jsx-runtime'],
       },
     },
     clearScreen: false,

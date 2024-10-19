@@ -1,6 +1,7 @@
+/** This is exported from qwik/optimizer */
 import type { QwikVitePluginOptions } from '@qwik.dev/core/optimizer';
-import { existsSync, mkdirSync } from 'fs';
-import { readFile, writeFile } from 'fs/promises';
+import { existsSync, mkdirSync } from 'node:fs';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import type { PluginOption } from 'vite';
 
@@ -14,15 +15,25 @@ const log = (message?: any) => {
   console.log('\x1b[35m%s\x1b[0m', `qwikInsight(): ${message}`);
 };
 
+export type QwikInsightsOpts = {
+  /** The public API key for Insights. Get it at https://insights.qwik.dev/ */
+  publicApiKey: string;
+  /**
+   * The base URL for the Insights. You only need to set this if you are using a self-hosted
+   * instance of Insights.
+   */
+  baseUrl?: string;
+  /** The output directory for the Qwik manifest. */
+  outDir?: string;
+};
+
 /**
  * @alpha
  * @experimental
+ *
+ * This Vite plugin retrieves Insights data from the Insights DB and provides it to the Qwik optimizer.
  */
-export async function qwikInsights(qwikInsightsOpts: {
-  publicApiKey: string;
-  baseUrl?: string;
-  outDir?: string;
-}): Promise<PluginOption> {
+export async function qwikInsights(qwikInsightsOpts: QwikInsightsOpts): Promise<PluginOption> {
   const { publicApiKey, baseUrl = 'https://insights.qwik.dev', outDir = '' } = qwikInsightsOpts;
   let isProd = false;
   const vitePlugin: PluginOption = {

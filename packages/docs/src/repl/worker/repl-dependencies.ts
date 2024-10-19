@@ -1,25 +1,26 @@
 /* eslint-disable no-console */
 import type { ReplInputOptions } from '../types';
-import { QWIK_PKG_NAME, QWIK_REPL_DEPS_CACHE } from './repl-constants';
+import { QWIK_PKG_NAME, QWIK_PKG_NAME_V1, QWIK_REPL_DEPS_CACHE } from './repl-constants';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 
 let options: ReplInputOptions;
 let cache: Cache;
 
 export const depResponse = async (pkgName: string, pkgPath: string) => {
+  const dep = options.deps[pkgName];
   if (pkgName === QWIK_PKG_NAME) {
-    const version = options.deps[pkgName].version;
+    const version = dep.version;
     if (!pkgPath.startsWith('/bindings')) {
       const [M, m, p] = version.split('-')[0].split('.').map(Number);
       if (M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2)))) {
         pkgPath = `/dist${pkgPath}`;
       }
       if (version < '2') {
-        pkgName = '@builder.io/qwik';
+        pkgName = QWIK_PKG_NAME_V1;
       }
     }
   }
-  const url = options.deps[pkgName][pkgPath];
+  const url = dep[pkgPath];
   if (!url) {
     throw new Error(`No URL given for dep: ${pkgName}${pkgPath}`);
   }
@@ -78,27 +79,27 @@ const _loadDependencies = async (replOptions: ReplInputOptions) => {
   if (!isSameQwikVersion(self.qwikCore?.version)) {
     await exec(QWIK_PKG_NAME, '/core.cjs');
     if (self.qwikCore) {
-      console.debug(`Loaded @qwik.dev/core: ${self.qwikCore.version}`);
+      console.debug(`Loaded ${QWIK_PKG_NAME}: ${self.qwikCore.version}`);
     } else {
-      throw new Error(`Unable to load @qwik.dev/core ${qwikVersion}`);
+      throw new Error(`Unable to load ${QWIK_PKG_NAME} ${qwikVersion}`);
     }
   }
 
   if (!isSameQwikVersion(self.qwikOptimizer?.versions.qwik)) {
     await exec(QWIK_PKG_NAME, '/optimizer.cjs');
     if (self.qwikOptimizer) {
-      console.debug(`Loaded @qwik.dev/core/optimizer: ${self.qwikOptimizer.versions.qwik}`);
+      console.debug(`Loaded ${QWIK_PKG_NAME}/optimizer: ${self.qwikOptimizer.versions.qwik}`);
     } else {
-      throw new Error(`Unable to load @qwik.dev/core/optimizer ${qwikVersion}`);
+      throw new Error(`Unable to load ${QWIK_PKG_NAME}/optimizer ${qwikVersion}`);
     }
   }
 
   if (!isSameQwikVersion(self.qwikServer?.versions.qwik)) {
     await exec(QWIK_PKG_NAME, '/server.cjs');
     if (self.qwikServer) {
-      console.debug(`Loaded @qwik.dev/core/server: ${self.qwikServer.versions.qwik}`);
+      console.debug(`Loaded ${QWIK_PKG_NAME}/server: ${self.qwikServer.versions.qwik}`);
     } else {
-      throw new Error(`Unable to load @qwik.dev/core/server ${qwikVersion}`);
+      throw new Error(`Unable to load ${QWIK_PKG_NAME}/server ${qwikVersion}`);
     }
   }
 

@@ -190,9 +190,7 @@ jobs:
   build-qwik:
     if: needs.changes.outputs.build-qwik == 'true'
     name: Build Qwik
-    needs:
-      - build-bindings
-      - changes
+    needs: changes
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -851,7 +849,6 @@ jobs:
         with:
           publish: pnpm release
           title: V2 Version Packages
-          branch: build/v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

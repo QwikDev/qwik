@@ -104,8 +104,7 @@
     },
     "./insights": {
       "types": "./dist/insights/index.d.ts",
-      "import": "./dist/insights/index.mjs",
-      "require": "./dist/insights/index.cjs"
+      "import": "./dist/insights/insights.qwik.js"
     },
     "./optimizer.cjs": "./dist/optimizer.cjs",
     "./optimizer.mjs": "./dist/optimizer.mjs",

@@ -311,11 +311,32 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							&config.core_module,
 						);
 
+						let mut treeshaker = Treeshaker::new();
+
 						// replace const values
 						if config.mode != EmitMode::Test {
 							let mut const_replacer =
 								ConstReplacerVisitor::new(config.is_server, is_dev, &collect);
 							program.visit_mut_with(&mut const_replacer);
+
+							if config.minify != MinifyMode::None {
+								if !config.is_server {
+									// remove all side effects from client, step 1
+									program.visit_mut_with(&mut treeshaker.marker);
+								}
+
+								// simplify & strip unused code before segmenting
+								program = program.fold_with(&mut simplify::simplifier(
+									unresolved_mark,
+									simplify::Config {
+										dce: simplify::dce::Config {
+											preserve_imports_with_side_effects: false,
+											..Default::default()
+										},
+										..Default::default()
+									},
+								));
+							}
 						}
 
 						// split into segments
@@ -338,14 +359,8 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 						});
 						program = program.fold_with(&mut qwik_transform);
 
-						let mut treeshaker = Treeshaker::new();
 						if config.minify != MinifyMode::None {
-							// remove all side effects from client, step 1
-							if !config.is_server {
-								program.visit_mut_with(&mut treeshaker.marker);
-							}
-
-							// simplify & strip unused code
+							// simplify & strip unused code, again
 							program = program.fold_with(&mut simplify::simplifier(
 								unresolved_mark,
 								simplify::Config {
@@ -357,6 +372,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 								},
 							));
 						}
+
 						if matches!(
 							config.entry_strategy,
 							EntryStrategy::Inline | EntryStrategy::Hoist

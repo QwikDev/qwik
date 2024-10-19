@@ -190,7 +190,9 @@ jobs:
   build-qwik:
     if: needs.changes.outputs.build-qwik == 'true'
     name: Build Qwik
-    needs: changes
+    needs:
+      - build-bindings
+      - changes
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

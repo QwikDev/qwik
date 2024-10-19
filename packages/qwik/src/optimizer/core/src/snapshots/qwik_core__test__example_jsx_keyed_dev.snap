@@ -26,8 +26,8 @@ import { componentQrl } from "@qwik.dev/core";
 import { qrlDEV } from "@qwik.dev/core";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./index.tsx_app_component_kglyfbhvjc0.js"), "App_component_KGLYFBhvJc0", {
     file: "/src/project/project/index.tsx",
-    lo: 90,
-    hi: 285,
+    lo: 88,
+    hi: 283,
     displayName: "index.tsx_App_component"
 }));
 

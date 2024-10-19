@@ -89,7 +89,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./li
 export { useData as _auto_useData };
 
 
-Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";AACA,SAAS,YAAY,EAAc,QAAQ,QAAyB,mBAAmB;AAIvF,MAAM,UAAU;IACf,OAAO,SAAS;QACf,OAAO;IACR;AACD;AAEA,OAAO,MAAM,MAAM,WAAW,GAAG,mHAuBA\"}")
+Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";AACA,SAAS,YAAY,EAAc,QAAQ,QAAyB,iBAAiB;AAIrF,MAAM,UAAU;IACf,OAAO,SAAS;QACf,OAAO;IACR;AACD;AAEA,OAAO,MAAM,MAAM,WAAW,GAAG,mHAuBA\"}")
 ============================= components/main.tsx_local_component_jj0v28bs0p8.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";

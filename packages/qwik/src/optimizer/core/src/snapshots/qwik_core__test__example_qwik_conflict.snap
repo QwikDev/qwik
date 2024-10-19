@@ -55,7 +55,7 @@ export const Root = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./t
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,SAAS,OAAA,IAAG,QAAQ,wBAAwB;AAE5C,OAAO,MAAM,KAAK,GAAG;AACrB,OAAO,MAAM,cAAc,GAAG;AAE9B,MAAM,gBAAe,IAAM,QAAQ,GAAG,CAAC,YAAY;AAEnD;AACA,OAAO,MAAM,oBAAM,iHAQhB;IACF,SAAS;AACV,GAAG;AAEH,OAAO,MAAM,qBAAO,mHAOjB;IACF,SAAS;AACV,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,SAAS,OAAA,IAAG,QAAQ,sBAAsB;AAE1C,OAAO,MAAM,KAAK,GAAG;AACrB,OAAO,MAAM,cAAc,GAAG;AAE9B,MAAM,gBAAe,IAAM,QAAQ,GAAG,CAAC,YAAY;AAEnD;AACA,OAAO,MAAM,oBAAM,iHAQhB;IACF,SAAS;AACV,GAAG;AAEH,OAAO,MAAM,qBAAO,mHAOjB;IACF,SAAS;AACV,GAAG\"}")
 ============================= test.tsx_foo_component_htdrsvublie.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";

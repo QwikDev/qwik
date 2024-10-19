@@ -87,7 +87,7 @@ export const dictionary = strToU8(
   filesToStr([
     {
       path: '/app.tsx',
-      code: `import { component$ } from '@qwik.dev/core';\n\nexport default component$(() => {\n  return (<div>\n    Hello from Qwik!\n  </div>);\n});\n`,
+      code: `import { component$ } from '@qwik.dev/core';\n\nexport default component$(() => {\n  return (\n    <div>\n      <h1>Hello from Qwik!</h1>\n    </div>\n  );\n`,
     },
     {
       path: '',

@@ -1,4 +1,5 @@
 import { component$, sync$ } from '@qwik.dev/core';
+import { jsx } from '@qwik.dev/core/jsx-runtime';
 
 export interface InsightsPayload {
   /** Qwik version */
@@ -220,10 +221,10 @@ export const Insights = component$<{ publicApiKey: string; postUrl?: string }>(
 
     return (
       // the script will set the variables before the qinit event
-      <script
-        document:onQInit$={insightsPing}
-        dangerouslySetInnerHTML={`__QI_KEY__=${JSON.stringify(publicApiKey)};__QI_URL__=${JSON.stringify(postUrl || `https://insights.qwik.dev/api/v1/${publicApiKey}/post/`)}`}
-      />
+      /* @__PURE__ */ jsx('script', {
+        'document:onQInit$': insightsPing,
+        dangerouslySetInnerHTML: `__QI_KEY__=${JSON.stringify(publicApiKey)};__QI_URL__=${JSON.stringify(postUrl || `https://insights.qwik.dev/api/v1/${publicApiKey}/post/`)}`,
+      })
     );
   }
 );

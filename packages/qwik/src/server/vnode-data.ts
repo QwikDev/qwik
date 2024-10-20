@@ -1,4 +1,4 @@
-import { type ISsrNode, type SsrAttrs } from './qwik-types';
+import type { ISsrNode, SsrAttrs } from './qwik-types';
 import { SsrNode, type SsrNodeType } from './ssr-node';
 import type { CleanupQueue } from './ssr-container';
 

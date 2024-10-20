@@ -96,9 +96,9 @@ export async function validateBuild(config: BuildConfig) {
 
   await validatePackageJson(config, pkg, errors);
   await Promise.all([
-    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'core.min.mjs')),
-    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'core.prod.mjs')),
-    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'core.mjs')),
+    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'core.min.qwik.mjs')),
+    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'core.prod.qwik.mjs')),
+    validateModuleTreeshake(config, join(config.distQwikPkgDir, 'core.qwik.mjs')),
     validateModuleTreeshake(config, join(config.distQwikPkgDir, 'server.mjs')),
   ]);
   if (config.qwikcity) {

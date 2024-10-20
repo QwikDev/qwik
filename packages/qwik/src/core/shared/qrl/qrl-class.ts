@@ -15,28 +15,15 @@ import { getQFuncs, QInstanceAttr } from '../utils/markers';
 import { isPromise, maybeThen } from '../utils/promises';
 import { qDev, qSerialize, qTest, seal } from '../utils/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../utils/types';
-import { isSignal } from '../../signal/signal';
 import type { QRLDev } from './qrl';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
-import type { Signal } from '../../signal/signal.public';
-
-export const isQrl = <T = unknown>(value: unknown): value is QRLInternal<T> => {
-  return typeof value === 'function' && typeof (value as any).getSymbol === 'function';
-};
-
-// Make sure this value is same as value in `platform.ts`
-export const SYNC_QRL = '<sync>';
+import { getSymbolHash, SYNC_QRL } from './qrl-utils';
 
 interface SyncQRLSymbol {
   $symbol$: typeof SYNC_QRL;
 }
 
 export type SyncQRLInternal = QRLInternal & SyncQRLSymbol;
-
-/** Sync QRL is a function which is serialized into `<script q:func="qwik/json">` tag. */
-export const isSyncQrl = (value: any): value is SyncQRLInternal => {
-  return isQrl(value) && value.$symbol$ == SYNC_QRL;
-};
 
 export type QRLInternalMethods<TYPE> = {
   readonly $chunk$: string | null;
@@ -238,30 +225,6 @@ export const createQRL = <TYPE>(
   }
   return qrl;
 };
-
-export const getSymbolHash = (symbolName: string) => {
-  const index = symbolName.lastIndexOf('_');
-  if (index > -1) {
-    return symbolName.slice(index + 1);
-  }
-  return symbolName;
-};
-
-export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {
-  if (qDev) {
-    if (!isQrl(qrl)) {
-      throw new Error('Not a QRL');
-    }
-  }
-}
-
-export function assertSignal<T>(obj: unknown): asserts obj is Signal<T> {
-  if (qDev) {
-    if (!isSignal(obj) && !isSignal(obj)) {
-      throw new Error('Not a Signal');
-    }
-  }
-}
 
 const EMITTED = /*#__PURE__*/ new Set();
 

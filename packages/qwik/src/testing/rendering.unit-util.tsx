@@ -6,9 +6,8 @@ import type {
   _VNode,
   _VirtualVNode,
 } from '@builder.io/qwik';
-import { _getDomContainer, componentQrl, type OnRenderFn } from '@builder.io/qwik';
+import { render, _getDomContainer, componentQrl, type OnRenderFn } from '@builder.io/qwik';
 import { expect } from 'vitest';
-import { render } from '../core/client/dom-render';
 import {
   vnode_getAttr,
   vnode_getFirstChild,
@@ -46,13 +45,14 @@ export async function domRender(
   opts: {
     /// Print debug information to console.
     debug?: boolean;
+    document?: Document;
   } = {}
 ) {
-  const document = createDocument();
-  await render(document.body, jsx);
+  const doc = opts.document || document;
+  await render(doc.body, jsx);
   await getTestPlatform().flush();
-  const getStyles = getStylesFactory(document);
-  const container = _getDomContainer(document.body);
+  const getStyles = getStylesFactory(doc);
+  const container = _getDomContainer(doc.body);
   if (opts.debug) {
     console.log('========================================================');
     console.log('------------------------- CSR --------------------------');
@@ -61,10 +61,10 @@ export async function domRender(
     console.log('--------------------------------------------------------');
   }
   return {
-    document,
+    document: doc,
     container,
     vNode: vnode_getFirstChild(container.rootVNode),
-    getStyles: getStylesFactory(document),
+    getStyles: getStylesFactory(doc),
   };
 }
 
@@ -118,11 +118,11 @@ export async function ssrRenderToDom(
     setPlatform(platform);
   }
 
-  const document = createDocument({ html });
-  const containerElement = document.querySelector('[q\\:container]') as _ContainerElement;
-  emulateExecutionOfQwikFuncs(document);
+  const doc = createDocument({ html });
+  const containerElement = doc.querySelector('[q\\:container]') as _ContainerElement;
+  emulateExecutionOfQwikFuncs(doc);
   const container = _getDomContainer(containerElement) as _DomContainer;
-  const getStyles = getStylesFactory(document);
+  const getStyles = getStylesFactory(doc);
   if (opts.debug) {
     console.log('========================================================');
     console.log('------------------------- SSR --------------------------');
@@ -146,22 +146,8 @@ export async function ssrRenderToDom(
   }
   const containerVNode = opts.raw
     ? container.rootVNode
-    : vnode_getVNodeForChildNode(container.rootVNode, document.body);
-  return { container, document, vNode: vnode_getFirstChild(containerVNode)!, getStyles };
-}
-
-/** @public */
-export function emulateExecutionOfQwikFuncs(document: Document) {
-  const qFuncs = document.body.querySelector('[q\\:func]');
-  const containerElement = document.querySelector(QContainerSelector) as _ContainerElement;
-  const hash = containerElement.getAttribute(QInstanceAttr);
-  if (qFuncs && hash) {
-    let code = qFuncs.textContent || '';
-    code = code.replace(Q_FUNCS_PREFIX.replace('HASH', hash), '');
-    if (code) {
-      (document as any)[QFuncsPrefix + hash] = eval(code);
-    }
-  }
+    : vnode_getVNodeForChildNode(container.rootVNode, doc.body);
+  return { container, document: doc, vNode: vnode_getFirstChild(containerVNode)!, getStyles };
 }
 
 function renderStyles(getStyles: () => Record<string, string | string[]>) {
@@ -193,6 +179,20 @@ function getHostVNode(vElement: _VNode | null) {
     vElement = vnode_getParent(vElement);
   }
   return vElement;
+}
+
+/** @public */
+export function emulateExecutionOfQwikFuncs(document: Document) {
+  const qFuncs = document.body.querySelector('[q\\:func]');
+  const containerElement = document.querySelector(QContainerSelector) as _ContainerElement;
+  const hash = containerElement.getAttribute(QInstanceAttr);
+  if (qFuncs && hash) {
+    let code = qFuncs.textContent || '';
+    code = code.replace(Q_FUNCS_PREFIX.replace('HASH', hash), '');
+    if (code) {
+      (document as any)[QFuncsPrefix + hash] = eval(code);
+    }
+  }
 }
 
 export const ErrorProvider = Object.assign(

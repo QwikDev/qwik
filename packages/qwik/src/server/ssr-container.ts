@@ -269,6 +269,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       ssrNode.setProp(QCtxAttr, (ctx = []));
     }
     mapArray_set(ctx, context.id, value, 0);
+    // TODO: We should probably add better serialization for context
+    this.serializationCtx.$addRoot$(ssrNode);
   }
 
   resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined {

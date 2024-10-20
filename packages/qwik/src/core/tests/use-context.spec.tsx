@@ -65,8 +65,8 @@ describe.each([
 
     const { vNode } = await render(<Provider />, { debug });
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Component>
+      <Component ssr-required>
+        <Component ssr-required>
           <span>
             <WrappedSignal>CONTEXT_VALUE</WrappedSignal>
           </span>

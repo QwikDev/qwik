@@ -31,8 +31,8 @@ import { TreeshakingApp } from "./components/treeshaking/treeshaking";
 import { TwoListeners } from "./components/two-listeners/twolisteners";
 import { UseId } from "./components/useid/useid";
 import { Watch } from "./components/watch/watch";
-import { SyncQRL } from "./components/resuming/sync-qrl";
-// import { RenderExceptions, UseTaskExceptions } from "./components/exceptions";
+import { SyncQRL } from "./components/sync-qrl/sync-qrl";
+import { RenderExceptions, UseTaskExceptions } from "./components/exceptions";
 
 import "./global.css";
 
@@ -69,8 +69,8 @@ const tests: Record<string, FunctionComponent> = {
   "/e2e/sync-qrl": () => <SyncQRL />,
   "/e2e/computed": () => <ComputedRoot />,
   "/e2e/build-variables": () => <BuildVariables />,
-  // "/e2e/exception/render": () => <RenderExceptions />,
-  // "/e2e/exception/use-task": () => <UseTaskExceptions />,
+  "/e2e/exception/render": () => <RenderExceptions />,
+  "/e2e/exception/use-task": () => <UseTaskExceptions />,
 };
 
 export const Root = component$<{ pathname: string }>(({ pathname }) => {

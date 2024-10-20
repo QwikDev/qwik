@@ -40,7 +40,7 @@
     "prism-themes": "1.9.0",
     "prismjs": "1.29.0",
     "puppeteer": "22.13.1",
-    "qwik-image": "0.0.10",
+    "qwik-image": "0.0.14-alpha",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "rehype-pretty-code": "0.11.0",
@@ -58,7 +58,7 @@
     "wrangler": "3.65.1"
   },
   "engines": {
-    "node": ">=18.11",
+    "node": "^18.17.0 || ^20.3.0 || >=21.0.0",
     "npm": "please-use-pnpm",
     "yarn": "please-use-pnpm",
     "pnpm": ">=8.6.12"

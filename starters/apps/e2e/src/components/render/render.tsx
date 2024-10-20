@@ -9,11 +9,11 @@ import {
   jsx,
   SkipRender,
   SSRRaw,
-  HTMLFragment,
   type PropsOf,
   Slot,
   type QRL,
   type JSXOutput,
+  SSRComment,
 } from "@builder.io/qwik";
 import { delay } from "../streaming/demo";
 import { isServer } from "@builder.io/qwik/build";
@@ -100,7 +100,6 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
       <Issue4346 />
       <SkipRenderTest />
       <SSRRawTest />
-      <HTMLFragmentTest />
       <Issue4292 />
       <Issue4386 />
       <Issue4455 />
@@ -457,19 +456,21 @@ const Issue2414 = component$(() => {
         <caption>Hello</caption>
         <colgroup></colgroup>
         <thead>
-          {(["size", "age", "id"] as const).map((c) => {
-            return (
-              <th
-                key={c}
-                id={`issue-2414-${c}`}
-                onClick$={() => {
-                  sort.value = c;
-                }}
-              >
-                {c}
-              </th>
-            );
-          })}
+          <tr>
+            {(["size", "age", "id"] as const).map((c) => {
+              return (
+                <th
+                  key={c}
+                  id={`issue-2414-${c}`}
+                  onClick$={() => {
+                    sort.value = c;
+                  }}
+                >
+                  {c}
+                </th>
+              );
+            })}
+          </tr>
         </thead>
         {showTable.value ? (
           <tbody>
@@ -817,18 +818,9 @@ export const SSRRawTest = component$(() => {
       id="ssr-raw-test-result"
       data-mounted={isServer ? "server" : "browser"}
     >
+      <SSRComment data="q:container=html" />
       <SSRRaw data="<b>ssr raw test</b>" />
-    </div>
-  );
-});
-
-export const HTMLFragmentTest = component$(() => {
-  return (
-    <div
-      id="html-fragment-test-result"
-      data-mounted={isServer ? "server" : "browser"}
-    >
-      <HTMLFragment dangerouslySetInnerHTML="<b>html fragment test</b>" />
+      <SSRComment data="/q:container" />
     </div>
   );
 });
@@ -869,7 +861,7 @@ export const Issue4292 = component$(() => {
           $toggled.value = !$toggled.value;
         }}
       >
-        <div>Hello, World!</div>
+        <span>Hello, World!</span>
       </TestB>
     </>
   );

@@ -14,7 +14,6 @@ import {
   QDATA_JSON,
   runQwikCity,
 } from '../../middleware/request-handler/user-response';
-import { matchRoute } from '../../runtime/src/route-matcher';
 import { getMenuLoader } from '../../runtime/src/routing';
 import type {
   ActionInternal,
@@ -32,6 +31,8 @@ import { getExtension, normalizePath } from '../../utils/fs';
 import { updateBuildContext } from '../build';
 import type { BuildContext, BuildRoute } from '../types';
 import { formatError } from './format-error';
+import { matchRoute } from '../../runtime/src/route-matcher';
+import type { QwikSerializer } from 'packages/qwik-city/src/middleware/request-handler/types';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {
@@ -232,9 +233,9 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             version: '1',
           };
 
-          const { _deserializeData, _serializeData, _verifySerializable } =
+          const { _deserialize, _serialize, _verifySerializable } =
             await server.ssrLoadModule('@qwik-serializer');
-          const qwikSerializer = { _deserializeData, _serializeData, _verifySerializable };
+          const qwikSerializer: QwikSerializer = { _deserialize, _serialize, _verifySerializable };
 
           const { completion, requestEv } = runQwikCity(
             serverRequestEv,

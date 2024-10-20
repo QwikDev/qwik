@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1483
+assertion_line: 1593
 expression: output
 ---
 ==INPUT==
@@ -9,10 +9,10 @@ expression: output
 import { component$ } from '@builder.io/qwik';
 
 export default component$(() => {
-    return (
-        <div onClick$={() => console.log(mongodb)}>
-        </div>
-    );
+	return (
+		<div onClick$={() => console.log(mongodb)}>
+		</div>
+	);
 });
 
 
@@ -29,11 +29,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
 import { qrl } from "@builder.io/qwik";
 export const _404_component_zRvoWc98eqo = ()=>{
     return <div onClick$={/*#__PURE__*/ qrl(()=>import("./404.tsx__404_component_div_onclick_oimo9dvew9q"), "_404_component_div_onClick_OiMo9dvEW9Q")}>
-        </div>;
+		</div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";0CAG0B;IACtB,QACK,IAAI,uIAAsC;QAC3C,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";0CAG0B;IACzB,QACE,IAAI,uIAAsC;EAC3C,EAAE;AAEJ\"}")
 /*
 {
   "origin": "src/components/mongo/404.tsx",
@@ -50,7 +50,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
   "captures": false,
   "loc": [
     76,
-    172
+    154
   ]
 }
 */
@@ -59,7 +59,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
 export const _404_component_div_onClick_OiMo9dvEW9Q = ()=>console.log(mongodb);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\"sDAKuB,IAAM,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\"sDAKiB,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "src/components/mongo/404.tsx",
@@ -75,8 +75,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    120,
-    146
+    111,
+    137
   ]
 }
 */

@@ -259,6 +259,12 @@ export default component$(() => {
 
 > **NOTE** Because `useComputed$()` is synchronous it is not necessary to explicitly track the input signals.
 
+#### `useComputed$` and `noSerialize()`
+
+When using `useComputed$()` with `noSerialize()`, the computed value will not be sent to the client. This means that the value will be recalculated on the client when it is needed.
+
+You can use this to instantiate a custom class.
+
 ### `useResource$()`
 
 Use `useResource$()` to create a computed value that is derived asynchronously. It's the asynchronous version of `useComputed$()`, which includes the `state` of the resource (loading, resolved, rejected) on top of the value.

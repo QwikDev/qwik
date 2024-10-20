@@ -148,7 +148,11 @@ const checkDiagnostics = async (
 ) => {
   if (!monacoCtx.tsWorker) {
     const getTsWorker = await monaco.languages.typescript.getTypeScriptWorker();
-    monacoCtx.tsWorker = await getTsWorker(editor.getModel()!.uri);
+    const uri = editor.getModel()?.uri;
+    if (!uri) {
+      return;
+    }
+    monacoCtx.tsWorker = await getTsWorker(uri);
   }
   const tsWorker = monacoCtx.tsWorker;
 

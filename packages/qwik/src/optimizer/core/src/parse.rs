@@ -336,6 +336,20 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							is_server: config.is_server,
 							cm: Lrc::clone(&source_map),
 						});
+
+						// print before transform, for debugging
+						// println!(
+						// 	"{}",
+						// 	emit_source_code(
+						// 		Lrc::clone(&source_map.clone()),
+						// 		None,
+						// 		&main_module.clone(),
+						// 		config.root_dir,
+						// 		false,
+						// 	)
+						// 	.unwrap()
+						// 	.0
+						// );
 						program = program.fold_with(&mut qwik_transform);
 
 						let mut treeshaker = Treeshaker::new();

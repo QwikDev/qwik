@@ -113,7 +113,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[maximunChunk?](#)
+[maximumChunk?](#)
 
 </td><td>
 
@@ -128,7 +128,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[maximunInitialChunk?](#)
+[maximumInitialChunk?](#)
 
 </td><td>
 
@@ -760,7 +760,7 @@ export type RenderToStream = (
 
 **References:** [RenderToStreamOptions](#rendertostreamoptions), [RenderToStreamResult](#rendertostreamresult)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts)
 
 ## RenderToStream
 
@@ -909,7 +909,7 @@ export type RenderToString = (
 
 **References:** [RenderToStringOptions](#rendertostringoptions), [RenderToStringResult](#rendertostringresult)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts)
 
 ## RenderToString
 
@@ -979,7 +979,7 @@ string
 
 </td><td>
 
-{ render: number; snapshot: number; }
+{ firstFlush: number; render: number; snapshot: number; }
 
 </td><td>
 
@@ -1025,7 +1025,7 @@ QwikManifest \| ResolvedManifest \| undefined
 
 ResolvedManifest \| undefined
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/render.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/ssr-render.ts)
 
 ## SerializeDocumentOptions
 

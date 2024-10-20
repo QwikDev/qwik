@@ -47,7 +47,8 @@ export const qwikLoader = (
     });
   };
 
-  const isPromise = (promise: Promise<any>) => promise && typeof promise.then === 'function';
+  const isPromise = (promise: any): promise is Promise<any> =>
+    promise && typeof promise.then === 'function';
 
   const broadcast = (infix: QwikLoaderEventScope, ev: Event, type = ev.type) => {
     querySelectorAll('[on' + infix + '\\:' + type + ']')[forEach]((el) =>
@@ -159,19 +160,27 @@ export const qwikLoader = (
         }
         const previousCtx = doc[Q_CONTEXT];
         if (element[isConnected]) {
-          try {
-            doc[Q_CONTEXT] = [element, ev, url];
-            isSync || emitEvent<QwikSymbolEvent>('qsymbol', { ...eventData });
-            const results = handler(ev, element);
-            // only await if there is a promise returned
-            if (isPromise(results)) {
-              await results;
+          const handleEvent = async () => {
+            try {
+              doc[Q_CONTEXT] = [element, ev, url];
+              isSync || emitEvent<QwikSymbolEvent>('qsymbol', { ...eventData });
+              const results = handler(ev, element);
+              // only await if there is a promise returned
+              if (isPromise(results)) {
+                await results;
+              }
+            } catch (error) {
+              // retry if error is a promise. This means that probably a QRL is not resolved yet and we need to retry it.
+              if (isPromise(error)) {
+                error.then(() => handleEvent());
+              } else {
+                emitEvent('qerror', { error, ...eventData });
+              }
+            } finally {
+              doc[Q_CONTEXT] = previousCtx;
             }
-          } catch (error) {
-            emitEvent('qerror', { error, ...eventData });
-          } finally {
-            doc[Q_CONTEXT] = previousCtx;
-          }
+          };
+          handleEvent();
         }
       }
     }

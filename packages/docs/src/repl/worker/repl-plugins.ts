@@ -26,7 +26,7 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
       ) {
         return '\0qwikCore';
       }
-      if (id === '@builder.io/qwik/server') {
+      if (id === '@builder.io/qwik/server' || id === '@qwik.dev/core/server') {
         return '\0qwikServer';
       }
       // Simple relative file resolution

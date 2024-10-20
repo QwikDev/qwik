@@ -89,10 +89,10 @@ describe.each([
     const { vNode, document } = await render(<Provider />, { debug });
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Component>
+      <Component ssr-required>
+        <Component ssr-required>
           <span>
-            <WrappedSignal>CONTEXT_VALUE</WrappedSignal>
+            <WrappedSignal ssr-required>CONTEXT_VALUE</WrappedSignal>
           </span>
         </Component>
       </Component>
@@ -147,15 +147,15 @@ describe.each([
           <Projection>
             <Component>
               <div>
-                <Awaited>
-                  <Component>
-                    <Fragment>
+                <Awaited ssr-required>
+                  <Component ssr-required>
+                    <Fragment ssr-required>
                       <p>1</p>
                       <p>
                         <Awaited>0</Awaited>
                       </p>
                       <p>
-                        <WrappedSignal>0</WrappedSignal>
+                        <WrappedSignal ssr-required>0</WrappedSignal>
                       </p>
                       <button>Increment</button>
                     </Fragment>
@@ -173,15 +173,15 @@ describe.each([
           <Projection>
             <Component>
               <div>
-                <Awaited>
-                  <Component>
-                    <Fragment>
+                <Awaited ssr-required>
+                  <Component ssr-required>
+                    <Fragment ssr-required>
                       <p>1</p>
                       <p>
-                        <Awaited>2</Awaited>
+                        <Awaited ssr-required>2</Awaited>
                       </p>
                       <p>
-                        <WrappedSignal>2</WrappedSignal>
+                        <WrappedSignal ssr-required>2</WrappedSignal>
                       </p>
                       <button>Increment</button>
                     </Fragment>

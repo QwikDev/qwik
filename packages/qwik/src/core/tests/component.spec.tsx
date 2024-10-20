@@ -522,10 +522,10 @@ describe.each([
       <Component>
         <p>
           <b>Test</b>
-          <Signal>124</Signal>
+          <Signal ssr-required>124</Signal>
           {'xx'}
           <span>
-            <Signal>123</Signal>
+            <Signal ssr-required>123</Signal>
           </span>
           {'XXX'}
           <a></a>
@@ -564,7 +564,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          <Signal>{'1'}</Signal> / <Signal>{'1'}</Signal>
+          <Signal ssr-required>{'1'}</Signal> / <Signal ssr-required>{'1'}</Signal>
         </button>
       </Component>
     );
@@ -574,7 +574,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          <Signal>{'2'}</Signal> / <Signal>{'3'}</Signal>
+          <Signal ssr-required>{'2'}</Signal> / <Signal ssr-required>{'3'}</Signal>
         </button>
       </Component>
     );
@@ -641,24 +641,24 @@ describe.each([
     });
     const { vNode, document } = await render(<Cmp />, { debug });
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button></button>
-          <Signal>0</Signal>
+          <Signal ssr-required>0</Signal>
           <div>
-            <Signal>0</Signal>
+            <Signal ssr-required>0</Signal>
           </div>
         </Fragment>
       </Component>
     );
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button></button>
-          <Signal>1</Signal>
+          <Signal ssr-required>1</Signal>
           <div>
-            <Signal>2</Signal>
+            <Signal ssr-required>2</Signal>
           </div>
         </Fragment>
       </Component>
@@ -1271,8 +1271,8 @@ describe.each([
       const { vNode, document } = await render(<BindCmp />, { debug });
 
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <label for="toggle">
               <input type="checkbox" checked={false} />
               {'Show conditional'}
@@ -1315,8 +1315,8 @@ describe.each([
       const { vNode, document } = await render(<Cmp />, { debug });
 
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button></button>
             <span preventdefault:click></span>
             {''}
@@ -1331,8 +1331,8 @@ describe.each([
       await trigger(document.body, 'button', 'click');
 
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button></button>
             <span preventdefault:click></span>
             <div preventdefault:click></div>
@@ -1362,14 +1362,14 @@ describe.each([
 
       const { vNode, document } = await render(<Cmp />, { debug });
       expect(vNode).toMatchVDOM(
-        <Component>
+        <Component ssr-required>
           <button data-foo="0" data-bar="0"></button>
         </Component>
       );
       await trigger(document.body, 'button', 'click');
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
+        <Component ssr-required>
           <button data-foo="2" data-bar="2"></button>
         </Component>
       );
@@ -1407,7 +1407,7 @@ describe.each([
 
     if (render === ssrRenderToDom) {
       expect(vNode).toMatchVDOM(
-        <Component>
+        <Component ssr-required>
           <div id="parent">
             <Component>
               <div id="static"></div>
@@ -1533,7 +1533,7 @@ describe.each([
     );
   });
 
-  it.only('should skip render', async () => {
+  it('should skip render', async () => {
     const SkipRenderTest = component$(() => {
       const count = useSignal(0);
       if (count.value % 3 !== 0) {

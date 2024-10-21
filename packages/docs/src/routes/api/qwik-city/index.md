@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city API Reference
+title: \@qwik.dev/qwik-city API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city
+# [API](/api) &rsaquo; @qwik.dev/qwik-city
 
 ## Action
 
@@ -198,7 +198,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[id](#)
+[id](./city.contentheading.id.md)
 
 </td><td>
 
@@ -213,7 +213,7 @@ string
 </td></tr>
 <tr><td>
 
-[level](#)
+[level](./city.contentheading.level.md)
 
 </td><td>
 
@@ -228,7 +228,7 @@ number
 </td></tr>
 <tr><td>
 
-[text](#)
+[text](./city.contentheading.text.md)
 
 </td><td>
 
@@ -270,7 +270,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[href?](#)
+[href?](./city.contentmenu.href.md)
 
 </td><td>
 
@@ -287,7 +287,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[items?](#)
+[items?](./city.contentmenu.items.md)
 
 </td><td>
 
@@ -304,7 +304,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[text](#)
+[text](./city.contentmenu.text.md)
 
 </td><td>
 
@@ -372,7 +372,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[head](#)
+[head](./city.documentheadprops.head.md)
 
 </td><td>
 
@@ -387,7 +387,7 @@ Description
 </td></tr>
 <tr><td>
 
-[resolveValue](#)
+[resolveValue](./city.documentheadprops.resolvevalue.md)
 
 </td><td>
 
@@ -402,7 +402,7 @@ ResolveSyncValue
 </td></tr>
 <tr><td>
 
-[withLocale](#)
+[withLocale](./city.documentheadprops.withlocale.md)
 
 </td><td>
 
@@ -444,7 +444,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[frontmatter?](#)
+[frontmatter?](./city.documentheadvalue.frontmatter.md)
 
 </td><td>
 
@@ -461,7 +461,7 @@ _(Optional)_ Arbitrary object containing custom data. When the document head is 
 </td></tr>
 <tr><td>
 
-[links?](#)
+[links?](./city.documentheadvalue.links.md)
 
 </td><td>
 
@@ -478,7 +478,7 @@ _(Optional)_ Used to manually append `<link>` elements to the `<head>`.
 </td></tr>
 <tr><td>
 
-[meta?](#)
+[meta?](./city.documentheadvalue.meta.md)
 
 </td><td>
 
@@ -495,7 +495,7 @@ _(Optional)_ Used to manually set meta tags in the head. Additionally, the `data
 </td></tr>
 <tr><td>
 
-[scripts?](#)
+[scripts?](./city.documentheadvalue.scripts.md)
 
 </td><td>
 
@@ -512,7 +512,7 @@ _(Optional)_ Used to manually append `<script>` elements to the `<head>`.
 </td></tr>
 <tr><td>
 
-[styles?](#)
+[styles?](./city.documentheadvalue.styles.md)
 
 </td><td>
 
@@ -529,7 +529,7 @@ _(Optional)_ Used to manually append `<style>` elements to the `<head>`.
 </td></tr>
 <tr><td>
 
-[title?](#)
+[title?](./city.documentheadvalue.title.md)
 
 </td><td>
 
@@ -573,7 +573,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[as?](#)
+[as?](./city.documentlink.as.md)
 
 </td><td>
 
@@ -588,7 +588,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[crossorigin?](#)
+[crossorigin?](./city.documentlink.crossorigin.md)
 
 </td><td>
 
@@ -603,7 +603,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[disabled?](#)
+[disabled?](./city.documentlink.disabled.md)
 
 </td><td>
 
@@ -618,7 +618,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[href?](#)
+[href?](./city.documentlink.href.md)
 
 </td><td>
 
@@ -633,7 +633,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[hreflang?](#)
+[hreflang?](./city.documentlink.hreflang.md)
 
 </td><td>
 
@@ -648,7 +648,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[id?](#)
+[id?](./city.documentlink.id.md)
 
 </td><td>
 
@@ -663,7 +663,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[imagesizes?](#)
+[imagesizes?](./city.documentlink.imagesizes.md)
 
 </td><td>
 
@@ -678,7 +678,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[imagesrcset?](#)
+[imagesrcset?](./city.documentlink.imagesrcset.md)
 
 </td><td>
 
@@ -693,7 +693,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[integrity?](#)
+[integrity?](./city.documentlink.integrity.md)
 
 </td><td>
 
@@ -708,7 +708,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[key?](#)
+[key?](./city.documentlink.key.md)
 
 </td><td>
 
@@ -723,7 +723,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[media?](#)
+[media?](./city.documentlink.media.md)
 
 </td><td>
 
@@ -738,7 +738,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[prefetch?](#)
+[prefetch?](./city.documentlink.prefetch.md)
 
 </td><td>
 
@@ -753,7 +753,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[referrerpolicy?](#)
+[referrerpolicy?](./city.documentlink.referrerpolicy.md)
 
 </td><td>
 
@@ -768,7 +768,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[rel?](#)
+[rel?](./city.documentlink.rel.md)
 
 </td><td>
 
@@ -783,7 +783,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[sizes?](#)
+[sizes?](./city.documentlink.sizes.md)
 
 </td><td>
 
@@ -798,7 +798,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[title?](#)
+[title?](./city.documentlink.title.md)
 
 </td><td>
 
@@ -813,7 +813,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[type?](#)
+[type?](./city.documentlink.type.md)
 
 </td><td>
 
@@ -855,7 +855,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[content?](#)
+[content?](./city.documentmeta.content.md)
 
 </td><td>
 
@@ -872,7 +872,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[httpEquiv?](#)
+[httpEquiv?](./city.documentmeta.httpequiv.md)
 
 </td><td>
 
@@ -889,7 +889,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[itemprop?](#)
+[itemprop?](./city.documentmeta.itemprop.md)
 
 </td><td>
 
@@ -906,7 +906,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[key?](#)
+[key?](./city.documentmeta.key.md)
 
 </td><td>
 
@@ -923,7 +923,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[media?](#)
+[media?](./city.documentmeta.media.md)
 
 </td><td>
 
@@ -940,7 +940,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[name?](#)
+[name?](./city.documentmeta.name.md)
 
 </td><td>
 
@@ -957,7 +957,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[property?](#)
+[property?](./city.documentmeta.property.md)
 
 </td><td>
 
@@ -1003,7 +1003,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[key?](#)
+[key?](./city.documentscript.key.md)
 
 </td><td>
 
@@ -1020,7 +1020,7 @@ string
 </td></tr>
 <tr><td>
 
-[props?](#)
+[props?](./city.documentscript.props.md)
 
 </td><td>
 
@@ -1037,7 +1037,7 @@ Readonly&lt;QwikIntrinsicElements['script']&gt;
 </td></tr>
 <tr><td>
 
-[script?](#)
+[script?](./city.documentscript.script.md)
 
 </td><td>
 
@@ -1081,7 +1081,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[key?](#)
+[key?](./city.documentstyle.key.md)
 
 </td><td>
 
@@ -1098,7 +1098,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[props?](#)
+[props?](./city.documentstyle.props.md)
 
 </td><td>
 
@@ -1115,7 +1115,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[style](#)
+[style](./city.documentstyle.style.md)
 
 </td><td>
 
@@ -1157,7 +1157,7 @@ export type FailReturn<T> = T & Failed;
 Form: <O, I>(
   { action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>,
   key: string | null,
-) => import("@builder.io/qwik").JSXOutput;
+) => import("@qwik.dev/core").JSXOutput;
 ```
 
 <table><thead><tr><th>
@@ -1198,7 +1198,7 @@ string \| null
 </tbody></table>
 **Returns:**
 
-import("@builder.io/qwik").JSXOutput
+import("@qwik.dev/core").JSXOutput
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/form-component.tsx)
 
@@ -1229,7 +1229,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[action?](#)
+[action?](./city.formprops.action.md)
 
 </td><td>
 
@@ -1244,7 +1244,7 @@ _(Optional)_ Reference to the action returned by `action()`.
 </td></tr>
 <tr><td>
 
-[key?](#)
+[key?](./city.formprops.key.md)
 
 </td><td>
 
@@ -1259,7 +1259,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[onSubmit$?](#)
+[onSubmit$?](./city.formprops.onsubmit_.md)
 
 </td><td>
 
@@ -1274,7 +1274,7 @@ _(Optional)_ Event handler executed right when the form is submitted.
 </td></tr>
 <tr><td>
 
-[onSubmitCompleted$?](#)
+[onSubmitCompleted$?](./city.formprops.onsubmitcompleted_.md)
 
 </td><td>
 
@@ -1289,7 +1289,7 @@ _(Optional)_ Event handler executed right after the action is executed successfu
 </td></tr>
 <tr><td>
 
-[reloadDocument?](#)
+[reloadDocument?](./city.formprops.reloaddocument.md)
 
 </td><td>
 
@@ -1304,7 +1304,7 @@ _(Optional)_ When `true` the form submission will cause a full page reload, even
 </td></tr>
 <tr><td>
 
-[spaReset?](#)
+[spaReset?](./city.formprops.spareset.md)
 
 </td><td>
 
@@ -1348,7 +1348,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[status](#)
+[status](./city.formsubmitsuccessdetail.status.md)
 
 </td><td>
 
@@ -1361,7 +1361,7 @@ number
 </td></tr>
 <tr><td>
 
-[value](#)
+[value](./city.formsubmitsuccessdetail.value.md)
 
 </td><td>
 
@@ -1465,7 +1465,7 @@ export type JSONValue =
 ## Link
 
 ```typescript
-Link: import("@builder.io/qwik").Component<LinkProps>;
+Link: import("@qwik.dev/core").Component<LinkProps>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/link-component.tsx)
@@ -1497,7 +1497,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[prefetch?](#)
+[prefetch?](./city.linkprops.prefetch.md)
 
 </td><td>
 
@@ -1522,7 +1522,7 @@ Setting this value to \*\*`"js"`\*\* will prefetch only javascript bundles requi
 </td></tr>
 <tr><td>
 
-[reload?](#)
+[reload?](./city.linkprops.reload.md)
 
 </td><td>
 
@@ -1537,7 +1537,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[replaceState?](#)
+[replaceState?](./city.linkprops.replacestate.md)
 
 </td><td>
 
@@ -1552,7 +1552,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[scroll?](#)
+[scroll?](./city.linkprops.scroll.md)
 
 </td><td>
 
@@ -1609,6 +1609,61 @@ export type NavigationType = "initial" | "form" | "link" | "popstate";
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
 
+## omitProps
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+Creates a new object from `obj` by omitting a set of `keys`.
+
+```typescript
+export declare function omitProps<T, KEYS extends keyof T>(
+  obj: T,
+  keys: KEYS[],
+): Omit<T, KEYS>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+obj
+
+</td><td>
+
+T
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+keys
+
+</td><td>
+
+KEYS[]
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+Omit&lt;T, KEYS&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/typed-routes.ts)
+
 ## PageModule
 
 ```typescript
@@ -1636,7 +1691,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[default](#)
+[default](./city.pagemodule.default.md)
 
 </td><td>
 
@@ -1651,7 +1706,7 @@ unknown
 </td></tr>
 <tr><td>
 
-[head?](#)
+[head?](./city.pagemodule.head.md)
 
 </td><td>
 
@@ -1668,7 +1723,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[headings?](#)
+[headings?](./city.pagemodule.headings.md)
 
 </td><td>
 
@@ -1685,7 +1740,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[onStaticGenerate?](#)
+[onStaticGenerate?](./city.pagemodule.onstaticgenerate.md)
 
 </td><td>
 
@@ -1755,7 +1810,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[goto?](#)
+[goto?](./city.qwikcitymockprops.goto.md)
 
 </td><td>
 
@@ -1770,7 +1825,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[params?](#)
+[params?](./city.qwikcitymockprops.params.md)
 
 </td><td>
 
@@ -1785,7 +1840,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[url?](#)
+[url?](./city.qwikcitymockprops.url.md)
 
 </td><td>
 
@@ -1805,7 +1860,7 @@ _(Optional)_
 ## QwikCityMockProvider
 
 ```typescript
-QwikCityMockProvider: import("@builder.io/qwik").Component<QwikCityMockProps>;
+QwikCityMockProvider: import("@qwik.dev/core").Component<QwikCityMockProps>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/qwik-city-component.tsx)
@@ -1835,7 +1890,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[basePathname?](#)
+[basePathname?](./city.qwikcityplan.basepathname.md)
 
 </td><td>
 
@@ -1852,7 +1907,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[cacheModules?](#)
+[cacheModules?](./city.qwikcityplan.cachemodules.md)
 
 </td><td>
 
@@ -1869,7 +1924,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[menus?](#)
+[menus?](./city.qwikcityplan.menus.md)
 
 </td><td>
 
@@ -1886,7 +1941,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[routes](#)
+[routes](./city.qwikcityplan.routes.md)
 
 </td><td>
 
@@ -1901,7 +1956,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[serverPlugins?](#)
+[serverPlugins?](./city.qwikcityplan.serverplugins.md)
 
 </td><td>
 
@@ -1918,7 +1973,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[trailingSlash?](#)
+[trailingSlash?](./city.qwikcityplan.trailingslash.md)
 
 </td><td>
 
@@ -1962,7 +2017,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[viewTransition?](#)
+[viewTransition?](./city.qwikcityprops.viewtransition.md)
 
 </td><td>
 
@@ -1984,7 +2039,7 @@ Default: `true`
 ## QwikCityProvider
 
 ```typescript
-QwikCityProvider: import("@builder.io/qwik").Component<QwikCityProps>;
+QwikCityProvider: import("@qwik.dev/core").Component<QwikCityProps>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/qwik-city-component.tsx)
@@ -2073,7 +2128,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[isNavigating](#)
+[isNavigating](./city.routelocation.isnavigating.md)
 
 </td><td>
 
@@ -2088,7 +2143,7 @@ boolean
 </td></tr>
 <tr><td>
 
-[params](#)
+[params](./city.routelocation.params.md)
 
 </td><td>
 
@@ -2103,7 +2158,7 @@ Readonly&lt;Record&lt;string, string&gt;&gt;
 </td></tr>
 <tr><td>
 
-[prevUrl](#)
+[prevUrl](./city.routelocation.prevurl.md)
 
 </td><td>
 
@@ -2118,7 +2173,7 @@ URL \| undefined
 </td></tr>
 <tr><td>
 
-[url](#)
+[url](./city.routelocation.url.md)
 
 </td><td>
 
@@ -2160,7 +2215,7 @@ export type RouteNavigate = QRL<
 ## RouterOutlet
 
 ```typescript
-RouterOutlet: import("@builder.io/qwik").Component<unknown>;
+RouterOutlet: import("@qwik.dev/core").Component<unknown>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/router-outlet-component.tsx)
@@ -2263,7 +2318,7 @@ export type ServerQRL<T extends ServerFunction> = QRL<
 
 ```typescript
 ServiceWorkerRegister: (props: { nonce?: string }) =>
-  import("@builder.io/qwik").JSXNode<"script">;
+  import("@qwik.dev/core").JSXNode<"script">;
 ```
 
 <table><thead><tr><th>
@@ -2293,7 +2348,7 @@ props
 </tbody></table>
 **Returns:**
 
-import("@builder.io/qwik").JSXNode&lt;"script"&gt;
+import("@qwik.dev/core").JSXNode&lt;"script"&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/sw-component.tsx)
 
@@ -2322,7 +2377,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[params?](#)
+[params?](./city.staticgenerate.params.md)
 
 </td><td>
 
@@ -2368,6 +2423,75 @@ export type TypedDataValidator = ValibotDataValidator | ZodDataValidator;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+
+## untypedAppUrl
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+```typescript
+untypedAppUrl: (
+  route: string,
+  params?: Record<string, string>,
+  paramsPrefix?: string,
+) => string;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+route
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+params
+
+</td><td>
+
+Record&lt;string, string&gt;
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+paramsPrefix
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+string
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/typed-routes.ts)
 
 ## useContent
 

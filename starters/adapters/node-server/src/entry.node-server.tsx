@@ -7,11 +7,11 @@
  * - https://qwik.dev/docs/deployments/node/
  *
  */
-import { createQwikCity } from "@builder.io/qwik-city/middleware/node";
 import qwikCityPlan from "@qwik-city-plan";
-import render from "./entry.ssr";
 import { manifest } from "@qwik-client-manifest";
+import { createQwikCity } from "@qwik.dev/city/middleware/node";
 import { createServer } from "node:http";
+import render from "./entry.ssr";
 
 // Allow for dynamic port
 const PORT = process.env.PORT ?? 3004;

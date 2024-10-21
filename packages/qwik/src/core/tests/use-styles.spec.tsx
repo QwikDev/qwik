@@ -1,16 +1,15 @@
 import {
   Fragment as Component,
-  Fragment as Signal,
   component$,
   inlinedQrl,
+  Fragment as Signal,
   Slot,
   useSignal,
   useStylesQrl,
-} from '@builder.io/qwik';
-import { createDocument } from '@builder.io/qwik-dom';
+} from '@qwik.dev/core';
+import { renderToString } from '@qwik.dev/core/server';
+import { createDocument, domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { afterEach, describe, expect, it } from 'vitest';
-import { renderToString } from '@builder.io/qwik/server';
-import { trigger, domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 import { getPlatform, setPlatform } from '../shared/platform/platform';
 import { QStyleSelector } from '../shared/utils/markers';
 
@@ -212,7 +211,7 @@ describe('html wrapper', () => {
           </body>
         </Wrapper>
       );
-      document = createDocument(result.html);
+      document = createDocument({ html: result.html });
     } finally {
       setPlatform(platform);
     }

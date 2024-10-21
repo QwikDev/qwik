@@ -63,7 +63,7 @@ function tests() {
     );
     await assertPage(ctx, {
       pathname: "/qwikcity-test/docs/getting-started/",
-      title: "Docs: @builder.io/qwik Getting Started - Qwik",
+      title: "Docs: @qwik.dev/core Getting Started - Qwik",
       layoutHierarchy: ["docs"],
       h1: "Getting Started",
       activeHeaderLink: "Docs",

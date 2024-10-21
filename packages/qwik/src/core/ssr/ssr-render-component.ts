@@ -1,4 +1,4 @@
-import type { JSXNode } from '@builder.io/qwik';
+import type { JSXNode } from '@qwik.dev/core';
 import { SERIALIZABLE_STATE, type Component, type OnRenderFn } from '../shared/component.public';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { ELEMENT_KEY, ELEMENT_PROPS, OnRenderProp } from '../shared/utils/markers';

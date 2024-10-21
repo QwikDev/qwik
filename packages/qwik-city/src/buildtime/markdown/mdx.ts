@@ -1,10 +1,10 @@
+import type { CompileOptions } from '@mdx-js/mdx';
 import { SourceMapGenerator } from 'source-map';
-import { rehypePage, rehypeSlug, renameClassname, wrapTableWithDiv } from './rehype';
-import { rehypeSyntaxHighlight } from './syntax-highlight';
+import { getExtension } from '../../utils/fs';
 import type { BuildContext } from '../types';
 import { parseFrontmatter } from './frontmatter';
-import { getExtension } from '../../utils/fs';
-import type { CompileOptions } from '@mdx-js/mdx';
+import { rehypePage, rehypeSlug, renameClassname, wrapTableWithDiv } from './rehype';
+import { rehypeSyntaxHighlight } from './syntax-highlight';
 
 export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransform> {
   const { compile } = await import('@mdx-js/mdx');
@@ -45,7 +45,7 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
 
   const options: CompileOptions = {
     SourceMapGenerator,
-    jsxImportSource: '@builder.io/qwik',
+    jsxImportSource: '@qwik.dev/core',
     ...userMdxOpts,
     elementAttributeNameCase: 'html',
     remarkPlugins: [
@@ -69,7 +69,7 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
       const file = new VFile({ value: code, path: id });
       const compiled = await compile(file, options);
       const output = String(compiled.value);
-      const addImport = `import { jsx } from '@builder.io/qwik';\n`;
+      const addImport = `import { jsx } from '@qwik.dev/core';\n`;
       const newDefault = `
 const WrappedMdxContent = () => {
   const content = _createMdxContent({});

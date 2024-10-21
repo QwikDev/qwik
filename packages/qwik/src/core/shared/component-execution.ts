@@ -1,4 +1,4 @@
-import { isDev } from '@builder.io/qwik/build';
+import { isDev } from '@qwik.dev/core/build';
 import { isQwikComponent, type OnRenderFn } from './component.public';
 import { assertDefined } from './error/assert';
 import { isQrl, type QRLInternal } from './qrl/qrl-class';

@@ -1,12 +1,19 @@
-import { type BuildConfig, rollupOnWarn } from './util';
 import { build, type BuildOptions } from 'esbuild';
-import { getBanner, fileSize, readFile, target, writeFile } from './util';
-import { type InputOptions, type OutputOptions, rollup } from 'rollup';
 import { join } from 'node:path';
+import { type InputOptions, type OutputOptions, rollup } from 'rollup';
 import { minify } from 'terser';
+import {
+  type BuildConfig,
+  fileSize,
+  getBanner,
+  readFile,
+  rollupOnWarn,
+  target,
+  writeFile,
+} from './util';
 
 /**
- * Build the core package which is also the root package: @builder.io/qwik
+ * Build the core package which is also the root package: @qwik.dev/core
  *
  * Uses esbuild during development (cuz it's super fast) and TSC + Rollup + Terser for production,
  * because it generates smaller code that minifies better.
@@ -22,7 +29,7 @@ async function submoduleCoreProd(config: BuildConfig) {
   const input: InputOptions = {
     input: join(config.tscDir, 'packages', 'qwik', 'src', 'core', 'index.js'),
     onwarn: rollupOnWarn,
-    external: ['@builder.io/qwik/build'],
+    external: ['@qwik.dev/core/build'],
     plugins: [
       {
         name: 'setVersion',
@@ -46,7 +53,7 @@ async function submoduleCoreProd(config: BuildConfig) {
     format: 'es',
     entryFileNames: 'core.mjs',
     sourcemap: true,
-    banner: getBanner('@builder.io/qwik', config.distVersion),
+    banner: getBanner('@qwik.dev/core', config.distVersion),
   };
 
   const cjsOutput: OutputOptions = {
@@ -56,9 +63,9 @@ async function submoduleCoreProd(config: BuildConfig) {
     entryFileNames: 'core.cjs',
     sourcemap: true,
     globals: {
-      '@builder.io/qwik/build': 'qwikBuild',
+      '@qwik.dev/core/build': 'qwikBuild',
     },
-    banner: getBanner('@builder.io/qwik', config.distVersion),
+    banner: getBanner('@qwik.dev/core', config.distVersion),
   };
 
   const build = await rollup(input);
@@ -78,12 +85,12 @@ async function submoduleCoreProd(config: BuildConfig) {
           if (id === '@index.min') {
             return id;
           }
-          if (id === '@builder.io/qwik/build') {
+          if (id === '@qwik.dev/core/build') {
             return id;
           }
         },
         load(id) {
-          if (id === '@builder.io/qwik/build') {
+          if (id === '@qwik.dev/core/build') {
             return `
               export const isServer = false;
               export const isBrowser = true;
@@ -197,7 +204,7 @@ async function submoduleCoreProduction(config: BuildConfig, code: string, outPat
       comments: /__PURE__/,
       preserve_annotations: true,
       ecma: 2020,
-      preamble: getBanner('@builder.io/qwik', config.distVersion),
+      preamble: getBanner('@qwik.dev/core', config.distVersion),
     },
     mangle: false,
   });
@@ -223,7 +230,7 @@ async function submoduleCoreDev(config: BuildConfig) {
 
   const esm = build({
     ...opts,
-    external: ['@builder.io/qwik/build'],
+    external: ['@qwik.dev/core/build'],
     format: 'esm',
     outExtension: { '.js': '.mjs' },
   });

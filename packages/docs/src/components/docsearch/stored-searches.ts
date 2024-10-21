@@ -1,4 +1,4 @@
-import { noSerialize } from '@builder.io/qwik';
+import { noSerialize } from '@qwik.dev/core';
 import type { DocSearchHit, StoredDocSearchHit } from './types';
 
 function isLocalStorageSupported() {

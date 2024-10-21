@@ -1,4 +1,4 @@
-import { $, component$, useOnWindow, useSignal } from '@builder.io/qwik';
+import { $, component$, useOnWindow, useSignal } from '@qwik.dev/core';
 
 // Custom hook to manage the dropdown state. Listens to click events on the window.
 // If the clicked element is not the dropdown toggle button, it closes the dropdown.

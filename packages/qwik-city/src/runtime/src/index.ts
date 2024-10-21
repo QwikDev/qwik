@@ -45,41 +45,58 @@ export type {
   ZodConstructor,
 } from './types';
 
-export { RouterOutlet } from './router-outlet-component';
+export { Link, type LinkProps } from './link-component';
 export {
-  type QwikCityProps,
+  QWIK_CITY_SCROLLER,
+  QwikCityMockProvider,
   QwikCityProvider,
   type QwikCityMockProps,
-  QwikCityMockProvider,
-  QWIK_CITY_SCROLLER,
+  type QwikCityProps,
 } from './qwik-city-component';
-export { type LinkProps, Link } from './link-component';
+export { RouterOutlet } from './router-outlet-component';
+export {
+  globalAction$,
+  globalActionQrl,
+  routeAction$,
+  routeActionQrl,
+  routeLoader$,
+  routeLoaderQrl,
+  server$,
+  serverQrl,
+  valibot$,
+  valibotQrl,
+  validator$,
+  validatorQrl,
+  zod$,
+  zodQrl,
+} from './server-functions';
 export { ServiceWorkerRegister } from './sw-component';
-export { useDocumentHead, useLocation, useContent, useNavigate } from './use-functions';
-export { usePreventNavigate$, usePreventNavigateQrl } from './use-functions';
-export { routeAction$, routeActionQrl } from './server-functions';
-export { globalAction$, globalActionQrl } from './server-functions';
-export { routeLoader$, routeLoaderQrl } from './server-functions';
-export { server$, serverQrl } from './server-functions';
-export { valibot$, valibotQrl } from './server-functions';
-export { zod$, zodQrl } from './server-functions';
-export { validator$, validatorQrl } from './server-functions';
+export {
+  useContent,
+  useDocumentHead,
+  useLocation,
+  useNavigate,
+  usePreventNavigate$,
+  usePreventNavigateQrl,
+} from './use-functions';
 
 export { z } from 'zod';
 
 export { Form } from './form-component';
 export type { FormProps } from './form-component';
 
+export { omitProps, untypedAppUrl } from './typed-routes';
+
 export type {
-  TypedDataValidator,
+  ActionReturn,
   DataValidator,
-  GetValidatorType,
+  FailOfRest,
   GetValidatorInputType,
   GetValidatorOutputType,
-  FailOfRest,
-  ActionReturn,
-  StrictUnion,
-  ValidatorReturn,
-  ServerQRL,
+  GetValidatorType,
   ServerFunction,
+  ServerQRL,
+  StrictUnion,
+  TypedDataValidator,
+  ValidatorReturn,
 } from './types';

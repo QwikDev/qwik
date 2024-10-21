@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { sibling } from './sibling';
 
 export default component$(() => {
@@ -19,8 +19,8 @@ export default component$(() => {
 
 ============================= src/routes/_repl/[id]/[[...slug]].js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./[[...slug]].tsx_slug_component_0am8hpnkns4.js"), "slug_component_0AM8HPnkNs4"));
 
 
@@ -47,15 +47,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    148,
-    183
+    146,
+    181
   ]
 }
 */
 ============================= src/routes/_repl/[id]/[[...slug]].tsx_slug_component_0am8hpnkns4.js ==
 
-import { _jsxSorted } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export const slug_component_0AM8HPnkNs4 = ()=>{
     return /*#__PURE__*/ _jsxSorted("div", null, {
         onClick$: /*#__PURE__*/ qrl(()=>import("./[[...slug]].tsx_slug_component_div_onclick_xevvy0qc7pa.js"), "slug_component_div_onClick_xevvy0Qc7pA")
@@ -79,8 +79,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    113,
-    200
+    111,
+    198
   ]
 }
 */

@@ -1,8 +1,7 @@
-import { $, type OnRenderFn, type QRL } from '@builder.io/qwik';
-import { createDocument } from '@builder.io/qwik-dom';
+import { $, type OnRenderFn, type QRL } from '@qwik.dev/core';
+
+import { createDocument } from '@qwik.dev/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { TaskFlags, type Task } from '../use/use-task';
-import { QContainerAttr } from './utils/markers';
 import { getDomContainer } from '../client/dom-container';
 import type { ElementVNode, VNode, VirtualVNode } from '../client/types';
 import {
@@ -12,10 +11,12 @@ import {
   vnode_newVirtual,
   vnode_setProp,
 } from '../client/vnode';
-import { ChoreType, createScheduler } from './scheduler';
+import { TaskFlags, type Task } from '../use/use-task';
 import type { Props } from './jsx/jsx-runtime';
 import type { QRLInternal } from './qrl/qrl-class';
+import { ChoreType, createScheduler } from './scheduler';
 import type { HostElement } from './types';
+import { QContainerAttr } from './utils/markers';
 
 declare global {
   let testLog: string[];

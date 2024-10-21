@@ -7,12 +7,12 @@
  * - https://qwik.dev/docs/deployments/netlify-edge/
  *
  */
+import qwikCityPlan from "@qwik-city-plan";
+import { manifest } from "@qwik-client-manifest";
 import {
   createQwikCity,
   type PlatformNetlify,
-} from "@builder.io/qwik-city/middleware/netlify-edge";
-import qwikCityPlan from "@qwik-city-plan";
-import { manifest } from "@qwik-client-manifest";
+} from "@qwik.dev/city/middleware/netlify-edge";
 import render from "./entry.ssr";
 
 declare global {

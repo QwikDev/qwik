@@ -1,11 +1,10 @@
-import { component$, $, useSignal } from '@builder.io/qwik';
-import QwikLogo from '/public/logos/qwik.png?jsx';
-import QwikLogouwu from '/public/logos/qwik-uwu.webp?jsx';
-import QwikSocial from '/public/logos/social-card.png?jsx';
-import QwikSocial2 from '/public/logos/social-card.jpg?jsx';
-import { Header } from '~/components/header/header';
+import { $, component$, Slot, useSignal } from '@qwik.dev/core';
 import { Footer } from '~/components/footer/footer';
-import { Slot } from '@builder.io/qwik';
+import { Header } from '~/components/header/header';
+import QwikLogouwu from '/public/logos/qwik-uwu.webp?jsx';
+import QwikLogo from '/public/logos/qwik.png?jsx';
+import QwikSocial2 from '/public/logos/social-card.jpg?jsx';
+import QwikSocial from '/public/logos/social-card.png?jsx';
 const DownloadButton = component$((props: { href: string | undefined }) => {
   return (
     <a

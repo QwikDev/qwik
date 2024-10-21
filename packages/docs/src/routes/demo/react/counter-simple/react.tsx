@@ -1,5 +1,5 @@
 /** @jsxImportSource react */
-import { qwikify$ } from '@builder.io/qwik-react';
+import { qwikify$ } from '@qwik.dev/react';
 import { useState } from 'react';
 
 // Create React component standard way

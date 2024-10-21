@@ -6,11 +6,8 @@ import { buildPlatformBinding, copyPlatformBindingWasm } from './binding-platfor
 import { buildWasmBinding } from './binding-wasm';
 import { buildCreateQwikCli } from './create-qwik-cli';
 import { buildEslint } from './eslint';
-import { buildQwikAuth } from './qwik-auth';
 import { buildQwikCity } from './qwik-city';
-import { buildQwikLabs } from './qwik-labs';
 import { buildQwikReact } from './qwik-react';
-import { buildQwikWorker } from './qwik-worker';
 import {
   commitPrepareReleaseVersion,
   prepareReleaseVersion,
@@ -21,6 +18,7 @@ import {
 import { submoduleBuild } from './submodule-build';
 import { submoduleCli } from './submodule-cli';
 import { submoduleCore } from './submodule-core';
+import { submoduleInsights } from './submodule-insights';
 import { submoduleOptimizer } from './submodule-optimizer';
 import { submoduleQwikLoader } from './submodule-qwikloader';
 import { submoduleQwikPrefetch } from './submodule-qwikprefetch';
@@ -77,6 +75,7 @@ export async function build(config: BuildConfig) {
         submoduleBuild(config),
         submoduleTesting(config),
         submoduleCli(config),
+        submoduleInsights(config),
       ]);
 
       // server bundling must happen after the results from the others
@@ -125,18 +124,6 @@ export async function build(config: BuildConfig) {
 
     if (config.qwikreact) {
       await buildQwikReact(config);
-    }
-
-    if (config.qwikauth) {
-      await buildQwikAuth(config);
-    }
-
-    if (config.qwikworker) {
-      await buildQwikWorker(config);
-    }
-
-    if (config.qwiklabs) {
-      await buildQwikLabs(config);
     }
 
     if (config.supabaseauthhelpers) {

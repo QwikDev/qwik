@@ -1,5 +1,5 @@
-import { component$, Slot, useStyles$ } from "@builder.io/qwik";
-import type { RequestHandler, DocumentHead } from "@builder.io/qwik-city";
+import type { DocumentHead, RequestHandler } from "@qwik.dev/city";
+import { component$, Slot, useStyles$ } from "@qwik.dev/core";
 import { isUserAuthenticated } from "../../auth/auth";
 import Footer from "../../components/footer/footer";
 import Header from "../../components/header/header";

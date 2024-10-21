@@ -1,4 +1,4 @@
-import { component$, type PropsOf } from '@builder.io/qwik';
+import { component$, type PropsOf } from '@qwik.dev/core';
 import QwikUwu from '~/media/images/qwik-uwu.webp?url';
 type QwikLogoProps = {
   width: number;

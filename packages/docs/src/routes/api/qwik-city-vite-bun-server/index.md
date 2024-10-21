@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city/vite/bun-server API Reference
+title: \@qwik.dev/qwik-city/vite/bun-server API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city/vite/bun-server
+# [API](/api) &rsaquo; @qwik.dev/qwik-city/vite/bun-server
 
 ## bunServerAdapter
 
@@ -74,7 +74,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[name?](#)
+[name?](./city.bunserveradapteroptions.name.md)
 
 </td><td>
 

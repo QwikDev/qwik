@@ -1,4 +1,4 @@
-import { component$, useContext } from "@builder.io/qwik";
+import { component$, useContext } from "@qwik.dev/core";
 import { FILTERS, TODOS } from "../../state/state";
 import { Item } from "../item/item";
 

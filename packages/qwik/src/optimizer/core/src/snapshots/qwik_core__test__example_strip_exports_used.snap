@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, useResource$ } from '@builder.io/qwik';
+import { component$, useResource$ } from '@qwik.dev/core';
 import mongodb from 'mongodb';
 
 export const onGet = () => {
@@ -49,15 +49,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useResource$",
   "captures": false,
   "loc": [
-    252,
-    280
+    250,
+    278
   ]
 }
 */
 ============================= test.tsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export const onGet = ()=>{
     throw "Symbol removed by Qwik Optimizer, it can not be called from current platform";
 };
@@ -67,8 +67,8 @@ export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.t
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;aAIa;;;AASb,6BAAe,mHAKZ\"}")
 ============================= test.tsx_test_component_luxexe0dqrg.tsx (ENTRY POINT)==
 
-import { qrl } from "@builder.io/qwik";
-import { useResourceQrl } from "@builder.io/qwik";
+import { qrl } from "@qwik.dev/core";
+import { useResourceQrl } from "@qwik.dev/core";
 export const test_component_LUXeXe0DQrg = ()=>{
     useResourceQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_useresource_4a8wvy7wh38"), "test_component_useResource_4a8wVY7wh38"));
     return <div>cmp</div>;
@@ -91,8 +91,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    231,
-    306
+    229,
+    304
   ]
 }
 */

@@ -1,11 +1,11 @@
+import type {
+  ServerRequestEvent,
+  ServerRequestMode,
+} from '@qwik.dev/city/middleware/request-handler';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { Http2ServerRequest } from 'node:http2';
-import type {
-  ServerRequestMode,
-  ServerRequestEvent,
-} from '@builder.io/qwik-city/middleware/request-handler';
-import type { ClientConn } from '../request-handler/types';
 import type { QwikCityNodeRequestOptions } from '.';
+import type { ClientConn } from '../request-handler/types';
 
 export function computeOrigin(
   req: IncomingMessage | Http2ServerRequest,

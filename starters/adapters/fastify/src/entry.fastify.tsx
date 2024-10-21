@@ -7,7 +7,7 @@
  * - https://qwik.dev/docs/deployments/node/
  *
  */
-import { type PlatformNode } from "@builder.io/qwik-city/middleware/node";
+import { type PlatformNode } from "@qwik.dev/city/middleware/node";
 import "dotenv/config";
 import Fastify from "fastify";
 import { join } from "node:path";

@@ -7,14 +7,14 @@
  * - https://qwik.dev/docs/deployments/aws/
  *
  */
-import "source-map-support/register";
-import serverless from "serverless-http";
+import qwikCityPlan from "@qwik-city-plan";
+import { manifest } from "@qwik-client-manifest";
 import {
   createQwikCity,
   type PlatformAwsLambda,
-} from "@builder.io/qwik-city/middleware/aws-lambda";
-import qwikCityPlan from "@qwik-city-plan";
-import { manifest } from "@qwik-client-manifest";
+} from "@qwik.dev/city/middleware/aws-lambda";
+import serverless from "serverless-http";
+import "source-map-support/register";
 import render from "./entry.ssr";
 
 declare global {

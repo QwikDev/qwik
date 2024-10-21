@@ -1,4 +1,4 @@
-import { ContextId, useContext } from '@builder.io/qwik';
+import { ContextId, useContext } from '@qwik.dev/core';
 export const ID: ContextId<{ value: any }> = null!;
 export const useSession1 = () => {
   useContext(ID);

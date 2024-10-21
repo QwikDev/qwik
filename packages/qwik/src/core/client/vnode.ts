@@ -117,7 +117,7 @@
  *   no need to have IDs or to write overflow to the `<q:template>`
  */
 
-import { isDev } from '@builder.io/qwik/build';
+import { isDev } from '@qwik.dev/core/build';
 import { qwikDebugToString } from '../debug';
 import { assertDefined, assertEqual, assertFalse, assertTrue } from '../shared/error/assert';
 import { isText } from '../shared/utils/element';

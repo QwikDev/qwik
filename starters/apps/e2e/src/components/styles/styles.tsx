@@ -1,16 +1,16 @@
 import {
   component$,
-  useStylesScoped$,
-  useStore,
+  Fragment,
   Slot,
   useSignal,
-  Fragment,
-} from "@builder.io/qwik";
-import parent from "./parent.css?inline";
-import parent2 from "./parent2.css?inline";
+  useStore,
+  useStylesScoped$,
+} from "@qwik.dev/core";
 import child from "./child.css?inline";
 import child2 from "./child2.css?inline";
 import empty from "./empty.css?inline";
+import parent from "./parent.css?inline";
+import parent2 from "./parent2.css?inline";
 
 export const Styles = component$(() => {
   const reload = useSignal(0);

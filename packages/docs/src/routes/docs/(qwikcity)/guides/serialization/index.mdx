@@ -24,7 +24,7 @@ created_at: '2023-03-30T17:37:51Z'
 A serialization boundary occurs whenever you cross a lexical scope of a function that is converted into lazy loadable form. It is always denoted by `$(...)` (or `____$(...)`) See example:
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const topLevel = Promise.resolve('nonserializable data');
 

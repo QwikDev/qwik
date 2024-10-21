@@ -34,7 +34,6 @@ const stringOptions = [
   'srcNapiDir',
   'srcQwikCityDir',
   'srcQwikDir',
-  'srcQwikLabsDir',
   'startersDir',
   'tmpDir',
   'tscDir',
@@ -54,7 +53,6 @@ const booleanOptions = [
   'qwik',
   'qwikauth',
   'qwikcity',
-  'qwiklabs',
   'qwikreact',
   'qwikworker',
   'release',
@@ -105,7 +103,6 @@ export function loadConfig(args: string[] = []) {
       srcQwikDir,
       tmpDir,
       srcQwikCityDir: join(packagesDir, 'qwik-city', 'src'),
-      srcQwikLabsDir: join(packagesDir, 'qwik-labs'),
       srcNapiDir: join(srcQwikDir, 'napi'),
       scriptsDir: join(rootDir, 'scripts'),
       startersDir: join(rootDir, 'starters'),
@@ -176,7 +173,7 @@ export const getBanner = (moduleName: string, version: string) => {
 /**
  * @license
  * ${moduleName} ${version}
- * Copyright Builder.io, Inc. All Rights Reserved.
+ * Copyright QwikDev. All Rights Reserved.
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://github.com/QwikDev/qwik/blob/main/LICENSE
  */

@@ -1,6 +1,6 @@
 {
   "id": "qwik-city-middleware-firebase",
-  "package": "@builder.io/qwik-city/middleware/firebase",
+  "package": "@qwik.dev/qwik-city/middleware/firebase",
   "members": [
     {
       "name": "createQwikCity",
@@ -14,7 +14,7 @@
       "kind": "Function",
       "content": "```typescript\nexport declare function createQwikCity(opts: QwikCityFirebaseOptions): (req: any, res: any) => Promise<void>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[QwikCityFirebaseOptions](#qwikcityfirebaseoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n(req: any, res: any) =&gt; Promise&lt;void&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/firebase/index.ts",
-      "mdFile": "qwik-city.createqwikcity.md"
+      "mdFile": "city.createqwikcity.md"
     },
     {
       "name": "PlatformFirebase",
@@ -28,7 +28,7 @@
       "kind": "Interface",
       "content": "```typescript\nexport interface PlatformFirebase extends Object \n```\n**Extends:** Object",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/firebase/index.ts",
-      "mdFile": "qwik-city.platformfirebase.md"
+      "mdFile": "city.platformfirebase.md"
     },
     {
       "name": "QwikCityFirebaseOptions",
@@ -42,7 +42,7 @@
       "kind": "Interface",
       "content": "```typescript\nexport interface QwikCityFirebaseOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/firebase/index.ts",
-      "mdFile": "qwik-city.qwikcityfirebaseoptions.md"
+      "mdFile": "city.qwikcityfirebaseoptions.md"
     }
   ]
 }

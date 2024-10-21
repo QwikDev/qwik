@@ -335,7 +335,7 @@ function fixDtsContent(config: BuildConfig, srcPath: string, relativePath?: stri
 
   // ensure we're just using a relative path
   if (relativePath) {
-    dts = dts.replace(/'@builder\.io\/qwik(.*)'/g, `'${relativePath}$1'`);
+    dts = dts.replace(/'@qwik\.dev\/core(.*)'/g, `'${relativePath}$1'`);
   }
 
   // replace QWIK_VERSION with the actual version number, useful for debugging

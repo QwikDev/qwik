@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, useClientMount$, useStore, useTask$ } from '@builder.io/qwik';
+import { component$, useClientMount$, useStore, useTask$ } from '@qwik.dev/core';
 import mongo from 'mongodb';
 import redis from 'redis';
 import threejs from 'threejs';
@@ -47,15 +47,15 @@ export const Parent = component$(() => {
 
 import "./keep";
 import "../keep2";
-import { componentQrl } from "@builder.io/qwik";
-import { useClientMountQrl } from "@builder.io/qwik";
-import { _noopQrl } from "@builder.io/qwik";
-import { useTaskQrl } from "@builder.io/qwik";
-import { inlinedQrl } from "@builder.io/qwik";
-import { _wrapProp } from "@builder.io/qwik";
-import { useLexicalScope } from "@builder.io/qwik";
-import { _jsxSorted } from "@builder.io/qwik";
-import { useStore } from '@builder.io/qwik';
+import { componentQrl } from "@qwik.dev/core";
+import { useClientMountQrl } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+import { useTaskQrl } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { useLexicalScope } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { useStore } from '@qwik.dev/core';
 export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     const state = useStore({
         text: ''
@@ -89,7 +89,7 @@ export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
 }, "Parent_component_t6Wy3C0Q0XM"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/components/component.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AACA,SAAsC,QAAQ,QAAkB,mBAAmB;AAQnF,OAAO,MAAM,uBAAS,sCAAW;IAChC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA,oCAAS;IACR,OAAO;IACR;IAEA,qBACC,WAAC;QACA,aAAa;;;QACb,QAAQ;;;;sBAER,WAAC;YACA,QAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;YAC5B,OAAO,2BAAE;;uBAAM,MAAM,IAAI;;;;;kBAEzB;;AAGJ,oCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/components/component.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AACA,SAAsC,QAAQ,QAAkB,iBAAiB;AAQjF,OAAO,MAAM,uBAAS,sCAAW;IAChC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA,oCAAS;IACR,OAAO;IACR;IAEA,qBACC,WAAC;QACA,aAAa;;;QACb,QAAQ;;;;sBAER,WAAC;YACA,QAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;YAC5B,OAAO,2BAAE;;uBAAM,MAAM,IAAI;;;;;kBAEzB;;AAGJ,oCAAG\"}")
 == DIAGNOSTICS ==
 
 []

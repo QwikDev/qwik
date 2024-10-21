@@ -3,15 +3,15 @@ import {
   Fragment as Component,
   Fragment,
   Fragment as InlineComponent,
-  Fragment as Signal,
   Resource,
+  Fragment as Signal,
   component$,
   useResource$,
   useSignal,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
+import { domRender, getTestPlatform, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import '../../testing/vdom-diff.unit-util';
-import { getTestPlatform, trigger, domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

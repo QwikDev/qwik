@@ -7,8 +7,8 @@ import {
   component$,
   useSignal,
   type JSXOutput,
-} from '@builder.io/qwik';
-import '@builder.io/qwik/testing';
+} from '@qwik.dev/core';
+import '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { createDocument } from '../../testing/document';
 import { trigger } from '../../testing/element-fixture';

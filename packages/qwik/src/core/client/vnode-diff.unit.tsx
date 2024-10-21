@@ -1,8 +1,8 @@
+import { _jsxSorted } from '@qwik.dev/core';
+import { vnode_fromJSX } from '@qwik.dev/core/testing';
 import { afterEach, describe, expect, it } from 'vitest';
-import { vnode_fromJSX } from '@builder.io/qwik/testing';
 import { vnode_applyJournal, vnode_getNode, type VNodeJournal } from './vnode';
 import { vnode_diff } from './vnode-diff';
-import { _jsxSorted } from '@builder.io/qwik';
 
 describe('vNode-diff', () => {
   const journal: VNodeJournal = [];

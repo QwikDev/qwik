@@ -7,8 +7,8 @@ import type {
   _TextVNode,
   _VNode,
   _VirtualVNode,
-} from '@builder.io/qwik';
-import { Fragment, _isJSXNode, _isStringifiable, isSignal } from '@builder.io/qwik';
+} from '@qwik.dev/core';
+import { Fragment, _isJSXNode, _isStringifiable, isSignal } from '@qwik.dev/core';
 import { expect } from 'vitest';
 import {
   vnode_applyJournal,

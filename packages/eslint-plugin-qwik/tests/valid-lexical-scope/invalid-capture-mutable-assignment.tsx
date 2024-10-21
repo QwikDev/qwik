@@ -1,5 +1,5 @@
 // Expect error: { "messageId": "mutableIdentifier" }
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 export const HelloWorld = component$(() => {
   let click: string = '';
   return (

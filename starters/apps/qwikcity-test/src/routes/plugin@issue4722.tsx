@@ -1,4 +1,4 @@
-import { routeLoader$ } from "@builder.io/qwik-city";
+import { routeLoader$ } from "@qwik.dev/city";
 
 export const usePlugin = routeLoader$(() => {
   return {

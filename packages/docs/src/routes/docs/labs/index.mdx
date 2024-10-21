@@ -1,26 +1,27 @@
 ---
-title: "\U0001F9EA Qwik Labs | Overview"
+title: "\U0001F9EA Experimental | Overview"
 contributors:
   - mhevery
   - Craiqser
   - mrhoodz
   - thejackshelton
   - wmertens
+  - shairez
 updated_at: '2024-09-17T00:00:00Z'
 created_at: '2023-06-22T22:13:24Z'
 ---
 
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
-# 🧪 Qwik Labs Overview
+# 🧪 Experimental Overview
 
-Qwik Labs is an incubator for ideas not yet ready for production. It's a place where we can publish our "work in progress" so the community can try it out and provide feedback, without any guarantees that the feature is stable or will make it into production. 
+The "Experimental" section is an incubator for ideas not yet ready for production. It's a place where we can publish our "work in progress" so the community can try it out and provide feedback, without any guarantees that the feature is stable or will make it into production. 
 
 Given that these are ideas in their initial stages, chances are they will significantly change over their lifetime, so they should not be relied upon in production. 
 
 USE AT YOUR OWN RISK.
 
-> **DISCLAIMER:** Qwik Labs is a place to experiment, as such:
+> **DISCLAIMER:** This is a place to experiment, as such:
 > - We make no guarantees about the stability of the API: _we can break it at any point._
 > - It is not ready for production: _we want you to try it and give us feedback so that we can improve._
 > - No guarantees that the feature will ever make it to production: _it can be abandoned at any point._
@@ -29,55 +30,15 @@ USE AT YOUR OWN RISK.
 
 ## Stages
 
-Each Qwik Labs feature can roughly be thought of as going through these stages:
+Each experimental feature can roughly be thought of as going through these stages:
 1. `proposal`: An RFC proposal no code yet
 2. `prototyping`: An experimental stage where we explore the API, algorithm and approaches. Missing features, probably not in a usable state.
 3. `implementation`: We know what needs to be built and are going through the built out process.
 4. `alpha`: We think the project is ready to receive feedback from the community. Try it out and let us know what works and what does not.
 5. `beta`: We think the project is ready to graduate to the main repo and be used in production.
 
-## Installation
+## Usage
 
-There are two ways experimental features are made available to the community:
-
-1. As an `experimental` flag.
-  Some features are distributed under an experimental flag. This means that the feature is already part of the main package but is not enabled by default. To enable the feature you need to set the corresponding flag in the `qwikVite` `experimental[]` array.
-
-2. As a separate node package.
-  Qwik labs are distributed as a separate node package. Because Qwik Labs is "work in progress" the node package is not published to NPM but instead as a github URL. The package is continually updated and so it will always contains the latest build. (You may read up on installing node packages [here](https://docs.npmjs.com/cli/v8/commands/npm-install).)
-
-  <PackageManagerTabs>
-  <span q:slot="pnpm">
-  ```shell
-  pnpm install github:QwikDev/qwik-labs-build#main
-  ```
-  </span>
-  <span q:slot="npm">
-  ```shell
-  npm install github:QwikDev/qwik-labs-build#main
-  ```
-  </span>
-  <span q:slot="yarn">
-  ```shell
-  yarn add github:QwikDev/qwik-labs-build#main
-  ```
-  </span>
-  <span q:slot="bun">
-  ```shell
-  bun install github:QwikDev/qwik-labs-build#main
-  ```
-  </span>
-  </PackageManagerTabs>
-
-  Or just add this to your `package.json`
-
-  ```javascript
-  {
-    ...
-    "dependencies": {
-      ...
-      "@builder.io/qwik-labs": "github:QwikDev/qwik-labs-build#main",
-    }
-  }
-  ```
+Experimental features are distributed under an experimental flag. This means that the feature is already part of the main package but is not enabled by default. 
+To enable the feature you need to set the corresponding flag in the `qwikVite` `experimental[]` array.
 

@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city/static API Reference
+title: \@qwik.dev/qwik-city/static API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city/static
+# [API](/api) &rsaquo; @qwik.dev/qwik-city/static
 
 ## generate
 
@@ -72,7 +72,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[basePathname?](#)
+[basePathname?](./city.staticgenerateoptions.basepathname.md)
 
 </td><td>
 
@@ -87,7 +87,7 @@ _(Optional)_ Defaults to `/`
 </td></tr>
 <tr><td>
 
-[qwikCityPlanModulePath](#)
+[qwikCityPlanModulePath](./city.staticgenerateoptions.qwikcityplanmodulepath.md)
 
 </td><td>
 
@@ -102,7 +102,7 @@ Path to the Qwik City Plan module exporting the default `@qwik-city-plan`.
 </td></tr>
 <tr><td>
 
-[renderModulePath](#)
+[renderModulePath](./city.staticgenerateoptions.rendermodulepath.md)
 
 </td><td>
 
@@ -117,7 +117,7 @@ Path to the SSR module exporting the default render function. In most cases it'l
 </td></tr>
 <tr><td>
 
-[rootDir?](#)
+[rootDir?](./city.staticgenerateoptions.rootdir.md)
 
 </td><td>
 
@@ -161,7 +161,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[emit404Pages?](#)
+[emit404Pages?](./city.staticgeneraterenderoptions.emit404pages.md)
 
 </td><td>
 
@@ -176,7 +176,7 @@ _(Optional)_ Set to `false` if the static build should not write custom or defau
 </td></tr>
 <tr><td>
 
-[emitData?](#)
+[emitData?](./city.staticgeneraterenderoptions.emitdata.md)
 
 </td><td>
 
@@ -191,7 +191,7 @@ _(Optional)_ Set to `false` if the generated `q-data.json` data files should not
 </td></tr>
 <tr><td>
 
-[emitHtml?](#)
+[emitHtml?](./city.staticgeneraterenderoptions.emithtml.md)
 
 </td><td>
 
@@ -206,7 +206,7 @@ _(Optional)_ Set to `false` if the generated static HTML files should not be wri
 </td></tr>
 <tr><td>
 
-[exclude?](#)
+[exclude?](./city.staticgeneraterenderoptions.exclude.md)
 
 </td><td>
 
@@ -221,7 +221,7 @@ _(Optional)_ Defines file system routes relative to the source `routes` director
 </td></tr>
 <tr><td>
 
-[include?](#)
+[include?](./city.staticgeneraterenderoptions.include.md)
 
 </td><td>
 
@@ -236,7 +236,7 @@ _(Optional)_ Defines file system routes relative to the source `routes` director
 </td></tr>
 <tr><td>
 
-[log?](#)
+[log?](./city.staticgeneraterenderoptions.log.md)
 
 </td><td>
 
@@ -251,7 +251,7 @@ _(Optional)_ Log level.
 </td></tr>
 <tr><td>
 
-[maxTasksPerWorker?](#)
+[maxTasksPerWorker?](./city.staticgeneraterenderoptions.maxtasksperworker.md)
 
 </td><td>
 
@@ -266,7 +266,7 @@ _(Optional)_ Maximum number of tasks to be running at one time per worker. Defau
 </td></tr>
 <tr><td>
 
-[maxWorkers?](#)
+[maxWorkers?](./city.staticgeneraterenderoptions.maxworkers.md)
 
 </td><td>
 
@@ -281,7 +281,7 @@ _(Optional)_ Maximum number of workers to use while generating the static pages.
 </td></tr>
 <tr><td>
 
-[origin](#)
+[origin](./city.staticgeneraterenderoptions.origin.md)
 
 </td><td>
 
@@ -300,7 +300,7 @@ If the site also starts with a pathname other than `/`, please use the `basePath
 </td></tr>
 <tr><td>
 
-[outDir](#)
+[outDir](./city.staticgeneraterenderoptions.outdir.md)
 
 </td><td>
 
@@ -315,7 +315,7 @@ File system directory where the static files should be written.
 </td></tr>
 <tr><td>
 
-[sitemapOutFile?](#)
+[sitemapOutFile?](./city.staticgeneraterenderoptions.sitemapoutfile.md)
 
 </td><td>
 
@@ -357,7 +357,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[duration](#)
+[duration](./city.staticgenerateresult.duration.md)
 
 </td><td>
 
@@ -370,7 +370,7 @@ number
 </td></tr>
 <tr><td>
 
-[errors](#)
+[errors](./city.staticgenerateresult.errors.md)
 
 </td><td>
 
@@ -383,7 +383,7 @@ number
 </td></tr>
 <tr><td>
 
-[rendered](#)
+[rendered](./city.staticgenerateresult.rendered.md)
 
 </td><td>
 
@@ -396,7 +396,7 @@ number
 </td></tr>
 <tr><td>
 
-[staticPaths](#)
+[staticPaths](./city.staticgenerateresult.staticpaths.md)
 
 </td><td>
 

@@ -27,8 +27,8 @@ Route Loaders can only be declared inside the `src/routes` folder, in a `layout.
 > If you want to manage common reusable routeLoaders$ it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception. For more information [check this section](/docs/(qwikcity)/re-exporting-loaders/index.mdx).
 
 ```tsx /routeLoader$/ /useProductData/#a title="src/routes/product/[productId]/index.tsx"
-import { component$ } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/city';
 
 export const useProductDetails = routeLoader$(async (requestEvent) => {
   // This code runs only on the server, after every navigation
@@ -54,8 +54,8 @@ Multiple `routeLoader$`s are allowed across the whole application, and they can 
 
 
 ```tsx title="src/routes/layout.tsx"
-import { component$ } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/city';
 import { Footer } from '../components/footer.tsx';
 
 export const useProductData = routeLoader$(async () => {
@@ -76,7 +76,7 @@ export default component$(() => {
 ```
 
 ```tsx title="src/components/footer.tsx"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 // Import the loader from the layout
 import { useProductData } from '../routes/layout.tsx';
@@ -91,8 +91,8 @@ export const Footer = component$(() => {
 The above example shows using `useProductData()` in two different components across different files. This is intentional behavior.
 
 ```tsx title="src/routes/admin/index.tsx"
-import { component$ } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/city';
 
 export const useLoginStatus = routeLoader$(async ({ cookie }) => {
   return {
@@ -131,7 +131,7 @@ Just like [middleware](/docs/middleware/) or [endpoint](/docs/endpoints/) `onReq
 This information comes in handy when the loader needs to conditionally return data based on the request, or it needs to override the response status, headers, or body manually.
 
 ```tsx /requestEvent/ title="src/routes/product/[user]/index.tsx"
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { routeLoader$ } from '@qwik.dev/city';
 
 export const useProductRecommendations = routeLoader$(async (requestEvent) => {
   console.log('Request headers:', requestEvent.request.headers);
@@ -153,7 +153,7 @@ export const useProductRecommendations = routeLoader$(async (requestEvent) => {
 You can access the data from one `routeLoader$` inside another `routeLoader$` using the `requestEvent.resolveValue` method.
 
 ```tsx /requestEvent/ title="src/routes/product/[productId]/index.tsx"
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { routeLoader$ } from '@qwik.dev/city';
 
 export const useProductDetails = routeLoader$(async (requestEvent) => {
   const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
@@ -184,8 +184,8 @@ In addition, the `fail` function allows `routeLoader$` to override the HTTP stat
 This is useful when the loader needs to return an "error" value that is not `undefined`, but it also needs to indicate that the data failed to load.
 
 ```tsx /requestEvent.fail/ /errorMessage/#a title="src/routes/product/[productId]/index.tsx"
-import { component$ } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/city';
 
 export const useProductDetails = routeLoader$(async (requestEvent) => {
   const product = await db.from('products').filter('id', 'eq', requestEvent.params.productId);
@@ -216,8 +216,8 @@ export default component$(() => {
 In the server-side execution environment, it's crucial to convert relative URLs to absolute URLs for proper functionality. This can be achieved by prefixing the relative URL with the `origin` from the `useLocation()` function.
 
 ```tsx /location.url.origin + relativeUrl/ title="Make Absolute URL"
-import { component$ } from '@builder.io/qwik';
-import { useLocation } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { useLocation } from '@qwik.dev/city';
 
 export default component$(() => {
   const location = useLocation();

@@ -1,5 +1,5 @@
 import { BundleIcon } from '../icons/bundle';
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const BundleCmp = component$<{ name: string }>(({ name }) => {
   return (

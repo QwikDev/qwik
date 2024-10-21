@@ -4,18 +4,18 @@ import {
   type NoSerialize,
   noSerialize,
   type QRL,
-  useTask$,
-  SkipRender,
-  useSignal,
-  Slot,
   RenderOnce,
-  useStylesScoped$,
+  SkipRender,
+  Slot,
+  useSignal,
   useStore,
-} from '@builder.io/qwik';
+  useStylesScoped$,
+  useTask$,
+} from '@qwik.dev/core';
 
-import { isBrowser, isServer } from '@builder.io/qwik/build';
-import type { Root } from 'react-dom/client';
+import { isBrowser, isServer } from '@qwik.dev/core/build';
 import type { FunctionComponent as ReactFC } from 'react';
+import type { Root } from 'react-dom/client';
 import * as client from './client';
 import { renderFromServer } from './server-render';
 import { getHostProps, main, mainExactProps, useWakeupSignal } from './slot';

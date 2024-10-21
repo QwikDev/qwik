@@ -1,16 +1,16 @@
-import { $, type ValueOrPromise } from '@builder.io/qwik';
-import { createDocument, getTestPlatform } from '@builder.io/qwik/testing';
+import { $, type ValueOrPromise } from '@qwik.dev/core';
+import { createDocument, getTestPlatform } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { getDomContainer } from '../client/dom-container';
+import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import { inlinedQrl } from '../shared/qrl/qrl';
 import { type QRLInternal } from '../shared/qrl/qrl-class';
 import { type QRL } from '../shared/qrl/qrl.public';
-import { invoke, newInvokeContext } from '../use/use-core';
-import { Task } from '../use/use-task';
-import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import { isPromise } from '../shared/utils/promises';
-import { getDomContainer } from '../client/dom-container';
 import { ChoreType } from '../shared/scheduler';
 import type { Container, HostElement } from '../shared/types';
+import { isPromise } from '../shared/utils/promises';
+import { invoke, newInvokeContext } from '../use/use-core';
+import { Task } from '../use/use-task';
 import {
   EffectProperty,
   type EffectSubscriptions,

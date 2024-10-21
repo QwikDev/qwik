@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
 	return (
@@ -18,15 +18,15 @@ export default component$(() => {
 
 ============================= src/components/mongo/404.tsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./404.tsx__404_component_zrvowc98eqo"), "_404_component_zRvoWc98eqo"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;AAGA,6BAAe,kHAKZ\"}")
 ============================= src/components/mongo/404.tsx__404_component_zrvowc98eqo.tsx (ENTRY POINT)==
 
-import { qrl } from "@builder.io/qwik";
+import { qrl } from "@qwik.dev/core";
 export const _404_component_zRvoWc98eqo = ()=>{
     return <div onClick$={/*#__PURE__*/ qrl(()=>import("./404.tsx__404_component_div_onclick_oimo9dvew9q"), "_404_component_div_onClick_OiMo9dvEW9Q")}>
 		</div>;
@@ -49,8 +49,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    76,
-    154
+    74,
+    152
   ]
 }
 */
@@ -75,8 +75,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    111,
-    137
+    109,
+    135
   ]
 }
 */

@@ -4,28 +4,28 @@ import {
   Fragment as Component,
   Fragment,
   Fragment as Projection,
+  Slot,
   Fragment as WrappedSignal,
+  _getDomContainer,
+  component$,
   createContextId,
+  getPlatform,
+  noSerialize,
+  setPlatform,
   useContext,
   useContextProvider,
   useSignal,
-  Slot,
-  component$,
-  noSerialize,
   type NoSerialize,
-  getPlatform,
-  setPlatform,
-  _getDomContainer,
-} from '@builder.io/qwik';
-import { describe, expect, it } from 'vitest';
+} from '@qwik.dev/core';
+import { renderToString } from '@qwik.dev/core/server';
 import {
-  trigger,
-  domRender,
-  ssrRenderToDom,
   createDocument,
+  domRender,
   emulateExecutionOfQwikFuncs,
-} from '@builder.io/qwik/testing';
-import { renderToString } from '@builder.io/qwik/server';
+  ssrRenderToDom,
+  trigger,
+} from '@qwik.dev/core/testing';
+import { describe, expect, it } from 'vitest';
 import type { Signal } from '../signal/signal.public';
 
 const debug = false; //true;

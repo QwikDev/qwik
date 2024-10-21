@@ -1,24 +1,9 @@
 import swRegister from '@qwik-city-sw-register-build';
-import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
-import { basename, join, resolve, extname } from 'node:path';
-import type { Plugin, PluginOption, UserConfig, Rollup } from 'vite';
-import { loadEnv } from 'vite';
-import { generateQwikCityPlan } from '../runtime-generation/generate-qwik-city-plan';
-import type { BuildContext } from '../types';
-import { createBuildContext, resetBuildContext } from '../context';
-import { isMenuFileName, normalizePath, removeExtension } from '../../utils/fs';
-import { validatePlugin } from './validate-plugin';
-import type { QwikCityPluginApi, QwikCityVitePluginOptions } from './types';
-import { build } from '../build';
-import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
-import { transformMenu } from '../markdown/menu';
-import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
-import type { QwikVitePlugin } from '@builder.io/qwik/optimizer';
+import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import fs from 'node:fs';
-import {
-  generateServiceWorkerRegister,
-  prependManifestToServiceWorker,
-} from '../runtime-generation/generate-service-worker';
+import { basename, extname, join, resolve } from 'node:path';
+import type { Plugin, PluginOption, Rollup, UserConfig } from 'vite';
+import { loadEnv } from 'vite';
 import {
   NOT_FOUND_PATHS_ID,
   RESOLVED_NOT_FOUND_PATHS_ID,
@@ -26,7 +11,22 @@ import {
   STATIC_PATHS_ID,
 } from '../../adapters/shared/vite';
 import { postBuild } from '../../adapters/shared/vite/post-build';
+import { isMenuFileName, normalizePath, removeExtension } from '../../utils/fs';
+import { build } from '../build';
+import { createBuildContext, resetBuildContext } from '../context';
+import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
+import { transformMenu } from '../markdown/menu';
+import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
+import { generateQwikCityPlan } from '../runtime-generation/generate-qwik-city-plan';
+import {
+  generateServiceWorkerRegister,
+  prependManifestToServiceWorker,
+} from '../runtime-generation/generate-service-worker';
+import type { BuildContext } from '../types';
+import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
 import { imagePlugin } from './image-jsx';
+import type { QwikCityPluginApi, QwikCityVitePluginOptions } from './types';
+import { validatePlugin } from './validate-plugin';
 
 /** @public */
 export function qwikCity(userOpts?: QwikCityVitePluginOptions): PluginOption[] {
@@ -63,6 +63,12 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
     async config() {
       const updatedViteConfig: UserConfig = {
         appType: 'custom',
+        resolve: {
+          alias: [
+            { find: '@builder.io/qwik-city', replacement: '@qwik.dev/city' },
+            { find: /^@builder\.io\/qwik-city\/(.*)/, replacement: '@qwik.dev/city/$1' },
+          ],
+        },
         optimizeDeps: {
           exclude: [QWIK_CITY, QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID, QWIK_CITY_SW_REGISTER],
         },
@@ -111,7 +117,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
           server.middlewares.use(staticDistMiddleware(server));
         }
         // qwik city middleware injected BEFORE vite internal middlewares
-        // and BEFORE @builder.io/qwik/optimizer/vite middlewares
+        // and BEFORE @qwik.dev/core/optimizer/vite middlewares
         // handles only known user defined routes
         server.middlewares.use(ssrDevMiddleware(ctx, server));
       };
@@ -163,7 +169,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
         const isSwRegister = id.endsWith(QWIK_CITY_SW_REGISTER);
 
         if (isSerializer) {
-          return `export {_deserialize, _serialize, _verifySerializable} from '@builder.io/qwik'`;
+          return `export {_deserialize, _serialize, _verifySerializable} from '@qwik.dev/core'`;
         }
         if (isCityPlan || isSwRegister) {
           if (!ctx.isDevServer && ctx.isDirty) {
@@ -340,5 +346,5 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
 const QWIK_SERIALIZER = '@qwik-serializer';
 const QWIK_CITY_PLAN_ID = '@qwik-city-plan';
 const QWIK_CITY_ENTRIES_ID = '@qwik-city-entries';
-const QWIK_CITY = '@builder.io/qwik-city';
+const QWIK_CITY = '@qwik.dev/city';
 const QWIK_CITY_SW_REGISTER = '@qwik-city-sw-register';

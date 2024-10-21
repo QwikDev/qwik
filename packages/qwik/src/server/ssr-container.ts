@@ -7,10 +7,10 @@ import {
   isSignal,
   type JSXNode,
   _EffectData as EffectData,
-} from '@builder.io/qwik';
-import { isDev } from '@builder.io/qwik/build';
-import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
-import { getQwikLoaderScript } from '@builder.io/qwik/server';
+} from '@qwik.dev/core';
+import { isDev } from '@qwik.dev/core/build';
+import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
+import { getQwikLoaderScript } from '@qwik.dev/core/server';
 import { applyPrefetchImplementation2 } from './prefetch-implementation';
 import { getPrefetchResources } from './prefetch-strategy';
 import {

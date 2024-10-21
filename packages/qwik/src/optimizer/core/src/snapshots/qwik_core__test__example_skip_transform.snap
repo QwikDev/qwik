@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$ as Component, $ as onRender } from '@builder.io/qwik';
+import { component$ as Component, $ as onRender } from '@qwik.dev/core';
 
 export const handler = $(()=>console.log('hola'));
 
@@ -19,7 +19,7 @@ export const App = component$((props) => {
 
 ============================= test.js ==
 
-import { _jsxSorted } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwik.dev/core";
 export const handler = $(()=>console.log('hola'));
 export const App = component$((props)=>{
     useStyles$('hola');

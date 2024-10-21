@@ -142,7 +142,7 @@
 - [API Reference](/api/)
 - [Deprecated Features](</docs/(qwik)/deprecated-features/index.mdx>)
 
-## Qwik Labs 🧪
+## Experimental 🧪
 
 - [Overview](/docs/labs/index.mdx)
 - [Insights](/docs/labs/insights/index.mdx)

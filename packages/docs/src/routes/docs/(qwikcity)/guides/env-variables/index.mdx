@@ -66,7 +66,7 @@ PUBLIC_API_URL=https://api.example.com
 ### Usage
 
 ```tsx {4} /PUBLIC_API_URL/#a title="src/routes/index.tsx"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
   // `import.meta.env.PUBLIC_*` variables can be read anywhere, including browser
@@ -116,7 +116,7 @@ import {
   routeAction$,
   server$,
   type RequestEvent,
-} from '@builder.io/qwik-city';
+} from '@qwik.dev/city';
 
 export const onGet = (requestEvent: RequestEvent) => {
   console.log(requestEvent.env.get('DB_PRIVATE_KEY'));

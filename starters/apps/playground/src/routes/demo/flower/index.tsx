@@ -1,10 +1,10 @@
+import { type DocumentHead, useLocation } from "@qwik.dev/city";
 import {
   component$,
-  useVisibleTask$,
   useStore,
   useStylesScoped$,
-} from "@builder.io/qwik";
-import { type DocumentHead, useLocation } from "@builder.io/qwik-city";
+  useVisibleTask$,
+} from "@qwik.dev/core";
 import styles from "./flower.css?inline";
 
 export default component$(() => {

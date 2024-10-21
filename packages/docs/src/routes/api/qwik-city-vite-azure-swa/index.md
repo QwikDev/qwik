@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city/vite/azure-swa API Reference
+title: \@qwik.dev/qwik-city/vite/azure-swa API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city/vite/azure-swa
+# [API](/api) &rsaquo; @qwik.dev/qwik-city/vite/azure-swa
 
 ## azureSwaAdapter
 

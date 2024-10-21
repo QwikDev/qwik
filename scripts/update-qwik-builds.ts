@@ -1,6 +1,6 @@
 import { readPackageJson, writePackageJson } from './package-json';
 
-type Repos = 'qwik' | 'qwik-city' | 'qwik-labs';
+type Repos = 'qwik' | 'qwik-city';
 
 async function main(packageDir: string) {
   if (!packageDir) {
@@ -10,12 +10,11 @@ async function main(packageDir: string) {
   const packageJson = await readPackageJson(packageDir);
   await updateDependency(packageJson.devDependencies!, 'qwik');
   await updateDependency(packageJson.devDependencies!, 'qwik-city');
-  await updateDependency(packageJson.devDependencies!, 'qwik-labs');
   writePackageJson(packageDir, packageJson);
 }
 
 async function updateDependency(deps: Record<string, string>, repo: Repos) {
-  const key = '@builder.io/' + repo;
+  const key = '@qwik.dev/' + repo;
   const value = deps[key];
   const prefix = `github:QwikDev/${repo}-build#`;
   if (value && value.startsWith(prefix)) {

@@ -15,6 +15,7 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
     name: 'repl-resolver',
 
     resolveId(id, importer) {
+      // Entry point
       if (!importer) {
         return id;
       }
@@ -25,12 +26,10 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
       ) {
         return '\0qwikCore';
       }
-      if (id === '@builder.io/qwik/build') {
-        return '\0qwikBuild';
-      }
       if (id === '@builder.io/qwik/server') {
         return '\0qwikServer';
       }
+      // Simple relative file resolution
       if (id.startsWith('./')) {
         const extensions = ['', '.tsx', '.ts'];
         id = id.slice(1);
@@ -41,10 +40,6 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
           }
         }
       }
-      return {
-        id,
-        external: true,
-      };
     },
 
     async load(id) {
@@ -59,20 +54,6 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
         if (id === '\0qwikServer') {
           return getRuntimeBundle('qwikServer');
         }
-        if (id === '\0qwikBuild') {
-          return `
-          export const isServer = true;
-          export const isBrowser = false;
-          export const isDev = false;
-        `;
-        }
-      }
-      if (id === '\0qwikBuild') {
-        return `
-        export const isServer = false;
-        export const isBrowser = true;
-        export const isDev = false;
-      `;
       }
       if (id === '\0qwikCore') {
         if (options.buildMode === 'production') {
@@ -88,7 +69,11 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
         }
         throw new Error(`Unable to load Qwik core`);
       }
-      return null;
+
+      // We're the fallback, we know all the files
+      if (/\.[jt]sx?$/.test(id)) {
+        throw new Error(`load: unknown module ${id}`);
+      }
     },
   };
 };

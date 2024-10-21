@@ -40,6 +40,7 @@ export const dbGetInsightUser = async (email: string): Promise<InsightsUser> => 
     .leftJoin(userApplicationMap, eq(usersTable.id, userApplicationMap.userId))
     .leftJoin(applicationTable, eq(applicationTable.id, userApplicationMap.applicationId))
     .where(eq(usersTable.email, email))
+    .limit(1000)
     .all();
   if (users.length === 0) {
     const insert = await db
@@ -72,6 +73,7 @@ export const dbGetUsersForApplication = async (publicApiKey: string) => {
     .leftJoin(applicationTable, eq(applicationTable.id, userApplicationMap.applicationId))
     .where(eq(applicationTable.publicApiKey, publicApiKey))
     .orderBy(usersTable.email)
+    .limit(1000)
     .all();
   return users.map((user) => user.email);
 };

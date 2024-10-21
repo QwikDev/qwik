@@ -26,6 +26,7 @@ export const ReplOutputModules = component$(({ outputs, headerText }: ReplOutput
                 class={{ 'in-view': selectedPath.value === o.path }}
                 preventdefault:click
                 key={o.path}
+                title={o.path}
               >
                 {o.path}
               </a>

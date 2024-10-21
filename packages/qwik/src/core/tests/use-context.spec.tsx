@@ -226,8 +226,8 @@ describe.each([
       });
       const { vNode, document } = await render(<Issue5270 />, { debug });
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Component>
+        <Component ssr-required>
+          <Component ssr-required>
             <div>
               <button id="issue-5270-button">toggle</button>
               <br></br>
@@ -238,8 +238,8 @@ describe.each([
       );
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Component>
+        <Component ssr-required>
+          <Component ssr-required>
             <div>
               <button id="issue-5270-button">toggle</button>
               <br></br>

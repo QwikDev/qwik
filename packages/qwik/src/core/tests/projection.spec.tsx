@@ -87,10 +87,7 @@ describe.each([
     );
     if (render === ssrRenderToDom) {
       expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
-        <q:template style="display:none">
-          <Fragment>parent-content</Fragment>
-          <Fragment>render-content</Fragment>
-        </q:template>
+        <q:template style="display:none">parent-contentrender-content</q:template>
       );
     }
   });
@@ -243,8 +240,8 @@ describe.each([
     });
     const { vNode, container } = await render(<Parent>render-content</Parent>, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
-      <Fragment>
-        <Fragment>
+      <Fragment ssr-required>
+        <Fragment ssr-required>
           <button>{''}</button>
         </Fragment>
       </Fragment>

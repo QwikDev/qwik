@@ -269,8 +269,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       ssrNode.setProp(QCtxAttr, (ctx = []));
     }
     mapArray_set(ctx, context.id, value, 0);
-    // TODO: We should probably add better serialization for context
-    this.serializationCtx.$addRoot$(ssrNode);
+    this.addRoot(ssrNode);
   }
 
   resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined {
@@ -447,6 +446,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   openProjection(attrs: SsrAttrs) {
     this.openFragment(attrs);
+    this.currentElementFrame!.vNodeData[0] |= VNodeDataFlag.SERIALIZE;
     const componentFrame = this.getComponentFrame();
     if (componentFrame) {
       componentFrame.projectionDepth++;
@@ -947,7 +947,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
                 ? [DEBUG_TYPE, VirtualType.Projection, QSlotParent, ssrComponentNode!.id]
                 : [QSlotParent, ssrComponentNode!.id]
             );
-            ssrComponentNode?.setProp(value, this.getLastNode().id);
+            const lastNode = this.getLastNode();
+            if (lastNode.vnodeData) {
+              lastNode.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
+            }
+            ssrComponentNode?.setProp(value, lastNode.id);
             _walkJSX(this, children, {
               allowPromises: false,
               currentStyleScoped: scopedStyleId,

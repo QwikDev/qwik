@@ -107,6 +107,11 @@
       "import": "./dist/insights/index.mjs",
       "require": "./dist/insights/index.cjs"
     },
+    "./insights/vite": {
+      "types": "./dist/insights/vite/index.d.ts",
+      "import": "./dist/insights/vite/index.mjs",
+      "require": "./dist/insights/vite/index.cjs"
+    },
     "./optimizer.cjs": "./dist/optimizer.cjs",
     "./optimizer.mjs": "./dist/optimizer.mjs",
     "./optimizer": {

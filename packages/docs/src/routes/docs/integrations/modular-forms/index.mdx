@@ -197,12 +197,11 @@ export default component$(() => {
 
 If we now put all the building blocks together, we get a working login form. Below you can see the assembled code and try it out in the attached sandbox.
 
-<CodeSandbox src="/src/routes/demo/integration/modular-forms/index.tsx">
 ```tsx
 // @ts-nocheck
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { $, component$, type QRL } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { $, component$, type QRL } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/city';
 import type { InitialValues, SubmitHandler } from '@modular-forms/qwik';
 import { formAction$, useForm, valiForm$ } from '@modular-forms/qwik';
 import * as v from 'valibot';
@@ -266,10 +265,11 @@ export default component$(() => {
   );
 });
 ```
-</CodeSandbox>
 
 ## Summary
 
 You have learned the basics of Modular Forms and are ready to create your first simple form. For more info and details you can find more guides and the API reference on our website: [modularforms.dev](https://modularforms.dev/)
 
-> Do you like Modular Forms so far? It would be a great honor for us to get a star from you on [GitHub](https://github.com/fabian-hiller/modular-forms)!
+> Do you like Modular Forms so far? It would be a great honor for us to get a star from you on [GitHub](https://github.com/fabian-hiller/modular-forms)!import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
+

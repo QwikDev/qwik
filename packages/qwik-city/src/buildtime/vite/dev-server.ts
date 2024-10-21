@@ -1,7 +1,8 @@
-import type { QwikManifest, QwikViteDevResponse } from '@builder.io/qwik/optimizer';
+import type { QwikManifest, QwikViteDevResponse } from '@qwik.dev/core/optimizer';
 import fs from 'node:fs';
 import type { ServerResponse } from 'node:http';
 import { join, resolve } from 'node:path';
+import type { QwikSerializer } from 'packages/qwik-city/src/middleware/request-handler/types';
 import type { Connect, ViteDevServer } from 'vite';
 import { computeOrigin, fromNodeHttp, getUrl } from '../../middleware/node/http';
 import {
@@ -232,9 +233,9 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             version: '1',
           };
 
-          const { _deserializeData, _serializeData, _verifySerializable } =
+          const { _deserialize, _serialize, _verifySerializable } =
             await server.ssrLoadModule('@qwik-serializer');
-          const qwikSerializer = { _deserializeData, _serializeData, _verifySerializable };
+          const qwikSerializer: QwikSerializer = { _deserialize, _serialize, _verifySerializable };
 
           const { completion, requestEv } = runQwikCity(
             serverRequestEv,

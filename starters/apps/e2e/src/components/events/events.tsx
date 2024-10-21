@@ -1,11 +1,11 @@
 import {
+  $,
   component$,
+  useOnWindow,
+  useSignal,
   useStore,
   type QRL,
-  useSignal,
-  useOnWindow,
-  $,
-} from "@builder.io/qwik";
+} from "@qwik.dev/core";
 
 export const Events = component$(() => {
   const store = useStore({
@@ -106,7 +106,7 @@ export const Issue3948 = component$(() => {
   return (
     <>
       <Listener name="always" />
-      <label for="toggle">
+      <label for="issue-3948-toggle">
         <input
           id="issue-3948-toggle"
           type="checkbox"

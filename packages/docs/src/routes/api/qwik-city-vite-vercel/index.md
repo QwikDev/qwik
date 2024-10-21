@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city/vite/vercel API Reference
+title: \@qwik.dev/qwik-city/vite/vercel API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city/vite/vercel
+# [API](/api) &rsaquo; @qwik.dev/qwik-city/vite/vercel
 
 ## vercelEdgeAdapter
 
@@ -70,7 +70,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[outputConfig?](#)
+[outputConfig?](./city.verceledgeadapteroptions.outputconfig.md)
 
 </td><td>
 
@@ -87,7 +87,7 @@ Defaults to `true`.
 </td></tr>
 <tr><td>
 
-[staticPaths?](#)
+[staticPaths?](./city.verceledgeadapteroptions.staticpaths.md)
 
 </td><td>
 
@@ -102,7 +102,7 @@ _(Optional)_ Manually add pathnames that should be treated as static paths and n
 </td></tr>
 <tr><td>
 
-[target?](#)
+[target?](./city.verceledgeadapteroptions.target.md)
 
 </td><td>
 
@@ -119,7 +119,7 @@ Defaults to `webworker`.
 </td></tr>
 <tr><td>
 
-[vcConfigEntryPoint?](#)
+[vcConfigEntryPoint?](./city.verceledgeadapteroptions.vcconfigentrypoint.md)
 
 </td><td>
 
@@ -136,7 +136,7 @@ Defaults to `entry.vercel-edge.js`.
 </td></tr>
 <tr><td>
 
-[vcConfigEnvVarsInUse?](#)
+[vcConfigEnvVarsInUse?](./city.verceledgeadapteroptions.vcconfigenvvarsinuse.md)
 
 </td><td>
 

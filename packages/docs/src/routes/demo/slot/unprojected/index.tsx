@@ -1,4 +1,4 @@
-import { Slot, component$, useSignal } from '@builder.io/qwik';
+import { Slot, component$, useSignal } from '@qwik.dev/core';
 
 const Accordion = component$(() => {
   const isOpen = useSignal(false);

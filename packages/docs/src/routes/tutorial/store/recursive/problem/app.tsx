@@ -1,4 +1,4 @@
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export default component$(() => {
   const store = useStore({ counter: { count: 0 }, list: [0] });

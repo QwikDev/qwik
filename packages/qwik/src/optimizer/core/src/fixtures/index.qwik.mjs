@@ -1,41 +1,38 @@
-import {
-  createContextId,
-  componentQrl,
-  inlinedQrl,
-  _jsxBranch,
-  useOnDocument,
-  eventQrl,
-  useContext,
-  _jsxC,
-  SkipRender,
-  withLocale,
-  _deserializeData,
-  noSerialize,
-  useServerData,
-  useStylesQrl,
-  useStore,
-  _weakSerialize,
-  useSignal,
-  useLexicalScope,
-  _getContextElement,
-  useContextProvider,
-  useTaskQrl,
-  Slot,
-  getLocale,
-  untrack,
-  _jsxS,
-  _jsxQ,
-  _wrapSignal,
-  implicit$FirstArg,
-  _serializeData,
-  _restProps,
-  _fnSignal,
-} from '@builder.io/qwik';
-import { isBrowser, isServer, isDev } from '@builder.io/qwik/build';
 import * as qwikCity from '@qwik-city-plan';
 import swRegister from '@qwik-city-sw-register';
-import { z } from 'zod';
-import { z as z2 } from 'zod';
+import {
+  _deserializeData,
+  _fnSignal,
+  _getContextElement,
+  _jsxBranch,
+  _jsxSplit,
+  _restProps,
+  _serializeData,
+  _weakSerialize,
+  _wrapSignal,
+  componentQrl,
+  createContextId,
+  eventQrl,
+  getLocale,
+  implicit$FirstArg,
+  inlinedQrl,
+  noSerialize,
+  SkipRender,
+  Slot,
+  untrack,
+  useContext,
+  useContextProvider,
+  useLexicalScope,
+  useOnDocument,
+  useServerData,
+  useSignal,
+  useStore,
+  useStylesQrl,
+  useTaskQrl,
+  withLocale,
+} from '@qwik.dev/core';
+import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
+import { z, z as z2 } from 'zod';
 const RouteStateContext = /* @__PURE__ */ createContextId('qc-s');
 const ContentContext = /* @__PURE__ */ createContextId('qc-c');
 const ContentInternalContext = /* @__PURE__ */ createContextId('qc-ic');
@@ -68,7 +65,7 @@ const RouterOutlet = /* @__PURE__ */ componentQrl(
       const contentsLen = context.value.length;
       let cmp = null;
       for (let i = contentsLen - 1; i >= 0; i--)
-        cmp = _jsxC(
+        cmp = _jsxSplit(
           context.value[i].default,
           {
             children: cmp,
@@ -569,7 +566,7 @@ const QwikCityProvider = /* @__PURE__ */ componentQrl(
         ]
       )
     );
-    return /* @__PURE__ */ _jsxC(Slot, null, 3, 'qY_0');
+    return /* @__PURE__ */ _jsxSplit(Slot, null, 3, 'qY_0');
   }, 'QwikCityProvider_component_TxCFOy819ag')
 );
 const QwikCityMockProvider = /* @__PURE__ */ componentQrl(
@@ -609,7 +606,7 @@ const QwikCityMockProvider = /* @__PURE__ */ componentQrl(
     useContextProvider(RouteLocationContext, routeLocation);
     useContextProvider(RouteNavigateContext, goto);
     useContextProvider(RouteStateContext, loaderState);
-    return /* @__PURE__ */ _jsxC(Slot, null, 3, 'qY_1');
+    return /* @__PURE__ */ _jsxSplit(Slot, null, 3, 'qY_1');
   }, 'QwikCityMockProvider_component_WmYC5H00wtI')
 );
 const Link = /* @__PURE__ */ componentQrl(
@@ -630,12 +627,12 @@ const Link = /* @__PURE__ */ componentQrl(
         'Link_component_event_event_5g4B0Gd1Wck'
       )
     );
-    return /* @__PURE__ */ _jsxS(
+    return /* @__PURE__ */ _jsxSplit(
       'a',
       {
         ...linkProps,
         'data-prefetch': prefetchDataset,
-        children: /* @__PURE__ */ _jsxC(Slot, null, 3, 'AD_0'),
+        children: /* @__PURE__ */ _jsxSplit(Slot, null, null, 3, 'AD_0'),
         onClick$: /* @__PURE__ */ inlinedQrl(
           (_, elm) => {
             const [nav2, reload2] = useLexicalScope();
@@ -663,15 +660,13 @@ const prefetchLinkResources = (elm, isOnVisible) => {
 };
 let windowInnerWidth = 0;
 const ServiceWorkerRegister = (props) =>
-  _jsxQ(
+  _jsxSplit(
     'script',
+    null,
     {
       nonce: _wrapSignal(props, 'nonce'),
-    },
-    {
       dangerouslySetInnerHTML: swRegister,
     },
-    null,
     3,
     '1Z_0'
   );
@@ -965,7 +960,7 @@ async function* streamAsyncIterator(stream, ctxElm) {
 const Form = ({ action, spaReset, reloadDocument, onSubmit$, ...rest }, key) => {
   _jsxBranch();
   if (action)
-    return _jsxS(
+    return _jsxSplit(
       'form',
       {
         ...rest,
@@ -981,7 +976,7 @@ const Form = ({ action, spaReset, reloadDocument, onSubmit$, ...rest }, key) => 
       key
     );
   else
-    return /* @__PURE__ */ _jsxC(
+    return /* @__PURE__ */ _jsxSplit(
       GetForm,
       {
         spaReset,
@@ -997,11 +992,11 @@ const GetForm = /* @__PURE__ */ componentQrl(
   /* @__PURE__ */ inlinedQrl((props) => {
     const rest = _restProps(props, ['action', 'spaReset', 'reloadDocument', 'onSubmit$']);
     const nav = useNavigate();
-    return /* @__PURE__ */ _jsxS(
+    return /* @__PURE__ */ _jsxSplit(
       'form',
       {
         ...rest,
-        children: /* @__PURE__ */ _jsxC(Slot, null, 3, 'BC_0'),
+        children: /* @__PURE__ */ _jsxSplit(Slot, null, 3, 'BC_0'),
         onSubmit$: /* @__PURE__ */ inlinedQrl(
           async (_, form) => {
             const [nav2] = useLexicalScope();
@@ -1048,19 +1043,19 @@ const GetForm = /* @__PURE__ */ componentQrl(
 );
 export {
   Form,
+  globalAction$,
+  globalActionQrl,
   Link,
   QwikCityMockProvider,
   QwikCityProvider,
-  RouterOutlet,
-  ServiceWorkerRegister,
-  globalAction$,
-  globalActionQrl,
   routeAction$,
   routeActionQrl,
   routeLoader$,
   routeLoaderQrl,
+  RouterOutlet,
   server$,
   serverQrl,
+  ServiceWorkerRegister,
   useContent,
   useDocumentHead,
   useLocation,

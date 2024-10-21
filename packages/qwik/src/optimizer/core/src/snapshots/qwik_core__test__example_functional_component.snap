@@ -6,19 +6,19 @@ expression: output
 ==INPUT==
 
 
-import { $, component$, useStore } from '@builder.io/qwik';
+import { $, component$, useStore } from '@qwik.dev/core';
 const Header = component$(() => {
-    const thing = useStore();
-    const {foo, bar} = foo();
+	const thing = useStore();
+	const {foo, bar} = foo();
 
-    return (
-        <div>{thing}</div>
-    );
+	return (
+		<div>{thing}</div>
+	);
 });
 
 ============================= test.tsx_header_component_j4uyihabnr4.tsx (ENTRY POINT)==
 
-import { useStore } from "@builder.io/qwik";
+import { useStore } from "@qwik.dev/core";
 export const Header_component_J4uyIhaBNR4 = ()=>{
     const thing = useStore();
     const { foo, bar } = foo();
@@ -26,7 +26,7 @@ export const Header_component_J4uyIhaBNR4 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAE0B;IACtB,MAAM,QAAQ;IACd,MAAM,EAAC,GAAG,EAAE,GAAG,EAAC,GAAG;IAEnB,QACK,KAAK,QAAQ;AAEtB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAE0B;IACzB,MAAM,QAAQ;IACd,MAAM,EAAC,GAAG,EAAE,GAAG,EAAC,GAAG;IAEnB,QACE,KAAK,QAAQ;AAEhB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -42,20 +42,20 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    88,
-    205
+    86,
+    185
   ]
 }
 */
 ============================= test.tsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-import { $, component$, useStore } from '@builder.io/qwik';
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { $, component$, useStore } from '@qwik.dev/core';
 const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_header_component_j4uyihabnr4"), "Header_component_J4uyIhaBNR4"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAS,CAAC,EAAE,UAAU,EAAE,QAAQ,QAAQ,mBAAmB;AAC3D,MAAM,uBAAS\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAS,CAAC,EAAE,UAAU,EAAE,QAAQ,QAAQ,iBAAiB;AACzD,MAAM,uBAAS\"}")
 == DIAGNOSTICS ==
 
 []

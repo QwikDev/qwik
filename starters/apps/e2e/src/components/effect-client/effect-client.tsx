@@ -12,7 +12,7 @@ import {
   useTask$,
   useVisibleTask$,
   type Signal,
-} from "@builder.io/qwik";
+} from "@qwik.dev/core";
 import { delay } from "../streaming/streaming";
 
 export const EffectClient = component$(() => {
@@ -25,11 +25,11 @@ export const EffectClient = component$(() => {
   console.log("<EffectClient> renders");
   return (
     <div>
+      <CleanupEffects />
       <Issue1413 />
       <Issue1717 />
       <Issue2015 />
       <Issue1955 />
-      <CleanupEffects />
       <div class="box" />
       <div class="box" />
       <div class="box" />

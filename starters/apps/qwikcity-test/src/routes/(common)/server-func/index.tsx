@@ -1,12 +1,11 @@
+import { routeLoader$, server$ } from "@qwik.dev/city";
 import {
   Resource,
   component$,
-  useComputed$,
   useResource$,
   useSignal,
   useTask$,
-} from "@builder.io/qwik";
-import { routeLoader$, server$ } from "@builder.io/qwik-city";
+} from "@qwik.dev/core";
 import { delay } from "../actions/login";
 
 export const useGetUserAgent = routeLoader$(() => {
@@ -60,7 +59,6 @@ export default component$(() => {
   const resource = useResource$(() => getUserAgent());
   const userAgent = useSignal("");
   const userAgentEvent = useSignal("");
-  const userAgentComputed = useComputed$(() => getUserAgent());
   const loader = useGetUserAgent();
   const streamingLogs = useSignal("");
 
@@ -77,7 +75,6 @@ export default component$(() => {
       <div class="server-host">{userAgent.value}</div>
       <div class="server-host">{loader.value}</div>
       <div class="server-host">{userAgentEvent.value}</div>
-      <div class="server-host">{userAgentComputed.value}</div>
       <button
         id="server-host-button"
         onClick$={async () => {

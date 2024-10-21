@@ -492,7 +492,7 @@ const ALLOWED_CLASSES = {
 };
 
 const referencesOutsideGood = `
-import { component$, useTask$, $ } from '@builder.io/qwik';
+import { component$, useTask$, $ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const print = $((msg: string) => {
@@ -507,7 +507,7 @@ export const HelloWorld = component$(() => {
 });`.trim();
 
 const referencesOutsideBad = `
-import { component$, useTask$ } from '@builder.io/qwik';
+import { component$, useTask$ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const print = (msg: string) => {
@@ -522,7 +522,7 @@ export const HelloWorld = component$(() => {
 });`.trim();
 
 const invalidJsxDollarGood = `
-import { component$, $ } from '@builder.io/qwik';
+import { component$, $ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const click = $(() => console.log());
@@ -532,7 +532,7 @@ export const HelloWorld = component$(() => {
 });`.trim();
 
 const invalidJsxDollarBad = `
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const click = () => console.log();
@@ -542,7 +542,7 @@ export const HelloWorld = component$(() => {
 });`.trim();
 
 const mutableIdentifierGood = `
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const person = { name: 'Bob' };
@@ -557,7 +557,7 @@ export const HelloWorld = component$(() => {
 });`.trim();
 
 const mutableIdentifierBad = `
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   let personName = 'Bob';

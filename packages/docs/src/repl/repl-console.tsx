@@ -1,4 +1,4 @@
-import { component$, jsx } from '@builder.io/qwik';
+import { component$, jsx } from '@qwik.dev/core';
 import type { ReplEvent, ReplStore } from './types';
 
 export interface ReplConsoleProps {
@@ -7,9 +7,10 @@ export interface ReplConsoleProps {
 export const ReplConsole = component$(({ store }: ReplConsoleProps) => {
   return (
     <div class="detail-logs">
-      {store.events.filter(Boolean).map((ev) => (
-        <ReplLog log={ev} key={ev.start} />
-      ))}
+      {
+        // for some reason ev can be null, just skip it
+        store.events.map((ev) => ev && <ReplLog log={ev} key={ev.start} />)
+      }
     </div>
   );
 });

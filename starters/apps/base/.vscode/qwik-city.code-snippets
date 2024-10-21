@@ -26,7 +26,7 @@
     "prefix": "qpage",
     "description": "Simple page component",
     "body": [
-      "import { component$ } from '@builder.io/qwik';",
+      "import { component$ } from '@qwik.dev/core';",
       "",
       "export default component$(() => {",
       "  $0",

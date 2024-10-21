@@ -6,18 +6,18 @@ expression: output
 ==INPUT==
 
 
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { deps } from 'deps';
 
 export const Foo = component$(({foo}) => {
-    useMount$(() => {
-        if (false) {
-            deps();
-        }
-    });
-    return (
-        <div />
-    );
+	useMount$(() => {
+		if (false) {
+			deps();
+		}
+	});
+	return (
+		<div />
+	);
 })
 
 ============================= test.tsx_foo_component_htdrsvublie.tsx (ENTRY POINT)==
@@ -28,7 +28,7 @@ export const Foo_component_HTDRsvUbLiE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"yCAI8B;IAC1B,UAAU,KAIV;IACA,QACK;AAET\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"yCAI8B;IAC7B,UAAU,KAIV;IACA,QACE;AAEH\"}")
 /*
 {
   "origin": "test.tsx",
@@ -44,15 +44,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    109,
-    240
+    107,
+    199
   ]
 }
 */
 ============================= test.tsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"));
 
 

@@ -1,6 +1,6 @@
-import { useDocumentHead, useLocation } from "@builder.io/qwik-city";
+import { useDocumentHead, useLocation } from "@qwik.dev/city";
 
-import { component$ } from "@builder.io/qwik";
+import { component$ } from "@qwik.dev/core";
 
 /**
  * The RouterHead component is placed inside of the document `<head>` element.
@@ -26,23 +26,11 @@ export const RouterHead = component$(() => {
       ))}
 
       {head.styles.map((s) => (
-        <style
-          key={s.key}
-          {...s.props}
-          {...(s.props?.dangerouslySetInnerHTML
-            ? {}
-            : { dangerouslySetInnerHTML: s.style })}
-        />
+        <style key={s.key} {...s.props} dangerouslySetInnerHTML={s.style} />
       ))}
 
       {head.scripts.map((s) => (
-        <script
-          key={s.key}
-          {...s.props}
-          {...(s.props?.dangerouslySetInnerHTML
-            ? {}
-            : { dangerouslySetInnerHTML: s.script })}
-        />
+        <script key={s.key} {...s.props} dangerouslySetInnerHTML={s.script} />
       ))}
     </>
   );

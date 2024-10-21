@@ -1,12 +1,4 @@
-import {
-  jsx,
-  _wrapSignal,
-  component$,
-  Slot,
-  $,
-  type QwikJSX,
-  type QRLEventHandlerMulti,
-} from '@builder.io/qwik';
+import { jsx, component$, Slot, $, type QwikJSX, type QRLEventHandlerMulti } from '@qwik.dev/core';
 import type { ActionStore } from './types';
 import { useNavigate } from './use-functions';
 
@@ -86,10 +78,10 @@ export const Form = <O, I>(
         action: action.actionPath,
         'preventdefault:submit': !reloadDocument,
         onSubmit$: [
+          // Since v2, this fires before the action is executed so it can be prevented
+          onSubmit$,
           // action.submit "submitcompleted" event for onSubmitCompleted$ events
           !reloadDocument ? action.submit : undefined,
-          // TODO: v2 breaking change this should fire before the action.submit
-          onSubmit$,
         ],
         method: 'post',
         ['data-spa-reset']: spaReset ? 'true' : undefined,

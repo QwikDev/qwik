@@ -306,6 +306,17 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         resolve: {
           dedupe: [...DEDUPE, ...vendorIds],
           conditions: buildMode === 'production' && target === 'client' ? ['min'] : [],
+          alias: {
+            '@builder.io/qwik': '@qwik.dev/core',
+            '@builder.io/qwik/build': '@qwik.dev/core/build',
+            '@builder.io/qwik/server': '@qwik.dev/core/server',
+            '@builder.io/qwik/jsx-runtime': '@qwik.dev/core/jsx-runtime',
+            '@builder.io/qwik/jsx-dev-runtime': '@qwik.dev/core/jsx-dev-runtime',
+            '@builder.io/qwik/optimizer': '@qwik.dev/core/optimizer',
+            '@builder.io/qwik/loader': '@qwik.dev/core/loader',
+            '@builder.io/qwik/cli': '@qwik.dev/core/cli',
+            '@builder.io/qwik/testing': '@qwik.dev/core/testing',
+          },
         },
         esbuild:
           viteCommand === 'serve'
@@ -420,13 +431,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     async configResolved(config) {
       basePathname = config.base;
       if (!(basePathname.startsWith('/') && basePathname.endsWith('/'))) {
-        // TODO v2: make this an error
-        console.error(
-          `warning: vite's config.base must begin and end with /. This will be an error in v2. If you have a valid use case, please open an issue.`
-        );
-        if (!basePathname.endsWith('/')) {
-          basePathname += '/';
-        }
+        throw new Error(`Vite's config.base must begin and end with /`);
       }
       const sys = qwikPlugin.getSys();
       if (sys.env === 'node' && !qwikViteOpts.entryStrategy) {
@@ -602,7 +607,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             source: JSON.stringify(convertManifestToBundleGraph(manifest)),
           });
           const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-          const workerScriptPath = (await this.resolve('@builder.io/qwik/qwik-prefetch.js'))!.id;
+          const workerScriptPath = (await this.resolve('@qwik.dev/core/qwik-prefetch.js'))!.id;
           const workerScript = await fs.promises.readFile(workerScriptPath, 'utf-8');
           const qwikPrefetchServiceWorkerFile = 'qwik-prefetch-service-worker.js';
           this.emitFile({
@@ -801,7 +806,7 @@ function getViteDevModule(opts: NormalizedQwikPluginOptions) {
   );
 
   return `// Qwik Vite Dev Module
-import { render as qwikRender } from '@builder.io/qwik';
+import { render as qwikRender } from '@qwik.dev/core';
 
 export async function render(document, rootNode, opts) {
 
@@ -911,7 +916,7 @@ export const isNotNullable = <T>(v: T): v is NonNullable<T> => {
   return v != null;
 };
 
-const VITE_CLIENT_MODULE = `@builder.io/qwik/vite-client`;
+const VITE_CLIENT_MODULE = `@qwik.dev/core/vite-client`;
 const CLIENT_DEV_INPUT = 'entry.dev';
 
 interface QwikVitePluginCommonOptions {

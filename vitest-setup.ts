@@ -8,6 +8,6 @@ globalThis.qInspector = false;
 
 beforeAll(async () => {
   const { getTestPlatform } = await import('./packages/qwik/src/testing/platform');
-  const { setPlatform } = await import('./packages/qwik/src/core/platform/platform');
+  const { setPlatform } = await import('./packages/qwik/src/core/shared/platform/platform');
   setPlatform(getTestPlatform() as any);
 });

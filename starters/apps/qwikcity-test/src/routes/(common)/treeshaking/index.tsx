@@ -1,5 +1,5 @@
-import { component$, useSignal } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
+import { routeLoader$ } from "@qwik.dev/city";
+import { component$, useSignal } from "@qwik.dev/core";
 
 export const neverUsed = routeLoader$(() => {
   // console.log('neverUsed');

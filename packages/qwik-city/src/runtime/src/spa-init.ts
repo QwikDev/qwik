@@ -2,8 +2,8 @@ import type { ClientSPAWindow } from './qwik-city-component';
 import type { ScrollHistoryState } from './scroll-restoration';
 import type { ScrollState } from './types';
 
-import { isDev } from '@builder.io/qwik/build';
-import { event$ } from '@builder.io/qwik';
+import { event$ } from '@qwik.dev/core';
+import { isDev } from '@qwik.dev/core/build';
 
 // TODO Dedupe handler code from here and QwikCityProvider?
 // TODO Navigation API; check for support & simplify.
@@ -70,7 +70,8 @@ export default event$((_: Event, el: Element) => {
       clearTimeout(win[debounceTimeout]);
 
       if (currentPath !== location.pathname + location.search) {
-        const getContainer = (el: Element) => el.closest('[q\\:container]');
+        const getContainer = (el: Element) =>
+          el.closest('[q\\:container]:not([q\\:container=html]):not([q\\:container=text])');
         // Hook into useNavigate context, if available.
         // We hijack a <Link> here, goes through the loader, resumes, app, etc. Simple.
         // TODO Will only work with <Link>, is there a better way?

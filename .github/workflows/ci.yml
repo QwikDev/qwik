@@ -864,6 +864,7 @@ jobs:
 
       - name: Publish packages for testing
         if: github.event_name != 'workflow_dispatch'
+        # TODO: bring back --compact in the package.json release.pkg-pr-new script after first npm public of V2 alpha
         run: pnpm release.pkg-pr-new
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

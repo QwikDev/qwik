@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { $, component$, useStore } from '@builder.io/qwik';
+import { $, component$, useStore } from '@qwik.dev/core';
 export const useCounter = () => {
 	return useStore({count: 0});
 }
@@ -37,9 +37,9 @@ export const App = component$((props) => {
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-import { useStore } from '@builder.io/qwik';
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useStore } from '@qwik.dev/core';
 export const useCounter = ()=>{
     return useStore({
         count: 0
@@ -49,10 +49,10 @@ export const STEP = 1;
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAwB,QAAQ,QAAQ,mBAAmB;AAC3D,OAAO,MAAM,aAAa;IACzB,OAAO,SAAS;QAAC,OAAO;IAAC;AAC1B,EAAC;AAED,OAAO,MAAM,OAAO,EAAE;AAEtB,OAAO,MAAM,oBAAM,iHAoBjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAwB,QAAQ,QAAQ,iBAAiB;AACzD,OAAO,MAAM,aAAa;IACzB,OAAO,SAAS;QAAC,OAAO;IAAC;AAC1B,EAAC;AAED,OAAO,MAAM,OAAO,EAAE;AAEtB,OAAO,MAAM,oBAAM,iHAoBjB\"}")
 ============================= test.tsx_app_component_div_onclick_1cgetmfzx0g.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
+import { useLexicalScope } from "@qwik.dev/core";
 export const App_component_div_onClick_1CGetmFZx0g = ()=>{
     const [count2, state] = useLexicalScope();
     return state.count += count2;
@@ -75,14 +75,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    342,
-    367
+    340,
+    365
   ]
 }
 */
 ============================= test.tsx_app_component_div_button_onclick_f5nww9e63a4.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
+import { useLexicalScope } from "@qwik.dev/core";
 import { STEP } from "./test";
 export const App_component_div_button_onClick_f5NwW9e63a4 = ()=>{
     const [btn, props, state, thing] = useLexicalScope();
@@ -106,18 +106,18 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    453,
-    521
+    451,
+    519
   ]
 }
 */
 ============================= test.tsx_app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import { _jsxSorted } from "@builder.io/qwik";
-import { _wrapProp } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 import { useCounter } from "./test";
-import { useStore } from "@builder.io/qwik";
+import { useStore } from "@qwik.dev/core";
 export const App_component_ckEPmXZlub0 = (props)=>{
     const state = useCounter();
     const thing = useStore({
@@ -159,8 +159,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    183,
-    582
+    181,
+    580
   ]
 }
 */

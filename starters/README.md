@@ -41,14 +41,14 @@ Here are steps to try out the CLI in a local environment.
 
 ## Publishing `create-qwik` CLI Package
 
-The starter CLI is published at the same time as `@builder.io/qwik`. When published, the CLI will update the `base` app's package.json to point to the published version of Qwik.
+The starter CLI is published at the same time as `@qwik.dev/core`. When published, the CLI will update the `base` app's package.json to point to the published version of Qwik.
 
 The base app's package.json's devDependencies are updated with:
 
 ```json
 {
   "devDependencies": {
-    "@builder.io/qwik": "<QWIK_VERSION_BEING_PUBLISHED>",
+    "@qwik.dev/core": "<QWIK_VERSION_BEING_PUBLISHED>",
     "typescript": "<SAME_AS_ROOT_PACKAGE>",
     "vite": "<SAME_AS_ROOT_PACKAGE>"
   }

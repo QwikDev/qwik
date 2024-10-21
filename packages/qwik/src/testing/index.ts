@@ -1,4 +1,4 @@
-import type { JSXOutput } from '@builder.io/qwik';
+import type { JSXOutput } from '@qwik.dev/core';
 // register vitest matchers
 import './vdom-diff.unit-util';
 

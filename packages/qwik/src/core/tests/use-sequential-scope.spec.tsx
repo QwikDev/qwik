@@ -1,7 +1,7 @@
+import { componentQrl, inlinedQrl } from '@qwik.dev/core';
+import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { trigger, domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 import { rerenderComponent } from '../../testing/rendering.unit-util';
-import { componentQrl, inlinedQrl } from '@builder.io/qwik';
 import { useSequentialScope } from '../use/use-sequential-scope';
 
 const debug = false; //true;

@@ -7,17 +7,17 @@
  * - https://qwik.dev/docs/deployments/node/
  *
  */
+import qwikCityPlan from "@qwik-city-plan";
+import { manifest } from "@qwik-client-manifest";
 import {
   createQwikCity,
   type PlatformNode,
-} from "@builder.io/qwik-city/middleware/node";
+} from "@qwik.dev/city/middleware/node";
 import "dotenv/config";
-import qwikCityPlan from "@qwik-city-plan";
-import { manifest } from "@qwik-client-manifest";
-import render from "./entry.ssr";
 import express from "express";
-import { fileURLToPath } from "node:url";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import render from "./entry.ssr";
 
 declare global {
   interface QwikCityPlatform extends PlatformNode {}

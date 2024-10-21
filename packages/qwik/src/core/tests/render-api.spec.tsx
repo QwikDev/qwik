@@ -1,27 +1,32 @@
 import {
   Fragment as Component,
+  Resource,
   Fragment as Signal,
-  type JSXOutput,
   component$,
   componentQrl,
+  getDomContainer,
   getPlatform,
-  setPlatform,
   inlinedQrl,
   render,
-  useServerData,
+  setPlatform,
   useLexicalScope,
   useOn,
-  Resource,
   useResource$,
   useResourceQrl,
+  useServerData,
   useSignal,
   useTask$,
-  getDomContainer,
-} from '@builder.io/qwik';
-import { createDocument } from '@builder.io/qwik-dom';
-import type { GlobalInjections, QwikManifest } from '@builder.io/qwik/optimizer';
-import { renderToStream, renderToString } from '@builder.io/qwik/server';
-import { emulateExecutionOfQwikFuncs, getTestPlatform, trigger } from '@builder.io/qwik/testing';
+  type JSXOutput,
+} from '@qwik.dev/core';
+import type { GlobalInjections, QwikManifest } from '@qwik.dev/core/optimizer';
+import { renderToStream, renderToString } from '@qwik.dev/core/server';
+import {
+  createDocument,
+  emulateExecutionOfQwikFuncs,
+  getTestPlatform,
+  trigger,
+} from '@qwik.dev/core/testing';
+import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type {
   RenderToStreamOptions,
@@ -31,9 +36,8 @@ import type {
   StreamWriter,
   StreamingOptions,
 } from '../../server/types';
-import { _fnSignal } from '../internal';
 import { vnode_getFirstChild } from '../client/vnode';
-import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
+import { _fnSignal } from '../internal';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
@@ -206,7 +210,7 @@ describe('render api', () => {
       const result = await renderToStringAndSetPlatform(<TestCmp />, {
         containerTagName: 'div',
       });
-      document = createDocument(result.html);
+      document = createDocument({ html: result.html });
       emulateExecutionOfQwikFuncs(document);
       const container = getDomContainer(document.body.firstChild as HTMLElement);
       const vNode = vnode_getFirstChild(container.rootVNode);
@@ -354,7 +358,7 @@ describe('render api', () => {
         const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
         });
-        const document = createDocument(result.html);
+        const document = createDocument({ html: result.html });
         // qwik loader is one before last
         const qwikLoaderScriptElement = document.body.firstChild?.lastChild
           ?.previousSibling as HTMLElement;
@@ -368,7 +372,7 @@ describe('render api', () => {
             position: 'bottom',
           },
         });
-        const document = createDocument(result.html);
+        const document = createDocument({ html: result.html });
         // qwik loader is one before last
         const qwikLoaderScriptElement = document.body.firstChild?.lastChild
           ?.previousSibling as HTMLElement;
@@ -394,7 +398,7 @@ describe('render api', () => {
             },
           }
         );
-        const document = createDocument(result.html);
+        const document = createDocument({ html: result.html });
         // should render in head
         const head = document.head as HTMLButtonElement;
         // qwik events should be the last script
@@ -419,7 +423,7 @@ describe('render api', () => {
             include: 'always',
           },
         });
-        const document = createDocument(result.html);
+        const document = createDocument({ html: result.html });
         // should not contain qwik events script for top position
         expect(document.head.lastChild?.textContent ?? '').not.toContain('window.qwikevents.push');
         expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(1);
@@ -431,7 +435,7 @@ describe('render api', () => {
             include: 'auto',
           },
         });
-        const document = createDocument(result.html);
+        const document = createDocument({ html: result.html });
         // should not contain qwik events script for top position
         expect(document.head.lastChild?.textContent ?? '').not.toContain('window.qwikevents.push');
         expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(0);
@@ -443,7 +447,7 @@ describe('render api', () => {
             include: 'never',
           },
         });
-        const document = createDocument(result.html);
+        const document = createDocument({ html: result.html });
         expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(0);
         // should not contain qwik events script for top position
         expect(document.head.lastChild?.textContent ?? '').not.toContain('window.qwikevents.push');
@@ -454,7 +458,7 @@ describe('render api', () => {
         const result = await renderToStringAndSetPlatform(<ManyEventsComponent />, {
           containerTagName: 'div',
         });
-        const document = createDocument(result.html);
+        const document = createDocument({ html: result.html });
         // event script is next sibling of the qwik loader
         const eventScript = document.querySelector('script[id=qwikloader]')
           ?.nextSibling as HTMLElement;
@@ -476,7 +480,7 @@ describe('render api', () => {
         const result = await renderToStringAndSetPlatform(<CounterDerived initial={123} />, {
           containerTagName: 'div',
         });
-        const document = createDocument(result.html);
+        const document = createDocument({ html: result.html });
         const qwikFuncScriptElements = document.querySelectorAll('script[q\\:func=qwik/json]');
         expect(qwikFuncScriptElements).toHaveLength(1);
         expect(qwikFuncScriptElements[0].textContent).toMatch(
@@ -499,7 +503,7 @@ describe('render api', () => {
           manifest: defaultManifest,
         });
         expect(result.prefetchResources).toEqual(expect.any(Array));
-        const document = createDocument(result.html);
+        const document = createDocument({ html: result.html });
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
         expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
         expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
@@ -516,7 +520,7 @@ describe('render api', () => {
           },
           manifest: defaultManifest,
         });
-        const document = createDocument(result.html);
+        const document = createDocument({ html: result.html });
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
         expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
         expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
@@ -533,7 +537,7 @@ describe('render api', () => {
           },
           manifest: defaultManifest,
         });
-        const document = createDocument(result.html);
+        const document = createDocument({ html: result.html });
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
         const linkJsScript = document.querySelectorAll('script[q\\:type=link-js]');
         expect(linkJsScript).toHaveLength(1);
@@ -553,7 +557,7 @@ describe('render api', () => {
           },
           manifest: defaultManifest,
         });
-        const document = createDocument(result.html);
+        const document = createDocument({ html: result.html });
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
         expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
         expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
@@ -571,7 +575,7 @@ describe('render api', () => {
           },
           manifest: defaultManifest,
         });
-        const document = createDocument(result.html);
+        const document = createDocument({ html: result.html });
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
         const linkJsScript = document.querySelectorAll('script[q\\:type=link-js]');
         expect(linkJsScript).toHaveLength(1);
@@ -591,7 +595,7 @@ describe('render api', () => {
           },
           manifest: defaultManifest,
         });
-        const document = createDocument(result.html);
+        const document = createDocument({ html: result.html });
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
         expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
         expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
@@ -609,7 +613,7 @@ describe('render api', () => {
           },
           manifest: defaultManifest,
         });
-        const document = createDocument(result.html);
+        const document = createDocument({ html: result.html });
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
         const linkJsScript = document.querySelectorAll('script[q\\:type=link-js]');
         expect(linkJsScript).toHaveLength(1);
@@ -628,7 +632,7 @@ describe('render api', () => {
           },
           manifest: defaultManifest,
         });
-        const document = createDocument(result.html);
+        const document = createDocument({ html: result.html });
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(0);
         expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
         expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
@@ -645,7 +649,7 @@ describe('render api', () => {
           },
           manifest: defaultManifest,
         });
-        const document = createDocument(result.html);
+        const document = createDocument({ html: result.html });
         expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
         expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
         expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(1);
@@ -658,7 +662,7 @@ describe('render api', () => {
         const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: testTag,
         });
-        const document = createDocument(result.html);
+        const document = createDocument({ html: result.html });
         expect(document.body.firstChild?.nodeName.toLowerCase()).toEqual(testTag);
       });
       it('should render custom container attributes', async () => {
@@ -736,7 +740,7 @@ describe('render api', () => {
           containerTagName: 'div',
           serverData: { 'my-key': 'my-value' },
         });
-        const document = createDocument(result.html);
+        const document = createDocument({ html: result.html });
         const componentElement = document.body.firstChild;
         expect(componentElement?.firstChild?.textContent).toEqual('my-value/default-value');
       });
@@ -821,7 +825,7 @@ describe('render api', () => {
             },
           }
         );
-        const document = createDocument(result.html);
+        const document = createDocument({ html: result.html });
         const style = document.head.querySelector('style');
         expect(style?.getAttribute('data-src')).toEqual(cssPath);
         expect(style?.innerHTML).toEqual(cssContent);
@@ -1019,7 +1023,7 @@ describe('render api', () => {
           containerTagName: 'div',
           stream,
         });
-        document = createDocument(chunks.join(''));
+        document = createDocument({ html: chunks.join('') });
         emulateExecutionOfQwikFuncs(document);
         const container = getDomContainer(document.body.firstChild as HTMLElement);
         const vNode = vnode_getFirstChild(container.rootVNode);

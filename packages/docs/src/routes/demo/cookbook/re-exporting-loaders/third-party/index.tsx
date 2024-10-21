@@ -1,4 +1,4 @@
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { ThirdPartyPaymentComponent } from './third-party-library';
 
 // As mentioned, here we are re-exporting the third-party loader

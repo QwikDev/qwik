@@ -47,8 +47,8 @@ src/
 > Please note that in dev mode the Vite scripts have no nonce and will report. For this reason, the example will not add csp in dev mode.
 
 ```typescript title="src/routes/plugin@csp.ts"
-import type { RequestHandler } from "@builder.io/qwik-city";
-import { isDev } from "@builder.io/qwik/build";
+import type { RequestHandler } from "@qwik.dev/city";
+import { isDev } from "@qwik.dev/core/build";
 
 export const onRequest: RequestHandler = event => {
   if (isDev) return; // Will not return CSP headers in dev mode
@@ -72,14 +72,14 @@ export const onRequest: RequestHandler = event => {
 ### Add it to the service worker as well
 
 ```tsx {12,22} /nonce/ title="src/root.ts"
-import { component$, useServerData } from "@builder.io/qwik";
+import { component$, useServerData } from "@qwik.dev/core";
 import {
   QwikCityProvider,
   RouterOutlet,
   ServiceWorkerRegister,
-} from "@builder.io/qwik-city";
+} from "@qwik.dev/city";
 import { RouterHead } from "./components/router-head/router-head";
-import { isDev } from "@builder.io/qwik/build";
+import { isDev } from "@qwik.dev/core/build";
 
 import "./global.css";
 

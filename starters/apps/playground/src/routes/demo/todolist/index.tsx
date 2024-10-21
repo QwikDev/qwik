@@ -1,12 +1,12 @@
-import { component$ } from "@builder.io/qwik";
 import {
   type DocumentHead,
-  routeLoader$,
-  routeAction$,
-  zod$,
-  z,
   Form,
-} from "@builder.io/qwik-city";
+  routeAction$,
+  routeLoader$,
+  z,
+  zod$,
+} from "@qwik.dev/city";
+import { component$ } from "@qwik.dev/core";
 import styles from "./todolist.module.css";
 
 interface ListItem {

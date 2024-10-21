@@ -31,7 +31,7 @@ Additionally, an `onRequest` function can be used to handle any request method, 
 The `onRequest` is available as a catch-all to any request methods that do not have a specific method.
 
 ```tsx
-import type { RequestHandler } from '@builder.io/qwik-city';
+import type { RequestHandler } from '@qwik.dev/city';
 
 export const onGet: RequestHandler<ProductData> = async ({ params }) => {
   // put your DB access here (hard coding data for simplicity)

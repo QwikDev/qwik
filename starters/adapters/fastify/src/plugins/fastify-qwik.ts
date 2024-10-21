@@ -1,6 +1,6 @@
-import { createQwikCity } from "@builder.io/qwik-city/middleware/node";
 import fastifyStatic from "@fastify/static";
 import qwikCityPlan from "@qwik-city-plan";
+import { createQwikCity } from "@qwik.dev/city/middleware/node";
 import type { FastifyPluginAsync } from "fastify";
 import fastifyPlugin from "fastify-plugin";
 

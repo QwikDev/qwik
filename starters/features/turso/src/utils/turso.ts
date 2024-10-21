@@ -1,5 +1,5 @@
-import type { RequestEventBase } from "@builder.io/qwik-city";
 import { createClient, type Client } from "@libsql/client/web";
+import type { RequestEventBase } from "@qwik.dev/city";
 
 export function tursoClient(requestEvent: RequestEventBase): Client {
   const url = requestEvent.env.get("PRIVATE_TURSO_DATABASE_URL")?.trim();

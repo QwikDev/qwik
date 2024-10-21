@@ -1,10 +1,10 @@
 import {
   component$,
+  useSignal,
   useStore,
   useVisibleTask$,
-  useSignal,
   type PropsOf,
-} from "@builder.io/qwik";
+} from "@qwik.dev/core";
 
 export const RefRoot = component$(() => {
   const state = useStore({

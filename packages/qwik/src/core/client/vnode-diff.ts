@@ -1,4 +1,4 @@
-import { isDev } from '@builder.io/qwik/build';
+import { isDev } from '@qwik.dev/core/build';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
 import type { QRLInternal } from '../shared/qrl/qrl-class';

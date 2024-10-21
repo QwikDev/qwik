@@ -1,23 +1,22 @@
 import {
   Fragment as Component,
+  component$,
   Fragment,
+  inlinedQrl,
   Fragment as Projection,
   Fragment as Signal,
-  component$,
-  inlinedQrl,
   Slot,
   useSignal,
   useStylesScopedQrl,
-} from '@builder.io/qwik';
-import { createDocument } from '@builder.io/qwik-dom';
+} from '@qwik.dev/core';
+import { renderToString } from '@qwik.dev/core/server';
+import { createDocument, domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 import { afterEach, describe, expect, it } from 'vitest';
 import { useStore } from '..';
-import { renderToString } from '@builder.io/qwik/server';
-import { trigger, domRender, ssrRenderToDom } from '@builder.io/qwik/testing';
 import { getPlatform, setPlatform } from '../shared/platform/platform';
-import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
 import { QStyleSelector } from '../shared/utils/markers';
-import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
+import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -707,7 +706,7 @@ describe('html wrapper', () => {
           </body>
         </Wrapper>
       );
-      document = createDocument(result.html);
+      document = createDocument({ html: result.html });
     } finally {
       setPlatform(platform);
     }

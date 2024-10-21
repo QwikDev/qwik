@@ -92,7 +92,7 @@ export const preferClasslist = {
 };
 
 const preferClasslistGood = `
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import styles from './MyComponent.module.css';
  
 export default component$((props) => {
@@ -112,7 +112,7 @@ export default component$((props) => {
 });`.trim();
 
 const preferClasslistBad = `
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import classnames from 'classnames';
 import styles from './MyComponent.module.css';
  

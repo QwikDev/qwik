@@ -5,10 +5,9 @@ import type {
   _DomContainer,
   _VNode,
   _VirtualVNode,
-} from '@builder.io/qwik';
-import { _getDomContainer, componentQrl, type OnRenderFn } from '@builder.io/qwik';
+} from '@qwik.dev/core';
+import { Slot, _getDomContainer, componentQrl, render, type OnRenderFn } from '@qwik.dev/core';
 import { expect } from 'vitest';
-import { render } from '../core/client/dom-render';
 import {
   vnode_getAttr,
   vnode_getFirstChild,
@@ -19,7 +18,6 @@ import {
 } from '../core/client/vnode';
 import { ERROR_CONTEXT } from '../core/shared/error/error-handling';
 import type { Props } from '../core/shared/jsx/jsx-runtime';
-import { Slot } from '../core/shared/jsx/slot.public';
 import { getPlatform, setPlatform } from '../core/shared/platform/platform';
 import { inlinedQrl } from '../core/shared/qrl/qrl';
 import { ChoreType } from '../core/shared/scheduler';

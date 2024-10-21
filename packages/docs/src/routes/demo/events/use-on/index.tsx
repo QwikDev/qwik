@@ -1,4 +1,4 @@
-import { $, component$, useOnDocument, useStore } from '@builder.io/qwik';
+import { $, component$, useOnDocument, useStore } from '@qwik.dev/core';
 
 // Assume reusable use method that does not have access to JSX
 // but needs to register event handlers.

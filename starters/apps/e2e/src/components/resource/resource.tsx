@@ -1,16 +1,16 @@
 /* eslint-disable */
 import {
   component$,
-  useStore,
-  useResource$,
-  Resource,
-  useTask$,
   createContextId,
-  useContextProvider,
+  Resource,
   useContext,
+  useContextProvider,
+  useResource$,
+  useStore,
   useStyles$,
+  useTask$,
   type ResourceReturn,
-} from "@builder.io/qwik";
+} from "@qwik.dev/core";
 
 export interface WeatherData {
   name: string;

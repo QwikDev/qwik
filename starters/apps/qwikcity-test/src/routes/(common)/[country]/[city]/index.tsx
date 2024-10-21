@@ -1,10 +1,10 @@
-import { component$ } from "@builder.io/qwik";
 import {
   type DocumentHead,
   Link,
   routeLoader$,
   useLocation,
-} from "@builder.io/qwik-city";
+} from "@qwik.dev/city";
+import { component$ } from "@qwik.dev/core";
 
 export const useWeatherLoader = routeLoader$(({ params, query }) => {
   return {

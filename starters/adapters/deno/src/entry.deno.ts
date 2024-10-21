@@ -8,9 +8,9 @@
  * - https://docs.deno.com/runtime/tutorials/http_server
  *
  */
-import { createQwikCity } from "@builder.io/qwik-city/middleware/deno";
 import qwikCityPlan from "@qwik-city-plan";
 import { manifest } from "@qwik-client-manifest";
+import { createQwikCity } from "@qwik.dev/city/middleware/deno";
 import render from "./entry.ssr";
 
 // Create the Qwik City Deno middleware

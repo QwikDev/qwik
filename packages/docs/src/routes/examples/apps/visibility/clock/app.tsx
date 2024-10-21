@@ -1,4 +1,4 @@
-import { component$, useStore, useStyles$, useVisibleTask$ } from '@builder.io/qwik';
+import { component$, useStore, useStyles$, useVisibleTask$ } from '@qwik.dev/core';
 import styles from './clock.css?inline';
 
 export default component$(() => {

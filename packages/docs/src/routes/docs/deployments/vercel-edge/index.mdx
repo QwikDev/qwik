@@ -135,7 +135,7 @@ You can access environment variables from Vercel like this `process.env['MY_ENV_
 When the `vercel-edge` adapter is added, a new entry file will be created at `src/entry.vercel-edge.tsx`. Below is an example of using the built-in middleware within the entry file.
 
 ```tsx title="src/entry.vercel-edge.tsx"
-import { createQwikCity } from '@builder.io/qwik-city/middleware/vercel-edge';
+import { createQwikCity } from '@qwik.dev/city/middleware/vercel-edge';
 import qwikCityPlan from '@qwik-city-plan';
 import render from './entry.ssr';
 

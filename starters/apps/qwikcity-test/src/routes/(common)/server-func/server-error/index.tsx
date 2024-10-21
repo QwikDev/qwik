@@ -1,6 +1,6 @@
-import { component$, useSignal, useVisibleTask$ } from "@builder.io/qwik";
-import { server$ } from "@builder.io/qwik-city";
-import { ServerError } from "@builder.io/qwik-city/middleware/request-handler";
+import { server$ } from "@qwik.dev/city";
+import { ServerError } from "@qwik.dev/city/middleware/request-handler";
+import { component$, useSignal, useVisibleTask$ } from "@qwik.dev/core";
 import { delay } from "../../actions/login";
 
 type ResponseTuple = [null | string, string];

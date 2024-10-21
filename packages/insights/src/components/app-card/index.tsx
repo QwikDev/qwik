@@ -1,7 +1,6 @@
-import { AppLink } from '~/routes.config';
-import { CopyIcon } from '../icons/copy';
+import { component$ } from '@qwik.dev/core';
 import Gauge from '../gauge';
-import { component$ } from '@builder.io/qwik';
+import { CopyIcon } from '../icons/copy';
 
 type AppCardProps = {
   mode: 'show' | 'create' | 'link';
@@ -11,12 +10,12 @@ type AppCardProps = {
 };
 
 export default component$<AppCardProps>(({ mode, title = '', publicApiKey = '__new__' }) => {
-  const link = mode === 'show' ? `/app/[publicApiKey]/` : `/app/add/`;
+  const link = mode === 'show' ? `/app/${publicApiKey}/` : `/app/add/`;
   const label = mode === 'create' ? '+' : mode === 'link' ? '~' : title;
   const gaugeColor = mode === 'show' ? 'default' : 'gray';
 
   return (
-    <AppLink route={link} param:publicApiKey={publicApiKey}>
+    <a href={link}>
       <div class="cursor-pointer rounded-lg bg-white p-6">
         <div class="flex items-center gap-4">
           <div class="min-w-[80px]">
@@ -41,6 +40,6 @@ export default component$<AppCardProps>(({ mode, title = '', publicApiKey = '__n
           </div>
         </div>
       </div>
-    </AppLink>
+    </a>
   );
 });

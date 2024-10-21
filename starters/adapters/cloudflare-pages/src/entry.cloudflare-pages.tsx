@@ -7,12 +7,12 @@
  * - https://qwik.dev/docs/deployments/cloudflare-pages/
  *
  */
+import qwikCityPlan from "@qwik-city-plan";
+import { manifest } from "@qwik-client-manifest";
 import {
   createQwikCity,
   type PlatformCloudflarePages,
-} from "@builder.io/qwik-city/middleware/cloudflare-pages";
-import qwikCityPlan from "@qwik-city-plan";
-import { manifest } from "@qwik-client-manifest";
+} from "@qwik.dev/city/middleware/cloudflare-pages";
 import render from "./entry.ssr";
 
 declare global {

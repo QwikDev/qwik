@@ -7,7 +7,7 @@
     "resolveJsonModule": true,
     "jsx": "react-jsx",
     "allowArbitraryExtensions": true,
-    "jsxImportSource": "@builder.io/qwik",
+    "jsxImportSource": "@qwik.dev/core",
     "declaration": true,
     "outDir": "./dist-dev/tsc-out",
     "declarationDir": "./dist-dev/dts-out",
@@ -42,8 +42,6 @@
   },
   "include": [
     "packages/create-qwik",
-    "packages/qwik-auth",
-    "packages/qwik-worker",
     "packages/supabase-auth-helpers-qwik",
     "packages/qwik-react/src",
     "scripts",

@@ -7,19 +7,19 @@ import {
   SSRComment,
   Fragment as Signal,
   SkipRender,
+  Slot,
   component$,
   h,
   jsx,
   useComputed$,
-  useVisibleTask$,
   useSignal,
   useStore,
-  type JSXOutput,
   useTask$,
+  useVisibleTask$,
+  type JSXOutput,
   type Signal as SignalType,
-  Slot,
-} from '@builder.io/qwik';
-import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
+} from '@qwik.dev/core';
+import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { cleanupAttrs } from '../../testing/element-fixture';
 import { ErrorProvider } from '../../testing/rendering.unit-util';

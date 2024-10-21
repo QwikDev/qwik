@@ -11,7 +11,7 @@ import {
   useStore,
   type QRL,
   type ValueOrPromise,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
 
 import * as v from 'valibot';
 import { z } from 'zod';
@@ -38,19 +38,19 @@ import type {
   ServerConfig,
   ServerFunction,
   ServerQRL,
-  ValidatorConstructor,
-  ValidatorConstructorQRL,
-  ValidatorReturn,
   ValibotConstructor,
   ValibotConstructorQRL,
   ValibotDataValidator,
+  ValidatorConstructor,
+  ValidatorConstructorQRL,
+  ValidatorReturn,
   ZodConstructor,
   ZodConstructorQRL,
   ZodDataValidator,
 } from './types';
 import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 
-import { isDev, isServer } from '@builder.io/qwik/build';
+import { isDev, isServer } from '@qwik.dev/core/build';
 
 import type { FormSubmitCompletedDetail } from './form-component';
 import { deepFreeze } from './utils';

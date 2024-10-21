@@ -188,7 +188,6 @@ You can run `pnpm build` without parameters to see which flags are available. No
 - `--build`: Qwik (you'll probably also need `--dev`)
 - `--qwikcity`: Qwik City (you'll probably also need `--dev`)
 - `--qwikreact`: Qwik React
-- `--qwiklabs`: Qwik Labs
 - `--eslint`: Eslint plugin
 
 E.g. to build only the React integration, you'd run `pnpm build --qwikreact`.
@@ -217,7 +216,7 @@ It will build **everything**, including Rust packages and WASM.
 pnpm build.full
 ```
 
-The build output will be written to `packages/qwik/dist`, which will be the directory that is published to [@builder.io/qwik](https://www.npmjs.com/package/@builder.io/qwik).
+The build output will be written to `packages/qwik/dist`, which will be the directory that is published to [@qwik.dev/core](https://www.npmjs.com/package/@qwik.dev/core).
 
 To update the Rust test snapshots after you've made changes to the Rust code, run `pnpm test.rust.update`.
 
@@ -233,9 +232,9 @@ pnpm link ../qwik/packages/qwik
 pnpm link ../qwik/packages/qwik-city
 ```
 
-Other package managers probably need to first be told about the packages. For example, with `bun` you need to `cd ../qwik/packages/qwik` and `bun link`, repeat for `qwik-city`. Then in your app run `bun link @builder.io/qwik @builder.io/qwik-city`.
+Other package managers probably need to first be told about the packages. For example, with `bun` you need to `cd ../qwik/packages/qwik` and `bun link`, repeat for `qwik-city`. Then in your app run `bun link @qwik.dev/core @qwik.dev/city`.
 
-If you can't use package linking, just copy the contents of `packages/qwik` into your projects' `node_modules/@builder.io/qwik` folder, and/or the contents of `packages/qwik-city` into your projects' `node_modules/@builder.io/qwik-city` folder.
+If you can't use package linking, just copy the contents of `packages/qwik` into your projects' `node_modules/@qwik.dev/core` folder, and/or the contents of `packages/qwik-city` into your projects' `node_modules/@qwik.dev/city` folder.
 
 ### Working on the docs site
 

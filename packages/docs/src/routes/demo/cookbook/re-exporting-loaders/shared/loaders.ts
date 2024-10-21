@@ -1,4 +1,4 @@
-import { routeAction$, routeLoader$ } from '@builder.io/qwik-city';
+import { routeAction$, routeLoader$ } from '@qwik.dev/city';
 
 export const useCommonRouteAction = routeAction$(async () => {
   // ...

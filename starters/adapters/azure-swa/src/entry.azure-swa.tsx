@@ -7,12 +7,12 @@
  * - https://qwik.dev/docs/deployments/azure-swa/
  *
  */
+import qwikCityPlan from "@qwik-city-plan";
+import { manifest } from "@qwik-client-manifest";
 import {
   createQwikCity,
   type PlatformAzure,
-} from "@builder.io/qwik-city/middleware/azure-swa";
-import qwikCityPlan from "@qwik-city-plan";
-import { manifest } from "@qwik-client-manifest";
+} from "@qwik.dev/city/middleware/azure-swa";
 import render from "./entry.ssr";
 
 declare global {

@@ -1,22 +1,22 @@
 import {
   component$,
-  useSignal,
-  useStore,
-  useStylesScoped$,
-  useTask$,
   event$,
   h,
   jsx,
   SkipRender,
-  SSRRaw,
-  type PropsOf,
   Slot,
-  type QRL,
-  type JSXOutput,
   SSRComment,
-} from "@builder.io/qwik";
+  SSRRaw,
+  useSignal,
+  useStore,
+  useStylesScoped$,
+  useTask$,
+  type JSXOutput,
+  type PropsOf,
+  type QRL,
+} from "@qwik.dev/core";
+import { isServer } from "@qwik.dev/core/build";
 import { delay } from "../streaming/demo";
-import { isServer } from "@builder.io/qwik/build";
 
 export const Render = component$(() => {
   const rerender = useSignal(0);

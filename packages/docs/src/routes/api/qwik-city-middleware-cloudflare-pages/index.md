@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city/middleware/cloudflare-pages API Reference
+title: \@qwik.dev/qwik-city/middleware/cloudflare-pages API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city/middleware/cloudflare-pages
+# [API](/api) &rsaquo; @qwik.dev/qwik-city/middleware/cloudflare-pages
 
 ## createQwikCity
 
@@ -74,7 +74,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[ctx](#)
+[ctx](./city.platformcloudflarepages.ctx.md)
 
 </td><td>
 
@@ -87,7 +87,7 @@ Description
 </td></tr>
 <tr><td>
 
-[env?](#)
+[env?](./city.platformcloudflarepages.env.md)
 
 </td><td>
 
@@ -102,7 +102,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[request](#)
+[request](./city.platformcloudflarepages.request.md)
 
 </td><td>
 

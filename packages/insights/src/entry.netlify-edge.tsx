@@ -7,10 +7,7 @@
  * - https://qwik.dev/docs/deployments/netlify-edge/
  *
  */
-import {
-  createQwikCity,
-  type PlatformNetlify,
-} from '@builder.io/qwik-city/middleware/netlify-edge';
+import { createQwikCity, type PlatformNetlify } from '@qwik.dev/city/middleware/netlify-edge';
 import qwikCityPlan from '@qwik-city-plan';
 import render from './entry.ssr';
 

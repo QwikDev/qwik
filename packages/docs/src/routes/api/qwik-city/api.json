@@ -1,6 +1,6 @@
 {
   "id": "qwik-city",
-  "package": "@builder.io/qwik-city",
+  "package": "@qwik.dev/qwik-city",
   "members": [
     {
       "name": "Action",
@@ -14,7 +14,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boolean = true> = {\n    (): ActionStore<RETURN, INPUT, OPTIONAL>;\n};\n```\n**References:** [ActionStore](#actionstore)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.action.md"
+      "mdFile": "city.action.md"
     },
     {
       "name": "ActionConstructor",
@@ -28,7 +28,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type ActionConstructor = {\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: [VALIDATOR, ...REST];\n    }): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: [VALIDATOR];\n    }): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options: {\n        readonly id?: string;\n        readonly validation: REST;\n    }): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>> | FailReturn<FailOfRest<REST>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, VALIDATOR extends TypedDataValidator>(actionQrl: (data: GetValidatorOutputType<VALIDATOR>, event: RequestEventAction) => ValueOrPromise<OBJ>, options: VALIDATOR): Action<StrictUnion<OBJ | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>>, GetValidatorInputType<VALIDATOR>, false>;\n    <OBJ extends Record<string, any> | void | null, REST extends [DataValidator, ...DataValidator[]]>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, ...rest: REST): Action<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;\n    <OBJ>(actionQrl: (form: JSONObject, event: RequestEventAction) => ValueOrPromise<OBJ>, options?: {\n        readonly id?: string;\n    }): Action<StrictUnion<OBJ>>;\n};\n```\n**References:** [TypedDataValidator](#typeddatavalidator)<!-- -->, [DataValidator](#datavalidator)<!-- -->, [GetValidatorOutputType](#getvalidatoroutputtype)<!-- -->, [Action](#action)<!-- -->, [StrictUnion](#strictunion)<!-- -->, [FailReturn](#failreturn)<!-- -->, [ValidatorErrorType](#validatorerrortype)<!-- -->, [GetValidatorInputType](#getvalidatorinputtype)<!-- -->, [FailOfRest](#failofrest)<!-- -->, [JSONObject](#jsonobject)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.actionconstructor.md"
+      "mdFile": "city.actionconstructor.md"
     },
     {
       "name": "ActionReturn",
@@ -42,7 +42,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type ActionReturn<RETURN> = {\n    readonly status?: number;\n    readonly value: RETURN;\n};\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.actionreturn.md"
+      "mdFile": "city.actionreturn.md"
     },
     {
       "name": "ActionStore",
@@ -56,7 +56,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type ActionStore<RETURN, INPUT, OPTIONAL extends boolean = true> = {\n    readonly actionPath: string;\n    readonly isRunning: boolean;\n    readonly status?: number;\n    readonly formData: FormData | undefined;\n    readonly value: RETURN | undefined;\n    readonly submit: QRL<OPTIONAL extends true ? (form?: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>> : (form: INPUT | FormData | SubmitEvent) => Promise<ActionReturn<RETURN>>>;\n    readonly submitted: boolean;\n};\n```\n**References:** [ActionReturn](#actionreturn)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.actionstore.md"
+      "mdFile": "city.actionstore.md"
     },
     {
       "name": "ContentHeading",
@@ -68,9 +68,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ContentHeading \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[id](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[level](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[text](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface ContentHeading \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[id](./city.contentheading.id.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[level](./city.contentheading.level.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[text](./city.contentheading.text.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.contentheading.md"
+      "mdFile": "city.contentheading.md"
     },
     {
       "name": "ContentMenu",
@@ -82,9 +82,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ContentMenu \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[href?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[items?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[ContentMenu](#contentmenu)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[text](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface ContentMenu \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[href?](./city.contentmenu.href.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[items?](./city.contentmenu.items.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[ContentMenu](#contentmenu)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[text](./city.contentmenu.text.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.contentmenu.md"
+      "mdFile": "city.contentmenu.md"
     },
     {
       "name": "DataValidator",
@@ -98,7 +98,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type DataValidator<T extends Record<string, any> = {}> = {\n    validate(ev: RequestEvent, data: unknown): Promise<ValidatorReturn<T>>;\n};\n```\n**References:** [ValidatorReturn](#validatorreturn)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.datavalidator.md"
+      "mdFile": "city.datavalidator.md"
     },
     {
       "name": "DocumentHead",
@@ -112,7 +112,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type DocumentHead = DocumentHeadValue | ((props: DocumentHeadProps) => DocumentHeadValue);\n```\n**References:** [DocumentHeadValue](#documentheadvalue)<!-- -->, [DocumentHeadProps](#documentheadprops)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.documenthead.md"
+      "mdFile": "city.documenthead.md"
     },
     {
       "name": "DocumentHeadProps",
@@ -124,9 +124,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface DocumentHeadProps extends RouteLocation \n```\n**Extends:** [RouteLocation](#routelocation)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[head](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[ResolvedDocumentHead](#resolveddocumenthead)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[resolveValue](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nResolveSyncValue\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[withLocale](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n&lt;T&gt;(fn: () =&gt; T) =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface DocumentHeadProps extends RouteLocation \n```\n**Extends:** [RouteLocation](#routelocation)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[head](./city.documentheadprops.head.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[ResolvedDocumentHead](#resolveddocumenthead)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[resolveValue](./city.documentheadprops.resolvevalue.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nResolveSyncValue\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[withLocale](./city.documentheadprops.withlocale.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n&lt;T&gt;(fn: () =&gt; T) =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.documentheadprops.md"
+      "mdFile": "city.documentheadprops.md"
     },
     {
       "name": "DocumentHeadValue",
@@ -138,9 +138,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface DocumentHeadValue<FrontMatter extends Record<string, any> = Record<string, unknown>> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[frontmatter?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonly&lt;FrontMatter&gt;\n\n\n</td><td>\n\n_(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property.\n\n\n</td></tr>\n<tr><td>\n\n[links?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentLink](#documentlink)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<link>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[meta?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentMeta](#documentmeta)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually set meta tags in the head. Additionally, the `data` property could be used to set arbitrary data which the `<head>` component could later use to generate `<meta>` tags.\n\n\n</td></tr>\n<tr><td>\n\n[scripts?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentScript](#documentscript)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<script>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[styles?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentStyle](#documentstyle)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<style>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[title?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ Sets `document.title`<!-- -->.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface DocumentHeadValue<FrontMatter extends Record<string, any> = Record<string, unknown>> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[frontmatter?](./city.documentheadvalue.frontmatter.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonly&lt;FrontMatter&gt;\n\n\n</td><td>\n\n_(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property.\n\n\n</td></tr>\n<tr><td>\n\n[links?](./city.documentheadvalue.links.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentLink](#documentlink)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<link>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[meta?](./city.documentheadvalue.meta.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentMeta](#documentmeta)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually set meta tags in the head. Additionally, the `data` property could be used to set arbitrary data which the `<head>` component could later use to generate `<meta>` tags.\n\n\n</td></tr>\n<tr><td>\n\n[scripts?](./city.documentheadvalue.scripts.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentScript](#documentscript)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<script>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[styles?](./city.documentheadvalue.styles.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentStyle](#documentstyle)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<style>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[title?](./city.documentheadvalue.title.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ Sets `document.title`<!-- -->.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.documentheadvalue.md"
+      "mdFile": "city.documentheadvalue.md"
     },
     {
       "name": "DocumentLink",
@@ -152,9 +152,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface DocumentLink \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[as?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[crossorigin?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[disabled?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[href?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[hreflang?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[id?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[imagesizes?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[imagesrcset?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[integrity?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[key?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[media?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[prefetch?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[referrerpolicy?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[rel?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[sizes?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[title?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[type?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface DocumentLink \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[as?](./city.documentlink.as.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[crossorigin?](./city.documentlink.crossorigin.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[disabled?](./city.documentlink.disabled.md)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[href?](./city.documentlink.href.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[hreflang?](./city.documentlink.hreflang.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[id?](./city.documentlink.id.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[imagesizes?](./city.documentlink.imagesizes.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[imagesrcset?](./city.documentlink.imagesrcset.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[integrity?](./city.documentlink.integrity.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[key?](./city.documentlink.key.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[media?](./city.documentlink.media.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[prefetch?](./city.documentlink.prefetch.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[referrerpolicy?](./city.documentlink.referrerpolicy.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[rel?](./city.documentlink.rel.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[sizes?](./city.documentlink.sizes.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[title?](./city.documentlink.title.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[type?](./city.documentlink.type.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.documentlink.md"
+      "mdFile": "city.documentlink.md"
     },
     {
       "name": "DocumentMeta",
@@ -166,9 +166,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface DocumentMeta \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[content?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[httpEquiv?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[itemprop?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[key?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[media?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[name?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[property?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface DocumentMeta \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[content?](./city.documentmeta.content.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[httpEquiv?](./city.documentmeta.httpequiv.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[itemprop?](./city.documentmeta.itemprop.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[key?](./city.documentmeta.key.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[media?](./city.documentmeta.media.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[name?](./city.documentmeta.name.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[property?](./city.documentmeta.property.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.documentmeta.md"
+      "mdFile": "city.documentmeta.md"
     },
     {
       "name": "DocumentScript",
@@ -180,9 +180,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface DocumentScript \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[key?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n**_(ALPHA)_** _(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[props?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonly&lt;QwikIntrinsicElements\\['script'\\]&gt;\n\n\n</td><td>\n\n**_(ALPHA)_** _(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[script?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n**_(ALPHA)_** _(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface DocumentScript \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[key?](./city.documentscript.key.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n**_(ALPHA)_** _(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[props?](./city.documentscript.props.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonly&lt;QwikIntrinsicElements\\['script'\\]&gt;\n\n\n</td><td>\n\n**_(ALPHA)_** _(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[script?](./city.documentscript.script.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n**_(ALPHA)_** _(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.documentscript.md"
+      "mdFile": "city.documentscript.md"
     },
     {
       "name": "DocumentStyle",
@@ -194,9 +194,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface DocumentStyle \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[key?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[props?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonly&lt;QwikIntrinsicElements\\['style'\\]&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[style](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface DocumentStyle \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[key?](./city.documentstyle.key.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[props?](./city.documentstyle.props.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonly&lt;QwikIntrinsicElements\\['style'\\]&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[style](./city.documentstyle.style.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.documentstyle.md"
+      "mdFile": "city.documentstyle.md"
     },
     {
       "name": "FailOfRest",
@@ -210,7 +210,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<infer ERROR>[] ? ERROR : never;\n```\n**References:** [DataValidator](#datavalidator)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.failofrest.md"
+      "mdFile": "city.failofrest.md"
     },
     {
       "name": "FailReturn",
@@ -224,7 +224,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type FailReturn<T> = T & Failed;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.failreturn.md"
+      "mdFile": "city.failreturn.md"
     },
     {
       "name": "Form",
@@ -236,9 +236,9 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nForm: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>, key: string | null) => import(\"@builder.io/qwik\").JSXOutput\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n{ action, spaReset, reloadDocument, onSubmit$, ...rest }\n\n\n</td><td>\n\n[FormProps](#formprops)<!-- -->&lt;O, I&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nkey\n\n\n</td><td>\n\nstring \\| null\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nimport(\"@builder.io/qwik\").JSXOutput",
+      "content": "```typescript\nForm: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>, key: string | null) => import(\"@qwik.dev/core\").JSXOutput\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n{ action, spaReset, reloadDocument, onSubmit$, ...rest }\n\n\n</td><td>\n\n[FormProps](#formprops)<!-- -->&lt;O, I&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nkey\n\n\n</td><td>\n\nstring \\| null\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nimport(\"@qwik.dev/core\").JSXOutput",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/form-component.tsx",
-      "mdFile": "qwik-city.form.md"
+      "mdFile": "city.form.md"
     },
     {
       "name": "FormProps",
@@ -250,9 +250,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> \n```\n**Extends:** Omit&lt;QwikJSX.IntrinsicElements\\['form'\\], 'action' \\| 'method'&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[action?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[ActionStore](#actionstore)<!-- -->&lt;O, I, true \\| false&gt;\n\n\n</td><td>\n\n_(Optional)_ Reference to the action returned by `action()`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[key?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| number \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[onSubmit$?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nQRLEventHandlerMulti&lt;SubmitEvent, HTMLFormElement&gt; \\| undefined\n\n\n</td><td>\n\n_(Optional)_ Event handler executed right when the form is submitted.\n\n\n</td></tr>\n<tr><td>\n\n[onSubmitCompleted$?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nQRLEventHandlerMulti&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)<!-- -->&lt;O&gt;&gt;, HTMLFormElement&gt; \\| undefined\n\n\n</td><td>\n\n_(Optional)_ Event handler executed right after the action is executed successfully and returns some data.\n\n\n</td></tr>\n<tr><td>\n\n[reloadDocument?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When `true` the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.\n\n\n</td></tr>\n<tr><td>\n\n[spaReset?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When `true` all the form inputs will be reset in SPA mode, just like happens in a full page form submission.\n\nDefaults to `false`\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> \n```\n**Extends:** Omit&lt;QwikJSX.IntrinsicElements\\['form'\\], 'action' \\| 'method'&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[action?](./city.formprops.action.md)\n\n\n</td><td>\n\n\n</td><td>\n\n[ActionStore](#actionstore)<!-- -->&lt;O, I, true \\| false&gt;\n\n\n</td><td>\n\n_(Optional)_ Reference to the action returned by `action()`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[key?](./city.formprops.key.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| number \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[onSubmit$?](./city.formprops.onsubmit_.md)\n\n\n</td><td>\n\n\n</td><td>\n\nQRLEventHandlerMulti&lt;SubmitEvent, HTMLFormElement&gt; \\| undefined\n\n\n</td><td>\n\n_(Optional)_ Event handler executed right when the form is submitted.\n\n\n</td></tr>\n<tr><td>\n\n[onSubmitCompleted$?](./city.formprops.onsubmitcompleted_.md)\n\n\n</td><td>\n\n\n</td><td>\n\nQRLEventHandlerMulti&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)<!-- -->&lt;O&gt;&gt;, HTMLFormElement&gt; \\| undefined\n\n\n</td><td>\n\n_(Optional)_ Event handler executed right after the action is executed successfully and returns some data.\n\n\n</td></tr>\n<tr><td>\n\n[reloadDocument?](./city.formprops.reloaddocument.md)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When `true` the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.\n\n\n</td></tr>\n<tr><td>\n\n[spaReset?](./city.formprops.spareset.md)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When `true` all the form inputs will be reset in SPA mode, just like happens in a full page form submission.\n\nDefaults to `false`\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/form-component.tsx",
-      "mdFile": "qwik-city.formprops.md"
+      "mdFile": "city.formprops.md"
     },
     {
       "name": "FormSubmitSuccessDetail",
@@ -264,9 +264,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface FormSubmitCompletedDetail<T> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[status](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[value](#)\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface FormSubmitCompletedDetail<T> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[status](./city.formsubmitsuccessdetail.status.md)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[value](./city.formsubmitsuccessdetail.value.md)\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/form-component.tsx",
-      "mdFile": "qwik-city.formsubmitsuccessdetail.md"
+      "mdFile": "city.formsubmitsuccessdetail.md"
     },
     {
       "name": "GetValidatorInputType",
@@ -280,7 +280,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type GetValidatorInputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferInput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z.input<TYPE> : never;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.getvalidatorinputtype.md"
+      "mdFile": "city.getvalidatorinputtype.md"
     },
     {
       "name": "GetValidatorOutputType",
@@ -294,7 +294,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferOutput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z.output<TYPE> : never;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.getvalidatoroutputtype.md"
+      "mdFile": "city.getvalidatoroutputtype.md"
     },
     {
       "name": "GetValidatorType",
@@ -308,7 +308,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type GetValidatorType<VALIDATOR extends TypedDataValidator> = GetValidatorOutputType<VALIDATOR>;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)<!-- -->, [GetValidatorOutputType](#getvalidatoroutputtype)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.getvalidatortype.md"
+      "mdFile": "city.getvalidatortype.md"
     },
     {
       "name": "globalAction$",
@@ -322,7 +322,7 @@
       "kind": "Variable",
       "content": "```typescript\nglobalAction$: ActionConstructor\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
-      "mdFile": "qwik-city.globalaction_.md"
+      "mdFile": "city.globalaction_.md"
     },
     {
       "name": "globalActionQrl",
@@ -336,7 +336,7 @@
       "kind": "Variable",
       "content": "```typescript\nglobalActionQrl: ActionConstructorQRL\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
-      "mdFile": "qwik-city.globalactionqrl.md"
+      "mdFile": "city.globalactionqrl.md"
     },
     {
       "name": "JSONObject",
@@ -350,7 +350,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type JSONObject = {\n    [x: string]: JSONValue;\n};\n```\n**References:** [JSONValue](#jsonvalue)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.jsonobject.md"
+      "mdFile": "city.jsonobject.md"
     },
     {
       "name": "JSONValue",
@@ -364,7 +364,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type JSONValue = string | number | boolean | {\n    [x: string]: JSONValue;\n} | Array<JSONValue>;\n```\n**References:** [JSONValue](#jsonvalue)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.jsonvalue.md"
+      "mdFile": "city.jsonvalue.md"
     },
     {
       "name": "Link",
@@ -376,9 +376,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nLink: import(\"@builder.io/qwik\").Component<LinkProps>\n```",
+      "content": "```typescript\nLink: import(\"@qwik.dev/core\").Component<LinkProps>\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/link-component.tsx",
-      "mdFile": "qwik-city.link.md"
+      "mdFile": "city.link.md"
     },
     {
       "name": "LinkProps",
@@ -390,9 +390,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface LinkProps extends AnchorAttributes \n```\n**Extends:** AnchorAttributes\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[prefetch?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean \\| 'js'\n\n\n</td><td>\n\n_(Optional)_ \\*\\*Defaults to \\_true\\_.\\*\\*\n\nWhether Qwik should prefetch and cache the target page of this \\*\\*`Link`<!-- -->\\*\\*, this includes invoking any \\*\\*`routeLoader$`<!-- -->\\*\\*, \\*\\*`onGet`<!-- -->\\*\\*, etc.\n\nThis \\*\\*improves UX performance\\*\\* for client-side (\\*\\*SPA\\*\\*) navigations.\n\nPrefetching occurs when a the Link enters the viewport in production (\\*\\*`on:qvisibile`<!-- -->\\*\\*), or with \\*\\*`mouseover`<!-- -->/`focus`<!-- -->\\*\\* during dev.\n\nPrefetching will not occur if the user has the \\*\\*data saver\\*\\* setting enabled.\n\nSetting this value to \\*\\*`\"js\"`<!-- -->\\*\\* will prefetch only javascript bundles required to render this page on the client, \\*\\*`false`<!-- -->\\*\\* will disable prefetching altogether.\n\n\n</td></tr>\n<tr><td>\n\n[reload?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[replaceState?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[scroll?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface LinkProps extends AnchorAttributes \n```\n**Extends:** AnchorAttributes\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[prefetch?](./city.linkprops.prefetch.md)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean \\| 'js'\n\n\n</td><td>\n\n_(Optional)_ \\*\\*Defaults to \\_true\\_.\\*\\*\n\nWhether Qwik should prefetch and cache the target page of this \\*\\*`Link`<!-- -->\\*\\*, this includes invoking any \\*\\*`routeLoader$`<!-- -->\\*\\*, \\*\\*`onGet`<!-- -->\\*\\*, etc.\n\nThis \\*\\*improves UX performance\\*\\* for client-side (\\*\\*SPA\\*\\*) navigations.\n\nPrefetching occurs when a the Link enters the viewport in production (\\*\\*`on:qvisibile`<!-- -->\\*\\*), or with \\*\\*`mouseover`<!-- -->/`focus`<!-- -->\\*\\* during dev.\n\nPrefetching will not occur if the user has the \\*\\*data saver\\*\\* setting enabled.\n\nSetting this value to \\*\\*`\"js\"`<!-- -->\\*\\* will prefetch only javascript bundles required to render this page on the client, \\*\\*`false`<!-- -->\\*\\* will disable prefetching altogether.\n\n\n</td></tr>\n<tr><td>\n\n[reload?](./city.linkprops.reload.md)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[replaceState?](./city.linkprops.replacestate.md)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[scroll?](./city.linkprops.scroll.md)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/link-component.tsx",
-      "mdFile": "qwik-city.linkprops.md"
+      "mdFile": "city.linkprops.md"
     },
     {
       "name": "Loader_2",
@@ -406,7 +406,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type Loader<RETURN> = {\n    (): LoaderSignal<RETURN>;\n};\n```\n**References:** [LoaderSignal](#loadersignal)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.loader_2.md"
+      "mdFile": "city.loader_2.md"
     },
     {
       "name": "LoaderSignal",
@@ -420,7 +420,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<infer VALIDATOR> ? ReadonlySignal<ValueOrPromise<VALIDATOR>> : ReadonlySignal<TYPE>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.loadersignal.md"
+      "mdFile": "city.loadersignal.md"
     },
     {
       "name": "MenuData",
@@ -434,7 +434,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type MenuData = [pathname: string, menuLoader: MenuModuleLoader];\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.menudata.md"
+      "mdFile": "city.menudata.md"
     },
     {
       "name": "NavigationType",
@@ -448,7 +448,21 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type NavigationType = 'initial' | 'form' | 'link' | 'popstate';\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.navigationtype.md"
+      "mdFile": "city.navigationtype.md"
+    },
+    {
+      "name": "omitProps",
+      "id": "omitprops",
+      "hierarchy": [
+        {
+          "name": "omitProps",
+          "id": "omitprops"
+        }
+      ],
+      "kind": "Function",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nCreates a new object from `obj` by omitting a set of `keys`<!-- -->.\n\n\n```typescript\nexport declare function omitProps<T, KEYS extends keyof T>(obj: T, keys: KEYS[]): Omit<T, KEYS>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nobj\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nkeys\n\n\n</td><td>\n\nKEYS\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nOmit&lt;T, KEYS&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/typed-routes.ts",
+      "mdFile": "city.omitprops.md"
     },
     {
       "name": "PageModule",
@@ -460,9 +474,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface PageModule extends RouteModule \n```\n**Extends:** RouteModule\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[default](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nunknown\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[head?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nContentModuleHead\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[headings?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[ContentHeading](#contentheading)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[onStaticGenerate?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[StaticGenerateHandler](#staticgeneratehandler)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface PageModule extends RouteModule \n```\n**Extends:** RouteModule\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[default](./city.pagemodule.default.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nunknown\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[head?](./city.pagemodule.head.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nContentModuleHead\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[headings?](./city.pagemodule.headings.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[ContentHeading](#contentheading)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[onStaticGenerate?](./city.pagemodule.onstaticgenerate.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[StaticGenerateHandler](#staticgeneratehandler)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.pagemodule.md"
+      "mdFile": "city.pagemodule.md"
     },
     {
       "name": "PathParams",
@@ -476,7 +490,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport declare type PathParams = Record<string, string>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.pathparams.md"
+      "mdFile": "city.pathparams.md"
     },
     {
       "name": "PreventNavigateCallback",
@@ -490,7 +504,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type PreventNavigateCallback = (url?: number | URL) => ValueOrPromise<boolean>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.preventnavigatecallback.md"
+      "mdFile": "city.preventnavigatecallback.md"
     },
     {
       "name": "QWIK_CITY_SCROLLER",
@@ -504,7 +518,7 @@
       "kind": "Variable",
       "content": "```typescript\nQWIK_CITY_SCROLLER = \"_qCityScroller\"\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/qwik-city-component.tsx",
-      "mdFile": "qwik-city.qwik_city_scroller.md"
+      "mdFile": "city.qwik_city_scroller.md"
     },
     {
       "name": "QwikCityMockProps",
@@ -516,9 +530,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikCityMockProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[goto?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[RouteNavigate](#routenavigate)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[params?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, string&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[url?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface QwikCityMockProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[goto?](./city.qwikcitymockprops.goto.md)\n\n\n</td><td>\n\n\n</td><td>\n\n[RouteNavigate](#routenavigate)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[params?](./city.qwikcitymockprops.params.md)\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, string&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[url?](./city.qwikcitymockprops.url.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/qwik-city-component.tsx",
-      "mdFile": "qwik-city.qwikcitymockprops.md"
+      "mdFile": "city.qwikcitymockprops.md"
     },
     {
       "name": "QwikCityMockProvider",
@@ -530,9 +544,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nQwikCityMockProvider: import(\"@builder.io/qwik\").Component<QwikCityMockProps>\n```",
+      "content": "```typescript\nQwikCityMockProvider: import(\"@qwik.dev/core\").Component<QwikCityMockProps>\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/qwik-city-component.tsx",
-      "mdFile": "qwik-city.qwikcitymockprovider.md"
+      "mdFile": "city.qwikcitymockprovider.md"
     },
     {
       "name": "QwikCityPlan",
@@ -544,9 +558,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikCityPlan \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[basePathname?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[cacheModules?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[menus?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[MenuData](#menudata)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[routes](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[RouteData](#routedata)<!-- -->\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[serverPlugins?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nRouteModule\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[trailingSlash?](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface QwikCityPlan \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[basePathname?](./city.qwikcityplan.basepathname.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[cacheModules?](./city.qwikcityplan.cachemodules.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[menus?](./city.qwikcityplan.menus.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[MenuData](#menudata)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[routes](./city.qwikcityplan.routes.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[RouteData](#routedata)<!-- -->\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[serverPlugins?](./city.qwikcityplan.serverplugins.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nRouteModule\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[trailingSlash?](./city.qwikcityplan.trailingslash.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.qwikcityplan.md"
+      "mdFile": "city.qwikcityplan.md"
     },
     {
       "name": "QwikCityProps",
@@ -558,9 +572,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikCityProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[viewTransition?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Enable the ViewTransition API\n\nDefault: `true`\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface QwikCityProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[viewTransition?](./city.qwikcityprops.viewtransition.md)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Enable the ViewTransition API\n\nDefault: `true`\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/qwik-city-component.tsx",
-      "mdFile": "qwik-city.qwikcityprops.md"
+      "mdFile": "city.qwikcityprops.md"
     },
     {
       "name": "QwikCityProvider",
@@ -572,9 +586,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nQwikCityProvider: import(\"@builder.io/qwik\").Component<QwikCityProps>\n```",
+      "content": "```typescript\nQwikCityProvider: import(\"@qwik.dev/core\").Component<QwikCityProps>\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/qwik-city-component.tsx",
-      "mdFile": "qwik-city.qwikcityprovider.md"
+      "mdFile": "city.qwikcityprovider.md"
     },
     {
       "name": "ResolvedDocumentHead",
@@ -588,7 +602,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type ResolvedDocumentHead<FrontMatter extends Record<string, any> = Record<string, unknown>> = Required<DocumentHeadValue<FrontMatter>>;\n```\n**References:** [DocumentHeadValue](#documentheadvalue)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.resolveddocumenthead.md"
+      "mdFile": "city.resolveddocumenthead.md"
     },
     {
       "name": "routeAction$",
@@ -602,7 +616,7 @@
       "kind": "Variable",
       "content": "```typescript\nrouteAction$: ActionConstructor\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
-      "mdFile": "qwik-city.routeaction_.md"
+      "mdFile": "city.routeaction_.md"
     },
     {
       "name": "routeActionQrl",
@@ -616,7 +630,7 @@
       "kind": "Variable",
       "content": "```typescript\nrouteActionQrl: ActionConstructorQRL\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
-      "mdFile": "qwik-city.routeactionqrl.md"
+      "mdFile": "city.routeactionqrl.md"
     },
     {
       "name": "RouteData",
@@ -630,7 +644,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type RouteData = [routeName: string, loaders: ModuleLoader[]] | [\n    routeName: string,\n    loaders: ModuleLoader[],\n    originalPathname: string,\n    routeBundleNames: string[]\n];\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.routedata.md"
+      "mdFile": "city.routedata.md"
     },
     {
       "name": "routeLoader$",
@@ -644,7 +658,7 @@
       "kind": "Variable",
       "content": "```typescript\nrouteLoader$: LoaderConstructor\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
-      "mdFile": "qwik-city.routeloader_.md"
+      "mdFile": "city.routeloader_.md"
     },
     {
       "name": "routeLoaderQrl",
@@ -658,7 +672,7 @@
       "kind": "Variable",
       "content": "```typescript\nrouteLoaderQrl: LoaderConstructorQRL\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
-      "mdFile": "qwik-city.routeloaderqrl.md"
+      "mdFile": "city.routeloaderqrl.md"
     },
     {
       "name": "RouteLocation",
@@ -670,9 +684,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface RouteLocation \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[isNavigating](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[params](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonly&lt;Record&lt;string, string&gt;&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[prevUrl](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nURL \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[url](#)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nURL\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface RouteLocation \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[isNavigating](./city.routelocation.isnavigating.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[params](./city.routelocation.params.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonly&lt;Record&lt;string, string&gt;&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[prevUrl](./city.routelocation.prevurl.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nURL \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[url](./city.routelocation.url.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nURL\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.routelocation.md"
+      "mdFile": "city.routelocation.md"
     },
     {
       "name": "RouteNavigate",
@@ -686,7 +700,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type RouteNavigate = QRL<(path?: string | number | URL, options?: {\n    type?: Exclude<NavigationType, 'initial'>;\n    forceReload?: boolean;\n    replaceState?: boolean;\n    scroll?: boolean;\n} | boolean) => Promise<void>>;\n```\n**References:** [NavigationType](#navigationtype)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.routenavigate.md"
+      "mdFile": "city.routenavigate.md"
     },
     {
       "name": "RouterOutlet",
@@ -698,9 +712,9 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nRouterOutlet: import(\"@builder.io/qwik\").Component<unknown>\n```",
+      "content": "```typescript\nRouterOutlet: import(\"@qwik.dev/core\").Component<unknown>\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/router-outlet-component.tsx",
-      "mdFile": "qwik-city.routeroutlet.md"
+      "mdFile": "city.routeroutlet.md"
     },
     {
       "name": "server$",
@@ -714,7 +728,7 @@
       "kind": "Function",
       "content": "```typescript\nserver$: <T extends ServerFunction>(qrl: T, options?: ServerConfig | undefined) => ServerQRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\nServerConfig \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[ServerQRL](#serverqrl)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
-      "mdFile": "qwik-city.server_.md"
+      "mdFile": "city.server_.md"
     },
     {
       "name": "ServerFunction",
@@ -728,7 +742,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type ServerFunction = {\n    (this: RequestEventBase, ...args: any[]): any;\n    options?: ServerConfig;\n};\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.serverfunction.md"
+      "mdFile": "city.serverfunction.md"
     },
     {
       "name": "serverQrl",
@@ -742,7 +756,7 @@
       "kind": "Function",
       "content": "You can pass an AbortSignal as the first argument of a `server$` function and it will use it to abort the fetch when fired.\n\n\n```typescript\nexport type ServerQRL<T extends ServerFunction> = QRL<((abort: AbortSignal, ...args: Parameters<T>) => ReturnType<T>) | ((...args: Parameters<T>) => ReturnType<T>)>;\n```\n**References:** [ServerFunction](#serverfunction)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
-      "mdFile": "qwik-city.serverqrl.md"
+      "mdFile": "city.serverqrl.md"
     },
     {
       "name": "ServerQRL",
@@ -756,7 +770,7 @@
       "kind": "TypeAlias",
       "content": "You can pass an AbortSignal as the first argument of a `server$` function and it will use it to abort the fetch when fired.\n\n\n```typescript\nexport type ServerQRL<T extends ServerFunction> = QRL<((abort: AbortSignal, ...args: Parameters<T>) => ReturnType<T>) | ((...args: Parameters<T>) => ReturnType<T>)>;\n```\n**References:** [ServerFunction](#serverfunction)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.serverqrl.md"
+      "mdFile": "city.serverqrl.md"
     },
     {
       "name": "ServiceWorkerRegister",
@@ -768,9 +782,9 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nServiceWorkerRegister: (props: {\n    nonce?: string;\n}) => import(\"@builder.io/qwik\").JSXNode<\"script\">\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nprops\n\n\n</td><td>\n\n{ nonce?: string; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nimport(\"@builder.io/qwik\").JSXNode&lt;\"script\"&gt;",
+      "content": "```typescript\nServiceWorkerRegister: (props: {\n    nonce?: string;\n}) => import(\"@qwik.dev/core\").JSXNode<\"script\">\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nprops\n\n\n</td><td>\n\n{ nonce?: string; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nimport(\"@qwik.dev/core\").JSXNode&lt;\"script\"&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/sw-component.tsx",
-      "mdFile": "qwik-city.serviceworkerregister.md"
+      "mdFile": "city.serviceworkerregister.md"
     },
     {
       "name": "StaticGenerate",
@@ -782,9 +796,9 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface StaticGenerate \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[params?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[PathParams](#pathparams)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface StaticGenerate \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[params?](./city.staticgenerate.params.md)\n\n\n</td><td>\n\n\n</td><td>\n\n[PathParams](#pathparams)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.staticgenerate.md"
+      "mdFile": "city.staticgenerate.md"
     },
     {
       "name": "StaticGenerateHandler",
@@ -798,7 +812,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type StaticGenerateHandler = ({ env, }: {\n    env: EnvGetter;\n}) => Promise<StaticGenerate> | StaticGenerate;\n```\n**References:** [StaticGenerate](#staticgenerate)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.staticgeneratehandler.md"
+      "mdFile": "city.staticgeneratehandler.md"
     },
     {
       "name": "StrictUnion",
@@ -812,7 +826,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.strictunion.md"
+      "mdFile": "city.strictunion.md"
     },
     {
       "name": "TypedDataValidator",
@@ -826,7 +840,21 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type TypedDataValidator = ValibotDataValidator | ZodDataValidator;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.typeddatavalidator.md"
+      "mdFile": "city.typeddatavalidator.md"
+    },
+    {
+      "name": "untypedAppUrl",
+      "id": "untypedappurl",
+      "hierarchy": [
+        {
+          "name": "untypedAppUrl",
+          "id": "untypedappurl"
+        }
+      ],
+      "kind": "Function",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nuntypedAppUrl: (route: string, params?: Record<string, string>, paramsPrefix?: string) => string\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nroute\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nparams\n\n\n</td><td>\n\nRecord&lt;string, string&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nparamsPrefix\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nstring",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/typed-routes.ts",
+      "mdFile": "city.untypedappurl.md"
     },
     {
       "name": "useContent",
@@ -840,7 +868,7 @@
       "kind": "Function",
       "content": "```typescript\nuseContent: () => import(\"./types\").ContentState\n```\n**Returns:**\n\nimport(\"./types\").ContentState",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/use-functions.ts",
-      "mdFile": "qwik-city.usecontent.md"
+      "mdFile": "city.usecontent.md"
     },
     {
       "name": "useDocumentHead",
@@ -854,7 +882,7 @@
       "kind": "Function",
       "content": "Returns the document head for the current page. The generic type describes the front matter.\n\n\n```typescript\nuseDocumentHead: <FrontMatter extends Record<string, unknown> = Record<string, any>>() => Required<ResolvedDocumentHead<FrontMatter>>\n```\n**Returns:**\n\nRequired&lt;[ResolvedDocumentHead](#resolveddocumenthead)<!-- -->&lt;FrontMatter&gt;&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/use-functions.ts",
-      "mdFile": "qwik-city.usedocumenthead.md"
+      "mdFile": "city.usedocumenthead.md"
     },
     {
       "name": "useLocation",
@@ -868,7 +896,7 @@
       "kind": "Function",
       "content": "```typescript\nuseLocation: () => RouteLocation\n```\n**Returns:**\n\n[RouteLocation](#routelocation)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/use-functions.ts",
-      "mdFile": "qwik-city.uselocation.md"
+      "mdFile": "city.uselocation.md"
     },
     {
       "name": "useNavigate",
@@ -882,7 +910,7 @@
       "kind": "Function",
       "content": "```typescript\nuseNavigate: () => RouteNavigate\n```\n**Returns:**\n\n[RouteNavigate](#routenavigate)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/use-functions.ts",
-      "mdFile": "qwik-city.usenavigate.md"
+      "mdFile": "city.usenavigate.md"
     },
     {
       "name": "usePreventNavigate$",
@@ -896,7 +924,7 @@
       "kind": "Function",
       "content": "Prevent navigation attempts. This hook registers a callback that will be called before SPA or browser navigation.\n\nReturn `true` to prevent navigation.\n\n\\#\\#\\#\\# SPA Navigation\n\nFor Single-Page-App (SPA) navigation (via `<Link />`<!-- -->, `const nav = useNavigate()`<!-- -->, and browser backwards/forwards inside SPA history), the callback will be provided with the target, either a URL or a number. It will only be a number if `nav(number)` was called to navigate forwards or backwards in SPA history.\n\nIf you return a Promise, the navigation will be blocked until the promise resolves.\n\nThis can be used to show a nice dialog to the user, and wait for the user to confirm, or to record the url, prevent the navigation, and navigate there later via `nav(url)`<!-- -->.\n\n\\#\\#\\#\\# Browser Navigation\n\nHowever, when the user navigates away by clicking on a regular `<a />`<!-- -->, reloading, or moving backwards/forwards outside SPA history, this callback will not be awaited. This is because the browser does not provide a way to asynchronously prevent these navigations.\n\nIn this case, returning returning `true` will tell the browser to show a confirmation dialog, which cannot be customized. You are also not able to show your own `window.confirm()` dialog during the callback, the browser won't allow it. If you return a Promise, it will be considered as `true`<!-- -->.\n\nWhen the callback is called from the browser, no url will be provided. Use this to know whether you can show a dialog or just return `true` to prevent the navigation.\n\n\n```typescript\nusePreventNavigate$: (qrl: PreventNavigateCallback) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[PreventNavigateCallback](#preventnavigatecallback)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvoid",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/use-functions.ts",
-      "mdFile": "qwik-city.usepreventnavigate_.md"
+      "mdFile": "city.usepreventnavigate_.md"
     },
     {
       "name": "valibot$",
@@ -910,7 +938,7 @@
       "kind": "Variable",
       "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nvalibot$: ValibotConstructor\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
-      "mdFile": "qwik-city.valibot_.md"
+      "mdFile": "city.valibot_.md"
     },
     {
       "name": "valibotQrl",
@@ -924,7 +952,7 @@
       "kind": "Variable",
       "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nvalibotQrl: ValibotConstructorQRL\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
-      "mdFile": "qwik-city.valibotqrl.md"
+      "mdFile": "city.valibotqrl.md"
     },
     {
       "name": "validator$",
@@ -938,7 +966,7 @@
       "kind": "Variable",
       "content": "```typescript\nvalidator$: ValidatorConstructor\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
-      "mdFile": "qwik-city.validator_.md"
+      "mdFile": "city.validator_.md"
     },
     {
       "name": "ValidatorErrorKeyDotNotation",
@@ -952,7 +980,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type ValidatorErrorKeyDotNotation<T, Prefix extends string = ''> = IsAny<T> extends true ? never : T extends object ? {\n    [K in keyof T & string]: IsAny<T[K]> extends true ? never : T[K] extends (infer U)[] ? IsAny<U> extends true ? never : U extends object ? `${Prefix}${K}[]` | ValidatorErrorKeyDotNotation<U, `${Prefix}${K}[].`> : `${Prefix}${K}[]` : T[K] extends object ? ValidatorErrorKeyDotNotation<T[K], `${Prefix}${K}.`> : `${Prefix}${K}`;\n}[keyof T & string] : never;\n```\n**References:** [ValidatorErrorKeyDotNotation](#validatorerrorkeydotnotation)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.validatorerrorkeydotnotation.md"
+      "mdFile": "city.validatorerrorkeydotnotation.md"
     },
     {
       "name": "ValidatorErrorType",
@@ -966,7 +994,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type ValidatorErrorType<T, U = string> = {\n    formErrors: U[];\n    fieldErrors: Partial<{\n        [K in ValidatorErrorKeyDotNotation<T>]: K extends `${infer _Prefix}[]${infer _Suffix}` ? U[] : U;\n    }>;\n};\n```\n**References:** [ValidatorErrorKeyDotNotation](#validatorerrorkeydotnotation)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.validatorerrortype.md"
+      "mdFile": "city.validatorerrortype.md"
     },
     {
       "name": "validatorQrl",
@@ -980,7 +1008,7 @@
       "kind": "Variable",
       "content": "```typescript\nvalidatorQrl: ValidatorConstructorQRL\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
-      "mdFile": "qwik-city.validatorqrl.md"
+      "mdFile": "city.validatorqrl.md"
     },
     {
       "name": "ValidatorReturn",
@@ -994,7 +1022,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type ValidatorReturn<T extends Record<string, any> = {}> = ValidatorReturnSuccess | ValidatorReturnFail<T>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.validatorreturn.md"
+      "mdFile": "city.validatorreturn.md"
     },
     {
       "name": "zod$",
@@ -1008,7 +1036,7 @@
       "kind": "Variable",
       "content": "```typescript\nzod$: ZodConstructor\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
-      "mdFile": "qwik-city.zod_.md"
+      "mdFile": "city.zod_.md"
     },
     {
       "name": "ZodConstructor",
@@ -1022,7 +1050,7 @@
       "kind": "TypeAlias",
       "content": "```typescript\nexport type ZodConstructor = {\n    <T extends z.ZodRawShape>(schema: T): ZodDataValidator<z.ZodObject<T>>;\n    <T extends z.ZodRawShape>(schema: (zod: typeof z.z, ev: RequestEvent) => T): ZodDataValidator<z.ZodObject<T>>;\n    <T extends z.Schema>(schema: T): ZodDataValidator<T>;\n    <T extends z.Schema>(schema: (zod: typeof z.z, ev: RequestEvent) => T): ZodDataValidator<T>;\n};\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
-      "mdFile": "qwik-city.zodconstructor.md"
+      "mdFile": "city.zodconstructor.md"
     },
     {
       "name": "zodQrl",
@@ -1036,7 +1064,7 @@
       "kind": "Variable",
       "content": "```typescript\nzodQrl: ZodConstructorQRL\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
-      "mdFile": "qwik-city.zodqrl.md"
+      "mdFile": "city.zodqrl.md"
     }
   ]
 }

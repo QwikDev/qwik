@@ -7,12 +7,12 @@
  * - https://qwik.dev/docs/deployments/gcp-cloud-run/
  *
  */
+import qwikCityPlan from "@qwik-city-plan";
+import { manifest } from "@qwik-client-manifest";
 import {
   createQwikCity,
   type PlatformNode,
-} from "@builder.io/qwik-city/middleware/node";
-import qwikCityPlan from "@qwik-city-plan";
-import { manifest } from "@qwik-client-manifest";
+} from "@qwik.dev/city/middleware/node";
 import { createServer } from "node:http";
 import render from "./entry.ssr";
 

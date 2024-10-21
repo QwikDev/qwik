@@ -3,8 +3,8 @@ import {
   Link,
   useContent,
   useLocation,
-} from "@builder.io/qwik-city";
-import { component$, useStyles$ } from "@builder.io/qwik";
+} from "@qwik.dev/city";
+import { component$, useStyles$ } from "@qwik.dev/core";
 import styles from "./content-nav.css?inline";
 
 export const ContentNav = component$(() => {

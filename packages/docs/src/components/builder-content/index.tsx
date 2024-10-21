@@ -1,5 +1,5 @@
-import { component$, Resource, useResource$ } from '@builder.io/qwik';
-import { useLocation } from '@builder.io/qwik-city';
+import { component$, Resource, useResource$ } from '@qwik.dev/core';
+import { useLocation } from '@qwik.dev/city';
 import { QWIK_MODEL } from '../../constants';
 
 export default component$<{

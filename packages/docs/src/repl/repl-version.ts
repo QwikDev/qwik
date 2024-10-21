@@ -4,7 +4,7 @@ import { QWIK_PKG_NAME, bundled } from './bundled';
 const bundledVersion = bundled[QWIK_PKG_NAME].version;
 
 // The golden oldies
-const keepList = new Set('1.0.0,1.1.5,1.2.13,1.4.5'.split(','));
+const keepList = new Set('1.0.0,1.1.5,1.2.13,1.4.5,1.5.7,1.6.0,1.7.3,1.8.0,1.9.0'.split(','));
 
 // The bad apples - add versions that break the REPL here
 const blockList = new Set(
@@ -114,11 +114,11 @@ const isExpiredNpmData = (npmData: NpmData | null) => {
   return true;
 };
 
-const QWIK_NPM_DATA = `https://data.jsdelivr.com/v1/package/npm/@builder.io/qwik`;
+const QWIK_NPM_DATA = `https://data.jsdelivr.com/v1/package/npm/@qwik.dev/core`;
 
 const NPM_STORAGE_KEY = `qwikNpmData`;
 
-// https://data.jsdelivr.com/v1/package/npm/@builder.io/qwik
+// https://data.jsdelivr.com/v1/package/npm/@qwik.dev/core
 interface NpmData {
   tags: { latest: string; next: string };
   versions: string[];

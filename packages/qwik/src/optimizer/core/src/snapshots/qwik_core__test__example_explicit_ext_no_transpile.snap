@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, $, useStyles$ } from '@builder.io/qwik';
+import { component$, $, useStyles$ } from '@qwik.dev/core';
 
 export const App = component$((props) => {
 	useStyles$('hola');
@@ -17,8 +17,8 @@ export const App = component$((props) => {
 
 ============================= test.tsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_ckepmxzlub0.tsx"), "App_component_ckEPmXZlub0"));
 
 
@@ -44,15 +44,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useStyles$",
   "captures": false,
   "loc": [
-    120,
-    126
+    118,
+    124
   ]
 }
 */
 ============================= test.tsx_app_component_ckepmxzlub0.tsx ==
 
-import { qrl } from "@builder.io/qwik";
-import { useStylesQrl } from "@builder.io/qwik";
+import { qrl } from "@qwik.dev/core";
+import { useStylesQrl } from "@qwik.dev/core";
 export const App_component_ckEPmXZlub0 = (props)=>{
     useStylesQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_usestyles_t35nsa5uv7u.tsx"), "App_component_useStyles_t35nSa5UV7U"));
     return /*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_1_w0t0o3qmovu.tsx"), "App_component_1_w0t0o3QMovU");
@@ -75,15 +75,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    95,
-    167
+    93,
+    165
   ]
 }
 */
 ============================= test.tsx_app_component_1_w0t0o3qmovu.tsx ==
 
 export const App_component_1_w0t0o3QMovU = ()=><div></div>;
-export { _hW } from "@builder.io/qwik";
+export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2CAKU,KACP,MAAM\"}")
@@ -102,8 +102,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    139,
-    163
+    137,
+    161
   ]
 }
 */

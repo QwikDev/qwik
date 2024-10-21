@@ -1,10 +1,10 @@
-import type { SnapshotResult, StreamWriter } from '@builder.io/qwik';
+import type { SnapshotResult, StreamWriter } from '@qwik.dev/core';
 import type {
   QwikManifest,
   SymbolMapperFn,
   SymbolMapper,
   ResolvedManifest,
-} from '@builder.io/qwik/optimizer';
+} from '@qwik.dev/core/optimizer';
 
 /** @public */
 export interface SerializeDocumentOptions {

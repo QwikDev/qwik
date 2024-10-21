@@ -1,7 +1,7 @@
+import { qwikVite } from "@qwik.dev/core/optimizer";
 import { defineConfig } from "vite";
-import pkg from "./package.json";
-import { qwikVite } from "@builder.io/qwik/optimizer";
 import tsconfigPaths from "vite-tsconfig-paths";
+import pkg from "./package.json";
 
 const { dependencies = {}, peerDependencies = {} } = pkg as any;
 const makeRegex = (dep) => new RegExp(`^${dep}(/.*)?$`);

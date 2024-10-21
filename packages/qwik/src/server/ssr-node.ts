@@ -1,5 +1,5 @@
-import { _isJSXNode as isJSXNode, type JSXNode, _EMPTY_ARRAY } from '@builder.io/qwik';
-import { isDev } from '@builder.io/qwik/build';
+import { _isJSXNode as isJSXNode, type JSXNode, _EMPTY_ARRAY } from '@qwik.dev/core';
+import { isDev } from '@qwik.dev/core/build';
 import {
   QSlotParent,
   mapApp_remove,

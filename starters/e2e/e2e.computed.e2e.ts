@@ -44,6 +44,15 @@ test.describe("computed", () => {
       await expect(button).toContainText("Click me! 5");
     });
 
+    test("should retry when there is no qrl", async ({ page }) => {
+      const button = page.locator("#retry-no-qrl");
+      await expect(button).toContainText("0");
+
+      await button.click();
+
+      await expect(button).toContainText("1");
+    });
+
     test("issue 3482", async ({ page }) => {
       const button = page.locator("#issue-3482-button");
       const div = page.locator("#issue-3482-div");

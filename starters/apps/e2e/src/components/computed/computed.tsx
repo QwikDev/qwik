@@ -14,6 +14,7 @@ export const ComputedRoot = component$(() => {
       <Issue3488 />
       <Issue5738 />
       <ShouldResolveComputedQrlEarly />
+      <ShouldRetryWhenThereIsNoQRL />
     </div>
   );
 });
@@ -130,5 +131,23 @@ export const ShouldResolveComputedQrlEarly = component$(() => {
         Click me! {repro.value}
       </button>
     </>
+  );
+});
+
+export const ShouldRetryWhenThereIsNoQRL = component$(() => {
+  const counter = useSignal(0);
+
+  const someComputed = useComputed$(() => {});
+
+  return (
+    <button
+      id="retry-no-qrl"
+      onClick$={() => {
+        someComputed.value;
+        counter.value++;
+      }}
+    >
+      {counter.value}
+    </button>
   );
 });

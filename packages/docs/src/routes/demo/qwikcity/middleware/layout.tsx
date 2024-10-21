@@ -8,8 +8,7 @@ export const onRequest: RequestHandler = async ({ next }) => {
       error &&
       typeof error === 'object' &&
       'message' in error &&
-      typeof error.message === 'string' &&
-      error.message == 'ERROR: Demonstration of an error response.'
+      typeof error.message === 'string'
     ) {
       // ignore this error
       return;

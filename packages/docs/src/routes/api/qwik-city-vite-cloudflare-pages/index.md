@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city/vite/cloudflare-pages API Reference
+title: \@qwik.dev/qwik-city/vite/cloudflare-pages API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city/vite/cloudflare-pages
+# [API](/api) &rsaquo; @qwik.dev/qwik-city/vite/cloudflare-pages
 
 ## cloudflarePagesAdapter
 
@@ -72,7 +72,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[functionRoutes?](#)
+[functionRoutes?](./city.cloudflarepagesadapteroptions.functionroutes.md)
 
 </td><td>
 
@@ -91,7 +91,7 @@ Defaults to `true`.
 </td></tr>
 <tr><td>
 
-[staticPaths?](#)
+[staticPaths?](./city.cloudflarepagesadapteroptions.staticpaths.md)
 
 </td><td>
 

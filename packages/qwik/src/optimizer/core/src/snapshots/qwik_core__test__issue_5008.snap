@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-		import { component$, useStore } from "@builder.io/qwik";
+		import { component$, useStore } from "@qwik.dev/core";
 
 		export default component$(() => {
 		const store = useStore([{ value: 0 }]);
@@ -25,19 +25,19 @@ expression: output
 		
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGE,6BAAe,mHAaZ\"}")
 ============================= test.tsx_test_component_luxexe0dqrg.js (ENTRY POINT)==
 
-import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { _jsxSorted } from "@builder.io/qwik";
-import { _wrapProp } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-import { useStore } from "@builder.io/qwik";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useStore } from "@qwik.dev/core";
 export const test_component_LUXeXe0DQrg = ()=>{
     const store = useStore([
         {
@@ -80,14 +80,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    90,
-    419
+    88,
+    417
   ]
 }
 */
 ============================= test.tsx_test_component_fragment_button_onclick_ef3qezgqwcy.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
+import { useLexicalScope } from "@qwik.dev/core";
 export const test_component_Fragment_button_onClick_eF3QEzgQWcY = ()=>{
     const [store] = useLexicalScope();
     return store[0].value++;
@@ -110,8 +110,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    178,
-    200
+    176,
+    198
   ]
 }
 */

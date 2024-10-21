@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$(() => {
 	return (
@@ -18,12 +18,12 @@ export const App = component$(() => {
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrlDEV } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { qrlDEV } from "@qwik.dev/core";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./test.tsx_app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0", {
     file: "/user/qwik/src/test.tsx",
-    lo: 90,
-    hi: 202,
+    lo: 88,
+    hi: 200,
     displayName: "test.tsx_App_component"
 }));
 
@@ -31,15 +31,15 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import(".
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM;;;;;IAMhB\"}")
 ============================= test.tsx_app_component_ckepmxzlub0.js (ENTRY POINT)==
 
-import { _jsxSorted } from "@builder.io/qwik";
-import { qrlDEV } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrlDEV } from "@qwik.dev/core";
 export const App_component_ckEPmXZlub0 = ()=>{
     return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", null, {
         class: "stuff",
         onClick$: /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_app_component_cmp_p_onclick_vuxzfutkpto"), "App_component_Cmp_p_onClick_vuXzfUTkpto", {
             file: "/user/qwik/src/test.tsx",
-            lo: 146,
-            hi: 171,
+            lo: 144,
+            hi: 169,
             displayName: "test.tsx_App_component_Cmp_p_onClick"
         })
     }, "Hello Qwik", 3, null, {
@@ -70,8 +70,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    90,
-    202
+    88,
+    200
   ]
 }
 */
@@ -96,8 +96,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    146,
-    171
+    144,
+    169
   ]
 }
 */

@@ -1,23 +1,23 @@
-import { walkJSX } from '@builder.io/qwik/testing';
+import { walkJSX } from '@qwik.dev/core/testing';
 import crypto from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { SsrNode } from '../../server/ssr-node';
 import { ssrCreateContainer } from '../../server/ssr-container';
+import { SsrNode } from '../../server/ssr-node';
 import { createDocument } from '../../testing/document';
-import { SERIALIZABLE_STATE, component$ } from '../shared/component.public';
-import { inlinedQrl, qrl } from '../shared/qrl/qrl';
-import type { QRLInternal } from '../shared/qrl/qrl-class';
-import { Fragment, JSXNodeImpl, createPropsProxy } from '../shared/jsx/jsx-runtime';
-import { Slot } from '../shared/jsx/slot.public';
-import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import { getDomContainer } from '../client/dom-container';
 import type { ClientContainer, VNode } from '../client/types';
 import { vnode_getAttr, vnode_getFirstChild, vnode_getText } from '../client/vnode';
-import { hasClassAttr } from '../shared/utils/scoped-styles';
+import { SERIALIZABLE_STATE, component$ } from '../shared/component.public';
+import { Fragment, JSXNodeImpl, createPropsProxy } from '../shared/jsx/jsx-runtime';
+import { Slot } from '../shared/jsx/slot.public';
+import type { JSXOutput } from '../shared/jsx/types/jsx-node';
+import { inlinedQrl, qrl } from '../shared/qrl/qrl';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { TypeIds } from '../shared/shared-serialization';
+import { hasClassAttr } from '../shared/utils/scoped-styles';
+import { createComputed$, createSignal } from '../signal/signal.public';
 import { constPropsToSsrAttrs, varPropsToSsrAttrs } from '../ssr/ssr-render-jsx';
 import { type SSRContainer } from '../ssr/ssr-types';
-import { createSignal, createComputed$ } from '../signal/signal.public';
 
 describe('serializer v2', () => {
   describe('rendering', () => {

@@ -1,5 +1,5 @@
-import { component$, useSignal, useVisibleTask$, Fragment as Component } from '@builder.io/qwik';
-import { domRender, ssrRenderToDom, trigger } from '@builder.io/qwik/testing';
+import { Fragment as Component, component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
+import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 
 const debug = false; //true;

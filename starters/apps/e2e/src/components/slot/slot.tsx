@@ -1,18 +1,18 @@
 import {
-  component$,
   $,
-  useStore,
+  component$,
+  createContextId,
+  jsx,
   Slot,
   useContext,
-  useSignal,
   useContextProvider,
-  createContextId,
-  type Signal,
-  jsx,
-  type JSXNode,
+  useSignal,
+  useStore,
   useVisibleTask$,
   type FunctionComponent,
-} from "@builder.io/qwik";
+  type JSXNode,
+  type Signal,
+} from "@qwik.dev/core";
 
 export const SlotParent = component$(() => {
   const state = useStore({

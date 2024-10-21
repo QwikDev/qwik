@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik-city/vite/netlify-edge API Reference
+title: \@qwik.dev/qwik-city/vite/netlify-edge API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik-city/vite/netlify-edge
+# [API](/api) &rsaquo; @qwik.dev/qwik-city/vite/netlify-edge
 
 ## netlifyEdgeAdapter
 
@@ -72,7 +72,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[excludedPath?](#)
+[excludedPath?](./city.netlifyedgeadapteroptions.excludedpath.md)
 
 </td><td>
 
@@ -93,7 +93,7 @@ https://docs.netlify.com/edge-functions/declarations/\#declare-edge-functions-in
 </td></tr>
 <tr><td>
 
-[functionRoutes?](#)
+[functionRoutes?](./city.netlifyedgeadapteroptions.functionroutes.md)
 
 </td><td>
 
@@ -112,7 +112,7 @@ Defaults to `true`.
 </td></tr>
 <tr><td>
 
-[staticPaths?](#)
+[staticPaths?](./city.netlifyedgeadapteroptions.staticpaths.md)
 
 </td><td>
 

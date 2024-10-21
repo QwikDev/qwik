@@ -4,23 +4,23 @@
 
 /* eslint-disable no-console */
 
+import type { QwikManifest } from "@qwik.dev/core/optimizer";
+import type { Render, RenderToStreamOptions } from "@qwik.dev/core/server";
 import type { NextFunction, Request, Response } from "express";
 import express from "express";
-import { build, type InlineConfig, type PluginOption } from "vite";
-import { join, relative, resolve } from "node:path";
 import {
+  existsSync,
   readdirSync,
+  readFileSync,
+  rmSync,
   statSync,
   unlinkSync,
-  rmSync,
-  existsSync,
-  readFileSync,
 } from "node:fs";
-import type { QwikManifest } from "@builder.io/qwik/optimizer";
-import type { Render, RenderToStreamOptions } from "@builder.io/qwik/server";
-import type { PackageJSON } from "../scripts/util";
+import { join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { build, type InlineConfig, type PluginOption } from "vite";
 import { getErrorHtml } from "../packages/qwik-city/src/middleware/request-handler/error-handler";
+import type { PackageJSON } from "../scripts/util";
 
 const isWindows = process.platform === "win32";
 
@@ -113,7 +113,7 @@ async function buildApp(
   appName: string,
   enableCityServer: boolean,
 ) {
-  const optimizer = await import("@builder.io/qwik/optimizer");
+  const optimizer = await import("@qwik.dev/core/optimizer");
   const appSrcDir = join(appDir, "src");
   const appDistDir = join(appDir, "dist");
   const appServerDir = join(appDir, "server");
@@ -142,7 +142,7 @@ async function buildApp(
       },
       load(id) {
         if (id.endsWith(qwikCityVirtualEntry)) {
-          return `import { createQwikCity } from '@builder.io/qwik-city/middleware/node';
+          return `import { createQwikCity } from '@qwik.dev/city/middleware/node';
 import qwikCityPlan from '@qwik-city-plan';
 import render from '${escapeChars(resolve(appSrcDir, "entry.ssr"))}';
 const { router, notFound } = createQwikCity({
@@ -167,7 +167,7 @@ export {
         }
       },
     });
-    const qwikCityVite = await import("@builder.io/qwik-city/vite");
+    const qwikCityVite = await import("@qwik.dev/city/vite");
 
     plugins.push(
       qwikCityVite.qwikCity({

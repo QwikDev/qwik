@@ -1,5 +1,5 @@
 {
-  "name": "@builder.io/qwik",
+  "name": "@qwik.dev/core",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
   "version": "2.0.0-0",
   "annotation": "This package.json is for internal use in the monorepo, the build actually makes a new package.json for the published package via scripts/package-json.ts",
@@ -28,8 +28,8 @@
     "csstype": "^3.1"
   },
   "devDependencies": {
-    "@builder.io/qwik": "workspace:^",
-    "@builder.io/qwik-dom": "workspace:^",
+    "@qwik.dev/core": "workspace:*",
+    "@qwik.dev/dom": "workspace:*",
     "image-size": "1.1.1",
     "kleur": "4.1.5",
     "prettier": "3.3.3",
@@ -101,6 +101,16 @@
       "types": "./dist/loader/index.d.ts",
       "import": "./dist/loader/index.mjs",
       "require": "./dist/loader/index.cjs"
+    },
+    "./insights": {
+      "types": "./dist/insights/index.d.ts",
+      "import": "./dist/insights/index.mjs",
+      "require": "./dist/insights/index.cjs"
+    },
+    "./insights/vite": {
+      "types": "./dist/insights/vite/index.d.ts",
+      "import": "./dist/insights/vite/index.mjs",
+      "require": "./dist/insights/vite/index.cjs"
     },
     "./optimizer.cjs": "./dist/optimizer.cjs",
     "./optimizer.mjs": "./dist/optimizer.mjs",
@@ -178,6 +188,9 @@
     "type": "git",
     "url": "https://github.com/QwikDev/qwik.git",
     "directory": "packages/qwik"
+  },
+  "scripts": {
+    "build.insights": "cd src/insights && vite build --mode lib"
   },
   "type": "module",
   "types": "./dist/core.d.ts"

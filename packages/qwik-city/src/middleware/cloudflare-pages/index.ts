@@ -1,18 +1,18 @@
+import { getNotFound } from '@qwik-city-not-found-paths';
+import { isStaticPath } from '@qwik-city-static-paths';
 import type {
   ServerRenderOptions,
   ServerRequestEvent,
-} from '@builder.io/qwik-city/middleware/request-handler';
+} from '@qwik.dev/city/middleware/request-handler';
 import {
+  _TextEncoderStream_polyfill,
   mergeHeadersCookies,
   requestHandler,
-  _TextEncoderStream_polyfill,
-} from '@builder.io/qwik-city/middleware/request-handler';
-import { getNotFound } from '@qwik-city-not-found-paths';
-import { isStaticPath } from '@qwik-city-static-paths';
-import { _deserialize, _serialize, _verifySerializable } from '@builder.io/qwik';
-import { setServerPlatform } from '@builder.io/qwik/server';
+} from '@qwik.dev/city/middleware/request-handler';
+import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core';
+import { setServerPlatform } from '@qwik.dev/core/server';
 
-// @builder.io/qwik-city/middleware/cloudflare-pages
+// @qwik.dev/city/middleware/cloudflare-pages
 
 /** @public */
 export function createQwikCity(opts: QwikCityCloudflarePagesOptions) {

@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 
 const I1 = 12;
 const [I2, {I3, v1: [I4], I5=v2, ...I6}, I7=v3, ...I8] = obj;
@@ -25,8 +25,8 @@ export const App = component$(({count}) => {
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 const I1 = 12;
 const [I2, { I3, v1: [I4], I5 = v2, ...I6 }, I7 = v3, ...I8] = obj;
 function I9() {}
@@ -57,7 +57,7 @@ import { _auto_I6 as I6 } from "./test";
 import { _auto_I7 as I7 } from "./test";
 import { _auto_I8 as I8 } from "./test";
 import { _auto_I9 as I9 } from "./test";
-import { qrl } from "@builder.io/qwik";
+import { qrl } from "@qwik.dev/core";
 export const App_component_ckEPmXZlub0 = (props)=>{
     console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
     console.log(itsok, v1, v2, v3, obj);
@@ -81,19 +81,19 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    191,
-    348
+    189,
+    346
   ]
 }
 */
 ============================= test.tsx_app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
 
 import { _auto_I10 as I10 } from "./test";
-import { _jsxSorted } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwik.dev/core";
 export const App_component_1_w0t0o3QMovU = ()=>{
     return /*#__PURE__*/ _jsxSorted(I10, null, null, null, 3, "u6_0");
 };
-export { _hW } from "@builder.io/qwik";
+export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAWU;IACR,qBACC,WAAC;AAEH\"}")
@@ -112,8 +112,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    304,
-    344
+    302,
+    342
   ]
 }
 */

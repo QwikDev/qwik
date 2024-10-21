@@ -1,9 +1,9 @@
+import type { QwikRollupPluginOptions } from '@qwik.dev/core/optimizer';
 import type { Plugin } from 'rollup';
-import type { QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
-import type { QwikWorkerGlobal } from './repl-service-worker';
 import type { MinifyOptions } from 'terser';
 import type { ReplInputOptions } from '../types';
 import { depResponse } from './repl-dependencies';
+import type { QwikWorkerGlobal } from './repl-service-worker';
 
 export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 'ssr'): Plugin => {
   const srcInputs = options.srcInputs;
@@ -20,13 +20,13 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
         return id;
       }
       if (
-        id === '@builder.io/qwik' ||
-        id === '@builder.io/qwik/jsx-runtime' ||
-        id === '@builder.io/qwik/jsx-dev-runtime'
+        id === '@qwik.dev/core' ||
+        id === '@qwik.dev/core/jsx-runtime' ||
+        id === '@qwik.dev/core/jsx-dev-runtime'
       ) {
         return '\0qwikCore';
       }
-      if (id === '@builder.io/qwik/server') {
+      if (id === '@builder.io/qwik/server' || id === '@qwik.dev/core/server') {
         return '\0qwikServer';
       }
       // Simple relative file resolution
@@ -57,13 +57,13 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
       }
       if (id === '\0qwikCore') {
         if (options.buildMode === 'production') {
-          const rsp = await depResponse('@builder.io/qwik', '/core.min.mjs');
+          const rsp = await depResponse('@qwik.dev/core', '/core.min.mjs');
           if (rsp) {
             return rsp.text();
           }
         }
 
-        const rsp = await depResponse('@builder.io/qwik', '/core.mjs');
+        const rsp = await depResponse('@qwik.dev/core', '/core.mjs');
         if (rsp) {
           return rsp.text();
         }

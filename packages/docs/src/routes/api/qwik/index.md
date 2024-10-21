@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik API Reference
+title: \@qwik.dev/qwik API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik
+# [API](/api) &rsaquo; @qwik.dev/qwik
 
 ## \_qrlSync
 
@@ -3630,7 +3630,7 @@ _(Optional)_ Options for the loading prefetch graph.
 </tbody></table>
 **Returns:**
 
-[JSXNode](#jsxnode)&lt;string&gt;
+JSXNode&lt;string&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/prefetch-service-worker/prefetch.ts)
 
@@ -3684,7 +3684,7 @@ Options for the prefetch service worker.
 </tbody></table>
 **Returns:**
 
-[JSXNode](#jsxnode)&lt;'script'&gt;
+JSXNode&lt;'script'&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/prefetch-service-worker/prefetch.ts)
 
@@ -4234,7 +4234,7 @@ export type QwikInitEvent = CustomEvent<{}>;
 The interface holds available attributes of both native DOM elements and custom Qwik elements. An example showing how to define a customizable wrapper component:
 
 ```tsx
-import { component$, Slot, type QwikIntrinsicElements } from "@builder.io/qwik";
+import { component$, Slot, type QwikIntrinsicElements } from "@qwik.dev/core";
 
 type WrapperProps = {
   attributes?: QwikIntrinsicElements["div"];
@@ -4592,7 +4592,7 @@ opts
 
 </td><td>
 
-[RenderOptions](#renderoptions)
+RenderOptions
 
 </td><td>
 
@@ -4602,7 +4602,7 @@ _(Optional)_
 </tbody></table>
 **Returns:**
 
-Promise&lt;[RenderResult](#renderresult)&gt;
+Promise&lt;RenderResult&gt;
 
 An object containing a cleanup function.
 

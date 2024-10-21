@@ -30,5 +30,15 @@ export const QWIK_BINDING_MAP = {
         "platformArchABI": "qwik.win32-x64-msvc.node"
       }
     ]
+  },
+  "linux": {
+    "x64": [
+      {
+        "platform": "linux",
+        "arch": "x64",
+        "abi": "gnu",
+        "platformArchABI": "qwik.linux-x64-gnu.node"
+      }
+    ]
   }
 };

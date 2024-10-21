@@ -6,7 +6,7 @@ expression: output
 ==INPUT==
 
 
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$(() => {
 	return (
@@ -18,16 +18,16 @@ export const App = component$(() => {
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { inlinedQrlDEV } from "@builder.io/qwik";
-import { _jsxSorted } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { inlinedQrlDEV } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
     return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", null, {
         class: "stuff",
         onClick$: /*#__PURE__*/ inlinedQrlDEV(()=>console.log('warn'), "App_component_Cmp_p_onClick_vuXzfUTkpto", {
             file: "/user/qwik/src/test.tsx",
-            lo: 146,
-            hi: 171,
+            lo: 144,
+            hi: 169,
             displayName: "test.tsx_App_component_Cmp_p_onClick"
         })
     }, "Hello Qwik", 3, null, {
@@ -41,8 +41,8 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
     });
 }, "App_component_ckEPmXZlub0", {
     file: "/user/qwik/src/test.tsx",
-    lo: 90,
-    hi: 202,
+    lo: 88,
+    hi: 200,
     displayName: "test.tsx_App_component"
 }));
 

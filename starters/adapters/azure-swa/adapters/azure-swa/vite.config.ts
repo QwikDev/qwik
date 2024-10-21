@@ -1,5 +1,5 @@
-import { azureSwaAdapter } from "@builder.io/qwik-city/adapters/azure-swa/vite";
-import { extendConfig } from "@builder.io/qwik-city/vite";
+import { azureSwaAdapter } from "@qwik.dev/city/adapters/azure-swa/vite";
+import { extendConfig } from "@qwik.dev/city/vite";
 import baseConfig from "../../vite.config";
 
 export default extendConfig(baseConfig, () => {

@@ -46,8 +46,8 @@ export const unusedServer: Rule.RuleModule = {
 };
 
 const unusedServerGood = `
-import { component$ } from '@builder.io/qwik';
-import { server$ } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { server$ } from '@qwik.dev/city';
  
 const serverGreeter = server$((firstName: string, lastName: string) => {
   const greeting = \`Hello \${firstName} \${lastName}\`;
@@ -67,8 +67,8 @@ export default component$(() => (
 );`.trim();
 
 const unusedServerBad = `
-import { component$ } from '@builder.io/qwik';
-import { server$ } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { server$ } from '@qwik.dev/city';
  
 const serverGreeter = server$((firstName: string, lastName: string) => {
   const greeting = \`Hello \${firstName} \${lastName}\`;

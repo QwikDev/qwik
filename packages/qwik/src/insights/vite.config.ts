@@ -7,9 +7,9 @@ export default defineConfig(() => {
       target: 'es2020',
       outDir: '../../dist/insights',
       lib: {
-        entry: './src/components/insights.ts',
-        formats: ['es'] as const,
-        fileName: (format) => `insights.${format === 'es' ? 'js' : 'cjs'}`,
+        entry: './index.ts',
+        formats: ['es', 'cjs'] as const,
+        fileName: (format) => `index.${format === 'es' ? 'mjs' : 'cjs'}`,
       },
       minify: false,
 

@@ -1,2 +1,1 @@
-export * from './src/components/insights';
-export * from './src/vite/insights-plugin';
+export * from './insights';

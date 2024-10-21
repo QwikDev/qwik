@@ -1,6 +1,6 @@
 import { partytownVite } from '@builder.io/partytown/utils';
 import { qwikCity } from '@qwik.dev/city/vite';
-import { qwikInsights } from '@qwik.dev/core/insights';
+import { qwikInsights } from '@qwik.dev/core/insights/vite';
 import { qwikVite } from '@qwik.dev/core/optimizer';
 import { qwikReact } from '@qwik.dev/react/vite';
 import path, { resolve } from 'node:path';
@@ -176,12 +176,7 @@ export default defineConfig(async () => {
         output: {
           assetFileNames: 'assets/[hash]-[name].[ext]',
         },
-        external: [
-          '@builder.io/qwik',
-          '@builder.io/qwik/jsx-runtime',
-          '@qwik.dev/core',
-          '@qwik.dev/core/jsx-runtime',
-        ],
+        external: ['@qwik.dev/core', '@qwik.dev/core/jsx-runtime'],
       },
     },
     clearScreen: false,

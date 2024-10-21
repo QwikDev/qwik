@@ -687,9 +687,10 @@ jobs:
       - name: Playwright E2E Tests
         run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
 
-      - name: Validate Create Qwik Cli
-        if: matrix.settings.host != 'windows-latest'
-        run: pnpm cli.validate
+      # RE-ENABBLE THIS AFTER qwik.dev/ packages are published
+      # - name: Validate Create Qwik Cli
+      # if: matrix.settings.host != 'windows-latest'
+      # run: pnpm cli.validate
 
   ############ E2E CLI TEST ############
   test-cli-e2e:

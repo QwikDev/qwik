@@ -1,14 +1,21 @@
 import { isDev } from '@qwik.dev/core/build';
 import { isQwikComponent } from '../shared/component.public';
-import { isQrl } from '../shared/qrl/qrl-class';
-import type { QRL } from '../shared/qrl/qrl.public';
 import { Fragment, directGetPropsProxyProp } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SSRStream, type SSRStreamChildren } from '../shared/jsx/utils.public';
-import { trackSignal } from '../use/use-core';
+import { isQrl } from '../shared/qrl/qrl-class';
+import type { QRL } from '../shared/qrl/qrl.public';
+import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
+import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
+import {
+  convertEventNameFromJsxPropToHtmlAttr,
+  getEventNameFromJsxProp,
+  isJsxPropertyAnEventName,
+  isPreventDefault,
+} from '../shared/utils/event-names';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
 import { throwErrorAndStop } from '../shared/utils/log';
 import {
@@ -19,21 +26,18 @@ import {
   QSlot,
 } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
-import { isFunction, type ValueOrPromise } from '../shared/utils/types';
-import {
-  convertEventNameFromJsxPropToHtmlAttr,
-  getEventNameFromJsxProp,
-  isJsxPropertyAnEventName,
-  isPreventDefault,
-} from '../shared/utils/event-names';
+import { qInspector } from '../shared/utils/qdev';
 import { addComponentStylePrefix, isClassAttr } from '../shared/utils/scoped-styles';
-import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
-import { DEBUG_TYPE, VirtualType } from '../shared/types';
-import { WrappedSignal, EffectProperty, isSignal } from '../signal/signal';
+import { serializeAttribute } from '../shared/utils/styles';
+import { isFunction, type ValueOrPromise } from '../shared/utils/types';
+import { EffectProperty, WrappedSignal, isSignal, type Signal } from '../signal/signal';
+import { trackSignal } from '../use/use-core';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrComponentFrame, ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
-import { qInspector } from '../shared/utils/qdev';
-import { serializeAttribute } from '../shared/utils/styles';
+
+// Allow the optimizer to process this $
+// @ts-ignore -- this gets renamed to qwik during build
+import { $ } from '@builder.io/qwik-external';
 
 class ParentComponentData {
   constructor(
@@ -367,8 +371,7 @@ export function toSsrAttrs(
     return null;
   }
   const ssrAttrs: SsrAttrs = [];
-  for (const key in record) {
-    let value = record[key];
+  const handleProp = (key: string, value: unknown) => {
     if (isJsxPropertyAnEventName(key)) {
       if (anotherRecord) {
         /**
@@ -397,7 +400,7 @@ export function toSsrAttrs(
             // merge values from the const props with the var props
             value = getMergedEventPropValues(value, anotherValue);
           } else {
-            continue;
+            return;
           }
         }
       }
@@ -405,7 +408,7 @@ export function toSsrAttrs(
       if (eventValue) {
         ssrAttrs.push(convertEventNameFromJsxPropToHtmlAttr(key), eventValue);
       }
-      continue;
+      return;
     }
 
     if (isSignal(value)) {
@@ -416,7 +419,7 @@ export function toSsrAttrs(
       } else {
         ssrAttrs.push(key, value);
       }
-      continue;
+      return;
     }
 
     if (isPreventDefault(key)) {
@@ -426,6 +429,25 @@ export function toSsrAttrs(
     value = serializeAttribute(key, value, styleScopedId);
 
     ssrAttrs.push(key, value as string);
+  };
+  for (const key in record) {
+    const value = record[key];
+    if (key.startsWith('bind:')) {
+      const propName = key.slice(5);
+      // emit signal value as the value of the input
+      handleProp(propName, value);
+      // emit handler to update the signal value
+      const handler = propName === 'value' || propName === 'checked' ? 'onInput$' : 'onChange$';
+      // todo verify if static listeners flag needs to be set
+      handleProp(
+        handler,
+        $((_: any, element: any) => {
+          (value as Signal).value = element[propName];
+        })
+      );
+    } else {
+      handleProp(key, value);
+    }
   }
   if (key != null) {
     ssrAttrs.push(ELEMENT_KEY, key);

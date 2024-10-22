@@ -29,7 +29,7 @@ async function submoduleCoreProd(config: BuildConfig) {
   const input: InputOptions = {
     input: join(config.tscDir, 'packages', 'qwik', 'src', 'core', 'index.js'),
     onwarn: rollupOnWarn,
-    external: ['@qwik.dev/core/build'],
+    external: ['@qwik.dev/core-external', '@qwik.dev/core/build'],
     plugins: [
       {
         name: 'setVersion',
@@ -41,6 +41,7 @@ async function submoduleCoreProd(config: BuildConfig) {
                 'globalThis.QWIK_VERSION',
                 JSON.stringify(config.distVersion)
               );
+              b.code = b.code.replaceAll('@qwik.dev/core-external', '@qwik.dev/core');
             }
           }
         },
@@ -78,6 +79,7 @@ async function submoduleCoreProd(config: BuildConfig) {
   const inputMin: InputOptions = {
     input: inputCore,
     onwarn: rollupOnWarn,
+    external: ['@qwik.dev/core-external'],
     plugins: [
       {
         name: 'build',
@@ -216,6 +218,11 @@ async function submoduleCoreProduction(config: BuildConfig, code: string, outPat
   await writeFile(outPath, code + '\n');
 }
 
+async function replaceQwikExternal(filePath: string) {
+  const code = await readFile(filePath, 'utf-8');
+  await writeFile(filePath, code.replaceAll('@qwik.dev/core-external', '@qwik.dev/core'));
+}
+
 async function submoduleCoreDev(config: BuildConfig) {
   const submodule = 'core';
 
@@ -233,7 +240,7 @@ async function submoduleCoreDev(config: BuildConfig) {
 
   const esm = build({
     ...opts,
-    external: ['@qwik.dev/core/build'],
+    external: ['@qwik.dev/core/build', '@qwik.dev/core-external'],
     format: 'esm',
     outExtension: { '.js': '.qwik.mjs' },
   });
@@ -241,6 +248,7 @@ async function submoduleCoreDev(config: BuildConfig) {
   const cjs = build({
     ...opts,
     // we don't externalize qwik build because then the repl service worker sees require()
+    external: ['@qwik.dev/core-external'],
     define: {
       ...opts.define,
       // Vite's base url
@@ -257,6 +265,9 @@ async function submoduleCoreDev(config: BuildConfig) {
   });
 
   await Promise.all([esm, cjs]);
+
+  await replaceQwikExternal(join(config.distQwikPkgDir, 'core.qwik.mjs'));
+  await replaceQwikExternal(join(config.distQwikPkgDir, 'core.qwik.cjs'));
 
   // Point the minified and prod versions to the dev versions
   await writeFile(

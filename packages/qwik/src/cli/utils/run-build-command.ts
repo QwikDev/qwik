@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
-import { dim, cyan, bgMagenta, magenta } from 'kleur/colors';
-import type { AppCommand } from './app-command';
 import { execaCommand } from 'execa';
+import { bgMagenta, cyan, dim, magenta, red } from 'kleur/colors';
+import type { AppCommand } from './app-command';
 import { getPackageManager, pmRunCmd } from './utils';
 interface Step {
   title: string;
@@ -90,7 +90,8 @@ export async function runBuildCommand(app: AppCommand) {
       });
     } catch (e) {
       console.error(script, 'failed');
-      process.exit(1);
+      process.exitCode = 1;
+      throw e;
     }
   }
 
@@ -114,7 +115,8 @@ export async function runBuildCommand(app: AppCommand) {
           out = out.slice(3);
         }
         console.log('\n' + out);
-        process.exit(1);
+        process.exitCode = 1;
+        throw new Error(`Type check failed: ${out}`);
       });
   }
 
@@ -124,8 +126,9 @@ export async function runBuildCommand(app: AppCommand) {
       stdout: 'inherit',
       stderr: 'inherit',
       cwd: app.rootDir,
-    }).catch(() => {
-      process.exit(1);
+    }).catch((error) => {
+      process.exitCode = 1;
+      throw new Error(`Client build failed: ${error}`);
     });
 
     console.log(``);
@@ -156,7 +159,8 @@ export async function runBuildCommand(app: AppCommand) {
           console.log(e.stdout);
         }
         console.log(``);
-        process.exit(1);
+        process.exitCode = 1;
+        throw e;
       });
     step2.push(libBuild);
   }
@@ -183,7 +187,8 @@ export async function runBuildCommand(app: AppCommand) {
           console.log(e.stdout);
         }
         console.log(``);
-        process.exit(1);
+        process.exitCode = 1;
+        throw e;
       });
     step2.push(previewBuild);
   }
@@ -210,7 +215,8 @@ export async function runBuildCommand(app: AppCommand) {
           console.log(e.stdout);
         }
         console.log(``);
-        process.exit(1);
+        process.exitCode = 1;
+        throw e;
       });
     step2.push(serverBuild);
   }
@@ -236,7 +242,8 @@ export async function runBuildCommand(app: AppCommand) {
           console.log(e.stdout);
         }
         console.log(``);
-        process.exit(1);
+        process.exitCode = 1;
+        throw e;
       });
     step2.push(staticBuild);
   }
@@ -262,50 +269,53 @@ export async function runBuildCommand(app: AppCommand) {
         console.log(e.stdout);
         console.error(e.stderr);
         console.log(``);
-        process.exit(1);
+        process.exitCode = 1;
+        throw e;
       });
     step2.push(lintBuild);
   }
 
   if (step2.length > 0) {
-    await Promise.all(step2).then((steps) => {
-      steps.forEach((step) => {
-        if (step.stdout) {
-          console.log('');
-          console.log(step.stdout);
-        }
-        console.log(`${cyan('✓')} ${step.title}`);
-      });
-
-      if (!isPreviewBuild && !buildServerScript && !buildStaticScript && !isLibraryBuild) {
-        const pmRun = pmRunCmd();
-        console.log(``);
-        console.log(`${bgMagenta(' Missing an integration ')}`);
-        console.log(``);
-        console.log(`${magenta('・')} Use ${magenta(pmRun + ' qwik add')} to add an integration`);
-        console.log(`${magenta('・')} Use ${magenta(pmRun + ' preview')} to preview the build`);
-      }
-
-      if (isPreviewBuild && buildStaticScript && runSsgScript) {
-        return execaCommand(buildStaticScript, {
-          stdout: 'inherit',
-          stderr: 'inherit',
-          cwd: app.rootDir,
-          env: {
-            FORCE_COLOR: 'true',
-          },
-        }).catch((e) => {
-          console.log(``);
-          if (e.stderr) {
-            console.log(e.stderr);
-          } else {
-            console.log(e.stdout);
+    await Promise.all(step2)
+      .then((steps) => {
+        steps.forEach((step) => {
+          if (step.stdout) {
+            console.log('');
+            console.log(step.stdout);
           }
-          console.log(``);
-          process.exit(1);
+          console.log(`${cyan('✓')} ${step.title}`);
         });
-      }
-    });
+
+        if (!isPreviewBuild && !buildServerScript && !buildStaticScript && !isLibraryBuild) {
+          const pmRun = pmRunCmd();
+          console.log(``);
+          console.log(`${bgMagenta(' Missing an integration ')}`);
+          console.log(``);
+          console.log(`${magenta('・')} Use ${magenta(pmRun + ' qwik add')} to add an integration`);
+          console.log(`${magenta('・')} Use ${magenta(pmRun + ' preview')} to preview the build`);
+        }
+
+        if (isPreviewBuild && buildStaticScript && runSsgScript) {
+          return execaCommand(buildStaticScript, {
+            stdout: 'inherit',
+            stderr: 'inherit',
+            cwd: app.rootDir,
+            env: {
+              FORCE_COLOR: 'true',
+            },
+          }).catch((e) => {
+            console.log(``);
+            if (e.stderr) {
+              console.log(e.stderr);
+            } else {
+              console.log(e.stdout);
+            }
+            console.log(``);
+            process.exitCode = 1;
+          });
+        }
+      })
+      .catch((error) => console.log(red(error)));
   }
 
   for (const script of postbuildScripts) {
@@ -320,7 +330,8 @@ export async function runBuildCommand(app: AppCommand) {
       });
     } catch (e) {
       console.error(script, 'failed');
-      process.exit(1);
+      process.exitCode = 1;
+      throw e;
     }
   }
 

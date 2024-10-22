@@ -41,13 +41,16 @@ export const RouterOutlet = component$(() => {
             document:onQCInit$={spaInit}
             document:onQInit$={sync$(() => {
               // Minify window and history
-              ((window: ClientSPAWindow, history: History & { state?: ScrollHistoryState }) => {
-                if (!window._qcs && history.scrollRestoration === 'manual') {
-                  window._qcs = true;
+              // Write this as minified as possible, the optimizer does not really minify this code.
+              ((w: ClientSPAWindow, h: History & { state?: ScrollHistoryState }) => {
+                if (!w._qcs && h.scrollRestoration === 'manual') {
+                  // true
+                  w._qcs = !0;
 
-                  const scrollState = history.state?._qCityScroll;
-                  if (scrollState) {
-                    window.scrollTo(scrollState.x, scrollState.y);
+                  // scrollState
+                  const s = h.state?._qCityScroll;
+                  if (s) {
+                    w.scrollTo(s.x, s.y);
                   }
                   document.dispatchEvent(new Event('qcinit'));
                 }

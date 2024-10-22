@@ -332,5 +332,6 @@ export const _qrlSync = function <TYPE extends Function>(
   if (serializedFn === undefined) {
     serializedFn = fn.toString();
   }
+  (fn as any).serialized = serializedFn;
   return createQRL<TYPE>('', SYNC_QRL, fn, null, null, null, null) as any;
 };

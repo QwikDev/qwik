@@ -42,15 +42,15 @@
     ".": {
       "types": "./dist/core.d.ts",
       "import": {
-        "development": "./dist/core.mjs",
-        "production": "./dist/core.prod.mjs",
-        "default": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs"
+        "development": "./dist/core.qwik.mjs",
+        "production": "./dist/core.prod.qwik.mjs",
+        "default": "./dist/core.prod.qwik.mjs",
+        "min": "./dist/core.min.qwik.mjs"
       },
       "require": {
-        "development": "./dist/core.cjs",
-        "production": "./dist/core.prod.cjs",
-        "default": "./dist/core.prod.cjs"
+        "development": "./dist/core.qwik.cjs",
+        "production": "./dist/core.prod.qwik.cjs",
+        "default": "./dist/core.prod.qwik.cjs"
       }
     },
     "./cli": {
@@ -59,29 +59,29 @@
     "./jsx-runtime": {
       "types": "./dist/jsx-runtime.d.ts",
       "import": {
-        "development": "./dist/core.mjs",
-        "production": "./dist/core.prod.mjs",
-        "default": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs"
+        "development": "./dist/core.qwik.mjs",
+        "production": "./dist/core.prod.qwik.mjs",
+        "default": "./dist/core.prod.qwik.mjs",
+        "min": "./dist/core.min.qwik.mjs"
       },
       "require": {
-        "development": "./dist/core.cjs",
-        "production": "./dist/core.prod.cjs",
-        "default": "./dist/core.prod.cjs"
+        "development": "./dist/core.qwik.cjs",
+        "production": "./dist/core.prod.qwik.cjs",
+        "default": "./dist/core.prod.qwik.cjs"
       }
     },
     "./jsx-dev-runtime": {
       "types": "./dist/jsx-runtime.d.ts",
       "import": {
-        "development": "./dist/core.mjs",
-        "production": "./dist/core.prod.mjs",
-        "default": "./dist/core.mjs",
-        "min": "./dist/core.min.mjs"
+        "development": "./dist/core.qwik.mjs",
+        "production": "./dist/core.prod.qwik.mjs",
+        "default": "./dist/core.qwik.mjs",
+        "min": "./dist/core.min.qwik.mjs"
       },
       "require": {
-        "development": "./dist/core.cjs",
-        "production": "./dist/core.prod.cjs",
-        "default": "./dist/core.cjs"
+        "development": "./dist/core.qwik.cjs",
+        "production": "./dist/core.prod.qwik.cjs",
+        "default": "./dist/core.qwik.cjs"
       }
     },
     "./build": {

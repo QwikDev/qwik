@@ -51,7 +51,7 @@ async function submoduleCoreProd(config: BuildConfig) {
   const esmOutput: OutputOptions = {
     dir: join(config.distQwikPkgDir),
     format: 'es',
-    entryFileNames: 'core.mjs',
+    entryFileNames: 'core.qwik.mjs',
     sourcemap: true,
     banner: getBanner('@qwik.dev/core', config.distVersion),
   };
@@ -60,7 +60,7 @@ async function submoduleCoreProd(config: BuildConfig) {
     dir: join(config.distQwikPkgDir),
     format: 'umd',
     name: 'qwikCore',
-    entryFileNames: 'core.cjs',
+    entryFileNames: 'core.qwik.cjs',
     sourcemap: true,
     globals: {
       '@qwik.dev/core/build': 'qwikBuild',
@@ -72,9 +72,9 @@ async function submoduleCoreProd(config: BuildConfig) {
 
   await Promise.all([build.write(esmOutput), build.write(cjsOutput)]);
 
-  console.log('🦊 core.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.mjs')));
+  console.log('🦊 core.qwik.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.qwik.mjs')));
 
-  const inputCore = join(config.distQwikPkgDir, 'core.mjs');
+  const inputCore = join(config.distQwikPkgDir, 'core.qwik.mjs');
   const inputMin: InputOptions = {
     input: inputCore,
     onwarn: rollupOnWarn,
@@ -105,7 +105,7 @@ async function submoduleCoreProd(config: BuildConfig) {
   await buildMin.write({
     dir: join(config.distQwikPkgDir),
     format: 'es',
-    entryFileNames: 'core.min.mjs',
+    entryFileNames: 'core.min.qwik.mjs',
     plugins: [
       {
         name: 'minify',
@@ -154,7 +154,7 @@ async function submoduleCoreProd(config: BuildConfig) {
           const indx = Math.max(selfIdx);
           if (indx !== -1) {
             throw new Error(
-              `"core.min.mjs" should not have any global references, and should have been removed for a production minified build\n` +
+              `"core.min.qwik.mjs" should not have any global references, and should have been removed for a production minified build\n` +
                 esmCleanCode.substring(indx, indx + 10) +
                 '\n' +
                 esmCleanCode.substring(indx - 100, indx + 300)
@@ -168,16 +168,19 @@ async function submoduleCoreProd(config: BuildConfig) {
     ],
   });
 
-  console.log('🐭 core.min.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.min.mjs')));
+  console.log(
+    '🐭 core.min.qwik.mjs:',
+    await fileSize(join(config.distQwikPkgDir, 'core.min.qwik.mjs'))
+  );
 
-  let esmCode = await readFile(join(config.distQwikPkgDir, 'core.mjs'), 'utf-8');
-  let cjsCode = await readFile(join(config.distQwikPkgDir, 'core.cjs'), 'utf-8');
+  let esmCode = await readFile(join(config.distQwikPkgDir, 'core.qwik.mjs'), 'utf-8');
+  let cjsCode = await readFile(join(config.distQwikPkgDir, 'core.qwik.cjs'), 'utf-8');
   // fixup the Vite base url
   cjsCode = cjsCode.replaceAll('undefined.BASE_URL', 'globalThis.BASE_URL||"/"');
-  await writeFile(join(config.distQwikPkgDir, 'core.cjs'), cjsCode);
+  await writeFile(join(config.distQwikPkgDir, 'core.qwik.cjs'), cjsCode);
 
-  await submoduleCoreProduction(config, esmCode, join(config.distQwikPkgDir, 'core.prod.mjs'));
-  await submoduleCoreProduction(config, cjsCode, join(config.distQwikPkgDir, 'core.prod.cjs'));
+  await submoduleCoreProduction(config, esmCode, join(config.distQwikPkgDir, 'core.prod.qwik.mjs'));
+  await submoduleCoreProduction(config, cjsCode, join(config.distQwikPkgDir, 'core.prod.qwik.cjs'));
 }
 
 async function submoduleCoreProduction(config: BuildConfig, code: string, outPath: string) {
@@ -232,7 +235,7 @@ async function submoduleCoreDev(config: BuildConfig) {
     ...opts,
     external: ['@qwik.dev/core/build'],
     format: 'esm',
-    outExtension: { '.js': '.mjs' },
+    outExtension: { '.js': '.qwik.mjs' },
   });
 
   const cjs = build({
@@ -244,7 +247,7 @@ async function submoduleCoreDev(config: BuildConfig) {
       'import.meta.env.BASE_URL': '"globalThis.BASE_URL||\'/\'"',
     },
     format: 'cjs',
-    outExtension: { '.js': '.cjs' },
+    outExtension: { '.js': '.qwik.cjs' },
     banner: {
       js: `globalThis.qwikCore = (function (module) {`,
     },
@@ -256,15 +259,21 @@ async function submoduleCoreDev(config: BuildConfig) {
   await Promise.all([esm, cjs]);
 
   // Point the minified and prod versions to the dev versions
-  await writeFile(join(config.distQwikPkgDir, 'core.prod.mjs'), `export * from './core.mjs';\n`);
   await writeFile(
-    join(config.distQwikPkgDir, 'core.prod.cjs'),
-    `module.exports = require('./core.cjs');\n`
+    join(config.distQwikPkgDir, 'core.prod.qwik.mjs'),
+    `export * from './core.qwik.mjs';\n`
   );
-  await writeFile(join(config.distQwikPkgDir, 'core.min.mjs'), `export * from './core.mjs';\n`);
   await writeFile(
-    join(config.distQwikPkgDir, 'core.min.cjs'),
-    `module.exports = require('./core.cjs');\n`
+    join(config.distQwikPkgDir, 'core.prod.qwik.cjs'),
+    `module.exports = require('./core.qwik.cjs');\n`
+  );
+  await writeFile(
+    join(config.distQwikPkgDir, 'core.min.qwik.mjs'),
+    `export * from './core.qwik.mjs';\n`
+  );
+  await writeFile(
+    join(config.distQwikPkgDir, 'core.min.qwik.cjs'),
+    `module.exports = require('./core.qwik.cjs');\n`
   );
 
   console.log('🐬', submodule, '(dev)');

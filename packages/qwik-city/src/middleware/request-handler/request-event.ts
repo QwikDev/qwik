@@ -208,10 +208,6 @@ export function createRequestEvent(
         }
         headers.set('Location', fixedURL);
       }
-      headers.delete('Cache-Control');
-      if (statusCode > 301) {
-        headers.set('Cache-Control', 'no-store');
-      }
       exit();
       return new RedirectMessage();
     },

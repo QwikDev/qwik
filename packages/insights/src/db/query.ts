@@ -47,7 +47,7 @@ export async function getEdges(
       .from(edgeTable)
       .where(where)
       .groupBy(edgeTable.from, edgeTable.to)
-      .limit(limit || 10_000); // TODO: The 10_000 limit is due to Turso serialization format not being efficient, upgrade this once Turso is fixed.
+      .limit(limit || 5_000); // TODO: The 5_000 limit is due to Turso serialization format not being efficient, upgrade this once Turso is fixed.
     const rows = await query.all();
     return rows.map((e) => ({
       from: e.from,
@@ -180,7 +180,7 @@ export async function updateEdge(
   edge: {
     publicApiKey: string;
     manifestHash: string;
-    from: string | null;
+    from?: string | null;
     to: string;
     interaction: boolean;
     delayBucket: number;
@@ -202,7 +202,7 @@ export async function updateEdge(
       and(
         eq(edgeTable.manifestHash, edge.manifestHash),
         eq(edgeTable.publicApiKey, edge.publicApiKey),
-        edge.from === null ? isNull(edgeTable.from) : eq(edgeTable.from, edge.from),
+        edge.from == null ? isNull(edgeTable.from) : eq(edgeTable.from, edge.from),
         eq(edgeTable.to, edge.to)
       )
     )

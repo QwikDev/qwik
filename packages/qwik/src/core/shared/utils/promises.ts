@@ -1,6 +1,8 @@
 import { throwErrorAndStop } from './log';
 import type { ValueOrPromise } from './types';
 
+export const MAX_RETRY_ON_PROMISE_COUNT = 10;
+
 export type PromiseTree<T> = T | Promise<T> | Promise<T[]> | Array<PromiseTree<T>>;
 
 export const isPromise = (value: any): value is Promise<any> => {
@@ -103,3 +105,14 @@ export const delay = (timeout: number) => {
     setTimeout(resolve, timeout);
   });
 };
+
+export function retryOnPromise<T>(fn: () => T, retryCount: number = 0): ValueOrPromise<T> {
+  try {
+    return fn();
+  } catch (e) {
+    if (isPromise(e) && retryCount < MAX_RETRY_ON_PROMISE_COUNT) {
+      return e.then(retryOnPromise.bind(null, fn, retryCount++)) as ValueOrPromise<T>;
+    }
+    throw e;
+  }
+}

@@ -1120,7 +1120,7 @@ describe('render api', () => {
           stream,
           streaming,
         });
-        expect(stream.write).toHaveBeenCalledTimes(7);
+        expect(stream.write).toHaveBeenCalledTimes(6);
       });
     });
   });

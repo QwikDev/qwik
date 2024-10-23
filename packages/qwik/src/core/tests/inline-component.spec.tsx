@@ -323,7 +323,7 @@ describe.each([
       <Component ssr-required>
         <footer>
           <button></button>
-          <InlineComponent>
+          <InlineComponent ssr-required>
             <span>bar</span>
           </InlineComponent>
         </footer>
@@ -336,7 +336,7 @@ describe.each([
       <Component ssr-required>
         <footer>
           <button></button>
-          <InlineComponent>
+          <InlineComponent ssr-required>
             <div>foo</div>
           </InlineComponent>
         </footer>

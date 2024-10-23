@@ -1942,10 +1942,10 @@ describe.each([
               <button id="flip"></button>
               <button id="counter"></button>
               <div>
-                <Component>
-                  <Projection>
+                <Component ssr-required>
+                  <Projection ssr-required>
                     <div q:slot="a">
-                      Alpha <DerivedSignal>{'123'}</DerivedSignal>
+                      Alpha <DerivedSignal ssr-required>{'123'}</DerivedSignal>
                     </div>
                   </Projection>
                 </Component>
@@ -1968,10 +1968,10 @@ describe.each([
               <button id="flip"></button>
               <button id="counter"></button>
               <div>
-                <Component>
-                  <Projection>
+                <Component ssr-required>
+                  <Projection ssr-required>
                     <div q:slot="b">
-                      Bravo <DerivedSignal>{'124'}</DerivedSignal>
+                      Bravo <DerivedSignal ssr-required>{'124'}</DerivedSignal>
                     </div>
                   </Projection>
                 </Component>

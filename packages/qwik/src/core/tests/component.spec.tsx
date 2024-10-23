@@ -1409,18 +1409,9 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <div id="parent">
-            <Component>
-              <div id="static"></div>
-            </Component>
-            {''}
-            <Component>
-              <div id="static-2"></div>
-            </Component>
-            {''}
-            <Component>
-              <div id="static-3"></div>
-            </Component>
-            {''}
+            <div id="static"></div>
+            <div id="static-2"></div>
+            <div id="static-3"></div>
           </div>
         </Component>
       );

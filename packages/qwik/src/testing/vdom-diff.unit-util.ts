@@ -50,7 +50,6 @@ import {
 import { createDocument } from './document';
 import { isElement } from './html';
 import { QRenderAttr, Q_PROPS_SEPARATOR } from '../core/shared/utils/markers';
-import { JSXNodeImpl } from '../core/shared/jsx/jsx-runtime';
 
 const QCsrTestMarker = 'q:csr-test-marker';
 
@@ -59,9 +58,7 @@ expect.extend({
     const { isNot } = this;
     const container = getContainerElement(received);
     const isSsr = typeof isCsr === 'boolean' ? !isCsr : isSsrRenderer(container);
-    container.setAttribute(QCsrTestMarker, '');
-    const filtered = isSsr ? filterJsx(expected, isSsr) : expected;
-    const diffs = diffJsxVNode(received, filtered, []);
+    const diffs = diffJsxVNode(received, expected, [], isSsr);
     return {
       pass: isNot ? diffs.length !== 0 : diffs.length === 0,
       message: () => diffs.join('\n'),
@@ -99,60 +96,16 @@ function isSsrRenderer(container: _ContainerElement) {
   return container.hasAttribute(QRenderAttr) && !container.hasAttribute(QCsrTestMarker);
 }
 
-const isJsxNode = (expected: JSXChildren): expected is JSXNode => {
-  return typeof expected === 'object' && expected !== null && expected instanceof JSXNodeImpl;
-};
-
 function isSkippableNode(node: JSXNode): boolean {
   return node.type === Fragment && !node.constProps?.['ssr-required'];
 }
 
-function filterJsx(expected: JSXChildren, isSsr: boolean): JSXNode | string {
-  // console.log('filterJsx', expected?.type || expected);
-  if (!isJsxNode(expected)) {
-    return expected as any;
-  }
-  if (!expected.children) {
-    return expected;
-  }
-  const children = getJSXChildren(expected);
-  if (isSkippableNode(expected) && children.length === 1) {
-    return filterJsx(children[0], isSsr);
-  }
-  let filterJoined: JSXChildren[] = [];
-  let lastString;
-  for (const child of children.map((child) => filterJsx(child, isSsr))) {
-    if (typeof child === 'string' || typeof child === 'number') {
-      lastString = typeof lastString === 'string' ? lastString + child : String(child);
-    } else {
-      if (lastString !== undefined) {
-        filterJoined.push(lastString);
-        lastString = undefined;
-      }
-      filterJoined.push(child);
-    }
-  }
-  if (lastString !== undefined) {
-    filterJoined.push(lastString);
-  }
-  filterJoined = filterJoined.filter((child) => {
-    // filter out empty strings
-    return isSsr ? !(typeof child === 'string' && child === '') : true;
-  });
-  if (isSkippableNode(expected) && filterJoined.length === 1) {
-    return filterJsx(filterJoined[0], isSsr);
-  }
-  return new JSXNodeImpl(
-    expected.type,
-    expected.varProps,
-    expected.constProps,
-    filterJoined.length === 1 ? filterJoined[0] : filterJoined,
-    expected.flags,
-    expected.key
-  );
-}
-
-function diffJsxVNode(received: _VNode, expected: JSXNode | string, path: string[] = []): string[] {
+function diffJsxVNode(
+  received: _VNode,
+  expected: JSXNode | string,
+  path: string[] = [],
+  isSsr: boolean
+): string[] {
   if (!received) {
     return [path.join(' > ') + ' missing'];
   }
@@ -164,7 +117,7 @@ function diffJsxVNode(received: _VNode, expected: JSXNode | string, path: string
       diffs.push('EXPECTED', JSON.stringify(expected));
       diffs.push('RECEIVED:', JSON.stringify(receivedText));
     }
-  } else {
+  } else if (!isSsr || (isSsr && !isSkippableNode(expected))) {
     const receivedTag = vnode_isElementVNode(received)
       ? vnode_getElementName(received as _ElementVNode)
       : vnode_isVirtualVNode(received)
@@ -213,13 +166,17 @@ function diffJsxVNode(received: _VNode, expected: JSXNode | string, path: string
         diffs.push('  RECEIVED: ' + JSON.stringify(receivedValue));
       }
     });
-    const expectedChildren = getJSXChildren(expected);
+    const allExpectedChildren = getJSXChildren(expected);
+
+    const expectedChildren = isSsr
+      ? getFilteredJSXChildren(allExpectedChildren)
+      : allExpectedChildren;
     const receivedChildren = getVNodeChildren(received);
     if (receivedChildren.length === expectedChildren.length) {
       for (let i = 0; i < receivedChildren.length; i++) {
         const receivedChild = receivedChildren[i];
         const expectedChild = expectedChildren[i];
-        diffs.push(...diffJsxVNode(receivedChild, expectedChild as JSXNode, path));
+        diffs.push(...diffJsxVNode(receivedChild, expectedChild as JSXNode, path, isSsr));
       }
     } else {
       diffs.push(
@@ -242,6 +199,19 @@ function getJSXChildren(jsx: JSXNode): JSXChildren[] {
     return [children] as any;
   }
   return [];
+}
+
+function getFilteredJSXChildren(children: JSXChildren[]): JSXChildren[] {
+  const filteredChildren = [];
+  for (const child of children) {
+    if (_isJSXNode(child) && isSkippableNode(child)) {
+      const skippedNodeChildren = getJSXChildren(child);
+      filteredChildren.push(...getFilteredJSXChildren(skippedNodeChildren));
+      continue;
+    }
+    filteredChildren.push(child);
+  }
+  return filteredChildren;
 }
 
 function getVNodeChildren(vNode: _VNode): _VNode[] {

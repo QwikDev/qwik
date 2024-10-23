@@ -4,8 +4,11 @@
 
 ```ts
 
-import { ServerAdapterOptions } from '../../shared/vite';
+import { ServerAdapterOptions } from '../../../shared/vite';
 import type { StaticGenerateRenderOptions } from '@builder.io/qwik-city/static';
+
+// @public (undocumented)
+export const FUNCTION_DIRECTORY = "_qwik-city-edge";
 
 export { StaticGenerateRenderOptions }
 

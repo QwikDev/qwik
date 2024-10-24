@@ -5,11 +5,13 @@ import {
   createSignal,
   noSerialize,
   qrl,
+  untrack,
   useComputed$,
   useComputedQrl,
   useLexicalScope,
   useSignal,
   useStore,
+  useTask$,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
@@ -349,6 +351,37 @@ describe.each([
       );
       expect((globalThis as any).useComputedCount).toBe(1);
     });
+
+    it('#4918 - should not trigger track fn if value is not changed', async () => {
+      (globalThis as any).logCount = 0;
+      const Issue4918 = component$(() => {
+        const countRef = useSignal(0);
+        const isGreetOneRef = useComputed$(() => {
+          return countRef.value > 1;
+        });
+        useTask$(({ track }) => {
+          track(isGreetOneRef);
+          (globalThis as any).logCount++;
+        });
+        return (
+          <div>
+            <button onClick$={() => (countRef.value = countRef.value + 1)}>incr</button>
+          </div>
+        );
+      });
+
+      const { document } = await render(<Issue4918 />, { debug });
+      expect((globalThis as any).logCount).toBe(1);
+
+      await trigger(document.body, 'button', 'click');
+      expect((globalThis as any).logCount).toBe(1);
+      await trigger(document.body, 'button', 'click');
+      expect((globalThis as any).logCount).toBe(2);
+      await trigger(document.body, 'button', 'click');
+      expect((globalThis as any).logCount).toBe(2);
+      await trigger(document.body, 'button', 'click');
+      expect((globalThis as any).logCount).toBe(2);
+    });
   });
 
   it('should mark noSerialize as invalid after deserialization', async () => {
@@ -357,7 +390,7 @@ describe.each([
       const runCount = useSignal(0);
       const showCount = useSignal(false);
       const doubleCount = useComputed$(() => {
-        runCount.value++;
+        untrack(() => runCount.value++);
         return noSerialize({ double: count.value * 2 });
       });
       return (

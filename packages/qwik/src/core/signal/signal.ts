@@ -19,7 +19,7 @@ import { trackSignal, tryGetInvokeContext } from '../use/use-core';
 import { Task, TaskFlags, isTask } from '../use/use-task';
 import { logError, throwErrorAndStop } from '../shared/utils/log';
 import { ELEMENT_PROPS, OnRenderProp, QSubscribers } from '../shared/utils/markers';
-import { isPromise } from '../shared/utils/promises';
+import { isPromise, retryOnPromise } from '../shared/utils/promises';
 import { qDev } from '../shared/utils/qdev';
 import type { VNode } from '../client/types';
 import { vnode_getProp, vnode_isVirtualVNode, vnode_isVNode, vnode_setProp } from '../client/vnode';
@@ -345,15 +345,12 @@ export const triggerEffects = (
             container.$scheduler$(ChoreType.QRL_RESOLVE, null, effect.$computeQrl$);
           }
         }
-        (effect as ComputedSignal<unknown> | WrappedSignal<unknown>).$invalid$ = true;
-        const previousSignal = signal;
         try {
-          signal = effect;
-          effect.$effects$?.forEach(scheduleEffect);
-        } catch (e: unknown) {
+          retryOnPromise(() =>
+            (effect as ComputedSignal<unknown> | WrappedSignal<unknown>).$invalidate$()
+          );
+        } catch (e) {
           logError(e);
-        } finally {
-          signal = previousSignal;
         }
       } else if (property === EffectProperty.COMPONENT) {
         const host: HostElement = effect as any;
@@ -458,7 +455,9 @@ export class ComputedSignal<T> extends Signal<T> {
       this.$invalid$ = false;
 
       const didChange = untrackedValue !== this.$untrackedValue$;
-      this.$untrackedValue$ = untrackedValue;
+      if (didChange) {
+        this.$untrackedValue$ = untrackedValue;
+      }
       return didChange;
     } finally {
       if (ctx) {
@@ -531,12 +530,17 @@ export class WrappedSignal<T> extends Signal<T> implements Subscriber {
     if (!this.$invalid$) {
       return false;
     }
-    this.$untrackedValue$ = trackSignal(
+    const untrackedValue = trackSignal(
       () => this.$func$(...this.$args$),
       this,
       EffectProperty.VNODE,
       this.$container$!
     );
+    const didChange = untrackedValue !== this.$untrackedValue$;
+    if (didChange) {
+      this.$untrackedValue$ = untrackedValue;
+    }
+    return didChange;
   }
 
   // Getters don't get inherited

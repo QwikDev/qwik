@@ -123,7 +123,7 @@ describe.each([
     const { vNode, document } = await render(<Parent />, { debug });
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
-        <Fragment>
+        <Fragment ssr-required>
           <div>Parent</div>
           <div>
             <button>Show child</button>
@@ -135,7 +135,7 @@ describe.each([
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
-        <Fragment>
+        <Fragment ssr-required>
           <div>Parent</div>
           <div>
             <button>Show child</button>

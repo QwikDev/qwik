@@ -58,7 +58,7 @@ expect.extend({
     const { isNot } = this;
     const container = getContainerElement(received);
     const isSsr = typeof isCsr === 'boolean' ? !isCsr : isSsrRenderer(container);
-    const diffs = diffJsxVNode(received, expected, [], isSsr);
+    const diffs = diffJsxVNode(received, expected, [], container, isSsr);
     return {
       pass: isNot ? diffs.length !== 0 : diffs.length === 0,
       message: () => diffs.join('\n'),
@@ -104,6 +104,7 @@ function diffJsxVNode(
   received: _VNode,
   expected: JSXNode | string,
   path: string[] = [],
+  container: _ContainerElement,
   isSsr: boolean
 ): string[] {
   if (!received) {
@@ -168,15 +169,22 @@ function diffJsxVNode(
     });
     const allExpectedChildren = getJSXChildren(expected);
 
-    const expectedChildren = isSsr
-      ? getFilteredJSXChildren(allExpectedChildren)
-      : allExpectedChildren;
-    const receivedChildren = getVNodeChildren(received);
+    const expectedChildren = getFilteredJSXChildren(allExpectedChildren, isSsr, {
+      mergedText: undefined,
+    });
+
+    if (_isJSXNode(expected)) {
+      expected.children = expectedChildren;
+    }
+
+    const receivedChildren = getVNodeChildren(container, received);
     if (receivedChildren.length === expectedChildren.length) {
       for (let i = 0; i < receivedChildren.length; i++) {
         const receivedChild = receivedChildren[i];
         const expectedChild = expectedChildren[i];
-        diffs.push(...diffJsxVNode(receivedChild, expectedChild as JSXNode, path, isSsr));
+        diffs.push(
+          ...diffJsxVNode(receivedChild, expectedChild as JSXNode, path, container, isSsr)
+        );
       }
     } else {
       diffs.push(
@@ -201,28 +209,83 @@ function getJSXChildren(jsx: JSXNode): JSXChildren[] {
   return [];
 }
 
-function getFilteredJSXChildren(children: JSXChildren[]): JSXChildren[] {
+function getFilteredJSXChildren(
+  children: JSXChildren[],
+  isSsr: boolean,
+  data: {
+    mergedText: string | undefined;
+  }
+): JSXChildren[] {
   const filteredChildren = [];
+  // let mergedText: string | undefined;
+
+  const pushMergedTextIfNeeded = () => {
+    if (data.mergedText !== undefined) {
+      filteredChildren.push(data.mergedText);
+      data.mergedText = undefined;
+    }
+  };
+
   for (const child of children) {
-    if (_isJSXNode(child) && isSkippableNode(child)) {
-      const skippedNodeChildren = getJSXChildren(child);
-      filteredChildren.push(...getFilteredJSXChildren(skippedNodeChildren));
+    if (typeof child === 'string' || typeof child === 'number') {
+      // skip empty strings
+      if (child !== '') {
+        data.mergedText =
+          typeof data.mergedText === 'string' ? data.mergedText + child : String(child);
+      }
       continue;
     }
-    filteredChildren.push(child);
+
+    if (isSsr && _isJSXNode(child) && isSkippableNode(child)) {
+      const skippedNodeChildren = getJSXChildren(child);
+      filteredChildren.push(...getFilteredJSXChildren(skippedNodeChildren, isSsr, data));
+    } else {
+      pushMergedTextIfNeeded();
+      filteredChildren.push(child);
+    }
   }
+
+  pushMergedTextIfNeeded();
   return filteredChildren;
 }
 
-function getVNodeChildren(vNode: _VNode): _VNode[] {
+function getVNodeChildren(container: _ContainerElement, vNode: _VNode): _VNode[] {
   const children: _VNode[] = [];
+  let mergedText: string | undefined;
+
+  const pushMergedTextIfNeeded = () => {
+    if (mergedText !== undefined) {
+      const mergedTextVNode = vnode_newText(
+        container.ownerDocument!.createTextNode(mergedText),
+        mergedText
+      );
+      children.push(mergedTextVNode);
+      mergedText = undefined;
+    }
+  };
+
   let child = vnode_getFirstChild(vNode);
   while (child) {
     if (!shouldSkip(child)) {
+      if (vnode_isTextVNode(child)) {
+        const vnodeText = vnode_getText(child);
+        if (vnodeText !== '') {
+          if (mergedText === undefined) {
+            mergedText = vnodeText;
+          } else {
+            mergedText += vnodeText;
+          }
+        }
+        child = vnode_getNextSibling(child);
+        continue;
+      }
+      pushMergedTextIfNeeded();
+
       children.push(child);
     }
     child = vnode_getNextSibling(child);
   }
+  pushMergedTextIfNeeded();
   return children;
 }
 export function jsxToHTML(jsx: JSXNode, pad: string = ''): string {

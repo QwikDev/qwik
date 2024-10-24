@@ -243,8 +243,8 @@ describe.each([
             <div>
               <button id="issue-5270-button">toggle</button>
               <br></br>
-              <Projection>
-                <Component>
+              <Projection ssr-required>
+                <Component ssr-required>
                   <div id="issue-5270-div">
                     {'Ctx: '}
                     <WrappedSignal>{'hello'}</WrappedSignal>

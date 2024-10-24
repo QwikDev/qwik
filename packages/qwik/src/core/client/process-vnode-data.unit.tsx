@@ -177,7 +177,7 @@ describe('processVnodeData', () => {
   });
 });
 
-const qContainerPaused = { 'q:container': 'paused' };
+const qContainerPaused = { 'q:container': 'resumed' };
 const qContainerHtml = { 'q:container': 'html' };
 function process(html: string): ClientContainer[] {
   html = html.trim();

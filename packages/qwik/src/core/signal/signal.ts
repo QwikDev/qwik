@@ -345,12 +345,12 @@ export const triggerEffects = (
             container.$scheduler$(ChoreType.QRL_RESOLVE, null, effect.$computeQrl$);
           }
         }
-        if (effect instanceof ComputedSignal || effect instanceof WrappedSignal) {
-          try {
-            retryOnPromise(() => effect.$invalidate$());
-          } catch (e) {
-            logError(e);
-          }
+        try {
+          retryOnPromise(() =>
+            (effect as ComputedSignal<unknown> | WrappedSignal<unknown>).$invalidate$()
+          );
+        } catch (e) {
+          logError(e);
         }
       } else if (property === EffectProperty.COMPONENT) {
         const host: HostElement = effect as any;

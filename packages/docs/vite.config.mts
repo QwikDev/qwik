@@ -158,7 +158,9 @@ export default defineConfig(async () => {
           ],
         },
       }),
-      qwikVite(),
+      qwikVite({
+        experimental: ['insights'],
+      }),
       partytownVite({
         dest: resolve('dist', '~partytown'),
       }),

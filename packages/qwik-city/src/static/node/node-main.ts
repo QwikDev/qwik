@@ -142,7 +142,7 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
     });
 
     nodeWorker.on('error', (e) => {
-      console.error(`worker error: ${e}`);
+      console.error(`worker error`, e);
     });
 
     nodeWorker.on('exit', (code) => {

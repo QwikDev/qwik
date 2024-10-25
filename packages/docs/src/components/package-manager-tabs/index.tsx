@@ -14,8 +14,8 @@ export default component$(() => {
   return (
     <Tabs.Root
       selectedTabId={selectedPkgManagersSig.value}
-      onSelectedTabIdChange$={(pkgManager) => {
-        selectedPkgManagersSig.value = pkgManager as PkgManagers;
+      onSelectedTabIdChange$={(pkgManager: PkgManagers) => {
+        selectedPkgManagersSig.value = pkgManager;
       }}
     >
       <Tabs.List>

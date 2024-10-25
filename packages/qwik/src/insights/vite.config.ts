@@ -9,7 +9,7 @@ export default defineConfig(() => {
       lib: {
         entry: './index.ts',
         formats: ['es', 'cjs'] as const,
-        fileName: (format) => `index.${format === 'es' ? 'mjs' : 'cjs'}`,
+        fileName: (format) => `index.qwik.${format === 'es' ? 'mjs' : 'cjs'}`,
       },
       minify: false,
 

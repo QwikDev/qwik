@@ -89,12 +89,14 @@ export const wrapDeserializerProxy = (container: DomContainer, data: unknown): u
 };
 
 class DeserializationHandler implements ProxyHandler<object> {
+  public $length$: number;
+
   constructor(
     public $container$: DomContainer,
     public $data$: unknown[]
-  ) {}
-
-  public $length$ = this.$data$.length / 2;
+  ) {
+    this.$length$ = this.$data$.length / 2;
+  }
 
   get(target: unknown[], property: PropertyKey, receiver: object) {
     if (property === SERIALIZER_PROXY_UNWRAP) {

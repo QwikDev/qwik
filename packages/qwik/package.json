@@ -104,8 +104,8 @@
     },
     "./insights": {
       "types": "./dist/insights/index.d.ts",
-      "import": "./dist/insights/index.mjs",
-      "require": "./dist/insights/index.cjs"
+      "import": "./dist/insights/index.qwik.mjs",
+      "require": "./dist/insights/index.qwik.cjs"
     },
     "./insights/vite": {
       "types": "./dist/insights/vite/index.d.ts",
@@ -190,7 +190,7 @@
     "directory": "packages/qwik"
   },
   "scripts": {
-    "build.insights": "cd src/insights && vite build --mode lib"
+    "build.insights": "cd src/insights && vite build --mode lib --emptyOutDir"
   },
   "type": "module",
   "types": "./dist/core.d.ts"

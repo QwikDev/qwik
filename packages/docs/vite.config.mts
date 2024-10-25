@@ -158,7 +158,9 @@ export default defineConfig(async () => {
           ],
         },
       }),
-      qwikVite(),
+      qwikVite({
+        experimental: ['insights'],
+      }),
       partytownVite({
         dest: resolve('dist', '~partytown'),
       }),
@@ -176,7 +178,6 @@ export default defineConfig(async () => {
         output: {
           assetFileNames: 'assets/[hash]-[name].[ext]',
         },
-        external: ['@qwik.dev/core', '@qwik.dev/core/jsx-runtime'],
       },
     },
     clearScreen: false,

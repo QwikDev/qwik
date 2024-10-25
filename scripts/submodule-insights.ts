@@ -2,8 +2,7 @@ import { build } from 'esbuild';
 import RawPlugin from 'esbuild-plugin-raw';
 import { execa } from 'execa';
 import { join } from 'node:path';
-import { writePackageJson } from './package-json';
-import { type BuildConfig, nodeTarget, type PackageJSON, panic } from './util';
+import { type BuildConfig, nodeTarget, panic } from './util';
 
 export async function submoduleInsights(config: BuildConfig) {
   await buildComponents(config);
@@ -33,20 +32,6 @@ async function buildComponents(config: BuildConfig) {
   if (result.failed) {
     panic(`tsc failed`);
   }
-
-  // Create package.json
-
-  const distBase = join(config.distQwikPkgDir, 'insights');
-
-  const insightsPkg: PackageJSON = {
-    name: `@qwik.dev/core/insights`,
-    version: config.distVersion,
-    main: `index.mjs`,
-    types: `index.d.ts`,
-    private: true,
-    type: 'module',
-  };
-  await writePackageJson(distBase, insightsPkg);
 }
 
 const external = ['fs', 'path', 'vite', 'typescript', '@qwik.dev/core/optimizer'];
@@ -77,16 +62,4 @@ async function buildVite(config: BuildConfig) {
     external,
     plugins: [RawPlugin()],
   });
-
-  // Create package.json
-
-  const insightsVitePkg: PackageJSON = {
-    name: `@qwik.dev/core/insights/vite`,
-    version: config.distVersion,
-    main: `index.mjs`,
-    types: `index.d.ts`,
-    private: true,
-    type: 'module',
-  };
-  await writePackageJson(distBase, insightsVitePkg);
 }

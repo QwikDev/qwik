@@ -176,7 +176,6 @@ export default defineConfig(async () => {
         output: {
           assetFileNames: 'assets/[hash]-[name].[ext]',
         },
-        external: ['@qwik.dev/core', '@qwik.dev/core/jsx-runtime'],
       },
     },
     clearScreen: false,

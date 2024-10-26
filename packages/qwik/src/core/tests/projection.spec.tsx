@@ -7,6 +7,7 @@ import {
   Fragment as InlineComponent,
   jsx,
   Fragment as Projection,
+  Fragment as Awaited,
   Slot,
   useContext,
   useContextProvider,
@@ -2389,6 +2390,59 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <p>User is not signed in</p>
+        </Component>
+      );
+    });
+
+    it('#7000 - should render promise in th q:template', async () => {
+      const TheCursedReveal = component$<{
+        open: boolean;
+      }>(({ open }) => {
+        return <>{open && <Slot />}</>;
+      });
+
+      const Issue7000 = component$(() => {
+        const open = useSignal(false);
+
+        async function t(key: string): Promise<string> {
+          return Promise.resolve(key);
+        }
+
+        return (
+          <>
+            <button onClick$={() => (open.value = !open.value)}></button>
+            <TheCursedReveal open={open.value}>{t('I am an async string')}</TheCursedReveal>
+          </>
+        );
+      });
+
+      const { vNode, document } = await render(<Issue7000 />, { debug: DEBUG });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            <Component>
+              <Projection>{''}</Projection>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(document.body, 'button', 'click');
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Fragment>
+            <button></button>
+            <Component>
+              <Fragment>
+                <Projection>
+                  <Awaited>{'I am an async string'}</Awaited>
+                </Projection>
+              </Fragment>
+            </Component>
+          </Fragment>
         </Component>
       );
     });

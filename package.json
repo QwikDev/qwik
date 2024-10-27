@@ -209,7 +209,7 @@
     "build.watch": "tsm scripts/index.ts --build  --qwikcity --watch --dev --platform-binding",
     "change": "changeset",
     "cli": "pnpm build.cli && node packages/create-qwik/dist/create-qwik.cjs && tsm scripts/validate-cli.ts --copy-local-qwik-dist",
-    "cli.qwik": "pnpm build.cli && node packages/qwik/dist/qwik-cli.cjs",
+    "cli.qwik": "pnpm build.cli && packages/qwik/qwik-cli.cjs",
     "cli.validate": "tsm scripts/validate-cli.ts",
     "deps": "corepack pnpm upgrade -i -r --latest && syncpack fix-mismatches && corepack pnpm dedupe",
     "docs.dev": "cd packages/docs && pnpm build.repl-sw && pnpm dev",

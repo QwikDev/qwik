@@ -2,7 +2,7 @@ import { build } from 'esbuild';
 import { existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { copyStartersDir } from './create-qwik-cli';
-import { type BuildConfig, copyDir, copyFile, getBanner, nodeTarget } from './util';
+import { type BuildConfig, copyDir, getBanner, nodeTarget } from './util';
 
 /** Builds @builder.io/qwik/cli */
 export async function submoduleCli(config: BuildConfig) {
@@ -41,11 +41,6 @@ export async function submoduleCli(config: BuildConfig) {
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
     },
   });
-
-  await copyFile(
-    join(config.srcQwikDir, submodule, 'qwik.cjs'),
-    join(config.distQwikPkgDir, 'qwik-cli.cjs')
-  );
 
   await copyStartersDir(config, config.distQwikPkgDir, ['features', 'adapters']);
 

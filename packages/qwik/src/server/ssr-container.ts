@@ -582,13 +582,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   ////////////////////////////////////
 
   private emitContainerData(): ValueOrPromise<void> {
-    this.emitUnclaimedProjection();
-    this.addVNodeDataToSerializationRoots();
-    return maybeThen(this.emitStateData(), () => {
-      this.emitVNodeData();
-      this.emitPrefetchResourcesData();
-      this.emitSyncFnsData();
-      this.emitQwikLoaderAtBottomIfNeeded();
+    return maybeThen(this.emitUnclaimedProjection(), () => {
+      this.addVNodeDataToSerializationRoots();
+      return maybeThen(this.emitStateData(), () => {
+        this.emitVNodeData();
+        this.emitPrefetchResourcesData();
+        this.emitSyncFnsData();
+        this.emitQwikLoaderAtBottomIfNeeded();
+      });
     });
   }
 
@@ -898,7 +899,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  private emitUnclaimedProjection() {
+  private async emitUnclaimedProjection() {
     const unclaimedProjections = this.unclaimedProjections;
     if (unclaimedProjections.length) {
       const previousCurrentComponentNode = this.currentComponentNode;
@@ -942,8 +943,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
                 : [QSlotParent, ssrComponentNode!.id]
             );
             ssrComponentNode?.setProp(value, this.getLastNode().id);
-            _walkJSX(this, children, {
-              allowPromises: false,
+            await _walkJSX(this, children, {
+              allowPromises: true,
               currentStyleScoped: scopedStyleId,
               parentComponentFrame: null,
             });

@@ -9,7 +9,9 @@ export const onPost: RequestHandler = async ({ exit, json, request, params }) =>
   const payloadJson = await request.json();
   migrate1(payloadJson);
   // publicApiKey is always part of the URL as route parameter.
-  payloadJson.publicApiKey = params.publicApiKey;
+  if (!payloadJson.publicApiKey) {
+    payloadJson.publicApiKey = params.publicApiKey;
+  }
   const payload = InsightsPayload.parse(payloadJson);
   // console.log('API: POST: symbol', payload);
   exit();
@@ -45,7 +47,7 @@ export const onPost: RequestHandler = async ({ exit, json, request, params }) =>
   }
 };
 
-function cleanupSymbolName(symbolName: string | null): string | null {
+function cleanupSymbolName(symbolName?: string | null): string | null {
   if (!symbolName) return null;
   const shortName = symbolName.substring(symbolName.lastIndexOf('_') + 1 || 0);
   if (shortName == 'hW') return null;

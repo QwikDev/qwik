@@ -76,12 +76,12 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   const injections: GlobalInjections[] = [];
   const qwikPlugin = createPlugin(qwikViteOpts.optimizerOptions);
 
-  async function loadQwikInsights(clientOutDir?: string | null): Promise<InsightManifest | null> {
+  async function loadQwikInsights(clientOutDir = ''): Promise<InsightManifest | null> {
     const sys = qwikPlugin.getSys();
     const cwdRelativePath = absolutePathAwareJoin(
       sys.path,
       rootDir || '.',
-      clientOutDir ?? 'dist',
+      clientOutDir,
       'q-insights.json'
     );
     const path = absolutePathAwareJoin(sys.path, process.cwd(), cwdRelativePath);
@@ -97,7 +97,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     getOptimizer: () => qwikPlugin.getOptimizer(),
     getOptions: () => qwikPlugin.getOptions(),
     getManifest: () => manifestInput,
-    getInsightsManifest: (clientOutDir?: string | null) => loadQwikInsights(clientOutDir),
+    getInsightsManifest: (clientOutDir = '') => loadQwikInsights(clientOutDir!),
     getRootDir: () => qwikPlugin.getOptions().rootDir,
     getClientOutDir: () => clientOutDir,
     getClientPublicOutDir: () => clientPublicOutDir,
@@ -225,7 +225,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             } catch (e) {
               console.error(e);
             }
-          } catch (e) {
+          } catch {
             // error reading package.json from Node.js fs, ok to ignore
           }
 
@@ -392,6 +392,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         } else if (opts.target === 'lib') {
           // Library Build
           updatedViteConfig.build!.minify = false;
+          updatedViteConfig.build!.rollupOptions.external = [
+            QWIK_CORE_ID,
+            QWIK_CORE_SERVER,
+            QWIK_JSX_RUNTIME_ID,
+            QWIK_JSX_DEV_RUNTIME_ID,
+            QWIK_BUILD_ID,
+            QWIK_CLIENT_MANIFEST_ID,
+          ];
         } else {
           // Test Build
           updatedViteConfig.define = {
@@ -429,7 +437,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           if (entryStrategy) {
             qwikViteOpts.entryStrategy = entryStrategy;
           }
-        } catch (e) {
+        } catch {
           // ok to ignore
         }
       }

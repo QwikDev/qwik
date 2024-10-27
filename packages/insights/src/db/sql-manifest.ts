@@ -12,6 +12,7 @@ export async function dbGetManifests(
     .from(manifestTable)
     .where(and(eq(manifestTable.publicApiKey, publicApiKey)))
     .orderBy(sql`${manifestTable.timestamp} DESC`)
+    .limit(1000)
     .all();
   return manifests;
 }
@@ -37,6 +38,7 @@ export async function dbGetManifestStats(
     .where(and(eq(manifestTable.publicApiKey, publicApiKey)))
     .groupBy(manifestTable.hash)
     .orderBy(sql`${manifestTable.timestamp} DESC`)
+    .limit(1000)
     .all();
   return manifests.map((manifest) => {
     return {
@@ -94,6 +96,7 @@ export async function dbGetManifestHashes(
     .where(and(eq(manifestTable.publicApiKey, publicApiKey)))
     .groupBy(manifestTable.hash)
     .orderBy(sql`${manifestTable.timestamp} DESC`)
+    .limit(1000)
     .all();
   const hashes: string[] = [];
   let sum = 0;

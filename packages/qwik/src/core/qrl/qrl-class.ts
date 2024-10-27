@@ -12,7 +12,7 @@ import {
   type InvokeTuple,
 } from '../use/use-core';
 import { getQFuncs, QInstance } from '../util/markers';
-import { maybeThen } from '../util/promises';
+import { isPromise, maybeThen } from '../util/promises';
 import { qDev, qSerialize, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../util/types';
 import type { QRLDev } from './qrl';
@@ -106,7 +106,6 @@ export const createQRL = <TYPE>(
         if (context.$event$ === undefined) {
           context.$event$ = this as Event;
         }
-        // const result = invoke.call(this, context, f, ...(args as Parameters<typeof f>));
         try {
           return fn.apply(this, args);
         } finally {
@@ -147,7 +146,17 @@ export const createQRL = <TYPE>(
       const imported = getPlatform().importSymbol(_containerEl, chunk, symbol);
       symbolRef = maybeThen(imported, (ref) => (qrl.resolved = symbolRef = wrapFn(ref)));
     }
-    (symbolRef as Promise<TYPE>).finally(() => emitUsedSymbol(symbol, ctx?.$element$, start));
+    if (typeof symbolRef === 'object' && isPromise(symbolRef)) {
+      symbolRef.then(
+        () => emitUsedSymbol(symbol, ctx?.$element$, start),
+        (err) => {
+          console.error(`qrl ${symbol} failed to load`, err);
+          // We shouldn't cache rejections, we can try again later
+          symbolRef = null;
+          throw err;
+        }
+      );
+    }
     return symbolRef;
   };
 

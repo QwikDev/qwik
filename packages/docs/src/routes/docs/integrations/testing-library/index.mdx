@@ -76,6 +76,8 @@ import { ExampleTest } from "./example";
 describe("<ExampleTest />", () => {
   // describe the test case
   it("should increment the counter", async () => {
+    // setup user event
+    const user = userEvent.setup();
     // render the component into the DOM
     await render(<ExampleTest />);
 
@@ -84,13 +86,11 @@ describe("<ExampleTest />", () => {
       name: /increment counter/i,
     });
     // click the button twice
-    await userEvent.click(incrementBtn);
-    await userEvent.click(incrementBtn);
+    await user.click(incrementBtn);
+    await user.click(incrementBtn);
 
     // assert that the counter is now 2
-    await waitFor(() =>
-      expect(screen.getByText(/count:2/i)).toBeInTheDocument(),
-    );
+    expect(await screen.findByText(/count:2/i)).toBeInTheDocument();
   });
 });
 ```

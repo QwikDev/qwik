@@ -20,7 +20,8 @@
     }
   },
   "devDependencies": {
-    "@noma.to/qwik-testing-library": "^1.0.4",
+    "@noma.to/qwik-testing-library": "^1.2.0",
+    "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/user-event": "^14.5.2",
     "@vitest/ui": "^2.1.1",
@@ -28,7 +29,7 @@
     "vitest": "^2.1.1"
   },
   "scripts": {
-    "test.unit": "vitest components",
+    "test.unit": "vitest run components",
     "test.unit.ui": "vitest --ui components"
   }
 }

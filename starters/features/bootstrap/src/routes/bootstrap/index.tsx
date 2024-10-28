@@ -1,4 +1,4 @@
-import { Link, type DocumentHead } from "@qwik.dev/city";
+import { Link, type DocumentHead } from "@qwik.dev/router";
 import { component$ } from "@qwik.dev/core";
 
 export default component$(() => {

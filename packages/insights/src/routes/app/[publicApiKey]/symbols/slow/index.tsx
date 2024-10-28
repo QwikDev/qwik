@@ -1,5 +1,5 @@
 import { type ReadonlySignal, component$ } from '@qwik.dev/core';
-import { routeLoader$ } from '@qwik.dev/city';
+import { routeLoader$ } from '@qwik.dev/router';
 import Histogram, { latencyColors } from '~/components/histogram';
 import { SlowIcon } from '~/components/icons/slow';
 import { SymbolTile } from '~/components/symbol-tile';

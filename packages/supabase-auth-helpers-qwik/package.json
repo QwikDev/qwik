@@ -8,7 +8,7 @@
     "@supabase/auth-helpers-shared": "^0.6.3"
   },
   "devDependencies": {
-    "@qwik.dev/city": "workspace:*",
+    "@qwik.dev/router": "workspace:*",
     "@qwik.dev/core": "workspace:*",
     "@supabase/supabase-js": "2.44.4"
   },

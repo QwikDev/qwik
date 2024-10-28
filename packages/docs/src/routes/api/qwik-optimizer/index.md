@@ -372,7 +372,7 @@ noSPA
 
 </td><td>
 
-**_(ALPHA)_** Disable SPA navigation handler in Qwik City
+**_(ALPHA)_** Disable SPA navigation handler in Qwik Router
 
 </td></tr>
 <tr><td>

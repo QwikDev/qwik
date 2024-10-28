@@ -17,7 +17,7 @@ By returning an asynchronous function from our `routeLoader$` we can stream/defe
 <CodeFile src="/src/routes/demo/cookbook/streaming-deferred-loaders/index.tsx" >
 ```tsx
 import { Resource, component$ } from '@qwik.dev/core';
-import { routeLoader$ } from '@qwik.dev/city';
+import { routeLoader$ } from '@qwik.dev/router';
 
 export const useMyData = routeLoader$(() => {
   return async () => {

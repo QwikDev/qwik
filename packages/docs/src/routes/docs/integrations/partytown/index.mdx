@@ -62,7 +62,7 @@ import { QwikPartytown } from './components/partytown/partytown';
 
 export default component$(() => {
   return (
-    <QwikCityProvider>
+    <QwikRouterProvider>
       <head>
         <meta charSet="utf-8" />
         <QwikPartytown forward={['gtag','dataLayer.push']} />
@@ -84,7 +84,7 @@ export default component$(() => {
         />
       </head>
       <body lang="en"></body>
-    </QwikCityProvider>
+    </QwikRouterProvider>
   );
 });
 ```

@@ -1,4 +1,4 @@
-import type { DocumentHead } from "@qwik.dev/city";
+import type { DocumentHead } from "@qwik.dev/router";
 import { component$ } from "@qwik.dev/core";
 
 import Counter from "../components/starter/counter/counter";

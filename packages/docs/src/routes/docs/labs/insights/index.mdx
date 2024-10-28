@@ -42,7 +42,7 @@ To use it, you need to pass `experimental: ['insights']` as an option to the `qw
 export default defineConfig(({ command, mode }): UserConfig => {
   return {
     plugins: [
-      // ... other plugins like qwikCity() etc
+      // ... other plugins like qwikRouter() etc
       qwikVite({
         experimental: ['insights']
         // ... other options
@@ -63,7 +63,7 @@ import { Insights } from '@qwik.dev/core';
 export default component$(() => {
   // ...
   return (
-    <QwikCityProvider>
+    <QwikRouterProvider>
       <head>
         // ...
         <Insights
@@ -73,7 +73,7 @@ export default component$(() => {
       <body lang="en">
         // ...
       </body>
-    </QwikCityProvider>
+    </QwikRouterProvider>
   );
 });
 ```

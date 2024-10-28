@@ -67,7 +67,7 @@ export enum ExperimentalFeatures {
   preventNavigate = 'preventNavigate',
   /** Enable the Valibot form validation */
   valibot = 'valibot',
-  /** Disable SPA navigation handler in Qwik City */
+  /** Disable SPA navigation handler in Qwik Router */
   noSPA = 'noSPA',
   /** Enable worker$ */
   webWorker = 'webWorker',

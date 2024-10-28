@@ -19,7 +19,7 @@ import {
 import { join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { build, type InlineConfig, type PluginOption } from "vite";
-import { getErrorHtml } from "../packages/qwik-city/src/middleware/request-handler/error-handler";
+import { getErrorHtml } from "../packages/qwik-router/src/middleware/request-handler/error-handler";
 import type { PackageJSON } from "../scripts/util";
 
 const isWindows = process.platform === "win32";
@@ -46,13 +46,13 @@ const appNames = readdirSync(startersAppsDir).filter(
 
 const rootDir = resolve(__dirname, "..");
 const packagesDir = resolve(rootDir, "packages");
-const qwikCityMjs = join(packagesDir, "qwik-city", "lib", "index.qwik.mjs");
+const qwikRouterMjs = join(packagesDir, "qwik-router", "lib", "index.qwik.mjs");
 
-/** Used when qwik-city server is enabled */
-const qwikCityVirtualEntry = "@city-ssr-entry";
+/** Used when qwik-router server is enabled */
+const qwikRouterVirtualEntry = "@router-ssr-entry";
 const entrySsrFileName = "entry.ssr.tsx";
-const qwikCityNotFoundPaths = "@qwik-city-not-found-paths";
-const qwikCityStaticPaths = "@qwik-city-static-paths";
+const qwikRouterNotFoundPaths = "@qwik-router-not-found-paths";
+const qwikRouterStaticPaths = "@qwik-router-static-paths";
 
 Error.stackTraceLimit = 1000;
 
@@ -79,11 +79,11 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
 
     const pkgPath = join(appDir, "package.json");
     const pkgJson: PackageJSON = JSON.parse(readFileSync(pkgPath, "utf-8"));
-    const enableCityServer = !!pkgJson.__qwik__?.qwikCity;
+    const enableRouterServer = !!pkgJson.__qwik__?.qwikRouter;
 
     let clientManifest = cache.get(appDir);
     if (!clientManifest) {
-      clientManifest = buildApp(appDir, appName, enableCityServer);
+      clientManifest = buildApp(appDir, appName, enableRouterServer);
       cache.set(appDir, clientManifest);
     }
 
@@ -93,8 +93,8 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
     } else {
       res.set("Content-Type", "text/html");
     }
-    if (enableCityServer) {
-      await cityApp(req, res, next, appDir);
+    if (enableRouterServer) {
+      await routerApp(req, res, next, appDir);
     } else {
       await ssrApp(req, res, appName, appDir, resolved);
       res.end();
@@ -111,7 +111,7 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
 async function buildApp(
   appDir: string,
   appName: string,
-  enableCityServer: boolean,
+  enableRouterServer: boolean,
 ) {
   const optimizer = await import("@qwik.dev/core/optimizer");
   const appSrcDir = join(appDir, "src");
@@ -126,28 +126,28 @@ async function buildApp(
 
   let clientManifest: QwikManifest | undefined = undefined;
   const plugins: PluginOption[] = [];
-  if (enableCityServer) {
+  if (enableRouterServer) {
     // ssr entry existed in service folder, use dev plugin to
     // 1. export router
     // 2. set basePath
     plugins.push({
       name: "devPlugin",
       resolveId(id) {
-        if (id.endsWith(qwikCityVirtualEntry)) {
-          return qwikCityVirtualEntry;
+        if (id.endsWith(qwikRouterVirtualEntry)) {
+          return qwikRouterVirtualEntry;
         }
-        if (id === qwikCityStaticPaths || id === qwikCityNotFoundPaths) {
+        if (id === qwikRouterStaticPaths || id === qwikRouterNotFoundPaths) {
           return "./" + id;
         }
       },
       load(id) {
-        if (id.endsWith(qwikCityVirtualEntry)) {
-          return `import { createQwikCity } from '@qwik.dev/city/middleware/node';
-import qwikCityPlan from '@qwik-city-plan';
+        if (id.endsWith(qwikRouterVirtualEntry)) {
+          return `import { createQwikRouter } from '@qwik.dev/router/middleware/node';
+import qwikRouterConfig from '@qwik-router-config';
 import render from '${escapeChars(resolve(appSrcDir, "entry.ssr"))}';
-const { router, notFound } = createQwikCity({
+const { router, notFound } = createQwikRouter({
   render,
-  qwikCityPlan,
+  qwikRouterConfig,
   base: '${basePath}build/',
 });
 export {
@@ -156,10 +156,10 @@ export {
 }
 `;
         }
-        if (id.endsWith(qwikCityStaticPaths)) {
+        if (id.endsWith(qwikRouterStaticPaths)) {
           return `export function isStaticPath(method, url){ return false; };`;
         }
-        if (id.endsWith(qwikCityNotFoundPaths)) {
+        if (id.endsWith(qwikRouterNotFoundPaths)) {
           const notFoundHtml = getErrorHtml(404, "Resource Not Found");
           return `export function getNotFound(){ return ${JSON.stringify(
             notFoundHtml,
@@ -167,10 +167,10 @@ export {
         }
       },
     });
-    const qwikCityVite = await import("@qwik.dev/city/vite");
+    const qwikRouterVite = await import("@qwik.dev/router/vite");
 
     plugins.push(
-      qwikCityVite.qwikCity({
+      qwikRouterVite.qwikRouter({
         rewriteRoutes: [
           {
             paths: {
@@ -209,12 +209,12 @@ export {
         ...plugins,
         optimizer.qwikVite({
           /**
-           * normally qwik finds qwik-city via package.json but we don't want that
-           * because it causes it try try to lookup the special qwik city imports
-           * even when we're not actually importing qwik-city
+           * normally qwik finds qwik-router via package.json but we don't want that
+           * because it causes it try try to lookup the special qwik router imports
+           * even when we're not actually importing qwik-router
            */
           disableVendorScan: true,
-          vendorRoots: enableCityServer ? [qwikCityMjs] : [],
+          vendorRoots: enableRouterServer ? [qwikRouterMjs] : [],
           entryStrategy: {
             type: "single",
           },
@@ -233,8 +233,8 @@ export {
     getInlineConf({
       build: {
         minify: false,
-        ssr: enableCityServer
-          ? qwikCityVirtualEntry
+        ssr: enableRouterServer
+          ? qwikRouterVirtualEntry
           : resolve(appSrcDir, entrySsrFileName),
       },
       plugins: [
@@ -271,13 +271,13 @@ function removeDir(dir: string) {
   }
 }
 
-async function cityApp(
+async function routerApp(
   req: Request,
   res: Response,
   next: NextFunction,
   appDir: string,
 ) {
-  const ssrPath = join(appDir, "server", `${qwikCityVirtualEntry}.js`);
+  const ssrPath = join(appDir, "server", `${qwikRouterVirtualEntry}.js`);
 
   const mod = await import(file(ssrPath));
   const router: any = mod.router;

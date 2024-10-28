@@ -1,5 +1,5 @@
-import { routeLoader$ } from '@qwik.dev/city';
 import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
 
 export const useThirdPartyPaymentLoader = routeLoader$(() => {
   return { name: 'John Doe' };

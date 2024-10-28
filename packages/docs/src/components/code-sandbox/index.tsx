@@ -1,7 +1,7 @@
-import { component$, useContext, useStylesScoped$, Slot, useSignal } from '@qwik.dev/core';
-import CSS from './index.css?inline';
+import { component$, Slot, useContext, useSignal, useStylesScoped$ } from '@qwik.dev/core';
 import { GlobalStore } from '../../context';
 import { EditIcon } from '../svgs/edit-icon';
+import CSS from './index.css?inline';
 
 export default component$<{
   src?: string;
@@ -101,7 +101,7 @@ function examplePath(
   } = typeof opts === 'string' ? ({ path: opts } as any) : opts;
   const newPath = path
     .replace('/(qwik)/', '/')
-    .replace('/(qwikcity)/', '/')
+    .replace('/(qwikrouter)/', '/')
     .replace('/src/routes/demo', '/demo')
     .replace(/\/[\w\d]+\.tsx?$/, '/');
 

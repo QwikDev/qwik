@@ -1,5 +1,5 @@
-import { Link, useLocation, type LinkProps } from '@qwik.dev/city';
 import { Slot, component$ } from '@qwik.dev/core';
+import { Link, useLocation, type LinkProps } from '@qwik.dev/router';
 
 type NavLinkProps = LinkProps & { activeClass?: string };
 

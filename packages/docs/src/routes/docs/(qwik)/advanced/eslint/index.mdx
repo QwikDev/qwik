@@ -504,7 +504,7 @@ export const HelloWorld = component$(() => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {3} /routeLoader$/#a title="src/routes/product/[productId]/index.tsx"
-import { routeLoader$ } from '@qwik.dev/city';
+import { routeLoader$ } from '@qwik.dev/router';
  
 export const useProductDetails = routeLoader$(async (requestEvent) => {
   const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
@@ -517,7 +517,7 @@ export const useProductDetails = routeLoader$(async (requestEvent) => {
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx {3} /routeLoader$/#a title="src/components/product/product.tsx"
-import { routeLoader$ } from '@qwik.dev/city';
+import { routeLoader$ } from '@qwik.dev/router';
  
 export const useProductDetails = routeLoader$(async (requestEvent) => {
   const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
@@ -533,7 +533,7 @@ export const useProductDetails = routeLoader$(async (requestEvent) => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {3} /export/#a
-import { routeLoader$ } from '@qwik.dev/city';
+import { routeLoader$ } from '@qwik.dev/router';
  
 export const useProductDetails = routeLoader$(async (requestEvent) => {
   const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
@@ -546,7 +546,7 @@ export const useProductDetails = routeLoader$(async (requestEvent) => {
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx {3}
-import { routeLoader$ } from '@qwik.dev/city';
+import { routeLoader$ } from '@qwik.dev/router';
  
 const useProductDetails = routeLoader$(async (requestEvent) => {
   const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
@@ -562,7 +562,7 @@ const useProductDetails = routeLoader$(async (requestEvent) => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {3} /use/#a
-import { routeLoader$ } from '@qwik.dev/city';
+import { routeLoader$ } from '@qwik.dev/router';
  
 export const useProductDetails = routeLoader$(async (requestEvent) => {
   const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
@@ -575,7 +575,7 @@ export const useProductDetails = routeLoader$(async (requestEvent) => {
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx {3} /get/#a
-import { routeLoader$ } from '@qwik.dev/city';
+import { routeLoader$ } from '@qwik.dev/router';
  
 export const getProductDetails = routeLoader$(async (requestEvent) => {
   const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
@@ -591,7 +591,7 @@ export const getProductDetails = routeLoader$(async (requestEvent) => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {3} /=>/#a
-import { routeLoader$ } from '@qwik.dev/city';
+import { routeLoader$ } from '@qwik.dev/router';
  
 export const useProductDetails = routeLoader$(async (requestEvent) => {
   const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
@@ -604,7 +604,7 @@ export const useProductDetails = routeLoader$(async (requestEvent) => {
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx {9} /fetcher/#a
-import { routeLoader$ } from '@qwik.dev/city';
+import { routeLoader$ } from '@qwik.dev/router';
  
 async function fetcher() {
   const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
@@ -973,7 +973,7 @@ export const ColorList = component$(() => {
 <span class="badge good">✓</span>
 ```tsx {4,12} /serverGreeter/#a
 import { $, component$ } from '@qwik.dev/core';
-import { server$ } from '@qwik.dev/city';
+import { server$ } from '@qwik.dev/router';
  
 const serverGreeter = server$((firstName: string, lastName: string) => {
   const greeting = `Hello ${firstName} ${lastName}`;
@@ -998,7 +998,7 @@ export default component$(() => (
 <span class="badge bad">✕</span>
 ```tsx {4,12} /serverGreeter/#a
 import { component$ } from '@qwik.dev/core';
-import { server$ } from '@qwik.dev/city';
+import { server$ } from '@qwik.dev/router';
  
 const serverGreeter = server$((firstName: string, lastName: string) => {
   const greeting = `Hello ${firstName} ${lastName}`;

@@ -1,6 +1,6 @@
 import exampleSections, { type ExampleApp } from '@examples-data';
-import type { PathParams, RequestHandler, StaticGenerateHandler } from '@qwik.dev/city';
-import { type DocumentHead, useLocation } from '@qwik.dev/city';
+import type { PathParams, RequestHandler, StaticGenerateHandler } from '@qwik.dev/router';
+import { type DocumentHead, useLocation } from '@qwik.dev/router';
 import { component$, useStore, useStyles$, useTask$, useVisibleTask$ } from '@qwik.dev/core';
 import { isBrowser } from '@qwik.dev/core/build';
 import { Header } from '../../../components/header/header';

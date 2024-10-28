@@ -16,16 +16,16 @@ const srcRepoRef = 'https://github.com/QwikDev/qwik/commit/';
     buildRepo: 'qwik-build',
     artifactsDir: join(root, 'packages', 'qwik', 'dist'),
   });
-  const finishQwikCity = await prepare({
-    buildRepo: 'qwik-city-build',
-    artifactsDir: join(root, 'packages', 'qwik-city', 'lib'),
+  const finishQwikRouter = await prepare({
+    buildRepo: 'qwik-router-build',
+    artifactsDir: join(root, 'packages', 'qwik-router', 'lib'),
   });
   const finishCreateQwikCli = await prepare({
     buildRepo: 'qwik-create-cli-build',
     artifactsDir: join(root, 'packages', 'create-qwik', 'dist'),
   });
   await finishQwik();
-  await finishQwikCity();
+  await finishQwikRouter();
   await finishCreateQwikCli();
 })();
 

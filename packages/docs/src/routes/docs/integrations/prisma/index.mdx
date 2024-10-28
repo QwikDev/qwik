@@ -61,7 +61,7 @@ We will use `routeLoader$` to query all users in the DB, using `prisma.user.find
 
 ```tsx {7} /PrismaClient/ title="src/routes/users/index.tsx"
 import { component$ } from '@qwik.dev/core';
-import { routeLoader$ } from '@qwik.dev/city';
+import { routeLoader$ } from '@qwik.dev/router';
 import { PrismaClient } from '@prisma/client'
 
 export const useGetUsers = routeLoader$(async () => {
@@ -95,7 +95,7 @@ We will use `routeLoader$` to query specific users based on the `userId` URL par
 
 ```tsx {8} /PrismaClient/ title="src/routes/users/[userId]/index.tsx"
 import { component$ } from '@qwik.dev/core';
-import { routeLoader$ } from '@qwik.dev/city';
+import { routeLoader$ } from '@qwik.dev/router';
 import { PrismaClient } from '@prisma/client'
 
 export const useGetUser = routeLoader$(async ({params, status}) => {
@@ -133,7 +133,7 @@ We will use `routeAction$` and `Form` to create a progressive form to add a new 
 
 ```tsx {7-9} /PrismaClient/ title="src/routes/create/index.tsx"
 import { component$ } from '@qwik.dev/core';
-import { routeAction$, zod$, z, Form } from '@qwik.dev/city';
+import { routeAction$, zod$, z, Form } from '@qwik.dev/router';
 import { PrismaClient } from '@prisma/client'
 
 export const useCreateUser = routeAction$(async (data) => {

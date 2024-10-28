@@ -1,0 +1,7 @@
+{
+  "description": "QwikRouter e2e app",
+  "type": "module",
+  "__qwik__": {
+    "qwikRouter": true
+  }
+}

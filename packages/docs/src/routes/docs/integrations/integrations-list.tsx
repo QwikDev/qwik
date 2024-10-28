@@ -1,4 +1,4 @@
-import { useContent } from '@qwik.dev/city';
+import { useContent } from '@qwik.dev/router';
 import { component$ } from '@qwik.dev/core';
 
 export const IntegrationsList = component$(() => {

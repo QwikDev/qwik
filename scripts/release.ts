@@ -71,8 +71,8 @@ export async function setReleaseVersion(config: BuildConfig) {
   // check this @qwik.dev/core version isn't already published
   await checkExistingNpmVersion('@qwik.dev/core', config.distVersion);
 
-  // check this @qwik.dev/city version isn't already published
-  await checkExistingNpmVersion('@qwik.dev/city', config.distVersion);
+  // check this @qwik.dev/router version isn't already published
+  await checkExistingNpmVersion('@qwik.dev/router', config.distVersion);
 }
 
 export async function prepareReleaseVersion(config: BuildConfig) {
@@ -103,12 +103,12 @@ export async function commitPrepareReleaseVersion(config: BuildConfig) {
   qwikPkg.version = config.distVersion;
   await writePackageJson(qwikDir, qwikPkg);
 
-  // update packages/qwik-city
-  const qwikCityDir = join(config.packagesDir, 'qwik-city');
-  const qwikCityPkg = await readPackageJson(qwikCityDir);
-  commitPaths.push(join(qwikCityDir, 'package.json'));
-  qwikCityPkg.version = config.distVersion;
-  await writePackageJson(qwikCityDir, qwikCityPkg);
+  // update packages/qwik-router
+  const qwikRouterDir = join(config.packagesDir, 'qwik-router');
+  const qwikRouterPkg = await readPackageJson(qwikRouterDir);
+  commitPaths.push(join(qwikRouterDir, 'package.json'));
+  qwikRouterPkg.version = config.distVersion;
+  await writePackageJson(qwikRouterDir, qwikRouterPkg);
 
   // update the cli version
   const distCliDir = join(config.packagesDir, 'create-qwik');
@@ -163,9 +163,9 @@ export async function publish(config: BuildConfig) {
   // dry-run does everything the same except actually publish to npm
   const npmPublishArgs = ['publish', '--tag', distTag, '--access', 'public'];
 
-  const qwikCityDir = join(config.packagesDir, 'qwik-city');
-  // publish @qwik.dev/city (dry-run)
-  await run('npm', npmPublishArgs, true, true, { cwd: qwikCityDir });
+  const qwikRouterDir = join(config.packagesDir, 'qwik-router');
+  // publish @qwik.dev/router (dry-run)
+  await run('npm', npmPublishArgs, true, true, { cwd: qwikRouterDir });
 
   // publish @qwik.dev/core (dry-run)
   await run('npm', npmPublishArgs, true, true, { cwd: qwikDir });
@@ -203,8 +203,8 @@ export async function publish(config: BuildConfig) {
     // and all of the git commands worked, time to publish!!
     // ⛴ LET'S GO!!
 
-    // publish @qwik.dev/city
-    await run('npm', npmPublishArgs, false, false, { cwd: qwikCityDir });
+    // publish @qwik.dev/router
+    await run('npm', npmPublishArgs, false, false, { cwd: qwikRouterDir });
 
     // publish @qwik.dev/core
     await run('npm', npmPublishArgs, false, false, { cwd: qwikDir });

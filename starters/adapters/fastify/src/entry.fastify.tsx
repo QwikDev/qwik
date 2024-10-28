@@ -7,7 +7,7 @@
  * - https://qwik.dev/docs/deployments/node/
  *
  */
-import { type PlatformNode } from "@qwik.dev/city/middleware/node";
+import { type PlatformNode } from "@qwik.dev/router/middleware/node";
 import "dotenv/config";
 import Fastify from "fastify";
 import { join } from "node:path";
@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 import FastifyQwik from "./plugins/fastify-qwik";
 
 declare global {
-  interface QwikCityPlatform extends PlatformNode {}
+  interface QwikRouterPlatform extends PlatformNode {}
 }
 
 // Directories where the static assets are located
@@ -38,7 +38,7 @@ const start = async () => {
   // IMPORTANT NOTE: THIS MUST BE REGISTERED BEFORE THE fastify-qwik PLUGIN
   // await fastify.register(import('@fastify/compress'))
 
-  // Handle Qwik City using a plugin
+  // Handle Qwik Router using a plugin
   await fastify.register(FastifyQwik, { distDir, buildDir });
 
   // Start the fastify server

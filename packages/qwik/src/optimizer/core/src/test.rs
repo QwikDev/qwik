@@ -820,7 +820,7 @@ fn example_drop_side_effects() {
 	test_input!(TestInput {
 		code: r#"
 import { component$ } from '@qwik.dev/core';
-import { server$ } from '@qwik.dev/city';
+import { server$ } from '@qwik.dev/router';
 import { clientSupabase } from 'supabase';
 import { Client } from 'openai';
 import { secret } from './secret';
@@ -2365,7 +2365,7 @@ fn example_spread_jsx() {
 	test_input!(TestInput {
 		code: r#"
 import { component$ } from '@qwik.dev/core';
-import { useDocumentHead, useLocation } from '@qwik.dev/city';
+import { useDocumentHead, useLocation } from '@qwik.dev/router';
 
 /**
  * The RouterHead component is placed inside of the document `<head>` element.
@@ -3320,10 +3320,10 @@ export { qwikify$, qwikifyQrl, renderToString };
 }
 
 #[test]
-fn example_qwik_city_inline() {
+fn example_qwik_router_inline() {
 	test_input!(TestInput {
 		code: include_str!("fixtures/index.qwik.mjs").to_string(),
-		filename: "../node_modules/@qwik.dev/city/index.qwik.mjs".to_string(),
+		filename: "../node_modules/@qwik.dev/router/index.qwik.mjs".to_string(),
 		entry_strategy: EntryStrategy::Smart,
 		explicit_extensions: true,
 		mode: EmitMode::Lib,

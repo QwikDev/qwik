@@ -53,7 +53,7 @@ We will use `routeLoader$` to query all users in the DB, using `db.query.users.f
 
 ```tsx {7} /Drizzle/ title="src/routes/users/index.tsx"
 import { component$ } from "@qwik.dev/core";
-import { routeLoader$ } from "@qwik.dev/city";
+import { routeLoader$ } from "@qwik.dev/router";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
 import { schema } from "../../../drizzle/schema";
@@ -91,7 +91,7 @@ We will use `routeLoader$` to query specific users based on the `userId` URL par
 
 ```tsx {8} /Drizzle/ title="src/routes/users/[userId]/index.tsx"
 import { component$ } from "@qwik.dev/core";
-import { routeLoader$ } from "@qwik.dev/city";
+import { routeLoader$ } from "@qwik.dev/router";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
 import { schema } from "../../../../drizzle/schema";
@@ -135,7 +135,7 @@ We will use `routeAction$` and `Form` to create a progressive form to add a new 
 
 ```tsx {7-9} /Drizzle/ title="src/routes/create/index.tsx"
 import { component$ } from "@qwik.dev/core";
-import { routeAction$, zod$, z, Form } from "@qwik.dev/city";
+import { routeAction$, zod$, z, Form } from "@qwik.dev/router";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
 import { schema } from "../../../drizzle/schema";

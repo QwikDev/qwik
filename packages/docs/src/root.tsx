@@ -1,6 +1,6 @@
-import { QwikCityProvider, RouterOutlet } from '@qwik.dev/city';
 import { component$, useContextProvider, useStore } from '@qwik.dev/core';
 import { Insights } from '@qwik.dev/core/insights';
+import { QwikRouterProvider, RouterOutlet } from '@qwik.dev/router';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';
 import { BUILDER_PUBLIC_API_KEY } from './constants';
@@ -65,7 +65,7 @@ export default component$(() => {
   useContextProvider(GlobalStore, store);
 
   return (
-    <QwikCityProvider>
+    <QwikRouterProvider>
       <head>
         <meta charset="utf-8" />
         <script dangerouslySetInnerHTML={uwu} />
@@ -87,7 +87,7 @@ export default component$(() => {
         <RealMetricsOptimization builderApiKey={BUILDER_PUBLIC_API_KEY} />
         {/* Core Web Vitals experiment until November 8: Do not bring back any SW until then! Reach out to @maiieul first if you believe you have a good reason to change this. */}
       </body>
-    </QwikCityProvider>
+    </QwikRouterProvider>
   );
 });
 

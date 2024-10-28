@@ -7,19 +7,19 @@
  * - https://qwik.dev/docs/deployments/node/
  *
  */
-import qwikCityPlan from "@qwik-city-plan";
 import { manifest } from "@qwik-client-manifest";
-import { createQwikCity } from "@qwik.dev/city/middleware/node";
+import qwikRouterConfig from "@qwik-router-config";
+import { createQwikRouter } from "@qwik.dev/router/middleware/node";
 import { createServer } from "node:http";
 import render from "./entry.ssr";
 
 // Allow for dynamic port
 const PORT = process.env.PORT ?? 3004;
 
-// Create the Qwik City express middleware
-const { router, notFound, staticFile } = createQwikCity({
+// Create the Qwik Router express middleware
+const { router, notFound, staticFile } = createQwikRouter({
   render,
-  qwikCityPlan,
+  qwikRouterConfig,
   manifest,
 });
 

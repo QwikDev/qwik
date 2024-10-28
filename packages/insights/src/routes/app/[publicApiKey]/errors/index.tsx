@@ -1,5 +1,5 @@
 import { type ReadonlySignal, component$ } from '@qwik.dev/core';
-import { routeLoader$ } from '@qwik.dev/city';
+import { routeLoader$ } from '@qwik.dev/router';
 import { getDB, errorTable, type ErrorRow } from '~/db';
 import { eq, sql } from 'drizzle-orm';
 import { ErrorIcon } from '~/components/icons/error';

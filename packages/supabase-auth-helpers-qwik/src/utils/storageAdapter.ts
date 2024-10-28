@@ -1,4 +1,4 @@
-import type { RequestEventBase } from '@qwik.dev/city';
+import type { RequestEventBase } from '@qwik.dev/router';
 import type { CookieOptions } from '@supabase/auth-helpers-shared';
 import {
   CookieAuthStorageAdapter,

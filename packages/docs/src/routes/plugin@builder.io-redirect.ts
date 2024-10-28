@@ -1,4 +1,4 @@
-import type { RequestHandler } from '@qwik.dev/city/middleware/request-handler';
+import type { RequestHandler } from '@qwik.dev/router/middleware/request-handler';
 
 /**
  * @file

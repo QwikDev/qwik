@@ -1,4 +1,4 @@
-import type { DocumentHead } from "@qwik.dev/city";
+import type { DocumentHead } from "@qwik.dev/router";
 import { component$, useSignal } from "@qwik.dev/core";
 import { MUIButton, MUISlider, TableApp } from "~/integrations/react/mui";
 

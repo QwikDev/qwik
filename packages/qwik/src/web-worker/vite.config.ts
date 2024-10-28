@@ -18,7 +18,7 @@
 //       },
 //       rollupOptions: {
 //         external: (id) => {
-//           if (['@qwik.dev/core', '@qwik.dev/city', '@qwik.dev/core/build'].includes(id)) {
+//           if (['@qwik.dev/core', '@qwik.dev/router', '@qwik.dev/core/build'].includes(id)) {
 //             return true;
 //           }
 //           if (id.endsWith('worker.js?worker&url')) {

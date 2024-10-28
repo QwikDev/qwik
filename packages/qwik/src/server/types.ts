@@ -1,9 +1,9 @@
 import type { SnapshotResult, StreamWriter } from '@qwik.dev/core';
 import type {
   QwikManifest,
-  SymbolMapperFn,
-  SymbolMapper,
   ResolvedManifest,
+  SymbolMapper,
+  SymbolMapperFn,
 } from '@qwik.dev/core/optimizer';
 
 /** @public */
@@ -124,7 +124,7 @@ export interface QwikLoaderOptions {
 export interface QwikPrefetchServiceWorkerOptions {
   /**
    * Should the Qwik Prefetch Service Worker be added to the container. Defaults to `false` until
-   * the QwikCity Service Worker is deprecated.
+   * the QwikRouter Service Worker is deprecated.
    */
   include?: boolean;
   /**
@@ -216,4 +216,4 @@ export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToSt
 /** @public */
 export type Render = RenderToString | RenderToStream;
 
-export type { SnapshotResult, SymbolMapper, QwikManifest, StreamWriter };
+export type { QwikManifest, SnapshotResult, StreamWriter, SymbolMapper };

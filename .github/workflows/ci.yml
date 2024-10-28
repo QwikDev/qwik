@@ -148,12 +148,12 @@ jobs:
         with:
           lookup-only: true
           path: |
-            packages/qwik-city/lib
+            packages/qwik-router/lib
             packages/qwik-react/lib
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
           # note that all inputs need to be listed here, including qwik, for correct cache invalidation
-          key: ${{ hashfiles('qwik-key.txt', 'rust-key.txt', 'packages/qwik-city/**/*', 'packages/qwik-react/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', '!**/*.unit.*') }}
+          key: ${{ hashfiles('qwik-key.txt', 'rust-key.txt', 'packages/qwik-router/**/*', 'packages/qwik-react/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', '!**/*.unit.*') }}
       - run: 'echo ${{ steps.cache-others.outputs.cache-primary-key }} > others-key.txt'
       - name: 'check cache: docs'
         id: cache-docs
@@ -397,40 +397,40 @@ jobs:
         if: needs.changes.outputs.build-others == 'true'
         run: corepack pnpm install
 
-      - name: 'build: qwik-city & others'
+      - name: 'build: qwik-router & others'
         if: needs.changes.outputs.build-others == 'true'
-        run: pnpm build --tsc --api --qwikcity --cli --qwikreact --eslint --set-dist-tag="${{ needs.changes.outputs.disttag }}"
+        run: pnpm build --tsc --api --qwikrouter --cli --qwikreact --eslint --set-dist-tag="${{ needs.changes.outputs.disttag }}"
       - name: Save others cache
         if: needs.changes.outputs.build-others == 'true'
         uses: actions/cache/save@v4
         with:
           key: ${{ needs.changes.outputs.hash-others }}
           path: |
-            packages/qwik-city/lib
+            packages/qwik-router/lib
             packages/qwik-react/lib
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
 
-      - name: 'restore: qwik-city & others'
+      - name: 'restore: qwik-router & others'
         if: needs.changes.outputs.build-others != 'true'
         uses: actions/cache/restore@v4
         with:
           path: |
-            packages/qwik-city/lib
+            packages/qwik-router/lib
             packages/qwik-react/lib
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
           key: ${{ needs.changes.outputs.hash-others }}
 
-      - name: Print QwikCity Lib Build
-        run: tree -a packages/qwik-city/lib/
+      - name: Print QwikRouter Lib Build
+        run: tree -a packages/qwik-router/lib/
 
-      - name: Upload QwikCity Build Artifacts
+      - name: Upload QwikRouter Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: artifact-qwikcity
+          name: artifact-qwikrouter
           include-hidden-files: true
-          path: packages/qwik-city/lib/
+          path: packages/qwik-router/lib/
           if-no-files-found: error
 
       - name: Print qwik-react Lib Build
@@ -491,8 +491,8 @@ jobs:
       - name: Move Distribution Artifacts
         run: |
           mv artifact-qwik/* packages/qwik/
-          mkdir -p packages/qwik-city/lib/
-          mv artifact-qwikcity/* packages/qwik-city/lib/
+          mkdir -p packages/qwik-router/lib/
+          mv artifact-qwikrouter/* packages/qwik-router/lib/
           mkdir -p packages/create-qwik/dist/
           mv artifact-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
@@ -549,8 +549,8 @@ jobs:
       - name: Move Distribution Artifacts
         run: |
           mv artifact-qwik/* packages/qwik/
-          mkdir -p packages/qwik-city/lib/
-          mv artifact-qwikcity/* packages/qwik-city/lib/
+          mkdir -p packages/qwik-router/lib/
+          mv artifact-qwikrouter/* packages/qwik-router/lib/
           mkdir -p packages/create-qwik/dist/
           mv artifact-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
@@ -608,8 +608,8 @@ jobs:
       - name: Move Distribution Artifacts
         run: |
           mv artifact-qwik/* packages/qwik/
-          mkdir -p packages/qwik-city/lib/
-          mv artifact-qwikcity/* packages/qwik-city/lib/
+          mkdir -p packages/qwik-router/lib/
+          mv artifact-qwikrouter/* packages/qwik-router/lib/
           mkdir -p packages/create-qwik/dist/
           mv artifact-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
@@ -672,8 +672,8 @@ jobs:
       - name: Move Distribution Artifacts
         run: |
           mv artifact-qwik/* packages/qwik/
-          mkdir -p packages/qwik-city/lib/
-          mv artifact-qwikcity/* packages/qwik-city/lib/
+          mkdir -p packages/qwik-router/lib/
+          mv artifact-qwikrouter/* packages/qwik-router/lib/
           mkdir -p packages/create-qwik/dist/
           mv artifact-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
@@ -730,8 +730,8 @@ jobs:
       - name: Move Distribution Artifacts
         run: |
           mv artifact-qwik/* packages/qwik/
-          mkdir -p packages/qwik-city/lib/
-          mv artifact-qwikcity/* packages/qwik-city/lib/
+          mkdir -p packages/qwik-router/lib/
+          mv artifact-qwikrouter/* packages/qwik-router/lib/
           mkdir -p packages/create-qwik/dist/
           mv artifact-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
@@ -830,8 +830,8 @@ jobs:
       - name: Move Distribution Artifacts
         run: |
           mv artifact-qwik/* packages/qwik/
-          mkdir -p packages/qwik-city/lib/
-          mv artifact-qwikcity/* packages/qwik-city/lib/
+          mkdir -p packages/qwik-router/lib/
+          mv artifact-qwikrouter/* packages/qwik-router/lib/
           mkdir -p packages/create-qwik/dist/
           mv artifact-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
@@ -870,7 +870,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   ############ TRIGGER QWIKCITY E2E TEST ############
-  trigger-qwikcity-e2e:
+  trigger-qwikrouter-e2e:
     name: Trigger Qwik City E2E
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -884,7 +884,7 @@ jobs:
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
-          repository: builderIO/qwik-city-e2e
+          repository: QwikDev/qwik-city-e2e
           event-type: main-updated
 
   ############ Everything is fine ############

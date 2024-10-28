@@ -1,4 +1,4 @@
-import { type DocumentHead, useLocation } from "@qwik.dev/city";
+import { type DocumentHead, useLocation } from "@qwik.dev/router";
 import {
   component$,
   useStore,

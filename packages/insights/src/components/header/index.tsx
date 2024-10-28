@@ -1,5 +1,5 @@
 import { component$ } from '@qwik.dev/core';
-import { Link } from '@qwik.dev/city';
+import { Link } from '@qwik.dev/router';
 import { useSession, useSignOut } from '~/routes/plugin@auth';
 import Avatar from '../avatar';
 import { QwikIcon } from '../icons/qwik';

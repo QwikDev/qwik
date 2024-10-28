@@ -20,7 +20,7 @@ created_at: '2023-03-20T23:45:13Z'
 
 Qwik provides various strategies to prefetch modules ahead of time. This page describes the **low-level** features of Qwik's prefetching. 
 
-- [Pre-populate the Cache with service workers](../../../(qwikcity)/advanced/speculative-module-fetching/index.mdx)
+- [Pre-populate the Cache with service workers](../../../(qwikrouter)/advanced/speculative-module-fetching/index.mdx)
 - [Link rel](#link-rel)
 - [Web Worker Fetch](#web-worker-fetch)
 
@@ -83,13 +83,13 @@ export default function (opts: RenderToStreamOptions) {
 
 #### Dispatched Prefetch Event
 
-[Speculative Module Fetching](../../../(qwikcity)/advanced/speculative-module-fetching/index.mdx) is the preferred caching strategy. This strategy listens for the `qprefetch` event, which is dispatched by the Qwik framework. The event contains a list of URLs that the background thread should use to pre-populate the browser's [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache).
+[Speculative Module Fetching](../../../(qwikrouter)/advanced/speculative-module-fetching/index.mdx) is the preferred caching strategy. This strategy listens for the `qprefetch` event, which is dispatched by the Qwik framework. The event contains a list of URLs that the background thread should use to pre-populate the browser's [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache).
 
-Qwik should be configured to use the `prefetchEvent` implementation, which will dispatch a `qprefetch` event. By default, the `prefetchEvent` implementation will be set to `always`. Next, [Speculative Module Fetching](../../../(qwikcity)/advanced/speculative-module-fetching/index.mdx) will listen for this event and communicate with its service worker to persist the Request / Response object pairs so they are cached in long-lived memory.
+Qwik should be configured to use the `prefetchEvent` implementation, which will dispatch a `qprefetch` event. By default, the `prefetchEvent` implementation will be set to `always`. Next, [Speculative Module Fetching](../../../(qwikrouter)/advanced/speculative-module-fetching/index.mdx) will listen for this event and communicate with its service worker to persist the Request / Response object pairs so they are cached in long-lived memory.
 
 By using a service worker to intercept `fetch` requests from the browser, this approach allows granular control over caching, along with preventing duplicate requests for the same resource.
 
-Below is an example of manually dispatching the event. These events are dispatched from Qwik itself and do not require developers to dispatch these events manually. Additionally, the [service worker](../../../(qwikcity)/advanced/speculative-module-fetching/index.mdx) will automatically add listeners for these events.
+Below is an example of manually dispatching the event. These events are dispatched from Qwik itself and do not require developers to dispatch these events manually. Additionally, the [service worker](../../../(qwikrouter)/advanced/speculative-module-fetching/index.mdx) will automatically add listeners for these events.
 
 ```ts
 dispatchEvent(new CustomEvent("qprefetch", { detail: {

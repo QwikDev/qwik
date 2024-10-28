@@ -1,4 +1,4 @@
-import type { RequestHandler } from '@qwik.dev/city';
+import type { RequestHandler } from '@qwik.dev/router';
 
 /**
  * Combines multiple request handlers into a single request handler.

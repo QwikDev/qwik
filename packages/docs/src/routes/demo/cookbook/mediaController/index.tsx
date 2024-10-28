@@ -1,10 +1,10 @@
-import { useLocation } from '@qwik.dev/city';
 import {
   component$,
   useSignal,
   useStylesScoped$,
   useVisibleTask$,
 } from '@qwik.dev/core';
+import { useLocation } from '@qwik.dev/router';
 
 const AUDIO_SRC =
   'https://cdn.builder.io/o/assets%2F5b8073f890b043be81574f96cfd1250b%2Fafe011812da146a5b2263196cb25f263?alt=media&token=c017cd87-0598-4af2-8afd-e9b5a3fba078&apiKey=5b8073f890b043be81574f96cfd1250b';

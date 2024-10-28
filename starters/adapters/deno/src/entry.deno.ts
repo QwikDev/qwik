@@ -8,15 +8,15 @@
  * - https://docs.deno.com/runtime/tutorials/http_server
  *
  */
-import qwikCityPlan from "@qwik-city-plan";
 import { manifest } from "@qwik-client-manifest";
-import { createQwikCity } from "@qwik.dev/city/middleware/deno";
+import qwikRouterConfig from "@qwik-router-config";
+import { createQwikRouter } from "@qwik.dev/router/middleware/deno";
 import render from "./entry.ssr";
 
-// Create the Qwik City Deno middleware
-const { router, notFound, staticFile } = createQwikCity({
+// Create the Qwik Router Deno middleware
+const { router, notFound, staticFile } = createQwikRouter({
   render,
-  qwikCityPlan,
+  qwikRouterConfig,
   manifest,
 });
 
@@ -32,10 +32,10 @@ Deno.serve({ port }, async (request: Request, info: any) => {
     return staticResponse;
   }
 
-  // Server-side render this request with Qwik City
-  const qwikCityResponse = await router(request, info);
-  if (qwikCityResponse) {
-    return qwikCityResponse;
+  // Server-side render this request with Qwik Router
+  const qwikRouterResponse = await router(request, info);
+  if (qwikRouterResponse) {
+    return qwikRouterResponse;
   }
 
   // Path not found

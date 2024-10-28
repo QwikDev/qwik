@@ -16,7 +16,7 @@ export default defineConfig((config) => {
       rollupOptions: {
         external: [
           '@qwik.dev/core',
-          '@qwik.dev/city',
+          '@qwik.dev/router',
           '@qwik.dev/core/build',
           '@supabase/supabase-js',
           '@supabase/auth-helpers-shared',

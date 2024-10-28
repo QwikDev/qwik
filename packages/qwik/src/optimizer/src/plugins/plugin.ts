@@ -468,7 +468,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     let result: ResolveIdResult;
 
-    // During regular builds, we'll encounter parents before QRLs, so this will match
+    /** At this point, the request has been normalized. */
+
+    /**
+     * Check if we know the QRL. During regular builds, we'll encounter and build parents before
+     * their QRLs, so this will always match.
+     */
     if (parentIds.get(pathId)) {
       debug(`resolveId(${count}) Resolved already known ${pathId}`);
       result = {
@@ -476,13 +481,14 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         moduleSideEffects: false,
       };
     } else if (
-      //  We test with endsWith because the dev server might add a /
+      /**
+       * Now the requests we handle are for one of the virtual modules, or a QRL segment that hasn't
+       * been transformed yet.
+       */
+
+      // We test with endsWith because the dev server might add a /
       pathId.endsWith(QWIK_BUILD_ID)
     ) {
-      /**
-       * Now we're in the case where we have a QRL segment that hasn't been transformed yet or one
-       * of the virtual modules.
-       */
       if (opts.resolveQwikBuild) {
         debug(`resolveId(${count})`, 'Resolved', QWIK_BUILD_ID);
         result = {

@@ -19,11 +19,11 @@ export const Header = component$(() => {
     });
 });
 
-============================= test.tsx_header_component_j4uyihabnr4.tsx (ENTRY POINT)==
+============================= test.tsx_Header_component_J4uyIhaBNR4.tsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 export const Header_component_J4uyIhaBNR4 = ()=>{
-    return /*#__PURE__*/ qrl(()=>import("./test.tsx_header_component_1_2b8d0oh9zwc"), "Header_component_1_2B8d0oH9ZWc");
+    return /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_1_2B8d0oH9ZWc"), "Header_component_1_2B8d0oH9ZWc");
 };
 
 
@@ -35,7 +35,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Header_component",
   "hash": "J4uyIhaBNR4",
-  "canonicalFilename": "test.tsx_header_component_j4uyihabnr4",
+  "canonicalFilename": "test.tsx_Header_component_J4uyIhaBNR4",
   "path": "",
   "extension": "tsx",
   "parent": null,
@@ -48,7 +48,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_header_component_1_2b8d0oh9zwc.tsx (ENTRY POINT)==
+============================= test.tsx_Header_component_1_2B8d0oH9ZWc.tsx (ENTRY POINT)==
 
 import { Header } from "./test";
 export const Header_component_1_2B8d0oH9ZWc = (hola)=>{
@@ -68,7 +68,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Header_component_1",
   "hash": "2B8d0oH9ZWc",
-  "canonicalFilename": "test.tsx_header_component_1_2b8d0oh9zwc",
+  "canonicalFilename": "test.tsx_Header_component_1_2B8d0oH9ZWc",
   "path": "",
   "extension": "tsx",
   "parent": "Header_component_J4uyIhaBNR4",
@@ -85,7 +85,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_header_component_j4uyihabnr4"), "Header_component_J4uyIhaBNR4"));
+export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_J4uyIhaBNR4"), "Header_component_J4uyIhaBNR4"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,uBAAS,uHASnB\"}")

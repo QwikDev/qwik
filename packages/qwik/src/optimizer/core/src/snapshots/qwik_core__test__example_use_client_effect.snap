@@ -31,7 +31,7 @@ export const Child = component$(() => {
 });
 
 
-============================= test.tsx_child_component_usebrowservisibletask_0igfpoyjmqa.js (ENTRY POINT)==
+============================= test.tsx_Child_component_useBrowserVisibleTask_0IGFPOyJmQA.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
 export const Child_component_useBrowserVisibleTask_0IGFPOyJmQA = ()=>{
@@ -54,7 +54,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Child_component_useBrowserVisibleTask",
   "hash": "0IGFPOyJmQA",
-  "canonicalFilename": "test.tsx_child_component_usebrowservisibletask_0igfpoyjmqa",
+  "canonicalFilename": "test.tsx_Child_component_useBrowserVisibleTask_0IGFPOyJmQA",
   "path": "",
   "extension": "js",
   "parent": "Child_component_9GyF01GDKqw",
@@ -71,11 +71,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_child_component_9gyf01gdkqw"), "Child_component_9GyF01GDKqw"));
+export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Child_component_9GyF01GDKqw"), "Child_component_9GyF01GDKqw"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,sBAAQ,qHAoBlB\"}")
-============================= test.tsx_child_component_9gyf01gdkqw.js (ENTRY POINT)==
+============================= test.tsx_Child_component_9GyF01GDKqw.js (ENTRY POINT)==
 
 import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
@@ -87,7 +87,7 @@ export const Child_component_9GyF01GDKqw = ()=>{
         count: 0
     });
     // Double count watch
-    useBrowserVisibleTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_child_component_usebrowservisibletask_0igfpoyjmqa"), "Child_component_useBrowserVisibleTask_0IGFPOyJmQA", [
+    useBrowserVisibleTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Child_component_useBrowserVisibleTask_0IGFPOyJmQA"), "Child_component_useBrowserVisibleTask_0IGFPOyJmQA", [
         state
     ]));
     return /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.count, [
@@ -104,7 +104,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Child_component",
   "hash": "9GyF01GDKqw",
-  "canonicalFilename": "test.tsx_child_component_9gyf01gdkqw",
+  "canonicalFilename": "test.tsx_Child_component_9GyF01GDKqw",
   "path": "",
   "extension": "js",
   "parent": null,

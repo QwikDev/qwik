@@ -13,6 +13,7 @@ use crate::const_replace::ConstReplacerVisitor;
 use crate::entry_strategy::EntryPolicy;
 use crate::filter_exports::StripExportsVisitor;
 use crate::props_destructuring::transform_props_destructuring;
+use crate::rename_imports::RenameTransform;
 use crate::transform::{QwikTransform, QwikTransformOptions, Segment, SegmentKind};
 use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
 use crate::EntryStrategy;
@@ -285,6 +286,9 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							unresolved_mark,
 						));
 					}
+
+					// rename old imports to new imports
+					program.visit_mut_with(&mut RenameTransform);
 
 					// Resolve with mark
 					program.visit_mut_with(&mut resolver(

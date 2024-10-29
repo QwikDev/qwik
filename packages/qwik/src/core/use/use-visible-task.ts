@@ -23,33 +23,7 @@ export interface OnVisibleTaskOptions {
   strategy?: VisibleTaskStrategy;
 }
 
-// <docs markdown="../readme.md#useVisibleTask">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useVisibleTask instead)
-/**
- * ```tsx
- * const Timer = component$(() => {
- *   const store = useStore({
- *     count: 0,
- *   });
- *
- *   useVisibleTask$(() => {
- *     // Only runs in the client
- *     const timer = setInterval(() => {
- *       store.count++;
- *     }, 500);
- *     return () => {
- *       clearInterval(timer);
- *     };
- *   });
- *
- *   return <div>{store.count}</div>;
- * });
- * ```
- *
- * @public
- */
-// </docs>
+/** @internal */
 export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions): void => {
   const { val, set, i, iCtx } = useSequentialScope<Task<TaskFn>>();
   const eagerness = opts?.strategy ?? 'intersection-observer';

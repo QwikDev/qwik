@@ -89,8 +89,7 @@ function createRouteData(
 function getClientRouteBundleNames(qwikPlugin: QwikVitePlugin, r: BuildRoute) {
   const bundlesNames: string[] = [];
 
-  // TODO: Remove globalThis that was previously used. Left in for backwards compatibility.
-  const manifest: QwikManifest = globalThis.QWIK_MANIFEST || qwikPlugin.api.getManifest()!;
+  const manifest: QwikManifest = qwikPlugin.api.getManifest()!;
   if (manifest) {
     const manifestBundleNames = Object.keys(manifest.bundles);
 

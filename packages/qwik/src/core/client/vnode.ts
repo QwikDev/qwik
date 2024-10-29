@@ -1556,7 +1556,8 @@ export function vnode_toString(
   this: VNode | null,
   depth: number = 10,
   offset: string = '',
-  materialize: boolean = false
+  materialize: boolean = false,
+  siblings = false
 ): string {
   let vnode = this;
   if (depth === 0) {
@@ -1586,7 +1587,8 @@ export function vnode_toString(
         VirtualTypeName[VirtualType.Virtual];
       strings.push('<' + name + attrs.join('') + '>');
       const child = vnode_getFirstChild(vnode);
-      child && strings.push('  ' + vnode_toString.call(child, depth - 1, offset + '  ', true));
+      child &&
+        strings.push('  ' + vnode_toString.call(child, depth - 1, offset + '  ', true, true));
       strings.push('</' + name + '>');
     } else if (vnode_isElementVNode(vnode)) {
       const tag = vnode_getElementName(vnode);
@@ -1613,13 +1615,14 @@ export function vnode_toString(
       strings.push('<' + tag + attrs.join('') + '>');
       if (vnode_isMaterialized(vnode) || materialize) {
         const child = vnode_getFirstChild(vnode);
-        child && strings.push('  ' + vnode_toString.call(child, depth - 1, offset + '  ', true));
+        child &&
+          strings.push('  ' + vnode_toString.call(child, depth - 1, offset + '  ', true, true));
       } else {
         strings.push('  <!-- not materialized --!>');
       }
       strings.push('</' + tag + '>');
     }
-    vnode = vnode_getNextSibling(vnode) || null;
+    vnode = (siblings && vnode_getNextSibling(vnode)) || null;
   } while (vnode);
   return strings.join('\n' + offset);
 }

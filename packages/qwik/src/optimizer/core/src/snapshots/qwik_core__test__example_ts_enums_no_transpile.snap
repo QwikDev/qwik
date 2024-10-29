@@ -30,11 +30,11 @@ export enum Thing {
     A,
     B
 }
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,YAAY;IACX;IACA;;AAGD,OAAO,MAAM,oBAAM,iHAOhB\"}")
-============================= test.tsx_app_component_ckepmxzlub0.tsx (ENTRY POINT)==
+============================= test.tsx_App_component_ckEPmXZlub0.tsx (ENTRY POINT)==
 
 import { Thing } from "./test";
 export const App_component_ckEPmXZlub0 = ()=>{
@@ -53,7 +53,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_App_component",
   "hash": "ckEPmXZlub0",
-  "canonicalFilename": "test.tsx_app_component_ckepmxzlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
   "path": "",
   "extension": "tsx",
   "parent": null,

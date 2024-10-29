@@ -55,7 +55,7 @@ export const api = serverQrl(/*#__PURE__*/ _noopQrlDEV("api_server_JonPp043gH0",
     hi: 0,
     displayName: "test.tsx_api_server"
 }));
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg", {
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg", {
     file: "/user/qwik/src/test.tsx",
     lo: 503,
     hi: 575,
@@ -64,7 +64,7 @@ export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./tes
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAMA,SAAS,UAAU,QAAQ,WAAW;AAKtC,CAAC;IACA,QAAQ,GAAG,CAAC;AACZ,CAAC;AACD,CAAC;IACD,QAAQ,GAAG,CAAC;AACZ,CAAC;AAEF;AAEA,OAAO,MAAM,MAAM;;;;;IAEhB;AAEH,6BAAe;;;;;IAIX\"}")
-============================= test.tsx_test_component_button_onclick_dgk9xlyroka.js (ENTRY POINT)==
+============================= test.tsx_test_component_button_onClick_DGk9xLyRokA.js (ENTRY POINT)==
 
 import { api } from "./test";
 export const test_component_button_onClick_DGk9xLyRokA = ()=>await api();
@@ -78,7 +78,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_test_component_button_onClick",
   "hash": "DGk9xLyRokA",
-  "canonicalFilename": "test.tsx_test_component_button_onclick_dgk9xlyroka",
+  "canonicalFilename": "test.tsx_test_component_button_onClick_DGk9xLyRokA",
   "path": "",
   "extension": "js",
   "parent": "test_component_LUXeXe0DQrg",
@@ -91,13 +91,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_test_component_luxexe0dqrg.js (ENTRY POINT)==
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrlDEV } from "@qwik.dev/core";
 export const test_component_LUXeXe0DQrg = ()=>{
     return /*#__PURE__*/ _jsxSorted("button", null, {
-        onClick$: /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_button_onclick_dgk9xlyroka"), "test_component_button_onClick_DGk9xLyRokA", {
+        onClick$: /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_button_onClick_DGk9xLyRokA"), "test_component_button_onClick_DGk9xLyRokA", {
             file: "/user/qwik/src/test.tsx",
             lo: 541,
             hi: 558,
@@ -119,7 +119,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_test_component",
   "hash": "LUXeXe0DQrg",
-  "canonicalFilename": "test.tsx_test_component_luxexe0dqrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
   "path": "",
   "extension": "js",
   "parent": null,

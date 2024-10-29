@@ -19,11 +19,11 @@ export const Foo = component$(() => {
 	tagName: "my-foo",
 });
 
-============================= test.tsx_foo_component_htdrsvublie.tsx (ENTRY POINT)==
+============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
 export const Foo_component_HTDRsvUbLiE = ()=>{
-    return /*#__PURE__*/ qrl(()=>import("./test.tsx_foo_component_1_dvu6fitwgly"), "Foo_component_1_DvU6FitWglY");
+    return /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_1_DvU6FitWglY"), "Foo_component_1_DvU6FitWglY");
 };
 
 
@@ -35,7 +35,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Foo_component",
   "hash": "HTDRsvUbLiE",
-  "canonicalFilename": "test.tsx_foo_component_htdrsvublie",
+  "canonicalFilename": "test.tsx_Foo_component_HTDRsvUbLiE",
   "path": "",
   "extension": "tsx",
   "parent": null,
@@ -48,7 +48,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_foo_component_1_dvu6fitwgly.tsx (ENTRY POINT)==
+============================= test.tsx_Foo_component_1_DvU6FitWglY.tsx (ENTRY POINT)==
 
 export const Foo_component_1_DvU6FitWglY = ()=>{
     return <div>
@@ -65,7 +65,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Foo_component_1",
   "hash": "DvU6FitWglY",
-  "canonicalFilename": "test.tsx_foo_component_1_dvu6fitwgly",
+  "canonicalFilename": "test.tsx_Foo_component_1_DvU6FitWglY",
   "path": "",
   "extension": "tsx",
   "parent": "Foo_component_HTDRsvUbLiE",
@@ -82,7 +82,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
+export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });
 

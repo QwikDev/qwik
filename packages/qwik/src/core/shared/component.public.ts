@@ -1,4 +1,4 @@
-import { dollar, type PropFnInterface, type QRL } from './qrl/qrl.public';
+import { dollar, type QRL } from './qrl/qrl.public';
 import type { JSXOutput } from './jsx/types/jsx-node';
 import type {
   ComponentBaseProps,
@@ -101,8 +101,7 @@ export type PublicProps<PROPS> =
     ComponentBaseProps &
     ComponentChildren<PROPS>;
 
-/** @internal */
-export type _AllowPlainQrl<Q> =
+type _AllowPlainQrl<Q> =
   // QRLEventHandlerMulti gets a special case to simplify the result
   // It needs to be handled carefully because it matches regular functions too
   QRLEventHandlerMulti<any, any> extends Q
@@ -117,65 +116,12 @@ export type _AllowPlainQrl<Q> =
       : NonNullable<Q> extends never
         ? Q
         : QRL<Q> | Q;
-/** @internal */
-export type _Only$<P> = {
+
+type _Only$<P> = {
   [K in keyof P as K extends `${string}$` ? K : never]: _AllowPlainQrl<P[K]>;
 };
 
-// <docs markdown="../readme.md#component">
-// !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#component instead)
-/**
- * Declare a Qwik component that can be used to create UI.
- *
- * Use `component$` to declare a Qwik component. A Qwik component is a special kind of component
- * that allows the Qwik framework to lazy load and execute the component independently of other Qwik
- * components as well as lazy load the component's life-cycle hooks and event handlers.
- *
- * Side note: You can also declare regular (standard JSX) components that will have standard
- * synchronous behavior.
- *
- * Qwik component is a facade that describes how the component should be used without forcing the
- * implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:
- *
- * ### Example
- *
- * An example showing how to create a counter component:
- *
- * ```tsx
- * export interface CounterProps {
- *   initialValue?: number;
- *   step?: number;
- * }
- * export const Counter = component$((props: CounterProps) => {
- *   const state = useStore({ count: props.initialValue || 0 });
- *   return (
- *     <div>
- *       <span>{state.count}</span>
- *       <button onClick$={() => (state.count += props.step || 1)}>+</button>
- *     </div>
- *   );
- * });
- * ```
- *
- * - `component$` is how a component gets declared.
- * - `{ value?: number; step?: number }` declares the public (props) interface of the component.
- * - `{ count: number }` declares the private (state) interface of the component.
- *
- * The above can then be used like so:
- *
- * ```tsx
- * export const OtherComponent = component$(() => {
- *   return <Counter initialValue={100} />;
- * });
- * ```
- *
- * See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocument`,
- * `useOnWindow`, `useStyles`
- *
- * @public
- */
-// </docs>
+/** @internal */
 export const componentQrl = <PROPS extends Record<any, any>>(
   componentQrl: QRL<OnRenderFn<PROPS>>
 ): Component<PROPS> => {
@@ -189,15 +135,6 @@ export const SERIALIZABLE_STATE = Symbol('serializable-data');
 
 export const isQwikComponent = <T extends Component<any>>(component: unknown): component is T => {
   return typeof component == 'function' && (component as any)[SERIALIZABLE_STATE] !== undefined;
-};
-
-/** @public @deprecated Use `QRL<>` on your function props instead */
-export type PropFunctionProps<PROPS extends Record<any, any>> = {
-  [K in keyof PROPS]: PROPS[K] extends undefined
-    ? PROPS[K]
-    : PROPS[K] extends ((...args: infer ARGS) => infer RET) | undefined
-      ? PropFnInterface<ARGS, Awaited<RET>>
-      : PROPS[K];
 };
 
 // <docs markdown="../readme.md#component">

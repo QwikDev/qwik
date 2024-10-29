@@ -159,15 +159,6 @@ type BivariantQrlFn<ARGS extends any[], RETURN> = {
   bivarianceHack(...args: ARGS): Promise<RETURN>;
 }['bivarianceHack'];
 
-/**
- * @deprecated Use `QRL<>` instead
- * @public
- */
-export type PropFnInterface<ARGS extends any[], RET> = {
-  __qwik_serializable__?: any;
-  (...args: ARGS): Promise<RET>;
-};
-
 let runtimeSymbolId = 0;
 
 /**
@@ -266,12 +257,12 @@ export const $ = <T>(expression: T): QRL<T> => {
 /** @private Use To avoid optimizer replacement */
 export const dollar = $;
 
-/** @public */
+/** @internal */
 export const eventQrl = <T>(qrl: QRL<T>): QRL<T> => {
   return qrl;
 };
 
-/** @alpha */
+/** @public */
 export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE> {
   __brand__SyncQRL__: TYPE;
 
@@ -296,7 +287,7 @@ export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE> {
  *
  * @param fn - Function to extract.
  * @returns
- * @alpha
+ * @public
  */
 export const sync$ = <T extends Function>(fn: T): SyncQRL<T> => {
   if (!qRuntimeQrl && qDev) {
@@ -321,7 +312,7 @@ export const sync$ = <T extends Function>(fn: T): SyncQRL<T> => {
  * @param fn - Extracted function
  * @param serializedFn - Serialized function in string form.
  * @returns
- * @alpha
+ * @internal
  */
 export const _qrlSync = function <TYPE extends Function>(
   fn: TYPE,

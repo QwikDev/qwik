@@ -1,7 +1,7 @@
 import type { StaticGenerateRenderOptions } from '@qwik.dev/router/static';
 import { viteAdapter, type ServerAdapterOptions } from '../../shared/vite';
 
-/** @alpha */
+/** @beta */
 export function nodeServerAdapter(opts: NodeServerAdapterOptions = {}): any {
   const env = process?.env;
   return viteAdapter({
@@ -24,10 +24,10 @@ export function nodeServerAdapter(opts: NodeServerAdapterOptions = {}): any {
   });
 }
 
-/** @alpha */
+/** @beta */
 export interface NodeServerAdapterOptions extends ServerAdapterOptions {
   name?: string;
 }
 
-/** @alpha */
+/** @beta */
 export type { StaticGenerateRenderOptions };

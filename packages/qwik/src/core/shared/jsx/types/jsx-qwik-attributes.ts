@@ -172,7 +172,7 @@ export type EventHandler<EV = Event, EL = Element> = {
 /**
  * An event handler for Qwik events, can be a handler QRL or an array of handler QRLs.
  *
- * @beta
+ * @public
  */
 export type QRLEventHandlerMulti<EV extends Event, EL> =
   | QRL<EventHandler<EV, EL>>

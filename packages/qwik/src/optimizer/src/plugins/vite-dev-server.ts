@@ -70,7 +70,7 @@ function createSymbolMapper(
 
 let lazySymbolMapper: ReturnType<typeof createSymbolMapper> | null = null;
 /**
- * @alpha
+ * @beta
  *   For a given symbol (QRL such as `onKeydown$`) the server needs to know which bundle the symbol is in.
  *
  *   Normally this is provided by Qwik's `q-manifest` . But `q-manifest` only exists after a full client build.

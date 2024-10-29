@@ -21,7 +21,7 @@ import { QBaseAttr, QManifestHashAttr } from '../utils/markers';
  *   - `verbose` - Verbose logging for the service worker installation. Default is `false`
  *   - `nonce` - Optional nonce value for security purposes, defaults to `undefined`.
  *
- * @alpha
+ * @beta
  */
 export const PrefetchServiceWorker = (opts: {
   base?: string;
@@ -121,7 +121,7 @@ const PREFETCH_CODE = /*#__PURE__*/ ((
  *       `${base}/q-bundle-graph-${manifestHash}.json`.
  *   - `manifestURL` - URL of the manifest file to load if non-standard bundle graph location name.
  *
- * @alpha
+ * @beta
  */
 export const PrefetchGraph = (
   opts: { base?: string; manifestHash?: string; manifestURL?: string; nonce?: string } = {}

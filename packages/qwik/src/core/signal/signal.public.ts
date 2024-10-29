@@ -54,7 +54,7 @@ export const createSignal: {
   <T>(value: T): Signal<T>;
 } = _createSignal;
 
-/** @public */
+/** @internal */
 export const createComputedQrl: <T>(
   qrl: QRL<() => T>
 ) => T extends Promise<any> ? never : ComputedSignal<T> = _createComputedSignal as any;

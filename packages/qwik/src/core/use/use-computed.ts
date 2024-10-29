@@ -7,7 +7,7 @@ import { useSequentialScope } from './use-sequential-scope';
 /** @public */
 export type ComputedFn<T> = () => T;
 
-/** @public */
+/** @internal */
 export const useComputedQrl = <T>(
   qrl: QRL<ComputedFn<T>>
 ): T extends Promise<any> ? never : ReadonlySignal<T> => {

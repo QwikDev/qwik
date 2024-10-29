@@ -60,7 +60,7 @@ const CLIENT_STRIP_CTX_NAME = [
  *
  * Add experimental features to this enum definition.
  *
- * @alpha
+ * @public
  */
 export enum ExperimentalFeatures {
   /** Enable the usePreventNavigate hook */

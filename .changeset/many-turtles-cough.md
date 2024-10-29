@@ -2,4 +2,4 @@
 '@builder.io/qwik-city': patch
 ---
 
-Fix action redirect regression where searchParams were appended
+FIX: Fixed action redirect regression where searchParams were appended

@@ -2,4 +2,4 @@
 '@builder.io/qwik-city': patch
 ---
 
-Fixed MDX layout default export being ignored by transformer.
+FIX: Fixed MDX layout default export being ignored by transformer.

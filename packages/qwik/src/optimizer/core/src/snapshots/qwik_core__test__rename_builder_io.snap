@@ -27,7 +27,7 @@ expression: output
 			return "hi";
 		});
 		
-============================= test.tsx_bar_gxxnvutursw.ts (ENTRY POINT)==
+============================= test.tsx_Bar_GXXnVUtURSw.ts (ENTRY POINT)==
 
 export const Bar_GXXnVUtURSw = "a thing";
 export { _hW } from "@qwik.dev/core";
@@ -41,7 +41,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Bar",
   "hash": "GXXnVUtURSw",
-  "canonicalFilename": "test.tsx_bar_gxxnvutursw",
+  "canonicalFilename": "test.tsx_Bar_GXXnVUtURSw",
   "path": "",
   "extension": "ts",
   "parent": null,
@@ -54,7 +54,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_foo_qwikify_0yoy9qa0sc0.ts (ENTRY POINT)==
+============================= test.tsx_Foo_qwikify_0Yoy9qA0SC0.ts (ENTRY POINT)==
 
 export const Foo_qwikify_0Yoy9qA0SC0 = MyReactComponent;
 
@@ -67,7 +67,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Foo_qwikify",
   "hash": "0Yoy9qA0SC0",
-  "canonicalFilename": "test.tsx_foo_qwikify_0yoy9qa0sc0",
+  "canonicalFilename": "test.tsx_Foo_qwikify_0Yoy9qA0SC0",
   "path": "",
   "extension": "ts",
   "parent": null,
@@ -80,7 +80,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_app_component_ckepmxzlub0.ts (ENTRY POINT)==
+============================= test.tsx_App_component_ckEPmXZlub0.ts (ENTRY POINT)==
 
 import { isDev } from "@qwik.dev/core/build";
 import { moreStuff } from "@qwik.dev/router/more/here";
@@ -102,7 +102,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_App_component",
   "hash": "ckEPmXZlub0",
-  "canonicalFilename": "test.tsx_app_component_ckepmxzlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
   "path": "",
   "extension": "ts",
   "parent": null,
@@ -120,9 +120,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { qwikifyQrl } from "@qwik.dev/react";
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
-export const Foo = qwikifyQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_foo_qwikify_0yoy9qa0sc0"), "Foo_qwikify_0Yoy9qA0SC0"));
-export const Bar = /*#__PURE__*/ qrl(()=>import("./test.tsx_bar_gxxnvutursw"), "Bar_GXXnVUtURSw");
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const Foo = qwikifyQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_qwikify_0Yoy9qA0SC0"), "Foo_qwikify_0Yoy9qA0SC0"));
+export const Bar = /*#__PURE__*/ qrl(()=>import("./test.tsx_Bar_GXXnVUtURSw"), "Bar_GXXnVUtURSw");
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAQE,OAAO,MAAM,MAAM,2GAA2B;AAE9C,OAAO,MAAM,qFAAmB;AAEhC,OAAO,MAAM,oBAAM,iHAQhB\"}")

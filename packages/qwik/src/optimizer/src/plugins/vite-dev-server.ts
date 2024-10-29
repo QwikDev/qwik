@@ -55,7 +55,7 @@ function createSymbolMapper(
         'qwik vite-dev-server symbolMapper: unknown qrl requested without parent:',
         symbolName
       );
-      return [symbolName, `${base}${symbolName.toLowerCase()}.js`];
+      return [symbolName, `${base}${symbolName}.js`];
     }
     // on windows, absolute paths don't start with a slash
     const parentPath = normalizePath(path.dirname(parent));
@@ -63,7 +63,7 @@ function createSymbolMapper(
     const qrlPath = parentPath.startsWith(opts.rootDir)
       ? normalizePath(path.relative(opts.rootDir, parentPath))
       : `@fs/${parentPath}`;
-    const qrlFile = encode(`${qrlPath}/${parentFile.toLowerCase()}_${symbolName.toLowerCase()}.js`);
+    const qrlFile = encode(`${qrlPath}/${parentFile}_${symbolName}.js`);
     return [symbolName, `${base}${qrlFile}`];
   };
 }

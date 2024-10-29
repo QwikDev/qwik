@@ -18,6 +18,7 @@ import { hasClassAttr } from '../shared/utils/scoped-styles';
 import { createComputed$, createSignal } from '../signal/signal.public';
 import { constPropsToSsrAttrs, varPropsToSsrAttrs } from '../ssr/ssr-render-jsx';
 import { type SSRContainer } from '../ssr/ssr-types';
+import { _qrlSync } from '../shared/qrl/qrl.public';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -379,10 +380,10 @@ describe('serializer v2', () => {
           qrl('chunk.js', 's_123', ['Hello', 'World']) as QRLInternal,
           qrl('chunk.js', 's_123', ['Hello', 'World']) as QRLInternal,
           inlinedQrl(testFn, 's_inline', ['Hello']) as QRLInternal,
+          _qrlSync(() => 'hi', 'q=>"meep"') as unknown as QRLInternal,
         ];
-        const [qrl0, qrl1, qrl2] = (await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(
-          0
-        );
+        const container = await withContainer((ssr) => ssr.addRoot(obj));
+        const [qrl0, qrl1, qrl2] = container.$getObjectById$(0);
         expect(qrl0.$hash$).toEqual(obj[0].$hash$);
         expect(qrl0.$captureRef$).toEqual(obj[0].$captureRef$);
         expect(qrl0._devOnlySymbolRef).toEqual((obj[0] as any)._devOnlySymbolRef);
@@ -443,11 +444,8 @@ describe('serializer v2', () => {
           ssr.addRoot(computed);
         });
         const got = container.$getObjectById$(0);
-        expect(got).toMatchInlineSnapshot(`
-          {
-            "value": Symbol(invalid),
-          }
-        `);
+        expect(got.$untrackedValue$).toMatchInlineSnapshot(`Symbol(invalid)`);
+        expect(got.$invalid$).toBe(true);
         expect(got.value).toBe('test!');
       });
     });

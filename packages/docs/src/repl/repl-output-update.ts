@@ -24,7 +24,12 @@ export const updateReplOutput = async (store: ReplStore, result: ReplResult) => 
     deepUpdate(store.transformedModules, result.transformedModules);
     deepUpdate(store.clientBundles, result.clientBundles);
     deepUpdate(store.ssrModules, result.ssrModules);
-    deepUpdate(store.events, result.events);
+    if (
+      result.events.length !== store.events.length ||
+      result.events.some((ev, i) => ev?.start !== store.events[i]?.start)
+    ) {
+      store.events = result.events;
+    }
 
     if (store.selectedOutputPanel === 'diagnostics' && store.monacoDiagnostics.length === 0) {
       store.selectedOutputPanel = 'app';

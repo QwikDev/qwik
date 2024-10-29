@@ -25,7 +25,7 @@ export const App = component$(() => {
     );
 });
 
-============================= project/test.tsx_header_component_header_onclick_kjd9tcnknxy.tsx ==
+============================= project/test.tsx_Header_component_Header_onClick_KjD9TCNkNxY.tsx ==
 
 import dep3 from "dep3/something";
 export const Header_component_Header_onClick_KjD9TCNkNxY = (ev)=>dep3(ev);
@@ -40,7 +40,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   "entry": "entry_segments",
   "displayName": "test.tsx_Header_component_Header_onClick",
   "hash": "KjD9TCNkNxY",
-  "canonicalFilename": "test.tsx_header_component_header_onclick_kjd9tcnknxy",
+  "canonicalFilename": "test.tsx_Header_component_Header_onClick_KjD9TCNkNxY",
   "path": "project",
   "extension": "tsx",
   "parent": "Header_component_UVBJuFYfvDo",
@@ -53,14 +53,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   ]
 }
 */
-============================= project/test.tsx_header_component_uvbjufyfvdo.tsx ==
+============================= project/test.tsx_Header_component_UVBJuFYfvDo.tsx ==
 
 import { Header } from "./test";
 import { bar as bbar } from "../state";
 import * as dep2 from "dep2";
 import { qrl } from "@builder.io/qwik";
 export const Header_component_UVBJuFYfvDo = ()=>{
-    return <Header onClick={/*#__PURE__*/ qrl(()=>import("./test.tsx_header_component_header_onclick_kjd9tcnknxy"), "Header_component_Header_onClick_KjD9TCNkNxY")}>
+    return <Header onClick={/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_Header_onClick_KjD9TCNkNxY"), "Header_component_Header_onClick_KjD9TCNkNxY")}>
             {dep2.stuff()}{bbar()}
         </Header>;
 };
@@ -74,7 +74,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   "entry": "entry_segments",
   "displayName": "test.tsx_Header_component",
   "hash": "UVBJuFYfvDo",
-  "canonicalFilename": "test.tsx_header_component_uvbjufyfvdo",
+  "canonicalFilename": "test.tsx_Header_component_UVBJuFYfvDo",
   "path": "project",
   "extension": "tsx",
   "parent": null,
@@ -87,7 +87,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   ]
 }
 */
-============================= project/test.tsx_app_component_wgkrhwxaqjs.tsx ==
+============================= project/test.tsx_App_component_wGkRHWXaqjs.tsx ==
 
 import { Header } from "./test";
 import { foo } from "../state";
@@ -104,7 +104,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   "entry": "entry_segments",
   "displayName": "test.tsx_App_component",
   "hash": "wGkRHWXaqjs",
-  "canonicalFilename": "test.tsx_app_component_wgkrhwxaqjs",
+  "canonicalFilename": "test.tsx_App_component_wGkRHWXaqjs",
   "path": "project",
   "extension": "tsx",
   "parent": null,
@@ -121,8 +121,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_header_component_uvbjufyfvdo"), "Header_component_UVBJuFYfvDo"));
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_wgkrhwxaqjs"), "App_component_wGkRHWXaqjs"));
+export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_UVBJuFYfvDo"), "Header_component_UVBJuFYfvDo"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_wGkRHWXaqjs"), "App_component_wGkRHWXaqjs"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,uBAAS,uHAMnB;AAEH,OAAO,MAAM,oBAAM,iHAIhB\"}")

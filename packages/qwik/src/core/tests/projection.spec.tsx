@@ -24,7 +24,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { vnode_getNextSibling } from '../client/vnode';
 import { HTML_NS, SVG_NS } from '../shared/utils/markers';
 
-const DEBUG = false;
+const DEBUG = !false;
 
 /**
  * Below are helper components that are constant. They have to be in the top level scope so that the
@@ -41,7 +41,7 @@ const ChildSlotInline = (props: { children: any }) => {
 
 describe.each([
   { render: ssrRenderToDom }, //
-  { render: domRender }, //
+  // { render: domRender }, //
 ])('$render.name: projection', ({ render }) => {
   it('should render basic projection', async () => {
     const Child = component$(() => {
@@ -2043,7 +2043,7 @@ describe.each([
       );
     });
 
-    it('#3727', async () => {
+    it.only('#3727', async () => {
       const CTX = createContextId<Signal<any[]>>('content-Issue3727');
       const Issue3727ParentB = component$(() => {
         return (

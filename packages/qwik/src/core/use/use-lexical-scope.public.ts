@@ -1,7 +1,8 @@
 import { assertDefined } from '../shared/error/assert';
 import { getInvokeContext } from './use-core';
-import { assertQrl, type QRLInternal } from '../shared/qrl/qrl-class';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { _getQContainerElement, getDomContainer } from '../client/dom-container';
+import { assertQrl } from '../shared/qrl/qrl-utils';
 
 // <docs markdown="../readme.md#useLexicalScope">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!

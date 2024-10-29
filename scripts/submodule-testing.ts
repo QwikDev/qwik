@@ -1,4 +1,4 @@
-import { getBanner, importPath, nodeTarget, target } from './util';
+import { getBanner, importPath, nodeTarget, target, externalImportNoEffects } from './util';
 import { build, type BuildOptions } from 'esbuild';
 import { type BuildConfig, type PackageJSON } from './util';
 import { join } from 'node:path';
@@ -14,9 +14,9 @@ export async function submoduleTesting(config: BuildConfig) {
     sourcemap: config.dev,
     bundle: true,
     target,
-    external: ['@qwik.dev/core/build', 'prettier', 'vitest', '@builder.io/qwik-external'],
     platform: 'node',
-    // external: [...nodeBuiltIns],
+    // uncomment this if you want to find what imports qwik-external
+    external: ['@qwik.dev/core/build'],
   };
 
   const esm = build({
@@ -25,9 +25,20 @@ export async function submoduleTesting(config: BuildConfig) {
     banner: { js: getBanner('@qwik.dev/core/testing', config.distVersion) },
     outExtension: { '.js': '.mjs' },
     plugins: [
+      // uncomment this if you want to find what imports qwik-external
+      {
+        name: 'spy-resolve',
+        setup(build) {
+          build.onResolve({ filter: /./ }, (args) => {
+            console.log('spy-resolve', args);
+            return undefined;
+          });
+        },
+      },
       importPath(/^@qwik\.dev\/core$/, '../core.qwik.mjs'),
       importPath(/^@qwik\.dev\/core\/optimizer$/, '../optimizer.mjs'),
       importPath(/^@qwik\.dev\/core\/server$/, '../server.mjs'),
+      externalImportNoEffects(/^(@qwik\.dev\/core\/build|prettier|vitest)$/),
     ],
     define: {
       'globalThis.MODULE_EXT': `"mjs"`,
@@ -47,6 +58,7 @@ export async function submoduleTesting(config: BuildConfig) {
       importPath(/^@qwik\.dev\/core$/, '../core.qwik.cjs'),
       importPath(/^@qwik\.dev\/core\/optimizer$/, '../optimizer.cjs'),
       importPath(/^@qwik\.dev\/core\/server$/, '../server.cjs'),
+      externalImportNoEffects(/^(@qwik\.dev\/core\/build|prettier|vitest)$/),
     ],
     define: {
       'globalThis.MODULE_EXT': `"cjs"`,

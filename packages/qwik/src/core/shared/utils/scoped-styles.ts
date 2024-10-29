@@ -1,5 +1,9 @@
 import type { Props } from '../jsx/jsx-runtime';
-import { styleContent } from './styles';
+import { ComponentStylesPrefixContent } from './markers';
+
+export const styleContent = (styleId: string): string => {
+  return ComponentStylesPrefixContent + styleId;
+};
 
 export function hasClassAttr(props: Props): boolean {
   for (const key in props) {

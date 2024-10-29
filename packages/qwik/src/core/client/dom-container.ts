@@ -53,8 +53,6 @@ import {
 } from './types';
 import {
   VNodeJournalOpCode,
-  mapArray_get,
-  mapArray_set,
   vnode_applyJournal,
   vnode_getDOMChildNodes,
   vnode_getDomParent,
@@ -69,6 +67,7 @@ import {
   vnode_setProp,
   type VNodeJournal,
 } from './vnode';
+import { mapArray_get, mapArray_set } from './mapArray';
 import { vnode_diff } from './vnode-diff';
 
 /** @public */

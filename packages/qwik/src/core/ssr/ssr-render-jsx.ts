@@ -5,7 +5,7 @@ import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNode, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SSRStream, type SSRStreamChildren } from '../shared/jsx/utils.public';
-import { isQrl } from '../shared/qrl/qrl-class';
+import { isQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
@@ -37,7 +37,7 @@ import type { ISsrComponentFrame, ISsrNode, SSRContainer, SsrAttrs } from './ssr
 
 // Allow the optimizer to process this $
 // @ts-ignore -- this gets renamed to qwik during build
-import { $ } from '@builder.io/qwik-external';
+import { $ } from '@qwik.dev/core-external';
 
 class ParentComponentData {
   constructor(

@@ -1,7 +1,7 @@
 import { isDev } from '@qwik.dev/core/build';
 import { isQwikComponent, type OnRenderFn } from './component.public';
 import { assertDefined } from './error/assert';
-import { isQrl, type QRLInternal } from './qrl/qrl-class';
+import type { QRLInternal } from './qrl/qrl-class';
 import { JSXNodeImpl, isJSXNode, type Props } from './jsx/jsx-runtime';
 import type { JSXNode, JSXOutput } from './jsx/types/jsx-node';
 import type { KnownEventNames } from './jsx/types/jsx-qwik-events';
@@ -23,6 +23,7 @@ import { logWarn } from './utils/log';
 import { EffectProperty, isSignal } from '../signal/signal';
 import { vnode_isVNode } from '../client/vnode';
 import { clearVNodeEffectDependencies } from '../signal/signal-subscriber';
+import { isQrl } from './qrl/qrl-utils';
 
 /**
  * Use `executeComponent` to execute a component.

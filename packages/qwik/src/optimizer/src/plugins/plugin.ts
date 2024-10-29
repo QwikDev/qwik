@@ -698,7 +698,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       const module = newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
 
       // uncomment to show transform results
-      // debug({ isServer, strip }, transformOpts, newOutput);
+      debug({ isServer, strip }, transformOpts, newOutput);
       diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
 
       if (isServer) {
@@ -950,9 +950,6 @@ export function parseId(originalId: string) {
     params: new URLSearchParams(queryStr),
   };
 }
-
-export const getSymbolHash = (symbolName: string) =>
-  /_([a-z0-9]+)($|\.js($|\?))/.exec(symbolName)?.[1];
 
 const TRANSFORM_EXTS = {
   '.jsx': true,

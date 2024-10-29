@@ -424,7 +424,7 @@ function updatePluginsArray(
       const elm = elms[i];
       if (ts.isCallExpression(elm) && ts.isIdentifier(elm.expression)) {
         if (elm.expression.escapedText === 'qwikVite') {
-          elms[i] = updateQwikCityPlugin(ts, elm, updates.qwikViteConfig);
+          elms[i] = updateQwikRouterPlugin(ts, elm, updates.qwikViteConfig);
         }
       }
     }
@@ -449,7 +449,7 @@ function createPluginCall(ts: TypeScript, vitePlugin: string): CallExpression | 
   return null;
 }
 
-function updateQwikCityPlugin(
+function updateQwikRouterPlugin(
   ts: TypeScript,
   callExp: CallExpression,
   qwikViteConfig: { [key: string]: string }

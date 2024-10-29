@@ -64,12 +64,12 @@ importers:
       '@playwright/test':
         specifier: 1.47.0
         version: 1.47.0
-      '@qwik.dev/city':
-        specifier: workspace:*
-        version: link:packages/qwik-city
       '@qwik.dev/core':
         specifier: workspace:*
         version: link:packages/qwik
+      '@qwik.dev/router':
+        specifier: workspace:*
+        version: link:packages/qwik-router
       '@types/brotli':
         specifier: 1.3.4
         version: 1.3.4
@@ -274,9 +274,15 @@ importers:
       '@builder.io/partytown':
         specifier: 0.10.2
         version: 0.10.2
+      '@builder.io/qwik':
+        specifier: ../qwik
+        version: link:../qwik
+      '@builder.io/qwik-city':
+        specifier: ../qwik-router
+        version: link:../qwik-router
       '@builder.io/sdk-qwik':
         specifier: 0.14.31
-        version: 0.14.31
+        version: 0.14.31(@builder.io/qwik@packages+qwik)
       '@docsearch/css':
         specifier: 3.6.1
         version: 3.6.1
@@ -288,7 +294,7 @@ importers:
         version: 11.13.0(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1)
       '@modular-forms/qwik':
         specifier: 0.23.1
-        version: 0.23.1
+        version: 0.23.1(@builder.io/qwik-city@packages+qwik-router)(@builder.io/qwik@packages+qwik)
       '@mui/material':
         specifier: 5.16.4
         version: 5.16.4(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -300,16 +306,16 @@ importers:
         version: 6.20.4(@mui/material@5.16.4(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@mui/system@5.16.4(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@qwik-ui/headless':
         specifier: 0.5.0
-        version: 0.5.0
-      '@qwik.dev/city':
-        specifier: workspace:*
-        version: link:../qwik-city
+        version: 0.5.0(@builder.io/qwik@packages+qwik)
       '@qwik.dev/core':
         specifier: workspace:*
         version: link:../qwik
       '@qwik.dev/react':
         specifier: workspace:*
         version: link:../qwik-react
+      '@qwik.dev/router':
+        specifier: workspace:*
+        version: link:../qwik-router
       '@supabase/supabase-js':
         specifier: 2.44.4
         version: 2.44.4
@@ -330,7 +336,7 @@ importers:
         version: 0.0.42
       '@unpic/qwik':
         specifier: 0.0.38
-        version: 0.0.38
+        version: 0.0.38(@builder.io/qwik@packages+qwik)
       algoliasearch:
         specifier: 4.16.0
         version: 4.16.0
@@ -422,12 +428,12 @@ importers:
         specifier: ^3.3.5
         version: 3.3.5
     devDependencies:
-      '@qwik.dev/city':
-        specifier: workspace:*
-        version: link:../qwik-city
       '@qwik.dev/core':
         specifier: workspace:*
         version: link:../qwik
+      '@qwik.dev/router':
+        specifier: workspace:*
+        version: link:../qwik-router
       '@types/eslint':
         specifier: 8.56.10
         version: 8.56.10
@@ -480,12 +486,12 @@ importers:
       '@netlify/edge-functions':
         specifier: 2.10.0
         version: 2.10.0
-      '@qwik.dev/city':
-        specifier: workspace:*
-        version: link:../qwik-city
       '@qwik.dev/core':
         specifier: workspace:*
         version: link:../qwik
+      '@qwik.dev/router':
+        specifier: workspace:*
+        version: link:../qwik-router
       '@types/density-clustering':
         specifier: 1.3.3
         version: 1.3.3
@@ -572,7 +578,33 @@ importers:
         specifier: 2.0.5
         version: 2.0.5(@types/node@20.14.11)(terser@5.31.3)
 
-  packages/qwik-city:
+  packages/qwik-dom: {}
+
+  packages/qwik-react:
+    devDependencies:
+      '@qwik.dev/core':
+        specifier: workspace:*
+        version: link:../qwik
+      '@types/react':
+        specifier: 18.3.3
+        version: 18.3.3
+      '@types/react-dom':
+        specifier: 18.3.0
+        version: 18.3.0
+      react:
+        specifier: 18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: 18.3.1
+        version: 18.3.1(react@18.3.1)
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vite:
+        specifier: 5.3.5
+        version: 5.3.5(@types/node@20.14.11)(terser@5.31.3)
+
+  packages/qwik-router:
     dependencies:
       '@mdx-js/mdx':
         specifier: ^3
@@ -681,44 +713,18 @@ importers:
         specifier: 2.4.5
         version: 2.4.5
 
-  packages/qwik-dom: {}
-
-  packages/qwik-react:
-    devDependencies:
-      '@qwik.dev/core':
-        specifier: workspace:*
-        version: link:../qwik
-      '@types/react':
-        specifier: 18.3.3
-        version: 18.3.3
-      '@types/react-dom':
-        specifier: 18.3.0
-        version: 18.3.0
-      react:
-        specifier: 18.3.1
-        version: 18.3.1
-      react-dom:
-        specifier: 18.3.1
-        version: 18.3.1(react@18.3.1)
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
-      vite:
-        specifier: 5.3.5
-        version: 5.3.5(@types/node@20.14.11)(terser@5.31.3)
-
   packages/supabase-auth-helpers-qwik:
     dependencies:
       '@supabase/auth-helpers-shared':
         specifier: ^0.6.3
         version: 0.6.3(@supabase/supabase-js@2.44.4)
     devDependencies:
-      '@qwik.dev/city':
-        specifier: workspace:*
-        version: link:../qwik-city
       '@qwik.dev/core':
         specifier: workspace:*
         version: link:../qwik
+      '@qwik.dev/router':
+        specifier: workspace:*
+        version: link:../qwik-router
       '@supabase/supabase-js':
         specifier: 2.44.4
         version: 2.44.4
@@ -9730,8 +9736,9 @@ snapshots:
 
   '@builder.io/partytown@0.10.2': {}
 
-  '@builder.io/sdk-qwik@0.14.31':
+  '@builder.io/sdk-qwik@0.14.31(@builder.io/qwik@packages+qwik)':
     dependencies:
+      '@builder.io/qwik': link:packages/qwik
       isolated-vm: 5.0.1
 
   '@builder.io/vite-plugin-macro@0.0.7(@types/node@20.14.11)(rollup@4.19.0)(terser@5.31.3)':
@@ -10993,7 +11000,10 @@ snapshots:
 
   '@microsoft/tsdoc@0.14.2': {}
 
-  '@modular-forms/qwik@0.23.1': {}
+  '@modular-forms/qwik@0.23.1(@builder.io/qwik-city@packages+qwik-router)(@builder.io/qwik@packages+qwik)':
+    dependencies:
+      '@builder.io/qwik': link:packages/qwik
+      '@builder.io/qwik-city': link:packages/qwik-router
 
   '@modular-forms/qwik@0.24.0':
     dependencies:
@@ -11651,8 +11661,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@qwik-ui/headless@0.5.0':
+  '@qwik-ui/headless@0.5.0(@builder.io/qwik@packages+qwik)':
     dependencies:
+      '@builder.io/qwik': link:packages/qwik
       '@floating-ui/core': 1.6.2
       '@floating-ui/dom': 1.6.5
       '@oddbird/popover-polyfill': 0.4.3
@@ -12243,7 +12254,9 @@ snapshots:
     dependencies:
       unpic: 3.18.0
 
-  '@unpic/qwik@0.0.38': {}
+  '@unpic/qwik@0.0.38(@builder.io/qwik@packages+qwik)':
+    dependencies:
+      '@builder.io/qwik': link:packages/qwik
 
   '@vercel/nft@0.27.1(supports-color@9.4.0)':
     dependencies:

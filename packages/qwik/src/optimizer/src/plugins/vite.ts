@@ -716,7 +716,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             devSsrServer
           );
         };
-        const isNEW = (globalThis as any).__qwikCityNew === true;
+        // TODO: Removed the "__qwikCityNew" condition in V3
+        const isNEW =
+          (globalThis as any).__qwikRouterNew === true ||
+          (globalThis as any).__qwikCityNew === true;
         if (isNEW) {
           return plugin;
         } else {

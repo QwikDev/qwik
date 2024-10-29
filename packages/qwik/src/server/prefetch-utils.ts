@@ -1,4 +1,4 @@
-import type { QPrefetchData } from './qwik-city-types';
+import type { QPrefetchData } from './qwik-router-types';
 import type { PrefetchResource } from './types';
 
 export function workerFetchScript() {

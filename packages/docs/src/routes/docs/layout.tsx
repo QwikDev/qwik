@@ -1,4 +1,4 @@
-import { useContent, useLocation } from '@qwik.dev/city';
+import { useContent, useLocation } from '@qwik.dev/router';
 import { component$, Slot, useContext, useStyles$ } from '@qwik.dev/core';
 import { ContentNav } from '../../components/content-nav/content-nav';
 import Contributors from '../../components/contributors';

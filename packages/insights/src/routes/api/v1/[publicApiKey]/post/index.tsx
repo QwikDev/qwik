@@ -1,4 +1,4 @@
-import { type RequestHandler } from '@qwik.dev/city';
+import { type RequestHandler } from '@qwik.dev/router';
 import { getDB } from '~/db';
 import { getAppInfo, updateEdge, updateRoutes } from '~/db/query';
 import { dbGetManifestInfo } from '~/db/sql-manifest';

@@ -1,5 +1,5 @@
 import { Slot, component$ } from '@qwik.dev/core';
-import { Link, useLocation, type RequestHandler } from '@qwik.dev/city';
+import { Link, useLocation, type RequestHandler } from '@qwik.dev/router';
 import { EdgeIcon } from '~/components/icons/edge';
 import { EditIcon } from '~/components/icons/edit';
 import { SymbolIcon } from '~/components/icons/symbol';

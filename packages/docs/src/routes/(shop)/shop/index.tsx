@@ -1,5 +1,5 @@
-import type { DocumentHead } from '@qwik.dev/city';
 import { component$, useContext, useStyles$ } from '@qwik.dev/core';
+import type { DocumentHead } from '@qwik.dev/router';
 import styles from '../shop.css?inline';
 import { SHOP_CONTEXT } from '../utils';
 import { ShopHeader } from './shop-header';

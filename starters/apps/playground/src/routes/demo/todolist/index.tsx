@@ -5,7 +5,7 @@ import {
   routeLoader$,
   z,
   zod$,
-} from "@qwik.dev/city";
+} from "@qwik.dev/router";
 import { component$ } from "@qwik.dev/core";
 import styles from "./todolist.module.css";
 

@@ -31,6 +31,7 @@
 /qwikcity/routing/route-parameters/ /docs/routing/ 308
 /qwikcity/routing/error-responses/ /docs/advanced/routing/ 308
 /qwikcity/loader/ /docs/route-loader/ 308
+/qwikcity/adaptors/ /docs/deployments/ 308
 /qwikcity/layout/overview/ /docs/layout/ 308
 /qwikcity/layout/nested/ /docs/advanced/routing/ 308
 /qwikcity/layout/grouped/ /docs/advanced/routing/ 308
@@ -61,9 +62,13 @@
 /docs/components/projection/ /docs/components/slots/ 308
 /docs/components/resource/ /docs/components/state/ 308
 
+/qwikcity/adaptors/* /docs/deployments/:splat 308
 /qwikcity/* /docs/:splat 308
+/qwikrouter/* /docs/:splat 308
 /integrations/* /docs/integrations/:splat 308
 /deployments/* /docs/deployments/:splat 308
 /docs/advanced/i18n/ /docs/integrations/i18n/ 308
 /docs/components/inline-components/ /docs/components/overview/ 308
 /docs/think-qwik/ /docs/concepts/think-qwik/ 308
+/docs/qwikcity/ /docs/qwikrouter/ 308
+/docs/qwikcity-deprecated-features/ /docs/qwikrouter-deprecated-features/ 308

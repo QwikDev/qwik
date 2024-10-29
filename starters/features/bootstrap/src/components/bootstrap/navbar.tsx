@@ -1,4 +1,4 @@
-import { Link } from "@qwik.dev/city";
+import { Link } from "@qwik.dev/router";
 import { $, component$, useOn } from "@qwik.dev/core";
 export const Navbar = component$(() => {
   useOn(

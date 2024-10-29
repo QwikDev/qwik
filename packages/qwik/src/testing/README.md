@@ -4,12 +4,12 @@
 //vite.config.ts
 import { defineConfig } from 'vite';
 import { qwikVite } from '@qwik.dev/core/optimizer';
-import { qwikCity } from '@qwik.dev/city/vite';
+import { qwikRouter } from '@qwik.dev/router/vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig(() => {
   return {
-    plugins: [qwikCity(), qwikVite(), tsconfigPaths()],
+    plugins: [qwikRouter(), qwikVite(), tsconfigPaths()],
     define: {
       'globalThis.qTest': true,
       'globalThis.qDev': true,

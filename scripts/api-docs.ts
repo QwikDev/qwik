@@ -1,21 +1,21 @@
 import { execa } from 'execa';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { type BuildConfig } from './util';
 import { format } from 'prettier';
+import { type BuildConfig } from './util';
 
 export async function generateQwikApiMarkdownDocs(config: BuildConfig, apiJsonInputDir: string) {
   await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik']);
 }
 
-export async function generateQwikCityApiMarkdownDocs(
+export async function generateQwikRouterApiMarkdownDocs(
   config: BuildConfig,
   apiJsonInputDir: string
 ) {
-  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-city']);
-  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-city', 'middleware']);
-  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-city', 'static']);
-  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-city', 'vite']);
+  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-router']);
+  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-router', 'middleware']);
+  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-router', 'static']);
+  await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-router', 'vite']);
 
   // doesn't really belong here, ah well
   await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-react']);
@@ -258,7 +258,7 @@ function getMdFile(subPkgName: string, hierarchy: string[]) {
     mdFile += '.' + getSafeFilenameForName(h);
   }
 
-  return `${subPkgName.includes('city') ? 'city' : 'core'}${mdFile}.md`;
+  return `${subPkgName.includes('router') ? 'router' : 'core'}${mdFile}.md`;
 }
 
 function getSafeFilenameForName(name: string): string {

@@ -79,31 +79,31 @@ export interface GenericType {
   ...
 }
 
-export const QwikCityContext = createContextId<GenericType>(name: string): ContextId<GenericType>;
+export const QwikRouterContext = createContextId<GenericType>(name: string): ContextId<GenericType>;
 ```
 
 ### Parameters
 
-- `name`: is a unique string given to `createContextId` as an identifier of the context. This will avoid conflicts when there are multiple contexts. It is advised to use a naming convention like `io.builder.qwik.city`.
+- `name`: is a unique string given to `createContextId` as an identifier of the context. This will avoid conflicts when there are multiple contexts. It is advised to use a naming convention like `dev.qwik.router`.
 
 ### Returns
 
-Notice that the value returned by `createContextId()` does not hold any state, it is an immutable ID object i.e. `{ id: 'io.builder.qwik.city' }`. It's only used to describe the name and type of the context, like an address or an identifier.  Since it doesn't hold any state, it can be initialized as a singleton and exported from a shared module.
+Notice that the value returned by `createContextId()` does not hold any state, it is an immutable ID object i.e. `{ id: 'dev.qwik.router' }`. It's only used to describe the name and type of the context, like an address or an identifier.  Since it doesn't hold any state, it can be initialized as a singleton and exported from a shared module.
 
 ## `useContextProvider()`
 
 This method is used to create a Context for a specific component and its descendants, using the `ContextId` as the key identifier of the context.
 
-```tsx {9, 10, 11} /QwikCityContext/#a /PlainArrayContext/#b /AppNameContext/#c title="src/components/Parent.tsx"
+```tsx {9, 10, 11} /QwikRouterContext/#a /PlainArrayContext/#b /AppNameContext/#c title="src/components/Parent.tsx"
 import { component$, useStore, useContextProvider } from '@qwik.dev/core';
 
 export const Parent = component$(() => {
 
-  const qwikCityObject = useStore<GenericType>({
+  const qwikRouterObject = useStore<GenericType>({
     ...
   });
 
-  useContextProvider(QwikCityContext, qwikCityObject);
+  useContextProvider(QwikRouterContext, qwikRouterObject);
   useContextProvider(PlainArrayContext, [1, 2, 3])
   useContextProvider(AppNameContext, "My Qwik App")
 
@@ -128,11 +128,11 @@ export const Parent = component$(() => {
 
 This method is used to get the value of `Context` which is **provided** by Parent Component.
 
-```tsx {4,5,6} /useContext/ /QwikCityContext/#a /PlainArrayContext/#b /AppNameContext/#c title="src/components/Children.tsx"
+```tsx {4,5,6} /useContext/ /QwikRouterContext/#a /PlainArrayContext/#b /AppNameContext/#c title="src/components/Children.tsx"
 import { component$, useContext } from '@qwik.dev/core';
 
 export const Children = component$(() => {
-  const qwikCityObject = useContext(QwikCityContext);
+  const qwikRouterObject = useContext(QwikRouterContext);
   const plainArray = useContext(PlainArrayContext);
   const appName = useContext(AppNameContext);
 

@@ -1,5 +1,5 @@
-import type { RequestHandler } from '@qwik.dev/city';
-import { useLocation } from '@qwik.dev/city';
+import type { RequestHandler } from '@qwik.dev/router';
+import { useLocation } from '@qwik.dev/router';
 import { component$, Slot, useStore, useStyles$, useTask$ } from '@qwik.dev/core';
 import tutorialSections, { type TutorialApp } from '@tutorial-data';
 import { Header } from '../../components/header/header';

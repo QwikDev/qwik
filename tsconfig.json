@@ -19,16 +19,16 @@
     "noUnusedLocals": true,
     "paths": {
       "@qwik-client-manifest": ["packages/qwik/dist/server-modules.d.ts"],
-      "@qwik-city-plan": ["packages/qwik-city/src/runtime/src/qwik-city-plan.ts"],
-      "@qwik-city-sw-register-build": [
-        "packages/qwik-city/src/buildtime/runtime-generation/sw-register-build.ts"
+      "@qwik-router-config": ["packages/qwik-router/src/runtime/src/qwik-router-config.ts"],
+      "@qwik-router-sw-register-build": [
+        "packages/qwik-router/src/buildtime/runtime-generation/sw-register-build.ts"
       ],
-      "@qwik-city-sw-register": ["packages/qwik-city/src/runtime/src/sw-register-runtime.ts"],
-      "@qwik-city-not-found-paths": [
-        "packages/qwik-city/src/middleware/request-handler/generated/not-found-paths.ts"
+      "@qwik-router-sw-register": ["packages/qwik-router/src/runtime/src/sw-register-runtime.ts"],
+      "@qwik-router-not-found-paths": [
+        "packages/qwik-router/src/middleware/request-handler/generated/not-found-paths.ts"
       ],
-      "@qwik-city-static-paths": [
-        "packages/qwik-city/src/middleware/request-handler/generated/static-paths.ts"
+      "@qwik-router-static-paths": [
+        "packages/qwik-router/src/middleware/request-handler/generated/static-paths.ts"
       ]
     },
     "types": ["node", "vite/client"],
@@ -48,12 +48,13 @@
     "starters/apps/sandbox",
     "starters/apps/todo-test",
     "starters/apps/e2e",
-    "starters/apps/qwikcity-test/**/*",
+    "starters/apps/qwikrouter-test/**/*",
     "starters/dev-server.ts",
     "packages/qwik-react/vite",
     "@types/deno.d.ts",
     "@types/bun.d.ts",
-    "types.d.ts"
+    "types.d.ts",
+    "packages/qwik-router/global.d.ts"
   ],
   "exclude": [
     "packages/create-qwik/dist",

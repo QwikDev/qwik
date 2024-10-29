@@ -1,5 +1,5 @@
-import type { DocumentHead } from '@qwik.dev/city';
 import { component$, useStyles$ } from '@qwik.dev/core';
+import type { DocumentHead } from '@qwik.dev/router';
 import pages from './generated-pages.json';
 import styles from './styles.css?inline';
 

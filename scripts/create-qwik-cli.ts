@@ -109,8 +109,8 @@ async function updateBaseVersions(config: BuildConfig, version: string) {
   console.log(`   update devDependencies["@qwik.dev/core"] = "${semverQwik}"`);
   baseAppPkg.devDependencies['@qwik.dev/core'] = semverQwik;
 
-  console.log(`   update devDependencies["@qwik.dev/city"] = "${semverQwik}"`);
-  baseAppPkg.devDependencies['@qwik.dev/city'] = semverQwik;
+  console.log(`   update devDependencies["@qwik.dev/router"] = "${semverQwik}"`);
+  baseAppPkg.devDependencies['@qwik.dev/router'] = semverQwik;
 
   console.log(`   update devDependencies["eslint-plugin-qwik"] = "${semverQwik}"`);
   baseAppPkg.devDependencies['eslint-plugin-qwik'] = semverQwik;

@@ -1,0 +1,105 @@
+---
+title: Redirects | Guides
+description: Learn how to use redirects in Qwik Router.
+contributors:
+  - adamdbradley
+  - manucorporat
+  - mhevery
+  - mrhoodz
+  - hamatoyogi
+updated_at: '2023-06-25T19:43:33Z'
+created_at: '2023-03-20T23:45:13Z'
+---
+
+# Redirects
+
+Sometimes you want to redirect a user from the current page to another page.
+
+Let's say a user tries to go to a dashboard page but has not logged in yet. We want them to be redirected to a login page so they can be authenticated.
+
+```tsx title="src/routes/dashboard.tsx"
+import type { RequestEvent } from '@qwik.dev/router';
+import { checkAuthorization } from '../auth'; // Your authorization code
+import type { DashboardData } from '../types'; // Your types
+
+export const onGet = async ({ cookie, redirect }: RequestEvent) => {
+  const isAuthorized = checkAuthorization(cookie.get('cookie'));
+
+  if (!isAuthorized) {
+    // User is not authorized!
+    // throw the redirect response to
+    // relocate the user to the log-in page
+    throw redirect(302, '/login');
+  } else {
+    // ...
+  }
+};
+```
+
+The `redirect()` function, which was destructured in the RequestHandler function arguments, takes a redirect status code and URL.
+
+```tsx
+throw redirect(302, '/login');
+```
+
+[Common redirect status codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages):
+
+- `301`: Moved Permanently. This and all future requests should be directed to the given URI.
+- `302`: Found. This response code means that the URI of requested resource has been changed temporarily. Further changes in the URI might be made in the future. Therefore, this same URI should be used by the client in future requests.
+- `307`: Temporary Redirect. The server sends this response to direct the client to get the requested resource at another URI with the same method that was used in the prior request. This has the same semantics as the 302 Found HTTP response code, with the exception that the user agent must not change the HTTP method used: if a POST was used in the first request, a POST must be used in the second request.
+- `308`: Permanent Redirect. This means that the resource is now permanently located at another URI, specified by the `Location` HTTP Response header. This has the same semantics as the 301 Moved Permanently HTTP response code, with the exception that the user agent must not change the HTTP method used: if a POST was used in the first request, a POST must be used in the second request.
+
+If you do not provide a status code, Qwik Router will default to a `302` Found status.
+
+Read more about redirect status codes [here](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages).
+
+## Managing multiple redirects
+
+In some cases, you may need to manage multiple redirects based on different conditions. For example, you might want to redirect users from old URLs to new URLs after a site restructure. Additionally, you may want editors in a CMS to manage these redirects as well. Here's one of the ways you can handle multiple redirects in Qwik:
+
+```tsx title="src/routes/layout.tsx"
+import { type RequestHandler } from "@qwik.dev/router";
+
+export const onGet: RequestHandler = async ({ url, redirect }) => {
+  // qwik router request caching ...
+
+  // example external data source
+  async function fetchRules(): Promise<
+    { source: string; destination: string; permanent: boolean }[]
+  > {
+    // Fetch data from a CMS or API, and add more rules as needed.
+    // Filter and map your data to make it easier to handle, as simulated here:
+    return [
+      { source: "/old-path", destination: "/new-path", permanent: true },
+      {
+        source: "/another-old-path",
+        destination: "/another-new-path",
+        permanent: false,
+      },
+    ];
+  }
+
+  const redirectRules = await fetchRules();
+  const redirectUrl = redirectRules.find((rule) => {
+    if (url.pathname.endsWith("/")) {
+      return rule.source + "/" === url.pathname;
+    }
+
+    return rule.source === url.pathname;
+  });
+
+  if (redirectUrl) {
+    throw redirect(redirectUrl.permanent ? 308 : 307, redirectUrl.destination);
+  }
+};
+```
+
+> Note: This code does not include caching mechanisms. Fetching redirect rules from an external source on every request can lead to performance issues. It's recommended to implement caching to improve efficiency.
+
+The above example demonstrates:
+
+- Layouts: Grabbing data inside a [root layout's onGet handler](https://qwik.dev/docs/routing/#middleware-layouts).
+- URL Matching: When a user requests a URL, the handler checks if it matches any source in the redirect rules.
+- Redirect Execution: If a match is found, it redirects the user to the corresponding destination URL.
+- HTTP Status Codes: Uses status code [308](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/308) for permanent redirects and [307](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/307) for temporary ones.
+- Content Management Integration: Enables content editors to control redirects through external data sources like a CMS or API.

@@ -1,4 +1,4 @@
-import type { RequestHandler } from "@qwik.dev/city";
+import type { RequestHandler } from "@qwik.dev/router";
 import { component$, Slot } from "@qwik.dev/core";
 
 export const onGet: RequestHandler = async ({ cacheControl }) => {

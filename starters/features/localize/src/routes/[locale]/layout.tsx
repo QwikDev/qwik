@@ -1,4 +1,4 @@
-import type { RequestHandler } from "@qwik.dev/city";
+import type { RequestHandler } from "@qwik.dev/router";
 import { component$, Slot } from "@qwik.dev/core";
 import { extractLang, useI18n } from "~/routes/[locale]/i18n-utils";
 

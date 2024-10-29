@@ -8,15 +8,15 @@
  * - https://bun.sh/docs/api/http
  *
  */
-import qwikCityPlan from "@qwik-city-plan";
 import { manifest } from "@qwik-client-manifest";
-import { createQwikCity } from "@qwik.dev/city/middleware/bun";
+import qwikRouterConfig from "@qwik-router-config";
+import { createQwikRouter } from "@qwik.dev/router/middleware/bun";
 import render from "./entry.ssr";
 
-// Create the Qwik City Bun middleware
-const { router, notFound, staticFile } = createQwikCity({
+// Create the Qwik Router Bun middleware
+const { router, notFound, staticFile } = createQwikRouter({
   render,
-  qwikCityPlan,
+  qwikRouterConfig,
   manifest,
 });
 
@@ -33,10 +33,10 @@ Bun.serve({
       return staticResponse;
     }
 
-    // Server-side render this request with Qwik City
-    const qwikCityResponse = await router(request);
-    if (qwikCityResponse) {
-      return qwikCityResponse;
+    // Server-side render this request with Qwik Router
+    const qwikRouterResponse = await router(request);
+    if (qwikRouterResponse) {
+      return qwikRouterResponse;
     }
 
     // Path not found

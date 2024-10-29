@@ -1,10 +1,5 @@
 import {
   $,
-  _deserialize,
-  _getContextElement,
-  _getContextEvent,
-  _serialize,
-  _wrapProp,
   implicit$FirstArg,
   noSerialize,
   useContext,
@@ -12,6 +7,13 @@ import {
   type QRL,
   type ValueOrPromise,
 } from '@qwik.dev/core';
+import {
+  _deserialize,
+  _getContextElement,
+  _getContextEvent,
+  _serialize,
+  _wrapProp,
+} from '@qwik.dev/core/internal';
 
 import * as v from 'valibot';
 import { z } from 'zod';

@@ -1,4 +1,4 @@
-import type { StreamWriter } from '@qwik.dev/core';
+import type { StreamWriter } from '@qwik.dev/core/internal';
 import type { RenderOptions } from '@qwik.dev/core/server';
 import type { ServerRenderOptions } from '@qwik.dev/router/middleware/request-handler';
 

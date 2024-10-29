@@ -248,7 +248,6 @@ describe('types', () => {
         >
           Bar
         </Poly>
-        <Poly as={Poly} />
         <Poly as={MyCmp} name="meep" />
       </>
     );

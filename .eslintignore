@@ -30,4 +30,4 @@ packages/insights/panda.config.ts
 starters/apps/base
 starters/apps/library
 starters/templates
-vite.config.ts
+vite.config.mts

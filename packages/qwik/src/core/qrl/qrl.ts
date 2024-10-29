@@ -24,6 +24,7 @@ import { mapJoin } from '../container/pause';
 import { throwErrorAndStop } from '../util/log';
 
 // https://regexr.com/68v72
+// @ts-expect-error -- this works
 const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
 
 // https://regexr.com/690ds

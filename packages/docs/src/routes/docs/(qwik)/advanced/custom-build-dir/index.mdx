@@ -21,7 +21,7 @@ In certain cases, we may need to make the build output directory different from 
 
 Usually with Vite.js we do it like this:
 
-```ts title="vite.config.ts"
+```ts title="vite.config.mts"
 import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 import { qwikCity } from '@builder.io/qwik-city/vite';
@@ -56,7 +56,7 @@ However, it will be overridden by the settings of QwikVite() so nothing happens 
 
 So instead of changing the settings in Vite.js directly, we just need to change the settings in QwikVite() like this:
 
-```ts title="vite.config.ts"
+```ts title="vite.config.mts"
 import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 import { qwikCity } from '@builder.io/qwik-city/vite';

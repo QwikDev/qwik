@@ -1,5 +1,5 @@
 import { isServerPlatform } from '../shared/platform/platform';
-import { assertQrl } from '../shared/qrl/qrl-class';
+import { assertQrl } from '../shared/qrl/qrl-utils';
 import { type QRL } from '../shared/qrl/qrl.public';
 import { Fragment, _jsxSorted } from '../shared/jsx/jsx-runtime';
 import { invoke, newInvokeContext, untrack, useBindInvokeContext } from './use-core';
@@ -17,7 +17,7 @@ import { clearSubscriberEffectDependencies } from '../signal/signal-subscriber';
 import { ResourceEvent } from '../shared/utils/markers';
 import { assertDefined } from '../shared/error/assert';
 import { noSerialize } from '../shared/utils/serialize-utils';
-import { ChoreType } from '../shared/scheduler';
+import { ChoreType } from '../shared/util-chore-type';
 
 const DEBUG: boolean = false;
 

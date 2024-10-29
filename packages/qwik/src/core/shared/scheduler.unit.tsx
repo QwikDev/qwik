@@ -14,7 +14,8 @@ import {
 import { TaskFlags, type Task } from '../use/use-task';
 import type { Props } from './jsx/jsx-runtime';
 import type { QRLInternal } from './qrl/qrl-class';
-import { ChoreType, createScheduler } from './scheduler';
+import { createScheduler } from './scheduler';
+import { ChoreType } from './util-chore-type';
 import type { HostElement } from './types';
 import { QContainerAttr } from './utils/markers';
 

@@ -6,7 +6,7 @@ import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import { inlinedQrl } from '../shared/qrl/qrl';
 import { type QRLInternal } from '../shared/qrl/qrl-class';
 import { type QRL } from '../shared/qrl/qrl.public';
-import { ChoreType } from '../shared/scheduler';
+import { ChoreType } from '../shared/util-chore-type';
 import type { Container, HostElement } from '../shared/types';
 import { isPromise } from '../shared/utils/promises';
 import { invoke, newInvokeContext } from '../use/use-core';

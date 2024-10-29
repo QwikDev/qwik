@@ -46,7 +46,22 @@ export async function submoduleOptimizer(config: BuildConfig) {
         'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
         ...qwikloaderScripts,
       },
-      plugins: [RawPlugin()],
+      plugins: [
+        {
+          // throws an error if files from src/core are loaded, except for some allowed imports
+          name: 'forbid-core',
+          setup(build) {
+            build.onLoad({ filter: /src\/core\// }, (args) => {
+              if (args.path.includes('util') || args.path.includes('shared')) {
+                return null;
+              }
+              console.error('forbid-core', args);
+              throw new Error('Import of core files is not allowed in server builds.');
+            });
+          },
+        },
+        RawPlugin(),
+      ],
     });
 
     const cjsBanner = [`globalThis.qwikOptimizer = (function (module) {`].join('\n');

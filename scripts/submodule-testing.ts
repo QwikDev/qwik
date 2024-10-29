@@ -1,4 +1,4 @@
-import { getBanner, importPath, nodeTarget, target } from './util';
+import { getBanner, importPath, nodeTarget, target, externalImportNoEffects } from './util';
 import { build, type BuildOptions } from 'esbuild';
 import { type BuildConfig, type PackageJSON } from './util';
 import { join } from 'node:path';
@@ -16,7 +16,6 @@ export async function submoduleTesting(config: BuildConfig) {
     target,
     external: ['@qwik.dev/core/build', 'prettier', 'vitest'],
     platform: 'node',
-    // external: [...nodeBuiltIns],
   };
 
   const esm = build({
@@ -28,6 +27,7 @@ export async function submoduleTesting(config: BuildConfig) {
       importPath(/^@qwik\.dev\/core$/, '../core.mjs'),
       importPath(/^@qwik\.dev\/core\/optimizer$/, '../optimizer.mjs'),
       importPath(/^@qwik\.dev\/core\/server$/, '../server.mjs'),
+      externalImportNoEffects(/^(@qwik\.dev\/core\/build|prettier|vitest)$/),
     ],
     define: {
       'globalThis.MODULE_EXT': `"mjs"`,
@@ -47,6 +47,7 @@ export async function submoduleTesting(config: BuildConfig) {
       importPath(/^@qwik\.dev\/core$/, '../core.cjs'),
       importPath(/^@qwik\.dev\/core\/optimizer$/, '../optimizer.cjs'),
       importPath(/^@qwik\.dev\/core\/server$/, '../server.cjs'),
+      externalImportNoEffects(/^(@qwik\.dev\/core\/build|prettier|vitest)$/),
     ],
     define: {
       'globalThis.MODULE_EXT': `"cjs"`,

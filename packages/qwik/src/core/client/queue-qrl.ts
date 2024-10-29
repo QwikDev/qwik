@@ -1,6 +1,6 @@
 import { QError, qError } from '../shared/error/error';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import { ChoreType } from '../shared/scheduler';
+import { ChoreType } from '../shared/util-chore-type';
 import { getInvokeContext } from '../use/use-core';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { _getQContainerElement, getDomContainer } from './dom-container';

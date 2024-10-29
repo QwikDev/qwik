@@ -162,6 +162,22 @@ export function importPath(filter: RegExp, newModulePath: string) {
       build.onResolve({ filter }, () => ({
         path: newModulePath,
         external: true,
+        sideEffects: false,
+      }));
+    },
+  };
+  return plugin;
+}
+
+/** Esbuild plugin to mark an import as having external without side effects. */
+export function externalImportNoEffects(filter: RegExp) {
+  const plugin: Plugin = {
+    name: 'externalImportPlugin',
+    setup(build) {
+      build.onResolve({ filter }, ({ path }) => ({
+        path,
+        external: true,
+        sideEffects: false,
       }));
     },
   };

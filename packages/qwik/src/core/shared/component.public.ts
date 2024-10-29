@@ -9,9 +9,9 @@ import type {
 import type { FunctionComponent } from './jsx/types/jsx-node';
 import { _CONST_PROPS, _VAR_PROPS, _jsxSorted, _jsxSplit } from '../internal';
 import type { QwikIntrinsicElements } from './jsx/types/jsx-qwik-elements';
-import { assertQrl } from './qrl/qrl-class';
 import { assertNumber } from './error/assert';
 import { qTest } from './utils/qdev';
+import { assertQrl } from './qrl/qrl-utils';
 
 // TS way to check for any
 type IsAny<T> = 0 extends T & 1 ? true : false;

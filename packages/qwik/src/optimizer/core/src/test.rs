@@ -3806,6 +3806,37 @@ fn impure_template_fns() {
 	});
 }
 
+#[test]
+fn rename_builder_io() {
+	test_input!(TestInput {
+		code: r#"
+		import { $, component$ } from "@builder.io/qwik";
+		import { isDev } from "@builder.io/qwik/build";
+		import { stuff } from "@builder.io/qwik-city";
+		import { moreStuff } from "@builder.io/qwik-city/more/here";
+		import { qwikify$ } from "@builder.io/qwik-react";
+		import sdk from "@builder.io/sdk";
+		
+		export const Foo = qwikify$(MyReactComponent);
+		
+		export const Bar = $("a thing");
+
+		export const App = component$(() => {
+			sdk.hello();
+			if (isDev) {
+				stuff()
+			} else {
+				moreStuff()
+			}
+			return "hi";
+		});
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 // TODO(misko): Make this test work by implementing strict serialization.
 // #[test]
 // fn example_of_synchronous_qrl_that_cant_be_serialized() {

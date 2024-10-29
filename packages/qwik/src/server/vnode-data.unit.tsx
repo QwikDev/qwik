@@ -8,7 +8,7 @@ import { vnode_getProp, vnode_locate } from '../core/client/vnode';
 import { ELEMENT_PROPS, OnRenderProp } from '../core/shared/utils/markers';
 import { type QRLInternal } from '../core/shared/qrl/qrl-class';
 import type { DomContainer } from '../core/client/dom-container';
-import { createContextId, useContext, useContextProvider } from '@builder.io/qwik';
+import { createContextId, useContext, useContextProvider } from '@qwik.dev/core';
 
 const debug = false;
 

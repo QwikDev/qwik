@@ -4,7 +4,7 @@
   "version": "2.0.0-0",
   "annotation": "This package.json is for internal use in the monorepo, the build actually makes a new package.json for the published package via scripts/package-json.ts",
   "bin": {
-    "qwik": "./dist/qwik-cli.cjs"
+    "qwik": "./qwik-cli.cjs"
   },
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "contributors": [
@@ -150,7 +150,8 @@
     "loader.d.ts",
     "optimizer.d.ts",
     "server.d.ts",
-    "testing.d.ts"
+    "testing.d.ts",
+    "qwik-cli.cjs"
   ],
   "homepage": "https://qwik.dev/",
   "keywords": [

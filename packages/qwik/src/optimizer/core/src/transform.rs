@@ -2218,7 +2218,7 @@ fn compute_scoped_idents(all_idents: &[Id], all_decl: &[IdPlusType]) -> (Vec<Id>
 
 fn get_canonical_filename(display_name: &JsWord, symbol_name: &JsWord) -> JsWord {
 	let hash = symbol_name.split('_').last().unwrap();
-	JsWord::from(format!("{}_{}", display_name, hash).to_ascii_lowercase())
+	JsWord::from(format!("{}_{}", display_name, hash))
 }
 
 fn parse_symbol_name(

@@ -91,13 +91,13 @@ describe.each([
 
     const { vNode, document } = await render(<Wrapper />, { debug });
     expect(vNode).toMatchVDOM(
-      <Component>
-        <>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button></button>
-          <Component>
+          <Component ssr-required>
             <div>Test</div>
           </Component>
-        </>
+        </Fragment>
       </Component>
     );
     await trigger(document.body, 'button', 'click');
@@ -248,7 +248,7 @@ describe.each([
     const { vNode, document } = await render(<Cmp />, { debug });
 
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <footer>
           <button></button>
           <InlineComponent>
@@ -307,7 +307,7 @@ describe.each([
     const { vNode, document } = await render(<Cmp />, { debug });
 
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <footer>
           <button></button>
           <InlineComponent>
@@ -320,10 +320,10 @@ describe.each([
     await trigger(document.body, 'button', 'click');
 
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <footer>
           <button></button>
-          <InlineComponent>
+          <InlineComponent ssr-required>
             <span>bar</span>
           </InlineComponent>
         </footer>
@@ -333,10 +333,10 @@ describe.each([
     await trigger(document.body, 'button', 'click');
 
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <footer>
           <button></button>
-          <InlineComponent>
+          <InlineComponent ssr-required>
             <div>foo</div>
           </InlineComponent>
         </footer>
@@ -371,7 +371,7 @@ describe.each([
     const { vNode, document } = await render(<Cmp />, { debug });
 
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <footer>
           <button></button>
           <InlineComponent>

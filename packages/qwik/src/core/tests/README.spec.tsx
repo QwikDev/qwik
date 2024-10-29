@@ -147,9 +147,9 @@ describe.each([
     await trigger(document.body, 'button', 'click');
     // Assert correct output
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <button>
-          <SignalTarget>124</SignalTarget>
+          <SignalTarget ssr-required>124</SignalTarget>
         </button>
       </Component>
     );

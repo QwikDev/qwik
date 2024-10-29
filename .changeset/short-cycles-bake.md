@@ -1,5 +1,7 @@
 ---
-'@builder.io/qwik': patch
+'@builder.io/qwik': minor
 ---
 
-Expose unwrapStore as a low level API
+FEAT: Expose `unwrapStore` as a low level AP
+
+This enables developers to clone the content of a `useStore()` using `structureClone` or IndexedDB

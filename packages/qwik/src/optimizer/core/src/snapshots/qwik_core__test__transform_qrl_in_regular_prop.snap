@@ -10,13 +10,13 @@ expression: output
 		export const Cmp = component$(() =>
 			<Cmp foo={$(() => console.log('hi there'))}>Hello Qwik</Cmp>);
 		
-============================= test.tsx_cmp_component_4rykjtokjwe.ts (ENTRY POINT)==
+============================= test.tsx_Cmp_component_4ryKJTOKjWE.ts (ENTRY POINT)==
 
 import { Cmp } from "./test";
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 export const Cmp_component_4ryKJTOKjWE = ()=>/*#__PURE__*/ _jsxSorted(Cmp, {
-        foo: /*#__PURE__*/ qrl(()=>import("./test.tsx_cmp_component_cmp_foo_ippdemxi0ue"), "Cmp_component_Cmp_foo_iPpdemxi0uE")
+        foo: /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_Cmp_foo_iPpdemxi0uE"), "Cmp_component_Cmp_foo_iPpdemxi0uE")
     }, null, "Hello Qwik", 3, "u6_0");
 
 
@@ -28,7 +28,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Cmp_component",
   "hash": "4ryKJTOKjWE",
-  "canonicalFilename": "test.tsx_cmp_component_4rykjtokjwe",
+  "canonicalFilename": "test.tsx_Cmp_component_4ryKJTOKjWE",
   "path": "",
   "extension": "ts",
   "parent": null,
@@ -41,7 +41,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_cmp_component_cmp_foo_ippdemxi0ue.ts (ENTRY POINT)==
+============================= test.tsx_Cmp_component_Cmp_foo_iPpdemxi0uE.ts (ENTRY POINT)==
 
 export const Cmp_component_Cmp_foo_iPpdemxi0uE = ()=>console.log('hi there');
 export { _hW } from "@qwik.dev/core";
@@ -55,7 +55,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Cmp_component_Cmp_foo",
   "hash": "iPpdemxi0uE",
-  "canonicalFilename": "test.tsx_cmp_component_cmp_foo_ippdemxi0ue",
+  "canonicalFilename": "test.tsx_Cmp_component_Cmp_foo_iPpdemxi0uE",
   "path": "",
   "extension": "ts",
   "parent": "Cmp_component_4ryKJTOKjWE",
@@ -72,7 +72,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Cmp = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_cmp_component_4rykjtokjwe"), "Cmp_component_4ryKJTOKjWE"));
+export const Cmp = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEE,OAAO,MAAM,oBAAM,iHAC4C\"}")

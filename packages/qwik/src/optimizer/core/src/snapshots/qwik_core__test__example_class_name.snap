@@ -30,11 +30,11 @@ export const App2 = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const App2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_app2_component_3yvemqbq3fs.js"), "App2_component_3yveMqbQ3Fs"));
+export const App2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App2_component_3yveMqbQ3Fs.js"), "App2_component_3yveMqbQ3Fs"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,qBAAO,sHAgBjB\"}")
-============================= test.tsx_app2_component_3yvemqbq3fs.js (ENTRY POINT)==
+============================= test.tsx_App2_component_3yveMqbQ3Fs.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import { _jsxSorted } from "@qwik.dev/core";
@@ -79,7 +79,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_App2_component",
   "hash": "3yveMqbQ3Fs",
-  "canonicalFilename": "test.tsx_app2_component_3yvemqbq3fs",
+  "canonicalFilename": "test.tsx_App2_component_3yveMqbQ3Fs",
   "path": "",
   "extension": "js",
   "parent": null,

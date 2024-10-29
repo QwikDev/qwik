@@ -17,12 +17,12 @@ export const App = () => {
 	return Header;
 });
 
-============================= test.tsx_app_header_component_b9f3yeqco1w.tsx (ENTRY POINT)==
+============================= test.tsx_App_Header_component_B9F3YeqcO1w.tsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
 export const App_Header_component_B9F3YeqcO1w = ()=>{
     console.log("mount");
-    return <div onClick={/*#__PURE__*/ qrl(()=>import("./test.tsx_app_header_component_div_onclick_ao7ui7iw6oq"), "App_Header_component_div_onClick_aO7uI7Iw6oQ")}/>;
+    return <div onClick={/*#__PURE__*/ qrl(()=>import("./test.tsx_App_Header_component_div_onClick_aO7uI7Iw6oQ"), "App_Header_component_div_onClick_aO7uI7Iw6oQ")}/>;
 };
 
 
@@ -34,7 +34,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_App_Header_component",
   "hash": "B9F3YeqcO1w",
-  "canonicalFilename": "test.tsx_app_header_component_b9f3yeqco1w",
+  "canonicalFilename": "test.tsx_App_Header_component_B9F3YeqcO1w",
   "path": "",
   "extension": "tsx",
   "parent": null,
@@ -47,7 +47,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_app_header_component_div_onclick_ao7ui7iw6oq.tsx (ENTRY POINT)==
+============================= test.tsx_App_Header_component_div_onClick_aO7uI7Iw6oQ.tsx (ENTRY POINT)==
 
 export const App_Header_component_div_onClick_aO7uI7Iw6oQ = (ctx)=>console.log(ctx);
 export { _hW } from "@qwik.dev/core";
@@ -61,7 +61,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_App_Header_component_div_onClick",
   "hash": "aO7uI7Iw6oQ",
-  "canonicalFilename": "test.tsx_app_header_component_div_onclick_ao7ui7iw6oq",
+  "canonicalFilename": "test.tsx_App_Header_component_div_onClick_aO7uI7Iw6oQ",
   "path": "",
   "extension": "tsx",
   "parent": "App_Header_component_B9F3YeqcO1w",
@@ -79,7 +79,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 export const App = ()=>{
-    const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_app_header_component_b9f3yeqco1w"), "App_Header_component_B9F3YeqcO1w"));
+    const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_Header_component_B9F3YeqcO1w"), "App_Header_component_B9F3YeqcO1w"));
     return Header;
 };
 

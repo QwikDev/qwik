@@ -48,7 +48,7 @@ export const Parent = component$(() => {
 	);
 });
 
-============================= test.tsx_parent_component_usetask_gdh1etuwqbu.js (ENTRY POINT)==
+============================= test.tsx_Parent_component_useTask_gDH1EtUWqBU.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
 import mongo from "mongodb";
@@ -69,7 +69,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Parent_component_useTask",
   "hash": "gDH1EtUWqBU",
-  "canonicalFilename": "test.tsx_parent_component_usetask_gdh1etuwqbu",
+  "canonicalFilename": "test.tsx_Parent_component_useTask_gDH1EtUWqBU",
   "path": "",
   "extension": "js",
   "parent": "s_0TaiDayHrlo",
@@ -86,11 +86,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_parent_component_0taidayhrlo"), "s_0TaiDayHrlo"));
+export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_0TaiDayHrlo"), "s_0TaiDayHrlo"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAOA,OAAO,MAAM,uBAAS,wGAkCnB\"}")
-============================= test.tsx_parent_component_serverstuff_a_2ca3hldc7yc.js (ENTRY POINT)==
+============================= test.tsx_Parent_component_serverStuff_a_2ca3HLDC7yc.js (ENTRY POINT)==
 
 export const s_2ca3HLDC7yc = ()=>{
 // from $(), should not be removed
@@ -106,7 +106,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Parent_component_serverStuff_a",
   "hash": "2ca3HLDC7yc",
-  "canonicalFilename": "test.tsx_parent_component_serverstuff_a_2ca3hldc7yc",
+  "canonicalFilename": "test.tsx_Parent_component_serverStuff_a_2ca3HLDC7yc",
   "path": "",
   "extension": "js",
   "parent": "s_r1qAHX7Opp0",
@@ -119,7 +119,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_parent_component_serverstuff_b_client_v9qawr2inkk.js (ENTRY POINT)==
+============================= test.tsx_Parent_component_serverStuff_b_client_v9qawr2Inkk.js (ENTRY POINT)==
 
 export const s_v9qawr2Inkk = ()=>{
 // from clien$(), should not be removed
@@ -134,7 +134,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Parent_component_serverStuff_b_client",
   "hash": "v9qawr2Inkk",
-  "canonicalFilename": "test.tsx_parent_component_serverstuff_b_client_v9qawr2inkk",
+  "canonicalFilename": "test.tsx_Parent_component_serverStuff_b_client_v9qawr2Inkk",
   "path": "",
   "extension": "js",
   "parent": "s_r1qAHX7Opp0",
@@ -147,7 +147,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_parent_component_0taidayhrlo.js (ENTRY POINT)==
+============================= test.tsx_Parent_component_0TaiDayHrlo.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { _noopQrl } from "@qwik.dev/core";
@@ -162,14 +162,14 @@ export const s_0TaiDayHrlo = ()=>{
         text: ''
     });
     // Double count watch
-    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_parent_component_usetask_gdh1etuwqbu"), "s_gDH1EtUWqBU", [
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_useTask_gDH1EtUWqBU"), "s_gDH1EtUWqBU", [
         state
     ]));
     serverStuffQrl(/*#__PURE__*/ _noopQrl("s_r1qAHX7Opp0"));
     serverLoaderQrl(/*#__PURE__*/ _noopQrl("s_k1L0DiPQV1I"));
-    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_parent_component_usetask_1_p8orqhhsurk"), "s_P8oRQhHsurk"));
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_useTask_1_P8oRQhHsurk"), "s_P8oRQhHsurk"));
     return /*#__PURE__*/ _jsxSorted("div", null, {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_parent_component_div_onclick_c5xe49nqd3a"), "s_C5XE49Nqd3A")
+        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_div_onClick_C5XE49Nqd3A"), "s_C5XE49Nqd3A")
     }, _wrapProp(state, "text"), 3, "u6_0");
 };
 
@@ -182,7 +182,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Parent_component",
   "hash": "0TaiDayHrlo",
-  "canonicalFilename": "test.tsx_parent_component_0taidayhrlo",
+  "canonicalFilename": "test.tsx_Parent_component_0TaiDayHrlo",
   "path": "",
   "extension": "js",
   "parent": null,
@@ -195,7 +195,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_parent_component_div_onclick_c5xe49nqd3a.js (ENTRY POINT)==
+============================= test.tsx_Parent_component_div_onClick_C5XE49Nqd3A.js (ENTRY POINT)==
 
 export const s_C5XE49Nqd3A = ()=>console.log('parent');
 
@@ -208,7 +208,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Parent_component_div_onClick",
   "hash": "C5XE49Nqd3A",
-  "canonicalFilename": "test.tsx_parent_component_div_onclick_c5xe49nqd3a",
+  "canonicalFilename": "test.tsx_Parent_component_div_onClick_C5XE49Nqd3A",
   "path": "",
   "extension": "js",
   "parent": "s_0TaiDayHrlo",
@@ -221,7 +221,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_parent_component_usetask_1_p8orqhhsurk.js (ENTRY POINT)==
+============================= test.tsx_Parent_component_useTask_1_P8oRQhHsurk.js (ENTRY POINT)==
 
 export const s_P8oRQhHsurk = ()=>{
 // Code
@@ -237,7 +237,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Parent_component_useTask_1",
   "hash": "P8oRQhHsurk",
-  "canonicalFilename": "test.tsx_parent_component_usetask_1_p8orqhhsurk",
+  "canonicalFilename": "test.tsx_Parent_component_useTask_1_P8oRQhHsurk",
   "path": "",
   "extension": "js",
   "parent": "s_0TaiDayHrlo",

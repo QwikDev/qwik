@@ -116,12 +116,9 @@ const changelogFunctions: ChangelogFunctions = {
     }
 
     const emojiFirstline = firstLine
-      .replace('FEAT:', '✨ ')
-      .replace('feat:', '✨ ')
-      .replace('fix:', '🐞🩹')
-      .replace('FIX:', '🐞🩹')
-      .replace('DOCS:', '📃')
-      .replace('docs:', '📃');
+      .replace(/feat:/i, '✨ ')
+      .replace(/fix:/i, '🐞🩹')
+      .replace(/docs:/i, '📃');
 
     return `\n\n- ${emojiFirstline} ${suffix}\n${futureLines.map((l) => `  ${l}`).join('\n')}`;
   },

@@ -35,7 +35,7 @@ import { ERROR_CONTEXT } from '../core/shared/error/error-handling';
 import type { Props } from '../core/shared/jsx/jsx-runtime';
 import { getPlatform, setPlatform } from '../core/shared/platform/platform';
 import { inlinedQrl } from '../core/shared/qrl/qrl';
-import { ChoreType } from '../core/shared/scheduler';
+import { ChoreType } from '../core/shared/util-chore-type';
 import { dumpState } from '../core/shared/shared-serialization';
 import {
   ELEMENT_PROPS,

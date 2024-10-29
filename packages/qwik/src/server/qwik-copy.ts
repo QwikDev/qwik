@@ -9,53 +9,53 @@
  *   ensuring that this rule is followed, this file is the only place where relative `../` imports
  *   of types only are allowed.
  *
- *   Sum code we are OK by importing and making a copy because it will have no adverse affect. This
- *   file lists code which we are OK to have duplicated.
+ *   Some code is OK to import and make a copy of because it will have no adverse affect. This file
+ *   lists code which we are OK to have duplicated.
  */
 
-export { serializeAttribute } from '../core/shared/utils/styles';
-export { dangerouslySetInnerHTML } from '../core/shared/utils/markers';
+export { mapApp_remove, mapArray_get, mapArray_set } from '../core/client/util-mapArray';
+export { QError, qError } from '../core/shared/error/error';
+export { SYNC_QRL } from '../core/shared/qrl/qrl-utils';
+export { ChoreType } from '../core/shared/util-chore-type';
+export { DEBUG_TYPE, QContainerValue, VirtualType } from '../core/shared/types';
+export { escapeHTML } from '../core/shared/utils/character-escaping';
 export {
   ELEMENT_ID,
   ELEMENT_KEY,
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
+  FLUSH_COMMENT,
+  NON_SERIALIZABLE_MARKER_PREFIX,
   OnRenderProp,
+  QBaseAttr,
   QContainerAttr,
   QCtxAttr,
+  QDefaultSlot,
+  QInstanceAttr,
+  QLocaleAttr,
+  QManifestHashAttr,
+  QRenderAttr,
+  QRuntimeAttr,
   QScopedStyle,
   QSlot,
   QSlotParent,
   QSlotRef,
   QStyle,
+  QSubscribers,
   QTemplate,
-  QRenderAttr,
-  QRuntimeAttr,
   QVersionAttr,
-  QBaseAttr,
-  QLocaleAttr,
-  QManifestHashAttr,
-  QInstanceAttr,
-  FLUSH_COMMENT,
+  Q_PROPS_SEPARATOR,
   STREAM_BLOCK_END_COMMENT,
   STREAM_BLOCK_START_COMMENT,
-  QDefaultSlot,
-  Q_PROPS_SEPARATOR,
-  NON_SERIALIZABLE_MARKER_PREFIX,
-  QSubscribers,
+  dangerouslySetInnerHTML,
 } from '../core/shared/utils/markers';
 export { maybeThen } from '../core/shared/utils/promises';
-export { mapApp_remove, mapArray_get, mapArray_set } from '../core/client/vnode';
 export {
   convertStyleIdsToString,
   getScopedStyleIdsAsPrefix,
   isClassAttr,
 } from '../core/shared/utils/scoped-styles';
-export { DEBUG_TYPE, VirtualType, QContainerValue } from '../core/shared/types';
-export { VNodeDataChar } from '../core/shared/vnode-data-types';
-export { VNodeDataSeparator } from '../core/shared/vnode-data-types';
-export { escapeHTML } from '../core/shared/utils/character-escaping';
+export { serializeAttribute } from '../core/shared/utils/styles';
+export { VNodeDataChar, VNodeDataSeparator } from '../core/shared/vnode-data-types';
 export { getValidManifest } from '../optimizer/src/manifest';
-export { QError, qError } from '../core/shared/error/error';
-export { ChoreType } from '../core/shared/scheduler';

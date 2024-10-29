@@ -1,4 +1,4 @@
-import { assertQrl } from '../shared/qrl/qrl-class';
+import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ComputedSignal, throwIfQRLNotResolved } from '../signal/signal';
 import type { ReadonlySignal, Signal } from '../signal/signal.public';

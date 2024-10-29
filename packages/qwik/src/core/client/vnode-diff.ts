@@ -41,7 +41,7 @@ import {
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
 } from '../shared/utils/event-names';
-import { ChoreType } from '../shared/scheduler';
+import { ChoreType } from '../shared/util-chore-type';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
 import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
@@ -60,8 +60,6 @@ import {
   type VirtualVNode,
 } from './types';
 import {
-  mapApp_findIndx,
-  mapArray_set,
   vnode_ensureElementInflated,
   vnode_getAttr,
   vnode_getDomParentVNode,
@@ -92,6 +90,8 @@ import {
   vnode_walkVNode,
   type VNodeJournal,
 } from './vnode';
+import { mapApp_findIndx } from './util-mapArray';
+import { mapArray_set } from './util-mapArray';
 import { getNewElementNamespaceData } from './vnode-namespace';
 import { WrappedSignal, EffectProperty, isSignal, EffectPropData } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';

@@ -2,11 +2,9 @@ import type { SerializeDocumentOptions } from './types';
 import { setPlatform } from '@qwik.dev/core';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import type { CorePlatformServer } from './qwik-types';
+import { SYNC_QRL } from './qwik-copy';
 
 declare const require: (module: string) => Record<string, any>;
-
-// Make sure this value is same as value in `qrl-class.ts`
-const SYNC_QRL = '<sync>';
 
 export function createPlatform(
   opts: SerializeDocumentOptions,

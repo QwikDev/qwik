@@ -6,7 +6,7 @@ import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
 import { getPlatform } from '../shared/platform/platform';
 import { emitEvent } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { ChoreType } from '../shared/scheduler';
+import { ChoreType } from '../shared/util-chore-type';
 import { _SharedContainer } from '../shared/shared-container';
 import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
 import { QContainerValue, type HostElement, type ObjToProxyMap } from '../shared/types';
@@ -51,8 +51,6 @@ import {
 } from './types';
 import {
   VNodeJournalOpCode,
-  mapArray_get,
-  mapArray_set,
   vnode_applyJournal,
   vnode_getDOMChildNodes,
   vnode_getDomParent,
@@ -67,6 +65,7 @@ import {
   vnode_setProp,
   type VNodeJournal,
 } from './vnode';
+import { mapArray_get, mapArray_set } from './util-mapArray';
 
 /** @public */
 export function getDomContainer(element: Element | VNode): IClientContainer {

@@ -1,7 +1,7 @@
 import { macroPlugin } from '@builder.io/vite-plugin-macro';
-import { qwikCity } from '@qwik.dev/city/vite';
 import { qwikInsights } from '@qwik.dev/core/insights/vite';
 import { qwikVite } from '@qwik.dev/core/optimizer';
+import { qwikRouter } from '@qwik.dev/router/vite';
 import { defineConfig, loadEnv } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
@@ -9,7 +9,7 @@ export default defineConfig(async () => {
   return {
     plugins: [
       macroPlugin({ preset: 'pandacss' }),
-      qwikCity(),
+      qwikRouter(),
       qwikVite(),
       tsconfigPaths({ projects: ['.'] }),
       qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),

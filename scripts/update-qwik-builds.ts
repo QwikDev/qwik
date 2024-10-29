@@ -1,6 +1,6 @@
 import { readPackageJson, writePackageJson } from './package-json';
 
-type Repos = 'qwik' | 'qwik-city';
+type Repos = 'qwik' | 'qwik-router';
 
 async function main(packageDir: string) {
   if (!packageDir) {
@@ -9,7 +9,7 @@ async function main(packageDir: string) {
   console.log('Updating:', packageDir);
   const packageJson = await readPackageJson(packageDir);
   await updateDependency(packageJson.devDependencies!, 'qwik');
-  await updateDependency(packageJson.devDependencies!, 'qwik-city');
+  await updateDependency(packageJson.devDependencies!, 'qwik-router');
   writePackageJson(packageDir, packageJson);
 }
 

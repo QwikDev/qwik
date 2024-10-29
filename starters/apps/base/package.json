@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "@qwik.dev/core": "latest",
-    "@qwik.dev/city": "latest",
+    "@qwik.dev/router": "latest",
     "@types/eslint": "latest",
     "@types/node": "latest",
     "@typescript-eslint/eslint-plugin": "latest",

@@ -7,16 +7,16 @@
  * - https://qwik.dev/docs/deployments/azure-swa/
  *
  */
-import qwikCityPlan from "@qwik-city-plan";
 import { manifest } from "@qwik-client-manifest";
+import qwikRouterConfig from "@qwik-router-config";
 import {
-  createQwikCity,
+  createQwikRouter,
   type PlatformAzure,
-} from "@qwik.dev/city/middleware/azure-swa";
+} from "@qwik.dev/router/middleware/azure-swa";
 import render from "./entry.ssr";
 
 declare global {
-  interface QwikCityPlatform extends PlatformAzure {}
+  interface QwikRouterPlatform extends PlatformAzure {}
 }
 
-export default createQwikCity({ render, qwikCityPlan, manifest });
+export default createQwikRouter({ render, qwikRouterConfig, manifest });

@@ -17,7 +17,7 @@ body:
         - Qwik Rollup / Vite plugin
         - Qwik Optimizer (rust)
         - Qwik React
-        - Qwik City (routing)
+        - Qwik Router
         - Starters / CLI
         - Qwik Playground
     validations:

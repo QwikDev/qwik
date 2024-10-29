@@ -1,4 +1,4 @@
-import type { RequestEventBase } from '@qwik.dev/city';
+import type { RequestEventBase } from '@qwik.dev/router';
 import type {
   CookieOptionsWithName,
   SupabaseClientOptionsWithoutAuth,
@@ -59,7 +59,7 @@ export function createBrowserClient<
  *
  * ```ts
  * import { createServerClient } from '@supabase/auth-helpers-qwik';
- * import { routeLoader$ } from '@qwik.dev/city';
+ * import { routeLoader$ } from '@qwik.dev/router';
  *
  * export const useSession = routeLoader$(async (requestEv) => {
  *   const supabaseClient = createServerClient(
@@ -80,7 +80,7 @@ export function createBrowserClient<
  *
  * ```ts
  * import { createServerClient } from '@supabase/auth-helpers-remix';
- * import { routeAction$ } from '@qwik.dev/city';
+ * import { routeAction$ } from '@qwik.dev/router';
  *
  * export const useaction = routeAction$(async (_, requestEv) => {
  *   const response = new Response();

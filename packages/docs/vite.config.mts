@@ -1,8 +1,8 @@
 import { partytownVite } from '@builder.io/partytown/utils';
-import { qwikCity } from '@qwik.dev/city/vite';
 import { qwikInsights } from '@qwik.dev/core/insights/vite';
 import { qwikVite } from '@qwik.dev/core/optimizer';
 import { qwikReact } from '@qwik.dev/react/vite';
+import { qwikRouter } from '@qwik.dev/router/vite';
 import path, { resolve } from 'node:path';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import Inspect from 'vite-plugin-inspect';
@@ -104,7 +104,7 @@ export default defineConfig(async () => {
         ['MODULE_LEVEL_DIRECTIVE', 'use client'],
       ]),
       rawSource(),
-      qwikCity({
+      qwikRouter({
         mdxPlugins: {
           rehypeSyntaxHighlight: false,
           remarkGfm: true,

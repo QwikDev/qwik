@@ -1,5 +1,5 @@
-import { azureSwaAdapter } from "@qwik.dev/city/adapters/azure-swa/vite";
-import { extendConfig } from "@qwik.dev/city/vite";
+import { azureSwaAdapter } from "@qwik.dev/router/adapters/azure-swa/vite";
+import { extendConfig } from "@qwik.dev/router/vite";
 import baseConfig from "../../vite.config";
 
 export default extendConfig(baseConfig, () => {
@@ -8,7 +8,7 @@ export default extendConfig(baseConfig, () => {
       ssr: true,
       outDir: "azure-functions/render",
       rollupOptions: {
-        input: ["src/entry.azure-swa.tsx", "@qwik-city-plan"],
+        input: ["src/entry.azure-swa.tsx", "@qwik-router-config"],
         output: {
           entryFileNames: `[name].[hash].mjs`,
           chunkFileNames: `[name].[hash].mjs`,

@@ -1,5 +1,5 @@
-import { cloudflarePagesAdapter } from '@qwik.dev/city/adapters/cloudflare-pages/vite';
-import { extendConfig } from '@qwik.dev/city/vite';
+import { cloudflarePagesAdapter } from '@qwik.dev/router/adapters/cloudflare-pages/vite';
+import { extendConfig } from '@qwik.dev/router/vite';
 // @ts-ignore
 import baseConfig from '../../vite.config.mts';
 
@@ -8,7 +8,7 @@ export default extendConfig(baseConfig, () => {
     build: {
       ssr: true,
       rollupOptions: {
-        input: ['src/entry.cloudflare-pages.tsx', '@qwik-city-plan'],
+        input: ['src/entry.cloudflare-pages.tsx', '@qwik-router-config'],
       },
       minify: false,
     },

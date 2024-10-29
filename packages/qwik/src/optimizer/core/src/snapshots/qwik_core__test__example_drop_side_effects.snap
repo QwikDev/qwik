@@ -7,7 +7,7 @@ expression: output
 
 
 import { component$ } from '@qwik.dev/core';
-import { server$ } from '@qwik.dev/city';
+import { server$ } from '@qwik.dev/router';
 import { clientSupabase } from 'supabase';
 import { Client } from 'openai';
 import { secret } from './secret';
@@ -37,7 +37,7 @@ export default component$(() => {
 
 ============================= test.js ==
 
-import { serverQrl } from "@qwik.dev/city";
+import { serverQrl } from "@qwik.dev/router";
 import { _noopQrlDEV } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { qrlDEV } from "@qwik.dev/core";
@@ -57,8 +57,8 @@ export const api = serverQrl(/*#__PURE__*/ _noopQrlDEV("api_server_JonPp043gH0",
 }));
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg", {
     file: "/user/qwik/src/test.tsx",
-    lo: 501,
-    hi: 573,
+    lo: 503,
+    hi: 575,
     displayName: "test.tsx_test_component"
 }));
 
@@ -86,8 +86,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    539,
-    556
+    541,
+    558
   ]
 }
 */
@@ -99,8 +99,8 @@ export const test_component_LUXeXe0DQrg = ()=>{
     return /*#__PURE__*/ _jsxSorted("button", null, {
         onClick$: /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_button_onclick_dgk9xlyroka"), "test_component_button_onClick_DGk9xLyRokA", {
             file: "/user/qwik/src/test.tsx",
-            lo: 539,
-            hi: 556,
+            lo: 541,
+            hi: 558,
             displayName: "test.tsx_test_component_button_onClick"
         })
     }, null, 3, "u6_0", {
@@ -127,8 +127,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    501,
-    573
+    503,
+    575
   ]
 }
 */

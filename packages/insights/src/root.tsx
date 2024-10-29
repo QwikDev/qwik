@@ -1,8 +1,8 @@
-import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister, z } from '@qwik.dev/city';
 import { component$ } from '@qwik.dev/core';
+import { Insights } from '@qwik.dev/core/insights';
+import { QwikRouterProvider, RouterOutlet, ServiceWorkerRegister, z } from '@qwik.dev/router';
 import { RouterHead } from './components/router-head/router-head';
 import './global.css';
-import { Insights } from '@qwik.dev/core/insights';
 
 export const InsightsError = /* @__PURE__ */ z.object({
   manifestHash: z.string(),
@@ -36,7 +36,7 @@ export const InsightsPayload = /* @__PURE__ */ z.object({
 
 export default component$(() => {
   return (
-    <QwikCityProvider>
+    <QwikRouterProvider>
       <head>
         <meta charset="utf-8" />
         <link rel="manifest" href="/manifest.json" />
@@ -50,6 +50,6 @@ export default component$(() => {
         <RouterOutlet />
         <ServiceWorkerRegister />
       </body>
-    </QwikCityProvider>
+    </QwikRouterProvider>
   );
 });

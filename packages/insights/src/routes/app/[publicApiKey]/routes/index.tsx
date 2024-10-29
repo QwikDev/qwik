@@ -1,4 +1,4 @@
-import { routeLoader$, useLocation } from '@qwik.dev/city';
+import { routeLoader$, useLocation } from '@qwik.dev/router';
 import { component$, type ReadonlySignal } from '@qwik.dev/core';
 import { RoutesIcon } from '~/components/icons/routes';
 import { getDB } from '~/db';

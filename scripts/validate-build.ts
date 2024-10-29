@@ -100,11 +100,11 @@ export async function validateBuild(config: BuildConfig) {
     validateModuleTreeshake(config, join(config.distQwikPkgDir, 'core.mjs')),
     validateModuleTreeshake(config, join(config.distQwikPkgDir, 'server.mjs')),
   ]);
-  if (config.qwikcity) {
+  if (config.qwikrouter) {
     await validateModuleTreeshake(
       config,
-      join(config.packagesDir, 'qwik-city', 'lib', 'index.qwik.mjs'),
-      ['@qwik-city-plan', '@qwik-city-sw-register', 'zod', '@qwik.dev/core/jsx-runtime']
+      join(config.packagesDir, 'qwik-router', 'lib', 'index.qwik.mjs'),
+      ['@qwik-router-config', '@qwik-router-sw-register', 'zod', '@qwik.dev/core/jsx-runtime']
     );
   }
 

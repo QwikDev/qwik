@@ -1,4 +1,3 @@
-import { useLocation } from '@qwik.dev/city';
 import {
   $,
   component$,
@@ -6,6 +5,7 @@ import {
   useStylesScoped$,
   useTask$,
 } from '@qwik.dev/core';
+import { useLocation } from '@qwik.dev/router';
 import PopupExampleCSS from './popup-example.css?inline';
 import { PortalAPI, PortalCloseAPIContextId } from './portal-provider';
 

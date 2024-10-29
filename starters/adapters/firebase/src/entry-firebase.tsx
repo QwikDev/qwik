@@ -7,16 +7,16 @@
  * - https://qwik.dev/docs/deployments/firebase/
  *
  */
-import qwikCityPlan from "@qwik-city-plan";
 import { manifest } from "@qwik-client-manifest";
+import qwikRouterConfig from "@qwik-router-config";
 import {
-  createQwikCity,
+  createQwikRouter,
   type PlatformFirebase,
-} from "@qwik.dev/city/middleware/firebase";
+} from "@qwik.dev/router/middleware/firebase";
 import render from "./entry.ssr";
 
 declare global {
-  interface QwikCityPlatform extends PlatformFirebase {}
+  interface QwikRouterPlatform extends PlatformFirebase {}
 }
 
-export default createQwikCity({ render, qwikCityPlan, manifest });
+export default createQwikRouter({ render, qwikRouterConfig, manifest });

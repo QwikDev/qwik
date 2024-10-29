@@ -86,7 +86,7 @@ async function validateStarter(
 
   // Ensure that npm will use an existing version
   appPkgJson.devDependencies['@qwik.dev/core'] = 'latest';
-  appPkgJson.devDependencies['@qwik.dev/city'] = 'latest';
+  appPkgJson.devDependencies['@qwik.dev/router'] = 'latest';
   appPkgJson.devDependencies['eslint-plugin-qwik'] = 'latest';
   writeFileSync(appPkgJsonPath, JSON.stringify(appPkgJson, null, 2));
 
@@ -106,11 +106,11 @@ function assertRightQwikDepsVersions(appPkgJson: any, qwikVersion: string, start
     true,
     `Qwik version mismatch for "${starterType}" starter`
   );
-  if (appPkgJson.devDependencies.hasOwnProperty('@qwik.dev/city')) {
+  if (appPkgJson.devDependencies.hasOwnProperty('@qwik.dev/router')) {
     assert.strictEqual(
-      appPkgJson.devDependencies['@qwik.dev/city'].includes(qwikVersion),
+      appPkgJson.devDependencies['@qwik.dev/router'].includes(qwikVersion),
       true,
-      `Qwik City version mismatch for "${starterType}" starter`
+      `Qwik Router version mismatch for "${starterType}" starter`
     );
   }
   if (appPkgJson.devDependencies.hasOwnProperty('eslint-plugin-qwik')) {
@@ -142,11 +142,11 @@ function cpSync(src: string, dest: string) {
 async function copyLocalQwikDistToTestApp(appDir: string) {
   const srcQwikDir = join(__dirname, '..', 'packages', 'qwik');
   const destQwikDir = join(appDir, 'node_modules', '@qwik.dev', 'core');
-  const srcQwikCityDir = join(__dirname, '..', 'packages', 'qwik-city');
-  const destQwikCityDir = join(appDir, 'node_modules', '@qwik.dev', 'city');
+  const srcQwikRouterDir = join(__dirname, '..', 'packages', 'qwik-router');
+  const destQwikRouterDir = join(appDir, 'node_modules', '@qwik.dev', 'router');
   const destQwikBin = relative(appDir, join(destQwikDir, 'qwik.cjs'));
 
-  if (existsSync(appDir) && existsSync(srcQwikDir) && existsSync(srcQwikCityDir)) {
+  if (existsSync(appDir) && existsSync(srcQwikDir) && existsSync(srcQwikRouterDir)) {
     console.log('\nqwik-app local development updates:');
 
     rmSync(destQwikDir, { recursive: true, force: true });
@@ -158,12 +158,12 @@ async function copyLocalQwikDistToTestApp(appDir: string) {
       )}"`
     );
 
-    rmSync(destQwikCityDir, { recursive: true, force: true });
-    cpSync(srcQwikCityDir, destQwikCityDir);
+    rmSync(destQwikRouterDir, { recursive: true, force: true });
+    cpSync(srcQwikRouterDir, destQwikRouterDir);
     console.log(
-      ` - Copied "${relative(process.cwd(), srcQwikCityDir)}" to "${relative(
+      ` - Copied "${relative(process.cwd(), srcQwikRouterDir)}" to "${relative(
         process.cwd(),
-        destQwikCityDir
+        destQwikRouterDir
       )}"`
     );
 

@@ -54,7 +54,7 @@ export const QShadowRoot = 'q:shadowroot';
 export const QTemplate = 'q:template';
 
 // the same selector should be inside the qwik loader
-// and the same selector should be inside the qwik city spa-shim and spa-init
+// and the same selector should be inside the qwik router spa-shim and spa-init
 export const QContainerSelector =
   '[q\\:container]:not([q\\:container=' +
   QContainerValue.HTML +

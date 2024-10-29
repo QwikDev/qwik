@@ -313,7 +313,7 @@ export default component$(() => {
 
 
 
-> **Note:** The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`). Often times it is desirable to start fetching the data on the server as part of the initial HTTP request before the component is rendered. Fetching data as part of Server-Side Rendering (SSR) is a common and preferred method of data loading, typically handled by the [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) API. `useResource$` is more of a low-level API that is useful when you want to fetch data in the browser.
+> **Note:** The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`). Often times it is desirable to start fetching the data on the server as part of the initial HTTP request before the component is rendered. Fetching data as part of Server-Side Rendering (SSR) is a common and preferred method of data loading, typically handled by the [`routeLoader$`](/docs/(qwikrouter)/route-loader/index.mdx) API. `useResource$` is more of a low-level API that is useful when you want to fetch data in the browser.
 >
 >
 > In many ways `useResource$` is similar to `useTask$`. The big differences are:
@@ -321,7 +321,7 @@ export default component$(() => {
 > - `useResource$` allows you to return a "value".
 > - `useResource$` does not block rendering while the resource is being resolved.
 >
-> See [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) for fetching data early as part of initial HTTP request.
+> See [`routeLoader$`](/docs/(qwikrouter)/route-loader/index.mdx) for fetching data early as part of initial HTTP request.
 
 > **NOTE**: During SSR the `<Resource>` component will pause rendering until the resource is resolved. This way the SSR will not render with the loading indicator.
 

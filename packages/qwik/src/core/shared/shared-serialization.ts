@@ -706,7 +706,7 @@ export const createSerializationContext = (
     $getRootId$: (obj: any) => {
       const id = map.get(obj);
       if (!id || id === -1) {
-        return throwErrorAndStop('Missing root id for: ' + obj);
+        return throwErrorAndStop('Missing root id for: ', obj);
       }
       return id;
     },

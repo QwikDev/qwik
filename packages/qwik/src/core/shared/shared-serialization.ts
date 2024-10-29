@@ -281,12 +281,13 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
     }
     case TypeIds.ComputedSignal: {
       const computed = target as ComputedSignal<unknown>;
-      const d = data as [QRLInternal<() => {}>, unknown, boolean, ...any[]];
+      const d = data as [QRLInternal<() => {}>, any, unknown?];
       computed.$computeQrl$ = d[0];
-      computed.$untrackedValue$ = d[1];
-      computed.$invalid$ = d[2];
-      computed.$effects$ = d.slice(3);
-      if (computed.$invalid$) {
+      computed.$effects$ = d[1];
+      if (d.length === 3) {
+        computed.$untrackedValue$ = d[2];
+      } else {
+        computed.$invalid$ = true;
         /**
          * If we try to compute value and the qrl is not resolved, then system throws an error with
          * qrl promise. To prevent that we should early resolve computed qrl while computed
@@ -373,7 +374,7 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
       break;
     case TypeIds.PropsProxy:
       const propsProxy = target as any;
-      propsProxy[_VAR_PROPS] = (data as any)[0];
+      propsProxy[_VAR_PROPS] = data === 0 ? {} : (data as any)[0];
       propsProxy[_CONST_PROPS] = (data as any)[1];
       break;
     case TypeIds.EffectData: {
@@ -440,7 +441,8 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
     case TypeIds.Object:
       return {};
     case TypeIds.QRL:
-      return parseQRL(value as string);
+      const qrl = container.$getObjectById$(value as number);
+      return parseQRL(qrl as string);
     case TypeIds.Task:
       return new Task(-1, -1, null!, null!, null!, null);
     case TypeIds.Resource: {
@@ -509,7 +511,7 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
     case TypeIds.VNode:
       const vnodeOrDocument = retrieveVNodeOrDocument(container, value);
       if (typeId === TypeIds.VNode) {
-      return vnodeOrDocument;
+        return vnodeOrDocument;
       }
       const vNode = retrieveVNodeOrDocument(container, value);
       if (vnode_isVNode(vNode)) {
@@ -954,8 +956,9 @@ function serialize(serializationContext: SerializationContext): void {
       } else if (value === Fragment) {
         output(TypeIds.Constant, Constants.Fragment);
       } else if (isQrl(value)) {
-        // TODO deduplicate the string
-        output(TypeIds.QRL, qrlToString(serializationContext, value));
+        const qrl = qrlToString(serializationContext, value);
+        const id = serializationContext.$addRoot$(qrl);
+        output(TypeIds.QRL, id);
       } else if (isQwikComponent(value)) {
         const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];
         serializationContext.$renderSymbols$.add(qrl.$symbol$);
@@ -1042,7 +1045,12 @@ function serialize(serializationContext: SerializationContext): void {
     if (isPropsProxy(value)) {
       const varProps = value[_VAR_PROPS];
       const constProps = value[_CONST_PROPS];
-      output(TypeIds.PropsProxy, [varProps, constProps]);
+      const out = constProps
+        ? [varProps, constProps]
+        : Object.keys(varProps).length
+          ? [varProps]
+          : 0;
+      output(TypeIds.PropsProxy, out);
     } else if (value instanceof EffectData) {
       output(TypeIds.EffectData, [value.data]);
     } else if (isStore(value)) {
@@ -1118,13 +1126,15 @@ function serialize(serializationContext: SerializationContext): void {
           ...(value.$effects$ || []),
         ]);
       } else if (value instanceof ComputedSignal) {
-        output(TypeIds.ComputedSignal, [
+        const out = [
           value.$computeQrl$,
-          v,
-          v === NEEDS_COMPUTATION,
           // TODO check if we can use domVRef for effects
-          ...(value.$effects$ || []),
-        ]);
+          value.$effects$,
+        ];
+        if (v !== NEEDS_COMPUTATION) {
+          out.push(v);
+        }
+        output(TypeIds.ComputedSignal, out);
       } else {
         output(TypeIds.Signal, [v, ...(value.$effects$ || [])]);
       }
@@ -1417,15 +1427,14 @@ export function _createDeserializeContainer(
  */
 function shouldTrackObj(obj: unknown) {
   return (
+    // THINK: Not sure if we need to keep track of functions (QRLs) Let's skip them for now.
+    // and see if we have a test case which requires them.
     (typeof obj === 'object' && obj !== null) ||
     /**
      * We track all strings greater than 1 character, because those take at least 6 bytes to encode
      * and even with 999 root objects it saves one byte per reference. Tracking more objects makes
      * the map bigger so we want to strike a balance
-     */
-    (typeof obj === 'string' && obj.length > 1)
-    // THINK: Not sure if we need to keep track of functions (QRLs) Let's skip them for now.
-    // and see if we have a test case which requires them.
+     */ (typeof obj === 'string' && obj.length > 1)
   );
 }
 

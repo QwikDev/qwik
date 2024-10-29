@@ -21,6 +21,7 @@ mod is_const;
 mod package_json;
 mod parse;
 mod props_destructuring;
+mod rename_imports;
 mod transform;
 mod utils;
 mod words;

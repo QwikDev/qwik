@@ -46,7 +46,8 @@ export class SsrNode implements ISsrNode {
     nodeType: SsrNodeType,
     id: string,
     private attrs: SsrAttrs,
-    private cleanupQueue: CleanupQueue
+    private cleanupQueue: CleanupQueue,
+    public vnodeData?: any
   ) {
     this.currentComponentNode = currentComponentNode;
     this.nodeType = nodeType;

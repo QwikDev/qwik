@@ -21,7 +21,7 @@ export default defineConfig(() => {
       dts({
         outDir: '../../dist/insights',
         entryRoot: './',
-        exclude: ['vite.config.ts'],
+        exclude: ['vite.config.mts'],
       }) as PluginOption,
     ],
     clearScreen: false,

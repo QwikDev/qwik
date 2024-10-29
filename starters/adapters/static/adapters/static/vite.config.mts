@@ -1,6 +1,6 @@
 import { staticAdapter } from "@qwik.dev/router/adapters/static/vite";
 import { extendConfig } from "@qwik.dev/router/vite";
-import baseConfig from "../../vite.config";
+import baseConfig from "../../vite.config.mts";
 
 export default extendConfig(baseConfig, () => {
   return {

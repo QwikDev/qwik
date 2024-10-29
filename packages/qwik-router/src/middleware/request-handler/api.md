@@ -5,7 +5,7 @@
 ```ts
 
 import type { Action } from '@qwik.dev/router';
-import type { _deserialize } from '@qwik.dev/core';
+import type { _deserialize } from '@qwik.dev/core/internal';
 import type { EnvGetter as EnvGetter_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { FailReturn } from '@qwik.dev/router';
 import type { Loader as Loader_2 } from '@qwik.dev/router';
@@ -17,9 +17,9 @@ import type { RenderOptions } from '@qwik.dev/core/server';
 import type { RequestEvent as RequestEvent_2 } from '@qwik.dev/router';
 import type { RequestHandler as RequestHandler_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { ResolveSyncValue as ResolveSyncValue_2 } from '@qwik.dev/router/middleware/request-handler';
-import type { _serialize } from '@qwik.dev/core';
+import type { _serialize } from '@qwik.dev/core/internal';
 import type { ValueOrPromise } from '@qwik.dev/core';
-import type { _verifySerializable } from '@qwik.dev/core';
+import type { _verifySerializable } from '@qwik.dev/core/internal';
 
 // @public (undocumented)
 export class AbortMessage {

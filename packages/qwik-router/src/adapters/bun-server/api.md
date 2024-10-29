@@ -7,10 +7,10 @@
 import { ServerAdapterOptions } from '../../shared/vite';
 import type { StaticGenerateRenderOptions } from '@qwik.dev/router/static';
 
-// @alpha (undocumented)
+// @beta (undocumented)
 export function bunServerAdapter(opts?: bunServerAdapterOptions): any;
 
-// @alpha (undocumented)
+// @beta (undocumented)
 export interface bunServerAdapterOptions extends ServerAdapterOptions {
     // (undocumented)
     name?: string;

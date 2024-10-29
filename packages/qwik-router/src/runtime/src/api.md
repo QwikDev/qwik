@@ -124,7 +124,7 @@ export interface DocumentHeadValue<FrontMatter extends Record<string, any> = Rec
     readonly frontmatter?: Readonly<FrontMatter>;
     readonly links?: readonly DocumentLink[];
     readonly meta?: readonly DocumentMeta[];
-    // Warning: (ae-incompatible-release-tags) The symbol "scripts" is marked as @public, but its signature references "DocumentScript" which is marked as @alpha
+    // Warning: (ae-incompatible-release-tags) The symbol "scripts" is marked as @public, but its signature references "DocumentScript" which is marked as @beta
     readonly scripts?: readonly DocumentScript[];
     readonly styles?: readonly DocumentStyle[];
     readonly title?: string;
@@ -186,7 +186,7 @@ export interface DocumentMeta {
     readonly property?: string;
 }
 
-// @alpha (undocumented)
+// @beta (undocumented)
 export interface DocumentScript {
     // (undocumented)
     readonly key?: string;
@@ -252,8 +252,9 @@ export type GetValidatorType<VALIDATOR extends TypedDataValidator> = GetValidato
 export const globalAction$: ActionConstructor;
 
 // Warning: (ae-forgotten-export) The symbol "ActionConstructorQRL" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "globalActionQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @public (undocumented)
+// @internal (undocumented)
 export const globalActionQrl: ActionConstructorQRL;
 
 // @public (undocumented)
@@ -299,7 +300,7 @@ export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 // @public (undocumented)
 export type NavigationType = 'initial' | 'form' | 'link' | 'popstate';
 
-// @alpha
+// @beta
 export function omitProps<T, KEYS extends keyof T>(obj: T, keys: KEYS[]): Omit<T, KEYS>;
 
 // Warning: (ae-forgotten-export) The symbol "RouteModule" needs to be exported by the entry point index.d.ts
@@ -400,7 +401,9 @@ export type ResolvedDocumentHead<FrontMatter extends Record<string, any> = Recor
 // @public (undocumented)
 export const routeAction$: ActionConstructor;
 
-// @public (undocumented)
+// Warning: (ae-internal-missing-underscore) The name "routeActionQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
 export const routeActionQrl: ActionConstructorQRL;
 
 // Warning: (ae-forgotten-export) The symbol "ModuleLoader" needs to be exported by the entry point index.d.ts
@@ -419,8 +422,9 @@ routeBundleNames: string[]
 export const routeLoader$: LoaderConstructor;
 
 // Warning: (ae-forgotten-export) The symbol "LoaderConstructorQRL" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "routeLoaderQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @public (undocumented)
+// @internal (undocumented)
 export const routeLoaderQrl: LoaderConstructorQRL;
 
 // @public (undocumented)
@@ -460,7 +464,9 @@ export type ServerFunction = {
 // @public
 export type ServerQRL<T extends ServerFunction> = QRL<((abort: AbortSignal, ...args: Parameters<T>) => ReturnType<T>) | ((...args: Parameters<T>) => ReturnType<T>)>;
 
-// @public (undocumented)
+// Warning: (ae-internal-missing-underscore) The name "serverQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
 export const serverQrl: <T extends ServerFunction>(qrl: QRL<T>, options?: ServerConfig) => ServerQRL<T>;
 
 // @public (undocumented)
@@ -488,7 +494,7 @@ export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 // @public (undocumented)
 export type TypedDataValidator = ValibotDataValidator | ZodDataValidator;
 
-// @alpha (undocumented)
+// @beta (undocumented)
 export const untypedAppUrl: (route: string, params?: Record<string, string>, paramsPrefix?: string) => string;
 
 // Warning: (ae-forgotten-export) The symbol "ContentState" needs to be exported by the entry point index.d.ts
@@ -515,12 +521,13 @@ export const usePreventNavigateQrl: (fn: QRL<PreventNavigateCallback>) => void;
 
 // Warning: (ae-forgotten-export) The symbol "ValibotConstructor" needs to be exported by the entry point index.d.ts
 //
-// @alpha (undocumented)
+// @beta (undocumented)
 export const valibot$: ValibotConstructor;
 
 // Warning: (ae-forgotten-export) The symbol "ValibotConstructorQRL" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "valibotQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @alpha (undocumented)
+// @internal (undocumented)
 export const valibotQrl: ValibotConstructorQRL;
 
 // Warning: (ae-forgotten-export) The symbol "ValidatorConstructor" needs to be exported by the entry point index.d.ts
@@ -544,8 +551,9 @@ export type ValidatorErrorType<T, U = string> = {
 };
 
 // Warning: (ae-forgotten-export) The symbol "ValidatorConstructorQRL" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "validatorQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @public (undocumented)
+// @internal (undocumented)
 export const validatorQrl: ValidatorConstructorQRL;
 
 // Warning: (ae-forgotten-export) The symbol "ValidatorReturnSuccess" needs to be exported by the entry point index.d.ts
@@ -568,8 +576,9 @@ export type ZodConstructor = {
 };
 
 // Warning: (ae-forgotten-export) The symbol "ZodConstructorQRL" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "zodQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @public (undocumented)
+// @internal (undocumented)
 export const zodQrl: ZodConstructorQRL;
 
 // (No @packageDocumentation comment for this package)

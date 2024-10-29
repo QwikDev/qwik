@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type PluginOption } from 'vite';
 import dts from 'vite-plugin-dts';
 
 export default defineConfig(() => {
@@ -17,7 +17,13 @@ export default defineConfig(() => {
         external: ['@qwik.dev/core'],
       },
     },
-    plugins: [dts({ outDir: '../../dist/insights', entryRoot: './', exclude: ['vite.config.ts'] })],
+    plugins: [
+      dts({
+        outDir: '../../dist/insights',
+        entryRoot: './',
+        exclude: ['vite.config.ts'],
+      }) as PluginOption,
+    ],
     clearScreen: false,
   };
 });

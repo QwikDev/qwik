@@ -787,7 +787,8 @@ export const createSerializationContext = (
       } else if (isStore(obj)) {
         const target = getStoreTarget(obj)!;
         const effects = getStoreHandler(obj)!.$effects$;
-        discoveredValues.push(target, effects);
+        const storeEffect = effects?.[STORE_ARRAY_PROP] ?? null;
+        discoveredValues.push(target, effects, storeEffect);
 
         for (const prop in target) {
           const propValue = (target as any)[prop];

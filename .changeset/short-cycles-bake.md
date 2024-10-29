@@ -2,4 +2,4 @@
 '@builder.io/qwik': patch
 ---
 
-Expose unwrapProxy as a low level API
+Expose unwrapStore as a low level API

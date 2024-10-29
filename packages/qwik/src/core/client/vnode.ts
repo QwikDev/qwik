@@ -1387,13 +1387,17 @@ const isQStyleElement = (node: Node | null): node is Element => {
 
 const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null) => {
   let vFirstChild: VNode | null = null;
+
+  const skipStyleElements = () => {
+    while (isQStyleElement(child)) {
+      // skip over style elements, as those need to be moved to the head.
+      // VNode pretends that `<style q:style q:sstyle>` elements do not exist.
+      child = fastNextSibling(child);
+    }
+  };
   // materialize from DOM
   let child = firstChild;
-  while (isQStyleElement(child)) {
-    // skip over style elements, as those need to be moved to the head.
-    // VNode pretends that `<style q:style q:sstyle>` elements do not exist.
-    child = fastNextSibling(child);
-  }
+  skipStyleElements();
   let vChild: VNode | null = null;
   while (child) {
     const nodeType = fastNodeType(child);
@@ -1413,6 +1417,7 @@ const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null) => {
       vParent[ElementVNodeProps.firstChild] = vFirstChild = vChild;
     }
     child = fastNextSibling(child);
+    skipStyleElements();
   }
   vParent[ElementVNodeProps.lastChild] = vChild || null;
   vParent[ElementVNodeProps.firstChild] = vFirstChild;

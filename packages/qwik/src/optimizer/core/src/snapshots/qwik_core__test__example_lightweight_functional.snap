@@ -31,7 +31,7 @@ export const ButtonArrow = ({text, color}) => {
     );
 }
 
-============================= test.tsx_foo_component_htdrsvublie.tsx (ENTRY POINT)==
+============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
 
 import { Button } from "./test";
 import { ButtonArrow } from "./test";
@@ -51,7 +51,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Foo_component",
   "hash": "HTDRsvUbLiE",
-  "canonicalFilename": "test.tsx_foo_component_htdrsvublie",
+  "canonicalFilename": "test.tsx_Foo_component_HTDRsvUbLiE",
   "path": "",
   "extension": "tsx",
   "parent": null,
@@ -64,7 +64,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_buttonarrow_button_onclick_9npo43figik.tsx (ENTRY POINT)==
+============================= test.tsx_ButtonArrow_button_onClick_9npo43fIGik.tsx (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
 export const ButtonArrow_button_onClick_9npo43fIGik = ()=>{
@@ -81,7 +81,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_ButtonArrow_button_onClick",
   "hash": "9npo43fIGik",
-  "canonicalFilename": "test.tsx_buttonarrow_button_onclick_9npo43figik",
+  "canonicalFilename": "test.tsx_ButtonArrow_button_onClick_9npo43fIGik",
   "path": "",
   "extension": "tsx",
   "parent": null,
@@ -94,7 +94,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_button_button_onclick_nsm0jyv00jw.tsx (ENTRY POINT)==
+============================= test.tsx_Button_button_onClick_NsM0JYV00Jw.tsx (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
 export const Button_button_onClick_NsM0JYV00Jw = ()=>{
@@ -111,7 +111,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Button_button_onClick",
   "hash": "NsM0JYV00Jw",
-  "canonicalFilename": "test.tsx_button_button_onclick_nsm0jyv00jw",
+  "canonicalFilename": "test.tsx_Button_button_onClick_NsM0JYV00Jw",
   "path": "",
   "extension": "tsx",
   "parent": null,
@@ -128,17 +128,17 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_foo_component_htdrsvublie"), "Foo_component_HTDRsvUbLiE"), {
+export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });
 export function Button({ text, color }) {
-    return <button onColor$={color} onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_button_button_onclick_nsm0jyv00jw"), "Button_button_onClick_NsM0JYV00Jw", [
+    return <button onColor$={color} onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_Button_button_onClick_NsM0JYV00Jw"), "Button_button_onClick_NsM0JYV00Jw", [
         color,
         text
     ])}>{text}</button>;
 }
 export const ButtonArrow = ({ text, color })=>{
-    return <button onColor$={color} onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_buttonarrow_button_onclick_9npo43figik"), "ButtonArrow_button_onClick_9npo43fIGik", [
+    return <button onColor$={color} onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_ButtonArrow_button_onClick_9npo43fIGik"), "ButtonArrow_button_onClick_9npo43fIGik", [
         color,
         text
     ])}>{text}</button>;

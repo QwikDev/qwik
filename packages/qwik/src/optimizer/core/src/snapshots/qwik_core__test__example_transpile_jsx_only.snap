@@ -16,7 +16,7 @@ export const App = component$((props) => {
     );
 });
 
-============================= test.tsx_app_component_ckepmxzlub0.ts (ENTRY POINT)==
+============================= test.tsx_App_component_ckEPmXZlub0.ts (ENTRY POINT)==
 
 import { _jsxC } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
@@ -25,7 +25,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
     return /*#__PURE__*/ _jsxC(Cmp, {
         children: /*#__PURE__*/ _jsxQ("p", null, {
             class: "stuff",
-            onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_cmp_p_onclick_vuxzfutkpto.ts"), "App_component_Cmp_p_onClick_vuXzfUTkpto")
+            onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_Cmp_p_onClick_vuXzfUTkpto.ts"), "App_component_Cmp_p_onClick_vuXzfUTkpto")
         }, "Hello Qwik", 3, null)
     }, 3, "u6_0");
 };
@@ -39,7 +39,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_App_component",
   "hash": "ckEPmXZlub0",
-  "canonicalFilename": "test.tsx_app_component_ckepmxzlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
   "path": "",
   "extension": "ts",
   "parent": null,
@@ -52,7 +52,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_app_component_cmp_p_onclick_vuxzfutkpto.ts (ENTRY POINT)==
+============================= test.tsx_App_component_Cmp_p_onClick_vuXzfUTkpto.ts (ENTRY POINT)==
 
 export const App_component_Cmp_p_onClick_vuXzfUTkpto = ()=>console.log('warn');
 
@@ -65,7 +65,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_App_component_Cmp_p_onClick",
   "hash": "vuXzfUTkpto",
-  "canonicalFilename": "test.tsx_app_component_cmp_p_onclick_vuxzfutkpto",
+  "canonicalFilename": "test.tsx_App_component_Cmp_p_onClick_vuXzfUTkpto",
   "path": "",
   "extension": "ts",
   "parent": "App_component_ckEPmXZlub0",
@@ -82,7 +82,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_app_component_ckepmxzlub0.ts"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0.ts"), "App_component_ckEPmXZlub0"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,oHAMhB\"}")

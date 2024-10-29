@@ -51,7 +51,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button data-text="TEXT" data-idx="3" class="abc xyz">
-          <Signal>123</Signal>
+          <Signal ssr-required>123</Signal>
         </button>
       </Component>
     );
@@ -64,7 +64,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button data-text="TEXT" data-idx="3" class="abc xyz">
-          <Signal>124</Signal>
+          <Signal ssr-required>124</Signal>
         </button>
       </Component>
     );
@@ -118,7 +118,7 @@ describe.each([
         debug,
       });
       expect(vNode).toMatchVDOM(
-        <Component>
+        <Component ssr-required>
           <button>
             <b class="false">false</b>
           </button>
@@ -129,7 +129,7 @@ describe.each([
       const bElement2 = document.querySelector('b');
       expect(bElement2).toBe(bElement);
       expect(vNode).toMatchVDOM(
-        <Component>
+        <Component ssr-required>
           <button>
             {/* we would expect `class=true` but because it is immutable the system ignores
              * it and ends up with a wrong value. This is intentional.
@@ -144,7 +144,7 @@ describe.each([
         debug,
       });
       expect(vNode).toMatchVDOM(
-        <Component>
+        <Component ssr-required>
           <button>
             <b class="false" key="A">
               false
@@ -155,7 +155,7 @@ describe.each([
       document.querySelector('b')!.setAttribute('mark', 'existing');
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
+        <Component ssr-required>
           <button>
             <b class="true" key="B">
               true
@@ -170,7 +170,7 @@ describe.each([
         debug,
       });
       expect(vNode).toMatchVDOM(
-        <Component>
+        <Component ssr-required>
           <button>
             <b class="false" key="A">
               false
@@ -181,7 +181,7 @@ describe.each([
       document.querySelector('b')!.setAttribute('mark', 'existing');
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
+        <Component ssr-required>
           <button>
             <b class="true">true</b>
           </button>

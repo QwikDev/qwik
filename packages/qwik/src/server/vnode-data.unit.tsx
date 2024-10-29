@@ -8,6 +8,7 @@ import { vnode_getProp, vnode_locate } from '../core/client/vnode';
 import { ELEMENT_PROPS, OnRenderProp } from '../core/shared/utils/markers';
 import { type QRLInternal } from '../core/shared/qrl/qrl-class';
 import type { DomContainer } from '../core/client/dom-container';
+import { createContextId, useContext, useContextProvider } from '@builder.io/qwik';
 
 const debug = false;
 
@@ -39,11 +40,15 @@ describe('vnode data', () => {
     });
   });
   describe('integration tests', () => {
+    const cId = createContextId<number>('cId');
     it('components inside the div', async () => {
       const Component = component$<RefIdProp>(({ refId }) => {
         const data = useSignal(1);
+        // Make sure the component is stored
+        useContextProvider(cId, 3);
+        useContext(cId);
         return (
-          <div id={refId}>
+          <div onClick$={() => data.value++} data-x={data.value} id={refId}>
             <span>{data.value}</span>
           </div>
         );
@@ -61,7 +66,6 @@ describe('vnode data', () => {
 
       const { container } = await ssrRenderToDom(<Parent />, { debug });
 
-      expectVNodeSymbol(container, '3A', 'parent');
       expectVNodeRefProp(container, '4A', '1');
       expectVNodeRefProp(container, '4B', '2');
     });
@@ -69,6 +73,9 @@ describe('vnode data', () => {
     it('components inside the fragments', async () => {
       const Component = component$<RefIdProp>(({ refId }) => {
         const data = useSignal(1);
+        // Make sure the component is stored
+        useContextProvider(cId, 3);
+        useContext(cId);
         return (
           <div id={refId}>
             <span>{data.value}</span>
@@ -88,7 +95,6 @@ describe('vnode data', () => {
 
       const { container } = await ssrRenderToDom(<Parent />, { debug });
 
-      expectVNodeSymbol(container, '3A', 'parent');
       expectVNodeRefProp(container, '3AAA', '1');
       expectVNodeRefProp(container, '3AAB', '2');
     });
@@ -96,6 +102,9 @@ describe('vnode data', () => {
     it('components inside the fragments and divs', async () => {
       const Component = component$<RefIdProp>(({ refId }) => {
         const data = useSignal(1);
+        // Make sure the component is stored
+        useContextProvider(cId, 3);
+        useContext(cId);
         return (
           <>
             <span id={refId}>{data.value}</span>
@@ -133,6 +142,9 @@ describe('vnode data', () => {
     it('nested components inside the fragments and the divs', async () => {
       const Nested = component$<RefIdProp>(({ refId }) => {
         const data = useSignal(2);
+        // Make sure the component is stored
+        useContextProvider(cId, 3);
+        useContext(cId);
         return (
           <>
             <span id={refId}>{data.value}</span>

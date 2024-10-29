@@ -88,10 +88,7 @@ describe.each([
     );
     if (render === ssrRenderToDom) {
       expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
-        <q:template style="display:none">
-          <Fragment>parent-content</Fragment>
-          <Fragment>render-content</Fragment>
-        </q:template>
+        <q:template style="display:none">parent-contentrender-content</q:template>
       );
     }
   });
@@ -244,8 +241,8 @@ describe.each([
     });
     const { vNode, container } = await render(<Parent>render-content</Parent>, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
-      <Fragment>
-        <Fragment>
+      <Fragment ssr-required>
+        <Fragment ssr-required>
           <button>{''}</button>
         </Fragment>
       </Fragment>
@@ -1946,10 +1943,10 @@ describe.each([
               <button id="flip"></button>
               <button id="counter"></button>
               <div>
-                <Component>
-                  <Projection>
+                <Component ssr-required>
+                  <Projection ssr-required>
                     <div q:slot="a">
-                      Alpha <DerivedSignal>{'123'}</DerivedSignal>
+                      Alpha <DerivedSignal ssr-required>{'123'}</DerivedSignal>
                     </div>
                   </Projection>
                 </Component>
@@ -1972,10 +1969,10 @@ describe.each([
               <button id="flip"></button>
               <button id="counter"></button>
               <div>
-                <Component>
-                  <Projection>
+                <Component ssr-required>
+                  <Projection ssr-required>
                     <div q:slot="b">
-                      Bravo <DerivedSignal>{'124'}</DerivedSignal>
+                      Bravo <DerivedSignal ssr-required>{'124'}</DerivedSignal>
                     </div>
                   </Projection>
                 </Component>

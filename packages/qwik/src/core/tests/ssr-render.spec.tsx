@@ -26,7 +26,7 @@ describe('v2 ssr render', () => {
     );
     expect(vNode).toMatchVDOM(
       <span>
-        <>Hello</> <b>World</b>!
+        Hello <b>World</b>!
       </span>
     );
   });
@@ -157,7 +157,7 @@ describe('v2 ssr render', () => {
       });
 
       const { vNode, document } = await ssrRenderToDom(<CommentCmp />, { debug });
-      expect(vNode).toMatchVDOM(<Component></Component>);
+      expect(vNode).toBe(null);
       expect((document.body.firstChild as Element).outerHTML).toEqual('<!--foo-->');
     });
 
@@ -202,26 +202,11 @@ describe('v2 ssr render', () => {
 
       expect(vNode).toMatchVDOM(
         <ul>
-          <li>
-            {'yield: '}
-            {'0'}
-          </li>
-          <li>
-            {'yield: '}
-            {'1'}
-          </li>
-          <li>
-            {'yield: '}
-            {'2'}
-          </li>
-          <li>
-            {'yield: '}
-            {'3'}
-          </li>
-          <li>
-            {'yield: '}
-            {'4'}
-          </li>
+          <li>yield: 0</li>
+          <li>yield: 1</li>
+          <li>yield: 2</li>
+          <li>yield: 3</li>
+          <li>yield: 4</li>
         </ul>
       );
     });
@@ -243,27 +228,11 @@ describe('v2 ssr render', () => {
 
       expect(vNode).toMatchVDOM(
         <ul>
-          <li>
-            {'raw: '}
-            {'0'}
-          </li>
-          <li>
-            {'raw: '}
-            {'1'}
-          </li>
-          <li>
-            {'raw: '}
-            {'2'}
-          </li>
-          <li>
-            {'raw: '}
-            {'3'}
-          </li>
-          <li>
-            {'raw: '}
-            {'4'}
-          </li>
-          {''}
+          <li>raw: 0</li>
+          <li>raw: 1</li>
+          <li>raw: 2</li>
+          <li>raw: 3</li>
+          <li>raw: 4</li>
         </ul>
       );
     });

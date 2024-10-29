@@ -1,10 +1,6 @@
 import * as qwikRouterConfig from '@qwik-router-config';
 import {
   $,
-  _getContextElement,
-  _getQContainerElement,
-  _waitUntilRendered,
-  _weakSerialize,
   component$,
   getLocale,
   noSerialize,
@@ -15,9 +11,15 @@ import {
   useStore,
   useStyles$,
   useTask$,
-  type _ElementVNode,
   type QRL,
 } from '@qwik.dev/core';
+import {
+  _getContextElement,
+  _getQContainerElement,
+  _waitUntilRendered,
+  _weakSerialize,
+  type _ElementVNode,
+} from '@qwik.dev/core/internal';
 import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
 import { clientNavigate } from './client-navigate';
 import { CLIENT_DATA_CACHE } from './constants';

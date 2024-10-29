@@ -29,6 +29,7 @@ function mockOptimizerOptions(): OptimizerOptions {
 const includeDeps = undefined;
 const noExternal = [
   '@qwik.dev/core',
+  '@qwik.dev/core/internal',
   '@qwik.dev/core/server',
   '@qwik.dev/core/build',
   '@qwik.dev/router',
@@ -40,6 +41,7 @@ const excludeDeps = [
   'node-fetch',
   'undici',
   '@qwik.dev/core',
+  '@qwik.dev/core/internal',
   '@qwik.dev/core/server',
   '@qwik.dev/core/jsx-runtime',
   '@qwik.dev/core/jsx-dev-runtime',

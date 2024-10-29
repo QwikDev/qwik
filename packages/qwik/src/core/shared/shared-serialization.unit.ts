@@ -157,7 +157,7 @@ describe('shared-serialization', () => {
           String "hi"
           String "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\"...
         ]
-        (509 chars)"
+        (513 chars)"
       `);
       (err as any).extra = 'yey';
       expect(await dump(err)).toMatchInlineSnapshot(`
@@ -170,7 +170,7 @@ describe('shared-serialization', () => {
           ]
           String "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\"...
         ]
-        (531 chars)"
+        (535 chars)"
       `);
     });
     it(title(TypeIds.Object), async () => {

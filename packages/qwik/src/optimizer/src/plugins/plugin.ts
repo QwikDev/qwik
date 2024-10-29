@@ -964,6 +964,8 @@ export const TRANSFORM_REGEX = /\.qwik\.[mc]?js$/;
 
 export const QWIK_CORE_ID = '@qwik.dev/core';
 
+export const QWIK_CORE_INTERNAL_ID = '@qwik.dev/core/internal';
+
 export const QWIK_BUILD_ID = '@qwik.dev/core/build';
 
 export const QWIK_JSX_RUNTIME_ID = '@qwik.dev/core/jsx-runtime';

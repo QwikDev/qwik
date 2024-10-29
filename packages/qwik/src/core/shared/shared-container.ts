@@ -34,7 +34,7 @@ export abstract class _SharedContainer implements Container {
     this.$locale$ = locale;
     this.$version$ = version;
     this.$storeProxyMap$ = new WeakMap();
-    this.$getObjectById$ = (id: number | string) => {
+    this.$getObjectById$ = (_id: number | string) => {
       throw Error('Not implemented');
     };
 
@@ -50,7 +50,8 @@ export abstract class _SharedContainer implements Container {
       new (...rest: any[]): { nodeType: number; id: string };
     } | null,
     symbolToChunkResolver: SymbolToChunkResolver,
-    writer?: StreamWriter
+    writer?: StreamWriter,
+    prepVNode?: (vNode: any) => void
   ): SerializationContext {
     return createSerializationContext(
       NodeConstructor,
@@ -58,7 +59,8 @@ export abstract class _SharedContainer implements Container {
       this.getHostProp.bind(this),
       this.setHostProp.bind(this),
       this.$storeProxyMap$,
-      writer
+      writer,
+      prepVNode
     );
   }
 

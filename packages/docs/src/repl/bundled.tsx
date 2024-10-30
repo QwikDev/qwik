@@ -20,6 +20,7 @@ import qServerCjs from '../../node_modules/@qwik.dev/core/dist/server.cjs?raw-so
 import qServerDts from '../../node_modules/@qwik.dev/core/dist/server.d.ts?raw-source';
 
 export const QWIK_PKG_NAME = '@qwik.dev/core';
+export const QWIK_PKG_NAME_V1 = '@builder.io/qwik';
 const ROLLUP_VERSION = '2.75.6';
 
 export const getNpmCdnUrl = (
@@ -39,6 +40,11 @@ export const getNpmCdnUrl = (
     } else {
       // fall back to latest
       pkgVersion = pkgName === QWIK_PKG_NAME ? qwikVersion.split('-dev')[0] : '';
+    }
+  }
+  if (pkgName === QWIK_PKG_NAME) {
+    if (pkgVersion < '2') {
+      pkgName = QWIK_PKG_NAME_V1;
     }
   }
   return `https://cdn.jsdelivr.net/npm/${pkgName}${pkgVersion ? '@' + pkgVersion : ''}${pkgPath}`;

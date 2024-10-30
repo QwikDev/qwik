@@ -1,5 +1,5 @@
 ---
-'@qwik.dev/core': patch
+'@qwik.dev/core': major
 ---
 
-BREAKING: `useComputed$` no longer accepts Promise results. Instead, use `useSignal` and `useTask$` together to perform async signal updates
+💥**BREAKING**: `useComputed` no longer allows Promise returns. (meaning it is strictly sync) Instead, use `useSignal` and `useTask` together to perform async signal updates

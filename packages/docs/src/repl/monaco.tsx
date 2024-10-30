@@ -3,7 +3,7 @@ import { isServer } from '@qwik.dev/core/build';
 import type { Diagnostic } from '@qwik.dev/core/optimizer';
 import type MonacoTypes from 'monaco-editor';
 import { getColorPreference } from '../components/theme-toggle/theme-toggle';
-import { bundled, getNpmCdnUrl } from './bundled';
+import { QWIK_PKG_NAME, QWIK_PKG_NAME_V1, bundled, getNpmCdnUrl } from './bundled';
 import type { EditorProps, EditorStore } from './editor';
 import type { ReplStore } from './types';
 // We cannot use this, it causes the repl to use imports
@@ -223,6 +223,7 @@ export const addQwikLibs = async (version: string) => {
 
 const loadDeps = async (qwikVersion: string) => {
   const [M, m, p] = qwikVersion.split('-')[0].split('.').map(Number);
+  const isV1 = M < 2;
   const prefix =
     qwikVersion === 'bundled' || M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2)))
       ? '/dist/'
@@ -230,21 +231,21 @@ const loadDeps = async (qwikVersion: string) => {
   const deps: NodeModuleDep[] = [
     // qwik
     {
-      pkgName: '@qwik.dev/core',
+      pkgName: isV1 ? QWIK_PKG_NAME_V1 : QWIK_PKG_NAME,
       pkgVersion: qwikVersion,
       pkgPath: `${prefix}core.d.ts`,
       import: '',
     },
     // server API
     {
-      pkgName: '@qwik.dev/core',
+      pkgName: isV1 ? QWIK_PKG_NAME_V1 : QWIK_PKG_NAME,
       pkgVersion: qwikVersion,
       pkgPath: `${prefix}server.d.ts`,
       import: '/server',
     },
     // build constants
     {
-      pkgName: '@qwik.dev/core',
+      pkgName: isV1 ? QWIK_PKG_NAME_V1 : QWIK_PKG_NAME,
       pkgVersion: qwikVersion,
       pkgPath: `${prefix}build/index.d.ts`,
       import: '/build',

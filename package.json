@@ -66,23 +66,7 @@
       ]
     }
   },
-  "contributors": [
-    {
-      "name": "Miško Hevery",
-      "email": "misko@hevery.com",
-      "url": "https://twitter.com/mhevery"
-    },
-    {
-      "name": "Adam Bradley",
-      "email": "adam@builder.io",
-      "url": "https://twitter.com/adamdbradley"
-    },
-    {
-      "name": "Manu Mtz.-Almeida",
-      "email": "manu@builder.io",
-      "url": "https://twitter.com/manucorporat"
-    }
-  ],
+  "author": "Qwik Team",
   "dependencies": {
     "esbuild-plugin-raw": "^0.1.8"
   },

@@ -10,19 +10,17 @@ const root = join(__dirname, '..');
 const srcRepoRef = 'https://github.com/QwikDev/qwik/commit/';
 
 (async () => {
-  // This replaces the `workspace:^` versions with the actual versions.
-  await $('npx', 'syncpack', 'fix-mismatches', '-c', '/dev/null');
   const finishQwik = await prepare({
     buildRepo: 'qwik-build',
-    artifactsDir: join(root, 'packages', 'qwik', 'dist'),
+    artifactsDir: join(root, 'packages', 'qwik'),
   });
   const finishQwikCity = await prepare({
     buildRepo: 'qwik-city-build',
-    artifactsDir: join(root, 'packages', 'qwik-city', 'lib'),
+    artifactsDir: join(root, 'packages', 'qwik-city'),
   });
   const finishCreateQwikCli = await prepare({
     buildRepo: 'qwik-create-cli-build',
-    artifactsDir: join(root, 'packages', 'create-qwik', 'dist'),
+    artifactsDir: join(root, 'packages', 'create-qwik'),
   });
   const finishQwikLabs = await prepare({
     buildRepo: 'qwik-labs-build',
@@ -75,7 +73,7 @@ async function prepare({ buildRepo, artifactsDir }: { buildRepo: string; artifac
   await $(
     'cp',
     '-r',
-    ...(await expand(artifactsDir, ['.gitignore', 'node_modules'])),
+    ...(await expand(artifactsDir, ['.gitignore', 'node_modules', 'src'])),
     buildRepoDir
   );
   await $('cp', join(root, 'CONTINUOUS_BUILD.md'), 'README.md');

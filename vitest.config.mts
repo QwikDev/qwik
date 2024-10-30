@@ -10,6 +10,11 @@ export default defineConfig({
     }),
     tsconfigPaths({ ignoreConfigErrors: true }),
   ],
+  resolve: {
+    alias: {
+      '@qwik.dev/core-external': '@qwik.dev/core',
+    },
+  },
   test: {
     root: 'packages',
     include: ['**/*.spec.?(c|m)[jt]s?(x)', '**/*.unit.?(c|m)[jt]s?(x)', '!qwik/dist', '!*/lib'],

@@ -11,10 +11,10 @@ import terserJs from '../../node_modules/terser/dist/bundle.min.js?raw-source';
 import qWasmCjs from '../../node_modules/@qwik.dev/core/bindings/qwik.wasm.cjs?raw-source';
 import qWasmBinUrl from '../../node_modules/@qwik.dev/core/bindings/qwik_wasm_bg.wasm?raw-source';
 import qBuild from '../../node_modules/@qwik.dev/core/dist/build/index.d.ts?raw-source';
-import qCoreCjs from '../../node_modules/@qwik.dev/core/dist/core.cjs?raw-source';
+import qCoreCjs from '../../node_modules/@qwik.dev/core/dist/core.qwik.cjs?raw-source';
 import qCoreDts from '../../node_modules/@qwik.dev/core/dist/core.d.ts?raw-source';
-import qCoreMinMjs from '../../node_modules/@qwik.dev/core/dist/core.min.mjs?raw-source';
-import qCoreMjs from '../../node_modules/@qwik.dev/core/dist/core.mjs?raw-source';
+import qCoreMinMjs from '../../node_modules/@qwik.dev/core/dist/core.min.qwik.mjs?raw-source';
+import qCoreMjs from '../../node_modules/@qwik.dev/core/dist/core.qwik.mjs?raw-source';
 import qOptimizerCjs from '../../node_modules/@qwik.dev/core/dist/optimizer.cjs?raw-source';
 import qServerCjs from '../../node_modules/@qwik.dev/core/dist/server.cjs?raw-source';
 import qServerDts from '../../node_modules/@qwik.dev/core/dist/server.d.ts?raw-source';
@@ -48,10 +48,10 @@ export const bundled: PkgUrls = {
   [QWIK_PKG_NAME]: {
     version: qwikVersion,
     '/dist/build/index.d.ts': qBuild,
-    '/dist/core.cjs': qCoreCjs,
+    '/dist/core.qwik.cjs': qCoreCjs,
     '/dist/core.d.ts': qCoreDts,
-    '/dist/core.min.mjs': qCoreMinMjs,
-    '/dist/core.mjs': qCoreMjs,
+    '/dist/core.min.qwik.mjs': qCoreMinMjs,
+    '/dist/core.qwik.mjs': qCoreMjs,
     '/dist/optimizer.cjs': qOptimizerCjs,
     '/dist/server.cjs': qServerCjs,
     '/dist/server.d.ts': qServerDts,

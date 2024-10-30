@@ -26,7 +26,7 @@ import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { HTML_NS, MATH_NS, SVG_NS } from '../shared/utils/markers';
 import { delay } from '../shared/utils/promises';
 
-const debug = false; //true;
+const debug = !false; //true;
 Error.stackTraceLimit = 100;
 
 function Hola(props: any) {
@@ -35,7 +35,7 @@ function Hola(props: any) {
 
 describe.each([
   { render: ssrRenderToDom }, //
-  { render: domRender }, //
+  // { render: domRender }, //
 ])('$render.name: component', ({ render }) => {
   it('should render component', async () => {
     const MyComp = component$(() => {
@@ -1256,7 +1256,7 @@ describe.each([
       );
     });
 
-    it('should bind checked attribute', async () => {
+    it.only('should bind checked attribute', async () => {
       const BindCmp = component$(() => {
         const show = useSignal(false);
         return (

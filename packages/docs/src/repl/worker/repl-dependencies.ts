@@ -9,14 +9,17 @@ let cache: Cache;
 export const depResponse = async (pkgName: string, pkgPath: string) => {
   if (pkgName === QWIK_PKG_NAME) {
     const version = options.deps[pkgName].version;
+    const [M, m, p] = version.split('-')[0].split('.').map(Number);
     if (!pkgPath.startsWith('/bindings')) {
-      const [M, m, p] = version.split('-')[0].split('.').map(Number);
       if (M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2)))) {
         pkgPath = `/dist${pkgPath}`;
       }
       if (version < '2') {
         pkgName = '@builder.io/qwik';
       }
+    }
+    if (!(M > 2 || (M === 1 && (m > 8 || (m === 8 && version.includes('-dev')))))) {
+      pkgPath = pkgPath.replace('.qwik', '');
     }
   }
   const url = options.deps[pkgName][pkgPath];
@@ -76,7 +79,7 @@ const _loadDependencies = async (replOptions: ReplInputOptions) => {
   }
 
   if (!isSameQwikVersion(self.qwikCore?.version)) {
-    await exec(QWIK_PKG_NAME, '/core.cjs');
+    await exec(QWIK_PKG_NAME, '/core.qwik.cjs');
     if (self.qwikCore) {
       console.debug(`Loaded @qwik.dev/core: ${self.qwikCore.version}`);
     } else {

@@ -170,13 +170,14 @@ const getDependencies = (input: ReplAppInput) => {
   if (input.version !== 'bundled') {
     const [M, m, p] = input.version.split('-')[0].split('.').map(Number);
     const prefix = M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2))) ? '/dist/' : '/';
+    const qwik = M > 1 || (M == 1 && m >= 9) ? '.qwik' : '';
     out[QWIK_PKG_NAME] = {
       version: input.version,
     };
     for (const p of [
-      `${prefix}core.cjs`,
-      `${prefix}core.mjs`,
-      `${prefix}core.min.mjs`,
+      `${prefix}core${qwik}.cjs`,
+      `${prefix}core${qwik}.mjs`,
+      `${prefix}core.min${qwik}.mjs`,
       `${prefix}optimizer.cjs`,
       `${prefix}server.cjs`,
       `/bindings/qwik.wasm.cjs`,

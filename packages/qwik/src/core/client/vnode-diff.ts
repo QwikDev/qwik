@@ -58,8 +58,6 @@ import {
   type VirtualVNode,
 } from './types';
 import {
-  mapApp_findIndx,
-  mapArray_set,
   vnode_ensureElementInflated,
   vnode_getAttr,
   vnode_getDomParentVNode,
@@ -90,6 +88,8 @@ import {
   vnode_walkVNode,
   type VNodeJournal,
 } from './vnode';
+import { mapApp_findIndx } from './mapArray';
+import { mapArray_set } from './mapArray';
 import { getNewElementNamespaceData } from './vnode-namespace';
 import { WrappedSignal, EffectProperty, isSignal, EffectData } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';

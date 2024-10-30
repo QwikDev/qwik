@@ -9,8 +9,8 @@
  *   ensuring that this rule is followed, this file is the only place where relative `../` imports
  *   of types only are allowed.
  *
- *   Sum code we are OK by importing and making a copy because it will have no adverse affect. This
- *   file lists code which we are OK to have duplicated.
+ *   Some code is OK to import and make a copy of because it will have no adverse affect. This file
+ *   lists code which we are OK to have duplicated.
  */
 
 export { serializeAttribute } from '../core/shared/utils/styles';
@@ -45,14 +45,14 @@ export {
   NON_SERIALIZABLE_MARKER_PREFIX,
 } from '../core/shared/utils/markers';
 export { maybeThen } from '../core/shared/utils/promises';
-export { mapApp_remove, mapArray_get, mapArray_set } from '../core/client/vnode';
+export { mapApp_remove, mapArray_get, mapArray_set } from '../core/client/mapArray';
 export {
   convertStyleIdsToString,
   getScopedStyleIdsAsPrefix,
   isClassAttr,
 } from '../core/shared/utils/scoped-styles';
 export { DEBUG_TYPE, VirtualType, QContainerValue } from '../core/shared/types';
-export { VNodeDataChar } from '../core/shared/vnode-data-types';
-export { VNodeDataSeparator } from '../core/shared/vnode-data-types';
+export { VNodeDataChar, VNodeDataSeparator } from '../core/shared/vnode-data-types';
 export { escapeHTML } from '../core/shared/utils/character-escaping';
 export { getValidManifest } from '../optimizer/src/manifest';
+export { SYNC_QRL } from '../core/shared/qrl/qrl-utils';

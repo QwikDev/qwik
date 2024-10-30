@@ -19,22 +19,18 @@ import {
 export async function submoduleOptimizer(config: BuildConfig) {
   const submodule = 'optimizer';
 
-  await generatePlatformBindingsData(config);
+  // uncomment this when adding a platform binding
+  // await generatePlatformBindingsData(config);
 
   async function buildOptimizer() {
     const opts: BuildOptions = {
-      entryPoints: [join(config.srcQwikDir, submodule, 'src', 'index.ts')],
+      entryPoints: [join(config.optimizerDir, 'index.ts')],
       entryNames: 'optimizer',
       outdir: config.distQwikPkgDir,
       bundle: true,
       sourcemap: false,
       platform: 'node',
       target,
-      external: [
-        /* no Node.js built-in externals allowed! */
-        'espree',
-        'lightningcss',
-      ],
     };
 
     const qwikloaderScripts = await inlineQwikScriptsEsBuild(config);
@@ -120,6 +116,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
   await Promise.all([buildOptimizer()]);
 }
 
+// @ts-expect-error -- we only use this when adding a platform binding
 async function generatePlatformBindingsData(config: BuildConfig) {
   // generate the platform binding information for only what qwik provides
   // allows us to avoid using a file system in the optimizer, take a look at:

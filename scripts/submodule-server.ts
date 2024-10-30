@@ -25,8 +25,11 @@ export async function submoduleServer(config: BuildConfig) {
     platform: 'node',
     target,
     external: [
-      /* no Node.js built-in externals allowed! */ '@qwik.dev/dom',
+      '@qwik.dev/core',
+      '@qwik.dev/dom',
       '@qwik.dev/core/build',
+      // uncomment this if you want to find what imports qwik-external
+      // '@qwik.dev/core-external',
     ],
   };
 
@@ -35,7 +38,20 @@ export async function submoduleServer(config: BuildConfig) {
     format: 'esm',
     banner: { js: getBanner('@qwik.dev/core/server', config.distVersion) },
     outExtension: { '.js': '.mjs' },
-    plugins: [importPath(/^@qwik\.dev\/core$/, '@qwik.dev/core'), qwikDomPlugin],
+    plugins: [
+      // uncomment this if you want to find what imports qwik-external
+      // {
+      //   name: 'spy-resolve',
+      //   setup(build) {
+      //     build.onResolve({ filter: /./ }, (args) => {
+      //       console.log('spy-resolve', args);
+      //       return undefined;
+      //     });
+      //   },
+      // },
+      importPath(/^@qwik\.dev\/core$/, '@qwik.dev/core'),
+      qwikDomPlugin,
+    ],
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
       'globalThis.IS_CJS': 'false',
@@ -115,9 +131,9 @@ async function getQwikDomVersion(config: BuildConfig) {
 
 const browserCjsRequireShim = `
 if (typeof require !== 'function' && typeof location !== 'undefined' && typeof navigator !== 'undefined') {
-  // shim cjs require() for core.cjs within a browser
+  // shim cjs require() for core.qwik.cjs within a browser
   globalThis.require = function(path) {
-    if (path === './core.cjs' || path === '@qwik.dev/core') {
+    if (path === './core.qwik.cjs' || path === '@qwik.dev/core') {
       if (!self.qwikCore) {
         throw new Error('Qwik Core global, "globalThis.qwikCore", must already be loaded for the Qwik Server to be used within a browser.');
       }

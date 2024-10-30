@@ -3,7 +3,6 @@ import type { Render, RenderToStreamOptions } from '@qwik.dev/core/server';
 import type { IncomingMessage, ServerResponse } from 'http';
 import { magenta } from 'kleur/colors';
 import type { Connect, ViteDevServer } from 'vite';
-import { SYNC_QRL } from '../../../core/shared/qrl/qrl-class';
 import type { OptimizerSystem, Path, QwikManifest, SymbolMapper, SymbolMapperFn } from '../types';
 import clickToComponent from './click-to-component.html?raw';
 import errorHost from './error-host.html?raw';
@@ -13,6 +12,7 @@ import { makeNormalizePath, type NormalizedQwikPluginOptions, parseId } from './
 import type { QwikViteDevResponse } from './vite';
 import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
 import { formatError } from './vite-utils';
+import { SYNC_QRL } from 'packages/qwik/src/server/qwik-copy';
 
 function getOrigin(req: IncomingMessage) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;

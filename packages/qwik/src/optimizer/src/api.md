@@ -44,7 +44,7 @@ export type DiagnosticCategory = 'error' | 'warning' | 'sourceError';
 // @public (undocumented)
 export type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEntryStrategy | HookEntryStrategy_2 | SegmentEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy;
 
-// @alpha
+// @public
 export enum ExperimentalFeatures {
     insights = "insights",
     noSPA = "noSPA",
@@ -228,7 +228,6 @@ export interface QwikRollupPluginOptions {
     csr?: boolean;
     debug?: boolean;
     entryStrategy?: EntryStrategy;
-    // Warning: (ae-incompatible-release-tags) The symbol "experimental" is marked as @public, but its signature references "ExperimentalFeatures" which is marked as @alpha
     experimental?: (keyof typeof ExperimentalFeatures)[];
     lint?: boolean;
     manifestInput?: QwikManifest;
@@ -398,7 +397,7 @@ export type SymbolMapper = Record<string, readonly [symbol: string, chunk: strin
 
 // Warning: (ae-forgotten-export) The symbol "createSymbolMapper" needs to be exported by the entry point index.d.ts
 //
-// @alpha
+// @beta
 export let symbolMapper: ReturnType<typeof createSymbolMapper>;
 
 // @public (undocumented)

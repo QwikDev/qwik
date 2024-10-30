@@ -15,7 +15,7 @@ const log = (message?: any) => {
 };
 
 /**
- * @alpha
+ * @beta
  * @experimental
  */
 export async function qwikInsights(qwikInsightsOpts: {

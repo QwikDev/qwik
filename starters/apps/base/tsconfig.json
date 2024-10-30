@@ -9,6 +9,7 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
     "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "skipLibCheck": true,

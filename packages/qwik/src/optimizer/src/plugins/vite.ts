@@ -19,6 +19,7 @@ import {
   QWIK_BUILD_ID,
   QWIK_CLIENT_MANIFEST_ID,
   QWIK_CORE_ID,
+  QWIK_CORE_INTERNAL_ID,
   QWIK_CORE_SERVER,
   QWIK_JSX_DEV_RUNTIME_ID,
   QWIK_JSX_RUNTIME_ID,
@@ -300,7 +301,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       const updatedViteConfig: UserConfig = {
         ssr: {
-          noExternal: [QWIK_CORE_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID, ...vendorIds],
+          noExternal: [
+            QWIK_CORE_ID,
+            QWIK_CORE_INTERNAL_ID,
+            QWIK_CORE_SERVER,
+            QWIK_BUILD_ID,
+            ...vendorIds,
+          ],
         },
         envPrefix: ['VITE_', 'PUBLIC_'],
         resolve: {
@@ -332,6 +339,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             'node-fetch',
             'undici',
             QWIK_CORE_ID,
+            QWIK_CORE_INTERNAL_ID,
             QWIK_CORE_SERVER,
             QWIK_JSX_RUNTIME_ID,
             QWIK_JSX_DEV_RUNTIME_ID,
@@ -405,6 +413,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           updatedViteConfig.build!.minify = false;
           updatedViteConfig.build!.rollupOptions.external = [
             QWIK_CORE_ID,
+            QWIK_CORE_INTERNAL_ID,
             QWIK_CORE_SERVER,
             QWIK_JSX_RUNTIME_ID,
             QWIK_JSX_DEV_RUNTIME_ID,

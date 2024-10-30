@@ -1,4 +1,4 @@
-import type { ClientContainer, DomContainer } from "@qwik.dev/core";
+import type { ClientContainer, DomContainer } from "@qwik.dev/core/internal";
 import { domRender, ssrRenderToDom, trigger } from "@qwik.dev/core/testing";
 import { beforeEach, describe, expect, it } from "vitest";
 import { Issue3948 } from "./events";

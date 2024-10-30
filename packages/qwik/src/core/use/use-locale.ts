@@ -8,7 +8,7 @@ let _locale: string | undefined = undefined;
  * If no current locale and there is no `defaultLocale` the function throws an error.
  *
  * @returns The locale.
- * @internal
+ * @public
  */
 export function getLocale(defaultLocale?: string): string {
   if (_locale === undefined) {
@@ -27,7 +27,7 @@ export function getLocale(defaultLocale?: string): string {
 /**
  * Override the `getLocale` with `lang` within the `fn` execution.
  *
- * @internal
+ * @public
  */
 export function withLocale<T>(locale: string, fn: () => T): T {
   const previousLang = _locale;
@@ -45,7 +45,7 @@ export function withLocale<T>(locale: string, fn: () => T): T {
  * This can be used only in browser. Server execution requires that each request could potentially
  * be a different lang, therefore setting a global lang would produce incorrect responses.
  *
- * @param lang
+ * @public
  */
 export function setLocale(locale: string): void {
   _locale = locale;

@@ -4,65 +4,6 @@ title: \@qwik.dev/qwik API Reference
 
 # [API](/api) &rsaquo; @qwik.dev/qwik
 
-## \_qrlSync
-
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-
-Extract function into a synchronously loadable QRL.
-
-NOTE: Synchronous QRLs functions can't close over any variables, including exports.
-
-```typescript
-_qrlSync: <TYPE extends Function>(fn: TYPE, serializedFn?: string) =>
-  SyncQRL<TYPE>;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-fn
-
-</td><td>
-
-TYPE
-
-</td><td>
-
-Extracted function
-
-</td></tr>
-<tr><td>
-
-serializedFn
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_ Serialized function in string form.
-
-</td></tr>
-</tbody></table>
-**Returns:**
-
-[SyncQRL](#syncqrl)&lt;TYPE&gt;
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts)
-
 ## "q:slot"
 
 ```typescript
@@ -1329,85 +1270,6 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-attributes.ts)
 
-## componentQrl
-
-Declare a Qwik component that can be used to create UI.
-
-Use `component$` to declare a Qwik component. A Qwik component is a special kind of component that allows the Qwik framework to lazy load and execute the component independently of other Qwik components as well as lazy load the component's life-cycle hooks and event handlers.
-
-Side note: You can also declare regular (standard JSX) components that will have standard synchronous behavior.
-
-Qwik component is a facade that describes how the component should be used without forcing the implementation of the component to be eagerly loaded. A minimum Qwik definition consists of:
-
-### Example
-
-An example showing how to create a counter component:
-
-```tsx
-export interface CounterProps {
-  initialValue?: number;
-  step?: number;
-}
-export const Counter = component$((props: CounterProps) => {
-  const state = useStore({ count: props.initialValue || 0 });
-  return (
-    <div>
-      <span>{state.count}</span>
-      <button onClick$={() => (state.count += props.step || 1)}>+</button>
-    </div>
-  );
-});
-```
-
-- `component$` is how a component gets declared. - `{ value?: number; step?: number }` declares the public (props) interface of the component. - `{ count: number }` declares the private (state) interface of the component.
-
-The above can then be used like so:
-
-```tsx
-export const OtherComponent = component$(() => {
-  return <Counter initialValue={100} />;
-});
-```
-
-See also: `component`, `useCleanup`, `onResume`, `onPause`, `useOn`, `useOnDocument`, `useOnWindow`, `useStyles`
-
-```typescript
-componentQrl: <PROPS extends Record<any, any>>(
-  componentQrl: QRL<OnRenderFn<PROPS>>,
-) => Component<PROPS>;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-componentQrl
-
-</td><td>
-
-[QRL](#qrl)&lt;[OnRenderFn](#onrenderfn)&lt;PROPS&gt;&gt;
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-**Returns:**
-
-[Component](#component)&lt;PROPS&gt;
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/component.public.ts)
-
 ## ComputedFn
 
 ```typescript
@@ -1760,43 +1622,6 @@ qrl
 </td><td>
 
 () =&gt; T
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-**Returns:**
-
-T extends Promise&lt;any&gt; ? never : [ComputedSignal](#computedsignal)&lt;T&gt;
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts)
-
-## createComputedQrl
-
-```typescript
-createComputedQrl: <T>(qrl: QRL<() => T>) => T extends Promise<any> ? never : ComputedSignal<T>
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-qrl
-
-</td><td>
-
-[QRL](#qrl)&lt;() =&gt; T&gt;
 
 </td><td>
 
@@ -2240,43 +2065,6 @@ export type EventHandler<EV = Event, EL = Element> = {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-attributes.ts)
 
-## eventQrl
-
-```typescript
-eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-qrl
-
-</td><td>
-
-[QRL](#qrl)&lt;T&gt;
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-**Returns:**
-
-[QRL](#qrl)&lt;T&gt;
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts)
-
 ## FieldsetHTMLAttributes
 
 ```typescript
@@ -2379,6 +2167,51 @@ Element \| VNode
 IClientContainer
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/client/dom-container.ts)
+
+## getLocale
+
+Retrieve the current locale.
+
+If no current locale and there is no `defaultLocale` the function throws an error.
+
+```typescript
+export declare function getLocale(defaultLocale?: string): string;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+defaultLocale
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+string
+
+The locale.
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-locale.ts)
 
 ## getPlatform
 
@@ -2752,7 +2585,47 @@ interface IntrinsicAttributes extends QwikIntrinsicAttributes
 export interface IntrinsicElements extends IntrinsicHTMLElements, IntrinsicSVGElements
 ```
 
-**Extends:** IntrinsicHTMLElements, IntrinsicSVGElements
+**Extends:** [IntrinsicHTMLElements](#intrinsichtmlelements), [IntrinsicSVGElements](#intrinsicsvgelements)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
+
+## IntrinsicHTMLElements
+
+These are the HTML tags with handlers allowing plain callbacks, to be used for the JSX interface
+
+```typescript
+export type IntrinsicHTMLElements = {
+  [key in keyof HTMLElementTagNameMap]: Augmented<
+    HTMLElementTagNameMap[key],
+    SpecialAttrs[key]
+  > &
+    HTMLAttributes<HTMLElementTagNameMap[key]>;
+} & {
+  [unknownTag: string]: {
+    [prop: string]: any;
+  } & HTMLElementAttrs &
+    HTMLAttributes<any>;
+};
+```
+
+**References:** [HTMLAttributes](#htmlattributes), [HTMLElementAttrs](#htmlelementattrs)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
+
+## IntrinsicSVGElements
+
+These are the SVG tags with handlers allowing plain callbacks, to be used for the JSX interface
+
+```typescript
+export type IntrinsicSVGElements = {
+  [K in keyof Omit<
+    SVGElementTagNameMap,
+    keyof HTMLElementTagNameMap
+  >]: LenientSVGProps<SVGElementTagNameMap[K]>;
+};
+```
+
+**References:** [LenientSVGProps](#lenientsvgprops)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
 
@@ -3178,6 +3051,16 @@ export interface LabelHTMLAttributes<T extends Element> extends Attrs<'label', T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
 
+## LenientSVGProps
+
+```typescript
+export interface LenientSVGProps<T extends Element> extends SVGAttributes, DOMAttributes<T>
+```
+
+**Extends:** [SVGAttributes](#svgattributes), [DOMAttributes](#domattributes)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
+
 ## LiHTMLAttributes
 
 ```typescript
@@ -3584,7 +3467,7 @@ export interface ParamHTMLAttributes<T extends Element> extends Attrs<'base', T,
 
 ## PrefetchGraph
 
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
 Load the prefetch graph for the container.
 
@@ -3636,7 +3519,7 @@ _(Optional)_ Options for the loading prefetch graph.
 
 ## PrefetchServiceWorker
 
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
 Install a service worker which will prefetch the bundles.
 
@@ -3698,21 +3581,6 @@ export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progre
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
 
-## PropFnInterface
-
-> Warning: This API is now obsolete.
->
-> Use `QRL<>` instead
-
-```typescript
-export type PropFnInterface<ARGS extends any[], RET> = {
-  __qwik_serializable__?: any;
-  (...args: ARGS): Promise<RET>;
-};
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts)
-
 ## PropFunction
 
 Alias for `QRL<T>`. Of historic relevance only.
@@ -3724,26 +3592,6 @@ export type PropFunction<T> = QRL<T>;
 **References:** [QRL](#qrl)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts)
-
-## PropFunctionProps
-
-> Warning: This API is now obsolete.
->
-> Use `QRL<>` on your function props instead
-
-```typescript
-export type PropFunctionProps<PROPS extends Record<any, any>> = {
-  [K in keyof PROPS]: PROPS[K] extends undefined
-    ? PROPS[K]
-    : PROPS[K] extends ((...args: infer ARGS) => infer RET) | undefined
-      ? PropFnInterface<ARGS, Awaited<RET>>
-      : PROPS[K];
-};
-```
-
-**References:** [PropFnInterface](#propfninterface)
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/component.public.ts)
 
 ## PropsOf
 
@@ -4024,8 +3872,6 @@ export type QRL<TYPE = unknown> = {
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts)
 
 ## QRLEventHandlerMulti
-
-> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
 An event handler for Qwik events, can be a handler QRL or an array of handler QRLs.
 
@@ -9788,8 +9634,6 @@ export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttribut
 
 ## sync$
 
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-
 Extract function into a synchronously loadable QRL.
 
 NOTE: Synchronous QRLs functions can't close over any variables, including exports.
@@ -9833,8 +9677,6 @@ Function to extract.
 
 ## SyncQRL
 
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-
 ```typescript
 export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE>
 ```
@@ -9870,8 +9712,6 @@ TYPE
 
 </td><td>
 
-**_(ALPHA)_**
-
 </td></tr>
 <tr><td>
 
@@ -9885,8 +9725,6 @@ QRLDev \| null
 
 </td><td>
 
-**_(ALPHA)_**
-
 </td></tr>
 <tr><td>
 
@@ -9899,8 +9737,6 @@ QRLDev \| null
 TYPE
 
 </td><td>
-
-**_(ALPHA)_**
 
 </td></tr>
 </tbody></table>
@@ -10169,43 +10005,6 @@ import("./use-computed").[ComputedFn](#computedfn)&lt;T&gt;
 T extends Promise&lt;any&gt; ? never : import("..").[ReadonlySignal](#readonlysignal)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed-dollar.ts)
-
-## useComputedQrl
-
-```typescript
-useComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => T extends Promise<any> ? never : ReadonlySignal<T>
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-qrl
-
-</td><td>
-
-[QRL](#qrl)&lt;[ComputedFn](#computedfn)&lt;T&gt;&gt;
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-**Returns:**
-
-T extends Promise&lt;any&gt; ? never : [ReadonlySignal](#readonlysignal)&lt;T&gt;
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts)
 
 ## useConstant
 
@@ -10660,100 +10459,6 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource-dollar.ts)
 
-## useResourceQrl
-
-This method works like an async memoized function that runs whenever some tracked value changes and returns some data.
-
-`useResource` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.
-
-The status can be one of the following:
-
-- `pending` - the data is not yet available. - `resolved` - the data is available. - `rejected` - the data is not available due to an error or timeout.
-
-Avoid using a `try/catch` statement in `useResource$`. If you catch the error instead of passing it, the resource status will never be `rejected`.
-
-### Example
-
-Example showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.
-
-```tsx
-const Cmp = component$(() => {
-  const cityS = useSignal("");
-
-  const weatherResource = useResource$(async ({ track, cleanup }) => {
-    const cityName = track(cityS);
-    const abortController = new AbortController();
-    cleanup(() => abortController.abort("cleanup"));
-    const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
-      signal: abortController.signal,
-    });
-    const data = await res.json();
-    return data as { temp: number };
-  });
-
-  return (
-    <div>
-      <input name="city" bind:value={cityS} />
-      <Resource
-        value={weatherResource}
-        onResolved={(weather) => {
-          return <div>Temperature: {weather.temp}</div>;
-        }}
-      />
-    </div>
-  );
-});
-```
-
-```typescript
-useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) =>
-  ResourceReturn<T>;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-qrl
-
-</td><td>
-
-[QRL](#qrl)&lt;[ResourceFn](#resourcefn)&lt;T&gt;&gt;
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-opts
-
-</td><td>
-
-[ResourceOptions](#resourceoptions)
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
-**Returns:**
-
-[ResourceReturn](#resourcereturn)&lt;T&gt;
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
-
 ## useServerData
 
 ```typescript
@@ -11023,57 +10728,6 @@ UseStyles
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
 
-## useStylesQrl
-
-A lazy-loadable reference to a component's styles.
-
-Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
-
-```tsx
-import styles from "./code-block.css?inline";
-
-export const CmpStyles = component$(() => {
-  useStyles$(styles);
-
-  return <div>Some text</div>;
-});
-```
-
-```typescript
-useStylesQrl: (styles: QRL<string>) => UseStyles;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-styles
-
-</td><td>
-
-[QRL](#qrl)&lt;string&gt;
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-**Returns:**
-
-UseStyles
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
-
 ## UseStylesScoped
 
 ```typescript
@@ -11154,57 +10808,6 @@ qrl
 </td><td>
 
 string
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-**Returns:**
-
-[UseStylesScoped](#usestylesscoped)
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-styles.ts)
-
-## useStylesScopedQrl
-
-A lazy-loadable reference to a component's styles, that is scoped to the component.
-
-Component styles allow Qwik to lazy load the style information for the component only when needed. (And avoid double loading it in case of SSR hydration.)
-
-```tsx
-import scoped from "./code-block.css?inline";
-
-export const CmpScopedStyles = component$(() => {
-  useStylesScoped$(scoped);
-
-  return <div>Some text</div>;
-});
-```
-
-```typescript
-useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-styles
-
-</td><td>
-
-[QRL](#qrl)&lt;string&gt;
 
 </td><td>
 
@@ -11314,62 +10917,6 @@ _(Optional)_ - `visible`: run the effect when the element is visible. - `load`: 
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
-## useTaskQrl
-
-Reruns the `taskFn` when the observed inputs change.
-
-Use `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when those inputs change.
-
-The `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.
-
-```typescript
-useTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-qrl
-
-</td><td>
-
-[QRL](#qrl)&lt;[TaskFn](#taskfn)&gt;
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-opts
-
-</td><td>
-
-[UseTaskOptions](#usetaskoptions)
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
-**Returns:**
-
-void
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
-
 ## useVisibleTask$
 
 ```tsx
@@ -11439,76 +10986,6 @@ _(Optional)_
 void
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-visible-task-dollar.ts)
-
-## useVisibleTaskQrl
-
-```tsx
-const Timer = component$(() => {
-  const store = useStore({
-    count: 0,
-  });
-
-  useVisibleTask$(() => {
-    // Only runs in the client
-    const timer = setInterval(() => {
-      store.count++;
-    }, 500);
-    return () => {
-      clearInterval(timer);
-    };
-  });
-
-  return <div>{store.count}</div>;
-});
-```
-
-```typescript
-useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-qrl
-
-</td><td>
-
-[QRL](#qrl)&lt;[TaskFn](#taskfn)&gt;
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-opts
-
-</td><td>
-
-[OnVisibleTaskOptions](#onvisibletaskoptions)
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
-**Returns:**
-
-void
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-visible-task.ts)
 
 ## ValueOrPromise
 
@@ -11838,3 +11315,53 @@ _(Optional)_
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
+
+## withLocale
+
+Override the `getLocale` with `lang` within the `fn` execution.
+
+```typescript
+export declare function withLocale<T>(locale: string, fn: () => T): T;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+locale
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+fn
+
+</td><td>
+
+() =&gt; T
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+T
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-locale.ts)

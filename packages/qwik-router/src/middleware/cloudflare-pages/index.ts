@@ -1,6 +1,6 @@
 import { getNotFound } from '@qwik-router-not-found-paths';
 import { isStaticPath } from '@qwik-router-static-paths';
-import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core';
+import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import type {
   ServerRenderOptions,

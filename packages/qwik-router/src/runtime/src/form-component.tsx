@@ -102,7 +102,7 @@ export const Form = <O, I>(
 };
 
 export const GetForm = component$<FormProps<undefined, undefined>>(
-  ({ action, spaReset, reloadDocument, onSubmit$, ...rest }) => {
+  ({ action: _0, spaReset, reloadDocument, onSubmit$, ...rest }) => {
     const nav = useNavigate();
     return (
       <form

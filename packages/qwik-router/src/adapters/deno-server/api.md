@@ -7,10 +7,10 @@
 import { ServerAdapterOptions } from '../../shared/vite';
 import type { StaticGenerateRenderOptions } from '@qwik.dev/router/static';
 
-// @alpha (undocumented)
+// @beta (undocumented)
 export function denoServerAdapter(opts?: DenoServerAdapterOptions): any;
 
-// @alpha (undocumented)
+// @beta (undocumented)
 export interface DenoServerAdapterOptions extends ServerAdapterOptions {
     // (undocumented)
     name?: string;

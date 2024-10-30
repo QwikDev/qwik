@@ -12,8 +12,6 @@ export const _VAR_PROPS = Symbol('VAR');
 
 /** @internal @deprecated v1 compat */
 export const _IMMUTABLE = Symbol('IMMUTABLE');
-/** @deprecated */
-export const _IMMUTABLE_PREFIX = '$$';
 
 /**
  * @internal

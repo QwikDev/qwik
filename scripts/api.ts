@@ -254,9 +254,15 @@ function createTypesApi(
       `Use "pnpm api.update" to automatically update the .md files if the api changes were expected`
     );
   }
-  const srcPath = result.extractorConfig.untrimmedFilePath;
-  const content = fixDtsContent(config, srcPath, relativePath);
-  writeFileSync(outPath, content);
+  for (const path of [
+    result.extractorConfig.betaTrimmedFilePath,
+    result.extractorConfig.untrimmedFilePath,
+  ]) {
+    if (path) {
+      const fixed = fixDtsContent(config, path, relativePath);
+      writeFileSync(path, fixed);
+    }
+  }
 }
 
 function generateQwikRouterReferenceModules(config: BuildConfig) {

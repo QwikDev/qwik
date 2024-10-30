@@ -3,6 +3,7 @@
   "compilerOptions": {
     "paths": {
       "@qwik.dev/core": ["packages/qwik/src/core"],
+      "@qwik.dev/core/internal": ["packages/qwik/src/core"],
       "@qwik.dev/core/jsx-runtime": ["packages/qwik/src/jsx-runtime"],
       "@qwik.dev/core/jsx-dev-runtime": ["packages/qwik/src/jsx-runtime"],
       "@qwik.dev/core/build": ["packages/qwik/src/build"],

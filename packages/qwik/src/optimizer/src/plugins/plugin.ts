@@ -60,7 +60,7 @@ const CLIENT_STRIP_CTX_NAME = [
  *
  * Add experimental features to this enum definition.
  *
- * @alpha
+ * @public
  */
 export enum ExperimentalFeatures {
   /** Enable the usePreventNavigate hook */
@@ -969,6 +969,8 @@ const TRANSFORM_EXTS = {
 export const TRANSFORM_REGEX = /\.qwik\.[mc]?js$/;
 
 export const QWIK_CORE_ID = '@qwik.dev/core';
+
+export const QWIK_CORE_INTERNAL_ID = '@qwik.dev/core/internal';
 
 export const QWIK_BUILD_ID = '@qwik.dev/core/build';
 

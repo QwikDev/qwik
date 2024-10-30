@@ -7,10 +7,10 @@
 import { ServerAdapterOptions } from '../../shared/vite';
 import type { StaticGenerateRenderOptions } from '@qwik.dev/router/static';
 
-// @alpha (undocumented)
+// @beta (undocumented)
 export function nodeServerAdapter(opts?: NodeServerAdapterOptions): any;
 
-// @alpha (undocumented)
+// @beta (undocumented)
 export interface NodeServerAdapterOptions extends ServerAdapterOptions {
     // (undocumented)
     name?: string;

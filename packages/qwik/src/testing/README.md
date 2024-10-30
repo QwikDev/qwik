@@ -1,7 +1,7 @@
 ### @qwik.dev/core/testing
 
 ```ts
-//vite.config.ts
+//vite.config.mts
 import { defineConfig } from 'vite';
 import { qwikVite } from '@qwik.dev/core/optimizer';
 import { qwikRouter } from '@qwik.dev/router/vite';

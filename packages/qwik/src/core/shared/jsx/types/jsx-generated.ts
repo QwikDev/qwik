@@ -1233,7 +1233,7 @@ export interface SVGAttributes<T extends Element = Element> extends AriaAttribut
 }
 /** @public */
 export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T> {}
-/** @internal */
+/** @public */
 export interface LenientSVGProps<T extends Element> extends SVGAttributes, DOMAttributes<T> {}
 /** @public */
 export interface IntrinsicElements extends IntrinsicHTMLElements, IntrinsicSVGElements {}
@@ -1241,7 +1241,7 @@ export interface IntrinsicElements extends IntrinsicHTMLElements, IntrinsicSVGEl
 /**
  * These are the HTML tags with handlers allowing plain callbacks, to be used for the JSX interface
  *
- * @internal
+ * @public
  */
 export type IntrinsicHTMLElements = {
   // Generating it this way shows the special props for each element in editor hover
@@ -1254,7 +1254,7 @@ export type IntrinsicHTMLElements = {
 /**
  * These are the SVG tags with handlers allowing plain callbacks, to be used for the JSX interface
  *
- * @internal
+ * @public
  */
 export type IntrinsicSVGElements = {
   [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: LenientSVGProps<

@@ -7,23 +7,7 @@
     "qwik": "./qwik-cli.cjs"
   },
   "bugs": "https://github.com/QwikDev/qwik/issues",
-  "contributors": [
-    {
-      "name": "Miško Hevery",
-      "email": "misko@hevery.com",
-      "url": "https://github.com/QwikDev/qwik"
-    },
-    {
-      "name": "Adam Bradley",
-      "email": "adam@builder.io",
-      "url": "https://twitter.com/adamdbradley"
-    },
-    {
-      "name": "Manu Mtz.-Almeida",
-      "email": "manu@builder.io",
-      "url": "https://twitter.com/manucorporat"
-    }
-  ],
+  "author": "Qwik Team",
   "dependencies": {
     "csstype": "^3.1"
   },

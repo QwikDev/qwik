@@ -326,8 +326,6 @@ export type EntryStrategy =
 
 ## ExperimentalFeatures
 
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-
 Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.
 
 Add experimental features to this enum definition.
@@ -359,7 +357,7 @@ insights
 
 </td><td>
 
-**_(ALPHA)_** Enable the ability to use the Qwik Insights vite plugin and <Insights/> component
+Enable the ability to use the Qwik Insights vite plugin and <Insights/> component
 
 </td></tr>
 <tr><td>
@@ -372,7 +370,7 @@ noSPA
 
 </td><td>
 
-**_(ALPHA)_** Disable SPA navigation handler in Qwik Router
+Disable SPA navigation handler in Qwik Router
 
 </td></tr>
 <tr><td>
@@ -385,7 +383,7 @@ preventNavigate
 
 </td><td>
 
-**_(ALPHA)_** Enable the usePreventNavigate hook
+Enable the usePreventNavigate hook
 
 </td></tr>
 <tr><td>
@@ -398,7 +396,7 @@ valibot
 
 </td><td>
 
-**_(ALPHA)_** Enable the Valibot form validation
+Enable the Valibot form validation
 
 </td></tr>
 <tr><td>
@@ -411,7 +409,7 @@ webWorker
 
 </td><td>
 
-**_(ALPHA)_** Enable worker$
+Enable worker$
 
 </td></tr>
 </tbody></table>
@@ -2860,7 +2858,7 @@ export type SourceMapsOption = "external" | "inline" | undefined | null;
 
 ## symbolMapper
 
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
 For a given symbol (QRL such as `onKeydown$`) the server needs to know which bundle the symbol is in.
 
@@ -2876,7 +2874,7 @@ symbolMapper: ReturnType<typeof createSymbolMapper>;
 
 ## SymbolMapper
 
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
 For a given symbol (QRL such as `onKeydown$`) the server needs to know which bundle the symbol is in.
 

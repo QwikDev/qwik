@@ -6,7 +6,7 @@ title: \@qwik.dev/qwik-router/vite/node-server API Reference
 
 ## nodeServerAdapter
 
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
 ```typescript
 export declare function nodeServerAdapter(opts?: NodeServerAdapterOptions): any;
@@ -47,7 +47,7 @@ any
 
 ## NodeServerAdapterOptions
 
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
 ```typescript
 export interface NodeServerAdapterOptions extends ServerAdapterOptions
@@ -84,7 +84,7 @@ string
 
 </td><td>
 
-**_(ALPHA)_** _(Optional)_
+**_(BETA)_** _(Optional)_
 
 </td></tr>
 </tbody></table>

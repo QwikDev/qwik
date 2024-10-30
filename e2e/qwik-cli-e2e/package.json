@@ -5,7 +5,7 @@
   },
   "private": true,
   "scripts": {
-    "e2e": "vitest run --config=vite.config.ts",
-    "e2e:watch": "vitest watch --config=vite.config.ts"
+    "e2e": "vitest run --config=vite.config.mts",
+    "e2e:watch": "vitest watch --config=vite.config.mts"
   }
 }

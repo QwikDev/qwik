@@ -205,7 +205,7 @@ declare var __QI_KEY__: string;
 declare var __QI_URL__: string;
 
 /**
- * @alpha
+ * @beta
  * @experimental
  */
 export const Insights = component$<{ publicApiKey: string; postUrl?: string }>(

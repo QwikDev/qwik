@@ -34,9 +34,9 @@
     "tailwindcss": "3.4.6",
     "typescript": "5.4.5",
     "undici": "*",
-    "vite": "5.3.5",
-    "vite-tsconfig-paths": "4.3.2",
-    "vitest": "2.0.5",
+    "vite": "5.4.10",
+    "vite-tsconfig-paths": "5.0.1",
+    "vitest": "2.1.4",
     "zod": "3.22.4"
   },
   "engines": {
@@ -47,7 +47,7 @@
     "build": "qwik build",
     "build.client": "vite build",
     "build.preview": "vite build --ssr src/entry.preview.tsx",
-    "build.server": "vite build -c adapters/netlify-edge/vite.config.ts",
+    "build.server": "vite build -c adapters/netlify-edge/vite.config.mts",
     "build.types": "tsc --incremental --noEmit",
     "db.local": "turso dev --db-file ./tmp/local.db",
     "db.migrate": "node scripts/db.migrate.cjs",

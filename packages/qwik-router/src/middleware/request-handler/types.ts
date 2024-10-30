@@ -1,4 +1,4 @@
-import type { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core';
+import type { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import type { Render, RenderOptions } from '@qwik.dev/core/server';
 import type { Action, FailReturn, Loader, QwikCityPlan, QwikRouterConfig } from '@qwik.dev/router';
 import type { ErrorResponse } from './error-handler';

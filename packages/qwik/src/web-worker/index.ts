@@ -35,7 +35,7 @@ const getWorker = (qrl: QRL) => {
 };
 
 /**
- * @alpha
+ * @internal
  * @experimental
  */
 export const workerQrl: WorkerConstructorQRL = (qrl) => {
@@ -83,7 +83,7 @@ export const workerQrl: WorkerConstructorQRL = (qrl) => {
 };
 
 /**
- * @alpha
+ * @beta
  * @experimental
  */
 export const worker$ = implicit$FirstArg(workerQrl);

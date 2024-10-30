@@ -1,4 +1,4 @@
-import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core';
+import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import type { ServerRequestEvent } from '@qwik.dev/router/middleware/request-handler';
 import { requestHandler } from '@qwik.dev/router/middleware/request-handler';
 import { WritableStream } from 'node:stream/web';

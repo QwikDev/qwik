@@ -1,10 +1,5 @@
 import {
   $,
-  _deserialize,
-  _getContextElement,
-  _getContextEvent,
-  _serialize,
-  _wrapProp,
   implicit$FirstArg,
   noSerialize,
   useContext,
@@ -12,6 +7,13 @@ import {
   type QRL,
   type ValueOrPromise,
 } from '@qwik.dev/core';
+import {
+  _deserialize,
+  _getContextElement,
+  _getContextEvent,
+  _serialize,
+  _wrapProp,
+} from '@qwik.dev/core/internal';
 
 import * as v from 'valibot';
 import { z } from 'zod';
@@ -55,7 +57,7 @@ import { isDev, isServer } from '@qwik.dev/core/build';
 import type { FormSubmitCompletedDetail } from './form-component';
 import { deepFreeze } from './utils';
 
-/** @public */
+/** @internal */
 export const routeActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
   ...rest: (CommonLoaderActionOptions | DataValidator)[]
@@ -159,7 +161,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
   return action satisfies ActionInternal;
 }) as unknown as ActionConstructorQRL;
 
-/** @public */
+/** @internal */
 export const globalActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
   ...rest: (CommonLoaderActionOptions | DataValidator)[]
@@ -184,7 +186,7 @@ export const globalAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
   globalActionQrl
 ) as any;
 
-/** @public */
+/** @internal */
 export const routeLoaderQrl = ((
   loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
   ...rest: (CommonLoaderActionOptions | DataValidator)[]
@@ -215,7 +217,7 @@ export const routeLoaderQrl = ((
 /** @public */
 export const routeLoader$: LoaderConstructor = /*#__PURE__*/ implicit$FirstArg(routeLoaderQrl);
 
-/** @public */
+/** @internal */
 export const validatorQrl = ((
   validator: QRL<(ev: RequestEvent, data: unknown) => ValueOrPromise<ValidatorReturn>>
 ): DataValidator => {
@@ -254,7 +256,7 @@ const flattenValibotIssues = (issues: v.GenericIssue[]) => {
   }, {});
 };
 
-/** @alpha */
+/** @internal */
 export const valibotQrl: ValibotConstructorQRL = (
   qrl: QRL<
     | v.GenericSchema
@@ -300,7 +302,7 @@ export const valibotQrl: ValibotConstructorQRL = (
   return undefined as never;
 };
 
-/** @alpha */
+/** @beta */
 export const valibot$: ValibotConstructor = /*#__PURE__*/ implicit$FirstArg(valibotQrl);
 
 const flattenZodIssues = (issues: z.ZodIssue | z.ZodIssue[]) => {
@@ -327,7 +329,7 @@ const flattenZodIssues = (issues: z.ZodIssue | z.ZodIssue[]) => {
   }, {});
 };
 
-/** @public */
+/** @internal */
 export const zodQrl: ZodConstructorQRL = (
   qrl: QRL<
     z.ZodRawShape | z.Schema | ((z: typeof import('zod').z, ev: RequestEvent) => z.ZodRawShape)
@@ -373,7 +375,7 @@ export const zodQrl: ZodConstructorQRL = (
 /** @public */
 export const zod$: ZodConstructor = /*#__PURE__*/ implicit$FirstArg(zodQrl);
 
-/** @public */
+/** @internal */
 export const serverQrl = <T extends ServerFunction>(
   qrl: QRL<T>,
   options?: ServerConfig

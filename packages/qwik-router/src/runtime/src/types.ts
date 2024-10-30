@@ -204,7 +204,7 @@ export interface DocumentStyle {
   readonly key?: string;
 }
 
-/** @alpha */
+/** @beta */
 export interface DocumentScript {
   readonly script?: string;
   readonly props?: Readonly<QwikIntrinsicElements['script']>;
@@ -832,7 +832,7 @@ export type ValidatorConstructorQRL = {
   ): T extends ValidatorReturnFail<infer ERROR> ? DataValidator<ERROR> : DataValidator<never>;
 };
 
-/** @alpha */
+/** @beta */
 export type ValibotDataValidator<
   T extends v.GenericSchema | v.GenericSchemaAsync = v.GenericSchema | v.GenericSchemaAsync,
 > = {
@@ -843,7 +843,7 @@ export type ValibotDataValidator<
   ): Promise<ValidatorReturn<ValidatorErrorType<v.InferInput<T>>>>;
 };
 
-/** @alpha */
+/** @beta */
 export type ValibotConstructor = {
   <T extends v.GenericSchema | v.GenericSchemaAsync>(schema: T): ValibotDataValidator<T>;
   <T extends v.GenericSchema | v.GenericSchemaAsync>(
@@ -851,7 +851,7 @@ export type ValibotConstructor = {
   ): ValibotDataValidator<T>;
 };
 
-/** @alpha */
+/** @beta */
 export type ValibotConstructorQRL = {
   <T extends v.GenericSchema | v.GenericSchemaAsync>(schema: QRL<T>): ValibotDataValidator<T>;
   <T extends v.GenericSchema | v.GenericSchemaAsync>(

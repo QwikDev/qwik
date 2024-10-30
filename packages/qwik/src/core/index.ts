@@ -3,15 +3,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 export { componentQrl, component$ } from './shared/component.public';
 
-export type {
-  PropsOf,
-  OnRenderFn,
-  Component,
-  PublicProps,
-  PropFunctionProps,
-  _AllowPlainQrl,
-  _Only$,
-} from './shared/component.public';
+export type { PropsOf, OnRenderFn, Component, PublicProps } from './shared/component.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API
@@ -33,7 +25,7 @@ export { eventQrl } from './shared/qrl/qrl.public';
 export { event$ } from './shared/qrl/qrl.public.dollar';
 
 export { qrl, inlinedQrl, inlinedQrlDEV, qrlDEV } from './shared/qrl/qrl';
-export type { QRL, PropFunction, PropFnInterface } from './shared/qrl/qrl.public';
+export type { QRL, PropFunction } from './shared/qrl/qrl.public';
 export { implicit$FirstArg } from './shared/qrl/implicit_dollar';
 
 //////////////////////////////////////////////////////////////////////////////////////////

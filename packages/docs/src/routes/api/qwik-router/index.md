@@ -978,7 +978,7 @@ _(Optional)_
 
 ## DocumentScript
 
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
 ```typescript
 export interface DocumentScript
@@ -1015,7 +1015,7 @@ string
 
 </td><td>
 
-**_(ALPHA)_** _(Optional)_
+**_(BETA)_** _(Optional)_
 
 </td></tr>
 <tr><td>
@@ -1032,7 +1032,7 @@ Readonly&lt;QwikIntrinsicElements['script']&gt;
 
 </td><td>
 
-**_(ALPHA)_** _(Optional)_
+**_(BETA)_** _(Optional)_
 
 </td></tr>
 <tr><td>
@@ -1049,7 +1049,7 @@ string
 
 </td><td>
 
-**_(ALPHA)_** _(Optional)_
+**_(BETA)_** _(Optional)_
 
 </td></tr>
 </tbody></table>
@@ -1425,14 +1425,6 @@ globalAction$: ActionConstructor;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
 
-## globalActionQrl
-
-```typescript
-globalActionQrl: ActionConstructorQRL;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
-
 ## JSONObject
 
 ```typescript
@@ -1611,7 +1603,7 @@ export type NavigationType = "initial" | "form" | "link" | "popstate";
 
 ## omitProps
 
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
 Creates a new object from `obj` by omitting a set of `keys`.
 
@@ -2142,14 +2134,6 @@ routeAction$: ActionConstructor;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
 
-## routeActionQrl
-
-```typescript
-routeActionQrl: ActionConstructorQRL;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
-
 ## RouteData
 
 ```typescript
@@ -2169,14 +2153,6 @@ export type RouteData =
 
 ```typescript
 routeLoader$: LoaderConstructor;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
-
-## routeLoaderQrl
-
-```typescript
-routeLoaderQrl: LoaderConstructorQRL;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
@@ -2362,21 +2338,6 @@ export type ServerFunction = {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## serverQrl
-
-You can pass an AbortSignal as the first argument of a `server$` function and it will use it to abort the fetch when fired.
-
-```typescript
-export type ServerQRL<T extends ServerFunction> = QRL<
-  | ((abort: AbortSignal, ...args: Parameters<T>) => ReturnType<T>)
-  | ((...args: Parameters<T>) => ReturnType<T>)
->;
-```
-
-**References:** [ServerFunction](#serverfunction)
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
-
 ## ServerQRL
 
 You can pass an AbortSignal as the first argument of a `server$` function and it will use it to abort the fetch when fired.
@@ -2504,7 +2465,7 @@ export type TypedDataValidator = ValibotDataValidator | ZodDataValidator;
 
 ## untypedAppUrl
 
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
 ```typescript
 untypedAppUrl: (
@@ -2682,20 +2643,10 @@ void
 
 ## valibot$
 
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
 ```typescript
 valibot$: ValibotConstructor;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
-
-## valibotQrl
-
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-
-```typescript
-valibotQrl: ValibotConstructorQRL;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
@@ -2754,14 +2705,6 @@ export type ValidatorErrorType<T, U = string> = {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## validatorQrl
-
-```typescript
-validatorQrl: ValidatorConstructorQRL;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
-
 ## ValidatorReturn
 
 ```typescript
@@ -2796,11 +2739,3 @@ export type ZodConstructor = {
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
-
-## zodQrl
-
-```typescript
-zodQrl: ZodConstructorQRL;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)

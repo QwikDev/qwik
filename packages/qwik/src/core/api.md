@@ -8,13 +8,10 @@ import * as CSS_2 from 'csstype';
 import type { JSXNode as JSXNode_2 } from '@qwik.dev/core';
 import type { RenderOptions as RenderOptions_2 } from '@qwik.dev/core';
 import type { RenderResult as RenderResult_2 } from '@qwik.dev/core';
-import type { StreamWriter as StreamWriter_2 } from '@qwik.dev/core';
+import type { StreamWriter as StreamWriter_2 } from '@qwik.dev/core/internal';
 
 // @public
 export const $: <T>(expression: T) => QRL<T>;
-
-// @internal (undocumented)
-export type _AllowPlainQrl<Q> = QRLEventHandlerMulti<any, any> extends Q ? Q extends QRLEventHandlerMulti<infer EV, infer EL> ? Q | (EL extends Element ? EventHandler<EV, EL> : never) : Q : Q extends QRL<infer U> ? Q | U : NonNullable<Q> extends never ? Q : QRL<Q> | Q;
 
 // Warning: (ae-forgotten-export) The symbol "Attrs" needs to be exported by the entry point index.d.ts
 //
@@ -162,7 +159,9 @@ export interface ComponentBaseProps {
     key?: string | number | null | undefined;
 }
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "componentQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
 export const componentQrl: <PROPS extends Record<any, any>>(componentQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
 
 // @public (undocumented)
@@ -210,7 +209,9 @@ export interface CorrectedToggleEvent extends Event {
 // @public
 export const createComputed$: <T>(qrl: () => T) => T extends Promise<any> ? never : ComputedSignal<T>;
 
-// @public (undocumented)
+// Warning: (ae-internal-missing-underscore) The name "createComputedQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
 export const createComputedQrl: <T>(qrl: QRL<() => T>) => T extends Promise<any> ? never : ComputedSignal<T>;
 
 // @public
@@ -384,7 +385,9 @@ export type EventHandler<EV = Event, EL = Element> = {
     bivarianceHack(event: EV, element: EL): any;
 }['bivarianceHack'];
 
-// @public (undocumented)
+// Warning: (ae-internal-missing-underscore) The name "eventQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
 export const eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 
 // @public (undocumented)
@@ -425,9 +428,7 @@ function getDomContainer(element: Element | _VNode): ClientContainer;
 export { getDomContainer as _getDomContainer }
 export { getDomContainer }
 
-// Warning: (ae-internal-missing-underscore) The name "getLocale" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
+// @public
 export function getLocale(defaultLocale?: string): string;
 
 // @public
@@ -510,18 +511,14 @@ export type InputHTMLAttributes<T extends Element> = Attrs<'input', T, HTMLInput
 export interface InsHTMLAttributes<T extends Element> extends Attrs<'ins', T> {
 }
 
-// Warning: (ae-incompatible-release-tags) The symbol "IntrinsicElements" is marked as @public, but its signature references "IntrinsicHTMLElements" which is marked as @internal
-// Warning: (ae-incompatible-release-tags) The symbol "IntrinsicElements" is marked as @public, but its signature references "IntrinsicSVGElements" which is marked as @internal
-//
 // @public (undocumented)
 export interface IntrinsicElements extends IntrinsicHTMLElements, IntrinsicSVGElements {
 }
 
 // Warning: (ae-forgotten-export) The symbol "Augmented" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "SpecialAttrs" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "IntrinsicHTMLElements" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @internal
+// @public
 export type IntrinsicHTMLElements = {
     [key in keyof HTMLElementTagNameMap]: Augmented<HTMLElementTagNameMap[key], SpecialAttrs[key]> & HTMLAttributes<HTMLElementTagNameMap[key]>;
 } & {
@@ -530,9 +527,7 @@ export type IntrinsicHTMLElements = {
     } & HTMLElementAttrs & HTMLAttributes<any>;
 };
 
-// Warning: (ae-internal-missing-underscore) The name "IntrinsicSVGElements" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
+// @public
 export type IntrinsicSVGElements = {
     [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: LenientSVGProps<SVGElementTagNameMap[K]>;
 };
@@ -645,9 +640,7 @@ export type KnownEventNames = LiteralUnion<AllEventKeys, string>;
 export interface LabelHTMLAttributes<T extends Element> extends Attrs<'label', T> {
 }
 
-// Warning: (ae-internal-missing-underscore) The name "LenientSVGProps" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
+// @public (undocumented)
 export interface LenientSVGProps<T extends Element> extends SVGAttributes, DOMAttributes<T> {
 }
 
@@ -742,11 +735,6 @@ export interface ObjectHTMLAttributes<T extends Element> extends Attrs<'object',
 export interface OlHTMLAttributes<T extends Element> extends Attrs<'ol', T> {
 }
 
-// @internal (undocumented)
-export type _Only$<P> = {
-    [K in keyof P as K extends `${string}$` ? K : never]: _AllowPlainQrl<P[K]>;
-};
-
 // @public (undocumented)
 export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
 
@@ -771,7 +759,7 @@ export interface OutputHTMLAttributes<T extends Element> extends Attrs<'output',
 export interface ParamHTMLAttributes<T extends Element> extends Attrs<'base', T, HTMLParamElement> {
 }
 
-// @alpha
+// @beta
 export const PrefetchGraph: (opts?: {
     base?: string;
     manifestHash?: string;
@@ -779,7 +767,7 @@ export const PrefetchGraph: (opts?: {
     nonce?: string;
 }) => JSXNode_2<string>;
 
-// @alpha
+// @beta
 export const PrefetchServiceWorker: (opts: {
     base?: string;
     scope?: string;
@@ -793,19 +781,8 @@ export const PrefetchServiceWorker: (opts: {
 export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progress', T> {
 }
 
-// @public @deprecated (undocumented)
-export type PropFnInterface<ARGS extends any[], RET> = {
-    __qwik_serializable__?: any;
-    (...args: ARGS): Promise<RET>;
-};
-
 // @public
 export type PropFunction<T> = QRL<T>;
-
-// @public @deprecated (undocumented)
-export type PropFunctionProps<PROPS extends Record<any, any>> = {
-    [K in keyof PROPS]: PROPS[K] extends undefined ? PROPS[K] : PROPS[K] extends ((...args: infer ARGS) => infer RET) | undefined ? PropFnInterface<ARGS, Awaited<RET>> : PROPS[K];
-};
 
 // Warning: (ae-forgotten-export) The symbol "IsAny" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ObjectProps" needs to be exported by the entry point index.d.ts
@@ -813,8 +790,8 @@ export type PropFunctionProps<PROPS extends Record<any, any>> = {
 // @public
 export type PropsOf<COMP> = COMP extends string ? COMP extends keyof QwikIntrinsicElements ? QwikIntrinsicElements[COMP] : QwikIntrinsicElements['span'] : NonNullable<COMP> extends never ? never : COMP extends FunctionComponent<infer PROPS> ? PROPS extends Record<any, infer V> ? IsAny<V> extends true ? never : ObjectProps<PROPS> : COMP extends Component<infer OrigProps> ? ObjectProps<OrigProps> : PROPS : never;
 
+// Warning: (ae-forgotten-export) The symbol "_Only$" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ComponentChildren" needs to be exported by the entry point index.d.ts
-// Warning: (ae-incompatible-release-tags) The symbol "PublicProps" is marked as @public, but its signature references "_Only$" which is marked as @internal
 //
 // @public
 export type PublicProps<PROPS> = (PROPS extends Record<any, any> ? Omit<PROPS, `${string}$`> & _Only$<PROPS> : unknown extends PROPS ? {} : PROPS) & ComponentBaseProps & ComponentChildren<PROPS>;
@@ -849,10 +826,10 @@ export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: st
 // @internal (undocumented)
 export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
-// @beta
+// @public
 export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[] | EventHandler<EV, EL>;
 
-// @alpha
+// @internal
 export const _qrlSync: <TYPE extends Function>(fn: TYPE, serializedFn?: string) => SyncQRL<TYPE>;
 
 // @public (undocumented)
@@ -1808,10 +1785,10 @@ export interface SVGAttributes<T extends Element = Element> extends AriaAttribut
 export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T> {
 }
 
-// @alpha
+// @public
 export const sync$: <T extends Function>(fn: T) => SyncQRL<T>;
 
-// @alpha (undocumented)
+// @public (undocumented)
 export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE> {
     // (undocumented)
     __brand__SyncQRL__: TYPE;
@@ -1890,7 +1867,9 @@ export const untrack: <T>(fn: () => T) => T;
 // @public
 export const useComputed$: <T>(qrl: ComputedFn<T>) => T extends Promise<any> ? never : ReadonlySignal<T>;
 
-// @public (undocumented)
+// Warning: (ae-internal-missing-underscore) The name "useComputedQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
 export const useComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => T extends Promise<any> ? never : ReadonlySignal<T>;
 
 // @public
@@ -1929,7 +1908,9 @@ export const useOnWindow: <T extends KnownEventNames>(event: T | T[], eventQrl: 
 // @public
 export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => ResourceReturn<T>;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "useResourceQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
 export const useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) => ResourceReturn<T>;
 
 // @public (undocumented)
@@ -1963,7 +1944,9 @@ export interface UseStoreOptions {
 // @public
 export const useStyles$: (qrl: string) => UseStyles;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "useStylesQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
 export const useStylesQrl: (styles: QRL<string>) => UseStyles;
 
 // @public
@@ -1975,7 +1958,9 @@ export interface UseStylesScoped {
     scopeId: string;
 }
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "useStylesScopedQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
 export const useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
 
 // @public
@@ -1986,13 +1971,17 @@ export interface UseTaskOptions {
     eagerness?: EagernessOptions;
 }
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "useTaskQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
 export const useTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void;
 
 // @public
 export const useVisibleTask$: (qrl: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "useVisibleTaskQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
 export const useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
 
 // @public
@@ -2129,9 +2118,7 @@ export interface WebViewHTMLAttributes<T extends Element> extends HTMLAttributes
     webpreferences?: string | undefined;
 }
 
-// Warning: (ae-internal-missing-underscore) The name "withLocale" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
+// @public
 export function withLocale<T>(locale: string, fn: () => T): T;
 
 // @internal

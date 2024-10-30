@@ -17,7 +17,7 @@ export function qwikTypes(): Plugin {
 /**
  * Regenerates the route types for the given project.
  *
- * @alpha
+ * @beta
  * @experimental
  */
 

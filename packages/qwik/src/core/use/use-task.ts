@@ -1,6 +1,6 @@
 import { newInvokeContext, invoke, waitAndRun, untrack, useInvokeContext } from './use-core';
-import { logError, logErrorAndStop } from '../util/log';
-import { delay, safeCall, maybeThen } from '../util/promises';
+import { logError, logErrorAndStop, logOnceWarn } from '../util/log';
+import { delay, safeCall, maybeThen, isPromise } from '../util/promises';
 import { isFunction, isObject, type ValueOrPromise } from '../util/types';
 import { isServerPlatform } from '../platform/platform';
 import { implicit$FirstArg } from '../util/implicit_dollar';
@@ -332,7 +332,21 @@ export const useComputedQrl = <T>(qrl: QRL<ComputedFn<T>>): Signal<Awaited<T>> =
 };
 
 /**
- * Hook that returns a read-only signal that updates when signals used in the `ComputedFn` change.
+ * Returns a computed signal which is calculated from the given function. A computed signal is a
+ * signal which is calculated from other signals. When the signals change, the computed signal is
+ * recalculated, and if the result changed, all tasks which are tracking the signal will be re-run
+ * and all components that read the signal will be re-rendered.
+ *
+ * The function must be synchronous and must not have any side effects.
+ *
+ * Async functions are deprecated because:
+ *
+ * - When calculating the first time, it will see it's a promise and it will restart the render
+ *   function.
+ * - Qwik can't track used signals after the first await, which leads to subtle bugs.
+ * - Both `useTask$` and `useResource$` are available, without these problems.
+ *
+ * In v2, async functions won't work.
  *
  * @public
  */
@@ -732,19 +746,31 @@ export const runComputed = (
     subsManager.$clearSub$(task);
   }) as ComputedFn<unknown>;
 
-  return safeCall(
-    taskFn,
-    (returnValue) =>
-      untrack(() => {
-        const signal = task.$state$! as SignalInternal<unknown>;
-        signal[QObjectSignalFlags] &= ~SIGNAL_UNASSIGNED;
-        signal.untrackedValue = returnValue;
-        signal[QObjectManagerSymbol].$notifySubs$();
-      }),
-    (reason) => {
-      handleError(reason, hostElement, rCtx);
+  const ok = (returnValue: any) => {
+    untrack(() => {
+      const signal = task.$state$! as SignalInternal<unknown>;
+      signal[QObjectSignalFlags] &= ~SIGNAL_UNASSIGNED;
+      signal.untrackedValue = returnValue;
+      signal[QObjectManagerSymbol].$notifySubs$();
+    });
+  };
+  const fail = (reason: unknown) => {
+    handleError(reason, hostElement, rCtx);
+  };
+  try {
+    const result = taskFn();
+    if (isPromise(result)) {
+      const stack = new Error(
+        'useComputed$: Async functions in computed tasks are deprecated and will stop working in v2. Use useTask$ or useResource$ instead.'
+      ).stack;
+      logOnceWarn(stack);
+      return result.then(ok, fail);
+    } else {
+      ok(result);
     }
-  );
+  } catch (reason) {
+    fail(reason);
+  }
 };
 
 export const cleanupTask = (task: SubscriberEffect) => {

@@ -159,11 +159,6 @@
   "peerDependencies": {
     "vite": "^5"
   },
-  "peerDependenciesMeta": {
-    "vite": {
-      "optional": true
-    }
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/QwikDev/qwik.git",

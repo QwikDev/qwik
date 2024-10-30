@@ -19,15 +19,15 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
       if (!importer) {
         return id;
       }
-      if (
-        id === '@qwik.dev/core' ||
-        id === '@qwik.dev/core/jsx-runtime' ||
-        id === '@qwik.dev/core/jsx-dev-runtime'
-      ) {
-        return '\0qwikCore';
-      }
-      if (id === '@builder.io/qwik/server' || id === '@qwik.dev/core/server') {
-        return '\0qwikServer';
+      const match = id.match(/(@builder\.io\/qwik|@qwik\.dev\/core)(.*)/);
+      if (match) {
+        const pkgPath = match[2];
+        if (pkgPath === '/server') {
+          return '\0qwikServer';
+        }
+        if (/^(|jsx(-dev)?-runtime)$/.test(pkgPath)) {
+          return '\0qwikCore';
+        }
       }
       // Simple relative file resolution
       if (id.startsWith('./')) {

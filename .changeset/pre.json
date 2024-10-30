@@ -12,6 +12,6 @@
     "@qwik.dev/react": "2.0.0-0",
     "supabase-auth-helpers-qwik": "0.0.3"
   },
-  "branch": "main",
+  "branch": "build/v2",
   "changesets": []
 }

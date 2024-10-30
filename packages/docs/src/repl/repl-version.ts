@@ -98,7 +98,7 @@ export const getReplVersion = async (version: string | undefined, offline: boole
   });
 
   versions.unshift('bundled');
-  if (!hasVersion || !version) {
+  if ((!offline && !hasVersion) || !version) {
     version = 'bundled';
   }
 

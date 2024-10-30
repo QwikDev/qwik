@@ -75,7 +75,7 @@ jobs:
       - name: Set Dist Tag
         id: set_dist_tag
         if: |
-          github.ref == 'refs/heads/main' && (
+          github.ref == 'refs/heads/build/v2' && (
             github.event_name == 'push' ||
             github.event_name == 'workflow_dispatch'
           )
@@ -792,7 +792,7 @@ jobs:
     if: |
       always() && 
       github.repository == 'QwikDev/qwik' && (
-        github.ref == 'refs/heads/main' ||
+        github.ref == 'refs/heads/build/v2' ||
         needs.test-unit.result == 'success'
       )
 
@@ -844,7 +844,7 @@ jobs:
       # Do this before other release steps to avoid
       # publishing temporary files
       - name: Create Release Pull Request or Publish to npm
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/build/v2'
         id: changesets
         uses: changesets/action@v1
         with:

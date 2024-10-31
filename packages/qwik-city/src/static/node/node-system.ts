@@ -99,7 +99,7 @@ export const access = async (path: string) => {
   try {
     await fs.promises.access(path);
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 };

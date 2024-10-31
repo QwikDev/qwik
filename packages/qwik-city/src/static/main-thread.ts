@@ -112,7 +112,7 @@ export async function mainThread(sys: System) {
           if (result.error) {
             const err = new Error(result.error.message);
             err.stack = result.error.stack;
-            log.error(`\n${bold(red('Error during SSG'))}`);
+            log.error(`\n${bold(red(`!!! ${result.pathname}: Error during SSG`))}`);
             log.error(red(err.message));
             log.error(`  Pathname: ${magenta(staticRoute.pathname)}`);
             Object.assign(formatError(err), {

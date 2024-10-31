@@ -53,7 +53,7 @@ bun create qwik@latest
 
 - Ping us at [@QwikDev](https://twitter.com/QwikDev)
 - Join our [Discord](https://qwik.dev/chat) community
-- Join all the [other community groups](https://qwikcommunity.com)
+- Join all the [other community groups](https://qwik.dev/ecosystem/#community)
 
 ## Development
 

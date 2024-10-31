@@ -1606,7 +1606,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[qwikRouterConfig](./router.serverrenderoptions.qwikrouterconfig.md)
+[qwikRouterConfig?](./router.serverrenderoptions.qwikrouterconfig.md)
 
 </td><td>
 
@@ -1615,6 +1615,8 @@ _(Optional)_
 QwikRouterConfig
 
 </td><td>
+
+_(Optional)_
 
 </td></tr>
 <tr><td>

@@ -50,7 +50,7 @@ export interface ServerRenderOptions extends RenderOptions {
   /** @deprecated Use `QwikRouterConfig` instead. Will be removed in V3 */
   qwikCityPlan?: QwikCityPlan;
 
-  qwikRouterConfig: QwikRouterConfig;
+  qwikRouterConfig?: QwikRouterConfig;
   /**
    * Protection against cross-site request forgery (CSRF) attacks.
    *

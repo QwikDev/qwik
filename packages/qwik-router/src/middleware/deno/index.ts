@@ -29,6 +29,12 @@ export interface ServeHandlerInfo {
 
 /** @public */
 export function createQwikRouter(opts: QwikRouterDenoOptions) {
+  if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
+    console.warn('qwikCityPlan is deprecated. Use qwikRouterConfig instead.');
+    opts.qwikRouterConfig = opts.qwikCityPlan;
+  } else if (!opts.qwikRouterConfig) {
+    throw new Error('qwikRouterConfig is required.');
+  }
   const qwikSerializer: QwikSerializer = {
     _deserialize,
     _serialize,
@@ -126,7 +132,7 @@ export function createQwikRouter(opts: QwikRouterDenoOptions) {
     let filePath: string;
     if (fileName.includes('.')) {
       filePath = join(staticFolder, pathname);
-    } else if (opts.qwikRouterConfig.trailingSlash) {
+    } else if (opts.qwikRouterConfig!.trailingSlash) {
       filePath = join(staticFolder, pathname + 'index.html');
     } else {
       filePath = join(staticFolder, pathname, 'index.html');

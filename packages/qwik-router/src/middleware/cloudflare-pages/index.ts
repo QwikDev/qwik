@@ -16,6 +16,12 @@ import {
 
 /** @public */
 export function createQwikRouter(opts: QwikRouterCloudflarePagesOptions) {
+  if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
+    console.warn('qwikCityPlan is deprecated. Use qwikRouterConfig instead.');
+    opts.qwikRouterConfig = opts.qwikCityPlan;
+  } else if (!opts.qwikRouterConfig) {
+    throw new Error('qwikRouterConfig is required.');
+  }
   try {
     // https://developers.cloudflare.com/workers/configuration/compatibility-dates/#streams-constructors
     // this will throw if CF compatibility_date < 2022-11-30

@@ -50,6 +50,12 @@ interface AzureCookie {
 
 /** @public */
 export function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction {
+  if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
+    console.warn('qwikCityPlan is deprecated. Use qwikRouterConfig instead.');
+    opts.qwikRouterConfig = opts.qwikCityPlan;
+  } else if (!opts.qwikRouterConfig) {
+    throw new Error('qwikRouterConfig is required.');
+  }
   const qwikSerializer: QwikSerializer = {
     _deserialize,
     _serialize,

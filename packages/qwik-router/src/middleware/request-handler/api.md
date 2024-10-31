@@ -191,7 +191,7 @@ export interface ServerRenderOptions extends RenderOptions {
     // @deprecated (undocumented)
     qwikCityPlan?: QwikCityPlan;
     // (undocumented)
-    qwikRouterConfig: QwikRouterConfig;
+    qwikRouterConfig?: QwikRouterConfig;
     // (undocumented)
     render: Render;
 }

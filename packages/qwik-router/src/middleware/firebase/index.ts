@@ -4,6 +4,12 @@ import type { ServerRenderOptions } from '@qwik.dev/router/middleware/request-ha
 
 /** @public */
 export function createQwikRouter(opts: QwikRouterFirebaseOptions) {
+  if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
+    console.warn('qwikCityPlan is deprecated. Use qwikRouterConfig instead.');
+    opts.qwikRouterConfig = opts.qwikCityPlan;
+  } else if (!opts.qwikRouterConfig) {
+    throw new Error('qwikRouterConfig is required.');
+  }
   const { staticFile, notFound, router } = createQwikRouterNode({
     render: opts.render,
     manifest: opts.manifest,

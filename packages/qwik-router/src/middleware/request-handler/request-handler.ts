@@ -16,6 +16,10 @@ export async function requestHandler<T = unknown>(
   qwikSerializer: QwikSerializer
 ): Promise<QwikRouterRun<T> | null> {
   const { render, qwikRouterConfig, manifest, checkOrigin } = opts;
+  if (!qwikRouterConfig) {
+    throw new Error('qwikRouterConfig is required.');
+  }
+
   const pathname = serverRequestEv.url.pathname;
   const matchPathname = getRouteMatchPathname(pathname, qwikRouterConfig.trailingSlash);
   const routeAndHandlers = await loadRequestHandlers(

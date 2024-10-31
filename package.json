@@ -12,7 +12,8 @@
         {
           "label": "Be lenient in vite versions for prod. v4 is broken, v5 is good",
           "dependencyTypes": [
-            "prod"
+            "prod",
+            "peer"
           ],
           "dependencies": [
             "vite"
@@ -230,8 +231,9 @@
     "preinstall": "npx only-allow pnpm",
     "prepare": "simple-git-hooks",
     "prettier.fix": "prettier --cache --write .",
-    "qwik-save-artifacts": "tsx --require ./scripts/runBefore.ts ./scripts/qwik-save-artifacts.ts",
+    "qwik-push-build-repos": "tsx --require ./scripts/runBefore.ts ./scripts/qwik-push-build-repos.ts",
     "release": "changeset publish",
+    "release.fixup-package-json": "syncpack fix-mismatches --config syncpack-release-conf.json",
     "release.pkg-pr-new": "pnpm dlx pkg-pr-new@^0.0.9 publish --compact --pnpm ./packages/qwik ./packages/qwik-city ./packages/eslint-plugin-qwik ./packages/create-qwik",
     "release.prepare": "pnpm build --prepare-release",
     "serve": "tsx --require ./scripts/runBefore.ts --inspect --conditions=development starters/dev-server.ts 3300",

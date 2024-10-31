@@ -25,7 +25,11 @@ import {
 import type { BuildContext } from '../types';
 import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
 import { imagePlugin } from './image-jsx';
-import type { QwikRouterPluginApi, QwikRouterVitePluginOptions } from './types';
+import type {
+  QwikCityVitePluginOptions,
+  QwikRouterPluginApi,
+  QwikRouterVitePluginOptions,
+} from './types';
 import { validatePlugin } from './validate-plugin';
 
 const QWIK_SERIALIZER = '@qwik-serializer';
@@ -38,7 +42,7 @@ const QWIK_ROUTER_SW_REGISTER = '@qwik-router-sw-register';
  * @deprecated Use `qwikRouter` instead. Will be removed in V3
  * @public
  */
-export function qwikCity(userOpts?: QwikRouterVitePluginOptions): PluginOption[] {
+export function qwikCity(userOpts?: QwikCityVitePluginOptions): PluginOption[] {
   return qwikRouter(userOpts);
 }
 

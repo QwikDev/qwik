@@ -19,7 +19,7 @@ export function extendConfig(baseConfigExport: UserConfigExport, serverConfigExp
 export type MdxOptions = CompileOptions;
 
 // @public @deprecated (undocumented)
-export function qwikCity(userOpts?: QwikRouterVitePluginOptions): PluginOption[];
+export function qwikCity(userOpts?: QwikCityVitePluginOptions): PluginOption[];
 
 // @public @deprecated (undocumented)
 export type QwikCityPlugin = QwikRouterPlugin;

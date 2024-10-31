@@ -16,12 +16,20 @@ import { computeOrigin, fromNodeHttp, getUrl } from './http';
 // @qwik.dev/router/middleware/node
 
 /** @public */
-export function createQwikRouter(opts: QwikRouterNodeRequestOptions) {
+export function createQwikRouter(opts: QwikRouterNodeRequestOptions | QwikCityNodeRequestOptions) {
+  if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
+    console.warn('qwikCityPlan is deprecated. Use qwikRouterConfig instead.');
+    opts.qwikRouterConfig = opts.qwikCityPlan;
+  } else if (!opts.qwikRouterConfig) {
+    throw new Error('qwikRouterConfig is required.');
+  }
+
   const qwikSerializer: QwikSerializer = {
     _deserialize,
     _serialize,
     _verifySerializable,
   };
+
   if (opts.manifest) {
     setServerPlatform(opts.manifest);
   }
@@ -100,7 +108,7 @@ export function createQwikRouter(opts: QwikRouterNodeRequestOptions) {
         let filePath: string;
         if (basename(pathname).includes('.')) {
           filePath = join(staticFolder, pathname);
-        } else if (opts.qwikRouterConfig.trailingSlash) {
+        } else if (opts.qwikRouterConfig!.trailingSlash) {
           filePath = join(staticFolder, pathname + 'index.html');
         } else {
           filePath = join(staticFolder, pathname, 'index.html');

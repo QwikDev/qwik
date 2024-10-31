@@ -2,4 +2,4 @@
 'create-qwik': patch
 ---
 
-migration from tsm to ts node
+INFRA: migration from tsm to tsx

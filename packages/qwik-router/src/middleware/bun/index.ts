@@ -18,6 +18,12 @@ import { MIME_TYPES } from '../request-handler/mime-types';
 
 /** @public */
 export function createQwikRouter(opts: QwikRouterBunOptions) {
+  if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
+    console.warn('qwikCityPlan is deprecated. Use qwikRouterConfig instead.');
+    opts.qwikRouterConfig = opts.qwikCityPlan;
+  } else if (!opts.qwikRouterConfig) {
+    throw new Error('qwikRouterConfig is required.');
+  }
   // @qwik.dev/router/middleware/bun
   // still missing from bun: last check was bun version 1.1.8
   globalThis.TextEncoderStream ||= _TextEncoderStream_polyfill;
@@ -123,7 +129,7 @@ export function createQwikRouter(opts: QwikRouterBunOptions) {
     let filePath: string;
     if (fileName.includes('.')) {
       filePath = join(staticFolder, pathname);
-    } else if (opts.qwikRouterConfig.trailingSlash) {
+    } else if (opts.qwikRouterConfig!.trailingSlash) {
       filePath = join(staticFolder, pathname + 'index.html');
     } else {
       filePath = join(staticFolder, pathname, 'index.html');

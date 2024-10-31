@@ -19,7 +19,9 @@ createQwikCity: typeof createQwikRouter;
 ## createQwikRouter
 
 ```typescript
-export declare function createQwikRouter(opts: QwikRouterNodeRequestOptions): {
+export declare function createQwikRouter(
+  opts: QwikRouterNodeRequestOptions | QwikCityNodeRequestOptions,
+): {
   router: (
     req: IncomingMessage | Http2ServerRequest,
     res: ServerResponse,
@@ -57,7 +59,7 @@ opts
 
 </td><td>
 
-[QwikRouterNodeRequestOptions](#qwikrouternoderequestoptions)
+[QwikRouterNodeRequestOptions](#qwikrouternoderequestoptions) \| [QwikCityNodeRequestOptions](#qwikcitynoderequestoptions)
 
 </td><td>
 

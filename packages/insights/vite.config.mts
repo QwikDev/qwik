@@ -10,7 +10,9 @@ export default defineConfig(async () => {
     plugins: [
       macroPlugin({ preset: 'pandacss' }),
       qwikRouter(),
-      qwikVite(),
+      qwikVite({
+        experimental: ['insights'],
+      }),
       tsconfigPaths({ projects: ['.'] }),
       qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),
     ],

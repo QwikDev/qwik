@@ -25,9 +25,10 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
         if (pkgPath === '/server') {
           return '\0qwikServer';
         }
-        if (/^(|jsx(-dev)?-runtime)$/.test(pkgPath)) {
+        if (/^(|\/jsx(-dev)?-runtime)$/.test(pkgPath)) {
           return '\0qwikCore';
         }
+        console.error(`Unknown package ${id}`, match);
       }
       // Simple relative file resolution
       if (id.startsWith('./')) {

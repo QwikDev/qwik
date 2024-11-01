@@ -758,22 +758,24 @@ export const runComputed = (
     handleError(reason, hostElement, rCtx);
   };
   try {
-    const result = taskFn();
-    if (isPromise(result)) {
-      const warningMessage =
-        'useComputed$: Async functions in computed tasks are deprecated and will stop working in v2. Use useTask$ or useResource$ instead.';
-      const stack = new Error(warningMessage).stack;
-      if (!stack) {
-        logOnceWarn(warningMessage);
-      } else {
-        const lessScaryStack = stack.replace(/^Error:\s*/, '');
-        logOnceWarn(lessScaryStack);
-      }
+    return maybeThen(task.$qrl$.$resolveLazy$(containerState.$containerEl$), () => {
+      const result = taskFn();
+      if (isPromise(result)) {
+        const warningMessage =
+          'useComputed$: Async functions in computed tasks are deprecated and will stop working in v2. Use useTask$ or useResource$ instead.';
+        const stack = new Error(warningMessage).stack;
+        if (!stack) {
+          logOnceWarn(warningMessage);
+        } else {
+          const lessScaryStack = stack.replace(/^Error:\s*/, '');
+          logOnceWarn(lessScaryStack);
+        }
 
-      return result.then(ok, fail);
-    } else {
-      ok(result);
-    }
+        return result.then(ok, fail);
+      } else {
+        ok(result);
+      }
+    });
   } catch (reason) {
     fail(reason);
   }

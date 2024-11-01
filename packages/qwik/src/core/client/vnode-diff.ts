@@ -121,7 +121,8 @@ export const vnode_diff = (
    */
   const stack: any[] = [];
 
-  const asyncQueue: Array<VNode | ValueOrPromise<JSXOutput>> = [];
+  const asyncQueue: Array<VNode | ValueOrPromise<JSXOutput> | Promise<JSXOutput | JSXChildren>> =
+    [];
 
   ////////////////////////////////
   //// Traverse state variables
@@ -144,9 +145,9 @@ export const vnode_diff = (
   let vSiblingsIdx = -1;
 
   /// Current set of JSX children.
-  let jsxChildren: any[] = null!;
+  let jsxChildren: JSXChildren[] = null!;
   // Current JSX child.
-  let jsxValue: any = null;
+  let jsxValue: JSXChildren = null;
   let jsxIdx = 0;
   let jsxCount = 0;
 
@@ -197,7 +198,7 @@ export const vnode_diff = (
             expectVirtual(VirtualType.WrappedSignal, null);
             descend(
               trackSignal(
-                () => jsxValue.value,
+                () => (jsxValue as Signal).value,
                 (vNewNode || vCurrent)!,
                 EffectProperty.VNODE,
                 container
@@ -238,7 +239,7 @@ export const vnode_diff = (
               }
             }
           }
-        } else if (jsxValue === SkipRender) {
+        } else if (jsxValue === (SkipRender as JSXChildren)) {
           // do nothing, we are skipping this node
           journal = [];
         } else {
@@ -327,7 +328,7 @@ export const vnode_diff = (
    *   In the above example all nodes are on same level so we don't `descendVNode` even thought there
    *   is an array produced by the `map` function.
    */
-  function descend(children: any, descendVNode: boolean) {
+  function descend(children: JSXChildren, descendVNode: boolean) {
     if (children == null) {
       expectNoChildren();
       return;
@@ -360,7 +361,7 @@ export const vnode_diff = (
     advance();
   }
 
-  function stackPush(children: any, descendVNode: boolean) {
+  function stackPush(children: JSXChildren, descendVNode: boolean) {
     stack.push(jsxChildren, jsxIdx, jsxCount, jsxValue);
     if (descendVNode) {
       stack.push(vParent, vCurrent, vNewNode, vSiblings, vSiblingsIdx);
@@ -449,7 +450,8 @@ export const vnode_diff = (
   }
 
   function expectProjection() {
-    const slotName = jsxValue.key as string;
+    const jsxNode = jsxValue as JSXNode;
+    const slotName = jsxNode.key as string;
     // console.log('expectProjection', JSON.stringify(slotName));
     vCurrent = vnode_getProp<VirtualVNode | null>(
       vParent, // The parent is the component and it should have our portal.
@@ -519,14 +521,15 @@ export const vnode_diff = (
   }
 
   function getSlotNameKey(vHost: VNode | null) {
-    const constProps = jsxValue.constProps;
+    const jsxNode = jsxValue as JSXNode;
+    const constProps = jsxNode.constProps;
     if (constProps && typeof constProps == 'object' && 'name' in constProps) {
       const constValue = constProps.name;
       if (vHost && constValue instanceof WrappedSignal) {
         return trackSignal(() => constValue.value, vHost, EffectProperty.COMPONENT, container);
       }
     }
-    return directGetPropsProxyProp(jsxValue, 'name') || QDefaultSlot;
+    return directGetPropsProxyProp(jsxNode, 'name') || QDefaultSlot;
   }
 
   function drainAsyncQueue(): ValueOrPromise<void> {
@@ -984,8 +987,9 @@ export const vnode_diff = (
   function expectComponent(component: Function) {
     const componentMeta = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
     let host = (vNewNode || vCurrent) as VirtualVNode | null;
+    const jsxNode = jsxValue as JSXNode;
     if (componentMeta) {
-      const jsxProps = jsxValue.props;
+      const jsxProps = jsxNode.props;
       // QComponent
       let shouldRender = false;
       const [componentQRL] = componentMeta;
@@ -993,7 +997,7 @@ export const vnode_diff = (
       const componentHash = componentQRL.$hash$;
       const vNodeComponentHash = getComponentHash(host, container.$getObjectById$);
 
-      const lookupKey = jsxValue.key || componentHash;
+      const lookupKey = jsxNode.key || componentHash;
       const vNodeLookupKey = getKey(host) || vNodeComponentHash;
 
       const lookupKeysAreEqual = lookupKey === vNodeLookupKey;
@@ -1036,9 +1040,9 @@ export const vnode_diff = (
           container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
         }
       }
-      jsxValue.children != null && descendContentToProject(jsxValue.children, host);
+      jsxNode.children != null && descendContentToProject(jsxNode.children, host);
     } else {
-      const lookupKey = jsxValue.key;
+      const lookupKey = jsxNode.key;
       const vNodeLookupKey = getKey(host);
       const lookupKeysAreEqual = lookupKey === vNodeLookupKey;
 
@@ -1072,7 +1076,7 @@ export const vnode_diff = (
           host,
           (componentHost || container.rootVNode) as HostElement,
           component as OnRenderFn<unknown>,
-          jsxValue.props
+          jsxNode.props
         );
 
         asyncQueue.push(jsxOutput, host);
@@ -1094,10 +1098,11 @@ export const vnode_diff = (
       (vNewNode = vnode_newVirtual()),
       vCurrent && getInsertBefore()
     );
+    const jsxNode = jsxValue as JSXNode;
     isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Component);
     container.setHostProp(vNewNode, OnRenderProp, componentQRL);
     container.setHostProp(vNewNode, ELEMENT_PROPS, jsxProps);
-    container.setHostProp(vNewNode, ELEMENT_KEY, jsxValue.key);
+    container.setHostProp(vNewNode, ELEMENT_KEY, jsxNode.key);
   }
 
   function insertNewInlineComponent() {
@@ -1107,10 +1112,11 @@ export const vnode_diff = (
       (vNewNode = vnode_newVirtual()),
       vCurrent && getInsertBefore()
     );
+    const jsxNode = jsxValue as JSXNode;
     isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.InlineComponent);
-    vnode_setProp(vNewNode, ELEMENT_PROPS, jsxValue.props);
-    if (jsxValue.key) {
-      vnode_setProp(vNewNode, ELEMENT_KEY, jsxValue.key);
+    vnode_setProp(vNewNode, ELEMENT_PROPS, jsxNode.props);
+    if (jsxNode.key) {
+      vnode_setProp(vNewNode, ELEMENT_KEY, jsxNode.key);
     }
   }
 

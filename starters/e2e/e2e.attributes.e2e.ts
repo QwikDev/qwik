@@ -53,7 +53,7 @@ test.describe("attributes", () => {
       const renders = page.locator("#renders");
 
       await expect(inputCopy).toHaveJSProperty("value", "");
-      await input.type("Hello");
+      await input.pressSequentially("Hello");
       await expect(input).toHaveJSProperty("value", "Hello");
       await expect(inputCopy).toHaveJSProperty("value", "Hello");
       await expect(inputValue).toHaveText("Hello");
@@ -64,7 +64,7 @@ test.describe("attributes", () => {
       await expect(inputValue).toHaveText("Hello");
       await expect(renders).toHaveText("2");
 
-      await input.type("Bye");
+      await input.pressSequentially("Bye");
       await expect(inputCopy).toHaveJSProperty("value", "ByeHello");
       await expect(inputValue).toHaveText("ByeHello");
       await expect(renders).toHaveText("2");

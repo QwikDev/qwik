@@ -10,10 +10,17 @@ import { Slot, _getDomContainer, componentQrl, render, type OnRenderFn } from '@
 import { expect } from 'vitest';
 import {
   vnode_getAttr,
+  vnode_getElementName,
   vnode_getFirstChild,
+  vnode_getNextSibling,
   vnode_getParent,
   vnode_getVNodeForChildNode,
+  vnode_insertBefore,
+  vnode_isElementVNode,
+  vnode_isVirtualVNode,
   vnode_locate,
+  vnode_newVirtual,
+  vnode_setProp,
   vnode_toString,
 } from '../core/client/vnode';
 import { ERROR_CONTEXT } from '../core/shared/error/error-handling';
@@ -37,6 +44,8 @@ import { Q_FUNCS_PREFIX, renderToString } from '../server/ssr-render';
 import { createDocument } from './document';
 import { getTestPlatform } from './platform';
 import './vdom-diff.unit-util';
+import type { VNode } from '../core/client/types';
+import { DEBUG_TYPE, VirtualType } from '../server/qwik-copy';
 
 /** @public */
 export async function domRender(
@@ -145,7 +154,51 @@ export async function ssrRenderToDom(
   const containerVNode = opts.raw
     ? container.rootVNode
     : vnode_getVNodeForChildNode(container.rootVNode, document.body);
-  return { container, document, vNode: vnode_getFirstChild(containerVNode)!, getStyles };
+
+  const firstContainerChild = vnode_getFirstChild(containerVNode);
+
+  let vNode: VNode | null = null;
+  if (!firstContainerChild) {
+    // No children, so we can't get the first child
+    vNode = null;
+  } else if (!vnode_isVirtualVNode(firstContainerChild)) {
+    // First child is an element or a text, so we can't just use it as the vNode, because it might have siblings.
+    // We need to wrap it in a fragment.
+
+    // Create a fragment
+    const fragment = vnode_newVirtual();
+    vnode_setProp(fragment, DEBUG_TYPE, VirtualType.Fragment);
+
+    const childrenToMove = [];
+
+    // Add all children to the fragment up to the script tag
+    let child: VNode | null = firstContainerChild;
+    while (child) {
+      // Stop when we reach the state script tag
+      if (
+        vnode_isElementVNode(child) &&
+        ((vnode_getElementName(child) === 'script' &&
+          vnode_getAttr(child, 'type') === 'qwik/state') ||
+          vnode_getElementName(child) === 'q:template')
+      ) {
+        break;
+      }
+      childrenToMove.push(child);
+      child = vnode_getNextSibling(child);
+    }
+
+    // Set the container vnode as a parent of the fragment
+    vnode_insertBefore(container.$journal$, containerVNode, fragment, null);
+    // Set the fragment as a parent of the children
+    for (const child of childrenToMove) {
+      vnode_insertBefore(container.$journal$, fragment, child, null);
+    }
+    vNode = fragment;
+  } else {
+    vNode = firstContainerChild;
+  }
+
+  return { container, document, vNode, getStyles };
 }
 
 /** @public */

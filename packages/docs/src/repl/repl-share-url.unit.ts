@@ -6,6 +6,7 @@ import {
   dictionary,
   filesToStr,
   parseCompressedFiles,
+  parsePlaygroundShareUrl,
   strToFiles,
 } from './repl-share-url';
 
@@ -101,4 +102,48 @@ test('dictionary is unchanged', () => {
     };
     "
   `);
+});
+
+test('previous URLs still work', () => {
+  expect(parsePlaygroundShareUrl('f=G000o4mG5EQDAA')).toHaveProperty(
+    'files',
+    // DO NOT UPDATE THIS TEST - all these URLs must work forever
+    expect.arrayContaining([
+      expect.objectContaining({
+        path: '/app.tsx',
+        code: "import { component$ } from '@builder.io/qwik';\n\nexport default component$(() => {\n  return <p>Hello Qwik</p>;\n});\n",
+      }),
+    ])
+  );
+  expect(
+    parsePlaygroundShareUrl(
+      'f=Q0o0xgaW2BKNDrDkqNCB15QUpyFIgKTl51uBeGA%2BKO%2BBIwaW0W1A6SI%2FDWQzyKm1wKBDVwyU0lAqUNJRqE4GFc3AqLNSCnENDlGq1QTpAGJ43a5RDa6oa0FOgBsDbxkAXQIMCqAWMIktXqqBSvRgNoNMRg7C0XQ%2FJNM9AA'
+    )
+  ).toHaveProperty(
+    'files',
+    // DO NOT UPDATE THIS TEST - all these URLs must work forever
+    expect.arrayContaining([
+      expect.objectContaining({
+        path: '/app.tsx',
+        code: `import { component$, jsx, useTask$ } from '@builder.io/qwik';
+
+export default component$(() => {
+  const foo:{
+    contents: ReturnType<typeof jsx>
+  } = {
+    contents: jsx("p", {children:"TEST"})
+  }
+  useTask$(({track}) =>{
+    console.log(foo);
+  });
+  return (
+    <>
+    {foo.contents}
+    </>
+  );
+});
+`,
+      }),
+    ])
+  );
 });

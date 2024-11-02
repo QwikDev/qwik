@@ -600,7 +600,7 @@ describe.each([
         <button>
           {'"<script></script>"'}
           {`&<'"`}
-          <Signal>{0}</Signal>
+          <Signal ssr-required>{0}</Signal>
         </button>
       </Component>
     );
@@ -615,7 +615,7 @@ describe.each([
         <button>
           {'"<script></script>"'}
           {`&<'"`}
-          <Signal>{1}</Signal>
+          <Signal ssr-required>{1}</Signal>
         </button>
       </Component>
     );
@@ -711,7 +711,7 @@ describe.each([
                 {'Child '}
                 {'1'}
                 {', active: '}
-                <Signal>{'false'}</Signal>
+                <Signal ssr-required>{'false'}</Signal>
               </div>
             </Component>
             <Component>
@@ -719,7 +719,7 @@ describe.each([
                 {'Child '}
                 {'2'}
                 {', active: '}
-                <Signal>{'true'}</Signal>
+                <Signal ssr-required>{'true'}</Signal>
               </div>
             </Component>
           </Fragment>
@@ -738,7 +738,7 @@ describe.each([
                 {'Child '}
                 {'1'}
                 {', active: '}
-                <Signal>{'true'}</Signal>
+                <Signal ssr-required>{'true'}</Signal>
               </div>
             </Component>
             <Component>
@@ -746,7 +746,7 @@ describe.each([
                 {'Child '}
                 {'2'}
                 {', active: '}
-                <Signal>{'false'}</Signal>
+                <Signal ssr-required>{'false'}</Signal>
               </div>
             </Component>
           </Fragment>
@@ -806,7 +806,7 @@ describe.each([
     const { vNode, document } = await render(<SecretForm />, { debug });
     expect(vNode).toMatchVDOM(
       <Component>
-        <Fragment>
+        <Fragment ssr-required>
           {''}
           {''}
           <button></button>
@@ -816,12 +816,12 @@ describe.each([
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
       <Component>
-        <Fragment>
+        <Fragment ssr-required>
           <p>
-            <Signal>{'foo'}</Signal>
+            <Signal ssr-required>{'foo'}</Signal>
           </p>
           <p>
-            <Signal>{'bar'}</Signal>
+            <Signal ssr-required>{'bar'}</Signal>
           </p>
           <button></button>
         </Fragment>
@@ -949,7 +949,8 @@ describe.each([
           <Component>
             <div id="props-destructuring">
               <span aria-hidden="true">
-                {'Hello'} <Signal>0</Signal>
+                {'Hello '}
+                <Signal ssr-required>0</Signal>
               </span>
               <div class="renders">1</div>
             </div>
@@ -967,7 +968,8 @@ describe.each([
           <Component>
             <div id="props-destructuring">
               <span aria-hidden="true">
-                {'Hello'} <Signal>1</Signal>
+                {'Hello '}
+                <Signal ssr-required>1</Signal>
               </span>
               <div class="renders">1</div>
             </div>
@@ -1359,6 +1361,250 @@ describe.each([
     );
   });
 
+  it('should not reuse old element with the same element name and different const props', async () => {
+    const Cmp = component$(() => {
+      const toggle = useSignal(false);
+      return (
+        <div>
+          <button onClick$={() => (toggle.value = !toggle.value)}>Toggle</button>
+          {toggle.value ? (
+            <>
+              <input id="input1" />
+            </>
+          ) : (
+            <>
+              <input id="input2" />
+            </>
+          )}
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <button>Toggle</button>
+          <Fragment>
+            <input id="input2"></input>
+          </Fragment>
+        </div>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <button>Toggle</button>
+          <Fragment>
+            <input id="input1"></input>
+          </Fragment>
+        </div>
+      </Component>
+    );
+  });
+
+  it('should not rerender elements inside dom element and fragment with different namespace', async () => {
+    const AttributesChild = component$(() => {
+      const input = useSignal('');
+      const state = useStore({
+        stuff: '',
+      });
+
+      // rerender component
+      state.stuff;
+      return (
+        <>
+          <button
+            onClick$={() => {
+              state.stuff += '0';
+            }}
+          >
+            Add stuff (caused render)
+          </button>
+          <div>
+            <>
+              <input
+                id="input1"
+                onInput$={(_, el) => {
+                  input.value = el.value;
+                }}
+              />
+              <svg />
+            </>
+          </div>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<AttributesChild />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>Add stuff (caused render)</button>
+          <div>
+            <Fragment>
+              <input id="input1"></input>
+              <svg />
+            </Fragment>
+          </div>
+        </Fragment>
+      </Component>
+    );
+
+    const input = document.querySelector('input#input1') as HTMLInputElement;
+    input.value = 'test1';
+    await trigger(document.body, input, 'input#input1');
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>Add stuff (caused render)</button>
+          <div>
+            <Fragment ssr-required>
+              <input id="input1" value="test1"></input>
+              <svg />
+            </Fragment>
+          </div>
+        </Fragment>
+      </Component>
+    );
+
+    expect((document.querySelector('input#input1') as HTMLInputElement).value).toBe('test1');
+  });
+
+  it('should not rerender elements inside dom element and fragment', async () => {
+    const AttributesChild = component$(() => {
+      const input = useSignal('');
+      const state = useStore({
+        stuff: '',
+      });
+
+      // rerender component
+      state.stuff;
+      return (
+        <>
+          <button
+            onClick$={() => {
+              state.stuff += '0';
+            }}
+          >
+            Add stuff (caused render)
+          </button>
+          <div>
+            <>
+              <input
+                id="input1"
+                onInput$={(_, el) => {
+                  input.value = el.value;
+                }}
+              />
+              <>
+                <input
+                  id="input2"
+                  onInput$={(_, el) => {
+                    input.value = el.value;
+                  }}
+                />
+              </>
+              <input
+                id="input3"
+                onInput$={(_, el) => {
+                  input.value = el.value;
+                }}
+              />
+              <input
+                id="input4"
+                onInput$={(_, el) => {
+                  input.value = el.value;
+                }}
+              />
+            </>
+            <input
+              id="input5"
+              onInput$={(_, el) => {
+                input.value = el.value;
+              }}
+            />
+          </div>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<AttributesChild />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>Add stuff (caused render)</button>
+          <div>
+            <Fragment>
+              <input id="input1"></input>
+              <Fragment>
+                <input id="input2"></input>
+              </Fragment>
+              <input id="input3"></input>
+              <input id="input4"></input>
+            </Fragment>
+            <input id="input5"></input>
+          </div>
+        </Fragment>
+      </Component>
+    );
+
+    const input = document.querySelector('input#input1') as HTMLInputElement;
+    input.value = 'test1';
+    await trigger(document.body, input, 'input#input1');
+
+    const input2 = document.querySelector('input#input2') as HTMLInputElement;
+    input2.value = 'test2';
+    await trigger(document.body, input2, 'input#input2');
+
+    const input3 = document.querySelector('input#input3') as HTMLInputElement;
+    input3.value = 'test3';
+    await trigger(document.body, input3, 'input#input3');
+
+    const input4 = document.querySelector('input#input4') as HTMLInputElement;
+    input4.value = 'test4';
+    await trigger(document.body, input4, 'input#input4');
+
+    const input5 = document.querySelector('input#input5') as HTMLInputElement;
+    input5.value = 'test5';
+    await trigger(document.body, input4, 'input#input5');
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>Add stuff (caused render)</button>
+          <div>
+            <Fragment ssr-required>
+              <input id="input1" value="test1"></input>
+              <Fragment>
+                <input id="input2" value="test2"></input>
+              </Fragment>
+              <input id="input3" value="test3"></input>
+              <input id="input4" value="test4"></input>
+            </Fragment>
+            <input id="input5" value="test5"></input>
+          </div>
+        </Fragment>
+      </Component>
+    );
+
+    expect((document.querySelector('input#input1') as HTMLInputElement).value).toBe('test1');
+    expect((document.querySelector('input#input2') as HTMLInputElement).value).toBe('test2');
+    expect((document.querySelector('input#input3') as HTMLInputElement).value).toBe('test3');
+    expect((document.querySelector('input#input4') as HTMLInputElement).value).toBe('test4');
+    expect((document.querySelector('input#input5') as HTMLInputElement).value).toBe('test5');
+  });
+
   describe('regression', () => {
     it('#3643', async () => {
       const Issue3643 = component$(() => {
@@ -1480,26 +1726,26 @@ describe.each([
           <Fragment>
             <Component>
               <div>
-                <Signal>
+                <Signal ssr-required>
                   <span>Hi, this doesn't work...</span>
                 </Signal>
                 <p>
                   {'isShow value: '}
-                  <Signal>{'true'}</Signal>
+                  <Signal ssr-required>{'true'}</Signal>
                 </p>
                 <button id="first">Toggle</button>
               </div>
             </Component>
             <Component>
               <div>
-                <Signal>
+                <Signal ssr-required>
                   <Component>
                     <div>Nested</div>
                   </Component>
                 </Signal>
                 <p>
                   {'isShow value: '}
-                  <Signal>{'true'}</Signal>
+                  <Signal ssr-required>{'true'}</Signal>
                 </p>
                 <button id="second">Toggle</button>
               </div>
@@ -1513,24 +1759,24 @@ describe.each([
           <Fragment>
             <Component>
               <div>
-                <Signal>{''}</Signal>
+                <Signal ssr-required>{''}</Signal>
                 <p>
                   {'isShow value: '}
-                  <Signal>{'false'}</Signal>
+                  <Signal ssr-required>{'false'}</Signal>
                 </p>
                 <button id="first">Toggle</button>
               </div>
             </Component>
             <Component>
               <div>
-                <Signal>
+                <Signal ssr-required>
                   <Component>
                     <div>Nested</div>
                   </Component>
                 </Signal>
                 <p>
                   {'isShow value: '}
-                  <Signal>{'true'}</Signal>
+                  <Signal ssr-required>{'true'}</Signal>
                 </p>
                 <button id="second">Toggle</button>
               </div>
@@ -1544,20 +1790,20 @@ describe.each([
           <Fragment>
             <Component>
               <div>
-                <Signal>{''}</Signal>
+                <Signal ssr-required>{''}</Signal>
                 <p>
                   {'isShow value: '}
-                  <Signal>{'false'}</Signal>
+                  <Signal ssr-required>{'false'}</Signal>
                 </p>
                 <button id="first">Toggle</button>
               </div>
             </Component>
             <Component>
               <div>
-                <Signal>{''}</Signal>
+                <Signal ssr-required>{''}</Signal>
                 <p>
                   {'isShow value: '}
-                  <Signal>{'false'}</Signal>
+                  <Signal ssr-required>{'false'}</Signal>
                 </p>
                 <button id="second">Toggle</button>
               </div>
@@ -1571,22 +1817,22 @@ describe.each([
           <Fragment>
             <Component>
               <div>
-                <Signal>
+                <Signal ssr-required>
                   <span>Hi, this doesn't work...</span>
                 </Signal>
                 <p>
                   {'isShow value: '}
-                  <Signal>{'true'}</Signal>
+                  <Signal ssr-required>{'true'}</Signal>
                 </p>
                 <button id="first">Toggle</button>
               </div>
             </Component>
             <Component>
               <div>
-                <Signal>{''}</Signal>
+                <Signal ssr-required>{''}</Signal>
                 <p>
                   {'isShow value: '}
-                  <Signal>{'false'}</Signal>
+                  <Signal ssr-required>{'false'}</Signal>
                 </p>
                 <button id="second">Toggle</button>
               </div>

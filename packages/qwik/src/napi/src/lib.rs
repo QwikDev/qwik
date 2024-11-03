@@ -7,6 +7,7 @@ extern crate napi;
 extern crate napi_derive;
 
 use napi::{CallContext, JsObject, JsUnknown, Result};
+use tokio::task;
 
 #[cfg(windows)]
 #[global_allocator]
@@ -24,12 +25,22 @@ fn transform_fs(ctx: CallContext) -> Result<JsUnknown> {
 
 #[allow(clippy::needless_pass_by_value)]
 #[js_function(1)]
-fn transform_modules(ctx: CallContext) -> Result<JsUnknown> {
+fn transform_modules(ctx: CallContext) -> Result<JsObject> {
 	let opts = ctx.get::<JsObject>(0)?;
 	let config: qwik_core::TransformModulesOptions = ctx.env.from_js_value(opts)?;
 
-	let result = qwik_core::transform_modules(config).unwrap();
-	ctx.env.to_js_value(&result)
+	ctx.env.execute_tokio_future(
+		async move {
+			// Spawn the CPU-intensive work onto a separate thread in the thread pool
+			let result = task::spawn_blocking(move || qwik_core::transform_modules(config))
+				.await
+				.unwrap()
+				.map_err(|e| napi::Error::from_reason(e.to_string()))?;
+
+			Ok(result)
+		},
+		|env, result| env.to_js_value(&result),
+	)
 }
 
 #[module_exports]

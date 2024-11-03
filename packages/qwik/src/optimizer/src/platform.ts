@@ -261,7 +261,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
 
 export interface PlatformBinding {
   transform_fs?: (opts: any) => TransformOutput;
-  transform_modules: (opts: any) => TransformOutput;
+  transform_modules: (opts: any) => Promise<TransformOutput>;
 }
 
 const getEnv = (): SystemEnvironment => {

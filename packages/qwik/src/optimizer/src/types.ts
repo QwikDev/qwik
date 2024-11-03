@@ -3,9 +3,6 @@ export interface Optimizer {
   /** Transforms the input code string, does not access the file system. */
   transformModules(opts: TransformModulesOptions): Promise<TransformOutput>;
 
-  /** Transforms the input code string, does not access the file system. */
-  transformModulesSync(opts: TransformModulesOptions): TransformOutput;
-
   /** Transforms the directory from the file system. */
   transformFs(opts: TransformFsOptions): Promise<TransformOutput>;
 

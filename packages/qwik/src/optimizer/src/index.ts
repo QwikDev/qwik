@@ -29,7 +29,6 @@ export type {
   SymbolMapper,
   SymbolMapperFn,
   SystemEnvironment,
-  TransformFsOptions,
   TransformModule,
   TransformModuleInput,
   TransformModulesOptions,

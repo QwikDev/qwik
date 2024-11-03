@@ -305,7 +305,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface Optimizer \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[sys](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[OptimizerSystem](#optimizersystem)\n\n\n</td><td>\n\nOptimizer system use. This can be updated with a custom file system.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[transformFs(opts)](#optimizer-transformfs)\n\n\n</td><td>\n\nTransforms the directory from the file system.\n\n\n</td></tr>\n<tr><td>\n\n[transformFsSync(opts)](#optimizer-transformfssync)\n\n\n</td><td>\n\nTransforms the directory from the file system.\n\n\n</td></tr>\n<tr><td>\n\n[transformModules(opts)](#optimizer-transformmodules)\n\n\n</td><td>\n\nTransforms the input code string, does not access the file system.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface Optimizer \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[sys](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[OptimizerSystem](#optimizersystem)\n\n\n</td><td>\n\nOptimizer system use. This can be updated with a custom file system.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[transformModules(opts)](#optimizer-transformmodules)\n\n\n</td><td>\n\nTransforms the input code string, does not access the file system.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "core.optimizer.md"
     },
@@ -740,54 +740,6 @@
       "content": "```typescript\nexport type SystemEnvironment = 'node' | 'deno' | 'bun' | 'webworker' | 'browsermain' | 'unknown';\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "core.systemenvironment.md"
-    },
-    {
-      "name": "transformFs",
-      "id": "optimizer-transformfs",
-      "hierarchy": [
-        {
-          "name": "Optimizer",
-          "id": "optimizer-transformfs"
-        },
-        {
-          "name": "transformFs",
-          "id": "optimizer-transformfs"
-        }
-      ],
-      "kind": "MethodSignature",
-      "content": "Transforms the directory from the file system.\n\n\n```typescript\ntransformFs(opts: TransformFsOptions): Promise<TransformOutput>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[TransformFsOptions](#transformfsoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nPromise&lt;[TransformOutput](#transformoutput)<!-- -->&gt;",
-      "mdFile": "core.optimizer.transformfs.md"
-    },
-    {
-      "name": "TransformFsOptions",
-      "id": "transformfsoptions",
-      "hierarchy": [
-        {
-          "name": "TransformFsOptions",
-          "id": "transformfsoptions"
-        }
-      ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface TransformFsOptions extends TransformOptions \n```\n**Extends:** [TransformOptions](#transformoptions)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[vendorRoots](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
-      "mdFile": "core.transformfsoptions.md"
-    },
-    {
-      "name": "transformFsSync",
-      "id": "optimizer-transformfssync",
-      "hierarchy": [
-        {
-          "name": "Optimizer",
-          "id": "optimizer-transformfssync"
-        },
-        {
-          "name": "transformFsSync",
-          "id": "optimizer-transformfssync"
-        }
-      ],
-      "kind": "MethodSignature",
-      "content": "Transforms the directory from the file system.\n\n\n```typescript\ntransformFsSync(opts: TransformFsOptions): TransformOutput;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[TransformFsOptions](#transformfsoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[TransformOutput](#transformoutput)",
-      "mdFile": "core.optimizer.transformfssync.md"
     },
     {
       "name": "TransformModule",

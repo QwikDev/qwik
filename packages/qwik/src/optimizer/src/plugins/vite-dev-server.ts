@@ -27,22 +27,7 @@ function getOrigin(req: IncomingMessage) {
   return `${protocol}://${host}`;
 }
 
-// We must encode the chunk so that e.g. + doesn't get converted to space etc
-const encode = (url: string) =>
-  encodeURIComponent(url)
-    .replaceAll('%2F', '/')
-    .replaceAll('%40', '@')
-    .replaceAll('%3A', ':')
-    .replaceAll('%5B', '[')
-    .replaceAll('%5D', ']')
-    .replaceAll('%2C', ',');
-function createSymbolMapper(
-  base: string,
-  opts: NormalizedQwikPluginOptions,
-  path: Path,
-  sys: OptimizerSystem
-): SymbolMapperFn {
-  const normalizePath = makeNormalizePath(sys);
+function createSymbolMapper(base: string): SymbolMapperFn {
   return (
     symbolName: string,
     _mapper: SymbolMapper | undefined,
@@ -58,14 +43,10 @@ function createSymbolMapper(
       );
       return [symbolName, `${base}${symbolName}.js`];
     }
-    // on windows, absolute paths don't start with a slash
-    const parentPath = normalizePath(path.dirname(parent));
-    const parentFile = path.basename(parent);
-    const qrlPath = parentPath.startsWith(opts.rootDir)
-      ? normalizePath(path.relative(opts.rootDir, parentPath))
-      : `@fs/${parentPath}`;
-    const qrlFile = encode(`${qrlPath}/${parentFile}_${symbolName}.js`);
-    return [symbolName, `${base}${qrlFile}`];
+    // In dev mode, the `parent` is the Vite URL for the parent, not the real absolute path.
+    // It always has a starting slash.
+    const qrlFile = `${base}${parent.slice(1)}_${symbolName}.js`;
+    return [symbolName, qrlFile];
   };
 }
 
@@ -96,7 +77,7 @@ export async function configureDevServer(
   clientDevInput: string | undefined,
   devSsrServer: boolean
 ) {
-  symbolMapper = lazySymbolMapper = createSymbolMapper(base, opts, path, sys);
+  symbolMapper = lazySymbolMapper = createSymbolMapper(base);
   if (!devSsrServer) {
     // we just needed the symbolMapper
     return;

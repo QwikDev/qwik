@@ -959,7 +959,6 @@ impl<'a> QwikTransform<'a> {
 				JsWord::from(
 					self.options
 						.dev_path
-						.as_deref()
 						.unwrap_or(&self.options.path_data.abs_path.to_slash_lossy()),
 				),
 				segment_data,
@@ -1032,7 +1031,6 @@ impl<'a> QwikTransform<'a> {
 				JsWord::from(
 					self.options
 						.dev_path
-						.as_deref()
 						.unwrap_or(&self.options.path_data.abs_path.to_slash_lossy()),
 				),
 				&segment_data,
@@ -1685,7 +1683,6 @@ impl<'a> QwikTransform<'a> {
 				JsWord::from(
 					self.options
 						.dev_path
-						.as_deref()
 						.unwrap_or(&self.options.path_data.abs_path.to_slash_lossy()),
 				),
 				&segment_data,

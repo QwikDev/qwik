@@ -90,8 +90,6 @@ export type MinifyMode = 'simplify' | 'none';
 // @public (undocumented)
 export interface Optimizer {
     sys: OptimizerSystem;
-    transformFs(opts: TransformFsOptions): Promise<TransformOutput>;
-    transformFsSync(opts: TransformFsOptions): TransformOutput;
     transformModules(opts: TransformModulesOptions): Promise<TransformOutput>;
 }
 
@@ -404,12 +402,6 @@ export type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefin
 
 // @public (undocumented)
 export type SystemEnvironment = 'node' | 'deno' | 'bun' | 'webworker' | 'browsermain' | 'unknown';
-
-// @public (undocumented)
-export interface TransformFsOptions extends TransformOptions {
-    // (undocumented)
-    vendorRoots: string[];
-}
 
 // @public (undocumented)
 export interface TransformModule {

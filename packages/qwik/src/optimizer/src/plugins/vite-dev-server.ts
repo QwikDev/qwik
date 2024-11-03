@@ -1,19 +1,19 @@
 /* eslint-disable no-console */
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
-import { magenta } from 'kleur/colors';
 import type { IncomingMessage, ServerResponse } from 'http';
+import { magenta } from 'kleur/colors';
 
 import type { Connect, ViteDevServer } from 'vite';
-import type { OptimizerSystem, Path, QwikManifest, SymbolMapper, SymbolMapperFn } from '../types';
-import { type NormalizedQwikPluginOptions, parseId, makeNormalizePath } from './plugin';
-import type { QwikViteDevResponse } from './vite';
-import { formatError } from './vite-utils';
-import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
-import imageDevTools from './image-size-runtime.html?raw';
-import clickToComponent from './click-to-component.html?raw';
-import perfWarning from './perf-warning.html?raw';
-import errorHost from './error-host.html?raw';
 import { SYNC_QRL } from '../../../core/qrl/qrl-class';
+import type { OptimizerSystem, Path, QwikManifest, SymbolMapper, SymbolMapperFn } from '../types';
+import clickToComponent from './click-to-component.html?raw';
+import errorHost from './error-host.html?raw';
+import imageDevTools from './image-size-runtime.html?raw';
+import perfWarning from './perf-warning.html?raw';
+import { parseId, type NormalizedQwikPluginOptions } from './plugin';
+import type { QwikViteDevResponse } from './vite';
+import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
+import { formatError } from './vite-utils';
 
 function getOrigin(req: IncomingMessage) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;

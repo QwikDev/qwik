@@ -44,8 +44,8 @@ function createSymbolMapper(base: string): SymbolMapperFn {
       return [symbolName, `${base}${symbolName}.js`];
     }
     // In dev mode, the `parent` is the Vite URL for the parent, not the real absolute path.
-    // It always has a starting slash.
-    const qrlFile = `${base}${parent.slice(1)}_${symbolName}.js`;
+    // It is always absolute but when on Windows that's without a /
+    const qrlFile = `${base}${parent.startsWith('/') ? parent.slice(1) : parent}_${symbolName}.js`;
     return [symbolName, qrlFile];
   };
 }

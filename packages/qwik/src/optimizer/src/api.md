@@ -93,7 +93,6 @@ export interface Optimizer {
     transformFs(opts: TransformFsOptions): Promise<TransformOutput>;
     transformFsSync(opts: TransformFsOptions): TransformOutput;
     transformModules(opts: TransformModulesOptions): Promise<TransformOutput>;
-    transformModulesSync(opts: TransformModulesOptions): TransformOutput;
 }
 
 // @public (undocumented)

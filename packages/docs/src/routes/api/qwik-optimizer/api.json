@@ -305,7 +305,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface Optimizer \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[sys](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[OptimizerSystem](#optimizersystem)\n\n\n</td><td>\n\nOptimizer system use. This can be updated with a custom file system.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[transformFs(opts)](#optimizer-transformfs)\n\n\n</td><td>\n\nTransforms the directory from the file system.\n\n\n</td></tr>\n<tr><td>\n\n[transformFsSync(opts)](#optimizer-transformfssync)\n\n\n</td><td>\n\nTransforms the directory from the file system.\n\n\n</td></tr>\n<tr><td>\n\n[transformModules(opts)](#optimizer-transformmodules)\n\n\n</td><td>\n\nTransforms the input code string, does not access the file system.\n\n\n</td></tr>\n<tr><td>\n\n[transformModulesSync(opts)](#optimizer-transformmodulessync)\n\n\n</td><td>\n\nTransforms the input code string, does not access the file system.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface Optimizer \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[sys](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[OptimizerSystem](#optimizersystem)\n\n\n</td><td>\n\nOptimizer system use. This can be updated with a custom file system.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[transformFs(opts)](#optimizer-transformfs)\n\n\n</td><td>\n\nTransforms the directory from the file system.\n\n\n</td></tr>\n<tr><td>\n\n[transformFsSync(opts)](#optimizer-transformfssync)\n\n\n</td><td>\n\nTransforms the directory from the file system.\n\n\n</td></tr>\n<tr><td>\n\n[transformModules(opts)](#optimizer-transformmodules)\n\n\n</td><td>\n\nTransforms the input code string, does not access the file system.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "core.optimizer.md"
     },
@@ -847,23 +847,6 @@
       "content": "```typescript\nexport interface TransformModulesOptions extends TransformOptions \n```\n**Extends:** [TransformOptions](#transformoptions)\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[input](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[TransformModuleInput](#transformmoduleinput)<!-- -->\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "core.transformmodulesoptions.md"
-    },
-    {
-      "name": "transformModulesSync",
-      "id": "optimizer-transformmodulessync",
-      "hierarchy": [
-        {
-          "name": "Optimizer",
-          "id": "optimizer-transformmodulessync"
-        },
-        {
-          "name": "transformModulesSync",
-          "id": "optimizer-transformmodulessync"
-        }
-      ],
-      "kind": "MethodSignature",
-      "content": "Transforms the input code string, does not access the file system.\n\n\n```typescript\ntransformModulesSync(opts: TransformModulesOptions): TransformOutput;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[TransformModulesOptions](#transformmodulesoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[TransformOutput](#transformoutput)",
-      "mdFile": "core.optimizer.transformmodulessync.md"
     },
     {
       "name": "TransformOptions",

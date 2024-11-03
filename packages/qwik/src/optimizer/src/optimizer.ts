@@ -19,10 +19,7 @@ export const createOptimizer = async (optimizerOptions: OptimizerOptions = {}) =
 
   const optimizer: Optimizer = {
     async transformModules(opts: TransformModulesOptions) {
-      return transformModulesSync(binding, opts);
-    },
-    transformModulesSync(opts: TransformModulesOptions) {
-      return transformModulesSync(binding, opts);
+      return transformModules(binding, opts);
     },
     async transformFs(opts: TransformFsOptions) {
       return transformFsAsync(sys, binding, opts);
@@ -37,7 +34,7 @@ export const createOptimizer = async (optimizerOptions: OptimizerOptions = {}) =
 };
 
 /** Transforms the input code string, does not access the file system. */
-const transformModulesSync = (binding: PlatformBinding, opts: TransformModulesOptions) => {
+const transformModules = (binding: PlatformBinding, opts: TransformModulesOptions) => {
   return binding.transform_modules(convertOptions(opts));
 };
 

@@ -859,15 +859,6 @@ Transforms the directory from the file system.
 Transforms the input code string, does not access the file system.
 
 </td></tr>
-<tr><td>
-
-[transformModulesSync(opts)](#optimizer-transformmodulessync)
-
-</td><td>
-
-Transforms the input code string, does not access the file system.
-
-</td></tr>
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
@@ -3268,43 +3259,6 @@ Description
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-## transformModulesSync
-
-Transforms the input code string, does not access the file system.
-
-```typescript
-transformModulesSync(opts: TransformModulesOptions): TransformOutput;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-opts
-
-</td><td>
-
-[TransformModulesOptions](#transformmodulesoptions)
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-**Returns:**
-
-[TransformOutput](#transformoutput)
 
 ## TransformOptions
 

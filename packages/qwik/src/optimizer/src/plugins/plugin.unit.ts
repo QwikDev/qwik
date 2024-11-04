@@ -221,7 +221,7 @@ test('experimental[]', async () => {
 describe('resolveId', () => {
   test('qrls', async () => {
     const plugin = await mockPlugin();
-    expect(plugin.resolveId(null!, 'foo', undefined)).toBeFalsy();
+    expect(await plugin.resolveId(null!, 'foo', undefined)).toBeFalsy();
     const ctx = { resolve: async () => ({ id: 'Yey' }) } as any;
     await expect(
       plugin.resolveId(
@@ -236,7 +236,7 @@ describe('resolveId', () => {
     expect(
       await plugin.resolveId(ctx, '/root/src/routes/layout.tsx_s_7xk04rim0vu.js', undefined)
     ).toHaveProperty('id', '/root/src/routes/layout.tsx_s_7xk04rim0vu.js');
-    expect(plugin.resolveId(null!, './foo', '/root/src/routes/layout.tsx')).toBeFalsy();
+    expect(await plugin.resolveId(null!, './foo', '/root/src/routes/layout.tsx')).toBeFalsy();
     expect(
       await plugin.resolveId(
         ctx,
@@ -263,7 +263,11 @@ describe('resolveId', () => {
     const plugin = await mockPlugin('win32');
     expect(
       await plugin.resolveId(
-        { resolve: async () => 'Yey' } as any,
+        {
+          resolve: async () => ({
+            id: 'Yey',
+          }),
+        } as any,
         'C:\\src\\routes\\layout.tsx_s_7xk04rim0vu.js',
         undefined
       )
@@ -271,17 +275,17 @@ describe('resolveId', () => {
   });
   test('libs', async () => {
     const plugin = await mockPlugin();
-    expect(plugin.resolveId(null!, '@builder.io/qwik/build', undefined)).toHaveProperty(
+    expect(await plugin.resolveId(null!, '@builder.io/qwik/build', undefined)).toHaveProperty(
       'id',
-      '/@builder.io/qwik/build'
+      '@builder.io/qwik/build'
     );
-    expect(plugin.resolveId(null!, '/@builder.io/qwik/build', undefined)).toHaveProperty(
+    expect(await plugin.resolveId(null!, '/@builder.io/qwik/build', undefined)).toHaveProperty(
       'id',
-      '/@builder.io/qwik/build'
+      '@builder.io/qwik/build'
     );
-    expect(plugin.resolveId(null!, '@qwik-client-manifest', '/foo/bar')).toHaveProperty(
+    expect(await plugin.resolveId(null!, '@qwik-client-manifest', '/foo/bar')).toHaveProperty(
       'id',
-      '/@qwik-client-manifest'
+      '@qwik-client-manifest'
     );
   });
 });

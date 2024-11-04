@@ -57,6 +57,9 @@ export default defineConfig(async () => {
 
   const routesDir = resolve('src', 'routes');
   return {
+    optimizeDeps: {
+      entries: ['./src/routes/**/index.tsx', './src/routes/**/layout.tsx'],
+    },
     dev: {
       headers: {
         'Cache-Control': 'public, max-age=0',
@@ -159,6 +162,7 @@ export default defineConfig(async () => {
         },
       }),
       qwikVite({
+        lint: false,
         experimental: ['insights'],
       }),
       partytownVite({

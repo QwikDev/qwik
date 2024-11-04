@@ -342,7 +342,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   openElement(
     elementName: string,
     varAttrs: SsrAttrs | null,
-    constAttrs?: SsrAttrs | null
+    constAttrs?: SsrAttrs | null,
+    currentFile?: string | null
   ): string | undefined {
     let innerHTML: string | undefined = undefined;
     this.lastNode = null;
@@ -352,7 +353,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       vNodeData_incrementElementCount(this.currentElementFrame.vNodeData);
     }
 
-    this.createAndPushFrame(elementName, this.depthFirstElementCount++);
+    this.createAndPushFrame(elementName, this.depthFirstElementCount++, currentFile);
     this.write('<');
     this.write(elementName);
     if (varAttrs) {
@@ -987,7 +988,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return elementIdx;
   }
 
-  private createAndPushFrame(elementName: string, depthFirstElementIdx: number) {
+  private createAndPushFrame(
+    elementName: string,
+    depthFirstElementIdx: number,
+    currentFile?: string | null
+  ) {
     let tagNesting: TagNesting = TagNesting.ANYTHING;
     if (isDev) {
       if (!this.currentElementFrame) {
@@ -1002,12 +1007,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             frames.unshift(frame);
             frame = frame.parent;
           }
-          const text: string[] = [
+          const text: string[] = [];
+
+          if (currentFile) {
+            text.push(`Error found in file: ${currentFile}`);
+          }
+
+          text.push(
             `HTML rules do not allow '<${elementName}>' at this location.`,
             `  (The HTML parser will try to recover by auto-closing or inserting additional tags which will confuse Qwik when it resumes.)`,
             `  Offending tag: <${elementName}>`,
-            `  Existing tag context:`,
-          ];
+            `  Existing tag context:`
+          );
           let indent = '    ';
           let lastName = '';
           for (const frame of frames) {

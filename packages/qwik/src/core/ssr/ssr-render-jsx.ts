@@ -4,7 +4,7 @@ import { isQrl } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { Fragment, directGetPropsProxyProp } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
-import type { JSXNode, JSXOutput } from '../shared/jsx/types/jsx-node';
+import type { DevJSX, JSXNode, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SSRStream, type SSRStreamChildren } from '../shared/jsx/utils.public';
 import { trackSignal } from '../use/use-core';
@@ -17,6 +17,7 @@ import {
   QDefaultSlot,
   QScopedStyle,
   QSlot,
+  qwikInspectorAttr,
 } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
@@ -179,7 +180,13 @@ function processJSXNode(
       // Below, JSXChildren allows functions and regexes, but we assume the dev only uses those as appropriate.
       if (typeof type === 'string') {
         appendClassIfScopedStyleExists(jsx, options.styleScoped);
-        appendQwikInspectorAttribute(jsx);
+        let qwikInspectorAttrValue: string | null = null;
+        if (isDev && jsx.dev && jsx.type !== 'head') {
+          qwikInspectorAttrValue = getQwikInspectorAttributeValue(jsx.dev);
+          if (qInspector) {
+            appendQwikInspectorAttribute(jsx, qwikInspectorAttrValue);
+          }
+        }
 
         const innerHTML = ssr.openElement(
           type,
@@ -195,7 +202,8 @@ function processJSXNode(
             jsx.varProps,
             ssr.serializationCtx,
             options.styleScoped
-          )
+          ),
+          qwikInspectorAttrValue
         );
         if (innerHTML) {
           ssr.htmlNode(innerHTML);
@@ -531,14 +539,17 @@ function getSlotName(host: ISsrNode, jsx: JSXNode, ssr: SSRContainer): string {
   return directGetPropsProxyProp(jsx, 'name') || QDefaultSlot;
 }
 
-function appendQwikInspectorAttribute(jsx: JSXNode) {
-  if (isDev && qInspector && jsx.dev && jsx.type !== 'head') {
-    const sanitizedFileName = jsx.dev.fileName?.replace(/\\/g, '/');
-    const qwikInspectorAttr = 'data-qwik-inspector';
-    if (sanitizedFileName && (!jsx.constProps || !(qwikInspectorAttr in jsx.constProps))) {
-      (jsx.constProps ||= {})[qwikInspectorAttr] =
-        `${sanitizedFileName}:${jsx.dev.lineNumber}:${jsx.dev.columnNumber}`;
-    }
+function getQwikInspectorAttributeValue(jsxDev: DevJSX): string | null {
+  const sanitizedFileName = jsxDev.fileName?.replace(/\\/g, '/');
+  if (sanitizedFileName) {
+    return `${sanitizedFileName}:${jsxDev.lineNumber}:${jsxDev.columnNumber}`;
+  }
+  return null;
+}
+
+function appendQwikInspectorAttribute(jsx: JSXNode, qwikInspectorAttrValue: string | null) {
+  if (qwikInspectorAttrValue && (!jsx.constProps || !(qwikInspectorAttr in jsx.constProps))) {
+    (jsx.constProps ||= {})[qwikInspectorAttr] = qwikInspectorAttrValue;
   }
 }
 

@@ -36,10 +36,6 @@ const noExternal = [
 ];
 
 const excludeDeps = [
-  '@vite/client',
-  '@vite/env',
-  'node-fetch',
-  'undici',
   '@qwik.dev/core',
   '@qwik.dev/core/internal',
   '@qwik.dev/core/server',
@@ -48,6 +44,8 @@ const excludeDeps = [
   '@qwik.dev/core/build',
   '@qwik-client-manifest',
   '@qwik.dev/router',
+  '@builder.io/qwik',
+  '@builder.io/qwik-city',
 ];
 
 const getPlugin = (opts: QwikVitePluginOptions | undefined) =>

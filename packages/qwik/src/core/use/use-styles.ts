@@ -26,7 +26,7 @@ export const useStylesQrl = (styles: QRL<string>): UseStyles => {
 
 // <docs markdown="../readme.md#useStyles">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useStyles instead)
+// (edit ../readme.md#useStyles instead and run `pnpm docs.sync`)
 /**
  * A lazy-loadable reference to a component's styles.
  *
@@ -58,7 +58,7 @@ export const useStylesScopedQrl = (styles: QRL<string>): UseStylesScoped => {
 
 // <docs markdown="../readme.md#useStylesScoped">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useStylesScoped instead)
+// (edit ../readme.md#useStylesScoped instead and run `pnpm docs.sync`)
 /**
  * A lazy-loadable reference to a component's styles, that is scoped to the component.
  *

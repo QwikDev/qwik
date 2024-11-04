@@ -139,7 +139,7 @@ export const isQwikComponent = <T extends Component<any>>(component: unknown): c
 
 // <docs markdown="../readme.md#component">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#component instead)
+// (edit ../readme.md#component instead and run `pnpm docs.sync`)
 /**
  * Declare a Qwik component that can be used to create UI.
  *

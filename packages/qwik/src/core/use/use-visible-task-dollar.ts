@@ -3,7 +3,7 @@ import { useVisibleTaskQrl } from './use-visible-task';
 
 // <docs markdown="../readme.md#useVisibleTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useVisibleTask instead)
+// (edit ../readme.md#useVisibleTask instead and run `pnpm docs.sync`)
 /**
  * ```tsx
  * const Timer = component$(() => {
@@ -27,6 +27,5 @@ import { useVisibleTaskQrl } from './use-visible-task';
  *
  * @public
  */
-
 // </docs>
 export const useVisibleTask$ = /*#__PURE__*/ implicit$FirstArg(useVisibleTaskQrl);

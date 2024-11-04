@@ -42,30 +42,21 @@ const metaGlobComponents: any = import.meta.glob('/src/components/*', {
 });
 ```
 
-## How to
+Do **not** use `eager: true` when importing Qwik components. This makes Vite combine multiple Qwik outputs together in a way that breaks Qwik.
 
-The problem with `import.meta.glob` in Qwik, is that it currently either works in development and doesn't in preview/production, or it works in preview/production but gets slower and slower in development as the number of imported files increases.
+Since Qwik doesn't support Promises as components, that means you need to `await` their import. To do so, you can simply throw the promise and make sure the result is stored somewhere. Qwik will catch the promise and wait for it to resolve before rendering the component again.
 
-The reason for this behavior, is that `import.meta.glob` with `eager.false` breaks the production bundle as it creates lazy-loadable chunks that Qwik doesn't know how to handle. On the other hand, `eager:true` seemingly fixes the issue as it allows Qwik to normally bundle the files, but it also slows down the development server - especially when you import a lot of heavy components with it.
+If you're using inline components or anything else, you can use `eager: true`, and the resulting object can be used as a normal object, keyed by the file path.
 
-As a workaround for now, you can use the build time `isDev` boolean from `"@qwik.dev/core/build"`:
+## Example
 
 <CodeSandbox src="/src/routes/demo/cookbook/glob-import/">
 ```tsx
-import {
-  type Component,
-  component$,
-  useSignal,
-  useTask$,
-} from '@qwik.dev/core';
-import { isDev } from '@qwik.dev/core/build';
+import { component$, type Component } from '@qwik.dev/core';
 
-const metaGlobComponents: Record<string, any> = import.meta.glob(
-  '/src/examples/*',
-  {
-    import: 'default',
-    eager: isDev ? false : true,
-  }
+const metaGlobComponents = import.meta.glob<Component>(
+  '/src/routes/demo/cookbook/glob-import/examples/*',
+  { import: 'default' }
 );
 
 export default component$(() => {
@@ -78,19 +69,16 @@ export default component$(() => {
   );
 });
 
+const loaded: Record<string, Component> = {};
 export const MetaGlobExample = component$<{ name: string }>(({ name }) => {
-  const MetaGlobComponent = useSignal<Component<any>>();
-  const componentPath = `/src/examples/${name}.tsx`;
+  const Cmp = loaded[name];
+  if (!Cmp) {
+    const componentPath = `/src/routes/demo/cookbook/glob-import/examples/${name}.tsx`;
+    const promise = metaGlobComponents[componentPath]();
+    throw promise.then((c) => (loaded[name] = c));
+  }
 
-  useTask$(async () => {
-    MetaGlobComponent.value = isDev
-      ? await metaGlobComponents[componentPath]()
-      // We need to call `await metaGlobComponents[componentPath]()` in development as it is `eager:false`
-      : metaGlobComponents[componentPath];
-      // We need to directly access the `metaGlobComponents[componentPath]` expression in preview/production as it is `eager:true`
-  });
-
-  return <>{MetaGlobComponent.value && <MetaGlobComponent.value />}</>;
+  return <Cmp />;
 });
 ```
 </CodeSandbox>

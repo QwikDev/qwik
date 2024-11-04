@@ -6,9 +6,9 @@ import { SYNC_QRL, createQRL } from './qrl-class';
 export type QrlArgs<T> = T extends (...args: infer ARGS) => any ? ARGS : unknown[];
 export type QrlReturn<T> = T extends (...args: any) => infer R ? Awaited<R> : unknown;
 
-// <docs markdown="../readme.md#QRL">
+// <docs markdown="../../readme.md#QRL">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#QRL instead)
+// (edit ../../readme.md#QRL instead and run `pnpm docs.sync`)
 /**
  * The `QRL` type represents a lazy-loadable AND serializable resource.
  *
@@ -168,9 +168,9 @@ let runtimeSymbolId = 0;
  */
 export type PropFunction<T> = QRL<T>;
 
-// <docs markdown="../readme.md#$">
+// <docs markdown="../../readme.md#$">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#$ instead)
+// (edit ../../readme.md#$ instead and run `pnpm docs.sync`)
 /**
  * Qwik Optimizer marker function.
  *
@@ -219,7 +219,8 @@ export type PropFunction<T> = QRL<T>;
  * ```tsx
  *
  * import { createContextId, useContext, useContextProvider } from './use/use-context';
- * import { Resource, useResource$ } from './use/use-resource';
+ * import { Resource } from './use/use-resource';
+ * import { useResource$ } from './use/use-resource-dollar';
  * import { useSignal } from './use/use-signal';
  *
  * export const greet = () => console.log('greet');

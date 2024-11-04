@@ -5,7 +5,7 @@ import { _getQContainerElement, getDomContainer } from '../client/dom-container'
 
 // <docs markdown="../readme.md#useLexicalScope">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useLexicalScope instead)
+// (edit ../readme.md#useLexicalScope instead and run `pnpm docs.sync`)
 /**
  * Used by the Qwik Optimizer to restore the lexically scoped variables.
  *

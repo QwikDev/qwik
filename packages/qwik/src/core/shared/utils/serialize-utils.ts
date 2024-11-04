@@ -110,9 +110,9 @@ export const fastWeakSerialize = (obj: object): boolean => {
  */
 export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
 
-// <docs markdown="../readme.md#noSerialize">
+// <docs markdown="../../readme.md#noSerialize">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#noSerialize instead)
+// (edit ../../readme.md#noSerialize instead and run `pnpm docs.sync`)
 /**
  * Marks a property on a store as non-serializable.
  *

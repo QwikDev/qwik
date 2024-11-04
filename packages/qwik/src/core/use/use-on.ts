@@ -15,7 +15,7 @@ export type EventQRL<T extends string = AllEventKeys> =
 
 // <docs markdown="../readme.md#useOn">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useOn instead)
+// (edit ../readme.md#useOn instead and run `pnpm docs.sync`)
 /**
  * Register a listener on the current component's host element.
  *
@@ -32,7 +32,7 @@ export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: Event
 
 // <docs markdown="../readme.md#useOnDocument">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useOnDocument instead)
+// (edit ../readme.md#useOnDocument instead and run `pnpm docs.sync`)
 /**
  * Register a listener on `document`.
  *
@@ -65,7 +65,7 @@ export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQr
 
 // <docs markdown="../readme.md#useOnWindow">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useOnWindow instead)
+// (edit ../readme.md#useOnWindow instead and run `pnpm docs.sync`)
 /**
  * Register a listener on `window`.
  *

@@ -1,8 +1,8 @@
 import { dollar, type QRL } from './qrl.public';
 
-// <docs markdown="../readme.md#implicit$FirstArg">
+// <docs markdown="../../readme.md#implicit$FirstArg">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#implicit$FirstArg instead)
+// (edit ../../readme.md#implicit$FirstArg instead and run `pnpm docs.sync`)
 /**
  * Create a `____$(...)` convenience method from `___(...)`.
  *

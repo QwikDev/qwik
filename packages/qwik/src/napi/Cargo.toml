@@ -8,9 +8,10 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-napi = { version = "2", features = ["serde-json"] }
+tokio = { version = "1", features = ["rt-multi-thread"] }
+napi = { version = "2", features = ["serde-json", "tokio_rt"] }
 napi-derive = "2"
-qwik-core = { path = "../optimizer/core", features = ["fs", "parallel"] }
+qwik-core = { path = "../optimizer/core" }
 
 [target.'cfg(windows)'.dependencies]
 mimalloc = { version = "0.1.25", default-features = false }

@@ -20,9 +20,6 @@ use crate::EntryStrategy;
 use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "fs")]
-use std::fs;
-
 use anyhow::{Context, Error};
 
 use swc_atoms::JsWord;
@@ -163,28 +160,6 @@ impl TransformOutput {
 			}
 		}
 		manifest
-	}
-
-	#[cfg(feature = "fs")]
-	pub fn write_to_fs(
-		&self,
-		destination: &Path,
-		manifest: Option<String>,
-	) -> Result<usize, Error> {
-		for module in &self.modules {
-			let write_path = destination.join(&module.path);
-			fs::create_dir_all(write_path.parent().with_context(|| {
-				format!("Computing path parent of {}", write_path.to_string_lossy())
-			})?)?;
-			fs::write(write_path, &module.code)?;
-		}
-		if let Some(manifest) = manifest {
-			let write_path = destination.join(manifest);
-			let manifest = self.get_manifest();
-			let json = serde_json::to_string(&manifest)?;
-			fs::write(write_path, json)?;
-		}
-		Ok(self.modules.len())
 	}
 }
 

@@ -2,7 +2,7 @@ import type { ValueOrPromise } from '../utils/types';
 
 // <docs markdown="./readme.md#CorePlatform">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ./readme.md#CorePlatform instead)
+// (edit ./readme.md#CorePlatform instead and run `pnpm docs.sync`)
 /**
  * Low-level API for platform abstraction.
  *
@@ -24,7 +24,7 @@ import type { ValueOrPromise } from '../utils/types';
 export interface CorePlatform {
   // <docs markdown="./readme.md#CorePlatform.isServer">
   // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-  // (edit ./readme.md#CorePlatform.isServer instead)
+  // (edit ./readme.md#CorePlatform.isServer instead and run `pnpm docs.sync`)
   /**
    * True of running on the server platform.
    *
@@ -34,7 +34,7 @@ export interface CorePlatform {
   isServer: boolean;
   // <docs markdown="./readme.md#CorePlatform.importSymbol">
   // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-  // (edit ./readme.md#CorePlatform.importSymbol instead)
+  // (edit ./readme.md#CorePlatform.importSymbol instead and run `pnpm docs.sync`)
   /**
    * Retrieve a symbol value from QRL.
    *
@@ -61,7 +61,7 @@ export interface CorePlatform {
   ) => ValueOrPromise<any>;
   // <docs markdown="./readme.md#CorePlatform.raf">
   // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-  // (edit ./readme.md#CorePlatform.raf instead)
+  // (edit ./readme.md#CorePlatform.raf instead and run `pnpm docs.sync`)
   /**
    * Perform operation on next request-animation-frame.
    *
@@ -71,7 +71,7 @@ export interface CorePlatform {
   raf: (fn: () => any) => Promise<any>;
   // <docs markdown="./readme.md#CorePlatform.nextTick">
   // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-  // (edit ./readme.md#CorePlatform.nextTick instead)
+  // (edit ./readme.md#CorePlatform.nextTick instead and run `pnpm docs.sync`)
   /**
    * Perform operation on next tick.
    *
@@ -81,7 +81,7 @@ export interface CorePlatform {
   nextTick: (fn: () => any) => Promise<any>;
   // <docs markdown="./readme.md#CorePlatform.chunkForSymbol">
   // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-  // (edit ./readme.md#CorePlatform.chunkForSymbol instead)
+  // (edit ./readme.md#CorePlatform.chunkForSymbol instead and run `pnpm docs.sync`)
   /**
    * Retrieve chunk name for the symbol.
    *

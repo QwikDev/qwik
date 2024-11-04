@@ -29,7 +29,7 @@ export const enum TaskFlags {
 
 // <docs markdown="../readme.md#Tracker">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#Tracker instead)
+// (edit ../readme.md#Tracker instead and run `pnpm docs.sync`)
 /**
  * Used to signal to Qwik which state should be watched for changes.
  *

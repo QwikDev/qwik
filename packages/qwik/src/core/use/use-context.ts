@@ -9,7 +9,7 @@ import { fromCamelToKebabCase } from '../shared/utils/event-names';
 
 // <docs markdown="../readme.md#ContextId">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#ContextId instead)
+// (edit ../readme.md#ContextId instead and run `pnpm docs.sync`)
 /**
  * ContextId is a typesafe ID for your context.
  *
@@ -69,7 +69,7 @@ export interface ContextId<STATE> {
 
 // <docs markdown="../readme.md#createContextId">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#createContextId instead)
+// (edit ../readme.md#createContextId instead and run `pnpm docs.sync`)
 /**
  * Create a context ID to be used in your application. The name should be written with no spaces.
  *
@@ -130,7 +130,7 @@ export const createContextId = <STATE = unknown>(name: string): ContextId<STATE>
 
 // <docs markdown="../readme.md#useContextProvider">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useContextProvider instead)
+// (edit ../readme.md#useContextProvider instead and run `pnpm docs.sync`)
 /**
  * Assign a value to a Context.
  *
@@ -206,7 +206,7 @@ export interface UseContext {
 
 // <docs markdown="../readme.md#useContext">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useContext instead)
+// (edit ../readme.md#useContext instead and run `pnpm docs.sync`)
 /**
  * Retrieve Context value.
  *

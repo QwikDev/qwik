@@ -3,7 +3,7 @@ import { useTaskQrl } from './use-task';
 
 // <docs markdown="../readme.md#useTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useTask instead)
+// (edit ../readme.md#useTask instead and run `pnpm docs.sync`)
 /**
  * Reruns the `taskFn` when the observed inputs change.
  *

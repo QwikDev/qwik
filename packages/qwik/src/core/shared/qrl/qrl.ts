@@ -23,9 +23,9 @@ export interface QRLDev {
   hi: number;
 }
 
-// <docs markdown="../readme.md#qrl">
+// <docs markdown="../../readme.md#qrl">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#qrl instead)
+// (edit ../../readme.md#qrl instead and run `pnpm docs.sync`)
 /**
  * Used by Qwik Optimizer to point to lazy-loaded resources.
  *

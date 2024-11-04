@@ -8,9 +8,9 @@
     "@algolia/autocomplete-core": "1.7.4",
     "@algolia/client-search": "4.14.3",
     "@builder.io/partytown": "0.10.2",
-    "@builder.io/sdk-qwik": "0.14.31",
     "@builder.io/qwik": "../qwik",
     "@builder.io/qwik-city": "../qwik-router",
+    "@builder.io/sdk-qwik": "0.14.31",
     "@docsearch/css": "3.6.1",
     "@emotion/react": "11.13.0",
     "@emotion/styled": "11.13.0",
@@ -19,9 +19,9 @@
     "@mui/system": "5.16.4",
     "@mui/x-data-grid": "6.20.4",
     "@qwik-ui/headless": "0.5.0",
-    "@qwik.dev/router": "workspace:*",
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/react": "workspace:*",
+    "@qwik.dev/router": "workspace:*",
     "@supabase/supabase-js": "2.44.4",
     "@types/leaflet": "1.9.12",
     "@types/prismjs": "1.26.4",
@@ -71,8 +71,8 @@
     "build": "qwik build",
     "build.client": "vite build",
     "build.preview": "NODE_OPTIONS=--max-old-space-size=8192 vite build --ssr src/entry.preview.tsx",
-    "build.repl-sw": "vite --config vite.config-repl-sw.mts build",
-    "build.server": "NODE_OPTIONS=--max-old-space-size=8192 vite build -c adapters/cloudflare-pages/vite.config.mts",
+    "build.repl-sw": "vite --config vite.config-repl-sw build",
+    "build.server": "NODE_OPTIONS=--max-old-space-size=8192 vite build -c adapters/cloudflare-pages/vite.config",
     "build.showcase": "pnpm node scripts/showcase.js",
     "codesandbox.sync": "tsm codesandbox.sync.ts",
     "contributors": "tsm contributors.ts",
@@ -84,5 +84,6 @@
     "preview.only": "NODE_DEBUG=net,http node --inspect-brk ../../node_modules/vite/bin/vite.js preview",
     "preview.wrangler": "wrangler pages dev ./dist --compatibility-flags=nodejs_als",
     "start": "pnpm dev"
-  }
+  },
+  "type": "module"
 }

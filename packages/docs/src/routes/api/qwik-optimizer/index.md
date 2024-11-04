@@ -834,34 +834,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[transformFs(opts)](#optimizer-transformfs)
-
-</td><td>
-
-Transforms the directory from the file system.
-
-</td></tr>
-<tr><td>
-
-[transformFsSync(opts)](#optimizer-transformfssync)
-
-</td><td>
-
-Transforms the directory from the file system.
-
-</td></tr>
-<tr><td>
-
 [transformModules(opts)](#optimizer-transformmodules)
-
-</td><td>
-
-Transforms the input code string, does not access the file system.
-
-</td></tr>
-<tr><td>
-
-[transformModulesSync(opts)](#optimizer-transformmodulessync)
 
 </td><td>
 
@@ -2916,122 +2889,6 @@ export type SystemEnvironment =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## transformFs
-
-Transforms the directory from the file system.
-
-```typescript
-transformFs(opts: TransformFsOptions): Promise<TransformOutput>;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-opts
-
-</td><td>
-
-[TransformFsOptions](#transformfsoptions)
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-**Returns:**
-
-Promise&lt;[TransformOutput](#transformoutput)&gt;
-
-## TransformFsOptions
-
-```typescript
-export interface TransformFsOptions extends TransformOptions
-```
-
-**Extends:** [TransformOptions](#transformoptions)
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[vendorRoots](#)
-
-</td><td>
-
-</td><td>
-
-string[]
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-## transformFsSync
-
-Transforms the directory from the file system.
-
-```typescript
-transformFsSync(opts: TransformFsOptions): TransformOutput;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-opts
-
-</td><td>
-
-[TransformFsOptions](#transformfsoptions)
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-**Returns:**
-
-[TransformOutput](#transformoutput)
-
 ## TransformModule
 
 ```typescript
@@ -3268,43 +3125,6 @@ Description
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-## transformModulesSync
-
-Transforms the input code string, does not access the file system.
-
-```typescript
-transformModulesSync(opts: TransformModulesOptions): TransformOutput;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-opts
-
-</td><td>
-
-[TransformModulesOptions](#transformmodulesoptions)
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-**Returns:**
-
-[TransformOutput](#transformoutput)
 
 ## TransformOptions
 

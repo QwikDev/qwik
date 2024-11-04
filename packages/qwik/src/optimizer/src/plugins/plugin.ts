@@ -694,7 +694,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         }
       }
 
-      const newOutput = optimizer.transformModulesSync(transformOpts);
+      const now = Date.now();
+      const newOutput = await optimizer.transformModules(transformOpts);
+      debug(`transform(${count})`, `done in ${Date.now() - now}ms`);
       const module = newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
 
       // uncomment to show transform results

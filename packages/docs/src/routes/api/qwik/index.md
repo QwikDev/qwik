@@ -3625,7 +3625,7 @@ _(Optional)_ Options for the loading prefetch graph.
 </tbody></table>
 **Returns:**
 
-[JSXNode](#jsxnode)&lt;"script"&gt;
+JSXNode&lt;"script"&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -3679,7 +3679,7 @@ Options for the prefetch service worker.
 </tbody></table>
 **Returns:**
 
-[JSXNode](#jsxnode)&lt;'script'&gt;
+JSXNode&lt;'script'&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -10160,7 +10160,15 @@ T
 
 ## useComputed$
 
-Hook that returns a read-only signal that updates when signals used in the `ComputedFn` change.
+Returns a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.
+
+The function must be synchronous and must not have any side effects.
+
+Async functions are deprecated because:
+
+- When calculating the first time, it will see it's a promise and it will restart the render function. - Qwik can't track used signals after the first await, which leads to subtle bugs. - Both `useTask$` and `useResource$` are available, without these problems.
+
+In v2, async functions won't work.
 
 ```typescript
 useComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>;

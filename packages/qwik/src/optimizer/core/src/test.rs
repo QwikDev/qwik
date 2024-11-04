@@ -65,6 +65,7 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 		input: vec![TransformModuleInput {
 			code: input.code.clone(),
 			path: input.filename,
+			dev_path: input.dev_path,
 		}],
 		source_maps: true,
 		minify: input.minify,
@@ -3276,10 +3277,12 @@ export const Local = component$(() => {
 			TransformModuleInput {
 				code: dep.into(),
 				path: "../../node_modules/dep/dist/lib.mjs".into(),
+				dev_path: None,
 			},
 			TransformModuleInput {
 				code: code.into(),
 				path: "components/main.tsx".into(),
+				dev_path: None,
 			},
 		],
 		source_maps: true,
@@ -3355,10 +3358,12 @@ export const Greeter = component$(() => {
 			TransformModuleInput {
 				code: code.into(),
 				path: "main.tsx".into(),
+				dev_path: None,
 			},
 			TransformModuleInput {
 				code: code.into(),
 				path: "components/main.tsx".into(),
+				dev_path: None,
 			},
 		],
 		source_maps: true,
@@ -3393,10 +3398,12 @@ export const Greeter = component$(() => {
 				TransformModuleInput {
 					code: code.into(),
 					path: "main.tsx".into(),
+					dev_path: None,
 				},
 				TransformModuleInput {
 					code: code.into(),
 					path: "components/main.tsx".into(),
+					dev_path: None,
 				},
 			],
 			root_dir: None,
@@ -3528,6 +3535,7 @@ export const App = component$(() => {
 "#
 		.to_string(),
 		mode: EmitMode::Dev,
+		dev_path: Some("/hello/from/dev/test.tsx".into()),
 		transpile_ts: true,
 		transpile_jsx: true,
 		strip_event_handlers: true,
@@ -3621,6 +3629,7 @@ fn get_hash(name: &str) -> String {
 struct TestInput {
 	pub code: String,
 	pub filename: String,
+	pub dev_path: Option<String>,
 	pub src_dir: String,
 	pub root_dir: Option<String>,
 	pub manual_chunks: Option<HashMap<String, JsWord>>,
@@ -3645,6 +3654,7 @@ impl TestInput {
 	pub fn default() -> Self {
 		Self {
 			filename: "test.tsx".to_string(),
+			dev_path: None,
 			src_dir: "/user/qwik/src/".to_string(),
 			root_dir: None,
 			code: "/user/qwik/src/".to_string(),

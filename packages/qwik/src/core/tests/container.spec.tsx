@@ -507,20 +507,22 @@ describe('serializer v2', () => {
 
   describe('element nesting rules', () => {
     it('should throw when incorrectly nested elements', async () => {
+      const filePath = '/some/path/test-file.tsx';
       await expect(() =>
         withContainer(
           (ssr) => {
-            ssr.openElement('body', []);
-            ssr.openElement('p', []);
+            ssr.openElement('body', [], null, filePath);
+            ssr.openElement('p', [], null, filePath);
             ssr.openFragment([]);
-            ssr.openElement('b', []);
-            ssr.openElement('div', []);
+            ssr.openElement('b', [], null, filePath);
+            ssr.openElement('div', [], null, filePath);
           },
           { containerTag: 'html' }
         )
       ).rejects.toThrowError(
         [
-          `SsrError(tag): HTML rules do not allow '<div>' at this location.`,
+          `SsrError(tag): Error found in file: ${filePath}`,
+          `HTML rules do not allow '<div>' at this location.`,
           `  (The HTML parser will try to recover by auto-closing or inserting additional tags which will confuse Qwik when it resumes.)`,
           `  Offending tag: <div>`,
           `  Existing tag context:`,
@@ -533,15 +535,17 @@ describe('serializer v2', () => {
       );
     });
     it('should throw when adding content to empty elements', async () => {
+      const filePath = '/some/path/test-file.tsx';
       await expect(() =>
         withContainer((ssr) => {
-          ssr.openElement('img', []);
+          ssr.openElement('img', [], null, filePath);
           ssr.openFragment([]);
-          ssr.openElement('div', []);
+          ssr.openElement('div', [], null, filePath);
         })
       ).rejects.toThrowError(
         [
-          `SsrError(tag): HTML rules do not allow '<div>' at this location.`,
+          `SsrError(tag): Error found in file: ${filePath}`,
+          `HTML rules do not allow '<div>' at this location.`,
           `  (The HTML parser will try to recover by auto-closing or inserting additional tags which will confuse Qwik when it resumes.)`,
           `  Offending tag: <div>`,
           `  Existing tag context:`,

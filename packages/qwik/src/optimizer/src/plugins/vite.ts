@@ -334,10 +334,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               },
         optimizeDeps: {
           exclude: [
-            '@vite/client',
-            '@vite/env',
-            'node-fetch',
-            'undici',
+            // using optimized deps for qwik libraries will lead to duplicate imports
+            // this breaks Qwik because it relies a lot on module scoped symbols
             QWIK_CORE_ID,
             QWIK_CORE_INTERNAL_ID,
             QWIK_CORE_SERVER,
@@ -345,7 +343,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             QWIK_JSX_DEV_RUNTIME_ID,
             QWIK_BUILD_ID,
             QWIK_CLIENT_MANIFEST_ID,
+            // Sadly we can't specify **/*.qwik.*, so we need to specify each one
             ...vendorIds,
+            // v1 imports, they are removed during transform but vite doesn't know that
+            '@builder.io/qwik',
+            '@builder.io/qwik-city',
           ],
         },
         build: {

@@ -107,3 +107,4 @@ export const STREAM_BLOCK_END_COMMENT = 'qkssr-po';
 export const Q_PROPS_SEPARATOR = ':';
 
 export const dangerouslySetInnerHTML = 'dangerouslySetInnerHTML';
+export const qwikInspectorAttr = 'data-qwik-inspector';

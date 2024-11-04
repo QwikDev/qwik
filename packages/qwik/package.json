@@ -2,12 +2,12 @@
   "name": "@qwik.dev/core",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
   "version": "2.0.0-0",
+  "author": "Qwik Team",
   "annotation": "This package.json is for internal use in the monorepo, the build actually makes a new package.json for the published package via scripts/package-json.ts",
   "bin": {
     "qwik": "./qwik-cli.cjs"
   },
   "bugs": "https://github.com/QwikDev/qwik/issues",
-  "author": "Qwik Team",
   "dependencies": {
     "csstype": "^3.1"
   },
@@ -28,8 +28,8 @@
       "import": {
         "development": "./dist/core.mjs",
         "production": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs",
-        "default": "./dist/core.prod.mjs"
+        "default": "./dist/core.prod.mjs",
+        "min": "./dist/core.min.mjs"
       },
       "require": {
         "development": "./dist/core.cjs",
@@ -45,8 +45,8 @@
       "import": {
         "development": "./dist/core.mjs",
         "production": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs",
-        "default": "./dist/core.prod.mjs"
+        "default": "./dist/core.prod.mjs",
+        "min": "./dist/core.min.mjs"
       },
       "require": {
         "development": "./dist/core.cjs",
@@ -59,8 +59,8 @@
       "import": {
         "development": "./dist/core.mjs",
         "production": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs",
-        "default": "./dist/core.prod.mjs"
+        "default": "./dist/core.prod.mjs",
+        "min": "./dist/core.min.mjs"
       },
       "require": {
         "development": "./dist/core.cjs",
@@ -73,8 +73,8 @@
       "import": {
         "development": "./dist/core.mjs",
         "production": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs",
-        "default": "./dist/core.mjs"
+        "default": "./dist/core.mjs",
+        "min": "./dist/core.min.mjs"
       },
       "require": {
         "development": "./dist/core.cjs",

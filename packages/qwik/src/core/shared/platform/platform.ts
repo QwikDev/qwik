@@ -72,7 +72,7 @@ let _platform = /*#__PURE__ */ createPlatform();
 
 // <docs markdown="./readme.md#setPlatform">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ./readme.md#setPlatform instead)
+// (edit ./readme.md#setPlatform instead and run `pnpm docs.sync`)
 /**
  * Sets the `CorePlatform`.
  *
@@ -88,7 +88,7 @@ export const setPlatform = (plt: CorePlatform) => (_platform = plt);
 
 // <docs markdown="./readme.md#getPlatform">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ./readme.md#getPlatform instead)
+// (edit ./readme.md#getPlatform instead and run `pnpm docs.sync`)
 /**
  * Retrieve the `CorePlatform`.
  *

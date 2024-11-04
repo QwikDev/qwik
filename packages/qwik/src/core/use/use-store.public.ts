@@ -14,7 +14,7 @@ export interface UseStoreOptions {
 
 // <docs markdown="../readme.md#useStore">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useStore instead)
+// (edit ../readme.md#useStore instead and run `pnpm docs.sync`)
 /**
  * Creates an object that Qwik can track across serializations.
  *

@@ -377,12 +377,12 @@ export const createScheduler = (
         const isConst = payload.$isConst$;
         const journal = (container as DomContainer).$journal$;
         const property = chore.$idx$ as string;
-        value = serializeAttribute(property, value, payload.$scopedStyleIdPrefix$);
+        const serializedValue = serializeAttribute(property, value, payload.$scopedStyleIdPrefix$);
         if (isConst) {
           const element = virtualNode[ElementVNodeProps.element] as Element;
-          journal.push(VNodeJournalOpCode.SetAttribute, element, property, value);
+          journal.push(VNodeJournalOpCode.SetAttribute, element, property, serializedValue);
         } else {
-          vnode_setAttr(journal, virtualNode, property, value);
+          vnode_setAttr(journal, virtualNode, property, serializedValue);
         }
         break;
       case ChoreType.QRL_RESOLVE: {

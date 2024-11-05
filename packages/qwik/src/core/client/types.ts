@@ -169,7 +169,7 @@ export type VirtualVNode = [
   VNode | null, /////////////// 4 - First child
   VNode | null, /////////////// 5 - Last child
   /// Props
-  ...(string | null)[], /////// 6 - attrs
+  ...(string | null | boolean)[], /////// 6 - attrs
 ] & { __brand__: 'FragmentNode' & 'HostElement' };
 
 /** @internal */

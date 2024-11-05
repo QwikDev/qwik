@@ -2009,7 +2009,7 @@ _VNode | null,
 _VNode | null,
 /////////////// 4 - First child
 _VNode | null,
-...(string | null)[]
+...(string | null | boolean)[]
 ] & {
     __brand__: 'FragmentNode' & 'HostElement';
 };

@@ -9,7 +9,7 @@ import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS } from '../utils/
 import { qDev, seal } from '../utils/qdev';
 import { isArray, isObject, isString } from '../utils/types';
 import { WrappedSignal } from '../../signal/signal';
-import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
+import type { DevJSX, FunctionComponent, JSXNode, JSXNodeInternal } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 
@@ -39,7 +39,7 @@ export const _jsxSorted = <T>(
   flags: number,
   key: string | number | null | undefined,
   dev?: DevJSX
-): JSXNode<T> => {
+): JSXNodeInternal<T> => {
   const processed = key == null ? null : String(key);
   const node = new JSXNodeImpl(
     type,
@@ -83,7 +83,7 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
   flags: number,
   key: string | number | null,
   dev?: DevJSX
-): JSXNode<T> => {
+): JSXNodeInternal<T> => {
   let sortedProps;
   if (varProps) {
     // filter and sort
@@ -204,7 +204,7 @@ export const isPropsProxy = (
   return obj && obj[_VAR_PROPS] !== undefined;
 };
 
-export class JSXNodeImpl<T> implements JSXNode<T> {
+export class JSXNodeImpl<T> implements JSXNodeInternal<T> {
   dev?: DevJSX;
   constructor(
     public type: T,
@@ -255,7 +255,7 @@ export const RenderOnce: FunctionComponent<{
 };
 
 /** @internal */
-export const isJSXNode = <T>(n: unknown): n is JSXNode<T> => {
+export const isJSXNode = <T>(n: unknown): n is JSXNodeInternal<T> => {
   if (qDev) {
     if (n instanceof JSXNodeImpl) {
       return true;
@@ -318,7 +318,7 @@ export const jsxDEV = <T extends string | FunctionComponent<Props>>(
 
 export type { QwikJSX as JSX };
 
-export const createJSXError = (message: string, node: JSXNode) => {
+export const createJSXError = (message: string, node: JSXNodeInternal) => {
   const error = new Error(message);
   if (!node.dev) {
     return error;
@@ -434,7 +434,7 @@ class PropsProxyHandler implements ProxyHandler<any> {
  * Instead of using PropsProxyHandler getter (which could create a component-level subscription).
  * Use this function to get the props directly from a const or var props.
  */
-export const directGetPropsProxyProp = <T, JSX>(jsx: JSXNode<JSX>, prop: string): T => {
+export const directGetPropsProxyProp = <T, JSX>(jsx: JSXNodeInternal<JSX>, prop: string): T => {
   return (
     jsx.constProps && prop in jsx.constProps ? jsx.constProps[prop] : jsx.varProps[prop]
   ) as T;

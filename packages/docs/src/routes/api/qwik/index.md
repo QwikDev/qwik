@@ -2893,19 +2893,6 @@ Description
 </td></tr>
 <tr><td>
 
-[constProps](#)
-
-</td><td>
-
-</td><td>
-
-Record&lt;any, unknown&gt; \| null
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
 [dev?](#)
 
 </td><td>
@@ -2917,19 +2904,6 @@ Record&lt;any, unknown&gt; \| null
 </td><td>
 
 _(Optional)_
-
-</td></tr>
-<tr><td>
-
-[flags](#)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
 
 </td></tr>
 <tr><td>
@@ -2967,19 +2941,6 @@ T extends [FunctionComponent](#functioncomponent)&lt;infer P&gt; ? P : Record&lt
 </td><td>
 
 T
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[varProps](#)
-
-</td><td>
-
-</td><td>
-
-Record&lt;any, unknown&gt;
 
 </td><td>
 
@@ -3479,7 +3440,7 @@ PrefetchGraph: (opts?: {
   manifestHash?: string;
   manifestURL?: string;
   nonce?: string;
-}) => JSXNode<string>;
+}) => JSXOutput;
 ```
 
 <table><thead><tr><th>
@@ -3513,7 +3474,7 @@ _(Optional)_ Options for the loading prefetch graph.
 </tbody></table>
 **Returns:**
 
-[JSXNode](#jsxnode)&lt;string&gt;
+[JSXOutput](#jsxoutput)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/prefetch-service-worker/prefetch.ts)
 
@@ -3533,7 +3494,7 @@ PrefetchServiceWorker: (opts: {
   verbose?: boolean;
   fetchBundleGraph?: boolean;
   nonce?: string;
-}) => JSXNode<"script">;
+}) => JSXOutput;
 ```
 
 <table><thead><tr><th>
@@ -3567,7 +3528,7 @@ Options for the prefetch service worker.
 </tbody></table>
 **Returns:**
 
-[JSXNode](#jsxnode)&lt;'script'&gt;
+[JSXOutput](#jsxoutput)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/prefetch-service-worker/prefetch.ts)
 

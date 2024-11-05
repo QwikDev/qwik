@@ -5,10 +5,7 @@
 ```ts
 
 import * as CSS_2 from 'csstype';
-import type { JSXNode as JSXNode_2 } from '@qwik.dev/core';
-import type { RenderOptions as RenderOptions_2 } from '@qwik.dev/core';
-import type { RenderResult as RenderResult_2 } from '@qwik.dev/core';
-import type { StreamWriter as StreamWriter_2 } from '@qwik.dev/core/internal';
+import type { StreamWriter as StreamWriter_2 } from '@qwik.dev/core';
 
 // @public
 export const $: <T>(expression: T) => QRL<T>;
@@ -532,8 +529,10 @@ export type IntrinsicSVGElements = {
     [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: LenientSVGProps<SVGElementTagNameMap[K]>;
 };
 
+// Warning: (ae-forgotten-export) The symbol "JSXNodeInternal" needs to be exported by the entry point index.d.ts
+//
 // @internal (undocumented)
-export const _isJSXNode: <T>(n: unknown) => n is JSXNode<T>;
+export const _isJSXNode: <T>(n: unknown) => n is JSXNodeInternal<T>;
 
 // @public (undocumented)
 export const isSignal: (value: any) => value is Signal<unknown>;
@@ -593,19 +592,13 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
     // (undocumented)
     children: JSXChildren | null;
     // (undocumented)
-    constProps: Record<any, unknown> | null;
-    // (undocumented)
     dev?: DevJSX;
-    // (undocumented)
-    flags: number;
     // (undocumented)
     key: string | null;
     // (undocumented)
     props: T extends FunctionComponent<infer P> ? P : Record<any, unknown>;
     // (undocumented)
     type: T;
-    // (undocumented)
-    varProps: Record<any, unknown>;
 }
 
 // @public
@@ -618,10 +611,10 @@ export const _jsxQ: (type: any, mutable: any, immutable: any, children: any, _fl
 export const _jsxS: (type: any, mutable: any, immutable: any, _flags: any, key: any) => JSXNode<any>;
 
 // @internal
-export const _jsxSorted: <T>(type: T, varProps: Props | null, constProps: Props | null, children: JSXChildren | null, flags: number, key: string | number | null | undefined, dev?: DevJSX) => JSXNode<T>;
+export const _jsxSorted: <T>(type: T, varProps: Props | null, constProps: Props | null, children: JSXChildren | null, flags: number, key: string | number | null | undefined, dev?: DevJSX) => JSXNodeInternal<T>;
 
 // @internal
-export const _jsxSplit: <T extends string | FunctionComponent<any>>(type: T, varProps: Props | null, constProps: Props | null, children: JSXChildren | null | undefined, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
+export const _jsxSplit: <T extends string | FunctionComponent<any>>(type: T, varProps: Props | null, constProps: Props | null, children: JSXChildren | null | undefined, flags: number, key: string | number | null, dev?: DevJSX) => JSXNodeInternal<T>;
 
 // @public (undocumented)
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
@@ -765,7 +758,7 @@ export const PrefetchGraph: (opts?: {
     manifestHash?: string;
     manifestURL?: string;
     nonce?: string;
-}) => JSXNode_2<string>;
+}) => JSXOutput;
 
 // @beta
 export const PrefetchServiceWorker: (opts: {
@@ -775,7 +768,7 @@ export const PrefetchServiceWorker: (opts: {
     verbose?: boolean;
     fetchBundleGraph?: boolean;
     nonce?: string;
-}) => JSXNode_2<'script'>;
+}) => JSXOutput;
 
 // @public (undocumented)
 export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progress', T> {
@@ -960,7 +953,7 @@ export interface ReadonlySignal<T = unknown> {
 export const _regSymbol: (symbol: any, hash: string) => any;
 
 // @public
-export const render: (parent: Element | Document, jsxNode: JSXOutput | FunctionComponent<any>, opts?: RenderOptions_2) => Promise<RenderResult_2>;
+export const render: (parent: Element | Document, jsxNode: JSXOutput | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>;
 
 // @public (undocumented)
 export const RenderOnce: FunctionComponent<{

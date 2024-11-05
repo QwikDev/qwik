@@ -3,7 +3,7 @@ import { isQwikComponent, type OnRenderFn } from './component.public';
 import { assertDefined } from './error/assert';
 import { isQrl, type QRLInternal } from './qrl/qrl-class';
 import { JSXNodeImpl, isJSXNode, type Props } from './jsx/jsx-runtime';
-import type { JSXNode, JSXOutput } from './jsx/types/jsx-node';
+import type { JSXNodeInternal, JSXOutput } from './jsx/types/jsx-node';
 import type { KnownEventNames } from './jsx/types/jsx-qwik-events';
 import { invokeApply, newInvokeContext, untrack } from '../use/use-core';
 import { type EventQRL, type UseOnMap } from '../use/use-on';
@@ -68,11 +68,11 @@ export const executeComponent = (
     }
     componentFn = componentQRL.getFn(iCtx);
   } else if (isQwikComponent(componentQRL)) {
-    const qComponentFn = componentQRL as (
+    const qComponentFn = componentQRL as any as (
       props: Props,
       key: string | null,
       flags: number
-    ) => JSXNode;
+    ) => JSXNodeInternal;
     componentFn = () => invokeApply(iCtx, qComponentFn, [props || EMPTY_OBJ, null, 0]);
   } else {
     const inlineComponent = componentQRL as (props: Props) => JSXOutput;
@@ -127,7 +127,7 @@ export const executeComponent = (
 function addUseOnEvents(
   jsx: JSXOutput,
   useOnEvents: UseOnMap
-): ValueOrPromise<JSXNode<string> | null> {
+): ValueOrPromise<JSXNodeInternal<string> | null> {
   const jsxElement = findFirstStringJSX(jsx);
   return maybeThen(jsxElement, (jsxElement) => {
     let isInvisibleComponent = false;
@@ -174,7 +174,11 @@ function addUseOnEvents(
   });
 }
 
-function addUseOnEvent(jsxElement: JSXNode, key: string, value: EventQRL<KnownEventNames>[]) {
+function addUseOnEvent(
+  jsxElement: JSXNodeInternal,
+  key: string,
+  value: EventQRL<KnownEventNames>[]
+) {
   let props = jsxElement.props;
   if (props === EMPTY_OBJ) {
     props = jsxElement.props = {};
@@ -189,19 +193,21 @@ function addUseOnEvent(jsxElement: JSXNode, key: string, value: EventQRL<KnownEv
   props[key] = propValue;
 }
 
-function findFirstStringJSX(jsx: JSXOutput): ValueOrPromise<JSXNode<string> | null> {
+function findFirstStringJSX(jsx: JSXOutput): ValueOrPromise<JSXNodeInternal<string> | null> {
   const queue: any[] = [jsx];
   while (queue.length) {
     const jsx = queue.shift();
     if (isJSXNode(jsx)) {
       if (typeof jsx.type === 'string') {
-        return jsx as JSXNode<string>;
+        return jsx as JSXNodeInternal<string>;
       }
       queue.push(jsx.children);
     } else if (Array.isArray(jsx)) {
       queue.push(...jsx);
     } else if (isPromise(jsx)) {
-      return maybeThen<JSXOutput, JSXNode<string> | null>(jsx, (jsx) => findFirstStringJSX(jsx));
+      return maybeThen<JSXOutput, JSXNodeInternal<string> | null>(jsx, (jsx) =>
+        findFirstStringJSX(jsx)
+      );
     } else if (isSignal(jsx)) {
       return findFirstStringJSX(untrack(() => jsx.value as JSXOutput));
     }
@@ -209,7 +215,7 @@ function findFirstStringJSX(jsx: JSXOutput): ValueOrPromise<JSXNode<string> | nu
   return null;
 }
 
-function addScriptNodeForInvisibleComponents(jsx: JSXOutput): JSXNode<string> | null {
+function addScriptNodeForInvisibleComponents(jsx: JSXOutput): JSXNodeInternal<string> | null {
   if (isJSXNode(jsx)) {
     const jsxElement = new JSXNodeImpl(
       'script',

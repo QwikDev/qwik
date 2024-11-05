@@ -9,13 +9,13 @@ import type {
 } from '../../server/qwik-types';
 import type { PrefetchResource } from '../../server/types';
 import type { QRL } from '../shared/qrl/qrl.public';
-import type { JSXNode } from '../shared/jsx/types/jsx-node';
+import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { ResourceReturnInternal } from '../use/use-resource';
 import type { Signal } from '../signal/signal.public';
 import type { VNodeData } from '../../server/vnode-data';
 
 export type SsrAttrKey = string;
-export type SsrAttrValue = string | Signal<any> | boolean | Object | null;
+export type SsrAttrValue = string | Signal<any> | boolean | object | null;
 export type SsrAttrs = Array<SsrAttrKey | SsrAttrValue>;
 
 /** @internal */
@@ -61,8 +61,8 @@ export interface SSRContainer extends Container {
   readonly serializationCtx: SerializationContext;
   readonly symbolToChunkResolver: SymbolToChunkResolver;
   readonly buildBase: string;
-  additionalHeadNodes: Array<JSXNode>;
-  additionalBodyNodes: Array<JSXNode>;
+  additionalHeadNodes: Array<JSXNodeInternal>;
+  additionalBodyNodes: Array<JSXNodeInternal>;
   unclaimedProjectionComponentFrameQueue: ISsrComponentFrame[];
 
   openContainer(): void;

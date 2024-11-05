@@ -11,6 +11,7 @@ import {
   _jsxSorted,
   component$,
   useSignal,
+  type JSXNode,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
@@ -77,7 +78,11 @@ describe.each([
       </b>
     ));
     const MyCmp = component$(() => {
-      return <button>{_jsxSorted(Child, null, { name: 'NAME', num: 123 }, null, 3, null)}</button>;
+      return (
+        <button>
+          {_jsxSorted(Child, null, { name: 'NAME', num: 123 }, null, 3, null) as JSXNode<any>}
+        </button>
+      );
     });
 
     const { vNode } = await render(<MyCmp />, { debug });

@@ -1,8 +1,8 @@
 import { isDev } from '@qwik.dev/core/build';
-import type { JSXNode } from '@qwik.dev/core';
 import { _jsxSorted } from '../../internal';
 import { useServerData } from '../../use/use-env-data';
 import { QBaseAttr, QManifestHashAttr } from '../utils/markers';
+import type { JSXOutput } from '../jsx/types/jsx-node';
 
 /**
  * Install a service worker which will prefetch the bundles.
@@ -30,7 +30,7 @@ export const PrefetchServiceWorker = (opts: {
   verbose?: boolean;
   fetchBundleGraph?: boolean;
   nonce?: string;
-}): JSXNode<'script'> => {
+}): JSXOutput => {
   const isTest = import.meta.env.TEST;
   if (isDev && !isTest) {
     const props = {
@@ -125,7 +125,7 @@ const PREFETCH_CODE = /*#__PURE__*/ ((
  */
 export const PrefetchGraph = (
   opts: { base?: string; manifestHash?: string; manifestURL?: string; nonce?: string } = {}
-) => {
+): JSXOutput => {
   const isTest = import.meta.env.TEST;
   if (isDev && !isTest) {
     const props = {

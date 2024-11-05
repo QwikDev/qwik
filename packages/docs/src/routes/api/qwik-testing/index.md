@@ -617,8 +617,8 @@ JSXOutput
 export declare function walkJSX(
   jsx: JSXOutput,
   apply: {
-    enter: (jsx: JSXNode) => void;
-    leave: (jsx: JSXNode) => void;
+    enter: (jsx: JSXNodeInternal) => void;
+    leave: (jsx: JSXNodeInternal) => void;
     text: (text: _Stringifiable) => void;
   },
 ): void;
@@ -654,7 +654,7 @@ apply
 
 </td><td>
 
-{ enter: (jsx: JSXNode) =&gt; void; leave: (jsx: JSXNode) =&gt; void; text: (text: \_Stringifiable) =&gt; void; }
+{ enter: (jsx: JSXNodeInternal) =&gt; void; leave: (jsx: JSXNodeInternal) =&gt; void; text: (text: \_Stringifiable) =&gt; void; }
 
 </td><td>
 

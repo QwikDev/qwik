@@ -5,7 +5,6 @@ import {
   _jsxSplit,
   _walkJSX,
   isSignal,
-  type JSXNode,
   _EffectData as EffectData,
 } from '@qwik.dev/core';
 import { isDev } from '@qwik.dev/core/build';
@@ -90,6 +89,8 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './vnode-data';
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports
+import type { JSXNodeInternal } from '../core/shared/jsx/types/jsx-node';
 
 export interface SSRRenderOptions {
   locale?: string;
@@ -180,14 +181,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    * - From manifest injections
    * - From useStyles and useScopedStyles hooks
    */
-  public additionalHeadNodes = new Array<JSXNode>();
+  public additionalHeadNodes = new Array<JSXNodeInternal>();
 
   /**
    * We use this to append additional nodes in the body node
    *
    * - From manifest injections
    */
-  public additionalBodyNodes = new Array<JSXNode>();
+  public additionalBodyNodes = new Array<JSXNodeInternal>();
   private lastNode: ISsrNode | null = null;
   private currentComponentNode: ISsrNode | null = null;
   private styleIds = new Set<string>();

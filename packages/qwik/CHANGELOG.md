@@ -1,5 +1,64 @@
 # @builder.io/qwik
 
+## 1.10.0
+
+### Minor Changes
+
+- Async functions in `useComputed` are deprecated. (by [@wmertens](https://github.com/wmertens) in [#7013](https://github.com/QwikDev/qwik/pull/7013))
+
+  **Why?**
+
+  - Qwik can't track used signals after the first await, which leads to subtle bugs.
+  - When calculating the first time, it will see it's a promise and it will restart the render function.
+  - Both `useTask` and `useResource` are available, without these problems.
+
+  In v2, async functions won't work.
+
+  Again, to get the same functionality use `useTask` or `useResource` instead, or this function:
+
+  ```tsx
+  export const useAsyncComputed$ = (qrlFn: QRL<() => Promise<any>>) => {
+    const sig = useSignal();
+    useTask(({ track }) => {
+      const result = track(qrlFn);
+      if (result && 'then' in result) {
+        result.then(
+          (val) => (sig.value = val),
+          (err) => {
+            console.error('async computed function threw!', err);
+            throw error;
+          }
+        );
+      } else {
+        sig.value = result;
+      }
+    });
+    return sig;
+  };
+  ```
+
+- ✨ Expose `unwrapStore` as a low level AP (by [@GrandSchtroumpf](https://github.com/GrandSchtroumpf) in [#6960](https://github.com/QwikDev/qwik/pull/6960))
+
+  This enables developers to clone the content of a `useStore()` using `structureClone` or IndexedDB
+
+### Patch Changes
+
+- 📃 fix useResource docs example & remove unused demo (by [@ianlet](https://github.com/ianlet) in [#6893](https://github.com/QwikDev/qwik/pull/6893))
+
+- 🐞🩹 QRL segment filenames are no longer lowercased. This was giving trouble with parent lookups in dev mode and there was no good reason for it. (by [@wmertens](https://github.com/wmertens) in [#7003](https://github.com/QwikDev/qwik/pull/7003))
+
+- 🐞🩹 the type for `<textarea>` now accepts text children, as per spec. (by [@wmertens](https://github.com/wmertens) in [#7016](https://github.com/QwikDev/qwik/pull/7016))
+
+- 🐞🩹 dev-mode QRL paths are now handled by Vite so they are the same as the parent paths. You can see this in the Sources section of the browser devtools, where the segments are now always next to their parents (when the parent is loaded). (by [@wmertens](https://github.com/wmertens) in [#7037](https://github.com/QwikDev/qwik/pull/7037))
+
+- 🐞🩹 `vite` is now a peer dependency of `qwik`, `qwik-city`, `qwik-react` and `qwik-labs`, so that there can be no duplicate imports. This should not have consequences, since all apps also directly depend on `vite`. (by [@wmertens](https://github.com/wmertens) in [#6945](https://github.com/QwikDev/qwik/pull/6945))
+
+- ✨ sync$ QRLs will now be serialized into the HTML in a shorter form (by [@wmertens](https://github.com/wmertens) in [#6944](https://github.com/QwikDev/qwik/pull/6944))
+
+- 🐞🩹 cli build command appearing to "hang" on errors (by [@shairez](https://github.com/shairez) in [#6943](https://github.com/QwikDev/qwik/pull/6943))
+
+- ✨ Allow setting `linkFetchPriority` for modulepreload links in the prefetch strategy. Also fix the links in dev mode (by [@GrandSchtroumpf](https://github.com/GrandSchtroumpf) in [#6947](https://github.com/QwikDev/qwik/pull/6947))
+
 ## 1.9.1
 
 ### Patch Changes

@@ -207,6 +207,10 @@ export function createRequestEvent(
         }
         headers.set('Location', fixedURL);
       }
+      // Fallback to 'no-store' when end user is not managing Cache-Control header
+      if (statusCode > 301 && !headers.get('Cache-Control')) {
+        headers.set('Cache-Control', 'no-store');
+      }
       exit();
       return new RedirectMessage();
     },

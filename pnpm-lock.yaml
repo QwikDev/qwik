@@ -251,7 +251,7 @@ importers:
         specifier: 3.22.4
         version: 3.22.4
 
-  e2e/qwik-cli-e2e:
+  e2e/qwik-vite-e2e:
     dependencies:
       kleur:
         specifier: 4.1.5

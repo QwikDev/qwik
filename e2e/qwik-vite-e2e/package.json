@@ -1,6 +1,5 @@
 {
-  "name": "qwik-cli-e2e",
-  "version": "0.0.0",
+  "name": "qwik-vite-e2e",
   "dependencies": {
     "kleur": "4.1.5"
   },

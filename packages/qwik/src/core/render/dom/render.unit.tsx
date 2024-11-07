@@ -224,7 +224,7 @@ test('should render a component with scoped styles', async () => {
     </style>
     <!--qv -->
     <div class="⭐️ml52vk-0">
-      <div class="⭐️ml52vk-0 stuff" aria-hidden="true">
+      <div q:key="b" class="⭐️ml52vk-0 stuff" aria-hidden="true">
         Hello
         <button class="⭐️ml52vk-0">
           Toggle

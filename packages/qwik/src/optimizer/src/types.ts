@@ -69,6 +69,7 @@ export interface TransformModulesOptions extends TransformOptions {
 /** @public */
 export interface TransformModuleInput {
   path: string;
+  devPath?: string;
   code: string;
 }
 

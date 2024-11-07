@@ -173,9 +173,6 @@
     "vitest": "^2"
   },
   "peerDependenciesMeta": {
-    "vite": {
-      "optional": true
-    },
     "vitest": {
       "optional": true
     },

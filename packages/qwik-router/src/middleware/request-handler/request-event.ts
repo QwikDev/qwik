@@ -194,7 +194,6 @@ export function createRequestEvent(
 
     error: (statusCode: number, message: string) => {
       status = statusCode;
-      headers.delete('Cache-Control');
       return new ErrorResponse(statusCode, message);
     },
 
@@ -208,8 +207,8 @@ export function createRequestEvent(
         }
         headers.set('Location', fixedURL);
       }
-      headers.delete('Cache-Control');
-      if (statusCode > 301) {
+      // Fallback to 'no-store' when end user is not managing Cache-Control header
+      if (statusCode > 301 && !headers.get('Cache-Control')) {
         headers.set('Cache-Control', 'no-store');
       }
       exit();
@@ -223,7 +222,6 @@ export function createRequestEvent(
     fail: <T extends Record<string, any>>(statusCode: number, data: T): FailReturn<T> => {
       check();
       status = statusCode;
-      headers.delete('Cache-Control');
       return {
         failed: true,
         ...data,

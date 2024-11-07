@@ -82,6 +82,7 @@ pub struct TransformFsOptions {
 #[serde(rename_all = "camelCase")]
 pub struct TransformModuleInput {
 	pub path: String,
+	pub dev_path: Option<String>,
 	pub code: String,
 }
 
@@ -137,6 +138,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
 				src_dir,
 				root_dir,
 				relative_path: relative_path.to_str().unwrap(),
+				dev_path: None,
 				minify: config.minify,
 				code: &code,
 				explicit_extensions: config.explicit_extensions,
@@ -172,17 +174,19 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
 	let root_dir = config.root_dir.as_ref().map(Path::new);
 
 	let entry_policy = &*parse_entry_strategy(&config.entry_strategy, config.manual_chunks);
+
 	#[cfg(feature = "parallel")]
 	let iterator = config.input.par_iter();
-
 	#[cfg(not(feature = "parallel"))]
 	let iterator = config.input.iter();
-	let iterator = iterator.map(|path| -> Result<TransformOutput, Error> {
+
+	let iterator = iterator.map(|input| -> Result<TransformOutput, Error> {
 		transform_code(TransformCodeOptions {
 			src_dir,
 			root_dir,
-			relative_path: &path.path,
-			code: &path.code,
+			relative_path: &input.path,
+			dev_path: input.dev_path.as_deref(),
+			code: &input.code,
 			minify: config.minify,
 			source_maps: config.source_maps,
 			transpile_ts: config.transpile_ts,

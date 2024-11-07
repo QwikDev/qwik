@@ -1,17 +1,10 @@
-import { newInvokeContext, invoke, waitAndRun, untrack, useInvokeContext } from './use-core';
-import { logError, logErrorAndStop, logOnceWarn } from '../util/log';
-import { delay, safeCall, maybeThen, isPromise } from '../util/promises';
-import { isFunction, isObject, type ValueOrPromise } from '../util/types';
-import { isServerPlatform } from '../platform/platform';
-import { implicit$FirstArg } from '../util/implicit_dollar';
-import { assertDefined, assertEqual } from '../error/assert';
-import type { QRL } from '../qrl/qrl.public';
-import { assertQrl, assertSignal, createQRL, type QRLInternal } from '../qrl/qrl-class';
-import { codeToText, QError_trackUseStore } from '../error/error';
-import { useOn, useOnDocument } from './use-on';
 import { type ContainerState, intToStr, type MustGetObjID, strToInt } from '../container/container';
-import { notifyTask, _hW } from '../render/dom/notify-render';
-import { useSequentialScope } from './use-sequential-scope';
+import { assertDefined, assertEqual } from '../error/assert';
+import { codeToText, QError_trackUseStore } from '../error/error';
+import { isServerPlatform } from '../platform/platform';
+import { assertQrl, assertSignal, createQRL, type QRLInternal } from '../qrl/qrl-class';
+import type { QRL } from '../qrl/qrl.public';
+import { _hW, notifyTask } from '../render/dom/notify-render';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { handleError } from '../render/error-handling';
 import type { RenderContext } from '../render/types';
@@ -21,19 +14,26 @@ import {
   type NoSerialize,
   unwrapProxy,
 } from '../state/common';
+import { QObjectManagerSymbol } from '../state/constants';
+import { getContext } from '../state/context';
 import {
+  _createSignal,
   isSignal,
   QObjectSignalFlags,
+  type ReadonlySignal,
   type Signal,
-  type SignalInternal,
   SIGNAL_IMMUTABLE,
   SIGNAL_UNASSIGNED,
-  _createSignal,
-  type ReadonlySignal,
+  type SignalInternal,
 } from '../state/signal';
-import { QObjectManagerSymbol } from '../state/constants';
+import { implicit$FirstArg } from '../util/implicit_dollar';
+import { logError, logErrorAndStop, logOnceWarn } from '../util/log';
 import { ComputedEvent, TaskEvent } from '../util/markers';
-import { getContext } from '../state/context';
+import { delay, isPromise, maybeThen, safeCall } from '../util/promises';
+import { isFunction, isObject, type ValueOrPromise } from '../util/types';
+import { invoke, newInvokeContext, untrack, useInvokeContext, waitAndRun } from './use-core';
+import { useOn, useOnDocument } from './use-on';
+import { useSequentialScope } from './use-sequential-scope';
 import { useConstant } from './use-signal';
 
 export const TaskFlagsIsVisibleTask = 1 << 0;
@@ -758,16 +758,24 @@ export const runComputed = (
     handleError(reason, hostElement, rCtx);
   };
   try {
-    const result = taskFn();
-    if (isPromise(result)) {
-      const stack = new Error(
-        'useComputed$: Async functions in computed tasks are deprecated and will stop working in v2. Use useTask$ or useResource$ instead.'
-      ).stack;
-      logOnceWarn(stack);
-      return result.then(ok, fail);
-    } else {
-      ok(result);
-    }
+    return maybeThen(task.$qrl$.$resolveLazy$(containerState.$containerEl$), () => {
+      const result = taskFn();
+      if (isPromise(result)) {
+        const warningMessage =
+          'useComputed$: Async functions in computed tasks are deprecated and will stop working in v2. Use useTask$ or useResource$ instead.';
+        const stack = new Error(warningMessage).stack;
+        if (!stack) {
+          logOnceWarn(warningMessage);
+        } else {
+          const lessScaryStack = stack.replace(/^Error:\s*/, '');
+          logOnceWarn(lessScaryStack);
+        }
+
+        return result.then(ok, fail);
+      } else {
+        ok(result);
+      }
+    });
   } catch (reason) {
     fail(reason);
   }

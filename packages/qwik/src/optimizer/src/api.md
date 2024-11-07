@@ -432,6 +432,8 @@ export interface TransformModuleInput {
     // (undocumented)
     code: string;
     // (undocumented)
+    devPath?: string;
+    // (undocumented)
     path: string;
 }
 

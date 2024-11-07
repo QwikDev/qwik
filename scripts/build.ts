@@ -173,7 +173,7 @@ export async function build(config: BuildConfig) {
         [join(config.srcQwikDir, 'cli')]: () => submoduleCli(config),
         [join(config.srcQwikDir, 'optimizer')]: () => submoduleOptimizer(config),
         [join(config.srcQwikDir, 'server')]: () => submoduleServer(config),
-        [join(config.srcQwikRouterDir, 'runtime/src')]: () => buildQwikRouter(config),
+        [join(config.srcQwikRouterDir)]: () => buildQwikRouter(config),
       });
     }
   } catch (e: any) {

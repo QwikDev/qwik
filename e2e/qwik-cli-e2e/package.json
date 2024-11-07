@@ -6,7 +6,13 @@
   },
   "private": true,
   "scripts": {
-    "e2e": "vitest run --config=vite.config.mts",
-    "e2e.watch": "vitest watch --config=vite.config.mts"
+    "e2e.playwright": "playwright test --config ./playwright.config.mts",
+    "e2e.vitest": "vitest run --config=vite.config.mts",
+    "e2e.watch": "vitest watch --config=vite.config.mts",
+    "e2e": "pnpm e2e.vitest && pnpm e2e.playwright"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.47.0",
+    "@types/node": "20.14.11"
   }
 }

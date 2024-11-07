@@ -1,0 +1,44 @@
+{
+  "name": "my-qwik-basic-starter",
+  "description": "Demo app with sample routes",
+  "engines": {
+    "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
+  },
+  "engines-annotation": "Mostly required by sharp which needs a Node-API v9 compatible runtime",
+  "private": true,
+  "trustedDependencies": [
+    "sharp"
+  ],
+  "trustedDependencies-annotation": "Needed for bun to allow running install scripts",
+  "type": "module",
+  "scripts": {
+    "build": "qwik build",
+    "build.client": "vite build",
+    "build.preview": "vite build --ssr src/entry.preview.tsx",
+    "build.types": "tsc --incremental --noEmit",
+    "deploy": "echo 'Run \"npm run qwik add\" to install a server adapter'",
+    "dev": "vite --mode ssr",
+    "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
+    "fmt": "prettier --write .",
+    "fmt.check": "prettier --check .",
+    "lint": "eslint \"src/**/*.ts*\"",
+    "preview": "qwik build preview && vite preview --open",
+    "start": "vite --open --mode ssr",
+    "qwik": "qwik"
+  },
+  "devDependencies": {
+    "@builder.io/qwik": "workspace:*",
+    "@builder.io/qwik-city": "workspace:*",
+    "@types/eslint": "8.56.10",
+    "@types/node": "20.14.11",
+    "@typescript-eslint/eslint-plugin": "7.16.1",
+    "@typescript-eslint/parser": "7.16.1",
+    "eslint": "8.57.0",
+    "eslint-plugin-qwik": "workspace:*",
+    "prettier": "3.3.3",
+    "typescript": "5.4.5",
+    "undici": "*",
+    "vite": "^6.0.0-beta",
+    "vite-tsconfig-paths": "^4.2.1"
+  }
+}

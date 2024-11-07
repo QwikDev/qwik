@@ -43,6 +43,8 @@ test(
   }
 );
 
+// TODO: add test that tests handlers/events (to make sure that the SymbolMapper works as intended)
+
 async function expectHtmlOnARootPage(host: string) {
   expect((await getPageHtml(host)).querySelector('.container h1')?.textContent).toBe(
     `So fantasticto have you here`

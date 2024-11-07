@@ -36,6 +36,12 @@ export const getStoreTarget = <T extends TargetType>(value: T): T | null => {
   return value?.[STORE_TARGET] || null;
 };
 
+/**
+ * Get the original object that was wrapped by the store. Useful if you want to clone a store
+ * (structuredClone, IndexedDB,...)
+ *
+ * @public
+ */
 export const unwrapStore = <T>(value: T): T => {
   return getStoreTarget<any>(value) || value;
 };

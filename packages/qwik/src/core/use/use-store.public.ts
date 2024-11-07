@@ -3,6 +3,8 @@ import { StoreFlags, getOrCreateStore } from '../signal/store';
 import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 
+export { unwrapStore } from '../signal/store';
+
 /** @public */
 export interface UseStoreOptions {
   /** If `true` then all nested objects and arrays will be tracked as well. Default is `true`. */

@@ -74,7 +74,7 @@ export type { QwikDOMAttributes, QwikJSX, QwikJSX as JSX } from './shared/jsx/ty
 
 export type { QwikIntrinsicElements } from './shared/jsx/types/jsx-qwik-elements';
 export type { QwikHTMLElements, QwikSVGElements } from './shared/jsx/types/jsx-generated';
-export { render as render } from './client/dom-render';
+export { render } from './client/dom-render';
 export { getDomContainer, _getQContainerElement } from './client/dom-container';
 export type { StreamWriter, RenderSSROptions } from './ssr/ssr-types';
 export type { RenderOptions, RenderResult } from './client/types';
@@ -83,7 +83,7 @@ export type { RenderOptions, RenderResult } from './client/types';
 // use API
 //////////////////////////////////////////////////////////////////////////////////////////
 export { useLexicalScope } from './use/use-lexical-scope.public';
-export { useStore } from './use/use-store.public';
+export { useStore, unwrapStore } from './use/use-store.public';
 export { untrack } from './use/use-core';
 export { useId } from './use/use-id';
 export { useContext, useContextProvider, createContextId } from './use/use-context';

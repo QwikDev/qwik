@@ -71,6 +71,7 @@ pub enum EmitMode {
 
 pub struct TransformCodeOptions<'a> {
 	pub relative_path: &'a str,
+	pub dev_path: Option<&'a str>,
 	pub src_dir: &'a Path,
 	pub root_dir: Option<&'a Path>,
 	pub source_maps: bool,
@@ -203,7 +204,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 	let transpile_jsx = config.transpile_jsx;
 	let transpile_ts = config.transpile_ts;
 
-	let origin: JsWord = path_data.rel_path.to_slash_lossy().into();
+	let origin: JsWord = JsWord::from(path_data.rel_path.to_string_lossy());
 
 	match result {
 		Ok((program, comments, is_type_script, is_jsx)) => {
@@ -300,6 +301,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 						// split into segments
 						let mut qwik_transform = QwikTransform::new(QwikTransformOptions {
 							path_data: &path_data,
+							dev_path: config.dev_path,
 							entry_policy: config.entry_policy,
 							explicit_extensions: config.explicit_extensions,
 							extension: extension.clone(),

@@ -64,7 +64,7 @@
     "qManifest.post.local": "curl -X POST -H 'Content-Type: application/json' -d @./dist/q-manifest.json http://localhost:5173/api/v1/221smyuj5gl/post/manifest/",
     "qwik": "qwik",
     "start": "vite --open --mode ssr",
-    "test.cluster": "tsm src/cluster.ts",
+    "test.cluster": "tsx src/cluster.ts",
     "test.unit": "vitest",
     "test.watch": "vitest --watch"
   },

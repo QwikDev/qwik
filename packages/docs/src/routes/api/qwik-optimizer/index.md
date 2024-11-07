@@ -3149,6 +3149,21 @@ string
 </td></tr>
 <tr><td>
 
+[devPath?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
 [path](#)
 
 </td><td>

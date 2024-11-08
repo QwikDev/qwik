@@ -41,7 +41,7 @@ const ChildSlotInline = (props: { children: any }) => {
 
 describe.each([
   { render: ssrRenderToDom }, //
-  // { render: domRender }, //
+  { render: domRender }, //
 ])('$render.name: projection', ({ render }) => {
   it('should render basic projection', async () => {
     const Child = component$(() => {
@@ -2043,7 +2043,7 @@ describe.each([
       );
     });
 
-    it.only('#3727', async () => {
+    it('#3727', async () => {
       const CTX = createContextId<Signal<any[]>>('content-Issue3727');
       const Issue3727ParentB = component$(() => {
         return (

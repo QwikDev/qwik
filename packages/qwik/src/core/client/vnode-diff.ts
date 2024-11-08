@@ -952,11 +952,7 @@ export const vnode_diff = (
   }
 
   function expectVirtual(type: VirtualType, jsxKey: string | null) {
-    if (
-      vCurrent &&
-      vnode_isVirtualVNode(vCurrent) &&
-      vnode_getProp(vCurrent, ELEMENT_KEY, null) === jsxKey
-    ) {
+    if (vCurrent && vnode_isVirtualVNode(vCurrent) && getKey(vCurrent) === jsxKey) {
       // All is good.
       return;
     } else if (jsxKey !== null) {

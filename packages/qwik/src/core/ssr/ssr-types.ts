@@ -77,6 +77,7 @@ export interface SSRContainer extends Container {
 
   openFragment(attrs: SsrAttrs): void;
   closeFragment(): void;
+  markCurrentElementFrameToSerialize(): void;
 
   openProjection(attrs: SsrAttrs): void;
   closeProjection(): void;

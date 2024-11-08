@@ -599,14 +599,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   private emitContainerData(): ValueOrPromise<void> {
     // TODO first emit state, then only emit slots where the parent is serialized (so they could rerender)
-    this.emitUnclaimedProjection();
-    return maybeThen(this.emitStateData(), () => {
-      this.$noMoreRoots$ = true;
-      this.emitVNodeData();
-      this.emitPrefetchResourcesData();
-      this.emitSyncFnsData();
-      this.emitQwikLoaderAtBottomIfNeeded();
-    });
+    return maybeThen(this.emitUnclaimedProjection(), () =>
+      maybeThen(this.emitStateData(), () => {
+        this.$noMoreRoots$ = true;
+        this.emitVNodeData();
+        this.emitPrefetchResourcesData();
+        this.emitSyncFnsData();
+        this.emitQwikLoaderAtBottomIfNeeded();
+      })
+    );
   }
 
   /**
@@ -968,8 +969,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
               lastNode.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
             }
             ssrComponentNode?.setProp(value, lastNode.id);
-            _walkJSX(this, children, {
-              allowPromises: false,
+            await _walkJSX(this, children, {
+              allowPromises: true,
               currentStyleScoped: scopedStyleId,
               parentComponentFrame: null,
             });

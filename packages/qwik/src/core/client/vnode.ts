@@ -374,7 +374,7 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
     for (let idx = 0; idx < attributes.length; idx++) {
       const attr = attributes[idx];
       const key = attr.name;
-      if (key == Q_PROPS_SEPARATOR || !key) {
+      if (key === Q_PROPS_SEPARATOR || !key) {
         // SVG in Domino does not support ':' so it becomes an empty string.
         // all attributes after the ':' are considered immutable, and so we ignore them.
         break;
@@ -1439,7 +1439,7 @@ export const vnode_getAttrKeys = (vnode: ElementVNode | VirtualVNode): string[] 
     const keys: string[] = [];
     for (let i = vnode_getPropStartIndex(vnode); i < vnode.length; i = i + 2) {
       const key = vnode[i] as string;
-      if (!key.startsWith(':')) {
+      if (!key.startsWith(Q_PROPS_SEPARATOR)) {
         keys.push(key);
       }
     }

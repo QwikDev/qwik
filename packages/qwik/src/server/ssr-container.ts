@@ -90,7 +90,6 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './vnode-data';
-import type { VNode } from '../core/client/types';
 
 export interface SSRRenderOptions {
   locale?: string;
@@ -448,12 +447,16 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.lastNode = null;
   }
 
-  openProjection(attrs: SsrAttrs) {
-    this.openFragment(attrs);
-    const vNode = this.currentElementFrame!.vNodeData as any as VNode;
+  markCurrentElementFrameToSerialize() {
+    const vNode = this.currentElementFrame?.vNodeData;
     if (vNode) {
       vNode[0] |= VNodeDataFlag.SERIALIZE;
     }
+  }
+
+  openProjection(attrs: SsrAttrs) {
+    this.openFragment(attrs);
+    this.markCurrentElementFrameToSerialize();
     const componentFrame = this.getComponentFrame();
     if (componentFrame) {
       componentFrame.projectionDepth++;

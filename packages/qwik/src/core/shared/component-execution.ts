@@ -16,7 +16,7 @@ import {
   USE_ON_LOCAL,
   USE_ON_LOCAL_SEQ_IDX,
 } from './utils/markers';
-import { isPromise, maybeThen, safeCall } from './utils/promises';
+import { MAX_RETRY_ON_PROMISE_COUNT, isPromise, maybeThen, safeCall } from './utils/promises';
 import type { ValueOrPromise } from './utils/types';
 import type { Container, HostElement } from './types';
 import { logWarn } from './utils/log';
@@ -79,7 +79,7 @@ export const executeComponent = (
     componentFn = () => invokeApply(iCtx, inlineComponent, [props || EMPTY_OBJ]);
   }
 
-  const executeComponentWithPromiseExceptionRetry = (): ValueOrPromise<JSXOutput> =>
+  const executeComponentWithPromiseExceptionRetry = (retryCount = 0): ValueOrPromise<JSXOutput> =>
     safeCall<JSXOutput, JSXOutput, JSXOutput>(
       () => {
         container.setHostProp(renderHost, ELEMENT_SEQ_IDX, null);
@@ -100,8 +100,10 @@ export const executeComponent = (
         return jsx;
       },
       (err) => {
-        if (isPromise(err)) {
-          return err.then(executeComponentWithPromiseExceptionRetry) as Promise<JSXOutput>;
+        if (isPromise(err) && retryCount < MAX_RETRY_ON_PROMISE_COUNT) {
+          return err.then(() =>
+            executeComponentWithPromiseExceptionRetry(retryCount++)
+          ) as Promise<JSXOutput>;
         } else {
           throw err;
         }

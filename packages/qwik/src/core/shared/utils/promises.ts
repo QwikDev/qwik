@@ -1,7 +1,7 @@
 import { throwErrorAndStop } from './log';
 import type { ValueOrPromise } from './types';
 
-export const MAX_RETRY_ON_PROMISE_COUNT = 10;
+export const MAX_RETRY_ON_PROMISE_COUNT = 100;
 
 export type PromiseTree<T> = T | Promise<T> | Promise<T[]> | Array<PromiseTree<T>>;
 

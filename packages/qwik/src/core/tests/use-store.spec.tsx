@@ -997,7 +997,11 @@ describe.each([
 
     it('#5001 - should serialize naked value', async () => {
       const Button = component$<{ unusedValue?: [number]; state: [number] }>(({ state }) => {
-        return <button onClick$={() => state[0]++}>+1</button>;
+        return (
+          <div>
+            <button onClick$={() => state[0]++}>+1</button>
+          </div>
+        );
       });
       const Parent = component$<{ nakedState: [number] }>(({ nakedState }) => {
         // STEP 2
@@ -1017,10 +1021,7 @@ describe.each([
               unusedValue={nakedState}
               state={state}
             />
-            {'Count: '}
-            {/* <>{'0'}</> */}
-            {state[0]}
-            {/* {signal.value} */}
+            Count: <span>{state[0]}</span>
           </>
         );
       });
@@ -1034,14 +1035,18 @@ describe.each([
 
       const { vNode, document } = await render(<Issue5001 />, { debug });
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Component>
-            <Fragment>
-              <Component>
-                <button>+1</button>
+        <Component ssr-required>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <Component ssr-required>
+                <div>
+                  <button>+1</button>
+                </div>
               </Component>
               {'Count: '}
-              <Signal>0</Signal>
+              <span>
+                <Signal ssr-required>0</Signal>
+              </span>
             </Fragment>
           </Component>
         </Component>
@@ -1049,14 +1054,18 @@ describe.each([
 
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Component>
-            <Fragment>
-              <Component>
-                <button>+1</button>
+        <Component ssr-required>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <Component ssr-required>
+                <div>
+                  <button>+1</button>
+                </div>
               </Component>
               {'Count: '}
-              <Signal>1</Signal>
+              <span>
+                <Signal ssr-required>1</Signal>
+              </span>
             </Fragment>
           </Component>
         </Component>

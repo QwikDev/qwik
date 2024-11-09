@@ -22,6 +22,7 @@ import {
   isStore,
 } from '../signal/store';
 import type { SymbolToChunkResolver } from '../ssr/ssr-types';
+import { untrack } from '../use/use-core';
 import { createResourceReturn, type ResourceReturnInternal } from '../use/use-resource';
 import { Task, isTask } from '../use/use-task';
 import { SERIALIZABLE_STATE, componentQrl, isQwikComponent } from './component.public';
@@ -824,6 +825,9 @@ export const createSerializationContext = (
           if (obj.$effectDependencies$) {
             discoveredValues.push(...obj.$effectDependencies$);
           }
+          if (obj.$args$) {
+            discoveredValues.push(...obj.$args$);
+          }
         } else if (obj instanceof ComputedSignal) {
           discoveredValues.push(obj.$computeQrl$);
         }
@@ -1486,7 +1490,9 @@ export const canSerialize = (value: any): boolean => {
     }
     if (proto == Object.prototype) {
       for (const key in value) {
-        if (!canSerialize(value[key])) {
+        // if the value is a props proxy, then sometimes we could create a component-level subscription,
+        // so we should call untrack here to avoid tracking the value
+        if (!canSerialize(untrack(() => value[key]))) {
           return false;
         }
       }

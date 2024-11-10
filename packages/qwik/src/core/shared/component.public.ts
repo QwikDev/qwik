@@ -1,5 +1,5 @@
 import { dollar, type QRL } from './qrl/qrl.public';
-import type { JSXOutput } from './jsx/types/jsx-node';
+import type { JSXNode, JSXOutput } from './jsx/types/jsx-node';
 import type {
   ComponentBaseProps,
   EventHandler,
@@ -7,8 +7,12 @@ import type {
   QRLEventHandlerMulti,
 } from './jsx/types/jsx-qwik-attributes';
 import type { FunctionComponent } from './jsx/types/jsx-node';
-import { _CONST_PROPS, _VAR_PROPS, _jsxSorted } from '../internal';
+import { _CONST_PROPS, _VAR_PROPS, _jsxSorted, _jsxSplit } from '../internal';
 import type { QwikIntrinsicElements } from './jsx/types/jsx-qwik-elements';
+import { assertQrl } from './qrl/qrl-class';
+import { assertNumber } from './error/assert';
+import { qTest } from './utils/qdev';
+import { Virtual } from './jsx/jsx-runtime';
 
 // TS way to check for any
 type IsAny<T> = 0 extends T & 1 ? true : false;
@@ -126,7 +130,17 @@ export const componentQrl = <PROPS extends Record<any, any>>(
   componentQrl: QRL<OnRenderFn<PROPS>>
 ): Component<PROPS> => {
   // Return a QComponent Factory function.
-  const QwikComponent = () => {};
+  function QwikComponent(
+    props: PublicProps<PROPS>,
+    key: string | null,
+    flags: number = 0
+  ): JSXNode {
+    assertQrl(componentQrl);
+    assertNumber(flags, 'The Qwik Component was not invoked correctly');
+    const hash = qTest ? 'sX' : componentQrl.$hash$.slice(0, 4);
+    const finalKey = hash + ':' + (key ? key : '');
+    return _jsxSplit(Virtual, props, null, props.children, flags, finalKey);
+  }
   (QwikComponent as any)[SERIALIZABLE_STATE] = [componentQrl];
   return QwikComponent as any;
 };

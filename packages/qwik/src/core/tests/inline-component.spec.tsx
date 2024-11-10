@@ -2,9 +2,11 @@ import {
   Fragment as Component,
   Fragment,
   Fragment as InlineComponent,
+  Slot,
   component$,
   useSignal,
   useStore,
+  type PublicProps,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
@@ -417,6 +419,29 @@ describe.each([
           </InlineComponent>
         </footer>
       </Component>
+    );
+  });
+
+  it('should render component$ inside inlined wrapper', async () => {
+    const ComplexWrapper = (props: PublicProps<{}>, key: string | null, flags: number) => {
+      const cmpFn = component$(() => {
+        return <Slot />;
+      });
+      return cmpFn(props, key, flags);
+    };
+
+    const { vNode } = await render(
+      <ComplexWrapper>
+        <div id="1">Test</div>
+      </ComplexWrapper>,
+      { debug }
+    );
+    expect(vNode).toMatchVDOM(
+      <InlineComponent>
+        <Component>
+          <div id="1">Test</div>
+        </Component>
+      </InlineComponent>
     );
   });
 });

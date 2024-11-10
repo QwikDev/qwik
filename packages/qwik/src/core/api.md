@@ -529,8 +529,6 @@ export type IntrinsicSVGElements = {
     [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: LenientSVGProps<SVGElementTagNameMap[K]>;
 };
 
-// Warning: (ae-forgotten-export) The symbol "JSXNodeInternal" needs to be exported by the entry point index.d.ts
-//
 // @internal (undocumented)
 export const _isJSXNode: <T>(n: unknown) => n is JSXNodeInternal<T>;
 
@@ -599,6 +597,18 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
     props: T extends FunctionComponent<infer P> ? P : Record<any, unknown>;
     // (undocumented)
     type: T;
+}
+
+// Warning: (ae-internal-missing-underscore) The name "JSXNodeInternal" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface JSXNodeInternal<T extends string | FunctionComponent | unknown = unknown> extends JSXNode<T> {
+    // (undocumented)
+    constProps: Record<any, unknown> | null;
+    // (undocumented)
+    flags: number;
+    // (undocumented)
+    varProps: Record<any, unknown>;
 }
 
 // @public

@@ -1,7 +1,7 @@
+import { Fragment, Slot, isSignal } from '@qwik.dev/core';
+import { _CONST_PROPS, _VAR_PROPS, _isJSXNode, _isStringifiable } from '@qwik.dev/core/internal';
+import type { JSXChildren, JSXNode, JSXOutput } from '@qwik.dev/core';
 import type {
-  JSXChildren,
-  JSXNode,
-  JSXOutput,
   _ContainerElement,
   _ElementVNode,
   _QDocument,
@@ -9,16 +9,8 @@ import type {
   _TextVNode,
   _VNode,
   _VirtualVNode,
-} from '@qwik.dev/core';
-import {
-  Fragment,
-  Slot,
-  _CONST_PROPS,
-  _VAR_PROPS,
-  _isJSXNode,
-  _isStringifiable,
-  isSignal,
-} from '@qwik.dev/core';
+  JSXNodeInternal,
+} from '@qwik.dev/core/internal';
 import { expect } from 'vitest';
 import {
   vnode_applyJournal,
@@ -51,7 +43,6 @@ import {
 import { createDocument } from './document';
 import { isElement } from './html';
 import { QRenderAttr, Q_PROPS_SEPARATOR } from '../core/shared/utils/markers';
-import type { JSXNodeInternal } from '../core/shared/jsx/types/jsx-node';
 
 expect.extend({
   toMatchVDOM(

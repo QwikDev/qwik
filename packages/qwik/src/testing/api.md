@@ -8,6 +8,7 @@ import { ClientContainer } from '@qwik.dev/core';
 import type { CorePlatform } from '@qwik.dev/core';
 import type { _DomContainer } from '@qwik.dev/core';
 import type { _ElementVNode } from '@qwik.dev/core';
+import type { JSXNodeInternal } from '@qwik.dev/core';
 import type { JSXOutput } from '@qwik.dev/core';
 import type { _QDocument } from '@qwik.dev/core';
 import { RenderResult } from '@qwik.dev/core';
@@ -99,10 +100,6 @@ export function walkJSX(jsx: JSXOutput, apply: {
     leave: (jsx: JSXNodeInternal) => void;
     text: (text: _Stringifiable) => void;
 }): void;
-
-// Warnings were encountered during analysis:
-//
-// /home/wmertens/Projects/qwik-2/dist-dev/dts-out/packages/qwik/src/testing/vdom-diff.unit-util.d.ts:7:5 - (ae-forgotten-export) The symbol "JSXNodeInternal" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

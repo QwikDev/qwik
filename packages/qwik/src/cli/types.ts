@@ -14,6 +14,7 @@ export interface UpdateAppOptions {
   rootDir: string;
   integration: string;
   installDeps?: boolean;
+  projectDir?: string;
 }
 
 export interface UpdateAppResult {
@@ -43,6 +44,8 @@ export interface IntegrationData {
   priority: number;
   docs: string[];
   viteConfig?: ViteConfigUpdates;
+  // Files and folders that should be copied to root ignoring `projectDir`
+  alwaysInRoot?: string[];
 }
 
 export type IntegrationType = 'app' | 'feature' | 'adapter';
@@ -77,14 +80,17 @@ export interface IntegrationPackageJson {
   qwikTemplates?: string[];
   types?: string;
   type?: string;
-  __qwik__?: {
-    displayName?: string;
-    nextSteps?: NextSteps;
-    docs?: string[];
-    priority: number;
-    postInstall?: string;
-    viteConfig?: ViteConfigUpdates;
-  };
+  __qwik__?: QwikIntegrationConfig;
+}
+
+export interface QwikIntegrationConfig {
+  displayName?: string;
+  nextSteps?: NextSteps;
+  docs?: string[];
+  priority: number;
+  postInstall?: string;
+  viteConfig?: ViteConfigUpdates;
+  alwaysInRoot?: string[];
 }
 
 export interface EnsureImport {

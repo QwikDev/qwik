@@ -423,23 +423,39 @@ describe.each([
   });
 
   it('should render component$ inside inlined wrapper', async () => {
-    const ComplexWrapper = (props: PublicProps<{}>, key: string | null, flags: number) => {
-      const cmpFn = component$(() => {
-        return <Slot />;
+    interface ComplexWrapperProps {
+      foo: string;
+    }
+
+    const ComplexWrapper = (
+      props: PublicProps<ComplexWrapperProps>,
+      key: string | null,
+      flags: number
+    ) => {
+      const cmpFn = component$<ComplexWrapperProps>(({ foo }) => {
+        return (
+          <div>
+            {foo}: <Slot />
+          </div>
+        );
       });
       return cmpFn(props, key, flags);
     };
 
     const { vNode } = await render(
-      <ComplexWrapper>
-        <div id="1">Test</div>
+      <ComplexWrapper foo="bar">
+        <div>
+          bar: <div id="1">Test</div>
+        </div>
       </ComplexWrapper>,
       { debug }
     );
     expect(vNode).toMatchVDOM(
       <InlineComponent>
         <Component>
-          <div id="1">Test</div>
+          <div>
+            bar: <div id="1">Test</div>
+          </div>
         </Component>
       </InlineComponent>
     );

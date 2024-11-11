@@ -1,7 +1,7 @@
 {
   "name": "@builder.io/qwik",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
-  "version": "1.9.1",
+  "version": "1.10.0",
   "annotation": "This package.json is for internal use in the monorepo, the build actually makes a new package.json for the published package via scripts/package-json.ts",
   "bin": {
     "qwik": "./qwik-cli.cjs"

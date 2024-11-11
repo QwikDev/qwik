@@ -1,5 +1,11 @@
 # create-qwik
 
+## 1.10.0
+
+### Patch Changes
+
+- INFRA: migration from tsm to tsx (by [@JerryWu1234](https://github.com/JerryWu1234) in [#6877](https://github.com/QwikDev/qwik/pull/6877))
+
 ## 1.9.1
 
 ## 1.9.0

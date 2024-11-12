@@ -119,7 +119,7 @@ export declare function domRender(
   },
 ): Promise<{
   document: Document;
-  container: import("@qwik.dev/core").ClientContainer;
+  container: import("@qwik.dev/core/internal").ClientContainer;
   vNode: _VNode | null;
   getStyles: () => Record<string, string | string[]>;
 }>;
@@ -165,7 +165,7 @@ _(Optional)_
 </tbody></table>
 **Returns:**
 
-Promise&lt;{ document: Document; container: import("@qwik.dev/core").ClientContainer; vNode: \_VNode \| null; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
+Promise&lt;{ document: Document; container: import("@qwik.dev/core/internal").ClientContainer; vNode: \_VNode \| null; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/rendering.unit-util.tsx)
 

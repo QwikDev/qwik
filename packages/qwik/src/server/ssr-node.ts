@@ -12,6 +12,7 @@ import {
 } from './qwik-copy';
 import type { SsrAttrs, ISsrNode, ISsrComponentFrame, JSXChildren } from './qwik-types';
 import type { CleanupQueue } from './ssr-container';
+import type { VNodeData } from './vnode-data';
 
 /**
  * Server has no DOM, so we need to create a fake node to represent the DOM for serialization
@@ -40,6 +41,7 @@ export class SsrNode implements ISsrNode {
   /** Local props which don't serialize; */
   private locals: SsrAttrs | null = null;
   public currentComponentNode: ISsrNode | null;
+  public childrenVNodeData: VNodeData[] | null = null;
 
   constructor(
     currentComponentNode: ISsrNode | null,
@@ -47,9 +49,10 @@ export class SsrNode implements ISsrNode {
     id: string,
     private attrs: SsrAttrs,
     private cleanupQueue: CleanupQueue,
-    public vnodeData?: any
+    public vnodeData: VNodeData
   ) {
     this.currentComponentNode = currentComponentNode;
+    this.currentComponentNode?.addChildVNodeData(this.vnodeData);
     this.nodeType = nodeType;
     this.id = id;
     if (isDev && id.indexOf('undefined') != -1) {
@@ -89,6 +92,13 @@ export class SsrNode implements ISsrNode {
     } else {
       mapApp_remove(this.attrs, name, 0);
     }
+  }
+
+  addChildVNodeData(child: VNodeData): void {
+    if (!this.childrenVNodeData) {
+      this.childrenVNodeData = [];
+    }
+    this.childrenVNodeData.push(child);
   }
 
   toString(): string {

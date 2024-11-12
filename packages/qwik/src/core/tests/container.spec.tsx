@@ -505,7 +505,7 @@ describe('serializer v2', () => {
 
     describe('DocumentSerializer, //////', () => {
       it('should serialize and deserialize', async () => {
-        const obj = new SsrNode(null, SsrNode.DOCUMENT_NODE, '', [], []);
+        const obj = new SsrNode(null, SsrNode.DOCUMENT_NODE, '', [], [], [] as any);
         const container = await withContainer((ssr) => ssr.addRoot(obj));
         expect(container.$getObjectById$(0)).toEqual(container.element.ownerDocument);
       });

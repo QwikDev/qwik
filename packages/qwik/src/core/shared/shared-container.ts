@@ -51,7 +51,7 @@ export abstract class _SharedContainer implements Container {
     } | null,
     symbolToChunkResolver: SymbolToChunkResolver,
     writer?: StreamWriter,
-    prepVNode?: (vNode: any) => void
+    prepVNodeData?: (vNode: any) => void
   ): SerializationContext {
     return createSerializationContext(
       NodeConstructor,
@@ -60,7 +60,7 @@ export abstract class _SharedContainer implements Container {
       this.setHostProp.bind(this),
       this.$storeProxyMap$,
       writer,
-      prepVNode
+      prepVNodeData
     );
   }
 

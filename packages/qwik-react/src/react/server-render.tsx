@@ -1,4 +1,5 @@
-import { type QRL, type Signal, Slot, SSRComment, SSRRaw, SSRStream } from '@qwik.dev/core';
+import { type QRL, type Signal, Slot } from '@qwik.dev/core';
+import { SSRComment, SSRRaw, SSRStream } from '@qwik.dev/core/internal';
 import { isServer } from '@qwik.dev/core/build';
 import { renderToString } from 'react-dom/server';
 import { getHostProps, getReactProps, mainExactProps } from './slot';

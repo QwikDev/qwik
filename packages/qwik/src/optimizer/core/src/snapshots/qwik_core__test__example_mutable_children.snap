@@ -155,11 +155,11 @@ const AppStatic_component_gYRXqF3G5nE = (props)=>{
             "Static ",
             f ? 1 : 3
         ], 1, null),
-        /*#__PURE__*/ _jsxSorted("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxSorted("p", null, null, "1", 3, "u6_21") : /*#__PURE__*/ _jsxSorted("p", null, null, "2", 3, null), 1, null),
-        /*#__PURE__*/ _jsxSorted("div", null, null, prop.value && /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "u6_22"), 1, null),
-        /*#__PURE__*/ _jsxSorted("div", null, null, prop.value && /*#__PURE__*/ _jsxSorted(Fragment, null, null, /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 3, "u6_23"), 1, "u6_24"), 1, null),
-        /*#__PURE__*/ _jsxSorted("div", null, null, prop.value && /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, null), 3, "u6_25"), 1, null),
-        /*#__PURE__*/ _jsxSorted("div", null, null, prop.value && /*#__PURE__*/ _jsxSorted(Image, null, null, null, 3, "u6_26"), 1, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, prop < 2 ? /*#__PURE__*/ _jsxSorted("p", null, null, "1", 3, "u6_21") : /*#__PURE__*/ _jsxSorted("p", null, null, "2", 3, "u6_22"), 1, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, prop.value && /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "u6_23"), 1, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, prop.value && /*#__PURE__*/ _jsxSorted(Fragment, null, null, /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 3, "u6_24"), 1, "u6_25"), 1, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, prop.value && /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, null), 3, "u6_26"), 1, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, prop.value && /*#__PURE__*/ _jsxSorted(Image, null, null, null, 3, "u6_27"), 1, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, [
             "Static ",
             f ? 1 : 3
@@ -177,7 +177,7 @@ const AppStatic_component_gYRXqF3G5nE = (props)=>{
             "Static ",
             stuff()
         ], 1, null)
-    ], 1, "u6_27");
+    ], 1, "u6_28");
 };
 export const AppStatic = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(AppStatic_component_gYRXqF3G5nE, "AppStatic_component_gYRXqF3G5nE"));
 

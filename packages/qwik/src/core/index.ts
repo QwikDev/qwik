@@ -57,7 +57,6 @@ export {
   h,
   h as createElement,
 } from './shared/jsx/jsx-runtime';
-export type * from './shared/jsx/types/jsx-generated';
 export type {
   DOMAttributes,
   QwikAttributes,

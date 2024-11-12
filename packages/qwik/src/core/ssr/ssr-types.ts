@@ -30,6 +30,7 @@ export interface ISsrNode {
   setProp(name: string, value: any): void;
   getProp(name: string): any;
   removeProp(name: string): void;
+  addChildVNodeData(child: VNodeData): void;
 }
 
 /** @internal */
@@ -77,7 +78,7 @@ export interface SSRContainer extends Container {
 
   openFragment(attrs: SsrAttrs): void;
   closeFragment(): void;
-  markCurrentElementFrameToSerialize(): void;
+  addCurrentElementFrameAsComponentChild(): void;
 
   openProjection(attrs: SsrAttrs): void;
   closeProjection(): void;

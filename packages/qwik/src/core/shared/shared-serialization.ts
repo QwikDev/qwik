@@ -2,7 +2,7 @@
 
 import { isDev } from '../../build/index.dev';
 import type { StreamWriter } from '../../server/types';
-import { VNodeDataFlag } from '../../server/vnode-data';
+import { VNodeDataFlag, type VNodeData } from '../../server/vnode-data';
 import { type DomContainer } from '../client/dom-container';
 import type { VNode } from '../client/types';
 import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
@@ -577,7 +577,8 @@ export function inflateQRL(container: DeserializeContainer, qrl: QRLInternal<any
 type SsrNode = {
   nodeType: number;
   id: string;
-  vnodeData?: VNode;
+  childrenVNodeData: VNodeData[] | null;
+  vnodeData: VNodeData;
 };
 
 /** A ref to a DOM element */
@@ -643,7 +644,7 @@ export interface SerializationContext {
 
   $getProp$: (obj: any, prop: string) => any;
   $setProp$: (obj: any, prop: string, value: any) => void;
-  prepVNode?: (vnode: VNode) => void;
+  $prepVNodeData$?: (vNodeData: VNodeData) => void;
 }
 
 export const createSerializationContext = (
@@ -661,8 +662,8 @@ export const createSerializationContext = (
   setProp: (obj: any, prop: string, value: any) => void,
   storeProxyMap: ObjToProxyMap,
   writer?: StreamWriter,
-  // temporary until we serdes the vnode here
-  prepVNode?: (vnode: VNode) => void
+  // temporary until we serdes the vnode data here
+  prepVNodeData?: (vNodeData: VNodeData) => void
 ): SerializationContext => {
   if (!writer) {
     const buffer: string[] = [];
@@ -742,7 +743,7 @@ export const createSerializationContext = (
     $storeProxyMap$: storeProxyMap,
     $getProp$: getProp,
     $setProp$: setProp,
-    prepVNode,
+    $prepVNodeData$: prepVNodeData,
   };
 
   async function breakCircularDependenciesAndResolvePromises() {
@@ -1164,12 +1165,17 @@ function serialize(serializationContext: SerializationContext): void {
       if (isRootObject) {
         // Tell the SsrNode which root id it is
         $setProp$(value, ELEMENT_ID, String(idx));
-        const vNode = value.vnodeData;
         // we need to output before the vnode overwrites its values
         output(TypeIds.VNode, value.id);
-        if (vNode) {
-          serializationContext.prepVNode?.(vNode);
-          vNode[0] |= VNodeDataFlag.SERIALIZE;
+        const vNodeData = value.vnodeData;
+        if (vNodeData) {
+          serializationContext.$prepVNodeData$?.(vNodeData);
+          vNodeData[0] |= VNodeDataFlag.SERIALIZE;
+        }
+        if (value.childrenVNodeData) {
+          for (const vNodeData of value.childrenVNodeData) {
+            vNodeData[0] |= VNodeDataFlag.SERIALIZE;
+          }
         }
       } else {
         // Promote the vnode to a root

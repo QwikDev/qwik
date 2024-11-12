@@ -1446,7 +1446,7 @@ describe.each([
         <Fragment ssr-required>
           <button>Add stuff (caused render)</button>
           <div>
-            <Fragment>
+            <Fragment ssr-required>
               <input id="input1"></input>
               <svg />
             </Fragment>

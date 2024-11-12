@@ -226,7 +226,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       SsrNode,
       this.symbolToChunkResolver,
       opts.writer,
-      (vNode: VNodeData) => this.addVNodeToSerializationRoots(vNode)
+      (vNodeData: VNodeData) => this.addVNodeToSerializationRoots(vNodeData)
     );
     this.renderTimer = createTimer();
     this.tag = opts.tagName;
@@ -447,16 +447,19 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.lastNode = null;
   }
 
-  markCurrentElementFrameToSerialize() {
+  addCurrentElementFrameAsComponentChild() {
     const vNode = this.currentElementFrame?.vNodeData;
     if (vNode) {
-      vNode[0] |= VNodeDataFlag.SERIALIZE;
+      this.currentComponentNode?.addChildVNodeData(vNode);
     }
   }
 
   openProjection(attrs: SsrAttrs) {
     this.openFragment(attrs);
-    this.markCurrentElementFrameToSerialize();
+    const vNode = this.currentElementFrame?.vNodeData;
+    if (vNode) {
+      vNode[0] |= VNodeDataFlag.SERIALIZE;
+    }
     const componentFrame = this.getComponentFrame();
     if (componentFrame) {
       componentFrame.projectionDepth++;
@@ -751,15 +754,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   /** This adds the vnode's data to the serialization roots */
-  addVNodeToSerializationRoots(vNode: VNodeData) {
+  addVNodeToSerializationRoots(vNodeData: VNodeData) {
     const vNodeAttrsStack: SsrAttrs[] = [];
-    const flag = vNode[0];
+    const flag = vNodeData[0];
     if (flag !== VNodeDataFlag.NONE) {
       if (flag & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE)) {
         let fragmentAttrs: SsrAttrs | null = null;
         let depth = 0;
-        for (let i = 1; i < vNode.length; i++) {
-          const value = vNode[i];
+        for (let i = 1; i < vNodeData.length; i++) {
+          const value = vNodeData[i];
           if (Array.isArray(value)) {
             vNodeAttrsStack.push(fragmentAttrs!);
             fragmentAttrs = value;

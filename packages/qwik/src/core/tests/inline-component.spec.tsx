@@ -2,6 +2,8 @@ import {
   Fragment as Component,
   Fragment,
   Fragment as InlineComponent,
+  Fragment as Projection,
+  Fragment as Signal,
   Slot,
   component$,
   useSignal,
@@ -443,7 +445,7 @@ describe.each([
     };
 
     const { vNode } = await render(
-      <ComplexWrapper foo="bar">
+      <ComplexWrapper foo="aaa">
         <div>
           bar: <div id="1">Test</div>
         </div>
@@ -454,7 +456,70 @@ describe.each([
       <InlineComponent>
         <Component>
           <div>
-            bar: <div id="1">Test</div>
+            <Signal>aaa</Signal>
+            {': '}
+            <Projection>
+              <div>
+                {'bar: '}
+                <div id="1">Test</div>
+              </div>
+            </Projection>
+          </div>
+        </Component>
+      </InlineComponent>
+    );
+  });
+
+  it('should render component$ inside inlined wrapper - case 2', async () => {
+    interface ComplexWrapperProps {
+      foo: string;
+      aaa: string;
+    }
+
+    const ComplexWrapper = (
+      props: PublicProps<ComplexWrapperProps>,
+      key: string | null,
+      flags: number
+    ) => {
+      const cmpFn = component$<ComplexWrapperProps>(({ foo }) => {
+        const cmpFn2 = component$<ComplexWrapperProps>(({ aaa }) => {
+          return (
+            <div>
+              {aaa}: <Slot />
+            </div>
+          );
+        });
+        return (
+          <div>
+            {foo}: <Slot />
+            {cmpFn2({ ...props, children: 'Test2' }, key, flags)}
+          </div>
+        );
+      });
+      return cmpFn(props, key, flags);
+    };
+
+    const { vNode } = await render(
+      <ComplexWrapper foo="bar" aaa="bbb">
+        Test
+      </ComplexWrapper>,
+      { debug }
+    );
+
+    expect(vNode).toMatchVDOM(
+      <InlineComponent>
+        <Component>
+          <div>
+            <Signal>{'bar'}</Signal>
+            {': '}
+            <Projection>Test</Projection>
+            <Component>
+              <div>
+                <Signal>{'bbb'}</Signal>
+                {': '}
+                <Projection>Test2</Projection>
+              </div>
+            </Component>
           </div>
         </Component>
       </InlineComponent>

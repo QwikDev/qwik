@@ -374,7 +374,7 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
     for (let idx = 0; idx < attributes.length; idx++) {
       const attr = attributes[idx];
       const key = attr.name;
-      if (key == Q_PROPS_SEPARATOR || !key) {
+      if (key === Q_PROPS_SEPARATOR || !key) {
         // SVG in Domino does not support ':' so it becomes an empty string.
         // all attributes after the ':' are considered immutable, and so we ignore them.
         break;
@@ -1387,13 +1387,17 @@ const isQStyleElement = (node: Node | null): node is Element => {
 
 const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null) => {
   let vFirstChild: VNode | null = null;
+
+  const skipStyleElements = () => {
+    while (isQStyleElement(child)) {
+      // skip over style elements, as those need to be moved to the head.
+      // VNode pretends that `<style q:style q:sstyle>` elements do not exist.
+      child = fastNextSibling(child);
+    }
+  };
   // materialize from DOM
   let child = firstChild;
-  while (isQStyleElement(child)) {
-    // skip over style elements, as those need to be moved to the head.
-    // VNode pretends that `<style q:style q:sstyle>` elements do not exist.
-    child = fastNextSibling(child);
-  }
+  skipStyleElements();
   let vChild: VNode | null = null;
   while (child) {
     const nodeType = fastNodeType(child);
@@ -1413,6 +1417,7 @@ const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null) => {
       vParent[ElementVNodeProps.firstChild] = vFirstChild = vChild;
     }
     child = fastNextSibling(child);
+    skipStyleElements();
   }
   vParent[ElementVNodeProps.lastChild] = vChild || null;
   vParent[ElementVNodeProps.firstChild] = vFirstChild;
@@ -1434,7 +1439,7 @@ export const vnode_getAttrKeys = (vnode: ElementVNode | VirtualVNode): string[] 
     const keys: string[] = [];
     for (let i = vnode_getPropStartIndex(vnode); i < vnode.length; i = i + 2) {
       const key = vnode[i] as string;
-      if (!key.startsWith(':')) {
+      if (!key.startsWith(Q_PROPS_SEPARATOR)) {
         keys.push(key);
       }
     }
@@ -1556,7 +1561,8 @@ export function vnode_toString(
   this: VNode | null,
   depth: number = 10,
   offset: string = '',
-  materialize: boolean = false
+  materialize: boolean = false,
+  siblings = false
 ): string {
   let vnode = this;
   if (depth === 0) {
@@ -1586,7 +1592,8 @@ export function vnode_toString(
         VirtualTypeName[VirtualType.Virtual];
       strings.push('<' + name + attrs.join('') + '>');
       const child = vnode_getFirstChild(vnode);
-      child && strings.push('  ' + vnode_toString.call(child, depth - 1, offset + '  ', true));
+      child &&
+        strings.push('  ' + vnode_toString.call(child, depth - 1, offset + '  ', true, true));
       strings.push('</' + name + '>');
     } else if (vnode_isElementVNode(vnode)) {
       const tag = vnode_getElementName(vnode);
@@ -1613,13 +1620,14 @@ export function vnode_toString(
       strings.push('<' + tag + attrs.join('') + '>');
       if (vnode_isMaterialized(vnode) || materialize) {
         const child = vnode_getFirstChild(vnode);
-        child && strings.push('  ' + vnode_toString.call(child, depth - 1, offset + '  ', true));
+        child &&
+          strings.push('  ' + vnode_toString.call(child, depth - 1, offset + '  ', true, true));
       } else {
         strings.push('  <!-- not materialized --!>');
       }
       strings.push('</' + tag + '>');
     }
-    vnode = vnode_getNextSibling(vnode) || null;
+    vnode = (siblings && vnode_getNextSibling(vnode)) || null;
   } while (vnode);
   return strings.join('\n' + offset);
 }

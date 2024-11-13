@@ -116,7 +116,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <>
         <button class={`${(globalThis as any).rawStyleId} container`}>
-          <Signal>1</Signal>
+          <Signal ssr-required>1</Signal>
         </button>
       </>
     );
@@ -634,9 +634,9 @@ describe.each([
         [styleId2]: scopeStyle2,
       });
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Component>
-            <Fragment>
+        <Component ssr-required>
+          <Component ssr-required>
+            <Fragment ssr-required>
               <button class={(globalThis as any).rawStyleId2}>toggle slot</button>
               {''}
             </Fragment>
@@ -645,11 +645,11 @@ describe.each([
       );
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Component>
-            <Fragment>
+        <Component ssr-required>
+          <Component ssr-required>
+            <Fragment ssr-required>
               <button class={(globalThis as any).rawStyleId2}>toggle slot</button>
-              <Projection>
+              <Projection ssr-required>
                 <span class={(globalThis as any).rawStyleId1}>content</span>
               </Projection>
             </Fragment>
@@ -658,9 +658,9 @@ describe.each([
       );
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Component>
-            <Fragment>
+        <Component ssr-required>
+          <Component ssr-required>
+            <Fragment ssr-required>
               <button class={(globalThis as any).rawStyleId2}>toggle slot</button>
               {''}
             </Fragment>
@@ -669,11 +669,11 @@ describe.each([
       );
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Component>
-            <Fragment>
+        <Component ssr-required>
+          <Component ssr-required>
+            <Fragment ssr-required>
               <button class={(globalThis as any).rawStyleId2}>toggle slot</button>
-              <Projection>
+              <Projection ssr-required>
                 <span class={(globalThis as any).rawStyleId1}>content</span>
               </Projection>
             </Fragment>

@@ -434,7 +434,7 @@ export declare function ssrRenderToDom(
 ): Promise<{
   container: _DomContainer;
   document: Document;
-  vNode: _VNode;
+  vNode: _VirtualVNode | null;
   getStyles: () => Record<string, string | string[]>;
 }>;
 ```
@@ -479,7 +479,7 @@ _(Optional)_
 </tbody></table>
 **Returns:**
 
-Promise&lt;{ container: \_DomContainer; document: Document; vNode: \_VNode; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
+Promise&lt;{ container: \_DomContainer; document: Document; vNode: \_VirtualVNode \| null; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/rendering.unit-util.tsx)
 

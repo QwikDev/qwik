@@ -174,7 +174,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            <Signal>20</Signal>
+            <Signal ssr-required>20</Signal>
           </button>
         </Component>
       );
@@ -182,7 +182,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            <Signal>22</Signal>
+            <Signal ssr-required>22</Signal>
           </button>
         </Component>
       );
@@ -208,7 +208,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            <Signal>20</Signal>
+            <Signal ssr-required>20</Signal>
           </button>
         </Component>
       );
@@ -216,7 +216,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            <Signal>22</Signal>
+            <Signal ssr-required>22</Signal>
           </button>
         </Component>
       );
@@ -236,7 +236,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            <Signal>2</Signal>
+            <Signal ssr-required>2</Signal>
           </button>
         </Component>
       );
@@ -244,7 +244,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            <Signal>4</Signal>
+            <Signal ssr-required>4</Signal>
           </button>
         </Component>
       );
@@ -334,7 +334,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            <Signal>1/2/4</Signal>
+            <Signal ssr-required>1/2/4</Signal>
           </button>
         </Component>
       );
@@ -345,7 +345,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            <Signal>2/4/8</Signal>
+            <Signal ssr-required>2/4/8</Signal>
           </button>
         </Component>
       );
@@ -374,7 +374,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            <Signal>0</Signal>
+            <Signal ssr-required>0</Signal>
           </button>
         </Component>
       );
@@ -387,7 +387,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            <Signal>1</Signal>
+            <Signal ssr-required>1</Signal>
           </button>
         </Component>
       );
@@ -398,7 +398,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            <Signal>2</Signal>
+            <Signal ssr-required>2</Signal>
           </button>
         </Component>
       );
@@ -579,7 +579,7 @@ describe.each([
           <Component>
             <span></span>
           </Component>
-          <Signal>{'6'}</Signal>
+          <Signal ssr-required>{'6'}</Signal>
         </div>
       </Component>
     );
@@ -620,10 +620,10 @@ describe.each([
       const { vNode, document } = await render(<Issue5782 />, { debug });
 
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button id="decrease">--</button>
-            <Signal>{'0'}</Signal>
+            <Signal ssr-required>{'0'}</Signal>
             <button id="increase">++</button>
             <button id="toggle">Toggle</button>
             {''}
@@ -634,15 +634,15 @@ describe.each([
       await trigger(document.body, '#toggle', 'click');
 
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button id="decrease">--</button>
-            <Signal>{'0'}</Signal>
+            <Signal ssr-required>{'0'}</Signal>
             <button id="increase">++</button>
             <button id="toggle">Toggle</button>
-            <Component>
+            <Component ssr-required>
               <p>
-                <Signal>0</Signal>
+                <Signal ssr-required>0</Signal>
               </p>
             </Component>
           </Fragment>
@@ -653,15 +653,15 @@ describe.each([
       await trigger(document.body, '#increase', 'click');
 
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button id="decrease">--</button>
-            <Signal>{'2'}</Signal>
+            <Signal ssr-required>{'2'}</Signal>
             <button id="increase">++</button>
             <button id="toggle">Toggle</button>
-            <Component>
+            <Component ssr-required>
               <p>
-                <Signal>2</Signal>
+                <Signal ssr-required>2</Signal>
               </p>
             </Component>
           </Fragment>
@@ -669,15 +669,15 @@ describe.each([
       );
       await trigger(document.body, '#decrease', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button id="decrease">--</button>
-            <Signal>{'1'}</Signal>
+            <Signal ssr-required>{'1'}</Signal>
             <button id="increase">++</button>
             <button id="toggle">Toggle</button>
-            <Component>
+            <Component ssr-required>
               <p>
-                <Signal>1</Signal>
+                <Signal ssr-required>1</Signal>
               </p>
             </Component>
           </Fragment>
@@ -686,10 +686,10 @@ describe.each([
 
       await trigger(document.body, '#toggle', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button id="decrease">--</button>
-            <Signal>{'1'}</Signal>
+            <Signal ssr-required>{'1'}</Signal>
             <button id="increase">++</button>
             <button id="toggle">Toggle</button>
             {''}
@@ -699,15 +699,15 @@ describe.each([
 
       await trigger(document.body, '#toggle', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button id="decrease">--</button>
-            <Signal>{'0'}</Signal>
+            <Signal ssr-required>{'0'}</Signal>
             <button id="increase">++</button>
             <button id="toggle">Toggle</button>
-            <Component>
+            <Component ssr-required>
               <p>
-                <Signal>0</Signal>
+                <Signal ssr-required>0</Signal>
               </p>
             </Component>
           </Fragment>
@@ -737,12 +737,12 @@ describe.each([
       });
       const { vNode, document } = await render(<Parent />, { debug });
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button>Toggle</button>
-            <Component>
-              <Fragment>
-                <Signal>abcd</Signal>
+            <Component ssr-required>
+              <Fragment ssr-required>
+                <Signal ssr-required>abcd</Signal>
               </Fragment>
             </Component>
           </Fragment>
@@ -750,8 +750,8 @@ describe.each([
       );
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button>Toggle</button>
             {''}
           </Fragment>
@@ -759,12 +759,12 @@ describe.each([
       );
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button>Toggle</button>
-            <Component>
-              <Fragment>
-                <Signal>abcd</Signal>
+            <Component ssr-required>
+              <Fragment ssr-required>
+                <Signal ssr-required>abcd</Signal>
               </Fragment>
             </Component>
           </Fragment>

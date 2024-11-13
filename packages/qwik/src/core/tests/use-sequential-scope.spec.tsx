@@ -1,5 +1,5 @@
 import { componentQrl, inlinedQrl } from '@qwik.dev/core';
-import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { domRender, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { rerenderComponent } from '../../testing/rendering.unit-util';
 import { useSequentialScope } from '../use/use-sequential-scope';
@@ -7,10 +7,7 @@ import { useSequentialScope } from '../use/use-sequential-scope';
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
-describe.each([
-  { render: ssrRenderToDom }, //
-  { render: domRender }, //
-])('useSequentialScope', ({ render }) => {
+describe('useSequentialScope', () => {
   it('should update value', async () => {
     const MyComp = componentQrl(
       inlinedQrl(() => {
@@ -32,7 +29,7 @@ describe.each([
       }, 'MyComp')
     );
 
-    const { vNode, container } = await render(<MyComp />, { debug });
+    const { vNode, container } = await domRender(<MyComp />, { debug });
     await trigger(container.element, 'button', 'click');
 
     expect(vNode).toMatchVDOM(

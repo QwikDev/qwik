@@ -1,6 +1,8 @@
 import type {
+  JSXChildren,
   JSXNode,
   JSXOutput,
+  _ContainerElement,
   _ElementVNode,
   _QDocument,
   _Stringifiable,
@@ -8,7 +10,15 @@ import type {
   _VNode,
   _VirtualVNode,
 } from '@qwik.dev/core';
-import { Fragment, _isJSXNode, _isStringifiable, isSignal } from '@qwik.dev/core';
+import {
+  Fragment,
+  Slot,
+  _CONST_PROPS,
+  _VAR_PROPS,
+  _isJSXNode,
+  _isStringifiable,
+  isSignal,
+} from '@qwik.dev/core';
 import { expect } from 'vitest';
 import {
   vnode_applyJournal,
@@ -18,6 +28,7 @@ import {
   vnode_getFirstChild,
   vnode_getNextSibling,
   vnode_getNode,
+  vnode_getNodeTypeName,
   vnode_getParent,
   vnode_getText,
   vnode_insertBefore,
@@ -39,12 +50,14 @@ import {
 } from '../core/shared/utils/event-names';
 import { createDocument } from './document';
 import { isElement } from './html';
-import { Q_PROPS_SEPARATOR } from '../core/shared/utils/markers';
+import { QRenderAttr, Q_PROPS_SEPARATOR } from '../core/shared/utils/markers';
 
 expect.extend({
-  toMatchVDOM(this: { isNot: boolean }, received: _VNode, expected: JSXNode) {
+  toMatchVDOM(this: { isNot: boolean }, received: _VNode, expected: JSXNode, isCsr?: boolean) {
     const { isNot } = this;
-    const diffs = diffJsxVNode(received, expected);
+    const container = getContainerElement(received);
+    const isSsr = typeof isCsr === 'boolean' ? !isCsr : isSsrRenderer(container);
+    const diffs = diffJsxVNode(received, expected, [], container, isSsr);
     return {
       pass: isNot ? diffs.length !== 0 : diffs.length === 0,
       message: () => diffs.join('\n'),
@@ -67,7 +80,32 @@ expect.extend({
   },
 });
 
-function diffJsxVNode(received: _VNode, expected: JSXNode | string, path: string[] = []): string[] {
+function getContainerElement(vNode: _VNode) {
+  let maybeParent: _VNode | null;
+  do {
+    maybeParent = vnode_getParent(vNode);
+    if (maybeParent) {
+      vNode = maybeParent;
+    }
+  } while (maybeParent);
+  return vnode_getNode(vNode) as _ContainerElement;
+}
+
+function isSsrRenderer(container: _ContainerElement) {
+  return container.hasAttribute(QRenderAttr);
+}
+
+function isSkippableNode(node: JSXNode): boolean {
+  return node.type === Fragment && !node.constProps?.['ssr-required'];
+}
+
+function diffJsxVNode(
+  received: _VNode,
+  expected: JSXNode | string,
+  path: string[] = [],
+  container: _ContainerElement,
+  isSsr: boolean
+): string[] {
   if (!received) {
     return [path.join(' > ') + ' missing'];
   }
@@ -79,16 +117,35 @@ function diffJsxVNode(received: _VNode, expected: JSXNode | string, path: string
       diffs.push('EXPECTED', JSON.stringify(expected));
       diffs.push('RECEIVED:', JSON.stringify(receivedText));
     }
-  } else {
-    path.push(tagToString(expected.type));
+  } else if (
+    isSsr &&
+    expected.type !== Fragment &&
+    vnode_getNodeTypeName(received) === 'Virtual' &&
+    getVNodeChildren(container, received).length === 1
+  ) {
+    /**
+     * We strip all the fragments from the expected output during SSR, because we're not sure which
+     * Virtual components are being mapped. So here we skip Virtual components that don't have a
+     * corresponding fragment.
+     *
+     * To make sure a Virtual component exists, add `ssr-required` to the expected fragment.
+     */
+    return diffJsxVNode(vnode_getFirstChild(received)!, expected, path, container, false);
+  } else if (!isSsr || (isSsr && !isSkippableNode(expected))) {
     const receivedTag = vnode_isElementVNode(received)
       ? vnode_getElementName(received as _ElementVNode)
       : vnode_isVirtualVNode(received)
         ? Fragment
-        : undefined;
+        : '...';
     const isTagSame = String(expected.type).toLowerCase() == String(receivedTag).toLowerCase();
     if (!isTagSame) {
-      diffs.push(path.join(' > ') + ' expecting=' + expected.type + ' received=' + receivedTag);
+      diffs.push(
+        path.join(' > ') +
+          ' expecting=' +
+          tagToString(expected.type) +
+          ' received=' +
+          tagToString(receivedTag)
+      );
     }
     const allProps: string[] = [];
     expected.varProps && propsAdd(allProps, Object.keys(expected.varProps));
@@ -98,6 +155,9 @@ function diffJsxVNode(received: _VNode, expected: JSXNode | string, path: string
       : null;
     propsAdd(allProps, vnode_isElementVNode(received) ? vnode_getAttrKeys(received).sort() : []);
     receivedElement && propsAdd(allProps, constPropsFromElement(receivedElement));
+
+    path.push(tagToString(expected.type));
+
     allProps.sort();
     allProps.forEach((prop) => {
       if (isJsxPropertyAnEventName(prop) || isHtmlAttributeAnEventName(prop)) {
@@ -123,28 +183,13 @@ function diffJsxVNode(received: _VNode, expected: JSXNode | string, path: string
         diffs.push('  RECEIVED: ' + JSON.stringify(receivedValue));
       }
     });
-    const receivedChildren = getVNodeChildren(received);
-    const expectedChildren = getJSXChildren(expected);
-    if (receivedChildren.length === expectedChildren.length) {
-      for (let i = 0; i < receivedChildren.length; i++) {
-        const receivedChild = receivedChildren[i];
-        const expectedChild = expectedChildren[i];
-        diffs.push(...diffJsxVNode(receivedChild, expectedChild, path));
-      }
-    } else {
-      diffs.push(
-        `${path.join(' > ')} expecting ${expectedChildren.length} children but was ${
-          receivedChildren.length
-        }`
-      );
-      diffs.push('EXPECTED', jsxToHTML(expected, '  '));
-      diffs.push('RECEIVED:', vnodeToHTML(received, '  '));
-    }
-    path.pop();
+    diffJsxVNodeChildren(received, expected, path, container, isSsr, diffs);
+  } else if (isSsr && isSkippableNode(expected)) {
+    diffJsxVNodeChildren(received, expected, path, container, isSsr, diffs);
   }
   return diffs;
 }
-function getJSXChildren(jsx: JSXNode): JSXNode[] {
+function getJSXChildren(jsx: JSXNode): JSXChildren[] {
   const children = jsx.children;
   if (Array.isArray(children)) {
     return children as any;
@@ -154,15 +199,123 @@ function getJSXChildren(jsx: JSXNode): JSXNode[] {
   return [];
 }
 
-function getVNodeChildren(vNode: _VNode): _VNode[] {
+function diffJsxVNodeChildren(
+  received: _VNode,
+  expected: JSXNode,
+  path: string[],
+  container: _ContainerElement,
+  isSsr: boolean,
+  diffs: string[]
+) {
+  const allExpectedChildren = getJSXChildren(expected);
+
+  const expectedChildren = getFilteredJSXChildren(allExpectedChildren, isSsr, {
+    mergedText: undefined,
+  });
+
+  if (_isJSXNode(expected)) {
+    expected.children = expectedChildren;
+  }
+
+  const receivedChildren = getVNodeChildren(container, received);
+  if (receivedChildren.length === expectedChildren.length) {
+    for (let i = 0; i < receivedChildren.length; i++) {
+      const receivedChild = receivedChildren[i];
+      const expectedChild = expectedChildren[i];
+      diffs.push(...diffJsxVNode(receivedChild, expectedChild as JSXNode, path, container, isSsr));
+    }
+  } else {
+    diffs.push(
+      `${path.join(' > ')} expecting ${expectedChildren.length} children but was ${
+        receivedChildren.length
+      }`
+    );
+    diffs.push('EXPECTED', jsxToHTML(expected, '  '));
+    diffs.push('RECEIVED', received.toString());
+  }
+  path.pop();
+}
+
+function getFilteredJSXChildren(
+  children: JSXChildren[],
+  isSsr: boolean,
+  data: {
+    mergedText: string | undefined;
+  }
+): JSXChildren[] {
+  const filteredChildren: JSXChildren[] = [];
+
+  const pushMergedTextIfNeeded = () => {
+    if (data.mergedText !== undefined) {
+      filteredChildren.push(data.mergedText);
+      data.mergedText = undefined;
+    }
+  };
+
+  function processChildren(children: JSXChildren[]) {
+    for (const child of children) {
+      if (typeof child === 'string' || typeof child === 'number') {
+        // skip empty strings
+        if (child !== '') {
+          data.mergedText =
+            typeof data.mergedText === 'string' ? data.mergedText + child : String(child);
+        }
+        continue;
+      }
+
+      if (isSsr && _isJSXNode(child) && isSkippableNode(child)) {
+        const skippedNodeChildren = getJSXChildren(child);
+        processChildren(skippedNodeChildren);
+      } else {
+        pushMergedTextIfNeeded();
+        filteredChildren.push(child);
+      }
+    }
+  }
+
+  processChildren(children);
+
+  pushMergedTextIfNeeded();
+  return filteredChildren;
+}
+
+function getVNodeChildren(container: _ContainerElement, vNode: _VNode): _VNode[] {
   const children: _VNode[] = [];
+  let mergedText: string | undefined;
+
+  const pushMergedTextIfNeeded = () => {
+    if (mergedText !== undefined) {
+      const mergedTextVNode = vnode_newText(
+        container.ownerDocument!.createTextNode(mergedText),
+        mergedText
+      );
+      children.push(mergedTextVNode);
+      mergedText = undefined;
+    }
+  };
+
   let child = vnode_getFirstChild(vNode);
   while (child) {
     if (!shouldSkip(child)) {
+      if (vnode_isTextVNode(child)) {
+        const vnodeText = vnode_getText(child);
+        if (vnodeText !== '') {
+          if (mergedText === undefined) {
+            mergedText = vnodeText;
+          } else {
+            mergedText += vnodeText;
+          }
+        }
+        child = vnode_getNextSibling(child);
+        continue;
+      }
+      pushMergedTextIfNeeded();
+
       children.push(child);
     }
     child = vnode_getNextSibling(child);
   }
+  pushMergedTextIfNeeded();
   return children;
 }
 export function jsxToHTML(jsx: JSXNode, pad: string = ''): string {
@@ -170,7 +323,7 @@ export function jsxToHTML(jsx: JSXNode, pad: string = ''): string {
   if (jsx.type) {
     html.push(pad, '<', tagToString(jsx.type), '>\n');
     getJSXChildren(jsx).forEach((jsx) => {
-      html.push(jsxToHTML(jsx, pad + '  '));
+      html.push(jsxToHTML(jsx as JSXNode, pad + '  '));
     });
     html.push(pad, '</', tagToString(jsx.type), '>\n');
   } else {
@@ -199,6 +352,9 @@ export function vnodeToHTML(vNode: _VNode | null, pad: string = ''): string {
 function tagToString(tag: any): string {
   if (tag === Fragment) {
     return 'Fragment';
+  }
+  if (tag === Slot) {
+    return 'Slot';
   }
   return String(tag);
 }

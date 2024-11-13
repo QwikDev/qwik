@@ -12,6 +12,7 @@ import type { QRL } from '../shared/qrl/qrl.public';
 import type { JSXNode } from '../shared/jsx/types/jsx-node';
 import type { ResourceReturnInternal } from '../use/use-resource';
 import type { Signal } from '../signal/signal.public';
+import type { VNodeData } from '../../server/vnode-data';
 
 export type SsrAttrKey = string;
 export type SsrAttrValue = string | Signal<any> | boolean | Object | null;
@@ -25,9 +26,11 @@ export interface StreamWriter {
 export interface ISsrNode {
   id: string;
   currentComponentNode: ISsrNode | null;
+  vnodeData?: VNodeData;
   setProp(name: string, value: any): void;
   getProp(name: string): any;
   removeProp(name: string): void;
+  addChildVNodeData(child: VNodeData): void;
 }
 
 /** @internal */
@@ -75,6 +78,7 @@ export interface SSRContainer extends Container {
 
   openFragment(attrs: SsrAttrs): void;
   closeFragment(): void;
+  addCurrentElementFrameAsComponentChild(): void;
 
   openProjection(attrs: SsrAttrs): void;
   closeProjection(): void;
@@ -87,7 +91,7 @@ export interface SSRContainer extends Container {
   textNode(text: string): void;
   htmlNode(rawHtml: string): void;
   commentNode(text: string): void;
-  addRoot(obj: any): number;
+  addRoot(obj: any): number | undefined;
   getLastNode(): ISsrNode;
   addUnclaimedProjection(frame: ISsrComponentFrame, name: string, children: JSXChildren): void;
   isStatic(): boolean;

@@ -88,10 +88,7 @@ describe.each([
     );
     if (render === ssrRenderToDom) {
       expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
-        <q:template style="display:none">
-          <Fragment>parent-content</Fragment>
-          <Fragment>render-content</Fragment>
-        </q:template>
+        <q:template style="display:none">parent-contentrender-content</q:template>
       );
     }
   });
@@ -244,8 +241,8 @@ describe.each([
     });
     const { vNode, container } = await render(<Parent>render-content</Parent>, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
-      <Fragment>
-        <Fragment>
+      <Fragment ssr-required>
+        <Fragment ssr-required>
           <button>{''}</button>
         </Fragment>
       </Fragment>
@@ -479,31 +476,31 @@ describe.each([
     await trigger(document.body, 'button', 'click');
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
-          <Component>
-            <Component>
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Component ssr-required>
+            <Component ssr-required>
               <div role="button">
-                <Projection>
-                  <Projection></Projection>
+                <Projection ssr-required>
+                  <Projection ssr-required></Projection>
                   <span>
-                    <Projection>
-                      <Fragment>{'DEFAULT'}</Fragment>
+                    <Projection ssr-required>
+                      <Fragment ssr-required>{'DEFAULT'}</Fragment>
                     </Projection>
                   </span>
                 </Projection>
               </div>
             </Component>
           </Component>
-          <Component>
-            <Component>
+          <Component ssr-required>
+            <Component ssr-required>
               <div role="button">
-                <Projection>
-                  <Projection>
+                <Projection ssr-required>
+                  <Projection ssr-required>
                     <span q:slot="start">{'START'}</span>
                   </Projection>
                   <span>
-                    <Projection></Projection>
+                    <Projection ssr-required></Projection>
                   </span>
                 </Projection>
               </div>
@@ -544,21 +541,21 @@ describe.each([
     });
     const { vNode, document } = await render(<SlotParent />, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
-          <Component>
-            <Component>
-              <Projection>
-                <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
-                <Projection>{'DEFAULT 1'}</Projection>
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Component ssr-required>
+            <Component ssr-required>
+              <Projection ssr-required>
+                <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
+                <Projection ssr-required>{'DEFAULT 1'}</Projection>
               </Projection>
             </Component>
           </Component>
-          <Component>
-            <Component>
-              <Projection>
-                <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
-                <Projection>{'DEFAULT 2'}</Projection>
+          <Component ssr-required>
+            <Component ssr-required>
+              <Projection ssr-required>
+                <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
+                <Projection ssr-required>{'DEFAULT 2'}</Projection>
               </Projection>
             </Component>
           </Component>
@@ -568,19 +565,19 @@ describe.each([
     );
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
-          <Component>
-            <Component>
-              <Projection>
-                <Projection></Projection>
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Component ssr-required>
+            <Component ssr-required>
+              <Projection ssr-required>
+                <Projection ssr-required></Projection>
               </Projection>
             </Component>
           </Component>
-          <Component>
-            <Component>
-              <Projection>
-                <Projection></Projection>
+          <Component ssr-required>
+            <Component ssr-required>
+              <Projection ssr-required>
+                <Projection ssr-required></Projection>
               </Projection>
             </Component>
           </Component>
@@ -624,33 +621,33 @@ describe.each([
 
     const { vNode, document } = await render(<Parent />, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
-          <Component>
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Component ssr-required>
             <div id="btn1">
-              <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
-              <Projection>
-                <Fragment>
+              <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
+              <Projection ssr-required>
+                <Fragment ssr-required>
                   {'DEFAULT '}
-                  <DerivedSignal>{'0'}</DerivedSignal>
+                  <DerivedSignal ssr-required>{'0'}</DerivedSignal>
                 </Fragment>
               </Projection>
-              <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+              <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
             </div>
           </Component>
-          <Component>
+          <Component ssr-required>
             <div id="btn2">
-              <Projection>
+              <Projection ssr-required>
                 <span q:slot="start">
                   {'START '}
-                  <DerivedSignal>{'0'}</DerivedSignal>
+                  <DerivedSignal ssr-required>{'0'}</DerivedSignal>
                 </span>
               </Projection>
-              <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
-              <Projection>
+              <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
+              <Projection ssr-required>
                 <span q:slot="end">
                   {'END '}
-                  <DerivedSignal>{'0'}</DerivedSignal>
+                  <DerivedSignal ssr-required>{'0'}</DerivedSignal>
                 </span>
               </Projection>
             </div>
@@ -663,20 +660,20 @@ describe.each([
 
     await trigger(document.body, '#toggle', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
-          <Component>
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Component ssr-required>
             <div id="btn1">
-              <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
-              <Projection></Projection>
-              <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+              <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
+              <Projection ssr-required></Projection>
+              <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
             </div>
           </Component>
-          <Component>
+          <Component ssr-required>
             <div id="btn2">
-              <Projection></Projection>
-              <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
-              <Projection></Projection>
+              <Projection ssr-required></Projection>
+              <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
+              <Projection ssr-required></Projection>
             </div>
           </Component>
           <button id="toggle"></button>
@@ -689,33 +686,33 @@ describe.each([
     await trigger(document.body, '#toggle', 'click');
 
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
-          <Component>
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Component ssr-required>
             <div id="btn1">
-              <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
-              <Projection>
-                <Fragment>
+              <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
+              <Projection ssr-required>
+                <Fragment ssr-required>
                   {'DEFAULT '}
-                  <DerivedSignal>{'1'}</DerivedSignal>
+                  <DerivedSignal ssr-required>{'1'}</DerivedSignal>
                 </Fragment>
               </Projection>
-              <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+              <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
             </div>
           </Component>
-          <Component>
+          <Component ssr-required>
             <div id="btn2">
-              <Projection>
+              <Projection ssr-required>
                 <span q:slot="start">
                   {'START '}
-                  <DerivedSignal>{'1'}</DerivedSignal>
+                  <DerivedSignal ssr-required>{'1'}</DerivedSignal>
                 </span>
               </Projection>
-              <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
-              <Projection>
+              <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
+              <Projection ssr-required>
                 <span q:slot="end">
                   {'END '}
-                  <DerivedSignal>{'1'}</DerivedSignal>
+                  <DerivedSignal ssr-required>{'1'}</DerivedSignal>
                 </span>
               </Projection>
             </div>
@@ -1232,18 +1229,18 @@ describe.each([
 
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button></button>
-            <Projection>{content}</Projection>
+            <Projection ssr-required>{content}</Projection>
           </Fragment>
         </Component>
       );
 
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button></button>
             {''}
           </Fragment>
@@ -1252,10 +1249,10 @@ describe.each([
 
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button></button>
-            <Projection>{content}</Projection>
+            <Projection ssr-required>{content}</Projection>
           </Fragment>
         </Component>
       );
@@ -1396,16 +1393,16 @@ describe.each([
 
       const { document, vNode } = await render(<SlotParent />, { debug: DEBUG });
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
-            <Component>
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <Component ssr-required>
               <div>
-                <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+                <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
               </div>
             </Component>
-            <Component>
+            <Component ssr-required>
               <div>
-                <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+                <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
               </div>
             </Component>
             <button></button>
@@ -1414,16 +1411,16 @@ describe.each([
       );
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
-            <Component>
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <Component ssr-required>
               <div>
-                <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+                <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
               </div>
             </Component>
-            <Component>
+            <Component ssr-required>
               <div>
-                <Projection>{render === ssrRenderToDom ? '' : null}</Projection>
+                <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
               </div>
             </Component>
             <button></button>
@@ -1466,16 +1463,16 @@ describe.each([
       });
       const { container, document, vNode } = await render(<Parent />, { debug: DEBUG });
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button></button>
-            <Component>
+            <Component ssr-required>
               <svg
                 viewBox="0 0 24 24"
                 style="width:24px;height:24px"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <Projection>
+                <Projection ssr-required>
                   <path d="M14.71 6.71c-.39-.39-1.02-.39-1.41 0L8.71 11.3c-.39.39-.39 1.02 0 1.41l4.59 4.59c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L10.83 12l3.88-3.88c.39-.39.38-1.03 0-1.41z"></path>
                 </Projection>
               </svg>
@@ -1489,16 +1486,16 @@ describe.each([
 
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button></button>
-            <Component>
+            <Component ssr-required>
               <svg
                 viewBox="0 0 24 24"
                 style="width:24px;height:24px"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <Projection></Projection>
+                <Projection ssr-required></Projection>
               </svg>
             </Component>
           </Fragment>
@@ -1506,16 +1503,16 @@ describe.each([
       );
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button></button>
-            <Component>
+            <Component ssr-required>
               <svg
                 viewBox="0 0 24 24"
                 style="width:24px;height:24px"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <Projection>
+                <Projection ssr-required>
                   <path d="M14.71 6.71c-.39-.39-1.02-.39-1.41 0L8.71 11.3c-.39.39-.39 1.02 0 1.41l4.59 4.59c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L10.83 12l3.88-3.88c.39-.39.38-1.03 0-1.41z"></path>
                 </Projection>
               </svg>
@@ -1562,16 +1559,16 @@ describe.each([
       const { container, document, vNode } = await render(<Parent />, { debug: DEBUG });
 
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button></button>
-            <Component>
+            <Component ssr-required>
               <svg
                 viewBox="0 0 24 24"
                 style="width:24px;height:24px"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <Projection>
+                <Projection ssr-required>
                   <filter id="blurMe">
                     <feGaussianBlur in="SourceGraphic" class="test" />
                   </filter>
@@ -1588,16 +1585,16 @@ describe.each([
       await trigger(container.element, 'button', 'click');
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button></button>
-            <Component>
+            <Component ssr-required>
               <svg
                 viewBox="0 0 24 24"
                 style="width:24px;height:24px"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <Projection>
+                <Projection ssr-required>
                   <filter id="blurMe">
                     <feGaussianBlur in="SourceGraphic" class="test" />
                   </filter>
@@ -1642,17 +1639,17 @@ describe.each([
       const { container, document, vNode } = await render(<Parent />, { debug: DEBUG });
 
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button></button>
-            <Component>
+            <Component ssr-required>
               <svg
                 viewBox="0 0 24 24"
                 style="width:24px;height:24px"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <foreignObject>
-                  <Projection>
+                  <Projection ssr-required>
                     <div></div>
                   </Projection>
                 </foreignObject>
@@ -1669,17 +1666,17 @@ describe.each([
       await trigger(container.element, 'button', 'click');
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button></button>
-            <Component>
+            <Component ssr-required>
               <svg
                 viewBox="0 0 24 24"
                 style="width:24px;height:24px"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <foreignObject>
-                  <Projection>
+                  <Projection ssr-required>
                     <div></div>
                   </Projection>
                 </foreignObject>
@@ -1731,8 +1728,8 @@ describe.each([
         { debug: DEBUG }
       );
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button></button>
             <svg
               viewBox="0 0 24 24"
@@ -1748,15 +1745,15 @@ describe.each([
       await trigger(container.element, 'button', 'click');
 
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button></button>
             <svg
               viewBox="0 0 24 24"
               style="width:24px;height:24px"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <Projection>
+              <Projection ssr-required>
                 <filter id="blurMe">
                   <feGaussianBlur in="SourceGraphic" class="test" />
                   <foreignObject>
@@ -1836,11 +1833,11 @@ describe.each([
         <Component>
           <div>
             <button></button>
-            <Projection>
+            <Projection ssr-required>
               <p q:slot="static"></p>
             </Projection>
-            <Projection>
-              <Component>
+            <Projection ssr-required>
+              <Component ssr-required>
                 <b>{'CHILD'}</b>
               </Component>
               {'DYNAMIC'}
@@ -1933,30 +1930,35 @@ describe.each([
         );
       });
 
-      const { vNode, document } = await render(
-        <section>
-          <Issue2688 count={123} />
-        </section>,
-        { debug: DEBUG }
-      );
+      const Cmp = component$(() => {
+        return (
+          <section>
+            <Issue2688 count={123} />
+          </section>
+        );
+      });
+
+      const { vNode, document } = await render(<Cmp />, { debug: DEBUG });
       expect(vNode).toMatchVDOM(
-        <section>
-          <Component>
-            <Fragment>
-              <button id="flip"></button>
-              <button id="counter"></button>
-              <div>
-                <Component>
-                  <Projection>
-                    <div q:slot="a">
-                      Alpha <DerivedSignal>{'123'}</DerivedSignal>
-                    </div>
-                  </Projection>
-                </Component>
-              </div>
-            </Fragment>
-          </Component>
-        </section>
+        <Component>
+          <section>
+            <Component>
+              <Fragment>
+                <button id="flip"></button>
+                <button id="counter"></button>
+                <div>
+                  <Component ssr-required>
+                    <Projection ssr-required>
+                      <div q:slot="a">
+                        Alpha <DerivedSignal ssr-required>{'123'}</DerivedSignal>
+                      </div>
+                    </Projection>
+                  </Component>
+                </div>
+              </Fragment>
+            </Component>
+          </section>
+        </Component>
       );
       await expect(document.querySelector('div')).toMatchDOM(
         <div>
@@ -1966,23 +1968,25 @@ describe.each([
       await trigger(document.body, '#flip', 'click');
       await trigger(document.body, '#counter', 'click');
       expect(vNode).toMatchVDOM(
-        <section>
-          <Component>
-            <Fragment>
-              <button id="flip"></button>
-              <button id="counter"></button>
-              <div>
-                <Component>
-                  <Projection>
-                    <div q:slot="b">
-                      Bravo <DerivedSignal>{'124'}</DerivedSignal>
-                    </div>
-                  </Projection>
-                </Component>
-              </div>
-            </Fragment>
-          </Component>
-        </section>
+        <Component>
+          <section>
+            <Component>
+              <Fragment>
+                <button id="flip"></button>
+                <button id="counter"></button>
+                <div>
+                  <Component ssr-required>
+                    <Projection ssr-required>
+                      <div q:slot="b">
+                        Bravo <DerivedSignal ssr-required>{'124'}</DerivedSignal>
+                      </div>
+                    </Projection>
+                  </Component>
+                </div>
+              </Fragment>
+            </Component>
+          </section>
+        </Component>
       );
       await expect(document.querySelector('div')).toMatchDOM(
         <div>
@@ -2027,14 +2031,14 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <div>
-            <Component>
-              <Fragment>
+            <Component ssr-required>
+              <Fragment ssr-required>
                 <button id="flip"></button>
-                <Component>
-                  <Projection>
+                <Component ssr-required>
+                  <Projection ssr-required>
                     <div q:slot="b">
                       {'Bravo '}
-                      <DerivedSignal>1</DerivedSignal>
+                      <DerivedSignal ssr-required>1</DerivedSignal>
                     </div>
                   </Projection>
                 </Component>
@@ -2319,16 +2323,16 @@ describe.each([
         await trigger(document.body, 'div', ':document:qinit');
       }
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
-            <Fragment>
-              <Component>
-                <Component>
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <Fragment ssr-required>
+              <Component ssr-required>
+                <Component ssr-required>
                   <div>
                     <p>Hide until visible</p>
-                    <Projection>
+                    <Projection ssr-required>
                       <p>Content</p>
-                      <Projection>
+                      <Projection ssr-required>
                         <p>index page</p>
                       </Projection>
                     </Projection>
@@ -2344,8 +2348,8 @@ describe.each([
       await trigger(document.body, 'button', 'click');
 
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>{''}</Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>{''}</Fragment>
         </Component>
       );
     });
@@ -2376,9 +2380,9 @@ describe.each([
         <Component>
           <div>
             <button>Sign out</button>
-            <Component>
-              <Projection>
-                <Component>https://picsum.photos/200</Component>
+            <Component ssr-required>
+              <Projection ssr-required>
+                <Component ssr-required>https://picsum.photos/200</Component>
               </Projection>
             </Component>
           </div>
@@ -2419,11 +2423,11 @@ describe.each([
       const { vNode, document } = await render(<Issue7000 />, { debug: DEBUG });
 
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button></button>
-            <Component>
-              <Projection>{''}</Projection>
+            <Component ssr-required>
+              <Projection ssr-required>{''}</Projection>
             </Component>
           </Fragment>
         </Component>
@@ -2432,13 +2436,13 @@ describe.each([
       await trigger(document.body, 'button', 'click');
 
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button></button>
-            <Component>
-              <Fragment>
-                <Projection>
-                  <Awaited>{'I am an async string'}</Awaited>
+            <Component ssr-required>
+              <Fragment ssr-required>
+                <Projection ssr-required>
+                  <Awaited ssr-required>{'I am an async string'}</Awaited>
                 </Projection>
               </Fragment>
             </Component>

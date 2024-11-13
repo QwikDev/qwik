@@ -31,8 +31,8 @@ describe.each([
       const input = () => document.querySelector('input') as HTMLInputElement;
       expect(input().value).toBe('');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button />
             {''}
             <div>
@@ -69,8 +69,8 @@ describe.each([
       const input = () => document.querySelector('input') as HTMLInputElement;
       expect(input().value).toBe('');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button />
             {''}
             <div>

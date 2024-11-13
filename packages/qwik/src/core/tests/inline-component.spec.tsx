@@ -2,10 +2,12 @@ import {
   Fragment as Component,
   Fragment,
   Fragment as InlineComponent,
+  Slot,
   component$,
   useSignal,
   useStore,
   useVisibleTask$,
+  type PublicProps,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it, vi } from 'vitest';
@@ -511,6 +513,45 @@ describe.each([
           <div>test</div>
         </div>
       </Component>
+    );
+  });
+
+  it('should render component$ inside inlined wrapper', async () => {
+    interface ComplexWrapperProps {
+      foo: string;
+    }
+
+    const ComplexWrapper = (
+      props: PublicProps<ComplexWrapperProps>,
+      key: string | null,
+      flags: number
+    ) => {
+      const cmpFn = component$<ComplexWrapperProps>(({ foo }) => {
+        return (
+          <div>
+            {foo}: <Slot />
+          </div>
+        );
+      });
+      return cmpFn(props, key, flags);
+    };
+
+    const { vNode } = await render(
+      <ComplexWrapper foo="bar">
+        <div>
+          bar: <div id="1">Test</div>
+        </div>
+      </ComplexWrapper>,
+      { debug }
+    );
+    expect(vNode).toMatchVDOM(
+      <InlineComponent>
+        <Component>
+          <div>
+            bar: <div id="1">Test</div>
+          </div>
+        </Component>
+      </InlineComponent>
     );
   });
 });

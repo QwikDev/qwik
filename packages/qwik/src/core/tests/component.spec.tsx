@@ -182,19 +182,19 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <main class="parent">
-          <Component>
+          <Component ssr-required>
             <div>
               <span>Component 1</span>
               <Signal>1</Signal>
             </div>
           </Component>
-          <Component>
+          <Component ssr-required>
             <div>
               <span>Component 1</span>
               <Signal>1</Signal>
             </div>
           </Component>
-          <Component>
+          <Component ssr-required>
             <div>
               <span>Component 2</span>
               <Signal>2</Signal>
@@ -1543,9 +1543,9 @@ describe.each([
         <Fragment ssr-required>
           <button>Add stuff (caused render)</button>
           <div>
-            <Fragment>
+            <Fragment ssr-required>
               <input id="input1"></input>
-              <Fragment>
+              <Fragment ssr-required>
                 <input id="input2"></input>
               </Fragment>
               <input id="input3"></input>
@@ -1586,7 +1586,7 @@ describe.each([
           <div>
             <Fragment ssr-required>
               <input id="input1" value="test1"></input>
-              <Fragment>
+              <Fragment ssr-required>
                 <input id="input2" value="test2"></input>
               </Fragment>
               <input id="input3" value="test3"></input>

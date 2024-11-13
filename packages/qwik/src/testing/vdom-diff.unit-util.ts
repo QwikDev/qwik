@@ -244,8 +244,7 @@ function getFilteredJSXChildren(
     mergedText: string | undefined;
   }
 ): JSXChildren[] {
-  const filteredChildren = [];
-  // let mergedText: string | undefined;
+  const filteredChildren: JSXChildren[] = [];
 
   const pushMergedTextIfNeeded = () => {
     if (data.mergedText !== undefined) {
@@ -254,24 +253,28 @@ function getFilteredJSXChildren(
     }
   };
 
-  for (const child of children) {
-    if (typeof child === 'string' || typeof child === 'number') {
-      // skip empty strings
-      if (child !== '') {
-        data.mergedText =
-          typeof data.mergedText === 'string' ? data.mergedText + child : String(child);
+  function processChildren(children: JSXChildren[]) {
+    for (const child of children) {
+      if (typeof child === 'string' || typeof child === 'number') {
+        // skip empty strings
+        if (child !== '') {
+          data.mergedText =
+            typeof data.mergedText === 'string' ? data.mergedText + child : String(child);
+        }
+        continue;
       }
-      continue;
-    }
 
-    if (isSsr && _isJSXNode(child) && isSkippableNode(child)) {
-      const skippedNodeChildren = getJSXChildren(child);
-      filteredChildren.push(...getFilteredJSXChildren(skippedNodeChildren, isSsr, data));
-    } else {
-      pushMergedTextIfNeeded();
-      filteredChildren.push(child);
+      if (isSsr && _isJSXNode(child) && isSkippableNode(child)) {
+        const skippedNodeChildren = getJSXChildren(child);
+        processChildren(skippedNodeChildren);
+      } else {
+        pushMergedTextIfNeeded();
+        filteredChildren.push(child);
+      }
     }
   }
+
+  processChildren(children);
 
   pushMergedTextIfNeeded();
   return filteredChildren;

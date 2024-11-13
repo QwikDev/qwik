@@ -20,8 +20,10 @@ import {
   vnode_isVirtualVNode,
   vnode_locate,
   vnode_newVirtual,
+  vnode_remove,
   vnode_setProp,
   vnode_toString,
+  type VNodeJournal,
 } from '../core/client/vnode';
 import { ERROR_CONTEXT } from '../core/shared/error/error-handling';
 import type { Props } from '../core/shared/jsx/jsx-runtime';
@@ -44,7 +46,7 @@ import { Q_FUNCS_PREFIX, renderToString } from '../server/ssr-render';
 import { createDocument } from './document';
 import { getTestPlatform } from './platform';
 import './vdom-diff.unit-util';
-import type { VNode } from '../core/client/types';
+import { VNodeProps, VirtualVNodeProps, type VNode, type VirtualVNode } from '../core/client/types';
 import { DEBUG_TYPE, VirtualType } from '../server/qwik-copy';
 
 /** @public */
@@ -173,6 +175,7 @@ export async function ssrRenderToDom(
 
     // Add all children to the fragment up to the script tag
     let child: VNode | null = firstContainerChild;
+    let insertBefore: VNode | null = null;
     while (child) {
       // Stop when we reach the state script tag
       if (
@@ -181,6 +184,7 @@ export async function ssrRenderToDom(
           vnode_getAttr(child, 'type') === 'qwik/state') ||
           vnode_getElementName(child) === 'q:template')
       ) {
+        insertBefore = child;
         break;
       }
       childrenToMove.push(child);
@@ -188,10 +192,10 @@ export async function ssrRenderToDom(
     }
 
     // Set the container vnode as a parent of the fragment
-    vnode_insertBefore(container.$journal$, containerVNode, fragment, null);
+    vnode_insertBefore(container.$journal$, containerVNode, fragment, insertBefore);
     // Set the fragment as a parent of the children
     for (const child of childrenToMove) {
-      vnode_insertBefore(container.$journal$, fragment, child, null);
+      vnode_moveToVirtual(container.$journal$, fragment, child, null);
     }
     vNode = fragment;
   } else {
@@ -199,6 +203,41 @@ export async function ssrRenderToDom(
   }
 
   return { container, document, vNode, getStyles };
+}
+
+function vnode_moveToVirtual(
+  journal: VNodeJournal,
+  parent: VirtualVNode,
+  newChild: VNode,
+  insertBefore: VNode | null
+) {
+  // ensure that the previous node is unlinked.
+  const newChildCurrentParent = newChild[VNodeProps.parent];
+  if (
+    newChildCurrentParent &&
+    (newChild[VNodeProps.previousSibling] || newChild[VNodeProps.nextSibling])
+  ) {
+    vnode_remove(journal, newChildCurrentParent, newChild, false);
+  }
+
+  // link newChild into the previous/next list
+  const vNext = insertBefore;
+  const vPrevious = vNext
+    ? vNext[VNodeProps.previousSibling]
+    : (parent[VirtualVNodeProps.lastChild] as VNode | null);
+  if (vNext) {
+    vNext[VNodeProps.previousSibling] = newChild;
+  } else {
+    parent[VirtualVNodeProps.lastChild] = newChild;
+  }
+  if (vPrevious) {
+    vPrevious[VNodeProps.nextSibling] = newChild;
+  } else {
+    parent[VirtualVNodeProps.firstChild] = newChild;
+  }
+  newChild[VNodeProps.previousSibling] = vPrevious;
+  newChild[VNodeProps.nextSibling] = vNext;
+  newChild[VNodeProps.parent] = parent;
 }
 
 /** @public */

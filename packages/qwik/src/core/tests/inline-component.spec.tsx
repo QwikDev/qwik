@@ -104,12 +104,12 @@ describe.each([
     );
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
-        <>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button></button>
-          <InlineComponent>
-            <InlineComponent>
-              <Fragment>
+          <InlineComponent ssr-required>
+            <InlineComponent ssr-required>
+              <Fragment ssr-required>
                 <h1>Test</h1>
                 <p>Lorem</p>
                 <h2>ipsum</h2>
@@ -118,28 +118,28 @@ describe.each([
               </Fragment>
             </InlineComponent>
           </InlineComponent>
-        </>
+        </Fragment>
       </Component>
     );
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
-        <>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button></button>
           <Component>
             <div>Test</div>
           </Component>
-        </>
+        </Fragment>
       </Component>
     );
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
-        <>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button></button>
-          <InlineComponent>
-            <InlineComponent>
-              <Fragment>
+          <InlineComponent ssr-required>
+            <InlineComponent ssr-required>
+              <Fragment ssr-required>
                 <h1>Test</h1>
                 <p>Lorem</p>
                 <h2>ipsum</h2>
@@ -148,7 +148,7 @@ describe.each([
               </Fragment>
             </InlineComponent>
           </InlineComponent>
-        </>
+        </Fragment>
       </Component>
     );
   });
@@ -197,7 +197,7 @@ describe.each([
               <InlineComponent>
                 <div>
                   {'Id: '}
-                  <Fragment>{'0'}</Fragment>
+                  <Fragment ssr-required>{'0'}</Fragment>
                 </div>
               </InlineComponent>
               1
@@ -218,7 +218,7 @@ describe.each([
               <InlineComponent>
                 <div>
                   {'Id: '}
-                  <Fragment>{'1'}</Fragment>
+                  <Fragment ssr-required>{'1'}</Fragment>
                 </div>
               </InlineComponent>
               1
@@ -376,9 +376,9 @@ describe.each([
       <Component ssr-required>
         <footer>
           <button></button>
-          <InlineComponent>
-            <Fragment>
-              <InlineComponent>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              <InlineComponent ssr-required>
                 <div>foo</div>
               </InlineComponent>
             </Fragment>
@@ -390,12 +390,12 @@ describe.each([
     await trigger(document.body, 'button', 'click');
 
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <footer>
           <button></button>
-          <InlineComponent>
-            <Fragment>
-              <InlineComponent>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              <InlineComponent ssr-required>
                 <span>bar</span>
               </InlineComponent>
             </Fragment>
@@ -407,12 +407,12 @@ describe.each([
     await trigger(document.body, 'button', 'click');
 
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <footer>
           <button></button>
-          <InlineComponent>
-            <Fragment>
-              <InlineComponent>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              <InlineComponent ssr-required>
                 <div>foo</div>
               </InlineComponent>
             </Fragment>

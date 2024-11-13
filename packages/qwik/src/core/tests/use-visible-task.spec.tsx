@@ -422,7 +422,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            <Signal>2/4/8</Signal>
+            <Signal ssr-required>2/4/8</Signal>
           </button>
         </Component>
       );
@@ -480,7 +480,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            <Signal>2</Signal>
+            <Signal ssr-required>2</Signal>
           </button>
         </Component>
       );
@@ -688,13 +688,13 @@ describe.each([
     );
     await trigger(container.document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button></button>
-          <Component>
+          <Component ssr-required>
             <div>
-              <Projection>
-                <Component>
+              <Projection ssr-required>
+                <Component ssr-required>
                   <div></div>
                 </Component>
               </Projection>
@@ -802,11 +802,11 @@ describe.each([
       await trigger(document.body, 'button', 'click');
 
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button>Change</button>
             <pre>
-              <Signal>{'VisibleTask ChildA /\nCleanup ChildA /other\n'}</Signal>
+              <Signal ssr-required>{'VisibleTask ChildA /\nCleanup ChildA /other\n'}</Signal>
             </pre>
             {''}
           </Fragment>

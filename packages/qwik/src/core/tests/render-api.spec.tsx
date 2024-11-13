@@ -224,19 +224,15 @@ describe('render api', () => {
       const container = getDomContainer(document.body.firstChild as HTMLElement);
       const vNode = vnode_getFirstChild(container.rootVNode);
       expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            <Signal>123</Signal>
-          </button>
-        </Component>
+        <button>
+          <Signal ssr-required>123</Signal>
+        </button>
       );
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            <Signal>124</Signal>
-          </button>
-        </Component>
+        <button>
+          <Signal ssr-required>124</Signal>
+        </button>
       );
     });
     describe('render result', () => {
@@ -1052,19 +1048,15 @@ describe('render api', () => {
         const container = getDomContainer(document.body.firstChild as HTMLElement);
         const vNode = vnode_getFirstChild(container.rootVNode);
         expect(vNode).toMatchVDOM(
-          <Component>
-            <button>
-              <Signal>123</Signal>
-            </button>
-          </Component>
+          <button>
+            <Signal ssr-required>123</Signal>
+          </button>
         );
         await trigger(container.element, 'button', 'click');
         expect(vNode).toMatchVDOM(
-          <Component>
-            <button>
-              <Signal>124</Signal>
-            </button>
-          </Component>
+          <button>
+            <Signal ssr-required>124</Signal>
+          </button>
         );
       });
     });

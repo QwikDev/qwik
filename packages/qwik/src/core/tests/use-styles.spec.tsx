@@ -66,7 +66,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <>
         <button class="container">
-          <Signal>1</Signal>
+          <Signal ssr-required>1</Signal>
         </button>
       </>
     );

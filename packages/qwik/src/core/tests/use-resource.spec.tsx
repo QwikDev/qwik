@@ -60,11 +60,11 @@ describe.each([
 
     const { vNode, container } = await render(<TestCmp />, { debug });
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <button>
-          <InlineComponent>
-            <Fragment>
-              <Awaited>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              <Awaited ssr-required>
                 <span>0</span>
               </Awaited>
             </Fragment>
@@ -74,11 +74,11 @@ describe.each([
     );
     await trigger(container.element, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <button>
-          <InlineComponent>
-            <Fragment>
-              <Awaited>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              <Awaited ssr-required>
                 <span>1</span>
               </Awaited>
             </Fragment>
@@ -108,11 +108,11 @@ describe.each([
     const { vNode, container } = await render(<ResourceCmp />, { debug });
 
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <button>
-          <InlineComponent>
-            <Fragment>
-              <Awaited>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              <Awaited ssr-required>
                 <span>0</span>
               </Awaited>
             </Fragment>
@@ -123,11 +123,11 @@ describe.each([
 
     await trigger(container.element, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <button>
-          <InlineComponent>
-            <Fragment>
-              <Awaited>...</Awaited>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              <Awaited ssr-required>...</Awaited>
             </Fragment>
           </InlineComponent>
         </button>
@@ -137,11 +137,11 @@ describe.each([
     await getTestPlatform().flush();
 
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <button>
-          <InlineComponent>
-            <Fragment>
-              <Awaited>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              <Awaited ssr-required>
                 <span>1</span>
               </Awaited>
             </Fragment>
@@ -175,14 +175,14 @@ describe.each([
 
     const { vNode, container } = await render(<ResourceCmp />, { debug });
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button>
-            <Signal>0</Signal>
+            <Signal ssr-required>0</Signal>
           </button>
-          <InlineComponent>
-            <Fragment>
-              <Awaited>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              <Awaited ssr-required>
                 <div>0</div>
               </Awaited>
             </Fragment>
@@ -193,14 +193,14 @@ describe.each([
     await trigger(container.element, 'button', 'click');
 
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button>
-            <Signal>1</Signal>
+            <Signal ssr-required>1</Signal>
           </button>
-          <InlineComponent>
-            <Fragment>
-              <Awaited>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              <Awaited ssr-required>
                 <div>0</div>
               </Awaited>
             </Fragment>
@@ -212,14 +212,14 @@ describe.each([
     await getTestPlatform().flush();
 
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button>
-            <Signal>1</Signal>
+            <Signal ssr-required>1</Signal>
           </button>
-          <InlineComponent>
-            <Fragment>
-              <Awaited>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              <Awaited ssr-required>
                 <div>1</div>
               </Awaited>
             </Fragment>
@@ -254,14 +254,14 @@ describe.each([
 
     const { vNode, container } = await render(<ResourceRaceCondition />, { debug });
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button>
-            <Signal>0</Signal>
+            <Signal ssr-required>0</Signal>
           </button>
-          <InlineComponent>
-            <Fragment>
-              <Awaited>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              <Awaited ssr-required>
                 <div>0</div>
               </Awaited>
             </Fragment>
@@ -276,14 +276,14 @@ describe.each([
     await getTestPlatform().flush();
 
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button>
-            <Signal>2</Signal>
+            <Signal ssr-required>2</Signal>
           </button>
-          <InlineComponent>
-            <Fragment>
-              <Awaited>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              <Awaited ssr-required>
                 <div>2</div>
               </Awaited>
             </Fragment>

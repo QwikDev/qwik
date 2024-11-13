@@ -827,6 +827,7 @@ impl<'a> QwikTransform<'a> {
 			}
 		};
 		let should_emit_key = is_fn || self.root_jsx_mode;
+		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = false;
 
 		let (should_sort, var_props, const_props, children, flags) =
@@ -868,6 +869,7 @@ impl<'a> QwikTransform<'a> {
 		if name_token {
 			self.stack_ctxt.pop();
 		}
+		self.root_jsx_mode = prev;
 		ast::CallExpr {
 			callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(&jsx_func)))),
 			args,

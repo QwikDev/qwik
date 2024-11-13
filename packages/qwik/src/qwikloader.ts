@@ -32,6 +32,7 @@ export const qwikLoader = (
   const isConnected = 'isConnected';
   const qvisible = 'qvisible';
   const Q_JSON = '_qwikjson_';
+  const MAX_RETRY_ON_PROMISE_COUNT = 100;
   const nativeQuerySelectorAll = (root: ParentNode, selector: string) =>
     Array.from(root.querySelectorAll(selector));
   const querySelectorAll = (query: string) => {
@@ -160,7 +161,7 @@ export const qwikLoader = (
         }
         const previousCtx = doc[Q_CONTEXT];
         if (element[isConnected]) {
-          const handleEvent = async () => {
+          const handleEvent = async (retryCount = 0) => {
             try {
               doc[Q_CONTEXT] = [element, ev, url];
               isSync || emitEvent<QwikSymbolEvent>('qsymbol', { ...eventData });
@@ -171,8 +172,8 @@ export const qwikLoader = (
               }
             } catch (error) {
               // retry if error is a promise. This means that probably a QRL is not resolved yet and we need to retry it.
-              if (isPromise(error)) {
-                error.then(() => handleEvent());
+              if (isPromise(error) && retryCount < MAX_RETRY_ON_PROMISE_COUNT) {
+                error.then(() => handleEvent(retryCount++));
               } else {
                 emitEvent('qerror', { error, ...eventData });
               }

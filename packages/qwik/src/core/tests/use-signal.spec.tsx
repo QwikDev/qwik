@@ -43,7 +43,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <>
         <button>
-          Count: <Signal>{'123'}</Signal>!
+          Count: <Signal ssr-required>{'123'}</Signal>!
         </button>
       </>
     );
@@ -51,7 +51,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <>
         <button>
-          Count: <Signal>{'124'}</Signal>!
+          Count: <Signal ssr-required>{'124'}</Signal>!
         </button>
       </>
     );
@@ -78,7 +78,7 @@ describe.each([
         <button>
           <>
             <span>
-              Count: <Signal>{'123'}</Signal>!
+              Count: <Signal ssr-required>{'123'}</Signal>!
             </span>
           </>
         </button>
@@ -91,7 +91,7 @@ describe.each([
         <button>
           <>
             <span>
-              Count: <Signal>{'124'}</Signal>!
+              Count: <Signal ssr-required>{'124'}</Signal>!
             </span>
           </>
         </button>
@@ -121,7 +121,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <>
         <button>
-          <Signal>hidden</Signal>
+          <Signal ssr-required>hidden</Signal>
         </button>
       </>
     );
@@ -129,10 +129,10 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <>
         <button>
-          <Signal>
-            <Component>
+          <Signal ssr-required>
+            <Component ssr-required>
               <span>
-                <Projection>content</Projection>
+                <Projection ssr-required>content</Projection>
               </span>
             </Component>
           </Signal>
@@ -156,9 +156,9 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button key="0">
-          <Awaited>{'const '}</Awaited>
-          <Signal>
-            <Awaited>{'0'}</Awaited>
+          <Awaited ssr-required>{'const '}</Awaited>
+          <Signal ssr-required>
+            <Awaited ssr-required>{'0'}</Awaited>
           </Signal>
         </button>
       </Component>
@@ -168,9 +168,9 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          <Awaited>{'const '}</Awaited>
-          <Signal>
-            <Awaited>{'1'}</Awaited>
+          <Awaited ssr-required>{'const '}</Awaited>
+          <Signal ssr-required>
+            <Awaited ssr-required>{'1'}</Awaited>
           </Signal>
         </button>
       </Component>
@@ -256,7 +256,7 @@ describe.each([
           <button></button>
           {''}
           <span>
-            <Signal>100</Signal>
+            <Signal ssr-required>100</Signal>
           </span>
         </div>
       </Component>
@@ -343,7 +343,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <>{'123'}</>!
+            Count: <Signal ssr-required>{'123'}</Signal>!
           </button>
         </Component>
       );
@@ -353,7 +353,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <>
           <button>
-            Count: <>{'124'}</>!
+            Count: <Signal ssr-required>{'124'}</Signal>!
           </button>
         </>
       );
@@ -378,7 +378,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            -<>{'initial'}</>-
+            -<Signal ssr-required>{'initial'}</Signal>-
           </button>
         </Component>
       );
@@ -402,7 +402,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <>
           <button>
-            -<>{'text'}</>-
+            -<Signal ssr-required>{'text'}</Signal>-
           </button>
         </>
       );
@@ -441,18 +441,18 @@ describe.each([
       await trigger(container.element, 'button', 'click');
       expect(renderLog).toEqual([]);
       expect(vNode).toMatchVDOM(
-        <Fragment>
-          <>
-            <Component>
-              <>
-                Count: <>{'124'}</>!
-              </>
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <Component ssr-required>
+              <Fragment ssr-required>
+                Count: <Signal ssr-required>{'124'}</Signal>!
+              </Fragment>
             </Component>
-            <Component>
+            <Component ssr-required>
               <button>+1</button>
             </Component>
-          </>
-        </Fragment>
+          </Fragment>
+        </Component>
       );
     });
     it('should pass signal as prop into child component', async () => {
@@ -476,7 +476,7 @@ describe.each([
             <button></button>
             <Component>
               <div>
-                <Signal>123</Signal>
+                <Signal ssr-required>123</Signal>
               </div>
             </Component>
           </Fragment>
@@ -489,7 +489,7 @@ describe.each([
             <button></button>
             <Component>
               <div>
-                <Signal>124</Signal>
+                <Signal ssr-required>124</Signal>
               </div>
             </Component>
           </Fragment>
@@ -516,8 +516,8 @@ describe.each([
       const { vNode, document } = await render(<BindCmp />, { debug });
 
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <label for="toggle">
               <input type="checkbox" checked={false} />
               {'Show conditional'}
@@ -533,8 +533,8 @@ describe.each([
       await trigger(document.body, 'input', 'input');
 
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <label for="toggle">
               <input type="checkbox" checked={true} />
               {'Show conditional'}
@@ -606,7 +606,7 @@ describe.each([
           <Fragment>
             <button></button>
             <div>
-              <Signal>not-equal</Signal>
+              <Signal ssr-required>not-equal</Signal>
             </div>
           </Fragment>
         </Component>
@@ -619,7 +619,7 @@ describe.each([
           <Fragment>
             <button></button>
             <div>
-              <Signal>equal</Signal>
+              <Signal ssr-required>equal</Signal>
             </div>
           </Fragment>
         </Component>
@@ -657,7 +657,7 @@ describe.each([
           <Fragment>
             <button></button>
             <div data-value="not-equal">
-              <Signal>not-equal</Signal>
+              <Signal ssr-required>not-equal</Signal>
             </div>
           </Fragment>
         </Component>
@@ -670,7 +670,7 @@ describe.each([
           <Fragment>
             <button></button>
             <div data-value="equal">
-              <Signal>equal</Signal>
+              <Signal ssr-required>equal</Signal>
             </div>
           </Fragment>
         </Component>

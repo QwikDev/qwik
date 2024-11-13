@@ -37,7 +37,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          Count: <Signal>{'123'}</Signal>!
+          Count: <Signal ssr-required>{'123'}</Signal>!
         </button>
       </Component>
     );
@@ -45,7 +45,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <>
         <button>
-          Count: <Signal>{'124'}</Signal>!
+          Count: <Signal ssr-required>{'124'}</Signal>!
         </button>
       </>
     );
@@ -75,7 +75,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <Signal>{'123'}</Signal>!
+            Count: <Signal ssr-required>{'123'}</Signal>!
           </button>
         </Component>
       );
@@ -84,7 +84,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          Count: <Signal>{'125'}</Signal>!
+          Count: <Signal ssr-required>{'125'}</Signal>!
         </button>
       </Component>
     );
@@ -92,7 +92,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          Count: <Signal>{'126'}</Signal>!
+          Count: <Signal ssr-required>{'126'}</Signal>!
         </button>
       </Component>
     );
@@ -100,7 +100,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          Count: <Signal>{'128'}</Signal>!
+          Count: <Signal ssr-required>{'128'}</Signal>!
         </button>
       </Component>
     );
@@ -120,7 +120,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          Count: <Signal>{'123'}</Signal>!
+          Count: <Signal ssr-required>{'123'}</Signal>!
         </button>
       </Component>
     );
@@ -128,7 +128,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          Count: <Signal>{'124'}</Signal>!
+          Count: <Signal ssr-required>{'124'}</Signal>!
         </button>
       </Component>
     );
@@ -136,7 +136,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          Count: <Signal>{'126'}</Signal>!
+          Count: <Signal ssr-required>{'126'}</Signal>!
         </button>
       </Component>
     );
@@ -157,7 +157,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <Signal>{'123'}</Signal>!
+            Count: <Signal ssr-required>{'123'}</Signal>!
           </button>
         </Component>
       );
@@ -166,7 +166,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <Signal>{'124'}</Signal>!
+            Count: <Signal ssr-required>{'124'}</Signal>!
           </button>
         </Component>
       );
@@ -196,7 +196,7 @@ describe.each([
         expect(vNode).toMatchVDOM(
           <Component>
             <button>
-              Count: <Signal>{'123'}</Signal>!
+              Count: <Signal ssr-required>{'123'}</Signal>!
             </button>
           </Component>
         );
@@ -205,7 +205,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <Signal>{'125'}</Signal>!
+            Count: <Signal ssr-required>{'125'}</Signal>!
           </button>
         </Component>
       );
@@ -213,7 +213,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <Signal>{'126'}</Signal>!
+            Count: <Signal ssr-required>{'126'}</Signal>!
           </button>
         </Component>
       );
@@ -221,7 +221,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <Signal>{'128'}</Signal>!
+            Count: <Signal ssr-required>{'128'}</Signal>!
           </button>
         </Component>
       );
@@ -239,18 +239,18 @@ describe.each([
 
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
-            Count: <Signal>{'123'}</Signal>!<script type="placeholder" hidden></script>
+        <Component ssr-required>
+          <Fragment ssr-required>
+            Count: <Signal ssr-required>{'123'}</Signal>!<script type="placeholder" hidden></script>
           </Fragment>
         </Component>
       );
 
       await trigger(container.element, 'script', ':document:click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
-            Count: <Signal>{'124'}</Signal>!<script type="placeholder" hidden></script>
+        <Component ssr-required>
+          <Fragment ssr-required>
+            Count: <Signal ssr-required>{'124'}</Signal>!<script type="placeholder" hidden></script>
           </Fragment>
         </Component>
       );
@@ -270,7 +270,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <Signal>{'123'}</Signal>!
+            Count: <Signal ssr-required>{'123'}</Signal>!
           </button>
         </Component>
       );
@@ -278,7 +278,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <Signal>{'124'}</Signal>!
+            Count: <Signal ssr-required>{'124'}</Signal>!
           </button>
         </Component>
       );
@@ -286,7 +286,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <Signal>{'126'}</Signal>!
+            Count: <Signal ssr-required>{'126'}</Signal>!
           </button>
         </Component>
       );
@@ -308,7 +308,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <Signal>{'123'}</Signal>!
+            Count: <Signal ssr-required>{'123'}</Signal>!
           </button>
         </Component>
       );
@@ -317,7 +317,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <Signal>{'124'}</Signal>!
+            Count: <Signal ssr-required>{'124'}</Signal>!
           </button>
         </Component>
       );
@@ -335,18 +335,18 @@ describe.each([
 
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
-            Count: <Signal>{'123'}</Signal>!<script type="placeholder" hidden></script>
+        <Component ssr-required>
+          <Fragment ssr-required>
+            Count: <Signal ssr-required>{'123'}</Signal>!<script type="placeholder" hidden></script>
           </Fragment>
         </Component>
       );
 
       await trigger(container.element, 'script', ':window:click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
-            Count: <Signal>{'124'}</Signal>!<script type="placeholder" hidden></script>
+        <Component ssr-required>
+          <Fragment ssr-required>
+            Count: <Signal ssr-required>{'124'}</Signal>!<script type="placeholder" hidden></script>
           </Fragment>
         </Component>
       );
@@ -366,7 +366,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <Signal>{'123'}</Signal>!
+            Count: <Signal ssr-required>{'123'}</Signal>!
           </button>
         </Component>
       );
@@ -375,7 +375,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <Signal>{'125'}</Signal>!
+            Count: <Signal ssr-required>{'125'}</Signal>!
           </button>
         </Component>
       );
@@ -405,7 +405,7 @@ describe.each([
         expect(vNode).toMatchVDOM(
           <Component>
             <button>
-              Count: <Signal>{'123'}</Signal>!
+              Count: <Signal ssr-required>{'123'}</Signal>!
             </button>
           </Component>
         );
@@ -414,7 +414,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <Signal>{'125'}</Signal>!
+            Count: <Signal ssr-required>{'125'}</Signal>!
           </button>
         </Component>
       );
@@ -422,7 +422,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <Signal>{'126'}</Signal>!
+            Count: <Signal ssr-required>{'126'}</Signal>!
           </button>
         </Component>
       );
@@ -430,7 +430,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <Signal>{'128'}</Signal>!
+            Count: <Signal ssr-required>{'128'}</Signal>!
           </button>
         </Component>
       );
@@ -450,7 +450,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <Signal>{'123'}</Signal>!
+            Count: <Signal ssr-required>{'123'}</Signal>!
           </button>
         </Component>
       );
@@ -458,7 +458,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <Signal>{'124'}</Signal>!
+            Count: <Signal ssr-required>{'124'}</Signal>!
           </button>
         </Component>
       );
@@ -466,7 +466,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <Signal>{'126'}</Signal>!
+            Count: <Signal ssr-required>{'126'}</Signal>!
           </button>
         </Component>
       );
@@ -503,7 +503,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <Signal>{'123'}</Signal>!
+            Count: <Signal ssr-required>{'123'}</Signal>!
           </button>
         </Component>
       );
@@ -512,7 +512,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          Count: <Signal>{'125'}</Signal>!
+          Count: <Signal ssr-required>{'125'}</Signal>!
         </button>
       </Component>
     );
@@ -520,7 +520,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          Count: <Signal>{'126'}</Signal>!
+          Count: <Signal ssr-required>{'126'}</Signal>!
         </button>
       </Component>
     );
@@ -528,7 +528,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          Count: <Signal>{'128'}</Signal>!
+          Count: <Signal ssr-required>{'128'}</Signal>!
         </button>
       </Component>
     );
@@ -536,7 +536,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          Count: <Signal>{'131'}</Signal>!
+          Count: <Signal ssr-required>{'131'}</Signal>!
         </button>
       </Component>
     );
@@ -544,7 +544,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          Count: <Signal>{'135'}</Signal>!
+          Count: <Signal ssr-required>{'135'}</Signal>!
         </button>
       </Component>
     );
@@ -590,7 +590,7 @@ describe.each([
         <Fragment>
           <Awaited>
             <div>
-              <Signal>{'run'}</Signal>
+              <Signal ssr-required>{'run'}</Signal>
             </div>
           </Awaited>
         </Fragment>
@@ -617,7 +617,7 @@ describe.each([
         <Fragment>
           <Awaited>
             <div>
-              <Signal>{'run'}</Signal>
+              <Signal ssr-required>{'run'}</Signal>
             </div>
           </Awaited>
         </Fragment>

@@ -162,20 +162,24 @@ describe('v2 ssr render', () => {
     });
 
     it('should render SSRStreamBlock', async () => {
-      const { vNode, document } = await ssrRenderToDom(
-        <div id="stream-block">
-          <SSRStreamBlock>
-            <div>stream content</div>
-          </SSRStreamBlock>
-        </div>,
-        { debug }
-      );
+      const Cmp = component$(() => {
+        return (
+          <div id="stream-block">
+            <SSRStreamBlock>
+              <div>stream content</div>
+            </SSRStreamBlock>
+          </div>
+        );
+      });
+      const { vNode, document } = await ssrRenderToDom(<Cmp />, { debug });
       expect(vNode).toMatchVDOM(
-        <div id="stream-block">
-          <Component>
-            <div>stream content</div>
-          </Component>
-        </div>
+        <Component ssr-required>
+          <div id="stream-block">
+            <Component>
+              <div>stream content</div>
+            </Component>
+          </div>
+        </Component>
       );
       // we should not stream the comment nodes of the SSRStreamBlock
       expect(document.querySelector('#stream-block')).toMatchDOM(

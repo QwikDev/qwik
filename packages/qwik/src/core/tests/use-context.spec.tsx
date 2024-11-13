@@ -143,9 +143,9 @@ describe.each([
         { debug }
       );
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Projection>
-            <Component>
+        <Component ssr-required>
+          <Projection ssr-required>
+            <Component ssr-required>
               <div>
                 <Awaited ssr-required>
                   <Component ssr-required>
@@ -169,9 +169,9 @@ describe.each([
       await trigger(document.body, 'button', 'click');
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Projection>
-            <Component>
+        <Component ssr-required>
+          <Projection ssr-required>
+            <Component ssr-required>
               <div>
                 <Awaited ssr-required>
                   <Component ssr-required>

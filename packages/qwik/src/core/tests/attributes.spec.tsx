@@ -153,8 +153,8 @@ describe.each([
     await trigger(document.body, 'input', 'input');
 
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <label for="toggle">
             <input type="checkbox" checked={true} />
             {'Show conditional'}

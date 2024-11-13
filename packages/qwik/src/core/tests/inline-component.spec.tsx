@@ -6,10 +6,12 @@ import {
   component$,
   useSignal,
   useStore,
+  useVisibleTask$,
   type PublicProps,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import * as logUtils from '../shared/utils/log';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -93,23 +95,23 @@ describe.each([
 
     const { vNode, document } = await render(<Wrapper />, { debug });
     expect(vNode).toMatchVDOM(
-      <Component>
-        <>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button></button>
-          <Component>
+          <Component ssr-required>
             <div>Test</div>
           </Component>
-        </>
+        </Fragment>
       </Component>
     );
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
-        <>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button></button>
-          <InlineComponent>
-            <InlineComponent>
-              <Fragment>
+          <InlineComponent ssr-required>
+            <InlineComponent ssr-required>
+              <Fragment ssr-required>
                 <h1>Test</h1>
                 <p>Lorem</p>
                 <h2>ipsum</h2>
@@ -118,28 +120,28 @@ describe.each([
               </Fragment>
             </InlineComponent>
           </InlineComponent>
-        </>
+        </Fragment>
       </Component>
     );
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
-        <>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button></button>
           <Component>
             <div>Test</div>
           </Component>
-        </>
+        </Fragment>
       </Component>
     );
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
-        <>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <button></button>
-          <InlineComponent>
-            <InlineComponent>
-              <Fragment>
+          <InlineComponent ssr-required>
+            <InlineComponent ssr-required>
+              <Fragment ssr-required>
                 <h1>Test</h1>
                 <p>Lorem</p>
                 <h2>ipsum</h2>
@@ -148,7 +150,7 @@ describe.each([
               </Fragment>
             </InlineComponent>
           </InlineComponent>
-        </>
+        </Fragment>
       </Component>
     );
   });
@@ -197,7 +199,7 @@ describe.each([
               <InlineComponent>
                 <div>
                   {'Id: '}
-                  <Fragment>{'0'}</Fragment>
+                  <Fragment ssr-required>{'0'}</Fragment>
                 </div>
               </InlineComponent>
               1
@@ -218,7 +220,7 @@ describe.each([
               <InlineComponent>
                 <div>
                   {'Id: '}
-                  <Fragment>{'1'}</Fragment>
+                  <Fragment ssr-required>{'1'}</Fragment>
                 </div>
               </InlineComponent>
               1
@@ -250,7 +252,7 @@ describe.each([
     const { vNode, document } = await render(<Cmp />, { debug });
 
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <footer>
           <button></button>
           <InlineComponent>
@@ -309,7 +311,7 @@ describe.each([
     const { vNode, document } = await render(<Cmp />, { debug });
 
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <footer>
           <button></button>
           <InlineComponent>
@@ -322,10 +324,10 @@ describe.each([
     await trigger(document.body, 'button', 'click');
 
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <footer>
           <button></button>
-          <InlineComponent>
+          <InlineComponent ssr-required>
             <span>bar</span>
           </InlineComponent>
         </footer>
@@ -335,10 +337,10 @@ describe.each([
     await trigger(document.body, 'button', 'click');
 
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <footer>
           <button></button>
-          <InlineComponent>
+          <InlineComponent ssr-required>
             <div>foo</div>
           </InlineComponent>
         </footer>
@@ -373,12 +375,12 @@ describe.each([
     const { vNode, document } = await render(<Cmp />, { debug });
 
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <footer>
           <button></button>
-          <InlineComponent>
-            <Fragment>
-              <InlineComponent>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              <InlineComponent ssr-required>
                 <div>foo</div>
               </InlineComponent>
             </Fragment>
@@ -390,12 +392,12 @@ describe.each([
     await trigger(document.body, 'button', 'click');
 
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <footer>
           <button></button>
-          <InlineComponent>
-            <Fragment>
-              <InlineComponent>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              <InlineComponent ssr-required>
                 <span>bar</span>
               </InlineComponent>
             </Fragment>
@@ -407,17 +409,109 @@ describe.each([
     await trigger(document.body, 'button', 'click');
 
     expect(vNode).toMatchVDOM(
-      <Component>
+      <Component ssr-required>
         <footer>
           <button></button>
-          <InlineComponent>
-            <Fragment>
-              <InlineComponent>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              <InlineComponent ssr-required>
                 <div>foo</div>
               </InlineComponent>
             </Fragment>
           </InlineComponent>
         </footer>
+      </Component>
+    );
+  });
+
+  it('should rerender without locate error', async () => {
+    const errorSpy = vi.spyOn(logUtils, 'throwErrorAndStop');
+    const ReplOutputPanel = component$(() => {
+      const store = useStore<any>({
+        selectedOutputPanel: 'app',
+        serverUrl: undefined,
+      });
+
+      const ReplTabButton = (props: any) => {
+        return (
+          <button id={props.id} class={{ 'active-tab': props.isActive }} onClick$={props.onClick$}>
+            {props.text}
+          </button>
+        );
+      };
+
+      useVisibleTask$(() => {
+        store.serverUrl = 'test';
+      });
+
+      return (
+        <div>
+          <ReplTabButton
+            text="App"
+            id="1"
+            isActive={store.selectedOutputPanel === 'app'}
+            onClick$={async () => {
+              store.selectedOutputPanel = 'app';
+            }}
+          />
+
+          <ReplTabButton
+            text="HTML"
+            id="2"
+            isActive={store.selectedOutputPanel === 'html'}
+            onClick$={async () => {
+              store.selectedOutputPanel = 'html';
+            }}
+          />
+
+          {store.serverUrl && <div>test</div>}
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<ReplOutputPanel />, { debug });
+
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'div', 'qvisible');
+    }
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Component>
+            <button id="1" class="active-tab">
+              App
+            </button>
+          </Component>
+          <Component>
+            <button id="2" class="">
+              HTML
+            </button>
+          </Component>
+          <div>test</div>
+        </div>
+      </Component>
+    );
+
+    await trigger(document.body, 'button[id="2"]', 'click');
+
+    expect(errorSpy).not.toHaveBeenCalled();
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Component>
+            <button id="1" class="">
+              App
+            </button>
+          </Component>
+          <Component>
+            <button id="2" class="active-tab">
+              HTML
+            </button>
+          </Component>
+          <div>test</div>
+        </div>
       </Component>
     );
   });

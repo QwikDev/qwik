@@ -18,6 +18,7 @@ import { hasClassAttr } from '../shared/utils/scoped-styles';
 import { createComputed$, createSignal } from '../signal/signal.public';
 import { constPropsToSsrAttrs, varPropsToSsrAttrs } from '../ssr/ssr-render-jsx';
 import { type SSRContainer } from '../ssr/ssr-types';
+import { _qrlSync } from '../shared/qrl/qrl.public';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -34,7 +35,7 @@ describe('serializer v2', () => {
         </>
       );
       const output = toVNode(toDOM(await toHTML(input)));
-      expect(output).toMatchVDOM(input);
+      expect(output).toMatchVDOM('Hello ');
     });
 
     it('should render blog post example', async () => {
@@ -49,7 +50,12 @@ describe('serializer v2', () => {
         </main>
       );
       const output = toVNode(toDOM(await toHTML(input)));
-      expect(output).toMatchVDOM(input);
+      expect(output).toMatchVDOM(
+        <main class="">
+          Count: 123!
+          <button class="">+1</button>
+        </main>
+      );
     });
 
     it('should handle more complex example', async () => {
@@ -66,7 +72,14 @@ describe('serializer v2', () => {
         </div>
       );
       const output = toVNode(toDOM(await toHTML(input)));
-      expect(output).toMatchVDOM(input);
+      expect(output).toMatchVDOM(
+        <div class="">
+          <span class="">A</span>
+          Hello World!
+          <span class="">B!</span>
+          Greetings World!
+        </div>
+      );
     });
 
     it('should handle adjacent qwik/vnode data', async () => {
@@ -94,7 +107,8 @@ describe('serializer v2', () => {
     });
 
     describe('node references', () => {
-      it('should retrieve element', async () => {
+      // doesn't use the vnode so not serialized
+      it.skip('should retrieve element', async () => {
         const clientContainer = await withContainer((ssr) => {
           ssr.openElement('div', ['id', 'parent']);
           ssr.textNode('Hello');
@@ -379,10 +393,10 @@ describe('serializer v2', () => {
           qrl('chunk.js', 's_123', ['Hello', 'World']) as QRLInternal,
           qrl('chunk.js', 's_123', ['Hello', 'World']) as QRLInternal,
           inlinedQrl(testFn, 's_inline', ['Hello']) as QRLInternal,
+          _qrlSync(() => 'hi', 'q=>"meep"') as unknown as QRLInternal,
         ];
-        const [qrl0, qrl1, qrl2] = (await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(
-          0
-        );
+        const container = await withContainer((ssr) => ssr.addRoot(obj));
+        const [qrl0, qrl1, qrl2] = container.$getObjectById$(0);
         expect(qrl0.$hash$).toEqual(obj[0].$hash$);
         expect(qrl0.$captureRef$).toEqual(obj[0].$captureRef$);
         expect(qrl0._devOnlySymbolRef).toEqual((obj[0] as any)._devOnlySymbolRef);
@@ -443,11 +457,8 @@ describe('serializer v2', () => {
           ssr.addRoot(computed);
         });
         const got = container.$getObjectById$(0);
-        expect(got).toMatchInlineSnapshot(`
-          {
-            "value": Symbol(invalid),
-          }
-        `);
+        expect(got.$untrackedValue$).toMatchInlineSnapshot(`Symbol(invalid)`);
+        expect(got.$invalid$).toBe(true);
         expect(got.value).toBe('test!');
       });
     });
@@ -494,7 +505,7 @@ describe('serializer v2', () => {
 
     describe('DocumentSerializer, //////', () => {
       it('should serialize and deserialize', async () => {
-        const obj = new SsrNode(null, SsrNode.DOCUMENT_NODE, '', [], []);
+        const obj = new SsrNode(null, SsrNode.DOCUMENT_NODE, '', [], [], [] as any);
         const container = await withContainer((ssr) => ssr.addRoot(obj));
         expect(container.$getObjectById$(0)).toEqual(container.element.ownerDocument);
       });

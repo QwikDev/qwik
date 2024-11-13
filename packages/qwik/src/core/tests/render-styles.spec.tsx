@@ -50,7 +50,7 @@ describe.each([
           <button />
           <Component>
             <span class="even stable0">
-              <Signal>0</Signal>
+              <Signal ssr-required>0</Signal>
             </span>
           </Component>
         </Fragment>
@@ -63,7 +63,7 @@ describe.each([
           <button />
           <Component>
             <span class="odd stable0">
-              <Signal>1</Signal>
+              <Signal ssr-required>1</Signal>
             </span>
           </Component>
         </Fragment>

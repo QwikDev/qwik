@@ -12,7 +12,7 @@ export { trigger, ElementFixture } from './element-fixture';
 
 // TODO get api-extractor to export this too
 interface CustomMatchers<R = unknown> {
-  toMatchVDOM(expectedJSX: JSXOutput): R;
+  toMatchVDOM(expectedJSX: JSXOutput, isCsr?: boolean): R;
   toMatchDOM(expectedDOM: JSXOutput): Promise<R>;
 }
 

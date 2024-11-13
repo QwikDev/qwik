@@ -202,13 +202,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    * https://developer.mozilla.org/en-US/docs/Web/API/TreeWalker
    */
   private depthFirstElementCount: number = -1;
-  private vNodeData: VNodeData[] = [];
+  private vNodeDatas: VNodeData[] = [];
   private componentStack: ISsrComponentFrame[] = [];
   private unclaimedProjections: Array<ISsrComponentFrame | string | JSXChildren> = [];
   public unclaimedProjectionComponentFrameQueue: Array<ISsrComponentFrame> = [];
   private cleanupQueue: CleanupQueue = [];
   public $instanceHash$ = hash();
-
+  // Temporary flag to find missing roots after the state was serialized
+  private $noMoreRoots$ = false;
   constructor(opts: Required<SSRRenderOptions>) {
     super(
       () => null,
@@ -224,7 +225,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.serializationCtx = this.serializationCtxFactory(
       SsrNode,
       this.symbolToChunkResolver,
-      opts.writer
+      opts.writer,
+      (vNodeData: VNodeData) => this.addVNodeToSerializationRoots(vNodeData)
     );
     this.renderTimer = createTimer();
     this.tag = opts.tagName;
@@ -268,6 +270,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       ssrNode.setProp(QCtxAttr, (ctx = []));
     }
     mapArray_set(ctx, context.id, value, 0);
+    // Store the node which will store the context
+    this.addRoot(ssrNode);
   }
 
   resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined {
@@ -443,8 +447,19 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.lastNode = null;
   }
 
+  addCurrentElementFrameAsComponentChild() {
+    const vNode = this.currentElementFrame?.vNodeData;
+    if (vNode) {
+      this.currentComponentNode?.addChildVNodeData(vNode);
+    }
+  }
+
   openProjection(attrs: SsrAttrs) {
     this.openFragment(attrs);
+    const vNode = this.currentElementFrame?.vNodeData;
+    if (vNode) {
+      vNode[0] |= VNodeDataFlag.SERIALIZE;
+    }
     const componentFrame = this.getComponentFrame();
     if (componentFrame) {
       componentFrame.projectionDepth++;
@@ -507,7 +522,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.write('<!--' + text + '-->');
   }
 
-  addRoot(obj: unknown): number {
+  addRoot(obj: unknown) {
+    if (this.$noMoreRoots$) {
+      return this.serializationCtx.$hasRootId$(obj);
+    }
     return this.serializationCtx.$addRoot$(obj);
   }
 
@@ -583,15 +601,16 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   ////////////////////////////////////
 
   private emitContainerData(): ValueOrPromise<void> {
-    return maybeThen(this.emitUnclaimedProjection(), () => {
-      this.addVNodeDataToSerializationRoots();
-      return maybeThen(this.emitStateData(), () => {
+    // TODO first emit state, then only emit slots where the parent is serialized (so they could rerender)
+    return maybeThen(this.emitUnclaimedProjection(), () =>
+      maybeThen(this.emitStateData(), () => {
+        this.$noMoreRoots$ = true;
         this.emitVNodeData();
         this.emitPrefetchResourcesData();
         this.emitSyncFnsData();
         this.emitQwikLoaderAtBottomIfNeeded();
-      });
-    });
+      })
+    );
   }
 
   /**
@@ -613,14 +632,17 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    * skipped. By choosing different separators we can encode different numbers of elements to skip.
    */
   emitVNodeData() {
+    if (!this.serializationCtx.$roots$.length) {
+      return;
+    }
     this.openElement('script', ['type', 'qwik/vnode']);
     const vNodeAttrsStack: SsrAttrs[] = [];
-    const vNodeData = this.vNodeData;
+    const vNodeData = this.vNodeDatas;
     let lastSerializedIdx = 0;
     for (let elementIdx = 0; elementIdx < vNodeData.length; elementIdx++) {
       const vNode = vNodeData[elementIdx];
       const flag = vNode[0];
-      if (flag !== VNodeDataFlag.NONE) {
+      if (flag & VNodeDataFlag.SERIALIZE) {
         lastSerializedIdx = this.emitVNodeSeparators(lastSerializedIdx, elementIdx);
         if (flag & VNodeDataFlag.REFERENCE) {
           this.write(VNodeDataSeparator.REFERENCE_CH);
@@ -672,14 +694,20 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
     function writeFragmentAttrs(
       write: (text: string) => void,
-      addRoot: (obj: unknown) => number,
+      addRoot: (obj: unknown) => number | undefined,
       fragmentAttrs: SsrAttrs
     ): void {
       for (let i = 0; i < fragmentAttrs.length; ) {
         const key = fragmentAttrs[i++] as string;
         let value = fragmentAttrs[i++] as string;
+        // if (key !== DEBUG_TYPE) continue;
         if (typeof value !== 'string') {
-          value = String(addRoot(value));
+          const rootId = addRoot(value);
+          // We didn't add the vnode data, so we are only interested in the vnode position
+          if (rootId === undefined) {
+            continue;
+          }
+          value = String(rootId);
         }
         switch (key) {
           case QScopedStyle:
@@ -725,45 +753,25 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.closeElement();
   }
 
-  /**
-   * This is needed for the case when we have a component around the `<body>` tag. In this case we
-   * start emitting the vnode script tag before the `<body>` close tag.
-   */
-  addVNodeDataToSerializationRoots() {
+  /** This adds the vnode's data to the serialization roots */
+  addVNodeToSerializationRoots(vNodeData: VNodeData) {
     const vNodeAttrsStack: SsrAttrs[] = [];
-    const vNodeData = this.vNodeData;
-    for (let elementIdx = 0; elementIdx < vNodeData.length; elementIdx++) {
-      const vNode = vNodeData[elementIdx];
-      const flag = vNode[0];
-      if (flag !== VNodeDataFlag.NONE) {
-        if (flag & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE)) {
-          let fragmentAttrs: SsrAttrs | null = null;
-          let depth = 0;
-          for (let i = 1; i < vNode.length; i++) {
-            const value = vNode[i];
-            if (Array.isArray(value)) {
-              vNodeAttrsStack.push(fragmentAttrs!);
-              fragmentAttrs = value;
-            } else if (value === OPEN_FRAGMENT) {
-              depth++;
-            } else if (value === CLOSE_FRAGMENT) {
-              // write out fragment attributes
-              if (fragmentAttrs) {
-                for (let i = 1; i < fragmentAttrs.length; i += 2) {
-                  const value = fragmentAttrs[i] as string;
-                  if (typeof value !== 'string') {
-                    fragmentAttrs[i] = String(this.addRoot(value));
-                  }
-                }
-                fragmentAttrs = vNodeAttrsStack.pop()!;
-              }
-              depth--;
-            }
-          }
-
-          while (depth-- > 0) {
+    const flag = vNodeData[0];
+    if (flag !== VNodeDataFlag.NONE) {
+      if (flag & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE)) {
+        let fragmentAttrs: SsrAttrs | null = null;
+        let depth = 0;
+        for (let i = 1; i < vNodeData.length; i++) {
+          const value = vNodeData[i];
+          if (Array.isArray(value)) {
+            vNodeAttrsStack.push(fragmentAttrs!);
+            fragmentAttrs = value;
+          } else if (value === OPEN_FRAGMENT) {
+            depth++;
+          } else if (value === CLOSE_FRAGMENT) {
+            // write out fragment attributes
             if (fragmentAttrs) {
-              for (let i = 0; i < fragmentAttrs.length; i++) {
+              for (let i = 1; i < fragmentAttrs.length; i += 2) {
                 const value = fragmentAttrs[i] as string;
                 if (typeof value !== 'string') {
                   fragmentAttrs[i] = String(this.addRoot(value));
@@ -771,6 +779,19 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
               }
               fragmentAttrs = vNodeAttrsStack.pop()!;
             }
+            depth--;
+          }
+        }
+
+        while (depth-- > 0) {
+          if (fragmentAttrs) {
+            for (let i = 0; i < fragmentAttrs.length; i++) {
+              const value = fragmentAttrs[i] as string;
+              if (typeof value !== 'string') {
+                fragmentAttrs[i] = String(this.addRoot(value));
+              }
+            }
+            fragmentAttrs = vNodeAttrsStack.pop()!;
           }
         }
       }
@@ -778,6 +799,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   private emitStateData(): ValueOrPromise<void> {
+    if (!this.serializationCtx.$roots$.length) {
+      return;
+    }
     this.openElement('script', ['type', 'qwik/state']);
     return maybeThen(this.serializationCtx.$breakCircularDepsAndAwaitPromises$(), () => {
       this.serializationCtx.$serialize$();
@@ -943,7 +967,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
                 ? [DEBUG_TYPE, VirtualType.Projection, QSlotParent, ssrComponentNode!.id]
                 : [QSlotParent, ssrComponentNode!.id]
             );
-            ssrComponentNode?.setProp(value, this.getLastNode().id);
+            const lastNode = this.getLastNode();
+            if (lastNode.vnodeData) {
+              lastNode.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
+            }
+            ssrComponentNode?.setProp(value, lastNode.id);
             await _walkJSX(this, children, {
               allowPromises: true,
               currentStyleScoped: scopedStyleId,
@@ -1048,7 +1076,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       vNodeData: [VNodeDataFlag.NONE],
     };
     this.currentElementFrame = frame;
-    this.vNodeData.push(frame.vNodeData);
+    this.vNodeDatas.push(frame.vNodeData);
   }
   private popFrame() {
     const closingFrame = this.currentElementFrame!;

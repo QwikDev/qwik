@@ -53,7 +53,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          Count: <Signal>{'123'}</Signal>!
+          Count: <Signal ssr-required>{'123'}</Signal>!
         </button>
       </Component>
     );
@@ -61,7 +61,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          Count: <Signal>{'124'}</Signal>!
+          Count: <Signal ssr-required>{'124'}</Signal>!
         </button>
       </Component>
     );
@@ -76,7 +76,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <>
         <button>
-          Count: <Signal>{'123'}</Signal>!
+          Count: <Signal ssr-required>{'123'}</Signal>!
         </button>
       </>
     );
@@ -84,7 +84,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <>
         <button>
-          Count: <Signal>{'124'}</Signal>!
+          Count: <Signal ssr-required>{'124'}</Signal>!
         </button>
       </>
     );
@@ -100,7 +100,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          Count: <Signal>{'123'}</Signal>!
+          Count: <Signal ssr-required>{'123'}</Signal>!
         </button>
       </Component>
     );
@@ -108,7 +108,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          Count: <Signal>{'124'}</Signal>!
+          Count: <Signal ssr-required>{'124'}</Signal>!
         </button>
       </Component>
     );
@@ -136,7 +136,7 @@ describe.each([
         <button>
           <>
             <span>
-              Count: <Signal>{'123'}</Signal>!
+              Count: <Signal ssr-required>{'123'}</Signal>!
             </span>
           </>
         </button>
@@ -149,7 +149,7 @@ describe.each([
         <button>
           <>
             <span>
-              Count: <Signal>{'124'}</Signal>!
+              Count: <Signal ssr-required>{'124'}</Signal>!
             </span>
           </>
         </button>
@@ -174,7 +174,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Count: <>{'123'}</>!
+            Count: <Signal ssr-required>{'123'}</Signal>!
           </button>
         </Component>
       );
@@ -184,7 +184,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <>
           <button>
-            Count: <>{'124'}</>!
+            Count: <Signal ssr-required>{'124'}</Signal>!
           </button>
         </>
       );
@@ -207,7 +207,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            -<>{'initial'}</>-
+            -<Signal ssr-required>{'initial'}</Signal>-
           </button>
         </Component>
       );
@@ -231,7 +231,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <>
           <button>
-            -<>{'text'}</>-
+            -<Signal ssr-required>{'text'}</Signal>-
           </button>
         </>
       );
@@ -271,18 +271,18 @@ describe.each([
       await trigger(container.element, 'button', 'click');
       expect(renderLog).toEqual([]);
       expect(vNode).toMatchVDOM(
-        <Fragment>
-          <>
-            <Component>
-              <>
-                Count: <>{'124'}</>!
-              </>
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <Component ssr-required>
+              <Fragment ssr-required>
+                Count: <Signal ssr-required>{'124'}</Signal>!
+              </Fragment>
             </Component>
-            <Component>
+            <Component ssr-required>
               <button>+1</button>
             </Component>
-          </>
-        </Fragment>
+          </Fragment>
+        </Component>
       );
     });
   });
@@ -298,7 +298,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Data: <Signal>{''}</Signal>!
+            Data: <Signal ssr-required>{''}</Signal>!
           </button>
         </Component>
       );
@@ -306,7 +306,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Data: <Signal>{'\n test'}</Signal>!
+            Data: <Signal ssr-required>{'\n test'}</Signal>!
           </button>
         </Component>
       );
@@ -322,7 +322,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Data: <Signal>{'\n abcd'}</Signal>!
+            Data: <Signal ssr-required>{'\n abcd'}</Signal>!
           </button>
         </Component>
       );
@@ -330,7 +330,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Data: <Signal>{'\n test'}</Signal>!
+            Data: <Signal ssr-required>{'\n test'}</Signal>!
           </button>
         </Component>
       );
@@ -346,7 +346,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Data: <Signal>{'\n abcd'}</Signal>!
+            Data: <Signal ssr-required>{'\n abcd'}</Signal>!
           </button>
         </Component>
       );
@@ -354,7 +354,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
-            Data: <Signal>{'\n abcd\n test'}</Signal>!
+            Data: <Signal ssr-required>{'\n abcd\n test'}</Signal>!
           </button>
         </Component>
       );
@@ -435,10 +435,10 @@ describe.each([
 
     const { vNode, document } = await render(<Cmp />, { debug });
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <p>
-            <Signal>also tracked</Signal>
+            <Signal ssr-required>also tracked</Signal>
           </p>
           <button id="tracked"></button>
           <button id="add-item"></button>
@@ -451,10 +451,10 @@ describe.each([
     await trigger(document.body, 'button#add-item', 'click');
     await trigger(document.body, 'button#add-item', 'click');
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
+      <Component ssr-required>
+        <Fragment ssr-required>
           <p>
-            <Signal>also tracked</Signal>
+            <Signal ssr-required>also tracked</Signal>
           </p>
           <button id="tracked"></button>
           <button id="add-item"></button>
@@ -499,17 +499,17 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          <Component>
-            <Signal>{'{"controls":{"ctrl":{"value":""}}}'}</Signal>
+          <Component ssr-required>
+            <Signal ssr-required>{'{"controls":{"ctrl":{"value":""}}}'}</Signal>
           </Component>
-          <Component>
-            <Signal>{'{"ctrl":{"value":""}}'}</Signal>
+          <Component ssr-required>
+            <Signal ssr-required>{'{"ctrl":{"value":""}}'}</Signal>
           </Component>
-          <Component>
-            <Signal>{'{"value":""}'}</Signal>
+          <Component ssr-required>
+            <Signal ssr-required>{'{"value":""}'}</Signal>
           </Component>
-          <Component>
-            <Signal>{'""'}</Signal>
+          <Component ssr-required>
+            <Signal ssr-required>{'""'}</Signal>
           </Component>
         </button>
       </Component>
@@ -518,17 +518,17 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
-          <Component>
-            <Signal>{'{"controls":{"ctrl":{"value":"test"}}}'}</Signal>
+          <Component ssr-required>
+            <Signal ssr-required>{'{"controls":{"ctrl":{"value":"test"}}}'}</Signal>
           </Component>
-          <Component>
-            <Signal>{'{"ctrl":{"value":"test"}}'}</Signal>
+          <Component ssr-required>
+            <Signal ssr-required>{'{"ctrl":{"value":"test"}}'}</Signal>
           </Component>
-          <Component>
-            <Signal>{'{"value":"test"}'}</Signal>
+          <Component ssr-required>
+            <Signal ssr-required>{'{"value":"test"}'}</Signal>
           </Component>
-          <Component>
-            <Signal>{'"test"'}</Signal>
+          <Component ssr-required>
+            <Signal ssr-required>{'"test"'}</Signal>
           </Component>
         </button>
       </Component>
@@ -608,7 +608,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <div>
-          <Signal>{'test'}</Signal>
+          <Signal ssr-required>{'test'}</Signal>
         </div>
       </Component>
     );
@@ -616,7 +616,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <div>
-          <Signal></Signal>
+          <Signal ssr-required></Signal>
         </div>
       </Component>
     );
@@ -773,15 +773,15 @@ describe.each([
 
       const { vNode, container } = await render(<Issue5597 />, { debug });
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button>
               {'Count: '}
-              <Signal>{(globalThis as any).clicks}</Signal>
+              <Signal ssr-required>{(globalThis as any).clicks}</Signal>
               {'!'}
             </button>
             <div key="0">
-              <Signal>{(globalThis as any).clicks}</Signal>
+              <Signal ssr-required>{(globalThis as any).clicks}</Signal>
             </div>
           </Fragment>
         </Component>
@@ -791,15 +791,15 @@ describe.each([
       await trigger(container.element, 'button', 'click');
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button>
               {'Count: '}
-              <Signal>{(globalThis as any).clicks}</Signal>
+              <Signal ssr-required>{(globalThis as any).clicks}</Signal>
               {'!'}
             </button>
             <div key="0">
-              <Signal>{(globalThis as any).clicks}</Signal>
+              <Signal ssr-required>{(globalThis as any).clicks}</Signal>
             </div>
           </Fragment>
         </Component>
@@ -807,23 +807,17 @@ describe.each([
     });
 
     it('#5597 - should update value with setInterval', async () => {
-      vi.useFakeTimers();
       const Cmp = component$(() => {
         const count = useSignal(0);
         const store = useStore({ items: [{ num: 0 }] });
-        useTask$(
-          ({ cleanup }) => {
-            const intervalId = setInterval(() => {
-              count.value++;
-              store.items = store.items.map((i: { num: number }) => ({ num: i.num + 1 }));
-            }, 500);
+        useVisibleTask$(({ cleanup }) => {
+          const intervalId = setInterval(() => {
+            count.value++;
+            store.items = store.items.map((i: { num: number }) => ({ num: i.num + 1 }));
+          }, 500);
 
-            cleanup(() => clearInterval(intervalId));
-          },
-          {
-            eagerness: 'visible',
-          }
-        );
+          cleanup(() => clearInterval(intervalId));
+        });
         return (
           <>
             <div>Count: {count.value}!</div>
@@ -833,52 +827,58 @@ describe.each([
           </>
         );
       });
+      vi.useFakeTimers({
+        toFake: ['setInterval', 'clearInterval'],
+      });
       const { vNode, document } = await render(<Cmp />, { debug });
-      await trigger(document.body, 'div', 'qvisible');
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'div', 'qvisible');
+      }
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <div>
               {'Count: '}
-              <Signal>{'0'}</Signal>
+              <Signal ssr-required>{'0'}</Signal>
               {'!'}
             </div>
             <div key="0">
-              <Signal>0</Signal>
+              <Signal ssr-required>0</Signal>
             </div>
           </Fragment>
         </Component>
       );
       await advanceToNextTimerAndFlush();
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <div>
               {'Count: '}
-              <Signal>{'1'}</Signal>
+              <Signal ssr-required>{'1'}</Signal>
               {'!'}
             </div>
             <div key="0">
-              <Signal>1</Signal>
+              <Signal ssr-required>1</Signal>
             </div>
           </Fragment>
         </Component>
       );
       await advanceToNextTimerAndFlush();
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <div>
               {'Count: '}
-              <Signal>{'2'}</Signal>
+              <Signal ssr-required>{'2'}</Signal>
               {'!'}
             </div>
             <div key="0">
-              <Signal>2</Signal>
+              <Signal ssr-required>2</Signal>
             </div>
           </Fragment>
         </Component>
       );
+      vi.clearAllTimers();
       vi.useRealTimers();
     });
 
@@ -955,19 +955,19 @@ describe.each([
       const { vNode, container } = await render(<Parent />, { debug });
 
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button>update!</button>
-            <Component>
+            <Component ssr-required>
               <div>
                 {'Child: '}
-                <Signal>{'INITIAL'}</Signal>
+                <Signal ssr-required>{'INITIAL'}</Signal>
               </div>
             </Component>
-            <Component>
+            <Component ssr-required>
               <div>
                 {'Child: '}
-                <Signal>{'INITIAL'}</Signal>
+                <Signal ssr-required>{'INITIAL'}</Signal>
               </div>
             </Component>
           </Fragment>
@@ -975,19 +975,19 @@ describe.each([
       );
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <Fragment>
+        <Component ssr-required>
+          <Fragment ssr-required>
             <button>update!</button>
-            <Component>
+            <Component ssr-required>
               <div>
                 {'Child: '}
-                <Signal>{'UPDATE'}</Signal>
+                <Signal ssr-required>{'UPDATE'}</Signal>
               </div>
             </Component>
-            <Component>
+            <Component ssr-required>
               <div>
                 {'Child: '}
-                <Signal>{'UPDATE'}</Signal>
+                <Signal ssr-required>{'UPDATE'}</Signal>
               </div>
             </Component>
           </Fragment>
@@ -997,7 +997,11 @@ describe.each([
 
     it('#5001 - should serialize naked value', async () => {
       const Button = component$<{ unusedValue?: [number]; state: [number] }>(({ state }) => {
-        return <button onClick$={() => state[0]++}>+1</button>;
+        return (
+          <div>
+            <button onClick$={() => state[0]++}>+1</button>
+          </div>
+        );
       });
       const Parent = component$<{ nakedState: [number] }>(({ nakedState }) => {
         // STEP 2
@@ -1017,10 +1021,7 @@ describe.each([
               unusedValue={nakedState}
               state={state}
             />
-            {'Count: '}
-            {/* <>{'0'}</> */}
-            {state[0]}
-            {/* {signal.value} */}
+            Count: <span>{state[0]}</span>
           </>
         );
       });
@@ -1034,14 +1035,18 @@ describe.each([
 
       const { vNode, document } = await render(<Issue5001 />, { debug });
       expect(vNode).toMatchVDOM(
-        <Component>
+        <Component ssr-required>
           <Component>
             <Fragment>
               <Component>
-                <button>+1</button>
+                <div>
+                  <button>+1</button>
+                </div>
               </Component>
               {'Count: '}
-              <Signal>0</Signal>
+              <span>
+                <Signal ssr-required>0</Signal>
+              </span>
             </Fragment>
           </Component>
         </Component>
@@ -1049,14 +1054,18 @@ describe.each([
 
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
+        <Component ssr-required>
           <Component>
             <Fragment>
               <Component>
-                <button>+1</button>
+                <div>
+                  <button>+1</button>
+                </div>
               </Component>
               {'Count: '}
-              <Signal>1</Signal>
+              <span>
+                <Signal ssr-required>1</Signal>
+              </span>
             </Fragment>
           </Component>
         </Component>

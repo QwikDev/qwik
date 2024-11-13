@@ -227,6 +227,7 @@ function processJSXNode(
             attrs = [DEBUG_TYPE, VirtualType.Fragment, ...attrs]; // Add debug info.
           }
           ssr.openFragment(attrs);
+          ssr.addCurrentElementFrameAsComponentChild();
           enqueue(ssr.closeFragment);
           // In theory we could get functions or regexes, but we assume all is well
           const children = jsx.children as JSXOutput;

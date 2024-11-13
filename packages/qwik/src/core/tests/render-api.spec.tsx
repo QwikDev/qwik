@@ -4,11 +4,13 @@ import {
   Fragment as Signal,
   component$,
   componentQrl,
+  createContextId,
   getDomContainer,
   getPlatform,
   inlinedQrl,
   render,
   setPlatform,
+  useContextProvider,
   useLexicalScope,
   useOn,
   useResource$,
@@ -36,8 +38,15 @@ import type {
   StreamWriter,
   StreamingOptions,
 } from '../../server/types';
+import {
+  _fnSignal,
+  _getDomContainer,
+  type _ContainerElement,
+  type _DomContainer,
+} from '../internal';
 import { vnode_getFirstChild } from '../client/vnode';
-import { _fnSignal } from '../internal';
+import { QContainerValue } from '../shared/types';
+import { QContainerAttr } from '../shared/utils/markers';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
@@ -215,19 +224,15 @@ describe('render api', () => {
       const container = getDomContainer(document.body.firstChild as HTMLElement);
       const vNode = vnode_getFirstChild(container.rootVNode);
       expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            <Signal>123</Signal>
-          </button>
-        </Component>
+        <button>
+          <Signal ssr-required>123</Signal>
+        </button>
       );
       await trigger(container.element, 'button', 'click');
       expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            <Signal>124</Signal>
-          </button>
-        </Component>
+        <button>
+          <Signal ssr-required>124</Signal>
+        </button>
       );
     });
     describe('render result', () => {
@@ -301,6 +306,20 @@ describe('render api', () => {
         });
         expect(result.html).toContain(`q:version="${testVersion}"`);
         vi.clearAllMocks();
+      });
+    });
+    describe('container', () => {
+      it('should render', async () => {
+        const result = await renderToStringAndSetPlatform(<Counter />, {
+          containerTagName: 'div',
+        });
+        const document = createDocument({ html: result.html });
+        const containerElement = document.querySelector('[q\\:container]') as _ContainerElement;
+        emulateExecutionOfQwikFuncs(document);
+
+        expect(containerElement.getAttribute(QContainerAttr)).toEqual(QContainerValue.PAUSED);
+        await trigger(containerElement, 'button', 'click');
+        expect(containerElement.getAttribute(QContainerAttr)).toEqual(QContainerValue.RESUMED);
       });
     });
     describe('base', () => {
@@ -855,16 +874,17 @@ describe('render api', () => {
     });
     describe('snapshotResult', () => {
       it('should contain resources', async () => {
-        const ResourceComponent = componentQrl(
-          inlinedQrl(() => {
-            const rsrc = useResourceQrl(inlinedQrl(() => 'RESOURCE_VALUE', 's_resource'));
-            return (
-              <div>
-                <Resource value={rsrc} onResolved={(v) => <span>{v}</span>} />
-              </div>
-            );
-          }, 's_cmpResource')
-        );
+        const ctxId = createContextId<any>('foo');
+        const ResourceComponent = component$(() => {
+          const rsrc = useResourceQrl(inlinedQrl(() => 'RESOURCE_VALUE', 's_resource'));
+          // refer to the resource so it's not optimized away
+          useContextProvider(ctxId, rsrc);
+          return (
+            <div>
+              <Resource value={rsrc} onResolved={(v) => <span>{v}</span>} />
+            </div>
+          );
+        });
         const result = await renderToStringAndSetPlatform(
           <body>
             <ResourceComponent />
@@ -1028,19 +1048,15 @@ describe('render api', () => {
         const container = getDomContainer(document.body.firstChild as HTMLElement);
         const vNode = vnode_getFirstChild(container.rootVNode);
         expect(vNode).toMatchVDOM(
-          <Component>
-            <button>
-              <Signal>123</Signal>
-            </button>
-          </Component>
+          <button>
+            <Signal ssr-required>123</Signal>
+          </button>
         );
         await trigger(container.element, 'button', 'click');
         expect(vNode).toMatchVDOM(
-          <Component>
-            <button>
-              <Signal>124</Signal>
-            </button>
-          </Component>
+          <button>
+            <Signal ssr-required>124</Signal>
+          </button>
         );
       });
     });
@@ -1103,7 +1119,7 @@ describe('render api', () => {
           stream,
           streaming,
         });
-        expect(stream.write).toHaveBeenCalledTimes(7);
+        expect(stream.write).toHaveBeenCalledTimes(6);
       });
     });
   });

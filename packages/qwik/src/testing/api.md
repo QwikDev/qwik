@@ -13,6 +13,7 @@ import type { JSXOutput } from '@qwik.dev/core';
 import type { _QDocument } from '@qwik.dev/core';
 import { RenderResult } from '@qwik.dev/core';
 import type { _Stringifiable } from '@qwik.dev/core';
+import type { _VirtualVNode } from '@qwik.dev/core';
 import type { _VNode } from '@qwik.dev/core';
 
 // Warning: (ae-forgotten-export) The symbol "MockDocumentOptions" needs to be exported by the entry point index.d.ts
@@ -79,7 +80,7 @@ export function ssrRenderToDom(jsx: JSXOutput, opts?: {
 }): Promise<{
     container: _DomContainer;
     document: Document;
-    vNode: _VNode;
+    vNode: _VirtualVNode | null;
     getStyles: () => Record<string, string | string[]>;
 }>;
 

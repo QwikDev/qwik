@@ -413,9 +413,10 @@ export { jsx as jsxs }
 export const _jsxBranch: <T>(input?: T) => T | undefined;
 
 // Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "JSXNodeInternal" needs to be exported by the entry point index.d.ts
 //
 // @internal
-export const _jsxC: <T extends string | FunctionComponent<Record<any, unknown>>>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>) | null, flags: number, key: string | number | null, dev?: JsxDevOpts) => JSXNode<T>;
+export const _jsxC: <T extends string | FunctionComponent<Record<any, unknown>>>(type: T, mutableProps: (T extends FunctionComponent<infer PROPS> ? PROPS : Record<any, unknown>) | null, flags: number, key: string | number | null, dev?: JsxDevOpts) => JSXNodeInternal<T>;
 
 // @public (undocumented)
 export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;
@@ -430,10 +431,6 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
     // (undocumented)
     dev?: DevJSX;
     // (undocumented)
-    flags: number;
-    // (undocumented)
-    immutableProps: Record<any, unknown> | null;
-    // (undocumented)
     key: string | null;
     // (undocumented)
     props: T extends FunctionComponent<infer P> ? P : Record<any, unknown>;
@@ -445,10 +442,10 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
 export type JSXOutput = JSXNode | string | number | boolean | null | undefined | JSXOutput[];
 
 // @internal
-export const _jsxQ: <T extends string>(type: T, mutableProps: Record<any, unknown> | null, immutableProps: Record<any, unknown> | null, children: JSXChildren | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
+export const _jsxQ: <T extends string>(type: T, mutableProps: Record<any, unknown> | null, immutableProps: Record<any, unknown> | null, children: JSXChildren | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNodeInternal<T>;
 
 // @internal
-export const _jsxS: <T extends string>(type: T, mutableProps: Record<any, unknown> | null, immutableProps: Record<any, unknown> | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
+export const _jsxS: <T extends string>(type: T, mutableProps: Record<any, unknown> | null, immutableProps: Record<any, unknown> | null, flags: number, key: string | number | null, dev?: DevJSX) => JSXNodeInternal<T>;
 
 // @public (undocumented)
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
@@ -606,7 +603,7 @@ export const PrefetchGraph: (opts?: {
     manifestHash?: string;
     manifestURL?: string;
     nonce?: string;
-}) => JSXNode_2<"script">;
+}) => JSXOutput;
 
 // @alpha
 export const PrefetchServiceWorker: (opts: {

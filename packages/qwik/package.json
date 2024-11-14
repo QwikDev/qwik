@@ -24,7 +24,7 @@
   },
   "exports": {
     ".": {
-      "types": "./dist/core.d.ts",
+      "types": "./public.d.ts",
       "import": {
         "development": "./dist/core.mjs",
         "production": "./dist/core.prod.mjs",
@@ -120,7 +120,7 @@
     "./server.cjs": "./dist/server.cjs",
     "./server.mjs": "./dist/server.mjs",
     "./server": {
-      "types": "./dist/server.d.ts",
+      "types": "./server.d.ts",
       "import": "./dist/server.mjs",
       "require": "./dist/server.cjs"
     },
@@ -147,6 +147,7 @@
     "jsx-runtime.d.ts",
     "loader.d.ts",
     "optimizer.d.ts",
+    "public.d.ts",
     "server.d.ts",
     "testing.d.ts",
     "qwik-cli.cjs"

@@ -10,7 +10,6 @@
   },
   "dtsRollup": {
     "enabled": true,
-    "betaTrimmedFilePath": "<projectFolder>/dist/core.d.ts",
     "untrimmedFilePath": "<projectFolder>/dist/core-internal.d.ts"
   },
   "docModel": {

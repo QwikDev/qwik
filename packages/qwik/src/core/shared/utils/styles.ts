@@ -73,7 +73,11 @@ export const serializeBooleanOrNumberAttribute = (value: any) => {
   return value != null ? String(value) : null;
 };
 
-export function serializeAttribute(key: string, value: any, styleScopedId?: string | null): string {
+export function serializeAttribute(
+  key: string,
+  value: any,
+  styleScopedId?: string | null
+): string | null | boolean {
   if (isClassAttr(key)) {
     const serializedClass = serializeClass(value as ClassList);
     value = styleScopedId

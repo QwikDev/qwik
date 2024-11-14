@@ -54,6 +54,7 @@ export async function copyPlatformBindingWasm(config: BuildConfig) {
   ensureDir(config.distQwikPkgDir);
   ensureDir(config.distBindingsDir);
   const cacheDir = join(config.tmpDir, `cached-bindings`);
+  ensureDir(cacheDir);
 
   let buildVersion = '0.0.0';
   try {

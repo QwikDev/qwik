@@ -4,17 +4,17 @@
 
 ```ts
 
-import { ClientContainer } from '@qwik.dev/core';
+import { ClientContainer } from '@qwik.dev/core/internal';
 import type { CorePlatform } from '@qwik.dev/core';
-import type { _DomContainer } from '@qwik.dev/core';
-import type { _ElementVNode } from '@qwik.dev/core';
-import type { JSXNode } from '@qwik.dev/core';
-import type { JSXOutput } from '@qwik.dev/core';
-import type { _QDocument } from '@qwik.dev/core';
+import type { _DomContainer } from '@qwik.dev/core/internal';
+import type { _ElementVNode } from '@qwik.dev/core/internal';
+import type { JSXNodeInternal } from '@qwik.dev/core/internal';
+import { JSXOutput } from '@qwik.dev/core';
+import type { _QDocument } from '@qwik.dev/core/internal';
 import { RenderResult } from '@qwik.dev/core';
-import type { _Stringifiable } from '@qwik.dev/core';
-import type { _VirtualVNode } from '@qwik.dev/core';
-import type { _VNode } from '@qwik.dev/core';
+import type { _Stringifiable } from '@qwik.dev/core/internal';
+import type { _VirtualVNode } from '@qwik.dev/core/internal';
+import type { _VNode } from '@qwik.dev/core/internal';
 
 // Warning: (ae-forgotten-export) The symbol "MockDocumentOptions" needs to be exported by the entry point index.d.ts
 //
@@ -96,8 +96,8 @@ export function vnode_fromJSX(jsx: JSXOutput): {
 
 // @public (undocumented)
 export function walkJSX(jsx: JSXOutput, apply: {
-    enter: (jsx: JSXNode) => void;
-    leave: (jsx: JSXNode) => void;
+    enter: (jsx: JSXNodeInternal) => void;
+    leave: (jsx: JSXNodeInternal) => void;
     text: (text: _Stringifiable) => void;
 }): void;
 

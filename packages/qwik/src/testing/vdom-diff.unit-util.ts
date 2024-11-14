@@ -1,7 +1,7 @@
+import { Fragment, Slot, isSignal } from '@qwik.dev/core';
+import { _CONST_PROPS, _VAR_PROPS, _isJSXNode, _isStringifiable } from '@qwik.dev/core/internal';
+import type { JSXChildren, JSXNode, JSXOutput } from '@qwik.dev/core';
 import type {
-  JSXChildren,
-  JSXNode,
-  JSXOutput,
   _ContainerElement,
   _ElementVNode,
   _QDocument,
@@ -9,16 +9,8 @@ import type {
   _TextVNode,
   _VNode,
   _VirtualVNode,
-} from '@qwik.dev/core';
-import {
-  Fragment,
-  Slot,
-  _CONST_PROPS,
-  _VAR_PROPS,
-  _isJSXNode,
-  _isStringifiable,
-  isSignal,
-} from '@qwik.dev/core';
+  JSXNodeInternal,
+} from '@qwik.dev/core/internal';
 import { expect } from 'vitest';
 import {
   vnode_applyJournal,
@@ -53,7 +45,12 @@ import { isElement } from './html';
 import { QRenderAttr, Q_PROPS_SEPARATOR } from '../core/shared/utils/markers';
 
 expect.extend({
-  toMatchVDOM(this: { isNot: boolean }, received: _VNode, expected: JSXNode, isCsr?: boolean) {
+  toMatchVDOM(
+    this: { isNot: boolean },
+    received: _VNode,
+    expected: JSXNodeInternal,
+    isCsr?: boolean
+  ) {
     const { isNot } = this;
     const container = getContainerElement(received);
     const isSsr = typeof isCsr === 'boolean' ? !isCsr : isSsrRenderer(container);
@@ -95,13 +92,13 @@ function isSsrRenderer(container: _ContainerElement) {
   return container.hasAttribute(QRenderAttr);
 }
 
-function isSkippableNode(node: JSXNode): boolean {
+function isSkippableNode(node: JSXNodeInternal): boolean {
   return node.type === Fragment && !node.constProps?.['ssr-required'];
 }
 
 function diffJsxVNode(
   received: _VNode,
-  expected: JSXNode | string,
+  expected: JSXNodeInternal | string,
   path: string[] = [],
   container: _ContainerElement,
   isSsr: boolean
@@ -222,7 +219,9 @@ function diffJsxVNodeChildren(
     for (let i = 0; i < receivedChildren.length; i++) {
       const receivedChild = receivedChildren[i];
       const expectedChild = expectedChildren[i];
-      diffs.push(...diffJsxVNode(receivedChild, expectedChild as JSXNode, path, container, isSsr));
+      diffs.push(
+        ...diffJsxVNode(receivedChild, expectedChild as JSXNodeInternal, path, container, isSsr)
+      );
     }
   } else {
     diffs.push(
@@ -378,8 +377,8 @@ function shouldSkip(vNode: _VNode | null) {
 export function walkJSX(
   jsx: JSXOutput,
   apply: {
-    enter: (jsx: JSXNode) => void;
-    leave: (jsx: JSXNode) => void;
+    enter: (jsx: JSXNodeInternal) => void;
+    leave: (jsx: JSXNodeInternal) => void;
     text: (text: _Stringifiable) => void;
   }
 ) {
@@ -440,7 +439,7 @@ export function vnode_fromJSX(jsx: JSXOutput) {
         throw new Error('Unknown type:' + type);
       }
     },
-    leave: (jsx) => {
+    leave: (_jsx) => {
       vParent = vnode_getParent(vParent) as any;
     },
     text: (value) => {

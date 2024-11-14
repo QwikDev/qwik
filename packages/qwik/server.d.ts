@@ -1,2 +1,15 @@
-// re-export for typescript in old resolution mode
-export * from './dist/server';
+export {
+  getQwikLoaderScript,
+  getQwikPrefetchWorkerScript,
+  setServerPlatform,
+  Render,
+  RenderOptions,
+  RenderResult,
+  renderToStream,
+  renderToString,
+  RenderToStreamOptions,
+  RenderToStreamResult,
+  RenderToStringOptions,
+  RenderToStringResult,
+  versions,
+} from './dist/server';

@@ -4,7 +4,7 @@ import { isQrl } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { Fragment, directGetPropsProxyProp } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
-import type { DevJSX, JSXNode, JSXOutput } from '../shared/jsx/types/jsx-node';
+import type { DevJSX, JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SSRStream, type SSRStreamChildren } from '../shared/jsx/utils.public';
 import { trackSignal } from '../use/use-core';
@@ -175,7 +175,7 @@ function processJSXNode(
         }
       });
     } else {
-      const jsx = value as JSXNode;
+      const jsx = value as JSXNodeInternal;
       const type = jsx.type;
       // Below, JSXChildren allows functions and regexes, but we assume the dev only uses those as appropriate.
       if (typeof type === 'string') {
@@ -529,7 +529,7 @@ function addPreventDefaultEventToSerializationContext(
   }
 }
 
-function getSlotName(host: ISsrNode, jsx: JSXNode, ssr: SSRContainer): string {
+function getSlotName(host: ISsrNode, jsx: JSXNodeInternal, ssr: SSRContainer): string {
   const constProps = jsx.constProps;
   if (constProps && typeof constProps == 'object' && 'name' in constProps) {
     const constValue = constProps.name;
@@ -548,14 +548,14 @@ function getQwikInspectorAttributeValue(jsxDev: DevJSX): string | null {
   return null;
 }
 
-function appendQwikInspectorAttribute(jsx: JSXNode, qwikInspectorAttrValue: string | null) {
+function appendQwikInspectorAttribute(jsx: JSXNodeInternal, qwikInspectorAttrValue: string | null) {
   if (qwikInspectorAttrValue && (!jsx.constProps || !(qwikInspectorAttr in jsx.constProps))) {
     (jsx.constProps ||= {})[qwikInspectorAttr] = qwikInspectorAttrValue;
   }
 }
 
 // append class attribute if styleScopedId exists and there is no class attribute
-function appendClassIfScopedStyleExists(jsx: JSXNode, styleScoped: string | null) {
+function appendClassIfScopedStyleExists(jsx: JSXNodeInternal, styleScoped: string | null) {
   const classAttributeExists = directGetPropsProxyProp(jsx, 'class') != null;
   if (!classAttributeExists && styleScoped) {
     if (!jsx.constProps) {

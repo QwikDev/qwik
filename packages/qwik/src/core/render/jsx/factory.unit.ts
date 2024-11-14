@@ -1,6 +1,6 @@
 import { h } from './factory';
 import { isJSXNode, Fragment } from './jsx-runtime';
-import type { FunctionComponent } from './types/jsx-node';
+import type { FunctionComponent, JSXNodeInternal } from './types/jsx-node';
 import { type ProcessedJSXNode, processNode } from '../dom/render-dom';
 import { test, assert } from 'vitest';
 
@@ -19,7 +19,7 @@ test('map multiple nodes, flatten', () => {
       'a',
       [1, 2].map((n) => h('child', null, n)),
       'b'
-    )
+    ) as JSXNodeInternal
   ) as ProcessedJSXNode;
   assert.deepEqual(v.$children$.length, 4);
   assert.deepEqual(v.$children$[0].$text$, 'a');
@@ -32,7 +32,7 @@ test('map multiple nodes, flatten', () => {
 
 test('one child node', () => {
   // <parent><child></child></parent>
-  const v = processNode(h('parent', null, h('child', null))) as ProcessedJSXNode;
+  const v = processNode(h('parent', null, h('child', null)) as JSXNodeInternal) as ProcessedJSXNode;
   assert.deepEqual(v.$children$.length, 1);
   assert.deepEqual(v.$children$[0].$type$, 'child');
   assert.deepEqual(v.$children$[0].$props$, {});
@@ -41,7 +41,7 @@ test('one child node', () => {
 
 test('text w/ expression', () => {
   // <div>1 {2} 3</div>
-  const v = processNode(h('div', null, '1 ', 2, ' 3')) as ProcessedJSXNode;
+  const v = processNode(h('div', null, '1 ', 2, ' 3') as JSXNodeInternal) as ProcessedJSXNode;
   assert.deepEqual(v.$children$[0].$type$, '#text');
   assert.deepEqual(v.$children$[0].$text$, '1 ');
   assert.deepEqual(v.$children$[0].$key$, null);
@@ -57,7 +57,7 @@ test('text w/ expression', () => {
 
 test('text child', () => {
   // <div>text</div>
-  const v = processNode(h('div', null, 'text')) as ProcessedJSXNode;
+  const v = processNode(h('div', null, 'text') as JSXNodeInternal) as ProcessedJSXNode;
   assert.deepEqual(v.$children$[0].$type$, '#text');
   assert.deepEqual(v.$children$[0].$text$, 'text');
   assert.deepEqual(v.$children$[0].$key$, null);
@@ -65,7 +65,7 @@ test('text child', () => {
 
 test('no children', () => {
   // <div/>
-  const v = processNode(h('div', null)) as ProcessedJSXNode;
+  const v = processNode(h('div', null) as JSXNodeInternal) as ProcessedJSXNode;
   assert.deepEqual(v.$children$, []);
 });
 

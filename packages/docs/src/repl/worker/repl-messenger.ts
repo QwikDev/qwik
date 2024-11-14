@@ -3,9 +3,13 @@ import { appUpdate } from './app-update';
 
 export const receiveMessageFromMain = (ev: MessageEvent) => {
   if (ev.data) {
-    const msg: ReplMessage = JSON.parse(ev.data);
-    if (msg.type === 'update') {
-      appUpdate(ev.source as any as WindowClient, msg.clientId, msg.options);
+    try {
+      const msg: ReplMessage = JSON.parse(ev.data);
+      if (msg.type === 'update') {
+        appUpdate(ev.source as any as WindowClient, msg.clientId, msg.options);
+      }
+    } catch {
+      // ignore, probably some extension sending non-JSON data
     }
   }
 };

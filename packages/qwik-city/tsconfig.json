@@ -24,6 +24,24 @@
       "@builder.io/qwik-city/adapters/static/vite": [
         "packages/qwik-city/src/adapters/static/vite/index.ts"
       ],
+      "@builder.io/qwik-city/adapters/vercel-edge/vite": [
+        "packages/qwik-city/adapters/vercel/edge/vite/index.ts"
+      ],
+      "@builder.io/qwik-city/adapters/vercel/edge/vite": [
+        "packages/qwik-city/adapters/vercel/edge/vite/index.ts"
+      ],
+      "@builder.io/qwik-city/adapters/vercel/serverless/vite": [
+        "packages/qwik-city/adapters/vercel/serverless/vite/index.ts"
+      ],
+      "@builder.io/qwik-city/middleware/vercel-edge": [
+        "packages/qwik-city/middleware/vercel/edge/index.ts"
+      ],
+      "@builder.io/qwik-city/middleware/vercel/edge": [
+        "packages/qwik-city/middleware/vercel/edge/index.ts"
+      ],
+      "@builder.io/qwik-city/middleware/vercel/serverless": [
+        "packages/qwik-city/middleware/vercel/serverless/index.ts"
+      ],
       "@builder.io/qwik-city/middleware/azure-swa": ["packages/qwik-city/src/middleware/azure-swa"],
       "@builder.io/qwik-city/middleware/aws-lambda": [
         "packages/qwik-city/src/middleware/aws-lambda"

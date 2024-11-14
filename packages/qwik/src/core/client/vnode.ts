@@ -188,7 +188,9 @@ export const enum VNodeJournalOpCode {
   Insert = 5, // ------- [Insert, target(parent), reference, ...nodes]
 }
 
-export type VNodeJournal = Array<VNodeJournalOpCode | Document | Element | Text | string | null>;
+export type VNodeJournal = Array<
+  VNodeJournalOpCode | Document | Element | Text | string | boolean | null
+>;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1452,7 +1454,7 @@ export const vnode_setAttr = (
   journal: VNodeJournal | null,
   vnode: VNode,
   key: string,
-  value: string | null
+  value: string | null | boolean
 ): void => {
   const type = vnode[VNodeProps.flags];
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {

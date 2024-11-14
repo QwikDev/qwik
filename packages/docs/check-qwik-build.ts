@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const qwikPkgDir = path.join(__dirname, '..', 'qwik', 'dist');
 
-if (!fs.existsSync(path.join(qwikPkgDir, 'core.d.ts'))) {
+if (!fs.existsSync(path.join(qwikPkgDir, 'core-internal.d.ts'))) {
   console.warn(
     `\n\n=== Running 'pnpm run build.local' to generate missing imports for the docs ===\n`
   );

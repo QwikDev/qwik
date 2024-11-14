@@ -57,7 +57,6 @@ export {
   h,
   h as createElement,
 } from './shared/jsx/jsx-runtime';
-export type * from './shared/jsx/types/jsx-generated';
 export type {
   DOMAttributes,
   QwikAttributes,
@@ -69,7 +68,13 @@ export type {
   EventHandler,
   QRLEventHandlerMulti,
 } from './shared/jsx/types/jsx-qwik-attributes';
-export type { JSXOutput, FunctionComponent, JSXNode, DevJSX } from './shared/jsx/types/jsx-node';
+export type {
+  JSXOutput,
+  FunctionComponent,
+  JSXNode,
+  JSXNodeInternal,
+  DevJSX,
+} from './shared/jsx/types/jsx-node';
 export type { QwikDOMAttributes, QwikJSX, QwikJSX as JSX } from './shared/jsx/types/jsx-qwik';
 
 export type { QwikIntrinsicElements } from './shared/jsx/types/jsx-qwik-elements';

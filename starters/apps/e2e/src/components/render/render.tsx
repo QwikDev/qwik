@@ -1,12 +1,9 @@
 import {
   component$,
   event$,
-  h,
   jsx,
   SkipRender,
   Slot,
-  SSRComment,
-  SSRRaw,
   useSignal,
   useStore,
   useStylesScoped$,
@@ -15,6 +12,7 @@ import {
   type PropsOf,
   type QRL,
 } from "@qwik.dev/core";
+import { h, SSRComment, SSRRaw } from "@qwik.dev/core/internal";
 import { isServer } from "@qwik.dev/core/build";
 import { delay } from "../streaming/demo";
 

@@ -1,11 +1,11 @@
-import type { JSXNode, RenderOptions, RenderResult } from '@qwik.dev/core';
-import type { FunctionComponent, JSXOutput } from '../shared/jsx/types/jsx-node';
+import type { FunctionComponent, JSXNode, JSXOutput } from '../shared/jsx/types/jsx-node';
 import { isDocument, isElement } from '../shared/utils/element';
 import { ChoreType } from '../shared/scheduler';
 import { QContainerValue } from '../shared/types';
 import { DomContainer, getDomContainer } from './dom-container';
 import { cleanup } from './vnode-diff';
 import { QContainerAttr } from '../shared/utils/markers';
+import type { RenderOptions, RenderResult } from './types';
 
 /**
  * Render JSX.

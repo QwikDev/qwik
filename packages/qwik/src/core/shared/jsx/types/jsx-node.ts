@@ -34,10 +34,19 @@ export interface DevJSX {
 export interface JSXNode<T extends string | FunctionComponent | unknown = unknown> {
   type: T;
   props: T extends FunctionComponent<infer P> ? P : Record<any, unknown>;
-  varProps: Record<any, unknown>;
-  constProps: Record<any, unknown> | null;
   children: JSXChildren | null;
-  flags: number;
   key: string | null;
   dev?: DevJSX;
+}
+
+/**
+ * The internal representation of a JSX Node.
+ *
+ * @internal
+ */
+export interface JSXNodeInternal<T extends string | FunctionComponent | unknown = unknown>
+  extends JSXNode<T> {
+  varProps: Record<any, unknown>;
+  constProps: Record<any, unknown> | null;
+  flags: number;
 }

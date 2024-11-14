@@ -5,103 +5,10 @@
 ```ts
 
 import * as CSS_2 from 'csstype';
-import type { JSXNode as JSXNode_2 } from '@qwik.dev/core';
-import type { RenderOptions as RenderOptions_2 } from '@qwik.dev/core';
-import type { RenderResult as RenderResult_2 } from '@qwik.dev/core';
-import type { StreamWriter as StreamWriter_2 } from '@qwik.dev/core/internal';
+import type { StreamWriter as StreamWriter_2 } from '@qwik.dev/core';
 
 // @public
 export const $: <T>(expression: T) => QRL<T>;
-
-// Warning: (ae-forgotten-export) The symbol "Attrs" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export interface AnchorHTMLAttributes<T extends Element> extends Attrs<'a', T> {
-}
-
-// @public (undocumented)
-export interface AreaHTMLAttributes<T extends Element> extends Attrs<'area', T> {
-}
-
-// @public
-export interface AriaAttributes {
-    'aria-activedescendant'?: string | undefined;
-    'aria-atomic'?: Booleanish | undefined;
-    'aria-autocomplete'?: 'none' | 'inline' | 'list' | 'both' | undefined;
-    'aria-busy'?: Booleanish | undefined;
-    'aria-checked'?: boolean | 'false' | 'mixed' | 'true' | undefined;
-    'aria-colcount'?: number | undefined;
-    'aria-colindex'?: number | undefined;
-    'aria-colspan'?: number | undefined;
-    'aria-controls'?: string | undefined;
-    'aria-current'?: boolean | 'false' | 'true' | 'page' | 'step' | 'location' | 'date' | 'time' | undefined;
-    'aria-describedby'?: string | undefined;
-    'aria-details'?: string | undefined;
-    'aria-disabled'?: Booleanish | undefined;
-    // @deprecated
-    'aria-dropeffect'?: 'none' | 'copy' | 'execute' | 'link' | 'move' | 'popup' | undefined;
-    'aria-errormessage'?: string | undefined;
-    'aria-expanded'?: Booleanish | undefined;
-    'aria-flowto'?: string | undefined;
-    // @deprecated
-    'aria-grabbed'?: Booleanish | undefined;
-    'aria-haspopup'?: boolean | 'false' | 'true' | 'menu' | 'listbox' | 'tree' | 'grid' | 'dialog' | undefined;
-    'aria-hidden'?: Booleanish | undefined;
-    'aria-invalid'?: boolean | 'false' | 'true' | 'grammar' | 'spelling' | undefined;
-    'aria-keyshortcuts'?: string | undefined;
-    'aria-label'?: string | undefined;
-    'aria-labelledby'?: string | undefined;
-    'aria-level'?: number | undefined;
-    'aria-live'?: 'off' | 'assertive' | 'polite' | undefined;
-    'aria-modal'?: Booleanish | undefined;
-    'aria-multiline'?: Booleanish | undefined;
-    'aria-multiselectable'?: Booleanish | undefined;
-    'aria-orientation'?: 'horizontal' | 'vertical' | undefined;
-    'aria-owns'?: string | undefined;
-    'aria-placeholder'?: string | undefined;
-    'aria-posinset'?: number | undefined;
-    'aria-pressed'?: boolean | 'false' | 'mixed' | 'true' | undefined;
-    'aria-readonly'?: Booleanish | undefined;
-    'aria-relevant'?: 'additions' | 'additions removals' | 'additions text' | 'all' | 'removals' | 'removals additions' | 'removals text' | 'text' | 'text additions' | 'text removals' | undefined;
-    'aria-required'?: Booleanish | undefined;
-    'aria-roledescription'?: string | undefined;
-    'aria-rowcount'?: number | undefined;
-    'aria-rowindex'?: number | undefined;
-    'aria-rowspan'?: number | undefined;
-    'aria-selected'?: Booleanish | undefined;
-    'aria-setsize'?: number | undefined;
-    'aria-sort'?: 'none' | 'ascending' | 'descending' | 'other' | undefined;
-    'aria-valuemax'?: number | undefined;
-    'aria-valuemin'?: number | undefined;
-    'aria-valuenow'?: number | undefined;
-    'aria-valuetext'?: string | undefined;
-}
-
-// @public (undocumented)
-export type AriaRole = 'alert' | 'alertdialog' | 'application' | 'article' | 'banner' | 'button' | 'cell' | 'checkbox' | 'columnheader' | 'combobox' | 'complementary' | 'contentinfo' | 'definition' | 'dialog' | 'directory' | 'document' | 'feed' | 'figure' | 'form' | 'grid' | 'gridcell' | 'group' | 'heading' | 'img' | 'link' | 'list' | 'listbox' | 'listitem' | 'log' | 'main' | 'marquee' | 'math' | 'menu' | 'menubar' | 'menuitem' | 'menuitemcheckbox' | 'menuitemradio' | 'navigation' | 'none' | 'note' | 'option' | 'presentation' | 'progressbar' | 'radio' | 'radiogroup' | 'region' | 'row' | 'rowgroup' | 'rowheader' | 'scrollbar' | 'search' | 'searchbox' | 'separator' | 'slider' | 'spinbutton' | 'status' | 'switch' | 'tab' | 'table' | 'tablist' | 'tabpanel' | 'term' | 'textbox' | 'timer' | 'toolbar' | 'tooltip' | 'tree' | 'treegrid' | 'treeitem' | (string & {});
-
-// @public (undocumented)
-export interface AudioHTMLAttributes<T extends Element> extends Attrs<'audio', T> {
-}
-
-// @public (undocumented)
-export interface BaseHTMLAttributes<T extends Element> extends Attrs<'base', T> {
-}
-
-// @public (undocumented)
-export interface BlockquoteHTMLAttributes<T extends Element> extends Attrs<'blockquote', T> {
-}
-
-// @public (undocumented)
-export type Booleanish = boolean | `${boolean}`;
-
-// @public (undocumented)
-export interface ButtonHTMLAttributes<T extends Element> extends Attrs<'button', T> {
-}
-
-// @public (undocumented)
-export interface CanvasHTMLAttributes<T extends Element> extends Attrs<'canvas', T> {
-}
 
 // @public
 export type ClassList = string | undefined | null | false | Record<string, boolean | string | number | null | undefined> | ClassList[];
@@ -135,14 +42,6 @@ export interface ClientContainer extends Container {
     renderDone: Promise<void> | null;
     // (undocumented)
     rootVNode: _ElementVNode;
-}
-
-// @public (undocumented)
-export interface ColgroupHTMLAttributes<T extends Element> extends Attrs<'colgroup', T> {
-}
-
-// @public (undocumented)
-export interface ColHTMLAttributes<T extends Element> extends Attrs<'col', T> {
 }
 
 // @public
@@ -223,25 +122,8 @@ export const createSignal: {
     <T>(value: T): Signal<T>;
 };
 
-// @public (undocumented)
-export interface CSSProperties extends CSS_2.Properties<string | number>, CSS_2.PropertiesHyphen<string | number> {
-    [v: `--${string}`]: string | number | undefined;
-}
-
-// @public (undocumented)
-export interface DataHTMLAttributes<T extends Element> extends Attrs<'data', T> {
-}
-
-// @public (undocumented)
-export interface DelHTMLAttributes<T extends Element> extends Attrs<'del', T> {
-}
-
 // @internal
 export function _deserialize(rawStateData: string | null, element?: unknown): unknown[];
-
-// @public (undocumented)
-export interface DetailsHTMLAttributes<T extends Element> extends Attrs<'details', T> {
-}
 
 // @public (undocumented)
 export interface DevJSX {
@@ -253,10 +135,6 @@ export interface DevJSX {
     lineNumber: number;
     // (undocumented)
     stack?: string;
-}
-
-// @public (undocumented)
-export interface DialogHTMLAttributes<T extends Element> extends Attrs<'dialog', T> {
 }
 
 // Warning: (ae-forgotten-export) The symbol "DOMAttributesBase" needs to be exported by the entry point index.d.ts
@@ -364,10 +242,6 @@ string | undefined,
     __brand__: 'ElementVNode';
 };
 
-// @public (undocumented)
-export interface EmbedHTMLAttributes<T extends Element> extends Attrs<'embed', T> {
-}
-
 // @internal (undocumented)
 export const _EMPTY_ARRAY: any[];
 
@@ -390,18 +264,10 @@ export type EventHandler<EV = Event, EL = Element> = {
 // @internal (undocumented)
 export const eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 
-// @public (undocumented)
-export interface FieldsetHTMLAttributes<T extends Element> extends Attrs<'fieldset', T> {
-}
-
 // Warning: (ae-forgotten-export) The symbol "WrappedSignal" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
 export const _fnSignal: <T extends (...args: any) => any>(fn: T, args: Parameters<T>, fnStr?: string) => WrappedSignal<any>;
-
-// @public (undocumented)
-export interface FormHTMLAttributes<T extends Element> extends Attrs<'form', T> {
-}
 
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
@@ -442,50 +308,8 @@ function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}
 export { h as createElement }
 export { h }
 
-// @public (undocumented)
-export interface HrHTMLAttributes<T extends Element> extends Attrs<'hr', T> {
-}
-
-// @public (undocumented)
-export type HTMLAttributeAnchorTarget = '_self' | '_blank' | '_parent' | '_top' | (string & {});
-
-// @public (undocumented)
-export type HTMLAttributeReferrerPolicy = ReferrerPolicy;
-
-// @public (undocumented)
-export interface HTMLAttributes<E extends Element> extends HTMLElementAttrs, DOMAttributes<E> {
-}
-
-// @public (undocumented)
-export type HTMLCrossOriginAttribute = 'anonymous' | 'use-credentials' | '' | undefined;
-
-// Warning: (ae-forgotten-export) The symbol "HTMLAttributesBase" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "FilterBase" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement> {
-}
-
-// @public (undocumented)
-export interface HtmlHTMLAttributes<T extends Element> extends Attrs<'html', T> {
-}
-
-// @public (undocumented)
-export type HTMLInputAutocompleteAttribute = 'on' | 'off' | 'billing' | 'shipping' | 'name' | 'honorific-prefix' | 'given-name' | 'additional-name' | 'family-name' | 'honorific-suffix' | 'nickname' | 'username' | 'new-password' | 'current-password' | 'one-time-code' | 'organization-title' | 'organization' | 'street-address' | 'address-line1' | 'address-line2' | 'address-line3' | 'address-level4' | 'address-level3' | 'address-level2' | 'address-level1' | 'country' | 'country-name' | 'postal-code' | 'cc-name' | 'cc-given-name' | 'cc-additional-name' | 'cc-family-name' | 'cc-number' | 'cc-exp' | 'cc-exp-month' | 'cc-exp-year' | 'cc-csc' | 'cc-type' | 'transaction-currency' | 'transaction-amount' | 'language' | 'bday' | 'bday-day' | 'bday-month' | 'bday-year' | 'sex' | 'url' | 'photo';
-
-// @public (undocumented)
-export type HTMLInputTypeAttribute = 'button' | 'checkbox' | 'color' | 'date' | 'datetime-local' | 'email' | 'file' | 'hidden' | 'image' | 'month' | 'number' | 'password' | 'radio' | 'range' | 'reset' | 'search' | 'submit' | 'tel' | 'text' | 'time' | 'url' | 'week' | (string & {});
-
 // @internal
 export const _hW: () => void;
-
-// @public (undocumented)
-export interface IframeHTMLAttributes<T extends Element> extends Attrs<'iframe', T> {
-}
-
-// @public (undocumented)
-export interface ImgHTMLAttributes<T extends Element> extends Attrs<'img', T> {
-}
 
 // @internal @deprecated (undocumented)
 export const _IMMUTABLE: unique symbol;
@@ -504,36 +328,8 @@ export const inlinedQrl: <T>(symbol: T, symbolName: string, lexicalScopeCapture?
 // @internal (undocumented)
 export const inlinedQrlDEV: <T = any>(symbol: T, symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
-// @public (undocumented)
-export type InputHTMLAttributes<T extends Element> = Attrs<'input', T, HTMLInputElement>;
-
-// @public (undocumented)
-export interface InsHTMLAttributes<T extends Element> extends Attrs<'ins', T> {
-}
-
-// @public (undocumented)
-export interface IntrinsicElements extends IntrinsicHTMLElements, IntrinsicSVGElements {
-}
-
-// Warning: (ae-forgotten-export) The symbol "Augmented" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "SpecialAttrs" needs to be exported by the entry point index.d.ts
-//
-// @public
-export type IntrinsicHTMLElements = {
-    [key in keyof HTMLElementTagNameMap]: Augmented<HTMLElementTagNameMap[key], SpecialAttrs[key]> & HTMLAttributes<HTMLElementTagNameMap[key]>;
-} & {
-    [unknownTag: string]: {
-        [prop: string]: any;
-    } & HTMLElementAttrs & HTMLAttributes<any>;
-};
-
-// @public
-export type IntrinsicSVGElements = {
-    [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: LenientSVGProps<SVGElementTagNameMap[K]>;
-};
-
 // @internal (undocumented)
-export const _isJSXNode: <T>(n: unknown) => n is JSXNode<T>;
+export const _isJSXNode: <T>(n: unknown) => n is JSXNodeInternal<T>;
 
 // @public (undocumented)
 export const isSignal: (value: any) => value is Signal<unknown>;
@@ -593,17 +389,23 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
     // (undocumented)
     children: JSXChildren | null;
     // (undocumented)
-    constProps: Record<any, unknown> | null;
-    // (undocumented)
     dev?: DevJSX;
-    // (undocumented)
-    flags: number;
     // (undocumented)
     key: string | null;
     // (undocumented)
     props: T extends FunctionComponent<infer P> ? P : Record<any, unknown>;
     // (undocumented)
     type: T;
+}
+
+// Warning: (ae-internal-missing-underscore) The name "JSXNodeInternal" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface JSXNodeInternal<T extends string | FunctionComponent | unknown = unknown> extends JSXNode<T> {
+    // (undocumented)
+    constProps: Record<any, unknown> | null;
+    // (undocumented)
+    flags: number;
     // (undocumented)
     varProps: Record<any, unknown>;
 }
@@ -618,61 +420,19 @@ export const _jsxQ: (type: any, mutable: any, immutable: any, children: any, _fl
 export const _jsxS: (type: any, mutable: any, immutable: any, _flags: any, key: any) => JSXNode<any>;
 
 // @internal
-export const _jsxSorted: <T>(type: T, varProps: Props | null, constProps: Props | null, children: JSXChildren | null, flags: number, key: string | number | null | undefined, dev?: DevJSX) => JSXNode<T>;
+export const _jsxSorted: <T>(type: T, varProps: Props | null, constProps: Props | null, children: JSXChildren | null, flags: number, key: string | number | null | undefined, dev?: DevJSX) => JSXNodeInternal<T>;
 
 // @internal
-export const _jsxSplit: <T extends string | FunctionComponent<any>>(type: T, varProps: Props | null, constProps: Props | null, children: JSXChildren | null | undefined, flags: number, key: string | number | null, dev?: DevJSX) => JSXNode<T>;
+export const _jsxSplit: <T extends string | FunctionComponent<any>>(type: T, varProps: Props | null, constProps: Props | null, children: JSXChildren | null | undefined, flags: number, key: string | number | null, dev?: DevJSX) => JSXNodeInternal<T>;
 
 // @public (undocumented)
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;
-
-// @public @deprecated (undocumented)
-export interface KeygenHTMLAttributes<T extends Element> extends Attrs<'base', T> {
-}
 
 // Warning: (ae-forgotten-export) The symbol "LiteralUnion" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "AllEventKeys" needs to be exported by the entry point index.d.ts
 //
 // @public
 export type KnownEventNames = LiteralUnion<AllEventKeys, string>;
-
-// @public (undocumented)
-export interface LabelHTMLAttributes<T extends Element> extends Attrs<'label', T> {
-}
-
-// @public (undocumented)
-export interface LenientSVGProps<T extends Element> extends SVGAttributes, DOMAttributes<T> {
-}
-
-// @public (undocumented)
-export interface LiHTMLAttributes<T extends Element> extends Attrs<'li', T> {
-}
-
-// @public (undocumented)
-export interface LinkHTMLAttributes<T extends Element> extends Attrs<'link', T> {
-}
-
-// @public (undocumented)
-export interface MapHTMLAttributes<T extends Element> extends Attrs<'map', T> {
-}
-
-// @public (undocumented)
-export interface MediaHTMLAttributes<T extends Element> extends HTMLAttributes<T>, Augmented<HTMLMediaElement, {
-    crossOrigin?: HTMLCrossOriginAttribute;
-}> {
-}
-
-// @public (undocumented)
-export interface MenuHTMLAttributes<T extends Element> extends Attrs<'menu', T> {
-}
-
-// @public (undocumented)
-export interface MetaHTMLAttributes<T extends Element> extends Attrs<'meta', T> {
-}
-
-// @public (undocumented)
-export interface MeterHTMLAttributes<T extends Element> extends Attrs<'meter', T> {
-}
 
 // @public @deprecated (undocumented)
 export type NativeAnimationEvent = AnimationEvent;
@@ -725,38 +485,11 @@ export type NoSerialize<T> = (T & {
 export const noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
 
 // @public (undocumented)
-export type Numberish = number | `${number}`;
-
-// @public (undocumented)
-export interface ObjectHTMLAttributes<T extends Element> extends Attrs<'object', T> {
-}
-
-// @public (undocumented)
-export interface OlHTMLAttributes<T extends Element> extends Attrs<'ol', T> {
-}
-
-// @public (undocumented)
 export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
 
 // @public (undocumented)
 export interface OnVisibleTaskOptions {
     strategy?: VisibleTaskStrategy;
-}
-
-// @public (undocumented)
-export interface OptgroupHTMLAttributes<T extends Element> extends Attrs<'optgroup', T> {
-}
-
-// @public (undocumented)
-export interface OptionHTMLAttributes<T extends Element> extends Attrs<'option', T> {
-}
-
-// @public (undocumented)
-export interface OutputHTMLAttributes<T extends Element> extends Attrs<'output', T> {
-}
-
-// @public @deprecated (undocumented)
-export interface ParamHTMLAttributes<T extends Element> extends Attrs<'base', T, HTMLParamElement> {
 }
 
 // @beta
@@ -765,7 +498,7 @@ export const PrefetchGraph: (opts?: {
     manifestHash?: string;
     manifestURL?: string;
     nonce?: string;
-}) => JSXNode_2<string>;
+}) => JSXOutput;
 
 // @beta
 export const PrefetchServiceWorker: (opts: {
@@ -775,11 +508,7 @@ export const PrefetchServiceWorker: (opts: {
     verbose?: boolean;
     fetchBundleGraph?: boolean;
     nonce?: string;
-}) => JSXNode_2<'script'>;
-
-// @public (undocumented)
-export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progress', T> {
-}
+}) => JSXOutput;
 
 // @public
 export type PropFunction<T> = QRL<T>;
@@ -832,10 +561,6 @@ export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL
 // @internal
 export const _qrlSync: <TYPE extends Function>(fn: TYPE, serializedFn?: string) => SyncQRL<TYPE>;
 
-// @public (undocumented)
-export interface QuoteHTMLAttributes<T extends Element> extends Attrs<'q', T> {
-}
-
 // @public @deprecated (undocumented)
 export type QwikAnimationEvent<T = Element> = NativeAnimationEvent;
 
@@ -864,6 +589,10 @@ export type QwikDragEvent<T = Element> = NativeDragEvent;
 // @public @deprecated (undocumented)
 export type QwikFocusEvent<T = Element> = NativeFocusEvent;
 
+// Warning: (ae-forgotten-export) The symbol "Augmented" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "SpecialAttrs" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "HTMLElementAttrs" needs to be exported by the entry point index.d.ts
+//
 // @public
 export type QwikHTMLElements = {
     [tag in keyof HTMLElementTagNameMap]: Augmented<HTMLElementTagNameMap[tag], SpecialAttrs[tag]> & HTMLElementAttrs & QwikAttributes<HTMLElementTagNameMap[tag]>;
@@ -919,6 +648,8 @@ export type QwikPointerEvent<T = Element> = NativePointerEvent;
 // @public @deprecated (undocumented)
 export type QwikSubmitEvent<T = Element> = SubmitEvent;
 
+// Warning: (ae-forgotten-export) The symbol "SVGProps" needs to be exported by the entry point index.d.ts
+//
 // @public
 export type QwikSVGElements = {
     [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: SVGProps<SVGElementTagNameMap[K]>;
@@ -960,7 +691,7 @@ export interface ReadonlySignal<T = unknown> {
 export const _regSymbol: (symbol: any, hash: string) => any;
 
 // @public
-export const render: (parent: Element | Document, jsxNode: JSXOutput | FunctionComponent<any>, opts?: RenderOptions_2) => Promise<RenderResult_2>;
+export const render: (parent: Element | Document, jsxNode: JSXOutput | FunctionComponent<any>, opts?: RenderOptions) => Promise<RenderResult>;
 
 // @public (undocumented)
 export const RenderOnce: FunctionComponent<{
@@ -1063,14 +794,6 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 // @internal (undocumented)
 export const _restProps: (props: Record<string, any>, omit: string[], target?: {}) => {};
 
-// @public (undocumented)
-export interface ScriptHTMLAttributes<T extends Element> extends Attrs<'script', T> {
-}
-
-// @public (undocumented)
-export interface SelectHTMLAttributes<T extends Element> extends Attrs<'select', T> {
-}
-
 // @internal
 export function _serialize(data: unknown[]): Promise<string>;
 
@@ -1139,9 +862,6 @@ export interface Signal<T = any> extends ReadonlySignal<T> {
 }
 
 // @public (undocumented)
-export type Size = number | string;
-
-// @public (undocumented)
 export const SkipRender: JSXNode;
 
 // @public
@@ -1149,10 +869,6 @@ export const Slot: FunctionComponent<{
     name?: string;
     children?: JSXChildren;
 }>;
-
-// @public (undocumented)
-export interface SlotHTMLAttributes<T extends Element> extends Attrs<'slot', T> {
-}
 
 // @public (undocumented)
 export interface SnapshotListener {
@@ -1210,10 +926,6 @@ export interface SnapshotState {
 }
 
 // @public (undocumented)
-export interface SourceHTMLAttributes<T extends Element> extends Attrs<'source', T> {
-}
-
-// @public (undocumented)
 export const SSRComment: FunctionComponent<{
     data: string;
 }>;
@@ -1257,534 +969,6 @@ export interface StreamWriter {
 // @internal (undocumented)
 export type _Stringifiable = string | boolean | number | null;
 
-// @public (undocumented)
-export interface StyleHTMLAttributes<T extends Element> extends Attrs<'style', T> {
-}
-
-// @public
-export interface SVGAttributes<T extends Element = Element> extends AriaAttributes {
-    // (undocumented)
-    'accent-height'?: number | string | undefined;
-    // (undocumented)
-    'alignment-baseline'?: 'auto' | 'baseline' | 'before-edge' | 'text-before-edge' | 'middle' | 'central' | 'after-edge' | 'text-after-edge' | 'ideographic' | 'alphabetic' | 'hanging' | 'mathematical' | 'inherit' | undefined;
-    // (undocumented)
-    'arabic-form'?: 'initial' | 'medial' | 'terminal' | 'isolated' | undefined;
-    // (undocumented)
-    'baseline-shift'?: number | string | undefined;
-    // (undocumented)
-    'cap-height'?: number | string | undefined;
-    // (undocumented)
-    'clip-path'?: string | undefined;
-    // (undocumented)
-    'clip-rule'?: number | string | undefined;
-    // (undocumented)
-    'color-interpolation'?: number | string | undefined;
-    // (undocumented)
-    'color-interpolation-filters'?: 'auto' | 's-rGB' | 'linear-rGB' | 'inherit' | undefined;
-    // (undocumented)
-    'color-profile'?: number | string | undefined;
-    // (undocumented)
-    'color-rendering'?: number | string | undefined;
-    // (undocumented)
-    'dominant-baseline'?: number | string | undefined;
-    // (undocumented)
-    'edge-mode'?: number | string | undefined;
-    // (undocumented)
-    'enable-background'?: number | string | undefined;
-    // (undocumented)
-    'fill-opacity'?: number | string | undefined;
-    // (undocumented)
-    'fill-rule'?: 'nonzero' | 'evenodd' | 'inherit' | undefined;
-    // (undocumented)
-    'flood-color'?: number | string | undefined;
-    // (undocumented)
-    'flood-opacity'?: number | string | undefined;
-    // (undocumented)
-    'font-family'?: string | undefined;
-    // (undocumented)
-    'font-size'?: number | string | undefined;
-    // (undocumented)
-    'font-size-adjust'?: number | string | undefined;
-    // (undocumented)
-    'font-stretch'?: number | string | undefined;
-    // (undocumented)
-    'font-style'?: number | string | undefined;
-    // (undocumented)
-    'font-variant'?: number | string | undefined;
-    // (undocumented)
-    'font-weight'?: number | string | undefined;
-    // (undocumented)
-    'glyph-name'?: number | string | undefined;
-    // (undocumented)
-    'glyph-orientation-horizontal'?: number | string | undefined;
-    // (undocumented)
-    'glyph-orientation-vertical'?: number | string | undefined;
-    // (undocumented)
-    'horiz-adv-x'?: number | string | undefined;
-    // (undocumented)
-    'horiz-origin-x'?: number | string | undefined;
-    // (undocumented)
-    'image-rendering'?: number | string | undefined;
-    // (undocumented)
-    'letter-spacing'?: number | string | undefined;
-    // (undocumented)
-    'lighting-color'?: number | string | undefined;
-    // (undocumented)
-    'marker-end'?: string | undefined;
-    // (undocumented)
-    'marker-mid'?: string | undefined;
-    // (undocumented)
-    'marker-start'?: string | undefined;
-    // (undocumented)
-    'overline-position'?: number | string | undefined;
-    // (undocumented)
-    'overline-thickness'?: number | string | undefined;
-    // (undocumented)
-    'paint-order'?: number | string | undefined;
-    // (undocumented)
-    'pointer-events'?: number | string | undefined;
-    // (undocumented)
-    'rendering-intent'?: number | string | undefined;
-    // (undocumented)
-    'shape-rendering'?: number | string | undefined;
-    // (undocumented)
-    'stop-color'?: string | undefined;
-    // (undocumented)
-    'stop-opacity'?: number | string | undefined;
-    // (undocumented)
-    'strikethrough-position'?: number | string | undefined;
-    // (undocumented)
-    'strikethrough-thickness'?: number | string | undefined;
-    // (undocumented)
-    'stroke-dasharray'?: string | number | undefined;
-    // (undocumented)
-    'stroke-dashoffset'?: string | number | undefined;
-    // (undocumented)
-    'stroke-linecap'?: 'butt' | 'round' | 'square' | 'inherit' | undefined;
-    // (undocumented)
-    'stroke-linejoin'?: 'miter' | 'round' | 'bevel' | 'inherit' | undefined;
-    // (undocumented)
-    'stroke-miterlimit'?: string | undefined;
-    // (undocumented)
-    'stroke-opacity'?: number | string | undefined;
-    // (undocumented)
-    'stroke-width'?: number | string | undefined;
-    // (undocumented)
-    'text-anchor'?: string | undefined;
-    // (undocumented)
-    'text-decoration'?: number | string | undefined;
-    // (undocumented)
-    'text-rendering'?: number | string | undefined;
-    // (undocumented)
-    'underline-position'?: number | string | undefined;
-    // (undocumented)
-    'underline-thickness'?: number | string | undefined;
-    // (undocumented)
-    'unicode-bidi'?: number | string | undefined;
-    // (undocumented)
-    'unicode-range'?: number | string | undefined;
-    // (undocumented)
-    'units-per-em'?: number | string | undefined;
-    // (undocumented)
-    'v-alphabetic'?: number | string | undefined;
-    // (undocumented)
-    'v-hanging'?: number | string | undefined;
-    // (undocumented)
-    'v-ideographic'?: number | string | undefined;
-    // (undocumented)
-    'v-mathematical'?: number | string | undefined;
-    // (undocumented)
-    'vector-effect'?: number | string | undefined;
-    // (undocumented)
-    'vert-adv-y'?: number | string | undefined;
-    // (undocumented)
-    'vert-origin-x'?: number | string | undefined;
-    // (undocumented)
-    'vert-origin-y'?: number | string | undefined;
-    // (undocumented)
-    'word-spacing'?: number | string | undefined;
-    // (undocumented)
-    'writing-mode'?: number | string | undefined;
-    // (undocumented)
-    'x-channel-selector'?: string | undefined;
-    // (undocumented)
-    'x-height'?: number | string | undefined;
-    // (undocumented)
-    'xlink:actuate'?: string | undefined;
-    // (undocumented)
-    'xlink:arcrole'?: string | undefined;
-    // (undocumented)
-    'xlink:href'?: string | undefined;
-    // (undocumented)
-    'xlink:role'?: string | undefined;
-    // (undocumented)
-    'xlink:show'?: string | undefined;
-    // (undocumented)
-    'xlink:title'?: string | undefined;
-    // (undocumented)
-    'xlink:type'?: string | undefined;
-    // (undocumented)
-    'xml:base'?: string | undefined;
-    // (undocumented)
-    'xml:lang'?: string | undefined;
-    // (undocumented)
-    'xml:space'?: string | undefined;
-    // (undocumented)
-    'xmlns:xlink'?: string | undefined;
-    // (undocumented)
-    accumulate?: 'none' | 'sum' | undefined;
-    // (undocumented)
-    additive?: 'replace' | 'sum' | undefined;
-    // (undocumented)
-    allowReorder?: 'no' | 'yes' | undefined;
-    // (undocumented)
-    alphabetic?: number | string | undefined;
-    // (undocumented)
-    amplitude?: number | string | undefined;
-    // (undocumented)
-    ascent?: number | string | undefined;
-    // (undocumented)
-    attributeName?: string | undefined;
-    // (undocumented)
-    attributeType?: string | undefined;
-    // (undocumented)
-    autoReverse?: Booleanish | undefined;
-    // (undocumented)
-    azimuth?: number | string | undefined;
-    // (undocumented)
-    baseFrequency?: number | string | undefined;
-    // (undocumented)
-    baseProfile?: number | string | undefined;
-    // (undocumented)
-    bbox?: number | string | undefined;
-    // (undocumented)
-    begin?: number | string | undefined;
-    // (undocumented)
-    bias?: number | string | undefined;
-    // (undocumented)
-    by?: number | string | undefined;
-    // (undocumented)
-    calcMode?: number | string | undefined;
-    // (undocumented)
-    clip?: number | string | undefined;
-    // (undocumented)
-    clipPathUnits?: number | string | undefined;
-    // (undocumented)
-    color?: string | undefined;
-    // (undocumented)
-    contentScriptType?: number | string | undefined;
-    // (undocumented)
-    contentStyleType?: number | string | undefined;
-    // (undocumented)
-    crossOrigin?: HTMLCrossOriginAttribute;
-    // (undocumented)
-    cursor?: number | string;
-    // (undocumented)
-    cx?: number | string | undefined;
-    // (undocumented)
-    cy?: number | string | undefined;
-    // (undocumented)
-    d?: string | undefined;
-    // (undocumented)
-    decelerate?: number | string | undefined;
-    // (undocumented)
-    descent?: number | string | undefined;
-    // (undocumented)
-    diffuseConstant?: number | string | undefined;
-    // (undocumented)
-    direction?: number | string | undefined;
-    // (undocumented)
-    display?: number | string | undefined;
-    // (undocumented)
-    divisor?: number | string | undefined;
-    // (undocumented)
-    dur?: number | string | undefined;
-    // (undocumented)
-    dx?: number | string | undefined;
-    // (undocumented)
-    dy?: number | string | undefined;
-    // (undocumented)
-    elevation?: number | string | undefined;
-    // (undocumented)
-    end?: number | string | undefined;
-    // (undocumented)
-    exponent?: number | string | undefined;
-    // (undocumented)
-    externalResourcesRequired?: number | string | undefined;
-    // (undocumented)
-    fill?: string | undefined;
-    // (undocumented)
-    filter?: string | undefined;
-    // (undocumented)
-    filterRes?: number | string | undefined;
-    // (undocumented)
-    filterUnits?: number | string | undefined;
-    // (undocumented)
-    focusable?: number | string | undefined;
-    // (undocumented)
-    format?: number | string | undefined;
-    // (undocumented)
-    fr?: number | string | undefined;
-    // (undocumented)
-    from?: number | string | undefined;
-    // (undocumented)
-    fx?: number | string | undefined;
-    // (undocumented)
-    fy?: number | string | undefined;
-    // (undocumented)
-    g1?: number | string | undefined;
-    // (undocumented)
-    g2?: number | string | undefined;
-    // (undocumented)
-    glyphRef?: number | string | undefined;
-    // (undocumented)
-    gradientTransform?: string | undefined;
-    // (undocumented)
-    gradientUnits?: string | undefined;
-    // (undocumented)
-    hanging?: number | string | undefined;
-    // (undocumented)
-    height?: Size | undefined;
-    // (undocumented)
-    href?: string | undefined;
-    // (undocumented)
-    id?: string | undefined;
-    // (undocumented)
-    ideographic?: number | string | undefined;
-    // (undocumented)
-    in?: string | undefined;
-    // (undocumented)
-    in2?: number | string | undefined;
-    // (undocumented)
-    intercept?: number | string | undefined;
-    // (undocumented)
-    k?: number | string | undefined;
-    // (undocumented)
-    k1?: number | string | undefined;
-    // (undocumented)
-    k2?: number | string | undefined;
-    // (undocumented)
-    k3?: number | string | undefined;
-    // (undocumented)
-    k4?: number | string | undefined;
-    // (undocumented)
-    kernelMatrix?: number | string | undefined;
-    // (undocumented)
-    kernelUnitLength?: number | string | undefined;
-    // (undocumented)
-    kerning?: number | string | undefined;
-    // (undocumented)
-    keyPoints?: number | string | undefined;
-    // (undocumented)
-    keySplines?: number | string | undefined;
-    // (undocumented)
-    keyTimes?: number | string | undefined;
-    // (undocumented)
-    lang?: string | undefined;
-    // (undocumented)
-    lengthAdjust?: number | string | undefined;
-    // (undocumented)
-    limitingConeAngle?: number | string | undefined;
-    // (undocumented)
-    local?: number | string | undefined;
-    // (undocumented)
-    markerHeight?: number | string | undefined;
-    // (undocumented)
-    markerUnits?: number | string | undefined;
-    // (undocumented)
-    markerWidth?: number | string | undefined;
-    // (undocumented)
-    mask?: string | undefined;
-    // (undocumented)
-    maskContentUnits?: number | string | undefined;
-    // (undocumented)
-    maskUnits?: number | string | undefined;
-    // (undocumented)
-    mathematical?: number | string | undefined;
-    // (undocumented)
-    max?: number | string | undefined;
-    // (undocumented)
-    media?: string | undefined;
-    // (undocumented)
-    method?: string | undefined;
-    // (undocumented)
-    min?: number | string | undefined;
-    // (undocumented)
-    mode?: number | string | undefined;
-    // (undocumented)
-    name?: string | undefined;
-    // (undocumented)
-    numOctaves?: number | string | undefined;
-    // (undocumented)
-    offset?: number | string | undefined;
-    // (undocumented)
-    opacity?: number | string | undefined;
-    // (undocumented)
-    operator?: number | string | undefined;
-    // (undocumented)
-    order?: number | string | undefined;
-    // (undocumented)
-    orient?: number | string | undefined;
-    // (undocumented)
-    orientation?: number | string | undefined;
-    // (undocumented)
-    origin?: number | string | undefined;
-    // (undocumented)
-    overflow?: number | string | undefined;
-    // (undocumented)
-    panose1?: number | string | undefined;
-    // (undocumented)
-    path?: string | undefined;
-    // (undocumented)
-    pathLength?: number | string | undefined;
-    // (undocumented)
-    patternContentUnits?: string | undefined;
-    // (undocumented)
-    patternTransform?: number | string | undefined;
-    // (undocumented)
-    patternUnits?: string | undefined;
-    // (undocumented)
-    points?: string | undefined;
-    // (undocumented)
-    pointsAtX?: number | string | undefined;
-    // (undocumented)
-    pointsAtY?: number | string | undefined;
-    // (undocumented)
-    pointsAtZ?: number | string | undefined;
-    // (undocumented)
-    preserveAlpha?: number | string | undefined;
-    // (undocumented)
-    preserveAspectRatio?: string | undefined;
-    // (undocumented)
-    primitiveUnits?: number | string | undefined;
-    // (undocumented)
-    r?: number | string | undefined;
-    // (undocumented)
-    radius?: number | string | undefined;
-    // (undocumented)
-    refX?: number | string | undefined;
-    // (undocumented)
-    refY?: number | string | undefined;
-    // (undocumented)
-    repeatCount?: number | string | undefined;
-    // (undocumented)
-    repeatDur?: number | string | undefined;
-    // (undocumented)
-    requiredextensions?: number | string | undefined;
-    // (undocumented)
-    requiredFeatures?: number | string | undefined;
-    // (undocumented)
-    restart?: number | string | undefined;
-    // (undocumented)
-    result?: string | undefined;
-    // (undocumented)
-    role?: string | undefined;
-    // (undocumented)
-    rotate?: number | string | undefined;
-    // (undocumented)
-    rx?: number | string | undefined;
-    // (undocumented)
-    ry?: number | string | undefined;
-    // (undocumented)
-    scale?: number | string | undefined;
-    // (undocumented)
-    seed?: number | string | undefined;
-    // (undocumented)
-    slope?: number | string | undefined;
-    // (undocumented)
-    spacing?: number | string | undefined;
-    // (undocumented)
-    specularConstant?: number | string | undefined;
-    // (undocumented)
-    specularExponent?: number | string | undefined;
-    // (undocumented)
-    speed?: number | string | undefined;
-    // (undocumented)
-    spreadMethod?: string | undefined;
-    // (undocumented)
-    startOffset?: number | string | undefined;
-    // (undocumented)
-    stdDeviation?: number | string | undefined;
-    // (undocumented)
-    stemh?: number | string | undefined;
-    // (undocumented)
-    stemv?: number | string | undefined;
-    // (undocumented)
-    stitchTiles?: number | string | undefined;
-    // (undocumented)
-    string?: number | string | undefined;
-    // (undocumented)
-    stroke?: string | undefined;
-    // (undocumented)
-    style?: CSSProperties | string | undefined;
-    // (undocumented)
-    surfaceScale?: number | string | undefined;
-    // (undocumented)
-    systemLanguage?: number | string | undefined;
-    // (undocumented)
-    tabindex?: number | undefined;
-    // (undocumented)
-    tableValues?: number | string | undefined;
-    // (undocumented)
-    target?: string | undefined;
-    // (undocumented)
-    targetX?: number | string | undefined;
-    // (undocumented)
-    targetY?: number | string | undefined;
-    // (undocumented)
-    textLength?: number | string | undefined;
-    // (undocumented)
-    to?: number | string | undefined;
-    // (undocumented)
-    transform?: string | undefined;
-    // (undocumented)
-    type?: string | undefined;
-    // (undocumented)
-    u1?: number | string | undefined;
-    // (undocumented)
-    u2?: number | string | undefined;
-    // (undocumented)
-    unicode?: number | string | undefined;
-    // (undocumented)
-    values?: string | undefined;
-    // (undocumented)
-    version?: string | undefined;
-    // (undocumented)
-    viewBox?: string | undefined;
-    // (undocumented)
-    viewTarget?: number | string | undefined;
-    // (undocumented)
-    visibility?: number | string | undefined;
-    // (undocumented)
-    width?: Size | undefined;
-    // (undocumented)
-    widths?: number | string | undefined;
-    // (undocumented)
-    x?: number | string | undefined;
-    // (undocumented)
-    x1?: number | string | undefined;
-    // (undocumented)
-    x2?: number | string | undefined;
-    // (undocumented)
-    xmlns?: string | undefined;
-    // (undocumented)
-    y?: number | string | undefined;
-    // (undocumented)
-    y1?: number | string | undefined;
-    // (undocumented)
-    y2?: number | string | undefined;
-    // (undocumented)
-    yChannelSelector?: string | undefined;
-    // (undocumented)
-    z?: number | string | undefined;
-    // (undocumented)
-    zoomAndPan?: string | undefined;
-}
-
-// @public (undocumented)
-export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T> {
-}
-
 // @public
 export const sync$: <T extends Function>(fn: T) => SyncQRL<T>;
 
@@ -1800,10 +984,6 @@ export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE> {
 }
 
 // @public (undocumented)
-export interface TableHTMLAttributes<T extends Element> extends Attrs<'table', T> {
-}
-
-// @public (undocumented)
 export interface TaskCtx {
     // (undocumented)
     cleanup(callback: () => void): void;
@@ -1813,14 +993,6 @@ export interface TaskCtx {
 
 // @public (undocumented)
 export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
-
-// @public (undocumented)
-export interface TdHTMLAttributes<T extends Element> extends Attrs<'td', T> {
-}
-
-// @public (undocumented)
-export interface TextareaHTMLAttributes<T extends Element> extends Attrs<'textarea', T> {
-}
 
 // @internal (undocumented)
 export type _TextVNode = [
@@ -1838,27 +1010,11 @@ string
     __brand__: 'TextVNode';
 };
 
-// @public (undocumented)
-export interface ThHTMLAttributes<T extends Element> extends Attrs<'tr', T> {
-}
-
-// @public (undocumented)
-export interface TimeHTMLAttributes<T extends Element> extends Attrs<'time', T> {
-}
-
-// @public (undocumented)
-export interface TitleHTMLAttributes<T extends Element> extends Attrs<'title', T> {
-}
-
 // @public
 export interface Tracker {
     <T>(fn: () => T): T;
     <T extends object>(obj: T): T extends Signal<infer U> ? U : T;
     <T extends object, P extends keyof T>(obj: T, prop: P): T[P];
-}
-
-// @public (undocumented)
-export interface TrackHTMLAttributes<T extends Element> extends Attrs<'track', T> {
 }
 
 // @public
@@ -1999,10 +1155,6 @@ export const _verifySerializable: <T>(value: T, preMessage?: string) => T;
 // @public
 export const version: string;
 
-// @public (undocumented)
-export interface VideoHTMLAttributes<T extends Element> extends Attrs<'video', T> {
-}
-
 // @internal (undocumented)
 export type _VirtualVNode = [
 _VNodeFlags.Virtual,
@@ -2016,7 +1168,7 @@ _VNode | null,
 _VNode | null,
 /////////////// 4 - First child
 _VNode | null,
-...(string | null)[]
+...(string | null | boolean)[]
 ] & {
     __brand__: 'FragmentNode' & 'HostElement';
 };
@@ -2082,44 +1234,6 @@ export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: {
 
 // @internal (undocumented)
 export const _weakSerialize: <T extends object>(input: T) => Partial<T>;
-
-// @public @deprecated (undocumented)
-export interface WebViewHTMLAttributes<T extends Element> extends HTMLAttributes<T> {
-    // (undocumented)
-    allowFullScreen?: boolean | undefined;
-    // (undocumented)
-    allowpopups?: boolean | undefined;
-    // (undocumented)
-    autoFocus?: boolean | undefined;
-    // (undocumented)
-    autosize?: boolean | undefined;
-    // (undocumented)
-    blinkfeatures?: string | undefined;
-    // (undocumented)
-    disableblinkfeatures?: string | undefined;
-    // (undocumented)
-    disableguestresize?: boolean | undefined;
-    // (undocumented)
-    disablewebsecurity?: boolean | undefined;
-    // (undocumented)
-    guestinstance?: string | undefined;
-    // (undocumented)
-    httpreferrer?: string | undefined;
-    // (undocumented)
-    nodeintegration?: boolean | undefined;
-    // (undocumented)
-    partition?: string | undefined;
-    // (undocumented)
-    plugins?: boolean | undefined;
-    // (undocumented)
-    preload?: string | undefined;
-    // (undocumented)
-    src?: string | undefined;
-    // (undocumented)
-    useragent?: string | undefined;
-    // (undocumented)
-    webpreferences?: string | undefined;
-}
 
 // @public
 export function withLocale<T>(locale: string, fn: () => T): T;

@@ -1,13 +1,11 @@
 import {
   component$,
   Resource,
-  SSRStream,
-  SSRStreamBlock,
   useResource$,
   useStore,
   useStyles$,
 } from "@qwik.dev/core";
-
+import { SSRStream, SSRStreamBlock } from "@qwik.dev/core/internal";
 export function delay(time: number) {
   return new Promise<void>((resolve) => {
     setTimeout(() => resolve(), time);

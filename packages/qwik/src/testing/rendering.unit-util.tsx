@@ -1,12 +1,18 @@
 /* eslint-disable no-console */
 import type {
-  JSXOutput,
   _ContainerElement,
   _DomContainer,
   _VNode,
   _VirtualVNode,
+} from '@qwik.dev/core/internal';
+import {
+  Slot,
+  _getDomContainer,
+  componentQrl,
+  render,
+  type OnRenderFn,
+  type JSXOutput,
 } from '@qwik.dev/core';
-import { Slot, _getDomContainer, componentQrl, render, type OnRenderFn } from '@qwik.dev/core';
 import { expect } from 'vitest';
 import {
   vnode_getAttr,

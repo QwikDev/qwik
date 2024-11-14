@@ -12,7 +12,8 @@ import qWasmCjs from '../../node_modules/@qwik.dev/core/bindings/qwik.wasm.cjs?r
 import qWasmBinUrl from '../../node_modules/@qwik.dev/core/bindings/qwik_wasm_bg.wasm?raw-source';
 import qBuild from '../../node_modules/@qwik.dev/core/dist/build/index.d.ts?raw-source';
 import qCoreCjs from '../../node_modules/@qwik.dev/core/dist/core.cjs?raw-source';
-import qCoreDts from '../../node_modules/@qwik.dev/core/dist/core.d.ts?raw-source';
+import qPublicDts from '../../node_modules/@qwik.dev/core/public.d.ts?raw-source';
+import qCoreInternalDts from '../../node_modules/@qwik.dev/core/dist/core-internal.d.ts?raw-source';
 import qCoreMinMjs from '../../node_modules/@qwik.dev/core/dist/core.min.mjs?raw-source';
 import qCoreMjs from '../../node_modules/@qwik.dev/core/dist/core.mjs?raw-source';
 import qOptimizerCjs from '../../node_modules/@qwik.dev/core/dist/optimizer.cjs?raw-source';
@@ -55,7 +56,8 @@ export const bundled: PkgUrls = {
     version: qwikVersion,
     '/dist/build/index.d.ts': qBuild,
     '/dist/core.cjs': qCoreCjs,
-    '/dist/core.d.ts': qCoreDts,
+    '/public.d.ts': qPublicDts,
+    '/dist/core-internal.d.ts': qCoreInternalDts,
     '/dist/core.min.mjs': qCoreMinMjs,
     '/dist/core.mjs': qCoreMjs,
     '/dist/optimizer.cjs': qOptimizerCjs,

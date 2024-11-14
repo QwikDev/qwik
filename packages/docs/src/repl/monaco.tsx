@@ -230,11 +230,17 @@ const loadDeps = async (qwikVersion: string) => {
       : '/';
   const deps: NodeModuleDep[] = [
     // qwik
+    !isV1 && {
+      pkgName: QWIK_PKG_NAME,
+      pkgVersion: qwikVersion,
+      pkgPath: `/public.d.ts`,
+      import: '',
+    },
     {
       pkgName: isV1 ? QWIK_PKG_NAME_V1 : QWIK_PKG_NAME,
       pkgVersion: qwikVersion,
-      pkgPath: `${prefix}core.d.ts`,
-      import: '',
+      pkgPath: `${prefix}core-internal.d.ts`,
+      import: isV1 ? '' : '/internal',
     },
     // server API
     {
@@ -250,7 +256,7 @@ const loadDeps = async (qwikVersion: string) => {
       pkgPath: `${prefix}build/index.d.ts`,
       import: '/build',
     },
-  ];
+  ].filter(Boolean) as NodeModuleDep[];
 
   const cache = await caches.open(QWIK_REPL_DEPS_CACHE);
 

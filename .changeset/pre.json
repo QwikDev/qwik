@@ -14,5 +14,17 @@
     "qwik-cli-e2e": "0.0.0"
   },
   "branch": "build/v2",
-  "changesets": []
+  "changesets": [
+    "fast-baboons-itch",
+    "five-kangaroos-matter",
+    "fresh-rocks-exercise",
+    "hip-hornets-cheer",
+    "nine-otters-repeat",
+    "rich-wasps-tease",
+    "rotten-weeks-tickle",
+    "sour-zebras-tell",
+    "sweet-socks-whisper",
+    "tricky-meals-heal",
+    "wild-cooks-pay"
+  ]
 }

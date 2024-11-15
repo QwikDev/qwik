@@ -1,5 +1,11 @@
 # @qwik.dev/city
 
+## 2.0.0-alpha.0
+
+### Major Changes
+
+- Renamed "Qwik City" to "Qwik Router" and package to "@qwik.dev/router" (by [@shairez](https://github.com/shairez) in [#7008](https://github.com/QwikDev/qwik/pull/7008))
+
 ## 1.9.1
 
 ### Patch Changes

@@ -1,5 +1,5 @@
 import { dollar, type QRL } from './qrl/qrl.public';
-import type { JSXNode, JSXOutput } from './jsx/types/jsx-node';
+import type { JSXNodeInternal, JSXOutput } from './jsx/types/jsx-node';
 import type {
   ComponentBaseProps,
   EventHandler,
@@ -133,7 +133,7 @@ export const componentQrl = <PROPS extends Record<any, any>>(
     props: PublicProps<PROPS>,
     key: string | null,
     flags: number = 0
-  ): JSXNode {
+  ): JSXNodeInternal {
     assertQrl(componentQrl);
     assertNumber(flags, 'The Qwik Component was not invoked correctly');
     const hash = qTest ? 'sX' : componentQrl.$hash$.slice(0, 4);

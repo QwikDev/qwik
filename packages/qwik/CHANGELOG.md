@@ -1,5 +1,63 @@
 # @qwik.dev/core
 
+## 2.0.0-alpha.0
+
+### Major Changes
+
+- BREAKING: remove HTML-related types. Use PropsOf instead. (by [@wmertens](https://github.com/wmertens) in [#7045](https://github.com/QwikDev/qwik/pull/7045))
+
+- 💥**BREAKING**: `useComputed` no longer allows Promise returns. (meaning it is strictly sync) Instead, use `useSignal` and `useTask` together to perform async signal updates (by [@wmertens](https://github.com/wmertens) in [#6907](https://github.com/QwikDev/qwik/pull/6907))
+
+- `qwik-labs` package has been removed in favor of experimental features. (by [@shairez](https://github.com/shairez) in [#7025](https://github.com/QwikDev/qwik/pull/7025))
+  So the "Insights" vite plugin and components have been moved to core as an experimental feature.
+
+  In order to use it, you need to -
+
+  **1)** add `insights` to the experimental array in `vite.config.ts`:
+
+  ```ts
+  qwikVite({
+    experimental: ['insights']
+  }),
+  ```
+
+  **2)** Import and use the `qwikInsights` vite plugin from `@qwik.dev/core/insights/vite`:
+
+  ```ts
+  import { qwikInsights } from '@qwik.dev/core/insights/vite';
+  ```
+
+  **3)** import the `<Insights>` component from `@qwik.dev/core/insights` and use it in your `root.tsx` file: :
+
+  ```tsx title="root.tsx"
+  import { Insights } from '@qwik.dev/core/insights';
+
+  // ...rest of root.tsx file
+
+  return (
+    <Insights publicApiKey="..." postUrl="..." />
+    /* ...qwik app */
+  );
+  ```
+
+- BREAKING: the Typescript exports were trimmed down to the bare minimum. If there are types you are missing, open an issue. (by [@wmertens](https://github.com/wmertens) in [#7045](https://github.com/QwikDev/qwik/pull/7045))
+
+### Minor Changes
+
+- ✨ new integration tests that are running with the optimizer (by [@Varixo](https://github.com/Varixo) in [#7055](https://github.com/QwikDev/qwik/pull/7055))
+
+- ✨ new simpler signals implementation with lazy useComputed$ execution, only when is needed (by [@Varixo](https://github.com/Varixo) in [#7055](https://github.com/QwikDev/qwik/pull/7055))
+
+- ✨ added the scheduler to sort chores execution and have more predictable behavior (by [@Varixo](https://github.com/Varixo) in [#7055](https://github.com/QwikDev/qwik/pull/7055))
+
+- ✨ new faster serialization system (by [@Varixo](https://github.com/Varixo) in [#7055](https://github.com/QwikDev/qwik/pull/7055))
+
+- ✨ new CSR and SSR rendering written from scratch to speed up performance, improve code readability, and make the code easier to understand for new contributors (by [@Varixo](https://github.com/Varixo) in [#7055](https://github.com/QwikDev/qwik/pull/7055))
+
+### Patch Changes
+
+- 🐞🩹 do not trigger effects if computed value is not changed (by [@Varixo](https://github.com/Varixo) in [#6996](https://github.com/QwikDev/qwik/pull/6996))
+
 ## 1.9.1
 
 ### Patch Changes

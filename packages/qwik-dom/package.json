@@ -13,5 +13,8 @@
   "license": "BSD-2-Clause",
   "main": "./lib",
   "repository": "fgnass/domino.git",
+  "publishConfig": {
+    "access": "public"
+  },
   "types": "lib/index.d.ts"
 }

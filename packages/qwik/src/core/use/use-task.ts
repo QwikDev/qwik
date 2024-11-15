@@ -1,7 +1,8 @@
 import { getDomContainer } from '../client/dom-container';
 import type { VNode } from '../client/types';
 import { isServerPlatform } from '../shared/platform/platform';
-import { assertQrl, createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
+import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
+import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ChoreType } from '../shared/scheduler';
 import { type Container, type HostElement } from '../shared/types';

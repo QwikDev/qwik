@@ -1,8 +1,7 @@
 import { isDev } from '@qwik.dev/core/build';
+import { executeComponent } from '../shared/component-execution';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
-import type { QRLInternal } from '../shared/qrl/qrl-class';
-import type { QRL } from '../shared/qrl/qrl.public';
 import {
   Fragment,
   JSXNodeImpl,
@@ -14,9 +13,21 @@ import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
-import { trackSignal, untrack } from '../use/use-core';
-import { TaskFlags, cleanupTask, isTask } from '../use/use-task';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
+import type { QRL } from '../shared/qrl/qrl.public';
+import { ChoreType, type NodePropData } from '../shared/scheduler';
+import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../shared/types';
+import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
+import { escapeHTML } from '../shared/utils/character-escaping';
+import {
+  convertEventNameFromJsxPropToHtmlAttr,
+  getEventNameFromJsxProp,
+  getEventNameScopeFromJsxProp,
+  isHtmlAttributeAnEventName,
+  isJsxPropertyAnEventName,
+} from '../shared/utils/event-names';
 import { EMPTY_OBJ } from '../shared/utils/flyweight';
+import { throwErrorAndStop } from '../shared/utils/log';
 import {
   ELEMENT_KEY,
   ELEMENT_PROPS,
@@ -31,19 +42,20 @@ import {
   dangerouslySetInnerHTML,
 } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
-import { type ValueOrPromise } from '../shared/utils/types';
-import {
-  convertEventNameFromJsxPropToHtmlAttr,
-  getEventNameFromJsxProp,
-  getEventNameScopeFromJsxProp,
-  isHtmlAttributeAnEventName,
-  isJsxPropertyAnEventName,
-} from '../shared/utils/event-names';
-import { ChoreType, type NodePropData } from '../shared/scheduler';
+import { isParentSlotProp, isSlotProp } from '../shared/utils/prop';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
-import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../shared/types';
-import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
+import { serializeAttribute } from '../shared/utils/styles';
+import { type ValueOrPromise } from '../shared/utils/types';
+import { EffectData, EffectProperty, WrappedSignal, isSignal } from '../signal/signal';
+import {
+  clearSubscriberEffectDependencies,
+  clearVNodeEffectDependencies,
+} from '../signal/signal-subscriber';
+import type { Signal } from '../signal/signal.public';
+import { trackSignal, untrack } from '../use/use-core';
+import { TaskFlags, cleanupTask, isTask } from '../use/use-task';
 import type { DomContainer } from './dom-container';
+import { mapApp_findIndx, mapArray_set } from './mapArray';
 import {
   ElementVNodeProps,
   VNodeFlags,
@@ -58,8 +70,6 @@ import {
   type VirtualVNode,
 } from './types';
 import {
-  mapApp_findIndx,
-  mapArray_set,
   vnode_ensureElementInflated,
   vnode_getAttr,
   vnode_getDomParentVNode,
@@ -91,17 +101,6 @@ import {
   type VNodeJournal,
 } from './vnode';
 import { getNewElementNamespaceData } from './vnode-namespace';
-import { WrappedSignal, EffectProperty, isSignal, EffectData } from '../signal/signal';
-import type { Signal } from '../signal/signal.public';
-import { executeComponent } from '../shared/component-execution';
-import { isParentSlotProp, isSlotProp } from '../shared/utils/prop';
-import { escapeHTML } from '../shared/utils/character-escaping';
-import {
-  clearSubscriberEffectDependencies,
-  clearVNodeEffectDependencies,
-} from '../signal/signal-subscriber';
-import { throwErrorAndStop } from '../shared/utils/log';
-import { serializeAttribute } from '../shared/utils/styles';
 
 export type ComponentQueue = Array<VNode>;
 

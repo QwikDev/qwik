@@ -1,14 +1,21 @@
 import { isDev } from '@qwik.dev/core/build';
 import { isQwikComponent } from '../shared/component.public';
-import { isQrl } from '../shared/qrl/qrl-class';
-import type { QRL } from '../shared/qrl/qrl.public';
 import { Fragment, directGetPropsProxyProp } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
 import type { DevJSX, JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SSRStream, type SSRStreamChildren } from '../shared/jsx/utils.public';
-import { trackSignal } from '../use/use-core';
+import { isQrl } from '../shared/qrl/qrl-utils';
+import type { QRL } from '../shared/qrl/qrl.public';
+import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
+import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
+import {
+  convertEventNameFromJsxPropToHtmlAttr,
+  getEventNameFromJsxProp,
+  isJsxPropertyAnEventName,
+  isPreventDefault,
+} from '../shared/utils/event-names';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
 import { throwErrorAndStop } from '../shared/utils/log';
 import {
@@ -20,21 +27,14 @@ import {
   qwikInspectorAttr,
 } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
-import { isFunction, type ValueOrPromise } from '../shared/utils/types';
-import {
-  convertEventNameFromJsxPropToHtmlAttr,
-  getEventNameFromJsxProp,
-  isJsxPropertyAnEventName,
-  isPreventDefault,
-} from '../shared/utils/event-names';
+import { qInspector } from '../shared/utils/qdev';
 import { addComponentStylePrefix, isClassAttr } from '../shared/utils/scoped-styles';
-import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
-import { DEBUG_TYPE, VirtualType } from '../shared/types';
-import { WrappedSignal, EffectProperty, isSignal } from '../signal/signal';
+import { serializeAttribute } from '../shared/utils/styles';
+import { isFunction, type ValueOrPromise } from '../shared/utils/types';
+import { EffectProperty, WrappedSignal, isSignal } from '../signal/signal';
+import { trackSignal } from '../use/use-core';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrComponentFrame, ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
-import { qInspector } from '../shared/utils/qdev';
-import { serializeAttribute } from '../shared/utils/styles';
 
 class ParentComponentData {
   constructor(

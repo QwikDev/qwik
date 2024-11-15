@@ -4,10 +4,9 @@ import { isPreventDefault } from './event-names';
 import { isClassAttr } from './scoped-styles';
 import { isArray, isString } from './types';
 import { isUnitlessNumber } from './unitless_number';
-import { assertQrl } from '../qrl/qrl-class';
+import { assertQrl } from '../qrl/qrl-utils';
 import type { QRL } from '../qrl/qrl.public';
 import { hashCode } from './hash_code';
-import { ComponentStylesPrefixContent } from './markers';
 
 export const serializeClass = (obj: ClassList): string => {
   if (!obj) {
@@ -75,7 +74,7 @@ export const serializeBooleanOrNumberAttribute = (value: any) => {
 
 export function serializeAttribute(
   key: string,
-  value: any,
+  value: unknown,
   styleScopedId?: string | null
 ): string | null | boolean {
   if (isClassAttr(key)) {
@@ -93,7 +92,7 @@ export function serializeAttribute(
   } else if (value === true && isPreventDefault(key)) {
     value = '';
   }
-  return value;
+  return value as string | null | boolean;
 }
 
 function isEnumeratedBooleanAttribute(key: string) {
@@ -114,8 +113,4 @@ export function isAriaAttribute(prop: string): boolean {
 export const styleKey = (qStyles: QRL<string>, index: number): string => {
   assertQrl(qStyles);
   return `${hashCode(qStyles.$hash$)}-${index}`;
-};
-
-export const styleContent = (styleId: string): string => {
-  return ComponentStylesPrefixContent + styleId;
 };

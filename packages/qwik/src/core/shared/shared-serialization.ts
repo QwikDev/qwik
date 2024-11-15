@@ -36,13 +36,8 @@ import {
 } from './jsx/jsx-runtime';
 import { Slot } from './jsx/slot.public';
 import { getPlatform } from './platform/platform';
-import {
-  createQRL,
-  isQrl,
-  isSyncQrl,
-  type QRLInternal,
-  type SyncQRLInternal,
-} from './qrl/qrl-class';
+import { createQRL, type QRLInternal, type SyncQRLInternal } from './qrl/qrl-class';
+import { isQrl, isSyncQrl } from './qrl/qrl-utils';
 import type { QRL } from './qrl/qrl.public';
 import { ChoreType } from './scheduler';
 import type { DeserializeContainer, HostElement, ObjToProxyMap } from './types';

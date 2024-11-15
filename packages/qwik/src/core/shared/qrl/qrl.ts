@@ -2,7 +2,8 @@ import { QError_dynamicImportFailed, QError_unknownTypeArgument, qError } from '
 import { EMPTY_ARRAY } from '../utils/flyweight';
 import { qSerialize } from '../utils/qdev';
 import { isFunction, isString } from '../utils/types';
-import { createQRL, emitEvent, getSymbolHash, type QRLInternal } from './qrl-class';
+import { createQRL, emitEvent, type QRLInternal } from './qrl-class';
+import { getSymbolHash } from './qrl-utils';
 import type { QRL } from './qrl.public';
 
 // https://regexr.com/68v72

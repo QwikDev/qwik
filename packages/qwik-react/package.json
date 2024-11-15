@@ -1,6 +1,6 @@
 {
   "name": "@qwik.dev/react",
-  "description": "QwikReact allows adding React components into existing Qwik application",
+  "description": "Qwik React allows adding React components into existing Qwik application",
   "version": "2.0.0-alpha.0",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "devDependencies": {
@@ -43,6 +43,9 @@
     "vite": "^5"
   },
   "qwik": "./lib/index.qwik.mjs",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/QwikDev/qwik.git",

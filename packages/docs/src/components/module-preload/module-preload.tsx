@@ -29,7 +29,9 @@ export const ModulePreload = component$(() => {
 
       const startPreloading = () => {
         const stateScript = document.querySelector('script[type="qwik/state"]');
-        if (!stateScript?.textContent) return;
+        if (!stateScript?.textContent) {
+          return;
+        }
 
         const state = JSON.parse(stateScript.textContent);
         const qChunks = new Set<string>();

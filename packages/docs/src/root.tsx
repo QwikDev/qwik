@@ -6,6 +6,7 @@ import { RouterHead } from './components/router-head/router-head';
 import { BUILDER_PUBLIC_API_KEY } from './constants';
 import { GlobalStore, type SiteStore } from './context';
 import './global.css';
+import { ModulePreload } from './components/module-preload/module-preload';
 
 export const uwu = /*javascript*/ `
 ;(function () {
@@ -76,6 +77,7 @@ export default component$(() => {
 
         {/* <script dangerouslySetInnerHTML={`(${collectSymbols})()`} /> */}
         <Insights publicApiKey={import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY} />
+        <ModulePreload />
       </head>
       <body
         class={{

@@ -30,17 +30,8 @@ export interface RenderStaticContext {
   readonly $rmSlots$: QwikElement[];
 }
 
-// Polyfills for ViewTransition API & scroll restoration
 declare global {
-  interface ViewTransition {
-    ready: Promise<void>;
-    finished: Promise<void>;
-    updateCallbackDone: Promise<void>;
-    skipTransition: () => void;
-  }
-
   interface Document {
-    startViewTransition?: (callback: () => void | Promise<void>) => ViewTransition;
     __q_view_transition__?: true | undefined;
     __q_scroll_restore__?: (() => void) | undefined;
   }

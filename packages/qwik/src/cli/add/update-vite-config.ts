@@ -13,12 +13,12 @@ export async function updateViteConfigs(
   try {
     const viteConfig = integration.pkgJson.__qwik__?.viteConfig;
     if (viteConfig) {
-      let viteConfigPath = join(rootDir, 'vite.config.ts');
+      let viteConfigPath = join(rootDir, 'vite.config.mts');
       if (!fs.existsSync(viteConfigPath)) {
         viteConfigPath = join(rootDir, 'vite.config.mts');
       }
       if (!fs.existsSync(viteConfigPath)) {
-        throw new Error(`Could not find vite.config.ts or vite.config.mts in ${rootDir}`);
+        throw new Error(`Could not find vite.config.mts or vite.config.mts in ${rootDir}`);
       }
       const destContent = await fs.promises.readFile(viteConfigPath, 'utf-8');
 

@@ -1605,6 +1605,94 @@ describe.each([
     expect((document.querySelector('input#input5') as HTMLInputElement).value).toBe('test5');
   });
 
+  it('should rerender with new props', async () => {
+    const TestA = component$<any>((props) => {
+      return (
+        <button type="button" {...props}>
+          <Slot />
+        </button>
+      );
+    });
+
+    const TestB = component$<any>((props) => {
+      return (
+        <TestA {...props}>
+          <Slot />
+        </TestA>
+      );
+    });
+
+    const Cmp = component$(() => {
+      const $toggled = useSignal<boolean>(false);
+
+      return (
+        <TestB
+          aria-label={$toggled.value ? 'a' : 'a1'}
+          title={$toggled.value ? 'a' : 'a1'}
+          onClick$={() => {
+            $toggled.value = !$toggled.value;
+          }}
+        >
+          <span>Hello, World!</span>
+        </TestB>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <Component ssr-required>
+            <button type="button" aria-label="a1" title="a1">
+              <Projection ssr-required>
+                <Projection ssr-required>
+                  <span>Hello, World!</span>
+                </Projection>
+              </Projection>
+            </button>
+          </Component>
+        </Component>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <Component ssr-required>
+            <button type="button" aria-label="a" title="a">
+              <Projection ssr-required>
+                <Projection ssr-required>
+                  <span>Hello, World!</span>
+                </Projection>
+              </Projection>
+            </button>
+          </Component>
+        </Component>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <Component ssr-required>
+            <button type="button" aria-label="a1" title="a1">
+              <Projection ssr-required>
+                <Projection ssr-required>
+                  <span>Hello, World!</span>
+                </Projection>
+              </Projection>
+            </button>
+          </Component>
+        </Component>
+      </Component>
+    );
+  });
+
   describe('regression', () => {
     it('#3643', async () => {
       const Issue3643 = component$(() => {

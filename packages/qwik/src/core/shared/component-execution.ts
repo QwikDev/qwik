@@ -57,6 +57,7 @@ export const executeComponent = (
   iCtx.$container$ = container;
   let componentFn: (props: unknown) => ValueOrPromise<JSXOutput>;
   container.ensureProjectionResolved(renderHost);
+  let isInlineComponent = false;
   if (componentQRL === null) {
     componentQRL = componentQRL || container.getHostProp(renderHost, OnRenderProp)!;
     assertDefined(componentQRL, 'No Component found at this location');
@@ -75,6 +76,7 @@ export const executeComponent = (
     ) => JSXNodeInternal;
     componentFn = () => invokeApply(iCtx, qComponentFn, [props || EMPTY_OBJ, null, 0]);
   } else {
+    isInlineComponent = true;
     const inlineComponent = componentQRL as (props: Props) => JSXOutput;
     componentFn = () => invokeApply(iCtx, inlineComponent, [props || EMPTY_OBJ]);
   }
@@ -82,9 +84,13 @@ export const executeComponent = (
   const executeComponentWithPromiseExceptionRetry = (retryCount = 0): ValueOrPromise<JSXOutput> =>
     safeCall<JSXOutput, JSXOutput, JSXOutput>(
       () => {
-        container.setHostProp(renderHost, ELEMENT_SEQ_IDX, null);
-        container.setHostProp(renderHost, USE_ON_LOCAL_SEQ_IDX, null);
-        container.setHostProp(renderHost, ELEMENT_PROPS, props);
+        if (!isInlineComponent) {
+          container.setHostProp(renderHost, ELEMENT_SEQ_IDX, null);
+          container.setHostProp(renderHost, USE_ON_LOCAL_SEQ_IDX, null);
+          if (container.getHostProp(renderHost, ELEMENT_PROPS) !== props) {
+            container.setHostProp(renderHost, ELEMENT_PROPS, props);
+          }
+        }
 
         if (vnode_isVNode(renderHost)) {
           clearVNodeEffectDependencies(renderHost);

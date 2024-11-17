@@ -764,7 +764,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: CLI E2E Tests
-        run: pnpm run test.e2e-cli
+        run: pnpm run test.e2e.cli
 
   ########### LINT PACKAGES ############
   lint-package:

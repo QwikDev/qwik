@@ -40,7 +40,6 @@ import { VITE_DEV_CLIENT_QS, configureDevServer, configurePreviewServer } from '
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 
 const STYLING = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
-const FONTS = ['.woff', '.woff2', '.ttf'];
 
 /**
  * Workaround to make the api be defined in the type.

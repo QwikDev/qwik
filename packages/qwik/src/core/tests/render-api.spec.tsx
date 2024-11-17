@@ -900,7 +900,9 @@ describe('render api', () => {
       it('should contain qrls and resources', async () => {
         const ResourceAndSignalComponent = component$(() => {
           const sig = useSignal(0);
-          const rsrc = useResource$(() => 'RESOURCE_VALUE');
+          // the resource should be dynamic to be added to the snapshot,
+          // so we use the track function for that
+          const rsrc = useResource$(({ track }) => track(sig));
           return (
             <button
               onClick$={() => {
@@ -922,7 +924,7 @@ describe('render api', () => {
         );
         expect(result.snapshotResult?.qrls).toHaveLength(1);
         expect(result.snapshotResult?.resources).toHaveLength(1);
-        // expect(result.snapshotResult?.funcs).toHaveLength(1);
+        expect(result.snapshotResult?.funcs).toHaveLength(1);
       });
       it('should contain qrls', async () => {
         const FunctionComponent = componentQrl(

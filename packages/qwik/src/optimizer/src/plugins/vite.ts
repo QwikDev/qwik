@@ -547,21 +547,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                     },
                   });
                 }
-              } else {
-                const selectedFont = FONTS.find((ext) => fileName.endsWith(ext));
-                if (selectedFont) {
-                  injections.unshift({
-                    tag: 'link',
-                    location: 'head',
-                    attributes: {
-                      rel: 'preload',
-                      href: baseFilename,
-                      as: 'font',
-                      type: `font/${selectedFont.slice(1)}`,
-                      crossorigin: '',
-                    },
-                  });
-                }
               }
             }
           }

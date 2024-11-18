@@ -7,6 +7,9 @@
     "docs": [
       "https://qwik.dev/integrations/integration/postcss/",
       "https://github.com/postcss/postcss-load-config"
+    ],
+    "alwaysInRoot": [
+      ".vscode"
     ]
   },
   "devDependencies": {

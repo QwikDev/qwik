@@ -194,22 +194,22 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
 
   has(target: TargetType, prop: string | symbol): boolean {
     if (prop === QOjectTargetSymbol) {
-        return true;
+      return true;
     }
     const invokeCtx = tryGetInvokeContext();
     if (invokeCtx) {
-        const subscriber = invokeCtx.$subscriber$;
-        if (subscriber) {
-            const isA = isArray(target);
-            this.$manager$.$addSub$(subscriber, isA ? undefined : prop);
-        }
+      const subscriber = invokeCtx.$subscriber$;
+      if (subscriber) {
+        const isA = isArray(target);
+        this.$manager$.$addSub$(subscriber, isA ? undefined : prop);
+      }
     }
     const hasOwnProperty = Object.prototype.hasOwnProperty;
     if (hasOwnProperty.call(target, prop)) {
-        return true;
+      return true;
     }
     if (typeof prop === 'string' && hasOwnProperty.call(target, _IMMUTABLE_PREFIX + prop)) {
-        return true;
+      return true;
     }
     return false;
   }

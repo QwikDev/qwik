@@ -122,6 +122,11 @@ export const createSignal: {
     <T>(value: T): Signal<T>;
 };
 
+// @public (undocumented)
+export interface CSSProperties extends CSS_2.Properties<string | number>, CSS_2.PropertiesHyphen<string | number> {
+    [v: `--${string}`]: string | number | undefined;
+}
+
 // @internal
 export function _deserialize(rawStateData: string | null, element?: unknown): unknown[];
 

@@ -27,8 +27,8 @@
       "import": {
         "development": "./dist/core.mjs",
         "production": "./dist/core.prod.mjs",
-        "default": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs"
+        "min": "./dist/core.min.mjs",
+        "default": "./dist/core.prod.mjs"
       },
       "require": {
         "development": "./dist/core.cjs",
@@ -40,12 +40,12 @@
       "require": "./dist/cli.cjs"
     },
     "./internal": {
-      "types": "./dist/core-internal.d.ts",
+      "types": "./core-internal.d.ts",
       "import": {
         "development": "./dist/core.mjs",
         "production": "./dist/core.prod.mjs",
-        "default": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs"
+        "min": "./dist/core.min.mjs",
+        "default": "./dist/core.prod.mjs"
       },
       "require": {
         "development": "./dist/core.cjs",
@@ -58,8 +58,8 @@
       "import": {
         "development": "./dist/core.mjs",
         "production": "./dist/core.prod.mjs",
-        "default": "./dist/core.prod.mjs",
-        "min": "./dist/core.min.mjs"
+        "min": "./dist/core.min.mjs",
+        "default": "./dist/core.prod.mjs"
       },
       "require": {
         "development": "./dist/core.cjs",
@@ -72,8 +72,8 @@
       "import": {
         "development": "./dist/core.mjs",
         "production": "./dist/core.prod.mjs",
-        "default": "./dist/core.mjs",
-        "min": "./dist/core.min.mjs"
+        "min": "./dist/core.min.mjs",
+        "default": "./dist/core.mjs"
       },
       "require": {
         "development": "./dist/core.cjs",

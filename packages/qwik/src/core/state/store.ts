@@ -192,7 +192,7 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     return true;
   }
 
-  has(target, prop) {
+  has(target: TargetType, prop: string | symbol): boolean {
     if (prop === QOjectTargetSymbol) {
         return true;
     }

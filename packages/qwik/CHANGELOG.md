@@ -1,5 +1,11 @@
 # @qwik.dev/core
 
+## 2.0.0-alpha.1
+
+### Patch Changes
+
+- 🐞🩹 reduced number of errors "Cannot serialize function" during serialization (by [@Varixo](https://github.com/Varixo) in [#7066](https://github.com/QwikDev/qwik/pull/7066))
+
 ## 2.0.0-alpha.0
 
 ### Major Changes

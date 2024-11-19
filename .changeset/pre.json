@@ -15,6 +15,7 @@
   },
   "branch": "build/v2",
   "changesets": [
+    "brave-files-grin",
     "fast-baboons-itch",
     "five-kangaroos-matter",
     "fresh-rocks-exercise",

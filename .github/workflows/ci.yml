@@ -21,6 +21,7 @@ on:
   push:
     branches:
       - main
+      - upcoming
       - next
       - qwik-labs
       - vercelserverless
@@ -76,7 +77,7 @@ jobs:
       - name: Set Dist Tag
         id: set_dist_tag
         if: |
-          github.ref == 'refs/heads/main' && (
+          github.ref == 'refs/heads/upcoming' && (
             github.event_name == 'push' ||
             github.event_name == 'workflow_dispatch'
           )
@@ -811,12 +812,12 @@ jobs:
       - test-unit
       - test-e2e
     # test-unit runs when any packages changes, so we have to release
-    # on main, we always check if we have something to release
+    # on "upcoming", we always check if we have something to release
     # don't run on forks
     if: |
       always() && 
       github.repository == 'QwikDev/qwik' && (
-        github.ref == 'refs/heads/main' ||
+        github.ref == 'refs/heads/upcoming' ||
         needs.test-unit.result == 'success'
       )
 
@@ -870,7 +871,7 @@ jobs:
       # Do this before other release steps to avoid
       # publishing temporary files
       - name: Create Release Pull Request or Publish to npm
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/upcoming'
         id: changesets
         uses: changesets/action@v1
         with:
@@ -899,7 +900,7 @@ jobs:
   trigger-qwikcity-e2e:
     name: Trigger Qwik City E2E
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/upcoming'
 
     needs:
       - changes

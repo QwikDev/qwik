@@ -78,7 +78,11 @@ export type {
 export type { QwikDOMAttributes, QwikJSX, QwikJSX as JSX } from './shared/jsx/types/jsx-qwik';
 
 export type { QwikIntrinsicElements } from './shared/jsx/types/jsx-qwik-elements';
-export type { QwikHTMLElements, QwikSVGElements } from './shared/jsx/types/jsx-generated';
+export type {
+  CSSProperties,
+  QwikHTMLElements,
+  QwikSVGElements,
+} from './shared/jsx/types/jsx-generated';
 export { render } from './client/dom-render';
 export { getDomContainer, _getQContainerElement } from './client/dom-container';
 export type { StreamWriter, RenderSSROptions } from './ssr/ssr-types';

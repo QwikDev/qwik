@@ -8,6 +8,7 @@ export {
   createComputed$,
   createContextId,
   createSignal,
+  CSSProperties,
   // TODO remove this
   event$,
   EventHandler,
@@ -43,6 +44,7 @@ export {
   SkipRender,
   Slot,
   sync$,
+  TaskCtx,
   // TODO do we really want to export this?
   untrack,
   useComputed$,

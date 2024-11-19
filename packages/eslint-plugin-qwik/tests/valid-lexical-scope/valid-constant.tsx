@@ -7,7 +7,7 @@ export const HelloWorld = component$(() => {
   return (
     <div
       onClick$={() => {
-        // eslint-disable-next-line no-console
+        /* eslint no-console: [, { allow: ["log"] }] */
         console.log(a);
       }}
     ></div>

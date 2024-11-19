@@ -5,15 +5,15 @@
   "author": "Builder Team",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
-    "jsx-ast-utils": "^3.3.5",
-    "@typescript-eslint/utils": "^8.12.2"
+    "@typescript-eslint/utils": "^8.12.2",
+    "jsx-ast-utils": "^3.3.5"
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
     "@builder.io/qwik-city": "workspace:^",
-    "@types/eslint": "8.56.10",
+    "@types/eslint": "9.6.1",
     "@types/estree": "1.0.5",
-    "@typescript-eslint/rule-tester": "7.8.0",
+    "@typescript-eslint/rule-tester": "8.14.0",
     "redent": "4.0.0"
   },
   "engines": {
@@ -32,7 +32,7 @@
   "license": "MIT",
   "main": "dist/index.js",
   "peerDependencies": {
-    "eslint": "^8.57.0"
+    "eslint": "9.15.0"
   },
   "repository": {
     "type": "git",

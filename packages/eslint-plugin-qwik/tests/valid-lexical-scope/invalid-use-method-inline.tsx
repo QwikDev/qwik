@@ -3,11 +3,11 @@ import { component$, useTask$ } from '@builder.io/qwik';
 
 export const HelloWorld = component$(() => {
   function useMethod() {
-    // eslint-disable-next-line no-console
+    /* eslint no-console: [, { allow: ["log"] }] */
     console.log('stuff');
   }
   useTask$(() => {
-    // eslint-disable-next-line no-console
+    /* eslint no-console: [, { allow: ["log"] }] */
     console.log(useMethod);
   });
   return <div></div>;

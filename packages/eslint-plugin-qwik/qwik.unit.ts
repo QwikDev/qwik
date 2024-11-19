@@ -1,11 +1,11 @@
 import * as vitest from 'vitest';
 // @ts-ignore
-import { RuleTester } from '@typescript-eslint/rule-tester';
-
+import { RuleTester, type RuleTesterConfig } from '@typescript-eslint/rule-tester';
 import { fileURLToPath } from 'node:url';
 import { rules } from './index';
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { join, dirname } from 'path';
+// import {plugin, parser} from 'typescript-eslint'
 
 // https://typescript-eslint.io/packages/rule-tester/#vitest
 RuleTester.afterAll = vitest.afterAll;
@@ -14,22 +14,24 @@ RuleTester.itOnly = vitest.it.only;
 RuleTester.describe = vitest.describe;
 
 const testConfig = {
-  parser: '@typescript-eslint/parser',
-  env: {
-    es6: true,
-  },
-  parserOptions: {
-    tsconfigRootDir: fileURLToPath(new URL('.', import.meta.url)),
-    project: ['./tests/tsconfig.json'],
-    ecmaFeatures: {
-      jsx: true,
-    },
-    ecmaVersion: 2020,
-    sourceType: 'module',
-  },
-};
+  languageOptions: {
+    parserOptions: {
+      projectService: {
+        allowDefaultProject: ['*.ts*'],
+      },
+      sourceType: 'module',
+      ecmaFeatures: {
+        jsx: true,
+      },
 
-const ruleTester = new RuleTester(testConfig as any);
+      ecmaVersion: 2024,
+      project: ['./tests/tsconfig.json'],
+      tsconfigRootDir: fileURLToPath(new URL('.', import.meta.url)),
+    },
+  },
+} as RuleTesterConfig;
+
+const ruleTester = new RuleTester(testConfig);
 interface TestCase {
   name: string;
   filename: string;

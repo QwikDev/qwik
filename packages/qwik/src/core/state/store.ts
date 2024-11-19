@@ -197,9 +197,9 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
       return true;
     }
     const invokeCtx = tryGetInvokeContext();
-    if (invokeCtx) {
+    if (typeof prop === 'string' && invokeCtx) {
       const subscriber = invokeCtx.$subscriber$;
-      if (subscriber && typeof prop === 'string') {
+      if (subscriber) {
         const isA = isArray(target);
         this.$manager$.$addSub$(subscriber, isA ? undefined : prop);
       }

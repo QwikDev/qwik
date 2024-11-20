@@ -15,7 +15,9 @@
     "@qwik.dev/dom": "workspace:*",
     "image-size": "1.1.1",
     "kleur": "4.1.5",
+    "ignore": "5.3.1",
     "prettier": "3.3.3",
+    "ts-morph": "23.0.0",
     "vitest": "2.1.4"
   },
   "engines": {

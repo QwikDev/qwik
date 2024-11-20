@@ -222,7 +222,7 @@
     "test.e2e.cli": "pnpm --filter qwik-cli-e2e e2e",
     "test.e2e.chromium": "playwright test starters --browser=chromium --config starters/playwright.config.ts",
     "test.e2e.chromium.debug": "PWDEBUG=1 playwright test starters --browser=chromium --config starters/playwright.config.ts",
-    "test.e2e.cli": "tsm scripts/e2e-cli.ts",
+    "test.e2e.run": "tsm scripts/e2e-cli.ts",
     "test.e2e.firefox": "playwright test starters --browser=firefox --config starters/playwright.config.ts",
     "test.e2e.router": "playwright test starters/e2e/qwikrouter --browser=chromium --config starters/playwright.config.ts",
     "test.e2e.webkit": "playwright test starters --browser=webkit --config starters/playwright.config.ts",

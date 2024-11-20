@@ -22,7 +22,8 @@ If you're interested in helping out with triaging issues, please follow the [Tri
 
 ### Branch Organization
 
-We adopt [trunk-based development](https://trunkbaseddevelopment.com/) therefore all Pull Requests are made against the main branch because we do not use separate branches for development or for the versions we release.
+We adopt [trunk-based development](https://trunkbaseddevelopment.com/) therefore all Pull Requests are made against the main branch.
+Before releasing, we merge `main` into a release branch, for testing purposes.
 
 ### Good first issue
 
@@ -365,7 +366,7 @@ For your convenience, we prepared a video tutorial that covers the process of ad
 Make sure the PR follows all the guidelines in this document. Once you think the PR is good to merge, if the commits are "nice", you can merge the PR. If not, squash the PR.
 
 In case the PR is stuck waiting for the original author to apply a trivial
-change (a typo, capitalisation change, etc.) and the author allowed the members
+change (a typo, capitalization change, etc.) and the author allowed the members
 to modify the PR, consider applying it yourself (or commit the existing review
 suggestion). You should pay extra attention to make sure the addition doesn't go
 against the idea of the original PR and would not be opposed by the author.

@@ -1,14 +1,29 @@
-import { getDomContainer } from '@qwik.dev/core';
-import { createDocument } from '@qwik.dev/core/testing';
-import { beforeEach, describe, expect, it } from 'vitest';
-import type { Container } from '../shared/types';
+import { getDomContainer, implicit$FirstArg, type QRL } from '@qwik.dev/core';
+import { createDocument, getTestPlatform } from '@qwik.dev/core/testing';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import type { Container, HostElement } from '../shared/types';
 import { StoreFlags, getOrCreateStore, isStore } from './store';
+import { EffectProperty } from './signal';
+import { invoke } from '../use/use-core';
+import { newInvokeContext } from '../use/use-core';
+import { ChoreType } from '../shared/scheduler';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
+import { Task } from '../use/use-task';
+import type { EffectSubscriptions } from './signal';
 
 describe('v2/store', () => {
-  let container: Container | null = null;
+  const log: any[] = [];
+  let container: Container = null!;
   beforeEach(() => {
+    log.length = 0;
     const document = createDocument({ html: '<html><body q:container="paused"></body></html>' });
     container = getDomContainer(document.body);
+  });
+
+  afterEach(async () => {
+    await container.$scheduler$(ChoreType.WAIT_FOR_ALL);
+    await getTestPlatform().flush();
+    container = null!;
   });
 
   it('should create and toString', () => {
@@ -24,4 +39,45 @@ describe('v2/store', () => {
     expect(store instanceof Array).toEqual(false);
     expect(target instanceof Object).toEqual(true);
   });
+
+  it('should subscribe when `prop in store` is used', async () => {
+    await withContainer(async () => {
+      const store = getOrCreateStore<any>({}, StoreFlags.NONE, container);
+      const log: string[] = [];
+      effect$(() => {
+        log.push(`${'bar' in store}`);
+      });
+      expect(log).toEqual(['false']);
+      store.bar = 'baz';
+      await flushSignals();
+      expect(log).toEqual(['false', 'true']);
+    });
+  });
+
+  function withContainer<T>(fn: () => T): T {
+    const ctx = newInvokeContext();
+    ctx.$container$ = container;
+    return invoke(ctx, fn);
+  }
+
+  function flushSignals() {
+    return container.$scheduler$(ChoreType.WAIT_FOR_ALL);
+  }
+
+  function effectQrl(fnQrl: QRL<() => void>) {
+    const qrl = fnQrl as QRLInternal<() => void>;
+    const element: HostElement = null!;
+    const task = new Task(0, 0, element, fnQrl as QRLInternal, undefined, null);
+    if (!qrl.resolved) {
+      throw qrl.resolve();
+    } else {
+      const ctx = newInvokeContext();
+      ctx.$container$ = container;
+      const subscriber: EffectSubscriptions = [task, EffectProperty.COMPONENT, ctx];
+      ctx.$effectSubscriber$ = subscriber;
+      return invoke(ctx, qrl.getFn(ctx));
+    }
+  }
+
+  const effect$ = /*#__PURE__*/ implicit$FirstArg(effectQrl);
 });

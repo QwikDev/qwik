@@ -169,6 +169,20 @@ export class StoreHandler implements ProxyHandler<TargetType> {
     if (prop === STORE_TARGET) {
       return true;
     }
+    if (typeof prop === 'string') {
+      const ctx = tryGetInvokeContext();
+      if (ctx) {
+        const effectSubscriber = ctx.$effectSubscriber$;
+        if (effectSubscriber) {
+          addEffect(
+            target,
+            Array.isArray(target) ? STORE_ARRAY_PROP : prop,
+            this,
+            effectSubscriber
+          );
+        }
+      }
+    }
     return Object.prototype.hasOwnProperty.call(target, prop);
   }
 

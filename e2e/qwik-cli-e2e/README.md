@@ -4,7 +4,7 @@ This package provides isolated E2E tests by generating a new application with lo
 
 ## Description
 
-Tests can be invoked by running `pnpm run test.e2e-cli`.
+Tests can be invoked by running `pnpm run test.e2e.cli`.
 
 **Note that running E2E tests requires the workspace projects to be prebuilt manually!**
 
@@ -16,8 +16,8 @@ E2E project does the following internally:
 
    - By default `outputDir` is an auto-generated one using `tmp` npm package. The application that is created here will be removed after the test is executed
    - It is possible to install into custom folder using environment variable `TEMP_E2E_PATH`. Here's how the command would look like in this case:
-   - with absolute path `TEMP_E2E_PATH=/Users/name/projects/tests pnpm run test.e2e-cli`
-   - with path relative to the qwik workspace `TEMP_E2E_PATH=temp/e2e-folder pnpm run test.e2e-cli`
+   - with absolute path `TEMP_E2E_PATH=/Users/name/projects/tests pnpm run test.e2e.cli`
+   - with path relative to the qwik workspace `TEMP_E2E_PATH=temp/e2e-folder pnpm run test.e2e.cli`
 
    Note that provided folder should exist. If custom path is used, generated application will not be removed after the test completes, which is helpful for debugging.
 

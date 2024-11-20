@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
 import type { IntegrationData, IntegrationType } from '../types';
-import { dashToTitleCase, readPackageJson, limitLength } from './utils';
+import { dashToTitleCase, limitLength, readPackageJson } from './utils';
 
 let integrations: IntegrationData[] | null = null;
 
@@ -55,6 +55,7 @@ export async function loadIntegrations() {
                   pkgJson,
                   docs: pkgJson.__qwik__?.docs ?? [],
                   priority: pkgJson?.__qwik__?.priority ?? 0,
+                  alwaysInRoot: pkgJson.__qwik__?.alwaysInRoot ?? [],
                 };
                 loadingIntegrations.push(integration);
               }

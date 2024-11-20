@@ -7,6 +7,9 @@
     "docs": [
       "https://qwik.dev/integrations/integration/tailwind/",
       "https://tailwindcss.com/docs/utility-first"
+    ],
+    "alwaysInRoot": [
+      ".vscode"
     ]
   },
   "devDependencies": {

@@ -1,13 +1,13 @@
-import type { FsUpdates, UpdateAppOptions, UpdateAppResult } from '../types';
-import { dirname } from 'node:path';
+import { log, spinner } from '@clack/prompts';
+import { bgRed, cyan } from 'kleur/colors';
 import fs from 'node:fs';
-import { panic } from '../utils/utils';
-import { loadIntegrations } from '../utils/integrations';
+import { dirname } from 'node:path';
+import type { FsUpdates, UpdateAppOptions, UpdateAppResult } from '../types';
 import { installDeps } from '../utils/install-deps';
+import { loadIntegrations } from '../utils/integrations';
+import { panic } from '../utils/utils';
 import { mergeIntegrationDir } from './update-files';
 import { updateViteConfigs } from './update-vite-config';
-import { bgRed, cyan } from 'kleur/colors';
-import { spinner, log } from '@clack/prompts';
 
 export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
   const integrations = await loadIntegrations();
@@ -29,7 +29,13 @@ export async function updateApp(pkgManager: string, opts: UpdateAppOptions) {
     };
   }
 
-  await mergeIntegrationDir(fileUpdates, opts, integration.dir, opts.rootDir);
+  await mergeIntegrationDir(
+    fileUpdates,
+    opts,
+    integration.dir,
+    opts.rootDir,
+    integration.alwaysInRoot
+  );
 
   if ((globalThis as any).CODE_MOD) {
     await updateViteConfigs(fileUpdates, integration, opts.rootDir);

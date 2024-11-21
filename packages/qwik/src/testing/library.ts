@@ -1,6 +1,7 @@
 import { ElementFixture, trigger } from './element-fixture';
 import { setTestPlatform } from './platform';
 import type { JSXOutput } from '@qwik.dev/core';
+import { render, setPlatform } from '@qwik.dev/core';
 
 /**
  * CreatePlatform and CreateDocument
@@ -8,12 +9,11 @@ import type { JSXOutput } from '@qwik.dev/core';
  * @public
  */
 export const createDOM = async function ({ html }: { html?: string } = {}) {
-  const qwik = await getQwik();
-  setTestPlatform(qwik.setPlatform);
+  setTestPlatform(setPlatform);
   const host = new ElementFixture({ html }).host;
   return {
     render: function (jsxElement: JSXOutput) {
-      return qwik.render(host, jsxElement);
+      return render(host, jsxElement);
     },
     screen: host,
     userEvent: async function (
@@ -24,12 +24,4 @@ export const createDOM = async function ({ html }: { html?: string } = {}) {
       return trigger(host, queryOrElement, eventNameCamel, eventPayload);
     },
   };
-};
-
-const getQwik = async (): Promise<typeof import('@qwik.dev/core')> => {
-  if ((globalThis as any).RUNNER !== false) {
-    return await import('../core/index');
-  } else {
-    return await import('@qwik.dev/core');
-  }
 };

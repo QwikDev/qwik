@@ -4,9 +4,13 @@
 
 ```ts
 
+/// <reference types="jsdom" />
+/// <reference types="node_modules/.pnpm/@types+jsdom@21.1.7/node_modules/@types/jsdom/base" />
+
 import { ClientContainer } from '@qwik.dev/core/internal';
 import type { CorePlatform } from '@qwik.dev/core';
 import type { _DomContainer } from '@qwik.dev/core/internal';
+import { DOMWindow } from 'jsdom';
 import type { _ElementVNode } from '@qwik.dev/core/internal';
 import type { JSXNodeInternal } from '@qwik.dev/core/internal';
 import { JSXOutput } from '@qwik.dev/core';
@@ -46,20 +50,18 @@ export class ElementFixture {
     constructor(options?: ElementFixtureOptions);
     // (undocumented)
     child: HTMLElement;
-    // Warning: (ae-forgotten-export) The symbol "MockDocument" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    document: MockDocument;
+    document: Document;
     // (undocumented)
     host: HTMLElement;
     // (undocumented)
     parent: HTMLElement;
     // (undocumented)
     superParent: HTMLElement;
-    // Warning: (ae-forgotten-export) The symbol "MockWindow" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "createWindow" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    window: MockWindow;
+    window: ReturnType<typeof createWindow>;
 }
 
 // @public (undocumented)

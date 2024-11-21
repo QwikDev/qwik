@@ -500,7 +500,7 @@ describe('render api', () => {
           containerTagName: 'div',
         });
         const document = createDocument({ html: result.html });
-        const qwikFuncScriptElements = document.querySelectorAll('script[q\\:func=qwik/json]');
+        const qwikFuncScriptElements = document.querySelectorAll('script[q\\:func="qwik/json"]');
         expect(qwikFuncScriptElements).toHaveLength(1);
         expect(qwikFuncScriptElements[0].textContent).toMatch(
           /document\["qFuncs_(\w+)"\]=\[\(p0\)=>p0\.value\]/

@@ -158,7 +158,7 @@ describe('v2 ssr render', () => {
 
       const { vNode, document } = await ssrRenderToDom(<CommentCmp />, { debug });
       expect(vNode).toBe(null);
-      expect((document.body.firstChild as Element).outerHTML).toEqual('<!--foo-->');
+      expect((document.body.firstChild as Comment).data).toEqual('foo');
     });
 
     it('should render SSRStreamBlock', async () => {

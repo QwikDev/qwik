@@ -1272,7 +1272,7 @@ describe.each([
       const content = <span>Some content</span>;
 
       const { document } = await render(<Cmp>{content}</Cmp>, { debug: DEBUG });
-      expect(document.querySelector('q\\:template')).toBeUndefined();
+      expect(document.querySelector('q\\:template')).toBeFalsy();
     });
 
     it('should add and delete projection content inside q:template for CSR rerender after SSR', async () => {

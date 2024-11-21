@@ -61,7 +61,7 @@
         }
       ],
       "kind": "Property",
-      "content": "```typescript\ndocument: MockDocument;\n```",
+      "content": "```typescript\ndocument: Document;\n```",
       "mdFile": "core.elementfixture.document.md"
     },
     {
@@ -88,7 +88,7 @@
         }
       ],
       "kind": "Class",
-      "content": "Creates a simple DOM structure for testing components.\n\nBy default `EntityFixture` creates:\n\n```html\n<host q:view=\"./component_fixture.noop\">\n  <child></child>\n</host>\n```\n\n\n```typescript\nexport declare class ElementFixture \n```\n\n\n<table><thead><tr><th>\n\nConstructor\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[(constructor)(options)](#)\n\n\n</td><td>\n\n\n</td><td>\n\nConstructs a new instance of the `ElementFixture` class\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[child](#elementfixture-child)\n\n\n</td><td>\n\n\n</td><td>\n\nHTMLElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[document](#elementfixture-document)\n\n\n</td><td>\n\n\n</td><td>\n\nMockDocument\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[host](#elementfixture-host)\n\n\n</td><td>\n\n\n</td><td>\n\nHTMLElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[parent](#elementfixture-parent)\n\n\n</td><td>\n\n\n</td><td>\n\nHTMLElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[superParent](#elementfixture-superparent)\n\n\n</td><td>\n\n\n</td><td>\n\nHTMLElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[window](#elementfixture-window)\n\n\n</td><td>\n\n\n</td><td>\n\nMockWindow\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "Creates a simple DOM structure for testing components.\n\nBy default `EntityFixture` creates:\n\n```html\n<host q:view=\"./component_fixture.noop\">\n  <child></child>\n</host>\n```\n\n\n```typescript\nexport declare class ElementFixture \n```\n\n\n<table><thead><tr><th>\n\nConstructor\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[(constructor)(options)](#)\n\n\n</td><td>\n\n\n</td><td>\n\nConstructs a new instance of the `ElementFixture` class\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[child](#elementfixture-child)\n\n\n</td><td>\n\n\n</td><td>\n\nHTMLElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[document](#elementfixture-document)\n\n\n</td><td>\n\n\n</td><td>\n\nDocument\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[host](#elementfixture-host)\n\n\n</td><td>\n\n\n</td><td>\n\nHTMLElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[parent](#elementfixture-parent)\n\n\n</td><td>\n\n\n</td><td>\n\nHTMLElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[superParent](#elementfixture-superparent)\n\n\n</td><td>\n\n\n</td><td>\n\nHTMLElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[window](#elementfixture-window)\n\n\n</td><td>\n\n\n</td><td>\n\nReturnType&lt;typeof createWindow&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/element-fixture.ts",
       "mdFile": "core.elementfixture.md"
     },
@@ -255,7 +255,7 @@
         }
       ],
       "kind": "Property",
-      "content": "```typescript\nwindow: MockWindow;\n```",
+      "content": "```typescript\nwindow: ReturnType<typeof createWindow>;\n```",
       "mdFile": "core.elementfixture.window.md"
     }
   ]

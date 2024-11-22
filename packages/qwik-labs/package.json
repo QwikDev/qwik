@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
-    "@types/eslint": "8.56.10",
+    "@types/eslint": "9.6.1",
     "@types/node": "20.14.11",
     "@typescript-eslint/eslint-plugin": "7.16.1",
     "@typescript-eslint/parser": "7.16.1",

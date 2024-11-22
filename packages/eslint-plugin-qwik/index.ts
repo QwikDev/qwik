@@ -91,4 +91,4 @@ Object.assign(qwikEslintPlugin.configs, {
   ],
 });
 
-export { configs, qwikEslintPlugin as default };
+export { configs, qwikEslintPlugin as default, rules };

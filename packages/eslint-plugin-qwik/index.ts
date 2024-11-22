@@ -52,7 +52,7 @@ const strictRules = {
   'qwik/no-use-visible-task': 'warn',
 };
 
-export const configs = {
+const configs = {
   recommended: {
     plugins: ['qwik'],
     rules: recommendedRules,
@@ -91,4 +91,4 @@ Object.assign(qwikEslintPlugin.configs, {
   ],
 });
 
-// export { configs, qwikEslintPlugin as default };
+export { configs, qwikEslintPlugin as default };

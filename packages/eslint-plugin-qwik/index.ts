@@ -9,6 +9,7 @@ import { preferClasslist } from './src/preferClasslist';
 import { unusedServer } from './src/unusedServer';
 import { useMethodUsage } from './src/useMethodUsage';
 import { validLexicalScope } from './src/validLexicalScope';
+import fs from 'fs';
 
 export const rules = {
   'use-method-usage': useMethodUsage,
@@ -24,37 +25,71 @@ export const rules = {
   'no-use-visible-task': noUseVisibleTask,
 };
 
-export const configs = {
+const recommendedRules = {
+  'qwik/use-method-usage': 'error',
+  'qwik/valid-lexical-scope': 'error',
+  'qwik/no-react-props': 'error',
+  'qwik/prefer-classlist': 'warn',
+  'qwik/jsx-no-script-url': 'warn',
+  'qwik/loader-location': 'warn',
+  'qwik/jsx-key': 'warn',
+  'qwik/unused-server': 'error',
+  'qwik/jsx-img': 'warn',
+  'qwik/jsx-a': 'warn',
+  'qwik/no-use-visible-task': 'warn',
+};
+const strictRules = {
+  'qwik/valid-lexical-scope': 'error',
+  'qwik/use-method-usage': 'error',
+  'qwik/loader-location': 'error',
+  'qwik/no-react-props': 'error',
+  'qwik/prefer-classlist': 'error',
+  'qwik/jsx-no-script-url': 'error',
+  'qwik/jsx-key': 'error',
+  'qwik/unused-server': 'error',
+  'qwik/jsx-img': 'error',
+  'qwik/jsx-a': 'error',
+  'qwik/no-use-visible-task': 'warn',
+};
+const configs = {
   recommended: {
     plugins: ['qwik'],
-    rules: {
-      'qwik/use-method-usage': 'error',
-      'qwik/valid-lexical-scope': 'error',
-      'qwik/no-react-props': 'error',
-      'qwik/prefer-classlist': 'warn',
-      'qwik/jsx-no-script-url': 'warn',
-      'qwik/loader-location': 'warn',
-      'qwik/jsx-key': 'warn',
-      'qwik/unused-server': 'error',
-      'qwik/jsx-img': 'warn',
-      'qwik/jsx-a': 'warn',
-      'qwik/no-use-visible-task': 'warn',
-    },
+    rules: recommendedRules,
   },
   strict: {
     plugins: ['qwik'],
-    rules: {
-      'qwik/valid-lexical-scope': 'error',
-      'qwik/use-method-usage': 'error',
-      'qwik/loader-location': 'error',
-      'qwik/no-react-props': 'error',
-      'qwik/prefer-classlist': 'error',
-      'qwik/jsx-no-script-url': 'error',
-      'qwik/jsx-key': 'error',
-      'qwik/unused-server': 'error',
-      'qwik/jsx-img': 'error',
-      'qwik/jsx-a': 'error',
-      'qwik/no-use-visible-task': 'warn',
-    },
+    rules: strictRules,
   },
 };
+
+const pkg = JSON.parse(fs.readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
+
+const qwikEslintPlugin = {
+  configs: {},
+  meta: {
+    name: pkg.name,
+    version: pkg.version,
+  },
+  rules,
+};
+
+Object.assign(qwikEslintPlugin.configs, {
+  recommended: [
+    {
+      plugins: {
+        qwik: qwikEslintPlugin,
+      },
+      rules: recommendedRules,
+    },
+  ],
+  strict: [
+    {
+      plugins: {
+        qwik: qwikEslintPlugin,
+      },
+      rules: strictRules,
+    },
+  ],
+});
+
+export { configs, qwikEslintPlugin as default };

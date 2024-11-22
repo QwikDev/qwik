@@ -1,3 +1,4 @@
+import path from 'path';
 import { jsxAtag } from './src/jsxAtag';
 import { jsxImg } from './src/jsxImg';
 import { jsxKey } from './src/jsxKey';
@@ -9,7 +10,7 @@ import { preferClasslist } from './src/preferClasslist';
 import { unusedServer } from './src/unusedServer';
 import { useMethodUsage } from './src/useMethodUsage';
 import { validLexicalScope } from './src/validLexicalScope';
-import fs from 'fs';
+import pkg from './package.json';
 
 export const rules = {
   'use-method-usage': useMethodUsage,
@@ -51,7 +52,7 @@ const strictRules = {
   'qwik/jsx-a': 'error',
   'qwik/no-use-visible-task': 'warn',
 };
-const configs = {
+export const configs = {
   recommended: {
     plugins: ['qwik'],
     rules: recommendedRules,
@@ -61,8 +62,6 @@ const configs = {
     rules: strictRules,
   },
 };
-
-const pkg = JSON.parse(fs.readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 
 const qwikEslintPlugin = {
   configs: {},
@@ -92,4 +91,4 @@ Object.assign(qwikEslintPlugin.configs, {
   ],
 });
 
-export { configs, qwikEslintPlugin as default };
+// export { configs, qwikEslintPlugin as default };

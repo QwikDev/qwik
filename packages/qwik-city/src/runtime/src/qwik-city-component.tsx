@@ -375,7 +375,10 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         }
 
         // Update route location
-        routeLocation.prevUrl = prevUrl;
+        if (!isSamePath(trackUrl, prevUrl)) {
+          routeLocation.prevUrl = prevUrl;
+        }
+
         routeLocation.url = trackUrl;
         routeLocation.params = { ...params };
 

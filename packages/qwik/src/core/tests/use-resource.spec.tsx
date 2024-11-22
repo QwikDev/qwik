@@ -339,4 +339,98 @@ describe.each([
       </Component>
     );
   });
+
+  it('should update elements correctly', async () => {
+    (global as any).delay = () => new Promise<void>((res) => ((global as any).delay.resolve = res));
+    const ResourceCmp = component$(() => {
+      const count = useSignal(0);
+      const resource = useResource$<number>(async ({ track }) => {
+        track(count);
+        return count.value + 10;
+      });
+
+      return (
+        <>
+          <button onClick$={() => count.value++}>{count.value}</button>
+          <Resource
+            value={resource}
+            // uncomment to test pending WORKING and test pass
+            // onPending={() => <p>Loading..</p>}
+            onRejected={() => <p>error ...</p>}
+            onResolved={(data) => (
+              <>
+                <div>{data}</div>
+                <input value={`${data}`} />
+              </>
+            )}
+          />
+        </>
+      );
+    });
+
+    const { vNode, container } = await render(<ResourceCmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>
+            <Signal ssr-required>0</Signal>
+          </button>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              <Awaited ssr-required>
+                <Fragment ssr-required>
+                  <div>10</div>
+                  <input value="10" />
+                </Fragment>
+              </Awaited>
+            </Fragment>
+          </InlineComponent>
+        </Fragment>
+      </Component>
+    );
+    await trigger(container.element, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>
+            <Signal ssr-required>1</Signal>
+          </button>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              <Awaited ssr-required>
+                <Fragment ssr-required>
+                  <div>11</div>
+                  <input value="11" />
+                </Fragment>
+              </Awaited>
+            </Fragment>
+          </InlineComponent>
+        </Fragment>
+      </Component>
+    );
+    // await (global as any).delay.resolve();
+    await getTestPlatform().flush();
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>
+            <Signal ssr-required>1</Signal>
+          </button>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              <Awaited ssr-required>
+                <Fragment ssr-required>
+                  <div>11</div>
+                  <input value="11" />
+                </Fragment>
+              </Awaited>
+            </Fragment>
+          </InlineComponent>
+        </Fragment>
+      </Component>
+    );
+    (global as any).delay = undefined;
+  });
 });

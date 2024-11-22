@@ -29,7 +29,7 @@ test(
     const host = `http://localhost:${SERVE_PORT}/`;
     await assertHostUnused(host);
     const p = await runCommandUntil(
-      `npm run dev -- --port ${SERVE_PORT}`,
+      `pnpm run dev -- --port ${SERVE_PORT}`,
       global.tmpDir,
       (output) => {
         return output.includes(host);

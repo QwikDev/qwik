@@ -1,4 +1,3 @@
-import path from 'path';
 import { jsxAtag } from './src/jsxAtag';
 import { jsxImg } from './src/jsxImg';
 import { jsxKey } from './src/jsxKey';
@@ -12,7 +11,7 @@ import { useMethodUsage } from './src/useMethodUsage';
 import { validLexicalScope } from './src/validLexicalScope';
 import pkg from './package.json';
 
-export const rules = {
+const rules = {
   'use-method-usage': useMethodUsage,
   'valid-lexical-scope': validLexicalScope,
   'loader-location': loaderLocation,
@@ -52,7 +51,8 @@ const strictRules = {
   'qwik/jsx-a': 'error',
   'qwik/no-use-visible-task': 'warn',
 };
-export const configs = {
+
+const configs = {
   recommended: {
     plugins: ['qwik'],
     rules: recommendedRules,
@@ -91,4 +91,4 @@ Object.assign(qwikEslintPlugin.configs, {
   ],
 });
 
-// export { configs, qwikEslintPlugin as default };
+export { configs, qwikEslintPlugin as default };

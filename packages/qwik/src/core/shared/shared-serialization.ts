@@ -272,12 +272,13 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
     }
     case TypeIds.WrappedSignal: {
       const signal = target as WrappedSignal<unknown>;
-      const d = data as [number, unknown[], Subscriber[], unknown, ...any[]];
+      const d = data as [number, unknown[], Subscriber[], unknown, HostElement, ...any[]];
       signal.$func$ = container.getSyncFn(d[0]);
       signal.$args$ = d[1];
       signal.$effectDependencies$ = d[2];
       signal.$untrackedValue$ = d[3];
-      signal.$effects$ = d.slice(4);
+      signal.$hostElement$ = d[4];
+      signal.$effects$ = d.slice(5);
       break;
     }
     case TypeIds.ComputedSignal: {
@@ -829,6 +830,9 @@ export const createSerializationContext = (
           if (obj.$args$) {
             discoveredValues.push(...obj.$args$);
           }
+          if (obj.$hostElement$) {
+            discoveredValues.push(obj.$hostElement$);
+          }
         } else if (obj instanceof ComputedSignal) {
           discoveredValues.push(obj.$computeQrl$);
         }
@@ -1129,6 +1133,7 @@ function serialize(serializationContext: SerializationContext): void {
           ...serializeWrappingFn(serializationContext, value),
           value.$effectDependencies$,
           v,
+          value.$hostElement$,
           ...(value.$effects$ || []),
         ]);
       } else if (value instanceof ComputedSignal) {

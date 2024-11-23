@@ -2,6 +2,7 @@ import { QSubscribers } from '../shared/utils/markers';
 import type { VNode } from '../client/types';
 import { vnode_getProp } from '../client/vnode';
 import { EffectSubscriptionsProp, WrappedSignal, isSignal } from './signal';
+import type { Container } from '../shared/types';
 
 export abstract class Subscriber {
   $effectDependencies$: Subscriber[] | null = null;
@@ -11,8 +12,8 @@ export function isSubscriber(value: unknown): value is Subscriber {
   return value instanceof Subscriber || value instanceof WrappedSignal;
 }
 
-export function clearVNodeEffectDependencies(value: VNode): void {
-  const effects = vnode_getProp<Subscriber[]>(value, QSubscribers, null);
+export function clearVNodeEffectDependencies(container: Container, value: VNode): void {
+  const effects = vnode_getProp<Subscriber[]>(value, QSubscribers, container.$getObjectById$);
   if (!effects) {
     return;
   }

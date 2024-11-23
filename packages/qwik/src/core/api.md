@@ -854,10 +854,8 @@ export abstract class _SharedContainer implements Container {
     abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)
     abstract setHostProp<T>(host: HostElement, name: string, value: T): void;
-    // Warning: (ae-forgotten-export) The symbol "Effect" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    trackSignalValue<T>(signal: Signal, subscriber: Effect, property: string, data: _EffectData): T;
+    trackSignalValue<T>(signal: Signal, subscriber: HostElement, property: string, data: _EffectData): T;
 }
 
 // @public

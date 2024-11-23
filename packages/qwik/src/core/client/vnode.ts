@@ -142,6 +142,7 @@ import {
   QSlotRef,
   QStyle,
   QStylesAllSelector,
+  QSubscribers,
   Q_PROPS_SEPARATOR,
   dangerouslySetInnerHTML,
 } from '../shared/utils/markers';
@@ -730,14 +731,7 @@ export const vnode_getVNodeForChildNode = (
   ensureElementVNode(vNode);
   let child = vnode_getFirstChild(vNode);
   assertDefined(child, 'Missing child.');
-  // console.log(
-  //   'SEARCHING',
-  //   child[VNodeProps.flags],
-  //   child[VNodeProps.node]?.outerHTML,
-  //   childNode.outerHTML
-  // );
   while (child && child[ElementVNodeProps.element] !== childElement) {
-    // console.log('CHILD', child[VNodeProps.node]?.outerHTML, childNode.outerHTML);
     if (vnode_isVirtualVNode(child)) {
       const next = vnode_getNextSibling(child);
       const firstChild = vnode_getFirstChild(child);
@@ -1749,6 +1743,8 @@ function materializeFromVNodeData(
       vnode_setAttr(null, vParent, ELEMENT_SEQ, consumeValue());
     } else if (peek() === VNodeDataChar.SEQ_IDX) {
       vnode_setAttr(null, vParent, ELEMENT_SEQ_IDX, consumeValue());
+    } else if (peek() === VNodeDataChar.SUBS) {
+      vnode_setProp(vParent, QSubscribers, consumeValue());
     } else if (peek() === VNodeDataChar.CONTEXT) {
       vnode_setAttr(null, vParent, QCtxAttr, consumeValue());
     } else if (peek() === VNodeDataChar.OPEN) {

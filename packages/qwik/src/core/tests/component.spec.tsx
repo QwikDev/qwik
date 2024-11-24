@@ -185,19 +185,19 @@ describe.each([
           <Component ssr-required>
             <div>
               <span>Component 1</span>
-              <Signal>1</Signal>
+              <Signal ssr-required>1</Signal>
             </div>
           </Component>
           <Component ssr-required>
             <div>
               <span>Component 1</span>
-              <Signal>1</Signal>
+              <Signal ssr-required>1</Signal>
             </div>
           </Component>
           <Component ssr-required>
             <div>
               <span>Component 2</span>
-              <Signal>2</Signal>
+              <Signal ssr-required>2</Signal>
             </div>
           </Component>
         </main>

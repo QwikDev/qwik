@@ -21,7 +21,7 @@ import {
   getStoreTarget,
   isStore,
 } from '../signal/store';
-import type { SymbolToChunkResolver } from '../ssr/ssr-types';
+import type { SsrAttrs, SymbolToChunkResolver } from '../ssr/ssr-types';
 import { untrack } from '../use/use-core';
 import { createResourceReturn, type ResourceReturnInternal } from '../use/use-resource';
 import { Task, isTask } from '../use/use-task';
@@ -839,7 +839,21 @@ export const createSerializationContext = (
       } else if (obj instanceof Task) {
         discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$, obj.$effectDependencies$);
       } else if (isSsrNode(obj)) {
-        discoveredValues.push(obj.vnodeData);
+        for (const value of obj.vnodeData) {
+          if (isSsrAttrs(value)) {
+            discoveredValues.push(...value);
+          }
+        }
+
+        if (obj.childrenVNodeData && obj.childrenVNodeData.length) {
+          for (const data of obj.childrenVNodeData) {
+            for (const value of data) {
+              if (isSsrAttrs(value)) {
+                discoveredValues.push(...value);
+              }
+            }
+          }
+        }
       } else if (isJSXNode(obj)) {
         discoveredValues.push(obj.type, obj.props, obj.constProps, obj.children);
       } else if (Array.isArray(obj)) {
@@ -899,6 +913,9 @@ export const createSerializationContext = (
     } while (discoveredValues.length);
   }
 };
+
+const isSsrAttrs = (value: number | SsrAttrs): value is SsrAttrs =>
+  Array.isArray(value) && value.length > 0;
 
 const promiseResults = new WeakMap<Promise<any>, [boolean, unknown]>();
 

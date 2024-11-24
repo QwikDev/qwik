@@ -134,6 +134,23 @@ export const createQRL = <TYPE>(
     return symbolRef !== null ? symbolRef : resolve(containerEl);
   };
 
+  // Wrap functions to provide their lexical scope
+  const wrapFn = (fn: TYPE): TYPE => {
+    if (typeof fn !== 'function' || (!capture?.length && !captureRef?.length)) {
+      return fn;
+    }
+    return function (this: unknown, ...args: QrlArgs<TYPE>) {
+      let context = tryGetInvokeContext();
+      if (context) {
+        return fn.apply(this, args);
+      }
+      context = newInvokeContext();
+      context.$qrl$ = qrl;
+      context.$event$ = this as Event;
+      return invoke.call(this, context, fn as any, ...args);
+    } as TYPE;
+  };
+
   const resolve = async (containerEl?: Element): Promise<TYPE> => {
     if (symbolRef !== null) {
       // Resolving (Promise) or already resolved (value)
@@ -209,23 +226,6 @@ export const createQRL = <TYPE>(
     // Replace symbolRef with (a promise for) the value or wrapped function
     symbolRef = maybeThen(symbolRef, (resolved) => (qrl.resolved = symbolRef = wrapFn(resolved)));
   }
-
-  // Wrap functions to provide their lexical scope
-  const wrapFn = (fn: TYPE): TYPE => {
-    if (typeof fn !== 'function' || (!capture?.length && !captureRef?.length)) {
-      return fn;
-    }
-    return function (this: unknown, ...args: QrlArgs<TYPE>) {
-      let context = tryGetInvokeContext();
-      if (context) {
-        return fn.apply(this, args);
-      }
-      context = newInvokeContext();
-      context.$qrl$ = qrl;
-      context.$event$ = this as Event;
-      return invoke.call(this, context, fn as any, ...args);
-    } as TYPE;
-  };
 
   if (isDev) {
     Object.defineProperty(qrl, '_devOnlySymbolRef', {

@@ -63,7 +63,7 @@ export const VNodeDataChar = {
   KEY_CHAR: /* ******** */ '@',
   SEQ: /* **************** */ 91, // `[` - `q:seq' - Seq value from `useSequentialScope()`
   SEQ_CHAR: /* ******** */ '[',
-  DON_T_USE: /* ********** */ 93, // `\` - SKIP because `\` is used as escaping
+  DON_T_USE: /* ********** */ 92, // `\` - SKIP because `\` is used as escaping
   DON_T_USE_CHAR: '\\',
   CONTEXT: /* ************ */ 93, // `]` - `q:ctx' - Component context/props
   CONTEXT_CHAR: /* **** */ ']',

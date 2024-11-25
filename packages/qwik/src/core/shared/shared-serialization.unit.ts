@@ -1,7 +1,7 @@
 import { $, component$ } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { _fnSignal, _wrapProp } from '../internal';
-import { EffectData, type Signal } from '../signal/signal';
+import { EffectPropData, type Signal } from '../signal/signal';
 import { createComputed$, createSignal, isSignal } from '../signal/signal.public';
 import { StoreFlags, createStore } from '../signal/store';
 import { createResourceReturn } from '../use/use-resource';
@@ -425,15 +425,14 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.JSXNode));
     it.todo(title(TypeIds.PropsProxy));
     it(title(TypeIds.EffectData), async () => {
-      expect(await dump(new EffectData({ hi: true }))).toMatchInlineSnapshot(`
+      expect(await dump(new EffectPropData({ $isConst$: true, $scopedStyleIdPrefix$: null })))
+        .toMatchInlineSnapshot(`
         "
         0 EffectData [
-          Object [
-            String "hi"
-            Constant true
-          ]
+          Constant null
+          Constant true
         ]
-        (22 chars)"
+        (14 chars)"
       `);
     });
   });
@@ -620,10 +619,12 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.JSXNode));
     it.todo(title(TypeIds.PropsProxy));
     it(title(TypeIds.EffectData), async () => {
-      const objs = await serialize(new EffectData({ hi: true }));
-      const effect = deserialize(objs)[0] as EffectData;
-      expect(effect).toBeInstanceOf(EffectData);
-      expect(effect.data).toEqual({ hi: true });
+      const objs = await serialize(
+        new EffectPropData({ $isConst$: true, $scopedStyleIdPrefix$: null })
+      );
+      const effect = deserialize(objs)[0] as EffectPropData;
+      expect(effect).toBeInstanceOf(EffectPropData);
+      expect(effect.data).toEqual({ $isConst$: true, $scopedStyleIdPrefix$: null });
     });
   });
 

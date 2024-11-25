@@ -39,7 +39,7 @@ import {
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
 } from '../shared/utils/event-names';
-import { ChoreType, type NodePropData } from '../shared/scheduler';
+import { ChoreType } from '../shared/scheduler';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
 import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
@@ -91,7 +91,7 @@ import {
   type VNodeJournal,
 } from './vnode';
 import { getNewElementNamespaceData } from './vnode-namespace';
-import { WrappedSignal, EffectProperty, isSignal, EffectData } from '../signal/signal';
+import { WrappedSignal, EffectProperty, isSignal, EffectPropData } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
 import { executeComponent } from '../shared/component-execution';
 import { isParentSlotProp, isSlotProp } from '../shared/utils/prop';
@@ -630,7 +630,7 @@ export const vnode_diff = (
         }
 
         if (isSignal(value)) {
-          const signalData = new EffectData<NodePropData>({
+          const signalData = new EffectPropData({
             $scopedStyleIdPrefix$: scopedStyleIdPrefix,
             $isConst$: true,
           });

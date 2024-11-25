@@ -81,10 +81,10 @@ export const isSignal = (value: any): value is ISignal<unknown> => {
 export type Effect = Task | VNode | ISsrNode | Signal;
 
 /** @internal */
-export class EffectData<T extends Record<string, any> = Record<string, any>> {
-  data: T;
+export class EffectPropData {
+  data: NodePropData;
 
-  constructor(data: T) {
+  constructor(data: NodePropData) {
     this.data = data;
   }
 }
@@ -132,7 +132,7 @@ export type EffectSubscriptions = [
   ],
   // List of signals to release
   ...(
-    | EffectData // Metadata for the effect
+    | EffectPropData // Metadata for the effect
     | string // List of properties (Only used with Store (not with Signal))
     | Signal
     | TargetType
@@ -359,10 +359,9 @@ export const triggerEffects = (
         container.$scheduler$(ChoreType.NODE_DIFF, host, target, signal as Signal);
       } else {
         const host: HostElement = effect as any;
-        let effectData = effectSubscriptions[EffectSubscriptionsProp.FIRST_BACK_REF_OR_DATA];
-        if (effectData instanceof EffectData) {
-          effectData = effectData as EffectData<NodePropData>;
-          const data = effectData.data as NodePropData;
+        const effectData = effectSubscriptions[EffectSubscriptionsProp.FIRST_BACK_REF_OR_DATA];
+        if (effectData instanceof EffectPropData) {
+          const data = effectData.data;
           const payload: NodePropPayload = {
             ...data,
             $value$: signal as Signal,

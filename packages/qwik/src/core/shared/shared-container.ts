@@ -3,7 +3,7 @@ import type { ContextId } from '../use/use-context';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import type { ValueOrPromise } from './utils/types';
 import { version } from '../version';
-import type { EffectData } from '../signal/signal';
+import type { EffectPropData } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
 import type { StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { Scheduler } from './scheduler';
@@ -45,7 +45,7 @@ export abstract class _SharedContainer implements Container {
     signal: Signal,
     subscriber: HostElement,
     property: string,
-    data: EffectData
+    data: EffectPropData
   ): T {
     return trackSignalAndAssignHost(signal, subscriber, property, this, data);
   }

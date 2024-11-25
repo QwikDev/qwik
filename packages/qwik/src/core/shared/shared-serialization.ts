@@ -8,7 +8,7 @@ import type { VNode } from '../client/types';
 import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
 import {
   ComputedSignal,
-  EffectData,
+  EffectPropData,
   NEEDS_COMPUTATION,
   Signal,
   WrappedSignal,
@@ -44,7 +44,7 @@ import {
   type SyncQRLInternal,
 } from './qrl/qrl-class';
 import type { QRL } from './qrl/qrl.public';
-import { ChoreType } from './scheduler';
+import { ChoreType, type NodePropData } from './scheduler';
 import type { DeserializeContainer, HostElement, ObjToProxyMap } from './types';
 import { _CONST_PROPS, _VAR_PROPS } from './utils/constants';
 import { isElement, isNode } from './utils/element';
@@ -380,8 +380,9 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
       propsProxy[_CONST_PROPS] = (data as any)[1];
       break;
     case TypeIds.EffectData: {
-      const effectData = target as EffectData;
-      effectData.data = (data as any[])[0];
+      const effectData = target as EffectPropData;
+      effectData.data.$scopedStyleIdPrefix$ = (data as any[])[0];
+      effectData.data.$isConst$ = (data as any[])[1];
       break;
     }
     default:
@@ -522,7 +523,7 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
         return throwErrorAndStop('expected vnode for ref prop, but got ' + typeof vNode);
       }
     case TypeIds.EffectData:
-      return new EffectData(null!);
+      return new EffectPropData({} as NodePropData);
 
     default:
       return throwErrorAndStop('unknown allocate type: ' + typeId);
@@ -841,7 +842,10 @@ export const createSerializationContext = (
       } else if (isSsrNode(obj)) {
         for (const value of obj.vnodeData) {
           if (isSsrAttrs(value)) {
-            discoveredValues.push(...value);
+            for (let i = 1; i < value.length; i += 2) {
+              const attrValue = value[i];
+              discoveredValues.push(attrValue);
+            }
           }
         }
 
@@ -849,7 +853,10 @@ export const createSerializationContext = (
           for (const data of obj.childrenVNodeData) {
             for (const value of data) {
               if (isSsrAttrs(value)) {
-                discoveredValues.push(...value);
+                for (let i = 1; i < value.length; i += 2) {
+                  const attrValue = value[i];
+                  discoveredValues.push(attrValue);
+                }
               }
             }
           }
@@ -874,7 +881,7 @@ export const createSerializationContext = (
           }
         );
         promises.push(obj);
-      } else if (obj instanceof EffectData) {
+      } else if (obj instanceof EffectPropData) {
         discoveredValues.push(obj.data);
       } else if (isObjectLiteral(obj)) {
         Object.entries(obj).forEach(([key, value]) => {
@@ -1078,8 +1085,8 @@ function serialize(serializationContext: SerializationContext): void {
           ? [varProps]
           : 0;
       output(TypeIds.PropsProxy, out);
-    } else if (value instanceof EffectData) {
-      output(TypeIds.EffectData, [value.data]);
+    } else if (value instanceof EffectPropData) {
+      output(TypeIds.EffectData, [value.data.$scopedStyleIdPrefix$, value.data.$isConst$]);
     } else if (isStore(value)) {
       if (isResource(value)) {
         // let render know about the resource

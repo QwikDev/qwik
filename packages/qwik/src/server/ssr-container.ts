@@ -59,7 +59,6 @@ import {
   type JSXChildren,
   type JSXNodeInternal,
   type JSXOutput,
-  type NodePropData,
   type SerializationContext,
   type SsrAttrKey,
   type SsrAttrValue,
@@ -1138,7 +1137,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
         if (isSignal(value)) {
           const lastNode = this.getLastNode();
-          const signalData = new EffectData<NodePropData>({
+          const signalData = new EffectData({
             $scopedStyleIdPrefix$: styleScopedId,
             $isConst$: isConst,
           });

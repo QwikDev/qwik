@@ -25,7 +25,7 @@ import { _getQContainerElement } from '../client/dom-container';
 import type { ContainerElement } from '../client/types';
 import {
   WrappedSignal,
-  type EffectData,
+  type EffectPropData,
   type EffectSubscriptions,
   type EffectSubscriptionsProp,
 } from '../signal/signal';
@@ -240,7 +240,7 @@ export const trackSignal = <T>(
   subscriber: EffectSubscriptions[EffectSubscriptionsProp.EFFECT],
   property: EffectSubscriptions[EffectSubscriptionsProp.PROPERTY],
   container: Container,
-  data?: EffectData
+  data?: EffectPropData
 ): T => {
   const previousSubscriber = trackInvocation.$effectSubscriber$;
   const previousContainer = trackInvocation.$container$;
@@ -262,7 +262,7 @@ export const trackSignalAndAssignHost = (
   host: HostElement,
   property: EffectSubscriptions[EffectSubscriptionsProp.PROPERTY],
   container: Container,
-  data?: EffectData
+  data?: EffectPropData
 ) => {
   if (value instanceof WrappedSignal && value.$hostElement$ !== host && host) {
     value.$hostElement$ = host;

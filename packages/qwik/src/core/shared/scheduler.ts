@@ -403,11 +403,13 @@ export const createScheduler = (
       }
       case ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS: {
         const target = chore.$target$ as ComputedSignal<unknown> | WrappedSignal<unknown>;
+        const forceRunEffects = target.$forceRunEffects$;
+        target.$forceRunEffects$ = false;
         if (!target.$effects$?.length) {
           break;
         }
         returnValue = retryOnPromise(() => {
-          if (target.$computeIfNeeded$()) {
+          if (target.$computeIfNeeded$() || forceRunEffects) {
             triggerEffects(container, target, target.$effects$);
           }
         });

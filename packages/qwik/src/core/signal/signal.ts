@@ -393,6 +393,7 @@ export class ComputedSignal<T> extends Signal<T> {
   // We need a separate flag to know when the computation needs running because
   // we need the old value to know if effects need running after computation
   $invalid$: boolean = true;
+  $forceRunEffects$: boolean = false;
 
   constructor(container: Container | null, fn: QRLInternal<() => T>) {
     // The value is used for comparison when signals trigger, which can only happen
@@ -403,6 +404,7 @@ export class ComputedSignal<T> extends Signal<T> {
 
   $invalidate$() {
     this.$invalid$ = true;
+    this.$forceRunEffects$ = false;
     // We should only call subscribers if the calculation actually changed.
     // Therefore, we need to calculate the value now.
     this.$container$?.$scheduler$(ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS, null, this);
@@ -414,11 +416,15 @@ export class ComputedSignal<T> extends Signal<T> {
    */
   force() {
     this.$invalid$ = true;
+    this.$forceRunEffects$ = false;
     triggerEffects(this.$container$, this, this.$effects$);
   }
 
   get untrackedValue() {
-    this.$computeIfNeeded$();
+    const didChange = this.$computeIfNeeded$();
+    if (didChange) {
+      this.$forceRunEffects$ = didChange;
+    }
     assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state');
     return this.$untrackedValue$;
   }
@@ -475,6 +481,7 @@ export class WrappedSignal<T> extends Signal<T> implements Subscriber {
   $invalid$: boolean = true;
   $effectDependencies$: Subscriber[] | null = null;
   $hostElement$: HostElement | null = null;
+  $forceRunEffects$: boolean = false;
 
   constructor(
     container: Container | null,
@@ -490,6 +497,7 @@ export class WrappedSignal<T> extends Signal<T> implements Subscriber {
 
   $invalidate$() {
     this.$invalid$ = true;
+    this.$forceRunEffects$ = false;
     // We should only call subscribers if the calculation actually changed.
     // Therefore, we need to calculate the value now.
     this.$container$?.$scheduler$(
@@ -505,11 +513,15 @@ export class WrappedSignal<T> extends Signal<T> implements Subscriber {
    */
   force() {
     this.$invalid$ = true;
+    this.$forceRunEffects$ = false;
     triggerEffects(this.$container$, this, this.$effects$);
   }
 
   get untrackedValue() {
-    this.$computeIfNeeded$();
+    const didChange = this.$computeIfNeeded$();
+    if (didChange) {
+      this.$forceRunEffects$ = didChange;
+    }
     assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state');
     return this.$untrackedValue$;
   }

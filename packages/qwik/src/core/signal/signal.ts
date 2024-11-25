@@ -11,34 +11,29 @@
  *   - It needs to store a function which needs to re-run.
  *   - It is `Readonly` because it is computed.
  */
+import type { VNode } from '../client/types';
+import { vnode_getProp, vnode_isVNode, vnode_isVirtualVNode, vnode_setProp } from '../client/vnode';
 import { pad, qwikDebugToString } from '../debug';
+import type { OnRenderFn } from '../shared/component.public';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
+import type { Props } from '../shared/jsx/jsx-runtime';
 import { type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { trackSignal, tryGetInvokeContext } from '../use/use-core';
-import { Task, TaskFlags, isTask } from '../use/use-task';
+import { ChoreType, type NodePropData, type NodePropPayload } from '../shared/scheduler';
+import type { Container, HostElement } from '../shared/types';
 import { logError, throwErrorAndStop } from '../shared/utils/log';
 import { ELEMENT_PROPS, OnRenderProp, QSubscribers } from '../shared/utils/markers';
 import { isPromise, retryOnPromise } from '../shared/utils/promises';
 import { qDev } from '../shared/utils/qdev';
-import type { VNode } from '../client/types';
-import { vnode_getProp, vnode_isVirtualVNode, vnode_isVNode, vnode_setProp } from '../client/vnode';
-import { ChoreType, type NodePropData, type NodePropPayload } from '../shared/scheduler';
-import type { Container, HostElement } from '../shared/types';
 import type { ISsrNode } from '../ssr/ssr-types';
+import { trackSignal, tryGetInvokeContext } from '../use/use-core';
+import { Task, TaskFlags, isTask } from '../use/use-task';
+import { NEEDS_COMPUTATION } from './flags';
+import { Subscriber, isSubscriber } from './signal-subscriber';
 import type { Signal as ISignal, ReadonlySignal } from './signal.public';
 import type { TargetType } from './store';
-import { isSubscriber, Subscriber } from './signal-subscriber';
-import type { Props } from '../shared/jsx/jsx-runtime';
-import type { OnRenderFn } from '../shared/component.public';
 
 const DEBUG = false;
-
-/**
- * Special value used to mark that a given signal needs to be computed. This is essentially a
- * "marked as dirty" flag.
- */
-export const NEEDS_COMPUTATION: any = Symbol('invalid');
 
 // eslint-disable-next-line no-console
 const log = (...args: any[]) => console.log('SIGNAL', ...args.map(qwikDebugToString));

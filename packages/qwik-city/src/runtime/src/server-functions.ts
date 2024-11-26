@@ -197,7 +197,7 @@ export const routeLoaderQrl = ((
     For more information check: https://qwik.dev/qwikcity/route-loader/
 
     If your are managing reusable logic or a library it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception.
-    For more information check: https://qwik.dev/docs/cookbook/re-exporting-loaders/`);
+    For more information check: https://qwik.dev/docs/re-exporting-loaders/`);
       }
       return _wrapProp(state, id);
     });

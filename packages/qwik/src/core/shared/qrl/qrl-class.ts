@@ -1,6 +1,8 @@
 import { isDev } from '@qwik.dev/core/build';
-import { isSignal } from '../../signal/signal';
-import type { Signal } from '../../signal/signal.public';
+import { assertDefined } from '../error/assert';
+import { qError, QError_qrlIsNotFunction } from '../error/error';
+import { getPlatform, isServerPlatform } from '../platform/platform';
+import { verifySerializable } from '../utils/serialize-utils';
 import {
   invoke,
   newInvokeContext,
@@ -9,16 +11,14 @@ import {
   type InvokeContext,
   type InvokeTuple,
 } from '../../use/use-core';
-import { assertDefined } from '../error/assert';
-import { QError_qrlIsNotFunction, qError } from '../error/error';
-import { getPlatform, isServerPlatform } from '../platform/platform';
-import { QInstanceAttr, getQFuncs } from '../utils/markers';
+import { getQFuncs, QInstanceAttr } from '../utils/markers';
 import { isPromise, maybeThen } from '../utils/promises';
 import { qDev, qSerialize, qTest, seal } from '../utils/qdev';
-import { verifySerializable } from '../utils/serialize-utils';
 import { isArray, isFunction, type ValueOrPromise } from '../utils/types';
+import { isSignal } from '../../signal/signal';
 import type { QRLDev } from './qrl';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
+import type { Signal } from '../../signal/signal.public';
 
 export const isQrl = <T = unknown>(value: unknown): value is QRLInternal<T> => {
   return typeof value === 'function' && typeof (value as any).getSymbol === 'function';

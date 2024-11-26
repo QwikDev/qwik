@@ -31,14 +31,9 @@ import type { TargetType } from './store';
 import { isSubscriber, Subscriber } from './signal-subscriber';
 import type { Props } from '../shared/jsx/jsx-runtime';
 import type { OnRenderFn } from '../shared/component.public';
+import { NEEDS_COMPUTATION } from './flags';
 
 const DEBUG = false;
-
-/**
- * Special value used to mark that a given signal needs to be computed. This is essentially a
- * "marked as dirty" flag.
- */
-export const NEEDS_COMPUTATION: any = Symbol('invalid');
 
 // eslint-disable-next-line no-console
 const log = (...args: any[]) => console.log('SIGNAL', ...args.map(qwikDebugToString));

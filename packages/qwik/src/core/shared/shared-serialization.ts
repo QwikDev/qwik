@@ -6,13 +6,8 @@ import { VNodeDataFlag, type VNodeData } from '../../server/vnode-data';
 import { type DomContainer } from '../client/dom-container';
 import type { VNode } from '../client/types';
 import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
-import {
-  ComputedSignal,
-  EffectData,
-  NEEDS_COMPUTATION,
-  Signal,
-  WrappedSignal,
-} from '../signal/signal';
+import { NEEDS_COMPUTATION } from '../signal/flags';
+import { ComputedSignal, EffectData, Signal, WrappedSignal } from '../signal/signal';
 import type { Subscriber } from '../signal/signal-subscriber';
 import {
   STORE_ARRAY_PROP,

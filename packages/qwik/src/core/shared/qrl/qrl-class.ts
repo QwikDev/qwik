@@ -88,8 +88,8 @@ export const createQRL = <TYPE>(
   let _containerEl: Element | undefined;
 
   const qrl = async function (this: unknown, ...args: QrlArgs<TYPE>) {
-    const fn = invokeFn.call(this, tryGetInvokeContext());
-    const result = await fn(...args);
+    const boundedFn = bindFnToContext.call(this, tryGetInvokeContext());
+    const result = await boundedFn(...args);
     return result;
   } as QRLInternal<TYPE>;
 
@@ -98,6 +98,40 @@ export const createQRL = <TYPE>(
       _containerEl = el;
     }
     return _containerEl;
+  };
+
+  function bindFnToContext(
+    this: unknown,
+    currentCtx?: InvokeContext | InvokeTuple,
+    beforeFn?: () => void | boolean
+  ) {
+    // Note that we bind the current `this`
+    return (...args: QrlArgs<TYPE>): QrlReturn<TYPE> =>
+      maybeThen(resolveLazy(), (fn) => {
+        if (!isFunction(fn)) {
+          throw qError(QError_qrlIsNotFunction);
+        }
+        if (beforeFn && beforeFn() === false) {
+          return;
+        }
+        const context = createOrReuseInvocationContext(currentCtx);
+        const prevQrl = context.$qrl$;
+        const prevEvent = context.$event$;
+        // Note that we set the qrl here instead of in wrapFn because
+        // it is possible we're called on a copied qrl
+        context.$qrl$ = qrl;
+        context.$event$ ||= this as Event;
+        try {
+          return invoke.call(this, context, fn, ...(args as Parameters<typeof fn>));
+        } finally {
+          context.$qrl$ = prevQrl;
+          context.$event$ = prevEvent;
+        }
+      });
+  }
+
+  const resolveLazy = (containerEl?: Element): ValueOrPromise<TYPE> => {
+    return symbolRef !== null ? symbolRef : resolve(containerEl);
   };
 
   // Wrap functions to provide their lexical scope
@@ -157,40 +191,6 @@ export const createQRL = <TYPE>(
     return symbolRef;
   };
 
-  const resolveLazy = (containerEl?: Element): ValueOrPromise<TYPE> => {
-    return symbolRef !== null ? symbolRef : resolve(containerEl);
-  };
-
-  function invokeFn(
-    this: unknown,
-    currentCtx?: InvokeContext | InvokeTuple,
-    beforeFn?: () => void | boolean
-  ) {
-    // Note that we bind the current `this`
-    return (...args: QrlArgs<TYPE>): QrlReturn<TYPE> =>
-      maybeThen(resolveLazy(), (f) => {
-        if (!isFunction(f)) {
-          throw qError(QError_qrlIsNotFunction);
-        }
-        if (beforeFn && beforeFn() === false) {
-          return;
-        }
-        const context = createOrReuseInvocationContext(currentCtx);
-        const prevQrl = context.$qrl$;
-        const prevEvent = context.$event$;
-        // Note that we set the qrl here instead of in wrapFn because
-        // it is possible we're called on a copied qrl
-        context.$qrl$ = qrl;
-        context.$event$ ||= this as Event;
-        try {
-          return invoke.call(this, context, f, ...(args as Parameters<typeof f>));
-        } finally {
-          context.$qrl$ = prevQrl;
-          context.$event$ = prevEvent;
-        }
-      });
-  }
-
   const createOrReuseInvocationContext = (invoke: InvokeContext | InvokeTuple | undefined) => {
     if (invoke == null) {
       return newInvokeContext();
@@ -215,7 +215,7 @@ export const createQRL = <TYPE>(
     $symbol$: symbol,
     $refSymbol$: refSymbol,
     $hash$: hash,
-    getFn: invokeFn,
+    getFn: bindFnToContext,
 
     $capture$: capture,
     $captureRef$: captureRef,
@@ -226,6 +226,7 @@ export const createQRL = <TYPE>(
     // Replace symbolRef with (a promise for) the value or wrapped function
     symbolRef = maybeThen(symbolRef, (resolved) => (qrl.resolved = symbolRef = wrapFn(resolved)));
   }
+
   if (isDev) {
     Object.defineProperty(qrl, '_devOnlySymbolRef', {
       get() {

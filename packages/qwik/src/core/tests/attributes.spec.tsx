@@ -2,7 +2,7 @@ import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { component$, useSignal, useStore, Fragment as Component, Fragment } from '@qwik.dev/core';
 
-const debug = false; //true;
+const debug = true; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
@@ -234,6 +234,71 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <button data-foo="2" data-bar="2"></button>
+      </Component>
+    );
+  });
+
+  it('should add and remove attribute', async () => {
+    const Cmp = component$(() => {
+      const hide = useSignal(false);
+      const required = useSignal(true);
+      return (
+        <>
+          <button
+            onClick$={() => {
+              hide.value = !hide.value;
+            }}
+          ></button>
+          <span onClick$={() => (required.value = !required.value)}></span>
+          {hide.value ? <input id="input" /> : <input id="input" attr-test={required.value} />}
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <span></span>
+          <input id="input" attr-test={true} />
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <span></span>
+          <input id="input" />
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <span></span>
+          <input id="input" attr-test={true} />
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'span', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <span></span>
+          <input id="input" attr-test={false} />
+        </Fragment>
       </Component>
     );
   });

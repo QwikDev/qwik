@@ -285,8 +285,8 @@ export default component$(() => {
   });
 
  useTask$(({ track }) => {
-    track(() => props.login);
-    if (!props.login) return;
+     const login = track(() => props.login);
+    if (!login) return;
     for (const [key,value] of Object.entries(props.login)) {
       setValue(loginForm, key, value);
     }

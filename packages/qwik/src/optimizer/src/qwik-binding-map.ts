@@ -4,80 +4,80 @@
 // prettier-ignore
 export const QWIK_BINDING_MAP = {
 
-  "darwin": {
+  'darwin': {
 
-    "arm64": [
+    'arm64': [
 
       {
 
-        "platform": "darwin",
+        'platform': 'darwin',
 
-        "arch": "arm64",
+        'arch': 'arm64',
 
-        "abi": null,
+        'abi': null,
 
-        "platformArchABI": "qwik.darwin-arm64.node"
+        'platformArchABI': 'qwik.darwin-arm64.node',
 
-      }
+      },
 
     ],
 
-    "x64": [
+    'x64': [
 
       {
 
-        "platform": "darwin",
+        'platform': 'darwin',
 
-        "arch": "x64",
+        'arch': 'x64',
 
-        "abi": null,
+        'abi': null,
 
-        "platformArchABI": "qwik.darwin-x64.node"
+        'platformArchABI': 'qwik.darwin-x64.node',
 
-      }
+      },
 
-    ]
+    ],
 
   },
 
-  "win32": {
+  'win32': {
 
-    "x64": [
+    'x64': [
 
       {
 
-        "platform": "win32",
+        'platform': 'win32',
 
-        "arch": "x64",
+        'arch': 'x64',
 
-        "abi": "msvc",
+        'abi': 'msvc',
 
-        "platformArchABI": "qwik.win32-x64-msvc.node"
+        'platformArchABI': 'qwik.win32-x64-msvc.node',
 
-      }
+      },
 
-    ]
+    ],
 
   },
 
-  "linux": {
+  'linux': {
 
-    "x64": [
+    'x64': [
 
       {
 
-        "platform": "linux",
+        'platform': 'linux',
 
-        "arch": "x64",
+        'arch': 'x64',
 
-        "abi": "gnu",
+        'abi': 'gnu',
 
-        "platformArchABI": "qwik.linux-x64-gnu.node"
+        'platformArchABI': 'qwik.linux-x64-gnu.node',
 
-      }
+      },
 
-    ]
+    ],
 
-  }
+  },
 
 };

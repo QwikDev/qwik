@@ -90,6 +90,9 @@ export const qwikLoader = (
     if (element.hasAttribute('preventdefault:' + eventName)) {
       ev.preventDefault();
     }
+    if (element.hasAttribute('stoppropagation:' + eventName)) {
+      ev.stopPropagation();
+    }
     const ctx = element['_qc_'];
     const relevantListeners = ctx && ctx.li.filter((li) => li[0] === attrName);
     if (relevantListeners && relevantListeners.length > 0) {
@@ -256,7 +259,7 @@ export const qwikLoader = (
           events.add(eventNameOrNode);
         }
       } else {
-        // If it is a new root, we also need this root to catch up to all of the events sofar.
+        // If it is a new root, we also need this root to catch up to all of the events so far.
         if (!roots.has(eventNameOrNode)) {
           events.forEach((eventName) =>
             addEventListener(eventNameOrNode, eventName, processDocumentEvent, true)

@@ -275,11 +275,11 @@ Sometimes, you may need to initialize or update the state of your form from the 
 ```tsx
 import { setValue, useForm } from "@modular-forms/qwik";
 
-export interfaceFormProps {
+export interface FormProps {
  login?: LoginForm
 }
 
-export default component$(() => {
+export default component$<FormProps>((props) => {
   const [loginForm, { Form, Field }] = useForm<LoginForm>({
    // rest of the code...
   });

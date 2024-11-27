@@ -9,21 +9,13 @@ function updateFileContent(path: string, content: string) {
   log.info(`"${path}" has been updated`);
 }
 
-export function replacePackage(
-  oldPackageName: string,
-  newPackageName: string,
-  newPackageVersion: string
-): void {
-  replacePackageInDependencies(oldPackageName, newPackageName, newPackageVersion);
+export function replacePackage(oldPackageName: string, newPackageName: string): void {
+  replacePackageInDependencies(oldPackageName, newPackageName);
 
   replaceMentions(oldPackageName, newPackageName);
 }
 
-function replacePackageInDependencies(
-  oldPackageName: string,
-  newPackageName: string,
-  newPackageVersion: string
-) {
+function replacePackageInDependencies(oldPackageName: string, newPackageName: string) {
   visitNotIgnoredFiles('.', (path) => {
     if (basename(path) !== 'package.json') {
       return;
@@ -38,7 +30,8 @@ function replacePackageInDependencies(
         packageJson.optionalDependencies ?? {},
       ]) {
         if (oldPackageName in deps) {
-          deps[newPackageName] = newPackageVersion;
+          // We keep the old version intentionally. It will be updated later within another step of the migration.
+          deps[newPackageName] = deps[oldPackageName];
           delete deps[oldPackageName];
         }
       }

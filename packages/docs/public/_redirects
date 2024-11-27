@@ -61,6 +61,7 @@
 /docs/components/lifecycle/ /docs/components/tasks/ 308
 /docs/components/projection/ /docs/components/slots/ 308
 /docs/components/resource/ /docs/components/state/ 308
+/docs/cookbook/re-exporting-loaders/ /docs/re-exporting-loaders/ 308
 
 /qwikcity/adaptors/* /docs/deployments/:splat 308
 /qwikcity/* /docs/:splat 308

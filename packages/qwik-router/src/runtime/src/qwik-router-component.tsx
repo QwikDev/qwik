@@ -409,7 +409,10 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
         }
 
         // Update route location
-        routeLocation.prevUrl = prevUrl;
+        if (!isSamePath(trackUrl, prevUrl)) {
+          routeLocation.prevUrl = prevUrl;
+        }
+
         routeLocation.url = trackUrl;
         routeLocation.params = { ...params };
 

@@ -88,6 +88,9 @@ export const qwikLoader = (
     if (element.hasAttribute('preventdefault:' + eventName)) {
       ev.preventDefault();
     }
+    if (element.hasAttribute('stoppropagation:' + eventName)) {
+      ev.stopPropagation();
+    }
     // <DELETE ME LATER>: After Qwik 2.0 release
     // This needs to be here for backward compatibility with Qwik 1.0, but at some point we can drop it.
     const ctx = (element as any)['_qc_'];
@@ -271,7 +274,7 @@ export const qwikLoader = (
           events.add(eventNameOrNode);
         }
       } else {
-        // If it is a new root, we also need this root to catch up to all of the events sofar.
+        // If it is a new root, we also need this root to catch up to all of the events so far.
         if (!roots.has(eventNameOrNode)) {
           events.forEach((eventName) =>
             addEventListener(eventNameOrNode, eventName, processDocumentEvent, true)

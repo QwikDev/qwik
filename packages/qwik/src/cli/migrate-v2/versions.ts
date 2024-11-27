@@ -1,6 +1,7 @@
-export const versions = {
-  '@qwik.dev/core': '2.0.0-alpha.1',
-  '@qwik.dev/router': '2.0.0-alpha.1',
-  '@qwik.dev/react': '2.0.0-alpha.1',
-  'eslint-plugin-qwik': '2.0.0-alpha.1',
-};
+export const versionTagPriority = ['latest', 'v2', 'rc', 'beta', 'alpha'];
+export const packageNames = [
+  '@qwik.dev/core',
+  '@qwik.dev/router',
+  '@qwik.dev/react',
+  'eslint-plugin-qwik',
+];

@@ -1,5 +1,30 @@
 # @builder.io/qwik
 
+## 1.11.0
+
+### Minor Changes
+
+- CHORE: Prepare backwards compatibility for V1 libraries in V2. (by [@wmertens](https://github.com/wmertens) in [#7044](https://github.com/QwikDev/qwik/pull/7044))
+
+  We move internal fields `immutableProps` and `flags` out of JSXNode as they are not meant for public use.
+
+  This will allow projects using older V1 libraries to continue to work with the Qwik V2 by adding the following `package.json` changes:
+
+  ```json
+  {
+    "dependencies": {
+      "@builder.io/qwik": "^1.11.0",
+      "@qwik.dev/core": "^2.0.0"
+    }
+  }
+  ```
+
+  And will prevent typescript errors when using libraries which haven't upgraded to V2 yet.
+
+- ✨ add monorepo support to the `qwik add` command by adding a `projectDir` param (by [@shairez](https://github.com/shairez) in [#7059](https://github.com/QwikDev/qwik/pull/7059))
+
+  That way you can run `qwik add --projectDir=packages/my-package` and it will add the feature to the specified project/package (sub) folder, instead of the root folder.
+
 ## 1.10.0
 
 ### Minor Changes

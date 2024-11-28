@@ -43,10 +43,6 @@ const appNames = readdirSync(startersAppsDir).filter(
   (p) => statSync(join(startersAppsDir, p)).isDirectory() && p !== "base",
 );
 
-const rootDir = resolve(__dirname, "..");
-const packagesDir = resolve(rootDir, "packages");
-const qwikRouterMjs = join(packagesDir, "qwik-router", "lib", "index.qwik.mjs");
-
 /** Used when qwik-router server is enabled */
 const qwikRouterVirtualEntry = "@router-ssr-entry";
 const entrySsrFileName = "entry.ssr.tsx";
@@ -198,16 +194,7 @@ export {
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          /**
-           * normally qwik finds qwik-router via package.json but we don't want that
-           * because it causes it to try to lookup the special qwik router imports
-           * even when we're not actually importing qwik-router
-           */
-          disableVendorScan: true,
-          vendorRoots: enableRouterServer ? [qwikRouterMjs] : [],
-          entryStrategy: {
-            type: "segment",
-          },
+          entryStrategy: { type: "segment" },
           client: {
             manifestOutput(manifest) {
               clientManifest = manifest;

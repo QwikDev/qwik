@@ -5,7 +5,6 @@ import type {
   GlobalInjections,
   Optimizer,
   OptimizerOptions,
-  OptimizerSystem,
   QwikManifest,
   TransformModule,
 } from '../types';
@@ -25,7 +24,6 @@ import {
   type NormalizedQwikPluginOptions,
   type QwikBuildMode,
   type QwikBuildTarget,
-  type QwikPackages,
   type QwikPluginOptions,
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
@@ -96,7 +94,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     async config(viteConfig, viteEnv) {
       await qwikPlugin.init();
 
-      const sys = qwikPlugin.getSys();
       const path = qwikPlugin.getPath();
 
       let target: QwikBuildTarget;
@@ -149,8 +146,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (input && typeof input === 'string') {
         input = [input];
       }
-      const shouldFindVendors =
-        !qwikViteOpts.disableVendorScan && (target !== 'lib' || viteCommand === 'serve');
       viteAssetsDir = viteConfig.build?.assetsDir;
       const useAssetsDir = target === 'client' && !!viteAssetsDir && viteAssetsDir !== '_astro';
       const pluginOpts: QwikPluginOptions = {
@@ -208,8 +203,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         clientDevInput = qwikPlugin.normalizePath(clientDevInput);
       }
 
-      const vendorRoots = shouldFindVendors ? await findQwikRoots(sys, sys.cwd()) : [];
-      const vendorIds = vendorRoots.map((v) => v.id);
       const isDevelopment = buildMode === 'development';
       const qDevKey = 'globalThis.qDev';
       const qTestKey = 'globalThis.qTest';
@@ -221,17 +214,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       const updatedViteConfig: UserConfig = {
         ssr: {
-          noExternal: [
-            QWIK_CORE_ID,
-            QWIK_CORE_INTERNAL_ID,
-            QWIK_CORE_SERVER,
-            QWIK_BUILD_ID,
-            ...vendorIds,
-          ],
+          noExternal: [QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
         },
         envPrefix: ['VITE_', 'PUBLIC_'],
         resolve: {
-          dedupe: [...DEDUPE, ...vendorIds],
+          dedupe: [...DEDUPE],
           conditions: buildMode === 'production' && target === 'client' ? ['min'] : [],
           alias: {
             '@builder.io/qwik': '@qwik.dev/core',
@@ -264,8 +251,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             QWIK_JSX_DEV_RUNTIME_ID,
             QWIK_BUILD_ID,
             QWIK_CLIENT_MANIFEST_ID,
-            // Sadly we can't specify **/*.qwik.*, so we need to specify each one
-            ...vendorIds,
             // v1 imports, they are removed during transform but vite doesn't know that
             '@builder.io/qwik',
             '@builder.io/qwik-city',
@@ -713,90 +698,6 @@ export async function render(document, rootNode, opts) {
   }
 }`;
 }
-
-async function findDepPkgJsonPath(sys: OptimizerSystem, dep: string, parent: string) {
-  const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-  let root = parent;
-  while (root) {
-    const pkg = sys.path.join(root, 'node_modules', dep, 'package.json');
-    try {
-      await fs.promises.access(pkg);
-      // use 'node:fs' version to match 'vite:resolve' and avoid realpath.native quirk
-      // https://github.com/sveltejs/vite-plugin-svelte/issues/525#issuecomment-1355551264
-      return fs.promises.realpath(pkg);
-    } catch {
-      //empty
-    }
-    const nextRoot = sys.path.dirname(root);
-    if (nextRoot === root) {
-      break;
-    }
-    root = nextRoot;
-  }
-  return undefined;
-}
-
-const findQwikRoots = async (
-  sys: OptimizerSystem,
-  packageJsonDir: string
-): Promise<QwikPackages[]> => {
-  const paths = new Map<string, string>();
-  if (sys.env === 'node' || sys.env === 'bun') {
-    const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-    let prevPackageJsonDir: string | undefined;
-    do {
-      try {
-        const data = await fs.promises.readFile(sys.path.join(packageJsonDir, 'package.json'), {
-          encoding: 'utf-8',
-        });
-
-        try {
-          const packageJson = JSON.parse(data);
-          const dependencies = packageJson['dependencies'];
-          const devDependencies = packageJson['devDependencies'];
-
-          const packages: string[] = [];
-          if (typeof dependencies === 'object') {
-            packages.push(...Object.keys(dependencies));
-          }
-          if (typeof devDependencies === 'object') {
-            packages.push(...Object.keys(devDependencies));
-          }
-
-          const basedir = sys.cwd();
-          await Promise.all(
-            packages.map(async (id) => {
-              const pkgJsonPath = await findDepPkgJsonPath(sys, id, basedir);
-              if (pkgJsonPath) {
-                const pkgJsonContent = await fs.promises.readFile(pkgJsonPath, 'utf-8');
-                const pkgJson = JSON.parse(pkgJsonContent);
-                const qwikPath = pkgJson['qwik'];
-                if (!qwikPath) {
-                  return;
-                }
-                // Support multiple paths
-                const allPaths = Array.isArray(qwikPath) ? qwikPath : [qwikPath];
-                for (const p of allPaths) {
-                  paths.set(
-                    await fs.promises.realpath(sys.path.resolve(sys.path.dirname(pkgJsonPath), p)),
-                    id
-                  );
-                }
-              }
-            })
-          );
-        } catch (e) {
-          console.error(e);
-        }
-      } catch {
-        // ignore errors if package.json not found
-      }
-      prevPackageJsonDir = packageJsonDir;
-      packageJsonDir = sys.path.dirname(packageJsonDir);
-    } while (packageJsonDir !== prevPackageJsonDir);
-  }
-  return Array.from(paths).map(([path, id]) => ({ path, id }));
-};
 
 export const isNotNullable = <T>(v: T): v is NonNullable<T> => {
   return v != null;

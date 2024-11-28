@@ -263,10 +263,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
 					if transpile_ts && is_type_script {
 						did_transform = true;
-						program.visit_mut_with(&mut typescript::strip(
-							Default::default(),
-							top_level_mark,
-						))
+						program.mutate(&mut typescript::strip(Default::default(), top_level_mark));
 					}
 
 					if transpile_jsx && is_jsx {
@@ -278,7 +275,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							react_options.runtime = Some(react::Runtime::Automatic);
 							react_options.import_source = Some("@builder.io/qwik".to_string());
 						};
-						program.visit_mut_with(&mut react::react(
+						program.mutate(&mut react::react(
 							Lrc::clone(&source_map),
 							Some(&comments),
 							react_options,
@@ -348,7 +345,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							}
 
 							// simplify & strip unused code
-							program = program.fold_with(&mut simplify::simplifier(
+							program.mutate(&mut simplify::simplifier(
 								unresolved_mark,
 								simplify::Config {
 									dce: simplify::dce::Config {
@@ -372,7 +369,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							// remove all side effects from client, step 2
 							program.visit_mut_with(&mut treeshaker.cleaner);
 							if treeshaker.cleaner.did_drop {
-								program = program.fold_with(&mut simplify::simplifier(
+								program.mutate(&mut simplify::simplifier(
 									unresolved_mark,
 									simplify::Config {
 										dce: simplify::dce::Config {
@@ -428,17 +425,18 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							})?;
 							// we don't need to remove side effects because the optimizer only moves what's really used
 							if config.minify != MinifyMode::None {
-								segment_module =
-									segment_module.fold_with(&mut simplify::simplifier(
-										unresolved_mark,
-										simplify::Config {
-											dce: simplify::dce::Config {
-												preserve_imports_with_side_effects: false,
-												..Default::default()
-											},
+								let mut program = ast::Program::Module(segment_module);
+								program.mutate(&mut simplify::simplifier(
+									unresolved_mark,
+									simplify::Config {
+										dce: simplify::dce::Config {
+											preserve_imports_with_side_effects: false,
 											..Default::default()
 										},
-									));
+										..Default::default()
+									},
+								));
+								segment_module = program.expect_module();
 							}
 							segment_module
 								.visit_mut_with(&mut hygiene_with_config(Default::default()));

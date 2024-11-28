@@ -1,11 +1,9 @@
 import * as vitest from 'vitest';
-// @ts-ignore
 import { RuleTester, type RuleTesterConfig } from '@typescript-eslint/rule-tester';
 import { fileURLToPath } from 'node:url';
 import { rules } from './index';
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { join, dirname } from 'path';
-// import {plugin, parser} from 'typescript-eslint'
 
 // https://typescript-eslint.io/packages/rule-tester/#vitest
 RuleTester.afterAll = vitest.afterAll;

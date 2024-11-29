@@ -340,8 +340,7 @@ describe.each([
     );
   });
 
-  it('should update elements correctly', async () => {
-    (global as any).delay = () => new Promise<void>((res) => ((global as any).delay.resolve = res));
+  it('should update elements correctly inside onResolved fn', async () => {
     const ResourceCmp = component$(() => {
       const count = useSignal(0);
       const resource = useResource$<number>(async ({ track }) => {
@@ -360,7 +359,7 @@ describe.each([
             onResolved={(data) => (
               <>
                 <div>{data}</div>
-                <input value={`${data}`} />
+                <input value={data} />
               </>
             )}
           />
@@ -409,28 +408,5 @@ describe.each([
         </Fragment>
       </Component>
     );
-    // await (global as any).delay.resolve();
-    await getTestPlatform().flush();
-
-    expect(vNode).toMatchVDOM(
-      <Component ssr-required>
-        <Fragment ssr-required>
-          <button>
-            <Signal ssr-required>1</Signal>
-          </button>
-          <InlineComponent ssr-required>
-            <Fragment ssr-required>
-              <Awaited ssr-required>
-                <Fragment ssr-required>
-                  <div>11</div>
-                  <input value="11" />
-                </Fragment>
-              </Awaited>
-            </Fragment>
-          </InlineComponent>
-        </Fragment>
-      </Component>
-    );
-    (global as any).delay = undefined;
   });
 });

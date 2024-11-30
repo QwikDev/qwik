@@ -58,7 +58,7 @@ async function bundleCreateQwikCli(config: BuildConfig, srcCliDir: string, distC
         },
       },
     ],
-    external: ['prettier', 'typescript'],
+    external: ['prettier', 'typescript', 'ts-morph', 'semver', 'ignore'],
     define: {
       'globalThis.CODE_MOD': 'false',
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),

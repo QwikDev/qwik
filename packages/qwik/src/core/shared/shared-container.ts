@@ -54,12 +54,16 @@ export abstract class _SharedContainer implements Container {
     NodeConstructor: {
       new (...rest: any[]): { nodeType: number; id: string };
     } | null,
+    DomRefConstructor: {
+      new (...rest: any[]): { id: string };
+    } | null,
     symbolToChunkResolver: SymbolToChunkResolver,
     writer?: StreamWriter,
     prepVNodeData?: (vNode: any) => void
   ): SerializationContext {
     return createSerializationContext(
       NodeConstructor,
+      DomRefConstructor,
       symbolToChunkResolver,
       this.getHostProp.bind(this),
       this.setHostProp.bind(this),

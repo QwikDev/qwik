@@ -220,10 +220,12 @@ export { DomContainer as _DomContainer }
 export type EagernessOptions = 'visible' | 'load' | 'idle';
 
 // @internal (undocumented)
-export class _EffectData<T extends Record<string, any> = Record<string, any>> {
-    constructor(data: T);
+export class _EffectData {
+    constructor(data: NodePropData);
+    // Warning: (ae-forgotten-export) The symbol "NodePropData" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    data: T;
+    data: NodePropData;
 }
 
 // @internal (undocumented)

@@ -69,7 +69,7 @@ import {
 import { Q_FUNCS_PREFIX } from './ssr-render';
 import type { PrefetchResource, RenderOptions, RenderToStreamResult } from './types';
 import { createTimer } from './utils';
-import { SsrComponentFrame, SsrNode } from './ssr-node';
+import { DomRef, SsrComponentFrame, SsrNode } from './ssr-node';
 import {
   TagNesting,
   allowedContent,
@@ -225,6 +225,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     };
     this.serializationCtx = this.serializationCtxFactory(
       SsrNode,
+      DomRef,
       this.symbolToChunkResolver,
       opts.writer,
       (vNodeData: VNodeData) => this.addVNodeToSerializationRoots(vNodeData)
@@ -1125,10 +1126,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         if (key === 'ref') {
           const lastNode = this.getLastNode();
           if (isSignal(value)) {
-            value.value = lastNode;
+            value.value = new DomRef(lastNode.id);
             continue;
           } else if (typeof value === 'function') {
-            value(lastNode);
+            value(new DomRef(lastNode.id));
             continue;
           }
         }

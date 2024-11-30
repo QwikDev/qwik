@@ -782,6 +782,7 @@ describe('shared-serialization', () => {
 async function serialize(...roots: any[]): Promise<any[]> {
   const sCtx = createSerializationContext(
     null,
+    null,
     () => '',
     () => '',
     () => '',

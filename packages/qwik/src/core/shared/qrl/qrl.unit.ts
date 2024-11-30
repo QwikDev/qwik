@@ -101,6 +101,7 @@ describe('serialization', () => {
   test('serialize qrls', () => {
     const serializationContext = createSerializationContext(
       null,
+      null,
       () => '',
       () => '',
       () => {},

@@ -47,6 +47,9 @@ export interface Container {
     NodeConstructor: {
       new (...rest: any[]): { nodeType: number; id: string };
     } | null,
+    DomRefConstructor: {
+      new (...rest: any[]): { id: string };
+    } | null,
     symbolToChunkResolver: SymbolToChunkResolver,
     writer?: StreamWriter
   ): SerializationContext;

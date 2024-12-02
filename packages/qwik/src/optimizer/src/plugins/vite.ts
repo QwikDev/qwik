@@ -1171,18 +1171,16 @@ export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundle
     let didAdd = false;
     for (const depName of bundle.dynamicImports || []) {
       // If we dynamically import a qrl segment that is not a handler, we'll probably need it soon
-      const dep = graph[depName];
+      // const dep = graph[depName];
       if (!graph[depName]) {
         // external dependency
         continue;
       }
-      if (dep.isTask) {
-        if (!didAdd) {
-          deps.add('<dynamic>');
-          didAdd = true;
-        }
-        deps.add(depName);
+      if (!didAdd) {
+        deps.add('<dynamic>');
+        didAdd = true;
       }
+      deps.add(depName);
     }
     map.set(bundleName, { index, deps });
     bundleGraph.push(bundleName);

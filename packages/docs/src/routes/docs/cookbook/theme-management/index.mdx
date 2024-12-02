@@ -56,23 +56,25 @@ module.exports = {
 Then we have to add this code in the head tag of our ```root.tsx``` file.
 
 ```js
-<script
+       <script
           dangerouslySetInnerHTML={`
         (function() {
           function setTheme(theme) {
             document.documentElement.className = theme;
             localStorage.setItem('theme', theme);
           }
-          var theme = localStorage.getItem('theme');
-          console.log(theme);
+          const theme = localStorage.getItem('theme');
+
           if (theme) {
             setTheme(theme);
           } else {
-            setTheme('light');
-          }
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+              setTheme('dark');}
+              else {
+                setTheme('light');}}
         })();
         window.addEventListener('load', function() {
-          var themeSwitch = document.getElementById('hide-checkbox');
+          const themeSwitch = document.getElementById('hide-checkbox');
           themeSwitch.checked = localStorage.getItem('theme') === 'light'? true: false;
         }
         );

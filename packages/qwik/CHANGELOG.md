@@ -1,5 +1,13 @@
 # @builder.io/qwik
 
+## 1.11.1
+
+### Patch Changes
+
+- 🐞🩹 add subscription when doing `"prop" in store` (by [@revintec](https://github.com/revintec) in [#7071](https://github.com/QwikDev/qwik/pull/7071))
+
+- 🐞🩹 `stoppropagation` functionality (by [@shairez](https://github.com/shairez) in [#7102](https://github.com/QwikDev/qwik/pull/7102))
+
 ## 1.11.0
 
 ### Minor Changes

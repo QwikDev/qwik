@@ -78,6 +78,7 @@ async function submoduleCoreProd(config: BuildConfig) {
   const inputMin: InputOptions = {
     input: inputCore,
     onwarn: rollupOnWarn,
+    external: ['jsdom'],
     plugins: [
       {
         name: 'build',
@@ -230,7 +231,7 @@ async function submoduleCoreDev(config: BuildConfig) {
 
   const esm = build({
     ...opts,
-    external: ['@qwik.dev/core/build'],
+    external: ['@qwik.dev/core/build', 'jsdom'],
     format: 'esm',
     outExtension: { '.js': '.mjs' },
   });
@@ -238,6 +239,7 @@ async function submoduleCoreDev(config: BuildConfig) {
   const cjs = build({
     ...opts,
     // we don't externalize qwik build because then the repl service worker sees require()
+    external: ['jsdom'],
     define: {
       ...opts.define,
       // Vite's base url

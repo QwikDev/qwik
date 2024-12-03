@@ -11,9 +11,10 @@
     "csstype": "^3.1"
   },
   "devDependencies": {
+    "@types/jsdom": "^21.1.7",
     "@qwik.dev/core": "workspace:*",
-    "@qwik.dev/dom": "workspace:*",
     "image-size": "1.1.1",
+    "jsdom": "^25.0.1",
     "kleur": "4.1.5",
     "ignore": "5.3.1",
     "prettier": "3.3.3",
@@ -170,15 +171,19 @@
   "license": "MIT",
   "main": "./src/index.ts",
   "peerDependencies": {
+    "jsdom": "*",
     "prettier": "*",
     "vite": "^5",
     "vitest": "^2"
   },
   "peerDependenciesMeta": {
-    "vitest": {
+    "jsdom": {
       "optional": true
     },
     "prettier": {
+      "optional": true
+    },
+    "vitest": {
       "optional": true
     }
   },

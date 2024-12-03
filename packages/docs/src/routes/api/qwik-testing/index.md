@@ -106,7 +106,7 @@ Promise&lt;{ render: (jsxElement: JSXOutput) =&gt; Promise&lt;import("@qwik.dev/
 ## document
 
 ```typescript
-document: MockDocument;
+document: Document;
 ```
 
 ## domRender
@@ -249,7 +249,7 @@ HTMLElement
 
 </td><td>
 
-MockDocument
+Document
 
 </td><td>
 
@@ -301,7 +301,7 @@ HTMLElement
 
 </td><td>
 
-MockWindow
+ReturnType&lt;typeof createWindow&gt;
 
 </td><td>
 
@@ -669,5 +669,5 @@ void
 ## window
 
 ```typescript
-window: MockWindow;
+window: ReturnType<typeof createWindow>;
 ```

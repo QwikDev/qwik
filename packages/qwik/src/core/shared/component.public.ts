@@ -9,7 +9,7 @@ import type {
 import type { FunctionComponent } from './jsx/types/jsx-node';
 import { _CONST_PROPS, _VAR_PROPS, _jsxSorted, _jsxSplit } from '../internal';
 import type { QwikIntrinsicElements } from './jsx/types/jsx-qwik-elements';
-import { assertQrl } from './qrl/qrl-class';
+import { assertQrl } from './qrl/qrl-utils';
 import { assertNumber } from './error/assert';
 import { qTest } from './utils/qdev';
 

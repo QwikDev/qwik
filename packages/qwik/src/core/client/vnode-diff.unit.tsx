@@ -418,7 +418,7 @@ describe('vNode-diff', () => {
           <b>new</b>
         </test>
       );
-      const bOriginal = document.querySelector('b[key=1]')!;
+      const bOriginal = document.querySelector('b[key="1"]')!;
       vnode_diff(
         { $journal$: journal, $scheduler$: scheduler, document } as any,
         test,
@@ -447,13 +447,13 @@ describe('vNode-diff', () => {
           <b>after</b>
         </test>
       );
-      const b1 = document.querySelector('b[key=1]')!;
-      const b2 = document.querySelector('b[key=1]')!;
+      const b1 = document.querySelector('b[key="1"]')!;
+      const b2 = document.querySelector('b[key="1"]')!;
       vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(test);
-      expect(b1).toBe(document.querySelector('b[key=1]')!);
-      expect(b2).toBe(document.querySelector('b[key=2]')!);
+      expect(b1).toBe(document.querySelector('b[key="1"]')!);
+      expect(b2).toBe(document.querySelector('b[key="2"]')!);
     });
   });
   describe.todo('fragments', () => {});

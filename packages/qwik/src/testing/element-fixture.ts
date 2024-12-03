@@ -4,7 +4,6 @@ import type { QRLInternal } from '../core/shared/qrl/qrl-class';
 import { _getQContainerElement, getDomContainer } from '@qwik.dev/core';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';
-import type { MockDocument, MockWindow } from './types';
 import { delay } from '../core/shared/utils/promises';
 import type { QElement, QwikLoaderEventScope } from '../core/shared/types';
 import { fromCamelToKebabCase } from '../core/shared/utils/event-names';
@@ -24,8 +23,8 @@ import { QFuncsPrefix, QInstanceAttr } from '../core/shared/utils/markers';
  * @public
  */
 export class ElementFixture {
-  window: MockWindow;
-  document: MockDocument;
+  window: ReturnType<typeof createWindow>;
+  document: Document;
   superParent: HTMLElement;
   parent: HTMLElement;
   host: HTMLElement;

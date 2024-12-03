@@ -1,5 +1,5 @@
-import type { MockDocumentOptions, MockWindow } from './types';
-import qwikDom from '@qwik.dev/dom';
+import type { MockDocumentOptions } from './types';
+import { JSDOM } from 'jsdom';
 import { normalizeUrl } from './util';
 
 /**
@@ -8,10 +8,8 @@ import { normalizeUrl } from './util';
  *
  * @public
  */
-export function createDocument(opts?: MockDocumentOptions) {
-  const doc = qwikDom.createDocument(opts?.html);
-  ensureGlobals(doc, opts);
-  return doc;
+export function createDocument(opts: MockDocumentOptions = {}) {
+  return createWindow(opts).document;
 }
 
 /**
@@ -19,8 +17,17 @@ export function createDocument(opts?: MockDocumentOptions) {
  *
  * @public
  */
-export function createWindow(opts: MockDocumentOptions = {}): MockWindow {
-  return createDocument(opts).defaultView!;
+export function createWindow(opts: MockDocumentOptions = {}) {
+  const { window } = new JSDOM(opts.html || '<!DOCTYPE html>', {
+    url: typeof opts.url === 'string' ? opts.url : opts.url?.href,
+    runScripts: 'dangerously',
+    contentType: 'text/html; charset=utf-8',
+    pretendToBeVisual: true,
+  });
+  // Our backchannel for QRLs during testing
+  const map = ((globalThis as any)['mock-chunk'] ||= new Map());
+  window['mock-chunk'] = map;
+  return window;
 }
 
 export function ensureGlobals(doc: any, opts?: MockDocumentOptions) {
@@ -29,6 +36,7 @@ export function ensureGlobals(doc: any, opts?: MockDocumentOptions) {
   }
 
   if (!doc || doc.nodeType !== 9) {
+    console.error('Invalid document', doc);
     throw new Error(`Invalid document`);
   }
 

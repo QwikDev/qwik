@@ -49,22 +49,22 @@ import {
   escapeHTML,
   Q_PROPS_SEPARATOR,
 } from './qwik-copy';
-import {
-  type ContextId,
-  type HostElement,
-  type SSRContainer as ISSRContainer,
-  type ISsrComponentFrame,
-  type ISsrNode,
-  type JSXChildren,
-  type JSXOutput,
-  type NodePropData,
-  type SerializationContext,
-  type SsrAttrKey,
-  type SsrAttrValue,
-  type SsrAttrs,
-  type StreamWriter,
-  type SymbolToChunkResolver,
-  type ValueOrPromise,
+import type {
+  ContextId,
+  HostElement,
+  SSRContainer as ISSRContainer,
+  ISsrComponentFrame,
+  ISsrNode,
+  JSXChildren,
+  JSXOutput,
+  NodePropData,
+  SerializationContext,
+  SsrAttrKey,
+  SsrAttrValue,
+  SsrAttrs,
+  StreamWriter,
+  SymbolToChunkResolver,
+  ValueOrPromise,
 } from './qwik-types';
 import { Q_FUNCS_PREFIX } from './ssr-render';
 import type { PrefetchResource, RenderOptions, RenderToStreamResult } from './types';

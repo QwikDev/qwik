@@ -105,7 +105,7 @@ test('qwik server createDocument()', () => {
 test('qwik server createWindow()', () => {
   const win = createWindow();
   assert.notEqual(win.document.defaultView, undefined);
-  assert.equal(win.document.defaultView, win);
+  assert.equal(win.document.defaultView, win as any as Window);
 });
 
 test('some other document', () => {

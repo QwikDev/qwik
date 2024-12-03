@@ -947,9 +947,6 @@ export function parseId(originalId: string) {
   };
 }
 
-export const getSymbolHash = (symbolName: string) =>
-  /_([a-z0-9]+)($|\.js($|\?))/.exec(symbolName)?.[1];
-
 const TRANSFORM_EXTS = {
   '.jsx': true,
   '.ts': true,

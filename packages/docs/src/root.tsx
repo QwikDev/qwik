@@ -1,5 +1,5 @@
 import { component$, useContextProvider, useStore } from '@builder.io/qwik';
-import { QwikCityProvider, RouterOutlet } from '@builder.io/qwik-city';
+import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';
 import { GlobalStore, type SiteStore } from './context';
@@ -71,10 +71,9 @@ export default component$(() => {
         <script dangerouslySetInnerHTML={uwu} />
         <script dangerouslySetInnerHTML={unregisterPrefetchServiceWorkers} />
         <RouterHead />
-        {/* Core Web Vitals experiment until November 8: Do not bring back any SW until then! Reach out to @maiieul first if you believe you have a good reason to change this. */}
-        {/* <ServiceWorkerRegister /> */}
+        <ServiceWorkerRegister />
 
-        {/* <script dangerouslySetInnerHTML={`(${collectSymbols})()`} /> */}
+        <script dangerouslySetInnerHTML={`(${collectSymbols})()`} />
         <Insights publicApiKey={import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY} />
       </head>
       <body

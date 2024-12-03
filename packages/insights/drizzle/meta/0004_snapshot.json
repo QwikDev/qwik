@@ -1,8 +1,6 @@
 {
-  "version": "5",
+  "version": "6",
   "dialect": "sqlite",
-  "id": "f04aa532-42ae-4d3b-8ced-cf4f10f5ad7c",
-  "prevId": "3f1754dc-7635-4f8f-bfa7-c4c6e500959a",
   "tables": {
     "applications": {
       "name": "applications",
@@ -46,7 +44,9 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {}
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     },
     "errors": {
       "name": "errors",
@@ -134,18 +134,20 @@
         "errors_public_api_key_applications_public_api_key_fk": {
           "name": "errors_public_api_key_applications_public_api_key_fk",
           "tableFrom": "errors",
-          "tableTo": "applications",
           "columnsFrom": [
             "public_api_key"
           ],
+          "tableTo": "applications",
           "columnsTo": [
             "public_api_key"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
-      "compositePrimaryKeys": {}
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     },
     "symbolDetail": {
       "name": "symbolDetail",
@@ -191,18 +193,20 @@
         "symbolDetail_public_api_key_applications_public_api_key_fk": {
           "name": "symbolDetail_public_api_key_applications_public_api_key_fk",
           "tableFrom": "symbolDetail",
-          "tableTo": "applications",
           "columnsFrom": [
             "public_api_key"
           ],
+          "tableTo": "applications",
           "columnsTo": [
             "public_api_key"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
-      "compositePrimaryKeys": {}
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     },
     "symbols": {
       "name": "symbols",
@@ -276,24 +280,28 @@
         "symbols_public_api_key_applications_public_api_key_fk": {
           "name": "symbols_public_api_key_applications_public_api_key_fk",
           "tableFrom": "symbols",
-          "tableTo": "applications",
           "columnsFrom": [
             "public_api_key"
           ],
+          "tableTo": "applications",
           "columnsTo": [
             "public_api_key"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
-      "compositePrimaryKeys": {}
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     }
   },
   "enums": {},
   "_meta": {
-    "schemas": {},
     "tables": {},
     "columns": {}
-  }
+  },
+  "id": "f04aa532-42ae-4d3b-8ced-cf4f10f5ad7c",
+  "prevId": "3f1754dc-7635-4f8f-bfa7-c4c6e500959a",
+  "views": {}
 }

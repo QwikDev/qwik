@@ -1,8 +1,6 @@
 {
-  "version": "5",
+  "version": "6",
   "dialect": "sqlite",
-  "id": "6dc81006-f64d-4f8b-8d1a-0853e9e111f8",
-  "prevId": "cb985a7f-25e8-41bc-9215-c28801dfe4e1",
   "tables": {
     "applications": {
       "name": "applications",
@@ -46,7 +44,9 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {}
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     },
     "errors": {
       "name": "errors",
@@ -127,18 +127,20 @@
         "errors_public_api_key_applications_public_api_key_fk": {
           "name": "errors_public_api_key_applications_public_api_key_fk",
           "tableFrom": "errors",
-          "tableTo": "applications",
           "columnsFrom": [
             "public_api_key"
           ],
+          "tableTo": "applications",
           "columnsTo": [
             "public_api_key"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
-      "compositePrimaryKeys": {}
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     },
     "symbols": {
       "name": "symbols",
@@ -212,24 +214,28 @@
         "symbols_public_api_key_applications_public_api_key_fk": {
           "name": "symbols_public_api_key_applications_public_api_key_fk",
           "tableFrom": "symbols",
-          "tableTo": "applications",
           "columnsFrom": [
             "public_api_key"
           ],
+          "tableTo": "applications",
           "columnsTo": [
             "public_api_key"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
-      "compositePrimaryKeys": {}
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     }
   },
   "enums": {},
   "_meta": {
-    "schemas": {},
     "tables": {},
     "columns": {}
-  }
+  },
+  "id": "6dc81006-f64d-4f8b-8d1a-0853e9e111f8",
+  "prevId": "cb985a7f-25e8-41bc-9215-c28801dfe4e1",
+  "views": {}
 }

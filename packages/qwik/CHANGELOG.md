@@ -1,5 +1,13 @@
 # @qwik.dev/core
 
+## 2.0.0-alpha.2
+
+### Patch Changes
+
+- 🐞🩹 serialization of an array of refs (by [@Varixo](https://github.com/Varixo) in [#7106](https://github.com/QwikDev/qwik/pull/7106))
+
+- 🛠 more descriptive HTML streaming error message (by [@Varixo](https://github.com/Varixo) in [#7105](https://github.com/QwikDev/qwik/pull/7105))
+
 ## 2.0.0-alpha.1
 
 ### Patch Changes

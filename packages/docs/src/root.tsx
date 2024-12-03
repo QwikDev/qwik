@@ -40,21 +40,6 @@ export const uwu = /*javascript*/ `
 })();
 `;
 
-const unregisterPrefetchServiceWorkers = /*javascript*/ `
-;(function () {
-  navigator.serviceWorker?.getRegistrations().then((regs) => {
-    for (const reg of regs) {
-      if (
-        reg.active?.scriptURL.includes('service-worker.js') ||
-        reg.active?.scriptURL.includes('qwik-prefetch-service-worker.js')
-      ) {
-        reg.unregister();
-      }
-    }
-  });
-})();
-`;
-
 export default component$(() => {
   const store = useStore<SiteStore>({
     headerMenuOpen: false,
@@ -69,7 +54,6 @@ export default component$(() => {
       <head>
         <meta charset="utf-8" />
         <script dangerouslySetInnerHTML={uwu} />
-        <script dangerouslySetInnerHTML={unregisterPrefetchServiceWorkers} />
         <RouterHead />
         <ServiceWorkerRegister />
 

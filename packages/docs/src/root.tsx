@@ -1,6 +1,6 @@
 import { component$, useContextProvider, useStore } from '@qwik.dev/core';
 import { Insights } from '@qwik.dev/core/insights';
-import { QwikRouterProvider, RouterOutlet } from '@qwik.dev/router';
+import { QwikRouterProvider, RouterOutlet, ServiceWorkerRegister } from '@qwik.dev/router';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';
 import { BUILDER_PUBLIC_API_KEY } from './constants';
@@ -40,21 +40,6 @@ export const uwu = /*javascript*/ `
 })();
 `;
 
-const unregisterPrefetchServiceWorkers = /*javascript*/ `
-;(function () {
-  navigator.serviceWorker?.getRegistrations().then((regs) => {
-    for (const reg of regs) {
-      if (
-        reg.active?.scriptURL.includes('service-worker.js') ||
-        reg.active?.scriptURL.includes('qwik-prefetch-service-worker.js')
-      ) {
-        reg.unregister();
-      }
-    }
-  });
-})();
-`;
-
 export default component$(() => {
   const store = useStore<SiteStore>({
     headerMenuOpen: false,
@@ -69,12 +54,10 @@ export default component$(() => {
       <head>
         <meta charset="utf-8" />
         <script dangerouslySetInnerHTML={uwu} />
-        <script dangerouslySetInnerHTML={unregisterPrefetchServiceWorkers} />
         <RouterHead />
-        {/* Core Web Vitals experiment until November 8: Do not bring back any SW until then! Reach out to @maiieul first if you believe you have a good reason to change this. */}
-        {/* <ServiceWorkerRegister /> */}
+        <ServiceWorkerRegister />
 
-        {/* <script dangerouslySetInnerHTML={`(${collectSymbols})()`} /> */}
+        <script dangerouslySetInnerHTML={`(${collectSymbols})()`} />
         <Insights publicApiKey={import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY} />
       </head>
       <body

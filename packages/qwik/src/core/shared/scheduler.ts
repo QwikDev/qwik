@@ -461,10 +461,10 @@ function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: boolean)
         // On server we can't schedule task for a different host!
         // Server is SSR, and therefore scheduling for anything but the current host
         // implies that things need to be re-run nad that is not supported because of streaming.
-        const errorMessage = `SERVER: during HTML streaming, it is not possible to cause a re-run of tasks on a different host.
-          You are trying to modify node which was already streamed to the client.
-          This means that in the CSR mode it can be different from the SSR.
-          Current Node: ${aHost.toString()}`;
+        const errorMessage = `SERVER: during HTML streaming, re-running tasks on a different host is not allowed.
+          You are attempting to change a state that has already been streamed to the client.
+          This can lead to inconsistencies between Server-Side Rendering (SSR) and Client-Side Rendering (CSR).
+          Problematic Node: ${aHost.toString()}`;
         if (shouldThrowOnHostMismatch) {
           throwErrorAndStop(errorMessage);
         }

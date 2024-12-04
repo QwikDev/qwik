@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3566
+assertion_line: 3574
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -118,7 +119,7 @@ export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.t
 export { useFoo as _auto_useFoo };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEE,MAAM,SAAS,CAAC;IACf,MAAM,MAAM,CAAC;QACZ,MAAM,QAAQ,OAAO,MAAM,WAAW,IAAI,CAAC,CAAC,EAAE;QAC9C,OAAO,CAAC,EAAE,MAAM,CAAC,EAAE,MAAM,KAAK,CAAC,CAAC;IACjC;IACA,OAAO;AACR;AAEA,6BAAe,mHAUZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEE,MAAM,SAAS,CAAC;IACf,MAAM,MAAM,CAAC;QACZ,MAAM,QAAQ,OAAO,MAAM,WAAW,IAAI,CAAC,CAAC,EAAE;QAC9C,OAAO,GAAG,MAAM,CAAC,EAAE,MAAM,KAAK,EAAE;IACjC;IACA,OAAO;AACR;AAEA,6BAAe,mHAUZ\"}")
 == DIAGNOSTICS ==
 
 []

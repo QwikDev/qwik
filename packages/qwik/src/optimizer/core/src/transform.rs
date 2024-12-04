@@ -111,6 +111,7 @@ pub struct QwikTransform<'a> {
 	file_hash: u64,
 	jsx_key_counter: u32,
 	root_jsx_mode: bool,
+	inside_loop: bool,
 }
 
 pub struct QwikTransformOptions<'a> {
@@ -247,6 +248,7 @@ impl<'a> QwikTransform<'a> {
 			immutable_function_cmp,
 			root_jsx_mode: true,
 			jsx_mutable: false,
+			inside_loop: false,
 			options,
 		}
 	}
@@ -1377,7 +1379,9 @@ impl<'a> QwikTransform<'a> {
 												key: node.key.clone(),
 											}),
 										));
-										if is_fn {
+										if self.inside_loop {
+											var_props.push(converted_prop.fold_with(self));
+										} else if is_fn {
 											if is_const {
 												maybe_const_props
 													.push(converted_prop.fold_with(self));
@@ -1813,6 +1817,9 @@ impl<'a> Fold for QwikTransform<'a> {
 		let prev_jsx_mutable = self.jsx_mutable;
 		self.jsx_mutable = false;
 
+		let prev_inside_loop = self.inside_loop;
+		self.inside_loop = self.stack_ctxt.last() != Some(&QCOMPONENT.to_string());
+
 		let current_scope = self
 			.decl_stack
 			.last_mut()
@@ -1831,6 +1838,7 @@ impl<'a> Fold for QwikTransform<'a> {
 		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
 		self.jsx_mutable = prev_jsx_mutable;
+		self.inside_loop = prev_inside_loop;
 		self.decl_stack.pop();
 
 		o
@@ -1840,8 +1848,11 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
+		let prev_inside_loop = self.inside_loop;
+		self.inside_loop = true;
 		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
+		self.inside_loop = prev_inside_loop;
 		self.decl_stack.pop();
 
 		o
@@ -1851,8 +1862,11 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
+		let prev_inside_loop = self.inside_loop;
+		self.inside_loop = true;
 		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
+		self.inside_loop = prev_inside_loop;
 		self.decl_stack.pop();
 
 		o
@@ -1862,8 +1876,11 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
+		let prev_inside_loop = self.inside_loop;
+		self.inside_loop = true;
 		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
+		self.inside_loop = prev_inside_loop;
 		self.decl_stack.pop();
 
 		o
@@ -1911,8 +1928,11 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
+		let prev_inside_loop = self.inside_loop;
+		self.inside_loop = true;
 
 		let o = node.fold_children_with(self);
+		self.inside_loop = prev_inside_loop;
 		self.root_jsx_mode = prev;
 		self.decl_stack.pop();
 

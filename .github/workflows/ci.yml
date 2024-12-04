@@ -857,6 +857,14 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      # Delete this after V2 is released
+      - name: Tag with latest
+        if: steps.changesets.outcome == 'success'
+        run: |
+          npm dist-tag add @qwik.dev/core@${{ fromJson(steps.changesets.outputs.publishedPackages)[0].version }} latest
+          npm dist-tag add @qwik.dev/router@${{ fromJson(steps.changesets.outputs.publishedPackages)[0].version }} latest
+          npm dist-tag add @qwik.dev/react@${{ fromJson(steps.changesets.outputs.publishedPackages)[0].version }} latest
+
       - name: Fixup package.json files
         run: pnpm run release.fixup-package-json
 

@@ -237,4 +237,69 @@ describe.each([
       </Component>
     );
   });
+
+  it('should add and remove attribute', async () => {
+    const Cmp = component$(() => {
+      const hide = useSignal(false);
+      const required = useSignal(true);
+      return (
+        <>
+          <button
+            onClick$={() => {
+              hide.value = !hide.value;
+            }}
+          ></button>
+          <span onClick$={() => (required.value = !required.value)}></span>
+          {hide.value ? <input id="input" /> : <input id="input" attr-test={required.value} />}
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <span></span>
+          <input id="input" attr-test={true} />
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <span></span>
+          <input id="input" />
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <span></span>
+          <input id="input" attr-test={true} />
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'span', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <span></span>
+          <input id="input" attr-test={false} />
+        </Fragment>
+      </Component>
+    );
+  });
 });

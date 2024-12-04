@@ -23,7 +23,13 @@ import type { Container, HostElement } from '../shared/types';
 import { vnode_getNode, vnode_isElementVNode, vnode_isVNode } from '../client/vnode';
 import { _getQContainerElement } from '../client/dom-container';
 import type { ContainerElement } from '../client/types';
-import type { EffectData, EffectSubscriptions, EffectSubscriptionsProp } from '../signal/signal';
+import {
+  WrappedSignal,
+  type EffectPropData,
+  type EffectSubscriptions,
+  type EffectSubscriptionsProp,
+} from '../signal/signal';
+import type { Signal } from '../signal/signal.public';
 
 declare const document: QwikDocument;
 
@@ -234,7 +240,7 @@ export const trackSignal = <T>(
   subscriber: EffectSubscriptions[EffectSubscriptionsProp.EFFECT],
   property: EffectSubscriptions[EffectSubscriptionsProp.PROPERTY],
   container: Container,
-  data?: EffectData
+  data?: EffectPropData
 ): T => {
   const previousSubscriber = trackInvocation.$effectSubscriber$;
   const previousContainer = trackInvocation.$container$;
@@ -249,6 +255,19 @@ export const trackSignal = <T>(
     trackInvocation.$effectSubscriber$ = previousSubscriber;
     trackInvocation.$container$ = previousContainer;
   }
+};
+
+export const trackSignalAndAssignHost = (
+  value: Signal,
+  host: HostElement,
+  property: EffectSubscriptions[EffectSubscriptionsProp.PROPERTY],
+  container: Container,
+  data?: EffectPropData
+) => {
+  if (value instanceof WrappedSignal && value.$hostElement$ !== host && host) {
+    value.$hostElement$ = host;
+  }
+  return trackSignal(() => value.value, host, property, container, data);
 };
 
 /** @internal */

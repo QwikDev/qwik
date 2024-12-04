@@ -48,6 +48,7 @@ import {
   QInstanceAttr,
   escapeHTML,
   Q_PROPS_SEPARATOR,
+  QSubscribers,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -56,8 +57,8 @@ import {
   type ISsrComponentFrame,
   type ISsrNode,
   type JSXChildren,
+  type JSXNodeInternal,
   type JSXOutput,
-  type NodePropData,
   type SerializationContext,
   type SsrAttrKey,
   type SsrAttrValue,
@@ -89,8 +90,6 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './vnode-data';
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import type { JSXNodeInternal } from '../core/shared/jsx/types/jsx-node';
 
 export interface SSRRenderOptions {
   locale?: string;
@@ -736,6 +735,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           case ELEMENT_SEQ_IDX:
             write(VNodeDataChar.SEQ_IDX_CHAR);
             break;
+          case QSubscribers:
+            write(VNodeDataChar.SUBS_CHAR);
+            break;
           // Skipping `\` character for now because it is used for escaping.
           case QCtxAttr:
             write(VNodeDataChar.CONTEXT_CHAR);
@@ -1136,7 +1138,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
         if (isSignal(value)) {
           const lastNode = this.getLastNode();
-          const signalData = new EffectData<NodePropData>({
+          const signalData = new EffectData({
             $scopedStyleIdPrefix$: styleScopedId,
             $isConst$: isConst,
           });

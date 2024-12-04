@@ -14,7 +14,7 @@ import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
-import { trackSignal, untrack } from '../use/use-core';
+import { trackSignalAndAssignHost, untrack } from '../use/use-core';
 import { TaskFlags, cleanupTask, isTask } from '../use/use-task';
 import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import {
@@ -39,7 +39,7 @@ import {
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
 } from '../shared/utils/event-names';
-import { ChoreType, type NodePropData } from '../shared/scheduler';
+import { ChoreType } from '../shared/scheduler';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
 import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
@@ -91,7 +91,7 @@ import {
   type VNodeJournal,
 } from './vnode';
 import { getNewElementNamespaceData } from './vnode-namespace';
-import { WrappedSignal, EffectProperty, isSignal, EffectData } from '../signal/signal';
+import { WrappedSignal, EffectProperty, isSignal, EffectPropData } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
 import { executeComponent } from '../shared/component-execution';
 import { isParentSlotProp, isSlotProp } from '../shared/utils/prop';
@@ -193,12 +193,12 @@ export const vnode_diff = (
             descend(jsxValue, false);
           } else if (isSignal(jsxValue)) {
             if (vCurrent) {
-              clearVNodeEffectDependencies(vCurrent);
+              clearVNodeEffectDependencies(container, vCurrent);
             }
             expectVirtual(VirtualType.WrappedSignal, null);
             descend(
-              trackSignal(
-                () => (jsxValue as Signal).value,
+              trackSignalAndAssignHost(
+                jsxValue as Signal,
                 (vNewNode || vCurrent)!,
                 EffectProperty.VNODE,
                 container
@@ -526,7 +526,7 @@ export const vnode_diff = (
     if (constProps && typeof constProps == 'object' && 'name' in constProps) {
       const constValue = constProps.name;
       if (vHost && constValue instanceof WrappedSignal) {
-        return trackSignal(() => constValue.value, vHost, EffectProperty.COMPONENT, container);
+        return trackSignalAndAssignHost(constValue, vHost, EffectProperty.COMPONENT, container);
       }
     }
     return directGetPropsProxyProp(jsxNode, 'name') || QDefaultSlot;
@@ -630,12 +630,12 @@ export const vnode_diff = (
         }
 
         if (isSignal(value)) {
-          const signalData = new EffectData<NodePropData>({
+          const signalData = new EffectPropData({
             $scopedStyleIdPrefix$: scopedStyleIdPrefix,
             $isConst$: true,
           });
-          value = trackSignal(
-            () => (value as Signal<unknown>).value,
+          value = trackSignalAndAssignHost(
+            value as Signal<unknown>,
             vNewNode as ElementVNode,
             key,
             container,
@@ -1086,7 +1086,7 @@ export const vnode_diff = (
     jsxProps: Props
   ) {
     if (host) {
-      clearVNodeEffectDependencies(host);
+      clearVNodeEffectDependencies(container, host);
     }
     vnode_insertBefore(
       journal,
@@ -1252,7 +1252,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
       // Only elements and virtual nodes need to be traversed for children
       if (type & VNodeFlags.Virtual) {
         // Only virtual nodes have subscriptions
-        clearVNodeEffectDependencies(vCursor);
+        clearVNodeEffectDependencies(container, vCursor);
         markVNodeAsDeleted(vCursor);
         const seq = container.getHostProp<Array<any>>(vCursor as VirtualVNode, ELEMENT_SEQ);
         if (seq) {

@@ -5,7 +5,7 @@ import type { ValueOrPromise } from './utils/types';
 import { version } from '../version';
 import type { Effect, EffectData } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
-import type { StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
+import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { Scheduler } from './scheduler';
 import { createScheduler } from './scheduler';
 import { createSerializationContext, type SerializationContext } from './shared-serialization';
@@ -50,7 +50,7 @@ export abstract class _SharedContainer implements Container {
       new (...rest: any[]): { nodeType: number; id: string };
     } | null,
     DomRefConstructor: {
-      new (...rest: any[]): { id: string };
+      new (...rest: any[]): { $ssrNode$: ISsrNode };
     } | null,
     symbolToChunkResolver: SymbolToChunkResolver,
     writer?: StreamWriter,

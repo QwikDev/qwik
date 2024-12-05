@@ -118,8 +118,7 @@ export class SsrNode implements ISsrNode {
 
 /** A ref to a DOM element */
 export class DomRef {
-  /** @id is the same id as for SsrNode */
-  constructor(public id: string) {}
+  constructor(public $ssrNode$: ISsrNode) {}
 }
 
 export type SsrNodeType = 1 | 3 | 9 | 11;

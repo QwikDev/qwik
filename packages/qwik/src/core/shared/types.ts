@@ -48,7 +48,7 @@ export interface Container {
       new (...rest: any[]): { nodeType: number; id: string };
     } | null,
     DomRefConstructor: {
-      new (...rest: any[]): { id: string };
+      new (...rest: any[]): { $ssrNode$: ISsrNode };
     } | null,
     symbolToChunkResolver: SymbolToChunkResolver,
     writer?: StreamWriter

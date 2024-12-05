@@ -45,9 +45,10 @@ async function validateCreateQwikCli() {
   const tmpDir = join(__dirname, '..', 'dist-dev');
 
   await Promise.all([
-    validateStarter(api, tmpDir, 'playground', true, `👻`, qwikVersion),
-    validateStarter(api, tmpDir, 'empty', true, `🫙`, qwikVersion),
-    validateStarter(api, tmpDir, 'library', false, `📚`, qwikVersion),
+    validateStarter(api, tmpDir, 'basic-starter', true, `👋`, qwikVersion),
+    validateStarter(api, tmpDir, 'playground-starter', true, `👻`, qwikVersion),
+    validateStarter(api, tmpDir, 'empty-starter', true, `🫙`, qwikVersion),
+    validateStarter(api, tmpDir, 'library-starter', false, `📚`, qwikVersion),
   ]).catch((e) => {
     console.error(e);
     panic(String(e));

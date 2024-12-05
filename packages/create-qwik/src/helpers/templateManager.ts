@@ -1,5 +1,4 @@
 import type { IntegrationData, IntegrationType } from 'packages/qwik/src/cli/types';
-
 import { loadIntegrations } from 'packages/qwik/src/cli/utils/integrations';
 
 let integrations: IntegrationData[] | undefined = undefined;

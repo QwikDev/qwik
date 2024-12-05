@@ -1126,10 +1126,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         if (key === 'ref') {
           const lastNode = this.getLastNode();
           if (isSignal(value)) {
-            value.value = new DomRef(lastNode.id);
+            value.value = new DomRef(lastNode);
             continue;
           } else if (typeof value === 'function') {
-            value(new DomRef(lastNode.id));
+            value(new DomRef(lastNode));
             continue;
           }
         }

@@ -2,6 +2,7 @@
 source: packages/qwik/src/optimizer/core/src/test.rs
 assertion_line: 3510
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 

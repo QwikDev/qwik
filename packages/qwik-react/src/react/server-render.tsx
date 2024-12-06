@@ -1,7 +1,8 @@
-import { type QRL, type Signal, Slot, SSRRaw, SSRStream } from '@builder.io/qwik';
-import { getHostProps, mainExactProps, getReactProps } from './slot';
+import { type QRL, type Signal, Slot } from '@qwik.dev/core';
+import { SSRComment, SSRRaw, SSRStream } from '@qwik.dev/core/internal';
+import { isServer } from '@qwik.dev/core/build';
 import { renderToString } from 'react-dom/server';
-import { isServer } from '@builder.io/qwik/build';
+import { getHostProps, getReactProps, mainExactProps } from './slot';
 
 export async function renderFromServer(
   Host: any,
@@ -26,13 +27,17 @@ export async function renderFromServer(
         <Host ref={ref} {...getHostProps(props)}>
           <SSRStream>
             {async function* () {
+              yield <SSRComment data="q:ignore" />;
               yield <SSRRaw data={part1} />;
+              yield <SSRComment data="q:container-island" />;
               yield (
                 <q-slot ref={slotRef}>
                   <Slot />
                 </q-slot>
               );
+              yield <SSRComment data="/q:container-island" />;
               yield <SSRRaw data={part2} />;
+              yield <SSRComment data="/q:ignore" />;
             }}
           </SSRStream>
         </Host>
@@ -41,7 +46,9 @@ export async function renderFromServer(
     return (
       <>
         <Host ref={ref}>
+          <SSRComment data="q:container=html" />
           <SSRRaw data={html}></SSRRaw>
+          <SSRComment data="/q:container" />
         </Host>
         <q-slot ref={slotRef}>
           <Slot />

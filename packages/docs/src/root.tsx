@@ -1,11 +1,11 @@
-import { component$, useContextProvider, useStore } from '@builder.io/qwik';
-import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
+import { component$, useContextProvider, useStore } from '@qwik.dev/core';
+import { Insights } from '@qwik.dev/core/insights';
+import { QwikRouterProvider, RouterOutlet, ServiceWorkerRegister } from '@qwik.dev/router';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';
+import { BUILDER_PUBLIC_API_KEY } from './constants';
 import { GlobalStore, type SiteStore } from './context';
 import './global.css';
-import { BUILDER_PUBLIC_API_KEY } from './constants';
-import { Insights } from '@builder.io/qwik-labs';
 
 export const uwu = /*javascript*/ `
 ;(function () {
@@ -50,7 +50,7 @@ export default component$(() => {
   useContextProvider(GlobalStore, store);
 
   return (
-    <QwikCityProvider>
+    <QwikRouterProvider>
       <head>
         <meta charset="utf-8" />
         <script dangerouslySetInnerHTML={uwu} />
@@ -70,7 +70,7 @@ export default component$(() => {
         <RealMetricsOptimization builderApiKey={BUILDER_PUBLIC_API_KEY} />
         {/* Core Web Vitals experiment until November 8: Do not bring back any SW until then! Reach out to @maiieul first if you believe you have a good reason to change this. */}
       </body>
-    </QwikCityProvider>
+    </QwikRouterProvider>
   );
 });
 

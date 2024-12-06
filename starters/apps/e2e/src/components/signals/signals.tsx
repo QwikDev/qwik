@@ -1,20 +1,18 @@
 import {
   component$,
-  type Signal,
-  useSignal,
-  createSignal,
-  useConstant,
-  useStore,
-  useVisibleTask$,
-  useTask$,
-  Slot,
-  useStyles$,
-  useResource$,
   type QwikIntrinsicElements,
   Resource,
+  type Signal,
+  Slot,
   useComputed$,
-  createComputed$,
-} from "@builder.io/qwik";
+  useResource$,
+  useSignal,
+  useStore,
+  useStyles$,
+  useTask$,
+  useVisibleTask$,
+} from "@qwik.dev/core";
+import { isBrowser } from "@qwik.dev/core/build";
 import { delay } from "../resource/resource";
 import {
   TestAC,
@@ -27,7 +25,6 @@ import {
   TestCStr,
   TestCWithFlag,
 } from "./utils/utils";
-import { isBrowser } from "@builder.io/qwik/build";
 
 export const Signals = component$(() => {
   const rerender = useSignal(0);
@@ -137,7 +134,7 @@ export const SignalsChildren = component$(() => {
       <Issue4228 />
       <Issue4368 />
       <Issue4868 />
-      <ManySignals />
+      {/* <ManySignals /> */}
     </div>
   );
 });
@@ -1243,37 +1240,37 @@ export const Issue4868Card = component$((props: { src: string }) => {
   );
 });
 
-export const ManySignals = component$(() => {
-  const signals = useConstant(() => {
-    const arr: (Signal<number> | string)[] = [];
-    for (let i = 0; i < 10; i++) {
-      arr.push(createSignal(0));
-      arr.push(", ");
-    }
-    return arr;
-  });
-  const doubles = useConstant(() =>
-    signals.map((s: Signal<number> | string) =>
-      typeof s === "string" ? s : createComputed$(() => s.value * 2),
-    ),
-  );
+// export const ManySignals = component$(() => {
+//   const signals = useConstant(() => {
+//     const arr: (Signal<number> | string)[] = [];
+//     for (let i = 0; i < 10; i++) {
+//       arr.push(createSignal(0));
+//       arr.push(", ");
+//     }
+//     return arr;
+//   });
+//   // const doubles = useConstant(() =>
+//   //   signals.map((s: Signal<number> | string) =>
+//   //     typeof s === "string" ? s : createComputed$(() => s.value * 2),
+//   //   ),
+//   // );
 
-  return (
-    <>
-      <button
-        id="many-signals-button"
-        onClick$={() => {
-          for (const s of signals) {
-            if (typeof s !== "string") {
-              s.value++;
-            }
-          }
-        }}
-      >
-        Increment
-      </button>
-      <div id="many-signals-result">{signals}</div>
-      <div id="many-doubles-result">{doubles}</div>
-    </>
-  );
-});
+//   return (
+//     <>
+//       <button
+//         id="many-signals-button"
+//         onClick$={() => {
+//           for (const s of signals) {
+//             if (typeof s !== "string") {
+//               s.value++;
+//             }
+//           }
+//         }}
+//       >
+//         Increment
+//       </button>
+//       <div id="many-signals-result">{signals}</div>
+//       {/* <div id="many-doubles-result">{doubles}</div> */}
+//     </>
+//   );
+// });

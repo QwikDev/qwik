@@ -4,17 +4,18 @@ import {
   type NoSerialize,
   noSerialize,
   type QRL,
-  useTask$,
-  SkipRender,
-  useSignal,
-  Slot,
   RenderOnce,
+  SkipRender,
+  Slot,
+  useSignal,
+  useStore,
   useStylesScoped$,
-} from '@builder.io/qwik';
+  useTask$,
+} from '@qwik.dev/core';
 
-import { isBrowser, isServer } from '@builder.io/qwik/build';
-import type { Root } from 'react-dom/client';
+import { isBrowser, isServer } from '@qwik.dev/core/build';
 import type { FunctionComponent as ReactFC } from 'react';
+import type { Root } from 'react-dom/client';
 import * as client from './client';
 import { renderFromServer } from './server-render';
 import { getHostProps, main, mainExactProps, useWakeupSignal } from './slot';
@@ -32,7 +33,7 @@ export function qwikifyQrl<PROPS extends Record<any, any>>(
     const slotRef = useSignal<Element>();
     const internalState = useSignal<NoSerialize<Internal<PROPS>>>();
     const [signal, isClientOnly] = useWakeupSignal(props, opts);
-    const hydrationKeys = {};
+    const hydrationKeys = useStore({});
     const TagName = opts?.tagName ?? ('qwik-react' as any);
 
     // Task takes cares of updates and partial hydration
@@ -92,7 +93,7 @@ export function qwikifyQrl<PROPS extends Record<any, any>>(
     }
 
     return (
-      <RenderOnce>
+      <>
         <TagName
           {...getHostProps(props)}
           ref={(el: Element) => {
@@ -114,7 +115,7 @@ export function qwikifyQrl<PROPS extends Record<any, any>>(
         <q-slot ref={slotRef}>
           <Slot></Slot>
         </q-slot>
-      </RenderOnce>
+      </>
     );
   });
 }

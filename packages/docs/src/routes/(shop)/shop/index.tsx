@@ -1,7 +1,7 @@
-import { component$, useContext, useStyles$ } from '@builder.io/qwik';
+import { component$, useContext, useStyles$ } from '@qwik.dev/core';
+import type { DocumentHead } from '@qwik.dev/router';
 import styles from '../shop.css?inline';
 import { SHOP_CONTEXT } from '../utils';
-import type { DocumentHead } from '@builder.io/qwik-city';
 import { ShopHeader } from './shop-header';
 import { ShopProduct } from './shop-product';
 

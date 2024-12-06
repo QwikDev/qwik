@@ -7,16 +7,16 @@
  * - https://qwik.dev/docs/deployments/vercel-edge/
  *
  */
-import {
-  createQwikCity,
-  type PlatformVercel,
-} from "@builder.io/qwik-city/middleware/vercel-edge";
-import qwikCityPlan from "@qwik-city-plan";
 import { manifest } from "@qwik-client-manifest";
+import qwikRouterConfig from "@qwik-router-config";
+import {
+  createQwikRouter,
+  type PlatformVercel,
+} from "@qwik.dev/router/middleware/vercel-edge";
 import render from "./entry.ssr";
 
 declare global {
-  interface QwikCityPlatform extends PlatformVercel {}
+  interface QwikRouterPlatform extends PlatformVercel {}
 }
 
-export default createQwikCity({ render, qwikCityPlan, manifest });
+export default createQwikRouter({ render, qwikRouterConfig, manifest });

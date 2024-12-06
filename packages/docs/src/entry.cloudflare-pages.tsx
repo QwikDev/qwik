@@ -1,7 +1,7 @@
-import { createQwikCity } from '@builder.io/qwik-city/middleware/cloudflare-pages';
-import qwikCityPlan from '@qwik-city-plan';
+import qwikRouterConfig from '@qwik-router-config';
+import { createQwikRouter } from '@qwik.dev/router/middleware/cloudflare-pages';
 import render from './entry.ssr';
 
-const fetch = createQwikCity({ render, qwikCityPlan });
+const fetch = createQwikRouter({ render, qwikRouterConfig });
 
 export { fetch };

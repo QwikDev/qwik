@@ -1,10 +1,10 @@
 import {
   component$,
+  useSignal,
   useStore,
   useVisibleTask$,
-  useSignal,
   type PropsOf,
-} from "@builder.io/qwik";
+} from "@qwik.dev/core";
 
 export const RefRoot = component$(() => {
   const state = useStore({
@@ -15,18 +15,16 @@ export const RefRoot = component$(() => {
   });
 
   return (
-    <>
-      <div>
-        <Ref id="static" key={"1"}></Ref>
-        {state.visible && <Ref id="dynamic" key={"2"}></Ref>}
+    <div id="parent">
+      <Ref id="static" key={"1"}></Ref>
+      {state.visible && <Ref id="dynamic" key={"2"}></Ref>}
 
-        <Ref2 id="static-2" key={11}></Ref2>
-        {state.visible && <Ref2 id="dynamic-2" key={"22"}></Ref2>}
+      <Ref2 id="static-2" key={11}></Ref2>
+      {state.visible && <Ref2 id="dynamic-2" key={"22"}></Ref2>}
 
-        <Ref3 id="static-3" key={111}></Ref3>
-        {state.visible && <Ref3 id="dynamic-3" key={"33"}></Ref3>}
-      </div>
-    </>
+      <Ref3 id="static-3" key={111}></Ref3>
+      {state.visible && <Ref3 id="dynamic-3" key={"33"}></Ref3>}
+    </div>
   );
 });
 
@@ -36,11 +34,7 @@ export const Ref = component$((props: { id: string }) => {
     const el = track(() => ref.value);
     el!.textContent = `Rendered ${props.id}`;
   });
-  return (
-    <>
-      <div id={props.id} ref={ref} />
-    </>
-  );
+  return <div id={props.id} ref={ref} />;
 });
 
 export const Ref2 = component$((props: { id: string }) => {
@@ -49,11 +43,7 @@ export const Ref2 = component$((props: { id: string }) => {
     const el = track(() => ref.value);
     el!.textContent = `Rendered ${props.id}`;
   });
-  return (
-    <>
-      <div id={props.id} ref={ref} />
-    </>
-  );
+  return <div id={props.id} ref={ref} />;
 });
 
 export const Ref3 = component$(
@@ -63,18 +53,16 @@ export const Ref3 = component$(
     const { as = "div", ...rest } = props;
     const ref = useSignal<HTMLElement>();
 
-    const Cmp = as as any;
+    const Cmp = as as C;
 
     useVisibleTask$(() => {
       ref.value!.textContent = `Rendered ${props.id}`;
     });
 
     return (
-      <>
-        <Cmp {...rest} ref={ref}>
-          Test
-        </Cmp>
-      </>
+      <Cmp {...rest} ref={ref}>
+        Test
+      </Cmp>
     );
   },
 );

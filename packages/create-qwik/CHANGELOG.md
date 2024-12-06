@@ -1,6 +1,10 @@
 # create-qwik
 
-## 1.11.0
+## 2.0.0-alpha.2
+
+## 2.0.0-alpha.1
+
+## 2.0.0-alpha.0
 
 ## 1.10.0
 
@@ -36,4 +40,4 @@
 
 - - built files are now under dist/ or lib/. All tools that respect package export maps should just work. (by [@wmertens](https://github.com/wmertens) in [#6715](https://github.com/QwikDev/qwik/pull/6715))
     If you have trouble with Typescript, ensure that you use `moduleResolution: "Bundler"` in your `tsconfig.json`.
-  - `@builder.io/qwik` no longer depends on `undici`
+  - `@qwik.dev/core` no longer depends on `undici`

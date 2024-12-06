@@ -1,35 +1,35 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 826
+assertion_line: 936
 expression: output
 snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 
 export const Foo = component$(({color}) => {
-    return (
-        <div>
-            <Button {...props} />
-            <ButtonArrow {...props} />
-        </div>
-    );
+	return (
+		<div>
+			<Button {...props} />
+			<ButtonArrow {...props} />
+		</div>
+	);
 }, {
-    tagName: "my-foo",
+	tagName: "my-foo",
 });
 
 export function Button({text, color}) {
-    return (
-        <button onColor$={color} onClick$={()=>console.log(text, color)}>{text}</button>
-    );
+	return (
+		<button onColor$={color} onClick$={()=>console.log(text, color)}>{text}</button>
+	);
 }
 
 export const ButtonArrow = ({text, color}) => {
-    return (
-        <button onColor$={color} onClick$={()=>console.log(text, color)}>{text}</button>
-    );
+	return (
+		<button onColor$={color} onClick$={()=>console.log(text, color)}>{text}</button>
+	);
 }
 
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
@@ -38,13 +38,13 @@ import { Button } from "./test";
 import { ButtonArrow } from "./test";
 export const Foo_component_HTDRsvUbLiE = (props1)=>{
     return <div>
-            <Button {...props}/>
-            <ButtonArrow {...props}/>
-        </div>;
+			<Button {...props}/>
+			<ButtonArrow {...props}/>
+		</div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B;IAC1B,QACK,IAAI;YACD,CAAC,QAAQ,GAAG,KAAK,GAAI;YACrB,CAAC,aAAa,GAAG,KAAK,GAAI;QAC9B,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B;IAC7B,QACE,IAAI;GACJ,CAAC,QAAQ,GAAG,KAAK,GAAI;GACrB,CAAC,aAAa,GAAG,KAAK,GAAI;EAC3B,EAAE;AAEJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -60,21 +60,21 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    83,
-    221
+    81,
+    183
   ]
 }
 */
 ============================= test.tsx_ButtonArrow_button_onClick_9npo43fIGik.tsx (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
+import { useLexicalScope } from "@qwik.dev/core";
 export const ButtonArrow_button_onClick_9npo43fIGik = ()=>{
     const [color, text] = useLexicalScope();
     return console.log(text, color);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAsB2C;;WAAI,QAAQ,GAAG,CAAC,MAAM\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAsBqC;;WAAI,QAAQ,GAAG,CAAC,MAAM\"}")
 /*
 {
   "origin": "test.tsx",
@@ -90,21 +90,21 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    509,
-    537
+    447,
+    475
   ]
 }
 */
 ============================= test.tsx_Button_button_onClick_NsM0JYV00Jw.tsx (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
+import { useLexicalScope } from "@qwik.dev/core";
 export const Button_button_onClick_NsM0JYV00Jw = ()=>{
     const [color, text] = useLexicalScope();
     return console.log(text, color);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iDAgB2C;;WAAI,QAAQ,GAAG,CAAC,MAAM\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iDAgBqC;;WAAI,QAAQ,GAAG,CAAC,MAAM\"}")
 /*
 {
   "origin": "test.tsx",
@@ -120,15 +120,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    349,
-    377
+    299,
+    327
   ]
 }
 */
 ============================= test.tsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
 export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });
@@ -146,7 +146,7 @@ export const ButtonArrow = ({ text, color })=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAOhB;IACC,SAAS;AACb,GAAG;AAEH,OAAO,SAAS,OAAO,EAAC,IAAI,EAAE,KAAK,EAAC;IAChC,QACK,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAEjF;AAEA,OAAO,MAAM,cAAc,CAAC,EAAC,IAAI,EAAE,KAAK,EAAC;IACrC,QACK,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAEjF,EAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAOhB;IACF,SAAS;AACV,GAAG;AAEH,OAAO,SAAS,OAAO,EAAC,IAAI,EAAE,KAAK,EAAC;IACnC,QACE,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAE3E;AAEA,OAAO,MAAM,cAAc,CAAC,EAAC,IAAI,EAAE,KAAK,EAAC;IACxC,QACE,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAE3E,EAAC\"}")
 == DIAGNOSTICS ==
 
 []

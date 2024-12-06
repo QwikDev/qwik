@@ -1,8 +1,8 @@
 ---
-title: \@builder.io/qwik/optimizer API Reference
+title: \@qwik.dev/qwik/optimizer API Reference
 ---
 
-# [API](/api) &rsaquo; @builder.io/qwik/optimizer
+# [API](/api) &rsaquo; @qwik.dev/qwik/optimizer
 
 ## basename
 
@@ -326,8 +326,6 @@ export type EntryStrategy =
 
 ## ExperimentalFeatures
 
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-
 Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.
 
 Add experimental features to this enum definition.
@@ -351,6 +349,19 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+insights
+
+</td><td>
+
+`"insights"`
+
+</td><td>
+
+Enable the ability to use the Qwik Insights vite plugin and <Insights/> component
+
+</td></tr>
+<tr><td>
+
 noSPA
 
 </td><td>
@@ -359,7 +370,7 @@ noSPA
 
 </td><td>
 
-**_(ALPHA)_** Disable SPA navigation handler in Qwik City
+Disable SPA navigation handler in Qwik Router
 
 </td></tr>
 <tr><td>
@@ -372,7 +383,7 @@ preventNavigate
 
 </td><td>
 
-**_(ALPHA)_** Enable the usePreventNavigate hook
+Enable the usePreventNavigate hook
 
 </td></tr>
 <tr><td>
@@ -385,7 +396,20 @@ valibot
 
 </td><td>
 
-**_(ALPHA)_** Enable the Valibot form validation
+Enable the Valibot form validation
+
+</td></tr>
+<tr><td>
+
+webWorker
+
+</td><td>
+
+`"webWorker"`
+
+</td><td>
+
+Enable worker$
 
 </td></tr>
 </tbody></table>
@@ -642,6 +666,8 @@ Record&lt;string, string&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
+## insights
+
 ## isAbsolute
 
 ```typescript
@@ -808,34 +834,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[transformFs(opts)](#optimizer-transformfs)
-
-</td><td>
-
-Transforms the directory from the file system.
-
-</td></tr>
-<tr><td>
-
-[transformFsSync(opts)](#optimizer-transformfssync)
-
-</td><td>
-
-Transforms the directory from the file system.
-
-</td></tr>
-<tr><td>
-
 [transformModules(opts)](#optimizer-transformmodules)
-
-</td><td>
-
-Transforms the input code string, does not access the file system.
-
-</td></tr>
-<tr><td>
-
-[transformModulesSync(opts)](#optimizer-transformmodulessync)
 
 </td><td>
 
@@ -2832,7 +2831,7 @@ export type SourceMapsOption = "external" | "inline" | undefined | null;
 
 ## symbolMapper
 
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
 For a given symbol (QRL such as `onKeydown$`) the server needs to know which bundle the symbol is in.
 
@@ -2848,7 +2847,7 @@ symbolMapper: ReturnType<typeof createSymbolMapper>;
 
 ## SymbolMapper
 
-> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 
 For a given symbol (QRL such as `onKeydown$`) the server needs to know which bundle the symbol is in.
 
@@ -2889,122 +2888,6 @@ export type SystemEnvironment =
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-## transformFs
-
-Transforms the directory from the file system.
-
-```typescript
-transformFs(opts: TransformFsOptions): Promise<TransformOutput>;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-opts
-
-</td><td>
-
-[TransformFsOptions](#transformfsoptions)
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-**Returns:**
-
-Promise&lt;[TransformOutput](#transformoutput)&gt;
-
-## TransformFsOptions
-
-```typescript
-export interface TransformFsOptions extends TransformOptions
-```
-
-**Extends:** [TransformOptions](#transformoptions)
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[vendorRoots](#)
-
-</td><td>
-
-</td><td>
-
-string[]
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-## transformFsSync
-
-Transforms the directory from the file system.
-
-```typescript
-transformFsSync(opts: TransformFsOptions): TransformOutput;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-opts
-
-</td><td>
-
-[TransformFsOptions](#transformfsoptions)
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-**Returns:**
-
-[TransformOutput](#transformoutput)
 
 ## TransformModule
 
@@ -3257,43 +3140,6 @@ Description
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-## transformModulesSync
-
-Transforms the input code string, does not access the file system.
-
-```typescript
-transformModulesSync(opts: TransformModulesOptions): TransformOutput;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-opts
-
-</td><td>
-
-[TransformModulesOptions](#transformmodulesoptions)
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-**Returns:**
-
-[TransformOutput](#transformoutput)
 
 ## TransformOptions
 
@@ -3658,3 +3504,5 @@ versions: {
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/versions.ts)
+
+## webWorker

@@ -1,11 +1,11 @@
-import { noSerialize } from '@builder.io/qwik';
-import type { Diagnostic } from '@builder.io/qwik/optimizer';
+import { noSerialize } from '@qwik.dev/core';
+import { isServer } from '@qwik.dev/core/build';
+import type { Diagnostic } from '@qwik.dev/core/optimizer';
 import type MonacoTypes from 'monaco-editor';
+import { getColorPreference } from '../components/theme-toggle/theme-toggle';
+import { QWIK_PKG_NAME, QWIK_PKG_NAME_V1, bundled, getNpmCdnUrl } from './bundled';
 import type { EditorProps, EditorStore } from './editor';
 import type { ReplStore } from './types';
-import { getColorPreference } from '../components/theme-toggle/theme-toggle';
-import { bundled, getNpmCdnUrl } from './bundled';
-import { isServer } from '@builder.io/qwik/build';
 // We cannot use this, it causes the repl to use imports
 // import { QWIK_REPL_DEPS_CACHE } from './worker/repl-constants';
 const QWIK_REPL_DEPS_CACHE = 'QwikReplDeps';
@@ -26,7 +26,7 @@ export const initMonacoEditor = async (
     esModuleInterop: true,
     isolatedModules: true,
     jsx: ts.JsxEmit.ReactJSX,
-    jsxImportSource: '@builder.io/qwik',
+    jsxImportSource: '@qwik.dev/core',
     moduleResolution: ts.ModuleResolutionKind.NodeJs,
     noEmit: true,
     skipLibCheck: true,
@@ -148,7 +148,11 @@ const checkDiagnostics = async (
 ) => {
   if (!monacoCtx.tsWorker) {
     const getTsWorker = await monaco.languages.typescript.getTypeScriptWorker();
-    monacoCtx.tsWorker = await getTsWorker(editor.getModel()!.uri);
+    const uri = editor.getModel()?.uri;
+    if (!uri) {
+      return;
+    }
+    monacoCtx.tsWorker = await getTsWorker(uri);
   }
   const tsWorker = monacoCtx.tsWorker;
 
@@ -211,41 +215,48 @@ export const addQwikLibs = async (version: string) => {
     }
   });
   typescriptDefaults.addExtraLib(
-    `declare module '@builder.io/qwik/jsx-runtime' { export * from '@builder.io/qwik' }`,
-    '/node_modules/@builder.io/qwik/dist/jsx-runtime.d.ts'
+    `declare module '@qwik.dev/core/jsx-runtime' { export * from '@qwik.dev/core' }`,
+    '/node_modules/@qwik.dev/core/dist/jsx-runtime.d.ts'
   );
   typescriptDefaults.addExtraLib(CLIENT_LIB);
 };
 
 const loadDeps = async (qwikVersion: string) => {
   const [M, m, p] = qwikVersion.split('-')[0].split('.').map(Number);
+  const isV1 = M < 2;
   const prefix =
     qwikVersion === 'bundled' || M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2)))
       ? '/dist/'
       : '/';
   const deps: NodeModuleDep[] = [
     // qwik
-    {
-      pkgName: '@builder.io/qwik',
+    !isV1 && {
+      pkgName: QWIK_PKG_NAME,
       pkgVersion: qwikVersion,
-      pkgPath: `${prefix}core.d.ts`,
+      pkgPath: `/public.d.ts`,
       import: '',
+    },
+    {
+      pkgName: isV1 ? QWIK_PKG_NAME_V1 : QWIK_PKG_NAME,
+      pkgVersion: qwikVersion,
+      pkgPath: `${prefix}core-internal.d.ts`,
+      import: isV1 ? '' : '/internal',
     },
     // server API
     {
-      pkgName: '@builder.io/qwik',
+      pkgName: isV1 ? QWIK_PKG_NAME_V1 : QWIK_PKG_NAME,
       pkgVersion: qwikVersion,
       pkgPath: `${prefix}server.d.ts`,
       import: '/server',
     },
     // build constants
     {
-      pkgName: '@builder.io/qwik',
+      pkgName: isV1 ? QWIK_PKG_NAME_V1 : QWIK_PKG_NAME,
       pkgVersion: qwikVersion,
       pkgPath: `${prefix}build/index.d.ts`,
       import: '/build',
     },
-  ];
+  ].filter(Boolean) as NodeModuleDep[];
 
   const cache = await caches.open(QWIK_REPL_DEPS_CACHE);
 

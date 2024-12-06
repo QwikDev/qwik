@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::code_move::create_return_stmt;
 use crate::collector::{new_ident_from_id, GlobalCollect, Id};
-use crate::is_immutable::is_immutable_expr;
+use crate::is_const::is_const_expr;
 use crate::words::*;
 use swc_atoms::JsWord;
 use swc_common::DUMMY_SP;
@@ -296,7 +296,7 @@ fn transform_pat(
 					span: DUMMY_SP,
 				});
 				if let Some(value) = &v.value {
-					if is_immutable_expr(value.as_ref(), props_transform.global_collect, None) {
+					if is_const_expr(value.as_ref(), props_transform.global_collect, None) {
 						local.push((
 							id!(v.key),
 							v.key.sym.clone(),
@@ -330,11 +330,7 @@ fn transform_pat(
 							right: value,
 							..
 						}) => {
-							if is_immutable_expr(
-								value.as_ref(),
-								props_transform.global_collect,
-								None,
-							) {
+							if is_const_expr(value.as_ref(), props_transform.global_collect, None) {
 								let access = ast::Expr::Member(ast::MemberExpr {
 									obj: Box::new(new_ident.clone()),
 									prop: ast::MemberProp::Ident(key.clone()),

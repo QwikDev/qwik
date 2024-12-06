@@ -1,8 +1,8 @@
-import { component$, useComputed$, useContext, useSignal } from '@builder.io/qwik';
+import { component$, useComputed$, useContext, useSignal } from '@qwik.dev/core';
 import { modifyLineItemMutation } from '../mutation';
 import { SHOP_CONTEXT, fetchFromShopify, formatPrice } from '../utils';
 import type { UIProduct } from '../types';
-import { Image } from '@unpic/qwik';
+import { Image } from 'qwik-image';
 
 type Props = {
   product: UIProduct;

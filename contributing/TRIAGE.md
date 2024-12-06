@@ -32,7 +32,7 @@ flowchart TD
     real --NO--> intended{Is the intended\nbehaviour?}
     intended --YES--> explain[Explain and close.\nPoint to docs if needed.\nTag with\n'STATUS-3: works as expected']
     intended --NO--> open[Tag with\n'STATUS-2: requires discussion'\nand either\n'WAITING FOR: team'\n'WAITING FOR: user']
-    real --YES--> real2["1. Tag with 'STATUS-2: team is working on this'\n2. Add related feature label if\napplicable (e.g. 'COMP: runtime')\n3. Add priority labels (see below)"]
+    real --YES--> real2["1. Add related feature label if\napplicable (e.g. 'COMP: runtime')\n2. Add priority labels (see below)"]
     real2 --> unusable{Does the\nbug make Qwik\nunusable?}
     unusable --YES--> maj{Does the bug\naffect the majority\nof Qwik users?}
     maj --YES--> P4[P4: urgent]
@@ -76,7 +76,7 @@ flowchart TD
     implement --NO--> community{Should it be implemented\nby the community?}
     community --YES--> incubate[Close and tag with either\n'STATUS-3: incubation'\nor 'STATUS-2: waiting for community PR'\nand 'COMMUNITY: PR is welcomed']
     community --NO--> wontfix[Close and tag with\n'STATUS-3: won't be worked on']
-    implement --YES--> doimplement["1. Tag with 'STATUS-2: team is working on this'\n2. Add related feature label if\napplicable (e.g. 'COMP: runtime')\n3. Add version \nlabels (e.g. 'VERSION: upcoming major')"]
+    implement --YES--> doimplement["1. Add to github project backlog\n2. related feature label if\napplicable (e.g. 'COMP: runtime')\n3. Add version \nlabels (e.g. 'VERSION: upcoming major')"]
 ```
 
 ## Thank You!

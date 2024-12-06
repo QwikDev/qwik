@@ -1787,10 +1787,15 @@ impl<'a> Fold for QwikTransform<'a> {
 			.last_mut()
 			.expect("Declaration stack empty!");
 
+		let is_qcomponent = self.stack_ctxt.last() == Some(&QCOMPONENT.to_string());
+
 		for param in &node.params {
 			let mut identifiers = vec![];
-			collect_from_pat(&param.pat, &mut identifiers);
-			let is_constant = matches!(param.pat, ast::Pat::Ident(_));
+			let is_identifier = collect_from_pat(&param.pat, &mut identifiers);
+			let mut is_constant = false;
+			if is_qcomponent {
+				is_constant = is_identifier;
+			}
 			current_scope.extend(
 				identifiers
 					.into_iter()
@@ -1817,10 +1822,16 @@ impl<'a> Fold for QwikTransform<'a> {
 			.decl_stack
 			.last_mut()
 			.expect("Declaration stack empty!");
+
+		let is_qcomponent = self.stack_ctxt.last() == Some(&QCOMPONENT.to_string());
+
 		for param in &node.params {
 			let mut identifiers = vec![];
-			collect_from_pat(param, &mut identifiers);
-			let is_constant = matches!(param, ast::Pat::Ident(_));
+			let is_identifier = collect_from_pat(param, &mut identifiers);
+			let mut is_constant = false;
+			if is_qcomponent {
+				is_constant = is_identifier;
+			}
 			current_scope.extend(
 				identifiers
 					.into_iter()

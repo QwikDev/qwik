@@ -1,5 +1,11 @@
 # @qwik.dev/core
 
+## 2.0.0-alpha.3
+
+### Patch Changes
+
+- 🐞🩹 using ref inside useContext (by [@Varixo](https://github.com/Varixo) in [#7132](https://github.com/QwikDev/qwik/pull/7132))
+
 ## 2.0.0-alpha.2
 
 ### Patch Changes

@@ -1,0 +1,1 @@
+CREATE INDEX `idx_edge_from_to` ON `edges` (`from`,`to`);

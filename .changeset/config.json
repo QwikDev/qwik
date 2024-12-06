@@ -5,7 +5,7 @@
   "fixed": [["@builder.io/qwik", "@builder.io/qwik-city", "eslint-plugin-qwik", "create-qwik"]],
   "linked": [],
   "access": "public",
-  "baseBranch": "upcoming",
+  "baseBranch": "origin/upcoming",
   "updateInternalDependencies": "minor",
   "ignore": [
     "qwik-docs",

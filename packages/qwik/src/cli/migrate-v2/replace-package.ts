@@ -9,8 +9,14 @@ function updateFileContent(path: string, content: string) {
   log.info(`"${path}" has been updated`);
 }
 
-export function replacePackage(oldPackageName: string, newPackageName: string): void {
-  replacePackageInDependencies(oldPackageName, newPackageName);
+export function replacePackage(
+  oldPackageName: string,
+  newPackageName: string,
+  skipDependencies = false
+): void {
+  if (skipDependencies) {
+    replacePackageInDependencies(oldPackageName, newPackageName);
+  }
 
   replaceMentions(oldPackageName, newPackageName);
 }

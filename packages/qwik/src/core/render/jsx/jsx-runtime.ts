@@ -12,6 +12,7 @@ import { isPromise } from '../../util/promises';
 import { SkipRender } from './utils.public';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { _IMMUTABLE } from '../../internal';
+// keep this import from qwik/build so the cjs build works
 import { isBrowser } from '@builder.io/qwik/build';
 import { assertString } from '../../error/assert';
 import { static_subtree } from '../execute-component';

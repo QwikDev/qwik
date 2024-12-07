@@ -7,7 +7,7 @@ import exampleSections, { type ExampleApp } from '@examples-data';
 import type { ReplAppInput } from '../../../repl/types';
 import { type DocumentHead, useLocation } from '@builder.io/qwik-city';
 import { PanelToggle } from '../../../components/panel-toggle/panel-toggle';
-import { isBrowser } from '@builder.io/qwik/build';
+import { isBrowser } from '@builder.io/qwik';
 import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../../repl/repl-share-url';
 
 export default component$(() => {

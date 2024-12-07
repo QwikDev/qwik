@@ -1,3 +1,4 @@
+// keep this import from qwik/build so the cjs build works
 import { isBrowser } from '@builder.io/qwik/build';
 import { qTest } from './qdev';
 

@@ -1,3 +1,4 @@
+// keep this import from qwik/build so the cjs build works
 import { isServer } from '@builder.io/qwik/build';
 import { qError, QError_qrlMissingChunk, QError_qrlMissingContainer } from '../error/error';
 import { getSymbolHash } from '../qrl/qrl-class';

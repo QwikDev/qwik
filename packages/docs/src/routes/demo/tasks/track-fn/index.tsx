@@ -1,5 +1,5 @@
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-import { isServer } from '@builder.io/qwik/build';
+import { isServer } from '@builder.io/qwik';
 
 export default component$(() => {
   const isUppercase = useSignal(false);

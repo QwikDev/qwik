@@ -9,6 +9,9 @@ pub struct ConstReplacerVisitor {
 	pub is_server_ident: Option<Id>,
 	pub is_browser_ident: Option<Id>,
 	pub is_dev_ident: Option<Id>,
+	pub is_core_server_ident: Option<Id>,
+	pub is_core_browser_ident: Option<Id>,
+	pub is_core_dev_ident: Option<Id>,
 }
 
 impl ConstReplacerVisitor {
@@ -21,6 +24,10 @@ impl ConstReplacerVisitor {
 			is_browser_ident: global_collector
 				.get_imported_local(&IS_BROWSER, &BUILDER_IO_QWIK_BUILD),
 			is_dev_ident: global_collector.get_imported_local(&IS_DEV, &BUILDER_IO_QWIK_BUILD),
+			is_core_server_ident: global_collector.get_imported_local(&IS_SERVER, &BUILDER_IO_QWIK),
+			is_core_browser_ident: global_collector
+				.get_imported_local(&IS_BROWSER, &BUILDER_IO_QWIK),
+			is_core_dev_ident: global_collector.get_imported_local(&IS_DEV, &BUILDER_IO_QWIK),
 		}
 	}
 }
@@ -49,6 +56,12 @@ impl VisitMut for ConstReplacerVisitor {
 				} else if id_eq!(ident, &self.is_browser_ident) {
 					ConstVariable::IsBrowser
 				} else if id_eq!(ident, &self.is_dev_ident) {
+					ConstVariable::IsDev
+				} else if id_eq!(ident, &self.is_core_server_ident) {
+					ConstVariable::IsServer
+				} else if id_eq!(ident, &self.is_core_browser_ident) {
+					ConstVariable::IsBrowser
+				} else if id_eq!(ident, &self.is_core_dev_ident) {
 					ConstVariable::IsDev
 				} else {
 					ConstVariable::None

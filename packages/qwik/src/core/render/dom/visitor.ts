@@ -47,6 +47,7 @@ import {
   type VirtualElement,
 } from './virtual-element';
 
+// keep this import from qwik/build so the cjs build works
 import { isBrowser } from '@builder.io/qwik/build';
 import {
   getProxyTarget,

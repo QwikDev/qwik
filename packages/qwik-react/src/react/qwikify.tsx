@@ -12,7 +12,7 @@ import {
   useStylesScoped$,
 } from '@builder.io/qwik';
 
-import { isBrowser, isServer } from '@builder.io/qwik/build';
+import { isBrowser, isServer } from '@builder.io/qwik';
 import type { Root } from 'react-dom/client';
 import type { FunctionComponent as ReactFC } from 'react';
 import * as client from './client';

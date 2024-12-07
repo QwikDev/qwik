@@ -2619,15 +2619,15 @@ export const foo = () => console.log('foo');
 fn example_build_server() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore } from '@builder.io/qwik';
-import { isServer, isBrowser } from '@builder.io/qwik/build';
+import { component$, useStore, isDev, isServer as isServer2 } from '@builder.io/qwik';
+import { isServer, isBrowser as isb } from '@builder.io/qwik/build';
 import { mongodb } from 'mondodb';
 import { threejs } from 'threejs';
 
 import L from 'leaflet';
 
 export const functionThatNeedsWindow = () => {
-  if (isBrowser) {
+  if (isb) {
     console.log('l', L);
     console.log('hey');
     window.alert('hey');
@@ -2639,14 +2639,14 @@ export const App = component$(() => {
         if (isServer) {
             console.log('server', mongodb());
         }
-        if (isBrowser) {
+        if (isb) {
             console.log('browser', new threejs());
         }
     });
     return (
         <Cmp>
-            {isServer && <p>server</p>}
-            {isBrowser && <p>server</p>}
+            {isServer2 && <p>server</p>}
+            {isb && <p>server</p>}
         </Cmp>
     );
 });

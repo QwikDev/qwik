@@ -3,7 +3,7 @@ import { getClientNavPath, shouldPrefetchData, shouldPrefetchSymbols } from './u
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
 import { prefetchSymbols } from './client-navigate';
-import { isDev } from '@builder.io/qwik/build';
+import { isDev } from '@builder.io/qwik';
 
 /** @public */
 export const Link = component$<LinkProps>((props) => {

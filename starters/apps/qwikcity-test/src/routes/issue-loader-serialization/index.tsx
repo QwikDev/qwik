@@ -5,7 +5,7 @@ import {
   useTask$,
 } from "@builder.io/qwik";
 import { routeLoader$ } from "@builder.io/qwik-city";
-import { isBrowser } from "@builder.io/qwik/build";
+import { isBrowser } from "@builder.io/qwik";
 
 export const useCmp1 = routeLoader$(
   () => {

@@ -50,7 +50,7 @@ import type {
 } from './types';
 import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 
-import { isDev, isServer } from '@builder.io/qwik/build';
+import { isDev, isServer } from '@builder.io/qwik';
 
 import type { FormSubmitCompletedDetail } from './form-component';
 

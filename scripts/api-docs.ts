@@ -211,8 +211,7 @@ async function createApiMarkdown(a: ApiData) {
     md.push(``);
 
     // sanitize / adjust output
-    const content = m.content
-      .replace(/<!--(.|\s)*?-->/g, '')
+    const content = removeHtmlComments(m.content)
       // .replace(/<Slot\/>/g, ''
       .replace(/\\#\\#\\# (\w+)/gm, '### $1')
       .replace(/\\\[/gm, '[')
@@ -230,6 +229,15 @@ async function createApiMarkdown(a: ApiData) {
     parser: 'markdown',
   });
   return mdOutput;
+}
+
+function removeHtmlComments(input: string): string {
+  let previous;
+  do {
+    previous = input;
+    input = input.replace(/<!--(\s*|.*)--!?>/g, '');
+  } while (input !== previous);
+  return input;
 }
 
 interface ApiData {

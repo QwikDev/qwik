@@ -5,6 +5,9 @@
 ```ts
 
 import * as CSS_2 from 'csstype';
+import { isBrowser } from '@builder.io/qwik/build';
+import { isDev } from '@builder.io/qwik/build';
+import { isServer } from '@builder.io/qwik/build';
 import type { JSXNode as JSXNode_2 } from '@builder.io/qwik/jsx-runtime';
 
 // @public
@@ -400,6 +403,12 @@ export type IntrinsicHTMLElements = {
 export type IntrinsicSVGElements = {
     [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: LenientSVGProps<SVGElementTagNameMap[K]>;
 };
+
+export { isBrowser }
+
+export { isDev }
+
+export { isServer }
 
 // @public
 export const isSignal: <T = unknown>(obj: any) => obj is Signal<T>;

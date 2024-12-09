@@ -1,3 +1,4 @@
+// keep this import from qwik/build so the cjs build works
 import { isDev } from '@builder.io/qwik/build';
 import { _jsxC } from '../internal';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';

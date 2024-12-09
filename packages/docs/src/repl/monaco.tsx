@@ -5,7 +5,7 @@ import type { EditorProps, EditorStore } from './editor';
 import type { ReplStore } from './types';
 import { getColorPreference } from '../components/theme-toggle/theme-toggle';
 import { bundled, getNpmCdnUrl } from './bundled';
-import { isServer } from '@builder.io/qwik/build';
+import { isServer } from '@builder.io/qwik';
 // We cannot use this, it causes the repl to use imports
 // import { QWIK_REPL_DEPS_CACHE } from './worker/repl-constants';
 const QWIK_REPL_DEPS_CACHE = 'QwikReplDeps';

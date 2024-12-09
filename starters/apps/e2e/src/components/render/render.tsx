@@ -16,7 +16,7 @@ import {
   type JSXOutput,
 } from "@builder.io/qwik";
 import { delay } from "../streaming/demo";
-import { isServer } from "@builder.io/qwik/build";
+import { isServer } from "@builder.io/qwik";
 
 export const Render = component$(() => {
   const rerender = useSignal(0);

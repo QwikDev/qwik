@@ -6,14 +6,14 @@ export const HelloWorld = component$(() => {
       return 'string';
     } else {
       return () => {
-        // eslint-disable-next-line no-console
+        /* eslint no-console: [, { allow: ["log"] }] */
         console.log();
       };
     }
   }
   const a = getValue();
   useTask$(() => {
-    // eslint-disable-next-line no-console
+    /* eslint no-console: [, { allow: ["log"] }] */
     console.log(a);
   });
   return <div></div>;

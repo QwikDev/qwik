@@ -1,7 +1,10 @@
 import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
-import { QwikEslintExamples } from '../examples';
+import type { QwikEslintExamples } from '../examples';
+interface RuleOptions {
+  recommended: string;
+}
 
-const createRule = ESLintUtils.RuleCreator(
+const createRule = ESLintUtils.RuleCreator<RuleOptions>(
   (name) => `https://qwik.dev/docs/advanced/eslint/#${name}`
 );
 
@@ -148,7 +151,7 @@ function imgImportName(value: string) {
   return `Img${toPascalCase(value)}`;
 }
 
-function toPascalCase(string) {
+function toPascalCase(string: string) {
   return `${string}`
     .toLowerCase()
     .replace(new RegExp(/[-_]+/, 'g'), ' ')

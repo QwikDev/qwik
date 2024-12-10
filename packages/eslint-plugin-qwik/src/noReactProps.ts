@@ -1,6 +1,6 @@
 import type { TSESLint } from '@typescript-eslint/utils';
 import jsxAstUtils from 'jsx-ast-utils';
-import { QwikEslintExamples } from '../examples';
+import type { QwikEslintExamples } from '../examples';
 
 const reactSpecificProps = [
   { from: 'className', to: 'class' },

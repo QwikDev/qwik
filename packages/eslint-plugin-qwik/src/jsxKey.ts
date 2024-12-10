@@ -1,6 +1,5 @@
 import jsxAstUtils from 'jsx-ast-utils';
-import { QwikEslintExamples } from '../examples';
-
+import type { QwikEslintExamples } from '../examples';
 // ------------------------------------------------------------------------------
 // Rule Definition
 // ------------------------------------------------------------------------------
@@ -110,20 +109,20 @@ export const jsxKey = {
 
       return returnStatements;
     }
-
-    function isKeyAfterSpread(attributes) {
-      let hasFoundSpread = false;
-      return attributes.some((attribute) => {
-        if (attribute.type === 'JSXSpreadAttribute') {
-          hasFoundSpread = true;
-          return false;
-        }
-        if (attribute.type !== 'JSXAttribute') {
-          return false;
-        }
-        return hasFoundSpread && jsxAstUtils.propName(attribute) === 'key';
-      });
-    }
+    // never used
+    // function isKeyAfterSpread(attributes) {
+    //   let hasFoundSpread = false;
+    //   return attributes.some((attribute) => {
+    //     if (attribute.type === 'JSXSpreadAttribute') {
+    //       hasFoundSpread = true;
+    //       return false;
+    //     }
+    //     if (attribute.type !== 'JSXAttribute') {
+    //       return false;
+    //     }
+    //     return hasFoundSpread && jsxAstUtils.propName(attribute) === 'key';
+    //   });
+    // }
 
     /**
      * Checks if the given node is a function expression or arrow function, and checks if there is a

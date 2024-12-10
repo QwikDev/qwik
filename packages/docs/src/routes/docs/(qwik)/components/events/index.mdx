@@ -146,7 +146,7 @@ Due to Qwik's asynchronous nature, the execution of an event handler might be de
 
 ### preventDefault & stopPropagation
 
-Because event handling is asynchronous, you can't use `event.preventDefault()` or `event.stopPropagation()`. To solve this, Qwik introduces a declarative way to prevent default through `preventdefault:{eventName}` and `stoppropagation:{eventName} attributes.
+Because event handling is asynchronous, you can't use `event.preventDefault()` or `event.stopPropagation()`. To solve this, Qwik introduces a declarative way to prevent default through `preventdefault:{eventName}` and `stoppropagation:{eventName}` attributes.
 
 <CodeSandbox src="/src/routes/demo/events/preventdefault/index.tsx" style={{ height: '6em' }}>
 ```tsx {7}

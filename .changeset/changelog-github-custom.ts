@@ -116,7 +116,9 @@ const changelogFunctions: ChangelogFunctions = {
     }
 
     const emojiFirstline = firstLine
-      .replace(/feat:/i, '✨ ')
+      .replace(/feat:/i, '✨')
+      .replace(/chore:/i, '🛠')
+      .replace(/infra:/i, '🛠')
       .replace(/fix:/i, '🐞🩹')
       .replace(/docs:/i, '📃');
 

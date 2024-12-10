@@ -1,5 +1,7 @@
 # @qwik.dev/city
 
+## 2.0.0-alpha.2
+
 ## 2.0.0-alpha.1
 
 ## 2.0.0-alpha.0
@@ -14,6 +16,10 @@
 
 - ✨ Experimental feature - `noSPA`. (by [@wmertens](https://github.com/wmertens) in [#6937](https://github.com/QwikDev/qwik/pull/6937))
   This disables history patching, slightly reducing code size and startup time. Use this when your application is MPA only, meaning you don't use the Link component. To enable this, add it to the `experimental` array of the `qwikVite` plugin (not the `qwikCity` plugin).
+
+## 1.11.0
+
+## 1.11.0
 
 ## 1.10.0
 

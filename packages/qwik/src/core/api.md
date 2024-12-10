@@ -853,7 +853,7 @@ export abstract class _SharedContainer implements Container {
         };
     } | null, DomRefConstructor: {
         new (...rest: any[]): {
-            id: string;
+            $ssrNode$: ISsrNode;
         };
     } | null, symbolToChunkResolver: SymbolToChunkResolver, writer?: StreamWriter, prepVNodeData?: (vNode: any) => void): SerializationContext;
     // (undocumented)

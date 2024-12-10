@@ -1229,10 +1229,55 @@ export const vnode_materialize = (vNode: ElementVNode) => {
   const element = vNode[ElementVNodeProps.element];
   const firstChild = fastFirstChild(element);
   const vNodeData = (element.ownerDocument as QDocument)?.qVNodeData?.get(element);
-  const vFirstChild = vNodeData
-    ? materializeFromVNodeData(vNode, vNodeData, element, firstChild)
-    : materializeFromDOM(vNode, firstChild);
+
+  const vFirstChild = materialize(vNode, element, firstChild, vNodeData);
   return vFirstChild;
+};
+
+const materialize = (
+  vNode: ElementVNode,
+  element: Element,
+  firstChild: Node | null,
+  vNodeData?: string
+): VNode | null => {
+  if (vNodeData) {
+    if (vNodeData.charCodeAt(0) === VNodeDataChar.SEPARATOR) {
+      /**
+       * If vNodeData start with the `VNodeDataChar.SEPARATOR` then it means that the vNodeData
+       * contains some data for DOM element. We need to split it to DOM element vNodeData and
+       * virtual element vNodeData.
+       *
+       * For example `|=6`4|2{J=7`3|q:type|S}` should split into `=6`4`and`2{J=7`3|q:type|S}`, where
+       * `=6`4` is vNodeData for the DOM element.
+       */
+
+      const elementVNodeDataStartIdx = 1;
+      let elementVNodeDataEndIdx = 1;
+      while (vNodeData.charCodeAt(elementVNodeDataEndIdx) !== VNodeDataChar.SEPARATOR) {
+        elementVNodeDataEndIdx++;
+      }
+      const elementVNodeData = vNodeData.substring(
+        elementVNodeDataStartIdx,
+        elementVNodeDataEndIdx
+      );
+
+      // Override vNodeData variable for materializing a virtual element
+      vNodeData = vNodeData.substring(elementVNodeDataEndIdx + 1);
+
+      // Materialize DOM element from HTML. If the `vNodeData` is not empty,
+      // then also materialize virtual element from vNodeData
+      const vFirstChild = materializeFromDOM(vNode, firstChild, elementVNodeData);
+      if (!vNodeData) {
+        //  If it is empty then we don't need to call the `materializeFromVNodeData`.
+        return vFirstChild;
+      }
+    }
+    // Materialize virtual element form vNodeData
+    return materializeFromVNodeData(vNode, vNodeData, element, firstChild);
+  } else {
+    // Materialize DOM element from HTML only
+    return materializeFromDOM(vNode, firstChild);
+  }
 };
 
 const ensureMaterialized = (vnode: ElementVNode): VNode | null => {
@@ -1381,7 +1426,7 @@ const isQStyleElement = (node: Node | null): node is Element => {
   );
 };
 
-const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null) => {
+const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null, vData?: string) => {
   let vFirstChild: VNode | null = null;
 
   const skipStyleElements = () => {
@@ -1417,7 +1462,76 @@ const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null) => {
   }
   vParent[ElementVNodeProps.lastChild] = vChild || null;
   vParent[ElementVNodeProps.firstChild] = vFirstChild;
+
+  if (vData) {
+    /**
+     * If we need to materialize from DOM and we have vNodeData it means that we have some virtual
+     * props for that node.
+     */
+    let container: ClientContainer | null = null;
+    processVNodeData(vData, (peek, consumeValue) => {
+      if (peek() === VNodeDataChar.ID) {
+        if (!container) {
+          container = getDomContainer(vParent[ElementVNodeProps.element]);
+        }
+        const id = consumeValue();
+        container.$setRawState$(parseInt(id), vParent);
+        isDev && vnode_setAttr(null, vParent, ELEMENT_ID, id);
+      } else if (peek() === VNodeDataChar.SUBS) {
+        vnode_setProp(vParent, QSubscribers, consumeValue());
+      } else {
+        // prevent infinity loop if there are some characters outside the range
+        consumeValue();
+      }
+    });
+  }
+
   return vFirstChild;
+};
+
+const processVNodeData = (
+  vData: string,
+  callback: (
+    peek: () => number,
+    consumeValue: () => string,
+    consume: () => number,
+    nextToConsumeIdx: number
+  ) => void
+) => {
+  let nextToConsumeIdx = 0;
+  let ch = 0;
+  let peekCh = 0;
+  const peek = () => {
+    if (peekCh !== 0) {
+      return peekCh;
+    } else {
+      return (peekCh = nextToConsumeIdx < vData.length ? vData.charCodeAt(nextToConsumeIdx) : 0);
+    }
+  };
+  const consume = () => {
+    ch = peek();
+    peekCh = 0;
+    nextToConsumeIdx++;
+    return ch;
+  };
+
+  const consumeValue = () => {
+    consume();
+    const start = nextToConsumeIdx;
+    while (
+      (peek() <= 58 /* `:` */ && peekCh !== 0) ||
+      peekCh === 95 /* `_` */ ||
+      (peekCh >= 65 /* `A` */ && peekCh <= 90) /* `Z` */ ||
+      (peekCh >= 97 /* `a` */ && peekCh <= 122) /* `z` */
+    ) {
+      consume();
+    }
+    return vData.substring(start, nextToConsumeIdx);
+  };
+
+  while (peek() !== 0) {
+    callback(peek, consumeValue, consume, nextToConsumeIdx);
+  }
 };
 
 export const vnode_getNextSibling = (vnode: VNode): VNode | null => {
@@ -1639,25 +1753,10 @@ function materializeFromVNodeData(
   child: Node | null
 ): VNode {
   let idx = 0;
-  let nextToConsumeIdx = 0;
   let vFirst: VNode | null = null;
   let vLast: VNode | null = null;
   let previousTextNode: TextVNode | null = null;
-  let ch = 0;
-  let peekCh = 0;
-  const peek = () => {
-    if (peekCh !== 0) {
-      return peekCh;
-    } else {
-      return (peekCh = nextToConsumeIdx < vData!.length ? vData!.charCodeAt(nextToConsumeIdx) : 0);
-    }
-  };
-  const consume = () => {
-    ch = peek();
-    peekCh = 0;
-    nextToConsumeIdx++;
-    return ch;
-  };
+
   const addVNode = (node: VNode) => {
     node[VNodeProps.flags] =
       (node[VNodeProps.flags] & VNodeFlagsIndex.negated_mask) | (idx << VNodeFlagsIndex.shift);
@@ -1671,29 +1770,11 @@ function materializeFromVNodeData(
     vLast = node;
   };
 
-  const consumeValue = () => {
-    consume();
-    const start = nextToConsumeIdx;
-    while (
-      (peek() <= 58 /* `:` */ && peekCh !== 0) ||
-      peekCh === 95 /* `_` */ ||
-      (peekCh >= 65 /* `A` */ && peekCh <= 90) /* `Z` */ ||
-      (peekCh >= 97 /* `a` */ && peekCh <= 122) /* `z` */
-    ) {
-      consume();
-    }
-    return vData.substring(start, nextToConsumeIdx);
-  };
-
   let textIdx = 0;
   let combinedText: string | null = null;
   let container: ClientContainer | null = null;
-  // console.log(
-  //   'processVNodeData',
-  //   vNodeData,
-  //   (child?.parentNode as HTMLElement | undefined)?.outerHTML
-  // );
-  while (peek() !== 0) {
+
+  processVNodeData(vData, (peek, consumeValue, consume, nextToConsumeIdx) => {
     if (isNumber(peek())) {
       // Element counts get encoded as numbers.
       while (!isElement(child)) {
@@ -1790,7 +1871,7 @@ function materializeFromVNodeData(
       textIdx += length;
       // Text nodes get encoded as alphanumeric characters.
     }
-  }
+  });
   vParent[ElementVNodeProps.lastChild] = vLast;
   return vFirst!;
 }

@@ -48,6 +48,7 @@ import {
   QInstanceAttr,
   escapeHTML,
   Q_PROPS_SEPARATOR,
+  QSubscribers,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -56,8 +57,8 @@ import {
   type ISsrComponentFrame,
   type ISsrNode,
   type JSXChildren,
+  type JSXNodeInternal,
   type JSXOutput,
-  type NodePropData,
   type SerializationContext,
   type SsrAttrKey,
   type SsrAttrValue,
@@ -79,6 +80,7 @@ import {
 } from './tag-nesting';
 import {
   CLOSE_FRAGMENT,
+  WRITE_ELEMENT_ATTRS,
   OPEN_FRAGMENT,
   VNodeDataFlag,
   encodeAsAlphanumeric,
@@ -86,11 +88,10 @@ import {
   vNodeData_closeFragment,
   vNodeData_createSsrNodeReference,
   vNodeData_incrementElementCount,
+  vNodeData_openElement,
   vNodeData_openFragment,
   type VNodeData,
 } from './vnode-data';
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import type { JSXNodeInternal } from '../core/shared/jsx/types/jsx-node';
 
 export interface SSRRenderOptions {
   locale?: string;
@@ -360,6 +361,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
 
     this.createAndPushFrame(elementName, this.depthFirstElementCount++, currentFile);
+    vNodeData_openElement(this.currentElementFrame!.vNodeData);
     this.write('<');
     this.write(elementName);
     if (varAttrs) {
@@ -649,7 +651,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         if (flag & VNodeDataFlag.REFERENCE) {
           this.write(VNodeDataSeparator.REFERENCE_CH);
         }
-        if (flag & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE)) {
+        if (
+          flag &
+          (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE | VNodeDataFlag.ELEMENT_NODE)
+        ) {
           let fragmentAttrs: SsrAttrs | null = null;
           /**
            * We keep track of how many virtual open/close fragments we have seen so far. Normally we
@@ -675,6 +680,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
               }
               depth--;
               this.write(VNodeDataChar.CLOSE_CHAR);
+            } else if (value === WRITE_ELEMENT_ATTRS) {
+              // this is executed only for VNodeDataFlag.ELEMENT_NODE and written as `|some encoded attrs here|`
+              if (fragmentAttrs && fragmentAttrs.length) {
+                this.write(VNodeDataChar.SEPARATOR_CHAR);
+                writeFragmentAttrs(this.write.bind(this), this.addRoot.bind(this), fragmentAttrs);
+                this.write(VNodeDataChar.SEPARATOR_CHAR);
+                fragmentAttrs = vNodeAttrsStack.pop()!;
+              }
             } else if (value >= 0) {
               // Text nodes get encoded as alphanumeric characters.
               this.write(encodeAsAlphanumeric(value));
@@ -735,6 +748,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             break;
           case ELEMENT_SEQ_IDX:
             write(VNodeDataChar.SEQ_IDX_CHAR);
+            break;
+          case QSubscribers:
+            write(VNodeDataChar.SUBS_CHAR);
             break;
           // Skipping `\` character for now because it is used for escaping.
           case QCtxAttr:
@@ -1136,7 +1152,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
         if (isSignal(value)) {
           const lastNode = this.getLastNode();
-          const signalData = new EffectData<NodePropData>({
+          const signalData = new EffectData({
             $scopedStyleIdPrefix$: styleScopedId,
             $isConst$: isConst,
           });

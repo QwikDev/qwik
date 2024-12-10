@@ -14,7 +14,7 @@
 
 export type { CorePlatformServer } from '../core/shared/platform/types';
 export type { QRLInternal } from '../core/shared/qrl/qrl-class';
-export type { JSXOutput } from '../core/shared/jsx/types/jsx-node';
+export type { JSXOutput, JSXNodeInternal } from '../core/shared/jsx/types/jsx-node';
 export type { JSXChildren } from '../core/shared/jsx/types/jsx-qwik-attributes';
 export type { ContextId } from '../core/use/use-context';
 export type { ValueOrPromise } from '../core/shared/utils/types';

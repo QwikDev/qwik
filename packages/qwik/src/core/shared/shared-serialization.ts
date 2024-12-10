@@ -16,7 +16,7 @@ import {
   getStoreTarget,
   isStore,
 } from '../signal/store';
-import type { SsrAttrs, SymbolToChunkResolver } from '../ssr/ssr-types';
+import type { SsrAttrs, ISsrNode, SymbolToChunkResolver } from '../ssr/ssr-types';
 import { untrack } from '../use/use-core';
 import { createResourceReturn, type ResourceReturnInternal } from '../use/use-resource';
 import { Task, isTask } from '../use/use-task';
@@ -579,8 +579,10 @@ type SsrNode = {
 };
 
 type DomRef = {
-  id: string;
+  $ssrNode$: SsrNode;
 };
+
+let isDomRef = (obj: unknown): obj is DomRef => false;
 
 export interface SerializationContext {
   $serialize$: () => void;
@@ -656,7 +658,7 @@ export const createSerializationContext = (
   } | null,
   /** DomRef constructor, for instanceof checks. */
   DomRefConstructor: {
-    new (...rest: any[]): { id: string };
+    new (...rest: any[]): { $ssrNode$: ISsrNode };
   } | null,
   symbolToChunkResolver: SymbolToChunkResolver,
   getProp: (obj: any, prop: string) => any,
@@ -691,9 +693,9 @@ export const createSerializationContext = (
   const isSsrNode = (NodeConstructor ? (obj) => obj instanceof NodeConstructor : () => false) as (
     obj: unknown
   ) => obj is SsrNode;
-  const isDomRef = (
-    DomRefConstructor ? (obj) => obj instanceof DomRefConstructor : () => false
-  ) as (obj: unknown) => obj is DomRef;
+  isDomRef = (DomRefConstructor ? (obj) => obj instanceof DomRefConstructor : () => false) as (
+    obj: unknown
+  ) => obj is DomRef;
 
   return {
     $serialize$(): void {
@@ -850,8 +852,8 @@ export const createSerializationContext = (
             discoverValuesForVNodeData(data, discoveredValues);
           }
         }
-      } else if (isDomRef(obj)) {
-        discoveredValues.push(obj.id);
+      } else if (isDomRef!(obj)) {
+        discoveredValues.push(obj.$ssrNode$.id);
       } else if (isJSXNode(obj)) {
         discoveredValues.push(obj.type, obj.props, obj.constProps, obj.children);
       } else if (Array.isArray(obj)) {
@@ -1141,7 +1143,8 @@ function serialize(serializationContext: SerializationContext): void {
         output(TypeIds.Object, out);
       }
     } else if ($isDomRef$(value)) {
-      output(TypeIds.RefVNode, value.id);
+      value.$ssrNode$.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
+      output(TypeIds.RefVNode, value.$ssrNode$.id);
     } else if (value instanceof Signal) {
       /**
        * Special case: when a Signal value is an SSRNode, it always needs to be a DOM ref instead.
@@ -1566,6 +1569,8 @@ export const canSerialize = (value: any): boolean => {
     } else if (value instanceof Map) {
       return true;
     } else if (value instanceof Uint8Array) {
+      return true;
+    } else if (isDomRef?.(value)) {
       return true;
     }
   } else if (typeof value === 'function') {

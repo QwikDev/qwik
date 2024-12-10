@@ -80,6 +80,7 @@ import {
 } from './tag-nesting';
 import {
   CLOSE_FRAGMENT,
+  WRITE_ELEMENT_ATTRS,
   OPEN_FRAGMENT,
   VNodeDataFlag,
   encodeAsAlphanumeric,
@@ -87,6 +88,7 @@ import {
   vNodeData_closeFragment,
   vNodeData_createSsrNodeReference,
   vNodeData_incrementElementCount,
+  vNodeData_openElement,
   vNodeData_openFragment,
   type VNodeData,
 } from './vnode-data';
@@ -359,6 +361,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
 
     this.createAndPushFrame(elementName, this.depthFirstElementCount++, currentFile);
+    vNodeData_openElement(this.currentElementFrame!.vNodeData);
     this.write('<');
     this.write(elementName);
     if (varAttrs) {
@@ -648,7 +651,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         if (flag & VNodeDataFlag.REFERENCE) {
           this.write(VNodeDataSeparator.REFERENCE_CH);
         }
-        if (flag & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE)) {
+        if (
+          flag &
+          (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE | VNodeDataFlag.ELEMENT_NODE)
+        ) {
           let fragmentAttrs: SsrAttrs | null = null;
           /**
            * We keep track of how many virtual open/close fragments we have seen so far. Normally we
@@ -674,6 +680,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
               }
               depth--;
               this.write(VNodeDataChar.CLOSE_CHAR);
+            } else if (value === WRITE_ELEMENT_ATTRS) {
+              // this is executed only for VNodeDataFlag.ELEMENT_NODE and written as `|some encoded attrs here|`
+              if (fragmentAttrs && fragmentAttrs.length) {
+                this.write(VNodeDataChar.SEPARATOR_CHAR);
+                writeFragmentAttrs(this.write.bind(this), this.addRoot.bind(this), fragmentAttrs);
+                this.write(VNodeDataChar.SEPARATOR_CHAR);
+                fragmentAttrs = vNodeAttrsStack.pop()!;
+              }
             } else if (value >= 0) {
               // Text nodes get encoded as alphanumeric characters.
               this.write(encodeAsAlphanumeric(value));
@@ -690,6 +704,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             this.write(VNodeDataChar.CLOSE_CHAR);
           }
         }
+        //  else if (flag & VNodeDataFlag.ELEMENT_NODE) {
+        //   for (let i = 1; i < vNode.length; i++) {
+        //     const value = vNode[i];
+        //     if (Array.isArray(value)) {
+        //       writeFragmentAttrs(this.write.bind(this), this.addRoot.bind(this), value);
+        //     }
+        //   }
+        // }
       }
     }
 

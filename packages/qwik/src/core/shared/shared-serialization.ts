@@ -45,7 +45,7 @@ import { _CONST_PROPS, _VAR_PROPS } from './utils/constants';
 import { isElement, isNode } from './utils/element';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
 import { throwErrorAndStop } from './utils/log';
-import { ELEMENT_ID } from './utils/markers';
+import { ELEMENT_ID, ELEMENT_KEY } from './utils/markers';
 import { isPromise } from './utils/promises';
 import { fastSkipSerialize } from './utils/serialize-utils';
 import { type ValueOrPromise } from './utils/types';
@@ -843,25 +843,11 @@ export const createSerializationContext = (
       } else if (obj instanceof Task) {
         discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$, obj.$effectDependencies$);
       } else if (isSsrNode(obj)) {
-        for (const value of obj.vnodeData) {
-          if (isSsrAttrs(value)) {
-            for (let i = 1; i < value.length; i += 2) {
-              const attrValue = value[i];
-              discoveredValues.push(attrValue);
-            }
-          }
-        }
+        discoverValuesForVNodeData(obj.vnodeData, discoveredValues);
 
         if (obj.childrenVNodeData && obj.childrenVNodeData.length) {
           for (const data of obj.childrenVNodeData) {
-            for (const value of data) {
-              if (isSsrAttrs(value)) {
-                for (let i = 1; i < value.length; i += 2) {
-                  const attrValue = value[i];
-                  discoveredValues.push(attrValue);
-                }
-              }
-            }
+            discoverValuesForVNodeData(data, discoveredValues);
           }
         }
       } else if (isDomRef(obj)) {
@@ -928,6 +914,20 @@ export const createSerializationContext = (
 
 const isSsrAttrs = (value: number | SsrAttrs): value is SsrAttrs =>
   Array.isArray(value) && value.length > 0;
+
+const discoverValuesForVNodeData = (vnodeData: VNodeData, discoveredValues: unknown[]) => {
+  for (const value of vnodeData) {
+    if (isSsrAttrs(value)) {
+      for (let i = 1; i < value.length; i += 2) {
+        if (value[i - 1] === ELEMENT_KEY) {
+          continue;
+        }
+        const attrValue = value[i];
+        discoveredValues.push(attrValue);
+      }
+    }
+  }
+};
 
 const promiseResults = new WeakMap<Promise<any>, [boolean, unknown]>();
 

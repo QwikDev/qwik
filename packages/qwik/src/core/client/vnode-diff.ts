@@ -27,7 +27,9 @@ import {
   QSlot,
   QSlotParent,
   QStyle,
+  QSubscribers,
   QTemplate,
+  Q_PREFIX,
   dangerouslySetInnerHTML,
 } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
@@ -817,7 +819,7 @@ export const vnode_diff = (
     };
 
     while (srcKey !== null || dstKey !== null) {
-      if (dstKey?.startsWith(HANDLER_PREFIX) || dstKey == ELEMENT_KEY) {
+      if (dstKey?.startsWith(HANDLER_PREFIX) || dstKey?.startsWith(Q_PREFIX)) {
         // These are a special keys which we use to mark the event handlers as immutable or
         // element key we need to ignore them.
         dstIdx++; // skip the destination value, we don't care about it.
@@ -1203,8 +1205,8 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
   if (!src || !dst) {
     return true;
   }
-  let srcKeys = removeChildrenKey(Object.keys(src));
-  let dstKeys = removeChildrenKey(Object.keys(dst));
+  let srcKeys = removePropsKeys(Object.keys(src), ['children', QSubscribers]);
+  let dstKeys = removePropsKeys(Object.keys(dst), ['children', QSubscribers]);
   if (srcKeys.length !== dstKeys.length) {
     return true;
   }
@@ -1220,11 +1222,15 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
   return false;
 }
 
-function removeChildrenKey(keys: string[]): string[] {
-  const childrenIdx = keys.indexOf('children');
-  if (childrenIdx !== -1) {
-    keys.splice(childrenIdx, 1);
+function removePropsKeys(keys: string[], propKeys: string[]): string[] {
+  for (let i = propKeys.length - 1; i >= 0; i--) {
+    const propKey = propKeys[i];
+    const propIdx = keys.indexOf(propKey);
+    if (propIdx !== -1) {
+      keys.splice(propIdx, 1);
+    }
   }
+
   return keys;
 }
 

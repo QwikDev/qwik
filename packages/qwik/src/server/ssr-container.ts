@@ -704,14 +704,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             this.write(VNodeDataChar.CLOSE_CHAR);
           }
         }
-        //  else if (flag & VNodeDataFlag.ELEMENT_NODE) {
-        //   for (let i = 1; i < vNode.length; i++) {
-        //     const value = vNode[i];
-        //     if (Array.isArray(value)) {
-        //       writeFragmentAttrs(this.write.bind(this), this.addRoot.bind(this), value);
-        //     }
-        //   }
-        // }
       }
     }
 

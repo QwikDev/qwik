@@ -14,7 +14,7 @@ export function replacePackage(
   newPackageName: string,
   skipDependencies = false
 ): void {
-  if (skipDependencies) {
+  if (!skipDependencies) {
     replacePackageInDependencies(oldPackageName, newPackageName);
   }
 

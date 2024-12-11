@@ -402,51 +402,52 @@ export const vnode_diff = (
   /////////////////////////////////////////////////////////////////////////////
 
   function descendContentToProject(children: JSXChildren, host: VirtualVNode | null) {
-    if (!Array.isArray(children)) {
-      children = [children];
-    }
-    if (children.length) {
-      const createProjectionJSXNode = (slotName: string) => {
-        return new JSXNodeImpl(Projection, EMPTY_OBJ, null, [], 0, slotName);
-      };
+    const projectionChildren = Array.isArray(children) ? children : [children];
+    const createProjectionJSXNode = (slotName: string) => {
+      return new JSXNodeImpl(Projection, EMPTY_OBJ, null, [], 0, slotName);
+    };
 
-      const projections: Array<string | JSXNodeInternal> = [];
-      if (host) {
-        // we need to create empty projections for all the slots to remove unused slots content
-        for (let i = vnode_getPropStartIndex(host); i < host.length; i = i + 2) {
-          const prop = host[i] as string;
-          if (isSlotProp(prop)) {
-            const slotName = prop;
-            projections.push(slotName);
-            projections.push(createProjectionJSXNode(slotName));
-          }
+    const projections: Array<string | JSXNodeInternal> = [];
+    if (host) {
+      // we need to create empty projections for all the slots to remove unused slots content
+      for (let i = vnode_getPropStartIndex(host); i < host.length; i = i + 2) {
+        const prop = host[i] as string;
+        if (isSlotProp(prop)) {
+          const slotName = prop;
+          projections.push(slotName);
+          projections.push(createProjectionJSXNode(slotName));
         }
       }
-
-      /// STEP 1: Bucketize the children based on the projection name.
-      for (let i = 0; i < children.length; i++) {
-        const child = children[i];
-        const slotName = String(
-          (isJSXNode(child) && directGetPropsProxyProp(child, QSlot)) || QDefaultSlot
-        );
-        const idx = mapApp_findIndx(projections, slotName, 0);
-        let jsxBucket: JSXNodeImpl<typeof Projection>;
-        if (idx >= 0) {
-          jsxBucket = projections[idx + 1] as any;
-        } else {
-          projections.splice(~idx, 0, slotName, (jsxBucket = createProjectionJSXNode(slotName)));
-        }
-        const removeProjection = child === false;
-        if (!removeProjection) {
-          (jsxBucket.children as JSXChildren[]).push(child);
-        }
-      }
-      /// STEP 2: remove the names
-      for (let i = projections.length - 2; i >= 0; i = i - 2) {
-        projections.splice(i, 1);
-      }
-      descend(projections, true);
     }
+
+    if (projections.length === 0 && children == null) {
+      // We did not find any existing slots and we don't have any children to project.
+      return;
+    }
+
+    /// STEP 1: Bucketize the children based on the projection name.
+    for (let i = 0; i < projectionChildren.length; i++) {
+      const child = projectionChildren[i];
+      const slotName = String(
+        (isJSXNode(child) && directGetPropsProxyProp(child, QSlot)) || QDefaultSlot
+      );
+      const idx = mapApp_findIndx(projections, slotName, 0);
+      let jsxBucket: JSXNodeImpl<typeof Projection>;
+      if (idx >= 0) {
+        jsxBucket = projections[idx + 1] as any;
+      } else {
+        projections.splice(~idx, 0, slotName, (jsxBucket = createProjectionJSXNode(slotName)));
+      }
+      const removeProjection = child === false;
+      if (!removeProjection) {
+        (jsxBucket.children as JSXChildren[]).push(child);
+      }
+    }
+    /// STEP 2: remove the names
+    for (let i = projections.length - 2; i >= 0; i = i - 2) {
+      projections.splice(i, 1);
+    }
+    descend(projections, true);
   }
 
   function expectProjection() {
@@ -1036,7 +1037,7 @@ export const vnode_diff = (
           container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
         }
       }
-      jsxNode.children != null && descendContentToProject(jsxNode.children, host);
+      descendContentToProject(jsxNode.children, host);
     } else {
       const lookupKey = jsxNode.key;
       const vNodeLookupKey = getKey(host);

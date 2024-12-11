@@ -1,6 +1,6 @@
 import type { SnapshotResult } from '@builder.io/qwik';
 import { _pauseFromContexts, _renderSSR, Fragment, jsx, type JSXNode } from '@builder.io/qwik';
-import { isDev } from '@builder.io/qwik/build';
+import { isDev } from '@builder.io/qwik';
 import type { QContext } from '../core/state/context';
 import { QInstance } from '../core/util/markers';
 import { getValidManifest } from '../optimizer/src/manifest';

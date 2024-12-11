@@ -15,7 +15,7 @@ import {
   _waitUntilRendered,
   type QRL,
 } from '@builder.io/qwik';
-import { isBrowser, isDev, isServer } from '@builder.io/qwik/build';
+import { isBrowser, isDev, isServer } from '@builder.io/qwik';
 import * as qwikCity from '@qwik-city-plan';
 import { CLIENT_DATA_CACHE } from './constants';
 import {

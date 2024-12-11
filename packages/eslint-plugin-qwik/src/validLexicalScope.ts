@@ -4,7 +4,7 @@ import ts from 'typescript';
 import type { Identifier } from 'estree';
 import redent from 'redent';
 import type { RuleContext, Scope } from '@typescript-eslint/utils/dist/ts-eslint';
-import { QwikEslintExamples } from '../examples';
+import type { QwikEslintExamples } from '../examples';
 
 const createRule = ESLintUtils.RuleCreator(
   (name) => `https://qwik.dev/docs/advanced/eslint/#${name}`

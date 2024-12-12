@@ -67,7 +67,7 @@ function replacePackagesWithLocalOnes(tmpDir: string) {
   for (const { name, absolutePath } of tarballConfig) {
     patchPackageJsonForPlugin(tmpDir, name, absolutePath);
   }
-  execSync('pnpm i', {
+  execSync('npm i', {
     cwd: tmpDir,
     // only output errors
     stdio: ['ignore', 'ignore', 'inherit'],

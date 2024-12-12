@@ -1280,7 +1280,7 @@ const materialize = (
   }
 };
 
-const ensureMaterialized = (vnode: ElementVNode): VNode | null => {
+export const ensureMaterialized = (vnode: ElementVNode): VNode | null => {
   const vParent = ensureElementVNode(vnode);
   let vFirstChild = vParent[ElementVNodeProps.firstChild];
   if (vFirstChild === undefined) {

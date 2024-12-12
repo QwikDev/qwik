@@ -1255,11 +1255,10 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
   do {
     const type = vCursor[VNodeProps.flags];
     if (type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) {
+      clearVNodeEffectDependencies(container, vCursor);
+      markVNodeAsDeleted(vCursor);
       // Only elements and virtual nodes need to be traversed for children
       if (type & VNodeFlags.Virtual) {
-        // Only virtual nodes have subscriptions
-        clearVNodeEffectDependencies(container, vCursor);
-        markVNodeAsDeleted(vCursor);
         const seq = container.getHostProp<Array<any>>(vCursor as VirtualVNode, ELEMENT_SEQ);
         if (seq) {
           for (let i = 0; i < seq.length; i++) {

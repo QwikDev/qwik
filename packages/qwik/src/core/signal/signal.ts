@@ -22,7 +22,7 @@ import { ELEMENT_PROPS, OnRenderProp, QSubscribers } from '../shared/utils/marke
 import { isPromise } from '../shared/utils/promises';
 import { qDev } from '../shared/utils/qdev';
 import type { VNode } from '../client/types';
-import { vnode_getProp, vnode_isVirtualVNode, vnode_isVNode, vnode_setProp } from '../client/vnode';
+import { vnode_getProp, vnode_isTextVNode, vnode_isVNode, vnode_setProp } from '../client/vnode';
 import { ChoreType, type NodePropData, type NodePropPayload } from '../shared/scheduler';
 import type { Container, HostElement } from '../shared/types';
 import type { ISsrNode } from '../ssr/ssr-types';
@@ -270,7 +270,7 @@ export const ensureEffectContainsSubscriber = (
     }
 
     effect.$effectDependencies$.push(subscriber);
-  } else if (vnode_isVNode(effect) && vnode_isVirtualVNode(effect)) {
+  } else if (vnode_isVNode(effect) && !vnode_isTextVNode(effect)) {
     let subscribers = vnode_getProp<Subscriber[]>(
       effect,
       QSubscribers,

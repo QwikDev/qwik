@@ -53,7 +53,7 @@ export const RouterHead = component$(() => {
     <>
       <title>{title}</title>
       <meta name="description" content={description} />
-      <link rel="canonical" href={url.href} />
+      <link rel="canonical" href={head.frontmatter?.canonical || url.href} />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <meta name="apple-mobile-web-app-title" content="Qwik" />
       <meta name="application-name" content="Qwik" />

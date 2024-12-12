@@ -277,6 +277,31 @@ export const CmpStyles = component$(() => {
 
 > Notice that in order to import CSS as a string in Vite, you need to add the `?inline` query parameter to the import, like this: `import styles from './code-block.css?inline';`
 
+`useStyles$` uses lazy loading strings that won't dynamically update. If you'd like to evaluate some JS, use a `style` tag instead
+
+```tsx
+export const CmpStyles = component$(() => {
+  const primaryColor = "red";
+
+  // ❌ Does not work
+  useStyles$(`
+    .my-text {
+      --primary-color: ${primaryColor};
+    }
+  `);
+
+  // ✅ Adding in the style attribute works
+  return (
+    <span 
+      style={{ "--primary-color": primaryColor }} 
+      class="my-text"
+    >
+      Some text
+    </span>
+  );
+});
+```
+
 
 ## CSS Preprocessors
 

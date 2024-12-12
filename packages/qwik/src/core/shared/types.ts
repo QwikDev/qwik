@@ -1,6 +1,4 @@
-import type { JSXOutput } from './jsx/types/jsx-node';
 import type { ContextId } from '../use/use-context';
-import type { ValueOrPromise } from './utils/types';
 import type { VNode } from '../client/types';
 import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { Scheduler } from './scheduler';
@@ -25,8 +23,6 @@ export interface Container {
   readonly $serverData$: Record<string, any>;
   $currentUniqueId$: number;
 
-  // TODO(misko): I think `processJsx` can be deleted.
-  processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void>;
   handleError(err: any, $host$: HostElement): void;
   getParentHost(host: HostElement): HostElement | null;
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;

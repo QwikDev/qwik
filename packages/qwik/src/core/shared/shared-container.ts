@@ -1,7 +1,5 @@
-import type { JSXOutput } from './jsx/types/jsx-node';
 import type { ContextId } from '../use/use-context';
 import { trackSignal } from '../use/use-core';
-import type { ValueOrPromise } from './utils/types';
 import { version } from '../version';
 import type { Effect, EffectData } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
@@ -69,7 +67,6 @@ export abstract class _SharedContainer implements Container {
   }
 
   abstract ensureProjectionResolved(host: HostElement): void;
-  abstract processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void>;
   abstract handleError(err: any, $host$: HostElement): void;
   abstract getParentHost(host: HostElement): HostElement | null;
   abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;

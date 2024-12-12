@@ -184,14 +184,12 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     getParentHost(host: HostElement): HostElement | null;
     // (undocumented)
     getSyncFn(id: number): (...args: unknown[]) => unknown;
+    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
     handleError(err: any, host: HostElement): void;
     // (undocumented)
     parseQRL<T = unknown>(qrl: string): QRL<T>;
-    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void>;
     // (undocumented)
     qBase: string;
     // (undocumented)
@@ -836,8 +834,6 @@ export abstract class _SharedContainer implements Container {
     abstract getParentHost(host: HostElement): HostElement | null;
     // (undocumented)
     abstract handleError(err: any, $host$: HostElement): void;
-    // (undocumented)
-    abstract processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void>;
     // (undocumented)
     abstract resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
     // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts

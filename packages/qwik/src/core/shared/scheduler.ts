@@ -86,13 +86,14 @@ import type { JSXOutput } from './jsx/types/jsx-node';
 import { Task, TaskFlags, cleanupTask, runTask, type TaskFn } from '../use/use-task';
 import { runResource, type ResourceDescriptor } from '../use/use-resource';
 import { logWarn, throwErrorAndStop } from './utils/log';
-import { isPromise, maybeThen, maybeThenPassError, safeCall } from './utils/promises';
+import { isPromise, maybeThenPassError, safeCall } from './utils/promises';
 import type { ValueOrPromise } from './utils/types';
 import { isDomContainer } from '../client/dom-container';
 import {
   ElementVNodeProps,
   VNodeFlags,
   VNodeProps,
+  type ClientContainer,
   type ElementVNode,
   type VirtualVNode,
 } from '../client/types';
@@ -110,6 +111,8 @@ import { type DomContainer } from '../client/dom-container';
 import { serializeAttribute } from './utils/styles';
 import type { OnRenderFn } from './component.public';
 import type { Props } from './jsx/jsx-runtime';
+import { QScopedStyle } from './utils/markers';
+import { addComponentStylePrefix } from './utils/scoped-styles';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -334,9 +337,17 @@ export const createScheduler = (
               chore.$payload$ as Props | null
             ),
           (jsx) => {
-            return chore.$type$ === ChoreType.COMPONENT
-              ? maybeThen(container.processJsx(host, jsx), () => jsx)
-              : jsx;
+            if (chore.$type$ === ChoreType.COMPONENT) {
+              const styleScopedId = container.getHostProp<string>(host, QScopedStyle);
+              return vnode_diff(
+                container as ClientContainer,
+                jsx,
+                host as VirtualVNode,
+                addComponentStylePrefix(styleScopedId)
+              );
+            } else {
+              return jsx;
+            }
           },
           (err: any) => container.handleError(err, host)
         );

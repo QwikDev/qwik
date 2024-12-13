@@ -158,7 +158,8 @@
       "types": "./lib/service-worker.d.ts",
       "import": "./lib/service-worker.mjs",
       "require": "./lib/service-worker.cjs"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "adapters",

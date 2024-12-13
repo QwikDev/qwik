@@ -1,5 +1,6 @@
 import {
   Fragment as Component,
+  Fragment as InlineComponent,
   component$,
   Fragment,
   Fragment as Signal,
@@ -8,6 +9,7 @@ import {
   useStore,
   useTask$,
   useVisibleTask$,
+  type PropsOf,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it, vi } from 'vitest';
@@ -282,6 +284,69 @@ describe.each([
               <button>+1</button>
             </Component>
           </Fragment>
+        </Component>
+      );
+    });
+
+    it('should rerender inner component with store as a prop', async () => {
+      interface InnerButtonProps {
+        text: string;
+        isActive: boolean;
+        onClick$: PropsOf<'button'>['onClick$'];
+      }
+      const InnerButton = component$((props: InnerButtonProps) => {
+        return (
+          <button
+            key={props.text}
+            class={{ 'active-tab': props.isActive, 'repl-tab-button': true }}
+            onClick$={props.onClick$}
+          >
+            {props.text}
+          </button>
+        );
+      });
+
+      const InnerButtonWrapper = component$((props: { data: any }) => {
+        return (
+          <InnerButton
+            text="Options"
+            isActive={props.data.selectedOutputDetail === 'options'}
+            onClick$={() => {
+              props.data.selectedOutputDetail = 'options';
+            }}
+          />
+        );
+      });
+
+      const Parent = component$(() => {
+        const store = useStore({
+          selectedOutputDetail: 'console',
+        });
+
+        return <InnerButtonWrapper data={store} />;
+      });
+
+      const { vNode, document } = await render(<Parent />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <InlineComponent>
+            <InlineComponent>
+              <button class="repl-tab-button">Options</button>
+            </InlineComponent>
+          </InlineComponent>
+        </Component>
+      );
+
+      await trigger(document.body, 'button', 'click');
+
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <InlineComponent>
+            <InlineComponent>
+              <button class="active-tab repl-tab-button">Options</button>
+            </InlineComponent>
+          </InlineComponent>
         </Component>
       );
     });

@@ -859,7 +859,7 @@ jobs:
 
       # Delete this after V2 is released
       - name: Tag with latest
-        if: steps.changesets.outcome == 'success'
+        if: steps.changesets.outputs.published == 'success'
         run: |
           npm dist-tag add @qwik.dev/core@${{ fromJson(steps.changesets.outputs.publishedPackages)[0].version }} latest
           npm dist-tag add @qwik.dev/router@${{ fromJson(steps.changesets.outputs.publishedPackages)[0].version }} latest

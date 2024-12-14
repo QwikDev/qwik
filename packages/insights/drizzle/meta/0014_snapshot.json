@@ -1,8 +1,6 @@
 {
-  "version": "5",
+  "version": "6",
   "dialect": "sqlite",
-  "id": "46162af9-f64b-4d4e-8ac7-207a8c2b914c",
-  "prevId": "a990fdef-a597-4283-bfd7-0487cacda31c",
   "tables": {
     "applications": {
       "name": "applications",
@@ -47,7 +45,8 @@
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     },
     "edges": {
       "name": "edges",
@@ -826,19 +825,20 @@
         "edges_public_api_key_applications_public_api_key_fk": {
           "name": "edges_public_api_key_applications_public_api_key_fk",
           "tableFrom": "edges",
-          "tableTo": "applications",
           "columnsFrom": [
             "public_api_key"
           ],
+          "tableTo": "applications",
           "columnsTo": [
             "public_api_key"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     },
     "errors": {
       "name": "errors",
@@ -926,32 +926,33 @@
         "errors_public_api_key_applications_public_api_key_fk": {
           "name": "errors_public_api_key_applications_public_api_key_fk",
           "tableFrom": "errors",
-          "tableTo": "applications",
           "columnsFrom": [
             "public_api_key"
           ],
+          "tableTo": "applications",
           "columnsTo": [
             "public_api_key"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "errors_manifest_hash_manifests_hash_fk": {
           "name": "errors_manifest_hash_manifests_hash_fk",
           "tableFrom": "errors",
-          "tableTo": "manifests",
           "columnsFrom": [
             "manifest_hash"
           ],
+          "tableTo": "manifests",
           "columnsTo": [
             "hash"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     },
     "manifests": {
       "name": "manifests",
@@ -999,19 +1000,20 @@
         "manifests_public_api_key_applications_public_api_key_fk": {
           "name": "manifests_public_api_key_applications_public_api_key_fk",
           "tableFrom": "manifests",
-          "tableTo": "applications",
           "columnsFrom": [
             "public_api_key"
           ],
+          "tableTo": "applications",
           "columnsTo": [
             "public_api_key"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     },
     "routes": {
       "name": "routes",
@@ -1418,19 +1420,20 @@
         "routes_public_api_key_applications_public_api_key_fk": {
           "name": "routes_public_api_key_applications_public_api_key_fk",
           "tableFrom": "routes",
-          "tableTo": "applications",
           "columnsFrom": [
             "public_api_key"
           ],
+          "tableTo": "applications",
           "columnsTo": [
             "public_api_key"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     },
     "symbolDetail": {
       "name": "symbolDetail",
@@ -1497,34 +1500,35 @@
         "symbolDetail_public_api_key_applications_public_api_key_fk": {
           "name": "symbolDetail_public_api_key_applications_public_api_key_fk",
           "tableFrom": "symbolDetail",
-          "tableTo": "applications",
           "columnsFrom": [
             "public_api_key"
           ],
+          "tableTo": "applications",
           "columnsTo": [
             "public_api_key"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "symbolDetail_public_api_key_manifest_hash_manifests_public_api_key_hash_fk": {
           "name": "symbolDetail_public_api_key_manifest_hash_manifests_public_api_key_hash_fk",
           "tableFrom": "symbolDetail",
-          "tableTo": "manifests",
           "columnsFrom": [
             "public_api_key",
             "manifest_hash"
           ],
+          "tableTo": "manifests",
           "columnsTo": [
             "public_api_key",
             "hash"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     },
     "symbols": {
       "name": "symbols",
@@ -1591,19 +1595,20 @@
         "symbols_public_api_key_applications_public_api_key_fk": {
           "name": "symbols_public_api_key_applications_public_api_key_fk",
           "tableFrom": "symbols",
-          "tableTo": "applications",
           "columnsFrom": [
             "public_api_key"
           ],
+          "tableTo": "applications",
           "columnsTo": [
             "public_api_key"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     },
     "userApplicationMap": {
       "name": "userApplicationMap",
@@ -1637,32 +1642,33 @@
         "userApplicationMap_application_id_applications_id_fk": {
           "name": "userApplicationMap_application_id_applications_id_fk",
           "tableFrom": "userApplicationMap",
-          "tableTo": "applications",
           "columnsFrom": [
             "application_id"
           ],
+          "tableTo": "applications",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "userApplicationMap_user_id_users_user_id_fk": {
           "name": "userApplicationMap_user_id_users_user_id_fk",
           "tableFrom": "userApplicationMap",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "user_id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     },
     "users": {
       "name": "users",
@@ -1707,13 +1713,16 @@
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     }
   },
   "enums": {},
   "_meta": {
-    "schemas": {},
     "tables": {},
     "columns": {}
-  }
+  },
+  "id": "46162af9-f64b-4d4e-8ac7-207a8c2b914c",
+  "prevId": "a990fdef-a597-4283-bfd7-0487cacda31c",
+  "views": {}
 }

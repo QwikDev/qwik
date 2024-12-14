@@ -351,7 +351,9 @@ var changelogFunctions = {
                 .concat(links.pull || links.commit, ')');
             }
             emojiFirstline = firstLine
-              .replace(/feat:/i, '✨ ')
+              .replace(/feat:/i, '✨')
+              .replace(/chore:/i, '🛠')
+              .replace(/infra:/i, '🛠')
               .replace(/fix:/i, '🐞🩹')
               .replace(/docs:/i, '📃');
             return [

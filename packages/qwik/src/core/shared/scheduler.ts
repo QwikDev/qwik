@@ -86,13 +86,14 @@ import type { JSXOutput } from './jsx/types/jsx-node';
 import { Task, TaskFlags, cleanupTask, runTask, type TaskFn } from '../use/use-task';
 import { runResource, type ResourceDescriptor } from '../use/use-resource';
 import { logWarn, throwErrorAndStop } from './utils/log';
-import { isPromise, maybeThen, maybeThenPassError, safeCall } from './utils/promises';
+import { isPromise, maybeThenPassError, safeCall } from './utils/promises';
 import type { ValueOrPromise } from './utils/types';
 import { isDomContainer } from '../client/dom-container';
 import {
   ElementVNodeProps,
   VNodeFlags,
   VNodeProps,
+  type ClientContainer,
   type ElementVNode,
   type VirtualVNode,
 } from '../client/types';
@@ -110,6 +111,8 @@ import { type DomContainer } from '../client/dom-container';
 import { serializeAttribute } from './utils/styles';
 import type { OnRenderFn } from './component.public';
 import type { Props } from './jsx/jsx-runtime';
+import { QScopedStyle } from './utils/markers';
+import { addComponentStylePrefix } from './utils/scoped-styles';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -334,9 +337,17 @@ export const createScheduler = (
               chore.$payload$ as Props | null
             ),
           (jsx) => {
-            return chore.$type$ === ChoreType.COMPONENT
-              ? maybeThen(container.processJsx(host, jsx), () => jsx)
-              : jsx;
+            if (chore.$type$ === ChoreType.COMPONENT) {
+              const styleScopedId = container.getHostProp<string>(host, QScopedStyle);
+              return vnode_diff(
+                container as ClientContainer,
+                jsx,
+                host as VirtualVNode,
+                addComponentStylePrefix(styleScopedId)
+              );
+            } else {
+              return jsx;
+            }
           },
           (err: any) => container.handleError(err, host)
         );
@@ -461,8 +472,10 @@ function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: boolean)
         // On server we can't schedule task for a different host!
         // Server is SSR, and therefore scheduling for anything but the current host
         // implies that things need to be re-run nad that is not supported because of streaming.
-        const errorMessage =
-          'SERVER: during HTML streaming, it is not possible to cause a re-run of tasks on a different host';
+        const errorMessage = `SERVER: during HTML streaming, re-running tasks on a different host is not allowed.
+          You are attempting to change a state that has already been streamed to the client.
+          This can lead to inconsistencies between Server-Side Rendering (SSR) and Client-Side Rendering (CSR).
+          Problematic Node: ${aHost.toString()}`;
         if (shouldThrowOnHostMismatch) {
           throwErrorAndStop(errorMessage);
         }

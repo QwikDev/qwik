@@ -116,6 +116,11 @@ export class SsrNode implements ISsrNode {
   }
 }
 
+/** A ref to a DOM element */
+export class DomRef {
+  constructor(public $ssrNode$: ISsrNode) {}
+}
+
 export type SsrNodeType = 1 | 3 | 9 | 11;
 
 export class SsrComponentFrame implements ISsrComponentFrame {

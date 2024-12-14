@@ -1,5 +1,13 @@
 # @builder.io/qwik-city
 
+## 1.12.0
+
+### Patch Changes
+
+- 🐞🩹 the previous URL now is undefined on first render. (by [@damianpumar](https://github.com/damianpumar) in [#7082](https://github.com/QwikDev/qwik/pull/7082))
+
+- 🐞🩹 server$ functions now correctly throw errors for > 500 error codes (by [@DustinJSilk](https://github.com/DustinJSilk) in [#7078](https://github.com/QwikDev/qwik/pull/7078))
+
 ## 1.11.0
 
 ## 1.10.0

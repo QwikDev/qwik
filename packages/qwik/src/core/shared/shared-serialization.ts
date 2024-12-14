@@ -194,7 +194,10 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
         if (valType === TypeIds.RootRef || valType >= TypeIds.Error) {
           Object.defineProperty(target, key, {
             get() {
-              return deserializeData(container, valType, valData);
+              const value = deserializeData(container, valType, valData);
+              // after first deserialize, we can replace the Object.defineProperty with the value
+              target[key] = value;
+              return value;
             },
             set(value: unknown) {
               Object.defineProperty(target, key, {

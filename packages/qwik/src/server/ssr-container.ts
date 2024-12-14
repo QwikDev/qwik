@@ -244,14 +244,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   ensureProjectionResolved(host: HostElement): void {}
 
-  processJsx(host: HostElement, jsx: JSXOutput): void {
-    /**
-     * During SSR the output needs to be streamed. So we should never get here, because we can't
-     * process JSX out of order.
-     */
-    throw new Error('Should not get here.');
-  }
-
   handleError(err: any, $host$: HostElement): void {
     throw err;
   }

@@ -859,11 +859,13 @@ jobs:
 
       # Delete this after V2 is released
       - name: Tag with latest
-        if: steps.changesets.outcome == 'success'
+        if: steps.changesets.outputs.published == 'true'
         run: |
-          npm dist-tag add @qwik.dev/core@${{ fromJson(steps.changesets.outputs.publishedPackages)[0].version }} latest
-          npm dist-tag add @qwik.dev/router@${{ fromJson(steps.changesets.outputs.publishedPackages)[0].version }} latest
-          npm dist-tag add @qwik.dev/react@${{ fromJson(steps.changesets.outputs.publishedPackages)[0].version }} latest
+          npm dist-tag add @qwik.dev/core@${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }} latest
+          npm dist-tag add @qwik.dev/router@${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }} latest
+          npm dist-tag add @qwik.dev/react@${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }} latest
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Fixup package.json files
         run: pnpm run release.fixup-package-json

@@ -6,13 +6,8 @@ import { VNodeDataFlag, type VNodeData } from '../../server/vnode-data';
 import { type DomContainer } from '../client/dom-container';
 import type { VNode } from '../client/types';
 import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
-import {
-  ComputedSignal,
-  EffectData,
-  NEEDS_COMPUTATION,
-  Signal,
-  WrappedSignal,
-} from '../signal/signal';
+import { NEEDS_COMPUTATION } from '../signal/flags';
+import { ComputedSignal, EffectData, Signal, WrappedSignal } from '../signal/signal';
 import type { Subscriber } from '../signal/signal-subscriber';
 import {
   STORE_ARRAY_PROP,
@@ -21,7 +16,7 @@ import {
   getStoreTarget,
   isStore,
 } from '../signal/store';
-import type { SymbolToChunkResolver } from '../ssr/ssr-types';
+import type { ISsrNode, SymbolToChunkResolver } from '../ssr/ssr-types';
 import { untrack } from '../use/use-core';
 import { createResourceReturn, type ResourceReturnInternal } from '../use/use-resource';
 import { Task, isTask } from '../use/use-task';
@@ -199,7 +194,10 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
         if (valType === TypeIds.RootRef || valType >= TypeIds.Error) {
           Object.defineProperty(target, key, {
             get() {
-              return deserializeData(container, valType, valData);
+              const value = deserializeData(container, valType, valData);
+              // after first deserialize, we can replace the Object.defineProperty with the value
+              target[key] = value;
+              return value;
             },
             set(value: unknown) {
               Object.defineProperty(target, key, {
@@ -581,10 +579,11 @@ type SsrNode = {
   vnodeData: VNodeData;
 };
 
-/** A ref to a DOM element */
-class DomVRef {
-  constructor(public id: string) {}
-}
+type DomRef = {
+  $ssrNode$: SsrNode;
+};
+
+let isDomRef = (obj: unknown): obj is DomRef => false;
 
 export interface SerializationContext {
   $serialize$: () => void;
@@ -632,6 +631,7 @@ export interface SerializationContext {
   $breakCircularDepsAndAwaitPromises$: () => ValueOrPromise<void>;
 
   $isSsrNode$: (obj: unknown) => obj is SsrNode;
+  $isDomRef$: (obj: unknown) => obj is DomRef;
 
   $writer$: StreamWriter;
   $syncFns$: string[];
@@ -656,6 +656,10 @@ export const createSerializationContext = (
    */
   NodeConstructor: {
     new (...rest: any[]): { nodeType: number; id: string };
+  } | null,
+  /** DomRef constructor, for instanceof checks. */
+  DomRefConstructor: {
+    new (...rest: any[]): { $ssrNode$: ISsrNode };
   } | null,
   symbolToChunkResolver: SymbolToChunkResolver,
   getProp: (obj: any, prop: string) => any,
@@ -690,12 +694,16 @@ export const createSerializationContext = (
   const isSsrNode = (NodeConstructor ? (obj) => obj instanceof NodeConstructor : () => false) as (
     obj: unknown
   ) => obj is SsrNode;
+  isDomRef = (DomRefConstructor ? (obj) => obj instanceof DomRefConstructor : () => false) as (
+    obj: unknown
+  ) => obj is DomRef;
 
   return {
     $serialize$(): void {
       serialize(this);
     },
     $isSsrNode$: isSsrNode,
+    $isDomRef$: isDomRef,
     $symbolToChunkResolver$: symbolToChunkResolver,
     $wasSeen$,
     $roots$: roots,
@@ -836,6 +844,8 @@ export const createSerializationContext = (
         discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$, obj.$effectDependencies$);
       } else if (isSsrNode(obj)) {
         discoveredValues.push(obj.vnodeData);
+      } else if (isDomRef!(obj)) {
+        discoveredValues.push(obj.$ssrNode$.id);
       } else if (isJSXNode(obj)) {
         discoveredValues.push(obj.type, obj.props, obj.constProps, obj.children);
       } else if (Array.isArray(obj)) {
@@ -908,7 +918,7 @@ const promiseResults = new WeakMap<Promise<any>, [boolean, unknown]>();
  * - Therefore root indexes need to be doubled to get the actual index.
  */
 function serialize(serializationContext: SerializationContext): void {
-  const { $writer$, $isSsrNode$, $setProp$, $storeProxyMap$ } = serializationContext;
+  const { $writer$, $isSsrNode$, $isDomRef$, $setProp$, $storeProxyMap$ } = serializationContext;
   let depth = -1;
   // Skip the type for the roots output
   let writeType = false;
@@ -1107,23 +1117,20 @@ function serialize(serializationContext: SerializationContext): void {
         // TODO if !out.length, output 0 and restore as {}
         output(TypeIds.Object, out);
       }
-    } else if (value instanceof DomVRef) {
-      output(TypeIds.RefVNode, value.id);
+    } else if ($isDomRef$(value)) {
+      value.$ssrNode$.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
+      output(TypeIds.RefVNode, value.$ssrNode$.id);
     } else if (value instanceof Signal) {
       /**
        * Special case: when a Signal value is an SSRNode, it always needs to be a DOM ref instead.
        * It can never be meant to become a vNode, because vNodes are internal only.
        */
-      let v =
+      const v =
         value instanceof ComputedSignal &&
         (value.$invalid$ || fastSkipSerialize(value.$untrackedValue$))
           ? NEEDS_COMPUTATION
           : value.$untrackedValue$;
-      if ($isSsrNode$(v)) {
-        // TODO maybe we don't need to store all vnode data if it's only a ref
-        serializationContext.$addRoot$(v);
-        v = new DomVRef(v.id);
-      }
+
       if (value instanceof WrappedSignal) {
         output(TypeIds.WrappedSignal, [
           ...serializeWrappingFn(serializationContext, value),
@@ -1339,6 +1346,7 @@ export function qrlToString(
 export async function _serialize(data: unknown[]): Promise<string> {
   const serializationContext = createSerializationContext(
     null,
+    null,
     () => '',
     () => '',
     () => {},
@@ -1535,6 +1543,8 @@ export const canSerialize = (value: any): boolean => {
     } else if (value instanceof Map) {
       return true;
     } else if (value instanceof Uint8Array) {
+      return true;
+    } else if (isDomRef?.(value)) {
       return true;
     }
   } else if (typeof value === 'function') {

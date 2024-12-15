@@ -328,11 +328,15 @@ export function rawSource(): Plugin {
         if (path.startsWith('/@fs/')) {
           path = path.slice('/@fs'.length);
         }
+        if (path.startsWith('\x00')) {
+          // let's just assume it's a path
+          path = path.slice(1);
+        }
         if (isDev) {
           const devUrl = `${base}@raw-fs${path}`;
           return `export default "${devUrl}";`;
         }
-        const fileContent = readFileSync(path);
+        const fileContent = readFileSync(path, 'utf-8');
         const ref = this.emitFile({
           type: 'asset',
           name: basename(path),

@@ -17,10 +17,6 @@ export async function apiExtractorQwik(config: BuildConfig) {
     join(config.distQwikPkgDir, 'core.d.ts'),
     '.'
   );
-  writeFileSync(
-    join(config.distQwikPkgDir, 'index.d.ts'),
-    `// re-export to make TS happy when not using nodenext import resolution\nexport * from './core';`
-  );
   // Special case for jsx-runtime:
   // It only re-exports JSX. Don't duplicate the types
   const jsxContent = readFileSync(join(config.srcQwikDir, 'jsx-runtime.ts'), 'utf-8');

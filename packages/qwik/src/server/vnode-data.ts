@@ -1,6 +1,7 @@
 import { type ISsrNode, type SsrAttrs } from './qwik-types';
 import { SsrNode, type SsrNodeType } from './ssr-node';
 import type { CleanupQueue } from './ssr-container';
+import { VNodeDataFlag } from './types';
 import { _EMPTY_ARRAY } from '@qwik.dev/core';
 
 /**
@@ -35,22 +36,6 @@ export type VNodeData = [VNodeDataFlag, ...(SsrAttrs | number)[]];
 export const OPEN_FRAGMENT = Number.MAX_SAFE_INTEGER;
 export const CLOSE_FRAGMENT = Number.MAX_SAFE_INTEGER - 1;
 export const WRITE_ELEMENT_ATTRS = Number.MAX_SAFE_INTEGER - 2;
-
-/// Flags for VNodeData (Flags con be bitwise combined)
-export const enum VNodeDataFlag {
-  /// Initial state.
-  NONE = 0,
-  /// Indicates that multiple Text nodes are present and can't be derived from HTML.
-  TEXT_DATA = 1,
-  /// Indicates that the virtual nodes are present and can't be derived from HTML.
-  VIRTUAL_NODE = 2,
-  /// Indicates that the element nodes are present and some data can't be derived from HTML.
-  ELEMENT_NODE = 4,
-  /// Indicates that serialized data is referencing this node and so we need to retrieve a reference to it.
-  REFERENCE = 8,
-  /// Should be output during serialization.
-  SERIALIZE = 16,
-}
 
 export function vNodeData_incrementElementCount(vNodeData: VNodeData) {
   const length = vNodeData.length;

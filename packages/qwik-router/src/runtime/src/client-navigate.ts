@@ -1,4 +1,4 @@
-import { isBrowser } from '@qwik.dev/core/build';
+import { isBrowser } from '@qwik.dev/core';
 import { PREFETCHED_NAVIGATE_PATHS } from './constants';
 import type { NavigationType, ScrollState } from './types';
 import { isSamePath, toPath } from './utils';

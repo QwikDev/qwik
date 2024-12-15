@@ -1,19 +1,20 @@
 import {
-  component$,
-  implicit$FirstArg,
-  type NoSerialize,
-  noSerialize,
-  type QRL,
   RenderOnce,
   SkipRender,
   Slot,
+  component$,
+  implicit$FirstArg,
+  isBrowser,
+  isServer,
+  noSerialize,
   useSignal,
   useStore,
   useStylesScoped$,
   useTask$,
+  type NoSerialize,
+  type QRL,
 } from '@qwik.dev/core';
 
-import { isBrowser, isServer } from '@qwik.dev/core/build';
 import type { FunctionComponent as ReactFC } from 'react';
 import type { Root } from 'react-dom/client';
 import * as client from './client';

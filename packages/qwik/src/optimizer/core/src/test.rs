@@ -1822,7 +1822,7 @@ fn example_strip_server_code() {
 	test_input!(TestInput {
 		code: r#"
 import { component$, serverLoader$, serverStuff$, $, client$, useStore, useTask$ } from '@qwik.dev/core';
-import { isServer } from '@qwik.dev/core/build';
+import { isServer } from '@qwik.dev/core';
 import mongo from 'mongodb';
 import redis from 'redis';
 import { handler } from 'serverless';
@@ -2730,15 +2730,15 @@ export const foo = () => console.log('foo');
 fn example_build_server() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore } from '@qwik.dev/core';
-import { isServer, isBrowser } from '@qwik.dev/core/build';
+import { component$, useStore, isDev, isServer as isServer2 } from '@qwik.dev/core';
+import { isServer, isBrowser as isb } from '@qwik.dev/core/build';
 import { mongodb } from 'mondodb';
 import { threejs } from 'threejs';
 
 import L from 'leaflet';
 
 export const functionThatNeedsWindow = () => {
-	if (isBrowser) {
+	if (isb) {
 	console.log('l', L);
 	console.log('hey');
 	window.alert('hey');
@@ -2750,14 +2750,14 @@ export const App = component$(() => {
 		if (isServer) {
 			console.log('server', mongodb());
 		}
-		if (isBrowser) {
+		if (isb) {
 			console.log('browser', new threejs());
 		}
 	});
 	return (
 		<Cmp>
-			{isServer && <p>server</p>}
-			{isBrowser && <p>server</p>}
+			{isServer2 && <p>server</p>}
+			{isb && <p>server</p>}
 		</Cmp>
 	);
 });
@@ -3120,7 +3120,7 @@ fn example_qwik_react() {
 		code: r#"
 import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@qwik.dev/core';
 import { jsx, Fragment } from '@qwik.dev/core/jsx-runtime';
-import { isBrowser, isServer } from '@qwik.dev/core/build';
+import { isBrowser, isServer } from '@qwik.dev/core';
 
 function qwikifyQrl(reactCmpQrl) {
 	return /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
@@ -3223,7 +3223,7 @@ fn example_qwik_react_inline() {
 		code: r#"
 import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@qwik.dev/core';
 import { jsx, Fragment } from '@qwik.dev/core/jsx-runtime';
-import { isBrowser, isServer } from '@qwik.dev/core/build';
+import { isBrowser, isServer } from '@qwik.dev/core';
 
 function qwikifyQrl(reactCmpQrl) {
 	return /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{

@@ -26,6 +26,7 @@ export async function submoduleServer(config: BuildConfig) {
     target,
     external: [
       /* no Node.js built-in externals allowed! */ '@qwik.dev/dom',
+      '@qwik.dev/core',
       '@qwik.dev/core/build',
     ],
   };

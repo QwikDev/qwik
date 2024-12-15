@@ -1,5 +1,4 @@
-import { noSerialize } from '@qwik.dev/core';
-import { isServer } from '@qwik.dev/core/build';
+import { isServer, noSerialize } from '@qwik.dev/core';
 import type { Diagnostic } from '@qwik.dev/core/optimizer';
 import type MonacoTypes from 'monaco-editor';
 import { getColorPreference } from '../components/theme-toggle/theme-toggle';

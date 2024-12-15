@@ -1,11 +1,11 @@
 /** @file Public APIs for the SSR */
 import {
+  _EffectData as EffectData,
   _SharedContainer,
   _jsxSorted,
   _jsxSplit,
   _walkJSX,
   isSignal,
-  _EffectData as EffectData,
 } from '@qwik.dev/core';
 import { isDev } from '@qwik.dev/core/build';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
@@ -13,7 +13,6 @@ import { getQwikLoaderScript } from '@qwik.dev/core/server';
 import { applyPrefetchImplementation2 } from './prefetch-implementation';
 import { getPrefetchResources } from './prefetch-strategy';
 import {
-  dangerouslySetInnerHTML,
   DEBUG_TYPE,
   ELEMENT_ID,
   ELEMENT_KEY,
@@ -21,33 +20,34 @@ import {
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
   OnRenderProp,
+  QBaseAttr,
+  QContainerAttr,
+  QContainerValue,
   QCtxAttr,
+  QInstanceAttr,
+  QLocaleAttr,
+  QManifestHashAttr,
+  QRenderAttr,
+  QRuntimeAttr,
   QScopedStyle,
   QSlot,
   QSlotParent,
   QSlotRef,
   QStyle,
-  QContainerAttr,
   QTemplate,
+  QVersionAttr,
+  Q_PROPS_SEPARATOR,
   VNodeDataChar,
+  VNodeDataSeparator,
   VirtualType,
   convertStyleIdsToString,
+  dangerouslySetInnerHTML,
+  escapeHTML,
+  isClassAttr,
   mapArray_get,
   mapArray_set,
   maybeThen,
   serializeAttribute,
-  isClassAttr,
-  QContainerValue,
-  VNodeDataSeparator,
-  QRenderAttr,
-  QRuntimeAttr,
-  QVersionAttr,
-  QBaseAttr,
-  QLocaleAttr,
-  QManifestHashAttr,
-  QInstanceAttr,
-  escapeHTML,
-  Q_PROPS_SEPARATOR,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -66,10 +66,8 @@ import {
   type SymbolToChunkResolver,
   type ValueOrPromise,
 } from './qwik-types';
-import { Q_FUNCS_PREFIX } from './ssr-render';
-import type { PrefetchResource, RenderOptions, RenderToStreamResult } from './types';
-import { createTimer } from './utils';
 import { DomRef, SsrComponentFrame, SsrNode } from './ssr-node';
+import { Q_FUNCS_PREFIX } from './ssr-render';
 import {
   TagNesting,
   allowedContent,
@@ -78,9 +76,15 @@ import {
   isTagAllowed,
 } from './tag-nesting';
 import {
+  VNodeDataFlag,
+  type PrefetchResource,
+  type RenderOptions,
+  type RenderToStreamResult,
+} from './types';
+import { createTimer } from './utils';
+import {
   CLOSE_FRAGMENT,
   OPEN_FRAGMENT,
-  VNodeDataFlag,
   encodeAsAlphanumeric,
   vNodeData_addTextSize,
   vNodeData_closeFragment,

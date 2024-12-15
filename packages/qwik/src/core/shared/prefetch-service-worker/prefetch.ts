@@ -1,3 +1,4 @@
+// keep this import from core/build so the cjs build works
 import { isDev } from '@qwik.dev/core/build';
 import { _jsxSorted } from '../../internal';
 import { useServerData } from '../../use/use-env-data';

@@ -1,5 +1,4 @@
-import { component$, useStore, useTask$ } from "@qwik.dev/core";
-import { isServer } from "@qwik.dev/core/build";
+import { component$, isServer, useStore, useTask$ } from "@qwik.dev/core";
 import { delay } from "../async/async";
 
 export const MountRoot = component$(() => {

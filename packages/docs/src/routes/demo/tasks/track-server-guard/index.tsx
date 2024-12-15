@@ -1,5 +1,4 @@
-import { component$, useSignal, useTask$ } from '@qwik.dev/core';
-import { isServer } from '@qwik.dev/core/build';
+import { component$, isServer, useSignal, useTask$ } from '@qwik.dev/core';
 
 export default component$(() => {
   const text = useSignal('Initial text');

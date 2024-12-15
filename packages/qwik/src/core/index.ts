@@ -5,6 +5,8 @@ export { componentQrl, component$ } from './shared/component.public';
 
 export type { PropsOf, OnRenderFn, Component, PublicProps } from './shared/component.public';
 
+export { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API
 //////////////////////////////////////////////////////////////////////////////////////////

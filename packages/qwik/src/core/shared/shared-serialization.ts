@@ -2,7 +2,8 @@
 
 import { isDev } from '../../build/index.dev';
 import type { StreamWriter } from '../../server/types';
-import { VNodeDataFlag, type VNodeData } from '../../server/vnode-data';
+import { VNodeDataFlag } from '../../server/types';
+import type { VNodeData } from '../../server/vnode-data';
 import { type DomContainer } from '../client/dom-container';
 import type { VNode } from '../client/types';
 import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';

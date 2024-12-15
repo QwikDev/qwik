@@ -5,6 +5,9 @@
 ```ts
 
 import * as CSS_2 from 'csstype';
+import { isBrowser } from '@qwik.dev/core/build';
+import { isDev } from '@qwik.dev/core/build';
+import { isServer } from '@qwik.dev/core/build';
 import type { StreamWriter as StreamWriter_2 } from '@qwik.dev/core';
 
 // @public
@@ -333,8 +336,14 @@ export const inlinedQrl: <T>(symbol: T, symbolName: string, lexicalScopeCapture?
 // @internal (undocumented)
 export const inlinedQrlDEV: <T = any>(symbol: T, symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
+export { isBrowser }
+
+export { isDev }
+
 // @internal (undocumented)
 export const _isJSXNode: <T>(n: unknown) => n is JSXNodeInternal<T>;
+
+export { isServer }
 
 // @public (undocumented)
 export const isSignal: (value: any) => value is Signal<unknown>;

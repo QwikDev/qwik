@@ -3,6 +3,9 @@ import {
   $,
   component$,
   getLocale,
+  isBrowser,
+  isDev,
+  isServer,
   noSerialize,
   Slot,
   useContextProvider,
@@ -20,7 +23,6 @@ import {
   _weakSerialize,
   type _ElementVNode,
 } from '@qwik.dev/core/internal';
-import { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
 import { clientNavigate } from './client-navigate';
 import { CLIENT_DATA_CACHE } from './constants';
 import {

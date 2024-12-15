@@ -228,10 +228,12 @@ export const enum VNodeDataFlag {
   TEXT_DATA = 1,
   /// Indicates that the virtual nodes are present and can't be derived from HTML.
   VIRTUAL_NODE = 2,
+  /// Indicates that the element nodes are present and some data can't be derived from HTML.
+  ELEMENT_NODE = 4,
   /// Indicates that serialized data is referencing this node and so we need to retrieve a reference to it.
-  REFERENCE = 4,
+  REFERENCE = 8,
   /// Should be output during serialization.
-  SERIALIZE = 8,
+  SERIALIZE = 16,
 }
 
 export type { QwikManifest, SnapshotResult, StreamWriter, SymbolMapper };

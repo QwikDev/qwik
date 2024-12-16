@@ -9,7 +9,6 @@ import {
 } from '@qwik.dev/core';
 import { isDev } from '@qwik.dev/core/build';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
-import { getQwikLoaderScript } from '@qwik.dev/core/server';
 import { applyPrefetchImplementation2 } from './prefetch-implementation';
 import { getPrefetchResources } from './prefetch-strategy';
 import {
@@ -56,6 +55,7 @@ import {
   type ISsrComponentFrame,
   type ISsrNode,
   type JSXChildren,
+  type JSXNodeInternal,
   type JSXOutput,
   type NodePropData,
   type SerializationContext,
@@ -93,8 +93,7 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './vnode-data';
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import type { JSXNodeInternal } from '../core/shared/jsx/types/jsx-node';
+import { getQwikLoaderScript } from './scripts';
 
 export interface SSRRenderOptions {
   locale?: string;

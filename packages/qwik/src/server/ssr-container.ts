@@ -9,7 +9,6 @@ import {
 } from '@qwik.dev/core';
 import { isDev } from '@qwik.dev/core/build';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
-import { getQwikLoaderScript } from '@qwik.dev/core/server';
 import { applyPrefetchImplementation2 } from './prefetch-implementation';
 import { getPrefetchResources } from './prefetch-strategy';
 import {
@@ -96,6 +95,7 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './vnode-data';
+import { getQwikLoaderScript } from './scripts';
 
 export interface SSRRenderOptions {
   locale?: string;

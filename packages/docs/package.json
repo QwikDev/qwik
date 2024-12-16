@@ -68,7 +68,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "build": "qwik build",
+    "build": "pnpm build.repl-sw && qwik build",
     "build.client": "vite build",
     "build.preview": "NODE_OPTIONS=--max-old-space-size=8192 vite build --ssr src/entry.preview.tsx",
     "build.repl-sw": "vite --config vite.config-repl-sw build",

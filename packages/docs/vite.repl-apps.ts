@@ -336,7 +336,7 @@ export function rawSource(): Plugin {
           const devUrl = `${base}@raw-fs${path}`;
           return `export default "${devUrl}";`;
         }
-        const fileContent = readFileSync(path, 'utf-8');
+        const fileContent = readFileSync(path);
         const ref = this.emitFile({
           type: 'asset',
           name: basename(path),

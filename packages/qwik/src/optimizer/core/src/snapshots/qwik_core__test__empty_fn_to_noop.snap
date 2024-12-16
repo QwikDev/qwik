@@ -1,0 +1,40 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 3565
+expression: output
+---
+==INPUT==
+
+
+		import { isServer } from '@builder.io/qwik/build';
+		import { component$ } from '@builder.io/qwik';
+		export const Cmp0 = component$(() => {
+			return undefined;
+		 });
+		export const Cmp1 = component$(() => {
+			if (!isServer) {
+				return <div>hello</div>;
+			}
+		});
+		export const Cmp2 = component$(function(_unused) {
+			if (isServer) {
+				return;
+			}
+			return <div>hello</div>;
+		});
+		export const Cmp3 = component$(function() { });
+		
+============================= test.tsx ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { _noopQrl } from "@builder.io/qwik";
+export const Cmp0 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ _noopQrl("s_SEk00MbyDzs"));
+export const Cmp1 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ _noopQrl("s_U2t03012214"));
+export const Cmp2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ _noopQrl("s_FnOz26iMYaM"));
+export const Cmp3 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ _noopQrl("s_wyGQRm5AyHM"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGE,OAAO,MAAM,qBAAO,sDAEhB;AACJ,OAAO,MAAM,qBAAO,sDAIjB;AACH,OAAO,MAAM,qBAAO,sDAKjB;AACH,OAAO,MAAM,qBAAO,sDAA2B\"}")
+== DIAGNOSTICS ==
+
+[]

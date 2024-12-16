@@ -28,10 +28,10 @@ export const Parent = component$(() => {
     serverStuff$(async () => {
         // should be removed too
         const a = $(() => {
-            // from $(), should not be removed
+            dontRemoveThisDollar();
         });
         const b = client$(() => {
-            // from clien$(), should not be removed
+            dontRemoveThisClient();
         });
         return [a,b];
     })
@@ -39,7 +39,7 @@ export const Parent = component$(() => {
     serverLoader$(handler);
 
     useTask$(() => {
-        // Code
+        runSomething();
     });
 
     return (
@@ -96,12 +96,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_Parent_component_serverStuff_a_2ca3HLDC7yc.js (ENTRY POINT)==
 
 export const Parent_component_serverStuff_a_2ca3HLDC7yc = ()=>{
-// from $(), should not be removed
+    dontRemoveThisDollar();
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0DAqBoB;AACR,kCAAkC;AACtC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0DAqBoB;IACR;AACJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -118,18 +118,18 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     602,
-    666
+    655
   ]
 }
 */
 ============================= test.tsx_Parent_component_serverStuff_b_client_v9qawr2Inkk.js (ENTRY POINT)==
 
 export const Parent_component_serverStuff_b_client_v9qawr2Inkk = ()=>{
-// from clien$(), should not be removed
+    dontRemoveThisClient();
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"iEAwB0B;AACd,uCAAuC;AAC3C\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"iEAwB0B;IACd;AACJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -145,8 +145,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "client$",
   "captures": false,
   "loc": [
-    695,
-    764
+    684,
+    737
   ]
 }
 */
@@ -196,7 +196,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     289,
-    986
+    967
   ]
 }
 */
@@ -221,20 +221,20 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    908,
-    935
+    889,
+    916
   ]
 }
 */
 ============================= test.tsx_Parent_component_useTask_1_P8oRQhHsurk.js (ENTRY POINT)==
 
 export const Parent_component_useTask_1_P8oRQhHsurk = ()=>{
-// Code
+    runSomething();
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"sDAgCa;AACL,OAAO;AACX\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"sDAgCa;IACL;AACJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -250,8 +250,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useTask$",
   "captures": false,
   "loc": [
-    839,
-    868
+    812,
+    849
   ]
 }
 */

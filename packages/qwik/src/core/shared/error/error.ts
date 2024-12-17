@@ -8,7 +8,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Error while serializing class or style attributes', // 0
       '', // 1
       '', // 2
-      'Only primitive and object literals can be serialized', // 3
+      'Only primitive and object literals can be serialized. {{0}}', // 3
       '', // 4
       'You can render over a existing q:container. Skipping render().', // 5
       '', // 6
@@ -45,6 +45,18 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Serialization Error: Serialization of data type {{0}} is not implemented', // 37
       'Serialization Error: Unvisited {{0}}', // 38
       'Serialization Error: Missing QRL chunk for {{0}}', // 39
+      'The value of the textarea must be a string', // 40
+      'Unable to find q:container', // 41
+      "Element must have 'q:container' attribute.", // 42
+      'Unknown vnode type {{0}}.', // 43
+      'Materialize error: missing element: {{0}} {{1}} {{2}}', // 44
+      'SsrError: {{0}}', // 45
+      'Cannot coerce a Signal, use `.value` instead', // 46
+      'useComputedSignal$ QRL {{0}}{{1}} returned a Promise', // 47
+      'ComputedSignal is read-only', // 48
+      'WrappedSignal is read-only', // 49
+      'SsrError: Promises not expected here.', // 50
+      'Attribute value is unsafe for SSR', // 51
     ];
     let text = MAP[code] ?? '';
     if (parts.length) {
@@ -104,6 +116,18 @@ export const enum QError {
   serializeErrorUnknownType = 37,
   serializeErrorUnvisited = 38,
   serializeErrorMissingChunk = 39,
+  wrongTextareaValue = 40,
+  containerNotFound = 41,
+  elementWithoutContainer = 42,
+  invalidVNodeType = 43,
+  materializeVNodeDataError = 44,
+  serverHostMismatch = 45,
+  cannotCoerceSignal = 46,
+  computedNotSync = 47,
+  computedReadOnly = 48,
+  wrappedReadOnly = 49,
+  promisesNotExpected = 50,
+  unsafeAttr = 51,
 }
 
 export const qError = (code: number, ...parts: any[]): Error => {

@@ -121,7 +121,6 @@ import { isDev } from '@qwik.dev/core/build';
 import { qwikDebugToString } from '../debug';
 import { assertDefined, assertEqual, assertFalse, assertTrue } from '../shared/error/assert';
 import { isText } from '../shared/utils/element';
-import { throwErrorAndStop } from '../shared/utils/log';
 import {
   ELEMENT_ID,
   ELEMENT_KEY,
@@ -169,6 +168,7 @@ import {
   vnode_getElementNamespaceFlags,
 } from './vnode-namespace';
 import { escapeHTML } from '../shared/utils/character-escaping';
+import { QError, qError } from '../shared/error/error';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1529,7 +1529,7 @@ export const vnode_getPropStartIndex = (vnode: VNode): number => {
   } else if (type === VNodeFlags.Virtual) {
     return VirtualVNodeProps.PROPS_OFFSET;
   }
-  throw throwErrorAndStop('Invalid vnode type.');
+  throw qError(QError.invalidVNodeType, type);
 };
 
 export const vnode_propsToRecord = (vnode: VNode): Record<string, unknown> => {
@@ -1694,20 +1694,13 @@ function materializeFromVNodeData(
   let textIdx = 0;
   let combinedText: string | null = null;
   let container: ClientContainer | null = null;
-  // console.log(
-  //   'processVNodeData',
-  //   vNodeData,
-  //   (child?.parentNode as HTMLElement | undefined)?.outerHTML
-  // );
   while (peek() !== 0) {
     if (isNumber(peek())) {
       // Element counts get encoded as numbers.
       while (!isElement(child)) {
         child = fastNextSibling(child);
         if (!child) {
-          throwErrorAndStop(
-            'Materialize error: missing element: ' + vData + ' ' + peek() + ' ' + nextToConsumeIdx
-          );
+          throw qError(QError.materializeVNodeDataError, vData, peek(), nextToConsumeIdx);
         }
       }
       // We pretend that style element's don't exist as they can get moved out.
@@ -1808,7 +1801,7 @@ export const vnode_getType = (vnode: VNode): 1 | 3 | 11 => {
   } else if (type & VNodeFlags.Text) {
     return 3 /* Text */;
   }
-  throw throwErrorAndStop('Unknown vnode type: ' + type);
+  throw qError(QError.invalidVNodeType, type);
 };
 
 const isElement = (node: any): node is Element =>

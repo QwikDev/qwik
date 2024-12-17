@@ -3,7 +3,7 @@ import { ClockIcon } from '../icons/clock-icon';
 import { blogArticles } from '../../data';
 import { component$ } from '@builder.io/qwik';
 
-export const FeaturedPost = component$(() => {
+export const FeaturedArticle = component$(() => {
   return (
     <article class="relative group cursor-pointer">
       <a href={blogArticles[0].path}>

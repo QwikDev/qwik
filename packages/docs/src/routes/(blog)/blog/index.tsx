@@ -1,8 +1,7 @@
 import { component$, useStyles$ } from '@builder.io/qwik';
-import styles from '../blog.css?inline';
 import type { DocumentHead } from '@builder.io/qwik-city';
-import { FeaturedPost } from './components/featured-post';
-import { PostGrid } from './components/articles-grid';
+import { FeaturedArticle } from './components/featured-article';
+import { ArticlesGrid } from './components/articles-grid';
 import { Newsletter } from './components/newsletter';
 
 export default component$(() => {
@@ -40,11 +39,11 @@ export default component$(() => {
   return (
     <div class="py-8">
       <section class="pb-8">
-        <FeaturedPost />
+        <FeaturedArticle />
       </section>
       <section>
         <h2 class="pb-4 text-2xl font-bold text-[color:var(--text-color)]">Latest Articles</h2>
-        <PostGrid />
+        <ArticlesGrid />
       </section>
       <section class="py-8">
         <Newsletter />

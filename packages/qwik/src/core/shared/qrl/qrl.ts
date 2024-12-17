@@ -1,4 +1,4 @@
-import { QError_dynamicImportFailed, QError_unknownTypeArgument, qError } from '../error/error';
+import { QError, qError } from '../error/error';
 import { EMPTY_ARRAY } from '../utils/flyweight';
 import { qSerialize } from '../utils/qdev';
 import { isFunction, isString } from '../utils/types';
@@ -66,13 +66,13 @@ export const qrl = <T = any>(
           chunk = match[1];
         }
       } else {
-        throw qError(QError_dynamicImportFailed, srcCode);
+        throw qError(QError.dynamicImportFailed, srcCode);
       }
     }
   } else if (isString(chunkOrFn)) {
     chunk = chunkOrFn;
   } else {
-    throw qError(QError_unknownTypeArgument, chunkOrFn);
+    throw qError(QError.unknownTypeArgument, chunkOrFn);
   }
 
   if (!announcedQRL.has(symbol)) {

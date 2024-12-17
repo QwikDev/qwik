@@ -16,7 +16,6 @@ export const ArticleHero = component$<Props>(({ imageSrc, authorLink }) => {
       <div class="pt-4">
         <a
           class="text-[color:var(--text-color)] flex items-center space-x-1 pl-2"
-          target="_blank"
           rel="noopener"
           href="/blog"
         >

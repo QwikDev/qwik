@@ -23,6 +23,7 @@ import { createResourceReturn, type ResourceReturnInternal } from '../use/use-re
 import { Task, isTask } from '../use/use-task';
 import { SERIALIZABLE_STATE, componentQrl, isQwikComponent } from './component.public';
 import { assertDefined, assertTrue } from './error/assert';
+import { QError, qError } from './error/error';
 import {
   Fragment,
   JSXNodeImpl,
@@ -45,7 +46,6 @@ import type { DeserializeContainer, HostElement, ObjToProxyMap } from './types';
 import { _CONST_PROPS, _VAR_PROPS } from './utils/constants';
 import { isElement, isNode } from './utils/element';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
-import { throwErrorAndStop } from './utils/log';
 import { ELEMENT_ID } from './utils/markers';
 import { isPromise } from './utils/promises';
 import { fastSkipSerialize } from './utils/serialize-utils';
@@ -383,7 +383,7 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
       break;
     }
     default:
-      return throwErrorAndStop('Not implemented');
+      throw qError(QError.serializeErrorNotImplemented, typeId);
   }
 };
 
@@ -517,13 +517,13 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
       if (vnode_isVNode(vNode)) {
         return vnode_getNode(vNode);
       } else {
-        return throwErrorAndStop('expected vnode for ref prop, but got ' + typeof vNode);
+        throw qError(QError.serializeErrorExpectedVNode, typeof vNode);
       }
     case TypeIds.EffectData:
       return new EffectData(null!);
 
     default:
-      return throwErrorAndStop('unknown allocate type: ' + typeId);
+      throw qError(QError.serializeErrorCannotAllocate, typeId);
   }
 };
 
@@ -717,7 +717,7 @@ export const createSerializationContext = (
     $getRootId$: (obj: any) => {
       const id = map.get(obj);
       if (!id || id === -1) {
-        return throwErrorAndStop('Missing root id for: ', obj);
+        throw qError(QError.serializeErrorMissingRootId, obj);
       }
       return id;
     },
@@ -874,7 +874,7 @@ export const createSerializationContext = (
           discoveredValues.push(key, value);
         });
       } else {
-        return throwErrorAndStop('Unknown type: ' + obj);
+        throw qError(QError.serializeErrorUnknownType, obj);
       }
     };
 
@@ -1033,7 +1033,7 @@ function serialize(serializationContext: SerializationContext): void {
     } else if (value === NEEDS_COMPUTATION) {
       output(TypeIds.Constant, Constants.NEEDS_COMPUTATION);
     } else {
-      throwErrorAndStop('Unknown type: ' + typeof value);
+      throw qError(QError.serializeErrorUnknownType, typeof value);
     }
   };
 
@@ -1076,7 +1076,7 @@ function serialize(serializationContext: SerializationContext): void {
         serializationContext.$resources$.add(value);
         const res = promiseResults.get(value.value);
         if (!res) {
-          return throwErrorAndStop('Unvisited Resource');
+          throw qError(QError.serializeErrorUnvisited, 'resource');
         }
         output(TypeIds.Resource, [...res, getStoreHandler(value)!.$effects$]);
       } else {
@@ -1236,7 +1236,7 @@ function serialize(serializationContext: SerializationContext): void {
     } else if (isPromise(value)) {
       const res = promiseResults.get(value);
       if (!res) {
-        return throwErrorAndStop('Unvisited Promise');
+        throw qError(QError.serializeErrorUnvisited, 'promise');
       }
       output(TypeIds.Promise, res);
     } else if (value instanceof Uint8Array) {
@@ -1247,7 +1247,7 @@ function serialize(serializationContext: SerializationContext): void {
       const out = btoa(buf).replace(/=+$/, '');
       output(TypeIds.Uint8Array, out);
     } else {
-      return throwErrorAndStop('implement');
+      throw qError(QError.serializeErrorUnknownType, typeof value);
     }
   };
 
@@ -1308,7 +1308,7 @@ export function qrlToString(
       }
     }
     if (!chunk) {
-      throwErrorAndStop('Missing chunk for: ' + value.$symbol$);
+      throw qError(QError.qrlMissingChunk, value.$symbol$);
     }
     if (chunk.startsWith('./')) {
       chunk = chunk.slice(2);

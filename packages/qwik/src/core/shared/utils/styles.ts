@@ -1,5 +1,5 @@
 import type { ClassList } from '../jsx/types/jsx-qwik-attributes';
-import { QError_stringifyClassOrStyle, qError } from '../error/error';
+import { QError, qError } from '../error/error';
 import { isPreventDefault } from './event-names';
 import { isClassAttr } from './scoped-styles';
 import { isArray, isString } from './types';
@@ -48,7 +48,7 @@ export const stringifyStyle = (obj: any): string => {
   }
   if (typeof obj == 'object') {
     if (isArray(obj)) {
-      throw qError(QError_stringifyClassOrStyle, obj, 'style');
+      throw qError(QError.stringifyClassOrStyle, obj, 'style');
     } else {
       const chunks: string[] = [];
       for (const key in obj) {

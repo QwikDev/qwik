@@ -38,6 +38,13 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'QRLs can not be resolved because it does not have an attached container. This means that the QRL does not know where it belongs inside the DOM, so it cant dynamically import() from a relative path.', // 30
       'QRLs can not be dynamically resolved, because it does not have a chunk path', // 31
       'The JSX ref attribute must be a Signal', // 32
+      'Serialization Error: Deserialization of data type {{0}} is not implemented', // 33
+      'Serialization Error: Expected vnode for ref prop, but got {{0}}', // 34
+      'Serialization Error: Cannot allocate data type {{0}}', // 35
+      'Serialization Error: Missing root id for {{0}}', // 36
+      'Serialization Error: Serialization of data type {{0}} is not implemented', // 37
+      'Serialization Error: Unvisited {{0}}', // 38
+      'Serialization Error: Missing QRL chunk for {{0}}', // 39
     ];
     let text = MAP[code] ?? '';
     if (parts.length) {
@@ -90,6 +97,13 @@ export const enum QError {
   qrlMissingContainer = 30,
   qrlMissingChunk = 31,
   invalidRefValue = 32,
+  serializeErrorNotImplemented = 33,
+  serializeErrorExpectedVNode = 34,
+  serializeErrorCannotAllocate = 35,
+  serializeErrorMissingRootId = 36,
+  serializeErrorUnknownType = 37,
+  serializeErrorUnvisited = 38,
+  serializeErrorMissingChunk = 39,
 }
 
 export const qError = (code: number, ...parts: any[]): Error => {

@@ -1,6 +1,5 @@
 import { QError, qError } from '../error/error';
 import { isNode } from './element';
-import { throwErrorAndStop } from './log';
 import { isPromise } from './promises';
 import { isArray, isFunction, isObject, isSerializableObject } from './types';
 import { canSerialize } from '../shared-serialization';
@@ -79,8 +78,7 @@ const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessag
         value
       )});\n\nPlease check out https://qwik.dev/docs/advanced/qrl/ for more information.`;
     }
-    console.error('Trying to serialize', value);
-    throwErrorAndStop(message);
+    throw qError(QError.verifySerializable, message);
   }
   return value;
 };

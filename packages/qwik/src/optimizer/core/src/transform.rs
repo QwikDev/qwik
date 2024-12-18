@@ -577,12 +577,6 @@ impl<'a> QwikTransform<'a> {
 		let (scoped_idents, is_const, has_const) =
 			compute_scoped_idents(&descendent_idents, &decl_collect);
 
-		if !has_const {
-			// if the inputs to the expression don't have at least one constant (meaning something that could be a signal),
-			//  turning it into `_fnSignal` is useless
-			return (None, is_const);
-		}
-
 		// simple variable expression, no need to inline
 		if let ast::Expr::Ident(_) = folded {
 			return (None, is_const);
@@ -597,6 +591,12 @@ impl<'a> QwikTransform<'a> {
 					return (Some(make_wrap(&id, member.obj, prop_sym)), is_const);
 				}
 			}
+		}
+
+		if !has_const {
+			// if the inputs to the expression don't have at least one constant (meaning something that could be a signal),
+			//  turning it into `_fnSignal` is useless
+			return (None, is_const);
 		}
 
 		let serialize_fn = self.options.is_server;
@@ -1377,18 +1377,19 @@ impl<'a> QwikTransform<'a> {
 												key: node.key.clone(),
 											}),
 										));
-										if is_fn {
+										if !is_const {
+											static_listeners = false;
+										}
+
+										if is_fn || spread_props_count > 0 {
 											if is_const {
 												maybe_const_props
 													.push(converted_prop.fold_with(self));
 											} else {
 												var_props.push(converted_prop.fold_with(self));
 											}
-										} else if is_const {
-											event_handlers.push(converted_prop.fold_with(self));
 										} else {
-											static_listeners = false;
-											maybe_const_props.push(converted_prop.fold_with(self));
+											event_handlers.push(converted_prop.fold_with(self));
 										}
 									} else {
 										let const_prop = is_const_expr(
@@ -1792,10 +1793,7 @@ impl<'a> Fold for QwikTransform<'a> {
 		for param in &node.params {
 			let mut identifiers = vec![];
 			let is_identifier = collect_from_pat(&param.pat, &mut identifiers);
-			let mut is_constant = false;
-			if is_qcomponent {
-				is_constant = is_identifier;
-			}
+			let is_constant = if is_qcomponent { is_identifier } else { false };
 			current_scope.extend(
 				identifiers
 					.into_iter()
@@ -1828,10 +1826,7 @@ impl<'a> Fold for QwikTransform<'a> {
 		for param in &node.params {
 			let mut identifiers = vec![];
 			let is_identifier = collect_from_pat(param, &mut identifiers);
-			let mut is_constant = false;
-			if is_qcomponent {
-				is_constant = is_identifier;
-			}
+			let is_constant = if is_qcomponent { is_identifier } else { false };
 			current_scope.extend(
 				identifiers
 					.into_iter()

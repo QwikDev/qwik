@@ -55,12 +55,12 @@ export const test_component_LUXeXe0DQrg = ()=>{
             return /*#__PURE__*/ _jsxSorted("div", null, null, [
                 "Function: ",
                 _wrapProp(v)
-            ], 3, "fn_" + idx);
+            ], 1, "fn_" + idx);
         }),
         store.map((v, idx)=>/*#__PURE__*/ _jsxSorted("div", null, null, [
                 "Arrow: ",
                 _wrapProp(v)
-            ], 3, "arrow_" + idx))
+            ], 1, "arrow_" + idx))
     ], 1, "u6_0");
 };
 

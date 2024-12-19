@@ -1,6 +1,6 @@
 import { isDev } from '@qwik.dev/core/build';
 import { assertDefined } from '../error/assert';
-import { qError, QError_qrlIsNotFunction } from '../error/error';
+import { QError, qError } from '../error/error';
 import { getPlatform, isServerPlatform } from '../platform/platform';
 import { verifySerializable } from '../utils/serialize-utils';
 import {
@@ -109,7 +109,7 @@ export const createQRL = <TYPE>(
     return (...args: QrlArgs<TYPE>): QrlReturn<TYPE> =>
       maybeThen(resolveLazy(), (fn) => {
         if (!isFunction(fn)) {
-          throw qError(QError_qrlIsNotFunction);
+          throw qError(QError.qrlIsNotFunction);
         }
         if (beforeFn && beforeFn() === false) {
           return;

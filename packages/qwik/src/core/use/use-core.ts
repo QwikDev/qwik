@@ -1,10 +1,6 @@
 import type { QwikDocument } from '../document';
 import { assertDefined } from '../shared/error/assert';
-import {
-  qError,
-  QError_useInvokeContext,
-  QError_useMethodOutsideContext,
-} from '../shared/error/error';
+import { QError, qError } from '../shared/error/error';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import {
@@ -109,7 +105,7 @@ export const tryGetInvokeContext = (): InvokeContext | undefined => {
 export const getInvokeContext = (): InvokeContext => {
   const ctx = tryGetInvokeContext();
   if (!ctx) {
-    throw qError(QError_useMethodOutsideContext);
+    throw qError(QError.useMethodOutsideContext);
   }
   return ctx;
 };
@@ -117,7 +113,7 @@ export const getInvokeContext = (): InvokeContext => {
 export const useInvokeContext = (): RenderInvokeContext => {
   const ctx = tryGetInvokeContext();
   if (!ctx || ctx.$event$ !== RenderEvent) {
-    throw qError(QError_useInvokeContext);
+    throw qError(QError.useInvokeContext);
   }
   assertDefined(ctx.$hostElement$, `invoke: $hostElement$ must be defined`, ctx);
   assertDefined(ctx.$effectSubscriber$, `invoke: $effectSubscriber$ must be defined`, ctx);

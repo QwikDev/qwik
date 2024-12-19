@@ -92,6 +92,7 @@ export const ELEMENT_SELF_ID = -1;
 export const ELEMENT_ID_SELECTOR = '[q\\:id]';
 export const ELEMENT_ID_PREFIX = '#';
 export const INLINE_FN_PREFIX = '@';
+export const Q_PREFIX = 'q:';
 
 /** Non serializable markers - always begins with `:` character */
 export const NON_SERIALIZABLE_MARKER_PREFIX = ':';

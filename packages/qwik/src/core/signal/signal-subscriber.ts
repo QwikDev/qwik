@@ -1,7 +1,8 @@
 import { QSubscribers } from '../shared/utils/markers';
 import type { VNode } from '../client/types';
-import { vnode_getProp } from '../client/vnode';
+import { ensureMaterialized, vnode_getProp, vnode_isElementVNode } from '../client/vnode';
 import { EffectSubscriptionsProp, WrappedSignal, isSignal } from './signal';
+import type { Container } from '../shared/types';
 
 export abstract class Subscriber {
   $effectDependencies$: Subscriber[] | null = null;
@@ -11,8 +12,11 @@ export function isSubscriber(value: unknown): value is Subscriber {
   return value instanceof Subscriber || value instanceof WrappedSignal;
 }
 
-export function clearVNodeEffectDependencies(value: VNode): void {
-  const effects = vnode_getProp<Subscriber[]>(value, QSubscribers, null);
+export function clearVNodeEffectDependencies(container: Container, value: VNode): void {
+  if (vnode_isElementVNode(value)) {
+    ensureMaterialized(value);
+  }
+  const effects = vnode_getProp<Subscriber[]>(value, QSubscribers, container.$getObjectById$);
   if (!effects) {
     return;
   }
@@ -42,16 +46,29 @@ function clearEffects(subscriber: Subscriber, value: Subscriber | VNode): boolea
     return false;
   }
   const effectSubscriptions = (subscriber as WrappedSignal<unknown>).$effects$;
-  if (!effectSubscriptions) {
-    return false;
+  const hostElement = (subscriber as WrappedSignal<unknown>).$hostElement$;
+
+  if (hostElement && hostElement === value) {
+    (subscriber as WrappedSignal<unknown>).$hostElement$ = null;
   }
   let subscriptionRemoved = false;
-  for (let i = effectSubscriptions.length - 1; i >= 0; i--) {
-    const effect = effectSubscriptions[i];
-    if (effect[EffectSubscriptionsProp.EFFECT] === value) {
-      effectSubscriptions.splice(i, 1);
-      subscriptionRemoved = true;
+  if (effectSubscriptions) {
+    for (let i = effectSubscriptions.length - 1; i >= 0; i--) {
+      const effect = effectSubscriptions[i];
+      if (effect[EffectSubscriptionsProp.EFFECT] === value) {
+        effectSubscriptions.splice(i, 1);
+        subscriptionRemoved = true;
+      }
     }
   }
+
+  // clear the effects of the arguments
+  const args = (subscriber as WrappedSignal<unknown>).$args$;
+  if (args) {
+    for (let i = args.length - 1; i >= 0; i--) {
+      clearEffects(args[i], subscriber);
+    }
+  }
+
   return subscriptionRemoved;
 }

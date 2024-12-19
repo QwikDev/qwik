@@ -15,7 +15,8 @@ import {
   useTask$,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import * as logErrors from '../shared/utils/log';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -216,6 +217,25 @@ describe.each([
         </button>
       </>
     );
+  });
+
+  it('should disallow Promise in computed result', async () => {
+    const logErrorSpy = vi.spyOn(logErrors, 'throwErrorAndStop').mockRejectedValue(() => {});
+    const Counter = component$(() => {
+      const count = useSignal(1);
+      const doubleCount = useComputed$(() => Promise.resolve(count.value * 2));
+      return (
+        <button onClick$={() => count.value++}>
+          {
+            // @ts-expect-error
+            doubleCount.value
+          }
+        </button>
+      );
+    });
+    await render(<Counter />, { debug });
+
+    expect(logErrorSpy).toBeCalledTimes(1);
   });
 
   describe('createComputed$', () => {
@@ -439,23 +459,5 @@ describe.each([
       </>,
       true
     );
-  });
-
-  // TODO fix this: by throwing during render, this breaks the tests that follow
-  it('should disallow Promise in computed result', async () => {
-    const Counter = component$(() => {
-      const count = useSignal(1);
-      const doubleCount = useComputed$(() => Promise.resolve(count.value * 2));
-      return (
-        <button onClick$={() => count.value++}>
-          {
-            // @ts-expect-error
-            doubleCount.value
-          }
-        </button>
-      );
-    });
-
-    await expect(() => render(<Counter />, { debug })).rejects.toThrowError(/Promise/);
   });
 });

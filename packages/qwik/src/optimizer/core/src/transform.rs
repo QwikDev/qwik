@@ -949,7 +949,7 @@ impl<'a> QwikTransform<'a> {
 		];
 		let fn_callee = if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				JsWord::from(self.options.path_data.src.clone()),
+				self.options.path_data.src.clone(),
 				segment_data,
 				span,
 			));
@@ -1017,7 +1017,7 @@ impl<'a> QwikTransform<'a> {
 
 		let fn_callee = if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				JsWord::from(self.options.path_data.src.clone()),
+				self.options.path_data.src.clone(),
 				&segment_data,
 				&span,
 			));
@@ -1665,7 +1665,7 @@ impl<'a> QwikTransform<'a> {
 		let mut fn_name: &JsWord = &_NOOP_QRL;
 		if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				JsWord::from(self.options.path_data.src.clone()),
+				self.options.path_data.src.clone(),
 				&segment_data,
 				&DUMMY_SP,
 			));

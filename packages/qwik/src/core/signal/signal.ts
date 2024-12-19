@@ -17,12 +17,11 @@ import { type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { trackSignal, tryGetInvokeContext } from '../use/use-core';
 import { Task, TaskFlags, isTask } from '../use/use-task';
-import { logError } from '../shared/utils/log';
 import { ELEMENT_PROPS, OnRenderProp, QSubscribers } from '../shared/utils/markers';
-import { isPromise, retryOnPromise } from '../shared/utils/promises';
+import { isPromise } from '../shared/utils/promises';
 import { qDev } from '../shared/utils/qdev';
 import type { VNode } from '../client/types';
-import { vnode_getProp, vnode_isVirtualVNode, vnode_isVNode, vnode_setProp } from '../client/vnode';
+import { vnode_getProp, vnode_isTextVNode, vnode_isVNode, vnode_setProp } from '../client/vnode';
 import { ChoreType, type NodePropData, type NodePropPayload } from '../shared/scheduler';
 import type { Container, HostElement } from '../shared/types';
 import type { ISsrNode } from '../ssr/ssr-types';
@@ -77,10 +76,10 @@ export const isSignal = (value: any): value is ISignal<unknown> => {
 export type Effect = Task | VNode | ISsrNode | Signal;
 
 /** @internal */
-export class EffectData<T extends Record<string, any> = Record<string, any>> {
-  data: T;
+export class EffectPropData {
+  data: NodePropData;
 
-  constructor(data: T) {
+  constructor(data: NodePropData) {
     this.data = data;
   }
 }
@@ -128,7 +127,7 @@ export type EffectSubscriptions = [
   ],
   // List of signals to release
   ...(
-    | EffectData // Metadata for the effect
+    | EffectPropData // Metadata for the effect
     | string // List of properties (Only used with Store (not with Signal))
     | Signal
     | TargetType
@@ -271,7 +270,7 @@ export const ensureEffectContainsSubscriber = (
     }
 
     effect.$effectDependencies$.push(subscriber);
-  } else if (vnode_isVNode(effect) && vnode_isVirtualVNode(effect)) {
+  } else if (vnode_isVNode(effect) && !vnode_isTextVNode(effect)) {
     let subscribers = vnode_getProp<Subscriber[]>(
       effect,
       QSubscribers,
@@ -341,13 +340,8 @@ export const triggerEffects = (
             container.$scheduler$(ChoreType.QRL_RESOLVE, null, effect.$computeQrl$);
           }
         }
-        try {
-          retryOnPromise(() =>
-            (effect as ComputedSignal<unknown> | WrappedSignal<unknown>).$invalidate$()
-          );
-        } catch (e) {
-          logError(e);
-        }
+
+        (effect as ComputedSignal<unknown> | WrappedSignal<unknown>).$invalidate$();
       } else if (property === EffectProperty.COMPONENT) {
         const host: HostElement = effect as any;
         const qrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(host, OnRenderProp);
@@ -360,10 +354,9 @@ export const triggerEffects = (
         container.$scheduler$(ChoreType.NODE_DIFF, host, target, signal as Signal);
       } else {
         const host: HostElement = effect as any;
-        let effectData = effectSubscriptions[EffectSubscriptionsProp.FIRST_BACK_REF_OR_DATA];
-        if (effectData instanceof EffectData) {
-          effectData = effectData as EffectData<NodePropData>;
-          const data = effectData.data as NodePropData;
+        const effectData = effectSubscriptions[EffectSubscriptionsProp.FIRST_BACK_REF_OR_DATA];
+        if (effectData instanceof EffectPropData) {
+          const data = effectData.data;
           const payload: NodePropPayload = {
             ...data,
             $value$: signal as Signal,
@@ -394,6 +387,7 @@ export class ComputedSignal<T> extends Signal<T> {
   // We need a separate flag to know when the computation needs running because
   // we need the old value to know if effects need running after computation
   $invalid$: boolean = true;
+  $forceRunEffects$: boolean = false;
 
   constructor(container: Container | null, fn: QRLInternal<() => T>) {
     // The value is used for comparison when signals trigger, which can only happen
@@ -404,15 +398,10 @@ export class ComputedSignal<T> extends Signal<T> {
 
   $invalidate$() {
     this.$invalid$ = true;
-    if (!this.$effects$?.length) {
-      return;
-    }
+    this.$forceRunEffects$ = false;
     // We should only call subscribers if the calculation actually changed.
     // Therefore, we need to calculate the value now.
-    // TODO move this calculation to the beginning of the next tick, add chores to that tick if necessary. New chore type?
-    if (this.$computeIfNeeded$()) {
-      triggerEffects(this.$container$, this, this.$effects$);
-    }
+    this.$container$?.$scheduler$(ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS, null, this);
   }
 
   /**
@@ -421,16 +410,20 @@ export class ComputedSignal<T> extends Signal<T> {
    */
   force() {
     this.$invalid$ = true;
+    this.$forceRunEffects$ = false;
     triggerEffects(this.$container$, this, this.$effects$);
   }
 
   get untrackedValue() {
-    this.$computeIfNeeded$();
+    const didChange = this.$computeIfNeeded$();
+    if (didChange) {
+      this.$forceRunEffects$ = didChange;
+    }
     assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state');
     return this.$untrackedValue$;
   }
 
-  private $computeIfNeeded$() {
+  $computeIfNeeded$() {
     if (!this.$invalid$) {
       return false;
     }
@@ -483,6 +476,8 @@ export class WrappedSignal<T> extends Signal<T> implements Subscriber {
   // we need the old value to know if effects need running after computation
   $invalid$: boolean = true;
   $effectDependencies$: Subscriber[] | null = null;
+  $hostElement$: HostElement | null = null;
+  $forceRunEffects$: boolean = false;
 
   constructor(
     container: Container | null,
@@ -498,15 +493,14 @@ export class WrappedSignal<T> extends Signal<T> implements Subscriber {
 
   $invalidate$() {
     this.$invalid$ = true;
-    if (!this.$effects$?.length) {
-      return;
-    }
+    this.$forceRunEffects$ = false;
     // We should only call subscribers if the calculation actually changed.
     // Therefore, we need to calculate the value now.
-    // TODO move this calculation to the beginning of the next tick, add chores to that tick if necessary. New chore type?
-    if (this.$computeIfNeeded$()) {
-      triggerEffects(this.$container$, this, this.$effects$);
-    }
+    this.$container$?.$scheduler$(
+      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+      this.$hostElement$,
+      this
+    );
   }
 
   /**
@@ -515,16 +509,20 @@ export class WrappedSignal<T> extends Signal<T> implements Subscriber {
    */
   force() {
     this.$invalid$ = true;
+    this.$forceRunEffects$ = false;
     triggerEffects(this.$container$, this, this.$effects$);
   }
 
   get untrackedValue() {
-    this.$computeIfNeeded$();
+    const didChange = this.$computeIfNeeded$();
+    if (didChange) {
+      this.$forceRunEffects$ = didChange;
+    }
     assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state');
     return this.$untrackedValue$;
   }
 
-  private $computeIfNeeded$() {
+  $computeIfNeeded$() {
     if (!this.$invalid$) {
       return false;
     }

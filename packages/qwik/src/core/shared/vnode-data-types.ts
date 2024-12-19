@@ -42,11 +42,15 @@ export const VNodeDataSeparator = {
   ADVANCE_8192: /* ****** */ 46, // `.` is vNodeData separator skipping 4096.
 };
 
-/** VNodeDataChar contains information about the VNodeData used for encoding props */
+/**
+ * VNodeDataChar contains information about the VNodeData used for encoding props.
+ *
+ * Available character ranges: 59 - 64, 91 - 94, 96, 123 - 126
+ */
 export const VNodeDataChar = {
-  OPEN: /* ************** */ 123, // `{` is the start of the VNodeData.
+  OPEN: /* ************** */ 123, // `{` is the start of the VNodeData for a virtual element.
   OPEN_CHAR: /* ****** */ '{',
-  CLOSE: /* ************* */ 125, // `}` is the end of the VNodeData.
+  CLOSE: /* ************* */ 125, // `}` is the end of the VNodeData for a virtual element.
   CLOSE_CHAR: /* ***** */ '}',
 
   SCOPED_STYLE: /* ******* */ 59, // `;` - `q:sstyle` - Style attribute.
@@ -63,12 +67,14 @@ export const VNodeDataChar = {
   KEY_CHAR: /* ******** */ '@',
   SEQ: /* **************** */ 91, // `[` - `q:seq' - Seq value from `useSequentialScope()`
   SEQ_CHAR: /* ******** */ '[',
-  DON_T_USE: /* ********** */ 93, // `\` - SKIP because `\` is used as escaping
+  DON_T_USE: /* ********** */ 92, // `\` - SKIP because `\` is used as escaping
   DON_T_USE_CHAR: '\\',
   CONTEXT: /* ************ */ 93, // `]` - `q:ctx' - Component context/props
   CONTEXT_CHAR: /* **** */ ']',
   SEQ_IDX: /* ************ */ 94, // `^` - `q:seqIdx' - Sequential scope id
   SEQ_IDX_CHAR: /* **** */ '^',
+  SUBS: /* *************** */ 96, // '`' - `q:subs' - Effect dependencies/subscriptions
+  SUBS_CHAR: /* ******* */ '`',
   SEPARATOR: /* ********* */ 124, // `|` - Separator char to encode any key/value pairs.
   SEPARATOR_CHAR: /* ** */ '|',
   SLOT: /* ************** */ 126, // `~` - `q:slot' - Slot name

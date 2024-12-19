@@ -72,7 +72,7 @@ export const PrefetchServiceWorker = (opts: {
         JSON.stringify(resolvedOpts.base),
         JSON.stringify(resolvedOpts.manifestHash),
         'navigator.serviceWorker',
-        'window.qwikPrefetchSW||(window.qwikPrefetchSW=[])',
+        'window.qwikPreloader||(window.qwikPreloader=[])',
         resolvedOpts.verbose,
       ].join(','),
       ');',
@@ -149,7 +149,7 @@ export const PrefetchGraph = (
     resolvedOpts.base,
     `q-bundle-graph-${resolvedOpts.manifestHash}.json`,
   ]);
-  const code = `(window.qwikPrefetchSW||(window.qwikPrefetchSW=[])).push(${args})`;
+  const code = `(window.qwikPreloader||(window.qwikPreloader=[])).push(${args})`;
   const props = {
     dangerouslySetInnerHTML: code,
     nonce: opts.nonce,

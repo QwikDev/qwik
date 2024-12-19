@@ -57,7 +57,7 @@ export type SWMessages = SWMsgBundleGraph | SWMsgBundleGraphUrl | SWMsgPrefetch 
 
 export const log = (...args: any[]) => {
   // eslint-disable-next-line no-console
-  console.log('⚙️ Prefetch SW:', ...args);
+  console.log('⚙️ Preloader:', ...args);
 };
 
 export const processMessage = async (state: SWState, msg: SWMessages) => {

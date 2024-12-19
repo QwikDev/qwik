@@ -18,15 +18,15 @@ import { writePackageJson } from './package-json';
  * provides a utility function.
  */
 export async function submoduleQwikPrefetch(config: BuildConfig) {
-  const prefetchSwDir = join(config.srcQwikDir, 'prefetch-service-worker');
+  const PreloaderDir = join(config.srcQwikDir, 'prefetch-service-worker');
   const input: InputOptions = {
-    input: join(prefetchSwDir, 'entry.ts'),
+    input: join(PreloaderDir, 'entry.ts'),
     plugins: [
       {
         name: 'qwikPrefetchTranspile',
         resolveId(id) {
           if (!id.endsWith('.ts')) {
-            return join(prefetchSwDir, id + '.ts');
+            return join(PreloaderDir, id + '.ts');
           }
           return null;
         },

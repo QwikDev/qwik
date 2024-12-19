@@ -42,7 +42,7 @@ export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
 export const STYLES = ".red { color: red; }";
 
 
-============================= test.tsx ==
+============================= src/test.tsx ==
 
 import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
@@ -68,12 +68,12 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
                 store
             ])
         }, null, "Click", 2, null), 1, null)
-    ], 1, "u6_0");
+    ], 1, "oJ_0");
 }, "s_Fh88JClhbC0"));
 export const STYLES = ".red { color: red; }";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAS,YAAY,EAAE,UAAU,EAAE,QAAQ,EAAa,eAAe,QAAQ,mBAAmB;AAElG,OAAO,MAAM,MAAM,WAAW,GAAG,sCAAwB;IACrD,oCAAsB;IACtB,oCAAsB;IAEtB,MAAM,QAAQ,SAAS;QACnB,OAAO;IACX;IACA,OAAO,WAAW,GAAG,MAAK,mBACZ;QACN,WAAW,GAAG,MAAK,iBACL;YACN;4BACA,GAAM,KAAK;;;SACd;QAEL,WAAW,GAAG,MAAI,iBACJ,WAAW,GAAG,MAAI;YACxB,QAAQ,2BAAa;gBACjB,MAAM,CAAC,MAAM,GAAG;gBAChB,OAAO,MAAM,KAAK;YACtB;;;iBAGU;KAGrB;AAET,qBAAiC;AAEjC,OAAO,MAAM,SAAS,uBAAuB\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AACA,SAAS,YAAY,EAAE,UAAU,EAAE,QAAQ,EAAa,eAAe,QAAQ,mBAAmB;AAElG,OAAO,MAAM,MAAM,WAAW,GAAG,sCAAwB;IACrD,oCAAsB;IACtB,oCAAsB;IAEtB,MAAM,QAAQ,SAAS;QACnB,OAAO;IACX;IACA,OAAO,WAAW,GAAG,MAAK,mBACZ;QACN,WAAW,GAAG,MAAK,iBACL;YACN;4BACA,GAAM,KAAK;;;SACd;QAEL,WAAW,GAAG,MAAI,iBACJ,WAAW,GAAG,MAAI;YACxB,QAAQ,2BAAa;gBACjB,MAAM,CAAC,MAAM,GAAG;gBAChB,OAAO,MAAM,KAAK;YACtB;;;iBAGU;KAGrB;AAET,qBAAiC;AAEjC,OAAO,MAAM,SAAS,uBAAuB\"}")
 == DIAGNOSTICS ==
 
 []

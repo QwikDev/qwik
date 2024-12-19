@@ -20,24 +20,32 @@ export const Header = component$(() => {
     });
 });
 
-============================= test.tsx_Header_component_J4uyIhaBNR4.tsx (ENTRY POINT)==
+============================= src/test.tsx ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_oO0vQsEtDrk"), "Header_component_oO0vQsEtDrk"));
+
+
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,uBAAS,uHASnB\"}")
+============================= src/test.tsx_Header_component_oO0vQsEtDrk.tsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
-export const Header_component_J4uyIhaBNR4 = ()=>{
-    return /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_1_2B8d0oH9ZWc"), "Header_component_1_2B8d0oH9ZWc");
+export const Header_component_oO0vQsEtDrk = ()=>{
+    return /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_1_eEYImYNVM0I"), "Header_component_1_eEYImYNVM0I");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAGiC;IAC7B;AAQJ\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";4CAGiC;IAC7B;AAQJ\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "Header_component_J4uyIhaBNR4",
+  "origin": "src/test.tsx",
+  "name": "Header_component_oO0vQsEtDrk",
   "entry": null,
   "displayName": "test.tsx_Header_component",
-  "hash": "J4uyIhaBNR4",
-  "canonicalFilename": "test.tsx_Header_component_J4uyIhaBNR4",
-  "path": "",
+  "hash": "oO0vQsEtDrk",
+  "canonicalFilename": "test.tsx_Header_component_oO0vQsEtDrk",
+  "path": "src",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -49,10 +57,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_Header_component_1_2B8d0oH9ZWc.tsx (ENTRY POINT)==
+============================= src/test.tsx_Header_component_1_eEYImYNVM0I.tsx (ENTRY POINT)==
 
 import { Header } from "./test";
-export const Header_component_1_2B8d0oH9ZWc = (hola)=>{
+export const Header_component_1_eEYImYNVM0I = (hola)=>{
     const hola = this;
     const { something, styff } = hola;
     hola.nothere.stuff[global];
@@ -61,18 +69,18 @@ export const Header_component_1_2B8d0oH9ZWc = (hola)=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";8CAIa,CAAC;IACN,MAAM,OAAO,IAAI;IACjB,MAAM,EAAC,SAAS,EAAE,KAAK,EAAC,GAAG;IACb,KAAK,OAAO,CAAC,KAAK,CAAC,OAAO;IACxC,QACK;AAET\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";8CAIa,CAAC;IACN,MAAM,OAAO,IAAI;IACjB,MAAM,EAAC,SAAS,EAAE,KAAK,EAAC,GAAG;IACb,KAAK,OAAO,CAAC,KAAK,CAAC,OAAO;IACxC,QACK;AAET\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "Header_component_1_2B8d0oH9ZWc",
+  "origin": "src/test.tsx",
+  "name": "Header_component_1_eEYImYNVM0I",
   "entry": null,
   "displayName": "test.tsx_Header_component_1",
-  "hash": "2B8d0oH9ZWc",
-  "canonicalFilename": "test.tsx_Header_component_1_2B8d0oH9ZWc",
-  "path": "",
+  "hash": "eEYImYNVM0I",
+  "canonicalFilename": "test.tsx_Header_component_1_eEYImYNVM0I",
+  "path": "src",
   "extension": "tsx",
-  "parent": "Header_component_J4uyIhaBNR4",
+  "parent": "Header_component_oO0vQsEtDrk",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": false,
@@ -82,14 +90,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx ==
-
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_J4uyIhaBNR4"), "Header_component_J4uyIhaBNR4"));
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,uBAAS,uHASnB\"}")
 == DIAGNOSTICS ==
 
 []

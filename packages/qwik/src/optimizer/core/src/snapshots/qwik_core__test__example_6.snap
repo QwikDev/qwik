@@ -10,22 +10,22 @@ snapshot_kind: text
 import { $, component$ } from '@builder.io/qwik';
 export const sym1 = $((ctx) => console.log("1"));
 
-============================= test.tsx_sym1_aXUrPXX5Lak.tsx (ENTRY POINT)==
+============================= src/test.tsx_sym1_3tnndhaq9xQ.tsx (ENTRY POINT)==
 
-export const sym1_aXUrPXX5Lak = (ctx)=>console.log("1");
+export const sym1_3tnndhaq9xQ = (ctx)=>console.log("1");
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"gCAEsB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"gCAEsB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "sym1_aXUrPXX5Lak",
+  "origin": "src/test.tsx",
+  "name": "sym1_3tnndhaq9xQ",
   "entry": null,
   "displayName": "test.tsx_sym1",
-  "hash": "aXUrPXX5Lak",
-  "canonicalFilename": "test.tsx_sym1_aXUrPXX5Lak",
-  "path": "",
+  "hash": "3tnndhaq9xQ",
+  "canonicalFilename": "test.tsx_sym1_3tnndhaq9xQ",
+  "path": "src",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -37,13 +37,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx ==
+============================= src/test.tsx ==
 
 import { qrl } from "@builder.io/qwik";
-export const sym1 = /*#__PURE__*/ qrl(()=>import("./test.tsx_sym1_aXUrPXX5Lak"), "sym1_aXUrPXX5Lak");
+export const sym1 = /*#__PURE__*/ qrl(()=>import("./test.tsx_sym1_3tnndhaq9xQ"), "sym1_3tnndhaq9xQ");
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AAEA,OAAO,MAAM,wFAAoC\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";AAEA,OAAO,MAAM,wFAAoC\"}")
 == DIAGNOSTICS ==
 
 []

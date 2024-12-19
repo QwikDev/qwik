@@ -36,7 +36,48 @@ export default component$(() => {
     )
   });
 
-============================= test.js ==
+============================= src/test.tsx_test_component_r7Fl19tSLhk.js (ENTRY POINT)==
+
+import { _jsxQ } from "@builder.io/qwik";
+import { qrlDEV } from "@builder.io/qwik";
+export const test_component_r7Fl19tSLhk = ()=>{
+    return /*#__PURE__*/ _jsxQ("button", null, {
+        onClick$: /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_button_onClick_pUqBSniOWcc"), "test_component_button_onClick_pUqBSniOWcc", {
+            file: "src/test.tsx",
+            lo: 567,
+            hi: 584,
+            displayName: "test.tsx_test_component_button_onClick"
+        })
+    }, null, 3, "oJ_0", {
+        fileName: "src/test.tsx",
+        lineNumber: 27,
+        columnNumber: 7
+    });
+};
+
+
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;0CAwB0B;IACtB,qBACE,MAAC;QAAO,QAAQ;;;;;;;;;;;AAEpB\"}")
+/*
+{
+  "origin": "src/test.tsx",
+  "name": "test_component_r7Fl19tSLhk",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "r7Fl19tSLhk",
+  "canonicalFilename": "test.tsx_test_component_r7Fl19tSLhk",
+  "path": "src",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    522,
+    605
+  ]
+}
+*/
+============================= src/test.js ==
 
 import { serverQrl } from "@builder.io/qwik-city";
 import { _noopQrlDEV } from "@builder.io/qwik";
@@ -50,86 +91,45 @@ import { sideEffect } from './secret';
     console.log('run');
 })();
 sideEffect();
-export const api = serverQrl(/*#__PURE__*/ _noopQrlDEV("api_server_JonPp043gH0", {
-    file: "/user/qwik/src/test.tsx",
+export const api = serverQrl(/*#__PURE__*/ _noopQrlDEV("api_server_5GoX0lDOyJQ", {
+    file: "src/test.tsx",
     lo: 0,
     hi: 0,
     displayName: "test.tsx_api_server"
 }));
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg", {
-    file: "/user/qwik/src/test.tsx",
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_r7Fl19tSLhk"), "test_component_r7Fl19tSLhk", {
+    file: "src/test.tsx",
     lo: 522,
     hi: 605,
     displayName: "test.tsx_test_component"
 }));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAMA,SAAS,UAAU,QAAQ,WAAW;AAKtC,CAAC;IACG,QAAQ,GAAG,CAAC;AACd,CAAC;AACD,CAAC;IACC,QAAQ,GAAG,CAAC;AACd,CAAC;AAEH;AAEA,OAAO,MAAM,MAAM;;;;;IAEhB;AAEH,6BAAe;;;;;IAIV\"}")
-============================= test.tsx_test_component_button_onClick_DGk9xLyRokA.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;;AAMA,SAAS,UAAU,QAAQ,WAAW;AAKtC,CAAC;IACG,QAAQ,GAAG,CAAC;AACd,CAAC;AACD,CAAC;IACC,QAAQ,GAAG,CAAC;AACd,CAAC;AAEH;AAEA,OAAO,MAAM,MAAM;;;;;IAEhB;AAEH,6BAAe;;;;;IAIV\"}")
+============================= src/test.tsx_test_component_button_onClick_pUqBSniOWcc.js (ENTRY POINT)==
 
 import { api } from "./test";
-export const test_component_button_onClick_DGk9xLyRokA = ()=>await api();
+export const test_component_button_onClick_pUqBSniOWcc = ()=>await api();
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yDA0BwB,IAAM,MAAM\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";yDA0BwB,IAAM,MAAM\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "test_component_button_onClick_DGk9xLyRokA",
+  "origin": "src/test.tsx",
+  "name": "test_component_button_onClick_pUqBSniOWcc",
   "entry": null,
   "displayName": "test.tsx_test_component_button_onClick",
-  "hash": "DGk9xLyRokA",
-  "canonicalFilename": "test.tsx_test_component_button_onClick_DGk9xLyRokA",
-  "path": "",
+  "hash": "pUqBSniOWcc",
+  "canonicalFilename": "test.tsx_test_component_button_onClick_pUqBSniOWcc",
+  "path": "src",
   "extension": "js",
-  "parent": "test_component_LUXeXe0DQrg",
+  "parent": "test_component_r7Fl19tSLhk",
   "ctxKind": "eventHandler",
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
     567,
     584
-  ]
-}
-*/
-============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
-
-import { _jsxQ } from "@builder.io/qwik";
-import { qrlDEV } from "@builder.io/qwik";
-export const test_component_LUXeXe0DQrg = ()=>{
-    return /*#__PURE__*/ _jsxQ("button", null, {
-        onClick$: /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_button_onClick_DGk9xLyRokA"), "test_component_button_onClick_DGk9xLyRokA", {
-            file: "/user/qwik/src/test.tsx",
-            lo: 567,
-            hi: 584,
-            displayName: "test.tsx_test_component_button_onClick"
-        })
-    }, null, 3, "u6_0", {
-        fileName: "test.tsx",
-        lineNumber: 27,
-        columnNumber: 7
-    });
-};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAwB0B;IACtB,qBACE,MAAC;QAAO,QAAQ;;;;;;;;;;;AAEpB\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_LUXeXe0DQrg",
-  "entry": null,
-  "displayName": "test.tsx_test_component",
-  "hash": "LUXeXe0DQrg",
-  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
-  "path": "",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    522,
-    605
   ]
 }
 */

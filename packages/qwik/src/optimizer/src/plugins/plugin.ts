@@ -624,7 +624,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     const { pathId } = parseId(id);
     const parsedPathId = path.parse(pathId);
     const dir = parsedPathId.dir;
-    const base = parsedPathId.base;
     const ext = parsedPathId.ext.toLowerCase();
     if (ext in TRANSFORM_EXTS || TRANSFORM_REGEX.test(pathId)) {
       /** Strip client|server code from qwik server|client, but not in lib/test */
@@ -647,19 +646,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         });
       }
 
-      let filePath = base;
-      if (opts.srcDir) {
-        filePath = path.relative(opts.srcDir, pathId);
-      }
-      filePath = normalizePath(filePath);
-      const srcDir = opts.srcDir ? opts.srcDir : normalizePath(dir);
+      const filePath = path.relative(opts.rootDir, pathId);
       const entryStrategy: EntryStrategy = opts.entryStrategy;
-      let devPath: string | undefined;
-      if (devServer) {
-        devPath = devServer.moduleGraph.getModuleById(pathId)?.url;
-      }
       const transformOpts: TransformModulesOptions = {
-        input: [{ code, path: filePath, devPath }],
+        input: [{ code, path: filePath }],
         entryStrategy: isServer ? { type: 'hoist' } : entryStrategy,
         minify: 'simplify',
         // Always enable sourcemaps in dev for click-to-source
@@ -668,7 +658,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         transpileJsx: true,
         explicitExtensions: true,
         preserveFilenames: true,
-        srcDir,
+        // TODO remove
+        srcDir: '',
         rootDir: opts.rootDir,
         mode,
         scope: opts.scope || undefined,
@@ -692,7 +683,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       // uncomment to show transform results
       // debug({ isServer, strip }, transformOpts, newOutput);
-      diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
+      diagnosticsCallback(newOutput.diagnostics, optimizer, opts.rootDir);
 
       if (isServer) {
         if (newOutput.diagnostics.length === 0 && linter) {
@@ -704,7 +695,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       const deps = new Set<string>();
       for (const mod of newOutput.modules) {
         if (mod !== module) {
-          const key = normalizePath(path.join(srcDir, mod.path));
+          // All modules are in the same directory as the parent
+          const key = path.join(dir, mod.segment!.canonicalFilename + '.' + mod.segment?.extension);
           debug(`transform(${count})`, `segment ${key}`, mod.segment!.displayName);
           parentIds.set(key, id);
           currentOutputs.set(key, [mod, id]);

@@ -21,31 +21,31 @@ export const App = component$((props: Stuff) => {
     );
 });
 
-============================= test.js ==
+============================= src/test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0.js"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_F6JpluHHZ5A.js"), "App_component_F6JpluHHZ5A"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,oHAUhB\"}")
-============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,oHAUhB\"}")
+============================= src/test.tsx_App_component_F6JpluHHZ5A.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _IMMUTABLE } from "@builder.io/qwik";
 import { _jsxC } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
-export const App_component_ckEPmXZlub0 = (props)=>{
+export const App_component_F6JpluHHZ5A = (props)=>{
     return /*#__PURE__*/ _jsxC(_Fragment, {
         children: [
             /*#__PURE__*/ _jsxC(Cmp, null, 3, "stuff"),
-            /*#__PURE__*/ _jsxC(Cmp, null, 3, "u6_0"),
+            /*#__PURE__*/ _jsxC(Cmp, null, 3, "oJ_0"),
             /*#__PURE__*/ _jsxC(Cmp, {
                 prop: "23",
                 [_IMMUTABLE]: {
                     prop: _IMMUTABLE
                 }
-            }, 3, "u6_1"),
+            }, 3, "oJ_1"),
             /*#__PURE__*/ _jsxC(Cmp, {
                 prop: "23",
                 [_IMMUTABLE]: {
@@ -54,20 +54,20 @@ export const App_component_ckEPmXZlub0 = (props)=>{
             }, 3, props.stuff),
             /*#__PURE__*/ _jsxQ("p", null, null, "Hello Qwik", 3, props.stuff)
         ]
-    }, 1, "u6_2");
+    }, 1, "oJ_2");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAG8B,CAAC;IAC3B,qBACI;;0BACI,MAAC,cAAQ;0BACT,MAAC;0BACD,MAAC;gBAAI,MAAK;;oBAAL,IAAI;;;0BACT,MAAC;gBAAI,MAAK;;oBAAL,IAAI;;kBAAW,MAAM,KAAK;0BAC/B,MAAC,iBAAoB,iBAAb,MAAM,KAAK;;;AAG/B\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;;yCAG8B,CAAC;IAC3B,qBACI;;0BACI,MAAC,cAAQ;0BACT,MAAC;0BACD,MAAC;gBAAI,MAAK;;oBAAL,IAAI;;;0BACT,MAAC;gBAAI,MAAK;;oBAAL,IAAI;;kBAAW,MAAM,KAAK;0BAC/B,MAAC,iBAAoB,iBAAb,MAAM,KAAK;;;AAG/B\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "App_component_ckEPmXZlub0",
+  "origin": "src/test.tsx",
+  "name": "App_component_F6JpluHHZ5A",
   "entry": null,
   "displayName": "test.tsx_App_component",
-  "hash": "ckEPmXZlub0",
-  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
-  "path": "",
+  "hash": "F6JpluHHZ5A",
+  "canonicalFilename": "test.tsx_App_component_F6JpluHHZ5A",
+  "path": "src",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

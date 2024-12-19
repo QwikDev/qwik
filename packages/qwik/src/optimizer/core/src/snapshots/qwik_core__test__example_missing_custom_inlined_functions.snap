@@ -24,7 +24,7 @@ export const App = component$((props) => {
     ));
 });
 
-============================= test.js ==
+============================= src/test.js ==
 
 import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
@@ -41,18 +41,18 @@ export const App = component$((props)=>{
     });
     return $(()=>/*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.count, [
             state
-        ], "p0.count"), 3, "u6_0"));
+        ], "p0.count"), 3, "oJ_0"));
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAiD,QAAQ,EAAQ,SAAS,QAAQ,mBAAmB;AAGrG,OAAO,MAAM,WAAW,CAAC;IACrB,UAAU;AACd,EAAE;AAEF,OAAO,MAAM,MAAM,WAAW,CAAC;IAC3B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,SAAS;QACL,QAAQ,GAAG,CAAC,MAAM,KAAK;IAC3B;IACA,OAAO,EAAE,kBACL,MAAC,mCAAK,GAAM,KAAK;;;AAEzB,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AACA,SAAiD,QAAQ,EAAQ,SAAS,QAAQ,mBAAmB;AAGrG,OAAO,MAAM,WAAW,CAAC;IACrB,UAAU;AACd,EAAE;AAEF,OAAO,MAAM,MAAM,WAAW,CAAC;IAC3B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,SAAS;QACL,QAAQ,GAAG,CAAC,MAAM,KAAK;IAC3B;IACA,OAAO,EAAE,kBACL,MAAC,mCAAK,GAAM,KAAK;;;AAEzB,GAAG\"}")
 == DIAGNOSTICS ==
 
 [
   {
     "category": "error",
     "code": "C05",
-    "file": "test.tsx",
+    "file": "src/test.tsx",
     "message": "Found 'useMemo$' but did not find the corresponding 'useMemoQrl' exported in the same file. Please check that it is exported and spelled correctly",
     "highlights": [
       {

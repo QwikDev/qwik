@@ -48,7 +48,7 @@ export const NoWorks3 = component$(({count, stuff = hola()}) => {
     );
 });
 
-============================= test.js ==
+============================= src/test.js ==
 
 import { _restProps } from "@builder.io/qwik";
 import { componentQrl } from "@builder.io/qwik";
@@ -72,7 +72,7 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
         const [props, rest] = useLexicalScope();
         track(()=>props.count);
         console.log(props.count, rest, props.stuff, props.some ?? 3, props.stuffDefault ?? 123);
-    }, "Works_component_useTask_pjo5U5Ikll0", [
+    }, "Works_component_useTask_jQgKWAKQkAo", [
         props,
         rest
     ]));
@@ -106,37 +106,37 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
             props
         ], "p0.count"),
         override: _IMMUTABLE
-    }, 0, "u6_0");
-}, "Works_component_t45qL4vNGv0"));
+    }, 0, "oJ_0");
+}, "Works_component_3Z6btR1NEOY"));
 export const NoWorks2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ count, stuff: { hey } })=>{
     console.log(hey);
     useTaskQrl(/*#__PURE__*/ inlinedQrl(({ track })=>{
         const [count] = useLexicalScope();
         track(()=>count);
         console.log(count);
-    }, "NoWorks2_component_useTask_lXiqwbxxjq0", [
+    }, "NoWorks2_component_useTask_fGqqQeqv0g8", [
         count
     ]));
     return /*#__PURE__*/ _jsxQ("div", {
         class: count
-    }, null, count, 1, "u6_1");
-}, "NoWorks2_component_JPD9t2HyEKg"));
+    }, null, count, 1, "oJ_1");
+}, "NoWorks2_component_fKHOq2l3bro"));
 export const NoWorks3 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ count, stuff = hola() })=>{
     console.log(stuff);
     useTaskQrl(/*#__PURE__*/ inlinedQrl(({ track })=>{
         const [count] = useLexicalScope();
         track(()=>count);
         console.log(count);
-    }, "NoWorks3_component_useTask_3cQGU0s1VwU", [
+    }, "NoWorks3_component_useTask_p0CJUeD0WP0", [
         count
     ]));
     return /*#__PURE__*/ _jsxQ("div", {
         class: count
-    }, null, count, 1, "u6_2");
-}, "NoWorks3_component_fc13h5yYn14"));
+    }, null, count, 1, "oJ_2");
+}, "NoWorks3_component_ElpYI6RLRSc"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW;;;;;;;;IAO5B,QAAQ,GAAG,OAHX,aAFA,QAAO;IAMP,oCAAS,CAAC,EAAC,KAAK,EAAC;;QACb,MAAM,UARV;QASI,QAAQ,GAAG,OATf,OASuB,YANvB,aAFA,QAAO,SAGP,gBAAqB;;;;;IAOrB,qBACI,MAAC;YAAI;yBAXT,QAAO;;YAWc;mBAAQ;gBAAE,IAAI,QAXnC,QAAO;YAW6B;;YAAG;yBAZvC;;QAYsD,GAAG,IAAI;QAAE,QAAQ;qCAZvE;;;;QAYS,IAAI,qBAXb,QAAO;;;QAWc,MAAM,kBAAE,CAAA;gBAAE,IAAI,KAXnC,QAAO;YAW6B,CAAA;;;QAAG,KAAK,qBAZ5C;;;QAY+D,QAAQ;;AAE3E,mCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,KAAK,EAAE,OAAO,EAAC,GAAG,EAAC,EAAC;IACrD,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,KAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,MAAC;QAAI,OAAO;aAAQ;AAE5B,sCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,KAAK,EAAE,QAAQ,MAAM,EAAC;IACvD,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,KAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,MAAC;QAAI,OAAO;aAAQ;AAE5B,sCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW;;;;;;;;IAO5B,QAAQ,GAAG,OAHX,aAFA,QAAO;IAMP,oCAAS,CAAC,EAAC,KAAK,EAAC;;QACb,MAAM,UARV;QASI,QAAQ,GAAG,OATf,OASuB,YANvB,aAFA,QAAO,SAGP,gBAAqB;;;;;IAOrB,qBACI,MAAC;YAAI;yBAXT,QAAO;;YAWc;mBAAQ;gBAAE,IAAI,QAXnC,QAAO;YAW6B;;YAAG;yBAZvC;;QAYsD,GAAG,IAAI;QAAE,QAAQ;qCAZvE;;;;QAYS,IAAI,qBAXb,QAAO;;;QAWc,MAAM,kBAAE,CAAA;gBAAE,IAAI,KAXnC,QAAO;YAW6B,CAAA;;;QAAG,KAAK,qBAZ5C;;;QAY+D,QAAQ;;AAE3E,mCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,KAAK,EAAE,OAAO,EAAC,GAAG,EAAC,EAAC;IACrD,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,KAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,MAAC;QAAI,OAAO;aAAQ;AAE5B,sCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,KAAK,EAAE,QAAQ,MAAM,EAAC;IACvD,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,KAAK,EAAC;;QACb,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEhB,qBACI,MAAC;QAAI,OAAO;aAAQ;AAE5B,sCAAG\"}")
 == DIAGNOSTICS ==
 
 []

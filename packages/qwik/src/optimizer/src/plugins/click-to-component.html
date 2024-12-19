@@ -55,7 +55,6 @@
   (function () {
     const inspectAttribute = 'data-qwik-inspector';
     const hotKeys = globalThis.qwikdevtools.hotKeys;
-    const srcDir = globalThis.qwikdevtools.srcDir;
     document.querySelector('#qwik-inspector-info-popup').textContent =
       `Click-to-Source: ${hotKeys.join(' + ')}`;
     console.debug(
@@ -143,16 +142,7 @@
     );
 
     globalThis.qwikOpenInEditor = function (path) {
-      const isWindows = navigator.platform.includes('Win');
-      const resolvedURL = new URL(path, isWindows ? origin : srcDir);
-      if (resolvedURL.origin === origin) {
-        const params = new URLSearchParams();
-        const prefix = isWindows ? srcDir : '';
-        params.set('file', prefix + resolvedURL.pathname);
-        fetch('/__open-in-editor?' + params.toString());
-      } else {
-        location.href = resolvedURL.href;
-      }
+      fetch('{{BASE}}__open-in-editor?file=' + encodeURIComponent(path));
     };
     document.addEventListener(
       'contextmenu',

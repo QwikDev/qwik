@@ -23,7 +23,7 @@ export const App = component$(() => {
     );
 });
 
-============================= test.js ==
+============================= src/test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
@@ -32,35 +32,35 @@ import { qrl } from "@builder.io/qwik";
     Thing[Thing["B"] = 1] = "B";
     return Thing;
 })({});
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_F6JpluHHZ5A"), "App_component_F6JpluHHZ5A"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;wBAGK;;;WAAA;;AAKL,OAAO,MAAM,oBAAM,iHAOhB\"}")
-============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;wBAGK;;;WAAA;;AAKL,OAAO,MAAM,oBAAM,iHAOhB\"}")
+============================= src/test.tsx_App_component_F6JpluHHZ5A.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _jsxC } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
-export const App_component_ckEPmXZlub0 = ()=>{
+export const App_component_F6JpluHHZ5A = ()=>{
     console.log(0);
     return /*#__PURE__*/ _jsxC(_Fragment, {
         children: /*#__PURE__*/ _jsxQ("p", null, {
             class: "stuff"
         }, "Hello Qwik", 3, null)
-    }, 3, "u6_0");
+    }, 3, "oJ_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAQ8B;IAC1B,QAAQ,GAAG;IACX,qBACI;kBACI,cAAA,MAAC;YAAE,OAAM;WAAQ;;AAG7B\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;yCAQ8B;IAC1B,QAAQ,GAAG;IACX,qBACI;kBACI,cAAA,MAAC;YAAE,OAAM;WAAQ;;AAG7B\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "App_component_ckEPmXZlub0",
+  "origin": "src/test.tsx",
+  "name": "App_component_F6JpluHHZ5A",
   "entry": null,
   "displayName": "test.tsx_App_component",
-  "hash": "ckEPmXZlub0",
-  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
-  "path": "",
+  "hash": "F6JpluHHZ5A",
+  "canonicalFilename": "test.tsx_App_component_F6JpluHHZ5A",
+  "path": "src",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

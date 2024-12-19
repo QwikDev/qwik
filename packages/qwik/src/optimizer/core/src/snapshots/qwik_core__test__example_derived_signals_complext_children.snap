@@ -27,7 +27,7 @@ export const App = component$(() => {
     );
 });
 
-============================= test.js ==
+============================= src/test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
@@ -35,7 +35,7 @@ import { _jsxC } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { useStore } from '@builder.io/qwik';
-const App_component_ckEPmXZlub0 = ()=>{
+const App_component_F6JpluHHZ5A = ()=>{
     useSignal(0);
     const store = useStore({});
     return /*#__PURE__*/ _jsxC(_Fragment, {
@@ -45,13 +45,13 @@ const App_component_ckEPmXZlub0 = ()=>{
                 key,
                 " - ",
                 value
-            ], 1, "u6_0")), 1, null)
-    }, 1, "u6_1");
+            ], 1, "oJ_0")), 1, null)
+    }, 1, "oJ_1");
 };
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_F6JpluHHZ5A, "App_component_F6JpluHHZ5A"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,QAAQ,QAAiB,mBAAmB;kCAInC;IACX,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI;kBACI,cAAA,MAAC;YAAG,IAAG;WACF,OAAO,OAAO,CAAC,OAAO,GAAG,CAAC,CAAC,CAAC,KAAK,MAAM,iBACxC,MAAC;gBACI;gBAAI;gBAAI;;;AAM7B;AAdA,OAAO,MAAM,oBAAM,+FAchB\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,QAAQ,QAAiB,mBAAmB;kCAInC;IACX,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACI;kBACI,cAAA,MAAC;YAAG,IAAG;WACF,OAAO,OAAO,CAAC,OAAO,GAAG,CAAC,CAAC,CAAC,KAAK,MAAM,iBACxC,MAAC;gBACI;gBAAI;gBAAI;;;AAM7B;AAdA,OAAO,MAAM,oBAAM,+FAchB\"}")
 == DIAGNOSTICS ==
 
 []

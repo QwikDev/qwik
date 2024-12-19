@@ -17,27 +17,62 @@ export const Header = component$(() => {
     );
 });
 
-============================= test.tsx_Header_component_J4uyIhaBNR4.tsx (ENTRY POINT)==
+============================= src/test.tsx ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_oO0vQsEtDrk"), "Header_component_oO0vQsEtDrk"));
+
+
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAEA,OAAO,MAAM,uBAAS,uHAOnB\"}")
+============================= src/test.tsx_Header_component_div_onClick_zsv4eSExDyc.tsx (ENTRY POINT)==
+
+export const Header_component_div_onClick_zsv4eSExDyc = (ctx)=>console.log("2");
+export { _hW } from "@builder.io/qwik";
+
+
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"wDAM4B,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "src/test.tsx",
+  "name": "Header_component_div_onClick_zsv4eSExDyc",
+  "entry": null,
+  "displayName": "test.tsx_Header_component_div_onClick",
+  "hash": "zsv4eSExDyc",
+  "canonicalFilename": "test.tsx_Header_component_div_onClick_zsv4eSExDyc",
+  "path": "src",
+  "extension": "tsx",
+  "parent": "Header_component_oO0vQsEtDrk",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    200,
+    225
+  ]
+}
+*/
+============================= src/test.tsx_Header_component_oO0vQsEtDrk.tsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
-export const Header_component_J4uyIhaBNR4 = ()=>{
+export const Header_component_oO0vQsEtDrk = ()=>{
     return <>
             <div onClick={(ctx)=>console.log("1")}/>
-            <div onClick={/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_div_onClick_i7ekvWH3674"), "Header_component_div_onClick_i7ekvWH3674")}/>
+            <div onClick={/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_div_onClick_zsv4eSExDyc"), "Header_component_div_onClick_zsv4eSExDyc")}/>
         </>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAEiC;IAC7B,SACM;YACE,CAAC,IAAI,SAAS,CAAC,MAAQ,QAAQ,GAAG,CAAC,OAAO;YAC1C,CAAC,IAAI,4IAAwC;QACjD;AAER\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";4CAEiC;IAC7B,SACM;YACE,CAAC,IAAI,SAAS,CAAC,MAAQ,QAAQ,GAAG,CAAC,OAAO;YAC1C,CAAC,IAAI,4IAAwC;QACjD;AAER\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "Header_component_J4uyIhaBNR4",
+  "origin": "src/test.tsx",
+  "name": "Header_component_oO0vQsEtDrk",
   "entry": null,
   "displayName": "test.tsx_Header_component",
-  "hash": "J4uyIhaBNR4",
-  "canonicalFilename": "test.tsx_Header_component_J4uyIhaBNR4",
-  "path": "",
+  "hash": "oO0vQsEtDrk",
+  "canonicalFilename": "test.tsx_Header_component_oO0vQsEtDrk",
+  "path": "src",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -46,41 +81,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     85,
     250
-  ]
-}
-*/
-============================= test.tsx ==
-
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_J4uyIhaBNR4"), "Header_component_J4uyIhaBNR4"));
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,OAAO,MAAM,uBAAS,uHAOnB\"}")
-============================= test.tsx_Header_component_div_onClick_i7ekvWH3674.tsx (ENTRY POINT)==
-
-export const Header_component_div_onClick_i7ekvWH3674 = (ctx)=>console.log("2");
-export { _hW } from "@builder.io/qwik";
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAM4B,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Header_component_div_onClick_i7ekvWH3674",
-  "entry": null,
-  "displayName": "test.tsx_Header_component_div_onClick",
-  "hash": "i7ekvWH3674",
-  "canonicalFilename": "test.tsx_Header_component_div_onClick_i7ekvWH3674",
-  "path": "",
-  "extension": "tsx",
-  "parent": "Header_component_J4uyIhaBNR4",
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": false,
-  "loc": [
-    200,
-    225
   ]
 }
 */

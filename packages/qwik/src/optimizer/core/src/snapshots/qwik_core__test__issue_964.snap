@@ -17,35 +17,35 @@ export const App = component$(() => {
     return <p>Hello Qwik</p>;
 });
 
-============================= test.js ==
+============================= src/test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_F6JpluHHZ5A"), "App_component_F6JpluHHZ5A"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAMhB\"}")
-============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAMhB\"}")
+============================= src/test.tsx_App_component_F6JpluHHZ5A.js (ENTRY POINT)==
 
 import { _jsxQ } from "@builder.io/qwik";
-export const App_component_ckEPmXZlub0 = ()=>{
+export const App_component_F6JpluHHZ5A = ()=>{
     console.log(function*(lo, t) {
         console.log((yield (yield lo)(t.href).then((r)=>r.json())));
     });
-    return /*#__PURE__*/ _jsxQ("p", null, null, "Hello Qwik", 3, "u6_0");
+    return /*#__PURE__*/ _jsxQ("p", null, null, "Hello Qwik", 3, "oJ_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B;IAC1B,QAAQ,GAAG,CAAC,UAAU,EAAO,EAAE,CAAM;QACrC,QAAQ,GAAG,CAAC,CAAA,MAAM,CAAC,MAAM,EAAE,EAAE,EAAE,IAAI,EAAE,IAAI,CAAC,CAAC,IAAM,EAAE,IAAI,GAAE;IACzD;IAEA,qBAAO,MAAC,iBAAE;AACd\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";yCAG8B;IAC1B,QAAQ,GAAG,CAAC,UAAU,EAAO,EAAE,CAAM;QACrC,QAAQ,GAAG,CAAC,CAAA,MAAM,CAAC,MAAM,EAAE,EAAE,EAAE,IAAI,EAAE,IAAI,CAAC,CAAC,IAAM,EAAE,IAAI,GAAE;IACzD;IAEA,qBAAO,MAAC,iBAAE;AACd\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "App_component_ckEPmXZlub0",
+  "origin": "src/test.tsx",
+  "name": "App_component_F6JpluHHZ5A",
   "entry": null,
   "displayName": "test.tsx_App_component",
-  "hash": "ckEPmXZlub0",
-  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
-  "path": "",
+  "hash": "F6JpluHHZ5A",
+  "canonicalFilename": "test.tsx_App_component_F6JpluHHZ5A",
+  "path": "src",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

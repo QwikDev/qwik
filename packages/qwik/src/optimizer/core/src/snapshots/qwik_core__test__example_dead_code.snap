@@ -21,24 +21,32 @@ export const Foo = component$(({foo}) => {
     );
 })
 
-============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
+============================= src/test.tsx ==
 
-export const Foo_component_HTDRsvUbLiE = (props)=>{
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_eZLoPe62E2c"), "Foo_component_eZLoPe62E2c"));
+
+
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAIA,OAAO,MAAM,oBAAM,iHASjB\"}")
+============================= src/test.tsx_Foo_component_eZLoPe62E2c.tsx (ENTRY POINT)==
+
+export const Foo_component_eZLoPe62E2c = (props)=>{
     useMount$(()=>{});
     return <div/>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"yCAI8B;IAC1B,UAAU,KAIV;IACA,QACK;AAET\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"yCAI8B;IAC1B,UAAU,KAIV;IACA,QACK;AAET\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "Foo_component_HTDRsvUbLiE",
+  "origin": "src/test.tsx",
+  "name": "Foo_component_eZLoPe62E2c",
   "entry": null,
   "displayName": "test.tsx_Foo_component",
-  "hash": "HTDRsvUbLiE",
-  "canonicalFilename": "test.tsx_Foo_component_HTDRsvUbLiE",
-  "path": "",
+  "hash": "eZLoPe62E2c",
+  "canonicalFilename": "test.tsx_Foo_component_eZLoPe62E2c",
+  "path": "src",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -50,14 +58,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx ==
-
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE"));
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,MAAM,oBAAM,iHASjB\"}")
 == DIAGNOSTICS ==
 
 []

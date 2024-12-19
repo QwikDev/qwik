@@ -861,6 +861,18 @@ jobs:
       - name: Tag with latest
         if: steps.changesets.outputs.published == 'true'
         run: |
+          if [ -f "$HOME/.npmrc" ]; then
+            echo "Found existing user .npmrc file"
+            if grep -qi "^[[:space:]]*//registry.npmjs.org/:[_-]authToken=" "$HOME/.npmrc"; then
+              echo "Found existing auth token for the npm registry in the user .npmrc file"
+            else
+              echo "Didn't find existing auth token for the npm registry in the user .npmrc file, creating one"
+              echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> "$HOME/.npmrc"
+            fi
+              else
+            echo "No user .npmrc file found, creating one"
+            echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > "$HOME/.npmrc"
+          fi
           npm dist-tag add @qwik.dev/core@${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }} latest
           npm dist-tag add @qwik.dev/router@${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }} latest
           npm dist-tag add @qwik.dev/react@${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }} latest

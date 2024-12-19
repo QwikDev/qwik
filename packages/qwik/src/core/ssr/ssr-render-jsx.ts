@@ -10,7 +10,6 @@ import { SSRComment, SSRRaw, SSRStream, type SSRStreamChildren } from '../shared
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
-import { throwErrorAndStop } from '../shared/utils/log';
 import {
   ELEMENT_KEY,
   FLUSH_COMMENT,
@@ -35,6 +34,7 @@ import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-compo
 import type { ISsrComponentFrame, ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
 import { qInspector } from '../shared/utils/qdev';
 import { serializeAttribute } from '../shared/utils/styles';
+import { QError, qError } from '../shared/error/error';
 
 class ParentComponentData {
   constructor(
@@ -101,7 +101,7 @@ export function _walkJSX(
       } else if (typeof value === 'function') {
         if (value === Promise) {
           if (!options.allowPromises) {
-            return throwErrorAndStop('Promises not expected here.');
+            throw qError(QError.promisesNotExpected);
           }
           (stack.pop() as Promise<JSXOutput>).then(resolveValue, rejectDrain);
           return;
@@ -109,7 +109,7 @@ export function _walkJSX(
         const waitOn = (value as StackFn).apply(ssr);
         if (waitOn) {
           if (!options.allowPromises) {
-            return throwErrorAndStop('Promises not expected here.');
+            throw qError(QError.promisesNotExpected);
           }
           waitOn.then(drain, rejectDrain);
           return;

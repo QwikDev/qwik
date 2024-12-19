@@ -48,6 +48,8 @@ import {
   maybeThen,
   serializeAttribute,
   QSubscribers,
+  QError,
+  qError,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -1123,7 +1125,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
         if (isSSRUnsafeAttr(key)) {
           if (isDev) {
-            throw new Error('Attribute value is unsafe for SSR');
+            throw qError(QError.unsafeAttr);
           }
           continue;
         }
@@ -1143,6 +1145,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           } else if (typeof value === 'function') {
             value(new DomRef(lastNode));
             continue;
+          } else {
+            throw qError(QError.invalidRefValue);
           }
         }
 
@@ -1169,7 +1173,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         if (tag === 'textarea' && key === 'value') {
           if (typeof value !== 'string') {
             if (isDev) {
-              throw new Error('The value of the textarea must be a string');
+              throw qError(QError.wrongTextareaValue);
             }
             continue;
           }
@@ -1210,7 +1214,7 @@ const isQwikStyleElement = (tag: string, attrs: SsrAttrs | null | undefined) => 
 };
 
 function newTagError(text: string) {
-  return new Error('SsrError(tag): ' + text);
+  return qError(QError.tagError, [text]);
 }
 
 function hasDestroy(obj: any): obj is { $destroy$(): void } {

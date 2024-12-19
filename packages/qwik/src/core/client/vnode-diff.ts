@@ -102,8 +102,8 @@ import {
   clearSubscriberEffectDependencies,
   clearVNodeEffectDependencies,
 } from '../signal/signal-subscriber';
-import { throwErrorAndStop } from '../shared/utils/log';
 import { serializeAttribute } from '../shared/utils/styles';
+import { QError, qError } from '../shared/error/error';
 
 export type ComponentQueue = Array<VNode>;
 
@@ -655,7 +655,7 @@ export const vnode_diff = (
         if (elementName === 'textarea' && key === 'value') {
           if (typeof value !== 'string') {
             if (isDev) {
-              throwErrorAndStop('The value of the textarea must be a string');
+              throw qError(QError.wrongTextareaValue);
             }
             continue;
           }

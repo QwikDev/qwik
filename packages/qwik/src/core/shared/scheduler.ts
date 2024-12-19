@@ -85,7 +85,7 @@ import type { QRLInternal } from './qrl/qrl-class';
 import type { JSXOutput } from './jsx/types/jsx-node';
 import { Task, TaskFlags, cleanupTask, runTask, type TaskFn } from '../use/use-task';
 import { runResource, type ResourceDescriptor } from '../use/use-resource';
-import { logWarn, throwErrorAndStop } from './utils/log';
+import { logWarn } from './utils/log';
 import { isPromise, maybeThenPassError, retryOnPromise, safeCall } from './utils/promises';
 import type { ValueOrPromise } from './utils/types';
 import { isDomContainer } from '../client/dom-container';
@@ -115,6 +115,7 @@ import { QScopedStyle } from './utils/markers';
 import { addComponentStylePrefix } from './utils/scoped-styles';
 import { type WrappedSignal, type ComputedSignal, triggerEffects } from '../signal/signal';
 import type { TargetType } from '../signal/store';
+import { QError, qError } from './error/error';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -496,7 +497,7 @@ function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: boolean)
           This can lead to inconsistencies between Server-Side Rendering (SSR) and Client-Side Rendering (CSR).
           Problematic Node: ${aHost.toString()}`;
         if (shouldThrowOnHostMismatch) {
-          throwErrorAndStop(errorMessage);
+          throw qError(QError.serverHostMismatch, [errorMessage]);
         }
         logWarn(errorMessage);
         return null;

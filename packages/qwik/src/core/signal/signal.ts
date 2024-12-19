@@ -17,7 +17,6 @@ import { type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { trackSignal, tryGetInvokeContext } from '../use/use-core';
 import { Task, TaskFlags, isTask } from '../use/use-task';
-import { throwErrorAndStop } from '../shared/utils/log';
 import { ELEMENT_PROPS, OnRenderProp, QSubscribers } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
 import { qDev } from '../shared/utils/qdev';
@@ -32,6 +31,7 @@ import { isSubscriber, Subscriber } from './signal-subscriber';
 import type { Props } from '../shared/jsx/jsx-runtime';
 import type { OnRenderFn } from '../shared/component.public';
 import { NEEDS_COMPUTATION } from './flags';
+import { QError, qError } from '../shared/error/error';
 
 const DEBUG = false;
 
@@ -218,7 +218,7 @@ export class Signal<T = any> implements ISignal<T> {
   // prevent accidental use as value
   valueOf() {
     if (qDev) {
-      return throwErrorAndStop('Cannot coerce a Signal, use `.value` instead');
+      throw qError(QError.cannotCoerceSignal);
     }
   }
 
@@ -436,9 +436,10 @@ export class ComputedSignal<T> extends Signal<T> {
     try {
       const untrackedValue = computeQrl.getFn(ctx)() as T;
       if (isPromise(untrackedValue)) {
-        throwErrorAndStop(
-          `useComputedSignal$ QRL ${computeQrl.dev ? `${computeQrl.dev.file} ` : ''}${computeQrl.$hash$} returned a Promise`
-        );
+        throw qError(QError.computedNotSync, [
+          computeQrl.dev ? computeQrl.dev.file : '',
+          computeQrl.$hash$,
+        ]);
       }
       DEBUG && log('Signal.$compute$', untrackedValue);
       this.$invalid$ = false;
@@ -461,7 +462,7 @@ export class ComputedSignal<T> extends Signal<T> {
   }
 
   set value(_: any) {
-    throwErrorAndStop('ComputedSignal is read-only');
+    throw qError(QError.computedReadOnly);
   }
 }
 
@@ -543,6 +544,6 @@ export class WrappedSignal<T> extends Signal<T> implements Subscriber {
   }
 
   set value(_: any) {
-    throwErrorAndStop('WrappedSignal is read-only');
+    throw qError(QError.wrappedReadOnly);
   }
 }

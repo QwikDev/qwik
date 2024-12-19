@@ -93,7 +93,7 @@ export const executeComponent = (
         }
 
         if (vnode_isVNode(renderHost)) {
-          clearVNodeEffectDependencies(renderHost);
+          clearVNodeEffectDependencies(container, renderHost);
         }
 
         return componentFn(props);

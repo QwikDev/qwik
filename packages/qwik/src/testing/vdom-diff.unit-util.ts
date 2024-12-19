@@ -42,7 +42,13 @@ import {
 } from '../core/shared/utils/event-names';
 import { createDocument } from './document';
 import { isElement } from './html';
-import { QRenderAttr, Q_PROPS_SEPARATOR } from '../core/shared/utils/markers';
+import {
+  ELEMENT_ID,
+  ELEMENT_KEY,
+  QRenderAttr,
+  QSubscribers,
+  Q_PROPS_SEPARATOR,
+} from '../core/shared/utils/markers';
 
 expect.extend({
   toMatchVDOM(
@@ -76,6 +82,8 @@ expect.extend({
     };
   },
 });
+
+const ignoredAttributes = [QSubscribers, ELEMENT_ID, '', Q_PROPS_SEPARATOR];
 
 function getContainerElement(vNode: _VNode) {
   let maybeParent: _VNode | null;
@@ -150,7 +158,14 @@ function diffJsxVNode(
     const receivedElement = vnode_isElementVNode(received)
       ? (vnode_getNode(received) as Element)
       : null;
-    propsAdd(allProps, vnode_isElementVNode(received) ? vnode_getAttrKeys(received).sort() : []);
+    propsAdd(
+      allProps,
+      vnode_isElementVNode(received)
+        ? vnode_getAttrKeys(received)
+            .filter((key) => !ignoredAttributes.includes(key))
+            .sort()
+        : []
+    );
     receivedElement && propsAdd(allProps, constPropsFromElement(receivedElement));
 
     path.push(tagToString(expected.type));
@@ -167,7 +182,8 @@ function diffJsxVNode(
         vnode_getAttr(received, propLowerCased) ||
         receivedElement?.getAttribute(prop) ||
         receivedElement?.getAttribute(propLowerCased);
-      let expectedValue = prop === 'key' || prop === 'q:key' ? receivedValue : expected.props[prop];
+      let expectedValue =
+        prop === 'key' || prop === ELEMENT_KEY ? receivedValue : expected.props[prop];
       if (typeof receivedValue === 'boolean' || typeof receivedValue === 'number') {
         receivedValue = serializeBooleanOrNumberAttribute(receivedValue);
       }
@@ -458,7 +474,7 @@ function constPropsFromElement(element: Element) {
   const props: string[] = [];
   for (let i = 0; i < element.attributes.length; i++) {
     const attr = element.attributes[i];
-    if (attr.name !== '' && attr.name !== Q_PROPS_SEPARATOR) {
+    if (!ignoredAttributes.includes(attr.name)) {
       props.push(attr.name);
     }
   }

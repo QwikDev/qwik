@@ -5,7 +5,6 @@ use std::hash::Hasher;
 use std::path::{Path, PathBuf};
 use std::str;
 
-use crate::add_side_effect::SideEffectVisitor;
 use crate::clean_side_effects::Treeshaker;
 use crate::code_move::{new_module, NewModuleCtx};
 use crate::collector::global_collect;
@@ -347,14 +346,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 								},
 							));
 						}
-						if matches!(
-							config.entry_strategy,
-							EntryStrategy::Inline | EntryStrategy::Hoist
-						) {
-							program.visit_mut_with(&mut SideEffectVisitor::new(
-								&qwik_transform.options.global_collect,
-							));
-						} else if config.minify != MinifyMode::None && !config.is_server {
+						if config.minify != MinifyMode::None && !config.is_server {
 							// remove all side effects from client, step 2
 							program.visit_mut_with(&mut treeshaker.cleaner);
 							if treeshaker.cleaner.did_drop {

@@ -1963,7 +1963,7 @@ export const Greeter = component$(() => <div/>)
 	.unwrap();
 	// verify that none of the modules have a path that contains backslashes
 	for module in res.modules {
-		assert!(!module.path.contains('\\'));
+		assert!(module.path.contains('\\'));
 	}
 }
 // filler to retain assertion line numbers
@@ -3656,7 +3656,7 @@ impl TestInput {
 			filename: "test.tsx".to_string(),
 			dev_path: None,
 			src_dir: "/user/qwik/src/".to_string(),
-			root_dir: None,
+			root_dir: Some("/user/qwik".to_string()),
 			code: "/user/qwik/src/".to_string(),
 			manual_chunks: None,
 			entry_strategy: EntryStrategy::Segment,

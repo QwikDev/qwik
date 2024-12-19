@@ -22,60 +22,61 @@ export const App = component$(() => {
     return $(render);
 })
 
-============================= test.js ==
+============================= src/test.tsx_App_component_1_10FTcCMrdRw.js (ENTRY POINT)==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
-
-
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,oBAAM,iHASjB\"}")
-============================= test.tsx_App_component_useStyles_t35nSa5UV7U.js (ENTRY POINT)==
-
-export const App_component_useStyles_t35nSa5UV7U = style;
+export const App_component_1_10FTcCMrdRw = render;
+export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"mDAOe\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"2CAaa\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "App_component_useStyles_t35nSa5UV7U",
+  "origin": "src/test.tsx",
+  "name": "App_component_1_10FTcCMrdRw",
   "entry": null,
-  "displayName": "test.tsx_App_component_useStyles",
-  "hash": "t35nSa5UV7U",
-  "canonicalFilename": "test.tsx_App_component_useStyles_t35nSa5UV7U",
-  "path": "",
+  "displayName": "test.tsx_App_component_1",
+  "hash": "10FTcCMrdRw",
+  "canonicalFilename": "test.tsx_App_component_1_10FTcCMrdRw",
+  "path": "src",
   "extension": "js",
-  "parent": "App_component_ckEPmXZlub0",
+  "parent": "App_component_F6JpluHHZ5A",
   "ctxKind": "function",
-  "ctxName": "useStyles$",
+  "ctxName": "$",
   "captures": false,
   "loc": [
-    219,
-    224
+    325,
+    331
   ]
 }
 */
-============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
+============================= src/test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_F6JpluHHZ5A"), "App_component_F6JpluHHZ5A"));
+
+
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,oBAAM,iHASjB\"}")
+============================= src/test.tsx_App_component_F6JpluHHZ5A.js (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
-export const App_component_ckEPmXZlub0 = ()=>{
-    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_useStyles_t35nSa5UV7U"), "App_component_useStyles_t35nSa5UV7U"));
-    return /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_1_w0t0o3QMovU"), "App_component_1_w0t0o3QMovU");
+export const App_component_F6JpluHHZ5A = ()=>{
+    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_useStyles_ya0IZ2trrfA"), "App_component_useStyles_ya0IZ2trrfA"));
+    return /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_1_10FTcCMrdRw"), "App_component_1_10FTcCMrdRw");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;yCAK8B;IAE1B;IAMA;AACJ\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;yCAK8B;IAE1B;IAMA;AACJ\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "App_component_ckEPmXZlub0",
+  "origin": "src/test.tsx",
+  "name": "App_component_F6JpluHHZ5A",
   "entry": null,
   "displayName": "test.tsx_App_component",
-  "hash": "ckEPmXZlub0",
-  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
-  "path": "",
+  "hash": "F6JpluHHZ5A",
+  "canonicalFilename": "test.tsx_App_component_F6JpluHHZ5A",
+  "path": "src",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -87,30 +88,29 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   ]
 }
 */
-============================= test.tsx_App_component_1_w0t0o3QMovU.js (ENTRY POINT)==
+============================= src/test.tsx_App_component_useStyles_ya0IZ2trrfA.js (ENTRY POINT)==
 
-export const App_component_1_w0t0o3QMovU = render;
-export { _hW } from "@builder.io/qwik";
+export const App_component_useStyles_ya0IZ2trrfA = style;
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"2CAaa\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"mDAOe\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "App_component_1_w0t0o3QMovU",
+  "origin": "src/test.tsx",
+  "name": "App_component_useStyles_ya0IZ2trrfA",
   "entry": null,
-  "displayName": "test.tsx_App_component_1",
-  "hash": "w0t0o3QMovU",
-  "canonicalFilename": "test.tsx_App_component_1_w0t0o3QMovU",
-  "path": "",
+  "displayName": "test.tsx_App_component_useStyles",
+  "hash": "ya0IZ2trrfA",
+  "canonicalFilename": "test.tsx_App_component_useStyles_ya0IZ2trrfA",
+  "path": "src",
   "extension": "js",
-  "parent": "App_component_ckEPmXZlub0",
+  "parent": "App_component_F6JpluHHZ5A",
   "ctxKind": "function",
-  "ctxName": "$",
+  "ctxName": "useStyles$",
   "captures": false,
   "loc": [
-    325,
-    331
+    219,
+    224
   ]
 }
 */
@@ -120,7 +120,7 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   {
     "category": "error",
     "code": "C03",
-    "file": "test.tsx",
+    "file": "src/test.tsx",
     "message": "Qrl($) scope is not a function, but it's capturing local identifiers: style",
     "highlights": [
       {
@@ -138,7 +138,7 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   {
     "category": "error",
     "code": "C03",
-    "file": "test.tsx",
+    "file": "src/test.tsx",
     "message": "Qrl($) scope is not a function, but it's capturing local identifiers: render",
     "highlights": [
       {

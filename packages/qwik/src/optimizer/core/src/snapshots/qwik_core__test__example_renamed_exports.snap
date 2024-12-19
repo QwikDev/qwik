@@ -17,40 +17,32 @@ export const App = Component((props) => {
     ));
 });
 
-============================= test.js ==
-
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_Component_NuXFTHRjvXE"), "App_Component_NuXFTHRjvXE"));
-
-
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAMhB\"}")
-============================= test.tsx_App_Component_1_A08tXHb9pEk.js (ENTRY POINT)==
+============================= src/test.tsx_App_Component_1_tK0LpNLmbzI.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
 import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
-export const App_Component_1_A08tXHb9pEk = ()=>{
+export const App_Component_1_tK0LpNLmbzI = ()=>{
     const [state] = useLexicalScope();
     return /*#__PURE__*/ _jsxQ("div", null, null, _fnSignal((p0)=>p0.thing, [
         state
-    ], "p0.thing"), 3, "u6_0");
+    ], "p0.thing"), 3, "oJ_0");
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;2CAMoB;;yBACZ,MAAC,mCAAK,GAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;2CAMoB;;yBACZ,MAAC,mCAAK,GAAM,KAAK\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "App_Component_1_A08tXHb9pEk",
+  "origin": "src/test.tsx",
+  "name": "App_Component_1_tK0LpNLmbzI",
   "entry": null,
   "displayName": "test.tsx_App_Component_1",
-  "hash": "A08tXHb9pEk",
-  "canonicalFilename": "test.tsx_App_Component_1_A08tXHb9pEk",
-  "path": "",
+  "hash": "tK0LpNLmbzI",
+  "canonicalFilename": "test.tsx_App_Component_1_tK0LpNLmbzI",
+  "path": "src",
   "extension": "js",
-  "parent": "App_Component_NuXFTHRjvXE",
+  "parent": "App_Component_I1YSTdd4LFE",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": true,
@@ -60,30 +52,30 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   ]
 }
 */
-============================= test.tsx_App_Component_NuXFTHRjvXE.js (ENTRY POINT)==
+============================= src/test.tsx_App_Component_I1YSTdd4LFE.js (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 import { useStore } from "@builder.io/qwik";
-export const App_Component_NuXFTHRjvXE = (props)=>{
+export const App_Component_I1YSTdd4LFE = (props)=>{
     const state = useStore({
         thing: 0
     });
-    return /*#__PURE__*/ qrl(()=>import("./test.tsx_App_Component_1_A08tXHb9pEk"), "App_Component_1_A08tXHb9pEk", [
+    return /*#__PURE__*/ qrl(()=>import("./test.tsx_App_Component_1_tK0LpNLmbzI"), "App_Component_1_tK0LpNLmbzI", [
         state
     ]);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;yCAG6B,CAAC;IAC1B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAEhC;;;AAGJ\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;yCAG6B,CAAC;IAC1B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAEhC;;;AAGJ\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "App_Component_NuXFTHRjvXE",
+  "origin": "src/test.tsx",
+  "name": "App_Component_I1YSTdd4LFE",
   "entry": null,
   "displayName": "test.tsx_App_Component",
-  "hash": "NuXFTHRjvXE",
-  "canonicalFilename": "test.tsx_App_Component_NuXFTHRjvXE",
-  "path": "",
+  "hash": "I1YSTdd4LFE",
+  "canonicalFilename": "test.tsx_App_Component_I1YSTdd4LFE",
+  "path": "src",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -95,6 +87,14 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   ]
 }
 */
+============================= src/test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_Component_I1YSTdd4LFE"), "App_Component_I1YSTdd4LFE"));
+
+
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAMhB\"}")
 == DIAGNOSTICS ==
 
 []

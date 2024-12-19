@@ -17,62 +17,61 @@ export const App = component$(() => {
     useStyles$(css3);
 })
 
-============================= test.js ==
+============================= src/test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_F6JpluHHZ5A"), "App_component_F6JpluHHZ5A"));
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,oBAAM,iHAGjB\"}")
-============================= test.tsx_App_component_useStyles_t35nSa5UV7U.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,oBAAM,iHAGjB\"}")
+============================= src/test.tsx_App_component_useStyles_1_H09R3Tf964w.js (ENTRY POINT)==
 
-import css1 from "./global.css";
-import css2 from "./style.css";
-export const App_component_useStyles_t35nSa5UV7U = `${css1}${css2}`;
+import css3 from "./style.css";
+export const App_component_useStyles_1_H09R3Tf964w = css3;
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;mDAOe,GAAG,OAAO,MAAM\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";qDAQe\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "App_component_useStyles_t35nSa5UV7U",
+  "origin": "src/test.tsx",
+  "name": "App_component_useStyles_1_H09R3Tf964w",
   "entry": null,
-  "displayName": "test.tsx_App_component_useStyles",
-  "hash": "t35nSa5UV7U",
-  "canonicalFilename": "test.tsx_App_component_useStyles_t35nSa5UV7U",
-  "path": "",
+  "displayName": "test.tsx_App_component_useStyles_1",
+  "hash": "H09R3Tf964w",
+  "canonicalFilename": "test.tsx_App_component_useStyles_1_H09R3Tf964w",
+  "path": "src",
   "extension": "js",
-  "parent": "App_component_ckEPmXZlub0",
+  "parent": "App_component_F6JpluHHZ5A",
   "ctxKind": "function",
   "ctxName": "useStyles$",
   "captures": false,
   "loc": [
-    212,
-    228
+    246,
+    250
   ]
 }
 */
-============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
+============================= src/test.tsx_App_component_F6JpluHHZ5A.js (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
-export const App_component_ckEPmXZlub0 = ()=>{
-    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_useStyles_t35nSa5UV7U"), "App_component_useStyles_t35nSa5UV7U"));
-    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_useStyles_1_xBK4W0ZKWe8"), "App_component_useStyles_1_xBK4W0ZKWe8"));
+export const App_component_F6JpluHHZ5A = ()=>{
+    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_useStyles_ya0IZ2trrfA"), "App_component_useStyles_ya0IZ2trrfA"));
+    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_useStyles_1_H09R3Tf964w"), "App_component_useStyles_1_H09R3Tf964w"));
 };
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;yCAM8B;IAC1B;IACA;AACJ\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;yCAM8B;IAC1B;IACA;AACJ\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "App_component_ckEPmXZlub0",
+  "origin": "src/test.tsx",
+  "name": "App_component_F6JpluHHZ5A",
   "entry": null,
   "displayName": "test.tsx_App_component",
-  "hash": "ckEPmXZlub0",
-  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
-  "path": "",
+  "hash": "F6JpluHHZ5A",
+  "canonicalFilename": "test.tsx_App_component_F6JpluHHZ5A",
+  "path": "src",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -84,30 +83,31 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   ]
 }
 */
-============================= test.tsx_App_component_useStyles_1_xBK4W0ZKWe8.js (ENTRY POINT)==
+============================= src/test.tsx_App_component_useStyles_ya0IZ2trrfA.js (ENTRY POINT)==
 
-import css3 from "./style.css";
-export const App_component_useStyles_1_xBK4W0ZKWe8 = css3;
+import css1 from "./global.css";
+import css2 from "./style.css";
+export const App_component_useStyles_ya0IZ2trrfA = `${css1}${css2}`;
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";qDAQe\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;mDAOe,GAAG,OAAO,MAAM\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "App_component_useStyles_1_xBK4W0ZKWe8",
+  "origin": "src/test.tsx",
+  "name": "App_component_useStyles_ya0IZ2trrfA",
   "entry": null,
-  "displayName": "test.tsx_App_component_useStyles_1",
-  "hash": "xBK4W0ZKWe8",
-  "canonicalFilename": "test.tsx_App_component_useStyles_1_xBK4W0ZKWe8",
-  "path": "",
+  "displayName": "test.tsx_App_component_useStyles",
+  "hash": "ya0IZ2trrfA",
+  "canonicalFilename": "test.tsx_App_component_useStyles_ya0IZ2trrfA",
+  "path": "src",
   "extension": "js",
-  "parent": "App_component_ckEPmXZlub0",
+  "parent": "App_component_F6JpluHHZ5A",
   "ctxKind": "function",
   "ctxName": "useStyles$",
   "captures": false,
   "loc": [
-    246,
-    250
+    212,
+    228
   ]
 }
 */

@@ -31,26 +31,68 @@ export const Bar = component$(({bar}) => {
     });
 })
 
-============================= test.tsx_Foo_component_HTDRsvUbLiE.jsx (ENTRY POINT)==
+============================= src/test.jsx ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_eZLoPe62E2c"), "Foo_component_eZLoPe62E2c"));
+export const Bar = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Bar_component_H0Lo8K0SD5k"), "Bar_component_H0Lo8K0SD5k"));
+
+
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAUjB;AAEF,OAAO,MAAM,oBAAM,iHAQjB\"}")
+============================= src/test.tsx_Bar_component_1_ad8sv5lVgzs.jsx (ENTRY POINT)==
+
+import { useLexicalScope } from "@builder.io/qwik";
+export const Bar_component_1_ad8sv5lVgzs = ()=>{
+    const [props] = useLexicalScope();
+    return <div>
+              {props.bar}
+            </div>;
+};
+export { _hW } from "@builder.io/qwik";
+
+
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";2CAgBa;;IACL,QACK,IAAI;cACH,OAJkB,IAIb;YACP,EAAE\"}")
+/*
+{
+  "origin": "src/test.tsx",
+  "name": "Bar_component_1_ad8sv5lVgzs",
+  "entry": null,
+  "displayName": "test.tsx_Bar_component_1",
+  "hash": "ad8sv5lVgzs",
+  "canonicalFilename": "test.tsx_Bar_component_1_ad8sv5lVgzs",
+  "path": "src",
+  "extension": "jsx",
+  "parent": "Bar_component_H0Lo8K0SD5k",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    337,
+    434
+  ]
+}
+*/
+============================= src/test.tsx_Foo_component_eZLoPe62E2c.jsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
-export const Foo_component_HTDRsvUbLiE = (props)=>{
-    return /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_1_DvU6FitWglY"), "Foo_component_1_DvU6FitWglY", [
+export const Foo_component_eZLoPe62E2c = (props)=>{
+    return /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_1_Q0jkSkaqC5c"), "Foo_component_1_Q0jkSkaqC5c", [
         props
     ]);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";yCAG8B;IAE1B;;;AAQJ\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";yCAG8B;IAE1B;;;AAQJ\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "Foo_component_HTDRsvUbLiE",
+  "origin": "src/test.tsx",
+  "name": "Foo_component_eZLoPe62E2c",
   "entry": null,
   "displayName": "test.tsx_Foo_component",
-  "hash": "HTDRsvUbLiE",
-  "canonicalFilename": "test.tsx_Foo_component_HTDRsvUbLiE",
-  "path": "",
+  "hash": "eZLoPe62E2c",
+  "canonicalFilename": "test.tsx_Foo_component_eZLoPe62E2c",
+  "path": "src",
   "extension": "jsx",
   "parent": null,
   "ctxKind": "function",
@@ -62,50 +104,10 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   ]
 }
 */
-============================= test.jsx ==
-
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE"));
-export const Bar = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Bar_component_L80pS8Hxf1Y"), "Bar_component_L80pS8Hxf1Y"));
-
-
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAUjB;AAEF,OAAO,MAAM,oBAAM,iHAQjB\"}")
-============================= test.tsx_Bar_component_L80pS8Hxf1Y.jsx (ENTRY POINT)==
-
-import { qrl } from "@builder.io/qwik";
-export const Bar_component_L80pS8Hxf1Y = (props)=>{
-    return /*#__PURE__*/ qrl(()=>import("./test.tsx_Bar_component_1_0xSyNSnVu3k"), "Bar_component_1_0xSyNSnVu3k", [
-        props
-    ]);
-};
-
-
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";yCAe8B;IAC1B;;;AAOJ\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Bar_component_L80pS8Hxf1Y",
-  "entry": null,
-  "displayName": "test.tsx_Bar_component",
-  "hash": "L80pS8Hxf1Y",
-  "canonicalFilename": "test.tsx_Bar_component_L80pS8Hxf1Y",
-  "path": "",
-  "extension": "jsx",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    311,
-    438
-  ]
-}
-*/
-============================= test.tsx_Foo_component_1_DvU6FitWglY.jsx (ENTRY POINT)==
+============================= src/test.tsx_Foo_component_1_Q0jkSkaqC5c.jsx (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
-export const Foo_component_1_DvU6FitWglY = ()=>{
+export const Foo_component_1_Q0jkSkaqC5c = ()=>{
     const [props] = useLexicalScope();
     const fn = ({ aaa })=>aaa;
     return <div>
@@ -115,18 +117,18 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";2CAKa;;IACL,MAAM,KAAK,CAAC,EAAC,GAAG,EAAC,GAAK;IACtB,QACK,IAAI;cACH,OANkB,KAMZ,MALH,GAKc;YACnB,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";2CAKa;;IACL,MAAM,KAAK,CAAC,EAAC,GAAG,EAAC,GAAK;IACtB,QACK,IAAI;cACH,OANkB,KAMZ,MALH,GAKc;YACnB,EAAE\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "Foo_component_1_DvU6FitWglY",
+  "origin": "src/test.tsx",
+  "name": "Foo_component_1_Q0jkSkaqC5c",
   "entry": null,
   "displayName": "test.tsx_Foo_component_1",
-  "hash": "DvU6FitWglY",
-  "canonicalFilename": "test.tsx_Foo_component_1_DvU6FitWglY",
-  "path": "",
+  "hash": "Q0jkSkaqC5c",
+  "canonicalFilename": "test.tsx_Foo_component_1_Q0jkSkaqC5c",
+  "path": "src",
   "extension": "jsx",
-  "parent": "Foo_component_HTDRsvUbLiE",
+  "parent": "Foo_component_eZLoPe62E2c",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": true,
@@ -136,36 +138,34 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   ]
 }
 */
-============================= test.tsx_Bar_component_1_0xSyNSnVu3k.jsx (ENTRY POINT)==
+============================= src/test.tsx_Bar_component_H0Lo8K0SD5k.jsx (ENTRY POINT)==
 
-import { useLexicalScope } from "@builder.io/qwik";
-export const Bar_component_1_0xSyNSnVu3k = ()=>{
-    const [props] = useLexicalScope();
-    return <div>
-              {props.bar}
-            </div>;
+import { qrl } from "@builder.io/qwik";
+export const Bar_component_H0Lo8K0SD5k = (props)=>{
+    return /*#__PURE__*/ qrl(()=>import("./test.tsx_Bar_component_1_ad8sv5lVgzs"), "Bar_component_1_ad8sv5lVgzs", [
+        props
+    ]);
 };
-export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";2CAgBa;;IACL,QACK,IAAI;cACH,OAJkB,IAIb;YACP,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";yCAe8B;IAC1B;;;AAOJ\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "Bar_component_1_0xSyNSnVu3k",
+  "origin": "src/test.tsx",
+  "name": "Bar_component_H0Lo8K0SD5k",
   "entry": null,
-  "displayName": "test.tsx_Bar_component_1",
-  "hash": "0xSyNSnVu3k",
-  "canonicalFilename": "test.tsx_Bar_component_1_0xSyNSnVu3k",
-  "path": "",
+  "displayName": "test.tsx_Bar_component",
+  "hash": "H0Lo8K0SD5k",
+  "canonicalFilename": "test.tsx_Bar_component_H0Lo8K0SD5k",
+  "path": "src",
   "extension": "jsx",
-  "parent": "Bar_component_L80pS8Hxf1Y",
+  "parent": null,
   "ctxKind": "function",
-  "ctxName": "$",
-  "captures": true,
+  "ctxName": "component$",
+  "captures": false,
   "loc": [
-    337,
-    434
+    311,
+    438
   ]
 }
 */

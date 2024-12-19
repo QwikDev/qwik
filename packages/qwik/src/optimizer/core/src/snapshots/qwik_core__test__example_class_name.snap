@@ -27,22 +27,22 @@ export const App2 = component$(() => {
     );
 });
 
-============================= test.js ==
+============================= src/test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const App2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App2_component_3yveMqbQ3Fs.js"), "App2_component_3yveMqbQ3Fs"));
+export const App2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App2_component_qTLWO4R2ZnQ.js"), "App2_component_qTLWO4R2ZnQ"));
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,qBAAO,sHAgBjB\"}")
-============================= test.tsx_App2_component_3yveMqbQ3Fs.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,qBAAO,sHAgBjB\"}")
+============================= src/test.tsx_App2_component_qTLWO4R2ZnQ.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _IMMUTABLE } from "@builder.io/qwik";
 import { _fnSignal } from "@builder.io/qwik";
 import { _jsxC } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
-export const App2_component_3yveMqbQ3Fs = ()=>{
+export const App2_component_qTLWO4R2ZnQ = ()=>{
     const signal = useSignal();
     const computed = signal.value + 'foo';
     return /*#__PURE__*/ _jsxC(_Fragment, {
@@ -66,7 +66,7 @@ export const App2_component_3yveMqbQ3Fs = ()=>{
                 [_IMMUTABLE]: {
                     className: _IMMUTABLE
                 }
-            }, 3, "u6_0"),
+            }, 3, "oJ_0"),
             /*#__PURE__*/ _jsxC(Foo, {
                 get className () {
                     return signal.value;
@@ -76,31 +76,31 @@ export const App2_component_3yveMqbQ3Fs = ()=>{
                         signal
                     ], "p0.value")
                 }
-            }, 3, "u6_1"),
+            }, 3, "oJ_1"),
             /*#__PURE__*/ _jsxC(Foo, {
                 className: signal,
                 [_IMMUTABLE]: {
                     className: _IMMUTABLE
                 }
-            }, 3, "u6_2"),
+            }, 3, "oJ_2"),
             /*#__PURE__*/ _jsxC(Foo, {
                 className: computed
-            }, 3, "u6_3")
+            }, 3, "oJ_3")
         ]
-    }, 1, "u6_4");
+    }, 1, "oJ_4");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;;;0CAG+B;IAC3B,MAAM,SAAS;IACf,MAAM,WAAW,OAAO,KAAK,GAAG;IAChC,qBACI;;0BACI,MAAC;gBAAI,WAAU;;0BACf,MAAC;gBAAI,SAAS,kBAAE,GAAO,KAAK;;;;0BAC5B,MAAC;gBAAI,WAAW;;0BAChB,MAAC;gBAAI,WAAW;;0BAEhB,MAAC;gBAAI,WAAU;;oBAAV,SAAS;;;0BACd,MAAC;oBAAI;2BAAW,OAAO,KAAK;;;oBAAvB,SAAS,kBAAE,GAAO,KAAK;;;;;0BAC5B,MAAC;gBAAI,WAAW;;oBAAX,SAAS;;;0BACd,MAAC;gBAAI,WAAW;;;;AAG5B\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;;;0CAG+B;IAC3B,MAAM,SAAS;IACf,MAAM,WAAW,OAAO,KAAK,GAAG;IAChC,qBACI;;0BACI,MAAC;gBAAI,WAAU;;0BACf,MAAC;gBAAI,SAAS,kBAAE,GAAO,KAAK;;;;0BAC5B,MAAC;gBAAI,WAAW;;0BAChB,MAAC;gBAAI,WAAW;;0BAEhB,MAAC;gBAAI,WAAU;;oBAAV,SAAS;;;0BACd,MAAC;oBAAI;2BAAW,OAAO,KAAK;;;oBAAvB,SAAS,kBAAE,GAAO,KAAK;;;;;0BAC5B,MAAC;gBAAI,WAAW;;oBAAX,SAAS;;;0BACd,MAAC;gBAAI,WAAW;;;;AAG5B\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "App2_component_3yveMqbQ3Fs",
+  "origin": "src/test.tsx",
+  "name": "App2_component_qTLWO4R2ZnQ",
   "entry": null,
   "displayName": "test.tsx_App2_component",
-  "hash": "3yveMqbQ3Fs",
-  "canonicalFilename": "test.tsx_App2_component_3yveMqbQ3Fs",
-  "path": "",
+  "hash": "qTLWO4R2ZnQ",
+  "canonicalFilename": "test.tsx_App2_component_qTLWO4R2ZnQ",
+  "path": "src",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

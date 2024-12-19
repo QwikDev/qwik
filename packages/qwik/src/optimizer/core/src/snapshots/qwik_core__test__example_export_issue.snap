@@ -27,67 +27,37 @@ export { Other as App };
 
 export default App;
 
-============================= test.js ==
+============================= src/test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
-export const Root = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Root_component_royhjYaCbYE"), "Root_component_royhjYaCbYE"));
+const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_F6JpluHHZ5A"), "App_component_F6JpluHHZ5A"));
+export const Root = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Root_component_yDXD6i0JpLs"), "Root_component_yDXD6i0JpLs"));
 const Other = 12;
 export { Other as App };
 export default App;
 export { App as _auto_App };
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAGA,MAAM,oBAAM;AAOZ,OAAO,MAAM,qBAAO,mHAIjB;AAEH,MAAM,QAAQ;AACd,SAAS,SAAS,GAAG,GAAG;AAExB,eAAe,IAAI\"}")
-============================= test.tsx_Root_component_royhjYaCbYE.js (ENTRY POINT)==
-
-import { _auto_App as App } from "./test";
-import { _jsxC } from "@builder.io/qwik";
-export const Root_component_royhjYaCbYE = (props)=>{
-    return /*#__PURE__*/ _jsxC(App, null, 3, "u6_1");
-};
-
-
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;0CAU+B,CAAC;IAC5B,qBACI,MAAC;AAET\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Root_component_royhjYaCbYE",
-  "entry": null,
-  "displayName": "test.tsx_Root_component",
-  "hash": "royhjYaCbYE",
-  "canonicalFilename": "test.tsx_Root_component_royhjYaCbYE",
-  "path": "",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "component$",
-  "captures": false,
-  "loc": [
-    162,
-    218
-  ]
-}
-*/
-============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAGA,MAAM,oBAAM;AAOZ,OAAO,MAAM,qBAAO,mHAIjB;AAEH,MAAM,QAAQ;AACd,SAAS,SAAS,GAAG,GAAG;AAExB,eAAe,IAAI\"}")
+============================= src/test.tsx_App_component_F6JpluHHZ5A.js (ENTRY POINT)==
 
 import { _jsxQ } from "@builder.io/qwik";
-export const App_component_ckEPmXZlub0 = ()=>{
-    return /*#__PURE__*/ _jsxQ("div", null, null, "hola", 3, "u6_0");
+export const App_component_F6JpluHHZ5A = ()=>{
+    return /*#__PURE__*/ _jsxQ("div", null, null, "hola", 3, "oJ_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";yCAGuB;IACnB,qBACI,MAAC,mBAAI;AAEb\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";yCAGuB;IACnB,qBACI,MAAC,mBAAI;AAEb\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "App_component_ckEPmXZlub0",
+  "origin": "src/test.tsx",
+  "name": "App_component_F6JpluHHZ5A",
   "entry": null,
   "displayName": "test.tsx_App_component",
-  "hash": "ckEPmXZlub0",
-  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
-  "path": "",
+  "hash": "F6JpluHHZ5A",
+  "canonicalFilename": "test.tsx_App_component_F6JpluHHZ5A",
+  "path": "src",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -96,6 +66,36 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   "loc": [
     73,
     126
+  ]
+}
+*/
+============================= src/test.tsx_Root_component_yDXD6i0JpLs.js (ENTRY POINT)==
+
+import { _auto_App as App } from "./test";
+import { _jsxC } from "@builder.io/qwik";
+export const Root_component_yDXD6i0JpLs = (props)=>{
+    return /*#__PURE__*/ _jsxC(App, null, 3, "oJ_1");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;0CAU+B,CAAC;IAC5B,qBACI,MAAC;AAET\"}")
+/*
+{
+  "origin": "src/test.tsx",
+  "name": "Root_component_yDXD6i0JpLs",
+  "entry": null,
+  "displayName": "test.tsx_Root_component",
+  "hash": "yDXD6i0JpLs",
+  "canonicalFilename": "test.tsx_Root_component_yDXD6i0JpLs",
+  "path": "src",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    162,
+    218
   ]
 }
 */

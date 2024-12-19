@@ -3653,11 +3653,11 @@ struct TestInput {
 impl TestInput {
 	pub fn default() -> Self {
 		Self {
-			filename: "test.tsx".to_string(),
+			filename: "src/test.tsx".to_string(),
 			dev_path: None,
-			src_dir: "/user/qwik/src/".to_string(),
+			src_dir: "".to_string(),
 			root_dir: Some("/user/qwik".to_string()),
-			code: "/user/qwik/src/".to_string(),
+			code: "".to_string(),
 			manual_chunks: None,
 			entry_strategy: EntryStrategy::Segment,
 			minify: MinifyMode::Simplify,

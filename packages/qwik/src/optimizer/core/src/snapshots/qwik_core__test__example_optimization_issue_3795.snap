@@ -19,7 +19,7 @@ export const Issue3795 = component$(() => {
     )
   });
 
-============================= test.js ==
+============================= src/test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
@@ -35,11 +35,11 @@ export const Issue3795 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=
         firstAssignment,
         " ",
         secondAssignment
-    ], 1, "u6_0");
-}, "Issue3795_component_wsE8beycatI"));
+    ], 1, "oJ_0");
+}, "Issue3795_component_hznmbocNG78"));
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,0BAAY,sCAAW;IAChC,IAAI,OAAO;IACX,MAAM,kBAAkB;IACxB,QAAQ;IACR,MAAM,mBAAmB;IACzB,qBACE,MAAC;QAAI,IAAG;;QAAqB;QAAgB;QAAE;;AAEnD,uCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,0BAAY,sCAAW;IAChC,IAAI,OAAO;IACX,MAAM,kBAAkB;IACxB,QAAQ;IACR,MAAM,mBAAmB;IACzB,qBACE,MAAC;QAAI,IAAG;;QAAqB;QAAgB;QAAE;;AAEnD,uCAAG\"}")
 == DIAGNOSTICS ==
 
 []

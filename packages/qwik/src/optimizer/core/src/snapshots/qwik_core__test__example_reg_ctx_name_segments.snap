@@ -19,7 +19,7 @@ export const Works = component$((props) => {
     );
 });
 
-============================= test.js ==
+============================= src/test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { serverQrl } from "@builder.io/qwik";
@@ -33,17 +33,17 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
     return /*#__PURE__*/ _jsxC(_Fragment, {
         children: [
             /*#__PURE__*/ _jsxQ("div", {
-                onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(/*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "gcSPFNpGYgg"), "Works_component_Fragment_div_onClick_server_gcSPFNpGYgg"))
+                onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(/*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "ZCuj0J410Z8"), "Works_component_Fragment_div_onClick_server_ZCuj0J410Z8"))
             }, null, null, 2, null),
             /*#__PURE__*/ _jsxQ("div", null, {
-                onClick$: /*#__PURE__*/ _noopQrl("Works_component_Fragment_div_onClick_nO4DPVZWP7g")
+                onClick$: /*#__PURE__*/ _noopQrl("Works_component_Fragment_div_onClick_2AmGpAP9cjk")
             }, null, 3, null)
         ]
-    }, 1, "u6_0");
-}, "Works_component_t45qL4vNGv0"));
+    }, 1, "oJ_0");
+}, "Works_component_3Z6btR1NEOY"));
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAE7B,qBACI;;0BACA,MAAC;gBAAI,UAAU,4DAAQ,IAAM,QAAQ,GAAG,CAAC,aAHhC;;0BAIT,MAAC;gBAAI,QAAQ;;;;AAGrB,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAE7B,qBACI;;0BACA,MAAC;gBAAI,UAAU,4DAAQ,IAAM,QAAQ,GAAG,CAAC,aAHhC;;0BAIT,MAAC;gBAAI,QAAQ;;;;AAGrB,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

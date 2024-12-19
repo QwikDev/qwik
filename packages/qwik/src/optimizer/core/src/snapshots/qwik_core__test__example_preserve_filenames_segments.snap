@@ -20,42 +20,68 @@ export const App = component$((props: Stuff) => {
 
 export const foo = () => console.log('foo');
 
-============================= test.tsx ==
+============================= src/test.tsx ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0.js"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_F6JpluHHZ5A.js"), "App_component_F6JpluHHZ5A"));
 export const foo = ()=>console.log('foo');
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,oHAOhB;AAEH,OAAO,MAAM,MAAM,IAAM,QAAQ,GAAG,CAAC,OAAO\"}")
-============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,oHAOhB;AAEH,OAAO,MAAM,MAAM,IAAM,QAAQ,GAAG,CAAC,OAAO\"}")
+============================= src/test.tsx_App_component_Cmp_p_onClick_44EtmIdf4XQ.js (ENTRY POINT)==
+
+export const App_component_Cmp_p_onClick_44EtmIdf4XQ = ()=>console.log('warn');
+
+
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"uDAOuC,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "src/test.tsx",
+  "name": "App_component_Cmp_p_onClick_44EtmIdf4XQ",
+  "entry": null,
+  "displayName": "test.tsx_App_component_Cmp_p_onClick",
+  "hash": "44EtmIdf4XQ",
+  "canonicalFilename": "test.tsx_App_component_Cmp_p_onClick_44EtmIdf4XQ",
+  "path": "src",
+  "extension": "js",
+  "parent": "App_component_F6JpluHHZ5A",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    187,
+    212
+  ]
+}
+*/
+============================= src/test.tsx_App_component_F6JpluHHZ5A.js (ENTRY POINT)==
 
 import { _jsxC } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
 import { foo } from "./test.tsx";
 import { qrl } from "@builder.io/qwik";
-export const App_component_ckEPmXZlub0 = (props)=>{
+export const App_component_F6JpluHHZ5A = (props)=>{
     foo();
     return /*#__PURE__*/ _jsxC(Cmp, {
         children: /*#__PURE__*/ _jsxQ("p", null, {
             class: "stuff",
-            onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_Cmp_p_onClick_vuXzfUTkpto.js"), "App_component_Cmp_p_onClick_vuXzfUTkpto")
+            onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_Cmp_p_onClick_44EtmIdf4XQ.js"), "App_component_Cmp_p_onClick_44EtmIdf4XQ")
         }, "Hello Qwik", 3, null)
-    }, 3, "u6_0");
+    }, 3, "oJ_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;;yCAG8B,CAAC;IAC3B;IACA,qBACI,MAAC;kBACG,cAAA,MAAC;YAAE,OAAM;YAAQ,QAAQ;WAA6B;;AAGlE\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;;yCAG8B,CAAC;IAC3B;IACA,qBACI,MAAC;kBACG,cAAA,MAAC;YAAE,OAAM;YAAQ,QAAQ;WAA6B;;AAGlE\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "App_component_ckEPmXZlub0",
+  "origin": "src/test.tsx",
+  "name": "App_component_F6JpluHHZ5A",
   "entry": null,
   "displayName": "test.tsx_App_component",
-  "hash": "ckEPmXZlub0",
-  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
-  "path": "",
+  "hash": "F6JpluHHZ5A",
+  "canonicalFilename": "test.tsx_App_component_F6JpluHHZ5A",
+  "path": "src",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -64,32 +90,6 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   "loc": [
     90,
     252
-  ]
-}
-*/
-============================= test.tsx_App_component_Cmp_p_onClick_vuXzfUTkpto.js (ENTRY POINT)==
-
-export const App_component_Cmp_p_onClick_vuXzfUTkpto = ()=>console.log('warn');
-
-
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"uDAOuC,IAAM,QAAQ,GAAG,CAAC\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_component_Cmp_p_onClick_vuXzfUTkpto",
-  "entry": null,
-  "displayName": "test.tsx_App_component_Cmp_p_onClick",
-  "hash": "vuXzfUTkpto",
-  "canonicalFilename": "test.tsx_App_component_Cmp_p_onClick_vuXzfUTkpto",
-  "path": "",
-  "extension": "js",
-  "parent": "App_component_ckEPmXZlub0",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    187,
-    212
   ]
 }
 */

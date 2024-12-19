@@ -22,7 +22,7 @@ export const FOO_MAPPING = {
     return <>{value}</>;
   });
 
-============================= test.jsx ==
+============================= src/test.jsx ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { inlinedQrl } from "@builder.io/qwik";
@@ -33,10 +33,10 @@ export const FOO_MAPPING = {
 };
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     return <>{FOO_MAPPING['A']}</>;
-}, "test_component_LUXeXe0DQrg"));
+}, "test_component_r7Fl19tSLhk"));
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,cAAc;IACvB,GAAG;IACH,GAAG;IACH,GAAG;AACL,EAAE;AAEF,6BAAe,sCAAW;IAIxB,UAFc,WAAW,CADb,IACkB;AAGhC,kCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,cAAc;IACvB,GAAG;IACH,GAAG;IACH,GAAG;AACL,EAAE;AAEF,6BAAe,sCAAW;IAIxB,UAFc,WAAW,CADb,IACkB;AAGhC,kCAAG\"}")
 == DIAGNOSTICS ==
 
 []

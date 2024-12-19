@@ -19,7 +19,7 @@ export const Works = component$((props) => {
 
 const STYLES = '.class {}';
 
-============================= test.js ==
+============================= src/test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { useStyleQrl } from "@builder.io/qwik";
@@ -27,19 +27,19 @@ import { inlinedQrl } from "@builder.io/qwik";
 import { serverQrl } from "@builder.io/qwik";
 import { _regSymbol } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
-const Works_component_div_onClick_server_OsNoEFc5SM4 = /*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "OsNoEFc5SM4");
-const Works_component_t45qL4vNGv0 = (props)=>{
-    useStyleQrl(/*#__PURE__*/ inlinedQrl(STYLES, "Works_component_useStyle_i40UL9JyQpg"));
+const Works_component_div_onClick_server_oOLZoiwE2FM = /*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "oOLZoiwE2FM");
+const Works_component_3Z6btR1NEOY = (props)=>{
+    useStyleQrl(/*#__PURE__*/ inlinedQrl(STYLES, "Works_component_useStyle_MBEjolU5hGc"));
     return /*#__PURE__*/ _jsxQ("div", {
-        onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(Works_component_div_onClick_server_OsNoEFc5SM4, "Works_component_div_onClick_server_OsNoEFc5SM4"))
-    }, null, null, 2, "u6_0");
+        onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(Works_component_div_onClick_server_oOLZoiwE2FM, "Works_component_div_onClick_server_oOLZoiwE2FM"))
+    }, null, null, 2, "oJ_0");
 };
-export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(Works_component_t45qL4vNGv0, "Works_component_t45qL4vNGv0"));
+export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(Works_component_3Z6btR1NEOY, "Works_component_3Z6btR1NEOY"));
 const STYLES = '.class {}';
 export { STYLES as _auto_STYLES };
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;;;;gFAO+B,IAAM,QAAQ,GAAG,CAAC,aAFhC;oCAFe,CAAC;IAC7B,qCAAU;IAEV,qBACI,MAAC;QAAI,UAAU;;AAEvB;AANA,OAAO,MAAM,sBAAQ,mGAMlB;AAEH,MAAM,SAAS\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;;;;gFAO+B,IAAM,QAAQ,GAAG,CAAC,aAFhC;oCAFe,CAAC;IAC7B,qCAAU;IAEV,qBACI,MAAC;QAAI,UAAU;;AAEvB;AANA,OAAO,MAAM,sBAAQ,mGAMlB;AAEH,MAAM,SAAS\"}")
 == DIAGNOSTICS ==
 
 []

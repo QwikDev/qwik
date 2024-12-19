@@ -30,7 +30,7 @@ export const Child = component$(() => {
 });
 
 
-============================= test.tsx ==
+============================= src/test.tsx ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
@@ -41,7 +41,7 @@ import { useStore } from '@builder.io/qwik';
 import { thing } from './sibling';
 import mongodb from 'mongodb';
 export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
-    useStylesQrl(/*#__PURE__*/ inlinedQrl('somestring', "Child_component_useStyles_qBZTuFM0160"));
+    useStylesQrl(/*#__PURE__*/ inlinedQrl('somestring', "Child_component_useStyles_qcj80V13pCs"));
     const state = useStore({
         count: 0
     });
@@ -49,15 +49,15 @@ export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     useBrowserVisibleTaskQrl(/*#__PURE__*/ inlinedQrl(()=>{
         const [state] = useLexicalScope();
         state.count = thing.doStuff() + import("./sibling");
-    }, "Child_component_useBrowserVisibleTask_0IGFPOyJmQA", [
+    }, "Child_component_useBrowserVisibleTask_o1cN2Yii0Kg", [
         state
     ]));
-    return <div onClick$={/*#__PURE__*/ inlinedQrl(()=>console.log(mongodb), "Child_component_div_onClick_elliVSnAiOQ")}>
+    return <div onClick$={/*#__PURE__*/ inlinedQrl(()=>console.log(mongodb), "Child_component_div_onClick_mfAbs3oHQGQ")}>
         </div>;
-}, "Child_component_9GyF01GDKqw"));
+}, "Child_component_r5lvTXKSpwk"));
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;;;AACA,SAA6C,QAAQ,QAAoB,mBAAmB;AAC5F,SAAS,KAAK,QAAQ,YAAY;AAClC,OAAO,aAAa,UAAU;AAE9B,OAAO,MAAM,sBAAQ,sCAAW;IAE5B,sCAAW;IACX,MAAM,QAAQ,SAAS;QACnB,OAAO;IACX;IAEA,qBAAqB;IACrB,kDAAuB;;QACnB,MAAM,KAAK,GAAG,MAAM,OAAO,KAAK,MAAM,CAAC;;;;IAG3C,QACK,IAAI,mCAAU,IAAM,QAAQ,GAAG,CAAC,sDAAU;QAC3C,EAAE;AAEV,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;;;AACA,SAA6C,QAAQ,QAAoB,mBAAmB;AAC5F,SAAS,KAAK,QAAQ,YAAY;AAClC,OAAO,aAAa,UAAU;AAE9B,OAAO,MAAM,sBAAQ,sCAAW;IAE5B,sCAAW;IACX,MAAM,QAAQ,SAAS;QACnB,OAAO;IACX;IAEA,qBAAqB;IACrB,kDAAuB;;QACnB,MAAM,KAAK,GAAG,MAAM,OAAO,KAAK,MAAM,CAAC;;;;IAG3C,QACK,IAAI,mCAAU,IAAM,QAAQ,GAAG,CAAC,sDAAU;QAC3C,EAAE;AAEV,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

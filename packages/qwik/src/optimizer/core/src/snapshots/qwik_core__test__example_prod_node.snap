@@ -19,28 +19,36 @@ export const Foo = component$(() => {
     );
 });
 
-============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
+============================= src/test.tsx ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_eZLoPe62E2c"), "s_eZLoPe62E2c"));
+
+
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,qGAQhB\"}")
+============================= src/test.tsx_Foo_component_eZLoPe62E2c.tsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
-export const s_HTDRsvUbLiE = ()=>{
+export const s_eZLoPe62E2c = ()=>{
     return <div>
-            <div onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_onClick_9DcJc0uJDDo"), "s_9DcJc0uJDDo")}/>
-            <div onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_onClick_1_RjQdy8I0MXc"), "s_RjQdy8I0MXc")}/>
-            <div onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_onClick_2_w9ptFRBVK1E"), "s_w9ptFRBVK1E")}/>
+            <div onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_onClick_XKgOGPaICvo"), "s_XKgOGPaICvo")}/>
+            <div onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_onClick_1_Y6cuRNdbpKM"), "s_Y6cuRNdbpKM")}/>
+            <div onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_onClick_2_Bms9cr0HwnU"), "s_Bms9cr0HwnU")}/>
         </div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";6BAG8B;IAC1B,QACK,IAAI;YACD,CAAC,IAAI,mHAAuC;YAC5C,CAAC,IAAI,qHAAwC;YAC7C,CAAC,IAAI,qHAAuC;QAChD,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";6BAG8B;IAC1B,QACK,IAAI;YACD,CAAC,IAAI,mHAAuC;YAC5C,CAAC,IAAI,qHAAwC;YAC7C,CAAC,IAAI,qHAAuC;QAChD,EAAE;AAEV\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "s_HTDRsvUbLiE",
+  "origin": "src/test.tsx",
+  "name": "s_eZLoPe62E2c",
   "entry": null,
   "displayName": "test.tsx_Foo_component",
-  "hash": "HTDRsvUbLiE",
-  "canonicalFilename": "test.tsx_Foo_component_HTDRsvUbLiE",
-  "path": "",
+  "hash": "eZLoPe62E2c",
+  "canonicalFilename": "test.tsx_Foo_component_eZLoPe62E2c",
+  "path": "src",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -52,49 +60,23 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   ]
 }
 */
-============================= test.tsx_Foo_component_div_div_onClick_9DcJc0uJDDo.tsx (ENTRY POINT)==
+============================= src/test.tsx_Foo_component_div_div_onClick_2_Bms9cr0HwnU.tsx (ENTRY POINT)==
 
-export const s_9DcJc0uJDDo = ()=>console.log('first');
+export const s_Bms9cr0HwnU = ()=>console.log('third');
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"6BAM2B,IAAM,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"6BAQ2B,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "s_9DcJc0uJDDo",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component_div_div_onClick",
-  "hash": "9DcJc0uJDDo",
-  "canonicalFilename": "test.tsx_Foo_component_div_div_onClick_9DcJc0uJDDo",
-  "path": "",
-  "extension": "tsx",
-  "parent": "s_HTDRsvUbLiE",
-  "ctxKind": "jSXProp",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    142,
-    168
-  ]
-}
-*/
-============================= test.tsx_Foo_component_div_div_onClick_2_w9ptFRBVK1E.tsx (ENTRY POINT)==
-
-export const s_w9ptFRBVK1E = ()=>console.log('third');
-
-
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"6BAQ2B,IAAM,QAAQ,GAAG,CAAC\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "s_w9ptFRBVK1E",
+  "origin": "src/test.tsx",
+  "name": "s_Bms9cr0HwnU",
   "entry": null,
   "displayName": "test.tsx_Foo_component_div_div_onClick_2",
-  "hash": "w9ptFRBVK1E",
-  "canonicalFilename": "test.tsx_Foo_component_div_div_onClick_2_w9ptFRBVK1E",
-  "path": "",
+  "hash": "Bms9cr0HwnU",
+  "canonicalFilename": "test.tsx_Foo_component_div_div_onClick_2_Bms9cr0HwnU",
+  "path": "src",
   "extension": "tsx",
-  "parent": "s_HTDRsvUbLiE",
+  "parent": "s_eZLoPe62E2c",
   "ctxKind": "jSXProp",
   "ctxName": "onClick$",
   "captures": false,
@@ -104,23 +86,23 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   ]
 }
 */
-============================= test.tsx_Foo_component_div_div_onClick_1_RjQdy8I0MXc.tsx (ENTRY POINT)==
+============================= src/test.tsx_Foo_component_div_div_onClick_1_Y6cuRNdbpKM.tsx (ENTRY POINT)==
 
-export const s_RjQdy8I0MXc = ()=>console.log('second');
+export const s_Y6cuRNdbpKM = ()=>console.log('second');
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"6BAO2B,IAAM,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"6BAO2B,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "s_RjQdy8I0MXc",
+  "origin": "src/test.tsx",
+  "name": "s_Y6cuRNdbpKM",
   "entry": null,
   "displayName": "test.tsx_Foo_component_div_div_onClick_1",
-  "hash": "RjQdy8I0MXc",
-  "canonicalFilename": "test.tsx_Foo_component_div_div_onClick_1_RjQdy8I0MXc",
-  "path": "",
+  "hash": "Y6cuRNdbpKM",
+  "canonicalFilename": "test.tsx_Foo_component_div_div_onClick_1_Y6cuRNdbpKM",
+  "path": "src",
   "extension": "tsx",
-  "parent": "s_HTDRsvUbLiE",
+  "parent": "s_eZLoPe62E2c",
   "ctxKind": "jSXProp",
   "ctxName": "onClick$",
   "captures": false,
@@ -130,14 +112,32 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   ]
 }
 */
-============================= test.tsx ==
+============================= src/test.tsx_Foo_component_div_div_onClick_XKgOGPaICvo.tsx (ENTRY POINT)==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "s_HTDRsvUbLiE"));
+export const s_XKgOGPaICvo = ()=>console.log('first');
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,qGAQhB\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"6BAM2B,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "src/test.tsx",
+  "name": "s_XKgOGPaICvo",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_div_div_onClick",
+  "hash": "XKgOGPaICvo",
+  "canonicalFilename": "test.tsx_Foo_component_div_div_onClick_XKgOGPaICvo",
+  "path": "src",
+  "extension": "tsx",
+  "parent": "s_eZLoPe62E2c",
+  "ctxKind": "jSXProp",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    142,
+    168
+  ]
+}
+*/
 == DIAGNOSTICS ==
 
 []

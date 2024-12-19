@@ -39,60 +39,86 @@ export const Foo = component$(() => {
     tagName: "my-foo",
 });
 
-============================= test.tsx_Foo_component_div_host_onDocumentScroll_Zip7mifsjRY.js (ENTRY POINT)==
+============================= src/test.tsx_Foo_component_div_onDocumentScroll_1_V8yCZGJV4xU.js (ENTRY POINT)==
 
-export const Foo_component_div_host_onDocumentScroll_Zip7mifsjRY = ()=>console.log('host:onDocument:scroll');
+export const Foo_component_div_onDocumentScroll_1_V8yCZGJV4xU = ()=>console.log('onWindowScroll');
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"mEAkBwC,IAAI,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"gEAWmC,IAAI,QAAQ,GAAG,CAAC\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "Foo_component_div_host_onDocumentScroll_Zip7mifsjRY",
+  "origin": "src/test.tsx",
+  "name": "Foo_component_div_onDocumentScroll_1_V8yCZGJV4xU",
   "entry": null,
-  "displayName": "test.tsx_Foo_component_div_host_onDocumentScroll",
-  "hash": "Zip7mifsjRY",
-  "canonicalFilename": "test.tsx_Foo_component_div_host_onDocumentScroll_Zip7mifsjRY",
-  "path": "",
+  "displayName": "test.tsx_Foo_component_div_onDocumentScroll_1",
+  "hash": "V8yCZGJV4xU",
+  "canonicalFilename": "test.tsx_Foo_component_div_onDocumentScroll_1_V8yCZGJV4xU",
+  "path": "src",
   "extension": "js",
-  "parent": "Foo_component_1_DvU6FitWglY",
+  "parent": "Foo_component_1_Q0jkSkaqC5c",
+  "ctxKind": "eventHandler",
+  "ctxName": "onDocumentScroll$",
+  "captures": false,
+  "loc": [
+    365,
+    398
+  ]
+}
+*/
+============================= src/test.tsx_Foo_component_div_host_onDocumentScroll_1_prNcLu2fBS4.js (ENTRY POINT)==
+
+export const Foo_component_div_host_onDocumentScroll_1_prNcLu2fBS4 = ()=>console.log('host:onWindow:scroll');
+
+
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"qEAmBwC,IAAI,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "src/test.tsx",
+  "name": "Foo_component_div_host_onDocumentScroll_1_prNcLu2fBS4",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_div_host_onDocumentScroll_1",
+  "hash": "prNcLu2fBS4",
+  "canonicalFilename": "test.tsx_Foo_component_div_host_onDocumentScroll_1_prNcLu2fBS4",
+  "path": "src",
+  "extension": "js",
+  "parent": "Foo_component_1_Q0jkSkaqC5c",
   "ctxKind": "eventHandler",
   "ctxName": "host:onDocumentScroll$",
   "captures": false,
   "loc": [
-    712,
-    753
+    795,
+    834
   ]
 }
 */
-============================= test.js ==
+============================= src/test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE"), {
+export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_eZLoPe62E2c"), "Foo_component_eZLoPe62E2c"), {
     tagName: "my-foo"
 });
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHA0BhB;IACC,SAAS;AACb,GAAG\"}")
-============================= test.tsx_Foo_component_HTDRsvUbLiE.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHA0BhB;IACC,SAAS;AACb,GAAG\"}")
+============================= src/test.tsx_Foo_component_eZLoPe62E2c.js (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
-export const Foo_component_HTDRsvUbLiE = ()=>{
-    return /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_1_DvU6FitWglY"), "Foo_component_1_DvU6FitWglY");
+export const Foo_component_eZLoPe62E2c = ()=>{
+    return /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_1_Q0jkSkaqC5c"), "Foo_component_1_Q0jkSkaqC5c");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";yCAG8B;IAE1B;AAwBJ\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";yCAG8B;IAE1B;AAwBJ\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "Foo_component_HTDRsvUbLiE",
+  "origin": "src/test.tsx",
+  "name": "Foo_component_eZLoPe62E2c",
   "entry": null,
   "displayName": "test.tsx_Foo_component",
-  "hash": "HTDRsvUbLiE",
-  "canonicalFilename": "test.tsx_Foo_component_HTDRsvUbLiE",
-  "path": "",
+  "hash": "eZLoPe62E2c",
+  "canonicalFilename": "test.tsx_Foo_component_eZLoPe62E2c",
+  "path": "src",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -104,147 +130,23 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   ]
 }
 */
-============================= test.tsx_Foo_component_div_host_onClick_cPEH970JbEY.js (ENTRY POINT)==
+============================= src/test.tsx_Foo_component_div_onDocument_scroLL_0KtIVQvzzXA.js (ENTRY POINT)==
 
-export const Foo_component_div_host_onClick_cPEH970JbEY = ()=>console.log('host:onClick$');
+export const Foo_component_div_onDocument_scroLL_0KtIVQvzzXA = ()=>console.log('onDocument-scroLL');
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"0DAiB+B,IAAI,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"+DAeoC,IAAI,QAAQ,GAAG,CAAC\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "Foo_component_div_host_onClick_cPEH970JbEY",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component_div_host_onClick",
-  "hash": "cPEH970JbEY",
-  "canonicalFilename": "test.tsx_Foo_component_div_host_onClick_cPEH970JbEY",
-  "path": "",
-  "extension": "js",
-  "parent": "Foo_component_1_DvU6FitWglY",
-  "ctxKind": "eventHandler",
-  "ctxName": "host:onClick$",
-  "captures": false,
-  "loc": [
-    638,
-    670
-  ]
-}
-*/
-============================= test.tsx_Foo_component_1_DvU6FitWglY.js (ENTRY POINT)==
-
-import { _jsxQ } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Foo_component_1_DvU6FitWglY = ()=>{
-    const handler = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_handler_H10xZtD0e7w"), "Foo_component_handler_H10xZtD0e7w");
-    return /*#__PURE__*/ _jsxQ("div", null, {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_onClick_M48DYiidSJw"), "Foo_component_div_onClick_M48DYiidSJw"),
-        onDocumentScroll$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_onDocumentScroll_rwFFtFiVuKc"), "Foo_component_div_onDocumentScroll_rwFFtFiVuKc"),
-        onDocumentScroll$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_onDocumentScroll_1_CwneoGpmTZI"), "Foo_component_div_onDocumentScroll_1_CwneoGpmTZI"),
-        "on-cLick$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_on_cLick_IoAsJW8vYJc"), "Foo_component_div_on_cLick_IoAsJW8vYJc"),
-        "onDocument-sCroll$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_onDocument_sCroll_5VNik61PZOM"), "Foo_component_div_onDocument_sCroll_5VNik61PZOM"),
-        "onDocument-scroLL$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_onDocument_scroLL_1q0Sgr8te3g"), "Foo_component_div_onDocument_scroLL_1q0Sgr8te3g"),
-        "host:onClick$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_host_onClick_cPEH970JbEY"), "Foo_component_div_host_onClick_cPEH970JbEY"),
-        "host:onDocumentScroll$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_host_onDocumentScroll_Zip7mifsjRY"), "Foo_component_div_host_onDocumentScroll_Zip7mifsjRY"),
-        "host:onDocumentScroll$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg"), "Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg"),
-        onKeyup$: handler,
-        "onDocument:keyup$": handler,
-        "onWindow:keyup$": handler,
-        custom$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_custom_pyHnxab17ms"), "Foo_component_div_custom_pyHnxab17ms")
-    }, null, 3, "u6_0");
-};
-export { _hW } from "@builder.io/qwik";
-
-
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;2CAKa;IACL,MAAM;IACN,qBACI,MAAC;QACG,QAAQ;QACR,iBAAiB;QACjB,iBAAiB;QAEjB,WAAS;QACT,oBAAkB;QAClB,oBAAkB;QAPtB,eAkBE;QAlBF,wBAkBE;QAlBF,wBAkBE;QALE,UAAU;QAbd,qBAcuB;QAdvB,mBAeqB;QAEjB,OAAO;;AAGnB\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_1_DvU6FitWglY",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component_1",
-  "hash": "DvU6FitWglY",
-  "canonicalFilename": "test.tsx_Foo_component_1_DvU6FitWglY",
-  "path": "",
-  "extension": "js",
-  "parent": "Foo_component_HTDRsvUbLiE",
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": false,
-  "loc": [
-    105,
-    1041
-  ]
-}
-*/
-============================= test.tsx_Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg.js (ENTRY POINT)==
-
-export const Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg = ()=>console.log('host:onWindow:scroll');
-
-
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"qEAmBwC,IAAI,QAAQ,GAAG,CAAC\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component_div_host_onDocumentScroll_1",
-  "hash": "Em1LspK7JVg",
-  "canonicalFilename": "test.tsx_Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg",
-  "path": "",
-  "extension": "js",
-  "parent": "Foo_component_1_DvU6FitWglY",
-  "ctxKind": "eventHandler",
-  "ctxName": "host:onDocumentScroll$",
-  "captures": false,
-  "loc": [
-    795,
-    834
-  ]
-}
-*/
-============================= test.tsx_Foo_component_div_custom_pyHnxab17ms.js (ENTRY POINT)==
-
-export const Foo_component_div_custom_pyHnxab17ms = ()=>console.log('custom');
-
-
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"oDAyByB,IAAI,QAAQ,GAAG,CAAC\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_div_custom_pyHnxab17ms",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component_div_custom",
-  "hash": "pyHnxab17ms",
-  "canonicalFilename": "test.tsx_Foo_component_div_custom_pyHnxab17ms",
-  "path": "",
-  "extension": "js",
-  "parent": "Foo_component_1_DvU6FitWglY",
-  "ctxKind": "eventHandler",
-  "ctxName": "custom$",
-  "captures": false,
-  "loc": [
-    984,
-    1009
-  ]
-}
-*/
-============================= test.tsx_Foo_component_div_onDocument_scroLL_1q0Sgr8te3g.js (ENTRY POINT)==
-
-export const Foo_component_div_onDocument_scroLL_1q0Sgr8te3g = ()=>console.log('onDocument-scroLL');
-
-
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"+DAeoC,IAAI,QAAQ,GAAG,CAAC\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_div_onDocument_scroLL_1q0Sgr8te3g",
+  "origin": "src/test.tsx",
+  "name": "Foo_component_div_onDocument_scroLL_0KtIVQvzzXA",
   "entry": null,
   "displayName": "test.tsx_Foo_component_div_onDocument_scroLL",
-  "hash": "1q0Sgr8te3g",
-  "canonicalFilename": "test.tsx_Foo_component_div_onDocument_scroLL_1q0Sgr8te3g",
-  "path": "",
+  "hash": "0KtIVQvzzXA",
+  "canonicalFilename": "test.tsx_Foo_component_div_onDocument_scroLL_0KtIVQvzzXA",
+  "path": "src",
   "extension": "js",
-  "parent": "Foo_component_1_DvU6FitWglY",
+  "parent": "Foo_component_1_Q0jkSkaqC5c",
   "ctxKind": "eventHandler",
   "ctxName": "onDocument-scroLL$",
   "captures": false,
@@ -254,101 +156,75 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   ]
 }
 */
-============================= test.tsx_Foo_component_div_onDocumentScroll_1_CwneoGpmTZI.js (ENTRY POINT)==
+============================= src/test.tsx_Foo_component_div_host_onClick_N0aLOhClgXg.js (ENTRY POINT)==
 
-export const Foo_component_div_onDocumentScroll_1_CwneoGpmTZI = ()=>console.log('onWindowScroll');
+export const Foo_component_div_host_onClick_N0aLOhClgXg = ()=>console.log('host:onClick$');
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"gEAWmC,IAAI,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"0DAiB+B,IAAI,QAAQ,GAAG,CAAC\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "Foo_component_div_onDocumentScroll_1_CwneoGpmTZI",
+  "origin": "src/test.tsx",
+  "name": "Foo_component_div_host_onClick_N0aLOhClgXg",
   "entry": null,
-  "displayName": "test.tsx_Foo_component_div_onDocumentScroll_1",
-  "hash": "CwneoGpmTZI",
-  "canonicalFilename": "test.tsx_Foo_component_div_onDocumentScroll_1_CwneoGpmTZI",
-  "path": "",
+  "displayName": "test.tsx_Foo_component_div_host_onClick",
+  "hash": "N0aLOhClgXg",
+  "canonicalFilename": "test.tsx_Foo_component_div_host_onClick_N0aLOhClgXg",
+  "path": "src",
   "extension": "js",
-  "parent": "Foo_component_1_DvU6FitWglY",
+  "parent": "Foo_component_1_Q0jkSkaqC5c",
   "ctxKind": "eventHandler",
-  "ctxName": "onDocumentScroll$",
+  "ctxName": "host:onClick$",
   "captures": false,
   "loc": [
-    365,
-    398
+    638,
+    670
   ]
 }
 */
-============================= test.tsx_Foo_component_div_on_cLick_IoAsJW8vYJc.js (ENTRY POINT)==
+============================= src/test.tsx_Foo_component_div_custom_iXKuZ4Oo040.js (ENTRY POINT)==
 
-export const Foo_component_div_on_cLick_IoAsJW8vYJc = ()=>console.log('on-cLick$');
+export const Foo_component_div_custom_iXKuZ4Oo040 = ()=>console.log('custom');
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"sDAa2B,IAAI,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"oDAyByB,IAAI,QAAQ,GAAG,CAAC\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "Foo_component_div_on_cLick_IoAsJW8vYJc",
+  "origin": "src/test.tsx",
+  "name": "Foo_component_div_custom_iXKuZ4Oo040",
   "entry": null,
-  "displayName": "test.tsx_Foo_component_div_on_cLick",
-  "hash": "IoAsJW8vYJc",
-  "canonicalFilename": "test.tsx_Foo_component_div_on_cLick_IoAsJW8vYJc",
-  "path": "",
+  "displayName": "test.tsx_Foo_component_div_custom",
+  "hash": "iXKuZ4Oo040",
+  "canonicalFilename": "test.tsx_Foo_component_div_custom_iXKuZ4Oo040",
+  "path": "src",
   "extension": "js",
-  "parent": "Foo_component_1_DvU6FitWglY",
+  "parent": "Foo_component_1_Q0jkSkaqC5c",
   "ctxKind": "eventHandler",
-  "ctxName": "on-cLick$",
+  "ctxName": "custom$",
   "captures": false,
   "loc": [
-    428,
-    456
+    984,
+    1009
   ]
 }
 */
-============================= test.tsx_Foo_component_div_onClick_M48DYiidSJw.js (ENTRY POINT)==
+============================= src/test.tsx_Foo_component_div_onDocumentScroll_wsbuz62v7JM.js (ENTRY POINT)==
 
-export const Foo_component_div_onClick_M48DYiidSJw = ()=>console.log('onClick$');
+export const Foo_component_div_onDocumentScroll_wsbuz62v7JM = ()=>console.log('onDocumentScroll');
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"qDAS0B,IAAI,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"8DAUmC,IAAI,QAAQ,GAAG,CAAC\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "Foo_component_div_onClick_M48DYiidSJw",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component_div_onClick",
-  "hash": "M48DYiidSJw",
-  "canonicalFilename": "test.tsx_Foo_component_div_onClick_M48DYiidSJw",
-  "path": "",
-  "extension": "js",
-  "parent": "Foo_component_1_DvU6FitWglY",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    229,
-    256
-  ]
-}
-*/
-============================= test.tsx_Foo_component_div_onDocumentScroll_rwFFtFiVuKc.js (ENTRY POINT)==
-
-export const Foo_component_div_onDocumentScroll_rwFFtFiVuKc = ()=>console.log('onDocumentScroll');
-
-
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"8DAUmC,IAAI,QAAQ,GAAG,CAAC\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_div_onDocumentScroll_rwFFtFiVuKc",
+  "origin": "src/test.tsx",
+  "name": "Foo_component_div_onDocumentScroll_wsbuz62v7JM",
   "entry": null,
   "displayName": "test.tsx_Foo_component_div_onDocumentScroll",
-  "hash": "rwFFtFiVuKc",
-  "canonicalFilename": "test.tsx_Foo_component_div_onDocumentScroll_rwFFtFiVuKc",
-  "path": "",
+  "hash": "wsbuz62v7JM",
+  "canonicalFilename": "test.tsx_Foo_component_div_onDocumentScroll_wsbuz62v7JM",
+  "path": "src",
   "extension": "js",
-  "parent": "Foo_component_1_DvU6FitWglY",
+  "parent": "Foo_component_1_Q0jkSkaqC5c",
   "ctxKind": "eventHandler",
   "ctxName": "onDocumentScroll$",
   "captures": false,
@@ -358,24 +234,148 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   ]
 }
 */
-============================= test.tsx_Foo_component_handler_H10xZtD0e7w.js (ENTRY POINT)==
+============================= src/test.tsx_Foo_component_1_Q0jkSkaqC5c.js (ENTRY POINT)==
 
-export const Foo_component_handler_H10xZtD0e7w = ()=>console.log('reused');
+import { _jsxQ } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const Foo_component_1_Q0jkSkaqC5c = ()=>{
+    const handler = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_handler_uSWNL9qHA0Q"), "Foo_component_handler_uSWNL9qHA0Q");
+    return /*#__PURE__*/ _jsxQ("div", null, {
+        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_onClick_Uapiy40JUtg"), "Foo_component_div_onClick_Uapiy40JUtg"),
+        onDocumentScroll$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_onDocumentScroll_wsbuz62v7JM"), "Foo_component_div_onDocumentScroll_wsbuz62v7JM"),
+        onDocumentScroll$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_onDocumentScroll_1_V8yCZGJV4xU"), "Foo_component_div_onDocumentScroll_1_V8yCZGJV4xU"),
+        "on-cLick$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_on_cLick_81aAZEwAGMs"), "Foo_component_div_on_cLick_81aAZEwAGMs"),
+        "onDocument-sCroll$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_onDocument_sCroll_Eiolnh9fo0o"), "Foo_component_div_onDocument_sCroll_Eiolnh9fo0o"),
+        "onDocument-scroLL$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_onDocument_scroLL_0KtIVQvzzXA"), "Foo_component_div_onDocument_scroLL_0KtIVQvzzXA"),
+        "host:onClick$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_host_onClick_N0aLOhClgXg"), "Foo_component_div_host_onClick_N0aLOhClgXg"),
+        "host:onDocumentScroll$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_host_onDocumentScroll_MZklXRTGKKA"), "Foo_component_div_host_onDocumentScroll_MZklXRTGKKA"),
+        "host:onDocumentScroll$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_host_onDocumentScroll_1_prNcLu2fBS4"), "Foo_component_div_host_onDocumentScroll_1_prNcLu2fBS4"),
+        onKeyup$: handler,
+        "onDocument:keyup$": handler,
+        "onWindow:keyup$": handler,
+        custom$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_custom_iXKuZ4Oo040"), "Foo_component_div_custom_iXKuZ4Oo040")
+    }, null, 3, "oJ_0");
+};
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"iDAM0B,IAAM,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;2CAKa;IACL,MAAM;IACN,qBACI,MAAC;QACG,QAAQ;QACR,iBAAiB;QACjB,iBAAiB;QAEjB,WAAS;QACT,oBAAkB;QAClB,oBAAkB;QAPtB,eAkBE;QAlBF,wBAkBE;QAlBF,wBAkBE;QALE,UAAU;QAbd,qBAcuB;QAdvB,mBAeqB;QAEjB,OAAO;;AAGnB\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "Foo_component_handler_H10xZtD0e7w",
+  "origin": "src/test.tsx",
+  "name": "Foo_component_1_Q0jkSkaqC5c",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_1",
+  "hash": "Q0jkSkaqC5c",
+  "canonicalFilename": "test.tsx_Foo_component_1_Q0jkSkaqC5c",
+  "path": "src",
+  "extension": "js",
+  "parent": "Foo_component_eZLoPe62E2c",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    105,
+    1041
+  ]
+}
+*/
+============================= src/test.tsx_Foo_component_div_host_onDocumentScroll_MZklXRTGKKA.js (ENTRY POINT)==
+
+export const Foo_component_div_host_onDocumentScroll_MZklXRTGKKA = ()=>console.log('host:onDocument:scroll');
+
+
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"mEAkBwC,IAAI,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "src/test.tsx",
+  "name": "Foo_component_div_host_onDocumentScroll_MZklXRTGKKA",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_div_host_onDocumentScroll",
+  "hash": "MZklXRTGKKA",
+  "canonicalFilename": "test.tsx_Foo_component_div_host_onDocumentScroll_MZklXRTGKKA",
+  "path": "src",
+  "extension": "js",
+  "parent": "Foo_component_1_Q0jkSkaqC5c",
+  "ctxKind": "eventHandler",
+  "ctxName": "host:onDocumentScroll$",
+  "captures": false,
+  "loc": [
+    712,
+    753
+  ]
+}
+*/
+============================= src/test.tsx_Foo_component_div_on_cLick_81aAZEwAGMs.js (ENTRY POINT)==
+
+export const Foo_component_div_on_cLick_81aAZEwAGMs = ()=>console.log('on-cLick$');
+
+
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"sDAa2B,IAAI,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "src/test.tsx",
+  "name": "Foo_component_div_on_cLick_81aAZEwAGMs",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_div_on_cLick",
+  "hash": "81aAZEwAGMs",
+  "canonicalFilename": "test.tsx_Foo_component_div_on_cLick_81aAZEwAGMs",
+  "path": "src",
+  "extension": "js",
+  "parent": "Foo_component_1_Q0jkSkaqC5c",
+  "ctxKind": "eventHandler",
+  "ctxName": "on-cLick$",
+  "captures": false,
+  "loc": [
+    428,
+    456
+  ]
+}
+*/
+============================= src/test.tsx_Foo_component_div_onClick_Uapiy40JUtg.js (ENTRY POINT)==
+
+export const Foo_component_div_onClick_Uapiy40JUtg = ()=>console.log('onClick$');
+
+
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"qDAS0B,IAAI,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "src/test.tsx",
+  "name": "Foo_component_div_onClick_Uapiy40JUtg",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_div_onClick",
+  "hash": "Uapiy40JUtg",
+  "canonicalFilename": "test.tsx_Foo_component_div_onClick_Uapiy40JUtg",
+  "path": "src",
+  "extension": "js",
+  "parent": "Foo_component_1_Q0jkSkaqC5c",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    229,
+    256
+  ]
+}
+*/
+============================= src/test.tsx_Foo_component_handler_uSWNL9qHA0Q.js (ENTRY POINT)==
+
+export const Foo_component_handler_uSWNL9qHA0Q = ()=>console.log('reused');
+export { _hW } from "@builder.io/qwik";
+
+
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"iDAM0B,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "src/test.tsx",
+  "name": "Foo_component_handler_uSWNL9qHA0Q",
   "entry": null,
   "displayName": "test.tsx_Foo_component_handler",
-  "hash": "H10xZtD0e7w",
-  "canonicalFilename": "test.tsx_Foo_component_handler_H10xZtD0e7w",
-  "path": "",
+  "hash": "uSWNL9qHA0Q",
+  "canonicalFilename": "test.tsx_Foo_component_handler_uSWNL9qHA0Q",
+  "path": "src",
   "extension": "js",
-  "parent": "Foo_component_1_DvU6FitWglY",
+  "parent": "Foo_component_1_Q0jkSkaqC5c",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": false,
@@ -385,23 +385,23 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   ]
 }
 */
-============================= test.tsx_Foo_component_div_onDocument_sCroll_5VNik61PZOM.js (ENTRY POINT)==
+============================= src/test.tsx_Foo_component_div_onDocument_sCroll_Eiolnh9fo0o.js (ENTRY POINT)==
 
-export const Foo_component_div_onDocument_sCroll_5VNik61PZOM = ()=>console.log('onDocument-sCroll');
+export const Foo_component_div_onDocument_sCroll_Eiolnh9fo0o = ()=>console.log('onDocument-sCroll');
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"+DAcoC,IAAI,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"+DAcoC,IAAI,QAAQ,GAAG,CAAC\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "Foo_component_div_onDocument_sCroll_5VNik61PZOM",
+  "origin": "src/test.tsx",
+  "name": "Foo_component_div_onDocument_sCroll_Eiolnh9fo0o",
   "entry": null,
   "displayName": "test.tsx_Foo_component_div_onDocument_sCroll",
-  "hash": "5VNik61PZOM",
-  "canonicalFilename": "test.tsx_Foo_component_div_onDocument_sCroll_5VNik61PZOM",
-  "path": "",
+  "hash": "Eiolnh9fo0o",
+  "canonicalFilename": "test.tsx_Foo_component_div_onDocument_sCroll_Eiolnh9fo0o",
+  "path": "src",
   "extension": "js",
-  "parent": "Foo_component_1_DvU6FitWglY",
+  "parent": "Foo_component_1_Q0jkSkaqC5c",
   "ctxKind": "eventHandler",
   "ctxName": "onDocument-sCroll$",
   "captures": false,

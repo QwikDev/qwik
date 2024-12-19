@@ -23,34 +23,34 @@ export default component$(()=> {
     return <div>cmp</div>
 });
 
-============================= test.tsx ==
+============================= src/test.tsx ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 export const onGet = ()=>{
     throw "Symbol removed by Qwik Optimizer, it can not be called from current platform";
 };
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_r7Fl19tSLhk"), "test_component_r7Fl19tSLhk"));
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;aAIa;;;AASb,6BAAe,mHAEZ\"}")
-============================= test.tsx_test_component_LUXeXe0DQrg.tsx (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;aAIa;;;AASb,6BAAe,mHAEZ\"}")
+============================= src/test.tsx_test_component_r7Fl19tSLhk.tsx (ENTRY POINT)==
 
-export const test_component_LUXeXe0DQrg = ()=>{
+export const test_component_r7Fl19tSLhk = ()=>{
     return <div>cmp</div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"0CAa0B;IACtB,QAAQ,IAAI,GAAG,EAAE;AACrB\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"0CAa0B;IACtB,QAAQ,IAAI,GAAG,EAAE;AACrB\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "test_component_LUXeXe0DQrg",
+  "origin": "src/test.tsx",
+  "name": "test_component_r7Fl19tSLhk",
   "entry": null,
   "displayName": "test.tsx_test_component",
-  "hash": "LUXeXe0DQrg",
-  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
-  "path": "",
+  "hash": "r7Fl19tSLhk",
+  "canonicalFilename": "test.tsx_test_component_r7Fl19tSLhk",
+  "path": "src",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",

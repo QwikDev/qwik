@@ -25,7 +25,7 @@ export const Greeter = component$(() => {
     )
 });
 
-============================= test.js ==
+============================= src/test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { useLexicalScope } from "@builder.io/qwik";
@@ -45,7 +45,7 @@ export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
                 "onInput$": /*#__PURE__*/ inlinedQrl((_, elm)=>{
                     const [value] = useLexicalScope();
                     return value.value = elm.value;
-                }, "s_6IZeYpXCNXA", [
+                }, "s_Jj0d17BBj2c", [
                     value
                 ])
             }, null, 3, null),
@@ -54,7 +54,7 @@ export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
                 "onInput$": /*#__PURE__*/ inlinedQrl((_, elm)=>{
                     const [checked] = useLexicalScope();
                     return checked.value = elm.checked;
-                }, "s_JPI3bLCVnso", [
+                }, "s_Ep0t9x0DJpI", [
                     checked
                 ])
             }, null, 3, null),
@@ -63,7 +63,7 @@ export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
                 "onChange$": /*#__PURE__*/ inlinedQrl((_, elm)=>{
                     const [stuff] = useLexicalScope();
                     return stuff.value = elm.stuff;
-                }, "s_eyREJ0lZTFw", [
+                }, "s_VcE8HRv4EVU", [
                     stuff
                 ])
             }, null, 3, null),
@@ -72,11 +72,11 @@ export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
                 value
             ], "p0.value"), 3, null)
         ]
-    }, 3, "u6_0");
-}, "s_n7HuG2hhU0Q"));
+    }, 3, "oJ_0");
+}, "s_ePjmTcgQ0IY"));
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;;;;;AAGA,OAAO,MAAM,wBAAU,sCAAW;IAC9B,MAAM,QAAQ,UAAU;IACxB,MAAM,UAAU,UAAU;IAC1B,MAAM,QAAQ;IACd,qBACI;;0BACI,MAAC;yBAAkB;;;2BAAA;;;;;0BACnB,MAAC;2BAAoB;;;2BAAA;;;;;0BACrB,MAAC;yBAAkB;;;2BAAA;;;;;0BACnB,MAAC,mBAAK;0BACN,MAAC,mCAAK,GAAM,KAAK;;;;;AAI7B,qBAAG\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;;;;;AAGA,OAAO,MAAM,wBAAU,sCAAW;IAC9B,MAAM,QAAQ,UAAU;IACxB,MAAM,UAAU,UAAU;IAC1B,MAAM,QAAQ;IACd,qBACI;;0BACI,MAAC;yBAAkB;;;2BAAA;;;;;0BACnB,MAAC;2BAAoB;;;2BAAA;;;;;0BACrB,MAAC;yBAAkB;;;2BAAA;;;;;0BACnB,MAAC,mBAAK;0BACN,MAAC,mCAAK,GAAM,KAAK;;;;;AAI7B,qBAAG\"}")
 == DIAGNOSTICS ==
 
 []

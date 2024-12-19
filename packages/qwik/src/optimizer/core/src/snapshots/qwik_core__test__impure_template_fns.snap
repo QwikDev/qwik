@@ -28,7 +28,7 @@ snapshot_kind: text
 			);
 		});
 		
-============================= test.tsx_test_component_LUXeXe0DQrg.ts (ENTRY POINT)==
+============================= src/test.tsx_test_component_r7Fl19tSLhk.ts (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _jsxC } from "@builder.io/qwik";
@@ -36,7 +36,7 @@ import { _jsxQ } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { _auto_useFoo as useFoo } from "./test";
 import { useSignal } from "@builder.io/qwik";
-export const test_component_LUXeXe0DQrg = ()=>{
+export const test_component_r7Fl19tSLhk = ()=>{
     const count = useSignal(0);
     const foo = useFoo(count);
     return /*#__PURE__*/ _jsxC(_Fragment, {
@@ -44,25 +44,25 @@ export const test_component_LUXeXe0DQrg = ()=>{
             /*#__PURE__*/ _jsxQ("p", null, null, foo("test"), 1, null),
             /*#__PURE__*/ _jsxQ("p", null, null, foo`test`, 1, null),
             /*#__PURE__*/ _jsxQ("button", null, {
-                onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_Fragment_button_onClick_eF3QEzgQWcY"), "test_component_Fragment_button_onClick_eF3QEzgQWcY", [
+                onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_Fragment_button_onClick_93KnhrzhnFI"), "test_component_Fragment_button_onClick_93KnhrzhnFI", [
                     count
                 ])
             }, "Count up", 3, null)
         ]
-    }, 1, "u6_0");
+    }, 1, "oJ_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;;;;0CAU4B;IACzB,MAAM,QAAQ,UAAU;IACxB,MAAM,MAAM,OAAO;IACnB,qBACC;;0BACC,MAAC,iBAAG,IAAI;0BACR,MAAC,iBAAG,GAAG,CAAC,IAAI,CAAC;0BACb,MAAC;gBAAO,QAAQ;;;eAAuB;;;AAG1C\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;;;;0CAU4B;IACzB,MAAM,QAAQ,UAAU;IACxB,MAAM,MAAM,OAAO;IACnB,qBACC;;0BACC,MAAC,iBAAG,IAAI;0BACR,MAAC,iBAAG,GAAG,CAAC,IAAI,CAAC;0BACb,MAAC;gBAAO,QAAQ;;;eAAuB;;;AAG1C\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "test_component_LUXeXe0DQrg",
+  "origin": "src/test.tsx",
+  "name": "test_component_r7Fl19tSLhk",
   "entry": null,
   "displayName": "test.tsx_test_component",
-  "hash": "LUXeXe0DQrg",
-  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
-  "path": "",
+  "hash": "r7Fl19tSLhk",
+  "canonicalFilename": "test.tsx_test_component_r7Fl19tSLhk",
+  "path": "src",
   "extension": "ts",
   "parent": null,
   "ctxKind": "function",
@@ -74,27 +74,27 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   ]
 }
 */
-============================= test.tsx_test_component_Fragment_button_onClick_eF3QEzgQWcY.ts (ENTRY POINT)==
+============================= src/test.tsx_test_component_Fragment_button_onClick_93KnhrzhnFI.ts (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
-export const test_component_Fragment_button_onClick_eF3QEzgQWcY = ()=>{
+export const test_component_Fragment_button_onClick_93KnhrzhnFI = ()=>{
     const [count] = useLexicalScope();
     return count.value++;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";kEAiBuB;;WAAM,MAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";kEAiBuB;;WAAM,MAAM,KAAK\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "test_component_Fragment_button_onClick_eF3QEzgQWcY",
+  "origin": "src/test.tsx",
+  "name": "test_component_Fragment_button_onClick_93KnhrzhnFI",
   "entry": null,
   "displayName": "test.tsx_test_component_Fragment_button_onClick",
-  "hash": "eF3QEzgQWcY",
-  "canonicalFilename": "test.tsx_test_component_Fragment_button_onClick_eF3QEzgQWcY",
-  "path": "",
+  "hash": "93KnhrzhnFI",
+  "canonicalFilename": "test.tsx_test_component_Fragment_button_onClick_93KnhrzhnFI",
+  "path": "src",
   "extension": "ts",
-  "parent": "test_component_LUXeXe0DQrg",
+  "parent": "test_component_r7Fl19tSLhk",
   "ctxKind": "eventHandler",
   "ctxName": "onClick$",
   "captures": true,
@@ -104,7 +104,7 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   ]
 }
 */
-============================= test.ts ==
+============================= src/test.ts ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
@@ -115,11 +115,11 @@ const useFoo = (count)=>{
     };
     return tag;
 };
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_r7Fl19tSLhk"), "test_component_r7Fl19tSLhk"));
 export { useFoo as _auto_useFoo };
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAEE,MAAM,SAAS,CAAC;IACf,MAAM,MAAM,CAAC;QACZ,MAAM,QAAQ,OAAO,MAAM,WAAW,IAAI,CAAC,CAAC,EAAE;QAC9C,OAAO,GAAG,MAAM,CAAC,EAAE,MAAM,KAAK,EAAE;IACjC;IACA,OAAO;AACR;AAEA,6BAAe,mHAUZ\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAEE,MAAM,SAAS,CAAC;IACf,MAAM,MAAM,CAAC;QACZ,MAAM,QAAQ,OAAO,MAAM,WAAW,IAAI,CAAC,CAAC,EAAE;QAC9C,OAAO,GAAG,MAAM,CAAC,EAAE,MAAM,KAAK,EAAE;IACjC;IACA,OAAO;AACR;AAEA,6BAAe,mHAUZ\"}")
 == DIAGNOSTICS ==
 
 []

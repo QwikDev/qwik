@@ -15,7 +15,7 @@ export const Works = component$((props) => {
     );
 });
 
-============================= test.js ==
+============================= src/test.js ==
 
 import { componentQrl } from "@builder.io/qwik";
 import { serverQrl } from "@builder.io/qwik";
@@ -24,12 +24,12 @@ import { inlinedQrl } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
     return /*#__PURE__*/ _jsxQ("div", {
-        onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(/*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "OsNoEFc5SM4"), "Works_component_div_onClick_server_OsNoEFc5SM4"))
-    }, null, null, 2, "u6_0");
-}, "Works_component_t45qL4vNGv0"));
+        onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(/*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "oOLZoiwE2FM"), "Works_component_div_onClick_server_oOLZoiwE2FM"))
+    }, null, null, 2, "oJ_0");
+}, "Works_component_3Z6btR1NEOY"));
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAE7B,qBACI,MAAC;QAAI,UAAU,4DAAQ,IAAM,QAAQ,GAAG,CAAC,aAFhC;;AAIjB,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAE7B,qBACI,MAAC;QAAI,UAAU,4DAAQ,IAAM,QAAQ,GAAG,CAAC,aAFhC;;AAIjB,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

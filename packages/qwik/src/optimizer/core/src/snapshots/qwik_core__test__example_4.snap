@@ -18,25 +18,25 @@ export function App() {
     return Header;
 }
 
-============================= test.tsx_App_Header_component_B9F3YeqcO1w.tsx (ENTRY POINT)==
+============================= src/test.tsx_App_Header_component_LGSPR1gzfBQ.tsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
-export const App_Header_component_B9F3YeqcO1w = ()=>{
+export const App_Header_component_LGSPR1gzfBQ = ()=>{
     console.log("mount");
-    return <div onClick={/*#__PURE__*/ qrl(()=>import("./test.tsx_App_Header_component_div_onClick_aO7uI7Iw6oQ"), "App_Header_component_div_onClick_aO7uI7Iw6oQ")}/>;
+    return <div onClick={/*#__PURE__*/ qrl(()=>import("./test.tsx_App_Header_component_div_onClick_YyrivfnN9jQ"), "App_Header_component_div_onClick_YyrivfnN9jQ")}/>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";gDAG8B;IACtB,QAAQ,GAAG,CAAC;IACZ,QACK,IAAI;AAEb\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";gDAG8B;IACtB,QAAQ,GAAG,CAAC;IACZ,QACK,IAAI;AAEb\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "App_Header_component_B9F3YeqcO1w",
+  "origin": "src/test.tsx",
+  "name": "App_Header_component_LGSPR1gzfBQ",
   "entry": null,
   "displayName": "test.tsx_App_Header_component",
-  "hash": "B9F3YeqcO1w",
-  "canonicalFilename": "test.tsx_App_Header_component_B9F3YeqcO1w",
-  "path": "",
+  "hash": "LGSPR1gzfBQ",
+  "canonicalFilename": "test.tsx_App_Header_component_LGSPR1gzfBQ",
+  "path": "src",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -48,24 +48,35 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   ]
 }
 */
-============================= test.tsx_App_Header_component_div_onClick_aO7uI7Iw6oQ.tsx (ENTRY POINT)==
+============================= src/test.tsx ==
 
-export const App_Header_component_div_onClick_aO7uI7Iw6oQ = (ctx)=>console.log(ctx);
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export function App() {
+    const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_Header_component_LGSPR1gzfBQ"), "App_Header_component_LGSPR1gzfBQ"));
+    return Header;
+}
+
+
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAEA,OAAO,SAAS;IACZ,MAAM,uBAAS;IAMf,OAAO;AACX\"}")
+============================= src/test.tsx_App_Header_component_div_onClick_YyrivfnN9jQ.tsx (ENTRY POINT)==
+
+export const App_Header_component_div_onClick_YyrivfnN9jQ = (ctx)=>console.log(ctx);
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"4DAM4B,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"src/test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\"4DAM4B,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
 /*
 {
-  "origin": "test.tsx",
-  "name": "App_Header_component_div_onClick_aO7uI7Iw6oQ",
+  "origin": "src/test.tsx",
+  "name": "App_Header_component_div_onClick_YyrivfnN9jQ",
   "entry": null,
   "displayName": "test.tsx_App_Header_component_div_onClick",
-  "hash": "aO7uI7Iw6oQ",
-  "canonicalFilename": "test.tsx_App_Header_component_div_onClick_aO7uI7Iw6oQ",
-  "path": "",
+  "hash": "YyrivfnN9jQ",
+  "canonicalFilename": "test.tsx_App_Header_component_div_onClick_YyrivfnN9jQ",
+  "path": "src",
   "extension": "tsx",
-  "parent": "App_Header_component_B9F3YeqcO1w",
+  "parent": "App_Header_component_LGSPR1gzfBQ",
   "ctxKind": "function",
   "ctxName": "$",
   "captures": false,
@@ -75,17 +86,6 @@ Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"
   ]
 }
 */
-============================= test.tsx ==
-
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export function App() {
-    const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_Header_component_B9F3YeqcO1w"), "App_Header_component_B9F3YeqcO1w"));
-    return Header;
-}
-
-
-Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik\",\"names\":[],\"mappings\":\";;AAEA,OAAO,SAAS;IACZ,MAAM,uBAAS;IAMf,OAAO;AACX\"}")
 == DIAGNOSTICS ==
 
 []

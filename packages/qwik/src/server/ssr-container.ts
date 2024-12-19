@@ -1214,7 +1214,7 @@ const isQwikStyleElement = (tag: string, attrs: SsrAttrs | null | undefined) => 
 };
 
 function newTagError(text: string) {
-  return qError(QError.tagError, text);
+  return qError(QError.tagError, [text]);
 }
 
 function hasDestroy(obj: any): obj is { $destroy$(): void } {

@@ -48,7 +48,7 @@ export const stringifyStyle = (obj: any): string => {
   }
   if (typeof obj == 'object') {
     if (isArray(obj)) {
-      throw qError(QError.stringifyClassOrStyle, obj, 'style');
+      throw qError(QError.stringifyClassOrStyle, [obj, 'style']);
     } else {
       const chunks: string[] = [];
       for (const key in obj) {

@@ -8,7 +8,6 @@
 #[cfg(test)]
 mod test;
 
-mod add_side_effect;
 mod clean_side_effects;
 mod code_move;
 mod collector;

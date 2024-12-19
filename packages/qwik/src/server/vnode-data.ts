@@ -2,6 +2,7 @@ import { type ISsrNode, type SsrAttrs } from './qwik-types';
 import { SsrNode, type SsrNodeType } from './ssr-node';
 import type { CleanupQueue } from './ssr-container';
 import { VNodeDataFlag } from './types';
+import { _EMPTY_ARRAY } from '@qwik.dev/core';
 
 /**
  * Array of numbers which describes virtual nodes in the tree.
@@ -34,8 +35,7 @@ export type VNodeData = [VNodeDataFlag, ...(SsrAttrs | number)[]];
 
 export const OPEN_FRAGMENT = Number.MAX_SAFE_INTEGER;
 export const CLOSE_FRAGMENT = Number.MAX_SAFE_INTEGER - 1;
-
-const EMPTY_ARRAY: any[] = [];
+export const WRITE_ELEMENT_ATTRS = Number.MAX_SAFE_INTEGER - 2;
 
 export function vNodeData_incrementElementCount(vNodeData: VNodeData) {
   const length = vNodeData.length;
@@ -75,6 +75,11 @@ export function vNodeData_closeFragment(vNodeData: VNodeData) {
   vNodeData.push(CLOSE_FRAGMENT);
 }
 
+export function vNodeData_openElement(vNodeData: VNodeData) {
+  vNodeData.push([], WRITE_ELEMENT_ATTRS);
+  vNodeData[0] |= VNodeDataFlag.ELEMENT_NODE;
+}
+
 export function vNodeData_createSsrNodeReference(
   currentComponentNode: ISsrNode | null,
   vNodeData: VNodeData,
@@ -82,52 +87,46 @@ export function vNodeData_createSsrNodeReference(
   cleanupQueue: CleanupQueue
 ): ISsrNode {
   vNodeData[0] |= VNodeDataFlag.REFERENCE;
-  if (vNodeData.length == 1) {
-    // Special case where we are referring to the Element directly. No need to descend into the tree.
-    return new SsrNode(
-      currentComponentNode,
-      SsrNode.ELEMENT_NODE,
-      String(depthFirstElementIdx),
-      EMPTY_ARRAY,
-      cleanupQueue,
-      vNodeData
-    );
-  } else {
-    let fragmentAttrs: SsrAttrs = EMPTY_ARRAY;
-    const stack: (SsrNodeType | number)[] = [SsrNode.ELEMENT_NODE, -1];
-    // We are referring to a virtual node. We need to descend into the tree to find the path to the node.
-    for (let i = 1; i < vNodeData.length; i++) {
-      const value = vNodeData[i];
-      if (Array.isArray(value)) {
-        fragmentAttrs = value as SsrAttrs;
-        i++; // skip the `OPEN_FRAGMENT` value
+  let fragmentAttrs: SsrAttrs = _EMPTY_ARRAY;
+  const stack: (SsrNodeType | number)[] = [SsrNode.ELEMENT_NODE, -1];
+  // We are referring to a virtual node. We need to descend into the tree to find the path to the node.
+  for (let i = 1; i < vNodeData.length; i++) {
+    const value = vNodeData[i];
+    if (Array.isArray(value)) {
+      fragmentAttrs = value as SsrAttrs;
+      i++; // skip the `OPEN_FRAGMENT` or `WRITE_ELEMENT_ATTRS` value
+      if (vNodeData[i] !== WRITE_ELEMENT_ATTRS) {
+        // ignore pushing to the stack for WRITE_ELEMENT_ATTRS, because we don't want to create more depth. It is the same element
         stack[stack.length - 1]++;
         stack.push(SsrNode.DOCUMENT_FRAGMENT_NODE, -1);
-      } else if (value === CLOSE_FRAGMENT) {
-        stack.pop(); // pop count
-        stack.pop(); // pop nodeType
-        fragmentAttrs = EMPTY_ARRAY;
-      } else if (value < 0) {
-        // Negative numbers are element counts.
-        const numberOfElements = 0 - value;
-        // Add number of elements to skip
-        stack[stack.length - 1] += numberOfElements;
-      } else {
-        // Positive numbers are text node lengths.
-        // For each positive number we need to increment the count.
-        stack[stack.length - 1]++;
       }
+    } else if (value === CLOSE_FRAGMENT) {
+      stack.pop(); // pop count
+      stack.pop(); // pop nodeType
+      fragmentAttrs = _EMPTY_ARRAY;
+    } else if (value < 0) {
+      // Negative numbers are element counts.
+      const numberOfElements = 0 - value;
+      // Add number of elements to skip
+      stack[stack.length - 1] += numberOfElements;
+    } else {
+      // Positive numbers are text node lengths.
+      // For each positive number we need to increment the count.
+      stack[stack.length - 1]++;
     }
-    let refId = String(depthFirstElementIdx);
+  }
+  let refId = String(depthFirstElementIdx);
+  if (vNodeData[0] & (VNodeDataFlag.VIRTUAL_NODE | VNodeDataFlag.TEXT_DATA)) {
+    // encode as alphanumeric only for virtual and text nodes
     for (let i = 1; i < stack.length; i += 2) {
       const childCount = stack[i] as number;
       if (childCount >= 0) {
         refId += encodeAsAlphanumeric(childCount);
       }
     }
-    const type = stack[stack.length - 2] as SsrNodeType;
-    return new SsrNode(currentComponentNode, type, refId, fragmentAttrs, cleanupQueue, vNodeData);
   }
+  const type = stack[stack.length - 2] as SsrNodeType;
+  return new SsrNode(currentComponentNode, type, refId, fragmentAttrs, cleanupQueue, vNodeData);
 }
 
 /**

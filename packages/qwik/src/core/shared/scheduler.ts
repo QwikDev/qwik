@@ -86,7 +86,7 @@ import type { JSXOutput } from './jsx/types/jsx-node';
 import { Task, TaskFlags, cleanupTask, runTask, type TaskFn } from '../use/use-task';
 import { runResource, type ResourceDescriptor } from '../use/use-resource';
 import { logWarn, throwErrorAndStop } from './utils/log';
-import { isPromise, maybeThenPassError, safeCall } from './utils/promises';
+import { isPromise, maybeThenPassError, retryOnPromise, safeCall } from './utils/promises';
 import type { ValueOrPromise } from './utils/types';
 import { isDomContainer } from '../client/dom-container';
 import {
@@ -113,36 +113,38 @@ import type { OnRenderFn } from './component.public';
 import type { Props } from './jsx/jsx-runtime';
 import { QScopedStyle } from './utils/markers';
 import { addComponentStylePrefix } from './utils/scoped-styles';
+import { type WrappedSignal, type ComputedSignal, triggerEffects } from '../signal/signal';
+import type { TargetType } from '../signal/store';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
 
 export const enum ChoreType {
   /// MASKS defining three levels of sorting
-  MACRO /* ***************** */ = 0b111_0000,
+  MACRO /* **************************** */ = 0b1111_0000,
   /* order of elements (not encoded here) */
-  MICRO /* ***************** */ = 0b000_1111,
+  MICRO /* **************************** */ = 0b0000_1111,
 
   /** Ensure tha the QRL promise is resolved before processing next chores in the queue */
-  QRL_RESOLVE /* *********** */ = 0b000_0001,
-  RESOURCE /* ************** */ = 0b000_0010,
-  TASK /* ****************** */ = 0b000_0011,
-  NODE_DIFF /* ************* */ = 0b000_0100,
-  NODE_PROP /* ************* */ = 0b000_0101,
-  COMPONENT_SSR /* ********* */ = 0b000_0110,
-  COMPONENT /* ************* */ = 0b000_0111,
-  WAIT_FOR_COMPONENTS /* *** */ = 0b001_0000,
-  JOURNAL_FLUSH /* ********* */ = 0b011_0000,
-  VISIBLE /* *************** */ = 0b100_0000,
-  CLEANUP_VISIBLE /* ******* */ = 0b101_0000,
-  WAIT_FOR_ALL /* ********** */ = 0b111_1111,
+  QRL_RESOLVE /* ********************** */ = 0b0000_0001,
+  RESOURCE /* ************************* */ = 0b0000_0010,
+  TASK /* ***************************** */ = 0b0000_0011,
+  NODE_DIFF /* ************************ */ = 0b0000_0100,
+  NODE_PROP /* ************************ */ = 0b0000_0101,
+  COMPONENT_SSR /* ******************** */ = 0b0000_0110,
+  COMPONENT /* ************************ */ = 0b0000_0111,
+  RECOMPUTE_AND_SCHEDULE_EFFECTS /* *** */ = 0b0000_1000,
+  JOURNAL_FLUSH /* ******************** */ = 0b0001_0000,
+  VISIBLE /* ************************** */ = 0b0010_0000,
+  CLEANUP_VISIBLE /* ****************** */ = 0b0011_0000,
+  WAIT_FOR_ALL /* ********************* */ = 0b1111_1111,
 }
 
 export interface Chore {
   $type$: ChoreType;
   $idx$: number | string;
   $host$: HostElement;
-  $target$: HostElement | QRLInternal<(...args: unknown[]) => unknown> | null;
+  $target$: ChoreTarget | null;
   $payload$: unknown;
   $resolve$: (value: any) => void;
   $promise$: Promise<any>;
@@ -160,6 +162,8 @@ export interface NodePropPayload extends NodePropData {
 }
 
 export type Scheduler = ReturnType<typeof createScheduler>;
+
+type ChoreTarget = HostElement | QRLInternal<(...args: unknown[]) => unknown> | Signal | TargetType;
 
 export const createScheduler = (
   container: Container,
@@ -183,7 +187,6 @@ export const createScheduler = (
   ): ValueOrPromise<void>;
   function schedule(type: ChoreType.JOURNAL_FLUSH): ValueOrPromise<void>;
   function schedule(type: ChoreType.WAIT_FOR_ALL): ValueOrPromise<void>;
-  function schedule(type: ChoreType.WAIT_FOR_COMPONENTS): ValueOrPromise<void>;
   /**
    * Schedule rendering of a component.
    *
@@ -193,6 +196,11 @@ export const createScheduler = (
    * @param props- Props to pass to the component.
    * @param waitForChore? = false
    */
+  function schedule(
+    type: ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+    host: HostElement | null,
+    target: Signal
+  ): ValueOrPromise<void>;
   function schedule(
     type: ChoreType.TASK | ChoreType.VISIBLE | ChoreType.RESOURCE,
     task: Task
@@ -226,13 +234,10 @@ export const createScheduler = (
   function schedule(
     type: ChoreType,
     hostOrTask: HostElement | Task | null = null,
-    targetOrQrl: HostElement | QRLInternal<(...args: unknown[]) => unknown> | string | null = null,
+    targetOrQrl: ChoreTarget | string | null = null,
     payload: any = null
   ): ValueOrPromise<any> {
-    const runLater: boolean =
-      type !== ChoreType.WAIT_FOR_ALL &&
-      type !== ChoreType.WAIT_FOR_COMPONENTS &&
-      type !== ChoreType.COMPONENT_SSR;
+    const runLater: boolean = type !== ChoreType.WAIT_FOR_ALL && type !== ChoreType.COMPONENT_SSR;
     const isTask =
       type === ChoreType.TASK ||
       type === ChoreType.VISIBLE ||
@@ -249,7 +254,7 @@ export const createScheduler = (
           ? targetOrQrl
           : 0,
       $host$: isTask ? (hostOrTask as Task).$el$ : (hostOrTask as HostElement),
-      $target$: targetOrQrl as QRLInternal<(...args: unknown[]) => unknown>,
+      $target$: targetOrQrl as ChoreTarget | null,
       $payload$: isTask ? hostOrTask : payload,
       $resolve$: null!,
       $promise$: null!,
@@ -401,6 +406,20 @@ export const createScheduler = (
         returnValue = !target.resolved ? target.resolve() : null;
         break;
       }
+      case ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS: {
+        const target = chore.$target$ as ComputedSignal<unknown> | WrappedSignal<unknown>;
+        const forceRunEffects = target.$forceRunEffects$;
+        target.$forceRunEffects$ = false;
+        if (!target.$effects$?.length) {
+          break;
+        }
+        returnValue = retryOnPromise(() => {
+          if (target.$computeIfNeeded$() || forceRunEffects) {
+            triggerEffects(container, target, target.$effects$);
+          }
+        });
+        break;
+      }
     }
     return maybeThenPassError(returnValue, (value) => {
       DEBUG && debugTrace('execute.DONE', null, currentChore, choreQueue);
@@ -498,7 +517,9 @@ function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: boolean)
     if (
       a.$target$ !== b.$target$ &&
       ((a.$type$ === ChoreType.QRL_RESOLVE && b.$type$ === ChoreType.QRL_RESOLVE) ||
-        (a.$type$ === ChoreType.NODE_PROP && b.$type$ === ChoreType.NODE_PROP))
+        (a.$type$ === ChoreType.NODE_PROP && b.$type$ === ChoreType.NODE_PROP) ||
+        (a.$type$ === ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS &&
+          b.$type$ === ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS))
     ) {
       // 1 means that we are going to process chores as FIFO
       return 1;
@@ -554,11 +575,11 @@ function debugChoreToString(chore: Chore): string {
         [ChoreType.NODE_PROP]: 'NODE_PROP',
         [ChoreType.COMPONENT]: 'COMPONENT',
         [ChoreType.COMPONENT_SSR]: 'COMPONENT_SSR',
+        [ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS]: 'RECOMPUTE_SIGNAL',
         [ChoreType.JOURNAL_FLUSH]: 'JOURNAL_FLUSH',
         [ChoreType.VISIBLE]: 'VISIBLE',
         [ChoreType.CLEANUP_VISIBLE]: 'CLEANUP_VISIBLE',
         [ChoreType.WAIT_FOR_ALL]: 'WAIT_FOR_ALL',
-        [ChoreType.WAIT_FOR_COMPONENTS]: 'WAIT_FOR_COMPONENTS',
       } as any
     )[chore.$type$] || 'UNKNOWN: ' + chore.$type$;
   const host = String(chore.$host$).replaceAll(/\n.*/gim, '');

@@ -169,7 +169,7 @@ suite('stringifyStyle', () => {
     test('should throw an error for array', () => {
       assert.throws(
         () => stringifyStyle([]),
-        'Code(0): Error while serializing class or style attributes'
+        'Code(Q0): Error while serializing class or style attributes'
       );
     });
 

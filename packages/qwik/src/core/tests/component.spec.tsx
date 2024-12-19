@@ -22,8 +22,9 @@ import {
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { cleanupAttrs } from '../../testing/element-fixture';
-import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
+import { QError, codeToText } from '../shared/error/error';
+import { ErrorProvider } from '../../testing/rendering.unit-util';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -497,12 +498,8 @@ describe.each([
         </ErrorProvider>,
         { debug }
       );
-      expect(ErrorProvider.error.message).toBe(
-        render === domRender ? 'The value of the textarea must be a string' : null
-      );
     } catch (e) {
-      expect(render).toBe(ssrRenderToDom);
-      expect((e as Error).message).toBe('The value of the textarea must be a string');
+      expect((e as Error).message).toBe(codeToText(QError.wrongTextareaValue));
     }
   });
 

@@ -46,7 +46,7 @@ export const maybeThenPassError = <T, B>(
 };
 
 export const shouldNotError = (reason: any): any => {
-  throwErrorAndStop('QWIK ERROR:', reason);
+  throwErrorAndStop(reason);
 };
 
 export const maybeThenMap = <T, MAP_RET, RET>(

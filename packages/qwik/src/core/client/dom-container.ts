@@ -6,7 +6,6 @@ import type { QRL } from '../shared/qrl/qrl.public';
 import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
 import type { ContextId } from '../use/use-context';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
-import { throwErrorAndStop } from '../shared/utils/log';
 import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
@@ -66,12 +65,13 @@ import {
   vnode_setProp,
   type VNodeJournal,
 } from './vnode';
+import { QError, qError } from '../shared/error/error';
 
 /** @public */
 export function getDomContainer(element: Element | VNode): IClientContainer {
   const qContainerElement = _getQContainerElement(element);
   if (!qContainerElement) {
-    throwErrorAndStop('Unable to find q:container.');
+    throw qError(QError.containerNotFound);
   }
   return getDomContainerFromQContainerElement(qContainerElement!);
 }
@@ -145,7 +145,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     );
     this.qContainer = element.getAttribute(QContainerAttr)!;
     if (!this.qContainer) {
-      throwErrorAndStop("Element must have 'q:container' attribute.");
+      throw qError(QError.elementWithoutContainer);
     }
     this.$journal$ = [
       // The first time we render we need to hoist the styles.

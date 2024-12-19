@@ -385,7 +385,7 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
       break;
     }
     default:
-      throw qError(QError.serializeErrorNotImplemented, typeId);
+      throw qError(QError.serializeErrorNotImplemented, [typeId]);
   }
 };
 
@@ -519,13 +519,13 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
       if (vnode_isVNode(vNode)) {
         return vnode_getNode(vNode);
       } else {
-        throw qError(QError.serializeErrorExpectedVNode, typeof vNode);
+        throw qError(QError.serializeErrorExpectedVNode, [typeof vNode]);
       }
     case TypeIds.EffectData:
       return new EffectPropData({} as NodePropData);
 
     default:
-      throw qError(QError.serializeErrorCannotAllocate, typeId);
+      throw qError(QError.serializeErrorCannotAllocate, [typeId]);
   }
 };
 
@@ -719,7 +719,7 @@ export const createSerializationContext = (
     $getRootId$: (obj: any) => {
       const id = map.get(obj);
       if (!id || id === -1) {
-        throw qError(QError.serializeErrorMissingRootId, obj);
+        throw qError(QError.serializeErrorMissingRootId, [obj]);
       }
       return id;
     },
@@ -885,7 +885,7 @@ export const createSerializationContext = (
           discoveredValues.push(key, value);
         });
       } else {
-        throw qError(QError.serializeErrorUnknownType, obj);
+        throw qError(QError.serializeErrorUnknownType, [obj]);
       }
     };
 
@@ -1061,7 +1061,7 @@ function serialize(serializationContext: SerializationContext): void {
     } else if (value === NEEDS_COMPUTATION) {
       output(TypeIds.Constant, Constants.NEEDS_COMPUTATION);
     } else {
-      throw qError(QError.serializeErrorUnknownType, typeof value);
+      throw qError(QError.serializeErrorUnknownType, [typeof value]);
     }
   };
 
@@ -1104,7 +1104,7 @@ function serialize(serializationContext: SerializationContext): void {
         serializationContext.$resources$.add(value);
         const res = promiseResults.get(value.value);
         if (!res) {
-          throw qError(QError.serializeErrorUnvisited, 'resource');
+          throw qError(QError.serializeErrorUnvisited, ['resource']);
         }
         output(TypeIds.Resource, [...res, getStoreHandler(value)!.$effects$]);
       } else {
@@ -1265,7 +1265,7 @@ function serialize(serializationContext: SerializationContext): void {
     } else if (isPromise(value)) {
       const res = promiseResults.get(value);
       if (!res) {
-        throw qError(QError.serializeErrorUnvisited, 'promise');
+        throw qError(QError.serializeErrorUnvisited, ['promise']);
       }
       output(TypeIds.Promise, res);
     } else if (value instanceof Uint8Array) {
@@ -1276,7 +1276,7 @@ function serialize(serializationContext: SerializationContext): void {
       const out = btoa(buf).replace(/=+$/, '');
       output(TypeIds.Uint8Array, out);
     } else {
-      throw qError(QError.serializeErrorUnknownType, typeof value);
+      throw qError(QError.serializeErrorUnknownType, [typeof value]);
     }
   };
 
@@ -1337,7 +1337,7 @@ export function qrlToString(
       }
     }
     if (!chunk) {
-      throw qError(QError.qrlMissingChunk, value.$symbol$);
+      throw qError(QError.qrlMissingChunk, [value.$symbol$]);
     }
     if (chunk.startsWith('./')) {
       chunk = chunk.slice(2);

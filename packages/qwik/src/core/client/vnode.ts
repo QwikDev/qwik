@@ -1637,7 +1637,7 @@ export const vnode_getPropStartIndex = (vnode: VNode): number => {
   } else if (type === VNodeFlags.Virtual) {
     return VirtualVNodeProps.PROPS_OFFSET;
   }
-  throw qError(QError.invalidVNodeType, type);
+  throw qError(QError.invalidVNodeType, [type]);
 };
 
 export const vnode_propsToRecord = (vnode: VNode): Record<string, unknown> => {
@@ -1780,7 +1780,7 @@ function materializeFromVNodeData(
       while (!isElement(child)) {
         child = fastNextSibling(child);
         if (!child) {
-          throw qError(QError.materializeVNodeDataError, vData, peek(), nextToConsumeIdx);
+          throw qError(QError.materializeVNodeDataError, [vData, peek(), nextToConsumeIdx]);
         }
       }
       // We pretend that style element's don't exist as they can get moved out.
@@ -1883,7 +1883,7 @@ export const vnode_getType = (vnode: VNode): 1 | 3 | 11 => {
   } else if (type & VNodeFlags.Text) {
     return 3 /* Text */;
   }
-  throw qError(QError.invalidVNodeType, type);
+  throw qError(QError.invalidVNodeType, [type]);
 };
 
 const isElement = (node: any): node is Element =>

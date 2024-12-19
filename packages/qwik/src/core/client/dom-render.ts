@@ -35,7 +35,7 @@ export const render = async (
     parent = child as Element;
   }
   if (qDev && parent.hasAttribute(QContainerAttr)) {
-    throw qError(QError.cannotRenderOverExistingContainer, parent);
+    throw qError(QError.cannotRenderOverExistingContainer, [parent]);
   }
   (parent as Element).setAttribute(QContainerAttr, QContainerValue.RESUMED);
 

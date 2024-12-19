@@ -66,13 +66,13 @@ export const qrl = <T = any>(
           chunk = match[1];
         }
       } else {
-        throw qError(QError.dynamicImportFailed, srcCode);
+        throw qError(QError.dynamicImportFailed, [srcCode]);
       }
     }
   } else if (isString(chunkOrFn)) {
     chunk = chunkOrFn;
   } else {
-    throw qError(QError.unknownTypeArgument, chunkOrFn);
+    throw qError(QError.unknownTypeArgument, [chunkOrFn]);
   }
 
   if (!announcedQRL.has(symbol)) {

@@ -17,10 +17,10 @@ export const createPlatform = (): CorePlatform => {
         }
       }
       if (!url) {
-        throw qError(QError.qrlMissingChunk, symbolName);
+        throw qError(QError.qrlMissingChunk, [symbolName]);
       }
       if (!containerEl) {
-        throw qError(QError.qrlMissingContainer, url, symbolName);
+        throw qError(QError.qrlMissingContainer, [url, symbolName]);
       }
       const urlDoc = toUrl(containerEl.ownerDocument, containerEl, url).toString();
       const urlCopy = new URL(urlDoc);

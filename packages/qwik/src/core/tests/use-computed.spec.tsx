@@ -16,7 +16,9 @@ import {
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it, vi } from 'vitest';
-import * as logErrors from '../shared/utils/log';
+import { ErrorProvider } from '../../testing/rendering.unit-util';
+import { QError } from '../shared/error/error';
+import * as qError from '../shared/error/error';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -220,7 +222,7 @@ describe.each([
   });
 
   it('should disallow Promise in computed result', async () => {
-    const logErrorSpy = vi.spyOn(logErrors, 'throwErrorAndStop').mockRejectedValue(() => {});
+    const qErrorSpy = vi.spyOn(qError, 'qError');
     const Counter = component$(() => {
       const count = useSignal(1);
       const doubleCount = useComputed$(() => Promise.resolve(count.value * 2));
@@ -233,9 +235,17 @@ describe.each([
         </button>
       );
     });
-    await render(<Counter />, { debug });
-
-    expect(logErrorSpy).toBeCalledTimes(1);
+    try {
+      await render(
+        <ErrorProvider>
+          <Counter />
+        </ErrorProvider>,
+        { debug }
+      );
+    } catch (e) {
+      expect((e as Error).message).toBeDefined();
+      expect(qErrorSpy).toHaveBeenCalledWith(QError.computedNotSync, expect.any(Array));
+    }
   });
 
   describe('createComputed$', () => {

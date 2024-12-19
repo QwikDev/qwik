@@ -276,11 +276,11 @@ export const useContext: UseContext = <STATE>(
   if (defaultValue !== undefined) {
     return set(defaultValue);
   }
-  throw qError(QError.notFoundContext, context.id);
+  throw qError(QError.notFoundContext, [context.id]);
 };
 
 export const validateContext = (context: ContextId<any>) => {
   if (!isObject(context) || typeof context.id !== 'string' || context.id.length === 0) {
-    throw qError(QError.invalidContext, context);
+    throw qError(QError.invalidContext, [context]);
   }
 };

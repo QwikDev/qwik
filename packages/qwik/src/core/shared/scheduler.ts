@@ -497,7 +497,7 @@ function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: boolean)
           This can lead to inconsistencies between Server-Side Rendering (SSR) and Client-Side Rendering (CSR).
           Problematic Node: ${aHost.toString()}`;
         if (shouldThrowOnHostMismatch) {
-          throw qError(QError.serverHostMismatch, errorMessage);
+          throw qError(QError.serverHostMismatch, [errorMessage]);
         }
         logWarn(errorMessage);
         return null;

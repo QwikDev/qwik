@@ -20,11 +20,12 @@ import {
   type Signal as SignalType,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { cleanupAttrs } from '../../testing/element-fixture';
 import { delay } from '../shared/utils/promises';
-import { QError, codeToText } from '../shared/error/error';
+import { QError } from '../shared/error/error';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
+import * as qError from '../shared/error/error';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -480,6 +481,7 @@ describe.each([
   });
 
   it('should not render textarea value for non-text value', async () => {
+    const qErrorSpy = vi.spyOn(qError, 'qError');
     const Cmp = component$(() => {
       const signal = useSignal(<h1>header</h1>);
       return (
@@ -499,7 +501,8 @@ describe.each([
         { debug }
       );
     } catch (e) {
-      expect((e as Error).message).toBe(codeToText(QError.wrongTextareaValue));
+      expect((e as Error).message).toBeDefined();
+      expect(qErrorSpy).toHaveBeenCalledWith(QError.wrongTextareaValue);
     }
   });
 

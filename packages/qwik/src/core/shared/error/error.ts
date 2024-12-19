@@ -6,33 +6,33 @@ export const codeToText = (code: number, ...parts: any[]): string => {
     // Keep one error, one line to make it easier to search for the error message.
     const MAP = [
       'Error while serializing class or style attributes', // 0
-      '', // 1
-      '', // 2
+      '', // 1 unused
+      '', // 2 unused
       'Only primitive and object literals can be serialized. {{0}}', // 3
-      '', // 4
+      '', // 4 unused
       'You can render over a existing q:container. Skipping render().', // 5
-      '', // 6
-      '', // 7
-      '', // 8
-      '', // 9
+      '', // 6 unused
+      '', // 7 unused
+      '', // 8 unused
+      '', // 9 unused
       'QRL is not a function', // 10
       'Dynamic import not found', // 11
       'Unknown type argument', // 12
       `Actual value for useContext({{0}}) can not be found, make sure some ancestor component has set a value using useContextProvider(). In the browser make sure that the context was used during SSR so its state was serialized.`, // 13
       "Invoking 'use*()' method outside of invocation context.", // 14
-      '', // 15
-      '', // 16
-      '', // 17
-      '', // 18
-      '', // 19
+      '', // 15 unused
+      '', // 16 unused
+      '', // 17 unused
+      '', // 18 unused
+      '', // 19 unused
       `Calling a 'use*()' method outside 'component$(() => { HERE })' is not allowed. 'use*()' methods provide hooks to the 'component$' state and lifecycle, ie 'use' hooks can only be called synchronously within the 'component$' function or another 'use' method.\nSee https://qwik.dev/docs/components/tasks/#use-method-rules`, // 20
-      '', // 21
-      '', // 22
-      '', // 23
-      '', // 24
-      '', // 25
-      '', // 26
-      '', // 27
+      '', // 21 unused
+      '', // 22 unused
+      '', // 23 unused
+      '', // 24 unused
+      '', // 25 unused
+      '', // 26 unused
+      '', // 27 unused
       'The provided Context reference "{{0}}" is not a valid context created by createContextId()', // 28
       'SsrError(tag): {{0}}', // 29
       'QRLs can not be resolved because it does not have an attached container. This means that the QRL does not know where it belongs inside the DOM, so it cant dynamically import() from a relative path.', // 30
@@ -52,7 +52,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Materialize error: missing element: {{0}} {{1}} {{2}}', // 44
       'SsrError: {{0}}', // 45
       'Cannot coerce a Signal, use `.value` instead', // 46
-      'useComputedSignal$ QRL {{0}}{{1}} returned a Promise', // 47
+      'useComputedSignal$ QRL {{0}} {{1}} returned a Promise', // 47
       'ComputedSignal is read-only', // 48
       'WrappedSignal is read-only', // 49
       'SsrError: Promises not expected here.', // 50
@@ -130,7 +130,7 @@ export const enum QError {
   unsafeAttr = 51,
 }
 
-export const qError = (code: number, ...parts: any[]): Error => {
-  const text = codeToText(code, ...parts);
-  return logErrorAndStop(text, ...parts);
+export const qError = (code: number, errorMessageArgs: any[] = []): Error => {
+  const text = codeToText(code, ...errorMessageArgs);
+  return logErrorAndStop(text, ...errorMessageArgs);
 };

@@ -436,11 +436,10 @@ export class ComputedSignal<T> extends Signal<T> {
     try {
       const untrackedValue = computeQrl.getFn(ctx)() as T;
       if (isPromise(untrackedValue)) {
-        throw qError(
-          QError.computedNotSync,
+        throw qError(QError.computedNotSync, [
           computeQrl.dev ? computeQrl.dev.file : '',
-          computeQrl.$hash$
-        );
+          computeQrl.$hash$,
+        ]);
       }
       DEBUG && log('Signal.$compute$', untrackedValue);
       this.$invalid$ = false;

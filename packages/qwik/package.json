@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/core",
   "description": "An open source framework for building instant loading web apps at any scale, without the extra effort.",
-  "version": "2.0.0-alpha.2",
+  "version": "2.0.0-alpha.4",
   "author": "Qwik Team",
   "bin": {
     "qwik": "./qwik-cli.cjs"
@@ -134,7 +134,7 @@
     "./qwikloader.debug.js": "./dist/qwikloader.debug.js",
     "./qwik-prefetch.js": "./dist/qwik-prefetch.js",
     "./qwik-prefetch.debug.js": "./dist/qwik-prefetch.debug.js",
-    "./package.json": "./dist/package.json"
+    "./package.json": "./package.json"
   },
   "exports_annotation": "We use the build for the optimizer because esbuild doesn't like the html?raw imports in the server plugin and it's only used in the vite configs",
   "files": [
@@ -194,5 +194,5 @@
     "build.insights": "cd src/insights && vite build --mode lib --emptyOutDir"
   },
   "type": "module",
-  "types": "./dist/core.d.ts"
+  "types": "./public.d.ts"
 }

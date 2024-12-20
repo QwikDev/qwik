@@ -36,7 +36,6 @@ describe('scheduler', () => {
     document = createDocument();
     document.body.setAttribute(QContainerAttr, 'paused');
     const container = getDomContainer(document.body);
-    container.processJsx = () => null!;
     scheduler = createScheduler(
       container,
       () => null,

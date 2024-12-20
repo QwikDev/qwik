@@ -101,11 +101,11 @@ describe.each([
     });
     const { vNode } = await render(<Parent />, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
-      <Fragment>
-        <Fragment>
-          <Fragment>default-value</Fragment>
-        </Fragment>
-      </Fragment>
+      <Component>
+        <Component>
+          <Projection>default-value</Projection>
+        </Component>
+      </Component>
     );
   });
   it('should save default value in q:template if not used', async () => {
@@ -258,6 +258,207 @@ describe.each([
       </Fragment>
     );
   });
+
+  it('should replace projection content with undefined', async () => {
+    const Test = component$(() => {
+      return (
+        <div>
+          <Slot />
+        </div>
+      );
+    });
+
+    const Cmp = component$(() => {
+      const test = useSignal<number | undefined>(1);
+
+      return (
+        <div>
+          <Test>
+            {test.value ? (
+              <div>
+                <h1>Hello from Qwik</h1>
+              </div>
+            ) : undefined}
+          </Test>
+
+          <button
+            onClick$={() => {
+              test.value = test.value ? undefined : 1;
+            }}
+          ></button>
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug: DEBUG });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Component>
+            <div>
+              <Projection>
+                <div>
+                  <h1>Hello from Qwik</h1>
+                </div>
+              </Projection>
+            </div>
+          </Component>
+          <button></button>
+        </div>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Component>
+            <div>
+              <Projection>{''}</Projection>
+            </div>
+          </Component>
+          <button></button>
+        </div>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Component>
+            <div>
+              <Projection>
+                <div>
+                  <h1>Hello from Qwik</h1>
+                </div>
+              </Projection>
+            </div>
+          </Component>
+          <button></button>
+        </div>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Component>
+            <div>
+              <Projection>{''}</Projection>
+            </div>
+          </Component>
+          <button></button>
+        </div>
+      </Component>
+    );
+  });
+
+  it('should replace projection content with null', async () => {
+    const Test = component$(() => {
+      return (
+        <div>
+          <Slot />
+        </div>
+      );
+    });
+
+    const Cmp = component$(() => {
+      const test = useSignal<number | null>(1);
+
+      return (
+        <div>
+          <Test>
+            {test.value ? (
+              <div>
+                <h1>Hello from Qwik</h1>
+              </div>
+            ) : null}
+          </Test>
+
+          <button
+            onClick$={() => {
+              test.value = test.value ? null : 1;
+            }}
+          ></button>
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug: DEBUG });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Component>
+            <div>
+              <Projection>
+                <div>
+                  <h1>Hello from Qwik</h1>
+                </div>
+              </Projection>
+            </div>
+          </Component>
+          <button></button>
+        </div>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Component>
+            <div>
+              <Projection>{''}</Projection>
+            </div>
+          </Component>
+          <button></button>
+        </div>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Component>
+            <div>
+              <Projection>
+                <div>
+                  <h1>Hello from Qwik</h1>
+                </div>
+              </Projection>
+            </div>
+          </Component>
+          <button></button>
+        </div>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Component>
+            <div>
+              <Projection>{''}</Projection>
+            </div>
+          </Component>
+          <button></button>
+        </div>
+      </Component>
+    );
+  });
+
   it('should ignore Slot inside inline-component', async () => {
     const Child = (props: { children: any }) => {
       return (

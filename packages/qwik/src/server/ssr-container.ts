@@ -1186,18 +1186,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         if (serializedValue != null && serializedValue !== false) {
           this.write(' ');
           this.write(key);
-          if (typeof serializedValue === 'number'){
+          if (typeof serializedValue === 'number') {
             this.write('=');
             const strValue = escapeHTML(serializedValue);
             this.write(strValue);
             this.write('');
-          }else if (serializedValue !== true) {
-              this.write('="');
-              
-              
+          } else if (serializedValue !== true) {
+            this.write('="');
             const strValue = escapeHTML(String(serializedValue));
             this.write(strValue);
-
             this.write('"');
           }
         }

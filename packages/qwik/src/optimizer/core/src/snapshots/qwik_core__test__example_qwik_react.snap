@@ -9,7 +9,7 @@ snapshot_kind: text
 
 import { componentQrl, inlinedQrl, useLexicalScope, useHostElement, useStore, useTaskQrl, noSerialize, SkipRerender, implicit$FirstArg } from '@qwik.dev/core';
 import { jsx, Fragment } from '@qwik.dev/core/jsx-runtime';
-import { isBrowser, isServer } from '@qwik.dev/core/build';
+import { isBrowser, isServer } from '@qwik.dev/core';
 
 function qwikifyQrl(reactCmpQrl) {
 	return /*#__PURE__*/ componentQrl(inlinedQrl((props)=>{
@@ -101,7 +101,7 @@ export { qwikify$, qwikifyQrl, renderToString };
 ============================= ../node_modules/@qwik.dev/react/index.qwik.mjs_qwikifyQrl_component_useWatch_x04JC5xeP1U.mjs (ENTRY POINT)==
 
 import { _auto_filterProps as filterProps } from "./index.qwik.mjs";
-import { isBrowser } from "@qwik.dev/core/build";
+import { isBrowser } from "@qwik.dev/core";
 import { noSerialize } from "@qwik.dev/core";
 import { useLexicalScope } from "@qwik.dev/core";
 export const qwikifyQrl_component_useWatch_x04JC5xeP1U = async (track)=>{
@@ -147,8 +147,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/react/inde
   "ctxName": "useTask$",
   "captures": true,
   "loc": [
-    642,
-    1371
+    636,
+    1365
   ]
 }
 */
@@ -158,7 +158,7 @@ import { Fragment } from "@qwik.dev/core/jsx-runtime";
 import { SkipRerender } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _auto_filterProps as filterProps } from "./index.qwik.mjs";
-import { isServer } from "@qwik.dev/core/build";
+import { isServer } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useHostElement } from "@qwik.dev/core";
 import { useLexicalScope } from "@qwik.dev/core";
@@ -214,8 +214,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/react/inde
   "ctxName": "component$",
   "captures": true,
   "loc": [
-    364,
-    2026
+    358,
+    2020
   ]
 }
 */

@@ -1,11 +1,11 @@
-import { routeLoader$ } from "@qwik.dev/router";
 import {
   component$,
+  isBrowser,
   useSignal,
   useTask$,
   useVisibleTask$,
 } from "@qwik.dev/core";
-import { isBrowser } from "@qwik.dev/core/build";
+import { routeLoader$ } from "@qwik.dev/router";
 
 export const useCmp1 = routeLoader$(
   () => {

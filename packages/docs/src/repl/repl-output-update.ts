@@ -11,9 +11,18 @@ const deepUpdate = (prev: any, next: any) => {
       }
     }
   }
-  for (const key in prev) {
-    if (!(key in next)) {
-      delete prev[key];
+  if (Array.isArray(prev)) {
+    for (let i = prev.length - 1; i >= 0; i--) {
+      const key = prev[i];
+      if (!(key in next)) {
+        prev.splice(i, 1);
+      }
+    }
+  } else {
+    for (const key in prev) {
+      if (!(key in next)) {
+        delete prev[key];
+      }
     }
   }
 };

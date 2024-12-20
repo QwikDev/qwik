@@ -14,7 +14,7 @@ import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
-import { trackSignal, untrack } from '../use/use-core';
+import { trackSignalAndAssignHost, untrack } from '../use/use-core';
 import { TaskFlags, cleanupTask, isTask } from '../use/use-task';
 import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import {
@@ -27,7 +27,9 @@ import {
   QSlot,
   QSlotParent,
   QStyle,
+  QSubscribers,
   QTemplate,
+  Q_PREFIX,
   dangerouslySetInnerHTML,
 } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
@@ -39,7 +41,7 @@ import {
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
 } from '../shared/utils/event-names';
-import { ChoreType, type NodePropData } from '../shared/scheduler';
+import { ChoreType } from '../shared/scheduler';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
 import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
@@ -91,7 +93,7 @@ import {
   type VNodeJournal,
 } from './vnode';
 import { getNewElementNamespaceData } from './vnode-namespace';
-import { WrappedSignal, EffectProperty, isSignal, EffectData } from '../signal/signal';
+import { WrappedSignal, EffectProperty, isSignal, EffectPropData } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
 import { executeComponent } from '../shared/component-execution';
 import { isParentSlotProp, isSlotProp } from '../shared/utils/prop';
@@ -100,8 +102,8 @@ import {
   clearSubscriberEffectDependencies,
   clearVNodeEffectDependencies,
 } from '../signal/signal-subscriber';
-import { throwErrorAndStop } from '../shared/utils/log';
 import { serializeAttribute } from '../shared/utils/styles';
+import { QError, qError } from '../shared/error/error';
 
 export type ComponentQueue = Array<VNode>;
 
@@ -193,12 +195,12 @@ export const vnode_diff = (
             descend(jsxValue, false);
           } else if (isSignal(jsxValue)) {
             if (vCurrent) {
-              clearVNodeEffectDependencies(vCurrent);
+              clearVNodeEffectDependencies(container, vCurrent);
             }
             expectVirtual(VirtualType.WrappedSignal, null);
             descend(
-              trackSignal(
-                () => (jsxValue as Signal).value,
+              trackSignalAndAssignHost(
+                jsxValue as Signal,
                 (vNewNode || vCurrent)!,
                 EffectProperty.VNODE,
                 container
@@ -402,51 +404,52 @@ export const vnode_diff = (
   /////////////////////////////////////////////////////////////////////////////
 
   function descendContentToProject(children: JSXChildren, host: VirtualVNode | null) {
-    if (!Array.isArray(children)) {
-      children = [children];
-    }
-    if (children.length) {
-      const createProjectionJSXNode = (slotName: string) => {
-        return new JSXNodeImpl(Projection, EMPTY_OBJ, null, [], 0, slotName);
-      };
+    const projectionChildren = Array.isArray(children) ? children : [children];
+    const createProjectionJSXNode = (slotName: string) => {
+      return new JSXNodeImpl(Projection, EMPTY_OBJ, null, [], 0, slotName);
+    };
 
-      const projections: Array<string | JSXNodeInternal> = [];
-      if (host) {
-        // we need to create empty projections for all the slots to remove unused slots content
-        for (let i = vnode_getPropStartIndex(host); i < host.length; i = i + 2) {
-          const prop = host[i] as string;
-          if (isSlotProp(prop)) {
-            const slotName = prop;
-            projections.push(slotName);
-            projections.push(createProjectionJSXNode(slotName));
-          }
+    const projections: Array<string | JSXNodeInternal> = [];
+    if (host) {
+      // we need to create empty projections for all the slots to remove unused slots content
+      for (let i = vnode_getPropStartIndex(host); i < host.length; i = i + 2) {
+        const prop = host[i] as string;
+        if (isSlotProp(prop)) {
+          const slotName = prop;
+          projections.push(slotName);
+          projections.push(createProjectionJSXNode(slotName));
         }
       }
-
-      /// STEP 1: Bucketize the children based on the projection name.
-      for (let i = 0; i < children.length; i++) {
-        const child = children[i];
-        const slotName = String(
-          (isJSXNode(child) && directGetPropsProxyProp(child, QSlot)) || QDefaultSlot
-        );
-        const idx = mapApp_findIndx(projections, slotName, 0);
-        let jsxBucket: JSXNodeImpl<typeof Projection>;
-        if (idx >= 0) {
-          jsxBucket = projections[idx + 1] as any;
-        } else {
-          projections.splice(~idx, 0, slotName, (jsxBucket = createProjectionJSXNode(slotName)));
-        }
-        const removeProjection = child === false;
-        if (!removeProjection) {
-          (jsxBucket.children as JSXChildren[]).push(child);
-        }
-      }
-      /// STEP 2: remove the names
-      for (let i = projections.length - 2; i >= 0; i = i - 2) {
-        projections.splice(i, 1);
-      }
-      descend(projections, true);
     }
+
+    if (projections.length === 0 && children == null) {
+      // We did not find any existing slots and we don't have any children to project.
+      return;
+    }
+
+    /// STEP 1: Bucketize the children based on the projection name.
+    for (let i = 0; i < projectionChildren.length; i++) {
+      const child = projectionChildren[i];
+      const slotName = String(
+        (isJSXNode(child) && directGetPropsProxyProp(child, QSlot)) || QDefaultSlot
+      );
+      const idx = mapApp_findIndx(projections, slotName, 0);
+      let jsxBucket: JSXNodeImpl<typeof Projection>;
+      if (idx >= 0) {
+        jsxBucket = projections[idx + 1] as any;
+      } else {
+        projections.splice(~idx, 0, slotName, (jsxBucket = createProjectionJSXNode(slotName)));
+      }
+      const removeProjection = child === false;
+      if (!removeProjection) {
+        (jsxBucket.children as JSXChildren[]).push(child);
+      }
+    }
+    /// STEP 2: remove the names
+    for (let i = projections.length - 2; i >= 0; i = i - 2) {
+      projections.splice(i, 1);
+    }
+    descend(projections, true);
   }
 
   function expectProjection() {
@@ -526,7 +529,7 @@ export const vnode_diff = (
     if (constProps && typeof constProps == 'object' && 'name' in constProps) {
       const constValue = constProps.name;
       if (vHost && constValue instanceof WrappedSignal) {
-        return trackSignal(() => constValue.value, vHost, EffectProperty.COMPONENT, container);
+        return trackSignalAndAssignHost(constValue, vHost, EffectProperty.COMPONENT, container);
       }
     }
     return directGetPropsProxyProp(jsxNode, 'name') || QDefaultSlot;
@@ -630,12 +633,12 @@ export const vnode_diff = (
         }
 
         if (isSignal(value)) {
-          const signalData = new EffectData<NodePropData>({
+          const signalData = new EffectPropData({
             $scopedStyleIdPrefix$: scopedStyleIdPrefix,
             $isConst$: true,
           });
-          value = trackSignal(
-            () => (value as Signal<unknown>).value,
+          value = trackSignalAndAssignHost(
+            value as Signal<unknown>,
             vNewNode as ElementVNode,
             key,
             container,
@@ -652,7 +655,7 @@ export const vnode_diff = (
         if (elementName === 'textarea' && key === 'value') {
           if (typeof value !== 'string') {
             if (isDev) {
-              throwErrorAndStop('The value of the textarea must be a string');
+              throw qError(QError.wrongTextareaValue);
             }
             continue;
           }
@@ -817,7 +820,7 @@ export const vnode_diff = (
     };
 
     while (srcKey !== null || dstKey !== null) {
-      if (dstKey?.startsWith(HANDLER_PREFIX) || dstKey == ELEMENT_KEY) {
+      if (dstKey?.startsWith(HANDLER_PREFIX) || dstKey?.startsWith(Q_PREFIX)) {
         // These are a special keys which we use to mark the event handlers as immutable or
         // element key we need to ignore them.
         dstIdx++; // skip the destination value, we don't care about it.
@@ -1036,7 +1039,7 @@ export const vnode_diff = (
           container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
         }
       }
-      jsxNode.children != null && descendContentToProject(jsxNode.children, host);
+      descendContentToProject(jsxNode.children, host);
     } else {
       const lookupKey = jsxNode.key;
       const vNodeLookupKey = getKey(host);
@@ -1086,7 +1089,7 @@ export const vnode_diff = (
     jsxProps: Props
   ) {
     if (host) {
-      clearVNodeEffectDependencies(host);
+      clearVNodeEffectDependencies(container, host);
     }
     vnode_insertBefore(
       journal,
@@ -1203,8 +1206,8 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
   if (!src || !dst) {
     return true;
   }
-  let srcKeys = removeChildrenKey(Object.keys(src));
-  let dstKeys = removeChildrenKey(Object.keys(dst));
+  let srcKeys = removePropsKeys(Object.keys(src), ['children', QSubscribers]);
+  let dstKeys = removePropsKeys(Object.keys(dst), ['children', QSubscribers]);
   if (srcKeys.length !== dstKeys.length) {
     return true;
   }
@@ -1220,11 +1223,15 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
   return false;
 }
 
-function removeChildrenKey(keys: string[]): string[] {
-  const childrenIdx = keys.indexOf('children');
-  if (childrenIdx !== -1) {
-    keys.splice(childrenIdx, 1);
+function removePropsKeys(keys: string[], propKeys: string[]): string[] {
+  for (let i = propKeys.length - 1; i >= 0; i--) {
+    const propKey = propKeys[i];
+    const propIdx = keys.indexOf(propKey);
+    if (propIdx !== -1) {
+      keys.splice(propIdx, 1);
+    }
   }
+
   return keys;
 }
 
@@ -1249,11 +1256,10 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
   do {
     const type = vCursor[VNodeProps.flags];
     if (type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) {
+      clearVNodeEffectDependencies(container, vCursor);
+      markVNodeAsDeleted(vCursor);
       // Only elements and virtual nodes need to be traversed for children
       if (type & VNodeFlags.Virtual) {
-        // Only virtual nodes have subscriptions
-        clearVNodeEffectDependencies(vCursor);
-        markVNodeAsDeleted(vCursor);
         const seq = container.getHostProp<Array<any>>(vCursor as VirtualVNode, ELEMENT_SEQ);
         if (seq) {
           for (let i = 0; i < seq.length; i++) {

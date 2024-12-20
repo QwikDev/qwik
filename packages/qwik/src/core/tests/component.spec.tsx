@@ -20,10 +20,12 @@ import {
   type Signal as SignalType,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { cleanupAttrs } from '../../testing/element-fixture';
-import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
+import { QError } from '../shared/error/error';
+import { ErrorProvider } from '../../testing/rendering.unit-util';
+import * as qError from '../shared/error/error';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -185,19 +187,19 @@ describe.each([
           <Component ssr-required>
             <div>
               <span>Component 1</span>
-              <Signal>1</Signal>
+              <Signal ssr-required>1</Signal>
             </div>
           </Component>
           <Component ssr-required>
             <div>
               <span>Component 1</span>
-              <Signal>1</Signal>
+              <Signal ssr-required>1</Signal>
             </div>
           </Component>
           <Component ssr-required>
             <div>
               <span>Component 2</span>
-              <Signal>2</Signal>
+              <Signal ssr-required>2</Signal>
             </div>
           </Component>
         </main>
@@ -479,6 +481,7 @@ describe.each([
   });
 
   it('should not render textarea value for non-text value', async () => {
+    const qErrorSpy = vi.spyOn(qError, 'qError');
     const Cmp = component$(() => {
       const signal = useSignal(<h1>header</h1>);
       return (
@@ -497,12 +500,9 @@ describe.each([
         </ErrorProvider>,
         { debug }
       );
-      expect(ErrorProvider.error.message).toBe(
-        render === domRender ? 'The value of the textarea must be a string' : null
-      );
     } catch (e) {
-      expect(render).toBe(ssrRenderToDom);
-      expect((e as Error).message).toBe('The value of the textarea must be a string');
+      expect((e as Error).message).toBeDefined();
+      expect(qErrorSpy).toHaveBeenCalledWith(QError.wrongTextareaValue);
     }
   });
 

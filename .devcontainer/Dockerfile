@@ -1,8 +1,8 @@
-FROM cimg/rust:1.73-node
+FROM cimg/rust:1.74-node
 
 RUN rustup --version; \
     cargo --version; \
-    rustc --version; 
+    rustc --version;
 
 RUN rustup update; \
     rustup target add wasm32-unknown-unknown; \

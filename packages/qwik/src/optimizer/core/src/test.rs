@@ -3600,6 +3600,62 @@ fn impure_template_fns() {
 	});
 }
 
+// This code should have all server side imports removed. Right now the simplifier doesn't remove the class
+const SIDE_EFFECTS_CODE: &str = r#"
+import { component$, useVisibleTask$ } from "@builder.io/qwik";
+import { server$ } from "@builder.io/qwik-city";
+import { SomeEnum } from "~/generated/some/v1/enum_pb";
+import { createConnectTransport } from "@connectrpc/connect-node";
+import { createPromiseClient } from "@connectrpc/connect";
+import { SomeService } from "~/generated/some/v1/service_connect";
+
+const fn = () => SomeService()
+function hi() { SomeService() }
+class Grpc {
+	private static transport = createConnectTransport();
+	static service = createPromiseClient(SomeService, this.transport);
+}
+
+export const fooServerFunc = server$(async function () {
+	await Grpc.service.someFetch({});
+	await fn();
+	await hi();
+});
+
+export default component$(() => {
+	useVisibleTask$(() => {
+		fooServerFunc();
+	});
+
+	return <div>{Math.random() == SomeEnum.A ? 1 : 2}</div>;
+});"#;
+
+#[test]
+fn side_effects_server() {
+	test_input!(TestInput {
+		code: SIDE_EFFECTS_CODE.to_string(),
+		entry_strategy: EntryStrategy::Inline,
+		reg_ctx_name: Some(vec!["server".into()]),
+		strip_event_handlers: true,
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn side_effects_client() {
+	test_input!(TestInput {
+		code: SIDE_EFFECTS_CODE.to_string(),
+		strip_ctx_name: Some(vec!["server".into()]),
+		is_server: Some(false),
+		mode: EmitMode::Dev,
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 // TODO(misko): Make this test work by implementing strict serialization.
 // #[test]
 // fn example_of_synchronous_qrl_that_cant_be_serialized() {

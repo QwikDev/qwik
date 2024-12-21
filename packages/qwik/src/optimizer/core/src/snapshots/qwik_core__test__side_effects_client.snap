@@ -1,0 +1,139 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 3648
+expression: output
+snapshot_kind: text
+---
+==INPUT==
+
+
+import { component$, useVisibleTask$ } from "@builder.io/qwik";
+import { server$ } from "@builder.io/qwik-city";
+import { SomeEnum } from "~/generated/some/v1/enum_pb";
+import { createConnectTransport } from "@connectrpc/connect-node";
+import { createPromiseClient } from "@connectrpc/connect";
+import { SomeService } from "~/generated/some/v1/service_connect";
+
+const fn = () => SomeService()
+function hi() { SomeService() }
+class Grpc {
+	private static transport = createConnectTransport();
+	static service = createPromiseClient(SomeService, this.transport);
+}
+
+export const fooServerFunc = server$(async function () {
+	await Grpc.service.someFetch({});
+	await fn();
+	await hi();
+});
+
+export default component$(() => {
+	useVisibleTask$(() => {
+		fooServerFunc();
+	});
+
+	return <div>{Math.random() == SomeEnum.A ? 1 : 2}</div>;
+});
+============================= test.js ==
+
+import { serverQrl } from "@builder.io/qwik-city";
+import { _noopQrlDEV } from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+import { qrlDEV } from "@builder.io/qwik";
+import { createConnectTransport } from "@connectrpc/connect-node";
+import { createPromiseClient } from "@connectrpc/connect";
+import { SomeService } from "~/generated/some/v1/service_connect";
+class Grpc {
+    static transport = createConnectTransport();
+    static service = createPromiseClient(SomeService, this.transport);
+}
+export const fooServerFunc = serverQrl(/*#__PURE__*/ _noopQrlDEV("fooServerFunc_server_csCvCkREsB4", {
+    file: "/user/qwik/src/test.tsx",
+    lo: 0,
+    hi: 0,
+    displayName: "test.tsx_fooServerFunc_server"
+}));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg", {
+    file: "/user/qwik/src/test.tsx",
+    lo: 715,
+    hi: 832,
+    displayName: "test.tsx_test_component"
+}));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAIA,SAAS,sBAAsB,QAAQ,2BAA2B;AAClE,SAAS,mBAAmB,QAAQ,sBAAsB;AAC1D,SAAS,WAAW,QAAQ,sCAAsC;AAIlE,MAAM;IACL,OAAe,YAAY,yBAAyB;IACpD,OAAO,UAAU,oBAAoB,aAAa,IAAI,CAAC,SAAS,EAAE;AACnE;AAEA,OAAO,MAAM,gBAAgB;;;;;IAI1B;AAEH,6BAAe;;;;;IAMZ\"}")
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { SomeEnum } from "~/generated/some/v1/enum_pb";
+import { _jsxQ } from "@builder.io/qwik";
+import { qrlDEV } from "@builder.io/qwik";
+import { useVisibleTaskQrl } from "@builder.io/qwik";
+export const test_component_LUXeXe0DQrg = ()=>{
+    useVisibleTaskQrl(/*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_useVisibleTask_ReZKFsNUQbo"), "test_component_useVisibleTask_ReZKFsNUQbo", {
+        file: "/user/qwik/src/test.tsx",
+        lo: 740,
+        hi: 769,
+        displayName: "test.tsx_test_component_useVisibleTask"
+    }));
+    return /*#__PURE__*/ _jsxQ("div", null, null, Math.random() == SomeEnum.A ? 1 : 2, 3, "u6_0", {
+        fileName: "test.tsx",
+        lineNumber: 27,
+        columnNumber: 9
+    });
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAqB0B;IACzB;;;;;;IAIA,qBAAO,MAAC,mBAAK,KAAK,MAAM,MAAM,SAAS,CAAC,GAAG,IAAI;;;;;AAChD\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    715,
+    832
+  ]
+}
+*/
+============================= test.tsx_test_component_useVisibleTask_ReZKFsNUQbo.js (ENTRY POINT)==
+
+import { fooServerFunc } from "./test";
+export const test_component_useVisibleTask_ReZKFsNUQbo = ()=>{
+    fooServerFunc();
+};
+export { _hW } from "@builder.io/qwik";
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yDAsBiB;IACf;AACD\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_useVisibleTask_ReZKFsNUQbo",
+  "entry": null,
+  "displayName": "test.tsx_test_component_useVisibleTask",
+  "hash": "ReZKFsNUQbo",
+  "canonicalFilename": "test.tsx_test_component_useVisibleTask_ReZKFsNUQbo",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "function",
+  "ctxName": "useVisibleTask$",
+  "captures": false,
+  "loc": [
+    740,
+    769
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

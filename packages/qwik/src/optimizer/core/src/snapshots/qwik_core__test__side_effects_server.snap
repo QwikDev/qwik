@@ -1,0 +1,76 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 3605
+expression: output
+snapshot_kind: text
+---
+==INPUT==
+
+
+import { component$, useVisibleTask$ } from "@builder.io/qwik";
+import { server$ } from "@builder.io/qwik-city";
+import { SomeEnum } from "~/generated/some/v1/enum_pb";
+import { createConnectTransport } from "@connectrpc/connect-node";
+import { createPromiseClient } from "@connectrpc/connect";
+import { SomeService } from "~/generated/some/v1/service_connect";
+
+const fn = () => SomeService()
+function hi() { SomeService() }
+class Grpc {
+	private static transport = createConnectTransport();
+	static service = createPromiseClient(SomeService, this.transport);
+}
+
+export const fooServerFunc = server$(async function () {
+	await Grpc.service.someFetch({});
+	await fn();
+	await hi();
+});
+
+export default component$(() => {
+	useVisibleTask$(() => {
+		fooServerFunc();
+	});
+
+	return <div>{Math.random() == SomeEnum.A ? 1 : 2}</div>;
+});
+============================= test.js ==
+
+import { serverQrl } from "@builder.io/qwik-city";
+import { _regSymbol } from "@builder.io/qwik";
+import { inlinedQrl } from "@builder.io/qwik";
+import { componentQrl } from "@builder.io/qwik";
+import { useVisibleTaskQrl } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
+import { SomeEnum } from "~/generated/some/v1/enum_pb";
+import { createConnectTransport } from "@connectrpc/connect-node";
+import { createPromiseClient } from "@connectrpc/connect";
+import { SomeService } from "~/generated/some/v1/service_connect";
+const fn = ()=>SomeService();
+function hi() {
+    SomeService();
+}
+class Grpc {
+    static transport = createConnectTransport();
+    static service = createPromiseClient(SomeService, this.transport);
+}
+export const fooServerFunc = serverQrl(/*#__PURE__*/ inlinedQrl(/*#__PURE__*/ _regSymbol(async function() {
+    await Grpc.service.someFetch({});
+    await fn();
+    await hi();
+}, "csCvCkREsB4"), "fooServerFunc_server_csCvCkREsB4"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
+    useVisibleTaskQrl(/*#__PURE__*/ inlinedQrl(()=>{
+        fooServerFunc();
+    }, "test_component_useVisibleTask_ReZKFsNUQbo"));
+    return /*#__PURE__*/ _jsxQ("div", null, null, Math.random() == SomeEnum.A ? 1 : 2, 3, "u6_0");
+}, "test_component_LUXeXe0DQrg"));
+export { Grpc as _auto_Grpc };
+export { fn as _auto_fn };
+export { hi as _auto_hi };
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,SAAS,QAAQ,QAAQ,8BAA8B;AACvD,SAAS,sBAAsB,QAAQ,2BAA2B;AAClE,SAAS,mBAAmB,QAAQ,sBAAsB;AAC1D,SAAS,WAAW,QAAQ,sCAAsC;AAElE,MAAM,KAAK,IAAM;AACjB,SAAS;IAAO;AAAc;AAC9B,MAAM;IACL,OAAe,YAAY,yBAAyB;IACpD,OAAO,UAAU,oBAAoB,aAAa,IAAI,CAAC,SAAS,EAAE;AACnE;AAEA,OAAO,MAAM,gBAAgB,4DAAQ;IACpC,MAAM,KAAK,OAAO,CAAC,SAAS,CAAC,CAAC;IAC9B,MAAM;IACN,MAAM;AACP,wDAAG;AAEH,6BAAe,sCAAW;IACzB,2CAAgB;QACf;IACD;IAEA,qBAAO,MAAC,mBAAK,KAAK,MAAM,MAAM,SAAS,CAAC,GAAG,IAAI;AAChD,kCAAG\"}")
+== DIAGNOSTICS ==
+
+[]

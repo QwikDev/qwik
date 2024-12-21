@@ -2116,28 +2116,36 @@ impl<'a> Fold for QwikTransform<'a> {
 
 		if let ast::Callee::Expr(box ast::Expr::Ident(ident)) = &node.callee {
 			if id_eq!(ident, &self.sync_qrl_fn) {
+				// Sync QRL
 				return self.handle_sync_qrl(node);
 			} else if id_eq!(ident, &self.qsegment_fn) {
+				// $()
 				if let Some(comments) = self.options.comments {
 					comments.add_pure_comment(ident.span.lo);
 				}
 				return self.handle_qsegment(node);
 			} else if self.jsx_functions.contains(&id!(ident)) {
+				// jsx() family
 				return self.handle_jsx(node);
 			} else if id_eq!(ident, &self.inlined_qrl_fn) {
+				// inlinedQrl()
 				return self.handle_inlined_qsegment(node);
 			} else if let Some(specifier) = self.marker_functions.get(&id!(ident)) {
+				// any xyz$() function we discovered earlier
 				self.stack_ctxt.push(ident.sym.to_string());
 				ctx_name = specifier.clone();
 				name_token = true;
 
 				if id_eq!(ident, &self.qcomponent_fn) {
+					// component$
 					self.in_component = true;
+					// Tell the bundler that component$ has no side effects
 					if let Some(comments) = self.options.comments {
 						comments.add_pure_comment(node.span.lo);
 					}
 				}
 				let global_collect = &mut self.options.global_collect;
+				// Replace xyz$ with xyzQrl
 				if let Some(import) = global_collect.imports.get(&id!(ident)).cloned() {
 					let new_specifier =
 						convert_qrl_word(&import.specifier).expect("Specifier ends with $");

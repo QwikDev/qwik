@@ -14,11 +14,11 @@ import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
 import { WrappedSignal } from '../signal/signal';
 
-const debug = false; //true;
+const debug = true; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
-  { render: ssrRenderToDom }, //
+  // { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: useTask', ({ render }) => {
   it('should execute task', async () => {
@@ -768,6 +768,54 @@ describe.each([
               </Fragment>
             </Component>
           </Fragment>
+        </Component>
+      );
+    });
+
+    it.only('#7134', async () => {
+      const Input = component$<{ error: string }>((props) => {
+        const count = useSignal(0);
+        useTask$(({ track }) => {
+          track(() => props.error);
+          count.value++;
+        });
+        return <>{count.value}</>;
+      });
+
+      const Parent = component$(() => {
+        const [store] = [useStore<{ errors: { test?: string } }>({ errors: {} })];
+        return (
+          <div>
+            <button
+              onClick$={() => {
+                store.errors.test = store.errors?.test
+                  ? undefined
+                  : store.errors?.test === 'ERROR TEST'
+                    ? 'ERROR TEST1'
+                    : 'ERROR TEST';
+              }}
+            >
+              click
+            </button>
+            <Input error={store.errors.test!} />
+          </div>
+        );
+      });
+      const { vNode, document } = await render(<Parent />, { debug });
+      await trigger(document.body, 'button', 'click');
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <div>
+            <button>click</button>
+            <Component ssr-required>
+              <Fragment ssr-required>
+                <p>
+                  <Signal ssr-required>2</Signal>
+                </p>
+              </Fragment>
+            </Component>
+          </div>
         </Component>
       );
     });

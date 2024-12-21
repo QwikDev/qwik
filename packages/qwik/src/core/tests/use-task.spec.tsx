@@ -14,11 +14,11 @@ import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
 import { WrappedSignal } from '../signal/signal';
 
-const debug = true; //true;
+const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
-  // { render: ssrRenderToDom }, //
+  { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: useTask', ({ render }) => {
   it('should execute task', async () => {

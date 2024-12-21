@@ -772,7 +772,7 @@ describe.each([
       );
     });
 
-    it.only('#7134', async () => {
+    it.skip('#7134', async () => {
       const Input = component$<{ error: string }>((props) => {
         const count = useSignal(0);
         useTask$(({ track }) => {

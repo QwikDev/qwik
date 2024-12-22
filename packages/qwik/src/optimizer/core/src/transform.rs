@@ -10,7 +10,6 @@ use crate::parse::{EmitMode, PathData};
 use crate::words::*;
 use crate::{errors, EntryStrategy};
 use base64::Engine;
-use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::DefaultHasher;
 use std::collections::{BTreeMap, HashMap, HashSet};
@@ -117,7 +116,6 @@ pub struct QwikTransform<'a> {
 
 pub struct QwikTransformOptions<'a> {
 	pub path_data: &'a PathData,
-	pub dev_path: Option<&'a str>,
 	pub entry_policy: &'a dyn EntryPolicy,
 	pub extension: JsWord,
 	pub core_module: JsWord,
@@ -160,11 +158,11 @@ impl<'a> QwikTransform<'a> {
 		}
 
 		let mut hasher = DefaultHasher::new();
-		let local_file_name = options.path_data.rel_path.to_slash_lossy();
 		if let Some(scope) = options.scope {
 			hasher.write(scope.as_bytes());
 		}
-		hasher.write(local_file_name.as_bytes());
+		// Try to get the same hash on Windows and Unix, but no guarantees
+		hasher.write(options.path_data.lossy.as_bytes());
 
 		let jsx_functions = options
 			.global_collect
@@ -265,11 +263,6 @@ impl<'a> QwikTransform<'a> {
 
 	fn get_dev_location(&self, span: Span) -> ast::ExprOrSpread {
 		let loc = self.options.cm.lookup_char_pos(span.lo);
-		let file_name = self
-			.options
-			.dev_path
-			.map(|p| p.to_string())
-			.unwrap_or_else(|| self.options.path_data.rel_path.to_slash_lossy().to_string());
 		ast::ExprOrSpread {
 			spread: None,
 			expr: Box::new(ast::Expr::Object(ast::ObjectLit {
@@ -280,7 +273,7 @@ impl<'a> QwikTransform<'a> {
 						value: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
 							span: DUMMY_SP,
 							raw: None,
-							value: file_name.into(),
+							value: self.options.path_data.src.clone(),
 						}))),
 					}))),
 					ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
@@ -330,11 +323,11 @@ impl<'a> QwikTransform<'a> {
 			write!(display_name, "_{}", index).unwrap();
 		}
 		let mut hasher = DefaultHasher::new();
-		let local_file_name = self.options.path_data.rel_path.to_slash_lossy();
 		if let Some(scope) = self.options.scope {
 			hasher.write(scope.as_bytes());
 		}
-		hasher.write(local_file_name.as_bytes());
+		// Try to get the same hash on Windows and Unix, but no guarantees
+		hasher.write(self.options.path_data.lossy.as_bytes());
 		hasher.write(display_name.as_bytes());
 		let hash = hasher.finish();
 		let hash64 = base64(hash);
@@ -425,8 +418,8 @@ impl<'a> QwikTransform<'a> {
 			parent_segment: self.segment_stack.last().cloned(),
 			ctx_kind,
 			ctx_name,
-			origin: self.options.path_data.rel_path.to_slash_lossy().into(),
-			path: self.options.path_data.rel_dir.to_slash_lossy().into(),
+			origin: self.options.path_data.src.clone(),
+			path: self.options.path_data.dir.clone(),
 			display_name,
 			need_transform: false,
 			hash,
@@ -655,8 +648,8 @@ impl<'a> QwikTransform<'a> {
 			parent_segment: self.segment_stack.last().cloned(),
 			ctx_kind,
 			ctx_name,
-			origin: self.options.path_data.rel_path.to_slash_lossy().into(),
-			path: self.options.path_data.rel_dir.to_slash_lossy().into(),
+			origin: self.options.path_data.src.clone(),
+			path: self.options.path_data.dir.clone(),
 			display_name,
 			need_transform: true,
 			hash,
@@ -956,11 +949,7 @@ impl<'a> QwikTransform<'a> {
 		];
 		let fn_callee = if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				JsWord::from(
-					self.options
-						.dev_path
-						.unwrap_or(&self.options.path_data.abs_path.to_slash_lossy()),
-				),
+				self.options.path_data.src.clone(),
 				segment_data,
 				span,
 			));
@@ -1028,11 +1017,7 @@ impl<'a> QwikTransform<'a> {
 
 		let fn_callee = if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				JsWord::from(
-					self.options
-						.dev_path
-						.unwrap_or(&self.options.path_data.abs_path.to_slash_lossy()),
-				),
+				self.options.path_data.src.clone(),
 				&segment_data,
 				&span,
 			));
@@ -1680,11 +1665,7 @@ impl<'a> QwikTransform<'a> {
 		let mut fn_name: &JsWord = &_NOOP_QRL;
 		if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				JsWord::from(
-					self.options
-						.dev_path
-						.unwrap_or(&self.options.path_data.abs_path.to_slash_lossy()),
-				),
+				self.options.path_data.src.clone(),
 				&segment_data,
 				&DUMMY_SP,
 			));
@@ -2051,15 +2032,7 @@ impl<'a> Fold for QwikTransform<'a> {
 	fn fold_export_default_expr(&mut self, node: ast::ExportDefaultExpr) -> ast::ExportDefaultExpr {
 		let mut filename = self.options.path_data.file_stem.clone();
 		if filename == "index" {
-			if let Some(foldername) = self
-				.options
-				.path_data
-				.rel_dir
-				.file_name()
-				.and_then(|s| s.to_str())
-			{
-				filename = foldername.to_string();
-			}
+			filename = self.options.path_data.dir_name.clone();
 		}
 		self.stack_ctxt.push(filename);
 		let o = node.fold_children_with(self);
@@ -2355,7 +2328,7 @@ fn parse_symbol_name(
 	(s_n, display_name.into(), hash.into())
 }
 
-fn get_qrl_dev_obj(abs_path: JsWord, segment: &SegmentData, span: &Span) -> ast::Expr {
+fn get_qrl_dev_obj(src: JsWord, segment: &SegmentData, span: &Span) -> ast::Expr {
 	ast::Expr::Object(ast::ObjectLit {
 		span: DUMMY_SP,
 		props: vec![
@@ -2363,7 +2336,7 @@ fn get_qrl_dev_obj(abs_path: JsWord, segment: &SegmentData, span: &Span) -> ast:
 				key: ast::PropName::Ident(ast::IdentName::new(js_word!("file"), DUMMY_SP)),
 				value: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
 					span: DUMMY_SP,
-					value: abs_path,
+					value: src,
 					raw: None,
 				}))),
 			}))),

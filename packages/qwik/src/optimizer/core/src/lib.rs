@@ -82,7 +82,6 @@ pub struct TransformFsOptions {
 #[serde(rename_all = "camelCase")]
 pub struct TransformModuleInput {
 	pub path: String,
-	pub dev_path: Option<String>,
 	pub code: String,
 }
 
@@ -135,10 +134,8 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
 
 			let relative_path = pathdiff::diff_paths(path, &config.src_dir).unwrap();
 			transform_code(TransformCodeOptions {
-				src_dir,
+				src_path: relative_path.to_str().unwrap(),
 				root_dir,
-				relative_path: relative_path.to_str().unwrap(),
-				dev_path: None,
 				minify: config.minify,
 				code: &code,
 				explicit_extensions: config.explicit_extensions,
@@ -170,7 +167,6 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
 	let core_module = config
 		.core_module
 		.map_or(BUILDER_IO_QWIK.clone(), |s| s.into());
-	let src_dir = std::path::Path::new(&config.src_dir);
 	let root_dir = config.root_dir.as_ref().map(Path::new);
 
 	let entry_policy = &*parse_entry_strategy(&config.entry_strategy, config.manual_chunks);
@@ -182,10 +178,8 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
 
 	let iterator = iterator.map(|input| -> Result<TransformOutput, Error> {
 		transform_code(TransformCodeOptions {
-			src_dir,
+			src_path: &input.path,
 			root_dir,
-			relative_path: &input.path,
-			dev_path: input.dev_path.as_deref(),
 			code: &input.code,
 			minify: config.minify,
 			source_maps: config.source_maps,

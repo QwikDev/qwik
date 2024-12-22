@@ -2,7 +2,7 @@ use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::hash::Hasher;
-use std::path::{Component, Path, PathBuf};
+use std::path::{Path, PathBuf};
 use std::str;
 
 use crate::add_side_effect::SideEffectVisitor;
@@ -72,9 +72,9 @@ pub enum EmitMode {
 }
 
 pub struct TransformCodeOptions<'a> {
-	pub relative_path: &'a str,
-	pub dev_path: Option<&'a str>,
-	pub src_dir: &'a Path,
+	/// Used to calculate QRL hashes and annotate QRLs with their source file. Make this relative if possible.
+	pub src_path: &'a str,
+	/// Used for source maps
 	pub root_dir: Option<&'a Path>,
 	pub source_maps: bool,
 	pub minify: MinifyMode,
@@ -214,21 +214,13 @@ impl Emitter for ErrorBuffer {
 
 pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, anyhow::Error> {
 	let source_map = Lrc::new(SourceMap::default());
-	let path_data = parse_path(
-		config.relative_path.replace('\\', "/").as_str(),
-		config.src_dir,
-	)?;
-	let result = parse(
-		config.code,
-		&path_data,
-		config.root_dir,
-		Lrc::clone(&source_map),
-	);
+	let path_data = parse_path(config.src_path)?;
+	let result = parse(config.code, &path_data, Lrc::clone(&source_map));
 	// dbg!(&module);
 	let transpile_jsx = config.transpile_jsx;
 	let transpile_ts = config.transpile_ts;
 
-	let origin: JsWord = JsWord::from(path_data.rel_path.to_string_lossy());
+	let origin: JsWord = JsWord::from(path_data.path.to_string_lossy());
 
 	match result {
 		Ok((program, comments, is_type_script, is_jsx)) => {
@@ -319,7 +311,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 						// split into segments
 						let mut qwik_transform = QwikTransform::new(QwikTransformOptions {
 							path_data: &path_data,
-							dev_path: config.dev_path,
 							entry_policy: config.entry_policy,
 							explicit_extensions: config.explicit_extensions,
 							extension: extension.clone(),
@@ -362,8 +353,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 						) {
 							program.visit_mut_with(&mut SideEffectVisitor::new(
 								&qwik_transform.options.global_collect,
-								&path_data,
-								config.src_dir,
 							));
 						} else if config.minify != MinifyMode::None && !config.is_server {
 							// remove all side effects from client, step 2
@@ -492,7 +481,13 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 					} else {
 						path_data.file_name
 					};
-					let path = path_data.rel_dir.join(a).to_slash_lossy().to_string();
+					let path = path_data
+						.path
+						.parent()
+						.unwrap()
+						.join(a)
+						.to_slash_lossy()
+						.to_string();
 
 					let mut hasher = DefaultHasher::new();
 					hasher.write(path.as_bytes());
@@ -534,15 +529,10 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 fn parse(
 	code: &str,
 	path_data: &PathData,
-	root_dir: Option<&Path>,
 	source_map: Lrc<SourceMap>,
 ) -> PResult<(ast::Program, SingleThreadedComments, bool, bool)> {
-	let sm_path = if let Some(root_dir) = root_dir {
-		pathdiff::diff_paths(path_data.abs_path.clone(), root_dir).unwrap()
-	} else {
-		path_data.abs_path.clone()
-	};
-	let source_file = source_map.new_source_file(FileName::Real(sm_path).into(), code.into());
+	let source_file =
+		source_map.new_source_file(FileName::Real(path_data.path.clone()).into(), code.into());
 
 	let comments = SingleThreadedComments::default();
 	let (is_type_script, is_jsx) = parse_filename(path_data);
@@ -707,67 +697,50 @@ fn handle_error(
 }
 
 pub struct PathData {
-	pub abs_path: PathBuf,
-	pub rel_path: PathBuf,
-	pub abs_dir: PathBuf,
-	pub rel_dir: PathBuf,
+	pub path: PathBuf,
+	pub src: JsWord,
+	pub lossy: String,
+	pub dir: JsWord,
+	pub dir_name: String,
 	pub file_stem: String,
 	pub extension: String,
 	pub file_name: String,
+	// pub display_name: JsWord,
 }
 
-pub fn parse_path(src: &str, base_dir: &Path) -> Result<PathData, Error> {
+pub fn parse_path(src: &str) -> Result<PathData, Error> {
 	let path = Path::new(src);
-	let lossy = path.to_slash_lossy();
-	let path = Path::new(lossy.as_ref());
 	let file_stem = path
 		.file_stem()
 		.and_then(OsStr::to_str)
 		.map(Into::into)
 		.with_context(|| format!("Computing file stem for {}", path.to_string_lossy()))?;
 
-	let rel_dir = path.parent().unwrap().to_path_buf();
 	let extension = path.extension().and_then(OsStr::to_str).unwrap();
 	let file_name = path
 		.file_name()
 		.and_then(OsStr::to_str)
 		.with_context(|| format!("Computing filename for {}", path.to_string_lossy()))?;
 
-	let abs_path = normalize_path(base_dir.join(path));
-	let abs_dir = normalize_path(abs_path.parent().unwrap());
-
 	Ok(PathData {
-		abs_path,
-		rel_path: path.into(),
-		abs_dir,
-		rel_dir,
+		path: path.into(),
+		src: src.into(),
+		lossy: path.to_string_lossy().into(),
+		dir: path.parent().unwrap().to_string_lossy().into(),
+		dir_name: path
+			.parent()
+			.unwrap()
+			.file_name()
+			.unwrap_or_else(|| OsStr::new(""))
+			.to_string_lossy()
+			.to_string(),
 		extension: extension.into(),
 		file_name: file_name.into(),
 		file_stem,
 	})
 }
 
-pub fn normalize_path<P: AsRef<Path>>(path: P) -> PathBuf {
-	let ends_with_slash = path.as_ref().to_str().map_or(false, |s| s.ends_with('/'));
-	let mut normalized = PathBuf::new();
-	for component in path.as_ref().components() {
-		match &component {
-			Component::ParentDir => {
-				if !normalized.pop() {
-					normalized.push(component);
-				}
-			}
-			_ => {
-				normalized.push(component);
-			}
-		}
-	}
-	if ends_with_slash {
-		normalized.push("");
-	}
-	normalized
-}
-
+/// This decides if the qwik framework should be added as an export to the segment. The QRL for it will use the _hW export instead of the segment export, and this will resume the container.
 pub fn might_need_handle_watch(ctx_kind: &SegmentKind, ctx_name: &str) -> bool {
 	if !matches!(ctx_kind, SegmentKind::Function) {
 		return false;

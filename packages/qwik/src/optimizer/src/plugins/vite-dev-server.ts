@@ -6,7 +6,7 @@ import { magenta } from 'kleur/colors';
 import type { Connect, ViteDevServer } from 'vite';
 import { SYNC_QRL } from '../../../core/qrl/qrl-class';
 import type { OptimizerSystem, Path, QwikManifest, SymbolMapper, SymbolMapperFn } from '../types';
-import clickToComponent from './click-to-component.html?raw';
+import clickToComponentSrc from './click-to-component.html?raw';
 import errorHost from './error-host.html?raw';
 import imageDevTools from './image-size-runtime.html?raw';
 import perfWarning from './perf-warning.html?raw';
@@ -212,9 +212,7 @@ export async function configureDevServer(
           if ('html' in result) {
             res.write((result as any).html);
           }
-          res.write(
-            END_SSR_SCRIPT(opts, opts.srcDir ? opts.srcDir : path.join(opts.rootDir, 'src'))
-          );
+          res.write(END_SSR_SCRIPT(opts, base));
           res.end();
         } else {
           next();
@@ -378,26 +376,25 @@ function relativeURL(url: string, base: string) {
   return url;
 }
 
-const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDir: string) => {
+const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], base: string) => {
   const qwikdevtools = {
     hotKeys: opts.clickToSource ?? [],
-    srcDir: new URL(srcDir + '/', 'http://local.local').href,
   };
   return (
     `<script>
       globalThis.qwikdevtools = ${JSON.stringify(qwikdevtools)};
     </script>` +
     (opts.imageDevTools ? imageDevTools : '') +
-    (opts.clickToSource ? clickToComponent : '')
+    (opts.clickToSource ? clickToComponentSrc.replaceAll('{{BASE}}', base) : '')
   );
 };
 
-const END_SSR_SCRIPT = (opts: NormalizedQwikPluginOptions, srcDir: string) => `
+const END_SSR_SCRIPT = (opts: NormalizedQwikPluginOptions, base: string) => `
 <style>${VITE_ERROR_OVERLAY_STYLES}</style>
 <script type="module" src="/@vite/client"></script>
 ${errorHost}
 ${perfWarning}
-${DEV_QWIK_INSPECTOR(opts.devTools, srcDir)}
+${DEV_QWIK_INSPECTOR(opts.devTools, base)}
 `;
 
 function getViteDevIndexHtml(entryUrl: string, serverData: Record<string, any>) {

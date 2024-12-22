@@ -646,7 +646,12 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         });
       }
 
-      const filePath = path.relative(opts.rootDir, pathId);
+      /**
+       * We provide paths relative to srcDir for backwards compatibility. That way the qrl hashes
+       * remain unchanged.
+       */
+      const rootDir = opts.srcDir || opts.rootDir;
+      const filePath = path.relative(rootDir, pathId);
       const entryStrategy: EntryStrategy = opts.entryStrategy;
       const transformOpts: TransformModulesOptions = {
         input: [{ code, path: filePath }],
@@ -658,9 +663,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         transpileJsx: true,
         explicitExtensions: true,
         preserveFilenames: true,
-        // TODO remove
+        // TODO remove this in v2
         srcDir: '',
-        rootDir: opts.rootDir,
+        // Sourcemaps need to know this
+        rootDir,
         mode,
         scope: opts.scope || undefined,
         isServer,
@@ -695,7 +701,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       const deps = new Set<string>();
       for (const mod of newOutput.modules) {
         if (mod !== module) {
-          // All modules are in the same directory as the parent
+          // All segments are in the same directory as the parent
           const key = path.join(dir, mod.segment!.canonicalFilename + '.' + mod.segment?.extension);
           debug(`transform(${count})`, `segment ${key}`, mod.segment!.displayName);
           parentIds.set(key, id);

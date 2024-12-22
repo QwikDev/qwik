@@ -8,7 +8,7 @@ import { SYNC_QRL } from '../../../core/qrl/qrl-class';
 import type { OptimizerSystem, Path, QwikManifest, SymbolMapper, SymbolMapperFn } from '../types';
 import clickToComponentSrc from './click-to-component.html?raw';
 import errorHost from './error-host.html?raw';
-import imageDevTools from './image-size-runtime.html?raw';
+import imageDevToolsSrc from './image-size-runtime.html?raw';
 import perfWarning from './perf-warning.html?raw';
 import { parseId, type NormalizedQwikPluginOptions } from './plugin';
 import type { QwikViteDevResponse } from './vite';
@@ -27,7 +27,7 @@ function getOrigin(req: IncomingMessage) {
   return `${protocol}://${host}`;
 }
 
-function createSymbolMapper(base: string): SymbolMapperFn {
+function createSymbolMapper(base: string, srcRelative: string): SymbolMapperFn {
   return (
     symbolName: string,
     _mapper: SymbolMapper | undefined,
@@ -45,7 +45,7 @@ function createSymbolMapper(base: string): SymbolMapperFn {
     }
     // In dev mode, the `parent` is the Vite URL for the parent, not the real absolute path.
     // It is always absolute but when on Windows that's without a /
-    const qrlFile = `${base}${parent.startsWith('/') ? parent.slice(1) : parent}_${symbolName}.js`;
+    const qrlFile = `${base}${srcRelative}${parent.startsWith('/') ? parent.slice(1) : parent}_${symbolName}.js`;
     return [symbolName, qrlFile];
   };
 }
@@ -77,7 +77,10 @@ export async function configureDevServer(
   clientDevInput: string | undefined,
   devSsrServer: boolean
 ) {
-  symbolMapper = lazySymbolMapper = createSymbolMapper(base);
+  symbolMapper = lazySymbolMapper = createSymbolMapper(
+    base,
+    opts.srcDir ? `${path.relative(opts.rootDir, opts.srcDir)}/` : ''
+  );
   if (!devSsrServer) {
     // we just needed the symbolMapper
     return;
@@ -212,7 +215,7 @@ export async function configureDevServer(
           if ('html' in result) {
             res.write((result as any).html);
           }
-          res.write(END_SSR_SCRIPT(opts, base));
+          res.write(END_SSR_SCRIPT(path, opts, base));
           res.end();
         } else {
           next();
@@ -376,25 +379,30 @@ function relativeURL(url: string, base: string) {
   return url;
 }
 
-const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], base: string) => {
+const DEV_QWIK_INSPECTOR = (path: Path, opts: NormalizedQwikPluginOptions, base: string) => {
+  const { srcDir, rootDir } = opts;
+  const srcRelative = srcDir ? `${path.relative(rootDir, srcDir)}/` : '';
+  const { clickToSource, imageDevTools } = opts.devTools;
   const qwikdevtools = {
-    hotKeys: opts.clickToSource ?? [],
+    hotKeys: clickToSource ?? [],
   };
   return (
     `<script>
       globalThis.qwikdevtools = ${JSON.stringify(qwikdevtools)};
     </script>` +
-    (opts.imageDevTools ? imageDevTools : '') +
-    (opts.clickToSource ? clickToComponentSrc.replaceAll('{{BASE}}', base) : '')
+    (imageDevTools ? imageDevToolsSrc : '') +
+    (clickToSource
+      ? clickToComponentSrc.replaceAll('{{BASE}}', base).replaceAll('{{SRC}}', srcRelative)
+      : '')
   );
 };
 
-const END_SSR_SCRIPT = (opts: NormalizedQwikPluginOptions, base: string) => `
+const END_SSR_SCRIPT = (path: Path, opts: NormalizedQwikPluginOptions, base: string) => `
 <style>${VITE_ERROR_OVERLAY_STYLES}</style>
 <script type="module" src="/@vite/client"></script>
 ${errorHost}
 ${perfWarning}
-${DEV_QWIK_INSPECTOR(opts.devTools, base)}
+${DEV_QWIK_INSPECTOR(path, opts, base)}
 `;
 
 function getViteDevIndexHtml(entryUrl: string, serverData: Record<string, any>) {

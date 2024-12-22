@@ -142,7 +142,7 @@
     );
 
     globalThis.qwikOpenInEditor = function (path) {
-      fetch('{{BASE}}__open-in-editor?file=' + encodeURIComponent(path));
+      fetch('{{BASE}}__open-in-editor?file={{SRC}}' + encodeURIComponent(path));
     };
     document.addEventListener(
       'contextmenu',

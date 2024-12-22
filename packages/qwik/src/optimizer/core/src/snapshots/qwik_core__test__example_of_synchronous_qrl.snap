@@ -31,7 +31,7 @@ import { qrl } from "@builder.io/qwik";
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGQ,6BAAe,mHAaZ\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;AAGQ,6BAAe,mHAaZ\"}")
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
@@ -60,7 +60,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAGkC;IAC1B,qBACI;;0BACI,MAAC;gBAAM,QAAQ,WAAQ,SAAS,KAAK,EAAE,MAAM;oBACzC,4BAA4B;oBAC5B,MAAM,cAAc;gBACxB;;0BACA,MAAC;gBAAM,QAAQ,WAAQ,CAAC,OAAO;oBAC3B,MAAM,cAAc;gBACxB;;0BACA,MAAC;gBAAM,QAAQ,WAAQ,CAAC,OAAO,SAAW,MAAM,cAAc;;;;AAGtE\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;;;0CAGkC;IAC1B,qBACI;;0BACI,MAAC;gBAAM,QAAQ,WAAQ,SAAS,KAAK,EAAE,MAAM;oBACzC,4BAA4B;oBAC5B,MAAM,cAAc;gBACxB;;0BACA,MAAC;gBAAM,QAAQ,WAAQ,CAAC,OAAO;oBAC3B,MAAM,cAAc;gBACxB;;0BACA,MAAC;gBAAM,QAAQ,WAAQ,CAAC,OAAO,SAAW,MAAM,cAAc;;;;AAGtE\"}")
 /*
 {
   "origin": "test.tsx",

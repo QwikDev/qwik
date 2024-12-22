@@ -25,14 +25,14 @@ import { qrl } from "@builder.io/qwik";
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./[[...slug]].tsx_slug_component_0AM8HPnkNs4.js"), "slug_component_0AM8HPnkNs4"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;AAIA,6BAAe,6HAKZ\"}")
+Some("{\"version\":3,\"sources\":[\"src/routes/_repl/[id]/[[...slug]].tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;AAIA,6BAAe,6HAKZ\"}")
 ============================= src/routes/_repl/[id]/[[...slug]].tsx_slug_component_div_onClick_xevvy0Qc7pA.js (ENTRY POINT)==
 
 import { sibling } from "./sibling";
 export const slug_component_div_onClick_xevvy0Qc7pA = ()=>console.log(mongodb, sibling);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";sDAMuB,IAAM,QAAQ,GAAG,CAAC,SAAS\"}")
+Some("{\"version\":3,\"sources\":[\"src/routes/_repl/[id]/[[...slug]].tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";sDAMuB,IAAM,QAAQ,GAAG,CAAC,SAAS\"}")
 /*
 {
   "origin": "src/routes/_repl/[id]/[[...slug]].tsx",
@@ -64,7 +64,7 @@ export const slug_component_0AM8HPnkNs4 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;0CAI0B;IACtB,qBACI,MAAC;QAAI,QAAQ;;AAGrB\"}")
+Some("{\"version\":3,\"sources\":[\"src/routes/_repl/[id]/[[...slug]].tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;0CAI0B;IACtB,qBACI,MAAC;QAAI,QAAQ;;AAGrB\"}")
 /*
 {
   "origin": "src/routes/_repl/[id]/[[...slug]].tsx",

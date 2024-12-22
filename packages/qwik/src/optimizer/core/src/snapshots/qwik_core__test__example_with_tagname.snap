@@ -28,7 +28,7 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B;IAC1B;AAMJ\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";yCAG8B;IAC1B;AAMJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -58,7 +58,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2CAIa;IACL,QACK,IAAI;YACL,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\"2CAIa;IACL,QACK,IAAI;YACL,EAAE;AAEV\"}")
 /*
 {
   "origin": "test.tsx",
@@ -88,7 +88,7 @@ export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./te
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAOhB;IACC,SAAS;AACb,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAOhB;IACC,SAAS;AACb,GAAG\"}")
 == DIAGNOSTICS ==
 
 []

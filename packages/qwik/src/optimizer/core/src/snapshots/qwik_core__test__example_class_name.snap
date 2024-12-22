@@ -34,7 +34,7 @@ import { qrl } from "@builder.io/qwik";
 export const App2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App2_component_3yveMqbQ3Fs.js"), "App2_component_3yveMqbQ3Fs"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,qBAAO,sHAgBjB\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,qBAAO,sHAgBjB\"}")
 ============================= test.tsx_App2_component_3yveMqbQ3Fs.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
@@ -91,7 +91,7 @@ export const App2_component_3yveMqbQ3Fs = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAG+B;IAC3B,MAAM,SAAS;IACf,MAAM,WAAW,OAAO,KAAK,GAAG;IAChC,qBACI;;0BACI,MAAC;gBAAI,WAAU;;0BACf,MAAC;gBAAI,SAAS,kBAAE,GAAO,KAAK;;;;0BAC5B,MAAC;gBAAI,WAAW;;0BAChB,MAAC;gBAAI,WAAW;;0BAEhB,MAAC;gBAAI,WAAU;;oBAAV,SAAS;;;0BACd,MAAC;oBAAI;2BAAW,OAAO,KAAK;;;oBAAvB,SAAS,kBAAE,GAAO,KAAK;;;;;0BAC5B,MAAC;gBAAI,WAAW;;oBAAX,SAAS;;;0BACd,MAAC;gBAAI,WAAW;;;;AAG5B\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;;;;0CAG+B;IAC3B,MAAM,SAAS;IACf,MAAM,WAAW,OAAO,KAAK,GAAG;IAChC,qBACI;;0BACI,MAAC;gBAAI,WAAU;;0BACf,MAAC;gBAAI,SAAS,kBAAE,GAAO,KAAK;;;;0BAC5B,MAAC;gBAAI,WAAW;;0BAChB,MAAC;gBAAI,WAAW;;0BAEhB,MAAC;gBAAI,WAAU;;oBAAV,SAAS;;;0BACd,MAAC;oBAAI;2BAAW,OAAO,KAAK;;;oBAAvB,SAAS,kBAAE,GAAO,KAAK;;;;;0BAC5B,MAAC;gBAAI,WAAW;;oBAAX,SAAS;;;0BACd,MAAC;gBAAI,WAAW;;;;AAG5B\"}")
 /*
 {
   "origin": "test.tsx",

@@ -46,7 +46,7 @@ export const Lightweight = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAkC,IAAI,EAAE,SAAS,QAAQ,mBAAmB;AAE5E,OAAO,MAAM,aAAa,CAAC;IACvB,UAAU;AACd,EAAE;AAEF,OAAO,MAAM,WAAW,KAAK,YAAY;AAEzC,OAAO,MAAM,oBAAM,iHAQhB;AAEH,OAAO,MAAM,cAAc,CAAC;IACxB;AAGJ,EAAG\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;AACA,SAAkC,IAAI,EAAE,SAAS,QAAQ,mBAAmB;AAE5E,OAAO,MAAM,aAAa,CAAC;IACvB,UAAU;AACd,EAAE;AAEF,OAAO,MAAM,WAAW,KAAK,YAAY;AAEzC,OAAO,MAAM,oBAAM,iHAQhB;AAEH,OAAO,MAAM,cAAc,CAAC;IACxB;AAGJ,EAAG\"}")
 ============================= test.tsx_App_component_useMemo_6Sc9KVki3Y0.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
@@ -56,7 +56,7 @@ export const App_component_useMemo_6Sc9KVki3Y0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iDAWa;;IACL,QAAQ,GAAG,CAAC,MAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";iDAWa;;IACL,QAAQ,GAAG,CAAC,MAAM,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
@@ -84,7 +84,7 @@ export const Lightweight_useMemo_UIcxVTQF1a8 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+CAoBa;IACL,QAAQ,GAAG,CAAC,MAAM,KAAK;AAC3B\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\"+CAoBa;IACL,QAAQ,GAAG,CAAC,MAAM,KAAK;AAC3B\"}")
 /*
 {
   "origin": "test.tsx",
@@ -123,7 +123,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAS8B,CAAC;IAC3B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC;;;IAGA;;;AAGJ\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;;yCAS8B,CAAC;IAC3B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC;;;IAGA;;;AAGJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -158,7 +158,7 @@ export const App_component_1_w0t0o3QMovU = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAca;;yBACL,MAAC,mCAAK,GAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;;2CAca;;yBACL,MAAC,mCAAK,GAAM,KAAK\"}")
 /*
 {
   "origin": "test.tsx",

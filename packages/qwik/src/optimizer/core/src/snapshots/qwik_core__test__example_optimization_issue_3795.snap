@@ -39,7 +39,7 @@ export const Issue3795 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=
 }, "Issue3795_component_wsE8beycatI"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,0BAAY,sCAAW;IAChC,IAAI,OAAO;IACX,MAAM,kBAAkB;IACxB,QAAQ;IACR,MAAM,mBAAmB;IACzB,qBACE,MAAC;QAAI,IAAG;;QAAqB;QAAgB;QAAE;;AAEnD,uCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,0BAAY,sCAAW;IAChC,IAAI,OAAO;IACX,MAAM,kBAAkB;IACxB,QAAQ;IACR,MAAM,mBAAmB;IACzB,qBACE,MAAC;QAAI,IAAG;;QAAqB;QAAgB;QAAE;;AAEnD,uCAAG\"}")
 == DIAGNOSTICS ==
 
 []

@@ -16,7 +16,7 @@ export const sym1_aXUrPXX5Lak = (ctx)=>console.log("1");
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"gCAEsB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\"gCAEsB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -43,7 +43,7 @@ import { qrl } from "@builder.io/qwik";
 export const sym1 = /*#__PURE__*/ qrl(()=>import("./test.tsx_sym1_aXUrPXX5Lak"), "sym1_aXUrPXX5Lak");
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AAEA,OAAO,MAAM,wFAAoC\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";AAEA,OAAO,MAAM,wFAAoC\"}")
 == DIAGNOSTICS ==
 
 []

@@ -50,7 +50,7 @@ export const STEP = 1;
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAwB,QAAQ,QAAQ,mBAAmB;AAC3D,OAAO,MAAM,aAAa;IACtB,OAAO,SAAS;QAAC,OAAO;IAAC;AAC7B,EAAC;AAED,OAAO,MAAM,OAAO,EAAE;AAEtB,OAAO,MAAM,oBAAM,iHAoBjB\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;AACA,SAAwB,QAAQ,QAAQ,mBAAmB;AAC3D,OAAO,MAAM,aAAa;IACtB,OAAO,SAAS;QAAC,OAAO;IAAC;AAC7B,EAAC;AAED,OAAO,MAAM,OAAO,EAAE;AAEtB,OAAO,MAAM,oBAAM,iHAoBjB\"}")
 ============================= test.tsx_App_component_div_onClick_1CGetmFZx0g.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
@@ -60,7 +60,7 @@ export const App_component_div_onClick_1CGetmFZx0g = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAeuB;;WAAM,MAAM,KAAK,IAAE\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";qDAeuB;;WAAM,MAAM,KAAK,IAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -91,7 +91,7 @@ export const App_component_div_button_onClick_f5NwW9e63a4 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;4DAmB8B;;WAAM,MAAM,KAAK,IAAI,IAAI,MAAM,GAAG,QAAQ,OARrD,IAQqE,MAAM,IAAI\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;4DAmB8B;;WAAM,MAAM,KAAK,IAAI,IAAI,MAAM,GAAG,QAAQ,OARrD,IAQqE,MAAM,IAAI\"}")
 /*
 {
   "origin": "test.tsx",
@@ -147,7 +147,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAQ8B,CAAC;IAC3B,MAAM,QAAQ;IACd,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAGhC,MAAM,SAAS,MAAM,KAAK,GAAG;IAC7B,qBACI,MAAC;QAAI,QAAQ;;;;;sBACT,MAAC,oCAAM,GAAM,KAAK;;;QACjB,QAAQ,GAAG,CAAC,CAAA,oBACT,MAAC;gBACG,QAAQ;;;;;;iCAEP;;AAOrB\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;;;;;yCAQ8B,CAAC;IAC3B,MAAM,QAAQ;IACd,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAGhC,MAAM,SAAS,MAAM,KAAK,GAAG;IAC7B,qBACI,MAAC;QAAI,QAAQ;;;;;sBACT,MAAC,oCAAM,GAAM,KAAK;;;QACjB,QAAQ,GAAG,CAAC,CAAA,oBACT,MAAC;gBACG,QAAQ;;;;;;iCAEP;;AAOrB\"}")
 /*
 {
   "origin": "test.tsx",

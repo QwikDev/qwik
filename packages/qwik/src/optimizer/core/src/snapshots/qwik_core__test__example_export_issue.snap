@@ -39,7 +39,7 @@ export default App;
 export { App as _auto_App };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,MAAM,oBAAM;AAOZ,OAAO,MAAM,qBAAO,mHAIjB;AAEH,MAAM,QAAQ;AACd,SAAS,SAAS,GAAG,GAAG;AAExB,eAAe,IAAI\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;AAGA,MAAM,oBAAM;AAOZ,OAAO,MAAM,qBAAO,mHAIjB;AAEH,MAAM,QAAQ;AACd,SAAS,SAAS,GAAG,GAAG;AAExB,eAAe,IAAI\"}")
 ============================= test.tsx_Root_component_royhjYaCbYE.js (ENTRY POINT)==
 
 import { _auto_App as App } from "./test";
@@ -49,7 +49,7 @@ export const Root_component_royhjYaCbYE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAU+B,CAAC;IAC5B,qBACI,MAAC;AAET\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;0CAU+B,CAAC;IAC5B,qBACI,MAAC;AAET\"}")
 /*
 {
   "origin": "test.tsx",
@@ -78,7 +78,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAGuB;IACnB,qBACI,MAAC,mBAAI;AAEb\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";yCAGuB;IACnB,qBACI,MAAC,mBAAI;AAEb\"}")
 /*
 {
   "origin": "test.tsx",

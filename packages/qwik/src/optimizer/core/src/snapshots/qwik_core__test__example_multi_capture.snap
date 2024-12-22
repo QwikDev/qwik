@@ -41,7 +41,7 @@ export const Foo_component_HTDRsvUbLiE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B;IAE1B;;;AAQJ\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";yCAG8B;IAE1B;;;AAQJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -70,7 +70,7 @@ export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./te
 export const Bar = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Bar_component_L80pS8Hxf1Y"), "Bar_component_L80pS8Hxf1Y"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAUjB;AAEF,OAAO,MAAM,oBAAM,iHAQjB\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAUjB;AAEF,OAAO,MAAM,oBAAM,iHAQjB\"}")
 ============================= test.tsx_Bar_component_L80pS8Hxf1Y.jsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
@@ -81,7 +81,7 @@ export const Bar_component_L80pS8Hxf1Y = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAe8B;IAC1B;;;AAOJ\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";yCAe8B;IAC1B;;;AAOJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -115,7 +115,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKa;;IACL,MAAM,KAAK,CAAC,EAAC,GAAG,EAAC,GAAK;IACtB,QACK,IAAI;cACH,OANkB,KAMZ,MALH,GAKc;YACnB,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";2CAKa;;IACL,MAAM,KAAK,CAAC,EAAC,GAAG,EAAC,GAAK;IACtB,QACK,IAAI;cACH,OANkB,KAMZ,MALH,GAKc;YACnB,EAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -148,7 +148,7 @@ export const Bar_component_1_0xSyNSnVu3k = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAgBa;;IACL,QACK,IAAI;cACH,OAJkB,IAIb;YACP,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";2CAgBa;;IACL,QACK,IAAI;cACH,OAJkB,IAIb;YACP,EAAE\"}")
 /*
 {
   "origin": "test.tsx",

@@ -24,7 +24,7 @@ import { qrl } from "@builder.io/qwik";
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./404.tsx__404_component_zRvoWc98eqo"), "_404_component_zRvoWc98eqo"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;AAGA,6BAAe,kHAKZ\"}")
+Some("{\"version\":3,\"sources\":[\"src/components/mongo/404.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;AAGA,6BAAe,kHAKZ\"}")
 ============================= src/components/mongo/404.tsx__404_component_zRvoWc98eqo.tsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
@@ -34,7 +34,7 @@ export const _404_component_zRvoWc98eqo = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";0CAG0B;IACtB,QACK,IAAI,uIAAsC;QAC3C,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"src/components/mongo/404.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";0CAG0B;IACtB,QACK,IAAI,uIAAsC;QAC3C,EAAE;AAEV\"}")
 /*
 {
   "origin": "src/components/mongo/404.tsx",
@@ -60,7 +60,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
 export const _404_component_div_onClick_OiMo9dvEW9Q = ()=>console.log(mongodb);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\"sDAKuB,IAAM,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"src/components/mongo/404.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\"sDAKuB,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "src/components/mongo/404.tsx",

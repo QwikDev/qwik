@@ -3,14 +3,14 @@ import { server$ } from "@builder.io/qwik-city";
 import { ServerError } from "@builder.io/qwik-city/middleware/request-handler";
 import { delay } from "../../actions/login";
 
-type ResponseTuple = [null | string, string];
+type ErrorReason = { reason: string };
 
-const serverFunctionA = server$(async function a(): Promise<ResponseTuple> {
-  throw new ServerError<[string]>(401, ["my error"]);
+const serverFunctionA = server$(async function a(): Promise<string> {
+  throw new ServerError<ErrorReason>(401, { reason: "my error" });
 });
 
-const serverFunctionB = server$(async function b(): Promise<ResponseTuple> {
-  return [null, this.method || ""];
+const serverFunctionB = server$(async function b(): Promise<string> {
+  return this.method;
 });
 
 export const MultipleServerFunctionsInvokedInTask = component$(() => {
@@ -18,13 +18,17 @@ export const MultipleServerFunctionsInvokedInTask = component$(() => {
   const methodB = useSignal("");
 
   useVisibleTask$(async () => {
-    const [error /*, data */] = await serverFunctionA();
-    if (error) {
-      methodA.value = error;
+    try {
+      await serverFunctionA();
+    } catch (err: any) {
+      if (isErrorReason(err)) {
+        methodA.value = err.reason;
+      }
     }
+
     await delay(1);
-    //     err, method
-    const [, method] = await serverFunctionB();
+
+    const method = await serverFunctionB();
     methodB.value = method;
   });
 
@@ -43,3 +47,11 @@ export default component$(() => {
     </>
   );
 });
+
+function isErrorReason(err: any): err is ErrorReason {
+  if (typeof err.reason === "string") {
+    return true;
+  }
+
+  return false;
+}

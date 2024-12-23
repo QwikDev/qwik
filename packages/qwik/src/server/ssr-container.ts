@@ -1181,17 +1181,20 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           key = QContainerAttr;
           value = QContainerValue.TEXT;
         }
-
         const serializedValue = serializeAttribute(key, value, styleScopedId);
 
         if (serializedValue != null && serializedValue !== false) {
           this.write(' ');
           this.write(key);
-          if (serializedValue !== true) {
+          if (typeof serializedValue === 'number') {
+            this.write('=');
+            const strValue = escapeHTML(serializedValue);
+            this.write(strValue);
+            this.write('');
+          } else if (serializedValue !== true) {
             this.write('="');
             const strValue = escapeHTML(String(serializedValue));
             this.write(strValue);
-
             this.write('"');
           }
         }

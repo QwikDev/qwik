@@ -4,10 +4,8 @@ import { assertTrue } from '../shared/error/assert';
 import { getPlatform } from '../shared/platform/platform';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
-import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { ContextId } from '../use/use-context';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
-import { throwErrorAndStop } from '../shared/utils/log';
 import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
@@ -30,10 +28,8 @@ import {
 import { isPromise } from '../shared/utils/promises';
 import { isSlotProp } from '../shared/utils/prop';
 import { qDev } from '../shared/utils/qdev';
-import type { ValueOrPromise } from '../shared/utils/types';
 import { ChoreType } from '../shared/scheduler';
 import {
-  addComponentStylePrefix,
   convertScopedStyleIdsToArray,
   convertStyleIdsToString,
 } from '../shared/utils/scoped-styles';
@@ -69,13 +65,13 @@ import {
   vnode_setProp,
   type VNodeJournal,
 } from './vnode';
-import { vnode_diff } from './vnode-diff';
+import { QError, qError } from '../shared/error/error';
 
 /** @public */
 export function getDomContainer(element: Element | VNode): IClientContainer {
   const qContainerElement = _getQContainerElement(element);
   if (!qContainerElement) {
-    throwErrorAndStop('Unable to find q:container.');
+    throw qError(QError.containerNotFound);
   }
   return getDomContainerFromQContainerElement(qContainerElement!);
 }
@@ -149,7 +145,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     );
     this.qContainer = element.getAttribute(QContainerAttr)!;
     if (!this.qContainer) {
-      throwErrorAndStop("Element must have 'q:container' attribute.");
+      throw qError(QError.elementWithoutContainer);
     }
     this.$journal$ = [
       // The first time we render we need to hoist the styles.
@@ -191,12 +187,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   parseQRL<T = unknown>(qrl: string): QRL<T> {
     return inflateQRL(this, parseQRL(qrl)) as QRL<T>;
-  }
-
-  processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void> {
-    // console.log('>>>> processJsx', String(host));
-    const styleScopedId = this.getHostProp<string>(host, QScopedStyle);
-    return vnode_diff(this, jsx, host as VirtualVNode, addComponentStylePrefix(styleScopedId));
   }
 
   handleError(err: any, host: HostElement): void {

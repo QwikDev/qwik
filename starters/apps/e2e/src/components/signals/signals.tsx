@@ -1,9 +1,8 @@
 import {
-  component$,
-  type QwikIntrinsicElements,
   Resource,
-  type Signal,
   Slot,
+  component$,
+  isBrowser,
   useComputed$,
   useResource$,
   useSignal,
@@ -11,8 +10,9 @@ import {
   useStyles$,
   useTask$,
   useVisibleTask$,
+  type QwikIntrinsicElements,
+  type Signal,
 } from "@qwik.dev/core";
-import { isBrowser } from "@qwik.dev/core/build";
 import { delay } from "../resource/resource";
 import {
   TestAC,

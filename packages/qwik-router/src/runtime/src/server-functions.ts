@@ -52,7 +52,7 @@ import type {
 } from './types';
 import { useAction, useLocation, useQwikRouterEnv } from './use-functions';
 
-import { isDev, isServer } from '@qwik.dev/core/build';
+import { isDev, isServer } from '@qwik.dev/core';
 
 import type { FormSubmitCompletedDetail } from './form-component';
 import { deepFreeze } from './utils';

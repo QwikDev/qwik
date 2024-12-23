@@ -3,6 +3,7 @@ import {
   $,
   component$,
   createContextId,
+  isServer,
   useContext,
   useContextProvider,
   useSignal,
@@ -10,7 +11,6 @@ import {
   useTask$,
   type Signal,
 } from "@qwik.dev/core";
-import { isServer } from "@qwik.dev/core/build";
 
 interface State {
   count: number;

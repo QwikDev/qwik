@@ -53,7 +53,7 @@ const createAndLogError = (asyncThrow: boolean, message?: any, ...optionalParams
   // display the error message first, then the optional params, and finally the stack trace
   // the stack needs to be displayed last because the given params will be lost among large stack traces so it will
   // provide a bad developer experience
-  console.error('%cQWIK ERROR', STYLE, err.message, ...optionalParams, err.stack);
+  !qTest && console.error('%cQWIK ERROR', STYLE, err.message, ...optionalParams, err.stack);
 
   asyncThrow &&
     !qTest &&

@@ -216,4 +216,24 @@ export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToSt
 /** @public */
 export type Render = RenderToString | RenderToStream;
 
+/**
+ * Flags for VNodeData (Flags con be bitwise combined)
+ *
+ * @internal
+ */
+export const enum VNodeDataFlag {
+  /// Initial state.
+  NONE = 0,
+  /// Indicates that multiple Text nodes are present and can't be derived from HTML.
+  TEXT_DATA = 1,
+  /// Indicates that the virtual nodes are present and can't be derived from HTML.
+  VIRTUAL_NODE = 2,
+  /// Indicates that the element nodes are present and some data can't be derived from HTML.
+  ELEMENT_NODE = 4,
+  /// Indicates that serialized data is referencing this node and so we need to retrieve a reference to it.
+  REFERENCE = 8,
+  /// Should be output during serialization.
+  SERIALIZE = 16,
+}
+
 export type { QwikManifest, SnapshotResult, StreamWriter, SymbolMapper };

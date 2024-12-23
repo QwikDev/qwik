@@ -7,7 +7,7 @@
   ],
   "linked": [],
   "access": "public",
-  "baseBranch": "build/v2",
+  "baseBranch": "origin/build/v2",
   "updateInternalDependencies": "minor",
   "ignore": ["qwik-docs", "insights", "qwik-cli-e2e"],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {

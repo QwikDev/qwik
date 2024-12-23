@@ -122,11 +122,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     experimental: undefined,
   };
 
-  let lazyNormalizePath: (id: string) => string;
   const init = async () => {
     if (!internalOptimizer) {
       internalOptimizer = await createOptimizer(optimizerOptions);
-      lazyNormalizePath = makeNormalizePath(internalOptimizer.sys);
     }
   };
 
@@ -207,10 +205,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (typeof opts.rootDir !== 'string') {
       opts.rootDir = optimizer.sys.cwd();
     }
-    opts.rootDir = normalizePath(path.resolve(optimizer.sys.cwd(), opts.rootDir));
-    let srcDir = normalizePath(path.resolve(opts.rootDir, SRC_DIR_DEFAULT));
+    opts.rootDir = path.resolve(optimizer.sys.cwd(), opts.rootDir);
+    let srcDir = path.resolve(opts.rootDir, SRC_DIR_DEFAULT);
     if (typeof updatedOpts.srcDir === 'string') {
-      opts.srcDir = normalizePath(path.resolve(opts.rootDir, updatedOpts.srcDir));
+      opts.srcDir = path.resolve(opts.rootDir, updatedOpts.srcDir);
       srcDir = opts.srcDir;
       opts.srcInputs = null;
     } else if (Array.isArray(updatedOpts.srcInputs)) {
@@ -226,10 +224,10 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     if (Array.isArray(opts.srcInputs)) {
       opts.srcInputs.forEach((i) => {
-        i.path = normalizePath(path.resolve(opts.rootDir, i.path));
+        i.path = path.resolve(opts.rootDir, i.path);
       });
     } else if (typeof opts.srcDir === 'string') {
-      opts.srcDir = normalizePath(path.resolve(opts.rootDir, normalizePath(opts.srcDir)));
+      opts.srcDir = path.resolve(opts.rootDir, opts.srcDir);
     }
 
     if (!updatedOpts.csr) {
@@ -268,7 +266,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         ? opts.input.reduce((inputs, i) => {
             let input = i;
             if (!i.startsWith('@') && !i.startsWith('~') && !i.startsWith('#')) {
-              input = normalizePath(path.resolve(opts.rootDir, i));
+              input = path.resolve(opts.rootDir, i);
             }
             if (!inputs.includes(input)) {
               inputs.push(input);
@@ -278,14 +276,14 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         : opts.input;
 
       if (typeof updatedOpts.outDir === 'string') {
-        opts.outDir = normalizePath(path.resolve(opts.rootDir, normalizePath(updatedOpts.outDir)));
+        opts.outDir = path.resolve(opts.rootDir, updatedOpts.outDir);
       } else {
         if (opts.target === 'ssr') {
-          opts.outDir = normalizePath(path.resolve(opts.rootDir, SSR_OUT_DIR));
+          opts.outDir = path.resolve(opts.rootDir, SSR_OUT_DIR);
         } else if (opts.target === 'lib') {
-          opts.outDir = normalizePath(path.resolve(opts.rootDir, LIB_OUT_DIR));
+          opts.outDir = path.resolve(opts.rootDir, LIB_OUT_DIR);
         } else {
-          opts.outDir = normalizePath(path.resolve(opts.rootDir, CLIENT_OUT_DIR));
+          opts.outDir = path.resolve(opts.rootDir, CLIENT_OUT_DIR);
         }
       }
     }
@@ -386,7 +384,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       optimizer.sys.getInputFiles = async (rootDir) =>
         opts.srcInputs!.map((i) => {
           const relInput: TransformModuleInput = {
-            path: normalizePath(path.relative(rootDir, i.path)),
+            path: path.relative(rootDir, i.path),
             code: i.code,
           };
           return relInput;
@@ -427,7 +425,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     debug(`resolveId(${count})`, `begin ${id} | ${isServer ? 'server' : 'client'} | ${importerId}`);
 
     const parsedImporterId = importerId && parseId(importerId);
-    importerId = parsedImporterId && normalizePath(parsedImporterId.pathId);
+    importerId = parsedImporterId && parsedImporterId.pathId;
 
     // Relative paths must be resolved vs the importer
     if (id.startsWith('.') && parsedImporterId) {
@@ -440,7 +438,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     // Split query, remove windows path encoding etc
     const parsedId = parseId(id);
-    const pathId = normalizePath(parsedId.pathId);
+    const pathId = parsedId.pathId;
 
     let result: ResolveIdResult;
 
@@ -565,7 +563,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     // QRL segments
     const parsedId = parseId(id);
-    id = normalizePath(parsedId.pathId);
+    id = parsedId.pathId;
     const outputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
     if (devServer && !outputs.has(id)) {
       // in dev mode, it could be that the id is a QRL segment that wasn't transformed yet
@@ -699,11 +697,15 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         clientResults.set(id, newOutput);
       }
       const deps = new Set<string>();
+      // Now we need the real relative path
+      const relPath = path.relative(opts.rootDir, pathId);
       for (const mod of newOutput.modules) {
         if (mod !== module) {
+          const segment = mod.segment!;
           // All segments are in the same directory as the parent
-          const key = path.join(dir, mod.segment!.canonicalFilename + '.' + mod.segment?.extension);
-          debug(`transform(${count})`, `segment ${key}`, mod.segment!.displayName);
+          segment.origin = relPath;
+          const key = path.join(dir, segment.canonicalFilename + '.' + segment.extension);
+          debug(`transform(${count})`, `segment ${key}`, segment.displayName);
           parentIds.set(key, id);
           currentOutputs.set(key, [mod, id]);
           deps.add(key);
@@ -773,23 +775,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         debug
       );
 
-      for (const symbol of Object.values(manifest.symbols)) {
-        if (symbol.origin) {
-          symbol.origin = normalizePath(symbol.origin);
-        }
-      }
-
-      for (const bundle of Object.values(manifest.bundles)) {
-        if (bundle.origins) {
-          bundle.origins = bundle.origins
-            .map((abs) => {
-              const relPath = path.relative(opts.rootDir, abs);
-              return normalizePath(relPath);
-            })
-            .sort();
-        }
-      }
-
       manifest.manifestHash = hashCode(JSON.stringify(manifest));
 
       return manifest;
@@ -821,8 +806,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const onDiagnostics = (cb: (d: Diagnostic[], optimizer: Optimizer, srcDir: string) => void) => {
     diagnosticsCallback = cb;
   };
-
-  const normalizePath = (id: string) => lazyNormalizePath(id);
 
   function getQwikBuildModule(isServer: boolean, _target: QwikBuildTarget) {
     const isDev = opts.buildMode === 'development';
@@ -891,7 +874,6 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     debug,
     log,
     normalizeOptions,
-    normalizePath,
     onDiagnostics,
     resolveId,
     transform,

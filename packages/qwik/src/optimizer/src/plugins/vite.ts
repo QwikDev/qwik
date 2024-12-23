@@ -263,17 +263,16 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       rootDir = opts.rootDir;
 
       if (!qwikViteOpts.csr) {
-        clientOutDir = qwikPlugin.normalizePath(
-          sys.path.resolve(opts.rootDir, qwikViteOpts.client?.outDir || CLIENT_OUT_DIR)
+        clientOutDir = sys.path.resolve(
+          opts.rootDir,
+          qwikViteOpts.client?.outDir || CLIENT_OUT_DIR
         );
 
         clientPublicOutDir = viteConfig.base
           ? path.join(clientOutDir, viteConfig.base)
           : clientOutDir;
 
-        ssrOutDir = qwikPlugin.normalizePath(
-          sys.path.resolve(opts.rootDir, qwikViteOpts.ssr?.outDir || SSR_OUT_DIR)
-        );
+        ssrOutDir = sys.path.resolve(opts.rootDir, qwikViteOpts.ssr?.outDir || SSR_OUT_DIR);
 
         if (typeof qwikViteOpts.client?.devInput === 'string') {
           clientDevInput = path.resolve(opts.rootDir, qwikViteOpts.client.devInput);
@@ -284,7 +283,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             clientDevInput = path.resolve(opts.rootDir, 'src', CLIENT_DEV_INPUT);
           }
         }
-        clientDevInput = qwikPlugin.normalizePath(clientDevInput);
       }
 
       const vendorRoots = shouldFindVendors ? await findQwikRoots(sys, sys.cwd()) : [];
@@ -455,7 +453,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       qwikPlugin.onDiagnostics((diagnostics, optimizer, srcDir) => {
         diagnostics.forEach((d) => {
-          const id = qwikPlugin.normalizePath(optimizer.sys.path.join(srcDir, d.file));
+          const id = optimizer.sys.path.join(srcDir, d.file);
           if (d.category === 'error') {
             this.error(createRollupError(id, d));
           } else {
@@ -482,7 +480,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         return null;
       }
 
-      id = qwikPlugin.normalizePath(id);
       const opts = qwikPlugin.getOptions();
 
       if (isClientDevOnly && id === VITE_CLIENT_MODULE) {

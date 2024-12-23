@@ -44,10 +44,6 @@ const appNames = readdirSync(startersAppsDir).filter(
   (p) => statSync(join(startersAppsDir, p)).isDirectory() && p !== "base",
 );
 
-const rootDir = resolve(__dirname, "..");
-const packagesDir = resolve(rootDir, "packages");
-const qwikCityMjs = join(packagesDir, "qwik-city", "lib", "index.qwik.mjs");
-
 /** Used when qwik-city server is enabled */
 const qwikCityVirtualEntry = "@city-ssr-entry";
 const entrySsrFileName = "entry.ssr.tsx";
@@ -208,16 +204,7 @@ export {
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          /**
-           * normally qwik finds qwik-city via package.json but we don't want that
-           * because it causes it try try to lookup the special qwik city imports
-           * even when we're not actually importing qwik-city
-           */
-          disableVendorScan: true,
-          vendorRoots: enableCityServer ? [qwikCityMjs] : [],
-          entryStrategy: {
-            type: "segment",
-          },
+          entryStrategy: { type: "segment" },
           client: {
             manifestOutput(manifest) {
               clientManifest = manifest;
@@ -266,7 +253,7 @@ function removeDir(dir: string) {
       }
     });
     rmSync(dir);
-  } catch (e) {
+  } catch {
     /**/
   }
 }

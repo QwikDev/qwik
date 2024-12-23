@@ -5,6 +5,8 @@ export { componentQrl, component$ } from './shared/component.public';
 
 export type { PropsOf, OnRenderFn, Component, PublicProps } from './shared/component.public';
 
+export { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -131,7 +133,7 @@ export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './shared/error/error-handling';
 export { type ReadonlySignal, type Signal, type ComputedSignal } from './signal/signal.public';
 export { isSignal, createSignal, createComputedQrl, createComputed$ } from './signal/signal.public';
-export { EffectData as _EffectData } from './signal/signal';
+export { EffectPropData as _EffectData } from './signal/signal';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

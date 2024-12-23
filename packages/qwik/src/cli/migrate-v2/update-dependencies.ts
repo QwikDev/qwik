@@ -91,4 +91,5 @@ export async function removeTsMorphFromPackageJson() {
   const packageJson = await readPackageJson(process.cwd());
   delete packageJson.dependencies?.['ts-morph'];
   delete packageJson.devDependencies?.['ts-morph'];
+  await writePackageJson(process.cwd(), packageJson);
 }

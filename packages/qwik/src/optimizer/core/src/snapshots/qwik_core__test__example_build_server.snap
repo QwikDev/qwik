@@ -7,15 +7,15 @@ snapshot_kind: text
 ==INPUT==
 
 
-import { component$, useStore } from '@qwik.dev/core';
-import { isServer, isBrowser } from '@qwik.dev/core/build';
+import { component$, useStore, isDev, isServer as isServer2 } from '@qwik.dev/core';
+import { isServer, isBrowser as isb } from '@qwik.dev/core/build';
 import { mongodb } from 'mondodb';
 import { threejs } from 'threejs';
 
 import L from 'leaflet';
 
 export const functionThatNeedsWindow = () => {
-	if (isBrowser) {
+	if (isb) {
 	console.log('l', L);
 	console.log('hey');
 	window.alert('hey');
@@ -27,14 +27,14 @@ export const App = component$(() => {
 		if (isServer) {
 			console.log('server', mongodb());
 		}
-		if (isBrowser) {
+		if (isb) {
 			console.log('browser', new threejs());
 		}
 	});
 	return (
 		<Cmp>
-			{isServer && <p>server</p>}
-			{isBrowser && <p>server</p>}
+			{isServer2 && <p>server</p>}
+			{isb && <p>server</p>}
 		</Cmp>
 	);
 });
@@ -62,7 +62,7 @@ export const s_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAgB8B;IAC7B,UAAU;QAER,QAAQ,GAAG,CAAC,UAAU;IAKxB;IACA,QACE,IAAI;GACJ,EAAc,EAAE,MAAM,EAAE,GAAG;GAC3B,OAA4B;EAC7B,EAAE;AAEJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAgB8B;IAC7B,UAAU;QAER,QAAQ,GAAG,CAAC,UAAU;IAKxB;IACA,QACE,IAAI;GACJ,EAAe,EAAE,MAAM,EAAE,GAAG;GAC5B,OAAsB;EACvB,EAAE;AAEJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -78,8 +78,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    381,
-    632
+    412,
+    652
   ]
 }
 */

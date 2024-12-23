@@ -5,6 +5,9 @@
 ```ts
 
 import * as CSS_2 from 'csstype';
+import { isBrowser } from '@qwik.dev/core/build';
+import { isDev } from '@qwik.dev/core/build';
+import { isServer } from '@qwik.dev/core/build';
 import type { StreamWriter as StreamWriter_2 } from '@qwik.dev/core';
 
 // @public
@@ -184,14 +187,12 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     getParentHost(host: HostElement): HostElement | null;
     // (undocumented)
     getSyncFn(id: number): (...args: unknown[]) => unknown;
+    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
     handleError(err: any, host: HostElement): void;
     // (undocumented)
     parseQRL<T = unknown>(qrl: string): QRL<T>;
-    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void>;
     // (undocumented)
     qBase: string;
     // (undocumented)
@@ -220,10 +221,12 @@ export { DomContainer as _DomContainer }
 export type EagernessOptions = 'visible' | 'load' | 'idle';
 
 // @internal (undocumented)
-export class _EffectData<T extends Record<string, any> = Record<string, any>> {
-    constructor(data: T);
+export class _EffectData {
+    constructor(data: NodePropData);
+    // Warning: (ae-forgotten-export) The symbol "NodePropData" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    data: T;
+    data: NodePropData;
 }
 
 // @internal (undocumented)
@@ -333,8 +336,14 @@ export const inlinedQrl: <T>(symbol: T, symbolName: string, lexicalScopeCapture?
 // @internal (undocumented)
 export const inlinedQrlDEV: <T = any>(symbol: T, symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
+export { isBrowser }
+
+export { isDev }
+
 // @internal (undocumented)
 export const _isJSXNode: <T>(n: unknown) => n is JSXNodeInternal<T>;
+
+export { isServer }
 
 // @public (undocumented)
 export const isSignal: (value: any) => value is Signal<unknown>;
@@ -837,8 +846,6 @@ export abstract class _SharedContainer implements Container {
     // (undocumented)
     abstract handleError(err: any, $host$: HostElement): void;
     // (undocumented)
-    abstract processJsx(host: HostElement, jsx: JSXOutput): ValueOrPromise<void>;
-    // (undocumented)
     abstract resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
     // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "SerializationContext" needs to be exported by the entry point index.d.ts
@@ -858,10 +865,8 @@ export abstract class _SharedContainer implements Container {
     abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)
     abstract setHostProp<T>(host: HostElement, name: string, value: T): void;
-    // Warning: (ae-forgotten-export) The symbol "Effect" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    trackSignalValue<T>(signal: Signal, subscriber: Effect, property: string, data: _EffectData): T;
+    trackSignalValue<T>(signal: Signal, subscriber: HostElement, property: string, data: _EffectData): T;
 }
 
 // @public

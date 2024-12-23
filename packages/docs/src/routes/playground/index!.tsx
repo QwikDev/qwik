@@ -1,7 +1,14 @@
 import playgroundApp from '@playground-data';
+import {
+  $,
+  component$,
+  isBrowser,
+  useStore,
+  useStyles$,
+  useTask$,
+  useVisibleTask$,
+} from '@qwik.dev/core';
 import type { DocumentHead, RequestHandler } from '@qwik.dev/router';
-import { $, component$, useStore, useStyles$, useTask$, useVisibleTask$ } from '@qwik.dev/core';
-import { isBrowser } from '@qwik.dev/core/build';
 import { Header } from '../../components/header/header';
 import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
 import { Repl } from '../../repl/repl';

@@ -8,6 +8,7 @@ import {
   removeTsMorphFromPackageJson,
   updateDependencies,
 } from './update-dependencies';
+import { updateConfigurations } from './update-configurations';
 
 export async function runV2Migration(app: AppCommand) {
   intro(
@@ -40,7 +41,12 @@ export async function runV2Migration(app: AppCommand) {
       ],
       '@builder.io/qwik-city'
     );
+    replaceImportInFiles(
+      [['qwikCityPlan', 'qwikRouterConfig']],
+      '@qwik-city-plan' // using old name, package name will be updated in the next step
+    );
 
+    replacePackage('@qwik-city-plan', '@qwik-router-config', true);
     replacePackage('@builder.io/qwik-city', '@qwik.dev/router');
     replacePackage('@builder.io/qwik-react', '@qwik.dev/react');
     // "@builder.io/qwik" should be the last one because it's name is a substring of the package names above
@@ -49,6 +55,8 @@ export async function runV2Migration(app: AppCommand) {
     if (installedTsMorph) {
       await removeTsMorphFromPackageJson();
     }
+
+    updateConfigurations();
 
     await updateDependencies();
     log.success(`${green(`Your application has been successfully migrated to v2!`)}`);

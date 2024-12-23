@@ -33,7 +33,7 @@ export const Header_component_Header_onClick_KjD9TCNkNxY = (ev)=>dep3(ev);
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";2DAQ2B,CAAC,KAAO,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"project/test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";2DAQ2B,CAAC,KAAO,KAAK\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -67,7 +67,7 @@ export const Header_component_UVBJuFYfvDo = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAMiC;IAC7B,QACK,OAAO,iJAA8B;YAClC,CAAC,KAAK,KAAK,IAAI,OAAO;QAC1B,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"project/test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;;;4CAMiC;IAC7B,QACK,OAAO,iJAA8B;YAClC,CAAC,KAAK,KAAK,IAAI,OAAO;QAC1B,EAAE;AAEV\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -97,7 +97,7 @@ export const App_component_wGkRHWXaqjs = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;yCAc8B;IAC1B,QACK,QAAQ,QAAQ;AAEzB\"}")
+Some("{\"version\":3,\"sources\":[\"project/test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;yCAc8B;IAC1B,QACK,QAAQ,QAAQ;AAEzB\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -126,7 +126,7 @@ export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import(".
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_wGkRHWXaqjs"), "App_component_wGkRHWXaqjs"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,uBAAS,uHAMnB;AAEH,OAAO,MAAM,oBAAM,iHAIhB\"}")
+Some("{\"version\":3,\"sources\":[\"project/test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,uBAAS,uHAMnB;AAEH,OAAO,MAAM,oBAAM,iHAIhB\"}")
 == DIAGNOSTICS ==
 
 []

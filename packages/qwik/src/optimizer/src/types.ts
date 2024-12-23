@@ -83,7 +83,6 @@ export interface TransformFsOptions extends TransformOptions {
 /** @public */
 export interface TransformModuleInput {
   path: string;
-  devPath?: string;
   code: string;
 }
 

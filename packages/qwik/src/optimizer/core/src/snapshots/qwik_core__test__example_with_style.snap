@@ -23,7 +23,7 @@ export const Foo = component$(() => {
 export const Foo_component_useStyles_pV9TSCBIhw8 = '.class {}';
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mDAIe\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\"mDAIe\"}")
 /*
 {
   "origin": "test.tsx",
@@ -54,7 +54,7 @@ export const Foo_component_HTDRsvUbLiE = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B;IAC1B;IACA,QACK,IAAI,MAAM;AAEnB\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;yCAG8B;IAC1B;IACA,QACK,IAAI,MAAM;AAEnB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -84,7 +84,7 @@ export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./te
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAKhB;IACC,SAAS;AACb,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAKhB;IACC,SAAS;AACb,GAAG\"}")
 == DIAGNOSTICS ==
 
 []

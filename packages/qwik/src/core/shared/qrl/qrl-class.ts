@@ -15,10 +15,9 @@ import { getQFuncs, QInstanceAttr } from '../utils/markers';
 import { isPromise, maybeThen } from '../utils/promises';
 import { qDev, qSerialize, qTest, seal } from '../utils/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../utils/types';
-import { isSignal } from '../../signal/signal';
 import type { QRLDev } from './qrl';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
-import type { Signal } from '../../signal/signal.public';
+import { isSignal, type Signal } from '../../signal/signal.public';
 
 export const isQrl = <T = unknown>(value: unknown): value is QRLInternal<T> => {
   return typeof value === 'function' && typeof (value as any).getSymbol === 'function';
@@ -258,7 +257,7 @@ export function assertQrl<T>(qrl: QRL<T>): asserts qrl is QRLInternal<T> {
 
 export function assertSignal<T>(obj: unknown): asserts obj is Signal<T> {
   if (qDev) {
-    if (!isSignal(obj) && !isSignal(obj)) {
+    if (!isSignal(obj)) {
       throw new Error('Not a Signal');
     }
   }

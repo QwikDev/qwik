@@ -1327,7 +1327,7 @@ interface IntrinsicElements extends LenientQwikElements
 ## isSignal
 
 ```typescript
-isSignal: (value: any) => value is ISignal<unknown>
+isSignal: (value: any) => value is Signal<unknown>
 ```
 
 <table><thead><tr><th>
@@ -1357,9 +1357,9 @@ any
 </tbody></table>
 **Returns:**
 
-value is [ISignal](#signal)&lt;unknown&gt;
+value is [Signal](#signal)&lt;unknown&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts)
 
 ## jsx
 

@@ -4,12 +4,8 @@ import { tryGetInvokeContext } from '../use/use-core';
 import { isSerializableObject } from '../shared/utils/types';
 import { unwrapDeserializerProxy } from '../shared/shared-serialization';
 import type { Container } from '../shared/types';
-import {
-  ensureContains,
-  ensureContainsEffect,
-  triggerEffects,
-  type EffectSubscriptions,
-} from './signal';
+import type { EffectSubscriptions } from './signal-types';
+import { ensureContains, ensureContainsEffect, triggerEffects } from './signal-effects';
 
 const DEBUG = false;
 

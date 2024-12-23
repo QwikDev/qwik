@@ -7,9 +7,11 @@ import type { VNodeData } from '../../server/vnode-data';
 import { type DomContainer } from '../client/dom-container';
 import type { VNode } from '../client/types';
 import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
+import { ComputedSignal } from '../signal/computed-signal';
 import { NEEDS_COMPUTATION } from '../signal/flags';
-import { ComputedSignal, EffectPropData, Signal, WrappedSignal } from '../signal/signal';
+import { Signal } from '../signal/signal';
 import type { Subscriber } from '../signal/signal-subscriber';
+import { EffectPropData } from '../signal/signal-types';
 import {
   STORE_ARRAY_PROP,
   createStore,
@@ -17,6 +19,7 @@ import {
   getStoreTarget,
   isStore,
 } from '../signal/store';
+import { WrappedSignal } from '../signal/wrapped-signal';
 import type { SsrAttrs, ISsrNode, SymbolToChunkResolver } from '../ssr/ssr-types';
 import { untrack } from '../use/use-core';
 import { createResourceReturn, type ResourceReturnInternal } from '../use/use-resource';

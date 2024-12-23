@@ -19,13 +19,13 @@ import type { Container, HostElement } from '../shared/types';
 import { vnode_getNode, vnode_isElementVNode, vnode_isVNode } from '../client/vnode';
 import { _getQContainerElement } from '../client/dom-container';
 import type { ContainerElement } from '../client/types';
-import {
-  WrappedSignal,
-  type EffectPropData,
-  type EffectSubscriptions,
-  type EffectSubscriptionsProp,
-} from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
+import type {
+  EffectPropData,
+  EffectSubscriptions,
+  EffectSubscriptionsProp,
+} from '../signal/signal-types';
+import { WrappedSignal } from '../signal/wrapped-signal';
 
 declare const document: QwikDocument;
 

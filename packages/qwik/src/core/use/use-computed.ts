@@ -1,6 +1,7 @@
 import { assertQrl } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { ComputedSignal, throwIfQRLNotResolved } from '../signal/signal';
+import { ComputedSignal } from '../signal/computed-signal';
+import { throwIfQRLNotResolved } from '../signal/signal-utils';
 import type { ReadonlySignal, Signal } from '../signal/signal.public';
 import { useSequentialScope } from './use-sequential-scope';
 

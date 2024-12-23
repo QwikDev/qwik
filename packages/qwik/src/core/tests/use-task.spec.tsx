@@ -12,7 +12,7 @@ import { domRender, getTestPlatform, ssrRenderToDom, trigger } from '@qwik.dev/c
 import { describe, expect, it } from 'vitest';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
-import { WrappedSignal } from '../signal/signal';
+import { WrappedSignal } from '../signal/wrapped-signal';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

@@ -113,9 +113,11 @@ import type { OnRenderFn } from './component.public';
 import type { Props } from './jsx/jsx-runtime';
 import { QScopedStyle } from './utils/markers';
 import { addComponentStylePrefix } from './utils/scoped-styles';
-import { type WrappedSignal, type ComputedSignal, triggerEffects } from '../signal/signal';
+import { triggerEffects } from '../signal/signal-effects';
 import type { TargetType } from '../signal/store';
 import { QError, qError } from './error/error';
+import type { WrappedSignal } from '../signal/wrapped-signal';
+import type { ComputedSignal } from '../signal/computed-signal';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -415,6 +417,8 @@ export const createScheduler = (
           break;
         }
         returnValue = retryOnPromise(() => {
+          // We should only call subscribers if the calculation actually changed.
+          // Therefore, we need to calculate the value now.
           if (target.$computeIfNeeded$() || forceRunEffects) {
             triggerEffects(container, target, target.$effects$);
           }

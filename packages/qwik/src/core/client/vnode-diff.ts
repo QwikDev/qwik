@@ -93,8 +93,7 @@ import {
   type VNodeJournal,
 } from './vnode';
 import { getNewElementNamespaceData } from './vnode-namespace';
-import { WrappedSignal, EffectProperty, isSignal, EffectPropData } from '../signal/signal';
-import type { Signal } from '../signal/signal.public';
+import { isSignal, type Signal } from '../signal/signal.public';
 import { executeComponent } from '../shared/component-execution';
 import { isParentSlotProp, isSlotProp } from '../shared/utils/prop';
 import { escapeHTML } from '../shared/utils/character-escaping';
@@ -104,6 +103,8 @@ import {
 } from '../signal/signal-subscriber';
 import { serializeAttribute } from '../shared/utils/styles';
 import { QError, qError } from '../shared/error/error';
+import { WrappedSignal } from '../signal/wrapped-signal';
+import { EffectPropData, EffectProperty } from '../signal/signal-types';
 
 export type ComponentQueue = Array<VNode>;
 

@@ -1,7 +1,7 @@
 import { $, component$ } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { _fnSignal, _wrapProp } from '../internal';
-import { EffectPropData, type Signal } from '../signal/signal';
+import { type Signal } from '../signal/signal';
 import { createComputed$, createSignal, isSignal } from '../signal/signal.public';
 import { StoreFlags, createStore } from '../signal/store';
 import { createResourceReturn } from '../use/use-resource';
@@ -17,6 +17,7 @@ import {
   dumpState,
 } from './shared-serialization';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
+import { EffectPropData } from '../signal/signal-types';
 
 const DEBUG = false;
 

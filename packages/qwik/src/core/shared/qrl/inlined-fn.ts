@@ -1,4 +1,4 @@
-import { WrappedSignal } from '../../signal/signal';
+import { WrappedSignal } from '../../signal/wrapped-signal';
 
 /** @internal */
 export const _fnSignal = <T extends (...args: any) => any>(

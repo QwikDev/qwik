@@ -1,8 +1,10 @@
 import { QSubscribers } from '../shared/utils/markers';
 import type { VNode } from '../client/types';
 import { ensureMaterialized, vnode_getProp, vnode_isElementVNode } from '../client/vnode';
-import { EffectSubscriptionsProp, WrappedSignal, isSignal } from './signal';
 import type { Container } from '../shared/types';
+import { WrappedSignal } from './wrapped-signal';
+import { isSignal } from './signal.public';
+import { EffectSubscriptionsProp } from './signal-types';
 
 export abstract class Subscriber {
   $effectDependencies$: Subscriber[] | null = null;

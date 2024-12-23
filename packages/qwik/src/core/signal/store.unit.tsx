@@ -3,15 +3,14 @@ import { createDocument, getTestPlatform } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { Container, HostElement } from '../shared/types';
 import { StoreFlags, getOrCreateStore, isStore } from './store';
-import { EffectProperty } from './signal';
 import { invoke } from '../use/use-core';
 import { newInvokeContext } from '../use/use-core';
 import { ChoreType } from '../shared/scheduler';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { Task } from '../use/use-task';
-import type { EffectSubscriptions } from './signal';
+import { EffectProperty, type EffectSubscriptions } from './signal-types';
 
-describe('v2/store', () => {
+describe('store', () => {
   const log: any[] = [];
   let container: Container = null!;
   beforeEach(() => {

@@ -1,13 +1,13 @@
 import type { ContextId } from '../use/use-context';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { version } from '../version';
-import type { EffectPropData } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
 import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { Scheduler } from './scheduler';
 import { createScheduler } from './scheduler';
 import { createSerializationContext, type SerializationContext } from './shared-serialization';
 import type { Container, HostElement, ObjToProxyMap } from './types';
+import type { EffectPropData } from '../signal/signal-types';
 
 /** @internal */
 export abstract class _SharedContainer implements Container {

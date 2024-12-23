@@ -4,8 +4,7 @@ import {
   createSignal as _createSignal,
   createComputedSignal as _createComputedSignal,
 } from './signal-api';
-
-export { isSignal } from './signal';
+import { Signal as SignalClass } from './signal';
 
 /** @public */
 export interface ReadonlySignal<T = unknown> {
@@ -72,3 +71,8 @@ export const createComputedQrl: <T>(
  * @public
  */
 export const createComputed$ = /*#__PURE__*/ implicit$FirstArg(createComputedQrl);
+
+/** @public */
+export const isSignal = (value: any): value is Signal<unknown> => {
+  return value instanceof SignalClass;
+};

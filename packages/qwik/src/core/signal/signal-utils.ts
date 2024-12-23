@@ -1,10 +1,11 @@
 import { _CONST_PROPS, _IMMUTABLE } from '../shared/utils/constants';
 import { assertEqual } from '../shared/error/assert';
 import { isObject } from '../shared/utils/types';
-import { WrappedSignal } from './signal';
 import { isSignal } from './signal.public';
 import { getStoreTarget } from './store';
 import { isPropsProxy } from '../shared/jsx/jsx-runtime';
+import { WrappedSignal } from './wrapped-signal';
+import type { QRL } from '../shared/qrl/qrl.public';
 
 // Keep these properties named like this so they're the same as from wrapSignal
 const getValueProp = (p0: any) => p0.value;
@@ -69,4 +70,16 @@ export const _wrapSignal = <T extends Record<any, any>, P extends keyof T>(
     return obj[prop];
   }
   return r;
+};
+
+export const throwIfQRLNotResolved = <T>(qrl: QRL<() => T>) => {
+  const resolved = qrl.resolved;
+  if (!resolved) {
+    // When we are creating a signal using a use method, we need to ensure
+    // that the computation can be lazy and therefore we need to unsure
+    // that the QRL is resolved.
+    // When we re-create the signal from serialization (we don't create the signal
+    // using useMethod) it is OK to not resolve it until the graph is marked as dirty.
+    throw qrl.resolve();
+  }
 };

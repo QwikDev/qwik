@@ -29,12 +29,14 @@ import {
 import { addComponentStylePrefix, isClassAttr } from '../shared/utils/scoped-styles';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
-import { WrappedSignal, EffectProperty, isSignal } from '../signal/signal';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrComponentFrame, ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
 import { qInspector } from '../shared/utils/qdev';
 import { serializeAttribute } from '../shared/utils/styles';
 import { QError, qError } from '../shared/error/error';
+import { isSignal } from '../signal/signal.public';
+import { EffectProperty } from '../signal/signal-types';
+import { WrappedSignal } from '../signal/wrapped-signal';
 
 class ParentComponentData {
   constructor(

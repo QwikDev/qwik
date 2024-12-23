@@ -11,12 +11,12 @@ import { delay, isPromise, safeCall } from '../shared/utils/promises';
 import { isFunction, isObject } from '../shared/utils/types';
 import { StoreFlags, createStore, getStoreTarget, unwrapStore } from '../signal/store';
 import { useSequentialScope } from './use-sequential-scope';
-import { EffectProperty, isSignal } from '../signal/signal';
-import type { Signal } from '../signal/signal.public';
+import { isSignal, type Signal } from '../signal/signal.public';
 import { clearSubscriberEffectDependencies } from '../signal/signal-subscriber';
 import { ResourceEvent } from '../shared/utils/markers';
 import { assertDefined } from '../shared/error/assert';
 import { noSerialize } from '../shared/utils/serialize-utils';
+import { EffectProperty } from '../signal/signal-types';
 
 const DEBUG: boolean = false;
 

@@ -17,7 +17,7 @@ import { untrack } from '../use/use-core';
 import { useSignal } from '../use/use-signal';
 import { vnode_getFirstChild, vnode_getProp, vnode_locate } from '../client/vnode';
 import { QSubscribers } from '../shared/utils/markers';
-import { EffectSubscriptionsProp } from '../signal/signal';
+import { EffectSubscriptionsProp } from '../signal/signal-types';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

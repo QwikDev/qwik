@@ -350,6 +350,70 @@ describe.each([
         </Component>
       );
     });
+
+    it('should rerender inner inline component with destructured props', async () => {
+      interface InnerButtonProps {
+        text: string;
+        isActive: boolean;
+        onClick$: PropsOf<'button'>['onClick$'];
+      }
+
+      const Parent = component$(() => {
+        const store = useStore({
+          selectedOutputDetail: 'console',
+        });
+
+        const InnerButton = (props: InnerButtonProps) => {
+          return (
+            <button
+              key={props.text}
+              class={{ 'active-tab': props.isActive, 'repl-tab-button': true }}
+              onClick$={props.onClick$}
+            >
+              {props.text}
+            </button>
+          );
+        };
+
+        const InnerButtonWrapper = ({ data }: { data: any }) => {
+          return (
+            <InnerButton
+              text="Options"
+              isActive={data.selectedOutputDetail === 'options'}
+              onClick$={() => {
+                data.selectedOutputDetail = 'options';
+              }}
+            />
+          );
+        };
+
+        return <InnerButtonWrapper data={store} />;
+      });
+
+      const { vNode, document } = await render(<Parent />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <InlineComponent>
+            <InlineComponent>
+              <button class="repl-tab-button">Options</button>
+            </InlineComponent>
+          </InlineComponent>
+        </Component>
+      );
+
+      await trigger(document.body, 'button', 'click');
+
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <InlineComponent>
+            <InlineComponent>
+              <button class="active-tab repl-tab-button">Options</button>
+            </InlineComponent>
+          </InlineComponent>
+        </Component>
+      );
+    });
   });
 
   describe('SerializationConstant at the start', () => {

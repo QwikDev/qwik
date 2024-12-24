@@ -239,6 +239,27 @@ impl<'a> PropsDestructuring<'a> {
 }
 
 impl<'a> VisitMut for PropsDestructuring<'a> {
+	fn visit_mut_arrow_expr(&mut self, node: &mut ast::ArrowExpr) {
+		if node.params.len() == 1 {
+			// probably an inline component
+			if matches!(
+				&node.body,
+				box ast::BlockStmtOrExpr::Expr(box ast::Expr::Call(_))
+			) {
+				// function without return statement
+				self.transform_component_props(node);
+			} else if matches!(
+				&node.body,
+				box ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt { stmts, .. })
+				if stmts.iter().any(|stmt| matches!(stmt, ast::Stmt::Return(_)))
+			) {
+				// function with return statement
+				self.transform_component_props(node);
+			}
+		}
+		node.visit_mut_children_with(self);
+	}
+
 	fn visit_mut_call_expr(&mut self, node: &mut ast::CallExpr) {
 		if let ast::Callee::Expr(box ast::Expr::Ident(ref ident)) = &node.callee {
 			if id_eq!(ident, &self.component_ident) {

@@ -3647,6 +3647,27 @@ fn should_destructure_args() {
 }
 
 #[test]
+fn destructure_args_colon_props() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from "@qwik.dev/core";
+		export default component$((props) => {
+			const { 'bind:value': bindValue } = props;
+			return (
+				<>
+				{bindValue}
+				</>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_handle_dangerously_set_inner_html() {
 	test_input!(TestInput {
 		code: r#"

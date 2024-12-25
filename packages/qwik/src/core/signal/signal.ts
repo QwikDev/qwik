@@ -207,8 +207,6 @@ export class Signal<T = any> implements ISignal<T> {
   }
 
   set value(value) {
-    debugger;
-    console.log('value', 'value', value);
     if (value !== this.$untrackedValue$) {
       DEBUG &&
         log('Signal.set', this.$untrackedValue$, '->', value, pad('\n' + this.toString(), '  '));

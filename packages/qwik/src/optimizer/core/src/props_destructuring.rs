@@ -338,16 +338,25 @@ fn transform_pat(
 			}
 			ast::ObjectPatProp::KeyValue(ref v) => {
 				if matches!(v.key, ast::PropName::Ident(_) | ast::PropName::Str(_)) {
-					let (key_atom, key_ident) = match &v.key {
+					let (key_atom, prop) = match &v.key {
 						ast::PropName::Str(ref key) => {
 							let key_str: &str = &key.value;
 							let key_atom = Atom::from(key_str);
 							(
 								key_atom.clone(),
-								ast::IdentName::new(key_atom.clone(), DUMMY_SP),
+								ast::MemberProp::Computed(ast::ComputedPropName {
+									span: DUMMY_SP,
+									expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
+										span: DUMMY_SP,
+										value: key_atom,
+										raw: None,
+									}))),
+								}),
 							)
 						}
-						ast::PropName::Ident(ref key) => (key.sym.clone(), key.clone()),
+						ast::PropName::Ident(ref key) => {
+							(key.sym.clone(), ast::MemberProp::Ident(key.clone()))
+						}
 						_ => {
 							continue;
 						}
@@ -356,7 +365,7 @@ fn transform_pat(
 						box ast::Pat::Ident(ref ident) => {
 							let access = ast::Expr::Member(ast::MemberExpr {
 								obj: Box::new(new_ident.clone()),
-								prop: ast::MemberProp::Ident(key_ident),
+								prop,
 								span: DUMMY_SP,
 							});
 
@@ -370,7 +379,7 @@ fn transform_pat(
 							if is_const_expr(value.as_ref(), props_transform.global_collect, None) {
 								let access = ast::Expr::Member(ast::MemberExpr {
 									obj: Box::new(new_ident.clone()),
-									prop: ast::MemberProp::Ident(key_ident),
+									prop,
 									span: DUMMY_SP,
 								});
 								local.push((

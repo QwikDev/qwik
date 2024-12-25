@@ -723,8 +723,7 @@ export const vnode_diff = (
     const jsxAttrs = [] as ClientAttrs;
     const props = jsx.varProps;
     for (const key in props) {
-      let value = props[key];
-      value = serializeAttribute(key, value, scopedStyleIdPrefix);
+      const value = props[key];
       if (value != null) {
         mapArray_set(jsxAttrs, key, value, 0);
       }
@@ -791,7 +790,7 @@ export const vnode_diff = (
         value = untrack(() => value.value);
       }
 
-      vnode_setAttr(journal, vnode, key, value);
+      vnode_setAttr(journal, vnode, key, serializeAttribute(key, value, scopedStyleIdPrefix));
       if (value === null) {
         // if we set `null` than attribute was removed and we need to shorten the dstLength
         dstLength = dstAttrs.length;
@@ -830,20 +829,20 @@ export const vnode_diff = (
         if (dstKey && isHtmlAttributeAnEventName(dstKey)) {
           patchEventDispatch = true;
           dstIdx++;
-        } else {
-          record(dstKey!, null);
+        } else if (dstKey) {
+          record(dstKey, null);
           dstIdx--;
         }
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (dstKey == null) {
         // Destination has more keys, so we need to insert them from source.
         const isEvent = isJsxPropertyAnEventName(srcKey);
-        if (isEvent) {
+        if (srcKey && isEvent) {
           // Special handling for events
           patchEventDispatch = true;
           recordJsxEvent(srcKey, srcAttrs[srcIdx]);
-        } else {
-          record(srcKey!, srcAttrs[srcIdx]);
+        } else if (srcKey) {
+          record(srcKey, srcAttrs[srcIdx]);
         }
         srcIdx++;
         srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
@@ -874,11 +873,11 @@ export const vnode_diff = (
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else {
         // Source is missing the key, so we need to remove it from destination.
-        if (isHtmlAttributeAnEventName(dstKey)) {
+        if (dstKey && isHtmlAttributeAnEventName(dstKey)) {
           patchEventDispatch = true;
           dstIdx++;
-        } else {
-          record(dstKey!, null);
+        } else if (dstKey) {
+          record(dstKey, null);
           dstIdx--;
         }
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;

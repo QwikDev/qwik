@@ -4,6 +4,7 @@ use crate::code_move::create_return_stmt;
 use crate::collector::{new_ident_from_id, GlobalCollect, Id};
 use crate::is_const::is_const_expr;
 use crate::words::*;
+use swc_atoms::Atom;
 use swc_atoms::JsWord;
 use swc_common::DUMMY_SP;
 use swc_ecmascript::ast;
@@ -315,15 +316,30 @@ fn transform_pat(
 				}
 			}
 			ast::ObjectPatProp::KeyValue(ref v) => {
-				if let ast::PropName::Ident(ref key) = v.key {
+				if matches!(v.key, ast::PropName::Ident(_) | ast::PropName::Str(_)) {
+					let (key_atom, key_ident) = match &v.key {
+						ast::PropName::Str(ref key) => {
+							let key_str: &str = &key.value;
+							let key_atom = Atom::from(key_str);
+							(
+								key_atom.clone(),
+								ast::IdentName::new(key_atom.clone(), DUMMY_SP),
+							)
+						}
+						ast::PropName::Ident(ref key) => (key.sym.clone(), key.clone()),
+						_ => {
+							continue;
+						}
+					};
 					match &v.value {
 						box ast::Pat::Ident(ref ident) => {
 							let access = ast::Expr::Member(ast::MemberExpr {
 								obj: Box::new(new_ident.clone()),
-								prop: ast::MemberProp::Ident(key.clone()),
+								prop: ast::MemberProp::Ident(key_ident),
 								span: DUMMY_SP,
 							});
-							local.push((id!(ident), key.sym.clone(), access));
+
+							local.push((id!(ident), key_atom.clone(), access));
 						}
 						box ast::Pat::Assign(ast::AssignPat {
 							left: box ast::Pat::Ident(ident),
@@ -333,12 +349,12 @@ fn transform_pat(
 							if is_const_expr(value.as_ref(), props_transform.global_collect, None) {
 								let access = ast::Expr::Member(ast::MemberExpr {
 									obj: Box::new(new_ident.clone()),
-									prop: ast::MemberProp::Ident(key.clone()),
+									prop: ast::MemberProp::Ident(key_ident),
 									span: DUMMY_SP,
 								});
 								local.push((
 									id!(ident.id),
-									key.sym.clone(),
+									key_atom.clone(),
 									ast::Expr::Bin(ast::BinExpr {
 										span: DUMMY_SP,
 										op: ast::BinaryOp::NullishCoalescing,

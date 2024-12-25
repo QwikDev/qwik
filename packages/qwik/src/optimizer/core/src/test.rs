@@ -3732,6 +3732,50 @@ fn destructure_args_colon_props() {
 }
 
 #[test]
+fn destructure_args_colon_props2() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from "@qwik.dev/core";
+		export default component$((props) => {
+			const { 'bind:value': bindValue } = props;
+			const test = useSignal(bindValue);
+			return (
+				<>
+				{test.value}
+				</>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn destructure_args_colon_props3() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from "@qwik.dev/core";
+		export default component$((props) => {
+			const { test, ...rest } = props;
+			const test = useSignal(rest['bind:value']);
+			return (
+				<>
+				{test.value}
+				</>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_handle_dangerously_set_inner_html() {
 	test_input!(TestInput {
 		code: r#"

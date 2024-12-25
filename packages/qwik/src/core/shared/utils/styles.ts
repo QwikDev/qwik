@@ -70,7 +70,7 @@ export const stringifyStyle = (obj: any): string => {
 };
 
 export const serializeBooleanOrNumberAttribute = (value: any) => {
-  return value != null ? (typeof value === 'number' ? value : String(value)) : null;
+  return value != null ? String(value) : null;
 };
 
 export function serializeAttribute(

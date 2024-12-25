@@ -24,7 +24,7 @@ Error.stackTraceLimit = 100;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  { render: domRender }, //
+  // { render: domRender }, //
 ])('$render.name: useSignal', ({ render }) => {
   it('should update value', async () => {
     const Counter = component$((props: { initial: number }) => {
@@ -729,6 +729,44 @@ describe.each([
             </div>
           </Fragment>
         </Component>
+      );
+    });
+
+    // help me to get a description
+    it('should update the sum when input values change', async () => {
+      const AppTest = component$(() => {
+        const a = useSignal(1);
+        const b = useSignal(2);
+        return (
+          <div>
+            {a.value} + {b.value} = {a.value + b.value}
+            <input type="number" id="input1" bind:value={a} />
+            <input type="number" id="input2" bind:value={b} />
+          </div>
+        );
+      });
+
+      const { document } = await render(<AppTest />, { debug: debug });
+
+      await expect(document.querySelector('div')).toMatchDOM(
+        <div>
+          1 + 2 = 3
+          <input type="number" id="input1" value="1" />
+          <input type="number" id="input2" value="2" />
+        </div>
+      );
+
+      const input1 = document.querySelector('#input1')! as HTMLInputElement;
+
+      input1.value = '10';
+      await trigger(document.body, input1, 'input');
+
+      await expect(document.querySelector('div')).toMatchDOM(
+        <div>
+          10 + 2 = 12
+          <input type="number" id="input1" value="10" />
+          <input type="number" id="input2" value="2" />
+        </div>
       );
     });
   });

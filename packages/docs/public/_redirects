@@ -1,5 +1,5 @@
-/chat https://discord.gg/eDrWHeqnnQ 307
-/chat/ https://discord.gg/eDrWHeqnnQ 307
+/chat https://discord.gg/TsNCMd6uGW 307
+/chat/ https://discord.gg/TsNCMd6uGW 307
 
 /examples /examples/introduction/hello-world/ 307
 /examples/ /examples/introduction/hello-world/ 307
@@ -60,6 +60,7 @@
 /docs/components/lifecycle/ /docs/components/tasks/ 308
 /docs/components/projection/ /docs/components/slots/ 308
 /docs/components/resource/ /docs/components/state/ 308
+/docs/cookbook/re-exporting-loaders/ /docs/re-exporting-loaders/ 308
 
 /qwikcity/* /docs/:splat 308
 /integrations/* /docs/integrations/:splat 308

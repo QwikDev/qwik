@@ -27,7 +27,7 @@ import {
   TestCStr,
   TestCWithFlag,
 } from "./utils/utils";
-import { isBrowser } from "@builder.io/qwik/build";
+import { isBrowser } from "@builder.io/qwik";
 
 export const Signals = component$(() => {
   const rerender = useSignal(0);

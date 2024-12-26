@@ -1,0 +1,26 @@
+{
+  "versionGroups": [
+    {
+      "label": "Require minimums",
+      "dependencyTypes": ["prod", "peer"],
+      "range": "^"
+    }
+  ],
+  "semverGroups": [
+    {
+      "label": "Playwright should have the same version as in flake.nix",
+      "dependencies": ["@playwright/test"],
+      "pinVersion": "1.47.0"
+    },
+    {
+      "label": "Undici should always be * until we remove it",
+      "dependencies": ["undici"],
+      "range": "*"
+    },
+    {
+      "label": "use exact version numbers for devDependencies",
+      "dependencyTypes": ["dev"],
+      "range": ""
+    }
+  ]
+}

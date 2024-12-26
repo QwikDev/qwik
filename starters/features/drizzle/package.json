@@ -22,7 +22,8 @@
         " Check out the Drizzle docs for more info:",
         "   - https://orm.drizzle.team/docs/overview"
       ]
-    }
+    },
+    "alwaysInRoot": []
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.9",

@@ -29,7 +29,7 @@ import { submoduleTesting } from './submodule-testing';
 import { buildSupabaseAuthHelpers } from './supabase-auth-helpers';
 import { tsc, tscQwik, tscQwikCity } from './tsc';
 import { tscDocs } from './tsc-docs';
-import { type BuildConfig, emptyDir, ensureDir, panic } from './util';
+import { emptyDir, ensureDir, panic, type BuildConfig } from './util';
 import { validateBuild } from './validate-build';
 
 /**
@@ -181,6 +181,7 @@ export async function build(config: BuildConfig) {
             join(config.srcQwikDir, '..', 'dist', 'core.prod.cjs')
           );
         },
+        [join(config.srcQwikDir, 'cli')]: () => submoduleCli(config),
         [join(config.srcQwikDir, 'optimizer')]: () => submoduleOptimizer(config),
         [join(config.srcQwikDir, 'prefetch-service-worker')]: () => submoduleQwikPrefetch(config),
         [join(config.srcQwikDir, 'server')]: () => submoduleServer(config),

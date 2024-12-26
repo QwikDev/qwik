@@ -15,7 +15,7 @@ import {
   _waitUntilRendered,
   type QRL,
 } from '@builder.io/qwik';
-import { isBrowser, isDev, isServer } from '@builder.io/qwik/build';
+import { isBrowser, isDev, isServer } from '@builder.io/qwik';
 import * as qwikCity from '@qwik-city-plan';
 import { CLIENT_DATA_CACHE } from './constants';
 import {
@@ -375,7 +375,10 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         }
 
         // Update route location
-        routeLocation.prevUrl = prevUrl;
+        if (!isSamePath(trackUrl, prevUrl)) {
+          routeLocation.prevUrl = prevUrl;
+        }
+
         routeLocation.url = trackUrl;
         routeLocation.params = { ...params };
 

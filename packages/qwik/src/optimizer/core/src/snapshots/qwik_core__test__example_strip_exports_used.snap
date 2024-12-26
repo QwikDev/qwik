@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1682
+assertion_line: 1683
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -25,7 +26,7 @@ export default component$(()=> {
     return <div>cmp</div>
 });
 
-============================= test.tsx_test_component_useresource_4a8wvy7wh38.tsx (ENTRY POINT)==
+============================= test.tsx_test_component_useResource_4a8wVY7wh38.tsx (ENTRY POINT)==
 
 import { onGet } from "./test";
 export const test_component_useResource_4a8wVY7wh38 = ()=>{
@@ -41,7 +42,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_test_component_useResource",
   "hash": "4a8wVY7wh38",
-  "canonicalFilename": "test.tsx_test_component_useresource_4a8wvy7wh38",
+  "canonicalFilename": "test.tsx_test_component_useResource_4a8wVY7wh38",
   "path": "",
   "extension": "tsx",
   "parent": "test_component_LUXeXe0DQrg",
@@ -61,16 +62,16 @@ import { qrl } from "@builder.io/qwik";
 export const onGet = ()=>{
     throw "Symbol removed by Qwik Optimizer, it can not be called from current platform";
 };
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;aAIa;;;AASb,6BAAe,mHAKZ\"}")
-============================= test.tsx_test_component_luxexe0dqrg.tsx (ENTRY POINT)==
+============================= test.tsx_test_component_LUXeXe0DQrg.tsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 import { useResourceQrl } from "@builder.io/qwik";
 export const test_component_LUXeXe0DQrg = ()=>{
-    useResourceQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_useresource_4a8wvy7wh38"), "test_component_useResource_4a8wVY7wh38"));
+    useResourceQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_useResource_4a8wVY7wh38"), "test_component_useResource_4a8wVY7wh38"));
     return <div>cmp</div>;
 };
 
@@ -83,7 +84,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_test_component",
   "hash": "LUXeXe0DQrg",
-  "canonicalFilename": "test.tsx_test_component_luxexe0dqrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
   "path": "",
   "extension": "tsx",
   "parent": null,

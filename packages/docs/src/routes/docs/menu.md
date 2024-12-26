@@ -50,7 +50,8 @@
 - [Portals](/docs/cookbook/portals/index.mdx)
 - [Streaming loaders](/docs/cookbook/streaming-deferred-loaders/index.mdx)
 - [Sync events w state](/docs/cookbook/sync-events/index.mdx)
-- [Theme Managment](/docs/cookbook/theme-management/index.mdx)
+- [Theme Management](/docs/cookbook/theme-management/index.mdx)
+- [Drag & Drop](/docs/cookbook/drag&drop/index.mdx)
 
 ## Integrations
 

@@ -3043,32 +3043,6 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[flags](#)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[immutableProps](#)
-
-</td><td>
-
-</td><td>
-
-Record&lt;any, unknown&gt; \| null
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
 [key](#)
 
 </td><td>
@@ -3591,7 +3565,7 @@ PrefetchGraph: (opts?: {
   manifestHash?: string;
   manifestURL?: string;
   nonce?: string;
-}) => JSXNode<"script">;
+}) => JSXOutput;
 ```
 
 <table><thead><tr><th>
@@ -3625,7 +3599,7 @@ _(Optional)_ Options for the loading prefetch graph.
 </tbody></table>
 **Returns:**
 
-[JSXNode](#jsxnode)&lt;"script"&gt;
+[JSXOutput](#jsxoutput)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -10119,9 +10093,56 @@ T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-core.ts)
 
+## unwrapStore
+
+Get the target value of the Proxy. Useful if you want to clone a store (structureClone, IndexedDB,...)
+
+```typescript
+unwrapProxy: <T>(proxy: T) => T;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+proxy
+
+</td><td>
+
+T
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+T
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/state/common.ts)
+
 ## useComputed$
 
-Hook that returns a read-only signal that updates when signals used in the `ComputedFn` change.
+Returns a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.
+
+The function must be synchronous and must not have any side effects.
+
+Async functions are deprecated because:
+
+- When calculating the first time, it will see it's a promise and it will restart the render function. - Qwik can't track used signals after the first await, which leads to subtle bugs. - Both `useTask$` and `useResource$` are available, without these problems.
+
+In v2, async functions won't work.
 
 ```typescript
 useComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>;

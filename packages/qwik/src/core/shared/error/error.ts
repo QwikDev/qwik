@@ -45,7 +45,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Serialization Error: Serialization of data type {{0}} is not implemented', // 37
       'Serialization Error: Unvisited {{0}}', // 38
       'Serialization Error: Missing QRL chunk for {{0}}', // 39
-      '{{0}}\nThe value of the textarea must be a string', // 40
+      '{{0}}\nThe value of the textarea must be a string found {{1}}', // 40
       'Unable to find q:container', // 41
       "Element must have 'q:container' attribute.", // 42
       'Unknown vnode type {{0}}.', // 43

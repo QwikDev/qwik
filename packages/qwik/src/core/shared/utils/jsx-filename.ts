@@ -1,6 +1,6 @@
 import type { DevJSX } from '../jsx/types/jsx-node';
 
-export function getFileNameFromJsx(jsxDev?: DevJSX): string | null {
+export function getFileLocationFromJsx(jsxDev?: DevJSX): string | null {
   if (!jsxDev) {
     return null;
   }

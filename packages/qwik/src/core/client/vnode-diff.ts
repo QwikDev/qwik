@@ -14,7 +14,7 @@ import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
-import { trackSignalAndAssignHost, untrack } from '../use/use-core';
+import { trackSignalAndAssignHost } from '../use/use-core';
 import { TaskFlags, cleanupTask, isTask } from '../use/use-task';
 import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import {
@@ -788,7 +788,11 @@ export const vnode_diff = (
       }
 
       if (isSignal(value)) {
-        value = untrack(() => value.value);
+        const signalData = new EffectPropData({
+          $scopedStyleIdPrefix$: scopedStyleIdPrefix,
+          $isConst$: false,
+        });
+        value = trackSignalAndAssignHost(value, vnode, key, container, signalData);
       }
 
       vnode_setAttr(journal, vnode, key, value);

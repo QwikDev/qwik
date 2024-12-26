@@ -31,12 +31,17 @@ The Qwik framework provides unique capabilities for managing state and effects i
 
 <CodeFile src="/src/routes/demo/cookbook/mediaController/index.tsx">
 ```tsx
-export const useDebouncer = (fn: QRL<(args: any) => void>, delay: number) => {
+export const useDebouncer = <A extends readonly unknown[], R>(
+  fn: QRL<(...args: A) => R>,
+  delay: number,
+): QRL<(...args: A) => void> => {
   const timeoutId = useSignal<number>();
 
-  return $((args: any) => {
-    clearTimeout(timeoutId.value);
-    timeoutId.value = Number(setTimeout(() => fn(args), delay));
+  return $((...args: A): void => {
+    window.clearTimeout(timeoutId.value);
+    timeoutId.value = window.setTimeout((): void => {
+      void fn(...args);
+    }, delay);
   });
 };
 ```
@@ -93,12 +98,17 @@ We can leverage Qwik's `implicit$FirstArg` function to create a `useDebouncer$` 
 This is how Qwik actually implements all of its built-in $ hooks.
 
 ```tsx
-export const useDebouncerQrl = (fn: QRL<(args: any) => void>, delay: number) => {
+export const useDebouncerQrl = <A extends readonly unknown[], R>(
+  fn: QRL<(...args: A) => R>,
+  delay: number,
+): QRL<(...args: A) => void> => {
   const timeoutId = useSignal<number>();
 
-  return $((args: any) => {
-    clearTimeout(timeoutId.value);
-    timeoutId.value = Number(setTimeout(() => fn(args), delay));
+  return $((...args: A): void => {
+    window.clearTimeout(timeoutId.value);
+    timeoutId.value = window.setTimeout((): void => {
+      void fn(...args);
+    }, delay);
   });
 };
 

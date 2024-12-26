@@ -1,7 +1,9 @@
+// keep this import from qwik/build so the cjs build works
 import { isDev } from '@builder.io/qwik/build';
 import { _jsxC } from '../internal';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { useServerData } from '../use/use-env-data';
+import type { JSXOutput } from '../render/jsx/types/jsx-node';
 
 /**
  * Install a service worker which will prefetch the bundles.
@@ -124,7 +126,7 @@ const PREFETCH_CODE = /*#__PURE__*/ ((
  */
 export const PrefetchGraph = (
   opts: { base?: string; manifestHash?: string; manifestURL?: string; nonce?: string } = {}
-) => {
+): JSXOutput => {
   const isTest = import.meta.env.TEST;
   if (isDev && !isTest) {
     const props = {

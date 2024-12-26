@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3007
+assertion_line: 3008
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -97,7 +98,7 @@ async function renderToString(rootNode, opts) {
 
 export { qwikify$, qwikifyQrl, renderToString };
         
-============================= ../node_modules/@builder.io/qwik-react/index.qwik.mjs_qwikifyqrl_component_usewatch_x04jc5xep1u.mjs (ENTRY POINT)==
+============================= ../node_modules/@builder.io/qwik-react/index.qwik.mjs_qwikifyQrl_component_useWatch_x04JC5xeP1U.mjs (ENTRY POINT)==
 
 import { _auto_filterProps as filterProps } from "./index.qwik.mjs";
 import { isBrowser } from "@builder.io/qwik/build";
@@ -138,7 +139,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
   "entry": null,
   "displayName": "index.qwik.mjs_qwikifyQrl_component_useWatch",
   "hash": "x04JC5xeP1U",
-  "canonicalFilename": "index.qwik.mjs_qwikifyqrl_component_usewatch_x04jc5xep1u",
+  "canonicalFilename": "index.qwik.mjs_qwikifyQrl_component_useWatch_x04JC5xeP1U",
   "path": "../node_modules/@builder.io/qwik-react",
   "extension": "mjs",
   "parent": "qwikifyQrl_component_zH94hIe0Ick",
@@ -151,7 +152,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
   ]
 }
 */
-============================= ../node_modules/@builder.io/qwik-react/index.qwik.mjs_qwikifyqrl_component_zh94hie0ick.mjs (ENTRY POINT)==
+============================= ../node_modules/@builder.io/qwik-react/index.qwik.mjs_qwikifyQrl_component_zH94hIe0Ick.mjs (ENTRY POINT)==
 
 import { Fragment } from "@builder.io/qwik/jsx-runtime";
 import { SkipRerender } from "@builder.io/qwik";
@@ -172,7 +173,7 @@ export const qwikifyQrl_component_zH94hIe0Ick = (props)=>{
     let run;
     if (props['client:visible']) run = 'visible';
     else if (props['client:load'] || props['client:only']) run = 'load';
-    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_qwikifyqrl_component_usewatch_x04jc5xep1u.mjs"), "qwikifyQrl_component_useWatch_x04JC5xeP1U", [
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_qwikifyQrl_component_useWatch_x04JC5xeP1U.mjs"), "qwikifyQrl_component_useWatch_x04JC5xeP1U", [
         hostElement,
         props,
         reactCmpQrl,
@@ -211,7 +212,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
   "entry": null,
   "displayName": "index.qwik.mjs_qwikifyQrl_component",
   "hash": "zH94hIe0Ick",
-  "canonicalFilename": "index.qwik.mjs_qwikifyqrl_component_zh94hie0ick",
+  "canonicalFilename": "index.qwik.mjs_qwikifyQrl_component_zH94hIe0Ick",
   "path": "../node_modules/@builder.io/qwik-react",
   "extension": "mjs",
   "parent": null,
@@ -229,7 +230,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@builder.io/qwik-rea
 import { qrl } from "@builder.io/qwik";
 import { componentQrl, implicit$FirstArg } from '@builder.io/qwik';
 function qwikifyQrl(reactCmpQrl) {
-    return /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_qwikifyqrl_component_zh94hie0ick.mjs"), "qwikifyQrl_component_zH94hIe0Ick", [
+    return /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./index.qwik.mjs_qwikifyQrl_component_zH94hIe0Ick.mjs"), "qwikifyQrl_component_zH94hIe0Ick", [
         reactCmpQrl
     ]), {
         tagName: 'qwik-wrap'

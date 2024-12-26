@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 327
+assertion_line: 328
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -16,7 +17,7 @@ const Header = component$(() => {
     );
 });
 
-============================= test.tsx_header_component_j4uyihabnr4.tsx (ENTRY POINT)==
+============================= test.tsx_Header_component_J4uyIhaBNR4.tsx (ENTRY POINT)==
 
 import { useStore } from "@builder.io/qwik";
 export const Header_component_J4uyIhaBNR4 = ()=>{
@@ -34,7 +35,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Header_component",
   "hash": "J4uyIhaBNR4",
-  "canonicalFilename": "test.tsx_header_component_j4uyihabnr4",
+  "canonicalFilename": "test.tsx_Header_component_J4uyIhaBNR4",
   "path": "",
   "extension": "tsx",
   "parent": null,
@@ -52,7 +53,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { $, component$, useStore } from '@builder.io/qwik';
-const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_header_component_j4uyihabnr4"), "Header_component_J4uyIhaBNR4"));
+const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_J4uyIhaBNR4"), "Header_component_J4uyIhaBNR4"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAS,CAAC,EAAE,UAAU,EAAE,QAAQ,QAAQ,mBAAmB;AAC3D,MAAM,uBAAS\"}")

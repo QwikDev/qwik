@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1483
+assertion_line: 1484
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -20,15 +21,15 @@ export default component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./404.tsx__404_component_zrvowc98eqo"), "_404_component_zRvoWc98eqo"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./404.tsx__404_component_zRvoWc98eqo"), "_404_component_zRvoWc98eqo"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;AAGA,6BAAe,kHAKZ\"}")
-============================= src/components/mongo/404.tsx__404_component_zrvowc98eqo.tsx (ENTRY POINT)==
+============================= src/components/mongo/404.tsx__404_component_zRvoWc98eqo.tsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 export const _404_component_zRvoWc98eqo = ()=>{
-    return <div onClick$={/*#__PURE__*/ qrl(()=>import("./404.tsx__404_component_div_onclick_oimo9dvew9q"), "_404_component_div_onClick_OiMo9dvEW9Q")}>
+    return <div onClick$={/*#__PURE__*/ qrl(()=>import("./404.tsx__404_component_div_onClick_OiMo9dvEW9Q"), "_404_component_div_onClick_OiMo9dvEW9Q")}>
         </div>;
 };
 
@@ -41,7 +42,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
   "entry": null,
   "displayName": "404.tsx__404_component",
   "hash": "zRvoWc98eqo",
-  "canonicalFilename": "404.tsx__404_component_zrvowc98eqo",
+  "canonicalFilename": "404.tsx__404_component_zRvoWc98eqo",
   "path": "src/components/mongo",
   "extension": "tsx",
   "parent": null,
@@ -54,7 +55,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
   ]
 }
 */
-============================= src/components/mongo/404.tsx__404_component_div_onclick_oimo9dvew9q.tsx (ENTRY POINT)==
+============================= src/components/mongo/404.tsx__404_component_div_onClick_OiMo9dvEW9Q.tsx (ENTRY POINT)==
 
 export const _404_component_div_onClick_OiMo9dvEW9Q = ()=>console.log(mongodb);
 
@@ -67,7 +68,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
   "entry": null,
   "displayName": "404.tsx__404_component_div_onClick",
   "hash": "OiMo9dvEW9Q",
-  "canonicalFilename": "404.tsx__404_component_div_onclick_oimo9dvew9q",
+  "canonicalFilename": "404.tsx__404_component_div_onClick_OiMo9dvEW9Q",
   "path": "src/components/mongo",
   "extension": "tsx",
   "parent": "_404_component_zRvoWc98eqo",

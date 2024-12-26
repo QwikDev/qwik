@@ -8,7 +8,7 @@ import { isArray, isFunction, isObject, isString, type ValueOrPromise } from '..
 import { domToVnode, smartUpdateChildren } from './visitor';
 import { SkipRender } from '../jsx/utils.public';
 import { isJSXNode, SKIP_RENDER_TYPE, _jsxC, Virtual } from '../jsx/jsx-runtime';
-import type { DevJSX, JSXNode } from '../jsx/types/jsx-node';
+import type { DevJSX, JSXNodeInternal } from '../jsx/types/jsx-node';
 import { executeComponent, shouldWrapFunctional } from '../execute-component';
 import type { RenderContext } from '../types';
 import { type QwikElement, VIRTUAL, type VirtualElement } from './virtual-element';
@@ -88,7 +88,7 @@ export class ProcessedJSXNodeImpl implements ProcessedJSXNode {
 }
 
 export const processNode = (
-  node: JSXNode,
+  node: JSXNodeInternal,
   invocationContext?: InvokeContext
 ): ValueOrPromise<ProcessedJSXNode | ProcessedJSXNode[] | undefined> => {
   const { key, type, props, children, flags, immutableProps } = node;

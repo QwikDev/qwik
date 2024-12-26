@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1601
+assertion_line: 1602
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -45,7 +46,7 @@ export const Child = component$(() => {
     );
 });
 
-============================= test.tsx_parent_component_usetask_gdh1etuwqbu.js ==
+============================= test.tsx_Parent_component_useTask_gDH1EtUWqBU.js ==
 
 import { useLexicalScope } from "@builder.io/qwik";
 import mongo from "mongodb";
@@ -66,7 +67,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": "test.tsx_entry_Parent",
   "displayName": "test.tsx_Parent_component_useTask",
   "hash": "gDH1EtUWqBU",
-  "canonicalFilename": "test.tsx_parent_component_usetask_gdh1etuwqbu",
+  "canonicalFilename": "test.tsx_Parent_component_useTask_gDH1EtUWqBU",
   "path": "",
   "extension": "js",
   "parent": "Parent_component_0TaiDayHrlo",
@@ -83,12 +84,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_parent_component_0taidayhrlo"), "Parent_component_0TaiDayHrlo"));
-export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_child_component_9gyf01gdkqw"), "Child_component_9GyF01GDKqw"));
+export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_0TaiDayHrlo"), "Parent_component_0TaiDayHrlo"));
+export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Child_component_9GyF01GDKqw"), "Child_component_9GyF01GDKqw"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,uBAAS,uHAgBnB;AAEH,OAAO,MAAM,sBAAQ,qHAelB\"}")
-============================= test.tsx_child_component_usetask_oh4n7zeqjku.js ==
+============================= test.tsx_Child_component_useTask_Oh4n7ZeqJkU.js ==
 
 import { useLexicalScope } from "@builder.io/qwik";
 import mongo from "mongodb";
@@ -107,7 +108,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": "test.tsx_entry_Child",
   "displayName": "test.tsx_Child_component_useTask",
   "hash": "Oh4n7ZeqJkU",
-  "canonicalFilename": "test.tsx_child_component_usetask_oh4n7zeqjku",
+  "canonicalFilename": "test.tsx_Child_component_useTask_Oh4n7ZeqJkU",
   "path": "",
   "extension": "js",
   "parent": "Child_component_9GyF01GDKqw",
@@ -120,7 +121,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_parent_component_0taidayhrlo.js ==
+============================= test.tsx_Parent_component_0TaiDayHrlo.js ==
 
 import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
@@ -132,11 +133,11 @@ export const Parent_component_0TaiDayHrlo = ()=>{
         text: ''
     });
     // Double count watch
-    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_parent_component_usetask_gdh1etuwqbu"), "Parent_component_useTask_gDH1EtUWqBU", [
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_useTask_gDH1EtUWqBU"), "Parent_component_useTask_gDH1EtUWqBU", [
         state
     ]));
     return /*#__PURE__*/ _jsxQ("div", null, {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_parent_component_div_onclick_c5xe49nqd3a"), "Parent_component_div_onClick_C5XE49Nqd3A")
+        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_div_onClick_C5XE49Nqd3A"), "Parent_component_div_onClick_C5XE49Nqd3A")
     }, _fnSignal((p0)=>p0.text, [
         state
     ], "p0.text"), 3, "u6_0");
@@ -151,7 +152,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": "test.tsx_entry_Parent",
   "displayName": "test.tsx_Parent_component",
   "hash": "0TaiDayHrlo",
-  "canonicalFilename": "test.tsx_parent_component_0taidayhrlo",
+  "canonicalFilename": "test.tsx_Parent_component_0TaiDayHrlo",
   "path": "",
   "extension": "js",
   "parent": null,
@@ -164,7 +165,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_parent_component_div_onclick_c5xe49nqd3a.js (ENTRY POINT)==
+============================= test.tsx_Parent_component_div_onClick_C5XE49Nqd3A.js (ENTRY POINT)==
 
 export const Parent_component_div_onClick_C5XE49Nqd3A = ()=>console.log('parent');
 
@@ -177,7 +178,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Parent_component_div_onClick",
   "hash": "C5XE49Nqd3A",
-  "canonicalFilename": "test.tsx_parent_component_div_onclick_c5xe49nqd3a",
+  "canonicalFilename": "test.tsx_Parent_component_div_onClick_C5XE49Nqd3A",
   "path": "",
   "extension": "js",
   "parent": "Parent_component_0TaiDayHrlo",
@@ -190,7 +191,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_child_component_9gyf01gdkqw.js ==
+============================= test.tsx_Child_component_9GyF01GDKqw.js ==
 
 import { _fnSignal } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
@@ -202,11 +203,11 @@ export const Child_component_9GyF01GDKqw = ()=>{
         text: ''
     });
     // Double count watch
-    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_child_component_usetask_oh4n7zeqjku"), "Child_component_useTask_Oh4n7ZeqJkU", [
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Child_component_useTask_Oh4n7ZeqJkU"), "Child_component_useTask_Oh4n7ZeqJkU", [
         state
     ]));
     return /*#__PURE__*/ _jsxQ("div", null, {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_child_component_div_onclick_ellivsnaioq"), "Child_component_div_onClick_elliVSnAiOQ")
+        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Child_component_div_onClick_elliVSnAiOQ"), "Child_component_div_onClick_elliVSnAiOQ")
     }, _fnSignal((p0)=>p0.text, [
         state
     ], "p0.text"), 3, "u6_1");
@@ -221,7 +222,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": "test.tsx_entry_Child",
   "displayName": "test.tsx_Child_component",
   "hash": "9GyF01GDKqw",
-  "canonicalFilename": "test.tsx_child_component_9gyf01gdkqw",
+  "canonicalFilename": "test.tsx_Child_component_9GyF01GDKqw",
   "path": "",
   "extension": "js",
   "parent": null,
@@ -234,7 +235,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_child_component_div_onclick_ellivsnaioq.js (ENTRY POINT)==
+============================= test.tsx_Child_component_div_onClick_elliVSnAiOQ.js (ENTRY POINT)==
 
 export const Child_component_div_onClick_elliVSnAiOQ = ()=>console.log('child');
 
@@ -247,7 +248,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_Child_component_div_onClick",
   "hash": "elliVSnAiOQ",
-  "canonicalFilename": "test.tsx_child_component_div_onclick_ellivsnaioq",
+  "canonicalFilename": "test.tsx_Child_component_div_onClick_elliVSnAiOQ",
   "path": "",
   "extension": "js",
   "parent": "Child_component_9GyF01GDKqw",

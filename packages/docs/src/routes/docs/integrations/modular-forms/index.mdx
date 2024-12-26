@@ -268,6 +268,35 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
+## Dealing With Props
+
+Sometimes, you may need to initialize or update the state of your form from the parent component via props. In such cases, you can use the setValue function, as illustrated in the example below:
+
+```tsx
+import { setValue, useForm } from "@modular-forms/qwik";
+
+export interface FormProps {
+ login?: LoginForm
+}
+
+export default component$<FormProps>((props) => {
+  const [loginForm, { Form, Field }] = useForm<LoginForm>({
+   // rest of the code...
+  });
+
+ useTask$(({ track }) => {
+     const login = track(() => props.login);
+    if (!login) return;
+    for (const [key,value] of Object.entries(login)) {
+      setValue(loginForm, key, value);
+    }
+  });
+
+  // rest of the code...
+});
+```
+By tracking props.login with useTask$, the form fields are dynamically updated whenever the parent provides new values.
+
 ## Summary
 
 You have learned the basics of Modular Forms and are ready to create your first simple form. For more info and details you can find more guides and the API reference on our website: [modularforms.dev](https://modularforms.dev/)

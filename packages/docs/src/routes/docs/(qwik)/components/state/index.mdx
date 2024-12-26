@@ -35,6 +35,7 @@ contributors:
   - Balastrong
   - Jemsco
   - shairez
+  - ianlet
 updated_at: '2023-10-04T21:48:45Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
@@ -277,14 +278,15 @@ import {
 } from '@builder.io/qwik';
 
 export default component$(() => {
-  const prNumber = useSignal('3576');
+  const postId = useSignal('23');
 
-  const prTitle = useResource$<string>(async ({ track }) => {
-    // it will run first on mount (server), then re-run whenever prNumber changes (client)
+  const postTitle = useResource$<string>(async ({ track }) => {
+    // it will run first on mount (server), then re-run whenever postId changes (client)
     // this means this code will run on the server and the browser
-    track(() => prNumber.value);
+    track(() => postId.value);
+
     const response = await fetch(
-      `https://api.github.com/repos/QwikDev/qwik/pulls/${prNumber.value}`
+      `https://jsonplaceholder.typicode.com/posts/${postId.value}`
     );
     const data = await response.json();
     return data.title as string;
@@ -292,10 +294,10 @@ export default component$(() => {
 
   return (
     <>
-      <input type="number" bind:value={prNumber} />
-      <h1>PR#{prNumber}:</h1>
+      <input type="number" bind:value={postId} max={100} min={0} />
+      <h1>Post#{postId}:</h1>
       <Resource
-        value={prTitle}
+        value={postTitle}
         onPending={() => <p>Loading...</p>}
         onResolved={(title) => <h2>{title}</h2>}
       />

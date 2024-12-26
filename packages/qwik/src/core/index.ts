@@ -13,6 +13,8 @@ export type {
   _Only$,
 } from './component/component.public';
 
+export { isBrowser, isDev, isServer } from '@builder.io/qwik/build';
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Event API
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -124,7 +126,7 @@ export type { ErrorBoundaryStore } from './render/error-handling';
 export type { ValueOrPromise } from './util/types';
 export type { Signal, ReadonlySignal } from './state/signal';
 export type { NoSerialize } from './state/common';
-export { noSerialize } from './state/common';
+export { noSerialize, unwrapProxy as unwrapStore } from './state/common';
 export { isSignal } from './state/signal';
 export { version } from './version';
 

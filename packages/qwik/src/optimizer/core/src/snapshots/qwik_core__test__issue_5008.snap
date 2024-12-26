@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3447
+assertion_line: 3454
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -27,11 +28,11 @@ expression: output
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_luxexe0dqrg"), "test_component_LUXeXe0DQrg"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGQ,6BAAe,mHAaZ\"}")
-============================= test.tsx_test_component_luxexe0dqrg.js (ENTRY POINT)==
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _jsxC } from "@builder.io/qwik";
@@ -48,7 +49,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
     return /*#__PURE__*/ _jsxC(_Fragment, {
         children: [
             /*#__PURE__*/ _jsxQ("button", null, {
-                onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_fragment_button_onclick_ef3qezgqwcy"), "test_component_Fragment_button_onClick_eF3QEzgQWcY", [
+                onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_Fragment_button_onClick_eF3QEzgQWcY"), "test_component_Fragment_button_onClick_eF3QEzgQWcY", [
                     store
                 ])
             }, "+1", 3, null),
@@ -75,7 +76,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_test_component",
   "hash": "LUXeXe0DQrg",
-  "canonicalFilename": "test.tsx_test_component_luxexe0dqrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
   "path": "",
   "extension": "js",
   "parent": null,
@@ -88,7 +89,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_test_component_fragment_button_onclick_ef3qezgqwcy.js (ENTRY POINT)==
+============================= test.tsx_test_component_Fragment_button_onClick_eF3QEzgQWcY.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@builder.io/qwik";
 export const test_component_Fragment_button_onClick_eF3QEzgQWcY = ()=>{
@@ -105,7 +106,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "entry": null,
   "displayName": "test.tsx_test_component_Fragment_button_onClick",
   "hash": "eF3QEzgQWcY",
-  "canonicalFilename": "test.tsx_test_component_fragment_button_onclick_ef3qezgqwcy",
+  "canonicalFilename": "test.tsx_test_component_Fragment_button_onClick_eF3QEzgQWcY",
   "path": "",
   "extension": "js",
   "parent": "test_component_LUXeXe0DQrg",

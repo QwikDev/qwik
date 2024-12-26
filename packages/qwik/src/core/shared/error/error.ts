@@ -37,7 +37,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'SsrError(tag): {{0}}', // 29
       'QRLs can not be resolved because it does not have an attached container. This means that the QRL does not know where it belongs inside the DOM, so it cant dynamically import() from a relative path.', // 30
       'QRLs can not be dynamically resolved, because it does not have a chunk path', // 31
-      'The JSX ref attribute must be a Signal', // 32
+      '{{0}}\nThe JSX ref attribute must be a Signal', // 32
       'Serialization Error: Deserialization of data type {{0}} is not implemented', // 33
       'Serialization Error: Expected vnode for ref prop, but got {{0}}', // 34
       'Serialization Error: Cannot allocate data type {{0}}', // 35
@@ -45,7 +45,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Serialization Error: Serialization of data type {{0}} is not implemented', // 37
       'Serialization Error: Unvisited {{0}}', // 38
       'Serialization Error: Missing QRL chunk for {{0}}', // 39
-      'The value of the textarea must be a string', // 40
+      '{{0}}\nThe value of the textarea must be a string', // 40
       'Unable to find q:container', // 41
       "Element must have 'q:container' attribute.", // 42
       'Unknown vnode type {{0}}.', // 43

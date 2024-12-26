@@ -4,7 +4,7 @@ import { isQrl } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { Fragment, directGetPropsProxyProp } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
-import type { DevJSX, JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
+import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SSRStream, type SSRStreamChildren } from '../shared/jsx/utils.public';
 import { trackSignalAndAssignHost } from '../use/use-core';
@@ -35,6 +35,7 @@ import type { ISsrComponentFrame, ISsrNode, SSRContainer, SsrAttrs } from './ssr
 import { qInspector } from '../shared/utils/qdev';
 import { serializeAttribute } from '../shared/utils/styles';
 import { QError, qError } from '../shared/error/error';
+import { getFileNameFromJsx } from '../shared/utils/jsx-filename';
 
 class ParentComponentData {
   constructor(
@@ -182,7 +183,7 @@ function processJSXNode(
         appendClassIfScopedStyleExists(jsx, options.styleScoped);
         let qwikInspectorAttrValue: string | null = null;
         if (isDev && jsx.dev && jsx.type !== 'head') {
-          qwikInspectorAttrValue = getQwikInspectorAttributeValue(jsx.dev);
+          qwikInspectorAttrValue = getFileNameFromJsx(jsx.dev);
           if (qInspector) {
             appendQwikInspectorAttribute(jsx, qwikInspectorAttrValue);
           }
@@ -538,14 +539,6 @@ function getSlotName(host: ISsrNode, jsx: JSXNodeInternal, ssr: SSRContainer): s
     }
   }
   return directGetPropsProxyProp(jsx, 'name') || QDefaultSlot;
-}
-
-function getQwikInspectorAttributeValue(jsxDev: DevJSX): string | null {
-  const sanitizedFileName = jsxDev.fileName?.replace(/\\/g, '/');
-  if (sanitizedFileName) {
-    return `${sanitizedFileName}:${jsxDev.lineNumber}:${jsxDev.columnNumber}`;
-  }
-  return null;
 }
 
 function appendQwikInspectorAttribute(jsx: JSXNodeInternal, qwikInspectorAttrValue: string | null) {

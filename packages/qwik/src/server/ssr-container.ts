@@ -1176,13 +1176,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         }
 
         if (tag === 'textarea' && key === 'value') {
-          if (typeof value !== 'string') {
+          if (value && typeof value !== 'string') {
             if (isDev) {
-              throw qError(QError.wrongTextareaValue, [currentFile]);
+              throw qError(QError.wrongTextareaValue, [currentFile, value]);
             }
             continue;
           }
-          innerHTML = escapeHTML(value);
+          innerHTML = escapeHTML(value || '');
           key = QContainerAttr;
           value = QContainerValue.TEXT;
         }

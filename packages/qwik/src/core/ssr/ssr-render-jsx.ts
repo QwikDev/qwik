@@ -35,7 +35,7 @@ import type { ISsrComponentFrame, ISsrNode, SSRContainer, SsrAttrs } from './ssr
 import { qInspector } from '../shared/utils/qdev';
 import { serializeAttribute } from '../shared/utils/styles';
 import { QError, qError } from '../shared/error/error';
-import { getFileNameFromJsx } from '../shared/utils/jsx-filename';
+import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 
 class ParentComponentData {
   constructor(
@@ -183,7 +183,7 @@ function processJSXNode(
         appendClassIfScopedStyleExists(jsx, options.styleScoped);
         let qwikInspectorAttrValue: string | null = null;
         if (isDev && jsx.dev && jsx.type !== 'head') {
-          qwikInspectorAttrValue = getFileNameFromJsx(jsx.dev);
+          qwikInspectorAttrValue = getFileLocationFromJsx(jsx.dev);
           if (qInspector) {
             appendQwikInspectorAttribute(jsx, qwikInspectorAttrValue);
           }

@@ -104,7 +104,7 @@ import {
 } from '../signal/signal-subscriber';
 import { serializeAttribute } from '../shared/utils/styles';
 import { QError, qError } from '../shared/error/error';
-import { getFileNameFromJsx } from '../shared/utils/jsx-filename';
+import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 
 export type ComponentQueue = Array<VNode>;
 
@@ -660,13 +660,13 @@ export const vnode_diff = (
         }
 
         if (elementName === 'textarea' && key === 'value') {
-          if (typeof value !== 'string') {
+          if (value && typeof value !== 'string') {
             if (isDev) {
-              throw qError(QError.wrongTextareaValue, [currentFile]);
+              throw qError(QError.wrongTextareaValue, [currentFile, value]);
             }
             continue;
           }
-          (element as HTMLTextAreaElement).value = escapeHTML(value);
+          (element as HTMLTextAreaElement).value = escapeHTML((value as string) || '');
           continue;
         }
 
@@ -712,7 +712,7 @@ export const vnode_diff = (
       vCurrent && vnode_isElementVNode(vCurrent) && elementName === vnode_getElementName(vCurrent);
     const jsxKey: string | null = jsx.key;
     let needsQDispatchEventPatch = false;
-    const currentFile = getFileNameFromJsx(jsx.dev);
+    const currentFile = getFileLocationFromJsx(jsx.dev);
     if (!isSameElementName || jsxKey !== getKey(vCurrent)) {
       // So we have a key and it does not match the current node.
       // We need to do a forward search to find it.

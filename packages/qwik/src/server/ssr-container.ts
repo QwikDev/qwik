@@ -363,13 +363,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.write('<');
     this.write(elementName);
     if (varAttrs) {
-      innerHTML = this.writeAttrs(elementName, varAttrs, false);
+      innerHTML = this.writeAttrs(elementName, varAttrs, false, currentFile);
     }
     this.write(' ' + Q_PROPS_SEPARATOR);
     // Domino sometimes does not like empty attributes, so we need to add a empty value
     isDev && this.write('=""');
     if (constAttrs && constAttrs.length) {
-      innerHTML = this.writeAttrs(elementName, constAttrs, true) || innerHTML;
+      innerHTML = this.writeAttrs(elementName, constAttrs, true, currentFile) || innerHTML;
     }
     this.write('>');
     this.lastNode = null;
@@ -1115,7 +1115,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  private writeAttrs(tag: string, attrs: SsrAttrs, isConst: boolean): string | undefined {
+  private writeAttrs(
+    tag: string,
+    attrs: SsrAttrs,
+    isConst: boolean,
+    currentFile?: string | null
+  ): string | undefined {
     let innerHTML: string | undefined = undefined;
     if (attrs.length) {
       for (let i = 0; i < attrs.length; i++) {
@@ -1146,7 +1151,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             value(new DomRef(lastNode));
             continue;
           } else {
-            throw qError(QError.invalidRefValue);
+            throw qError(QError.invalidRefValue, [currentFile]);
           }
         }
 
@@ -1173,7 +1178,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         if (tag === 'textarea' && key === 'value') {
           if (typeof value !== 'string') {
             if (isDev) {
-              throw qError(QError.wrongTextareaValue);
+              throw qError(QError.wrongTextareaValue, [currentFile]);
             }
             continue;
           }

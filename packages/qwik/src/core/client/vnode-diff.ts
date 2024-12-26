@@ -104,6 +104,7 @@ import {
 } from '../signal/signal-subscriber';
 import { serializeAttribute } from '../shared/utils/styles';
 import { QError, qError } from '../shared/error/error';
+import { getFileNameFromJsx } from '../shared/utils/jsx-filename';
 
 export type ComponentQueue = Array<VNode>;
 
@@ -594,7 +595,11 @@ export const vnode_diff = (
    *
    * @returns {boolean}
    */
-  function createNewElement(jsx: JSXNodeInternal, elementName: string): boolean {
+  function createNewElement(
+    jsx: JSXNodeInternal,
+    elementName: string,
+    currentFile?: string | null
+  ): boolean {
     const element = createElementWithNamespace(elementName);
 
     const { constProps } = jsx;
@@ -629,6 +634,8 @@ export const vnode_diff = (
           } else if (typeof value === 'function') {
             value(element);
             continue;
+          } else {
+            throw qError(QError.invalidRefValue, [currentFile]);
           }
         }
 
@@ -655,11 +662,11 @@ export const vnode_diff = (
         if (elementName === 'textarea' && key === 'value') {
           if (typeof value !== 'string') {
             if (isDev) {
-              throw qError(QError.wrongTextareaValue);
+              throw qError(QError.wrongTextareaValue, [currentFile]);
             }
             continue;
           }
-          (element as HTMLTextAreaElement).value = escapeHTML(value as string);
+          (element as HTMLTextAreaElement).value = escapeHTML(value);
           continue;
         }
 
@@ -705,6 +712,7 @@ export const vnode_diff = (
       vCurrent && vnode_isElementVNode(vCurrent) && elementName === vnode_getElementName(vCurrent);
     const jsxKey: string | null = jsx.key;
     let needsQDispatchEventPatch = false;
+    const currentFile = getFileNameFromJsx(jsx.dev);
     if (!isSameElementName || jsxKey !== getKey(vCurrent)) {
       // So we have a key and it does not match the current node.
       // We need to do a forward search to find it.
@@ -733,7 +741,8 @@ export const vnode_diff = (
       mapArray_set(jsxAttrs, ELEMENT_KEY, jsxKey, 0);
     }
     const vNode = (vNewNode || vCurrent) as ElementVNode;
-    needsQDispatchEventPatch = setBulkProps(vNode, jsxAttrs) || needsQDispatchEventPatch;
+    needsQDispatchEventPatch =
+      setBulkProps(vNode, jsxAttrs, currentFile) || needsQDispatchEventPatch;
     if (needsQDispatchEventPatch) {
       // Event handler needs to be patched onto the element.
       const element = vnode_getNode(vNode) as QElement;
@@ -759,7 +768,11 @@ export const vnode_diff = (
   }
 
   /** @param tag Returns true if `qDispatchEvent` needs patching */
-  function setBulkProps(vnode: ElementVNode, srcAttrs: ClientAttrs): boolean {
+  function setBulkProps(
+    vnode: ElementVNode,
+    srcAttrs: ClientAttrs,
+    currentFile?: string | null
+  ): boolean {
     vnode_ensureElementInflated(vnode);
     const dstAttrs = vnode as ClientAttrs;
     let srcIdx = 0;
@@ -784,6 +797,8 @@ export const vnode_diff = (
         } else if (typeof value === 'function') {
           value(element);
           return;
+        } else {
+          throw qError(QError.invalidRefValue, [currentFile]);
         }
       }
 

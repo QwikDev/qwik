@@ -1,6 +1,14 @@
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { component$, useSignal, useStore, Fragment as Component, Fragment } from '@qwik.dev/core';
+import {
+  component$,
+  useSignal,
+  useStore,
+  Fragment as Component,
+  Fragment,
+  type PropsOf,
+  useComputed$,
+} from '@qwik.dev/core';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -332,6 +340,45 @@ describe.each([
           <button></button>
           <span></span>
           <input id="input" attr-test={false} />
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should update signal-based var prop', async () => {
+    const PasswordInput = component$<PropsOf<'input'>>((props) => {
+      const showPassword = useSignal<boolean>(false);
+      const inputType = useComputed$(() => (showPassword.value ? 'text' : 'password'));
+      return (
+        <>
+          <input type={inputType.value} {...props} />
+          <button
+            onClick$={() => {
+              showPassword.value = !showPassword.value;
+            }}
+          ></button>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<PasswordInput />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <input type="password" />
+          <button></button>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <input type="text" />
+          <button></button>
         </Fragment>
       </Component>
     );

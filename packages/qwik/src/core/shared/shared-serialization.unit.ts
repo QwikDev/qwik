@@ -1,4 +1,4 @@
-import { $, component$ } from '@qwik.dev/core';
+import { $, component$, noSerialize } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { _fnSignal, _wrapProp } from '../internal';
 import { EffectPropData, type Signal } from '../signal/signal';
@@ -17,6 +17,7 @@ import {
   dumpState,
 } from './shared-serialization';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
+import { NoSerializeSymbol, SerializerSymbol } from './utils/serialize-utils';
 
 const DEBUG = false;
 
@@ -778,6 +779,57 @@ describe('shared-serialization', () => {
       const newValue = { shared2 };
       (obj as any).shared = newValue;
       expect((obj as any).shared).toBe(newValue);
+    });
+  });
+
+  describe('custom serialization', () => {
+    it('should ignore noSerialize', async () => {
+      const obj = { hi: true };
+      const state = await serialize(noSerialize(obj));
+      expect(dumpState(state)).toMatchInlineSnapshot(`
+        "
+        0 Constant undefined
+        (5 chars)"
+      `);
+    });
+    it('should ignore NoSerializeSymbol', async () => {
+      const obj = { hi: true, [NoSerializeSymbol]: true };
+      const state = await serialize(obj);
+      expect(dumpState(state)).toMatchInlineSnapshot(`
+        "
+        0 Constant undefined
+        (5 chars)"
+      `);
+    });
+    it('should use SerializerSymbol', async () => {
+      const obj = { hi: 'obj', [SerializerSymbol]: (o: any) => o.hi };
+      class Foo {
+        hi = 'class';
+        [SerializerSymbol]() {
+          return this.hi;
+        }
+      }
+      const state = await serialize([obj, new Foo()]);
+      expect(dumpState(state)).toMatchInlineSnapshot(`
+        "
+        0 Array [
+          String "obj"
+          String "class"
+        ]
+        (23 chars)"
+      `);
+    });
+    it('should not use SerializeSymbol if not function', async () => {
+      const obj = { hi: 'orig', [SerializerSymbol]: 'hey' };
+      const state = await serialize(obj);
+      expect(dumpState(state)).toMatchInlineSnapshot(`
+        "
+        0 Object [
+          String "hi"
+          String "orig"
+        ]
+        (22 chars)"
+      `);
     });
   });
 });

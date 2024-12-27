@@ -139,7 +139,11 @@ export { EffectPropData as _EffectData } from './signal/signal';
 // Developer Low-Level API
 //////////////////////////////////////////////////////////////////////////////////////////
 export type { ValueOrPromise } from './shared/utils/types';
-export { type NoSerialize } from './shared/utils/serialize-utils';
+export {
+  NoSerializeSymbol,
+  SerializerSymbol,
+  type NoSerialize,
+} from './shared/utils/serialize-utils';
 export { noSerialize } from './shared/utils/serialize-utils';
 export { version } from './version';
 

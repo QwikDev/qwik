@@ -842,6 +842,20 @@
       "mdFile": "core.noserialize.md"
     },
     {
+      "name": "NoSerializeSymbol",
+      "id": "noserializesymbol",
+      "hierarchy": [
+        {
+          "name": "NoSerializeSymbol",
+          "id": "noserializesymbol"
+        }
+      ],
+      "kind": "Variable",
+      "content": "If an object has this property, it will not be serialized\n\n\n```typescript\nNoSerializeSymbol: unique symbol\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts",
+      "mdFile": "core.noserializesymbol.md"
+    },
+    {
       "name": "OnRenderFn",
       "id": "onrenderfn",
       "hierarchy": [
@@ -1540,6 +1554,20 @@
       "content": "```typescript\nexport type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;\n```\n**References:** [ResourcePending](#resourcepending)<!-- -->, [ResourceResolved](#resourceresolved)<!-- -->, [ResourceRejected](#resourcerejected)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts",
       "mdFile": "core.resourcereturn.md"
+    },
+    {
+      "name": "SerializerSymbol",
+      "id": "serializersymbol",
+      "hierarchy": [
+        {
+          "name": "SerializerSymbol",
+          "id": "serializersymbol"
+        }
+      ],
+      "kind": "Variable",
+      "content": "If an object has this property as a function, it will be called with the object and should return a serializable value.\n\nThis can be used to clean up etc.\n\n\n```typescript\nSerializerSymbol: unique symbol\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts",
+      "mdFile": "core.serializersymbol.md"
     },
     {
       "name": "setPlatform",

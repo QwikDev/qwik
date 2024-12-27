@@ -14,6 +14,7 @@
    <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/cli.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/cli.yml/badge.svg" alt="Create Qwik CLI"></a>
    <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/deno.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/deno.yml/badge.svg" alt="Deno Server"></a>
    <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/aws.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/aws.yml/badge.svg" alt="AWS Server"></a>
+   <a href="https://gurubase.io/g/qwik"><img src="https://img.shields.io/badge/Gurubase-Ask%20Qwik%20Guru-006BFF" alt="Gurubase"></a>
 </p>
 <br>
 <br>

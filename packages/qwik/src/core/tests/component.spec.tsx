@@ -17,6 +17,7 @@ import {
   useTask$,
   useVisibleTask$,
   type JSXOutput,
+  type PropsOf,
   type Signal as SignalType,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
@@ -480,6 +481,25 @@ describe.each([
     await expect(document.querySelector('textarea')).toMatchDOM(<textarea>value 123!</textarea>);
   });
 
+  it('should render textarea without error', async () => {
+    const Textarea = component$<PropsOf<'textarea'>>(
+      ({ ['bind:value']: valueSig, value, ...props }) => {
+        return (
+          <>
+            <textarea {...props} value={valueSig ? valueSig.value : value} />
+          </>
+        );
+      }
+    );
+
+    const Cmp = component$(() => {
+      return <Textarea />;
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    await expect(document.querySelector('textarea')).toMatchDOM(<textarea></textarea>);
+  });
+
   it('should not render textarea value for non-text value', async () => {
     const qErrorSpy = vi.spyOn(qError, 'qError');
     const Cmp = component$(() => {
@@ -502,7 +522,7 @@ describe.each([
       );
     } catch (e) {
       expect((e as Error).message).toBeDefined();
-      expect(qErrorSpy).toHaveBeenCalledWith(QError.wrongTextareaValue);
+      expect(qErrorSpy).toHaveBeenCalledWith(QError.wrongTextareaValue, expect.anything());
     }
   });
 

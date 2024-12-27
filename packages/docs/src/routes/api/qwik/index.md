@@ -1913,6 +1913,16 @@ export type NoSerialize<T> =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts)
 
+## NoSerializeSymbol
+
+If an object has this property, it will not be serialized
+
+```typescript
+NoSerializeSymbol: unique symbol
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts)
+
 ## OnRenderFn
 
 ```typescript
@@ -3606,6 +3616,18 @@ export type ResourceReturn<T> =
 **References:** [ResourcePending](#resourcepending), [ResourceResolved](#resourceresolved), [ResourceRejected](#resourcerejected)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
+
+## SerializerSymbol
+
+If an object has this property as a function, it will be called with the object and should return a serializable value.
+
+This can be used to clean up etc.
+
+```typescript
+SerializerSymbol: unique symbol
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts)
 
 ## setPlatform
 

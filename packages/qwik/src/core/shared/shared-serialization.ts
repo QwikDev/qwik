@@ -54,7 +54,7 @@ import { isElement, isNode } from './utils/element';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
 import { ELEMENT_ID, ELEMENT_KEY } from './utils/markers';
 import { isPromise } from './utils/promises';
-import { fastSkipSerialize } from './utils/serialize-utils';
+import { SerializerSymbol, fastSkipSerialize } from './utils/serialize-utils';
 import { type ValueOrPromise } from './utils/types';
 
 const deserializedProxyMap = new WeakMap<object, unknown[]>();
@@ -881,8 +881,6 @@ export const createSerializationContext = (
         discoveredValues.push(obj.$ssrNode$.id);
       } else if (isJSXNode(obj)) {
         discoveredValues.push(obj.type, obj.props, obj.constProps, obj.children);
-      } else if (Array.isArray(obj)) {
-        discoveredValues.push(...obj);
       } else if (isQrl(obj)) {
         obj.$captureRef$ && obj.$captureRef$.length && discoveredValues.push(...obj.$captureRef$);
       } else if (isPropsProxy(obj)) {
@@ -901,6 +899,12 @@ export const createSerializationContext = (
         promises.push(obj);
       } else if (obj instanceof EffectPropData) {
         discoveredValues.push(obj.data);
+      } else if (Array.isArray(obj)) {
+        discoveredValues.push(...obj);
+      } else if (SerializerSymbol in obj && typeof obj[SerializerSymbol] === 'function') {
+        const result = obj[SerializerSymbol](obj);
+        serializationResults.set(obj, result);
+        discoveredValues.push(result);
       } else if (isObjectLiteral(obj)) {
         Object.entries(obj).forEach(([key, value]) => {
           discoveredValues.push(key, value);
@@ -957,6 +961,7 @@ const discoverValuesForVNodeData = (vnodeData: VNodeData, discoveredValues: unkn
 };
 
 const promiseResults = new WeakMap<Promise<any>, [boolean, unknown]>();
+const serializationResults = new WeakMap<object, unknown>();
 
 /**
  * Format:
@@ -1152,6 +1157,11 @@ function serialize(serializationContext: SerializationContext): void {
         }
         output(Array.isArray(storeTarget) ? TypeIds.StoreArray : TypeIds.Store, out);
       }
+    } else if (SerializerSymbol in value && typeof value[SerializerSymbol] === 'function') {
+      const result = serializationResults.get(value);
+      depth--;
+      writeValue(result, idx);
+      depth++;
     } else if (isObjectLiteral(value)) {
       if (Array.isArray(value)) {
         output(TypeIds.Array, value);

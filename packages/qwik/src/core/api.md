@@ -494,6 +494,9 @@ export type NoSerialize<T> = (T & {
 // @public
 export const noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
 
+// @public
+export const NoSerializeSymbol: unique symbol;
+
 // @public (undocumented)
 export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
 
@@ -811,6 +814,9 @@ export const _run: (...args: unknown[]) => ValueOrPromise<void>;
 
 // @internal
 export function _serialize(data: unknown[]): Promise<string>;
+
+// @public
+export const SerializerSymbol: unique symbol;
 
 // @public
 export const setPlatform: (plt: CorePlatform) => CorePlatform;

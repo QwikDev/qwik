@@ -1,0 +1,42 @@
+---
+title: 'Example'
+authorName: 'The Qwik Team'
+tags: ['Web development']
+date: 'Dec 16, 2024'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block/article-block';
+import CodeSandbox from '~/components/code-sandbox/index.tsx';
+
+<ArticleBlock 
+  imageSrc="https://placehold.co/1200x400"
+  authorLink="https://bsky.app/profile/qwik.dev"
+>
+
+# H1
+
+## H2
+
+### H3
+
+Example:
+
+1. foo
+1. bar
+1. baz
+
+![mock](https://placehold.co/600x400)
+
+<CodeSandbox src="/src/routes/demo/cookbook/leaflet-map/index.tsx"  style={{ height: '30em' }}>
+```tsx
+import { component$ } from '@builder.io/qwik';
+
+export default component$(() => {
+  console.log('render');
+  return <button onClick$={() => console.log('hello')}>Hello Qwik</button>;
+});
+```
+</CodeSandbox>
+
+
+</ArticleBlock>

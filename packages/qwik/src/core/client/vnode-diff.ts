@@ -848,23 +848,27 @@ export const vnode_diff = (
         if (dstKey && isHtmlAttributeAnEventName(dstKey)) {
           patchEventDispatch = true;
           dstIdx++;
-        } else if (dstKey) {
-          record(dstKey, null);
+        } else {
+          record(dstKey!, null);
           dstIdx--;
         }
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (dstKey == null) {
         // Destination has more keys, so we need to insert them from source.
         const isEvent = isJsxPropertyAnEventName(srcKey);
-        if (srcKey && isEvent) {
+        if (isEvent) {
           // Special handling for events
           patchEventDispatch = true;
           recordJsxEvent(srcKey, srcAttrs[srcIdx]);
-        } else if (srcKey) {
-          record(srcKey, srcAttrs[srcIdx]);
+        } else {
+          record(srcKey!, srcAttrs[srcIdx]);
         }
         srcIdx++;
         srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
+        // we need to increment dstIdx too, because we added destination key and value to the VNode
+        // and dstAttrs is a reference to the VNode
+        dstIdx++;
+        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (srcKey == dstKey) {
         const srcValue = srcAttrs[srcIdx++];
         const dstValue = dstAttrs[dstIdx++];
@@ -892,11 +896,11 @@ export const vnode_diff = (
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else {
         // Source is missing the key, so we need to remove it from destination.
-        if (dstKey && isHtmlAttributeAnEventName(dstKey)) {
+        if (isHtmlAttributeAnEventName(dstKey)) {
           patchEventDispatch = true;
           dstIdx++;
-        } else if (dstKey) {
-          record(dstKey, null);
+        } else {
+          record(dstKey!, null);
           dstIdx--;
         }
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;

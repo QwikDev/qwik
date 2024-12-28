@@ -1889,10 +1889,14 @@ export const vnode_getType = (vnode: VNode): 1 | 3 | 11 => {
 const isElement = (node: any): node is Element =>
   node && typeof node == 'object' && fastNodeType(node) === /** Node.ELEMENT_NODE* */ 1;
 
-/// These global variables are used to avoid creating new arrays for each call to `vnode_getPathToClosestDomNode`.
+/// These global variables are used to avoid creating new arrays for each call to `vnode_documentPosition`.
 const aPath: VNode[] = [];
 const bPath: VNode[] = [];
-export const vnode_documentPosition = (a: VNode, b: VNode): -1 | 0 | 1 => {
+export const vnode_documentPosition = (
+  a: VNode,
+  b: VNode,
+  rootVNode: ElementVNode | null
+): -1 | 0 | 1 => {
   if (a === b) {
     return 0;
   }
@@ -1900,10 +1904,14 @@ export const vnode_documentPosition = (a: VNode, b: VNode): -1 | 0 | 1 => {
   let aDepth = -1;
   let bDepth = -1;
   while (a) {
-    a = (aPath[++aDepth] = a)[VNodeProps.parent]!;
+    const vNode = (aPath[++aDepth] = a);
+    a = (vNode[VNodeProps.parent] ||
+      (rootVNode && vnode_getProp(a, QSlotParent, (id) => vnode_locate(rootVNode, id))))!;
   }
   while (b) {
-    b = (bPath[++bDepth] = b)[VNodeProps.parent]!;
+    const vNode = (bPath[++bDepth] = b);
+    b = (vNode[VNodeProps.parent] ||
+      (rootVNode && vnode_getProp(b, QSlotParent, (id) => vnode_locate(rootVNode, id))))!;
   }
 
   while (aDepth >= 0 && bDepth >= 0) {
@@ -1929,6 +1937,11 @@ export const vnode_documentPosition = (a: VNode, b: VNode): -1 | 0 | 1 => {
           return -1;
         }
       } while (cursor);
+      if (rootVNode && vnode_getProp(b, QSlotParent, (id) => vnode_locate(rootVNode, id))) {
+        // The "b" node is a projection, so we need to set it after "a" node,
+        // because the "a" node could be a context provider.
+        return -1;
+      }
       // The node is not in the list of siblings, that means it must be disconnected.
       return 1;
     }
@@ -1967,12 +1980,9 @@ export const vnode_getProjectionParentComponent = (
       vHost &&
       (vnode_isVirtualVNode(vHost) ? vnode_getProp(vHost, OnRenderProp, null) === null : true)
     ) {
-      const qSlotParentProp = vnode_getProp(vHost, QSlotParent, null) as string | VNode | null;
-      const qSlotParent =
-        qSlotParentProp &&
-        (typeof qSlotParentProp === 'string'
-          ? vnode_locate(rootVNode, qSlotParentProp)
-          : qSlotParentProp);
+      const qSlotParent = vnode_getProp<VNode | null>(vHost, QSlotParent, (id) =>
+        vnode_locate(rootVNode, id)
+      );
       const vProjectionParent = vnode_isVirtualVNode(vHost) && qSlotParent;
       if (vProjectionParent) {
         // We found a projection, so we need to go up one more level.

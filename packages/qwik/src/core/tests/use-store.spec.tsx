@@ -394,8 +394,8 @@ describe.each([
 
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
-          <InlineComponent>
-            <InlineComponent>
+          <InlineComponent ssr-required>
+            <InlineComponent ssr-required>
               <button class="repl-tab-button">Options</button>
             </InlineComponent>
           </InlineComponent>
@@ -406,8 +406,8 @@ describe.each([
 
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
-          <InlineComponent>
-            <InlineComponent>
+          <InlineComponent ssr-required>
+            <InlineComponent ssr-required>
               <button class="active-tab repl-tab-button">Options</button>
             </InlineComponent>
           </InlineComponent>

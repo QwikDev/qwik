@@ -1788,17 +1788,10 @@ impl<'a> Fold for QwikTransform<'a> {
 			.last_mut()
 			.expect("Declaration stack empty!");
 
-		let is_qcomponent = self.stack_ctxt.last() == Some(&QCOMPONENT.to_string());
+		let is_qcomponent = is_qcomponent(&self.stack_ctxt.last());
 
 		for param in &node.params {
-			let mut identifiers = vec![];
-			let is_identifier = collect_from_pat(&param.pat, &mut identifiers);
-			let is_constant = if is_qcomponent { is_identifier } else { false };
-			current_scope.extend(
-				identifiers
-					.into_iter()
-					.map(|(id, _)| (id, IdentType::Var(is_constant))),
-			);
+			current_scope.extend(process_node_props(&param.pat, is_qcomponent));
 		}
 		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
@@ -1821,17 +1814,10 @@ impl<'a> Fold for QwikTransform<'a> {
 			.last_mut()
 			.expect("Declaration stack empty!");
 
-		let is_qcomponent = self.stack_ctxt.last() == Some(&QCOMPONENT.to_string());
+		let is_qcomponent = is_qcomponent(&self.stack_ctxt.last());
 
 		for param in &node.params {
-			let mut identifiers = vec![];
-			let is_identifier = collect_from_pat(param, &mut identifiers);
-			let is_constant = if is_qcomponent { is_identifier } else { false };
-			current_scope.extend(
-				identifiers
-					.into_iter()
-					.map(|(id, _)| (id, IdentType::Var(is_constant))),
-			);
+			current_scope.extend(process_node_props(param, is_qcomponent));
 		}
 
 		let o = node.fold_children_with(self);
@@ -1868,6 +1854,30 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
+
+		let current_scope = self
+			.decl_stack
+			.last_mut()
+			.expect("Declaration stack empty!");
+
+		let is_qcomponent = is_qcomponent(&self.stack_ctxt.last());
+
+		match node.left.clone() {
+			ast::ForHead::VarDecl(var_decl) => {
+				for decl in &var_decl.decls {
+					current_scope.extend(process_node_props(&decl.name, is_qcomponent));
+				}
+			}
+			ast::ForHead::UsingDecl(using_decl) => {
+				for decl in &using_decl.decls {
+					current_scope.extend(process_node_props(&decl.name, is_qcomponent));
+				}
+			}
+			ast::ForHead::Pat(pat) => {
+				current_scope.extend(process_node_props(&pat, is_qcomponent));
+			}
+		}
+
 		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
 		self.decl_stack.pop();
@@ -2360,4 +2370,22 @@ fn is_text_only(node: &str) -> bool {
 		node,
 		"text" | "textarea" | "title" | "option" | "script" | "style" | "noscript"
 	)
+}
+
+fn is_qcomponent(stack_item: &Option<&String>) -> bool {
+	*stack_item == Some(&QCOMPONENT.to_string())
+}
+
+fn process_node_props(pat: &ast::Pat, is_qcomponent: bool) -> Vec<IdPlusType> {
+	let mut identifiers = vec![];
+	let mut processed_scope_data: Vec<IdPlusType> = vec![];
+	let is_identifier = collect_from_pat(pat, &mut identifiers);
+	let is_constant = if is_qcomponent { is_identifier } else { false };
+	processed_scope_data.extend(
+		identifiers
+			.into_iter()
+			.map(|(id, _)| (id, IdentType::Var(is_constant))),
+	);
+
+	processed_scope_data
 }

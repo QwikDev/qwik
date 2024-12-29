@@ -197,7 +197,7 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
       } else {
         const resolvedValue = untrack(() => resource._resolved) as T;
         if (resolvedValue !== undefined) {
-          // resolved, pending without onPending prop or rejected with onRejected prop
+          // resolved, pending without onPending prop or rejected without onRejected prop
           return Promise.resolve(resolvedValue).then(props.onResolved);
         }
       }

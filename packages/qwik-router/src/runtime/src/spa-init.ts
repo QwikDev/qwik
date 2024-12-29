@@ -2,8 +2,7 @@ import type { ClientSPAWindow } from './qwik-router-component';
 import type { ScrollHistoryState } from './scroll-restoration';
 import type { ScrollState } from './types';
 
-import { event$ } from '@qwik.dev/core';
-import { isDev } from '@qwik.dev/core/build';
+import { event$, isDev } from '@qwik.dev/core';
 
 // TODO Dedupe handler code from here and QwikRouterProvider?
 // TODO Navigation API; check for support & simplify.

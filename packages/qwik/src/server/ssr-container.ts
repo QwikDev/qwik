@@ -1,19 +1,17 @@
 /** @file Public APIs for the SSR */
 import {
+  _EffectData as EffectData,
   _SharedContainer,
   _jsxSorted,
   _jsxSplit,
   _walkJSX,
   isSignal,
-  _EffectData as EffectData,
 } from '@qwik.dev/core';
 import { isDev } from '@qwik.dev/core/build';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
-import { getQwikLoaderScript } from '@qwik.dev/core/server';
 import { applyPrefetchImplementation2 } from './prefetch-implementation';
 import { getPrefetchResources } from './prefetch-strategy';
 import {
-  dangerouslySetInnerHTML,
   DEBUG_TYPE,
   ELEMENT_ID,
   ELEMENT_KEY,
@@ -21,33 +19,37 @@ import {
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
   OnRenderProp,
+  QBaseAttr,
+  QContainerAttr,
+  QContainerValue,
   QCtxAttr,
+  QInstanceAttr,
+  QLocaleAttr,
+  QManifestHashAttr,
+  QRenderAttr,
+  QRuntimeAttr,
   QScopedStyle,
   QSlot,
   QSlotParent,
   QSlotRef,
   QStyle,
-  QContainerAttr,
   QTemplate,
+  QVersionAttr,
+  Q_PROPS_SEPARATOR,
   VNodeDataChar,
+  VNodeDataSeparator,
   VirtualType,
   convertStyleIdsToString,
+  dangerouslySetInnerHTML,
+  escapeHTML,
+  isClassAttr,
   mapArray_get,
   mapArray_set,
   maybeThen,
   serializeAttribute,
-  isClassAttr,
-  QContainerValue,
-  VNodeDataSeparator,
-  QRenderAttr,
-  QRuntimeAttr,
-  QVersionAttr,
-  QBaseAttr,
-  QLocaleAttr,
-  QManifestHashAttr,
-  QInstanceAttr,
-  escapeHTML,
-  Q_PROPS_SEPARATOR,
+  QSubscribers,
+  QError,
+  qError,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -56,8 +58,8 @@ import {
   type ISsrComponentFrame,
   type ISsrNode,
   type JSXChildren,
+  type JSXNodeInternal,
   type JSXOutput,
-  type NodePropData,
   type SerializationContext,
   type SsrAttrKey,
   type SsrAttrValue,
@@ -66,10 +68,8 @@ import {
   type SymbolToChunkResolver,
   type ValueOrPromise,
 } from './qwik-types';
-import { Q_FUNCS_PREFIX } from './ssr-render';
-import type { PrefetchResource, RenderOptions, RenderToStreamResult } from './types';
-import { createTimer } from './utils';
 import { DomRef, SsrComponentFrame, SsrNode } from './ssr-node';
+import { Q_FUNCS_PREFIX } from './ssr-render';
 import {
   TagNesting,
   allowedContent,
@@ -78,19 +78,26 @@ import {
   isTagAllowed,
 } from './tag-nesting';
 import {
-  CLOSE_FRAGMENT,
-  OPEN_FRAGMENT,
   VNodeDataFlag,
+  type PrefetchResource,
+  type RenderOptions,
+  type RenderToStreamResult,
+} from './types';
+import { createTimer } from './utils';
+import {
+  CLOSE_FRAGMENT,
+  WRITE_ELEMENT_ATTRS,
+  OPEN_FRAGMENT,
   encodeAsAlphanumeric,
   vNodeData_addTextSize,
   vNodeData_closeFragment,
   vNodeData_createSsrNodeReference,
   vNodeData_incrementElementCount,
+  vNodeData_openElement,
   vNodeData_openFragment,
   type VNodeData,
 } from './vnode-data';
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import type { JSXNodeInternal } from '../core/shared/jsx/types/jsx-node';
+import { getQwikLoaderScript } from './scripts';
 
 export interface SSRRenderOptions {
   locale?: string;
@@ -352,16 +359,17 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
 
     this.createAndPushFrame(elementName, this.depthFirstElementCount++, currentFile);
+    vNodeData_openElement(this.currentElementFrame!.vNodeData);
     this.write('<');
     this.write(elementName);
     if (varAttrs) {
-      innerHTML = this.writeAttrs(elementName, varAttrs, false);
+      innerHTML = this.writeAttrs(elementName, varAttrs, false, currentFile);
     }
     this.write(' ' + Q_PROPS_SEPARATOR);
     // Domino sometimes does not like empty attributes, so we need to add a empty value
     isDev && this.write('=""');
     if (constAttrs && constAttrs.length) {
-      innerHTML = this.writeAttrs(elementName, constAttrs, true) || innerHTML;
+      innerHTML = this.writeAttrs(elementName, constAttrs, true, currentFile) || innerHTML;
     }
     this.write('>');
     this.lastNode = null;
@@ -641,7 +649,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         if (flag & VNodeDataFlag.REFERENCE) {
           this.write(VNodeDataSeparator.REFERENCE_CH);
         }
-        if (flag & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE)) {
+        if (
+          flag &
+          (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE | VNodeDataFlag.ELEMENT_NODE)
+        ) {
           let fragmentAttrs: SsrAttrs | null = null;
           /**
            * We keep track of how many virtual open/close fragments we have seen so far. Normally we
@@ -667,6 +678,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
               }
               depth--;
               this.write(VNodeDataChar.CLOSE_CHAR);
+            } else if (value === WRITE_ELEMENT_ATTRS) {
+              // this is executed only for VNodeDataFlag.ELEMENT_NODE and written as `|some encoded attrs here|`
+              if (fragmentAttrs && fragmentAttrs.length) {
+                this.write(VNodeDataChar.SEPARATOR_CHAR);
+                writeFragmentAttrs(this.write.bind(this), this.addRoot.bind(this), fragmentAttrs);
+                this.write(VNodeDataChar.SEPARATOR_CHAR);
+                fragmentAttrs = vNodeAttrsStack.pop()!;
+              }
             } else if (value >= 0) {
               // Text nodes get encoded as alphanumeric characters.
               this.write(encodeAsAlphanumeric(value));
@@ -727,6 +746,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             break;
           case ELEMENT_SEQ_IDX:
             write(VNodeDataChar.SEQ_IDX_CHAR);
+            break;
+          case QSubscribers:
+            write(VNodeDataChar.SUBS_CHAR);
             break;
           // Skipping `\` character for now because it is used for escaping.
           case QCtxAttr:
@@ -1093,7 +1115,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  private writeAttrs(tag: string, attrs: SsrAttrs, isConst: boolean): string | undefined {
+  private writeAttrs(
+    tag: string,
+    attrs: SsrAttrs,
+    isConst: boolean,
+    currentFile?: string | null
+  ): string | undefined {
     let innerHTML: string | undefined = undefined;
     if (attrs.length) {
       for (let i = 0; i < attrs.length; i++) {
@@ -1103,7 +1130,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
         if (isSSRUnsafeAttr(key)) {
           if (isDev) {
-            throw new Error('Attribute value is unsafe for SSR');
+            throw qError(QError.unsafeAttr);
           }
           continue;
         }
@@ -1123,12 +1150,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           } else if (typeof value === 'function') {
             value(new DomRef(lastNode));
             continue;
+          } else {
+            throw qError(QError.invalidRefValue, [currentFile]);
           }
         }
 
         if (isSignal(value)) {
           const lastNode = this.getLastNode();
-          const signalData = new EffectData<NodePropData>({
+          const signalData = new EffectData({
             $scopedStyleIdPrefix$: styleScopedId,
             $isConst$: isConst,
           });
@@ -1147,13 +1176,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         }
 
         if (tag === 'textarea' && key === 'value') {
-          if (typeof value !== 'string') {
+          if (value && typeof value !== 'string') {
             if (isDev) {
-              throw new Error('The value of the textarea must be a string');
+              throw qError(QError.wrongTextareaValue, [currentFile, value]);
             }
             continue;
           }
-          innerHTML = escapeHTML(value);
+          innerHTML = escapeHTML(value || '');
           key = QContainerAttr;
           value = QContainerValue.TEXT;
         }
@@ -1190,7 +1219,7 @@ const isQwikStyleElement = (tag: string, attrs: SsrAttrs | null | undefined) => 
 };
 
 function newTagError(text: string) {
-  return new Error('SsrError(tag): ' + text);
+  return qError(QError.tagError, [text]);
 }
 
 function hasDestroy(obj: any): obj is { $destroy$(): void } {

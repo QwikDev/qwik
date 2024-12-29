@@ -1,8 +1,14 @@
 import exampleSections, { type ExampleApp } from '@examples-data';
+import {
+  component$,
+  isBrowser,
+  useStore,
+  useStyles$,
+  useTask$,
+  useVisibleTask$,
+} from '@qwik.dev/core';
 import type { PathParams, RequestHandler, StaticGenerateHandler } from '@qwik.dev/router';
-import { type DocumentHead, useLocation } from '@qwik.dev/router';
-import { component$, useStore, useStyles$, useTask$, useVisibleTask$ } from '@qwik.dev/core';
-import { isBrowser } from '@qwik.dev/core/build';
+import { useLocation, type DocumentHead } from '@qwik.dev/router';
 import { Header } from '../../../components/header/header';
 import { PanelToggle } from '../../../components/panel-toggle/panel-toggle';
 import { Repl } from '../../../repl/repl';

@@ -1,5 +1,5 @@
 import { assertTrue } from '../shared/error/assert';
-import { qError, QError_invalidContext, QError_notFoundContext } from '../shared/error/error';
+import { QError, qError } from '../shared/error/error';
 import { verifySerializable } from '../shared/utils/serialize-utils';
 import { qDev, qSerialize } from '../shared/utils/qdev';
 import { isObject } from '../shared/utils/types';
@@ -276,11 +276,11 @@ export const useContext: UseContext = <STATE>(
   if (defaultValue !== undefined) {
     return set(defaultValue);
   }
-  throw qError(QError_notFoundContext, context.id);
+  throw qError(QError.notFoundContext, [context.id]);
 };
 
 export const validateContext = (context: ContextId<any>) => {
   if (!isObject(context) || typeof context.id !== 'string' || context.id.length === 0) {
-    throw qError(QError_invalidContext, context);
+    throw qError(QError.invalidContext, [context]);
   }
 };

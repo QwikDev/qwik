@@ -48,7 +48,7 @@ src/
 
 ```typescript title="src/routes/plugin@csp.ts"
 import type { RequestHandler } from "@qwik.dev/router";
-import { isDev } from "@qwik.dev/core/build";
+import { isDev } from "@qwik.dev/core";
 
 export const onRequest: RequestHandler = event => {
   if (isDev) return; // Will not return CSP headers in dev mode
@@ -79,7 +79,7 @@ import {
   ServiceWorkerRegister,
 } from "@qwik.dev/router";
 import { RouterHead } from "./components/router-head/router-head";
-import { isDev } from "@qwik.dev/core/build";
+import { isDev } from "@qwik.dev/core";
 
 import "./global.css";
 

@@ -1,10 +1,6 @@
 import type { QwikDocument } from '../document';
 import { assertDefined } from '../shared/error/assert';
-import {
-  qError,
-  QError_useInvokeContext,
-  QError_useMethodOutsideContext,
-} from '../shared/error/error';
+import { QError, qError } from '../shared/error/error';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import {
@@ -23,7 +19,13 @@ import type { Container, HostElement } from '../shared/types';
 import { vnode_getNode, vnode_isElementVNode, vnode_isVNode } from '../client/vnode';
 import { _getQContainerElement } from '../client/dom-container';
 import type { ContainerElement } from '../client/types';
-import type { EffectData, EffectSubscriptions, EffectSubscriptionsProp } from '../signal/signal';
+import {
+  WrappedSignal,
+  type EffectPropData,
+  type EffectSubscriptions,
+  type EffectSubscriptionsProp,
+} from '../signal/signal';
+import type { Signal } from '../signal/signal.public';
 
 declare const document: QwikDocument;
 
@@ -103,7 +105,7 @@ export const tryGetInvokeContext = (): InvokeContext | undefined => {
 export const getInvokeContext = (): InvokeContext => {
   const ctx = tryGetInvokeContext();
   if (!ctx) {
-    throw qError(QError_useMethodOutsideContext);
+    throw qError(QError.useMethodOutsideContext);
   }
   return ctx;
 };
@@ -111,7 +113,7 @@ export const getInvokeContext = (): InvokeContext => {
 export const useInvokeContext = (): RenderInvokeContext => {
   const ctx = tryGetInvokeContext();
   if (!ctx || ctx.$event$ !== RenderEvent) {
-    throw qError(QError_useInvokeContext);
+    throw qError(QError.useInvokeContext);
   }
   assertDefined(ctx.$hostElement$, `invoke: $hostElement$ must be defined`, ctx);
   assertDefined(ctx.$effectSubscriber$, `invoke: $effectSubscriber$ must be defined`, ctx);
@@ -234,7 +236,7 @@ export const trackSignal = <T>(
   subscriber: EffectSubscriptions[EffectSubscriptionsProp.EFFECT],
   property: EffectSubscriptions[EffectSubscriptionsProp.PROPERTY],
   container: Container,
-  data?: EffectData
+  data?: EffectPropData
 ): T => {
   const previousSubscriber = trackInvocation.$effectSubscriber$;
   const previousContainer = trackInvocation.$container$;
@@ -249,6 +251,19 @@ export const trackSignal = <T>(
     trackInvocation.$effectSubscriber$ = previousSubscriber;
     trackInvocation.$container$ = previousContainer;
   }
+};
+
+export const trackSignalAndAssignHost = (
+  value: Signal,
+  host: HostElement,
+  property: EffectSubscriptions[EffectSubscriptionsProp.PROPERTY],
+  container: Container,
+  data?: EffectPropData
+) => {
+  if (value instanceof WrappedSignal && value.$hostElement$ !== host && host) {
+    value.$hostElement$ = host;
+  }
+  return trackSignal(() => value.value, host, property, container, data);
 };
 
 /** @internal */

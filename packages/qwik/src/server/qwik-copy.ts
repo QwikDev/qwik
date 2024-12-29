@@ -43,6 +43,7 @@ export {
   QDefaultSlot,
   Q_PROPS_SEPARATOR,
   NON_SERIALIZABLE_MARKER_PREFIX,
+  QSubscribers,
 } from '../core/shared/utils/markers';
 export { maybeThen } from '../core/shared/utils/promises';
 export { mapApp_remove, mapArray_get, mapArray_set } from '../core/client/vnode';
@@ -56,3 +57,4 @@ export { VNodeDataChar } from '../core/shared/vnode-data-types';
 export { VNodeDataSeparator } from '../core/shared/vnode-data-types';
 export { escapeHTML } from '../core/shared/utils/character-escaping';
 export { getValidManifest } from '../optimizer/src/manifest';
+export { QError, qError } from '../core/shared/error/error';

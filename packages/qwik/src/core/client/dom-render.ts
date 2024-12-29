@@ -6,6 +6,8 @@ import { DomContainer, getDomContainer } from './dom-container';
 import { cleanup } from './vnode-diff';
 import { QContainerAttr } from '../shared/utils/markers';
 import type { RenderOptions, RenderResult } from './types';
+import { qDev } from '../shared/utils/qdev';
+import { QError, qError } from '../shared/error/error';
 
 /**
  * Render JSX.
@@ -31,6 +33,9 @@ export const render = async (
       child = child.nextSibling;
     }
     parent = child as Element;
+  }
+  if (qDev && parent.hasAttribute(QContainerAttr)) {
+    throw qError(QError.cannotRenderOverExistingContainer, [parent]);
   }
   (parent as Element).setAttribute(QContainerAttr, QContainerValue.RESUMED);
 

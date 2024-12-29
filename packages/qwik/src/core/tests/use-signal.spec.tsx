@@ -17,6 +17,7 @@ import { untrack } from '../use/use-core';
 import { useSignal } from '../use/use-signal';
 import { vnode_getFirstChild, vnode_getProp, vnode_locate } from '../client/vnode';
 import { QSubscribers } from '../shared/utils/markers';
+import { EffectSubscriptionsProp } from '../signal/signal';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -273,38 +274,6 @@ describe.each([
     );
   });
 
-  it("should don't add multiple the same subscribers", async () => {
-    const Child = component$(() => {
-      return <></>;
-    });
-
-    const Cmp = component$(() => {
-      const counter = useSignal<number>(0);
-      const cleanupCounter = useSignal<number>(0);
-
-      return (
-        <>
-          <button onClick$={() => counter.value++}></button>
-          <Child key={counter.value} />
-          <pre>{cleanupCounter.value + ''}</pre>
-        </>
-      );
-    });
-
-    const { container } = await render(<Cmp />, { debug });
-
-    await trigger(container.element, 'button', 'click');
-    await trigger(container.element, 'button', 'click');
-    await trigger(container.element, 'button', 'click');
-    await trigger(container.element, 'button', 'click');
-
-    const signalVNode = vnode_getFirstChild(
-      vnode_locate(container.rootVNode, container.element.querySelector('pre')!)
-    )!;
-    const subscribers = vnode_getProp<unknown[]>(signalVNode, QSubscribers, null);
-    expect(subscribers).toHaveLength(1);
-  });
-
   it('should deserialize signal without effects', async () => {
     const Cmp = component$(() => {
       const counter = useSignal(0);
@@ -323,6 +292,92 @@ describe.each([
         <div></div>
       </Component>
     );
+  });
+
+  describe('signals cleanup', () => {
+    it('should not add multiple same subscribers for virtual node', async () => {
+      const Child = component$(() => {
+        return <></>;
+      });
+
+      const Cmp = component$(() => {
+        const counter = useSignal<number>(0);
+        const cleanupCounter = useSignal<number>(0);
+
+        return (
+          <>
+            <button onClick$={() => counter.value++}></button>
+            <Child key={counter.value} />
+            <pre>{cleanupCounter.value + ''}</pre>
+          </>
+        );
+      });
+
+      const { container } = await render(<Cmp />, { debug });
+
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+      await trigger(container.element, 'button', 'click');
+
+      const signalVNode = vnode_getFirstChild(
+        vnode_locate(container.rootVNode, container.element.querySelector('pre')!)
+      )!;
+      const subscribers = vnode_getProp<unknown[]>(signalVNode, QSubscribers, null);
+      expect(subscribers).toHaveLength(1);
+    });
+
+    it('should not add multiple same subscribers for element node', async () => {
+      (globalThis as any).signal = undefined;
+
+      const Cmp = component$(() => {
+        const show = useSignal(true);
+        const cleanupCounter = useSignal<number>(0);
+
+        useVisibleTask$(() => {
+          untrack(() => ((globalThis as any).signal = cleanupCounter));
+        });
+
+        return (
+          <div>
+            <button onClick$={() => (show.value = !show.value)}></button>
+            {show.value && <pre attr-test={cleanupCounter.value + ''}></pre>}
+          </div>
+        );
+      });
+
+      const { container } = await render(<Cmp />, { debug });
+
+      if (render === ssrRenderToDom) {
+        await trigger(container.element, 'div', 'qvisible');
+      }
+
+      expect(
+        // wrapped signal on the pre element
+        (globalThis as any).signal.$effects$[0][EffectSubscriptionsProp.EFFECT].$effects$
+      ).toHaveLength(1);
+      expect((globalThis as any).signal.$effects$).toHaveLength(1);
+
+      await trigger(container.element, 'button', 'click');
+      expect((globalThis as any).signal.$effects$).toHaveLength(0);
+
+      await trigger(container.element, 'button', 'click'); // <-- this should not add another subscriber
+      expect((globalThis as any).signal.$effects$).toHaveLength(1);
+      expect(
+        (globalThis as any).signal.$effects$[0][EffectSubscriptionsProp.EFFECT].$effects$
+      ).toHaveLength(1);
+
+      await trigger(container.element, 'button', 'click');
+      expect((globalThis as any).signal.$effects$).toHaveLength(0);
+
+      await trigger(container.element, 'button', 'click'); // <-- this should not add another subscriber
+      expect((globalThis as any).signal.$effects$).toHaveLength(1);
+      expect(
+        (globalThis as any).signal.$effects$[0][EffectSubscriptionsProp.EFFECT].$effects$
+      ).toHaveLength(1);
+
+      (globalThis as any).signal = undefined;
+    });
   });
 
   describe('derived', () => {
@@ -494,86 +549,6 @@ describe.each([
             </Component>
           </Fragment>
         </Component>
-      );
-    });
-  });
-
-  describe('binding', () => {
-    it('should bind checked attribute', async () => {
-      const BindCmp = component$(() => {
-        const show = useSignal(false);
-        return (
-          <>
-            <label for="toggle">
-              <input type="checkbox" bind:checked={show} />
-              Show conditional
-            </label>
-            <div>{show.value.toString()}</div>
-          </>
-        );
-      });
-
-      const { vNode, document } = await render(<BindCmp />, { debug });
-
-      expect(vNode).toMatchVDOM(
-        <Component ssr-required>
-          <Fragment ssr-required>
-            <label for="toggle">
-              <input type="checkbox" checked={false} />
-              {'Show conditional'}
-            </label>
-            <div>false</div>
-          </Fragment>
-        </Component>
-      );
-
-      // simulate checkbox click
-      const input = document.querySelector('input')!;
-      input.checked = true;
-      await trigger(document.body, 'input', 'input');
-
-      expect(vNode).toMatchVDOM(
-        <Component ssr-required>
-          <Fragment ssr-required>
-            <label for="toggle">
-              <input type="checkbox" checked={true} />
-              {'Show conditional'}
-            </label>
-            <div>true</div>
-          </Fragment>
-        </Component>
-      );
-    });
-
-    it('should bind textarea value', async () => {
-      const Cmp = component$(() => {
-        const value = useSignal('123');
-        return (
-          <div>
-            <textarea bind:value={value} />
-            <input bind:value={value} />
-          </div>
-        );
-      });
-      const { document } = await render(<Cmp />, { debug });
-
-      await expect(document.querySelector('div')).toMatchDOM(
-        <div>
-          <textarea>123</textarea>
-          <input value="123" />
-        </div>
-      );
-
-      // simulate input
-      const textarea = document.querySelector('textarea')!;
-      textarea.value = 'abcd';
-      await trigger(document.body, textarea, 'input');
-
-      await expect(document.querySelector('div')).toMatchDOM(
-        <div>
-          <textarea>abcd</textarea>
-          <input value="abcd" />
-        </div>
       );
     });
   });

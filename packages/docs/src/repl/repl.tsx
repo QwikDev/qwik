@@ -2,13 +2,13 @@
 import {
   $,
   component$,
+  isServer,
   noSerialize,
   useStore,
   useStyles$,
   useTask$,
   useVisibleTask$,
 } from '@qwik.dev/core';
-import { isServer } from '@qwik.dev/core/build';
 import { QWIK_PKG_NAME, QWIK_PKG_NAME_V1, bundled, getNpmCdnUrl } from './bundled';
 import { ReplDetailPanel } from './repl-detail-panel';
 import { ReplInputPanel } from './repl-input-panel';

@@ -1,5 +1,6 @@
+// keep this import from core/build so the cjs build works
 import { isServer } from '@qwik.dev/core/build';
-import { qError, QError_qrlMissingChunk, QError_qrlMissingContainer } from '../error/error';
+import { QError, qError } from '../error/error';
 import { getSymbolHash } from '../qrl/qrl-class';
 import { qDynamicPlatform } from '../utils/qdev';
 import type { CorePlatform } from './types';
@@ -16,10 +17,10 @@ export const createPlatform = (): CorePlatform => {
         }
       }
       if (!url) {
-        throw qError(QError_qrlMissingChunk, symbolName);
+        throw qError(QError.qrlMissingChunk, [symbolName]);
       }
       if (!containerEl) {
-        throw qError(QError_qrlMissingContainer, url, symbolName);
+        throw qError(QError.qrlMissingContainer, [url, symbolName]);
       }
       const urlDoc = toUrl(containerEl.ownerDocument, containerEl, url).toString();
       const urlCopy = new URL(urlDoc);

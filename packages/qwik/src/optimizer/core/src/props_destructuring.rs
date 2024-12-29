@@ -4,6 +4,7 @@ use crate::code_move::create_return_stmt;
 use crate::collector::{new_ident_from_id, GlobalCollect, Id};
 use crate::is_const::is_const_expr;
 use crate::words::*;
+use swc_atoms::Atom;
 use swc_atoms::JsWord;
 use swc_common::DUMMY_SP;
 use swc_ecmascript::ast;
@@ -238,6 +239,27 @@ impl<'a> PropsDestructuring<'a> {
 }
 
 impl<'a> VisitMut for PropsDestructuring<'a> {
+	fn visit_mut_arrow_expr(&mut self, node: &mut ast::ArrowExpr) {
+		if node.params.len() == 1 {
+			// probably an inline component
+			if matches!(
+				&node.body,
+				box ast::BlockStmtOrExpr::Expr(box ast::Expr::Call(_))
+			) {
+				// function without return statement
+				self.transform_component_props(node);
+			} else if matches!(
+				&node.body,
+				box ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt { stmts, .. })
+				if stmts.iter().any(|stmt| matches!(stmt, ast::Stmt::Return(_)))
+			) {
+				// function with return statement
+				self.transform_component_props(node);
+			}
+		}
+		node.visit_mut_children_with(self);
+	}
+
 	fn visit_mut_call_expr(&mut self, node: &mut ast::CallExpr) {
 		if let ast::Callee::Expr(box ast::Expr::Ident(ref ident)) = &node.callee {
 			if id_eq!(ident, &self.component_ident) {
@@ -315,15 +337,39 @@ fn transform_pat(
 				}
 			}
 			ast::ObjectPatProp::KeyValue(ref v) => {
-				if let ast::PropName::Ident(ref key) = v.key {
+				if matches!(v.key, ast::PropName::Ident(_) | ast::PropName::Str(_)) {
+					let (key_atom, prop) = match &v.key {
+						ast::PropName::Str(ref key) => {
+							let key_str: &str = &key.value;
+							let key_atom = Atom::from(key_str);
+							(
+								key_atom.clone(),
+								ast::MemberProp::Computed(ast::ComputedPropName {
+									span: DUMMY_SP,
+									expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
+										span: DUMMY_SP,
+										value: key_atom,
+										raw: None,
+									}))),
+								}),
+							)
+						}
+						ast::PropName::Ident(ref key) => {
+							(key.sym.clone(), ast::MemberProp::Ident(key.clone()))
+						}
+						_ => {
+							continue;
+						}
+					};
 					match &v.value {
 						box ast::Pat::Ident(ref ident) => {
 							let access = ast::Expr::Member(ast::MemberExpr {
 								obj: Box::new(new_ident.clone()),
-								prop: ast::MemberProp::Ident(key.clone()),
+								prop,
 								span: DUMMY_SP,
 							});
-							local.push((id!(ident), key.sym.clone(), access));
+
+							local.push((id!(ident), key_atom.clone(), access));
 						}
 						box ast::Pat::Assign(ast::AssignPat {
 							left: box ast::Pat::Ident(ident),
@@ -333,12 +379,12 @@ fn transform_pat(
 							if is_const_expr(value.as_ref(), props_transform.global_collect, None) {
 								let access = ast::Expr::Member(ast::MemberExpr {
 									obj: Box::new(new_ident.clone()),
-									prop: ast::MemberProp::Ident(key.clone()),
+									prop,
 									span: DUMMY_SP,
 								});
 								local.push((
 									id!(ident.id),
-									key.sym.clone(),
+									key_atom.clone(),
 									ast::Expr::Bin(ast::BinExpr {
 										span: DUMMY_SP,
 										op: ast::BinaryOp::NullishCoalescing,

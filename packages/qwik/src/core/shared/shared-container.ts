@@ -1,7 +1,7 @@
 import type { ContextId } from '../use/use-context';
-import { trackSignal } from '../use/use-core';
+import { trackSignalAndAssignHost } from '../use/use-core';
 import { version } from '../version';
-import type { Effect, EffectData } from '../signal/signal';
+import type { EffectPropData } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
 import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { Scheduler } from './scheduler';
@@ -39,8 +39,13 @@ export abstract class _SharedContainer implements Container {
     this.$scheduler$ = createScheduler(this, scheduleDrain, journalFlush);
   }
 
-  trackSignalValue<T>(signal: Signal, subscriber: Effect, property: string, data: EffectData): T {
-    return trackSignal(() => signal.value, subscriber, property, this, data);
+  trackSignalValue<T>(
+    signal: Signal,
+    subscriber: HostElement,
+    property: string,
+    data: EffectPropData
+  ): T {
+    return trackSignalAndAssignHost(signal, subscriber, property, this, data);
   }
 
   serializationCtxFactory(

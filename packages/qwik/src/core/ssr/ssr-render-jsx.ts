@@ -4,13 +4,12 @@ import { isQrl } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { Fragment, directGetPropsProxyProp } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
-import type { DevJSX, JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
+import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SSRStream, type SSRStreamChildren } from '../shared/jsx/utils.public';
-import { trackSignal } from '../use/use-core';
+import { trackSignalAndAssignHost } from '../use/use-core';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
-import { throwErrorAndStop } from '../shared/utils/log';
 import {
   ELEMENT_KEY,
   FLUSH_COMMENT,
@@ -35,6 +34,8 @@ import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-compo
 import type { ISsrComponentFrame, ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
 import { qInspector } from '../shared/utils/qdev';
 import { serializeAttribute } from '../shared/utils/styles';
+import { QError, qError } from '../shared/error/error';
+import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 
 class ParentComponentData {
   constructor(
@@ -101,7 +102,7 @@ export function _walkJSX(
       } else if (typeof value === 'function') {
         if (value === Promise) {
           if (!options.allowPromises) {
-            return throwErrorAndStop('Promises not expected here.');
+            throw qError(QError.promisesNotExpected);
           }
           (stack.pop() as Promise<JSXOutput>).then(resolveValue, rejectDrain);
           return;
@@ -109,7 +110,7 @@ export function _walkJSX(
         const waitOn = (value as StackFn).apply(ssr);
         if (waitOn) {
           if (!options.allowPromises) {
-            return throwErrorAndStop('Promises not expected here.');
+            throw qError(QError.promisesNotExpected);
           }
           waitOn.then(drain, rejectDrain);
           return;
@@ -156,7 +157,7 @@ function processJSXNode(
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.WrappedSignal] : EMPTY_ARRAY);
       const signalNode = ssr.getLastNode();
       enqueue(ssr.closeFragment);
-      enqueue(trackSignal(() => value.value as any, signalNode, EffectProperty.VNODE, ssr));
+      enqueue(trackSignalAndAssignHost(value, signalNode, EffectProperty.VNODE, ssr));
     } else if (isPromise(value)) {
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Awaited] : EMPTY_ARRAY);
       enqueue(ssr.closeFragment);
@@ -182,7 +183,7 @@ function processJSXNode(
         appendClassIfScopedStyleExists(jsx, options.styleScoped);
         let qwikInspectorAttrValue: string | null = null;
         if (isDev && jsx.dev && jsx.type !== 'head') {
-          qwikInspectorAttrValue = getQwikInspectorAttributeValue(jsx.dev);
+          qwikInspectorAttrValue = getFileLocationFromJsx(jsx.dev);
           if (qInspector) {
             appendQwikInspectorAttribute(jsx, qwikInspectorAttrValue);
           }
@@ -534,18 +535,10 @@ function getSlotName(host: ISsrNode, jsx: JSXNodeInternal, ssr: SSRContainer): s
   if (constProps && typeof constProps == 'object' && 'name' in constProps) {
     const constValue = constProps.name;
     if (constValue instanceof WrappedSignal) {
-      return trackSignal(() => constValue.value, host, EffectProperty.COMPONENT, ssr);
+      return trackSignalAndAssignHost(constValue, host, EffectProperty.COMPONENT, ssr);
     }
   }
   return directGetPropsProxyProp(jsx, 'name') || QDefaultSlot;
-}
-
-function getQwikInspectorAttributeValue(jsxDev: DevJSX): string | null {
-  const sanitizedFileName = jsxDev.fileName?.replace(/\\/g, '/');
-  if (sanitizedFileName) {
-    return `${sanitizedFileName}:${jsxDev.lineNumber}:${jsxDev.columnNumber}`;
-  }
-  return null;
 }
 
 function appendQwikInspectorAttribute(jsx: JSXNodeInternal, qwikInspectorAttrValue: string | null) {

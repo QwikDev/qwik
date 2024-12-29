@@ -1,6 +1,7 @@
 import {
   component$,
   event$,
+  isServer,
   jsx,
   SkipRender,
   Slot,
@@ -13,7 +14,6 @@ import {
   type QRL,
 } from "@qwik.dev/core";
 import { h, SSRComment, SSRRaw } from "@qwik.dev/core/internal";
-import { isServer } from "@qwik.dev/core/build";
 import { delay } from "../streaming/demo";
 
 export const Render = component$(() => {

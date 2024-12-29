@@ -8,7 +8,7 @@ snapshot_kind: text
 
 
 import { component$, serverLoader$, serverStuff$, $, client$, useStore, useTask$ } from '@qwik.dev/core';
-import { isServer } from '@qwik.dev/core/build';
+import { isServer } from '@qwik.dev/core';
 import mongo from 'mongodb';
 import redis from 'redis';
 import { handler } from 'serverless';
@@ -78,8 +78,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useTask$",
   "captures": true,
   "loc": [
-    369,
-    471
+    363,
+    465
   ]
 }
 */
@@ -115,8 +115,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    544,
-    593
+    538,
+    587
   ]
 }
 */
@@ -143,8 +143,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "client$",
   "captures": false,
   "loc": [
-    616,
-    670
+    610,
+    664
   ]
 }
 */
@@ -191,8 +191,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    285,
-    841
+    279,
+    835
   ]
 }
 */
@@ -217,8 +217,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    781,
-    808
+    775,
+    802
   ]
 }
 */
@@ -246,8 +246,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useTask$",
   "captures": false,
   "loc": [
-    730,
-    750
+    724,
+    744
   ]
 }
 */

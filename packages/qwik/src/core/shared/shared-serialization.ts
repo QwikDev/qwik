@@ -2,12 +2,13 @@
 
 import { isDev } from '../../build/index.dev';
 import type { StreamWriter } from '../../server/types';
-import { VNodeDataFlag, type VNodeData } from '../../server/vnode-data';
+import { VNodeDataFlag } from '../../server/types';
+import type { VNodeData } from '../../server/vnode-data';
 import { type DomContainer } from '../client/dom-container';
 import type { VNode } from '../client/types';
 import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
 import { NEEDS_COMPUTATION } from '../signal/flags';
-import { ComputedSignal, EffectData, Signal, WrappedSignal } from '../signal/signal';
+import { ComputedSignal, EffectPropData, Signal, WrappedSignal } from '../signal/signal';
 import type { Subscriber } from '../signal/signal-subscriber';
 import {
   STORE_ARRAY_PROP,
@@ -16,12 +17,13 @@ import {
   getStoreTarget,
   isStore,
 } from '../signal/store';
-import type { ISsrNode, SymbolToChunkResolver } from '../ssr/ssr-types';
+import type { SsrAttrs, ISsrNode, SymbolToChunkResolver } from '../ssr/ssr-types';
 import { untrack } from '../use/use-core';
 import { createResourceReturn, type ResourceReturnInternal } from '../use/use-resource';
 import { Task, isTask } from '../use/use-task';
 import { SERIALIZABLE_STATE, componentQrl, isQwikComponent } from './component.public';
 import { assertDefined, assertTrue } from './error/assert';
+import { QError, qError } from './error/error';
 import {
   Fragment,
   JSXNodeImpl,
@@ -39,13 +41,12 @@ import {
   type SyncQRLInternal,
 } from './qrl/qrl-class';
 import type { QRL } from './qrl/qrl.public';
-import { ChoreType } from './scheduler';
+import { ChoreType, type NodePropData } from './scheduler';
 import type { DeserializeContainer, HostElement, ObjToProxyMap } from './types';
 import { _CONST_PROPS, _VAR_PROPS } from './utils/constants';
 import { isElement, isNode } from './utils/element';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
-import { throwErrorAndStop } from './utils/log';
-import { ELEMENT_ID } from './utils/markers';
+import { ELEMENT_ID, ELEMENT_KEY } from './utils/markers';
 import { isPromise } from './utils/promises';
 import { fastSkipSerialize } from './utils/serialize-utils';
 import { type ValueOrPromise } from './utils/types';
@@ -270,12 +271,13 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
     }
     case TypeIds.WrappedSignal: {
       const signal = target as WrappedSignal<unknown>;
-      const d = data as [number, unknown[], Subscriber[], unknown, ...any[]];
+      const d = data as [number, unknown[], Subscriber[], unknown, HostElement, ...any[]];
       signal.$func$ = container.getSyncFn(d[0]);
       signal.$args$ = d[1];
       signal.$effectDependencies$ = d[2];
       signal.$untrackedValue$ = d[3];
-      signal.$effects$ = d.slice(4);
+      signal.$hostElement$ = d[4];
+      signal.$effects$ = d.slice(5);
       break;
     }
     case TypeIds.ComputedSignal: {
@@ -377,12 +379,13 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
       propsProxy[_CONST_PROPS] = (data as any)[1];
       break;
     case TypeIds.EffectData: {
-      const effectData = target as EffectData;
-      effectData.data = (data as any[])[0];
+      const effectData = target as EffectPropData;
+      effectData.data.$scopedStyleIdPrefix$ = (data as any[])[0];
+      effectData.data.$isConst$ = (data as any[])[1];
       break;
     }
     default:
-      return throwErrorAndStop('Not implemented');
+      throw qError(QError.serializeErrorNotImplemented, [typeId]);
   }
 };
 
@@ -516,13 +519,13 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
       if (vnode_isVNode(vNode)) {
         return vnode_getNode(vNode);
       } else {
-        return throwErrorAndStop('expected vnode for ref prop, but got ' + typeof vNode);
+        throw qError(QError.serializeErrorExpectedVNode, [typeof vNode]);
       }
     case TypeIds.EffectData:
-      return new EffectData(null!);
+      return new EffectPropData({} as NodePropData);
 
     default:
-      return throwErrorAndStop('unknown allocate type: ' + typeId);
+      throw qError(QError.serializeErrorCannotAllocate, [typeId]);
   }
 };
 
@@ -716,7 +719,7 @@ export const createSerializationContext = (
     $getRootId$: (obj: any) => {
       const id = map.get(obj);
       if (!id || id === -1) {
-        return throwErrorAndStop('Missing root id for: ', obj);
+        throw qError(QError.serializeErrorMissingRootId, [obj]);
       }
       return id;
     },
@@ -837,13 +840,22 @@ export const createSerializationContext = (
           if (obj.$args$) {
             discoveredValues.push(...obj.$args$);
           }
+          if (obj.$hostElement$) {
+            discoveredValues.push(obj.$hostElement$);
+          }
         } else if (obj instanceof ComputedSignal) {
           discoveredValues.push(obj.$computeQrl$);
         }
       } else if (obj instanceof Task) {
         discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$, obj.$effectDependencies$);
       } else if (isSsrNode(obj)) {
-        discoveredValues.push(obj.vnodeData);
+        discoverValuesForVNodeData(obj.vnodeData, discoveredValues);
+
+        if (obj.childrenVNodeData && obj.childrenVNodeData.length) {
+          for (const data of obj.childrenVNodeData) {
+            discoverValuesForVNodeData(data, discoveredValues);
+          }
+        }
       } else if (isDomRef!(obj)) {
         discoveredValues.push(obj.$ssrNode$.id);
       } else if (isJSXNode(obj)) {
@@ -866,14 +878,14 @@ export const createSerializationContext = (
           }
         );
         promises.push(obj);
-      } else if (obj instanceof EffectData) {
+      } else if (obj instanceof EffectPropData) {
         discoveredValues.push(obj.data);
       } else if (isObjectLiteral(obj)) {
         Object.entries(obj).forEach(([key, value]) => {
           discoveredValues.push(key, value);
         });
       } else {
-        return throwErrorAndStop('Unknown type: ' + obj);
+        throw qError(QError.serializeErrorUnknownType, [obj]);
       }
     };
 
@@ -903,6 +915,23 @@ export const createSerializationContext = (
       await Promise.allSettled(promises);
       promises.length = 0;
     } while (discoveredValues.length);
+  }
+};
+
+const isSsrAttrs = (value: number | SsrAttrs): value is SsrAttrs =>
+  Array.isArray(value) && value.length > 0;
+
+const discoverValuesForVNodeData = (vnodeData: VNodeData, discoveredValues: unknown[]) => {
+  for (const value of vnodeData) {
+    if (isSsrAttrs(value)) {
+      for (let i = 1; i < value.length; i += 2) {
+        if (value[i - 1] === ELEMENT_KEY) {
+          continue;
+        }
+        const attrValue = value[i];
+        discoveredValues.push(attrValue);
+      }
+    }
   }
 };
 
@@ -1032,7 +1061,7 @@ function serialize(serializationContext: SerializationContext): void {
     } else if (value === NEEDS_COMPUTATION) {
       output(TypeIds.Constant, Constants.NEEDS_COMPUTATION);
     } else {
-      throwErrorAndStop('Unknown type: ' + typeof value);
+      throw qError(QError.serializeErrorUnknownType, [typeof value]);
     }
   };
 
@@ -1067,15 +1096,15 @@ function serialize(serializationContext: SerializationContext): void {
           ? [varProps]
           : 0;
       output(TypeIds.PropsProxy, out);
-    } else if (value instanceof EffectData) {
-      output(TypeIds.EffectData, [value.data]);
+    } else if (value instanceof EffectPropData) {
+      output(TypeIds.EffectData, [value.data.$scopedStyleIdPrefix$, value.data.$isConst$]);
     } else if (isStore(value)) {
       if (isResource(value)) {
         // let render know about the resource
         serializationContext.$resources$.add(value);
         const res = promiseResults.get(value.value);
         if (!res) {
-          return throwErrorAndStop('Unvisited Resource');
+          throw qError(QError.serializeErrorUnvisited, ['resource']);
         }
         output(TypeIds.Resource, [...res, getStoreHandler(value)!.$effects$]);
       } else {
@@ -1136,6 +1165,7 @@ function serialize(serializationContext: SerializationContext): void {
           ...serializeWrappingFn(serializationContext, value),
           value.$effectDependencies$,
           v,
+          value.$hostElement$,
           ...(value.$effects$ || []),
         ]);
       } else if (value instanceof ComputedSignal) {
@@ -1235,7 +1265,7 @@ function serialize(serializationContext: SerializationContext): void {
     } else if (isPromise(value)) {
       const res = promiseResults.get(value);
       if (!res) {
-        return throwErrorAndStop('Unvisited Promise');
+        throw qError(QError.serializeErrorUnvisited, ['promise']);
       }
       output(TypeIds.Promise, res);
     } else if (value instanceof Uint8Array) {
@@ -1246,7 +1276,7 @@ function serialize(serializationContext: SerializationContext): void {
       const out = btoa(buf).replace(/=+$/, '');
       output(TypeIds.Uint8Array, out);
     } else {
-      return throwErrorAndStop('implement');
+      throw qError(QError.serializeErrorUnknownType, [typeof value]);
     }
   };
 
@@ -1307,7 +1337,7 @@ export function qrlToString(
       }
     }
     if (!chunk) {
-      throwErrorAndStop('Missing chunk for: ' + value.$symbol$);
+      throw qError(QError.qrlMissingChunk, [value.$symbol$]);
     }
     if (chunk.startsWith('./')) {
       chunk = chunk.slice(2);

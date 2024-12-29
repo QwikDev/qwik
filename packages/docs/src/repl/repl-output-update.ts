@@ -11,9 +11,19 @@ const deepUpdate = (prev: any, next: any) => {
       }
     }
   }
-  for (const key in prev) {
-    if (!(key in next)) {
-      delete prev[key];
+  if (Array.isArray(prev)) {
+    for (const key in prev) {
+      if (!(key in next)) {
+        delete prev[key];
+        // deleting array elements doesn't change the length
+        prev.length--;
+      }
+    }
+  } else {
+    for (const key in prev) {
+      if (!(key in next)) {
+        delete prev[key];
+      }
     }
   }
 };

@@ -3954,6 +3954,36 @@ export const App = component$(() => {
 	});
 }
 
+#[test]
+fn should_wrap_inner_inline_component_prop() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useStore, useSignal } from '@qwik.dev/core';
+export default component$((props: { id: number }) => {
+      const renders = useStore(
+        {
+          count: 0,
+        },
+        { reactive: false }
+      );
+      renders.count++;
+      const rerenders = renders.count + 0;
+      const Id = (props: any) => <div>Id: {props.id}</div>;
+      return (
+        <>
+          <Id id={props.id} />
+          {rerenders}
+        </>
+      );
+    });
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 // TODO(misko): Make this test work by implementing strict serialization.
 // #[test]
 // fn example_of_synchronous_qrl_that_cant_be_serialized() {

@@ -628,6 +628,7 @@ impl<'a> QwikTransform<'a> {
 		self.segment_stack.push(symbol_name.clone());
 		let span = first_arg.span();
 		let folded = first_arg.fold_with(self);
+		let is_empty = is_empty_function(&folded);
 		self.segment_stack.pop();
 
 		// Collect local idents
@@ -661,7 +662,7 @@ impl<'a> QwikTransform<'a> {
 			need_transform: true,
 			hash,
 		};
-		let should_emit = self.should_emit_segment(&segment_data);
+		let should_emit = !is_empty && self.should_emit_segment(&segment_data);
 		if should_emit {
 			for id in &segment_data.local_idents {
 				if !self.options.global_collect.exports.contains_key(id) {
@@ -2445,4 +2446,38 @@ fn is_text_only(node: &str) -> bool {
 		node,
 		"text" | "textarea" | "title" | "option" | "script" | "style" | "noscript"
 	)
+}
+
+/** detect if an expression is a function or arrow function with an empty function body */
+fn is_empty_function(expr: &ast::Expr) -> bool {
+	match expr {
+		ast::Expr::Fn(ast::FnExpr {
+			function: box ast::Function {
+				body: Some(ast::BlockStmt { stmts, .. }),
+				..
+			},
+			..
+		}) => are_statements_empty(stmts),
+		ast::Expr::Arrow(ast::ArrowExpr {
+			body: box ast::BlockStmtOrExpr::BlockStmt(block),
+			..
+		}) => are_statements_empty(&block.stmts),
+		_ => false,
+	}
+}
+
+/** detect if statements are empty or only `return` or `return undefined` */
+fn are_statements_empty(stmts: &[ast::Stmt]) -> bool {
+	stmts.is_empty()
+		|| (stmts.len() == 1
+			&& match &stmts[0] {
+				ast::Stmt::Return(ast::ReturnStmt { arg, .. }) => {
+					arg.is_none()
+						|| match &arg {
+							Some(box ast::Expr::Ident(ident)) => ident.sym == js_word!("undefined"),
+							_ => false,
+						}
+				}
+				_ => false,
+			})
 }

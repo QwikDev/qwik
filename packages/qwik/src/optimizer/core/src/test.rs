@@ -937,7 +937,7 @@ fn example_lightweight_functional() {
 		code: r#"
 import { $, component$ } from '@qwik.dev/core';
 
-export const Foo = component$(({color}) => {
+export const Foo = component$((props) => {
 	return (
 		<div>
 			<Button {...props} />
@@ -3647,6 +3647,70 @@ fn should_destructure_args() {
 }
 
 #[test]
+fn destructure_args_inline_cmp_block_stmt() {
+	test_input!(TestInput {
+		code: r#"
+		export default ({ data }: { data: any }) => {
+          return (
+            <div
+              data-is-active={data.selectedOutputDetail === 'options'}
+              onClick$={() => {
+                data.selectedOutputDetail = 'options';
+              }}
+            />
+          );
+		};
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn destructure_args_inline_cmp_block_stmt2() {
+	test_input!(TestInput {
+		code: r#"
+		export default (props: { data: any }) => {
+		  const { data } = props;
+          return (
+            <div
+              data-is-active={data.selectedOutputDetail === 'options'}
+              onClick$={() => {
+                data.selectedOutputDetail = 'options';
+              }}
+            />
+          );
+		};
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn destructure_args_inline_cmp_expr_stmt() {
+	test_input!(TestInput {
+		code: r#"
+		export default ({ data }: { data: any }) => 
+            <div
+              data-is-active={data.selectedOutputDetail === 'options'}
+              onClick$={() => {
+                data.selectedOutputDetail = 'options';
+              }}
+            />;
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn destructure_args_colon_props() {
 	test_input!(TestInput {
 		code: r#"
@@ -3656,6 +3720,50 @@ fn destructure_args_colon_props() {
 			return (
 				<>
 				{bindValue}
+				</>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn destructure_args_colon_props2() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from "@qwik.dev/core";
+		export default component$((props) => {
+			const { 'bind:value': bindValue } = props;
+			const test = useSignal(bindValue);
+			return (
+				<>
+				{test.value}
+				</>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn destructure_args_colon_props3() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from "@qwik.dev/core";
+		export default component$((props) => {
+			const { test, ...rest } = props;
+			const test = useSignal(rest['bind:value']);
+			return (
+				<>
+				{test.value}
 				</>
 			);
 		});

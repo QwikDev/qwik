@@ -14,7 +14,7 @@ import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
-import { trackSignalAndAssignHost, untrack } from '../use/use-core';
+import { trackSignalAndAssignHost } from '../use/use-core';
 import { TaskFlags, cleanupTask, isTask } from '../use/use-task';
 import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import {
@@ -104,6 +104,7 @@ import {
 } from '../signal/signal-subscriber';
 import { serializeAttribute } from '../shared/utils/styles';
 import { QError, qError } from '../shared/error/error';
+import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 
 export type ComponentQueue = Array<VNode>;
 
@@ -594,7 +595,11 @@ export const vnode_diff = (
    *
    * @returns {boolean}
    */
-  function createNewElement(jsx: JSXNodeInternal, elementName: string): boolean {
+  function createNewElement(
+    jsx: JSXNodeInternal,
+    elementName: string,
+    currentFile?: string | null
+  ): boolean {
     const element = createElementWithNamespace(elementName);
 
     const { constProps } = jsx;
@@ -629,6 +634,8 @@ export const vnode_diff = (
           } else if (typeof value === 'function') {
             value(element);
             continue;
+          } else {
+            throw qError(QError.invalidRefValue, [currentFile]);
           }
         }
 
@@ -653,13 +660,13 @@ export const vnode_diff = (
         }
 
         if (elementName === 'textarea' && key === 'value') {
-          if (typeof value !== 'string') {
+          if (value && typeof value !== 'string') {
             if (isDev) {
-              throw qError(QError.wrongTextareaValue);
+              throw qError(QError.wrongTextareaValue, [currentFile, value]);
             }
             continue;
           }
-          (element as HTMLTextAreaElement).value = escapeHTML(value as string);
+          (element as HTMLTextAreaElement).value = escapeHTML((value as string) || '');
           continue;
         }
 
@@ -705,6 +712,7 @@ export const vnode_diff = (
       vCurrent && vnode_isElementVNode(vCurrent) && elementName === vnode_getElementName(vCurrent);
     const jsxKey: string | null = jsx.key;
     let needsQDispatchEventPatch = false;
+    const currentFile = getFileLocationFromJsx(jsx.dev);
     if (!isSameElementName || jsxKey !== getKey(vCurrent)) {
       // So we have a key and it does not match the current node.
       // We need to do a forward search to find it.
@@ -723,8 +731,7 @@ export const vnode_diff = (
     const jsxAttrs = [] as ClientAttrs;
     const props = jsx.varProps;
     for (const key in props) {
-      let value = props[key];
-      value = serializeAttribute(key, value, scopedStyleIdPrefix);
+      const value = props[key];
       if (value != null) {
         mapArray_set(jsxAttrs, key, value, 0);
       }
@@ -733,7 +740,8 @@ export const vnode_diff = (
       mapArray_set(jsxAttrs, ELEMENT_KEY, jsxKey, 0);
     }
     const vNode = (vNewNode || vCurrent) as ElementVNode;
-    needsQDispatchEventPatch = setBulkProps(vNode, jsxAttrs) || needsQDispatchEventPatch;
+    needsQDispatchEventPatch =
+      setBulkProps(vNode, jsxAttrs, currentFile) || needsQDispatchEventPatch;
     if (needsQDispatchEventPatch) {
       // Event handler needs to be patched onto the element.
       const element = vnode_getNode(vNode) as QElement;
@@ -759,7 +767,11 @@ export const vnode_diff = (
   }
 
   /** @param tag Returns true if `qDispatchEvent` needs patching */
-  function setBulkProps(vnode: ElementVNode, srcAttrs: ClientAttrs): boolean {
+  function setBulkProps(
+    vnode: ElementVNode,
+    srcAttrs: ClientAttrs,
+    currentFile?: string | null
+  ): boolean {
     vnode_ensureElementInflated(vnode);
     const dstAttrs = vnode as ClientAttrs;
     let srcIdx = 0;
@@ -784,14 +796,20 @@ export const vnode_diff = (
         } else if (typeof value === 'function') {
           value(element);
           return;
+        } else {
+          throw qError(QError.invalidRefValue, [currentFile]);
         }
       }
 
       if (isSignal(value)) {
-        value = untrack(() => value.value);
+        const signalData = new EffectPropData({
+          $scopedStyleIdPrefix$: scopedStyleIdPrefix,
+          $isConst$: false,
+        });
+        value = trackSignalAndAssignHost(value, vnode, key, container, signalData);
       }
 
-      vnode_setAttr(journal, vnode, key, value);
+      vnode_setAttr(journal, vnode, key, serializeAttribute(key, value, scopedStyleIdPrefix));
       if (value === null) {
         // if we set `null` than attribute was removed and we need to shorten the dstLength
         dstLength = dstAttrs.length;
@@ -830,20 +848,20 @@ export const vnode_diff = (
         if (dstKey && isHtmlAttributeAnEventName(dstKey)) {
           patchEventDispatch = true;
           dstIdx++;
-        } else {
-          record(dstKey!, null);
+        } else if (dstKey) {
+          record(dstKey, null);
           dstIdx--;
         }
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (dstKey == null) {
         // Destination has more keys, so we need to insert them from source.
         const isEvent = isJsxPropertyAnEventName(srcKey);
-        if (isEvent) {
+        if (srcKey && isEvent) {
           // Special handling for events
           patchEventDispatch = true;
           recordJsxEvent(srcKey, srcAttrs[srcIdx]);
-        } else {
-          record(srcKey!, srcAttrs[srcIdx]);
+        } else if (srcKey) {
+          record(srcKey, srcAttrs[srcIdx]);
         }
         srcIdx++;
         srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
@@ -874,11 +892,11 @@ export const vnode_diff = (
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else {
         // Source is missing the key, so we need to remove it from destination.
-        if (isHtmlAttributeAnEventName(dstKey)) {
+        if (dstKey && isHtmlAttributeAnEventName(dstKey)) {
           patchEventDispatch = true;
           dstIdx++;
-        } else {
-          record(dstKey!, null);
+        } else if (dstKey) {
+          record(dstKey, null);
           dstIdx--;
         }
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;

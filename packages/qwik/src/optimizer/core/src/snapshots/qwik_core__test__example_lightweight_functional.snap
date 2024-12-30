@@ -9,7 +9,7 @@ snapshot_kind: text
 
 import { $, component$ } from '@qwik.dev/core';
 
-export const Foo = component$(({color}) => {
+export const Foo = component$((props) => {
 	return (
 		<div>
 			<Button {...props} />
@@ -36,7 +36,7 @@ export const ButtonArrow = ({text, color}) => {
 
 import { Button } from "./test";
 import { ButtonArrow } from "./test";
-export const Foo_component_HTDRsvUbLiE = (props1)=>{
+export const Foo_component_HTDRsvUbLiE = (props)=>{
     return <div>
 			<Button {...props}/>
 			<ButtonArrow {...props}/>
@@ -44,7 +44,7 @@ export const Foo_component_HTDRsvUbLiE = (props1)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B;IAC7B,QACE,IAAI;GACJ,CAAC,QAAQ,GAAG,KAAK,GAAI;GACrB,CAAC,aAAa,GAAG,KAAK,GAAI;EAC3B,EAAE;AAEJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC;IAC9B,QACE,IAAI;GACJ,CAAC,QAAQ,GAAG,KAAK,GAAI;GACrB,CAAC,aAAa,GAAG,KAAK,GAAI;EAC3B,EAAE;AAEJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -61,7 +61,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     81,
-    183
+    181
   ]
 }
 */
@@ -69,12 +69,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { useLexicalScope } from "@qwik.dev/core";
 export const ButtonArrow_button_onClick_9npo43fIGik = ()=>{
-    const [color, text] = useLexicalScope();
-    return console.log(text, color);
+    const [props] = useLexicalScope();
+    return console.log(props.text, props.color);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAsBqC;;WAAI,QAAQ,GAAG,CAAC,MAAM\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAsBqC;;WAAI,QAAQ,GAAG,OAFvB,YAAM\"}")
 /*
 {
   "origin": "test.tsx",
@@ -90,8 +90,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    447,
-    475
+    445,
+    473
   ]
 }
 */
@@ -120,8 +120,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    299,
-    327
+    297,
+    325
   ]
 }
 */
@@ -138,15 +138,14 @@ export function Button({ text, color }) {
         text
     ])}>{text}</button>;
 }
-export const ButtonArrow = ({ text, color })=>{
-    return <button onColor$={color} onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_ButtonArrow_button_onClick_9npo43fIGik"), "ButtonArrow_button_onClick_9npo43fIGik", [
-        color,
-        text
-    ])}>{text}</button>;
+export const ButtonArrow = (props)=>{
+    return <button onColor$={props.color} onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_ButtonArrow_button_onClick_9npo43fIGik"), "ButtonArrow_button_onClick_9npo43fIGik", [
+        props
+    ])}>{props.text}</button>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAOhB;IACF,SAAS;AACV,GAAG;AAEH,OAAO,SAAS,OAAO,EAAC,IAAI,EAAE,KAAK,EAAC;IACnC,QACE,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAE3E;AAEA,OAAO,MAAM,cAAc,CAAC,EAAC,IAAI,EAAE,KAAK,EAAC;IACxC,QACE,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAE3E,EAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAOhB;IACF,SAAS;AACV,GAAG;AAEH,OAAO,SAAS,OAAO,EAAC,IAAI,EAAE,KAAK,EAAC;IACnC,QACE,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAE3E;AAEA,OAAO,MAAM,cAAc;IAC1B,QACE,OAAO,gBAFyB,OAER;;eAFE,OAE8C;AAE3E,EAAC\"}")
 == DIAGNOSTICS ==
 
 []

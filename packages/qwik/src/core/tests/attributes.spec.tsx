@@ -1,6 +1,14 @@
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { component$, useSignal, useStore, Fragment as Component, Fragment } from '@qwik.dev/core';
+import {
+  component$,
+  useSignal,
+  useStore,
+  Fragment as Component,
+  Fragment,
+  type PropsOf,
+  useComputed$,
+} from '@qwik.dev/core';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -119,50 +127,84 @@ describe.each([
     );
   });
 
-  it('should bind checked attribute', async () => {
-    const BindCmp = component$(() => {
-      const show = useSignal(false);
-      return (
-        <>
-          <label for="toggle">
-            <input type="checkbox" bind:checked={show} />
-            Show conditional
-          </label>
-          <div>{show.value.toString()}</div>
-        </>
+  describe('binding', () => {
+    it('should bind checked attribute', async () => {
+      const BindCmp = component$(() => {
+        const show = useSignal(false);
+        return (
+          <>
+            <label for="toggle">
+              <input type="checkbox" bind:checked={show} />
+              Show conditional
+            </label>
+            <div>{show.value.toString()}</div>
+          </>
+        );
+      });
+
+      const { vNode, document } = await render(<BindCmp />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <label for="toggle">
+              <input type="checkbox" checked={false} />
+              {'Show conditional'}
+            </label>
+            <div>false</div>
+          </Fragment>
+        </Component>
+      );
+
+      // simulate checkbox click
+      const input = document.querySelector('input')!;
+      input.checked = true;
+      await trigger(document.body, 'input', 'input');
+
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <label for="toggle">
+              <input type="checkbox" checked={true} />
+              {'Show conditional'}
+            </label>
+            <div>true</div>
+          </Fragment>
+        </Component>
       );
     });
 
-    const { vNode, document } = await render(<BindCmp />, { debug });
+    it('should bind textarea value', async () => {
+      const Cmp = component$(() => {
+        const value = useSignal('123');
+        return (
+          <div>
+            <textarea bind:value={value} />
+            <input bind:value={value} />
+          </div>
+        );
+      });
+      const { document } = await render(<Cmp />, { debug });
 
-    expect(vNode).toMatchVDOM(
-      <Component ssr-required>
-        <Fragment ssr-required>
-          <label for="toggle">
-            <input type="checkbox" checked={false} />
-            {'Show conditional'}
-          </label>
-          <div>false</div>
-        </Fragment>
-      </Component>
-    );
+      await expect(document.querySelector('div')).toMatchDOM(
+        <div>
+          <textarea>123</textarea>
+          <input value="123" />
+        </div>
+      );
 
-    // simulate checkbox click
-    const input = document.querySelector('input')!;
-    input.checked = true;
-    await trigger(document.body, 'input', 'input');
+      // simulate input
+      const textarea = document.querySelector('textarea')!;
+      textarea.value = 'abcd';
+      await trigger(document.body, textarea, 'input');
 
-    expect(vNode).toMatchVDOM(
-      <Component ssr-required>
-        <Fragment ssr-required>
-          <label for="toggle">
-            <input type="checkbox" checked={true} />
-            {'Show conditional'}
-          </label>
-          <div>true</div>
-        </Fragment>
-      </Component>
-    );
+      await expect(document.querySelector('div')).toMatchDOM(
+        <div>
+          <textarea>abcd</textarea>
+          <input value="abcd" />
+        </div>
+      );
+    });
   });
 
   it('should render preventdefault attribute', async () => {
@@ -298,6 +340,45 @@ describe.each([
           <button></button>
           <span></span>
           <input id="input" attr-test={false} />
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should update signal-based var prop', async () => {
+    const PasswordInput = component$<PropsOf<'input'>>((props) => {
+      const showPassword = useSignal<boolean>(false);
+      const inputType = useComputed$(() => (showPassword.value ? 'text' : 'password'));
+      return (
+        <>
+          <input type={inputType.value} {...props} />
+          <button
+            onClick$={() => {
+              showPassword.value = !showPassword.value;
+            }}
+          ></button>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<PasswordInput />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <input type="password" />
+          <button></button>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <input type="text" />
+          <button></button>
         </Fragment>
       </Component>
     );

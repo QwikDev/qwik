@@ -984,7 +984,7 @@ export const vnode_diff = (
         vnode_insertBefore(
           journal,
           vParent as VirtualVNode,
-          (vNewNode = vnode_newVirtual()),
+          vNewNode,
           vCurrent && getInsertBefore()
         );
         return;

@@ -4,8 +4,8 @@ description: Learn to build hybrid native apps with Qwik.
 keywords: 'Capacitor, native, mobile'
 contributors:
   - srapport
-updated_at: '2024-12-28T19:56:54Z'
-created_at: '2024-12-28T19:56:54Z'
+updated_at: '2024-12-30T03:28:00Z'
+created_at: '2024-12-28T09:56:54Z'
 ---
 
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
@@ -16,7 +16,7 @@ import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 Traditionally, building native mobile applications meant managing two separate codebases: **Swift/Objective-C** for iOS and **Kotlin/Java** for Android. While this approach offers deep integration with each platform, it comes with significant drawbacks, including **increased development time**, **higher costs**, and **doubled maintenance efforts** for every feature or bug fix.
 
-This new hybrid approach combines **Qwik's performance-optimized framework** with **Capacitor's native runtime** and **Capawesome's rich plugin ecosystem**, enabling developers to build high-performance mobile applications from a **single TypeScript codebase**. This architecture bridges the gap between web and native development, allowing:
+This new hybrid approach combines **[Qwik's](https://qwik.dev/) performance-optimized framework** with **[Capacitor's](https://capacitorjs.com/) native runtime** and **[Capawesome's](https://capawesome.io/) rich plugin ecosystem**, enabling developers to build high-performance mobile applications from a **single TypeScript codebase**. This architecture bridges the gap between web and native development, allowing:
 
 - Single codebase for iOS and Android
 - Reduced development and maintenance costs
@@ -31,7 +31,7 @@ The architecture combines three complementary technologies—**Qwik**, **Capacit
 
 ### **1. Qwik Static Site Generation (SSG)**
 
-At the core of this stack, your application is built as a **Qwik Static Site**. Qwik's **Static Site Generation (SSG)** approach ensures that most of the application is pre-rendered at build time, resulting in **lightweight assets** that are optimized for mobile devices.
+At the core of this stack, your application is built as a **Qwik Static Site**. Qwik's **[Static Site Generation (SSG)](https://qwik.dev/docs/guides/static-site-generation/)** approach ensures that most of the application is pre-rendered at build time, resulting in **lightweight assets** that are optimized for mobile devices.
 
 **Why Static for Capacitor?**
 - **On-Device Hosting:** The static assets are served directly from the device's file system, eliminating the need for a remote server.  
@@ -61,17 +61,19 @@ Capacitor acts as the bridge between your Qwik-generated static assets and nativ
 - **Effortless Platform Management:** Easily add and manage platform-specific dependencies with Capacitor CLI.  
 - **Native Runtime Stability:** Ensures that native code executes predictably across different devices.
 
-By using Capacitor, your static Qwik app becomes a self-contained mobile app that can interact with device hardware and APIs as if it were built natively.
+By using Capacitor, your static Qwik app becomes a self-contained mobile app that can interact with device hardware and APIs as if it were built natively. Please refer to the official [Capacitor documentation](https://capacitorjs.com/docs) for more information on how to use Capacitor.
 
 ### **3. Accessing Native Features**
 
 Capacitor enables your Qwik app to interact with native device features through an extensive ecosystem of **plugins**. These plugins act as modular bridges that translate JavaScript API calls into native commands, allowing seamless access to hardware and platform-specific functionality like the camera, GPS, or file system.
 
-#### **Official Capacitor Plugins:**  
+#### **Capacitor Plugins:**  
 - Developed and maintained by the Capacitor core team.  
 - Provide robust APIs for essential device features, such as the camera, geolocation, file system, and push notifications.  
 - Frequently updated to ensure compatibility with the latest iOS and Android versions.  
 - Supported by comprehensive documentation and examples, making them easy to implement and maintain.
+
+Capacitor Plugins can be found [here](https://capacitorjs.com/docs/plugins).
 
 #### **Capawesome Plugins:**  
 
@@ -83,10 +85,14 @@ Capawesome expands Capacitor’s functionality with a collection of plugins desi
 
 Capawesome plugins are built with a **TypeScript-first philosophy**, ensuring strong type safety, modern development standards, and seamless integration with development tools and workflows. This focus results in plugins that are easier to maintain, debug, and scale across projects.
 
+Many more Capawesome Plugins can be found [here](https://capawesome.io/plugins/).
+
 #### **Cordova Plugins:**  
 - Provide access to a large library of plugins from the Cordova ecosystem, offering compatibility with legacy hybrid solutions.  
 - Ideal for leveraging specialized or less commonly used native features not yet supported by Capacitor or Capawesome.  
 - Capacitor’s compatibility layer ensures smooth integration, but long-term support may vary based on the plugin.
+
+Cordova Plugins can be found [here](https://cordova.apache.org/plugins/).
 
 ## **Prerequisites and Initial Setup**
 
@@ -95,12 +101,14 @@ Capawesome plugins are built with a **TypeScript-first philosophy**, ensuring st
 - **npm** or **pnpm**  
 - **iOS Requirements:**  
    - macOS computer  
-   - Xcode (latest version)  
+   - Xcode (latest version)
    - CocoaPods  
 - **Android Requirements:**  
    - Android Studio  
    - Android SDK  
    - Gradle  
+
+Please refer to each platform's official documentation for installation instructions and application build process.
 
 ### **Environment Setup**
 
@@ -282,51 +290,74 @@ import { LiveUpdate } from "@capawesome/capacitor-live-update";
 
 const VERSION = "1.0.0";
 const OTA_SERVER_URL = "http://YOUR_IP:8000";
+const wait = () => new Promise((resolve) => setTimeout(resolve, 1000));
 
 export default component$(() => {
   const version = useSignal<string>(VERSION);
   const updateStatus = useSignal<string | null>(null);
   const otaUrl = useComputed$(() => `${OTA_SERVER_URL}/${version.value}.zip`);
 
-  // Handler to apply or download and apply an update
   const handleUpdate = $(async () => {
     try {
       updateStatus.value = `Checking for existing bundle...`;
+      console.log(updateStatus.value);
+      await wait();
 
-      // Fetch the list of downloaded bundle IDs
       const { bundleIds } = await LiveUpdate.getBundles();
       const bundleExists = bundleIds.includes(version.value);
 
       if (bundleExists) {
         updateStatus.value = `Bundle ${version.value} already exists. Switching to it...`;
+        console.log(updateStatus.value);
+        await wait();
+
         await LiveUpdate.setNextBundle({ bundleId: version.value });
         await LiveUpdate.reload();
+
         updateStatus.value = `Switched to existing bundle ${version.value}!`;
+        console.log(updateStatus.value);
+        await wait();
       } else {
         updateStatus.value = `Downloading update from ${otaUrl.value}...`;
+        console.log(updateStatus.value);
+        await wait();
+
         await LiveUpdate.downloadBundle({
           url: otaUrl.value,
           bundleId: version.value,
         });
 
         updateStatus.value = "Applying update...";
+        console.log(updateStatus.value);
+        await wait();
+
         await LiveUpdate.setNextBundle({ bundleId: version.value });
         await LiveUpdate.reload();
 
         updateStatus.value = "Update applied successfully!";
+        console.log(updateStatus.value);
+        await wait();
       }
     } catch (error) {
       updateStatus.value = `Update to ${otaUrl.value} failed. Error: ${
         error instanceof Error ? error.message : "Unknown error"
       }`;
+      console.error(updateStatus.value);
+      await wait();
     }
   });
 
-  useVisibleTask$(() => {
+  useVisibleTask$(async () => {
     try {
+      updateStatus.value = "App ready";
+      console.log(updateStatus.value);
+      await wait();
+
       LiveUpdate.ready();
     } catch (error) {
-      console.error("Error notifying app readiness:", error);
+      (updateStatus.value = "Error notifying app readiness:"), error;
+      console.error(updateStatus.value);
+      await wait();
     }
   });
 
@@ -383,8 +414,7 @@ export const head: DocumentHead = {
   meta: [
     {
       name: "description",
-      content:
-        "Qwik app with OTA updates.",
+      content: "Qwik app with OTA updates.",
     },
   ],
 };
@@ -424,7 +454,7 @@ Once the app is updated, the new version will be used across app launches. You c
 
 #### **Capawesome Cloud**
 
-If you are using Capawesome Cloud, you can use the Live Update plugin to update your app without having to build and host a new version of the app. This is a great option for production environments.
+If you are using [Capawesome Cloud](https://capawesome.io/cloud/), you can use the Live Update plugin to update your app without having to build and host a new version of the app. This is a great option for production environments.
 
 ### Live Development
 

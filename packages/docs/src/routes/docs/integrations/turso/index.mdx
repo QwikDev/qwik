@@ -95,7 +95,7 @@ inside `.env.local`.
 PRIVATE_TURSO_DATABASE_URL=file:foo.db
 ```
 
-> ***Note***: A database token is not needed when working with file databases.
+> ***Note***: A database token is not needed when working with file databases and `createClient` must be imported from `@libsql/client` since importing from `@libsql/client/web` [does not support local file URLs](https://docs.turso.tech/sdk/ts/reference#local-development).
 
 ## Using a Turso database
 

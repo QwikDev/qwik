@@ -1735,17 +1735,17 @@ impl<'a> Fold for QwikTransform<'a> {
 	fn fold_var_decl(&mut self, node: ast::VarDecl) -> ast::VarDecl {
 		if let Some(current_scope) = self.decl_stack.last_mut() {
 			for decl in &node.decls {
-				let mut identifiers = Vec::with_capacity(node.decls.len() + 2);
+				let mut identifiers: Vec<(Id, Span)> = Vec::with_capacity(node.decls.len() + 2);
 				collect_from_pat(&decl.name, &mut identifiers);
-				let ident_type = if node.kind == ast::VarDeclKind::Const
-					&& matches!(decl.name, ast::Pat::Ident(_))
-					&& is_return_static(&decl.init)
-				{
-					IdentType::Var(true)
-				} else {
-					IdentType::Var(false)
-				};
-				current_scope.extend(identifiers.into_iter().map(|(id, _)| (id, ident_type)));
+				let mut static_identifiers: Vec<Id> = vec![];
+				collect_static_identifiers(&mut static_identifiers, &decl.name, &decl.init);
+
+				let is_const = node.kind == ast::VarDeclKind::Const;
+
+				for ident in identifiers {
+					let is_static = static_identifiers.iter().any(|id| *id == ident.0);
+					current_scope.push((ident.0, IdentType::Var(is_const && is_static)));
+				}
 			}
 		}
 		node.fold_children_with(self)
@@ -2331,6 +2331,87 @@ fn prop_to_string(prop: &ast::MemberProp) -> Option<JsWord> {
 			..
 		}) => Some(str.value.clone()),
 		_ => None,
+	}
+}
+
+fn collect_static_identifiers(
+	static_idents: &mut Vec<Id>,
+	decl_name: &ast::Pat,
+	decl_init: &Option<Box<ast::Expr>>,
+) {
+	match decl_name {
+		ast::Pat::Ident(ref ident) => {
+			if is_return_static(decl_init) {
+				static_idents.push(id!(ident));
+			}
+		}
+		ast::Pat::Array(ref decl_name_array) => {
+			if let Some(box ast::Expr::Array(ref decl_init_array)) = decl_init {
+				decl_name_array
+					.elems
+					.iter()
+					.zip(decl_init_array.elems.iter())
+					.for_each(|(name, init)| {
+						if let Some(name) = name {
+							if let Some(init) = init {
+								collect_static_identifiers(
+									static_idents,
+									name,
+									&Some(init.clone().expr),
+								);
+							}
+						}
+					});
+			} else {
+				decl_name_array.elems.iter().for_each(|name| {
+					if let Some(name) = name {
+						collect_static_identifiers(static_idents, name, decl_init);
+					}
+				});
+			}
+		}
+		ast::Pat::Object(ref decl_name_object) => {
+			if let Some(box ast::Expr::Object(ref decl_init_object)) = decl_init {
+				decl_name_object
+					.props
+					.iter()
+					.zip(decl_init_object.props.iter())
+					.for_each(|(name, init)| {
+						if let ast::ObjectPatProp::Assign(name_assign) = name {
+							let ast::BindingIdent { id, .. } = &name_assign.key;
+							if let ast::PropOrSpread::Prop(box ast::Prop::KeyValue(
+								ast::KeyValueProp { value, .. },
+							)) = init
+							{
+								collect_static_identifiers(
+									static_idents,
+									&ast::Pat::Ident(ast::BindingIdent {
+										id: id.clone(),
+										type_ann: None,
+									}),
+									&Some(value.clone()),
+								);
+							}
+						}
+					});
+			} else {
+				decl_name_object.props.iter().for_each(|name| {
+					if let ast::ObjectPatProp::Assign(name_assign) = name {
+						let ast::BindingIdent { id, .. } = &name_assign.key;
+						collect_static_identifiers(
+							static_idents,
+							&ast::Pat::Ident(ast::BindingIdent {
+								id: id.clone(),
+								type_ann: None,
+							}),
+							decl_init,
+						);
+					}
+				});
+			}
+		}
+
+		_ => {}
 	}
 }
 

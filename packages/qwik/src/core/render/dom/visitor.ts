@@ -727,6 +727,10 @@ export const createElm = (
     elCtx.$parentCtx$ = rCtx.$cmpCtx$;
   }
   if (!isVirtual) {
+    if (vnode.$key$) {
+      directSetAttribute(elm, 'q:key', vnode.$key$);
+    }
+
     if (qDev && qInspector) {
       const dev = vnode.$dev$;
       if (dev) {

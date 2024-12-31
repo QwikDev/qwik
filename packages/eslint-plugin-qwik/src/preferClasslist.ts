@@ -2,7 +2,7 @@
 
 import type { TSESTree as T } from '@typescript-eslint/utils';
 import jsxAstUtils from 'jsx-ast-utils';
-import { QwikEslintExamples } from '../examples';
+import type { QwikEslintExamples } from '../examples';
 
 export const preferClasslist = {
   meta: {

@@ -14,7 +14,7 @@ type BlogArticle = {
   path: string;
   tags: string[];
   featuredTitlePosition?: 'top' | 'bottom' | 'none';
-  minRead: number;
+  readingTime: number;
 };
 
 export const blogArticles: BlogArticle[] = [
@@ -25,7 +25,7 @@ export const blogArticles: BlogArticle[] = [
     path: '/blog/qwik-next-leap/',
     tags: ['Web Development'],
     featuredTitlePosition: 'top',
-    minRead: 5,
+    readingTime: 3,
   },
   {
     title: 'Towards Qwik 2.0: Lighter, Faster, Better',
@@ -33,7 +33,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F9dd98bcf8fee4b42a718449c5151d53d',
     path: '/blog/qwik-2-coming-soon/',
     tags: ['Qwik'],
-    minRead: 5,
+    readingTime: 9,
   },
   {
     title: 'Astro + Qwik: Houston, we have Resumability!',
@@ -41,7 +41,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F2418eac0b25046b197bf7b8bf5dfd637',
     path: '/blog/astro-qwik/',
     tags: ['Qwik'],
-    minRead: 5,
+    readingTime: 4,
   },
   {
     title: 'Qwik City Routing: A Visual Guide',
@@ -49,7 +49,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F4f52dab5f87142a38002269540e69cef',
     path: '/blog/qwik-city-routing/',
     tags: ['Web Development'],
-    minRead: 5,
+    readingTime: 5,
   },
   {
     title: 'Qwik 1.2: Performance in Autopilot',
@@ -57,7 +57,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F447d6d0349d4442496c3d7e246ce3d24',
     path: '/blog/qwik-1-2-performance-autopilot/',
     tags: ['Web Development'],
-    minRead: 5,
+    readingTime: 5,
   },
   {
     title: "Boost Your Site Perf with Qwik's useVisibleTask$ Hook",
@@ -65,7 +65,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F5d90a118ceac4678a9e0576e61a955a9',
     path: '/blog/qwik-tasks/',
     tags: ['Web Development'],
-    minRead: 5,
+    readingTime: 5,
   },
   {
     title: 'Qwik Reaches v1.0',
@@ -73,7 +73,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fca46e4da83b7429ea159e2a42a197288',
     path: '/blog/qwik-v1/',
     tags: ['Qwik'],
-    minRead: 5,
+    readingTime: 5,
   },
   {
     title: 'Type Safe Forms in Qwik with Modular Forms',
@@ -81,7 +81,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F7abec2f848764aa99fead32861505344',
     path: '/blog/type-safe-forms-in-qwik/',
     tags: ['Web Development'],
-    minRead: 5,
+    readingTime: 5,
   },
   {
     title: 'Qwik Reaches RC Milestone',
@@ -89,7 +89,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F043bec968cb7465fac152147b9e5bd57',
     path: '/blog/qwik-rc-milestone/',
     tags: ['Qwik'],
-    minRead: 5,
+    readingTime: 5,
   },
   {
     title: 'Building Framer Motion Animations with Qwik',
@@ -97,7 +97,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fbf1420524b2241619cc68efbba7b7c13',
     path: '/blog/framer-motion-qwik/',
     tags: ['Web Development'],
-    minRead: 5,
+    readingTime: 5,
   },
   {
     title: 'Code Extraction: The Silent Web Revolution',
@@ -105,7 +105,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F0a8170ff2659474883ee032a0129cddd',
     path: '/blog/module-extraction-the-silent-web-revolution/',
     tags: ['Qwik'],
-    minRead: 5,
+    readingTime: 5,
   },
   {
     title: 'Introducing Qwik City Server Functions',
@@ -113,7 +113,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F48d8fd6d22ae4c3b9c1ec4817ce4046d',
     path: '/blog/qwik-city-server-functions/',
     tags: ['Qwik'],
-    minRead: 5,
+    readingTime: 5,
   },
   {
     title: 'Resumable React: How to Use React Inside Qwik',
@@ -121,7 +121,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F9071a7def0b240e5b5ca6aab756e81b8',
     path: '/blog/resumable-react-how-to-use-react-inside-qwik/',
     tags: ['Web Development'],
-    minRead: 5,
+    readingTime: 5,
   },
   {
     title: 'The Qase for Qwik: Love At First TTI',
@@ -129,7 +129,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F69e3a278f34d4bfc9deb783dc705cd9a',
     path: '/blog/the-qase-for-qwik-love-at-first-tti/',
     tags: ['Qwik'],
-    minRead: 5,
+    readingTime: 5,
   },
   {
     title: 'Qwik and Qwik City have reached beta! 🎉',
@@ -137,7 +137,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F5f8db18f68c74f6f9919f3877b6246b4',
     path: '/blog/qwik-and-qwik-city-have-reached-beta/',
     tags: ['Web Development'],
-    minRead: 5,
+    readingTime: 5,
   },
   {
     title: 'Introducing Qwik starters - get up and running with Qwik now',
@@ -145,6 +145,6 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F85209017e99f4753a56614f6712817c5',
     path: '/blog/introducing-qwik-starters/',
     tags: ['Qwik'],
-    minRead: 5,
+    readingTime: 5,
   },
 ];

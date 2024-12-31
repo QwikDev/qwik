@@ -41,7 +41,7 @@ export const FeaturedArticle = component$(() => {
           <div class="mb-4 flex items-center space-x-4 text-sm">
             <div class="flex items-center">
               <ClockIcon />
-              <span>{blogArticles[0].minRead || '5'} min read</span>
+              <span>{blogArticles[0].readingTime || '5'} min read</span>
             </div>
           </div>
         </div>

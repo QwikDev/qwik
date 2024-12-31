@@ -40,7 +40,7 @@ export const ArticlesGrid = component$(() => {
               <div class="flex items-center space-x-4 text-sm text-[color:var(--bg-color)]">
                 <div class="flex items-center">
                   <ClockIcon />
-                  <span>{post.minRead || '5'} min read</span>
+                  <span>{post.readingTime || '5'} min read</span>
                 </div>
               </div>
             </div>

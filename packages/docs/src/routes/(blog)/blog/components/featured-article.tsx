@@ -7,21 +7,19 @@ export const FeaturedArticle = component$(() => {
   return (
     <article class="relative group cursor-pointer">
       <a href={blogArticles[0].path}>
-        <div class="relative h-[600px] w-[1200px] overflow-hidden rounded-xl">
+        <div class="relative max-w-[1200px] overflow-hidden rounded-xl">
           <Image
             layout="fullWidth"
             objectFit="fill"
-            class="w-full h-full transform group-hover:scale-105 transition-transform duration-500"
+            class="transform group-hover:scale-105 transition-transform duration-500"
             src={blogArticles[0].image}
             alt={blogArticles[0].title}
-            height={600}
-            width={1200}
           />
         </div>
 
         <div
           class={{
-            'absolute p-14 text-white': true,
+            'hidden md:block absolute p-14 text-white': true,
             'bottom-0': blogArticles[0].featuredTitlePosition === 'bottom',
             'top-0': blogArticles[0].featuredTitlePosition === 'top',
             hidden: blogArticles[0].featuredTitlePosition === 'none',

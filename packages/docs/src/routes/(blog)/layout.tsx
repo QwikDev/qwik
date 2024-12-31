@@ -11,6 +11,10 @@ export const onRequest: RequestHandler = async (request) => {
 
 export default component$(() => {
   useStyles$(docsStyles);
+  useStyles$(`
+    #qwik-image-warning-container {
+      display: none;
+    }`);
 
   useImageProvider({ imageTransformer$: $(({ src }: ImageTransformerProps): string => src) });
 

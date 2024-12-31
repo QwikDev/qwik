@@ -383,4 +383,58 @@ describe.each([
       </Component>
     );
   });
+
+  it('should add and remove var props on destination vnode', async () => {
+    const Tab = component$((props: any) => {
+      return <button {...props} onClick$={() => props.onClick$()}></button>;
+    });
+
+    const Wrapper = component$(() => {
+      const selected = useSignal(0);
+      return (
+        <>
+          <Tab
+            data-selected={selected.value === 0}
+            id="button-0"
+            onClick$={() => (selected.value = 0)}
+          />
+          <Tab
+            data-selected={selected.value === 1}
+            id="button-1"
+            onClick$={() => (selected.value = 1)}
+          />
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Wrapper />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Component ssr-required>
+            <button data-selected id="button-0"></button>
+          </Component>
+          <Component ssr-required>
+            <button id="button-1"></button>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button[id=button-1]', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Component ssr-required>
+            <button id="button-0"></button>
+          </Component>
+          <Component ssr-required>
+            <button data-selected id="button-1"></button>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+  });
 });

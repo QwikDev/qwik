@@ -60,16 +60,8 @@ export const ArticleHero = component$<Props>(({ image, authorLink }) => {
           </div>
         </div>
       </div>
-      <div class="relative h-[600px] w-[1200px] bg-[color:var(--text-color)] mb-8">
-        <Image
-          class="w-full h-full object-cover"
-          alt={title}
-          src={image}
-          width={1200}
-          height={600}
-          layout="fullWidth"
-          objectFit="fill"
-        />
+      <div class="relative max-w-[1200px] bg-[color:var(--text-color)]">
+        <Image alt={title} src={image} layout="fullWidth" class="max-w-[1200px]" />
       </div>
     </>
   );

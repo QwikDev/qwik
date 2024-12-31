@@ -12,6 +12,10 @@ export const onRequest: RequestHandler = async (request) => {
 export default component$(() => {
   useStyles$(docsStyles);
   useStyles$(`
+    .docs article p {
+      font-size: 18px;    
+    }
+
     #qwik-image-warning-container {
       display: none;
     }`);

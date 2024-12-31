@@ -50,7 +50,8 @@
 - [Portals](/docs/cookbook/portals/index.mdx)
 - [Streaming loaders](/docs/cookbook/streaming-deferred-loaders/index.mdx)
 - [Sync events w state](/docs/cookbook/sync-events/index.mdx)
-- [Theme Managment](/docs/cookbook/theme-management/index.mdx)
+- [Theme Management](/docs/cookbook/theme-management/index.mdx)
+- [Drag & Drop](/docs/cookbook/drag&drop/index.mdx)
 
 ## Integrations
 
@@ -103,6 +104,7 @@
 - [Qwik in a nutshell](</docs/(qwikcity)/guides/qwik-nutshell/index.mdx>)
 - [Markdown & MDX](</docs/(qwikcity)/guides/mdx/index.mdx>)
 - [SSG](</docs/(qwikcity)/guides/static-site-generation/index.mdx>)
+- [Qwik Native Apps](</docs/(qwikcity)/guides/capacitor/index.mdx>)
 - [React Cheat Sheet](</docs/(qwikcity)/guides/react-cheat-sheet/index.mdx>)
 - [Best Practices](</docs/(qwikcity)/guides/best-practices/index.mdx>)
 - [Bundle Optimization](</docs/(qwikcity)/guides/bundle/index.mdx>)

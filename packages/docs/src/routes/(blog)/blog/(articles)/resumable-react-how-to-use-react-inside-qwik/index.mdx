@@ -1,0 +1,486 @@
+---
+title: 'Resumable React: How to Use React Inside Qwik'
+authorName: 'Yoav Ganbar'
+tags: ['Web development']
+date: 'January 30, 2023'
+canonical: 'https://www.builder.io/blog/resumable-react-how-to-use-react-inside-qwik'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import CodeSandbox from '~/components/code-sandbox/index.tsx';
+
+<ArticleBlock>
+
+Did you know you can leverage almost the entirety of the React ecosystem inside a Qwik application?
+
+Basically, you can build React applications, without ever loading React in the user's browser. Sounds good, doesn't it? Let’s see how this works.
+
+![Light bulb tip icon.](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F86cb85533e5d469e8ffeed519e2a794a?width=45)
+
+You can download the code in this blog post on [GitHub](https://github.com/BuilderIO/resumable-react-post).
+
+## Kicking off
+
+First, we need a new Qwik app. To create and bootstrap an app, we can run this command — I chose `[pnpm](https://pnpm.io/)` as my package manager, but you can do the same command with `npm`:
+
+```
+pnpm create qwik@latest
+```
+
+Follow the CLI (command line interface) prompts. When you finish, it should look something like this:
+
+![a screenshot showing the CLI output of creating a new Qwik app.](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fbf6f21f590f145c3b7427ab8ead72507?width=800)
+
+## Installing `qwik-react`
+
+Next, we need to add `[qwik-react](https://qwik.builder.io/integrations/integration/react/)` so we can wrap our React components with the `qwikify$()` method:
+
+```bash
+pnpm run qwik add react
+```
+
+This will once again give us a CLI output that looks like this:
+
+![a screenshot showing the CLI output of running pnpm run qwik add react.](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Ffb3bde63f5744eb0bd4c539433c892d8?width=800)
+
+The above image shows that this has installed:
+
+- `@builder.io/qwik-react 0.2.1`
+- `@emotion/react 11.10.4`
+- `@emotion/styled 11.10.4`
+- `@mui/material 5.10.10`
+- `@mui/x-data-grid 5.17.8`
+- `@types/react 18.0.14`
+- `@types/react-dom 18.0.5`
+- `react 18.2.0`
+- `react-dom 18.2.0`
+
+Most of these packages help showcase [Material UI](https://mui.com/) working within Qwik, which needs `emotion` as a dependency. The real substance is in `qwik-react` and the `react` and `react-dom` dependencies.
+
+## Initial demo
+
+Let’s run our app in development mode:
+
+```bash
+pnpm run dev
+```
+
+Now, if we go to `[http://localhost:5173/](http://localhost:5173/)` the initial page renders:
+
+![A screenshot of a newly created Qwik app.](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F4de09e8f126e447c96543d3e6688a331?width=800)
+
+For the generated UI, we can go to `[http://localhost:5173/react](http://localhost:5173/react)` to display some React Material UI components inside our Qwik app:
+
+![A screenshot of a qwik app using React MaterialUI components.](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F589ecbdb31484def8d65e8b41318ce3f?width=800)
+
+And if we interact with the components, they all work:
+
+<video autoplay="autoplay" loop="" preload="metadata" muted="muted" playsinline="playsinline">
+    <source type="video/mp4" src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F890c91a979964c73b3dc6174a2ec8b87%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=890c91a979964c73b3dc6174a2ec8b87&alt=media&optimized=true"/>
+</video>
+
+## A look under the hood
+
+Let’s open up `src/integrations/react` and check out what the CLI generated:
+
+```typescript
+/** @jsxImportSource react */
+
+import { qwikify$ } from '@builder.io/qwik-react';
+import { Button, Slider } from '@mui/material';
+import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
+
+export const MUIButton = qwikify$(Button);
+export const MUISlider = qwikify$(Slider, { eagerness: 'hover' });
+
+export const TableApp = qwikify$(() => {
+ const columns: GridColDef[] = [
+  { field: 'id', headerName: 'ID', width: 70 },
+  { field: 'firstName', headerName: 'First name', width: 130 },
+  { field: 'lastName', headerName: 'Last name', width: 130 },
+  {
+   field: 'age',
+   headerName: 'Age',
+   type: 'number',
+   width: 90,
+  },
+  {
+   field: 'fullName',
+   headerName: 'Full name',
+   description: 'This column has a value getter and is not sortable.',
+   sortable: false,
+   width: 160,
+   valueGetter: (params: GridValueGetterParams) =>
+    `${params.row.firstName || ''} ${params.row.lastName || ''}`,
+  },
+ ];
+
+ const rows = [
+  { id: 1, lastName: 'Snow', firstName: 'Jon', age: 35 },
+  // more rows with same object shape ,removed for brevity.
+ ];
+
+ return (
+  <>
+   <h1>Hello from React</h1>
+
+   <div style={{ height: 400, width: '100%' }}>
+    <DataGrid
+     rows=
+     columns=
+     pageSize=
+     rowsPerPageOptions={[5]}
+     checkboxSelection
+     disableSelectionOnClick
+    />
+   </div>
+  </>
+ );
+});
+```
+
+There are a few things to notice here.
+
+The first is `/** @jsxImportSource react */` at the top of the file; this instructs the Qwik compiler to use React to produce the JSX.
+
+The second thing is how React components are _qwikified:_
+
+```typescript
+import { qwikify$ } from '@builder.io/qwik-react';
+import { Button, Slider } from '@mui/material';
+
+export const MUIButton = qwikify$(Button);
+export const MUISlider = qwikify$(Slider, { eagerness: 'hover' });
+```
+
+The `MUIButton` is declared as a wrapper for `Button` from inside the `@mui/material` package and is exported and ready to use within a Qwik app.
+
+It is important to note that a component wrapped this way is not interactive by default and renders only the markup.
+
+## Adding interactivity
+
+`MUISlider` has a second argument passed with the `{ eagerness: 'hover'}` option.
+
+This is how we trigger the React hydration step, which makes the component interactive.
+
+There are several ways we can define when hydration is triggered.
+
+### With the second argument for `qwikify$`
+
+![Light bulb tip icon.](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F86cb85533e5d469e8ffeed519e2a794a?width=45)
+
+The `QwikifyOptions` are undocumented at the moment of writing, as Qwik is still in beta and the docs are still being worked on. You can find the definitions [inside the source code](https://github.com/BuilderIO/qwik/blob/HEAD/packages/qwik-react/src/react/types.ts).
+
+For the `eagerness` property we can pass in one of the following options:
+
+- `load`: triggered once the document loads. Good for UI elements that need to be as interactive as soon as possible.
+- `visible`: hydrate once the component is in the viewport. Good for low-priority UI elements that might be further down the page; that is, below the fold.
+- `idle`: the component hydrates when the browser becomes idle after every important task has been completed.
+- `hover`: trigger hydration when the mouse hovers over the element.
+
+### Client strategies (directives)
+
+Similar to [Astro’s client directives](https://docs.astro.build/en/reference/directives-reference/#client-directives), Qwik has the `client:` JSX property. They are the same as the aforementioned strategies but you can put them on the component’s markup:
+
+```typescript
+export default component$(() => {
+	return (
+		<>
+			   <MUISlider client:load></MUISlider>
+			   <MUISlider client:visible></MUISlider>
+			   <MUISlider client:idle></MUISlider>
+			   <MUISlider client:hover></MUISlider>
+			  
+		</>
+	);
+});
+```
+
+However, there are three more strategies:
+
+- `client:signal`
+- `client:event`
+- `client-only`
+
+Let's look at each.
+
+`client:signal`, based on Qwik’s reactive hook `useSignal()`, allows hydration whenever a signal’s value becomes `true`:
+
+```typescript
+export default component$(() => {
+	const shouldHydrate = useSignal(false);
+	return (
+		<>
+			   
+			<button onClick$={() => (shouldHydrate.value = true)}>
+				Hydrate Slider when click
+			</button>
+			   <MUISlider client:signal={shouldHydrate}></MUISlider>
+			  
+		</>
+	);
+});
+```
+
+`client:event` triggers when specific DOM events are dispatched:
+
+```typescript
+export default component$(() => {
+	const count = useSignal(0);
+	return (
+		<>
+			   <p>This slider will only run hydration after a click on it</p>
+			   
+			<MUIEventSlider
+				client:event='click'
+				value={count.value}
+				onChange$={(_, value) => {
+					count.value = value as number;
+				}}
+			/>
+			  
+		</>
+	);
+});
+```
+
+`client:only`: will not run server-side render, only on the browser.
+
+## Loading React without React runtime
+
+Now that we know the options, let’s see how we can load a React component without actually loading the code.
+
+For this, we’ll create a new route in our application and add the `MUIButton` component:
+
+```typescript
+// src/routes/no-react/index.tsx
+
+import { component$ } from '@builder.io/qwik';
+import { MUIButton } from '~/integrations/react/mui';
+
+export default component$(() => {
+	return (
+		<div>
+			   <h2>React component with no React code</h2>
+			   <MUIButton variant='contained'>I'm a button from react</MUIButton>
+			  
+		</div>
+	);
+});
+```
+
+If we now navigate to our newly created route we can see that everything renders correctly:
+
+![a screenshot of a React component with no React code inside a Qwik app.](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F2dc7a88861ec411c9e23058398e5794c?width=800)
+
+### Adding interactivity via Qwik
+
+What we’ve done in the above example is nice, but we would like the button to actually do something. We want an event listener but without React’s [synthetic events](https://beta.reactjs.org/reference/react-dom/components/common#react-event-object).
+
+At first, I thought that this would work:
+
+```typescript
+import { component$, useSignal } from '@builder.io/qwik';
+import { MUIButton } from '~/integrations/react/mui';
+
+export default component$(() => {
+	const count = useSignal(0);
+	return (
+		<div>
+			   <h2>React component with Qwik sigal</h2> // ❌    
+			<MUIButton
+				variant='contained'
+				onClick$={() => {
+					count.value++;
+				}}
+			>
+				    I'm a button from react    
+			</MUIButton>
+			   <p>current count is: {count.value}</p>
+			  
+		</div>
+	);
+});
+```
+
+My reasoning behind this was that using `useSignal()` would give me the reactivity I needed, and then an `onClick$` on the `MUIButton` would be enough.
+
+However, there’s a good reason this doesn’t work, as [Manu](https://twitter.com/manucorporat) (Qwik core maintainer) explained to me:
+
+> Passing an `onClick` this way will pass down the callback method into React, and then it’s up to it to execute it (with its synthetic event system).
+
+It’s not actually a DOM event listener as I thought it would be.
+
+So, to get this to work we could add one of the client directives, like `client:visble`. Then we’d have:
+
+```typescript
+import { component$, useSignal } from '@builder.io/qwik';
+import { MUIButton } from '~/integrations/react/mui';
+
+export default component$(() => {
+	const count = useSignal(0);
+	return (
+		<div>
+			   <h2>Visibly hydrated React component</h2>
+			   <MUIButton
+				client:visible
+				variant='contained'
+				onClick$={() => {
+					count.value++;
+				}}
+			>
+				    I'm a button from react    
+			</MUIButton>
+			   <p>current count is: {count.value}</p>
+			  
+		</div>
+	);
+});
+```
+
+This works. However, notice from the video below, React is loaded, as my React DevTools on the right show:
+
+<video autoplay="autoplay" loop="" preload="metadata" muted="muted" playsinline="playsinline">
+    <source type="video/mp4" src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fabac48a50e7f43b198129c1a8429d46b%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=abac48a50e7f43b198129c1a8429d46b&alt=media&optimized=true"/>
+</video>
+
+In order to get the result we want, we need to use the `host:` attribute, which allows us to [listen to DOM events without hydration](https://qwik.builder.io/integrations/integration/react/#listen-to-dom-events-without-hydration).
+
+Let’s refactor a bit and see what this looks like:
+
+```typescript
+import { component$, useSignal } from '@builder.io/qwik';
+import { MUIButton } from '~/integrations/react/mui';
+
+export default component$(() => {
+	const count = useSignal(0);
+	return (
+		<div>
+			   <h2>React component with no React code</h2>
+			   <MUIButton // we removed the hydration directive
+				variant='contained' // and just added "host:" in front of our onClick$
+				host:onClick$={() => {
+					count.value++;
+				}}
+			>
+				    I'm a button from react    
+			</MUIButton>
+			   <p>current count is: {count.value}</p>
+			  
+		</div>
+	);
+});
+```
+
+Now it works without React! 🎉🎉🎉
+
+We can infer this since our dev tools are not showing the React DevTools extension as they did before:
+
+<video autoplay="autoplay" loop="" preload="metadata" muted="muted" playsinline="playsinline">
+    <source type="video/mp4" src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F106b0b982c5d4a34b7bef04cc48ec4de%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=106b0b982c5d4a34b7bef04cc48ec4de&alt=media&optimized=true"/>
+</video>
+
+One last thing to notice is that now we do not get that nice Material UI ripple effect because it needs to be triggered internally by React code.
+
+But we did get a React component that is pure HTML with reactivity from Qwik signals, which is way less code.
+
+<video autoplay="autoplay" loop="" preload="metadata" muted="muted" playsinline="playsinline">
+    <source type="video/mp4" src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fb3f864be4c284ec2975c992791b7f14d%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=b3f864be4c284ec2975c992791b7f14d&alt=media&optimized=true"/>
+</video>
+
+## Less code
+
+Time to look at some numbers. When I say less code, what do I mean? (This is after building and running locally on my very fast machine.)
+
+Qwikified React component with hydration with signal: **95.6KB** of JS over the network.
+
+![A screenshot of a Qwik app with a hydrated React component and the devtools network pane on the right side.](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F008d6cf4e746417aad0d5eab7b837d34?width=800)
+
+For fun, I built the same minimal example with a brand new `vite` / `React` project and installed the same React dependencies.
+
+This is the React app code:
+
+```typescript
+import { useState } from 'react';
+
+import './App.css';
+import { Button } from '@mui/material';
+
+function App() {
+	const [count, setCount] = useState(0);
+
+	return (
+		<div className='App'>
+			   
+			<div>
+				    <h2>Regular React component</h2>
+				    <Button
+					variant='contained'
+					onClick={() => {
+						setCount(count + 1);
+					}}
+				>
+					     I'm a button from react     
+				</Button>
+				    <p>current count is: </p>
+				   
+			</div>
+			  
+		</div>
+	);
+}
+
+export default App;
+```
+
+React Vite build is less JS over the network: **71.9KB** of JS in one single file.
+
+![A screenshot of a React app with the devtools network pane on the right side.](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F55660795b82143539e59911095105600?width=800)
+
+However, it seems that the React app has twice as much time-to-interactive than Qwik running React (on my machine, running lighthouse with a new Arc browser space with no extensions).
+
+![screenshot showing a lighthouse score of 0.6s for Qwik app.](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F6b5c75a6e1254e78a58602329f4c8532?width=800)
+
+![screenshot showing a lighthouse score of 1.2s for React app.](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F9e53f1e6ed8245e8b81e0c3f4da2e02b?width=800)
+
+Qwikified React component with no react code: **7.7KB**
+
+![A screenshot of a Qwik app with the devtools network pane on the right that shows only 7.7KB transfer over the network.](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F239064e3579a4f1b8c6be4dad8cf8c05?width=800)
+
+## Things to look out for
+
+At the time of this writing, Qwik is still in beta. So, as APIs are still changing and docs are still being polished there is still some work to be done.
+
+Some things to keep in mind:
+
+- Every Qwikified React component is isolated — it’s a fully isolated app. It's an island similar to [Astro Islands](https://docs.astro.build/en/concepts/islands/). However, here they hydrate independently.
+- Things can get duplicated, like styles.
+- You cannot inherit React context
+- Interactivity is disabled by default.
+
+Known issues:
+
+- When playing around with new routes that use `qwik-react`, you need to restart the server.
+
+## Conclusion
+
+In this post:
+
+- We went over how to load React code inside of a Qwik application.
+- We learned how to make it interactive via the different hydration strategies available.
+- We learned how to make React resumable by loading the React component as HTML and allowing Qwik to handle interactions.
+
+Having the option not to duplicate what you might have done in the past and have the ability to port it to a different foundation is exciting.
+
+I see how this method could be leveraged to migrate React SPAs to Instant Reactive Qwik apps in the future.
+
+To learn more, check out:
+
+- [Qwik React docs](https://qwik.builder.io/integrations/integration/react/#listening-to-react-events)
+- [Resumable React - Leveraging the React ecosystem with Qwik](https://www.youtube.com/watch?v=IGIPBAWRw_M)
+
+![Light bulb tip icon.](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F86cb85533e5d469e8ffeed519e2a794a?width=45)
+
+**Tip:** Visit our [Qwik hub](https://www.builder.io/m/qwik-cms) to learn more.
+
+</ArticleBlock>

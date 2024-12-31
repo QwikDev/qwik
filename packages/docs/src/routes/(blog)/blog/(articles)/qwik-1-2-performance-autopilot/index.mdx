@@ -1,0 +1,216 @@
+---
+title: 'Qwik 1.2: Performance in Autopilot'
+authorName: 'Manu Mtz.-Almeida'
+tags: ['Web development']
+date: 'June 29, 2023'
+canonical: 'https://www.builder.io/blog/qwik-1-2-performance-autopilot'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import CodeSandbox from '~/components/code-sandbox/index.tsx';
+
+<ArticleBlock>
+
+# Qwik 1.2.0 is full of new features, fixes, and performance improvements designed to make you fall in love.
+
+```json
+"@builder.io/qwik": "~1.2.0",
+"@builder.io/qwik-city": "~1.2.0",
+"eslint-plugin-qwik": "~1.2.0",
+```
+
+## Don’t blame developers for bad performance
+
+Performance issues are often a human-design problem, not just a technical one.
+
+Qwik's philosophy puts the responsibility on the framework (us), not the developers. Sites are usually not slow because of a lack of diligence among developers, but because it takes too much effort to make sites fast.
+
+**Our dream is to never write a list of **performance** best practices or 100-tricks-to-make-your-site-fast!**
+
+## Continuous performance visibility
+
+Developers need visibility of the issues in order to fix them. Debuggers, audit tools, and dev tools are all tools created with the idea of increasing visibility. What if we could do the same for performance and make it continuous?
+
+> “Until you make the unconscious conscious,
+> it will direct your life and you will call it fate.”
+> – Carl Jung
+
+We want Qwik developers to have a continuous and passive look at common performance issues in their apps and give them tools to fix those with no effort.
+
+Starting with 1.2.0, developers will have constant visibility of easy-to-solve performance issues in their app. We are starting with images, but will extend it to fonts and third-party scripts like Google Analytics soon.
+
+## Component-less image optimization
+
+Image optimization is an essential optimization that all web developers should be familiar with. Qwik 1.2.0 is releasing a new image optimization API that relies on the `vite-imagetools` package, a battle-tested plugin used by thousands of existing apps.
+
+We took it a step further by giving developers a way to import images as JSX:
+
+```tsx
+import QwikLogo from './logo.png?jsx';
+
+export default component$(() => {
+	return (
+		<section>
+			<QwikLogo />
+		</section>
+	);
+});
+```
+
+👆 this little snippet will generate the following `<img>` tag 👇
+
+[image optimization](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F92eeee761ef84984a25be151e96f21fb?format=webp&amp;width=100)
+
+The community and the Qwik team love this API for a number of reasons:
+
+- Zero runtime, zero JS
+- Zero props by default, simple API
+- Zero 404, strongly typed API
+- Zero layout reflows (Automatic width/height)
+- Hashed images, immutable cached
+- Automatic `.webap` / `.avif` format optimization
+- Automated `srcSet` generation
+- Extendable (use any `<img>` attribute)
+- Loading lazy and async decoding by default
+- Lightweight, a single `<img>` node in the HTML
+
+## Zero-runtime styling with PandaCSS
+
+PandaCSS is a new CSS-in-JS, zero-runtime, atomic styling solution that works in Qwik, Next.js, Vue, Remix, and so on:
+
+- CSS-in-JS: You can inline all your styles, like in emotion-js.
+- Zero-runtime: Just like Tailwind or Vanilla Extract, all the CSS is generated at compiler time.
+- Atomic: The amount of CSS scales well. As the number of components grows, the amount of CSS will remain almost constant.
+
+Qwik and PandaCSS share a lot of core principles:
+
+- Performance by default, without extra effort
+- No performance footguns. You will not find “best practices” to make Panda CSS fast. It’s always fast.
+- Refactorizable: inlined CSS or not, it’s up to you!
+
+To celebrate it, you can run the following command in your Qwik app! And voilà! It’s done!
+
+```shell
+pnpm qwik add pandacss
+```
+
+(No more installation steps!)
+
+Check it out!
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import { css } from '~/styled-system/css';
+
+export default component$(() => {
+	return (
+		<div
+			class={css({
+				padding: 10,
+				bg: 'red.400',
+				height: 'dvh',
+				margin: 100,
+				fontSize: 30,
+			})}
+		>
+			This box is styled with PandaCSS.
+		</div>
+	);
+});
+```
+
+## npm run qwik new
+
+Big shout-out to our Roman (@zanettin), he has been a key part of our community, helping in our Discord, triaging issues and shipping new features!
+
+The new `new` 😅 command, allows developers to create new components and routes.
+
+You want a new route for the /about page?
+
+```shell
+pnpm qwik new /about
+```
+
+You want a new component? sure thing
+
+```shell
+pnpm qwik new my-button
+```
+
+It's also beautiful, check it out 👇
+
+## AWS lambda integration
+
+Our community hero, Leifer contributed AWS lambda support for Qwik! He and his team have been using Qwik with AWS for a while now and decided to help the rest of the mortals to do the same.
+
+**AWS Lambda** joins Google Cloud, Vercel, and Netlify as one of the supported deployment targets for Qwik. Starting with 1.2.0, this is the only command you need to type to deploy to AWS!
+
+```bash
+pnpm qwik add aws-lambda
+```
+
+We are especially excited about this contribution because it empowers enterprise users even more.
+
+## `clientConn` API
+
+Now it’s easier than ever to know key information about your users. This new API helps you get not only the IP address of the user, but their country and city as well.
+
+It is built on top of `edge` APIs of Cloudflare, Vercel, Netlify, and Google Cloud.
+
+```tsx
+export const useGetCountryAndIP = routeLoader$(() => {
+	return {
+		ip: clientConn.ip,
+		country: clientConn.country,
+	};
+});
+```
+
+The best part is that you don’t need to know how any of those work. ClientConn API abstracts this complexity and provides a normalized API you can use regardless of where you deploy or self-host.
+
+## SPA navigation improvements
+
+Our community members `@jordanw66` and `@billykwok` deserve a big shout out. They have been rocking it making the SPA navigation buttery smooth, from fixing bugs to adding new APIs, like perfect scroll restoration and `replace` instead of push for navigation.
+
+- feat: Critical DX/UX improvement to SPA navigation in Qwik City by @billykwok
+- feat: frame-perfect and state-backed durable SPA scroll restoration by @jordanw66
+- feat: bulletproof SPA recovery by @jordanw66
+- feat: scroll opt-out on nav() and Link by @jordanw66
+- fix: save scrollState on visibilitychange by @jordanw66
+- fix: perfect hash scroll by @jordanw66
+
+## Rendering performance
+
+Qwik is getting faster and smarter without missing a beat. Improvements mostly focus in the optimizer, allowing to better understand how the JSX can be dynamic, and which components are invariable. This information is critical for Qwik’s dynamic data tree shaking that only serializes the bare minimum!
+
+- perf: optimizer knows non-variadic components by @manucorporat
+- feat: transform compiler architecture by @manucorporat
+
+We have also made improvements to our prefetching algorithms to emit `modulepreload` only for ESM modules with a lot of dependents. The idea behind this optimization is to reduce even more the FID (First Input Delay) on the slowest devices. This new strategy allows the browsers to pre-parse and compile the most likely modules to execute before they are even needed.
+
+- perf: enable navigationPreload by @manucorporat
+- perf: leverage modulepreload for common chunks by @manucorporat
+
+## Qwik Labs 🧪 to infinity and beyond
+
+We are thrilled to introduce Qwik Labs, a place designed for sharing and experimenting with the new ideas we are currently developing. The primary objective of Qwik Labs is to make it effortless for our community to test our upcoming ideas and provide early feedback, thereby enhancing their quality.
+
+Note that Qwik Labs are not intended for production use, and the API will probably change based on developer feedback, hence the reason they are packaged in a separate NPM package.
+
+We are excited to keep the Qwik Labs with these projects:
+
+- Qwik Insights: a way to collect real-world metrics about how the users are using the Qwik Application and then use the information to create ideal bundles to further improve the prefetching and application startup performance. (A form of profile-guided optimization.)
+
+[Qwik Insights chart](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F733086ea420f4ff6937e68e265e6b2ec?format=webp&amp;width=100)
+*   Typed Routes: TypeScript is great at telling us all the places we need to change when we refactor our code – except one place; routes URLs, params, and queries. Typed Routes is a plugin for Vite that generates type information for your routes so that TypeScript can let you know if the application URL does not match the route definitions.
+
+## Qwik $hop!!
+
+Yes! Another amazing community leader Giorgio, built our official shop from the ground up!
+
+Go check it out and get some socks; I heard they can make you run qwiker.
+
+[Qwik shop](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F16a1660c84e444958271c06a2303bd6d?format=webp&amp;width=100)
+https://qwik.builder.io/shop/
+
+</ArticleBlock>

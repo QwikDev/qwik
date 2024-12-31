@@ -11,8 +11,6 @@ import CodeSandbox from '~/components/code-sandbox/index.tsx';
 
 <ArticleBlock>
 
-# Qwik v2.0: Faster, More Efficient, and Cleaner HTML
-
 Qwik prides itself on having instant-on applications with an HTML-first approach. We have performed a lot of comparison testing, and in each case, resumability wins over hydration in terms of JS downloaded, executed, and delayed before the user interaction is processed, and we’re really excited about that!
 
 But resumability comes with a cost. In Qwik v2.0, we will focus on lowering these costs further, and we would like to discuss them here.
@@ -42,24 +40,21 @@ Let’s assume we have a minimal component:
 import { component$, useSignal } from '@builder.io/qwik';
 
 export const Counter = component$(() => {
-	const count = useSignal(123);
-	return (
-		<>
-			   Count: {count.value}!     
-			<button onClick$={() => count.value++}>+1</button>
-			  
-		</>
-	);
+  const count = useSignal(123);
+  return (
+    <>
+      Count: {count.value}! 
+      <button onClick$={() => count.value++}>+1</button>
+    </>
+  );
 });
 
 export const Layout = component$(() => {
-	return (
-		<main>
-			   
-			<Slot />
-			  
-		</main>
-	);
+  return (
+    <main>
+      <Slot />
+    </main>
+  );
 });
 
 // Think of it as: <main> <Counter/> </main>
@@ -68,34 +63,22 @@ export const Layout = component$(() => {
 The output HTML looks like this:
 
 ```html
-<div
-	q:container="paused"
-	q:render="static-ssr"
-	q:version="dev"
-	q:base="/build/"
-	q:locale
-	q:manifest-hash="dev"
->
-	 
-	<main>
-		  <!--qv q:s q:sref=5 q:key=-->
-		   <!--qv q:id=7 q:key=xYL1:zl_0-->
-		    <!--qv q:key=H1_0-->
-		     Count:       <!--t=8-->123<!---->!       <button
-			on:click="..."
-			q:id="9"
-		>
-			      +1      
-		</button>
-		    <!--/qv-->
-		   <!--/qv-->
-		  <!--/qv-->
-		 
-	</main>
-	 
-	<script type="qwik/json">
-		{...}
-	</script>
+<div q:container="paused" q:render="static-ssr" q:version="dev" 
+     q:base="/build/" q:locale q:manifest-hash="dev">
+  <main>
+    <!--qv q:s q:sref=5 q:key=-->
+      <!--qv q:id=7 q:key=xYL1:zl_0-->
+        <!--qv q:key=H1_0-->
+          Count: 
+          <!--t=8-->123<!---->! 
+          <button on:click="..." q:id="9">
+            +1
+          </button>
+        <!--/qv-->
+      <!--/qv-->
+    <!--/qv-->
+  </main>
+  <script type="qwik/json">{...}</script>
 </div>
 ```
 
@@ -132,24 +115,14 @@ in Qwik 2.0, we are fixing serialization issues to make Qwik even faster and mor
 We are excited to share that we are progressing excellently on this front! Let’s find out what the new HTML looks like:
 
 ```html
-<div
-	q:container="paused"
-	q:render="static-ssr"
-	q:version="dev"
-	q:base="/build/"
-	q:locale
-	q:manifest-hash="dev"
->
-	 
-	<main>  Count: 123!   <button on:click="...">+1</button>  </main>
-	 
-	<script type="qwik/state">
-		[...]
-	</script>
-	 
-	<script type="qwik/vnode">
-		!{}
-	</script>
+<div q:container="paused" q:render="static-ssr" q:version="dev" 
+     q:base="/build/" q:locale q:manifest-hash="dev">
+  <main>
+   Count: 123!
+   <button on:click="...">+1</button>
+  </main>
+  <script type="qwik/state">[...]</script>
+  <script type="qwik/vnode">!{{HDB1}}</script>
 </div>
 ```
 
@@ -163,28 +136,25 @@ This means that the content rendered by the browser for the user can get to the 
 
 ### Recovering virtual nodes
 
-Qwik still needs to have the virtual nodes! So, that information can’t disappear but is now shrunken to just these nine characters: `!{}`.
+Qwik still needs to have the virtual nodes! So, that information can’t disappear but is now shrunken to just these nine characters: `!{HDB1}`.
+
 
 That is mind-blowing!
 
-![Untitled](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F4b6f0d1119374ce3ab848186972a6f27?width=250)
+<img class="mx-auto" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F4b6f0d1119374ce3ab848186972a6f27?width=250" alt='mind-blowing meme' />
 
 Let’s unpack it. The content we need to recover is this:
 
 ```jsx
 <main>
-	 
-	<Counter>
-		  
-		<>
-			   {'Count: '}
-			   {signal.value}
-			   {'!'}
-			   <button on:click='...'>+1</button>
-			  
-		</>
-		 
-	</Counter>
+  <Counter>
+    <>
+      {'Count: '}
+      {signal.value}
+      {'!'}
+      <button on:click="...">+1</button>
+    </>
+  </Counter>
 </main>
 ```
 
@@ -204,7 +174,7 @@ So how does it work?
 
 > We have ways to identify browser extensions that inject extra nodes, but that is for a different blog post.
 
-So what is encoded in `!{}`?
+So what is encoded in `!{HDB1}`?
 
 - `!`: encodes how many elements to skip to get to `<main>` element.
 - `{`: The `<main>` element will have a virtual element. This one stores component props, but that information is stored in `<script type="qwik/state">`, which is not covered in this blog post.

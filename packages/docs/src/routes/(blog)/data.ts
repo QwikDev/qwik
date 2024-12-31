@@ -81,7 +81,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F7abec2f848764aa99fead32861505344',
     path: '/blog/type-safe-forms-in-qwik/',
     tags: ['Web Development'],
-    readingTime: 5,
+    readingTime: 8,
   },
   {
     title: 'Qwik Reaches RC Milestone',

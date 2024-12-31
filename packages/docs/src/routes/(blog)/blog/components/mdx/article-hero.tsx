@@ -2,9 +2,9 @@ import { component$ } from '@builder.io/qwik';
 import { useDocumentHead } from '@builder.io/qwik-city';
 import { Image } from 'qwik-image';
 
-type Props = { imageSrc: string; authorLink: string };
+type Props = { image: string; authorLink: string };
 
-export const ArticleHero = component$<Props>(({ imageSrc, authorLink }) => {
+export const ArticleHero = component$<Props>(({ image, authorLink }) => {
   const { title, frontmatter } = useDocumentHead();
 
   if (!frontmatter.authorName || !frontmatter.tags || !frontmatter.date) {
@@ -60,8 +60,16 @@ export const ArticleHero = component$<Props>(({ imageSrc, authorLink }) => {
           </div>
         </div>
       </div>
-      <div class="relative h-[400px] w-full bg-[color:var(--text-color)] mb-8">
-        <Image class="w-full h-full object-cover" alt={title} src={imageSrc} layout="fullWidth" />
+      <div class="relative h-[600px] w-[1200px] bg-[color:var(--text-color)] mb-8">
+        <Image
+          class="w-full h-full object-cover"
+          alt={title}
+          src={image}
+          width={1200}
+          height={600}
+          layout="fullWidth"
+          objectFit="fill"
+        />
       </div>
     </>
   );

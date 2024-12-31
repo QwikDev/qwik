@@ -57,7 +57,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F447d6d0349d4442496c3d7e246ce3d24',
     path: '/blog/qwik-1-2-performance-autopilot/',
     tags: ['Web Development'],
-    readingTime: 5,
+    readingTime: 10,
   },
   {
     title: "Boost Your Site Perf with Qwik's useVisibleTask$ Hook",
@@ -65,7 +65,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F5d90a118ceac4678a9e0576e61a955a9',
     path: '/blog/qwik-tasks/',
     tags: ['Web Development'],
-    readingTime: 5,
+    readingTime: 4,
   },
   {
     title: 'Qwik Reaches v1.0',

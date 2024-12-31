@@ -24,7 +24,7 @@ Error.stackTraceLimit = 100;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  // { render: domRender }, //
+  { render: domRender }, //
 ])('$render.name: useSignal', ({ render }) => {
   it('should update value', async () => {
     const Counter = component$((props: { initial: number }) => {
@@ -679,8 +679,9 @@ describe.each([
       const input1 = document.querySelector('#input1')! as HTMLInputElement;
 
       input1.value = '10';
-      await trigger(document.body, input1, 'input');
+      input1.valueAsNumber = 10;
 
+      await trigger(document.body, input1, 'input');
       await expect(document.querySelector('div')).toMatchDOM(
         <div>
           10 + 2 = 12

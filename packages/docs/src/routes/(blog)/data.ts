@@ -49,7 +49,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F4f52dab5f87142a38002269540e69cef',
     path: '/blog/qwik-city-routing/',
     tags: ['Web Development'],
-    readingTime: 5,
+    readingTime: 11,
   },
   {
     title: 'Qwik 1.2: Performance in Autopilot',

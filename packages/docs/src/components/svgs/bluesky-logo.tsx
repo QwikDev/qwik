@@ -1,9 +1,9 @@
-interface TwitterLogoProps {
+interface Props {
   width: number;
   height: number;
 }
 
-export const BlueskyLogo = ({ width, height }: TwitterLogoProps) => (
+export const BlueskyLogo = ({ width, height }: Props) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={width}

@@ -1285,75 +1285,87 @@ impl<'a> QwikTransform<'a> {
 									let elm = private_ident!("elm");
 									let arrow_fn = ast::Expr::Arrow(ast::ArrowExpr {
 										params: vec![
-												ast::Pat::Ident(ast::BindingIdent::from(
-														ast::Ident::new(
-																"_".into(),
-																DUMMY_SP,
-																SyntaxContext::empty(),
-														),
-												)),
-												ast::Pat::Ident(ast::BindingIdent::from(elm.clone())),
+											ast::Pat::Ident(ast::BindingIdent::from(
+												ast::Ident::new(
+													"_".into(),
+													DUMMY_SP,
+													SyntaxContext::empty(),
+												),
+											)),
+											ast::Pat::Ident(ast::BindingIdent::from(elm.clone())),
 										],
 										body: Box::new(ast::BlockStmtOrExpr::Expr(Box::new(
-												ast::Expr::Assign(ast::AssignExpr {
-														left: ast::AssignTarget::Simple(
-																ast::SimpleAssignTarget::Member(
-																		ast::MemberExpr {
-																				obj: folded.clone(),
-																				prop: ast::MemberProp::Ident(
-																						ast::IdentName::new(
-																								"value".into(),
-																								DUMMY_SP,
-																						),
-																				),
-																				span: DUMMY_SP,
-																		},
+											ast::Expr::Assign(ast::AssignExpr {
+												left: ast::AssignTarget::Simple(
+													ast::SimpleAssignTarget::Member(
+														ast::MemberExpr {
+															obj: folded.clone(),
+															prop: ast::MemberProp::Ident(
+																ast::IdentName::new(
+																	"value".into(),
+																	DUMMY_SP,
 																),
-														),
-														op: ast::AssignOp::Assign,
-														right: Box::new(ast::Expr::Cond(ast::CondExpr {
-																test: Box::new(ast::Expr::Bin(ast::BinExpr {
-																		left: Box::new(ast::Expr::Member(
-																				ast::MemberExpr {
-																						obj: Box::new(ast::Expr::Ident(elm.clone())),
-																						prop: ast::MemberProp::Ident(
-																								ast::IdentName::new("type".into(), DUMMY_SP),
-																						),
-																						span: DUMMY_SP,
-																				},
-																		)),
-																		span: DUMMY_SP,
-																		op: ast::BinaryOp::EqEq,
-																		right: Box::new(ast::Expr::Lit(ast::Lit::Str(
-																				ast::Str {
-																						value: "number".into(),
-																						span: DUMMY_SP,
-																						raw: None
-																				},
-																		))),
-																})),
-																cons: Box::new(ast::Expr::Member(
-																		ast::MemberExpr {
-																				obj: Box::new(ast::Expr::Ident(elm.clone())),
-																				prop: ast::MemberProp::Ident(
-																						ast::IdentName::new("valueAsNumber".into(), DUMMY_SP),
-																				),
-																				span: DUMMY_SP,
-																		},
+															),
+															span: DUMMY_SP,
+														},
+													),
+												),
+												op: ast::AssignOp::Assign,
+												right: Box::new(ast::Expr::Cond(ast::CondExpr {
+													test: Box::new(ast::Expr::Bin(ast::BinExpr {
+														left: Box::new(ast::Expr::Member(
+															ast::MemberExpr {
+																obj: Box::new(ast::Expr::Ident(
+																	elm.clone(),
 																)),
-																alt: Box::new(ast::Expr::Member(
-																		ast::MemberExpr {
-																				obj: Box::new(ast::Expr::Ident(elm)),
-																				prop: ast::MemberProp::Ident(
-																						ast::IdentName::new(prop_name, DUMMY_SP),
-																				),
-																				span: DUMMY_SP,
-																		},
-																)),
+																prop: ast::MemberProp::Ident(
+																	ast::IdentName::new(
+																		"type".into(),
+																		DUMMY_SP,
+																	),
+																),
 																span: DUMMY_SP,
-														})),
+															},
+														)),
 														span: DUMMY_SP,
-												}),
+														op: ast::BinaryOp::EqEq,
+														right: Box::new(ast::Expr::Lit(
+															ast::Lit::Str(ast::Str {
+																value: "number".into(),
+																span: DUMMY_SP,
+																raw: None,
+															}),
+														)),
+													})),
+													cons: Box::new(ast::Expr::Member(
+														ast::MemberExpr {
+															obj: Box::new(ast::Expr::Ident(
+																elm.clone(),
+															)),
+															prop: ast::MemberProp::Ident(
+																ast::IdentName::new(
+																	"valueAsNumber".into(),
+																	DUMMY_SP,
+																),
+															),
+															span: DUMMY_SP,
+														},
+													)),
+													alt: Box::new(ast::Expr::Member(
+														ast::MemberExpr {
+															obj: Box::new(ast::Expr::Ident(elm)),
+															prop: ast::MemberProp::Ident(
+																ast::IdentName::new(
+																	prop_name, DUMMY_SP,
+																),
+															),
+															span: DUMMY_SP,
+														},
+													)),
+													span: DUMMY_SP,
+												})),
+												span: DUMMY_SP,
+											}),
 										))),
 										..Default::default()
 									});

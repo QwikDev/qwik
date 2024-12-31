@@ -11,7 +11,7 @@ import CodeSandbox from '~/components/code-sandbox/index.tsx';
 
 <ArticleBlock>
 
-Today we are thrilled to show what the [Qwik](https://qwik.builder.io/) Core Team has been working on:
+Today we are thrilled to show what the [Qwik](https://qwik.dev/) Core Team has been working on:
 
 - **Data Loaders**: reactive low latency data loading in the server.
 - **Form Actions**: run server code on user interaction
@@ -53,7 +53,7 @@ export default component$(() => {
 
 One of the core ideas of Qwik is to run your app on the server and continue its execution on the browser when the user interacts. While Qwik was designed from the ground up to be a Server-Side Rendered (SSR) and Single-Page Application (SPA) technology, **it doesn't distinguish between server and browser**, ie, it treats all code equally, all code might run in the server or the browser.
 
-That's where [Qwik City](https://qwik.builder.io/qwikcity/overview/) enters the scene, a meta framework built on top of the resumability capabilities of Qwik to bring routing and data-fetching patterns. Qwik City is to Qwik, what NextJS is to React, Sveltekit is to Svelte or Solid Start is to Solid.
+That's where [Qwik City](https://qwik.dev/qwikcity/overview/) enters the scene, a meta framework built on top of the resumability capabilities of Qwik to bring routing and data-fetching patterns. Qwik City is to Qwik, what NextJS is to React, Sveltekit is to Svelte or Solid Start is to Solid.
 
 ## Data fetching ecosystem
 
@@ -78,7 +78,7 @@ In the context of Qwik City, the problem becomes a little bit more complicated t
 
 Qwik's Data Loader solves the issue of quickly fetching data to be displayed in the HTML. It helps to ensure that the data is available in a timely manner. This helps to improve the user experience and reduce loading times.
 
-Qwik City goes a long way to execute all relevant loaders as soon as possible and in parallel to keep latency as low as possible, in addition, loaders are connected to the reactivity system of Qwik powered by [signals](https://qwik.builder.io/docs/components/state/#usesignal), so new data will automatically and efficiently update all parts of the app that depend on it.
+Qwik City goes a long way to execute all relevant loaders as soon as possible and in parallel to keep latency as low as possible, in addition, loaders are connected to the reactivity system of Qwik powered by [signals](https://qwik.dev/docs/components/state/#usesignal), so new data will automatically and efficiently update all parts of the app that depend on it.
 
 ```typescript
 import { loader$ } from '@builder.io/qwik-city';
@@ -322,7 +322,7 @@ A lot of work has been put into this release as we are honing in `v1` for Qwik a
 
 If you have any feedback, we’d love to hear it!
 
-You can find the core team in our [discord server](https://qwik.builder.io/chat) or you can tweet out to [QwikDev](https://twitter.com/QwikDev).
+You can find the core team in our [discord server](https://qwik.dev/chat) or you can tweet out to [QwikDev](https://twitter.com/QwikDev).
 
 Let’s make the web Qwik!
 

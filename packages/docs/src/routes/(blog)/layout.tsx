@@ -13,7 +13,7 @@ export default component$(() => {
   useStyles$(docsStyles);
   useStyles$(`
     .docs article p {
-      font-size: 18px;    
+      font-size: 18px;
     }
 
     #qwik-image-warning-container {

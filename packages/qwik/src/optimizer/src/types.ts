@@ -83,6 +83,7 @@ export interface TransformFsOptions extends TransformOptions {
 /** @public */
 export interface TransformModuleInput {
   path: string;
+  devPath?: string;
   code: string;
 }
 
@@ -269,6 +270,8 @@ export interface QwikSymbol {
 /** @public */
 export interface QwikBundle {
   size: number;
+  /** Not precise, but an indication of whether this import may be a task */
+  isTask?: boolean;
   symbols?: string[];
   imports?: string[];
   dynamicImports?: string[];

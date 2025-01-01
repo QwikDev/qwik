@@ -18,7 +18,7 @@ import type {
   TransformOutput,
 } from '../types';
 import { createLinter, type QwikLinter } from './eslint-plugin';
-import type { LoadResult, OutputBundle, TransformResult } from 'rollup';
+import type { LoadResult, OutputBundle, ResolveIdResult, TransformResult } from 'rollup';
 import { isWin } from './vite-utils';
 
 const REG_CTX_NAME = ['server'];
@@ -53,6 +53,24 @@ const CLIENT_STRIP_CTX_NAME = [
   'browser',
   'event$',
 ];
+
+/**
+ * Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or
+ * `false` via an exact string replacement.
+ *
+ * Add experimental features to this enum definition.
+ *
+ * @alpha
+ */
+export enum ExperimentalFeatures {
+  /** Enable the usePreventNavigate hook */
+  preventNavigate = 'preventNavigate',
+  /** Enable the Valibot form validation */
+  valibot = 'valibot',
+  /** Disable SPA navigation handler in Qwik City */
+  noSPA = 'noSPA',
+}
+
 export interface QwikPackages {
   id: string;
   path: string;
@@ -64,9 +82,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const clientResults = new Map<string, TransformOutput>();
   const clientTransformedOutputs = new Map<string, [TransformModule, string]>();
 
-  const serverResults = new Map<string, TransformOutput>();
   const serverTransformedOutputs = new Map<string, [TransformModule, string]>();
-  const foundQrls = new Map<string, string>();
+  const parentIds = new Map<string, string>();
 
   let internalOptimizer: Optimizer | null = null;
   let linter: QwikLinter | undefined = undefined;
@@ -102,6 +119,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     },
     inlineStylesUpToBytes: null as any,
     lint: true,
+    experimental: undefined,
   };
 
   let lazyNormalizePath: (id: string) => string;
@@ -312,6 +330,16 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     } else {
       opts.lint = updatedOpts.buildMode === 'development';
     }
+
+    opts.experimental = undefined;
+    for (const feature of updatedOpts.experimental ?? []) {
+      if (!ExperimentalFeatures[feature as ExperimentalFeatures]) {
+        console.error(`Qwik plugin: Unknown experimental feature: ${feature}`);
+      } else {
+        (opts.experimental ||= {} as any)[feature] = true;
+      }
+    }
+
     return { ...opts };
   };
 
@@ -340,13 +368,14 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
   };
 
-  const buildStart = async (ctx: Rollup.PluginContext) => {
-    debug(`buildStart()`, opts.buildMode, opts.scope, opts.target);
-    const optimizer = getOptimizer();
+  let optimizer: Optimizer;
+  const buildStart = async (_ctx: Rollup.PluginContext) => {
+    debug(`buildStart()`, opts.buildMode, opts.scope, opts.target, opts.rootDir, opts.srcDir);
+    optimizer = getOptimizer();
     if (optimizer.sys.env === 'node' && opts.target === 'ssr' && opts.lint) {
       try {
         linter = await createLinter(optimizer.sys, opts.rootDir, opts.tsconfigFileNames);
-      } catch (err) {
+      } catch {
         // Nothing
       }
     }
@@ -362,7 +391,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
           };
           return relInput;
         });
-      debug(`buildStart() opts.srcInputs (${opts.srcInputs.length})`);
+      debug(`buildStart() opts.srcInputs (${opts.srcInputs.length} files)`);
     }
 
     debug(`transformedOutputs.clear()`);
@@ -374,159 +403,139 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     return devServer ? !!viteOpts?.ssr : opts.target === 'ssr' || opts.target === 'test';
   };
 
-  const getParentId = (id: string, isServer: boolean) => {
-    const transformedOutputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
-    const segment = transformedOutputs.get(id);
-    if (segment) {
-      return segment[1];
-    }
-    const hash = getSymbolHash(id);
-    return foundQrls.get(hash);
-  };
-
   let resolveIdCount = 0;
-  /** This resolves special names and QRL segments/entries. All the rest falls through */
+  /**
+   * This resolves virtual names and QRL segments/entries. All the rest falls through. We must
+   * always return a value for QRL segments because they don't exist on disk.
+   *
+   * Note: During development, the QRL filenames will be of the form
+   * `${parentUrl}_${name}_${hash}.js`, and we might get requests for QRLs from the client before
+   * the parent was built. That means we need to recover the parent from the URL and then in the
+   * `load()` phase ensure it is built first.
+   */
   const resolveId = async (
     ctx: Rollup.PluginContext,
     id: string,
     importerId: string | undefined,
     resolveOpts?: Parameters<Extract<Plugin['resolveId'], Function>>[2]
   ) => {
-    const count = resolveIdCount++;
-    const isServer = getIsServer(resolveOpts);
-    debug(`resolveId(${count})`, 'Start', id, {
-      from: importerId,
-      for: isServer ? 'server' : 'client',
-    });
     if (id.startsWith('\0')) {
       return;
     }
+    const count = resolveIdCount++;
+    const isServer = getIsServer(resolveOpts);
+    debug(`resolveId(${count})`, `begin ${id} | ${isServer ? 'server' : 'client'} | ${importerId}`);
 
-    if (opts.target === 'lib' && id.startsWith(QWIK_CORE_ID)) {
-      // For library code, we must retain the qwik imports as-is. They all start with /qwik.
-      return {
-        external: true,
-        id,
-      };
+    const parsedImporterId = importerId && parseId(importerId);
+    importerId = parsedImporterId && normalizePath(parsedImporterId.pathId);
+
+    // Relative paths must be resolved vs the importer
+    if (id.startsWith('.') && parsedImporterId) {
+      const path = getPath();
+      const importerDir = path.dirname(parsedImporterId.pathId);
+      if (importerDir) {
+        id = path.resolve(importerDir, id);
+      }
     }
 
-    if (opts.resolveQwikBuild && id.endsWith(QWIK_BUILD_ID)) {
-      debug(`resolveId(${count})`, 'Resolved', QWIK_BUILD_ID);
-      return {
-        id: normalizePath(getPath().resolve(opts.rootDir, QWIK_BUILD_ID)),
+    // Split query, remove windows path encoding etc
+    const parsedId = parseId(id);
+    const pathId = normalizePath(parsedId.pathId);
+
+    let result: ResolveIdResult;
+
+    /** At this point, the request has been normalized. */
+
+    if (
+      /**
+       * Check if we know the QRL. During regular builds, we'll encounter and build parents before
+       * their QRLs, so this will always match.
+       */
+      parentIds.get(pathId)
+    ) {
+      debug(`resolveId(${count}) Resolved already known ${pathId}`);
+      result = {
+        id: pathId + parsedId.query,
         moduleSideEffects: false,
       };
-    }
+    } else if (
+      /**
+       * Now the requests we handle are for one of the virtual modules, or a QRL segment that hasn't
+       * been transformed yet.
+       */
 
-    if (id.endsWith(QWIK_CLIENT_MANIFEST_ID)) {
-      debug(`resolveId(${count})`, 'Resolved', QWIK_CLIENT_MANIFEST_ID);
-      if (opts.target === 'lib') {
-        return {
-          id: id,
-          external: true,
+      // We test with endsWith because the dev server adds the base pathname
+      pathId.endsWith(QWIK_BUILD_ID)
+    ) {
+      if (opts.resolveQwikBuild) {
+        debug(`resolveId(${count})`, 'Resolved', QWIK_BUILD_ID);
+        result = {
+          id: QWIK_BUILD_ID,
           moduleSideEffects: false,
         };
       }
-
-      const firstInput = Object.values(opts.input)[0];
-      return {
-        id: normalizePath(getPath().resolve(firstInput, QWIK_CLIENT_MANIFEST_ID)),
+    } else if (pathId.endsWith(QWIK_CLIENT_MANIFEST_ID)) {
+      debug(`resolveId(${count})`, 'Resolved', QWIK_CLIENT_MANIFEST_ID);
+      result = {
+        id: QWIK_CLIENT_MANIFEST_ID,
         moduleSideEffects: false,
       };
-    }
-    const optimizer = getOptimizer();
-    const path = getPath();
+    } else {
+      const qrlMatch = /^(?<parent>.*\.[mc]?[jt]sx?)_(?<name>[^/]+)\.js(?<query>$|\?.*$)/.exec(id)
+        ?.groups as { parent: string; name: string; query: string } | undefined;
 
-    // Requests originating from another file, or the browser
-    if (importerId) {
-      const looksLikePath = id.startsWith('.') || id.startsWith('/');
-      if (!looksLikePath) {
-        // Rollup can ask us to resolve imports from QRL segments
-        // It seems like importers need to exist on disk for this to work automatically,
-        // so for segments we resolve via the parent instead
-        debug(`resolveId(${count})`, 'falling back to default resolver');
-        const parentId = getParentId(importerId, isServer);
-        if (parentId) {
-          return ctx.resolve(id, parentId, { skipSelf: true });
-        }
-        return;
-      }
-      importerId = normalizePath(importerId);
-      const parsedImporterId = parseId(importerId);
-      const dir = path.dirname(parsedImporterId.pathId);
-      const outputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
-      if (
-        // vite dev mode
-        devServer &&
-        // client code
-        !isServer &&
-        // browser requests
-        importerId.endsWith('.html') &&
-        // looks like a url pathname
-        id.startsWith('/') &&
-        // not a known output
-        !outputs.has(id)
-      ) {
-        // This is a request from a dev-mode browser
-        // we uri-encode chunk paths in dev mode, and other imported files don't have % in their paths (hopefully)
-        // These will be individual source files and their QRL segments
-        id = decodeURIComponent(id);
-        // Support absolute paths for qrl segments, due to e.g. pnpm linking
-        if (id.startsWith('/@fs/')) {
-          // remove `/@fs/` prefix for Windows
-          // remove `/@fs` prefix for Unix
-          id = id.slice(isWin(optimizer.sys.os) ? 5 : 4);
-        } else {
-          // Now paths could be either relative or absolute, we're not sure.
-          // If the first path segment is the same as that of the importer dir, we assume it's absolute
-          if (!id.startsWith(dir.slice(0, dir.indexOf('/', 1)))) {
-            id = path.join(dir, id);
-          }
-        }
-        id = normalizePath(id);
-        // Check for parent passed via QRL
-        const match = /^([^?]*)\?_qrl_parent=(.*)/.exec(id);
-        if (match) {
-          id = match[1];
-          // The parent is in the same directory as the requested segment
-          const parentId = id.slice(0, id.lastIndexOf('/') + 1) + match[2];
-          const hash = getSymbolHash(id);
-          // Register the parent in case we don't have it (restart etc)
-          foundQrls.set(hash, parentId);
-        }
-      }
-      const parsedId = parseId(id);
-      let importeePathId = normalizePath(parsedId.pathId);
-      const ext = path.extname(importeePathId).toLowerCase();
-      if (ext in RESOLVE_EXTS) {
-        // resolve relative paths
-        importeePathId = normalizePath(path.resolve(dir, importeePathId));
-        const parentId = getParentId(importeePathId, isServer);
-        if (parentId) {
-          debug(`resolveId(${count}) Resolved ${importeePathId} from transformedOutputs`);
-          return {
-            id: importeePathId + parsedId.query,
+      /**
+       * If this looks like a dev qrl filename, it doesn't matter who imports, we have the parentId
+       * embedded.
+       */
+      if (qrlMatch) {
+        const { parent, name, query } = qrlMatch;
+
+        const resolvedParent = await ctx.resolve(parent, importerId, { skipSelf: true });
+        if (resolvedParent) {
+          // Vite likes to add ?v=1234... to the end of the id
+          const parentId = resolvedParent.id.split('?')[0];
+          /**
+           * A request possibly from the browser. It could be our own QRL request or an import URL
+           * generated by vite. In any case, only Vite fully knows how to resolve it. Therefore, we
+           * must recombine the resolved parent path with the QRL name.
+           */
+          const isDevUrl = devServer && importerId?.endsWith('.html');
+          const resolvedId = isDevUrl ? `${parentId}_${name}.js` : pathId;
+          debug(`resolveId(${count})`, `resolved to QRL ${name} of ${parentId}`);
+          // Save for lookup by load()
+          parentIds.set(resolvedId, parentId);
+          result = {
+            id: resolvedId + query,
+            // QRL segments can't have side effects. Probably never useful, but it's here for consistency
+            moduleSideEffects: false,
           };
+        } else {
+          console.error(`resolveId(${count})`, `QRL parent ${parent} does not exist!`);
         }
-      }
-    } else if (path.isAbsolute(id)) {
-      const parsedId = parseId(id);
-      const importeePathId = normalizePath(parsedId.pathId);
-      const ext = path.extname(importeePathId).toLowerCase();
-      if (ext in RESOLVE_EXTS && getParentId(importeePathId, isServer)) {
-        debug(
-          `resolveId(${count}) Resolved ${importeePathId} from transformedOutputs (no importer)`
-        );
-        return {
-          id: importeePathId + parsedId.query,
-        };
+      } else if (importerId) {
+        /**
+         * When we get here it's neither a virtual module nor a QRL segment. However, Rollup can ask
+         * us to resolve imports from QRL segments. It seems like importers need to exist on disk
+         * for this to work automatically, so for segments we resolve via the parent instead.
+         *
+         * Note that when a this happens, the segment was already resolved and transformed, so we
+         * know about it.
+         */
+        const importerParentId = parentIds.get(importerId);
+        if (importerParentId) {
+          debug(`resolveId(${count}) end`, `resolving via ${importerParentId}`);
+          // This returns a promise that we can't await because of deadlocking
+          return ctx.resolve(id, importerParentId, { skipSelf: true });
+        }
       }
     }
-    // We don't (yet) know this id
-    debug(`resolveId(${count})`, 'Not resolved', id, importerId);
-    return null;
+
+    debug(`resolveId(${count}) end`, (result as any)?.id || result);
+    return result;
   };
 
+  let loadCount = 0;
   const load = async (
     ctx: Rollup.PluginContext,
     id: string,
@@ -535,62 +544,63 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (id.startsWith('\0') || id.startsWith('/@fs/')) {
       return;
     }
+    const count = loadCount++;
     const isServer = getIsServer(loadOpts);
-    if (opts.resolveQwikBuild && id.endsWith(QWIK_BUILD_ID)) {
-      debug(`load()`, QWIK_BUILD_ID, opts.buildMode);
+
+    // Virtual modules
+    if (opts.resolveQwikBuild && id === QWIK_BUILD_ID) {
+      debug(`load(${count})`, QWIK_BUILD_ID, opts.buildMode);
       return {
         moduleSideEffects: false,
         code: getQwikBuildModule(isServer, opts.target),
       };
     }
-
-    if (id.endsWith(QWIK_CLIENT_MANIFEST_ID)) {
-      debug(`load()`, QWIK_CLIENT_MANIFEST_ID, opts.buildMode);
+    if (id === QWIK_CLIENT_MANIFEST_ID) {
+      debug(`load(${count})`, QWIK_CLIENT_MANIFEST_ID, opts.buildMode);
       return {
         moduleSideEffects: false,
         code: await getQwikServerManifestModule(isServer),
       };
     }
-    const parsedId = parseId(id);
-    const path = getPath();
-    id = normalizePath(parsedId.pathId);
 
+    // QRL segments
+    const parsedId = parseId(id);
+    id = normalizePath(parsedId.pathId);
     const outputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
     if (devServer && !outputs.has(id)) {
       // in dev mode, it could be that the id is a QRL segment that wasn't transformed yet
-      const parentId = getParentId(id, isServer);
+      const parentId = parentIds.get(id);
       if (parentId) {
-        // building here via ctx.load doesn't seem to work (no transform), instead we use the devserver directly
-        debug(`load()`, 'transforming QRL parent', parentId);
-        // We need to encode it as an absolute path
-        await devServer.transformRequest(`/@fs${parentId.startsWith('/') ? '' : '/'}${parentId}`);
-        // The QRL segment should exist now
+        const parentModule = devServer.moduleGraph.getModuleById(parentId);
+        if (parentModule) {
+          // building here via ctx.load doesn't seem to work (no transform), instead we use the devserver directly
+          debug(`load(${count})`, 'transforming QRL parent', parentId);
+          // We need to encode it as an absolute path
+          await devServer.transformRequest(parentModule.url);
+          // The QRL segment should exist now
+          if (!outputs.has(id)) {
+            debug(`load(${count})`, `QRL segment ${id} not found in ${parentId}`);
+            return null;
+          }
+        } else {
+          console.error(`load(${count})`, `${parentModule} does not exist!`);
+        }
       }
     }
 
     const transformedModule = outputs.get(id);
 
     if (transformedModule) {
-      debug(`load()`, 'Found', id);
-      let { code } = transformedModule[0];
-      const { map, segment } = transformedModule[0];
-
-      if (devServer) {
-        const firstInput = Object.values(opts.input)[0];
-        // doing this because vite will not use resolveId() when "noExternal" is false
-        // so we need to turn the @qwik-client-manifest import into a relative import
-        code = code.replace(
-          /@qwik-client-manifest/g,
-          normalizePath(path.resolve(firstInput, QWIK_CLIENT_MANIFEST_ID))
-        );
-      }
+      debug(`load(${count})`, 'Found', id);
+      const { code, map, segment } = transformedModule[0];
       return { code, map, meta: { segment } };
     }
 
-    debug('load()', 'Not found', id);
+    debug(`load(${count})`, 'Not a QRL or virtual module', id);
     return null;
   };
 
+  let transformCount = 0;
   const transform = async function (
     ctx: Rollup.PluginContext,
     code: string,
@@ -600,6 +610,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (id.startsWith('\0')) {
       return;
     }
+    const count = transformCount++;
     const isServer = getIsServer(transformOpts);
     const currentOutputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
     if (currentOutputs.has(id)) {
@@ -618,11 +629,23 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (ext in TRANSFORM_EXTS || TRANSFORM_REGEX.test(pathId)) {
       /** Strip client|server code from qwik server|client, but not in lib/test */
       const strip = opts.target === 'client' || opts.target === 'ssr';
-      const normalizedID = normalizePath(pathId);
       debug(
-        `transform()`,
+        `transform(${count})`,
         `Transforming ${id} (for: ${isServer ? 'server' : 'client'}${strip ? ', strip' : ''})`
       );
+
+      const mode =
+        opts.target === 'lib' ? 'lib' : opts.buildMode === 'development' ? 'dev' : 'prod';
+
+      if (mode !== 'lib') {
+        // this messes a bit with the source map, but it's ok for if statements
+        code = code.replaceAll(/__EXPERIMENTAL__\.(\w+)/g, (_, feature) => {
+          if (opts.experimental?.[feature as ExperimentalFeatures]) {
+            return 'true';
+          }
+          return 'false';
+        });
+      }
 
       let filePath = base;
       if (opts.srcDir) {
@@ -630,11 +653,13 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
       filePath = normalizePath(filePath);
       const srcDir = opts.srcDir ? opts.srcDir : normalizePath(dir);
-      const mode =
-        opts.target === 'lib' ? 'lib' : opts.buildMode === 'development' ? 'dev' : 'prod';
       const entryStrategy: EntryStrategy = opts.entryStrategy;
+      let devPath: string | undefined;
+      if (devServer) {
+        devPath = devServer.moduleGraph.getModuleById(pathId)?.url;
+      }
       const transformOpts: TransformModulesOptions = {
-        input: [{ code, path: filePath }],
+        input: [{ code, path: filePath, devPath }],
         entryStrategy: isServer ? { type: 'hoist' } : entryStrategy,
         minify: 'simplify',
         // Always enable sourcemaps in dev for click-to-source
@@ -661,16 +686,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         }
       }
 
+      // TODO use a worker pool or make this async
       const newOutput = optimizer.transformModulesSync(transformOpts);
       const module = newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
-      if (devServer && isServer) {
-        // we're in dev mode. All QRLs that might be emitted in SSR HTML are defined here.
-        // register them so that they can be resolved by the dev server
-        const matches = module.code.matchAll(/_([a-zA-Z0-9]{11,11})['"][,)]/g);
-        for (const [, symbol] of matches) {
-          foundQrls.set(symbol, id);
-        }
-      }
 
       // uncomment to show transform results
       // debug({ isServer, strip }, transformOpts, newOutput);
@@ -680,24 +698,32 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         if (newOutput.diagnostics.length === 0 && linter) {
           linter.lint(ctx, code, id);
         }
-        serverResults.set(normalizedID, newOutput);
       } else {
-        clientResults.set(normalizedID, newOutput);
+        clientResults.set(id, newOutput);
       }
       const deps = new Set<string>();
       for (const mod of newOutput.modules) {
         if (mod !== module) {
           const key = normalizePath(path.join(srcDir, mod.path));
-          debug(`transform()`, `segment ${key}`, mod.segment?.displayName);
+          debug(`transform(${count})`, `segment ${key}`, mod.segment!.displayName);
+          parentIds.set(key, id);
           currentOutputs.set(key, [mod, id]);
           deps.add(key);
-          // rollup must be told about all entry points
-          if (!devServer && opts.target === 'client') {
-            ctx.emitFile({
-              id: key,
-              type: 'chunk',
-              preserveSignature: 'allow-extension',
-            });
+          if (opts.target === 'client') {
+            if (devServer) {
+              // invalidate the segment so that the client will pick it up
+              const rollupModule = devServer.moduleGraph.getModuleById(key);
+              if (rollupModule) {
+                devServer.moduleGraph.invalidateModule(rollupModule);
+              }
+            } else {
+              // rollup must be told about all entry points
+              ctx.emitFile({
+                id: key,
+                type: 'chunk',
+                preserveSignature: 'allow-extension',
+              });
+            }
           }
         }
       }
@@ -722,7 +748,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       };
     }
 
-    debug(`transform()`, 'Not transforming', id);
+    debug(`transform(${count})`, 'Not transforming', id);
 
     return null;
   };
@@ -800,7 +826,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const normalizePath = (id: string) => lazyNormalizePath(id);
 
-  function getQwikBuildModule(isServer: boolean, target: QwikBuildTarget) {
+  function getQwikBuildModule(isServer: boolean, _target: QwikBuildTarget) {
     const isDev = opts.buildMode === 'development';
     return `// @builder.io/qwik/build
 export const isServer = ${JSON.stringify(isServer)};
@@ -827,16 +853,18 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
       const { id } = mod;
       if (id) {
         debug('handleHotUpdate()', `invalidate ${id}`);
-        serverResults.delete(id);
         clientResults.delete(id);
-      }
-      for (const dep of mod.info?.meta?.qwikdeps || []) {
-        debug('handleHotUpdate()', `invalidate segment ${dep}`);
-        serverTransformedOutputs.delete(dep);
-        clientTransformedOutputs.delete(dep);
-        const mod = ctx.server.moduleGraph.getModuleById(dep);
-        if (mod) {
-          ctx.server.moduleGraph.invalidateModule(mod);
+        for (const outputs of [clientTransformedOutputs, serverTransformedOutputs]) {
+          for (const [key, [_, parentId]] of outputs) {
+            if (parentId === id) {
+              debug('handleHotUpdate()', `invalidate ${id} segment ${key}`);
+              outputs.delete(key);
+              const mod = ctx.server.moduleGraph.getModuleById(key);
+              if (mod) {
+                ctx.server.moduleGraph.invalidateModule(mod);
+              }
+            }
+          }
         }
       }
     }
@@ -871,7 +899,6 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     transform,
     validateSource,
     setSourceMapSupport,
-    foundQrls,
     configureServer,
     handleHotUpdate,
     manualChunks,
@@ -915,27 +942,13 @@ export function parseId(originalId: string) {
   };
 }
 
-export function getSymbolHash(symbolName: string) {
-  const index = symbolName.lastIndexOf('_');
-  if (index > -1) {
-    return symbolName.slice(index + 1);
-  }
-  return symbolName;
-}
+export const getSymbolHash = (symbolName: string) =>
+  /_([a-z0-9]+)($|\.js($|\?))/.exec(symbolName)?.[1];
 
 const TRANSFORM_EXTS = {
   '.jsx': true,
   '.ts': true,
   '.tsx': true,
-} as const;
-
-const RESOLVE_EXTS = {
-  '.tsx': true,
-  '.ts': true,
-  '.jsx': true,
-  '.js': true,
-  '.mjs': true,
-  '.cjs': true,
 } as const;
 
 /**
@@ -1009,11 +1022,17 @@ export interface QwikPluginOptions {
    * large projects. Defaults to `true`
    */
   lint?: boolean;
+  /**
+   * Experimental features. These can come and go in patch releases, and their API is not guaranteed
+   * to be stable between releases.
+   */
+  experimental?: (keyof typeof ExperimentalFeatures)[];
 }
 
 export interface NormalizedQwikPluginOptions
-  extends Omit<Required<QwikPluginOptions>, 'vendorRoots'> {
+  extends Omit<Required<QwikPluginOptions>, 'vendorRoots' | 'experimental'> {
   input: string[] | { [entry: string]: string };
+  experimental?: Record<keyof typeof ExperimentalFeatures, boolean>;
 }
 
 /** @public */

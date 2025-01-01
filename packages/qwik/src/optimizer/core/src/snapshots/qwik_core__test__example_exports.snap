@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 984
+assertion_line: 985
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -30,11 +31,11 @@ export const Header = component$(() => {
 
 export const Footer = component$();
 
-============================= project/header_component_uvbjufyfvdo.jsx (ENTRY POINT)==
+============================= project/test.tsx_Header_component_UVBJuFYfvDo.jsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 export const Header_component_UVBJuFYfvDo = ()=>{
-    return /*#__PURE__*/ qrl(()=>import("./header_component_1_uwm1kg0igo0"), "Header_component_1_uWM1kg0IGO0");
+    return /*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_1_uWM1kg0IGO0"), "Header_component_1_uWM1kg0IGO0");
 };
 
 
@@ -44,9 +45,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   "origin": "project/test.tsx",
   "name": "Header_component_UVBJuFYfvDo",
   "entry": null,
-  "displayName": "Header_component",
+  "displayName": "test.tsx_Header_component",
   "hash": "UVBJuFYfvDo",
-  "canonicalFilename": "header_component_uvbjufyfvdo",
+  "canonicalFilename": "test.tsx_Header_component_UVBJuFYfvDo",
   "path": "project",
   "extension": "jsx",
   "parent": null,
@@ -71,12 +72,12 @@ export function foo() {}
 export class bar {
 }
 export default function DefaultFn() {}
-export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./header_component_uvbjufyfvdo"), "Header_component_UVBJuFYfvDo"));
+export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_UVBJuFYfvDo"), "Header_component_UVBJuFYfvDo"));
 export const Footer = /*#__PURE__*/ componentQrl();
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,CAAC,GAAG,EAAC,CAAC,EAAE,IAAI,CAAC,EAAE,EAAE,IAAE,EAAE,EAAE,GAAG,GAAE,EAAE,IAAE,EAAE,EAAE,GAAG,EAAE,GAAG,IAAI;AAE7D,MAAM,OAAO;AACb,MAAM,WAAW;AACjB,SAAQ,IAAI,EAAE,YAAY,KAAK,GAAE;AAEjC,OAAO,SAAS,OAAQ;AACxB,OAAO,MAAM;AAAK;AAElB,eAAe,SAAS,aAAa;AAErC,OAAO,MAAM,uBAAS,8GAOnB;AAEH,OAAO,MAAM,uBAAS,eAAa\"}")
-============================= project/header_component_1_uwm1kg0igo0.jsx (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,CAAC,GAAG,EAAC,CAAC,EAAE,IAAI,CAAC,EAAE,EAAE,IAAE,EAAE,EAAE,GAAG,GAAE,EAAE,IAAE,EAAE,EAAE,GAAG,EAAE,GAAG,IAAI;AAE7D,MAAM,OAAO;AACb,MAAM,WAAW;AACjB,SAAQ,IAAI,EAAE,YAAY,KAAK,GAAE;AAEjC,OAAO,SAAS,OAAQ;AACxB,OAAO,MAAM;AAAK;AAElB,eAAe,SAAS,aAAa;AAErC,OAAO,MAAM,uBAAS,uHAOnB;AAEH,OAAO,MAAM,uBAAS,eAAa\"}")
+============================= project/test.tsx_Header_component_1_uWM1kg0IGO0.jsx (ENTRY POINT)==
 
 import { default as DefaultFn } from "./test";
 import { Footer } from "./test";
@@ -103,9 +104,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   "origin": "project/test.tsx",
   "name": "Header_component_1_uWM1kg0IGO0",
   "entry": null,
-  "displayName": "Header_component_1",
+  "displayName": "test.tsx_Header_component_1",
   "hash": "uWM1kg0IGO0",
-  "canonicalFilename": "header_component_1_uwm1kg0igo0",
+  "canonicalFilename": "test.tsx_Header_component_1_uWM1kg0IGO0",
   "path": "project",
   "extension": "jsx",
   "parent": "Header_component_UVBJuFYfvDo",

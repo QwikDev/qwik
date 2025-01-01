@@ -32,6 +32,7 @@ export interface SWStateBase {
   /// Base path for the container.
   $path$: string;
   $graph$: SWGraph;
+  $processed$: Map<string, { $direct$: string[]; $indirect$: string[] }> | undefined;
 }
 
 /** Task to download a bundle. */
@@ -53,7 +54,7 @@ class SWStateImpl implements SWState {
     readonly $fetch$: ServiceWorkerGlobalScope['fetch'],
     readonly $url$: URL,
     // We initialize here so the minifier works correctly
-    public $maxPrefetchRequests$ = 10,
+    public $maxPrefetchRequests$ = 4,
     public $cache$: SWState['$cache$'] = null,
     public $msgQueuePromise$ = null,
     readonly $queue$ = [],

@@ -20,7 +20,8 @@
         " Check out the Prisma docs for more info:",
         "   - https://www.prisma.io/docs/getting-started"
       ]
-    }
+    },
+    "alwaysInRoot": []
   },
   "devDependencies": {
     "@prisma/client": "5.3.1",

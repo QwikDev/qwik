@@ -19,7 +19,8 @@ contributors:
   - mrhoodz
   - chsanch
   - RumNCodeDev
-updated_at: '2023-10-02T22:44:45Z'
+  - wmertens
+updated_at: '2024-09-05T10:32:00Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
@@ -190,6 +191,20 @@ For the route `https://example.com/admin`, the `onRequest` methods will be execu
 
 An `onRequest` handler in `src/routes/index.tsx` doesn't get executed.
 
+### Full Execution order
+
+```bash
+1 --> [entry.express.ts or entry.preview.ts]
+2 --> [plugin@some-name.ts] #Alphabetical order
+3 --> [server$]
+4 --> [entry.ssr.ts]
+5 --> [root.tsx]
+6 --> [layout.tsx onRequest  ->  onGet/onHttpVerb]
+7 --> [globalLoaders]
+8 --> [routeLoaders]
+9 --> [jsx/components on a route]
+```
+
 ### Nested Layouts
 
 Layouts also **provide a way to add common UI to the rendered page**. For example, if you want to add a common header to all of the routes, add a Header component to the root layout.
@@ -237,6 +252,10 @@ export default component$(() => {
 ```
 
 > The `Link` component uses the `useNavigate()` hook [internally](https://github.com/QwikDev/qwik/blob/e452582f4728cbcb7bf85d03293e757302286683/packages/qwik-city/runtime/src/link-component.tsx#L33).
+
+### Preventing navigation
+
+We have an experimental API to prevent navigation while your app's state is unsaved. See the [usePreventNavigate](/docs/labs/usePreventNavigate) documentation for more information.
 
 ### `<Link reload>`
 

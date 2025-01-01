@@ -361,13 +361,16 @@ function fixTrailingSlash(ev: RequestEvent) {
       // must have a trailing slash
       if (!pathname.endsWith('/')) {
         // add slash to existing pathname
-        throw ev.redirect(HttpStatus.Found, pathname + '/' + url.search);
+        throw ev.redirect(HttpStatus.MovedPermanently, pathname + '/' + url.search);
       }
     } else {
       // should not have a trailing slash
       if (pathname.endsWith('/')) {
         // remove slash from existing pathname
-        throw ev.redirect(HttpStatus.Found, pathname.slice(0, pathname.length - 1) + url.search);
+        throw ev.redirect(
+          HttpStatus.MovedPermanently,
+          pathname.slice(0, pathname.length - 1) + url.search
+        );
       }
     }
   }
@@ -594,6 +597,6 @@ export async function measure<T>(
 }
 
 export function isContentType(headers: Headers, ...types: string[]) {
-  const type = headers.get('content-type')?.split(/;,/, 1)[0].trim() ?? '';
+  const type = headers.get('content-type')?.split(/;/, 1)[0].trim() ?? '';
   return types.includes(type);
 }

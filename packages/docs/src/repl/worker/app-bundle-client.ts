@@ -36,7 +36,6 @@ export const appBundleClient = async (
 
   const rollupInputOpts: InputOptions = {
     input: entry.path,
-    cache: self.rollupCache,
     plugins: [
       replCss(options),
       self.qwikOptimizer?.qwikRollup(qwikRollupClientOpts),
@@ -71,8 +70,6 @@ export const appBundleClient = async (
 
   const bundle = await self.rollup?.rollup(rollupInputOpts);
   if (bundle) {
-    self.rollupCache = bundle.cache;
-
     const generated = await bundle.generate({
       sourcemap: false,
     });
@@ -96,7 +93,7 @@ export const appBundleClient = async (
       })
     );
 
-    // clear out old cache
+    // clear out old results cache
     // no need to wait
     cache.keys().then((keys) => {
       if (keys.length > 500) {

@@ -88,8 +88,11 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
     }
 
     const resolved = await clientManifest;
-
-    res.set("Content-Type", "text/html");
+    if (url.pathname.endsWith(".js")) {
+      res.set("Content-Type", "text/javascript");
+    } else {
+      res.set("Content-Type", "text/html");
+    }
     if (enableCityServer) {
       await cityApp(req, res, next, appDir);
     } else {
@@ -213,13 +216,14 @@ export {
           disableVendorScan: true,
           vendorRoots: enableCityServer ? [qwikCityMjs] : [],
           entryStrategy: {
-            type: "single",
+            type: "segment",
           },
           client: {
             manifestOutput(manifest) {
               clientManifest = manifest;
             },
           },
+          experimental: ["preventNavigate"],
         }),
       ],
     }),
@@ -233,7 +237,12 @@ export {
           ? qwikCityVirtualEntry
           : resolve(appSrcDir, entrySsrFileName),
       },
-      plugins: [...plugins, optimizer.qwikVite()],
+      plugins: [
+        ...plugins,
+        optimizer.qwikVite({
+          experimental: ["preventNavigate"],
+        }),
+      ],
       define: {
         "globalThis.qDev": !isProd,
         "globalThis.qInspector": false,

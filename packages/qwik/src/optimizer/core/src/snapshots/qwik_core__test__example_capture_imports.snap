@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 913
+assertion_line: 914
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -20,26 +21,26 @@ export const App = component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,oBAAM,wGAGjB\"}")
-============================= app_component_usestyles_t35nsa5uv7u.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,oBAAM,iHAGjB\"}")
+============================= test.tsx_App_component_useStyles_t35nSa5UV7U.js (ENTRY POINT)==
 
 import css1 from "./global.css";
 import css2 from "./style.css";
 export const App_component_useStyles_t35nSa5UV7U = `${css1}${css2}`;
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mDAOe,CAAC,EAAE,KAAK,EAAE,KAAK,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mDAOe,GAAG,OAAO,MAAM\"}")
 /*
 {
   "origin": "test.tsx",
   "name": "App_component_useStyles_t35nSa5UV7U",
   "entry": null,
-  "displayName": "App_component_useStyles",
+  "displayName": "test.tsx_App_component_useStyles",
   "hash": "t35nSa5UV7U",
-  "canonicalFilename": "app_component_usestyles_t35nsa5uv7u",
+  "canonicalFilename": "test.tsx_App_component_useStyles_t35nSa5UV7U",
   "path": "",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",
@@ -52,13 +53,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
+============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 import { useStylesQrl } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = ()=>{
-    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./app_component_usestyles_t35nsa5uv7u"), "App_component_useStyles_t35nSa5UV7U"));
-    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./app_component_usestyles_1_xbk4w0zkwe8"), "App_component_useStyles_1_xBK4W0ZKWe8"));
+    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_useStyles_t35nSa5UV7U"), "App_component_useStyles_t35nSa5UV7U"));
+    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_useStyles_1_xBK4W0ZKWe8"), "App_component_useStyles_1_xBK4W0ZKWe8"));
 };
 
 
@@ -68,9 +69,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "App_component_ckEPmXZlub0",
   "entry": null,
-  "displayName": "App_component",
+  "displayName": "test.tsx_App_component",
   "hash": "ckEPmXZlub0",
-  "canonicalFilename": "app_component_ckepmxzlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
   "path": "",
   "extension": "js",
   "parent": null,
@@ -83,7 +84,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= app_component_usestyles_1_xbk4w0zkwe8.js (ENTRY POINT)==
+============================= test.tsx_App_component_useStyles_1_xBK4W0ZKWe8.js (ENTRY POINT)==
 
 import css3 from "./style.css";
 export const App_component_useStyles_1_xBK4W0ZKWe8 = css3;
@@ -95,9 +96,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "App_component_useStyles_1_xBK4W0ZKWe8",
   "entry": null,
-  "displayName": "App_component_useStyles_1",
+  "displayName": "test.tsx_App_component_useStyles_1",
   "hash": "xBK4W0ZKWe8",
-  "canonicalFilename": "app_component_usestyles_1_xbk4w0zkwe8",
+  "canonicalFilename": "test.tsx_App_component_useStyles_1_xBK4W0ZKWe8",
   "path": "",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",

@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 859
+assertion_line: 860
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -32,7 +33,7 @@ const [I2, { I3, v1: [I4], I5 = v2, ...I6 }, I7 = v3, ...I8] = obj;
 function I9() {}
 class I10 {
 }
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
 export { I1 as _auto_I1 };
 export { I10 as _auto_I10 };
 export { I2 as _auto_I2 };
@@ -45,8 +46,8 @@ export { I8 as _auto_I8 };
 export { I9 as _auto_I9 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,MAAM,KAAK;AACX,MAAM,CAAC,IAAI,EAAC,EAAE,EAAE,IAAI,CAAC,GAAG,EAAE,KAAG,EAAE,EAAE,GAAG,IAAG,EAAE,KAAG,EAAE,EAAE,GAAG,GAAG,GAAG;AACzD,SAAS,MAAM;AACf,MAAM;AAAK;AAEX,OAAO,MAAM,oBAAM,wGAQjB\"}")
-============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,MAAM,KAAK;AACX,MAAM,CAAC,IAAI,EAAC,EAAE,EAAE,IAAI,CAAC,GAAG,EAAE,KAAG,EAAE,EAAE,GAAG,IAAG,EAAE,KAAG,EAAE,EAAE,GAAG,GAAG,GAAG;AACzD,SAAS,MAAM;AACf,MAAM;AAAK;AAEX,OAAO,MAAM,oBAAM,iHAQjB\"}")
+============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
 import { _auto_I1 as I1 } from "./test";
 import { _auto_I2 as I2 } from "./test";
@@ -61,7 +62,7 @@ import { qrl } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = (props)=>{
     console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
     console.log(itsok, v1, v2, v3, obj);
-    return /*#__PURE__*/ qrl(()=>import("./app_component_1_w0t0o3qmovu"), "App_component_1_w0t0o3QMovU");
+    return /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_1_w0t0o3QMovU"), "App_component_1_w0t0o3QMovU");
 };
 
 
@@ -71,9 +72,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "App_component_ckEPmXZlub0",
   "entry": null,
-  "displayName": "App_component",
+  "displayName": "test.tsx_App_component",
   "hash": "ckEPmXZlub0",
-  "canonicalFilename": "app_component_ckepmxzlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
   "path": "",
   "extension": "js",
   "parent": null,
@@ -86,7 +87,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= app_component_1_w0t0o3qmovu.js (ENTRY POINT)==
+============================= test.tsx_App_component_1_w0t0o3QMovU.js (ENTRY POINT)==
 
 import { _auto_I10 as I10 } from "./test";
 import { _jsxC } from "@builder.io/qwik";
@@ -102,9 +103,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "App_component_1_w0t0o3QMovU",
   "entry": null,
-  "displayName": "App_component_1",
+  "displayName": "test.tsx_App_component_1",
   "hash": "w0t0o3QMovU",
-  "canonicalFilename": "app_component_1_w0t0o3qmovu",
+  "canonicalFilename": "test.tsx_App_component_1_w0t0o3QMovU",
   "path": "",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",

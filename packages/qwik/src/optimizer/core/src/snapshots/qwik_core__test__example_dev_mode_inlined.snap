@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2209
+assertion_line: 2210
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -30,7 +31,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
                 file: "/user/qwik/src/test.tsx",
                 lo: 164,
                 hi: 189,
-                displayName: "App_component_Cmp_p_onClick"
+                displayName: "test.tsx_App_component_Cmp_p_onClick"
             })
         }, "Hello Qwik", 3, null, {
             fileName: "test.tsx",
@@ -46,7 +47,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
     file: "/user/qwik/src/test.tsx",
     lo: 90,
     hi: 229,
-    displayName: "App_component"
+    displayName: "test.tsx_App_component"
 }));
 
 

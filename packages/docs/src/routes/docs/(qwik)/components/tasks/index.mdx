@@ -181,23 +181,30 @@ One unique aspect of Qwik, is that components are mounted only **once** across t
 
 ### `track()`
 
-There are times when it is desirable to re-run a task when a component state changes. This is done by using the `track()` function. The `track()` function allows you to set up a dependency on a component's state when initially rendered on the server, and then re-execute the task when the state changes in the browser.  The same task will never be executed twice on the server.
+There are times when it is desirable to re-run a task when a component state changes. This is done by using the `track()` function. The `track()` function allows you to set up a dependency on a component's state when initially rendered on the server, and then re-execute the task when the state changes in the browser.
+
+Track accepts signals, stores and functions. It returns the value of the signal, the store itself, or the function call result.
+
+When you pass a store, the track will be called when the store gets or removes properties as well as mutations of properties.
+Note that deep store updates don't mutate the store itself, so `store[item].count++` will not trigger an update. Instead, you should individually track each `store[item]` (which are also automatically created stores).
+
+During SSR, each component will wait until all tasks are completed before outputting the HTML for that component. So a task can be called multiple times during SSR if the tracked state changes due to other tasks.
 
 > **Note**: If all you want to do is compute a new state from an existing state synchronously, you should use [`useComputed$()`](/docs/components/state/#usecomputed) instead.
 
 <CodeSandbox src="/src/routes/demo/tasks/track/index.tsx" style={{ height: '6em' }} >
 ```tsx
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-import { isServer } from '@builder.io/qwik/build';
+import { isServer } from '@builder.io/qwik';
 
 export default component$(() => {
   const text = useSignal('Initial text');
   const delayText = useSignal('');
 
   useTask$(({ track }) => {
-    track(() => text.value);
-    const value = text.value;
-    const update = () => (delayText.value = value);
+    // Passing a signal directly is more efficient than using a function.
+    const newText = track(text);
+    const update = () => (delayText.value = newText);
     isServer
       ? update() // don't delay on server render value as part of SSR
       : delay(500).then(update); // Delay in browser
@@ -230,7 +237,7 @@ const delay = (time: number) => new Promise((res) => setTimeout(res, time));
 >
 > - The `useTask$()` blocks rendering until it completes. If you don't want to block rendering, make sure that the task is resolved, and run the delay work on a separate unconnected promise. In this example, we don't await `delay()` because it would block rendering.
 
-> Sometimes it is required to only run code either in the server or in the client. This can be achieved by using the `isServer` and `isBrowser` booleans exported from `@builder.io/qwik/build` as shown above.
+> Sometimes it is required to only run code either in the server or in the client. This can be achieved by using the `isServer` and `isBrowser` booleans exported from `@builder.io/qwik` as shown above.
 
 
 ### `track()` as a function
@@ -240,7 +247,7 @@ In the above example, `track()` was used to track a specific signal. However, `t
 <CodeSandbox src="/src/routes/demo/tasks/track-fn/index.tsx" style={{ height: '6em' }} >
 ```tsx
 import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-import { isServer } from '@builder.io/qwik/build';
+import { isServer } from '@builder.io/qwik';
 
 export default component$(() => {
   const isUppercase = useSignal(false);
@@ -331,7 +338,7 @@ Sometimes a task needs to run only on the browser and after rendering, in that c
 > <CodeSandbox src="/src/routes/demo/tasks/track-server-guard/index.tsx" style={{ height: '6em' }}>
 > ```tsx
 > import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-> import { isServer } from '@builder.io/qwik/build';
+> import { isServer } from '@builder.io/qwik';
 >
 > export default component$(() => {
 >   const text = useSignal('Initial text');

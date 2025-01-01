@@ -18,7 +18,6 @@ use std::fmt::Write as _;
 use std::hash::Hash;
 use std::hash::Hasher; // import without risk of name clashing
 use std::iter;
-use std::path::Path;
 use std::str;
 use swc_atoms::{js_word, JsWord};
 use swc_common::comments::{Comments, SingleThreadedComments};
@@ -118,6 +117,7 @@ pub struct QwikTransform<'a> {
 
 pub struct QwikTransformOptions<'a> {
 	pub path_data: &'a PathData,
+	pub dev_path: Option<&'a str>,
 	pub entry_policy: &'a dyn EntryPolicy,
 	pub extension: JsWord,
 	pub core_module: JsWord,
@@ -265,7 +265,11 @@ impl<'a> QwikTransform<'a> {
 
 	fn get_dev_location(&self, span: Span) -> ast::ExprOrSpread {
 		let loc = self.options.cm.lookup_char_pos(span.lo);
-		let file_name = self.options.path_data.rel_path.to_slash_lossy().to_string();
+		let file_name = self
+			.options
+			.dev_path
+			.map(|p| p.to_string())
+			.unwrap_or_else(|| self.options.path_data.rel_path.to_slash_lossy().to_string());
 		ast::ExprOrSpread {
 			spread: None,
 			expr: Box::new(ast::Expr::Object(ast::ObjectLit {
@@ -335,11 +339,12 @@ impl<'a> QwikTransform<'a> {
 		let hash = hasher.finish();
 		let hash64 = base64(hash);
 
-		let symbol_name = if matches!(self.options.mode, EmitMode::Dev | EmitMode::Lib) {
+		let symbol_name = if matches!(self.options.mode, EmitMode::Dev | EmitMode::Test) {
 			format!("{}_{}", display_name, hash64)
 		} else {
 			format!("s_{}", hash64)
 		};
+		display_name = format!("{}_{}", &self.options.path_data.file_name, display_name);
 		(
 			JsWord::from(symbol_name),
 			JsWord::from(display_name),
@@ -348,6 +353,7 @@ impl<'a> QwikTransform<'a> {
 		)
 	}
 
+	/** Parse inlinedQrl() (from library code) */
 	fn handle_inlined_qsegment(&mut self, mut node: ast::CallExpr) -> ast::CallExpr {
 		node.args.reverse();
 
@@ -386,7 +392,8 @@ impl<'a> QwikTransform<'a> {
 			};
 			parse_symbol_name(
 				symbol_name,
-				matches!(self.options.mode, EmitMode::Dev | EmitMode::Lib),
+				matches!(self.options.mode, EmitMode::Dev | EmitMode::Test),
+				&self.options.path_data.file_name,
 			)
 		};
 
@@ -742,7 +749,7 @@ impl<'a> QwikTransform<'a> {
 		span: Span,
 		segment_hash: u64,
 	) -> ast::CallExpr {
-		let canonical_filename = get_canonical_filename(&symbol_name);
+		let canonical_filename = get_canonical_filename(&segment_data.display_name, &symbol_name);
 
 		// We import from the segment file directly but store the entry for later chunking by the bundler
 		let entry = self.options.entry_policy.get_entry_for_sym(
@@ -949,7 +956,11 @@ impl<'a> QwikTransform<'a> {
 		];
 		let fn_callee = if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				&self.options.path_data.abs_path,
+				JsWord::from(
+					self.options
+						.dev_path
+						.unwrap_or(&self.options.path_data.abs_path.to_slash_lossy()),
+				),
 				segment_data,
 				span,
 			));
@@ -994,7 +1005,10 @@ impl<'a> QwikTransform<'a> {
 			self.segments.push(Segment {
 				entry: None,
 				span,
-				canonical_filename: get_canonical_filename(&symbol_name),
+				canonical_filename: get_canonical_filename(
+					&segment_data.display_name,
+					&symbol_name,
+				),
 				name: symbol_name.clone(),
 				data: segment_data.clone(),
 				expr: Box::new(expr),
@@ -1014,7 +1028,11 @@ impl<'a> QwikTransform<'a> {
 
 		let fn_callee = if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				&self.options.path_data.abs_path,
+				JsWord::from(
+					self.options
+						.dev_path
+						.unwrap_or(&self.options.path_data.abs_path.to_slash_lossy()),
+				),
 				&segment_data,
 				&span,
 			));
@@ -1514,6 +1532,12 @@ impl<'a> QwikTransform<'a> {
 				};
 				None
 			}
+			// tagged template functions can also be mutable
+			ast::Expr::TaggedTpl(_) => {
+				// We don't export template functions so no need to check
+				self.jsx_mutable = true;
+				None
+			}
 			ast::Expr::Array(array) => Some(ast::Expr::Array(ast::ArrayLit {
 				span: array.span,
 				elems: array
@@ -1656,7 +1680,11 @@ impl<'a> QwikTransform<'a> {
 		let mut fn_name: &JsWord = &_NOOP_QRL;
 		if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				&self.options.path_data.abs_path,
+				JsWord::from(
+					self.options
+						.dev_path
+						.unwrap_or(&self.options.path_data.abs_path.to_slash_lossy()),
+				),
 				&segment_data,
 				&DUMMY_SP,
 			));
@@ -2303,16 +2331,21 @@ fn compute_scoped_idents(all_idents: &[Id], all_decl: &[IdPlusType]) -> (Vec<Id>
 	(output, immutable)
 }
 
-fn get_canonical_filename(symbol_name: &JsWord) -> JsWord {
-	JsWord::from(symbol_name.as_ref().to_ascii_lowercase())
+fn get_canonical_filename(display_name: &JsWord, symbol_name: &JsWord) -> JsWord {
+	let hash = symbol_name.split('_').last().unwrap();
+	JsWord::from(format!("{}_{}", display_name, hash))
 }
 
-fn parse_symbol_name(symbol_name: JsWord, dev: bool) -> (JsWord, JsWord, JsWord) {
+fn parse_symbol_name(
+	symbol_name: JsWord,
+	dev: bool,
+	file_name: &String,
+) -> (JsWord, JsWord, JsWord) {
 	let mut splitter = symbol_name.rsplitn(2, '_');
 	let hash = splitter
 		.next()
 		.expect("symbol_name always need to have a segment");
-	let display_name = splitter.next().unwrap_or(hash);
+	let display_name = format!("{}_{}", file_name, splitter.next().unwrap_or(hash));
 
 	let s_n = if dev {
 		symbol_name.clone()
@@ -2322,7 +2355,7 @@ fn parse_symbol_name(symbol_name: JsWord, dev: bool) -> (JsWord, JsWord, JsWord)
 	(s_n, display_name.into(), hash.into())
 }
 
-fn get_qrl_dev_obj(abs_path: &Path, segment: &SegmentData, span: &Span) -> ast::Expr {
+fn get_qrl_dev_obj(abs_path: JsWord, segment: &SegmentData, span: &Span) -> ast::Expr {
 	ast::Expr::Object(ast::ObjectLit {
 		span: DUMMY_SP,
 		props: vec![
@@ -2330,7 +2363,7 @@ fn get_qrl_dev_obj(abs_path: &Path, segment: &SegmentData, span: &Span) -> ast::
 				key: ast::PropName::Ident(ast::IdentName::new(js_word!("file"), DUMMY_SP)),
 				value: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
 					span: DUMMY_SP,
-					value: abs_path.to_str().unwrap().into(),
+					value: abs_path,
 					raw: None,
 				}))),
 			}))),

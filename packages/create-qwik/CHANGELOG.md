@@ -1,5 +1,25 @@
 # create-qwik
 
+## 1.12.0
+
+## 1.11.0
+
+## 1.10.0
+
+### Patch Changes
+
+- INFRA: migration from tsm to tsx (by [@JerryWu1234](https://github.com/JerryWu1234) in [#6877](https://github.com/QwikDev/qwik/pull/6877))
+
+## 1.9.1
+
+## 1.9.0
+
+### Patch Changes
+
+- ✨ tailwind starter dependencies upgraded to latest (by [@thejackshelton](https://github.com/thejackshelton) in [#6783](https://github.com/QwikDev/qwik/pull/6783))
+
+- ✨ added `preserveModules` to library starters to improve library bundling / tree-shaking (by [@thejackshelton](https://github.com/thejackshelton) in [#6773](https://github.com/QwikDev/qwik/pull/6773))
+
 ## 1.8.0
 
 ### Patch Changes

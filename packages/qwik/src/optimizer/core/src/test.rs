@@ -65,6 +65,7 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 		input: vec![TransformModuleInput {
 			code: input.code.clone(),
 			path: input.filename,
+			dev_path: input.dev_path,
 		}],
 		source_maps: true,
 		minify: input.minify,
@@ -2618,15 +2619,15 @@ export const foo = () => console.log('foo');
 fn example_build_server() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore } from '@builder.io/qwik';
-import { isServer, isBrowser } from '@builder.io/qwik/build';
+import { component$, useStore, isDev, isServer as isServer2 } from '@builder.io/qwik';
+import { isServer, isBrowser as isb } from '@builder.io/qwik/build';
 import { mongodb } from 'mondodb';
 import { threejs } from 'threejs';
 
 import L from 'leaflet';
 
 export const functionThatNeedsWindow = () => {
-  if (isBrowser) {
+  if (isb) {
     console.log('l', L);
     console.log('hey');
     window.alert('hey');
@@ -2638,14 +2639,14 @@ export const App = component$(() => {
         if (isServer) {
             console.log('server', mongodb());
         }
-        if (isBrowser) {
+        if (isb) {
             console.log('browser', new threejs());
         }
     });
     return (
         <Cmp>
-            {isServer && <p>server</p>}
-            {isBrowser && <p>server</p>}
+            {isServer2 && <p>server</p>}
+            {isb && <p>server</p>}
         </Cmp>
     );
 });
@@ -3276,16 +3277,18 @@ export const Local = component$(() => {
 			TransformModuleInput {
 				code: dep.into(),
 				path: "../../node_modules/dep/dist/lib.mjs".into(),
+				dev_path: None,
 			},
 			TransformModuleInput {
 				code: code.into(),
 				path: "components/main.tsx".into(),
+				dev_path: None,
 			},
 		],
 		source_maps: true,
 		minify: MinifyMode::Simplify,
 		explicit_extensions: true,
-		mode: EmitMode::Lib,
+		mode: EmitMode::Test,
 		manual_chunks: None,
 		entry_strategy: EntryStrategy::Segment,
 		transpile_ts: true,
@@ -3323,10 +3326,10 @@ export const Greeter = component$(() => {
 
 "#;
 	let options = vec![
-		(EmitMode::Lib, EntryStrategy::Segment, true),
-		(EmitMode::Lib, EntryStrategy::Single, true),
-		(EmitMode::Lib, EntryStrategy::Component, true),
-		// (EmitMode::Lib, EntryStrategy::Inline, true),
+		(EmitMode::Test, EntryStrategy::Segment, true),
+		(EmitMode::Test, EntryStrategy::Single, true),
+		(EmitMode::Test, EntryStrategy::Component, true),
+		// (EmitMode::Test, EntryStrategy::Inline, true),
 		(EmitMode::Prod, EntryStrategy::Segment, true),
 		(EmitMode::Prod, EntryStrategy::Single, true),
 		(EmitMode::Prod, EntryStrategy::Component, true),
@@ -3335,10 +3338,10 @@ export const Greeter = component$(() => {
 		(EmitMode::Dev, EntryStrategy::Single, true),
 		(EmitMode::Dev, EntryStrategy::Component, true),
 		// (EmitMode::Dev, EntryStrategy::Inline, true),
-		(EmitMode::Lib, EntryStrategy::Segment, false),
-		(EmitMode::Lib, EntryStrategy::Single, false),
-		(EmitMode::Lib, EntryStrategy::Component, false),
-		// (EmitMode::Lib, EntryStrategy::Inline, false),
+		(EmitMode::Test, EntryStrategy::Segment, false),
+		(EmitMode::Test, EntryStrategy::Single, false),
+		(EmitMode::Test, EntryStrategy::Component, false),
+		// (EmitMode::Test, EntryStrategy::Inline, false),
 		(EmitMode::Prod, EntryStrategy::Segment, false),
 		(EmitMode::Prod, EntryStrategy::Single, false),
 		(EmitMode::Prod, EntryStrategy::Component, false),
@@ -3355,17 +3358,19 @@ export const Greeter = component$(() => {
 			TransformModuleInput {
 				code: code.into(),
 				path: "main.tsx".into(),
+				dev_path: None,
 			},
 			TransformModuleInput {
 				code: code.into(),
 				path: "components/main.tsx".into(),
+				dev_path: None,
 			},
 		],
 		source_maps: true,
 		minify: MinifyMode::Simplify,
 		root_dir: None,
 		explicit_extensions: true,
-		mode: EmitMode::Lib,
+		mode: EmitMode::Test,
 		manual_chunks: None,
 		entry_strategy: EntryStrategy::Segment,
 		transpile_ts: true,
@@ -3393,10 +3398,12 @@ export const Greeter = component$(() => {
 				TransformModuleInput {
 					code: code.into(),
 					path: "main.tsx".into(),
+					dev_path: None,
 				},
 				TransformModuleInput {
 					code: code.into(),
 					path: "components/main.tsx".into(),
+					dev_path: None,
 				},
 			],
 			root_dir: None,
@@ -3528,6 +3535,7 @@ export const App = component$(() => {
 "#
 		.to_string(),
 		mode: EmitMode::Dev,
+		dev_path: Some("/hello/from/dev/test.tsx".into()),
 		transpile_ts: true,
 		transpile_jsx: true,
 		strip_event_handlers: true,
@@ -3556,9 +3564,38 @@ export const Counter = component$(() => {
 "#
 		.to_string(),
 		transpile_jsx: true,
-		mode: EmitMode::Lib,
-		// make sure it overrides it
-		is_server: Some(false),
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn impure_template_fns() {
+	// Should not mark the template function as static
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from '@builder.io/qwik';
+		const useFoo = (count) => {
+			const tag = (s) => {
+				const value = typeof s === "string" ? s : s[0];
+				return `${value}-${count.value}`;
+			}
+			return tag;
+		}
+
+		export default component$(() => {
+			const count = useSignal(0);
+			const foo = useFoo(count);
+			return (
+				<>
+					<p>{foo("test")}</p>
+					<p>{foo`test`}</p>
+					<button onClick$={() => count.value++}>Count up</button>
+				</>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_jsx: true,
 		..TestInput::default()
 	});
 }
@@ -3592,6 +3629,7 @@ fn get_hash(name: &str) -> String {
 struct TestInput {
 	pub code: String,
 	pub filename: String,
+	pub dev_path: Option<String>,
 	pub src_dir: String,
 	pub root_dir: Option<String>,
 	pub manual_chunks: Option<HashMap<String, JsWord>>,
@@ -3616,6 +3654,7 @@ impl TestInput {
 	pub fn default() -> Self {
 		Self {
 			filename: "test.tsx".to_string(),
+			dev_path: None,
 			src_dir: "/user/qwik/src/".to_string(),
 			root_dir: None,
 			code: "/user/qwik/src/".to_string(),
@@ -3627,7 +3666,7 @@ impl TestInput {
 			preserve_filenames: false,
 			explicit_extensions: false,
 			snapshot: true,
-			mode: EmitMode::Lib,
+			mode: EmitMode::Test,
 			scope: None,
 			core_module: None,
 			reg_ctx_name: None,

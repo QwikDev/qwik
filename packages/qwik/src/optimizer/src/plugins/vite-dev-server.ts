@@ -1,24 +1,19 @@
 /* eslint-disable no-console */
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
-import { magenta } from 'kleur/colors';
 import type { IncomingMessage, ServerResponse } from 'http';
+import { magenta } from 'kleur/colors';
 
 import type { Connect, ViteDevServer } from 'vite';
-import type { OptimizerSystem, Path, QwikManifest, SymbolMapper, SymbolMapperFn } from '../types';
-import {
-  type NormalizedQwikPluginOptions,
-  parseId,
-  getSymbolHash,
-  makeNormalizePath,
-} from './plugin';
-import type { QwikViteDevResponse } from './vite';
-import { formatError, isWin } from './vite-utils';
-import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
-import imageDevTools from './image-size-runtime.html?raw';
-import clickToComponent from './click-to-component.html?raw';
-import perfWarning from './perf-warning.html?raw';
-import errorHost from './error-host.html?raw';
 import { SYNC_QRL } from '../../../core/qrl/qrl-class';
+import type { OptimizerSystem, Path, QwikManifest, SymbolMapper, SymbolMapperFn } from '../types';
+import clickToComponent from './click-to-component.html?raw';
+import errorHost from './error-host.html?raw';
+import imageDevTools from './image-size-runtime.html?raw';
+import perfWarning from './perf-warning.html?raw';
+import { parseId, type NormalizedQwikPluginOptions } from './plugin';
+import type { QwikViteDevResponse } from './vite';
+import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
+import { formatError } from './vite-utils';
 
 function getOrigin(req: IncomingMessage) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
@@ -32,49 +27,26 @@ function getOrigin(req: IncomingMessage) {
   return `${protocol}://${host}`;
 }
 
-// We must encode the chunk so that e.g. + doesn't get converted to space etc
-const encode = (url: string) =>
-  encodeURIComponent(url).replaceAll('%2F', '/').replaceAll('%40', '@').replaceAll('%3A', ':');
-
-function createSymbolMapper(
-  base: string,
-  opts: NormalizedQwikPluginOptions,
-  path: Path,
-  sys: OptimizerSystem
-): SymbolMapperFn {
-  const normalizePath = makeNormalizePath(sys);
+function createSymbolMapper(base: string): SymbolMapperFn {
   return (
     symbolName: string,
-    mapper: SymbolMapper | undefined,
+    _mapper: SymbolMapper | undefined,
     parent: string | undefined
   ): [string, string] => {
     if (symbolName === SYNC_QRL) {
       return [symbolName, ''];
     }
-    const hash = getSymbolHash(symbolName);
     if (!parent) {
-      console.warn(
-        `qwik vite-dev-server symbolMapper: parent not provided for ${symbolName}, falling back to mapper.`
-      );
-      const chunk = mapper && mapper[hash];
-      if (chunk) {
-        return [chunk[0], chunk[1]];
-      }
       console.error(
         'qwik vite-dev-server symbolMapper: unknown qrl requested without parent:',
         symbolName
       );
-      return [symbolName, `${base}${symbolName.toLowerCase()}.js`];
+      return [symbolName, `${base}${symbolName}.js`];
     }
-    // on windows, absolute paths don't start with a slash
-    const maybeSlash = isWin(sys.os) ? '/' : '';
-    const parentPath = normalizePath(path.dirname(parent));
-    const parentFile = path.basename(parent);
-    const qrlPath = parentPath.startsWith(opts.rootDir)
-      ? normalizePath(path.relative(opts.rootDir, parentPath))
-      : `@fs${maybeSlash}${parentPath}`;
-    const qrlFile = `${encode(qrlPath)}/${symbolName.toLowerCase()}.js?_qrl_parent=${encode(parentFile)}`;
-    return [symbolName, `${base}${qrlFile}`];
+    // In dev mode, the `parent` is the Vite URL for the parent, not the real absolute path.
+    // It is always absolute but when on Windows that's without a /
+    const qrlFile = `${base}${parent.startsWith('/') ? parent.slice(1) : parent}_${symbolName}.js`;
+    return [symbolName, qrlFile];
   };
 }
 
@@ -105,12 +77,14 @@ export async function configureDevServer(
   clientDevInput: string | undefined,
   devSsrServer: boolean
 ) {
-  symbolMapper = lazySymbolMapper = createSymbolMapper(base, opts, path, sys);
+  symbolMapper = lazySymbolMapper = createSymbolMapper(base);
   if (!devSsrServer) {
     // we just needed the symbolMapper
     return;
   }
-
+  const hasQwikCity = server.config.plugins?.some(
+    (plugin) => plugin.name === 'vite-plugin-qwik-city'
+  );
   // qwik middleware injected BEFORE vite internal middlewares
   server.middlewares.use(async (req, res, next) => {
     try {
@@ -119,8 +93,17 @@ export async function configureDevServer(
       const url = new URL(req.originalUrl!, domain);
 
       if (shouldSsrRender(req, url)) {
+        const { _qwikEnvData } = res as QwikViteDevResponse;
+        if (!_qwikEnvData && hasQwikCity) {
+          console.error(`not SSR rendering ${url} because Qwik City Env data did not populate`);
+          res.statusCode ||= 404;
+          res.setHeader('Content-Type', 'text/plain');
+          res.writeHead(res.statusCode);
+          res.end('Not a SSR URL according to Qwik City');
+          return;
+        }
         const serverData: Record<string, any> = {
-          ...(res as QwikViteDevResponse)._qwikEnvData,
+          ..._qwikEnvData,
           url: url.href,
         };
 
@@ -142,7 +125,7 @@ export async function configureDevServer(
           return;
         }
 
-        const firstInput = Object.values(opts.input)[0];
+        const firstInput = opts.input && Object.values(opts.input)[0];
         const ssrModule = await server.ssrLoadModule(firstInput);
 
         const render: Render = ssrModule.default ?? ssrModule.render;

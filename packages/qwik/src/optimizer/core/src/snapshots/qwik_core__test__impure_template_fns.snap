@@ -1,0 +1,125 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 3574
+expression: output
+snapshot_kind: text
+---
+==INPUT==
+
+
+		import { component$, useSignal } from '@builder.io/qwik';
+		const useFoo = (count) => {
+			const tag = (s) => {
+				const value = typeof s === "string" ? s : s[0];
+				return `${value}-${count.value}`;
+			}
+			return tag;
+		}
+
+		export default component$(() => {
+			const count = useSignal(0);
+			const foo = useFoo(count);
+			return (
+				<>
+					<p>{foo("test")}</p>
+					<p>{foo`test`}</p>
+					<button onClick$={() => count.value++}>Count up</button>
+				</>
+			);
+		});
+		
+============================= test.tsx_test_component_LUXeXe0DQrg.ts (ENTRY POINT)==
+
+import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+import { _jsxC } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+import { _auto_useFoo as useFoo } from "./test";
+import { useSignal } from "@builder.io/qwik";
+export const test_component_LUXeXe0DQrg = ()=>{
+    const count = useSignal(0);
+    const foo = useFoo(count);
+    return /*#__PURE__*/ _jsxC(_Fragment, {
+        children: [
+            /*#__PURE__*/ _jsxQ("p", null, null, foo("test"), 1, null),
+            /*#__PURE__*/ _jsxQ("p", null, null, foo`test`, 1, null),
+            /*#__PURE__*/ _jsxQ("button", null, {
+                onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_Fragment_button_onClick_eF3QEzgQWcY"), "test_component_Fragment_button_onClick_eF3QEzgQWcY", [
+                    count
+                ])
+            }, "Count up", 3, null)
+        ]
+    }, 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAU4B;IACzB,MAAM,QAAQ,UAAU;IACxB,MAAM,MAAM,OAAO;IACnB,qBACC;;0BACC,MAAC,iBAAG,IAAI;0BACR,MAAC,iBAAG,GAAG,CAAC,IAAI,CAAC;0BACb,MAAC;gBAAO,QAAQ;;;eAAuB;;;AAG1C\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    259,
+    476
+  ]
+}
+*/
+============================= test.tsx_test_component_Fragment_button_onClick_eF3QEzgQWcY.ts (ENTRY POINT)==
+
+import { useLexicalScope } from "@builder.io/qwik";
+export const test_component_Fragment_button_onClick_eF3QEzgQWcY = ()=>{
+    const [count] = useLexicalScope();
+    return count.value++;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEAiBuB;;WAAM,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_Fragment_button_onClick_eF3QEzgQWcY",
+  "entry": null,
+  "displayName": "test.tsx_test_component_Fragment_button_onClick",
+  "hash": "eF3QEzgQWcY",
+  "canonicalFilename": "test.tsx_test_component_Fragment_button_onClick_eF3QEzgQWcY",
+  "path": "",
+  "extension": "ts",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    420,
+    439
+  ]
+}
+*/
+============================= test.ts ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+const useFoo = (count)=>{
+    const tag = (s)=>{
+        const value = typeof s === "string" ? s : s[0];
+        return `${value}-${count.value}`;
+    };
+    return tag;
+};
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg"));
+export { useFoo as _auto_useFoo };
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEE,MAAM,SAAS,CAAC;IACf,MAAM,MAAM,CAAC;QACZ,MAAM,QAAQ,OAAO,MAAM,WAAW,IAAI,CAAC,CAAC,EAAE;QAC9C,OAAO,GAAG,MAAM,CAAC,EAAE,MAAM,KAAK,EAAE;IACjC;IACA,OAAO;AACR;AAEA,6BAAe,mHAUZ\"}")
+== DIAGNOSTICS ==
+
+[]

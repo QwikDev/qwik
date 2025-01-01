@@ -1,7 +1,14 @@
-import { createTimer, getBuildBase } from './utils';
-import { _renderSSR, Fragment, jsx, _pauseFromContexts, type JSXNode } from '@builder.io/qwik';
 import type { SnapshotResult } from '@builder.io/qwik';
+import { _pauseFromContexts, _renderSSR, Fragment, jsx, type JSXNode } from '@builder.io/qwik';
+import { isDev } from '@builder.io/qwik';
+import type { QContext } from '../core/state/context';
+import { QInstance } from '../core/util/markers';
+import { getValidManifest } from '../optimizer/src/manifest';
+import type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
 import { getSymbolHash, setServerPlatform } from './platform';
+import { applyPrefetchImplementation } from './prefetch-implementation';
+import { getPrefetchResources } from './prefetch-strategy';
+import { getQwikLoaderScript } from './scripts';
 import type {
   QwikManifest,
   RenderToStreamOptions,
@@ -10,14 +17,7 @@ import type {
   RenderToStringResult,
   StreamWriter,
 } from './types';
-import { isDev } from '@builder.io/qwik/build';
-import { getQwikLoaderScript } from './scripts';
-import { getPrefetchResources } from './prefetch-strategy';
-import type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
-import { getValidManifest } from '../optimizer/src/manifest';
-import { applyPrefetchImplementation } from './prefetch-implementation';
-import type { QContext } from '../core/state/context';
-import { QInstance } from '../core/util/markers';
+import { createTimer, getBuildBase } from './utils';
 
 const DOCTYPE = '<!DOCTYPE html>';
 
@@ -332,8 +332,8 @@ export function resolveManifest(
   manifest = getValidManifest(manifest);
   if (manifest) {
     const mapper: SymbolMapper = {};
-    Object.entries(manifest.mapping).forEach(([key, value]) => {
-      mapper[getSymbolHash(key)] = [key, value];
+    Object.entries(manifest.mapping).forEach(([symbol, bundleFilename]) => {
+      mapper[getSymbolHash(symbol)] = [symbol, bundleFilename];
     });
     return {
       mapper,

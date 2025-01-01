@@ -145,6 +145,6 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F85209017e99f4753a56614f6712817c5',
     path: '/blog/introducing-qwik-starters/',
     tags: ['Qwik'],
-    readingTime: 5,
+    readingTime: 1,
   },
 ];

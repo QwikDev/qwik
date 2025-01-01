@@ -105,7 +105,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F0a8170ff2659474883ee032a0129cddd',
     path: '/blog/module-extraction-the-silent-web-revolution/',
     tags: ['Qwik'],
-    readingTime: 5,
+    readingTime: 9,
   },
   {
     title: 'Introducing Qwik City Server Functions',

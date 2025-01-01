@@ -4,9 +4,10 @@ import { ClockIcon } from '../icons/clock-icon';
 import { component$ } from '@builder.io/qwik';
 
 export const ArticlesGrid = component$(() => {
+  const [_, ...articles] = blogArticles;
   return (
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {blogArticles.map((post, key) => (
+      {articles.map((post, key) => (
         <article
           key={key}
           class="group bg-[color:var(--text-color)] rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300 cursor-pointer"

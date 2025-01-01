@@ -9,7 +9,7 @@ export const ArticlesGrid = component$(() => {
       {blogArticles.map((post, key) => (
         <article
           key={key}
-          class="group bg-[color:var(--text-color)] rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300 cursor-pointer"
+          class="group rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300 cursor-pointer z-10"
         >
           <a href={post.path}>
             <div class="relative h-48 overflow-hidden">
@@ -21,7 +21,7 @@ export const ArticlesGrid = component$(() => {
               />
             </div>
 
-            <div class="p-6">
+            <div class="p-6 bg-[color:var(--text-color)]">
               <h3 class="pb-4 text-xl font-bold text-[color:var(--bg-color)] min-h-[72px] group-hover:opacity-70 transition-colors">
                 {post.title}
               </h3>

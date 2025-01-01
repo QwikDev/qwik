@@ -7,6 +7,7 @@ canonical: 'https://www.builder.io/blog/qwik-city-server-functions'
 ---
 
 import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import { DiscordLink } from '~/routes/(blog)/blog/components/mdx/discord-link';
 import CodeSandbox from '~/components/code-sandbox/index.tsx';
 
 <ArticleBlock>
@@ -16,36 +17,36 @@ Today we are thrilled to show what the [Qwik](https://qwik.dev/) Core Team has b
 - **Data Loaders**: reactive low latency data loading in the server.
 - **Form Actions**: run server code on user interaction
 
-```typescript
+```tsx
 export const useGetServerTime = loader$(() => {
- // This code runs in the server
- return new Date();
+  // This code runs in the server
+  return new Date();
 });
 
 export const useAddUser = action$(async (user) => {
- const userID = await db.users.add(user);
- return {
-  success: true,
-  userID,
- };
+  const userID = await db.users.add(user);
+  return {
+    success: true,
+    userID,
+  };
 });
 
 export default component$(() => {
- // Data can be consumed during SSR and SPA!!
- // Rendering data using signals
- // no need for async and await - Qwik handles it for you!
- const serverTime = useGetServerTime();
- const addUser = useAddUser();
- return (
-  <div>
-   <p>Server time: {serverTime.value.toISOString()}</p>
-   <Form action=>
-    <input name="name" />
-    <button type="submit">Add user</button>
-    {addUser.value?.success && <div>User added successfully</div>}
-   </Form>
-  </div>
- );
+  // Data can be consumed during SSR and SPA!!
+  // Rendering data using signals
+  // no need for async and await - Qwik handles it for you!
+  const serverTime = useGetServerTime();
+  const addUser = useAddUser();
+  return (
+    <div>
+      <p>Server time: {serverTime.value.toISOString()}</p>
+      <Form action={addUser}>
+        <input name="name" />
+        <button type="submit">Add user</button>
+        {addUser.value?.success && <div>User added successfully</div>}
+      </Form>
+    </div>
+  );
 })
 ```
 
@@ -58,13 +59,6 @@ That's where [Qwik City](https://qwik.dev/qwikcity/overview/) enters the scene, 
 ## Data fetching ecosystem
 
 In this great tweet from [Theo](https://twitter.com/t3dotgg) (CEO of [ping.gg](http://ping.gg/)), he points out 3 big camps of solutions for the server/client communication problem:
-
-<div align='center'>
-	<script
-		async
-		src='https://qwik-twitter.builder.io/tweet/1598100163528052736'
-	></script>
-</div>
 
 - Different teams/companies: [GraphQL](https://graphql.org/) / REST
 - Same team: [tRPC](https://trpc.io/) / GraphQL
@@ -80,59 +74,52 @@ Qwik's Data Loader solves the issue of quickly fetching data to be displayed in 
 
 Qwik City goes a long way to execute all relevant loaders as soon as possible and in parallel to keep latency as low as possible, in addition, loaders are connected to the reactivity system of Qwik powered by [signals](https://qwik.dev/docs/components/state/#usesignal), so new data will automatically and efficiently update all parts of the app that depend on it.
 
-```typescript
+```tsx
 import { loader$ } from '@builder.io/qwik-city';
 
 export const useGetServerTime = loader$(() => {
-	return new Date().toIsoString();
+  return new Date().toIsoString();
 });
 
 export default component$(() => {
-	const serverTime = useGetServerTime();
-	return <div></div>;
+  const serverTime = useGetServerTime();
+  return (
+    <div>{serverTime}</div>
+  )
 });
 ```
 
 Thanks to `defer`, loaders can return a promise and start streaming HTML before completion, meaning that we can render and send parts of the site before the loader has resolved. This way, loaders that might take a longer time to resolve will not block the whole site.
 
-```typescript
+```tsx
 import { loader$ } from '@builder.io/qwik-city';
 
-export const useGetProduct = loader$(() => {
- const promise = expensiveFetch();
- return defer(promise);
+export const useGetProduct = loader$(({defer}) => {
+  const promise = expensiveFetch();
+  return defer(promise);
 });
 
 export default component$(() => {
- const productResource = useGetProduct();
- return (
-  <Resource value=
-   onResolved={(value) => (
-    <article>
-     <div>Product name: {value.name}</div>
-     <img src={value.src} />
-    </article>
-   )}
-  />
- );
+  const productResource = useGetProduct();
+  return (
+    <Resource value={productResource}
+      onResolved={(value) => (
+        <article>
+          <div>Product name: {value.name}</div>
+          <img src={value.src} />
+        </article>
+      )}
+    />
+  );
 });
 ```
+<video muted loop autoplay>
+  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fbef031efb09f4b4e9046b9af45e32818%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=bef031efb09f4b4e9046b9af45e32818&alt=media&optimized=true" type="video/mp4"/>
+</video>
 
-<div align='center'>
-	<video
-		autoplay='autoplay'
-		loop=''
-		preload='metadata'
-		class='builder-video css-cz4v3a'
-		muted='muted'
-		playsinline='playsinline'
-		src='https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fbef031efb09f4b4e9046b9af45e32818%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&amp;token=bef031efb09f4b4e9046b9af45e32818&amp;alt=media&amp;optimized=true'
-	></video>
-</div>
-Data loaders are equivalent to [Next's ](https://nextjs.org/docs/basic-features/data-fetching/get-server-side-props)`[getServerProps()](https://nextjs.org/docs/basic-features/data-fetching/get-server-side-props)`,
-[Remix ](https://remix.run/docs/en/v1/route/loader)`[loaders](https://remix.run/docs/en/v1/route/loader)`,
-[SvelteKit’s ](https://kit.svelte.dev/docs/load)`[load](https://kit.svelte.dev/docs/load)
-function` and SolidStart’s `[createResource](https://www.solidjs.com/docs/latest/api#createresource)`
+Data loaders are equivalent to [Next's](https://nextjs.org/docs/basic-features/data-fetching/get-server-side-props) [`getServerProps()`](https://nextjs.org/docs/basic-features/data-fetching/get-server-side-props),
+[Remix](https://remix.run/docs/en/v1/route/loader) [`loaders`](https://remix.run/docs/en/v1/route/loader),
+[SvelteKit’s](https://kit.svelte.dev/docs/load) [`load function`](https://kit.svelte.dev/docs/load) and SolidStart’s [`createResource`](https://www.solidjs.com/docs/latest/api#createresource)
 function. They are server-only routines that are executed as soon as possible to
 reduce latency and provide data to the later rendering process.
 
@@ -144,78 +131,76 @@ Server loaders are just exported functions that can be consumed, imported, and b
 
 In other solutions, developers are required to manually specify the types, because the loaders and the components are connected through some internal magic that the type system does not understand, for example:
 
-```typescript
+```tsx
 export const loader = () => {
-	return {
-		id: '42',
-		name: 'Xmas pants',
-		description: 'Ugly Xmas pants to surprise all your family',
-	};
+  return {
+    id: '42',
+    name: 'Xmas pants',
+    description: 'Ugly Xmas pants to surprise all your family'
+  }
 };
 
 export default () => {
-	const product = useLoaderData(); // product: any
-	return <div>Product: {product.name}</div>;
-};
+  const product = useLoaderData();
+  // product: any
+  return (
+    <div>Product: {product.name}</div>
+  )
+}
 ```
 
 With Qwik, the type information naturally flows because the loaders references are implicitly imported, allowing TS to do its job for you:
 
-```typescript
+```tsx
 export const useGetProduct = loader$(() => {
-	return {
-		id: '42',
-		name: 'Valentines Teddy-Bear',
-		description: 'Handmade and Guaranteed For Life.',
-	};
+  return {
+    id: '42',
+    name: 'Valentines Teddy-Bear',
+    description: 'Handmade and Guaranteed For Life.'
+  };
 });
 
 export default component$(() => {
-	const product = useGetProduct(); // Type of product: {id: string, name: string, description: string}
-	return <div>{product.value.name}</div>;
-});
+  const product = useGetProduct();
+  // Type of product: {id: string, name: string, description: string}
+  return (
+    <div>{product.value.name}</div>
+  )
+})
 ```
 
-<div align='center'>
-	<video
-		autoplay='autoplay'
-		loop=''
-		preload='metadata'
-		class='builder-video css-cz4v3a'
-		muted='muted'
-		playsinline='playsinline'
-		src='https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F8db7184f5fac4bbeaff1756fdc440904%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&amp;token=8db7184f5fac4bbeaff1756fdc440904&amp;alt=media&amp;optimized=true'
-	></video>
-</div>
+<video muted loop autoplay>
+  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F8db7184f5fac4bbeaff1756fdc440904%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=8db7184f5fac4bbeaff1756fdc440904&alt=media&optimized=true" type="video/mp4"/>
+</video>
 
 ### Colocation
 
 Loaders can be located anywhere and referenced and imported from any file, bringing with them their types and data efficiently.
 
-```typescript
+```tsx
 // Notice we're importing a loader from a different file!
 import { useAuthSessionLoader } from '../../layout.ts';
 
 // and we can have multiple loaders.
-export const useGetLoggedInUserMessage = loader$(() => {
-	return {
-		message: 'Glad to have you back!',
-	};
+export const useGetLoggedInUserMessage = loader$(() => { 
+  return { 
+    message:'Glad to have you back!'
+  }
 });
+  
 export default component$(() => {
-	const signal = useAuthSessionLoader();
-	const loggedInUserMessage = useGetLoggedInUserMessage();
+  const signal = useAuthSessionLoader();
+  const loggedInUserMessage = useGetLoggedInUserMessage();
 
-	return (
-		<div>
-			   
-			{signal.value.isLogin
-				? loggedInUserMessage.value.message
-				: 'You are NOT logged in'}
-			  
-		</div>
-	);
-});
+  return (
+    <div>
+      { signal.value.isLogin
+        ? loggedInUserMessage.value.message
+        : 'You are NOT logged in'
+      }
+    </div>
+  )
+})
 ```
 
 ### Low-level HTTP request access
@@ -225,13 +210,13 @@ Loaders are internally implemented as [middleware](https://en.wikipedia.org/wiki
 Even Qwiks streaming SSR is implemented as a middleware, so even a custom error middleware can capture a crash coming from a component.
 
 ```typescript
-export const useGetActiveUser = loader(async ({ params, redirect }) => {
-	const productID = params['id'];
-	const product = await db.getProduct(id);
-	if (!product) {
-		throw redirect(301, '/all-products');
-	}
-	return user;
+export const useGetActiveUser = loader(async ({params, redirect}) => {
+  const productID = params['id'];
+  const product = await db.getProduct(id);
+  if (!product) {
+    throw redirect(301, '/all-products');
+  }
+  return user;
 });
 ```
 
@@ -243,11 +228,11 @@ export const useGetActiveUser = loader(async ({ params, redirect }) => {
 import { action$ } from '@builder.io/qwik';
 
 export const useAddUser = action$((user) => {
-	const userID = db.users.add(user);
-	return {
-		success: true,
-		userID,
-	};
+  const userID = db.users.add(user);
+  return {
+    success: true,
+    userID,
+  };
 });
 ```
 
@@ -257,27 +242,27 @@ Actions can be invoked programmatically with JS from the browser, but they work 
 
 Thanks to good old forms, actions can be executed even if the JS is disabled.
 
-```typescript
+```tsx
 import { action$, Form } from '@builder.io/qwik-city';
 import { component$ } from '@builder.io/qwik';
 
 export const useAddUser = action$((user) => {
- const userID = db.users.add(user);
- return {
-  success: true,
-  userID,
- };
+  const userID = db.users.add(user);
+  return {
+    success: true,
+    userID,
+  };
 });
 
 export default component$(() => {
- const action = useAddUser();
- return (
-  <Form action=>
-   <input name="name" />
-   <button>Add user</button>
-   {action.value?.success && <div>User added successfully</div>}
-  </Form>
- );
+  const action = useAddUser();
+  return (
+    <Form action={action}>
+      <input name="name" />
+      <button>Add user</button>
+      {action.value?.success && <div>User added successfully</div>}
+    </Form>
+  );
 });
 ```
 
@@ -293,18 +278,18 @@ By default, actions come with built-in support for [Zod](https://zod.dev/), a _T
 
 ```typescript
 export const useAddUser = action$(
-	(user) => {
-		// `user` is typed { name: string }
-		const userID = db.users.add(user);
-		return {
-			success: true,
-			userID,
-		};
-	},
-	zod$({
-		name: z.string(),
-		age: z.coerce.number(),
-	})
+  (user) => {
+    // `user` is typed { name: string }
+    const userID = db.users.add(user);
+    return {
+      success: true,
+      userID,
+    };
+  },
+  zod$({
+    name: z.string(),
+    age: z.coerce.number(),
+  })
 );
 ```
 
@@ -322,7 +307,7 @@ A lot of work has been put into this release as we are honing in `v1` for Qwik a
 
 If you have any feedback, we’d love to hear it!
 
-You can find the core team in our [discord server](https://discord.gg/7QZ85hCkSM) or you can tweet out to [QwikDev](https://twitter.com/QwikDev).
+You can find the core team in our <DiscordLink /> or you can tweet out to [QwikDev](https://twitter.com/QwikDev).
 
 Let’s make the web Qwik!
 

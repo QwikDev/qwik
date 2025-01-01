@@ -137,7 +137,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F5f8db18f68c74f6f9919f3877b6246b4',
     path: '/blog/qwik-and-qwik-city-have-reached-beta/',
     tags: ['Web Development'],
-    readingTime: 5,
+    readingTime: 3,
   },
   {
     title: 'Introducing Qwik starters - get up and running with Qwik now',

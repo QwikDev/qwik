@@ -89,7 +89,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F043bec968cb7465fac152147b9e5bd57',
     path: '/blog/qwik-rc-milestone/',
     tags: ['Qwik'],
-    readingTime: 5,
+    readingTime: 2,
   },
   {
     title: 'Building Framer Motion Animations with Qwik',
@@ -97,7 +97,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fbf1420524b2241619cc68efbba7b7c13',
     path: '/blog/framer-motion-qwik/',
     tags: ['Web Development'],
-    readingTime: 5,
+    readingTime: 7,
   },
   {
     title: 'Code Extraction: The Silent Web Revolution',

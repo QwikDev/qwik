@@ -17,7 +17,7 @@ Bundling tooling in JS, like Webpack, Rollup and Vite do one thing very well: **
 
 Undoubtedly, putting things together takes less energy; even the [2nd law of thermodynamics](https://en.wikipedia.org/wiki/Second_law_of_thermodynamics) states this. Separating things is much harder.
 
-In opposition to nuclear physics, web tooling solved **fusion** (merge) years ago. The hard part here is **fission** (split).
+> In opposition to nuclear physics, web tooling solved **fusion** (merge) years ago. The hard part here is **fission** (split).
 
 ## What module extraction really is
 
@@ -33,7 +33,7 @@ Our brain uses the [<em>working memory</em>](https://en.wikipedia.org/wiki/Worki
 
 For a long time, CSS, HTML, and JS had to live in 3 different files, but modern frameworks realized that the inherent coupling is too high between them. **Most of the time, the separation of concerns creates even more complexity**.
 
-The goal of a software engineer is NOT to reduce coupling or separate concerns but to reduce the net complexity of the system. Patterns like [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) [and SOLID](https://en.wikipedia.org/wiki/SOLID) are guides that we must use wisely. **Always make it clear and concise**.
+> The goal of a software engineer is NOT to reduce coupling or separate concerns but to reduce the net complexity of the system. Patterns like [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) [and SOLID](https://en.wikipedia.org/wiki/SOLID) are guides that we must use wisely. **Always make it clear and concise**.
 
 - Svelte and Vue invented _single file components_ using their own DSL (Domain Specific Language) to assemble HTML, CSS, and JS into a single file.
 - React introduced JSX, bringing HTML-like syntax to JS, and later, CSS-in-JS libraries did the rest for styles.
@@ -50,7 +50,7 @@ Yes! **They are forced to.**
 
 Stop for a second and realize that C++, Java, Swift, and Rust developers never have to think about this. **The compiler and operating system solve this problem by automatically** [loading and unloading](https://en.wikipedia.org/wiki/Virtual_memory) the program dynamically as it's needed.
 
-1GB of C binary can start immediately; unfortunately, we can not say the same about 1GB of Javascript. Even with WebAssembly, we need to deal with the network.
+> 1GB of C binary can start immediately; unfortunately, we can not say the same about 1GB of Javascript. Even with WebAssembly, we need to deal with the network.
 
 ### Server compared to client
 
@@ -64,16 +64,9 @@ It was not always that way, even good old [ASP.NET](http://asp.net/) has concept
 
 ```tsx
 <button onClick={server$(() => console.log('runs in the server'))}>
-	Runs in server
+   Runs in server
 </button>
 ```
-
-<div style='position:relative;padding-bottom:56.25%;height:0;'>
-	<iframe
-		src='https://qwik-twitter.builder.io/tweet/1625473748777291780'
-		style='position:absolute;top:0;left:0;width:100%;height:100%;'
-	></iframe>
-</div>
 
 ### Refactoring
 
@@ -87,16 +80,9 @@ Frameworks like React and Qwik are designed to be used by big teams and complex 
 
 ## Module Extraction as a primitive
 
-Like [Ryan Carniato](https://twitter.com/RyanCarniato) (creator of [Solid.js](https://www.solidjs.com/)) would say: " **Primitives, not frameworks"**.
+Like [Ryan Carniato](https://twitter.com/RyanCarniato) (creator of [Solid.js](https://www.solidjs.com/)) would say: "**Primitives, not frameworks"**.
 
 Qwik is the first framework to have module extraction as a primitive, a **primitive that developers can extend** and use for many more things than Server/Client execution.
-
-<div style='position:relative;padding-bottom:56.25%;height:0;'>
-	<iframe
-		src='https://qwik-twitter.builder.io/tweet/1617781985967239170'
-		style='position:absolute;top:0;left:0;width:100%;height:100%;'
-	></iframe>
-</div>
 
 In Qwik, we use the `$` sign to signal the developer when to extract a piece of code; think about module extraction as the ability to create multiple modules inside a single file.
 
@@ -108,12 +94,7 @@ Up until this time, module extraction was an internal trick mostly used by meta-
 
 Qwik uses module extraction extensively; for example, each event handler is extracted so that when a user interacts, we can run that single piece of the original module in isolation, enabling apps that are instantly interactive regardless of complexity!
 
-<div align='center'>
-	<img
-		src='https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fb48bdfe207bb49ccb9bf0a404dafaad9?width=800'
-		alt='a slide with a graph showing a figurative x-axis showing how Qwik enables O(1) apps. Text on the right: "Correlation between functionality and amount of JS is broken".'
-	/>
-</div>
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fb48bdfe207bb49ccb9bf0a404dafaad9?width=800" alt='a slide with a graph showing a figurative x-axis showing how Qwik enables O(1) apps. Text on the right: "Correlation between functionality and amount of JS is broken' />
 
 Module extraction is the main primitive of how [Qwik achieves resumability](https://www.builder.io/blog/resumability-vs-hydration); not only that, it can even [make React resumable](https://www.builder.io/blog/resumable-react-how-to-use-react-inside-qwik) 🤯.
 
@@ -133,15 +114,15 @@ Notice this example:
 ```typescript
 // This is a pure function: takes inputs as arguments and returns an output.
 function thisIsAFunction(a, b) {
-	return a + b;
+  return a + b;
 }
 
 function main() {
-	const captured = 10;
-	// This is a closure: in addition, the function captures the variable "captured".
-	function thisIsAClosure(a, b) {
-		return (a + b) * captured;
-	}
+  const captured = 10;
+  // This is a closure: in addition, the function captures the variable "captured".
+  function thisIsAClosure(a, b) {
+    return (a + b) * captured;
+  }
 }
 ```
 
@@ -153,8 +134,8 @@ So, extracting pure functions is as easy as copying the entire function body som
 
 ```typescript
 function thisIsAClosure(a, b) {
-	// Exception: "captured" is undefined
-	return (a + b) * captured;
+  // Exception: "captured" is undefined
+  return (a + b) * captured;
 }
 ```
 
@@ -170,9 +151,9 @@ Let's start by looking at a simple `Counter` example:
 
 ```typescript
 export const Counter = component$(() => {
-	const store = useStore({ count: 0 });
+  const store = useStore({ count: 0 });
 
-	return <button onClick$={() => store.count++}>{store.count}</button>;
+  return <button onClick$={() => store.count++}>{store.count}</button>;
 });
 ```
 
@@ -186,12 +167,8 @@ const Counter = component(qrl('./chunk-a.js', 'Counter_onMount'));
 
 ```typescript
 export const Counter_onMount = () => {
-	const store = useStore({ count: 0 });
-	return (
-		<button onClick$={qrl('./chunk-b.js', 'Counter_onClick', [store])}>
-			{store.count}
-		</button>
-	);
+  const store = useStore({ count: 0 });
+  return <button onClick$={qrl('./chunk-b.js', 'Counter_onClick', [store])}>{store.count}</button>;
 };
 ```
 
@@ -199,8 +176,8 @@ export const Counter_onMount = () => {
 
 ```typescript
 const Counter_onClick = () => {
-	const [store] = useLexicalScope();
-	return store.count++;
+  const [store] = useLexicalScope();
+  return store.count++;
 };
 ```
 
@@ -216,7 +193,6 @@ If you want to know more, check out the 1-hour video below, where I explain all 
 		src='https://www.youtube.com/embed/cL9DLUCrDx0?rel=0'
 		style='position:absolute;top:0;left:0;width:100%;height:100%;border:0;'
 		allowfullscreen
-		scrolling='no'
 		allow='accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share;'
 	></iframe>
 </div>
@@ -230,13 +206,6 @@ New meta-frameworks like Solid Start are taking the proper steps and adopting Qw
 Who said you need to choose between edge or serverless?
 
 What if you could write a single component file and leverage the entire cloud infrastructure or even web workers?
-
-<div style='position:relative;padding-bottom:56.25%;height:0;'>
-	<iframe
-		src='https://qwik-twitter.builder.io/tweet/1625893444374921216'
-		style='position:absolute;top:0;left:0;width:100%;height:100%;'
-	></iframe>
-</div>
 
 The future is bright, from new styling solutions to fully leveraging the power of the cloud, all from a single file.
 

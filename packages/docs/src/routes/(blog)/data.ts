@@ -129,7 +129,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F69e3a278f34d4bfc9deb783dc705cd9a',
     path: '/blog/the-qase-for-qwik-love-at-first-tti/',
     tags: ['Qwik'],
-    readingTime: 5,
+    readingTime: 18,
   },
   {
     title: 'Qwik and Qwik City have reached beta! 🎉',

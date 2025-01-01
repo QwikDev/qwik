@@ -113,7 +113,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F48d8fd6d22ae4c3b9c1ec4817ce4046d',
     path: '/blog/qwik-city-server-functions/',
     tags: ['Qwik'],
-    readingTime: 5,
+    readingTime: 6,
   },
   {
     title: 'Resumable React: How to Use React Inside Qwik',
@@ -121,7 +121,7 @@ export const blogArticles: BlogArticle[] = [
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F9071a7def0b240e5b5ca6aab756e81b8',
     path: '/blog/resumable-react-how-to-use-react-inside-qwik/',
     tags: ['Web Development'],
-    readingTime: 5,
+    readingTime: 8,
   },
   {
     title: 'The Qase for Qwik: Love At First TTI',

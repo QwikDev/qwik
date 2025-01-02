@@ -2,7 +2,6 @@ import { component$, useStyles$ } from '@builder.io/qwik';
 import type { DocumentHead } from '@builder.io/qwik-city';
 import { FeaturedArticle } from './components/featured-article';
 import { ArticlesGrid } from './components/articles-grid';
-import { Newsletter } from './components/newsletter';
 
 export default component$(() => {
   useStyles$(`
@@ -44,9 +43,6 @@ export default component$(() => {
       <section>
         <h2 class="pb-4 text-2xl font-bold text-[color:var(--text-color)]">Latest Articles</h2>
         <ArticlesGrid />
-      </section>
-      <section class="py-8">
-        <Newsletter />
       </section>
     </div>
   );

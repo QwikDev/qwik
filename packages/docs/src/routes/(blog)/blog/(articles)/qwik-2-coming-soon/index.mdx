@@ -1,0 +1,233 @@
+---
+title: 'Towards Qwik 2.0: Lighter, Faster, Better'
+authorName: 'The Qwik Team'
+tags: ['Qwik']
+date: 'February 9, 2024'
+canonical: 'https://www.builder.io/blog/qwik-2-coming-soon'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import CodeSandbox from '~/components/code-sandbox/index.tsx';
+
+<ArticleBlock>
+
+Qwik prides itself on having instant-on applications with an HTML-first approach. We have performed a lot of comparison testing, and in each case, resumability wins over hydration in terms of JS downloaded, executed, and delayed before the user interaction is processed, and we’re really excited about that!
+
+But resumability comes with a cost. In Qwik v2.0, we will focus on lowering these costs further, and we would like to discuss them here.
+
+For a system to be resumable, the HTML must encode additional information:
+
+1.  **Listener location** — This is in the form of an attribute, and it is very small (not much improvement possible here).
+2.  **Component boundaries** — This bit is a nontrivial amount of additional HTML text. We will focus on this part in this post.
+3.  **Application state** — We are also making improvements here, but this will be for a later post.
+
+> We are committed to backward compatibility, so, we're not planning to introduce ANY breaking changes in this release. However, we feel this is a significant rewrite of the internals, so...it is a reason to celebrate!
+
+## Understanding the application
+
+Whichever framework you choose, the framework must understand the application's internal structure. By this, we mean knowing where the component boundaries are, which text nodes are bound to which expressions, where to insert new rows in a loop, and so on. This data is a kind of tree where the framework has references to relevant DOM nodes so that it can update them.
+
+So, how do you get a hold of that tree? Well, there are two choices:
+
+1.  Re-execute the application and rebuild the tree from code. ⇒ That’s hydration.
+2.  Serialize the tree into the HTML somehow. ⇒ It turns out HTML is already such a tree; it’s just missing a few things.
+
+## How it's done in Qwik v1
+
+Let’s assume we have a minimal component:
+
+```tsx
+import { component$, useSignal } from '@builder.io/qwik';
+
+export const Counter = component$(() => {
+  const count = useSignal(123);
+  return (
+    <>
+      Count: {count.value}! 
+      <button onClick$={() => count.value++}>+1</button>
+    </>
+  );
+});
+
+export const Layout = component$(() => {
+  return (
+    <main>
+      <Slot />
+    </main>
+  );
+});
+
+// Think of it as: <main> <Counter/> </main>
+```
+
+The output HTML looks like this:
+
+```html
+<div q:container="paused" q:render="static-ssr" q:version="dev" 
+     q:base="/build/" q:locale q:manifest-hash="dev">
+  <main>
+    <!--qv q:s q:sref=5 q:key=-->
+      <!--qv q:id=7 q:key=xYL1:zl_0-->
+        <!--qv q:key=H1_0-->
+          Count: 
+          <!--t=8-->123<!---->! 
+          <button on:click="..." q:id="9">
+            +1
+          </button>
+        <!--/qv-->
+      <!--/qv-->
+    <!--/qv-->
+  </main>
+  <script type="qwik/json">{...}</script>
+</div>
+```
+
+Right away, you might notice that Qwik needs to create “virtual nodes” in the form of comments. So why does Qwik need this information?
+
+- `<!--qv q:s q:sref=5 q:key=-->`: In this example, a parent [Layout](https://qwik.dev/docs/layout/) component (not shown) is used for routing. The parent component creates the `<main/>` element and [projects the route content](https://qwik.dev/docs/components/slots/#slots) (Counter) into the layout component. So, the framework needs to know where the component projected output should be inserted. Qwik needs a virtual node for that.
+- `<!--qv q:id=7 q:key=xYL1:zl_0-->`: This virtual node represents the Counter component. The component requires component props, which are stored in the data section (`<script type="qwik/json">`). The additional attributes are used to cross-reference the props with this virtual node. A key point of resumability is that one should be able to re-render a component without the parent component needing to be resumed as well. But components get props from the parent, so the props need to be serialized and recoverable so that this component can render independently of others. Qwik needs a virtual node for that.
+- `<!--qv q:key=H1_0-->`: The Counter component JSX has a top-level Fragment represented by `<>...</>`. Qwik needs a virtual node for that.
+- `<!--t=8-->123<!---->`: When the counter updates, Qwik needs to be able to update the text node associated with the signal. HTML merges neighboring text nodes, and there is no easy way to refer to text nodes. So Qwik needs a virtual node for that.
+- `q:id/q:sref/t`: Throughout the HTML, there are id attributes that allow the serialized state of the application (not shown) to refer back to the DOM nodes.
+
+## Let’s talk about inefficiencies
+
+### Pruning
+
+In the above example, the `Counter` component will never be downloaded to the client. This is because a user interaction can not trigger a structural change (adding/removing DOM elements), and Qwik can already update the count signal without the component present, **meaning the extra virtual nodes we’ve been maintaining are not needed**!
+
+The complication is that Qwik streams the data to the client. Qwik can’t determine that a component is static (and therefore not needed) until after Qwik sees the whole application because there could be some component later on that could do some sneaky stuff. Qwik is forced to generate this extra content just-in-case™.
+
+### IDs
+
+When serializing data, Qwik needs to be able to refer back to the DOM nodes. For example, attaching props to components, updating signal values, or having references for the components. However, because Qwik streams HTML as it renders, Qwik does not know if the data will be needed (have not gotten to that point in the stream), and by the time Qwik has sufficient information to make that determination, the content has already been sent to the client.
+
+> For context, all frameworks need this information, so this is not unique to Qwik. The unique bit is that other frameworks get this information by re-running the components on the client side (hydration), whereas Qwik gets it from the HTML so that it can resume. (See [hydration vs resumability](https://qwik.dev/docs/concepts/resumable/))
+
+## Qwik 2.0
+
+in Qwik 2.0, we are fixing serialization issues to make Qwik even faster and more efficient. The philosophy is:
+
+1.  Move all non-human readable data to the end of the HTML stream. We still need to know where the component boundaries are, but by moving them to the end of HTML, we can render the UI faster, and then deliver the data for the framework runtime.
+2.  Come up with a more efficient encoding scheme for the virtual nodes.
+3.  Make the resuming algorithm even lazier, so we materialize only the virtual nodes that are needed for processing to handle user input, further reducing the runtime cost.
+
+We are excited to share that we are progressing excellently on this front! Let’s find out what the new HTML looks like:
+
+```html
+<div q:container="paused" q:render="static-ssr" q:version="dev" 
+     q:base="/build/" q:locale q:manifest-hash="dev">
+  <main>
+   Count: 123!
+   <button on:click="...">+1</button>
+  </main>
+  <script type="qwik/state">[...]</script>
+  <script type="qwik/vnode">!{{HDB1}}</script>
+</div>
+```
+
+WOW! No more comment nodes! The output is super clean! And yet, all the same information is still encoded in the output. Let’s go over it. Visit the Qwik [container](https://qwik.dev/docs/advanced/containers/) documentation for more details.
+
+### Moving virtual nodes to the end of the HTML
+
+Instead of having the virtual node information mixed with the HTML output, it is now all moved into the `<script type="qwik/vnode">` placed at the end of the document.
+
+This means that the content rendered by the browser for the user can get to the user even faster!
+
+### Recovering virtual nodes
+
+Qwik still needs to have the virtual nodes! So, that information can’t disappear but is now shrunken to just these nine characters: `!{HDB1}`.
+
+
+That is mind-blowing!
+
+<img class="mx-auto" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F4b6f0d1119374ce3ab848186972a6f27?width=250" alt='mind-blowing meme' />
+
+Let’s unpack it. The content we need to recover is this:
+
+```jsx
+<main>
+  <Counter>
+    <>
+      {'Count: '}
+      {signal.value}
+      {'!'}
+      <button on:click="...">+1</button>
+    </>
+  </Counter>
+</main>
+```
+
+Note that this is more of a vDOM than HTML.
+
+Specifically, we need to:
+
+1.  Identify the `<main>` element.
+2.  Identify that `<main>` contains a virtual node represented by `<Counter>`.
+3.  Identify that `<Counter/>` contains a virtual fragment represented by `<>`.
+4.  Identify that there are three text nodes and that the second text node is bound to the signal. (This can be tricky because the HTML merges the text nodes into a single text node.)
+
+So how does it work?
+
+1.  We use the [`document.createTreeWalker`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTreeWalker) API to retrieve all DOM nodes in [depth in the first order](https://en.wikipedia.org/wiki/Depth-first_search). Our benchmarks show that retrieving 50,000 nodes in about 20 ms is possible. 50,000 nodes is an extremely large document! For comparison Qwik only has to retrieve the elements, where as hydration must retrieve, walk and reconcile the elements. Additionally, the tree-walker API does not need to be consumed all at once. Instead, you can split it over many idle microtasks to spread the load (we already use this API to retrieve all of the comments in the current implementation and it is performant.)
+2.  We use [depth-first](https://en.wikipedia.org/wiki/Depth-first_search) sequence numbers to identify each node. This way, we don’t have to assign IDs to each node. Even without an explicit ID, Qwik can identify any node, whether a real Element or a virtual node, such as a text node.
+
+> We have ways to identify browser extensions that inject extra nodes, but that is for a different blog post.
+
+So what is encoded in `!{HDB1}`?
+
+- `!`: encodes how many elements to skip to get to `<main>` element.
+- `{`: The `<main>` element will have a virtual element. This one stores component props, but that information is stored in `<script type="qwik/state">`, which is not covered in this blog post.
+- `{`: The component element will contain an additional virtual node represented by `<>`.
+- `H`: Letter `H` is the seventh (0-based) letter. Therefore, we know that the first seven characters of the `Count: 123!` ⇒ `Count:` belong to the first node.
+- `D`: Letter `D` is the third (0-based) letter. Therefore, the next text node contains `123`.
+- `B`: Letter `B` is the first (0-based) letter. Therefore, the next text node contains `!`.
+- `1`: Represents the number of elements to consume, in this case, one `<button>`.
+
+> Yes, we can store strings longer than 26 characters. Also, we can use lowercase letters to extend the encoding to grab any number of characters. The uppercase letters are used both to encode length as well as a delimiter for next encoding (saving a `,`).
+
+### Advantages
+
+By shifting the encoding of the virtual nodes to the end, Qwik can now perform additional tree shaking of the data. Because Qwik has seen all of the components in the application at this point, it can safely apply heuristics and remove unneeded data for example it can drop the virtual nodes and their IDs.
+
+Our `Counter` example shows that it encodes all its virtual nodes to simplify the example.
+
+Still, Qwik would determine that no code path would require structural change, and hence, it would determine that these virtual nodes are not needed and remove them.
+
+This would further decrease the amount of HTML being sent. And because the new encoding uses depth-first-index, no additional unneeded IDs are left behind.
+
+## Lazy virtual nodes
+
+We mostly talked about encoding, but there is also a runtime discussion to be had. We will not go deeply into it here, but we wanted to point out some things.
+
+1.  The new virtual node implementation uses arrays to store data rather than objects. Arrays facilitate growing the data you store easily without being penalized. You can store all your data for a virtual node in a single array, relieving memory pressure. Another advantage is that arrays are always [monomorphic](https://www.builder.io/blog/monomorphic-javascript) and have fast access under all conditions. All of this is done to lower the memory pressure of the virtual nodes.
+2.  The new implementation follows a "lazy" approach, it prioritizes efficiency and minimizes unnecessary work. Parsing the `<script type="qwik/vnode"> `does not create any virtual nodes eagerly. The virtual nodes are created lazily on an as-needed basis to further save on memory allocation. The result is that the virtual node tree is very sparse and only contains a materialized view of the nodes needed for the operation. In our example, only the virtual nodes would be related to the signal, not the whole component.
+3.  Finally, the virtual nodes understand that the underlying DOM has a single text node and several virtual nodes share the text nodes. The system retains a single text node until Qwik writes into the signal node, and it is only at that time that the system creates new text nodes and splits the text over them.
+
+## Coming next: data serialization
+
+We haven’t discussed changes that we are doing to the data serialization. That will be a topic for another blog post, but these changes are equally as important (and an interesting deep dive as well!).
+
+## Exciting future for the Qwik community
+
+Before we end this “2.0 teaser” blog post we wanted to also share another thing we are planning for the upcoming version.
+
+During the past few months we ran a few surveys and gathered feedback from a lot of you Qwik developers in our community.
+
+We asked what you loved about Qwik and what you thought could be improved.
+
+The most common feedback we got from you was:
+
+1.  You want more Qwik ecosystem projects (like a component library).
+2.  You want Qwik to feel more like a community project.
+3.  You want even more activity on the core framework.
+
+So we invested time in helping out community projects like [Qwik UI](https://qwikui.com) which is about to be beta released soon.
+
+But we also decided to listen to our community and to make Qwik feel more open to more contributors and companies who’d like to support its development.
+
+That’s why in the upcoming weeks there will be a few changes to make Qwik an even more welcoming community-driven project.
+
+Stay tuned!
+
+</ArticleBlock>

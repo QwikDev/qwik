@@ -1,0 +1,390 @@
+---
+title: 'Type Safe Forms in Qwik with Modular Forms'
+authorName: 'Yoav Ganbar'
+tags: ['Web development']
+date: 'April 11, 2023'
+canonical: 'https://www.builder.io/blog/type-safe-forms-in-qwik'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import CodeSandbox from '~/components/code-sandbox/index.tsx';
+
+<ArticleBlock>
+
+As Qwik has reached RC status, let’s explore how Modular Forms with Qwik can enhance your developer experience while ensuring both client and server type safety.
+
+Let’s dig in!
+
+## Server-side type safety with Zod
+
+If you have been paying attention to all the TypeScript nerds lately, you’ve probably heard of [Zod](https://zod.dev/).
+
+And I’m not talking about the villain from Superman 2 (which appeared also in more recent movies from the franchise).
+
+<video muted loop autoplay class="mx-auto">
+  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fafcc097ba4844f6da51ffab34457c457%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=afcc097ba4844f6da51ffab34457c457&alt=media&optimized=true" type="video/mp4"/>
+</video>
+
+In case you haven’t, Zod is a TypeScript-first schema declaration and validation library.
+
+Zod is all about making your life easier as a developer. The whole point is to get rid of all that boring type declaration stuff and validation.
+
+Basically, you just gotta declare your validator _one freakin' time,_ and boom! Zod takes care of the rest by automatically figuring out the TypeScript type.
+
+Plus, you can mix and match simple types to make more complex data structures like it ain't no thang.
+
+Bonus points:
+
+- Works with Vanilla JavaScript
+- No dependencies
+- Small bundle footprint (13.1kB [according to Bundleaphobia](https://bundlephobia.com/package/zod@3.21.4), although the site advertises 8k)
+
+### Server validation
+
+What does this have to do with Qwik? Glad you asked (patting my own back).
+
+Zod, which has first-class support inside Qwik’s `routeAction$()` function, can handle form validation server-side.
+
+Take this code as an example:
+
+```tsx
+// FILE: src/routes/index.tsx
+
+import { routeAction$ } from '@builder.io/qwik-city';
+ 
+export const useAddUser = routeAction$(async (user) => {
+  // `user` is typed Record<string, any>
+  const userID = await db.users.add(user);
+  return {
+    success: true,
+    userID,
+  };
+}); 
+```
+
+Qwik does a decent job of giving us a type of `Record<string, any>`, but that is not ideal. There’s no validation that the `user` payload actually has what is needed to create a user inside our database.
+
+This is where Zod comes into play:
+
+```tsx
+// FILE: src/routes/index.tsx
+
+import { routeAction$, zod$, z } from '@builder.io/qwik-city';
+ 
+export const useAddUser = routeAction$(
+  async (user) => {
+    // `user` is typed { name: string }
+    const userID = await db.users.add(user);
+    return {
+      success: true,
+      userID,
+    };
+  },
+  zod$({
+    name: z.string(),
+  })
+);
+```
+
+By adding the `zod$` function and passing in our validation scheme with the `z` primitive, we can get the correct type for the `user` object, as well as server-side validation.
+
+This means that if we accidentally pass a `user` object (or an attacker tries something fishy) that doesn’t have the `name` property, the server will throw an error.
+
+> For more information about handling errors in Qwik `routeAction`, check out the Qwik [Action Failures](https://qwik.dev/docs/action/#action-failures) documentation.
+
+## About the client side
+
+As in the above, MPA (Multi-Page Application) form handling on the server is pretty nice. However, this is still not amazing UX.
+
+For a user to understand that something wrong has happened, such as having entered the wrong type of input, they still need to wait for a server response.
+
+That’s a frustrating experience if you ask me.
+
+There’s a reason the React ecosystem has a slew of libraries that handle forms. To create a good client-side user experience, there’s a lot of boilerplate you’d need to write and edge cases that you need to handle.
+
+Notable mentions are: <a href="https://github.com/jaredpalmer/formik" rel="noopener noreferrer" target="_blank">Formik</a>, <a href="https://react-hook-form.com/" rel="noopener noreferrer" target="_blank">React Hook Form</a>, and <a href="https://final-form.org/react" rel="noopener noreferrer" target="_blank">React Final Form</a>, which have made writing complex forms much easier.
+
+## Modular Forms
+
+<a href="https://modularforms.dev/" rel="noopener noreferrer" target="_blank">Modular Forms</a> is a form library for Qwik and <a href="https://www.solidjs.com/" rel="noopener noreferrer" target="_blank">SolidJS</a> created by <a href="https://twitter.com/FabianHiller" rel="noopener noreferrer" target="_blank"><strong>Fabian Hiller</strong></a><strong>.</strong>
+
+Fabian created a complex form for his SaaS business in 2018, but found that manually handling all the form validation was tiring and prone to errors. He decided to create a `useForm` hook to offload the repetitive code and make it reusable.
+
+However, he was unsatisfied with the development experience and tested different form libraries before creating his own. Every decision in the library has a well-thought-out reason, as he’s listed on the library site.
+
+## Client-side form validation with Modular Forms
+
+Since Qwik already uses Zod, Modular Forms supports defining the form values as a Zod schema.
+
+### Defining a form
+
+Let’s create a minimal login form using this approach:
+
+```tsx
+// FILE: src/routes/modular-forms/index.tsx
+
+import { routeLoader$, z } from '@builder.io/qwik-city';
+import { InitialValues } from '@modular-forms/qwik';
+
+const formSchema = z.object({
+  email: z.string().nonempty(),
+  password: z.string().min(8),
+});
+
+// Note: you can also use z.input 
+// since Zod supports data transformation.
+type LoginForm = z.infer<typeof formSchema>;
+
+export const useLoginForm = routeLoader$<InitialValues<LoginForm>>(() => ({
+  email: '',
+  password: '',
+}));
+```
+
+We have created a `routeLoader$`, which is data from the server with default values for our form.
+
+Modular Forms need the default values to initialize the store of the form. Thanks to Qwik's resumability, this step can be done entirely on the server without runtime costs in the browser.
+
+### Creating a form
+
+Now we can create our `useForm` hook to build out our form UI and client validations:
+
+```tsx
+export default component$(() => {
+  const [loginForm, { Form, Field, FieldArray }] = useForm<LoginForm>({
+    loader: useFormLoader(),
+  });
+});
+```
+
+Note that the hook returns a tuple which we can name whatever we want à la React `useState` hook style.
+
+As we can tell from the above, we get three components out of this hook that we can use to build out our UI: `Form`, `Field`, and `FieldArray`.
+
+The `Field` component uses a headless approach, which means that it does not render any HTML, which gives you, as a developer, maximum flexibility.
+
+### Adding fields to the form
+
+All we have to do to add fields to our form is the following:
+
+```tsx
+export default component$(() => {
+  const [loginForm, { Form, Field }] = useForm<LoginForm>({
+    loader: useFormLoader(),
+  });
+
+  return (
+    <Form>
+      <Field name="email">
+        {(field, props) => <input {...props} type="email" />}
+      </Field>
+      <Field name="password">
+        {(field, props) => <input {...props} type="password" />}
+      </Field>
+      <button class="w-max" type="submit">
+        Login
+       </button>
+    </Form>
+  );
+});
+```
+
+### Validating on the client side
+
+At this point, we will get no indication to any errors on the client, or on the server, as we do not have a `routeAction$` to handle the form submission, nor any sort of client validation functions.
+
+Modular Forms comes with its own validation functions, which you can use, but for the sake of this post, I will continue using Zod.
+
+> **Tip:** It’s important to note that validations in Modular Forms, except for server actions, happen on the browser.
+
+To add Zod validations we need to change our schema a bit, like so:
+
+```tsx
+const formSchema = z.object({
+  email: z.string().nonempty(),
+  password: z.string().min(8),
+  email: z
+    .string()
+    .nonempty('please enter your email')
+    .email('enter a valid email'),
+  password: z
+    .string()
+    .min(1, 'please enter a password')
+    .min(8, 'You password must have 8 characters or more.'),
+});
+```
+
+The second argument to the Zod’s validation helper functions is just the error message that will be thrown.
+
+In order to activate those validations, we need to pull in the `zodForm$` adapter and add it as an argument to the `useForm` hook:
+
+```tsx
+const [loginForm, { Form, Field }] = useForm<LoginForm>({
+  loader: useFormLoader(),
+  validate: zodForm$(formSchema),
+});
+```
+
+Once we’ve added that, we need to display these errors. They will now be a part of the `field` argument. In case there is an error, the message will appear in the `error` property of that field.
+
+To show the error, we can then add the following to our `JSX`:
+
+```tsx
+export default component$(() => {
+  const [_, { Form, Field }] = useForm<LoginForm>({
+    loader: useFormLoader(),
+    validate: zodForm$(formSchema),
+  });
+
+  return (
+    <section class="p-4">
+      <h1>Qwik Modular Forms</h1>
+      <Form class="flex flex-col gap-2">
+        <Field name="email">
+          {(field, props) => (
+            <>
+              <input
+                class="w-96"
+                placeholder="enter email"
+                {...props}
+                type="email"
+              />
+              {field.error && <div>{field.error}</div>}
+            </>
+          )}
+        </Field>
+        <Field name="password">
+          {(field, props) => (
+            <>
+              <input
+                class={'w-96'}
+                placeholder="enter password"
+                {...props}
+                type="password"
+              />
+              {field.error && <div>{field.error}</div>}
+            </>
+          )}
+        </Field>
+        <button class="w-max" type="submit">
+          Login
+        </button>
+      </Form>
+    </section>
+  );
+});
+```
+
+The result is that the error messages will render underneath the field, in case the field is invalid:
+
+<video muted loop autoplay>
+  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fc4d52092565c47df90169c863f825718%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=c4d52092565c47df90169c863f825718&alt=media&optimized=true" type="video/mp4"/>
+</video>
+
+### Handling submissions
+
+If you’ve been observant enough, you might have noticed that even though we have validation on the client, we still don’t actually submit it.
+
+Now, to add this to our form, all we have to do is add a `formAction$` function to our `useForm`:
+
+```tsx
+// FILE: src/routes/modular-forms/index.tsx
+
+// .... our previous code
+
+export const useFormAction = formAction$<LoginForm>((values) => {
+  // Runs on server
+  console.log(values);
+  // This validates the values on the server side.
+  // And cannot be manipulated by an attacker. ✅ 
+}, zodForm$(formSchema));
+
+export default component$(() => {
+  const [_, { Form, Field }] = useForm<LoginForm>({
+    loader: useFormLoader(),
+    validate: zodForm$(formSchema),
+    action: useFormAction(),
+  });
+
+  // ... the rest of our previous code
+}
+```
+
+To optionally process the form values client-side as well, we can add a function that is passed to the `onSubmit$` property of the `Form` component.
+
+```tsx
+export default component$(() => {
+  // ... 
+
+  const handleSubmit: SubmitHandler<LoginForm> = $((values, event) => {
+    // Runs on client
+  });
+
+  return (
+    <Form onSubmit$={handleSubmit}>
+      …
+    </Form>
+  );
+}
+```
+
+Something that I have not found clear was how you get the response from the server back on the client. Perhaps this is a needed feature to request, as this library is still in beta.
+
+It’s just something that I got accustomed to with `routeAction$`, and I expected it to behave the same and give me a signal with the server response.
+
+I asked Fabian, the creator of the library, and he helped me out.
+
+As the library is both for SolidJS and Qwik, the intention is to keep a similar API. All that to say that in order to access the server response, all you need to do is return it with the `FormActionResult` signature.
+
+To get our end to end types correct, we now need to add a return type as a second generic to our `formAction$` call:
+
+```tsx
+export const useFormAction = formAction$<LoginForm, LoginResponse>(
+  async ({ email, password }) => {
+    // Runs on server
+    // simulating adding a user to the DB.
+    const createdUserID = await db.users.add({ email, password })
+    return {
+      status: 'success',
+      message: 'User added successfully',
+      data: { createdUserID },
+    };
+  },
+  zodForm$(formSchema)
+);
+```
+
+Now we get that sweet auto complete in our client-side code:
+
+<video muted loop autoplay>
+  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F66df5ff3e04c4ded80408ec28eb4b8ce%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=66df5ff3e04c4ded80408ec28eb4b8ce&alt=media&optimized=true" type="video/mp4"/>
+</video>
+
+Notice that we also get a loading state through the `submitting` property as well as the response data once the server responds:
+
+<video muted loop autoplay>
+  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F71557150d6d74bf6ab6eac654c55b27c%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=71557150d6d74bf6ab6eac654c55b27c&alt=media&optimized=true" type="video/mp4"/>
+</video>
+
+
+### Bonus: Progressively enhanced form out of the box
+
+This is more a feature of Qwik than the Modular Forms library, however, it’s worth noting. To show this off, all we need is to turn off JavaScript in your browser (Chrome devtools → open command palette → Disable JavaScript).
+
+Once deactivated, the form will still work as below:
+
+<video muted loop autoplay>
+  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F5d090afa01ba40e3b9f5e2395c004deb%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=5d090afa01ba40e3b9f5e2395c004deb&alt=media&optimized=true" type="video/mp4"/>
+</video>
+
+## TL;DR
+
+So, basically, if you're a developer and you want to build forms that are easy to use and maintain while ensuring type safety on both the client and server side, then you should check out the combination of Modular Forms and Qwik.
+
+One of the cool things about Modular Forms is that it uses Zod for validation and schema definition on the server-side. This makes it super efficient and reliable. Also, it has built-in validation functions that you use to validate form data on the client-side. This helps to improve the user experience and prevent errors.
+
+Now, Qwik is also pretty sweet because it has a progressively enhanced form feature. This means that even if JavaScript is off in the user's browser, the forms still work. So, everyone can use the forms, no matter what their browser settings are.
+
+All in all, Modular Forms and Qwik make it super straightforward and safe for developers to build forms for their web applications and websites. So, if that's something you need to do, you should definitely give this combo a try!
+
+</ArticleBlock>

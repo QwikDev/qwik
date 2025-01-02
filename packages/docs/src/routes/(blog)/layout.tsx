@@ -11,6 +11,14 @@ export const onRequest: RequestHandler = async (request) => {
 
 export default component$(() => {
   useStyles$(docsStyles);
+  useStyles$(`
+    .docs article p {
+      font-size: 18px;
+    }
+
+    #qwik-image-warning-container {
+      display: none;
+    }`);
 
   useImageProvider({ imageTransformer$: $(({ src }: ImageTransformerProps): string => src) });
 
@@ -22,7 +30,7 @@ export default component$(() => {
           <div class="purple-gradient" role="presentation" />
           <div class="blue-gradient" role="presentation" />
           <div class="flex flex-wrap gap-9 max-w-[1200px] mb-20 mx-auto">
-            <div class="w-full">
+            <div class="w-full px-10 xl:px-0">
               <Slot />
             </div>
           </div>

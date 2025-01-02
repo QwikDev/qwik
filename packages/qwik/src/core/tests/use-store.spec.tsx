@@ -394,8 +394,8 @@ describe.each([
 
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
-          <InlineComponent>
-            <InlineComponent>
+          <InlineComponent ssr-required>
+            <InlineComponent ssr-required>
               <button class="repl-tab-button">Options</button>
             </InlineComponent>
           </InlineComponent>
@@ -406,8 +406,8 @@ describe.each([
 
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
-          <InlineComponent>
-            <InlineComponent>
+          <InlineComponent ssr-required>
+            <InlineComponent ssr-required>
               <button class="active-tab repl-tab-button">Options</button>
             </InlineComponent>
           </InlineComponent>
@@ -1009,58 +1009,6 @@ describe.each([
       );
       vi.clearAllTimers();
       vi.useRealTimers();
-    });
-
-    it.skip('#5662 - should update value in the list', async () => {
-      /**
-       * ROOT CAUSE ANALYSIS: This is a bug in Optimizer. The optimizer incorrectly marks the
-       * `onClick` listener as 'const'/'immutable'. Because it is const, the QRL associated with the
-       * click handler always points to the original object, and it is not updated.
-       */
-      const Cmp = component$(() => {
-        const store = useStore<{ users: { name: string }[] }>({ users: [{ name: 'Giorgio' }] });
-
-        return (
-          <div>
-            {store.users.map((user, key) => (
-              <span
-                key={key}
-                onClick$={() => {
-                  store.users = store.users.map(({ name }: { name: string }) => ({
-                    name: name === user.name ? name + '!' : name,
-                  }));
-                }}
-              >
-                {user.name}
-              </span>
-            ))}
-          </div>
-        );
-      });
-      const { vNode, container } = await render(<Cmp />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <div>
-            <span key="0">
-              <Signal>{'Giorgio'}</Signal>
-            </span>
-          </div>
-        </Component>
-      );
-      await trigger(container.element, 'span', 'click');
-      await trigger(container.element, 'span', 'click');
-      await trigger(container.element, 'span', 'click');
-      await trigger(container.element, 'span', 'click');
-      await trigger(container.element, 'span', 'click');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <div>
-            <span key="0">
-              <Signal>{'Giorgio!!!!!'}</Signal>
-            </span>
-          </div>
-        </Component>
-      );
     });
 
     it('#5017 - should update child nodes for direct array', async () => {

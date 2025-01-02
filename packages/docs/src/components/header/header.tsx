@@ -90,7 +90,7 @@ export const Header = component$(() => {
                 </span>
               </a>
             </li>
-            {/* <li>
+            <li>
               <a
                 href="/blog/"
                 class={{ active: pathname.startsWith('/blog') }}
@@ -98,7 +98,7 @@ export const Header = component$(() => {
               >
                 <span>Blog</span>
               </a>
-            </li> */}
+            </li>
             <li>
               <DocSearch
                 appId={import.meta.env.VITE_ALGOLIA_APP_ID}

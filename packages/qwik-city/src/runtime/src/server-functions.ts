@@ -479,19 +479,19 @@ export const serverQrl = <T extends ServerFunction>(
         } else if (contentType === 'application/qwik-json') {
           const str = await res.text();
           const obj = await _deserializeData(str, ctxElm ?? document.documentElement);
-          if (res.status >= 500) {
+          if (res.status >= 400) {
             throw obj;
           }
           return obj;
         } else if (contentType === 'application/json') {
           const obj = await res.json();
-          if (res.status >= 500) {
+          if (res.status >= 400) {
             throw obj;
           }
           return obj;
         } else if (contentType === 'text/plain' || contentType === 'text/html') {
           const str = await res.text();
-          if (res.status >= 500) {
+          if (res.status >= 400) {
             throw str;
           }
           return str;

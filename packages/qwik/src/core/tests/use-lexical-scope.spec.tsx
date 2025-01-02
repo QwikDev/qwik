@@ -20,15 +20,15 @@ describe.each([
 
     const Parent = component$(() => {
       const cart = useStore<Cart>([]);
-      const results = useSignal(['foo']);
+      const results = useSignal(['foo', 'bar']);
 
       return (
         <div>
-          <button id="first" onClick$={() => (results.value = ['item'])}></button>
+          <button id="first" onClick$={() => (results.value = ['item1', 'item2'])}></button>
 
-          {results.value.map((item) => (
+          {results.value.map((item, key) => (
             <button
-              id="second"
+              id={'second-' + key}
               onClick$={() => {
                 cart.push(item);
               }}
@@ -53,7 +53,8 @@ describe.each([
       <Component>
         <div>
           <button id="first"></button>
-          <button id="second">foo</button>
+          <button id="second-0">foo</button>
+          <button id="second-1">bar</button>
           <ul></ul>
         </div>
       </Component>
@@ -65,22 +66,24 @@ describe.each([
       <Component>
         <div>
           <button id="first"></button>
-          <button id="second">item</button>
+          <button id="second-0">item1</button>
+          <button id="second-1">item2</button>
           <ul></ul>
         </div>
       </Component>
     );
 
-    await trigger(document.body, 'button#second', 'click');
+    await trigger(document.body, 'button#second-1', 'click');
 
     expect(vNode).toMatchVDOM(
       <Component>
         <div>
           <button id="first"></button>
-          <button id="second">item</button>
+          <button id="second-0">item1</button>
+          <button id="second-1">item2</button>
           <ul>
             <li>
-              <span>item</span>
+              <span>item2</span>
             </li>
           </ul>
         </div>

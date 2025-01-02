@@ -1789,9 +1789,11 @@ impl<'a> Fold for QwikTransform<'a> {
 			.expect("Declaration stack empty!");
 
 		let is_qcomponent = is_qcomponent(&self.stack_ctxt.last());
+		let is_top_level_inline_component = is_top_level(&self.stack_ctxt);
+		let is_component = is_qcomponent || is_top_level_inline_component;
 
 		for param in &node.params {
-			current_scope.extend(process_node_props(&param.pat, is_qcomponent));
+			current_scope.extend(process_node_props(&param.pat, is_component));
 		}
 		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
@@ -1815,9 +1817,11 @@ impl<'a> Fold for QwikTransform<'a> {
 			.expect("Declaration stack empty!");
 
 		let is_qcomponent = is_qcomponent(&self.stack_ctxt.last());
+		let is_top_level_inline_component = is_top_level(&self.stack_ctxt);
+		let is_component = is_qcomponent || is_top_level_inline_component;
 
 		for param in &node.params {
-			current_scope.extend(process_node_props(param, is_qcomponent));
+			current_scope.extend(process_node_props(param, is_component));
 		}
 
 		let o = node.fold_children_with(self);
@@ -1861,20 +1865,22 @@ impl<'a> Fold for QwikTransform<'a> {
 			.expect("Declaration stack empty!");
 
 		let is_qcomponent = is_qcomponent(&self.stack_ctxt.last());
+		let is_top_level_inline_component = is_top_level(&self.stack_ctxt);
+		let is_component = is_qcomponent || is_top_level_inline_component;
 
 		match node.left.clone() {
 			ast::ForHead::VarDecl(var_decl) => {
 				for decl in &var_decl.decls {
-					current_scope.extend(process_node_props(&decl.name, is_qcomponent));
+					current_scope.extend(process_node_props(&decl.name, is_component));
 				}
 			}
 			ast::ForHead::UsingDecl(using_decl) => {
 				for decl in &using_decl.decls {
-					current_scope.extend(process_node_props(&decl.name, is_qcomponent));
+					current_scope.extend(process_node_props(&decl.name, is_component));
 				}
 			}
 			ast::ForHead::Pat(pat) => {
-				current_scope.extend(process_node_props(&pat, is_qcomponent));
+				current_scope.extend(process_node_props(&pat, is_component));
 			}
 		}
 
@@ -2374,6 +2380,10 @@ fn is_text_only(node: &str) -> bool {
 
 fn is_qcomponent(stack_item: &Option<&String>) -> bool {
 	*stack_item == Some(&QCOMPONENT.to_string())
+}
+
+const fn is_top_level(stack: &[String]) -> bool {
+	stack.len() == 1
 }
 
 fn process_node_props(pat: &ast::Pat, is_qcomponent: bool) -> Vec<IdPlusType> {

@@ -9,7 +9,7 @@ export default component$(() => {
   state.foo = <div>Foo</div>;
 
   useTask$(() => {
-    // eslint-disable-next-line no-console
+    /* eslint no-console: [, { allow: ["log"] }] */
     console.log(state.foo);
   });
   return <></>;

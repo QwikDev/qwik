@@ -150,7 +150,9 @@ describe.each([
                 <Awaited ssr-required>
                   <Component ssr-required>
                     <Fragment ssr-required>
-                      <p>1</p>
+                      <p>
+                        <WrappedSignal ssr-required>1</WrappedSignal>
+                      </p>
                       <p>
                         <Awaited>0</Awaited>
                       </p>
@@ -176,7 +178,9 @@ describe.each([
                 <Awaited ssr-required>
                   <Component ssr-required>
                     <Fragment ssr-required>
-                      <p>1</p>
+                      <p>
+                        <WrappedSignal ssr-required>1</WrappedSignal>
+                      </p>
                       <p>
                         <Awaited ssr-required>2</Awaited>
                       </p>

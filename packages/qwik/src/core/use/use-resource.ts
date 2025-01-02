@@ -195,8 +195,11 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
       } else if (state === 'rejected' && props.onRejected) {
         return Promise.resolve(resource._error!).then(props.onRejected);
       } else {
-        // resolved, pending without onPending prop or rejected with onRejected prop
-        return Promise.resolve(untrack(() => resource._resolved) as T).then(props.onResolved);
+        const resolvedValue = untrack(() => resource._resolved) as T;
+        if (resolvedValue !== undefined) {
+          // resolved, pending without onPending prop or rejected without onRejected prop
+          return Promise.resolve(resolvedValue).then(props.onResolved);
+        }
       }
     }
     return resource.value.then(

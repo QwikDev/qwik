@@ -33,7 +33,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>
 }, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAGA,OAAO,MAAM,oBAAM,sCAAW,CAAC;IAC3B,qBACI,MAAC;kBACG,cAAA,MAAC;YAAE,OAAM;YAAQ,QAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;WAAS;;AAGlE,iCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;;;AAGA,OAAO,MAAM,oBAAM,sCAAW,CAAC;IAC3B,qBACI,MAAC;kBACG,cAAA,MAAC;YAAE,OAAM;YAAQ,QAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;WAAS;;AAGlE,iCAAG\"}")
 == DIAGNOSTICS ==
 
 []

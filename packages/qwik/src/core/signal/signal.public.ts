@@ -1,8 +1,10 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import type { QRL } from '../shared/qrl/qrl.public';
+import type { ConstructorFn, CustomSerializable, SerializedSignal } from './signal';
 import {
   createSignal as _createSignal,
   createComputedSignal as _createComputedSignal,
+  createSerializedSignal as createSerializedQrl,
 } from './signal-api';
 
 export { isSignal } from './signal';
@@ -72,3 +74,17 @@ export const createComputedQrl: <T>(
  * @public
  */
 export const createComputed$ = /*#__PURE__*/ implicit$FirstArg(createComputedQrl);
+
+export { createSerializedQrl };
+/**
+ * Create a signal that holds a custom serializable value. See `useSerialized$` for more details.
+ *
+ * @public
+ */
+export const createSerialized$: <
+  T extends CustomSerializable<T, S>,
+  S,
+  F extends ConstructorFn<T, S> = ConstructorFn<T, S>,
+>(
+  qrl: F | QRL<F>
+) => SerializedSignal<T, S, F> = /*#__PURE__*/ implicit$FirstArg(createSerializedQrl as any);

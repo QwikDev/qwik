@@ -2,7 +2,12 @@ import { $, component$, noSerialize } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { _fnSignal, _wrapProp } from '../internal';
 import { EffectPropData, type Signal } from '../signal/signal';
-import { createComputed$, createSignal, isSignal } from '../signal/signal.public';
+import {
+  createComputed$,
+  createSerialized$,
+  createSignal,
+  isSignal,
+} from '../signal/signal.public';
 import { StoreFlags, createStore } from '../signal/store';
 import { createResourceReturn } from '../use/use-resource';
 import { Task } from '../use/use-task';
@@ -352,9 +357,13 @@ describe('shared-serialization', () => {
       `);
     });
     it(title(TypeIds.WrappedSignal), async () => {
+      const propSignal = _wrapProp({ foo: 3 }, 'foo');
+      if (propSignal.value) {
+        Math.random();
+      }
       const objs = await serialize(
         _fnSignal((p0) => p0 + 1, [3], '(p0)=>p0+1'),
-        _wrapProp({})
+        propSignal
       );
       expect(dumpState(objs)).toMatchInlineSnapshot(`
         "
@@ -364,19 +373,24 @@ describe('shared-serialization', () => {
             Number 3
           ]
           Constant null
-          Number 4
+          Constant NEEDS_COMPUTATION
           Constant null
         ]
         1 WrappedSignal [
           Number 1
           Array [
-            Object []
+            Object [
+              RootRef 2
+              Number 3
+            ]
+            RootRef 2
           ]
           Constant null
-          Constant undefined
+          Number 3
           Constant null
         ]
-        (61 chars)"
+        2 String "foo"
+        (80 chars)"
       `);
     });
     it(title(TypeIds.ComputedSignal), async () => {
@@ -405,6 +419,24 @@ describe('shared-serialization', () => {
         (186 chars)"
       `);
     });
+    it(title(TypeIds.SerializedSignal), async () => {
+      const custom = createSerialized$<MyCustomSerializable, number>(
+        (prev) => new MyCustomSerializable((prev as number) || 3)
+      );
+      // Force the value to be created
+      custom.value.inc();
+      const objs = await serialize(custom);
+      expect(dumpState(objs)).toMatchInlineSnapshot(`
+        "
+        0 SerializedSignal [
+          QRL 1
+          Constant null
+          Number 4
+        ]
+        1 String "mock-chunk#describe_describe_it_custom_createSerialized_RQFR5EU0bpE"
+        (91 chars)"
+      `);
+    });
     it(title(TypeIds.Store), async () => {
       expect(await dump(createStore(null, { a: { b: true } }, StoreFlags.RECURSIVE)))
         .toMatchInlineSnapshot(`
@@ -420,6 +452,24 @@ describe('shared-serialization', () => {
             Number 1
           ]
           (36 chars)"
+        `);
+    });
+    it(title(TypeIds.StoreArray), async () => {
+      expect(await dump(createStore(null, [1, { b: true }, 3], StoreFlags.NONE)))
+        .toMatchInlineSnapshot(`
+          "
+          0 StoreArray [
+            Array [
+              Number 1
+              Object [
+                String "b"
+                Constant true
+              ]
+              Number 3
+            ]
+            Number 0
+          ]
+          (37 chars)"
         `);
     });
     it.todo(title(TypeIds.FormData));
@@ -609,6 +659,7 @@ describe('shared-serialization', () => {
     });
     it.todo(title(TypeIds.WrappedSignal));
     it.todo(title(TypeIds.ComputedSignal));
+    it.todo(title(TypeIds.SerializedSignal));
     // this requires a domcontainer
     it.skip(title(TypeIds.Store), async () => {
       const objs = await serialize(createStore(null, { a: { b: true } }, StoreFlags.RECURSIVE));
@@ -616,6 +667,7 @@ describe('shared-serialization', () => {
       expect(store).toHaveProperty('a');
       expect(store.a).toHaveProperty('b', true);
     });
+    it.todo(title(TypeIds.StoreArray));
     it.todo(title(TypeIds.FormData));
     it.todo(title(TypeIds.JSXNode));
     it.todo(title(TypeIds.PropsProxy));
@@ -806,14 +858,15 @@ describe('shared-serialization', () => {
           return this.hi;
         }
       }
-      const state = await serialize([obj, new Foo()]);
+      const state = await serialize([obj, new Foo(), new MyCustomSerializable(1)]);
       expect(dumpState(state)).toMatchInlineSnapshot(`
         "
         0 Array [
           String "obj"
           String "class"
+          Number 1
         ]
-        (23 chars)"
+        (27 chars)"
       `);
     });
     it('should not use SerializeSymbol if not function', async () => {
@@ -850,4 +903,14 @@ async function serialize(...roots: any[]): Promise<any[]> {
   // eslint-disable-next-line no-console
   DEBUG && console.log(objs);
   return objs;
+}
+
+class MyCustomSerializable {
+  constructor(public n: number) {}
+  inc() {
+    this.n++;
+  }
+  [SerializerSymbol]() {
+    return this.n;
+  }
 }

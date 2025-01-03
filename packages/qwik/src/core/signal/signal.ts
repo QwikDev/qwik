@@ -32,6 +32,7 @@ import type { Props } from '../shared/jsx/jsx-runtime';
 import type { OnRenderFn } from '../shared/component.public';
 import { NEEDS_COMPUTATION } from './flags';
 import { QError, qError } from '../shared/error/error';
+import { SerializerSymbol } from '../shared/utils/serialize-utils';
 
 const DEBUG = false;
 
@@ -47,7 +48,7 @@ export interface InternalSignal<T = any> extends InternalReadonlySignal<T> {
   untrackedValue: T;
 }
 
-export const throwIfQRLNotResolved = <T>(qrl: QRL<() => T>) => {
+export const throwIfQRLNotResolved = (qrl: QRL) => {
   const resolved = qrl.resolved;
   if (!resolved) {
     // When we are creating a signal using a use method, we need to ensure
@@ -205,7 +206,6 @@ export class Signal<T = any> implements ISignal<T> {
     }
     return this.untrackedValue;
   }
-
   set value(value) {
     if (value !== this.$untrackedValue$) {
       DEBUG &&
@@ -371,6 +371,8 @@ export const triggerEffects = (
   DEBUG && log('done scheduling');
 };
 
+type ComputeQRL<T> = QRLInternal<(prev: T | undefined) => T>;
+
 /**
  * A signal which is computed from other signals.
  *
@@ -383,13 +385,13 @@ export class ComputedSignal<T> extends Signal<T> {
    * The computed functions must be executed synchronously (because of this we need to eagerly
    * resolve the QRL during the mark dirty phase so that any call to it will be synchronous). )
    */
-  $computeQrl$: QRLInternal<() => T>;
+  $computeQrl$: ComputeQRL<T>;
   // We need a separate flag to know when the computation needs running because
   // we need the old value to know if effects need running after computation
   $invalid$: boolean = true;
   $forceRunEffects$: boolean = false;
 
-  constructor(container: Container | null, fn: QRLInternal<() => T>) {
+  constructor(container: Container | null, fn: ComputeQRL<T>) {
     // The value is used for comparison when signals trigger, which can only happen
     // when it was calculated before. Therefore we can pass whatever we like.
     super(container, NEEDS_COMPUTATION);
@@ -434,7 +436,9 @@ export class ComputedSignal<T> extends Signal<T> {
     const previousEffectSubscription = ctx?.$effectSubscriber$;
     ctx && (ctx.$effectSubscriber$ = [this, EffectProperty.VNODE]);
     try {
-      const untrackedValue = computeQrl.getFn(ctx)() as T;
+      const untrackedValue = computeQrl.getFn(ctx)(
+        this.$untrackedValue$ === NEEDS_COMPUTATION ? undefined : this.$untrackedValue$
+      ) as T;
       if (isPromise(untrackedValue)) {
         throw qError(QError.computedNotSync, [
           computeQrl.dev ? computeQrl.dev.file : '',
@@ -456,13 +460,13 @@ export class ComputedSignal<T> extends Signal<T> {
     }
   }
 
-  // Getters don't get inherited
-  get value() {
-    return super.value;
-  }
-
+  // Make this signal read-only
   set value(_: any) {
     throw qError(QError.computedReadOnly);
+  }
+  // Getters don't get inherited when overriding a setter
+  get value() {
+    return super.value;
   }
 }
 
@@ -537,13 +541,51 @@ export class WrappedSignal<T> extends Signal<T> implements Subscriber {
     }
     return didChange;
   }
-
-  // Getters don't get inherited
-  get value() {
-    return super.value;
-  }
-
+  // Make this signal read-only
   set value(_: any) {
     throw qError(QError.wrappedReadOnly);
   }
+  // Getters don't get inherited when overriding a setter
+  get value() {
+    return super.value;
+  }
 }
+
+export type CustomSerializable<T, S> = { [SerializerSymbol]: (obj: T) => S };
+/**
+ * Called with serialized data to reconstruct an object. If it uses signals or stores, it will be
+ * called when these change, and then the argument will be the previously constructed object.
+ *
+ * The constructed object should provide a `[SerializerSymbol]` method which provides the serialized
+ * data.
+ *
+ * This function may not return a promise.
+ *
+ * @public
+ */
+export type ConstructorFn<T extends CustomSerializable<T, S>, S> = (
+  data: S | T | undefined
+) => T extends Promise<any> ? never : T;
+
+/**
+ * A signal which provides a non-serializable value. It works like a computed signal, but it is
+ * handled slightly differently during serdes.
+ *
+ * @public
+ */
+export class SerializedSignal<
+  T extends CustomSerializable<T, S>,
+  S,
+  F extends ConstructorFn<T, S>,
+> extends ComputedSignal<T> {
+  constructor(container: Container | null, fn: QRL<F>) {
+    super(container, fn as unknown as ComputeQRL<T>);
+  }
+}
+
+/** @internal */
+export const isSerializerObj = <T, S>(obj: unknown): obj is CustomSerializable<T, S> => {
+  return (
+    typeof obj === 'object' && obj !== null && typeof (obj as any)[SerializerSymbol] === 'function'
+  );
+};

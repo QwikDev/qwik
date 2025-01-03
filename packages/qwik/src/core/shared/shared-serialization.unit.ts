@@ -1,8 +1,13 @@
-import { $, component$ } from '@qwik.dev/core';
+import { $, component$, noSerialize } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { _fnSignal, _wrapProp } from '../internal';
 import { EffectPropData, type Signal } from '../signal/signal';
-import { createComputed$, createSignal, isSignal } from '../signal/signal.public';
+import {
+  createComputed$,
+  createSerialized$,
+  createSignal,
+  isSignal,
+} from '../signal/signal.public';
 import { StoreFlags, createStore } from '../signal/store';
 import { createResourceReturn } from '../use/use-resource';
 import { Task } from '../use/use-task';
@@ -17,6 +22,7 @@ import {
   dumpState,
 } from './shared-serialization';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
+import { NoSerializeSymbol, SerializerSymbol } from './utils/serialize-utils';
 
 const DEBUG = false;
 
@@ -404,6 +410,24 @@ describe('shared-serialization', () => {
         (186 chars)"
       `);
     });
+    it(title(TypeIds.SerializedSignal), async () => {
+      const custom = createSerialized$<MyCustomSerializable, number>(
+        (prev) => new MyCustomSerializable((prev as number) || 3)
+      );
+      // Force the value to be created
+      custom.value.inc();
+      const objs = await serialize(custom);
+      expect(dumpState(objs)).toMatchInlineSnapshot(`
+        "
+        0 SerializedSignal [
+          QRL 1
+          Constant null
+          Number 4
+        ]
+        1 String "mock-chunk#describe_describe_it_custom_createSerialized_RQFR5EU0bpE"
+        (91 chars)"
+      `);
+    });
     it(title(TypeIds.Store), async () => {
       expect(await dump(createStore(null, { a: { b: true } }, StoreFlags.RECURSIVE)))
         .toMatchInlineSnapshot(`
@@ -419,6 +443,24 @@ describe('shared-serialization', () => {
             Number 1
           ]
           (36 chars)"
+        `);
+    });
+    it(title(TypeIds.StoreArray), async () => {
+      expect(await dump(createStore(null, [1, { b: true }, 3], StoreFlags.NONE)))
+        .toMatchInlineSnapshot(`
+          "
+          0 StoreArray [
+            Array [
+              Number 1
+              Object [
+                String "b"
+                Constant true
+              ]
+              Number 3
+            ]
+            Number 0
+          ]
+          (37 chars)"
         `);
     });
     it.todo(title(TypeIds.FormData));
@@ -608,6 +650,7 @@ describe('shared-serialization', () => {
     });
     it.todo(title(TypeIds.WrappedSignal));
     it.todo(title(TypeIds.ComputedSignal));
+    it.todo(title(TypeIds.SerializedSignal));
     // this requires a domcontainer
     it.skip(title(TypeIds.Store), async () => {
       const objs = await serialize(createStore(null, { a: { b: true } }, StoreFlags.RECURSIVE));
@@ -615,6 +658,7 @@ describe('shared-serialization', () => {
       expect(store).toHaveProperty('a');
       expect(store.a).toHaveProperty('b', true);
     });
+    it.todo(title(TypeIds.StoreArray));
     it.todo(title(TypeIds.FormData));
     it.todo(title(TypeIds.JSXNode));
     it.todo(title(TypeIds.PropsProxy));
@@ -780,6 +824,72 @@ describe('shared-serialization', () => {
       expect((obj as any).shared).toBe(newValue);
     });
   });
+
+  describe('custom serialization', () => {
+    it('should ignore noSerialize', async () => {
+      const obj = { hi: true };
+      const state = await serialize(noSerialize(obj));
+      expect(dumpState(state)).toMatchInlineSnapshot(`
+        "
+        0 Constant undefined
+        (5 chars)"
+      `);
+    });
+    it('should ignore NoSerializeSymbol', async () => {
+      const obj = { hi: true, [NoSerializeSymbol]: true };
+      const state = await serialize(obj);
+      expect(dumpState(state)).toMatchInlineSnapshot(`
+        "
+        0 Constant undefined
+        (5 chars)"
+      `);
+    });
+    it('should use SerializerSymbol', async () => {
+      const obj = { hi: 'obj', [SerializerSymbol]: (o: any) => o.hi };
+      class Foo {
+        hi = 'class';
+        [SerializerSymbol]() {
+          return this.hi;
+        }
+      }
+      const state = await serialize([obj, new Foo(), new MyCustomSerializable(1)]);
+      expect(dumpState(state)).toMatchInlineSnapshot(`
+        "
+        0 Array [
+          String "obj"
+          String "class"
+          Number 1
+        ]
+        (27 chars)"
+      `);
+    });
+    it('should not use SerializerSymbol if not function', async () => {
+      const obj = { hi: 'orig', [SerializerSymbol]: 'hey' };
+      const state = await serialize(obj);
+      expect(dumpState(state)).toMatchInlineSnapshot(`
+        "
+        0 Object [
+          String "hi"
+          String "orig"
+        ]
+        (22 chars)"
+      `);
+    });
+    it('should unwrap promises from SerializerSymbol', async () => {
+      class Foo {
+        hi = 'promise';
+        async [SerializerSymbol]() {
+          return Promise.resolve(this.hi);
+        }
+      }
+      const state = await serialize(new Foo());
+      expect(dumpState(state)).toMatchInlineSnapshot(`
+        "
+        0 String "promise"
+        (13 chars)"
+      `);
+    });
+  });
 });
 
 async function serialize(...roots: any[]): Promise<any[]> {
@@ -801,4 +911,14 @@ async function serialize(...roots: any[]): Promise<any[]> {
   // eslint-disable-next-line no-console
   DEBUG && console.log(objs);
   return objs;
+}
+
+class MyCustomSerializable {
+  constructor(public n: number) {}
+  inc() {
+    this.n++;
+  }
+  [SerializerSymbol]() {
+    return this.n;
+  }
 }

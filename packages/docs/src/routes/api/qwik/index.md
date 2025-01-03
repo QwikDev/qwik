@@ -723,6 +723,51 @@ The name of the context.
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
 
+## createSerialized$
+
+Create a signal that holds a custom serializable value. See `useSerialized$` for more details.
+
+```typescript
+createSerialized$: <
+  T extends CustomSerializable<T, S>,
+  S,
+  F extends ConstructorFn<T, S> = ConstructorFn<T, S>,
+>(
+  qrl: F | QRL<F>,
+) => SerializedSignal<T, S, F>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+qrl
+
+</td><td>
+
+F \| [QRL](#qrl)&lt;F&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+SerializedSignal&lt;T, S, F&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts)
+
 ## createSignal
 
 Creates a Signal with the given value. If no value is given, the signal is created with `undefined`.
@@ -1851,6 +1896,16 @@ export type NoSerialize<T> =
       __no_serialize__: true;
     })
   | undefined;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts)
+
+## NoSerializeSymbol
+
+If an object has this property, it will not be serialized
+
+```typescript
+NoSerializeSymbol: unique symbol
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts)
@@ -3549,6 +3604,18 @@ export type ResourceReturn<T> =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
+## SerializerSymbol
+
+If an object has this property as a function, it will be called with the object and should return a serializable value.
+
+This can be used to clean up etc.
+
+```typescript
+SerializerSymbol: unique symbol
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts)
+
 ## setPlatform
 
 Sets the `CorePlatform`.
@@ -4882,6 +4949,45 @@ _(Optional)_
 [ResourceReturn](#resourcereturn)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource-dollar.ts)
+
+## useSerialized$
+
+Creates a signal which holds a custom serializable value. It requires that the value implements the `CustomSerializable` type, which means having a function under the `[SerializeSymbol]` property that returns a serializable value when called.
+
+The `fn` you pass is called with the result of the serialization (in the browser, only when the value is needed), or `undefined` when not yet initialized. If you refer to other signals, `fn` will be called when those change just like computed signals, and then the argument will be the previous output, not the serialized result.
+
+This is useful when using third party libraries that use custom objects that are not serializable.
+
+Note that the `fn` is called lazily, so it won't impact container resume.
+
+```typescript
+useSerialized$: {
+    fn: <T extends CustomSerializable<T, S>, S, F extends ConstructorFn<T, S> = ConstructorFn<T, S>>(fn: F | QRL<F>) => T extends Promise<any> ? never : ReadonlySignal<T>;
+}['fn']
+```
+
+```tsx
+class MyCustomSerializable {
+  constructor(public n: number) {}
+  inc() {
+    this.n++;
+  }
+  [SerializeSymbol]() {
+    return this.n;
+  }
+}
+const Cmp = component$(() => {
+  const custom = useSerialized$<MyCustomSerializable, number>(
+    (prev) =>
+      new MyCustomSerializable(
+        prev instanceof MyCustomSerializable ? prev : (prev ?? 3),
+      ),
+  );
+  return <div onClick$={() => custom.value.inc()}>{custom.value.n}</div>;
+});
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-serializer.ts)
 
 ## useServerData
 

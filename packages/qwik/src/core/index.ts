@@ -110,6 +110,7 @@ export type { ContextId } from './use/use-context';
 export type { UseStoreOptions } from './use/use-store.public';
 export type { ComputedFn } from './use/use-computed';
 export { useComputedQrl } from './use/use-computed';
+export { useSerializedQrl, useSerialized$ } from './use/use-serialized';
 export type { OnVisibleTaskOptions, VisibleTaskStrategy } from './use/use-visible-task';
 export { useVisibleTaskQrl } from './use/use-visible-task';
 export type { EagernessOptions, TaskCtx, TaskFn, Tracker, UseTaskOptions } from './use/use-task';
@@ -132,7 +133,14 @@ export { useComputed$ } from './use/use-computed-dollar';
 export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './shared/error/error-handling';
 export { type ReadonlySignal, type Signal, type ComputedSignal } from './signal/signal.public';
-export { isSignal, createSignal, createComputedQrl, createComputed$ } from './signal/signal.public';
+export {
+  isSignal,
+  createSignal,
+  createComputedQrl,
+  createComputed$,
+  createSerializedQrl,
+  createSerialized$,
+} from './signal/signal.public';
 export { EffectPropData as _EffectData } from './signal/signal';
 
 //////////////////////////////////////////////////////////////////////////////////////////

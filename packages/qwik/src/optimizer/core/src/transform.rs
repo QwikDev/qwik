@@ -1735,17 +1735,13 @@ impl<'a> Fold for QwikTransform<'a> {
 	fn fold_var_decl(&mut self, node: ast::VarDecl) -> ast::VarDecl {
 		if let Some(current_scope) = self.decl_stack.last_mut() {
 			for decl in &node.decls {
-				let mut identifiers = Vec::with_capacity(node.decls.len() + 2);
+				let mut identifiers: Vec<(Id, Span)> = Vec::with_capacity(node.decls.len() + 2);
 				collect_from_pat(&decl.name, &mut identifiers);
-				let ident_type = if node.kind == ast::VarDeclKind::Const
-					&& matches!(decl.name, ast::Pat::Ident(_))
-					&& is_return_static(&decl.init)
-				{
-					IdentType::Var(true)
-				} else {
-					IdentType::Var(false)
-				};
-				current_scope.extend(identifiers.into_iter().map(|(id, _)| (id, ident_type)));
+				let is_const = node.kind == ast::VarDeclKind::Const && is_return_static(&decl.init);
+
+				for ident in identifiers {
+					current_scope.push((ident.0, IdentType::Var(is_const)));
+				}
 			}
 		}
 		node.fold_children_with(self)
@@ -2340,6 +2336,7 @@ fn is_return_static(expr: &Option<Box<ast::Expr>>) -> bool {
 			callee: ast::Callee::Expr(box ast::Expr::Ident(ident)),
 			..
 		})) => ident.sym.ends_with('$') || ident.sym.ends_with("Qrl") || ident.sym.starts_with("use"),
+		Some(box (ast::Expr::Array(_) | ast::Expr::Object(_))) => true,
 		Some(_) => false,
 		None => true,
 	}

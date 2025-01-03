@@ -1053,13 +1053,11 @@ function serialize(serializationContext: SerializationContext): void {
         output(TypeIds.Constant, Constants.EMPTY_ARRAY);
       } else if (value === EMPTY_OBJ) {
         output(TypeIds.Constant, Constants.EMPTY_OBJ);
+      } else if (value === null) {
+        output(TypeIds.Constant, Constants.Null);
       } else {
         depth++;
-        if (value === null) {
-          output(TypeIds.Constant, Constants.Null);
-        } else {
-          writeObjectValue(value, idx);
-        }
+        writeObjectValue(value, idx);
         depth--;
       }
     } else if (typeof value === 'string') {
@@ -1148,8 +1146,17 @@ function serialize(serializationContext: SerializationContext): void {
         }
         output(Array.isArray(storeTarget) ? TypeIds.StoreArray : TypeIds.Store, out);
       }
-    } else if (SerializerSymbol in value && typeof value[SerializerSymbol] === 'function') {
-      const result = serializationResults.get(value);
+    } else if (isSerializerObj(value)) {
+      let result = serializationResults.get(value);
+      // special case: we unwrap Promises
+      if (isPromise(result)) {
+        const promiseResult = promiseResults.get(result)!;
+        if (!promiseResult[0]) {
+          console.error(promiseResult[1]);
+          throw qError(QError.serializerSymbolRejectedPromise);
+        }
+        result = promiseResult[1];
+      }
       depth--;
       writeValue(result, idx);
       depth++;

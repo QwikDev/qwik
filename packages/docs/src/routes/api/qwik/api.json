@@ -222,6 +222,20 @@
       "mdFile": "core.createcontextid.md"
     },
     {
+      "name": "createSerialized$",
+      "id": "createserialized_",
+      "hierarchy": [
+        {
+          "name": "createSerialized$",
+          "id": "createserialized_"
+        }
+      ],
+      "kind": "Function",
+      "content": "Create a signal that holds a custom serializable value. See `useSerialized$` for more details.\n\n\n```typescript\ncreateSerialized$: <T extends CustomSerializable<T, S>, S, F extends ConstructorFn<T, S> = ConstructorFn<T, S>>(qrl: F | QRL<F>) => SerializedSignal<T, S, F>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nF \\| [QRL](#qrl)<!-- -->&lt;F&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nSerializedSignal&lt;T, S, F&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts",
+      "mdFile": "core.createserialized_.md"
+    },
+    {
       "name": "createSignal",
       "id": "createsignal",
       "hierarchy": [
@@ -2030,6 +2044,20 @@
       "content": "This method works like an async memoized function that runs whenever some tracked value changes and returns some data.\n\n`useResource` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.\n\nThe status can be one of the following:\n\n- `pending` - the data is not yet available. - `resolved` - the data is available. - `rejected` - the data is not available due to an error or timeout.\n\nBe careful when using a `try/catch` statement in `useResource$`<!-- -->. If you catch the error and don't re-throw it (or a new Error), the resource status will never be `rejected`<!-- -->.\n\n\\#\\#\\# Example\n\nExample showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.\n\n```tsx\nconst Cmp = component$(() => {\n  const cityS = useSignal('');\n\n  const weatherResource = useResource$(async ({ track, cleanup }) => {\n    const cityName = track(cityS);\n    const abortController = new AbortController();\n    cleanup(() => abortController.abort('cleanup'));\n    const res = await fetch(`http://weatherdata.com?city=${cityName}`, {\n      signal: abortController.signal,\n    });\n    const data = await res.json();\n    return data as { temp: number };\n  });\n\n  return (\n    <div>\n      <input name=\"city\" bind:value={cityS} />\n      <Resource\n        value={weatherResource}\n        onResolved={(weather) => {\n          return <div>Temperature: {weather.temp}</div>;\n        }}\n      />\n    </div>\n  );\n});\n```\n\n\n```typescript\nuseResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => ResourceReturn<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ngeneratorFn\n\n\n</td><td>\n\n[ResourceFn](#resourcefn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\n[ResourceOptions](#resourceoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[ResourceReturn](#resourcereturn)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource-dollar.ts",
       "mdFile": "core.useresource_.md"
+    },
+    {
+      "name": "useSerialized$",
+      "id": "useserialized_",
+      "hierarchy": [
+        {
+          "name": "useSerialized$",
+          "id": "useserialized_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "Creates a signal which holds a custom serializable value. It requires that the value implements the `CustomSerializable` type, which means having a function under the `[SerializeSymbol]` property that returns a serializable value when called.\n\nThe `fn` you pass is called with the result of the serialization (in the browser, only when the value is needed), or `undefined` when not yet initialized. If you refer to other signals, `fn` will be called when those change just like computed signals, and then the argument will be the previous output, not the serialized result.\n\nThis is useful when using third party libraries that use custom objects that are not serializable.\n\nNote that the `fn` is called lazily, so it won't impact container resume.\n\n\n```typescript\nuseSerialized$: {\n    fn: <T extends CustomSerializable<T, S>, S, F extends ConstructorFn<T, S> = ConstructorFn<T, S>>(fn: F | QRL<F>) => T extends Promise<any> ? never : ReadonlySignal<T>;\n}['fn']\n```\n\n\n\n```tsx\nclass MyCustomSerializable {\n  constructor(public n: number) {}\n  inc() {\n    this.n++;\n  }\n  [SerializeSymbol]() {\n    return this.n;\n  }\n}\nconst Cmp = component$(() => {\n  const custom = useSerialized$<MyCustomSerializable, number>(\n    (prev) =>\n      new MyCustomSerializable(prev instanceof MyCustomSerializable ? prev : (prev ?? 3))\n  );\n  return <div onClick$={() => custom.value.inc()}>{custom.value.n}</div>;\n});\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-serializer.ts",
+      "mdFile": "core.useserialized_.md"
     },
     {
       "name": "useServerData",

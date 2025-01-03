@@ -32,6 +32,7 @@ import type { Props } from '../shared/jsx/jsx-runtime';
 import type { OnRenderFn } from '../shared/component.public';
 import { NEEDS_COMPUTATION } from './flags';
 import { QError, qError } from '../shared/error/error';
+import { SerializerSymbol } from '../shared/utils/serialize-utils';
 
 const DEBUG = false;
 
@@ -435,7 +436,9 @@ export class ComputedSignal<T> extends Signal<T> {
     const previousEffectSubscription = ctx?.$effectSubscriber$;
     ctx && (ctx.$effectSubscriber$ = [this, EffectProperty.VNODE]);
     try {
-      const untrackedValue = computeQrl.getFn(ctx)() as T;
+      const untrackedValue = computeQrl.getFn(ctx)(
+        this.$untrackedValue$ === NEEDS_COMPUTATION ? undefined : this.$untrackedValue$
+      ) as T;
       if (isPromise(untrackedValue)) {
         throw qError(QError.computedNotSync, [
           computeQrl.dev ? computeQrl.dev.file : '',
@@ -547,3 +550,42 @@ export class WrappedSignal<T> extends Signal<T> implements Subscriber {
     return super.value;
   }
 }
+
+export type CustomSerializable<T, S> = { [SerializerSymbol]: (obj: T) => S };
+/**
+ * Called with serialized data to reconstruct an object. If it uses signals or stores, it will be
+ * called when these change, and then the argument will be the previously constructed object.
+ *
+ * The constructed object should provide a `[SerializerSymbol]` method which provides the serialized
+ * data.
+ *
+ * This function may not return a promise.
+ *
+ * @public
+ */
+export type ConstructorFn<T extends CustomSerializable<T, S>, S> = (
+  data: S | T | undefined
+) => T extends Promise<any> ? never : T;
+
+/**
+ * A signal which provides a non-serializable value. It works like a computed signal, but it is
+ * handled slightly differently during serdes.
+ *
+ * @public
+ */
+export class SerializedSignal<
+  T extends CustomSerializable<T, S>,
+  S,
+  F extends ConstructorFn<T, S>,
+> extends ComputedSignal<T> {
+  constructor(container: Container | null, fn: QRL<F>) {
+    super(container, fn as unknown as ComputeQRL<T>);
+  }
+}
+
+/** @internal */
+export const isSerializerObj = <T, S>(obj: unknown): obj is CustomSerializable<T, S> => {
+  return (
+    typeof obj === 'object' && obj !== null && typeof (obj as any)[SerializerSymbol] === 'function'
+  );
+};

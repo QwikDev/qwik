@@ -28,7 +28,15 @@ export const head: DocumentHead = () => {
   };
 };
 
-export const onGet: RequestHandler = ({ url, exit: exitMiddlewares }) => {
+export const onGet: RequestHandler = ({
+  error,
+  url,
+  exit: exitMiddlewares,
+}) => {
+  if (url.pathname === "/qwikcity-test/catchall-error/") {
+    throw error(500, "ERROR: Demonstration of an error response.");
+  }
+
   if (url.pathname === "/qwikcity-test/catchall/") {
     // special case catchall
     return;

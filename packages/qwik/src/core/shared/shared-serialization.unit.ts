@@ -1,5 +1,5 @@
 import { $, component$, noSerialize } from '@qwik.dev/core';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { _fnSignal, _wrapProp } from '../internal';
 import { EffectPropData, type Signal } from '../signal/signal';
 import {
@@ -863,7 +863,7 @@ describe('shared-serialization', () => {
         (27 chars)"
       `);
     });
-    it('should not use SerializeSymbol if not function', async () => {
+    it('should not use SerializerSymbol if not function', async () => {
       const obj = { hi: 'orig', [SerializerSymbol]: 'hey' };
       const state = await serialize(obj);
       expect(dumpState(state)).toMatchInlineSnapshot(`
@@ -875,6 +875,33 @@ describe('shared-serialization', () => {
         (22 chars)"
       `);
     });
+    it('should unwrap promises from SerializerSymbol', async () => {
+      class Foo {
+        hi = 'promise';
+        async [SerializerSymbol]() {
+          return Promise.resolve(this.hi);
+        }
+      }
+      const state = await serialize(new Foo());
+      expect(dumpState(state)).toMatchInlineSnapshot(`
+        "
+        0 String "promise"
+        (13 chars)"
+      `);
+    });
+  });
+  it('should throw rejected promises from SerializerSymbol', async () => {
+    const consoleSpy = vi.spyOn(console, 'error');
+
+    class Foo {
+      hi = 'promise';
+      async [SerializerSymbol]() {
+        throw 'oh no';
+      }
+    }
+    await expect(serialize(new Foo())).rejects.toThrow('Q52');
+    expect(consoleSpy).toHaveBeenCalledWith('oh no');
+    consoleSpy.mockRestore();
   });
 });
 

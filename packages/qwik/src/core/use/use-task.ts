@@ -190,7 +190,9 @@ export const runTask = (
   cleanupTask(task);
   const iCtx = newInvokeContext(container.$locale$, host, undefined, TaskEvent);
   iCtx.$container$ = container;
-  const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberEffectDependencies(task)) as TaskFn;
+  const taskFn = task.$qrl$.getFn(iCtx, () =>
+    clearSubscriberEffectDependencies(container, task)
+  ) as TaskFn;
 
   const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
     const ctx = newInvokeContext();

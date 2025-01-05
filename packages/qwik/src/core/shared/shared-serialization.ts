@@ -12,7 +12,7 @@ import { ComputedSignal, EffectPropData, Signal, WrappedSignal } from '../signal
 import type { Subscriber } from '../signal/signal-subscriber';
 import {
   STORE_ARRAY_PROP,
-  createStore,
+  getOrCreateStore,
   getStoreHandler,
   getStoreTarget,
   isStore,
@@ -121,14 +121,15 @@ class DeserializationHandler implements ProxyHandler<object> {
     }
 
     const container = this.$container$;
-    const propValue = allocate(container, typeId, value);
+    let propValue = allocate(container, typeId, value);
+    /** We stored the reference, so now we can inflate, allowing cycles. */
+    if (typeId >= TypeIds.Error) {
+      propValue = inflate(container, propValue, typeId, value);
+    }
+
     Reflect.set(target, property, propValue);
     this.$data$[idx] = undefined;
     this.$data$[idx + 1] = propValue;
-    /** We stored the reference, so now we can inflate, allowing cycles. */
-    if (typeId >= TypeIds.Error) {
-      inflate(container, propValue, typeId, value);
-    }
     return propValue;
   }
 
@@ -172,10 +173,15 @@ export const _eagerDeserializeArray = (
 
 const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
 
-const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, data: unknown) => {
+const inflate = (
+  container: DeserializeContainer,
+  target: any,
+  typeId: TypeIds,
+  data: unknown
+): any => {
   if (typeId === undefined) {
     // Already processed
-    return;
+    return target;
   }
   // restore the complex data, except for plain objects
   if (typeId !== TypeIds.Object && Array.isArray(data)) {
@@ -249,17 +255,14 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
     case TypeIds.Store:
     case TypeIds.StoreArray: {
       const [value, flags, effects, storeEffect] = data as unknown[];
-      const handler = getStoreHandler(target)!;
-      handler.$flags$ = flags as number;
-      // First assign so it sets up the deep stores
-      Object.assign(getStoreTarget(target), value as object);
-      // Afterwards restore the effects so they don't get triggered
+      const store = getOrCreateStore(value as object, flags as number, container as DomContainer);
+      const storeHandler = getStoreHandler(store)!;
       if (storeEffect) {
         (effects as any)[STORE_ARRAY_PROP] = storeEffect;
       }
-      handler.$effects$ = effects as any;
+      storeHandler.$effects$ = effects as any;
+      target = store;
 
-      container.$storeProxyMap$.set(value, target);
       break;
     }
     case TypeIds.Signal: {
@@ -387,6 +390,7 @@ const inflate = (container: DeserializeContainer, target: any, typeId: TypeIds, 
     default:
       throw qError(QError.serializeErrorNotImplemented, [typeId]);
   }
+  return target;
 };
 
 export const _constants = [
@@ -475,9 +479,9 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
     case TypeIds.ComputedSignal:
       return new ComputedSignal(container as any, null!);
     case TypeIds.Store:
-      return createStore(container as any, {}, 0);
     case TypeIds.StoreArray:
-      return createStore(container as any, [], 0);
+      // ignore allocate, we need to assign target while creating store
+      return null;
     case TypeIds.URLSearchParams:
       return new URLSearchParams(value as string);
     case TypeIds.FormData:
@@ -1420,15 +1424,15 @@ export function _deserialize(rawStateData: string | null, element?: unknown): un
   return output;
 }
 
-function deserializeData(container: DeserializeContainer, typeId: number, propValue: unknown) {
+function deserializeData(container: DeserializeContainer, typeId: number, value: unknown) {
   if (typeId === undefined) {
-    return propValue;
+    return value;
   }
-  const value = allocate(container, typeId, propValue);
+  let propValue = allocate(container, typeId, value);
   if (typeId >= TypeIds.Error) {
-    inflate(container, value, typeId, propValue);
+    propValue = inflate(container, propValue, typeId, value);
   }
-  return value;
+  return propValue;
 }
 
 function getObjectById(id: number | string, stateData: unknown[]): unknown {

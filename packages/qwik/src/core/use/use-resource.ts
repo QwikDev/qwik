@@ -271,7 +271,7 @@ export const runResource = <T>(
   const iCtx = newInvokeContext(container.$locale$, host, undefined, ResourceEvent);
   iCtx.$container$ = container;
 
-  const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberEffectDependencies(task));
+  const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberEffectDependencies(container, task));
 
   const resource = task.$state$;
   assertDefined(

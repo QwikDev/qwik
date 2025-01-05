@@ -1288,7 +1288,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
             const obj = seq[i];
             if (isTask(obj)) {
               const task = obj;
-              clearSubscriberEffectDependencies(task);
+              clearSubscriberEffectDependencies(container, task);
               if (task.$flags$ & TaskFlags.VISIBLE_TASK) {
                 container.$scheduler$(ChoreType.CLEANUP_VISIBLE, task);
               } else {

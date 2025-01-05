@@ -14,6 +14,7 @@ import {
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 import { advanceToNextTimerAndFlush } from '../../testing/element-fixture';
+import { getStoreHandler } from '../signal/store';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -871,6 +872,84 @@ describe.each([
         <div>
           {'2'}
           <button></button>
+        </div>
+      </Component>
+    );
+  });
+
+  it('should cleanup store effects on vNode/component remove', async () => {
+    (globalThis as any).store = undefined;
+
+    const Child = component$<{ store: { message?: string } }>((props) => {
+      return <div>{props.store.message && <span>{props.store.message}</span>}</div>;
+    });
+
+    const Parent = component$(() => {
+      const store = useStore<{ message?: string }>({
+        message: undefined,
+      });
+
+      useVisibleTask$(() => {
+        (globalThis as any).store = store;
+      });
+
+      return (
+        <div>
+          <button
+            onClick$={() => {
+              if (store.message) {
+                store.message = undefined;
+              } else {
+                store.message = 'Hello';
+              }
+            }}
+          ></button>
+          <Child key={store.message} store={store} />
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<Parent />, { debug });
+
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'div', 'qvisible');
+    }
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <button></button>
+          <Component>
+            <div></div>
+          </Component>
+        </div>
+      </Component>
+    );
+
+    const storeHandler = getStoreHandler((globalThis as any).store);
+    expect(storeHandler?.$effects$?.message).toHaveLength(2);
+
+    await trigger(document.body, 'button', 'click');
+    expect(storeHandler?.$effects$?.message).toHaveLength(3);
+    await trigger(document.body, 'button', 'click');
+    expect(storeHandler?.$effects$?.message).toHaveLength(2);
+    await trigger(document.body, 'button', 'click');
+    expect(storeHandler?.$effects$?.message).toHaveLength(3);
+    await trigger(document.body, 'button', 'click');
+    expect(storeHandler?.$effects$?.message).toHaveLength(2);
+    await trigger(document.body, 'button', 'click');
+    expect(storeHandler?.$effects$?.message).toHaveLength(3);
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <button></button>
+          <Component>
+            <div>
+              <span>
+                <Signal>Hello</Signal>
+              </span>
+            </div>
+          </Component>
         </div>
       </Component>
     );

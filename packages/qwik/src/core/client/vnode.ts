@@ -1669,7 +1669,7 @@ export const vnode_getNode = (vnode: VNode | null): Element | Text | null => {
 
 export function vnode_toString(
   this: VNode | null,
-  depth: number = 10,
+  depth: number = 20,
   offset: string = '',
   materialize: boolean = false,
   siblings = false

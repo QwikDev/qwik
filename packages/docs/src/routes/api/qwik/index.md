@@ -603,7 +603,7 @@ Description
 
 Create a computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated.
 
-The QRL must be a function which returns the value of the signal. The function must not have side effects, and it mus be synchronous.
+The QRL must be a function which returns the value of the signal. The function must not have side effects, and it must be synchronous.
 
 If you need the function to be async, use `useSignal` and `useTask$` instead.
 
@@ -725,16 +725,12 @@ The name of the context.
 
 ## createSerialized$
 
-Create a signal that holds a custom serializable value. See `useSerialized$` for more details.
+Create a signal that holds a custom serializable value. See [useSerialized$](#useserialized_) for more details.
 
 ```typescript
-createSerialized$: <
-  T extends CustomSerializable<T, S>,
-  S,
-  F extends ConstructorFn<T, S> = ConstructorFn<T, S>,
->(
-  qrl: F | QRL<F>,
-) => SerializedSignal<T, S, F>;
+createSerialized$: <T extends CustomSerializable<any, S>, S = T extends {
+    [SerializerSymbol]: (obj: any) => infer U;
+} ? U : unknown>(qrl: (data: S | undefined) => T) => T extends Promise<any> ? never : SerializedSignal<T>
 ```
 
 <table><thead><tr><th>
@@ -756,7 +752,7 @@ qrl
 
 </td><td>
 
-F \| [QRL](#qrl)&lt;F&gt;
+(data: S \| undefined) =&gt; T
 
 </td><td>
 
@@ -764,7 +760,7 @@ F \| [QRL](#qrl)&lt;F&gt;
 </tbody></table>
 **Returns:**
 
-SerializedSignal&lt;T, S, F&gt;
+T extends Promise&lt;any&gt; ? never : SerializedSignal&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts)
 
@@ -4461,7 +4457,7 @@ Creates a computed signal which is calculated from the given function. A compute
 The function must be synchronous and must not have any side effects.
 
 ```typescript
-useComputed$: <T>(qrl: import("./use-computed").ComputedFn<T>) => T extends Promise<any> ? never : import("..").ReadonlySignal<T>
+useComputed$: <T>(qrl: ComputedFn<T>) => T extends Promise<any> ? never : ReadonlySignal<T>
 ```
 
 <table><thead><tr><th>
@@ -4483,7 +4479,7 @@ qrl
 
 </td><td>
 
-import("./use-computed").[ComputedFn](#computedfn)&lt;T&gt;
+[ComputedFn](#computedfn)&lt;T&gt;
 
 </td><td>
 
@@ -4491,9 +4487,9 @@ import("./use-computed").[ComputedFn](#computedfn)&lt;T&gt;
 </tbody></table>
 **Returns:**
 
-T extends Promise&lt;any&gt; ? never : import("..").[ReadonlySignal](#readonlysignal)&lt;T&gt;
+T extends Promise&lt;any&gt; ? never : [ReadonlySignal](#readonlysignal)&lt;T&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed-dollar.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts)
 
 ## useConstant
 
@@ -4961,9 +4957,7 @@ This is useful when using third party libraries that use custom objects that are
 Note that the `fn` is called lazily, so it won't impact container resume.
 
 ```typescript
-useSerialized$: {
-    fn: <T extends CustomSerializable<T, S>, S, F extends ConstructorFn<T, S> = ConstructorFn<T, S>>(fn: F | QRL<F>) => T extends Promise<any> ? never : ReadonlySignal<T>;
-}['fn']
+useSerialized$: typeof createSerialized$;
 ```
 
 ```tsx
@@ -4987,7 +4981,7 @@ const Cmp = component$(() => {
 });
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-serializer.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-serialized.ts)
 
 ## useServerData
 

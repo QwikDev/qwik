@@ -1,6 +1,6 @@
-import { $, type ValueOrPromise } from '@qwik.dev/core';
+import { $, SerializerSymbol, type ValueOrPromise } from '@qwik.dev/core';
 import { createDocument, getTestPlatform } from '@qwik.dev/core/testing';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, expectTypeOf, it } from 'vitest';
 import { getDomContainer } from '../client/dom-container';
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import { inlinedQrl } from '../shared/qrl/qrl';
@@ -17,9 +17,67 @@ import {
   type InternalReadonlySignal,
   type InternalSignal,
 } from './signal';
-import { createComputedQrl, createSignal } from './signal.public';
+import {
+  createComputedQrl,
+  createSignal,
+  type Signal,
+  type ComputedSignal,
+  type SerializedSignal,
+  createComputed$,
+  createSerialized$,
+} from './signal.public';
 
-describe('v2-signal', () => {
+describe('signal types', () => {
+  it('Signal<T>', () => () => {
+    const signal = createSignal(1);
+    expectTypeOf(signal).toEqualTypeOf<Signal<number>>();
+  });
+  it('ComputedSignal<T>', () => () => {
+    const signal = createComputed$(() => 1);
+    expectTypeOf(signal).toEqualTypeOf<ComputedSignal<number>>();
+    const signal2 = createComputed$<number>(() => 1);
+    expectTypeOf(signal2).toEqualTypeOf<ComputedSignal<number>>();
+  });
+  it('SerializedSignal<T>', () => () => {
+    class Foo {
+      [SerializerSymbol]() {
+        return 1;
+      }
+    }
+    {
+      const signal = createSerialized$(() => new Foo());
+      expectTypeOf(signal).toEqualTypeOf<SerializedSignal<Foo>>();
+      expectTypeOf(signal.value).toEqualTypeOf<Foo>();
+    }
+    {
+      const signal = createSerialized$((prev) => {
+        // sadly we can't do better here
+        expectTypeOf(prev).toBeUnknown();
+        return new Foo();
+      });
+      expectTypeOf(signal).toEqualTypeOf<SerializedSignal<Foo>>();
+      expectTypeOf(signal.value).toEqualTypeOf<Foo>();
+    }
+    {
+      const signal = createSerialized$((prev?: number | Foo) => {
+        expectTypeOf(prev).toEqualTypeOf<number | Foo | undefined>();
+        return new Foo();
+      });
+      expectTypeOf(signal).toEqualTypeOf<SerializedSignal<Foo>>();
+      expectTypeOf(signal.value).toEqualTypeOf<Foo>();
+    }
+    {
+      const signal = createSerialized$<Foo, number>((prev) => {
+        expectTypeOf(prev).toEqualTypeOf<number | undefined>();
+        return new Foo();
+      });
+      expectTypeOf(signal).toEqualTypeOf<SerializedSignal<Foo>>();
+      expectTypeOf(signal.value).toEqualTypeOf<Foo>();
+    }
+  });
+});
+
+describe('signal', () => {
   const log: any[] = [];
   const delayMap = new Map();
   let container: Container = null!;

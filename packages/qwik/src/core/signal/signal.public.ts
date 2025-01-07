@@ -1,9 +1,9 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import type { QRL } from '../shared/qrl/qrl.public';
-import type { ConstructorFn, CustomSerializable, SerializedSignal } from './signal';
+import { SerializerSymbol } from '../shared/utils/serialize-utils';
+import type { CustomSerializable } from './signal';
 import {
   createSignal as _createSignal,
-  createComputedSignal as _createComputedSignal,
+  createComputedSignal as createComputedQrl,
   createSerializedSignal as createSerializedQrl,
 } from './signal-api';
 
@@ -46,6 +46,13 @@ export interface ComputedSignal<T> extends ReadonlySignal<T> {
 }
 
 /**
+ * A serialized signal holds a custom serializable value. See `useSerialized$` for more details.
+ *
+ * @public
+ */
+export interface SerializedSignal<T> extends ComputedSignal<T> {}
+
+/**
  * Creates a Signal with the given value. If no value is given, the signal is created with
  * `undefined`.
  *
@@ -56,35 +63,39 @@ export const createSignal: {
   <T>(value: T): Signal<T>;
 } = _createSignal;
 
-/** @internal */
-export const createComputedQrl: <T>(
-  qrl: QRL<() => T>
-) => T extends Promise<any> ? never : ComputedSignal<T> = _createComputedSignal as any;
-
 /**
  * Create a computed signal which is calculated from the given QRL. A computed signal is a signal
  * which is calculated from other signals. When the signals change, the computed signal is
  * recalculated.
  *
  * The QRL must be a function which returns the value of the signal. The function must not have side
- * effects, and it mus be synchronous.
+ * effects, and it must be synchronous.
  *
  * If you need the function to be async, use `useSignal` and `useTask$` instead.
  *
  * @public
  */
-export const createComputed$ = /*#__PURE__*/ implicit$FirstArg(createComputedQrl);
+export const createComputed$: <T>(
+  qrl: () => T
+) => T extends Promise<any> ? never : ComputedSignal<T> = /*#__PURE__*/ implicit$FirstArg(
+  createComputedQrl as any
+);
+export { createComputedQrl };
 
-export { createSerializedQrl };
 /**
- * Create a signal that holds a custom serializable value. See `useSerialized$` for more details.
+ * Create a signal that holds a custom serializable value. See {@link useSerialized$} for more
+ * details.
  *
  * @public
  */
 export const createSerialized$: <
-  T extends CustomSerializable<T, S>,
-  S,
-  F extends ConstructorFn<T, S> = ConstructorFn<T, S>,
+  T extends CustomSerializable<any, S>,
+  S = T extends { [SerializerSymbol]: (obj: any) => infer U } ? U : unknown,
 >(
-  qrl: F | QRL<F>
-) => SerializedSignal<T, S, F> = /*#__PURE__*/ implicit$FirstArg(createSerializedQrl as any);
+  // We want to also add T as a possible parameter type, but that breaks type inference
+  // The
+  qrl: (data: S | undefined) => T
+) => T extends Promise<any> ? never : SerializedSignal<T> = implicit$FirstArg(
+  createSerializedQrl as any
+);
+export { createSerializedQrl };

@@ -119,6 +119,9 @@ function clearStoreEffects(storeHandler: StoreHandler, value: Subscriber | VNode
         subscriptionRemoved = true;
       }
     }
+    if (effects.length === 0) {
+      delete effectSubscriptions[key];
+    }
   }
 
   return subscriptionRemoved;

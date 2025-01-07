@@ -191,14 +191,14 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
       DEBUG && debugLog(`RESOURCE_CMP.${state}`, 'VALUE: ' + untrack(() => resource._resolved));
 
       if (state === 'pending' && props.onPending) {
-        return Promise.resolve(props.onPending());
+        return Promise.resolve().then(useBindInvokeContext(props.onPending));
       } else if (state === 'rejected' && props.onRejected) {
-        return Promise.resolve(resource._error!).then(props.onRejected);
+        return Promise.resolve(resource._error!).then(useBindInvokeContext(props.onRejected));
       } else {
         const resolvedValue = untrack(() => resource._resolved) as T;
         if (resolvedValue !== undefined) {
           // resolved, pending without onPending prop or rejected without onRejected prop
-          return Promise.resolve(resolvedValue).then(props.onResolved);
+          return Promise.resolve(resolvedValue).then(useBindInvokeContext(props.onResolved));
         }
       }
     }

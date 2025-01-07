@@ -178,7 +178,7 @@ const inflate = (
   target: any,
   typeId: TypeIds,
   data: unknown
-): any => {
+): unknown => {
   if (typeId === undefined) {
     // Already processed
     return target;

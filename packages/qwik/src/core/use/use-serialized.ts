@@ -1,37 +1,16 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import { assertQrl } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import {
-  SerializedSignal,
-  throwIfQRLNotResolved,
+  SerializedSignal as SerializedSignalImpl,
+  type ComputedSignal,
   type ConstructorFn,
-  type CustomSerializable,
 } from '../signal/signal';
-import type { ReadonlySignal, Signal } from '../signal/signal.public';
-import { useSequentialScope } from './use-sequential-scope';
+import type { createSerialized$ } from '../signal/signal.public';
+import { useComputedCommon } from './use-computed';
 
 /** @internal */
-export const useSerializedQrl = <
-  T extends CustomSerializable<T, S>,
-  S,
-  F extends ConstructorFn<T, S>,
->(
-  qrl: QRL<F>
-): T extends Promise<any> ? never : ReadonlySignal<T> => {
-  const { val, set } = useSequentialScope<Signal<T>>();
-  if (val) {
-    return val as any;
-  }
-  assertQrl(qrl);
-  const signal = new SerializedSignal(null, qrl as any);
-  set(signal);
-
-  // Note that we first save the signal
-  // and then we throw to load the qrl
-  // This is why we can't use useConstant, we need to keep using the same qrl object
-  throwIfQRLNotResolved(qrl);
-  return signal as any;
-};
+export const useSerializedQrl = <F extends ConstructorFn<any, any>>(qrl: QRL<F>) =>
+  useComputedCommon(qrl as any, SerializedSignalImpl as typeof ComputedSignal);
 
 /**
  * Creates a signal which holds a custom serializable value. It requires that the value implements
@@ -71,8 +50,4 @@ export const useSerializedQrl = <
  *
  * @public
  */
-export const useSerialized$: {
-  fn: <T extends CustomSerializable<T, S>, S, F extends ConstructorFn<T, S> = ConstructorFn<T, S>>(
-    fn: F | QRL<F>
-  ) => T extends Promise<any> ? never : ReadonlySignal<T>;
-}['fn'] = implicit$FirstArg(useSerializedQrl as any);
+export const useSerialized$: typeof createSerialized$ = implicit$FirstArg(useSerializedQrl as any);

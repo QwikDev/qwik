@@ -580,7 +580,9 @@ export class WrappedSignal<T> extends Signal<T> implements Subscriber {
   }
 }
 
-export type CustomSerializable<T, S> = { [SerializerSymbol]: (obj: T) => S };
+export type CustomSerializable<T extends { [SerializerSymbol]: (obj: any) => any }, S> = {
+  [SerializerSymbol]: (obj: T) => S;
+};
 /**
  * Called with serialized data to reconstruct an object. If it uses signals or stores, it will be
  * called when these change, and then the argument will be the previously constructed object.
@@ -592,9 +594,10 @@ export type CustomSerializable<T, S> = { [SerializerSymbol]: (obj: T) => S };
  *
  * @public
  */
-export type ConstructorFn<T extends CustomSerializable<T, S>, S> = (
-  data: S | T | undefined
-) => T extends Promise<any> ? never : T;
+export type ConstructorFn<
+  T extends CustomSerializable<T, any>,
+  S = ReturnType<T[typeof SerializerSymbol]>,
+> = ((data: S | undefined) => T) | ((data: S | undefined | T) => T);
 
 /**
  * A signal which provides a non-serializable value. It works like a computed signal, but it is
@@ -602,18 +605,16 @@ export type ConstructorFn<T extends CustomSerializable<T, S>, S> = (
  *
  * @public
  */
-export class SerializedSignal<
-  T extends CustomSerializable<T, S>,
-  S,
-  F extends ConstructorFn<T, S>,
-> extends ComputedSignal<T> {
-  constructor(container: Container | null, fn: QRL<F>) {
+export class SerializedSignal<T extends CustomSerializable<T, any>> extends ComputedSignal<T> {
+  constructor(container: Container | null, fn: QRL<ConstructorFn<T>>) {
     super(container, fn as unknown as ComputeQRL<T>);
   }
 }
 
 /** @internal */
-export const isSerializerObj = <T, S>(obj: unknown): obj is CustomSerializable<T, S> => {
+export const isSerializerObj = <T extends { [SerializerSymbol]: (obj: any) => any }, S>(
+  obj: unknown
+): obj is CustomSerializable<T, S> => {
   return (
     typeof obj === 'object' && obj !== null && typeof (obj as any)[SerializerSymbol] === 'function'
   );

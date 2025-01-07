@@ -14,9 +14,7 @@ describe.each([
 ])('$render.name: useSerialized$', ({ render }) => {
   it('should do custom serialization', async () => {
     const Counter = component$(() => {
-      const myCount = useSerialized$<CustomSerialized, number>(
-        (count) => new CustomSerialized((count as number) || 2)
-      );
+      const myCount = useSerialized$((count) => new CustomSerialized((count as number) || 2));
       const spy = useSignal(myCount.value.count);
       return (
         <button

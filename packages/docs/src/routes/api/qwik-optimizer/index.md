@@ -2221,6 +2221,19 @@ Description
 </td><td>
 
 </td></tr>
+<tr><td>
+
+[registerBundleGraphModifier](#)
+
+</td><td>
+
+</td><td>
+
+(modifier: BundleGraphModifier) =&gt; void
+
+</td><td>
+
+</td></tr>
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts)

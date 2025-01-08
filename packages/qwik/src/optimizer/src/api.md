@@ -300,6 +300,10 @@ export interface QwikVitePluginApi {
     getOptions: () => NormalizedQwikPluginOptions;
     // (undocumented)
     getRootDir: () => string | null;
+    // Warning: (ae-forgotten-export) The symbol "BundleGraphModifier" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    registerBundleGraphModifier: (modifier: BundleGraphModifier) => void;
 }
 
 // Warning: (ae-forgotten-export) The symbol "QwikVitePluginCSROptions" needs to be exported by the entry point index.d.ts

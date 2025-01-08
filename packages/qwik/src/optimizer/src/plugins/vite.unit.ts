@@ -6,6 +6,7 @@ import type { OptimizerOptions, QwikBundle, QwikManifest } from '../types';
 import {
   convertManifestToBundleGraph,
   qwikVite,
+  type BundleGraphModifier,
   type QwikVitePlugin,
   type QwikVitePluginOptions,
 } from './vite';
@@ -457,11 +458,16 @@ test('command: build, --mode lib with multiple outputs', async () => {
 });
 
 suite('convertManifestToBundleGraph', () => {
-  test('empty', () => {
-    expect(convertManifestToBundleGraph({} as any)).toEqual([]);
+  test(`GIVEN an empty manifest
+        THEN should return an empty array`, () => {
+    const emptyManifest = {} as QwikManifest;
+
+    const actualResult = convertManifestToBundleGraph(emptyManifest);
+    expect(actualResult).toEqual([]);
   });
 
-  test('simple file set', () => {
+  test(`GIVEN a manifest with 2 static bundles and 1 dynamic bundle
+        THEN should return an efficient array with the correct pointers`, () => {
     const manifest = {
       bundles: {
         'a.js': {
@@ -478,15 +484,44 @@ suite('convertManifestToBundleGraph', () => {
         },
       } as Record<string, QwikBundle>,
     } as QwikManifest;
-    expect(convertManifestToBundleGraph(manifest)).toEqual([
+
+    const actualResult = convertManifestToBundleGraph(manifest);
+
+    expect(actualResult).toEqual(['a.js', 4, -1, 7, 'b.js', -1, 7, 'c.js']);
+  });
+
+  test(`GIVEN a manifest with 2 static bundles and 1 dynamic bundle
+        AND a modifier that adds routes info to the bundleGraph
+        THEN the added info should be added to the result`, () => {
+    const manifest = {
+      bundles: {
+        'a.js': {
+          size: 0,
+          imports: ['b.js'],
+        },
+        'b.js': {
+          size: 0,
+        },
+      } as Record<string, QwikBundle>,
+    } as QwikManifest;
+
+    const fakeBundleGraphModifier: BundleGraphModifier = (bundleGraph) => {
+      bundleGraph = [...bundleGraph, -2, '/route', 0];
+      return bundleGraph;
+    };
+
+    const fakeModifiers = new Set([fakeBundleGraphModifier]);
+
+    const actualResult = convertManifestToBundleGraph(manifest, fakeModifiers);
+
+    expect(actualResult).toEqual([
       'a.js',
-      4,
-      -1,
-      7,
+      2,
       'b.js',
-      -1,
-      7,
-      'c.js',
+      -2,
+      // THIS IS THE ADDED INFO 👇
+      '/route',
+      0,
     ]);
   });
 });

@@ -8,6 +8,8 @@ import {
   component$,
   useResource$,
   useSignal,
+  useStore,
+  type ResourceReturn,
 } from '@qwik.dev/core';
 import { domRender, getTestPlatform, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
@@ -15,6 +17,10 @@ import '../../testing/vdom-diff.unit-util';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
+
+export function mutable(value: any) {
+  return value;
+}
 
 describe.each([
   { render: ssrRenderToDom }, //
@@ -406,6 +412,110 @@ describe.each([
             </Fragment>
           </InlineComponent>
         </Fragment>
+      </Component>
+    );
+  });
+
+  it('should track subscription', async () => {
+    const Results = component$((props: { result: ResourceReturn<number> }) => {
+      const state = useStore({
+        count: 0,
+      });
+      return (
+        <div>
+          <Resource
+            value={props.result}
+            onResolved={(number) => {
+              return (
+                <>
+                  <div>resource 1 is {number}</div>
+                  <button onClick$={() => state.count++}>
+                    count is {mutable(state.count + 0)}
+                  </button>
+                </>
+              );
+            }}
+          />
+        </div>
+      );
+    });
+
+    const ResourceApp = component$(() => {
+      const resource = useResource$<number>(() => {
+        return 0;
+      });
+
+      return <Results result={resource} />;
+    });
+
+    const { vNode, document } = await render(<ResourceApp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <div>
+            <InlineComponent>
+              <Fragment>
+                <Awaited>
+                  <Fragment>
+                    <div>
+                      {'resource 1 is '}
+                      {'0'}
+                    </div>
+                    <button>{'count is '}0</button>
+                  </Fragment>
+                </Awaited>
+              </Fragment>
+            </InlineComponent>
+          </div>
+        </Component>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <div>
+            <InlineComponent>
+              <Fragment>
+                <Awaited>
+                  <Fragment>
+                    <div>
+                      {'resource 1 is '}
+                      {'0'}
+                    </div>
+                    <button>{'count is '}1</button>
+                  </Fragment>
+                </Awaited>
+              </Fragment>
+            </InlineComponent>
+          </div>
+        </Component>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <div>
+            <InlineComponent>
+              <Fragment>
+                <Awaited>
+                  <Fragment>
+                    <div>
+                      {'resource 1 is '}
+                      {'0'}
+                    </div>
+                    <button>{'count is '}2</button>
+                  </Fragment>
+                </Awaited>
+              </Fragment>
+            </InlineComponent>
+          </div>
+        </Component>
       </Component>
     );
   });

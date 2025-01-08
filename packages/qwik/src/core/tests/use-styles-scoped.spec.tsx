@@ -374,8 +374,8 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <div class={`${(globalThis as any).rawStyleId1} container`}>
-          <Fragment>
-            <Component>
+          <Fragment ssr-required>
+            <Component ssr-required>
               <div class={`${(globalThis as any).rawStyleId2} container`}>Hello world 2</div>
             </Component>
           </Fragment>

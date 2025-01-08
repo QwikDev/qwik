@@ -1,0 +1,157 @@
+---
+title: 'Astro + Qwik: Houston, we have Resumability!'
+authorName: 'Jack Shelton'
+tags: ['Qwik']
+date: 'November 8, 2023'
+canonical: 'https://www.builder.io/blog/astro-qwik'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import CodeSandbox from '~/components/code-sandbox/index.tsx';
+
+<ArticleBlock>
+
+Hey Devs! My name is [Jack](https://twitter.com/TheJackShelton), and I am a freelance fullstack developer based in Texas. I also work on this thing called [Qwik UI](https://qwikui.com/) in my free time. 🙂
+
+## The problem
+
+In mid-late 2022, I had the opportunity to try [Astro](https://astro.build/), a server-first, content-focused, and extremely flexible meta-framework on my day job.
+
+It quickly became my go-to for creating landing pages, marketing websites, and even small web apps. If my clients needed something, it was almost always a click and integration guide away.
+
+![An image of a rocket on a notebook in space.](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fed9d96db1222462b89baf4f03e80617e?width=707)
+
+Astro sites significantly outperformed the previous static site generators I had used. I appreciated the speed and found it intuitive to work with.
+
+Unfortunately, as I added more interactivity, my Astro sites began to slow down, despite Astro being the fastest meta-framework I had used up to that point!
+
+My clients and I took notice of this. I spent a lot of time researching how to improve site speed, but in the end it always felt like an uphill battle of optimizing versus adding the stuff my clients needed.
+
+## The journey
+
+In an ideal world, you could build your application, and it would be extremely fast, regardless of the level of interactivity or the size of your page. This appears to be an unsolvable problem. The more components we add, the slower it gets.
+
+I wondered, did it have to be this way? Is it even possible to have a fast and easy development process? Is it the [developer’s fault](https://www.builder.io/blog/dont-blame-the-developer-for-what-the-frameworks-did) when our apps are slow?
+
+Looking back, I’d say no! Developers should focus on what matters most: building the product! So, how do we solve this issue? For a while, it was a big what if. 😅
+
+That what if quickly became a reality when I discovered Qwik’s [resumability](https://www.builder.io/blog/resumability-from-ground-up). I was 100% certain it was exactly what I was looking for.
+
+So I did some research. I saw a lot of comparisons between the two in terms of performance. April this year I thought “why don’t we use them together?” One is a meta-framework, and the other a UI framework.
+
+Would it still be resumable?
+
+Is Astro’s partial hydration approach going to be a problem with a framework that doesn’t have [hydration](https://www.builder.io/blog/hydration-is-pure-overhead)?
+
+How would it work with islands?
+
+Well, turns out I wasn’t the only one!
+
+![A screenshot of a Discord chat between Misko and Jack.](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F988e08cd27f34323b77b937432ed88d5?width=707)
+
+After some awesome help from Misko, creator of Angular and Qwik, as well as the Astro core team, I can finally answer that question I had back in April.
+
+## Introducing @qwikdev/astro:
+
+Astro’s first resumable UI framework.
+
+### Starts fast, stays fast
+
+One of Astro's key features is **Zero JS, by default**.
+
+Unfortunately, this is usually not the case after adding a JavaScript framework and any subsequent components.
+
+If we want to introduce interactivity with a framework, such as React, Vue, Svelte, and so on, the framework runtime is then introduced. The number of components added to the page also increases linearly O(n) with the amount of JavaScript.
+
+### Adding Qwik
+
+Qwik builds on top of Astro's **Zero JS, by default** principle and then some. Thanks to resumability, the components are not executed unless resumed. Even with interactivity, the framework is also not executed until it needs to be. [It is O(1) constant](https://www.builder.io/blog/our-current-frameworks-are-on-we-need-o1), … with zero effort on the developer.
+
+![An Illustration of hydration vs resumability.](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F41f896cda32b43279d7c32ee6725c79f?width=707)
+
+This integration for Astro enables resumability, fine-grained lazy loading, and many of the Qwik core stuff we know and love.
+
+This includes all of the Astro goodies, like view transitions, MDX collections, and the hundreds of integrations that Astro provides.
+
+**So where would @qwikdev/astro make sense?**
+
+You can use it anywhere you’re currently using a framework component in Astro! Using Qwik and resumability should significantly speed up your site.
+
+### Do Qwik components need hydration directives?
+
+Short answer, no!
+
+In other UI frameworks, a hydration directive, such as `client:only` or `client:load`, would be needed for interactivity. However, these are not needed with Qwik because there is no hydration!
+
+When using Qwik inside a meta-framework like Astro or Qwik City, components are loaded on the server, prefetched in a separate thread, and "resumed" on the client.
+
+For example, here's how we use a Qwik counter component in Astro.
+
+**counter.tsx**
+
+```tsx
+import { component$, useSignal } from "@builder.io/qwik";
+
+export const Counter = component$(() => {
+  const counter = useSignal(0);
+
+  return <button onClick$={() => counter.value++}>{counter.value}</button>;
+});
+```
+
+**index.astro**
+
+```tsx
+---
+import { Counter } from "../components/counter";
+---
+
+<html lang="en">
+  <body>
+      <h1>Astro.js - Qwik</h1>
+      /* no hydration directive! */
+      <Counter />
+  </body>
+</html>
+```
+
+### Does resumability work?
+
+Yes! We can lazily execute code on interaction, just like using Qwik with Qwik City.
+
+<video muted loop autoplay>
+  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F7be046307ece4278a81789e386737813%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=7be046307ece4278a81789e386737813&alt=media&optimized=true" type="video/mp4"/>
+</video>
+
+Here, we are refreshing the page, and you'll notice that nothing was executed until the button was clicked. Without resumability, our `<counter></counter>` component would have been executed on page load.
+
+The 402 byte q-chunk is our Counter's `onClick$` handler.
+
+### What's in that 17.61kb chunk?
+
+That's the framework! We do not execute it until it is needed. In this case, it is gzipped using SSG.
+
+**How about islands?**
+
+Instead of islands, we have Qwik containers! These fit quite well into Astro’s island model, having similar limitations.
+
+Below is an example of a Qwik container in Astro. In the DOM, you'll notice there aren't any custom elements. This is because, to Astro, Qwik appears as static data.
+
+![Untitled](https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F1f8b5720be2b4157a614b754abd8f041?width=707)
+
+This is just the beginning! You can try out the integration in Alpha today, by running:
+
+```bash
+npx astro add @qwikdev/astro
+```
+
+> This integration is currently in Alpha release. We encourage you to try it and share your feedback.<br></br>If you run into any problems, open up an issue in our [GitHub Repository](https://github.com/QwikDev/astro/issues).
+
+You can also view the package on [NPM](https://www.npmjs.com/package/@qwikdev/astro), [Github](https://github.com/QwikDev/astro), [Qwik integration page](https://qwik.dev/docs/integrations/astro/), and the [Astro integration page](https://astro.build/integrations/?search=qwik).<br></br>
+Join the fun and [contribute](https://github.com/QwikDev/astro/blob/main/contributing.md)!
+
+Stay awesome devs,
+
+-Jack
+
+</ArticleBlock>

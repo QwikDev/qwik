@@ -49,6 +49,8 @@ const FONTS = ['.woff', '.woff2', '.ttf'];
  */
 type P<T> = VitePlugin<T> & { api: T; config: Extract<VitePlugin<T>['config'], Function> };
 
+export type BundleGraphModifier = (graph: QwikBundleGraph) => QwikBundleGraph;
+
 /**
  * The types for Vite/Rollup don't allow us to be too specific about the return type. The correct
  * return type is `[QwikVitePlugin, VitePlugin<never>]`, and if you search the plugin by name you'll
@@ -93,6 +95,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     return null;
   }
 
+  const bundleGraphModifiers = new Set<BundleGraphModifier>();
+
   const api: QwikVitePluginApi = {
     getOptimizer: () => qwikPlugin.getOptimizer(),
     getOptions: () => qwikPlugin.getOptions(),
@@ -102,6 +106,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     getClientOutDir: () => clientOutDir,
     getClientPublicOutDir: () => clientPublicOutDir,
     getAssetsDir: () => viteAssetsDir,
+    registerBundleGraphModifier: (modifier: BundleGraphModifier) =>
+      bundleGraphModifiers.add(modifier),
   };
 
   // We provide two plugins to Vite. The first plugin is the main plugin that handles all the
@@ -592,6 +598,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           const assetsDir = qwikPlugin.getOptions().assetsDir || '';
           const useAssetsDir = !!assetsDir && assetsDir !== '_astro';
           const sys = qwikPlugin.getSys();
+
+          const bundleGraph = convertManifestToBundleGraph(manifest, bundleGraphModifiers);
+
           this.emitFile({
             type: 'asset',
             fileName: sys.path.join(
@@ -599,7 +608,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               'build',
               `q-bundle-graph-${manifest.manifestHash}.json`
             ),
-            source: JSON.stringify(convertManifestToBundleGraph(manifest)),
+            source: JSON.stringify(bundleGraph),
           });
           const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
           const workerScriptPath = (await this.resolve('@builder.io/qwik/qwik-prefetch.js'))!.id;
@@ -1100,6 +1109,7 @@ export interface QwikVitePluginApi {
   getClientOutDir: () => string | null;
   getClientPublicOutDir: () => string | null;
   getAssetsDir: () => string | undefined;
+  registerBundleGraphModifier: (modifier: BundleGraphModifier) => void;
 }
 
 /**
@@ -1133,8 +1143,11 @@ function absolutePathAwareJoin(path: Path, ...segments: string[]): string {
   return path.join(...segments);
 }
 
-export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundleGraph {
-  const bundleGraph: QwikBundleGraph = [];
+export function convertManifestToBundleGraph(
+  manifest: QwikManifest,
+  bundleGraphModifiers?: Set<BundleGraphModifier>
+): QwikBundleGraph {
+  let bundleGraph: QwikBundleGraph = [];
   const graph = manifest.bundles;
   if (!graph) {
     return [];
@@ -1212,5 +1225,11 @@ export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundle
       bundleGraph[index++] = depIndex;
     }
   }
+  if (bundleGraphModifiers && bundleGraphModifiers.size > 0) {
+    for (const modifier of bundleGraphModifiers) {
+      bundleGraph = modifier(bundleGraph);
+    }
+  }
+
   return bundleGraph;
 }

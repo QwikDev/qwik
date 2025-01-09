@@ -115,7 +115,6 @@ import { QScopedStyle } from './utils/markers';
 import { addComponentStylePrefix } from './utils/scoped-styles';
 import { type WrappedSignal, type ComputedSignal, triggerEffects } from '../signal/signal';
 import type { TargetType } from '../signal/store';
-import { QError, qError } from './error/error';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -294,7 +293,7 @@ export const createScheduler = (
     }
     while (choreQueue.length) {
       const nextChore = choreQueue.shift()!;
-      const order = choreComparator(nextChore, runUptoChore, rootVNode, false);
+      const order = choreComparator(nextChore, runUptoChore, rootVNode);
       if (order === null) {
         continue;
       }
@@ -466,28 +465,10 @@ function vNodeAlreadyDeleted(chore: Chore): boolean {
  *
  * @param a - The first chore to compare
  * @param b - The second chore to compare
- * @param shouldThrowOnHostMismatch - Controls error behavior for mismatched hosts
- * @returns A number indicating the relative order of the chores, or null if invalid. A negative
- *   number means `a` runs before `b`.
+ * @returns A number indicating the relative order of the chores. A negative number means `a` runs
+ *   before `b`.
  */
-function choreComparator(
-  a: Chore,
-  b: Chore,
-  rootVNode: ElementVNode | null,
-  shouldThrowOnHostMismatch: true
-): number;
-function choreComparator(
-  a: Chore,
-  b: Chore,
-  rootVNode: ElementVNode | null,
-  shouldThrowOnHostMismatch: false
-): number | null;
-function choreComparator(
-  a: Chore,
-  b: Chore,
-  rootVNode: ElementVNode | null,
-  shouldThrowOnHostMismatch: boolean
-): number | null {
+function choreComparator(a: Chore, b: Chore, rootVNode: ElementVNode | null): number {
   const macroTypeDiff = (a.$type$ & ChoreType.MACRO) - (b.$type$ & ChoreType.MACRO);
   if (macroTypeDiff !== 0) {
     return macroTypeDiff;
@@ -515,11 +496,8 @@ function choreComparator(
           You are attempting to change a state that has already been streamed to the client.
           This can lead to inconsistencies between Server-Side Rendering (SSR) and Client-Side Rendering (CSR).
           Problematic Node: ${aHost.toString()}`;
-        if (shouldThrowOnHostMismatch) {
-          throw qError(QError.serverHostMismatch, [errorMessage]);
-        }
         logWarn(errorMessage);
-        return null;
+        return 1;
       }
     }
 
@@ -561,7 +539,7 @@ function sortedFindIndex(
   while (bottom < top) {
     const middle = bottom + ((top - bottom) >> 1);
     const midChore = sortedArray[middle];
-    const comp = choreComparator(value, midChore, rootVNode, true);
+    const comp = choreComparator(value, midChore, rootVNode);
     if (comp < 0) {
       top = middle;
     } else if (comp > 0) {

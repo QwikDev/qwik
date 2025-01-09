@@ -1,0 +1,116 @@
+---
+title: Cookbook | View Transition API
+contributors:
+  - GrandSchtroumpf
+---
+
+# View Transition API
+By default Qwik will start a view transition when SPA navigation. We can run animation either with CSS or WAAPI
+
+## CSS
+```tsx
+export default component$(({ list }) => {
+  return (
+    <ul>
+      {list.map((item) => (
+        // Create a name per item
+        <li key={item.id} class="item" style={{viewTransitionName: `_${item.id}_`}}>...</li>
+      ))}
+    </ul>
+  )
+})
+```
+
+```css
+.item {
+  /* Alias to target all .item with a view-transition-name */
+  view-transition-class: animated-item;
+}
+/* Animate when item didn't exist in the previous page */
+::view-transition-new(.animated-item)::only-child {
+  animation: fade-in 200ms;
+}
+/* Animate when item doesn't exist in the next page */
+::view-transition-old(.animated-item)::only-child {
+  animation: fade-out 200ms;
+}
+```
+
+Sometime we need to have some specific logic before the animation start. In this case you can listen to the `q:viewTransition` event.
+
+For example if you want to only animate visible element:
+```tsx
+export default component$(() => {
+  useOnDocument('q:viewTransition', $(async (event: CustomEvent<ViewTransition>) => {
+    const transition = event.detail;
+    await transition.ready; // Wait for ::view-transition pseudo class exist
+    const items = document.querySelectorAll('.item');
+    for (const item of items) {
+      if (!item.checkVisibility()) continue;
+      item.dataset.hasViewTransition = true;
+    }
+  }))
+  return (
+    <ul>
+      {list.map((item) => (
+        // Create a name per item
+        <li key={item.id} class="item" style={{viewTransitionName: `_${item.id}_`}}>...</li>
+      ))}
+    </ul>
+  )
+})
+```
+
+```css
+.item[data-has-view-transition="true"] {
+  view-transition-class: animated-item;
+}
+::view-transition-new(.animated-item)::only-child {
+  animation: fade-in 200ms;
+}
+::view-transition-old(.animated-item)::only-child {
+  animation: fade-out 200ms;
+}
+```
+
+## WAAPI
+With Web Animation API you can get more precise, but for that we need to wait for the ::view-transition pseudo-class to exist in the DOM. To achieve that you can wait the `transition.ready` promise.
+
+In this example we add some delay for each item :
+```tsx
+export default component$(() => {
+  useOnDocument('q:viewTransition', $(async (event: CustomEvent<ViewTransition>) => {
+    // Get visible item
+    const items = document.querySelectorAll('.item');
+    const visible = Array.from(items).map((item) => item.checkVisibility());
+
+    // Wait for ::view-transition pseudo-class to exist
+    const transition = event.detail;
+    await transition.ready; 
+
+    // Animate each leaving item
+    for (let i = 0; i < visible.lenth; i++) {
+      const name = visible.style.viewTransitionName;
+      // Note: we animate the <html> element
+      document.documentElement.animate({
+        opacity: 0
+      }, {
+        // Target the pseudo-class inside the <html> element
+        pseudoElement: `::view-transition-old(${name})::only-child`,
+        duration: 200,
+        fill: "forward",
+        delay: i * 50, // Add delay for each pseudo-class
+
+      })
+    }
+  }))
+  return (
+    <ul>
+      {list.map((item) => (
+        // Create a name per item
+        <li key={item.id} class="item" style={{viewTransitionName: `_${item.id}_`}}>...</li>
+      ))}
+    </ul>
+  )
+})
+```

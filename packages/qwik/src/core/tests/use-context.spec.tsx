@@ -101,6 +101,59 @@ describe.each([
     );
   });
 
+  it('should add slot information for empty array', async () => {
+    const qErrorSpy = vi.spyOn(qError, 'qError');
+    const contextId = createContextId('contextId');
+
+    const ContextProducer = component$(() => {
+      const context = {
+        disabled: false,
+      };
+      useContextProvider(contextId, context);
+      return <Slot />;
+    });
+
+    const ProducerParent = component$(() => {
+      return (
+        <ContextProducer>
+          <Slot />
+        </ContextProducer>
+      );
+    });
+
+    const ContextConsumer = component$(() => {
+      useContext(contextId);
+      return <Slot />;
+    });
+
+    const Parent = component$(() => {
+      const array = useSignal<string[]>([]);
+      return (
+        <>
+          <ProducerParent>
+            {array.value.map((_, index) => (
+              <ContextConsumer key={index} />
+            ))}
+          </ProducerParent>
+          <button onClick$={() => (array.value = ['test'])}></button>
+        </>
+      );
+    });
+
+    try {
+      const { document } = await render(
+        <ErrorProvider>
+          <Parent />
+        </ErrorProvider>,
+        { debug }
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(qErrorSpy).not.toHaveBeenCalled();
+    } catch (e) {
+      expect(qErrorSpy).not.toHaveBeenCalled();
+    }
+  });
+
   it('should find context parent from Slot inside Slot', async () => {
     const qErrorSpy = vi.spyOn(qError, 'qError');
     const contextId = createContextId('contextId');

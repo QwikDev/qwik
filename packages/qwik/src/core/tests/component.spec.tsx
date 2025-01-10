@@ -729,7 +729,7 @@ describe.each([
             <Component>
               <div>
                 {'Child '}
-                {'1'}
+                <Signal ssr-required>{'1'}</Signal>
                 {', active: '}
                 <Signal ssr-required>{'false'}</Signal>
               </div>
@@ -737,7 +737,7 @@ describe.each([
             <Component>
               <div>
                 {'Child '}
-                {'2'}
+                <Signal ssr-required>{'2'}</Signal>
                 {', active: '}
                 <Signal ssr-required>{'true'}</Signal>
               </div>
@@ -756,7 +756,7 @@ describe.each([
             <Component>
               <div>
                 {'Child '}
-                {'1'}
+                <Signal ssr-required>{'1'}</Signal>
                 {', active: '}
                 <Signal ssr-required>{'true'}</Signal>
               </div>
@@ -764,7 +764,7 @@ describe.each([
             <Component>
               <div>
                 {'Child '}
-                {'2'}
+                <Signal ssr-required>{'2'}</Signal>
                 {', active: '}
                 <Signal ssr-required>{'false'}</Signal>
               </div>
@@ -1945,6 +1945,182 @@ describe.each([
                 <button id="second">Toggle</button>
               </div>
             </Component>
+          </Fragment>
+        </Component>
+      );
+    });
+
+    it('#7203 - should correctly move found vnode', async () => {
+      const Cmp = component$(() => {
+        const type = useSignal<'A' | 'B' | 'C'>('B');
+
+        return (
+          <>
+            <div>
+              <button
+                id="A"
+                type="button"
+                onClick$={$(() => {
+                  type.value = 'A';
+                })}
+              >
+                Select A
+              </button>
+
+              <button
+                id="B"
+                type="button"
+                onClick$={$(() => {
+                  type.value = 'B';
+                })}
+              >
+                Select B
+              </button>
+
+              <button
+                id="C"
+                type="button"
+                onClick$={$(() => {
+                  type.value = 'C';
+                })}
+              >
+                Select C
+              </button>
+            </div>
+
+            {type.value === 'A' ? (
+              <>
+                <p>A</p>
+              </>
+            ) : undefined}
+
+            {type.value === 'B' ? (
+              <>
+                <p>B</p>
+              </>
+            ) : undefined}
+
+            {type.value === 'C' ? (
+              <>
+                <p>C</p>
+              </>
+            ) : undefined}
+
+            {type.value !== 'C' ? (
+              <>
+                <p>A or B</p>
+              </>
+            ) : undefined}
+          </>
+        );
+      });
+
+      const { vNode, document } = await render(<Cmp />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <div>
+              <button id="A" type="button">
+                Select A
+              </button>
+              <button id="B" type="button">
+                Select B
+              </button>
+              <button id="C" type="button">
+                Select C
+              </button>
+            </div>
+            {''}
+            <Fragment ssr-required>
+              <p>B</p>
+            </Fragment>
+            {''}
+            <Fragment ssr-required>
+              <p>A or B</p>
+            </Fragment>
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(document.body, '#A', 'click');
+
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <div>
+              <button id="A" type="button">
+                Select A
+              </button>
+              <button id="B" type="button">
+                Select B
+              </button>
+              <button id="C" type="button">
+                Select C
+              </button>
+            </div>
+            <Fragment ssr-required>
+              <p>A</p>
+            </Fragment>
+            {''}
+            {''}
+            <Fragment ssr-required>
+              <p>A or B</p>
+            </Fragment>
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(document.body, '#C', 'click');
+
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <div>
+              <button id="A" type="button">
+                Select A
+              </button>
+              <button id="B" type="button">
+                Select B
+              </button>
+              <button id="C" type="button">
+                Select C
+              </button>
+            </div>
+            {''}
+            {''}
+            <Fragment ssr-required>
+              <p>C</p>
+            </Fragment>
+            {''}
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(document.body, '#B', 'click');
+
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <div>
+              <button id="A" type="button">
+                Select A
+              </button>
+              <button id="B" type="button">
+                Select B
+              </button>
+              <button id="C" type="button">
+                Select C
+              </button>
+            </div>
+            {''}
+            <Fragment ssr-required>
+              <p>B</p>
+            </Fragment>
+            {''}
+            <Fragment ssr-required>
+              <p>A or B</p>
+            </Fragment>
           </Fragment>
         </Component>
       );

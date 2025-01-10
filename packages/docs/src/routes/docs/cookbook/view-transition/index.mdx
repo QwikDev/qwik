@@ -41,9 +41,9 @@ Sometime we need to have some specific logic before the animation start. In this
 For example if you want to only animate visible element:
 ```tsx
 export default component$(() => {
-  useOnDocument('qviewTransition', $(async (event: CustomEvent<ViewTransition>) => {
+  // In this case we need the callback to be sync, else the transition might have already happened
+  useOnDocument('qviewTransition', sync$((event: CustomEvent<ViewTransition>) => {
     const transition = event.detail;
-    await transition.ready; // Wait for ::view-transition pseudo class exist
     const items = document.querySelectorAll('.item');
     for (const item of items) {
       if (!item.checkVisibility()) continue;
@@ -80,23 +80,24 @@ In this example we add some delay for each item :
 ```tsx
 export default component$(() => {
   useOnDocument('qviewTransition', $(async (event: CustomEvent<ViewTransition>) => {
-    // Get visible item
+    // Get visible item's viewTransitionName (should happen before transition is ready)
     const items = document.querySelectorAll('.item');
-    const visible = Array.from(items).map((item) => item.checkVisibility());
+    const names = Array.from(items)
+      .filter((item) => item.checkVisibility())
+      .map((item) => item.style.viewTransitionName);
 
     // Wait for ::view-transition pseudo-class to exist
     const transition = event.detail;
     await transition.ready; 
 
     // Animate each leaving item
-    for (let i = 0; i < visible.lenth; i++) {
-      const name = visible[i].style.viewTransitionName;
+    for (let i = 0; i < names.lenth; i++) {
       // Note: we animate the <html> element
       document.documentElement.animate({
         opacity: 0
       }, {
         // Target the pseudo-class inside the <html> element
-        pseudoElement: `::view-transition-old(${name}):only-child`,
+        pseudoElement: `::view-transition-old(${names[i]}):only-child`,
         duration: 200,
         fill: "forward",
         delay: i * 50, // Add delay for each pseudo-class

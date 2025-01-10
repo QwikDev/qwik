@@ -2,4 +2,4 @@
 '@builder.io/qwik': patch
 ---
 
-Emit an CustomEvent `q:viewTransition` when view transition starts.
+Emit an CustomEvent `qviewTransition` when view transition starts.

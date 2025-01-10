@@ -1176,7 +1176,7 @@ export const executeContextWithScrollAndTransition = async (ctx: RenderStaticCon
           executeDOMRender(ctx);
           restoreScroll();
         });
-        const event = new CustomEvent('q:viewTransition', {
+        const event = new CustomEvent('qviewTransition', {
           detail: transition,
         });
         document.dispatchEvent(event);

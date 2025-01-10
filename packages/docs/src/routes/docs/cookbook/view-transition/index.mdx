@@ -36,12 +36,12 @@ export default component$(({ list }) => {
 }
 ```
 
-Sometime we need to have some specific logic before the animation start. In this case you can listen to the `q:viewTransition` event.
+Sometime we need to have some specific logic before the animation start. In this case you can listen to the `qviewTransition` event.
 
 For example if you want to only animate visible element:
 ```tsx
 export default component$(() => {
-  useOnDocument('q:viewTransition', $(async (event: CustomEvent<ViewTransition>) => {
+  useOnDocument('qviewTransition', $(async (event: CustomEvent<ViewTransition>) => {
     const transition = event.detail;
     await transition.ready; // Wait for ::view-transition pseudo class exist
     const items = document.querySelectorAll('.item');
@@ -79,7 +79,7 @@ With Web Animation API you can get more precise, but for that we need to wait fo
 In this example we add some delay for each item :
 ```tsx
 export default component$(() => {
-  useOnDocument('q:viewTransition', $(async (event: CustomEvent<ViewTransition>) => {
+  useOnDocument('qviewTransition', $(async (event: CustomEvent<ViewTransition>) => {
     // Get visible item
     const items = document.querySelectorAll('.item');
     const visible = Array.from(items).map((item) => item.checkVisibility());
@@ -90,7 +90,7 @@ export default component$(() => {
 
     // Animate each leaving item
     for (let i = 0; i < visible.lenth; i++) {
-      const name = visible.style.viewTransitionName;
+      const name = visible[i].style.viewTransitionName;
       // Note: we animate the <html> element
       document.documentElement.animate({
         opacity: 0
@@ -100,7 +100,6 @@ export default component$(() => {
         duration: 200,
         fill: "forward",
         delay: i * 50, // Add delay for each pseudo-class
-
       })
     }
   }))

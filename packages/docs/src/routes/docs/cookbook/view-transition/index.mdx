@@ -27,11 +27,11 @@ export default component$(({ list }) => {
   view-transition-class: animated-item;
 }
 /* Animate when item didn't exist in the previous page */
-::view-transition-new(.animated-item)::only-child {
+::view-transition-new(.animated-item):only-child {
   animation: fade-in 200ms;
 }
 /* Animate when item doesn't exist in the next page */
-::view-transition-old(.animated-item)::only-child {
+::view-transition-old(.animated-item):only-child {
   animation: fade-out 200ms;
 }
 ```
@@ -65,10 +65,10 @@ export default component$(() => {
 .item[data-has-view-transition="true"] {
   view-transition-class: animated-item;
 }
-::view-transition-new(.animated-item)::only-child {
+::view-transition-new(.animated-item):only-child {
   animation: fade-in 200ms;
 }
-::view-transition-old(.animated-item)::only-child {
+::view-transition-old(.animated-item):only-child {
   animation: fade-out 200ms;
 }
 ```
@@ -96,7 +96,7 @@ export default component$(() => {
         opacity: 0
       }, {
         // Target the pseudo-class inside the <html> element
-        pseudoElement: `::view-transition-old(${name})::only-child`,
+        pseudoElement: `::view-transition-old(${name}):only-child`,
         duration: 200,
         fill: "forward",
         delay: i * 50, // Add delay for each pseudo-class

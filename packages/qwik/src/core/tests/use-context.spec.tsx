@@ -25,8 +25,10 @@ import {
   ssrRenderToDom,
   trigger,
 } from '@qwik.dev/core/testing';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Signal } from '../signal/signal.public';
+import { ErrorProvider } from '../../testing/rendering.unit-util';
+import * as qError from '../shared/error/error';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -99,6 +101,52 @@ describe.each([
     );
   });
 
+  it('should find context parent from Slot inside Slot', async () => {
+    const qErrorSpy = vi.spyOn(qError, 'qError');
+    const contextId = createContextId('contextId');
+
+    const ContextProducer = component$(() => {
+      const context = {
+        disabled: false,
+      };
+      useContextProvider(contextId, context);
+      return <Slot />;
+    });
+
+    const ProducerParent = component$(() => {
+      return (
+        <ContextProducer>
+          <Slot />
+        </ContextProducer>
+      );
+    });
+
+    const ContextConsumer = component$(() => {
+      useContext(contextId);
+      return <Slot />;
+    });
+
+    const Parent = component$(() => {
+      return (
+        <ProducerParent>
+          <ContextConsumer />
+        </ProducerParent>
+      );
+    });
+
+    try {
+      await render(
+        <ErrorProvider>
+          <Parent />
+        </ErrorProvider>,
+        { debug }
+      );
+      expect(qErrorSpy).not.toHaveBeenCalled();
+    } catch (e) {
+      expect(qErrorSpy).not.toHaveBeenCalled();
+    }
+  });
+
   describe('regression', () => {
     it('#4038', async () => {
       interface IMyComponent {
@@ -150,7 +198,9 @@ describe.each([
                 <Awaited ssr-required>
                   <Component ssr-required>
                     <Fragment ssr-required>
-                      <p>1</p>
+                      <p>
+                        <WrappedSignal ssr-required>1</WrappedSignal>
+                      </p>
                       <p>
                         <Awaited>0</Awaited>
                       </p>
@@ -176,7 +226,9 @@ describe.each([
                 <Awaited ssr-required>
                   <Component ssr-required>
                     <Fragment ssr-required>
-                      <p>1</p>
+                      <p>
+                        <WrappedSignal ssr-required>1</WrappedSignal>
+                      </p>
                       <p>
                         <Awaited ssr-required>2</Awaited>
                       </p>

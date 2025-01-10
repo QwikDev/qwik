@@ -264,7 +264,7 @@ export const createScheduler = (
     };
     chore.$promise$ = new Promise((resolve) => (chore.$resolve$ = resolve));
     DEBUG && debugTrace('schedule', chore, currentChore, choreQueue);
-    chore = sortedInsert(choreQueue, chore);
+    chore = sortedInsert(choreQueue, chore, (container as DomContainer).rootVNode || null);
     if (!journalFlushScheduled && runLater) {
       // If we are not currently draining, we need to schedule a drain.
       journalFlushScheduled = true;
@@ -274,7 +274,7 @@ export const createScheduler = (
     if (runLater) {
       return chore.$promise$;
     } else {
-      return drainUpTo(chore);
+      return drainUpTo(chore, (container as DomContainer).rootVNode || null);
     }
   }
 
@@ -283,7 +283,7 @@ export const createScheduler = (
    *
    * @param runUptoChore
    */
-  function drainUpTo(runUptoChore: Chore): ValueOrPromise<unknown> {
+  function drainUpTo(runUptoChore: Chore, rootVNode: ElementVNode | null): ValueOrPromise<unknown> {
     // If it already ran, it's not in the queue
     if (runUptoChore.$executed$) {
       return runUptoChore.$returnValue$;
@@ -294,7 +294,7 @@ export const createScheduler = (
     }
     while (choreQueue.length) {
       const nextChore = choreQueue.shift()!;
-      const order = choreComparator(nextChore, runUptoChore, false);
+      const order = choreComparator(nextChore, runUptoChore, rootVNode, false);
       if (order === null) {
         continue;
       }
@@ -313,7 +313,7 @@ export const createScheduler = (
       }
       const returnValue = executeChore(nextChore);
       if (isPromise(returnValue)) {
-        const promise = returnValue.then(() => drainUpTo(runUptoChore));
+        const promise = returnValue.then(() => drainUpTo(runUptoChore, rootVNode));
         return promise;
       }
     }
@@ -466,9 +466,24 @@ function vNodeAlreadyDeleted(chore: Chore): boolean {
  * @returns A number indicating the relative order of the chores, or null if invalid. A negative
  *   number means `a` runs before `b`.
  */
-function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: true): number;
-function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: false): number | null;
-function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: boolean): number | null {
+function choreComparator(
+  a: Chore,
+  b: Chore,
+  rootVNode: ElementVNode | null,
+  shouldThrowOnHostMismatch: true
+): number;
+function choreComparator(
+  a: Chore,
+  b: Chore,
+  rootVNode: ElementVNode | null,
+  shouldThrowOnHostMismatch: false
+): number | null;
+function choreComparator(
+  a: Chore,
+  b: Chore,
+  rootVNode: ElementVNode | null,
+  shouldThrowOnHostMismatch: boolean
+): number | null {
   const macroTypeDiff = (a.$type$ & ChoreType.MACRO) - (b.$type$ & ChoreType.MACRO);
   if (macroTypeDiff !== 0) {
     return macroTypeDiff;
@@ -483,7 +498,7 @@ function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: boolean)
     if (aHost !== bHost && aHost !== null && bHost !== null) {
       if (vnode_isVNode(aHost) && vnode_isVNode(bHost)) {
         // we are running on the client.
-        const hostDiff = vnode_documentPosition(aHost, bHost);
+        const hostDiff = vnode_documentPosition(aHost, bHost, rootVNode);
         if (hostDiff !== 0) {
           return hostDiff;
         }
@@ -530,7 +545,11 @@ function choreComparator(a: Chore, b: Chore, shouldThrowOnHostMismatch: boolean)
   return 0;
 }
 
-function sortedFindIndex(sortedArray: Chore[], value: Chore): number {
+function sortedFindIndex(
+  sortedArray: Chore[],
+  value: Chore,
+  rootVNode: ElementVNode | null
+): number {
   /// We need to ensure that the `queue` is sorted by priority.
   /// 1. Find a place where to insert into.
   let bottom = 0;
@@ -538,7 +557,7 @@ function sortedFindIndex(sortedArray: Chore[], value: Chore): number {
   while (bottom < top) {
     const middle = bottom + ((top - bottom) >> 1);
     const midChore = sortedArray[middle];
-    const comp = choreComparator(value, midChore, true);
+    const comp = choreComparator(value, midChore, rootVNode, true);
     if (comp < 0) {
       top = middle;
     } else if (comp > 0) {
@@ -551,10 +570,10 @@ function sortedFindIndex(sortedArray: Chore[], value: Chore): number {
   return ~bottom;
 }
 
-function sortedInsert(sortedArray: Chore[], value: Chore): Chore {
+function sortedInsert(sortedArray: Chore[], value: Chore, rootVNode: ElementVNode | null): Chore {
   /// We need to ensure that the `queue` is sorted by priority.
   /// 1. Find a place where to insert into.
-  const idx = sortedFindIndex(sortedArray, value);
+  const idx = sortedFindIndex(sortedArray, value, rootVNode);
   if (idx < 0) {
     /// 2. Insert the chore into the queue.
     sortedArray.splice(~idx, 0, value);

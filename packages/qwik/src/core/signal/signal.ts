@@ -259,7 +259,7 @@ export const ensureContainsEffect = (
 
 export const ensureEffectContainsSubscriber = (
   effect: Effect,
-  subscriber: Subscriber,
+  subscriber: Subscriber | TargetType,
   container: Container | null
 ) => {
   if (isSubscriber(effect)) {
@@ -271,7 +271,7 @@ export const ensureEffectContainsSubscriber = (
 
     effect.$effectDependencies$.push(subscriber);
   } else if (vnode_isVNode(effect) && !vnode_isTextVNode(effect)) {
-    let subscribers = vnode_getProp<Subscriber[]>(
+    let subscribers = vnode_getProp<(Subscriber | TargetType)[]>(
       effect,
       QSubscribers,
       container ? container.$getObjectById$ : null
@@ -285,7 +285,7 @@ export const ensureEffectContainsSubscriber = (
     subscribers.push(subscriber);
     vnode_setProp(effect, QSubscribers, subscribers);
   } else if (isSSRNode(effect)) {
-    let subscribers = effect.getProp(QSubscribers) as Subscriber[];
+    let subscribers = effect.getProp(QSubscribers) as (Subscriber | TargetType)[];
     subscribers ||= [];
 
     if (subscriberExistInSubscribers(subscribers, subscriber)) {
@@ -301,7 +301,10 @@ const isSSRNode = (effect: Effect): effect is ISsrNode => {
   return 'setProp' in effect && 'getProp' in effect && 'removeProp' in effect && 'id' in effect;
 };
 
-const subscriberExistInSubscribers = (subscribers: Subscriber[], subscriber: Subscriber) => {
+const subscriberExistInSubscribers = (
+  subscribers: (Subscriber | TargetType)[],
+  subscriber: Subscriber | TargetType
+) => {
   for (let i = 0; i < subscribers.length; i++) {
     if (subscribers[i] === subscriber) {
       return true;

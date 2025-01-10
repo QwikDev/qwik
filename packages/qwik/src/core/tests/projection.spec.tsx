@@ -21,7 +21,7 @@ import {
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { vnode_getNextSibling } from '../client/vnode';
+import { vnode_getNextSibling, vnode_getProp, vnode_locate } from '../client/vnode';
 import { HTML_NS, SVG_NS } from '../shared/utils/markers';
 
 const DEBUG = false;
@@ -101,9 +101,9 @@ describe.each([
     });
     const { vNode } = await render(<Parent />, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Component>
-          <Projection>default-value</Projection>
+      <Component ssr-required>
+        <Component ssr-required>
+          <Projection ssr-required>default-value</Projection>
         </Component>
       </Component>
     );
@@ -117,9 +117,9 @@ describe.each([
     });
     const { vNode } = await render(<Parent />, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
-      <Fragment>
-        <Fragment>
-          <Fragment>projection-value</Fragment>
+      <Fragment ssr-required>
+        <Fragment ssr-required>
+          <Fragment ssr-required>projection-value</Fragment>
         </Fragment>
       </Fragment>
     );
@@ -951,12 +951,12 @@ describe.each([
 
     const { vNode } = await render(<SlotParent />, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Component>
-          <Component>
+      <Component ssr-required>
+        <Component ssr-required>
+          <Component ssr-required>
             <div>
-              <Projection>
-                <Projection>
+              <Projection ssr-required>
+                <Projection ssr-required>
                   <span q:slot="start">START</span>
                 </Projection>
               </Projection>
@@ -993,12 +993,12 @@ describe.each([
 
     const { vNode } = await render(<SlotParent />, { debug: DEBUG });
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Component>
-          <Component>
+      <Component ssr-required>
+        <Component ssr-required>
+          <Component ssr-required>
             <div>
-              <Projection>
-                <Projection>
+              <Projection ssr-required>
+                <Projection ssr-required>
                   <span q:slot="start">START</span>
                 </Projection>
               </Projection>
@@ -1105,16 +1105,16 @@ describe.each([
     const { vNode } = await render(<Parent />, { debug: DEBUG });
 
     expect(vNode).toMatchVDOM(
-      <Component>
-        <Fragment>
-          <Component>
-            <Projection>
-              <Component>
-                <Component>
-                  <Projection>
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Component ssr-required>
+            <Projection ssr-required>
+              <Component ssr-required>
+                <Component ssr-required>
+                  <Projection ssr-required>
                     <span>
-                      <Projection>
-                        <Fragment>{'INSIDE THING'}</Fragment>
+                      <Projection ssr-required>
+                        <Fragment ssr-required>{'INSIDE THING'}</Fragment>
                       </Projection>
                     </span>
                   </Projection>
@@ -1984,6 +1984,44 @@ describe.each([
       expect(document.querySelector('#inner-svg')?.namespaceURI).toEqual(SVG_NS);
       expect(document.querySelector('path')?.namespaceURI).toEqual(SVG_NS);
     });
+  });
+
+  it('should serialize all component props next to projection', async () => {
+    const InnerCmp = component$(() => {
+      return <Slot />;
+    });
+
+    const Cmp = component$(() => {
+      return (
+        <div>
+          <InnerCmp>
+            {/* ^ This component */}
+            <div></div>
+          </InnerCmp>
+          <Slot />
+        </div>
+      );
+    });
+
+    const Parent = component$(() => {
+      const counter = useSignal(0);
+      return (
+        <>
+          <Cmp key={counter.value}>
+            <div></div>
+          </Cmp>
+          <button id="counter" onClick$={() => counter.value++}></button>
+        </>
+      );
+    });
+
+    const { container } = await render(<Parent />, { debug: DEBUG });
+
+    if (ssrRenderToDom === render) {
+      const CmpVNode = vnode_locate(container.rootVNode, '4A');
+      const renderProp = vnode_getProp(CmpVNode, 'q:renderFn', null);
+      expect(renderProp).not.toBeNull();
+    }
   });
 
   describe('regression', () => {

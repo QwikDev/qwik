@@ -1,5 +1,33 @@
 # @qwik.dev/core
 
+## 2.0.0-alpha.5
+
+### Patch Changes
+
+- 🐞🩹 Resource without onPending callback (by [@gimonaa](https://github.com/gimonaa) in [#7085](https://github.com/QwikDev/qwik/pull/7085))
+
+- 🐞🩹 updating signal-based props (by [@Varixo](https://github.com/Varixo) in [#7198](https://github.com/QwikDev/qwik/pull/7198))
+
+- 🐞🩹 store effects cleanup (by [@Varixo](https://github.com/Varixo) in [#7228](https://github.com/QwikDev/qwik/pull/7228))
+
+- 🐞🩹 projection siblings serialization (by [@Varixo](https://github.com/Varixo) in [#7228](https://github.com/QwikDev/qwik/pull/7228))
+
+- 🐞🩹 moving existing virtual node during vnode diffing (by [@Varixo](https://github.com/Varixo) in [#7208](https://github.com/QwikDev/qwik/pull/7208))
+
+- 🐞🩹 convert destructured string prop to props variable (by [@Varixo](https://github.com/Varixo) in [#7191](https://github.com/QwikDev/qwik/pull/7191))
+
+- 🐞🩹 finding context parent and sorting projections in the scheduler (by [@Varixo](https://github.com/Varixo) in [#7204](https://github.com/QwikDev/qwik/pull/7204))
+
+- 🐞🩹 find correct context after rendering empty array (by [@Varixo](https://github.com/Varixo) in [#7234](https://github.com/QwikDev/qwik/pull/7234))
+
+- 🐞🩹 textarea with null value (by [@Varixo](https://github.com/Varixo) in [#7196](https://github.com/QwikDev/qwik/pull/7196))
+
+- 🐞🩹 event handlers in loops (by [@gimonaa](https://github.com/gimonaa) in [#7085](https://github.com/QwikDev/qwik/pull/7085))
+
+- 🐞🩹 destructured props for inline components (by [@Varixo](https://github.com/Varixo) in [#7190](https://github.com/QwikDev/qwik/pull/7190))
+
+- 🐞🩹 serialize var prop (by [@Varixo](https://github.com/Varixo) in [#7193](https://github.com/QwikDev/qwik/pull/7193))
+
 ## 2.0.0-alpha.4
 
 ### Patch Changes

@@ -597,6 +597,6 @@ export async function measure<T>(
 }
 
 export function isContentType(headers: Headers, ...types: string[]) {
-  const type = headers.get('content-type')?.split(/;,/, 1)[0].trim() ?? '';
+  const type = headers.get('content-type')?.split(/;/, 1)[0].trim() ?? '';
   return types.includes(type);
 }

@@ -1,0 +1,436 @@
+---
+title: 'The Qase for Qwik: Love At First TTI'
+authorName: 'Yoav Ganbar'
+tags: ['Qwik']
+date: 'December 19, 2022'
+canonical: 'https://www.builder.io/blog/the-qase-for-qwik-love-at-first-tti'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import CodeSandbox from '~/components/code-sandbox/index.tsx';
+
+<ArticleBlock>
+
+## The need for speed: it’s hard to do the right things
+
+I love Qwik. [It’s no secret](https://www.hamatoyogi.dev/blog/qwik-next-big-thing), and I'm not just saying that because it's built by the company I work for. It’s because I’ve felt the pain of the problems it solves. And I’m not the only one.
+
+Just a little while ago, [Tejas Kumar](https://twitter.com/TejasKumar_), a well-known web developer & speaker, released his first impressions of Qwik in this video:
+
+<div style='position:relative;padding-bottom:56.25%;height:0;'>
+	<iframe
+		src='https://www.youtube.com/embed/l2mBk9meSvc?rel=0'
+		style='position:absolute;top:0;left:0;width:100%;height:100%;border:0;'
+		allowfullscreen
+		allow='accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share;'
+	></iframe>
+</div>
+
+He starts by telling a story of way back in the day when he and his colleague thought about ways to make web applications faster. In a later part of the video, he explains some of the hard work it takes to attempt this sort of endeavor.
+
+I am no stranger to being in that place either. Back when I was working on an SEO-focused web app, we also attempted to “make it faster”. There was a lot of code juggling that needed to be done in order to see any sort of improvement.
+
+It’s a painful process…and many other devs have probably felt it as well.
+
+You might be wondering what we needed to do and how we went about it, but we’ll get to that later. First, we need to understand what slows apps down.
+
+## Why web apps are slow
+
+Long story short, **web apps are slow because we ship way too much JavaScript.**
+
+<div class="twitter-tweet twitter-tweet-rendered" style="width: 100%; margin: 10px auto; display: flex; max-width: 550px;"><iframe id="twitter-widget-3" scrolling="no" frameborder="0" allowtransparency="true" allowfullscreen="true" class="" style="position: static; visibility: visible; width: 550px; height: 225px; display: block; flex-grow: 1;" title="X Post" src="https://platform.twitter.com/embed/Tweet.html?creatorScreenName=builderio&amp;dnt=true&amp;embedId=twitter-widget-3&amp;features=eyJ0ZndfdGltZWxpbmVfbGlzdCI6eyJidWNrZXQiOltdLCJ2ZXJzaW9uIjpudWxsfSwidGZ3X2ZvbGxvd2VyX2NvdW50X3N1bnNldCI6eyJidWNrZXQiOnRydWUsInZlcnNpb24iOm51bGx9LCJ0ZndfdHdlZXRfZWRpdF9iYWNrZW5kIjp7ImJ1Y2tldCI6Im9uIiwidmVyc2lvbiI6bnVsbH0sInRmd19yZWZzcmNfc2Vzc2lvbiI6eyJidWNrZXQiOiJvbiIsInZlcnNpb24iOm51bGx9LCJ0ZndfZm9zbnJfc29mdF9pbnRlcnZlbnRpb25zX2VuYWJsZWQiOnsiYnVja2V0Ijoib24iLCJ2ZXJzaW9uIjpudWxsfSwidGZ3X21peGVkX21lZGlhXzE1ODk3Ijp7ImJ1Y2tldCI6InRyZWF0bWVudCIsInZlcnNpb24iOm51bGx9LCJ0ZndfZXhwZXJpbWVudHNfY29va2llX2V4cGlyYXRpb24iOnsiYnVja2V0IjoxMjA5NjAwLCJ2ZXJzaW9uIjpudWxsfSwidGZ3X3Nob3dfYmlyZHdhdGNoX3Bpdm90c19lbmFibGVkIjp7ImJ1Y2tldCI6Im9uIiwidmVyc2lvbiI6bnVsbH0sInRmd19kdXBsaWNhdGVfc2NyaWJlc190b19zZXR0aW5ncyI6eyJidWNrZXQiOiJvbiIsInZlcnNpb24iOm51bGx9LCJ0ZndfdXNlX3Byb2ZpbGVfaW1hZ2Vfc2hhcGVfZW5hYmxlZCI6eyJidWNrZXQiOiJvbiIsInZlcnNpb24iOm51bGx9LCJ0ZndfdmlkZW9faGxzX2R5bmFtaWNfbWFuaWZlc3RzXzE1MDgyIjp7ImJ1Y2tldCI6InRydWVfYml0cmF0ZSIsInZlcnNpb24iOm51bGx9LCJ0ZndfbGVnYWN5X3RpbWVsaW5lX3N1bnNldCI6eyJidWNrZXQiOnRydWUsInZlcnNpb24iOm51bGx9LCJ0ZndfdHdlZXRfZWRpdF9mcm9udGVuZCI6eyJidWNrZXQiOiJvbiIsInZlcnNpb24iOm51bGx9fQ%3D%3D&amp;frame=false&amp;hideCard=false&amp;hideThread=false&amp;id=1591870444776439810&amp;lang=en&amp;origin=https%3A%2F%2Fwww.builder.io%2Fblog%2Fthe-qase-for-qwik-love-at-first-tti&amp;sessionId=7a58eb2a6171f8033694e9c0a7692622d0a5416d&amp;siteScreenName=builderio&amp;theme=light&amp;widgetsVersion=2615f7e52b7e0%3A1702314776716&amp;width=550px" data-tweet-id="1591870444776439810"></iframe></div>
+
+Lately, even [Dan Shappir](https://twitter.com/DanShappir) (performance tech lead at [Next Insurance](https://www.nextinsurance.com/) and co-host of [JS Jabber](https://topenddevs.com/podcasts/javascript-jabber)), showed us [what the median origin page weight by framework was](https://www.smashingmagazine.com/2022/05/google-crux-analysis-comparison-performance-javascript-frameworks/) in the past year:
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F72d1b43302fc4c01bae34c33478eb346?width=705" alt="Graph showing median origin page weight by framework was over the year. Trend shows JS bundle size growing." />
+
+Let's take a moment to dwell on that. Why does a lot of JS make a web app slow?
+
+There are a few of steps in the way:
+
+1.  Download
+2.  Parse
+3.  Execute
+
+Each of these takes time, which means users need to wait. That’s not a good experience for anyone. Especially when you pay double or triple the cost if your internet is shoddy and your device isn’t the latest and greatest.
+
+When you don’t have a good user experience you abandon ship, whether it’s your shopping cart, that sign-up flow, or a post you’re reading. That business can forget about those conversions — 💰&nbsp;&nbsp;down the toilet.
+
+Things used to be lighter, as Tejas also demonstrated in his video when he showed the current [Reddit](https://reddit.com) website compared to the ["old Reddit"](https://old.reddit.com).
+
+Here we can see the total JS over the network for the “old Reddit”:
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F6bc3b1ab96984b499d697f629a318562?width=800" alt='Screenshot of "old Reddit" network pane emphasizing transfer weight, resource weight, and load finish time.' />
+
+Here is the same for the “new Reddit":
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F0d7938d82e754f2690d089a2cbf8141a?width=800" alt='Screenshot of "new Reddit" network pane emphasizing transfer weight, resource weight, and load finish time.' />
+
+### Notice the difference?
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F208e2206946b4b83bb7cf6da49b31246?width=800" alt='A screenshot showing the number differences for transferred JS, JS resources dowloaded, and load finish time between "old" and "new" Reddit.' />
+
+It takes forever, and that’s without doing anything. JavaScript is for adding interactivity. Yet we got a ton of it — without any interaction.
+
+## Why there is so much JavaScript
+
+There are a few reasons I can think of:
+
+*   It has never been easier to `npm install` (or `yarn add`) your problems away, whether it’s a library to format dates or some animation library.
+*   Third-party scripts like analytics, chat, or whatever your marketing team stuck inside [GTM](https://tagmanager.google.com/#/home).
+*   First-party code.
+
+As developer experience improved, our JS bundle sizes grew, and they have been growing for the past decade or so, as in this graph displays:
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fec0bdf9a9d704da684710044b2119e97?width=800" alt='JavaScript bundle size growth over the years.' />
+
+But why is it steadily growing? I would say it’s due to product requirements and user expectations for rich interactive experiences. **The more features we add, the more code we generate, the more JavaScript we ship.**
+
+Furthermore, there is somewhat of a correlation between DX (developer experience) and UX (user experience). To better understand this, we can look at this slide from a recent talk that [Shai Reznik](https://twitter.com/shai_reznik) (international speaker and Founder of [HiRez.io](http://HiRez.io)) gave:
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F72ff51d95b434de88b0792eb542052c4?width=800" alt='A graph showing correlation between UX/DX and framework generation over time. When we improve DX we degraded UX.' />
+
+*UX/DX correlation over time by framework generation (slide courtesy of Shai Reznik).*
+
+This graph shows that whenever we improved the DX, we degraded the UX.
+
+First, we had static pages that easily served HTML documents on demand.
+
+Thereafter, servers could inject data into HTML templates that hit the database (DB) to create a personalized experience and send that response back to the browser — and load times increased.
+
+Then we had JavaScript sprinkles in the form of [jQuery](https://jquery.com/) da OG DOM manipulator.
+
+Later came the age of [Rich Internet Applications (RIA)](https://en.wikipedia.org/wiki/Rich_web_application), popularized by tech such as Adobe Flash and Microsoft Silverlight. These are buried deep in our collective mind [because Steve Jobs decided to basically kill it](https://www.howtogeek.com/805605/this-is-how-steve-jobs-killed-adobe-flash/).
+
+After that came the second half of gen 2 web apps with the birth of SPAs (Single Page Applications), which were led by frameworks such as Backbone, Knockout, Angular, React, Vue, and so on.
+
+This came with the rise of Node.js and [NPM](https://www.npmjs.com/), which saved devs time, as they could install packages easily. However, that increased bundle size, which in turn increased TTI.
+
+According to Shai Reznik, we’re now at gen 2.5, though [Shawn @swyx Wang](https://twitter.com/swyx) — writer, speaker, and DevRel — might have [a different definition](https://www.swyx.io/js-third-age/). Also, [Kent C. Dodds](https://twitter.com/kentcdodds) has [one of his own](https://www.epicweb.dev/the-webs-next-transition), which kind of combines the best of static pages; dynamic server-side rendered pages along with a SPA experience on the client.
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fa73ececc179c4041839a5b2f5fd58935?width=800" alt="An illustration showing how client side rendering and server-side rendering work." />
+
+However, the caveat of current generation frameworks is that as the app size grows, so does the JavaScript bundle, and in turn [Time To Interaction (TTI)](https://developer.mozilla.org/en-US/docs/Glossary/Time_to_interactive#:~:text=Time%20to%20Interactive%20(TTI)%20is,network%20and%20main%20thread%20inactivity.).
+
+The main reason for this is hydration, which is the process of attaching behavior to declarative content to make it interactive.
+
+I’m not going to dwell on what hydration is, as it’s been covered well by [Miško Hevery](https://twitter.com/mhevery) in [Hydration is Pure Overhead](https://www.builder.io/blog/hydration-is-pure-overhead).
+
+## **What we can do about it**
+
+One possible solution to improve TTI on a web app is code splitting. It is a technique in which a large codebase is divided into smaller, more manageable chunks or modules.
+
+This can improve the performance of an application by reducing the amount of code that needs to be loaded at once and allowing different parts of the code to be loaded on demand, as needed.
+
+Another would be lazy loading. JavaScript lazy loading is a technique that defers the loading of JavaScript resources until they are needed, potentially improving web app performance.
+
+### Lazy is not lazy at all
+
+However, these methods are manual and tedious. As Tejas states in his video, this is something he and his co-worker initially thought to do when they tried to improve performance.
+
+I’ve also tried this method myself once. It’s really easy to screw it up. You have to take a lot of things into account and play around with chunks and caching.
+
+Furthermore, you’d have to think about what happens if there’s a network connection error; what should we do then? Do we prefetch? Do we use a service worker?
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fda36b76063964693b5cadf0d1e39c2a4?width=800" alt="An image of Russel Crow from the movie Beautiful Minds next to a chalk board looking confused." />
+
+### Hydration: hard work down the drain
+
+Besides, the process of hydration can negate a lot of these hard work effects, as there is still a need for the whole bootstrap phase which includes eagerly loading all those lazy JS chunks.
+
+> **It’s like playing a video game — you progress on a level and collect loot, but then you accidentally die and have to restart the level from square one.**
+
+For a site to be interactive in traditional frameworks, it must have event listeners attached to the DOM; click, mouse move, and other events that trigger when a user performs the action. There are two problems with this:
+
+1.  The framework has to know where the event handlers need to be attached.
+2.  The framework needs to know what should happen when the event is triggered.
+
+To figure out where the events should be attached, the framework must download all visible components and execute their templates. By executing the templates, the framework learns the location of the events and can register the events with DOM.
+
+This brings us to the second point. What should happen if the event is triggered? It requires the code for the event handler to be present.
+
+It does not matter if the user interacts with a menu or not. The code still needs to be eagerly loaded. And therein lies the problem.
+
+> **Hydration forces eager download and execution of the code. It’s just how frameworks work.**
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Ffd261206acf2431a8d91cc299365593a?width=800" alt="A slide explaining why hydration is like replaying an app. Rendering runs twice. All logic needs to be dowloaded." />
+
+## **What comes next**
+
+### Partial hydration
+
+With the realization that site startup performance does matter, the industry has started taking strides in the right direction.
+
+React 18 and [server components](https://www.patterns.dev/posts/react-server-components/) promise to deliver less JavaScript to the browser by sending only HTML to the client when there’s no interaction.
+
+[Next.js](https://nextjs.org/) 13 is in effect the only framework that currently supports RSC as well as many more optimizations that improve performance. This is definitely an improvement, but it still requires the developer to think about it on a component-by-component basis.
+
+[Astro](https://astro.build/) has a different approach with their “islands architecture”:
+
+**_“Astro Islands represent a leading paradigm shift for frontend web architecture. Astro extracts your UI into smaller, isolated components on the page. Unused JavaScript is replaced with lightweight HTML, guaranteeing faster loads and time-to-interactive (TTI).”_** —Astro website
+
+This is pretty awesome, as it also allows you to write components in almost any frontend framework you like. You can make an island interactive on a case-by-case basis and with specific directives to control hydration, which they call partial hydration.
+
+[I myself use Astro for my blog](https://hamatoyogi.dev), and I’m really enjoying it. Even though I thought I’d write different components in different frameworks, I ended up mostly writing Astro components. 😅
+
+Again, this is great, but there’s the caveat of triggering hydration in any framework because it would once again eagerly load your JS.
+
+### Resumability: the solution to hydration
+
+[Marko](https://markojs.com/) is a huge leap in the right direction. It has streaming, partial hydration, a compiler that optimizes your output, and a small runtime. I’ve also heard through the grapevine that Marko V6 adds resumability to the framework as well.
+
+In an ideal world, no JavaScript gets downloaded and executed until the user interacts with a particular part of the page. If the user clicks the "buy" button, then the framework should bring in only the code which is necessary for processing the "buy" button; it should not have to bring the code associated with the "menu.”
+
+The problem is not that there is too much JavaScript; rather, the JavaScript must be eagerly downloaded and executed. (As I’ve mentioned, many existing systems have lazy loading, but only for components not currently in the render tree).
+
+### Understanding resumability
+
+In a nutshell, with hydration we run our code on the server and then on the client. Resumability means running the app once, pausing execution, and then resuming where we left off, just on the client.
+
+It’s kind of like how VMs work. A virtual machine can run an app, say a text editor, on an operating system and then be stopped, moved to another machine, and then resumed.
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F0fc18d23965146978693d6f2033d1f77?width=800" alt='A slide explaining resumability. Leverage what already ran on the server. Server serializes app state then it resumes.' />
+
+Resumable frameworks are not new. For almost a decade, Google has been using Wiz (an internal framework at Google), which powers Google Search and Photos. Marko, a framework from eBay, is promising resumability in their next version.
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F370aa063cf4d4a95a2f38d689f799bf5?width=800" alt='An image showing icons of replayable frameworks next to resumable frameworks.' />
+
+But, we’re not here to talk about other frameworks, we’re here to talk about one framework in particular — Qwik, which is the first open source framework whose primary focus is Resumabilty.
+
+## **What Qwik does**
+
+Qwik takes on a new approach to the problem space. It’s a paradigm shift in the way we’re used to serving JS to the browser.
+
+Let’s talk about that for a second. The JS required for most frameworks to boot up is something like 100Kb-200Kb (un-minified, not Gzipped). Even if you do code split and lazy load, it starts off from that starting point, and then more JS gets loaded.
+
+Qwik loads JavaScript on demand. It starts with a constant of 1Kb of JS until there’s a user interaction. To put it into more “computer sciencey” terms, [most frameworks are O(n), while Qwik is O(1)](https://www.builder.io/blog/our-current-frameworks-are-on-we-need-o1).
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F6725b62151ab40ccb580147cb81cbca3?width=800" alt='A graph showing JS execution over time per number of user interactions - traditional frameworks compared to resumable frameworks. The Y axis shows executed JS, the X axis shows time & number of user interactions.' />
+
+If you don’t add interactions, there’s no need to load more JavaScript.
+
+Rendering performance is important, but time to interaction matters more when we look at real user experiences.
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F3dd274cd6d034d6e8eb4032e4a94d6af?width=800" alt='A graph and a table showing startup performance on todo application in different frameworks with the Mitosis logo in the bottom left.' />
+
+Resumability solves the time-to-interactive (TTI) problem because there is nothing for the framework to do on startup (outside of setting up global listeners). The application is ready instantly.
+
+In contrast to other frameworks, Qwik considers bundling, serialization, and prefetching to be core competencies and has a holistic approach to fast startup performance. This allows it to be resumable.
+
+Let’s see it in action!
+
+## **Qwik in action**
+
+### An example
+
+Let’s see how this looks with some code:
+
+```tsx
+import { component$, useSignal } from '@builder.io/qwik';
+import type { DocumentHead } from '@builder.io/qwik-city';
+
+export default component$(() => {
+  const count = useSignal(0);
+  return (
+    <div>
+      <h1>
+        Counter is {count.value} <span class='lightning'>⚡️</span>
+      </h1>
+      <button onClick$={() => count.value++}>Increment</button>
+    </div>
+  );
+});
+
+export const head: DocumentHead = {
+  title: 'Welcome to Qwik Demo',
+  meta: [
+    {
+      name: 'description',
+      content: 'Qwik site description',
+    },
+  ],
+};
+```
+
+This is the result:
+
+<video muted loop autoplay>
+  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F7dcdcef346664e4dba0b7b926adf2845%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&amp;token=7dcdcef346664e4dba0b7b926adf2845&amp;alt=media&amp;optimized=true" type="video/mp4"/>
+</video>
+
+> **For demo purposes, I’m not going to go into how to start a Qwik project. For more info on getting started with Qwik,** [**check out the Qwik docs**](https://qwik.dev/) **or our** [**Stackblitz Qwik Starter**](https://stackblitz.com/)**.**
+
+What we’ve done is create a simple counter component inside a [QwikCity](https://qwik.dev/qwikcity/overview/) project, which is the meta-framework for Qwik. Basically, it’s like SvelteKit for Svelte, or [SolidStart](https://start.solidjs.com/getting-started/what-is-solidstart) for Solid. It is generally in charge of routing and the build.
+
+If you're coming from React (or Solid), you can see that a lot of the above looks familiar. As Qwik uses JSX, you should feel right at home. A [signal](https://qwik.dev/docs/components/state/#usesignal) is a reactive piece of state, similar to [Solid.js signals](https://www.solidjs.com/tutorial/introduction_signals), which consists of an object with a single property (`signal.value`) that when changed will update any component that uses it. Similarly, `useStore` is almost the same as a signal but accepts an object as a parameter, that then becomes reactive.
+
+The second thing to notice is the `$` sign after `component$` and `onClick$`, which is [a symbol in Qwik.](https://qwik.dev/docs/advanced/dollar/) These are hints for the optimizer to break our code into pieces that can later be loaded intelligently. It’s important to note that only serializable data can be used in a lazy-loaded boundary.
+
+<video muted loop autoplay>
+  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F7c770f33ae5e449abfe9053db642bb17%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&amp;token=7c770f33ae5e449abfe9053db642bb17&amp;alt=media&amp;optimized=true" type="video/mp4"/>
+</video>
+
+### Qwik loads only the JavaScript that it needs when the user needs it
+
+If we go back to our counter example, devtools shows this in action:
+
+<video muted loop autoplay>
+  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F346b83d8805049bea52b89f86636c86a%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&amp;token=346b83d8805049bea52b89f86636c86a&amp;alt=media&amp;optimized=true" type="video/mp4"/>
+</video>
+
+What’s happening there?
+
+While on the `Network` pane of devtools, I’ve selected only to show JS requests. At first, it shows two files: `client` and `enb.mjs`. Those are files from [Vite](https://vitejs.dev/); our dev server, which also powers Qwik and QwikCity. To hide those files so we can get to the actual JS that a production build would serve, we can filter any path that has Vite in it. After I’ve hidden all Vite-related files, I hit refresh again (with `cmd + R`), then…no JavaScript is downloaded!! 🤯
+
+Then, when I go on to click the **Increment** button, the real magic happens! Two files get downloaded, and the button actually works and increments our count. The beauty of it is that now there’s no need to load that JS again! Qwik has divided the code into separate files, which can be loaded as needed.
+
+Let's review what these files are:
+
+1.  `core.mjs?v=a2bc250a` : this file is the main Qwik core runtime script from the dev server (unzipped). Breaking it down is beyond the scope of this post.
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F3afeda28406d43a4b836abf83c4382b9?width=800" alt="A screenshot of devtools network pane showing the downloaded JS core runtime script." />
+
+1.  `routes_component_div_button_onclick_gurwhjlhap8.js`: this file is actually what handles our signal and the `onClick` (as the name might suggest, followed by a hash). Let’s look at the contents of this file:
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F5b57e2250dd9453597b9fc04b73b202f?width800" alt="A screenshot of devtools network pane showing the downloaded JS onClick script." />
+
+Here we have a variable that references a function that extracts the count variable from within the `useLexicalScope()` hook and then returns an incremented count.value. The `useLexicalScope()` hook is how Qwik retrieves the reactive variables reference, whether it’s a store or a signal.
+
+Now for the HTML:
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F201521a817764a4d82efe426a99af80d?width=800" alt="a screenshot of devtools HTML pane showing the added HTML attributes Qwik puts in." />
+
+We can see where the reference to the script is ☝🏽.
+
+And then we can see where more information is stored:
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F3fdee7eb6f904541b06c2f8c51a77a60?width=800" alt="a screenshot of devtools HTML pane showing the JSON data Qwik puts inside a script tag." />
+
+On top of that, Qwik attaches event listeners to inform it when it needs to load something. It can also tell what JS is more likely to be used and prefetches it. For example, it’ll load your shopping cart code, before the newsletters.
+
+### Resumablity in action
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F2122a8666d054d6181f855eb046319f0?width=800" alt="A graph showing other tools and Qwik's start up process. The X axis shows time, the Y axis labels other tools and Qwik." />
+
+*Courtesy of Tejas’s video*
+
+Other tools need to do a lot of stuff before they can be interactive. For the most part, Qwik downloads only HTML.
+
+As we covered above, we have information stored in the DOM, but it’s not just information, it’s serialized. Qwik runs on the server and generates info, serializes it, and pauses. When the server sends the HTML to the client, it has all the info.
+
+It’s kind of like a video you’re streaming:
+
+<div align="center">
+  <blockquote class="twitter-tweet" data-dnt="true" align="center" data-twitter-extracted-i1735345243861130926="true"><p lang="en" dir="ltr">Hydration is watching the whole 2 hour movie just to see the 10 minutes you missed at the end...<br></br><br></br>Resumability is pressing play from '01:50'.<br></br><br></br>- <a href="https://twitter.com/KenAKAFrosty?ref_src=twsrc%5Etfw">@KenAKAFrosty</a> - <a href="https://twitter.com/QwikDev?ref_src=twsrc%5Etfw">@QwikDev</a> hero<br></br><br></br>(Some younger folks probably have no idea what she's doing 🤣👇🏾) <a href="https://t.co/FcdwADgPKQ">pic.twitter.com/FcdwADgPKQ</a></p>— Yoav Ganbar ⚒️ @BuilderIO (@HamatoYogi) <a href="https://twitter.com/HamatoYogi/status/1600849837649727488?ref_src=twsrc%5Etfw">December 8, 2022</a></blockquote>
+  <script async="" src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+</div>
+
+You can resume your app once it’s in your browser.
+
+And then, you can even pause it, with all its state, and resume it on another browser 🤯
+
+Behold:
+
+<video muted loop autoplay>
+  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fe8c69a32753a470c986205ddeec55db1%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&amp;token=e8c69a32753a470c986205ddeec55db1&amp;alt=media&amp;optimized=true" type="video/mp4"/>
+</video>
+
+What just happened in that video? 🥴
+
+*   I interacted with the app on browser A.
+*   Paused the app with `$0.qwik.pause()` (`$0` in devtools is a way to select the element you’re inspecting), it ran on the `<html>` element, which is a Qwik container.
+*   Copied the HTML.
+*   Opened a new browser (Safari, not that it matters).
+*   Went to our app’s URL, where I got the counter once again with a `0` state.
+*   Deleted the HTML.
+*   Pasted the “paused” app HTML.
+*   The state was restored in a new browser 🕺🏽.
+*   Everything is still interactive.
+
+If that doesn’t blow your mind, I’m not sure what will. The use cases this opens up are endless.
+
+As long as the Qwik loader had run, when you move from one Qwik to another or one Qwik container to another, you can transfer state.
+
+Mull over that.
+
+### A Qwik pause
+
+So we’ve talked about the why, what, and how. Why are we at this point where we need a new paradigm? Why you should consider using Qwik? How does it work? And we'll cover some cool features.
+
+But we still haven’t shown how it’s fast and performant it is.
+
+Let’s dig in.
+
+## Measuring performance
+
+Most people measure web apps and website performance nowadays with Google Lighthouse, [Page Speed Insights](https://pagespeed.web.dev/) , or the good old [WebPageTest](https://www.webpagetest.org).
+
+To be able to compare a web app it’s always better to compare apples to apples. So, in order to do so, we’ll look at the [Builder.io](https://www.builder.io/) website. Specifically the home page.
+
+"Why?" you may ask. Because the Builder home page has 2 versions:
+
+1.  Qwik
+2.  Next.js (v10)
+
+Considering that there have been major improvements in Next in the last 3 versions, this is the closest thing we have that has similar content and functionality.
+
+In order to render the old Next.js version we have a query param to use, so when we hit `http://www.builder.io/?render=next` we’ll get it.
+
+To compare the two, I ran a [WebPageTest on both versions of our home page](https://www.webpagetest.org/video/compare.php?tests=221212_BiDcBQ_C35,221212_BiDc2T_C34&amp;thumbSize=200&amp;ival=1000&amp;end=visual) (Mobile 4G USA test configuration) and used the comparison feature.
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F72df61989dcd43448b093e77d7eb80d7?width=800" alt="An image of the filmstrip output from WebPageTest of Builder.io's Next.js site version next to Qwik site version depicting load time." />
+
+Right away, the Next.js site starts loading something visual while Qwik showed almost everything after 2.5 seconds.
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F6806377578ba426fa919b469bf4d431f?width=800" alt="An image of the filmstrip output from WebPageTest of Builder.io's Next.js site version load time." />
+
+The Next.js version fully loads after 9.5 seconds.
+
+Now let’s look at all the timings (**notice that Qwik version is red and Next.js is blue**):
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fe15c79d065364f1e8087c4f10a835b6f?width=800" alt="A screenshot of the timings graph from WebPageTest comparing Builder's Next.js site version vs Builder's Qwik site version." />
+
+Note that TTI metric on the bottom doesn’t show for the Next.js version, not because it’s at `0` but because for some reason WebPageTest has issues with getting that metric. So, I ran Page Speed Insights on it:
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F8a477ecd0b8747cf99c61d5196a4aa61?width=800" alt="A screenshot of Lighthouse score for Builder's Next.js site version version. The performance score is 33." />
+
+This run worked, but I had many failed runs attempted. And, as we can see TTI on it is benched at 10.6 seconds.
+
+It’s still early days to get a lot of real user performance data from [Google Chrome User Experience Report](https://developers.google.com/web/tools/chrome-user-experience-report) (CrUX for short) to show how Qwik performs. But there is some:
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F2f7dd984b82b445e9359f9393d16b0f3?width=800" alt="A grpah of metrics from Crux that shows the percentage of good CWV scores. Arrows pointing at Qwik lines and table data. The Y axis is origins having good CWV, the X axis is a timeline from January 2020 to September 2022." />
+
+Yes, a whopping 4 is the number of sites that show up on the report when choosing popular frontend tech, but it’s somewhat of an indication.
+
+## Conclusion
+
+Qwik is made by 3 performance nerds (they said it, not me 😉) that have 4 frontend frameworks under their belt.
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F7a17c9c66a31475cb9fbf422789b0fbe?width=800" alt="An image of the Qwik team: Misko Hevery, Manu Almeida, and Adam Bradley with the title 'Built by Performance Nerds'." />
+
+They are inspired by all the latest frameworks and hard work that has been done by incredible engineers, and in so, they have brought a lot of the loved features of those frameworks.
+
+The general realization they came to, that birthed the innovation for Qwik, was that server-side rendering for all SPA frameworks was an afterthought. At some point, you hit the hydration bottleneck, and you simply cannot optimize anymore on your end as a developer.
+
+it’s easy to put things together, but It’s hard to split things up.
+
+<div align="center">
+<blockquote class="twitter-tweet" data-dnt="true" data-theme="light"><p lang="en" dir="ltr">The idea is not to hydrate a whole app at once, it&#39;s to keep it dormant until a user interaction is needed. And then, only hydrate that one part.&#10;&#10;This is a great representation of how Qwik&#39;s lazy loading, of only what&#39;s needed, works. <a href="https://t.co/fS1xZ8xT8V">pic.twitter.com/fS1xZ8xT8V</a></p>&mdash; Builder.io (@builderio) <a href="https://twitter.com/builderio/status/1595387907476684803?ref_src=twsrc%5Etfw">November 23, 2022</a></blockquote>
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+</div>
+
+> Qwik does not just support SSR/SSG/SPA, it is a hybrid. You can choose whichever fits your needs.
+
+The demo in this post doesn’t do justice in demonstrating Qwik’s full capabilities — it’s not real-world enough. It shines in highly interactive big apps, as it would perform the same as our simple example. It doesn’t matter how many features or lines of code an app has.
+
+One of Qwik’s best features is it makes doing the right thing achievable. You don’t have to work hard with it to get good performance. It’s a given, just by its nature.
+
+Other than that, there are more features to Qwik:
+
+*   [Easy Micro Frontends](https://blog.cloudflare.com/better-micro-frontends/)
+*   You can [leverage the entire React ecosystem](https://www.youtube.com/watch?v=IGIPBAWRw_M&amp;t=174s) within Qwik
+*   DX: Click to go to component source code, and more on the way!
+
+Qwik and QwikCity are still in beta, but the community is starting to blossom. **It’s never been more straightforward to build fast web apps than it is with Qwik. So what are you waiting for? Give it a try, the team is looking for more feedback** 🙂.
+
+</ArticleBlock>

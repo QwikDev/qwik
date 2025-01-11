@@ -728,10 +728,24 @@ The `server$()` is a special way to declare functions that only run on the serve
 
 ### `isServer` & `isBrowser` conditionals
 
-Instead of `if(typeof window !== 'undefined')`, it is recommended to use the `isServer` and `isBrowser` boolean helpers exported from `@qwik.dev/core` to ensure your code only runs on the server or in the browser. These are replaced at build time with the correct value.
+Instead of `if(typeof window !== 'undefined')`, it is recommended to use the `isServer` and `isBrowser` boolean helpers exported from `@qwik.dev/core` to ensure your code only runs in the browser. They contain slightly more robust checks to better detect the browser environment.
+
+Here is the source code for reference:
 
 ```tsx
-import {isServer} from '@qwik.dev/core';
+export const isBrowser: boolean = /*#__PURE__*/ (() =>
+  typeof window !== 'undefined' &&
+  typeof HTMLElement !== 'undefined' &&
+  !!window.document &&
+  String(HTMLElement).includes('[native code]'))();
+
+export const isServer: boolean = !isBrowser;
+```
+
+Here is how you import these for reference:
+
+```tsx
+import {isServer, isBrowser} from '@qwik.dev/core';
 
 // inside component$
 

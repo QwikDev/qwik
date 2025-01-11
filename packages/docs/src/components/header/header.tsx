@@ -92,11 +92,11 @@ export const Header = component$(() => {
             </li>
             <li>
               <a
-                href="/shop/"
-                class={{ active: pathname.startsWith('/shop') }}
-                aria-label="Qwik shop"
+                href="/blog/"
+                class={{ active: pathname.startsWith('/blog') }}
+                aria-label="Qwik blog"
               >
-                <span>Shop</span>
+                <span>Blog</span>
               </a>
             </li>
             <li>

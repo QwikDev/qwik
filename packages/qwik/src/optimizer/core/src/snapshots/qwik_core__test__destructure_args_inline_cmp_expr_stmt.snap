@@ -7,7 +7,7 @@ snapshot_kind: text
 ==INPUT==
 
 
-		export default ({ data }: { data: any }) => 
+		export default ({ data }: { data: any }) =>
             <div
               data-is-active={data.selectedOutputDetail === 'options'}
               onClick$={() => {
@@ -56,8 +56,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    161,
-    239
+    160,
+    238
   ]
 }
 */

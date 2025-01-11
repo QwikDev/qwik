@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3819
+assertion_line: 3948
 expression: output
 snapshot_kind: text
 ---
@@ -13,9 +13,9 @@ snapshot_kind: text
 		import { moreStuff } from "@builder.io/qwik-city/more/here";
 		import { qwikify$ } from "@builder.io/qwik-react";
 		import sdk from "@builder.io/sdk";
-		
+
 		export const Foo = qwikify$(MyReactComponent);
-		
+
 		export const Bar = $("a thing");
 
 		export const App = component$(() => {
@@ -50,8 +50,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    384,
-    393
+    380,
+    389
   ]
 }
 */
@@ -76,8 +76,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "qwikify$",
   "captures": false,
   "loc": [
-    339,
-    355
+    337,
+    353
   ]
 }
 */
@@ -111,8 +111,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    429,
-    533
+    425,
+    529
   ]
 }
 */

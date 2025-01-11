@@ -1,0 +1,53 @@
+---
+title: 'Qwik Reaches RC Milestone'
+authorName: 'The Qwik Team'
+tags: ['Qwik']
+date: 'March 30, 2023'
+canonical: 'https://www.builder.io/blog/qwik-rc-milestone'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import { DiscordLink } from '~/routes/(blog)/blog/components/mdx/discord-link';
+import CodeSandbox from '~/components/code-sandbox/index.tsx';
+
+<ArticleBlock>
+Today we are excited to announce Qwik v1 Release Candidate! This is a major milestone for our team, and we are grateful for the support of our community.
+
+## **Qwik: a modern framework**
+
+Qwik is a next-gen web application framework (and meta-framework) designed for instant application startup, no matter how big the app is. Qwik uses a modern and innovative approach that “<a href="https://www.builder.io/blog/speculative-module-fetching" rel="noopener noreferrer" target="_blank">streams</a>” chunks of JavaScript to the end user — and it does it **automatically!**
+
+This removes a lot of manual performance optimizations needed in other frameworks, which leads to a much better developer experience. Speaking of DX, Qwik is designed to be familiar, minimal, and straightforward to use. That’s why it uses the well-known JSX syntax, functional components with hooks API style, and is reactive by utilizing <a href="https://www.builder.io/blog/usesignal-is-the-future-of-web-frameworks" rel="noopener noreferrer" target="_blank">signals</a>.
+
+Qwik’s unique JavaScript Streaming powered by the <a href="https://www.builder.io/blog/resumability-from-ground-up" rel="noopener noreferrer" target="_blank">resumable</a> execution model enables unmatched user experience and the highest Google <a href="https://web.dev/learn-core-web-vitals/" rel="noopener noreferrer" target="_blank">Core-Web-Vitals</a> scores, all possible thanks to <a href="https://www.builder.io/blog/wtf-is-code-extraction" rel="noopener noreferrer" target="_blank">code-extraction</a>. This means companies that deploy Qwik apps <a href="https://web.dev/tags/case-study/" rel="noopener noreferrer" target="_blank">increase their competitive advantage</a> in terms of conversions, customer happiness, and SEO ranking.
+
+## **RC means Qwik (and Qwik City) are ready for production**
+
+RC (Release Candidate) means that:
+
+- The API is feature complete.We’ve reached all the goals we set out for building applications with Qwik. There are no plans to add or change any more APIs or features before v1.
+- We are not aware of any significant issues which would keep you from succeeding in building amazingly performant production web apps and websites with it.
+- We need your feedback: RC is a period where we want even more feedback from the community to iron out any surprises that would keep v1 from being stable and provide a delightful developer experience.
+
+## **Our favorite features**
+
+Qwik (and Qwik City) are packed with many cool features, but here are some that we are incredibly proud of and would like to highlight.
+
+- **Performance at scale**: Qwik applications stay performant even as their complexity grows over time. Sure, any hello-world app, with little to no interactivity, can be fast, but as features are added, Qwik retains consistent startup performance through <a href="https://www.builder.io/blog/hydration-is-pure-overhead" rel="noopener noreferrer" target="_blank">resumability</a>. and it does that - **automatically**!
+- **Edge first + middleware**: Qwik adapters bring Qwik to all major edge providers in a deployment-agnostic way. No lock-in here. Easily deploy the same application with many providers.
+- **Server functions:** During our beta period, we introduced the ability to <a href="https://www.builder.io/blog/qwik-city-server-functions" rel="noopener noreferrer" target="_blank">load data, execute form actions</a> and run any server-side code by using special functions like **routeLoader$()**, routeActions$(), and server$(). This unifies the execution model for all of your code — think of it as RPC without all of the fuss — and the best part is that it even works without JavaScript enabled in the browser, with progressive enhancement by default.
+- **Directory-based routing:** Qwik City is designed with convention-based routing. File-based routing is a familiar feature in today's meta-frameworks. Qwik extends file-based routing with an easy way to compose middleware.
+- **Ecosystem**: our awesome community members have already created many integrations with popular tools like <a href="https://storybook.js.org/" rel="noopener noreferrer" target="_blank">Storybook</a>, <a href="https://www.cypress.io/" rel="noopener noreferrer" target="_blank">Cypress</a>, <a href="https://nx.dev/" rel="noopener noreferrer" target="_blank">nx</a>, <a href="https://authjs.dev/" rel="noopener noreferrer" target="_blank">auth.js</a>, <a href="https://vitest.dev/" rel="noopener noreferrer" target="_blank">vitest</a>, <a href="https://vanilla-extract.style/" rel="noopener noreferrer" target="_blank">vanilla-extract</a>, and there is also a native and accessible UI component library soon to be released (<a href="https://github.com/qwikifiers/qwik-ui" rel="noopener noreferrer" target="_blank">qwik-ui</a>). We are adding more integrations in the next couple of months — yep, things are moving qwikly! ;)
+- **Qwik-react**: it is possible to use React inside a qwik application, but without the cost of hydration. This could bridge the gap for developers coming from the React ecosystem and save time by directly importing React components into a Qwik application (Qwik-angular and Qwik-vue are in the works as well! 🤩).
+
+## **The path to v1**
+
+Between now and the v1 release, we will focus on polishing, paying special attention to the documentation, and getting started. And, of course, we’ll fixing any surprise bugs which may come up.
+
+## **Special thanks to the Qwik community**
+
+Special thanks to the awesome Qwik community for helping us test Qwik during its development. Qwik has gone through growing pains; however, our lovely community members were able to provide us with useful feedback to make it better. It is because of you that Qwik is where it is today.
+
+We would LOVE to hear what you think. Please share it with us on our <DiscordLink text="Discord channel" /> — and if you’re not part of it, come and experience first-hand how amazing and friendly our Qwik community members are.
+
+</ArticleBlock>

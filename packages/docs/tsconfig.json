@@ -22,7 +22,7 @@
       "@playground-data": ["src/routes/playground/playground-data.ts"],
       "@tutorial-data": ["src/routes/tutorial/tutorial-data.ts"]
     },
-    "types": ["node", "vite/client"],
+    "types": ["node", "vite/client", "@builder.io/qwik"],
     "esModuleInterop": true,
     "sourceRoot": ".",
     "inlineSourceMap": true,

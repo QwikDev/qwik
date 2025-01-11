@@ -104,6 +104,7 @@
 - [Qwik in a nutshell](</docs/(qwikrouter)/guides/qwik-nutshell/index.mdx>)
 - [Markdown & MDX](</docs/(qwikrouter)/guides/mdx/index.mdx>)
 - [SSG](</docs/(qwikrouter)/guides/static-site-generation/index.mdx>)
+- [Qwik Native Apps](</docs/(qwikrouter)/guides/capacitor/index.mdx>)
 - [React Cheat Sheet](</docs/(qwikrouter)/guides/react-cheat-sheet/index.mdx>)
 - [Best Practices](</docs/(qwikrouter)/guides/best-practices/index.mdx>)
 - [Bundle Optimization](</docs/(qwikrouter)/guides/bundle/index.mdx>)

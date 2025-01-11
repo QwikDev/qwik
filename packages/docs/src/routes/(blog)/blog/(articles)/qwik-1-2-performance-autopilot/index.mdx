@@ -1,0 +1,383 @@
+---
+title: 'Qwik 1.2: Performance in Autopilot'
+authorName: 'Manu Mtz.-Almeida'
+tags: ['Web development']
+date: 'June 29, 2023'
+canonical: 'https://www.builder.io/blog/qwik-1-2-performance-autopilot'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import { DiscordLink } from '~/routes/(blog)/blog/components/mdx/discord-link';
+import CodeSandbox from '~/components/code-sandbox/index.tsx';
+
+<ArticleBlock>
+
+## Qwik 1.2.0 is full of new features, fixes, and performance improvements designed to make you fall in love.
+
+```json
+"@builder.io/qwik": "~1.2.0",
+"@builder.io/qwik-city": "~1.2.0",
+"eslint-plugin-qwik": "~1.2.0",
+```
+
+## Don’t blame developers for bad performance
+
+Performance issues are often a human-design problem, not just a technical one.
+
+Qwik's philosophy puts the responsibility on the framework (us), not the developers. Sites are usually not slow because of a lack of diligence among developers, but because it takes too much effort to make sites fast.
+
+**Our dream is to never write a list of **performance** best practices or 100-tricks-to-make-your-site-fast!**
+
+## Continuous performance visibility
+
+Developers need visibility of the issues in order to fix them. Debuggers, audit tools, and dev tools are all tools created with the idea of increasing visibility. What if we could do the same for performance and make it continuous?
+
+> “Until you make the unconscious conscious,
+> it will direct your life and you will call it fate.”
+> – Carl Jung
+
+We want Qwik developers to have a continuous and passive look at common performance issues in their apps and give them tools to fix those with no effort.
+
+<video muted loop autoplay>
+  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fc1a27f6c5f7243ffae25aa636813ea97%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=c1a27f6c5f7243ffae25aa636813ea97&alt=media&optimized=true" type="video/mp4"/>
+</video>
+
+Starting with 1.2.0, developers will have constant visibility of easy-to-solve performance issues in their app. We are starting with images, but will extend it to fonts and third-party scripts like Google Analytics soon.
+
+## Component-less image optimization
+
+Image optimization is an essential optimization that all web developers should be familiar with. Qwik 1.2.0 is releasing a new image optimization API that relies on the `vite-imagetools` package, a battle-tested plugin used by thousands of existing apps.
+
+We took it a step further by giving developers a way to import images as JSX:
+
+```tsx
+import QwikLogo from './logo.png?jsx';
+
+export default component$(() => {
+  return (
+    <section>
+      <QwikLogo />
+    </section>
+  );
+});
+```
+
+👆 this little snippet will generate the following `<img>` tag 👇
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F92eeee761ef84984a25be151e96f21fb?format=webp&amp;width=700" alt="image optimization" />
+
+The community and the Qwik team love this API for a number of reasons:
+
+- Zero runtime, zero JS
+- Zero props by default, simple API
+- Zero 404, strongly typed API
+- Zero layout reflows (Automatic width/height)
+- Hashed images, immutable cached
+- Automatic `.webap` / `.avif` format optimization
+- Automated `srcSet` generation
+- Extendable (use any `<img>` attribute)
+- Loading lazy and async decoding by default
+- Lightweight, a single `<img>` node in the HTML
+
+<br></br>
+<br></br>
+
+<video muted loop autoplay>
+  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fe1f99b0d93bb4b239073ad37eaf760d0%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=e1f99b0d93bb4b239073ad37eaf760d0&alt=media&optimized=true" type="video/mp4"/>
+</video>
+
+## Zero-runtime styling with PandaCSS
+
+PandaCSS is a new CSS-in-JS, zero-runtime, atomic styling solution that works in Qwik, Next.js, Vue, Remix, and so on:
+
+- CSS-in-JS: You can inline all your styles, like in emotion-js.
+- Zero-runtime: Just like Tailwind or Vanilla Extract, all the CSS is generated at compiler time.
+- Atomic: The amount of CSS scales well. As the number of components grows, the amount of CSS will remain almost constant.
+
+Qwik and PandaCSS share a lot of core principles:
+
+- Performance by default, without extra effort
+- No performance footguns. You will not find “best practices” to make Panda CSS fast. It’s always fast.
+- Refactorizable: inlined CSS or not, it’s up to you!
+
+To celebrate it, you can run the following command in your Qwik app! And voilà! It’s done!
+
+```shell
+pnpm qwik add pandacss
+```
+
+(No more installation steps!)
+
+Check it out!
+
+```tsx
+import { component$ } from "@builder.io/qwik";
+import { css } from "~/styled-system/css";
+
+export default component$(() => {
+  return (
+    <div
+      class={css({
+        padding: 10,
+        bg: "red.400",
+        height: "dvh",
+        margin: 100,
+        fontSize: 30,
+      })}
+    >
+      This box is styled with PandaCSS.
+    </div>
+  );
+});
+```
+
+## npm run qwik new
+
+Big shout-out to our [Roman (@zanettin)](https://github.com/zanettin), he has been a key part of our community, helping in <DiscordLink text="our Discord" />, triaging issues and shipping new features!
+
+The new `new` 😅 command, allows developers to create new components and routes.
+
+You want a new route for the /about page?
+
+```shell
+pnpm qwik new /about
+```
+
+You want a new component? sure thing
+
+```shell
+pnpm qwik new my-button
+```
+
+It's also beautiful, check it out 👇
+
+<video muted loop autoplay>
+  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fa0dbe86ddcb14953a81b31b98f63199a%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=a0dbe86ddcb14953a81b31b98f63199a&alt=media&optimized=true" type="video/mp4"/>
+</video>
+
+## AWS lambda integration
+
+Our community hero, [Leifer](https://twitter.com/LeiferMendez) contributed AWS lambda support for Qwik! He and his team have been using Qwik with AWS for a while now and decided to help the rest of the mortals to do the same.
+
+**AWS Lambda** joins Google Cloud, Vercel, and Netlify as one of the supported deployment targets for Qwik. Starting with 1.2.0, this is the only command you need to type to deploy to AWS!
+
+```bash
+pnpm qwik add aws-lambda
+```
+
+We are especially excited about this contribution because it empowers enterprise users even more.
+
+<video muted loop autoplay>
+  <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fd9484e8cb94147c9b5fcb0a6ce7063fa%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=d9484e8cb94147c9b5fcb0a6ce7063fa&alt=media&optimized=true" type="video/mp4"/>
+</video>
+
+## `clientConn` API
+
+Now it’s easier than ever to know key information about your users. This new API helps you get not only the IP address of the user, but their country and city as well.
+
+It is built on top of `edge` APIs of Cloudflare, Vercel, Netlify, and Google Cloud.
+
+```tsx
+export const useGetCountryAndIP = routeLoader$(({clientConn}) => {
+  return {
+    ip: clientConn.ip,
+    country: clientConn.country
+  };
+});
+```
+
+The best part is that you don’t need to know how any of those work. ClientConn API abstracts this complexity and provides a normalized API you can use regardless of where you deploy or self-host.
+
+## SPA navigation improvements
+
+Our community members `@jordanw66` and `@billykwok` deserve a big shout out. They have been rocking it making the SPA navigation buttery smooth, from fixing bugs to adding new APIs, like perfect scroll restoration and `replace` instead of push for navigation.
+
+- feat: Critical DX/UX improvement to SPA navigation in Qwik City by @billykwok
+- feat: frame-perfect and state-backed durable SPA scroll restoration by @jordanw66
+- feat: bulletproof SPA recovery by @jordanw66
+- feat: scroll opt-out on nav() and Link by @jordanw66
+- fix: save scrollState on visibilitychange by @jordanw66
+- fix: perfect hash scroll by @jordanw66
+
+## Rendering performance
+
+Qwik is getting faster and smarter without missing a beat. Improvements mostly focus in the optimizer, allowing to better understand how the JSX can be dynamic, and which components are invariable. This information is critical for Qwik’s dynamic data tree shaking that only serializes the bare minimum!
+
+- perf: optimizer knows non-variadic components by @manucorporat
+- feat: transform compiler architecture by @manucorporat
+
+We have also made improvements to our prefetching algorithms to emit `modulepreload` only for ESM modules with a lot of dependents. The idea behind this optimization is to reduce even more the FID (First Input Delay) on the slowest devices. This new strategy allows the browsers to pre-parse and compile the most likely modules to execute before they are even needed.
+
+- perf: enable navigationPreload by @manucorporat
+- perf: leverage modulepreload for common chunks by @manucorporat
+
+## Qwik Labs 🧪 to infinity and beyond
+
+We are thrilled to introduce Qwik Labs, a place designed for sharing and experimenting with the new ideas we are currently developing. The primary objective of Qwik Labs is to make it effortless for our community to test our upcoming ideas and provide early feedback, thereby enhancing their quality.
+
+Note that Qwik Labs are not intended for production use, and the API will probably change based on developer feedback, hence the reason they are packaged in a separate NPM package.
+
+We are excited to keep the Qwik Labs with these projects:
+
+- [Qwik Insights](https://qwik.dev/docs/labs/insights/): a way to collect real-world metrics about how the users are using the Qwik Application and then use the information to create ideal bundles to further improve the prefetching and application startup performance. (A form of [profile-guided optimization](https://en.wikipedia.org/wiki/Profile-guided_optimization).)
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F733086ea420f4ff6937e68e265e6b2ec?format=webp&amp;width=700" alt="Qwik Insights chart" />
+
+*   Typed Routes: TypeScript is great at telling us all the places we need to change when we refactor our code – except one place; routes URLs, params, and queries. Typed Routes is a plugin for Vite that generates type information for your routes so that TypeScript can let you know if the application URL does not match the route definitions.
+
+## Qwik $hop!!
+
+Yes! Another amazing community leader [Giorgio Boa](https://bsky.app/profile/gioboa.bsky.social), built our official shop from the ground up!
+
+[Go check it out and get some socks](https://qwik.dev/shop/); I heard they can make you run qwiker.
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F16a1660c84e444958271c06a2303bd6d?format=webp&amp;width=700" alt="Qwik shop" />
+
+https://qwik.dev/shop/
+
+## Other features and fixes
+
+- feat: serialize support for Set and Map by @manucorporat in https://github.com/QwikDev/qwik/pull/4375
+- feat(adapter): aws starter adapter by @leifermendez in https://github.com/QwikDev/qwik/pull/4390
+- feat: CLI option new by @zanettin in https://github.com/QwikDev/qwik/pull/4273
+- feat: client info API by @manucorporat in https://github.com/QwikDev/qwik/pull/4433
+- docs: fix link to speculative-module-fetching by @Craiqser in https://github.com/QwikDev/qwik/pull/4421
+- fix: use levenshtein distance to provide even better 404 by @manucorporat in https://github.com/QwikDev/qwik/pull/4389
+- docs: add CodeSandbox demo to Modular Forms guide by @fabian-hiller in https://github.com/QwikDev/qwik/pull/4095
+- docs: fix link to Bundle Optimization by @Craiqser in https://github.com/QwikDev/qwik/pull/4418
+- feat: image performance dev tools by @manucorporat in https://github.com/QwikDev/qwik/pull/4424
+- fix: slow test by @manucorporat in [https://github.com/QwikDev/qwik/pull/4431](https://github.com/QwikDev/qwik/pull/4431](https://github.com/QwikDev/qwik/pull/4431))
+- docs: qwiksand-box by @manucorporat in https://github.com/QwikDev/qwik/pull/4429
+- fix: image-size dep by @manucorporat in https://github.com/QwikDev/qwik/pull/4435
+- docs: fix example to match by @hamatoyogi in https://github.com/QwikDev/qwik/pull/4439
+- chore: remove unused starter file by @adamdbradley in https://github.com/QwikDev/qwik/pull/4446
+- fix: set qwik builder counter initial value by @adamdbradley in https://github.com/QwikDev/qwik/pull/4449
+- fix: cli background install by @adamdbradley in https://github.com/QwikDev/qwik/pull/4450
+- fix: jsx rendering order by @manucorporat in https://github.com/QwikDev/qwik/pull/4458
+- Reorganize .gitignore by @szepeviktor in https://github.com/QwikDev/qwik/pull/4456
+- docs: Routing - Change getLocation() to useLocation() by @chsanch in https://github.com/QwikDev/qwik/pull/4454
+- fix: visible task execution after removal by @manucorporat in https://github.com/QwikDev/qwik/pull/4459
+- Fix typo in MDX example code by @erikras in https://github.com/QwikDev/qwik/pull/4457
+- fix(use-on.ts): fixed useOn methods to pass correct eventName to _useOn by @OrenSayag in https://github.com/QwikDev/qwik/pull/4453
+- docs: routeLoader adjustment by @hamatoyogi in https://github.com/QwikDev/qwik/pull/4462
+- fix: root gitignore file by @zanettin in https://github.com/QwikDev/qwik/pull/4460
+- fix: add missing nonce to popstate script by @DustinJSilk in https://github.com/QwikDev/qwik/pull/4468
+- Include a woman in the "community" emoji by @erikras in https://github.com/QwikDev/qwik/pull/4471
+- docs: Update the middleware / endpoint documentation by @mhevery in https://github.com/QwikDev/qwik/pull/4442
+- fix: prefetch urls with different search queries by @DustinJSilk in https://github.com/QwikDev/qwik/pull/4474
+- refactor: improve DX of "qwik new" by @manucorporat in https://github.com/QwikDev/qwik/pull/4472
+- fix: bundling for testing by @manucorporat in https://github.com/QwikDev/qwik/pull/4475
+- feat: image vite transform by @manucorporat in https://github.com/QwikDev/qwik/pull/4479
+- refactor: containerState for appendHeadStyle by @manucorporat in https://github.com/QwikDev/qwik/pull/4478
+- fix: implicitly end middleware chain on response by @mhevery in https://github.com/QwikDev/qwik/pull/4441
+- refactor: visible tasks can run in parallel by @manucorporat in https://github.com/QwikDev/qwik/pull/4477
+- Update pages.json by @hexa-it in https://github.com/QwikDev/qwik/pull/4473
+- feat: update starter dev-tools by @adamdbradley in https://github.com/QwikDev/qwik/pull/4483
+- Add new documentation for deprecated features. by @nsdonato in https://github.com/QwikDev/qwik/pull/4476
+- feat: add no-unnecessary-condition eslint rule by @manucorporat in https://github.com/QwikDev/qwik/pull/4485
+- fix(parse-pathname): path segment encoding by @Varixo in https://github.com/QwikDev/qwik/pull/4486
+- docs(*): update contribution docs by @Wimpert in https://github.com/QwikDev/qwik/pull/4490
+- Allow replace state when navigating by @Wimpert in https://github.com/QwikDev/qwik/pull/4488
+- fix: test bundle mode by @manucorporat in https://github.com/QwikDev/qwik/pull/4491
+- fix: 'Numberish' type used for width/height didn't allow % by @KenAKAFrosty in https://github.com/QwikDev/qwik/pull/4434
+- fix: missing navigation update to static page by @manucorporat in https://github.com/QwikDev/qwik/pull/4493
+- 🦄 by @manucorporat in https://github.com/QwikDev/qwik/pull/4495
+- feat: add image to starter by @manucorporat in https://github.com/QwikDev/qwik/pull/4497
+- fix: $localize optimizer bug by @manucorporat in https://github.com/QwikDev/qwik/pull/4498
+- docs(adding content security policy to the advanced topics) by @the-zimmermann in https://github.com/QwikDev/qwik/pull/4440
+- fix: clientConn types by @manucorporat in https://github.com/QwikDev/qwik/pull/4501
+- Pr docs qwik city by @mhevery in https://github.com/QwikDev/qwik/pull/4494
+- chore: fix dev release by @manucorporat in https://github.com/QwikDev/qwik/pull/4511
+- refactor: simplify new templates by @manucorporat in https://github.com/QwikDev/qwik/pull/4512
+- fix: cli new interactive by @manucorporat in https://github.com/QwikDev/qwik/pull/4516
+- feat: svg optimization with esm by @manucorporat in https://github.com/QwikDev/qwik/pull/4526
+- fix: spa redirects from non-pages by @manucorporat in https://github.com/QwikDev/qwik/pull/4518
+- docs: fix typos in Overview and State files. by @eecopa in https://github.com/QwikDev/qwik/pull/4524
+- docs: fixed a typo in image link by @avanderpluijm in https://github.com/QwikDev/qwik/pull/4514
+- docs: fixed small typos in qwik-city documentation. by @VinuB-Dev in https://github.com/QwikDev/qwik/pull/4522
+- feat: pandacss integration by @manucorporat in https://github.com/QwikDev/qwik/pull/4515
+- docs: added custom icons by @LoganAffleck in https://github.com/QwikDev/qwik/pull/4513
+- Update app.tsx in runtime-less example by @primeagen-rustaceans in https://github.com/QwikDev/qwik/pull/4467
+- docs: fix typos by @enesflow in https://github.com/QwikDev/qwik/pull/4500
+- docs: move think-qwik page to concepts route by @moinulmoin in https://github.com/QwikDev/qwik/pull/4499
+- docs: fixed typos in comments and docs by @ehrencrona in https://github.com/QwikDev/qwik/pull/4430
+- doc: add redirect to new think-qwik docs by @manucorporat in https://github.com/QwikDev/qwik/pull/4533
+- fix: missing component in layout by @manucorporat in https://github.com/QwikDev/qwik/pull/4535
+- fix(router): use encodeURI instead by @manucorporat in https://github.com/QwikDev/qwik/pull/4534
+- fix: click to component for svg by @manucorporat in https://github.com/QwikDev/qwik/pull/4537
+- fix: regression when navigating to / by @manucorporat in https://github.com/QwikDev/qwik/pull/4538
+- feat: automatically set qwik icons by @manucorporat in https://github.com/QwikDev/qwik/pull/4539
+- fix: renderToString mode is always ignored and returns an empty page by @ncharalampidis in https://github.com/QwikDev/qwik/pull/4528
+- fix: image?jsx strip export default by @manucorporat in https://github.com/QwikDev/qwik/pull/4541
+- fix(router): redirect handling by @manucorporat in https://github.com/QwikDev/qwik/pull/4543
+- chore: update deps by @manucorporat in https://github.com/QwikDev/qwik/pull/4540
+- chore: create @builder.io/qwik-labs by @mhevery in https://github.com/QwikDev/qwik/pull/4545
+- Sidebar style by @LoganAffleck in https://github.com/QwikDev/qwik/pull/4554
+- fix: QwikIntrinsicElements does not include ref by @manucorporat in https://github.com/QwikDev/qwik/pull/4555
+- docs: add panda css by @anubra266 in https://github.com/QwikDev/qwik/pull/4544
+- feat(insights): create a new insights application by @mhevery in https://github.com/QwikDev/qwik/pull/4547
+- docs: add ss-link to showcase by @Leizhenpeng in https://github.com/QwikDev/qwik/pull/2689
+- fix: navigationPreload waitUntil by @manucorporat in https://github.com/QwikDev/qwik/pull/4561
+- feat: layout shift detection by @manucorporat in https://github.com/QwikDev/qwik/pull/4560
+- docs: add resource + fix css by @hamatoyogi in https://github.com/QwikDev/qwik/pull/4562
+- fix(qwik-city buildtime): make generated file ids unique by @hbendev in https://github.com/QwikDev/qwik/pull/4564
+- feat(insights): basic UI for seeing symbols by @mhevery in https://github.com/QwikDev/qwik/pull/4565
+- docs: Add Qwik Labs section by @mhevery in https://github.com/QwikDev/qwik/pull/4568
+- chore: fix broken lock file by @manucorporat in https://github.com/QwikDev/qwik/pull/4574
+- fix: route new template by @manucorporat in https://github.com/QwikDev/qwik/pull/4576
+- docs(qwik-labs edit link route): fixed qwik labs "edit page" link & so… by @thejackshelton in https://github.com/QwikDev/qwik/pull/4571
+- feat(labs): typed routes by @mhevery in https://github.com/QwikDev/qwik/pull/4580
+- docs(labs): add typed routes by @mhevery in https://github.com/QwikDev/qwik/pull/4582
+- chore: fix saving of artifacts to build by @mhevery in https://github.com/QwikDev/qwik/pull/4583
+- chore(labs): fix distribution build by @mhevery in https://github.com/QwikDev/qwik/pull/4584
+- Internal renaming suggestions by @shairez in https://github.com/QwikDev/qwik/pull/4581
+- fix(labs): encodeencodeURIComponent for params by @mhevery in https://github.com/QwikDev/qwik/pull/4587
+- feat: panda css use vite-macro plugin by @manucorporat in https://github.com/QwikDev/qwik/pull/4588
+- Qwik shop 🎁 by @gioboa in https://github.com/QwikDev/qwik/pull/4225
+- fix: shop cache by @manucorporat in https://github.com/QwikDev/qwik/pull/4590
+- docs(advanced & concepts docs improvements): clarity / structure changes by @thejackshelton in https://github.com/QwikDev/qwik/pull/4592
+- Add replaceState to link component by @Wimpert in https://github.com/QwikDev/qwik/pull/4492
+- docs: simplify menu by @manucorporat in https://github.com/QwikDev/qwik/pull/4593
+- fix: improve pandacss integration by @manucorporat in https://github.com/QwikDev/qwik/pull/4594
+- fix: default prettier format for starters by @manucorporat in https://github.com/QwikDev/qwik/pull/4595
+- chore(labs): copy build artifacts into the build git repo by @mhevery in https://github.com/QwikDev/qwik/pull/4589
+- chore: update deps by @manucorporat in https://github.com/QwikDev/qwik/pull/4597
+- docs: fix insights docs by @gioboa in https://github.com/QwikDev/qwik/pull/4598
+- chore(labs): include package.json in full build by @mhevery in https://github.com/QwikDev/qwik/pull/4599
+- docs: Dynamic og image implementation by @mrhoodz in https://github.com/QwikDev/qwik/pull/4579
+- fix: correct documentation URLs for rules created by ESLintUtils.RuleCreator by @wtlin1228 in https://github.com/QwikDev/qwik/pull/4604
+- fix: Social and Vendor are production only components by @wtlin1228 in https://github.com/QwikDev/qwik/pull/4610
+- docs: image optimization by @manucorporat in https://github.com/QwikDev/qwik/pull/4608
+- chore: change useStore link by @GustavoMelloGit in https://github.com/QwikDev/qwik/pull/4601
+- fix(qwik-core): add types for the style attribute by @hbendev in https://github.com/QwikDev/qwik/pull/4577
+- docs: Update deprecation information about the basePathname by @julianobrasil in https://github.com/QwikDev/qwik/pull/4437
+- docs: fix typos on Qwik City home by @corydeppen in https://github.com/QwikDev/qwik/pull/4602
+- feat: improve error message for duplicated loaders by @manucorporat in https://github.com/QwikDev/qwik/pull/4619
+- docs: dynamic ogImage feature url format fix and clean up by @mrhoodz in https://github.com/QwikDev/qwik/pull/4617
+- fix: detect invalid html by @manucorporat in https://github.com/QwikDev/qwik/pull/4623
+- 1.2.0 by @manucorporat in https://github.com/QwikDev/qwik/pull/4600
+- fix: image devtools by @manucorporat in https://github.com/QwikDev/qwik/pull/4626
+- feat: qwik add builder.io by @adamdbradley in https://github.com/QwikDev/qwik/pull/4627
+
+## New Contributors
+
+- @erikras made their first contribution in https://github.com/QwikDev/qwik/pull/4457
+- @OrenSayag made their first contribution in https://github.com/QwikDev/qwik/pull/4453
+- @hexa-it made their first contribution in https://github.com/QwikDev/qwik/pull/4473
+- @the-zimmermann made their first contribution in https://github.com/QwikDev/qwik/pull/4440
+- @eecopa made their first contribution in https://github.com/QwikDev/qwik/pull/4524
+- @avanderpluijm made their first contribution in https://github.com/QwikDev/qwik/pull/4514
+- @VinuB-Dev made their first contribution in https://github.com/QwikDev/qwik/pull/4522
+- @LoganAffleck made their first contribution in https://github.com/QwikDev/qwik/pull/4513
+- @primeagen-rustaceans made their first contribution in https://github.com/QwikDev/qwik/pull/4467
+- @enesflow made their first contribution in https://github.com/QwikDev/qwik/pull/4500
+- @moinulmoin made their first contribution in https://github.com/QwikDev/qwik/pull/4499
+- @jordanw66 made their first contribution in https://github.com/QwikDev/qwik/pull/4509
+- @ehrencrona made their first contribution in https://github.com/QwikDev/qwik/pull/4430
+- @ncharalampidis made their first contribution in https://github.com/QwikDev/qwik/pull/4528
+- @anubra266 made their first contribution in https://github.com/QwikDev/qwik/pull/4544
+- @Leizhenpeng made their first contribution in https://github.com/QwikDev/qwik/pull/2689
+- @mrhoodz made their first contribution in https://github.com/QwikDev/qwik/pull/4579
+- @corydeppen made their first contribution in https://github.com/QwikDev/qwik/pull/4602
+
+</ArticleBlock>

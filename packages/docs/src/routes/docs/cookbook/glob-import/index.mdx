@@ -48,7 +48,7 @@ Since Qwik doesn't support Promises as components, that means you need to `await
 
 If you're using inline components or anything else, you can use `eager: true`, and the resulting object can be used as a normal object, keyed by the file path.
 
-## Example
+As a workaround for now, you can use the build time `isDev` boolean from `"@qwik.dev/core"`:
 
 <CodeSandbox src="/src/routes/demo/cookbook/glob-import/">
 ```tsx

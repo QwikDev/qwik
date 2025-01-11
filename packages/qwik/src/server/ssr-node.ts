@@ -141,7 +141,7 @@ export class SsrComponentFrame implements ISsrComponentFrame {
     if (isJSXNode(children)) {
       const slotName = this.getSlotName(children);
       mapArray_set(this.slots, slotName, children, 0);
-    } else if (Array.isArray(children)) {
+    } else if (Array.isArray(children) && children.length > 0) {
       const defaultSlot = [];
       for (let i = 0; i < children.length; i++) {
         const child = children[i];
@@ -156,7 +156,7 @@ export class SsrComponentFrame implements ISsrComponentFrame {
           defaultSlot.push(child);
         }
       }
-      defaultSlot.length && mapArray_set(this.slots, QDefaultSlot, defaultSlot, 0);
+      defaultSlot.length > 0 && mapArray_set(this.slots, QDefaultSlot, defaultSlot, 0);
     } else {
       mapArray_set(this.slots, QDefaultSlot, children, 0);
     }

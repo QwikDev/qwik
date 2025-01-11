@@ -72,11 +72,14 @@ async function runNext(requestEv: RequestEventInternal, resolve: (value: any) =>
       await stream.close();
     } else if (e instanceof ServerError) {
       if (!requestEv.headersSent) {
+        const status = e.status as StatusCodes;
         if (typeof e.data === 'object') {
-          const status = e.status as StatusCodes;
           const qwikSerializer = requestEv[RequestEvQwikSerializer];
           requestEv.headers.set('Content-Type', 'application/qwik-json');
           requestEv.send(status, await qwikSerializer._serializeData(e.data, true));
+        } else {
+          requestEv.headers.set('Content-Type', 'text/plain; charset=utf-8');
+          requestEv.send(status, e.data);
         }
       }
     } else if (!(e instanceof AbortMessage)) {

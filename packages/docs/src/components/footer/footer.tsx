@@ -3,6 +3,7 @@ import { DiscordLogo } from '~/components/svgs/discord-logo';
 import { GithubLogo } from '~/components/svgs/github-logo';
 import { QwikLogo } from '~/components/svgs/qwik-logo';
 import { TwitterLogo } from '~/components/svgs/twitter-logo';
+import { BlueskyLogo } from '~/components/svgs/bluesky-logo';
 
 const baseUrl = 'https://qwik.dev';
 const linkColumns = [
@@ -51,7 +52,7 @@ export const Footer = component$(() => {
           </div>
           <div class="border border-b-0 border-current mt-2"></div>
           <div class="flex justify-between items-end">
-            <p class="text-xs">MIT License © 2024</p>
+            <p class="text-xs">MIT License © {new Date().getFullYear()}</p>
             <FooterSocialLinks />
           </div>
         </div>
@@ -66,7 +67,11 @@ export const FooterLinks = component$(() => {
       {linkColumns.map((column, colIndex) => (
         <div key={colIndex} class="flex flex-col gap-4 flex-1">
           {column.map((link, linkIndex) => (
-            <a key={linkIndex} class="hover:text-interactive-blue z-[10]" href={link.href}>
+            <a
+              key={linkIndex}
+              class="text-[color:var(--text-color)] hover:text-interactive-blue z-[10]"
+              href={link.href}
+            >
               {link.title}
             </a>
           ))}
@@ -81,6 +86,7 @@ export const FooterSocialLinks = component$(() => {
     { href: 'https://qwik.dev/chat', title: 'Discord', Logo: DiscordLogo },
     { href: 'https://github.com/QwikDev/qwik', title: 'GitHub', Logo: GithubLogo },
     { href: 'https://twitter.com/QwikDev', title: 'Twitter', Logo: TwitterLogo },
+    { href: 'https://bsky.app/profile/qwik.dev', title: 'Bluesky', Logo: BlueskyLogo },
   ];
 
   return (

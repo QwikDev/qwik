@@ -8,7 +8,6 @@ import {
   removeTsMorphFromPackageJson,
   updateDependencies,
 } from './update-dependencies';
-import { updateConfigurations } from './update-configurations';
 
 export async function runV2Migration(app: AppCommand) {
   intro(
@@ -56,7 +55,8 @@ export async function runV2Migration(app: AppCommand) {
       await removeTsMorphFromPackageJson();
     }
 
-    updateConfigurations();
+    // COMMENTED OUT FOR NOW 👇 (as this is fixed in https://github.com/QwikDev/qwik/pull/7159)
+    // updateConfigurations();
 
     await updateDependencies();
     log.success(`${green(`Your application has been successfully migrated to v2!`)}`);

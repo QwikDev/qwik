@@ -1,0 +1,58 @@
+---
+title: 'Qwik and Qwik City have reached beta! 🎉'
+authorName: 'Miško Hevery'
+tags: ['Web development']
+date: 'September 19, 2022'
+canonical: 'https://www.builder.io/blog/qwik-and-qwik-city-have-reached-beta'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import CodeSandbox from '~/components/code-sandbox/index.tsx';
+
+<ArticleBlock>
+
+The Qwik team is excited to announce that [Qwik](https://qwik.dev/) and Qwik City are in beta!
+
+To us, beta is an important milestone that we don't take lightly. To us, beta means:
+
+- **Complete features:** All of the goals we set out to implement in this version have been implemented.
+- **Stable APIs:** We’re not aware of any API deficiencies that would need to be address and don't have any plans to change them for now.
+- **No blocking issues:** While no software is ever bug-free, we’re not aware of any blocking issues which would prevent people from using Qwik in production.
+- **Documentation:** While documentation is an ever-evolving goal, beta signals that all of the public APIs are documented, and we have sufficient documentation to enable developers to be successful.
+
+## **About Qwik**
+
+[Qwik](https://qwik.dev/) is a new framework aiming to let developers build instant-on web applications in a familiar React-like component mental model. Qwik achieves this by focusing on server-side-rendering and [forgoing hydration in favor of resumability](https://www.builder.io/blog/hydration-is-pure-overhead). The results are web applications with [O(1) scalability](https://www.builder.io/blog/our-current-frameworks-are-on-we-need-o1) that perform great even on slow networks or mobile devices.
+
+Qwik City is an accompanying meta-framework for building Qwik sites. Qwik City provides directory base routing, data fetching, bundle optimization, prefetching, streaming, and interoperability with edge function providers to ensure that out of the box, your site can take full advantage of Qwik and deliver instant-on web apps. Qwik City lets you focus on the site, not fine-tuning the delivery of HTML, CSS, JavaScript, bundling, and prefetching to make your site fast.
+
+Qwik is part of a new breed of web frameworks that own all of the concerns associated with building a fast site. Because Qwik is vertically integrated, it owns rendering, style splitting, SSR, bundle optimization, prefetching, data serialization, and resumability. By owning the whole problem space, Qwik can optimize better, frequently delivering close to zero JavaScript on site startup and seamlessly transitioning to a fully interactive app. It is our no-compromise philosophy.
+
+Qwik is designed from the ground up to:
+
+- Provide **instant-on** experience for end users, even on slow networks or devices, through [resumability](https://www.builder.io/blog/hydration-is-pure-overhead).
+- Have **composable HTML**: Multiple servers can collaborate on building an SSR response, which enables fast responses that are fully personalizable. This is especially useful for large teams working with micro-frontend architectures.
+- Be **streamable**, taking into account data fetching, styling, and promises to get every last bit of performance out of our infrastructure.
+
+## **What’s next?**
+
+We will let the beta get some use from our community to ensure that no issues exist, and if they do, we can quickly take care of them. After this settling period, we will declare 1.0.
+
+After 1.0, we have exciting plans to attack areas that don't have good performance solutions in our industry. One such area is delivering personalized content to our users. Personalization is hard because executing the framework across the whole application on the server is computationally expensive. We think the solution is to break the application into smaller chunks. By breaking the application into chunks (we call them containers), we can:
+
+- Heavily cache the containers: While caching a user response is not feasible on page level (each user has a different response), caching is possible on a subsection of page level.
+- Render each container on a different edge function.
+- Provide fast and computationally inexpensive personalization by only rendering parts that are different between users and focusing on assembling the responses from pre-existing containers (either cached or delivered from other edge workers).
+- Stream out of order, allowing us to render a placeholder and continue streaming past it, returning once the data is available on the server.
+
+## **Check out our other open-source projects**
+
+Builder.io prides itself on building open-source technologies to solve today's web problems.
+
+- [**Partytown**](https://partytown.qwik.dev/): Third-party scripts are often the source of slow site startup, executing eagerly and creating contention for the main thread. Partytown is a way to offload third-party scripts from your main thread to a web worker, leaving the main thread free to focus on user interactions. Integration of partytown often results in significant PageSpeed score improvement!
+- [**Builder.io Qwik SDK**](https://www.builder.io/c/docs/getting-started): Now you can integrate Qwik City sites with [Builder.io Visual CMS](https://www.builder.io/visual-development-platform) and give business team members a Visual Editor to create, edit, and personalize content quickly using your Qwik components. Business teams get the freedom to make changes, and engineers retain control of the site or app without having to be involved in each change.
+- [**Mitosis**](https://mitosis.builder.io/): Write code once in Mitosis, and generate canonical output for all of today's popular frameworks. Allows your team to write code once and support many different outputs. Especially useful for creating design systems consistent across an organization where different teams use different tech stacks.
+
+Together, these solutions will help developers create fast websites — and ultimately, a better internet. Happy building!
+
+</ArticleBlock>

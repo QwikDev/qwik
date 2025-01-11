@@ -571,9 +571,9 @@ import { $, component$, useSignal } from '@qwik.dev/core';
 export const Works = component$(({fromProps}) => {
 	let fromLocal = useSignal(0);
 	return (
-		<div 
+		<div
 			computed={fromLocal + fromProps}
-			local={fromLocal} 
+			local={fromLocal}
 			props-wrap={fromProps}
 			props-only={{props: fromProps}}
 			props={{props: fromProps, local: fromLocal}}
@@ -598,9 +598,9 @@ import { $, component$, useSignal } from '@qwik.dev/core';
 export const Works = component$((props: { fromProps: number }) => {
 	let fromLocal = useSignal(0);
 	return (
-		<div 
+		<div
 			computed={fromLocal + props.fromProps}
-			local={fromLocal} 
+			local={fromLocal}
 			props-wrap={props.fromProps}
 			props-only={{props: props.fromProps}}
 			props={{props: props.fromProps, local: fromLocal}}
@@ -2738,11 +2738,11 @@ import { threejs } from 'threejs';
 import L from 'leaflet';
 
 export const functionThatNeedsWindow = () => {
-	if (isb) {
-	console.log('l', L);
-	console.log('hey');
-	window.alert('hey');
-	}
+  if (isb) {
+    console.log('l', L);
+    console.log('hey');
+    window.alert('hey');
+  }
 };
 
 export const App = component$(() => {
@@ -3695,7 +3695,7 @@ fn destructure_args_inline_cmp_block_stmt2() {
 fn destructure_args_inline_cmp_expr_stmt() {
 	test_input!(TestInput {
 		code: r#"
-		export default ({ data }: { data: any }) => 
+		export default ({ data }: { data: any }) =>
             <div
               data-is-active={data.selectedOutputDetail === 'options'}
               onClick$={() => {
@@ -3827,7 +3827,7 @@ export const App = component$(() => {
 
 	return (
 		<Cmp>
-			<p class="stuff" 
+			<p class="stuff"
 				shouldRemove$={() => stuff.count}
 				onClick$={() => console.log('warn')}
 			>
@@ -3953,9 +3953,9 @@ fn rename_builder_io() {
 		import { moreStuff } from "@builder.io/qwik-city/more/here";
 		import { qwikify$ } from "@builder.io/qwik-react";
 		import sdk from "@builder.io/sdk";
-		
+
 		export const Foo = qwikify$(MyReactComponent);
-		
+
 		export const Bar = $("a thing");
 
 		export const App = component$(() => {

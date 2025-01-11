@@ -15,11 +15,11 @@ import { threejs } from 'threejs';
 import L from 'leaflet';
 
 export const functionThatNeedsWindow = () => {
-	if (isb) {
-	console.log('l', L);
-	console.log('hey');
-	window.alert('hey');
-	}
+  if (isb) {
+    console.log('l', L);
+    console.log('hey');
+    window.alert('hey');
+  }
 };
 
 export const App = component$(() => {

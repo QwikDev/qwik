@@ -1,4 +1,12 @@
-import { component$, useSignal, useStore } from "@qwik.dev/core";
+import {
+  $,
+  Slot,
+  component$,
+  useComputed$,
+  useSignal,
+  useStore,
+  type PropsOf,
+} from "@qwik.dev/core";
 
 export const Attributes = component$(() => {
   const render = useSignal(0);
@@ -13,6 +21,7 @@ export const Attributes = component$(() => {
         Rerender
       </button>
       <AttributesChild v={render.value} key={render.value} />
+      <ProgressParent />
     </>
   );
 });
@@ -212,5 +221,43 @@ export const Issue4718Null = component$(() => {
     >
       Click Me
     </button>
+  );
+});
+
+const ProgressRoot = component$<{ min?: number } & PropsOf<"div">>((props) => {
+  const { ...rest } = props;
+
+  const minSig = useComputed$(() => props.min ?? 0);
+
+  const valueLabelSig = useComputed$(() => {
+    const value = minSig.value;
+    return `${value * 100}%`;
+  });
+
+  return (
+    <div aria-valuetext={valueLabelSig.value} {...rest}>
+      <Slot />
+    </div>
+  );
+});
+
+const ProgressParent = component$(() => {
+  const minGoal = useSignal(2000);
+
+  const incrementMin = $(() => {
+    minGoal.value += 500;
+  });
+
+  return (
+    <div>
+      <div>
+        <span id="progress-value">${minGoal.value}</span>
+        <button id="progress-btn" onClick$={incrementMin}>
+          +
+        </button>
+      </div>
+
+      <ProgressRoot min={minGoal.value}>Test</ProgressRoot>
+    </div>
   );
 });

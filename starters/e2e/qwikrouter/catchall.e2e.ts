@@ -31,7 +31,7 @@ function tests() {
 
   test("Error Catchall", async ({ context }) => {
     const page = await context.newPage();
-    const response = (await page.goto("/qwikcity-test/catchall-error/"))!;
+    const response = (await page.goto("/qwikrouter-test/catchall-error/"))!;
     const status = response.status();
     expect(status).toBe(500);
   });

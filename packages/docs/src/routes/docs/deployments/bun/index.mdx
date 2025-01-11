@@ -20,15 +20,6 @@ curl -fsSL https://bun.sh/install | bash
 
 For other platforms or if you run into issues with installation, up to date `bun` installation instructions can be found [on the bun website](https://bun.sh/docs/installation).
 
-If you run into the error `Something went wrong installing the "sharp" module` when using `bun` as a package manager, add the following code to your package.json, then remove the node_modules folder and any lockfiles such as bun.lockb or package-lock.json. Then run `bun install`.
-
-```json
-"trustedDependencies": [ 
-  "sharp"
-]
-```
-This issue is currently being tracked [on the bun repository](https://github.com/oven-sh/bun/issues/3783).
-
 To integrate the `bun` adapter, use the `add` command:
 
 - For the [integrated HTTP server](https://bun.sh/docs/api/http):

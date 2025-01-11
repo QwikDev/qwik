@@ -1,0 +1,212 @@
+---
+title: 'Code Extraction: The Silent Web Revolution'
+authorName: 'Manu Mtz.-Almeida'
+tags: ['Qwik']
+date: 'February 21, 2023'
+canonical: 'https://www.builder.io/blog/module-extraction-the-silent-web-revolution'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import CodeSandbox from '~/components/code-sandbox/index.tsx';
+
+<ArticleBlock>
+
+Code or Module Extraction is the new silent revolution of the web happening right now.
+
+Bundling tooling in JS, like Webpack, Rollup and Vite do one thing very well: **merge modules and remove what's not used** (tree-shaking), but they have no clue how to split code automatically. **Code splitting is not what you think it is.**
+
+Undoubtedly, putting things together takes less energy; even the [2nd law of thermodynamics](https://en.wikipedia.org/wiki/Second_law_of_thermodynamics) states this. Separating things is much harder.
+
+> In opposition to nuclear physics, web tooling solved **fusion** (merge) years ago. The hard part here is **fission** (split).
+
+## What module extraction really is
+
+Modern meta frameworks such as Qwik, Remix, Solid Start, and Next 13 are already doing module extraction without you knowing. The main use case is allowing developers to write server- and client-side in the same module.
+
+Module Extraction radically differs from code splitting because developers are not doing it explicitly by creating a new module or dynamic import. Instead, the meta-framework uses internal rules and custom transforms to **extract** parts of the source code into different **modules that can execute independently**.
+
+Even if you don't like mixing server and client code, it's an ongoing trend enabling magnificent DX and performant improvements.
+
+## Why we put things together
+
+Our brain uses the [<em>working memory</em>](https://en.wikipedia.org/wiki/Working_memory) to store a small amount of information that can later be used for the execution of cognitive tasks. The problem is that cognitive load grows exponentially for the number of items we keep in memory. When we separate things, we need to remember the current task and where everything is located. When related topics are close together, our brain is at ease, this even explains the popularity of tools like Tailwind.
+
+For a long time, CSS, HTML, and JS had to live in 3 different files, but modern frameworks realized that the inherent coupling is too high between them. **Most of the time, the separation of concerns creates even more complexity**.
+
+> The goal of a software engineer is NOT to reduce coupling or separate concerns but to reduce the net complexity of the system. Patterns like [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) [and SOLID](https://en.wikipedia.org/wiki/SOLID) are guides that we must use wisely. **Always make it clear and concise**.
+
+- Svelte and Vue invented _single file components_ using their own DSL (Domain Specific Language) to assemble HTML, CSS, and JS into a single file.
+- React introduced JSX, bringing HTML-like syntax to JS, and later, CSS-in-JS libraries did the rest for styles.
+
+Thanks to all of them, the web is the industry that it is today. They enabled the creation of massively complex applications by big teams.
+
+## Why we separate things
+
+### Performance
+
+Any web developer working in a sufficiently large app is **forced** to do code splitting, and dynamically import components and styles.
+
+Yes! **They are forced to.**
+
+Stop for a second and realize that C++, Java, Swift, and Rust developers never have to think about this. **The compiler and operating system solve this problem by automatically** [loading and unloading](https://en.wikipedia.org/wiki/Virtual_memory) the program dynamically as it's needed.
+
+> 1GB of C binary can start immediately; unfortunately, we can not say the same about 1GB of Javascript. Even with WebAssembly, we need to deal with the network.
+
+### Server compared to client
+
+Apps usually require writing code that executes only on the server side; this is needed to implement user authentication or allow direct access to a database.
+
+Like in the early days of the web, developers today are **forced** to separate server and client logic into different files, even if the logic between both worlds is deeply related.
+
+**Yes! They are forced to.**
+
+It was not always that way, even good old [ASP.NET](http://asp.net/) has concepts to collocate Client and Server code next to each other. What if we could have the best of both worlds?
+
+```tsx
+<button onClick={server$(() => console.log('runs in the server'))}>
+   Runs in server
+</button>
+```
+
+### Refactoring
+
+**Separating things can be good when it's not a requirement;** sometimes it's good to keep things separated.
+
+For instance, React, Vue, and Solid are **highly composable**, allowing us to move pieces of functionality to different modules.
+
+In React, `use-` methods allow teams to refactor parts of functionality that they are using across different components and **keep related logic in the same place.**
+
+Frameworks like React and Qwik are designed to be used by big teams and complex apps in need of this ability.
+
+## Module Extraction as a primitive
+
+Like [Ryan Carniato](https://twitter.com/RyanCarniato) (creator of [Solid.js](https://www.solidjs.com/)) would say: "**Primitives, not frameworks"**.
+
+Qwik is the first framework to have module extraction as a primitive, a **primitive that developers can extend** and use for many more things than Server/Client execution.
+
+In Qwik, we use the `$` sign to signal the developer when to extract a piece of code; think about module extraction as the ability to create multiple modules inside a single file.
+
+While we could make `ME` transparent and hide the `$`, it's beneficial for developers to know when it's happening.
+
+Because `$` is a primitive, developers can create their Module Extraction utilities, and the semantics are well explained and documented.
+
+Up until this time, module extraction was an internal trick mostly used by meta-frameworks when they recognize well-named exports or functions, like `export const loaders` or `export const actions`.
+
+Qwik uses module extraction extensively; for example, each event handler is extracted so that when a user interacts, we can run that single piece of the original module in isolation, enabling apps that are instantly interactive regardless of complexity!
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fb48bdfe207bb49ccb9bf0a404dafaad9?width=800" alt='a slide with a graph showing a figurative x-axis showing how Qwik enables O(1) apps. Text on the right: "Correlation between functionality and amount of JS is broken' />
+
+Module extraction is the main primitive of how [Qwik achieves resumability](https://www.builder.io/blog/resumability-vs-hydration); not only that, it can even [make React resumable](https://www.builder.io/blog/resumable-react-how-to-use-react-inside-qwik) 🤯.
+
+- **✅ Composable:** developers can create their Module Extraction.
+- **✅ Closure extraction:** `$` can work at the closure level and extract functions that capture the scope.
+- **✅ Fully co-locatable:** `$` can be in any file, and at any level, even inside JSX. It's not a root-level module extraction only.
+- **✅ Nested:** `$` can even be inside another `$`.
+
+## How Module Extraction works in Qwik
+
+At the core of Qwik’s module extraction is the ability to perform “**closure extraction**”.
+
+A closure is a term in computer science to refer to a function that uses captured scope variables.
+
+Notice this example:
+
+```typescript
+// This is a pure function: takes inputs as arguments and returns an output.
+function thisIsAFunction(a, b) {
+  return a + b;
+}
+
+function main() {
+  const captured = 10;
+  // This is a closure: in addition, the function captures the variable "captured".
+  function thisIsAClosure(a, b) {
+    return (a + b) * captured;
+  }
+}
+```
+
+As you can tell, a closure is just like a function that captures the state through [lexical scoping](<https://en.wikipedia.org/wiki/Scope_(computer_science)#Lexical_scope>).
+
+### Extracting closures is not trivial
+
+So, extracting pure functions is as easy as copying the entire function body somewhere else, and everything will still work, but how about moving a closure?
+
+```typescript
+function thisIsAClosure(a, b) {
+  // Exception: "captured" is undefined
+  return (a + b) * captured;
+}
+```
+
+If we move the closure from the previous example, some variables are missing, which will not work.
+
+### Qwik Optimizer to the rescue
+
+To solve this problem, we created the Qwik Optimizer in [Rust](https://www.rust-lang.org/) using [SWC](https://github.com/swc-project/swc), the same tech used by [TurboBuild](https://turbo.build/), to perform advanced optimizations without sacrificing build times.
+
+The Optimizer looks for `$` and applies a transformation that extracts the expression following the `$` and turns it into a lazy-loadable and importable symbol.
+
+Let's start by looking at a simple `Counter` example:
+
+```typescript
+export const Counter = component$(() => {
+  const store = useStore({ count: 0 });
+
+  return <button onClick$={() => store.count++}>{store.count}</button>;
+});
+```
+
+The above code represents what a developer would write to describe the component. Below are the transformations the Optimizer applies to the code to make the code lazy-loadable.
+
+```typescript
+const Counter = component(qrl('./chunk-a.js', 'Counter_onMount'));
+```
+
+`chunk-a.js`:
+
+```typescript
+export const Counter_onMount = () => {
+  const store = useStore({ count: 0 });
+  return <button onClick$={qrl('./chunk-b.js', 'Counter_onClick', [store])}>{store.count}</button>;
+};
+```
+
+`chunk-b.js`:
+
+```typescript
+const Counter_onClick = () => {
+  const [store] = useLexicalScope();
+  return store.count++;
+};
+```
+
+Notice that every occurrence of `$` results in a new lazy loadable symbol.
+
+If you want to know more, check out the 1-hour video below, where I explain all the details of our Optimizer, or check the following links:
+
+- [The dollar $ sign](https://qwik.dev/docs/advanced/dollar/)
+- [QRL](https://qwik.dev/docs/advanced/qrl/)
+
+<div style='position:relative;padding-bottom:56.25%;height:0;'>
+	<iframe
+		src='https://www.youtube.com/embed/cL9DLUCrDx0?rel=0'
+		style='position:absolute;top:0;left:0;width:100%;height:100%;border:0;'
+		allowfullscreen
+		allow='accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share;'
+	></iframe>
+</div>
+
+## Closing notes
+
+Module extraction is the new silent revolution of the web happening right now! Its properties are so powerful that we will hear more and more about it. Qwik was the first framework to introduce it as a primitive, but our prediction is that other frameworks will begin embracing ME as a primitive, too, not a hidden set of rules implemented at the meta-framework level.
+
+New meta-frameworks like Solid Start are taking the proper steps and adopting Qwik's semantics to implement module extraction with their new `server$`.
+
+Who said you need to choose between edge or serverless?
+
+What if you could write a single component file and leverage the entire cloud infrastructure or even web workers?
+
+The future is bright, from new styling solutions to fully leveraging the power of the cloud, all from a single file.
+
+</ArticleBlock>

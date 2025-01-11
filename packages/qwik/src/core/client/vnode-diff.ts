@@ -724,6 +724,14 @@ export const vnode_diff = (
       } else {
         // Existing keyed node
         vnode_insertBefore(journal, vParent as ElementVNode, vNewNode, vCurrent);
+        // We are here, so jsx is different from the vCurrent, so now we want to point to the moved node.
+        vCurrent = vNewNode;
+        // We need to clean up the vNewNode, because we don't want to skip advance to next sibling (see `advance` function).
+        vNewNode = null;
+        // We need also to go back to the previous sibling, because we assigned previous sibling to the vCurrent.
+        if (vSiblings !== null) {
+          vSiblingsIdx -= SiblingsArray.Size;
+        }
       }
     }
     // reconcile attributes

@@ -18,7 +18,6 @@ import type {
   FailReturn,
 } from '../../runtime/src/types';
 import { Cookie } from './cookie';
-import { ErrorResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { encoder } from './resolve-request-handlers';
 import { createCacheControl } from './cache-control';
@@ -27,6 +26,7 @@ import type { QwikManifest, ResolvedManifest } from '@builder.io/qwik/optimizer'
 import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
 import { isPromise } from './../../runtime/src/utils';
 import { QDATA_KEY } from '../../runtime/src/constants';
+import { ServerError } from './error-handler';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
@@ -192,9 +192,9 @@ export function createRequestEvent(
       return locale || '';
     },
 
-    error: (statusCode: number, message: string) => {
+    error: <T = Record<any, any>>(statusCode: number, message: T) => {
       status = statusCode;
-      return new ErrorResponse(statusCode, message);
+      return new ServerError(statusCode, message);
     },
 
     redirect: (statusCode: number, url: string) => {

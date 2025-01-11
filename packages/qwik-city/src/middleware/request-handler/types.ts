@@ -1,9 +1,9 @@
 import type { Render, RenderOptions } from '@builder.io/qwik/server';
 import type { QwikCityPlan, FailReturn, Action, Loader } from '@builder.io/qwik-city';
-import type { ErrorResponse } from './error-handler';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';
 import type { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import type { ServerError } from './error-handler';
 
 /** @public */
 export interface EnvGetter {
@@ -154,7 +154,8 @@ export type ClientErrorCode =
   | 428 // Precondition Required
   | 429 // Too Many Requests
   | 431 // Request Header Fields Too Large
-  | 451; // Unavailable For Legal Reasons
+  | 451 // Unavailable For Legal Reasons
+  | 499; // Client closed request
 
 /**
  * HTTP Server Error Status Codes Status codes in the 5xx range indicate that the server encountered
@@ -205,7 +206,7 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
    * to end a response with `404`, and use the 404 handler in the routes directory. See
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for which status code should be used.
    */
-  readonly error: (statusCode: ErrorCodes, message: string) => ErrorResponse;
+  readonly error: <T = Record<any, any>>(statusCode: ErrorCodes, message: T) => ServerError<T>;
 
   /**
    * Convenience method to send an text body response. The response will be automatically set the

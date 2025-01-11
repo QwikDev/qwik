@@ -3,10 +3,16 @@ import { server$ } from "@builder.io/qwik-city";
 import { ServerError } from "@builder.io/qwik-city/middleware/request-handler";
 import { delay } from "../../actions/login";
 
-type ErrorReason = { reason: string };
+type ErrorReason = {
+  reason: string;
+  middleware: string;
+};
 
 const serverFunctionA = server$(async function a(): Promise<string> {
-  throw new ServerError<ErrorReason>(401, { reason: "my error" });
+  throw new ServerError<ErrorReason>(401, {
+    reason: "my error",
+    middleware: "uncaught",
+  });
 });
 
 const serverFunctionB = server$(async function b(): Promise<string> {
@@ -14,7 +20,8 @@ const serverFunctionB = server$(async function b(): Promise<string> {
 });
 
 export const MultipleServerFunctionsInvokedInTask = component$(() => {
-  const methodA = useSignal("");
+  const errorReason = useSignal("");
+  const errorMiddleware = useSignal("");
   const methodB = useSignal("");
 
   useVisibleTask$(async () => {
@@ -22,7 +29,8 @@ export const MultipleServerFunctionsInvokedInTask = component$(() => {
       await serverFunctionA();
     } catch (err: any) {
       if (isErrorReason(err)) {
-        methodA.value = err.reason;
+        errorReason.value = err.reason;
+        errorMiddleware.value = err.middleware;
       }
     }
 
@@ -34,7 +42,8 @@ export const MultipleServerFunctionsInvokedInTask = component$(() => {
 
   return (
     <div id="server-error">
-      {methodA.value}
+      {errorReason.value}
+      {errorMiddleware.value}
       {methodB.value}
     </div>
   );
@@ -48,8 +57,8 @@ export default component$(() => {
   );
 });
 
-function isErrorReason(err: any): err is ErrorReason {
-  if (typeof err.reason === "string") {
+export function isErrorReason(err: any): err is ErrorReason {
+  if (typeof err.reason === "string" && typeof err.middleware === "string") {
     return true;
   }
 

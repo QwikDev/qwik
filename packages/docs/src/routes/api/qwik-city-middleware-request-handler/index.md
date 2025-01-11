@@ -1216,7 +1216,7 @@ Description
 
 </td><td>
 
-(statusCode: ErrorCodes, message: string) =&gt; ErrorResponse
+&lt;T = Record&lt;any, any&gt;&gt;(statusCode: ErrorCodes, message: T) =&gt; [ServerError](#servererror)&lt;T&gt;
 
 </td><td>
 

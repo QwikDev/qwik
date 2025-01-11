@@ -126,8 +126,7 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
 // @public (undocumented)
 export interface RequestEventCommon<PLATFORM = QwikCityPlatform> extends RequestEventBase<PLATFORM> {
     // Warning: (ae-forgotten-export) The symbol "ErrorCodes" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "ErrorResponse" needs to be exported by the entry point index.d.ts
-    readonly error: (statusCode: ErrorCodes, message: string) => ErrorResponse;
+    readonly error: <T = Record<any, any>>(statusCode: ErrorCodes, message: T) => ServerError<T>;
     // (undocumented)
     readonly exit: () => AbortMessage;
     readonly html: (statusCode: StatusCodes, html: string) => AbortMessage;

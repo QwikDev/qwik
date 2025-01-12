@@ -11,7 +11,7 @@ import {
   ResourceEvent,
   TaskEvent,
 } from '../shared/utils/markers';
-import { isPromise, retryOnPromise } from '../shared/utils/promises';
+import { isPromise } from '../shared/utils/promises';
 import { seal } from '../shared/utils/qdev';
 import { isArray } from '../shared/utils/types';
 import { setLocale } from './use-locale';
@@ -263,7 +263,7 @@ export const trackSignalAndAssignHost = (
   if (value instanceof WrappedSignal && value.$hostElement$ !== host && host) {
     value.$hostElement$ = host;
   }
-  return retryOnPromise(() => trackSignal(() => value.value, host, property, container, data));
+  return trackSignal(() => value.value, host, property, container, data);
 };
 
 /** @internal */

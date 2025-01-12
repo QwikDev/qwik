@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { ComponentStylesPrefixContent as prefix } from "../../packages/qwik/src/core/util/markers";
 
 test.describe("render", () => {
   test.beforeEach(async ({ page }) => {
@@ -28,31 +29,31 @@ test.describe("render", () => {
 
       const attributes = page.locator("#attributes");
 
-      await expect(attributes).toHaveClass("⭐️unvb18-1 even stable0");
+      await expect(attributes).toHaveClass(`${prefix}unvb18-1 even stable0`);
       await expect(attributes).toHaveAttribute("aria-hidden", "true");
       await expect(attributes).toHaveAttribute("preventdefault:click", "");
 
       await increment.click();
 
-      await expect(attributes).toHaveClass("⭐️unvb18-1 odd stable0");
+      await expect(attributes).toHaveClass(`${prefix}unvb18-1 odd stable0`);
       await expect(attributes).toHaveAttribute("aria-hidden", "true");
       await expect(attributes).toHaveAttribute("preventdefault:click", "");
 
       await toggle.click();
 
-      await expect(attributes).toHaveClass("⭐️unvb18-1");
+      await expect(attributes).toHaveClass(`${prefix}unvb18-1`);
       await expect(attributes).not.hasAttribute("aria-hidden");
       await expect(attributes).not.hasAttribute("preventdefault:click");
 
       await increment.click();
 
-      await expect(attributes).toHaveClass("⭐️unvb18-1");
+      await expect(attributes).toHaveClass(`${prefix}unvb18-1`);
       await expect(attributes).not.hasAttribute("aria-hidden");
       await expect(attributes).not.hasAttribute("preventdefault:click");
 
       await toggle.click();
 
-      await expect(attributes).toHaveClass("⭐️unvb18-1 even stable0");
+      await expect(attributes).toHaveClass(`${prefix}unvb18-1 even stable0`);
       await expect(attributes).toHaveAttribute("aria-hidden", "true");
       await expect(attributes).toHaveAttribute("preventdefault:click", "");
     });

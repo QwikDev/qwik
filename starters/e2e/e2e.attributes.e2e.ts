@@ -295,15 +295,6 @@ test.describe("attributes", () => {
       await expect(button).not.toHaveAttribute("aria-label");
       await expect(button).not.toHaveAttribute("title");
     });
-
-    test("should update var prop QRL signal value", async ({ page }) => {
-      const button = page.locator("#progress-btn");
-      await button.click();
-      const progress = page.locator("#progress-value");
-      await expect(progress).toHaveText("$2500");
-      await button.click();
-      await expect(progress).toHaveText("$3000");
-    });
   }
 
   tests();

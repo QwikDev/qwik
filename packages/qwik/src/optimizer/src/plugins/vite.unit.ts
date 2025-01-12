@@ -3,13 +3,8 @@ import type { Rollup } from 'vite';
 import { assert, expect, suite, test } from 'vitest';
 import { normalizePath } from '../../../testing/util';
 import type { OptimizerOptions, QwikBundle, QwikManifest } from '../types';
-import {
-  convertManifestToBundleGraph,
-  qwikVite,
-  type BundleGraphModifier,
-  type QwikVitePlugin,
-  type QwikVitePluginOptions,
-} from './vite';
+import { convertManifestToBundleGraph, type BundleGraphModifier } from './bundle-graph';
+import { qwikVite, type QwikVitePlugin, type QwikVitePluginOptions } from './vite';
 
 const cwd = process.cwd();
 

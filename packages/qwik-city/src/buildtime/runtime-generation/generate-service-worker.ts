@@ -128,7 +128,7 @@ export function generateLinkBundles(
     });
   }
 
-  for (const r of ctx.routes) {
+  for (const route of ctx.routes) {
     const linkBundleNames: string[] = [];
 
     const addFileBundles = (filePath: string) => {
@@ -156,14 +156,14 @@ export function generateLinkBundles(
       }
     };
 
-    for (const layout of r.layouts) {
+    for (const layout of route.layouts) {
       addFileBundles(layout.filePath);
     }
-    addFileBundles(r.filePath);
+    addFileBundles(route.filePath);
 
     if (prefetch) {
       // process the symbols from insights prefetch
-      const symbolsForRoute = prefetch.find((p) => p.route === r.routeName);
+      const symbolsForRoute = prefetch.find((p) => p.route === route.routeName);
       symbolsForRoute?.symbols?.reverse().forEach((symbol) => {
         const bundle = symbolToBundle.get(symbol);
         if (bundle) {
@@ -177,11 +177,11 @@ export function generateLinkBundles(
     }
 
     linkBundles.push(
-      `[${r.pattern.toString()},${JSON.stringify(
+      `[${route.pattern.toString()},${JSON.stringify(
         linkBundleNames.map((bundleName) => getAppBundleIndex(appBundles, bundleName))
       )}]`
     );
-    routeToBundles[r.routeName] = linkBundleNames;
+    routeToBundles[route.routeName] = linkBundleNames;
   }
 
   return [`const linkBundles=[${linkBundles.join(',')}];`, routeToBundles] as [

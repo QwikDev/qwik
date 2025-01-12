@@ -8,11 +8,11 @@ import type {
   OptimizerOptions,
   OptimizerSystem,
   Path,
-  QwikBundleGraph,
   QwikManifest,
   TransformModule,
 } from '../types';
 import { versions } from '../versions';
+import { convertManifestToBundleGraph, type BundleGraphModifier } from './bundle-graph';
 import { getImageSizeServer } from './image-size-server';
 import {
   CLIENT_OUT_DIR,
@@ -48,8 +48,6 @@ const FONTS = ['.woff', '.woff2', '.ttf'];
  * @internal
  */
 type P<T> = VitePlugin<T> & { api: T; config: Extract<VitePlugin<T>['config'], Function> };
-
-export type BundleGraphModifier = (graph: QwikBundleGraph) => QwikBundleGraph;
 
 /**
  * The types for Vite/Rollup don't allow us to be too specific about the return type. The correct
@@ -1141,95 +1139,4 @@ function absolutePathAwareJoin(path: Path, ...segments: string[]): string {
     }
   }
   return path.join(...segments);
-}
-
-export function convertManifestToBundleGraph(
-  manifest: QwikManifest,
-  bundleGraphModifiers?: Set<BundleGraphModifier>
-): QwikBundleGraph {
-  let bundleGraph: QwikBundleGraph = [];
-  const graph = manifest.bundles;
-  if (!graph) {
-    return [];
-  }
-  const names = Object.keys(graph).sort();
-  const map = new Map<string, { index: number; deps: Set<string> }>();
-  const clearTransitiveDeps = (parentDeps: Set<string>, seen: Set<string>, bundleName: string) => {
-    const bundle = graph[bundleName];
-    if (!bundle) {
-      // external dependency
-      return;
-    }
-    for (const dep of bundle.imports || []) {
-      if (parentDeps.has(dep)) {
-        parentDeps.delete(dep);
-      }
-      if (!seen.has(dep)) {
-        seen.add(dep);
-        clearTransitiveDeps(parentDeps, seen, dep);
-      }
-    }
-  };
-  for (const bundleName of names) {
-    const bundle = graph[bundleName];
-    const index = bundleGraph.length;
-    const deps = new Set(bundle.imports);
-    for (const depName of deps) {
-      if (!graph[depName]) {
-        // external dependency
-        continue;
-      }
-      clearTransitiveDeps(deps, new Set(), depName);
-    }
-    let didAdd = false;
-    for (const depName of bundle.dynamicImports || []) {
-      // If we dynamically import a qrl segment that is not a handler, we'll probably need it soon
-      // const dep = graph[depName];
-      if (!graph[depName]) {
-        // external dependency
-        continue;
-      }
-      if (!didAdd) {
-        deps.add('<dynamic>');
-        didAdd = true;
-      }
-      deps.add(depName);
-    }
-    map.set(bundleName, { index, deps });
-    bundleGraph.push(bundleName);
-    while (index + deps.size >= bundleGraph.length) {
-      bundleGraph.push(null!);
-    }
-  }
-  // Second pass to to update dependency pointers
-  for (const bundleName of names) {
-    const bundle = map.get(bundleName);
-    if (!bundle) {
-      console.warn(`Bundle ${bundleName} not found in the bundle graph.`);
-      continue;
-    }
-    // eslint-disable-next-line prefer-const
-    let { index, deps } = bundle;
-    index++;
-    for (const depName of deps) {
-      if (depName === '<dynamic>') {
-        bundleGraph[index++] = -1;
-        continue;
-      }
-      const dep = map.get(depName);
-      if (!dep) {
-        console.warn(`Dependency ${depName} of ${bundleName} not found in the bundle graph.`);
-        continue;
-      }
-      const depIndex = dep.index;
-      bundleGraph[index++] = depIndex;
-    }
-  }
-  if (bundleGraphModifiers && bundleGraphModifiers.size > 0) {
-    for (const modifier of bundleGraphModifiers) {
-      bundleGraph = modifier(bundleGraph);
-    }
-  }
-
-  return bundleGraph;
 }

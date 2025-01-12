@@ -24,6 +24,7 @@ import {
   prependManifestToServiceWorker,
 } from '../runtime-generation/generate-service-worker';
 import type { BuildContext } from '../types';
+import { modifyBundleGraph } from './bundle-graph-modifier';
 import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
 import { imagePlugin } from './image-jsx';
 import type { QwikCityPluginApi, QwikCityVitePluginOptions } from './types';
@@ -172,6 +173,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
         if (isCityPlan || isSwRegister) {
           if (!ctx.isDevServer && ctx.isDirty) {
             await build(ctx);
+
             ctx.isDirty = false;
             ctx.diagnostics.forEach((d) => {
               this.warn(d.message);
@@ -237,10 +239,10 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
     generateBundle(_, bundles) {
       // client bundles
       if (ctx?.target === 'client') {
-        // qwikPlugin!.api.registerBundleGraphModifier((graph, bundlesIndiciesMap) => {
-        //   graph.push(-2);
+        qwikPlugin!.api.registerBundleGraphModifier((graph, manifest) => {
+          return modifyBundleGraph(ctx!.routes, graph, manifest);
+        });
 
-        // });
         const entries = [...ctx.entries, ...ctx.serviceWorkers].map((entry) => {
           return {
             chunkFileName: entry.chunkFileName,

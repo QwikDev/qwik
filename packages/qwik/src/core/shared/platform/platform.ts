@@ -4,6 +4,7 @@ import { QError, qError } from '../error/error';
 import { getSymbolHash } from '../qrl/qrl-class';
 import { qDynamicPlatform } from '../utils/qdev';
 import type { CorePlatform } from './types';
+import { QBaseAttr } from '../utils/markers';
 
 export const createPlatform = (): CorePlatform => {
   return {
@@ -65,7 +66,7 @@ export const createPlatform = (): CorePlatform => {
  */
 export const toUrl = (doc: Document, containerEl: Element, url: string | URL): URL => {
   const baseURI = doc.baseURI;
-  const base = new URL(containerEl.getAttribute('q:base') ?? baseURI, baseURI);
+  const base = new URL(containerEl.getAttribute(QBaseAttr) ?? baseURI, baseURI);
   return new URL(url, base);
 };
 

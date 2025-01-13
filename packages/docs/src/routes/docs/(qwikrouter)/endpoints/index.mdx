@@ -1,0 +1,99 @@
+---
+title: Endpoints | Qwik Router
+description: Endpoints are middleware functions used to control and return data in various formats like RESTful API, GraphQL API, JSON, XML, reverse proxy, or other API types.
+contributors:
+  - adamdbradley
+  - manucorporat
+  - mhevery
+  - CoralWombat
+  - hamatoyogi
+  - igorbabko
+  - mrhoodz
+  - EamonHeffernan
+  - kumarasinghe
+  - electather
+  - wtlin1228
+  - PatrickJS
+  - the-r3aper7
+updated_at: '2023-10-03T18:53:23Z'
+created_at: '2023-03-20T23:45:13Z'
+---
+
+import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
+
+
+# Endpoints
+
+
+A [middleware function](/docs/middleware) that returns a response is called an endpoint. Endpoints are useful for returning data such as  RESTful API, GraphQL API, JSON, XML, reverse proxy or any other type of API where you need to control all aspects of the HTTP response. Returning a response (using `json` for example) will stop the execution of subsequent middleware functions past this point in the middleware chain. 
+
+All endpoints receive a [`RequestEvent`](/docs/middleware/#requestevent) API for controlling the response of the endpoint. 
+
+
+For example, when navigating to `/greet/` URL this endpoint will return `{"hello":"world"}`.
+
+File: `src/routes/greet/index.tsx`
+<CodeSandbox src="/src/routes/demo/qwikrouter/middleware/json/index.tsx">
+```tsx
+import { type RequestHandler } from '@qwik.dev/router';
+
+export const onGet: RequestHandler = async ({ json }) => {
+  json(200, { hello: 'world' });
+};
+```
+</CodeSandbox>
+
+> Sending a response is what differentiates an endpoint from a middleware. Sending a response (using `json()` for example) will therefore implicitly halt the middleware chain.
+
+
+
+## Create a reverse proxy using a fetch
+
+A reverse proxy can be created by using the `fetch()` method to request another server. Then use the `send()` method to send the response back to the client.
+
+<CodeSandbox src="/src/routes/demo/qwikrouter/middleware/proxy/index.tsx">
+```tsx
+import type { RequestHandler } from '@qwik.dev/router';
+
+export const onGet: RequestHandler = async ({ send, url }) => {
+  const response = await fetch(
+    new URL('/demo/qwikrouter/middleware/json/', url)
+  );
+  send(response.status, await response.text());
+};
+```
+</CodeSandbox>
+
+## Create a stream response manually
+
+Endpoints can manually write to the HTTP response stream, using the `getWritableStream()` method. This can be useful for creating a streaming endpoint, such as a server-sent events endpoint.
+
+<CodeSandbox src="/src/routes/demo/qwikrouter/middleware/getWritableStream/index.tsx">
+```tsx
+import type { RequestHandler } from '@qwik.dev/router';
+
+export const onGet: RequestHandler = async (requestEvent) => {
+  const writableStream = requestEvent.getWritableStream();
+  const writer = writableStream.getWriter();
+  const encoder = new TextEncoder();
+
+  writer.write(encoder.encode('Hello World\n'));
+  await wait(100);
+  writer.write(encoder.encode('After 100ms\n'));
+  await wait(100);
+  writer.write(encoder.encode('After 200ms\n'));
+  await wait(100);
+  writer.write(encoder.encode('END'));
+  writer.close();
+};
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+```
+</CodeSandbox>
+
+## Endpoint vs `server$`
+
+Endpoints are low level APIs that give developers full control over the HTTP response. They are only recommended when you need to create an API to be consumed by an external entity such as a mobile app or a third-party service.
+
+The [`server$`](/docs/(qwikrouter)/server$/index.mdx) functions are usually a better option when you need to run some code on the server and return a response back to the app. The `server$` is strongly typed and provides a more convenient API for returning data.
+

@@ -1,12 +1,12 @@
-import { useContent, useLocation } from '@builder.io/qwik-city';
-import { component$, useContext, $, useStyles$, useOnDocument, useSignal } from '@builder.io/qwik';
+import { $, component$, useContext, useOnDocument, useSignal, useStyles$ } from '@qwik.dev/core';
+import { useContent, useLocation } from '@qwik.dev/router';
+import { GlobalStore } from '../../context';
+import { AlertIcon } from '../svgs/alert-icon';
 import { ChatIcon } from '../svgs/chat-icon';
+import { EditIcon } from '../svgs/edit-icon';
 import { GithubLogo } from '../svgs/github-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './on-this-page.css?inline';
-import { EditIcon } from '../svgs/edit-icon';
-import { GlobalStore } from '../../context';
-import { AlertIcon } from '../svgs/alert-icon';
 
 const QWIK_GROUP = [
   'components',
@@ -30,7 +30,7 @@ const QWIK_ADVANCED_GROUP = [
   'vite',
 ];
 
-const QWIKCITY_GROUP = [
+const QWIKROUTER_GROUP = [
   'action',
   'api',
   'caching',
@@ -42,14 +42,14 @@ const QWIKCITY_GROUP = [
   'middleware',
   'pages',
   'project-structure',
-  'qwikcity',
+  'qwikrouter',
   'route-loader',
   'routing',
   'server$',
   'troubleshooting',
   'validator',
 ];
-const QWIKCITY_ADVANCED_GROUP = [
+const QWIKROUTER_ADVANCED_GROUP = [
   'content-security-policy',
   'menu',
   'request-handling',
@@ -68,13 +68,13 @@ const makeEditPageUrl = (url: string): string => {
   if (segments[1] == 'advanced') {
     if (QWIK_ADVANCED_GROUP.includes(segments[2])) {
       group = '(qwik)';
-    } else if (QWIKCITY_ADVANCED_GROUP.includes(segments[2])) {
-      group = '(qwikcity)';
+    } else if (QWIKROUTER_ADVANCED_GROUP.includes(segments[2])) {
+      group = '(qwikrouter)';
     }
   } else if (QWIK_GROUP.includes(segments[1])) {
     group = '(qwik)';
-  } else if (QWIKCITY_GROUP.includes(segments[1])) {
-    group = '(qwikcity)';
+  } else if (QWIKROUTER_GROUP.includes(segments[1])) {
+    group = '(qwikrouter)';
   }
 
   if (group) {

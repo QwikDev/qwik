@@ -6,21 +6,35 @@ const deepUpdate = (prev: any, next: any) => {
     if (prev[key] && typeof next[key] === 'object' && typeof prev[key] === 'object') {
       deepUpdate(prev[key], next[key]);
     } else {
-      prev[key] = next[key];
+      if (prev[key] !== next[key]) {
+        prev[key] = next[key];
+      }
     }
   }
-  for (const key in prev) {
-    if (!(key in next)) {
-      delete prev[key];
+  if (Array.isArray(prev)) {
+    for (const key in prev) {
+      if (!(key in next)) {
+        delete prev[key];
+        // deleting array elements doesn't change the length
+        prev.length--;
+      }
+    }
+  } else {
+    for (const key in prev) {
+      if (!(key in next)) {
+        delete prev[key];
+      }
     }
   }
 };
 
 export const updateReplOutput = async (store: ReplStore, result: ReplResult) => {
-  store.diagnostics = result.diagnostics;
+  deepUpdate(store.diagnostics, result.diagnostics);
 
-  if (store.diagnostics.length === 0) {
-    store.html = result.html;
+  if (result.diagnostics.length === 0) {
+    if (store.html !== result.html) {
+      store.html = result.html;
+    }
     deepUpdate(store.transformedModules, result.transformedModules);
     deepUpdate(store.clientBundles, result.clientBundles);
     deepUpdate(store.ssrModules, result.ssrModules);

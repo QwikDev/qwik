@@ -59,7 +59,7 @@ The reactive signal returned by `useSignal()` consists of an object with a singl
 
 <CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx" style={{ height: '6em' }}>
 ```tsx {4} /count/
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
   const count = useSignal(0);
@@ -102,7 +102,7 @@ Use `useStore(initialStateObject)` hook to create a reactive object. It takes an
 
 <CodeSandbox src="/src/routes/demo/state/counter-store/index.tsx" style={{ height: '6em' }} >
 ```tsx {4} /state/ /count/#a
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export default component$(() => {
   const state = useStore({ count: 0, name: 'Qwik' });
@@ -127,7 +127,7 @@ Because [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) tracks 
 
 <CodeSandbox src="/src/routes/demo/state/counter-store-deep/index.tsx" style={{ height: '10em' }}>
 ```tsx
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export default component$(() => {
   const store = useStore({
@@ -196,7 +196,7 @@ const shallowStore = useStore(
 To provide methods on the store, you must make them into QRLs and refer to the store with `this`, like so:
 
 ```tsx
-import { component$, useStore, $, type QRL } from "@builder.io/qwik";
+import { component$, useStore, $, type QRL } from "@qwik.dev/core";
 
 type CountStore = { count: number; increment: QRL<(this: CountStore) => void> };
 
@@ -238,7 +238,7 @@ It is similar to `memo` in other frameworks, since it will only recompute the va
 
 <CodeSandbox src="/src/routes/demo/state/computed/index.tsx" style={{ height: '8em' }}>
 ```tsx {5} /useComputed$/
-import { component$, useComputed$, useSignal } from '@builder.io/qwik';
+import { component$, useComputed$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
   const name = useSignal('Qwik');
@@ -260,6 +260,12 @@ export default component$(() => {
 
 > **NOTE** Because `useComputed$()` is synchronous it is not necessary to explicitly track the input signals.
 
+#### `useComputed$` and `noSerialize()`
+
+When using `useComputed$()` with `noSerialize()`, the computed value will not be sent to the client. This means that the value will be recalculated on the client when it is needed.
+
+You can use this to instantiate a custom class.
+
 ### `useResource$()`
 
 Use `useResource$()` to create a computed value that is derived asynchronously. It's the asynchronous version of `useComputed$()`, which includes the `state` of the resource (loading, resolved, rejected) on top of the value.
@@ -275,7 +281,7 @@ import {
   Resource,
   useResource$,
   useSignal,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
 
 export default component$(() => {
   const postId = useSignal('23');
@@ -309,7 +315,7 @@ export default component$(() => {
 
 
 
-> **Note:** The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`). Often times it is desirable to start fetching the data on the server as part of the initial HTTP request before the component is rendered. Fetching data as part of Server-Side Rendering (SSR) is a common and preferred method of data loading, typically handled by the [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) API. `useResource$` is more of a low-level API that is useful when you want to fetch data in the browser.
+> **Note:** The important thing to understand about `useResource$` is that it executes on the initial component render (just like `useTask$`). Often times it is desirable to start fetching the data on the server as part of the initial HTTP request before the component is rendered. Fetching data as part of Server-Side Rendering (SSR) is a common and preferred method of data loading, typically handled by the [`routeLoader$`](/docs/(qwikrouter)/route-loader/index.mdx) API. `useResource$` is more of a low-level API that is useful when you want to fetch data in the browser.
 >
 >
 > In many ways `useResource$` is similar to `useTask$`. The big differences are:
@@ -317,7 +323,7 @@ export default component$(() => {
 > - `useResource$` allows you to return a "value".
 > - `useResource$` does not block rendering while the resource is being resolved.
 >
-> See [`routeLoader$`](/docs/(qwikcity)/route-loader/index.mdx) for fetching data early as part of initial HTTP request.
+> See [`routeLoader$`](/docs/(qwikrouter)/route-loader/index.mdx) for fetching data early as part of initial HTTP request.
 
 > **NOTE**: During SSR the `<Resource>` component will pause rendering until the resource is resolved. This way the SSR will not render with the loading indicator.
 
@@ -333,7 +339,7 @@ import {
   useResource$,
   Resource,
   useSignal,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
 
 export default component$(() => {
   const query = useSignal('busy');
@@ -419,7 +425,7 @@ import {
   useSignal,
   useResource$,
   Resource,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
 
 export default component$(() => {
   const name = useSignal<string>();
@@ -483,7 +489,7 @@ The simplest way to pass the state to other components is to pass it through pro
 
 <CodeSandbox src="/src/routes/demo/state/passing-props/index.tsx" style={{ height: '6em' }}>
 ```tsx {9} /userData=/
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export default component$(() => {
   const userData = useStore({ count: 0 });
@@ -518,7 +524,7 @@ import {
   useContext,
   useContextProvider,
   useStore,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
 
 // Declare a context ID
 export const CTX = createContextId<{ count: number }>('stuff');
@@ -562,7 +568,7 @@ import {
   noSerialize,
   useVisibleTask$,
   type NoSerialize,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
 import type Monaco from './monaco';
 import { monacoEditor } from './monaco';
 

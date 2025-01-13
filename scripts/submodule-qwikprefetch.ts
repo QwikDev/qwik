@@ -14,7 +14,7 @@ import { writePackageJson } from './package-json';
 
 /**
  * Builds the qwikprefetch javascript files. These files can be used by other tooling, and are
- * provided in the package so CDNs could point to them. The @builder.io/optimizer submodule also
+ * provided in the package so CDNs could point to them. The @qwik.dev/core/optimizer submodule also
  * provides a utility function.
  */
 export async function submoduleQwikPrefetch(config: BuildConfig) {
@@ -164,7 +164,7 @@ async function generatePrefetchSubmodule(config: BuildConfig) {
   await writeFile(join(prefetchDistDir, 'index.d.ts'), dtsCode.join('\n') + '\n');
 
   const prefetchPkg: PackageJSON = {
-    name: `@builder.io/qwik/prefetch`,
+    name: `@qwik.dev/core/prefetch`,
     version: config.distVersion,
     main: `index.mjs`,
     types: `index.d.ts`,

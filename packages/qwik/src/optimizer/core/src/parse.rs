@@ -13,14 +13,12 @@ use crate::const_replace::ConstReplacerVisitor;
 use crate::entry_strategy::EntryPolicy;
 use crate::filter_exports::StripExportsVisitor;
 use crate::props_destructuring::transform_props_destructuring;
+use crate::rename_imports::RenameTransform;
 use crate::transform::{QwikTransform, QwikTransformOptions, Segment, SegmentKind};
 use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
 use crate::EntryStrategy;
 use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
-
-#[cfg(feature = "fs")]
-use std::fs;
 
 use anyhow::{Context, Error};
 
@@ -164,28 +162,6 @@ impl TransformOutput {
 		}
 		manifest
 	}
-
-	#[cfg(feature = "fs")]
-	pub fn write_to_fs(
-		&self,
-		destination: &Path,
-		manifest: Option<String>,
-	) -> Result<usize, Error> {
-		for module in &self.modules {
-			let write_path = destination.join(&module.path);
-			fs::create_dir_all(write_path.parent().with_context(|| {
-				format!("Computing path parent of {}", write_path.to_string_lossy())
-			})?)?;
-			fs::write(write_path, &module.code)?;
-		}
-		if let Some(manifest) = manifest {
-			let write_path = destination.join(manifest);
-			let manifest = self.get_manifest();
-			let json = serde_json::to_string(&manifest)?;
-			fs::write(write_path, json)?;
-		}
-		Ok(self.modules.len())
-	}
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -273,7 +249,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							react_options.next = Some(true);
 							react_options.throw_if_namespace = Some(false);
 							react_options.runtime = Some(react::Runtime::Automatic);
-							react_options.import_source = Some("@builder.io/qwik".to_string());
+							react_options.import_source = Some("@qwik.dev/core".to_string());
 						};
 						program.mutate(&mut react::react(
 							Lrc::clone(&source_map),
@@ -283,6 +259,9 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							unresolved_mark,
 						));
 					}
+
+					// rename old imports to new imports
+					program.visit_mut_with(&mut RenameTransform);
 
 					// Resolve with mark
 					program.visit_mut_with(&mut resolver(
@@ -335,6 +314,20 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							is_server: config.is_server,
 							cm: Lrc::clone(&source_map),
 						});
+
+						// print before transform, for debugging
+						// println!(
+						// 	"{}",
+						// 	emit_source_code(
+						// 		Lrc::clone(&source_map.clone()),
+						// 		None,
+						// 		&main_module.clone(),
+						// 		config.root_dir,
+						// 		false,
+						// 	)
+						// 	.unwrap()
+						// 	.0
+						// );
 						program = program.fold_with(&mut qwik_transform);
 
 						let mut treeshaker = Treeshaker::new();

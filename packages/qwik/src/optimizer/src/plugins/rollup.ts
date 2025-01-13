@@ -3,22 +3,22 @@ import type { Rollup } from 'vite';
 import type {
   Diagnostic,
   EntryStrategy,
+  Optimizer,
   OptimizerOptions,
   QwikManifest,
-  TransformModuleInput,
   TransformModule,
-  Optimizer,
+  TransformModuleInput,
 } from '../types';
+import { versions } from '../versions';
 import {
   createPlugin,
+  Q_MANIFEST_FILENAME,
+  type ExperimentalFeatures,
   type NormalizedQwikPluginOptions,
   type QwikBuildMode,
   type QwikBuildTarget,
   type QwikPluginOptions,
-  Q_MANIFEST_FILENAME,
-  type ExperimentalFeatures,
 } from './plugin';
-import { versions } from '../versions';
 
 type QwikRollupPluginApi = {
   getOptimizer: () => Optimizer;
@@ -212,7 +212,7 @@ export function normalizeRollupOutputOptionsObject(
     }
   } else if (opts.buildMode === 'production') {
     // server production output
-    // everything in same dir so './@qwik-city...' imports work from entry and chunks
+    // everything in same dir so './@qwik-router...' imports work from entry and chunks
     if (!outputOpts.chunkFileNames) {
       outputOpts.chunkFileNames = 'q-[hash].js';
     }

@@ -1,24 +1,24 @@
-import type { Rollup, Plugin, ViteDevServer, HmrContext } from 'vite';
-import { hashCode } from '../../../core/util/hash_code';
+import type { LoadResult, OutputBundle, ResolveIdResult, TransformResult } from 'rollup';
+import type { HmrContext, Plugin, Rollup, ViteDevServer } from 'vite';
+import { hashCode } from '../../../core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
 import { createOptimizer } from '../optimizer';
 import type {
   Diagnostic,
   EntryStrategy,
   GlobalInjections,
-  SegmentAnalysis,
   InsightManifest,
   Optimizer,
   OptimizerOptions,
   OptimizerSystem,
   QwikManifest,
+  SegmentAnalysis,
   TransformModule,
   TransformModuleInput,
   TransformModulesOptions,
   TransformOutput,
 } from '../types';
 import { createLinter, type QwikLinter } from './eslint-plugin';
-import type { LoadResult, OutputBundle, ResolveIdResult, TransformResult } from 'rollup';
 import { isWin } from './vite-utils';
 
 const REG_CTX_NAME = ['server'];
@@ -60,15 +60,19 @@ const CLIENT_STRIP_CTX_NAME = [
  *
  * Add experimental features to this enum definition.
  *
- * @alpha
+ * @public
  */
 export enum ExperimentalFeatures {
   /** Enable the usePreventNavigate hook */
   preventNavigate = 'preventNavigate',
   /** Enable the Valibot form validation */
   valibot = 'valibot',
-  /** Disable SPA navigation handler in Qwik City */
+  /** Disable SPA navigation handler in Qwik Router */
   noSPA = 'noSPA',
+  /** Enable worker$ */
+  webWorker = 'webWorker',
+  /** Enable the ability to use the Qwik Insights vite plugin and <Insights/> component */
+  insights = 'insights',
 }
 
 export interface QwikPackages {
@@ -686,8 +690,9 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         }
       }
 
-      // TODO use a worker pool or make this async
-      const newOutput = optimizer.transformModulesSync(transformOpts);
+      const now = Date.now();
+      const newOutput = await optimizer.transformModules(transformOpts);
+      debug(`transform(${count})`, `done in ${Date.now() - now}ms`);
       const module = newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
 
       // uncomment to show transform results
@@ -828,7 +833,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   function getQwikBuildModule(isServer: boolean, _target: QwikBuildTarget) {
     const isDev = opts.buildMode === 'development';
-    return `// @builder.io/qwik/build
+    return `// @qwik.dev/core/build
 export const isServer = ${JSON.stringify(isServer)};
 export const isBrowser = ${JSON.stringify(!isServer)};
 export const isDev = ${JSON.stringify(isDev)};
@@ -959,15 +964,17 @@ const TRANSFORM_EXTS = {
  */
 export const TRANSFORM_REGEX = /\.qwik\.[mc]?js$/;
 
-export const QWIK_CORE_ID = '@builder.io/qwik';
+export const QWIK_CORE_ID = '@qwik.dev/core';
 
-export const QWIK_BUILD_ID = '@builder.io/qwik/build';
+export const QWIK_CORE_INTERNAL_ID = '@qwik.dev/core/internal';
 
-export const QWIK_JSX_RUNTIME_ID = '@builder.io/qwik/jsx-runtime';
+export const QWIK_BUILD_ID = '@qwik.dev/core/build';
 
-export const QWIK_JSX_DEV_RUNTIME_ID = '@builder.io/qwik/jsx-dev-runtime';
+export const QWIK_JSX_RUNTIME_ID = '@qwik.dev/core/jsx-runtime';
 
-export const QWIK_CORE_SERVER = '@builder.io/qwik/server';
+export const QWIK_JSX_DEV_RUNTIME_ID = '@qwik.dev/core/jsx-dev-runtime';
+
+export const QWIK_CORE_SERVER = '@qwik.dev/core/server';
 
 export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 

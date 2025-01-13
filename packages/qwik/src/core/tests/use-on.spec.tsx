@@ -5,6 +5,7 @@ import {
   component$,
   Fragment,
   Fragment as Signal,
+  Slot,
   useOn,
   useOnDocument,
   useOnWindow,
@@ -16,7 +17,7 @@ import { domRender, ssrRenderToDom } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 
-const debug = false; //true;
+const debug = true; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
@@ -646,5 +647,27 @@ describe.each([
     const { document } = await render(<Cmp />, { debug });
     await trigger(document.body, 'div', 'click');
     await expect(document.querySelector('div')).toMatchDOM(<div>1</div>);
+  });
+  it.only('useOnDocument', async () => {
+    const BreakpointProvider = component$(() => {
+      useOnDocument(
+        'click',
+        $(async () => {
+          console.log('load1111111111');
+        })
+      );
+
+      return <Slot />;
+    });
+
+    const Layout = component$(() => {
+      return (
+        <BreakpointProvider>
+          <div>11333</div>
+        </BreakpointProvider>
+      );
+    });
+    const { document } = await render(<Layout />, { debug });
+    await trigger(document.body, 'script', ':document:click');
   });
 });

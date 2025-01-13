@@ -245,6 +245,7 @@ function processJSXNode(
             const node = ssr.getLastNode();
             const slotName = getSlotName(host, jsx, ssr);
             projectionAttrs.push(QSlot, slotName);
+
             enqueue(new ParentComponentData(options.styleScoped, options.parentComponentFrame));
             enqueue(ssr.closeProjection);
             const slotDefaultChildren: JSXChildren | null = jsx.children || null;
@@ -253,6 +254,7 @@ function processJSXNode(
             if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
               ssr.addUnclaimedProjection(componentFrame, QDefaultSlot, slotDefaultChildren);
             }
+            enqueue(slotDefaultChildren as JSXOutput);
             enqueue(slotChildren as JSXOutput);
             enqueue(
               new ParentComponentData(

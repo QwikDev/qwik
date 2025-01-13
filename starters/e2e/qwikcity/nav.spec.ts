@@ -432,6 +432,16 @@ test.describe("actions", () => {
       await expect(href).toHaveAttribute("href", site);
     });
 
+    test("issue7182", async ({ page }) => {
+      await page.goto("/qwikcity-test/issue7182");
+      const input1 = await page.locator("#input1");
+      await input1.fill("4");
+      const input2 = await page.locator("#input2");
+      await input2.fill("4");
+      const result = await page.locator("#result");
+      await expect(result).toHaveText("8");
+    });
+
     test("media in home page", async ({ page }) => {
       await page.goto("/qwikcity-test/");
 

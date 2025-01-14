@@ -21,10 +21,10 @@ const useProduct = routeLoader$(async (ev) => {
 
   if (!product) {
     // Throw a 404 with a custom payload
-    throw new ServerError(404, { message: 'Product not found' })
+    throw new ServerError(404, 'Product not found')
 
     // Or use the existing helper function
-    throw ev.error(404, { message: 'Product not found' })
+    throw ev.error(404, 'Product not found')
   }
 
   return product
@@ -46,6 +46,7 @@ export default component$(() => {
     getPrices()
       .then()
       .catch(err => {
+        // The payload from a ServerError is deserialised as the error caught in the client
         if (err.code === 401) {
           // Navigate to login page
         }

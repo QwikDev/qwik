@@ -119,5 +119,17 @@ test.describe("loaders", () => {
         ]);
       }
     });
+    test("should allow for ServerError", async ({ page }) => {
+      const response = await page.goto("/qwikcity-test/loaders/loader-error");
+      const contentType = await response?.headerValue("Content-Type");
+      const status = response?.status();
+
+      expect(status).toEqual(401);
+      expect(contentType).toEqual("text/html; charset=utf-8");
+
+      const body = page.locator("body");
+
+      await expect(body).toContainText("loader-error-caught");
+    });
   }
 });

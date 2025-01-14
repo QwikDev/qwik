@@ -206,7 +206,7 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
    * to end a response with `404`, and use the 404 handler in the routes directory. See
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for which status code should be used.
    */
-  readonly error: <T = Record<any, any>>(statusCode: ErrorCodes, message: T) => ServerError<T>;
+  readonly error: <T = any>(statusCode: ErrorCodes, message: T) => ServerError<T>;
 
   /**
    * Convenience method to send an text body response. The response will be automatically set the

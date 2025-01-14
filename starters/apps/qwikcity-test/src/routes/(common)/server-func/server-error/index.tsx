@@ -11,7 +11,7 @@ type ErrorReason = {
 const serverFunctionA = server$(async function a(): Promise<string> {
   throw new ServerError<ErrorReason>(401, {
     reason: "my error",
-    middleware: "uncaught",
+    middleware: "server-error-uncaught",
   });
 });
 

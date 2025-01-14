@@ -116,7 +116,9 @@ test.describe("server$", () => {
       await page.goto("/qwikcity-test/server-func/server-error");
       const serverConfigContainer = page.locator("#server-error");
 
-      await expect(serverConfigContainer).toContainText("my errorcaughtPOST");
+      await expect(serverConfigContainer).toContainText(
+        "my errorserver-error-caughtPOST",
+      );
     });
   });
 });

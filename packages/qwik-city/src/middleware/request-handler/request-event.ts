@@ -192,7 +192,7 @@ export function createRequestEvent(
       return locale || '';
     },
 
-    error: <T = Record<any, any>>(statusCode: number, message: T) => {
+    error: <T = any>(statusCode: number, message: T) => {
       status = statusCode;
       return new ServerError(statusCode, message);
     },

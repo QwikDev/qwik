@@ -6,7 +6,7 @@ import {
   getRequestMode,
   type RequestEventInternal,
 } from './request-event';
-import { ServerError, minimalHtmlResponse } from './error-handler';
+import { ServerError, getErrorHtml, minimalHtmlResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { LoadedRoute } from '../../runtime/src/types';
 import { encoder } from './resolve-request-handlers';
@@ -73,13 +73,14 @@ async function runNext(requestEv: RequestEventInternal, resolve: (value: any) =>
     } else if (e instanceof ServerError) {
       if (!requestEv.headersSent) {
         const status = e.status as StatusCodes;
-        if (typeof e.data === 'object') {
+        const accept = requestEv.request.headers.get('Accept');
+        if (accept === '*/*') {
           const qwikSerializer = requestEv[RequestEvQwikSerializer];
           requestEv.headers.set('Content-Type', 'application/qwik-json');
           requestEv.send(status, await qwikSerializer._serializeData(e.data, true));
         } else {
-          requestEv.headers.set('Content-Type', 'text/plain; charset=utf-8');
-          requestEv.send(status, e.data);
+          const html = getErrorHtml(e.status, e.data);
+          requestEv.html(status, html);
         }
       }
     } else if (!(e instanceof AbortMessage)) {

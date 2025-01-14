@@ -432,7 +432,7 @@ test.describe("actions", () => {
       await expect(href).toHaveAttribute("href", site);
     });
 
-    test.only("issue7182", async ({ page, javaScriptEnabled }) => {
+    test("issue7182", async ({ page, javaScriptEnabled }) => {
       await page.goto("/qwikcity-test/issue7182");
       const input1 = await page.locator("#input1");
       await input1.fill("4");

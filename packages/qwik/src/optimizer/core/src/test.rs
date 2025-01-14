@@ -571,9 +571,9 @@ import { $, component$, useSignal } from '@qwik.dev/core';
 export const Works = component$(({fromProps}) => {
 	let fromLocal = useSignal(0);
 	return (
-		<div 
+		<div
 			computed={fromLocal + fromProps}
-			local={fromLocal} 
+			local={fromLocal}
 			props-wrap={fromProps}
 			props-only={{props: fromProps}}
 			props={{props: fromProps, local: fromLocal}}
@@ -598,9 +598,9 @@ import { $, component$, useSignal } from '@qwik.dev/core';
 export const Works = component$((props: { fromProps: number }) => {
 	let fromLocal = useSignal(0);
 	return (
-		<div 
+		<div
 			computed={fromLocal + props.fromProps}
-			local={fromLocal} 
+			local={fromLocal}
 			props-wrap={props.fromProps}
 			props-only={{props: props.fromProps}}
 			props={{props: props.fromProps, local: fromLocal}}
@@ -2738,11 +2738,11 @@ import { threejs } from 'threejs';
 import L from 'leaflet';
 
 export const functionThatNeedsWindow = () => {
-	if (isb) {
-	console.log('l', L);
-	console.log('hey');
-	window.alert('hey');
-	}
+  if (isb) {
+    console.log('l', L);
+    console.log('hey');
+    window.alert('hey');
+  }
 };
 
 export const App = component$(() => {
@@ -3695,7 +3695,7 @@ fn destructure_args_inline_cmp_block_stmt2() {
 fn destructure_args_inline_cmp_expr_stmt() {
 	test_input!(TestInput {
 		code: r#"
-		export default ({ data }: { data: any }) => 
+		export default ({ data }: { data: any }) =>
             <div
               data-is-active={data.selectedOutputDetail === 'options'}
               onClick$={() => {
@@ -3827,7 +3827,7 @@ export const App = component$(() => {
 
 	return (
 		<Cmp>
-			<p class="stuff" 
+			<p class="stuff"
 				shouldRemove$={() => stuff.count}
 				onClick$={() => console.log('warn')}
 			>
@@ -3953,9 +3953,9 @@ fn rename_builder_io() {
 		import { moreStuff } from "@builder.io/qwik-city/more/here";
 		import { qwikify$ } from "@builder.io/qwik-react";
 		import sdk from "@builder.io/sdk";
-		
+
 		export const Foo = qwikify$(MyReactComponent);
-		
+
 		export const Bar = $("a thing");
 
 		export const App = component$(() => {
@@ -4109,6 +4109,64 @@ export default component$((props: { id: number }) => {
 		.to_string(),
 		transpile_ts: true,
 		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_wrap_prop_from_destructured_array() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useStore, useTask$ } from '@qwik.dev/core';
+		import { useForm, useForm2 } from './some-file.ts';
+
+		export const Input = component$<{error: string, error2: string, error3: string}>(
+			(props) => {
+				useTask$(({ track }) => {
+					track(() => props.error);
+					track(() => props.error2);
+					track(() => props.error3);
+				});
+
+				return (
+					<>
+					</>
+				);
+			}
+		);
+
+		export default component$(() => {
+			const [store, math] = [useStore({errors: {}}), Math.random()];
+			const [[store2]] = [[useStore({errors: {}})]];
+			const { store3, math4 } = { store3: useStore({errors: {}}), math4: Math.random() };
+			const math2 = [Math.random()];
+			const { math3 } = { math3: Math.random() };
+			const [store4] = useForm();
+			const {store5} = useForm2();
+
+			return (
+				<div>
+					<button onClick$={() => {
+						store.errors.test = store.errors.test ? undefined : 'ERROR TEST';
+					}}>click</button>
+					<Input 
+						error={store.errors.test}
+						error2={store2.errors.test}
+						error3={store3.errors.test}
+						error4={store4.errors.test}
+						error5={store5.errors.test}
+						math={math}
+						math2={math2}
+						math3={math3}
+						math4={math4}
+					/>
+				</div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
 		..TestInput::default()
 	});
 }

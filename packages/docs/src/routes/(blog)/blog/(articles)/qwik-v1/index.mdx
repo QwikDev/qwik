@@ -1,0 +1,113 @@
+---
+title: 'Qwik Reaches v1.0'
+authorName: 'The Qwik Team'
+tags: ['Qwik']
+date: 'May 1, 2023'
+canonical: 'https://www.builder.io/blog/qwik-v1'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import { DiscordLink } from '~/routes/(blog)/blog/components/mdx/discord-link';
+import CodeSandbox from '~/components/code-sandbox/index.tsx';
+
+<ArticleBlock>
+
+The Qwik team is excited to announce that Qwik has reached v1.0. [Qwik](https://qwik.dev) is a full-stack web framework that brings a fundamentally new approach to delivering instant apps at scale!
+
+> 📽️ Watch our [announcement live stream here](https://www.youtube.com/watch?v=5VQatViWw2k).
+
+## Why another framework?
+
+Frameworks such as React, Vue,&nbsp;Angular,&nbsp;Svelte, SolidJS, and their meta frameworks (Next.js, Nuxt, SvelteKit, SolidStart, Astro) have revolutionized web development by providing powerful tools and abstractions that simplify the process of building complex applications.
+
+These frameworks have inspired many developers to create innovative solutions that enhance the user experience, and developer experience, and improved the overall quality of web applications.
+
+Qwik has drawn much inspiration from these frameworks, leveraging their strengths to provide fast, scalable, and maintainable solutions for building web applications.&nbsp;
+
+By building on the foundations laid by these frameworks, Qwik is able to provide developers with a powerful toolset that enables them to build web applications quickly and efficiently, while maintaining a high level of quality and performance.
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Fd2366b9aed754cbaa322db2d8c302256?format=webp&width=2000" alt="image optimization" />
+
+As web applications get large, their startup performance degrades because current frameworks send too much JavaScript to the client. Keeping the initial bundle size small is a never-ending battle that’s no fun, and we usually lose.
+
+Qwik delivers instant applications to the user. This is achieved by keeping the initial JavaScript cost [constant](https://www.builder.io/blog/our-current-frameworks-are-on-we-need-o1), even as your application grows in complexity. Qwik then delivers only the JavaScript for the specific user interaction.
+
+This ensures that JavaScript does not overwhelm the browser, no matter how large the application gets. Finally, [speculative code fetching](https://www.builder.io/blog/speculative-module-fetching) ensures instant interactivity even on slow and intermittent networks.
+
+Think of it as **streaming for your JavaScript**.
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F04e1a9cbc609428fa97f2d46abffaa7d?format=webp&width=2000" alt="image optimization" />
+
+## Key Features
+
+Qwik’s philosophy is to ensure the easy path is the performant path. That’s why, out of the box, Qwik solves for:
+
+### Amazing user experience out of the box
+
+- **Instant loading time with JavaScript streaming**: Deliver applications that ace the [CWV](https://web.dev/vitals/) scores, and maintain them even as the application grows in complexity over time.
+- **Speculative code fetching**: Deliver the code you need exactly when users need it to ensure instant user interactivity, even on slow mobile devices with an unreliable network.
+- **Lazy execution**: Qwik’s [resumable](https://qwik.dev/docs/concepts/resumable/) technology delays the execution of code in the browser as long as possible to keep the browser’s main thread free and responsive to user interactions.
+- **Optimized rendering time**: Qwik is reactive, meaning that by default, it only updates what’s absolutely needed and not more.
+- **Data fetching:** start fetching data on the server to prevent the “waterfall” delays.
+
+### Great developer experience
+
+- **Familiar:** JSX
+- **Directory-based routing**: Create sites with directory-based routing, an industry’s preferred way to declare routes.
+- **First class data access**: Qwik data loaders and form actions give you easy access to your server data with 100% end-to-end type safety and user input validation right out of the box
+- **Middleware**: Declare middleware logic in a portable way allowing you to deploy to all major hosting providers.
+- **A unified execution model**: We all say we are full-stack developers. With Qwik writing front-end and back-end code comes naturally together in a single application codebase and type safety. By default, Qwik applications execute in both server and browser, but it is easy to pin functions to be always server (`server$()`) (or always browser.)
+
+## Integrations
+
+We are ready for the real world. Qwik offers a rapidly expanding universe of ready-to-use integrations with your favorite libraries and frameworks. Just run `npx qwik add` from the command line and pick what you need from the list.
+
+Qwik installs everything in all the right places to get you going. Stable, secure, tested and ready to rock. Everything you need to get started:
+
+- **Write once, deploy anywhere**: We have adapters for Azure, Cloudflare, Google Cloud Run, Netlify, Node.js, Deno, Vercel, and the list is growing. Write your application in a hosting-provider agnostic way to prevent vendor lock-in.
+- **UI Components**: Choose from [QwikUI](https://github.com/qwikifiers/qwik-ui), [Papanasi UI](https://papanasi.js.org/), or battle-tested UI libraries like [Material UI](https://mui.com/), [ChakraUI](https://chakra-ui.com/), [Radix](https://www.radix-ui.com/), or any other React based library via [Qwik-React](https://qwik.dev/docs/integrations/react/).
+- **Image Optimization**: Optimize Images for the best possible user experience with [@unpic/qwik](https://qwik.dev/docs/integrations/image-optimization/#unpicqwik) and [qwik-image](https://qwik.dev/docs/integrations/image-optimization/#unpicqwik).
+- **Internationalization**: Deliver your application in multiple languages using [$localize](https://qwik.dev/docs/integrations/i18n/) and [qwik-speak](https://qwik.dev/docs/integrations/i18n/).
+- **Authentication**: Use industry-leading [AuthJS](https://qwik.dev/docs/integrations/authjs/) to add multiple authentication strategies to your application.
+- **CMS**: Qwik comes with a native integration with [Builder.io](https://www.builder.io/) for structured data and component-level headless content creation and publishing.
+- **Styling**: Qwik allows for lazy loading and component scoping of styles. Combine that with popular solutions such as [PostCSS](https://qwik.dev/docs/integrations/postcss/), [Vanilla Extract](https://qwik.dev/docs/integrations/styled-vanilla-extract/), or [Tailwind](https://qwik.dev/docs/integrations/tailwind/) for your styling needs.
+- **Testing**: Unit test with [Vitest](https://vitest.dev/) and e2e with Playwright and Cypress. Develop and test components with Storybook.
+- **Enterprise Readiness:** Develop enterprise-scale applications and monoreos with qwik-nx, which provides special generators and executors for your NX monorepo.
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F1000a84285994e27b63531a667dac5a2?format=webp&width=2000" alt="image optimization" />
+
+## Interoperability
+
+[Qwik-React](https://qwik.dev/docs/integrations/react/) allows you to lazy hydrate React components within the Qwik application. [Leverage the existing React ecosystem](https://www.builder.io/blog/resumable-react-how-to-use-react-inside-qwik) from within Qwik, use Qwik-React to migrate over to Qwik incrementally, or speed up your React application by delay hydrating parts of it. Qwik-react brings island architecture design-pattern to your React app.
+
+Svelte, Vue, and Angular wrappers are in the works by the community.
+
+## Huge thanks to our amazing community!
+
+Qwik boasts a diverse and inclusive [community](https://qwik.dev/community/groups/) of passionate developers, enthusiastic contributors, and supportive users worldwide. This community is always buzzing with energy, constantly collaborating, sharing ideas, and pushing the boundaries of what the framework can achieve.
+
+There’s also a fast-growing group of community leaders all over the world with developer groups and meetups from France, Netherlands, England, United States, Israel, Portugal, Taiwan, Hungary, and many more that are joining this wonderful group of Qwik community leaders.
+
+If you’re interested in starting a Qwik community group as well, [please fill in this form](https://forms.gle/m5heWq8gTxrMuQsRA); we’d love to help you out!
+
+Our <DiscordLink text="Discord" /> community is always available to help with any questions you might have. Additionally, we recognize outstanding community members through our Qwik Heroes program, consisting of folks who have gone above and beyond in helping Qwik grow and become better.
+
+We are proud of the Qwik community and its growth. Check out our tremendous progress in community growth over the past three months.
+
+The number of <DiscordLink /> members in the last three months has increased from 4k to well over 5k:
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F0bccf78cb1854c97885d935aac769ff2?format=webp&width=2000" alt="image optimization" />
+
+And finally, check out our [GitHub page](https://github.com/QwikDev/qwik), where you can be part of the revolution.
+
+<img class="w-full" src="https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2Faa080a4135cd423c9f493c1d73d97543?format=webp&width=2000" alt="image optimization" />
+
+Special shout out to our community members for getting us ready for v1: [Giorgio Boa](https://github.com/gioboa), [Shai Reznik](https://github.com/shairez), [Leo](https://github.com/wtlin1228), [Roman Zanettin](https://github.com/zanettin), [Dmitriy Stepanenko](https://github.com/dmitry-stepanenko), [Joshua Reilly](https://github.com/ulic75), [Sai Srikar Dumpeti](https://github.com/the-r3aper7), [Salama Ashoush](https://github.com/salamaashoush), [Paulo H. C. de Oliveira](https://github.com/phcoliveira), [Sebastian Rapport](https://github.com/n8sabes), [PatrickJS](https://github.com/PatrickJS), [Sami Jaber](https://github.com/samijaber), [Yoav Ganbar](https://github.com/hamatoyogi).
+
+## Start using Qwik today!
+
+Check out our [getting started](https://qwik.dev/docs/getting-started/) page, our [tutorial](https://qwik.dev/tutorial/welcome/overview/), or [Stackblitz](https://qwik.new/) to start playing with Qwik today.
+
+You will find everything you need to get started Qwikly and learn how Qwik provides a new and innovative way to build your web applications whose performance will not deteriorate as the application grows.
+
+</ArticleBlock>

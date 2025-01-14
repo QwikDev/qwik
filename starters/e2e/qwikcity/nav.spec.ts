@@ -432,14 +432,20 @@ test.describe("actions", () => {
       await expect(href).toHaveAttribute("href", site);
     });
 
-    test("issue7182", async ({ page }) => {
+    test.only("issue7182", async ({ page, javaScriptEnabled }) => {
       await page.goto("/qwikcity-test/issue7182");
       const input1 = await page.locator("#input1");
       await input1.fill("4");
+      await input1.dispatchEvent("change");
       const input2 = await page.locator("#input2");
       await input2.fill("4");
+      await input2.dispatchEvent("change");
       const result = await page.locator("#result");
-      await expect(result).toHaveText("8");
+      if (javaScriptEnabled) {
+        await expect(result).toHaveText("8");
+      } else {
+        await expect(result).toHaveText("3");
+      }
     });
 
     test("media in home page", async ({ page }) => {

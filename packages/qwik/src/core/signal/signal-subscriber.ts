@@ -9,6 +9,8 @@ import {
 import { EffectSubscriptionsProp, WrappedSignal, isSignal, type Signal } from './signal';
 import type { Container } from '../shared/types';
 import { StoreHandler, getStoreHandler, isStore, type TargetType } from './store';
+import { isPropsProxy } from '../shared/jsx/jsx-runtime';
+import { _CONST_PROPS, _VAR_PROPS } from '../internal';
 
 export abstract class Subscriber {
   $effectDependencies$: (Subscriber | TargetType)[] | null = null;
@@ -144,6 +146,20 @@ function clearArgEffect(arg: any, subscriber: Subscriber, seenSet: Set<unknown>)
   } else if (typeof arg === 'object' && arg !== null) {
     if (isStore(arg)) {
       clearStoreEffects(getStoreHandler(arg)!, subscriber);
+    } else if (isPropsProxy(arg)) {
+      // Separate check for props proxy, because props proxy getter could call signal getter.
+      // To avoid that we need to get the constProps and varProps directly
+      // from the props proxy object and loop over them.
+      const constProps = arg[_CONST_PROPS];
+      const varProps = arg[_VAR_PROPS];
+      if (constProps) {
+        for (const key in constProps) {
+          clearArgEffect(constProps[key], subscriber, seenSet);
+        }
+      }
+      for (const key in varProps) {
+        clearArgEffect(varProps[key], subscriber, seenSet);
+      }
     } else {
       for (const key in arg) {
         clearArgEffect(arg[key], subscriber, seenSet);

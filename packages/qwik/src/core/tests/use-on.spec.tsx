@@ -17,11 +17,11 @@ import { domRender, ssrRenderToDom } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 
-const debug = true; //true;
+const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
-  // { render: ssrRenderToDom }, //
+  { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: useOn', ({ render }) => {
   it('should update value', async () => {
@@ -648,7 +648,7 @@ describe.each([
     await trigger(document.body, 'div', 'click');
     await expect(document.querySelector('div')).toMatchDOM(<div>1</div>);
   });
-  it.only('useOnDocument', async () => {
+  it('useOnDocument', async () => {
     const BreakpointProvider = component$(() => {
       useOnDocument(
         'click',
@@ -666,7 +666,6 @@ describe.each([
       );
     });
     const { document } = await render(<Layout />, { debug });
-    // await trigger(document.body, 'script', ':document:click');
     await expect(document.querySelector('script')).toBeTruthy();
   });
 });

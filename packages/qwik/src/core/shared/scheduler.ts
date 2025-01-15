@@ -86,7 +86,13 @@ import type { JSXOutput } from './jsx/types/jsx-node';
 import { Task, TaskFlags, cleanupTask, runTask, type TaskFn } from '../use/use-task';
 import { runResource, type ResourceDescriptor } from '../use/use-resource';
 import { logWarn } from './utils/log';
-import { isPromise, maybeThenPassError, retryOnPromise, safeCall } from './utils/promises';
+import {
+  flatPromise,
+  isPromise,
+  maybeThenPassError,
+  retryOnPromise,
+  safeCall,
+} from './utils/promises';
 import type { ValueOrPromise } from './utils/types';
 import { isDomContainer } from '../client/dom-container';
 import {
@@ -345,11 +351,15 @@ export const createScheduler = (
           (jsx) => {
             if (chore.$type$ === ChoreType.COMPONENT) {
               const styleScopedId = container.getHostProp<string>(host, QScopedStyle);
-              return vnode_diff(
-                container as ClientContainer,
-                jsx,
-                host as VirtualVNode,
-                addComponentStylePrefix(styleScopedId)
+              return flatPromise(
+                retryOnPromise(() =>
+                  vnode_diff(
+                    container as ClientContainer,
+                    jsx,
+                    host as VirtualVNode,
+                    addComponentStylePrefix(styleScopedId)
+                  )
+                )
               );
             } else {
               return jsx;
@@ -382,7 +392,9 @@ export const createScheduler = (
         if (isSignal(jsx)) {
           jsx = jsx.value as any;
         }
-        returnValue = vnode_diff(container as DomContainer, jsx, parentVirtualNode, null);
+        returnValue = flatPromise(
+          retryOnPromise(() => vnode_diff(container as DomContainer, jsx, parentVirtualNode, null))
+        );
         break;
       case ChoreType.NODE_PROP:
         const virtualNode = chore.$host$ as unknown as ElementVNode;

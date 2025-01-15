@@ -224,10 +224,11 @@ export const vnode_diff = (
                 descend(jsxValue.children, true);
               } else if (type === Slot) {
                 expectNoMoreTextNodes();
-                if ((jsxValue.children as JSXNode)?.type === 'script') {
-                  descend(jsxValue.children, true);
-                } else if (!expectSlot()) {
+                if (!expectSlot()) {
                   // nothing to project, so try to render the Slot default content.
+                  descend(jsxValue.children, true);
+                }
+                if ((jsxValue.children as JSXNode)?.type === 'script') {
                   descend(jsxValue.children, true);
                 }
               } else if (type === Projection) {

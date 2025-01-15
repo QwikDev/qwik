@@ -9,7 +9,7 @@
           "namedImports": [
             "vanillaExtractPlugin"
           ],
-          "importPath": "styled-vanilla-extract/vite"
+          "importPath": "@vanilla-extract/vite-plugin"
         }
       ],
       "vitePlugins": [

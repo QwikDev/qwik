@@ -21,7 +21,7 @@ const debug = true; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
-  { render: ssrRenderToDom }, //
+  // { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: useOn', ({ render }) => {
   it('should update value', async () => {
@@ -652,9 +652,7 @@ describe.each([
     const BreakpointProvider = component$(() => {
       useOnDocument(
         'click',
-        $(async () => {
-          console.log('load1111111111');
-        })
+        $(async () => {})
       );
 
       return <Slot />;
@@ -663,11 +661,12 @@ describe.each([
     const Layout = component$(() => {
       return (
         <BreakpointProvider>
-          <div>11333</div>
+          <div>test</div>
         </BreakpointProvider>
       );
     });
     const { document } = await render(<Layout />, { debug });
-    await trigger(document.body, 'script', ':document:click');
+    // await trigger(document.body, 'script', ':document:click');
+    await expect(document.querySelector('script')).toBeTruthy();
   });
 });

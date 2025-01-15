@@ -11,7 +11,7 @@ import {
   type Props,
 } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
-import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
+import type { JSXNode, JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
 import { trackSignalAndAssignHost } from '../use/use-core';
@@ -224,7 +224,9 @@ export const vnode_diff = (
                 descend(jsxValue.children, true);
               } else if (type === Slot) {
                 expectNoMoreTextNodes();
-                if (!expectSlot()) {
+                if ((jsxValue.children as JSXNode)?.type === 'script') {
+                  descend(jsxValue.children, true);
+                } else if (!expectSlot()) {
                   // nothing to project, so try to render the Slot default content.
                   descend(jsxValue.children, true);
                 }
@@ -500,6 +502,7 @@ export const vnode_diff = (
         (vNewNode = vnode_newVirtual()),
         vCurrent && getInsertBefore()
       );
+
       vnode_setProp(vNewNode, QSlot, slotNameKey);
       vHost && vnode_setProp(vHost, slotNameKey, vNewNode);
       isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Projection);

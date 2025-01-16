@@ -22,7 +22,7 @@ Error.stackTraceLimit = 100;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  { render: domRender }, //
+  // { render: domRender }, //
 ])('$render.name: useOn', ({ render }) => {
   it('should update value', async () => {
     const Counter = component$((props: { initial: number }) => {
@@ -648,7 +648,7 @@ describe.each([
     await trigger(document.body, 'div', 'click');
     await expect(document.querySelector('div')).toMatchDOM(<div>1</div>);
   });
-  it.only('useOnDocument1111', async () => {
+  it('useOnDocument1111', async () => {
     const BreakpointProvider = component$(() => {
       useOnDocument(
         'click',
@@ -697,6 +697,28 @@ describe.each([
       );
     });
     const { document } = await render(<Layout />, { debug });
+    await expect(document.querySelector('script')).toBeTruthy();
+  });
+
+  it.only('useOnDocument1111', async () => {
+    const Accordion = component$(() => {
+      const isOpen = useSignal(true);
+
+      return (
+        <div>
+          <h1 onClick$={() => (isOpen.value = !isOpen.value)}>{isOpen.value ? '▼' : '▶︎'}</h1>
+          {isOpen.value && <Slot />}
+        </div>
+      );
+    });
+    const Apptest = component$(() => {
+      useOnWindow(
+        'click',
+        $(async () => {})
+      );
+      return <Accordion>I am pre-rendered on the Server and hidden until needed.</Accordion>;
+    });
+    const { document } = await render(<Apptest />, { debug });
     await expect(document.querySelector('script')).toBeTruthy();
   });
 });

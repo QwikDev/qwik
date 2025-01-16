@@ -254,6 +254,7 @@ function processJSXNode(
             if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
               ssr.addUnclaimedProjection(componentFrame, QDefaultSlot, slotDefaultChildren);
             }
+            console.log('slotChildren', slotChildren);
             enqueue(slotChildren as JSXOutput);
             enqueue(
               new ParentComponentData(

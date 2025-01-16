@@ -1,12 +1,30 @@
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { ComputedSignal, Signal, throwIfQRLNotResolved } from './signal';
+import {
+  ComputedSignal,
+  SerializedSignal,
+  Signal as SignalImpl,
+  throwIfQRLNotResolved,
+  type ConstructorFn,
+  type CustomSerializable,
+} from './signal';
+import type { Signal } from './signal.public';
 
-export const createSignal = <T>(value?: T) => {
-  return new Signal(null, value);
+/** @internal */
+export const createSignal = <T>(value?: T): Signal<T> => {
+  return new SignalImpl(null, value as T) as Signal<T>;
 };
 
-export const createComputedSignal = <T>(qrl: QRL<() => T>) => {
+/** @internal */
+export const createComputedSignal = <T>(qrl: QRL<() => T>): ComputedSignal<T> => {
   throwIfQRLNotResolved(qrl);
-  return new ComputedSignal(null, qrl as QRLInternal<() => T>);
+  return new ComputedSignal<T>(null, qrl as QRLInternal<() => T>);
+};
+
+/** @internal */
+export const createSerializedSignal = <T extends CustomSerializable<T, S>, S>(
+  qrl: QRL<ConstructorFn<T, S>>
+) => {
+  throwIfQRLNotResolved(qrl);
+  return new SerializedSignal<T>(null, qrl);
 };

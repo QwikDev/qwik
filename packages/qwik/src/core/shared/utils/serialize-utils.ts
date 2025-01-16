@@ -93,7 +93,7 @@ export const shouldSerialize = (obj: unknown): boolean => {
 };
 
 export const fastSkipSerialize = (obj: object): boolean => {
-  return noSerializeSet.has(obj);
+  return typeof obj === 'object' && obj && (NoSerializeSymbol in obj || noSerializeSet.has(obj));
 };
 
 export const fastWeakSerialize = (obj: object): boolean => {
@@ -140,3 +140,19 @@ export const _weakSerialize = <T extends object>(input: T): Partial<T> => {
   weakSerializeSet.add(input);
   return input as any;
 };
+
+/**
+ * If an object has this property, it will not be serialized
+ *
+ * @public
+ */
+export const NoSerializeSymbol = Symbol('noSerialize');
+/**
+ * If an object has this property as a function, it will be called with the object and should return
+ * a serializable value.
+ *
+ * This can be used to clean up etc.
+ *
+ * @public
+ */
+export const SerializerSymbol = Symbol('serialize');

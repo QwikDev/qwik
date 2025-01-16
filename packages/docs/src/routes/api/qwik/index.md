@@ -603,7 +603,7 @@ Description
 
 Create a computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated.
 
-The QRL must be a function which returns the value of the signal. The function must not have side effects, and it mus be synchronous.
+The QRL must be a function which returns the value of the signal. The function must not have side effects, and it must be synchronous.
 
 If you need the function to be async, use `useSignal` and `useTask$` instead.
 
@@ -722,6 +722,47 @@ The name of the context.
 [ContextId](#contextid)&lt;STATE&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
+
+## createSerialized$
+
+Create a signal that holds a custom serializable value. See [useSerialized$](#useserialized_) for more details.
+
+```typescript
+createSerialized$: <T extends CustomSerializable<any, S>, S = T extends {
+    [SerializerSymbol]: (obj: any) => infer U;
+} ? U : unknown>(qrl: (data: S | undefined) => T) => T extends Promise<any> ? never : SerializedSignal<T>
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+qrl
+
+</td><td>
+
+(data: S \| undefined) =&gt; T
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+T extends Promise&lt;any&gt; ? never : SerializedSignal&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts)
 
 ## createSignal
 
@@ -1851,6 +1892,16 @@ export type NoSerialize<T> =
       __no_serialize__: true;
     })
   | undefined;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts)
+
+## NoSerializeSymbol
+
+If an object has this property, it will not be serialized
+
+```typescript
+NoSerializeSymbol: unique symbol
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts)
@@ -3549,6 +3600,18 @@ export type ResourceReturn<T> =
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
 
+## SerializerSymbol
+
+If an object has this property as a function, it will be called with the object and should return a serializable value.
+
+This can be used to clean up etc.
+
+```typescript
+SerializerSymbol: unique symbol
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts)
+
 ## setPlatform
 
 Sets the `CorePlatform`.
@@ -4394,7 +4457,7 @@ Creates a computed signal which is calculated from the given function. A compute
 The function must be synchronous and must not have any side effects.
 
 ```typescript
-useComputed$: <T>(qrl: import("./use-computed").ComputedFn<T>) => T extends Promise<any> ? never : import("..").ReadonlySignal<T>
+useComputed$: <T>(qrl: ComputedFn<T>) => T extends Promise<any> ? never : ReadonlySignal<T>
 ```
 
 <table><thead><tr><th>
@@ -4416,7 +4479,7 @@ qrl
 
 </td><td>
 
-import("./use-computed").[ComputedFn](#computedfn)&lt;T&gt;
+[ComputedFn](#computedfn)&lt;T&gt;
 
 </td><td>
 
@@ -4424,9 +4487,9 @@ import("./use-computed").[ComputedFn](#computedfn)&lt;T&gt;
 </tbody></table>
 **Returns:**
 
-T extends Promise&lt;any&gt; ? never : import("..").[ReadonlySignal](#readonlysignal)&lt;T&gt;
+T extends Promise&lt;any&gt; ? never : [ReadonlySignal](#readonlysignal)&lt;T&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed-dollar.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts)
 
 ## useConstant
 
@@ -4882,6 +4945,43 @@ _(Optional)_
 [ResourceReturn](#resourcereturn)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource-dollar.ts)
+
+## useSerialized$
+
+Creates a signal which holds a custom serializable value. It requires that the value implements the `CustomSerializable` type, which means having a function under the `[SerializeSymbol]` property that returns a serializable value when called.
+
+The `fn` you pass is called with the result of the serialization (in the browser, only when the value is needed), or `undefined` when not yet initialized. If you refer to other signals, `fn` will be called when those change just like computed signals, and then the argument will be the previous output, not the serialized result.
+
+This is useful when using third party libraries that use custom objects that are not serializable.
+
+Note that the `fn` is called lazily, so it won't impact container resume.
+
+```typescript
+useSerialized$: typeof createSerialized$;
+```
+
+```tsx
+class MyCustomSerializable {
+  constructor(public n: number) {}
+  inc() {
+    this.n++;
+  }
+  [SerializeSymbol]() {
+    return this.n;
+  }
+}
+const Cmp = component$(() => {
+  const custom = useSerialized$<MyCustomSerializable, number>(
+    (prev) =>
+      new MyCustomSerializable(
+        prev instanceof MyCustomSerializable ? prev : (prev ?? 3),
+      ),
+  );
+  return <div onClick$={() => custom.value.inc()}>{custom.value.n}</div>;
+});
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-serialized.ts)
 
 ## useServerData
 

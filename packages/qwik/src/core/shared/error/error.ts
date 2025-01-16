@@ -57,6 +57,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'WrappedSignal is read-only', // 49
       'SsrError: Promises not expected here.', // 50
       'Attribute value is unsafe for SSR', // 51
+      'SerializerSymbol function returned rejected promise', // 52
     ];
     let text = MAP[code] ?? '';
     if (parts.length) {
@@ -128,6 +129,7 @@ export const enum QError {
   wrappedReadOnly = 49,
   promisesNotExpected = 50,
   unsafeAttr = 51,
+  serializerSymbolRejectedPromise = 52,
 }
 
 export const qError = (code: number, errorMessageArgs: any[] = []): Error => {

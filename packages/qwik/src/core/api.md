@@ -111,13 +111,29 @@ export interface CorrectedToggleEvent extends Event {
 // @public
 export const createComputed$: <T>(qrl: () => T) => T extends Promise<any> ? never : ComputedSignal<T>;
 
+// Warning: (ae-forgotten-export) The symbol "ComputedSignal_2" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "createComputedQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const createComputedQrl: <T>(qrl: QRL<() => T>) => T extends Promise<any> ? never : ComputedSignal<T>;
+export const createComputedQrl: <T>(qrl: QRL<() => T>) => ComputedSignal_2<T>;
 
 // @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
+
+// Warning: (ae-forgotten-export) The symbol "CustomSerializable" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "SerializedSignal" needs to be exported by the entry point index.d.ts
+//
+// @public
+export const createSerialized$: <T extends CustomSerializable<any, S>, S = T extends {
+    [SerializerSymbol]: (obj: any) => infer U;
+} ? U : unknown>(qrl: (data: S | undefined) => T) => T extends Promise<any> ? never : SerializedSignal<T>;
+
+// Warning: (ae-forgotten-export) The symbol "ConstructorFn" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "SerializedSignal_2" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "createSerializedQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export const createSerializedQrl: <T extends CustomSerializable<T, S>, S>(qrl: QRL<ConstructorFn<T, S>>) => SerializedSignal_2<T>;
 
 // @public
 export const createSignal: {
@@ -498,6 +514,9 @@ export type NoSerialize<T> = (T & {
 // @public
 export const noSerialize: <T extends object | undefined>(input: T) => NoSerialize<T>;
 
+// @public
+export const NoSerializeSymbol: unique symbol;
+
 // @public (undocumented)
 export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
 
@@ -812,6 +831,9 @@ export const _restProps: (props: Record<string, any>, omit: string[], target?: {
 export function _serialize(data: unknown[]): Promise<string>;
 
 // @public
+export const SerializerSymbol: unique symbol;
+
+// @public
 export const setPlatform: (plt: CorePlatform) => CorePlatform;
 
 // @internal (undocumented)
@@ -1085,6 +1107,14 @@ export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOption
 //
 // @internal (undocumented)
 export const useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) => ResourceReturn<T>;
+
+// @public
+export const useSerialized$: typeof createSerialized$;
+
+// Warning: (ae-internal-missing-underscore) The name "useSerializedQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export const useSerializedQrl: <F extends ConstructorFn<any, any>>(qrl: QRL<F>) => ReadonlySignal<unknown>;
 
 // @public (undocumented)
 export function useServerData<T>(key: string): T | undefined;

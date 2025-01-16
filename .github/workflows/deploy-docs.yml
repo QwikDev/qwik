@@ -1,0 +1,47 @@
+# a workflow that runs after the "Qwik CI" workflow is successful
+# and deploys the documentation to CloudFlare Pages.
+
+name: Deploy Docs
+
+on:
+  workflow_run:
+    workflows: ['Qwik CI']
+    types:
+      - completed
+
+permissions:
+  actions: read
+  deployments: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  deploy:
+    name: Cloudflare Pages Deployment
+    if: >
+      github.repository == 'QwikDev/qwik' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download docs artifact
+        uses: actions/download-artifact@v4
+        id: download-artifact
+        with:
+          name: artifact-docs
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+          # This will download both dist/ and server/
+          path: packages/docs
+
+      # not the official version, so be careful when updating
+      - name: Deploy to Cloudflare Pages
+        uses: AdrianGonz97/refined-cf-pages-action@6c0d47ff7c97c48fa702b6d9f71f7e3a7c30c7d8
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: 'qwik-docs'
+          directory: packages/docs/dist
+          githubToken: ${{ secrets.GITHUB_TOKEN }}

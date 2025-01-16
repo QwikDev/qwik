@@ -1,13 +1,6 @@
-import type { NormalizedQwikPluginOptions } from './plugins/plugin';
-import type {
-  GeneratedOutputBundle,
-  GlobalInjections,
-  HookAnalysis,
-  Path,
-  QwikBundle,
-  QwikManifest,
-  QwikSymbol,
-} from './types';
+import type { OutputBundle } from 'rollup';
+import { type NormalizedQwikPluginOptions } from './plugins/plugin';
+import type { GlobalInjections, SegmentAnalysis, Path, QwikBundle, QwikManifest } from './types';
 
 // This is just the initial prioritization of the symbols and entries
 // at build time so there's less work during each SSR. However, SSR should
@@ -178,8 +171,8 @@ function sortBundleNames(manifest: QwikManifest) {
 
 function updateSortAndPriorities(manifest: QwikManifest) {
   const prioritizedSymbolNames = prioritizeSymbolNames(manifest);
-  const prioritizedSymbols: { [symbolName: string]: QwikSymbol } = {};
-  const prioritizedMapping: { [symbolName: string]: string } = {};
+  const prioritizedSymbols: QwikManifest['symbols'] = {};
+  const prioritizedMapping: QwikManifest['mapping'] = {};
 
   for (const symbolName of prioritizedSymbolNames) {
     prioritizedSymbols[symbolName] = manifest.symbols[symbolName];
@@ -245,10 +238,11 @@ export function getValidManifest(manifest: QwikManifest | undefined | null) {
 
 export function generateManifestFromBundles(
   path: Path,
-  hooks: HookAnalysis[],
+  segments: SegmentAnalysis[],
   injections: GlobalInjections[],
-  outputBundles: GeneratedOutputBundle[],
-  opts: NormalizedQwikPluginOptions
+  outputBundles: OutputBundle,
+  opts: NormalizedQwikPluginOptions,
+  debug: (...args: any[]) => void
 ) {
   const manifest: QwikManifest = {
     manifestHash: '',
@@ -264,74 +258,121 @@ export function generateManifestFromBundles(
     },
   };
 
-  for (const hook of hooks) {
-    const buildFilePath = `${hook.canonicalFilename}.${hook.extension}`;
-
-    const outputBundle = outputBundles.find((b) => {
-      return Object.keys(b.modules).find((f) => f.endsWith(buildFilePath));
-    });
-
-    if (outputBundle) {
-      const symbolName = hook.name;
-      const bundleFileName = path.basename(outputBundle.fileName);
-
-      manifest.mapping[symbolName] = bundleFileName;
-
-      manifest.symbols[symbolName] = {
-        origin: hook.origin,
-        displayName: hook.displayName,
-        canonicalFilename: hook.canonicalFilename,
-        hash: hook.hash,
-        ctxKind: hook.ctxKind,
-        ctxName: hook.ctxName,
-        captures: hook.captures,
-        parent: hook.parent,
-        loc: hook.loc,
-      };
-
-      addBundleToManifest(path, manifest, outputBundle, bundleFileName);
+  const buildPath = path.resolve(opts.rootDir, opts.outDir, 'build');
+  const canonPath = (p: string) =>
+    path.relative(buildPath, path.resolve(opts.rootDir, opts.outDir, p));
+  const getBundleName = (name: string) => {
+    const bundle = outputBundles[name];
+    if (!bundle) {
+      console.warn(`Client manifest generation: skipping external import "${name}"`);
+      return;
     }
-  }
+    return canonPath(bundle.fileName);
+  };
+  // We need to find our QRL exports
+  const qrlNames = new Set([...segments.map((h) => h.name)]);
+  for (const outputBundle of Object.values(outputBundles)) {
+    if (outputBundle.type !== 'chunk') {
+      continue;
+    }
+    const bundleFileName = canonPath(outputBundle.fileName);
 
-  for (const outputBundle of outputBundles) {
-    const bundleFileName = path.basename(outputBundle.fileName);
-    addBundleToManifest(path, manifest, outputBundle, bundleFileName);
-  }
-
-  return updateSortAndPriorities(manifest);
-}
-
-function addBundleToManifest(
-  path: Path,
-  manifest: QwikManifest,
-  outputBundle: GeneratedOutputBundle,
-  bundleFileName: string
-) {
-  if (!manifest.bundles[bundleFileName]) {
-    const buildDirName = path.dirname(outputBundle.fileName);
     const bundle: QwikBundle = {
-      size: outputBundle.size,
+      size: outputBundle.code.length,
     };
 
+    let hasSymbols = false;
+    let hasHW = false;
+    for (const symbol of outputBundle.exports) {
+      if (qrlNames.has(symbol)) {
+        // When not minifying we see both the entry and the segment file
+        // The segment file will only have 1 export, we want the entry
+        if (!manifest.mapping[symbol] || outputBundle.exports.length !== 1) {
+          hasSymbols = true;
+          manifest.mapping[symbol] = bundleFileName;
+        }
+      }
+      if (symbol === '_hW') {
+        hasHW = true;
+      }
+    }
+    if (hasSymbols && hasHW) {
+      bundle.isTask = true;
+    }
+
     const bundleImports = outputBundle.imports
-      .filter((i) => path.dirname(i) === buildDirName)
-      .map((i) => path.relative(buildDirName, i));
+      // Tree shaking might remove imports
+      .filter((i) => outputBundle.code.includes(path.basename(i)))
+      .map((i) => getBundleName(i))
+      .filter(Boolean) as string[];
     if (bundleImports.length > 0) {
       bundle.imports = bundleImports;
     }
 
     const bundleDynamicImports = outputBundle.dynamicImports
-      .filter((i) => path.dirname(i) === buildDirName)
-      .map((i) => path.relative(buildDirName, i));
+      .filter((i) => outputBundle.code.includes(path.basename(i)))
+      .map((i) => getBundleName(i))
+      .filter(Boolean) as string[];
     if (bundleDynamicImports.length > 0) {
       bundle.dynamicImports = bundleDynamicImports;
     }
 
-    const modulePaths = Object.keys(outputBundle.modules).filter((m) => !m.startsWith(`\u0000`));
+    // Rollup doesn't provide the moduleIds in the outputBundle but Vite does
+    const ids = outputBundle.moduleIds || Object.keys(outputBundle.modules);
+    const modulePaths = ids
+      .filter((m) => !m.startsWith(`\u0000`))
+      .map((m) => path.relative(opts.rootDir, m));
     if (modulePaths.length > 0) {
       bundle.origins = modulePaths;
     }
 
     manifest.bundles[bundleFileName] = bundle;
   }
+
+  for (const segment of segments) {
+    const symbol = segment.name;
+    const bundle = manifest.mapping[symbol];
+    if (!bundle) {
+      debug(`Note: qrl ${segment.name} is not in the bundle, likely tree shaken`, manifest);
+      continue;
+    }
+    (manifest.bundles[bundle].symbols ||= []).push(symbol);
+    manifest.symbols[symbol] = {
+      origin: segment.origin,
+      displayName: segment.displayName,
+      canonicalFilename: segment.canonicalFilename,
+      hash: segment.hash,
+      ctxKind: segment.ctxKind,
+      ctxName: segment.ctxName,
+      captures: segment.captures,
+      parent: segment.parent,
+      loc: segment.loc,
+    };
+  }
+  // To inspect the bundles, uncomment the following lines
+  // and temporarily add the writeFileSync import from fs
+  // writeFileSync(
+  //   'output-bundles.json',
+  //   JSON.stringify(
+  //     Object.entries(outputBundles).map(([n, b]) => [
+  //       n,
+  //       {
+  //         ...b,
+  //         code: '<removed>',
+  //         map: '<removed>',
+  //         source: '<removed>',
+  //         modules:
+  //           'modules' in b
+  //             ? Object.fromEntries(
+  //                 Object.entries(b.modules).map(([k, v]) => [k, { ...v, code: '<removed>' }])
+  //               )
+  //             : undefined,
+  //       },
+  //     ]),
+  //     null,
+  //     '\t'
+  //   )
+  // );
+
+  return updateSortAndPriorities(manifest);
 }

@@ -20,7 +20,7 @@ contributors:
   - adamdbradley
   - hamatoyogi
   - maiieul
-updated_at: '2023-12-14T18:38:38Z'
+updated_at: '2024-04-02T18:38:38Z'
 created_at: '2023-03-30T17:37:51Z'
 ---
 
@@ -59,6 +59,48 @@ export default component$(() => {
           value: {signal.value}
         </div>
     </div>
+  );
+});
+```
+
+
+## Moving signal reads to `useTask$` or `useComputed$`
+
+This is similar to the tip above.
+
+Every time Qwik "reads" a signal/store value
+the function that the "read" is happening at, will re-run again
+on every change to that signal.
+
+That’s why it’s better to "read" values (and track them)
+inside of `useTask$` or `useComputed$` functions instead of inside component functions,
+whenever possible.
+
+Because otherwise, your component function will re-run
+on each change.
+
+
+```tsx title="Suboptimal implementation"
+// Don't do this!
+export default component$(() => {
+  const count = useSignal(1);
+  const doubleCount = count.value*2;
+  return (
+    <div>{doubleCount}</div>
+  );
+});
+```
+
+The above implementation will cause the whole template to be re-rendered when the signal changes. 
+
+Below, only the `useComputed$` function will re-run on any `count.value` change:
+
+```tsx title="Optimal Implementation"
+export default component$(() => {
+  const count = useSignal(1);
+  const dobuleCount = useComputed$(() => count.value*2);
+  return (
+    <div>{doubleCount.value}</div>
   );
 });
 ```
@@ -125,23 +167,18 @@ useVisibleTask$(()=> {
     }
 })
 // or
-if (typeof window !== "undefined") {
-    const queryParams = new URLSearchParams(window.location.search);
-    const query: Record<string, string> = {};
-    queryParams.forEach((value, key) => {
-        query[key] = value;
-    })
-    doTheThing(query);
-}
+useTask$(() => {
+  if (isBrowser) {
+        if (window.location.href).includes('foo') {
+        //... do the thing
+    }
+  }
+})
 ```
 
 Many actions related to location information can be executed during the initial server-side render, resulting in pure HTML without any JavaScript overhead.
 
-By forcing this logic to run on the client side, it introduces increased upfront JavaScript and leads to eager loading.
-
-Using the `if typeof window !== "undefined"` pattern may cause the code to be skipped. On the server, the code block will be skipped since the window is always undefined.
-
-While developers may be accustomed to code running twice, Qwik eliminates this necessity by providing a more efficient approach.
+Forcing this logic to run on the client side introduces increased upfront JavaScript and leads to eager loading.
 
 ```tsx title="Optimal Implementation"
 // Do this!
@@ -150,8 +187,6 @@ const location = useLocation();
 if (location.url.href.includes('foo')) {
   // Do the thing
 }
-
-doTheThing(location.url.searchParams);
 ```
 
 ### Exception
@@ -163,4 +198,3 @@ However, exercise caution! If the required information (such as query parameters
 This approach helps to prevent eager loading of JavaScript and improves performance.
 
 > See: [useLocation() Docs](/docs/(qwikcity)/api/index.mdx#uselocation)
-

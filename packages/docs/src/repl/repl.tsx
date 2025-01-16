@@ -15,8 +15,8 @@ import type { ReplStore, ReplUpdateMessage, ReplMessage, ReplAppInput } from './
 import { ReplDetailPanel } from './repl-detail-panel';
 import { getReplVersion } from './repl-version';
 import { updateReplOutput } from './repl-output-update';
-import { QWIK_PKG_NAME, getBundled, getNpmCdnUrl } from './bundled';
-import { isServer } from '@builder.io/qwik/build';
+import { QWIK_PKG_NAME, bundled, getNpmCdnUrl } from './bundled';
+import { isServer } from '@builder.io/qwik';
 
 export const Repl = component$((props: ReplProps) => {
   useStyles$(styles);
@@ -165,19 +165,25 @@ export const receiveMessageFromReplServer = (
   }
 };
 
-const bundled = getBundled();
 const getDependencies = (input: ReplAppInput) => {
   const out = { ...bundled };
   if (input.version !== 'bundled') {
+    const [M, m, p] = input.version.split('-')[0].split('.').map(Number);
+    const prefix = M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2))) ? '/dist/' : '/';
     out[QWIK_PKG_NAME] = {
       version: input.version,
-
-      '/core.cjs': getNpmCdnUrl(bundled, QWIK_PKG_NAME, input.version, '/core.cjs'),
-      '/core.mjs': getNpmCdnUrl(bundled, QWIK_PKG_NAME, input.version, '/core.mjs'),
-      '/core.min.mjs': getNpmCdnUrl(bundled, QWIK_PKG_NAME, input.version, '/core.min.mjs'),
-      '/optimizer.cjs': getNpmCdnUrl(bundled, QWIK_PKG_NAME, input.version, '/optimizer.cjs'),
-      '/server.cjs': getNpmCdnUrl(bundled, QWIK_PKG_NAME, input.version, '/server.cjs'),
     };
+    for (const p of [
+      `${prefix}core.cjs`,
+      `${prefix}core.mjs`,
+      `${prefix}core.min.mjs`,
+      `${prefix}optimizer.cjs`,
+      `${prefix}server.cjs`,
+      `/bindings/qwik.wasm.cjs`,
+      `/bindings/qwik_wasm_bg.wasm`,
+    ]) {
+      out[QWIK_PKG_NAME][p] = getNpmCdnUrl(bundled, QWIK_PKG_NAME, input.version, p);
+    }
   }
   return out;
 };

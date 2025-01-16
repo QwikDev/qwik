@@ -83,6 +83,7 @@ export interface TransformFsOptions extends TransformOptions {
 /** @public */
 export interface TransformModuleInput {
   path: string;
+  devPath?: string;
   code: string;
 }
 
@@ -97,7 +98,7 @@ export interface TransformOutput {
 }
 
 /** @public */
-export interface HookAnalysis {
+export interface SegmentAnalysis {
   origin: string;
   name: string;
   entry: string | null;
@@ -120,7 +121,7 @@ export interface TransformModule {
   isEntry: boolean;
   code: string;
   map: string | null;
-  hook: HookAnalysis | null;
+  segment: SegmentAnalysis | null;
   origPath: string | null;
 }
 
@@ -158,6 +159,7 @@ export type EntryStrategy =
   | HoistEntryStrategy
   | SingleEntryStrategy
   | HookEntryStrategy
+  | SegmentEntryStrategy
   | ComponentEntryStrategy
   | SmartEntryStrategy;
 
@@ -177,9 +179,15 @@ export interface HoistEntryStrategy {
   type: 'hoist';
 }
 
-/** @public */
+/** @deprecated Use SegmentStrategy instead */
 export interface HookEntryStrategy {
   type: 'hook';
+  manual?: Record<string, string>;
+}
+
+/** @public */
+export interface SegmentEntryStrategy {
+  type: 'segment';
   manual?: Record<string, string>;
 }
 
@@ -201,12 +209,21 @@ export interface SmartEntryStrategy {
   manual?: Record<string, string>;
 }
 
-/** @public */
+/**
+ * The metadata of the build. One of its uses is storing where QRL symbols are located.
+ *
+ * @public
+ */
 export interface QwikManifest {
+  /** Content hash of the manifest, if this changes, the code changed */
   manifestHash: string;
+  /** QRL symbols */
   symbols: { [symbolName: string]: QwikSymbol };
+  /** Where QRLs are located */
   mapping: { [symbolName: string]: string };
+  /** All code bundles, used to know the import graph */
   bundles: { [fileName: string]: QwikBundle };
+  /** CSS etc to inject in the document head */
   injections?: GlobalInjections[];
   version: string;
   options?: {
@@ -233,7 +250,8 @@ export type SymbolMapper = Record<string, readonly [symbol: string, chunk: strin
 /** @public */
 export type SymbolMapperFn = (
   symbolName: string,
-  mapper: SymbolMapper | undefined
+  mapper: SymbolMapper | undefined,
+  parent?: string
 ) => readonly [symbol: string, chunk: string] | undefined;
 
 /** @public */
@@ -252,6 +270,8 @@ export interface QwikSymbol {
 /** @public */
 export interface QwikBundle {
   size: number;
+  /** Not precise, but an indication of whether this import may be a task */
+  isTask?: boolean;
   symbols?: string[];
   imports?: string[];
   dynamicImports?: string[];
@@ -263,16 +283,6 @@ export interface GlobalInjections {
   tag: string;
   attributes?: { [key: string]: string };
   location: 'head' | 'body';
-}
-
-export interface GeneratedOutputBundle {
-  fileName: string;
-  modules: {
-    [id: string]: any;
-  };
-  imports: string[];
-  dynamicImports: string[];
-  size: number;
 }
 
 // PATH UTIL  ***************

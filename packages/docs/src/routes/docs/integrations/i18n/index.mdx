@@ -11,6 +11,8 @@ updated_at: '2023-10-08T10:16:44Z'
 created_at: '2023-04-19T22:13:46Z'
 ---
 
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
 # Internationalization
 
 Internationalization is a complex problem. Qwik does not solve the internationalization problem directly instead it only provides low-level APIs to allow other libraries to solve it.
@@ -34,7 +36,7 @@ Disadvantages of the runtime approach are:
   1. Once as the original string in the code.
   2. Once as a key in a translation map.
   3. Once as a translated value in the translation map.
-- The tools don't know how to break up the translation map, for this reason, the whole translation map must be loaded eagerly on application startup. This is a problem because it undoes the effort Qwik put into breaking up and lazy load your codebase. In addition because translation maps are not broken up, the browser will download unnecessary translations. For example, translations for static components that will never re-render on the client.
+- The tools currently lack the capability to break up the translation map. The whole translation map must be loaded eagerly on application startup. This is a less than ideal situation because it works against Qwik's effort to break up and lazy load your codebase. Additionally, because translation maps are not broken up, the browser will download unnecessary translations. For example, translations for static components that will never re-render on the client.
 - There is a runtime cost to translation lookups.
 
 The advantages of compile-time approaches are:
@@ -57,7 +59,7 @@ Qwik's goal is to deliver the best possible user experience. It achieves this by
 
 ### Server
 
-The server does not have the constraint of lazy loading. For this reason, the server can use either the runtime or compiled approach. The disadvantage of compile time approach on the server is that we need to have a separate deployment for each translation. This complicates the deployment process as well as puts greater demand on number of servers. For this reason, we think the runtime approach is preferable on the server.
+The server does not have the constraint of lazy loading. For this reason, the server can use either the runtime or compiled approach. The disadvantage of compile time approach on the server is that we need to have a separate deployment for each translation. This complicates the deployment process as well as puts greater demand on the number of servers. For this reason, we think the runtime approach is preferable on the server.
 
 ### Development
 
@@ -67,7 +69,7 @@ During development, fewer build steps will result in a faster turnaround. For th
 
 Our recommendation is to use a tool that would provide a runtime approach on the server, and runtime or compile time on the client depending on whether we are in development or production. This way it is possible to prove the best user experience and development experience, and use the least server resources.
 
-## Internationalization libraries
+## Internationalization Libraries
 
 ### $localize
 
@@ -75,27 +77,89 @@ Our recommendation is to use a tool that would provide a runtime approach on the
 
 >NOTE: The $localize system is a compile-time translation system and is completely removed from the final output. $localize is a sub-project of Angular, and including its usage does not mean that Angular is used for rendering of applications.
 
-The easiest way to add $localize to Qwik is using the `pnpm qwik add localize` command. This will install the required dependencies and create a new public route `/src/routes/[locale]` showcasing i18n $localize integration.
+The easiest way to add $localize to Qwik is using the Qwik CLI command. This will install the required dependencies and create a new public route `/src/routes/[locale]` showcasing i18n $localize integration.
 
-```bash
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run qwik add localize
+```
+</span>
+<span q:slot="npm">
+```shell
 npm run qwik add localize
 ```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run qwik add localize
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run qwik add localize
+```
+</span>
+</PackageManagerTabs>
 
 For further reference, please check this [example repo](https://github.com/mhevery/qwik-i18n).
 
 #### Extract translations
 
-When you are done with your changes, you can use `npm run i18n-extract` to extract the translations from the code. 
+When you are done with your changes, you can use the `i18n-extract` command to extract the translations from the code. 
 This will update the file you see in `package.json`.
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run i18n-extract
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run i18n-extract
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run i18n-extract
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run i18n-extract
+```
+</span>
+</PackageManagerTabs>
 
 #### Auto translations for $localize with deepl
 
 For auto translations, you can use the [deepl-localize](https://www.npmjs.com/package/deepl-localize) package. It will automatically translate your strings using the [deepl.com](https://deepl.com/) API.
 
-Use the `deepl-localize` command to translate your strings with npx:
-```bash
+Use the `deepl-localize` command to translate your strings with:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm dlx deepl-localize translate -b src/locales/message.en.json -l de-DE fr-FR -a "YOUR-DEEPL-API-KEY"
+```
+</span>
+<span q:slot="npm">
+```shell
 npx deepl-localize translate -b src/locales/message.en.json -l de-DE fr-FR -a "YOUR-DEEPL-API-KEY"
 ```
+</span>
+<span q:slot="yarn">
+```shell
+yarn dlx deepl-localize translate -b src/locales/message.en.json -l de-DE fr-FR -a "YOUR-DEEPL-API-KEY"
+```
+</span>
+<span q:slot="bun">
+```shell
+bunx deepl-localize translate -b src/locales/message.en.json -l de-DE fr-FR -a "YOUR-DEEPL-API-KEY"
+```
+</span>
+</PackageManagerTabs>
 
 Alternatively, you can use the `deepl-localize` command to translate your strings within your script section:
 ```json
@@ -105,6 +169,16 @@ Alternatively, you can use the `deepl-localize` command to translate your string
   }
 }
 ```
+
+### compiled-i18n
+
+[compiled-i18n](https://github.com/wmertens/compiled-i18n) is inspired by the $localize system from Angular. It only requires a plugin to be added to the Vite configuration.
+
+It supports both runtime and compile-time translations.
+
+See the [Qwik-specific instructions](https://github.com/wmertens/compiled-i18n/blob/main/qwik.md).
+
+Automatic translation is supported via [deepl-localize](https://github.com/tzdesign/deepl-localize).
 
 ### qwik-speak
 

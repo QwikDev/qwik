@@ -88,7 +88,7 @@ async function processBundleGraph(
   graph: SWGraph,
   cleanup: boolean
 ) {
-  const existingBaseIndex = swState.$bases$.findIndex((base) => base === base);
+  const existingBaseIndex = swState.$bases$.findIndex((b) => b.$path$ === base);
   if (existingBaseIndex !== -1) {
     swState.$bases$.splice(existingBaseIndex, 1);
   }
@@ -96,6 +96,7 @@ async function processBundleGraph(
   swState.$bases$.push({
     $path$: base,
     $graph$: graph,
+    $processed$: undefined,
   });
   if (cleanup) {
     const bundles = new Set<string>(graph.filter((item) => typeof item === 'string') as string[]);
@@ -117,7 +118,7 @@ async function processBundleGraph(
 async function processBundleGraphUrl(swState: SWState, base: string, graphPath: string) {
   // Call `processBundleGraph` with an empty graph so that a cache location will be allocated.
   await processBundleGraph(swState, base, [], false);
-  const response = (await directFetch(swState, new URL(base + graphPath, swState.$url$)))!;
+  const response = (await directFetch(swState, new URL(base + graphPath, swState.$url$.origin)))!;
   if (response && response.status === 200) {
     const graph = (await response.json()) as SWGraph;
     graph.push(graphPath);
@@ -126,7 +127,10 @@ async function processBundleGraphUrl(swState: SWState, base: string, graphPath: 
 }
 
 function processPrefetch(swState: SWState, basePath: string, bundles: string[]) {
-  const base = swState.$bases$.find((base) => basePath === base.$path$);
+  let base = swState.$bases$.find((base) => base.$graph$.includes(bundles[0].replace('./', '')));
+  if (!base) {
+    base = swState.$bases$.find((base) => basePath === base.$path$);
+  }
   if (!base) {
     console.error(`Base path not found: ${basePath}, ignoring prefetch.`);
   } else {

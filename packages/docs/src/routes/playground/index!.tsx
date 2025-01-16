@@ -7,8 +7,7 @@ import playgroundApp from '@playground-data';
 import type { ReplAppInput } from '../../repl/types';
 import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/repl-share-url';
 import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
-import type { QwikPointerEvent } from 'packages/qwik/src/core/render/jsx/types/jsx-qwik-events';
-import { isBrowser } from '@builder.io/qwik/build';
+import { isBrowser } from '@builder.io/qwik';
 
 export default component$(() => {
   useStyles$(styles);
@@ -19,7 +18,7 @@ export default component$(() => {
       files: playgroundApp.inputs,
       version: '',
       buildMode: 'development',
-      entryStrategy: 'hook',
+      entryStrategy: 'segment',
       colResizeActive: false,
       colLeft: 50,
       shareUrlTmr: null,
@@ -66,7 +65,7 @@ export default component$(() => {
     store.colResizeActive = true;
   });
 
-  const pointerMove = $((ev: QwikPointerEvent) => {
+  const pointerMove = $((ev: PointerEvent) => {
     if (store.colResizeActive) {
       store.colLeft = (ev.clientX, ev.clientX / window.innerWidth) * 100;
       store.colLeft = Math.max(25, store.colLeft);

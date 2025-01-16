@@ -1,0 +1,108 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 3549
+expression: output
+snapshot_kind: text
+---
+==INPUT==
+
+
+    import { component$ } from '@builder.io/qwik';
+export const Counter = component$(() => {
+  const count = useSignal(0);
+
+  return (
+    <div>
+      <p>Count: {count.value}</p>
+      <p>
+        <button onClick$={() => count.value++}>Increment</button>
+      </p>
+    </div>
+  );
+});
+
+============================= test.tsx_Counter_component_zTmRHlL09Gg.ts (ENTRY POINT)==
+
+import { _fnSignal } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const Counter_component_zTmRHlL09Gg = ()=>{
+    const count = useSignal(0);
+    return /*#__PURE__*/ _jsxQ("div", null, null, [
+        /*#__PURE__*/ _jsxQ("p", null, null, [
+            "Count: ",
+            _fnSignal((p0)=>p0.value, [
+                count
+            ], "p0.value")
+        ], 3, null),
+        /*#__PURE__*/ _jsxQ("p", null, null, /*#__PURE__*/ _jsxQ("button", null, {
+            onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Counter_component_div_p_button_onClick_Kqq00U8qaIM"), "Counter_component_div_p_button_onClick_Kqq00U8qaIM", [
+                count
+            ])
+        }, "Increment", 3, null), 3, null)
+    ], 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;6CAEkC;IAChC,MAAM,QAAQ,UAAU;IAExB,qBACE,MAAC;sBACC,MAAC;YAAE;4BAAQ,GAAM,KAAK;;;;sBACtB,MAAC,+BACC,MAAC;YAAO,QAAQ;;;WAAuB;;AAI/C\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Counter_component_zTmRHlL09Gg",
+  "entry": null,
+  "displayName": "test.tsx_Counter_component",
+  "hash": "zTmRHlL09Gg",
+  "canonicalFilename": "test.tsx_Counter_component_zTmRHlL09Gg",
+  "path": "",
+  "extension": "ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    87,
+    285
+  ]
+}
+*/
+============================= test.tsx_Counter_component_div_p_button_onClick_Kqq00U8qaIM.ts (ENTRY POINT)==
+
+import { useLexicalScope } from "@builder.io/qwik";
+export const Counter_component_div_p_button_onClick_Kqq00U8qaIM = ()=>{
+    const [count] = useLexicalScope();
+    return count.value++;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEAS0B;;WAAM,MAAM,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Counter_component_div_p_button_onClick_Kqq00U8qaIM",
+  "entry": null,
+  "displayName": "test.tsx_Counter_component_div_p_button_onClick",
+  "hash": "Kqq00U8qaIM",
+  "canonicalFilename": "test.tsx_Counter_component_div_p_button_onClick_Kqq00U8qaIM",
+  "path": "",
+  "extension": "ts",
+  "parent": "Counter_component_zTmRHlL09Gg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    217,
+    236
+  ]
+}
+*/
+============================= test.ts ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const Counter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Counter_component_zTmRHlL09Gg"), "Counter_component_zTmRHlL09Gg"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,OAAO,MAAM,wBAAU,yHAWpB\"}")
+== DIAGNOSTICS ==
+
+[]

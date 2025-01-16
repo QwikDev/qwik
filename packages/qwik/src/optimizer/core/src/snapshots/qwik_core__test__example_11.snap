@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 297
+assertion_line: 298
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -25,10 +26,11 @@ export const App = component$(() => {
     );
 });
 
-============================= header_component_header_onclick_kjd9tcnknxy.tsx ==
+============================= project/test.tsx_Header_component_Header_onClick_KjD9TCNkNxY.tsx ==
 
 import dep3 from "dep3/something";
 export const Header_component_Header_onClick_KjD9TCNkNxY = (ev)=>dep3(ev);
+export { _hW } from "@builder.io/qwik";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";2DAQ2B,CAAC,KAAO,KAAK\"}")
@@ -36,10 +38,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 {
   "origin": "project/test.tsx",
   "name": "Header_component_Header_onClick_KjD9TCNkNxY",
-  "entry": "entry_hooks",
-  "displayName": "Header_component_Header_onClick",
+  "entry": "entry_segments",
+  "displayName": "test.tsx_Header_component_Header_onClick",
   "hash": "KjD9TCNkNxY",
-  "canonicalFilename": "header_component_header_onclick_kjd9tcnknxy",
+  "canonicalFilename": "test.tsx_Header_component_Header_onClick_KjD9TCNkNxY",
+  "path": "project",
   "extension": "tsx",
   "parent": "Header_component_UVBJuFYfvDo",
   "ctxKind": "function",
@@ -51,30 +54,29 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   ]
 }
 */
-============================= header_component_uvbjufyfvdo.tsx ==
+============================= project/test.tsx_Header_component_UVBJuFYfvDo.tsx ==
 
-import { Header } from "./project/test";
-import { bar as bbar } from "./state";
+import { Header } from "./test";
+import { bar as bbar } from "../state";
 import * as dep2 from "dep2";
 import { qrl } from "@builder.io/qwik";
 export const Header_component_UVBJuFYfvDo = ()=>{
-    return <Header onClick={/*#__PURE__*/ qrl(()=>import("./entry_hooks"), "Header_component_Header_onClick_KjD9TCNkNxY")}>
-
+    return <Header onClick={/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_Header_onClick_KjD9TCNkNxY"), "Header_component_Header_onClick_KjD9TCNkNxY")}>
             {dep2.stuff()}{bbar()}
-
         </Header>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAMiC,IAAM;IACnC,QACK,OAAO,wGAA8B;;YAClC,CAAC,KAAK,KAAK,IAAI,OAAO;;QAC1B,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAMiC;IAC7B,QACK,OAAO,iJAA8B;YAClC,CAAC,KAAK,KAAK,IAAI,OAAO;QAC1B,EAAE;AAEV\"}")
 /*
 {
   "origin": "project/test.tsx",
   "name": "Header_component_UVBJuFYfvDo",
-  "entry": "entry_hooks",
-  "displayName": "Header_component",
+  "entry": "entry_segments",
+  "displayName": "test.tsx_Header_component",
   "hash": "UVBJuFYfvDo",
-  "canonicalFilename": "header_component_uvbjufyfvdo",
+  "canonicalFilename": "test.tsx_Header_component_UVBJuFYfvDo",
+  "path": "project",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -86,24 +88,25 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   ]
 }
 */
-============================= app_component_wgkrhwxaqjs.tsx ==
+============================= project/test.tsx_App_component_wGkRHWXaqjs.tsx ==
 
-import { Header } from "./project/test";
-import { foo } from "./state";
+import { Header } from "./test";
+import { foo } from "../state";
 export const App_component_wGkRHWXaqjs = ()=>{
     return <Header>{foo()}</Header>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;yCAc8B,IAAM;IAChC,QACK,QAAQ,QAAQ;AAEzB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;yCAc8B;IAC1B,QACK,QAAQ,QAAQ;AAEzB\"}")
 /*
 {
   "origin": "project/test.tsx",
   "name": "App_component_wGkRHWXaqjs",
-  "entry": "entry_hooks",
-  "displayName": "App_component",
+  "entry": "entry_segments",
+  "displayName": "test.tsx_App_component",
   "hash": "wGkRHWXaqjs",
-  "canonicalFilename": "app_component_wgkrhwxaqjs",
+  "canonicalFilename": "test.tsx_App_component_wGkRHWXaqjs",
+  "path": "project",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -119,20 +122,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("../entry_hooks"), "Header_component_UVBJuFYfvDo"));
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("../entry_hooks"), "App_component_wGkRHWXaqjs"));
+export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_UVBJuFYfvDo"), "Header_component_UVBJuFYfvDo"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_wGkRHWXaqjs"), "App_component_wGkRHWXaqjs"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,uBAAS,8FAMnB;AAEH,OAAO,MAAM,oBAAM,2FAIhB\"}")
-============================= entry_hooks.js (ENTRY POINT)==
-
-export { Header_component_Header_onClick_KjD9TCNkNxY } from "./header_component_header_onclick_kjd9tcnknxy";
-export { Header_component_UVBJuFYfvDo } from "./header_component_uvbjufyfvdo";
-export { App_component_wGkRHWXaqjs } from "./app_component_wgkrhwxaqjs";
-export { _hW } from "@builder.io/qwik";
-
-
-None
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,uBAAS,uHAMnB;AAEH,OAAO,MAAM,oBAAM,iHAIhB\"}")
 == DIAGNOSTICS ==
 
 []

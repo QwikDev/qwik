@@ -16,7 +16,7 @@ self.oninstall = (ev) => {
 self.onactivate = () => self.clients.claim();
 
 export interface ReplGlobalApi {
-  qwikBuild?: typeof import('@builder.io/qwik/build');
+  qwikBuild?: typeof import('@builder.io/qwik');
   qwikCore?: typeof import('@builder.io/qwik');
   qwikOptimizer?: typeof import('@builder.io/qwik/optimizer');
   qwikServer?: typeof import('@builder.io/qwik/server');
@@ -29,8 +29,8 @@ export interface ReplGlobalApi {
 
 export interface QwikWorkerGlobal extends ReplGlobalApi {
   onmessage: (ev: MessageEvent) => void;
-  onfetch: (ev: Event) => void;
-  oninstall: (ev: any) => void;
+  onfetch: (ev: FetchEvent) => void;
+  oninstall: (ev: ExtendableEvent) => void;
   onactivate: () => void;
   skipWaiting: () => void;
   clients: {

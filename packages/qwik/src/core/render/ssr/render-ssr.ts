@@ -1,10 +1,42 @@
+import {
+  createContainerState,
+  getEventName,
+  setRef,
+  type ContainerState,
+} from '../../container/container';
+import { assertDefined } from '../../error/assert';
+import { QError_canNotRenderHTML, qError } from '../../error/error';
+import { serializeQRLs } from '../../qrl/qrl';
+import { Q_CTX, _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
+import {
+  HOST_FLAG_DIRTY,
+  HOST_FLAG_DYNAMIC,
+  HOST_FLAG_NEED_ATTACH_LISTENER,
+  createContext,
+  type QContext,
+} from '../../state/context';
+import {
+  PREVENT_DEFAULT,
+  groupListeners,
+  isOnProp,
+  setEvent,
+  type Listener,
+} from '../../state/listeners';
+import { isSignal } from '../../state/signal';
+import { createPropsState, createProxy } from '../../state/store';
+import { serializeSStyle } from '../../style/qrl-styles';
+import { invoke, newInvokeContext, trackSignal, type InvokeContext } from '../../use/use-core';
+import { EMPTY_OBJ } from '../../util/flyweight';
+import { logError, logWarn } from '../../util/log';
+import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
 import { isPromise, maybeThen } from '../../util/promises';
-import { type InvokeContext, newInvokeContext, invoke, trackSignal } from '../../use/use-core';
-import { Virtual, _jsxC, _jsxQ, createJSXError, isJSXNode } from '../jsx/jsx-runtime';
+import { qDev, qInspector, seal } from '../../util/qdev';
 import { isArray, isFunction, isString, type ValueOrPromise } from '../../util/types';
-import type { FunctionComponent, JSXNode, JSXOutput } from '../jsx/types/jsx-node';
+import { version } from '../../version';
+import type { QwikElement } from '../dom/virtual-element';
 import {
   createRenderContext,
+  dangerouslySetInnerHTML,
   executeComponent,
   getNextIndex,
   isAriaAttribute,
@@ -14,44 +46,12 @@ import {
   shouldWrapFunctional,
   static_subtree,
   stringifyStyle,
-  dangerouslySetInnerHTML,
 } from '../execute-component';
-import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS, QStyle } from '../../util/markers';
-import { InternalSSRStream, SSRRaw } from '../jsx/utils.public';
-import { logError, logWarn } from '../../util/log';
-import {
-  groupListeners,
-  isOnProp,
-  type Listener,
-  PREVENT_DEFAULT,
-  setEvent,
-} from '../../state/listeners';
-import { version } from '../../version';
-import {
-  type ContainerState,
-  createContainerState,
-  setRef,
-  getEventName,
-} from '../../container/container';
-import type { RenderContext } from '../types';
-import { assertDefined } from '../../error/assert';
-import { serializeSStyle } from '../../style/qrl-styles';
-import { qDev, qInspector, seal } from '../../util/qdev';
-import { qError, QError_canNotRenderHTML } from '../../error/error';
-import { isSignal } from '../../state/signal';
-import { serializeQRLs } from '../../qrl/qrl';
-import type { QwikElement } from '../dom/virtual-element';
-import { EMPTY_OBJ } from '../../util/flyweight';
-import {
-  createContext,
-  HOST_FLAG_DIRTY,
-  HOST_FLAG_NEED_ATTACH_LISTENER,
-  HOST_FLAG_DYNAMIC,
-  type QContext,
-} from '../../state/context';
-import { createPropsState, createProxy } from '../../state/store';
-import { Q_CTX, _IMMUTABLE, _IMMUTABLE_PREFIX } from '../../state/constants';
+import { Virtual, _jsxC, _jsxQ, createJSXError, isJSXNode } from '../jsx/jsx-runtime';
+import type { FunctionComponent, JSXNode, JSXNodeInternal, JSXOutput } from '../jsx/types/jsx-node';
 import type { ClassList, JSXChildren } from '../jsx/types/jsx-qwik-attributes';
+import { InternalSSRStream, SSRRaw } from '../jsx/utils.public';
+import type { RenderContext } from '../types';
 
 const FLUSH_COMMENT = '<!--qkssr-f-->';
 
@@ -148,27 +148,33 @@ export const _renderSSR = async (node: JSXOutput, opts: RenderSSROptions) => {
   };
   seal(ssrCtx);
 
-  let qRender = qDev ? 'ssr-dev' : 'ssr';
-  if (opts.containerAttributes['q:render']) {
-    qRender = `${opts.containerAttributes['q:render']}-${qRender}`;
-  }
-  const containerAttributes: Record<string, any> = {
-    ...opts.containerAttributes,
-    'q:container': 'paused',
-    'q:version': version ?? 'dev',
-    'q:render': qRender,
-    'q:base': opts.base,
-    'q:locale': opts.serverData?.locale,
-    'q:manifest-hash': opts.manifestHash,
-  };
+  const locale = opts.serverData?.locale;
+  const containerAttributes = opts.containerAttributes;
+  const qRender = containerAttributes['q:render'];
+  containerAttributes['q:container'] = 'paused';
+  containerAttributes['q:version'] = version ?? 'dev';
+  containerAttributes['q:render'] = (qRender ? qRender + '-' : '') + (qDev ? 'ssr-dev' : 'ssr');
+  containerAttributes['q:base'] = opts.base || '';
+  containerAttributes['q:locale'] = locale;
+  containerAttributes['q:manifest-hash'] = opts.manifestHash;
+  containerAttributes['q:instance'] = hash();
+
   const children = root === 'html' ? [node] : [headNodes, node];
   if (root !== 'html') {
     containerAttributes.class =
       'qc📦' + (containerAttributes.class ? ' ' + containerAttributes.class : '');
   }
-  if (opts.serverData) {
-    containerState.$serverData$ = opts.serverData;
-  }
+  const serverData = (containerState.$serverData$ = {
+    ...containerState.$serverData$,
+    ...opts.serverData,
+  });
+  serverData.containerAttributes = {
+    ...serverData['containerAttributes'],
+    ...containerAttributes,
+  };
+  const invokeCtx = (ssrCtx.$invocationContext$ = newInvokeContext(locale));
+  invokeCtx.$renderCtx$ = rCtx;
+  ssrCtx.$invocationContext$;
 
   const rootNode = _jsxQ(
     root,
@@ -184,8 +190,10 @@ export const _renderSSR = async (node: JSXOutput, opts: RenderSSROptions) => {
   );
 };
 
+const hash = () => Math.random().toString(36).slice(2);
+
 const renderRoot = async (
-  node: JSXNode,
+  node: JSXNodeInternal,
   rCtx: RenderContext,
   ssrCtx: SSRContext,
   stream: StreamWriter,
@@ -523,7 +531,7 @@ const createMockQContext = (nodeType: 1 | 111) => {
 };
 
 const renderNode = (
-  node: JSXNode,
+  node: JSXNodeInternal,
   rCtx: RenderContext,
   ssrCtx: SSRContext,
   stream: StreamWriter,
@@ -595,7 +603,7 @@ const renderNode = (
           }
         } else {
           openingElement +=
-            ' ' + (value === true ? prop : prop + '="' + escapeAttr(attrValue) + '"');
+            ' ' + (value === true ? prop : prop + '="' + escapeHtml(attrValue) + '"');
         }
       }
     };
@@ -724,7 +732,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
     }
 
     if (classStr) {
-      openingElement += ' class="' + escapeAttr(classStr) + '"';
+      openingElement += ' class="' + escapeHtml(classStr) + '"';
     }
 
     if (listeners.length > 0) {
@@ -742,7 +750,7 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
       }
     }
     if (key != null) {
-      openingElement += ' q:key="' + escapeAttr(key) + '"';
+      openingElement += ' q:key="' + escapeHtml(key) + '"';
     }
     if (hasRef || useSignal || listeners.length > 0) {
       if (hasRef || useSignal || listenersNeedId(listeners)) {
@@ -757,8 +765,8 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
     }
     if (qDev && qInspector && node.dev && !(flags & IS_HEAD)) {
       const sanitizedFileName = node?.dev?.fileName?.replace(/\\/g, '/');
-      if (sanitizedFileName) {
-        openingElement += ` data-qwik-inspector="${escapeAttr(
+      if (sanitizedFileName && !/data-qwik-inspector/.test(openingElement)) {
+        openingElement += ` data-qwik-inspector="${escapeHtml(
           `${sanitizedFileName}:${node.dev.lineNumber}:${node.dev.columnNumber}`
         )}"`;
       }
@@ -829,11 +837,17 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
   }
 
   if (tagName === SSRRaw) {
-    stream.write((node as JSXNode<typeof SSRRaw>).props.data);
+    stream.write((node as JSXNodeInternal<typeof SSRRaw>).props.data);
     return;
   }
   if (tagName === InternalSSRStream) {
-    return renderGenerator(node as JSXNode<typeof InternalSSRStream>, rCtx, ssrCtx, stream, flags);
+    return renderGenerator(
+      node as JSXNodeInternal<typeof InternalSSRStream>,
+      rCtx,
+      ssrCtx,
+      stream,
+      flags
+    );
   }
   // Inline component
   const res = invoke(
@@ -1172,8 +1186,7 @@ export interface ServerDocument {
   createElement(tagName: string): any;
 }
 
-const ESCAPE_HTML = /[&<>]/g;
-const ESCAPE_ATTRIBUTES = /[&"]/g;
+const ESCAPE_HTML = /[&<>'"]/g;
 
 export const registerQwikEvent = (prop: string, containerState: ContainerState) => {
   containerState.$events$.add(getEventName(prop));
@@ -1188,19 +1201,10 @@ const escapeHtml = (s: string) => {
         return '&lt;';
       case '>':
         return '&gt;';
-      default:
-        return '';
-    }
-  });
-};
-
-const escapeAttr = (s: string) => {
-  return s.replace(ESCAPE_ATTRIBUTES, (c) => {
-    switch (c) {
-      case '&':
-        return '&amp;';
       case '"':
         return '&quot;';
+      case "'":
+        return '&#39;';
       default:
         return '';
     }

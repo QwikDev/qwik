@@ -7,8 +7,10 @@ export type {
   DiagnosticCategory,
   EntryStrategy,
   GlobalInjections,
-  HookAnalysis,
-  HookEntryStrategy,
+  SegmentAnalysis as HookAnalysis,
+  SegmentAnalysis,
+  SegmentEntryStrategy as HookEntryStrategy,
+  SegmentEntryStrategy,
   InlineEntryStrategy,
   InsightManifest,
   MinifyMode,
@@ -36,7 +38,7 @@ export type {
   TranspileOption,
 } from './types';
 
-export type { QwikBuildMode, QwikBuildTarget } from './plugins/plugin';
+export type { QwikBuildMode, QwikBuildTarget, ExperimentalFeatures } from './plugins/plugin';
 export type { QwikRollupPluginOptions } from './plugins/rollup';
 export type {
   QwikViteDevResponse,
@@ -47,3 +49,4 @@ export type {
 
 export { qwikRollup } from './plugins/rollup';
 export { qwikVite } from './plugins/vite';
+export { symbolMapper } from './plugins/vite-dev-server';

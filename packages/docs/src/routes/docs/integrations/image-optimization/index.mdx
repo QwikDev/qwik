@@ -3,7 +3,7 @@ title: Image Optimization | Integrations
 keywords: >-
   third party image optimization, image optimization, image optimization tools,
   image optimization services, image optimization service, image optimization
-  tool, image optimization api, im
+  tool, image optimization api, image optimization software
 contributors:
   - mhevery
   - gioboa
@@ -16,11 +16,13 @@ contributors:
   - fabian-hiller
   - manucorporat
   - aendel
-updated_at: '2023-10-03T18:53:23Z'
+  - maiieul
+updated_at: '2024-10-03T18:53:23Z'
 created_at: '2023-04-19T22:13:46Z'
 ---
-import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
 
+import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 # Image Optimization
 
@@ -61,11 +63,13 @@ The community and the Qwik team love this API for a number of reasons:
 
 #### Usage
 
-Add the `?jsx` suffix at the end of the import
+Add the `?jsx` suffix **at the end** of the import
 
 ```tsx
-import Image from '[IMAGE_PATH]?jsx';
+import Image from '[IMAGE_PATH]?w=24&h=24&jsx';
 ```
+
+> ⚠️ Make sure to put the `jsx` query parameter at the end of the import path, otherwise typescript might complain.
 
 Use the image in the template as a component:
 
@@ -170,12 +174,12 @@ export default component$(() => {
   height: auto; /* Let the browser calculate the height to maintain aspect ratio */
   display: block; /* Remove any extra white space below the image */
 }
-````
+```
 
 ## `@unpic/qwik`
 
 - Site with detailed instructions on usage: [@unpic/qwik](https://unpic.pics/img/qwik/)
-- Installation: `npm install @unpic/qwik`
+- Installation: add `@unpic/qwik` dependency
 
 Unpic is a third-party image optimization library that works with existing image optimization CDNs. It provides an `Image` component that can be used to optimize images.
 
@@ -215,13 +219,29 @@ export default component$(() => {
 
 Performant images with automatic optimization.
 
-```bash
-npm install qwik-image
-or
-yarn install qwik-image
-or
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
 pnpm install qwik-image
 ```
+</span>
+<span q:slot="npm">
+```shell
+npm install qwik-image
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn add qwik-image
+```
+</span>
+<span q:slot="bun">
+```shell
+bun install qwik-image
+```
+</span>
+</PackageManagerTabs>
 
 > This is a pluggable component so devs could connect different image loaders to it (like builder.io or other CDNs)
 

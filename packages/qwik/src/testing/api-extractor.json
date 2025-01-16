@@ -1,19 +1,19 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "extends": "../api-extractor.json",
-  "mainEntryPointFilePath": "<projectFolder>/dist-dev/dts-out/packages/qwik/src/testing/index.d.ts",
+  "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik/src/testing/index.d.ts",
   "apiReport": {
     "enabled": true,
     "reportFileName": "api.md",
-    "reportFolder": "<projectFolder>/packages/qwik/src/testing/",
-    "reportTempFolder": "<projectFolder>/dist-dev/api-extractor/testing/"
+    "reportFolder": "<projectFolder>/src/testing/",
+    "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/testing/"
   },
   "dtsRollup": {
     "enabled": true,
-    "untrimmedFilePath": "<projectFolder>/packages/qwik/dist/testing/index.d.ts"
+    "untrimmedFilePath": "<projectFolder>/dist/testing/index.d.ts"
   },
   "docModel": {
     "enabled": true,
-    "apiJsonFilePath": "<projectFolder>/dist-dev/api/qwik/testing/docs.api.json"
+    "apiJsonFilePath": "<projectFolder>/../../dist-dev/api/qwik/testing/docs.api.json"
   }
 }

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.0.1/schema.json",
+  "changelog": ["./changelog-github-custom.cjs", { "repo": "QwikDev/qwik" }],
+  "commit": false,
+  "fixed": [["@builder.io/qwik", "@builder.io/qwik-city", "eslint-plugin-qwik", "create-qwik"]],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "origin/upcoming",
+  "updateInternalDependencies": "minor",
+  "ignore": [
+    "qwik-docs",
+    "@builder.io/qwik-labs",
+    "insights",
+    "@builder.io/qwik-react",
+    "@builder.io/qwik-worker",
+    "qwik-cli-e2e"
+  ],
+  "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
+    "onlyUpdatePeerDependentsWhenOutOfRange": true
+  }
+}

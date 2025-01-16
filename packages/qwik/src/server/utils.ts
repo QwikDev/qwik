@@ -27,7 +27,7 @@ export function getBuildBase(opts: RenderToStringOptions) {
     }
     return base;
   }
-  return '/build/';
+  return `${import.meta.env.BASE_URL}build/`;
 }
 
 /** @public */

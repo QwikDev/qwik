@@ -18,6 +18,7 @@ contributors:
   - thejackshelton
   - Balastrong
   - aendel
+  - Jemsco
 updated_at: '2023-09-19T17:37:26Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
@@ -69,7 +70,7 @@ export const MyComponent = component$((props) => {
 ```
 
 
-## Rendering child components
+## Rendering Child Components
 
 Qwik lazy loads components on an as-needed basis. To minimize the number of components to download, Qwik only descends into child components if the component's props have changed.
 
@@ -97,7 +98,7 @@ export const Child = component$((props: { name: string }) => {
 
 ### Rendering a list of items
 
-In many cases you'll want to render components by mapping an array in the render function with `items.map()`. It is required for every item of the list to have a unique `key` property passed to the first child of the mapping function. The `key` must be a string, or number and must be unique within the list.
+In many cases you'll want to render components by mapping an array in the render function with `items.map()`. It is required for every item of the list to have a unique `key` property passed to the first child of the mapping function. The `key` must be a string or number and must be unique within the list.
 
 ```tsx {6} /data.map/ /key/#a
 import { component$ } from '@builder.io/qwik';
@@ -117,7 +118,7 @@ export const Parent = component$(() => {
 
 > **Note:** it is not recommended to use the array's index as the key unless you can guarantee that the data for a given key will always be the same. It is always preferred to use some unique identifier from the data as the key.
 
-### Rendering conditionally
+### Rendering Conditionally
 
 Conditional rendering is done with the Javascipt [ternary operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator) `?`, the `&&` operator, or just by using `if` statements.
 
@@ -140,16 +141,16 @@ export default component$(() => {
 
 Qwik offers an attribute on HTML Elements called `dangerouslySetInnerHTML` as a replacement for calling `innerHTML` on the DOM.
 
-Due to cross-site-scripting (XSS) possibilities when rendering not trustworthy content, you must use this attribute to remind yourself that this operation might be dangerous.
+Due to cross-site-scripting (XSS) possibilities when rendering untrustworthy content, you must use `dangerouslySetInnerHTML` as a reminder that this operation might be dangerous.
 
 ```tsx
 const htmlString = "<strong>hello</strong>";
 <div dangerouslySetInnerHTML={htmlString}></div>
 ```
 
-### `bind` attribute
+### `bind` Attribute
 
-It is a convenient API to two-way data bind the value of a `<input>` to a `Signal`.
+The `bind` attribute is a convenient API for two-way data binding of an `<input>` value to a `Signal`.
 
 For checkbox inputs, you can use `bind:checked`, which binds the `checked` boolean to the specified signal.
 
@@ -171,7 +172,7 @@ export default component$(() => {
 })
 ```
 
-> It does not work with `useStore` since it does not return a signal, but you can still use the manual approach ( value + onInput$ ) as shown below.
+> The API does not work with `useStore` since it does not return a signal. You can still use the manual approach, combining value and onInput$ as shown below.
 
 The `bind:` is compiled away by the Qwik optimizer to a property set and an event handler, ie, it is just syntax sugar.
 
@@ -201,13 +202,13 @@ export default component$(() => {
 > This API ensures that the `value` of the input is always in sync with the value of the signal, no matter where the change comes from.
 
 
-## Async rendering
+## Async Rendering
 
-It is important that the rendering pipeline can lazy load child components. Lazy loading is an asynchronous operation; therefore, rendering needs to be asynchronous. In practice, this means that the `render()` function returns a promise.
+It is important for the rendering pipeline to be able to lazy load child components. Since lazy loading is an asynchronous operation, rendering must also be asynchronous. In practice, this means that the `render()` function must return a promise.
 
 Most current-generation frameworks have a synchronous `render()` process. Synchronous rendering can't easily deal with asynchronous code loading, so synchronous rendering necessitates that all dependant components are eagerly present before rendering can commence.
 
-## Render batching
+## Render Batching
 
 Whenever the state of the application changes, Qwik will schedule a render operation. The render operation will be scheduled to run after a macro-task (e.g. `setTimeout(0)`). This allows the application to batch multiple state changes into a single render operation.
 
@@ -215,7 +216,7 @@ In addition, because of the asynchronous nature of Qwik, all DOM writes are buff
 
 The end goal is to enable performance and consistent rendering, even in the context of fast changing state and slow network.
 
-## Fine-grained reactivity
+## Fine-grained Reactivity
 
 Thanks to the fine-grained reactivity of Qwik, only the components that depend on the state will be updated. This is a big performance gain for two reasons:
 

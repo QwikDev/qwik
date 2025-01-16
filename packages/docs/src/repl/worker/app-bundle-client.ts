@@ -17,7 +17,9 @@ export const appBundleClient = async (
     buildMode: options.buildMode,
     debug: options.debug,
     srcInputs: getInputs(options),
-    entryStrategy: options.entryStrategy,
+    // Older versions don't support `segment`
+    entryStrategy:
+      options.entryStrategy?.type === 'segment' ? { type: 'hook' } : options.entryStrategy,
     manifestOutput: (m) => {
       result.manifest = m;
     },
@@ -34,7 +36,6 @@ export const appBundleClient = async (
 
   const rollupInputOpts: InputOptions = {
     input: entry.path,
-    cache: self.rollupCache,
     plugins: [
       replCss(options),
       self.qwikOptimizer?.qwikRollup(qwikRollupClientOpts),
@@ -69,14 +70,12 @@ export const appBundleClient = async (
 
   const bundle = await self.rollup?.rollup(rollupInputOpts);
   if (bundle) {
-    self.rollupCache = bundle.cache;
-
     const generated = await bundle.generate({
       sourcemap: false,
     });
 
     result.clientBundles = generated.output.map(getOutput).filter((f) => {
-      return !f.path.endsWith('app.js') && !f.path.endsWith('q-manifest.json');
+      return !f.path.endsWith('q-manifest.json');
     });
 
     await Promise.all(
@@ -94,7 +93,7 @@ export const appBundleClient = async (
       })
     );
 
-    // clear out old cache
+    // clear out old results cache
     // no need to wait
     cache.keys().then((keys) => {
       if (keys.length > 500) {

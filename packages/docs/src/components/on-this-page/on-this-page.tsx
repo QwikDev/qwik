@@ -1,5 +1,5 @@
 import { useContent, useLocation } from '@builder.io/qwik-city';
-import { component$, useContext, useStyles$ } from '@builder.io/qwik';
+import { component$, useContext, $, useStyles$, useOnDocument, useSignal } from '@builder.io/qwik';
 import { ChatIcon } from '../svgs/chat-icon';
 import { GithubLogo } from '../svgs/github-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
@@ -94,7 +94,7 @@ export const OnThisPage = component$(() => {
 
   const githubEditRoute = makeEditPageUrl(url.pathname);
 
-  const editUrl = `https://github.com/BuilderIO/qwik/edit/main/packages/docs/src/routes/${githubEditRoute}/index.mdx`;
+  const editUrl = `https://github.com/QwikDev/qwik/edit/main/packages/docs/src/routes/${githubEditRoute}/index.mdx`;
 
   const OnThisPageMore = [
     {
@@ -103,7 +103,7 @@ export const OnThisPage = component$(() => {
       icon: EditIcon,
     },
     {
-      href: 'https://github.com/BuilderIO/qwik/issues/new/choose',
+      href: 'https://github.com/QwikDev/qwik/issues/new/choose',
       text: 'Create an issue',
       icon: AlertIcon,
     },
@@ -113,7 +113,7 @@ export const OnThisPage = component$(() => {
       icon: ChatIcon,
     },
     {
-      href: 'https://github.com/BuilderIO/qwik',
+      href: 'https://github.com/QwikDev/qwik',
       text: 'GitHub',
       icon: GithubLogo,
     },
@@ -124,8 +124,47 @@ export const OnThisPage = component$(() => {
     },
   ];
 
+  const useActiveItem = (itemIds: string[]) => {
+    const activeId = useSignal<string | null>(null);
+    useOnDocument(
+      'scroll',
+      $(() => {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                activeId.value = entry.target.id;
+              }
+            });
+          },
+          { rootMargin: '0% 0% -80% 0%' }
+        );
+
+        itemIds.forEach((id) => {
+          const element = document.getElementById(id);
+          if (element) {
+            observer.observe(element);
+          }
+        });
+
+        return () => {
+          itemIds.forEach((id) => {
+            const element = document.getElementById(id);
+            if (element) {
+              observer.unobserve(element);
+            }
+          });
+        };
+      })
+    );
+
+    return activeId;
+  };
+
+  const activeId = useActiveItem(contentHeadings.map((h) => h.id));
+
   return (
-    <aside class="on-this-page fixed text-sm z-20 bottom-0 right-[max(0px,calc(50%-42rem))] overflow-y-auto hidden xl:block xl:w-[16rem]">
+    <aside class="on-this-page text-sm overflow-y-auto hidden xl:block">
       {contentHeadings.length > 0 ? (
         <>
           <h6>On This Page</h6>
@@ -139,9 +178,13 @@ export const OnThisPage = component$(() => {
                     : 'hover:bg-[var(--on-this-page-hover-bg-color)]'
                 }`}
               >
-                <a href={`#${h.id}`} class={`${h.level > 2 ? 'ml-4' : null} on-this-page-item`}>
-                  {h.text}
-                </a>
+                {activeId.value === h.id ? (
+                  <span class="on-this-page-item">{h.text}</span>
+                ) : (
+                  <a href={`#${h.id}`} class={`${h.level > 2 ? 'ml-0' : null} on-this-page-item`}>
+                    {h.text}
+                  </a>
+                )}
               </li>
             ))}
           </ul>

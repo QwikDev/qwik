@@ -19,6 +19,8 @@ created_at: '2023-06-15T11:45:23Z'
 
 ## Steps to integrate
 
+These steps only work for SSR approach. If you are using the Server Side Generation approach, you don't have an up and running server, so this code will not run during the page request.
+
 ### Add a route plugin
 
 To add the middleware plugin to your application, simply add a file named ```plugin@your-plugin-name.ts``` to the routes folder. 
@@ -46,7 +48,7 @@ src/
 
 ```typescript title="src/routes/plugin@csp.ts"
 import type { RequestHandler } from "@builder.io/qwik-city";
-import { isDev } from "@builder.io/qwik/build";
+import { isDev } from "@builder.io/qwik";
 
 export const onRequest: RequestHandler = event => {
   if (isDev) return; // Will not return CSP headers in dev mode
@@ -77,6 +79,7 @@ import {
   ServiceWorkerRegister,
 } from "@builder.io/qwik-city";
 import { RouterHead } from "./components/router-head/router-head";
+import { isDev } from "@builder.io/qwik";
 
 import "./global.css";
 
@@ -86,12 +89,13 @@ export default component$(() => {
     <QwikCityProvider>
       <head>
         <meta charSet="utf-8" />
-        <link rel="manifest" href="/manifest.json" />
+        {!isDev && <link rel="manifest" href={`${import.meta.env.BASE_URL}manifest.json`} />}
+
         <RouterHead />
       </head>
       <body lang="en">
         <RouterOutlet />
-        <ServiceWorkerRegister nonce={nonce} />
+        {!isDev && <ServiceWorkerRegister nonce={nonce} />}
       </body>
     </QwikCityProvider>
   );

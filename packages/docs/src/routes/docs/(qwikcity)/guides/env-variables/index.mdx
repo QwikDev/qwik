@@ -1,0 +1,189 @@
+---
+title: Environment variables | Qwik City
+description: Qwik apps can read environment variables in two main ways build-time variables and server-side variables.
+contributors:
+  - manucorporat
+  - the-r3aper7
+  - mrhoodz
+  - wtlin1228
+  - RumNCodeDev
+  - Jemsco
+updated_at: '2024-05-07T00:00:01Z'
+created_at: '2023-04-16T21:57:42Z'
+---
+
+# Environment Variables
+
+Environment variables are a way to store configuration values or sensitive data that should not be included directly in your application code. These variables are typically used for things like API keys, database connection strings, or other environment-specific settings.
+
+## Types of Environment Variables
+### Build-time
+  - Environment variables which are prepended with  `PUBLIC_` and are available both on the `client` and the `server`.
+### Server-side
+  - Environment Variables that are only accessible on the `server`.
+
+
+
+> **IMPORTANT! DO NOT** use `build-time` environment variables, (ie. variables that start with `PUBLIC_`) to store any sensitive information, such as API keys, secrets, passwords, etc. These variables are accessible in the browser **ONLY PUBLIC DATA**.
+
+
+```ini title=".env.local"
+# This will only be available when run on the server
+API_KEY=secretApiKeyHere
+# This will be available everywhere
+PUBLIC_API_URL=https://api.example.com
+```
+
+
+## Default Environment Variables
+QwikCity includes a few environment variables out of the box
+ - `BASE_URL`: `string` -  Returns the base url for the page,
+ - `MODE`: `string` -  Returns the rendering mode,
+ - `DEV`: `boolean` -  Returns if you are in development mode,
+ - `PROD`: `boolean` -  Returns if you are in production mode,
+ - `SSR`: `boolean` -  Returns whether if this was rendered with ssr or not
+
+
+The preferred method for accessing environment variables in QwikCity is via `import.meta.env.*` (client side) or through the Request object when run server side.
+> `process.env` is a Node.js only API, and should be avoided at all costs.
+
+## Build-time variables
+
+Build-time variables are powered by [Vite](https://vitejs.dev/guide/env-and-mode.html). They are defined in `.env` files and are available **in the browser and in the server-side code**.
+
+
+
+Notice that build-time variables should be considered as **public**, since they will be hardcoded in the browser build, which can be easily read by anyone.
+
+Build-time variables are prefixed by default with `PUBLIC_` and can be accessed with with `import.meta.env.PUBLIC_*`.
+
+### Defining Variables
+
+```ini title=".env.local" /PUBLIC_API_URL/#a
+PUBLIC_API_URL=https://api.example.com
+```
+
+### Usage
+
+```tsx {4} /PUBLIC_API_URL/#a title="src/routes/index.tsx"
+import { component$ } from '@builder.io/qwik';
+
+export default component$(() => {
+  // `import.meta.env.PUBLIC_*` variables can be read anywhere, including browser
+  return <div>PUBLIC_API_URL: {import.meta.env.PUBLIC_API_URL}</div>
+})
+```
+
+> `import.meta.env.PUBLIC_*` variables can be read anywhere, but do not put any sensitive information in them, since they will be visible to the client.
+
+## Server-side Variables
+
+Server-side variables are fundamentally runtime variables that are only available in the server-side code.
+
+They are not known at build-time and are not available in the browser, so they can be considered as **private**.
+
+During production, **setting server-side variables is very platform specific**. Most of the platforms allow you to set environment variables from their dashboard, or CLI. Please, refer to your platform (cloudflare, vercel, netlify) documentation for more information.
+
+> **Special Considerations for Docker and Fastify**:
+> - **Docker:** While Docker allows the inclusion of environment variables directly in the Dockerfile, this method can expose sensitive data.  A more secure practice is to manage these variables at runtime using Docker Compose. For example:
+> ```ini title="docker-compose.yml"
+> version: '3.8'
+> services:
+>  your-service:
+>    image: your-image-name
+>    environment:
+>      - FOO=BAR
+> ```
+>
+> - **Fastify within Docker:** Environment variables placed in `.env` or `.env.local` files may not be automatically recognized in production environments when using Fastify.  For these settings to take effect it may be necessary to explicitly load them within your Fastify application or pass them through Docker's environment management system (Docker Compose) as shown above
+
+### Defining Variables
+
+```ini title=".env.local"
+DB_PRIVATE_KEY=123456789
+```
+
+> Make sure you never commit `.env.local` files to git.
+
+
+### Usage Examples
+
+Server-side variables can only be accessed in server-only APIs that expose the `RequestEvent` object, such as `routeLoader$()`, `routeAction$()`, `server$()` and endpoint handlers such as `onGet`, `onPost`, `onRequest` etc.
+
+```tsx /DB_PRIVATE_KEY/ title="src/routes/index.tsx"
+import {
+  routeLoader$,
+  routeAction$,
+  server$,
+  type RequestEvent,
+} from '@builder.io/qwik-city';
+
+export const onGet = (requestEvent: RequestEvent) => {
+  console.log(requestEvent.env.get('DB_PRIVATE_KEY'));
+};
+
+export const onPost = (requestEvent: RequestEvent) => {
+  console.log(requestEvent.env.get('DB_PRIVATE_KEY'));
+};
+
+export const useAction = routeAction$(async (_, requestEvent) => {
+  console.log(requestEvent.env.get('DB_PRIVATE_KEY'));
+});
+
+export const useLoader = routeLoader$(async (requestEvent) => {
+  console.log(requestEvent.env.get('DB_PRIVATE_KEY'));
+});
+
+export const serverFunction = server$(function () {
+  // `this` is the `RequestEvent` object
+  console.log(this.env.get('DB_PRIVATE_KEY'));
+});
+```
+
+
+
+### Usage in serverfull architecture (Example:Express)
+
+For accessing the .env variables in serverfull architecture you need to use singleton design pattern, initialize the db in a plugin, and access it with getDB wherever it is needed.
+
+```typescript title="src/util/db.ts"
+let _db!: AppDatabase;
+
+export function getDB() {
+  // eslint-disable-next-line
+  if (!_db) {
+    throw new Error('DB not set');
+  }
+  return _db;
+}
+
+export async function initializeDbIfNeeded(factory: () => Promise<AppDatabase>) {
+  // eslint-disable-next-line
+  if (!_db) {
+    _db = await factory();
+  }
+}
+```
+
+```typescript title="src/routes/plugin@db.ts"
+export const onRequest: RequestHandler = async ({ env }) => {
+  const url = env.get('PRIVATE_LIBSQL_DB_URL')!;
+  const authToken = env.get('PRIVATE_LIBSQL_DB_API_TOKEN')!;
+  await initializeDbIfNeeded(initLibSql(url, authToken));
+};
+```
+
+### Managing Environment Variables Throughout the Application Lifecycle
+
+In modern applications, environment variables play a crucial role in managing application settings and configurations across various environments without hardcoding sensitive data into the source code.
+
+Qwik City adaptors use the following:
+- Azure, Cloud Run, Netlify Edge, Node Server, use ORIGIN or URL
+- Cloudflare Pages uses CF_PAGES_URL or ORIGIN
+- Vercel uses VERCEL_URL
+
+> Note:
+> This is not a comprehensive guide on environment variables, nor does it cover all of the 3rd-Party hosting scenarios. It is meant to give insight that can be applied across various environments. 
+> 
+> See this video for a detailed explanation:
+> https://youtu.be/NPf39RWc8LM

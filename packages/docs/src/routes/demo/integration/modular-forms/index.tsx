@@ -4,20 +4,22 @@ import { $, component$, type QRL } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import type { InitialValues, SubmitHandler } from '@modular-forms/qwik';
 import { formAction$, useForm, valiForm$ } from '@modular-forms/qwik';
-import { email, type Input, minLength, object, string } from 'valibot';
+import * as v from 'valibot';
 
-const LoginSchema = object({
-  email: string([
-    minLength(1, 'Please enter your email.'),
-    email('The email address is badly formatted.'),
-  ]),
-  password: string([
-    minLength(1, 'Please enter your password.'),
-    minLength(8, 'Your password must have 8 characters or more.'),
-  ]),
+const LoginSchema = v.object({
+  email: v.pipe(
+    v.string(),
+    v.nonEmpty('Please enter your email.'),
+    v.email('The email address is badly formatted.')
+  ),
+  password: v.pipe(
+    v.string(),
+    v.nonEmpty('Please enter your password.'),
+    v.minLength(8, 'Your password must have 8 characters or more.')
+  ),
 });
 
-type LoginForm = Input<typeof LoginSchema>;
+type LoginForm = v.InferInput<typeof LoginSchema>;
 
 export const useFormLoader = routeLoader$<InitialValues<LoginForm>>(() => ({
   email: '',

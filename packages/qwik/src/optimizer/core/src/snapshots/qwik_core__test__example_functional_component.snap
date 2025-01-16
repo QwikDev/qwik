@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 327
+assertion_line: 328
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -16,25 +17,26 @@ const Header = component$(() => {
     );
 });
 
-============================= header_component_j4uyihabnr4.tsx (ENTRY POINT)==
+============================= test.tsx_Header_component_J4uyIhaBNR4.tsx (ENTRY POINT)==
 
 import { useStore } from "@builder.io/qwik";
 export const Header_component_J4uyIhaBNR4 = ()=>{
     const thing = useStore();
-    const { foo , bar  } = foo();
+    const { foo, bar } = foo();
     return <div>{thing}</div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAE0B,IAAM;IAC5B,MAAM,QAAQ;IACd,MAAM,EAAC,IAAG,EAAE,IAAG,EAAC,GAAG;IAEnB,QACK,KAAK,QAAQ;AAEtB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAE0B;IACtB,MAAM,QAAQ;IACd,MAAM,EAAC,GAAG,EAAE,GAAG,EAAC,GAAG;IAEnB,QACK,KAAK,QAAQ;AAEtB\"}")
 /*
 {
   "origin": "test.tsx",
   "name": "Header_component_J4uyIhaBNR4",
   "entry": null,
-  "displayName": "Header_component",
+  "displayName": "test.tsx_Header_component",
   "hash": "J4uyIhaBNR4",
-  "canonicalFilename": "header_component_j4uyihabnr4",
+  "canonicalFilename": "test.tsx_Header_component_J4uyIhaBNR4",
+  "path": "",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -51,7 +53,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
 import { $, component$, useStore } from '@builder.io/qwik';
-const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./header_component_j4uyihabnr4"), "Header_component_J4uyIhaBNR4"));
+const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_J4uyIhaBNR4"), "Header_component_J4uyIhaBNR4"));
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAS,CAAC,EAAE,UAAU,EAAE,QAAQ,QAAQ,mBAAmB;AAC3D,MAAM,uBAAS\"}")

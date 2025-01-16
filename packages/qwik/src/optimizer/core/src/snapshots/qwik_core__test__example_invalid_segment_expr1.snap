@@ -1,0 +1,156 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 888
+expression: output
+snapshot_kind: text
+---
+==INPUT==
+
+
+import { $, component$, useStyles$ } from '@builder.io/qwik';
+import css1 from './global.css';
+import css2 from './style.css';
+
+export const App = component$(() => {
+    const style = `${css1}${css2}`;
+    useStyles$(style);
+    const render = () => {
+        return (
+            <div></div>
+        )
+    };
+    return $(render);
+})
+
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { qrl } from "@builder.io/qwik";
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,oBAAM,iHASjB\"}")
+============================= test.tsx_App_component_useStyles_t35nSa5UV7U.js (ENTRY POINT)==
+
+export const App_component_useStyles_t35nSa5UV7U = style;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mDAOe\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_useStyles_t35nSa5UV7U",
+  "entry": null,
+  "displayName": "test.tsx_App_component_useStyles",
+  "hash": "t35nSa5UV7U",
+  "canonicalFilename": "test.tsx_App_component_useStyles_t35nSa5UV7U",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "useStyles$",
+  "captures": false,
+  "loc": [
+    219,
+    224
+  ]
+}
+*/
+============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
+
+import { qrl } from "@builder.io/qwik";
+import { useStylesQrl } from "@builder.io/qwik";
+export const App_component_ckEPmXZlub0 = ()=>{
+    useStylesQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_useStyles_t35nSa5UV7U"), "App_component_useStyles_t35nSa5UV7U"));
+    return /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_1_w0t0o3QMovU"), "App_component_1_w0t0o3QMovU");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAK8B;IAE1B;IAMA;AACJ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "test.tsx_App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    160,
+    335
+  ]
+}
+*/
+============================= test.tsx_App_component_1_w0t0o3QMovU.js (ENTRY POINT)==
+
+export const App_component_1_w0t0o3QMovU = render;
+export { _hW } from "@builder.io/qwik";
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2CAaa\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_1_w0t0o3QMovU",
+  "entry": null,
+  "displayName": "test.tsx_App_component_1",
+  "hash": "w0t0o3QMovU",
+  "canonicalFilename": "test.tsx_App_component_1_w0t0o3QMovU",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    325,
+    331
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[
+  {
+    "category": "error",
+    "code": "C03",
+    "file": "test.tsx",
+    "message": "Qrl($) scope is not a function, but it's capturing local identifiers: style",
+    "highlights": [
+      {
+        "lo": 219,
+        "hi": 224,
+        "startLine": 8,
+        "startCol": 16,
+        "endLine": 8,
+        "endCol": 20
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  },
+  {
+    "category": "error",
+    "code": "C03",
+    "file": "test.tsx",
+    "message": "Qrl($) scope is not a function, but it's capturing local identifiers: render",
+    "highlights": [
+      {
+        "lo": 325,
+        "hi": 331,
+        "startLine": 14,
+        "startCol": 14,
+        "endLine": 14,
+        "endCol": 19
+      }
+    ],
+    "suggestions": null,
+    "scope": "optimizer"
+  }
+]

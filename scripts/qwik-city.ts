@@ -1,17 +1,9 @@
 import { build, type Plugin, transform } from 'esbuild';
 import { execa } from 'execa';
-import { copyFile, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { rollup } from 'rollup';
-import { readPackageJson, writePackageJson } from './package-json';
-import {
-  type BuildConfig,
-  emptyDir,
-  importPath,
-  nodeTarget,
-  panic,
-  type PackageJSON,
-} from './util';
+import { type BuildConfig, emptyDir, importPath, nodeTarget, panic } from './util';
 
 export async function buildQwikCity(config: BuildConfig) {
   if (!config.dev) {
@@ -47,155 +39,6 @@ export async function buildQwikCity(config: BuildConfig) {
   ]);
 
   await buildRuntime(config);
-
-  let srcQwikCityPkg = await readPackageJson(config.srcQwikCityDir);
-
-  const diskQwikCityPkg: PackageJSON = {
-    ...srcQwikCityPkg,
-    version: config.distVersion,
-    main: './index.qwik.mjs',
-    qwik: './index.qwik.mjs',
-    types: './index.d.ts',
-    type: 'module',
-    exports: {
-      '.': {
-        types: './index.d.ts',
-        import: './index.qwik.mjs',
-        require: './index.qwik.cjs',
-      },
-      './adapters/azure-swa/vite': {
-        types: './adapters/azure-swa/vite/index.d.ts',
-        import: './adapters/azure-swa/vite/index.mjs',
-        require: './adapters/azure-swa/vite/index.cjs',
-      },
-      './adapters/cloudflare-pages/vite': {
-        types: './adapters/cloudflare-pages/vite/index.d.ts',
-        import: './adapters/cloudflare-pages/vite/index.mjs',
-        require: './adapters/cloudflare-pages/vite/index.cjs',
-      },
-      './adapters/cloud-run/vite': {
-        types: './adapters/cloud-run/vite/index.d.ts',
-        import: './adapters/cloud-run/vite/index.mjs',
-        require: './adapters/cloud-run/vite/index.cjs',
-      },
-      './adapters/bun-server/vite': {
-        types: './adapters/bun-server/vite/index.d.ts',
-        import: './adapters/bun-server/vite/index.mjs',
-        require: './adapters/bun-server/vite/index.cjs',
-      },
-      './adapters/deno-server/vite': {
-        types: './adapters/deno-server/vite/index.d.ts',
-        import: './adapters/deno-server/vite/index.mjs',
-        require: './adapters/deno-server/vite/index.cjs',
-      },
-      './adapters/node-server/vite': {
-        types: './adapters/node-server/vite/index.d.ts',
-        import: './adapters/node-server/vite/index.mjs',
-        require: './adapters/node-server/vite/index.cjs',
-      },
-      './adapters/netlify-edge/vite': {
-        types: './adapters/netlify-edge/vite/index.d.ts',
-        import: './adapters/netlify-edge/vite/index.mjs',
-        require: './adapters/netlify-edge/vite/index.cjs',
-      },
-      './adapters/shared/vite': {
-        types: './adapters/shared/vite/index.d.ts',
-        import: './adapters/shared/vite/index.mjs',
-        require: './adapters/shared/vite/index.cjs',
-      },
-      './adapters/static/vite': {
-        types: './adapters/static/vite/index.d.ts',
-        import: './adapters/static/vite/index.mjs',
-        require: './adapters/static/vite/index.cjs',
-      },
-      './adapters/vercel-edge/vite': {
-        types: './adapters/vercel-edge/vite/index.d.ts',
-        import: './adapters/vercel-edge/vite/index.mjs',
-        require: './adapters/vercel-edge/vite/index.cjs',
-      },
-      './middleware/azure-swa': {
-        types: './middleware/azure-swa/index.d.ts',
-        import: './middleware/azure-swa/index.mjs',
-      },
-      './middleware/aws-lambda': {
-        types: './middleware/aws-lambda/index.d.ts',
-        import: './middleware/aws-lambda/index.mjs',
-      },
-      './middleware/cloudflare-pages': {
-        types: './middleware/cloudflare-pages/index.d.ts',
-        import: './middleware/cloudflare-pages/index.mjs',
-      },
-      './middleware/firebase': {
-        types: './middleware/firebase/index.d.ts',
-        import: './middleware/firebase/index.mjs',
-      },
-      './middleware/deno': {
-        types: './middleware/deno/index.d.ts',
-        import: './middleware/deno/index.mjs',
-      },
-      './middleware/bun': {
-        types: './middleware/bun/index.d.ts',
-        import: './middleware/bun/index.mjs',
-      },
-      './middleware/netlify-edge': {
-        types: './middleware/netlify-edge/index.d.ts',
-        import: './middleware/netlify-edge/index.mjs',
-      },
-      './middleware/node': {
-        types: './middleware/node/index.d.ts',
-        import: './middleware/node/index.mjs',
-        require: './middleware/node/index.cjs',
-      },
-      './middleware/request-handler': {
-        types: './middleware/request-handler/index.d.ts',
-        import: './middleware/request-handler/index.mjs',
-        require: './middleware/request-handler/index.cjs',
-      },
-      './middleware/vercel-edge': {
-        types: './middleware/vercel-edge/index.d.ts',
-        import: './middleware/vercel-edge/index.mjs',
-      },
-      './static': {
-        types: './static/index.d.ts',
-        import: './static/index.mjs',
-        require: './static/index.cjs',
-      },
-      './vite': {
-        types: './vite/index.d.ts',
-        import: './vite/index.mjs',
-        require: './vite/index.cjs',
-      },
-      './service-worker': {
-        types: './service-worker.d.ts',
-        import: './service-worker.mjs',
-        require: './service-worker.cjs',
-      },
-    },
-    files: [
-      'adapters',
-      'index.d.ts',
-      'index.qwik.mjs',
-      'index.qwik.cjs',
-      'service-worker.mjs',
-      'service-worker.cjs',
-      'service-worker.d.ts',
-      'modules.d.ts',
-      'middleware',
-      'static',
-      'vite',
-    ],
-    publishConfig: {
-      access: 'public',
-    },
-    private: undefined,
-    devDependencies: undefined,
-    scripts: undefined,
-  };
-  await writePackageJson(config.distQwikCityPkgDir, diskQwikCityPkg);
-
-  const srcReadmePath = join(config.srcQwikCityDir, 'README.md');
-  const distReadmePath = join(config.distQwikCityPkgDir, 'README.md');
-  await copyFile(srcReadmePath, distReadmePath);
 
   console.log(`🏙  qwik-city`);
 }
@@ -302,6 +145,7 @@ async function buildServiceWorker(config: BuildConfig) {
       config.tscDir,
       'packages',
       'qwik-city',
+      'src',
       'runtime',
       'src',
       'service-worker',

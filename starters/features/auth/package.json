@@ -17,7 +17,6 @@
     }
   },
   "devDependencies": {
-    "@auth/core": "^0.13.0",
-    "@builder.io/qwik-auth": "0.1.1"
+    "@auth/qwik": "0.5.4"
   }
 }

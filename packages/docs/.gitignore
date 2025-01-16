@@ -3,10 +3,9 @@ build
 dist
 server
 functions/**/*.js
-
-# Bundled files for REPL
-# Managed by check-qwik-build.ts
-public/repl/bundled
+# This is used in dev mode because service
+# workers don't support imports
+public/repl/repl-sw.js*
 
 !src/routes/api/qwik/server/
 
@@ -19,6 +18,7 @@ node_modules
 .vscode
 .rollup.cache
 tsconfig.tsbuildinfo
+q-insights.json
 
 # Logs
 logs

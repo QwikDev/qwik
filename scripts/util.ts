@@ -1,27 +1,24 @@
 import type { Plugin } from 'esbuild';
-import { join } from 'node:path';
+import { execa, type Options } from 'execa';
 import mri from 'mri';
 import {
   access as fsAccess,
   copyFile as fsCopyFile,
-  existsSync,
-  mkdirSync,
-  readdirSync,
+  mkdir as fsMkdir,
   readdir as fsReaddir,
   readFile as fsReadFile,
-  rmdirSync,
   stat as fsStat,
-  statSync,
   unlink as fsUnlink,
-  unlinkSync,
   writeFile as fsWriteFile,
-  mkdir as fsMkdir,
+  mkdirSync,
+  rmSync,
 } from 'node:fs';
-import { promisify } from 'util';
-import { minify, type MinifyOptions } from 'terser';
-import type { Plugin as RollupPlugin } from 'rollup';
-import { execa, type Options } from 'execa';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import type { Plugin as RollupPlugin } from 'rollup';
+import { minify, type MinifyOptions } from 'terser';
+import { promisify } from 'util';
+import { readPackageJson } from './package-json';
 
 const stringOptions = [
   'distBindingsDir',
@@ -44,7 +41,6 @@ const stringOptions = [
 ] as const;
 const booleanOptions = [
   'api',
-  'build',
   'cli',
   'commit',
   'dev',
@@ -55,6 +51,7 @@ const booleanOptions = [
   'platformBinding',
   'platformBindingWasmCopy',
   'prepareRelease',
+  'qwik',
   'qwikauth',
   'qwikcity',
   'qwiklabs',
@@ -94,24 +91,27 @@ export function loadConfig(args: string[] = []) {
   const kebabOptions = knownOptions.map(kebab);
   // Add _ to known options
   kebabOptions.push('_');
-
+  const alias = Object.fromEntries(knownOptions.map((k, i) => [kebabOptions[i], k]));
+  // rename qwik to build
+  (alias as any).build = 'qwik';
+  kebabOptions.push('build');
   const config = mri<BuildConfig>(args, {
     boolean: [...booleanOptions],
     string: [...stringOptions],
-    alias: Object.fromEntries(knownOptions.map((k, i) => [kebabOptions[i], k])),
+    alias,
     default: {
       rootDir,
       packagesDir,
       srcQwikDir,
       tmpDir,
-      srcQwikCityDir: join(packagesDir, 'qwik-city'),
+      srcQwikCityDir: join(packagesDir, 'qwik-city', 'src'),
       srcQwikLabsDir: join(packagesDir, 'qwik-labs'),
       srcNapiDir: join(srcQwikDir, 'napi'),
       scriptsDir: join(rootDir, 'scripts'),
       startersDir: join(rootDir, 'starters'),
       distQwikPkgDir,
       distQwikCityPkgDir: join(packagesDir, 'qwik-city', 'lib'),
-      distBindingsDir: join(distQwikPkgDir, 'bindings'),
+      distBindingsDir: join(packagesDir, 'qwik', 'bindings'),
       tscDir: join(tmpDir, 'tsc-out'),
       dtsDir: join(tmpDir, 'dts-out'),
       esmNode: parseInt(process.version.slice(1).split('.')[0], 10) >= 14,
@@ -120,7 +120,7 @@ export function loadConfig(args: string[] = []) {
   const parseError =
     config._.length > 0
       ? `!!! Extra non-args: ${config._.join(' ')}\n\n`
-      : Object.keys(config).length === 1
+      : process.argv.length === 2
         ? `No args provided. `
         : Object.keys(config).some((k) => !kebabOptions.includes(kebab(k)))
           ? `!!! Unknown args: ${Object.keys(config)
@@ -178,7 +178,7 @@ export const getBanner = (moduleName: string, version: string) => {
  * ${moduleName} ${version}
  * Copyright Builder.io, Inc. All Rights Reserved.
  * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://github.com/BuilderIO/qwik/blob/main/LICENSE
+ * found in the LICENSE file at https://github.com/QwikDev/qwik/blob/main/LICENSE
  */
 `.trim();
 };
@@ -251,22 +251,10 @@ export const writeFile = /*#__PURE__*/ promisify(fsWriteFile);
 export const mkdir = /*#__PURE__*/ promisify(fsMkdir);
 
 export function emptyDir(dir: string) {
-  if (existsSync(dir)) {
-    const items = readdirSync(dir).map((f) => join(dir, f));
-    for (const item of items) {
-      const s = statSync(item);
-      if (s.isDirectory()) {
-        emptyDir(item);
-        try {
-          rmdirSync(item);
-        } catch (e) {}
-      } else if (s.isFile()) {
-        unlinkSync(item);
-      }
-    }
-  } else {
-    ensureDir(dir);
-  }
+  try {
+    rmSync(dir, { recursive: true });
+  } catch (e) {}
+  ensureDir(dir);
 }
 
 export function ensureDir(dir: string) {
@@ -356,3 +344,24 @@ const IGNORE: { [path: string]: boolean } = {
   'yarn.lock': true,
   'pnpm-lock.yaml': true,
 };
+
+export const recursiveChangePrefix = <T>(obj: T, prefix: string, replace: string): T => {
+  if (typeof obj === 'string') {
+    return (obj.startsWith(prefix) ? replace + obj.slice(prefix.length) : obj) as T;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map((v) => recursiveChangePrefix(v, prefix, replace)) as T;
+  }
+  if (obj && typeof obj === 'object') {
+    return Object.fromEntries(
+      Object.entries(obj).map(([k, v]) => [k, recursiveChangePrefix(v, prefix, replace)])
+    ) as T;
+  }
+  return obj;
+};
+
+export async function getQwikVersion(config: BuildConfig) {
+  const qwikDir = join(config.packagesDir, 'qwik');
+  const qwikPkgJson = await readPackageJson(qwikDir);
+  return qwikPkgJson.version;
+}

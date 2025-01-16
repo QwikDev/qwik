@@ -1,3 +1,4 @@
+// keep this import from qwik/build so the cjs build works
 import { isServer } from '@builder.io/qwik/build';
 import { qError, QError_qrlMissingChunk, QError_qrlMissingContainer } from '../error/error';
 import { getSymbolHash } from '../qrl/qrl-class';
@@ -25,7 +26,6 @@ export const createPlatform = (): CorePlatform => {
       const urlDoc = toUrl(containerEl.ownerDocument, containerEl, url).toString();
       const urlCopy = new URL(urlDoc);
       urlCopy.hash = '';
-      urlCopy.search = '';
       const importURL = urlCopy.href;
       return import(/* @vite-ignore */ importURL).then((mod) => {
         return mod[symbolName];

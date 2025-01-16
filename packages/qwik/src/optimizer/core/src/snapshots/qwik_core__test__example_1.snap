@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 90
+assertion_line: 91
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -18,24 +19,25 @@ const renderHeader = component($(() => {
   return render;
 }));
 
-============================= renderheader_zbbhwn4e8cg.tsx (ENTRY POINT)==
+============================= test.tsx_renderHeader_zBbHWn4e8Cg.tsx (ENTRY POINT)==
 
 import { qrl } from "@builder.io/qwik";
 export const renderHeader_zBbHWn4e8Cg = ()=>{
-    return <div onClick={/*#__PURE__*/ qrl(()=>import("./renderheader_div_onclick_fv2uzal99u4"), "renderHeader_div_onClick_fV2uzAL99u4")}/>;
+    return <div onClick={/*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader_div_onClick_fV2uzAL99u4"), "renderHeader_div_onClick_fV2uzAL99u4")}/>;
 };
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wCAG8B,IAAM;IAChC,QACK,IAAI;AAEb\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wCAG8B;IAC1B,QACK,IAAI;AAEb\"}")
 /*
 {
   "origin": "test.tsx",
   "name": "renderHeader_zBbHWn4e8Cg",
   "entry": null,
-  "displayName": "renderHeader",
+  "displayName": "test.tsx_renderHeader",
   "hash": "zBbHWn4e8Cg",
-  "canonicalFilename": "renderheader_zbbhwn4e8cg",
+  "canonicalFilename": "test.tsx_renderHeader_zBbHWn4e8Cg",
+  "path": "",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -47,7 +49,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= renderheader_component_u6kkv07sbpq.tsx (ENTRY POINT)==
+============================= test.tsx_renderHeader_component_U6Kkv07sbpQ.tsx (ENTRY POINT)==
 
 export const renderHeader_component_U6Kkv07sbpQ = ()=>{
     console.log("mount");
@@ -56,15 +58,16 @@ export const renderHeader_component_U6Kkv07sbpQ = ()=>{
 export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kDAQiC,IAAM;IACrC,QAAQ,GAAG,CAAC;IACZ,OAAO;AACT\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kDAQiC;IAC/B,QAAQ,GAAG,CAAC;IACZ,OAAO;AACT\"}")
 /*
 {
   "origin": "test.tsx",
   "name": "renderHeader_component_U6Kkv07sbpQ",
   "entry": null,
-  "displayName": "renderHeader_component",
+  "displayName": "test.tsx_renderHeader_component",
   "hash": "U6Kkv07sbpQ",
-  "canonicalFilename": "renderheader_component_u6kkv07sbpq",
+  "canonicalFilename": "test.tsx_renderHeader_component_U6Kkv07sbpQ",
+  "path": "",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -80,12 +83,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { qrl } from "@builder.io/qwik";
 import { component } from '@builder.io/qwik';
-export const renderHeader = /*#__PURE__*/ qrl(()=>import("./renderheader_zbbhwn4e8cg"), "renderHeader_zBbHWn4e8Cg");
-const renderHeader = component(/*#__PURE__*/ qrl(()=>import("./renderheader_component_u6kkv07sbpq"), "renderHeader_component_U6Kkv07sbpQ"));
+export const renderHeader = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader_zBbHWn4e8Cg"), "renderHeader_zBbHWn4e8Cg");
+const renderHeader = component(/*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader_component_U6Kkv07sbpQ"), "renderHeader_component_U6Kkv07sbpQ"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AACA,SAAY,SAAS,QAAkB,mBAAmB;AAE1D,OAAO,MAAM,uGAIV;AACH,MAAM,eAAe\"}")
-============================= renderheader_div_onclick_fv2uzal99u4.tsx (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AACA,SAAY,SAAS,QAAkB,mBAAmB;AAE1D,OAAO,MAAM,gHAIV;AACH,MAAM,eAAe\"}")
+============================= test.tsx_renderHeader_div_onClick_fV2uzAL99u4.tsx (ENTRY POINT)==
 
 export const renderHeader_div_onClick_fV2uzAL99u4 = (ctx)=>console.log(ctx);
 export { _hW } from "@builder.io/qwik";
@@ -97,9 +100,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "renderHeader_div_onClick_fV2uzAL99u4",
   "entry": null,
-  "displayName": "renderHeader_div_onClick",
+  "displayName": "test.tsx_renderHeader_div_onClick",
   "hash": "fV2uzAL99u4",
-  "canonicalFilename": "renderheader_div_onclick_fv2uzal99u4",
+  "canonicalFilename": "test.tsx_renderHeader_div_onClick_fV2uzAL99u4",
+  "path": "",
   "extension": "tsx",
   "parent": "renderHeader_zBbHWn4e8Cg",
   "ctxKind": "function",

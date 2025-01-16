@@ -7,7 +7,7 @@
 - [Project structure](</docs/(qwikcity)/project-structure/index.mdx>)
 - [FAQ](</docs/(qwik)/faq/index.mdx>)
 
-## Component
+## Components
 
 - [Overview](</docs/(qwik)/components/overview/index.mdx>)
 - [State](</docs/(qwik)/components/state/index.mdx>)
@@ -17,6 +17,7 @@
 - [Slots](</docs/(qwik)/components/slots/index.mdx>)
 - [Rendering](</docs/(qwik)/components/rendering/index.mdx>)
 - [Styling](</docs/(qwik)/components/styles/index.mdx>)
+- [API Reference](</api/qwik/>)
 
 ## Qwik City
 
@@ -30,9 +31,9 @@
 - [Endpoints](</docs/(qwikcity)/endpoints/index.mdx>)
 - [Middleware](</docs/(qwikcity)/middleware/index.mdx>)
 - [server$](</docs/(qwikcity)/server$/index.mdx>)
+- [Re-exporting loaders](/docs/(qwikcity)/re-exporting-loaders/index.mdx)
 - [Caching](</docs/(qwikcity)/caching/index.mdx>)
 - [HTML attributes](</docs/(qwikcity)/html-attributes/index.mdx>)
-- [Env variables](</docs/(qwikcity)/env-variables/index.mdx>)
 - [API reference](</docs/(qwikcity)/api/index.mdx>)
 
 ## Cookbook
@@ -47,10 +48,10 @@
 - [NavLink](/docs/cookbook/nav-link/index.mdx)
 - [Node Docker deploy](/docs/cookbook/node-docker-deploy/index.mdx)
 - [Portals](/docs/cookbook/portals/index.mdx)
-- [Re-exporting loaders](/docs/cookbook/re-exporting-loaders/index.mdx)
 - [Streaming loaders](/docs/cookbook/streaming-deferred-loaders/index.mdx)
 - [Sync events w state](/docs/cookbook/sync-events/index.mdx)
-- [Theme Managment](/docs/cookbook/theme-management/index.mdx)
+- [Theme Management](/docs/cookbook/theme-management/index.mdx)
+- [Drag & Drop](/docs/cookbook/drag&drop/index.mdx)
 
 ## Integrations
 
@@ -103,9 +104,11 @@
 - [Qwik in a nutshell](</docs/(qwikcity)/guides/qwik-nutshell/index.mdx>)
 - [Markdown & MDX](</docs/(qwikcity)/guides/mdx/index.mdx>)
 - [SSG](</docs/(qwikcity)/guides/static-site-generation/index.mdx>)
+- [Qwik Native Apps](</docs/(qwikcity)/guides/capacitor/index.mdx>)
 - [React Cheat Sheet](</docs/(qwikcity)/guides/react-cheat-sheet/index.mdx>)
 - [Best Practices](</docs/(qwikcity)/guides/best-practices/index.mdx>)
 - [Bundle Optimization](</docs/(qwikcity)/guides/bundle/index.mdx>)
+- [Env variables](</docs/(qwikcity)/guides/env-variables/index.mdx>)
 
 ## Concepts
 
@@ -126,6 +129,7 @@
 - [Build Directory](</docs/(qwik)/advanced/custom-build-dir/index.mdx>)
 - [Vite](</docs/(qwik)/advanced/vite/index.mdx>)
 - [Advanced Routing](</docs/(qwikcity)/advanced/routing/index.mdx>)
+- [Qwik Plugins](</docs/(qwikcity)/advanced/plugins/index.mdx>)
 - [Request Handling](</docs/(qwikcity)/advanced/request-handling/index.mdx>)
 - [Speculative Module Fetching](</docs/(qwikcity)/advanced/speculative-module-fetching/index.mdx>)
 - [Menus](</docs/(qwikcity)/advanced/menu/index.mdx>)
@@ -146,10 +150,11 @@
 - [Insights](/docs/labs/insights/index.mdx)
 - [Typed Routes](/docs/labs/typed-routes/index.mdx)
 - [Devtools](/docs/labs/devtools/index.mdx)
+- [usePreventNavigate](/docs/labs/usePreventNavigate/index.mdx)
 
 ## Community
 
-- [GitHub](https://github.com/BuilderIO/qwik)
+- [GitHub](https://github.com/QwikDev/qwik)
 - [@QwikDev](https://twitter.com/QwikDev)
 - [Discord](https://qwik.dev/chat)
 - [Community Projects](/community/projects/index.mdx)

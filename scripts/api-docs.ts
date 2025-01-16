@@ -3,14 +3,21 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { join } from 'node:path';
 import { type BuildConfig } from './util';
 import { format } from 'prettier';
-// import { toSnakeCase } from '../packages/docs/src/utils/utils';
 
-export async function generateApiMarkdownDocs(config: BuildConfig, apiJsonInputDir: string) {
+export async function generateQwikApiMarkdownDocs(config: BuildConfig, apiJsonInputDir: string) {
   await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik']);
+}
+
+export async function generateQwikCityApiMarkdownDocs(
+  config: BuildConfig,
+  apiJsonInputDir: string
+) {
   await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-city']);
   await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-city', 'middleware']);
   await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-city', 'static']);
   await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-city', 'vite']);
+
+  // doesn't really belong here, ah well
   await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik-react']);
 }
 
@@ -260,17 +267,17 @@ function getSafeFilenameForName(name: string): string {
 
 function getEditUrl(config: BuildConfig, fileUrlPath: string | undefined) {
   if (fileUrlPath) {
-    const rootRelPath = fileUrlPath.split(`/`).slice(2).join('/');
+    const rootRelPath = fileUrlPath.slice(fileUrlPath.indexOf('dts-out') + 'dts-out'.length + 1);
 
     const tsxPath = join(config.rootDir, rootRelPath).replace(`.d.ts`, `.tsx`);
     if (existsSync(tsxPath)) {
-      const url = new URL(rootRelPath, `https://github.com/BuilderIO/qwik/tree/main/`);
+      const url = new URL(rootRelPath, `https://github.com/QwikDev/qwik/tree/main/`);
       return url.href.replace(`.d.ts`, `.tsx`);
     }
 
     const tsPath = join(config.rootDir, rootRelPath).replace(`.d.ts`, `.ts`);
     if (existsSync(tsPath)) {
-      const url = new URL(rootRelPath, `https://github.com/BuilderIO/qwik/tree/main/`);
+      const url = new URL(rootRelPath, `https://github.com/QwikDev/qwik/tree/main/`);
       return url.href.replace(`.d.ts`, `.ts`);
     }
   }

@@ -1,4 +1,4 @@
-import type { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler/types';
+import type { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 
 /**
  * @file
@@ -23,7 +23,7 @@ import type { RequestHandler } from '@builder.io/qwik-city/middleware/request-ha
 
 export const onRequest: RequestHandler = ({ request, redirect }) => {
   const url = new URL(request.url);
-  if (url.hostname === 'qwik.dev') {
+  if (url.hostname === 'qwik.builder.io') {
     // Redirect to the Builder.io plugin
     url.hostname = 'qwik.dev';
     const pathname = url.pathname;

@@ -42,8 +42,9 @@ export class ElementFixture {
       assertDefined(this.host, 'host element must be defined');
       this.host.querySelectorAll('script[q\\:func="qwik/json"]').forEach((script) => {
         const code = script.textContent;
-        if (code?.startsWith(Q_FUNCS_PREFIX)) {
-          const qFuncs = eval(code.substring(Q_FUNCS_PREFIX.length));
+        if (code?.match(Q_FUNCS_PREFIX)) {
+          const equal = code.indexOf('=');
+          const qFuncs = eval(code.substring(equal + 1));
           const container = this.host.closest(QContainerSelector);
           (container as any as { qFuncs?: Function[] }).qFuncs = qFuncs;
         }
@@ -97,7 +98,8 @@ export async function trigger(
 }
 
 const PREVENT_DEFAULT = 'preventdefault:';
-const Q_FUNCS_PREFIX = 'document.currentScript.closest("[q\\\\:container]").qFuncs=';
+const STOP_PROPAGATION = 'stoppropagation:';
+const Q_FUNCS_PREFIX = /document.qdata\["qFuncs_(.+)"\]=/;
 const QContainerSelector = '[q\\:container]';
 
 /**
@@ -109,11 +111,16 @@ const QContainerSelector = '[q\\:container]';
  */
 export const dispatch = async (element: Element | null, attrName: string, event: any) => {
   const preventAttributeName = PREVENT_DEFAULT + event.type;
+  const stopPropagationName = STOP_PROPAGATION + event.type;
   const collectListeners: { element: Element; qrl: QRLInternal }[] = [];
   while (element) {
     const preventDefault = element.hasAttribute(preventAttributeName);
+    const stopPropagation = element.hasAttribute(stopPropagationName);
     if (preventDefault) {
       event.preventDefault();
+    }
+    if (stopPropagation) {
+      event.stopPropagation();
     }
     const ctx = tryGetContext(element);
     if (ctx) {

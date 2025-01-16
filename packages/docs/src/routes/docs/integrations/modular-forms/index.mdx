@@ -13,16 +13,36 @@ created_at: '2023-04-28T22:00:03Z'
 ---
 
 import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 # Modular Forms
 
 [Modular Forms](https://modularforms.dev/) is a type-safe form library built natively on Qwik. The headless design gives you full control over the visual appearance of your form. The library takes care of state management and input validation.
 
-To get started, install the npm package:
+To get started, install the `@modular-forms/qwik` package:
 
-```bash
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm install @modular-forms/qwik
+```
+</span>
+<span q:slot="npm">
+```shell
 npm install @modular-forms/qwik
 ```
+</span>
+<span q:slot="yarn">
+```shell
+yarn add @modular-forms/qwik
+```
+</span>
+<span q:slot="bun">
+```shell
+bun install @modular-forms/qwik
+```
+</span>
+</PackageManagerTabs>
 
 ## Define your form
 
@@ -38,20 +58,22 @@ type LoginForm = {
 Since Modular Forms supports [Valibot](https://valibot.dev/) and [Zod](https://zod.dev/) for input validation, you can optionally derive the type definition from a schema.
 
 ```ts
-import { email, type Input, minLength, object, string } from 'valibot';
+import * as v from 'valibot';
 
-const LoginSchema = object({
-  email: string([
-    minLength(1, 'Please enter your email.'),
-    email('The email address is badly formatted.'),
-  ]),
-  password: string([
-    minLength(1, 'Please enter your password.'),
-    minLength(8, 'Your password must have 8 characters or more.'),
-  ]),
+const LoginSchema = v.object({
+  email: v.pipe(
+    v.string(),
+    v.nonEmpty('Please enter your email.'),
+    v.email('The email address is badly formatted.'),
+  ),
+  password: v.pipe(
+    v.string(),
+    v.nonEmpty('Please enter your password.'),
+    v.minLength(8, 'Your password must have 8 characters or more.'),
+  ),
 });
 
-type LoginForm = Input<typeof LoginSchema>;
+type LoginForm = v.InferInput<typeof LoginSchema>;
 ```
 
 If you're wondering why this guide favors Valibot over Zod, I recommend reading this [announcement post](https://www.builder.io/blog/introducing-valibot).
@@ -183,20 +205,22 @@ import { $, component$, type QRL } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import type { InitialValues, SubmitHandler } from '@modular-forms/qwik';
 import { formAction$, useForm, valiForm$ } from '@modular-forms/qwik';
-import { email, type Input, minLength, object, string } from 'valibot';
+import * as v from 'valibot';
 
-const LoginSchema = object({
-  email: string([
-    minLength(1, 'Please enter your email.'),
-    email('The email address is badly formatted.'),
-  ]),
-  password: string([
-    minLength(1, 'Please enter your password.'),
-    minLength(8, 'Your password must have 8 characters or more.'),
-  ]),
+const LoginSchema = v.object({
+  email: v.pipe(
+    v.string(),
+    v.nonEmpty('Please enter your email.'),
+    v.email('The email address is badly formatted.'),
+  ),
+  password: v.pipe(
+    v.string(),
+    v.nonEmpty('Please enter your password.'),
+    v.minLength(8, 'Your password must have 8 characters or more.'),
+  ),
 });
 
-type LoginForm = Input<typeof LoginSchema>;
+type LoginForm = v.InferInput<typeof LoginSchema>;
 
 export const useFormLoader = routeLoader$<InitialValues<LoginForm>>(() => ({
   email: '',
@@ -243,6 +267,35 @@ export default component$(() => {
 });
 ```
 </CodeSandbox>
+
+## Dealing With Props
+
+Sometimes, you may need to initialize or update the state of your form from the parent component via props. In such cases, you can use the setValue function, as illustrated in the example below:
+
+```tsx
+import { setValue, useForm } from "@modular-forms/qwik";
+
+export interface FormProps {
+ login?: LoginForm
+}
+
+export default component$<FormProps>((props) => {
+  const [loginForm, { Form, Field }] = useForm<LoginForm>({
+   // rest of the code...
+  });
+
+ useTask$(({ track }) => {
+     const login = track(() => props.login);
+    if (!login) return;
+    for (const [key,value] of Object.entries(login)) {
+      setValue(loginForm, key, value);
+    }
+  });
+
+  // rest of the code...
+});
+```
+By tracking props.login with useTask$, the form fields are dynamically updated whenever the parent provides new values.
 
 ## Summary
 

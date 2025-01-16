@@ -1,8 +1,27 @@
 [
   {
+    "href": "https://seyph.com/",
+    "size": "large",
+    "tags": "software development, landing pages, agency, site"
+  },
+  {
+    "href": "https://hypecode.tech/",
+    "size": "large",
+    "tags": "software development, landing pages, agency, site"
+  },
+  {
+    "href": "https://www.learn-qwik.com/",
+    "size": "large",
+    "tags": "site,tutorial,learn"
+  },
+  {
     "href": "https://sasthyaseba.com",
     "size": "large",
     "tags": "site,healthcare,services,webrtc,websocket"
+  },
+  {
+    "href": "https://ohayo-dev-design.com/",
+    "tags": "web, dev, agency"
   },
   {
     "href": "https://linkfang-portfolio.vercel.app/",
@@ -104,7 +123,7 @@
   {
     "href": "https://qwik.dev",
     "tags": "site",
-    "repo": "https://github.com/BuilderIO/qwik/tree/main/packages/docs"
+    "repo": "https://github.com/QwikDev/qwik/tree/main/packages/docs"
   },
   {
     "href": "https://pulsestax.com/",
@@ -183,5 +202,25 @@
   {
     "href": "https://finallyweb.com/",
     "tags": "stock market education"
+  },
+  {
+    "href": "https://numeia.com",
+    "tags": "saas, marketing, ai"
+  },
+  {
+    "href": "https://qit.tools/",
+    "tags": "online,tools,converters"
+  },
+  {
+    "href": "https://www.placementpreparation.io/",
+    "tags": "aptitude,learning,platform"
+  },
+  {
+    "href": "https://sakenowa.com",
+    "tags": "sns,app"
+  },
+  {
+    "href": "https://qwikpdf.alexismoren.fr/",
+    "tags": "pdf,services,free"
   }
 ]

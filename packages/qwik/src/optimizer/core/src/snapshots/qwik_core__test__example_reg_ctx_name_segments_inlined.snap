@@ -1,0 +1,35 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 781
+expression: output
+snapshot_kind: text
+---
+==INPUT==
+
+
+import { $, component$, server$ } from '@builder.io/qwik';
+export const Works = component$((props) => {
+    const text = 'hola';
+    return (
+        <div onClick$={server$(() => console.log('in server', text))}></div>
+    );
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@builder.io/qwik";
+import { serverQrl } from "@builder.io/qwik";
+import { _regSymbol } from "@builder.io/qwik";
+import { inlinedQrl } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
+export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
+    return /*#__PURE__*/ _jsxQ("div", {
+        onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(/*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "OsNoEFc5SM4"), "Works_component_div_onClick_server_OsNoEFc5SM4"))
+    }, null, null, 2, "u6_0");
+}, "Works_component_t45qL4vNGv0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAE7B,qBACI,MAAC;QAAI,UAAU,4DAAQ,IAAM,QAAQ,GAAG,CAAC,aAFhC;;AAIjB,mCAAG\"}")
+== DIAGNOSTICS ==
+
+[]

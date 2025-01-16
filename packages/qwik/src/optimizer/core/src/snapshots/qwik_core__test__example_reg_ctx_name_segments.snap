@@ -1,0 +1,50 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 755
+expression: output
+snapshot_kind: text
+---
+==INPUT==
+
+
+import { $, component$, server$ } from '@builder.io/qwik';
+import { foo } from './foo';
+export const Works = component$((props) => {
+    const text = 'hola';
+    return (
+        <>
+        <div onClick$={server$(() => console.log('in server', text))}></div>
+        <div onClick$={() => foo()}></div>
+        </>
+    );
+});
+
+============================= test.js ==
+
+import "./foo";
+import { componentQrl } from "@builder.io/qwik";
+import { serverQrl } from "@builder.io/qwik";
+import { _regSymbol } from "@builder.io/qwik";
+import { inlinedQrl } from "@builder.io/qwik";
+import { _jsxQ } from "@builder.io/qwik";
+import { _noopQrl } from "@builder.io/qwik";
+import { _jsxC } from "@builder.io/qwik";
+import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
+export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
+    return /*#__PURE__*/ _jsxC(_Fragment, {
+        children: [
+            /*#__PURE__*/ _jsxQ("div", {
+                onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(/*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "gcSPFNpGYgg"), "Works_component_Fragment_div_onClick_server_gcSPFNpGYgg"))
+            }, null, null, 2, null),
+            /*#__PURE__*/ _jsxQ("div", null, {
+                onClick$: /*#__PURE__*/ _noopQrl("Works_component_Fragment_div_onClick_nO4DPVZWP7g")
+            }, null, 3, null)
+        ]
+    }, 1, "u6_0");
+}, "Works_component_t45qL4vNGv0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAE7B,qBACI;;0BACA,MAAC;gBAAI,UAAU,4DAAQ,IAAM,QAAQ,GAAG,CAAC,aAHhC;;0BAIT,MAAC;gBAAI,QAAQ;;;;AAGrB,mCAAG\"}")
+== DIAGNOSTICS ==
+
+[]

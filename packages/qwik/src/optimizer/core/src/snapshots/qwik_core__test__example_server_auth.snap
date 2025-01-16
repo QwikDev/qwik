@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1763
+assertion_line: 1767
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -50,12 +51,12 @@ export const { onRequest, logout, getSession, signup } = auth$({
 import { serverAuthQrl } from "@auth/qwik";
 import { qrl } from "@builder.io/qwik";
 import { authQrl } from "@auth/qwik";
-export const { onRequest , logout , getSession , signup  } = serverAuthQrl(/*#__PURE__*/ qrl(()=>import("./serverauth_qvqpx2a0p9y"), "serverAuth_qVqpX2a0p9Y"));
-export const { onRequest , logout , getSession , signup  } = authQrl(/*#__PURE__*/ qrl(()=>import("./auth_gu0ay5qcety"), "auth_GU0aY5QCETY"));
+export const { onRequest, logout, getSession, signup } = serverAuthQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_serverAuth_qVqpX2a0p9Y"), "serverAuth_qVqpX2a0p9Y"));
+export const { onRequest, logout, getSession, signup } = authQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_auth_GU0aY5QCETY"), "auth_GU0aY5QCETY"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAMA,OAAO,MAAM,EAAE,UAAS,EAAE,OAAM,EAAE,WAAU,EAAE,OAAM,EAAE,GAAG,mGAetD;AAEH,OAAO,MAAM,EAAE,UAAS,EAAE,OAAM,EAAE,WAAU,EAAE,OAAM,EAAE,GAAG,iFAetD\"}")
-============================= auth_gu0ay5qcety.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAMA,OAAO,MAAM,EAAE,SAAS,EAAE,MAAM,EAAE,UAAU,EAAE,MAAM,EAAE,GAAG,4GAetD;AAEH,OAAO,MAAM,EAAE,SAAS,EAAE,MAAM,EAAE,UAAU,EAAE,MAAM,EAAE,GAAG,0FAetD\"}")
+============================= test.tsx_auth_GU0aY5QCETY.js (ENTRY POINT)==
 
 import Facebook from "next-auth/providers/facebook";
 import GitHub from "@auth/core/providers/github";
@@ -84,9 +85,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "auth_GU0aY5QCETY",
   "entry": null,
-  "displayName": "auth",
+  "displayName": "test.tsx_auth",
   "hash": "GU0aY5QCETY",
-  "canonicalFilename": "auth_gu0ay5qcety",
+  "canonicalFilename": "test.tsx_auth_GU0aY5QCETY",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -98,7 +100,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= serverauth_qvqpx2a0p9y.js (ENTRY POINT)==
+============================= test.tsx_serverAuth_qVqpX2a0p9Y.js (ENTRY POINT)==
 
 import Facebook from "next-auth/providers/facebook";
 import GitHub from "@auth/core/providers/github";
@@ -127,9 +129,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "serverAuth_qVqpX2a0p9Y",
   "entry": null,
-  "displayName": "serverAuth",
+  "displayName": "test.tsx_serverAuth",
   "hash": "qVqpX2a0p9Y",
-  "canonicalFilename": "serverauth_qvqpx2a0p9y",
+  "canonicalFilename": "test.tsx_serverAuth_qVqpX2a0p9Y",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

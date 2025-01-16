@@ -30,7 +30,7 @@ test('rollup default input options, client', async () => {
   const rollupInputOpts: Rollup.InputOptions = await plugin.options!({});
 
   assert.deepEqual(typeof rollupInputOpts.onwarn, 'function');
-  assert.deepEqual(rollupInputOpts.input, [normalizePath(resolve(cwd, 'src', 'root.tsx'))]);
+  assert.deepEqual(rollupInputOpts.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
 });
 
 test('rollup default input options, ssr', async () => {
@@ -44,8 +44,8 @@ test('rollup default input options, ssr', async () => {
 
   assert.deepEqual(typeof rollupInputOpts.onwarn, 'function');
   assert.deepEqual(rollupInputOpts.treeshake, undefined);
-  assert.deepEqual(rollupInputOpts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr.tsx'))]);
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr.tsx'))]);
+  assert.deepEqual(rollupInputOpts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr'))]);
+  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr'))]);
 });
 
 test('rollup default set input options, ssr', async () => {
@@ -102,7 +102,7 @@ test('rollup input, default', async () => {
   const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'development');
-  assert.deepEqual(opts.entryStrategy, { type: 'hook' });
+  assert.deepEqual(opts.entryStrategy, { type: 'segment' });
   assert.deepEqual(opts.rootDir, normalizePath(cwd));
   assert.deepEqual(opts.srcDir, normalizePath(resolve(cwd, 'src')));
 });
@@ -118,7 +118,7 @@ test('rollup input, client default', async () => {
   const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'development');
-  assert.deepEqual(opts.entryStrategy, { type: 'hook' });
+  assert.deepEqual(opts.entryStrategy, { type: 'segment' });
 });
 
 test('rollup input, client/production default', async () => {

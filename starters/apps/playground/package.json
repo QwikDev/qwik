@@ -1,0 +1,13 @@
+{
+  "name": "qwik-basic-starter",
+  "description": "Demo app with sample routes",
+  "type": "module",
+  "__qwik__": {
+    "priority": 2,
+    "displayName": "Playground App (Qwik City + Qwik)",
+    "qwikCity": true,
+    "docs": [
+      "https://qwik.dev/docs/getting-started/"
+    ]
+  }
+}

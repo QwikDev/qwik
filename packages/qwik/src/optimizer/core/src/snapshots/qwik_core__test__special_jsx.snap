@@ -1,0 +1,31 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 2169
+expression: output
+snapshot_kind: text
+---
+==INPUT==
+
+
+// don't transpile jsx with non-plain-object props
+import { jsx } from '@builder.io/qwik';
+
+export const App = () => {
+    const props = {}
+    return jsx('div', props, 'Hello Qwik');
+}
+
+============================= test.tsx ==
+
+// don't transpile jsx with non-plain-object props
+import { jsx } from '@builder.io/qwik';
+export const App = ()=>{
+    const props = {};
+    return jsx('div', props, 'Hello Qwik');
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,kDAAkD;AAClD,SAAS,GAAG,QAAQ,mBAAmB;AAEvC,OAAO,MAAM,MAAM;IACf,MAAM,QAAQ,CAAC;IACf,OAAO,IAAI,OAAO,OAAO;AAC7B,EAAC\"}")
+== DIAGNOSTICS ==
+
+[]

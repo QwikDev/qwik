@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2138
+assertion_line: 2142
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -26,23 +27,22 @@ export const App = component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export let Thing;
-(function(Thing) {
+export var Thing = /*#__PURE__*/ function(Thing) {
     Thing[Thing["A"] = 0] = "A";
     Thing[Thing["B"] = 1] = "B";
-})(Thing || (Thing = {}));
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./app_component_ckepmxzlub0"), "App_component_ckEPmXZlub0"));
+    return Thing;
+}({});
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;WAGO;UAAK,KAAK;IAAL,MAAA,MACR,OAAA,KAAA;IADQ,MAAA,MAER,OAAA,KAAA;GAFQ,UAAA;AAKZ,OAAO,MAAM,oBAAM,wGAOhB\"}")
-============================= app_component_ckepmxzlub0.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,IAAA,AAAK,+BAAA;;;WAAA;MAGX;AAED,OAAO,MAAM,oBAAM,iHAOhB\"}")
+============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
-import { Thing } from "./test";
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
 import { _jsxC } from "@builder.io/qwik";
 import { _jsxQ } from "@builder.io/qwik";
 export const App_component_ckEPmXZlub0 = ()=>{
-    console.log(Thing.A);
+    console.log(0);
     return /*#__PURE__*/ _jsxC(_Fragment, {
         children: /*#__PURE__*/ _jsxQ("p", null, {
             class: "stuff"
@@ -51,15 +51,16 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAQ8B,IAAM;IAChC,QAAQ,GAAG,CAAC,MAAM,CAAC;IACnB,qBACI;kBACI,cAAA,MAAC;YAAE,OAAM;WAAQ;;AAG7B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAQ8B;IAC1B,QAAQ,GAAG;IACX,qBACI;kBACI,cAAA,MAAC;YAAE,OAAM;WAAQ;;AAG7B\"}")
 /*
 {
   "origin": "test.tsx",
   "name": "App_component_ckEPmXZlub0",
   "entry": null,
-  "displayName": "App_component",
+  "displayName": "test.tsx_App_component",
   "hash": "ckEPmXZlub0",
-  "canonicalFilename": "app_component_ckepmxzlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
+  "path": "",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

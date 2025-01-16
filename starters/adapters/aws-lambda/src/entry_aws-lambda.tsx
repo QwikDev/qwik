@@ -24,3 +24,5 @@ declare global {
 export const { handle } = createQwikCity({ render, qwikCityPlan, manifest });
 
 export const qwikApp = serverless({ handle }, { binary: true });
+// handler is the default export for the lambda functions
+export const handler = qwikApp;

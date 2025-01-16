@@ -51,7 +51,7 @@ npm run build.server
 ## Related
 
 - [Qwik Docs](https://qwik.dev/docs/)
-- [Qwik on GitHub](https://github.com/BuilderIO/qwik)
+- [Qwik on GitHub](https://github.com/QwikDev/qwik)
 - [@QwikDev](https://twitter.com/QwikDev)
 - [Discord](https://qwik.dev/chat)
 - [Vite](https://vitejs.dev/)

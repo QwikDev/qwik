@@ -154,6 +154,98 @@ test.describe("actions", () => {
         await expect(count).toHaveText("Count: 1");
       });
     });
+
+    test("issue 6660 internal params should not trigger navigation", async ({
+      page,
+    }) => {
+      await page.goto("/qwikcity-test/issue6660/");
+      await expect(page.locator("#status")).toBeHidden();
+
+      {
+        const startUrl = page.url();
+
+        await page.getByText("Submit").click();
+        await page.waitForSelector("#status");
+
+        expect(page.url()).toBe(startUrl);
+      }
+
+      await page.goto("/qwikcity-test/issue6660/?var=1&hello");
+      await expect(page.locator("#status")).toBeHidden();
+
+      {
+        const startUrl = page.url();
+        expect(startUrl).toContain("var=1&hello");
+
+        await page.getByText("Submit").click();
+        await page.waitForSelector("#status");
+
+        expect(page.url()).toBe(startUrl);
+      }
+    });
+
+    test("preventNavigate", async ({ page }) => {
+      await page.goto("/qwikcity-test/prevent-navigate/");
+      const toggleDirty = page.locator("#pn-button");
+      const link = page.locator("#pn-link");
+      const count = page.locator("#pn-runcount");
+      const mpaLink = page.locator("#pn-a");
+      const itemLink = page.locator("#pn-link-5");
+      const confirmText = page.locator("#pn-confirm-text");
+      const confirmYes = page.locator("#pn-confirm-yes");
+      // clean SPA nav
+      await expect(count).toHaveText("0");
+      await link.click();
+      await expect(link).not.toBeVisible();
+      expect(new URL(page.url()).pathname).toBe("/qwikcity-test/");
+      await page.goBack();
+      await expect(count).toHaveText("0");
+      await expect(toggleDirty).toHaveText("is clean");
+      await toggleDirty.click();
+      await expect(toggleDirty).toHaveText("is dirty");
+      // dirty browser nav
+      let didTrigger = false;
+      page.once("dialog", async (dialog) => {
+        didTrigger = true;
+        expect(dialog.type()).toBe("beforeunload");
+        await dialog.accept();
+      });
+      await page.reload();
+      expect(didTrigger).toBe(true);
+      await expect(count).toHaveText("0");
+      await toggleDirty.click();
+
+      // dirty SPA nav
+      await link.click();
+      await expect(count).toHaveText("1");
+      await link.click();
+      await expect(count).toHaveText("2");
+      expect(new URL(page.url()).pathname).toBe(
+        "/qwikcity-test/prevent-navigate/",
+      );
+      await expect(confirmText).toContainText("/qwikcity-test/?");
+      await itemLink.click();
+      await expect(confirmText).toContainText(
+        "/qwikcity-test/prevent-navigate/5/?",
+      );
+      await confirmYes.click();
+      await expect(page.locator("#pn-main")).toBeVisible();
+      expect(new URL(page.url()).pathname).toBe(
+        "/qwikcity-test/prevent-navigate/5/",
+      );
+
+      // dirty browser nav w/ prevent
+      await toggleDirty.click();
+      didTrigger = false;
+      page.once("dialog", async (dialog) => {
+        didTrigger = true;
+        expect(dialog.type()).toBe("beforeunload");
+        // dismissing doesn't work, ah well
+        await dialog.accept();
+      });
+      await mpaLink.click();
+      expect(didTrigger).toBe(true);
+    });
   }
 
   function tests() {
@@ -320,6 +412,13 @@ test.describe("actions", () => {
       );
     });
 
+    test("issue4956", async ({ page }) => {
+      await page.goto("/qwikcity-test/issue4956?id=1");
+      const textContent = await page.locator("#routeId");
+
+      await expect(textContent).toHaveText("1");
+    });
+
     test("issue4531", async ({ page }) => {
       const res = await page.goto("/qwikcity-test/issue4531/");
       await expect(page.locator("#route")).toHaveText("should render");
@@ -364,6 +463,24 @@ test.describe("actions", () => {
         "naturalHeight",
         520,
       );
+    });
+
+    test("redirects, re-runs loaders and changes the url within the same page when search params changed", async ({
+      page,
+    }) => {
+      await page.goto("/qwikcity-test/search-params-redirect/");
+      await page.getByText("Submit").click();
+      await page.waitForURL(
+        "**/qwikcity-test/search-params-redirect/?redirected=true",
+      );
+
+      const url = new URL(page.url());
+
+      expect(url.href.replace(url.origin, "")).toEqual(
+        "/qwikcity-test/search-params-redirect/?redirected=true",
+      );
+
+      await expect(page.locator("#redirected-result")).toHaveText("true");
     });
   }
 });

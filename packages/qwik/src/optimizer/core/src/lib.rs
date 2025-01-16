@@ -5,7 +5,6 @@
 #![feature(box_patterns)]
 #![allow(clippy::option_if_let_else)]
 #![allow(clippy::iter_with_drain)]
-#![feature(extract_if)]
 #[cfg(test)]
 mod test;
 
@@ -44,12 +43,13 @@ use std::path::Path;
 use std::str;
 use swc_atoms::JsWord;
 
-use crate::code_move::generate_entries;
 use crate::entry_strategy::parse_entry_strategy;
 pub use crate::entry_strategy::EntryStrategy;
 pub use crate::parse::EmitMode;
 use crate::parse::{transform_code, TransformCodeOptions};
-pub use crate::parse::{ErrorBuffer, HookAnalysis, MinifyMode, TransformModule, TransformOutput};
+pub use crate::parse::{
+	ErrorBuffer, MinifyMode, SegmentAnalysis, TransformModule, TransformOutput,
+};
 
 #[cfg(feature = "fs")]
 #[derive(Serialize, Debug, Deserialize)]
@@ -82,6 +82,7 @@ pub struct TransformFsOptions {
 #[serde(rename_all = "camelCase")]
 pub struct TransformModuleInput {
 	pub path: String,
+	pub dev_path: Option<String>,
 	pub code: String,
 }
 
@@ -137,6 +138,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
 				src_dir,
 				root_dir,
 				relative_path: relative_path.to_str().unwrap(),
+				dev_path: None,
 				minify: config.minify,
 				code: &code,
 				explicit_extensions: config.explicit_extensions,
@@ -153,29 +155,14 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
 				strip_exports: config.strip_exports.as_deref(),
 				strip_ctx_name: config.strip_ctx_name.as_deref(),
 				strip_event_handlers: config.strip_event_handlers,
-				is_server: config.is_server,
+				// If you don't specify is_server, the safe value is true
+				is_server: config.is_server.unwrap_or(true),
 			})
 		})
 		.reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
 
 	final_output.modules.sort_unstable_by_key(|key| key.order);
-	if !matches!(
-		config.entry_strategy,
-		EntryStrategy::Hook | EntryStrategy::Inline | EntryStrategy::Hoist
-	) {
-		final_output = generate_entries(
-			final_output,
-			&core_module,
-			config.explicit_extensions,
-			root_dir,
-		)?;
-	}
-	// final_output = generate_entries(
-	//     final_output,
-	//     &core_module,
-	//     config.explicit_extensions,
-	//     root_dir,
-	// )?;
+
 	Ok(final_output)
 }
 
@@ -187,17 +174,19 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
 	let root_dir = config.root_dir.as_ref().map(Path::new);
 
 	let entry_policy = &*parse_entry_strategy(&config.entry_strategy, config.manual_chunks);
+
 	#[cfg(feature = "parallel")]
 	let iterator = config.input.par_iter();
-
 	#[cfg(not(feature = "parallel"))]
 	let iterator = config.input.iter();
-	let iterator = iterator.map(|path| -> Result<TransformOutput, Error> {
+
+	let iterator = iterator.map(|input| -> Result<TransformOutput, Error> {
 		transform_code(TransformCodeOptions {
 			src_dir,
 			root_dir,
-			relative_path: &path.path,
-			code: &path.code,
+			relative_path: &input.path,
+			dev_path: input.dev_path.as_deref(),
+			code: &input.code,
 			minify: config.minify,
 			source_maps: config.source_maps,
 			transpile_ts: config.transpile_ts,
@@ -213,7 +202,8 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
 			strip_exports: config.strip_exports.as_deref(),
 			strip_ctx_name: config.strip_ctx_name.as_deref(),
 			strip_event_handlers: config.strip_event_handlers,
-			is_server: config.is_server,
+			// If you don't specify is_server, the safe value is true
+			is_server: config.is_server.unwrap_or(true),
 		})
 	});
 
@@ -222,28 +212,12 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
 		iterator.reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)));
 
 	#[cfg(not(feature = "parallel"))]
+	#[allow(clippy::manual_try_fold)]
 	let final_output: Result<TransformOutput, Error> =
 		iterator.fold(Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)));
 
 	let mut final_output = final_output?;
 	final_output.modules.sort_unstable_by_key(|key| key.order);
-	if !matches!(
-		config.entry_strategy,
-		EntryStrategy::Hook | EntryStrategy::Inline | EntryStrategy::Hoist
-	) {
-		final_output = generate_entries(
-			final_output,
-			&core_module,
-			config.explicit_extensions,
-			root_dir,
-		)?;
-	}
-	// final_output = generate_entries(
-	//     final_output,
-	//     &core_module,
-	//     config.explicit_extensions,
-	//     root_dir,
-	// )?;
 
 	Ok(final_output)
 }

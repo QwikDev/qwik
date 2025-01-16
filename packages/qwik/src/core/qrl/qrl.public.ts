@@ -273,6 +273,7 @@ export const eventQrl = <T>(qrl: QRL<T>): QRL<T> => {
 /** @public */
 export const event$ = implicit$FirstArg(eventQrl);
 
+/** @alpha */
 export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE> {
   __brand__SyncQRL__: TYPE;
 
@@ -331,5 +332,6 @@ export const _qrlSync = function <TYPE extends Function>(
   if (serializedFn === undefined) {
     serializedFn = fn.toString();
   }
+  (fn as any).serialized = serializedFn;
   return createQRL<TYPE>('', SYNC_QRL, fn, null, null, null, null) as any;
 };

@@ -1,40 +1,45 @@
-# Overview
-
 <!--
-The Qwik Team and Qwik Community are grateful for all PRs that improve Qwik. Thank you for your time and effort! Please be aware that not all PRs can be merged, but PRs that meet the following criteria will receive the highest priority:
+The Qwik Team and Community appreciate all PRs. Thank you for your effort! Not all PRs can be merged, but those that meet the following criteria will be prioritized:
 
-a) Fixes to the core, and
+a) Core fixes, and
 
-b) Framework functionality that can only be achieved by the core.
+b) Framework functionality achievable only by the core.
 
-If your functionality can be delivered as a 3rd-Party Community Add-On, we encourage that route as it will likely provide a faster path to adoption.
+If this PR can be done as a 3rd-Party Community Add-On, we encourage that for quicker adoption.
 
-If you feel your functionality is of high value to everybody in the Qwik Community, we encourage socializing it in the Qwik Discord channels as the core team may take this up for inclusion in the core.
+If you believe your functionality is valuable to the entire Qwik Community, discuss it in the Qwik Discord channels for potential inclusion in the core.
 
-_— Build primitives is our mantra_
+First of all, make sure your PR title is descriptive and matches our commit title guidelines.
+
+Also make sure your PR follows all the guidelines in the [CONTRIBUTING.md](./CONTRIBUTING.md) document.
 
 -->
 
 # What is it?
 
-- [ ] Feature / enhancement
-- [ ] Bug
-- [ ] Docs / tests / types / typos
+<!-- pick one and remove the others -->
+
+- Feature / enhancement
+- Bug
+- Docs / tests / types / typos
+- Infra
 
 # Description
 
-Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context. List any dependencies that are required for this change.
+<!--
+* Include a summary of the motivation and context for this PR
+* Is it related to any opened issues? (please add them here)
+-->
 
-# Use cases and why
+# Checklist
 
-<!-- Actual / expected behavior if it's a bug -->
+<!--
+* delete the items that are not relevant, so it's easy to tell if the PR is ready to be merged
+* add items that are relevant and need to be done before merging
+-->
 
-- 1. One use case
-- 2. Another use case
-
-# Checklist:
-
-- [ ] My code follows the [developer guidelines of this project](https://github.com/BuilderIO/qwik/blob/main/CONTRIBUTING.md)
-- [ ] I have performed a self-review of my own code
-- [ ] I have made corresponding changes to the documentation
-- [ ] Added new tests to cover the fix / functionality
+- [ ] My code follows the [developer guidelines of this project](https://github.com/QwikDev/qwik/blob/main/CONTRIBUTING.md)
+- [ ] I performed a self-review of my own code
+- [ ] I added a changeset with `pnpm change`
+- [ ] I made corresponding changes to the Qwik docs
+- [ ] I added new tests to cover the fix / functionality

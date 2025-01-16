@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 187
+assertion_line: 188
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -9,7 +10,7 @@ expression: output
 import { $, component$ } from '@builder.io/qwik';
 export const sym1 = $((ctx) => console.log("1"));
 
-============================= sym1_axurpxx5lak.tsx (ENTRY POINT)==
+============================= test.tsx_sym1_aXUrPXX5Lak.tsx (ENTRY POINT)==
 
 export const sym1_aXUrPXX5Lak = (ctx)=>console.log("1");
 export { _hW } from "@builder.io/qwik";
@@ -21,9 +22,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "origin": "test.tsx",
   "name": "sym1_aXUrPXX5Lak",
   "entry": null,
-  "displayName": "sym1",
+  "displayName": "test.tsx_sym1",
   "hash": "aXUrPXX5Lak",
-  "canonicalFilename": "sym1_axurpxx5lak",
+  "canonicalFilename": "test.tsx_sym1_aXUrPXX5Lak",
+  "path": "",
   "extension": "tsx",
   "parent": null,
   "ctxKind": "function",
@@ -38,10 +40,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx ==
 
 import { qrl } from "@builder.io/qwik";
-export const sym1 = /*#__PURE__*/ qrl(()=>import("./sym1_axurpxx5lak"), "sym1_aXUrPXX5Lak");
+export const sym1 = /*#__PURE__*/ qrl(()=>import("./test.tsx_sym1_aXUrPXX5Lak"), "sym1_aXUrPXX5Lak");
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AAEA,OAAO,MAAM,+EAAoC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AAEA,OAAO,MAAM,wFAAoC\"}")
 == DIAGNOSTICS ==
 
 []

@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1974
+assertion_line: 1978
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -12,7 +13,7 @@ export const Root = () => {
     return (
         <html>
             <head>
-                <meta charSet="utf-8" />
+                <meta charset="utf-8" />
                 <title>Qwik Blank App</title>
             </head>
             <body>
@@ -27,26 +28,18 @@ export const Root = () => {
 import { Counter } from "./counter.tsx";
 export const Root = ()=>{
     return <html>
-
             <head>
-
-                <meta charSet="utf-8"/>
-
+                <meta charset="utf-8"/>
                 <title>Qwik Blank App</title>
-
             </head>
-
             <body>
-
                 <Counter initial={3}/>
-
             </body>
-
         </html>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,SAAS,OAAO,QAAQ,gBAAgB;AAExC,OAAO,MAAM,OAAO,IAAM;IACtB,QACK,KAAK;;YACF,CAAC,KAAK;;gBACF,CAAC,KAAK,QAAQ,SAAU;;gBACxB,CAAC,MAAM,cAAc,EAAE,MAAM;;YACjC,EAAE,KAAK;;YACP,CAAC,KAAK;;gBACF,CAAC,QAAQ,SAAS,IAAK;;YAC3B,EAAE,KAAK;;QACX,EAAE;AAEV,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,SAAS,OAAO,QAAQ,gBAAgB;AAExC,OAAO,MAAM,OAAO;IAChB,QACK,KAAK;YACF,CAAC,KAAK;gBACF,CAAC,KAAK,QAAQ,SAAU;gBACxB,CAAC,MAAM,cAAc,EAAE,MAAM;YACjC,EAAE,KAAK;YACP,CAAC,KAAK;gBACF,CAAC,QAAQ,SAAS,IAAK;YAC3B,EAAE,KAAK;QACX,EAAE;AAEV,EAAE\"}")
 == DIAGNOSTICS ==
 
 []

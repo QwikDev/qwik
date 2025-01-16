@@ -7,7 +7,7 @@ import exampleSections, { type ExampleApp } from '@examples-data';
 import type { ReplAppInput } from '../../../repl/types';
 import { type DocumentHead, useLocation } from '@builder.io/qwik-city';
 import { PanelToggle } from '../../../components/panel-toggle/panel-toggle';
-import { isBrowser } from '@builder.io/qwik/build';
+import { isBrowser } from '@builder.io/qwik';
 import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../../repl/repl-share-url';
 
 export default component$(() => {
@@ -25,7 +25,7 @@ export default component$(() => {
       appId: app ? app.id : '',
       buildId: 0,
       buildMode: 'development',
-      entryStrategy: 'hook',
+      entryStrategy: 'segment',
       files: app?.inputs || [],
       version: '',
       shareUrlTmr: undefined,
@@ -126,7 +126,7 @@ export default component$(() => {
             </article>
           ))}
           <a
-            href="https://github.com/BuilderIO/qwik/tree/main/packages/docs/src/routes/examples/apps/"
+            href="https://github.com/QwikDev/qwik/tree/main/packages/docs/src/routes/examples/apps/"
             class="example-button-new"
             target="_blank"
           >

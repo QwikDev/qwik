@@ -1,0 +1,20 @@
+# For all PRs
+* @QwikDev/core-veterans
+
+# For docs PRs
+packages/docs @QwikDev/docs-team @QwikDev/qwik-team
+contributing @QwikDev/docs-team @QwikDev/qwik-team
+README.md @QwikDev/docs-team @QwikDev/qwik-team
+CONTRIBUTING.md @QwikDev/docs-team @QwikDev/qwik-team
+CODE_OF_CONDUCT.md @QwikDev/docs-team @QwikDev/qwik-team
+
+# For API changes
+api.json @QwikDev/api-guards
+
+# For releases
+CHANGELOG.md @QwikDev/api-guards
+
+# Protect the code owners file
+.github/CODEOWNERS @mhevery @shairez
+
+

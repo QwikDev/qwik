@@ -17,7 +17,7 @@ import { domRender, ssrRenderToDom } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 
-const debug = false; //true;
+const debug = true; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
@@ -648,6 +648,33 @@ describe.each([
     await trigger(document.body, 'div', 'click');
     await expect(document.querySelector('div')).toMatchDOM(<div>1</div>);
   });
+  it.only('useOnDocument1111', async () => {
+    const BreakpointProvider = component$(() => {
+      useOnDocument(
+        'click',
+        $(async () => {})
+      );
+
+      useOnWindow(
+        'resize',
+        $(async () => {})
+      );
+
+      useVisibleTask$(() => {});
+
+      return <Slot />;
+    });
+
+    const Layout = component$(() => {
+      return (
+        <BreakpointProvider>
+          <div>test</div>
+        </BreakpointProvider>
+      );
+    });
+    const { document } = await render(<Layout />, { debug });
+    await expect(document.querySelector('script')).toBeTruthy();
+  });
   it('useOnDocument1111', async () => {
     const BreakpointProvider = component$(() => {
       useOnDocument(
@@ -655,7 +682,11 @@ describe.each([
         $(async () => {})
       );
 
-      return <Slot />;
+      return (
+        <>
+          <Slot />
+        </>
+      );
     });
 
     const Layout = component$(() => {

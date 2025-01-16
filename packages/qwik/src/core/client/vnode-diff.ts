@@ -228,9 +228,7 @@ export const vnode_diff = (
                   // nothing to project, so try to render the Slot default content.
                   descend(jsxValue.children, true);
                 }
-                if ((jsxValue.children as JSXNode)?.type === 'script') {
-                  descend(jsxValue.children, true);
-                }
+                descend(jsxValue.children, false);
               } else if (type === Projection) {
                 expectProjection();
                 descend(jsxValue.children, true);

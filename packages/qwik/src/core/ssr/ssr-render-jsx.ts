@@ -251,12 +251,9 @@ function processJSXNode(
             const slotDefaultChildren: JSXChildren | null = jsx.children || null;
             const slotChildren =
               componentFrame.consumeChildrenForSlot(node, slotName) || slotDefaultChildren;
-            if ((slotDefaultChildren as JSXNodeInternal)?.type === 'script') {
-              enqueue(slotDefaultChildren as JSXOutput);
-            } else if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
+            if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
               ssr.addUnclaimedProjection(componentFrame, QDefaultSlot, slotDefaultChildren);
             }
-            // enqueue(slotDefaultChildren as JSXOutput);
             enqueue(slotChildren as JSXOutput);
             enqueue(
               new ParentComponentData(

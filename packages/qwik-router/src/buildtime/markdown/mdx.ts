@@ -77,10 +77,10 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
         .slice(0, 8)
         .replace('+', '-')
         .replace('/', '_');
-      const addImport = `import { jsx, _jsxC, RenderOnce } from '@qwik.dev/core';\n`;
+      const addImport = `import { jsx, RenderOnce } from '@qwik.dev/core';\n`;
       const newDefault = ` 
 const WrappedMdxContent = () => {
-  const content = jsx(RenderOnce, {children: jsx(_createMdxContent, {})}, 3, ${JSON.stringify(key)});
+  const content = jsx(RenderOnce, {children: jsx(_createMdxContent, {})}, ${JSON.stringify(key)});
   if (typeof MDXLayout === 'function'){
       return jsx(MDXLayout, {children: content});
   }

@@ -247,3 +247,8 @@
 .add-integration svg {
   margin: auto;
 }
+
+[data-theme='dark'] [alt='GitHub'],
+[data-theme='dark'] [alt='Twitter'] {
+  filter: invert(1);
+}

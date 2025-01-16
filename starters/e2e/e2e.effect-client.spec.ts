@@ -20,7 +20,7 @@ test.describe("effect-client", () => {
     const msgClientSide2 = page.locator("#client-side-msg-2");
     const msgClientSide3 = page.locator("#client-side-msg-3");
 
-    await expect(container).not.hasAttribute("data-effect");
+    await expect(container).not.toHaveAttribute("data-effect");
     await expect(counter).toHaveText("0");
     await expect(msg).toHaveText("empty");
     await expect(msgEager).toHaveText("run");

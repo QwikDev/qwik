@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3850
+assertion_line: 3979
 expression: output
 snapshot_kind: text
 ---
@@ -291,7 +291,10 @@ export const App_component_ckEPmXZlub0 = ()=>{
                 i,
                 results
             ])
-        }, null, results[i], 0, "u6_1"));
+        }, null, _fnSignal((p0, p1)=>p1[p0], [
+            i,
+            results
+        ], "p1[p0]"), 0, "u6_1"));
         return items;
     }
     function loopForOf(results) {
@@ -315,7 +318,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
         }, null, _fnSignal((p0, p1)=>p1[p0], [
             key,
             results
-        ], "p1[p0]"), 2, "u6_3"));
+        ], "p1[p0]"), 0, "u6_3"));
         return items;
     }
     function loopWhile(results) {
@@ -328,7 +331,10 @@ export const App_component_ckEPmXZlub0 = ()=>{
                     i,
                     results
                 ])
-            }, null, results[i], 0, "u6_4"));
+            }, null, _fnSignal((p0, p1)=>p1[p0], [
+                i,
+                results
+            ], "p1[p0]"), 0, "u6_4"));
             i++;
         }
         return items;
@@ -351,7 +357,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAE8B;IACxB,MAAM,OAAO,SAAmB,EAAE;IAClC,MAAM,UAAU,UAAU;QAAC;KAAM;IACjC,SAAS,YAAY,OAAiB;QACpC,OAAO,QAAQ,GAAG,CAAC,CAAC,qBAClB,WAAC;gBACC,QAAQ;;;;qBAIP;IAGP;IACA,SAAS,SAAS,OAAiB;QACjC,MAAM,QAAQ,EAAE;QAChB,IAAK,IAAI,IAAI,GAAG,IAAI,QAAQ,MAAM,EAAE,IAClC,MAAM,IAAI,eACR,WAAC;YACC,QAAQ;;;;;iBAIP,OAAO,CAAC,EAAE;QAIjB,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,KAAK,MAAM,QAAQ,QACjB,MAAM,IAAI,eACR,WAAC;YACC,QAAQ;;;;iBAIP;QAIP,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAK,MAAM,OAAO,QAChB,MAAM,IAAI,eACR,WAAC;YACC,QAAQ;;;;;qCAIP,EAAO,IAAK;;;;QAInB,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAI,IAAI;QACR,MAAO,IAAI,QAAQ,MAAM,CAAE;YACzB,MAAM,IAAI,eACR,WAAC;gBACC,QAAQ;;;;;qBAIP,OAAO,CAAC,EAAE;YAGf;QACF;QACA,OAAO;IACT;IACA,qBACE,WAAC;QACE,QAAQ,KAAK,CAAC,GAAG,CAAC,CAAC,qBAClB,WAAC;gBAEC,QAAQ;;;;;gBADR,IAAG;eAKF;QAGJ,YAAY,QAAQ,KAAK;QACzB,SAAS,QAAQ,KAAK;QACtB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;;AAG9B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAE8B;IACxB,MAAM,OAAO,SAAmB,EAAE;IAClC,MAAM,UAAU,UAAU;QAAC;KAAM;IACjC,SAAS,YAAY,OAAiB;QACpC,OAAO,QAAQ,GAAG,CAAC,CAAC,qBAClB,WAAC;gBACC,QAAQ;;;;qBAIP;IAGP;IACA,SAAS,SAAS,OAAiB;QACjC,MAAM,QAAQ,EAAE;QAChB,IAAK,IAAI,IAAI,GAAG,IAAI,QAAQ,MAAM,EAAE,IAClC,MAAM,IAAI,eACR,WAAC;YACC,QAAQ;;;;;qCAIP,EAAO,IAAG;;;;QAIjB,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,KAAK,MAAM,QAAQ,QACjB,MAAM,IAAI,eACR,WAAC;YACC,QAAQ;;;;iBAIP;QAIP,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAK,MAAM,OAAO,QAChB,MAAM,IAAI,eACR,WAAC;YACC,QAAQ;;;;;qCAIP,EAAO,IAAK;;;;QAInB,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAI,IAAI;QACR,MAAO,IAAI,QAAQ,MAAM,CAAE;YACzB,MAAM,IAAI,eACR,WAAC;gBACC,QAAQ;;;;;yCAIP,EAAO,IAAG;;;;YAGf;QACF;QACA,OAAO;IACT;IACA,qBACE,WAAC;QACE,QAAQ,KAAK,CAAC,GAAG,CAAC,CAAC,qBAClB,WAAC;gBAEC,QAAQ;;;;;gBADR,IAAG;eAKF;QAGJ,YAAY,QAAQ,KAAK;QACzB,SAAS,QAAQ,KAAK;QACtB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;;AAG9B\"}")
 /*
 {
   "origin": "test.tsx",

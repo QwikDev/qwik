@@ -62,8 +62,8 @@ export const App = component$((props) => {
 ============================= test.js ==
 
 import { componentQrl } from "@qwik.dev/core";
-import { _wrapProp } from "@qwik.dev/core";
 import { _fnSignal } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
 import { useStore, mutable } from '@qwik.dev/core';

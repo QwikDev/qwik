@@ -129,12 +129,3 @@ export function retryOnPromise<T>(
     return retryOrThrow(e);
   }
 }
-
-// Converts a nested promises into a promise with flat value or returns flat value if the value is not a promise.
-export function flatPromise(value: ValueOrPromise<unknown>): ValueOrPromise<unknown> {
-  if (isPromise(value)) {
-    return value.then((innerValue) => flatPromise(innerValue));
-  } else {
-    return value;
-  }
-}

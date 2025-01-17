@@ -153,7 +153,6 @@ export const App_component_1_w0t0o3QMovU = ()=>{
     const [state] = useLexicalScope();
     return /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(state, "count"), 3, "u6_0");
 };
-export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAcU;;yBACR,WAAC,6BAAK\"}")

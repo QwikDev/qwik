@@ -8,7 +8,6 @@ lazy_static! {
 	pub static ref REF: JsWord = JsWord::from("ref");
 	pub static ref QSLOT: JsWord = JsWord::from("q:slot");
 	pub static ref CHILDREN: JsWord = JsWord::from("children");
-	pub static ref HANDLE_WATCH: JsWord = JsWord::from("_hW");
 	pub static ref _QRL: JsWord = JsWord::from("qrl");
 	pub static ref _QRL_DEV: JsWord = JsWord::from("qrlDEV");
 	pub static ref _INLINED_QRL: JsWord = JsWord::from("inlinedQrl");

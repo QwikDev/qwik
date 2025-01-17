@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3773
+assertion_line: 3902
 expression: output
 snapshot_kind: text
 ---
@@ -45,7 +45,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_Cmp_component_Cmp_foo_iPpdemxi0uE.ts (ENTRY POINT)==
 
 export const Cmp_component_Cmp_foo_iPpdemxi0uE = ()=>console.log('hi there');
-export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"iDAGe,IAAM,QAAQ,GAAG,CAAC\"}")

@@ -1,4 +1,4 @@
-import { Fragment as Component, Fragment, component$ } from '@qwik.dev/core';
+import { Fragment as Component, Fragment, component$, useSignal } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 
@@ -23,5 +23,24 @@ describe.each([
         </div>
       </Component>
     );
+  });
+
+  it('should handle thrown Promise', async () => {
+    const Child = component$(() => {
+      const signal = useSignal(0);
+      if (signal.value === 0) {
+        throw new Promise((r) => r(signal.value++));
+      }
+      return 'child';
+    });
+    const Cmp = component$(() => {
+      return (
+        <div>
+          <Child />
+        </div>
+      );
+    });
+    const { document } = await render(<Cmp />, { debug });
+    expect(document.querySelector('div')).toHaveProperty('textContent', 'child');
   });
 });

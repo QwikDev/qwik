@@ -345,11 +345,13 @@ export const createScheduler = (
           (jsx) => {
             if (chore.$type$ === ChoreType.COMPONENT) {
               const styleScopedId = container.getHostProp<string>(host, QScopedStyle);
-              return vnode_diff(
-                container as ClientContainer,
-                jsx,
-                host as VirtualVNode,
-                addComponentStylePrefix(styleScopedId)
+              return retryOnPromise(() =>
+                vnode_diff(
+                  container as ClientContainer,
+                  jsx,
+                  host as VirtualVNode,
+                  addComponentStylePrefix(styleScopedId)
+                )
               );
             } else {
               return jsx;
@@ -382,7 +384,9 @@ export const createScheduler = (
         if (isSignal(jsx)) {
           jsx = jsx.value as any;
         }
-        returnValue = vnode_diff(container as DomContainer, jsx, parentVirtualNode, null);
+        returnValue = retryOnPromise(() =>
+          vnode_diff(container as DomContainer, jsx, parentVirtualNode, null)
+        );
         break;
       case ChoreType.NODE_PROP:
         const virtualNode = chore.$host$ as unknown as ElementVNode;

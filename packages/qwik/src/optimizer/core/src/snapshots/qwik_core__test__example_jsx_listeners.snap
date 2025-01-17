@@ -152,7 +152,6 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
         custom$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_custom_pyHnxab17ms"), "Foo_component_div_custom_pyHnxab17ms")
     }, null, 3, "u6_0");
 };
-export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAKU;IACR,MAAM;IACN,qBACC,WAAC;QACA,QAAQ;QACR,iBAAiB;QACjB,iBAAiB;QAEjB,WAAS;QACT,oBAAkB;QAClB,oBAAkB;QAPnB,eAkBE;QAlBF,wBAkBE;QAlBF,wBAkBE;QALD,UAAU;QAbX,qBAcoB;QAdpB,mBAekB;QAEjB,OAAO;;AAGV\"}")
@@ -361,7 +360,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_Foo_component_handler_H10xZtD0e7w.js (ENTRY POINT)==
 
 export const Foo_component_handler_H10xZtD0e7w = ()=>console.log('reused');
-export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"iDAMoB,IAAM,QAAQ,GAAG,CAAC\"}")

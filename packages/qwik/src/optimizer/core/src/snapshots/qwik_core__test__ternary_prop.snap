@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3748
+assertion_line: 3877
 expression: output
 snapshot_kind: text
 ---
@@ -29,7 +29,6 @@ export const Cmp_component_handleClick_WawHV3HwS1A = ()=>{
     const [toggleSig] = useLexicalScope();
     toggleSig.value = !toggleSig.value;
 };
-export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAK0B;;IACtB,UAAU,KAAK,GAAG,CAAC,UAAU,KAAK\"}")

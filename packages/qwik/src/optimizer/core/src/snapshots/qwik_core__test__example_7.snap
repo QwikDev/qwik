@@ -93,7 +93,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_Header_component_div_onClick_i7ekvWH3674.tsx (ENTRY POINT)==
 
 export const Header_component_div_onClick_i7ekvWH3674 = (ctx)=>console.log(ctx);
-export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"wDAMkB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")

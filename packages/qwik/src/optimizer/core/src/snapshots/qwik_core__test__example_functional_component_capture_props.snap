@@ -144,7 +144,6 @@ export const App_component_1_w0t0o3QMovU = ()=>{
         v3
     ], 0, "u6_0");
 };
-export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAMU;;IACR,qBACC,WAAC;QAAI,QAAQ;;;;;QACX;QAAI;QAAI;QAAI;QAAI;QAAI;QAAI;QACxB;QAAI;QAAI;QAAI;QAAI;QAAI;QAAI;QACxB;QAAI;QAAI\"}")

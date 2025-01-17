@@ -241,11 +241,11 @@ export class ReadWriteProxyHandler implements ProxyHandler<TargetType> {
     target: TargetType,
     prop: string | symbol
   ): PropertyDescriptor | undefined {
-    if (isArray(target) || typeof prop === 'symbol') {
-      return Reflect.getOwnPropertyDescriptor(target, prop);
-    }
-
     const descriptor = Reflect.getOwnPropertyDescriptor(target, prop);
+
+    if (isArray(target) || typeof prop === 'symbol') {
+      return descriptor;
+    }
 
     if (descriptor && !descriptor.configurable) {
       return descriptor;

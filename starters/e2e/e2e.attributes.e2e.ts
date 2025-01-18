@@ -295,6 +295,29 @@ test.describe("attributes", () => {
       await expect(button).not.toHaveAttribute("aria-label");
       await expect(button).not.toHaveAttribute("title");
     });
+
+    test("should rerun vnode-diff when QRL is not resolved", async ({
+      page,
+    }) => {
+      const incrementButton = page.locator("#progress-btn");
+      const hideButton = page.locator("#progress-hide");
+      const progress1 = page.locator("#progress-1");
+      const progress2 = page.locator("#progress-2");
+      const progress3 = page.locator("#progress-3");
+
+      await expect(progress1).toHaveAttribute("aria-valuetext", "200000%");
+      await expect(progress2).toHaveAttribute("aria-valuetext", "2100");
+      await expect(progress3).toHaveAttribute("aria-valuetext", "200000%");
+
+      await hideButton.click();
+      await hideButton.click();
+
+      await incrementButton.click();
+
+      await expect(progress1).toHaveAttribute("aria-valuetext", "250000%");
+      await expect(progress2).toHaveAttribute("aria-valuetext", "2600");
+      await expect(progress3).toHaveAttribute("aria-valuetext", "250000%");
+    });
   }
 
   tests();

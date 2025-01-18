@@ -2,6 +2,7 @@ import {
   $,
   Fragment as Awaited,
   Fragment as Component,
+  Fragment as Projection,
   component$,
   Fragment,
   Fragment as Signal,
@@ -22,7 +23,7 @@ Error.stackTraceLimit = 100;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  // { render: domRender }, //
+  // { render: domRender }, ///
 ])('$render.name: useOn', ({ render }) => {
   it('should update value', async () => {
     const Counter = component$((props: { initial: number }) => {
@@ -648,19 +649,51 @@ describe.each([
     await trigger(document.body, 'div', 'click');
     await expect(document.querySelector('div')).toMatchDOM(<div>1</div>);
   });
-  it('useOnDocument1111', async () => {
+
+  it('issue 7230, when multiple useOnWindow are used in a component that is not rendered, it should add multiple script nodes', async () => {
     const BreakpointProvider = component$(() => {
       useOnDocument(
         'click',
-        $(async () => {})
+        $(() => {})
       );
 
       useOnWindow(
         'resize',
-        $(async () => {})
+        $(() => {})
       );
 
       useVisibleTask$(() => {});
+
+      return <Slot />;
+    });
+
+    const LayoutTest = component$(() => {
+      return (
+        <BreakpointProvider>
+          <div>test</div>
+        </BreakpointProvider>
+      );
+    });
+    const { vNode } = await render(<LayoutTest />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Component ssr-required>
+          <Projection ssr-required>
+            <div>test</div>
+            <script type="placeholder" hidden></script>
+            <script type="placeholder" hidden></script>
+            <script type="placeholder" hidden></script>
+          </Projection>
+        </Component>
+      </Component>
+    );
+  });
+  it.only('issue 7230, when useOnDocument is used in a component that is not rendered, it should add a script node', async () => {
+    const BreakpointProvider = component$(() => {
+      useOnDocument(
+        'click',
+        $(() => {})
+      );
 
       return <Slot />;
     });
@@ -672,53 +705,18 @@ describe.each([
         </BreakpointProvider>
       );
     });
-    const { document } = await render(<Layout />, { debug });
-    await expect(document.querySelector('script')).toBeTruthy();
-  });
-  it('useOnDocument1111', async () => {
-    const BreakpointProvider = component$(() => {
-      useOnDocument(
-        'click',
-        $(async () => {})
-      );
-
-      return (
-        <>
-          <Slot />
-        </>
-      );
-    });
-
-    const Layout = component$(() => {
-      return (
-        <BreakpointProvider>
-          <div>test</div>
-        </BreakpointProvider>
-      );
-    });
-    const { document } = await render(<Layout />, { debug });
-    await expect(document.querySelector('script')).toBeTruthy();
-  });
-
-  it.only('useOnDocument1111', async () => {
-    const Accordion = component$(() => {
-      const isOpen = useSignal(true);
-
-      return (
-        <div>
-          <h1 onClick$={() => (isOpen.value = !isOpen.value)}>{isOpen.value ? '▼' : '▶︎'}</h1>
-          {isOpen.value && <Slot />}
-        </div>
-      );
-    });
-    const Apptest = component$(() => {
-      useOnWindow(
-        'click',
-        $(async () => {})
-      );
-      return <Accordion>I am pre-rendered on the Server and hidden until needed.</Accordion>;
-    });
-    const { document } = await render(<Apptest />, { debug });
-    await expect(document.querySelector('script')).toBeTruthy();
+    const { vNode } = await render(<Layout />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Component ssr-required>
+          <Component ssr-required>
+            <Projection ssr-required>
+              <div ssr-required>test</div>
+            </Projection>
+            <script type="placeholder" hidden></script>
+          </Component>
+        </Component>
+      </Component>
+    );
   });
 });

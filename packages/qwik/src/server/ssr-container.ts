@@ -940,7 +940,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   private async emitUnclaimedProjection() {
     const unclaimedProjections = this.unclaimedProjections;
-    console.log('unclaimedProjections', unclaimedProjections);
     if (unclaimedProjections.length) {
       const previousCurrentComponentNode = this.currentComponentNode;
       try {

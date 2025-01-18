@@ -11,7 +11,7 @@ import {
   type Props,
 } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
-import type { JSXNode, JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
+import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
 import { trackSignalAndAssignHost } from '../use/use-core';
@@ -228,7 +228,6 @@ export const vnode_diff = (
                   // nothing to project, so try to render the Slot default content.
                   descend(jsxValue.children, true);
                 }
-                descend(jsxValue.children, false);
               } else if (type === Projection) {
                 expectProjection();
                 descend(jsxValue.children, true);

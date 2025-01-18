@@ -2,8 +2,8 @@ import { isDev } from '@qwik.dev/core/build';
 import { isQwikComponent, type OnRenderFn } from './component.public';
 import { assertDefined } from './error/assert';
 import { isQrl, type QRLInternal } from './qrl/qrl-class';
-import { JSXNodeImpl, isJSXNode, type Props } from './jsx/jsx-runtime';
-import type { JSXNodeInternal, JSXOutput } from './jsx/types/jsx-node';
+import { Fragment, JSXNodeImpl, _jsxSorted, isJSXNode, type Props } from './jsx/jsx-runtime';
+import type { FunctionComponent, JSXNodeInternal, JSXOutput } from './jsx/types/jsx-node';
 import type { KnownEventNames } from './jsx/types/jsx-qwik-events';
 import { invokeApply, newInvokeContext, untrack } from '../use/use-core';
 import { type EventQRL, type UseOnMap } from '../use/use-on';
@@ -23,6 +23,7 @@ import { logWarn } from './utils/log';
 import { EffectProperty, isSignal } from '../signal/signal';
 import { vnode_isVNode } from '../client/vnode';
 import { clearVNodeEffectDependencies } from '../signal/signal-subscriber';
+import { Slot } from '..';
 
 /**
  * Use `executeComponent` to execute a component.
@@ -101,7 +102,13 @@ export const executeComponent = (
       (jsx) => {
         const useOnEvents = container.getHostProp<UseOnMap>(renderHost, USE_ON_LOCAL);
         if (useOnEvents) {
-          return maybeThen(addUseOnEvents(jsx, useOnEvents), () => jsx);
+          let _jsx = jsx;
+          if (_jsx && (_jsx as JSXNodeInternal<FunctionComponent>).type === Slot) {
+            _jsx = _jsxSorted(Fragment, null, null, [jsx], 0, null);
+          }
+          return maybeThen(addUseOnEvents(_jsx, useOnEvents), () => {
+            return _jsx;
+          });
         }
         return jsx;
       },

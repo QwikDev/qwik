@@ -18,12 +18,12 @@ import { domRender, ssrRenderToDom } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { trigger } from '../../testing/element-fixture';
 
-const debug = true; //true;
+const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  // { render: domRender }, ///
+  { render: domRender }, ///
 ])('$render.name: useOn', ({ render }) => {
   it('should update value', async () => {
     const Counter = component$((props: { initial: number }) => {
@@ -678,17 +678,19 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <Component ssr-required>
-          <Projection ssr-required>
-            <div>test</div>
+          <Component ssr-required>
+            <Component ssr-required>
+              <div>test</div>
+            </Component>
             <script type="placeholder" hidden></script>
             <script type="placeholder" hidden></script>
             <script type="placeholder" hidden></script>
-          </Projection>
+          </Component>
         </Component>
       </Component>
     );
   });
-  it.only('issue 7230, when useOnDocument is used in a component that is not rendered, it should add a script node', async () => {
+  it('issue 7230, when useOnDocument is used in a component that is not rendered, it should add a script node', async () => {
     const BreakpointProvider = component$(() => {
       useOnDocument(
         'click',
@@ -711,7 +713,7 @@ describe.each([
         <Component ssr-required>
           <Component ssr-required>
             <Projection ssr-required>
-              <div ssr-required>test</div>
+              <div>test</div>
             </Projection>
             <script type="placeholder" hidden></script>
           </Component>

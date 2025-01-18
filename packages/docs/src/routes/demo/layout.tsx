@@ -30,7 +30,7 @@ function logQSymbols() {
       }
       console.info('QSymbol', symbol);
     });
-  function interceptLogFn(name: 'debug' | 'error' | 'info' | 'log' | 'warn') {
+  for (const name of ['debug', 'error', 'info', 'log', 'warn'] as const) {
     const delegate = console[name];
     console[name] = function (...args: any[]) {
       const li = document.createElement('li');
@@ -53,5 +53,4 @@ function logQSymbols() {
       return delegate.apply(console, args);
     };
   }
-  (['debug', 'error', 'info', 'log', 'warn'] as const).forEach(interceptLogFn);
 }

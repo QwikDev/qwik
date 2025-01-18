@@ -65,12 +65,12 @@ const TextContent_component_puSwpKXO7Kg = (props)=>{
         /*#__PURE__*/ _jsxSorted("div", null, null, [
             "data-nu: ",
             _wrapProp(props, "data-nu")
-        ], 3, null),
+        ], 1, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, [
             "class: ",
             _wrapProp(props, "class")
-        ], 3, null)
-    ], 3, "u6_0");
+        ], 1, null)
+    ], 1, "u6_0");
 };
 export const TextContent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(TextContent_component_puSwpKXO7Kg, "TextContent_component_puSwpKXO7Kg"));
 const App_component_ckEPmXZlub0 = ()=>{

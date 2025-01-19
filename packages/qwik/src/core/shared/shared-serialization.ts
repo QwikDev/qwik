@@ -568,7 +568,7 @@ export function parseQRL(qrl: string): QRLInternal<any> {
     assertDefined(backChannel, 'Missing QRL_RUNTIME_CHUNK');
     qrlRef = backChannel.get(symbol);
   }
-  return createQRL(chunk, symbol, qrlRef, null, captureIds, null, null);
+  return createQRL(chunk, symbol, qrlRef, null, captureIds, null);
 }
 
 export function inflateQRL(container: DeserializeContainer, qrl: QRLInternal<any>) {
@@ -1316,15 +1316,12 @@ export function qrlToString(
   let symbol = value.$symbol$;
   let chunk = value.$chunk$;
 
-  const refSymbol = value.$refSymbol$ ?? symbol;
   const platform = getPlatform();
   if (platform) {
-    const result = platform.chunkForSymbol(refSymbol, chunk, value.dev?.file);
+    const result = platform.chunkForSymbol(symbol, chunk, value.dev?.file);
     if (result) {
       chunk = result[1];
-      if (!value.$refSymbol$) {
-        symbol = result[0];
-      }
+      symbol = result[0];
     }
   }
 

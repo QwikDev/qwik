@@ -85,7 +85,7 @@ export const qrl = <T = any>(
   }
 
   // Unwrap subscribers
-  return createQRL<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture, null);
+  return createQRL<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture);
 };
 
 /** @internal */
@@ -95,7 +95,7 @@ export const inlinedQrl = <T>(
   lexicalScopeCapture: any[] = EMPTY_ARRAY
 ): QRL<T> => {
   // Unwrap subscribers
-  return createQRL<T>(null, symbolName, symbol, null, null, lexicalScopeCapture, null);
+  return createQRL<T>(null, symbolName, symbol, null, null, lexicalScopeCapture);
 };
 
 /** @internal */
@@ -103,7 +103,7 @@ export const _noopQrl = <T>(
   symbolName: string,
   lexicalScopeCapture: any[] = EMPTY_ARRAY
 ): QRL<T> => {
-  return createQRL<T>(null, symbolName, null, null, null, lexicalScopeCapture, null);
+  return createQRL<T>(null, symbolName, null, null, null, lexicalScopeCapture);
 };
 
 /** @internal */

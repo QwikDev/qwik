@@ -445,6 +445,7 @@ export const serverQrl = <T extends ServerFunction>(
           headers: {
             ...headers,
             'Content-Type': 'application/qwik-json',
+            Accept: 'application/json, application/qwik-json, text/qwik-json-stream, text/plain',
             // Required so we don't call accidentally
             'X-QRL': qrlHash,
           },

@@ -74,7 +74,7 @@ async function runNext(requestEv: RequestEventInternal, resolve: (value: any) =>
       if (!requestEv.headersSent) {
         const status = e.status as StatusCodes;
         const accept = requestEv.request.headers.get('Accept');
-        if (accept === '*/*') {
+        if (accept && !accept.includes('text/html')) {
           const qwikSerializer = requestEv[RequestEvQwikSerializer];
           requestEv.headers.set('Content-Type', 'application/qwik-json');
           requestEv.send(status, await qwikSerializer._serializeData(e.data, true));

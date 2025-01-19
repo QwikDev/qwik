@@ -68,6 +68,7 @@ export type QRLInternalMethods<TYPE> = {
 
 export type QRLInternal<TYPE = unknown> = QRL<TYPE> & QRLInternalMethods<TYPE>;
 
+// TODO remove refSymbol, it's not used
 export const createQRL = <TYPE>(
   chunk: string | null,
   symbol: string,

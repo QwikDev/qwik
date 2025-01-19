@@ -2,6 +2,10 @@ import type { OutputBundle } from 'rollup';
 import { type NormalizedQwikPluginOptions } from './plugins/plugin';
 import type { GlobalInjections, SegmentAnalysis, Path, QwikBundle, QwikManifest } from './types';
 
+// The handlers that are exported by the core package
+// See handlers.mjs
+const extraSymbols = new Set(['_task']);
+
 // This is just the initial prioritization of the symbols and entries
 // at build time so there's less work during each SSR. However, SSR should
 // still further optimize the priorities depending on the user/document.
@@ -270,7 +274,13 @@ export function generateManifestFromBundles(
     return canonPath(bundle.fileName);
   };
   // We need to find our QRL exports
-  const qrlNames = new Set([...segments.map((h) => h.name)]);
+  const qrlNames = new Set(segments.map((h) => h.name));
+  for (const symbol of extraSymbols) {
+    qrlNames.add(symbol);
+  }
+  const taskNames = new Set(
+    segments.filter((h) => /use[a-zA-Z]*Task(_\d+)?$/.test(h.displayName)).map((h) => h.name)
+  );
   for (const outputBundle of Object.values(outputBundles)) {
     if (outputBundle.type !== 'chunk') {
       continue;
@@ -281,25 +291,18 @@ export function generateManifestFromBundles(
       size: outputBundle.code.length,
     };
 
-    let hasSymbols = false;
-    let hasHW = false;
     for (const symbol of outputBundle.exports) {
       if (qrlNames.has(symbol)) {
         // When not minifying we see both the entry and the segment file
         // The segment file will only have 1 export, we want the entry
         if (!manifest.mapping[symbol] || outputBundle.exports.length !== 1) {
-          hasSymbols = true;
+          if (taskNames.has(symbol)) {
+            bundle.isTask = true;
+          }
           manifest.mapping[symbol] = bundleFileName;
         }
       }
-      if (symbol === '_hW') {
-        hasHW = true;
-      }
     }
-    if (hasSymbols && hasHW) {
-      bundle.isTask = true;
-    }
-
     const bundleImports = outputBundle.imports
       // Tree shaking might remove imports
       .filter((i) => outputBundle.code.includes(path.basename(i)))
@@ -347,6 +350,19 @@ export function generateManifestFromBundles(
       captures: segment.captures,
       parent: segment.parent,
       loc: segment.loc,
+    };
+  }
+  for (const symbol of extraSymbols) {
+    manifest.symbols[symbol] = {
+      origin: 'Qwik core',
+      displayName: symbol,
+      canonicalFilename: '',
+      hash: symbol,
+      ctxKind: 'function',
+      ctxName: symbol,
+      captures: false,
+      parent: null,
+      loc: [0, 0],
     };
   }
   // To inspect the bundles, uncomment the following lines

@@ -766,7 +766,12 @@ export const vnode_diff = (
           let returnValue = false;
           qrls.flat(2).forEach((qrl) => {
             if (qrl) {
-              const value = qrl(event, element) as any;
+              const value = container.$scheduler$(
+                ChoreType.RUN_QRL,
+                null,
+                qrl as QRLInternal<(...args: unknown[]) => unknown>,
+                [event, element]
+              ) as unknown;
               returnValue = returnValue || value === true;
             }
           });

@@ -808,6 +808,9 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 export const _restProps: (props: PropsProxy, omit: string[], target?: Props) => Props;
 
 // @internal
+export const _run: (...args: unknown[]) => ValueOrPromise<void>;
+
+// @internal
 export function _serialize(data: unknown[]): Promise<string>;
 
 // @public

@@ -41,6 +41,9 @@ import type {
   ValidatorConstructor,
   ValidatorConstructorQRL,
   ValidatorReturn,
+  StandardSchemaConstructor,
+  StandardSchemaConstructorQRL,
+  StandardSchemaDataValidator,
   ValibotConstructor,
   ValibotConstructorQRL,
   ValibotDataValidator,
@@ -53,6 +56,7 @@ import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 import { isDev, isServer } from '@builder.io/qwik';
 
 import type { FormSubmitCompletedDetail } from './form-component';
+import type { StandardSchemaV1 } from '@standard-schema/spec';
 
 /** @public */
 export const routeActionQrl = ((
@@ -228,6 +232,50 @@ export const validatorQrl = ((
 
 /** @public */
 export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
+
+/** @alpha */
+export const schemaQrl: StandardSchemaConstructorQRL = (
+  qrl: QRL<StandardSchemaV1 | ((ev: RequestEvent) => StandardSchemaV1)>
+): StandardSchemaDataValidator => {
+  if (!__EXPERIMENTAL__['standard-schema']) {
+    throw new Error(
+      'Standard Schema is an experimental feature and is not enabled. Please enable the feature flag by adding `experimental: ["standard-schema"]` to your qwikVite plugin options.'
+    );
+  }
+  if (isServer) {
+    return {
+      __brand: 'standard-schema',
+      async validate(ev, inputData) {
+        const schema: StandardSchemaV1 = await qrl
+          .resolve()
+          .then((obj) => (typeof obj === 'function' ? obj(ev) : obj));
+        const data = inputData ?? (await ev.parseBody());
+        const result = await schema['~standard'].validate(data);
+        if (!result.issues) {
+          return {
+            success: true,
+            data: result.value,
+          };
+        } else {
+          if (isDev) {
+            console.error('ERROR: Standard Schema validation failed', result.issues);
+          }
+          return {
+            success: false,
+            status: 400,
+            error: {
+              // TODO: Return errors in a standard format
+            },
+          };
+        }
+      },
+    };
+  }
+  return undefined as never;
+};
+
+/** @alpha */
+export const schema$: StandardSchemaConstructor = /*#__PURE__*/ implicit$FirstArg(schemaQrl);
 
 const flattenValibotIssues = (issues: v.GenericIssue[]) => {
   return issues.reduce<Record<string, string | string[]>>((acc, issue) => {

@@ -602,6 +602,9 @@ importers:
       '@mdx-js/mdx':
         specifier: ^3
         version: 3.0.1
+      '@standard-schema/spec':
+        specifier: 1.0.0-rc.0
+        version: 1.0.0-rc.0
       '@types/mdx':
         specifier: ^2
         version: 2.0.13
@@ -3291,6 +3294,9 @@ packages:
   '@sindresorhus/transliterate@1.6.0':
     resolution: {integrity: sha512-doH1gimEu3A46VX6aVxpHTeHrytJAG6HgdxntYnCFiIFHEM/ZGpG8KiZGBChchjQmG0XFIBL552kBTjVcMZXwQ==}
     engines: {node: '>=12'}
+
+  '@standard-schema/spec@1.0.0-rc.0':
+    resolution: {integrity: sha512-DcY/ICFcZIESNTLTexIT108HOqd1FtxsiLV4ZYGluySWyjF6TZ6troNyXjiqoHU6j0wN3A6SmYnTA5CHQp9blw==}
 
   '@supabase/auth-helpers-shared@0.6.3':
     resolution: {integrity: sha512-xYQRLFeFkL4ZfwC7p9VKcarshj3FB2QJMgJPydvOY7J5czJe6xSG5/wM1z63RmAzGbCkKg+dzpq61oeSyWiGBQ==}
@@ -12370,6 +12376,8 @@ snapshots:
   '@sindresorhus/transliterate@1.6.0':
     dependencies:
       escape-string-regexp: 5.0.0
+
+  '@standard-schema/spec@1.0.0-rc.0': {}
 
   '@supabase/auth-helpers-shared@0.6.3(@supabase/supabase-js@2.44.4)':
     dependencies:

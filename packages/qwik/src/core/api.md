@@ -316,9 +316,6 @@ function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}
 export { h as createElement }
 export { h }
 
-// @internal
-export const _hW: () => void;
-
 // @internal @deprecated (undocumented)
 export const _IMMUTABLE: unique symbol;
 
@@ -998,6 +995,9 @@ export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE> {
     // (undocumented)
     resolved: TYPE;
 }
+
+// @internal
+export const _task: () => void;
 
 // @public (undocumented)
 export interface TaskCtx {

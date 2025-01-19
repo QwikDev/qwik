@@ -190,6 +190,7 @@ const inflate = (
   switch (typeId) {
     case TypeIds.Object:
       // We use getters for making complex values lazy
+      // TODO scan the data for computeQRLs and schedule resolve chores
       for (let i = 0; i < (data as any[]).length; i += 4) {
         const key = deserializeData(
           container,

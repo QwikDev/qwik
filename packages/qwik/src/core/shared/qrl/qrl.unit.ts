@@ -108,35 +108,29 @@ describe('serialization', () => {
       new WeakMap<any, any>()
     );
     assert.equal(
-      qrlToString(serializationContext, createQRL('./chunk', '', null, null, null, null, null)),
+      qrlToString(serializationContext, createQRL('./chunk', '', null, null, null, null)),
       'chunk#'
     );
     assert.equal(
-      qrlToString(serializationContext, createQRL('./c', 's1', null, null, null, null, null)),
+      qrlToString(serializationContext, createQRL('./c', 's1', null, null, null, null)),
       'c#s1'
     );
     assert.equal(
-      qrlToString(serializationContext, createQRL('./c', 's1', null, null, [], null, null)),
+      qrlToString(serializationContext, createQRL('./c', 's1', null, null, [], null)),
       'c#s1'
     );
     assert.equal(
-      qrlToString(
-        serializationContext,
-        createQRL('./c', 's1', null, null, [1, '2'] as any, null, null)
-      ),
+      qrlToString(serializationContext, createQRL('./c', 's1', null, null, [1, '2'] as any, null)),
+      'c#s1[1 2]'
+    );
+    assert.equal(
+      qrlToString(serializationContext, createQRL('c', 's1', null, null, [1 as any, '2'], null)),
       'c#s1[1 2]'
     );
     assert.equal(
       qrlToString(
         serializationContext,
-        createQRL('c', 's1', null, null, [1 as any, '2'], null, null)
-      ),
-      'c#s1[1 2]'
-    );
-    assert.equal(
-      qrlToString(
-        serializationContext,
-        createQRL('src/routes/[...index]/a+b/c?foo', 's1', null, null, [1 as any, '2'], null, null)
+        createQRL('src/routes/[...index]/a+b/c?foo', 's1', null, null, [1 as any, '2'], null)
       ),
       'src/routes/[...index]/a+b/c?foo#s1[1 2]'
     );
@@ -174,7 +168,7 @@ describe('serialization', () => {
 
 describe('createQRL', () => {
   test('should create QRL', () => {
-    const q = createQRL('chunk', 'symbol', 'resolved', null, null, null, null);
+    const q = createQRL('chunk', 'symbol', 'resolved', null, null, null);
     matchProps(q, {
       $chunk$: 'chunk',
       $symbol$: 'symbol',
@@ -182,11 +176,11 @@ describe('createQRL', () => {
     });
   });
   test('should have .resolved: given scalar', async () => {
-    const q = createQRL('chunk', 'symbol', 'resolved', null, null, null, null);
+    const q = createQRL('chunk', 'symbol', 'resolved', null, null, null);
     assert.equal(q.resolved, 'resolved');
   });
   test('should have .resolved: given promise for scalar', async () => {
-    const q = createQRL('chunk', 'symbol', Promise.resolve('resolved'), null, null, null, null);
+    const q = createQRL('chunk', 'symbol', Promise.resolve('resolved'), null, null, null);
     assert.equal(q.resolved, undefined);
     assert.equal(await q.resolve(), 'resolved');
     assert.equal(q.resolved, 'resolved');
@@ -198,7 +192,6 @@ describe('createQRL', () => {
       null,
       () => Promise.resolve({ symbol: 'resolved' }),
       null,
-      null,
       null
     );
     assert.equal(q.resolved, undefined);
@@ -208,25 +201,17 @@ describe('createQRL', () => {
 
   const fn = () => 'hi';
   test('should have .resolved: given function without captures', async () => {
-    const q = createQRL('chunk', 'symbol', fn, null, null, null, null);
+    const q = createQRL('chunk', 'symbol', fn, null, null, null);
     assert.equal(q.resolved, fn);
   });
   test('should have .resolved: given promise for function without captures', async () => {
-    const q = createQRL('chunk', 'symbol', Promise.resolve(fn), null, null, null, null);
+    const q = createQRL('chunk', 'symbol', Promise.resolve(fn), null, null, null);
     assert.equal(q.resolved, undefined);
     assert.equal(await q.resolve(), fn);
     assert.equal(q.resolved, fn);
   });
   test('should have .resolved: promise for function without captures', async () => {
-    const q = createQRL(
-      'chunk',
-      'symbol',
-      null,
-      () => Promise.resolve({ symbol: fn }),
-      null,
-      null,
-      null
-    );
+    const q = createQRL('chunk', 'symbol', null, () => Promise.resolve({ symbol: fn }), null, null);
     assert.equal(q.resolved, undefined);
     assert.equal(await q.resolve(), fn);
     assert.equal(q.resolved, fn);
@@ -234,13 +219,13 @@ describe('createQRL', () => {
 
   const capFn = () => useLexicalScope();
   test('should have .resolved: given function with captures', async () => {
-    const q = createQRL('chunk', 'symbol', capFn, null, null, ['hi'], null);
+    const q = createQRL('chunk', 'symbol', capFn, null, null, ['hi']);
     assert.isDefined(q.resolved);
     assert.notEqual(q.resolved, capFn);
     assert.deepEqual(q.resolved!(), ['hi']);
   });
   test('should have .resolved: given promise for function with captures', async () => {
-    const q = createQRL('chunk', 'symbol', Promise.resolve(capFn), null, null, ['hi'], null);
+    const q = createQRL('chunk', 'symbol', Promise.resolve(capFn), null, null, ['hi']);
     assert.equal(q.resolved, undefined);
     assert.deepEqual(await q(), ['hi']);
     assert.notEqual(q.resolved, capFn);
@@ -253,8 +238,7 @@ describe('createQRL', () => {
       null,
       () => Promise.resolve({ symbol: capFn }),
       null,
-      ['hi'],
-      null
+      ['hi']
     );
     assert.equal(q.resolved, undefined);
     assert.deepEqual(await q(), ['hi']);

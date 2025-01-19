@@ -275,15 +275,9 @@ export const useRunTask = (
 };
 
 const getTaskHandlerQrl = (task: Task): QRL<(ev: Event) => void> => {
-  const taskHandler = createQRL<(ev: Event) => void>(
-    null,
-    '_task',
-    scheduleTask,
-    null,
-    null,
-    [task],
-    null
-  );
+  const taskHandler = createQRL<(ev: Event) => void>(null, '_task', scheduleTask, null, null, [
+    task,
+  ]);
   return taskHandler;
 };
 

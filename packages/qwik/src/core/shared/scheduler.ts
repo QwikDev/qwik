@@ -122,18 +122,24 @@ export const enum ChoreType {
   /* order of elements (not encoded here) */
   MICRO /* **************************** */ = 0b0000_1111,
 
-  /** Ensure tha the QRL promise is resolved before processing next chores in the queue */
+  /** Ensure that the QRL promise is resolved before processing next chores in the queue */
   QRL_RESOLVE /* ********************** */ = 0b0000_0001,
-  RESOURCE /* ************************* */ = 0b0000_0010,
-  TASK /* ***************************** */ = 0b0000_0011,
-  NODE_DIFF /* ************************ */ = 0b0000_0100,
-  NODE_PROP /* ************************ */ = 0b0000_0101,
-  COMPONENT_SSR /* ******************** */ = 0b0000_0110,
-  COMPONENT /* ************************ */ = 0b0000_0111,
-  RECOMPUTE_AND_SCHEDULE_EFFECTS /* *** */ = 0b0000_1000,
+  RUN_QRL,
+  RESOURCE,
+  TASK,
+  NODE_DIFF,
+  NODE_PROP,
+  COMPONENT_SSR,
+  COMPONENT,
+  RECOMPUTE_AND_SCHEDULE_EFFECTS,
+
+  // Next macro level
   JOURNAL_FLUSH /* ******************** */ = 0b0001_0000,
+  // Next macro level
   VISIBLE /* ************************** */ = 0b0010_0000,
+  // Next macro level
   CLEANUP_VISIBLE /* ****************** */ = 0b0011_0000,
+  // Next macro level
   WAIT_FOR_ALL /* ********************* */ = 0b1111_1111,
 }
 
@@ -203,6 +209,12 @@ export const createScheduler = (
     task: Task
   ): ValueOrPromise<void>;
   function schedule(
+    type: ChoreType.RUN_QRL,
+    ignore: null,
+    target: QRLInternal<(...args: unknown[]) => unknown>,
+    args: unknown[]
+  ): ValueOrPromise<void>;
+  function schedule(
     type: ChoreType.COMPONENT,
     host: HostElement,
     qrl: QRLInternal<OnRenderFn<unknown>>,
@@ -234,7 +246,10 @@ export const createScheduler = (
     targetOrQrl: ChoreTarget | string | null = null,
     payload: any = null
   ): ValueOrPromise<any> {
-    const runLater: boolean = type !== ChoreType.WAIT_FOR_ALL && type !== ChoreType.COMPONENT_SSR;
+    const runLater: boolean =
+      type !== ChoreType.WAIT_FOR_ALL &&
+      type !== ChoreType.COMPONENT_SSR &&
+      type !== ChoreType.RUN_QRL;
     const isTask =
       type === ChoreType.TASK ||
       type === ChoreType.VISIBLE ||
@@ -289,14 +304,18 @@ export const createScheduler = (
       return runUptoChore.$promise$;
     }
     while (choreQueue.length) {
-      const nextChore = choreQueue.shift()!;
+      const nextChore = choreQueue[0];
       const order = choreComparator(nextChore, runUptoChore, rootVNode);
-      if (order === null) {
-        continue;
-      }
-      if (order > 0) {
+      if (order !== null && order > 0) {
         // we have processed all of the chores up to and including the given chore.
         break;
+      }
+      // We can take the chore out of the queue
+      choreQueue.shift();
+      if (order === null) {
+        // There was an error with the chore.
+        DEBUG && debugTrace('skip chore', nextChore, currentChore, choreQueue);
+        continue;
       }
       const isDeletedVNode = vNodeAlreadyDeleted(nextChore);
       if (
@@ -364,6 +383,12 @@ export const createScheduler = (
         const result = runResource(chore.$payload$ as ResourceDescriptor<TaskFn>, container, host);
         returnValue = isDomContainer(container) ? null : result;
         break;
+      case ChoreType.RUN_QRL:
+        {
+          const fn = (chore.$target$ as QRLInternal<(...args: unknown[]) => unknown>).getFn();
+          returnValue = fn(...(chore.$payload$ as unknown[]));
+        }
+        break;
       case ChoreType.TASK:
         returnValue = runTask(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
         break;
@@ -423,11 +448,11 @@ export const createScheduler = (
       }
     }
     return maybeThenPassError(returnValue, (value) => {
-      DEBUG && debugTrace('execute.DONE', null, currentChore, choreQueue);
       if (currentChore) {
         currentChore.$executed$ = true;
         currentChore.$resolve$?.(value);
       }
+      DEBUG && debugTrace('execute.DONE', null, currentChore, choreQueue);
       currentChore = null;
       return (chore.$returnValue$ = value);
     });
@@ -476,7 +501,6 @@ function choreComparator(a: Chore, b: Chore, rootVNode: ElementVNode | null): nu
     const aHost = a.$host$;
     const bHost = b.$host$;
 
-    // QRL_RESOLVE does not have a host.
     if (aHost !== bHost && aHost !== null && bHost !== null) {
       if (vnode_isVNode(aHost) && vnode_isVNode(bHost)) {
         // we are running on the client.
@@ -511,13 +535,13 @@ function choreComparator(a: Chore, b: Chore, rootVNode: ElementVNode | null): nu
       return idxDiff;
     }
 
-    // If the host is the same, we need to compare the target.
+    // If the host is the same (or missing), and the type is the same,  we need to compare the target.
     if (
       a.$target$ !== b.$target$ &&
-      ((a.$type$ === ChoreType.QRL_RESOLVE && b.$type$ === ChoreType.QRL_RESOLVE) ||
-        (a.$type$ === ChoreType.NODE_PROP && b.$type$ === ChoreType.NODE_PROP) ||
-        (a.$type$ === ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS &&
-          b.$type$ === ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS))
+      (a.$type$ === ChoreType.QRL_RESOLVE ||
+        a.$type$ === ChoreType.RUN_QRL ||
+        a.$type$ === ChoreType.NODE_PROP ||
+        a.$type$ === ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS)
     ) {
       // 1 means that we are going to process chores as FIFO
       return 1;
@@ -571,6 +595,7 @@ function debugChoreToString(chore: Chore): string {
     (
       {
         [ChoreType.QRL_RESOLVE]: 'QRL_RESOLVE',
+        [ChoreType.RUN_QRL]: 'RUN_QRL',
         [ChoreType.RESOURCE]: 'RESOURCE',
         [ChoreType.TASK]: 'TASK',
         [ChoreType.NODE_DIFF]: 'NODE_DIFF',
@@ -586,7 +611,7 @@ function debugChoreToString(chore: Chore): string {
     )[chore.$type$] || 'UNKNOWN: ' + chore.$type$;
   const host = String(chore.$host$).replaceAll(/\n.*/gim, '');
   const qrlTarget = (chore.$target$ as QRLInternal<any>)?.$symbol$;
-  return `Chore(${type} ${chore.$type$ === ChoreType.QRL_RESOLVE ? qrlTarget : host} ${chore.$idx$})`;
+  return `Chore(${type} ${chore.$type$ === ChoreType.QRL_RESOLVE || chore.$type$ === ChoreType.RUN_QRL ? qrlTarget : host} ${chore.$idx$})`;
 }
 
 function debugTrace(
@@ -603,7 +628,9 @@ function debugTrace(
     );
   }
   if (currentChore) {
-    lines.push('running: ' + debugChoreToString(currentChore));
+    lines.push(
+      `${currentChore.$executed$ ? '   done' : 'running'}: ` + debugChoreToString(currentChore)
+    );
   }
   if (queue) {
     queue.forEach((chore, idx) => {

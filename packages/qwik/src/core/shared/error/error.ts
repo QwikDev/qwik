@@ -6,7 +6,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
     // Keep one error, one line to make it easier to search for the error message.
     const MAP = [
       'Error while serializing class or style attributes', // 0
-      '', // 1 unused
+      'Scheduler not found', // 1
       '', // 2 unused
       'Only primitive and object literals can be serialized. {{0}}', // 3
       '', // 4 unused
@@ -76,7 +76,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
 
 export const enum QError {
   stringifyClassOrStyle = 0,
-  UNUSED_1 = 1,
+  schedulerNotFound = 1,
   UNUSED_2 = 2,
   verifySerializable = 3,
   UNUSED_4 = 4,

@@ -1,6 +1,7 @@
 export { _noopQrl, _noopQrlDEV, _regSymbol } from './shared/qrl/qrl';
 export { _walkJSX } from './ssr/ssr-render-jsx';
 export { _SharedContainer } from './shared/shared-container';
+export { queueQRL as _run } from './client/queue-qrl';
 export { scheduleTask as _task } from './use/use-task';
 export { _wrapSignal, _wrapProp } from './signal/signal-utils';
 export { _restProps } from './shared/utils/prop';

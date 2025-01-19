@@ -253,7 +253,7 @@ export const $ = <T>(expression: T): QRL<T> => {
     );
   }
 
-  return createQRL<T>(null, 's' + runtimeSymbolId++, expression, null, null, null, null);
+  return createQRL<T>(null, 's' + runtimeSymbolId++, expression, null, null, null);
 };
 /** @private Use To avoid optimizer replacement */
 export const dollar = $;
@@ -302,7 +302,7 @@ export const sync$ = <T extends Function>(fn: T): SyncQRL<T> => {
     fn = new Function('return ' + fn.toString())() as any;
   }
 
-  return createQRL<T>('', SYNC_QRL, fn, null, null, null, null) as any;
+  return createQRL<T>('', SYNC_QRL, fn, null, null, null) as any;
 };
 
 /**
@@ -323,5 +323,5 @@ export const _qrlSync = function <TYPE extends Function>(
     serializedFn = fn.toString();
   }
   (fn as any).serialized = serializedFn;
-  return createQRL<TYPE>('', SYNC_QRL, fn, null, null, null, null) as any;
+  return createQRL<TYPE>('', SYNC_QRL, fn, null, null, null) as any;
 };

@@ -1,9 +1,9 @@
 // keep this import from qwik/build so the cjs build works
 import { isDev } from '@builder.io/qwik/build';
-import { _jsxC } from '../internal';
 import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
-import { useServerData } from '../use/use-env-data';
+import { _jsxC } from '../internal';
 import type { JSXOutput } from '../render/jsx/types/jsx-node';
+import { useServerData } from '../use/use-env-data';
 
 /**
  * Install a service worker which will prefetch the bundles.
@@ -71,8 +71,8 @@ export const PrefetchServiceWorker = (opts: {
       [
         JSON.stringify(resolvedOpts.base),
         JSON.stringify(resolvedOpts.manifestHash),
-        'navigator.serviceWorker',
-        'window.qwikPrefetchSW||(window.qwikPrefetchSW=[])',
+        'navigator.serviceWorker', // Service worker container
+        'window.qwikPrefetchSW||(window.qwikPrefetchSW=[])', // Queue of messages to send to the service worker.
         resolvedOpts.verbose,
       ].join(','),
       ');',

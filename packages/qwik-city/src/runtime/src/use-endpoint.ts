@@ -1,8 +1,8 @@
-import { getClientDataPath } from './utils';
-import { CLIENT_DATA_CACHE } from './constants';
-import type { ClientPageData, RouteActionValue } from './types';
 import { _deserializeData } from '@builder.io/qwik';
 import { prefetchSymbols } from './client-navigate';
+import { CLIENT_DATA_CACHE } from './constants';
+import type { ClientPageData, RouteActionValue } from './types';
+import { getClientDataPath } from './utils';
 
 export const loadClientData = async (
   url: URL,
@@ -12,6 +12,7 @@ export const loadClientData = async (
     clearCache?: boolean;
     prefetchSymbols?: boolean;
     isPrefetch?: boolean;
+    base?: string;
   }
 ) => {
   const pagePathname = url.pathname;
@@ -23,7 +24,7 @@ export const loadClientData = async (
   }
 
   if (opts?.prefetchSymbols !== false) {
-    prefetchSymbols(pagePathname);
+    prefetchSymbols(pagePathname, opts?.base);
   }
   let resolveFn: () => void | undefined;
 

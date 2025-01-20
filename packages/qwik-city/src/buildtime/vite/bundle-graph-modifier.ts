@@ -1,4 +1,4 @@
-import type { QwikBundleGraph, QwikManifest } from '@builder.io/qwik/optimizer';
+import type { QwikBundle, QwikBundleGraph, QwikManifest } from '@builder.io/qwik/optimizer';
 import { removeExtension } from '../../utils/fs';
 import type { BuildRoute } from '../types';
 
@@ -7,7 +7,10 @@ export function modifyBundleGraph(
   originalGraph: QwikBundleGraph,
   manifest: QwikManifest
 ) {
-  const graph = [...originalGraph, -2];
+  const ROUTES_SEPARATOR = -2;
+
+  const graph = [...originalGraph, ROUTES_SEPARATOR];
+
   routes.forEach((route) => {
     const routePath = removeExtension(route.filePath);
     const layoutPaths = route.layouts
@@ -18,16 +21,23 @@ export function modifyBundleGraph(
     graph.push(route.routeName);
 
     for (const [bundleName, bundle] of Object.entries(manifest.bundles)) {
-      if (!bundle.origins) {
-        continue;
-      }
-      for (const bundleOrigin of bundle.origins) {
-        const originPath = removeExtension(bundleOrigin);
-        if (routeAndLayoutPaths.some((path) => path.endsWith(originPath))) {
+      if (isBundlePartOfRoute(bundle, routeAndLayoutPaths)) {
+        const bundleIndex = originalGraph.indexOf(bundleName);
+        if (bundleIndex !== -1) {
           graph.push(originalGraph.indexOf(bundleName));
         }
       }
     }
   });
   return graph;
+}
+
+function isBundlePartOfRoute(bundle: QwikBundle, routeAndLayoutPaths: string[]) {
+  if (!bundle.origins) {
+    return false;
+  }
+  for (const bundleOrigin of bundle.origins) {
+    const originPath = removeExtension(bundleOrigin);
+    return routeAndLayoutPaths.some((path) => path.endsWith(originPath));
+  }
 }

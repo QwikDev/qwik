@@ -1,22 +1,25 @@
 import {
   $,
+  Slot,
+  _getContextElement,
+  _waitUntilRendered,
+  _weakSerialize,
   component$,
   getLocale,
+  isBrowser,
+  isDev,
+  isServer,
   noSerialize,
-  Slot,
   useContextProvider,
   useServerData,
   useSignal,
   useStore,
-  useTask$,
-  _getContextElement,
-  _weakSerialize,
   useStyles$,
-  _waitUntilRendered,
+  useTask$,
   type QRL,
 } from '@builder.io/qwik';
-import { isBrowser, isDev, isServer } from '@builder.io/qwik';
 import * as qwikCity from '@qwik-city-plan';
+import { clientNavigate } from './client-navigate';
 import { CLIENT_DATA_CACHE } from './constants';
 import {
   ContentContext,
@@ -31,6 +34,13 @@ import {
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
 import { loadRoute } from './routing';
+import {
+  currentScrollState,
+  getScrollHistory,
+  restoreScroll,
+  saveScrollHistory,
+} from './scroll-restoration';
+import spaInit from './spa-init';
 import type {
   ClientPageData,
   ContentModule,
@@ -51,14 +61,6 @@ import type {
 import { loadClientData } from './use-endpoint';
 import { useQwikCityEnv } from './use-functions';
 import { isSameOrigin, isSamePath, toUrl } from './utils';
-import { clientNavigate } from './client-navigate';
-import {
-  currentScrollState,
-  getScrollHistory,
-  saveScrollHistory,
-  restoreScroll,
-} from './scroll-restoration';
-import spaInit from './spa-init';
 
 /** @public */
 export const QWIK_CITY_SCROLLER = '_qCityScroller';
@@ -86,7 +88,7 @@ export interface QwikCityProps {
    *
    * @see https://github.com/WICG/view-transitions/blob/main/explainer.md
    * @see https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API
-   * @see https://caniuse.com/mdn-api_viewtransition
+   * @see https://caniuse.com/mdn_api_viewtransition
    */
   viewTransition?: boolean;
 }
@@ -112,6 +114,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   }
 
   const urlEnv = useServerData<string>('url');
+  const containerAttributes = useServerData<Record<string, string>>('containerAttributes', {});
   if (!urlEnv) {
     throw new Error(`Missing Qwik URL Env Data`);
   }
@@ -275,7 +278,10 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
     routeInternal.value = { type, dest, forceReload, replaceState, scroll };
 
     if (isBrowser) {
-      loadClientData(dest, _getContextElement());
+      loadClientData(dest, _getContextElement(), {
+        prefetchSymbols: true,
+        base: containerAttributes['q:base'],
+      });
       loadRoute(qwikCity.routes, qwikCity.menus, qwikCity.cacheModules, dest.pathname);
     }
 

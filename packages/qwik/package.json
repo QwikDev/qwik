@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/core",
   "description": "An open source framework for building instant loading web apps at any scale, without the extra effort.",
-  "version": "2.0.0-alpha.5",
+  "version": "2.0.0-alpha.6",
   "author": "Qwik Team",
   "bin": {
     "qwik": "./qwik-cli.cjs"

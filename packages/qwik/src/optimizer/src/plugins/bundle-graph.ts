@@ -34,17 +34,17 @@ export function convertManifestToBundleGraph(
       }
       clearTransitiveDeps(deps, new Set(), depName, manifestGraph);
     }
-    let didAdd = false;
+    let didAddSeparator = false;
     for (const depName of bundle.dynamicImports || []) {
       // If we dynamically import a qrl segment that is not a handler, we'll probably need it soon
-      // const dep = graph[depName];
+
       if (!manifestGraph[depName]) {
         // external dependency
         continue;
       }
-      if (!didAdd) {
+      if (!didAddSeparator) {
         deps.add('<dynamic>');
-        didAdd = true;
+        didAddSeparator = true;
       }
       deps.add(depName);
     }
@@ -52,28 +52,6 @@ export function convertManifestToBundleGraph(
     bundleGraph.push(bundleName);
     while (index + deps.size >= bundleGraph.length) {
       bundleGraph.push(null!);
-    }
-  }
-
-  function clearTransitiveDeps(
-    parentDeps: Set<string>,
-    seen: Set<string>,
-    bundleName: string,
-    graph: QwikManifest['bundles']
-  ) {
-    const bundle = graph[bundleName];
-    if (!bundle) {
-      // external dependency
-      return;
-    }
-    for (const dep of bundle.imports || []) {
-      if (parentDeps.has(dep)) {
-        parentDeps.delete(dep);
-      }
-      if (!seen.has(dep)) {
-        seen.add(dep);
-        clearTransitiveDeps(parentDeps, seen, dep, graph);
-      }
     }
   }
 
@@ -108,4 +86,26 @@ export function convertManifestToBundleGraph(
   }
 
   return bundleGraph;
+}
+
+function clearTransitiveDeps(
+  parentDeps: Set<string>,
+  seen: Set<string>,
+  bundleName: string,
+  graph: QwikManifest['bundles']
+) {
+  const bundle = graph[bundleName];
+  if (!bundle) {
+    // external dependency
+    return;
+  }
+  for (const dep of bundle.imports || []) {
+    if (parentDeps.has(dep)) {
+      parentDeps.delete(dep);
+    }
+    if (!seen.has(dep)) {
+      seen.add(dep);
+      clearTransitiveDeps(parentDeps, seen, dep, graph);
+    }
+  }
 }

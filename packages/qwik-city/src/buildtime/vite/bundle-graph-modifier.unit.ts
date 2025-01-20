@@ -78,4 +78,41 @@ describe('modifyBundleGraph', () => {
 
     expect(actualResult).toEqual(expectedResult);
   });
+
+  test(`GIVEN a mismatch between the bundle graph and the manifest
+        THEN the resulted bundle graph routes should not contain -1 (not found) indices `, () => {
+    const fakeManifest = {
+      bundles: {
+        'fake-bundle1.js': {
+          size: 0,
+          origins: ['src/routes/index.tsx'],
+        },
+        // 👇 doesn't exist in the bundle graph for some reason
+        'fake-bundle2.js': {
+          size: 0,
+          origins: ['src/routes/index.tsx'],
+        },
+      } as Record<string, QwikBundle>,
+    } as QwikManifest;
+
+    const fakeBundleGraph: QwikBundleGraph = ['fake-bundle1.js'];
+
+    const fakeRoutes: BuildRoute[] = [
+      {
+        routeName: '/',
+        filePath: '/home/qwik-app/src/routes/index.tsx',
+      },
+    ] as BuildRoute[];
+
+    const actualResult = modifyBundleGraph(fakeRoutes, fakeBundleGraph, fakeManifest);
+
+    const expectedResult: QwikBundleGraph = [
+      ...fakeBundleGraph,
+      -2, // routes separator
+      '/',
+      0, // fake-bundle1.js
+    ];
+
+    expect(actualResult).toEqual(expectedResult);
+  });
 });

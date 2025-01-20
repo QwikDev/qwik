@@ -1,14 +1,15 @@
+import { getDomContainer } from '@qwik.dev/core';
 import { vi } from 'vitest';
 import { assertDefined } from '../core/shared/error/assert';
 import type { QRLInternal } from '../core/shared/qrl/qrl-class';
-import { _getQContainerElement, getDomContainer } from '@qwik.dev/core';
-import { createWindow } from './document';
-import { getTestPlatform } from './platform';
-import type { MockDocument, MockWindow } from './types';
-import { delay } from '../core/shared/utils/promises';
 import type { QElement, QwikLoaderEventScope } from '../core/shared/types';
 import { fromCamelToKebabCase } from '../core/shared/utils/event-names';
 import { QFuncsPrefix, QInstanceAttr } from '../core/shared/utils/markers';
+import { delay } from '../core/shared/utils/promises';
+import { invokeApply, newInvokeContextFromTuple } from '../core/use/use-core';
+import { createWindow } from './document';
+import { getTestPlatform } from './platform';
+import type { MockDocument, MockWindow } from './types';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -158,11 +159,20 @@ export const dispatch = async (
     } else if (element.hasAttribute(attrName)) {
       const container = getDomContainer(element as HTMLElement);
       const qrl = element.getAttribute(attrName)!;
-
-      qrl
-        .split('\n')
-        .map((qrl) => container.parseQRL(qrl.trim()))
-        .map((qrl) => qrl(event, element));
+      const ctx = newInvokeContextFromTuple([element!, event]);
+      try {
+        await Promise.all(
+          qrl
+            .split('\n')
+            .map((qrl) => container.parseQRL(qrl.trim()))
+            .map((qrl) => {
+              return invokeApply(ctx, qrl, [event, element]);
+            })
+        );
+      } catch (error) {
+        console.error('!!! qrl error', qrl, error);
+        throw error;
+      }
       return;
     }
     element = element.parentElement;

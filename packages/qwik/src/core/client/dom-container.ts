@@ -251,14 +251,13 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         if (vnode_getProp(vNode, OnRenderProp, null) !== null) {
           return vNode as any as HostElement;
         }
-        // If virtual node, than it could be a slot so we need to read its parent.
-        const parent = vnode_getProp<VNode>(vNode, QSlotParent, this.$vnodeLocate$);
-        if (parent) {
-          vNode = parent;
-          continue;
-        }
+        vNode =
+          vnode_getParent(vNode) ||
+          // If virtual node, than it could be a slot so we need to read its parent.
+          vnode_getProp<VNode>(vNode, QSlotParent, this.$vnodeLocate$);
+      } else {
+        vNode = vnode_getParent(vNode);
       }
-      vNode = vnode_getParent(vNode);
     }
     return null;
   }

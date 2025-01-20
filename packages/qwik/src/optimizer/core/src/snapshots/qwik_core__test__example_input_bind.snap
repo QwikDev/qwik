@@ -42,7 +42,7 @@ export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
             "value": value,
             "onInput$": /*#__PURE__*/ inlinedQrl((_, elm)=>{
                 const [value] = useLexicalScope();
-                return value.value = elm.value;
+                return value.value = elm.type == "number" ? elm.valueAsNumber : elm.value;
             }, "s_6IZeYpXCNXA", [
                 value
             ])
@@ -51,7 +51,7 @@ export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
             "checked": checked,
             "onInput$": /*#__PURE__*/ inlinedQrl((_, elm)=>{
                 const [checked] = useLexicalScope();
-                return checked.value = elm.checked;
+                return checked.value = elm.type == "number" ? elm.valueAsNumber : elm.checked;
             }, "s_JPI3bLCVnso", [
                 checked
             ])
@@ -60,7 +60,7 @@ export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
             "stuff": stuff,
             "onChange$": /*#__PURE__*/ inlinedQrl((_, elm)=>{
                 const [stuff] = useLexicalScope();
-                return stuff.value = elm.stuff;
+                return stuff.value = elm.type == "number" ? elm.valueAsNumber : elm.stuff;
             }, "s_eyREJ0lZTFw", [
                 stuff
             ])

@@ -8,6 +8,7 @@ use swc_ecmascript::ast;
 use swc_ecmascript::codegen::text_writer::JsWriter;
 use swc_ecmascript::transforms::fixer;
 use swc_ecmascript::transforms::hygiene::hygiene_with_config;
+use swc_ecmascript::visit::{Visit, VisitWith};
 use swc_ecmascript::{
 	utils::private_ident,
 	visit::{VisitMut, VisitMutWith},
@@ -26,6 +27,7 @@ pub fn convert_inlined_fn(
 	qqsegment: &Id,
 	accept_call_expr: bool,
 	serialize_fn: bool,
+	is_const: bool,
 ) -> (Option<ast::Expr>, bool) {
 	let mut identifiers = HashMap::new();
 	let params: Vec<ast::Pat> = scoped_idents
@@ -42,7 +44,13 @@ pub fn convert_inlined_fn(
 		.collect();
 
 	if matches!(expr, ast::Expr::Arrow(_)) {
-		return (None, false);
+		return (None, is_const);
+	}
+
+	println!("{:?}", is_used_as_object(&expr, &scoped_idents));
+
+	if !is_used_as_object(&expr, &scoped_idents) {
+		return (None, is_const);
 	}
 
 	// Replace identifier
@@ -50,12 +58,12 @@ pub fn convert_inlined_fn(
 	expr.visit_mut_with(&mut replace_identifiers);
 
 	if replace_identifiers.abort {
-		return (None, false);
+		return (None, is_const);
 	}
 
 	let rendered_expr = render_expr(&expr);
 	if rendered_expr.len() > 150 {
-		return (None, false);
+		return (None, is_const);
 	}
 
 	if scoped_idents.is_empty() {
@@ -98,7 +106,7 @@ pub fn convert_inlined_fn(
 			args,
 			..Default::default()
 		})),
-		true,
+		is_const,
 	)
 }
 
@@ -198,4 +206,35 @@ pub fn render_expr(expr: &ast::Expr) -> String {
 		.expect("should be utf8")
 		.trim_end_matches(';')
 		.to_string()
+}
+
+struct ObjectUsageChecker<'a> {
+	identifiers: &'a Vec<Id>,
+	used_as_object: bool,
+}
+
+impl<'a> Visit for ObjectUsageChecker<'a> {
+	fn visit_member_expr(&mut self, node: &ast::MemberExpr) {
+		if let ast::Expr::Ident(obj_ident) = &*node.obj {
+			for id in self.identifiers {
+				if obj_ident.sym == id.0 {
+					println!("Used as object: {:?}", obj_ident.sym);
+					self.used_as_object = true;
+					return;
+				}
+			}
+		}
+		node.visit_children_with(self);
+	}
+}
+
+fn is_used_as_object(expr: &ast::Expr, identifiers: &Vec<Id>) -> bool {
+	let mut checker = ObjectUsageChecker {
+		identifiers,
+		used_as_object: false,
+	};
+
+	expr.visit_with(&mut checker);
+
+	checker.used_as_object
 }

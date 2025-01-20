@@ -458,12 +458,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   openProjection(attrs: SsrAttrs) {
     this.openFragment(attrs);
-    const vNode = this.currentElementFrame?.vNodeData;
-    if (vNode) {
-      vNode[0] |= VNodeDataFlag.SERIALIZE;
-    }
     const componentFrame = this.getComponentFrame();
     if (componentFrame) {
+      // TODO: we should probably serialize only projection VNode
+      this.serializationCtx.$addRoot$(componentFrame.componentNode);
       componentFrame.projectionDepth++;
     }
   }

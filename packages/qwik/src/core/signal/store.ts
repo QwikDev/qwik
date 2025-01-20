@@ -2,11 +2,12 @@ import { pad, qwikDebugToString } from '../debug';
 import { assertTrue } from '../shared/error/assert';
 import { tryGetInvokeContext } from '../use/use-core';
 import { isSerializableObject } from '../shared/utils/types';
-import { unwrapDeserializerProxy } from '../shared/shared-serialization';
 import type { Container } from '../shared/types';
 import {
+  EffectSubscriptionsProp,
   ensureContains,
   ensureContainsEffect,
+  ensureEffectContainsSubscriber,
   triggerEffects,
   type EffectSubscriptions,
 } from './signal';
@@ -137,7 +138,6 @@ export class StoreHandler implements ProxyHandler<TargetType> {
 
   /** In the case of oldValue and value are the same, the effects are not triggered. */
   set(target: TargetType, prop: string | symbol, value: any): boolean {
-    target = unwrapDeserializerProxy(target) as TargetType;
     if (typeof prop === 'symbol') {
       target[prop] = value;
       return true;
@@ -227,6 +227,12 @@ function addEffect<T extends Record<string | symbol, any>>(
   // to unsubscribe from. So we need to store the reference from the effect back
   // to this signal.
   ensureContains(effectSubscriber, target);
+  // We need to add the subscriber to the effect so that we can clean it up later
+  ensureEffectContainsSubscriber(
+    effectSubscriber[EffectSubscriptionsProp.EFFECT],
+    target,
+    store.$container$
+  );
 
   DEBUG && log('sub', pad('\n' + store.$effects$.toString(), '  '));
 }

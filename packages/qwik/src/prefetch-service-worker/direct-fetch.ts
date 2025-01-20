@@ -117,7 +117,7 @@ export function addDependencies(
   if (!fetchMap.has(filename)) {
     fetchMap.set(filename, priority);
     if (!base.$processed$) {
-      normalizeBundleGraph(base);
+      processBundleGraph(base);
     }
     const deps = base.$processed$!.get(filename);
     if (!deps) {
@@ -136,7 +136,7 @@ export function addDependencies(
   return fetchMap;
 }
 
-function normalizeBundleGraph(base: SWStateBase) {
+function processBundleGraph(base: SWStateBase) {
   base.$processed$ = new Map();
   // Process the graph so we don't walk thousands of entries on every lookup.
   let current: { $direct$: string[]; $indirect$: string[] }, isDirect;

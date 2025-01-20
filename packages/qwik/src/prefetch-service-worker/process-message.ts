@@ -82,10 +82,10 @@ export const processMessage = async (state: SWState, msg: SWMessages) => {
   if (type === 'graph') {
     const graph = msg.slice(2);
     const doCleanup = true;
-    await processBundleGraph(state, base, graph, doCleanup);
+    await setupBundleGraph(state, base, graph, doCleanup);
   } else if (type === 'graph-url') {
     const graphPath = msg[2];
-    await processBundleGraphUrl(state, base, graphPath);
+    await handleBundleGraphUrl(state, base, graphPath);
   } else if (type === 'prefetch') {
     const bundles = msg.slice(2);
     await processPrefetch(state, base, bundles);
@@ -103,12 +103,7 @@ export const processMessage = async (state: SWState, msg: SWMessages) => {
   }
 };
 
-async function processBundleGraph(
-  swState: SWState,
-  base: string,
-  graph: SWGraph,
-  cleanup: boolean
-) {
+async function setupBundleGraph(swState: SWState, base: string, graph: SWGraph, cleanup: boolean) {
   const existingBaseIndex = swState.$bases$.findIndex((b) => b.$path$ === base);
   if (existingBaseIndex !== -1) {
     swState.$bases$.splice(existingBaseIndex, 1);
@@ -136,14 +131,14 @@ async function processBundleGraph(
   }
 }
 
-async function processBundleGraphUrl(swState: SWState, base: string, graphPath: string) {
+async function handleBundleGraphUrl(swState: SWState, base: string, graphPath: string) {
   // Call `processBundleGraph` with an empty graph so that a cache location will be allocated.
-  await processBundleGraph(swState, base, [], false);
+  await setupBundleGraph(swState, base, [], false);
   const response = (await directFetch(swState, new URL(base + graphPath, swState.$url$.origin)))!;
   if (response && response.status === 200) {
     const graph = (await response.json()) as SWGraph;
     graph.push(graphPath);
-    await processBundleGraph(swState, base, graph, true);
+    await setupBundleGraph(swState, base, graph, true);
   }
 }
 

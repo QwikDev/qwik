@@ -2,7 +2,6 @@ import path, { resolve } from 'node:path';
 import { assert, describe, expect, test } from 'vitest';
 import type { QwikManifest } from '../types';
 import { ExperimentalFeatures, createPlugin } from './plugin';
-import { normalizePath } from '../../../testing/util';
 import { qwikVite } from './vite';
 
 const cwd = process.cwd();
@@ -19,13 +18,13 @@ test('defaults', async () => {
   assert.deepEqual(opts.buildMode, 'development');
   assert.deepEqual(opts.entryStrategy, { type: 'segment' });
   assert.deepEqual(opts.debug, false);
-  assert.deepEqual(opts.rootDir, normalizePath(cwd));
+  assert.deepEqual(opts.rootDir, cwd);
   assert.deepEqual(opts.tsconfigFileNames, ['./tsconfig.json']);
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
-  assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'dist')));
+  assert.deepEqual(opts.input, [resolve(cwd, 'src', 'root')]);
+  assert.deepEqual(opts.outDir, resolve(cwd, 'dist'));
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
-  assert.deepEqual(opts.srcDir, normalizePath(resolve(cwd, 'src')));
+  assert.deepEqual(opts.srcDir, resolve(cwd, 'src'));
   assert.deepEqual(opts.srcInputs, null);
 });
 
@@ -37,13 +36,13 @@ test('defaults (buildMode: production)', async () => {
   assert.deepEqual(opts.entryStrategy, { type: 'smart' });
   assert.deepEqual(opts.resolveQwikBuild, true);
   assert.deepEqual(opts.debug, false);
-  assert.deepEqual(opts.rootDir, normalizePath(cwd));
+  assert.deepEqual(opts.rootDir, cwd);
   assert.deepEqual(opts.tsconfigFileNames, ['./tsconfig.json']);
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
-  assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'dist')));
+  assert.deepEqual(opts.input, [resolve(cwd, 'src', 'root')]);
+  assert.deepEqual(opts.outDir, resolve(cwd, 'dist'));
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
-  assert.deepEqual(opts.srcDir, normalizePath(resolve(cwd, 'src')));
+  assert.deepEqual(opts.srcDir, resolve(cwd, 'src'));
   assert.deepEqual(opts.srcInputs, null);
   assert.deepEqual(opts.entryStrategy, { type: 'smart' });
 });
@@ -56,13 +55,13 @@ test('defaults (target: ssr)', async () => {
   assert.deepEqual(opts.entryStrategy, { type: 'hoist' });
   assert.deepEqual(opts.resolveQwikBuild, true);
   assert.deepEqual(opts.debug, false);
-  assert.deepEqual(opts.rootDir, normalizePath(cwd));
+  assert.deepEqual(opts.rootDir, cwd);
   assert.deepEqual(opts.tsconfigFileNames, ['./tsconfig.json']);
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr'))]);
-  assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'server')));
+  assert.deepEqual(opts.input, [resolve(cwd, 'src', 'entry.ssr')]);
+  assert.deepEqual(opts.outDir, resolve(cwd, 'server'));
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
-  assert.deepEqual(opts.srcDir, normalizePath(resolve(cwd, 'src')));
+  assert.deepEqual(opts.srcDir, resolve(cwd, 'src'));
   assert.deepEqual(opts.srcInputs, null);
 });
 
@@ -74,13 +73,13 @@ test('defaults (buildMode: production, target: ssr)', async () => {
   assert.deepEqual(opts.entryStrategy, { type: 'hoist' });
   assert.deepEqual(opts.resolveQwikBuild, true);
   assert.deepEqual(opts.debug, false);
-  assert.deepEqual(opts.rootDir, normalizePath(cwd));
+  assert.deepEqual(opts.rootDir, cwd);
   assert.deepEqual(opts.tsconfigFileNames, ['./tsconfig.json']);
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr'))]);
-  assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'server')));
+  assert.deepEqual(opts.input, [resolve(cwd, 'src', 'entry.ssr')]);
+  assert.deepEqual(opts.outDir, resolve(cwd, 'server'));
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
-  assert.deepEqual(opts.srcDir, normalizePath(resolve(cwd, 'src')));
+  assert.deepEqual(opts.srcDir, resolve(cwd, 'src'));
   assert.deepEqual(opts.srcInputs, null);
 });
 
@@ -124,7 +123,7 @@ test('entryStrategy, segment and srcInputs', async () => {
 
 test('rootDir, abs path', async () => {
   const plugin = await mockPlugin();
-  const customRoot = normalizePath(resolve(cwd, 'abs-path'));
+  const customRoot = resolve(cwd, 'abs-path');
   const opts = plugin.normalizeOptions({ rootDir: customRoot });
   assert.deepEqual(opts.rootDir, customRoot);
 });
@@ -133,7 +132,7 @@ test('rootDir, rel path', async () => {
   const plugin = await mockPlugin();
   const customRoot = 'rel-path';
   const opts = plugin.normalizeOptions({ rootDir: customRoot });
-  assert.deepEqual(opts.rootDir, normalizePath(resolve(cwd, customRoot)));
+  assert.deepEqual(opts.rootDir, resolve(cwd, customRoot));
 });
 
 test('tsconfigFileNames', async () => {
@@ -155,7 +154,7 @@ test('tsconfigFileNames, empty array fallback to default', async () => {
 test('input string', async () => {
   const plugin = await mockPlugin();
   const opts = plugin.normalizeOptions({ input: 'src/cmps/main.tsx' });
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'cmps', 'main.tsx'))]);
+  assert.deepEqual(opts.input, [resolve(cwd, 'src', 'cmps', 'main.tsx')]);
 });
 
 test('input array', async () => {
@@ -164,15 +163,15 @@ test('input array', async () => {
     input: ['src/cmps/a.tsx', 'src/cmps/b.tsx'],
   });
   assert.deepEqual(opts.input, [
-    normalizePath(resolve(cwd, 'src', 'cmps', 'a.tsx')),
-    normalizePath(resolve(cwd, 'src', 'cmps', 'b.tsx')),
+    resolve(cwd, 'src', 'cmps', 'a.tsx'),
+    resolve(cwd, 'src', 'cmps', 'b.tsx'),
   ]);
 });
 
 test('outDir', async () => {
   const plugin = await mockPlugin();
   const opts = plugin.normalizeOptions({ outDir: 'out' });
-  assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'out')));
+  assert.deepEqual(opts.outDir, resolve(cwd, 'out'));
 });
 
 test('manifestOutput', async () => {
@@ -271,7 +270,7 @@ describe('resolveId', () => {
         'C:\\src\\routes\\layout.tsx_s_7xk04rim0vu.js',
         undefined
       )
-    ).toHaveProperty('id', 'C:/src/routes/layout.tsx_s_7xk04rim0vu.js');
+    ).toHaveProperty('id', 'C:\\src\\routes\\layout.tsx_s_7xk04rim0vu.js');
   });
   test('libs', async () => {
     const plugin = await mockPlugin();

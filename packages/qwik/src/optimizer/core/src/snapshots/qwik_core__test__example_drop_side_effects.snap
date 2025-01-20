@@ -51,27 +51,27 @@ import { sideEffect } from './secret';
 })();
 sideEffect();
 export const api = serverQrl(/*#__PURE__*/ _noopQrlDEV("api_server_JonPp043gH0", {
-    file: "/user/qwik/src/test.tsx",
+    file: "test.tsx",
     lo: 0,
     hi: 0,
     displayName: "test.tsx_api_server"
 }));
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg", {
-    file: "/user/qwik/src/test.tsx",
+    file: "test.tsx",
     lo: 522,
     hi: 605,
     displayName: "test.tsx_test_component"
 }));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAMA,SAAS,UAAU,QAAQ,WAAW;AAKtC,CAAC;IACG,QAAQ,GAAG,CAAC;AACd,CAAC;AACD,CAAC;IACC,QAAQ,GAAG,CAAC;AACd,CAAC;AAEH;AAEA,OAAO,MAAM,MAAM;;;;;IAEhB;AAEH,6BAAe;;;;;IAIV\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;;;AAMA,SAAS,UAAU,QAAQ,WAAW;AAKtC,CAAC;IACG,QAAQ,GAAG,CAAC;AACd,CAAC;AACD,CAAC;IACC,QAAQ,GAAG,CAAC;AACd,CAAC;AAEH;AAEA,OAAO,MAAM,MAAM;;;;;IAEhB;AAEH,6BAAe;;;;;IAIV\"}")
 ============================= test.tsx_test_component_button_onClick_DGk9xLyRokA.js (ENTRY POINT)==
 
 import { api } from "./test";
 export const test_component_button_onClick_DGk9xLyRokA = ()=>await api();
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yDA0BwB,IAAM,MAAM\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";yDA0BwB,IAAM,MAAM\"}")
 /*
 {
   "origin": "test.tsx",
@@ -99,7 +99,7 @@ import { qrlDEV } from "@builder.io/qwik";
 export const test_component_LUXeXe0DQrg = ()=>{
     return /*#__PURE__*/ _jsxQ("button", null, {
         onClick$: /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_button_onClick_DGk9xLyRokA"), "test_component_button_onClick_DGk9xLyRokA", {
-            file: "/user/qwik/src/test.tsx",
+            file: "test.tsx",
             lo: 567,
             hi: 584,
             displayName: "test.tsx_test_component_button_onClick"
@@ -112,7 +112,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAwB0B;IACtB,qBACE,MAAC;QAAO,QAAQ;;;;;;;;;;;AAEpB\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;0CAwB0B;IACtB,qBACE,MAAC;QAAO,QAAQ;;;;;;;;;;;AAEpB\"}")
 /*
 {
   "origin": "test.tsx",

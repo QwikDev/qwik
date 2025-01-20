@@ -48,7 +48,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./te
 export const Cmp = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAoBhB;AAEH,OAAO,MAAM,oBAAM,iHAOhB\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAoBhB;AAEH,OAAO,MAAM,oBAAM,iHAOhB\"}")
 ============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
@@ -77,7 +77,7 @@ export const Cmp_component_4ryKJTOKjWE = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAyB8B,CAAC;IAC3B,qBACI;;0BACI,MAAC;gBAAE,YAAU,kBAAE,GAAM,KAAK;;;+BAAG,GAAM,MAAM,CAAC,KAAK;;;0BAC/C,MAAC;gBAAE;gCAAO,GAAM,KAAK;;;8BAAC,MAAC;;;;AAGnC\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;;;yCAyB8B,CAAC;IAC3B,qBACI;;0BACI,MAAC;gBAAE,YAAU,kBAAE,GAAM,KAAK;;;+BAAG,GAAM,MAAM,CAAC,KAAK;;;0BAC/C,MAAC;gBAAE;gCAAO,GAAM,KAAK;;;8BAAC,MAAC;;;;AAGnC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -149,7 +149,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAG8B;IAC1B,MAAM,QAAQ,SAAS;QACnB,OAAO;QACP,OAAO;QACP,QAAQ;YACJ,OAAO;QACX;IACJ;IACA,MAAM,SAAS,UAAU;IACzB,qBACI,MAAC;QACG,MAAmB;YACnB;mBAAO,MAAM,KAAK;;YAClB;mBAAQ,MAAM,MAAM,CAAC,KAAK;;QAC1B,QAAQ;YACR;mBAAO,MAAM,KAAK,GAAG;;YACrB;mBAAO,OAAO,QAAQ,EAAE,IAAI;;;YAL5B,IAAI;YACJ,KAAK,kBAAE,GAAM,KAAK;;;YAClB,MAAM,kBAAE,GAAM,MAAM,CAAC,KAAK;;;YAC1B,MAAM;YACN,KAAK,kBAAE,GAAM,KAAK,GAAG;;;YACrB,KAAK,kBAAE,GAAO,QAAQ,EAAE,IAAI;;;;;AAIxC\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;;;;yCAG8B;IAC1B,MAAM,QAAQ,SAAS;QACnB,OAAO;QACP,OAAO;QACP,QAAQ;YACJ,OAAO;QACX;IACJ;IACA,MAAM,SAAS,UAAU;IACzB,qBACI,MAAC;QACG,MAAmB;YACnB;mBAAO,MAAM,KAAK;;YAClB;mBAAQ,MAAM,MAAM,CAAC,KAAK;;QAC1B,QAAQ;YACR;mBAAO,MAAM,KAAK,GAAG;;YACrB;mBAAO,OAAO,QAAQ,EAAE,IAAI;;;YAL5B,IAAI;YACJ,KAAK,kBAAE,GAAM,KAAK;;;YAClB,MAAM,kBAAE,GAAM,MAAM,CAAC,KAAK;;;YAC1B,MAAM;YACN,KAAK,kBAAE,GAAM,KAAK,GAAG;;;YACrB,KAAK,kBAAE,GAAO,QAAQ,EAAE,IAAI;;;;;AAIxC\"}")
 /*
 {
   "origin": "test.tsx",

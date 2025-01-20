@@ -26,14 +26,14 @@ export const App = component$((props: Stuff) => {
 import { componentQrl } from "@builder.io/qwik";
 import { qrlDEV } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./index.tsx_App_component_KGLYFBhvJc0.js"), "App_component_KGLYFBhvJc0", {
-    file: "/src/project/project/index.tsx",
+    file: "project/index.tsx",
     lo: 90,
     hi: 348,
     displayName: "index.tsx_App_component"
 }));
 
 
-Some("{\"version\":3,\"sources\":[\"/src/project/project/index.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM;;;;;IAUhB\"}")
+Some("{\"version\":3,\"sources\":[\"project/index.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM;;;;;IAUhB\"}")
 ============================= project/index.tsx_App_component_KGLYFBhvJc0.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
@@ -87,7 +87,7 @@ export const App_component_KGLYFBhvJc0 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/src/project/project/index.tsx\"],\"names\":[],\"mappings\":\";;;;yCAG8B,CAAC;IAC3B,qBACI;;0BACI,MAAC,cAAQ;;;;;0BACT,MAAC;;;;;0BACD,MAAC;gBAAI,MAAK;;oBAAL,IAAI;;;;;;;0BACT,MAAC;gBAAI,MAAK;;oBAAL,IAAI;;kBAAW,MAAM,KAAK;;;;;0BAC/B,MAAC,iBAAoB,iBAAb,MAAM,KAAK;;;;;;;;;;;AAG/B\"}")
+Some("{\"version\":3,\"sources\":[\"project/index.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;;;yCAG8B,CAAC;IAC3B,qBACI;;0BACI,MAAC,cAAQ;;;;;0BACT,MAAC;;;;;0BACD,MAAC;gBAAI,MAAK;;oBAAL,IAAI;;;;;;;0BACT,MAAC;gBAAI,MAAK;;oBAAL,IAAI;;kBAAW,MAAM,KAAK;;;;;0BAC/B,MAAC,iBAAoB,iBAAb,MAAM,KAAK;;;;;;;;;;;AAG/B\"}")
 /*
 {
   "origin": "project/index.tsx",

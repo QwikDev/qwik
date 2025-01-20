@@ -88,7 +88,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     async buildStart() {
       qwikPlugin.onDiagnostics((diagnostics, optimizer, srcDir) => {
         diagnostics.forEach((d) => {
-          const id = qwikPlugin.normalizePath(optimizer.sys.path.join(srcDir, d.file));
+          const id = optimizer.sys.path.resolve(srcDir, d.file);
           if (d.category === 'error') {
             this.error(createRollupError(id, d));
           } else {

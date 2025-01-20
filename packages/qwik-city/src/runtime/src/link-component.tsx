@@ -1,14 +1,23 @@
-import { component$, Slot, type QwikIntrinsicElements, untrack, $, sync$ } from '@builder.io/qwik';
-import { getClientNavPath, shouldPrefetchData, shouldPrefetchSymbols } from './utils';
+import {
+  $,
+  Slot,
+  component$,
+  isDev,
+  sync$,
+  untrack,
+  useServerData,
+  type QwikIntrinsicElements,
+} from '@builder.io/qwik';
+import { prefetchSymbols } from './client-navigate';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
-import { prefetchSymbols } from './client-navigate';
-import { isDev } from '@builder.io/qwik';
+import { getClientNavPath, shouldPrefetchData, shouldPrefetchSymbols } from './utils';
 
 /** @public */
 export const Link = component$<LinkProps>((props) => {
   const nav = useNavigate();
   const loc = useLocation();
+  const containerAttributes = useServerData<Record<string, string>>('containerAttributes', {});
   const originalHref = props.href;
   const {
     onClick$,
@@ -44,12 +53,13 @@ export const Link = component$<LinkProps>((props) => {
 
         if (elm && elm.href) {
           const url = new URL(elm.href);
-          prefetchSymbols(url.pathname);
+          prefetchSymbols(url.pathname, containerAttributes['q:base']);
 
           if (elm.hasAttribute('data-prefetch')) {
             loadClientData(url, elm, {
               prefetchSymbols: false,
               isPrefetch: true,
+              base: containerAttributes['q:base'],
             });
           }
         }

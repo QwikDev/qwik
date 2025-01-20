@@ -52,6 +52,21 @@ _(Optional)_
 
 string
 
+## BundleGraphModifier
+
+A function that creates a modified version of the bundle graph. Used to inject routes and their dependencies into the bundle graph.
+
+```typescript
+export type BundleGraphModifier = (
+  graph: QwikBundleGraph,
+  manifest: QwikManifest,
+) => QwikBundleGraph;
+```
+
+**References:** [QwikBundleGraph](#qwikbundlegraph), [QwikManifest](#qwikmanifest)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/bundle-graph.ts)
+
 ## ComponentEntryStrategy
 
 ```typescript
@@ -1395,6 +1410,18 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
+## QwikBundleGraph
+
+Bundle graph.
+
+Format: [ 'bundle-a.js', 3, 5 // Depends on 'bundle-b.js' and 'bundle-c.js' 'bundle-b.js', 5, // Depends on 'bundle-c.js' 'bundle-c.js', ]
+
+```typescript
+export type QwikBundleGraph = Array<string | number>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+
 ## QwikManifest
 
 The metadata of the build. One of its uses is storing where QRL symbols are located.
@@ -2217,6 +2244,19 @@ Description
 </td><td>
 
 () =&gt; string \| null
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[registerBundleGraphModifier](#)
+
+</td><td>
+
+</td><td>
+
+(modifier: [BundleGraphModifier](#bundlegraphmodifier)) =&gt; void
 
 </td><td>
 

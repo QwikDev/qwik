@@ -6,6 +6,9 @@
 
 import type { Plugin as Plugin_2 } from 'vite';
 
+// @public
+export type BundleGraphModifier = (graph: QwikBundleGraph, manifest: QwikManifest) => QwikBundleGraph;
+
 // @public (undocumented)
 export interface ComponentEntryStrategy {
     // (undocumented)
@@ -189,6 +192,9 @@ export interface QwikBundle {
 }
 
 // @public
+export type QwikBundleGraph = Array<string | number>;
+
+// @public
 export interface QwikManifest {
     bundles: {
         [fileName: string]: QwikBundle;
@@ -301,6 +307,8 @@ export interface QwikVitePluginApi {
     getOptions: () => NormalizedQwikPluginOptions;
     // (undocumented)
     getRootDir: () => string | null;
+    // (undocumented)
+    registerBundleGraphModifier: (modifier: BundleGraphModifier) => void;
 }
 
 // Warning: (ae-forgotten-export) The symbol "QwikVitePluginCSROptions" needs to be exported by the entry point index.d.ts

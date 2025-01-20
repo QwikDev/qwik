@@ -41,7 +41,6 @@ export const isSyncQrl = (value: any): value is SyncQRLInternal => {
 export type QRLInternalMethods<TYPE> = {
   readonly $chunk$: string | null;
   readonly $symbol$: string;
-  readonly $refSymbol$: string | null;
   readonly $hash$: string;
 
   $capture$: string[] | null;
@@ -74,8 +73,7 @@ export const createQRL = <TYPE>(
   symbolRef: null | ValueOrPromise<TYPE>,
   symbolFn: null | (() => Promise<Record<string, TYPE>>),
   capture: null | Readonly<number[]>,
-  captureRef: Readonly<unknown[]> | null,
-  refSymbol: string | null
+  captureRef: Readonly<unknown[]> | null
 ): QRLInternal<TYPE> => {
   if (qDev && qSerialize) {
     if (captureRef) {
@@ -201,11 +199,10 @@ export const createQRL = <TYPE>(
     }
   };
 
-  const resolvedSymbol = refSymbol ?? symbol;
-  const hash = getSymbolHash(resolvedSymbol);
+  const hash = getSymbolHash(symbol);
 
   Object.assign(qrl, {
-    getSymbol: () => resolvedSymbol,
+    getSymbol: () => symbol,
     getHash: () => hash,
     getCaptured: () => captureRef,
     resolve,
@@ -213,7 +210,6 @@ export const createQRL = <TYPE>(
     $setContainer$: setContainer,
     $chunk$: chunk,
     $symbol$: symbol,
-    $refSymbol$: refSymbol,
     $hash$: hash,
     getFn: bindFnToContext,
 

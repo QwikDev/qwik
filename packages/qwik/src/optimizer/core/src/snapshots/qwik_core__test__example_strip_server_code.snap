@@ -59,7 +59,6 @@ export const s_gDH1EtUWqBU = async ()=>{
     state.text = await mongo.users();
     redis.set(state.text);
 };
-export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;6BAaU;;IAER,MAAM,IAAI,GAAG,MAAM,MAAM,KAAK;IAC9B,MAAM,GAAG,CAAC,MAAM,IAAI\"}")
@@ -96,7 +95,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const s_2ca3HLDC7yc = ()=>{
 // from $(), should not be removed
 };
-export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAqBc;AACX,kCAAkC;AACnC\"}")
@@ -227,7 +225,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 export const s_P8oRQhHsurk = ()=>{
 // Code
 };
-export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAgCU;AACR,OAAO;AACR\"}")

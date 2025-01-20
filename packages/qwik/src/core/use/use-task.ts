@@ -275,20 +275,9 @@ export const useRunTask = (
 };
 
 const getTaskHandlerQrl = (task: Task): QRL<(ev: Event) => void> => {
-  const taskQrl = task.$qrl$;
-  const taskHandler = createQRL<(ev: Event) => void>(
-    taskQrl.$chunk$,
-    '_hW',
-    _hW,
-    null,
-    null,
-    [task],
-    taskQrl.$symbol$
-  );
-  // Needed for chunk lookup in dev mode
-  if (taskQrl.dev) {
-    taskHandler.dev = taskQrl.dev;
-  }
+  const taskHandler = createQRL<(ev: Event) => void>(null, '_task', scheduleTask, null, null, [
+    task,
+  ]);
   return taskHandler;
 };
 
@@ -318,7 +307,7 @@ export const isTask = (value: any): value is Task => {
  *
  * @internal
  */
-export const _hW = () => {
+export const scheduleTask = () => {
   const [task] = useLexicalScope<[Task]>();
   const container = getDomContainer(task.$el$ as VNode);
   const type = task.$flags$ & TaskFlags.VISIBLE_TASK ? ChoreType.VISIBLE : ChoreType.TASK;

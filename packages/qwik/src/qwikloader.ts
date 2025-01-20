@@ -25,6 +25,7 @@ export const qwikLoader = (
   const roots = new Set<EventTarget & ParentNode>([doc]);
 
   // Some shortenings for minification
+  // TODO use more, like hasAttribute
   const replace = 'replace';
   const forEach = 'forEach';
   const target = 'target';

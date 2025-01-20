@@ -316,9 +316,6 @@ function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}
 export { h as createElement }
 export { h }
 
-// @internal
-export const _hW: () => void;
-
 // @internal @deprecated (undocumented)
 export const _IMMUTABLE: unique symbol;
 
@@ -809,6 +806,9 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 export const _restProps: (props: Record<string, any>, omit: string[], target?: {}) => {};
 
 // @internal
+export const _run: (...args: unknown[]) => ValueOrPromise<void>;
+
+// @internal
 export function _serialize(data: unknown[]): Promise<string>;
 
 // @public
@@ -996,6 +996,9 @@ export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE> {
     // (undocumented)
     resolved: TYPE;
 }
+
+// @internal
+export const _task: () => void;
 
 // @public (undocumented)
 export interface TaskCtx {

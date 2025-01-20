@@ -1,9 +1,9 @@
-import { setupServiceWorker } from './setup';
-import { expect, describe, it, vi } from 'vitest';
-import { createState, type SWStateBase, type SWTask } from './state';
-import { processMessage } from './process-message';
-import { addDependencies, directFetch } from './direct-fetch';
+import { describe, expect, it, vi } from 'vitest';
 import { delay } from '../core/util/promises';
+import { addDependencies, directFetch } from './direct-fetch';
+import { processMessage } from './process-message';
+import { setupServiceWorker } from './setup';
+import { createState, type SWStateBase, type SWTask } from './state';
 
 describe('service-worker', async () => {
   describe('registration', async () => {
@@ -148,6 +148,7 @@ describe('service-worker', async () => {
           ['b.js', 10],
           ['c.js', 10],
           ['e.js', 9],
+          ['f.js', 8],
           ['d.js', 9],
         ])
       );

@@ -15,6 +15,7 @@ import { assert, test, suite } from 'vitest';
 import { createDOM } from '../../../testing/library';
 import { renderToString } from '../../../server/render';
 import { createDocument } from '../../../testing/document';
+import { ComponentStylesPrefixContent as prefix } from 'packages/qwik/src/core/util/markers';
 
 test('should render basic content', async () => {
   const fixture = new ElementFixture();
@@ -218,15 +219,15 @@ test('should render a component with scoped styles', async () => {
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
     <style q:style="ml52vk-0" hidden="">
-      .stuff.⭐️ml52vk-0 {
+      .stuff.${prefix}ml52vk-0 {
         color: red;
       }
     </style>
     <!--qv -->
-    <div class="⭐️ml52vk-0">
-      <div class="⭐️ml52vk-0 stuff" aria-hidden="true">
+    <div class="${prefix}ml52vk-0">
+      <div class="${prefix}ml52vk-0 stuff" aria-hidden="true">
         Hello
-        <button class="⭐️ml52vk-0">
+        <button class="${prefix}ml52vk-0">
           Toggle
         </button>
       </div>
@@ -241,15 +242,15 @@ test('should render a component with scoped styles', async () => {
     `
   <host q:version="dev" q:container="resumed" q:render="dom-dev">
     <style q:style="ml52vk-0" hidden="">
-      .stuff.⭐️ml52vk-0 {
+      .stuff.${prefix}ml52vk-0 {
         color: red;
       }
     </style>
     <!--qv -->
-    <div class="⭐️ml52vk-0">
-      <div class="⭐️ml52vk-0">
+    <div class="${prefix}ml52vk-0">
+      <div class="${prefix}ml52vk-0">
         Hello
-        <button class="⭐️ml52vk-0">
+        <button class="${prefix}ml52vk-0">
           Toggle
         </button>
       </div>

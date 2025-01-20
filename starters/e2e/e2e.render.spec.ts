@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { ComponentStylesPrefixContent as prefix } from "../../packages/qwik/src/core/util/markers";
 
 test.describe("render", () => {
   test.beforeEach(async ({ page }) => {
@@ -28,31 +29,31 @@ test.describe("render", () => {
 
       const attributes = page.locator("#attributes");
 
-      await expect(attributes).toHaveClass("⭐️unvb18-1 even stable0");
+      await expect(attributes).toHaveClass(`${prefix}unvb18-1 even stable0`);
       await expect(attributes).toHaveAttribute("aria-hidden", "true");
       await expect(attributes).toHaveAttribute("preventdefault:click", "");
 
       await increment.click();
 
-      await expect(attributes).toHaveClass("⭐️unvb18-1 odd stable0");
+      await expect(attributes).toHaveClass(`${prefix}unvb18-1 odd stable0`);
       await expect(attributes).toHaveAttribute("aria-hidden", "true");
       await expect(attributes).toHaveAttribute("preventdefault:click", "");
 
       await toggle.click();
 
-      await expect(attributes).toHaveClass("⭐️unvb18-1");
-      await expect(attributes).not.hasAttribute("aria-hidden");
-      await expect(attributes).not.hasAttribute("preventdefault:click");
+      await expect(attributes).toHaveClass(`${prefix}unvb18-1`);
+      await expect(attributes).not.toHaveAttribute("aria-hidden");
+      await expect(attributes).not.toHaveAttribute("preventdefault:click");
 
       await increment.click();
 
-      await expect(attributes).toHaveClass("⭐️unvb18-1");
-      await expect(attributes).not.hasAttribute("aria-hidden");
-      await expect(attributes).not.hasAttribute("preventdefault:click");
+      await expect(attributes).toHaveClass(`${prefix}unvb18-1`);
+      await expect(attributes).not.toHaveAttribute("aria-hidden");
+      await expect(attributes).not.toHaveAttribute("preventdefault:click");
 
       await toggle.click();
 
-      await expect(attributes).toHaveClass("⭐️unvb18-1 even stable0");
+      await expect(attributes).toHaveClass(`${prefix}unvb18-1 even stable0`);
       await expect(attributes).toHaveAttribute("aria-hidden", "true");
       await expect(attributes).toHaveAttribute("preventdefault:click", "");
     });
@@ -254,14 +255,14 @@ test.describe("render", () => {
     test("issue3398", async ({ page }) => {
       const toggle = page.locator("#issue-3398-button");
       await expect(page.locator("h1#issue-3398-tag")).toHaveText("Hello h1");
-      await expect(page.locator("h1#issue-3398-tag")).not.hasAttribute(
+      await expect(page.locator("h1#issue-3398-tag")).not.toHaveAttribute(
         "children",
       );
 
       await toggle.click();
       await expect(page.locator("h1#issue-3398-tag")).not.toBeVisible();
       await expect(page.locator("h2#issue-3398-tag")).toHaveText("Hello h2");
-      await expect(page.locator("h2#issue-3398-tag")).not.hasAttribute(
+      await expect(page.locator("h2#issue-3398-tag")).not.toHaveAttribute(
         "children",
       );
 
@@ -269,7 +270,7 @@ test.describe("render", () => {
       await expect(page.locator("h2#issue-3398-tag")).not.toBeVisible();
       await expect(page.locator("h1#issue-3398-tag")).toBeVisible();
       await expect(page.locator("h1#issue-3398-tag")).toHaveText("Hello h1");
-      await expect(page.locator("h1#issue-3398-tag")).not.hasAttribute(
+      await expect(page.locator("h1#issue-3398-tag")).not.toHaveAttribute(
         "children",
       );
     });

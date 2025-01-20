@@ -18,6 +18,7 @@ import { Slot } from '../jsx/slot.public';
 import type { JSXOutput } from '../jsx/types/jsx-node';
 import { SSRComment, SSRRaw } from '../jsx/utils.public';
 import { _renderSSR, type RenderSSROptions } from './render-ssr';
+import { ComponentStylesPrefixContent as prefix } from 'packages/qwik/src/core/util/markers';
 
 test('render attributes', async () => {
   await testSSR(
@@ -1125,43 +1126,43 @@ test('component useStylesScoped()', async () => {
     `
     <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
       <body>
-        <!--qv q:sstyle=⭐️1d-0|⭐️1e-1 q:id=0 q:key=sX:-->
+        <!--qv q:sstyle=${prefix}1d-0|${prefix}1e-1 q:id=0 q:key=sX:-->
         <style q:style="1d-0" hidden>
-          .host.⭐️1d-0 {
+          .host.${prefix}1d-0 {
             color: red;
           }
         </style>
         <style q:style="1e-1" hidden>
-          .blue.⭐️1e-1 {
+          .blue.${prefix}1e-1 {
             color: blue;
           }
         </style>
-        <div class="⭐️1d-0 ⭐️1e-1 host">
-          <div class="⭐️1d-0 ⭐️1e-1 div">
+        <div class="${prefix}1d-0 ${prefix}1e-1 host">
+          <div class="${prefix}1d-0 ${prefix}1e-1 div">
             Scoped1
             <!--qv q:s q:sref=0 q:key=-->
             <div>projected</div>
             <!--/qv-->
-            <p class="⭐️1d-0 ⭐️1e-1">Que tal?</p>
+            <p class="${prefix}1d-0 ${prefix}1e-1">Que tal?</p>
           </div>
-          <!--qv q:sstyle=⭐️f0gmsw-0 q:id=1 q:key=sX:-->
+          <!--qv q:sstyle=${prefix}f0gmsw-0 q:id=1 q:key=sX:-->
           <style q:style="f0gmsw-0" hidden>
-            .host.⭐️f0gmsw-0 {
+            .host.${prefix}f0gmsw-0 {
               color: blue;
             }
           </style>
-          <div class="⭐️f0gmsw-0 host">
-            <div class="⭐️f0gmsw-0">
+          <div class="${prefix}f0gmsw-0 host">
+            <div class="${prefix}f0gmsw-0">
               Scoped2
-              <p class="⭐️f0gmsw-0">Bien</p>
+              <p class="${prefix}f0gmsw-0">Bien</p>
             </div>
           </div>
           <!--/qv-->
-          <!--qv q:sstyle=⭐️f0gmsw-0 q:id=2 q:key=sX:-->
-          <div class="⭐️f0gmsw-0 host">
-            <div class="⭐️f0gmsw-0">
+          <!--qv q:sstyle=${prefix}f0gmsw-0 q:id=2 q:key=sX:-->
+          <div class="${prefix}f0gmsw-0 host">
+            <div class="${prefix}f0gmsw-0">
               Scoped2
-              <p class="⭐️f0gmsw-0">Bien</p>
+              <p class="${prefix}f0gmsw-0">Bien</p>
             </div>
           </div>
           <!--/qv-->
@@ -1180,21 +1181,21 @@ test('component useStylesScoped() + slot', async () => {
     </>,
     `
     <html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
-      <!--qv q:sstyle=⭐️lkei4s-0 q:id=0 q:key=sX:-->
-      <body class="⭐️lkei4s-0">
-        <!--qv q:sstyle=⭐️tdblg1-0 q:id=1 q:key=sX:-->
+      <!--qv q:sstyle=${prefix}lkei4s-0 q:id=0 q:key=sX:-->
+      <body class="${prefix}lkei4s-0">
+        <!--qv q:sstyle=${prefix}tdblg1-0 q:id=1 q:key=sX:-->
         <style q:style="tdblg1-0" hidden>
-          .host.⭐️tdblg1-0 {
+          .host.${prefix}tdblg1-0 {
             background: green;
           }
         </style>
-        <div class="⭐️tdblg1-0">
+        <div class="${prefix}tdblg1-0">
           <!--qv q:s q:sref=1 q:key=one-->
-          <div q:slot="one" class="⭐️lkei4s-0">One</div>
+          <div q:slot="one" class="${prefix}lkei4s-0">One</div>
           <!--/qv-->
         </div>
-        <q:template q:slot="two" hidden aria-hidden="true" class="⭐️lkei4s-0">
-          <div q:slot="two" class="⭐️lkei4s-0">Two</div>
+        <q:template q:slot="two" hidden aria-hidden="true" class="${prefix}lkei4s-0">
+          <div q:slot="two" class="${prefix}lkei4s-0">Two</div>
         </q:template>
         <!--/qv-->
       </body>

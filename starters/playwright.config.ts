@@ -1,21 +1,6 @@
-import { expect } from "@playwright/test";
 import type { Locator, PlaywrightTestConfig } from "@playwright/test";
 
 const inGithubCI = !!process.env.GITHUB_ACTIONS;
-
-expect.extend({
-  async hasAttribute(recieved: Locator, attribute: string) {
-    const pass = await recieved.evaluate((node, attribute) => {
-      return node.getAttribute(attribute);
-    }, attribute);
-
-    return {
-      message: () =>
-        `expected ${recieved} to have attribute \`${attribute}\` (${pass})`,
-      pass: pass !== null,
-    };
-  },
-});
 
 const config: PlaywrightTestConfig = {
   use: {

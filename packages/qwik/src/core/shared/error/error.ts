@@ -50,7 +50,6 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       "Element must have 'q:container' attribute.", // 42
       'Unknown vnode type {{0}}.', // 43
       'Materialize error: missing element: {{0}} {{1}} {{2}}', // 44
-      'SsrError: {{0}}', // 45
       'Cannot coerce a Signal, use `.value` instead', // 46
       'useComputedSignal$ QRL {{0}} {{1}} returned a Promise', // 47
       'ComputedSignal is read-only', // 48
@@ -121,13 +120,12 @@ export const enum QError {
   elementWithoutContainer = 42,
   invalidVNodeType = 43,
   materializeVNodeDataError = 44,
-  serverHostMismatch = 45,
-  cannotCoerceSignal = 46,
-  computedNotSync = 47,
-  computedReadOnly = 48,
-  wrappedReadOnly = 49,
-  promisesNotExpected = 50,
-  unsafeAttr = 51,
+  cannotCoerceSignal = 45,
+  computedNotSync = 46,
+  computedReadOnly = 47,
+  wrappedReadOnly = 48,
+  promisesNotExpected = 49,
+  unsafeAttr = 50,
 }
 
 export const qError = (code: number, errorMessageArgs: any[] = []): Error => {

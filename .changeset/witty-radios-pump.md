@@ -2,4 +2,4 @@
 '@builder.io/qwik': patch
 ---
 
-fix: a bug related to 7182, migrate the code
+fix: input's value is string when passing number

@@ -117,28 +117,9 @@ export function addDependencies(
   if (!fetchMap.has(filename)) {
     fetchMap.set(filename, priority);
     if (!base.$processed$) {
-      base.$processed$ = new Map();
-      // Process the graph so we don't walk thousands of entries on every lookup.
-      let current: { $direct$: string[]; $indirect$: string[] }, isDirect;
-      for (let i = 0; i < base.$graph$.length; i++) {
-        const item = base.$graph$[i];
-        if (typeof item === 'string') {
-          current = { $direct$: [], $indirect$: [] };
-          isDirect = true;
-          base.$processed$.set(item, current);
-        } else if (item === -1) {
-          isDirect = false;
-        } else {
-          const depName = base.$graph$[item] as string;
-          if (isDirect) {
-            current!.$direct$.push(depName);
-          } else {
-            current!.$indirect$.push(depName);
-          }
-        }
-      }
+      normalizeBundleGraph(base);
     }
-    const deps = base.$processed$.get(filename);
+    const deps = base.$processed$!.get(filename);
     if (!deps) {
       return fetchMap;
     }
@@ -148,13 +129,38 @@ export function addDependencies(
     if (addIndirect) {
       priority--;
       for (const dependentFilename of deps.$indirect$) {
-        // don't add indirect deps of indirect deps
-        addDependencies(base, fetchMap, dependentFilename, priority, false);
+        addDependencies(base, fetchMap, dependentFilename, priority);
       }
     }
   }
   return fetchMap;
 }
+
+function normalizeBundleGraph(base: SWStateBase) {
+  base.$processed$ = new Map();
+  // Process the graph so we don't walk thousands of entries on every lookup.
+  let current: { $direct$: string[]; $indirect$: string[] }, isDirect;
+  for (let i = 0; i < base.$graph$.length; i++) {
+    const item = base.$graph$[i];
+    if (typeof item === 'string') {
+      current = { $direct$: [], $indirect$: [] };
+      // This tells the next iteration that its item is a direct dependency. (meaning it's before the -1)
+      isDirect = true;
+      base.$processed$.set(item, current);
+    } else if (item === -1) {
+      // This tells the next iteration that its item is an indirect dependency. (meaning it's AFTER the -1)
+      isDirect = false;
+    } else {
+      const depName = base.$graph$[item] as string;
+      if (isDirect) {
+        current!.$direct$.push(depName);
+      } else {
+        current!.$indirect$.push(depName);
+      }
+    }
+  }
+}
+
 export function parseBaseFilename(url: URL): [string, string] {
   const pathname = new URL(url).pathname;
   const slashIndex = pathname.lastIndexOf('/');

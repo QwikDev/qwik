@@ -23,7 +23,7 @@ import { logWarn } from './utils/log';
 import { EffectProperty, isSignal } from '../signal/signal';
 import { vnode_isVNode } from '../client/vnode';
 import { clearVNodeEffectDependencies } from '../signal/signal-subscriber';
-import { Slot } from '..';
+import { Slot } from '../shared/jsx/slot.public';
 
 /**
  * Use `executeComponent` to execute a component.

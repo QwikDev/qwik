@@ -500,7 +500,6 @@ export const vnode_diff = (
         (vNewNode = vnode_newVirtual()),
         vCurrent && getInsertBefore()
       );
-
       vnode_setProp(vNewNode, QSlot, slotNameKey);
       vHost && vnode_setProp(vHost, slotNameKey, vNewNode);
       isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Projection);

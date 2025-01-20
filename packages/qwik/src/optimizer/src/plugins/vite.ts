@@ -8,11 +8,11 @@ import type {
   OptimizerOptions,
   OptimizerSystem,
   Path,
-  QwikBundleGraph,
   QwikManifest,
   TransformModule,
 } from '../types';
 import { versions } from '../versions';
+import { convertManifestToBundleGraph, type BundleGraphModifier } from './bundle-graph';
 import { getImageSizeServer } from './image-size-server';
 import {
   CLIENT_OUT_DIR,
@@ -93,6 +93,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     return null;
   }
 
+  const bundleGraphModifiers = new Set<BundleGraphModifier>();
+
   const api: QwikVitePluginApi = {
     getOptimizer: () => qwikPlugin.getOptimizer(),
     getOptions: () => qwikPlugin.getOptions(),
@@ -102,6 +104,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     getClientOutDir: () => clientOutDir,
     getClientPublicOutDir: () => clientPublicOutDir,
     getAssetsDir: () => viteAssetsDir,
+    registerBundleGraphModifier: (modifier: BundleGraphModifier) =>
+      bundleGraphModifiers.add(modifier),
   };
 
   // We provide two plugins to Vite. The first plugin is the main plugin that handles all the
@@ -592,6 +596,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           const assetsDir = qwikPlugin.getOptions().assetsDir || '';
           const useAssetsDir = !!assetsDir && assetsDir !== '_astro';
           const sys = qwikPlugin.getSys();
+
+          const bundleGraph = convertManifestToBundleGraph(manifest, bundleGraphModifiers);
+
           this.emitFile({
             type: 'asset',
             fileName: sys.path.join(
@@ -599,7 +606,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               'build',
               `q-bundle-graph-${manifest.manifestHash}.json`
             ),
-            source: JSON.stringify(convertManifestToBundleGraph(manifest)),
+            source: JSON.stringify(bundleGraph),
           });
           const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
           const workerScriptPath = (await this.resolve('@builder.io/qwik/qwik-prefetch.js'))!.id;
@@ -1100,6 +1107,7 @@ export interface QwikVitePluginApi {
   getClientOutDir: () => string | null;
   getClientPublicOutDir: () => string | null;
   getAssetsDir: () => string | undefined;
+  registerBundleGraphModifier: (modifier: BundleGraphModifier) => void;
 }
 
 /**
@@ -1131,88 +1139,4 @@ function absolutePathAwareJoin(path: Path, ...segments: string[]): string {
     }
   }
   return path.join(...segments);
-}
-
-export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundleGraph {
-  const bundleGraph: QwikBundleGraph = [];
-  const graph = manifest.bundles;
-  if (!graph) {
-    return [];
-  }
-  const names = Object.keys(graph).sort();
-  const map = new Map<string, { index: number; deps: Set<string> }>();
-  const clearTransitiveDeps = (parentDeps: Set<string>, seen: Set<string>, bundleName: string) => {
-    const bundle = graph[bundleName];
-    if (!bundle) {
-      // external dependency
-      return;
-    }
-    for (const dep of bundle.imports || []) {
-      if (parentDeps.has(dep)) {
-        parentDeps.delete(dep);
-      }
-      if (!seen.has(dep)) {
-        seen.add(dep);
-        clearTransitiveDeps(parentDeps, seen, dep);
-      }
-    }
-  };
-  for (const bundleName of names) {
-    const bundle = graph[bundleName];
-    const index = bundleGraph.length;
-    const deps = new Set(bundle.imports);
-    for (const depName of deps) {
-      if (!graph[depName]) {
-        // external dependency
-        continue;
-      }
-      clearTransitiveDeps(deps, new Set(), depName);
-    }
-    let didAdd = false;
-    for (const depName of bundle.dynamicImports || []) {
-      // If we dynamically import a qrl segment that is not a handler, we'll probably need it soon
-      const dep = graph[depName];
-      if (!graph[depName]) {
-        // external dependency
-        continue;
-      }
-      if (dep.isTask) {
-        if (!didAdd) {
-          deps.add('<dynamic>');
-          didAdd = true;
-        }
-        deps.add(depName);
-      }
-    }
-    map.set(bundleName, { index, deps });
-    bundleGraph.push(bundleName);
-    while (index + deps.size >= bundleGraph.length) {
-      bundleGraph.push(null!);
-    }
-  }
-  // Second pass to to update dependency pointers
-  for (const bundleName of names) {
-    const bundle = map.get(bundleName);
-    if (!bundle) {
-      console.warn(`Bundle ${bundleName} not found in the bundle graph.`);
-      continue;
-    }
-    // eslint-disable-next-line prefer-const
-    let { index, deps } = bundle;
-    index++;
-    for (const depName of deps) {
-      if (depName === '<dynamic>') {
-        bundleGraph[index++] = -1;
-        continue;
-      }
-      const dep = map.get(depName);
-      if (!dep) {
-        console.warn(`Dependency ${depName} of ${bundleName} not found in the bundle graph.`);
-        continue;
-      }
-      const depIndex = dep.index;
-      bundleGraph[index++] = depIndex;
-    }
-  }
-  return bundleGraph;
 }

@@ -97,12 +97,7 @@ import {
   type ElementVNode,
   type VirtualVNode,
 } from '../client/types';
-import {
-  vnode_documentPosition,
-  vnode_isVNode,
-  vnode_setAttr,
-  VNodeJournalOpCode,
-} from '../client/vnode';
+import { vnode_isVNode, vnode_setAttr, VNodeJournalOpCode } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
 import { executeComponent } from './component-execution';
 import type { Container, HostElement } from './types';
@@ -115,6 +110,8 @@ import { QScopedStyle } from './utils/markers';
 import { addComponentStylePrefix } from './utils/scoped-styles';
 import { type WrappedSignal, type ComputedSignal, triggerEffects } from '../signal/signal';
 import type { TargetType } from '../signal/store';
+import { ssrNodeDocumentPosition, vnode_documentPosition } from './scheduler-document-position';
+import type { ISsrNode } from '../ssr/ssr-types';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -497,7 +494,10 @@ function choreComparator(a: Chore, b: Chore, rootVNode: ElementVNode | null): nu
           This can lead to inconsistencies between Server-Side Rendering (SSR) and Client-Side Rendering (CSR).
           Problematic Node: ${aHost.toString()}`;
         logWarn(errorMessage);
-        return 1;
+        const hostDiff = ssrNodeDocumentPosition(aHost as ISsrNode, bHost as ISsrNode);
+        if (hostDiff !== 0) {
+          return hostDiff;
+        }
       }
     }
 

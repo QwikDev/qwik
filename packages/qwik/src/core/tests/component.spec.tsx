@@ -729,7 +729,7 @@ describe.each([
             <Component>
               <div>
                 {'Child '}
-                {'1'}
+                <Signal ssr-required>{'1'}</Signal>
                 {', active: '}
                 <Signal ssr-required>{'false'}</Signal>
               </div>
@@ -737,7 +737,7 @@ describe.each([
             <Component>
               <div>
                 {'Child '}
-                {'2'}
+                <Signal ssr-required>{'2'}</Signal>
                 {', active: '}
                 <Signal ssr-required>{'true'}</Signal>
               </div>
@@ -756,7 +756,7 @@ describe.each([
             <Component>
               <div>
                 {'Child '}
-                {'1'}
+                <Signal ssr-required>{'1'}</Signal>
                 {', active: '}
                 <Signal ssr-required>{'true'}</Signal>
               </div>
@@ -764,7 +764,7 @@ describe.each([
             <Component>
               <div>
                 {'Child '}
-                {'2'}
+                <Signal ssr-required>{'2'}</Signal>
                 {', active: '}
                 <Signal ssr-required>{'false'}</Signal>
               </div>
@@ -1709,6 +1709,110 @@ describe.each([
             </button>
           </Component>
         </Component>
+      </Component>
+    );
+  });
+
+  it('should correctly move to next sibling during inserting a new component instance after rerender', async () => {
+    const Child = component$(() => {
+      return <div></div>;
+    });
+
+    const Parent = component$(() => {
+      const store = useStore<{ message?: string }>({
+        message: undefined,
+      });
+      return (
+        <div id="test">
+          <button
+            onClick$={() => {
+              if (store.message) {
+                store.message = undefined;
+              } else {
+                store.message = 'Hello';
+              }
+            }}
+          ></button>
+          <section key={store.message}>
+            <Slot />
+          </section>
+        </div>
+      );
+    });
+
+    const Cmp = component$(() => {
+      return (
+        <>
+          <Slot />
+        </>
+      );
+    });
+
+    const Cmp2 = component$(() => {
+      const counter = useSignal(0);
+      return (
+        <>
+          <Cmp key={counter.value}>
+            <Parent>
+              <Child />
+            </Parent>
+          </Cmp>
+          <button id="counter" onClick$={() => counter.value++}></button>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp2 />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <Projection ssr-required>
+                <Component ssr-required>
+                  <div id="test">
+                    <button></button>
+                    <section>
+                      <Projection ssr-required>
+                        <Component ssr-required>
+                          <div></div>
+                        </Component>
+                      </Projection>
+                    </section>
+                  </div>
+                </Component>
+              </Projection>
+            </Fragment>
+          </Component>
+          <button id="counter"></button>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, '#counter', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <Projection ssr-required>
+                <Component ssr-required>
+                  <div id="test">
+                    <button></button>
+                    <section>
+                      <Projection ssr-required>
+                        <Component ssr-required>
+                          <div></div>
+                        </Component>
+                      </Projection>
+                    </section>
+                  </div>
+                </Component>
+              </Projection>
+            </Fragment>
+          </Component>
+          <button id="counter"></button>
+        </Fragment>
       </Component>
     );
   });

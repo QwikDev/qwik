@@ -14,6 +14,7 @@ import {
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 import { advanceToNextTimerAndFlush } from '../../testing/element-fixture';
+import { getStoreHandler } from '../signal/store';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -876,6 +877,84 @@ describe.each([
     );
   });
 
+  it('should cleanup store effects on vNode/component remove', async () => {
+    (globalThis as any).store = undefined;
+
+    const Child = component$<{ store: { message?: string } }>((props) => {
+      return <div>{props.store.message && <span>{props.store.message}</span>}</div>;
+    });
+
+    const Parent = component$(() => {
+      const store = useStore<{ message?: string }>({
+        message: undefined,
+      });
+
+      useVisibleTask$(() => {
+        (globalThis as any).store = store;
+      });
+
+      return (
+        <div>
+          <button
+            onClick$={() => {
+              if (store.message) {
+                store.message = undefined;
+              } else {
+                store.message = 'Hello';
+              }
+            }}
+          ></button>
+          <Child key={store.message} store={store} />
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<Parent />, { debug });
+
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'div', 'qvisible');
+    }
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <button></button>
+          <Component>
+            <div></div>
+          </Component>
+        </div>
+      </Component>
+    );
+
+    const storeHandler = getStoreHandler((globalThis as any).store);
+    expect(storeHandler?.$effects$?.message).toHaveLength(2);
+
+    await trigger(document.body, 'button', 'click');
+    expect(storeHandler?.$effects$?.message).toHaveLength(3);
+    await trigger(document.body, 'button', 'click');
+    expect(storeHandler?.$effects$?.message).toHaveLength(2);
+    await trigger(document.body, 'button', 'click');
+    expect(storeHandler?.$effects$?.message).toHaveLength(3);
+    await trigger(document.body, 'button', 'click');
+    expect(storeHandler?.$effects$?.message).toHaveLength(2);
+    await trigger(document.body, 'button', 'click');
+    expect(storeHandler?.$effects$?.message).toHaveLength(3);
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <button></button>
+          <Component>
+            <div>
+              <span>
+                <Signal>Hello</Signal>
+              </span>
+            </div>
+          </Component>
+        </div>
+      </Component>
+    );
+  });
+
   describe('regression', () => {
     it('#5597 - should update value', async () => {
       (globalThis as any).clicks = 0;
@@ -1009,58 +1088,6 @@ describe.each([
       );
       vi.clearAllTimers();
       vi.useRealTimers();
-    });
-
-    it.skip('#5662 - should update value in the list', async () => {
-      /**
-       * ROOT CAUSE ANALYSIS: This is a bug in Optimizer. The optimizer incorrectly marks the
-       * `onClick` listener as 'const'/'immutable'. Because it is const, the QRL associated with the
-       * click handler always points to the original object, and it is not updated.
-       */
-      const Cmp = component$(() => {
-        const store = useStore<{ users: { name: string }[] }>({ users: [{ name: 'Giorgio' }] });
-
-        return (
-          <div>
-            {store.users.map((user, key) => (
-              <span
-                key={key}
-                onClick$={() => {
-                  store.users = store.users.map(({ name }: { name: string }) => ({
-                    name: name === user.name ? name + '!' : name,
-                  }));
-                }}
-              >
-                {user.name}
-              </span>
-            ))}
-          </div>
-        );
-      });
-      const { vNode, container } = await render(<Cmp />, { debug });
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <div>
-            <span key="0">
-              <Signal>{'Giorgio'}</Signal>
-            </span>
-          </div>
-        </Component>
-      );
-      await trigger(container.element, 'span', 'click');
-      await trigger(container.element, 'span', 'click');
-      await trigger(container.element, 'span', 'click');
-      await trigger(container.element, 'span', 'click');
-      await trigger(container.element, 'span', 'click');
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <div>
-            <span key="0">
-              <Signal>{'Giorgio!!!!!'}</Signal>
-            </span>
-          </div>
-        </Component>
-      );
     });
 
     it('#5017 - should update child nodes for direct array', async () => {

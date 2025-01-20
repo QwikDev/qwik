@@ -243,8 +243,9 @@ export async function configureDevServer(
   });
 
   setTimeout(() => {
-    console.log(`\n  ❗️ ${magenta('Expect significant performance loss in development.')}`);
-    console.log(`  ❗️ ${magenta("Disabling the browser's cache results in waterfall requests.")}`);
+    console.log(
+      `\n  🚧 ${magenta('Please note that development mode is slower than production.')}`
+    );
   }, 1000);
 }
 

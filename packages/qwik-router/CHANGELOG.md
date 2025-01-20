@@ -1,5 +1,7 @@
 # @qwik.dev/city
 
+## 2.0.0-alpha.5
+
 ## 2.0.0-alpha.4
 
 ## 2.0.0-alpha.3
@@ -22,6 +24,14 @@
   This disables history patching, slightly reducing code size and startup time. Use this when your application is MPA only, meaning you don't use the Link component. To enable this, add it to the `experimental` array of the `qwikVite` plugin (not the `qwikCity` plugin).
 
 ## 1.11.0
+
+## 1.12.0
+
+### Patch Changes
+
+- 🐞🩹 the previous URL now is undefined on first render. (by [@damianpumar](https://github.com/damianpumar) in [#7082](https://github.com/QwikDev/qwik/pull/7082))
+
+- 🐞🩹 server$ functions now correctly throw errors for > 500 error codes (by [@DustinJSilk](https://github.com/DustinJSilk) in [#7078](https://github.com/QwikDev/qwik/pull/7078))
 
 ## 1.11.0
 

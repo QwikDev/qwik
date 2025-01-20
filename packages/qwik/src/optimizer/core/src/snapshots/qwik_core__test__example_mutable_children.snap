@@ -169,7 +169,7 @@ const AppStatic_component_gYRXqF3G5nE = (props)=>{
         /*#__PURE__*/ _jsxSorted("div", null, null, [
             "Static ",
             _wrapProp(props)
-        ], 3, null),
+        ], 1, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, [
             "Static ",
             stuff()

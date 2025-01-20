@@ -258,13 +258,19 @@ describe.each([
         <footer>
           <button></button>
           <InlineComponent>
-            <div>qwik</div>
+            <div>
+              <Signal ssr-required>qwik</Signal>
+            </div>
           </InlineComponent>
           <InlineComponent>
-            <div>foo</div>
+            <div>
+              <Signal ssr-required>foo</Signal>
+            </div>
           </InlineComponent>
           <InlineComponent>
-            <div>bar</div>
+            <div>
+              <Signal ssr-required>bar</Signal>
+            </div>
           </InlineComponent>
         </footer>
       </Component>
@@ -277,13 +283,19 @@ describe.each([
         <footer>
           <button></button>
           <InlineComponent>
-            <div>bar</div>
+            <div>
+              <Signal ssr-required>bar</Signal>
+            </div>
           </InlineComponent>
           <InlineComponent>
-            <div>foo</div>
+            <div>
+              <Signal ssr-required>foo</Signal>
+            </div>
           </InlineComponent>
           <InlineComponent>
-            <div>qwik</div>
+            <div>
+              <Signal ssr-required>qwik</Signal>
+            </div>
           </InlineComponent>
         </footer>
       </Component>

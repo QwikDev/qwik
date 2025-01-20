@@ -571,9 +571,9 @@ import { $, component$, useSignal } from '@qwik.dev/core';
 export const Works = component$(({fromProps}) => {
 	let fromLocal = useSignal(0);
 	return (
-		<div 
+		<div
 			computed={fromLocal + fromProps}
-			local={fromLocal} 
+			local={fromLocal}
 			props-wrap={fromProps}
 			props-only={{props: fromProps}}
 			props={{props: fromProps, local: fromLocal}}
@@ -598,9 +598,9 @@ import { $, component$, useSignal } from '@qwik.dev/core';
 export const Works = component$((props: { fromProps: number }) => {
 	let fromLocal = useSignal(0);
 	return (
-		<div 
+		<div
 			computed={fromLocal + props.fromProps}
-			local={fromLocal} 
+			local={fromLocal}
 			props-wrap={props.fromProps}
 			props-only={{props: props.fromProps}}
 			props={{props: props.fromProps, local: fromLocal}}
@@ -2738,11 +2738,11 @@ import { threejs } from 'threejs';
 import L from 'leaflet';
 
 export const functionThatNeedsWindow = () => {
-	if (isb) {
-	console.log('l', L);
-	console.log('hey');
-	window.alert('hey');
-	}
+  if (isb) {
+    console.log('l', L);
+    console.log('hey');
+    window.alert('hey');
+  }
 };
 
 export const App = component$(() => {
@@ -3695,7 +3695,7 @@ fn destructure_args_inline_cmp_block_stmt2() {
 fn destructure_args_inline_cmp_expr_stmt() {
 	test_input!(TestInput {
 		code: r#"
-		export default ({ data }: { data: any }) => 
+		export default ({ data }: { data: any }) =>
             <div
               data-is-active={data.selectedOutputDetail === 'options'}
               onClick$={() => {
@@ -3827,7 +3827,7 @@ export const App = component$(() => {
 
 	return (
 		<Cmp>
-			<p class="stuff" 
+			<p class="stuff"
 				shouldRemove$={() => stuff.count}
 				onClick$={() => console.log('warn')}
 			>
@@ -3953,9 +3953,9 @@ fn rename_builder_io() {
 		import { moreStuff } from "@builder.io/qwik-city/more/here";
 		import { qwikify$ } from "@builder.io/qwik-react";
 		import sdk from "@builder.io/sdk";
-		
+
 		export const Foo = qwikify$(MyReactComponent);
-		
+
 		export const Bar = $("a thing");
 
 		export const App = component$(() => {
@@ -3969,6 +3969,272 @@ fn rename_builder_io() {
 		});
 		"#
 		.to_string(),
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn example_component_with_event_listeners_inside_loop() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useStore, useSignal } from '@qwik.dev/core';
+export const App = component$(() => {
+      const cart = useStore<string[]>([]);
+      const results = useSignal(['foo']);
+      function loopArrowFn(results: string[]) {
+        return results.map((item) => (
+          <span
+            onClick$={() => {
+              cart.push(item);
+            }}
+          >
+            {item}
+          </span>
+        ));
+      }
+      function loopForI(results: string[]) {
+        const items = [];
+        for (let i = 0; i < results.length; i++) {
+          items.push(
+            <span
+              onClick$={() => {
+                cart.push(results[i]);
+              }}
+            >
+              {results[i]}
+            </span>
+          );
+        }
+        return items;
+      }
+      function loopForOf(results: string[]) {
+        const items = [];
+        for (const item of results) {
+          items.push(
+            <span
+              onClick$={() => {
+                cart.push(item);
+              }}
+            >
+              {item}
+            </span>
+          );
+        }
+        return items;
+      }
+      function loopForIn(results: string[]) {
+        const items = [];
+        for (const key in results) {
+          items.push(
+            <span
+              onClick$={() => {
+                cart.push(results[key]);
+              }}
+            >
+              {results[key]}
+            </span>
+          );
+        }
+        return items;
+      }
+      function loopWhile(results: string[]) {
+        const items = [];
+        let i = 0;
+        while (i < results.length) {
+          items.push(
+            <span
+              onClick$={() => {
+                cart.push(results[i]);
+              }}
+            >
+              {results[i]}
+            </span>
+          );
+          i++;
+        }
+        return items;
+      }
+      return (
+        <div>
+          {results.value.map((item) => (
+            <button
+              id="second"
+              onClick$={() => {
+                cart.push(item);
+              }}
+            >
+              {item}
+            </button>
+          ))}
+          {loopArrowFn(results.value)}
+          {loopForI(results.value)}
+          {loopForOf(results.value)}
+          {loopForIn(results.value)}
+          {loopWhile(results.value)}
+        </div>
+      );
+    });
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_wrap_inner_inline_component_prop() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useStore, useSignal } from '@qwik.dev/core';
+export default component$((props: { id: number }) => {
+      const renders = useStore(
+        {
+          count: 0,
+        },
+        { reactive: false }
+      );
+      renders.count++;
+      const rerenders = renders.count + 0;
+      const Id = (props: any) => <div>Id: {props.id}</div>;
+      return (
+        <>
+          <Id id={props.id} />
+          {rerenders}
+        </>
+      );
+    });
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_wrap_prop_from_destructured_array() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useStore, useTask$ } from '@qwik.dev/core';
+		import { useForm, useForm2 } from './some-file.ts';
+
+		export const Input = component$<{error: string, error2: string, error3: string}>(
+			(props) => {
+				useTask$(({ track }) => {
+					track(() => props.error);
+					track(() => props.error2);
+					track(() => props.error3);
+				});
+
+				return (
+					<>
+					</>
+				);
+			}
+		);
+
+		export default component$(() => {
+			const [store, math] = [useStore({errors: {}}), Math.random()];
+			const [[store2]] = [[useStore({errors: {}})]];
+			const { store3, math4 } = { store3: useStore({errors: {}}), math4: Math.random() };
+			const math2 = [Math.random()];
+			const { math3 } = { math3: Math.random() };
+			const [store4] = useForm();
+			const {store5} = useForm2();
+
+			return (
+				<div>
+					<button onClick$={() => {
+						store.errors.test = store.errors.test ? undefined : 'ERROR TEST';
+					}}>click</button>
+					<Input 
+						error={store.errors.test}
+						error2={store2.errors.test}
+						error3={store3.errors.test}
+						error4={store4.errors.test}
+						error5={store5.errors.test}
+						math={math}
+						math2={math2}
+						math3={math3}
+						math4={math4}
+					/>
+				</div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_jsx: true,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_wrap_object_with_fn_signal() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+export default component$((props) => {
+	// not destructure it so it is a var prop
+	const item = props.something.count;
+	return (
+		<>
+			<div data-no-wrap={item ? item * 2 : null} data-wrap={props.myobj.id + "test"}></div>
+		</>
+	);
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_mark_props_as_var_props_for_inner_cmp() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useResource$, Resource } from "@qwik.dev/core";
+import { type ModelProps } from "./modelMenu";
+import { serverImg } from "~/routes/(authenticated)/layout";
+
+export const Image = component$((props) => {
+  return (
+    <>
+      <img src={`${props.src}`} />
+    </>
+  );
+});
+
+export const ModelImg = component$<ModelProps>((props) => {
+  const imgLoc = useResource$(async ({ track }) => {
+    track(() => props.store.model);
+    return await serverImg('some.png');
+  });
+  return (
+    <>
+      <Resource
+        value={imgLoc}
+        onRejected={() => <p>error ...</p>}
+        onResolved={(res) =>
+          res && (
+            <>
+              <Image
+                src={res}
+              />
+            </>
+          )
+        }
+      />
+    </>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
 		transpile_jsx: true,
 		..TestInput::default()
 	});

@@ -1298,17 +1298,59 @@ impl<'a> QwikTransform<'a> {
 													),
 												),
 												op: ast::AssignOp::Assign,
-												right: Box::new(ast::Expr::Member(
-													ast::MemberExpr {
-														obj: Box::new(ast::Expr::Ident(elm)),
-														prop: ast::MemberProp::Ident(
-															ast::IdentName::new(
-																prop_name, DUMMY_SP,
-															),
-														),
+												right: Box::new(ast::Expr::Cond(ast::CondExpr {
+													test: Box::new(ast::Expr::Bin(ast::BinExpr {
+														left: Box::new(ast::Expr::Member(
+															ast::MemberExpr {
+																obj: Box::new(ast::Expr::Ident(
+																	elm.clone(),
+																)),
+																prop: ast::MemberProp::Ident(
+																	ast::IdentName::new(
+																		"type".into(),
+																		DUMMY_SP,
+																	),
+																),
+																span: DUMMY_SP,
+															},
+														)),
 														span: DUMMY_SP,
-													},
-												)),
+														op: ast::BinaryOp::EqEq,
+														right: Box::new(ast::Expr::Lit(
+															ast::Lit::Str(ast::Str {
+																value: "number".into(),
+																span: DUMMY_SP,
+																raw: None,
+															}),
+														)),
+													})),
+													cons: Box::new(ast::Expr::Member(
+														ast::MemberExpr {
+															obj: Box::new(ast::Expr::Ident(
+																elm.clone(),
+															)),
+															prop: ast::MemberProp::Ident(
+																ast::IdentName::new(
+																	"valueAsNumber".into(),
+																	DUMMY_SP,
+																),
+															),
+															span: DUMMY_SP,
+														},
+													)),
+													alt: Box::new(ast::Expr::Member(
+														ast::MemberExpr {
+															obj: Box::new(ast::Expr::Ident(elm)),
+															prop: ast::MemberProp::Ident(
+																ast::IdentName::new(
+																	prop_name, DUMMY_SP,
+																),
+															),
+															span: DUMMY_SP,
+														},
+													)),
+													span: DUMMY_SP,
+												})),
 												span: DUMMY_SP,
 											}),
 										))),

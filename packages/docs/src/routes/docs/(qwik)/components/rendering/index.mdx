@@ -180,11 +180,17 @@ The `bind:` is compiled away by the Qwik optimizer to a property set and an even
 import { component$, useSignal } from '@builder.io/qwik';
 
 export default component$(() => {
+  const count = useSignal(0);
   const firstName = useSignal('');
   const acceptConditions = useSignal(false);
 
   return (
     <form>
+     {/* For number inputs, use `valueAsNumber` instead of `value` to get the numeric value directly */}
+      <input type="number"
+        value={count.value}
+        onInput$={(_, el) => count.value = el.valueAsNumber }
+      />
       <input type="text"
         value={firstName.value}
         onInput$={(_, el) => firstName.value = el.value }

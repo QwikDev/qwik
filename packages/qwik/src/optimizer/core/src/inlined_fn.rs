@@ -47,8 +47,6 @@ pub fn convert_inlined_fn(
 		return (None, is_const);
 	}
 
-	println!("{:?}", is_used_as_object(&expr, &scoped_idents));
-
 	if !is_used_as_object(&expr, &scoped_idents) {
 		return (None, is_const);
 	}
@@ -218,7 +216,6 @@ impl<'a> Visit for ObjectUsageChecker<'a> {
 		if let ast::Expr::Ident(obj_ident) = &*node.obj {
 			for id in self.identifiers {
 				if obj_ident.sym == id.0 {
-					println!("Used as object: {:?}", obj_ident.sym);
 					self.used_as_object = true;
 					return;
 				}

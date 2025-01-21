@@ -142,16 +142,16 @@ export async function configureDevServer(
 
           const allModules = Array.from(server.moduleGraph.fileToModulesMap.entries());
 
-          const CSS_EXTENSIONS = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
-          const JS_EXTENSIONS = ['.js', '.ts', '.tsx', '.jsx'];
+          const CSS_EXTENSIONS = /\.(css|scss|sass|less|styl|stylus)$/;
+          const JS_EXTENSIONS = /\.[mc]?[tj]sx?$/;
           const cssModules = allModules
             .flatMap(([_, modules]) => Array.from(modules))
-            .filter((mod) => CSS_EXTENSIONS.some((ext) => mod.url.endsWith(ext)));
+            .filter((mod) => CSS_EXTENSIONS.test(mod.url));
 
           for (const mod of cssModules) {
             const hasJsImporter = Array.from(mod.importers).some((importer) => {
               const path = importer.url || importer.file;
-              return path && JS_EXTENSIONS.some((ext) => path.endsWith(ext));
+              return path && JS_EXTENSIONS.test(path);
             });
 
             if (hasJsImporter) {

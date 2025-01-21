@@ -650,7 +650,7 @@ describe.each([
     await expect(document.querySelector('div')).toMatchDOM(<div>1</div>);
   });
 
-  it('issue 7230, when multiple useOnWindow are used in a component that is not rendered, it should add multiple script nodes', async () => {
+  it('#7230 - when multiple useOn are used in a component that is not rendered, it should add multiple script nodes', async () => {
     const BreakpointProvider = component$(() => {
       useOnDocument(
         'click',
@@ -690,7 +690,7 @@ describe.each([
       </Component>
     );
   });
-  it('issue 7230, when useOnDocument is used in a component that is not rendered, it should add a script node', async () => {
+  it('#7230 - when useOnDocument is used in a component that is not rendered, it should add a script node', async () => {
     const BreakpointProvider = component$(() => {
       useOnDocument(
         'click',

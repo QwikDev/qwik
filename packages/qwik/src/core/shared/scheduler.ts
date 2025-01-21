@@ -80,15 +80,7 @@
  *   declaration order within component.
  */
 
-import { assertEqual } from './error/assert';
-import type { QRLInternal } from './qrl/qrl-class';
-import type { JSXOutput } from './jsx/types/jsx-node';
-import { Task, TaskFlags, cleanupTask, runTask, type TaskFn } from '../use/use-task';
-import { runResource, type ResourceDescriptor } from '../use/use-resource';
-import { logWarn } from './utils/log';
-import { isPromise, maybeThenPassError, retryOnPromise, safeCall } from './utils/promises';
-import type { ValueOrPromise } from './utils/types';
-import { isDomContainer } from '../client/dom-container';
+import { isDomContainer, type DomContainer } from '../client/dom-container';
 import {
   ElementVNodeProps,
   VNodeFlags,
@@ -97,21 +89,28 @@ import {
   type ElementVNode,
   type VirtualVNode,
 } from '../client/types';
-import { vnode_isVNode, vnode_setAttr, VNodeJournalOpCode } from '../client/vnode';
+import { VNodeJournalOpCode, vnode_isVNode, vnode_setAttr } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
-import { executeComponent } from './component-execution';
-import type { Container, HostElement } from './types';
+import { triggerEffects, type ComputedSignal, type WrappedSignal } from '../signal/signal';
 import { isSignal, type Signal } from '../signal/signal.public';
-import { type DomContainer } from '../client/dom-container';
-import { serializeAttribute } from './utils/styles';
-import type { OnRenderFn } from './component.public';
-import type { Props } from './jsx/jsx-runtime';
-import { QScopedStyle } from './utils/markers';
-import { addComponentStylePrefix } from './utils/scoped-styles';
-import { type WrappedSignal, type ComputedSignal, triggerEffects } from '../signal/signal';
 import type { TargetType } from '../signal/store';
-import { ssrNodeDocumentPosition, vnode_documentPosition } from './scheduler-document-position';
 import type { ISsrNode } from '../ssr/ssr-types';
+import { runResource, type ResourceDescriptor } from '../use/use-resource';
+import { Task, TaskFlags, cleanupTask, runTask, type TaskFn } from '../use/use-task';
+import { executeComponent } from './component-execution';
+import type { OnRenderFn } from './component.public';
+import { assertEqual } from './error/assert';
+import type { Props } from './jsx/jsx-runtime';
+import type { JSXOutput } from './jsx/types/jsx-node';
+import type { QRLInternal } from './qrl/qrl-class';
+import { ssrNodeDocumentPosition, vnode_documentPosition } from './scheduler-document-position';
+import type { Container, HostElement } from './types';
+import { logWarn } from './utils/log';
+import { QScopedStyle } from './utils/markers';
+import { isPromise, retryOnPromise, safeCall } from './utils/promises';
+import { addComponentStylePrefix } from './utils/scoped-styles';
+import { serializeAttribute } from './utils/styles';
+import type { ValueOrPromise } from './utils/types';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -150,7 +149,7 @@ export interface Chore {
   $target$: ChoreTarget | null;
   $payload$: unknown;
   $resolve$: (value: any) => void;
-  $promise$: Promise<any>;
+  $promise$?: Promise<any>;
   $returnValue$: any;
   $executed$: boolean;
 }
@@ -167,6 +166,10 @@ export interface NodePropPayload extends NodePropData {
 export type Scheduler = ReturnType<typeof createScheduler>;
 
 type ChoreTarget = HostElement | QRLInternal<(...args: unknown[]) => unknown> | Signal | TargetType;
+
+const getPromise = (chore: Chore) => {
+  return (chore.$promise$ ||= new Promise((resolve) => (chore.$resolve$ = resolve)));
+};
 
 export const createScheduler = (
   container: Container,
@@ -215,13 +218,7 @@ export const createScheduler = (
     args: unknown[]
   ): ValueOrPromise<void>;
   function schedule(
-    type: ChoreType.COMPONENT,
-    host: HostElement,
-    qrl: QRLInternal<OnRenderFn<unknown>>,
-    props: Props | null
-  ): ValueOrPromise<JSXOutput>;
-  function schedule(
-    type: ChoreType.COMPONENT_SSR,
+    type: ChoreType.COMPONENT | ChoreType.COMPONENT_SSR,
     host: HostElement,
     qrl: QRLInternal<OnRenderFn<unknown>>,
     props: Props | null
@@ -273,7 +270,6 @@ export const createScheduler = (
       $returnValue$: null,
       $executed$: false,
     };
-    chore.$promise$ = new Promise((resolve) => (chore.$resolve$ = resolve));
     DEBUG && debugTrace('schedule', chore, currentChore, choreQueue);
     chore = sortedInsert(choreQueue, chore, (container as DomContainer).rootVNode || null);
     if (!journalFlushScheduled && runLater) {
@@ -283,9 +279,9 @@ export const createScheduler = (
       scheduleDrain();
     }
     if (runLater) {
-      return chore.$promise$;
+      return getPromise(chore);
     } else {
-      return drainUpTo(chore, (container as DomContainer).rootVNode || null);
+      return drainUpTo(chore);
     }
   }
 
@@ -294,29 +290,13 @@ export const createScheduler = (
    *
    * @param runUptoChore
    */
-  function drainUpTo(runUptoChore: Chore, rootVNode: ElementVNode | null): ValueOrPromise<unknown> {
-    // If it already ran, it's not in the queue
-    if (runUptoChore.$executed$) {
-      return runUptoChore.$returnValue$;
-    }
-    if (currentChore) {
-      // Already running chore, which means we're waiting for async completion
-      return runUptoChore.$promise$;
-    }
+  function drainUpTo(runUptoChore: Chore): ValueOrPromise<unknown> {
     while (choreQueue.length) {
-      const nextChore = choreQueue[0];
-      const order = choreComparator(nextChore, runUptoChore, rootVNode);
-      if (order !== null && order > 0) {
-        // we have processed all of the chores up to and including the given chore.
-        break;
+      if (currentChore) {
+        // Already running chore, which means we're waiting for async completion
+        return getPromise(currentChore).then(() => drainUpTo(runUptoChore));
       }
-      // We can take the chore out of the queue
-      choreQueue.shift();
-      if (order === null) {
-        // There was an error with the chore.
-        DEBUG && debugTrace('skip chore', nextChore, currentChore, choreQueue);
-        continue;
-      }
+      const nextChore = choreQueue.shift()!;
       const isDeletedVNode = vNodeAlreadyDeleted(nextChore);
       if (
         isDeletedVNode &&
@@ -326,13 +306,12 @@ export const createScheduler = (
         DEBUG && debugTrace('skip chore', nextChore, currentChore, choreQueue);
         continue;
       }
-      const returnValue = executeChore(nextChore);
-      if (isPromise(returnValue)) {
-        const promise = returnValue.then(() => drainUpTo(runUptoChore, rootVNode));
-        return promise;
+      executeChore(nextChore);
+      if (nextChore === runUptoChore) {
+        break;
       }
     }
-    return runUptoChore.$returnValue$;
+    return runUptoChore.$executed$ ? runUptoChore.$returnValue$ : getPromise(runUptoChore);
   }
 
   function executeChore(chore: Chore): ValueOrPromise<any> {
@@ -376,12 +355,18 @@ export const createScheduler = (
         );
         break;
       case ChoreType.RESOURCE:
-        // Don't await the return value of the resource, because async resources should not be awaited.
-        // The reason for this is that we should be able to update for example a node with loading
-        // text. If we await the resource, the loading text will not be displayed until the resource
-        // is loaded.
-        const result = runResource(chore.$payload$ as ResourceDescriptor<TaskFn>, container, host);
-        returnValue = isDomContainer(container) ? null : result;
+        {
+          // Don't await the return value of the resource, because async resources should not be awaited.
+          // The reason for this is that we should be able to update for example a node with loading
+          // text. If we await the resource, the loading text will not be displayed until the resource
+          // is loaded.
+          const result = runResource(
+            chore.$payload$ as ResourceDescriptor<TaskFn>,
+            container,
+            host
+          );
+          returnValue = isDomContainer(container) ? null : result;
+        }
         break;
       case ChoreType.RUN_QRL:
         {
@@ -390,72 +375,88 @@ export const createScheduler = (
         }
         break;
       case ChoreType.TASK:
-        returnValue = runTask(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
-        break;
       case ChoreType.VISIBLE:
         returnValue = runTask(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
         break;
       case ChoreType.CLEANUP_VISIBLE:
-        const task = chore.$payload$ as Task<TaskFn, TaskFn>;
-        cleanupTask(task);
+        {
+          const task = chore.$payload$ as Task<TaskFn, TaskFn>;
+          cleanupTask(task);
+        }
         break;
       case ChoreType.NODE_DIFF:
-        const parentVirtualNode = chore.$target$ as VirtualVNode;
-        let jsx = chore.$payload$ as JSXOutput;
-        if (isSignal(jsx)) {
-          jsx = jsx.value as any;
+        {
+          const parentVirtualNode = chore.$target$ as VirtualVNode;
+          let jsx = chore.$payload$ as JSXOutput;
+          if (isSignal(jsx)) {
+            jsx = jsx.value as any;
+          }
+          returnValue = retryOnPromise(() =>
+            vnode_diff(container as DomContainer, jsx, parentVirtualNode, null)
+          );
         }
-        returnValue = retryOnPromise(() =>
-          vnode_diff(container as DomContainer, jsx, parentVirtualNode, null)
-        );
         break;
       case ChoreType.NODE_PROP:
-        const virtualNode = chore.$host$ as unknown as ElementVNode;
-        const payload = chore.$payload$ as NodePropPayload;
-        let value: Signal<any> | string = payload.$value$;
-        if (isSignal(value)) {
-          value = value.value as any;
-        }
-        const isConst = payload.$isConst$;
-        const journal = (container as DomContainer).$journal$;
-        const property = chore.$idx$ as string;
-        const serializedValue = serializeAttribute(property, value, payload.$scopedStyleIdPrefix$);
-        if (isConst) {
-          const element = virtualNode[ElementVNodeProps.element] as Element;
-          journal.push(VNodeJournalOpCode.SetAttribute, element, property, serializedValue);
-        } else {
-          vnode_setAttr(journal, virtualNode, property, serializedValue);
+        {
+          const virtualNode = chore.$host$ as unknown as ElementVNode;
+          const payload = chore.$payload$ as NodePropPayload;
+          let value: Signal<any> | string = payload.$value$;
+          if (isSignal(value)) {
+            value = value.value as any;
+          }
+          const isConst = payload.$isConst$;
+          const journal = (container as DomContainer).$journal$;
+          const property = chore.$idx$ as string;
+          const serializedValue = serializeAttribute(
+            property,
+            value,
+            payload.$scopedStyleIdPrefix$
+          );
+          if (isConst) {
+            const element = virtualNode[ElementVNodeProps.element] as Element;
+            journal.push(VNodeJournalOpCode.SetAttribute, element, property, serializedValue);
+          } else {
+            vnode_setAttr(journal, virtualNode, property, serializedValue);
+          }
         }
         break;
       case ChoreType.QRL_RESOLVE: {
-        const target = chore.$target$ as QRLInternal<any>;
-        returnValue = !target.resolved ? target.resolve() : null;
+        {
+          const target = chore.$target$ as QRLInternal<any>;
+          returnValue = !target.resolved ? target.resolve() : null;
+        }
         break;
       }
       case ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS: {
-        const target = chore.$target$ as ComputedSignal<unknown> | WrappedSignal<unknown>;
-        const forceRunEffects = target.$forceRunEffects$;
-        target.$forceRunEffects$ = false;
-        if (!target.$effects$?.length) {
-          break;
-        }
-        returnValue = retryOnPromise(() => {
-          if (target.$computeIfNeeded$() || forceRunEffects) {
-            triggerEffects(container, target, target.$effects$);
+        {
+          const target = chore.$target$ as ComputedSignal<unknown> | WrappedSignal<unknown>;
+          const forceRunEffects = target.$forceRunEffects$;
+          target.$forceRunEffects$ = false;
+          if (!target.$effects$?.length) {
+            break;
           }
-        });
+          returnValue = retryOnPromise(() => {
+            if (target.$computeIfNeeded$() || forceRunEffects) {
+              triggerEffects(container, target, target.$effects$);
+            }
+          });
+        }
         break;
       }
     }
-    return maybeThenPassError(returnValue, (value) => {
-      if (currentChore) {
-        currentChore.$executed$ = true;
-        currentChore.$resolve$?.(value);
-      }
-      DEBUG && debugTrace('execute.DONE', null, currentChore, choreQueue);
+    const after = (value: any) => {
       currentChore = null;
-      return (chore.$returnValue$ = value);
-    });
+      chore.$executed$ = true;
+      chore.$returnValue$ = value;
+      DEBUG && debugTrace('execute.DONE', null, chore, choreQueue);
+      chore.$resolve$?.(value);
+      return value;
+    };
+    if (isPromise(returnValue)) {
+      chore.$promise$ = returnValue;
+      return returnValue.then(after);
+    }
+    return after(returnValue);
   }
 };
 
@@ -496,58 +497,51 @@ function choreComparator(a: Chore, b: Chore, rootVNode: ElementVNode | null): nu
     return macroTypeDiff;
   }
 
-  // JOURNAL_FLUSH does not have a host or $idx$, so we can't compare it.
-  if (a.$type$ !== ChoreType.JOURNAL_FLUSH) {
-    const aHost = a.$host$;
-    const bHost = b.$host$;
+  const aHost = a.$host$;
+  const bHost = b.$host$;
 
-    if (aHost !== bHost && aHost !== null && bHost !== null) {
-      if (vnode_isVNode(aHost) && vnode_isVNode(bHost)) {
-        // we are running on the client.
-        const hostDiff = vnode_documentPosition(aHost, bHost, rootVNode);
-        if (hostDiff !== 0) {
-          return hostDiff;
-        }
-      } else {
-        // we are running on the server.
-        // On server we can't schedule task for a different host!
-        // Server is SSR, and therefore scheduling for anything but the current host
-        // implies that things need to be re-run nad that is not supported because of streaming.
-        const errorMessage = `SERVER: during HTML streaming, re-running tasks on a different host is not allowed.
+  if (aHost !== bHost && aHost !== null && bHost !== null) {
+    if (vnode_isVNode(aHost) && vnode_isVNode(bHost)) {
+      // we are running on the client.
+      const hostDiff = vnode_documentPosition(aHost, bHost, rootVNode);
+      if (hostDiff !== 0) {
+        return hostDiff;
+      }
+    } else {
+      // we are running on the server.
+      // On server we can't schedule task for a different host!
+      // Server is SSR, and therefore scheduling for anything but the current host
+      // implies that things need to be re-run nad that is not supported because of streaming.
+      const errorMessage = `SERVER: during HTML streaming, re-running tasks on a different host is not allowed.
           You are attempting to change a state that has already been streamed to the client.
           This can lead to inconsistencies between Server-Side Rendering (SSR) and Client-Side Rendering (CSR).
           Problematic Node: ${aHost.toString()}`;
-        logWarn(errorMessage);
-        const hostDiff = ssrNodeDocumentPosition(aHost as ISsrNode, bHost as ISsrNode);
-        if (hostDiff !== 0) {
-          return hostDiff;
-        }
+      logWarn(errorMessage);
+      const hostDiff = ssrNodeDocumentPosition(aHost as ISsrNode, bHost as ISsrNode);
+      if (hostDiff !== 0) {
+        return hostDiff;
       }
-    }
-
-    const microTypeDiff = (a.$type$ & ChoreType.MICRO) - (b.$type$ & ChoreType.MICRO);
-    if (microTypeDiff !== 0) {
-      return microTypeDiff;
-    }
-
-    const idxDiff = toNumber(a.$idx$) - toNumber(b.$idx$);
-    if (idxDiff !== 0) {
-      return idxDiff;
-    }
-
-    // If the host is the same (or missing), and the type is the same,  we need to compare the target.
-    if (
-      a.$target$ !== b.$target$ &&
-      (a.$type$ === ChoreType.QRL_RESOLVE ||
-        a.$type$ === ChoreType.RUN_QRL ||
-        a.$type$ === ChoreType.NODE_PROP ||
-        a.$type$ === ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS)
-    ) {
-      // 1 means that we are going to process chores as FIFO
-      return 1;
     }
   }
 
+  const microTypeDiff = (a.$type$ & ChoreType.MICRO) - (b.$type$ & ChoreType.MICRO);
+  if (microTypeDiff !== 0) {
+    return microTypeDiff;
+  }
+  // types are the same
+
+  const idxDiff = toNumber(a.$idx$) - toNumber(b.$idx$);
+  if (idxDiff !== 0) {
+    return idxDiff;
+  }
+
+  // If the host is the same (or missing), and the type is the same,  we need to compare the target.
+  if (a.$target$ !== b.$target$ || a.$payload$ !== b.$payload$) {
+    // 1 means that we are going to process chores as FIFO
+    return 1;
+  }
+
+  // The chorse are the same and will run only once
   return 0;
 }
 

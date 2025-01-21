@@ -55,7 +55,7 @@ describe.each([
     });
 
     const { vNode } = await render(<Counter />, { debug });
-    expect(log).toEqual(['Counter', 'task', 'resolved', 'Counter', 'render']);
+    expect(log).toEqual(['Counter', 'render', 'task', 'resolved']);
     expect(vNode).toMatchVDOM(
       <Component>
         <span>
@@ -98,17 +98,17 @@ describe.each([
       return <span>OK</span>;
     });
 
-    try {
+    if (render === ssrRenderToDom) {
+      await expect(() => render(<Counter />, { debug })).rejects.toBe(error);
+    } else {
       await render(
         <ErrorProvider>
           <Counter />
         </ErrorProvider>,
         { debug }
       );
-      expect(ErrorProvider.error).toBe(render === domRender ? error : null);
-    } catch (e) {
-      expect(render).toBe(ssrRenderToDom);
-      expect(e).toBe(error);
+      // dom render does not throw errors
+      expect(ErrorProvider.error).toBe(error);
     }
   });
   it('should not run next task until previous async task is finished', async () => {
@@ -133,16 +133,7 @@ describe.each([
     });
 
     const { vNode } = await render(<Counter />, { debug });
-    expect(log).toEqual([
-      'Counter',
-      '1:task',
-      '1:resolved',
-      'Counter',
-      '2:task',
-      '2:resolved',
-      'Counter',
-      'render',
-    ]);
+    expect(log).toEqual(['Counter', 'render', '1:task', '1:resolved', '2:task', '2:resolved']);
     expect(vNode).toMatchVDOM(
       <Component>
         <span>
@@ -312,6 +303,7 @@ describe.each([
       (globalThis as any).log = [] as string[];
       const Counter = component$(() => {
         const store = useStore({ count: 1, double: 0, quadruple: 0 });
+        // Quadruple runs first, but will run again after double is updated
         useTask$(({ track }) => {
           (globalThis as any).log.push('quadruple');
           const trackingValue = track(store, 'double') * 2;
@@ -330,7 +322,7 @@ describe.each([
       });
 
       const { vNode, document } = await render(<Counter />, { debug });
-      expect((globalThis as any).log).toEqual(['quadruple', 'double', 'Counter', 'quadruple']);
+      expect((globalThis as any).log).toEqual(['Counter', 'quadruple', 'double', 'quadruple']);
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -369,7 +361,7 @@ describe.each([
       const { vNode, document } = await render(<Counter />, { debug });
       // console.log('log', log);
       expect((globalThis as any).log).toEqual(
-        isCSR ? ['task: 0', 'Counter: 0'] : ['task: 0', 'Counter: 0', 'cleanup: 0']
+        isCSR ? ['Counter: 0', 'task: 0'] : ['Counter: 0', 'task: 0', 'cleanup: 0']
       );
       expect(vNode).toMatchVDOM(
         <Component>
@@ -426,7 +418,7 @@ describe.each([
       const { vNode, document } = await render(<Parent />, { debug });
       // console.log('log', log);
       expect((globalThis as any).log).toEqual(
-        isCSR ? ['task:', 'Child'] : ['task:', 'Child', 'cleanup:']
+        isCSR ? ['Child', 'task:'] : ['Child', 'task:', 'cleanup:']
       );
       expect(vNode).toMatchVDOM(
         <Component>
@@ -449,7 +441,7 @@ describe.each([
       (globalThis as any).log = [];
       await trigger(document.body, 'button', 'click');
 
-      expect((globalThis as any).log).toEqual(['task:', 'Child']);
+      expect((globalThis as any).log).toEqual(['Child', 'task:']);
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -518,9 +510,6 @@ describe.each([
         // async microtasks run, task 1 queues a delay
         'inside.1',
         '2b',
-        // render waited until task 2 finished
-        // re-render because of signal change in task 1
-        'render',
         // task 3 runs sync and attaches to the promise
         '3a',
         // microtasks run

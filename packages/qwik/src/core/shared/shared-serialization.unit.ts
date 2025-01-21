@@ -149,7 +149,7 @@ describe('shared-serialization', () => {
     it(title(TypeIds.Error), async () => {
       const err = new Error('hi');
       err.stack = err
-        .stack!.replaceAll(/\/.*\./g, '/...path/file.')
+        .stack!.replaceAll(/([A-Z]:){0,1}(\/|\\).*\./g, '/...path/file.')
         .replaceAll(/:\d+:\d+/g, ':123:456');
       expect(await dump(err)).toMatchInlineSnapshot(`
         "

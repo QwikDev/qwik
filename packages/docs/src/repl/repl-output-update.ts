@@ -12,11 +12,9 @@ const deepUpdate = (prev: any, next: any) => {
     }
   }
   if (Array.isArray(prev)) {
-    for (const key in prev) {
-      if (!(key in next)) {
-        delete prev[key];
-        // deleting array elements doesn't change the length
-        prev.length--;
+    for (const item of prev) {
+      if (!next.includes(item)) {
+        prev.splice(prev.indexOf(item), 1);
       }
     }
   } else {

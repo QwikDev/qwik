@@ -242,7 +242,6 @@ function addScriptNodeForInvisibleComponents(
       3
     );
     if (jsx.type === Slot) {
-      debugger;
       return [jsxElement, _jsxSorted(Fragment, null, null, [jsx, jsxElement], 0, null)];
     }
 

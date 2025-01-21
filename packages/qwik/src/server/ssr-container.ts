@@ -218,9 +218,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public $instanceHash$ = hash();
   // Temporary flag to find missing roots after the state was serialized
   private $noMoreRoots$ = false;
+  /** True if there are scheduled tasks that need to be run */
+  public $hasChores$ = false;
   constructor(opts: Required<SSRRenderOptions>) {
     super(
-      () => null,
+      () => (this.$hasChores$ = true),
       () => null,
       opts.renderOptions.serverData ?? EMPTY_OBJ,
       opts.locale
@@ -248,16 +250,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.$processInjectionsFromManifest$();
   }
 
-  ensureProjectionResolved(host: HostElement): void {}
+  ensureProjectionResolved(_host: HostElement): void {}
 
-  handleError(err: any, $host$: HostElement): void {
+  handleError(err: any, _$host$: HostElement): void {
     throw err;
   }
 
   async render(jsx: JSXOutput) {
     this.openContainer();
     await _walkJSX(this, jsx, {
-      allowPromises: true,
       currentStyleScoped: null,
       parentComponentFrame: this.getComponentFrame(),
     });
@@ -987,7 +988,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             }
             ssrComponentNode?.setProp(value, lastNode.id);
             await _walkJSX(this, children, {
-              allowPromises: true,
               currentStyleScoped: scopedStyleId,
               parentComponentFrame: null,
             });

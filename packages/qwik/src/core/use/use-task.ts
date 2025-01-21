@@ -1,7 +1,7 @@
 import { getDomContainer } from '../client/dom-container';
 import type { VNode } from '../client/types';
-import { isServerPlatform } from '../shared/platform/platform';
-import { assertQrl, createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
+import { QError, qError } from '../shared/error/error';
+import { assertQrl, type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ChoreType } from '../shared/scheduler';
 import { type Container, type HostElement } from '../shared/types';
@@ -15,10 +15,8 @@ import { Subscriber, clearSubscriberEffectDependencies } from '../signal/signal-
 import { type Signal } from '../signal/signal.public';
 import { invoke, newInvokeContext } from './use-core';
 import { useLexicalScope } from './use-lexical-scope.public';
-import { useOn, useOnDocument } from './use-on';
 import type { ResourceReturnInternal } from './use-resource';
 import { useSequentialScope } from './use-sequential-scope';
-import type { VisibleTaskStrategy } from './use-visible-task';
 
 export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,
@@ -137,20 +135,8 @@ export interface DescriptorBase<T = unknown, B = unknown> extends Subscriber {
   $destroy$: NoSerialize<() => void> | null;
 }
 
-/** @public */
-export type EagernessOptions = 'visible' | 'load' | 'idle';
-
-/** @public */
-export interface UseTaskOptions {
-  /**
-   * - `visible`: run the effect when the element is visible.
-   * - `load`: eagerly run the effect when the application resumes.
-   */
-  eagerness?: EagernessOptions;
-}
-
 /** @internal */
-export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
+export const useTaskQrl = (qrl: QRL<TaskFn>): void => {
   const { val, set, iCtx, i } = useSequentialScope<1 | Task>();
   if (val) {
     return;
@@ -158,7 +144,6 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
   assertQrl(qrl);
   set(1);
 
-  const host = iCtx.$hostElement$ as unknown as HostElement;
   const task = new Task(
     TaskFlags.DIRTY | TaskFlags.TASK,
     i,
@@ -171,14 +156,8 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: UseTaskOptions): void => {
   // in order to be able to retrieve it later when the parent element is
   // deleted and we need to be able to release the task subscriptions.
   set(task);
-  const result = runTask(task, iCtx.$container$, host);
-  if (isPromise(result)) {
-    throw result;
-  }
-  qrl.$resolveLazy$(iCtx.$element$);
-  if (isServerPlatform()) {
-    useRunTask(task, opts?.eagerness);
-  }
+  const container = iCtx.$container$;
+  container.$scheduler$(ChoreType.TASK, task);
 };
 
 export const runTask = (
@@ -207,7 +186,7 @@ export const runTask = (
       } else if (isSignal(obj)) {
         return obj.value;
       } else {
-        return obj;
+        throw qError(QError.trackObjectWithoutProp);
       }
     });
   };
@@ -259,26 +238,6 @@ export const cleanupTask = (task: Task) => {
       logError(err);
     }
   }
-};
-
-export const useRunTask = (
-  task: Task,
-  eagerness: VisibleTaskStrategy | EagernessOptions | undefined
-) => {
-  if (eagerness === 'visible' || eagerness === 'intersection-observer') {
-    useOn('qvisible', getTaskHandlerQrl(task));
-  } else if (eagerness === 'load' || eagerness === 'document-ready') {
-    useOnDocument('qinit', getTaskHandlerQrl(task));
-  } else if (eagerness === 'idle' || eagerness === 'document-idle') {
-    useOnDocument('qidle', getTaskHandlerQrl(task));
-  }
-};
-
-const getTaskHandlerQrl = (task: Task): QRL<(ev: Event) => void> => {
-  const taskHandler = createQRL<(ev: Event) => void>(null, '_task', scheduleTask, null, null, [
-    task,
-  ]);
-  return taskHandler;
 };
 
 export class Task<T = unknown, B = T>

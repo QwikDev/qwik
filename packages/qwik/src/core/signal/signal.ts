@@ -375,7 +375,12 @@ export const triggerEffects = (
         const qrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(host, OnRenderProp);
         assertDefined(qrl, 'Component must have QRL');
         const props = container.getHostProp<Props>(host, ELEMENT_PROPS);
-        container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
+        container.$scheduler$(
+          isDomContainer(container) ? ChoreType.COMPONENT : ChoreType.COMPONENT_SSR,
+          host,
+          qrl,
+          props
+        );
       } else if (property === EffectProperty.VNODE) {
         const host: HostElement = effect as any;
         const target = host;

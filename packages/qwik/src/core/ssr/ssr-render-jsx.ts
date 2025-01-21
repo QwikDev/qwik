@@ -34,9 +34,9 @@ import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-compo
 import type { ISsrComponentFrame, ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
 import { qInspector } from '../shared/utils/qdev';
 import { serializeAttribute } from '../shared/utils/styles';
-import { QError, qError } from '../shared/error/error';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import { queueQRL } from '../client/queue-qrl';
+import { ChoreType } from '../shared/scheduler';
 
 class ParentComponentData {
   constructor(
@@ -50,50 +50,17 @@ type StackValue = ValueOrPromise<
 >;
 
 /** @internal */
-export function _walkJSX(
+export async function _walkJSX(
   ssr: SSRContainer,
   value: JSXOutput,
   options: {
-    allowPromises: true;
     currentStyleScoped: string | null;
     parentComponentFrame: ISsrComponentFrame | null;
   }
-): ValueOrPromise<void>;
-/** @internal */
-export function _walkJSX(
-  ssr: SSRContainer,
-  value: JSXOutput,
-  options: {
-    allowPromises: false;
-    currentStyleScoped: string | null;
-    parentComponentFrame: ISsrComponentFrame | null;
-  }
-): false;
-/** @internal */
-export function _walkJSX(
-  ssr: SSRContainer,
-  value: JSXOutput,
-  options: {
-    allowPromises: boolean;
-    currentStyleScoped: string | null;
-    parentComponentFrame: ISsrComponentFrame | null;
-  }
-): ValueOrPromise<void> | false {
+): Promise<void> {
   const stack: StackValue[] = [value];
-  let resolveDrain: () => void;
-  let rejectDrain: (reason: any) => void;
-  const drained =
-    options.allowPromises &&
-    new Promise<void>((res, rej) => {
-      resolveDrain = res;
-      rejectDrain = rej;
-    });
   const enqueue = (value: StackValue) => stack.push(value);
-  const resolveValue = (value: JSXOutput) => {
-    stack.push(value);
-    drain();
-  };
-  const drain = (): void => {
+  const drain = async (): Promise<void> => {
     while (stack.length) {
       const value = stack.pop();
       if (value instanceof ParentComponentData) {
@@ -102,33 +69,23 @@ export function _walkJSX(
         continue;
       } else if (typeof value === 'function') {
         if (value === Promise) {
-          if (!options.allowPromises) {
-            throw qError(QError.promisesNotExpected);
-          }
-          (stack.pop() as Promise<JSXOutput>).then(resolveValue, rejectDrain);
-          return;
+          stack.push(await (stack.pop() as Promise<JSXOutput>));
+          continue;
         }
-        const waitOn = (value as StackFn).apply(ssr);
-        if (waitOn) {
-          if (!options.allowPromises) {
-            throw qError(QError.promisesNotExpected);
-          }
-          waitOn.then(drain, rejectDrain);
-          return;
-        }
+        await (value as StackFn).apply(ssr);
         continue;
       }
       processJSXNode(ssr, enqueue, value as JSXOutput, {
         styleScoped: options.currentStyleScoped,
         parentComponentFrame: options.parentComponentFrame,
       });
-    }
-    if (stack.length === 0 && options.allowPromises) {
-      resolveDrain();
+      if (ssr.$hasChores$) {
+        ssr.$hasChores$ = false;
+        await ssr.$scheduler$(ChoreType.WAIT_FOR_ALL);
+      }
     }
   };
-  drain();
-  return drained;
+  await drain();
 }
 
 function processJSXNode(
@@ -169,7 +126,6 @@ function processJSXNode(
       enqueue(async () => {
         for await (const chunk of value) {
           await _walkJSX(ssr, chunk as JSXOutput, {
-            allowPromises: true,
             currentStyleScoped: options.styleScoped,
             parentComponentFrame: options.parentComponentFrame,
           });
@@ -277,7 +233,6 @@ function processJSXNode(
             value = generator({
               async write(chunk) {
                 await _walkJSX(ssr, chunk as JSXOutput, {
-                  allowPromises: true,
                   currentStyleScoped: options.styleScoped,
                   parentComponentFrame: options.parentComponentFrame,
                 });

@@ -55,6 +55,7 @@ export interface ISsrComponentFrame {
 export type SymbolToChunkResolver = (symbol: string) => string;
 
 export interface SSRContainer extends Container {
+  $hasChores$: boolean;
   readonly tag: string;
   readonly writer: StreamWriter;
   readonly prefetchResources: PrefetchResource[];

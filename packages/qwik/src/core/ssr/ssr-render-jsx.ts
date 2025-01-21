@@ -245,6 +245,7 @@ function processJSXNode(
             const node = ssr.getLastNode();
             const slotName = getSlotName(host, jsx, ssr);
             projectionAttrs.push(QSlot, slotName);
+
             enqueue(new ParentComponentData(options.styleScoped, options.parentComponentFrame));
             enqueue(ssr.closeProjection);
             const slotDefaultChildren: JSXChildren | null = jsx.children || null;
@@ -300,7 +301,8 @@ function processJSXNode(
             options.styleScoped,
             options.parentComponentFrame
           );
-          const jsxOutput = applyQwikComponentBody(ssr, jsx, type);
+
+          const jsxOutput: any = applyQwikComponentBody(ssr, jsx, type);
           const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
           enqueue(new ParentComponentData(options.styleScoped, options.parentComponentFrame));
           enqueue(ssr.closeComponent);

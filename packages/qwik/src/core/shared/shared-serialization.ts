@@ -504,6 +504,8 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
         reject = rej;
       });
       resolvers.set(promise, [resolve, reject]);
+      // Don't leave unhandled promise rejections
+      promise.catch(() => {});
       return promise;
     case TypeIds.Uint8Array:
       const encodedLength = (value as string).length;

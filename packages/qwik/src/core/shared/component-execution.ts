@@ -3,7 +3,7 @@ import { isQwikComponent, type OnRenderFn } from './component.public';
 import { assertDefined } from './error/assert';
 import { isQrl, type QRLInternal } from './qrl/qrl-class';
 import { Fragment, JSXNodeImpl, _jsxSorted, isJSXNode, type Props } from './jsx/jsx-runtime';
-import type { FunctionComponent, JSXNodeInternal, JSXOutput } from './jsx/types/jsx-node';
+import type { JSXNodeInternal, JSXOutput } from './jsx/types/jsx-node';
 import type { KnownEventNames } from './jsx/types/jsx-qwik-events';
 import { invokeApply, newInvokeContext, untrack } from '../use/use-core';
 import { type EventQRL, type UseOnMap } from '../use/use-on';

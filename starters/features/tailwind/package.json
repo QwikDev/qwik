@@ -3,7 +3,19 @@
   "__qwik__": {
     "displayName": "Integration: Tailwind (styling)",
     "priority": -10,
-    "viteConfig": {},
+    "viteConfig": {
+      "imports": [
+        {
+          "namedImports": [
+            "tailwindcss"
+          ],
+          "importPath": "@tailwindcss/vite"
+        }
+      ],
+      "vitePlugins": [
+        "tailwindcss()"
+      ]
+    },
     "docs": [
       "https://qwik.dev/integrations/integration/tailwind/",
       "https://tailwindcss.com/docs/utility-first"
@@ -13,9 +25,8 @@
     ]
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.19",
-    "postcss": "^8.4.39",
-    "prettier-plugin-tailwindcss": "^0.5.4",
-    "tailwindcss": "^3.4.6"
+    "prettier-plugin-tailwindcss": "^0.6.10",
+    "@tailwindcss/vite":"^4.0.0",
+    "tailwindcss": "^4.0.0"
   }
 }

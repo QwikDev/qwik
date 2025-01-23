@@ -1,5 +1,4 @@
 import { test, expect } from "@playwright/test";
-import { ComponentStylesPrefixContent as prefix } from "../../packages/qwik/src/core/util/markers";
 
 test.describe("render", () => {
   test.beforeEach(async ({ page }) => {

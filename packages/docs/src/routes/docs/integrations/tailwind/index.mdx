@@ -12,7 +12,8 @@ contributors:
   - mrhoodz
   - NickClark
   - adamdbradley
-updated_at: '2023-10-03T18:53:23Z'
+  - sreeisalso
+updated_at: '2025-01-24T18:53:23Z'
 created_at: '2023-04-06T21:28:28Z'
 ---
 
@@ -53,21 +54,13 @@ bun run qwik add tailwind
 
 The previous command updates your app with the necessary dependencies.
 
-It also adds new files to your project folder:
-
-- `postcss.config.js`
-- `tailwind.config.js`
-- `.vscode/settings.json`
-
 and modifies your `src/global.css` to include
 
 ```css title="src/global.css"
 
 # global.css file
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 ...stuff...
 

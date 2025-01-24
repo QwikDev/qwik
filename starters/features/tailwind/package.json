@@ -6,7 +6,7 @@
     "viteConfig": {
       "imports": [
         {
-          "namedImports": [
+          "imports": [
             "tailwindcss"
           ],
           "importPath": "@tailwindcss/vite"

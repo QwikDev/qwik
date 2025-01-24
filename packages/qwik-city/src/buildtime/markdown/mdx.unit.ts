@@ -61,8 +61,8 @@ describe('mdx', async () => {
         });
       }
        
-      const WrappedMdxContent = () => {
-        const content = _jsxC(RenderOnce, {children: _jsxC(_createMdxContent, {}, 3, null)}, 3, "eB2HIyA1");
+      const WrappedMdxContent = (props = {}) => {
+        const content = _jsxC(RenderOnce, {children: _jsxC(_createMdxContent, {props}, 3, null)}, 3, "eB2HIyA1");
         if (typeof MDXLayout === 'function'){
             return jsx(MDXLayout, {children: content});
         }
@@ -138,8 +138,8 @@ export default function Layout({ children: content }) {
         });
       }
        
-      const WrappedMdxContent = () => {
-        const content = _jsxC(RenderOnce, {children: _jsxC(_createMdxContent, {}, 3, null)}, 3, "UdQmQWC3");
+      const WrappedMdxContent = (props = {}) => {
+        const content = _jsxC(RenderOnce, {children: _jsxC(_createMdxContent, {props}, 3, null)}, 3, "UdQmQWC3");
         if (typeof MDXLayout === 'function'){
             return jsx(MDXLayout, {children: content});
         }

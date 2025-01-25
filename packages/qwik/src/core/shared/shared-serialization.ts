@@ -794,6 +794,7 @@ export const createSerializationContext = (
         obj instanceof RegExp ||
         obj instanceof Uint8Array ||
         obj instanceof URLSearchParams ||
+        vnode_isVNode(obj) ||
         (typeof FormData !== 'undefined' && obj instanceof FormData) ||
         // Ignore the no serialize objects
         fastSkipSerialize(obj as object)
@@ -1279,6 +1280,8 @@ function serialize(serializationContext: SerializationContext): void {
       }
       const out = btoa(buf).replace(/=+$/, '');
       output(TypeIds.Uint8Array, out);
+    } else if (vnode_isVNode(value)) {
+      output(TypeIds.Constant, Constants.Undefined);
     } else {
       throw qError(QError.serializeErrorUnknownType, [typeof value]);
     }

@@ -2,7 +2,6 @@ import {
   findLocation,
   generateCodeFrame,
 } from '../../../../qwik/src/optimizer/src/plugins/vite-utils';
-import { normalizePath } from '../../utils/fs';
 import fs from 'node:fs';
 
 export function formatError(e: any) {
@@ -16,7 +15,7 @@ export function formatError(e: any) {
       if (loc) {
         err.loc = loc;
         if (loc.file) {
-          err.id = normalizePath(err.loc.file);
+          err.id = err.loc.file;
           try {
             const code = fs.readFileSync(err.loc.file, 'utf-8');
             err.frame = generateCodeFrame(code, err.loc);

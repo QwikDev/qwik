@@ -28,7 +28,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
         children: /*#__PURE__*/ _jsxQ("p", null, {
             class: "stuff",
             onClick$: /*#__PURE__*/ inlinedQrlDEV(()=>console.log('warn'), "App_component_Cmp_p_onClick_vuXzfUTkpto", {
-                file: "/user/qwik/src/test.tsx",
+                file: "test.tsx",
                 lo: 164,
                 hi: 189,
                 displayName: "test.tsx_App_component_Cmp_p_onClick"
@@ -44,14 +44,14 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
         columnNumber: 9
     });
 }, "App_component_ckEPmXZlub0", {
-    file: "/user/qwik/src/test.tsx",
+    file: "test.tsx",
     lo: 90,
     hi: 229,
     displayName: "test.tsx_App_component"
 }));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAGA,OAAO,MAAM,oBAAM,yCAAW;IAC1B,qBACI,MAAC;kBACG,cAAA,MAAC;YAAE,OAAM;YAAQ,QAAQ,8BAAE,IAAM,QAAQ,GAAG,CAAC;;;;;;WAAS;;;;;;;;;;AAGlE;;;;;IAAG\"}")
+Some("{\"version\":3,\"sources\":[\"test.tsx\"],\"sourceRoot\":\"/user/qwik/src\",\"names\":[],\"mappings\":\";;;;AAGA,OAAO,MAAM,oBAAM,yCAAW;IAC1B,qBACI,MAAC;kBACG,cAAA,MAAC;YAAE,OAAM;YAAQ,QAAQ,8BAAE,IAAM,QAAQ,GAAG,CAAC;;;;;;WAAS;;;;;;;;;;AAGlE;;;;;IAAG\"}")
 == DIAGNOSTICS ==
 
 []

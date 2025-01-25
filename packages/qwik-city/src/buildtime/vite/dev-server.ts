@@ -28,7 +28,7 @@ import type {
   RequestEvent,
   RouteModule,
 } from '../../runtime/src/types';
-import { getExtension, normalizePath } from '../../utils/fs';
+import { getExtension } from '../../utils/fs';
 import { updateBuildContext } from '../build';
 import type { BuildContext, BuildRoute } from '../types';
 import { formatError } from './format-error';
@@ -416,9 +416,7 @@ const levenshteinDistance = (s: string, t: string) => {
  */
 export function staticDistMiddleware({ config }: ViteDevServer) {
   const distDirs = new Set(
-    ['dist', config.build.outDir, config.publicDir].map((d) =>
-      normalizePath(resolve(config.root, d))
-    )
+    ['dist', config.build.outDir, config.publicDir].map((d) => resolve(config.root, d))
   );
 
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
@@ -475,9 +473,9 @@ function formatDevSerializeError(err: any, routeModulePaths: WeakMap<RouteModule
       try {
         const code = fs.readFileSync(filePath, 'utf-8');
         err.plugin = 'vite-plugin-qwik-city';
-        err.id = normalizePath(filePath);
+        err.id = filePath;
         err.loc = {
-          file: err.id,
+          file: filePath,
           line: undefined,
           column: undefined,
         };

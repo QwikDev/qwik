@@ -6,7 +6,7 @@ import { loadEnv } from 'vite';
 import { generateQwikCityPlan } from '../runtime-generation/generate-qwik-city-plan';
 import type { BuildContext } from '../types';
 import { createBuildContext, resetBuildContext } from '../context';
-import { isMenuFileName, normalizePath, removeExtension } from '../../utils/fs';
+import { isMenuFileName, removeExtension } from '../../utils/fs';
 import { validatePlugin } from './validate-plugin';
 import type { QwikCityPluginApi, QwikCityVitePluginOptions } from './types';
 import { build } from '../build';
@@ -248,7 +248,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
           for (const fileName in bundles) {
             const c = bundles[fileName];
             if (c.type === 'chunk' && c.isDynamicEntry && c.facadeModuleId) {
-              const extensionlessFilePath = removeExtension(normalizePath(c.facadeModuleId));
+              const extensionlessFilePath = removeExtension(c.facadeModuleId);
               if (entry.extensionlessFilePath === extensionlessFilePath) {
                 c.fileName = entry.chunkFileName;
                 continue;

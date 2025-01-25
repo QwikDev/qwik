@@ -6,7 +6,7 @@ export const HelloWorld = component$(() => {
   };
   const useMethod = getMethod();
   useTask$(() => {
-    /* eslint no-console: [, { allow: ["log"] }] */
+    // eslint-disable-next-line no-console
     console.log(useMethod);
   });
   return <div></div>;

@@ -6,7 +6,7 @@ export const HelloWorld = component$(() => {
   const divRef = useSignal<{ offsetLeft: number }>();
 
   const handleMouseDown = $((e: MouseEvent) => {
-    /* eslint no-console: [, { allow: ["log"] }] */
+    // eslint-disable-next-line no-console
     console.log('working');
     startX = e.pageX - divRef.value!.offsetLeft;
   });

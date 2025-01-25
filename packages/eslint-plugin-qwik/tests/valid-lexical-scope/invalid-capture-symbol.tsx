@@ -4,7 +4,7 @@ import { component$, useTask$ } from '@builder.io/qwik';
 export const HelloWorld = component$(() => {
   const a = Symbol();
   useTask$(() => {
-    /* eslint no-console: [, { allow: ["log"] }] */
+    // eslint-disable-next-line no-console
     console.log(a);
   });
   return <div></div>;

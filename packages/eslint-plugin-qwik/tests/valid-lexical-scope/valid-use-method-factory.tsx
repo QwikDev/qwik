@@ -19,7 +19,7 @@ export const HelloWorld = component$(() => {
     },
   };
   useTask$(() => {
-    /* eslint no-console: [, { allow: ["log"] }] */
+    // eslint-disable-next-line no-console
     console.log(useMethod, obj);
   });
   return <div></div>;

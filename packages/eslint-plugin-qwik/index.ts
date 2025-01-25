@@ -63,7 +63,7 @@ const configs = {
   },
 };
 
-const qwikEslintPlugin = {
+const qwikEslint9Plugin = {
   configs: {
     recommended: [
       {
@@ -89,4 +89,4 @@ const qwikEslintPlugin = {
   rules,
 };
 
-export { configs, qwikEslintPlugin as default, rules };
+export { configs, qwikEslint9Plugin, rules };

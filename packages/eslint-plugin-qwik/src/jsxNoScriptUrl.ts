@@ -36,7 +36,7 @@ export const jsxNoScriptUrl = {
         if (node.name.type === 'JSXIdentifier' && node.value) {
           const link = getStaticValue(
             node.value.type === 'JSXExpressionContainer' ? node.value.expression : node.value,
-            context.getScope()
+            context.getScope ? context?.getScope() : context?.sourceCode?.getScope()
           );
           if (link && typeof link.value === 'string' && isJavaScriptProtocol.test(link.value)) {
             context.report({

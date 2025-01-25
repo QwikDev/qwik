@@ -32,7 +32,6 @@ import type { Props } from '../shared/jsx/jsx-runtime';
 import type { OnRenderFn } from '../shared/component.public';
 import { NEEDS_COMPUTATION } from './flags';
 import { QError, qError } from '../shared/error/error';
-import { isDomContainer } from '../client/dom-container';
 
 const DEBUG = false;
 
@@ -375,12 +374,7 @@ export const triggerEffects = (
         const qrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(host, OnRenderProp);
         assertDefined(qrl, 'Component must have QRL');
         const props = container.getHostProp<Props>(host, ELEMENT_PROPS);
-        container.$scheduler$(
-          isDomContainer(container) ? ChoreType.COMPONENT : ChoreType.COMPONENT_SSR,
-          host,
-          qrl,
-          props
-        );
+        container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
       } else if (property === EffectProperty.VNODE) {
         const host: HostElement = effect as any;
         const target = host;

@@ -217,9 +217,6 @@ class DomContainer extends _SharedContainer implements ClientContainer {
 export { DomContainer }
 export { DomContainer as _DomContainer }
 
-// @public (undocumented)
-export type EagernessOptions = 'visible' | 'load' | 'idle';
-
 // @internal (undocumented)
 export class _EffectData {
     constructor(data: NodePropData);
@@ -1142,17 +1139,12 @@ export interface UseStylesScoped {
 export const useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
 
 // @public
-export const useTask$: (qrl: TaskFn, opts?: UseTaskOptions | undefined) => void;
-
-// @public (undocumented)
-export interface UseTaskOptions {
-    eagerness?: EagernessOptions;
-}
+export const useTask$: (qrl: TaskFn) => void;
 
 // Warning: (ae-internal-missing-underscore) The name "useTaskQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const useTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void;
+export const useTaskQrl: (qrl: QRL<TaskFn>) => void;
 
 // @public
 export const useVisibleTask$: (qrl: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
@@ -1239,17 +1231,9 @@ export const _waitUntilRendered: (elm: Element) => Promise<void>;
 //
 // @internal (undocumented)
 export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: {
-    allowPromises: true;
     currentStyleScoped: string | null;
     parentComponentFrame: ISsrComponentFrame | null;
-}): ValueOrPromise<void>;
-
-// @internal (undocumented)
-export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: {
-    allowPromises: false;
-    currentStyleScoped: string | null;
-    parentComponentFrame: ISsrComponentFrame | null;
-}): false;
+}): Promise<void>;
 
 // @internal (undocumented)
 export const _weakSerialize: <T extends object>(input: T) => Partial<T>;

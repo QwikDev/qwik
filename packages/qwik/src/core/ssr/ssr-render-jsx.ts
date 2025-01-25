@@ -302,7 +302,7 @@ function processJSXNode(
             options.parentComponentFrame
           );
 
-          const jsxOutput: any = applyQwikComponentBody(ssr, jsx, type);
+          const jsxOutput = applyQwikComponentBody(ssr, jsx, type);
           const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
           enqueue(new ParentComponentData(options.styleScoped, options.parentComponentFrame));
           enqueue(ssr.closeComponent);

@@ -23,7 +23,7 @@ Error.stackTraceLimit = 100;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  { render: domRender }, ///
+  { render: domRender }, //
 ])('$render.name: useOn', ({ render }) => {
   it('should update value', async () => {
     const Counter = component$((props: { initial: number }) => {

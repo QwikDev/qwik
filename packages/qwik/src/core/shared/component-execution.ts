@@ -138,7 +138,7 @@ function addUseOnEvents(
   useOnEvents: UseOnMap
 ): ValueOrPromise<JSXNodeInternal<string> | null | JSXOutput> {
   const jsxElement = findFirstStringJSX(jsx);
-  let _jsx = jsx;
+  let jsxResult = jsx;
   return maybeThen(jsxElement, (jsxElement) => {
     let isInvisibleComponent = false;
     if (!jsxElement) {
@@ -157,14 +157,14 @@ function addUseOnEvents(
       if (Object.prototype.hasOwnProperty.call(useOnEvents, key)) {
         if (isInvisibleComponent) {
           if (key === 'onQvisible$') {
-            const [jsxElement, jsx] = addScriptNodeForInvisibleComponents(_jsx);
-            _jsx = jsx;
+            const [jsxElement, jsx] = addScriptNodeForInvisibleComponents(jsxResult);
+            jsxResult = jsx;
             if (jsxElement) {
               addUseOnEvent(jsxElement, 'document:onQinit$', useOnEvents[key]);
             }
           } else if (key.startsWith('document:') || key.startsWith('window:')) {
-            const [jsxElement, jsx] = addScriptNodeForInvisibleComponents(_jsx);
-            _jsx = jsx;
+            const [jsxElement, jsx] = addScriptNodeForInvisibleComponents(jsxResult);
+            jsxResult = jsx;
             if (jsxElement) {
               addUseOnEvent(jsxElement, key, useOnEvents[key]);
             }
@@ -182,7 +182,7 @@ function addUseOnEvents(
         }
       }
     }
-    return _jsx || jsx;
+    return jsxResult;
   });
 }
 
@@ -255,7 +255,7 @@ function addScriptNodeForInvisibleComponents(
     return [jsxElement, jsx];
   } else if (Array.isArray(jsx) && jsx.length) {
     // get first element
-    const [jsxElement, _jsx] = addScriptNodeForInvisibleComponents(jsx[0]);
+    const [jsxElement, _] = addScriptNodeForInvisibleComponents(jsx[0]);
     return [jsxElement, jsx];
   }
 

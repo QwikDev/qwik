@@ -64,31 +64,29 @@ const configs = {
 };
 
 const qwikEslintPlugin = {
-  configs: {},
+  configs: {
+    recommended: [
+      {
+        plugins: {
+          qwik: this,
+        },
+        rules: recommendedRules,
+      },
+    ],
+    strict: [
+      {
+        plugins: {
+          qwik: this,
+        },
+        rules: strictRules,
+      },
+    ],
+  },
   meta: {
     name: pkg.name,
     version: pkg.version,
   },
   rules,
 };
-
-Object.assign(qwikEslintPlugin.configs, {
-  recommended: [
-    {
-      plugins: {
-        qwik: qwikEslintPlugin,
-      },
-      rules: recommendedRules,
-    },
-  ],
-  strict: [
-    {
-      plugins: {
-        qwik: qwikEslintPlugin,
-      },
-      rules: strictRules,
-    },
-  ],
-});
 
 export { configs, qwikEslintPlugin as default, rules };

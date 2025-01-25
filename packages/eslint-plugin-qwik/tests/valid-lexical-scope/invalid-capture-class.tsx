@@ -5,7 +5,7 @@ export const HelloWorld = component$(() => {
   class Stuff {}
   const stuff = new Stuff();
   useTask$(() => {
-    /* eslint no-console: [, { allow: ["log"] }] */
+    // eslint-disable-next-line no-console
     console.log(stuff);
   });
   return <div></div>;

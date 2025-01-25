@@ -385,7 +385,17 @@ export const createScheduler = (
       case ChoreType.RUN_QRL:
         {
           const fn = (chore.$target$ as QRLInternal<(...args: unknown[]) => unknown>).getFn();
-          returnValue = fn(...(chore.$payload$ as unknown[]));
+          try {
+            const result = retryOnPromise(() => fn(...(chore.$payload$ as unknown[])));
+            if (isPromise(result)) {
+              result.catch((error) => {
+                emitEvent('qerror', { error });
+              });
+            }
+          } catch (error) {
+            emitEvent('qerror', { error });
+          }
+          returnValue = null;
         }
         break;
       case ChoreType.TASK:

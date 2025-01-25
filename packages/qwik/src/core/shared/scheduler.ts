@@ -102,7 +102,7 @@ import type { OnRenderFn } from './component.public';
 import { assertEqual } from './error/assert';
 import type { Props } from './jsx/jsx-runtime';
 import type { JSXOutput } from './jsx/types/jsx-node';
-import type { QRLInternal } from './qrl/qrl-class';
+import { emitEvent, type QRLInternal } from './qrl/qrl-class';
 import { ssrNodeDocumentPosition, vnode_documentPosition } from './scheduler-document-position';
 import type { Container, HostElement } from './types';
 import { logWarn } from './utils/log';
@@ -128,7 +128,6 @@ export const enum ChoreType {
   TASK,
   NODE_DIFF,
   NODE_PROP,
-  COMPONENT_SSR,
   COMPONENT,
   RECOMPUTE_AND_SCHEDULE_EFFECTS,
 
@@ -218,7 +217,7 @@ export const createScheduler = (
     args: unknown[]
   ): ValueOrPromise<void>;
   function schedule(
-    type: ChoreType.COMPONENT | ChoreType.COMPONENT_SSR,
+    type: ChoreType.COMPONENT,
     host: HostElement,
     qrl: QRLInternal<OnRenderFn<unknown>>,
     props: Props | null
@@ -243,15 +242,22 @@ export const createScheduler = (
     targetOrQrl: ChoreTarget | string | null = null,
     payload: any = null
   ): ValueOrPromise<any> {
+    const isServer = !isDomContainer(container);
+    const isComponentSsr = isServer && type === ChoreType.COMPONENT;
+
     const runLater: boolean =
-      type !== ChoreType.WAIT_FOR_ALL &&
-      type !== ChoreType.COMPONENT_SSR &&
-      type !== ChoreType.RUN_QRL;
+      type !== ChoreType.WAIT_FOR_ALL && !isComponentSsr && type !== ChoreType.RUN_QRL;
     const isTask =
       type === ChoreType.TASK ||
       type === ChoreType.VISIBLE ||
       type === ChoreType.RESOURCE ||
       type === ChoreType.CLEANUP_VISIBLE;
+    const isClientOnly =
+      type === ChoreType.JOURNAL_FLUSH ||
+      type === ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS ||
+      type === ChoreType.NODE_DIFF ||
+      type === ChoreType.NODE_PROP;
+
     if (isTask) {
       (hostOrTask as Task).$flags$ |= TaskFlags.DIRTY;
     }
@@ -271,7 +277,10 @@ export const createScheduler = (
       $executed$: false,
     };
     DEBUG && debugTrace('schedule', chore, currentChore, choreQueue);
-    chore = sortedInsert(choreQueue, chore, (container as DomContainer).rootVNode || null);
+    // add only if client or server and is not client only chore
+    if (!isServer || !isClientOnly) {
+      chore = sortedInsert(choreQueue, chore, (container as DomContainer).rootVNode || null);
+    }
     if (!journalFlushScheduled && runLater) {
       // If we are not currently draining, we need to schedule a drain.
       journalFlushScheduled = true;
@@ -281,7 +290,7 @@ export const createScheduler = (
     if (runLater) {
       return getPromise(chore);
     } else {
-      return drainUpTo(chore);
+      return drainUpTo(chore, isServer);
     }
   }
 
@@ -290,11 +299,17 @@ export const createScheduler = (
    *
    * @param runUptoChore
    */
-  function drainUpTo(runUptoChore: Chore): ValueOrPromise<unknown> {
+  function drainUpTo(runUptoChore: Chore, isServer: boolean): ValueOrPromise<unknown> {
     while (choreQueue.length) {
       if (currentChore) {
         // Already running chore, which means we're waiting for async completion
-        return getPromise(currentChore).then(() => drainUpTo(runUptoChore));
+        return getPromise(currentChore)
+          .then(() => drainUpTo(runUptoChore, isServer))
+          .catch((error) => {
+            currentChore = null;
+            emitEvent('qerror', { error });
+            return drainUpTo(runUptoChore, isServer);
+          });
       }
       const nextChore = choreQueue.shift()!;
       const isDeletedVNode = vNodeAlreadyDeleted(nextChore);
@@ -306,7 +321,7 @@ export const createScheduler = (
         DEBUG && debugTrace('skip chore', nextChore, currentChore, choreQueue);
         continue;
       }
-      executeChore(nextChore);
+      executeChore(nextChore, isServer);
       if (nextChore === runUptoChore) {
         break;
       }
@@ -314,7 +329,7 @@ export const createScheduler = (
     return runUptoChore.$executed$ ? runUptoChore.$returnValue$ : getPromise(runUptoChore);
   }
 
-  function executeChore(chore: Chore): ValueOrPromise<any> {
+  function executeChore(chore: Chore, isServer: boolean): ValueOrPromise<any> {
     const host = chore.$host$;
     DEBUG && debugTrace('execute', chore, currentChore, choreQueue);
     assertEqual(currentChore, null, 'Chore already running.');
@@ -326,7 +341,6 @@ export const createScheduler = (
         journalFlushScheduled = false;
         break;
       case ChoreType.COMPONENT:
-      case ChoreType.COMPONENT_SSR:
         returnValue = safeCall(
           () =>
             executeComponent(
@@ -337,7 +351,9 @@ export const createScheduler = (
               chore.$payload$ as Props | null
             ),
           (jsx) => {
-            if (chore.$type$ === ChoreType.COMPONENT) {
+            if (isServer) {
+              return jsx;
+            } else {
               const styleScopedId = container.getHostProp<string>(host, QScopedStyle);
               return retryOnPromise(() =>
                 vnode_diff(
@@ -347,8 +363,6 @@ export const createScheduler = (
                   addComponentStylePrefix(styleScopedId)
                 )
               );
-            } else {
-              return jsx;
             }
           },
           (err: any) => container.handleError(err, host)
@@ -365,7 +379,7 @@ export const createScheduler = (
             container,
             host
           );
-          returnValue = isDomContainer(container) ? null : result;
+          returnValue = isServer ? result : null;
         }
         break;
       case ChoreType.RUN_QRL:
@@ -595,7 +609,6 @@ function debugChoreToString(chore: Chore): string {
         [ChoreType.NODE_DIFF]: 'NODE_DIFF',
         [ChoreType.NODE_PROP]: 'NODE_PROP',
         [ChoreType.COMPONENT]: 'COMPONENT',
-        [ChoreType.COMPONENT_SSR]: 'COMPONENT_SSR',
         [ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS]: 'RECOMPUTE_SIGNAL',
         [ChoreType.JOURNAL_FLUSH]: 'JOURNAL_FLUSH',
         [ChoreType.VISIBLE]: 'VISIBLE',

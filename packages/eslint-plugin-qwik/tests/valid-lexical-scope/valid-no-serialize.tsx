@@ -10,7 +10,6 @@ export function getFn(): NoSerialize<() => void> {
 export const HelloWorld = component$(() => {
   const state: Value = { value: 12, fn: getFn() };
   useTask$(() => {
-    /* eslint no-console: [, { allow: ["log"] }] */
     console.log(state.value);
   });
   return <div></div>;

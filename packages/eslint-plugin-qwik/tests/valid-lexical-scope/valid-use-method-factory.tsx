@@ -19,7 +19,6 @@ export const HelloWorld = component$(() => {
     },
   };
   useTask$(() => {
-    /* eslint no-console: [, { allow: ["log"] }] */
     console.log(useMethod, obj);
   });
   return <div></div>;

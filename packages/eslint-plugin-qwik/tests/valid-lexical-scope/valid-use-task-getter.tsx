@@ -5,7 +5,7 @@ export const HelloWorld = component$(() => {
   }
   const a = getValue();
   useTask$(() => {
-    /*   eslint no-console: [, { allow: ["log"] }] */
+    /*   */
     console.log(a);
   });
   return <div></div>;

@@ -41,7 +41,6 @@ export type {
   RouteNavigate,
   StaticGenerate,
   StaticGenerateHandler,
-  ValidatorErrorKeyDotNotation,
   ValidatorErrorType,
   ZodConstructor,
 } from './types';

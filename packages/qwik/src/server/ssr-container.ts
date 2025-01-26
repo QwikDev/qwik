@@ -50,6 +50,7 @@ import {
   QSubscribers,
   QError,
   qError,
+  ChoreType,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -218,11 +219,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public $instanceHash$ = hash();
   // Temporary flag to find missing roots after the state was serialized
   private $noMoreRoots$ = false;
-  /** True if there are scheduled tasks that need to be run */
-  public $hasChores$ = false;
   constructor(opts: Required<SSRRenderOptions>) {
     super(
-      () => (this.$hasChores$ = true),
+      () => this.$scheduler$(ChoreType.WAIT_FOR_ALL),
       () => null,
       opts.renderOptions.serverData ?? EMPTY_OBJ,
       opts.locale

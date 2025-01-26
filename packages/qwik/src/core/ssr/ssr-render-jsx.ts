@@ -36,7 +36,6 @@ import { qInspector } from '../shared/utils/qdev';
 import { serializeAttribute } from '../shared/utils/styles';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import { queueQRL } from '../client/queue-qrl';
-import { ChoreType } from '../shared/scheduler';
 
 class ParentComponentData {
   constructor(
@@ -79,10 +78,6 @@ export async function _walkJSX(
         styleScoped: options.currentStyleScoped,
         parentComponentFrame: options.parentComponentFrame,
       });
-      if (ssr.$hasChores$) {
-        ssr.$hasChores$ = false;
-        await ssr.$scheduler$(ChoreType.WAIT_FOR_ALL);
-      }
     }
   };
   await drain();

@@ -177,6 +177,7 @@ export const createScheduler = (
   journalFlush: () => void
 ) => {
   const choreQueue: Chore[] = [];
+  const qrlRuns: Promise<any>[] = [];
 
   let currentChore: Chore | null = null;
   let drainScheduled: boolean = false;
@@ -323,6 +324,9 @@ export const createScheduler = (
       }
       executeChore(nextChore, isServer);
       if (nextChore === runUptoChore) {
+        if (nextChore.$type$ === ChoreType.WAIT_FOR_ALL && qrlRuns.length) {
+          return Promise.all(qrlRuns).then(() => drainUpTo(runUptoChore, isServer));
+        }
         break;
       }
     }
@@ -399,9 +403,15 @@ export const createScheduler = (
           try {
             const result = retryOnPromise(() => fn(...(chore.$payload$ as unknown[])));
             if (isPromise(result)) {
-              result.catch((error) => {
-                emitEvent('qerror', { error });
-              });
+              qrlRuns.push(
+                result
+                  .catch((error) => {
+                    emitEvent('qerror', { error });
+                  })
+                  .then(() => {
+                    qrlRuns.splice(qrlRuns.indexOf(result), 1);
+                  })
+              );
             }
           } catch (error) {
             emitEvent('qerror', { error });

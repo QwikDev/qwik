@@ -111,7 +111,7 @@ export function retryOnPromise<T>(
   fn: () => ValueOrPromise<T>,
   retryCount: number = 0
 ): ValueOrPromise<T> {
-  const retryOrThrow = (e: any) => {
+  const retryOrThrow = (e: any): ValueOrPromise<T> => {
     if (isPromise(e) && retryCount < MAX_RETRY_ON_PROMISE_COUNT) {
       return e.then(retryOnPromise.bind(null, fn, retryCount++)) as ValueOrPromise<T>;
     }

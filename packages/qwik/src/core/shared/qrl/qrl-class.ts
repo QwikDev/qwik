@@ -138,14 +138,18 @@ export const createQRL = <TYPE>(
       return fn;
     }
     return function (this: unknown, ...args: QrlArgs<TYPE>) {
-      let context = tryGetInvokeContext();
-      if (context) {
-        return fn.apply(this, args);
-      }
-      context = newInvokeContext();
+      const context = tryGetInvokeContext() || newInvokeContext();
+      const prevQrl = context.$qrl$;
+      const prevEvent = context.$event$;
       context.$qrl$ = qrl;
+      // TODO do we use this?
       context.$event$ = this as Event;
-      return invoke.call(this, context, fn as any, ...args);
+      try {
+        return invoke.call(this, context, fn as any, ...args);
+      } finally {
+        context.$qrl$ = prevQrl;
+        context.$event$ = prevEvent;
+      }
     } as TYPE;
   };
 

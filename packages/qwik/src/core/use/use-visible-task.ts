@@ -1,3 +1,4 @@
+import type { EventHandler } from '../shared/jsx/types/jsx-qwik-attributes';
 import { isServerPlatform } from '../shared/platform/platform';
 import { assertQrl, createQRL } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
@@ -55,9 +56,7 @@ export const useRunTask = (task: Task, eagerness: VisibleTaskStrategy | undefine
   }
 };
 
-const getTaskHandlerQrl = (task: Task): QRL<(ev: Event) => void> => {
-  const taskHandler = createQRL<(ev: Event) => void>(null, '_task', scheduleTask, null, null, [
-    task,
-  ]);
+const getTaskHandlerQrl = (task: Task): QRL<EventHandler> => {
+  const taskHandler = createQRL<EventHandler>(null, '_task', scheduleTask, null, null, [task]);
   return taskHandler;
 };

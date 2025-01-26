@@ -1114,6 +1114,7 @@ function serialize(serializationContext: SerializationContext): void {
         if (!res) {
           throw qError(QError.serializeErrorUnvisited, ['resource']);
         }
+        // TODO the effects include the resourcereturn which has duplicate data
         output(TypeIds.Resource, [...res, getStoreHandler(value)!.$effects$]);
       } else {
         const storeHandler = getStoreHandler(value)!;

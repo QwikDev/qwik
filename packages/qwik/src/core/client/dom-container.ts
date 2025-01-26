@@ -1,18 +1,20 @@
 /** @file Public APIs for the SSR */
 
 import { assertTrue } from '../shared/error/assert';
+import { QError, qError } from '../shared/error/error';
+import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
 import { getPlatform } from '../shared/platform/platform';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
-import type { ContextId } from '../use/use-context';
+import { ChoreType } from '../shared/scheduler';
+import { _SharedContainer } from '../shared/shared-container';
+import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
+import { QContainerValue, type HostElement, type ObjToProxyMap } from '../shared/types';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
 import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
-  getQFuncs,
   OnRenderProp,
-  Q_PROPS_SEPARATOR,
   QBaseAttr,
   QContainerAttr,
   QContainerSelector,
@@ -23,19 +25,18 @@ import {
   QStyle,
   QStyleSelector,
   QSubscribers,
+  Q_PROPS_SEPARATOR,
   USE_ON_LOCAL_SEQ_IDX,
+  getQFuncs,
 } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
 import { isSlotProp } from '../shared/utils/prop';
 import { qDev } from '../shared/utils/qdev';
-import { ChoreType } from '../shared/scheduler';
 import {
   convertScopedStyleIdsToArray,
   convertStyleIdsToString,
 } from '../shared/utils/scoped-styles';
-import { _SharedContainer } from '../shared/shared-container';
-import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
-import { QContainerValue, type HostElement, type ObjToProxyMap } from '../shared/types';
+import type { ContextId } from '../use/use-context';
 import { processVNodeData } from './process-vnode-data';
 import {
   VNodeFlags,
@@ -65,7 +66,6 @@ import {
   vnode_setProp,
   type VNodeJournal,
 } from './vnode';
-import { QError, qError } from '../shared/error/error';
 
 /** @public */
 export function getDomContainer(element: Element | VNode): IClientContainer {
@@ -190,7 +190,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   }
 
   handleError(err: any, host: HostElement): void {
-    if (qDev) {
+    if (qDev && host) {
       // Clean vdom
       if (typeof document !== 'undefined') {
         const vHost = host as VirtualVNode;
@@ -215,7 +215,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         throw err;
       }
     }
-    const errorStore = this.resolveContext(host, ERROR_CONTEXT);
+    const errorStore = host && this.resolveContext(host, ERROR_CONTEXT);
     if (!errorStore) {
       throw err;
     }

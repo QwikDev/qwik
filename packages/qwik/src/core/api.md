@@ -997,7 +997,7 @@ export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE> {
 }
 
 // @internal
-export const _task: () => void;
+export const _task: (_event: Event, element: Element) => void;
 
 // @public (undocumented)
 export interface TaskCtx {

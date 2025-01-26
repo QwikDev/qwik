@@ -32,7 +32,7 @@ import type { Props } from '../shared/jsx/jsx-runtime';
 import type { OnRenderFn } from '../shared/component.public';
 import { NEEDS_COMPUTATION } from './flags';
 import { QError, qError } from '../shared/error/error';
-import { isServerPlatform } from '../shared/platform/platform';
+import { isDomContainer } from '../client/dom-container';
 
 const DEBUG = false;
 
@@ -343,7 +343,7 @@ export const triggerEffects = (
   signal: Signal | TargetType,
   effects: EffectSubscriptions[] | null
 ) => {
-  const isBrowser = !isServerPlatform();
+  const isBrowser = isDomContainer(container);
   if (effects) {
     const scheduleEffect = (effectSubscriptions: EffectSubscriptions) => {
       const effect = effectSubscriptions[EffectSubscriptionsProp.EFFECT];

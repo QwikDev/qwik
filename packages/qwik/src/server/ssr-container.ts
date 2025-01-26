@@ -221,7 +221,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private $noMoreRoots$ = false;
   constructor(opts: Required<SSRRenderOptions>) {
     super(
-      () => this.$scheduler$(ChoreType.WAIT_FOR_ALL),
+      () => {
+        try {
+          return this.$scheduler$(ChoreType.WAIT_FOR_ALL);
+        } catch (e) {
+          this.handleError(e, null!);
+        }
+      },
       () => null,
       opts.renderOptions.serverData ?? EMPTY_OBJ,
       opts.locale

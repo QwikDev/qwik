@@ -157,7 +157,7 @@ jobs:
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
           # note that all inputs need to be listed here, including qwik, for correct cache invalidation
-          key: ${{ hashfiles('qwik-key.txt', 'rust-key.txt', 'packages/qwik-city/**/*', 'packages/qwik-labs/**/*', 'packages/qwik-react/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', '!**/*.unit.*') }}
+          key: ${{ hashfiles('qwik-key.txt', 'rust-key.txt', 'packages/qwik-city/**/*', 'packages/qwik-labs/**/*', 'packages/qwik-react/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', 'starters/apps/**/*', 'starters/features/**/*', 'starters/adapters/**/*', '!**/*.unit.*') }}
       - run: 'echo ${{ steps.cache-others.outputs.cache-primary-key }} > others-key.txt'
       - name: 'check cache: docs'
         id: cache-docs

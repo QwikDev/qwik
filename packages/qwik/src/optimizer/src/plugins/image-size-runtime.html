@@ -312,11 +312,11 @@
         const browserArea = rect.width * rect.height;
         if (!node.hasAttribute('width') || !node.hasAttribute('height')) {
           skip = true;
-          const computedStyles = node.computedStyleMap();
-          const hasAspect = computedStyles.get('aspect-ratio').toString() !== 'auto';
-          const hasWidth = isDefinedUnit(computedStyles.get('width').toString());
-          const hasHeight = isDefinedUnit(computedStyles.get('height').toString());
-          const isAbsolute = computedStyles.get('position').toString() === 'absolute';
+          const computedStyles = getComputedStyle(node);
+          const hasAspect = computedStyles.getPropertyValue('aspect-ratio').toString() !== 'auto';
+          const hasWidth = isDefinedUnit(computedStyles.getPropertyValue('width').toString());
+          const hasHeight = isDefinedUnit(computedStyles.getPropertyValue('height').toString());
+          const isAbsolute = computedStyles.getPropertyValue('position').toString() === 'absolute';
           layoutInvalidation =
             browserArea > 1000 && !isAbsolute && !hasAspect && (!hasWidth || !hasHeight);
         }

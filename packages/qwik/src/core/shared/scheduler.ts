@@ -80,7 +80,7 @@
  *   declaration order within component.
  */
 
-import { isDomContainer, type DomContainer } from '../client/dom-container';
+import { type DomContainer } from '../client/dom-container';
 import {
   ElementVNodeProps,
   VNodeFlags,
@@ -102,6 +102,7 @@ import type { OnRenderFn } from './component.public';
 import { assertEqual } from './error/assert';
 import type { Props } from './jsx/jsx-runtime';
 import type { JSXOutput } from './jsx/types/jsx-node';
+import { isServerPlatform } from './platform/platform';
 import { emitEvent, type QRLInternal } from './qrl/qrl-class';
 import { ssrNodeDocumentPosition, vnode_documentPosition } from './scheduler-document-position';
 import type { Container, HostElement } from './types';
@@ -178,7 +179,7 @@ export const createScheduler = (
   const choreQueue: Chore[] = [];
 
   let currentChore: Chore | null = null;
-  let journalFlushScheduled: boolean = false;
+  let drainScheduled: boolean = false;
 
   return schedule;
 
@@ -242,7 +243,7 @@ export const createScheduler = (
     targetOrQrl: ChoreTarget | string | null = null,
     payload: any = null
   ): ValueOrPromise<any> {
-    const isServer = !isDomContainer(container);
+    const isServer = isServerPlatform();
     const isComponentSsr = isServer && type === ChoreType.COMPONENT;
 
     const runLater: boolean =
@@ -254,7 +255,6 @@ export const createScheduler = (
       type === ChoreType.CLEANUP_VISIBLE;
     const isClientOnly =
       type === ChoreType.JOURNAL_FLUSH ||
-      type === ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS ||
       type === ChoreType.NODE_DIFF ||
       type === ChoreType.NODE_PROP;
 
@@ -281,9 +281,9 @@ export const createScheduler = (
     if (!isServer || !isClientOnly) {
       chore = sortedInsert(choreQueue, chore, (container as DomContainer).rootVNode || null);
     }
-    if (!journalFlushScheduled && runLater) {
+    if (!drainScheduled && runLater) {
       // If we are not currently draining, we need to schedule a drain.
-      journalFlushScheduled = true;
+      drainScheduled = true;
       schedule(ChoreType.JOURNAL_FLUSH);
       scheduleDrain();
     }
@@ -336,37 +336,48 @@ export const createScheduler = (
     currentChore = chore;
     let returnValue: ValueOrPromise<unknown> | unknown = null;
     switch (chore.$type$) {
+      case ChoreType.WAIT_FOR_ALL:
+        {
+          if (isServer) {
+            drainScheduled = false;
+          }
+        }
+        break;
       case ChoreType.JOURNAL_FLUSH:
-        returnValue = journalFlush();
-        journalFlushScheduled = false;
+        {
+          returnValue = journalFlush();
+          drainScheduled = false;
+        }
         break;
       case ChoreType.COMPONENT:
-        returnValue = safeCall(
-          () =>
-            executeComponent(
-              container,
-              host,
-              host,
-              chore.$target$ as QRLInternal<OnRenderFn<unknown>>,
-              chore.$payload$ as Props | null
-            ),
-          (jsx) => {
-            if (isServer) {
-              return jsx;
-            } else {
-              const styleScopedId = container.getHostProp<string>(host, QScopedStyle);
-              return retryOnPromise(() =>
-                vnode_diff(
-                  container as ClientContainer,
-                  jsx,
-                  host as VirtualVNode,
-                  addComponentStylePrefix(styleScopedId)
-                )
-              );
-            }
-          },
-          (err: any) => container.handleError(err, host)
-        );
+        {
+          returnValue = safeCall(
+            () =>
+              executeComponent(
+                container,
+                host,
+                host,
+                chore.$target$ as QRLInternal<OnRenderFn<unknown>>,
+                chore.$payload$ as Props | null
+              ),
+            (jsx) => {
+              if (isServer) {
+                return jsx;
+              } else {
+                const styleScopedId = container.getHostProp<string>(host, QScopedStyle);
+                return retryOnPromise(() =>
+                  vnode_diff(
+                    container as ClientContainer,
+                    jsx,
+                    host as VirtualVNode,
+                    addComponentStylePrefix(styleScopedId)
+                  )
+                );
+              }
+            },
+            (err: any) => container.handleError(err, host)
+          );
+        }
         break;
       case ChoreType.RESOURCE:
         {

@@ -1,6 +1,10 @@
 import type { AwaitingRequests, Fetch } from './types';
 import { useCache } from './utils';
 
+export const logger = {
+  log: (...args: any[]) => {},
+};
+
 export const cachedFetch = (
   cache: Cache,
   fetch: Fetch,
@@ -55,13 +59,16 @@ export const cachedFetch = (
           if (useCache(request, cachedResponse)) {
             // cached response found and user did not specifically send
             // a request header to NOT use the cache (wasn't a hard refresh)
+            logger.log('[ALREADY CACHED]: ', url);
             resolve(cachedResponse!);
           } else {
             // no cached response found or user didn't want to use the cache
             // do a full network request
+            logger.log('[NOT YET IN CACHE]: ', url);
             return fetch(request).then(async (networkResponse) => {
               if (networkResponse.ok) {
                 // network response was good, let's cache it
+                logger.log('[STORING IN CACHE]: ', url);
                 await cache.put(url, networkResponse.clone());
               }
               resolve(networkResponse);
@@ -73,6 +80,7 @@ export const cachedFetch = (
           return cache.match(url).then((cachedResponse) => {
             if (cachedResponse) {
               // luckily we have a cached version, let's use it instead of an offline message
+              logger.log('[PROBABLY OFFLINE, USING CACHED RESPONSE]: ', url);
               resolve(cachedResponse);
             } else {
               // darn, we've got no connectivity and no cached response

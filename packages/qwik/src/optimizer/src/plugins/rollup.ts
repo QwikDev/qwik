@@ -247,11 +247,11 @@ export function normalizeRollupOutputOptionsObject(
 }
 
 export function createRollupError(id: string, diagnostic: Diagnostic) {
-  const loc = diagnostic.highlights[0] ?? {};
+  const loc = diagnostic.highlights?.[0];
   const err: Rollup.RollupError = Object.assign(new Error(diagnostic.message), {
     id,
     plugin: 'qwik',
-    loc: {
+    loc: loc && {
       column: loc.startCol,
       line: loc.startLine,
     },

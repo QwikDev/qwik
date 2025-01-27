@@ -120,7 +120,7 @@ export interface Diagnostic {
   code: string | null;
   file: string;
   message: string;
-  highlights: SourceLocation[];
+  highlights: SourceLocation[] | null;
   suggestions: string[] | null;
 }
 

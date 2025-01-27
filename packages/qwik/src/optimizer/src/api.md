@@ -26,7 +26,7 @@ export interface Diagnostic {
     // (undocumented)
     file: string;
     // (undocumented)
-    highlights: SourceLocation[];
+    highlights: SourceLocation[] | null;
     // (undocumented)
     message: string;
     // (undocumented)

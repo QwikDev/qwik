@@ -222,18 +222,18 @@
       "mdFile": "core.createcontextid.md"
     },
     {
-      "name": "createSerialized$",
-      "id": "createserialized_",
+      "name": "createSerializer$",
+      "id": "createserializer_",
       "hierarchy": [
         {
-          "name": "createSerialized$",
-          "id": "createserialized_"
+          "name": "createSerializer$",
+          "id": "createserializer_"
         }
       ],
       "kind": "Function",
-      "content": "Create a signal that holds a custom serializable value. See [useSerialized$](#useserialized_) for more details.\n\n\n```typescript\ncreateSerialized$: <T extends CustomSerializable<any, S>, S = T extends {\n    [SerializerSymbol]: (obj: any) => infer U;\n} ? U : unknown>(qrl: (data: S | undefined) => T) => T extends Promise<any> ? never : SerializedSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n(data: S \\| undefined) =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nT extends Promise&lt;any&gt; ? never : SerializedSignal&lt;T&gt;",
+      "content": "Create a signal that holds a custom serializable value. See [useSerializer$](#useserializer_) for more details.\n\n\n```typescript\ncreateSerializer$: <T, S>(arg: SerializerArg<T, S>) => T extends Promise<any> ? never : SerializerSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\narg\n\n\n</td><td>\n\nSerializerArg&lt;T, S&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nT extends Promise&lt;any&gt; ? never : SerializerSignal&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts",
-      "mdFile": "core.createserialized_.md"
+      "mdFile": "core.createserializer_.md"
     },
     {
       "name": "createSignal",
@@ -2032,18 +2032,18 @@
       "mdFile": "core.useresource_.md"
     },
     {
-      "name": "useSerialized$",
-      "id": "useserialized_",
+      "name": "useSerializer$",
+      "id": "useserializer_",
       "hierarchy": [
         {
-          "name": "useSerialized$",
-          "id": "useserialized_"
+          "name": "useSerializer$",
+          "id": "useserializer_"
         }
       ],
       "kind": "Variable",
-      "content": "Creates a signal which holds a custom serializable value. It requires that the value implements the `CustomSerializable` type, which means having a function under the `[SerializeSymbol]` property that returns a serializable value when called.\n\nThe `fn` you pass is called with the result of the serialization (in the browser, only when the value is needed), or `undefined` when not yet initialized. If you refer to other signals, `fn` will be called when those change just like computed signals, and then the argument will be the previous output, not the serialized result.\n\nThis is useful when using third party libraries that use custom objects that are not serializable.\n\nNote that the `fn` is called lazily, so it won't impact container resume.\n\n\n```typescript\nuseSerialized$: typeof createSerialized$\n```\n\n\n\n```tsx\nclass MyCustomSerializable {\n  constructor(public n: number) {}\n  inc() {\n    this.n++;\n  }\n  [SerializeSymbol]() {\n    return this.n;\n  }\n}\nconst Cmp = component$(() => {\n  const custom = useSerialized$<MyCustomSerializable, number>(\n    (prev) =>\n      new MyCustomSerializable(prev instanceof MyCustomSerializable ? prev : (prev ?? 3))\n  );\n  return <div onClick$={() => custom.value.inc()}>{custom.value.n}</div>;\n});\n```",
+      "content": "Creates a signal which holds a custom serializable value. It requires that the value implements the `CustomSerializable` type, which means having a function under the `[SerializeSymbol]` property that returns a serializable value when called.\n\nThe `fn` you pass is called with the result of the serialization (in the browser, only when the value is needed), or `undefined` when not yet initialized. If you refer to other signals, `fn` will be called when those change just like computed signals, and then the argument will be the previous output, not the serialized result.\n\nThis is useful when using third party libraries that use custom objects that are not serializable.\n\nNote that the `fn` is called lazily, so it won't impact container resume.\n\n\n```typescript\nuseSerializer$: typeof createSerializer$\n```\n\n\n\n```tsx\nclass MyCustomSerializable {\n  constructor(public n: number) {}\n  inc() {\n    this.n++;\n  }\n}\nconst Cmp = component$(() => {\n  const custom = useSerializer$({\n    deserialize: (data) => new MyCustomSerializable(data),\n    serialize: (data) => data.n,\n    initial: 2,\n  });\n  return <div onClick$={() => custom.value.inc()}>{custom.value.n}</div>;\n});\n```\n\n\nWhen using a Signal as the data to create the object, you may not need `serialize`<!-- -->. Furthermore, when the signal is updated, the serializer will be updated as well, and the current object will be passed as the second argument.\n\n```tsx\nconst Cmp = component$(() => {\n  const n = useSignal(2);\n  const custom = useSerializer$((_data, current) => {\n    if (current) {\n      current.n = n.value;\n      return current;\n    }\n    return new MyCustomSerializable(n.value);\n});\n  return <div onClick$={() => n.value++}>{custom.value.n}</div>;\n});\n```\n(note that in this example, the `{custom.value.n}` is not reactive, so the div text will not update)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-serialized.ts",
-      "mdFile": "core.useserialized_.md"
+      "mdFile": "core.useserializer_.md"
     },
     {
       "name": "useServerData",

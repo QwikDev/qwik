@@ -1,16 +1,16 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Core API
 //////////////////////////////////////////////////////////////////////////////////////////
-export { componentQrl, component$ } from './component/component.public';
+export { component$, componentQrl } from './component/component.public';
 
 export type {
-  PropsOf,
-  OnRenderFn,
   Component,
-  PublicProps,
+  OnRenderFn,
   PropFunctionProps,
+  PropsOf,
+  PublicProps,
   _AllowPlainQrl,
-  _Only$,
+  _Only$
 } from './component/component.public';
 
 export { isBrowser, isDev, isServer } from '@builder.io/qwik/build';
@@ -19,21 +19,20 @@ export { isBrowser, isDev, isServer } from '@builder.io/qwik/build';
 // Developer Event API
 //////////////////////////////////////////////////////////////////////////////////////////
 export type {
-  SnapshotState,
-  SnapshotResult,
+  SnapshotListener,
   SnapshotMeta,
   SnapshotMetaValue,
-  SnapshotListener,
+  SnapshotResult,
+  SnapshotState
 } from './container/container';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Internal Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
-export { $, sync$, _qrlSync, type SyncQRL } from './qrl/qrl.public';
-export { event$, eventQrl } from './qrl/qrl.public';
+export { $, _qrlSync, event$, eventQrl, sync$, type SyncQRL } from './qrl/qrl.public';
 
-export { qrl, inlinedQrl, inlinedQrlDEV, qrlDEV } from './qrl/qrl';
-export type { QRL, PropFunction, PropFnInterface } from './qrl/qrl.public';
+export { inlinedQrl, inlinedQrlDEV, qrl, qrlDEV } from './qrl/qrl';
+export type { PropFnInterface, PropFunction, QRL } from './qrl/qrl.public';
 export { implicit$FirstArg } from './util/implicit_dollar';
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -45,57 +44,71 @@ export type { CorePlatform } from './platform/types';
 //////////////////////////////////////////////////////////////////////////////////////////
 // JSX Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
-export { h, h as createElement } from './render/jsx/factory';
+export { h as createElement, h } from './render/jsx/factory';
+export { Fragment, HTMLFragment, RenderOnce, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
+export { Slot } from './render/jsx/slot.public';
+export type * from './render/jsx/types/jsx-generated';
+export type { DevJSX, FunctionComponent, JSXNode, JSXOutput } from './render/jsx/types/jsx-node';
+export type { QwikJSX as JSX, QwikDOMAttributes, QwikJSX } from './render/jsx/types/jsx-qwik';
+export type {
+  ClassList,
+  ComponentBaseProps,
+  CorrectedToggleEvent,
+  DOMAttributes,
+  EventHandler,
+  JSXChildren,
+  JSXTagName,
+  QRLEventHandlerMulti,
+  QwikAttributes
+} from './render/jsx/types/jsx-qwik-attributes';
 export {
-  SSRStreamBlock,
-  SSRRaw,
-  SSRStream,
   SSRComment,
   SSRHint,
-  SkipRender,
+  SSRRaw,
+  SSRStream,
+  SSRStreamBlock,
+  SkipRender
 } from './render/jsx/utils.public';
-export type { SSRStreamProps, SSRHintProps } from './render/jsx/utils.public';
-export { Slot } from './render/jsx/slot.public';
-export { Fragment, HTMLFragment, RenderOnce, jsx, jsxDEV, jsxs } from './render/jsx/jsx-runtime';
-export type * from './render/jsx/types/jsx-generated';
-export type {
-  DOMAttributes,
-  QwikAttributes,
-  JSXTagName,
-  JSXChildren,
-  ComponentBaseProps,
-  ClassList,
-  CorrectedToggleEvent,
-  EventHandler,
-  QRLEventHandlerMulti,
-} from './render/jsx/types/jsx-qwik-attributes';
-export type { JSXOutput, FunctionComponent, JSXNode, DevJSX } from './render/jsx/types/jsx-node';
-export type { QwikDOMAttributes, QwikJSX, QwikJSX as JSX } from './render/jsx/types/jsx-qwik';
+export type { SSRHintProps, SSRStreamProps } from './render/jsx/utils.public';
 
-export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
-export type { QwikHTMLElements, QwikSVGElements } from './render/jsx/types/jsx-generated';
 export { render } from './render/dom/render.public';
-export type { RenderSSROptions, StreamWriter } from './render/ssr/render-ssr';
 export type { RenderOptions, RenderResult } from './render/dom/render.public';
+export type { QwikHTMLElements, QwikSVGElements } from './render/jsx/types/jsx-generated';
+export type { QwikIntrinsicElements } from './render/jsx/types/jsx-qwik-elements';
+export type { RenderSSROptions, StreamWriter } from './render/ssr/render-ssr';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // use API
 //////////////////////////////////////////////////////////////////////////////////////////
-export { useLexicalScope } from './use/use-lexical-scope.public';
-export { useStore } from './use/use-store.public';
+export { createContextId, useContext, useContextProvider } from './use/use-context';
 export { untrack } from './use/use-core';
-export { useId } from './use/use-id';
-export { useContext, useContextProvider, createContextId } from './use/use-context';
 export { useServerData } from './use/use-env-data';
-export { useStylesQrl, useStyles$, useStylesScopedQrl, useStylesScoped$ } from './use/use-styles';
+export { useId } from './use/use-id';
+export { useLexicalScope } from './use/use-lexical-scope.public';
+export { getLocale, withLocale } from './use/use-locale';
 export { useOn, useOnDocument, useOnWindow } from './use/use-on';
-export { useSignal, useConstant, createSignal } from './use/use-signal';
-export { withLocale, getLocale } from './use/use-locale';
+export { createSignal, useConstant, useSignal } from './use/use-signal';
+export { useStore } from './use/use-store.public';
+export { useStyles$, useStylesQrl, useStylesScoped$, useStylesScopedQrl } from './use/use-styles';
 
-export type { UseStylesScoped } from './use/use-styles';
-export type { UseSignal } from './use/use-signal';
+export type { ErrorBoundaryStore } from './render/error-handling';
 export type { ContextId } from './use/use-context';
+export { useErrorBoundary } from './use/use-error-boundary';
+export { Resource, useResource$, useResourceQrl } from './use/use-resource';
+export type { ResourceOptions, ResourceProps } from './use/use-resource';
+export type { UseSignal } from './use/use-signal';
 export type { UseStoreOptions } from './use/use-store.public';
+export type { UseStylesScoped } from './use/use-styles';
+export {
+  createComputed$,
+  createComputedQrl,
+  useComputed$,
+  useComputedQrl,
+  useTask$,
+  useTaskQrl,
+  useVisibleTask$,
+  useVisibleTaskQrl
+} from './use/use-task';
 export type {
   ComputedFn,
   EagernessOptions,
@@ -110,24 +123,17 @@ export type {
   TaskFn,
   Tracker,
   UseTaskOptions,
-  VisibleTaskStrategy,
+  VisibleTaskStrategy
 } from './use/use-task';
-export type { ResourceProps, ResourceOptions } from './use/use-resource';
-export { useResource$, useResourceQrl, Resource } from './use/use-resource';
-export { useTask$, useTaskQrl } from './use/use-task';
-export { useVisibleTask$, useVisibleTaskQrl } from './use/use-task';
-export { useComputed$, useComputedQrl, createComputed$, createComputedQrl } from './use/use-task';
-export { useErrorBoundary } from './use/use-error-boundary';
-export type { ErrorBoundaryStore } from './render/error-handling';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API
 //////////////////////////////////////////////////////////////////////////////////////////
-export type { ValueOrPromise } from './util/types';
-export type { Signal, ReadonlySignal } from './state/signal';
-export type { NoSerialize } from './state/common';
 export { noSerialize, unwrapProxy as unwrapStore } from './state/common';
+export type { NoSerialize } from './state/common';
 export { isSignal } from './state/signal';
+export type { ReadonlySignal, Signal } from './state/signal';
+export type { ValueOrPromise } from './util/types';
 export { version } from './version';
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -135,11 +141,7 @@ export { version } from './version';
 //////////////////////////////////////////////////////////////////////////////////////////
 export type {
   KnownEventNames as KnownEventNames,
-  QwikSymbolEvent,
-  QwikVisibleEvent,
-  QwikIdleEvent,
-  QwikInitEvent,
-  QwikTransitionEvent,
+
   // old
   NativeAnimationEvent,
   NativeClipboardEvent,
@@ -154,25 +156,30 @@ export type {
   NativeUIEvent,
   NativeWheelEvent,
   QwikAnimationEvent,
+  QwikChangeEvent,
   QwikClipboardEvent,
   QwikCompositionEvent,
   QwikDragEvent,
-  QwikPointerEvent,
   QwikFocusEvent,
-  QwikSubmitEvent,
+  QwikIdleEvent,
+  QwikInitEvent,
   QwikInvalidEvent,
-  QwikChangeEvent,
   QwikKeyboardEvent,
   QwikMouseEvent,
+  QwikPointerEvent,
+  QwikSubmitEvent,
+  QwikSymbolEvent,
   QwikTouchEvent,
+  QwikTransitionEvent,
   QwikUIEvent,
-  QwikWheelEvent,
+  QwikVisibleEvent,
+  QwikWheelEvent
 } from './render/jsx/types/jsx-qwik-events';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Components
 //////////////////////////////////////////////////////////////////////////////////////////
-export { PrefetchServiceWorker, PrefetchGraph } from './components/prefetch';
+export { PrefetchGraph, PrefetchServiceWorker } from './buffering/components/prefetch';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // INTERNAL

@@ -553,7 +553,6 @@ impl<'a> QwikTransform<'a> {
 
 		let folded = first_arg;
 
-		let mut set: HashSet<Id> = HashSet::new();
 		let mut contains_side_effect = false;
 		for ident in &descendent_idents {
 			if self.options.global_collect.is_global(ident) {
@@ -561,24 +560,26 @@ impl<'a> QwikTransform<'a> {
 			} else if invalid_decl.iter().any(|entry| entry.0 == *ident) {
 				return (None, false);
 			} else if decl_collect.iter().any(|entry| entry.0 == *ident) {
-				set.insert(ident.clone());
+				continue;
 			} else {
 				// anything else, we can't inline
 				return (None, false);
 			}
 		}
-		let mut scoped_idents: Vec<Id> = set.into_iter().collect();
+
+		let (scoped_idents, is_const) = compute_scoped_idents(&descendent_idents, &decl_collect);
 
 		if contains_side_effect {
 			return (None, scoped_idents.is_empty());
 		}
-		scoped_idents.sort();
-
-		let (scoped_idents, is_const) = compute_scoped_idents(&descendent_idents, &decl_collect);
 
 		// simple variable expression, no need to inline
 		if let ast::Expr::Ident(_) = folded {
 			return (None, is_const);
+		}
+
+		if !is_const && matches!(folded, ast::Expr::Call(_)) {
+			return (None, false);
 		}
 
 		// Handle `obj.prop` case

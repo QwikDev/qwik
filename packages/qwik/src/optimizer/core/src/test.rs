@@ -4240,6 +4240,35 @@ export const ModelImg = component$<ModelProps>((props) => {
 	});
 }
 
+#[test]
+fn should_not_wrap_fn() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from "@qwik.dev/core";
+import { A } from "./componentA";
+
+export const Cmp = component$(() => {
+	const currentStep = useSignal('STEP_1');
+	const currentType = useSignal<'NEXT' | 'PREVIOUS'>('PREVIOUS');
+
+	const getStep = (step: string, type: 'NEXT' | 'PREVIOUS') => {
+		return step === 'STEP_1' ? 'STEP_2' : 'STEP_1';
+	};
+
+	return (
+		<>
+			<button onClick$={() => (currentType.value = 'NEXT')}>CLICK</button>
+			<A href={getStep(currentStep.value, currentType.value)} />
+		</>
+	);
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
 // TODO(misko): Make this test work by implementing strict serialization.
 // #[test]
 // fn example_of_synchronous_qrl_that_cant_be_serialized() {

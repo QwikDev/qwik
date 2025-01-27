@@ -634,6 +634,8 @@ export const vnode_diff = (
           } else if (typeof value === 'function') {
             value(element);
             continue;
+          } else if (value == null) {
+            continue;
           } else {
             throw qError(QError.invalidRefValue, [currentFile]);
           }
@@ -803,6 +805,8 @@ export const vnode_diff = (
           return;
         } else if (typeof value === 'function') {
           value(element);
+          return;
+        } else if (value == null) {
           return;
         } else {
           throw qError(QError.invalidRefValue, [currentFile]);

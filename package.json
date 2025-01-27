@@ -221,7 +221,7 @@
     "build.validate": "tsx --require ./scripts/runBefore.ts scripts/index.ts --tsc --build --api --eslint --qwikcity --platform-binding --wasm --validate",
     "build.vite": "tsx --require ./scripts/runBefore.ts scripts/index.ts --tsc --build --api --qwikcity --eslint --platform-binding-wasm-copy",
     "build.wasm": "tsx --require ./scripts/runBefore.ts scripts/index.ts --wasm",
-    "build.watch": "tsx --require ./scripts/runBefore.ts scripts/index.ts --build  --qwikcity --watch --dev --platform-binding",
+    "build.watch": "tsx --require ./scripts/runBefore.ts scripts/index.ts --tsc --build --qwikcity --watch --dev --platform-binding",
     "change": "changeset",
     "cli": "pnpm build.cli && node packages/create-qwik/create-qwik.cjs && tsx --require ./scripts/runBefore.ts scripts/validate-cli.ts --copy-local-qwik-dist",
     "cli.qwik": "pnpm build.cli && node packages/qwik/qwik-cli.cjs",

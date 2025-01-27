@@ -204,4 +204,32 @@ describe.each([
       (globalThis as any).element = undefined;
     });
   });
+
+  it('should skip null refs', async () => {
+    const Cmp = component$(() => {
+      return <div ref={null!}></div>;
+    });
+
+    const { vNode } = await render(<Cmp />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div></div>
+      </Component>
+    );
+  });
+
+  it('should skip undefined refs', async () => {
+    const Cmp = component$(() => {
+      return <div ref={undefined}></div>;
+    });
+
+    const { vNode } = await render(<Cmp />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div></div>
+      </Component>
+    );
+  });
 });

@@ -1148,6 +1148,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           } else if (typeof value === 'function') {
             value(new DomRef(lastNode));
             continue;
+          } else if (value == null) {
+            continue;
           } else {
             throw qError(QError.invalidRefValue, [currentFile]);
           }

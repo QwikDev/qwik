@@ -8,6 +8,7 @@ import { note, panic, pmRunCmd, printHeader, bye } from './utils/utils';
 import { runBuildCommand } from './utils/run-build-command';
 import { intro, isCancel, select, confirm } from '@clack/prompts';
 import { runV2Migration } from './migrate-v2/run-migration';
+import { runMigrations } from './migrate/run-migration';
 
 const SPACE_TO_HINT = 18;
 const COMMANDS = [
@@ -44,6 +45,13 @@ const COMMANDS = [
     label: 'joke',
     hint: 'Tell a random dad joke',
     run: () => runJokeCommand(),
+    showInHelp: true,
+  },
+  {
+    value: 'migrate',
+    label: 'migrate',
+    hint: 'Run Qwik migrations',
+    run: (app: AppCommand) => runMigrations(app),
     showInHelp: true,
   },
   {
@@ -104,6 +112,10 @@ async function runCommand(app: AppCommand) {
     }
     case 'joke': {
       await runJokeCommand();
+      return;
+    }
+    case 'migrate': {
+      await runMigrations(app);
       return;
     }
     case 'migrate-v2': {

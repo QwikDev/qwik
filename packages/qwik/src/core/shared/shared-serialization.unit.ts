@@ -4,7 +4,7 @@ import { _fnSignal, _wrapProp } from '../internal';
 import { EffectPropData, type Signal } from '../signal/signal';
 import {
   createComputed$,
-  createSerialized$,
+  createSerializer$,
   createSignal,
   isSignal,
 } from '../signal/signal.public';
@@ -419,21 +419,22 @@ describe('shared-serialization', () => {
         (186 chars)"
       `);
     });
-    it(title(TypeIds.SerializedSignal), async () => {
-      const custom = createSerialized$<MyCustomSerializable, number>(
-        (prev) => new MyCustomSerializable((prev as number) || 3)
-      );
+    it(title(TypeIds.SerializerSignal), async () => {
+      const custom = createSerializer$({
+        deserialize: (n?: number) => new MyCustomSerializable(n || 3),
+        serialize: (obj) => obj.n,
+      });
       // Force the value to be created
       custom.value.inc();
       const objs = await serialize(custom);
       expect(dumpState(objs)).toMatchInlineSnapshot(`
         "
-        0 SerializedSignal [
+        0 SerializerSignal [
           QRL 1
           Constant null
           Number 4
         ]
-        1 String "mock-chunk#describe_describe_it_custom_createSerialized_RQFR5EU0bpE"
+        1 String "mock-chunk#describe_describe_it_custom_createSerializer_CZt5uiK9L0Y"
         (91 chars)"
       `);
     });
@@ -659,7 +660,7 @@ describe('shared-serialization', () => {
     });
     it.todo(title(TypeIds.WrappedSignal));
     it.todo(title(TypeIds.ComputedSignal));
-    it.todo(title(TypeIds.SerializedSignal));
+    it.todo(title(TypeIds.SerializerSignal));
     // this requires a domcontainer
     it.skip(title(TypeIds.Store), async () => {
       const objs = await serialize(createStore(null, { a: { b: true } }, StoreFlags.RECURSIVE));

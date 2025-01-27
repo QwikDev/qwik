@@ -11,11 +11,12 @@ import { NEEDS_COMPUTATION } from '../signal/flags';
 import {
   ComputedSignal,
   EffectPropData,
-  SerializedSignal,
+  SerializerSignal,
   Signal,
   WrappedSignal,
   isSerializerObj,
   type EffectSubscriptions,
+  type SerializerArg,
 } from '../signal/signal';
 import type { Subscriber } from '../signal/signal-subscriber';
 import {
@@ -299,7 +300,8 @@ const inflate = (
       signal.$effects$ = new Set(d.slice(5) as EffectSubscriptions[]);
       break;
     }
-    case TypeIds.SerializedSignal:
+    // Inflating a SerializerSignal is the same as inflating a ComputedSignal
+    case TypeIds.SerializerSignal:
     case TypeIds.ComputedSignal: {
       const computed = target as ComputedSignal<unknown>;
       const d = data as [QRLInternal<() => {}>, EffectSubscriptions[] | null, unknown?];
@@ -308,7 +310,7 @@ const inflate = (
       if (d.length >= 3) {
         computed.$untrackedValue$ = d[2];
         // The serialized signal is always invalid so it can recreate the custom object
-        computed.$invalid$ = typeId === TypeIds.SerializedSignal;
+        computed.$invalid$ = typeId === TypeIds.SerializerSignal;
       } else {
         computed.$invalid$ = true;
         /**
@@ -497,8 +499,8 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
       return new WrappedSignal(container as any, null!, null!, null!);
     case TypeIds.ComputedSignal:
       return new ComputedSignal(container as any, null!);
-    case TypeIds.SerializedSignal:
-      return new SerializedSignal(container as any, null!);
+    case TypeIds.SerializerSignal:
+      return new SerializerSignal(container as any, null!);
     case TypeIds.Store:
     case TypeIds.StoreArray:
       // ignore allocate, we need to assign target while creating store
@@ -851,11 +853,31 @@ export const createSerializationContext = (
         const v =
           obj instanceof WrappedSignal
             ? obj.untrackedValue
-            : obj instanceof ComputedSignal && (obj.$invalid$ || fastSkipSerialize(obj))
+            : obj instanceof ComputedSignal &&
+                !(obj instanceof SerializerSignal) &&
+                (obj.$invalid$ || fastSkipSerialize(obj))
               ? NEEDS_COMPUTATION
               : obj.$untrackedValue$;
         if (v !== NEEDS_COMPUTATION) {
-          discoveredValues.push(v);
+          if (obj instanceof SerializerSignal) {
+            promises.push(
+              (obj.$computeQrl$ as any as QRLInternal<SerializerArg<any, any>>)
+                .resolve()
+                .then((arg) => {
+                  let data;
+                  if ((arg as any).serialize) {
+                    data = (arg as any).serialize(v);
+                  }
+                  if (data === undefined) {
+                    data = NEEDS_COMPUTATION;
+                  }
+                  serializationResults.set(obj, data);
+                  discoveredValues.push(data);
+                })
+            );
+          } else {
+            discoveredValues.push(v);
+          }
         }
         if (obj.$effects$) {
           discoveredValues.push(...obj.$effects$);
@@ -1200,7 +1222,9 @@ function serialize(serializationContext: SerializationContext): void {
        * Special case: when a Signal value is an SSRNode, it always needs to be a DOM ref instead.
        * It can never be meant to become a vNode, because vNodes are internal only.
        */
+      const isSerialized = value instanceof SerializerSignal;
       const v: unknown =
+        !isSerialized &&
         value instanceof ComputedSignal &&
         (value.$invalid$ || fastSkipSerialize(value.$untrackedValue$))
           ? NEEDS_COMPUTATION
@@ -1221,12 +1245,13 @@ function serialize(serializationContext: SerializationContext): void {
           value.$effects$,
         ];
         if (v !== NEEDS_COMPUTATION) {
-          out.push(v);
+          if (isSerialized) {
+            out.push(serializationResults.get(value));
+          } else {
+            out.push(v);
+          }
         }
-        output(
-          value instanceof SerializedSignal ? TypeIds.SerializedSignal : TypeIds.ComputedSignal,
-          out
-        );
+        output(isSerialized ? TypeIds.SerializerSignal : TypeIds.ComputedSignal, out);
       } else {
         output(TypeIds.Signal, [v, ...(value.$effects$ || [])]);
       }
@@ -1672,7 +1697,7 @@ export const enum TypeIds {
   Signal,
   WrappedSignal,
   ComputedSignal,
-  SerializedSignal,
+  SerializerSignal,
   Store,
   StoreArray,
   FormData,
@@ -1706,7 +1731,7 @@ export const _typeIdNames = [
   'Signal',
   'WrappedSignal',
   'ComputedSignal',
-  'SerializedSignal',
+  'SerializerSignal',
   'Store',
   'StoreArray',
   'FormData',

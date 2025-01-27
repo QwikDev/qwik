@@ -120,20 +120,21 @@ export const createComputedQrl: <T>(qrl: QRL<() => T>) => ComputedSignal_2<T>;
 // @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
 
-// Warning: (ae-forgotten-export) The symbol "CustomSerializable" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "SerializedSignal" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "SerializerArg" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "SerializerSignal" needs to be exported by the entry point index.d.ts
 //
 // @public
-export const createSerialized$: <T extends CustomSerializable<any, S>, S = T extends {
-    [SerializerSymbol]: (obj: any) => infer U;
-} ? U : unknown>(qrl: (data: S | undefined) => T) => T extends Promise<any> ? never : SerializedSignal<T>;
+export const createSerializer$: <T, S>(arg: SerializerArg<T, S>) => T extends Promise<any> ? never : SerializerSignal<T>;
 
-// Warning: (ae-forgotten-export) The symbol "ConstructorFn" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "SerializedSignal_2" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "createSerializedQrl" should be prefixed with an underscore because the declaration is marked as @internal
+// Warning: (ae-forgotten-export) The symbol "SerializerSignal_2" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "createSerializerQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const createSerializedQrl: <T extends CustomSerializable<T, S>, S>(qrl: QRL<ConstructorFn<T, S>>) => SerializedSignal_2<T>;
+export const createSerializerQrl: <T, S>(arg: QRL<{
+    serialize: (data: S | undefined) => T;
+    deserialize: (data: T) => S;
+    initial?: S;
+}>) => SerializerSignal_2<T, S>;
 
 // @public
 export const createSignal: {
@@ -1641,12 +1642,12 @@ export const useResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOption
 export const useResourceQrl: <T>(qrl: QRL<ResourceFn<T>>, opts?: ResourceOptions) => ResourceReturn<T>;
 
 // @public
-export const useSerialized$: typeof createSerialized$;
+export const useSerializer$: typeof createSerializer$;
 
-// Warning: (ae-internal-missing-underscore) The name "useSerializedQrl" should be prefixed with an underscore because the declaration is marked as @internal
+// Warning: (ae-internal-missing-underscore) The name "useSerializerQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const useSerializedQrl: <F extends ConstructorFn<any, any>>(qrl: QRL<F>) => ReadonlySignal<unknown>;
+export const useSerializerQrl: <T, S>(qrl: QRL<SerializerArg<T, S>>) => ReadonlySignal<unknown>;
 
 // @public (undocumented)
 export function useServerData<T>(key: string): T | undefined;

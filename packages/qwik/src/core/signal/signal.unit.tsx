@@ -1,4 +1,4 @@
-import { $, SerializerSymbol, type ValueOrPromise } from '@qwik.dev/core';
+import { $, type ValueOrPromise } from '@qwik.dev/core';
 import { createDocument, getTestPlatform } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it } from 'vitest';
 import { getDomContainer } from '../client/dom-container';
@@ -19,14 +19,16 @@ import {
   type InternalSignal,
 } from './signal';
 import {
-  createComputedQrl,
-  createSignal,
-  type Signal,
-  type ComputedSignal,
-  type SerializedSignal,
   createComputed$,
-  createSerialized$,
+  createComputedQrl,
+  createSerializer$,
+  createSignal,
+  type ComputedSignal,
+  type SerializerSignal,
+  type Signal,
 } from './signal.public';
+
+class Foo {}
 
 describe('signal types', () => {
   it('Signal<T>', () => () => {
@@ -39,40 +41,52 @@ describe('signal types', () => {
     const signal2 = createComputed$<number>(() => 1);
     expectTypeOf(signal2).toEqualTypeOf<ComputedSignal<number>>();
   });
-  it('SerializedSignal<T>', () => () => {
-    class Foo {
-      [SerializerSymbol]() {
-        return 1;
-      }
-    }
+  it('SerializerSignal<T>', () => () => {
     {
-      const signal = createSerialized$(() => new Foo());
-      expectTypeOf(signal).toEqualTypeOf<SerializedSignal<Foo>>();
+      const signal = createSerializer$({
+        deserialize: () => new Foo(),
+        serialize: (obj) => {
+          expect(obj).toBeInstanceOf(Foo);
+          return 1;
+        },
+      });
+      expectTypeOf(signal).toEqualTypeOf<SerializerSignal<Foo>>();
       expectTypeOf(signal.value).toEqualTypeOf<Foo>();
     }
     {
-      const signal = createSerialized$((prev) => {
-        // sadly we can't do better here
-        expectTypeOf(prev).toBeUnknown();
-        return new Foo();
-      });
-      expectTypeOf(signal).toEqualTypeOf<SerializedSignal<Foo>>();
+      const signal = createSerializer$(() => new Foo());
+      expectTypeOf(signal).toEqualTypeOf<SerializerSignal<Foo>>();
       expectTypeOf(signal.value).toEqualTypeOf<Foo>();
     }
     {
-      const signal = createSerialized$((prev?: number | Foo) => {
-        expectTypeOf(prev).toEqualTypeOf<number | Foo | undefined>();
-        return new Foo();
+      const signal = createSerializer$<Foo, number>({
+        deserialize: (data, prev) => {
+          expectTypeOf(data).toEqualTypeOf<number | undefined>();
+          expectTypeOf(prev).toEqualTypeOf<Foo | undefined>();
+          return new Foo();
+        },
+        serialize: (obj) => {
+          expect(obj).toBeInstanceOf(Foo);
+          return 1;
+        },
       });
-      expectTypeOf(signal).toEqualTypeOf<SerializedSignal<Foo>>();
+      expectTypeOf(signal).toEqualTypeOf<SerializerSignal<Foo>>();
       expectTypeOf(signal.value).toEqualTypeOf<Foo>();
     }
     {
-      const signal = createSerialized$<Foo, number>((prev) => {
-        expectTypeOf(prev).toEqualTypeOf<number | undefined>();
-        return new Foo();
+      const signal = createSerializer$({
+        deserialize: (data, prev) => {
+          expectTypeOf(data).toEqualTypeOf<number | undefined>();
+          expectTypeOf(prev).toEqualTypeOf<Foo | undefined>();
+          return new Foo();
+        },
+        // you only have to specify the type on the serialize function
+        serialize: (obj: Foo) => {
+          expect(obj).toBeInstanceOf(Foo);
+          return 1;
+        },
       });
-      expectTypeOf(signal).toEqualTypeOf<SerializedSignal<Foo>>();
+      expectTypeOf(signal).toEqualTypeOf<SerializerSignal<Foo>>();
       expectTypeOf(signal.value).toEqualTypeOf<Foo>();
     }
   });

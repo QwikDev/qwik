@@ -111,7 +111,7 @@ export type { ContextId } from './use/use-context';
 export type { UseStoreOptions } from './use/use-store.public';
 export type { ComputedFn } from './use/use-computed';
 export { useComputedQrl } from './use/use-computed';
-export { useSerializedQrl, useSerialized$ } from './use/use-serialized';
+export { useSerializerQrl, useSerializer$ } from './use/use-serialized';
 export type { OnVisibleTaskOptions, VisibleTaskStrategy } from './use/use-visible-task';
 export { useVisibleTaskQrl } from './use/use-visible-task';
 export type { TaskCtx, TaskFn, Tracker } from './use/use-task';
@@ -139,8 +139,8 @@ export {
   createSignal,
   createComputedQrl,
   createComputed$,
-  createSerializedQrl,
-  createSerialized$,
+  createSerializerQrl,
+  createSerializer$,
 } from './signal/signal.public';
 export { EffectPropData as _EffectData } from './signal/signal';
 

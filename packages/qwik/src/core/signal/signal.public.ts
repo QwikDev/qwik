@@ -1,10 +1,9 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import { SerializerSymbol } from '../shared/utils/serialize-utils';
-import type { CustomSerializable } from './signal';
+import type { SerializerArg } from './signal';
 import {
   createSignal as _createSignal,
   createComputedSignal as createComputedQrl,
-  createSerializedSignal as createSerializedQrl,
+  createSerializerSignal as createSerializerQrl,
 } from './signal-api';
 
 export { isSignal } from './signal';
@@ -46,11 +45,11 @@ export interface ComputedSignal<T> extends ReadonlySignal<T> {
 }
 
 /**
- * A serialized signal holds a custom serializable value. See `useSerialized$` for more details.
+ * A serializer signal holds a custom serializable value. See `useSerializer$` for more details.
  *
  * @public
  */
-export interface SerializedSignal<T> extends ComputedSignal<T> {}
+export interface SerializerSignal<T> extends ComputedSignal<T> {}
 
 /**
  * Creates a Signal with the given value. If no value is given, the signal is created with
@@ -83,19 +82,15 @@ export const createComputed$: <T>(
 export { createComputedQrl };
 
 /**
- * Create a signal that holds a custom serializable value. See {@link useSerialized$} for more
+ * Create a signal that holds a custom serializable value. See {@link useSerializer$} for more
  * details.
  *
  * @public
  */
-export const createSerialized$: <
-  T extends CustomSerializable<any, S>,
-  S = T extends { [SerializerSymbol]: (obj: any) => infer U } ? U : unknown,
->(
+export const createSerializer$: <T, S>(
   // We want to also add T as a possible parameter type, but that breaks type inference
-  // The
-  qrl: (data: S | undefined) => T
-) => T extends Promise<any> ? never : SerializedSignal<T> = implicit$FirstArg(
-  createSerializedQrl as any
+  arg: SerializerArg<T, S>
+) => T extends Promise<any> ? never : SerializerSignal<T> = implicit$FirstArg(
+  createSerializerQrl as any
 );
-export { createSerializedQrl };
+export { createSerializerQrl };

@@ -1,16 +1,16 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import type { QRL } from '../shared/qrl/qrl.public';
 import {
-  SerializedSignal as SerializedSignalImpl,
+  SerializerSignal as SerializerSignalImpl,
   type ComputedSignal,
-  type ConstructorFn,
+  type SerializerArg,
 } from '../signal/signal';
-import type { createSerialized$ } from '../signal/signal.public';
+import type { createSerializer$ } from '../signal/signal.public';
 import { useComputedCommon } from './use-computed';
 
 /** @internal */
-export const useSerializedQrl = <F extends ConstructorFn<any, any>>(qrl: QRL<F>) =>
-  useComputedCommon(qrl as any, SerializedSignalImpl as typeof ComputedSignal);
+export const useSerializerQrl = <T, S>(qrl: QRL<SerializerArg<T, S>>) =>
+  useComputedCommon(qrl as any, SerializerSignalImpl as typeof ComputedSignal);
 
 /**
  * Creates a signal which holds a custom serializable value. It requires that the value implements
@@ -35,19 +35,40 @@ export const useSerializedQrl = <F extends ConstructorFn<any, any>>(qrl: QRL<F>)
  *   inc() {
  *     this.n++;
  *   }
- *   [SerializeSymbol]() {
- *     return this.n;
- *   }
  * }
  * const Cmp = component$(() => {
- *   const custom = useSerialized$<MyCustomSerializable, number>(
- *     (prev) =>
- *       new MyCustomSerializable(prev instanceof MyCustomSerializable ? prev : (prev ?? 3))
- *   );
+ *   const custom = useSerializer$({
+ *     deserialize: (data) => new MyCustomSerializable(data),
+ *     serialize: (data) => data.n,
+ *     initial: 2,
+ *   });
  *   return <div onClick$={() => custom.value.inc()}>{custom.value.n}</div>;
  * });
  * ```
  *
+ * @example
+ *
+ * When using a Signal as the data to create the object, you may not need `serialize`. Furthermore,
+ * when the signal is updated, the serializer will be updated as well, and the current object will
+ * be passed as the second argument.
+ *
+ * ```tsx
+ * const Cmp = component$(() => {
+ *   const n = useSignal(2);
+ *   const custom = useSerializer$((_data, current) => {
+ *     if (current) {
+ *       current.n = n.value;
+ *       return current;
+ *     }
+ *     return new MyCustomSerializable(n.value);
+ * });
+ *   return <div onClick$={() => n.value++}>{custom.value.n}</div>;
+ * });
+ * ```
+ *
+ * (note that in this example, the `{custom.value.n}` is not reactive, so the div text will not
+ * update)
+ *
  * @public
  */
-export const useSerialized$: typeof createSerialized$ = implicit$FirstArg(useSerializedQrl as any);
+export const useSerializer$: typeof createSerializer$ = implicit$FirstArg(useSerializerQrl as any);

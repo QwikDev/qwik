@@ -2,11 +2,10 @@ import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import {
   ComputedSignal,
-  SerializedSignal,
+  SerializerSignal,
   Signal as SignalImpl,
   throwIfQRLNotResolved,
-  type ConstructorFn,
-  type CustomSerializable,
+  type SerializerArg,
 } from './signal';
 import type { Signal } from './signal.public';
 
@@ -22,9 +21,13 @@ export const createComputedSignal = <T>(qrl: QRL<() => T>): ComputedSignal<T> =>
 };
 
 /** @internal */
-export const createSerializedSignal = <T extends CustomSerializable<T, S>, S>(
-  qrl: QRL<ConstructorFn<T, S>>
+export const createSerializerSignal = <T, S>(
+  arg: QRL<{
+    serialize: (data: S | undefined) => T;
+    deserialize: (data: T) => S;
+    initial?: S;
+  }>
 ) => {
-  throwIfQRLNotResolved(qrl);
-  return new SerializedSignal<T>(null, qrl);
+  throwIfQRLNotResolved(arg);
+  return new SerializerSignal<T, S>(null, arg as any as QRLInternal<SerializerArg<T, S>>);
 };

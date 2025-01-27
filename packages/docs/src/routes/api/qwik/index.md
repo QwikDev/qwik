@@ -723,14 +723,12 @@ The name of the context.
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts)
 
-## createSerialized$
+## createSerializer$
 
-Create a signal that holds a custom serializable value. See [useSerialized$](#useserialized_) for more details.
+Create a signal that holds a custom serializable value. See [useSerializer$](#useserializer_) for more details.
 
 ```typescript
-createSerialized$: <T extends CustomSerializable<any, S>, S = T extends {
-    [SerializerSymbol]: (obj: any) => infer U;
-} ? U : unknown>(qrl: (data: S | undefined) => T) => T extends Promise<any> ? never : SerializedSignal<T>
+createSerializer$: <T, S>(arg: SerializerArg<T, S>) => T extends Promise<any> ? never : SerializerSignal<T>
 ```
 
 <table><thead><tr><th>
@@ -748,11 +746,11 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-qrl
+arg
 
 </td><td>
 
-(data: S \| undefined) =&gt; T
+SerializerArg&lt;T, S&gt;
 
 </td><td>
 
@@ -760,7 +758,7 @@ qrl
 </tbody></table>
 **Returns:**
 
-T extends Promise&lt;any&gt; ? never : SerializedSignal&lt;T&gt;
+T extends Promise&lt;any&gt; ? never : SerializerSignal&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts)
 
@@ -4946,7 +4944,7 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource-dollar.ts)
 
-## useSerialized$
+## useSerializer$
 
 Creates a signal which holds a custom serializable value. It requires that the value implements the `CustomSerializable` type, which means having a function under the `[SerializeSymbol]` property that returns a serializable value when called.
 
@@ -4957,7 +4955,7 @@ This is useful when using third party libraries that use custom objects that are
 Note that the `fn` is called lazily, so it won't impact container resume.
 
 ```typescript
-useSerialized$: typeof createSerialized$;
+useSerializer$: typeof createSerializer$;
 ```
 
 ```tsx
@@ -4966,20 +4964,34 @@ class MyCustomSerializable {
   inc() {
     this.n++;
   }
-  [SerializeSymbol]() {
-    return this.n;
-  }
 }
 const Cmp = component$(() => {
-  const custom = useSerialized$<MyCustomSerializable, number>(
-    (prev) =>
-      new MyCustomSerializable(
-        prev instanceof MyCustomSerializable ? prev : (prev ?? 3),
-      ),
-  );
+  const custom = useSerializer$({
+    deserialize: (data) => new MyCustomSerializable(data),
+    serialize: (data) => data.n,
+    initial: 2,
+  });
   return <div onClick$={() => custom.value.inc()}>{custom.value.n}</div>;
 });
 ```
+
+When using a Signal as the data to create the object, you may not need `serialize`. Furthermore, when the signal is updated, the serializer will be updated as well, and the current object will be passed as the second argument.
+
+```tsx
+const Cmp = component$(() => {
+  const n = useSignal(2);
+  const custom = useSerializer$((_data, current) => {
+    if (current) {
+      current.n = n.value;
+      return current;
+    }
+    return new MyCustomSerializable(n.value);
+  });
+  return <div onClick$={() => n.value++}>{custom.value.n}</div>;
+});
+```
+
+(note that in this example, the `{custom.value.n}` is not reactive, so the div text will not update)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-serialized.ts)
 

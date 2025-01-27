@@ -1,6 +1,8 @@
 /* eslint-disable */
 import type { QPrefetchData, QPrefetchMessage } from './service-worker/types';
-
+declare global {
+  var verbose: boolean;
+}
 // Source for what becomes innerHTML to the <ServiceWorkerRegister/> script
 
 ((
@@ -47,6 +49,11 @@ import type { QPrefetchData, QPrefetchMessage } from './service-worker/types';
             }
           });
         } else if (reg.active) {
+          if (globalThis.verbose) {
+            reg.active.postMessage({
+              type: 'verbose',
+            });
+          }
           initServiceWorker!();
         }
       })

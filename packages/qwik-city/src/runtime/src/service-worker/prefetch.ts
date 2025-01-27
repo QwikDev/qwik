@@ -1,4 +1,4 @@
-import { cachedFetch } from './cached-fetch';
+import { cachedFetch, logger } from './cached-fetch';
 import { awaitingRequests, existingPrefetchUrls, prefetchQueue } from './constants';
 import type { AppBundle, Fetch, LinkBundle } from './types';
 import { getAppBundleByName, getAppBundlesNamesFromIds } from './utils';
@@ -126,7 +126,7 @@ export const prefetchWaterfall = (
 ) => {
   try {
     const { baseUrl, requestedBundleName } = splitUrlToBaseAndBundle(requestedBuildUrl);
-
+    logger.log('[PREFETCHING WATERFALL]: ', requestedBundleName);
     prefetchBundleNames(appBundles, qBuildCache, fetch, baseUrl, [requestedBundleName], true);
   } catch (e) {
     console.error(e);

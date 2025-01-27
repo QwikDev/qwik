@@ -782,7 +782,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nServiceWorkerRegister: (props: {\n    nonce?: string;\n}) => import(\"@builder.io/qwik\").JSXNode<\"script\">\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nprops\n\n\n</td><td>\n\n{ nonce?: string; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nimport(\"@builder.io/qwik\").JSXNode&lt;\"script\"&gt;",
+      "content": "```typescript\nServiceWorkerRegister: (props: {\n    nonce?: string;\n    verbose?: boolean;\n}) => import(\"@builder.io/qwik\").JSXNode<\"script\">\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nprops\n\n\n</td><td>\n\n{ nonce?: string; verbose?: boolean; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nimport(\"@builder.io/qwik\").JSXNode&lt;\"script\"&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/sw-component.tsx",
       "mdFile": "qwik-city.serviceworkerregister.md"
     },

@@ -42,7 +42,7 @@
       "require": "./dist/cli.cjs"
     },
     "./internal": {
-      "types": "./core-internal.d.ts",
+      "types": "./dist/core-internal.d.ts",
       "import": {
         "development": "./dist/core.mjs",
         "production": "./dist/core.prod.mjs",

@@ -1,26 +1,29 @@
-module.exports = {
-  root: true,
-  env: {
-    browser: true,
-    es2021: true,
-    node: true,
-  },
-  extends: [
-    'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
-    'plugin:qwik/recommended',
-  ],
-  parser: '@typescript-eslint/parser',
-  parserOptions: {
-    tsconfigRootDir: __dirname,
-    project: ['./tsconfig.json'],
-    ecmaVersion: 2021,
-    sourceType: 'module',
-    ecmaFeatures: {
-      jsx: true,
+import eslint from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import typescript from '@typescript-eslint/eslint-plugin';
+const __dirname = dirname(fileURLToPath(import.meta.url));
+import globals from 'globals';
+
+export default tseslint.config(eslint.configs.recommended, tseslint.configs.recommended, {
+  languageOptions: {
+    parserOptions: {
+      sourceType: 'module',
+      ecmaFeatures: {
+        jsx: true,
+      },
+      globals: {
+        ...globals.node,
+        ...globals.es2021,
+        ...globals.browser,
+      },
+      ecmaVersion: 2021,
+      project: ['./tsconfig.json'],
+      tsconfigRootDir: __dirname,
     },
   },
-  plugins: ['@typescript-eslint'],
+  plugins: { '@typescript-eslint': typescript },
   rules: {
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
@@ -39,4 +42,4 @@ module.exports = {
     '@typescript-eslint/consistent-type-imports': 'warn',
     '@typescript-eslint/no-unnecessary-condition': 'warn',
   },
-};
+});

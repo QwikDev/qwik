@@ -157,7 +157,12 @@ export const useTaskQrl = (qrl: QRL<TaskFn>): void => {
   // deleted and we need to be able to release the task subscriptions.
   set(task);
   const container = iCtx.$container$;
-  container.$scheduler$(ChoreType.TASK, task);
+  container.$scheduler$(ChoreType.TASK, task)?.catch(() => {});
+
+  // const result = runTask(task, container, iCtx.$hostElement$);
+  // if (isPromise(result)) {
+  //   throw result;
+  // }
 };
 
 export const runTask = (
@@ -216,10 +221,11 @@ export const runTask = (
     () => taskFn(taskApi),
     cleanup,
     (err: unknown) => {
+      // If a Promise is thrown, that means we need to re-run the task.
       if (isPromise(err)) {
         return err.then(() => runTask(task, container, host));
       } else {
-        return handleError(err);
+        throw err;
       }
     }
   );
@@ -261,14 +267,13 @@ export const isTask = (value: any): value is Task => {
 };
 
 /**
- * Low-level API used by the Optimizer to process `useTask$()` API. This method is not intended to
- * be used by developers.
+ * Used internally as a qrl event handler to schedule a task.
  *
  * @internal
  */
-export const scheduleTask = () => {
+export const scheduleTask = (_event: Event, element: Element) => {
   const [task] = useLexicalScope<[Task]>();
-  const container = getDomContainer(task.$el$ as VNode);
   const type = task.$flags$ & TaskFlags.VISIBLE_TASK ? ChoreType.VISIBLE : ChoreType.TASK;
+  const container = getDomContainer(element);
   container.$scheduler$(type, task);
 };

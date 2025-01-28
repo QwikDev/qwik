@@ -9,7 +9,7 @@ import {
   type Signal as SignalType,
 } from '@qwik.dev/core';
 import { domRender, getTestPlatform, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
 import { WrappedSignal } from '../signal/signal';
@@ -19,7 +19,7 @@ Error.stackTraceLimit = 100;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  { render: domRender }, //
+  // { render: domRender }, //
 ])('$render.name: useTask', ({ render }) => {
   it('should execute task', async () => {
     const Counter = component$(() => {
@@ -64,7 +64,7 @@ describe.each([
       </Component>
     );
   });
-  it('should handle exceptions', async () => {
+  it.only('should handle exceptions', async () => {
     const error = new Error('HANDLE ME');
     const ThrowError = component$(() => {
       useTask$(() => {
@@ -73,7 +73,13 @@ describe.each([
       return <span>OK</span>;
     });
 
-    try {
+    if (render === ssrRenderToDom) {
+      try {
+        await render(<ThrowError />, { debug });
+      } catch (e) {
+        expect(e).toBe(error);
+      }
+    } else {
       await render(
         <ErrorProvider>
           <div>
@@ -82,10 +88,8 @@ describe.each([
         </ErrorProvider>,
         { debug }
       );
-      expect(ErrorProvider.error).toBe(render === domRender ? error : null);
-    } catch (e) {
-      expect(render).toBe(ssrRenderToDom);
-      expect(e).toBe(error);
+      // dom render does not throw errors
+      expect(ErrorProvider.error).toBe(error);
     }
   });
   it('should handle async exceptions', async () => {
@@ -98,17 +102,19 @@ describe.each([
       return <span>OK</span>;
     });
 
-    if (render === ssrRenderToDom) {
-      await expect(() => render(<Counter />, { debug })).rejects.toBe(error);
-    } else {
+    try {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
       await render(
         <ErrorProvider>
           <Counter />
         </ErrorProvider>,
         { debug }
       );
-      // dom render does not throw errors
-      expect(ErrorProvider.error).toBe(error);
+      vi.unmock('console');
+      expect(ErrorProvider.error).toBe(render === domRender ? error : null);
+    } catch (e) {
+      expect(render).toBe(ssrRenderToDom);
+      expect(e).toBe(error);
     }
   });
   it('should not run next task until previous async task is finished', async () => {

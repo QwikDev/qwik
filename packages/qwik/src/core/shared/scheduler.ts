@@ -80,7 +80,7 @@
  *   declaration order within component.
  */
 
-import { type DomContainer } from '../client/dom-container';
+import { isDomContainer, type DomContainer } from '../client/dom-container';
 import {
   ElementVNodeProps,
   VNodeFlags,
@@ -102,11 +102,10 @@ import type { OnRenderFn } from './component.public';
 import { assertEqual } from './error/assert';
 import type { Props } from './jsx/jsx-runtime';
 import type { JSXOutput } from './jsx/types/jsx-node';
-import { isServerPlatform } from './platform/platform';
 import { emitEvent, type QRLInternal } from './qrl/qrl-class';
 import { ssrNodeDocumentPosition, vnode_documentPosition } from './scheduler-document-position';
 import type { Container, HostElement } from './types';
-import { logWarn } from './utils/log';
+import { logError, logWarn } from './utils/log';
 import { QScopedStyle } from './utils/markers';
 import { isPromise, retryOnPromise, safeCall } from './utils/promises';
 import { addComponentStylePrefix } from './utils/scoped-styles';
@@ -244,7 +243,7 @@ export const createScheduler = (
     targetOrQrl: ChoreTarget | string | null = null,
     payload: any = null
   ): ValueOrPromise<any> {
-    const isServer = isServerPlatform();
+    const isServer = !isDomContainer(container);
     const isComponentSsr = isServer && type === ChoreType.COMPONENT;
 
     const runLater: boolean =
@@ -258,6 +257,9 @@ export const createScheduler = (
       type === ChoreType.JOURNAL_FLUSH ||
       type === ChoreType.NODE_DIFF ||
       type === ChoreType.NODE_PROP;
+    if (isServer && isClientOnly) {
+      return;
+    }
 
     if (isTask) {
       (hostOrTask as Task).$flags$ |= TaskFlags.DIRTY;
@@ -277,17 +279,17 @@ export const createScheduler = (
       $returnValue$: null,
       $executed$: false,
     };
+
+    chore = sortedInsert(choreQueue, chore, (container as DomContainer).rootVNode || null);
+
     DEBUG && debugTrace('schedule', chore, currentChore, choreQueue);
-    // add only if client or server and is not client only chore
-    if (!isServer || !isClientOnly) {
-      chore = sortedInsert(choreQueue, chore, (container as DomContainer).rootVNode || null);
-    }
     if (!drainScheduled && runLater) {
       // If we are not currently draining, we need to schedule a drain.
       drainScheduled = true;
       schedule(ChoreType.JOURNAL_FLUSH);
       scheduleDrain();
     }
+    // TODO figure out what to do with chore errors
     if (runLater) {
       return getPromise(chore);
     } else {
@@ -301,18 +303,39 @@ export const createScheduler = (
    * @param runUptoChore
    */
   function drainUpTo(runUptoChore: Chore, isServer: boolean): ValueOrPromise<unknown> {
+    let maxRetries = 2000;
     while (choreQueue.length) {
+      if (maxRetries-- < 0) {
+        throw new Error('drainUpTo: max retries reached');
+      }
       if (currentChore) {
         // Already running chore, which means we're waiting for async completion
         return getPromise(currentChore)
-          .then(() => drainUpTo(runUptoChore, isServer))
           .catch((error) => {
+            choreQueue.splice(choreQueue.indexOf(currentChore!), 1);
+            if (!error.handled) {
+              error.handled = true;
+              container.handleError(error, currentChore?.$host$ as HostElement);
+            }
             currentChore = null;
-            emitEvent('qerror', { error });
-            return drainUpTo(runUptoChore, isServer);
-          });
+          })
+          .then(() => drainUpTo(runUptoChore, isServer));
       }
-      const nextChore = choreQueue.shift()!;
+      const nextChore = choreQueue[0];
+      if (nextChore.$executed$) {
+        if (
+          nextChore === runUptoChore &&
+          nextChore.$type$ === ChoreType.WAIT_FOR_ALL &&
+          qrlRuns.length
+        ) {
+          return Promise.all(qrlRuns).then(() => drainUpTo(runUptoChore, isServer));
+        }
+        choreQueue.shift();
+        if (nextChore === runUptoChore) {
+          break;
+        }
+        continue;
+      }
       const isDeletedVNode = vNodeAlreadyDeleted(nextChore);
       if (
         isDeletedVNode &&
@@ -320,14 +343,14 @@ export const createScheduler = (
         nextChore.$type$ !== ChoreType.CLEANUP_VISIBLE
       ) {
         DEBUG && debugTrace('skip chore', nextChore, currentChore, choreQueue);
+        choreQueue.shift();
         continue;
       }
-      executeChore(nextChore, isServer);
-      if (nextChore === runUptoChore) {
-        if (nextChore.$type$ === ChoreType.WAIT_FOR_ALL && qrlRuns.length) {
-          return Promise.all(qrlRuns).then(() => drainUpTo(runUptoChore, isServer));
-        }
-        break;
+      try {
+        executeChore(nextChore, isServer);
+      } catch (e) {
+        container.handleError(e, nextChore.$host$ as HostElement);
+        nextChore.$executed$ = true;
       }
     }
     return runUptoChore.$executed$ ? runUptoChore.$returnValue$ : getPromise(runUptoChore);
@@ -421,7 +444,12 @@ export const createScheduler = (
         break;
       case ChoreType.TASK:
       case ChoreType.VISIBLE:
-        returnValue = runTask(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
+        try {
+          console.log('runTask');
+          returnValue = runTask(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
+        } catch (error) {
+          returnValue = Promise.reject(error);
+        }
         break;
       case ChoreType.CLEANUP_VISIBLE:
         {
@@ -493,7 +521,7 @@ export const createScheduler = (
       currentChore = null;
       chore.$executed$ = true;
       chore.$returnValue$ = value;
-      DEBUG && debugTrace('execute.DONE', null, chore, choreQueue);
+      DEBUG && debugTrace('execute.DONE', chore, currentChore, choreQueue);
       chore.$resolve$?.(value);
       return value;
     };
@@ -503,21 +531,127 @@ export const createScheduler = (
     }
     return after(returnValue);
   }
+
+  /**
+   * Compares two chores to determine their execution order in the scheduler's queue.
+   *
+   * @param a - The first chore to compare
+   * @param b - The second chore to compare
+   * @returns A number indicating the relative order of the chores. A negative number means `a` runs
+   *   before `b`.
+   */
+  function choreComparator(a: Chore, b: Chore, rootVNode: ElementVNode | null): number {
+    const macroTypeDiff = (a.$type$ & ChoreType.MACRO) - (b.$type$ & ChoreType.MACRO);
+    if (macroTypeDiff !== 0) {
+      return macroTypeDiff;
+    }
+
+    const aHost = a.$host$;
+    const bHost = b.$host$;
+
+    if (aHost !== bHost && aHost !== null && bHost !== null) {
+      if (vnode_isVNode(aHost) && vnode_isVNode(bHost)) {
+        // we are running on the client.
+        const hostDiff = vnode_documentPosition(aHost, bHost, rootVNode);
+        if (hostDiff !== 0) {
+          return hostDiff;
+        }
+      } else {
+        // we are running on the server.
+        // On server we can't schedule task for a different host!
+        // Server is SSR, and therefore scheduling for anything but the current host
+        // implies that things need to be re-run nad that is not supported because of streaming.
+        const errorMessage = `SERVER: during HTML streaming, re-running tasks on a different host is not allowed.
+          You are attempting to change a state that has already been streamed to the client.
+          This can lead to inconsistencies between Server-Side Rendering (SSR) and Client-Side Rendering (CSR).
+          Problematic Node: ${aHost.toString()}`;
+        logWarn(errorMessage);
+        const hostDiff = ssrNodeDocumentPosition(aHost as ISsrNode, bHost as ISsrNode);
+        if (hostDiff !== 0) {
+          return hostDiff;
+        }
+      }
+    }
+
+    const microTypeDiff = (a.$type$ & ChoreType.MICRO) - (b.$type$ & ChoreType.MICRO);
+    if (microTypeDiff !== 0) {
+      return microTypeDiff;
+    }
+    // types are the same
+
+    const idxDiff = toNumber(a.$idx$) - toNumber(b.$idx$);
+    if (idxDiff !== 0) {
+      return idxDiff;
+    }
+
+    // If the host is the same (or missing), and the type is the same,  we need to compare the target.
+    if (a.$target$ !== b.$target$ || a.$payload$ !== b.$payload$) {
+      // 1 means that we are going to process chores as FIFO
+      return 1;
+    }
+
+    // If the chore is the same as the current chore, we will run it again
+    if (b === currentChore) {
+      return 1;
+    }
+
+    // The chores are the same and will run only once
+    return 0;
+  }
+
+  function sortedFindIndex(
+    sortedArray: Chore[],
+    value: Chore,
+    rootVNode: ElementVNode | null
+  ): number {
+    /// We need to ensure that the `queue` is sorted by priority.
+    /// 1. Find a place where to insert into.
+    let bottom = 0;
+    let top = sortedArray.length;
+    while (bottom < top) {
+      const middle = bottom + ((top - bottom) >> 1);
+      const midChore = sortedArray[middle];
+      const comp = choreComparator(value, midChore, rootVNode);
+      if (comp < 0) {
+        top = middle;
+      } else if (comp > 0) {
+        bottom = middle + 1;
+      } else {
+        // We already have the host in the queue.
+        return middle;
+      }
+    }
+    return ~bottom;
+  }
+
+  /**
+   * When a derived signal is update we need to run vnode_diff. However the signal can update
+   * multiple times during component execution. For this reason it is necessary for us to update the
+   * schedule work with the latest result of the signal.
+   */
+  function choreUpdate(existing: Chore, newChore: Chore): void {
+    if (existing.$type$ === ChoreType.NODE_DIFF) {
+      existing.$payload$ = newChore.$payload$;
+    }
+  }
+
+  function sortedInsert(sortedArray: Chore[], value: Chore, rootVNode: ElementVNode | null): Chore {
+    /// We need to ensure that the `queue` is sorted by priority.
+    /// 1. Find a place where to insert into.
+    const idx = sortedFindIndex(sortedArray, value, rootVNode);
+    if (idx < 0) {
+      /// 2. Insert the chore into the queue.
+      sortedArray.splice(~idx, 0, value);
+      return value;
+    }
+    const existing = sortedArray[idx];
+    choreUpdate(existing, value);
+    return existing;
+  }
 };
 
 const toNumber = (value: number | string): number => {
   return typeof value === 'number' ? value : -1;
-};
-
-/**
- * When a derived signal is update we need to run vnode_diff. However the signal can update multiple
- * times during component execution. For this reason it is necessary for us to update the schedule
- * work with the latest result of the signal.
- */
-const choreUpdate = (existing: Chore, newChore: Chore): void => {
-  if (existing.$type$ === ChoreType.NODE_DIFF) {
-    existing.$payload$ = newChore.$payload$;
-  }
 };
 
 function vNodeAlreadyDeleted(chore: Chore): boolean {
@@ -526,107 +660,6 @@ function vNodeAlreadyDeleted(chore: Chore): boolean {
     vnode_isVNode(chore.$host$) &&
     chore.$host$[VNodeProps.flags] & VNodeFlags.Deleted
   );
-}
-
-/**
- * Compares two chores to determine their execution order in the scheduler's queue.
- *
- * @param a - The first chore to compare
- * @param b - The second chore to compare
- * @returns A number indicating the relative order of the chores. A negative number means `a` runs
- *   before `b`.
- */
-function choreComparator(a: Chore, b: Chore, rootVNode: ElementVNode | null): number {
-  const macroTypeDiff = (a.$type$ & ChoreType.MACRO) - (b.$type$ & ChoreType.MACRO);
-  if (macroTypeDiff !== 0) {
-    return macroTypeDiff;
-  }
-
-  const aHost = a.$host$;
-  const bHost = b.$host$;
-
-  if (aHost !== bHost && aHost !== null && bHost !== null) {
-    if (vnode_isVNode(aHost) && vnode_isVNode(bHost)) {
-      // we are running on the client.
-      const hostDiff = vnode_documentPosition(aHost, bHost, rootVNode);
-      if (hostDiff !== 0) {
-        return hostDiff;
-      }
-    } else {
-      // we are running on the server.
-      // On server we can't schedule task for a different host!
-      // Server is SSR, and therefore scheduling for anything but the current host
-      // implies that things need to be re-run nad that is not supported because of streaming.
-      const errorMessage = `SERVER: during HTML streaming, re-running tasks on a different host is not allowed.
-          You are attempting to change a state that has already been streamed to the client.
-          This can lead to inconsistencies between Server-Side Rendering (SSR) and Client-Side Rendering (CSR).
-          Problematic Node: ${aHost.toString()}`;
-      logWarn(errorMessage);
-      const hostDiff = ssrNodeDocumentPosition(aHost as ISsrNode, bHost as ISsrNode);
-      if (hostDiff !== 0) {
-        return hostDiff;
-      }
-    }
-  }
-
-  const microTypeDiff = (a.$type$ & ChoreType.MICRO) - (b.$type$ & ChoreType.MICRO);
-  if (microTypeDiff !== 0) {
-    return microTypeDiff;
-  }
-  // types are the same
-
-  const idxDiff = toNumber(a.$idx$) - toNumber(b.$idx$);
-  if (idxDiff !== 0) {
-    return idxDiff;
-  }
-
-  // If the host is the same (or missing), and the type is the same,  we need to compare the target.
-  if (a.$target$ !== b.$target$ || a.$payload$ !== b.$payload$) {
-    // 1 means that we are going to process chores as FIFO
-    return 1;
-  }
-
-  // The chorse are the same and will run only once
-  return 0;
-}
-
-function sortedFindIndex(
-  sortedArray: Chore[],
-  value: Chore,
-  rootVNode: ElementVNode | null
-): number {
-  /// We need to ensure that the `queue` is sorted by priority.
-  /// 1. Find a place where to insert into.
-  let bottom = 0;
-  let top = sortedArray.length;
-  while (bottom < top) {
-    const middle = bottom + ((top - bottom) >> 1);
-    const midChore = sortedArray[middle];
-    const comp = choreComparator(value, midChore, rootVNode);
-    if (comp < 0) {
-      top = middle;
-    } else if (comp > 0) {
-      bottom = middle + 1;
-    } else {
-      // We already have the host in the queue.
-      return middle;
-    }
-  }
-  return ~bottom;
-}
-
-function sortedInsert(sortedArray: Chore[], value: Chore, rootVNode: ElementVNode | null): Chore {
-  /// We need to ensure that the `queue` is sorted by priority.
-  /// 1. Find a place where to insert into.
-  const idx = sortedFindIndex(sortedArray, value, rootVNode);
-  if (idx < 0) {
-    /// 2. Insert the chore into the queue.
-    sortedArray.splice(~idx, 0, value);
-    return value;
-  }
-  const existing = sortedArray[idx];
-  choreUpdate(existing, value);
-  return existing;
 }
 
 function debugChoreToString(chore: Chore): string {
@@ -658,23 +691,20 @@ function debugTrace(
   currentChore?: Chore | null,
   queue?: Chore[]
 ) {
-  const lines = ['Scheduler: ' + action];
-  if (arg) {
-    lines.push(
-      '    arg: ' +
-        ('$type$' in arg ? debugChoreToString(arg as Chore) : String(arg).replaceAll(/\n.*/gim, ''))
-    );
-  }
-  if (currentChore) {
-    lines.push(
-      `${currentChore.$executed$ ? '   done' : 'running'}: ` + debugChoreToString(currentChore)
-    );
+  const lines = ['===========================\nScheduler: ' + action];
+  if (arg && !('$type$' in arg)) {
+    lines.push('      arg: ' + String(arg).replaceAll(/\n.*/gim, ''));
   }
   if (queue) {
-    queue.forEach((chore, idx) => {
-      lines.push((idx == 0 ? '  queue: ' : '         ') + debugChoreToString(chore));
+    queue.forEach((chore) => {
+      const active = chore === arg ? '>>>' : '   ';
+      lines.push(
+        `     ${active} > ` +
+          (chore === currentChore ? '[running] ' : '') +
+          debugChoreToString(chore)
+      );
     });
   }
   // eslint-disable-next-line no-console
-  console.log(lines.join('\n  ') + '\n');
+  console.log(lines.join('\n') + '\n');
 }

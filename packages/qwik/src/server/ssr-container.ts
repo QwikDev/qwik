@@ -99,6 +99,7 @@ import {
   type VNodeData,
 } from './vnode-data';
 import { getQwikLoaderScript } from './scripts';
+import { isPromise } from '../core/shared/utils/promises';
 
 export interface SSRRenderOptions {
   locale?: string;
@@ -221,7 +222,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private $noMoreRoots$ = false;
   constructor(opts: Required<SSRRenderOptions>) {
     super(
-      () => this.$scheduler$(ChoreType.WAIT_FOR_ALL),
+      () => {
+        try {
+          const out = this.$scheduler$(ChoreType.WAIT_FOR_ALL);
+          if (isPromise(out)) {
+            return out.catch((e) => {
+              this.handleError(e, null!);
+            });
+          }
+        } catch (e) {
+          this.handleError(e, null!);
+        }
+      },
       () => null,
       opts.renderOptions.serverData ?? EMPTY_OBJ,
       opts.locale
@@ -252,6 +264,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   ensureProjectionResolved(_host: HostElement): void {}
 
   handleError(err: any, _$host$: HostElement): void {
+    console.trace('handleError: ', err);
     throw err;
   }
 

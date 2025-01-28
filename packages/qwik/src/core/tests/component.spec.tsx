@@ -1817,6 +1817,66 @@ describe.each([
     );
   });
 
+  it('should correctly insert new component if keys are the same', async () => {
+    const InnerCmp1 = component$(() => {
+      return <Slot />;
+    });
+    const InnerCmp2 = component$(() => {
+      return <Slot />;
+    });
+
+    const Cmp = component$(() => {
+      return <Slot />;
+    });
+
+    const Parent = component$(() => {
+      const toggle = useSignal(false);
+      return (
+        <>
+          <Cmp>
+            {toggle.value ? (
+              <InnerCmp1 key="abc">InnerCmp1</InnerCmp1>
+            ) : (
+              <InnerCmp2 key="abc">InnerCmp2</InnerCmp2>
+            )}
+          </Cmp>
+          <button onClick$={() => (toggle.value = !toggle.value)}></button>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Parent />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <Component ssr-required>
+                <Fragment ssr-required>InnerCmp2</Fragment>
+              </Component>
+            </Fragment>
+          </Component>
+          <button></button>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <Component ssr-required>
+                <Fragment ssr-required>InnerCmp1</Fragment>
+              </Component>
+            </Fragment>
+          </Component>
+          <button></button>
+        </Fragment>
+      </Component>
+    );
+  });
+
   describe('regression', () => {
     it('#3643', async () => {
       const Issue3643 = component$(() => {

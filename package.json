@@ -10,6 +10,16 @@
     "syncpack": {
       "versionGroups": [
         {
+          "label": "Allow ESLint 9 types in eslint-plugin-qwik",
+          "dependencies": [
+            "@types/eslint"
+          ],
+          "packages": [
+            "eslint-plugin-qwik"
+          ],
+          "policy": "matches@9.6.1"
+        },
+        {
           "label": "Be lenient in vite versions for prod. v4 is broken, v5 is good",
           "dependencyTypes": [
             "prod",

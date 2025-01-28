@@ -1,4 +1,7 @@
 export {
+  _serialize,
+  _deserialize,
+  _getContextElement,
   $,
   ClassList,
   Component,
@@ -28,6 +31,7 @@ export {
   JSXOutput,
   noSerialize,
   NoSerialize,
+  OnVisibleTaskOptions,
   PrefetchGraph,
   PrefetchServiceWorker,
   PropsOf,

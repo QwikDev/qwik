@@ -1,7 +1,4 @@
 export {
-  _serialize,
-  _deserialize,
-  _getContextElement,
   $,
   ClassList,
   Component,

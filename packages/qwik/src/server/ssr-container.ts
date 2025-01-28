@@ -224,12 +224,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     super(
       () => {
         try {
-          const out = this.$scheduler$(ChoreType.WAIT_FOR_ALL);
-          if (isPromise(out)) {
-            return out.catch((e) => {
-              this.handleError(e, null!);
-            });
-          }
+          return this.$scheduler$(ChoreType.WAIT_FOR_ALL);
         } catch (e) {
           this.handleError(e, null!);
         }
@@ -264,7 +259,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   ensureProjectionResolved(_host: HostElement): void {}
 
   handleError(err: any, _$host$: HostElement): void {
-    console.trace('handleError: ', err);
+    console.trace('====== handleError: ========');
     throw err;
   }
 

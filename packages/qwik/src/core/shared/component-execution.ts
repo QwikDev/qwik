@@ -102,9 +102,7 @@ export const executeComponent = (
       (jsx) => {
         const useOnEvents = container.getHostProp<UseOnMap>(renderHost, USE_ON_LOCAL);
         if (useOnEvents) {
-          return maybeThen(addUseOnEvents(jsx, useOnEvents), (_jsx) => {
-            return _jsx;
-          });
+          return addUseOnEvents(jsx, useOnEvents);
         }
         return jsx;
       },

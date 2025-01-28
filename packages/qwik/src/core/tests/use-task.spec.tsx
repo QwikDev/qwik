@@ -64,13 +64,7 @@ describe.each([
       </Component>
     );
   });
-  it.only('should handle exceptions', async () => {
-    process.on('unhandledRejection', (reason, promise) => {
-      console.log('Unhandled Rejection at:', promise);
-      console.log('Reason:', reason);
-      // Print stack trace
-      console.log('Stack:', (reason as Error).stack);
-    });
+  it('should handle exceptions', async () => {
     const error = new Error('HANDLE ME');
     const ThrowError = component$(() => {
       useTask$(() => {

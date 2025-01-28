@@ -292,7 +292,8 @@ export const createScheduler = (
       // If we are not currently draining, we need to schedule a drain.
       drainScheduled = true;
       schedule(ChoreType.JOURNAL_FLUSH);
-      scheduleDrain();
+      // Catch here to avoid unhandled promise rejection
+      (scheduleDrain() as any)?.catch?.(() => {});
     }
     // TODO figure out what to do with chore errors
     if (runLater) {
@@ -323,7 +324,7 @@ export const createScheduler = (
           nextChore.$type$ === ChoreType.WAIT_FOR_ALL &&
           qrlRuns.length
         ) {
-          return Promise.all(qrlRuns).then(() => drainUpTo(runUptoChore, isServer));
+          return Promise.all(qrlRuns).finally(() => drainUpTo(runUptoChore, isServer));
         }
         choreQueue.shift();
         if (nextChore === runUptoChore) {
@@ -352,7 +353,6 @@ export const createScheduler = (
     DEBUG && debugTrace('execute', chore, currentChore, choreQueue);
     assertEqual(currentChore, null, 'Chore already running.');
     currentChore = chore;
-    let error: Error;
     let returnValue: ValueOrPromise<unknown> | unknown = null;
     try {
       switch (chore.$type$) {

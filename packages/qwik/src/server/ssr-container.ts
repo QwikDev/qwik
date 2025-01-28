@@ -259,7 +259,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   ensureProjectionResolved(_host: HostElement): void {}
 
   handleError(err: any, _$host$: HostElement): void {
-    console.trace('====== handleError: ========');
     throw err;
   }
 

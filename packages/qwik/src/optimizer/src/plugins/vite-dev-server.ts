@@ -10,7 +10,7 @@ import clickToComponent from './click-to-component.html?raw';
 import errorHost from './error-host.html?raw';
 import imageDevTools from './image-size-runtime.html?raw';
 import perfWarning from './perf-warning.html?raw';
-import { type NormalizedQwikPluginOptions } from './plugin';
+import { parseId, type NormalizedQwikPluginOptions } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
 import { formatError } from './vite-utils';
@@ -140,40 +140,47 @@ export async function configureDevServer(
             version: '1',
           };
 
-          const allModules = Array.from(server.moduleGraph.fileToModulesMap.entries());
-
+          const seenCSS = new Set<string>();
           const CSS_EXTENSIONS = /\.(css|scss|sass|less|styl|stylus)$/;
           const JS_EXTENSIONS = /\.[mc]?[tj]sx?$/;
-          const cssModules = allModules
-            .flatMap(([_, modules]) => Array.from(modules))
-            .filter((mod) => CSS_EXTENSIONS.test(mod.url));
 
-          for (const mod of cssModules) {
-            const hasJsImporter = Array.from(mod.importers).some((importer) => {
-              const path = importer.url || importer.file;
-              return path && JS_EXTENSIONS.test(path);
-            });
+          for (const [id, mod] of server.moduleGraph.idToModuleMap) {
+            if (!mod) {
+              continue;
+            }
 
-            if (hasJsImporter) {
-              manifest.injections?.push({
-                tag: 'link',
-                location: 'head',
-                attributes: {
-                  rel: 'stylesheet',
-                  href: `${base}${mod.url.slice(1)}`,
-                },
+            const parsed = parseId(id);
+            const cleanUrl = parsed.pathId;
+
+            if (!seenCSS.has(cleanUrl) && CSS_EXTENSIONS.test(cleanUrl)) {
+              const hasJSImporter = Array.from(mod.importers).some((importer) => {
+                const importerMod = importer as typeof mod;
+                const path = importerMod.url || importerMod.file;
+                return path && JS_EXTENSIONS.test(path);
               });
+
+              if (hasJSImporter) {
+                seenCSS.add(cleanUrl);
+                manifest.injections?.push({
+                  tag: 'link',
+                  location: 'head',
+                  attributes: {
+                    rel: 'stylesheet',
+                    href: `${base}${cleanUrl.slice(1)}`,
+                  },
+                });
+              }
             }
           }
 
           Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
             entry[1].forEach((v) => {
               const segment = v.info?.meta?.segment;
+              let url = v.url;
+              if (v.lastHMRTimestamp) {
+                url += `?t=${v.lastHMRTimestamp}`;
+              }
               if (segment) {
-                let url = v.url;
-                if (v.lastHMRTimestamp) {
-                  url += `?t=${v.lastHMRTimestamp}`;
-                }
                 manifest.mapping[segment.name] = relativeURL(url, opts.rootDir);
               }
             });

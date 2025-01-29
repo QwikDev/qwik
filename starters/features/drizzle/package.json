@@ -12,6 +12,7 @@
       "title": "Next Steps",
       "lines": [
         " Drizzle was installed with a simple DB schema and some demo routes,",
+        " now you need to run `npm run drizzle:migrate` to setup the database.",
         "",
         " better-sqlite3 was configured by default, but in production",
         " you'll want to use Postgres or MySQL.",

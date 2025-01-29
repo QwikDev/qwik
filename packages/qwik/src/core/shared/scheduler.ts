@@ -102,10 +102,10 @@ import type { OnRenderFn } from './component.public';
 import { assertEqual } from './error/assert';
 import type { Props } from './jsx/jsx-runtime';
 import type { JSXOutput } from './jsx/types/jsx-node';
-import { emitEvent, type QRLInternal } from './qrl/qrl-class';
+import { type QRLInternal } from './qrl/qrl-class';
 import { ssrNodeDocumentPosition, vnode_documentPosition } from './scheduler-document-position';
 import type { Container, HostElement } from './types';
-import { logError, logWarn } from './utils/log';
+import { logWarn } from './utils/log';
 import { QScopedStyle } from './utils/markers';
 import { isPromise, retryOnPromise, safeCall } from './utils/promises';
 import { addComponentStylePrefix } from './utils/scoped-styles';
@@ -148,7 +148,6 @@ export interface Chore {
   $target$: ChoreTarget | null;
   $payload$: unknown;
   $resolve$?: (value: any) => void;
-  $reject$?: (error: any) => void;
   $promise$?: Promise<any>;
   $returnValue$: any;
   $executed$: boolean;
@@ -167,12 +166,10 @@ export type Scheduler = ReturnType<typeof createScheduler>;
 
 type ChoreTarget = HostElement | QRLInternal<(...args: unknown[]) => unknown> | Signal | TargetType;
 
-const getPromise = (chore: Chore) => {
-  return (chore.$promise$ ||= new Promise((resolve, reject) => {
+const getPromise = (chore: Chore) =>
+  (chore.$promise$ ||= new Promise((resolve) => {
     chore.$resolve$ = resolve;
-    chore.$reject$ = reject;
   }));
-};
 
 export const createScheduler = (
   container: Container,
@@ -279,7 +276,6 @@ export const createScheduler = (
       $target$: targetOrQrl as ChoreTarget | null,
       $payload$: isTask ? hostOrTask : payload,
       $resolve$: null!,
-      $reject$: null!,
       $promise$: null!,
       $returnValue$: null,
       $executed$: false,
@@ -313,7 +309,11 @@ export const createScheduler = (
 
       if (currentChore) {
         // Already running chore, which means we're waiting for async completion
-        return getPromise(currentChore).finally(() => drainUpTo(runUptoChore, isServer));
+        return getPromise(currentChore)
+          .then(() => drainUpTo(runUptoChore, isServer))
+          .catch((e) => {
+            container.handleError(e, currentChore?.$host$ as any);
+          });
       }
 
       const nextChore = choreQueue[0];
@@ -324,7 +324,12 @@ export const createScheduler = (
           nextChore.$type$ === ChoreType.WAIT_FOR_ALL &&
           qrlRuns.length
         ) {
-          return Promise.all(qrlRuns).finally(() => drainUpTo(runUptoChore, isServer));
+          return Promise.all(qrlRuns)
+            .catch((e) => {
+              // TODO test this and add host prop to error
+              container.handleError(e, null!);
+            })
+            .then(() => drainUpTo(runUptoChore, isServer));
         }
         choreQueue.shift();
         if (nextChore === runUptoChore) {
@@ -420,15 +425,14 @@ export const createScheduler = (
             const fn = (chore.$target$ as QRLInternal<(...args: unknown[]) => unknown>).getFn();
             const result = retryOnPromise(() => fn(...(chore.$payload$ as unknown[])));
             if (isPromise(result)) {
-              qrlRuns.push(
-                result
-                  .finally(() => {
-                    qrlRuns.splice(qrlRuns.indexOf(result), 1);
-                  })
-                  .catch((error) => {
-                    container.handleError(error, host);
-                  })
-              );
+              const handled = result
+                .finally(() => {
+                  qrlRuns.splice(qrlRuns.indexOf(handled), 1);
+                })
+                .catch((error) => {
+                  container.handleError(error, host);
+                });
+              qrlRuns.push(handled);
             }
             returnValue = null;
           }
@@ -513,7 +517,6 @@ export const createScheduler = (
       if (error) {
         DEBUG && debugTrace('execute.ERROR', chore, currentChore, choreQueue);
         container.handleError(error, host);
-        chore.$reject$?.(error);
       } else {
         chore.$returnValue$ = value;
         DEBUG && debugTrace('execute.DONE', chore, currentChore, choreQueue);
@@ -523,6 +526,7 @@ export const createScheduler = (
 
     if (isPromise(returnValue)) {
       chore.$promise$ = returnValue.then(after, (error) => after(undefined, error));
+      chore.$resolve$?.(chore.$promise$);
     } else {
       after(returnValue);
     }

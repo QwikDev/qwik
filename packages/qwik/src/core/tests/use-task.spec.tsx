@@ -19,7 +19,7 @@ Error.stackTraceLimit = 100;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  // { render: domRender }, //
+  { render: domRender }, //
 ])('$render.name: useTask', ({ render }) => {
   it('should execute task', async () => {
     const Counter = component$(() => {
@@ -80,7 +80,7 @@ describe.each([
         { debug }
       );
       expect(render).toBe(domRender);
-      expect(ErrorProvider.error).toBe(render === domRender ? error : null);
+      expect(ErrorProvider.error).toBe(error);
     } catch (e) {
       expect(render).toBe(ssrRenderToDom);
       expect(e).toBe(error);
@@ -103,7 +103,7 @@ describe.each([
         { debug }
       );
       expect(render).toBe(domRender);
-      expect(ErrorProvider.error).toBe(render === domRender ? error : null);
+      expect(ErrorProvider.error).toBe(error);
     } catch (e) {
       expect(render).toBe(ssrRenderToDom);
       expect(e).toBe(error);

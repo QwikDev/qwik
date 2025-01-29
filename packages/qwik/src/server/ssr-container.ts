@@ -99,7 +99,6 @@ import {
   type VNodeData,
 } from './vnode-data';
 import { getQwikLoaderScript } from './scripts';
-import { isPromise } from '../core/shared/utils/promises';
 
 export interface SSRRenderOptions {
   locale?: string;

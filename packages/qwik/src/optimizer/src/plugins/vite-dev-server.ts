@@ -204,6 +204,29 @@ export async function configureDevServer(
             res.write((result as any).html);
           }
 
+          // Sometimes new CSS files are added after the initial render
+          Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
+            entry[1].forEach((v) => {
+              const { pathId, query } = parseId(v.url);
+              if (
+                !added.has(v.url) &&
+                query === '' &&
+                CSS_EXTENSIONS.some((ext) => pathId.endsWith(ext))
+              ) {
+                const isEntryCSS = v.importers.size === 0;
+                const hasJSImporter = Array.from(v.importers).some((importer) => {
+                  const importerPath = (importer as typeof v).url || (importer as typeof v).file;
+                  return importerPath && JS_EXTENSIONS.test(importerPath);
+                });
+
+                if (isEntryCSS || hasJSImporter) {
+                  res.write(`<link rel="stylesheet" href="${base}${v.url.slice(1)}">`);
+                  added.add(v.url);
+                }
+              }
+            });
+          });
+
           res.write(
             END_SSR_SCRIPT(opts, opts.srcDir ? opts.srcDir : path.join(opts.rootDir, 'src'))
           );

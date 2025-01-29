@@ -9,7 +9,7 @@ import {
   type Signal as SignalType,
 } from '@qwik.dev/core';
 import { domRender, getTestPlatform, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
 import { WrappedSignal } from '../signal/signal';
@@ -72,45 +72,37 @@ describe.each([
       });
       return <span>OK</span>;
     });
-
-    if (render === ssrRenderToDom) {
-      try {
-        await render(<ThrowError />, { debug });
-      } catch (e) {
-        expect(e).toBe(error);
-      }
-    } else {
+    try {
       await render(
         <ErrorProvider>
-          <div>
-            <ThrowError />
-          </div>
+          <ThrowError />
         </ErrorProvider>,
         { debug }
       );
-      // dom render does not throw errors
-      expect(ErrorProvider.error).toBe(error);
+      expect(render).toBe(domRender);
+      expect(ErrorProvider.error).toBe(render === domRender ? error : null);
+    } catch (e) {
+      expect(render).toBe(ssrRenderToDom);
+      expect(e).toBe(error);
     }
   });
   it('should handle async exceptions', async () => {
     const error = new Error('HANDLE ME');
-    const Counter = component$(() => {
+    const ThrowError = component$(() => {
       useTask$(async () => {
         await delay(1);
         throw error;
       });
       return <span>OK</span>;
     });
-
     try {
-      vi.spyOn(console, 'error').mockImplementation(() => {});
       await render(
         <ErrorProvider>
-          <Counter />
+          <ThrowError />
         </ErrorProvider>,
         { debug }
       );
-      vi.unmock('console');
+      expect(render).toBe(domRender);
       expect(ErrorProvider.error).toBe(render === domRender ? error : null);
     } catch (e) {
       expect(render).toBe(ssrRenderToDom);

@@ -176,11 +176,11 @@ export async function configureDevServer(
           Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
             entry[1].forEach((v) => {
               const segment = v.info?.meta?.segment;
-              let url = v.url;
-              if (v.lastHMRTimestamp) {
-                url += `?t=${v.lastHMRTimestamp}`;
-              }
               if (segment) {
+                let url = v.url;
+                if (v.lastHMRTimestamp) {
+                  url += `?t=${v.lastHMRTimestamp}`;
+                }
                 manifest.mapping[segment.name] = relativeURL(url, opts.rootDir);
               }
             });

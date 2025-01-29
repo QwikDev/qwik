@@ -52,16 +52,41 @@ bun run qwik add tailwind
 </span>
 </PackageManagerTabs>
 
-The previous command updates your app with the necessary dependencies.
-
-and modifies your `src/global.css` to include
+The previous command updates your app with the necessary dependencies,
+and modifies following files
 
 ```css title="src/global.css"
 
-# global.css file
-
 @import "tailwindcss";
 
-...stuff...
+/* ... other css stuff ... */
 
+/* ... to customize tailwind follow guidelines at https://tailwindcss.com/docs/theme ... */
+
+/* Explicitly registering sources */
+/* @source "../node_modules/@your/ui-lib"; */
+
+/* Setting your base path */
+/* @import "tailwindcss" source("../src"); */
+
+/* Disabling automatic detection of source file */
+/* @import "tailwindcss" source(none); */
+
+```
+
+```ts title="vite.config.ts"
+import { defineConfig , type UserConfig} from 'vite'
+import tailwindcss from '@tailwindcss/vite'
+// … other imports ...
+
+export default defineConfig(({ command, mode }): UserConfig => {
+  return {
+    plugins: [
+      tailwindcss(),
+      // ... other plugins ...
+      ]
+    // ... other stuff ...
+    }
+  }
+)
 ```

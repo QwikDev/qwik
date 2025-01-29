@@ -140,38 +140,9 @@ export async function configureDevServer(
             version: '1',
           };
 
-          const seenCSS = new Set<string>();
-          const CSS_EXTENSIONS = /\.(css|scss|sass|less|styl|stylus)$/;
+          const added = new Set();
+          const CSS_EXTENSIONS = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
           const JS_EXTENSIONS = /\.[mc]?[tj]sx?$/;
-
-          for (const [id, mod] of server.moduleGraph.idToModuleMap) {
-            if (!mod) {
-              continue;
-            }
-
-            const parsed = parseId(id);
-            const cleanUrl = parsed.pathId;
-
-            if (!seenCSS.has(cleanUrl) && CSS_EXTENSIONS.test(cleanUrl)) {
-              const hasJSImporter = Array.from(mod.importers).some((importer) => {
-                const importerMod = importer as typeof mod;
-                const path = importerMod.url || importerMod.file;
-                return path && JS_EXTENSIONS.test(path);
-              });
-
-              if (hasJSImporter) {
-                seenCSS.add(cleanUrl);
-                manifest.injections?.push({
-                  tag: 'link',
-                  location: 'head',
-                  attributes: {
-                    rel: 'stylesheet',
-                    href: `${base}${cleanUrl.slice(1)}`,
-                  },
-                });
-              }
-            }
-          }
 
           Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
             entry[1].forEach((v) => {
@@ -182,6 +153,28 @@ export async function configureDevServer(
               }
               if (segment) {
                 manifest.mapping[segment.name] = relativeURL(url, opts.rootDir);
+              }
+
+              const { pathId, query } = parseId(v.url);
+
+              if (query === '' && CSS_EXTENSIONS.some((ext) => pathId.endsWith(ext))) {
+                const isEntryCSS = v.importers.size === 0;
+                const hasJSImporter = Array.from(v.importers).some((importer) => {
+                  const importerPath = (importer as typeof v).url || (importer as typeof v).file;
+                  return importerPath && JS_EXTENSIONS.test(importerPath);
+                });
+
+                if ((isEntryCSS || hasJSImporter) && !added.has(v.url)) {
+                  added.add(v.url);
+                  manifest.injections!.push({
+                    tag: 'link',
+                    location: 'head',
+                    attributes: {
+                      rel: 'stylesheet',
+                      href: `${base}${url.slice(1)}`,
+                    },
+                  });
+                }
               }
             });
           });

@@ -113,7 +113,7 @@ import { serializeAttribute } from './utils/styles';
 import type { ValueOrPromise } from './utils/types';
 
 // Turn this on to get debug output of what the scheduler is doing.
-const DEBUG: boolean = false;
+const DEBUG: boolean = true;
 
 export const enum ChoreType {
   /// MASKS defining three levels of sorting
@@ -259,6 +259,13 @@ export const createScheduler = (
       type === ChoreType.NODE_DIFF ||
       type === ChoreType.NODE_PROP;
     if (isServer && isClientOnly) {
+      DEBUG &&
+        debugTrace(
+          `skip client chore ${debugChoreTypeToString(type)}`,
+          null,
+          currentChore,
+          choreQueue
+        );
       return;
     }
 
@@ -675,8 +682,8 @@ function vNodeAlreadyDeleted(chore: Chore): boolean {
   );
 }
 
-function debugChoreToString(chore: Chore): string {
-  const type =
+function debugChoreTypeToString(type: ChoreType): string {
+  return (
     (
       {
         [ChoreType.QRL_RESOLVE]: 'QRL_RESOLVE',
@@ -691,8 +698,12 @@ function debugChoreToString(chore: Chore): string {
         [ChoreType.VISIBLE]: 'VISIBLE',
         [ChoreType.CLEANUP_VISIBLE]: 'CLEANUP_VISIBLE',
         [ChoreType.WAIT_FOR_ALL]: 'WAIT_FOR_ALL',
-      } as any
-    )[chore.$type$] || 'UNKNOWN: ' + chore.$type$;
+      } as Record<ChoreType, string>
+    )[type] || 'UNKNOWN: ' + type
+  );
+}
+function debugChoreToString(chore: Chore): string {
+  const type = debugChoreTypeToString(chore.$type$);
   const host = String(chore.$host$).replaceAll(/\n.*/gim, '');
   const qrlTarget = (chore.$target$ as QRLInternal<any>)?.$symbol$;
   return `Chore(${type} ${chore.$type$ === ChoreType.QRL_RESOLVE || chore.$type$ === ChoreType.RUN_QRL ? qrlTarget : host} ${chore.$idx$})`;

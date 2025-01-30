@@ -71,7 +71,7 @@ export async function copyPlatformBindingWasm(config: BuildConfig) {
 
   let cacheVersionDir: string;
   if (isDev) {
-    // We fetche from pkg.pr.new which is a CDN for the CI builds
+    // We fetch from pkg.pr.new which is a CDN for the CI builds
     // It redirects to the latest version
     cdnUrl = `${cdnUrl}${packageName}`;
     // First request the URL, this will redirect to the latest version

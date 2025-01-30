@@ -244,13 +244,6 @@ export function normalizeRollupOutputOptionsObject(
   if (opts.target === 'client') {
     // client should always be es
     outputOpts.format = 'es';
-    const prevManualChunks = outputOpts.manualChunks;
-    if (prevManualChunks && typeof prevManualChunks !== 'function') {
-      throw new Error('manualChunks must be a function');
-    }
-    outputOpts.manualChunks = prevManualChunks
-      ? (id, meta) => prevManualChunks(id, meta) || manualChunks(id, meta)
-      : manualChunks;
   }
 
   if (!outputOpts.dir) {

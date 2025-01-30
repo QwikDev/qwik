@@ -1,4 +1,4 @@
-use crate::code_move::transform_function_expr;
+use crate::code_move::{fix_path, transform_function_expr};
 use crate::collector::{
 	collect_from_pat, new_ident_from_id, GlobalCollect, Id, IdentCollector, ImportKind,
 };
@@ -758,7 +758,19 @@ impl<'a> QwikTransform<'a> {
 			&segment_data,
 		);
 
-		let mut import_path = ["./", &canonical_filename].concat();
+		// We import from the given entry, or from the hook file directly
+		let mut import_path = entry
+			.as_ref()
+			.map(|e| {
+				fix_path(
+					&self.options.path_data.base_dir,
+					&self.options.path_data.abs_dir,
+					&["./", e.as_ref()].concat(),
+				)
+				.map(|f| f.to_string())
+			})
+			.unwrap_or_else(|| Ok(["./", &canonical_filename].concat()))
+			.unwrap();
 		if self.options.explicit_extensions {
 			import_path.push('.');
 			import_path.push_str(&self.options.extension);

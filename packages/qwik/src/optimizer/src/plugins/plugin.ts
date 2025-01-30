@@ -17,6 +17,7 @@ import type {
   TransformModuleInput,
   TransformModulesOptions,
   TransformOutput,
+  TransformFsOptions,
 } from '../types';
 import { createLinter, type QwikLinter } from './eslint-plugin';
 import type { LoadResult, OutputBundle, ResolveIdResult, TransformResult } from 'rollup';
@@ -83,6 +84,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   const clientResults = new Map<string, TransformOutput>();
   const clientTransformedOutputs = new Map<string, [TransformModule, string]>();
 
+  const serverResults = new Map<string, TransformOutput>();
   const serverTransformedOutputs = new Map<string, [TransformModule, string]>();
   const parentIds = new Map<string, string>();
 
@@ -121,6 +123,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     inlineStylesUpToBytes: null as any,
     lint: true,
     experimental: undefined,
+    vendorRoots: [],
   };
 
   let lazyNormalizePath: (id: string) => string;
@@ -381,23 +384,89 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
     }
 
-    const path = getPath();
+    // Problematic part of the plugin: parse the entire source tree in the hopes of
+    // having all code combined into the entry hooks. This is a problem because it
+    // prevents other plugins from having a look at the untouched code.
+    // TODO work out a way to combine entries in a more incremental way
+    // Note: During dev mode, entry strategy is hook, so this doesn't run
+    const generatePreManifest = !['hoist', 'hook', 'inline'].includes(opts.entryStrategy.type);
+    if (generatePreManifest) {
+      const path = getPath();
 
-    if (Array.isArray(opts.srcInputs)) {
-      optimizer.sys.getInputFiles = async (rootDir) =>
-        opts.srcInputs!.map((i) => {
-          const relInput: TransformModuleInput = {
-            path: normalizePath(path.relative(rootDir, i.path)),
-            code: i.code,
-          };
-          return relInput;
-        });
-      debug(`buildStart() opts.srcInputs (${opts.srcInputs.length} files)`);
+      let srcDir = '/';
+      if (typeof opts.srcDir === 'string') {
+        srcDir = normalizePath(opts.srcDir);
+        debug(`buildStart() srcDir`, opts.srcDir);
+      } else if (Array.isArray(opts.srcInputs)) {
+        optimizer.sys.getInputFiles = async (rootDir) =>
+          opts.srcInputs!.map((i) => {
+            const relInput: TransformModuleInput = {
+              path: normalizePath(path.relative(rootDir, i.path)),
+              code: i.code,
+            };
+            return relInput;
+          });
+        debug(`buildStart() opts.srcInputs (${opts.srcInputs.length})`);
+      }
+      const vendorRoots = opts.vendorRoots;
+      if (vendorRoots.length > 0) {
+        debug(`vendorRoots`, vendorRoots);
+      }
+
+      debug(`transformedOutput.clear()`);
+      clientTransformedOutputs.clear();
+
+      const mode =
+        opts.target === 'lib' ? 'lib' : opts.buildMode === 'development' ? 'dev' : 'prod';
+      const transformOpts: TransformFsOptions = {
+        srcDir,
+        rootDir: opts.rootDir,
+        vendorRoots,
+        entryStrategy: opts.entryStrategy,
+        minify: 'simplify',
+        transpileTs: true,
+        transpileJsx: true,
+        explicitExtensions: true,
+        preserveFilenames: true,
+        mode,
+        scope: opts.scope ? opts.scope : undefined,
+        sourceMaps: opts.sourcemap,
+      };
+
+      let outputs = clientTransformedOutputs;
+      if (opts.target === 'client') {
+        // Building for client only
+        transformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
+        transformOpts.stripExports = SERVER_STRIP_EXPORTS;
+        transformOpts.isServer = false;
+      } else if (opts.target === 'ssr' && !devServer) {
+        // Building for server, not in dev mode
+        transformOpts.stripCtxName = CLIENT_STRIP_CTX_NAME;
+        transformOpts.stripEventHandlers = true;
+        transformOpts.isServer = true;
+        transformOpts.regCtxName = REG_CTX_NAME;
+        outputs = serverTransformedOutputs;
+      }
+
+      const result = await optimizer.transformFs(transformOpts);
+      for (const output of result.modules) {
+        const key = normalizePath(path.join(srcDir, output.path)!);
+        debug(`buildStart() add transformedOutput`, key, output.segment?.displayName);
+        outputs.set(key, [output, key]);
+        if (opts.target === 'client' && output.isEntry) {
+          _ctx.emitFile({
+            id: key,
+            type: 'chunk',
+            preserveSignature: 'allow-extension',
+          });
+        }
+      }
+
+      diagnosticsCallback(result.diagnostics, optimizer, srcDir);
+
+      clientResults.set('@buildStart', result);
+      serverResults.set('@buildStart', result);
     }
-
-    debug(`transformedOutputs.clear()`);
-    clientTransformedOutputs.clear();
-    serverTransformedOutputs.clear();
   };
 
   const getIsServer = (viteOpts?: { ssr?: boolean }) => {
@@ -706,7 +775,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       for (const mod of newOutput.modules) {
         if (mod !== module) {
           const key = normalizePath(path.join(srcDir, mod.path));
-          debug(`transform(${count})`, `segment ${key}`, mod.segment!.displayName);
+          debug(`transform(${count})`, `segment ${key}`, mod.segment);
           parentIds.set(key, id);
           currentOutputs.set(key, [mod, id]);
           deps.add(key);
@@ -871,32 +940,6 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     }
   }
 
-  // This groups all QRL segments into their respective entry points
-  // optimization opportunity: group small segments that don't import anything into smallish chunks
-  // order by discovery time, so that related segments are more likely to group together
-  function manualChunks(id: string, { getModuleInfo }: Rollup.ManualChunkMeta) {
-    const module = getModuleInfo(id)!;
-    const segment = module.meta.segment;
-
-    // We need to specifically return segment.entry for qwik-insights
-    if (segment) {
-      return segment.entry;
-    }
-
-    if (id.includes('node_modules')) {
-      return null;
-    }
-
-    // Patch to prevent over-prefetching, we must clearly separate .tsx/.jsx chunks so that rollup doesn't mix random imports into non-entry files such as hooks.
-    // Maybe a better solution would be to mark those files as entires earlier in the chain so that we can remove this check and the one above altogether.
-    // We check .(tsx|jsx) after node_modules in case some node_modules end with .jsx or .tsx.
-    if (/\.(tsx|jsx)$/.test(id)) {
-      return id;
-    }
-
-    return null;
-  }
-
   return {
     buildStart,
     createOutputAnalyzer,
@@ -919,7 +962,6 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     setSourceMapSupport,
     configureServer,
     handleHotUpdate,
-    manualChunks,
   };
 }
 
@@ -1048,7 +1090,7 @@ export interface QwikPluginOptions {
 }
 
 export interface NormalizedQwikPluginOptions
-  extends Omit<Required<QwikPluginOptions>, 'vendorRoots' | 'experimental'> {
+  extends Omit<Required<QwikPluginOptions>, 'experimental'> {
   input: string[] | { [entry: string]: string };
   experimental?: Record<keyof typeof ExperimentalFeatures, boolean>;
 }

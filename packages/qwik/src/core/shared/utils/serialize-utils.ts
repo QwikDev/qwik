@@ -8,20 +8,27 @@ import { unwrapStore } from '../../signal/store';
 
 /** @internal */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
-  const seen = new Set();
+  const seen = new WeakSet();
   return _verifySerializable(value, seen, '_', preMessage);
 };
 
-const _verifySerializable = <T>(value: T, seen: Set<any>, ctx: string, preMessage?: string): T => {
+const _verifySerializable = <T>(
+  value: T,
+  seen: WeakSet<any>,
+  ctx: string,
+  preMessage?: string
+): T => {
   const unwrapped = unwrapStore(value);
   if (unwrapped == null) {
     return value;
   }
   if (shouldSerialize(unwrapped)) {
-    if (seen.has(unwrapped)) {
-      return value;
+    if (typeof unwrapped === 'object') {
+      if (seen.has(unwrapped)) {
+        return value;
+      }
+      seen.add(unwrapped);
     }
-    seen.add(unwrapped);
     if (isSignal(unwrapped)) {
       return value;
     }

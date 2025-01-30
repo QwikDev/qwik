@@ -88,7 +88,7 @@ export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,uBAAS,uGAgBnB;AAEH,OAAO,MAAM,sBAAQ,qGAelB\"}")
-============================= child_component_usetask_oh4n7zeqjku.js ==
+============================= test.tsx_Child_component_useTask_Oh4n7ZeqJkU.js ==
 
 import { useLexicalScope } from "@builder.io/qwik";
 import mongo from "mongodb";
@@ -261,16 +261,16 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_entry_Child.js (ENTRY POINT)==
 
-export { Child_component_useTask_Oh4n7ZeqJkU } from "./child_component_usetask_oh4n7zeqjku";
-export { Child_component_9GyF01GDKqw } from "./child_component_9gyf01gdkqw";
+export { Child_component_useTask_Oh4n7ZeqJkU } from "./test.tsx_Child_component_useTask_Oh4n7ZeqJkU";
+export { Child_component_9GyF01GDKqw } from "./test.tsx_Child_component_9GyF01GDKqw";
 export { _hW } from "@builder.io/qwik";
 
 
 None
 ============================= test.tsx_entry_Parent.js (ENTRY POINT)==
 
-export { Parent_component_useTask_gDH1EtUWqBU } from "./parent_component_usetask_gdh1etuwqbu";
-export { Parent_component_0TaiDayHrlo } from "./parent_component_0taidayhrlo";
+export { Parent_component_useTask_gDH1EtUWqBU } from "./test.tsx_Parent_component_useTask_gDH1EtUWqBU";
+export { Parent_component_0TaiDayHrlo } from "./test.tsx_Parent_component_0TaiDayHrlo";
 export { _hW } from "@builder.io/qwik";
 
 

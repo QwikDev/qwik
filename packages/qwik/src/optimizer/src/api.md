@@ -317,7 +317,7 @@ export interface ResolvedManifest {
 }
 
 // @public (undocumented)
-interface SegmentAnalysis {
+export interface SegmentAnalysis {
     // (undocumented)
     canonicalFilename: string;
     // (undocumented)
@@ -343,8 +343,6 @@ interface SegmentAnalysis {
     // (undocumented)
     parent: string | null;
 }
-export { SegmentAnalysis as HookAnalysis }
-export { SegmentAnalysis }
 
 // @public (undocumented)
 interface SegmentEntryStrategy {

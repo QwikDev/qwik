@@ -1525,7 +1525,7 @@ const frameworkType = (obj: any) => {
   );
 };
 
-export const canSerialize = (value: any): boolean => {
+export const canSerialize = (value: any, seen: WeakSet<any> = new WeakSet()): boolean => {
   if (
     value == null ||
     typeof value === 'string' ||
@@ -1535,6 +1535,10 @@ export const canSerialize = (value: any): boolean => {
   ) {
     return true;
   } else if (typeof value === 'object') {
+    if (seen.has(value)) {
+      return true;
+    }
+    seen.add(value);
     const proto = Object.getPrototypeOf(value);
     if (isStore(value)) {
       value = getStoreTarget(value);
@@ -1543,14 +1547,19 @@ export const canSerialize = (value: any): boolean => {
       for (const key in value) {
         // if the value is a props proxy, then sometimes we could create a component-level subscription,
         // so we should call untrack here to avoid tracking the value
-        if (!canSerialize(untrack(() => value[key]))) {
+        if (
+          !canSerialize(
+            untrack(() => value[key]),
+            seen
+          )
+        ) {
           return false;
         }
       }
       return true;
     } else if (proto == Array.prototype) {
       for (let i = 0; i < value.length; i++) {
-        if (!canSerialize(value[i])) {
+        if (!canSerialize(value[i], seen)) {
           return false;
         }
       }

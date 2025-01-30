@@ -23,8 +23,8 @@ import { qrl } from "@builder.io/qwik";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./entry_segments.tsx"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,8FAKhB\"}")
-============================= app_component_usestyles_t35nsa5uv7u.tsx ==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iGAKhB\"}")
+============================= test.tsx_App_component_useStyles_t35nSa5UV7U.tsx ==
 
 export const App_component_useStyles_t35nSa5UV7U = 'hola';
 
@@ -109,9 +109,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= entry_segments.js (ENTRY POINT)==
 
-export { App_component_useStyles_t35nSa5UV7U } from "./app_component_usestyles_t35nsa5uv7u.tsx";
-export { App_component_ckEPmXZlub0 } from "./app_component_ckepmxzlub0.tsx";
-export { App_component_1_w0t0o3QMovU } from "./app_component_1_w0t0o3qmovu.tsx";
+export { App_component_useStyles_t35nSa5UV7U } from "./test.tsx_App_component_useStyles_t35nSa5UV7U.tsx";
+export { App_component_ckEPmXZlub0 } from "./test.tsx_App_component_ckEPmXZlub0.tsx";
+export { App_component_1_w0t0o3QMovU } from "./test.tsx_App_component_1_w0t0o3QMovU.tsx";
 export { _hW } from "@builder.io/qwik";
 
 

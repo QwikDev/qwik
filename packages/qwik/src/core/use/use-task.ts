@@ -1,5 +1,4 @@
 import { getDomContainer } from '../client/dom-container';
-import type { VNode } from '../client/types';
 import { QError, qError } from '../shared/error/error';
 import { assertQrl, type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';

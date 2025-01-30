@@ -89,7 +89,7 @@ import {
   type ElementVNode,
   type VirtualVNode,
 } from '../client/types';
-import { VNodeJournalOpCode, vnode_isVNode, vnode_locate, vnode_setAttr } from '../client/vnode';
+import { VNodeJournalOpCode, vnode_isVNode, vnode_setAttr } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
 import { triggerEffects, type ComputedSignal, type WrappedSignal } from '../signal/signal';
 import { isSignal, type Signal } from '../signal/signal.public';
@@ -99,7 +99,7 @@ import { runResource, type ResourceDescriptor } from '../use/use-resource';
 import { Task, TaskFlags, cleanupTask, runTask, type TaskFn } from '../use/use-task';
 import { executeComponent } from './component-execution';
 import type { OnRenderFn } from './component.public';
-import { assertEqual } from './error/assert';
+import { assertEqual, assertFalse } from './error/assert';
 import type { Props } from './jsx/jsx-runtime';
 import type { JSXOutput } from './jsx/types/jsx-node';
 import { type QRLInternal } from './qrl/qrl-class';
@@ -214,7 +214,7 @@ export const createScheduler = (
   ): ValueOrPromise<void>;
   function schedule(
     type: ChoreType.RUN_QRL,
-    host: Element,
+    host: HostElement,
     target: QRLInternal<(...args: unknown[]) => unknown>,
     args: unknown[]
   ): ValueOrPromise<void>;
@@ -240,7 +240,7 @@ export const createScheduler = (
   ///// IMPLEMENTATION /////
   function schedule(
     type: ChoreType,
-    hostOrTask: HostElement | Task | Element | null = null,
+    hostOrTask: HostElement | Task | null = null,
     targetOrQrl: ChoreTarget | string | null = null,
     payload: any = null
   ): ValueOrPromise<any> {
@@ -436,11 +436,7 @@ export const createScheduler = (
                   qrlRuns.splice(qrlRuns.indexOf(handled), 1);
                 })
                 .catch((error) => {
-                  // TODO test this
-                  const host = isDomContainer(container)
-                    ? vnode_locate(container.rootVNode, chore.$host$ as any as Element)
-                    : null!;
-                  container.handleError(error, host);
+                  container.handleError(error, chore.$host$);
                 });
               // Don't wait for the promise to resolve
               // TODO come up with a better solution, we also want concurrent signal handling with tasks but serial tasks
@@ -578,6 +574,8 @@ export const createScheduler = (
           return hostDiff;
         }
       } else {
+        assertFalse(vnode_isVNode(aHost), 'expected aHost to be SSRNode but it is a VNode');
+        assertFalse(vnode_isVNode(bHost), 'expected bHost to be SSRNode but it is a VNode');
         // we are running on the server.
         // On server we can't schedule task for a different host!
         // Server is SSR, and therefore scheduling for anything but the current host

@@ -156,12 +156,11 @@ export const useTaskQrl = (qrl: QRL<TaskFn>): void => {
   // deleted and we need to be able to release the task subscriptions.
   set(task);
   const container = iCtx.$container$;
-  container.$scheduler$(ChoreType.TASK, task)?.catch(() => {});
-
-  // const result = runTask(task, container, iCtx.$hostElement$);
-  // if (isPromise(result)) {
-  //   throw result;
-  // }
+  const promise = container.$scheduler$(ChoreType.TASK, task);
+  if (isPromise(promise)) {
+    // TODO: should we handle this differently?
+    promise.catch(() => {});
+  }
 };
 
 export const runTask = (

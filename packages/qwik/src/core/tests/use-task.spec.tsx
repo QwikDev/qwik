@@ -14,12 +14,12 @@ import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
 import { WrappedSignal } from '../signal/signal';
 
-const debug = !false; //true;
+const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  // { render: domRender }, //
+  { render: domRender }, //
 ])('$render.name: useTask', ({ render }) => {
   it('should execute task', async () => {
     const Counter = component$(() => {
@@ -759,7 +759,8 @@ describe.each([
       );
     });
   });
-  it.only('should rerender component after task', async ({}) => {
+
+  it('should rerender component after task', async () => {
     const Cmp = component$(() => {
       const sort = useSignal<'id' | 'size'>('size');
       const table = useSignal([

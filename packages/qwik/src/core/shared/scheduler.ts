@@ -113,7 +113,7 @@ import { serializeAttribute } from './utils/styles';
 import type { ValueOrPromise } from './utils/types';
 
 // Turn this on to get debug output of what the scheduler is doing.
-const DEBUG: boolean = true;
+const DEBUG: boolean = false;
 
 export const enum ChoreType {
   /// MASKS defining three levels of sorting
@@ -547,6 +547,7 @@ export const createScheduler = (
     if (isPromise(returnValue)) {
       chore.$promise$ = returnValue.then(after, (error) => after(undefined, error));
       chore.$resolve$?.(chore.$promise$);
+      chore.$resolve$ = undefined;
     } else {
       after(returnValue);
     }
@@ -644,28 +645,29 @@ export const createScheduler = (
     return ~bottom;
   }
 
-  /**
-   * When a derived signal is update we need to run vnode_diff. However the signal can update
-   * multiple times during component execution. For this reason it is necessary for us to update the
-   * schedule work with the latest result of the signal.
-   */
-  function choreUpdate(existing: Chore, newChore: Chore): void {
-    if (existing.$type$ === ChoreType.NODE_DIFF) {
-      existing.$payload$ = newChore.$payload$;
-    }
-  }
-
   function sortedInsert(sortedArray: Chore[], value: Chore, rootVNode: ElementVNode | null): Chore {
     /// We need to ensure that the `queue` is sorted by priority.
     /// 1. Find a place where to insert into.
     const idx = sortedFindIndex(sortedArray, value, rootVNode);
+
     if (idx < 0) {
       /// 2. Insert the chore into the queue.
       sortedArray.splice(~idx, 0, value);
       return value;
     }
+
     const existing = sortedArray[idx];
-    choreUpdate(existing, value);
+    /**
+     * When a derived signal is updated we need to run vnode_diff. However the signal can update
+     * multiple times during component execution. For this reason it is necessary for us to update
+     * the chore with the latest result of the signal.
+     */
+    if (existing.$type$ === ChoreType.NODE_DIFF) {
+      existing.$payload$ = value.$payload$;
+    }
+    if (existing.$executed$) {
+      existing.$executed$ = false;
+    }
     return existing;
   }
 };

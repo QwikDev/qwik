@@ -89,7 +89,7 @@ import {
   type ElementVNode,
   type VirtualVNode,
 } from '../client/types';
-import { VNodeJournalOpCode, vnode_isVNode, vnode_setAttr } from '../client/vnode';
+import { VNodeJournalOpCode, vnode_isVNode, vnode_locate, vnode_setAttr } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
 import { triggerEffects, type ComputedSignal, type WrappedSignal } from '../signal/signal';
 import { isSignal, type Signal } from '../signal/signal.public';
@@ -214,7 +214,7 @@ export const createScheduler = (
   ): ValueOrPromise<void>;
   function schedule(
     type: ChoreType.RUN_QRL,
-    ignore: null,
+    host: Element,
     target: QRLInternal<(...args: unknown[]) => unknown>,
     args: unknown[]
   ): ValueOrPromise<void>;
@@ -240,7 +240,7 @@ export const createScheduler = (
   ///// IMPLEMENTATION /////
   function schedule(
     type: ChoreType,
-    hostOrTask: HostElement | Task | null = null,
+    hostOrTask: HostElement | Task | Element | null = null,
     targetOrQrl: ChoreTarget | string | null = null,
     payload: any = null
   ): ValueOrPromise<any> {
@@ -325,9 +325,8 @@ export const createScheduler = (
           qrlRuns.length
         ) {
           return Promise.all(qrlRuns)
-            .catch((e) => {
-              // TODO test this and add host prop to error
-              container.handleError(e, null!);
+            .catch(() => {
+              // they are already handled by the qrl runs
             })
             .then(() => drainUpTo(runUptoChore, isServer));
         }
@@ -430,9 +429,23 @@ export const createScheduler = (
                   qrlRuns.splice(qrlRuns.indexOf(handled), 1);
                 })
                 .catch((error) => {
+                  // TODO test this
+                  const host = isDomContainer(container)
+                    ? vnode_locate(container.rootVNode, chore.$host$ as any as Element)
+                    : null!;
                   container.handleError(error, host);
                 });
+              // Don't wait for the promise to resolve
+              // TODO come up with a better solution, we also want concurrent signal handling with tasks but serial tasks
               qrlRuns.push(handled);
+              DEBUG &&
+                debugTrace('execute.DONE (but still running)', chore, currentChore, choreQueue);
+              chore.$returnValue$ = handled;
+              chore.$resolve$?.(handled);
+              currentChore = null;
+              chore.$executed$ = true;
+              // early out so we don't call after()
+              return;
             }
             returnValue = null;
           }

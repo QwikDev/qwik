@@ -766,7 +766,7 @@ export const vnode_diff = (
             if (qrl) {
               const value = container.$scheduler$(
                 ChoreType.RUN_QRL,
-                null,
+                element,
                 qrl as QRLInternal<(...args: unknown[]) => unknown>,
                 [event, element]
               ) as unknown;

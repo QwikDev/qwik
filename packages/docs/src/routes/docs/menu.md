@@ -1,6 +1,9 @@
-# Qwik Guide
+menu.md 
 
+
+# Qwik Guide
 ## Introduction
+## Qwik Group
 
 - [Overview](</docs/(qwik)/index.mdx>)
 - [Getting Started](</docs/(qwik)/getting-started/index.mdx>)
@@ -19,7 +22,26 @@
 - [Styling](</docs/(qwik)/components/styles/index.mdx>)
 - [API Reference](</api/qwik/>)
 
-## Qwik City
+## Concepts
+
+- [Think Qwik](</docs/(qwik)/concepts/think-qwik/index.mdx>)
+- [Resumable](</docs/(qwik)/concepts/resumable/index.mdx>)
+- [Progressive](</docs/(qwik)/concepts/progressive/index.mdx>)
+- [Reactivity](</docs/(qwik)/concepts/reactivity/index.mdx>)
+
+## Qwik Advanced
+
+- [The $ dollar sign](</docs/(qwik)/advanced/dollar/index.mdx>)
+- [Containers](</docs/(qwik)/advanced/containers/index.mdx>)
+- [QRL](</docs/(qwik)/advanced/qrl/index.mdx>)
+- [Library mode](</docs/(qwik)/advanced/library/index.mdx>)
+- [Qwikloader](</docs/(qwik)/advanced/qwikloader/index.mdx>)
+- [Optimizer](</docs/(qwik)/advanced/optimizer/index.mdx>)
+- [Modules Prefetching](</docs/(qwik)/advanced/modules-prefetching/index.mdx>)
+- [Build Directory](</docs/(qwik)/advanced/custom-build-dir/index.mdx>)
+- [Vite](</docs/(qwik)/advanced/vite/index.mdx>)
+
+## QwikCity
 
 - [Overview](</docs/(qwikcity)/qwikcity/index.mdx>)
 - [Routing](</docs/(qwikcity)/routing/index.mdx>)
@@ -31,10 +53,20 @@
 - [Endpoints](</docs/(qwikcity)/endpoints/index.mdx>)
 - [Middleware](</docs/(qwikcity)/middleware/index.mdx>)
 - [server$](</docs/(qwikcity)/server$/index.mdx>)
-- [Re-exporting loaders](/docs/(qwikcity)/re-exporting-loaders/index.mdx)
+- [Re-exporting loaders](</docs/(qwikcity)/re-exporting-loaders/index.mdx>)
 - [Caching](</docs/(qwikcity)/caching/index.mdx>)
 - [HTML attributes](</docs/(qwikcity)/html-attributes/index.mdx>)
 - [API reference](</docs/(qwikcity)/api/index.mdx>)
+
+## QwikCity Advanced
+
+- [Content Security Policy](</docs/(qwikcity)/advanced/content-security-policy/index.mdx>)
+- [Menus](</docs/(qwikcity)/advanced/menu/index.mdx>)
+- [Request Handling](</docs/(qwikcity)/advanced/request-handling/index.mdx>)
+- [Advanced Routing](</docs/(qwikcity)/advanced/routing/index.mdx>)
+- [Sitemaps](</docs/(qwikcity)/advanced/sitemaps/index.mdx>)
+- [Speculative Module Fetching](</docs/(qwikcity)/advanced/speculative-module-fetching/index.mdx>)
+- [Static Assets](</docs/(qwikcity)/advanced/static-assets/index.mdx>)
 
 ## Cookbook
 
@@ -110,35 +142,6 @@
 - [Bundle Optimization](</docs/(qwikcity)/guides/bundle/index.mdx>)
 - [Env variables](</docs/(qwikcity)/guides/env-variables/index.mdx>)
 
-## Concepts
-
-- [Think Qwik](</docs/(qwik)/concepts/think-qwik/index.mdx>)
-- [Resumable](</docs/(qwik)/concepts/resumable/index.mdx>)
-- [Progressive](</docs/(qwik)/concepts/progressive/index.mdx>)
-- [Reactivity](</docs/(qwik)/concepts/reactivity/index.mdx>)
-
-## Advanced
-
-- [The $ dollar sign](</docs/(qwik)/advanced/dollar/index.mdx>)
-- [Containers](</docs/(qwik)/advanced/containers/index.mdx>)
-- [QRL](</docs/(qwik)/advanced/qrl/index.mdx>)
-- [Library mode](</docs/(qwik)/advanced/library/index.mdx>)
-- [Qwikloader](</docs/(qwik)/advanced/qwikloader/index.mdx>)
-- [Optimizer](</docs/(qwik)/advanced/optimizer/index.mdx>)
-- [Modules Prefetching](</docs/(qwik)/advanced/modules-prefetching/index.mdx>)
-- [Build Directory](</docs/(qwik)/advanced/custom-build-dir/index.mdx>)
-- [Vite](</docs/(qwik)/advanced/vite/index.mdx>)
-- [Advanced Routing](</docs/(qwikcity)/advanced/routing/index.mdx>)
-- [Qwik Plugins](</docs/(qwikcity)/advanced/plugins/index.mdx>)
-- [Request Handling](</docs/(qwikcity)/advanced/request-handling/index.mdx>)
-- [Speculative Module Fetching](</docs/(qwikcity)/advanced/speculative-module-fetching/index.mdx>)
-- [Menus](</docs/(qwikcity)/advanced/menu/index.mdx>)
-- [Static Assets](</docs/(qwikcity)/advanced/static-assets/index.mdx>)
-- [Sitemaps](</docs/(qwikcity)/advanced/sitemaps/index.mdx>)
-- [ESLint-Rules](</docs/(qwik)/advanced/eslint/index.mdx>)
-- [Content Security Policy](</docs/(qwikcity)/advanced/content-security-policy/index.mdx>)
-- [Complex Forms](</docs/(qwikcity)/advanced/complex-forms/index.mdx>)
-
 ## Reference
 
 - [API Reference](/api/)
@@ -150,7 +153,7 @@
 - [Insights](/docs/labs/insights/index.mdx)
 - [Typed Routes](/docs/labs/typed-routes/index.mdx)
 - [Devtools](/docs/labs/devtools/index.mdx)
-- [usePreventNavigate](/docs/labs/usePreventNavigate/index.mdx)
+- [usePreventNavigate](</docs/labs/usePreventNavigate/index.mdx>)
 
 ## Community
 

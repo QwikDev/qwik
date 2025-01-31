@@ -3043,6 +3043,32 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
+[flags](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[immutableProps](#)
+
+</td><td>
+
+</td><td>
+
+Record&lt;any, unknown&gt; \| null
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
 [key](#)
 
 </td><td>
@@ -3565,7 +3591,7 @@ PrefetchGraph: (opts?: {
   manifestHash?: string;
   manifestURL?: string;
   nonce?: string;
-}) => JSXOutput;
+}) => JSXNode<"script">;
 ```
 
 <table><thead><tr><th>
@@ -3599,7 +3625,7 @@ _(Optional)_ Options for the loading prefetch graph.
 </tbody></table>
 **Returns:**
 
-[JSXOutput](#jsxoutput)
+JSXNode&lt;"script"&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 

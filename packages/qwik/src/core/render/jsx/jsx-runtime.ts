@@ -1,4 +1,4 @@
-import type { DevJSX, FunctionComponent, JSXNode, JSXNodeInternal } from './types/jsx-node';
+import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import { qDev, qRuntimeQrl, seal } from '../../util/qdev';
 import { logError, logOnceWarn, logWarn } from '../../util/log';
@@ -34,7 +34,7 @@ export const _jsxQ = <T extends string>(
   flags: number,
   key: string | number | null,
   dev?: DevJSX
-): JSXNodeInternal<T> => {
+): JSXNode<T> => {
   assertString(type, 'jsx type must be a string');
   const processed = key == null ? null : String(key);
   const node = new JSXNodeImpl<T>(
@@ -68,7 +68,7 @@ export const _jsxS = <T extends string>(
   flags: number,
   key: string | number | null,
   dev?: DevJSX
-): JSXNodeInternal<T> => {
+): JSXNode<T> => {
   let children: JSXChildren = null;
   if (mutableProps && 'children' in mutableProps) {
     children = mutableProps.children as JSXChildren;
@@ -88,7 +88,7 @@ export const _jsxC = <T extends string | FunctionComponent<Record<any, unknown>>
   flags: number,
   key: string | number | null,
   dev?: JsxDevOpts
-): JSXNodeInternal<T> => {
+): JSXNode<T> => {
   const processed = key == null ? null : String(key);
   const props = mutableProps ?? ({} as NonNullable<typeof mutableProps>);
   // In dynamic components, type could be a string
@@ -196,7 +196,7 @@ export const RenderOnce: FunctionComponent<{
   return new JSXNodeImpl(Virtual, EMPTY_OBJ, null, props.children, static_subtree, key);
 };
 
-const validateJSXNode = (node: JSXNodeInternal) => {
+const validateJSXNode = (node: JSXNode) => {
   if (qDev) {
     const { type, props, immutableProps, children } = node;
     invoke(undefined, () => {
@@ -321,7 +321,7 @@ const printObjectLiteral = (obj: Record<string, unknown>) => {
     .join(', ')} }`;
 };
 
-export const isJSXNode = (n: unknown): n is JSXNodeInternal => {
+export const isJSXNode = (n: unknown): n is JSXNode => {
   if (qDev) {
     if (n instanceof JSXNodeImpl) {
       return true;

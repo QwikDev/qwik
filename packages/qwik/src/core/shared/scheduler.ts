@@ -326,17 +326,6 @@ export const createScheduler = (
       const nextChore = choreQueue[0];
 
       if (nextChore.$executed$) {
-        if (
-          nextChore === runUptoChore &&
-          nextChore.$type$ === ChoreType.WAIT_FOR_ALL &&
-          qrlRuns.length
-        ) {
-          return Promise.all(qrlRuns)
-            .catch(() => {
-              // they are already handled by the qrl runs
-            })
-            .then(() => drainUpTo(runUptoChore, isServer));
-        }
         choreQueue.shift();
         if (nextChore === runUptoChore) {
           break;

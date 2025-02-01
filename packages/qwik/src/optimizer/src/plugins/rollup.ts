@@ -201,8 +201,9 @@ export function normalizeRollupOutputOptionsObject(
         ? `${opts.assetsDir}/${assetFileNames}`
         : assetFileNames;
     }
-    // Friendly name in dev
-    const fileName = opts.buildMode == 'production' ? 'build/q-[hash].js' : 'build/[name].js';
+    // Friendly name in dev or preview with debug mode
+    const fileName =
+      opts.buildMode == 'production' && !opts.debug ? 'build/q-[hash].js' : 'build/[name].js';
     // client production output
     if (!outputOpts.entryFileNames) {
       outputOpts.entryFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;

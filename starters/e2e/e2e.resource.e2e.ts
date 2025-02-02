@@ -15,10 +15,13 @@ test.describe("resource", () => {
     const resource1 = page.locator(".resource1");
     const logs = page.locator(".logs");
     const increment = page.locator("button.increment");
-    let logsContent =
-      "[WATCH] 1 before\n[WATCH] 1 after\n[WATCH] 2 before\n[WATCH] 2 after\n[RESOURCE] 1 before\n";
-    // TODO: server promise streaming is not supported, so for now we can't test this correctly
-    logsContent += "[RESOURCE] 1 after\n\n";
+    let logsContent = "";
+    // execute first task
+    logsContent += "[WATCH] 1 before\n[WATCH] 1 after\n";
+    // execute second task
+    logsContent += "[WATCH] 2 before\n[WATCH] 2 after\n";
+    // execute the resource
+    logsContent += "[RESOURCE] 1 before\n[RESOURCE] 1 after\n\n";
     await expect(resource1).toHaveText("resource 1 is 80");
     // await expect(resource2).toHaveText('resource 2 is 160');
     await expect(logs).toHaveText(logsContent);
@@ -27,13 +30,16 @@ test.describe("resource", () => {
     await increment.click();
 
     await expect(resource1).toHaveText("loading resource 1...");
-    logsContent +=
-      "[WATCH] 1 before\n[WATCH] 1 after\n[WATCH] 2 before\n[WATCH] 2 after\n[RESOURCE] 1 before\n";
+    // execute first task
+    logsContent += "[WATCH] 1 before\n[WATCH] 1 after\n";
+    // execute second task
+    logsContent += "[WATCH] 2 before\n[WATCH] 2 after\n";
+    // rexecute the resource
+    logsContent += "[RESOURCE] 1 before\n[RESOURCE] 1 after\n\n";
     // await expect(resource2).toHaveText('loading resource 2...');
     await expect(logs).toHaveText(logsContent);
 
     await expect(resource1).toHaveText("resource 1 is 88");
-    logsContent += "[RESOURCE] 1 after\n\n";
     // await expect(resource2).toHaveText('resource 2 is 176');
     await expect(logs).toHaveText(logsContent);
   });
@@ -41,10 +47,13 @@ test.describe("resource", () => {
   test("should track subscriptions", async ({ page }) => {
     const resource1 = page.locator(".resource1");
     const logs = page.locator(".logs");
-    let logsContent =
-      "[WATCH] 1 before\n[WATCH] 1 after\n[WATCH] 2 before\n[WATCH] 2 after\n[RESOURCE] 1 before\n";
-    // TODO: server promise streaming is not supported, so for now we can't test this correctly
-    logsContent += "[RESOURCE] 1 after\n\n";
+    let logsContent = "";
+    // execute first task
+    logsContent += "[WATCH] 1 before\n[WATCH] 1 after\n";
+    // execute second task
+    logsContent += "[WATCH] 2 before\n[WATCH] 2 after\n";
+    // execute the resource
+    logsContent += "[RESOURCE] 1 before\n[RESOURCE] 1 after\n\n";
     await expect(resource1).toHaveText("resource 1 is 80");
     await expect(logs).toHaveText(logsContent);
 
@@ -54,7 +63,6 @@ test.describe("resource", () => {
     await countBtn.click();
     await expect(countBtn).toHaveText("count is 1");
 
-    // logsContent += "[RESOURCE] 1 after\n\n";
     await expect(logs).toHaveText(logsContent);
 
     await countBtn.click();

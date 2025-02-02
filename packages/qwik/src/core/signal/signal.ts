@@ -355,8 +355,6 @@ export const triggerEffects = (
         let choreType = ChoreType.TASK;
         if (effect.$flags$ & TaskFlags.VISIBLE_TASK) {
           choreType = ChoreType.VISIBLE;
-        } else if (effect.$flags$ & TaskFlags.RESOURCE) {
-          choreType = ChoreType.RESOURCE;
         }
         container.$scheduler$(choreType, effect);
       } else if (effect instanceof Signal) {

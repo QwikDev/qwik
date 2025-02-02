@@ -96,7 +96,14 @@ import { isSignal, type Signal } from '../signal/signal.public';
 import type { TargetType } from '../signal/store';
 import type { ISsrNode } from '../ssr/ssr-types';
 import { runResource, type ResourceDescriptor } from '../use/use-resource';
-import { Task, TaskFlags, cleanupTask, runTask, type TaskFn } from '../use/use-task';
+import {
+  Task,
+  TaskFlags,
+  cleanupTask,
+  runTask,
+  type DescriptorBase,
+  type TaskFn,
+} from '../use/use-task';
 import { executeComponent } from './component-execution';
 import type { OnRenderFn } from './component.public';
 import { assertEqual, assertFalse } from './error/assert';
@@ -124,7 +131,6 @@ export const enum ChoreType {
   /** Ensure that the QRL promise is resolved before processing next chores in the queue */
   QRL_RESOLVE /* ********************** */ = 0b0000_0001,
   RUN_QRL,
-  RESOURCE,
   TASK,
   NODE_DIFF,
   NODE_PROP,
@@ -208,10 +214,7 @@ export const createScheduler = (
     host: HostElement | null,
     target: Signal
   ): ValueOrPromise<void>;
-  function schedule(
-    type: ChoreType.TASK | ChoreType.VISIBLE | ChoreType.RESOURCE,
-    task: Task
-  ): ValueOrPromise<void>;
+  function schedule(type: ChoreType.TASK | ChoreType.VISIBLE, task: Task): ValueOrPromise<void>;
   function schedule(
     type: ChoreType.RUN_QRL,
     host: HostElement,
@@ -250,10 +253,7 @@ export const createScheduler = (
     const runLater: boolean =
       type !== ChoreType.WAIT_FOR_ALL && !isComponentSsr && type !== ChoreType.RUN_QRL;
     const isTask =
-      type === ChoreType.TASK ||
-      type === ChoreType.VISIBLE ||
-      type === ChoreType.RESOURCE ||
-      type === ChoreType.CLEANUP_VISIBLE;
+      type === ChoreType.TASK || type === ChoreType.VISIBLE || type === ChoreType.CLEANUP_VISIBLE;
     const isClientOnly =
       type === ChoreType.JOURNAL_FLUSH ||
       type === ChoreType.NODE_DIFF ||
@@ -399,22 +399,6 @@ export const createScheduler = (
             );
           }
           break;
-        case ChoreType.RESOURCE:
-          {
-            const result = runResource(
-              chore.$payload$ as ResourceDescriptor<TaskFn>,
-              container,
-              host
-            );
-            // Don't await the return value of the resource, because async resources should not be awaited.
-            // The reason for this is that we should be able to update for example a node with loading
-            // text. If we await the resource, the loading text will not be displayed until the resource
-            // is loaded.
-            // Awaiting on the client also causes a deadlock.
-            // In any case, the resource will never throw.
-            returnValue = isServer ? result : null;
-          }
-          break;
         case ChoreType.RUN_QRL:
           {
             const fn = (chore.$target$ as QRLInternal<(...args: unknown[]) => unknown>).getFn();
@@ -444,7 +428,21 @@ export const createScheduler = (
           break;
         case ChoreType.TASK:
         case ChoreType.VISIBLE:
-          returnValue = runTask(chore.$payload$ as Task<TaskFn, TaskFn>, container, host);
+          {
+            const payload = chore.$payload$ as DescriptorBase;
+            if (payload.$flags$ & TaskFlags.RESOURCE) {
+              const result = runResource(payload as ResourceDescriptor<TaskFn>, container, host);
+              // Don't await the return value of the resource, because async resources should not be awaited.
+              // The reason for this is that we should be able to update for example a node with loading
+              // text. If we await the resource, the loading text will not be displayed until the resource
+              // is loaded.
+              // Awaiting on the client also causes a deadlock.
+              // In any case, the resource will never throw.
+              returnValue = isServer ? result : null;
+            } else {
+              returnValue = runTask(payload as Task<TaskFn, TaskFn>, container, host);
+            }
+          }
           break;
         case ChoreType.CLEANUP_VISIBLE:
           {
@@ -677,7 +675,6 @@ function debugChoreTypeToString(type: ChoreType): string {
       {
         [ChoreType.QRL_RESOLVE]: 'QRL_RESOLVE',
         [ChoreType.RUN_QRL]: 'RUN_QRL',
-        [ChoreType.RESOURCE]: 'RESOURCE',
         [ChoreType.TASK]: 'TASK',
         [ChoreType.NODE_DIFF]: 'NODE_DIFF',
         [ChoreType.NODE_PROP]: 'NODE_PROP',

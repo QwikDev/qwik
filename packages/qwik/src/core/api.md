@@ -211,6 +211,8 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)
     setHostProp<T>(host: HostElement, name: string, value: T): void;
+    // (undocumented)
+    vNodeLocate: (id: string | Element) => _VNode;
 }
 
 // Warning: (ae-internal-missing-underscore) The name "DomContainer" should be prefixed with an underscore because the declaration is marked as @internal

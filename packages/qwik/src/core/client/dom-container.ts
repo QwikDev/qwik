@@ -130,10 +130,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   public $storeProxyMap$: ObjToProxyMap = new WeakMap();
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
   public $instanceHash$: string;
+  public vNodeLocate: (id: string | Element) => VNode = (id) => vnode_locate(this.rootVNode, id);
 
-  private stateData: unknown[];
+  private $stateData$: unknown[];
   private $styleIds$: Set<string> | null = null;
-  private $vnodeLocate$: (id: string) => VNode = (id) => vnode_locate(this.rootVNode, id);
   private $renderCount$ = 0;
 
   constructor(element: ContainerElement) {
@@ -165,24 +165,24 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.rootVNode = vnode_newUnMaterializedElement(this.element);
     // These are here to initialize all properties at once for single class transition
     this.$rawStateData$ = null!;
-    this.stateData = null!;
+    this.$stateData$ = null!;
     const document = this.element.ownerDocument as QDocument;
     if (!document.qVNodeData) {
       processVNodeData(document);
     }
     this.$rawStateData$ = [];
-    this.stateData = [];
+    this.$stateData$ = [];
     const qwikStates = element.querySelectorAll('script[type="qwik/state"]');
     if (qwikStates.length !== 0) {
       const lastState = qwikStates[qwikStates.length - 1];
       this.$rawStateData$ = JSON.parse(lastState.textContent!);
-      this.stateData = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+      this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
     }
     this.$qFuncs$ = getQFuncs(document, this.$instanceHash$) || EMPTY_ARRAY;
   }
 
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void {
-    this.stateData[id] = vParent;
+    this.$stateData$[id] = vParent;
   }
 
   parseQRL<T = unknown>(qrl: string): QRL<T> {
@@ -254,7 +254,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         vNode =
           vnode_getParent(vNode) ||
           // If virtual node, than it could be a slot so we need to read its parent.
-          vnode_getProp<VNode>(vNode, QSlotParent, this.$vnodeLocate$);
+          vnode_getProp<VNode>(vNode, QSlotParent, this.vNodeLocate);
       } else {
         vNode = vnode_getParent(vNode);
       }
@@ -319,7 +319,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         if (isSlotProp(prop)) {
           const value = vNode[i + 1];
           if (typeof value == 'string') {
-            vNode[i + 1] = this.$vnodeLocate$(value);
+            vNode[i + 1] = this.vNodeLocate(value);
           }
         }
       }
@@ -334,7 +334,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       id < this.$rawStateData$.length / 2,
       `Invalid reference: ${id} >= ${this.$rawStateData$.length / 2}`
     );
-    return this.stateData[id];
+    return this.$stateData$[id];
   };
 
   getSyncFn(id: number): (...args: unknown[]) => unknown {

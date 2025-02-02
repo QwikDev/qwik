@@ -43,12 +43,6 @@ export default function (opts: RenderToStreamOptions) {
       </head>
       <body>
         <Root pathname={url.pathname} />
-        {/* Enable this for debuging qerror events */}
-        {/* <script
-          dangerouslySetInnerHTML={
-            "document.addEventListener('qerror', (e) => console.error(e));"
-          }
-        /> */}
       </body>
     </>,
     {

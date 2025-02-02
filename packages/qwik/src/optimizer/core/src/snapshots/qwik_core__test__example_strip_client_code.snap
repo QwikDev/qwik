@@ -27,7 +27,7 @@ export const Parent = component$(() => {
     });
 
     useTask$(() => {
-        // Code
+        runSomething();
     });
 
     return (
@@ -68,7 +68,7 @@ export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
         state
     ]));
     useTaskQrl(/*#__PURE__*/ inlinedQrl(()=>{
-    // Code
+        runSomething();
     }, "Parent_component_useTask_ngmvcygWux8"));
     return /*#__PURE__*/ _jsxQ("div", null, {
         shouldRemove$: /*#__PURE__*/ _noopQrl("Parent_component_div_shouldRemove_EBj69wTX1do", [
@@ -98,7 +98,7 @@ export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
 }, "Parent_component_t6Wy3C0Q0XM"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/components/component.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;AACA,SAAsC,QAAQ,QAAkB,mBAAmB;AAQnF,OAAO,MAAM,uBAAS,sCAAW;IAC7B,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA,oCAAS;IACL,OAAO;IACX;IAEA,qBACI,MAAC;QACG,aAAa;;;QACb,QAAQ;;;;sBAER,MAAC;YACG,QAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;YAC5B,OAAO,2BAAE;;uBAAM,MAAM,IAAI;;;;;gBADzB,QAAQ;gBACR,OAAO;;;wBAEV,GAAM,IAAI;;;;AAGvB,oCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/components/component.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;AACA,SAAsC,QAAQ,QAAkB,mBAAmB;AAQnF,OAAO,MAAM,uBAAS,sCAAW;IAC7B,MAAM,QAAQ,SAAS;QACnB,MAAM;IACV;IAEA,qBAAqB;IACrB;;;IAKA,oCAAS;QACL;IACJ;IAEA,qBACI,MAAC;QACG,aAAa;;;QACb,QAAQ;;;;sBAER,MAAC;YACG,QAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;YAC5B,OAAO,2BAAE;;uBAAM,MAAM,IAAI;;;;;gBADzB,QAAQ;gBACR,OAAO;;;wBAEV,GAAM,IAAI;;;;AAGvB,oCAAG\"}")
 == DIAGNOSTICS ==
 
 []

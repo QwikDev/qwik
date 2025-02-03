@@ -31,6 +31,7 @@
 - [Endpoints](</docs/(qwikcity)/endpoints/index.mdx>)
 - [Middleware](</docs/(qwikcity)/middleware/index.mdx>)
 - [server$](</docs/(qwikcity)/server$/index.mdx>)
+- [Error handling](</docs/(qwikcity)/error-handling/index.mdx>)
 - [Re-exporting loaders](/docs/(qwikcity)/re-exporting-loaders/index.mdx)
 - [Caching](</docs/(qwikcity)/caching/index.mdx>)
 - [HTML attributes](</docs/(qwikcity)/html-attributes/index.mdx>)

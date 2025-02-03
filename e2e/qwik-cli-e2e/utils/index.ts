@@ -70,7 +70,7 @@ function replacePackagesWithLocalOnes(tmpDir: string) {
   execSync('pnpm i', {
     cwd: tmpDir,
     // only output errors
-    stdio: ['ignore', 'ignore', 'inherit'],
+    stdio: ['ignore', 'inherit', 'inherit'],
   });
 }
 

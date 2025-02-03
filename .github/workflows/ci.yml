@@ -207,7 +207,7 @@ jobs:
 
       - name: Install NPM Dependencies
         run: |
-          corepack enable
+          npm i -g corepack@latest && corepack enable
           # Ensure that the qwik binary gets made
           mkdir -p packages/qwik/bindings/
           pnpm install --frozen-lockfile
@@ -396,7 +396,7 @@ jobs:
 
       - name: Install NPM Dependencies
         if: needs.changes.outputs.build-others == 'true'
-        run: corepack pnpm install
+        run: pnpm i corepack@latest && corepack enable
 
       - name: 'build: qwik-router & others'
         if: needs.changes.outputs.build-others == 'true'
@@ -601,7 +601,7 @@ jobs:
           node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
-      - run: corepack enable
+      - run: npm i -g corepack@latest && corepack enable
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
@@ -665,7 +665,7 @@ jobs:
           node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
-      - run: corepack enable
+      - run: npm i -g corepack@latest && corepack enable
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
@@ -723,7 +723,7 @@ jobs:
           node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
-      - run: corepack enable
+      - run: npm i -g corepack@latest && corepack enable
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
@@ -758,7 +758,7 @@ jobs:
           node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
-      - run: corepack enable
+      - run: npm i -g corepack@latest && corepack enable
 
       - run: pnpm install --frozen-lockfile
 
@@ -823,7 +823,7 @@ jobs:
           node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
-      - run: corepack enable
+      - run: npm i -g corepack@latest && corepack enable
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4

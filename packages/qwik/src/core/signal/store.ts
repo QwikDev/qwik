@@ -199,8 +199,12 @@ export class StoreHandler implements ProxyHandler<TargetType> {
     target: TargetType,
     prop: string | symbol
   ): PropertyDescriptor | undefined {
+    const descriptor = Reflect.getOwnPropertyDescriptor(target, prop);
     if (Array.isArray(target) || typeof prop === 'symbol') {
-      return Object.getOwnPropertyDescriptor(target, prop);
+      return descriptor;
+    }
+    if (descriptor && !descriptor.configurable) {
+      return descriptor;
     }
     return {
       enumerable: true,

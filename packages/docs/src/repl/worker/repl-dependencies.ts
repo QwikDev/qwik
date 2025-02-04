@@ -59,7 +59,7 @@ const _loadDependencies = async (replOptions: ReplInputOptions) => {
     isServer: true,
     isBrowser: false,
     isDev: false,
-  };
+  } as typeof self.qwikBuild;
 
   const cachedCjsCode = `qwikWasmCjs${realQwikVersion}`;
   const cachedWasmRsp = `qwikWasmRsp${realQwikVersion}`;

@@ -13,7 +13,6 @@
  *   file lists code which we are OK to have duplicated.
  */
 
-export { serializeAttribute } from '../core/shared/utils/styles';
 export { dangerouslySetInnerHTML } from '../core/shared/utils/markers';
 export {
   ELEMENT_ID,

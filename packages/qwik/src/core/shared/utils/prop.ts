@@ -1,3 +1,5 @@
+import { processDirectProps, type PropsProxy } from '../jsx/jsx-runtime';
+import { _CONST_PROPS, _VAR_PROPS } from './constants';
 import { NON_SERIALIZABLE_MARKER_PREFIX, QSlotParent } from './markers';
 
 export function isSlotProp(prop: string): boolean {
@@ -9,11 +11,11 @@ export function isParentSlotProp(prop: string): boolean {
 }
 
 /** @internal */
-export const _restProps = (props: Record<string, any>, omit: string[], target = {}) => {
-  for (const key in props) {
+export const _restProps = (props: PropsProxy, omit: string[], target = {}) => {
+  processDirectProps(props, (key, value) => {
     if (!omit.includes(key)) {
-      (target as any)[key] = props[key];
+      (target as any)[key] = value;
     }
-  }
+  });
   return target;
 };

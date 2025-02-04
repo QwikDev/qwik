@@ -805,8 +805,10 @@ export interface ResourceResolved<T> {
 // @public (undocumented)
 export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
 
+// Warning: (ae-forgotten-export) The symbol "PropsProxy" needs to be exported by the entry point index.d.ts
+//
 // @internal (undocumented)
-export const _restProps: (props: Record<string, any>, omit: string[], target?: {}) => {};
+export const _restProps: (props: PropsProxy, omit: string[], target?: {}) => {};
 
 // @internal
 export function _serialize(data: unknown[]): Promise<string>;
@@ -861,6 +863,8 @@ export abstract class _SharedContainer implements Container {
             $ssrNode$: ISsrNode;
         };
     } | null, symbolToChunkResolver: SymbolToChunkResolver, writer?: StreamWriter, prepVNodeData?: (vNode: any) => void): SerializationContext;
+    // (undocumented)
+    serializeAttributeValue(key: string, value: any, styleScopedId?: string | null): string | boolean | null;
     // (undocumented)
     abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)

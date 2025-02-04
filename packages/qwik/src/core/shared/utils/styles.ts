@@ -8,13 +8,19 @@ import { assertQrl } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
 import { hashCode } from './hash_code';
 import { ComponentStylesPrefixContent } from './markers';
+import { isSignal, type Signal } from '../../signal/signal';
+import { untrack } from '../../use/use-core';
 
-export const serializeClass = (obj: ClassList): string => {
+export const serializeClass = (obj: ClassList | Signal): string => {
   if (!obj) {
     return '';
   }
   if (isString(obj)) {
     return obj.trim();
+  }
+
+  if (isSignal(obj)) {
+    return serializeClass(untrack(() => obj.value));
   }
 
   const classes: string[] = [];

@@ -5,9 +5,16 @@ import {
   useSignal,
   useStore,
   Fragment as Component,
+  Fragment as Projection,
+  Fragment as Signal,
   Fragment,
   type PropsOf,
   useComputed$,
+  createContextId,
+  useContext,
+  useContextProvider,
+  $,
+  Slot,
 } from '@qwik.dev/core';
 
 const debug = false; //true;
@@ -436,5 +443,206 @@ describe.each([
         </Fragment>
       </Component>
     );
+  });
+
+  it('should render array of classes from rest props', async () => {
+    const ctxId = createContextId<any>('abcd');
+    const TabCmp = component$<any>(({ tabId, ...props }) => {
+      const ctxObj = useContext(ctxId);
+
+      const computedClass = useComputed$(() => {
+        return ctxObj.selected.value === Number(tabId) ? 'selected' : '';
+      });
+
+      return (
+        <button
+          id={tabId}
+          onClick$={() => ctxObj.onSelect$(tabId)}
+          class={[props.class, computedClass.value]}
+        >
+          <Slot />
+        </button>
+      );
+    });
+
+    const ParentComponent = component$(() => {
+      const selected = useSignal(0);
+      const ctxObj = {
+        selected,
+        onSelect$: $((tabId: number) => {
+          selected.value = Number(tabId);
+        }),
+      };
+      useContextProvider(ctxId, ctxObj);
+      return (
+        <>
+          {selected.value}
+          <TabCmp tabId={0} class={selected.value === 0 ? 'custom' : ''}>
+            TAB 1
+          </TabCmp>
+          <TabCmp tabId={1} class={selected.value === 1 ? 'custom' : ''}>
+            TAB 2
+          </TabCmp>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<ParentComponent />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Signal ssr-required>0</Signal>
+          <Component ssr-required>
+            <button id="0" class="custom selected">
+              <Projection ssr-required>TAB 1</Projection>
+            </button>
+          </Component>
+          <Component ssr-required>
+            <button id="1" class="">
+              <Projection ssr-required>TAB 2</Projection>
+            </button>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button[id=1]', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Signal ssr-required>1</Signal>
+          <Component ssr-required>
+            <button id="0" class="">
+              <Projection ssr-required>TAB 1</Projection>
+            </button>
+          </Component>
+          <Component ssr-required>
+            <button id="1" class="custom selected">
+              <Projection ssr-required>TAB 2</Projection>
+            </button>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  describe('class attribute', () => {
+    it('should render class attribute', async () => {
+      const Cmp = component$(() => {
+        return <span class="test-class"></span>;
+      });
+
+      const { vNode } = await render(<Cmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <span class="test-class"></span>
+        </Component>
+      );
+    });
+
+    it('should trim class attribute value', async () => {
+      const Cmp = component$(() => {
+        return <span class="   test-class   "></span>;
+      });
+
+      const { vNode } = await render(<Cmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <span class="test-class"></span>
+        </Component>
+      );
+    });
+
+    it('should render class attribute from signal', async () => {
+      const Cmp = component$(() => {
+        const sigValue = useSignal('testA');
+        return <button class={sigValue.value}></button>;
+      });
+
+      const { vNode } = await render(<Cmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <button class="testA"></button>
+        </Component>
+      );
+    });
+
+    it('should render class attribute from array of strings', async () => {
+      const Cmp = component$(() => {
+        return <button class={['testA', 'testB']}></button>;
+      });
+
+      const { vNode } = await render(<Cmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <button class="testA testB"></button>
+        </Component>
+      );
+    });
+
+    it('should render class attribute from array of mixed signals and strings', async () => {
+      const Cmp = component$(() => {
+        const sigValue = useSignal('testA');
+        return <button class={[sigValue.value, 'testB']}></button>;
+      });
+
+      const { vNode } = await render(<Cmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <button class="testA testB"></button>
+        </Component>
+      );
+    });
+
+    it('should render class attribute from objects ', async () => {
+      const Cmp = component$(() => {
+        return (
+          <button
+            class={{
+              testA: true,
+              testB: false,
+            }}
+          ></button>
+        );
+      });
+
+      const { vNode } = await render(<Cmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <button class="testA"></button>
+        </Component>
+      );
+    });
+
+    it('should render class attribute from object', async () => {
+      const Cmp = component$(() => {
+        const renderClass = useSignal(true);
+        return (
+          <button
+            class={{
+              testA: true,
+              testB: false,
+              toggle: renderClass.value,
+            }}
+            onClick$={() => (renderClass.value = !renderClass.value)}
+          ></button>
+        );
+      });
+
+      const { vNode, document } = await render(<Cmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <button class="testA toggle"></button>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <button class="testA"></button>
+        </Component>
+      );
+    });
   });
 });

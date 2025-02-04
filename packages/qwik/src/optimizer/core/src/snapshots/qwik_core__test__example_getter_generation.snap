@@ -57,21 +57,21 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 export const Cmp_component_4ryKJTOKjWE = (props)=>{
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
-        /*#__PURE__*/ _jsxSorted("p", null, {
+        /*#__PURE__*/ _jsxSorted("p", {
             "data-value": _wrapProp(props, "count")
-        }, _fnSignal((p0)=>p0.nested.count, [
+        }, null, _fnSignal((p0)=>p0.nested.count, [
             props
-        ], "p0.nested.count"), 3, null),
+        ], "p0.nested.count"), 1, null),
         /*#__PURE__*/ _jsxSorted("p", null, null, [
             "Value ",
             _wrapProp(props, "count"),
             /*#__PURE__*/ _jsxSorted("span", null, null, null, 3, null)
-        ], 3, null)
-    ], 3, "u6_1");
+        ], 1, null)
+    ], 1, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAyB8B,CAAC;IAC9B,qBACC;sBACC,WAAC;YAAE,YAAU,YAAE;2BAAc,GAAM,MAAM,CAAC,KAAK;;;sBAC/C,WAAC;YAAE;sBAAO;0BAAY,WAAC;;;AAG1B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAyB8B,CAAC;IAC9B,qBACC;sBACC,WAAC;YAAE,YAAU,YAAE;iCAAc,GAAM,MAAM,CAAC,KAAK;;;sBAC/C,WAAC;YAAE;sBAAO;0BAAY,WAAC;;;AAG1B\"}")
 /*
 {
   "origin": "test.tsx",

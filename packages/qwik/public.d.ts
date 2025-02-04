@@ -28,6 +28,7 @@ export {
   JSXOutput,
   noSerialize,
   NoSerialize,
+  OnVisibleTaskOptions,
   PrefetchGraph,
   PrefetchServiceWorker,
   PropsOf,

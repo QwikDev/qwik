@@ -37,12 +37,12 @@ const Issue3742_component_div_button_onClick_a504K2BCEXg = ()=>{
 };
 const Issue3742_component_svSy0PlWTAw = (props)=>{
     const counter = useSignal(0);
-    return /*#__PURE__*/ _jsxSorted("div", null, {
+    return /*#__PURE__*/ _jsxSorted("div", {
         title: _fnSignal((p0, p1)=>(p1.description ?? '') && 'description' in p1.other ? `Hello ${p0.value}` : `Bye ${p0.value}`, [
             counter,
             props
         ], '(p1.description??"")&&"description"in p1.other?`Hello ${p0.value}`:`Bye ${p0.value}`')
-    }, [
+    }, null, [
         "Issue3742",
         /*#__PURE__*/ _jsxSorted("button", null, {
             onClick$: /*#__PURE__*/ inlinedQrl(Issue3742_component_div_button_onClick_a504K2BCEXg, "Issue3742_component_div_button_onClick_a504K2BCEXg", [

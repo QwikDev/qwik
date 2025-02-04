@@ -1,10 +1,10 @@
-import type { SnapshotResult, StreamWriter } from '@builder.io/qwik';
+import type { SnapshotResult, StreamWriter } from '@qwik.dev/core';
 import type {
   QwikManifest,
-  SymbolMapperFn,
-  SymbolMapper,
   ResolvedManifest,
-} from '@builder.io/qwik/optimizer';
+  SymbolMapper,
+  SymbolMapperFn,
+} from '@qwik.dev/core/optimizer';
 
 /** @public */
 export interface SerializeDocumentOptions {
@@ -90,6 +90,7 @@ export interface RenderToStreamResult extends RenderResult {
 export interface RenderToStringResult extends RenderResult {
   html: string;
   timing: {
+    firstFlush: number;
     render: number;
     snapshot: number;
   };
@@ -123,7 +124,7 @@ export interface QwikLoaderOptions {
 export interface QwikPrefetchServiceWorkerOptions {
   /**
    * Should the Qwik Prefetch Service Worker be added to the container. Defaults to `false` until
-   * the QwikCity Service Worker is deprecated.
+   * the QwikRouter Service Worker is deprecated.
    */
   include?: boolean;
   /**
@@ -178,8 +179,8 @@ export interface RenderToStringOptions extends RenderOptions {}
 /** @public */
 export interface InOrderAuto {
   strategy: 'auto';
-  maximunInitialChunk?: number;
-  maximunChunk?: number;
+  maximumInitialChunk?: number;
+  maximumChunk?: number;
 }
 
 /** @public */
@@ -215,4 +216,24 @@ export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToSt
 /** @public */
 export type Render = RenderToString | RenderToStream;
 
-export type { SnapshotResult, SymbolMapper, QwikManifest, StreamWriter };
+/**
+ * Flags for VNodeData (Flags con be bitwise combined)
+ *
+ * @internal
+ */
+export const enum VNodeDataFlag {
+  /// Initial state.
+  NONE = 0,
+  /// Indicates that multiple Text nodes are present and can't be derived from HTML.
+  TEXT_DATA = 1,
+  /// Indicates that the virtual nodes are present and can't be derived from HTML.
+  VIRTUAL_NODE = 2,
+  /// Indicates that the element nodes are present and some data can't be derived from HTML.
+  ELEMENT_NODE = 4,
+  /// Indicates that serialized data is referencing this node and so we need to retrieve a reference to it.
+  REFERENCE = 8,
+  /// Should be output during serialization.
+  SERIALIZE = 16,
+}
+
+export type { QwikManifest, SnapshotResult, StreamWriter, SymbolMapper };

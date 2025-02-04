@@ -22,7 +22,7 @@ import { readPackageJson } from './package-json';
 
 const stringOptions = [
   'distBindingsDir',
-  'distQwikCityPkgDir',
+  'distQwikRouterPkgDir',
   'distQwikPkgDir',
   'distVersion',
   'dtsDir',
@@ -32,9 +32,8 @@ const stringOptions = [
   'scriptsDir',
   'setDistTag',
   'srcNapiDir',
-  'srcQwikCityDir',
+  'srcQwikRouterDir',
   'srcQwikDir',
-  'srcQwikLabsDir',
   'startersDir',
   'tmpDir',
   'tscDir',
@@ -53,8 +52,7 @@ const booleanOptions = [
   'prepareRelease',
   'qwik',
   'qwikauth',
-  'qwikcity',
-  'qwiklabs',
+  'qwikrouter',
   'qwikreact',
   'qwikworker',
   'release',
@@ -104,13 +102,12 @@ export function loadConfig(args: string[] = []) {
       packagesDir,
       srcQwikDir,
       tmpDir,
-      srcQwikCityDir: join(packagesDir, 'qwik-city', 'src'),
-      srcQwikLabsDir: join(packagesDir, 'qwik-labs'),
+      srcQwikRouterDir: join(packagesDir, 'qwik-router', 'src'),
       srcNapiDir: join(srcQwikDir, 'napi'),
       scriptsDir: join(rootDir, 'scripts'),
       startersDir: join(rootDir, 'starters'),
       distQwikPkgDir,
-      distQwikCityPkgDir: join(packagesDir, 'qwik-city', 'lib'),
+      distQwikRouterPkgDir: join(packagesDir, 'qwik-router', 'lib'),
       distBindingsDir: join(packagesDir, 'qwik', 'bindings'),
       tscDir: join(tmpDir, 'tsc-out'),
       dtsDir: join(tmpDir, 'dts-out'),
@@ -176,7 +173,7 @@ export const getBanner = (moduleName: string, version: string) => {
 /**
  * @license
  * ${moduleName} ${version}
- * Copyright Builder.io, Inc. All Rights Reserved.
+ * Copyright QwikDev. All Rights Reserved.
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://github.com/QwikDev/qwik/blob/main/LICENSE
  */

@@ -1,4 +1,3 @@
-import { Fragment, jsx, type JSXNode } from '@builder.io/qwik';
 import {
   flattenPrefetchResources,
   getMostReferenced,
@@ -6,70 +5,63 @@ import {
   workerFetchScript,
 } from './prefetch-utils';
 import type { PrefetchImplementation, PrefetchResource, PrefetchStrategy } from './types';
+import type { SsrAttrs, SSRContainer } from './qwik-types';
 
-export function applyPrefetchImplementation(
-  base: string,
+export function applyPrefetchImplementation2(
+  container: SSRContainer,
   prefetchStrategy: PrefetchStrategy | undefined,
   prefetchResources: PrefetchResource[],
   nonce?: string
-): JSXNode | null {
+): void {
   // if prefetchStrategy is undefined, use defaults
   // set default if implementation wasn't provided
   const prefetchImpl = normalizePrefetchImplementation(prefetchStrategy?.implementation);
 
-  const prefetchNodes: JSXNode[] = [];
-
   if (prefetchImpl.prefetchEvent === 'always') {
-    prefetchUrlsEvent(base, prefetchNodes, prefetchResources, nonce);
+    prefetchUrlsEvent2(container, prefetchResources, nonce);
   }
 
   if (prefetchImpl.linkInsert === 'html-append') {
-    linkHtmlImplementation(prefetchNodes, prefetchResources, prefetchImpl);
+    linkHtmlImplementation2(container, prefetchResources, prefetchImpl);
   }
 
   if (prefetchImpl.linkInsert === 'js-append') {
-    linkJsImplementation(prefetchNodes, prefetchResources, prefetchImpl, nonce);
+    linkJsImplementation2(container, prefetchResources, prefetchImpl, nonce);
   } else if (prefetchImpl.workerFetchInsert === 'always') {
-    workerFetchImplementation(prefetchNodes, prefetchResources, nonce);
+    workerFetchImplementation2(container, prefetchResources, nonce);
   }
-
-  if (prefetchNodes.length > 0) {
-    return jsx(Fragment, { children: prefetchNodes });
-  }
-
-  return null;
 }
 
-function prefetchUrlsEvent(
-  base: string,
-  prefetchNodes: JSXNode[],
+function prefetchUrlsEvent2(
+  container: SSRContainer,
   prefetchResources: PrefetchResource[],
   nonce?: string
 ) {
   const mostReferenced = getMostReferenced(prefetchResources);
   for (const url of mostReferenced) {
-    prefetchNodes.push(
-      jsx('link', {
-        rel: 'modulepreload',
-        href: url,
-        nonce,
-      })
-    );
+    const attrs = ['rel', 'modulepreload', 'href', url];
+    if (nonce) {
+      attrs.push('nonce', nonce);
+    }
+    container.openElement('link', null, attrs);
+    container.closeElement();
   }
-  prefetchNodes.push(
-    jsx('script', {
-      'q:type': 'prefetch-bundles',
-      dangerouslySetInnerHTML:
-        prefetchUrlsEventScript(base, prefetchResources) +
-        `document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`,
-      nonce,
-    })
+  const scriptAttrs = ['q:type', 'prefetch-bundles'];
+  if (nonce) {
+    scriptAttrs.push('nonce', nonce);
+  }
+  container.openElement('script', null, scriptAttrs);
+  container.writer.write(prefetchUrlsEventScript(container.buildBase, prefetchResources));
+  container.writer.write(
+    `;document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`
   );
+
+  container.closeElement();
 }
 
 /** Creates the `<link>` within the rendered html. Optionally add the JS worker fetch */
-function linkHtmlImplementation(
-  prefetchNodes: JSXNode[],
+function linkHtmlImplementation2(
+  container: SSRContainer,
   prefetchResources: PrefetchResource[],
   prefetchImpl: Required<PrefetchImplementation>
 ) {
@@ -78,19 +70,18 @@ function linkHtmlImplementation(
   const priority = prefetchImpl.linkFetchPriority;
 
   for (const url of urls) {
-    const attributes: Record<string, string> = {};
-    attributes['href'] = url;
-    attributes['rel'] = rel;
+    const attributes: SsrAttrs = ['href', url, 'rel', rel];
     if (priority) {
-      attributes['fetchpriority'] = priority;
+      attributes.push('fetchpriority', priority);
     }
     if (rel === 'prefetch' || rel === 'preload') {
       if (url.endsWith('.js')) {
-        attributes['as'] = 'script';
+        attributes.push('as', 'script');
       }
     }
 
-    prefetchNodes.push(jsx('link', attributes, undefined));
+    container.openElement('link', null, attributes);
+    container.closeElement();
   }
 }
 
@@ -98,78 +89,74 @@ function linkHtmlImplementation(
  * Uses JS to add the `<link>` elements at runtime, and if the link prefetching isn't supported,
  * it'll also add the web worker fetch.
  */
-function linkJsImplementation(
-  prefetchNodes: JSXNode[],
+function linkJsImplementation2(
+  container: SSRContainer,
   prefetchResources: PrefetchResource[],
   prefetchImpl: Required<PrefetchImplementation>,
   nonce?: string
 ) {
+  const scriptAttrs = ['type', 'module', 'q:type', 'link-js'];
+  if (nonce) {
+    scriptAttrs.push('nonce', nonce);
+  }
+  container.openElement('script', null, scriptAttrs);
+
   const rel = prefetchImpl.linkRel || 'prefetch';
   const priority = prefetchImpl.linkFetchPriority;
-  let s = ``;
 
   if (prefetchImpl.workerFetchInsert === 'no-link-support') {
-    s += `let supportsLinkRel = true;`;
+    container.writer.write(`let supportsLinkRel = true;`);
   }
 
-  s += `const u=${JSON.stringify(flattenPrefetchResources(prefetchResources))};`;
-  s += `u.map((u,i)=>{`;
+  container.writer.write(`const u=${JSON.stringify(flattenPrefetchResources(prefetchResources))};`);
+  container.writer.write(`u.map((u,i)=>{`);
 
-  s += `const l=document.createElement('link');`;
-  s += `l.setAttribute("href",u);`;
-  s += `l.setAttribute("rel","${rel}");`;
+  container.writer.write(`const l=document.createElement('link');`);
+  container.writer.write(`l.setAttribute("href",u);`);
+  container.writer.write(`l.setAttribute("rel","${rel}");`);
   if (priority) {
-    s += `l.setAttribute("fetchpriority","${priority}");`;
+    container.writer.write(`l.setAttribute("fetchpriority","${priority}");`);
   }
 
   if (prefetchImpl.workerFetchInsert === 'no-link-support') {
-    s += `if(i===0){`;
-    s += `try{`;
-    s += `supportsLinkRel=l.relList.supports("${rel}");`;
-    s += `}catch(e){}`;
-    s += `}`;
+    container.writer.write(`if(i===0){`);
+    container.writer.write(`try{`);
+    container.writer.write(`supportsLinkRel=l.relList.supports("${rel}");`);
+    container.writer.write(`}catch(e){}`);
+    container.writer.write(`}`);
   }
 
-  s += `document.body.appendChild(l);`;
+  container.writer.write(`document.body.appendChild(l);`);
 
-  s += `});`;
+  container.writer.write(`});`);
 
   if (prefetchImpl.workerFetchInsert === 'no-link-support') {
-    s += `if(!supportsLinkRel){`;
-    s += workerFetchScript();
-    s += `}`;
+    container.writer.write(`if(!supportsLinkRel){`);
+    container.writer.write(workerFetchScript());
+    container.writer.write(`}`);
   }
 
   if (prefetchImpl.workerFetchInsert === 'always') {
-    s += workerFetchScript();
+    container.writer.write(workerFetchScript());
   }
-
-  prefetchNodes.push(
-    jsx('script', {
-      type: 'module',
-      'q:type': 'link-js',
-      dangerouslySetInnerHTML: s,
-      nonce,
-    })
-  );
+  container.closeElement();
 }
 
-function workerFetchImplementation(
-  prefetchNodes: JSXNode[],
+function workerFetchImplementation2(
+  container: SSRContainer,
   prefetchResources: PrefetchResource[],
   nonce?: string
 ) {
-  let s = `const u=${JSON.stringify(flattenPrefetchResources(prefetchResources))};`;
-  s += workerFetchScript();
+  const scriptAttrs = ['type', 'module', 'q:type', 'prefetch-worker'];
+  if (nonce) {
+    scriptAttrs.push(nonce, 'nonce');
+  }
+  container.openElement('script', null, scriptAttrs);
 
-  prefetchNodes.push(
-    jsx('script', {
-      type: 'module',
-      'q:type': 'prefetch-worker',
-      dangerouslySetInnerHTML: s,
-      nonce,
-    })
-  );
+  container.writer.write(`const u=${JSON.stringify(flattenPrefetchResources(prefetchResources))};`);
+  container.writer.write(workerFetchScript());
+
+  container.closeElement();
 }
 
 function normalizePrefetchImplementation(

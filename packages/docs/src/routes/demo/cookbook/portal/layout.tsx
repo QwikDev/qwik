@@ -1,4 +1,4 @@
-import { Slot, component$ } from '@builder.io/qwik';
+import { Slot, component$ } from '@qwik.dev/core';
 import { Portal, PortalProvider } from './portal-provider';
 
 export default component$(() => {

@@ -1,4 +1,4 @@
-import { renderToStream, type RenderToStreamOptions } from '@builder.io/qwik/server';
+import { renderToStream, type RenderToStreamOptions } from '@qwik.dev/core/server';
 import { manifest } from '@qwik-client-manifest';
 import { Root } from './root';
 

@@ -1,4 +1,4 @@
-import { component$, useOn, $ } from '@builder.io/qwik';
+import { component$, useOn, $ } from '@qwik.dev/core';
 
 export default component$(() => {
   useOn(

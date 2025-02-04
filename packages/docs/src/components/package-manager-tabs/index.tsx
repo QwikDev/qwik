@@ -1,5 +1,5 @@
-import { Slot, component$, useContext, useSignal, $, type PropsOf } from '@builder.io/qwik';
 import { Tabs } from '@qwik-ui/headless';
+import { $, Slot, component$, useContext, useSignal, type PropsOf } from '@qwik.dev/core';
 import { GlobalStore } from '~/context';
 
 const pkgManagers = ['pnpm', 'npm', 'yarn', 'bun'] as const;

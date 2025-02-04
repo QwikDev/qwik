@@ -1,7 +1,7 @@
-import { isQwikComponent } from '../component/component.public';
-import { _createSignal, type Signal } from '../state/signal';
-import { isFunction } from '../util/types';
-import { invoke, useContainerState } from './use-core';
+import { isQwikComponent } from '../shared/component.public';
+import { isFunction } from '../shared/utils/types';
+import { createSignal, type Signal } from '../signal/signal.public';
+import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 
 /** @public */
@@ -10,30 +10,23 @@ export interface UseSignal {
   <T>(value: T | (() => T)): Signal<T>;
 }
 
-/**
- * Creates a signal.
- *
- * If the initial state is a function, the function is invoked to calculate the actual initial
- * state.
- *
- * @deprecated This is a technology preview
- * @public
- */
-export const createSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STATE> => {
-  const containerState = useContainerState();
-  const value =
-    isFunction(initialState) && !isQwikComponent(initialState)
-      ? invoke(undefined, initialState as any)
-      : initialState;
-  return _createSignal(value, containerState, 0) as Signal<STATE>;
+/** @public */
+export const useSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STATE> => {
+  return useConstant(() => {
+    const value =
+      isFunction(initialState) && !isQwikComponent(initialState)
+        ? invoke(undefined, initialState as any)
+        : initialState;
+    return createSignal<STATE>(value);
+  });
 };
 
 /**
- * Stores a value which is retained for the lifetime of the component.
+ * Stores a value which is retained for the lifetime of the component. Subsequent calls to
+ * `useConstant` will always return the first value given.
  *
- * If the value is a function, the function is invoked to calculate the actual value.
+ * If the value is a function, the function is invoked once to calculate the actual value.
  *
- * @deprecated This is a technology preview
  * @public
  */
 export const useConstant = <T>(value: (() => T) | T): T => {
@@ -44,13 +37,4 @@ export const useConstant = <T>(value: (() => T) | T): T => {
   // Note: We are not using `invoke` here because we don't want to clear the context
   value = isFunction(value) && !isQwikComponent(value) ? value() : value;
   return set(value as T);
-};
-
-/**
- * Hook that creates a signal that is retained for the lifetime of the component.
- *
- * @public
- */
-export const useSignal: UseSignal = (initialState?: any) => {
-  return useConstant(() => createSignal(initialState));
 };

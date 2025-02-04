@@ -26,7 +26,7 @@ describe('mdx', async () => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        "code": "import { jsx, RenderOnce } from '@qwik.dev/core';
+        "code": "import { jsx } from '@qwik.dev/core';
       import {Fragment as _Fragment, jsx as _jsx, jsxs as _jsxs} from "@qwik.dev/core/jsx-runtime";
       export const headings = [{
         "text": "Hello",
@@ -60,13 +60,10 @@ describe('mdx', async () => {
           })]
         });
       }
-       
+
       const WrappedMdxContent = () => {
-        const content = jsx(RenderOnce, {children: jsx(_createMdxContent, {})}, "TFua52vT");
-        if (typeof MDXLayout === 'function'){
-            return jsx(MDXLayout, {children: content});
-        }
-        return content;
+        const content = _createMdxContent({});
+        return typeof MDXLayout === 'function' ? jsx(MDXLayout, {children: content}) : content;
       };
       export default WrappedMdxContent;
       ",
@@ -98,7 +95,7 @@ export default function Layout({ children: content }) {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        "code": "import { jsx, RenderOnce } from '@qwik.dev/core';
+        "code": "import { jsx } from '@qwik.dev/core';
       import {Fragment as _Fragment, jsx as _jsx, jsxs as _jsxs} from "@qwik.dev/core/jsx-runtime";
       export const headings = [{
         "text": "Hello",
@@ -137,13 +134,10 @@ export default function Layout({ children: content }) {
           })]
         });
       }
-       
+
       const WrappedMdxContent = () => {
-        const content = jsx(RenderOnce, {children: jsx(_createMdxContent, {})}, "5n1hWHRm");
-        if (typeof MDXLayout === 'function'){
-            return jsx(MDXLayout, {children: content});
-        }
-        return content;
+        const content = _createMdxContent({});
+        return typeof MDXLayout === 'function' ? jsx(MDXLayout, {children: content}) : content;
       };
       export default WrappedMdxContent;
       ",

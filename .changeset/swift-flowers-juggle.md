@@ -2,4 +2,4 @@
 '@qwik.dev/core': major
 ---
 
-Updated ComponentStylesPrefixContent from ⭐️ to ⚡️
+Updated ComponentStylesPrefixContent from ⭐️ to ⚡️.

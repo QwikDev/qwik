@@ -553,7 +553,6 @@ impl<'a> QwikTransform<'a> {
 
 		let folded = first_arg;
 
-		let mut set: HashSet<Id> = HashSet::new();
 		let mut contains_side_effect = false;
 		for ident in &descendent_idents {
 			if self.options.global_collect.is_global(ident) {
@@ -561,25 +560,26 @@ impl<'a> QwikTransform<'a> {
 			} else if invalid_decl.iter().any(|entry| entry.0 == *ident) {
 				return (None, false);
 			} else if decl_collect.iter().any(|entry| entry.0 == *ident) {
-				set.insert(ident.clone());
+				continue;
 			} else {
 				// anything else, we can't inline
 				return (None, false);
 			}
 		}
-		let mut scoped_idents: Vec<Id> = set.into_iter().collect();
+
+		let (scoped_idents, is_const) = compute_scoped_idents(&descendent_idents, &decl_collect);
 
 		if contains_side_effect {
 			return (None, scoped_idents.is_empty());
 		}
-		scoped_idents.sort();
-
-		let (scoped_idents, is_const, has_const) =
-			compute_scoped_idents(&descendent_idents, &decl_collect);
 
 		// simple variable expression, no need to inline
 		if let ast::Expr::Ident(_) = folded {
 			return (None, is_const);
+		}
+
+		if !is_const && matches!(folded, ast::Expr::Call(_)) {
+			return (None, false);
 		}
 
 		// Handle `obj.prop` case
@@ -593,12 +593,6 @@ impl<'a> QwikTransform<'a> {
 			}
 		}
 
-		if !has_const {
-			// if the inputs to the expression don't have at least one constant (meaning something that could be a signal),
-			//  turning it into `_fnSignal` is useless
-			return (None, is_const);
-		}
-
 		let serialize_fn = self.options.is_server;
 		let inlined_fn = self.ensure_core_import(&_INLINED_FN);
 		convert_inlined_fn(
@@ -607,6 +601,7 @@ impl<'a> QwikTransform<'a> {
 			&inlined_fn,
 			accept_call_expr,
 			serialize_fn,
+			is_const,
 		)
 	}
 
@@ -656,7 +651,7 @@ impl<'a> QwikTransform<'a> {
 		// Collect local idents
 		let local_idents = self.get_local_idents(&folded);
 
-		let (mut scoped_idents, is_const, _) =
+		let (mut scoped_idents, is_const) =
 			compute_scoped_idents(&descendent_idents, &decl_collect);
 		if !can_capture && !scoped_idents.is_empty() {
 			HANDLER.with(|handler| {
@@ -1830,12 +1825,8 @@ impl<'a> Fold for QwikTransform<'a> {
 			.last_mut()
 			.expect("Declaration stack empty!");
 
-		let is_qcomponent = is_qcomponent(&self.stack_ctxt.last());
-		let is_top_level_inline_component = is_top_level(&self.stack_ctxt);
-		let is_component = is_qcomponent || is_top_level_inline_component;
-
 		for param in &node.params {
-			current_scope.extend(process_node_props(&param.pat, is_component));
+			current_scope.extend(process_node_props(&param.pat));
 		}
 		let o = node.fold_children_with(self);
 		self.root_jsx_mode = prev;
@@ -1858,12 +1849,8 @@ impl<'a> Fold for QwikTransform<'a> {
 			.last_mut()
 			.expect("Declaration stack empty!");
 
-		let is_qcomponent = is_qcomponent(&self.stack_ctxt.last());
-		let is_top_level_inline_component = is_top_level(&self.stack_ctxt);
-		let is_component = is_qcomponent || is_top_level_inline_component;
-
 		for param in &node.params {
-			current_scope.extend(process_node_props(param, is_component));
+			current_scope.extend(process_node_props(param));
 		}
 
 		let o = node.fold_children_with(self);
@@ -1906,23 +1893,19 @@ impl<'a> Fold for QwikTransform<'a> {
 			.last_mut()
 			.expect("Declaration stack empty!");
 
-		let is_qcomponent = is_qcomponent(&self.stack_ctxt.last());
-		let is_top_level_inline_component = is_top_level(&self.stack_ctxt);
-		let is_component = is_qcomponent || is_top_level_inline_component;
-
 		match node.left.clone() {
 			ast::ForHead::VarDecl(var_decl) => {
 				for decl in &var_decl.decls {
-					current_scope.extend(process_node_props(&decl.name, is_component));
+					current_scope.extend(process_node_props(&decl.name));
 				}
 			}
 			ast::ForHead::UsingDecl(using_decl) => {
 				for decl in &using_decl.decls {
-					current_scope.extend(process_node_props(&decl.name, is_component));
+					current_scope.extend(process_node_props(&decl.name));
 				}
 			}
 			ast::ForHead::Pat(pat) => {
-				current_scope.extend(process_node_props(&pat, is_component));
+				current_scope.extend(process_node_props(&pat));
 			}
 		}
 
@@ -2279,23 +2262,20 @@ fn base64(nu: u64) -> String {
 		.replace(['-', '_'], "0")
 }
 
-fn compute_scoped_idents(all_idents: &[Id], all_decl: &[IdPlusType]) -> (Vec<Id>, bool, bool) {
+fn compute_scoped_idents(all_idents: &[Id], all_decl: &[IdPlusType]) -> (Vec<Id>, bool) {
 	let mut set: HashSet<Id> = HashSet::new();
 	let mut is_const = true;
-	let mut has_const = false;
 	for ident in all_idents {
 		if let Some(item) = all_decl.iter().find(|item| item.0 == *ident) {
 			set.insert(ident.clone());
-			if matches!(item.1, IdentType::Var(true)) {
-				has_const = true;
-			} else {
+			if !matches!(item.1, IdentType::Var(true)) {
 				is_const = false;
 			}
 		}
 	}
 	let mut output: Vec<Id> = set.into_iter().collect();
 	output.sort();
-	(output, is_const, has_const)
+	(output, is_const)
 }
 
 fn get_canonical_filename(display_name: &JsWord, symbol_name: &JsWord) -> JsWord {
@@ -2501,23 +2481,14 @@ fn is_text_only(node: &str) -> bool {
 	)
 }
 
-fn is_qcomponent(stack_item: &Option<&String>) -> bool {
-	*stack_item == Some(&QCOMPONENT.to_string())
-}
-
-const fn is_top_level(stack: &[String]) -> bool {
-	stack.len() == 1
-}
-
-fn process_node_props(pat: &ast::Pat, is_qcomponent: bool) -> Vec<IdPlusType> {
+fn process_node_props(pat: &ast::Pat) -> Vec<IdPlusType> {
 	let mut identifiers = vec![];
 	let mut processed_scope_data: Vec<IdPlusType> = vec![];
-	let is_identifier = collect_from_pat(pat, &mut identifiers);
-	let is_constant = if is_qcomponent { is_identifier } else { false };
+	collect_from_pat(pat, &mut identifiers);
 	processed_scope_data.extend(
 		identifiers
 			.into_iter()
-			.map(|(id, _)| (id, IdentType::Var(is_constant))),
+			.map(|(id, _)| (id, IdentType::Var(false))),
 	);
 
 	processed_scope_data

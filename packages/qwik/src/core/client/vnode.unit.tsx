@@ -13,7 +13,6 @@ import type {
 } from './types';
 import {
   vnode_applyJournal,
-  vnode_documentPosition,
   vnode_getAttr,
   vnode_getFirstChild,
   vnode_getNextSibling,
@@ -648,32 +647,6 @@ describe('vnode', () => {
         expect(parent.firstChild?.nodeValue).toEqual('A');
         expect(parent.innerHTML).toBe('A123C');
       });
-    });
-  });
-  describe('vnode_documentPosition', () => {
-    it('should compare two elements', () => {
-      parent.innerHTML = '<b></b><i></i>';
-      const b = vnode_getFirstChild(vParent) as ElementVNode;
-      const i = vnode_getNextSibling(b) as ElementVNode;
-      expect(vnode_documentPosition(b, i, null)).toBe(-1);
-      expect(vnode_documentPosition(i, b, null)).toBe(1);
-    });
-    it('should compare two virtual vNodes', () => {
-      parent.innerHTML = 'AB';
-      document.qVNodeData.set(parent, '{B}{B}');
-      const a = vnode_getFirstChild(vParent) as ElementVNode;
-      const b = vnode_getNextSibling(a) as ElementVNode;
-      expect(vnode_documentPosition(a, b, null)).toBe(-1);
-      expect(vnode_documentPosition(b, a, null)).toBe(1);
-    });
-    it('should compare two virtual vNodes', () => {
-      parent.innerHTML = 'AB';
-      document.qVNodeData.set(parent, '{{B}}{B}');
-      const a = vnode_getFirstChild(vParent) as ElementVNode;
-      const a2 = vnode_getFirstChild(a) as ElementVNode;
-      const b = vnode_getNextSibling(a) as ElementVNode;
-      expect(vnode_documentPosition(a2, b, null)).toBe(-1);
-      expect(vnode_documentPosition(b, a2, null)).toBe(1);
     });
   });
 });

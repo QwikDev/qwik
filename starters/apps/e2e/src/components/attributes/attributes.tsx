@@ -1,4 +1,10 @@
-import { component$, useSignal, useStore } from "@qwik.dev/core";
+import {
+  component$,
+  useComputed$,
+  useSignal,
+  useStore,
+  type PropsOf,
+} from "@qwik.dev/core";
 
 export const Attributes = component$(() => {
   const render = useSignal(0);
@@ -13,6 +19,7 @@ export const Attributes = component$(() => {
         Rerender
       </button>
       <AttributesChild v={render.value} key={render.value} />
+      <ProgressParent />
     </>
   );
 });
@@ -212,5 +219,92 @@ export const Issue4718Null = component$(() => {
     >
       Click Me
     </button>
+  );
+});
+
+const ProgressRoot = component$<{ min?: number } & PropsOf<"div">>((props) => {
+  const { ...rest } = props;
+
+  const minSig = useComputed$(() => props.min ?? 0);
+
+  const valueLabelSig = useComputed$(() => {
+    const value = minSig.value;
+    return `${value * 100}%`;
+  });
+
+  return (
+    <>
+      <div id="progress-1" aria-valuetext={valueLabelSig.value} {...rest}>
+        {valueLabelSig.value}
+      </div>
+    </>
+  );
+});
+
+const ProgressRootShowHide = component$<{ min: number } & PropsOf<"div">>(
+  ({ min, ...rest }) => {
+    const show = useSignal(true);
+
+    return (
+      <>
+        {show.value && (
+          <div id="progress-2" aria-valuetext={min.toString()} {...rest}>
+            {min}
+          </div>
+        )}
+
+        <button id="progress-hide" onClick$={() => (show.value = !show.value)}>
+          show/hide progress
+        </button>
+      </>
+    );
+  },
+);
+
+const ProgressRootPromise = component$<{ min?: number } & PropsOf<"div">>(
+  (props) => {
+    const { ...rest } = props;
+
+    const minSig = useComputed$(() => props.min ?? 0);
+
+    const valueLabelSig = useComputed$(() => {
+      const value = minSig.value;
+      return `${value * 100}%`;
+    });
+
+    return (
+      <>
+        {Promise.resolve(
+          <div id="progress-3" aria-valuetext={valueLabelSig.value} {...rest}>
+            {valueLabelSig.value}
+          </div>,
+        )}
+      </>
+    );
+  },
+);
+
+const ProgressParent = component$(() => {
+  const minGoal = useSignal(2000);
+  const computedGoal = useComputed$(() => minGoal.value + 100);
+
+  return (
+    <div>
+      <div>
+        <span id="progress-value">${minGoal.value}</span>
+        <button
+          id="progress-btn"
+          onClick$={() => {
+            minGoal.value += 500;
+          }}
+        >
+          +
+        </button>
+      </div>
+
+      <ProgressRoot min={minGoal.value} />
+      <ProgressRootShowHide min={computedGoal.value} />
+      <ProgressRootPromise min={minGoal.value} />
+    </div>
   );
 });

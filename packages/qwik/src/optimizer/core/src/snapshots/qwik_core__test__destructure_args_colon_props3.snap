@@ -40,7 +40,7 @@ export const test_component_LUXeXe0DQrg = (props)=>{
     useSignal(rest['bind:value']);
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, _fnSignal((p0)=>p0.test.value, [
         props
-    ], "p0.test.value"), 3, "u6_0");
+    ], "p0.test.value"), 1, "u6_0");
 };
 
 

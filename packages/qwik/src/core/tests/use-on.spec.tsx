@@ -2,9 +2,11 @@ import {
   $,
   Fragment as Awaited,
   Fragment as Component,
+  Fragment as Projection,
   component$,
   Fragment,
   Fragment as Signal,
+  Slot,
   useOn,
   useOnDocument,
   useOnWindow,
@@ -646,5 +648,77 @@ describe.each([
     const { document } = await render(<Cmp />, { debug });
     await trigger(document.body, 'div', 'click');
     await expect(document.querySelector('div')).toMatchDOM(<div>1</div>);
+  });
+
+  it('#7230 - when multiple useOn are used in a component that is not rendered, it should add multiple script nodes', async () => {
+    const BreakpointProvider = component$(() => {
+      useOnDocument(
+        'click',
+        $(() => {})
+      );
+
+      useOnWindow(
+        'resize',
+        $(() => {})
+      );
+
+      useVisibleTask$(() => {});
+
+      return <Slot />;
+    });
+
+    const LayoutTest = component$(() => {
+      return (
+        <BreakpointProvider>
+          <div>test</div>
+        </BreakpointProvider>
+      );
+    });
+    const { vNode } = await render(<LayoutTest />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Component ssr-required>
+          <Component ssr-required>
+            <Component ssr-required>
+              <div>test</div>
+            </Component>
+            <script type="placeholder" hidden></script>
+            <script type="placeholder" hidden></script>
+            <script type="placeholder" hidden></script>
+          </Component>
+        </Component>
+      </Component>
+    );
+  });
+  it('#7230 - when useOnDocument is used in a component that is not rendered, it should add a script node', async () => {
+    const BreakpointProvider = component$(() => {
+      useOnDocument(
+        'click',
+        $(() => {})
+      );
+
+      return <Slot />;
+    });
+
+    const Layout = component$(() => {
+      return (
+        <BreakpointProvider>
+          <div>test</div>
+        </BreakpointProvider>
+      );
+    });
+    const { vNode } = await render(<Layout />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Component ssr-required>
+          <Component ssr-required>
+            <Projection ssr-required>
+              <div>test</div>
+            </Projection>
+            <script type="placeholder" hidden></script>
+          </Component>
+        </Component>
+      </Component>
+    );
   });
 });

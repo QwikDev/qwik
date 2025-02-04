@@ -4171,6 +4171,104 @@ fn should_wrap_prop_from_destructured_array() {
 	});
 }
 
+#[test]
+fn should_wrap_object_with_fn_signal() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+export default component$((props) => {
+	// not destructure it so it is a var prop
+	const item = props.something.count;
+	return (
+		<>
+			<div data-no-wrap={item ? item * 2 : null} data-wrap={props.myobj.id + "test"}></div>
+		</>
+	);
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_mark_props_as_var_props_for_inner_cmp() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useResource$, Resource } from "@qwik.dev/core";
+import { type ModelProps } from "./modelMenu";
+import { serverImg } from "~/routes/(authenticated)/layout";
+
+export const Image = component$((props) => {
+  return (
+    <>
+      <img src={`${props.src}`} />
+    </>
+  );
+});
+
+export const ModelImg = component$<ModelProps>((props) => {
+  const imgLoc = useResource$(async ({ track }) => {
+    track(() => props.store.model);
+    return await serverImg('some.png');
+  });
+  return (
+    <>
+      <Resource
+        value={imgLoc}
+        onRejected={() => <p>error ...</p>}
+        onResolved={(res) =>
+          res && (
+            <>
+              <Image
+                src={res}
+              />
+            </>
+          )
+        }
+      />
+    </>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_wrap_fn() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from "@qwik.dev/core";
+import { A } from "./componentA";
+
+export const Cmp = component$(() => {
+	const currentStep = useSignal('STEP_1');
+	const currentType = useSignal<'NEXT' | 'PREVIOUS'>('PREVIOUS');
+
+	const getStep = (step: string, type: 'NEXT' | 'PREVIOUS') => {
+		return step === 'STEP_1' ? 'STEP_2' : 'STEP_1';
+	};
+
+	return (
+		<>
+			<button onClick$={() => (currentType.value = 'NEXT')}>CLICK</button>
+			<A href={getStep(currentStep.value, currentType.value)} />
+		</>
+	);
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
 // TODO(misko): Make this test work by implementing strict serialization.
 // #[test]
 // fn example_of_synchronous_qrl_that_cant_be_serialized() {

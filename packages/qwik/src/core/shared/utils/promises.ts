@@ -106,13 +106,26 @@ export const delay = (timeout: number) => {
   });
 };
 
-export function retryOnPromise<T>(fn: () => T, retryCount: number = 0): ValueOrPromise<T> {
-  try {
-    return fn();
-  } catch (e) {
+// Retries a function that throws a promise.
+export function retryOnPromise<T>(
+  fn: () => ValueOrPromise<T>,
+  retryCount: number = 0
+): ValueOrPromise<T> {
+  const retryOrThrow = (e: any) => {
     if (isPromise(e) && retryCount < MAX_RETRY_ON_PROMISE_COUNT) {
       return e.then(retryOnPromise.bind(null, fn, retryCount++)) as ValueOrPromise<T>;
     }
     throw e;
+  };
+
+  try {
+    const result = fn();
+    if (isPromise(result)) {
+      // not awaited promise is not caught by try/catch block
+      return result.catch((e) => retryOrThrow(e));
+    }
+    return result;
+  } catch (e) {
+    return retryOrThrow(e);
   }
 }

@@ -55,9 +55,9 @@ export const test_component_LUXeXe0DQrg = (props)=>{
     });
     renders.renders++;
     const rerenders = renders.renders + 0;
-    return /*#__PURE__*/ _jsxSorted("div", null, {
+    return /*#__PURE__*/ _jsxSorted("div", {
         id: _wrapProp(props, "id")
-    }, [
+    }, null, [
         /*#__PURE__*/ _jsxSplit("span", {
             ...rest
         }, null, [

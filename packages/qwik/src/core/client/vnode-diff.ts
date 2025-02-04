@@ -634,6 +634,8 @@ export const vnode_diff = (
           } else if (typeof value === 'function') {
             value(element);
             continue;
+          } else if (value == null) {
+            continue;
           } else {
             throw qError(QError.invalidRefValue, [currentFile]);
           }
@@ -803,6 +805,8 @@ export const vnode_diff = (
           return;
         } else if (typeof value === 'function') {
           value(element);
+          return;
+        } else if (value == null) {
           return;
         } else {
           throw qError(QError.invalidRefValue, [currentFile]);
@@ -1047,10 +1051,6 @@ export const vnode_diff = (
       } else if (!hashesAreEqual) {
         insertNewComponent(host, componentQRL, jsxProps);
         if (vNewNode) {
-          if (host) {
-            // TODO(varixo): not sure why we need to copy flags here.
-            vNewNode[VNodeProps.flags] = host[VNodeProps.flags];
-          }
           host = vNewNode as VirtualVNode;
           shouldRender = true;
         }

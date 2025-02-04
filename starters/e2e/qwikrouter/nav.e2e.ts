@@ -442,7 +442,7 @@ test.describe("actions", () => {
     });
 
     test("issue7182", async ({ page, javaScriptEnabled }) => {
-      await page.goto("/qwikcity-test/issue7182");
+      await page.goto("/qwikrouter-test/issue7182");
       const input1 = await page.locator("#input1");
       await input1.fill("4");
       await input1.dispatchEvent("change");

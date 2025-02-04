@@ -1,9 +1,11 @@
+import type { EventHandler } from '../shared/jsx/types/jsx-qwik-attributes';
 import { isServerPlatform } from '../shared/platform/platform';
-import { assertQrl } from '../shared/qrl/qrl-class';
+import { assertQrl, createQRL } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ChoreType } from '../shared/scheduler';
+import { useOn, useOnDocument } from './use-on';
 import { useSequentialScope } from './use-sequential-scope';
-import { Task, TaskFlags, useRunTask, type TaskFn } from './use-task';
+import { Task, TaskFlags, scheduleTask, type TaskFn } from './use-task';
 
 /** @public */
 export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
@@ -42,4 +44,19 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
     qrl.$resolveLazy$(iCtx.$element$);
     iCtx.$container$.$scheduler$(ChoreType.VISIBLE, task);
   }
+};
+
+export const useRunTask = (task: Task, eagerness: VisibleTaskStrategy | undefined) => {
+  if (eagerness === 'intersection-observer') {
+    useOn('qvisible', getTaskHandlerQrl(task));
+  } else if (eagerness === 'document-ready') {
+    useOnDocument('qinit', getTaskHandlerQrl(task));
+  } else if (eagerness === 'document-idle') {
+    useOnDocument('qidle', getTaskHandlerQrl(task));
+  }
+};
+
+const getTaskHandlerQrl = (task: Task): QRL<EventHandler> => {
+  const taskHandler = createQRL<EventHandler>(null, '_task', scheduleTask, null, null, [task]);
+  return taskHandler;
 };

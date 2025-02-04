@@ -32,6 +32,7 @@ import type { Props } from '../shared/jsx/jsx-runtime';
 import type { OnRenderFn } from '../shared/component.public';
 import { NEEDS_COMPUTATION } from './flags';
 import { QError, qError } from '../shared/error/error';
+import { isDomContainer } from '../client/dom-container';
 
 const DEBUG = false;
 
@@ -318,6 +319,7 @@ export const triggerEffects = (
   signal: Signal | TargetType,
   effects: EffectSubscriptions[] | null
 ) => {
+  const isBrowser = isDomContainer(container);
   if (effects) {
     const scheduleEffect = (effectSubscriptions: EffectSubscriptions) => {
       const effect = effectSubscriptions[EffectSubscriptionsProp.EFFECT];
@@ -329,8 +331,6 @@ export const triggerEffects = (
         let choreType = ChoreType.TASK;
         if (effect.$flags$ & TaskFlags.VISIBLE_TASK) {
           choreType = ChoreType.VISIBLE;
-        } else if (effect.$flags$ & TaskFlags.RESOURCE) {
-          choreType = ChoreType.RESOURCE;
         }
         container.$scheduler$(choreType, effect);
       } else if (effect instanceof Signal) {
@@ -351,20 +351,22 @@ export const triggerEffects = (
         assertDefined(qrl, 'Component must have QRL');
         const props = container.getHostProp<Props>(host, ELEMENT_PROPS);
         container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
-      } else if (property === EffectProperty.VNODE) {
-        const host: HostElement = effect as any;
-        const target = host;
-        container.$scheduler$(ChoreType.NODE_DIFF, host, target, signal as Signal);
-      } else {
-        const host: HostElement = effect as any;
-        const effectData = effectSubscriptions[EffectSubscriptionsProp.FIRST_BACK_REF_OR_DATA];
-        if (effectData instanceof EffectPropData) {
-          const data = effectData.data;
-          const payload: NodePropPayload = {
-            ...data,
-            $value$: signal as Signal,
-          };
-          container.$scheduler$(ChoreType.NODE_PROP, host, property, payload);
+      } else if (isBrowser) {
+        if (property === EffectProperty.VNODE) {
+          const host: HostElement = effect as any;
+          const target = host;
+          container.$scheduler$(ChoreType.NODE_DIFF, host, target, signal as Signal);
+        } else {
+          const host: HostElement = effect as any;
+          const effectData = effectSubscriptions[EffectSubscriptionsProp.FIRST_BACK_REF_OR_DATA];
+          if (effectData instanceof EffectPropData) {
+            const data = effectData.data;
+            const payload: NodePropPayload = {
+              ...data,
+              $value$: signal as Signal,
+            };
+            container.$scheduler$(ChoreType.NODE_PROP, host, property, payload);
+          }
         }
       }
     };

@@ -73,10 +73,7 @@ export const Link = component$<LinkProps>((props) => {
     ? $(async (event: Event, elm: HTMLAnchorElement) => {
         if (event.defaultPrevented) {
           // If default was prevented, than it is up to us to make client side navigation.
-          if (elm.hasAttribute('q:nbs')) {
-            // Allow bootstrapping into useNavigate.
-            await nav(location.href, { type: 'popstate' });
-          } else if (elm.href) {
+          if (elm.href) {
             elm.setAttribute('aria-pressed', 'true');
             await nav(elm.href, { forceReload: reload, replaceState, scroll });
             elm.removeAttribute('aria-pressed');

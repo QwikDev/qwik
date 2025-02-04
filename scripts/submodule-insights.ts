@@ -30,7 +30,7 @@ async function buildComponents(config: BuildConfig) {
     cwd: config.srcQwikDir,
   });
   if (result.failed) {
-    panic(`tsc failed`);
+    panic(`insights build failed`);
   }
 }
 

@@ -1,6 +1,7 @@
+import type { ContextId, DomContainer, _ContainerElement } from 'packages/qwik/core-internal';
 import type { ClientSPAWindow } from './qwik-router-component';
 import type { ScrollHistoryState } from './scroll-restoration';
-import type { ScrollState } from './types';
+import type { RouteNavigate, ScrollState } from './types';
 
 import { event$, isDev } from '@qwik.dev/core';
 
@@ -30,7 +31,6 @@ export default event$((_: Event, el: Element) => {
     const currentPath = location.pathname + location.search;
 
     const historyPatch = '_qRouterHistoryPatch';
-    const bootstrap = '_qRouterBootstrap';
     const scrollEnabled = '_qRouterScrollEnabled';
     const debounceTimeout = '_qRouterScrollDebounce';
     const scrollHistory = '_qRouterScroll';
@@ -71,21 +71,17 @@ export default event$((_: Event, el: Element) => {
       if (currentPath !== location.pathname + location.search) {
         const getContainer = (el: Element) =>
           el.closest('[q\\:container]:not([q\\:container=html]):not([q\\:container=text])');
-        // Hook into useNavigate context, if available.
-        // We hijack a <Link> here, goes through the loader, resumes, app, etc. Simple.
-        // TODO Will only work with <Link>, is there a better way?
-        const link = getContainer(el)?.querySelector('a[q\\:link]');
 
-        if (link) {
-          // Re-acquire container, link may be in a nested container.
-          const container = getContainer(link)!;
-          const bootstrapLink = link.cloneNode() as HTMLAnchorElement;
-          bootstrapLink.setAttribute('q:nbs', '');
-          bootstrapLink.style.display = 'none';
+        const container = getContainer(el);
+        const domContainer = (container as _ContainerElement).qContainer as DomContainer;
+        const hostElement = domContainer.vNodeLocate(el);
 
-          container.appendChild(bootstrapLink);
-          win[bootstrap] = bootstrapLink;
-          bootstrapLink.click();
+        const nav = domContainer?.resolveContext(hostElement, {
+          id: 'qc--n',
+        } as ContextId<RouteNavigate>);
+
+        if (nav) {
+          nav(location.href, { type: 'popstate' });
         } else {
           // No useNavigate ctx available, fallback to reload.
           location.reload();

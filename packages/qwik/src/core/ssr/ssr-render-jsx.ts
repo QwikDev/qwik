@@ -1,6 +1,6 @@
 import { isDev } from '@qwik.dev/core/build';
 import { isQwikComponent } from '../shared/component.public';
-import { isQrl } from '../shared/qrl/qrl-class';
+import { createQRL, isQrl, type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { Fragment, directGetPropsProxyProp } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
@@ -34,8 +34,8 @@ import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-compo
 import type { ISsrComponentFrame, ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
 import { qInspector } from '../shared/utils/qdev';
 import { serializeAttribute } from '../shared/utils/styles';
-import { QError, qError } from '../shared/error/error';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
+import { queueQRL } from '../client/queue-qrl';
 
 class ParentComponentData {
   constructor(
@@ -49,50 +49,17 @@ type StackValue = ValueOrPromise<
 >;
 
 /** @internal */
-export function _walkJSX(
+export async function _walkJSX(
   ssr: SSRContainer,
   value: JSXOutput,
   options: {
-    allowPromises: true;
     currentStyleScoped: string | null;
     parentComponentFrame: ISsrComponentFrame | null;
   }
-): ValueOrPromise<void>;
-/** @internal */
-export function _walkJSX(
-  ssr: SSRContainer,
-  value: JSXOutput,
-  options: {
-    allowPromises: false;
-    currentStyleScoped: string | null;
-    parentComponentFrame: ISsrComponentFrame | null;
-  }
-): false;
-/** @internal */
-export function _walkJSX(
-  ssr: SSRContainer,
-  value: JSXOutput,
-  options: {
-    allowPromises: boolean;
-    currentStyleScoped: string | null;
-    parentComponentFrame: ISsrComponentFrame | null;
-  }
-): ValueOrPromise<void> | false {
+): Promise<void> {
   const stack: StackValue[] = [value];
-  let resolveDrain: () => void;
-  let rejectDrain: (reason: any) => void;
-  const drained =
-    options.allowPromises &&
-    new Promise<void>((res, rej) => {
-      resolveDrain = res;
-      rejectDrain = rej;
-    });
   const enqueue = (value: StackValue) => stack.push(value);
-  const resolveValue = (value: JSXOutput) => {
-    stack.push(value);
-    drain();
-  };
-  const drain = (): void => {
+  const drain = async (): Promise<void> => {
     while (stack.length) {
       const value = stack.pop();
       if (value instanceof ParentComponentData) {
@@ -101,20 +68,10 @@ export function _walkJSX(
         continue;
       } else if (typeof value === 'function') {
         if (value === Promise) {
-          if (!options.allowPromises) {
-            throw qError(QError.promisesNotExpected);
-          }
-          (stack.pop() as Promise<JSXOutput>).then(resolveValue, rejectDrain);
-          return;
+          stack.push(await (stack.pop() as Promise<JSXOutput>));
+          continue;
         }
-        const waitOn = (value as StackFn).apply(ssr);
-        if (waitOn) {
-          if (!options.allowPromises) {
-            throw qError(QError.promisesNotExpected);
-          }
-          waitOn.then(drain, rejectDrain);
-          return;
-        }
+        await (value as StackFn).apply(ssr);
         continue;
       }
       processJSXNode(ssr, enqueue, value as JSXOutput, {
@@ -122,12 +79,8 @@ export function _walkJSX(
         parentComponentFrame: options.parentComponentFrame,
       });
     }
-    if (stack.length === 0 && options.allowPromises) {
-      resolveDrain();
-    }
   };
-  drain();
-  return drained;
+  await drain();
 }
 
 function processJSXNode(
@@ -168,7 +121,6 @@ function processJSXNode(
       enqueue(async () => {
         for await (const chunk of value) {
           await _walkJSX(ssr, chunk as JSXOutput, {
-            allowPromises: true,
             currentStyleScoped: options.styleScoped,
             parentComponentFrame: options.parentComponentFrame,
           });
@@ -276,7 +228,6 @@ function processJSXNode(
             value = generator({
               async write(chunk) {
                 await _walkJSX(ssr, chunk as JSXOutput, {
-                  allowPromises: true,
                   currentStyleScoped: options.styleScoped,
                   parentComponentFrame: options.parentComponentFrame,
                 });
@@ -486,12 +437,24 @@ function setEvent(
   const appendToValue = (valueToAppend: string) => {
     value = (value == null ? '' : value + '\n') + valueToAppend;
   };
+  const getQrlString = (qrl: QRLInternal<unknown>) => {
+    /**
+     * If there are captures we need to schedule so everything is executed in the right order + qrls
+     * are resolved.
+     *
+     * For internal qrls (starting with `_`) we assume that they do the right thing.
+     */
+    if (!qrl.$symbol$.startsWith('_') && (qrl.$captureRef$ || qrl.$capture$)) {
+      qrl = createQRL(null, '_run', queueQRL, null, null, [qrl]);
+    }
+    return qrlToString(serializationCtx, qrl);
+  };
 
   if (Array.isArray(qrls)) {
     for (let i = 0; i <= qrls.length; i++) {
       const qrl: unknown = qrls[i];
       if (isQrl(qrl)) {
-        appendToValue(qrlToString(serializationCtx, qrl));
+        appendToValue(getQrlString(qrl));
         addQwikEventToSerializationContext(serializationCtx, key, qrl);
       } else if (qrl != null) {
         // nested arrays etc.
@@ -502,7 +465,7 @@ function setEvent(
       }
     }
   } else if (isQrl(qrls)) {
-    value = qrlToString(serializationCtx, qrls);
+    value = getQrlString(qrls);
     addQwikEventToSerializationContext(serializationCtx, key, qrls);
   }
 

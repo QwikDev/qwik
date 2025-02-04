@@ -221,7 +221,7 @@ jobs:
           pnpm install --frozen-lockfile
 
       - name: 'build: qwik'
-        run: pnpm build --qwik --set-dist-tag="${{ needs.changes.outputs.disttag }}"
+        run: pnpm build --qwik --insights --set-dist-tag="${{ needs.changes.outputs.disttag }}"
 
       - name: Print Qwik Dist Build
         continue-on-error: true

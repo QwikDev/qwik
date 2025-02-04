@@ -399,8 +399,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 								[&h.canonical_filename, ".", &h.data.extension].concat(),
 							]
 							.concat();
-							let need_handle_watch =
-								might_need_handle_watch(&h.data.ctx_kind, &h.data.ctx_name);
 
 							let (mut segment_module, comments) = new_module(NewModuleCtx {
 								expr: h.expr,
@@ -412,7 +410,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 								explicit_extensions: q.options.explicit_extensions,
 								global: &q.options.global_collect,
 								core_module: &q.options.core_module,
-								need_handle_watch,
 								leading_comments: comments_maps.0.clone(),
 								trailing_comments: comments_maps.1.clone(),
 							})?;
@@ -759,14 +756,4 @@ pub fn normalize_path<P: AsRef<Path>>(path: P) -> PathBuf {
 		normalized.push("");
 	}
 	normalized
-}
-
-pub fn might_need_handle_watch(ctx_kind: &SegmentKind, ctx_name: &str) -> bool {
-	if !matches!(ctx_kind, SegmentKind::Function) {
-		return false;
-	}
-	matches!(
-		ctx_name,
-		"useTask$" | "useVisibleTask$" | "useBrowserVisibleTask$" | "useClientEffect$" | "$"
-	)
 }

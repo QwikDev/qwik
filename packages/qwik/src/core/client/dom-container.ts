@@ -1,18 +1,20 @@
 /** @file Public APIs for the SSR */
 
 import { assertTrue } from '../shared/error/assert';
+import { QError, qError } from '../shared/error/error';
+import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
 import { getPlatform } from '../shared/platform/platform';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
-import type { ContextId } from '../use/use-context';
+import { ChoreType } from '../shared/scheduler';
+import { _SharedContainer } from '../shared/shared-container';
+import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
+import { QContainerValue, type HostElement, type ObjToProxyMap } from '../shared/types';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
 import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
-  getQFuncs,
   OnRenderProp,
-  Q_PROPS_SEPARATOR,
   QBaseAttr,
   QContainerAttr,
   QContainerSelector,
@@ -23,19 +25,18 @@ import {
   QStyle,
   QStyleSelector,
   QSubscribers,
+  Q_PROPS_SEPARATOR,
   USE_ON_LOCAL_SEQ_IDX,
+  getQFuncs,
 } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
 import { isSlotProp } from '../shared/utils/prop';
 import { qDev } from '../shared/utils/qdev';
-import { ChoreType } from '../shared/scheduler';
 import {
   convertScopedStyleIdsToArray,
   convertStyleIdsToString,
 } from '../shared/utils/scoped-styles';
-import { _SharedContainer } from '../shared/shared-container';
-import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
-import { QContainerValue, type HostElement, type ObjToProxyMap } from '../shared/types';
+import type { ContextId } from '../use/use-context';
 import { processVNodeData } from './process-vnode-data';
 import {
   VNodeFlags,
@@ -65,7 +66,6 @@ import {
   vnode_setProp,
   type VNodeJournal,
 } from './vnode';
-import { QError, qError } from '../shared/error/error';
 
 /** @public */
 export function getDomContainer(element: Element | VNode): IClientContainer {
@@ -130,10 +130,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   public $storeProxyMap$: ObjToProxyMap = new WeakMap();
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
   public $instanceHash$: string;
+  public vNodeLocate: (id: string | Element) => VNode = (id) => vnode_locate(this.rootVNode, id);
 
-  private stateData: unknown[];
+  private $stateData$: unknown[];
   private $styleIds$: Set<string> | null = null;
-  private $vnodeLocate$: (id: string) => VNode = (id) => vnode_locate(this.rootVNode, id);
   private $renderCount$ = 0;
 
   constructor(element: ContainerElement) {
@@ -165,24 +165,24 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.rootVNode = vnode_newUnMaterializedElement(this.element);
     // These are here to initialize all properties at once for single class transition
     this.$rawStateData$ = null!;
-    this.stateData = null!;
+    this.$stateData$ = null!;
     const document = this.element.ownerDocument as QDocument;
     if (!document.qVNodeData) {
       processVNodeData(document);
     }
     this.$rawStateData$ = [];
-    this.stateData = [];
+    this.$stateData$ = [];
     const qwikStates = element.querySelectorAll('script[type="qwik/state"]');
     if (qwikStates.length !== 0) {
       const lastState = qwikStates[qwikStates.length - 1];
       this.$rawStateData$ = JSON.parse(lastState.textContent!);
-      this.stateData = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+      this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
     }
     this.$qFuncs$ = getQFuncs(document, this.$instanceHash$) || EMPTY_ARRAY;
   }
 
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void {
-    this.stateData[id] = vParent;
+    this.$stateData$[id] = vParent;
   }
 
   parseQRL<T = unknown>(qrl: string): QRL<T> {
@@ -190,7 +190,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   }
 
   handleError(err: any, host: HostElement): void {
-    if (qDev) {
+    if (qDev && host) {
       // Clean vdom
       if (typeof document !== 'undefined') {
         const vHost = host as VirtualVNode;
@@ -215,7 +215,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         throw err;
       }
     }
-    const errorStore = this.resolveContext(host, ERROR_CONTEXT);
+    const errorStore = host && this.resolveContext(host, ERROR_CONTEXT);
     if (!errorStore) {
       throw err;
     }
@@ -254,7 +254,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         vNode =
           vnode_getParent(vNode) ||
           // If virtual node, than it could be a slot so we need to read its parent.
-          vnode_getProp<VNode>(vNode, QSlotParent, this.$vnodeLocate$);
+          vnode_getProp<VNode>(vNode, QSlotParent, this.vNodeLocate);
       } else {
         vNode = vnode_getParent(vNode);
       }
@@ -319,7 +319,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         if (isSlotProp(prop)) {
           const value = vNode[i + 1];
           if (typeof value == 'string') {
-            vNode[i + 1] = this.$vnodeLocate$(value);
+            vNode[i + 1] = this.vNodeLocate(value);
           }
         }
       }
@@ -334,7 +334,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       id < this.$rawStateData$.length / 2,
       `Invalid reference: ${id} >= ${this.$rawStateData$.length / 2}`
     );
-    return this.stateData[id];
+    return this.$stateData$[id];
   };
 
   getSyncFn(id: number): (...args: unknown[]) => unknown {

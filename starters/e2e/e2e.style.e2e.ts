@@ -20,6 +20,7 @@ test.describe("styles", () => {
       const v = Number(await reload.getAttribute("v"));
       await reload.click();
       await expect(page.locator("#renderCount")).toHaveText(`Render ${v}`);
+      await page.waitForSelector("html[q\\:container=resumed]");
     });
     runTests();
   });

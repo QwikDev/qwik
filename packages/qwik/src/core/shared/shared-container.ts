@@ -8,6 +8,7 @@ import type { Scheduler } from './scheduler';
 import { createScheduler } from './scheduler';
 import { createSerializationContext, type SerializationContext } from './shared-serialization';
 import type { Container, HostElement, ObjToProxyMap } from './types';
+import { serializeAttribute } from './utils/styles';
 
 /** @internal */
 export abstract class _SharedContainer implements Container {
@@ -46,6 +47,10 @@ export abstract class _SharedContainer implements Container {
     data: EffectPropData
   ): T {
     return trackSignalAndAssignHost(signal, subscriber, property, this, data);
+  }
+
+  serializeAttributeValue(key: string, value: any, styleScopedId?: string | null) {
+    return serializeAttribute(key, value, styleScopedId);
   }
 
   serializationCtxFactory(

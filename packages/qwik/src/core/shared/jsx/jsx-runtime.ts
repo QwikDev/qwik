@@ -14,6 +14,7 @@ import type { QwikJSX } from './types/jsx-qwik';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 
 export type Props = Record<string, unknown>;
+export type PropsProxy = { [_VAR_PROPS]: Props; [_CONST_PROPS]: Props | null };
 
 /**
  * Create a JSXNode with the properties fully split into variable and constant parts, and children
@@ -198,9 +199,7 @@ export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends 
 
 export const SKIP_RENDER_TYPE = ':skipRender';
 
-export const isPropsProxy = (
-  obj: any
-): obj is { [_VAR_PROPS]: Props; [_CONST_PROPS]: Props | null } => {
+export const isPropsProxy = (obj: any): obj is PropsProxy => {
   return obj && obj[_VAR_PROPS] !== undefined;
 };
 
@@ -439,5 +438,24 @@ export const directGetPropsProxyProp = <T, JSX>(jsx: JSXNodeInternal<JSX>, prop:
     jsx.constProps && prop in jsx.constProps ? jsx.constProps[prop] : jsx.varProps[prop]
   ) as T;
 };
+
+export function processDirectProps(
+  props: PropsProxy,
+  callback: (key: string, value: unknown) => void
+): void {
+  // Separate check for props proxy, because props proxy getter could call signal getter.
+  // To avoid that we need to get the constProps and varProps directly
+  // from the props proxy object and loop over them.
+  const constProps = props[_CONST_PROPS];
+  const varProps = props[_VAR_PROPS];
+  if (constProps) {
+    for (const key in constProps) {
+      callback(key, constProps[key]);
+    }
+  }
+  for (const key in varProps) {
+    callback(key, varProps[key]);
+  }
+}
 
 export { jsx as jsxs };

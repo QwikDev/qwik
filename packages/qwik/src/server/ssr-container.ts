@@ -46,7 +46,6 @@ import {
   mapArray_get,
   mapArray_set,
   maybeThen,
-  serializeAttribute,
   QSubscribers,
   QError,
   qError,
@@ -1187,7 +1186,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           value = QContainerValue.TEXT;
         }
 
-        const serializedValue = serializeAttribute(key, value, styleScopedId);
+        const serializedValue = this.serializeAttributeValue(key, value, styleScopedId);
 
         if (serializedValue != null && serializedValue !== false) {
           this.write(' ');

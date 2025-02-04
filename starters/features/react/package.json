@@ -4,7 +4,7 @@
     "displayName": "Framework: React",
     "priority": -20,
     "docs": [
-      "https://qwik.dev/integrations/integration/react/"
+      "https://qwik.dev/integrations/react/"
     ],
     "nextSteps": {
       "title": "New folders created!",

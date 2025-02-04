@@ -4,7 +4,7 @@
     "displayName": "Integration: Cypress",
     "priority": -10,
     "docs": [
-      "https://qwik.dev/integrations/integration/cypress/",
+      "https://qwik.dev/integrations/cypress/",
       "https://docs.cypress.io/guides/getting-started/installing-cypress",
       "https://docs.cypress.io/guides/component-testing/overview",
       "https://github.com/qwikifiers/cypress-qwik"

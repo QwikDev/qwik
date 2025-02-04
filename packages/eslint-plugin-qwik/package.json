@@ -13,8 +13,9 @@
     "@qwik.dev/router": "workspace:*",
     "@types/eslint": "8.56.10",
     "@types/estree": "1.0.5",
-    "@typescript-eslint/rule-tester": "7.8.0",
-    "redent": "4.0.0"
+    "@typescript-eslint/rule-tester": "8.14.0",
+    "redent": "4.0.0",
+    "@types/eslint": "9.6.1"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
@@ -31,9 +32,6 @@
   ],
   "license": "MIT",
   "main": "dist/index.js",
-  "peerDependencies": {
-    "eslint": "^8.57.0"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/QwikDev/qwik.git",

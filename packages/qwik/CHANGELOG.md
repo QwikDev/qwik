@@ -1,5 +1,21 @@
 # @qwik.dev/core
 
+## 2.0.0-alpha.7
+
+### Patch Changes
+
+- 🐞🩹 null or undefined as ref attribute value (by [@Varixo](https://github.com/Varixo) in [#7285](https://github.com/QwikDev/qwik/pull/7285))
+
+- 🐞🩹 different component rendering with the same key (by [@Varixo](https://github.com/Varixo) in [#7292](https://github.com/QwikDev/qwik/pull/7292))
+
+- 🐞🩹 the use hook didn't work when type is Slot. (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7250](https://github.com/QwikDev/qwik/pull/7250))
+
+- 🐞🩹 vNode serialization error on server$ (by [@damianpumar](https://github.com/damianpumar) in [#7278](https://github.com/QwikDev/qwik/pull/7278))
+
+- 🐞🩹 don't wrap and serialize functions that are attribute values (by [@Varixo](https://github.com/Varixo) in [#7284](https://github.com/QwikDev/qwik/pull/7284))
+
+- Expose missing types into `public.d.ts` and fix types uri for internal export inside `package.json` (by [@GrandSchtroumpf](https://github.com/GrandSchtroumpf) in [#7289](https://github.com/QwikDev/qwik/pull/7289))
+
 ## 2.0.0-alpha.6
 
 ### Patch Changes

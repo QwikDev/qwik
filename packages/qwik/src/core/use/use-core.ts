@@ -26,6 +26,7 @@ import {
   type EffectSubscriptionsProp,
 } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
+import type { ISsrNode } from 'packages/qwik/src/server/qwik-types';
 
 declare const document: QwikDocument;
 
@@ -271,9 +272,17 @@ export const _getContextElement = (): unknown => {
   const iCtx = tryGetInvokeContext();
   if (iCtx) {
     const hostElement = iCtx.$hostElement$;
-    let element: Element | null = null;
-    if (vnode_isVNode(hostElement) && vnode_isElementVNode(hostElement)) {
-      element = vnode_getNode(hostElement) as Element | null;
+    let element: Element | ISsrNode | null = null;
+
+    if (hostElement != null) {
+      if (vnode_isVNode(hostElement)) {
+        if (vnode_isElementVNode(hostElement)) {
+          element = vnode_getNode(hostElement) as Element;
+        }
+      } else {
+        // isSSRnode
+        element = hostElement;
+      }
     }
 
     return element ?? (iCtx.$qrl$ as QRLInternal)?.$setContainer$(undefined);

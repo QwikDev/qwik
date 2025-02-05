@@ -117,4 +117,29 @@ test.describe("server$", () => {
       await expect(serverConfigContainer).toContainText("my errorPOST");
     });
   });
+
+  test.describe("Server$ vNode serialization", () => {
+    test.beforeEach(async ({ page }) => {
+      page.on("pageerror", (err) => expect(err).toEqual(undefined));
+      page.on("console", (msg) => {
+        if (msg.type() === "error") {
+          expect(msg.text()).toEqual(undefined);
+        }
+      });
+    });
+
+    test("#7260 - should skip serialize vNode", async ({ page }) => {
+      await page.goto("/qwikrouter-test/issue7260");
+
+      const button = page.locator("#favorite-heart");
+
+      await button.click();
+
+      await expect(button).toContainText("❤️");
+
+      await button.click();
+
+      await expect(button).toContainText("🤍");
+    });
+  });
 });

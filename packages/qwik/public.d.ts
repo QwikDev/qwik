@@ -72,3 +72,5 @@ export {
   version,
   withLocale,
 } from './dist/core-internal';
+
+export type * from './dist/core-internal';

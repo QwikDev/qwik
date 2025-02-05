@@ -12,9 +12,9 @@
   "homepage": "https://github.com/fgnass/domino",
   "license": "BSD-2-Clause",
   "main": "./lib",
-  "repository": "fgnass/domino.git",
   "publishConfig": {
     "access": "public"
   },
+  "repository": "fgnass/domino.git",
   "types": "lib/index.d.ts"
 }

@@ -11,11 +11,10 @@
   "devDependencies": {
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/router": "workspace:*",
-    "@types/eslint": "8.56.10",
+    "@types/eslint": "9.6.1",
     "@types/estree": "1.0.5",
     "@typescript-eslint/rule-tester": "8.14.0",
-    "redent": "4.0.0",
-    "@types/eslint": "9.6.1"
+    "redent": "4.0.0"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"

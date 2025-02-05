@@ -893,7 +893,7 @@ describe('render api', () => {
             containerTagName: 'html',
           }
         );
-        expect(result.snapshotResult?.qrls).toHaveLength(0);
+        expect(result.snapshotResult?.qrls).toHaveLength(1);
         expect(result.snapshotResult?.resources).toHaveLength(1);
         expect(result.snapshotResult?.funcs).toHaveLength(0);
       });
@@ -922,7 +922,7 @@ describe('render api', () => {
             containerTagName: 'html',
           }
         );
-        expect(result.snapshotResult?.qrls).toHaveLength(1);
+        expect(result.snapshotResult?.qrls).toHaveLength(3);
         expect(result.snapshotResult?.resources).toHaveLength(1);
         expect(result.snapshotResult?.funcs).toHaveLength(1);
       });
@@ -950,7 +950,7 @@ describe('render api', () => {
         const result = await renderToStringAndSetPlatform(<FunctionComponent />, {
           containerTagName: 'div',
         });
-        expect(result.snapshotResult?.qrls).toHaveLength(1);
+        expect(result.snapshotResult?.qrls).toHaveLength(2);
         expect(result.snapshotResult?.resources).toHaveLength(0);
         expect(result.snapshotResult?.funcs).toHaveLength(0);
       });

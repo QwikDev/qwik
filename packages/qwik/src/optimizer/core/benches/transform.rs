@@ -17,7 +17,7 @@ fn transform_todo_app(b: &mut Bencher) {
           useStore,
           useHostElement,
           useEvent,
-        } from '@builder.io/qwik';
+        } from '@qwik.dev/core';
         import {
           addItem,
           clearCompleted,
@@ -188,6 +188,7 @@ fn transform_todo_app(b: &mut Bencher) {
           input: vec![TransformModuleInput {
               code: code.into(),
               path: "file.tsx".into(),
+              dev_path: None,
           }],
           root_dir: None,
           core_module: None,

@@ -3,14 +3,14 @@ import {
   component$,
   useSignal,
   useTask$,
-} from '@builder.io/qwik';
-import { isDev } from '@builder.io/qwik';
+  isDev,
+} from '@qwik.dev/core';
 
 const metaGlobComponents: Record<string, any> = import.meta.glob(
   '/src/routes/demo/cookbook/glob-import/examples/*',
   {
     import: 'default',
-    eager: isDev ? false : true,
+    eager: !isDev,
   }
 );
 

@@ -1,5 +1,5 @@
-import { expect } from "@playwright/test";
 import type { Locator, PlaywrightTestConfig } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 const inGithubCI = !!process.env.GITHUB_ACTIONS;
 
@@ -24,6 +24,7 @@ const config: PlaywrightTestConfig = {
       height: 600,
     },
   },
+  testMatch: "*.e2e.ts",
   testIgnore: /.*example.spec.tsx?$/,
   retries: inGithubCI ? 0 : 1,
   expect: { timeout: inGithubCI ? 120000 : 10000 },

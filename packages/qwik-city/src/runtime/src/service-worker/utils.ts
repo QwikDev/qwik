@@ -24,14 +24,14 @@ export const resolveSymbols = (appSymbols: Map<string, string>, symbolsHashes: s
   symbolsHashes.map((s) => appSymbols.get(s)).filter((s) => s != null) as string[];
 
 export const computeAppSymbols = (appBundles: AppBundle[]): AppSymbols => {
-  const appSymbols = new Map<string, string>();
+  const symbolToBundles = new Map<string, string>();
   for (const bundle of appBundles) {
-    const hashes = bundle[2];
-    if (hashes) {
-      for (const hash of hashes) {
-        appSymbols.set(hash, bundle[0]);
+    const symbols = bundle[2];
+    if (symbols) {
+      for (const symbol of symbols) {
+        symbolToBundles.set(symbol, bundle[0]);
       }
     }
   }
-  return appSymbols;
+  return symbolToBundles;
 };

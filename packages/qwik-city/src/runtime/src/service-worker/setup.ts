@@ -16,7 +16,7 @@ export const setupServiceWorkerScope = (
   linkBundles: LinkBundle[]
 ) => {
   const swFetch = swScope.fetch.bind(swScope);
-  const appSymbols = computeAppSymbols(appBundles);
+  const symbolToBundles = computeAppSymbols(appBundles);
 
   swScope.addEventListener('activate', (event) => {
     (async () => {
@@ -75,13 +75,18 @@ export const setupServiceWorkerScope = (
         }
 
         if (Array.isArray(data.symbols)) {
-          logger.log('[PREFETCHING SYMBOLS]: ', resolveSymbols(appSymbols, data.symbols));
+          logger.log(
+            '[PREFETCHING SYMBOLS]: ',
+            data.symbols,
+            ' bundles: ',
+            resolveSymbols(symbolToBundles, data.symbols)
+          );
           prefetchBundleNames(
             appBundles,
             qBuildCache,
             swFetch,
             baseUrl,
-            resolveSymbols(appSymbols, data.symbols)
+            resolveSymbols(symbolToBundles, data.symbols)
           );
         }
       }

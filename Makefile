@@ -28,6 +28,9 @@ lint:
 test:
 	cargo test --manifest-path packages/qwik/src/optimizer/core/Cargo.toml
 
+benchmark:
+	cargo bench --manifest-path packages/qwik/src/optimizer/core/Cargo.toml
+
 test-update:
 	if ! cargo test --manifest-path packages/qwik/src/optimizer/core/Cargo.toml; then \
 		cd packages/qwik/src/optimizer/core/src/snapshots/; \

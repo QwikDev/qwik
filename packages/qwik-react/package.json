@@ -42,10 +42,10 @@
     "react-dom": "^18",
     "vite": "^5"
   },
-  "qwik": "./lib/index.qwik.mjs",
   "publishConfig": {
     "access": "public"
   },
+  "qwik": "./lib/index.qwik.mjs",
   "repository": {
     "type": "git",
     "url": "https://github.com/QwikDev/qwik.git",

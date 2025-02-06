@@ -1213,10 +1213,6 @@ impl<'a> QwikTransform<'a> {
 					} else {
 						&mut const_props
 					};
-					println!(
-						"spread_props_count: 1111111111111: {:#?}",
-						spread_props_count
-					);
 					match prop {
 						// regular props
 						ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref node)) => {
@@ -1281,10 +1277,6 @@ impl<'a> QwikTransform<'a> {
 											value: folded.clone(),
 										}),
 									)));
-									println!(
-										"maybe_const_props: 1111111111111: {:#?}",
-										maybe_const_props
-									);
 									let elm = private_ident!("elm");
 									let arrow_fn = ast::Expr::Arrow(ast::ArrowExpr {
 										params: vec![
@@ -1403,10 +1395,6 @@ impl<'a> QwikTransform<'a> {
 									} else {
 										const_props.push(converted_prop.clone().fold_with(self));
 									}
-									println!(
-										"converted_prop: 1111111111111: {:#?}",
-										converted_prop
-									);
 									// event_handlers.push(converted_prop);
 								} else if !is_fn && (key_word == *REF || key_word == *QSLOT) {
 									// skip
@@ -1548,7 +1536,6 @@ impl<'a> QwikTransform<'a> {
 									ast::PropName::Str(ref s) => Some(s.value.as_ref()),
 									_ => None,
 								};
-								println!("a_key: {:?}, b_key: {:?}", a_key, b_key);
 								match (a_key, b_key) {
 									(Some(a_key), Some(b_key)) => a_key.cmp(b_key),
 									_ => std::cmp::Ordering::Equal,
@@ -1558,7 +1545,6 @@ impl<'a> QwikTransform<'a> {
 						}
 					});
 				}
-				// println!("var_props222: {:?}", var_props);
 				(should_runtime_sort, var_props, const_props, children, flags)
 			}
 			_ => (true, vec![], vec![], None, 0),

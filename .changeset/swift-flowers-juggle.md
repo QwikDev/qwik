@@ -1,5 +1,5 @@
 ---
-'@qwik.dev/core': major
+'@qwik.dev/core': patch
 ---
 
 Updated ComponentStylesPrefixContent from ⭐️ to ⚡️.

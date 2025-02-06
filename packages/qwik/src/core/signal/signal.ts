@@ -24,7 +24,7 @@ import type { VNode } from '../client/types';
 import { vnode_getProp, vnode_isTextVNode, vnode_isVNode, vnode_setProp } from '../client/vnode';
 import { ChoreType, type NodePropData, type NodePropPayload } from '../shared/scheduler';
 import type { Container, HostElement } from '../shared/types';
-import type { ISsrNode } from '../ssr/ssr-types';
+import type { ISsrNode, SSRContainer } from '../ssr/ssr-types';
 import type { Signal as ISignal, ReadonlySignal } from './signal.public';
 import type { TargetType } from './store';
 import { isSubscriber, Subscriber } from './signal-subscriber';
@@ -32,6 +32,7 @@ import type { Props } from '../shared/jsx/jsx-runtime';
 import type { OnRenderFn } from '../shared/component.public';
 import { NEEDS_COMPUTATION } from './flags';
 import { QError, qError } from '../shared/error/error';
+import { isDomContainer } from '../client/dom-container';
 
 const DEBUG = false;
 
@@ -191,7 +192,8 @@ export class Signal<T = any> implements ISignal<T> {
         // But when effect is scheduled in needs to be able to know which signals
         // to unsubscribe from. So we need to store the reference from the effect back
         // to this signal.
-        ensureContains(effectSubscriber, this);
+        const isMissing = ensureContains(effectSubscriber, this);
+        addQrlToSerializationCtx(effectSubscriber, isMissing, this.$container$);
         if (isSubscriber(this)) {
           // We need to add the subscriber to the effect so that we can clean it up later
           ensureEffectContainsSubscriber(
@@ -234,11 +236,12 @@ export class Signal<T = any> implements ISignal<T> {
 }
 
 /** Ensure the item is in array (do nothing if already there) */
-export const ensureContains = (array: any[], value: any) => {
+export const ensureContains = (array: any[], value: any): boolean => {
   const isMissing = array.indexOf(value) === -1;
   if (isMissing) {
     array.push(value);
   }
+  return isMissing;
 };
 
 export const ensureContainsEffect = (
@@ -311,6 +314,28 @@ const subscriberExistInSubscribers = (
     }
   }
   return false;
+};
+
+export const addQrlToSerializationCtx = (
+  effectSubscriber: EffectSubscriptions,
+  isMissing: boolean,
+  container: Container | null
+) => {
+  if (isMissing && !!container && !isDomContainer(container)) {
+    const effect = effectSubscriber[EffectSubscriptionsProp.EFFECT];
+    const property = effectSubscriber[EffectSubscriptionsProp.PROPERTY];
+    let qrl: QRL | null = null;
+    if (isTask(effect)) {
+      qrl = effect.$qrl$;
+    } else if (effect instanceof ComputedSignal) {
+      qrl = effect.$computeQrl$;
+    } else if (property === EffectProperty.COMPONENT) {
+      qrl = container.getHostProp<QRL>(effect as ISsrNode, OnRenderProp);
+    }
+    if (qrl) {
+      (container as SSRContainer).serializationCtx.$eventQrls$.add(qrl);
+    }
+  }
 };
 
 export const triggerEffects = (

@@ -1,4 +1,3 @@
-import { isDev } from '@qwik.dev/core/build';
 import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
 import { getPlatform, isServerPlatform } from '../platform/platform';
@@ -241,13 +240,6 @@ export const createQRL = <TYPE>(
     symbolRef = maybeThen(symbolRef, (resolved) => (qrl.resolved = wrapFn((symbolRef = resolved))));
   }
 
-  if (isDev) {
-    Object.defineProperty(qrl, '_devOnlySymbolRef', {
-      get() {
-        return symbolRef;
-      },
-    });
-  }
   if (qDev) {
     seal(qrl);
   }

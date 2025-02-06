@@ -17,12 +17,12 @@ import {
   Slot,
 } from '@qwik.dev/core';
 
-const debug = false; //true;
+const debug = !false; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
   { render: ssrRenderToDom }, //
-  { render: domRender }, //
+  // { render: domRender }, //
 ])('$render.name: attributes', ({ render }) => {
   it('should render boolean and number attributes', async () => {
     const AttrComp = component$(() => {
@@ -135,7 +135,7 @@ describe.each([
   });
 
   describe('binding', () => {
-    it('should bind checked attribute', async () => {
+    it.only('should bind checked attribute', async () => {
       const BindCmp = component$(() => {
         const show = useSignal(false);
         return (

@@ -1431,12 +1431,10 @@ impl<'a> QwikTransform<'a> {
 											} else {
 												var_props.push(converted_prop.fold_with(self));
 											}
+										} else if !is_const || spread_props_count > 0 {
+											var_props.push(converted_prop.fold_with(self));
 										} else {
-											if !is_const || spread_props_count > 0 {
-												var_props.push(converted_prop.fold_with(self));
-											} else {
-												const_props.push(converted_prop.fold_with(self));
-											}
+											const_props.push(converted_prop.fold_with(self));
 										}
 									} else {
 										let const_prop = is_const_expr(
@@ -1454,12 +1452,10 @@ impl<'a> QwikTransform<'a> {
 											} else {
 												var_props.push(prop.fold_with(self));
 											}
+										} else if !const_prop || spread_props_count > 0 {
+											var_props.push(prop.fold_with(self));
 										} else {
-											if !const_prop || spread_props_count > 0 {
-												var_props.push(prop.fold_with(self));
-											} else {
-												const_props.push(prop.fold_with(self));
-											}
+											const_props.push(prop.fold_with(self));
 										}
 									}
 								} else if is_const_expr(

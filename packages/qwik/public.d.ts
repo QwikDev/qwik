@@ -71,6 +71,5 @@ export {
   ValueOrPromise,
   version,
   withLocale,
+  SVGAttributes,
 } from './dist/core-internal';
-
-export type * from './dist/core-internal';

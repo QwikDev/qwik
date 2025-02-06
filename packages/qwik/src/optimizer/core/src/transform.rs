@@ -1389,11 +1389,9 @@ impl<'a> QwikTransform<'a> {
 									if !is_const {
 										static_listeners = false;
 										var_props.push(converted_prop.clone().fold_with(self));
-									} else if spread_props_count > 0 {
+									} else  {
 										maybe_const_props
 											.push(converted_prop.clone().fold_with(self));
-									} else {
-										const_props.push(converted_prop.clone().fold_with(self));
 									}
 									// event_handlers.push(converted_prop);
 								} else if !is_fn && (key_word == *REF || key_word == *QSLOT) {

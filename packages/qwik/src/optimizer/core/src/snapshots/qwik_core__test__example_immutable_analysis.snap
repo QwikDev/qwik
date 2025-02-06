@@ -249,7 +249,6 @@ export const App_component_remove_pU6yOC5P6sY = (id)=>{
     const d = state.data;
     d.splice(d.findIndex((d)=>d.id === id), 1);
 };
-export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gDAQkB,CAAC;;IACjB,MAAM,IAAI,MAAM,IAAI;IACpB,EAAE,MAAM,CACP,EAAE,SAAS,CAAC,CAAC,IAAM,EAAE,EAAE,KAAK,KAC5B\"}")

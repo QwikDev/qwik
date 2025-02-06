@@ -5,7 +5,6 @@ import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import {
   ComputedEvent,
-  QContainerSelector,
   QLocaleAttr,
   RenderEvent,
   ResourceEvent,
@@ -16,9 +15,9 @@ import { seal } from '../shared/utils/qdev';
 import { isArray } from '../shared/utils/types';
 import { setLocale } from './use-locale';
 import type { Container, HostElement } from '../shared/types';
-import { vnode_getNode, vnode_isElementVNode, vnode_isVNode } from '../client/vnode';
-import { _getQContainerElement } from '../client/dom-container';
-import type { ContainerElement } from '../client/types';
+import { vnode_getNode, vnode_isElementVNode, vnode_isVNode, vnode_locate } from '../client/vnode';
+import { _getQContainerElement, getDomContainer } from '../client/dom-container';
+import { type ContainerElement } from '../client/types';
 import {
   WrappedSignal,
   type EffectPropData,
@@ -176,10 +175,12 @@ export const waitAndRun = (ctx: RenderInvokeContext, callback: () => unknown) =>
 };
 
 export const newInvokeContextFromTuple = ([element, event, url]: InvokeTuple) => {
-  const container = element.closest(QContainerSelector);
+  const domContainer = getDomContainer(element);
+  const container = domContainer.element;
+  const vNode = container ? vnode_locate(domContainer.rootVNode, element) : undefined;
   const locale = container?.getAttribute(QLocaleAttr) || undefined;
   locale && setLocale(locale);
-  return newInvokeContext(locale, undefined, element, event, url);
+  return newInvokeContext(locale, vNode, element, event, url);
 };
 
 // TODO how about putting url and locale (and event/custom?) in to a "static" object

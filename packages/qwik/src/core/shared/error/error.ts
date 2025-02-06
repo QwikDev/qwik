@@ -6,8 +6,8 @@ export const codeToText = (code: number, ...parts: any[]): string => {
     // Keep one error, one line to make it easier to search for the error message.
     const MAP = [
       'Error while serializing class or style attributes', // 0
-      '', // 1 unused
-      '', // 2 unused
+      'Scheduler not found', // 1
+      'track() received object, without prop to track', // 2
       'Only primitive and object literals can be serialized. {{0}}', // 3
       '', // 4 unused
       'You can render over a existing q:container. Skipping render().', // 5
@@ -50,12 +50,11 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       "Element must have 'q:container' attribute.", // 42
       'Unknown vnode type {{0}}.', // 43
       'Materialize error: missing element: {{0}} {{1}} {{2}}', // 44
-      'Cannot coerce a Signal, use `.value` instead', // 46
-      'useComputedSignal$ QRL {{0}} {{1}} returned a Promise', // 47
-      'ComputedSignal is read-only', // 48
-      'WrappedSignal is read-only', // 49
-      'SsrError: Promises not expected here.', // 50
-      'Attribute value is unsafe for SSR', // 51
+      'Cannot coerce a Signal, use `.value` instead', // 45
+      'useComputedSignal$ QRL {{0}} {{1}} returned a Promise', // 46
+      'ComputedSignal is read-only', // 47
+      'WrappedSignal is read-only', // 48
+      'Attribute value is unsafe for SSR', // 49
     ];
     let text = MAP[code] ?? '';
     if (parts.length) {
@@ -76,8 +75,8 @@ export const codeToText = (code: number, ...parts: any[]): string => {
 
 export const enum QError {
   stringifyClassOrStyle = 0,
-  UNUSED_1 = 1,
-  UNUSED_2 = 2,
+  schedulerNotFound = 1,
+  trackObjectWithoutProp = 2,
   verifySerializable = 3,
   UNUSED_4 = 4,
   cannotRenderOverExistingContainer = 5,
@@ -124,8 +123,7 @@ export const enum QError {
   computedNotSync = 46,
   computedReadOnly = 47,
   wrappedReadOnly = 48,
-  promisesNotExpected = 49,
-  unsafeAttr = 50,
+  unsafeAttr = 49,
 }
 
 export const qError = (code: number, errorMessageArgs: any[] = []): Error => {

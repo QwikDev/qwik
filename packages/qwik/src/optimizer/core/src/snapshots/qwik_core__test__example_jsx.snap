@@ -137,7 +137,6 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
         }, children, 1, null)
     ], 1, "u6_4");
 };
-export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAeU;;IACR,qBACC,WAAC;sBACA;0BACC,WAAC;gBAAI,OAAM;;0BACX,WAAC;gBAAI,OAAM;;0BACX,WAAC;gBAAI,OAAM;eAAQ;;sBAEpB,WAAC;YAAI,OAAM;yBACV,UAAC;YAAa,GAAG,KAAK;;sBAEvB,WAAC;YAAI,OAAM;;0BACV,WAAC;0BACD,WAAC;0BACD,WAAC;;sBAEF,WAAC;YAAI,OAAM;WACT\"}")

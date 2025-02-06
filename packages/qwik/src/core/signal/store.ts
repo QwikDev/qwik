@@ -5,6 +5,7 @@ import { isSerializableObject } from '../shared/utils/types';
 import type { Container } from '../shared/types';
 import {
   EffectSubscriptionsProp,
+  addQrlToSerializationCtx,
   ensureContains,
   ensureContainsEffect,
   ensureEffectContainsSubscriber,
@@ -230,13 +231,14 @@ function addEffect<T extends Record<string | symbol, any>>(
   // But when effect is scheduled in needs to be able to know which signals
   // to unsubscribe from. So we need to store the reference from the effect back
   // to this signal.
-  ensureContains(effectSubscriber, target);
+  const isMissing = ensureContains(effectSubscriber, target);
   // We need to add the subscriber to the effect so that we can clean it up later
   ensureEffectContainsSubscriber(
     effectSubscriber[EffectSubscriptionsProp.EFFECT],
     target,
     store.$container$
   );
+  addQrlToSerializationCtx(effectSubscriber, isMissing, store.$container$);
 
   DEBUG && log('sub', pad('\n' + store.$effects$.toString(), '  '));
 }

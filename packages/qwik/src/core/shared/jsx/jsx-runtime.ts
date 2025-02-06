@@ -14,6 +14,7 @@ import type { QwikJSX } from './types/jsx-qwik';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 
 export type Props = Record<string, unknown>;
+export type PropsProxy = { [_VAR_PROPS]: Props; [_CONST_PROPS]: Props | null };
 
 /**
  * Create a JSXNode with the properties fully split into variable and constant parts, and children
@@ -198,9 +199,7 @@ export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends 
 
 export const SKIP_RENDER_TYPE = ':skipRender';
 
-export const isPropsProxy = (
-  obj: any
-): obj is { [_VAR_PROPS]: Props; [_CONST_PROPS]: Props | null } => {
+export const isPropsProxy = (obj: any): obj is PropsProxy => {
   return obj && obj[_VAR_PROPS] !== undefined;
 };
 

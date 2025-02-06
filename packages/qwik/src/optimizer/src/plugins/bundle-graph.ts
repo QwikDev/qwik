@@ -34,19 +34,28 @@ export function convertManifestToBundleGraph(
       }
       clearTransitiveDeps(deps, new Set(), depName, manifestGraph);
     }
-    let didAddSeparator = false;
-    for (const depName of bundle.dynamicImports || []) {
-      // If we dynamically import a qrl segment that is not a handler, we'll probably need it soon
+    if (bundle.origins) {
+      const qwikCityPlanOrigin = bundle.origins.find((origin) =>
+        origin.includes('@qwik-city-plan')
+      );
+      if (qwikCityPlanOrigin) {
+        console.log('******* bundle', bundleName, 'origin', qwikCityPlanOrigin);
+      } else {
+        let didAddSeparator = false;
+        for (const depName of bundle.dynamicImports || []) {
+          // If we dynamically import a qrl segment that is not a handler, we'll probably need it soon
 
-      if (!manifestGraph[depName]) {
-        // external dependency
-        continue;
+          if (!manifestGraph[depName]) {
+            // external dependency
+            continue;
+          }
+          if (!didAddSeparator) {
+            deps.add('<dynamic>');
+            didAddSeparator = true;
+          }
+          deps.add(depName);
+        }
       }
-      if (!didAddSeparator) {
-        deps.add('<dynamic>');
-        didAddSeparator = true;
-      }
-      deps.add(depName);
     }
     map.set(bundleName, { index, deps });
     bundleGraph.push(bundleName);

@@ -9,6 +9,7 @@ export default defineConfig(async () => {
   return {
     plugins: [
       macroPlugin({ preset: 'pandacss' }),
+      // Disable CSRF protection
       qwikCity(),
       qwikTypes(),
       qwikVite(),

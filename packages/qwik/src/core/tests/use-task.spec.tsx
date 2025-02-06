@@ -55,7 +55,7 @@ describe.each([
     });
 
     const { vNode } = await render(<Counter />, { debug });
-    expect(log).toEqual(['Counter', 'task', 'resolved', 'Counter', 'render']);
+    expect(log).toEqual(['Counter', 'render', 'task', 'resolved']);
     expect(vNode).toMatchVDOM(
       <Component>
         <span>
@@ -72,17 +72,15 @@ describe.each([
       });
       return <span>OK</span>;
     });
-
     try {
       await render(
         <ErrorProvider>
-          <div>
-            <ThrowError />
-          </div>
+          <ThrowError />
         </ErrorProvider>,
         { debug }
       );
-      expect(ErrorProvider.error).toBe(render === domRender ? error : null);
+      expect(render).toBe(domRender);
+      expect(ErrorProvider.error).toBe(error);
     } catch (e) {
       expect(render).toBe(ssrRenderToDom);
       expect(e).toBe(error);
@@ -90,22 +88,22 @@ describe.each([
   });
   it('should handle async exceptions', async () => {
     const error = new Error('HANDLE ME');
-    const Counter = component$(() => {
+    const ThrowError = component$(() => {
       useTask$(async () => {
         await delay(1);
         throw error;
       });
       return <span>OK</span>;
     });
-
     try {
       await render(
         <ErrorProvider>
-          <Counter />
+          <ThrowError />
         </ErrorProvider>,
         { debug }
       );
-      expect(ErrorProvider.error).toBe(render === domRender ? error : null);
+      expect(render).toBe(domRender);
+      expect(ErrorProvider.error).toBe(error);
     } catch (e) {
       expect(render).toBe(ssrRenderToDom);
       expect(e).toBe(error);
@@ -133,16 +131,7 @@ describe.each([
     });
 
     const { vNode } = await render(<Counter />, { debug });
-    expect(log).toEqual([
-      'Counter',
-      '1:task',
-      '1:resolved',
-      'Counter',
-      '2:task',
-      '2:resolved',
-      'Counter',
-      'render',
-    ]);
+    expect(log).toEqual(['Counter', 'render', '1:task', '1:resolved', '2:task', '2:resolved']);
     expect(vNode).toMatchVDOM(
       <Component>
         <span>
@@ -312,6 +301,7 @@ describe.each([
       (globalThis as any).log = [] as string[];
       const Counter = component$(() => {
         const store = useStore({ count: 1, double: 0, quadruple: 0 });
+        // Quadruple runs first, but will run again after double is updated
         useTask$(({ track }) => {
           (globalThis as any).log.push('quadruple');
           const trackingValue = track(store, 'double') * 2;
@@ -330,7 +320,7 @@ describe.each([
       });
 
       const { vNode, document } = await render(<Counter />, { debug });
-      expect((globalThis as any).log).toEqual(['quadruple', 'double', 'Counter', 'quadruple']);
+      expect((globalThis as any).log).toEqual(['Counter', 'quadruple', 'double', 'quadruple']);
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -369,7 +359,7 @@ describe.each([
       const { vNode, document } = await render(<Counter />, { debug });
       // console.log('log', log);
       expect((globalThis as any).log).toEqual(
-        isCSR ? ['task: 0', 'Counter: 0'] : ['task: 0', 'Counter: 0', 'cleanup: 0']
+        isCSR ? ['Counter: 0', 'task: 0'] : ['Counter: 0', 'task: 0', 'cleanup: 0']
       );
       expect(vNode).toMatchVDOM(
         <Component>
@@ -426,7 +416,7 @@ describe.each([
       const { vNode, document } = await render(<Parent />, { debug });
       // console.log('log', log);
       expect((globalThis as any).log).toEqual(
-        isCSR ? ['task:', 'Child'] : ['task:', 'Child', 'cleanup:']
+        isCSR ? ['Child', 'task:'] : ['Child', 'task:', 'cleanup:']
       );
       expect(vNode).toMatchVDOM(
         <Component>
@@ -449,7 +439,7 @@ describe.each([
       (globalThis as any).log = [];
       await trigger(document.body, 'button', 'click');
 
-      expect((globalThis as any).log).toEqual(['task:', 'Child']);
+      expect((globalThis as any).log).toEqual(['Child', 'task:']);
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -518,9 +508,6 @@ describe.each([
         // async microtasks run, task 1 queues a delay
         'inside.1',
         '2b',
-        // render waited until task 2 finished
-        // re-render because of signal change in task 1
-        'render',
         // task 3 runs sync and attaches to the promise
         '3a',
         // microtasks run
@@ -771,5 +758,29 @@ describe.each([
         </Component>
       );
     });
+  });
+
+  it('should rerender component after task', async () => {
+    const Cmp = component$(() => {
+      const sort = useSignal<'id' | 'size'>('size');
+      const table = useSignal([
+        { id: 1, size: 4 },
+        { id: 2, size: 3 },
+        { id: 3, size: 2 },
+        { id: 4, size: 1 },
+        { id: 5, size: 7 },
+        { id: 6, size: 8 },
+        { id: 7, size: 9 },
+      ]);
+
+      useTask$(({ track }) => {
+        track(() => sort.value);
+        table.value = table.value.sort((a, b) => a[sort.value] - b[sort.value]).slice();
+      });
+
+      return table.value.map((row) => row.size).join(' ');
+    });
+    const { vNode } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(<Component>1 2 3 4 7 8 9</Component>);
   });
 });

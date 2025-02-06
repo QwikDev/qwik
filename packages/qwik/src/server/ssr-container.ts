@@ -50,6 +50,7 @@ import {
   QSubscribers,
   QError,
   qError,
+  ChoreType,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -220,7 +221,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private $noMoreRoots$ = false;
   constructor(opts: Required<SSRRenderOptions>) {
     super(
-      () => null,
+      () => {
+        try {
+          return this.$scheduler$(ChoreType.WAIT_FOR_ALL);
+        } catch (e) {
+          this.handleError(e, null!);
+        }
+      },
       () => null,
       opts.renderOptions.serverData ?? EMPTY_OBJ,
       opts.locale
@@ -248,16 +255,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.$processInjectionsFromManifest$();
   }
 
-  ensureProjectionResolved(host: HostElement): void {}
+  ensureProjectionResolved(_host: HostElement): void {}
 
-  handleError(err: any, $host$: HostElement): void {
+  handleError(err: any, _$host$: HostElement): void {
     throw err;
   }
 
   async render(jsx: JSXOutput) {
     this.openContainer();
     await _walkJSX(this, jsx, {
-      allowPromises: true,
       currentStyleScoped: null,
       parentComponentFrame: this.getComponentFrame(),
     });
@@ -987,7 +993,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             }
             ssrComponentNode?.setProp(value, lastNode.id);
             await _walkJSX(this, children, {
-              allowPromises: true,
               currentStyleScoped: scopedStyleId,
               parentComponentFrame: null,
             });

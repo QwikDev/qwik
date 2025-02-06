@@ -31,7 +31,6 @@ snapshot_kind: text
 ============================= test.tsx_Bar_GXXnVUtURSw.ts (ENTRY POINT)==
 
 export const Bar_GXXnVUtURSw = "a thing";
-export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+BAUuB\"}")

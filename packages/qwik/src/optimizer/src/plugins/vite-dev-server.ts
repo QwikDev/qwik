@@ -10,7 +10,7 @@ import clickToComponent from './click-to-component.html?raw';
 import errorHost from './error-host.html?raw';
 import imageDevTools from './image-size-runtime.html?raw';
 import perfWarning from './perf-warning.html?raw';
-import { type NormalizedQwikPluginOptions, parseId } from './plugin';
+import { type NormalizedQwikPluginOptions, parseId, QWIK_HANDLERS_ID } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
 import { formatError } from './vite-utils';
@@ -37,6 +37,10 @@ function createSymbolMapper(base: string): SymbolMapperFn {
       return [symbolName, ''];
     }
     if (!parent) {
+      // Core symbols
+      if (symbolName.startsWith('_')) {
+        return [symbolName, `${base}${QWIK_HANDLERS_ID}`];
+      }
       console.error(
         'qwik vite-dev-server symbolMapper: unknown qrl requested without parent:',
         symbolName

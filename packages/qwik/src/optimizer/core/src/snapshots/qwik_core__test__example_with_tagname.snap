@@ -55,7 +55,6 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
     return <div>
 			</div>;
 };
-export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2CAIU;IACR,QACE,IAAI;GACL,EAAE;AAEJ\"}")

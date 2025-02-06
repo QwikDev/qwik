@@ -137,9 +137,9 @@ export const vnode_diff = (
   let vCurrent: VNode | null = null;
 
   /// When we insert new node we start it here so that we can descend into it.
-  /// NOTE: it can't be stored in `vCurrent` because `vNewCurrent` is in journal
+  /// NOTE: it can't be stored in `vCurrent` because `vNewNode` is in journal
   /// and is not connected to the tree.
-  let vNewNode: VNode | null = null; // TODO: delete, because journal is on vNode, the above comment no longer applies
+  let vNewNode: VNode | null = null;
 
   /// When elements have keys they can be consumed out of order and therefore we can't use nextSibling.
   /// In such a case this array will contain the elements after the current location.
@@ -615,14 +615,25 @@ export const vnode_diff = (
           // But we need to mark them so that they don't get pulled into the diff.
           const eventName = getEventNameFromJsxProp(key);
           const scope = getEventNameScopeFromJsxProp(key);
-          vnode_setProp(
-            vNewNode as ElementVNode,
-            HANDLER_PREFIX + ':' + scope + ':' + eventName,
-            value
-          );
           if (eventName) {
+            vnode_setProp(
+              vNewNode as ElementVNode,
+              HANDLER_PREFIX + ':' + scope + ':' + eventName,
+              value
+            );
             registerQwikLoaderEvent(eventName);
           }
+
+          if (scope) {
+            // add an event attr with empty value for qwikloader element selector.
+            // We don't need value here. For ssr this value is a QRL,
+            // but for CSR value should be just empty
+            const htmlEvent = convertEventNameFromJsxPropToHtmlAttr(key);
+            if (htmlEvent) {
+              vnode_setAttr(journal, vNewNode as ElementVNode, htmlEvent, '');
+            }
+          }
+
           needsQDispatchEventPatch = true;
           continue;
         }
@@ -766,7 +777,12 @@ export const vnode_diff = (
           let returnValue = false;
           qrls.flat(2).forEach((qrl) => {
             if (qrl) {
-              const value = qrl(event, element) as any;
+              const value = container.$scheduler$(
+                ChoreType.RUN_QRL,
+                vNode,
+                qrl as QRLInternal<(...args: unknown[]) => unknown>,
+                [event, element]
+              ) as unknown;
               returnValue = returnValue || value === true;
             }
           });
@@ -830,22 +846,21 @@ export const vnode_diff = (
 
     const recordJsxEvent = (key: string, value: any) => {
       const eventName = getEventNameFromJsxProp(key);
+      const scope = getEventNameScopeFromJsxProp(key);
       if (eventName) {
-        const scope = getEventNameScopeFromJsxProp(key);
         record(':' + scope + ':' + eventName, value);
-      }
-
-      // add an event attr with empty value for qwikloader element selector.
-      // We don't need value here. For ssr this value is a QRL,
-      // but for CSR value should be just empty
-      const htmlEvent = convertEventNameFromJsxPropToHtmlAttr(key);
-      if (htmlEvent) {
-        record(htmlEvent, '');
-      }
-
-      // register an event for qwik loader
-      if (eventName) {
+        // register an event for qwik loader
         registerQwikLoaderEvent(eventName);
+      }
+
+      if (scope) {
+        // add an event attr with empty value for qwikloader element selector.
+        // We don't need value here. For ssr this value is a QRL,
+        // but for CSR value should be just empty
+        const htmlEvent = convertEventNameFromJsxPropToHtmlAttr(key);
+        if (htmlEvent) {
+          record(htmlEvent, '');
+        }
       }
     };
 

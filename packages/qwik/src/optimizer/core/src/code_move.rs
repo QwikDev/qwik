@@ -1,6 +1,6 @@
 use crate::collector::{new_ident_from_id, GlobalCollect, Id, ImportKind};
 use crate::parse::PathData;
-use crate::transform::{add_handle_watch, create_synthetic_named_import};
+use crate::transform::create_synthetic_named_import;
 use crate::words::*;
 
 use anyhow::Error;
@@ -24,7 +24,6 @@ pub struct NewModuleCtx<'a> {
 	pub scoped_idents: &'a [Id],
 	pub global: &'a GlobalCollect,
 	pub core_module: &'a JsWord,
-	pub need_handle_watch: bool,
 	pub need_transform: bool,
 	pub explicit_extensions: bool,
 	pub leading_comments: SingleThreadedCommentsMap,
@@ -144,10 +143,6 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
 	};
 
 	module.body.push(create_named_export(expr, ctx.name));
-	if ctx.need_handle_watch {
-		// Inject qwik internal import
-		add_handle_watch(&mut module.body, ctx.core_module);
-	}
 	Ok((module, comments))
 }
 

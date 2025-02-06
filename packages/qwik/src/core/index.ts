@@ -112,7 +112,7 @@ export type { ComputedFn } from './use/use-computed';
 export { useComputedQrl } from './use/use-computed';
 export type { OnVisibleTaskOptions, VisibleTaskStrategy } from './use/use-visible-task';
 export { useVisibleTaskQrl } from './use/use-visible-task';
-export type { EagernessOptions, TaskCtx, TaskFn, Tracker, UseTaskOptions } from './use/use-task';
+export type { TaskCtx, TaskFn, Tracker } from './use/use-task';
 export type {
   ResourceProps,
   ResourceOptions,

@@ -1184,7 +1184,6 @@ impl<'a> QwikTransform<'a> {
 				let mut var_props = vec![];
 				let mut const_props = vec![];
 				let mut children = None;
-				let mut event_handlers = vec![];
 				// The identifiers that are static
 				let const_idents: Vec<_> = self
 					.decl_stack
@@ -1200,6 +1199,7 @@ impl<'a> QwikTransform<'a> {
 					.iter()
 					.filter(|prop| !matches!(prop, ast::PropOrSpread::Prop(_)))
 					.count();
+
 				let has_spread_props = spread_props_count > 0;
 				let should_runtime_sort = has_spread_props;
 				let mut static_listeners = !has_spread_props;
@@ -1213,6 +1213,10 @@ impl<'a> QwikTransform<'a> {
 					} else {
 						&mut const_props
 					};
+					println!(
+						"spread_props_count: 1111111111111: {:#?}",
+						spread_props_count
+					);
 					match prop {
 						// regular props
 						ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref node)) => {
@@ -1277,6 +1281,10 @@ impl<'a> QwikTransform<'a> {
 											value: folded.clone(),
 										}),
 									)));
+									println!(
+										"maybe_const_props: 1111111111111: {:#?}",
+										maybe_const_props
+									);
 									let elm = private_ident!("elm");
 									let arrow_fn = ast::Expr::Arrow(ast::ArrowExpr {
 										params: vec![
@@ -1376,9 +1384,6 @@ impl<'a> QwikTransform<'a> {
 											event_handler.clone(),
 											None,
 										);
-									if !is_const {
-										static_listeners = false;
-									}
 									let converted_prop = ast::PropOrSpread::Prop(Box::new(
 										ast::Prop::KeyValue(ast::KeyValueProp {
 											value: Box::new(ast::Expr::Call(converted_expr)),
@@ -1389,7 +1394,20 @@ impl<'a> QwikTransform<'a> {
 											}),
 										}),
 									));
-									event_handlers.push(converted_prop);
+									if !is_const {
+										static_listeners = false;
+										var_props.push(converted_prop.clone().fold_with(self));
+									} else if spread_props_count > 0 {
+										maybe_const_props
+											.push(converted_prop.clone().fold_with(self));
+									} else {
+										const_props.push(converted_prop.clone().fold_with(self));
+									}
+									println!(
+										"converted_prop: 1111111111111: {:#?}",
+										converted_prop
+									);
+									// event_handlers.push(converted_prop);
 								} else if !is_fn && (key_word == *REF || key_word == *QSLOT) {
 									// skip
 									var_props.push(prop.fold_with(self));
@@ -1426,7 +1444,11 @@ impl<'a> QwikTransform<'a> {
 												var_props.push(converted_prop.fold_with(self));
 											}
 										} else {
-											event_handlers.push(converted_prop.fold_with(self));
+											if !is_const || spread_props_count > 0 {
+												var_props.push(converted_prop.fold_with(self));
+											} else {
+												const_props.push(converted_prop.fold_with(self));
+											}
 										}
 									} else {
 										let const_prop = is_const_expr(
@@ -1445,7 +1467,11 @@ impl<'a> QwikTransform<'a> {
 												var_props.push(prop.fold_with(self));
 											}
 										} else {
-											event_handlers.push(prop.fold_with(self));
+											if !const_prop || spread_props_count > 0 {
+												var_props.push(prop.fold_with(self));
+											} else {
+												const_props.push(prop.fold_with(self));
+											}
 										}
 									}
 								} else if is_const_expr(
@@ -1458,12 +1484,12 @@ impl<'a> QwikTransform<'a> {
 									self.convert_to_getter(&node.value)
 								{
 									let key = node.key.clone();
-									let entry = ast::PropOrSpread::Prop(Box::new(
-										ast::Prop::KeyValue(ast::KeyValueProp {
+									let entry: ast::PropOrSpread = ast::PropOrSpread::Prop(
+										Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
 											key,
 											value: Box::new(getter),
-										}),
-									));
+										})),
+									);
 									if is_fn || is_const {
 										maybe_const_props.push(entry);
 									} else {
@@ -1501,15 +1527,10 @@ impl<'a> QwikTransform<'a> {
 				let mut flags = 0;
 				if static_listeners {
 					flags |= 1 << 0;
-					const_props.extend(event_handlers);
-				} else {
-					var_props.extend(event_handlers);
 				}
-
 				if static_subtree {
 					flags |= 1 << 1;
 				}
-
 				if !should_runtime_sort {
 					var_props.sort_by(|a: &ast::PropOrSpread, b: &ast::PropOrSpread| {
 						match (a, b) {
@@ -1527,6 +1548,7 @@ impl<'a> QwikTransform<'a> {
 									ast::PropName::Str(ref s) => Some(s.value.as_ref()),
 									_ => None,
 								};
+								println!("a_key: {:?}, b_key: {:?}", a_key, b_key);
 								match (a_key, b_key) {
 									(Some(a_key), Some(b_key)) => a_key.cmp(b_key),
 									_ => std::cmp::Ordering::Equal,
@@ -1536,6 +1558,7 @@ impl<'a> QwikTransform<'a> {
 						}
 					});
 				}
+				// println!("var_props222: {:?}", var_props);
 				(should_runtime_sort, var_props, const_props, children, flags)
 			}
 			_ => (true, vec![], vec![], None, 0),

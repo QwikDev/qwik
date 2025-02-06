@@ -57,7 +57,7 @@ export default defineConfig(async () => {
 
   const routesDir = resolve('src', 'routes');
   return {
-    dev: {
+    server: {
       headers: {
         'Cache-Control': 'public, max-age=0',
       },
@@ -113,7 +113,7 @@ export default defineConfig(async () => {
         mdx: {
           rehypePlugins: [
             [
-              rehypePrettyCode as any,
+              rehypePrettyCode,
               {
                 theme: 'dark-plus',
                 onVisitLine(node: any) {
@@ -179,8 +179,5 @@ export default defineConfig(async () => {
       },
     },
     clearScreen: false,
-    server: {
-      port: 3000,
-    },
   };
 });

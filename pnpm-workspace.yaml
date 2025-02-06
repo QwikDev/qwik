@@ -3,3 +3,6 @@ packages:
   - 'e2e/*'
   # - 'starters/adapter/*'
   # - 'starters/features/*'
+
+catalog:
+  vite: '6.1.0'

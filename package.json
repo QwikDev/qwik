@@ -10,6 +10,16 @@
     "syncpack": {
       "versionGroups": [
         {
+          "label": "Allow ESLint 9 types in eslint-plugin-qwik",
+          "dependencies": [
+            "@types/eslint"
+          ],
+          "packages": [
+            "eslint-plugin-qwik"
+          ],
+          "policy": "matches@9.6.1"
+        },
+        {
           "label": "Be lenient in vite versions for prod. v4 is broken, v5 is good",
           "dependencyTypes": [
             "prod",
@@ -176,7 +186,7 @@
     "yarn": "please-use-pnpm",
     "pnpm": ">=9.0.5"
   },
-  "packageManager": "pnpm@9.0.5",
+  "packageManager": "pnpm@9.15.5",
   "pnpm": {
     "overrides": {
       "typescript": "5.4.5",
@@ -210,8 +220,8 @@
     "build.wasm": "tsx --require ./scripts/runBefore.ts scripts/index.ts --wasm",
     "build.watch": "tsx --require ./scripts/runBefore.ts scripts/index.ts --build  --qwikcity --watch --dev --platform-binding",
     "change": "changeset",
-    "cli": "pnpm build.cli && node packages/create-qwik/dist/create-qwik.cjs && tsx --require ./scripts/runBefore.ts scripts/validate-cli.ts --copy-local-qwik-dist",
-    "cli.qwik": "pnpm build.cli && node packages/qwik/dist/qwik-cli.cjs",
+    "cli": "pnpm build.cli && node packages/create-qwik/create-qwik.cjs && tsx --require ./scripts/runBefore.ts scripts/validate-cli.ts --copy-local-qwik-dist",
+    "cli.qwik": "pnpm build.cli && node packages/qwik/qwik-cli.cjs",
     "cli.validate": "tsx --require ./scripts/runBefore.ts scripts/validate-cli.ts",
     "deps": "corepack pnpm upgrade -i -r --latest && syncpack fix-mismatches && corepack pnpm dedupe",
     "docs.dev": "cd packages/docs && pnpm build.repl-sw && pnpm dev",

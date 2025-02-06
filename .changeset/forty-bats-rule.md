@@ -2,4 +2,4 @@
 '@builder.io/qwik': patch
 ---
 
-FEAT: tailwindcss v4 integration
+updated drizzle to latest version

@@ -28,10 +28,10 @@ export const Parent = component$(() => {
 	serverStuff$(async () => {
 		// should be removed too
 		const a = $(() => {
-			// from $(), should not be removed
+			dontRemoveThisDollar();
 		});
 		const b = client$(() => {
-			// from clien$(), should not be removed
+			dontRemoveThisClient();
 		});
 		return [a,b];
 	})
@@ -39,7 +39,7 @@ export const Parent = component$(() => {
 	serverLoader$(handler);
 
 	useTask$(() => {
-		// Code
+		runSomething();
 	});
 
 	return (
@@ -93,11 +93,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_Parent_component_serverStuff_a_2ca3HLDC7yc.js (ENTRY POINT)==
 
 export const s_2ca3HLDC7yc = ()=>{
-// from $(), should not be removed
+    dontRemoveThisDollar();
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAqBc;AACX,kCAAkC;AACnC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAqBc;IACX;AACD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -114,18 +114,18 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     538,
-    587
+    576
   ]
 }
 */
 ============================= test.tsx_Parent_component_serverStuff_b_client_v9qawr2Inkk.js (ENTRY POINT)==
 
 export const s_v9qawr2Inkk = ()=>{
-// from clien$(), should not be removed
+    dontRemoveThisClient();
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAwBoB;AACjB,uCAAuC;AACxC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAwBoB;IACjB;AACD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -141,8 +141,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "client$",
   "captures": false,
   "loc": [
-    610,
-    664
+    599,
+    637
   ]
 }
 */
@@ -190,7 +190,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     279,
-    835
+    816
   ]
 }
 */
@@ -215,19 +215,19 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    775,
-    802
+    756,
+    783
   ]
 }
 */
 ============================= test.tsx_Parent_component_useTask_1_P8oRQhHsurk.js (ENTRY POINT)==
 
 export const s_P8oRQhHsurk = ()=>{
-// Code
+    runSomething();
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAgCU;AACR,OAAO;AACR\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAgCU;IACR;AACD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -243,8 +243,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useTask$",
   "captures": false,
   "loc": [
-    724,
-    744
+    697,
+    725
   ]
 }
 */

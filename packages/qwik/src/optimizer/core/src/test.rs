@@ -1842,10 +1842,10 @@ export const Parent = component$(() => {
 	serverStuff$(async () => {
 		// should be removed too
 		const a = $(() => {
-			// from $(), should not be removed
+			dontRemoveThisDollar();
 		});
 		const b = client$(() => {
-			// from clien$(), should not be removed
+			dontRemoveThisClient();
 		});
 		return [a,b];
 	})
@@ -1853,7 +1853,7 @@ export const Parent = component$(() => {
 	serverLoader$(handler);
 
 	useTask$(() => {
-		// Code
+		runSomething();
 	});
 
 	return (
@@ -1948,7 +1948,7 @@ export const Parent = component$(() => {
 	});
 
 	useTask$(() => {
-		// Code
+		runSomething();
 	});
 
 	return (
@@ -4269,6 +4269,36 @@ export const Cmp = component$(() => {
 		..TestInput::default()
 	});
 }
+
+#[test]
+fn empty_fn_to_noop() {
+	test_input!(TestInput {
+		code: r#"
+		import { isServer } from '@builder.io/qwik/build';
+		import { component$ } from '@builder.io/qwik';
+		export const Cmp0 = component$(() => {
+			return undefined;
+		 });
+		export const Cmp1 = component$(() => {
+			if (!isServer) {
+				return <div>hello</div>;
+			}
+		});
+		export const Cmp2 = component$(function(_unused) {
+			if (isServer) {
+				return;
+			}
+			return <div>hello</div>;
+		});
+		export const Cmp3 = component$(function() { });
+		"#
+		.to_string(),
+		mode: EmitMode::Prod,
+		is_server: Some(true),
+		..TestInput::default()
+	});
+}
+
 // TODO(misko): Make this test work by implementing strict serialization.
 // #[test]
 // fn example_of_synchronous_qrl_that_cant_be_serialized() {

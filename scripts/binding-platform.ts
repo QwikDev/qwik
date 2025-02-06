@@ -85,6 +85,7 @@ export async function copyPlatformBindingWasm(config: BuildConfig) {
     // now check if we already have this package in the cache
     const cachedPath = join(cacheDir, realPackageName);
     if (!existsSync(cachedPath)) {
+      ensureDir(cacheDir);
       // download the package
       console.log(`🦉 downloading CI build from ${url}`);
       const pkgRsp = await fetch(url);

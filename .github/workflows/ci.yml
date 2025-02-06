@@ -210,7 +210,6 @@ jobs:
 
       - name: Install NPM Dependencies
         run: |
-          corepack enable
           # Ensure that the qwik binary gets made
           mkdir -p packages/qwik/bindings/
           pnpm install --frozen-lockfile
@@ -399,7 +398,7 @@ jobs:
 
       - name: Install NPM Dependencies
         if: needs.changes.outputs.build-others == 'true'
-        run: corepack pnpm install
+        run: pnpm install
 
       - name: 'build: qwik-city & others'
         if: needs.changes.outputs.build-others == 'true'
@@ -530,7 +529,7 @@ jobs:
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
-      - run: corepack pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
       - name: Build Qwik Insights
         run: pnpm run build.packages.insights
 
@@ -583,7 +582,7 @@ jobs:
           mv artifact-qwiklabs/vite packages/qwik-labs/vite
           mv artifact-qwikreact/lib packages/qwik-react/lib
 
-      - run: corepack pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
       - name: Build Qwik Docs
         run: pnpm run build.packages.docs && echo ok > docs-build-completed.txt
 
@@ -626,7 +625,6 @@ jobs:
           node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
-      - run: corepack enable
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
@@ -690,7 +688,6 @@ jobs:
           node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
-      - run: corepack enable
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
@@ -747,7 +744,6 @@ jobs:
           node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
-      - run: corepack enable
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
@@ -782,7 +778,6 @@ jobs:
           node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
-      - run: corepack enable
 
       - run: pnpm install --frozen-lockfile
 
@@ -847,7 +842,6 @@ jobs:
           node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
-      - run: corepack enable
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4

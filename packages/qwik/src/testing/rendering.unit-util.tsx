@@ -187,7 +187,8 @@ export async function ssrRenderToDom(
       if (
         vnode_isElementVNode(child) &&
         ((vnode_getElementName(child) === 'script' &&
-          vnode_getAttr(child, 'type') === 'qwik/state') ||
+          (vnode_getAttr(child, 'type') === 'qwik/state' ||
+            vnode_getAttr(child, 'id') === 'qwikloader')) ||
           vnode_getElementName(child) === 'q:template')
       ) {
         insertBefore = child;

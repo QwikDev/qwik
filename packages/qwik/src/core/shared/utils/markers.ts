@@ -7,7 +7,7 @@ export const OnRenderProp = 'q:renderFn';
 export const ComponentStylesPrefixHost = '💎';
 
 /** Component style content prefix */
-export const ComponentStylesPrefixContent = '⭐️';
+export const ComponentStylesPrefixContent = '⚡️';
 
 /** Prefix used to identify on listeners. */
 export const EventPrefix = 'on:';

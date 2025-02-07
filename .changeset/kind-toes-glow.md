@@ -1,6 +1,5 @@
 ---
-'qwik-docs': minor
-'@qwik.dev/core': minor
+'@qwik.dev/core': patch
 ---
 
 fix: export SVG type from qwik/core

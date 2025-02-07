@@ -1,5 +1,5 @@
 /** @public */
-export class ServerError<T = Record<any, any>> extends Error {
+export class ServerError<T = any> extends Error {
   constructor(
     public status: number,
     public data: T
@@ -8,6 +8,7 @@ export class ServerError<T = Record<any, any>> extends Error {
   }
 }
 
+/** @deprecated */
 export class ErrorResponse extends Error {
   constructor(
     public status: number,

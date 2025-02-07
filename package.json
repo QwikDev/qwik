@@ -171,7 +171,7 @@
     "typescript": "5.4.5",
     "undici": "*",
     "vfile": "6.0.2",
-    "vite": "catalog:",
+    "vite": "5.3.5",
     "vite-imagetools": "7.0.4",
     "vite-plugin-dts": "3.9.1",
     "vite-tsconfig-paths": "4.3.2",
@@ -186,7 +186,7 @@
     "yarn": "please-use-pnpm",
     "pnpm": ">=9.0.5"
   },
-  "packageManager": "pnpm@10.0.0",
+  "packageManager": "pnpm@9.15.5",
   "pnpm": {
     "overrides": {
       "typescript": "5.4.5",

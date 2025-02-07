@@ -984,6 +984,534 @@ export interface StreamWriter {
 // @internal (undocumented)
 export type _Stringifiable = string | boolean | number | null;
 
+// Warning: (ae-forgotten-export) The symbol "AriaAttributes" needs to be exported by the entry point index.d.ts
+//
+// @public
+export interface SVGAttributes<T extends Element = Element> extends AriaAttributes {
+    // (undocumented)
+    'accent-height'?: number | string | undefined;
+    // (undocumented)
+    'alignment-baseline'?: 'auto' | 'baseline' | 'before-edge' | 'text-before-edge' | 'middle' | 'central' | 'after-edge' | 'text-after-edge' | 'ideographic' | 'alphabetic' | 'hanging' | 'mathematical' | 'inherit' | undefined;
+    // (undocumented)
+    'arabic-form'?: 'initial' | 'medial' | 'terminal' | 'isolated' | undefined;
+    // (undocumented)
+    'baseline-shift'?: number | string | undefined;
+    // (undocumented)
+    'cap-height'?: number | string | undefined;
+    // (undocumented)
+    'clip-path'?: string | undefined;
+    // (undocumented)
+    'clip-rule'?: number | string | undefined;
+    // (undocumented)
+    'color-interpolation'?: number | string | undefined;
+    // (undocumented)
+    'color-interpolation-filters'?: 'auto' | 's-rGB' | 'linear-rGB' | 'inherit' | undefined;
+    // (undocumented)
+    'color-profile'?: number | string | undefined;
+    // (undocumented)
+    'color-rendering'?: number | string | undefined;
+    // (undocumented)
+    'dominant-baseline'?: number | string | undefined;
+    // (undocumented)
+    'edge-mode'?: number | string | undefined;
+    // (undocumented)
+    'enable-background'?: number | string | undefined;
+    // (undocumented)
+    'fill-opacity'?: number | string | undefined;
+    // (undocumented)
+    'fill-rule'?: 'nonzero' | 'evenodd' | 'inherit' | undefined;
+    // (undocumented)
+    'flood-color'?: number | string | undefined;
+    // (undocumented)
+    'flood-opacity'?: number | string | undefined;
+    // (undocumented)
+    'font-family'?: string | undefined;
+    // (undocumented)
+    'font-size'?: number | string | undefined;
+    // (undocumented)
+    'font-size-adjust'?: number | string | undefined;
+    // (undocumented)
+    'font-stretch'?: number | string | undefined;
+    // (undocumented)
+    'font-style'?: number | string | undefined;
+    // (undocumented)
+    'font-variant'?: number | string | undefined;
+    // (undocumented)
+    'font-weight'?: number | string | undefined;
+    // (undocumented)
+    'glyph-name'?: number | string | undefined;
+    // (undocumented)
+    'glyph-orientation-horizontal'?: number | string | undefined;
+    // (undocumented)
+    'glyph-orientation-vertical'?: number | string | undefined;
+    // (undocumented)
+    'horiz-adv-x'?: number | string | undefined;
+    // (undocumented)
+    'horiz-origin-x'?: number | string | undefined;
+    // (undocumented)
+    'image-rendering'?: number | string | undefined;
+    // (undocumented)
+    'letter-spacing'?: number | string | undefined;
+    // (undocumented)
+    'lighting-color'?: number | string | undefined;
+    // (undocumented)
+    'marker-end'?: string | undefined;
+    // (undocumented)
+    'marker-mid'?: string | undefined;
+    // (undocumented)
+    'marker-start'?: string | undefined;
+    // (undocumented)
+    'overline-position'?: number | string | undefined;
+    // (undocumented)
+    'overline-thickness'?: number | string | undefined;
+    // (undocumented)
+    'paint-order'?: number | string | undefined;
+    // (undocumented)
+    'pointer-events'?: number | string | undefined;
+    // (undocumented)
+    'rendering-intent'?: number | string | undefined;
+    // (undocumented)
+    'shape-rendering'?: number | string | undefined;
+    // (undocumented)
+    'stop-color'?: string | undefined;
+    // (undocumented)
+    'stop-opacity'?: number | string | undefined;
+    // (undocumented)
+    'strikethrough-position'?: number | string | undefined;
+    // (undocumented)
+    'strikethrough-thickness'?: number | string | undefined;
+    // (undocumented)
+    'stroke-dasharray'?: string | number | undefined;
+    // (undocumented)
+    'stroke-dashoffset'?: string | number | undefined;
+    // (undocumented)
+    'stroke-linecap'?: 'butt' | 'round' | 'square' | 'inherit' | undefined;
+    // (undocumented)
+    'stroke-linejoin'?: 'miter' | 'round' | 'bevel' | 'inherit' | undefined;
+    // (undocumented)
+    'stroke-miterlimit'?: string | undefined;
+    // (undocumented)
+    'stroke-opacity'?: number | string | undefined;
+    // (undocumented)
+    'stroke-width'?: number | string | undefined;
+    // (undocumented)
+    'text-anchor'?: string | undefined;
+    // (undocumented)
+    'text-decoration'?: number | string | undefined;
+    // (undocumented)
+    'text-rendering'?: number | string | undefined;
+    // (undocumented)
+    'underline-position'?: number | string | undefined;
+    // (undocumented)
+    'underline-thickness'?: number | string | undefined;
+    // (undocumented)
+    'unicode-bidi'?: number | string | undefined;
+    // (undocumented)
+    'unicode-range'?: number | string | undefined;
+    // (undocumented)
+    'units-per-em'?: number | string | undefined;
+    // (undocumented)
+    'v-alphabetic'?: number | string | undefined;
+    // (undocumented)
+    'v-hanging'?: number | string | undefined;
+    // (undocumented)
+    'v-ideographic'?: number | string | undefined;
+    // (undocumented)
+    'v-mathematical'?: number | string | undefined;
+    // (undocumented)
+    'vector-effect'?: number | string | undefined;
+    // (undocumented)
+    'vert-adv-y'?: number | string | undefined;
+    // (undocumented)
+    'vert-origin-x'?: number | string | undefined;
+    // (undocumented)
+    'vert-origin-y'?: number | string | undefined;
+    // (undocumented)
+    'word-spacing'?: number | string | undefined;
+    // (undocumented)
+    'writing-mode'?: number | string | undefined;
+    // (undocumented)
+    'x-channel-selector'?: string | undefined;
+    // (undocumented)
+    'x-height'?: number | string | undefined;
+    // (undocumented)
+    'xlink:actuate'?: string | undefined;
+    // (undocumented)
+    'xlink:arcrole'?: string | undefined;
+    // (undocumented)
+    'xlink:href'?: string | undefined;
+    // (undocumented)
+    'xlink:role'?: string | undefined;
+    // (undocumented)
+    'xlink:show'?: string | undefined;
+    // (undocumented)
+    'xlink:title'?: string | undefined;
+    // (undocumented)
+    'xlink:type'?: string | undefined;
+    // (undocumented)
+    'xml:base'?: string | undefined;
+    // (undocumented)
+    'xml:lang'?: string | undefined;
+    // (undocumented)
+    'xml:space'?: string | undefined;
+    // (undocumented)
+    'xmlns:xlink'?: string | undefined;
+    // (undocumented)
+    accumulate?: 'none' | 'sum' | undefined;
+    // (undocumented)
+    additive?: 'replace' | 'sum' | undefined;
+    // (undocumented)
+    allowReorder?: 'no' | 'yes' | undefined;
+    // (undocumented)
+    alphabetic?: number | string | undefined;
+    // (undocumented)
+    amplitude?: number | string | undefined;
+    // (undocumented)
+    ascent?: number | string | undefined;
+    // (undocumented)
+    attributeName?: string | undefined;
+    // (undocumented)
+    attributeType?: string | undefined;
+    // Warning: (ae-forgotten-export) The symbol "Booleanish" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    autoReverse?: Booleanish | undefined;
+    // (undocumented)
+    azimuth?: number | string | undefined;
+    // (undocumented)
+    baseFrequency?: number | string | undefined;
+    // (undocumented)
+    baseProfile?: number | string | undefined;
+    // (undocumented)
+    bbox?: number | string | undefined;
+    // (undocumented)
+    begin?: number | string | undefined;
+    // (undocumented)
+    bias?: number | string | undefined;
+    // (undocumented)
+    by?: number | string | undefined;
+    // (undocumented)
+    calcMode?: number | string | undefined;
+    // (undocumented)
+    clip?: number | string | undefined;
+    // (undocumented)
+    clipPathUnits?: number | string | undefined;
+    // (undocumented)
+    color?: string | undefined;
+    // (undocumented)
+    contentScriptType?: number | string | undefined;
+    // (undocumented)
+    contentStyleType?: number | string | undefined;
+    // Warning: (ae-forgotten-export) The symbol "HTMLCrossOriginAttribute" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    crossOrigin?: HTMLCrossOriginAttribute;
+    // (undocumented)
+    cursor?: number | string;
+    // (undocumented)
+    cx?: number | string | undefined;
+    // (undocumented)
+    cy?: number | string | undefined;
+    // (undocumented)
+    d?: string | undefined;
+    // (undocumented)
+    decelerate?: number | string | undefined;
+    // (undocumented)
+    descent?: number | string | undefined;
+    // (undocumented)
+    diffuseConstant?: number | string | undefined;
+    // (undocumented)
+    direction?: number | string | undefined;
+    // (undocumented)
+    display?: number | string | undefined;
+    // (undocumented)
+    divisor?: number | string | undefined;
+    // (undocumented)
+    dur?: number | string | undefined;
+    // (undocumented)
+    dx?: number | string | undefined;
+    // (undocumented)
+    dy?: number | string | undefined;
+    // (undocumented)
+    elevation?: number | string | undefined;
+    // (undocumented)
+    end?: number | string | undefined;
+    // (undocumented)
+    exponent?: number | string | undefined;
+    // (undocumented)
+    externalResourcesRequired?: number | string | undefined;
+    // (undocumented)
+    fill?: string | undefined;
+    // (undocumented)
+    filter?: string | undefined;
+    // (undocumented)
+    filterRes?: number | string | undefined;
+    // (undocumented)
+    filterUnits?: number | string | undefined;
+    // (undocumented)
+    focusable?: number | string | undefined;
+    // (undocumented)
+    format?: number | string | undefined;
+    // (undocumented)
+    fr?: number | string | undefined;
+    // (undocumented)
+    from?: number | string | undefined;
+    // (undocumented)
+    fx?: number | string | undefined;
+    // (undocumented)
+    fy?: number | string | undefined;
+    // (undocumented)
+    g1?: number | string | undefined;
+    // (undocumented)
+    g2?: number | string | undefined;
+    // (undocumented)
+    glyphRef?: number | string | undefined;
+    // (undocumented)
+    gradientTransform?: string | undefined;
+    // (undocumented)
+    gradientUnits?: string | undefined;
+    // (undocumented)
+    hanging?: number | string | undefined;
+    // Warning: (ae-forgotten-export) The symbol "Size" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    height?: Size | undefined;
+    // (undocumented)
+    href?: string | undefined;
+    // (undocumented)
+    id?: string | undefined;
+    // (undocumented)
+    ideographic?: number | string | undefined;
+    // (undocumented)
+    in?: string | undefined;
+    // (undocumented)
+    in2?: number | string | undefined;
+    // (undocumented)
+    intercept?: number | string | undefined;
+    // (undocumented)
+    k?: number | string | undefined;
+    // (undocumented)
+    k1?: number | string | undefined;
+    // (undocumented)
+    k2?: number | string | undefined;
+    // (undocumented)
+    k3?: number | string | undefined;
+    // (undocumented)
+    k4?: number | string | undefined;
+    // (undocumented)
+    kernelMatrix?: number | string | undefined;
+    // (undocumented)
+    kernelUnitLength?: number | string | undefined;
+    // (undocumented)
+    kerning?: number | string | undefined;
+    // (undocumented)
+    keyPoints?: number | string | undefined;
+    // (undocumented)
+    keySplines?: number | string | undefined;
+    // (undocumented)
+    keyTimes?: number | string | undefined;
+    // (undocumented)
+    lang?: string | undefined;
+    // (undocumented)
+    lengthAdjust?: number | string | undefined;
+    // (undocumented)
+    limitingConeAngle?: number | string | undefined;
+    // (undocumented)
+    local?: number | string | undefined;
+    // (undocumented)
+    markerHeight?: number | string | undefined;
+    // (undocumented)
+    markerUnits?: number | string | undefined;
+    // (undocumented)
+    markerWidth?: number | string | undefined;
+    // (undocumented)
+    mask?: string | undefined;
+    // (undocumented)
+    maskContentUnits?: number | string | undefined;
+    // (undocumented)
+    maskUnits?: number | string | undefined;
+    // (undocumented)
+    mathematical?: number | string | undefined;
+    // (undocumented)
+    max?: number | string | undefined;
+    // (undocumented)
+    media?: string | undefined;
+    // (undocumented)
+    method?: string | undefined;
+    // (undocumented)
+    min?: number | string | undefined;
+    // (undocumented)
+    mode?: number | string | undefined;
+    // (undocumented)
+    name?: string | undefined;
+    // (undocumented)
+    numOctaves?: number | string | undefined;
+    // (undocumented)
+    offset?: number | string | undefined;
+    // (undocumented)
+    opacity?: number | string | undefined;
+    // (undocumented)
+    operator?: number | string | undefined;
+    // (undocumented)
+    order?: number | string | undefined;
+    // (undocumented)
+    orient?: number | string | undefined;
+    // (undocumented)
+    orientation?: number | string | undefined;
+    // (undocumented)
+    origin?: number | string | undefined;
+    // (undocumented)
+    overflow?: number | string | undefined;
+    // (undocumented)
+    panose1?: number | string | undefined;
+    // (undocumented)
+    path?: string | undefined;
+    // (undocumented)
+    pathLength?: number | string | undefined;
+    // (undocumented)
+    patternContentUnits?: string | undefined;
+    // (undocumented)
+    patternTransform?: number | string | undefined;
+    // (undocumented)
+    patternUnits?: string | undefined;
+    // (undocumented)
+    points?: string | undefined;
+    // (undocumented)
+    pointsAtX?: number | string | undefined;
+    // (undocumented)
+    pointsAtY?: number | string | undefined;
+    // (undocumented)
+    pointsAtZ?: number | string | undefined;
+    // (undocumented)
+    preserveAlpha?: number | string | undefined;
+    // (undocumented)
+    preserveAspectRatio?: string | undefined;
+    // (undocumented)
+    primitiveUnits?: number | string | undefined;
+    // (undocumented)
+    r?: number | string | undefined;
+    // (undocumented)
+    radius?: number | string | undefined;
+    // (undocumented)
+    refX?: number | string | undefined;
+    // (undocumented)
+    refY?: number | string | undefined;
+    // (undocumented)
+    repeatCount?: number | string | undefined;
+    // (undocumented)
+    repeatDur?: number | string | undefined;
+    // (undocumented)
+    requiredextensions?: number | string | undefined;
+    // (undocumented)
+    requiredFeatures?: number | string | undefined;
+    // (undocumented)
+    restart?: number | string | undefined;
+    // (undocumented)
+    result?: string | undefined;
+    // (undocumented)
+    role?: string | undefined;
+    // (undocumented)
+    rotate?: number | string | undefined;
+    // (undocumented)
+    rx?: number | string | undefined;
+    // (undocumented)
+    ry?: number | string | undefined;
+    // (undocumented)
+    scale?: number | string | undefined;
+    // (undocumented)
+    seed?: number | string | undefined;
+    // (undocumented)
+    slope?: number | string | undefined;
+    // (undocumented)
+    spacing?: number | string | undefined;
+    // (undocumented)
+    specularConstant?: number | string | undefined;
+    // (undocumented)
+    specularExponent?: number | string | undefined;
+    // (undocumented)
+    speed?: number | string | undefined;
+    // (undocumented)
+    spreadMethod?: string | undefined;
+    // (undocumented)
+    startOffset?: number | string | undefined;
+    // (undocumented)
+    stdDeviation?: number | string | undefined;
+    // (undocumented)
+    stemh?: number | string | undefined;
+    // (undocumented)
+    stemv?: number | string | undefined;
+    // (undocumented)
+    stitchTiles?: number | string | undefined;
+    // (undocumented)
+    string?: number | string | undefined;
+    // (undocumented)
+    stroke?: string | undefined;
+    // (undocumented)
+    style?: CSSProperties | string | undefined;
+    // (undocumented)
+    surfaceScale?: number | string | undefined;
+    // (undocumented)
+    systemLanguage?: number | string | undefined;
+    // (undocumented)
+    tabindex?: number | undefined;
+    // (undocumented)
+    tableValues?: number | string | undefined;
+    // (undocumented)
+    target?: string | undefined;
+    // (undocumented)
+    targetX?: number | string | undefined;
+    // (undocumented)
+    targetY?: number | string | undefined;
+    // (undocumented)
+    textLength?: number | string | undefined;
+    // (undocumented)
+    to?: number | string | undefined;
+    // (undocumented)
+    transform?: string | undefined;
+    // (undocumented)
+    type?: string | undefined;
+    // (undocumented)
+    u1?: number | string | undefined;
+    // (undocumented)
+    u2?: number | string | undefined;
+    // (undocumented)
+    unicode?: number | string | undefined;
+    // (undocumented)
+    values?: string | undefined;
+    // (undocumented)
+    version?: string | undefined;
+    // (undocumented)
+    viewBox?: string | undefined;
+    // (undocumented)
+    viewTarget?: number | string | undefined;
+    // (undocumented)
+    visibility?: number | string | undefined;
+    // (undocumented)
+    width?: Size | undefined;
+    // (undocumented)
+    widths?: number | string | undefined;
+    // (undocumented)
+    x?: number | string | undefined;
+    // (undocumented)
+    x1?: number | string | undefined;
+    // (undocumented)
+    x2?: number | string | undefined;
+    // (undocumented)
+    xmlns?: string | undefined;
+    // (undocumented)
+    y?: number | string | undefined;
+    // (undocumented)
+    y1?: number | string | undefined;
+    // (undocumented)
+    y2?: number | string | undefined;
+    // (undocumented)
+    yChannelSelector?: string | undefined;
+    // (undocumented)
+    z?: number | string | undefined;
+    // (undocumented)
+    zoomAndPan?: string | undefined;
+}
+
 // @public
 export const sync$: <T extends Function>(fn: T) => SyncQRL<T>;
 

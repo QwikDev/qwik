@@ -28,7 +28,7 @@
           "dependencies": [
             "vite"
           ],
-          "pinVersion": "^5"
+          "pinVersion": "^6"
         },
         {
           "label": "use workspace protocol for local packages and allow patch versions (used in e.g. qwik-react)",
@@ -171,11 +171,11 @@
     "typescript": "5.4.5",
     "undici": "*",
     "vfile": "6.0.2",
-    "vite": "5.3.5",
-    "vite-imagetools": "7.0.4",
-    "vite-plugin-dts": "3.9.1",
-    "vite-tsconfig-paths": "4.3.2",
-    "vitest": "2.0.5",
+    "vite": "6.1.0",
+    "vite-imagetools": "7.0.5",
+    "vite-plugin-dts": "4.5.0",
+    "vite-tsconfig-paths": "5.1.4",
+    "vitest": "3.0.5",
     "watchlist": "0.3.1",
     "which-pm-runs": "1.1.0",
     "zod": "3.22.4"
@@ -186,7 +186,7 @@
     "yarn": "please-use-pnpm",
     "pnpm": ">=9.0.5"
   },
-  "packageManager": "pnpm@9.15.5",
+  "packageManager": "pnpm@10.0.0",
   "pnpm": {
     "overrides": {
       "typescript": "5.4.5",

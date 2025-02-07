@@ -2,7 +2,7 @@
 '@builder.io/qwik-city': patch
 ---
 
-FIX: MDX content now accepts `props`, including `components` that lets you use your own custom components
+FIX: MDX content now accepts a prop of type `components` that lets you use your own custom components
 
 To add custom components to your MDX content, you can now do this:
 

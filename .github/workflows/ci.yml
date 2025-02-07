@@ -176,7 +176,7 @@ jobs:
           path: |
             packages/insights/dist
             packages/insights/.netlify
-          key: ${{ hashfiles('others-key.txt', 'packages/qwik-insights/**/*') }}
+          key: ${{ hashfiles('others-key.txt', 'packages/insights/**/*') }}
       - name: 'check cache: unit tests'
         id: cache-unit
         uses: actions/cache/restore@v4

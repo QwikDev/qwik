@@ -28,7 +28,7 @@
           "dependencies": [
             "vite"
           ],
-          "pinVersion": "^6"
+          "pinVersion": "^5||^6"
         },
         {
           "label": "use workspace protocol for local packages and allow patch versions (used in e.g. qwik-react)",

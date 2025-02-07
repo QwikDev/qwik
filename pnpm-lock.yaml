@@ -621,7 +621,7 @@ importers:
         specifier: 6.0.2
         version: 6.0.2
       vite:
-        specifier: ^6
+        specifier: ^5||^6
         version: 6.1.0(@types/node@20.14.11)(jiti@1.21.0)(terser@5.31.3)(tsx@4.19.1)(yaml@2.4.5)
       vite-imagetools:
         specifier: ^7.0.5

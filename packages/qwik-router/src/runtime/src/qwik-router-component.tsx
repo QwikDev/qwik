@@ -624,9 +624,6 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
             removeEventListener('scroll', win._qRouterInitScroll!);
             win._qRouterInitScroll = undefined;
 
-            win._qRouterBootstrap?.remove();
-            win._qRouterBootstrap = undefined;
-
             // Cache SPA recovery script.
             spaInit.resolve();
           }
@@ -760,8 +757,6 @@ export interface ClientSPAWindow extends Window {
   _qCityInitVisibility?: () => void;
   /** @deprecated Use "_qRouterInitScroll" instead. Will be removed in V3 */
   _qCityInitScroll?: () => void;
-  /** @deprecated Use "_qRouterBootstrap" instead. Will be removed in V3 */
-  _qCityBootstrap?: HTMLAnchorElement;
   _qRouterHistoryPatch?: boolean;
   _qRouterSPA?: boolean;
   _qRouterScrollEnabled?: boolean;
@@ -770,6 +765,5 @@ export interface ClientSPAWindow extends Window {
   _qRouterInitAnchors?: (event: MouseEvent) => void;
   _qRouterInitVisibility?: () => void;
   _qRouterInitScroll?: () => void;
-  _qRouterBootstrap?: HTMLAnchorElement;
   _qcs?: boolean;
 }

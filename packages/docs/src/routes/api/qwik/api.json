@@ -465,20 +465,6 @@
       "mdFile": "core.domattributes.md"
     },
     {
-      "name": "EagernessOptions",
-      "id": "eagernessoptions",
-      "hierarchy": [
-        {
-          "name": "EagernessOptions",
-          "id": "eagernessoptions"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type EagernessOptions = 'visible' | 'load' | 'idle';\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
-      "mdFile": "core.eagernessoptions.md"
-    },
-    {
       "name": "Element",
       "id": "qwikjsx-element",
       "hierarchy": [
@@ -2326,23 +2312,9 @@
         }
       ],
       "kind": "Function",
-      "content": "Reruns the `taskFn` when the observed inputs change.\n\nUse `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when those inputs change.\n\nThe `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.\n\n\n```typescript\nuseTask$: (qrl: import(\"./use-task\").TaskFn, opts?: import(\"./use-task\").UseTaskOptions | undefined) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nimport(\"./use-task\").[TaskFn](#taskfn)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\nimport(\"./use-task\").[UseTaskOptions](#usetaskoptions) \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvoid",
+      "content": "Reruns the `taskFn` when the observed inputs change.\n\nUse `useTask` to observe changes on a set of inputs, and then re-execute the `taskFn` when those inputs change.\n\nThe `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.\n\n\n```typescript\nuseTask$: (qrl: import(\"./use-task\").TaskFn) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nimport(\"./use-task\").[TaskFn](#taskfn)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvoid",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task-dollar.ts",
       "mdFile": "core.usetask_.md"
-    },
-    {
-      "name": "UseTaskOptions",
-      "id": "usetaskoptions",
-      "hierarchy": [
-        {
-          "name": "UseTaskOptions",
-          "id": "usetaskoptions"
-        }
-      ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface UseTaskOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[eagerness?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[EagernessOptions](#eagernessoptions)\n\n\n</td><td>\n\n_(Optional)_ - `visible`<!-- -->: run the effect when the element is visible. - `load`<!-- -->: eagerly run the effect when the application resumes.\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
-      "mdFile": "core.usetaskoptions.md"
     },
     {
       "name": "useVisibleTask$",

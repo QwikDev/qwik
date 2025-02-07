@@ -939,14 +939,6 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-attributes.ts)
 
-## EagernessOptions
-
-```typescript
-export type EagernessOptions = "visible" | "load" | "idle";
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
-
 ## Element
 
 ```typescript
@@ -9221,7 +9213,7 @@ Use `useTask` to observe changes on a set of inputs, and then re-execute the `ta
 The `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.
 
 ```typescript
-useTask$: (qrl: import("./use-task").TaskFn, opts?: import("./use-task").UseTaskOptions | undefined) => void
+useTask$: (qrl: import("./use-task").TaskFn) => void
 ```
 
 <table><thead><tr><th>
@@ -9248,67 +9240,12 @@ import("./use-task").[TaskFn](#taskfn)
 </td><td>
 
 </td></tr>
-<tr><td>
-
-opts
-
-</td><td>
-
-import("./use-task").[UseTaskOptions](#usetaskoptions) \| undefined
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
 </tbody></table>
 **Returns:**
 
 void
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task-dollar.ts)
-
-## UseTaskOptions
-
-```typescript
-export interface UseTaskOptions
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[eagerness?](#)
-
-</td><td>
-
-</td><td>
-
-[EagernessOptions](#eagernessoptions)
-
-</td><td>
-
-_(Optional)_ - `visible`: run the effect when the element is visible. - `load`: eagerly run the effect when the application resumes.
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## useVisibleTask$
 

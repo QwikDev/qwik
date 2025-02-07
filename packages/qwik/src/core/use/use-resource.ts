@@ -17,6 +17,7 @@ import { clearSubscriberEffectDependencies } from '../signal/signal-subscriber';
 import { ResourceEvent } from '../shared/utils/markers';
 import { assertDefined } from '../shared/error/assert';
 import { noSerialize } from '../shared/utils/serialize-utils';
+import { ChoreType } from '../shared/scheduler';
 
 const DEBUG: boolean = false;
 
@@ -104,7 +105,7 @@ export const useResourceQrl = <T>(
     resource,
     null
   ) as ResourceDescriptor<any>;
-  runResource(task, container, iCtx.$hostElement$);
+  container.$scheduler$(ChoreType.TASK, task);
   set(resource);
 
   return resource;
@@ -183,7 +184,7 @@ export const Resource = <T>(props: ResourceProps<T>): JSXOutput => {
 
 function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutput> | JSXOutput {
   const resource = props.value as ResourceReturnInternal<T> | Promise<T> | Signal<T>;
-  if (isResourceReturn(resource)) {
+  if (isResourceReturn(resource) && resource.value) {
     const isBrowser = !isServerPlatform();
     if (isBrowser) {
       // create a subscription for the resource._state changes

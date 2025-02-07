@@ -26,7 +26,6 @@ export const ComputedBasic = component$(() => {
   const triple = useComputed$(() => plus3.value * 3);
   const sum = useComputed$(() => double.value + plus3.value + triple.value);
 
-  console.log("here");
   return (
     <div>
       <div class="result">count: {count.value}</div>

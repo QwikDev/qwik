@@ -211,14 +211,13 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)
     setHostProp<T>(host: HostElement, name: string, value: T): void;
+    // (undocumented)
+    vNodeLocate: (id: string | Element) => _VNode;
 }
 
 // Warning: (ae-internal-missing-underscore) The name "DomContainer" should be prefixed with an underscore because the declaration is marked as @internal
 export { DomContainer }
 export { DomContainer as _DomContainer }
-
-// @public (undocumented)
-export type EagernessOptions = 'visible' | 'load' | 'idle';
 
 // @internal (undocumented)
 export class _EffectData {
@@ -315,9 +314,6 @@ export function _getQContainerElement(element: Element | _VNode): Element | null
 function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;
 export { h as createElement }
 export { h }
-
-// @internal
-export const _hW: () => void;
 
 // @internal @deprecated (undocumented)
 export const _IMMUTABLE: unique symbol;
@@ -809,6 +805,9 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 //
 // @internal (undocumented)
 export const _restProps: (props: PropsProxy, omit: string[], target?: Props) => Props;
+
+// @internal
+export const _run: (...args: unknown[]) => ValueOrPromise<void>;
 
 // @internal
 export function _serialize(data: unknown[]): Promise<string>;
@@ -1527,6 +1526,9 @@ export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE> {
     resolved: TYPE;
 }
 
+// @internal
+export const _task: (_event: Event, element: Element) => void;
+
 // @public (undocumented)
 export interface TaskCtx {
     // (undocumented)
@@ -1667,17 +1669,12 @@ export interface UseStylesScoped {
 export const useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
 
 // @public
-export const useTask$: (qrl: TaskFn, opts?: UseTaskOptions | undefined) => void;
-
-// @public (undocumented)
-export interface UseTaskOptions {
-    eagerness?: EagernessOptions;
-}
+export const useTask$: (qrl: TaskFn) => void;
 
 // Warning: (ae-internal-missing-underscore) The name "useTaskQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const useTaskQrl: (qrl: QRL<TaskFn>, opts?: UseTaskOptions) => void;
+export const useTaskQrl: (qrl: QRL<TaskFn>) => void;
 
 // @public
 export const useVisibleTask$: (qrl: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
@@ -1764,17 +1761,9 @@ export const _waitUntilRendered: (elm: Element) => Promise<void>;
 //
 // @internal (undocumented)
 export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: {
-    allowPromises: true;
     currentStyleScoped: string | null;
     parentComponentFrame: ISsrComponentFrame | null;
-}): ValueOrPromise<void>;
-
-// @internal (undocumented)
-export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: {
-    allowPromises: false;
-    currentStyleScoped: string | null;
-    parentComponentFrame: ISsrComponentFrame | null;
-}): false;
+}): Promise<void>;
 
 // @internal (undocumented)
 export const _weakSerialize: <T extends object>(input: T) => Partial<T>;

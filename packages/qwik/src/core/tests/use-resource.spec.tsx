@@ -55,7 +55,7 @@ describe.each([
     const TestCmp = component$(() => {
       const count = useSignal(0);
       const rsrc = useResource$(async ({ track }) => {
-        return track(() => count.value);
+        return track(count);
       });
       return (
         <button onClick$={() => count.value++}>

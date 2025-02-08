@@ -190,6 +190,7 @@ const inflate = (
   switch (typeId) {
     case TypeIds.Object:
       // We use getters for making complex values lazy
+      // TODO scan the data for computeQRLs and schedule resolve chores
       for (let i = 0; i < (data as any[]).length; i += 4) {
         const key = deserializeData(
           container,
@@ -504,6 +505,8 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
         reject = rej;
       });
       resolvers.set(promise, [resolve, reject]);
+      // Don't leave unhandled promise rejections
+      promise.catch(() => {});
       return promise;
     case TypeIds.Uint8Array:
       const encodedLength = (value as string).length;
@@ -566,7 +569,7 @@ export function parseQRL(qrl: string): QRLInternal<any> {
     assertDefined(backChannel, 'Missing QRL_RUNTIME_CHUNK');
     qrlRef = backChannel.get(symbol);
   }
-  return createQRL(chunk, symbol, qrlRef, null, captureIds, null, null);
+  return createQRL(chunk, symbol, qrlRef, null, captureIds, null);
 }
 
 export function inflateQRL(container: DeserializeContainer, qrl: QRLInternal<any>) {
@@ -1111,6 +1114,7 @@ function serialize(serializationContext: SerializationContext): void {
         if (!res) {
           throw qError(QError.serializeErrorUnvisited, ['resource']);
         }
+        // TODO the effects include the resourcereturn which has duplicate data
         output(TypeIds.Resource, [...res, getStoreHandler(value)!.$effects$]);
       } else {
         const storeHandler = getStoreHandler(value)!;
@@ -1314,15 +1318,12 @@ export function qrlToString(
   let symbol = value.$symbol$;
   let chunk = value.$chunk$;
 
-  const refSymbol = value.$refSymbol$ ?? symbol;
   const platform = getPlatform();
   if (platform) {
-    const result = platform.chunkForSymbol(refSymbol, chunk, value.dev?.file);
+    const result = platform.chunkForSymbol(symbol, chunk, value.dev?.file);
     if (result) {
       chunk = result[1];
-      if (!value.$refSymbol$) {
-        symbol = result[0];
-      }
+      symbol = result[0];
     }
   }
 
@@ -1525,7 +1526,7 @@ const frameworkType = (obj: any) => {
   );
 };
 
-export const canSerialize = (value: any): boolean => {
+export const canSerialize = (value: any, seen: WeakSet<any> = new WeakSet()): boolean => {
   if (
     value == null ||
     typeof value === 'string' ||
@@ -1535,6 +1536,10 @@ export const canSerialize = (value: any): boolean => {
   ) {
     return true;
   } else if (typeof value === 'object') {
+    if (seen.has(value)) {
+      return true;
+    }
+    seen.add(value);
     const proto = Object.getPrototypeOf(value);
     if (isStore(value)) {
       value = getStoreTarget(value);
@@ -1543,14 +1548,19 @@ export const canSerialize = (value: any): boolean => {
       for (const key in value) {
         // if the value is a props proxy, then sometimes we could create a component-level subscription,
         // so we should call untrack here to avoid tracking the value
-        if (!canSerialize(untrack(() => value[key]))) {
+        if (
+          !canSerialize(
+            untrack(() => value[key]),
+            seen
+          )
+        ) {
           return false;
         }
       }
       return true;
     } else if (proto == Array.prototype) {
       for (let i = 0; i < value.length; i++) {
-        if (!canSerialize(value[i])) {
+        if (!canSerialize(value[i], seen)) {
           return false;
         }
       }

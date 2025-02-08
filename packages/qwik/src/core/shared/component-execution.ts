@@ -65,7 +65,7 @@ export const executeComponent = (
   }
   if (isQrl(componentQRL)) {
     props = props || container.getHostProp(renderHost, ELEMENT_PROPS) || EMPTY_OBJ;
-    if (props && props.children) {
+    if (props.children) {
       delete props.children;
     }
     componentFn = componentQRL.getFn(iCtx);

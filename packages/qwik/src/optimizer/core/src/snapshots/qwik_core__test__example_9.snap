@@ -26,7 +26,6 @@ export const Header_WjUaUQN7Oxg = (decl1, { decl2 }, [decl3])=>{
     const { decl4, key: decl5 } = this;
     let [decl6, ...decl7] = stuff;
 };
-export { _hW } from "@qwik.dev/core";
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kCAEiB,CAAC,OAAO,EAAC,KAAK,EAAC,EAAE,CAAC,MAAM;IACxC,MAAM,EAAC,KAAK,EAAE,KAAK,KAAK,EAAC,GAAG,IAAI;IAChC,IAAI,CAAC,OAAO,GAAG,MAAM,GAAG;AAQzB\"}")

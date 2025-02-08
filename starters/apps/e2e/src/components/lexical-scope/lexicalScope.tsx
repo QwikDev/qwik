@@ -122,7 +122,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
     // eslint-disable-next-line
     console.assert(isNaN(nan));
 
-    rejected.catch((reason) => {
+    rejected.catch((reason) =>
       promise.then((promiseValue) => {
         state.result = JSON.stringify([
           a,
@@ -159,8 +159,8 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
           JSON.stringify([...map.entries()]),
         ]);
         state.count++;
-      });
-    });
+      }),
+    );
   });
 
   return (

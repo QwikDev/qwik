@@ -41,6 +41,7 @@
     "./cli": {
       "require": "./dist/cli.cjs"
     },
+    "./handlers.mjs": "./handlers.mjs",
     "./internal": {
       "types": "./dist/core-internal.d.ts",
       "import": {
@@ -144,6 +145,7 @@
     "bindings",
     "build.d.ts",
     "cli.d.ts",
+    "handlers.mjs",
     "jsx-dev-runtime.d.ts",
     "jsx-runtime.d.ts",
     "loader.d.ts",

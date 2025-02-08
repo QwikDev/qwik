@@ -272,14 +272,17 @@ function renderStyles(getStyles: () => Record<string, string | string[]>) {
   });
 }
 
-export async function rerenderComponent(element: HTMLElement) {
+export async function rerenderComponent(element: HTMLElement, flush?: boolean) {
   const container = _getDomContainer(element);
   const vElement = vnode_locate(container.rootVNode, element);
   const host = getHostVNode(vElement) as HostElement;
   const qrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(host, OnRenderProp)!;
   const props = container.getHostProp<Props>(host, ELEMENT_PROPS);
-  await container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
-  await getTestPlatform().flush();
+  container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
+  if (flush) {
+    // Note that this can deadlock
+    await getTestPlatform().flush();
+  }
 }
 
 function getHostVNode(vElement: _VNode | null) {

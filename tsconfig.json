@@ -61,6 +61,7 @@
     "packages/create-qwik/dist",
     "packages/qwik/src",
     "packages/*/lib",
-    "scripts/eslint-docs.ts"
+    "scripts/eslint-docs.ts",
+    "packages/eslint-plugin-qwik"
   ]
 }

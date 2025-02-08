@@ -11,7 +11,7 @@ overrides:
 
 patchedDependencies:
   density-clustering@1.3.0:
-    hash: a73b7d6196af2d0008d995e999ba64b1aa82a981fcb3b71f1425e30f6390a6d4
+    hash: paref3ytou2g7wggtennsfvlli
     path: patches/density-clustering@1.3.0.patch
 
 importers:
@@ -463,7 +463,7 @@ importers:
         version: 0.10.1
       density-clustering:
         specifier: ^1.3.0
-        version: 1.3.0(patch_hash=a73b7d6196af2d0008d995e999ba64b1aa82a981fcb3b71f1425e30f6390a6d4)
+        version: 1.3.0(patch_hash=paref3ytou2g7wggtennsfvlli)
       dotenv:
         specifier: ^16.4.5
         version: 16.4.5
@@ -14118,7 +14118,7 @@ snapshots:
 
   denque@2.1.0: {}
 
-  density-clustering@1.3.0(patch_hash=a73b7d6196af2d0008d995e999ba64b1aa82a981fcb3b71f1425e30f6390a6d4): {}
+  density-clustering@1.3.0(patch_hash=paref3ytou2g7wggtennsfvlli): {}
 
   depd@1.1.2: {}
 

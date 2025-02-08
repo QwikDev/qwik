@@ -12,6 +12,9 @@ RuleTester.itOnly = vitest.it.only;
 RuleTester.describe = vitest.describe;
 
 const testConfig = {
+  rules: {
+    'no-console': 'error',
+  },
   languageOptions: {
     parserOptions: {
       projectService: {
@@ -21,7 +24,6 @@ const testConfig = {
       ecmaFeatures: {
         jsx: true,
       },
-
       ecmaVersion: 2024,
       project: ['./tests/tsconfig.json'],
       tsconfigRootDir: fileURLToPath(new URL('.', import.meta.url)),

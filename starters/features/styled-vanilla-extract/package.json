@@ -9,7 +9,7 @@
           "namedImports": [
             "vanillaExtractPlugin"
           ],
-          "importPath": "styled-vanilla-extract/vite"
+          "importPath": "@vanilla-extract/vite-plugin"
         }
       ],
       "vitePlugins": [
@@ -17,6 +17,7 @@
       ]
     },
     "docs": [
+      "https://qwik.dev/docs/integrations/styled-vanilla-extract/",
       "https://github.com/wmertens/styled-vanilla-extract/blob/main/README.md",
       "https://vanilla-extract.style/"
     ]

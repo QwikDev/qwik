@@ -54,6 +54,7 @@ jobs:
       hash-insights: ${{ steps.cache-insights.outputs.cache-primary-key }}
       hash-unit: ${{ steps.cache-unit.outputs.cache-primary-key }}
       hash-e2e: ${{ steps.cache-e2e.outputs.cache-primary-key }}
+      hash-cli-e2e: ${{ steps.cache-cli-e2e.outputs.cache-primary-key }}
       build-qwik: ${{ steps.cache-qwik.outputs.cache-hit != 'true' }}
       build-rust: ${{ steps.cache-rust.outputs.cache-hit != 'true' }}
       build-others: ${{ steps.cache-others.outputs.cache-hit != 'true' }}
@@ -61,6 +62,7 @@ jobs:
       build-insights: ${{ steps.cache-insights.outputs.cache-hit != 'true' }}
       build-unit: ${{ steps.cache-unit.outputs.cache-hit != 'true' }}
       build-e2e: ${{ steps.cache-e2e.outputs.cache-hit != 'true' }}
+      build-cli-e2e: ${{ steps.cache-cli-e2e.outputs.cache-hit != 'true' }}
       disttag: ${{ steps.set_dist_tag.outputs.disttag }}
 
     steps:
@@ -157,7 +159,7 @@ jobs:
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
           # note that all inputs need to be listed here, including qwik, for correct cache invalidation
-          key: ${{ hashfiles('qwik-key.txt', 'rust-key.txt', 'packages/qwik-city/**/*', 'packages/qwik-labs/**/*', 'packages/qwik-react/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', '!**/*.unit.*') }}
+          key: ${{ hashfiles('qwik-key.txt', 'rust-key.txt', 'packages/qwik-city/**/*', 'packages/qwik-labs/**/*', 'packages/qwik-react/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', 'starters/apps/**/*', 'starters/features/**/*', 'starters/adapters/**/*', '!**/*.unit.*') }}
       - run: 'echo ${{ steps.cache-others.outputs.cache-primary-key }} > others-key.txt'
       - name: 'check cache: docs'
         id: cache-docs
@@ -174,7 +176,7 @@ jobs:
           path: |
             packages/insights/dist
             packages/insights/.netlify
-          key: ${{ hashfiles('others-key.txt', 'packages/qwik-insights/**/*') }}
+          key: ${{ hashfiles('others-key.txt', 'packages/insights/**/*') }}
       - name: 'check cache: unit tests'
         id: cache-unit
         uses: actions/cache/restore@v4
@@ -189,6 +191,13 @@ jobs:
           lookup-only: true
           path: e2e-tests-completed.txt
           key: ${{ hashfiles('others-key.txt', 'starters/**/*') }}
+      - name: 'check cache: cli e2e tests'
+        id: cache-cli-e2e
+        uses: actions/cache/restore@v4
+        with:
+          lookup-only: true
+          path: cli-e2e-tests-completed.txt
+          key: ${{ hashfiles('others-key.txt', 'e2e/**/*') }}
 
   ############ BUILD Qwik ############
   build-qwik:
@@ -210,7 +219,6 @@ jobs:
 
       - name: Install NPM Dependencies
         run: |
-          corepack enable
           # Ensure that the qwik binary gets made
           mkdir -p packages/qwik/bindings/
           pnpm install --frozen-lockfile
@@ -275,6 +283,7 @@ jobs:
           node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
+
       - run: pnpm install
       - if: matrix.settings.wasm
         run: pnpm install wasm-pack
@@ -399,7 +408,7 @@ jobs:
 
       - name: Install NPM Dependencies
         if: needs.changes.outputs.build-others == 'true'
-        run: corepack pnpm install
+        run: pnpm install
 
       - name: 'build: qwik-city & others'
         if: needs.changes.outputs.build-others == 'true'
@@ -530,7 +539,7 @@ jobs:
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
-      - run: corepack pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
       - name: Build Qwik Insights
         run: pnpm run build.packages.insights
 
@@ -583,7 +592,7 @@ jobs:
           mv artifact-qwiklabs/vite packages/qwik-labs/vite
           mv artifact-qwikreact/lib packages/qwik-react/lib
 
-      - run: corepack pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
       - name: Build Qwik Docs
         run: pnpm run build.packages.docs && echo ok > docs-build-completed.txt
 
@@ -626,7 +635,6 @@ jobs:
           node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
-      - run: corepack enable
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
@@ -690,7 +698,6 @@ jobs:
           node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
-      - run: corepack enable
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
@@ -720,7 +727,7 @@ jobs:
   ############ E2E CLI TEST ############
   test-cli-e2e:
     name: E2E CLI Tests
-    if: always() && needs.changes.outputs.build-e2e == 'true'
+    if: always() && needs.changes.outputs.build-cli-e2e == 'true'
 
     needs:
       - build-other-packages
@@ -747,7 +754,6 @@ jobs:
           node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
-      - run: corepack enable
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
@@ -782,7 +788,6 @@ jobs:
           node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
-      - run: corepack enable
 
       - run: pnpm install --frozen-lockfile
 
@@ -811,6 +816,7 @@ jobs:
       - changes
       - test-unit
       - test-e2e
+      - test-cli-e2e
     # test-unit runs when any packages changes, so we have to release
     # on "upcoming", we always check if we have something to release
     # don't run on forks
@@ -837,6 +843,21 @@ jobs:
           key: ${{ needs.changes.outputs.hash-e2e }}
           path: e2e-tests-completed.txt
 
+      - name: Verify test-cli-e2e
+        if: needs.test-cli-e2e.result != 'skipped'
+        run: |
+          if [ "${{ needs.test-cli-e2e.result }}" != success ] ; then
+            exit 1
+          else
+            echo ok > cli-e2e-tests-completed.txt
+          fi
+      - name: Save cli-e2e tests cache
+        if: needs.test-cli-e2e.result != 'skipped'
+        uses: actions/cache/save@v4
+        with:
+          key: ${{ needs.changes.outputs.hash-cli-e2e }}
+          path: cli-e2e-tests-completed.txt
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -847,7 +868,6 @@ jobs:
           node-version: 20.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
-      - run: corepack enable
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
@@ -921,6 +941,7 @@ jobs:
     needs:
       - test-unit
       - test-e2e
+      - test-cli-e2e
       - lint-package
       - build-docs
       - build-insights
@@ -931,6 +952,7 @@ jobs:
           !(
             (needs.test-unit.result == 'success' || needs.test-unit.result == 'skipped') &&
             (needs.test-e2e.result == 'success' || needs.test-e2e.result == 'skipped') &&
+            (needs.test-cli-e2e.result == 'success' || needs.test-cli-e2e.result == 'skipped') &&
             (needs.lint-package.result == 'success' || needs.lint-package.result == 'skipped') &&
             (needs.build-docs.result == 'success' || needs.build-docs.result == 'skipped') &&
             (needs.build-insights.result == 'success' || needs.build-insights.result == 'skipped')

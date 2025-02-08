@@ -59,7 +59,8 @@ export const jsxKey = {
   },
 
   create(context) {
-    const modifyJsxSource = context.sourceCode
+    const sourceCode = context.sourceCode ?? context.getSourceCode();
+    const modifyJsxSource = sourceCode
       .getAllComments()
       .some((c) => c.value.includes('@jsxImportSource'));
     if (modifyJsxSource) {

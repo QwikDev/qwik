@@ -141,6 +141,9 @@ export async function configureDevServer(
           };
 
           const added = new Set();
+          const CSS_EXTENSIONS = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
+          const JS_EXTENSIONS = /\.[mc]?[tj]sx?$/;
+
           Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
             entry[1].forEach((v) => {
               const segment = v.info?.meta?.segment;
@@ -153,21 +156,25 @@ export async function configureDevServer(
               }
 
               const { pathId, query } = parseId(v.url);
-              if (
-                query === '' &&
-                ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'].some((ext) =>
-                  pathId.endsWith(ext)
-                )
-              ) {
-                added.add(v.url);
-                manifest.injections!.push({
-                  tag: 'link',
-                  location: 'head',
-                  attributes: {
-                    rel: 'stylesheet',
-                    href: `${base}${url.slice(1)}`,
-                  },
+
+              if (query === '' && CSS_EXTENSIONS.some((ext) => pathId.endsWith(ext))) {
+                const isEntryCSS = v.importers.size === 0;
+                const hasJSImporter = Array.from(v.importers).some((importer) => {
+                  const importerPath = (importer as typeof v).url || (importer as typeof v).file;
+                  return importerPath && JS_EXTENSIONS.test(importerPath);
                 });
+
+                if ((isEntryCSS || hasJSImporter) && !added.has(v.url)) {
+                  added.add(v.url);
+                  manifest.injections!.push({
+                    tag: 'link',
+                    location: 'head',
+                    attributes: {
+                      rel: 'stylesheet',
+                      href: `${base}${url.slice(1)}`,
+                    },
+                  });
+                }
               }
             });
           });
@@ -192,6 +199,11 @@ export async function configureDevServer(
 
           const result = await render(renderOpts);
 
+          // End stream
+          if ('html' in result) {
+            res.write((result as any).html);
+          }
+
           // Sometimes new CSS files are added after the initial render
           Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
             entry[1].forEach((v) => {
@@ -199,19 +211,22 @@ export async function configureDevServer(
               if (
                 !added.has(v.url) &&
                 query === '' &&
-                ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'].some((ext) =>
-                  pathId.endsWith(ext)
-                )
+                CSS_EXTENSIONS.some((ext) => pathId.endsWith(ext))
               ) {
-                res.write(`<link rel="stylesheet" href="${base}${v.url.slice(1)}">`);
+                const isEntryCSS = v.importers.size === 0;
+                const hasJSImporter = Array.from(v.importers).some((importer) => {
+                  const importerPath = (importer as typeof v).url || (importer as typeof v).file;
+                  return importerPath && JS_EXTENSIONS.test(importerPath);
+                });
+
+                if (isEntryCSS || hasJSImporter) {
+                  res.write(`<link rel="stylesheet" href="${base}${v.url.slice(1)}">`);
+                  added.add(v.url);
+                }
               }
             });
           });
 
-          // End stream
-          if ('html' in result) {
-            res.write((result as any).html);
-          }
           res.write(
             END_SSR_SCRIPT(opts, opts.srcDir ? opts.srcDir : path.join(opts.rootDir, 'src'))
           );
@@ -243,8 +258,9 @@ export async function configureDevServer(
   });
 
   setTimeout(() => {
-    console.log(`\n  ❗️ ${magenta('Expect significant performance loss in development.')}`);
-    console.log(`  ❗️ ${magenta("Disabling the browser's cache results in waterfall requests.")}`);
+    console.log(
+      `\n  🚧 ${magenta('Please note that development mode is slower than production.')}`
+    );
   }, 1000);
 }
 

@@ -1192,9 +1192,10 @@ export const vnode_getElementName = (vnode: ElementVNode): string => {
   const elementVNode = ensureElementVNode(vnode);
   let elementName = elementVNode[ElementVNodeProps.elementName];
   if (elementName === undefined) {
-    elementName = elementVNode[ElementVNodeProps.elementName] =
-      elementVNode[ElementVNodeProps.element].nodeName.toLowerCase();
-    elementVNode[VNodeProps.flags] |= vnode_getElementNamespaceFlags(elementName);
+    const element = elementVNode[ElementVNodeProps.element];
+    const nodeName = fastNodeName(element)!.toLowerCase();
+    elementName = elementVNode[ElementVNodeProps.elementName] = nodeName;
+    elementVNode[VNodeProps.flags] |= vnode_getElementNamespaceFlags(element);
   }
   return elementName;
 };
@@ -1403,6 +1404,22 @@ const fastFirstChild = (node: Node | null): Node | null => {
     node = fastNextSibling(node);
   }
   return node;
+};
+
+let _fastNamespaceURI: ((this: Element) => string | null) | null = null;
+export const fastNamespaceURI = (element: Element): string | null => {
+  if (!_fastNamespaceURI) {
+    _fastNamespaceURI = fastGetter<typeof _fastNamespaceURI>(element, 'namespaceURI')!;
+  }
+  return _fastNamespaceURI.call(element);
+};
+
+let _fastNodeName: ((this: Element) => string | null) | null = null;
+export const fastNodeName = (element: Element): string | null => {
+  if (!_fastNodeName) {
+    _fastNodeName = fastGetter<typeof _fastNodeName>(element, 'nodeName')!;
+  }
+  return _fastNodeName.call(element);
 };
 
 const fastGetter = <T>(prototype: any, name: string): T => {

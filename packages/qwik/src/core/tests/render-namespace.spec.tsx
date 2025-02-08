@@ -117,6 +117,66 @@ describe.each([
 
       await expect(container.document.body.querySelector('button')).toMatchDOM(<button></button>);
     });
+
+    it('should rerender svg nested children', async () => {
+      const SvgComp = component$((props: { show: boolean }) => {
+        return (
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="0">
+            <defs>
+              {props.show && (
+                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" style="stop-color:#ff0000;stop-opacity:1px" />
+                  <stop offset="100%" style="stop-color:#0000ff;stop-opacity:1px" />
+                </linearGradient>
+              )}
+            </defs>
+          </svg>
+        );
+      });
+      const Parent = component$(() => {
+        const show = useSignal(false);
+        return (
+          <button onClick$={() => (show.value = !show.value)}>
+            <SvgComp show={show.value} />
+          </button>
+        );
+      });
+      const { vNode, container } = await render(<Parent />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <Component>
+              <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="0">
+                <defs></defs>
+              </svg>
+            </Component>
+          </button>
+        </Component>
+      );
+
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <Component>
+              <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="0">
+                <defs>
+                  <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#ff0000;stop-opacity:1px" />
+                    <stop offset="100%" style="stop-color:#0000ff;stop-opacity:1px" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </Component>
+          </button>
+        </Component>
+      );
+
+      expect(
+        container.document.querySelector('svg')?.querySelector('linearGradient')?.namespaceURI
+      ).toEqual(SVG_NS);
+    });
+
     it('should rerender svg child elements', async () => {
       const SvgComp = component$((props: { child: JSXOutput }) => {
         return (

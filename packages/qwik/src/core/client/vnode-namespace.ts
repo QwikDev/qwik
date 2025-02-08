@@ -10,6 +10,7 @@ import {
 } from './types';
 import {
   ensureElementVNode,
+  fastNamespaceURI,
   shouldIgnoreChildren,
   vnode_getDOMChildNodes,
   vnode_getDomParentVNode,
@@ -35,13 +36,15 @@ export const vnode_isDefaultNamespace = (vnode: ElementVNode): boolean => {
   return (flags & VNodeFlags.NAMESPACE_MASK) === 0;
 };
 
-export const vnode_getElementNamespaceFlags = (elementName: string) => {
-  if (isSvgElement(elementName)) {
-    return VNodeFlags.NS_svg;
-  } else if (isMathElement(elementName)) {
-    return VNodeFlags.NS_math;
-  } else {
-    return VNodeFlags.NS_html;
+export const vnode_getElementNamespaceFlags = (element: Element) => {
+  const namespace = fastNamespaceURI(element);
+  switch (namespace) {
+    case SVG_NS:
+      return VNodeFlags.NS_svg;
+    case MATH_NS:
+      return VNodeFlags.NS_math;
+    default:
+      return VNodeFlags.NS_html;
   }
 };
 

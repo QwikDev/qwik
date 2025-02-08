@@ -1389,7 +1389,7 @@ impl<'a> QwikTransform<'a> {
 									if !is_const {
 										static_listeners = false;
 										var_props.push(converted_prop.clone().fold_with(self));
-									} else  {
+									} else {
 										maybe_const_props
 											.push(converted_prop.clone().fold_with(self));
 									}

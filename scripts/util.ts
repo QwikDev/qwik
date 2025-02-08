@@ -47,6 +47,7 @@ const booleanOptions = [
   'dryRun',
   'eslint',
   'esmNode',
+  'insights',
   'platformBinding',
   'platformBindingWasmCopy',
   'prepareRelease',

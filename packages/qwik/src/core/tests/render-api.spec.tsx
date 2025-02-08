@@ -57,6 +57,9 @@ const mapping = {
   click: 'click.js',
   s_counter: 's_counter.js',
   s_click: 's_click.js',
+  // Our internal symbols
+  _run: 'core',
+  _task: 'core',
 };
 
 const defaultManifest: QwikManifest = {
@@ -1121,7 +1124,8 @@ describe('render api', () => {
           stream,
           streaming,
         });
-        expect(stream.write).toHaveBeenCalledTimes(5);
+        // This can change when the size of the output changes
+        expect(stream.write).toHaveBeenCalledTimes(6);
       });
     });
   });

@@ -89,7 +89,7 @@ When migrating from `@builder.io/qwik-auth` to `@auth/qwik`, there are a couple 
       const session: Session | null = event.sharedMap.get('session');
       if (!session || new Date(session.expires) < new Date()) {
     -    throw event.redirect(302, `/api/auth/signin?redirectTo=${event.url.pathname}`);
-    +    throw event.redirect(302, `/auth/signin?redirectTo=${event.url.pathname}`);
+    +    throw event.redirect(302, `/auth/signin?callbackUrl=${event.url.pathname}`);
       }
     };
     ```
@@ -353,7 +353,7 @@ Session data can be accessed via the route `event.sharedMap`.  So a route can be
 export const onRequest: RequestHandler = (event) => {
   const session: Session | null = event.sharedMap.get('session');
   if (!session || new Date(session.expires) < new Date()) {
-    throw event.redirect(302, `/auth/signin?redirectTo=${event.url.pathname}`);
+    throw event.redirect(302, `/auth/signin?callbackUrl=${event.url.pathname}`);
   }
 };
 ```

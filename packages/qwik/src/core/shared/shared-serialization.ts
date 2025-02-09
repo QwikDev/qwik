@@ -8,7 +8,13 @@ import { type DomContainer } from '../client/dom-container';
 import type { VNode } from '../client/types';
 import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
 import { NEEDS_COMPUTATION } from '../signal/flags';
-import { ComputedSignal, EffectPropData, Signal, WrappedSignal } from '../signal/signal';
+import {
+  ComputedSignal,
+  EffectPropData,
+  Signal,
+  WrappedSignal,
+  type EffectSubscriptions,
+} from '../signal/signal';
 import type { Subscriber } from '../signal/signal-subscriber';
 import {
   STORE_ARRAY_PROP,
@@ -233,7 +239,7 @@ const inflate = (
       task.$flags$ = v[1];
       task.$index$ = v[2];
       task.$el$ = v[3] as HostElement;
-      task.$effectDependencies$ = v[4] as Subscriber[] | null;
+      task.$effectDependencies$ = v[4] as Set<Subscriber> | null;
       task.$state$ = v[5];
       break;
     case TypeIds.Resource:
@@ -268,20 +274,27 @@ const inflate = (
     }
     case TypeIds.Signal: {
       const signal = target as Signal<unknown>;
-      const d = data as [unknown, ...any[]];
+      const d = data as [unknown, Set<EffectSubscriptions>];
       signal.$untrackedValue$ = d[0];
-      signal.$effects$ = d.slice(1);
+      signal.$effects$ = d[1];
       break;
     }
     case TypeIds.WrappedSignal: {
       const signal = target as WrappedSignal<unknown>;
-      const d = data as [number, unknown[], Subscriber[], unknown, HostElement, ...any[]];
+      const d = data as [
+        number,
+        unknown[],
+        Set<Subscriber>,
+        unknown,
+        HostElement,
+        Set<EffectSubscriptions>,
+      ];
       signal.$func$ = container.getSyncFn(d[0]);
       signal.$args$ = d[1];
       signal.$effectDependencies$ = d[2];
       signal.$untrackedValue$ = d[3];
       signal.$hostElement$ = d[4];
-      signal.$effects$ = d.slice(5);
+      signal.$effects$ = d[5];
       break;
     }
     case TypeIds.ComputedSignal: {
@@ -843,7 +856,7 @@ export const createSerializationContext = (
         // WrappedSignal uses syncQrl which has no captured refs
         if (obj instanceof WrappedSignal) {
           if (obj.$effectDependencies$) {
-            discoveredValues.push(...obj.$effectDependencies$);
+            discoveredValues.push(obj.$effectDependencies$);
           }
           if (obj.$args$) {
             discoveredValues.push(...obj.$args$);
@@ -1175,7 +1188,7 @@ function serialize(serializationContext: SerializationContext): void {
           value.$effectDependencies$,
           v,
           value.$hostElement$,
-          ...(value.$effects$ || []),
+          value.$effects$,
         ]);
       } else if (value instanceof ComputedSignal) {
         const out = [
@@ -1188,7 +1201,7 @@ function serialize(serializationContext: SerializationContext): void {
         }
         output(TypeIds.ComputedSignal, out);
       } else {
-        output(TypeIds.Signal, [v, ...(value.$effects$ || [])]);
+        output(TypeIds.Signal, [v, value.$effects$]);
       }
     } else if (value instanceof URL) {
       output(TypeIds.URL, value.href);

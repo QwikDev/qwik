@@ -88,9 +88,7 @@ export const executeComponent = (
         if (!isInlineComponent) {
           container.setHostProp(renderHost, ELEMENT_SEQ_IDX, null);
           container.setHostProp(renderHost, USE_ON_LOCAL_SEQ_IDX, null);
-          if (container.getHostProp(renderHost, ELEMENT_PROPS) !== props) {
-            container.setHostProp(renderHost, ELEMENT_PROPS, props);
-          }
+          container.setHostProp(renderHost, ELEMENT_PROPS, props);
         }
 
         if (vnode_isVNode(renderHost)) {

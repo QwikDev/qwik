@@ -1,7 +1,7 @@
 import { setupServiceWorker } from './setup';
 import { expect, describe, it, vi } from 'vitest';
 import { createState, type SWStateBase, type SWTask } from './state';
-import { processMessage } from './process-message';
+import { MsgType, processMessage } from './process-message';
 import { addDependencies, directFetch } from './direct-fetch';
 import { delay } from '../core/util/promises';
 
@@ -24,12 +24,12 @@ describe('service-worker', async () => {
     });
   });
 
-  describe('graph', async () => {
+  describe(MsgType.Graph, async () => {
     const singleGraph = createGraph([['a.js']]);
     const graph = createGraph([['a.js', 'b.js', 'c.js'], ['b.js', 'c.js'], ['c.js']]);
     it('load single', async () => {
       const swState = mockSwState();
-      await processMessage(swState, ['graph', '/base/', ...singleGraph]);
+      await processMessage(swState, [MsgType.Graph, '/base/', ...singleGraph]);
       expect(swState.$bases$.length).toBe(1);
       expect(swState.$bases$[0].$path$).toBe('/base/');
       expect(swState.$bases$[0].$graph$).toEqual(singleGraph);
@@ -38,7 +38,7 @@ describe('service-worker', async () => {
 
     it('load many', async () => {
       const swState = mockSwState();
-      await processMessage(swState, ['graph', '/base/', ...graph]);
+      await processMessage(swState, [MsgType.Graph, '/base/', ...graph]);
       expect(swState.$bases$.length).toBe(1);
       expect(swState.$bases$[0].$path$).toBe('/base/');
       expect(swState.$bases$[0].$graph$).toEqual(graph);
@@ -47,8 +47,8 @@ describe('service-worker', async () => {
     it('load same base replaces previous', async () => {
       const differentGraph = createGraph([['a.js']]);
       const swState = mockSwState();
-      await processMessage(swState, ['graph', '/base/', ...graph]);
-      await processMessage(swState, ['graph', '/base/', ...differentGraph]);
+      await processMessage(swState, [MsgType.Graph, '/base/', ...graph]);
+      await processMessage(swState, [MsgType.Graph, '/base/', ...differentGraph]);
       expect(swState.$bases$.length).toBe(1);
       expect(swState.$bases$[0].$path$).toBe('/base/');
       expect(swState.$bases$[0].$graph$).toEqual(differentGraph);
@@ -57,7 +57,7 @@ describe('service-worker', async () => {
     it('should load graph from network', async () => {
       const swState = mockSwState();
       const graph = createGraph([['a.js', 'b.js'], ['b.js']]);
-      const p = processMessage(swState, ['graph-url', '/base/', 'q-graph.json']);
+      const p = processMessage(swState, [MsgType.GraphURL, '/base/', 'q-graph.json']);
       await delay(0);
       swState.$fetch$.mock.get('/base/q-graph.json')!.resolve(new Response(JSON.stringify(graph)));
       await p;
@@ -164,7 +164,7 @@ describe('service-worker', async () => {
 
     it('should intercept requests inside base', async () => {
       const swState = mockSwState();
-      await processMessage(swState, ['graph', '/base/']);
+      await processMessage(swState, [MsgType.Graph, '/base/']);
       const responsePromise = directFetch(swState, new URL('http://server/base/unknown.js'));
       await delay(0);
       swState.$fetch$.mock.get('/base/unknown.js')!.resolve(new Response('RESPONSE'));
@@ -185,7 +185,7 @@ describe('service-worker', async () => {
 
     it('should not add non 200 response to cache', async () => {
       const swState = mockSwState();
-      await processMessage(swState, ['graph', '/base/']);
+      await processMessage(swState, [MsgType.Graph, '/base/']);
       const responsePromise = directFetch(swState, new URL('http://server/base/unknown.js'));
       await delay(0);
       swState.$fetch$.mock
@@ -199,7 +199,7 @@ describe('service-worker', async () => {
     it('should cache response', async () => {
       const swState = mockSwState();
       swState.$put$('/base/abc.js', new Response('RESPONSE'));
-      await processMessage(swState, ['graph', '/base/', 'abc.js']);
+      await processMessage(swState, [MsgType.Graph, '/base/', 'abc.js']);
       const response = await directFetch(swState, new URL('http://server/base/abc.js'));
       expect(response).not.toBeUndefined();
       expect(response!.status).toBe(200);
@@ -209,7 +209,7 @@ describe('service-worker', async () => {
     it('should add dependencies to cache', async () => {
       const swState = mockSwState();
       await processMessage(swState, [
-        'graph',
+        MsgType.Graph,
         '/base/',
         ...createGraph([['abc.js', 'def.js'], ['def.js']]),
       ]);
@@ -227,8 +227,8 @@ describe('service-worker', async () => {
     it('should not have more than X concurrent prefetch requests', async () => {
       const swState = mockSwState();
       swState.$maxPrefetchRequests$ = 1;
-      await processMessage(swState, ['graph', '/base/']);
-      await processMessage(swState, ['prefetch', '/base/', 'a.js', 'b.js', 'c.js']);
+      await processMessage(swState, [MsgType.Graph, '/base/']);
+      await processMessage(swState, [MsgType.Prefetch, '/base/', 'a.js', 'b.js', 'c.js']);
       await delay(0);
       expect(swState.$queue$.length).toBe(3);
       expect(swState.$queue$.filter((t) => t.$isFetching$).length).toBe(1);
@@ -247,8 +247,8 @@ describe('service-worker', async () => {
     it('should put direct request at the front of the queue', async () => {
       const swState = mockSwState();
       swState.$maxPrefetchRequests$ = 1;
-      await processMessage(swState, ['graph', '/base/']);
-      await processMessage(swState, ['prefetch', '/base/', 'a.js', 'b.js']);
+      await processMessage(swState, [MsgType.Graph, '/base/']);
+      await processMessage(swState, [MsgType.Prefetch, '/base/', 'a.js', 'b.js']);
       await delay(0);
       expect(swState.$queue$.length).toBe(2);
       expect(swState.$queue$.filter((t) => t.$isFetching$).length).toBe(1);
@@ -274,11 +274,11 @@ describe('service-worker', async () => {
       const swState = mockSwState();
       swState.$maxPrefetchRequests$ = 1;
       await processMessage(swState, [
-        'graph',
+        MsgType.Graph,
         '/base/',
         ...createGraph([['a.js', 'b.js'], ['b.js'], ['c.js']]),
       ]);
-      await processMessage(swState, ['prefetch', '/base/', 'a.js', 'b.js', 'c.js']);
+      await processMessage(swState, [MsgType.Prefetch, '/base/', 'a.js', 'b.js', 'c.js']);
       await delay(0);
       expect(swState.$queue$.filter(areFetching).map(getPathname)).toEqual(['/base/a.js']);
       directFetch(swState, new URL('http://server/base/a.js'));
@@ -303,7 +303,7 @@ describe('service-worker', async () => {
     it('should respond from cache', async () => {
       const swState = mockSwState();
       swState.mockCache.mock.set('/base/abc.js', new Response('RESPONSE'));
-      await processMessage(swState, ['graph', '/base/', 'abc.js']);
+      await processMessage(swState, [MsgType.Graph, '/base/', 'abc.js']);
       const response = await directFetch(swState, new URL('http://server/base/abc.js'));
       expect(response!.status).toBe(200);
       expect(await response?.text()).toEqual('RESPONSE');
@@ -312,8 +312,8 @@ describe('service-worker', async () => {
     it('should populate cache from prefetch', async () => {
       const swState = mockSwState();
       const graph = createGraph([['a.js', 'b.js'], ['b.js', 'c.js'], ['c.js']]);
-      await processMessage(swState, ['graph', '/base/', ...graph]);
-      await processMessage(swState, ['prefetch', '/base/', 'a.js']);
+      await processMessage(swState, [MsgType.Graph, '/base/', ...graph]);
+      await processMessage(swState, [MsgType.Prefetch, '/base/', 'a.js']);
       await delay(0);
       swState.$fetch$.mock.get('/base/a.js')!.resolve(new Response('A'));
       swState.$fetch$.mock.get('/base/b.js')!.resolve(new Response('B'));
@@ -330,11 +330,11 @@ describe('service-worker', async () => {
       const swState = mockSwState();
       swState.mockCache.mock.set('/base/a.js', new Response('A'));
       await processMessage(swState, [
-        'graph',
+        MsgType.Graph,
         '/base/',
         ...createGraph([['a.js', 'b.js'], ['b.js']]),
       ]);
-      await processMessage(swState, ['prefetch', '/base/', 'a.js']);
+      await processMessage(swState, [MsgType.Prefetch, '/base/', 'a.js']);
       await delay(0);
       expect(swState.$queue$.length).toBe(1);
       expect(swState.$queue$.filter(areFetching).map(getPathname)).toEqual(['/base/b.js']);
@@ -345,7 +345,7 @@ describe('service-worker', async () => {
         const swState = mockSwState();
         swState.mockCache.mock.set('/base/a.js', new Response('A'));
         swState.mockCache.mock.set('/base/b.js', new Response('B'));
-        await processMessage(swState, ['graph', '/base/', ...createGraph([['b.js']])]);
+        await processMessage(swState, [MsgType.Graph, '/base/', ...createGraph([['b.js']])]);
         expect(Array.from(swState.mockCache.mock.keys())).toEqual(['/base/b.js']);
       });
     });

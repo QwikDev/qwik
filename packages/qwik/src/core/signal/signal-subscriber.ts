@@ -13,7 +13,7 @@ import { isPropsProxy } from '../shared/jsx/jsx-runtime';
 import { _CONST_PROPS, _VAR_PROPS } from '../internal';
 
 export abstract class Subscriber {
-  $effectDependencies$: (Subscriber | TargetType)[] | null = null;
+  $effectDependencies$: Set<Subscriber | TargetType> | null = null;
 }
 
 export function isSubscriber(value: unknown): value is Subscriber {
@@ -40,13 +40,23 @@ export function clearVNodeEffectDependencies(container: Container, value: VNode)
 
 export function clearSubscriberEffectDependencies(container: Container, value: Subscriber): void {
   if (value.$effectDependencies$) {
-    for (let i = value.$effectDependencies$.length - 1; i >= 0; i--) {
-      const subscriber = value.$effectDependencies$[i];
-      clearEffects(subscriber, value, value.$effectDependencies$, i, container);
+    for (const subscriber of value.$effectDependencies$) {
+      let subscriptionRemoved = false;
+      const seenSet = new Set();
+      if (subscriber instanceof WrappedSignal) {
+        subscriptionRemoved = clearSignalEffects(subscriber, value, seenSet);
+      } else if (container.$storeProxyMap$.has(subscriber)) {
+        const store = container.$storeProxyMap$.get(subscriber)!;
+        const handler = getStoreHandler(store)!;
+        subscriptionRemoved = clearStoreEffects(handler, value);
+      }
+      if (subscriptionRemoved) {
+        value.$effectDependencies$.delete(subscriber);
+      }
     }
 
-    if (value.$effectDependencies$.length === 0) {
-      value.$effectDependencies$ = null;
+    if (value.$effectDependencies$.size === 0) {
+      value.$effectDependencies$.clear();
     }
   }
 }
@@ -81,10 +91,9 @@ function clearSignalEffects(
 
   let subscriptionRemoved = false;
   if (effectSubscriptions) {
-    for (let i = effectSubscriptions.length - 1; i >= 0; i--) {
-      const effect = effectSubscriptions[i];
+    for (const effect of effectSubscriptions) {
       if (effect[EffectSubscriptionsProp.EFFECT] === value) {
-        effectSubscriptions.splice(i, 1);
+        effectSubscriptions.delete(effect);
         subscriptionRemoved = true;
       }
     }
@@ -114,14 +123,13 @@ function clearStoreEffects(storeHandler: StoreHandler, value: Subscriber | VNode
   let subscriptionRemoved = false;
   for (const key in effectSubscriptions) {
     const effects = effectSubscriptions[key];
-    for (let i = effects.length - 1; i >= 0; i--) {
-      const effect = effects[i];
+    for (const effect of effects) {
       if (effect[EffectSubscriptionsProp.EFFECT] === value) {
-        effects.splice(i, 1);
+        effects.delete(effect);
         subscriptionRemoved = true;
       }
     }
-    if (effects.length === 0) {
+    if (effects.size === 0) {
       delete effectSubscriptions[key];
     }
   }

@@ -148,7 +148,7 @@ export class Signal<T = any> implements ISignal<T> {
   $untrackedValue$: T;
 
   /** Store a list of effects which are dependent on this signal. */
-  $effects$: null | EffectSubscriptions[] = null;
+  $effects$: null | Set<EffectSubscriptions> = null;
 
   $container$: Container | null = null;
 
@@ -184,7 +184,7 @@ export class Signal<T = any> implements ISignal<T> {
       }
       const effectSubscriber = ctx.$effectSubscriber$;
       if (effectSubscriber) {
-        const effects = (this.$effects$ ||= []);
+        const effects = (this.$effects$ ||= new Set());
         // Let's make sure that we have a reference to this effect.
         // Adding reference is essentially adding a subscription, so if the signal
         // changes we know who to notify.
@@ -227,7 +227,9 @@ export class Signal<T = any> implements ISignal<T> {
   toString() {
     return (
       `[${this.constructor.name}${(this as any).$invalid$ ? ' INVALID' : ''} ${String(this.$untrackedValue$)}]` +
-      (this.$effects$?.map((e) => '\n -> ' + pad(qwikDebugToString(e[0]), '    ')).join('\n') || '')
+      (Array.from(this.$effects$ || [])
+        .map((e) => '\n -> ' + pad(qwikDebugToString(e[0]), '    '))
+        .join('\n') || '')
     );
   }
   toJSON() {
@@ -245,19 +247,13 @@ export const ensureContains = (array: any[], value: any): boolean => {
 };
 
 export const ensureContainsEffect = (
-  array: EffectSubscriptions[],
+  array: Set<EffectSubscriptions>,
   effectSubscriptions: EffectSubscriptions
 ) => {
-  for (let i = 0; i < array.length; i++) {
-    const existingEffect = array[i];
-    if (
-      existingEffect[0] === effectSubscriptions[0] &&
-      existingEffect[1] === effectSubscriptions[1]
-    ) {
-      return;
-    }
+  if (array.has(effectSubscriptions)) {
+    return;
   }
-  array.push(effectSubscriptions);
+  array.add(effectSubscriptions);
 };
 
 export const ensureEffectContainsSubscriber = (
@@ -266,54 +262,41 @@ export const ensureEffectContainsSubscriber = (
   container: Container | null
 ) => {
   if (isSubscriber(effect)) {
-    effect.$effectDependencies$ ||= [];
-
-    if (subscriberExistInSubscribers(effect.$effectDependencies$, subscriber)) {
+    effect.$effectDependencies$ ||= new Set();
+    if (effect.$effectDependencies$.has(subscriber)) {
       return;
     }
 
-    effect.$effectDependencies$.push(subscriber);
+    effect.$effectDependencies$.add(subscriber);
   } else if (vnode_isVNode(effect) && !vnode_isTextVNode(effect)) {
-    let subscribers = vnode_getProp<(Subscriber | TargetType)[]>(
+    let subscribers = vnode_getProp<Set<Subscriber | TargetType>>(
       effect,
       QSubscribers,
       container ? container.$getObjectById$ : null
     );
-    subscribers ||= [];
+    subscribers ||= new Set();
 
-    if (subscriberExistInSubscribers(subscribers, subscriber)) {
+    if (subscribers.has(subscriber)) {
       return;
     }
 
-    subscribers.push(subscriber);
+    subscribers.add(subscriber);
     vnode_setProp(effect, QSubscribers, subscribers);
   } else if (isSSRNode(effect)) {
-    let subscribers = effect.getProp(QSubscribers) as (Subscriber | TargetType)[];
-    subscribers ||= [];
+    let subscribers = effect.getProp(QSubscribers) as Set<Subscriber | TargetType>;
+    subscribers ||= new Set();
 
-    if (subscriberExistInSubscribers(subscribers, subscriber)) {
+    if (subscribers.has(subscriber)) {
       return;
     }
 
-    subscribers.push(subscriber);
+    subscribers.add(subscriber);
     effect.setProp(QSubscribers, subscribers);
   }
 };
 
 const isSSRNode = (effect: Effect): effect is ISsrNode => {
   return 'setProp' in effect && 'getProp' in effect && 'removeProp' in effect && 'id' in effect;
-};
-
-const subscriberExistInSubscribers = (
-  subscribers: (Subscriber | TargetType)[],
-  subscriber: Subscriber | TargetType
-) => {
-  for (let i = 0; i < subscribers.length; i++) {
-    if (subscribers[i] === subscriber) {
-      return true;
-    }
-  }
-  return false;
 };
 
 export const addQrlToSerializationCtx = (
@@ -341,7 +324,7 @@ export const addQrlToSerializationCtx = (
 export const triggerEffects = (
   container: Container | null,
   signal: Signal | TargetType,
-  effects: EffectSubscriptions[] | null
+  effects: Set<EffectSubscriptions> | null
 ) => {
   const isBrowser = isDomContainer(container);
   if (effects) {
@@ -503,7 +486,7 @@ export class WrappedSignal<T> extends Signal<T> implements Subscriber {
   // We need a separate flag to know when the computation needs running because
   // we need the old value to know if effects need running after computation
   $invalid$: boolean = true;
-  $effectDependencies$: Subscriber[] | null = null;
+  $effectDependencies$: Set<Subscriber> | null = null;
   $hostElement$: HostElement | null = null;
   $forceRunEffects$: boolean = false;
 

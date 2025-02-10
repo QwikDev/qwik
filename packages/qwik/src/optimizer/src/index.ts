@@ -7,7 +7,6 @@ export type {
   DiagnosticCategory,
   EntryStrategy,
   GlobalInjections,
-  SegmentAnalysis as HookAnalysis,
   SegmentAnalysis,
   SegmentEntryStrategy as HookEntryStrategy,
   SegmentEntryStrategy,

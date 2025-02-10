@@ -43,6 +43,7 @@ use std::path::Path;
 use std::str;
 use swc_atoms::JsWord;
 
+use crate::code_move::generate_entries;
 use crate::entry_strategy::parse_entry_strategy;
 pub use crate::entry_strategy::EntryStrategy;
 pub use crate::parse::EmitMode;
@@ -162,7 +163,23 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
 		.reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
 
 	final_output.modules.sort_unstable_by_key(|key| key.order);
-
+	if !matches!(
+		config.entry_strategy,
+		EntryStrategy::Hook | EntryStrategy::Inline | EntryStrategy::Hoist
+	) {
+		final_output = generate_entries(
+			final_output,
+			&core_module,
+			config.explicit_extensions,
+			root_dir,
+		)?;
+	}
+	// final_output = generate_entries(
+	//     final_output,
+	//     &core_module,
+	//     config.explicit_extensions,
+	//     root_dir,
+	// )?;
 	Ok(final_output)
 }
 
@@ -218,6 +235,23 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
 
 	let mut final_output = final_output?;
 	final_output.modules.sort_unstable_by_key(|key| key.order);
+	if !matches!(
+		config.entry_strategy,
+		EntryStrategy::Hook | EntryStrategy::Inline | EntryStrategy::Hoist
+	) {
+		final_output = generate_entries(
+			final_output,
+			&core_module,
+			config.explicit_extensions,
+			root_dir,
+		)?;
+	}
+	// final_output = generate_entries(
+	//     final_output,
+	//     &core_module,
+	//     config.explicit_extensions,
+	//     root_dir,
+	// )?;
 
 	Ok(final_output)
 }

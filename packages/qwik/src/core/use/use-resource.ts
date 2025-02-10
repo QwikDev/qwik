@@ -11,7 +11,7 @@ import { delay, isPromise, safeCall } from '../shared/utils/promises';
 import { isFunction, isObject } from '../shared/utils/types';
 import { StoreFlags, createStore, getStoreTarget, unwrapStore } from '../signal/store';
 import { useSequentialScope } from './use-sequential-scope';
-import { EffectProperty, isSignal } from '../signal/signal';
+import { EffectProperty, getSubscriber, isSignal } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
 import { clearSubscriberEffectDependencies } from '../signal/signal-subscriber';
 import { ResourceEvent } from '../shared/utils/markers';
@@ -283,7 +283,7 @@ export const runResource = <T>(
 
   const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
     const ctx = newInvokeContext();
-    ctx.$effectSubscriber$ = [task, EffectProperty.COMPONENT];
+    ctx.$effectSubscriber$ = getSubscriber(task, EffectProperty.COMPONENT);
     ctx.$container$ = container;
     return invoke(ctx, () => {
       if (isFunction(obj)) {

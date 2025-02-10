@@ -1,11 +1,6 @@
 import { QSubscribers } from '../shared/utils/markers';
-import type { ElementVNode, VNode, VirtualVNode } from '../client/types';
-import {
-  ensureMaterialized,
-  vnode_getProp,
-  vnode_isElementVNode,
-  vnode_setProp,
-} from '../client/vnode';
+import type { VNode } from '../client/types';
+import { ensureMaterialized, vnode_getProp, vnode_isElementVNode } from '../client/vnode';
 import { EffectSubscriptionsProp, WrappedSignal, isSignal, type Signal } from './signal';
 import type { Container } from '../shared/types';
 import { StoreHandler, getStoreHandler, isStore, type TargetType } from './store';
@@ -24,39 +19,20 @@ export function clearVNodeEffectDependencies(container: Container, value: VNode)
   if (vnode_isElementVNode(value)) {
     ensureMaterialized(value);
   }
-  const effects = vnode_getProp<Subscriber[]>(value, QSubscribers, container.$getObjectById$);
+  const effects = vnode_getProp<Set<Subscriber>>(value, QSubscribers, container.$getObjectById$);
+
   if (!effects) {
     return;
   }
-  for (let i = effects.length - 1; i >= 0; i--) {
-    const subscriber = effects[i];
-    clearEffects(subscriber, value, effects, i, container);
-  }
-
-  if (effects.length === 0) {
-    vnode_setProp(value as ElementVNode | VirtualVNode, QSubscribers, null);
+  for (const subscriber of effects) {
+    clearEffects(subscriber, value, effects, container);
   }
 }
 
 export function clearSubscriberEffectDependencies(container: Container, value: Subscriber): void {
   if (value.$effectDependencies$) {
     for (const subscriber of value.$effectDependencies$) {
-      let subscriptionRemoved = false;
-      const seenSet = new Set();
-      if (subscriber instanceof WrappedSignal) {
-        subscriptionRemoved = clearSignalEffects(subscriber, value, seenSet);
-      } else if (container.$storeProxyMap$.has(subscriber)) {
-        const store = container.$storeProxyMap$.get(subscriber)!;
-        const handler = getStoreHandler(store)!;
-        subscriptionRemoved = clearStoreEffects(handler, value);
-      }
-      if (subscriptionRemoved) {
-        value.$effectDependencies$.delete(subscriber);
-      }
-    }
-
-    if (value.$effectDependencies$.size === 0) {
-      value.$effectDependencies$.clear();
+      clearEffects(subscriber, value, value.$effectDependencies$, container);
     }
   }
 }
@@ -64,8 +40,7 @@ export function clearSubscriberEffectDependencies(container: Container, value: S
 function clearEffects(
   subscriber: Subscriber | TargetType,
   value: Subscriber | VNode,
-  effectArray: (Subscriber | TargetType)[],
-  indexToRemove: number,
+  effectArray: Set<Subscriber | TargetType>,
   container: Container
 ) {
   let subscriptionRemoved = false;
@@ -78,7 +53,7 @@ function clearEffects(
     subscriptionRemoved = clearStoreEffects(handler, value);
   }
   if (subscriptionRemoved) {
-    effectArray.splice(indexToRemove, 1);
+    effectArray.delete(subscriber);
   }
 }
 

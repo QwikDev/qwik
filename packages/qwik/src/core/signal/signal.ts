@@ -134,6 +134,26 @@ export type EffectSubscriptions = [
     | TargetType
   )[],
 ];
+
+/** Global map of all effect subscriptions */
+const effectMapMap = new WeakMap<Effect, Map<EffectProperty | string, EffectSubscriptions>>();
+export function getSubscriber(effect: Effect, prop: EffectProperty | string, data?: unknown) {
+  let subMap = effectMapMap.get(effect);
+  if (!subMap) {
+    subMap = new Map();
+    effectMapMap.set(effect, subMap);
+  }
+  let sub = subMap.get(prop);
+  if (!sub) {
+    sub = [effect, prop];
+    subMap.set(prop, sub);
+  }
+  if (data) {
+    sub[EffectSubscriptionsProp.FIRST_BACK_REF_OR_DATA] = data;
+  }
+  return sub;
+}
+
 export const enum EffectSubscriptionsProp {
   EFFECT = 0,
   PROPERTY = 1,
@@ -250,9 +270,6 @@ export const ensureContainsEffect = (
   array: Set<EffectSubscriptions>,
   effectSubscriptions: EffectSubscriptions
 ) => {
-  if (array.has(effectSubscriptions)) {
-    return;
-  }
   array.add(effectSubscriptions);
 };
 
@@ -444,7 +461,7 @@ export class ComputedSignal<T> extends Signal<T> {
 
     const ctx = tryGetInvokeContext();
     const previousEffectSubscription = ctx?.$effectSubscriber$;
-    ctx && (ctx.$effectSubscriber$ = [this, EffectProperty.VNODE]);
+    ctx && (ctx.$effectSubscriber$ = getSubscriber(this, EffectProperty.VNODE));
     try {
       const untrackedValue = computeQrl.getFn(ctx)() as T;
       if (isPromise(untrackedValue)) {

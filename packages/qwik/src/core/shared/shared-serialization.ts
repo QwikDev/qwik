@@ -274,9 +274,9 @@ const inflate = (
     }
     case TypeIds.Signal: {
       const signal = target as Signal<unknown>;
-      const d = data as [unknown, Set<EffectSubscriptions>];
+      const d = data as [unknown, ...EffectSubscriptions[]];
       signal.$untrackedValue$ = d[0];
-      signal.$effects$ = d[1];
+      signal.$effects$ = new Set(d.slice(1) as EffectSubscriptions[]);
       break;
     }
     case TypeIds.WrappedSignal: {
@@ -287,14 +287,14 @@ const inflate = (
         Set<Subscriber>,
         unknown,
         HostElement,
-        Set<EffectSubscriptions>,
+        ...EffectSubscriptions[],
       ];
       signal.$func$ = container.getSyncFn(d[0]);
       signal.$args$ = d[1];
       signal.$effectDependencies$ = d[2];
       signal.$untrackedValue$ = d[3];
       signal.$hostElement$ = d[4];
-      signal.$effects$ = d[5];
+      signal.$effects$ = new Set(d.slice(5) as EffectSubscriptions[]);
       break;
     }
     case TypeIds.ComputedSignal: {
@@ -1188,7 +1188,7 @@ function serialize(serializationContext: SerializationContext): void {
           value.$effectDependencies$,
           v,
           value.$hostElement$,
-          value.$effects$,
+          ...(value.$effects$ || []),
         ]);
       } else if (value instanceof ComputedSignal) {
         const out = [
@@ -1201,7 +1201,7 @@ function serialize(serializationContext: SerializationContext): void {
         }
         output(TypeIds.ComputedSignal, out);
       } else {
-        output(TypeIds.Signal, [v, value.$effects$]);
+        output(TypeIds.Signal, [v, ...(value.$effects$ || [])]);
       }
     } else if (value instanceof URL) {
       output(TypeIds.URL, value.href);

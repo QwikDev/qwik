@@ -10,7 +10,7 @@ import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 
 export const applyInlineComponent = (
   ssr: SSRContainer,
-  componentHost: ISsrNode,
+  componentHost: ISsrNode | null,
   inlineComponentFunction: OnRenderFn<any>,
   jsx: JSXNode
 ) => {

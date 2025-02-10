@@ -268,7 +268,7 @@ function processJSXNode(
               : inlineComponentProps
           );
           enqueue(ssr.closeFragment);
-          const component = ssr.getComponentFrame(0)!;
+          const component = ssr.getComponentFrame(0);
           const jsxOutput = applyInlineComponent(
             ssr,
             component && component.componentNode,

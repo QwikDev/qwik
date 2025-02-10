@@ -3,7 +3,7 @@ import { createDocument, getTestPlatform } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { Container, HostElement } from '../shared/types';
 import { StoreFlags, getOrCreateStore, isStore } from './store';
-import { EffectProperty } from './signal';
+import { EffectProperty, getSubscriber } from './signal';
 import { invoke } from '../use/use-core';
 import { newInvokeContext } from '../use/use-core';
 import { ChoreType } from '../shared/scheduler';
@@ -73,7 +73,8 @@ describe('v2/store', () => {
     } else {
       const ctx = newInvokeContext();
       ctx.$container$ = container;
-      const subscriber: EffectSubscriptions = [task, EffectProperty.COMPONENT, ctx];
+      // TODO is ctx needed
+      const subscriber: EffectSubscriptions = getSubscriber(task, EffectProperty.COMPONENT, ctx);
       ctx.$effectSubscriber$ = subscriber;
       return invoke(ctx, qrl.getFn(ctx));
     }

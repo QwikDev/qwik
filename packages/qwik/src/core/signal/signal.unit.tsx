@@ -13,6 +13,7 @@ import { invoke, newInvokeContext } from '../use/use-core';
 import { Task } from '../use/use-task';
 import {
   EffectProperty,
+  getSubscriber,
   type EffectSubscriptions,
   type InternalReadonlySignal,
   type InternalSignal,
@@ -167,7 +168,8 @@ describe('v2-signal', () => {
     } else {
       const ctx = newInvokeContext();
       ctx.$container$ = container;
-      const subscriber: EffectSubscriptions = [task, EffectProperty.COMPONENT, ctx];
+      // TODO is ctx needed?
+      const subscriber: EffectSubscriptions = getSubscriber(task, EffectProperty.COMPONENT, ctx);
       ctx.$effectSubscriber$ = subscriber;
       return invoke(ctx, qrl.getFn(ctx));
     }

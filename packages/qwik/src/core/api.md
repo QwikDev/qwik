@@ -332,6 +332,9 @@ export const inlinedQrl: <T>(symbol: T, symbolName: string, lexicalScopeCapture?
 // @internal (undocumented)
 export const inlinedQrlDEV: <T = any>(symbol: T, symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
+// @internal
+export const _input: (_: any, element: HTMLInputElement) => void;
+
 export { isBrowser }
 
 export { isDev }

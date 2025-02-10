@@ -64,15 +64,15 @@ export const Cmp_component_4ryKJTOKjWE = ()=>{
         toggleSig
     ]);
     return /*#__PURE__*/ _jsxSorted("button", null, {
+        onClick$: handleClick$,
         "data-open": _fnSignal((p0)=>p0.value ? true : undefined, [
             toggleSig
-        ], "p0.value?true:undefined"),
-        onClick$: handleClick$
+        ], "p0.value?true:undefined")
     }, "Removing data-open re-renders", 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAEgC;IAC7B,MAAM,YAAY,UAAU;IAE5B,MAAM;;;IAIN,qBACC,WAAC;QAA+B,WAAS,kBAAE,GAAU,KAAK,GAAG,OAAO;;;QAA5D,UAAU;OAA6D;AAIjF\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAEgC;IAC7B,MAAM,YAAY,UAAU;IAE5B,MAAM;;;IAIN,qBACC,WAAC;QAAO,UAAU;QAAc,WAAS,kBAAE,GAAU,KAAK,GAAG,OAAO;;;OAAW;AAIjF\"}")
 /*
 {
   "origin": "test.tsx",

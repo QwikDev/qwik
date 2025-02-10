@@ -31,3 +31,4 @@ starters/apps/base
 starters/apps/library
 starters/templates
 vite.config.ts
+packages/eslint-plugin-qwik

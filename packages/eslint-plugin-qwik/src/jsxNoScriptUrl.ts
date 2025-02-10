@@ -1,5 +1,5 @@
 import { ASTUtils } from '@typescript-eslint/utils';
-import { QwikEslintExamples } from '../examples';
+import type { QwikEslintExamples } from '../examples';
 const { getStaticValue } = ASTUtils;
 
 // A javascript: URL can contain leading C0 control or \u0020 SPACE,

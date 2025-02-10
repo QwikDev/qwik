@@ -37,3 +37,17 @@ To avoid blocking the main thread on wake, we lazily restore the roots, with cac
 The serialized text is first parsed to get an array of encoded root data.
 
 Then, a proxy gets the raw data and returns an array that deserializes properties on demand and caches them. Objects are also lazily restored.
+
+## Out-of-order streaming
+
+when we allow out-of-order streaming but we want interactivity while the page is still streaming, we can't scan the state once for cycles/Promises/references, because later state might refer to earlier state.
+
+Therefore we must make the serializer single-pass. To do this, we could store each object as a root, but that will make references take more bytes. Instead, we could implement sub-paths for references, and when we encounter a reference, we output that instead.
+
+For later references it would be best to have a root reference, so we'd probably add a root for the sub-reference and later we can refer to that.
+
+We'll still need to keep track of Promises. We can do this by waiting, but that halts streaming. Instead, we could write a forward reference id, and when the promise is resolved, we store the result as the next root item. At the end of the stream we can emit a mapping from forward references to root index.
+
+Then later, when we send out-of-order state, it will append to the existing state on the client.
+
+This single-pass approach might just be better in general, because several bugs were found due to differences between the first and second pass code, and it allows streaming the data while the promises are being resolved.

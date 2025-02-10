@@ -1,5 +1,35 @@
 # @qwik.dev/core
 
+## 2.0.0-alpha.7
+
+### Patch Changes
+
+- 🐞🩹 rendering attribute value from array of classes from spread props (by [@Varixo](https://github.com/Varixo) in [#7310](https://github.com/QwikDev/qwik/pull/7310))
+
+- 🐞🩹 null or undefined as ref attribute value (by [@Varixo](https://github.com/Varixo) in [#7285](https://github.com/QwikDev/qwik/pull/7285))
+
+- 🐞🩹 QRLs are now scheduled instead of directly executed by qwik-loader, so that they are executed in the right order. (by [@wmertens](https://github.com/wmertens) in [#7269](https://github.com/QwikDev/qwik/pull/7269))
+
+- 🐞🩹 different component rendering with the same key (by [@Varixo](https://github.com/Varixo) in [#7292](https://github.com/QwikDev/qwik/pull/7292))
+
+- 🐞🩹 export SVG type from qwik/core (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7222](https://github.com/QwikDev/qwik/pull/7222))
+
+- 🐞🩹 optimizer is now better at recognizing constProp (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7316](https://github.com/QwikDev/qwik/pull/7316))
+
+- 🐞🩹 create svg nested children with correct namespace (by [@Varixo](https://github.com/Varixo) in [#7323](https://github.com/QwikDev/qwik/pull/7323))
+
+- 🐞🩹 the use hook didn't work when type is Slot. (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7250](https://github.com/QwikDev/qwik/pull/7250))
+
+- 🛠 replace the `_hW` export in segments with a shared export `_task` in core. This opens up using QRLs from core. (by [@wmertens](https://github.com/wmertens) in [#7269](https://github.com/QwikDev/qwik/pull/7269))
+
+- 🐞🩹 vNode serialization error on server$ (by [@damianpumar](https://github.com/damianpumar) in [#7278](https://github.com/QwikDev/qwik/pull/7278))
+
+- 🐞🩹 don't wrap and serialize functions that are attribute values (by [@Varixo](https://github.com/Varixo) in [#7284](https://github.com/QwikDev/qwik/pull/7284))
+
+- Updated ComponentStylesPrefixContent from ⭐️ to ⚡️. (by [@sreeisalso](https://github.com/sreeisalso) in [#7304](https://github.com/QwikDev/qwik/pull/7304))
+
+- Expose missing types into `public.d.ts` and fix types uri for internal export inside `package.json` (by [@GrandSchtroumpf](https://github.com/GrandSchtroumpf) in [#7289](https://github.com/QwikDev/qwik/pull/7289))
+
 ## 2.0.0-alpha.6
 
 ### Patch Changes

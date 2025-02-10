@@ -77,7 +77,7 @@ export const getOrCreateStore = <T extends object>(
 };
 
 export class StoreHandler implements ProxyHandler<TargetType> {
-  $effects$: null | Record<string | symbol, EffectSubscriptions[]> = null;
+  $effects$: null | Record<string | symbol, Set<EffectSubscriptions>> = null;
 
   constructor(
     public $flags$: StoreFlags,
@@ -223,7 +223,7 @@ function addEffect<T extends Record<string | symbol, any>>(
   const effectsMap = (store.$effects$ ||= {});
   const effects =
     (Object.prototype.hasOwnProperty.call(effectsMap, prop) && effectsMap[prop]) ||
-    (effectsMap[prop] = []);
+    (effectsMap[prop] = new Set());
   // Let's make sure that we have a reference to this effect.
   // Adding reference is essentially adding a subscription, so if the signal
   // changes we know who to notify.
@@ -260,17 +260,25 @@ function setNewValueAndTriggerEffects<T extends Record<string | symbol, any>>(
 function getEffects<T extends Record<string | symbol, any>>(
   target: T,
   prop: string | symbol,
-  storeEffects: Record<string | symbol, EffectSubscriptions[]> | null
+  storeEffects: Record<string | symbol, Set<EffectSubscriptions>> | null
 ) {
-  let effectsToTrigger = storeEffects
-    ? Array.isArray(target)
-      ? Object.values(storeEffects).flatMap((effects) => effects)
-      : storeEffects[prop]
-    : null;
+  let effectsToTrigger: Set<EffectSubscriptions> | null = null;
+
+  if (storeEffects) {
+    if (Array.isArray(target)) {
+      for (const effects of Object.values(storeEffects)) {
+        effectsToTrigger ||= new Set();
+        effects.forEach((effect) => effectsToTrigger!.add(effect));
+      }
+    } else {
+      effectsToTrigger = storeEffects[prop];
+    }
+  }
+
   const storeArrayValue = storeEffects?.[STORE_ARRAY_PROP];
   if (storeArrayValue) {
-    effectsToTrigger ||= [];
-    effectsToTrigger.push(...storeArrayValue);
+    effectsToTrigger ||= new Set();
+    storeArrayValue.forEach((effect) => effectsToTrigger!.add(effect));
   }
   return effectsToTrigger;
 }

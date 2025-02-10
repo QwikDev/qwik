@@ -498,7 +498,7 @@ export const createScheduler = (
             const target = chore.$target$ as ComputedSignal<unknown> | WrappedSignal<unknown>;
             const forceRunEffects = target.$forceRunEffects$;
             target.$forceRunEffects$ = false;
-            if (!target.$effects$?.length) {
+            if (!target.$effects$?.size) {
               break;
             }
             returnValue = retryOnPromise(() => {

@@ -216,7 +216,7 @@ export {
           disableVendorScan: true,
           vendorRoots: enableRouterServer ? [qwikRouterMjs] : [],
           entryStrategy: {
-            type: "single",
+            type: "segment",
           },
           client: {
             manifestOutput(manifest) {

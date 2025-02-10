@@ -5,15 +5,17 @@
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@mdx-js/mdx": "^3",
+    "@standard-schema/spec": "^1.0.0-rc.0",
     "@types/mdx": "^2",
     "source-map": "^0.7.4",
     "svgo": "^3.3",
+    "type-fest": "^4.33.0",
     "undici": "*",
-    "valibot": ">=0.36.0 <2",
+    "valibot": "^1.0.0-beta.14",
     "vfile": "6.0.2",
     "vite": "^5",
     "vite-imagetools": "^7",
-    "zod": "3.22.4"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@azure/functions": "3.5.1",

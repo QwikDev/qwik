@@ -255,6 +255,9 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         if (type === 'link' && dest.href !== location.href) {
           if (location.href.startsWith(dest.href.split('#')[0])) {
             location.hash = dest.hash;
+            if (location.hash === '') {
+              history.pushState(null, '', dest);
+            }
           } else {
             history.pushState(null, '', dest);
           }

@@ -1,7 +1,13 @@
 import { isBrowser } from '@builder.io/qwik';
+import { PREFETCHED_NAVIGATE_PATHS } from './constants';
 import type { NavigationType, ScrollState } from './types';
 import { isSamePath, toPath } from './utils';
-import { PREFETCHED_NAVIGATE_PATHS } from './constants';
+
+declare global {
+  interface Window {
+    qwikPrefetchSW?: any[][];
+  }
+}
 
 export const clientNavigate = (
   win: Window,
@@ -40,12 +46,23 @@ export const newScrollState = (): ScrollState => {
   };
 };
 
-export const prefetchSymbols = (path: string) => {
+export const prefetchSymbols = (path: string, base?: string) => {
   if (isBrowser) {
-    path = path.endsWith('/') ? path : path + '/';
-    if (!PREFETCHED_NAVIGATE_PATHS.has(path)) {
-      PREFETCHED_NAVIGATE_PATHS.add(path);
-      document.dispatchEvent(new CustomEvent('qprefetch', { detail: { links: [path] } }));
+    // Ensure path has trailing slash for backwards compatibility with qprefetch event
+    const pathWithSlash = path.endsWith('/') ? path : path + '/';
+    if (!PREFETCHED_NAVIGATE_PATHS.has(pathWithSlash)) {
+      PREFETCHED_NAVIGATE_PATHS.add(pathWithSlash);
+
+      // Get the base from container attributes if not provided
+      const containerBase = base ?? document.documentElement.getAttribute('q:base') ?? '/';
+      (window.qwikPrefetchSW || (window.qwikPrefetchSW = [])).push([
+        'link-prefetch',
+        containerBase,
+        pathWithSlash,
+      ]);
+
+      // Keep the existing event for backwards compatibility
+      document.dispatchEvent(new CustomEvent('qprefetch', { detail: { links: [pathWithSlash] } }));
     }
   }
 };

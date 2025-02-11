@@ -33,6 +33,7 @@ export const Signals = component$(() => {
       <button id="rerender" onClick$={() => rerender.value++}>
         Rerender
       </button>
+      <span id="rerender-count">Renders: {rerender.value}</span>
       <SignalsChildren key={rerender.value} />
     </>
   );

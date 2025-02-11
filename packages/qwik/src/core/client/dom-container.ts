@@ -4,6 +4,7 @@ import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
 import { getPlatform } from '../shared/platform/platform';
+import { emitEvent } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ChoreType } from '../shared/scheduler';
 import { _SharedContainer } from '../shared/shared-container';
@@ -289,7 +290,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   scheduleRender() {
     this.$renderCount$++;
     this.renderDone ||= getPlatform().nextTick(() => this.processChores());
-    return this.renderDone;
+    return this.renderDone.finally(() =>
+      emitEvent('qrender', { instanceHash: this.$instanceHash$, renderCount: this.$renderCount$ })
+    );
   }
 
   private processChores() {

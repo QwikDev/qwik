@@ -20,7 +20,7 @@ import { MAX_RETRY_ON_PROMISE_COUNT, isPromise, maybeThen, safeCall } from './ut
 import type { ValueOrPromise } from './utils/types';
 import type { Container, HostElement } from './types';
 import { logWarn } from './utils/log';
-import { EffectProperty, isSignal } from '../signal/signal';
+import { EffectProperty, isSignal, getSubscriber } from '../signal/signal';
 import { vnode_isVNode } from '../client/vnode';
 import { clearVNodeEffectDependencies } from '../signal/signal-subscriber';
 import { Slot } from '../shared/jsx/slot.public';
@@ -49,13 +49,20 @@ import { Slot } from '../shared/jsx/slot.public';
 export const executeComponent = (
   container: Container,
   renderHost: HostElement,
-  subscriptionHost: HostElement,
+  subscriptionHost: HostElement | null,
   componentQRL: OnRenderFn<unknown> | QRLInternal<OnRenderFn<unknown>> | null,
   props: Props | null
 ): ValueOrPromise<JSXOutput> => {
-  const iCtx = newInvokeContext(container.$locale$, subscriptionHost, undefined, RenderEvent);
-  iCtx.$effectSubscriber$ = [subscriptionHost, EffectProperty.COMPONENT];
-  iCtx.$container$ = container;
+  const iCtx = newInvokeContext(
+    container.$locale$,
+    subscriptionHost || undefined,
+    undefined,
+    RenderEvent
+  );
+  if (subscriptionHost) {
+    iCtx.$effectSubscriber$ = getSubscriber(subscriptionHost, EffectProperty.COMPONENT);
+    iCtx.$container$ = container;
+  }
   let componentFn: (props: unknown) => ValueOrPromise<JSXOutput>;
   container.ensureProjectionResolved(renderHost);
   let isInlineComponent = false;
@@ -88,9 +95,7 @@ export const executeComponent = (
         if (!isInlineComponent) {
           container.setHostProp(renderHost, ELEMENT_SEQ_IDX, null);
           container.setHostProp(renderHost, USE_ON_LOCAL_SEQ_IDX, null);
-          if (container.getHostProp(renderHost, ELEMENT_PROPS) !== props) {
-            container.setHostProp(renderHost, ELEMENT_PROPS, props);
-          }
+          container.setHostProp(renderHost, ELEMENT_PROPS, props);
         }
 
         if (vnode_isVNode(renderHost)) {

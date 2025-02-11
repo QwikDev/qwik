@@ -9,7 +9,7 @@ import { TaskEvent } from '../shared/utils/markers';
 import { isPromise, safeCall } from '../shared/utils/promises';
 import { noSerialize, type NoSerialize } from '../shared/utils/serialize-utils';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
-import { EffectProperty, isSignal } from '../signal/signal';
+import { EffectProperty, getSubscriber, isSignal } from '../signal/signal';
 import { Subscriber, clearSubscriberEffectDependencies } from '../signal/signal-subscriber';
 import { type Signal } from '../signal/signal.public';
 import { invoke, newInvokeContext } from './use-core';
@@ -178,7 +178,7 @@ export const runTask = (
 
   const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
     const ctx = newInvokeContext();
-    ctx.$effectSubscriber$ = [task, EffectProperty.COMPONENT];
+    ctx.$effectSubscriber$ = getSubscriber(task, EffectProperty.COMPONENT);
     ctx.$container$ = container;
     return invoke(ctx, () => {
       if (isFunction(obj)) {

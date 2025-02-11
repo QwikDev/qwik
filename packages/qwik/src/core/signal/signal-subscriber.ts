@@ -1,11 +1,6 @@
 import { QSubscribers } from '../shared/utils/markers';
-import type { ElementVNode, VNode, VirtualVNode } from '../client/types';
-import {
-  ensureMaterialized,
-  vnode_getProp,
-  vnode_isElementVNode,
-  vnode_setProp,
-} from '../client/vnode';
+import type { VNode } from '../client/types';
+import { ensureMaterialized, vnode_getProp, vnode_isElementVNode } from '../client/vnode';
 import { EffectSubscriptionsProp, WrappedSignal, isSignal, type Signal } from './signal';
 import type { Container } from '../shared/types';
 import { StoreHandler, getStoreHandler, isStore, type TargetType } from './store';
@@ -13,7 +8,7 @@ import { isPropsProxy } from '../shared/jsx/jsx-runtime';
 import { _CONST_PROPS, _VAR_PROPS } from '../internal';
 
 export abstract class Subscriber {
-  $effectDependencies$: (Subscriber | TargetType)[] | null = null;
+  $effectDependencies$: Set<Subscriber | TargetType> | null = null;
 }
 
 export function isSubscriber(value: unknown): value is Subscriber {
@@ -24,29 +19,20 @@ export function clearVNodeEffectDependencies(container: Container, value: VNode)
   if (vnode_isElementVNode(value)) {
     ensureMaterialized(value);
   }
-  const effects = vnode_getProp<Subscriber[]>(value, QSubscribers, container.$getObjectById$);
+  const effects = vnode_getProp<Set<Subscriber>>(value, QSubscribers, container.$getObjectById$);
+
   if (!effects) {
     return;
   }
-  for (let i = effects.length - 1; i >= 0; i--) {
-    const subscriber = effects[i];
-    clearEffects(subscriber, value, effects, i, container);
-  }
-
-  if (effects.length === 0) {
-    vnode_setProp(value as ElementVNode | VirtualVNode, QSubscribers, null);
+  for (const subscriber of effects) {
+    clearEffects(subscriber, value, effects, container);
   }
 }
 
 export function clearSubscriberEffectDependencies(container: Container, value: Subscriber): void {
   if (value.$effectDependencies$) {
-    for (let i = value.$effectDependencies$.length - 1; i >= 0; i--) {
-      const subscriber = value.$effectDependencies$[i];
-      clearEffects(subscriber, value, value.$effectDependencies$, i, container);
-    }
-
-    if (value.$effectDependencies$.length === 0) {
-      value.$effectDependencies$ = null;
+    for (const subscriber of value.$effectDependencies$) {
+      clearEffects(subscriber, value, value.$effectDependencies$, container);
     }
   }
 }
@@ -54,8 +40,7 @@ export function clearSubscriberEffectDependencies(container: Container, value: S
 function clearEffects(
   subscriber: Subscriber | TargetType,
   value: Subscriber | VNode,
-  effectArray: (Subscriber | TargetType)[],
-  indexToRemove: number,
+  effectArray: Set<Subscriber | TargetType>,
   container: Container
 ) {
   let subscriptionRemoved = false;
@@ -68,7 +53,7 @@ function clearEffects(
     subscriptionRemoved = clearStoreEffects(handler, value);
   }
   if (subscriptionRemoved) {
-    effectArray.splice(indexToRemove, 1);
+    effectArray.delete(subscriber);
   }
 }
 
@@ -81,10 +66,9 @@ function clearSignalEffects(
 
   let subscriptionRemoved = false;
   if (effectSubscriptions) {
-    for (let i = effectSubscriptions.length - 1; i >= 0; i--) {
-      const effect = effectSubscriptions[i];
+    for (const effect of effectSubscriptions) {
       if (effect[EffectSubscriptionsProp.EFFECT] === value) {
-        effectSubscriptions.splice(i, 1);
+        effectSubscriptions.delete(effect);
         subscriptionRemoved = true;
       }
     }
@@ -114,14 +98,13 @@ function clearStoreEffects(storeHandler: StoreHandler, value: Subscriber | VNode
   let subscriptionRemoved = false;
   for (const key in effectSubscriptions) {
     const effects = effectSubscriptions[key];
-    for (let i = effects.length - 1; i >= 0; i--) {
-      const effect = effects[i];
+    for (const effect of effects) {
       if (effect[EffectSubscriptionsProp.EFFECT] === value) {
-        effects.splice(i, 1);
+        effects.delete(effect);
         subscriptionRemoved = true;
       }
     }
-    if (effects.length === 0) {
+    if (effects.size === 0) {
       delete effectSubscriptions[key];
     }
   }

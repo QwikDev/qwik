@@ -17,10 +17,8 @@ test.describe("styles", () => {
   test.describe("client side", () => {
     test.beforeEach(async ({ page }) => {
       const reload = page.locator("#reload");
-      const v = Number(await reload.getAttribute("v"));
       await reload.click();
-      await expect(page.locator("#renderCount")).toHaveText(`Render ${v}`);
-      await page.waitForSelector("html[q\\:container=resumed]");
+      await expect(page.locator("#renderCount")).toHaveText(`Render 1`);
     });
     runTests();
   });

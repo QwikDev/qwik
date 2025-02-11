@@ -354,7 +354,8 @@ describe.each([
 
       expect(
         // wrapped signal on the pre element
-        (globalThis as any).signal.$effects$[0][EffectSubscriptionsProp.EFFECT].$effects$
+        (globalThis as any).signal.$effects$.values().next().value[EffectSubscriptionsProp.EFFECT]
+          .$effects$
       ).toHaveLength(1);
       expect((globalThis as any).signal.$effects$).toHaveLength(1);
 
@@ -364,7 +365,8 @@ describe.each([
       await trigger(container.element, 'button', 'click'); // <-- this should not add another subscriber
       expect((globalThis as any).signal.$effects$).toHaveLength(1);
       expect(
-        (globalThis as any).signal.$effects$[0][EffectSubscriptionsProp.EFFECT].$effects$
+        (globalThis as any).signal.$effects$.values().next().value[EffectSubscriptionsProp.EFFECT]
+          .$effects$
       ).toHaveLength(1);
 
       await trigger(container.element, 'button', 'click');
@@ -373,7 +375,8 @@ describe.each([
       await trigger(container.element, 'button', 'click'); // <-- this should not add another subscriber
       expect((globalThis as any).signal.$effects$).toHaveLength(1);
       expect(
-        (globalThis as any).signal.$effects$[0][EffectSubscriptionsProp.EFFECT].$effects$
+        (globalThis as any).signal.$effects$.values().next().value[EffectSubscriptionsProp.EFFECT]
+          .$effects$
       ).toHaveLength(1);
 
       (globalThis as any).signal = undefined;

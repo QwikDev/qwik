@@ -20,6 +20,7 @@ import { _getQContainerElement, getDomContainer } from '../client/dom-container'
 import { type ContainerElement } from '../client/types';
 import {
   WrappedSignal,
+  getSubscriber,
   type EffectPropData,
   type EffectSubscriptions,
   type EffectSubscriptionsProp,
@@ -243,10 +244,7 @@ export const trackSignal = <T>(
   const previousSubscriber = trackInvocation.$effectSubscriber$;
   const previousContainer = trackInvocation.$container$;
   try {
-    trackInvocation.$effectSubscriber$ = [subscriber, property];
-    if (data) {
-      trackInvocation.$effectSubscriber$.push(data);
-    }
+    trackInvocation.$effectSubscriber$ = getSubscriber(subscriber, property, data);
     trackInvocation.$container$ = container;
     return invoke(trackInvocation, fn);
   } finally {

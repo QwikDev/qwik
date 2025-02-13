@@ -847,18 +847,17 @@ export const createSerializationContext = (
         });
       } else if (obj instanceof Signal) {
         /**
-         * WrappedSignal might not be calculated yet so we need to use `untrackedValue` to get the
-         * value. ComputedSignal can be left uncalculated.
+         * ComputedSignal can be left uncalculated if invalid.
+         *
+         * SerializerSignal is always serialized if it was already calculated.
          */
-        const v =
-          obj instanceof WrappedSignal
-            ? obj.untrackedValue
-            : obj instanceof ComputedSignal &&
-                !(obj instanceof SerializerSignal) &&
-                (obj.$invalid$ || fastSkipSerialize(obj))
-              ? NEEDS_COMPUTATION
-              : obj.$untrackedValue$;
-        if (v !== NEEDS_COMPUTATION) {
+        const toSerialize =
+          obj instanceof ComputedSignal &&
+          !(obj instanceof SerializerSignal) &&
+          (obj.$invalid$ || fastSkipSerialize(obj))
+            ? NEEDS_COMPUTATION
+            : obj.$untrackedValue$;
+        if (toSerialize !== NEEDS_COMPUTATION) {
           if (obj instanceof SerializerSignal) {
             promises.push(
               (obj.$computeQrl$ as any as QRLInternal<SerializerArg<any, any>>)
@@ -866,7 +865,7 @@ export const createSerializationContext = (
                 .then((arg) => {
                   let data;
                   if ((arg as any).serialize) {
-                    data = (arg as any).serialize(v);
+                    data = (arg as any).serialize(toSerialize);
                   }
                   if (data === undefined) {
                     data = NEEDS_COMPUTATION;
@@ -876,7 +875,7 @@ export const createSerializationContext = (
                 })
             );
           } else {
-            discoveredValues.push(v);
+            discoveredValues.push(toSerialize);
           }
         }
         if (obj.$effects$) {

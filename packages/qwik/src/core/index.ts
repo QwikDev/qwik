@@ -111,7 +111,7 @@ export type { ContextId } from './use/use-context';
 export type { UseStoreOptions } from './use/use-store.public';
 export type { ComputedFn } from './use/use-computed';
 export { useComputedQrl } from './use/use-computed';
-export { useSerializerQrl, useSerializer$ } from './use/use-serialized';
+export { useSerializerQrl, useSerializer$ } from './use/use-serializer';
 export type { OnVisibleTaskOptions, VisibleTaskStrategy } from './use/use-visible-task';
 export { useVisibleTaskQrl } from './use/use-visible-task';
 export type { TaskCtx, TaskFn, Tracker } from './use/use-task';

@@ -48,26 +48,28 @@ export const useSerializerQrl = <T, S>(qrl: QRL<SerializerArg<T, S>>) =>
  *
  * @example
  *
- * When using a Signal as the data to create the object, you may not need `serialize`. Furthermore,
- * when the signal is updated, the serializer will be updated as well, and the current object will
- * be passed as the second argument.
+ * When using a Signal as the data to create the object, you need to pass the configuration as a
+ * function, and you can then also provide the `update` function to update the object when the
+ * signal changes.
+ *
+ * By returning an object from `update`, you signal that the listeners have to be notified. You can
+ * mutate the current object but you should return it so that it will trigger listeners.
  *
  * ```tsx
  * const Cmp = component$(() => {
  *   const n = useSignal(2);
- *   const custom = useSerializer$((_data, current) => {
- *     if (current) {
- *       current.n = n.value;
- *       return current;
- *     }
- *     return new MyCustomSerializable(n.value);
- * });
+ *   const custom = useSerializer$(() =>
+ *     ({
+ *       deserialize: () => new MyCustomSerializable(n.value),
+ *       update: (current) => {
+ *         current.n = n.value;
+ *         return current;
+ *       }
+ *     })
+ *   );
  *   return <div onClick$={() => n.value++}>{custom.value.n}</div>;
  * });
  * ```
- *
- * (note that in this example, the `{custom.value.n}` is not reactive, so the div text will not
- * update)
  *
  * @public
  */

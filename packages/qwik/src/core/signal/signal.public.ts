@@ -49,7 +49,10 @@ export interface ComputedSignal<T> extends ReadonlySignal<T> {
  *
  * @public
  */
-export interface SerializerSignal<T> extends ComputedSignal<T> {}
+export interface SerializerSignal<T> extends ComputedSignal<T> {
+  /** Fake property to make the serialization linter happy */
+  __noSerialize__: true;
+}
 
 /**
  * Creates a Signal with the given value. If no value is given, the signal is created with
@@ -88,7 +91,6 @@ export { createComputedQrl };
  * @public
  */
 export const createSerializer$: <T, S>(
-  // We want to also add T as a possible parameter type, but that breaks type inference
   arg: SerializerArg<T, S>
 ) => T extends Promise<any> ? never : SerializerSignal<T> = implicit$FirstArg(
   createSerializerQrl as any

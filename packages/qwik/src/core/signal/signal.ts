@@ -575,39 +575,51 @@ export class WrappedSignal<T> extends Signal<T> implements Subscriber {
   }
 }
 
+/** @public */
+export type SerializerArgObject<T, S> = {
+  /**
+   * This will be called with initial or serialized data to reconstruct an object. If no
+   * `initialData` is provided, it will be called with `undefined`.
+   *
+   * This must not return a Promise.
+   */
+  deserialize: (data: Awaited<S>) => T;
+  /** The initial value to use when deserializing. */
+  initial?: S | undefined;
+  /**
+   * This will be called with the object to get the serialized data. You can return a Promise if you
+   * need to do async work.
+   *
+   * The result may be anything that Qwik can serialize.
+   *
+   * If you do not provide it, the object will be serialized as `undefined`. However, if the object
+   * has a `[SerializerSymbol]` property, that will be used as the serializer instead.
+   */
+  serialize?: (obj: T) => S;
+};
+
 /**
  * Serialize and deserialize custom objects.
  *
- * If you pass a function, it will be used as the `deserialize` function.
+ * If you need to use scoped state, you can pass a function instead of an object. The function will
+ * be called with the current value, and you can return a new value.
  *
  * @public
  */
 export type SerializerArg<T, S> =
-  | {
+  | SerializerArgObject<T, S>
+  | (() => SerializerArgObject<T, S> & {
       /**
-       * This function will be called with serialized data to reconstruct an object.
+       * This gets called when reactive state used during `deserialize` changes. You may mutate the
+       * current object, or return a new object.
        *
-       * If it is created for the first time, it will get the `initial` data or `undefined`.
+       * If it returns a value, that will be used as the new value, and listeners will be triggered.
+       * If no change happened, don't return anything.
        *
-       * If it uses signals or stores, it will be called when these change, and then the second
-       * argument will be the previously constructed object.
-       *
-       * This function must not return a promise.
+       * If you mutate the current object, you must return it so that it will trigger listeners.
        */
-      deserialize: (data: S | undefined, previous: T | undefined) => T;
-      /**
-       * This function will be called with the custom object to get the serialized data. You can
-       * return a promise if you need to do async work.
-       *
-       * The result may be anything that Qwik can serialize.
-       *
-       * If you do not provide it, the object will be serialized as `undefined`.
-       */
-      serialize?: (customObject: T) => S | Promise<S>;
-      /** The initial value to use when deserializing. */
-      initial?: S;
-    }
-  | ((data: S | undefined, previous: T | undefined) => T);
+      update?: (current: T) => T | void;
+    });
 
 /**
  * A signal which provides a non-serializable value. It works like a computed signal, but it is
@@ -626,30 +638,31 @@ export class SerializerSignal<T, S> extends ComputedSignal<T> {
       return false;
     }
     throwIfQRLNotResolved(this.$computeQrl$);
-    const arg = (this.$computeQrl$ as any as QRLInternal<SerializerArg<T, S>>).resolved!;
-    let deserialize, initial;
+    let arg = (this.$computeQrl$ as any as QRLInternal<SerializerArg<T, S>>).resolved!;
     if (typeof arg === 'function') {
-      deserialize = arg;
-    } else {
-      deserialize = arg.deserialize;
-      initial = arg.initial;
+      arg = arg();
     }
+    const { deserialize, initial } = arg;
+    const update = (arg as any).update as ((current: T) => T) | undefined;
     const currentValue =
       this.$untrackedValue$ === NEEDS_COMPUTATION ? initial : this.$untrackedValue$;
     const untrackedValue = trackSignal(
       () =>
         this.$didInitialize$
-          ? deserialize(undefined, currentValue as T)
-          : deserialize(currentValue as S, undefined),
+          ? update?.(currentValue as T)
+          : deserialize(currentValue as Awaited<S>),
       this,
       EffectProperty.VNODE,
       this.$container$!
     );
     DEBUG && log('SerializerSignal.$compute$', untrackedValue);
+    const didChange =
+      (this.$didInitialize$ && untrackedValue !== 'undefined') ||
+      untrackedValue !== this.$untrackedValue$;
     this.$invalid$ = false;
-    const didChange = untrackedValue !== this.$untrackedValue$;
+    this.$didInitialize$ = true;
     if (didChange) {
-      this.$untrackedValue$ = untrackedValue;
+      this.$untrackedValue$ = untrackedValue as T;
     }
     return didChange;
   }

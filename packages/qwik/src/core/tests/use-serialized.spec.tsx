@@ -1,7 +1,7 @@
 import { Fragment as Signal, component$, useSignal } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { useSerializer$ } from '../use/use-serialized';
+import { useSerializer$ } from '../use/use-serializer';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -14,7 +14,7 @@ describe.each([
   it('should do custom serialization', async () => {
     const Counter = component$(() => {
       const myCount = useSerializer$({
-        deserialize: (count?: number) => new CustomSerialized(count),
+        deserialize: (count) => new CustomSerialized(count),
         serialize: (data) => data.count,
         initial: 2,
       });
@@ -50,17 +50,21 @@ describe.each([
   });
   it('should update reactively', async () => {
     const Counter = component$(() => {
-      const sig = useSignal(2);
-      const myCount = useSerializer$(() => new CustomSerialized(sig.value));
-      const spy = useSignal(myCount.value.count);
+      const sig = useSignal(1);
+      const myCount = useSerializer$(() => ({
+        deserialize: () => new CustomSerialized(sig.value * 2),
+        update: (current) => {
+          current.count = sig.value * 2;
+          return current;
+        },
+      }));
       return (
         <button
           onClick$={() => {
             sig.value++;
-            spy.value = myCount.value.count;
           }}
         >
-          {spy.value}
+          {myCount.value.count}
         </button>
       );
     });
@@ -77,7 +81,16 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <>
         <button>
-          <Signal ssr-required>{'3'}</Signal>
+          <Signal ssr-required>{'4'}</Signal>
+        </button>
+      </>
+    );
+    // We need to click again because after SSR the first click will run the deserialize, not the update
+    await trigger(container.element, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <>
+        <button>
+          <Signal ssr-required>{'6'}</Signal>
         </button>
       </>
     );

@@ -430,8 +430,6 @@ export class ComputedSignal<T> extends Signal<T> {
   $invalidate$() {
     this.$invalid$ = true;
     this.$forceRunEffects$ = false;
-    // We should only call subscribers if the calculation actually changed.
-    // Therefore, we need to calculate the value now.
     this.$container$?.$scheduler$(ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS, null, this);
   }
 
@@ -440,10 +438,8 @@ export class ComputedSignal<T> extends Signal<T> {
    * remained the same object
    */
   force() {
-    this.$invalid$ = true;
-    // TODO shouldn't force be set to true, invalid left alone and the effects scheduled?
-    this.$forceRunEffects$ = false;
-    triggerEffects(this.$container$, this, this.$effects$);
+    this.$forceRunEffects$ = true;
+    this.$container$?.$scheduler$(ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS, null, this);
   }
 
   get untrackedValue() {
@@ -536,7 +532,7 @@ export class WrappedSignal<T> extends Signal<T> implements Subscriber {
 
   /**
    * Use this to force running subscribers, for example when the calculated value has mutated but
-   * remained the same object
+   * remained the same object.
    */
   force() {
     this.$invalid$ = true;

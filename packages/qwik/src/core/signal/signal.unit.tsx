@@ -170,7 +170,6 @@ describe('signal', () => {
         expect(log).toEqual([12, 23]);
       });
     });
-    // using .only because otherwise there's a function-not-the-same issue
     it('force', () =>
       withContainer(async () => {
         const obj = { count: 0 };
@@ -196,10 +195,10 @@ describe('signal', () => {
         await flushSignals();
         expect(log).toEqual([1]);
         expect(obj.count).toBe(2);
-        // force recalculation+notify
+        // force notify
         computed.force();
         await flushSignals();
-        expect(log).toEqual([1, 3]);
+        expect(log).toEqual([1, 2]);
       }));
   });
   ////////////////////////////////////////

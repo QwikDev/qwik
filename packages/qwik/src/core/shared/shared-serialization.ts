@@ -866,6 +866,8 @@ export const createSerializationContext = (
                   let data;
                   if ((arg as any).serialize) {
                     data = (arg as any).serialize(toSerialize);
+                  } else if (SerializerSymbol in toSerialize) {
+                    data = (toSerialize as any)[SerializerSymbol](toSerialize);
                   }
                   if (data === undefined) {
                     data = NEEDS_COMPUTATION;

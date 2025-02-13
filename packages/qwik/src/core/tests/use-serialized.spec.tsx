@@ -1,4 +1,4 @@
-import { Fragment as Signal, component$, useSignal } from '@qwik.dev/core';
+import { SerializerSymbol, Fragment as Signal, component$, useSignal } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { useSerializer$ } from '../use/use-serializer';
@@ -95,11 +95,63 @@ describe.each([
       </>
     );
   });
+  it('should support [SerializerSymbol]', async () => {
+    const Counter = component$(() => {
+      const count = useSerializer$({
+        deserialize: (data: number) => new WithSerialize(data),
+      });
+      return (
+        <button
+          onClick$={() => {
+            count.value.inc();
+            count.force();
+          }}
+        >
+          {count.value.count}
+        </button>
+      );
+    });
+
+    const { vNode, container } = await render(<Counter />, { debug });
+    expect(vNode).toMatchVDOM(
+      <>
+        <button>
+          <Signal ssr-required>{'0'}</Signal>
+        </button>
+      </>
+    );
+    await trigger(container.element, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <>
+        <button>
+          <Signal ssr-required>{'1'}</Signal>
+        </button>
+      </>
+    );
+    await trigger(container.element, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <>
+        <button>
+          <Signal ssr-required>{'2'}</Signal>
+        </button>
+      </>
+    );
+  });
 });
 
 class CustomSerialized {
   constructor(public count = 0) {}
   inc() {
     this.count++;
+  }
+}
+
+class WithSerialize {
+  constructor(public count = 0) {}
+  inc() {
+    this.count++;
+  }
+  [SerializerSymbol](obj: this) {
+    return obj.count;
   }
 }

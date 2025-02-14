@@ -11,28 +11,29 @@
  *   - It needs to store a function which needs to re-run.
  *   - It is `Readonly` because it is computed.
  */
+import { isDomContainer } from '../client/dom-container';
+import type { VNode } from '../client/types';
+import { vnode_getProp, vnode_isTextVNode, vnode_isVNode, vnode_setProp } from '../client/vnode';
 import { pad, qwikDebugToString } from '../debug';
+import type { OnRenderFn } from '../shared/component.public';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
+import { QError, qError } from '../shared/error/error';
+import type { Props } from '../shared/jsx/jsx-runtime';
 import { type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { trackSignal, tryGetInvokeContext } from '../use/use-core';
-import { Task, TaskFlags, isTask } from '../use/use-task';
+import { ChoreType, type NodePropData, type NodePropPayload } from '../shared/scheduler';
+import type { Container, HostElement } from '../shared/types';
 import { ELEMENT_PROPS, OnRenderProp, QSubscribers } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
 import { qDev } from '../shared/utils/qdev';
-import type { VNode } from '../client/types';
-import { vnode_getProp, vnode_isTextVNode, vnode_isVNode, vnode_setProp } from '../client/vnode';
-import { ChoreType, type NodePropData, type NodePropPayload } from '../shared/scheduler';
-import type { Container, HostElement } from '../shared/types';
+import { SerializerSymbol } from '../shared/utils/serialize-utils';
 import type { ISsrNode, SSRContainer } from '../ssr/ssr-types';
+import { trackSignal, tryGetInvokeContext } from '../use/use-core';
+import { Task, TaskFlags, isTask } from '../use/use-task';
+import { NEEDS_COMPUTATION } from './flags';
+import { Subscriber, isSubscriber } from './signal-subscriber';
 import type { Signal as ISignal, ReadonlySignal } from './signal.public';
 import type { TargetType } from './store';
-import { isSubscriber, Subscriber } from './signal-subscriber';
-import type { Props } from '../shared/jsx/jsx-runtime';
-import type { OnRenderFn } from '../shared/component.public';
-import { NEEDS_COMPUTATION } from './flags';
-import { QError, qError } from '../shared/error/error';
-import { isDomContainer } from '../client/dom-container';
 
 const DEBUG = false;
 
@@ -48,7 +49,7 @@ export interface InternalSignal<T = any> extends InternalReadonlySignal<T> {
   untrackedValue: T;
 }
 
-export const throwIfQRLNotResolved = <T>(qrl: QRL<() => T>) => {
+export const throwIfQRLNotResolved = (qrl: QRL) => {
   const resolved = qrl.resolved;
   if (!resolved) {
     // When we are creating a signal using a use method, we need to ensure
@@ -227,7 +228,6 @@ export class Signal<T = any> implements ISignal<T> {
     }
     return this.untrackedValue;
   }
-
   set value(value) {
     if (value !== this.$untrackedValue$) {
       DEBUG &&
@@ -400,6 +400,8 @@ export const triggerEffects = (
   DEBUG && log('done scheduling');
 };
 
+type ComputeQRL<T> = QRLInternal<() => T>;
+
 /**
  * A signal which is computed from other signals.
  *
@@ -412,13 +414,13 @@ export class ComputedSignal<T> extends Signal<T> {
    * The computed functions must be executed synchronously (because of this we need to eagerly
    * resolve the QRL during the mark dirty phase so that any call to it will be synchronous). )
    */
-  $computeQrl$: QRLInternal<() => T>;
+  $computeQrl$: ComputeQRL<T>;
   // We need a separate flag to know when the computation needs running because
   // we need the old value to know if effects need running after computation
   $invalid$: boolean = true;
   $forceRunEffects$: boolean = false;
 
-  constructor(container: Container | null, fn: QRLInternal<() => T>) {
+  constructor(container: Container | null, fn: ComputeQRL<T>) {
     // The value is used for comparison when signals trigger, which can only happen
     // when it was calculated before. Therefore we can pass whatever we like.
     super(container, NEEDS_COMPUTATION);
@@ -428,8 +430,6 @@ export class ComputedSignal<T> extends Signal<T> {
   $invalidate$() {
     this.$invalid$ = true;
     this.$forceRunEffects$ = false;
-    // We should only call subscribers if the calculation actually changed.
-    // Therefore, we need to calculate the value now.
     this.$container$?.$scheduler$(ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS, null, this);
   }
 
@@ -438,9 +438,8 @@ export class ComputedSignal<T> extends Signal<T> {
    * remained the same object
    */
   force() {
-    this.$invalid$ = true;
-    this.$forceRunEffects$ = false;
-    triggerEffects(this.$container$, this, this.$effects$);
+    this.$forceRunEffects$ = true;
+    this.$container$?.$scheduler$(ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS, null, this);
   }
 
   get untrackedValue() {
@@ -485,13 +484,13 @@ export class ComputedSignal<T> extends Signal<T> {
     }
   }
 
-  // Getters don't get inherited
-  get value() {
-    return super.value;
-  }
-
+  // Make this signal read-only
   set value(_: any) {
     throw qError(QError.computedReadOnly);
+  }
+  // Getters don't get inherited when overriding a setter
+  get value() {
+    return super.value;
   }
 }
 
@@ -533,7 +532,7 @@ export class WrappedSignal<T> extends Signal<T> implements Subscriber {
 
   /**
    * Use this to force running subscribers, for example when the calculated value has mutated but
-   * remained the same object
+   * remained the same object.
    */
   force() {
     this.$invalid$ = true;
@@ -566,13 +565,118 @@ export class WrappedSignal<T> extends Signal<T> implements Subscriber {
     }
     return didChange;
   }
-
-  // Getters don't get inherited
-  get value() {
-    return super.value;
-  }
-
+  // Make this signal read-only
   set value(_: any) {
     throw qError(QError.wrappedReadOnly);
   }
+  // Getters don't get inherited when overriding a setter
+  get value() {
+    return super.value;
+  }
 }
+
+/** @public */
+export type SerializerArgObject<T, S> = {
+  /**
+   * This will be called with initial or serialized data to reconstruct an object. If no
+   * `initialData` is provided, it will be called with `undefined`.
+   *
+   * This must not return a Promise.
+   */
+  deserialize: (data: Awaited<S>) => T;
+  /** The initial value to use when deserializing. */
+  initial?: S | undefined;
+  /**
+   * This will be called with the object to get the serialized data. You can return a Promise if you
+   * need to do async work.
+   *
+   * The result may be anything that Qwik can serialize.
+   *
+   * If you do not provide it, the object will be serialized as `undefined`. However, if the object
+   * has a `[SerializerSymbol]` property, that will be used as the serializer instead.
+   */
+  serialize?: (obj: T) => S;
+};
+
+/**
+ * Serialize and deserialize custom objects.
+ *
+ * If you need to use scoped state, you can pass a function instead of an object. The function will
+ * be called with the current value, and you can return a new value.
+ *
+ * @public
+ */
+export type SerializerArg<T, S> =
+  | SerializerArgObject<T, S>
+  | (() => SerializerArgObject<T, S> & {
+      /**
+       * This gets called when reactive state used during `deserialize` changes. You may mutate the
+       * current object, or return a new object.
+       *
+       * If it returns a value, that will be used as the new value, and listeners will be triggered.
+       * If no change happened, don't return anything.
+       *
+       * If you mutate the current object, you must return it so that it will trigger listeners.
+       */
+      update?: (current: T) => T | void;
+    });
+
+/**
+ * A signal which provides a non-serializable value. It works like a computed signal, but it is
+ * handled slightly differently during serdes.
+ *
+ * @public
+ */
+export class SerializerSignal<T, S> extends ComputedSignal<T> {
+  constructor(container: Container | null, argQrl: QRLInternal<SerializerArg<T, S>>) {
+    super(container, argQrl as unknown as ComputeQRL<T>);
+  }
+  $didInitialize$: boolean = false;
+
+  $computeIfNeeded$(): boolean {
+    if (!this.$invalid$) {
+      return false;
+    }
+    throwIfQRLNotResolved(this.$computeQrl$);
+    let arg = (this.$computeQrl$ as any as QRLInternal<SerializerArg<T, S>>).resolved!;
+    if (typeof arg === 'function') {
+      arg = arg();
+    }
+    const { deserialize, initial } = arg;
+    const update = (arg as any).update as ((current: T) => T) | undefined;
+    const currentValue =
+      this.$untrackedValue$ === NEEDS_COMPUTATION ? initial : this.$untrackedValue$;
+    const untrackedValue = trackSignal(
+      () =>
+        this.$didInitialize$
+          ? update?.(currentValue as T)
+          : deserialize(currentValue as Awaited<S>),
+      this,
+      EffectProperty.VNODE,
+      this.$container$!
+    );
+    DEBUG && log('SerializerSignal.$compute$', untrackedValue);
+    const didChange =
+      (this.$didInitialize$ && untrackedValue !== 'undefined') ||
+      untrackedValue !== this.$untrackedValue$;
+    this.$invalid$ = false;
+    this.$didInitialize$ = true;
+    if (didChange) {
+      this.$untrackedValue$ = untrackedValue as T;
+    }
+    return didChange;
+  }
+}
+
+// TODO move to serializer
+export type CustomSerializable<T extends { [SerializerSymbol]: (obj: any) => any }, S> = {
+  [SerializerSymbol]: (obj: T) => S;
+};
+/** @internal */
+export const isSerializerObj = <T extends { [SerializerSymbol]: (obj: any) => any }, S>(
+  obj: unknown
+): obj is CustomSerializable<T, S> => {
+  return (
+    typeof obj === 'object' && obj !== null && typeof (obj as any)[SerializerSymbol] === 'function'
+  );
+};

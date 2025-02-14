@@ -136,14 +136,15 @@ export type EffectSubscriptions = [
   )[],
 ];
 
+const mappy = Symbol('mappy');
 /** Global map of all effect subscriptions */
-const effectMapMap = new WeakMap<Effect, Map<EffectProperty | string, EffectSubscriptions>>();
 export function getSubscriber(effect: Effect, prop: EffectProperty | string, data?: unknown) {
-  let subMap = effectMapMap.get(effect);
-  if (!subMap) {
-    subMap = new Map();
-    effectMapMap.set(effect, subMap);
+  if (!(effect as any)[mappy]) {
+    Object.defineProperty(effect, mappy, {
+      value: new Map(),
+    });
   }
+  const subMap = (effect as any)[mappy];
   let sub = subMap.get(prop);
   if (!sub) {
     sub = [effect, prop];
@@ -210,11 +211,7 @@ export class Signal<T = any> implements ISignal<T> {
         // Adding reference is essentially adding a subscription, so if the signal
         // changes we know who to notify.
         ensureContainsEffect(effects, effectSubscriber);
-        // But when effect is scheduled in needs to be able to know which signals
-        // to unsubscribe from. So we need to store the reference from the effect back
-        // to this signal.
-        const isMissing = ensureContains(effectSubscriber, this);
-        addQrlToSerializationCtx(effectSubscriber, isMissing, this.$container$);
+        addQrlToSerializationCtx(effectSubscriber, this.$container$);
         if (isSubscriber(this)) {
           // We need to add the subscriber to the effect so that we can clean it up later
           ensureEffectContainsSubscriber(
@@ -257,15 +254,6 @@ export class Signal<T = any> implements ISignal<T> {
     return { value: this.$untrackedValue$ };
   }
 }
-
-/** Ensure the item is in array (do nothing if already there) */
-export const ensureContains = (array: any[], value: any): boolean => {
-  const isMissing = array.indexOf(value) === -1;
-  if (isMissing) {
-    array.push(value);
-  }
-  return isMissing;
-};
 
 export const ensureContainsEffect = (
   array: Set<EffectSubscriptions>,
@@ -319,10 +307,9 @@ const isSSRNode = (effect: Effect): effect is ISsrNode => {
 
 export const addQrlToSerializationCtx = (
   effectSubscriber: EffectSubscriptions,
-  isMissing: boolean,
   container: Container | null
 ) => {
-  if (isMissing && !!container && !isDomContainer(container)) {
+  if (!!container && !isDomContainer(container)) {
     const effect = effectSubscriber[EffectSubscriptionsProp.EFFECT];
     const property = effectSubscriber[EffectSubscriptionsProp.PROPERTY];
     let qrl: QRL | null = null;

@@ -257,12 +257,9 @@ const inflate = (
       break;
     case TypeIds.Store:
     case TypeIds.StoreArray: {
-      const [value, flags, effects, storeEffect] = data as unknown[];
+      const [value, flags, effects] = data as unknown[];
       const store = getOrCreateStore(value as object, flags as number, container as DomContainer);
       const storeHandler = getStoreHandler(store)!;
-      if (storeEffect) {
-        (effects as any)[STORE_ARRAY_PROP] = storeEffect;
-      }
       storeHandler.$effects$ = effects as any;
       target = store;
 
@@ -412,6 +409,7 @@ export const _constants = [
   EMPTY_ARRAY,
   EMPTY_OBJ,
   NEEDS_COMPUTATION,
+  STORE_ARRAY_PROP,
   Slot,
   Fragment,
   NaN,
@@ -430,6 +428,7 @@ const _constantNames = [
   'EMPTY_ARRAY',
   'EMPTY_OBJ',
   'NEEDS_COMPUTATION',
+  'STORE_ARRAY_PROP',
   'Slot',
   'Fragment',
   'NaN',
@@ -817,8 +816,7 @@ export const createSerializationContext = (
       } else if (isStore(obj)) {
         const target = getStoreTarget(obj)!;
         const effects = getStoreHandler(obj)!.$effects$;
-        const storeEffect = effects?.[STORE_ARRAY_PROP] ?? null;
-        discoveredValues.push(target, effects, storeEffect);
+        discoveredValues.push(target, effects);
 
         for (const prop in target) {
           const propValue = (target as any)[prop];
@@ -1077,6 +1075,8 @@ function serialize(serializationContext: SerializationContext): void {
       output(TypeIds.Constant, Constants.Undefined);
     } else if (value === NEEDS_COMPUTATION) {
       output(TypeIds.Constant, Constants.NEEDS_COMPUTATION);
+    } else if (value === STORE_ARRAY_PROP) {
+      output(TypeIds.Constant, Constants.STORE_ARRAY_PROP);
     } else {
       throw qError(QError.serializeErrorUnknownType, [typeof value]);
     }
@@ -1130,7 +1130,6 @@ function serialize(serializationContext: SerializationContext): void {
         const storeTarget = getStoreTarget(value);
         const flags = storeHandler.$flags$;
         const effects = storeHandler.$effects$;
-        const storeEffect = effects?.[STORE_ARRAY_PROP] ?? null;
 
         const innerStores = [];
         for (const prop in storeTarget) {
@@ -1142,7 +1141,7 @@ function serialize(serializationContext: SerializationContext): void {
           }
         }
 
-        const out = [storeTarget, flags, effects, storeEffect, ...innerStores];
+        const out = [storeTarget, flags, effects, ...innerStores];
         while (out[out.length - 1] == null) {
           out.pop();
         }
@@ -1691,6 +1690,7 @@ export const enum Constants {
   EMPTY_ARRAY,
   EMPTY_OBJ,
   NEEDS_COMPUTATION,
+  STORE_ARRAY_PROP,
   Slot,
   Fragment,
   NaN,

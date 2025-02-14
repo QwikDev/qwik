@@ -184,12 +184,12 @@ export {
 
   const getInlineConf = (extra?: InlineConfig): InlineConfig => ({
     root: appDir,
-    mode: "development",
+    mode: isProd ? "production" : "development",
     configFile: false,
     base: basePath,
     ...extra,
     resolve: {
-      conditions: ["development"],
+      conditions: [isProd ? "production" : "development"],
       mainFields: [],
     },
   });

@@ -96,19 +96,17 @@ function clearStoreEffects(storeHandler: StoreHandler, value: Subscriber | VNode
     return false;
   }
   let subscriptionRemoved = false;
-  for (const key in effectSubscriptions) {
-    const effects = effectSubscriptions[key];
-    for (const effect of effects) {
+  effectSubscriptions.forEach((effects, key) => {
+    effects.forEach((effect) => {
       if (effect[EffectSubscriptionsProp.EFFECT] === value) {
         effects.delete(effect);
         subscriptionRemoved = true;
       }
-    }
+    });
     if (effects.size === 0) {
-      delete effectSubscriptions[key];
+      effectSubscriptions.delete(key);
     }
-  }
-
+  });
   return subscriptionRemoved;
 }
 

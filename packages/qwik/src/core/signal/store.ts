@@ -6,7 +6,6 @@ import type { Container } from '../shared/types';
 import {
   EffectSubscriptionsProp,
   addQrlToSerializationCtx,
-  ensureContains,
   ensureContainsEffect,
   ensureEffectContainsSubscriber,
   triggerEffects,
@@ -77,7 +76,7 @@ export const getOrCreateStore = <T extends object>(
 };
 
 export class StoreHandler implements ProxyHandler<TargetType> {
-  $effects$: null | Record<string | symbol, Set<EffectSubscriptions>> = null;
+  $effects$: null | Map<string | symbol, Set<EffectSubscriptions>> = null;
 
   constructor(
     public $flags$: StoreFlags,
@@ -220,27 +219,25 @@ function addEffect<T extends Record<string | symbol, any>>(
   store: StoreHandler,
   effectSubscriber: EffectSubscriptions
 ) {
-  const effectsMap = (store.$effects$ ||= {});
-  const effects =
-    (Object.prototype.hasOwnProperty.call(effectsMap, prop) && effectsMap[prop]) ||
-    (effectsMap[prop] = new Set());
+  const effectsMap = (store.$effects$ ||= new Map());
+  let effects = effectsMap.get(prop);
+  if (!effects) {
+    effects = new Set();
+    effectsMap.set(prop, effects);
+  }
   // Let's make sure that we have a reference to this effect.
   // Adding reference is essentially adding a subscription, so if the signal
   // changes we know who to notify.
   ensureContainsEffect(effects, effectSubscriber);
-  // But when effect is scheduled in needs to be able to know which signals
-  // to unsubscribe from. So we need to store the reference from the effect back
-  // to this signal.
-  const isMissing = ensureContains(effectSubscriber, target);
   // We need to add the subscriber to the effect so that we can clean it up later
   ensureEffectContainsSubscriber(
     effectSubscriber[EffectSubscriptionsProp.EFFECT],
     target,
     store.$container$
   );
-  addQrlToSerializationCtx(effectSubscriber, isMissing, store.$container$);
+  addQrlToSerializationCtx(effectSubscriber, store.$container$);
 
-  DEBUG && log('sub', pad('\n' + store.$effects$.toString(), '  '));
+  DEBUG && log('sub', pad('\n' + store.$effects$?.entries.toString(), '  '));
 }
 
 function setNewValueAndTriggerEffects<T extends Record<string | symbol, any>>(
@@ -260,25 +257,25 @@ function setNewValueAndTriggerEffects<T extends Record<string | symbol, any>>(
 function getEffects<T extends Record<string | symbol, any>>(
   target: T,
   prop: string | symbol,
-  storeEffects: Record<string | symbol, Set<EffectSubscriptions>> | null
+  storeEffects: Map<string | symbol, Set<EffectSubscriptions>> | null
 ) {
-  let effectsToTrigger: Set<EffectSubscriptions> | null = null;
+  let effectsToTrigger: Set<EffectSubscriptions> | undefined;
 
   if (storeEffects) {
     if (Array.isArray(target)) {
-      for (const effects of Object.values(storeEffects)) {
+      storeEffects.forEach((effects) => {
         effectsToTrigger ||= new Set();
         effects.forEach((effect) => effectsToTrigger!.add(effect));
-      }
+      });
     } else {
-      effectsToTrigger = storeEffects[prop];
+      effectsToTrigger = storeEffects.get(prop);
     }
   }
 
-  const storeArrayValue = storeEffects?.[STORE_ARRAY_PROP];
+  const storeArrayValue = storeEffects?.get(STORE_ARRAY_PROP);
   if (storeArrayValue) {
     effectsToTrigger ||= new Set();
     storeArrayValue.forEach((effect) => effectsToTrigger!.add(effect));
   }
-  return effectsToTrigger;
+  return effectsToTrigger || null;
 }

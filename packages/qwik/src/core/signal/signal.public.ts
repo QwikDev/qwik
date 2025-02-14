@@ -51,7 +51,7 @@ export interface ComputedSignal<T> extends ReadonlySignal<T> {
  */
 export interface SerializerSignal<T> extends ComputedSignal<T> {
   /** Fake property to make the serialization linter happy */
-  __noSerialize__: true;
+  __no_serialize__: true;
 }
 
 /**

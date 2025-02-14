@@ -244,7 +244,7 @@ _VNode | null | undefined,
 Element,
 //////////////////// 6 - Element
 string | undefined,
-...(string | null)[]
+(string | null)[]
 ] & {
     __brand__: 'ElementVNode';
 };
@@ -1709,7 +1709,7 @@ _VNode | null,
 _VNode | null,
 /////////////// 4 - First child
 _VNode | null,
-...(string | null | boolean)[]
+(string | null | boolean)[]
 ] & {
     __brand__: 'FragmentNode' & 'HostElement';
 };

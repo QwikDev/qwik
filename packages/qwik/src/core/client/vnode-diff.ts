@@ -47,10 +47,8 @@ import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../sh
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import type { DomContainer } from './dom-container';
 import {
-  ElementVNodeProps,
   VNodeFlags,
   VNodeProps,
-  VirtualVNodeProps,
   type ClientAttrKey,
   type ClientAttrs,
   type ClientContainer,
@@ -70,7 +68,7 @@ import {
   vnode_getParent,
   vnode_getProjectionParentComponent,
   vnode_getProp,
-  vnode_getPropStartIndex,
+  vnode_getProps,
   vnode_getText,
   vnode_getType,
   vnode_insertBefore,
@@ -412,9 +410,10 @@ export const vnode_diff = (
 
     const projections: Array<string | JSXNodeInternal> = [];
     if (host) {
+      const props = vnode_getProps(host);
       // we need to create empty projections for all the slots to remove unused slots content
-      for (let i = vnode_getPropStartIndex(host); i < host.length; i = i + 2) {
-        const prop = host[i] as string;
+      for (let i = 0; i < props.length; i = i + 2) {
+        const prop = props[i] as string;
         if (isSlotProp(prop)) {
           const slotName = prop;
           projections.push(slotName);
@@ -801,10 +800,10 @@ export const vnode_diff = (
     currentFile?: string | null
   ): boolean {
     vnode_ensureElementInflated(vnode);
-    const dstAttrs = vnode as ClientAttrs;
+    const dstAttrs = vnode_getProps(vnode) as ClientAttrs;
     let srcIdx = 0;
     const srcLength = srcAttrs.length;
-    let dstIdx = ElementVNodeProps.PROPS_OFFSET;
+    let dstIdx = 0;
     let dstLength = dstAttrs.length;
     let srcKey: ClientAttrKey | null = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
     let dstKey: ClientAttrKey | null = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
@@ -1329,8 +1328,8 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
         vnode_getProp(vCursor as VirtualVNode, OnRenderProp, null) !== null;
       if (isComponent) {
         // SPECIAL CASE: If we are a component, we need to descend into the projected content and release the content.
-        const attrs = vCursor;
-        for (let i = VirtualVNodeProps.PROPS_OFFSET; i < attrs.length; i = i + 2) {
+        const attrs = vnode_getProps(vCursor);
+        for (let i = 0; i < attrs.length; i = i + 2) {
           const key = attrs[i] as string;
           if (!isParentSlotProp(key) && isSlotProp(key)) {
             const value = attrs[i + 1];

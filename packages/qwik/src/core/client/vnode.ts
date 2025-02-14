@@ -384,23 +384,13 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
         break;
       } else if (key.startsWith(QContainerAttr)) {
         if (attr.value === QContainerValue.HTML) {
-          mapArray_set(
-            elementVNode as string[],
-            dangerouslySetInnerHTML,
-            element.innerHTML,
-            ElementVNodeProps.PROPS_OFFSET
-          );
+          mapArray_set(vnode_getProps(elementVNode), dangerouslySetInnerHTML, element.innerHTML, 0);
         } else if (attr.value === QContainerValue.TEXT && 'value' in element) {
-          mapArray_set(
-            elementVNode as string[],
-            'value',
-            element.value,
-            ElementVNodeProps.PROPS_OFFSET
-          );
+          mapArray_set(vnode_getProps(elementVNode), 'value', element.value, 0);
         }
       } else if (!key.startsWith('on:')) {
         const value = attr.value;
-        mapArray_set(elementVNode as string[], key, value, ElementVNodeProps.PROPS_OFFSET);
+        mapArray_set(vnode_getProps(elementVNode), key, value, 0);
       }
     }
   }
@@ -1494,8 +1484,9 @@ export const vnode_getAttrKeys = (vnode: ElementVNode | VirtualVNode): string[] 
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
     vnode_ensureElementInflated(vnode);
     const keys: string[] = [];
-    for (let i = vnode_getPropStartIndex(vnode); i < vnode.length; i = i + 2) {
-      const key = vnode[i] as string;
+    const props = vnode_getProps(vnode);
+    for (let i = 0; i < props.length; i = i + 2) {
+      const key = props[i] as string;
       if (!key.startsWith(Q_PROPS_SEPARATOR)) {
         keys.push(key);
       }
@@ -1514,21 +1505,22 @@ export const vnode_setAttr = (
   const type = vnode[VNodeProps.flags];
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
     vnode_ensureElementInflated(vnode);
-    const idx = mapApp_findIndx(vnode as string[], key, vnode_getPropStartIndex(vnode));
+    const props = vnode_getProps(vnode);
+    const idx = mapApp_findIndx(props, key, 0);
 
     if (idx >= 0) {
-      if (vnode[idx + 1] != value && (type & VNodeFlags.Element) !== 0) {
+      if (props[idx + 1] != value && (type & VNodeFlags.Element) !== 0) {
         // Values are different, update DOM
         const element = vnode[ElementVNodeProps.element] as Element;
         journal && journal.push(VNodeJournalOpCode.SetAttribute, element, key, value);
       }
       if (value == null) {
-        vnode.splice(idx, 2);
+        props.splice(idx, 2);
       } else {
-        vnode[idx + 1] = value;
+        props[idx + 1] = value;
       }
     } else if (value != null) {
-      vnode.splice(idx ^ -1, 0, key, value);
+      props.splice(idx ^ -1, 0, key, value);
       if ((type & VNodeFlags.Element) !== 0) {
         // New value, update DOM
         const element = vnode[ElementVNodeProps.element] as Element;
@@ -1542,7 +1534,8 @@ export const vnode_getAttr = (vnode: VNode, key: string): string | null => {
   const type = vnode[VNodeProps.flags];
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
     vnode_ensureElementInflated(vnode);
-    return mapArray_get(vnode as string[], key, vnode_getPropStartIndex(vnode));
+    const props = vnode_getProps(vnode);
+    return mapArray_get(props as string[], key, 0);
   }
   return null;
 };
@@ -1555,11 +1548,12 @@ export const vnode_getProp = <T>(
   const type = vnode[VNodeProps.flags];
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
     type & VNodeFlags.Element && vnode_ensureElementInflated(vnode);
-    const idx = mapApp_findIndx(vnode as any, key, vnode_getPropStartIndex(vnode));
+    const props = vnode_getProps(vnode);
+    const idx = mapApp_findIndx(props as any, key, 0);
     if (idx >= 0) {
-      let value = vnode[idx + 1] as any;
+      let value = props[idx + 1] as any;
       if (typeof value === 'string' && getObject) {
-        vnode[idx + 1] = value = getObject(value);
+        props[idx + 1] = value = getObject(value);
       }
       return value;
     }
@@ -1569,11 +1563,12 @@ export const vnode_getProp = <T>(
 
 export const vnode_setProp = (vnode: VirtualVNode | ElementVNode, key: string, value: unknown) => {
   ensureElementOrVirtualVNode(vnode);
-  const idx = mapApp_findIndx(vnode as any, key, vnode_getPropStartIndex(vnode));
+  const props = vnode_getProps(vnode);
+  const idx = mapApp_findIndx(props, key, 0);
   if (idx >= 0) {
-    vnode[idx + 1] = value as any;
+    props[idx + 1] = value as any;
   } else if (value != null) {
-    vnode.splice(idx ^ -1, 0, key, value as any);
+    props.splice(idx ^ -1, 0, key, value as any);
   }
 };
 
@@ -1587,16 +1582,8 @@ export const vnode_getPropStartIndex = (vnode: VNode): number => {
   throw qError(QError.invalidVNodeType, [type]);
 };
 
-export const vnode_propsToRecord = (vnode: VNode): Record<string, unknown> => {
-  const props: Record<string, unknown> = {};
-  if (!vnode_isTextVNode(vnode)) {
-    for (let i = vnode_getPropStartIndex(vnode); i < vnode.length; ) {
-      const key = vnode[i++] as string;
-      const value = vnode[i++];
-      props[key] = value;
-    }
-  }
-  return props;
+export const vnode_getProps = (vnode: VNode): unknown[] => {
+  return vnode[vnode_getPropStartIndex(vnode)] as unknown[];
 };
 
 export const vnode_getParent = (vnode: VNode): VNode | null => {
@@ -1903,7 +1890,8 @@ const VNodeArray = class VNode extends Array {
       firstChild,
       lastChild,
       element,
-      elementName
+      elementName,
+      []
     ) as any;
     return vnode;
   }
@@ -1934,7 +1922,8 @@ const VNodeArray = class VNode extends Array {
       previousSibling,
       nextSibling,
       firstChild,
-      lastChild
+      lastChild,
+      []
     ) as any;
     return vnode;
   }

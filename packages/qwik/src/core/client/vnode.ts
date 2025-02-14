@@ -1113,7 +1113,7 @@ export const vnode_getElementName = (vnode: ElementVNode): string => {
   let elementName = elementVNode[ElementVNodeProps.elementName];
   if (elementName === undefined) {
     const element = elementVNode[ElementVNodeProps.element];
-    const nodeName = fastNodeName(element)!.toLowerCase();
+    const nodeName = isDev ? fastNodeName(element)!.toLowerCase() : fastNodeName(element)!;
     elementName = elementVNode[ElementVNodeProps.elementName] = nodeName;
     elementVNode[VNodeProps.flags] |= vnode_getElementNamespaceFlags(element);
   }

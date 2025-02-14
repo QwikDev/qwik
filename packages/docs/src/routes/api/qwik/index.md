@@ -10404,12 +10404,12 @@ void
 ## useErrorBoundary
 
 ```typescript
-useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
+useErrorBoundary: () => ErrorBoundaryStore;
 ```
 
 **Returns:**
 
-Readonly&lt;[ErrorBoundaryStore](#errorboundarystore)&gt;
+[ErrorBoundaryStore](#errorboundarystore)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-error-boundary.ts)
 

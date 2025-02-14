@@ -1895,8 +1895,16 @@ const VNodeArray = class VNode extends Array {
     element: Element,
     elementName: string | undefined
   ) {
-    const vnode = new VNode(flags, parent, previousSibling, nextSibling) as any;
-    vnode.push(firstChild, lastChild, element, elementName);
+    const vnode = new VNode(
+      flags,
+      parent,
+      previousSibling,
+      nextSibling,
+      firstChild,
+      lastChild,
+      element,
+      elementName
+    ) as any;
     return vnode;
   }
 
@@ -1908,8 +1916,7 @@ const VNodeArray = class VNode extends Array {
     textNode: Text | null,
     text: string | undefined
   ) {
-    const vnode = new VNode(flags, parent, previousSibling, nextSibling) as any;
-    vnode.push(textNode, text);
+    const vnode = new VNode(flags, parent, previousSibling, nextSibling, textNode, text) as any;
     return vnode;
   }
 
@@ -1921,8 +1928,14 @@ const VNodeArray = class VNode extends Array {
     firstChild: VNode | null,
     lastChild: VNode | null
   ) {
-    const vnode = new VNode(flags, parent, previousSibling, nextSibling) as any;
-    vnode.push(firstChild, lastChild);
+    const vnode = new VNode(
+      flags,
+      parent,
+      previousSibling,
+      nextSibling,
+      firstChild,
+      lastChild
+    ) as any;
     return vnode;
   }
 
@@ -1930,10 +1943,11 @@ const VNodeArray = class VNode extends Array {
     flags: VNodeFlags,
     parent: VNode | null,
     previousSibling: VNode | null | undefined,
-    nextSibling: VNode | null | undefined
+    nextSibling: VNode | null | undefined,
+    ...rest: (VNode | Element | Text | string | null | undefined)[]
   ) {
-    super();
-    this.push(flags, parent, previousSibling, nextSibling);
+    // @ts-expect-error
+    super(flags, parent, previousSibling, nextSibling, ...rest);
     if (isDev) {
       this.toString = vnode_toString;
     }

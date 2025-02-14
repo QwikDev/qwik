@@ -926,18 +926,18 @@ describe.each([
     );
 
     const storeHandler = getStoreHandler((globalThis as any).store);
-    expect(storeHandler?.$effects$?.message).toHaveLength(2);
+    expect(storeHandler?.$effects$?.get('message')).toHaveLength(2);
 
     await trigger(document.body, 'button', 'click');
-    expect(storeHandler?.$effects$?.message).toHaveLength(3);
+    expect(storeHandler?.$effects$?.get('message')).toHaveLength(3);
     await trigger(document.body, 'button', 'click');
-    expect(storeHandler?.$effects$?.message).toHaveLength(2);
+    expect(storeHandler?.$effects$?.get('message')).toHaveLength(2);
     await trigger(document.body, 'button', 'click');
-    expect(storeHandler?.$effects$?.message).toHaveLength(3);
+    expect(storeHandler?.$effects$?.get('message')).toHaveLength(3);
     await trigger(document.body, 'button', 'click');
-    expect(storeHandler?.$effects$?.message).toHaveLength(2);
+    expect(storeHandler?.$effects$?.get('message')).toHaveLength(2);
     await trigger(document.body, 'button', 'click');
-    expect(storeHandler?.$effects$?.message).toHaveLength(3);
+    expect(storeHandler?.$effects$?.get('message')).toHaveLength(3);
 
     expect(vNode).toMatchVDOM(
       <Component>

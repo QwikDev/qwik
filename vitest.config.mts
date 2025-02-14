@@ -12,7 +12,13 @@ export default defineConfig({
   ],
   test: {
     root: 'packages',
-    include: ['**/*.spec.?(c|m)[jt]s?(x)', '**/*.unit.?(c|m)[jt]s?(x)', '!qwik/dist', '!*/lib'],
+    include: [
+      '**/*.spec.?(c|m)[jt]s?(x)',
+      '**/*.unit.?(c|m)[jt]s?(x)',
+      '!**/dist',
+      '!**/lib',
+      '!/starters',
+    ],
     setupFiles: ['./vitest-setup.ts'],
   },
 });

@@ -4,5 +4,5 @@ import { join } from 'node:path';
 
 export default defineWorkspace([
   // For some reason vitest cli doesn't pick up the config in the root
-  join(process.cwd(), 'vitest.config.mts'),
+  join(__dirname, 'vitest.config.mts'),
 ]);

@@ -11,14 +11,9 @@ import type { Container, HostElement } from '../shared/types';
 import { isPromise } from '../shared/utils/promises';
 import { invoke, newInvokeContext } from '../use/use-core';
 import { Task } from '../use/use-task';
-import {
-  EffectProperty,
-  getSubscriber,
-  type EffectSubscriptions,
-  type InternalReadonlySignal,
-  type InternalSignal,
-} from './signal';
+import { EffectProperty, type InternalReadonlySignal, type InternalSignal } from './signal';
 import { createComputedQrl, createSignal } from './signal.public';
+import { getSubscriber } from './subscriber';
 
 describe('v2-signal', () => {
   const log: any[] = [];
@@ -168,9 +163,7 @@ describe('v2-signal', () => {
     } else {
       const ctx = newInvokeContext();
       ctx.$container$ = container;
-      // TODO is ctx needed?
-      const subscriber: EffectSubscriptions = getSubscriber(task, EffectProperty.COMPONENT, ctx);
-      ctx.$effectSubscriber$ = subscriber;
+      ctx.$effectSubscriber$ = getSubscriber(task, EffectProperty.COMPONENT);
       return invoke(ctx, qrl.getFn(ctx));
     }
   }

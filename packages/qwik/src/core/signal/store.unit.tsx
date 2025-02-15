@@ -3,13 +3,13 @@ import { createDocument, getTestPlatform } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { Container, HostElement } from '../shared/types';
 import { StoreFlags, getOrCreateStore, isStore } from './store';
-import { EffectProperty, getSubscriber } from './signal';
+import { EffectProperty } from './signal';
 import { invoke } from '../use/use-core';
 import { newInvokeContext } from '../use/use-core';
 import { ChoreType } from '../shared/util-chore-type';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { Task } from '../use/use-task';
-import type { EffectSubscriptions } from './signal';
+import { getSubscriber } from './subscriber';
 
 describe('v2/store', () => {
   const log: any[] = [];
@@ -73,9 +73,7 @@ describe('v2/store', () => {
     } else {
       const ctx = newInvokeContext();
       ctx.$container$ = container;
-      // TODO is ctx needed
-      const subscriber: EffectSubscriptions = getSubscriber(task, EffectProperty.COMPONENT, ctx);
-      ctx.$effectSubscriber$ = subscriber;
+      ctx.$effectSubscriber$ = getSubscriber(task, EffectProperty.COMPONENT);
       return invoke(ctx, qrl.getFn(ctx));
     }
   }

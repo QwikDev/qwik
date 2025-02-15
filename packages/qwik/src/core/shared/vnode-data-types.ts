@@ -73,8 +73,8 @@ export const VNodeDataChar = {
   CONTEXT_CHAR: /* **** */ ']',
   SEQ_IDX: /* ************ */ 94, // `^` - `q:seqIdx' - Sequential scope id
   SEQ_IDX_CHAR: /* **** */ '^',
-  SUBS: /* *************** */ 96, // '`' - `q:subs' - Effect dependencies/subscriptions
-  SUBS_CHAR: /* ******* */ '`',
+  BACK_REFS: /* ********** */ 96, // '`' - `q:brefs' - Effect dependencies/subscriptions
+  BACK_REFS_CHAR: /* ** */ '`',
   SEPARATOR: /* ********* */ 124, // `|` - Separator char to encode any key/value pairs.
   SEPARATOR_CHAR: /* ** */ '|',
   SLOT: /* ************** */ 126, // `~` - `q:slot' - Slot name

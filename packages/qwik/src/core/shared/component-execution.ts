@@ -1,8 +1,8 @@
 import { isDev } from '@qwik.dev/core/build';
 import { vnode_isVNode } from '../client/vnode';
 import { Slot } from '../shared/jsx/slot.public';
-import { EffectProperty, getSubscriber, isSignal } from '../signal/signal';
-import { clearVNodeEffectDependencies } from '../signal/signal-subscriber';
+import { EffectProperty, isSignal } from '../signal/signal';
+import { clearAllEffects } from '../signal/signal-cleanup';
 import { invokeApply, newInvokeContext, untrack } from '../use/use-core';
 import { type EventQRL, type UseOnMap } from '../use/use-on';
 import { isQwikComponent, type OnRenderFn } from './component.public';
@@ -25,6 +25,7 @@ import {
 } from './utils/markers';
 import { MAX_RETRY_ON_PROMISE_COUNT, isPromise, maybeThen, safeCall } from './utils/promises';
 import type { ValueOrPromise } from './utils/types';
+import { getSubscriber } from '../signal/subscriber';
 
 /**
  * Use `executeComponent` to execute a component.
@@ -68,7 +69,7 @@ export const executeComponent = (
   container.ensureProjectionResolved(renderHost);
   let isInlineComponent = false;
   if (componentQRL === null) {
-    componentQRL = componentQRL || container.getHostProp(renderHost, OnRenderProp)!;
+    componentQRL = container.getHostProp(renderHost, OnRenderProp)!;
     assertDefined(componentQRL, 'No Component found at this location');
   }
   if (isQrl(componentQRL)) {
@@ -100,7 +101,7 @@ export const executeComponent = (
         }
 
         if (vnode_isVNode(renderHost)) {
-          clearVNodeEffectDependencies(container, renderHost);
+          clearAllEffects(container, renderHost);
         }
 
         return componentFn(props);

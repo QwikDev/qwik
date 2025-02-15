@@ -4,7 +4,7 @@ import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { ELEMENT_KEY, ELEMENT_PROPS, OnRenderProp } from '../shared/utils/markers';
 import { type ISsrNode, type SSRContainer } from './ssr-types';
 import { executeComponent } from '../shared/component-execution';
-import { ChoreType } from '../shared/scheduler';
+import { ChoreType } from '../shared/util-chore-type';
 import type { ValueOrPromise } from '../shared/utils/types';
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 

@@ -1,6 +1,6 @@
 import type { FunctionComponent, JSXNode, JSXOutput } from '../shared/jsx/types/jsx-node';
 import { isDocument, isElement } from '../shared/utils/element';
-import { ChoreType } from '../shared/scheduler';
+import { ChoreType } from '../shared/util-chore-type';
 import { QContainerValue } from '../shared/types';
 import { DomContainer, getDomContainer } from './dom-container';
 import { cleanup } from './vnode-diff';

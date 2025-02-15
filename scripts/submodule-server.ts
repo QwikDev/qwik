@@ -24,11 +24,7 @@ export async function submoduleServer(config: BuildConfig) {
     bundle: true,
     platform: 'node',
     target,
-    external: [
-      /* no Node.js built-in externals allowed! */ '@qwik.dev/dom',
-      '@qwik.dev/core',
-      '@qwik.dev/core/build',
-    ],
+    external: ['@qwik.dev/dom', '@qwik.dev/core', '@qwik.dev/core/build'],
   };
 
   const esm = build({
@@ -36,7 +32,34 @@ export async function submoduleServer(config: BuildConfig) {
     format: 'esm',
     banner: { js: getBanner('@qwik.dev/core/server', config.distVersion) },
     outExtension: { '.js': '.mjs' },
-    plugins: [importPath(/^@qwik\.dev\/core$/, '@qwik.dev/core'), qwikDomPlugin],
+    plugins: [
+      // uncomment this if you want to find what imports what
+      // so you can make sure client isn't being imported
+      // {
+      //   name: 'spy-resolve',
+      //   setup(build) {
+      //     build.onResolve({ filter: /./ }, (args) => {
+      //       console.log('spy-resolve', args);
+      //       return undefined;
+      //     });
+      //   },
+      // },
+      {
+        // throws an error if files from src/core are loaded, except for some allowed imports
+        name: 'forbid-core',
+        setup(build) {
+          build.onLoad({ filter: /src\/core\// }, (args) => {
+            if (args.path.includes('util') || args.path.includes('shared')) {
+              return null;
+            }
+            console.error('forbid-core', args);
+            throw new Error('Import of core files is not allowed in server builds.');
+          });
+        },
+      },
+      importPath(/^@qwik\.dev\/core$/, '@qwik.dev/core'),
+      qwikDomPlugin,
+    ],
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
       'globalThis.IS_CJS': 'false',

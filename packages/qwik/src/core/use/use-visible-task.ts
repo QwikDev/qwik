@@ -1,8 +1,9 @@
 import type { EventHandler } from '../shared/jsx/types/jsx-qwik-attributes';
 import { isServerPlatform } from '../shared/platform/platform';
-import { assertQrl, createQRL } from '../shared/qrl/qrl-class';
+import { createQRL } from '../shared/qrl/qrl-class';
+import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { ChoreType } from '../shared/scheduler';
+import { ChoreType } from '../shared/util-chore-type';
 import { useOn, useOnDocument } from './use-on';
 import { useSequentialScope } from './use-sequential-scope';
 import { Task, TaskFlags, scheduleTask, type TaskFn } from './use-task';

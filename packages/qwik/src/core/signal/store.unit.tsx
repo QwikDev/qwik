@@ -6,7 +6,7 @@ import { StoreFlags, getOrCreateStore, isStore } from './store';
 import { EffectProperty, getSubscriber } from './signal';
 import { invoke } from '../use/use-core';
 import { newInvokeContext } from '../use/use-core';
-import { ChoreType } from '../shared/scheduler';
+import { ChoreType } from '../shared/util-chore-type';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { Task } from '../use/use-task';
 import type { EffectSubscriptions } from './signal';

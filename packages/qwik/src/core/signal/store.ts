@@ -263,10 +263,12 @@ function getEffects<T extends Record<string | symbol, any>>(
 
   if (storeEffects) {
     if (Array.isArray(target)) {
-      storeEffects.forEach((effects) => {
+      for (const effects of storeEffects.values()) {
         effectsToTrigger ||= new Set();
-        effects.forEach((effect) => effectsToTrigger!.add(effect));
-      });
+        for (const effect of effects) {
+          effectsToTrigger.add(effect);
+        }
+      }
     } else {
       effectsToTrigger = storeEffects.get(prop);
     }
@@ -275,7 +277,9 @@ function getEffects<T extends Record<string | symbol, any>>(
   const storeArrayValue = storeEffects?.get(STORE_ARRAY_PROP);
   if (storeArrayValue) {
     effectsToTrigger ||= new Set();
-    storeArrayValue.forEach((effect) => effectsToTrigger!.add(effect));
+    for (const effect of storeArrayValue) {
+      effectsToTrigger!.add(effect);
+    }
   }
   return effectsToTrigger || null;
 }

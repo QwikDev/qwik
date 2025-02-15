@@ -382,7 +382,9 @@ export const triggerEffects = (
         }
       }
     };
-    effects.forEach(scheduleEffect);
+    for (const effect of effects) {
+      scheduleEffect(effect);
+    }
   }
 
   DEBUG && log('done scheduling');

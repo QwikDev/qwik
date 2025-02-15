@@ -375,6 +375,7 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
     elementVNode[VNodeProps.flags] ^= VNodeFlags.Inflated;
     const element = elementVNode[ElementVNodeProps.element];
     const attributes = element.attributes;
+    const props = vnode_getProps(elementVNode);
     for (let idx = 0; idx < attributes.length; idx++) {
       const attr = attributes[idx];
       const key = attr.name;
@@ -384,13 +385,13 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
         break;
       } else if (key.startsWith(QContainerAttr)) {
         if (attr.value === QContainerValue.HTML) {
-          mapArray_set(vnode_getProps(elementVNode), dangerouslySetInnerHTML, element.innerHTML, 0);
+          mapArray_set(props, dangerouslySetInnerHTML, element.innerHTML, 0);
         } else if (attr.value === QContainerValue.TEXT && 'value' in element) {
-          mapArray_set(vnode_getProps(elementVNode), 'value', element.value, 0);
+          mapArray_set(props, 'value', element.value, 0);
         }
       } else if (!key.startsWith('on:')) {
         const value = attr.value;
-        mapArray_set(vnode_getProps(elementVNode), key, value, 0);
+        mapArray_set(props, key, value, 0);
       }
     }
   }

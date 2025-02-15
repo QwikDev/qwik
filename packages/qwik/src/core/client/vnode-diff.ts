@@ -27,7 +27,7 @@ import {
   QSlot,
   QSlotParent,
   QStyle,
-  QSubscribers,
+  QBackRefs,
   QTemplate,
   Q_PREFIX,
   dangerouslySetInnerHTML,
@@ -91,15 +91,12 @@ import {
 import { mapApp_findIndx } from './util-mapArray';
 import { mapArray_set } from './util-mapArray';
 import { getNewElementNamespaceData } from './vnode-namespace';
-import { WrappedSignal, EffectProperty, isSignal, EffectPropData } from '../signal/signal';
+import { WrappedSignal, EffectProperty, isSignal, SubscriptionData } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
 import { executeComponent } from '../shared/component-execution';
 import { isParentSlotProp, isSlotProp } from '../shared/utils/prop';
 import { escapeHTML } from '../shared/utils/character-escaping';
-import {
-  clearSubscriberEffectDependencies,
-  clearVNodeEffectDependencies,
-} from '../signal/signal-subscriber';
+import { clearAllEffects } from '../signal/signal-cleanup';
 import { serializeAttribute } from '../shared/utils/styles';
 import { QError, qError } from '../shared/error/error';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
@@ -194,7 +191,7 @@ export const vnode_diff = (
             descend(jsxValue, false);
           } else if (isSignal(jsxValue)) {
             if (vCurrent) {
-              clearVNodeEffectDependencies(container, vCurrent);
+              clearAllEffects(container, vCurrent);
             }
             expectVirtual(VirtualType.WrappedSignal, null);
             descend(
@@ -652,7 +649,7 @@ export const vnode_diff = (
         }
 
         if (isSignal(value)) {
-          const signalData = new EffectPropData({
+          const signalData = new SubscriptionData({
             $scopedStyleIdPrefix$: scopedStyleIdPrefix,
             $isConst$: true,
           });
@@ -831,7 +828,7 @@ export const vnode_diff = (
       }
 
       if (isSignal(value)) {
-        const signalData = new EffectPropData({
+        const signalData = new SubscriptionData({
           $scopedStyleIdPrefix$: scopedStyleIdPrefix,
           $isConst$: false,
         });
@@ -1135,7 +1132,7 @@ export const vnode_diff = (
     jsxProps: Props
   ) {
     if (host) {
-      clearVNodeEffectDependencies(container, host);
+      clearAllEffects(container, host);
     }
     vnode_insertBefore(
       journal,
@@ -1252,8 +1249,8 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
   if (!src || !dst) {
     return true;
   }
-  let srcKeys = removePropsKeys(Object.keys(src), ['children', QSubscribers]);
-  let dstKeys = removePropsKeys(Object.keys(dst), ['children', QSubscribers]);
+  let srcKeys = removePropsKeys(Object.keys(src), ['children', QBackRefs]);
+  let dstKeys = removePropsKeys(Object.keys(dst), ['children', QBackRefs]);
   if (srcKeys.length !== dstKeys.length) {
     return true;
   }
@@ -1302,7 +1299,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
   do {
     const type = vCursor[VNodeProps.flags];
     if (type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) {
-      clearVNodeEffectDependencies(container, vCursor);
+      clearAllEffects(container, vCursor);
       markVNodeAsDeleted(vCursor);
       // Only elements and virtual nodes need to be traversed for children
       if (type & VNodeFlags.Virtual) {
@@ -1312,7 +1309,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
             const obj = seq[i];
             if (isTask(obj)) {
               const task = obj;
-              clearSubscriberEffectDependencies(container, task);
+              clearAllEffects(container, task);
               if (task.$flags$ & TaskFlags.VISIBLE_TASK) {
                 container.$scheduler$(ChoreType.CLEANUP_VISIBLE, task);
               } else {

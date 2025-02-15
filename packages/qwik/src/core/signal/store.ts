@@ -4,12 +4,11 @@ import { tryGetInvokeContext } from '../use/use-core';
 import { isSerializableObject } from '../shared/utils/types';
 import type { Container } from '../shared/types';
 import {
-  EffectSubscriptionsProp,
   addQrlToSerializationCtx,
-  ensureContainsEffect,
-  ensureEffectContainsSubscriber,
+  ensureContainsBackRef,
+  ensureContainsSubscription,
   triggerEffects,
-  type EffectSubscriptions,
+  type EffectSubscription,
 } from './signal';
 
 const DEBUG = false;
@@ -76,7 +75,7 @@ export const getOrCreateStore = <T extends object>(
 };
 
 export class StoreHandler implements ProxyHandler<TargetType> {
-  $effects$: null | Map<string | symbol, Set<EffectSubscriptions>> = null;
+  $effects$: null | Map<string | symbol, Set<EffectSubscription>> = null;
 
   constructor(
     public $flags$: StoreFlags,
@@ -213,11 +212,11 @@ export class StoreHandler implements ProxyHandler<TargetType> {
   }
 }
 
-function addEffect<T extends Record<string | symbol, any>>(
-  target: T,
+function addEffect(
+  target: TargetType,
   prop: string | symbol,
   store: StoreHandler,
-  effectSubscriber: EffectSubscriptions
+  effectSubscription: EffectSubscription
 ) {
   const effectsMap = (store.$effects$ ||= new Map());
   let effects = effectsMap.get(prop);
@@ -228,14 +227,12 @@ function addEffect<T extends Record<string | symbol, any>>(
   // Let's make sure that we have a reference to this effect.
   // Adding reference is essentially adding a subscription, so if the signal
   // changes we know who to notify.
-  ensureContainsEffect(effects, effectSubscriber);
-  // We need to add the subscriber to the effect so that we can clean it up later
-  ensureEffectContainsSubscriber(
-    effectSubscriber[EffectSubscriptionsProp.EFFECT],
-    target,
-    store.$container$
-  );
-  addQrlToSerializationCtx(effectSubscriber, store.$container$);
+  ensureContainsSubscription(effects, effectSubscription);
+  // But when effect is scheduled in needs to be able to know which signals
+  // to unsubscribe from. So we need to store the reference from the effect back
+  // to this signal.
+  ensureContainsBackRef(effectSubscription, target);
+  addQrlToSerializationCtx(effectSubscription, store.$container$);
 
   DEBUG && log('sub', pad('\n' + store.$effects$?.entries.toString(), '  '));
 }
@@ -257,9 +254,9 @@ function setNewValueAndTriggerEffects<T extends Record<string | symbol, any>>(
 function getEffects<T extends Record<string | symbol, any>>(
   target: T,
   prop: string | symbol,
-  storeEffects: Map<string | symbol, Set<EffectSubscriptions>> | null
+  storeEffects: Map<string | symbol, Set<EffectSubscription>> | null
 ) {
-  let effectsToTrigger: Set<EffectSubscriptions> | undefined;
+  let effectsToTrigger: Set<EffectSubscription> | undefined;
 
   if (storeEffects) {
     if (Array.isArray(target)) {

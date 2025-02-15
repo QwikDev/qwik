@@ -144,7 +144,6 @@ import {
   QSlotRef,
   QStyle,
   QStylesAllSelector,
-  QSubscribers,
   Q_PROPS_SEPARATOR,
   dangerouslySetInnerHTML,
 } from '../shared/utils/markers';
@@ -171,6 +170,8 @@ import {
   vnode_getDomChildrenWithCorrectNamespacesToInsert,
   vnode_getElementNamespaceFlags,
 } from './vnode-namespace';
+import { mergeMaps } from '../shared/utils/maps';
+import { _EFFECT_BACK_REF } from '../signal/flags';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1147,7 +1148,7 @@ export const vnode_getFirstChild = (vnode: VNode): VNode | null => {
   return vFirstChild;
 };
 
-export const vnode_materialize = (vNode: ElementVNode) => {
+const vnode_materialize = (vNode: ElementVNode) => {
   const element = vNode[ElementVNodeProps.element];
   const firstChild = fastFirstChild(element);
   const vNodeData = (element.ownerDocument as QDocument)?.qVNodeData?.get(element);
@@ -1415,8 +1416,11 @@ const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null, vDat
         const id = consumeValue();
         container.$setRawState$(parseInt(id), vParent);
         isDev && vnode_setAttr(null, vParent, ELEMENT_ID, id);
-      } else if (peek() === VNodeDataChar.SUBS) {
-        vnode_setProp(vParent, QSubscribers, consumeValue());
+      } else if (peek() === VNodeDataChar.BACK_REFS) {
+        if (!container) {
+          container = getDomContainer(vParent[ElementVNodeProps.element]);
+        }
+        setEffectBackRefFromVNodeData(vParent, consumeValue(), container);
       } else {
         // prevent infinity loop if there are some characters outside the range
         consumeValue();
@@ -1426,6 +1430,22 @@ const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null, vDat
 
   return vFirstChild;
 };
+
+function setEffectBackRefFromVNodeData(
+  vParent: VNode,
+  value: string | number,
+  container: ClientContainer
+) {
+  const deserializedSubMap = container.$getObjectById$(value);
+  if (!(vParent as any)[_EFFECT_BACK_REF]) {
+    Object.defineProperty(vParent, _EFFECT_BACK_REF, {
+      value: deserializedSubMap,
+    });
+  } else {
+    const subMap = (vParent as any)[_EFFECT_BACK_REF] as Map<string, any>;
+    mergeMaps(subMap, deserializedSubMap);
+  }
+}
 
 const processVNodeData = (
   vData: string,
@@ -1757,8 +1777,11 @@ function materializeFromVNodeData(
       vnode_setAttr(null, vParent, ELEMENT_SEQ, consumeValue());
     } else if (peek() === VNodeDataChar.SEQ_IDX) {
       vnode_setAttr(null, vParent, ELEMENT_SEQ_IDX, consumeValue());
-    } else if (peek() === VNodeDataChar.SUBS) {
-      vnode_setProp(vParent, QSubscribers, consumeValue());
+    } else if (peek() === VNodeDataChar.BACK_REFS) {
+      if (!container) {
+        container = getDomContainer(element);
+      }
+      setEffectBackRefFromVNodeData(vParent, consumeValue(), container);
     } else if (peek() === VNodeDataChar.CONTEXT) {
       vnode_setAttr(null, vParent, QCtxAttr, consumeValue());
     } else if (peek() === VNodeDataChar.OPEN) {

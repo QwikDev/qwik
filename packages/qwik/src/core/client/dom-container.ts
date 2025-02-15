@@ -25,7 +25,7 @@ import {
   QSlotParent,
   QStyle,
   QStyleSelector,
-  QSubscribers,
+  QBackRefs,
   Q_PROPS_SEPARATOR,
   USE_ON_LOCAL_SEQ_IDX,
   getQFuncs,
@@ -275,7 +275,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       case ELEMENT_PROPS:
       case OnRenderProp:
       case QCtxAttr:
-      case QSubscribers:
+      case QBackRefs:
         getObjectById = this.$getObjectById$;
         break;
       case ELEMENT_SEQ_IDX:

@@ -1,4 +1,9 @@
-import { _isJSXNode as isJSXNode, type JSXNode, _EMPTY_ARRAY } from '@qwik.dev/core';
+import {
+  _isJSXNode as isJSXNode,
+  type JSXNode,
+  _EMPTY_ARRAY,
+  _EFFECT_BACK_REF,
+} from '@qwik.dev/core';
 import { isDev } from '@qwik.dev/core/build';
 import {
   QSlotParent,
@@ -9,6 +14,7 @@ import {
   QSlot,
   QDefaultSlot,
   NON_SERIALIZABLE_MARKER_PREFIX,
+  QBackRefs,
 } from './qwik-copy';
 import type { SsrAttrs, ISsrNode, ISsrComponentFrame, JSXChildren } from './qwik-types';
 import type { CleanupQueue } from './ssr-container';
@@ -21,7 +27,7 @@ import type { VNodeData } from './vnode-data';
  * Once deserialized the client, they will be turned to ElementVNodes.
  */
 export class SsrNode implements ISsrNode {
-  __brand__!: 'HostElement';
+  __brand__!: 'SsrNode';
 
   static ELEMENT_NODE = 1 as const;
   static TEXT_NODE = 3 as const;
@@ -42,6 +48,10 @@ export class SsrNode implements ISsrNode {
   private locals: SsrAttrs | null = null;
   public currentComponentNode: ISsrNode | null;
   public childrenVNodeData: VNodeData[] | null = null;
+
+  get [_EFFECT_BACK_REF]() {
+    return this.getProp(QBackRefs);
+  }
 
   constructor(
     currentComponentNode: ISsrNode | null,

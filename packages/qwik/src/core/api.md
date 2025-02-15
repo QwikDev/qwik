@@ -220,6 +220,9 @@ export { DomContainer }
 export { DomContainer as _DomContainer }
 
 // @internal (undocumented)
+export const _EFFECT_BACK_REF: unique symbol;
+
+// @internal (undocumented)
 export class _EffectData {
     constructor(data: NodePropData);
     // Warning: (ae-forgotten-export) The symbol "NodePropData" needs to be exported by the entry point index.d.ts

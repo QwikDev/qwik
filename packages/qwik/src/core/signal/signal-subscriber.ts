@@ -1,6 +1,11 @@
 import { QSubscribers } from '../shared/utils/markers';
 import type { VNode } from '../client/types';
-import { ensureMaterialized, vnode_getProp, vnode_isElementVNode } from '../client/vnode';
+import {
+  vnode_ensureElementInflated,
+  vnode_getProp,
+  vnode_isElementVNode,
+  vnode_walkVNode,
+} from '../client/vnode';
 import { EffectSubscriptionsProp, WrappedSignal, isSignal, type Signal } from './signal';
 import type { Container } from '../shared/types';
 import { StoreHandler, getStoreHandler, isStore, type TargetType } from './store';
@@ -17,7 +22,7 @@ export function isSubscriber(value: unknown): value is Subscriber {
 
 export function clearVNodeEffectDependencies(container: Container, value: VNode): void {
   if (vnode_isElementVNode(value)) {
-    ensureMaterialized(value);
+    vnode_walkVNode(value, (vNode) => vnode_ensureElementInflated(vNode));
   }
   const effects = vnode_getProp<Set<Subscriber>>(value, QSubscribers, container.$getObjectById$);
 
@@ -40,7 +45,7 @@ export function clearSubscriberEffectDependencies(container: Container, value: S
 function clearEffects(
   subscriber: Subscriber | TargetType,
   value: Subscriber | VNode,
-  effectArray: Set<Subscriber | TargetType>,
+  effects: Set<Subscriber | TargetType>,
   container: Container
 ) {
   let subscriptionRemoved = false;
@@ -53,7 +58,7 @@ function clearEffects(
     subscriptionRemoved = clearStoreEffects(handler, value);
   }
   if (subscriptionRemoved) {
-    effectArray.delete(subscriber);
+    effects.delete(subscriber);
   }
 }
 
@@ -96,17 +101,17 @@ function clearStoreEffects(storeHandler: StoreHandler, value: Subscriber | VNode
     return false;
   }
   let subscriptionRemoved = false;
-  effectSubscriptions.forEach((effects, key) => {
-    effects.forEach((effect) => {
+  for (const [key, effects] of effectSubscriptions) {
+    for (const effect of effects) {
       if (effect[EffectSubscriptionsProp.EFFECT] === value) {
         effects.delete(effect);
         subscriptionRemoved = true;
       }
-    });
+    }
     if (effects.size === 0) {
       effectSubscriptions.delete(key);
     }
-  });
+  }
   return subscriptionRemoved;
 }
 

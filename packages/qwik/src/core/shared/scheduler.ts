@@ -104,6 +104,7 @@ import {
   type DescriptorBase,
   type TaskFn,
 } from '../use/use-task';
+import { ChoreType } from './util-chore-type';
 import { executeComponent } from './component-execution';
 import type { OnRenderFn } from './component.public';
 import { assertEqual, assertFalse } from './error/assert';
@@ -121,31 +122,6 @@ import type { ValueOrPromise } from './utils/types';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
-
-export const enum ChoreType {
-  /// MASKS defining three levels of sorting
-  MACRO /* **************************** */ = 0b1111_0000,
-  /* order of elements (not encoded here) */
-  MICRO /* **************************** */ = 0b0000_1111,
-
-  /** Ensure that the QRL promise is resolved before processing next chores in the queue */
-  QRL_RESOLVE /* ********************** */ = 0b0000_0001,
-  RUN_QRL,
-  TASK,
-  NODE_DIFF,
-  NODE_PROP,
-  COMPONENT,
-  RECOMPUTE_AND_SCHEDULE_EFFECTS,
-
-  // Next macro level
-  JOURNAL_FLUSH /* ******************** */ = 0b0001_0000,
-  // Next macro level
-  VISIBLE /* ************************** */ = 0b0010_0000,
-  // Next macro level
-  CLEANUP_VISIBLE /* ****************** */ = 0b0011_0000,
-  // Next macro level
-  WAIT_FOR_ALL /* ********************* */ = 0b1111_1111,
-}
 
 export interface Chore {
   $type$: ChoreType;

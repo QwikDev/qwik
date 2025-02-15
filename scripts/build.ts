@@ -67,7 +67,6 @@ export async function build(config: BuildConfig) {
       } else {
         emptyDir(config.distQwikPkgDir);
       }
-
       await Promise.all([
         submoduleCore(config),
         submoduleQwikLoader(config),
@@ -179,7 +178,7 @@ export async function build(config: BuildConfig) {
       });
     }
   } catch (e: any) {
-    panic(String(e ? e.stack || e : 'Error'));
+    panic(e);
   }
 }
 

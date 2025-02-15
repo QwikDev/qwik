@@ -19,22 +19,18 @@ import {
 export async function submoduleOptimizer(config: BuildConfig) {
   const submodule = 'optimizer';
 
-  await generatePlatformBindingsData(config);
+  // uncomment this when adding a platform binding
+  // await generatePlatformBindingsData(config);
 
   async function buildOptimizer() {
     const opts: BuildOptions = {
-      entryPoints: [join(config.srcQwikDir, submodule, 'src', 'index.ts')],
+      entryPoints: [join(config.optimizerDir, 'index.ts')],
       entryNames: 'optimizer',
       outdir: config.distQwikPkgDir,
       bundle: true,
       sourcemap: false,
       platform: 'node',
       target,
-      external: [
-        /* no Node.js built-in externals allowed! */
-        'espree',
-        'lightningcss',
-      ],
     };
 
     const qwikloaderScripts = await inlineQwikScriptsEsBuild(config);
@@ -50,7 +46,22 @@ export async function submoduleOptimizer(config: BuildConfig) {
         'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
         ...qwikloaderScripts,
       },
-      plugins: [RawPlugin()],
+      plugins: [
+        {
+          // throws an error if files from src/core are loaded, except for some allowed imports
+          name: 'forbid-core',
+          setup(build) {
+            build.onLoad({ filter: /src\/core\// }, (args) => {
+              if (args.path.includes('util') || args.path.includes('shared')) {
+                return null;
+              }
+              console.error('forbid-core', args);
+              throw new Error('Import of core files is not allowed in server builds.');
+            });
+          },
+        },
+        RawPlugin(),
+      ],
     });
 
     const cjsBanner = [`globalThis.qwikOptimizer = (function (module) {`].join('\n');
@@ -120,6 +131,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
   await Promise.all([buildOptimizer()]);
 }
 
+// @ts-expect-error -- we only use this when adding a platform binding
 async function generatePlatformBindingsData(config: BuildConfig) {
   // generate the platform binding information for only what qwik provides
   // allows us to avoid using a file system in the optimizer, take a look at:

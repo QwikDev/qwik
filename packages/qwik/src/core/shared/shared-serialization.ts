@@ -39,15 +39,11 @@ import {
 } from './jsx/jsx-runtime';
 import { Slot } from './jsx/slot.public';
 import { getPlatform } from './platform/platform';
-import {
-  createQRL,
-  isQrl,
-  isSyncQrl,
-  type QRLInternal,
-  type SyncQRLInternal,
-} from './qrl/qrl-class';
+import { createQRL, type QRLInternal, type SyncQRLInternal } from './qrl/qrl-class';
+import { isQrl, isSyncQrl } from './qrl/qrl-utils';
 import type { QRL } from './qrl/qrl.public';
-import { ChoreType, type NodePropData } from './scheduler';
+import { type NodePropData } from './scheduler';
+import { ChoreType } from './util-chore-type';
 import type { DeserializeContainer, HostElement, ObjToProxyMap } from './types';
 import { _CONST_PROPS, _VAR_PROPS } from './utils/constants';
 import { isElement, isNode } from './utils/element';

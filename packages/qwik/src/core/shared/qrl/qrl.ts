@@ -2,7 +2,7 @@ import { QError, qError } from '../error/error';
 import { EMPTY_ARRAY } from '../utils/flyweight';
 import { qSerialize } from '../utils/qdev';
 import { isFunction, isString } from '../utils/types';
-import { createQRL, emitEvent, getSymbolHash, type QRLInternal } from './qrl-class';
+import { createQRL, emitEvent, type QRLInternal } from './qrl-class';
 import type { QRL } from './qrl.public';
 
 // https://regexr.com/68v72
@@ -79,7 +79,7 @@ export const qrl = <T = any>(
     // Emit event
     announcedQRL.add(symbol);
     emitEvent('qprefetch', {
-      symbols: [getSymbolHash(symbol)],
+      symbols: [symbol],
       bundles: chunk && [chunk],
     });
   }

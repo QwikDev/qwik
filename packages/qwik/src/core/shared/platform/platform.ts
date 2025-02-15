@@ -1,10 +1,10 @@
 // keep this import from core/build so the cjs build works
 import { isServer } from '@qwik.dev/core/build';
 import { QError, qError } from '../error/error';
-import { getSymbolHash } from '../qrl/qrl-class';
+import { getSymbolHash } from '../qrl/qrl-utils';
+import { QBaseAttr } from '../utils/markers';
 import { qDynamicPlatform } from '../utils/qdev';
 import type { CorePlatform } from './types';
-import { QBaseAttr } from '../utils/markers';
 
 export const createPlatform = (): CorePlatform => {
   return {

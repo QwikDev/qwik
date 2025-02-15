@@ -7,7 +7,7 @@ import { StoreFlags, createStore } from '../signal/store';
 import { createResourceReturn } from '../use/use-resource';
 import { Task } from '../use/use-task';
 import { inlinedQrl } from './qrl/qrl';
-import { createQRL, isQrl, type QRLInternal } from './qrl/qrl-class';
+import { createQRL, type QRLInternal } from './qrl/qrl-class';
 import {
   TypeIds,
   _constants,
@@ -17,6 +17,7 @@ import {
   dumpState,
 } from './shared-serialization';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
+import { isQrl } from './qrl/qrl-utils';
 
 const DEBUG = false;
 

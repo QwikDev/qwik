@@ -718,9 +718,7 @@ export const vnode_diff = (
 
   function expectElement(jsx: JSXNodeInternal, elementName: string) {
     const isSameElementName =
-      vCurrent &&
-      vnode_isElementVNode(vCurrent) &&
-      elementName.toLowerCase() === vnode_getElementName(vCurrent);
+      vCurrent && vnode_isElementVNode(vCurrent) && elementName === vnode_getElementName(vCurrent);
     const jsxKey: string | null = jsx.key;
     let needsQDispatchEventPatch = false;
     const currentFile = getFileLocationFromJsx(jsx.dev);

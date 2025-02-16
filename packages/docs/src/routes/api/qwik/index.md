@@ -2052,6 +2052,10 @@ _(Optional)_
 
 ## EagernessOptions
 
+> Warning: This API is now obsolete.
+>
+> use useVisibleTask$ or useResource$, useTask$ is for running task on server
+
 ```typescript
 export type EagernessOptions = "visible" | "load" | "idle";
 ```
@@ -3464,6 +3468,10 @@ export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/component/component.public.ts)
 
 ## OnVisibleTaskOptions
+
+> Warning: This API is now obsolete.
+>
+> use useVisibleTask$ or useResource$, useTask$ is for running task on server
 
 ```typescript
 export interface OnVisibleTaskOptions
@@ -11291,6 +11299,10 @@ void
 
 ## UseTaskOptions
 
+> Warning: This API is now obsolete.
+>
+> use useVisibleTask$ or useResource$, useTask$ is for running task on server
+
 ```typescript
 export interface UseTaskOptions
 ```
@@ -11558,6 +11570,10 @@ export interface VideoHTMLAttributes<T extends Element> extends Attrs<'video', T
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## VisibleTaskStrategy
+
+> Warning: This API is now obsolete.
+>
+> use useVisibleTask$ or useResource$, useTask$ is for running task on server
 
 ```typescript
 export type VisibleTaskStrategy =

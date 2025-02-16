@@ -726,7 +726,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type EagernessOptions = 'visible' | 'load' | 'idle';\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> use useVisibleTask$ or useResource$, useTask$ is for running task on server\n> \n\n\n```typescript\nexport type EagernessOptions = 'visible' | 'load' | 'idle';\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.eagernessoptions.md"
     },
@@ -1690,7 +1690,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface OnVisibleTaskOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[strategy?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[VisibleTaskStrategy](#visibletaskstrategy)\n\n\n</td><td>\n\n_(Optional)_ The strategy to use to determine when the \"VisibleTask\" should first execute.\n\n- `intersection-observer`<!-- -->: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - `document-ready`<!-- -->: the task will first execute when the document is ready, under the hood it uses the document `load` event. - `document-idle`<!-- -->: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "> Warning: This API is now obsolete.\n> \n> use useVisibleTask$ or useResource$, useTask$ is for running task on server\n> \n\n\n```typescript\nexport interface OnVisibleTaskOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[strategy?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[VisibleTaskStrategy](#visibletaskstrategy)\n\n\n</td><td>\n\n_(Optional)_ The strategy to use to determine when the \"VisibleTask\" should first execute.\n\n- `intersection-observer`<!-- -->: the task will first execute when the element is visible in the viewport, under the hood it uses the IntersectionObserver API. - `document-ready`<!-- -->: the task will first execute when the document is ready, under the hood it uses the document `load` event. - `document-idle`<!-- -->: the task will first execute when the document is idle, under the hood it uses the requestIdleCallback API.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.onvisibletaskoptions.md"
     },
@@ -3356,7 +3356,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface UseTaskOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[eagerness?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[EagernessOptions](#eagernessoptions)\n\n\n</td><td>\n\n_(Optional)_ - `visible`<!-- -->: run the effect when the element is visible. - `load`<!-- -->: eagerly run the effect when the application resumes.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "> Warning: This API is now obsolete.\n> \n> use useVisibleTask$ or useResource$, useTask$ is for running task on server\n> \n\n\n```typescript\nexport interface UseTaskOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[eagerness?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[EagernessOptions](#eagernessoptions)\n\n\n</td><td>\n\n_(Optional)_ - `visible`<!-- -->: run the effect when the element is visible. - `load`<!-- -->: eagerly run the effect when the application resumes.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.usetaskoptions.md"
     },
@@ -3454,7 +3454,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> use useVisibleTask$ or useResource$, useTask$ is for running task on server\n> \n\n\n```typescript\nexport type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.visibletaskstrategy.md"
     },

@@ -217,7 +217,7 @@ export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>
     class?: ClassList | Signal<ClassList> | undefined;
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type EagernessOptions = 'visible' | 'load' | 'idle';
 
 // @public (undocumented)
@@ -578,7 +578,7 @@ export type _Only$<P> = {
 // @public (undocumented)
 export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export interface OnVisibleTaskOptions {
     strategy?: VisibleTaskStrategy;
 }
@@ -1728,7 +1728,7 @@ export const useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
 // @public
 export const useTask$: (qrl: TaskFn, opts?: UseTaskOptions | undefined) => void;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export interface UseTaskOptions {
     eagerness?: EagernessOptions;
 }
@@ -1755,7 +1755,7 @@ export const version: string;
 export interface VideoHTMLAttributes<T extends Element> extends Attrs<'video', T> {
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
 
 // @internal (undocumented)

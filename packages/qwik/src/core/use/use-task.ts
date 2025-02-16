@@ -186,13 +186,13 @@ export interface DescriptorBase<T = unknown, B = unknown> {
   $state$: B | undefined;
 }
 
-/** @public */
+/** @public @deprecated use useVisibleTask$ or useResource$, useTask$ is for running task on server */
 export type EagernessOptions = 'visible' | 'load' | 'idle';
 
-/** @public */
+/** @public @deprecated use useVisibleTask$ or useResource$, useTask$ is for running task on server */
 export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
 
-/** @public */
+/** @public @deprecated use useVisibleTask$ or useResource$, useTask$ is for running task on server */
 export interface OnVisibleTaskOptions {
   /**
    * The strategy to use to determine when the "VisibleTask" should first execute.
@@ -207,7 +207,7 @@ export interface OnVisibleTaskOptions {
   strategy?: VisibleTaskStrategy;
 }
 
-/** @public */
+/** @public @deprecated use useVisibleTask$ or useResource$, useTask$ is for running task on server */
 export interface UseTaskOptions {
   /**
    * - `visible`: run the effect when the element is visible.

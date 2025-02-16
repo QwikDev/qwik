@@ -937,6 +937,11 @@ export const vnode_insertBefore = (
   if (vnode_isElementVNode(parent)) {
     ensureMaterialized(parent);
   }
+  if (newChild === insertBefore) {
+    // invalid insertBefore. We can't insert before self reference
+    // prevent infinity loop and putting self reference to next sibling
+    insertBefore = null;
+  }
   let adjustedInsertBefore: VNode | null = null;
   if (insertBefore == null) {
     if (vnode_isVirtualVNode(parent)) {

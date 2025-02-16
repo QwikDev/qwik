@@ -440,6 +440,38 @@ describe('vnode', () => {
       );
       expect(parent.innerHTML).toBe('<b></b>INSERT<i></i>');
     });
+    it('should replace insertBefore with null for newChild equals to insertBefore', () => {
+      parent.innerHTML = '<b></b><i></i>';
+      document.qVNodeData.set(parent, '{{1}}1');
+      expect(vParent).toMatchVDOM(
+        <test>
+          <>
+            <>
+              <b />
+            </>
+          </>
+          <i />
+        </test>
+      );
+      const fragment1 = vnode_getFirstChild(vParent) as VirtualVNode;
+      const fragment2 = vnode_getFirstChild(fragment1) as VirtualVNode;
+      const text = vnode_newText(document.createTextNode('INSERT'), 'INSERT');
+      vnode_insertBefore(journal, fragment2, text, text);
+      vnode_applyJournal(journal);
+      expect(vParent).toMatchVDOM(
+        <test>
+          <>
+            <>
+              <b />
+              INSERT
+            </>
+          </>
+          <i />
+        </test>
+      );
+      expect(parent.innerHTML).toBe('<b></b>INSERT<i></i>');
+      expect(vnode_getNextSibling(text)).toBeNull();
+    });
   });
   describe('portal', () => {
     it('should link source-destination', () => {

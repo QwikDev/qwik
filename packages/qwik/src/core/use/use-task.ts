@@ -189,10 +189,10 @@ export interface DescriptorBase<T = unknown, B = unknown> {
 /** @public @deprecated use useVisibleTask$ or useResource$, useTask$ is for running task on server */
 export type EagernessOptions = 'visible' | 'load' | 'idle';
 
-/** @public @deprecated use useVisibleTask$ or useResource$, useTask$ is for running task on server */
+/** @public */
 export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
 
-/** @public @deprecated use useVisibleTask$ or useResource$, useTask$ is for running task on server */
+/** @public */
 export interface OnVisibleTaskOptions {
   /**
    * The strategy to use to determine when the "VisibleTask" should first execute.

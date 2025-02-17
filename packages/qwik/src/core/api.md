@@ -578,7 +578,7 @@ export type _Only$<P> = {
 // @public (undocumented)
 export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export interface OnVisibleTaskOptions {
     strategy?: VisibleTaskStrategy;
 }
@@ -1755,7 +1755,7 @@ export const version: string;
 export interface VideoHTMLAttributes<T extends Element> extends Attrs<'video', T> {
 }
 
-// @public @deprecated (undocumented)
+// @public (undocumented)
 export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
 
 // @internal (undocumented)

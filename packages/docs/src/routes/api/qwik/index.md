@@ -3469,10 +3469,6 @@ export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
 
 ## OnVisibleTaskOptions
 
-> Warning: This API is now obsolete.
->
-> use useVisibleTask$ or useResource$, useTask$ is for running task on server
-
 ```typescript
 export interface OnVisibleTaskOptions
 ```
@@ -11570,10 +11566,6 @@ export interface VideoHTMLAttributes<T extends Element> extends Attrs<'video', T
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-generated.ts)
 
 ## VisibleTaskStrategy
-
-> Warning: This API is now obsolete.
->
-> use useVisibleTask$ or useResource$, useTask$ is for running task on server
 
 ```typescript
 export type VisibleTaskStrategy =

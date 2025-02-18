@@ -3,4 +3,4 @@
 '@builder.io/qwik': patch
 ---
 
-Fix error boundary
+FIX: Error boundary `ErrorBoundary` and fix `useErrorBoundary`

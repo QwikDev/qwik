@@ -458,6 +458,8 @@ export const vnode_diff = (
       slotName,
       (id) => vnode_locate(container.rootVNode, id)
     );
+    // if projection is marked as deleted then we need to create a new one
+    vCurrent = vCurrent && vCurrent[VNodeProps.flags] & VNodeFlags.Deleted ? null : vCurrent;
     if (vCurrent == null) {
       vNewNode = vnode_newVirtual();
       // you may be tempted to add the projection into the current parent, but
@@ -566,8 +568,8 @@ export const vnode_diff = (
       while (vCurrent) {
         const toRemove = vCurrent;
         advanceToNextSibling();
-        cleanup(container, toRemove);
         if (vParent === vnode_getParent(toRemove)) {
+          cleanup(container, toRemove);
           // If we are diffing projection than the parent is not the parent of the node.
           // If that is the case we don't want to remove the node from the parent.
           vnode_remove(journal, vParent as ElementVNode | VirtualVNode, toRemove, true);
@@ -1290,6 +1292,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
   let vCursor: VNode | null = vNode;
   // Depth first traversal
   if (vnode_isTextVNode(vNode)) {
+    markVNodeAsDeleted(vCursor);
     // Text nodes don't have subscriptions or children;
     return;
   }
@@ -1368,6 +1371,8 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
           return;
         }
       }
+    } else if (type & VNodeFlags.Text) {
+      markVNodeAsDeleted(vCursor);
     }
     // Out of children
     if (vCursor === vNode) {

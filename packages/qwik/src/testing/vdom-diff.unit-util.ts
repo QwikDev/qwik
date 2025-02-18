@@ -1,5 +1,5 @@
 import { Fragment, Slot, isSignal } from '@qwik.dev/core';
-import { _CONST_PROPS, _VAR_PROPS, _isJSXNode, _isStringifiable } from '@qwik.dev/core/internal';
+import { _isJSXNode, _isStringifiable } from '@qwik.dev/core/internal';
 import type { JSXChildren, JSXNode, JSXOutput } from '@qwik.dev/core';
 import type {
   _ContainerElement,
@@ -46,7 +46,7 @@ import {
   ELEMENT_ID,
   ELEMENT_KEY,
   QRenderAttr,
-  QSubscribers,
+  QBackRefs,
   Q_PROPS_SEPARATOR,
 } from '../core/shared/utils/markers';
 
@@ -83,7 +83,7 @@ expect.extend({
   },
 });
 
-const ignoredAttributes = [QSubscribers, ELEMENT_ID, '', Q_PROPS_SEPARATOR];
+const ignoredAttributes = [QBackRefs, ELEMENT_ID, '', Q_PROPS_SEPARATOR];
 
 function getContainerElement(vNode: _VNode) {
   let maybeParent: _VNode | null;

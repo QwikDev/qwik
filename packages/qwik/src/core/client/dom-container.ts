@@ -25,7 +25,7 @@ import {
   QSlotParent,
   QStyle,
   QStyleSelector,
-  QSubscribers,
+  QBackRefs,
   Q_PROPS_SEPARATOR,
   USE_ON_LOCAL_SEQ_IDX,
   getQFuncs,
@@ -56,7 +56,7 @@ import {
   vnode_getDomParent,
   vnode_getParent,
   vnode_getProp,
-  vnode_getPropStartIndex,
+  vnode_getProps,
   vnode_insertBefore,
   vnode_isVirtualVNode,
   vnode_locate,
@@ -275,7 +275,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       case ELEMENT_PROPS:
       case OnRenderProp:
       case QCtxAttr:
-      case QSubscribers:
+      case QBackRefs:
         getObjectById = this.$getObjectById$;
         break;
       case ELEMENT_SEQ_IDX:
@@ -316,12 +316,13 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   ensureProjectionResolved(vNode: VirtualVNode): void {
     if ((vNode[VNodeProps.flags] & VNodeFlags.Resolved) === 0) {
       vNode[VNodeProps.flags] |= VNodeFlags.Resolved;
-      for (let i = vnode_getPropStartIndex(vNode); i < vNode.length; i = i + 2) {
-        const prop = vNode[i] as string;
+      const props = vnode_getProps(vNode);
+      for (let i = 0; i < props.length; i = i + 2) {
+        const prop = props[i] as string;
         if (isSlotProp(prop)) {
-          const value = vNode[i + 1];
+          const value = props[i + 1];
           if (typeof value == 'string') {
-            vNode[i + 1] = this.vNodeLocate(value);
+            props[i + 1] = this.vNodeLocate(value);
           }
         }
       }

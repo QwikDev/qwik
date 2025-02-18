@@ -10,13 +10,14 @@ import { TaskEvent } from '../shared/utils/markers';
 import { isPromise, safeCall } from '../shared/utils/promises';
 import { noSerialize, type NoSerialize } from '../shared/utils/serialize-utils';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
-import { EffectProperty, getSubscriber, isSignal } from '../signal/signal';
-import { Subscriber, clearSubscriberEffectDependencies } from '../signal/signal-subscriber';
+import { EffectProperty, isSignal } from '../signal/signal';
+import { BackRef, clearAllEffects } from '../signal/signal-cleanup';
 import { type Signal } from '../signal/signal.public';
 import { invoke, newInvokeContext } from './use-core';
 import { useLexicalScope } from './use-lexical-scope.public';
 import type { ResourceReturnInternal } from './use-resource';
 import { useSequentialScope } from './use-sequential-scope';
+import { getSubscriber } from '../signal/subscriber';
 
 export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,
@@ -126,7 +127,7 @@ export interface TaskCtx {
 export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 
 /** @public */
-export interface DescriptorBase<T = unknown, B = unknown> extends Subscriber {
+export interface DescriptorBase<T = unknown, B = unknown> extends BackRef {
   $flags$: number;
   $index$: number;
   $el$: HostElement;
@@ -173,9 +174,7 @@ export const runTask = (
   cleanupTask(task);
   const iCtx = newInvokeContext(container.$locale$, host, undefined, TaskEvent);
   iCtx.$container$ = container;
-  const taskFn = task.$qrl$.getFn(iCtx, () =>
-    clearSubscriberEffectDependencies(container, task)
-  ) as TaskFn;
+  const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task)) as TaskFn;
 
   const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
     const ctx = newInvokeContext();
@@ -246,7 +245,7 @@ export const cleanupTask = (task: Task) => {
 };
 
 export class Task<T = unknown, B = T>
-  extends Subscriber
+  extends BackRef
   implements DescriptorBase<unknown, Signal<B> | ResourceReturnInternal<B>>
 {
   constructor(

@@ -70,7 +70,7 @@ describe.each([
       <Component ssr-required>
         <Component ssr-required>
           <span>
-            <WrappedSignal>CONTEXT_VALUE</WrappedSignal>
+            <WrappedSignal ssr-required>CONTEXT_VALUE</WrappedSignal>
           </span>
         </Component>
       </Component>
@@ -352,7 +352,7 @@ describe.each([
                 <Component ssr-required>
                   <div id="issue-5270-div">
                     {'Ctx: '}
-                    <WrappedSignal>{'hello'}</WrappedSignal>
+                    <WrappedSignal ssr-required>{'hello'}</WrappedSignal>
                   </div>
                 </Component>
               </Projection>

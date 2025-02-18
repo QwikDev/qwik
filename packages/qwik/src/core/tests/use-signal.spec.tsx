@@ -7,17 +7,11 @@ import {
   useVisibleTask$,
 } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
-import { trigger } from '../../testing/element-fixture';
-import { domRender, ssrRenderToDom } from '../../testing/rendering.unit-util';
-import '../../testing/vdom-diff.unit-util';
-import { component$ } from '@qwik.dev/core';
-import { Slot } from '../shared/jsx/slot.public';
-import type { Signal as SignalType } from '../signal/signal.public';
-import { untrack } from '../use/use-core';
-import { useSignal } from '../use/use-signal';
-import { vnode_getFirstChild, vnode_getProp, vnode_locate } from '../client/vnode';
-import { QSubscribers } from '../shared/utils/markers';
-import { EffectSubscriptionsProp } from '../signal/signal';
+import { trigger, domRender, ssrRenderToDom } from '@qwik.dev/core/testing';
+import { component$, Slot, type Signal as SignalType, untrack, useSignal } from '@qwik.dev/core';
+import { _EFFECT_BACK_REF } from '@qwik.dev/core/internal';
+import { vnode_getFirstChild, vnode_locate } from '../client/vnode';
+import { EffectSubscriptionProp } from '../signal/signal';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -323,7 +317,7 @@ describe.each([
       const signalVNode = vnode_getFirstChild(
         vnode_locate(container.rootVNode, container.element.querySelector('pre')!)
       )!;
-      const subscribers = vnode_getProp<unknown[]>(signalVNode, QSubscribers, null);
+      const subscribers = (signalVNode as any)[_EFFECT_BACK_REF];
       expect(subscribers).toHaveLength(1);
     });
 
@@ -354,7 +348,7 @@ describe.each([
 
       expect(
         // wrapped signal on the pre element
-        (globalThis as any).signal.$effects$.values().next().value[EffectSubscriptionsProp.EFFECT]
+        (globalThis as any).signal.$effects$.values().next().value[EffectSubscriptionProp.CONSUMER]
           .$effects$
       ).toHaveLength(1);
       expect((globalThis as any).signal.$effects$).toHaveLength(1);
@@ -365,7 +359,7 @@ describe.each([
       await trigger(container.element, 'button', 'click'); // <-- this should not add another subscriber
       expect((globalThis as any).signal.$effects$).toHaveLength(1);
       expect(
-        (globalThis as any).signal.$effects$.values().next().value[EffectSubscriptionsProp.EFFECT]
+        (globalThis as any).signal.$effects$.values().next().value[EffectSubscriptionProp.CONSUMER]
           .$effects$
       ).toHaveLength(1);
 
@@ -375,7 +369,7 @@ describe.each([
       await trigger(container.element, 'button', 'click'); // <-- this should not add another subscriber
       expect((globalThis as any).signal.$effects$).toHaveLength(1);
       expect(
-        (globalThis as any).signal.$effects$.values().next().value[EffectSubscriptionsProp.EFFECT]
+        (globalThis as any).signal.$effects$.values().next().value[EffectSubscriptionProp.CONSUMER]
           .$effects$
       ).toHaveLength(1);
 

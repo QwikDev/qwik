@@ -1,7 +1,7 @@
 import { $, component$ } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { _fnSignal, _wrapProp } from '../internal';
-import { EffectPropData, type Signal } from '../signal/signal';
+import { SubscriptionData, type Signal } from '../signal/signal';
 import { createComputed$, createSignal, isSignal } from '../signal/signal.public';
 import { StoreFlags, createStore } from '../signal/store';
 import { createResourceReturn } from '../use/use-resource';
@@ -56,15 +56,16 @@ describe('shared-serialization', () => {
         5 Constant EMPTY_ARRAY
         6 Constant EMPTY_OBJ
         7 Constant NEEDS_COMPUTATION
-        8 Constant Slot
-        9 Constant Fragment
-        10 Constant NaN
-        11 Constant Infinity
-        12 Constant -Infinity
-        13 Constant MAX_SAFE_INTEGER
-        14 Constant MAX_SAFE_INTEGER-1
-        15 Constant MIN_SAFE_INTEGER
-        (71 chars)"
+        8 Constant STORE_ARRAY_PROP
+        9 Constant Slot
+        10 Constant Fragment
+        11 Constant NaN
+        12 Constant Infinity
+        13 Constant -Infinity
+        14 Constant MAX_SAFE_INTEGER
+        15 Constant MAX_SAFE_INTEGER-1
+        16 Constant MIN_SAFE_INTEGER
+        (76 chars)"
       `);
     });
     it(title(TypeIds.Number), async () => {
@@ -426,7 +427,7 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.JSXNode));
     it.todo(title(TypeIds.PropsProxy));
     it(title(TypeIds.EffectData), async () => {
-      expect(await dump(new EffectPropData({ $isConst$: true, $scopedStyleIdPrefix$: null })))
+      expect(await dump(new SubscriptionData({ $isConst$: true, $scopedStyleIdPrefix$: null })))
         .toMatchInlineSnapshot(`
         "
         0 EffectData [
@@ -621,10 +622,10 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.PropsProxy));
     it(title(TypeIds.EffectData), async () => {
       const objs = await serialize(
-        new EffectPropData({ $isConst$: true, $scopedStyleIdPrefix$: null })
+        new SubscriptionData({ $isConst$: true, $scopedStyleIdPrefix$: null })
       );
-      const effect = deserialize(objs)[0] as EffectPropData;
-      expect(effect).toBeInstanceOf(EffectPropData);
+      const effect = deserialize(objs)[0] as SubscriptionData;
+      expect(effect).toBeInstanceOf(SubscriptionData);
       expect(effect.data).toEqual({ $isConst$: true, $scopedStyleIdPrefix$: null });
     });
   });

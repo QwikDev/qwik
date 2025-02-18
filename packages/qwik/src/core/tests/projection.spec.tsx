@@ -1127,6 +1127,68 @@ describe.each([
     );
   });
 
+  it('should cleanup removed projection and remove it from parent component', async () => {
+    const SomeCmp = component$((props: { toggle: boolean }) => {
+      return <>{props.toggle && <Slot />}</>;
+    });
+
+    const Cmp = component$(() => {
+      const toggle = useSignal(true);
+
+      return (
+        <>
+          <button onClick$={() => (toggle.value = !toggle.value)}></button>
+          <SomeCmp toggle={toggle.value}>
+            {toggle.value && <h1>Title 1</h1>}
+            {!toggle.value && <h1>Title 2</h1>}
+          </SomeCmp>
+        </>
+      );
+    });
+
+    const { document, vNode } = await render(<Cmp />, { debug: DEBUG });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <Projection ssr-required>
+                <h1>Title 1</h1>
+              </Projection>
+            </Fragment>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <Fragment ssr-required></Fragment>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <Projection ssr-required>
+                <h1>Title 1</h1>
+              </Projection>
+            </Fragment>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+  });
+
   describe('ensureProjectionResolved', () => {
     (globalThis as any).log = [] as string[];
     beforeEach(() => {

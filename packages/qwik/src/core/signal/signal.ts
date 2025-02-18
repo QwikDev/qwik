@@ -16,24 +16,24 @@ import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
 import { type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { trackSignal, tryGetInvokeContext } from '../use/use-core';
-import { Task, TaskFlags, isTask } from '../use/use-task';
-import { ELEMENT_PROPS, OnRenderProp, QSubscribers } from '../shared/utils/markers';
+import { isTask, Task, TaskFlags } from '../use/use-task';
+import { ELEMENT_PROPS, OnRenderProp } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
 import { qDev } from '../shared/utils/qdev';
 import type { VNode } from '../client/types';
-import { vnode_getProp, vnode_isTextVNode, vnode_isVNode, vnode_setProp } from '../client/vnode';
 import { type NodePropData, type NodePropPayload } from '../shared/scheduler';
 import { ChoreType } from '../shared/util-chore-type';
 import type { Container, HostElement } from '../shared/types';
 import type { ISsrNode, SSRContainer } from '../ssr/ssr-types';
-import type { Signal as ISignal, ReadonlySignal } from './signal.public';
+import type { ReadonlySignal, Signal as ISignal } from './signal.public';
 import type { TargetType } from './store';
-import { isSubscriber, Subscriber } from './signal-subscriber';
 import type { Props } from '../shared/jsx/jsx-runtime';
 import type { OnRenderFn } from '../shared/component.public';
-import { NEEDS_COMPUTATION } from './flags';
+import { _EFFECT_BACK_REF, NEEDS_COMPUTATION } from './flags';
 import { QError, qError } from '../shared/error/error';
 import { isDomContainer } from '../client/dom-container';
+import type { BackRef } from './signal-cleanup';
+import { getSubscriber } from './subscriber';
 
 const DEBUG = false;
 
@@ -75,10 +75,10 @@ export const isSignal = (value: any): value is ISignal<unknown> => {
  * - `VNode` and `ISsrNode`: Either a component or `<Signal>`
  * - `Signal2`: A derived signal which contains a computation function.
  */
-export type Effect = Task | VNode | ISsrNode | Signal;
+export type Consumer = Task | VNode | ISsrNode | Signal;
 
 /** @internal */
-export class EffectPropData {
+export class SubscriptionData {
   data: NodePropData;
 
   constructor(data: NodePropData) {
@@ -87,7 +87,7 @@ export class EffectPropData {
 }
 
 /**
- * An effect plus a list of subscriptions effect depends on.
+ * An effect consumer plus type of effect, back references to producers and additional data
  *
  * An effect can be trigger by one or more of signal inputs. The first step of re-running an effect
  * is to clear its subscriptions so that the effect can re add new set of subscriptions. In order to
@@ -104,10 +104,10 @@ export class EffectPropData {
  * In the above case the `signalB` needs to be unsubscribed when `signalA` is falsy. We do this by
  * always clearing all of the subscriptions
  *
- * The `EffectSubscriptions` stores
+ * The `EffectSubscription` stores
  *
  * ```
- * subscription1 = [effect1, signalA, signalB];
+ * subscription1 = [effectConsumer1, EffectProperty.COMPONENT, Set[(signalA, signalB)]];
  * ```
  *
  * The `signal1` and `signal2` back references are needed to "clear" existing subscriptions.
@@ -116,50 +116,26 @@ export class EffectPropData {
  * effect can be scheduled if either `signalA` or `signalB` triggers. The `subscription1` is shared
  * between the signals.
  *
- * The second position `string|boolean` store the property name of the effect.
+ * The second position `EffectProperty|string` store the property name of the effect.
  *
  * - Property name of the VNode
  * - `EffectProperty.COMPONENT` if component
  * - `EffectProperty.VNODE` if VNode
  */
-export type EffectSubscriptions = [
-  ...[
-    Effect, // EffectSubscriptionsProp.EFFECT
-    string, // EffectSubscriptionsProp.PROPERTY
-  ],
-  // List of signals to release
-  ...(
-    | EffectPropData // Metadata for the effect
-    | string // List of properties (Only used with Store (not with Signal))
-    | Signal
-    | TargetType
-  )[],
+export type EffectSubscription = [
+  Consumer, // EffectSubscriptionProp.CONSUMER
+  EffectProperty | string, // EffectSubscriptionProp.PROPERTY or string for attributes
+  Set<Signal | TargetType> | null, // EffectSubscriptionProp.BACK_REF
+  SubscriptionData | null, // EffectSubscriptionProp.DATA
 ];
 
-/** Global map of all effect subscriptions */
-const effectMapMap = new WeakMap<Effect, Map<EffectProperty | string, EffectSubscriptions>>();
-export function getSubscriber(effect: Effect, prop: EffectProperty | string, data?: unknown) {
-  let subMap = effectMapMap.get(effect);
-  if (!subMap) {
-    subMap = new Map();
-    effectMapMap.set(effect, subMap);
-  }
-  let sub = subMap.get(prop);
-  if (!sub) {
-    sub = [effect, prop];
-    subMap.set(prop, sub);
-  }
-  if (data) {
-    sub[EffectSubscriptionsProp.FIRST_BACK_REF_OR_DATA] = data;
-  }
-  return sub;
+export const enum EffectSubscriptionProp {
+  CONSUMER = 0,
+  PROPERTY = 1,
+  BACK_REF = 2,
+  DATA = 3,
 }
 
-export const enum EffectSubscriptionsProp {
-  EFFECT = 0,
-  PROPERTY = 1,
-  FIRST_BACK_REF_OR_DATA = 2,
-}
 export const enum EffectProperty {
   COMPONENT = ':',
   VNODE = '.',
@@ -169,7 +145,7 @@ export class Signal<T = any> implements ISignal<T> {
   $untrackedValue$: T;
 
   /** Store a list of effects which are dependent on this signal. */
-  $effects$: null | Set<EffectSubscriptions> = null;
+  $effects$: null | Set<EffectSubscription> = null;
 
   $container$: Container | null = null;
 
@@ -209,20 +185,12 @@ export class Signal<T = any> implements ISignal<T> {
         // Let's make sure that we have a reference to this effect.
         // Adding reference is essentially adding a subscription, so if the signal
         // changes we know who to notify.
-        ensureContainsEffect(effects, effectSubscriber);
+        ensureContainsSubscription(effects, effectSubscriber);
         // But when effect is scheduled in needs to be able to know which signals
         // to unsubscribe from. So we need to store the reference from the effect back
         // to this signal.
-        const isMissing = ensureContains(effectSubscriber, this);
-        addQrlToSerializationCtx(effectSubscriber, isMissing, this.$container$);
-        if (isSubscriber(this)) {
-          // We need to add the subscriber to the effect so that we can clean it up later
-          ensureEffectContainsSubscriber(
-            effectSubscriber[EffectSubscriptionsProp.EFFECT],
-            this,
-            this.$container$
-          );
-        }
+        ensureContainsBackRef(effectSubscriber, this);
+        addQrlToSerializationCtx(effectSubscriber, this.$container$);
         DEBUG && log('read->sub', pad('\n' + this.toString(), '  '));
       }
     }
@@ -258,73 +226,26 @@ export class Signal<T = any> implements ISignal<T> {
   }
 }
 
-/** Ensure the item is in array (do nothing if already there) */
-export const ensureContains = (array: any[], value: any): boolean => {
-  const isMissing = array.indexOf(value) === -1;
-  if (isMissing) {
-    array.push(value);
-  }
-  return isMissing;
-};
-
-export const ensureContainsEffect = (
-  array: Set<EffectSubscriptions>,
-  effectSubscriptions: EffectSubscriptions
+export const ensureContainsSubscription = (
+  array: Set<EffectSubscription>,
+  effectSubscription: EffectSubscription
 ) => {
-  array.add(effectSubscriptions);
+  array.add(effectSubscription);
 };
 
-export const ensureEffectContainsSubscriber = (
-  effect: Effect,
-  subscriber: Subscriber | TargetType,
-  container: Container | null
-) => {
-  if (isSubscriber(effect)) {
-    effect.$effectDependencies$ ||= new Set();
-    if (effect.$effectDependencies$.has(subscriber)) {
-      return;
-    }
-
-    effect.$effectDependencies$.add(subscriber);
-  } else if (vnode_isVNode(effect) && !vnode_isTextVNode(effect)) {
-    let subscribers = vnode_getProp<Set<Subscriber | TargetType>>(
-      effect,
-      QSubscribers,
-      container ? container.$getObjectById$ : null
-    );
-    subscribers ||= new Set();
-
-    if (subscribers.has(subscriber)) {
-      return;
-    }
-
-    subscribers.add(subscriber);
-    vnode_setProp(effect, QSubscribers, subscribers);
-  } else if (isSSRNode(effect)) {
-    let subscribers = effect.getProp(QSubscribers) as Set<Subscriber | TargetType>;
-    subscribers ||= new Set();
-
-    if (subscribers.has(subscriber)) {
-      return;
-    }
-
-    subscribers.add(subscriber);
-    effect.setProp(QSubscribers, subscribers);
-  }
-};
-
-const isSSRNode = (effect: Effect): effect is ISsrNode => {
-  return 'setProp' in effect && 'getProp' in effect && 'removeProp' in effect && 'id' in effect;
+/** Ensure the item is in back refs set */
+export const ensureContainsBackRef = (array: EffectSubscription, value: any) => {
+  array[EffectSubscriptionProp.BACK_REF] ||= new Set();
+  array[EffectSubscriptionProp.BACK_REF].add(value);
 };
 
 export const addQrlToSerializationCtx = (
-  effectSubscriber: EffectSubscriptions,
-  isMissing: boolean,
+  effectSubscriber: EffectSubscription,
   container: Container | null
 ) => {
-  if (isMissing && !!container && !isDomContainer(container)) {
-    const effect = effectSubscriber[EffectSubscriptionsProp.EFFECT];
-    const property = effectSubscriber[EffectSubscriptionsProp.PROPERTY];
+  if (!!container && !isDomContainer(container)) {
+    const effect = effectSubscriber[EffectSubscriptionProp.CONSUMER];
+    const property = effectSubscriber[EffectSubscriptionProp.PROPERTY];
     let qrl: QRL | null = null;
     if (isTask(effect)) {
       qrl = effect.$qrl$;
@@ -342,49 +263,48 @@ export const addQrlToSerializationCtx = (
 export const triggerEffects = (
   container: Container | null,
   signal: Signal | TargetType,
-  effects: Set<EffectSubscriptions> | null
+  effects: Set<EffectSubscription> | null
 ) => {
   const isBrowser = isDomContainer(container);
   if (effects) {
-    const scheduleEffect = (effectSubscriptions: EffectSubscriptions) => {
-      const effect = effectSubscriptions[EffectSubscriptionsProp.EFFECT];
-      const property = effectSubscriptions[EffectSubscriptionsProp.PROPERTY];
+    const scheduleEffect = (effectSubscription: EffectSubscription) => {
+      const consumer = effectSubscription[EffectSubscriptionProp.CONSUMER];
+      const property = effectSubscription[EffectSubscriptionProp.PROPERTY];
       assertDefined(container, 'Container must be defined.');
-      if (isTask(effect)) {
-        effect.$flags$ |= TaskFlags.DIRTY;
-        DEBUG && log('schedule.effect.task', pad('\n' + String(effect), '  '));
+      if (isTask(consumer)) {
+        consumer.$flags$ |= TaskFlags.DIRTY;
+        DEBUG && log('schedule.consumer.task', pad('\n' + String(consumer), '  '));
         let choreType = ChoreType.TASK;
-        if (effect.$flags$ & TaskFlags.VISIBLE_TASK) {
+        if (consumer.$flags$ & TaskFlags.VISIBLE_TASK) {
           choreType = ChoreType.VISIBLE;
         }
-        container.$scheduler$(choreType, effect);
-      } else if (effect instanceof Signal) {
+        container.$scheduler$(choreType, consumer);
+      } else if (consumer instanceof Signal) {
         // we don't schedule ComputedSignal/DerivedSignal directly, instead we invalidate it and
         // and schedule the signals effects (recursively)
-        if (effect instanceof ComputedSignal) {
+        if (consumer instanceof ComputedSignal) {
           // Ensure that the computed signal's QRL is resolved.
           // If not resolved schedule it to be resolved.
-          if (!effect.$computeQrl$.resolved) {
-            container.$scheduler$(ChoreType.QRL_RESOLVE, null, effect.$computeQrl$);
+          if (!consumer.$computeQrl$.resolved) {
+            container.$scheduler$(ChoreType.QRL_RESOLVE, null, consumer.$computeQrl$);
           }
         }
 
-        (effect as ComputedSignal<unknown> | WrappedSignal<unknown>).$invalidate$();
+        (consumer as ComputedSignal<unknown> | WrappedSignal<unknown>).$invalidate$();
       } else if (property === EffectProperty.COMPONENT) {
-        const host: HostElement = effect as any;
+        const host: HostElement = consumer as any;
         const qrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(host, OnRenderProp);
         assertDefined(qrl, 'Component must have QRL');
         const props = container.getHostProp<Props>(host, ELEMENT_PROPS);
         container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
       } else if (isBrowser) {
         if (property === EffectProperty.VNODE) {
-          const host: HostElement = effect as any;
-          const target = host;
-          container.$scheduler$(ChoreType.NODE_DIFF, host, target, signal as Signal);
+          const host: HostElement = consumer;
+          container.$scheduler$(ChoreType.NODE_DIFF, host, host, signal as Signal);
         } else {
-          const host: HostElement = effect as any;
-          const effectData = effectSubscriptions[EffectSubscriptionsProp.FIRST_BACK_REF_OR_DATA];
-          if (effectData instanceof EffectPropData) {
+          const host: HostElement = consumer;
+          const effectData = effectSubscription[EffectSubscriptionProp.DATA];
+          if (effectData instanceof SubscriptionData) {
             const data = effectData.data;
             const payload: NodePropPayload = {
               ...data,
@@ -395,7 +315,9 @@ export const triggerEffects = (
         }
       }
     };
-    effects.forEach(scheduleEffect);
+    for (const effect of effects) {
+      scheduleEffect(effect);
+    }
   }
 
   DEBUG && log('done scheduling');
@@ -496,7 +418,7 @@ export class ComputedSignal<T> extends Signal<T> {
   }
 }
 
-export class WrappedSignal<T> extends Signal<T> implements Subscriber {
+export class WrappedSignal<T> extends Signal<T> implements BackRef {
   $args$: any[];
   $func$: (...args: any[]) => T;
   $funcStr$: string | null;
@@ -504,9 +426,9 @@ export class WrappedSignal<T> extends Signal<T> implements Subscriber {
   // We need a separate flag to know when the computation needs running because
   // we need the old value to know if effects need running after computation
   $invalid$: boolean = true;
-  $effectDependencies$: Set<Subscriber> | null = null;
   $hostElement$: HostElement | null = null;
   $forceRunEffects$: boolean = false;
+  [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null = null;
 
   constructor(
     container: Container | null,

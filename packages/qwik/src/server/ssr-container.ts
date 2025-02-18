@@ -47,7 +47,7 @@ import {
   mapArray_set,
   maybeThen,
   serializeAttribute,
-  QSubscribers,
+  QBackRefs,
   QError,
   qError,
   ChoreType,
@@ -751,8 +751,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           case ELEMENT_SEQ_IDX:
             write(VNodeDataChar.SEQ_IDX_CHAR);
             break;
-          case QSubscribers:
-            write(VNodeDataChar.SUBS_CHAR);
+          case QBackRefs:
+            write(VNodeDataChar.BACK_REFS_CHAR);
             break;
           // Skipping `\` character for now because it is used for escaping.
           case QCtxAttr:

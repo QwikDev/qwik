@@ -205,8 +205,8 @@ describe.each([
             <Component ssr-required>
               <svg key="hi" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="15" cy="15" r="50"></circle>
-                <Signal>
-                  <Fragment></Fragment>
+                <Signal ssr-required>
+                  <Fragment ssr-required></Fragment>
                 </Signal>
               </svg>
             </Component>

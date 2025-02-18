@@ -1,3 +1,4 @@
+import { isDev } from '@qwik.dev/core/build';
 import { HTML_NS, MATH_NS, Q_PROPS_SEPARATOR, SVG_NS } from '../shared/utils/markers';
 import { getDomContainerFromQContainerElement } from './dom-container';
 import {
@@ -23,8 +24,9 @@ import {
   type VNodeJournal,
 } from './vnode';
 
-export const isForeignObjectElement = (elementName: string) =>
-  elementName.toLowerCase() === 'foreignobject';
+export const isForeignObjectElement = (elementName: string) => {
+  return isDev ? elementName.toLowerCase() === 'foreignobject' : elementName === 'foreignObject';
+};
 
 export const isSvgElement = (elementName: string) =>
   elementName === 'svg' || isForeignObjectElement(elementName);

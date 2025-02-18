@@ -18,6 +18,7 @@ import { createScheduler } from './scheduler';
 import { ChoreType } from './util-chore-type';
 import type { HostElement } from './types';
 import { QContainerAttr } from './utils/markers';
+import { _EFFECT_BACK_REF } from '../signal/flags';
 
 declare global {
   let testLog: string[];
@@ -118,6 +119,6 @@ function mockTask(host: VNode, opts: { index?: number; qrl?: QRL; visible?: bool
     $qrl$: opts.qrl || ($(() => null) as any),
     $state$: null!,
     $destroy$: null!,
-    $effectDependencies$: null,
+    [_EFFECT_BACK_REF]: null,
   };
 }

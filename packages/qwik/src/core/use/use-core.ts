@@ -20,13 +20,13 @@ import { _getQContainerElement, getDomContainer } from '../client/dom-container'
 import { type ContainerElement } from '../client/types';
 import {
   WrappedSignal,
-  getSubscriber,
-  type EffectPropData,
-  type EffectSubscriptions,
-  type EffectSubscriptionsProp,
+  type SubscriptionData,
+  type EffectSubscription,
+  type EffectSubscriptionProp,
 } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
 import type { ISsrNode } from 'packages/qwik/src/server/qwik-types';
+import { getSubscriber } from '../signal/subscriber';
 
 declare const document: QwikDocument;
 
@@ -81,7 +81,7 @@ export interface InvokeContext {
   $event$: PossibleEvents | undefined;
   /** The QRL function we're currently executing */
   $qrl$: QRL | undefined;
-  $effectSubscriber$: EffectSubscriptions | undefined;
+  $effectSubscriber$: EffectSubscription | undefined;
   $locale$: string | undefined;
   $container$: Container | undefined;
 }
@@ -232,14 +232,15 @@ const trackInvocation = /*#__PURE__*/ newInvokeContext(
  * @param property `true` - subscriber is component `false` - subscriber is VNode `string` -
  *   subscriber is property
  * @param container
+ * @param data - Additional subscription data
  * @returns
  */
 export const trackSignal = <T>(
   fn: () => T,
-  subscriber: EffectSubscriptions[EffectSubscriptionsProp.EFFECT],
-  property: EffectSubscriptions[EffectSubscriptionsProp.PROPERTY],
+  subscriber: EffectSubscription[EffectSubscriptionProp.CONSUMER],
+  property: EffectSubscription[EffectSubscriptionProp.PROPERTY],
   container: Container,
-  data?: EffectPropData
+  data?: SubscriptionData
 ): T => {
   const previousSubscriber = trackInvocation.$effectSubscriber$;
   const previousContainer = trackInvocation.$container$;
@@ -256,9 +257,9 @@ export const trackSignal = <T>(
 export const trackSignalAndAssignHost = (
   value: Signal,
   host: HostElement,
-  property: EffectSubscriptions[EffectSubscriptionsProp.PROPERTY],
+  property: EffectSubscription[EffectSubscriptionProp.PROPERTY],
   container: Container,
-  data?: EffectPropData
+  data?: SubscriptionData
 ) => {
   if (value instanceof WrappedSignal && value.$hostElement$ !== host && host) {
     value.$hostElement$ = host;

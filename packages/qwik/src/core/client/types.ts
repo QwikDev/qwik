@@ -132,7 +132,7 @@ export type ElementVNode = [
   Element, //////////////////// 6 - Element
   string | undefined, ///////// 7 - tag
   /// Props
-  ...(string | null)[], /////// 8 - attrs
+  (string | null)[], /////// 8 - attrs
 ] & { __brand__: 'ElementVNode' };
 
 export const enum TextVNodeProps {
@@ -169,7 +169,7 @@ export type VirtualVNode = [
   VNode | null, /////////////// 4 - First child
   VNode | null, /////////////// 5 - Last child
   /// Props
-  ...(string | null | boolean)[], /////// 6 - attrs
+  (string | null | boolean)[], /////// 6 - attrs
 ] & { __brand__: 'FragmentNode' & 'HostElement' };
 
 /** @internal */

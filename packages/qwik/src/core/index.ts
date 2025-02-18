@@ -134,7 +134,7 @@ export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './shared/error/error-handling';
 export { type ReadonlySignal, type Signal, type ComputedSignal } from './signal/signal.public';
 export { isSignal, createSignal, createComputedQrl, createComputed$ } from './signal/signal.public';
-export { EffectPropData as _EffectData } from './signal/signal';
+export { SubscriptionData as _EffectData } from './signal/signal';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

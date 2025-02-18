@@ -7,35 +7,36 @@ import type { VNodeData } from '../../server/vnode-data';
 import { type DomContainer } from '../client/dom-container';
 import type { VNode } from '../client/types';
 import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
-import { NEEDS_COMPUTATION } from '../signal/flags';
+import { _EFFECT_BACK_REF, NEEDS_COMPUTATION } from '../signal/flags';
 import {
   ComputedSignal,
-  EffectPropData,
+  type EffectProperty,
+  type EffectSubscription,
+  EffectSubscriptionProp,
   Signal,
+  SubscriptionData,
   WrappedSignal,
-  type EffectSubscriptions,
 } from '../signal/signal';
-import type { Subscriber } from '../signal/signal-subscriber';
 import {
-  STORE_ARRAY_PROP,
   getOrCreateStore,
   getStoreHandler,
   getStoreTarget,
   isStore,
+  STORE_ARRAY_PROP,
 } from '../signal/store';
-import type { SsrAttrs, ISsrNode, SymbolToChunkResolver } from '../ssr/ssr-types';
+import type { ISsrNode, SsrAttrs, SymbolToChunkResolver } from '../ssr/ssr-types';
 import { untrack } from '../use/use-core';
 import { createResourceReturn, type ResourceReturnInternal } from '../use/use-resource';
-import { Task, isTask } from '../use/use-task';
-import { SERIALIZABLE_STATE, componentQrl, isQwikComponent } from './component.public';
+import { isTask, Task } from '../use/use-task';
+import { componentQrl, isQwikComponent, SERIALIZABLE_STATE } from './component.public';
 import { assertDefined, assertTrue } from './error/assert';
 import { QError, qError } from './error/error';
 import {
-  Fragment,
-  JSXNodeImpl,
   createPropsProxy,
+  Fragment,
   isJSXNode,
   isPropsProxy,
+  JSXNodeImpl,
 } from './jsx/jsx-runtime';
 import { Slot } from './jsx/slot.public';
 import { getPlatform } from './platform/platform';
@@ -48,7 +49,7 @@ import type { DeserializeContainer, HostElement, ObjToProxyMap } from './types';
 import { _CONST_PROPS, _VAR_PROPS } from './utils/constants';
 import { isElement, isNode } from './utils/element';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
-import { ELEMENT_ID, ELEMENT_KEY } from './utils/markers';
+import { ELEMENT_ID } from './utils/markers';
 import { isPromise } from './utils/promises';
 import { fastSkipSerialize } from './utils/serialize-utils';
 import { type ValueOrPromise } from './utils/types';
@@ -56,14 +57,6 @@ import { type ValueOrPromise } from './utils/types';
 const deserializedProxyMap = new WeakMap<object, unknown[]>();
 
 type DeserializerProxy<T extends object = object> = T & { [SERIALIZER_PROXY_UNWRAP]: object };
-
-export const unwrapDeserializerProxy = (value: unknown) => {
-  const unwrapped =
-    typeof value === 'object' &&
-    value !== null &&
-    (value as DeserializerProxy)[SERIALIZER_PROXY_UNWRAP];
-  return unwrapped ? unwrapped : value;
-};
 
 export const isDeserializerProxy = (value: unknown): value is DeserializerProxy => {
   return typeof value === 'object' && value !== null && SERIALIZER_PROXY_UNWRAP in value;
@@ -110,8 +103,7 @@ class DeserializationHandler implements ProxyHandler<object> {
           ? parseInt(property as string, 10)
           : NaN;
     if (Number.isNaN(i) || i < 0 || i >= this.$length$) {
-      const out = Reflect.get(target, property, receiver);
-      return out;
+      return Reflect.get(target, property, receiver);
     }
     // The serialized data is an array with 2 values for each item
     const idx = i * 2;
@@ -235,7 +227,7 @@ const inflate = (
       task.$flags$ = v[1];
       task.$index$ = v[2];
       task.$el$ = v[3] as HostElement;
-      task.$effectDependencies$ = v[4] as Set<Subscriber> | null;
+      task[_EFFECT_BACK_REF] = v[4] as Map<EffectProperty | string, EffectSubscription> | null;
       task.$state$ = v[5];
       break;
     case TypeIds.Resource:
@@ -257,12 +249,9 @@ const inflate = (
       break;
     case TypeIds.Store:
     case TypeIds.StoreArray: {
-      const [value, flags, effects, storeEffect] = data as unknown[];
+      const [value, flags, effects] = data as unknown[];
       const store = getOrCreateStore(value as object, flags as number, container as DomContainer);
       const storeHandler = getStoreHandler(store)!;
-      if (storeEffect) {
-        (effects as any)[STORE_ARRAY_PROP] = storeEffect;
-      }
       storeHandler.$effects$ = effects as any;
       target = store;
 
@@ -270,9 +259,9 @@ const inflate = (
     }
     case TypeIds.Signal: {
       const signal = target as Signal<unknown>;
-      const d = data as [unknown, ...EffectSubscriptions[]];
+      const d = data as [unknown, ...EffectSubscription[]];
       signal.$untrackedValue$ = d[0];
-      signal.$effects$ = new Set(d.slice(1) as EffectSubscriptions[]);
+      signal.$effects$ = new Set(d.slice(1) as EffectSubscription[]);
       break;
     }
     case TypeIds.WrappedSignal: {
@@ -280,17 +269,17 @@ const inflate = (
       const d = data as [
         number,
         unknown[],
-        Set<Subscriber>,
+        Map<EffectProperty | string, EffectSubscription> | null,
         unknown,
         HostElement,
-        ...EffectSubscriptions[],
+        ...EffectSubscription[],
       ];
       signal.$func$ = container.getSyncFn(d[0]);
       signal.$args$ = d[1];
-      signal.$effectDependencies$ = d[2];
+      signal[_EFFECT_BACK_REF] = d[2];
       signal.$untrackedValue$ = d[3];
       signal.$hostElement$ = d[4];
-      signal.$effects$ = new Set(d.slice(5) as EffectSubscriptions[]);
+      signal.$effects$ = new Set(d.slice(5) as EffectSubscription[]);
       break;
     }
     case TypeIds.ComputedSignal: {
@@ -392,7 +381,7 @@ const inflate = (
       propsProxy[_CONST_PROPS] = (data as any)[1];
       break;
     case TypeIds.EffectData: {
-      const effectData = target as EffectPropData;
+      const effectData = target as SubscriptionData;
       effectData.data.$scopedStyleIdPrefix$ = (data as any[])[0];
       effectData.data.$isConst$ = (data as any[])[1];
       break;
@@ -412,6 +401,7 @@ export const _constants = [
   EMPTY_ARRAY,
   EMPTY_OBJ,
   NEEDS_COMPUTATION,
+  STORE_ARRAY_PROP,
   Slot,
   Fragment,
   NaN,
@@ -430,6 +420,7 @@ const _constantNames = [
   'EMPTY_ARRAY',
   'EMPTY_OBJ',
   'NEEDS_COMPUTATION',
+  'STORE_ARRAY_PROP',
   'Slot',
   'Fragment',
   'NaN',
@@ -525,12 +516,9 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
       return new Uint8Array(decodedLength);
     case TypeIds.PropsProxy:
       return createPropsProxy(null!, null);
-    case TypeIds.RefVNode:
     case TypeIds.VNode:
-      const vnodeOrDocument = retrieveVNodeOrDocument(container, value);
-      if (typeId === TypeIds.VNode) {
-        return vnodeOrDocument;
-      }
+      return retrieveVNodeOrDocument(container, value);
+    case TypeIds.RefVNode:
       const vNode = retrieveVNodeOrDocument(container, value);
       if (vnode_isVNode(vNode)) {
         return vnode_getNode(vNode);
@@ -538,7 +526,7 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
         throw qError(QError.serializeErrorExpectedVNode, [typeof vNode]);
       }
     case TypeIds.EffectData:
-      return new EffectPropData({} as NodePropData);
+      return new SubscriptionData({} as NodePropData);
 
     default:
       throw qError(QError.serializeErrorCannotAllocate, [typeId]);
@@ -596,6 +584,7 @@ type SsrNode = {
   id: string;
   childrenVNodeData: VNodeData[] | null;
   vnodeData: VNodeData;
+  [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null;
 };
 
 type DomRef = {
@@ -817,8 +806,7 @@ export const createSerializationContext = (
       } else if (isStore(obj)) {
         const target = getStoreTarget(obj)!;
         const effects = getStoreHandler(obj)!.$effects$;
-        const storeEffect = effects?.[STORE_ARRAY_PROP] ?? null;
-        discoveredValues.push(target, effects, storeEffect);
+        discoveredValues.push(target, effects);
 
         for (const prop in target) {
           const propValue = (target as any)[prop];
@@ -851,9 +839,7 @@ export const createSerializationContext = (
         }
         // WrappedSignal uses syncQrl which has no captured refs
         if (obj instanceof WrappedSignal) {
-          if (obj.$effectDependencies$) {
-            discoveredValues.push(obj.$effectDependencies$);
-          }
+          discoverEffectBackRefs(obj[_EFFECT_BACK_REF], discoveredValues);
           if (obj.$args$) {
             discoveredValues.push(...obj.$args$);
           }
@@ -864,7 +850,8 @@ export const createSerializationContext = (
           discoveredValues.push(obj.$computeQrl$);
         }
       } else if (obj instanceof Task) {
-        discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$, obj.$effectDependencies$);
+        discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$);
+        discoverEffectBackRefs(obj[_EFFECT_BACK_REF], discoveredValues);
       } else if (isSsrNode(obj)) {
         discoverValuesForVNodeData(obj.vnodeData, discoveredValues);
 
@@ -895,7 +882,7 @@ export const createSerializationContext = (
           }
         );
         promises.push(obj);
-      } else if (obj instanceof EffectPropData) {
+      } else if (obj instanceof SubscriptionData) {
         discoveredValues.push(obj.data);
       } else if (isObjectLiteral(obj)) {
         Object.entries(obj).forEach(([key, value]) => {
@@ -942,12 +929,32 @@ const discoverValuesForVNodeData = (vnodeData: VNodeData, discoveredValues: unkn
   for (const value of vnodeData) {
     if (isSsrAttrs(value)) {
       for (let i = 1; i < value.length; i += 2) {
-        if (value[i - 1] === ELEMENT_KEY) {
+        const attrValue = value[i];
+        if (typeof attrValue === 'string') {
           continue;
         }
-        const attrValue = value[i];
         discoveredValues.push(attrValue);
       }
+    }
+  }
+};
+
+const discoverEffectBackRefs = (
+  effectsBackRefs: Map<string, EffectSubscription> | null,
+  discoveredValues: unknown[]
+) => {
+  if (effectsBackRefs) {
+    // We need serialize effect subscriptions with back refs
+    let hasBackRefs = false;
+    for (const [, effect] of effectsBackRefs) {
+      const backRefs = effect[EffectSubscriptionProp.BACK_REF];
+      if (backRefs) {
+        hasBackRefs = true;
+        break;
+      }
+    }
+    if (hasBackRefs) {
+      discoveredValues.push(effectsBackRefs);
     }
   }
 };
@@ -1077,6 +1084,8 @@ function serialize(serializationContext: SerializationContext): void {
       output(TypeIds.Constant, Constants.Undefined);
     } else if (value === NEEDS_COMPUTATION) {
       output(TypeIds.Constant, Constants.NEEDS_COMPUTATION);
+    } else if (value === STORE_ARRAY_PROP) {
+      output(TypeIds.Constant, Constants.STORE_ARRAY_PROP);
     } else {
       throw qError(QError.serializeErrorUnknownType, [typeof value]);
     }
@@ -1113,7 +1122,7 @@ function serialize(serializationContext: SerializationContext): void {
           ? [varProps]
           : 0;
       output(TypeIds.PropsProxy, out);
-    } else if (value instanceof EffectPropData) {
+    } else if (value instanceof SubscriptionData) {
       output(TypeIds.EffectData, [value.data.$scopedStyleIdPrefix$, value.data.$isConst$]);
     } else if (isStore(value)) {
       if (isResource(value)) {
@@ -1130,7 +1139,6 @@ function serialize(serializationContext: SerializationContext): void {
         const storeTarget = getStoreTarget(value);
         const flags = storeHandler.$flags$;
         const effects = storeHandler.$effects$;
-        const storeEffect = effects?.[STORE_ARRAY_PROP] ?? null;
 
         const innerStores = [];
         for (const prop in storeTarget) {
@@ -1142,7 +1150,7 @@ function serialize(serializationContext: SerializationContext): void {
           }
         }
 
-        const out = [storeTarget, flags, effects, storeEffect, ...innerStores];
+        const out = [storeTarget, flags, effects, ...innerStores];
         while (out[out.length - 1] == null) {
           out.pop();
         }
@@ -1181,7 +1189,7 @@ function serialize(serializationContext: SerializationContext): void {
       if (value instanceof WrappedSignal) {
         output(TypeIds.WrappedSignal, [
           ...serializeWrappingFn(serializationContext, value),
-          value.$effectDependencies$,
+          filterEffectBackRefs(value[_EFFECT_BACK_REF]),
           v,
           value.$hostElement$,
           ...(value.$effects$ || []),
@@ -1273,7 +1281,7 @@ function serialize(serializationContext: SerializationContext): void {
         value.$flags$,
         value.$index$,
         value.$el$,
-        value.$effectDependencies$,
+        value[_EFFECT_BACK_REF],
         value.$state$,
       ];
       while (out[out.length - 1] == null) {
@@ -1301,6 +1309,19 @@ function serialize(serializationContext: SerializationContext): void {
   };
 
   writeValue(serializationContext.$roots$, -1);
+}
+
+function filterEffectBackRefs(effectBackRef: Map<string, EffectSubscription> | null) {
+  let effectBackRefToSerialize: Map<string, EffectSubscription> | null = null;
+  if (effectBackRef) {
+    for (const [effectProp, effect] of effectBackRef) {
+      if (effect[EffectSubscriptionProp.BACK_REF]) {
+        effectBackRefToSerialize ||= new Map<string, EffectSubscription>();
+        effectBackRefToSerialize.set(effectProp, effect);
+      }
+    }
+  }
+  return effectBackRefToSerialize;
 }
 
 function serializeWrappingFn(
@@ -1691,6 +1712,7 @@ export const enum Constants {
   EMPTY_ARRAY,
   EMPTY_OBJ,
   NEEDS_COMPUTATION,
+  STORE_ARRAY_PROP,
   Slot,
   Fragment,
   NaN,

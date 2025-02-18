@@ -4,6 +4,7 @@ import { normalizePath } from '../../../testing/util';
 import type { QwikManifest } from '../types';
 import { ExperimentalFeatures, createPlugin } from './plugin';
 import { qwikVite } from './vite';
+import type { ResolvedId } from 'rollup';
 
 const cwd = process.cwd();
 
@@ -238,18 +239,22 @@ describe('resolveId', () => {
     ).toHaveProperty('id', '/root/src/routes/layout.tsx_s_7xk04rim0vu.js');
     expect(await plugin.resolveId(null!, './foo', '/root/src/routes/layout.tsx')).toBeFalsy();
     expect(
-      await plugin.resolveId(
-        ctx,
-        './layout.tsx_layout_component_usetask_1_7xk04rim0vu.js',
-        '/root/src/routes/layout.tsx'
-      )
-    ).toHaveProperty('id', '/root/src/routes/layout.tsx_layout_component_usetask_1_7xk04rim0vu.js');
+      (
+        (await plugin.resolveId(
+          ctx,
+          './layout.tsx_layout_component_usetask_1_7xk04rim0vu.js',
+          '/root/src/routes/layout.tsx'
+        )) as ResolvedId
+      ).id
+    ).toContain('/root/src/routes/layout.tsx_layout_component_usetask_1_7xk04rim0vu.js');
     // this uses the already populated id we created above
     expect(
       await plugin.resolveId(
         {
           resolve: (id: string, importer: string) => {
-            expect(id).toBe('/root/src/routes/foo');
+            expect(id).toContain(
+              process.platform === 'win32' ? '\\root\\src\\routes\\foo' : '/root/src/routes/foo'
+            );
             expect(importer).toBe('Yey');
             return { id: 'hi' };
           },

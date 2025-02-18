@@ -27,7 +27,7 @@ import {
   QSlot,
   QSlotParent,
   QStyle,
-  QSubscribers,
+  QBackRefs,
   QTemplate,
   Q_PREFIX,
   dangerouslySetInnerHTML,
@@ -47,10 +47,8 @@ import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../sh
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import type { DomContainer } from './dom-container';
 import {
-  ElementVNodeProps,
   VNodeFlags,
   VNodeProps,
-  VirtualVNodeProps,
   type ClientAttrKey,
   type ClientAttrs,
   type ClientContainer,
@@ -70,7 +68,7 @@ import {
   vnode_getParent,
   vnode_getProjectionParentComponent,
   vnode_getProp,
-  vnode_getPropStartIndex,
+  vnode_getProps,
   vnode_getText,
   vnode_getType,
   vnode_insertBefore,
@@ -93,15 +91,12 @@ import {
 import { mapApp_findIndx } from './util-mapArray';
 import { mapArray_set } from './util-mapArray';
 import { getNewElementNamespaceData } from './vnode-namespace';
-import { WrappedSignal, EffectProperty, isSignal, EffectPropData } from '../signal/signal';
+import { WrappedSignal, EffectProperty, isSignal, SubscriptionData } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
 import { executeComponent } from '../shared/component-execution';
 import { isParentSlotProp, isSlotProp } from '../shared/utils/prop';
 import { escapeHTML } from '../shared/utils/character-escaping';
-import {
-  clearSubscriberEffectDependencies,
-  clearVNodeEffectDependencies,
-} from '../signal/signal-subscriber';
+import { clearAllEffects } from '../signal/signal-cleanup';
 import { serializeAttribute } from '../shared/utils/styles';
 import { QError, qError } from '../shared/error/error';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
@@ -196,7 +191,7 @@ export const vnode_diff = (
             descend(jsxValue, false);
           } else if (isSignal(jsxValue)) {
             if (vCurrent) {
-              clearVNodeEffectDependencies(container, vCurrent);
+              clearAllEffects(container, vCurrent);
             }
             expectVirtual(VirtualType.WrappedSignal, null);
             descend(
@@ -412,9 +407,10 @@ export const vnode_diff = (
 
     const projections: Array<string | JSXNodeInternal> = [];
     if (host) {
+      const props = vnode_getProps(host);
       // we need to create empty projections for all the slots to remove unused slots content
-      for (let i = vnode_getPropStartIndex(host); i < host.length; i = i + 2) {
-        const prop = host[i] as string;
+      for (let i = 0; i < props.length; i = i + 2) {
+        const prop = props[i] as string;
         if (isSlotProp(prop)) {
           const slotName = prop;
           projections.push(slotName);
@@ -653,7 +649,7 @@ export const vnode_diff = (
         }
 
         if (isSignal(value)) {
-          const signalData = new EffectPropData({
+          const signalData = new SubscriptionData({
             $scopedStyleIdPrefix$: scopedStyleIdPrefix,
             $isConst$: true,
           });
@@ -722,9 +718,7 @@ export const vnode_diff = (
 
   function expectElement(jsx: JSXNodeInternal, elementName: string) {
     const isSameElementName =
-      vCurrent &&
-      vnode_isElementVNode(vCurrent) &&
-      elementName.toLowerCase() === vnode_getElementName(vCurrent);
+      vCurrent && vnode_isElementVNode(vCurrent) && elementName === vnode_getElementName(vCurrent);
     const jsxKey: string | null = jsx.key;
     let needsQDispatchEventPatch = false;
     const currentFile = getFileLocationFromJsx(jsx.dev);
@@ -801,10 +795,10 @@ export const vnode_diff = (
     currentFile?: string | null
   ): boolean {
     vnode_ensureElementInflated(vnode);
-    const dstAttrs = vnode as ClientAttrs;
+    const dstAttrs = vnode_getProps(vnode) as ClientAttrs;
     let srcIdx = 0;
     const srcLength = srcAttrs.length;
-    let dstIdx = ElementVNodeProps.PROPS_OFFSET;
+    let dstIdx = 0;
     let dstLength = dstAttrs.length;
     let srcKey: ClientAttrKey | null = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
     let dstKey: ClientAttrKey | null = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
@@ -832,7 +826,7 @@ export const vnode_diff = (
       }
 
       if (isSignal(value)) {
-        const signalData = new EffectPropData({
+        const signalData = new SubscriptionData({
           $scopedStyleIdPrefix$: scopedStyleIdPrefix,
           $isConst$: false,
         });
@@ -1136,7 +1130,7 @@ export const vnode_diff = (
     jsxProps: Props
   ) {
     if (host) {
-      clearVNodeEffectDependencies(container, host);
+      clearAllEffects(container, host);
     }
     vnode_insertBefore(
       journal,
@@ -1253,8 +1247,8 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
   if (!src || !dst) {
     return true;
   }
-  let srcKeys = removePropsKeys(Object.keys(src), ['children', QSubscribers]);
-  let dstKeys = removePropsKeys(Object.keys(dst), ['children', QSubscribers]);
+  let srcKeys = removePropsKeys(Object.keys(src), ['children', QBackRefs]);
+  let dstKeys = removePropsKeys(Object.keys(dst), ['children', QBackRefs]);
   if (srcKeys.length !== dstKeys.length) {
     return true;
   }
@@ -1303,7 +1297,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
   do {
     const type = vCursor[VNodeProps.flags];
     if (type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) {
-      clearVNodeEffectDependencies(container, vCursor);
+      clearAllEffects(container, vCursor);
       markVNodeAsDeleted(vCursor);
       // Only elements and virtual nodes need to be traversed for children
       if (type & VNodeFlags.Virtual) {
@@ -1313,7 +1307,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
             const obj = seq[i];
             if (isTask(obj)) {
               const task = obj;
-              clearSubscriberEffectDependencies(container, task);
+              clearAllEffects(container, task);
               if (task.$flags$ & TaskFlags.VISIBLE_TASK) {
                 container.$scheduler$(ChoreType.CLEANUP_VISIBLE, task);
               } else {
@@ -1329,8 +1323,8 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
         vnode_getProp(vCursor as VirtualVNode, OnRenderProp, null) !== null;
       if (isComponent) {
         // SPECIAL CASE: If we are a component, we need to descend into the projected content and release the content.
-        const attrs = vCursor;
-        for (let i = VirtualVNodeProps.PROPS_OFFSET; i < attrs.length; i = i + 2) {
+        const attrs = vnode_getProps(vCursor);
+        for (let i = 0; i < attrs.length; i = i + 2) {
           const key = attrs[i] as string;
           if (!isParentSlotProp(key) && isSlotProp(key)) {
             const value = attrs[i + 1];

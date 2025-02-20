@@ -875,8 +875,38 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
   // order by discovery time, so that related segments are more likely to group together
   function manualChunks(id: string, { getModuleInfo }: Rollup.ManualChunkMeta) {
     const module = getModuleInfo(id)!;
-    const segment = module.meta.segment as SegmentAnalysis | undefined;
-    return segment?.entry;
+    const segment = module.meta.segment;
+
+    const optimizer = getOptimizer();
+    const path = optimizer.sys.path;
+    const relativePath = path.relative(optimizer.sys.cwd(), id);
+    const sanitizedPath = relativePath.replace(/^\/+/, '').replace(/\//g, '-');
+
+    if (sanitizedPath.includes('node_modules')) {
+      if (sanitizedPath.includes('core.prod')) {
+        return 'core';
+      }
+      return null;
+    }
+
+    if (sanitizedPath.includes('preload-helper')) {
+      return 'preload-helper';
+    }
+
+    if (
+      segment ||
+      sanitizedPath.endsWith('.qwik.mjs') ||
+      sanitizedPath.endsWith('.qwik.cjs') ||
+      sanitizedPath.endsWith('.tsx') ||
+      sanitizedPath.endsWith('.jsx') ||
+      sanitizedPath.endsWith('.mdx') ||
+      sanitizedPath.endsWith('.ts') ||
+      sanitizedPath.endsWith('.js')
+    ) {
+      return sanitizedPath;
+    }
+
+    return null;
   }
 
   return {

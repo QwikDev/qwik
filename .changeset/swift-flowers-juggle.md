@@ -2,7 +2,9 @@
 '@qwik.dev/core': patch
 ---
 
-# ComponentStylesPrefixContent Update
+feat: updated scoped styles prefix to ⚡️
+
+# Scoped styles prefix update
 
 We've updated the `ComponentStylesPrefixContent` from the star symbol (⭐️) to the lightning bolt symbol (⚡️). This prefix is used internally to generate unique CSS class names for components, helping to prevent style collisions.
 

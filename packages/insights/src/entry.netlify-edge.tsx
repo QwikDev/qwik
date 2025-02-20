@@ -15,4 +15,9 @@ declare global {
   interface QwikRouterPlatform extends PlatformNetlify {}
 }
 
-export default createQwikRouter({ render, qwikRouterConfig });
+export default createQwikRouter({
+  render,
+  qwikRouterConfig,
+  // disable CSRF protection because we get called from everywhere
+  checkOrigin: false,
+});

@@ -33,6 +33,8 @@ const qwikPlugin: FastifyPluginAsync<FastifyQwikOptions> = async (
     decorateReply: false,
   });
 
+  fastify.removeAllContentTypeParsers();
+
   fastify.setNotFoundHandler(async (request, response) => {
     await router(request.raw, response.raw, (err) => fastify.log.error(err));
     await notFound(request.raw, response.raw, (err) => fastify.log.error(err));

@@ -1,5 +1,12 @@
 # @qwik.dev/react
 
+## 2.0.0-alpha.7
+
+### Patch Changes
+
+- Updated dependencies [[`7c241ad`](https://github.com/QwikDev/qwik/commit/7c241adb3e6c089f0dc7700b6580703ba8458d5d), [`3134fad`](https://github.com/QwikDev/qwik/commit/3134fad5d7fbf92831bc87fefdeeba08ec61dd33), [`de11be6`](https://github.com/QwikDev/qwik/commit/de11be617eb564d74b2955ae3f8fffdb0fd9ecec), [`f9fa4e4`](https://github.com/QwikDev/qwik/commit/f9fa4e4401cca5ee5157f3b5f116238668ff7ed7), [`60c8202`](https://github.com/QwikDev/qwik/commit/60c8202512ce3451bd00ed81fd22fada0994167c), [`ef18cce`](https://github.com/QwikDev/qwik/commit/ef18cce957cc8afe1e77606fee8366e5bf002747), [`2739ddc`](https://github.com/QwikDev/qwik/commit/2739ddc14e10943dde80c9a3f5bcc3fdb7a1f73d), [`43846be`](https://github.com/QwikDev/qwik/commit/43846bee8c8dafe9aba09a8a37eaaea3826897bd), [`3571f3b`](https://github.com/QwikDev/qwik/commit/3571f3b8a5989991d892cce49b5a553e81358da8), [`b904b9d`](https://github.com/QwikDev/qwik/commit/b904b9d52ae6caad0fa1ae1baa8bc7b8f263d268), [`021ecdd`](https://github.com/QwikDev/qwik/commit/021ecdd050d286855b03af42e45d55a68d4cf7cc), [`ff9e6a1`](https://github.com/QwikDev/qwik/commit/ff9e6a10a8da582ac837fcfddeb8db1f260e4ec1), [`cb8013c`](https://github.com/QwikDev/qwik/commit/cb8013c7f756e258ade2f1a0afae391f085609a6), [`f5326c3`](https://github.com/QwikDev/qwik/commit/f5326c3ff47b97bc30e9c01f6e85b8f74d038787)]:
+  - @qwik.dev/core@2.0.0-alpha.7
+
 ## 2.0.0-alpha.6
 
 ### Patch Changes

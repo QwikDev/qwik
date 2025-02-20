@@ -61,7 +61,9 @@ pub fn convert_inlined_fn(
 
 	let rendered_expr = render_expr(&expr);
 	if rendered_expr.len() > 150 {
-		return (None, is_const);
+		// It isn't guaranteed const if we don't wrap it
+		// TODO make this be a wrapped computedsignal?
+		return (None, false);
 	}
 
 	if scoped_idents.is_empty() {

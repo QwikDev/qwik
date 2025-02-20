@@ -4293,6 +4293,40 @@ export default component$((props) => {
 		..TestInput::default()
 	});
 }
+
+#[test]
+fn should_wrap_store_expression() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useStore } from '@qwik.dev/core';
+
+		export default component$(() => {
+			const panelStore = useStore(() => ({
+				active: 'Input',
+				list: PANELS,
+			}));
+
+			return (
+				<div
+					stuff={panelStore.active ? 'yes' : 'no'}
+					class={{
+						'too-long-to-wrap': true,
+						'examples-panel-input': panelStore.active === 'Input',
+						'examples-panel-output': panelStore.active === 'Output',
+						'examples-panel-console': panelStore.active === 'Console',
+					}}
+				/>
+			);
+		});
+		export const PANELS: ActivePanel[] = ['Examples', 'Input', 'Output', 'Console'];
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 // TODO(misko): Make this test work by implementing strict serialization.
 // #[test]
 // fn example_of_synchronous_qrl_that_cant_be_serialized() {

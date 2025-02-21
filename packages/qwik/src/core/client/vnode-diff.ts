@@ -73,6 +73,7 @@ import {
   vnode_getType,
   vnode_insertBefore,
   vnode_isElementVNode,
+  vnode_isProjection,
   vnode_isTextVNode,
   vnode_isVNode,
   vnode_isVirtualVNode,
@@ -94,7 +95,7 @@ import { getNewElementNamespaceData } from './vnode-namespace';
 import { WrappedSignal, EffectProperty, isSignal, SubscriptionData } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
 import { executeComponent } from '../shared/component-execution';
-import { isParentSlotProp, isSlotProp } from '../shared/utils/prop';
+import { isSlotProp } from '../shared/utils/prop';
 import { escapeHTML } from '../shared/utils/character-escaping';
 import { clearAllEffects } from '../signal/signal-cleanup';
 import { serializeAttribute } from '../shared/utils/styles';
@@ -507,6 +508,21 @@ export const vnode_diff = (
       // All is good.
       // console.log('  NOOP', String(vCurrent));
     } else {
+      const parent = vnode_getParent(vProjectedNode);
+      const isAlreadyProjected =
+        !!parent && !(vnode_isElementVNode(parent) && vnode_getElementName(parent) === QTemplate);
+      if (isAlreadyProjected && vParent !== parent) {
+        /**
+         * The node is already projected, but structure has been changed. In next steps we will
+         * insert the vProjectedNode at the end. However we will find existing projection elements
+         * (from already projected THE SAME projection as vProjectedNode!) during
+         * vnode_insertBefore. We need to remove vnode from the vnode tree to avoid referencing it
+         * to self and cause infinite loop. Don't remove it from DOM to avoid additional operations
+         * and flickering.
+         */
+        vnode_remove(journal, parent, vProjectedNode, false);
+      }
+
       // move from q:template to the target node
       vnode_insertBefore(
         journal,
@@ -1329,7 +1345,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
         const attrs = vnode_getProps(vCursor);
         for (let i = 0; i < attrs.length; i = i + 2) {
           const key = attrs[i] as string;
-          if (!isParentSlotProp(key) && isSlotProp(key)) {
+          if (isSlotProp(key)) {
             const value = attrs[i + 1];
             if (value) {
               attrs[i + 1] = null; // prevent infinite loop
@@ -1349,8 +1365,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
         }
       }
 
-      const isProjection =
-        type & VNodeFlags.Virtual && vnode_getProp(vCursor as VirtualVNode, QSlot, null) !== null;
+      const isProjection = vnode_isProjection(vCursor);
       // Descend into children
       if (!isProjection) {
         // Only if it is not a projection

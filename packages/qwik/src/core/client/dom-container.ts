@@ -29,6 +29,7 @@ import {
   Q_PROPS_SEPARATOR,
   USE_ON_LOCAL_SEQ_IDX,
   getQFuncs,
+  QLocaleAttr,
 } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
 import { isSlotProp } from '../shared/utils/prop';
@@ -141,7 +142,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       () => this.scheduleRender(),
       () => vnode_applyJournal(this.$journal$),
       {},
-      element.getAttribute('q:locale')!
+      element.getAttribute(QLocaleAttr)!
     );
     this.qContainer = element.getAttribute(QContainerAttr)!;
     if (!this.qContainer) {

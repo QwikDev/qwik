@@ -141,7 +141,6 @@ import {
   QScopedStyle,
   QSlot,
   QSlotParent,
-  QSlotRef,
   QStyle,
   QStylesAllSelector,
   Q_PROPS_SEPARATOR,
@@ -333,6 +332,15 @@ export const vnode_isVirtualVNode = (vNode: VNode): vNode is VirtualVNode => {
   return (flag & VNodeFlags.Virtual) === VNodeFlags.Virtual;
 };
 
+export const vnode_isProjection = (vNode: VNode): vNode is VirtualVNode => {
+  assertDefined(vNode, 'Missing vNode');
+  const flag = (vNode as VNode)[VNodeProps.flags];
+  return (
+    (flag & VNodeFlags.Virtual) === VNodeFlags.Virtual &&
+    vnode_getProp(vNode as VirtualVNode, QSlot, null) !== null
+  );
+};
+
 const ensureTextVNode = (vNode: VNode): TextVNode => {
   assertTrue(vnode_isTextVNode(vNode), 'Expecting TextVNode was: ' + vnode_getNodeTypeName(vNode));
   return vNode as TextVNode;
@@ -401,7 +409,7 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
 /** Walks the VNode tree and materialize it using `vnode_getFirstChild`. */
 export function vnode_walkVNode(
   vNode: VNode,
-  callback?: (vNode: VNode, vParent: VNode | null) => void
+  callback?: (vNode: VNode, vParent: VNode | null) => boolean | void
 ): void {
   let vCursor: VNode | null = vNode;
   // Depth first traversal
@@ -411,7 +419,9 @@ export function vnode_walkVNode(
   }
   let vParent: VNode | null = null;
   do {
-    callback?.(vCursor, vParent);
+    if (callback?.(vCursor, vParent)) {
+      return;
+    }
     const vFirstChild = vnode_getFirstChild(vCursor);
     if (vFirstChild) {
       vCursor = vFirstChild;
@@ -1794,8 +1804,6 @@ function materializeFromVNodeData(
       isDev && vnode_setAttr(null, vParent, ELEMENT_ID, id);
     } else if (peek() === VNodeDataChar.PROPS) {
       vnode_setAttr(null, vParent, ELEMENT_PROPS, consumeValue());
-    } else if (peek() === VNodeDataChar.SLOT_REF) {
-      vnode_setAttr(null, vParent, QSlotRef, consumeValue());
     } else if (peek() === VNodeDataChar.KEY) {
       vnode_setAttr(null, vParent, ELEMENT_KEY, consumeValue());
     } else if (peek() === VNodeDataChar.SEQ) {
@@ -1807,6 +1815,8 @@ function materializeFromVNodeData(
         container = getDomContainer(element);
       }
       setEffectBackRefFromVNodeData(vParent, consumeValue(), container);
+    } else if (peek() === VNodeDataChar.SLOT_PARENT) {
+      vnode_setProp(vParent, QSlotParent, consumeValue());
     } else if (peek() === VNodeDataChar.CONTEXT) {
       vnode_setAttr(null, vParent, QCtxAttr, consumeValue());
     } else if (peek() === VNodeDataChar.OPEN) {

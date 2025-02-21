@@ -885,13 +885,10 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     // To prevent over-prefetching, we need to clearly seperate those chunks,
     // otherwise rollup can bundle them together with the first component chunk it finds.
     // For example, the core code could go into an Accordion.tsx chunk, which would make the whole app import accordion related chunks everywhere.
-    if (id.endsWith('qwik/dist/core.prod.mjs') || id.endsWith('qwik/dist/core.prod.cjs')) {
+    if (/\/(qwik|core)\/dist\/core.*js$/.test(id)) {
       return 'core';
     }
-    if (
-      id.endsWith('qwik-city/lib/index.qwik.mjs') ||
-      id.endsWith('qwik-city/lib/index.qwik.cjs')
-    ) {
+    if (/\/(qwik-city|router)\/lib\/index.qwik.*js$/.test(id)) {
       return 'qwik-city';
     }
     if (id.endsWith('vite/preload-helper.js')) {

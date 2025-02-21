@@ -1189,6 +1189,115 @@ describe.each([
     );
   });
 
+  it('should render the same content projection with different structure', async () => {
+    const Cmp1 = component$(() => {
+      return (
+        <>
+          <h1>Test</h1>
+          <p>Test content</p>
+        </>
+      );
+    });
+
+    const Cmp2 = component$((props: { toggle: boolean }) => {
+      return (
+        <>
+          {props.toggle && <Slot />}
+          {!props.toggle && (
+            <>
+              <Slot />
+            </>
+          )}
+        </>
+      );
+    });
+
+    const Parent = component$(() => {
+      const toggle = useSignal(true);
+      return (
+        <div>
+          <button onClick$={() => (toggle.value = !toggle.value)}>toggle</button>
+          <Cmp2 toggle={toggle.value}>
+            <Cmp1 />
+          </Cmp2>
+        </div>
+      );
+    });
+    const { vNode, document } = await render(<Parent />, { debug: DEBUG });
+    expect(cleanupAttrs(document.body.querySelector('div')?.outerHTML)).toEqual(
+      '<div><button>toggle</button><h1>Test</h1><p>Test content</p></div>'
+    );
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <div>
+          <button>toggle</button>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <Projection ssr-required>
+                <Component ssr-required>
+                  <Fragment ssr-required>
+                    <h1>Test</h1>
+                    <p>Test content</p>
+                  </Fragment>
+                </Component>
+              </Projection>
+            </Fragment>
+          </Component>
+        </div>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(cleanupAttrs(document.body.querySelector('div')?.outerHTML)).toEqual(
+      '<div><button>toggle</button><h1>Test</h1><p>Test content</p></div>'
+    );
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <div>
+          <button>toggle</button>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <Projection ssr-required>
+                <Component ssr-required>
+                  <Fragment ssr-required>
+                    <Fragment ssr-required>
+                      <h1>Test</h1>
+                      <p>Test content</p>
+                    </Fragment>
+                  </Fragment>
+                </Component>
+              </Projection>
+            </Fragment>
+          </Component>
+        </div>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(cleanupAttrs(document.body.querySelector('div')?.outerHTML)).toEqual(
+      '<div><button>toggle</button><h1>Test</h1><p>Test content</p></div>'
+    );
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <div>
+          <button>toggle</button>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <Projection ssr-required>
+                <Component ssr-required>
+                  <Fragment ssr-required>
+                    <h1>Test</h1>
+                    <p>Test content</p>
+                  </Fragment>
+                </Component>
+              </Projection>
+            </Fragment>
+          </Component>
+        </div>
+      </Component>
+    );
+  });
+
   describe('ensureProjectionResolved', () => {
     (globalThis as any).log = [] as string[];
     beforeEach(() => {

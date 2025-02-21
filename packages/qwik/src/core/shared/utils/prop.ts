@@ -1,13 +1,9 @@
 import { createPropsProxy, type Props, type PropsProxy } from '../jsx/jsx-runtime';
 import { _CONST_PROPS, _VAR_PROPS } from './constants';
-import { NON_SERIALIZABLE_MARKER_PREFIX, QSlotParent } from './markers';
+import { NON_SERIALIZABLE_MARKER_PREFIX } from './markers';
 
 export function isSlotProp(prop: string): boolean {
   return !prop.startsWith('q:') && !prop.startsWith(NON_SERIALIZABLE_MARKER_PREFIX);
-}
-
-export function isParentSlotProp(prop: string): boolean {
-  return prop.startsWith(QSlotParent);
 }
 
 /** @internal */

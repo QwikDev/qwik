@@ -877,32 +877,41 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     const module = getModuleInfo(id)!;
     const segment = module.meta.segment;
 
-    const optimizer = getOptimizer();
-    const path = optimizer.sys.path;
-    const relativePath = path.relative(optimizer.sys.cwd(), id);
-    const sanitizedPath = relativePath.replace(/^\/+/, '').replace(/\//g, '-');
-
-    if (sanitizedPath.includes('node_modules')) {
-      if (sanitizedPath.includes('core.prod')) {
-        return 'core';
-      }
-      return null;
+    if (segment) {
+      // We need to specifically return segment.entry for qwik-insights
+      return segment.entry;
     }
 
-    if (sanitizedPath.includes('preload-helper')) {
+    // To prevent over-prefetching, we need to clearly seperate those chunks,
+    // otherwise rollup can bundle them together with the first component chunk it finds.
+    // For example, the core code could go into an Accordion.tsx chunk, which would make the whole app import accordion related chunks everywhere.
+    if (id.endsWith('qwik/dist/core.prod.mjs') || id.endsWith('qwik/dist/core.prod.cjs')) {
+      return 'core';
+    }
+    if (
+      id.endsWith('qwik-city/lib/index.qwik.mjs') ||
+      id.endsWith('qwik-city/lib/index.qwik.cjs')
+    ) {
+      return 'qwik-city';
+    }
+    if (id.endsWith('vite/preload-helper.js')) {
       return 'preload-helper';
     }
 
-    if (
-      segment ||
-      sanitizedPath.endsWith('.qwik.mjs') ||
-      sanitizedPath.endsWith('.qwik.cjs') ||
-      sanitizedPath.endsWith('.tsx') ||
-      sanitizedPath.endsWith('.jsx') ||
-      sanitizedPath.endsWith('.mdx') ||
-      sanitizedPath.endsWith('.ts') ||
-      sanitizedPath.endsWith('.js')
-    ) {
+    // We can't return a chunk for each module as that creates too many small chunks that slow down the prefetching as well,
+    // nor can we bundle related node_modules together (e.g. all shiki modules together), as that can create very big 10MB chunks.
+    // So here we let rollup do its job.
+    if (id.includes('node_modules')) {
+      return null;
+    }
+
+    // Also to prevent over-prefetching, we must clearly separate those chunks so that rollup doesn't add additional imports into entry files.
+    // We do this after the node_modules check, because some node_modules can end with .js, .ts, etc.
+    if (/\.(qwik\.mjs|qwik\.cjs|tsx|jsx|mdx|ts|js)$/.test(id)) {
+      const optimizer = getOptimizer();
+      const path = optimizer.sys.path;
+      const relativePath = path.relative(optimizer.sys.cwd(), id);
+      const sanitizedPath = relativePath.replace(/^\/+/, '').replace(/\//g, '-');
       return sanitizedPath;
     }
 

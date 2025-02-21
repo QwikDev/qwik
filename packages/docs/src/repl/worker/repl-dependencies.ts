@@ -52,7 +52,7 @@ const _loadDependencies = async (replOptions: ReplInputOptions) => {
     isServer: true,
     isBrowser: false,
     isDev: false,
-  } as typeof self.qwikBuild;
+  } as typeof import('@builder.io/qwik/build') as any;
 
   const cachedCjsCode = `qwikWasmCjs${realQwikVersion}`;
   const cachedWasmRsp = `qwikWasmRsp${realQwikVersion}`;

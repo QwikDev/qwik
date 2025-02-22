@@ -41,7 +41,6 @@ export {
   QScopedStyle,
   QSlot,
   QSlotParent,
-  QSlotRef,
   QStyle,
   QTemplate,
   QVersionAttr,

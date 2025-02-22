@@ -183,5 +183,8 @@ export async function advanceToNextTimerAndFlush() {
 }
 
 export function cleanupAttrs(innerHTML: string | undefined): any {
-  return innerHTML?.replaceAll(/ q:key="[^"]+"/g, '').replaceAll(/ :=""/g, '');
+  return innerHTML
+    ?.replaceAll(/ q:key="[^"]+"/g, '')
+    .replaceAll(/ :=""/g, '')
+    .replaceAll(/ on:\w+="[^"]+"/g, '');
 }

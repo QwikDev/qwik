@@ -31,7 +31,6 @@ import {
   QScopedStyle,
   QSlot,
   QSlotParent,
-  QSlotRef,
   QStyle,
   QTemplate,
   QVersionAttr,
@@ -739,9 +738,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           case ELEMENT_PROPS:
             write(VNodeDataChar.PROPS_CHAR);
             break;
-          case QSlotRef:
-            write(VNodeDataChar.SLOT_REF_CHAR);
-            break;
           case ELEMENT_KEY:
             write(VNodeDataChar.KEY_CHAR);
             break;
@@ -753,6 +749,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             break;
           case QBackRefs:
             write(VNodeDataChar.BACK_REFS_CHAR);
+            break;
+          case QSlotParent:
+            write(VNodeDataChar.SLOT_PARENT_CHAR);
             break;
           // Skipping `\` character for now because it is used for escaping.
           case QCtxAttr:

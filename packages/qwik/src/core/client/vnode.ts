@@ -141,7 +141,6 @@ import {
   QScopedStyle,
   QSlot,
   QSlotParent,
-  QSlotRef,
   QStyle,
   QStylesAllSelector,
   Q_PROPS_SEPARATOR,
@@ -333,6 +332,15 @@ export const vnode_isVirtualVNode = (vNode: VNode): vNode is VirtualVNode => {
   return (flag & VNodeFlags.Virtual) === VNodeFlags.Virtual;
 };
 
+export const vnode_isProjection = (vNode: VNode): vNode is VirtualVNode => {
+  assertDefined(vNode, 'Missing vNode');
+  const flag = (vNode as VNode)[VNodeProps.flags];
+  return (
+    (flag & VNodeFlags.Virtual) === VNodeFlags.Virtual &&
+    vnode_getProp(vNode as VirtualVNode, QSlot, null) !== null
+  );
+};
+
 const ensureTextVNode = (vNode: VNode): TextVNode => {
   assertTrue(vnode_isTextVNode(vNode), 'Expecting TextVNode was: ' + vnode_getNodeTypeName(vNode));
   return vNode as TextVNode;
@@ -401,7 +409,7 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
 /** Walks the VNode tree and materialize it using `vnode_getFirstChild`. */
 export function vnode_walkVNode(
   vNode: VNode,
-  callback?: (vNode: VNode, vParent: VNode | null) => void
+  callback?: (vNode: VNode, vParent: VNode | null) => boolean | void
 ): void {
   let vCursor: VNode | null = vNode;
   // Depth first traversal
@@ -411,7 +419,9 @@ export function vnode_walkVNode(
   }
   let vParent: VNode | null = null;
   do {
-    callback?.(vCursor, vParent);
+    if (callback?.(vCursor, vParent)) {
+      return;
+    }
     const vFirstChild = vnode_getFirstChild(vCursor);
     if (vFirstChild) {
       vCursor = vFirstChild;
@@ -774,22 +784,25 @@ export const vnode_journalToString = (journal: VNodeJournal): string => {
 
   function stringify(...args: any[]) {
     lines.push(
-      '  ' +
-        args
-          .map((arg) => {
-            if (typeof arg === 'string') {
-              return arg;
-            } else if (arg && isHtmlElement(arg)) {
-              const html = arg.outerHTML;
-              const idx = html.indexOf('>');
-              return '\n    ' + (idx > 0 ? html.substring(0, idx + 1) : html);
-            } else if (arg && isText(arg)) {
-              return JSON.stringify(arg.nodeValue);
-            } else {
-              return String(arg);
-            }
-          })
-          .join(' ')
+      args
+        .map((arg) => {
+          if (typeof arg === 'string') {
+            return arg;
+          } else if (arg && isHtmlElement(arg)) {
+            const html = arg.outerHTML;
+            const hasChildNodes = !!arg.firstElementChild;
+            const idx = html.indexOf('>');
+            const lastIdx = html.lastIndexOf('<');
+            return idx > 0 && hasChildNodes
+              ? html.substring(0, idx + 1) + '...' + html.substring(lastIdx)
+              : html;
+          } else if (arg && isText(arg)) {
+            return JSON.stringify(arg.nodeValue);
+          } else {
+            return String(arg);
+          }
+        })
+        .join(' ')
     );
   }
 
@@ -797,30 +810,45 @@ export const vnode_journalToString = (journal: VNodeJournal): string => {
     const op = journal[idx++] as VNodeJournalOpCode;
     switch (op) {
       case VNodeJournalOpCode.SetText:
-        stringify('SetText', journal[idx++], journal[idx++]);
+        stringify('SetText');
+        stringify('  ', journal[idx++]);
+        stringify('   -->', journal[idx++]);
         break;
       case VNodeJournalOpCode.SetAttribute:
-        stringify('SetAttribute', journal[idx++], journal[idx++], journal[idx++]);
+        stringify('SetAttribute');
+        stringify('  ', journal[idx++]);
+        stringify('   key', journal[idx++]);
+        stringify('   val', journal[idx++]);
         break;
       case VNodeJournalOpCode.HoistStyles:
         stringify('HoistStyles');
         break;
-      case VNodeJournalOpCode.Remove:
-        stringify('Remove', journal[idx++]);
+      case VNodeJournalOpCode.Remove: {
+        stringify('Remove');
+        const parent = journal[idx++];
+        stringify('  ', parent);
         let nodeToRemove: any;
         while (idx < length && typeof (nodeToRemove = journal[idx]) !== 'number') {
-          stringify('  ', nodeToRemove);
+          stringify('   -->', nodeToRemove);
           idx++;
         }
         break;
-      case VNodeJournalOpCode.Insert:
-        stringify('Insert', journal[idx++], journal[idx++]);
+      }
+      case VNodeJournalOpCode.Insert: {
+        stringify('Insert');
+        const parent = journal[idx++];
+        const insertBefore = journal[idx++];
+        stringify('  ', parent);
         let newChild: any;
         while (idx < length && typeof (newChild = journal[idx]) !== 'number') {
-          stringify('  ', newChild);
+          stringify('   -->', newChild);
           idx++;
         }
+        if (insertBefore) {
+          stringify('      ', insertBefore);
+        }
         break;
+      }
     }
   }
   lines.push('END JOURNAL');
@@ -969,6 +997,7 @@ export const vnode_insertBefore = (
   //   : insertBefore;
   const domParentVNode = vnode_getDomParentVNode(parent);
   const parentNode = domParentVNode && domParentVNode[ElementVNodeProps.element];
+
   if (parentNode) {
     const domChildren = vnode_getDomChildrenWithCorrectNamespacesToInsert(
       journal,
@@ -1037,6 +1066,7 @@ export const vnode_remove = (
   if (vnode_isTextVNode(vToRemove)) {
     vnode_ensureTextInflated(journal, vToRemove);
   }
+
   const vPrevious = vToRemove[VNodeProps.previousSibling];
   const vNext = vToRemove[VNodeProps.nextSibling];
   if (vPrevious) {
@@ -1774,8 +1804,6 @@ function materializeFromVNodeData(
       isDev && vnode_setAttr(null, vParent, ELEMENT_ID, id);
     } else if (peek() === VNodeDataChar.PROPS) {
       vnode_setAttr(null, vParent, ELEMENT_PROPS, consumeValue());
-    } else if (peek() === VNodeDataChar.SLOT_REF) {
-      vnode_setAttr(null, vParent, QSlotRef, consumeValue());
     } else if (peek() === VNodeDataChar.KEY) {
       vnode_setAttr(null, vParent, ELEMENT_KEY, consumeValue());
     } else if (peek() === VNodeDataChar.SEQ) {
@@ -1787,6 +1815,8 @@ function materializeFromVNodeData(
         container = getDomContainer(element);
       }
       setEffectBackRefFromVNodeData(vParent, consumeValue(), container);
+    } else if (peek() === VNodeDataChar.SLOT_PARENT) {
+      vnode_setProp(vParent, QSlotParent, consumeValue());
     } else if (peek() === VNodeDataChar.CONTEXT) {
       vnode_setAttr(null, vParent, QCtxAttr, consumeValue());
     } else if (peek() === VNodeDataChar.OPEN) {

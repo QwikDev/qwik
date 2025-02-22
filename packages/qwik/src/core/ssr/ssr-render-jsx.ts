@@ -25,6 +25,7 @@ import {
   QDefaultSlot,
   QScopedStyle,
   QSlot,
+  QSlotParent,
   qwikInspectorAttr,
 } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
@@ -192,7 +193,7 @@ function processJSXNode(
           if (componentFrame) {
             const compId = componentFrame.componentNode.id || '';
             const projectionAttrs = isDev ? [DEBUG_TYPE, VirtualType.Projection] : [];
-            projectionAttrs.push(':', compId);
+            projectionAttrs.push(QSlotParent, compId);
             ssr.openProjection(projectionAttrs);
             const host = componentFrame.componentNode;
             const node = ssr.getLastNode();

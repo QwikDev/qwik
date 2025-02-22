@@ -249,10 +249,10 @@ describe('vnode', () => {
     });
     it('should place attributes on Virtual', () => {
       parent.innerHTML = ``;
-      document.qVNodeData.set(parent, '{?:sref_@:key_}');
+      document.qVNodeData.set(parent, '{?:sparent_@:key_}');
       expect(vParent).toMatchVDOM(
         <test>
-          <Fragment {...({ 'q:sref': ':sref_' } as any)} key=":key_" />
+          <Fragment {...({ 'q:sparent': ':sparent_' } as any)} key=":key_" />
         </test>
       );
     });

@@ -18,7 +18,7 @@ const log = (...args: any[]) => console.log('STORE', ...args.map(qwikDebugToStri
 
 const STORE_TARGET = Symbol('store.target');
 const STORE_HANDLER = Symbol('store.handler');
-export const STORE_ARRAY_PROP = Symbol('store.array');
+export const STORE_ALL_PROPS = Symbol('store.all');
 
 export type TargetType = Record<string | symbol, any>;
 
@@ -113,7 +113,12 @@ export class StoreHandler implements ProxyHandler<TargetType> {
       }
       const effectSubscriber = ctx.$effectSubscriber$;
       if (effectSubscriber) {
-        addEffect(target, Array.isArray(target) ? STORE_ARRAY_PROP : prop, this, effectSubscriber);
+        addStoreEffect(
+          target,
+          Array.isArray(target) ? STORE_ALL_PROPS : prop,
+          this,
+          effectSubscriber
+        );
       }
     }
 
@@ -173,9 +178,9 @@ export class StoreHandler implements ProxyHandler<TargetType> {
       if (ctx) {
         const effectSubscriber = ctx.$effectSubscriber$;
         if (effectSubscriber) {
-          addEffect(
+          addStoreEffect(
             target,
-            Array.isArray(target) ? STORE_ARRAY_PROP : prop,
+            Array.isArray(target) ? STORE_ALL_PROPS : prop,
             this,
             effectSubscriber
           );
@@ -189,7 +194,7 @@ export class StoreHandler implements ProxyHandler<TargetType> {
     const ctx = tryGetInvokeContext();
     const effectSubscriber = ctx?.$effectSubscriber$;
     if (effectSubscriber) {
-      addEffect(target, STORE_ARRAY_PROP, this, effectSubscriber);
+      addStoreEffect(target, STORE_ALL_PROPS, this, effectSubscriber);
     }
     return Reflect.ownKeys(target);
   }
@@ -212,7 +217,7 @@ export class StoreHandler implements ProxyHandler<TargetType> {
   }
 }
 
-function addEffect(
+export function addStoreEffect(
   target: TargetType,
   prop: string | symbol,
   store: StoreHandler,
@@ -271,7 +276,7 @@ function getEffects<T extends Record<string | symbol, any>>(
     }
   }
 
-  const storeArrayValue = storeEffects?.get(STORE_ARRAY_PROP);
+  const storeArrayValue = storeEffects?.get(STORE_ALL_PROPS);
   if (storeArrayValue) {
     effectsToTrigger ||= new Set();
     for (const effect of storeArrayValue) {

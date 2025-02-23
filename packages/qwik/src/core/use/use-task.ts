@@ -18,6 +18,13 @@ import { useLexicalScope } from './use-lexical-scope.public';
 import type { ResourceReturnInternal } from './use-resource';
 import { useSequentialScope } from './use-sequential-scope';
 import { getSubscriber } from '../signal/subscriber';
+import {
+  STORE_ALL_PROPS,
+  addStoreEffect,
+  getStoreHandler,
+  getStoreTarget,
+  isStore,
+} from '../signal/store';
 
 export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,
@@ -188,6 +195,15 @@ export const runTask = (
         return (obj as Record<string, unknown>)[prop];
       } else if (isSignal(obj)) {
         return obj.value;
+      } else if (isStore(obj)) {
+        // track whole store
+        addStoreEffect(
+          getStoreTarget(obj)!,
+          STORE_ALL_PROPS,
+          getStoreHandler(obj)!,
+          ctx.$effectSubscriber$!
+        );
+        return obj;
       } else {
         throw qError(QError.trackObjectWithoutProp);
       }

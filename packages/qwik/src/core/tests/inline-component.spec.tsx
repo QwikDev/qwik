@@ -36,6 +36,10 @@ const InlineWrapper = () => {
 
 const Id = (props: any) => <div>Id: {props.id}</div>;
 
+const ChildInline = () => {
+  return <div>Child inline</div>;
+};
+
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
@@ -629,6 +633,75 @@ describe.each([
           </div>
         </Component>
       </InlineComponent>
+    );
+  });
+
+  it('should render swap component$ and inline component with the same key', async () => {
+    const Child = component$(() => {
+      return <div>Child component$</div>;
+    });
+
+    const Parent = component$(() => {
+      const toggle = useSignal(true);
+      return (
+        <>
+          <button onClick$={() => (toggle.value = !toggle.value)}></button>
+          {/* same key, simulate different routes and files, but the same keys at the same place */}
+          {toggle.value ? <ChildInline key="samekey" /> : <Child key="samekey" />}
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Parent />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <InlineComponent ssr-required>
+            <div>Child inline</div>
+          </InlineComponent>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <div>Child component$</div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <InlineComponent ssr-required>
+            <div>Child inline</div>
+          </InlineComponent>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <div>Child component$</div>
+          </Component>
+        </Fragment>
+      </Component>
     );
   });
 });

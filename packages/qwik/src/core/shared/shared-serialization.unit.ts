@@ -56,7 +56,7 @@ describe('shared-serialization', () => {
         5 Constant EMPTY_ARRAY
         6 Constant EMPTY_OBJ
         7 Constant NEEDS_COMPUTATION
-        8 Constant STORE_ARRAY_PROP
+        8 Constant STORE_ALL_PROPS
         9 Constant Slot
         10 Constant Fragment
         11 Constant NaN

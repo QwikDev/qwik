@@ -22,7 +22,7 @@ import {
   getStoreHandler,
   getStoreTarget,
   isStore,
-  STORE_ARRAY_PROP,
+  STORE_ALL_PROPS,
 } from '../signal/store';
 import type { ISsrNode, SsrAttrs, SymbolToChunkResolver } from '../ssr/ssr-types';
 import { untrack } from '../use/use-core';
@@ -401,7 +401,7 @@ export const _constants = [
   EMPTY_ARRAY,
   EMPTY_OBJ,
   NEEDS_COMPUTATION,
-  STORE_ARRAY_PROP,
+  STORE_ALL_PROPS,
   Slot,
   Fragment,
   NaN,
@@ -420,7 +420,7 @@ const _constantNames = [
   'EMPTY_ARRAY',
   'EMPTY_OBJ',
   'NEEDS_COMPUTATION',
-  'STORE_ARRAY_PROP',
+  'STORE_ALL_PROPS',
   'Slot',
   'Fragment',
   'NaN',
@@ -1084,8 +1084,8 @@ function serialize(serializationContext: SerializationContext): void {
       output(TypeIds.Constant, Constants.Undefined);
     } else if (value === NEEDS_COMPUTATION) {
       output(TypeIds.Constant, Constants.NEEDS_COMPUTATION);
-    } else if (value === STORE_ARRAY_PROP) {
-      output(TypeIds.Constant, Constants.STORE_ARRAY_PROP);
+    } else if (value === STORE_ALL_PROPS) {
+      output(TypeIds.Constant, Constants.STORE_ALL_PROPS);
     } else {
       throw qError(QError.serializeErrorUnknownType, [typeof value]);
     }
@@ -1712,7 +1712,7 @@ export const enum Constants {
   EMPTY_ARRAY,
   EMPTY_OBJ,
   NEEDS_COMPUTATION,
-  STORE_ARRAY_PROP,
+  STORE_ALL_PROPS,
   Slot,
   Fragment,
   NaN,

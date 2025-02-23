@@ -238,6 +238,33 @@ describe.each([
         </Component>
       );
     });
+    it('should track store', async () => {
+      const Counter = component$(() => {
+        const store = useStore({ count: 1, double: 0 });
+        useTask$(({ track }) => {
+          const storeCounter = track(store);
+          store.double = 2 * storeCounter.count;
+        });
+        return <button onClick$={() => store.count++}>{store.double}</button>;
+      });
+
+      const { vNode, document } = await render(<Counter />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <Signal ssr-required>2</Signal>
+          </button>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <Signal ssr-required>4</Signal>
+          </button>
+        </Component>
+      );
+    });
 
     it('should unsubscribe from removed component', async () => {
       (global as any).logs = [] as string[];

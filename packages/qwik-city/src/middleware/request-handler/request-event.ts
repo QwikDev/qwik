@@ -102,7 +102,19 @@ export function createRequestEvent(
     } else {
       status = statusOrResponse.status;
       statusOrResponse.headers.forEach((value, key) => {
+        if (key.toLowerCase() === 'set-cookie') {
+          return;
+        }
         headers.append(key, value);
+      });
+      statusOrResponse.headers.getSetCookie().forEach((ck) => {
+        const index = ck.indexOf('=');
+        if (index === -1) {
+          return;
+        }
+        const key = ck.slice(0, index).trim();
+        const value = ck.slice(index + 1).trim();
+        cookie.set(key, value);
       });
       if (statusOrResponse.body) {
         const writableStream = requestEv.getWritableStream();

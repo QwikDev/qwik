@@ -2,4 +2,4 @@
 '@builder.io/qwik': patch
 ---
 
-docs: remove shop
+updated drizzle to latest version

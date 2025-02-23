@@ -32,7 +32,7 @@ import type { OnRenderFn } from '../shared/component.public';
 import { _EFFECT_BACK_REF, NEEDS_COMPUTATION } from './flags';
 import { QError, qError } from '../shared/error/error';
 import { isDomContainer } from '../client/dom-container';
-import type { BackRef } from './signal-cleanup';
+import { type BackRef } from './signal-cleanup';
 import { getSubscriber } from './subscriber';
 
 const DEBUG = false;
@@ -328,7 +328,7 @@ export const triggerEffects = (
  *
  * The value is available synchronously, but the computation is done lazily.
  */
-export class ComputedSignal<T> extends Signal<T> {
+export class ComputedSignal<T> extends Signal<T> implements BackRef {
   /**
    * The compute function is stored here.
    *
@@ -340,6 +340,7 @@ export class ComputedSignal<T> extends Signal<T> {
   // we need the old value to know if effects need running after computation
   $invalid$: boolean = true;
   $forceRunEffects$: boolean = false;
+  [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null = null;
 
   constructor(container: Container | null, fn: QRLInternal<() => T>) {
     // The value is used for comparison when signals trigger, which can only happen

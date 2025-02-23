@@ -1079,10 +1079,8 @@ export const vnode_diff = (
         shouldRender = true;
       } else if (!hashesAreEqual) {
         insertNewComponent(host, componentQRL, jsxProps);
-        if (vNewNode) {
-          host = vNewNode as VirtualVNode;
-          shouldRender = true;
-        }
+        host = vNewNode as VirtualVNode;
+        shouldRender = true;
       }
 
       if (host) {
@@ -1103,6 +1101,7 @@ export const vnode_diff = (
       const lookupKey = jsxNode.key;
       const vNodeLookupKey = getKey(host);
       const lookupKeysAreEqual = lookupKey === vNodeLookupKey;
+      const vNodeComponentHash = getComponentHash(host, container.$getObjectById$);
 
       if (!lookupKeysAreEqual) {
         // See if we already have this inline component later on.
@@ -1114,6 +1113,11 @@ export const vnode_diff = (
           // We did not find the inline component, create it.
           insertNewInlineComponent();
         }
+        host = vNewNode as VirtualVNode;
+      }
+      // inline components don't have component hash - q:renderFn prop, so it should be null
+      else if (vNodeComponentHash != null) {
+        insertNewInlineComponent();
         host = vNewNode as VirtualVNode;
       }
 

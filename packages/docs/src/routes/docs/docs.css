@@ -206,6 +206,10 @@ h6 a:hover .icon {
   font-weight: bold;
 }
 
+[data-highlighted-chars] {
+  background: #ac7ef4;
+}
+
 .docs article pre {
   padding: 18px 15px;
   overflow: auto;

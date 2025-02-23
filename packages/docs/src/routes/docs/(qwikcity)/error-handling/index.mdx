@@ -97,7 +97,7 @@ export const onRequest: RequestHandler = async ({ next }) => {
 function isServerError(err: unknown): err is ServerError {
   return (
     err instanceof ServerError ||
-    // This is required for dev environments due to an issue with vite.
+    // This is required for dev environments due to an issue with vite: https://github.com/vitejs/vite/issues/3910
     (isDev && err instanceof Error && err.constructor.name === "ServerError")
   );
 }
@@ -105,7 +105,7 @@ function isServerError(err: unknown): err is ServerError {
 function isRedirectMessage(err: unknown): err is RedirectMessage {
   return (
     err instanceof RedirectMessage ||
-    // This is required for dev environments due to an issue with vite.
+    // This is required for dev environments due to an issue with vite: https://github.com/vitejs/vite/issues/3910
     (isDev && err instanceof Error && err.constructor.name === "RedirectMessage")
   );
 }

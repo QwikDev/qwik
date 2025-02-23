@@ -4,17 +4,17 @@ export class ServerError<T = any> extends Error {
     public status: number,
     public data: T
   ) {
-    super();
+    super(typeof data === 'string' ? data : undefined);
   }
 }
 
 /** @deprecated */
-export class ErrorResponse extends Error {
+export class ErrorResponse extends ServerError {
   constructor(
     public status: number,
     message?: string
   ) {
-    super(message);
+    super(status, message);
   }
 }
 

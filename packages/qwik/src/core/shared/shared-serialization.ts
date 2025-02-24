@@ -835,7 +835,7 @@ export const createSerializationContext = (
           discoveredValues.push(v);
         }
         if (obj.$effects$) {
-          discoveredValues.push(...obj.$effects$);
+          discoveredValues.push(obj.$effects$);
         }
         // WrappedSignal uses syncQrl which has no captured refs
         if (obj instanceof WrappedSignal) {
@@ -847,6 +847,7 @@ export const createSerializationContext = (
             discoveredValues.push(obj.$hostElement$);
           }
         } else if (obj instanceof ComputedSignal) {
+          discoverEffectBackRefs(obj[_EFFECT_BACK_REF], discoveredValues);
           discoveredValues.push(obj.$computeQrl$);
         }
       } else if (obj instanceof Task) {
@@ -944,18 +945,7 @@ const discoverEffectBackRefs = (
   discoveredValues: unknown[]
 ) => {
   if (effectsBackRefs) {
-    // We need serialize effect subscriptions with back refs
-    let hasBackRefs = false;
-    for (const [, effect] of effectsBackRefs) {
-      const backRefs = effect[EffectSubscriptionProp.BACK_REF];
-      if (backRefs) {
-        hasBackRefs = true;
-        break;
-      }
-    }
-    if (hasBackRefs) {
-      discoveredValues.push(effectsBackRefs);
-    }
+    discoveredValues.push(effectsBackRefs);
   }
 };
 

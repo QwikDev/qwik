@@ -574,9 +574,6 @@ importers:
       '@builder.io/qwik-dom':
         specifier: workspace:^
         version: link:../qwik-dom
-      eslint-plugin-qwik:
-        specifier: workspace:^
-        version: link:../eslint-plugin-qwik
       ignore:
         specifier: 5.3.1
         version: 5.3.1

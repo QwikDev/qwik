@@ -3,6 +3,7 @@ import type { ESLint, Linter } from 'eslint';
 import type { OptimizerSystem } from '../types';
 import { qwikEslint9Plugin } from 'eslint-plugin-qwik';
 import globals from 'globals';
+import * as EslintClass from 'eslint';
 export interface QwikLinter {
   lint(ctx: Rollup.PluginContext, code: string, id: string): void;
 }
@@ -44,7 +45,7 @@ export async function createLinter(
         },
       ],
     };
-    eslint = new module.ESLint(options) as ESLint;
+    eslint = new EslintClass.ESLint(options) as ESLint;
   }
 
   return {

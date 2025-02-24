@@ -526,6 +526,54 @@ describe.each([
     }
   });
 
+  it('should not escape input value', async () => {
+    const Cmp = component$(() => {
+      const test = useSignal<string>();
+
+      return (
+        <div>
+          <input
+            type="text"
+            value={test.value}
+            onInput$={$((_, element) => {
+              test.value = element.value;
+            })}
+          />
+
+          <p>{test.value}</p>
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <div>
+          <input type="text" />
+          <p>
+            <Signal ssr-required></Signal>
+          </p>
+        </div>
+      </Component>
+    );
+
+    // simulate input
+    const input = document.querySelector('input')!;
+    input.value = "'";
+    await trigger(document.body, input, 'input');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <div>
+          <input type="text" value="'" />
+          <p>
+            <Signal ssr-required>'</Signal>
+          </p>
+        </div>
+      </Component>
+    );
+  });
+
   it('should render correctly text node in the middle', async () => {
     const Cmp = component$(() => {
       const signal = useSignal<number>(0);

@@ -10,6 +10,7 @@ import {
   mapApp_remove,
   mapArray_get,
   mapArray_set,
+  mapArray_has,
   ELEMENT_SEQ,
   QSlot,
   QDefaultSlot,
@@ -196,15 +197,13 @@ export class SsrComponentFrame implements ISsrComponentFrame {
   }
 
   hasSlot(slotName: string): boolean {
-    return mapArray_get(this.slots, slotName, 0) !== null;
+    return mapArray_has(this.slots, slotName, 0);
   }
 
   consumeChildrenForSlot(projectionNode: ISsrNode, slotName: string): JSXChildren | null {
     const children = mapApp_remove(this.slots, slotName, 0);
-    if (children !== null) {
-      this.componentNode.setProp(slotName, projectionNode.id);
-      projectionNode.setProp(QSlotParent, this.componentNode.id);
-    }
+    this.componentNode.setProp(slotName, projectionNode.id);
+    projectionNode.setProp(QSlotParent, this.componentNode.id);
     return children;
   }
 

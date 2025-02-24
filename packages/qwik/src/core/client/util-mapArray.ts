@@ -1,16 +1,12 @@
 import { assertTrue } from '../shared/error/assert';
 
-export const mapApp_findIndx = <T>(
-  elementVNode: (T | null)[],
-  key: string,
-  start: number
-): number => {
+export const mapApp_findIndx = <T>(array: (T | null)[], key: string, start: number): number => {
   assertTrue(start % 2 === 0, 'Expecting even number.');
   let bottom = (start as number) >> 1;
-  let top = (elementVNode.length - 2) >> 1;
+  let top = (array.length - 2) >> 1;
   while (bottom <= top) {
     const mid = bottom + ((top - bottom) >> 1);
-    const midKey = elementVNode[mid << 1] as string;
+    const midKey = array[mid << 1] as string;
     if (midKey === key) {
       return mid << 1;
     }
@@ -24,47 +20,43 @@ export const mapApp_findIndx = <T>(
 };
 
 export const mapArray_set = <T>(
-  elementVNode: (T | null)[],
+  array: (T | null)[],
   key: string,
   value: T | null,
   start: number
 ) => {
-  const indx = mapApp_findIndx(elementVNode, key, start);
+  const indx = mapApp_findIndx(array, key, start);
   if (indx >= 0) {
     if (value == null) {
-      elementVNode.splice(indx, 2);
+      array.splice(indx, 2);
     } else {
-      elementVNode[indx + 1] = value;
+      array[indx + 1] = value;
     }
   } else if (value != null) {
-    elementVNode.splice(indx ^ -1, 0, key as any, value);
+    array.splice(indx ^ -1, 0, key as any, value);
   }
 };
 
-export const mapApp_remove = <T>(
-  elementVNode: (T | null)[],
-  key: string,
-  start: number
-): T | null => {
-  const indx = mapApp_findIndx(elementVNode, key, start);
+export const mapApp_remove = <T>(array: (T | null)[], key: string, start: number): T | null => {
+  const indx = mapApp_findIndx(array, key, start);
   let value: T | null = null;
   if (indx >= 0) {
-    value = elementVNode[indx + 1];
-    elementVNode.splice(indx, 2);
+    value = array[indx + 1];
+    array.splice(indx, 2);
     return value;
   }
   return value;
 };
 
-export const mapArray_get = <T>(
-  elementVNode: (T | null)[],
-  key: string,
-  start: number
-): T | null => {
-  const indx = mapApp_findIndx(elementVNode, key, start);
+export const mapArray_get = <T>(array: (T | null)[], key: string, start: number): T | null => {
+  const indx = mapApp_findIndx(array, key, start);
   if (indx >= 0) {
-    return elementVNode[indx + 1] as T | null;
+    return array[indx + 1] as T | null;
   } else {
     return null;
   }
+};
+
+export const mapArray_has = <T>(array: (T | null)[], key: string, start: number): boolean => {
+  return mapApp_findIndx(array, key, start) >= 0;
 };

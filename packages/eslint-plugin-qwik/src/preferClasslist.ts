@@ -1,3 +1,4 @@
+//@ts-nocheck
 // From: https://github.com/solidjs-community/eslint-plugin-solid/blob/d8bf1d13889fbc5fa3e644bc3f932696c78cef9d/src/rules/prefer-classlist.ts
 
 import type { TSESTree as T } from '@typescript-eslint/utils';

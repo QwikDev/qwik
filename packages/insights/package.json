@@ -26,7 +26,7 @@
     "better-sqlite3": "9.6.0",
     "eslint": "9.16.0",
     "globals": "15.13.0",
-    "typescript-eslint": "8.18.0",
+    "typescript-eslint": "8.23.0",
     "eslint-plugin-qwik": "workspace:^",
     "netlify-cli": "17.37.2",
     "postcss": "8.4.39",

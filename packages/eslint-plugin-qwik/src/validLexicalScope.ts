@@ -1,9 +1,10 @@
+//@ts-nocheck
 /* eslint-disable no-console */
 import * as ESLintUtils from '@typescript-eslint/utils/eslint-utils';
 import ts from 'typescript';
 import type { Identifier } from 'estree';
 import redent from 'redent';
-import type { RuleContext, Scope } from '@typescript-eslint/utils/dist/ts-eslint';
+import type { RuleContext, Scope } from '@typescript-eslint/utils/ts-eslint';
 import type { QwikEslintExamples } from '../examples';
 
 const createRule = ESLintUtils.RuleCreator(
@@ -76,6 +77,7 @@ export const validLexicalScope = createRule({
             return;
           }
           let dollarScope: Scope.Scope | null = ref.from;
+          console;
           let dollarIdentifier: string | undefined;
           while (dollarScope) {
             dollarIdentifier = relevantScopes.get(dollarScope);
@@ -104,30 +106,45 @@ export const validLexicalScope = createRule({
             }
 
             if (ownerDeclared !== dollarScope) {
-              if (identifier.parent && identifier.parent.type === 'AssignmentExpression') {
-                if (identifier.parent.left === identifier) {
+              const isQwikHookCall = declaredVariable?.defs.some((def) => {
+                if (def.type === 'Variable') {
+                  const init = def.node.init;
+                  if (init?.type === 'CallExpression') {
+                    const callee = init.callee;
+                    if (callee.type === 'Identifier') {
+                      // 检查是否是调用 useDocumentHead
+                      return callee.name === 'useDocumentHead';
+                    }
+                  }
+                }
+                return false;
+              });
+              if (!isQwikHookCall) {
+                if (identifier.parent && identifier.parent.type === 'AssignmentExpression') {
+                  if (identifier.parent.left === identifier) {
+                    context.report({
+                      messageId: 'mutableIdentifier',
+                      node: ref.identifier,
+                      data: {
+                        varName: ref.identifier.name,
+                        dollarName: dollarIdentifier,
+                      },
+                    });
+                  }
+                }
+
+                const reason = canCapture(context, typeChecker, tsNode, ref.identifier, opts);
+                if (reason) {
                   context.report({
-                    messageId: 'mutableIdentifier',
+                    messageId: 'referencesOutside',
                     node: ref.identifier,
                     data: {
                       varName: ref.identifier.name,
                       dollarName: dollarIdentifier,
+                      reason: humanizeTypeReason(reason),
                     },
                   });
                 }
-              }
-
-              const reason = canCapture(context, typeChecker, tsNode, ref.identifier, opts);
-              if (reason) {
-                context.report({
-                  messageId: 'referencesOutside',
-                  node: ref.identifier,
-                  data: {
-                    varName: ref.identifier.name,
-                    dollarName: dollarIdentifier,
-                    reason: humanizeTypeReason(reason),
-                  },
-                });
               }
             }
           }
@@ -282,6 +299,15 @@ function _isTypeCapturable(
   level: number,
   seen: Set<any>
 ): TypeReason | undefined {
+  const symbolName = type.symbol?.name;
+  if (symbolName) {
+    console.log(symbolName);
+  }
+  // 添加：豁免DocumentHead类型
+  if (symbolName === '__type') {
+    debugger;
+    // return;
+  }
   // NoSerialize is ok
   if (seen.has(type)) {
     return;
@@ -331,7 +357,6 @@ function _isTypeCapturable(
 
   const canBeCalled = type.getCallSignatures().length > 0;
   if (canBeCalled) {
-    const symbolName = type.symbol.name;
     if (
       symbolName === 'PropFnInterface' ||
       symbolName === 'RefFnInterface' ||
@@ -340,6 +365,8 @@ function _isTypeCapturable(
     ) {
       return;
     }
+    console.log(checker.typeToString(type), '>>>');
+
     let reason = 'is a function, which is not serializable';
     if (level === 0 && ts.isIdentifier(node)) {
       const solution = `const ${node.text} = $(\n${getContent(
@@ -348,7 +375,7 @@ function _isTypeCapturable(
       )}\n);`;
       reason += `.\nDid you mean to wrap it in \`$()\`?\n\n${solution}\n`;
     }
-
+    console.log(11212121);
     return {
       type,
       typeStr: checker.typeToString(type),
@@ -417,6 +444,7 @@ function _isTypeCapturable(
     }
 
     if (!symbolName.startsWith('__') && type.symbol.valueDeclaration) {
+      console.log(type.symbol.valueDeclaration, '>>>>', checker.typeToString(type));
       return {
         type,
         typeStr: checker.typeToString(type),

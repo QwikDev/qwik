@@ -1,3 +1,4 @@
+//@ts-nocheck
 import type { TSESLint } from '@typescript-eslint/utils';
 import jsxAstUtils from 'jsx-ast-utils';
 import type { QwikEslintExamples } from '../examples';

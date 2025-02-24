@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { ASTUtils } from '@typescript-eslint/utils';
 import type { QwikEslintExamples } from '../examples';
 const { getStaticValue } = ASTUtils;

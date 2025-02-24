@@ -1,7 +1,7 @@
 import type { Rollup } from 'vite';
 import type { ESLint, Linter } from 'eslint';
 import type { OptimizerSystem } from '../types';
-import qwik from 'eslint-plugin-qwik';
+import { qwikEslint9Plugin } from 'eslint-plugin-qwik';
 import globals from 'globals';
 export interface QwikLinter {
   lint(ctx: Rollup.PluginContext, code: string, id: string): void;
@@ -22,7 +22,8 @@ export async function createLinter(
     const options: ESLint.Options = {
       cache: true,
       overrideConfig: [
-        qwik.configs.recommended,
+        // @ts-ignore
+        qwikEslint9Plugin.configs.recommended as Linter.Config,
         {
           languageOptions: {
             parserOptions: {

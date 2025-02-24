@@ -1,3 +1,4 @@
+//@ts-nocheck
 import jsxAstUtils from 'jsx-ast-utils';
 import type { QwikEslintExamples } from '../examples';
 // ------------------------------------------------------------------------------

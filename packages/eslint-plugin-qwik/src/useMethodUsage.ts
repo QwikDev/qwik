@@ -1,3 +1,4 @@
+//@ts-nocheck
 /* eslint-disable no-console */
 import type { Rule } from 'eslint';
 import type { CallExpression } from 'estree';

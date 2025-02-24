@@ -2195,6 +2195,63 @@ describe.each([
     }
   });
 
+  it('should toggle content projection from undefined or null', async () => {
+    const Wrapper = component$(() => {
+      return <Slot />;
+    });
+
+    const Cmp = component$(() => {
+      const show = useSignal(false);
+
+      return (
+        <>
+          <button
+            onClick$={() => {
+              show.value = !show.value;
+            }}
+          >
+            Click
+          </button>
+          <Wrapper>{show.value ? <div>Test</div> : undefined}</Wrapper>
+          <Wrapper>{show.value ? <div>Test</div> : null}</Wrapper>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug: DEBUG });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>Click</button>
+          <Component ssr-required>
+            <Projection ssr-required></Projection>
+          </Component>
+          <Component ssr-required>
+            <Projection ssr-required></Projection>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>Click</button>
+          <Component ssr-required>
+            <Projection ssr-required>
+              <div>Test</div>
+            </Projection>
+          </Component>
+          <Component ssr-required>
+            <Projection ssr-required>
+              <div>Test</div>
+            </Projection>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+  });
+
   describe('regression', () => {
     it('#1630', async () => {
       const Child = component$(() => <b>CHILD</b>);

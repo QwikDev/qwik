@@ -161,16 +161,18 @@ describe('shared-serialization', () => {
       err.stack = err
         .stack!.replaceAll(/([A-Z]:){0,1}(\/|\\).*\./g, '/...path/file.')
         .replaceAll(/:\d+:\d+/g, ':123:456');
-      expect(await dump(err)).toMatchInlineSnapshot(`
+      const dumpNoSize = async (obj: any) =>
+        (await dump(obj)).replaceAll(/\(\d+ chars\)/g, '(x chars)');
+      expect(await dumpNoSize(err)).toMatchInlineSnapshot(`
         "
         0 Error [
           String "hi"
           String "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\"...
         ]
-        (487 chars)"
+        (x chars)"
       `);
       (err as any).extra = 'yey';
-      expect(await dump(err)).toMatchInlineSnapshot(`
+      expect(await dumpNoSize(err)).toMatchInlineSnapshot(`
         "
         0 Error [
           String "hi"
@@ -180,7 +182,7 @@ describe('shared-serialization', () => {
           ]
           String "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\"...
         ]
-        (509 chars)"
+        (x chars)"
       `);
     });
     it(title(TypeIds.Object), async () => {

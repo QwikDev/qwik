@@ -89,6 +89,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const serverTransformedOutputs = new Map<string, [TransformModule, string]>();
   const parentIds = new Map<string, string>();
 
+  const npmChunks = new Map<string, number>();
+
   let internalOptimizer: Optimizer | null = null;
   let linter: QwikLinter | undefined = undefined;
   let diagnosticsCallback: (
@@ -403,6 +405,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     debug(`transformedOutputs.clear()`);
     clientTransformedOutputs.clear();
     serverTransformedOutputs.clear();
+    npmChunks.clear();
   };
 
   const getIsServer = (viteOpts?: { ssr?: boolean }) => {
@@ -923,25 +926,23 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
       return segment.entry;
     }
 
-    if (id.includes('node_modules')) {
-      return null;
+    const moduleIndex = id.indexOf('node_modules');
+    if (moduleIndex === -1) {
+      return;
     }
 
-    // Patch to prevent over-prefetching, we must clearly separate .tsx/.jsx chunks so that rollup doesn't mix random imports into non-entry files such as hooks.
-    // Maybe a better solution would be to mark those files as entires earlier in the chain so that we can remove this check and the one above altogether.
-    // We check .(tsx|jsx) after node_modules in case some node_modules end with .jsx or .tsx.
-    if (/\.(tsx|jsx)$/.test(id)) {
-      const optimizer = getOptimizer();
-      const path = optimizer.sys.path;
-      const relativePath = path.relative(optimizer.sys.cwd(), id);
-      const sanitizedPath = relativePath
-        .replace(/^(\.\.\/)+/, '')
-        .replace(/^\/+/, '')
-        .replace(/\//g, '-');
-      return sanitizedPath; // We return sanitizedPath for qwikVite plugin with debug:true
-    }
+    // Prevent over-prefetching, if a module is too big we move it to a separate chunk.
+    const modulePath = id.slice(moduleIndex + 'node_modules'.length);
+    const moduleName = id.startsWith('@')
+      ? modulePath.split('/').slice(0, 2).join('_')
+      : modulePath.slice(0, modulePath.indexOf('/'));
 
-    return null;
+    let size = module.code?.length || 0;
+    size += npmChunks.get(moduleName) || 0;
+    npmChunks.set(moduleName, size);
+    if (size > 10_000) {
+      return moduleName;
+    }
   }
 
   return {

@@ -89,6 +89,8 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
   const serverTransformedOutputs = new Map<string, [TransformModule, string]>();
   const parentIds = new Map<string, string>();
 
+  const npmChunks = new Map<string, number>();
+
   let internalOptimizer: Optimizer | null = null;
   let linter: QwikLinter | undefined = undefined;
   let diagnosticsCallback: (
@@ -403,6 +405,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     debug(`transformedOutputs.clear()`);
     clientTransformedOutputs.clear();
     serverTransformedOutputs.clear();
+    npmChunks.clear();
   };
 
   const getIsServer = (viteOpts?: { ssr?: boolean }) => {
@@ -916,8 +919,30 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
   // order by discovery time, so that related segments are more likely to group together
   function manualChunks(id: string, { getModuleInfo }: Rollup.ManualChunkMeta) {
     const module = getModuleInfo(id)!;
-    const segment = module.meta.segment as SegmentAnalysis | undefined;
-    return segment?.entry;
+    const segment = module.meta.segment;
+
+    // We need to specifically return segment.entry for qwik-insights
+    if (segment) {
+      return segment.entry;
+    }
+
+    const moduleIndex = id.indexOf('node_modules');
+    if (moduleIndex === -1) {
+      return;
+    }
+
+    // Prevent over-prefetching, if a module is too big we move it to a separate chunk.
+    const modulePath = id.slice(moduleIndex + 'node_modules'.length);
+    const moduleName = id.startsWith('@')
+      ? modulePath.split('/').slice(0, 2).join('_')
+      : modulePath.slice(0, modulePath.indexOf('/'));
+
+    let size = module.code?.length || 0;
+    size += npmChunks.get(moduleName) || 0;
+    npmChunks.set(moduleName, size);
+    if (size > 10_000) {
+      return moduleName;
+    }
   }
 
   return {

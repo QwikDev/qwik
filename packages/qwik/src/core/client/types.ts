@@ -53,10 +53,6 @@ export interface QDocument extends Document {
   qVNodeData: WeakMap<Element, string>;
 }
 
-export interface QNode extends Node {
-  qVNode?: VNode;
-}
-
 /**
  * Flags for VNode.
  *

@@ -251,10 +251,6 @@ export const createResourceReturn = <T>(
   return createStore(container, result, StoreFlags.RECURSIVE);
 };
 
-export const getInternalResource = <T>(resource: ResourceReturn<T>): ResourceReturnInternal<T> => {
-  return getStoreTarget(resource) as any;
-};
-
 export const isResourceReturn = (obj: any): obj is ResourceReturn<unknown> => {
   return isObject(obj) && (getStoreTarget(obj as any) || obj).__brand === 'resource';
 };

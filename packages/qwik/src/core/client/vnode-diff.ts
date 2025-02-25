@@ -26,7 +26,6 @@ import {
   QDefaultSlot,
   QSlot,
   QSlotParent,
-  QStyle,
   QBackRefs,
   QTemplate,
   Q_PREFIX,
@@ -59,7 +58,6 @@ import {
 } from './types';
 import {
   vnode_ensureElementInflated,
-  vnode_getAttr,
   vnode_getDomParentVNode,
   vnode_getElementName,
   vnode_getFirstChild,
@@ -101,8 +99,6 @@ import { clearAllEffects } from '../signal/signal-cleanup';
 import { serializeAttribute } from '../shared/utils/styles';
 import { QError, qError } from '../shared/error/error';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
-
-export type ComponentQueue = Array<VNode>;
 
 export const vnode_diff = (
   container: ClientContainer,
@@ -806,7 +802,7 @@ export const vnode_diff = (
     }
   }
 
-  /** @param tag Returns true if `qDispatchEvent` needs patching */
+  /** @returns True if `qDispatchEvent` needs patching */
   function setBulkProps(
     vnode: ElementVNode,
     srcAttrs: ClientAttrs,
@@ -974,6 +970,7 @@ export const vnode_diff = (
    * By retrieving the child with the given key we are effectively removing it from the list (hence
    * we need to splice the `vSiblings` array).
    *
+   * @param nodeName
    * @param key
    * @returns Array where: (see: `SiblingsArray`)
    *
@@ -1200,14 +1197,6 @@ export const vnode_diff = (
       vCurrent
     );
   }
-};
-
-export const isQStyleVNode = (vNode: VNode): boolean => {
-  return (
-    vnode_isElementVNode(vNode) &&
-    vnode_getElementName(vNode) === 'style' &&
-    vnode_getAttr(vNode, QStyle) !== null
-  );
 };
 
 /**

@@ -10,7 +10,6 @@ import {
   ResourceEvent,
   TaskEvent,
 } from '../shared/utils/markers';
-import { isPromise } from '../shared/utils/promises';
 import { seal } from '../shared/utils/qdev';
 import { isArray } from '../shared/utils/types';
 import { setLocale } from './use-locale';
@@ -32,18 +31,6 @@ declare const document: QwikDocument;
 
 // Simplified version of `ServerRequestEvent` from `@qwik.dev/router` package.
 export interface SimplifiedServerRequestEvent<T = unknown> {
-  url: URL;
-  locale: string | undefined;
-  request: Request;
-}
-
-export interface StyleAppend {
-  styleId: string;
-  content: string | null;
-}
-
-// Simplified version of `ServerRequestEvent` from `@qwik.dev/router` package.
-export interface ServerRequestEvent<T = unknown> {
   url: URL;
   locale: string | undefined;
   request: Request;
@@ -162,18 +149,6 @@ export function invokeApply<FN extends (...args: any) => any>(
   }
   return returnValue;
 }
-
-export const waitAndRun = (ctx: RenderInvokeContext, callback: () => unknown) => {
-  const waitOn = ctx.$waitOn$;
-  if (waitOn.length === 0) {
-    const result = callback();
-    if (isPromise(result)) {
-      waitOn.push(result);
-    }
-  } else {
-    waitOn.push(Promise.all(waitOn).then(callback));
-  }
-};
 
 export const newInvokeContextFromTuple = ([element, event, url]: InvokeTuple) => {
   const domContainer = getDomContainer(element);

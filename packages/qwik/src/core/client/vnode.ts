@@ -124,12 +124,14 @@ import { QError, qError } from '../shared/error/error';
 import { DEBUG_TYPE, QContainerValue, VirtualType, VirtualTypeName } from '../shared/types';
 import { isText } from '../shared/utils/element';
 import {
+  dangerouslySetInnerHTML,
   ELEMENT_ID,
   ELEMENT_KEY,
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
   OnRenderProp,
+  Q_PROPS_SEPARATOR,
   QContainerAttr,
   QContainerAttrEnd,
   QContainerIsland,
@@ -142,27 +144,25 @@ import {
   QSlotParent,
   QStyle,
   QStylesAllSelector,
-  Q_PROPS_SEPARATOR,
-  dangerouslySetInnerHTML,
 } from '../shared/utils/markers';
 import { isHtmlElement } from '../shared/utils/types';
 import { VNodeDataChar } from '../shared/vnode-data-types';
 import { getDomContainer } from './dom-container';
 import { mapApp_findIndx, mapArray_get, mapArray_set } from './util-mapArray';
 import {
-  ElementVNodeProps,
-  TextVNodeProps,
-  VNodeFlags,
-  VNodeFlagsIndex,
-  VNodeProps,
-  VirtualVNodeProps,
   type ClientContainer,
   type ContainerElement,
   type ElementVNode,
+  ElementVNodeProps,
   type QDocument,
   type TextVNode,
-  type VNode,
+  TextVNodeProps,
   type VirtualVNode,
+  VirtualVNodeProps,
+  type VNode,
+  VNodeFlags,
+  VNodeFlagsIndex,
+  VNodeProps,
 } from './types';
 import {
   vnode_getDomChildrenWithCorrectNamespacesToInsert,
@@ -1131,17 +1131,6 @@ export const vnode_truncate = (
   vParent[ElementVNodeProps.lastChild] = vPrevious;
 };
 
-export const vnode_isChildOf = (vParent: VNode, vChild: VNode): boolean => {
-  let vNode = vChild;
-  while (vNode) {
-    if (vNode === vParent) {
-      return true;
-    }
-    vNode = vnode_getParent(vNode)!;
-  }
-  return false;
-};
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const vnode_getElementName = (vnode: ElementVNode): string => {
@@ -1888,7 +1877,7 @@ const isElement = (node: any): node is Element =>
  * parents.
  *
  * However, if during traversal we encounter a projection, than we have to follow the projection,
- * and nod weth the projection component is further away (it is the parent's parent of the
+ * and node with the projection component is further away (it is the parent's parent of the
  * projection's)
  *
  * So in general we have to go up as many parent components as there are projections nestings.
@@ -1899,7 +1888,7 @@ const isElement = (node: any): node is Element =>
  * - And so on.
  *
  * @param vHost
- * @param getObjectById
+ * @param rootVNode
  * @returns
  */
 export const vnode_getProjectionParentComponent = (
@@ -1929,7 +1918,7 @@ export const vnode_getProjectionParentComponent = (
   return vHost as VirtualVNode | null;
 };
 
-const VNodeArray = class VNode extends Array {
+const VNodeArray = class VNode extends Array<any> {
   static createElement(
     flags: VNodeFlags,
     parent: VNode | null,
@@ -1940,7 +1929,7 @@ const VNodeArray = class VNode extends Array {
     element: Element,
     elementName: string | undefined
   ) {
-    const vnode = new VNode(
+    return new VNode(
       flags,
       parent,
       previousSibling,
@@ -1950,8 +1939,7 @@ const VNodeArray = class VNode extends Array {
       element,
       elementName,
       []
-    ) as any;
-    return vnode;
+    ) as ElementVNode;
   }
 
   static createText(
@@ -1962,8 +1950,7 @@ const VNodeArray = class VNode extends Array {
     textNode: Text | null,
     text: string | undefined
   ) {
-    const vnode = new VNode(flags, parent, previousSibling, nextSibling, textNode, text) as any;
-    return vnode;
+    return new VNode(flags, parent, previousSibling, nextSibling, textNode, text) as TextVNode;
   }
 
   static createVirtual(
@@ -1974,7 +1961,7 @@ const VNodeArray = class VNode extends Array {
     firstChild: VNode | null,
     lastChild: VNode | null
   ) {
-    const vnode = new VNode(
+    return new VNode(
       flags,
       parent,
       previousSibling,
@@ -1982,8 +1969,7 @@ const VNodeArray = class VNode extends Array {
       firstChild,
       lastChild,
       []
-    ) as any;
-    return vnode;
+    ) as VirtualVNode;
   }
 
   constructor(
@@ -1993,7 +1979,6 @@ const VNodeArray = class VNode extends Array {
     nextSibling: VNode | null | undefined,
     ...rest: (VNode | Element | Text | string | null | undefined)[]
   ) {
-    // @ts-expect-error
     super(flags, parent, previousSibling, nextSibling, ...rest);
     if (isDev) {
       this.toString = vnode_toString;

@@ -916,8 +916,32 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
   // order by discovery time, so that related segments are more likely to group together
   function manualChunks(id: string, { getModuleInfo }: Rollup.ManualChunkMeta) {
     const module = getModuleInfo(id)!;
-    const segment = module.meta.segment as SegmentAnalysis | undefined;
-    return segment?.entry;
+    const segment = module.meta.segment;
+
+    // We need to specifically return segment.entry for qwik-insights
+    if (segment) {
+      return segment.entry;
+    }
+
+    if (id.includes('node_modules')) {
+      return null;
+    }
+
+    // Patch to prevent over-prefetching, we must clearly separate .tsx/.jsx chunks so that rollup doesn't mix random imports into non-entry files such as hooks.
+    // Maybe a better solution would be to mark those files as entires earlier in the chain so that we can remove this check and the one above altogether.
+    // We check .(tsx|jsx) after node_modules in case some node_modules end with .jsx or .tsx.
+    if (/\.(tsx|jsx)$/.test(id)) {
+      const optimizer = getOptimizer();
+      const path = optimizer.sys.path;
+      const relativePath = path.relative(optimizer.sys.cwd(), id);
+      const sanitizedPath = relativePath
+        .replace(/^(\.\.\/)+/, '')
+        .replace(/^\/+/, '')
+        .replace(/\//g, '-');
+      return sanitizedPath; // We return sanitizedPath for qwikVite plugin with debug:true
+    }
+
+    return null;
   }
 
   return {

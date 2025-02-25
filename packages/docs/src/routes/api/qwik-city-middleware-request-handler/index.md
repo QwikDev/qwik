@@ -864,6 +864,19 @@ Description
 </td><td>
 
 </td></tr>
+<tr><td>
+
+[resolveValue](#)
+
+</td><td>
+
+</td><td>
+
+[ResolveValue](#resolvevalue)
+
+</td><td>
+
+</td></tr>
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)

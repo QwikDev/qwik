@@ -310,8 +310,14 @@ describe('serializer v2', () => {
 
     describe('ErrorSerializer, ///////// ' + TypeIds.Error, () => {
       it('should serialize and deserialize', async () => {
-        const obj = Object.assign(new Error('MyError'), { extra: 'property' });
-        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
+        const date = new Date();
+        const obj = Object.assign(new Error('MyError'), {
+          extra: { foo: ['bar', { hi: true }], bar: date },
+        });
+        const result = (await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0);
+        expect(result.message).toEqual(obj.message);
+        expect(result.extra.foo).toEqual(['bar', { hi: true }]);
+        expect(result.extra.bar).toEqual(date);
       });
     });
 

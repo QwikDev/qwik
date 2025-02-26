@@ -167,6 +167,7 @@ describe('shared-serialization', () => {
         "
         0 Error [
           String "hi"
+          String "stack"
           String "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\"...
         ]
         (x chars)"
@@ -176,10 +177,9 @@ describe('shared-serialization', () => {
         "
         0 Error [
           String "hi"
-          Array [
-            String "extra"
-            String "yey"
-          ]
+          String "extra"
+          String "yey"
+          String "stack"
           String "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\"...
         ]
         (x chars)"

@@ -16,6 +16,8 @@ import {
   Signal,
   SubscriptionData,
   WrappedSignal,
+  SignalFlags,
+  type AllSignalFlags,
 } from '../signal/signal';
 import {
   getOrCreateStore,
@@ -271,6 +273,7 @@ const inflate = (
         unknown[],
         Map<EffectProperty | string, EffectSubscription> | null,
         unknown,
+        AllSignalFlags,
         HostElement,
         ...EffectSubscription[],
       ];
@@ -278,8 +281,9 @@ const inflate = (
       signal.$args$ = d[1];
       signal[_EFFECT_BACK_REF] = d[2];
       signal.$untrackedValue$ = d[3];
-      signal.$hostElement$ = d[4];
-      signal.$effects$ = new Set(d.slice(5) as EffectSubscription[]);
+      signal.$flags$ = d[4];
+      signal.$hostElement$ = d[5];
+      signal.$effects$ = new Set(d.slice(6) as EffectSubscription[]);
       break;
     }
     case TypeIds.ComputedSignal: {
@@ -290,7 +294,7 @@ const inflate = (
       if (d.length === 3) {
         computed.$untrackedValue$ = d[2];
       } else {
-        computed.$invalid$ = true;
+        computed.$flags$ |= SignalFlags.INVALID;
         /**
          * If we try to compute value and the qrl is not resolved, then system throws an error with
          * qrl promise. To prevent that we should early resolve computed qrl while computed
@@ -828,7 +832,8 @@ export const createSerializationContext = (
         const v =
           obj instanceof WrappedSignal
             ? obj.untrackedValue
-            : obj instanceof ComputedSignal && (obj.$invalid$ || fastSkipSerialize(obj))
+            : obj instanceof ComputedSignal &&
+                (obj.$flags$ & SignalFlags.INVALID || fastSkipSerialize(obj))
               ? NEEDS_COMPUTATION
               : obj.$untrackedValue$;
         if (v !== NEEDS_COMPUTATION) {
@@ -1172,7 +1177,7 @@ function serialize(serializationContext: SerializationContext): void {
        */
       const v =
         value instanceof ComputedSignal &&
-        (value.$invalid$ || fastSkipSerialize(value.$untrackedValue$))
+        (value.$flags$ & SignalFlags.INVALID || fastSkipSerialize(value.$untrackedValue$))
           ? NEEDS_COMPUTATION
           : value.$untrackedValue$;
 
@@ -1181,6 +1186,7 @@ function serialize(serializationContext: SerializationContext): void {
           ...serializeWrappingFn(serializationContext, value),
           filterEffectBackRefs(value[_EFFECT_BACK_REF]),
           v,
+          value.$flags$,
           value.$hostElement$,
           ...(value.$effects$ || []),
         ]);

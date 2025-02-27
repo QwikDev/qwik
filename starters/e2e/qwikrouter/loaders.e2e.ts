@@ -119,5 +119,10 @@ test.describe("loaders", () => {
         ]);
       }
     });
+
+    test("should work loader result as component prop", async ({ page }) => {
+      await page.goto("/qwikrouter-test/loaders/prop");
+      await expect(page.locator("#prop")).toHaveText("test");
+    });
   }
 });

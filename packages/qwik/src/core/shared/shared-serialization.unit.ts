@@ -366,6 +366,7 @@ describe('shared-serialization', () => {
           ]
           Constant null
           Number 4
+          Number 3
           Constant null
         ]
         1 WrappedSignal [
@@ -375,9 +376,10 @@ describe('shared-serialization', () => {
           ]
           Constant null
           Constant undefined
+          Number 3
           Constant null
         ]
-        (61 chars)"
+        (69 chars)"
       `);
     });
     it(title(TypeIds.ComputedSignal), async () => {

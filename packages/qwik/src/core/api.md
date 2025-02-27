@@ -1780,6 +1780,9 @@ export const _wrapProp: <T extends Record<any, any>, P extends keyof T>(args_0: 
 // @internal @deprecated (undocumented)
 export const _wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;
 
+// @internal (undocumented)
+export const _wrapStore: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => Signal<T>;
+
 // (No @packageDocumentation comment for this package)
 
 ```

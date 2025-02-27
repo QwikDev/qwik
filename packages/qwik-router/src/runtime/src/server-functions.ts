@@ -12,7 +12,7 @@ import {
   _getContextElement,
   _getContextEvent,
   _serialize,
-  _wrapProp,
+  _wrapStore,
 } from '@qwik.dev/core/internal';
 
 import * as v from 'valibot';
@@ -202,7 +202,7 @@ export const routeLoaderQrl = ((
     If your are managing reusable logic or a library it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception.
     For more information check: https://qwik.dev/docs/re-exporting-loaders/`);
       }
-      return _wrapProp(state, id);
+      return _wrapStore(state, id);
     });
   }
   loader.__brand = 'server_loader' as const;

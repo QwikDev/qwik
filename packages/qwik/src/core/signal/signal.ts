@@ -49,6 +49,17 @@ export interface InternalSignal<T = any> extends InternalReadonlySignal<T> {
   untrackedValue: T;
 }
 
+export const enum SignalFlags {
+  INVALID = 1,
+}
+
+export const enum WrappedSignalFlags {
+  // should subscribe to value and be unwrapped for PropsProxy
+  UNWRAP = 2,
+}
+
+export type AllSignalFlags = SignalFlags | WrappedSignalFlags;
+
 export const throwIfQRLNotResolved = <T>(qrl: QRL<() => T>) => {
   const resolved = qrl.resolved;
   if (!resolved) {
@@ -215,7 +226,7 @@ export class Signal<T = any> implements ISignal<T> {
 
   toString() {
     return (
-      `[${this.constructor.name}${(this as any).$invalid$ ? ' INVALID' : ''} ${String(this.$untrackedValue$)}]` +
+      `[${this.constructor.name}${(this as any).$flags$ & SignalFlags.INVALID ? ' INVALID' : ''} ${String(this.$untrackedValue$)}]` +
       (Array.from(this.$effects$ || [])
         .map((e) => '\n -> ' + pad(qwikDebugToString(e[0]), '    '))
         .join('\n') || '')
@@ -336,21 +347,26 @@ export class ComputedSignal<T> extends Signal<T> implements BackRef {
    * resolve the QRL during the mark dirty phase so that any call to it will be synchronous). )
    */
   $computeQrl$: QRLInternal<() => T>;
-  // We need a separate flag to know when the computation needs running because
-  // we need the old value to know if effects need running after computation
-  $invalid$: boolean = true;
+  $flags$: SignalFlags;
   $forceRunEffects$: boolean = false;
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null = null;
 
-  constructor(container: Container | null, fn: QRLInternal<() => T>) {
+  constructor(
+    container: Container | null,
+    fn: QRLInternal<() => T>,
+    // We need a separate flag to know when the computation needs running because
+    // we need the old value to know if effects need running after computation
+    flags = SignalFlags.INVALID
+  ) {
     // The value is used for comparison when signals trigger, which can only happen
     // when it was calculated before. Therefore we can pass whatever we like.
     super(container, NEEDS_COMPUTATION);
     this.$computeQrl$ = fn;
+    this.$flags$ = flags;
   }
 
   $invalidate$() {
-    this.$invalid$ = true;
+    this.$flags$ |= SignalFlags.INVALID;
     this.$forceRunEffects$ = false;
     // We should only call subscribers if the calculation actually changed.
     // Therefore, we need to calculate the value now.
@@ -362,7 +378,7 @@ export class ComputedSignal<T> extends Signal<T> implements BackRef {
    * remained the same object
    */
   force() {
-    this.$invalid$ = true;
+    this.$flags$ |= SignalFlags.INVALID;
     this.$forceRunEffects$ = false;
     triggerEffects(this.$container$, this, this.$effects$);
   }
@@ -377,7 +393,7 @@ export class ComputedSignal<T> extends Signal<T> implements BackRef {
   }
 
   $computeIfNeeded$() {
-    if (!this.$invalid$) {
+    if (!(this.$flags$ & SignalFlags.INVALID)) {
       return false;
     }
     const computeQrl = this.$computeQrl$;
@@ -395,7 +411,8 @@ export class ComputedSignal<T> extends Signal<T> implements BackRef {
         ]);
       }
       DEBUG && log('Signal.$compute$', untrackedValue);
-      this.$invalid$ = false;
+
+      this.$flags$ &= ~SignalFlags.INVALID;
 
       const didChange = untrackedValue !== this.$untrackedValue$;
       if (didChange) {
@@ -424,9 +441,7 @@ export class WrappedSignal<T> extends Signal<T> implements BackRef {
   $func$: (...args: any[]) => T;
   $funcStr$: string | null;
 
-  // We need a separate flag to know when the computation needs running because
-  // we need the old value to know if effects need running after computation
-  $invalid$: boolean = true;
+  $flags$: AllSignalFlags;
   $hostElement$: HostElement | null = null;
   $forceRunEffects$: boolean = false;
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null = null;
@@ -435,16 +450,20 @@ export class WrappedSignal<T> extends Signal<T> implements BackRef {
     container: Container | null,
     fn: (...args: any[]) => T,
     args: any[],
-    fnStr: string | null
+    fnStr: string | null,
+    // We need a separate flag to know when the computation needs running because
+    // we need the old value to know if effects need running after computation
+    flags: SignalFlags = SignalFlags.INVALID | WrappedSignalFlags.UNWRAP
   ) {
     super(container, NEEDS_COMPUTATION);
     this.$args$ = args;
     this.$func$ = fn;
     this.$funcStr$ = fnStr;
+    this.$flags$ = flags;
   }
 
   $invalidate$() {
-    this.$invalid$ = true;
+    this.$flags$ |= SignalFlags.INVALID;
     this.$forceRunEffects$ = false;
     // We should only call subscribers if the calculation actually changed.
     // Therefore, we need to calculate the value now.
@@ -460,7 +479,7 @@ export class WrappedSignal<T> extends Signal<T> implements BackRef {
    * remained the same object
    */
   force() {
-    this.$invalid$ = true;
+    this.$flags$ |= SignalFlags.INVALID;
     this.$forceRunEffects$ = false;
     triggerEffects(this.$container$, this, this.$effects$);
   }
@@ -475,7 +494,7 @@ export class WrappedSignal<T> extends Signal<T> implements BackRef {
   }
 
   $computeIfNeeded$() {
-    if (!this.$invalid$) {
+    if (!(this.$flags$ & SignalFlags.INVALID)) {
       return false;
     }
     const untrackedValue = trackSignal(
@@ -484,6 +503,8 @@ export class WrappedSignal<T> extends Signal<T> implements BackRef {
       EffectProperty.VNODE,
       this.$container$!
     );
+    // TODO: we should remove invalid flag here
+    // this.$flags$ &= ~SignalFlags.INVALID;
     const didChange = untrackedValue !== this.$untrackedValue$;
     if (didChange) {
       this.$untrackedValue$ = untrackedValue;

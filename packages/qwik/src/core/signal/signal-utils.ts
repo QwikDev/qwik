@@ -1,8 +1,8 @@
 import { _CONST_PROPS, _IMMUTABLE } from '../shared/utils/constants';
 import { assertEqual } from '../shared/error/assert';
 import { isObject } from '../shared/utils/types';
-import { WrappedSignal } from './signal';
-import { isSignal } from './signal.public';
+import { SignalFlags, WrappedSignal } from './signal';
+import { isSignal, type Signal } from './signal.public';
 import { getStoreTarget } from './store';
 import { isPropsProxy } from '../shared/jsx/jsx-runtime';
 
@@ -57,6 +57,20 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(...args
   }
   // We need to forward the access to the original object
   return getWrapped(args);
+};
+
+/** @internal */
+export const _wrapStore = <T extends Record<any, any>, P extends keyof T>(
+  obj: T,
+  prop: P
+): Signal<T> => {
+  const target = getStoreTarget(obj)!;
+  const value = target[prop];
+  if (isSignal(value)) {
+    return value;
+  } else {
+    return new WrappedSignal(null, getProp, [obj, prop], null, SignalFlags.INVALID);
+  }
 };
 
 /** @internal @deprecated v1 compat */

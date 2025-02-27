@@ -19,6 +19,7 @@ import { createComputed$, createSignal } from '../signal/signal.public';
 import { constPropsToSsrAttrs, varPropsToSsrAttrs } from '../ssr/ssr-render-jsx';
 import { type SSRContainer } from '../ssr/ssr-types';
 import { _qrlSync } from '../shared/qrl/qrl.public';
+import { SignalFlags } from '../signal/signal';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -458,7 +459,7 @@ describe('serializer v2', () => {
         });
         const got = container.$getObjectById$(0);
         expect(got.$untrackedValue$).toMatchInlineSnapshot(`Symbol(invalid)`);
-        expect(got.$invalid$).toBe(true);
+        expect(!!(got.$flags$ & SignalFlags.INVALID)).toBe(true);
         expect(got.value).toBe('test!');
       });
     });

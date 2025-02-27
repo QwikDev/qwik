@@ -11,7 +11,13 @@ import type { Container, HostElement } from '../shared/types';
 import { isPromise } from '../shared/utils/promises';
 import { invoke, newInvokeContext } from '../use/use-core';
 import { Task } from '../use/use-task';
-import { EffectProperty, type InternalReadonlySignal, type InternalSignal } from './signal';
+import {
+  EffectProperty,
+  SignalFlags,
+  type ComputedSignal,
+  type InternalReadonlySignal,
+  type InternalSignal,
+} from './signal';
 import { createComputedQrl, createSignal } from './signal.public';
 import { getSubscriber } from './subscriber';
 
@@ -114,7 +120,7 @@ describe('v2-signal', () => {
         expect(log).toEqual([1]);
         expect(obj.count).toBe(1);
         // mark dirty but value remains shallow same after calc
-        (computed as any).$invalid$ = true;
+        (computed as ComputedSignal<any>).$flags$ |= SignalFlags.INVALID;
         computed.value.count;
         await flushSignals();
         expect(log).toEqual([1]);

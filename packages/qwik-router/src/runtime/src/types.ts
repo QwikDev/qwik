@@ -262,8 +262,20 @@ export type RouteData =
       routeBundleNames: string[],
     ];
 
+export const enum RouteDataProp {
+  RouteName,
+  Loaders,
+  OriginalPathname,
+  RouteBundleNames,
+}
+
 /** @public */
 export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
+
+export const enum MenuDataProp {
+  Pathname,
+  MenuLoader,
+}
 
 /**
  * @deprecated Use `QwikRouterConfig` instead. Will be removed in V3.
@@ -296,15 +308,13 @@ export type LoadedRoute = [
   routeBundleNames: string[] | undefined,
 ];
 
-export interface LoadedContent extends LoadedRoute {
-  pageModule: PageModule;
+export const enum LoadedRouteProp {
+  RouteName,
+  Params,
+  Mods,
+  Menu,
+  RouteBundleNames,
 }
-
-export type RequestHandlerBody<BODY> = BODY | string | number | boolean | undefined | null | void;
-
-export type RequestHandlerBodyFunction<BODY> = () =>
-  | RequestHandlerBody<BODY>
-  | Promise<RequestHandlerBody<BODY>>;
 
 export interface EndpointResponse {
   status: number;
@@ -669,8 +679,6 @@ export type LoaderConstructorQRL = {
     ...rest: REST
   ): Loader<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
 };
-
-export type LoaderStateHolder = Record<string, Signal<unknown>>;
 
 /** @public */
 export type ActionReturn<RETURN> = {

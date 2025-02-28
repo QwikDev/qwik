@@ -1,6 +1,6 @@
 import type { QRL } from '@qwik.dev/core';
 import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
-import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
+import { QACTION_KEY, QFN_KEY, QLOADER_KEY } from '../../runtime/src/constants';
 import type {
   ActionInternal,
   ClientPageData,
@@ -92,7 +92,8 @@ export const resolveRequestHandlers = (
         // Set the current route name
         ev.sharedMap.set(RequestRouteName, routeName);
       });
-      requestHandlers.push(actionsMiddleware(routeActions, routeLoaders) as any);
+      requestHandlers.push(actionsMiddleware(routeActions));
+      requestHandlers.push(loadersMiddleware(routeLoaders));
       requestHandlers.push(renderHandler);
     }
   }
@@ -171,8 +172,9 @@ export const checkBrand = (obj: any, brand: string) => {
   return obj && typeof obj === 'function' && obj.__brand === brand;
 };
 
-export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: LoaderInternal[]) {
-  return async (requestEv: RequestEventInternal) => {
+export function actionsMiddleware(routeActions: ActionInternal[]): RequestHandler {
+  return async (requestEvent: RequestEvent) => {
+    const requestEv = requestEvent as RequestEventInternal;
     if (requestEv.headersSent) {
       requestEv.exit();
       return;
@@ -222,49 +224,89 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
         }
       }
     }
+  };
+}
 
+export function loadersMiddleware(routeLoaders: LoaderInternal[]): RequestHandler {
+  return async (requestEvent: RequestEvent) => {
+    const requestEv = requestEvent as RequestEventInternal;
+    if (requestEv.headersSent) {
+      requestEv.exit();
+      return;
+    }
+    const loaders = getRequestLoaders(requestEv);
+    const isDev = getRequestMode(requestEv) === 'dev';
+    const qwikSerializer = requestEv[RequestEvQwikSerializer];
     if (routeLoaders.length > 0) {
-      const resolvedLoadersPromises = routeLoaders.map((loader) => {
-        const loaderId = loader.__id;
-        loaders[loaderId] = runValidators(
-          requestEv,
-          loader.__validators,
-          undefined, // data
-          isDev
-        )
-          .then((res) => {
-            if (res.success) {
-              if (isDev) {
-                return measure<Promise<unknown>>(
-                  requestEv,
-                  loader.__qrl.getSymbol().split('_', 1)[0],
-                  () => loader.__qrl.call(requestEv, requestEv)
-                );
-              } else {
-                return loader.__qrl.call(requestEv, requestEv);
-              }
-            } else {
-              return requestEv.fail(res.status ?? 500, res.error);
-            }
-          })
-          .then((resolvedLoader) => {
-            if (typeof resolvedLoader === 'function') {
-              loaders[loaderId] = resolvedLoader();
-            } else {
-              if (isDev) {
-                verifySerializable(qwikSerializer, resolvedLoader, loader.__qrl);
-              }
-              loaders[loaderId] = resolvedLoader;
-            }
-            return resolvedLoader;
-          });
+      let currentLoaders: LoaderInternal[] = [];
+      if (requestEv.query.has(QLOADER_KEY)) {
+        const selectedLoaderIds = requestEv.query.getAll(QLOADER_KEY);
+        const skippedLoaders: LoaderInternal[] = [];
+        for (const loader of routeLoaders) {
+          if (selectedLoaderIds.includes(loader.__id)) {
+            currentLoaders.push(loader);
+          } else {
+            skippedLoaders.push(loader);
+          }
+        }
 
-        return loaders[loaderId];
-      });
-
+        // mark skipped loaders as null
+        for (const skippedLoader of skippedLoaders) {
+          loaders[skippedLoader.__id] = null;
+        }
+      } else {
+        currentLoaders = routeLoaders;
+      }
+      const resolvedLoadersPromises = currentLoaders.map((loader) =>
+        getRouteLoaderPromise(loader, loaders, requestEv, isDev, qwikSerializer)
+      );
       await Promise.all(resolvedLoadersPromises);
     }
   };
+}
+
+async function getRouteLoaderPromise(
+  loader: LoaderInternal,
+  loaders: Record<string, unknown>,
+  requestEv: RequestEventInternal,
+  isDev: boolean,
+  qwikSerializer: QwikSerializer
+) {
+  const loaderId = loader.__id;
+  loaders[loaderId] = runValidators(
+    requestEv,
+    loader.__validators,
+    undefined, // data
+    isDev
+  )
+    .then((res) => {
+      if (res.success) {
+        if (isDev) {
+          return measure<Promise<unknown>>(
+            requestEv,
+            loader.__qrl.getSymbol().split('_', 1)[0],
+            () => loader.__qrl.call(requestEv, requestEv)
+          );
+        } else {
+          return loader.__qrl.call(requestEv, requestEv);
+        }
+      } else {
+        return requestEv.fail(res.status ?? 500, res.error);
+      }
+    })
+    .then((resolvedLoader) => {
+      if (typeof resolvedLoader === 'function') {
+        loaders[loaderId] = resolvedLoader();
+      } else {
+        if (isDev) {
+          verifySerializable(qwikSerializer, resolvedLoader, loader.__qrl);
+        }
+        loaders[loaderId] = resolvedLoader;
+      }
+      return resolvedLoader;
+    });
+
+  return loaders[loaderId];
 }
 
 async function runValidators(
@@ -418,7 +460,7 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
     }
   }
   // strip internal search params
-  const search = url.search.slice(1).replaceAll(/&?q(action|data|func)=[^&]+/g, '');
+  const search = url.search.slice(1).replaceAll(/&?q(action|data|func|loader)=[^&]+/g, '');
   return `${url.pathname}${search ? `?${search}` : ''}${url.hash}`;
 }
 

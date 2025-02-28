@@ -16,7 +16,9 @@
   "branch": "build/v2",
   "changesets": [
     "afraid-bags-jam",
+    "afraid-garlics-greet",
     "angry-grapes-itch",
+    "blue-beans-happen",
     "brave-files-grin",
     "brown-ravens-behave",
     "calm-cycles-know",
@@ -25,6 +27,7 @@
     "fast-baboons-itch",
     "few-mugs-accept",
     "five-kangaroos-matter",
+    "five-shoes-deny",
     "forty-garlics-train",
     "fresh-rocks-exercise",
     "friendly-gorillas-walk",
@@ -41,7 +44,7 @@
     "long-shirts-thank",
     "loud-dolphins-relate",
     "mean-dingos-hug",
-    "neat-maps-tickle",
+    "mean-parents-buy",
     "nervous-terms-explode",
     "nine-otters-repeat",
     "old-mayflies-fetch",
@@ -51,7 +54,9 @@
     "purple-melons-invent",
     "red-trains-deny",
     "rich-wasps-tease",
+    "rotten-penguins-cough",
     "rotten-weeks-tickle",
+    "seven-pumpkins-argue",
     "shaggy-poems-appear",
     "shaggy-poems-return",
     "sharp-apples-relate",
@@ -60,6 +65,7 @@
     "sour-zebras-tell",
     "sweet-socks-whisper",
     "swift-flowers-juggle",
+    "tasty-penguins-ring",
     "thirty-ravens-draw",
     "tiny-berries-bow",
     "tricky-meals-heal",
@@ -67,6 +73,7 @@
     "unlucky-dodos-grab",
     "warm-camels-remain",
     "wild-cooks-pay",
-    "witty-balloons-thank"
+    "witty-balloons-thank",
+    "young-cameras-hang"
   ]
 }

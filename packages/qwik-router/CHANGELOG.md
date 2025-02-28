@@ -1,5 +1,11 @@
 # @qwik.dev/city
 
+## 2.0.0-alpha.8
+
+### Patch Changes
+
+- 🐞🩹 using routeLoader$ result as component prop (by [@Varixo](https://github.com/Varixo) in [#7384](https://github.com/QwikDev/qwik/pull/7384))
+
 ## 2.0.0-alpha.7
 
 ## 2.0.0-alpha.6

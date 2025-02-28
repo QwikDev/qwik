@@ -1,5 +1,5 @@
-import { component$, Slot, useContext, useStyles$ } from '@builder.io/qwik';
-import { useContent, useLocation } from '@builder.io/qwik-city';
+import { useContent, useLocation } from '@qwik.dev/router';
+import { component$, Slot, useContext, useStyles$ } from '@qwik.dev/core';
 import { ContentNav } from '../../components/content-nav/content-nav';
 import Contributors from '../../components/contributors';
 import { Footer } from '../../components/footer/footer';

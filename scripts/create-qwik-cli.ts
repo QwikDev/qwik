@@ -106,11 +106,11 @@ async function updateBaseVersions(config: BuildConfig, version: string) {
   baseAppPkg.devDependencies = baseAppPkg.devDependencies || {};
 
   const semverQwik = config.devRelease ? `${version}` : `^${version}`;
-  console.log(`   update devDependencies["@builder.io/qwik"] = "${semverQwik}"`);
-  baseAppPkg.devDependencies['@builder.io/qwik'] = semverQwik;
+  console.log(`   update devDependencies["@qwik.dev/core"] = "${semverQwik}"`);
+  baseAppPkg.devDependencies['@qwik.dev/core'] = semverQwik;
 
-  console.log(`   update devDependencies["@builder.io/qwik-city"] = "${semverQwik}"`);
-  baseAppPkg.devDependencies['@builder.io/qwik-city'] = semverQwik;
+  console.log(`   update devDependencies["@qwik.dev/router"] = "${semverQwik}"`);
+  baseAppPkg.devDependencies['@qwik.dev/router'] = semverQwik;
 
   console.log(`   update devDependencies["eslint-plugin-qwik"] = "${semverQwik}"`);
   baseAppPkg.devDependencies['eslint-plugin-qwik'] = semverQwik;
@@ -205,8 +205,8 @@ async function updatePackageJson(config: BuildConfig, destDir: string) {
     }
   };
 
-  if (pkgJson.devDependencies && pkgJson.devDependencies['@builder.io/qwik']) {
-    pkgJson.devDependencies['@builder.io/qwik'] = qwikVersion;
+  if (pkgJson.devDependencies && pkgJson.devDependencies['@qwik.dev/core']) {
+    pkgJson.devDependencies['@qwik.dev/core'] = qwikVersion;
   }
 
   if (pkgJson.devDependencies && pkgJson.devDependencies['eslint-plugin-qwik']) {
@@ -221,7 +221,6 @@ async function updatePackageJson(config: BuildConfig, destDir: string) {
   setVersionFromRoot('prettier');
   setVersionFromRoot('typescript');
   setVersionFromRoot('node-fetch');
-  setVersionFromRoot('undici');
   setVersionFromRoot('vite');
 
   await writePackageJson(destDir, pkgJson);

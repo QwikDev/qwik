@@ -1,16 +1,13 @@
 import { rmSync } from 'fs';
 import { copyFile, watch } from 'fs/promises';
 import { join } from 'path';
-import { apiExtractorQwik, apiExtractorQwikCity } from './api';
+import { apiExtractorQwik, apiExtractorQwikRouter } from './api';
 import { buildPlatformBinding, copyPlatformBindingWasm } from './binding-platform';
 import { buildWasmBinding } from './binding-wasm';
 import { buildCreateQwikCli } from './create-qwik-cli';
 import { buildEslint } from './eslint';
-import { buildQwikAuth } from './qwik-auth';
-import { buildQwikCity } from './qwik-city';
-import { buildQwikLabs } from './qwik-labs';
 import { buildQwikReact } from './qwik-react';
-import { buildQwikWorker } from './qwik-worker';
+import { buildQwikRouter } from './qwik-router';
 import {
   commitPrepareReleaseVersion,
   prepareReleaseVersion,
@@ -21,13 +18,14 @@ import {
 import { submoduleBuild } from './submodule-build';
 import { submoduleCli } from './submodule-cli';
 import { submoduleCore } from './submodule-core';
+import { submoduleInsights } from './submodule-insights';
 import { submoduleOptimizer } from './submodule-optimizer';
 import { submoduleQwikLoader } from './submodule-qwikloader';
 import { submoduleQwikPrefetch } from './submodule-qwikprefetch';
 import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
 import { buildSupabaseAuthHelpers } from './supabase-auth-helpers';
-import { tsc, tscQwik, tscQwikCity } from './tsc';
+import { tsc, tscQwik, tscQwikRouter } from './tsc';
 import { tscDocs } from './tsc-docs';
 import { emptyDir, ensureDir, panic, type BuildConfig } from './util';
 import { validateBuild } from './validate-build';
@@ -69,7 +67,6 @@ export async function build(config: BuildConfig) {
       } else {
         emptyDir(config.distQwikPkgDir);
       }
-
       await Promise.all([
         submoduleCore(config),
         submoduleQwikLoader(config),
@@ -78,7 +75,11 @@ export async function build(config: BuildConfig) {
         submoduleTesting(config),
         submoduleCli(config),
       ]);
-
+    }
+    if (config.insights) {
+      await submoduleInsights(config);
+    }
+    if (config.qwik) {
       // server bundling must happen after the results from the others
       // because it inlines the qwik loader and prefetch scripts
       await Promise.all([submoduleServer(config), submoduleOptimizer(config)]);
@@ -103,16 +104,16 @@ export async function build(config: BuildConfig) {
       await buildWasmBinding(config);
     }
 
-    if (config.tsc || (!config.dev && config.qwikcity)) {
-      await tscQwikCity(config);
+    if (config.tsc || (!config.dev && config.qwikrouter)) {
+      await tscQwikRouter(config);
     }
 
-    if (config.qwikcity) {
-      await buildQwikCity(config);
+    if (config.qwikrouter) {
+      await buildQwikRouter(config);
     }
 
-    if (config.api || ((!config.dev || config.tsc) && config.qwikcity)) {
-      await apiExtractorQwikCity(config);
+    if (config.api || ((!config.dev || config.tsc) && config.qwikrouter)) {
+      await apiExtractorQwikRouter(config);
     }
 
     if (config.tsc) {
@@ -125,18 +126,6 @@ export async function build(config: BuildConfig) {
 
     if (config.qwikreact) {
       await buildQwikReact(config);
-    }
-
-    if (config.qwikauth) {
-      await buildQwikAuth(config);
-    }
-
-    if (config.qwikworker) {
-      await buildQwikWorker(config);
-    }
-
-    if (config.qwiklabs) {
-      await buildQwikLabs(config);
     }
 
     if (config.supabaseauthhelpers) {
@@ -185,11 +174,11 @@ export async function build(config: BuildConfig) {
         [join(config.srcQwikDir, 'optimizer')]: () => submoduleOptimizer(config),
         [join(config.srcQwikDir, 'prefetch-service-worker')]: () => submoduleQwikPrefetch(config),
         [join(config.srcQwikDir, 'server')]: () => submoduleServer(config),
-        [join(config.srcQwikCityDir, 'runtime/src')]: () => buildQwikCity(config),
+        [join(config.srcQwikRouterDir, 'runtime/src')]: () => buildQwikRouter(config),
       });
     }
   } catch (e: any) {
-    panic(String(e ? e.stack || e : 'Error'));
+    panic(e);
   }
 }
 

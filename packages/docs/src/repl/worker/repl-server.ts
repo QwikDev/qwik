@@ -82,9 +82,13 @@ export const initReplServer = (win: Window, doc: Document, nav: Navigator) => {
       return;
     }
     if (ev.data) {
-      const msg: ReplMessage = JSON.parse(ev.data);
-      if (msg?.type === 'event') {
-        sendMessageToMain(msg);
+      try {
+        const msg: ReplMessage = JSON.parse(ev.data);
+        if (msg?.type === 'event') {
+          sendMessageToMain(msg);
+        }
+      } catch {
+        // ignore, probably some extension sending non-JSON data
       }
     }
   };

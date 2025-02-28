@@ -163,19 +163,6 @@ export default defineConfig(async () => {
                   transformerShowEmptyLines(),
                   transformerMetaShowTitle(),
                 ],
-                // parseMetaString: (str: string) => {
-                //   return Object.fromEntries(
-                //     str.split(' ').reduce((prev: [string, boolean | string][], curr: string) => {
-                //       const [key, value] = curr.split('=');
-                //       const isNormalKey = /^[A-Z0-9]+$/i.test(key);
-                //       if (isNormalKey) {
-                //         prev = [...prev, [key, value || true]];
-                //       }
-                //       return prev;
-                //     }, [])
-                //   );
-                // },
-                // parseMetaString:
               },
             ],
           ],

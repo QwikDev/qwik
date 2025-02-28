@@ -1,5 +1,23 @@
 # @qwik.dev/core
 
+## 2.0.0-alpha.8
+
+### Patch Changes
+
+- 🐞🩹 don't escape value attribute (by [@Varixo](https://github.com/Varixo) in [#7369](https://github.com/QwikDev/qwik/pull/7369))
+
+- 🐞🩹 prevent infinity loop by inserting the same projection before itself (by [@Varixo](https://github.com/Varixo) in [#7350](https://github.com/QwikDev/qwik/pull/7350))
+
+- 🐞🩹 replace inline component with component$ with the same key (by [@Varixo](https://github.com/Varixo) in [#7365](https://github.com/QwikDev/qwik/pull/7365))
+
+- 🐞🩹 undefined or null as projection child (by [@Varixo](https://github.com/Varixo) in [#7376](https://github.com/QwikDev/qwik/pull/7376))
+
+- 🐞🩹 infinity serialization loop (by [@Varixo](https://github.com/Varixo) in [#7368](https://github.com/QwikDev/qwik/pull/7368))
+
+- 🐞🩹 prevent reusing projection if is marked as deleted (by [@Varixo](https://github.com/Varixo) in [#7350](https://github.com/QwikDev/qwik/pull/7350))
+
+- 🐞🩹 tracking whole store (by [@Varixo](https://github.com/Varixo) in [#7367](https://github.com/QwikDev/qwik/pull/7367))
+
 ## 2.0.0-alpha.7
 
 ### Patch Changes

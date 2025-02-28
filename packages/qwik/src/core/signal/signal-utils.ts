@@ -1,7 +1,7 @@
 import { _CONST_PROPS, _IMMUTABLE } from '../shared/utils/constants';
 import { assertEqual } from '../shared/error/assert';
 import { isObject } from '../shared/utils/types';
-import { SignalFlags, WrappedSignal } from './signal';
+import { SignalFlags, WrappedSignal, WrappedSignalFlags } from './signal';
 import { isSignal, type Signal } from './signal.public';
 import { getStoreTarget } from './store';
 import { isPropsProxy } from '../shared/jsx/jsx-runtime';
@@ -33,7 +33,7 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(...args
   }
   if (isSignal(obj)) {
     assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
-    if (obj instanceof WrappedSignal) {
+    if (obj instanceof WrappedSignal && obj.flags & WrappedSignalFlags.UNWRAP) {
       return obj;
     }
     return getWrapped(args);

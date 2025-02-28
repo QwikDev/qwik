@@ -68,7 +68,7 @@ const _verifySerializable = <T>(
       case 'number':
         return value;
     }
-    let message = '';
+    let message: string;
     if (preMessage) {
       message = preMessage;
     } else {

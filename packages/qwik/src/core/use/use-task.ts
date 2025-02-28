@@ -246,8 +246,6 @@ export const runTask = (
   return result;
 };
 
-export type TaskDescriptor = DescriptorBase<TaskFn>;
-
 export const cleanupTask = (task: Task) => {
   const destroy = task.$destroy$;
   if (destroy) {

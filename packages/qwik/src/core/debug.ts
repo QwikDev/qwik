@@ -64,10 +64,6 @@ export const pad = (text: string, prefix: string) => {
 
 export const jsxToString = (value: any): string => {
   if (isJSXNode(value)) {
-    let type = value.type;
-    if (typeof type === 'function') {
-      type = type.name || 'Component';
-    }
     let str = '<' + value.type;
     if (value.props) {
       for (const [key, val] of Object.entries(value.props)) {

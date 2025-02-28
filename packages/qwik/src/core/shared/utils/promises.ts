@@ -3,8 +3,6 @@ import type { ValueOrPromise } from './types';
 
 export const MAX_RETRY_ON_PROMISE_COUNT = 100;
 
-export type PromiseTree<T> = T | Promise<T> | Promise<T[]> | Array<PromiseTree<T>>;
-
 export const isPromise = (value: any): value is Promise<any> => {
   // not using "value instanceof Promise" to have zone.js support
   return !!value && typeof value == 'object' && typeof value.then === 'function';
@@ -33,15 +31,6 @@ export const maybeThen = <T, B>(
 ): ValueOrPromise<B> => {
   return isPromise(valueOrPromise)
     ? valueOrPromise.then(thenFn as any, shouldNotError)
-    : thenFn(valueOrPromise as any);
-};
-
-export const maybeThenPassError = <T, B>(
-  valueOrPromise: ValueOrPromise<T>,
-  thenFn: (arg: Awaited<T>) => ValueOrPromise<B>
-): ValueOrPromise<B> => {
-  return isPromise(valueOrPromise)
-    ? valueOrPromise.then(thenFn as any)
     : thenFn(valueOrPromise as any);
 };
 

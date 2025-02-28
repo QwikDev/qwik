@@ -28,6 +28,9 @@ describe('resolve-request-handler', () => {
       expect(getPathname(new URL('http://server/path?foo=1&qfunc=f&bar=2'), false)).toBe(
         '/path?foo=1&bar=2'
       );
+      expect(getPathname(new URL('http://server/path?foo=1&qloader=f&bar=2'), false)).toBe(
+        '/path?foo=1&bar=2'
+      );
     });
   });
 

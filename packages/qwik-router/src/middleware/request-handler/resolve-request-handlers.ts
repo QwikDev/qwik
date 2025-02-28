@@ -1,16 +1,17 @@
 import type { QRL } from '@qwik.dev/core';
 import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
 import { QACTION_KEY, QFN_KEY, QLOADER_KEY } from '../../runtime/src/constants';
-import type {
-  ActionInternal,
-  ClientPageData,
-  DataValidator,
-  JSONObject,
-  LoadedRoute,
-  LoaderInternal,
-  PageModule,
-  RouteModule,
-  ValidatorReturn,
+import {
+  type ActionInternal,
+  type ClientPageData,
+  type DataValidator,
+  type JSONObject,
+  type LoadedRoute,
+  LoadedRouteProp,
+  type LoaderInternal,
+  type PageModule,
+  type RouteModule,
+  type ValidatorReturn,
 } from '../../runtime/src/types';
 import { HttpStatus } from './http-status-codes';
 import { RedirectMessage } from './redirect-handler';
@@ -23,6 +24,8 @@ import {
   getRequestMode,
   getRequestTrailingSlash,
   type RequestEventInternal,
+  RequestEvShareServerTiming,
+  RequestEvShareQData,
 } from './request-event';
 import { getQwikRouterServerData } from './response-page';
 import type {
@@ -47,8 +50,7 @@ export const resolveRequestHandlers = (
 
   const requestHandlers: RequestHandler[] = [];
 
-  const isPageRoute = !!(route && isLastModulePageRoute(route[2]));
-
+  const isPageRoute = !!(route && isLastModulePageRoute(route[LoadedRouteProp.Mods]));
   if (serverPlugins) {
     _resolveRequestHandlers(
       routeLoaders,
@@ -61,7 +63,7 @@ export const resolveRequestHandlers = (
   }
 
   if (route) {
-    const routeName = route[0];
+    const routeName = route[LoadedRouteProp.RouteName];
     if (
       checkOrigin &&
       (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')
@@ -77,7 +79,7 @@ export const resolveRequestHandlers = (
       requestHandlers.push(fixTrailingSlash);
       requestHandlers.push(renderQData);
     }
-    const routeModules = route[2];
+    const routeModules = route[LoadedRouteProp.Mods];
     requestHandlers.push(handleRedirect);
     _resolveRequestHandlers(
       routeLoaders,
@@ -532,7 +534,7 @@ export function renderQwikMiddleware(render: Render) {
         // write the already completed html to the stream
         await stream.write((result as any as RenderToStringResult).html);
       }
-      requestEv.sharedMap.set('qData', qData);
+      requestEv.sharedMap.set(RequestEvShareQData, qData);
     } finally {
       await stream.ready;
       await stream.close();
@@ -609,7 +611,7 @@ export async function renderQData(requestEv: RequestEvent) {
   // write just the page json data to the response body
   const data = await qwikSerializer._serialize([qData]);
   writer.write(encoder.encode(data));
-  requestEv.sharedMap.set('qData', qData);
+  requestEv.sharedMap.set(RequestEvShareQData, qData);
 
   writer.close();
 }
@@ -640,9 +642,9 @@ export async function measure<T>(
     return await fn();
   } finally {
     const duration = now() - start;
-    let measurements = requestEv.sharedMap.get('@serverTiming');
+    let measurements = requestEv.sharedMap.get(RequestEvShareServerTiming);
     if (!measurements) {
-      requestEv.sharedMap.set('@serverTiming', (measurements = []));
+      requestEv.sharedMap.set(RequestEvShareServerTiming, (measurements = []));
     }
     measurements.push([name, duration]);
   }

@@ -185,29 +185,25 @@ h6 a:hover .icon {
   font-weight: 800;
 }
 
-[data-rehype-pretty-code-fragment] {
-  overflow: auto;
-  color: white;
-  background-color: rgb(1 31 51);
-  border-radius: 8px;
-  margin: 20px 0;
-}
-
-[data-rehype-pretty-code-fragment] pre {
-  overflow: auto;
-  border-radius: 8px;
-  max-height: var(--pretty-code-fragment-max-height);
-}
-
-[data-rehype-pretty-code-title] {
-  padding: 5px 15px;
+.highlighted-word {
   background: #4199d3;
-  font-family: monospace;
-  font-weight: bold;
+  color: #111 !important;
 }
 
-[data-highlighted-chars] {
-  background: #ac7ef4;
+.highlighted {
+  background-color: #7b8d9f33 !important;
+}
+
+.shiki-title {
+  background: #4199d3;
+  color: #111;
+  display: block;
+  padding: 0.5rem;
+  border-radius: 8px 8px 0px 0px;
+}
+
+pre {
+  border-radius: 8px;
 }
 
 .docs article pre {

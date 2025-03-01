@@ -9,6 +9,7 @@ export const loadClientData = async (
   element: unknown,
   opts?: {
     action?: RouteActionValue;
+    loaderIds?: string[];
     clearCache?: boolean;
     prefetchSymbols?: boolean;
     isPrefetch?: boolean;
@@ -16,7 +17,10 @@ export const loadClientData = async (
 ) => {
   const pagePathname = url.pathname;
   const pageSearch = url.search;
-  const clientDataPath = getClientDataPath(pagePathname, pageSearch, opts?.action);
+  const clientDataPath = getClientDataPath(pagePathname, pageSearch, {
+    actionId: opts?.action?.id,
+    loaderIds: opts?.loaderIds,
+  });
   let qData: Promise<ClientPageData | undefined> | undefined;
   if (!opts?.action) {
     qData = CLIENT_DATA_CACHE.get(clientDataPath);

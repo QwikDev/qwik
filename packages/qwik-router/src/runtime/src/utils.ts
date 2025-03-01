@@ -1,6 +1,6 @@
-import type { RouteActionValue, SimpleURL } from './types';
+import type { SimpleURL } from './types';
 
-import { QACTION_KEY } from './constants';
+import { QACTION_KEY, QLOADER_KEY } from './constants';
 
 /** Gets an absolute url path string (url.pathname + url.search + url.hash) */
 export const toPath = (url: URL) => url.pathname + url.search + url.hash;
@@ -31,13 +31,26 @@ export const isSameOriginDifferentPathname = (a: SimpleURL, b: SimpleURL) =>
 export const getClientDataPath = (
   pathname: string,
   pageSearch?: string,
-  action?: RouteActionValue
-) => {
-  let search = pageSearch ?? '';
-  if (action) {
-    search += (search ? '&' : '?') + QACTION_KEY + '=' + encodeURIComponent(action.id);
+  options?: {
+    actionId?: string;
+    loaderIds?: string[];
   }
-  return pathname + (pathname.endsWith('/') ? '' : '/') + 'q-data.json' + search;
+) => {
+  const search = new URLSearchParams(pageSearch);
+  if (options?.actionId) {
+    search.set(QACTION_KEY, options.actionId);
+  } else if (options?.loaderIds) {
+    for (const id of options.loaderIds) {
+      search.append(QLOADER_KEY, id);
+    }
+  }
+  const searchString = search.toString();
+  return (
+    pathname +
+    (pathname.endsWith('/') ? '' : '/') +
+    'q-data.json' +
+    (searchString.length ? '?' + searchString : '')
+  );
 };
 
 export const getClientNavPath = (props: Record<string, any>, baseUrl: { url: URL }) => {

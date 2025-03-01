@@ -249,9 +249,11 @@ export { DomContainer as _DomContainer }
 // @internal (undocumented)
 export const _EFFECT_BACK_REF: unique symbol;
 
+// Warning: (ae-forgotten-export) The symbol "VNodeFlags" needs to be exported by the entry point index.d.ts
+//
 // @internal (undocumented)
 export type _ElementVNode = [
-_VNodeFlags.Element,
+VNodeFlags.Element,
 ////////////// 0 - Flags
 _VNode | null,
 /////////////// 1 - Parent
@@ -1588,7 +1590,7 @@ export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 
 // @internal (undocumented)
 export type _TextVNode = [
-_VNodeFlags.Text | _VNodeFlags.Inflated,
+VNodeFlags.Text | VNodeFlags.Inflated,
 // 0 - Flags
 _VNode | null,
 ///////////////// 1 - Parent
@@ -1639,6 +1641,11 @@ export const useErrorBoundary: () => ErrorBoundaryStore;
 
 // @public (undocumented)
 export const useId: () => string;
+
+// Warning: (ae-forgotten-export) The symbol "RenderInvokeContext" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export const _useInvokeContext: () => RenderInvokeContext;
 
 // Warning: (ae-internal-missing-underscore) The name "useLexicalScope" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -1752,7 +1759,7 @@ export const version: string;
 
 // @internal (undocumented)
 export type _VirtualVNode = [
-_VNodeFlags.Virtual,
+VNodeFlags.Virtual,
 ///////////// 0 - Flags
 _VNode | null,
 /////////////// 1 - Parent
@@ -1773,40 +1780,6 @@ export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | '
 
 // @internal (undocumented)
 export type _VNode = _ElementVNode | _TextVNode | _VirtualVNode;
-
-// @internal
-export const enum _VNodeFlags {
-    // (undocumented)
-    Deleted = 32,
-    // (undocumented)
-    Element = 1,
-    // (undocumented)
-    ELEMENT_OR_TEXT_MASK = 5,
-    // (undocumented)
-    ELEMENT_OR_VIRTUAL_MASK = 3,
-    // (undocumented)
-    Inflated = 8,
-    // (undocumented)
-    INFLATED_TYPE_MASK = 15,
-    // (undocumented)
-    NAMESPACE_MASK = 192,
-    // (undocumented)
-    NEGATED_NAMESPACE_MASK = -193,
-    // (undocumented)
-    NS_html = 0,
-    // (undocumented)
-    NS_math = 128,
-    // (undocumented)
-    NS_svg = 64,
-    // (undocumented)
-    Resolved = 16,
-    // (undocumented)
-    Text = 4,// http://www.w3.org/1999/xhtml
-    // (undocumented)
-    TYPE_MASK = 7,// http://www.w3.org/2000/svg
-    // (undocumented)
-    Virtual = 2
-}
 
 // @internal (undocumented)
 export const _waitUntilRendered: (elm: Element) => Promise<void>;

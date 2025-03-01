@@ -872,6 +872,8 @@ export abstract class _SharedContainer implements Container {
     abstract handleError(err: any, $host$: HostElement): void;
     // (undocumented)
     abstract resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
+    // (undocumented)
+    resolveContextForHost<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
     // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "SerializationContext" needs to be exported by the entry point index.d.ts
     //
@@ -1617,6 +1619,11 @@ export const useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
 
 // @public (undocumented)
 export const useId: () => string;
+
+// Warning: (ae-forgotten-export) The symbol "RenderInvokeContext" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export const _useInvokeContext: () => RenderInvokeContext;
 
 // Warning: (ae-internal-missing-underscore) The name "useLexicalScope" should be prefixed with an underscore because the declaration is marked as @internal
 //

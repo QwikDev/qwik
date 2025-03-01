@@ -14,13 +14,13 @@ export {
   _getContextEvent,
   _jsxBranch,
   _waitUntilRendered,
+  useInvokeContext as _useInvokeContext,
 } from './use/use-core';
 export { _jsxSorted, _jsxSplit, isJSXNode as _isJSXNode } from './shared/jsx/jsx-runtime';
 export { _fnSignal } from './shared/qrl/inlined-fn';
 export type {
   ContainerElement as _ContainerElement,
   VNode as _VNode,
-  VNodeFlags as _VNodeFlags,
   VirtualVNode as _VirtualVNode,
   TextVNode as _TextVNode,
   QDocument as _QDocument,

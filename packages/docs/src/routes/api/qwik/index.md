@@ -2052,6 +2052,10 @@ _(Optional)_
 
 ## EagernessOptions
 
+> Warning: This API is now obsolete.
+>
+> use useVisibleTask$ or useResource$, useTask$ is for running tasks as part of the initial SSR render
+
 ```typescript
 export type EagernessOptions = "visible" | "load" | "idle";
 ```
@@ -3653,7 +3657,7 @@ Options for the prefetch service worker.
 </tbody></table>
 **Returns:**
 
-JSXNode&lt;'script'&gt;
+[JSXNode](#jsxnode)&lt;'script'&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -11290,6 +11294,10 @@ void
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)
 
 ## UseTaskOptions
+
+> Warning: This API is now obsolete.
+>
+> use useVisibleTask$ or useResource$, useTask$ is for running tasks as part of the initial SSR render
 
 ```typescript
 export interface UseTaskOptions

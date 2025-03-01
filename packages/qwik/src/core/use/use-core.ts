@@ -65,7 +65,6 @@ export interface InvokeContext {
 
 let _context: InvokeContext | undefined;
 
-/** @public */
 export const tryGetInvokeContext = (): InvokeContext | undefined => {
   if (!_context) {
     const context = typeof document !== 'undefined' && document && document.__q_context__;
@@ -88,6 +87,7 @@ export const getInvokeContext = (): InvokeContext => {
   return ctx;
 };
 
+/** @internal */
 export const useInvokeContext = (): RenderInvokeContext => {
   const ctx = tryGetInvokeContext();
   if (!ctx || ctx.$event$ !== RenderEvent) {

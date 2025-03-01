@@ -169,7 +169,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
     { deep: false }
   );
   const navResolver: { r?: () => void } = {};
-  const loaderState = _weakSerialize(useStore(env.response.loaders, { deep: false }));
+  const loaderState = useStore(_weakSerialize(env.response.loaders), { deep: false });
   const routeInternal = useSignal<RouteStateInternal>({
     type: 'initial',
     dest: url,

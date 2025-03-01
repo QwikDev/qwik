@@ -56,7 +56,7 @@ import { isElement, isNode } from './utils/element';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
 import { ELEMENT_ID } from './utils/markers';
 import { isPromise } from './utils/promises';
-import { SerializerSymbol, fastSkipSerialize } from './utils/serialize-utils';
+import { SerializerSymbol, fastSkipSerialize, fastWeakSerialize } from './utils/serialize-utils';
 import { type ValueOrPromise } from './utils/types';
 
 const deserializedProxyMap = new WeakMap<object, unknown[]>();
@@ -394,10 +394,20 @@ const inflate = (
       propsProxy[_VAR_PROPS] = data === 0 ? {} : (data as any)[0];
       propsProxy[_CONST_PROPS] = (data as any)[1];
       break;
-    case TypeIds.EffectData: {
+    case TypeIds.SubscriptionData: {
       const effectData = target as SubscriptionData;
       effectData.data.$scopedStyleIdPrefix$ = (data as any[])[0];
       effectData.data.$isConst$ = (data as any[])[1];
+      break;
+    }
+    case TypeIds.WeakObject: {
+      const objectKeys = data as string[];
+      target = Object.fromEntries(
+        objectKeys.map((v) =>
+          // initialize values with null
+          [v, null]
+        )
+      );
       break;
     }
     default:
@@ -460,6 +470,7 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
     case TypeIds.Array:
       return wrapDeserializerProxy(container as any, value as any[]);
     case TypeIds.Object:
+    case TypeIds.WeakObject:
       return {};
     case TypeIds.QRL:
       const qrl = container.$getObjectById$(value as number);
@@ -541,9 +552,8 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
       } else {
         throw qError(QError.serializeErrorExpectedVNode, [typeof vNode]);
       }
-    case TypeIds.EffectData:
+    case TypeIds.SubscriptionData:
       return new SubscriptionData({} as NodePropData);
-
     default:
       throw qError(QError.serializeErrorCannotAllocate, [typeId]);
   }
@@ -811,10 +821,13 @@ export const createSerializationContext = (
         obj instanceof RegExp ||
         obj instanceof Uint8Array ||
         obj instanceof URLSearchParams ||
+        obj instanceof SubscriptionData ||
         vnode_isVNode(obj) ||
         (typeof FormData !== 'undefined' && obj instanceof FormData) ||
         // Ignore the no serialize objects
-        fastSkipSerialize(obj as object)
+        fastSkipSerialize(obj as object) ||
+        // only keys will be serialized
+        fastWeakSerialize(obj)
       ) {
         // ignore
       } else if (obj instanceof Error) {
@@ -822,7 +835,10 @@ export const createSerializationContext = (
       } else if (isStore(obj)) {
         const target = getStoreTarget(obj)!;
         const effects = getStoreHandler(obj)!.$effects$;
-        discoveredValues.push(target, effects);
+        if (!fastWeakSerialize(target)) {
+          discoveredValues.push(target);
+        }
+        discoveredValues.push(effects);
 
         for (const prop in target) {
           const propValue = (target as any)[prop];
@@ -972,7 +988,7 @@ const discoverValuesForVNodeData = (vnodeData: VNodeData, discoveredValues: unkn
     if (isSsrAttrs(value)) {
       for (let i = 1; i < value.length; i += 2) {
         const attrValue = value[i];
-        if (typeof attrValue === 'string') {
+        if (attrValue == null || typeof attrValue === 'string') {
           continue;
         }
         discoveredValues.push(attrValue);
@@ -1155,7 +1171,7 @@ function serialize(serializationContext: SerializationContext): void {
           : 0;
       output(TypeIds.PropsProxy, out);
     } else if (value instanceof SubscriptionData) {
-      output(TypeIds.EffectData, [value.data.$scopedStyleIdPrefix$, value.data.$isConst$]);
+      output(TypeIds.SubscriptionData, [value.data.$scopedStyleIdPrefix$, value.data.$isConst$]);
     } else if (isStore(value)) {
       if (isResource(value)) {
         // let render know about the resource
@@ -1205,6 +1221,8 @@ function serialize(serializationContext: SerializationContext): void {
     } else if (isObjectLiteral(value)) {
       if (Array.isArray(value)) {
         output(TypeIds.Array, value);
+      } else if (fastWeakSerialize(value)) {
+        output(TypeIds.WeakObject, Object.keys(value));
       } else {
         const out: any[] = [];
         for (const key in value) {
@@ -1721,7 +1739,8 @@ export const enum TypeIds {
   FormData,
   JSXNode,
   PropsProxy,
-  EffectData,
+  SubscriptionData,
+  WeakObject,
 }
 export const _typeIdNames = [
   'RootRef',
@@ -1755,7 +1774,8 @@ export const _typeIdNames = [
   'FormData',
   'JSXNode',
   'PropsProxy',
-  'EffectData',
+  'SubscriptionData',
+  'WeakObject',
 ];
 
 export const enum Constants {

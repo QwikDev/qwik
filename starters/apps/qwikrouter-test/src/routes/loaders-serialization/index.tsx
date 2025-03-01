@@ -2,7 +2,7 @@ import { component$, useSignal } from "@qwik.dev/core";
 import { routeLoader$ } from "@qwik.dev/router";
 
 export const useTestLoader = routeLoader$(async () => {
-  return { test: "should not serialize this" };
+  return { test: "some test value", notUsed: "should not serialize this" };
 });
 
 export default component$(() => {

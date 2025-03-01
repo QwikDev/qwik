@@ -40,7 +40,7 @@ import { isElement, isNode } from './utils/element';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
 import { ELEMENT_ID, ELEMENT_PROPS, QBackRefs } from './utils/markers';
 import { isPromise } from './utils/promises';
-import { SerializerSymbol, fastSkipSerialize } from './utils/serialize-utils';
+import { SerializerSymbol, fastSkipSerialize, fastWeakSerialize } from './utils/serialize-utils';
 import {
   _EFFECT_BACK_REF,
   EffectSubscriptionProp,
@@ -413,10 +413,20 @@ const inflate = (
       propsProxy[_VAR_PROPS] = data === 0 ? {} : (data as any)[0];
       propsProxy[_CONST_PROPS] = (data as any)[1];
       break;
-    case TypeIds.EffectData: {
+    case TypeIds.SubscriptionData: {
       const effectData = target as SubscriptionData;
       effectData.data.$scopedStyleIdPrefix$ = (data as any[])[0];
       effectData.data.$isConst$ = (data as any[])[1];
+      break;
+    }
+    case TypeIds.WeakObject: {
+      const objectKeys = data as string[];
+      target = Object.fromEntries(
+        objectKeys.map((v) =>
+          // initialize values with null
+          [v, null]
+        )
+      );
       break;
     }
     default:
@@ -486,6 +496,7 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
     case TypeIds.Array:
       return wrapDeserializerProxy(container as any, value as any[]);
     case TypeIds.Object:
+    case TypeIds.WeakObject:
       return {};
     case TypeIds.QRL:
     case TypeIds.PreloadQRL:
@@ -574,9 +585,8 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
       } else {
         throw qError(QError.serializeErrorExpectedVNode, [typeof vNode]);
       }
-    case TypeIds.EffectData:
+    case TypeIds.SubscriptionData:
       return new SubscriptionData({} as NodePropData);
-
     default:
       throw qError(QError.serializeErrorCannotAllocate, [typeId]);
   }
@@ -874,7 +884,7 @@ const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unkn
         const keyValue = value[i - 1];
         const attrValue = value[i];
         if (
-          typeof attrValue === 'string' ||
+          attrValue == null || typeof attrValue === 'string'||
           // skip empty props
           (keyValue === ELEMENT_PROPS &&
             Object.keys(attrValue as Record<string, unknown>).length === 0)
@@ -1081,7 +1091,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
           : 0;
       output(TypeIds.PropsProxy, out);
     } else if (value instanceof SubscriptionData) {
-      output(TypeIds.EffectData, [value.data.$scopedStyleIdPrefix$, value.data.$isConst$]);
+      output(TypeIds.SubscriptionData, [value.data.$scopedStyleIdPrefix$, value.data.$isConst$]);
     } else if (isStore(value)) {
       if (isResource(value)) {
         // let render know about the resource
@@ -1133,6 +1143,8 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
     } else if (isObjectLiteral(value)) {
       if (Array.isArray(value)) {
         output(TypeIds.Array, value);
+      } else if (fastWeakSerialize(value)) {
+        output(TypeIds.WeakObject, Object.keys(value));
       } else {
         const out: any[] = [];
         for (const key in value) {
@@ -1895,7 +1907,8 @@ export const enum TypeIds {
   FormData,
   JSXNode,
   PropsProxy,
-  EffectData,
+  SubscriptionData,
+  WeakObject,
 }
 export const _typeIdNames = [
   'RootRef',
@@ -1933,7 +1946,8 @@ export const _typeIdNames = [
   'FormData',
   'JSXNode',
   'PropsProxy',
-  'EffectData',
+  'SubscriptionData',
+  'WeakObject',
 ];
 
 export const enum Constants {

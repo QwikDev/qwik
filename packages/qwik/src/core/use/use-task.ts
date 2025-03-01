@@ -186,7 +186,7 @@ export interface DescriptorBase<T = unknown, B = unknown> {
   $state$: B | undefined;
 }
 
-/** @public */
+/** @public @deprecated use useVisibleTask$ or useResource$, useTask$ is for running tasks as part of the initial SSR render */
 export type EagernessOptions = 'visible' | 'load' | 'idle';
 
 /** @public */
@@ -207,7 +207,7 @@ export interface OnVisibleTaskOptions {
   strategy?: VisibleTaskStrategy;
 }
 
-/** @public */
+/** @public @deprecated use useVisibleTask$ or useResource$, useTask$ is for running tasks as part of the initial SSR render */
 export interface UseTaskOptions {
   /**
    * - `visible`: run the effect when the element is visible.

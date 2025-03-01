@@ -51,6 +51,7 @@ export {
   _getContextElement,
   _getContextEvent,
   _jsxBranch,
+  useInvokeContext as _useInvokeContext,
   _waitUntilRendered,
 } from './use/use-core';
 export { scheduleTask as _task } from './use/use-task';

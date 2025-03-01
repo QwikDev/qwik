@@ -1,4 +1,4 @@
-import { $, componentQrl, noSerialize } from '@qwik.dev/core';
+import { $, _weakSerialize, componentQrl, noSerialize } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
 import { _fnSignal, _wrapProp } from '../internal';
 import { type SignalImpl } from '../reactive-primitives/impl/signal-impl';
@@ -597,7 +597,7 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.FormData));
     it.todo(title(TypeIds.JSXNode));
     it.todo(title(TypeIds.PropsProxy));
-    it(title(TypeIds.EffectData), async () => {
+    it(title(TypeIds.SubscriptionData), async () => {
       expect(await dump(new SubscriptionData({ $isConst$: true, $scopedStyleIdPrefix$: null })))
         .toMatchInlineSnapshot(`
         "
@@ -802,7 +802,7 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.ComputedSignal));
     it.todo(title(TypeIds.SerializerSignal));
     // this requires a domcontainer
-    it.skip(title(TypeIds.Store), async () => {
+    it(title(TypeIds.Store), async () => {
       const objs = await serialize(createStore(null, { a: { b: true } }, StoreFlags.RECURSIVE));
       const store = deserialize(objs)[0] as any;
       expect(store).toHaveProperty('a');
@@ -812,7 +812,7 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.FormData));
     it.todo(title(TypeIds.JSXNode));
     it.todo(title(TypeIds.PropsProxy));
-    it(title(TypeIds.EffectData), async () => {
+    it(title(TypeIds.SubscriptionData), async () => {
       const objs = await serialize(
         new SubscriptionData({ $isConst$: true, $scopedStyleIdPrefix$: null })
       );

@@ -150,7 +150,15 @@ export const noSerialize = <T extends object | undefined>(input: T): NoSerialize
 /** @internal */
 export const _weakSerialize = <T extends object>(input: T): Partial<T> => {
   weakSerializeSet.add(input);
-  return input as any;
+  if (isObject(input)) {
+    for (const key in input) {
+      const value = input[key];
+      if (isObject(value)) {
+        noSerializeSet.add(value);
+      }
+    }
+  }
+  return input;
 };
 
 /**

@@ -598,8 +598,17 @@ export async function renderQData(requestEv: RequestEvent) {
   requestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));
   requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
 
+  const allLoaders = getRequestLoaders(requestEv);
+  const loaders: Record<string, unknown> = {};
+  for (const loaderId in allLoaders) {
+    const loader = allLoaders[loaderId];
+    if (loader) {
+      loaders[loaderId] = loader;
+    }
+  }
+
   const qData: ClientPageData = {
-    loaders: getRequestLoaders(requestEv),
+    loaders,
     action: requestEv.sharedMap.get(RequestEvSharedActionId),
     status: status !== 200 ? status : 200,
     href: getPathname(requestEv.url, trailingSlash),

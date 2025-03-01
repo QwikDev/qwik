@@ -210,10 +210,9 @@ export const routeLoaderQrl = ((
     }
     const data = untrack(() => state[id]);
     if (!data && isBrowser) {
-      // TODO: fetch only loader with current id
-      throw loadClientData(location.url, iCtx.$hostElement$).then(
-        (data) => (state[id] = data?.loaders[id])
-      );
+      throw loadClientData(location.url, iCtx.$hostElement$, {
+        loaderIds: [id],
+      }).then((data) => (state[id] = data?.loaders[id]));
     }
     return _wrapStore(state, id);
   }

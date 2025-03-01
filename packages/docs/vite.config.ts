@@ -8,6 +8,7 @@ import { defineConfig, loadEnv, type Plugin } from 'vite';
 import Inspect from 'vite-plugin-inspect';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
+import rehypePrettyCode from 'rehype-pretty-code';
 
 const PUBLIC_QWIK_INSIGHTS_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
 const docsDir = new URL(import.meta.url).pathname;
@@ -52,18 +53,11 @@ const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
   };
 };
 
-export default defineConfig(async () => {
-  const { default: rehypePrettyCode } = await import('rehype-pretty-code');
-
+export default defineConfig(() => {
   const routesDir = resolve('src', 'routes');
   return {
     optimizeDeps: {
       entries: ['./src/routes/**/index.tsx', './src/routes/**/layout.tsx'],
-    },
-    dev: {
-      headers: {
-        'Cache-Control': 'public, max-age=0',
-      },
     },
     preview: {
       headers: {

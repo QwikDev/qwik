@@ -206,6 +206,11 @@ export interface DocumentStyle {
     readonly style: string;
 }
 
+// Warning: (ae-forgotten-export) The symbol "ErrorBoundaryProps" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export const ErrorBoundary: Component<ErrorBoundaryProps>;
+
 // @public (undocumented)
 export type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<infer ERROR>[] ? ERROR : never;
 

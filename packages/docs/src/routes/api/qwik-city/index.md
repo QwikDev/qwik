@@ -1132,6 +1132,14 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
 
+## ErrorBoundary
+
+```typescript
+ErrorBoundary: import("@builder.io/qwik").Component<ErrorBoundaryProps>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/error-boundary.tsx)
+
 ## FailOfRest
 
 ```typescript

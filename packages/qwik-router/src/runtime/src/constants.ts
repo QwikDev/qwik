@@ -11,3 +11,5 @@ export const QLOADER_KEY = 'qloader';
 export const QFN_KEY = 'qfunc';
 
 export const QDATA_KEY = 'qdata';
+
+export const Q_ROUTE = 'q:route';

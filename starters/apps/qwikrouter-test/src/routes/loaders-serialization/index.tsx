@@ -2,7 +2,7 @@ import { component$, useSignal } from "@qwik.dev/core";
 import { routeLoader$ } from "@qwik.dev/router";
 
 export const useTestLoader = routeLoader$(async () => {
-  return { test: "some test value", notUsed: "should not serialize this" };
+  return { test: "some test value", abcd: "should not serialize this" };
 });
 
 export default component$(() => {
@@ -21,5 +21,10 @@ export default component$(() => {
 
 export const Child = component$(() => {
   const testSignal = useTestLoader();
-  return <div id="prop">{testSignal.value.test}</div>;
+  return (
+    <>
+      <div id="prop1">{testSignal.value.test}</div>
+      <div id="prop2">{testSignal.value.abcd}</div>
+    </>
+  );
 });

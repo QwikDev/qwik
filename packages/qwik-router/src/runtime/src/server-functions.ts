@@ -14,6 +14,7 @@ import {
   _getContextEvent,
   _serialize,
   _wrapStore,
+  _UNINITIALIZED,
 } from '@qwik.dev/core/internal';
 
 import * as v from 'valibot';
@@ -209,10 +210,12 @@ export const routeLoaderQrl = ((
     For more information check: https://qwik.dev/docs/re-exporting-loaders/`);
     }
     const data = untrack(() => state[id]);
-    if (!data && isBrowser) {
+    if (data === _UNINITIALIZED && isBrowser) {
       throw loadClientData(location.url, iCtx.$hostElement$, {
         loaderIds: [id],
-      }).then((data) => (state[id] = data?.loaders[id]));
+      }).then((data) => {
+        state[id] = data?.loaders[id];
+      });
     }
     return _wrapStore(state, id);
   }

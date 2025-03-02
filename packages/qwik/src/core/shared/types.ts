@@ -67,10 +67,6 @@ export type qWindow = Window & {
 
 export type QwikLoaderEventScope = '-document' | '-window' | '';
 
-export const isContainer = (container: any): container is Container => {
-  return container && typeof container === 'object' && typeof container.setHostProp === 'function';
-};
-
 /**
  * A friendly name tag for a VirtualVNode.
  *

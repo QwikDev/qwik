@@ -199,6 +199,20 @@
       "mdFile": "qwik-city.documentstyle.md"
     },
     {
+      "name": "ErrorBoundary",
+      "id": "errorboundary",
+      "hierarchy": [
+        {
+          "name": "ErrorBoundary",
+          "id": "errorboundary"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nErrorBoundary: import(\"@builder.io/qwik\").Component<ErrorBoundaryProps>\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/error-boundary.tsx",
+      "mdFile": "qwik-city.errorboundary.md"
+    },
+    {
       "name": "FailOfRest",
       "id": "failofrest",
       "hierarchy": [

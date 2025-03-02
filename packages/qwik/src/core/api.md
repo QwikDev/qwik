@@ -1654,7 +1654,7 @@ export const useContext: UseContext;
 export const useContextProvider: <STATE>(context: ContextId<STATE>, newValue: STATE) => void;
 
 // @public (undocumented)
-export const useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
+export const useErrorBoundary: () => ErrorBoundaryStore;
 
 // @public (undocumented)
 export const useId: () => string;

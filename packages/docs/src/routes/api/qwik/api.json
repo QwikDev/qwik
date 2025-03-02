@@ -3104,7 +3104,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nuseErrorBoundary: () => Readonly<ErrorBoundaryStore>\n```\n**Returns:**\n\nReadonly&lt;[ErrorBoundaryStore](#errorboundarystore)<!-- -->&gt;",
+      "content": "```typescript\nuseErrorBoundary: () => ErrorBoundaryStore\n```\n**Returns:**\n\n[ErrorBoundaryStore](#errorboundarystore)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-error-boundary.ts",
       "mdFile": "qwik.useerrorboundary.md"
     },

@@ -1,11 +1,12 @@
 import type { ValueOrPromise } from '@qwik.dev/core';
 import { QDATA_KEY } from '../../runtime/src/constants';
-import type {
-  ActionInternal,
-  FailReturn,
-  JSONValue,
-  LoadedRoute,
-  LoaderInternal,
+import {
+  LoadedRouteProp,
+  type ActionInternal,
+  type FailReturn,
+  type JSONValue,
+  type LoadedRoute,
+  type LoaderInternal,
 } from '../../runtime/src/types';
 import { isPromise } from '../../runtime/src/utils';
 import { createCacheControl } from './cache-control';
@@ -39,6 +40,7 @@ export const RequestEvSharedActionFormData = '@actionFormData';
 export const RequestEvSharedNonce = '@nonce';
 export const RequestEvIsRewrite = '@rewrite';
 export const RequestEvShareServerTiming = '@serverTiming';
+/** @internal */
 export const RequestEvShareQData = 'qData';
 
 export function createRequestEvent(
@@ -160,7 +162,7 @@ export function createRequestEvent(
     signal: request.signal,
     originalUrl: new URL(url),
     get params() {
-      return loadedRoute?.[1] ?? {};
+      return loadedRoute?.[LoadedRouteProp.Params] ?? {};
     },
     get pathname() {
       return url.pathname;

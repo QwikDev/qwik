@@ -36,21 +36,16 @@ export const getClientDataPath = (
     loaderIds?: string[];
   }
 ) => {
-  const search = new URLSearchParams(pageSearch);
+  let search = pageSearch ?? '';
   if (options?.actionId) {
-    search.set(QACTION_KEY, options.actionId);
-  } else if (options?.loaderIds) {
-    for (const id of options.loaderIds) {
-      search.append(QLOADER_KEY, id);
+    search += (search ? '&' : '?') + QACTION_KEY + '=' + encodeURIComponent(options.actionId);
+  }
+  if (options?.loaderIds) {
+    for (const loaderId of options.loaderIds) {
+      search += (search ? '&' : '?') + QLOADER_KEY + '=' + encodeURIComponent(loaderId);
     }
   }
-  const searchString = search.toString();
-  return (
-    pathname +
-    (pathname.endsWith('/') ? '' : '/') +
-    'q-data.json' +
-    (searchString.length ? '?' + searchString : '')
-  );
+  return pathname + (pathname.endsWith('/') ? '' : '/') + 'q-data.json' + search;
 };
 
 export const getClientNavPath = (props: Record<string, any>, baseUrl: { url: URL }) => {

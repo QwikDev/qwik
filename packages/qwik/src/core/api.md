@@ -217,7 +217,7 @@ export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>
     class?: ClassList | Signal<ClassList> | undefined;
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type EagernessOptions = 'visible' | 'load' | 'idle';
 
 // @public (undocumented)
@@ -1728,7 +1728,7 @@ export const useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
 // @public
 export const useTask$: (qrl: TaskFn, opts?: UseTaskOptions | undefined) => void;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export interface UseTaskOptions {
     eagerness?: EagernessOptions;
 }

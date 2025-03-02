@@ -1614,6 +1614,9 @@ export interface Tracker {
     <T extends object, P extends keyof T>(obj: T, prop: P): T[P];
 }
 
+// @internal (undocumented)
+export const _UNINITIALIZED: unique symbol;
+
 // @public
 export const untrack: <T>(fn: () => T) => T;
 

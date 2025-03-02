@@ -35,7 +35,7 @@ import { isQrl, isSyncQrl } from './qrl/qrl-utils';
 import type { QRL } from './qrl/qrl.public';
 import { ChoreType } from './util-chore-type';
 import type { DeserializeContainer, HostElement, ObjToProxyMap } from './types';
-import { _CONST_PROPS, _VAR_PROPS } from './utils/constants';
+import { _CONST_PROPS, _UNINITIALIZED, _VAR_PROPS } from './utils/constants';
 import { isElement, isNode } from './utils/element';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
 import { ELEMENT_ID } from './utils/markers';
@@ -398,7 +398,7 @@ const inflate = (
       target = Object.fromEntries(
         objectKeys.map((v) =>
           // initialize values with null
-          [v, null]
+          [v, _UNINITIALIZED]
         )
       );
       break;
@@ -419,6 +419,7 @@ export const _constants = [
   EMPTY_OBJ,
   NEEDS_COMPUTATION,
   STORE_ALL_PROPS,
+  _UNINITIALIZED,
   Slot,
   Fragment,
   NaN,
@@ -438,6 +439,7 @@ const _constantNames = [
   'EMPTY_OBJ',
   'NEEDS_COMPUTATION',
   'STORE_ALL_PROPS',
+  '_UNINITIALIZED',
   'Slot',
   'Fragment',
   'NaN',
@@ -1033,6 +1035,8 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
       output(TypeIds.Constant, Constants.NEEDS_COMPUTATION);
     } else if (value === STORE_ALL_PROPS) {
       output(TypeIds.Constant, Constants.STORE_ALL_PROPS);
+    } else if (value === _UNINITIALIZED) {
+      output(TypeIds.Constant, Constants.UNINITIALIZED);
     } else {
       throw qError(QError.serializeErrorUnknownType, [typeof value]);
     }
@@ -1909,6 +1913,7 @@ export const enum Constants {
   EMPTY_OBJ,
   NEEDS_COMPUTATION,
   STORE_ALL_PROPS,
+  UNINITIALIZED,
   Slot,
   Fragment,
   NaN,

@@ -36,6 +36,7 @@ import type {
 } from './types';
 import { IsQData, QDATA_JSON } from './user-response';
 import { ServerError } from './error-handler';
+import { _UNINITIALIZED } from '@qwik.dev/core/internal';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
@@ -596,7 +597,7 @@ export async function renderQData(requestEv: RequestEvent) {
   const loaders: Record<string, unknown> = {};
   for (const loaderId in allLoaders) {
     const loader = allLoaders[loaderId];
-    if (loader) {
+    if (loader !== _UNINITIALIZED) {
       loaders[loaderId] = loader;
     }
   }

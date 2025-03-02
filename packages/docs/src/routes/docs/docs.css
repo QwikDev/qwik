@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .docs .content-container {
   @apply px-8 lg:pl-0 xl:pr-0;
   @apply mx-auto min-h-[100vh];

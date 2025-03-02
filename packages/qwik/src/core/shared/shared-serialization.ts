@@ -1441,7 +1441,7 @@ export function _deserialize(rawStateData: string | null, element?: unknown): un
     return [];
   }
 
-  let container: DeserializeContainer | undefined = undefined;
+  let container: DeserializeContainer | undefined;
   if (isNode(element) && isElement(element)) {
     container = _createDeserializeContainer(stateData, element as HTMLElement);
   } else {

@@ -130,18 +130,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_Image_component_CS20HgBlRYI.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
-import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 export const Image_component_CS20HgBlRYI = (props)=>{
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted("img", {
-        src: _fnSignal((p0)=>`${p0.src}`, [
-            props
-        ], "`${p0.src}`")
+        src: `${props.src}`
     }, null, null, 3, null), 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAKgC,CAAC;IAC/B,qBACE,gDACE,WAAC;QAAI,GAAG,kBAAE,GAAG,GAAM,GAAG,EAAE;;;;AAG9B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAKgC,CAAC;IAC/B,qBACE,gDACE,WAAC;QAAI,KAAK,GAAG,MAAM,GAAG,EAAE;;AAG9B\"}")
 /*
 {
   "origin": "test.tsx",

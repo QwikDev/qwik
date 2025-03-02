@@ -406,6 +406,7 @@ export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
 export interface CommonLoaderActionOptions {
   readonly id?: string;
   readonly validation?: DataValidator[];
+  readonly persist?: boolean;
 }
 
 /** @public */

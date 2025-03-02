@@ -9,6 +9,7 @@ import type { Container, HostElement } from '../shared/types';
 import { ChoreType } from '../shared/util-chore-type';
 import { ELEMENT_PROPS, OnRenderProp } from '../shared/utils/markers';
 import { SerializerSymbol } from '../shared/utils/serialize-utils';
+import { isObject } from '../shared/utils/types';
 import type { ISsrNode, SSRContainer } from '../ssr/ssr-types';
 import { TaskFlags, isTask } from '../use/use-task';
 import { ComputedSignalImpl } from './impl/computed-signal-impl';
@@ -147,7 +148,5 @@ export const triggerEffects = (
 export const isSerializerObj = <T extends { [SerializerSymbol]: (obj: any) => any }, S>(
   obj: unknown
 ): obj is CustomSerializable<T, S> => {
-  return (
-    typeof obj === 'object' && obj !== null && typeof (obj as any)[SerializerSymbol] === 'function'
-  );
+  return isObject(obj) && typeof (obj as any)[SerializerSymbol] === 'function';
 };

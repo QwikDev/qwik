@@ -1,4 +1,4 @@
-import type { QRL } from '@qwik.dev/core';
+import { type QRL } from '@qwik.dev/core';
 import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
 import { QACTION_KEY, QFN_KEY, QLOADER_KEY } from '../../runtime/src/constants';
 import {
@@ -602,7 +602,7 @@ export async function renderQData(requestEv: RequestEvent) {
   const loaders: Record<string, unknown> = {};
   for (const loaderId in allLoaders) {
     const loader = allLoaders[loaderId];
-    if (loader) {
+    if (loader !== null) {
       loaders[loaderId] = loader;
     }
   }

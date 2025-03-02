@@ -7,13 +7,16 @@ import {
   type ValueOrPromise,
   untrack,
   isBrowser,
+  isDev,
+  isServer,
 } from '@qwik.dev/core';
 import {
   _deserialize,
   _getContextElement,
   _getContextEvent,
   _serialize,
-  _wrapStore,
+  _useInvokeContext,
+  _UNINITIALIZED,
 } from '@qwik.dev/core/internal';
 
 import * as v from 'valibot';
@@ -52,9 +55,6 @@ import type {
   ZodDataValidator,
 } from './types';
 import { useAction, useLocation, useQwikRouterEnv } from './use-functions';
-
-import { isDev, isServer } from '@qwik.dev/core';
-import { _useInvokeContext } from '@qwik.dev/core/internal';
 
 import type { FormSubmitCompletedDetail } from './form-component';
 import { deepFreeze } from './utils';
@@ -208,13 +208,17 @@ export const routeLoaderQrl = ((
     If your are managing reusable logic or a library it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception.
     For more information check: https://qwik.dev/docs/re-exporting-loaders/`);
     }
-    const data = untrack(() => state[id]);
-    if (!data && isBrowser) {
+    const loaderData = untrack(() => state[id].value);
+    if (loaderData === _UNINITIALIZED && isBrowser) {
+      // Request the loader data from the server and throw the Promise
+      // so the client can load it synchronously.
       throw loadClientData(location.url, iCtx.$hostElement$, {
         loaderIds: [id],
-      }).then((data) => (state[id] = data?.loaders[id]));
+      }).then((clientData) => {
+        state[id].value = clientData?.loaders[id];
+      });
     }
-    return _wrapStore(state, id);
+    return state[id];
   }
   loader.__brand = 'server_loader' as const;
   loader.__qrl = loaderQrl;

@@ -1,6 +1,6 @@
-import { $, _weakSerialize, componentQrl, noSerialize } from '@qwik.dev/core';
+import { $, componentQrl, noSerialize } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
-import { _fnSignal, _wrapProp } from '../internal';
+import { _fnSignal, _serializationWeakRef, _UNINITIALIZED, _wrapProp } from '../internal';
 import { type SignalImpl } from '../reactive-primitives/impl/signal-impl';
 import {
   createComputedQrl,
@@ -14,10 +14,12 @@ import { Task } from '../use/use-task';
 import { inlinedQrl } from './qrl/qrl';
 import { createQRL, type QRLInternal } from './qrl/qrl-class';
 import {
+  Constants,
   TypeIds,
   _constants,
   _createDeserializeContainer,
   _typeIdNames,
+  constantToName,
   createSerializationContext,
   dumpState,
 } from './shared-serialization';
@@ -25,10 +27,11 @@ import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
 import { isQrl } from './qrl/qrl-utils';
 import { NoSerializeSymbol, SerializerSymbol } from './utils/serialize-utils';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
-import { StoreFlags } from '../reactive-primitives/types';
+import { StoreFlags, type CustomSerializable } from '../reactive-primitives/types';
 import { createAsyncComputedSignal } from '../reactive-primitives/signal-api';
 import { retryOnPromise } from './utils/promises';
 import { QError } from './error/error';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 
 const DEBUG = false;
 
@@ -68,16 +71,139 @@ describe('shared-serialization', () => {
         6 Constant EMPTY_OBJ
         7 Constant NEEDS_COMPUTATION
         8 Constant STORE_ALL_PROPS
-        9 Constant Slot
-        10 Constant Fragment
-        11 Constant NaN
-        12 Constant Infinity
-        13 Constant -Infinity
-        14 Constant MAX_SAFE_INTEGER
-        15 Constant MAX_SAFE_INTEGER-1
-        16 Constant MIN_SAFE_INTEGER
-        (76 chars)"
+        9 Constant _UNINITIALIZED
+        10 Constant Slot
+        11 Constant Fragment
+        12 Constant NaN
+        13 Constant Infinity
+        14 Constant -Infinity
+        15 Constant MAX_SAFE_INTEGER
+        16 Constant MAX_SAFE_INTEGER-1
+        17 Constant MIN_SAFE_INTEGER
+        (81 chars)"
       `);
+    });
+    describe(constantToName(Constants.UNINITIALIZED), () => {
+      it('should not serialize object', async () => {
+        const parent = {
+          child: { should: 'serialize' },
+        };
+
+        (parent as any)[SerializerSymbol] = () => ({
+          child: _serializationWeakRef(parent.child),
+        });
+
+        expect(await dump(parent)).toMatchInlineSnapshot(`
+        "
+        0 Object [
+          String "child"
+          ForwardRef 0
+        ]
+        1 ForwardRefs [
+          -1
+        ]
+        (27 chars)"
+      `);
+      });
+      it('should serialize object before qrl', async () => {
+        const parent = {
+          child: { should: 'serialize' },
+        };
+
+        (parent as any)[SerializerSymbol] = () => ({
+          child: _serializationWeakRef(parent.child),
+        });
+
+        const qrl = inlinedQrl(() => parent.child.should, 'dump_qrl', [parent.child]);
+        expect(await dump(parent, qrl)).toMatchInlineSnapshot(`
+        "
+        0 Object [
+          String "child"
+          ForwardRef 0
+        ]
+        1 QRL "mock-chunk#dump_qrl[2]"
+        2 Object [
+          String "should"
+          String "serialize"
+        ]
+        3 ForwardRefs [
+          2
+        ]
+        (84 chars)"
+      `);
+      });
+      it('should serialize object after qrl', async () => {
+        const parent = {
+          child: { should: 'serialize' },
+        };
+
+        (parent as any)[SerializerSymbol] = () => ({
+          child: _serializationWeakRef(parent.child),
+        });
+
+        const qrl = inlinedQrl(() => parent.child.should, 'dump_qrl', [parent.child]);
+        expect(await dump(qrl, parent)).toMatchInlineSnapshot(`
+        "
+        0 QRL "mock-chunk#dump_qrl[2]"
+        1 Object [
+          String "child"
+          ForwardRef 0
+        ]
+        2 Object [
+          String "should"
+          String "serialize"
+        ]
+        3 ForwardRefs [
+          2
+        ]
+        (84 chars)"
+      `);
+      });
+
+      // it.only('should serialize wrapped signal args', async () => {
+      //   const parent = createStore(
+      //     null,
+      //     {
+      //       child: { should: 'serialize' },
+      //     },
+      //     StoreFlags.RECURSIVE
+      //   );
+
+      //   (parent as any)[SerializerSymbol] = () => ({
+      //     child: _serializationWeakRef(parent.child),
+      //   });
+
+      //   const wrappedSignal = _wrapStore(parent, 'child');
+      //   expect(await dump(parent, wrappedSignal)).toMatchInlineSnapshot(`
+      //   "
+      //   0 Store [
+      //     Object [
+      //       String "child"
+      //       ForwardRef 0
+      //     ]
+      //     Number 1
+      //   ]
+      //   1 WrappedSignal [
+      //     Number 0
+      //     Array [
+      //       RootRef 0
+      //       RootRef 2
+      //     ]
+      //     Constant null
+      //     Number 1
+      //     Constant null
+      //   ]
+      //   2 String "child"
+      //   3 Object [
+      //     String "should"
+      //     String "serialize"
+      //   ]
+      //   4 ForwardRefs [
+      //     3
+      //   ]
+      //   (79 chars)"
+      // `);
+      // });
     });
     it(title(TypeIds.Number), async () => {
       expect(await dump(123)).toMatchInlineSnapshot(`
@@ -601,7 +727,7 @@ describe('shared-serialization', () => {
       expect(await dump(new SubscriptionData({ $isConst$: true, $scopedStyleIdPrefix$: null })))
         .toMatchInlineSnapshot(`
         "
-        0 EffectData [
+        0 SubscriptionData [
           Constant null
           Constant true
         ]
@@ -681,7 +807,7 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.VNode));
     it(title(TypeIds.BigInt), async () => {
       const objs = await serialize(BigInt('12345678901234567890'));
-      const bi = deserialize(objs)[0] as BigInt;
+      const bi = deserialize(objs)[0] as bigint;
       expect(bi).toBeTypeOf('bigint');
       expect(bi.toString()).toBe('12345678901234567890');
     });
@@ -819,6 +945,39 @@ describe('shared-serialization', () => {
       const effect = deserialize(objs)[0] as SubscriptionData;
       expect(effect).toBeInstanceOf(SubscriptionData);
       expect(effect.data).toEqual({ $isConst$: true, $scopedStyleIdPrefix$: null });
+    });
+
+    describe('UNINITIALIZED', () => {
+      it(title(TypeIds.Constant) + ' - UNINITIALIZED, not serialized object', async () => {
+        const uninitializedObject = {
+          shouldNot: 'serialize',
+        };
+        (uninitializedObject as unknown as CustomSerializable<any, any>)[SerializerSymbol] = () => {
+          return _UNINITIALIZED;
+        };
+
+        const objs = await serialize(uninitializedObject);
+        const effect = deserialize(objs)[0] as any;
+        expect(effect).toBe(_UNINITIALIZED);
+      });
+      it(title(TypeIds.Constant) + ' - UNINITIALIZED, serialized object', async () => {
+        const uninitializedObject = {
+          should: 'serialize',
+        };
+        (uninitializedObject as unknown as CustomSerializable<any, any>)[SerializerSymbol] = () => {
+          return _UNINITIALIZED;
+        };
+        const qrl = inlinedQrl(() => uninitializedObject.should, 'dump_qrl', [uninitializedObject]);
+        const objs = await serialize(uninitializedObject, qrl);
+        const state = deserialize(objs);
+        delete (uninitializedObject as any)[SerializerSymbol];
+        const deserializedObject = state[0];
+        expect(deserializedObject).toEqual(uninitializedObject);
+
+        const deserializedQrl = state[1] as QRLInternal;
+        expect(isQrl(deserializedQrl)).toBeTruthy();
+        expect(await (deserializedQrl.getFn() as any)()).toBe(uninitializedObject.should);
+      });
     });
   });
 

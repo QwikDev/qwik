@@ -122,7 +122,18 @@ const internalState = { navCount: 0 };
 
 /** @public */
 export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
-  useStyles$(`:root{view-transition-name:none}`);
+  useStyles$(`
+    @layer qwik {
+      @supports selector(html:active-view-transition-type(type)) {
+        html:active-view-transition-type(qwik-router-spa) {
+          :root{view-transition-name:none}
+        }
+      }
+      @supports not selector(html:active-view-transition-type(type)) {
+        :root{view-transition-name:none}
+      }
+    }
+  `);
   const env = useQwikRouterEnv();
   if (!env?.params) {
     throw new Error(
@@ -437,11 +448,6 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
         documentHead.frontmatter = resolvedHead.frontmatter;
 
         if (isBrowser) {
-          if (props.viewTransition !== false) {
-            // mark next DOM render to use startViewTransition API
-            (document as any).__q_view_transition__ = true;
-          }
-
           let scrollState: ScrollState | undefined;
           if (navType === 'popstate') {
             scrollState = getScrollHistory();
@@ -655,11 +661,27 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
         }
       }
     }
-    const promise = run();
+
     if (isServer) {
-      return promise;
+      return run();
+    }
+
+    if (props.viewTransition !== false && 'startViewTransition' in document) {
+      let transition: ViewTransition;
+      try {
+        // Typed transition starts with Chrome 125 & Safari 18
+        transition = document.startViewTransition({
+          update: run,
+          types: ['qwik-router-spa'],
+        } as any);
+      } catch {
+        // Fallback for Chrome 111 until Chrome 125
+        transition = document.startViewTransition(run);
+      }
+      const event = new CustomEvent('qviewTransition', { detail: transition });
+      document.dispatchEvent(event);
     } else {
-      return;
+      run();
     }
   });
 

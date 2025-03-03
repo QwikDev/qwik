@@ -1,5 +1,11 @@
 # @qwik.dev/core
 
+## 2.0.0-alpha.9
+
+### Patch Changes
+
+- 🐞🩹 don't wrap template literals with a function call inside them in a signal (by [@Varixo](https://github.com/Varixo) in [#7390](https://github.com/QwikDev/qwik/pull/7390))
+
 ## 2.0.0-alpha.8
 
 ### Patch Changes

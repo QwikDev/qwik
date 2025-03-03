@@ -66,6 +66,7 @@ import type {
 import { loadClientData } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
 import { isSameOrigin, isSamePath, toUrl } from './utils';
+import { startViewTransition } from './view-transition';
 
 /**
  * @deprecated Use `QWIK_ROUTER_SCROLLER` instead (will be removed in V3)
@@ -665,23 +666,13 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
     if (isServer) {
       return run();
     }
-
-    if (props.viewTransition !== false && 'startViewTransition' in document) {
-      let transition: ViewTransition;
-      try {
-        // Typed transition starts with Chrome 125 & Safari 18
-        transition = document.startViewTransition({
-          update: run,
-          types: ['qwik-router-spa'],
-        } as any);
-      } catch {
-        // Fallback for Chrome 111 until Chrome 125
-        transition = document.startViewTransition(run);
-      }
-      const event = new CustomEvent('qviewTransition', { detail: transition });
-      document.dispatchEvent(event);
-    } else {
+    if (props.viewTransition === false) {
       run();
+    } else {
+      startViewTransition({
+        update: run,
+        types: ['qwik-router-spa'],
+      });
     }
   });
 

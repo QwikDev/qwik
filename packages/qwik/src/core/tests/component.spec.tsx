@@ -2162,6 +2162,64 @@ describe.each([
       );
     });
 
+    it('#6585 - reactivity should work with template literals', async () => {
+      const Cmp = component$(() => {
+        const useFoo = (count: SignalType<number>) => {
+          const tag = (s: string | TemplateStringsArray) => {
+            const value = typeof s === 'string' ? s : s[0];
+            return `${value}-${count.value}`;
+          };
+          return tag;
+        };
+        const count = useSignal(0);
+        const foo = useFoo(count);
+        return (
+          <>
+            <p>{foo('test')}</p>
+            <p>{foo`test`}</p>
+            <button
+              onClick$={() => {
+                count.value++;
+              }}
+            >
+              Count up
+            </button>
+          </>
+        );
+      });
+
+      const { vNode, document } = await render(<Cmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <p>test-0</p>
+            <p>test-0</p>
+            <button>Count up</button>
+          </Fragment>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <p>test-1</p>
+            <p>test-1</p>
+            <button>Count up</button>
+          </Fragment>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <p>test-2</p>
+            <p>test-2</p>
+            <button>Count up</button>
+          </Fragment>
+        </Component>
+      );
+    });
+
     it('#7203 - should correctly move found vnode', async () => {
       const Cmp = component$(() => {
         const type = useSignal<'A' | 'B' | 'C'>('B');

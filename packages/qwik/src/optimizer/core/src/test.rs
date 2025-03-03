@@ -4327,6 +4327,34 @@ fn should_wrap_store_expression() {
 	});
 }
 
+#[test]
+fn should_not_wrap_var_template_string() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useComputed$ } from '@qwik.dev/core';
+		import { inlineTranslate } from 'translate-lib';
+
+		export default component$(() => {
+			const t = inlineTranslate();
+
+			const productTitle = useComputed$(() => {
+				return 'Test title';
+			});
+
+			return (
+				<img 
+					attr={t('home.imageAlt.founded-product:')}
+					alt={`${t('home.imageAlt.founded-product:')} ${productTitle.value}`} />
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 // TODO(misko): Make this test work by implementing strict serialization.
 // #[test]
 // fn example_of_synchronous_qrl_that_cant_be_serialized() {

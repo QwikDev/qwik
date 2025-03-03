@@ -42,7 +42,13 @@ interface InvalidTestCase extends TestCase {
 }
 await (async function setupEsLintRuleTesters() {
   // list './test' directory content and set up one RuleTester per directory
-  const testDir = join(dirname(new URL(import.meta.url).pathname), './tests');
+  let testDir = join(dirname(new URL(import.meta.url).pathname), './tests');
+  const isWindows = process.platform === 'win32';
+  if (isWindows && testDir.startsWith('\\')) {
+    // in Windows testDir starts with a \ causing errors
+    testDir = testDir.substring(1);
+  }
+
   const ruleNames = await readdir(testDir);
   for (const ruleName of ruleNames) {
     const rule = rules[ruleName];

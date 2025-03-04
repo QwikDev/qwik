@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import type { Rule } from 'eslint';
-import { QwikEslintExamples } from '../examples';
+import type { QwikEslintExamples } from '../examples';
 
 export const unusedServer: Rule.RuleModule = {
   meta: {

@@ -25,7 +25,7 @@ export interface Value {
 export const HelloWorld = component$(() => {
   const state: Value = { value: 12, obj1: new NoSerSym(), obj2: new SerSym() };
   const ser = useSerializer$({
-    deserialize: () => new SerSym(),
+    deserialize: (data: string) => new SerSym(),
     serialize: (obj) => obj.toString(),
   });
 

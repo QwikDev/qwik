@@ -847,7 +847,7 @@ export const createSerializationContext = (
         });
       } else if (obj instanceof Signal) {
         /**
-         * ComputedSignal can be left uncalculated if invalid.
+         * ComputedSignal can be left un-calculated if invalid.
          *
          * SerializerSignal is always serialized if it was already calculated.
          */

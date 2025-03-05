@@ -459,6 +459,7 @@ declare global {
 /** @public */
 export interface RequestEventAction<PLATFORM = QwikCityPlatform>
   extends RequestEventCommon<PLATFORM> {
+  resolveValue: ResolveValue;
   fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
 }
 

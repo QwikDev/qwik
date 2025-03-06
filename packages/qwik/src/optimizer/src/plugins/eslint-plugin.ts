@@ -1,7 +1,9 @@
 import type { Rollup } from 'vite';
 import type { ESLint, Linter } from 'eslint';
 import type { OptimizerSystem } from '../types';
-
+import { qwikEslint9Plugin } from 'eslint-plugin-qwik';
+import globals from 'globals';
+import * as EslintClass from 'eslint';
 export interface QwikLinter {
   lint(ctx: Rollup.PluginContext, code: string, id: string): void;
 }
@@ -20,28 +22,30 @@ export async function createLinter(
   if (invalidEslintConfig) {
     const options: ESLint.Options = {
       cache: true,
-      useEslintrc: false,
-      overrideConfig: {
-        root: true,
-        env: {
-          browser: true,
-          es2021: true,
-          node: true,
-        },
-        extends: ['plugin:qwik/recommended'],
-        parser: '@typescript-eslint/parser',
-        parserOptions: {
-          tsconfigRootDir: rootDir,
-          project: tsconfigFileNames,
-          ecmaVersion: 2021,
-          sourceType: 'module',
-          ecmaFeatures: {
-            jsx: true,
+      overrideConfig: [
+        // @ts-ignore
+        qwikEslint9Plugin.configs.recommended as Linter.Config,
+        {
+          languageOptions: {
+            parserOptions: {
+              globals: {
+                ...globals.node,
+                ...globals.es2021,
+                ...globals.browser,
+              },
+              tsconfigRootDir: rootDir,
+              project: tsconfigFileNames,
+              ecmaVersion: 2021,
+              sourceType: 'module',
+              ecmaFeatures: {
+                jsx: true,
+              },
+            },
           },
         },
-      },
+      ],
     };
-    eslint = new module.ESLint(options) as ESLint;
+    eslint = new EslintClass.ESLint(options) as ESLint;
   }
 
   return {

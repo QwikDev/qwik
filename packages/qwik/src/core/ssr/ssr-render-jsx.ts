@@ -14,7 +14,6 @@ import { isAsyncGenerator } from '../shared/utils/async-generator';
 import {
   convertEventNameFromJsxPropToHtmlAttr,
   getEventNameFromJsxProp,
-  isJsxPropertyAnEventName,
   isPreventDefault,
 } from '../shared/utils/event-names';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
@@ -38,7 +37,14 @@ import { trackSignalAndAssignHost } from '../use/use-core';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrComponentFrame, SSRContainer, SsrAttrs } from './ssr-types';
 import { isQrl } from '../shared/qrl/qrl-utils';
-import { getPropId, getPropName, getSlotName, type NumericPropKey } from '../shared/utils/prop';
+import {
+  StaticPropId,
+  getPropId,
+  getPropName,
+  getSlotName,
+  isEventProp,
+  type NumericPropKey,
+} from '../shared/utils/prop';
 
 class ParentComponentData {
   constructor(
@@ -178,7 +184,7 @@ function processJSXNode(
         children != null && enqueue(children);
       } else if (isFunction(type)) {
         if (type === Fragment) {
-          let attrs = jsx.key != null ? [getPropId(ELEMENT_KEY), jsx.key] : EMPTY_ARRAY;
+          let attrs = jsx.key != null ? [StaticPropId.ELEMENT_KEY, jsx.key] : EMPTY_ARRAY;
           if (isDev) {
             attrs = [getPropId(DEBUG_TYPE), VirtualType.Fragment, ...attrs]; // Add debug info.
           }
@@ -266,7 +272,7 @@ function processJSXNode(
           isPromise(jsxOutput) && enqueue(Promise);
           enqueue(new ParentComponentData(compStyleComponentId, componentFrame));
         } else {
-          const inlineComponentProps = [getPropId(ELEMENT_KEY), jsx.key];
+          const inlineComponentProps = [StaticPropId.ELEMENT_KEY, jsx.key];
           ssr.openFragment(
             isDev
               ? [getPropId(DEBUG_TYPE), VirtualType.InlineComponent, ...inlineComponentProps]
@@ -339,7 +345,7 @@ export function toSsrAttrs(
     const numericKey = key as unknown as NumericPropKey;
     let value = record[numericKey];
     const nameKey = getPropName(numericKey);
-    if (isJsxPropertyAnEventName(nameKey)) {
+    if (isEventProp(numericKey)) {
       if (anotherRecord) {
         /**
          * If we have two sources of the same event like this:

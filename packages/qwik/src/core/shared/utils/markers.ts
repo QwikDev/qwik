@@ -78,6 +78,12 @@ export const ELEMENT_SEQ = 'q:seq';
 export const ELEMENT_SEQ_IDX = 'q:seqIdx';
 export const Q_PREFIX = 'q:';
 
+/**
+ * This marks the property as immutable. It is needed for the QRLs so that QwikLoader can get a hold
+ * of them. This character must be `:` so that the `vnode_getAttr` can ignore them.
+ */
+export const HANDLER_PREFIX = ':';
+
 /** Non serializable markers - always begins with `:` character */
 export const NON_SERIALIZABLE_MARKER_PREFIX = ':';
 export const USE_ON_LOCAL = NON_SERIALIZABLE_MARKER_PREFIX + 'on';
@@ -92,5 +98,6 @@ export const STREAM_BLOCK_END_COMMENT = 'qkssr-po';
 export const Q_PROPS_SEPARATOR = ':';
 
 export const dangerouslySetInnerHTML = 'dangerouslySetInnerHTML';
+export const refAttr = 'ref';
 export const qwikInspectorAttr = 'data-qwik-inspector';
 export const DOMContentLoadedEvent = 'DOMContentLoaded';

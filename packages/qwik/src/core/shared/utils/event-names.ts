@@ -125,6 +125,7 @@ export const convertEventNameFromHtmlAttrToJsxProp = (name: string): string | nu
   return null;
 };
 
+const DOMContentLoadedEventLowercase = DOMContentLoadedEvent.toLowerCase();
 export const createEventName = (
   event: KnownEventNames | KnownEventNames[],
   eventType?: 'window' | 'document' | undefined
@@ -133,7 +134,7 @@ export const createEventName = (
   const map = (name: string) => {
     // DOMContentLoaded is a special case, where the event name is case sensitive
     // https://html.spec.whatwg.org/multipage/indices.html#event-domcontentloaded
-    const isDOMContentLoadedEvent = name === DOMContentLoadedEvent;
+    const isDOMContentLoadedEvent = name.toLowerCase() === DOMContentLoadedEventLowercase;
     const eventName = isDOMContentLoadedEvent
       ? DOMContentLoadedEvent
       : name.charAt(0).toUpperCase() + name.substring(1).toLowerCase();

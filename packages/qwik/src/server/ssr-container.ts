@@ -52,6 +52,7 @@ import {
   ChoreType,
   getPropId,
   getPropName,
+  refAttr,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -1148,7 +1149,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           styleScopedId = styleId;
         }
 
-        if (key === 'ref') {
+        if (key === refAttr) {
           const lastNode = this.getLastNode();
           if (isSignal(value)) {
             value.value = new DomRef(lastNode);

@@ -1,21 +1,13 @@
 import type { Props } from '../jsx/jsx-runtime';
 import { ComponentStylesPrefixContent } from './markers';
-import { getPropName, type NumericPropKey } from './prop';
+import { StaticPropId } from './prop';
 
 export const styleContent = (styleId: string): string => {
   return ComponentStylesPrefixContent + styleId;
 };
 
 export function hasClassAttr(props: Props): boolean {
-  for (const key in props) {
-    if (
-      Object.prototype.hasOwnProperty.call(props, key) &&
-      isClassAttr(getPropName(key as unknown as NumericPropKey))
-    ) {
-      return true;
-    }
-  }
-  return false;
+  return StaticPropId.CLASS in props || StaticPropId.CLASS_NAME in props;
 }
 
 export function isClassAttr(key: string): boolean {

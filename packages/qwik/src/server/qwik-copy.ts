@@ -53,6 +53,7 @@ export {
   STREAM_BLOCK_END_COMMENT,
   STREAM_BLOCK_START_COMMENT,
   dangerouslySetInnerHTML,
+  refAttr,
 } from '../core/shared/utils/markers';
 export { maybeThen } from '../core/shared/utils/promises';
 export {

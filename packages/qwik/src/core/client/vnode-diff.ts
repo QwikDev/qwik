@@ -28,8 +28,7 @@ import {
   QSlotParent,
   QBackRefs,
   QTemplate,
-  Q_PREFIX,
-  dangerouslySetInnerHTML,
+  HANDLER_PREFIX,
 } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
 import { type ValueOrPromise } from '../shared/utils/types';
@@ -37,8 +36,6 @@ import {
   convertEventNameFromJsxPropToHtmlAttr,
   getEventNameFromJsxProp,
   getEventNameScopeFromJsxProp,
-  isHtmlAttributeAnEventName,
-  isJsxPropertyAnEventName,
 } from '../shared/utils/event-names';
 import { ChoreType } from '../shared/util-chore-type';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
@@ -92,9 +89,13 @@ import { EffectProperty, isSignal, SubscriptionData } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
 import { executeComponent } from '../shared/component-execution';
 import {
+  StaticPropId,
   getPropId,
   getPropName,
   getSlotName,
+  isEventProp,
+  isHandlerProp,
+  isQProp,
   isSlotProp,
   type NumericPropKey,
 } from '../shared/utils/prop';
@@ -618,9 +619,9 @@ export const vnode_diff = (
       // We never tell the vNode about them saving us time and memory.
       for (const key in constProps) {
         let value = constProps[key as unknown as NumericPropKey];
-        const numericKey = key as unknown as NumericPropKey;
+        const numericKey = Number(key) as NumericPropKey;
         const nameKey = getPropName(numericKey);
-        if (isJsxPropertyAnEventName(nameKey)) {
+        if (isEventProp(numericKey)) {
           // So for event handlers we must add them to the vNode so that qwikloader can look them up
           // But we need to mark them so that they don't get pulled into the diff.
           const eventName = getEventNameFromJsxProp(nameKey);
@@ -648,7 +649,7 @@ export const vnode_diff = (
           continue;
         }
 
-        if (nameKey === 'ref') {
+        if (numericKey === StaticPropId.REF) {
           if (isSignal(value)) {
             value.value = element;
             continue;
@@ -676,13 +677,13 @@ export const vnode_diff = (
           );
         }
 
-        if (nameKey === dangerouslySetInnerHTML) {
+        if (numericKey === StaticPropId.INNERHTML) {
           element.innerHTML = value as string;
           element.setAttribute(QContainerAttr, QContainerValue.HTML);
           continue;
         }
 
-        if (elementName === 'textarea' && nameKey === 'value') {
+        if (elementName === 'textarea' && numericKey === StaticPropId.VALUE) {
           if (value && typeof value !== 'string') {
             if (isDev) {
               throw qError(QError.wrongTextareaValue, [currentFile, value]);
@@ -764,11 +765,11 @@ export const vnode_diff = (
     for (const key in props) {
       const value = props[key as unknown as NumericPropKey];
       if (value != null) {
-        mapArray_set(jsxAttrs, key as unknown as NumericPropKey, value, 0);
+        mapArray_set(jsxAttrs, Number(key) as NumericPropKey, value, 0);
       }
     }
     if (jsxKey !== null) {
-      mapArray_set(jsxAttrs, getPropId(ELEMENT_KEY), jsxKey, 0);
+      mapArray_set(jsxAttrs, StaticPropId.ELEMENT_KEY as NumericPropKey, jsxKey, 0);
     }
     const vNode = (vNewNode || vCurrent) as ElementVNode;
     needsQDispatchEventPatch =
@@ -820,12 +821,12 @@ export const vnode_diff = (
 
     const record = (key: NumericPropKey, value: any) => {
       const keyName = getPropName(key);
-      if (keyName.startsWith(':')) {
+      if (isHandlerProp(key)) {
         vnode_setProp(vnode, keyName, value);
         return;
       }
 
-      if (keyName === 'ref') {
+      if (key === StaticPropId.REF) {
         const element = vnode_getNode(vnode) as Element;
         if (isSignal(value)) {
           value.value = element;
@@ -882,17 +883,14 @@ export const vnode_diff = (
     };
 
     while (srcKey !== null || dstKey !== null) {
-      if (
-        (dstKey && getPropName(dstKey).startsWith(HANDLER_PREFIX)) ||
-        (dstKey && getPropName(dstKey).startsWith(Q_PREFIX))
-      ) {
+      if ((dstKey && isHandlerProp(dstKey)) || (dstKey && isQProp(dstKey))) {
         // These are a special keys which we use to mark the event handlers as immutable or
         // element key we need to ignore them.
         dstIdx++; // skip the destination value, we don't care about it.
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (srcKey == null) {
         // Source has more keys, so we need to remove them from destination
-        if (dstKey && isHtmlAttributeAnEventName(getPropName(dstKey))) {
+        if (dstKey && isEventProp(dstKey)) {
           patchEventDispatch = true;
           dstIdx++;
         } else {
@@ -902,7 +900,7 @@ export const vnode_diff = (
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (dstKey == null) {
         // Destination has more keys, so we need to insert them from source.
-        const isEvent = isJsxPropertyAnEventName(getPropName(srcKey));
+        const isEvent = isEventProp(srcKey);
         if (isEvent) {
           // Special handling for events
           patchEventDispatch = true;
@@ -926,7 +924,7 @@ export const vnode_diff = (
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (srcKey < dstKey) {
         // Destination is missing the key, so we need to insert it.
-        if (isJsxPropertyAnEventName(getPropName(srcKey))) {
+        if (isEventProp(srcKey)) {
           // Special handling for events
           patchEventDispatch = true;
           recordJsxEvent(srcKey, srcAttrs[srcIdx]);
@@ -943,7 +941,7 @@ export const vnode_diff = (
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else {
         // Source is missing the key, so we need to remove it from destination.
-        if (isHtmlAttributeAnEventName(getPropName(dstKey))) {
+        if (isEventProp(dstKey)) {
           patchEventDispatch = true;
           dstIdx++;
         } else {
@@ -1219,7 +1217,15 @@ function getKey(vNode: VNode | null): string | null {
   if (vNode == null) {
     return null;
   }
-  return vnode_getProp<string>(vNode, ELEMENT_KEY, null);
+  const type = vNode[VNodeProps.flags];
+  if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
+    const props = vnode_getProps(vNode);
+    // this works, because q:key is always at 0 position or it is not present
+    if (props[0] === StaticPropId.ELEMENT_KEY) {
+      return props[1] as string | null;
+    }
+  }
+  return null;
 }
 
 /**
@@ -1450,11 +1456,6 @@ function markVNodeAsDeleted(vCursor: VNode) {
   vCursor[VNodeProps.flags] |= VNodeFlags.Deleted;
 }
 
-/**
- * This marks the property as immutable. It is needed for the QRLs so that QwikLoader can get a hold
- * of them. This character must be `:` so that the `vnode_getAttr` can ignore them.
- */
-const HANDLER_PREFIX = ':';
 let count = 0;
 const enum SiblingsArray {
   Name = 0,

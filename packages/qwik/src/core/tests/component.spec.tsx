@@ -823,6 +823,52 @@ describe.each([
     );
   });
 
+  it('should preserve the same elements', async () => {
+    const Cmp = component$(() => {
+      const keys = useSignal(['A', 'B', 'C']);
+
+      return (
+        <div onClick$={() => (keys.value = ['B', 'C', 'A'])}>
+          {keys.value.map((key) => (
+            <span key={key} id={key}>
+              {key}
+            </span>
+          ))}
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <span id="A">A</span>
+          <span id="B">B</span>
+          <span id="C">C</span>
+        </div>
+      </Component>
+    );
+    const a1 = document.getElementById('A');
+    const b1 = document.getElementById('B');
+    const c1 = document.getElementById('C');
+    await trigger(document.body, 'div', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <span id="B">B</span>
+          <span id="C">C</span>
+          <span id="A">A</span>
+        </div>
+      </Component>
+    );
+    const a2 = document.getElementById('A');
+    const b2 = document.getElementById('B');
+    const c2 = document.getElementById('C');
+    expect(a1).toBe(a2);
+    expect(b1).toBe(b2);
+    expect(c1).toBe(c2);
+  });
+
   it('should render correctly component only with text node and node sibling', async () => {
     const Child = component$(() => {
       return <>0</>;

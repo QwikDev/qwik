@@ -133,12 +133,6 @@ export const vnode_diff = (
   /// and is not connected to the tree.
   let vNewNode: VNode | null = null;
 
-  /// When elements have keys they can be consumed out of order and therefore we can't use nextSibling.
-  /// In such a case this array will contain the elements after the current location.
-  /// The array even indices will contains keys and odd indices the vNode.
-  let vSiblings: Array<string | null | VNode> | null = null; // See: `SiblingsArray`
-  let vSiblingsIdx = -1;
-
   /// Current set of JSX children.
   let jsxChildren: JSXChildren[] = null!;
   // Current JSX child.
@@ -278,16 +272,9 @@ export const vnode_diff = (
    * order and can't rely on `vnode_getNextSibling` and instead we need to go by `vSiblings`.
    */
   function peekNextSibling() {
-    if (vSiblings !== null) {
-      // We came across a key, and we moved nodes around. This means we can no longer use
-      // `vnode_getNextSibling` to look at next node and instead we have to go by `vSiblings`.
-      const idx = vSiblingsIdx + SiblingsArray.NextVNode;
-      return idx < vSiblings.length ? (vSiblings[idx] as any) : null;
-    } else {
-      // If we don't have a `vNewNode`, than that means we just reconciled the current node.
-      // So advance it.
-      return vCurrent ? vnode_getNextSibling(vCurrent) : null;
-    }
+    // If we don't have a `vNewNode`, than that means we just reconciled the current node.
+    // So advance it.
+    return vCurrent ? vnode_getNextSibling(vCurrent) : null;
   }
 
   /**
@@ -299,9 +286,6 @@ export const vnode_diff = (
    */
   function advanceToNextSibling() {
     vCurrent = peekNextSibling();
-    if (vSiblings !== null) {
-      vSiblingsIdx += SiblingsArray.Size; // advance;
-    }
   }
 
   /**
@@ -331,8 +315,6 @@ export const vnode_diff = (
     stackPush(children, descendVNode);
     if (descendVNode) {
       assertDefined(vCurrent || vNewNode, 'Expecting vCurrent to be defined.');
-      vSiblings = null;
-      vSiblingsIdx = -1;
       vParent = vNewNode || vCurrent!;
       vCurrent = vnode_getFirstChild(vParent);
       vNewNode = null;
@@ -343,8 +325,6 @@ export const vnode_diff = (
   function ascend() {
     const descendVNode = stack.pop(); // boolean: descendVNode
     if (descendVNode) {
-      vSiblingsIdx = stack.pop();
-      vSiblings = stack.pop();
       vNewNode = stack.pop();
       vCurrent = stack.pop();
       vParent = stack.pop();
@@ -359,7 +339,7 @@ export const vnode_diff = (
   function stackPush(children: JSXChildren, descendVNode: boolean) {
     stack.push(jsxChildren, jsxIdx, jsxCount, jsxValue);
     if (descendVNode) {
-      stack.push(vParent, vCurrent, vNewNode, vSiblings, vSiblingsIdx);
+      stack.push(vParent, vCurrent, vNewNode);
     }
     stack.push(descendVNode);
     if (Array.isArray(children)) {
@@ -384,9 +364,6 @@ export const vnode_diff = (
   function getInsertBefore() {
     if (vNewNode) {
       return vCurrent;
-    } else if (vSiblings !== null) {
-      const nextIdx = vSiblingsIdx + SiblingsArray.NextVNode;
-      return nextIdx < vSiblings.length ? (vSiblings[nextIdx] as VNode) : null;
     } else {
       return peekNextSibling();
     }
@@ -751,10 +728,6 @@ export const vnode_diff = (
         vCurrent = vNewNode;
         // We need to clean up the vNewNode, because we don't want to skip advance to next sibling (see `advance` function).
         vNewNode = null;
-        // We need also to go back to the previous sibling, because we assigned previous sibling to the vCurrent.
-        if (vSiblings !== null) {
-          vSiblingsIdx -= SiblingsArray.Size;
-        }
       }
     }
     // reconcile attributes
@@ -953,63 +926,21 @@ export const vnode_diff = (
     }
   }
 
-  /**
-   * Retrieve the child with the given key.
-   *
-   * By retrieving the child with the given key we are effectively removing it from the list of
-   * future elements. This means that we can't just use `vnode_getNextSibling` to find the next
-   * instead we have to keep track of the elements we have already seen.
-   *
-   * We call this materializing the elements.
-   *
-   * `vSiblingsIdx`:
-   *
-   * - -1: Not materialized
-   * - Positive number - the index of the next element in the `vSiblings` array.
-   *
-   * By retrieving the child with the given key we are effectively removing it from the list (hence
-   * we need to splice the `vSiblings` array).
-   *
-   * @param nodeName
-   * @param key
-   * @returns Array where: (see: `SiblingsArray`)
-   *
-   *   - Idx%3 == 0 nodeName
-   *   - Idx%3 == 1 key
-   *   - Idx%3 == 2 vNode
-   */
+  /** Retrieve the child with the given key. */
   function retrieveChildWithKey(
     nodeName: string | null,
     key: string | null
   ): ElementVNode | VirtualVNode | null {
     let vNodeWithKey: ElementVNode | VirtualVNode | null = null;
-    if (vSiblingsIdx === -1) {
-      // it is not materialized; so materialize it.
-      vSiblings = [];
-      vSiblingsIdx = 0;
-      let vNode = vCurrent;
-      while (vNode) {
-        const name = vnode_isElementVNode(vNode) ? vnode_getElementName(vNode) : null;
-        const vKey = getKey(vNode) || getComponentHash(vNode, container.$getObjectById$);
-        if (vNodeWithKey === null && vKey == key && name == nodeName) {
-          vNodeWithKey = vNode as ElementVNode | VirtualVNode;
-        } else {
-          // we only add the elements which we did not find yet.
-          vSiblings.push(name, vKey, vNode);
-        }
-        vNode = vnode_getNextSibling(vNode);
+    let vNode = vCurrent;
+    while (vNode) {
+      const name = vnode_isElementVNode(vNode) ? vnode_getElementName(vNode) : null;
+      const vKey = getKey(vNode) || getComponentHash(vNode, container.$getObjectById$);
+      if (vKey == key && name == nodeName) {
+        vNodeWithKey = vNode as ElementVNode | VirtualVNode;
+        break;
       }
-    } else {
-      for (let idx = vSiblingsIdx; idx < vSiblings!.length; idx += SiblingsArray.Size) {
-        const name = vSiblings![idx + SiblingsArray.Name];
-        const vKey = vSiblings![idx + SiblingsArray.Key];
-        if (vKey === key && name === nodeName) {
-          vNodeWithKey = vSiblings![idx + SiblingsArray.VNode] as any;
-          // remove the node from the siblings array
-          vSiblings?.splice(idx, SiblingsArray.Size);
-          break;
-        }
-      }
+      vNode = vnode_getNextSibling(vNode);
     }
     return vNodeWithKey;
   }
@@ -1446,10 +1377,3 @@ function markVNodeAsDeleted(vCursor: VNode) {
  */
 const HANDLER_PREFIX = ':';
 let count = 0;
-const enum SiblingsArray {
-  Name = 0,
-  Key = 1,
-  VNode = 2,
-  Size = 3,
-  NextVNode = Size + VNode,
-}

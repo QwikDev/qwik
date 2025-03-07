@@ -8,6 +8,7 @@ import { defineConfig, loadEnv, type Plugin } from 'vite';
 import Inspect from 'vite-plugin-inspect';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
+import tailwindcss from '@tailwindcss/vite';
 
 const PUBLIC_QWIK_INSIGHTS_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
 const docsDir = new URL(import.meta.url).pathname;
@@ -169,6 +170,7 @@ export default defineConfig(async () => {
       qwikReact(),
       Inspect(),
       qwikInsights({ publicApiKey: PUBLIC_QWIK_INSIGHTS_KEY }),
+      tailwindcss(),
     ],
     build: {
       sourcemap: true,

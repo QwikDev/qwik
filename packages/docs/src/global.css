@@ -1,3 +1,9 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-interactive-blue: '#009dfd';
+}
+
 /* latin */
 @font-face {
   font-family: 'Poppins';
@@ -42,10 +48,6 @@
   letter-spacing: 0px;
   text-shadow: none;
 }
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 * {
   -webkit-tap-highlight-color: transparent;

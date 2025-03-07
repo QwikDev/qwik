@@ -1,5 +1,5 @@
 import { isQrl } from '../server/prefetch-strategy';
-import { isJSXNode } from './shared/jsx/jsx-runtime';
+import { isJSXNode, isPropsProxy } from './shared/jsx/jsx-runtime';
 import { isTask } from './use/use-task';
 import { vnode_getProp, vnode_isVNode } from './client/vnode';
 import { ComputedSignal, WrappedSignal, isSignal } from './signal/signal';
@@ -47,6 +47,8 @@ export function qwikDebugToString(value: any): any {
         return 'Store';
       } else if (isJSXNode(value)) {
         return jsxToString(value);
+      } else if (isPropsProxy(value)) {
+        return '{*}';
       }
     } finally {
       stringifyPath.pop();

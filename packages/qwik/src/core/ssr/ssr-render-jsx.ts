@@ -33,11 +33,12 @@ import { qInspector } from '../shared/utils/qdev';
 import { addComponentStylePrefix, isClassAttr } from '../shared/utils/scoped-styles';
 import { serializeAttribute } from '../shared/utils/styles';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
-import { EffectProperty, WrappedSignal, isSignal } from '../signal/signal';
+import { EffectProperty, isSignal } from '../signal/signal';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
-import type { ISsrComponentFrame, ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
+import type { ISsrComponentFrame, SSRContainer, SsrAttrs } from './ssr-types';
 import { isQrl } from '../shared/qrl/qrl-utils';
+import { getPropId, getPropName, getSlotName, type NumericPropKey } from '../shared/utils/prop';
 
 class ParentComponentData {
   constructor(
@@ -109,12 +110,12 @@ function processJSXNode(
         enqueue(value[i]);
       }
     } else if (isSignal(value)) {
-      ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.WrappedSignal] : EMPTY_ARRAY);
+      ssr.openFragment(isDev ? [getPropId(DEBUG_TYPE), VirtualType.WrappedSignal] : EMPTY_ARRAY);
       const signalNode = ssr.getLastNode();
       enqueue(ssr.closeFragment);
       enqueue(trackSignalAndAssignHost(value, signalNode, EffectProperty.VNODE, ssr));
     } else if (isPromise(value)) {
-      ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Awaited] : EMPTY_ARRAY);
+      ssr.openFragment(isDev ? [getPropId(DEBUG_TYPE), VirtualType.Awaited] : EMPTY_ARRAY);
       enqueue(ssr.closeFragment);
       enqueue(value);
       enqueue(Promise);
@@ -177,9 +178,9 @@ function processJSXNode(
         children != null && enqueue(children);
       } else if (isFunction(type)) {
         if (type === Fragment) {
-          let attrs = jsx.key != null ? [ELEMENT_KEY, jsx.key] : EMPTY_ARRAY;
+          let attrs = jsx.key != null ? [getPropId(ELEMENT_KEY), jsx.key] : EMPTY_ARRAY;
           if (isDev) {
-            attrs = [DEBUG_TYPE, VirtualType.Fragment, ...attrs]; // Add debug info.
+            attrs = [getPropId(DEBUG_TYPE), VirtualType.Fragment, ...attrs]; // Add debug info.
           }
           ssr.openFragment(attrs);
           ssr.addCurrentElementFrameAsComponentChild();
@@ -192,13 +193,15 @@ function processJSXNode(
             options.parentComponentFrame || ssr.unclaimedProjectionComponentFrameQueue.shift();
           if (componentFrame) {
             const compId = componentFrame.componentNode.id || '';
-            const projectionAttrs = isDev ? [DEBUG_TYPE, VirtualType.Projection] : [];
-            projectionAttrs.push(QSlotParent, compId);
+            const projectionAttrs: SsrAttrs = isDev
+              ? [getPropId(DEBUG_TYPE), VirtualType.Projection]
+              : [];
+            projectionAttrs.push(getPropId(QSlotParent), compId);
             ssr.openProjection(projectionAttrs);
             const host = componentFrame.componentNode;
             const node = ssr.getLastNode();
             const slotName = getSlotName(host, jsx, ssr);
-            projectionAttrs.push(QSlot, slotName);
+            projectionAttrs.push(getPropId(QSlot), slotName);
 
             enqueue(new ParentComponentData(options.styleScoped, options.parentComponentFrame));
             enqueue(ssr.closeProjection);
@@ -217,7 +220,7 @@ function processJSXNode(
             );
           } else {
             // Even thought we are not projecting we still need to leave a marker for the slot.
-            ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Projection] : EMPTY_ARRAY);
+            ssr.openFragment(isDev ? [getPropId(DEBUG_TYPE), VirtualType.Projection] : EMPTY_ARRAY);
             ssr.closeFragment();
           }
         } else if (type === SSRComment) {
@@ -246,7 +249,7 @@ function processJSXNode(
           ssr.htmlNode(directGetPropsProxyProp(jsx, 'data'));
         } else if (isQwikComponent(type)) {
           // prod: use new instance of an array for props, we always modify props for a component
-          ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
+          ssr.openComponent(isDev ? [getPropId(DEBUG_TYPE), VirtualType.Component] : []);
           const host = ssr.getLastNode();
           const componentFrame = ssr.getParentComponentFrame()!;
           componentFrame!.distributeChildrenIntoSlots(
@@ -263,10 +266,10 @@ function processJSXNode(
           isPromise(jsxOutput) && enqueue(Promise);
           enqueue(new ParentComponentData(compStyleComponentId, componentFrame));
         } else {
-          const inlineComponentProps = [ELEMENT_KEY, jsx.key];
+          const inlineComponentProps = [getPropId(ELEMENT_KEY), jsx.key];
           ssr.openFragment(
             isDev
-              ? [DEBUG_TYPE, VirtualType.InlineComponent, ...inlineComponentProps]
+              ? [getPropId(DEBUG_TYPE), VirtualType.InlineComponent, ...inlineComponentProps]
               : inlineComponentProps
           );
           enqueue(ssr.closeFragment);
@@ -333,8 +336,10 @@ export function toSsrAttrs(
   }
   const ssrAttrs: SsrAttrs = [];
   for (const key in record) {
-    let value = record[key];
-    if (isJsxPropertyAnEventName(key)) {
+    const numericKey = key as unknown as NumericPropKey;
+    let value = record[numericKey];
+    const nameKey = getPropName(numericKey);
+    if (isJsxPropertyAnEventName(nameKey)) {
       if (anotherRecord) {
         /**
          * If we have two sources of the same event like this:
@@ -356,7 +361,7 @@ export function toSsrAttrs(
          * - For the var props we need to merge them into the one value (array)
          * - For the const props we need to just skip, because we will handle this in the var props
          */
-        const anotherValue = getEventProp(anotherRecord, key);
+        const anotherValue = getEventProp(anotherRecord, numericKey);
         if (anotherValue) {
           if (pushMergedEventProps) {
             // merge values from the const props with the var props
@@ -366,31 +371,31 @@ export function toSsrAttrs(
           }
         }
       }
-      const eventValue = setEvent(serializationCtx, key, value);
+      const eventValue = setEvent(serializationCtx, nameKey, value);
       if (eventValue) {
-        ssrAttrs.push(convertEventNameFromJsxPropToHtmlAttr(key), eventValue);
+        ssrAttrs.push(convertEventNameFromJsxPropToHtmlAttr(nameKey), eventValue);
       }
       continue;
     }
 
     if (isSignal(value)) {
       // write signal as is. We will track this signal inside `writeAttrs`
-      if (isClassAttr(key)) {
+      if (isClassAttr(nameKey)) {
         // additionally append styleScopedId for class attr
-        ssrAttrs.push(key, [value, styleScopedId]);
+        ssrAttrs.push(nameKey, [value, styleScopedId]);
       } else {
-        ssrAttrs.push(key, value);
+        ssrAttrs.push(nameKey, value);
       }
       continue;
     }
 
-    if (isPreventDefault(key)) {
-      addPreventDefaultEventToSerializationContext(serializationCtx, key);
+    if (isPreventDefault(nameKey)) {
+      addPreventDefaultEventToSerializationContext(serializationCtx, nameKey);
     }
 
-    value = serializeAttribute(key, value, styleScopedId);
+    value = serializeAttribute(nameKey, value, styleScopedId);
 
-    ssrAttrs.push(key, value as string);
+    ssrAttrs.push(nameKey, value as string);
   }
   if (key != null) {
     ssrAttrs.push(ELEMENT_KEY, key);
@@ -418,10 +423,9 @@ function getMergedEventPropValues(value: unknown, anotherValue: unknown) {
   return mergedValue;
 }
 
-function getEventProp(record: Record<string, unknown>, propKey: string): unknown | null {
-  const eventProp = propKey.toLowerCase();
+function getEventProp(record: Record<string, unknown>, numericKey: NumericPropKey): unknown | null {
   for (const prop in record) {
-    if (prop.toLowerCase() === eventProp) {
+    if ((prop as unknown as NumericPropKey) === numericKey) {
       return record[prop];
     }
   }
@@ -497,20 +501,10 @@ function addPreventDefaultEventToSerializationContext(
   }
 }
 
-function getSlotName(host: ISsrNode, jsx: JSXNodeInternal, ssr: SSRContainer): string {
-  const constProps = jsx.constProps;
-  if (constProps && typeof constProps == 'object' && 'name' in constProps) {
-    const constValue = constProps.name;
-    if (constValue instanceof WrappedSignal) {
-      return trackSignalAndAssignHost(constValue, host, EffectProperty.COMPONENT, ssr);
-    }
-  }
-  return directGetPropsProxyProp(jsx, 'name') || QDefaultSlot;
-}
-
 function appendQwikInspectorAttribute(jsx: JSXNodeInternal, qwikInspectorAttrValue: string | null) {
-  if (qwikInspectorAttrValue && (!jsx.constProps || !(qwikInspectorAttr in jsx.constProps))) {
-    (jsx.constProps ||= {})[qwikInspectorAttr] = qwikInspectorAttrValue;
+  const qwikInspectorAttrId = getPropId(qwikInspectorAttr);
+  if (qwikInspectorAttrValue && (!jsx.constProps || !(qwikInspectorAttrId in jsx.constProps))) {
+    (jsx.constProps ||= {})[qwikInspectorAttrId] = qwikInspectorAttrValue;
   }
 }
 
@@ -521,6 +515,6 @@ function appendClassIfScopedStyleExists(jsx: JSXNodeInternal, styleScoped: strin
     if (!jsx.constProps) {
       jsx.constProps = {};
     }
-    jsx.constProps['class'] = '';
+    jsx.constProps[getPropId('class')] = '';
   }
 }

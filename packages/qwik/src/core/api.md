@@ -231,6 +231,8 @@ export class _EffectData {
     data: NodePropData;
 }
 
+// Warning: (ae-forgotten-export) The symbol "NumericPropKey" needs to be exported by the entry point index.d.ts
+//
 // @internal (undocumented)
 export type _ElementVNode = [
 _VNodeFlags.Element,
@@ -247,7 +249,7 @@ _VNode | null | undefined,
 Element,
 //////////////////// 6 - Element
 string | undefined,
-(string | null)[]
+(NumericPropKey | string | null)[]
 ] & {
     __brand__: 'ElementVNode';
 };
@@ -416,11 +418,11 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
 // @internal
 export interface JSXNodeInternal<T extends string | FunctionComponent | unknown = unknown> extends JSXNode<T> {
     // (undocumented)
-    constProps: Record<any, unknown> | null;
+    constProps: Record<NumericPropKey, unknown> | null;
     // (undocumented)
     flags: number;
     // (undocumented)
-    varProps: Record<any, unknown>;
+    varProps: Record<NumericPropKey, unknown>;
 }
 
 // @public
@@ -1712,7 +1714,7 @@ _VNode | null,
 _VNode | null,
 /////////////// 4 - First child
 _VNode | null,
-(string | null | boolean)[]
+(NumericPropKey | string | null | boolean)[]
 ] & {
     __brand__: 'FragmentNode' & 'HostElement';
 };

@@ -48,8 +48,6 @@ import type { DomContainer } from './dom-container';
 import {
   VNodeFlags,
   VNodeProps,
-  type ClientAttrKey,
-  type ClientAttrs,
   type ClientContainer,
   type ElementVNode,
   type TextVNode,
@@ -90,10 +88,16 @@ import {
 import { mapApp_findIndx } from './util-mapArray';
 import { mapArray_set } from './util-mapArray';
 import { getNewElementNamespaceData } from './vnode-namespace';
-import { WrappedSignal, EffectProperty, isSignal, SubscriptionData } from '../signal/signal';
+import { EffectProperty, isSignal, SubscriptionData } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
 import { executeComponent } from '../shared/component-execution';
-import { isSlotProp } from '../shared/utils/prop';
+import {
+  getPropId,
+  getPropName,
+  getSlotName,
+  isSlotProp,
+  type NumericPropKey,
+} from '../shared/utils/prop';
 import { escapeHTML } from '../shared/utils/character-escaping';
 import { clearAllEffects } from '../signal/signal-cleanup';
 import { serializeAttribute } from '../shared/utils/styles';
@@ -402,15 +406,15 @@ export const vnode_diff = (
       return new JSXNodeImpl(Projection, EMPTY_OBJ, null, [], 0, slotName);
     };
 
-    const projections: Array<string | JSXNodeInternal> = [];
+    const projections: Array<string | NumericPropKey | JSXNodeInternal> = [];
     if (host) {
       const props = vnode_getProps(host);
       // we need to create empty projections for all the slots to remove unused slots content
       for (let i = 0; i < props.length; i = i + 2) {
-        const prop = props[i] as string;
+        const prop = props[i] as NumericPropKey;
         if (isSlotProp(prop)) {
-          const slotName = prop;
-          projections.push(slotName);
+          const slotName = getPropName(prop);
+          projections.push(prop);
           projections.push(createProjectionJSXNode(slotName));
         }
       }
@@ -427,12 +431,18 @@ export const vnode_diff = (
       const slotName = String(
         (isJSXNode(child) && directGetPropsProxyProp(child, QSlot)) || QDefaultSlot
       );
-      const idx = mapApp_findIndx(projections, slotName, 0);
+      const slotNameNumeric = getPropId(slotName);
+      const idx = mapApp_findIndx(projections, slotNameNumeric, 0);
       let jsxBucket: JSXNodeImpl<typeof Projection>;
       if (idx >= 0) {
         jsxBucket = projections[idx + 1] as any;
       } else {
-        projections.splice(~idx, 0, slotName, (jsxBucket = createProjectionJSXNode(slotName)));
+        projections.splice(
+          ~idx,
+          0,
+          slotNameNumeric,
+          (jsxBucket = createProjectionJSXNode(slotName))
+        );
       }
       const removeProjection = child === false;
       if (!removeProjection) {
@@ -474,7 +484,7 @@ export const vnode_diff = (
   function expectSlot() {
     const vHost = vnode_getProjectionParentComponent(vParent, container.rootVNode);
 
-    const slotNameKey = getSlotNameKey(vHost);
+    const slotNameKey = getSlotName(vHost, jsxValue as JSXNodeInternal, container);
     // console.log('expectSlot', JSON.stringify(slotNameKey));
 
     const vProjectedNode = vHost
@@ -532,18 +542,6 @@ export const vnode_diff = (
       isDev && vnode_setProp(vNewNode, 'q:code', 'expectSlot' + count++);
     }
     return true;
-  }
-
-  function getSlotNameKey(vHost: VNode | null) {
-    const jsxNode = jsxValue as JSXNodeInternal;
-    const constProps = jsxNode.constProps;
-    if (constProps && typeof constProps == 'object' && 'name' in constProps) {
-      const constValue = constProps.name;
-      if (vHost && constValue instanceof WrappedSignal) {
-        return trackSignalAndAssignHost(constValue, vHost, EffectProperty.COMPONENT, container);
-      }
-    }
-    return directGetPropsProxyProp(jsxNode, 'name') || QDefaultSlot;
   }
 
   function drainAsyncQueue(): ValueOrPromise<void> {
@@ -619,12 +617,14 @@ export const vnode_diff = (
       // For this reason we can cheat and write them directly into the DOM.
       // We never tell the vNode about them saving us time and memory.
       for (const key in constProps) {
-        let value = constProps[key];
-        if (isJsxPropertyAnEventName(key)) {
+        let value = constProps[key as unknown as NumericPropKey];
+        const numericKey = key as unknown as NumericPropKey;
+        const nameKey = getPropName(numericKey);
+        if (isJsxPropertyAnEventName(nameKey)) {
           // So for event handlers we must add them to the vNode so that qwikloader can look them up
           // But we need to mark them so that they don't get pulled into the diff.
-          const eventName = getEventNameFromJsxProp(key);
-          const scope = getEventNameScopeFromJsxProp(key);
+          const eventName = getEventNameFromJsxProp(nameKey);
+          const scope = getEventNameScopeFromJsxProp(nameKey);
           if (eventName) {
             vnode_setProp(
               vNewNode as ElementVNode,
@@ -638,7 +638,7 @@ export const vnode_diff = (
             // add an event attr with empty value for qwikloader element selector.
             // We don't need value here. For ssr this value is a QRL,
             // but for CSR value should be just empty
-            const htmlEvent = convertEventNameFromJsxPropToHtmlAttr(key);
+            const htmlEvent = convertEventNameFromJsxPropToHtmlAttr(nameKey);
             if (htmlEvent) {
               vnode_setAttr(journal, vNewNode as ElementVNode, htmlEvent, '');
             }
@@ -648,7 +648,7 @@ export const vnode_diff = (
           continue;
         }
 
-        if (key === 'ref') {
+        if (nameKey === 'ref') {
           if (isSignal(value)) {
             value.value = element;
             continue;
@@ -670,19 +670,19 @@ export const vnode_diff = (
           value = trackSignalAndAssignHost(
             value as Signal<unknown>,
             vNewNode as ElementVNode,
-            key,
+            nameKey,
             container,
             signalData
           );
         }
 
-        if (key === dangerouslySetInnerHTML) {
+        if (nameKey === dangerouslySetInnerHTML) {
           element.innerHTML = value as string;
           element.setAttribute(QContainerAttr, QContainerValue.HTML);
           continue;
         }
 
-        if (elementName === 'textarea' && key === 'value') {
+        if (elementName === 'textarea' && nameKey === 'value') {
           if (value && typeof value !== 'string') {
             if (isDev) {
               throw qError(QError.wrongTextareaValue, [currentFile, value]);
@@ -693,9 +693,9 @@ export const vnode_diff = (
           continue;
         }
 
-        value = serializeAttribute(key, value, scopedStyleIdPrefix);
+        value = serializeAttribute(nameKey, value, scopedStyleIdPrefix);
         if (value != null) {
-          element.setAttribute(key, String(value));
+          element.setAttribute(nameKey, String(value));
         }
       }
     }
@@ -759,16 +759,16 @@ export const vnode_diff = (
     }
     // reconcile attributes
 
-    const jsxAttrs = [] as ClientAttrs;
+    const jsxAttrs: NumericPropKey[] = [];
     const props = jsx.varProps;
     for (const key in props) {
-      const value = props[key];
+      const value = props[key as unknown as NumericPropKey];
       if (value != null) {
-        mapArray_set(jsxAttrs, key, value, 0);
+        mapArray_set(jsxAttrs, key as unknown as NumericPropKey, value, 0);
       }
     }
     if (jsxKey !== null) {
-      mapArray_set(jsxAttrs, ELEMENT_KEY, jsxKey, 0);
+      mapArray_set(jsxAttrs, getPropId(ELEMENT_KEY), jsxKey, 0);
     }
     const vNode = (vNewNode || vCurrent) as ElementVNode;
     needsQDispatchEventPatch =
@@ -805,26 +805,27 @@ export const vnode_diff = (
   /** @returns True if `qDispatchEvent` needs patching */
   function setBulkProps(
     vnode: ElementVNode,
-    srcAttrs: ClientAttrs,
+    srcAttrs: NumericPropKey[],
     currentFile?: string | null
   ): boolean {
     vnode_ensureElementInflated(vnode);
-    const dstAttrs = vnode_getProps(vnode) as ClientAttrs;
+    const dstAttrs = vnode_getProps(vnode) as NumericPropKey[];
     let srcIdx = 0;
     const srcLength = srcAttrs.length;
     let dstIdx = 0;
     let dstLength = dstAttrs.length;
-    let srcKey: ClientAttrKey | null = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
-    let dstKey: ClientAttrKey | null = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
+    let srcKey: NumericPropKey | null = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
+    let dstKey: NumericPropKey | null = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
     let patchEventDispatch = false;
 
-    const record = (key: string, value: any) => {
-      if (key.startsWith(':')) {
-        vnode_setProp(vnode, key, value);
+    const record = (key: NumericPropKey, value: any) => {
+      const keyName = getPropName(key);
+      if (keyName.startsWith(':')) {
+        vnode_setProp(vnode, keyName, value);
         return;
       }
 
-      if (key === 'ref') {
+      if (keyName === 'ref') {
         const element = vnode_getNode(vnode) as Element;
         if (isSignal(value)) {
           value.value = element;
@@ -844,21 +845,27 @@ export const vnode_diff = (
           $scopedStyleIdPrefix$: scopedStyleIdPrefix,
           $isConst$: false,
         });
-        value = trackSignalAndAssignHost(value, vnode, key, container, signalData);
+        value = trackSignalAndAssignHost(value, vnode, keyName, container, signalData);
       }
 
-      vnode_setAttr(journal, vnode, key, serializeAttribute(key, value, scopedStyleIdPrefix));
+      vnode_setAttr(
+        journal,
+        vnode,
+        keyName,
+        serializeAttribute(keyName, value, scopedStyleIdPrefix)
+      );
       if (value === null) {
         // if we set `null` than attribute was removed and we need to shorten the dstLength
         dstLength = dstAttrs.length;
       }
     };
 
-    const recordJsxEvent = (key: string, value: any) => {
-      const eventName = getEventNameFromJsxProp(key);
-      const scope = getEventNameScopeFromJsxProp(key);
+    const recordJsxEvent = (key: NumericPropKey, value: any) => {
+      const keyName = getPropName(key);
+      const eventName = getEventNameFromJsxProp(keyName);
+      const scope = getEventNameScopeFromJsxProp(keyName);
       if (eventName) {
-        record(':' + scope + ':' + eventName, value);
+        record(getPropId(':' + scope + ':' + eventName), value);
         // register an event for qwik loader
         registerQwikLoaderEvent(eventName);
       }
@@ -867,22 +874,25 @@ export const vnode_diff = (
         // add an event attr with empty value for qwikloader element selector.
         // We don't need value here. For ssr this value is a QRL,
         // but for CSR value should be just empty
-        const htmlEvent = convertEventNameFromJsxPropToHtmlAttr(key);
+        const htmlEvent = convertEventNameFromJsxPropToHtmlAttr(keyName);
         if (htmlEvent) {
-          record(htmlEvent, '');
+          record(getPropId(htmlEvent), '');
         }
       }
     };
 
     while (srcKey !== null || dstKey !== null) {
-      if (dstKey?.startsWith(HANDLER_PREFIX) || dstKey?.startsWith(Q_PREFIX)) {
+      if (
+        (dstKey && getPropName(dstKey).startsWith(HANDLER_PREFIX)) ||
+        (dstKey && getPropName(dstKey).startsWith(Q_PREFIX))
+      ) {
         // These are a special keys which we use to mark the event handlers as immutable or
         // element key we need to ignore them.
         dstIdx++; // skip the destination value, we don't care about it.
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (srcKey == null) {
         // Source has more keys, so we need to remove them from destination
-        if (dstKey && isHtmlAttributeAnEventName(dstKey)) {
+        if (dstKey && isHtmlAttributeAnEventName(getPropName(dstKey))) {
           patchEventDispatch = true;
           dstIdx++;
         } else {
@@ -892,7 +902,7 @@ export const vnode_diff = (
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (dstKey == null) {
         // Destination has more keys, so we need to insert them from source.
-        const isEvent = isJsxPropertyAnEventName(srcKey);
+        const isEvent = isJsxPropertyAnEventName(getPropName(srcKey));
         if (isEvent) {
           // Special handling for events
           patchEventDispatch = true;
@@ -916,7 +926,7 @@ export const vnode_diff = (
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (srcKey < dstKey) {
         // Destination is missing the key, so we need to insert it.
-        if (isJsxPropertyAnEventName(srcKey)) {
+        if (isJsxPropertyAnEventName(getPropName(srcKey))) {
           // Special handling for events
           patchEventDispatch = true;
           recordJsxEvent(srcKey, srcAttrs[srcIdx]);
@@ -933,7 +943,7 @@ export const vnode_diff = (
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else {
         // Source is missing the key, so we need to remove it from destination.
-        if (isHtmlAttributeAnEventName(dstKey)) {
+        if (isHtmlAttributeAnEventName(getPropName(dstKey))) {
           patchEventDispatch = true;
           dstIdx++;
         } else {
@@ -1337,7 +1347,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
         // SPECIAL CASE: If we are a component, we need to descend into the projected content and release the content.
         const attrs = vnode_getProps(vCursor);
         for (let i = 0; i < attrs.length; i = i + 2) {
-          const key = attrs[i] as string;
+          const key = attrs[i] as NumericPropKey;
           if (isSlotProp(key)) {
             const value = attrs[i + 1];
             if (value) {

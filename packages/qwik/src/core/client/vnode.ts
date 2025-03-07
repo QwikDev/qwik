@@ -170,6 +170,7 @@ import {
 } from './vnode-namespace';
 import { mergeMaps } from '../shared/utils/maps';
 import { _EFFECT_BACK_REF } from '../signal/flags';
+import { getPropId, getPropName, type NumericPropKey } from '../shared/utils/prop';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -393,13 +394,13 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
         break;
       } else if (key.startsWith(QContainerAttr)) {
         if (attr.value === QContainerValue.HTML) {
-          mapArray_set(props, dangerouslySetInnerHTML, element.innerHTML, 0);
+          mapArray_set(props, getPropId(dangerouslySetInnerHTML), element.innerHTML, 0);
         } else if (attr.value === QContainerValue.TEXT && 'value' in element) {
-          mapArray_set(props, 'value', element.value, 0);
+          mapArray_set(props, getPropId('value'), element.value, 0);
         }
       } else if (!key.startsWith('on:')) {
         const value = attr.value;
-        mapArray_set(props, key, value, 0);
+        mapArray_set(props, getPropId(key), value, 0);
       }
     }
   }
@@ -1530,7 +1531,7 @@ export const vnode_getAttrKeys = (vnode: ElementVNode | VirtualVNode): string[] 
     const keys: string[] = [];
     const props = vnode_getProps(vnode);
     for (let i = 0; i < props.length; i = i + 2) {
-      const key = props[i] as string;
+      const key = getPropName(props[i] as NumericPropKey);
       if (!key.startsWith(Q_PROPS_SEPARATOR)) {
         keys.push(key);
       }
@@ -1550,7 +1551,7 @@ export const vnode_setAttr = (
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
     vnode_ensureElementInflated(vnode);
     const props = vnode_getProps(vnode);
-    const idx = mapApp_findIndx(props, key, 0);
+    const idx = mapApp_findIndx(props, getPropId(key), 0);
 
     if (idx >= 0) {
       if (props[idx + 1] != value && (type & VNodeFlags.Element) !== 0) {
@@ -1564,7 +1565,7 @@ export const vnode_setAttr = (
         props[idx + 1] = value;
       }
     } else if (value != null) {
-      props.splice(idx ^ -1, 0, key, value);
+      props.splice(idx ^ -1, 0, getPropId(key), value);
       if ((type & VNodeFlags.Element) !== 0) {
         // New value, update DOM
         const element = vnode[ElementVNodeProps.element] as Element;
@@ -1579,7 +1580,7 @@ export const vnode_getAttr = (vnode: VNode, key: string): string | null => {
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
     vnode_ensureElementInflated(vnode);
     const props = vnode_getProps(vnode);
-    return mapArray_get(props as string[], key, 0);
+    return mapArray_get(props as string[], getPropId(key), 0);
   }
   return null;
 };
@@ -1593,7 +1594,7 @@ export const vnode_getProp = <T>(
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
     type & VNodeFlags.Element && vnode_ensureElementInflated(vnode);
     const props = vnode_getProps(vnode);
-    const idx = mapApp_findIndx(props as any, key, 0);
+    const idx = mapApp_findIndx(props, getPropId(key), 0);
     if (idx >= 0) {
       let value = props[idx + 1] as any;
       if (typeof value === 'string' && getObject) {
@@ -1608,11 +1609,12 @@ export const vnode_getProp = <T>(
 export const vnode_setProp = (vnode: VirtualVNode | ElementVNode, key: string, value: unknown) => {
   ensureElementOrVirtualVNode(vnode);
   const props = vnode_getProps(vnode);
-  const idx = mapApp_findIndx(props, key, 0);
+  const numericKey = getPropId(key);
+  const idx = mapApp_findIndx(props, numericKey, 0);
   if (idx >= 0) {
     props[idx + 1] = value as any;
   } else if (value != null) {
-    props.splice(idx ^ -1, 0, key, value as any);
+    props.splice(idx ^ -1, 0, numericKey, value as any);
   }
 };
 

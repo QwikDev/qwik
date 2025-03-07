@@ -9,6 +9,9 @@
  * - A `-` (not at the beginning) makes next character uppercase: `dbl-click` => `dblClick`
  */
 
+import type { KnownEventNames } from '../jsx/types/jsx-qwik-events';
+import { DOMContentLoadedEvent } from './markers';
+
 export const isJsxPropertyAnEventName = (name: string): boolean => {
   return (
     (name.startsWith('on') || name.startsWith('window:on') || name.startsWith('document:on')) &&
@@ -31,34 +34,39 @@ export const getEventNameFromJsxProp = (name: string): string | null => {
       idx = 11;
     }
     if (idx != -1) {
-      const isCaseSensitive = isDashAt(name, idx) && !isDashAt(name, idx + 1);
-      if (isCaseSensitive) {
-        idx++;
-      }
-      let lastIdx = idx;
-      let eventName = '';
-      while (true as boolean) {
-        idx = name.indexOf('-', lastIdx);
-        const chunk = name.substring(
-          lastIdx,
-          idx === -1 ? name.length - 1 /* don't include `$` */ : idx
-        );
-        eventName += isCaseSensitive ? chunk : chunk.toLowerCase();
-        if (idx == -1) {
-          return eventName;
-        }
-        if (isDashAt(name, idx + 1)) {
-          eventName += '-';
-          idx++;
-        } else {
-          eventName += name.charAt(idx + 1).toUpperCase();
-          idx++;
-        }
-        lastIdx = idx + 1;
-      }
+      return parseEventNameFromIndex(name, idx);
     }
   }
   return null;
+};
+
+export const parseEventNameFromIndex = (name: string, idx: number): string => {
+  const isCaseSensitive = isDashAt(name, idx) && !isDashAt(name, idx + 1);
+  if (isCaseSensitive) {
+    idx++;
+  }
+  let lastIdx = idx;
+  let eventName = '';
+  while (true as boolean) {
+    idx = name.indexOf('-', lastIdx);
+    const chunk = name.substring(
+      lastIdx,
+      idx === -1 ? name.length - 1 /* don't include `$` */ : idx
+    );
+    eventName += isCaseSensitive ? chunk : chunk.toLowerCase();
+    if (idx == -1) {
+      return eventName;
+    }
+    if (isDashAt(name, idx + 1)) {
+      eventName += '-';
+      idx++;
+    } else {
+      eventName += name.charAt(idx + 1).toUpperCase();
+      idx++;
+    }
+    lastIdx = idx + 1;
+  }
+  return eventName;
 };
 
 export const getEventNameScopeFromJsxProp = (name: string): string => {
@@ -115,6 +123,23 @@ export const convertEventNameFromHtmlAttrToJsxProp = (name: string): string | nu
     return prefix + kebabCase + '$';
   }
   return null;
+};
+
+export const createEventName = (
+  event: KnownEventNames | KnownEventNames[],
+  eventType?: 'window' | 'document' | undefined
+) => {
+  const prefix = eventType !== undefined ? eventType + ':' : '';
+  const map = (name: string) => {
+    // DOMContentLoaded is a special case, where the event name is case sensitive
+    // https://html.spec.whatwg.org/multipage/indices.html#event-domcontentloaded
+    const isDOMContentLoadedEvent = name === DOMContentLoadedEvent;
+    const eventName = isDOMContentLoadedEvent
+      ? DOMContentLoadedEvent
+      : name.charAt(0).toUpperCase() + name.substring(1).toLowerCase();
+    return prefix + 'on' + eventName + '$';
+  };
+  return Array.isArray(event) ? event.map(map) : map(event);
 };
 
 export const convertEventNameFromJsxPropToHtmlAttr = (name: string): string | null => {

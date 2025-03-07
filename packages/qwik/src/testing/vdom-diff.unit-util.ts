@@ -49,6 +49,7 @@ import {
   QBackRefs,
   Q_PROPS_SEPARATOR,
 } from '../core/shared/utils/markers';
+import { getPropId, getPropName, type NumericPropKey } from '../core/shared/utils/prop';
 
 expect.extend({
   toMatchVDOM(
@@ -101,7 +102,7 @@ function isSsrRenderer(container: _ContainerElement) {
 }
 
 function isSkippableNode(node: JSXNodeInternal): boolean {
-  return node.type === Fragment && !node.constProps?.['ssr-required'];
+  return node.type === Fragment && !node.constProps?.[getPropId('ssr-required')];
 }
 
 function diffJsxVNode(
@@ -163,6 +164,7 @@ function diffJsxVNode(
       vnode_isElementVNode(received)
         ? vnode_getAttrKeys(received)
             .filter((key) => !ignoredAttributes.includes(key))
+            .map((key) => getPropId(key).toString())
             .sort()
         : []
     );
@@ -444,7 +446,12 @@ export function vnode_fromJSX(jsx: JSXOutput) {
         const props = jsx.varProps;
         for (const key in props) {
           if (Object.prototype.hasOwnProperty.call(props, key)) {
-            vnode_setAttr(journal, child, key, String(props[key]));
+            vnode_setAttr(
+              journal,
+              child,
+              getPropName(key as unknown as NumericPropKey),
+              String(props[key as unknown as NumericPropKey])
+            );
           }
         }
         if (jsx.key != null) {
@@ -475,7 +482,7 @@ function constPropsFromElement(element: Element) {
   for (let i = 0; i < element.attributes.length; i++) {
     const attr = element.attributes[i];
     if (!ignoredAttributes.includes(attr.name)) {
-      props.push(attr.name);
+      props.push(getPropId(attr.name).toString());
     }
   }
   props.sort();
@@ -484,16 +491,17 @@ function constPropsFromElement(element: Element) {
 
 function propsAdd(existing: string[], incoming: string[]) {
   for (const prop of incoming) {
-    if (prop !== 'children') {
+    const propName = getPropName(prop as unknown as NumericPropKey);
+    if (propName !== 'children') {
       let found = false;
       for (let i = 0; i < existing.length; i++) {
-        if (existing[i].toLowerCase() === prop.toLowerCase()) {
+        if (existing[i].toLowerCase() === propName.toLowerCase()) {
           found = true;
           break;
         }
       }
       if (!found) {
-        existing.push(prop);
+        existing.push(propName);
       }
     }
   }
@@ -532,7 +540,8 @@ async function diffNode(received: HTMLElement, expected: JSXOutput): Promise<str
       if (jsx.constProps) {
         entries.push(...Object.entries(jsx.constProps));
       }
-      entries.forEach(([expectedKey, expectedValue]) => {
+      entries.forEach(([numericExpectedKey, expectedValue]) => {
+        const expectedKey = getPropName(numericExpectedKey as unknown as NumericPropKey);
         // we need this, because Domino lowercases all attributes for `element.attributes`
         const expectedKeyLowerCased = expectedKey.toLowerCase();
         let receivedValue =

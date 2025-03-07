@@ -50,6 +50,8 @@ import {
   QError,
   qError,
   ChoreType,
+  getPropId,
+  getPropName,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -60,6 +62,7 @@ import {
   type JSXChildren,
   type JSXNodeInternal,
   type JSXOutput,
+  type NumericPropKey,
   type SerializationContext,
   type SsrAttrKey,
   type SsrAttrValue,
@@ -275,7 +278,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (!ctx) {
       ssrNode.setProp(QCtxAttr, (ctx = []));
     }
-    mapArray_set(ctx, context.id, value, 0);
+    mapArray_set(ctx, getPropId(context.id), value, 0);
     // Store the node which will store the context
     this.addRoot(ssrNode);
   }
@@ -285,7 +288,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     while (ssrNode) {
       const ctx: Array<string | unknown> = ssrNode.getProp(QCtxAttr);
       if (ctx) {
-        const value = mapArray_get(ctx, contextId.id, 0) as T;
+        const value = mapArray_get(ctx, getPropId(contextId.id), 0) as T;
         if (value) {
           return value;
         }
@@ -549,7 +552,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   addUnclaimedProjection(frame: ISsrComponentFrame, name: string, children: JSXChildren): void {
     // componentFrame, scopedStyleIds, slotName, children
-    this.unclaimedProjections.push(frame, null, name, children);
+    this.unclaimedProjections.push(frame, null, getPropId(name), children);
   }
 
   private $processInjectionsFromManifest$(): void {
@@ -714,7 +717,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       fragmentAttrs: SsrAttrs
     ): void {
       for (let i = 0; i < fragmentAttrs.length; ) {
-        const key = fragmentAttrs[i++] as string;
+        const key = getPropName(fragmentAttrs[i++] as unknown as NumericPropKey) as string;
         let value = fragmentAttrs[i++] as string;
         // if (key !== DEBUG_TYPE) continue;
         if (typeof value !== 'string') {
@@ -804,7 +807,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
         while (depth-- > 0) {
           if (fragmentAttrs) {
-            for (let i = 0; i < fragmentAttrs.length; i++) {
+            for (let i = 1; i < fragmentAttrs.length; i += 2) {
               const value = fragmentAttrs[i] as string;
               if (typeof value !== 'string') {
                 fragmentAttrs[i] = String(this.addRoot(value));
@@ -969,15 +972,16 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             ssrComponentFrame = value;
             // scopedStyleId is always after ssrComponentNode
             scopedStyleId = unclaimedProjections[idx++] as string;
-          } else if (typeof value === 'string') {
+          } else if (typeof value === 'number') {
+            const slotName = getPropName(value as NumericPropKey);
             const children = unclaimedProjections[idx++] as JSXOutput;
-            if (!ssrComponentFrame?.hasSlot(value)) {
+            if (!ssrComponentFrame?.hasSlot(slotName)) {
               /**
                * Skip the slot if it is already claimed by previous unclaimed projections. We need
                * to remove the slot from the component frame so that it does not incorrectly resolve
                * non-existing node later
                */
-              ssrComponentFrame && ssrComponentFrame.componentNode.removeProp(value);
+              ssrComponentFrame && ssrComponentFrame.componentNode.removeProp(slotName);
               continue;
             }
             this.unclaimedProjectionComponentFrameQueue.shift();
@@ -990,7 +994,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             if (lastNode.vnodeData) {
               lastNode.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
             }
-            ssrComponentNode?.setProp(value, lastNode.id);
+            ssrComponentNode?.setProp(slotName, lastNode.id);
             await _walkJSX(this, children, {
               currentStyleScoped: scopedStyleId,
               parentComponentFrame: null,

@@ -16,6 +16,7 @@ import {
   QDefaultSlot,
   NON_SERIALIZABLE_MARKER_PREFIX,
   QBackRefs,
+  getPropId,
 } from './qwik-copy';
 import type { SsrAttrs, ISsrNode, ISsrComponentFrame, JSXChildren } from './qwik-types';
 import type { CleanupQueue } from './ssr-container';
@@ -75,10 +76,11 @@ export class SsrNode implements ISsrNode {
     if (this.attrs === _EMPTY_ARRAY) {
       this.attrs = [];
     }
+    const numericProp = getPropId(name);
     if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
-      mapArray_set(this.locals || (this.locals = []), name, value, 0);
+      mapArray_set(this.locals || (this.locals = []), numericProp, value, 0);
     } else {
-      mapArray_set(this.attrs, name, value, 0);
+      mapArray_set(this.attrs, numericProp, value, 0);
     }
     if (name == ELEMENT_SEQ && value) {
       // Sequential Arrays contain Tasks. And Tasks contain cleanup functions.
@@ -88,20 +90,22 @@ export class SsrNode implements ISsrNode {
   }
 
   getProp(name: string): any {
+    const numericProp = getPropId(name);
     if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
-      return this.locals ? mapArray_get(this.locals, name, 0) : null;
+      return this.locals ? mapArray_get(this.locals, numericProp, 0) : null;
     } else {
-      return mapArray_get(this.attrs, name, 0);
+      return mapArray_get(this.attrs, numericProp, 0);
     }
   }
 
   removeProp(name: string): void {
+    const numericProp = getPropId(name);
     if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
       if (this.locals) {
-        mapApp_remove(this.locals, name, 0);
+        mapApp_remove(this.locals, numericProp, 0);
       }
     } else {
-      mapApp_remove(this.attrs, name, 0);
+      mapApp_remove(this.attrs, numericProp, 0);
     }
   }
 
@@ -151,7 +155,7 @@ export class SsrComponentFrame implements ISsrComponentFrame {
     this.projectionComponentFrame = projectionComponentFrame;
     if (isJSXNode(children)) {
       const slotName = this.getSlotName(children);
-      mapArray_set(this.slots, slotName, children, 0);
+      mapArray_set(this.slots, getPropId(slotName), children, 0);
     } else if (Array.isArray(children) && children.length > 0) {
       const defaultSlot = [];
       for (let i = 0; i < children.length; i++) {
@@ -167,15 +171,15 @@ export class SsrComponentFrame implements ISsrComponentFrame {
           defaultSlot.push(child);
         }
       }
-      defaultSlot.length > 0 && mapArray_set(this.slots, QDefaultSlot, defaultSlot, 0);
+      defaultSlot.length > 0 && mapArray_set(this.slots, getPropId(QDefaultSlot), defaultSlot, 0);
     } else {
-      mapArray_set(this.slots, QDefaultSlot, children, 0);
+      mapArray_set(this.slots, getPropId(QDefaultSlot), children, 0);
     }
   }
 
   private updateSlot(slotName: string, child: JSXChildren) {
     // we need to check if the slot already has a value
-    let existingSlots = mapArray_get<JSXChildren>(this.slots, slotName, 0);
+    let existingSlots = mapArray_get<JSXChildren>(this.slots, getPropId(slotName), 0);
     if (existingSlots === null) {
       existingSlots = child;
     } else if (Array.isArray(existingSlots)) {
@@ -186,7 +190,7 @@ export class SsrComponentFrame implements ISsrComponentFrame {
       existingSlots = [existingSlots, child];
     }
     // set the new value
-    mapArray_set(this.slots, slotName, existingSlots, 0);
+    mapArray_set(this.slots, getPropId(slotName), existingSlots, 0);
   }
 
   private getSlotName(jsx: JSXNode): string {
@@ -197,11 +201,11 @@ export class SsrComponentFrame implements ISsrComponentFrame {
   }
 
   hasSlot(slotName: string): boolean {
-    return mapArray_has(this.slots, slotName, 0);
+    return mapArray_has(this.slots, getPropId(slotName), 0);
   }
 
   consumeChildrenForSlot(projectionNode: ISsrNode, slotName: string): JSXChildren | null {
-    const children = mapApp_remove(this.slots, slotName, 0);
+    const children = mapApp_remove(this.slots, getPropId(slotName), 0);
     this.componentNode.setProp(slotName, projectionNode.id);
     projectionNode.setProp(QSlotParent, this.componentNode.id);
     return children;

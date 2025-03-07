@@ -1,3 +1,4 @@
+import type { NumericPropKey } from '../../utils/prop';
 import type { JSXChildren } from './jsx-qwik-attributes';
 
 /**
@@ -46,7 +47,7 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
  */
 export interface JSXNodeInternal<T extends string | FunctionComponent | unknown = unknown>
   extends JSXNode<T> {
-  varProps: Record<any, unknown>;
-  constProps: Record<any, unknown> | null;
+  varProps: Record<NumericPropKey, unknown>;
+  constProps: Record<NumericPropKey, unknown> | null;
   flags: number;
 }

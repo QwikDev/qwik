@@ -2,11 +2,11 @@
 
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { Container } from '../shared/types';
+import type { NumericPropKey } from '../shared/utils/prop';
 import type { VNodeJournal } from './vnode';
 
-export type ClientAttrKey = string;
-export type ClientAttrValue = string | null;
-export type ClientAttrs = Array<ClientAttrKey | ClientAttrValue>;
+export type ClientAttrValue = unknown | null;
+export type ClientAttrs = Array<NumericPropKey | ClientAttrValue>;
 
 /** @internal */
 export interface ClientContainer extends Container {
@@ -128,7 +128,7 @@ export type ElementVNode = [
   Element, //////////////////// 6 - Element
   string | undefined, ///////// 7 - tag
   /// Props
-  (string | null)[], /////// 8 - attrs
+  (NumericPropKey | string | null)[], /////// 8 - attrs
 ] & { __brand__: 'ElementVNode' };
 
 export const enum TextVNodeProps {
@@ -165,7 +165,7 @@ export type VirtualVNode = [
   VNode | null, /////////////// 4 - First child
   VNode | null, /////////////// 5 - Last child
   /// Props
-  (string | null | boolean)[], /////// 6 - attrs
+  (NumericPropKey | string | null | boolean)[], /////// 6 - attrs
 ] & { __brand__: 'FragmentNode' & 'HostElement' };
 
 /** @internal */

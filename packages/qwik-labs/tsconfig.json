@@ -19,5 +19,6 @@
       "@qwik-client-manifest": ["../../qwik/src/server/server-modules.d.ts"]
     }
   },
-  "include": ["src"]
+  "include": ["."],
+  "exclude": ["node_modules", "lib"]
 }

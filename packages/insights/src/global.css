@@ -2,11 +2,9 @@
  * Tailwind CSS imports
  * View the full documentation at https://tailwindcss.com
  */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
-:root {
+@theme {
   /* --link-offset: 0.15rem;
   --primary-50: #f0f9ff;
   --primary-100: #dff3ff;

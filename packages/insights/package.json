@@ -12,6 +12,7 @@
     "drizzle-kit": "^0.28.1",
     "drizzle-orm": "0.36.4"
   },
+  "type": "module",
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
     "@builder.io/qwik-city": "workspace:^",

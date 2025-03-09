@@ -82,6 +82,10 @@ export default defineConfig(async () => {
           find: '@supabase/node-fetch',
           replacement: path.resolve(__dirname, 'src', 'empty.ts'),
         },
+        {
+          find: '@docsearch/css',
+          replacement: path.resolve(__dirname, 'node_modules/@docsearch/css/dist/style.css'),
+        },
       ],
     },
     ssr: {

@@ -275,7 +275,7 @@ body {
 
   .menu-open .menu a:hover {
     @apply bg-transparent;
-    color: rgb(241 245 249 / var(--tw-text-opacity)) !important;
+    color: rgb(241 245 249) !important;
   }
 }
 @media (min-width: 1024px) {

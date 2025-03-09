@@ -10,11 +10,12 @@
   @apply pt-8 lg:pt-5;
   @apply min-w-48;
 
-  @screen lg {
-    /* approx 85ch, but since the contents use font-sizes in absolute values,
+  /* @screen lg { */
+  /* approx 85ch, but since the contents use font-sizes in absolute values,
        we need to use an absolute value here too */
-    max-width: 850px;
-  }
+  /* max-width: 850px; */
+  /* }  */
+  @apply lg:max-w-[850px];
 }
 
 .docs article a {

@@ -1,4 +1,5 @@
-@import '../../../node_modules/@docsearch/css/dist/style.css';
+/* @import '../../../node_modules/@docsearch/css/dist/style.css'; */
+@import '@docsearch/css';
 
 .docsearch {
   --docsearch-searchbox-background: rgba(247, 248, 250, 1);

@@ -9,6 +9,7 @@ import Inspect from 'vite-plugin-inspect';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
 import tailwindcss from '@tailwindcss/vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 const PUBLIC_QWIK_INSIGHTS_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
 const docsDir = new URL(import.meta.url).pathname;
@@ -104,6 +105,7 @@ export default defineConfig(async () => {
         ['SOURCEMAP_ERROR', "Can't resolve original location of error"],
         ['MODULE_LEVEL_DIRECTIVE', 'use client'],
       ]),
+      tsconfigPaths({ ignoreConfigErrors: true }),
       rawSource(),
       qwikCity({
         mdxPlugins: {

@@ -8,6 +8,10 @@ import { defineConfig, loadEnv, type Plugin } from 'vite';
 import Inspect from 'vite-plugin-inspect';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
+import shikiRehype from '@shikijs/rehype';
+import { transformerMetaHighlight, transformerMetaWordHighlight } from '@shikijs/transformers';
+import { transformerColorizedBrackets } from '@shikijs/colorized-brackets';
+import type { ShikiTransformer } from '@shikijs/types';
 
 const PUBLIC_QWIK_INSIGHTS_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
 const docsDir = new URL(import.meta.url).pathname;
@@ -52,9 +56,45 @@ const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
   };
 };
 
-export default defineConfig(async () => {
-  const { default: rehypePrettyCode } = await import('rehype-pretty-code');
+function transformerShowEmptyLines(): ShikiTransformer {
+  return {
+    line(node) {
+      if (node.children.length === 0) {
+        node.children = [{ type: 'text', value: ' ' }];
+        return node;
+      }
+    },
+  };
+}
 
+function transformerMetaShowTitle(): ShikiTransformer {
+  return {
+    root(node) {
+      const meta = this.options.meta?.__raw;
+      if (!meta) {
+        return;
+      }
+      const titleMatch = meta.match(/title="([^"]*)"/);
+      if (!titleMatch) {
+        return;
+      }
+      const title = titleMatch[1] ?? '';
+      if (title.length > 0) {
+        node.children.unshift({
+          type: 'element',
+          tagName: 'div',
+          properties: {
+            class: 'shiki-title',
+          },
+          children: [{ type: 'text', value: title }],
+        });
+      }
+      meta.replace(titleMatch[0], '');
+    },
+  };
+}
+
+export default defineConfig(async () => {
   const routesDir = resolve('src', 'routes');
   return {
     dev: {
@@ -113,46 +153,16 @@ export default defineConfig(async () => {
         mdx: {
           rehypePlugins: [
             [
-              rehypePrettyCode as any,
+              shikiRehype,
               {
                 theme: 'dark-plus',
-                onVisitLine(node: any) {
-                  // Prevent lines from collapsing in `display: grid` mode, and
-                  // allow empty lines to be copy/pasted
-                  if (node.children.length === 0) {
-                    node.children = [{ type: 'text', value: ' ' }];
-                  }
-                },
-                onVisitHighlightedLine(node: any) {
-                  // Each line node by default has `class="line"`.
-                  if (node.properties.className) {
-                    node.properties.className.push('line--highlighted');
-                  }
-                },
-                onVisitHighlightedWord(node: any, id: string) {
-                  // Each word node has no className by default.
-                  node.properties.className = ['word'];
-                  if (id) {
-                    const backgroundColor = {
-                      a: 'rgb(196 42 94 / 59%)',
-                      b: 'rgb(0 103 163 / 56%)',
-                      c: 'rgb(100 50 255 / 35%)',
-                    }[id];
-
-                    const color = {
-                      a: 'rgb(255 225 225 / 100%)',
-                      b: 'rgb(175 255 255 / 100%)',
-                      c: 'rgb(225 200 255 / 100%)',
-                    }[id];
-                    if (node.properties['data-rehype-pretty-code-wrapper']) {
-                      node.children.forEach((childNode: any) => {
-                        childNode.properties.style = ``;
-                        childNode.properties.className = '';
-                      });
-                    }
-                    node.properties.style = `background-color: ${backgroundColor}; color: ${color};`;
-                  }
-                },
+                transformers: [
+                  transformerMetaHighlight(),
+                  transformerMetaWordHighlight(),
+                  transformerColorizedBrackets(),
+                  transformerShowEmptyLines(),
+                  transformerMetaShowTitle(),
+                ],
               },
             ],
           ],

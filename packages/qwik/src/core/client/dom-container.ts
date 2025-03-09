@@ -32,7 +32,7 @@ import {
   QLocaleAttr,
 } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
-import { isSlotProp } from '../shared/utils/prop';
+import { getPropId, isSlotProp, type NumericPropKey } from '../shared/utils/prop';
 import { qDev } from '../shared/utils/qdev';
 import {
   convertScopedStyleIdsToArray,
@@ -228,14 +228,14 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (!ctx) {
       this.setHostProp(host, QCtxAttr, (ctx = []));
     }
-    mapArray_set(ctx, context.id, value, 0);
+    mapArray_set(ctx, getPropId(context.id), value, 0);
   }
 
   resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined {
     while (host) {
       const ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
       if (ctx) {
-        const value = mapArray_get(ctx, contextId.id, 0) as T;
+        const value = mapArray_get(ctx, getPropId(contextId.id), 0) as T;
         if (value) {
           return value as T;
         }
@@ -319,7 +319,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       vNode[VNodeProps.flags] |= VNodeFlags.Resolved;
       const props = vnode_getProps(vNode);
       for (let i = 0; i < props.length; i = i + 2) {
-        const prop = props[i] as string;
+        const prop = props[i] as NumericPropKey;
         if (isSlotProp(prop)) {
           const value = props[i + 1];
           if (typeof value == 'string') {

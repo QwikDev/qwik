@@ -8,7 +8,12 @@ import { getDomContainer } from '../client/dom-container';
 import type { ClientContainer, VNode } from '../client/types';
 import { vnode_getAttr, vnode_getFirstChild, vnode_getText } from '../client/vnode';
 import { SERIALIZABLE_STATE, component$ } from '../shared/component.public';
-import { Fragment, JSXNodeImpl, createPropsProxy } from '../shared/jsx/jsx-runtime';
+import {
+  Fragment,
+  JSXNodeImpl,
+  convertToNumericProps,
+  createPropsProxy,
+} from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import { inlinedQrl, qrl } from '../shared/qrl/qrl';
@@ -20,6 +25,7 @@ import { constPropsToSsrAttrs, varPropsToSsrAttrs } from '../ssr/ssr-render-jsx'
 import { type SSRContainer } from '../ssr/ssr-types';
 import { _qrlSync } from '../shared/qrl/qrl.public';
 import { SignalFlags } from '../signal/signal';
+import { getPropId } from '../shared/utils/prop';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -495,11 +501,17 @@ describe('serializer v2', () => {
 
     describe('PropsProxySerializer, //// ' + TypeIds.PropsProxy, () => {
       it('should serialize and deserialize', async () => {
-        const obj = createPropsProxy({ number: 1, text: 'abc' }, { n: 2, t: 'test' });
+        const varProps = {};
+        convertToNumericProps({ number: 1, text: 'abc' }, varProps);
+        const constProps = {};
+        convertToNumericProps({ n: 2, t: 'test' }, constProps);
+        const obj = createPropsProxy(varProps, constProps);
         expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
       it('should serialize and deserialize with null const props', async () => {
-        const obj = createPropsProxy({ number: 1, text: 'abc' }, null);
+        const varProps = {};
+        convertToNumericProps({ number: 1, text: 'abc' }, varProps);
+        const obj = createPropsProxy(varProps, null);
         expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
     });
@@ -599,7 +611,7 @@ async function toHTML(jsx: JSXOutput): Promise<string> {
           if (!jsx.constProps) {
             jsx.constProps = {};
           }
-          jsx.constProps['class'] = '';
+          jsx.constProps[getPropId('class')] = '';
         }
         ssrContainer.openElement(
           jsx.type,

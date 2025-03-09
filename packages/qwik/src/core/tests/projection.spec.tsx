@@ -764,6 +764,7 @@ describe.each([
         </Fragment>
       </Component>
     );
+
     await trigger(document.body, 'button', 'click');
     expect(vNode).toMatchVDOM(
       <Component ssr-required>

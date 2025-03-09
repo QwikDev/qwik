@@ -8,6 +8,7 @@ import type {
 } from '../shared/jsx/types/jsx-qwik-attributes';
 import type { HostElement } from '../shared/types';
 import { USE_ON_LOCAL, USE_ON_LOCAL_FLAGS, USE_ON_LOCAL_SEQ_IDX } from '../shared/utils/markers';
+import { createEventName } from '../shared/utils/event-names';
 
 export type EventQRL<T extends string = AllEventKeys> =
   | QRL<EventHandler<EventFromName<T>, Element>>
@@ -95,17 +96,6 @@ export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQr
 // </docs>
 export const useOnWindow = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
   _useOn(createEventName(event, 'window'), eventQrl);
-};
-
-const createEventName = (
-  event: KnownEventNames | KnownEventNames[],
-  eventType: 'window' | 'document' | undefined
-) => {
-  const prefix = eventType !== undefined ? eventType + ':' : '';
-  const map = (name: string) =>
-    prefix + 'on' + name.charAt(0).toUpperCase() + name.substring(1) + '$';
-  const res = Array.isArray(event) ? event.map(map) : map(event);
-  return res;
 };
 
 const _useOn = (eventName: string | string[], eventQrl: EventQRL) => {

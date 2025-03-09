@@ -86,7 +86,7 @@ export class StoreHandler implements ProxyHandler<TargetType> {
     return '[Store]';
   }
 
-  get(target: TargetType, prop: string | symbol) {
+  get(target: TargetType, prop: number | string | symbol) {
     if (typeof prop === 'symbol') {
       if (prop === STORE_TARGET) {
         return target;
@@ -219,7 +219,7 @@ export class StoreHandler implements ProxyHandler<TargetType> {
 
 export function addStoreEffect(
   target: TargetType,
-  prop: string | symbol,
+  prop: number | string | symbol,
   store: StoreHandler,
   effectSubscription: EffectSubscription
 ) {

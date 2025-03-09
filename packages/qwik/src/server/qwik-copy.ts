@@ -53,6 +53,7 @@ export {
   STREAM_BLOCK_END_COMMENT,
   STREAM_BLOCK_START_COMMENT,
   dangerouslySetInnerHTML,
+  refAttr,
 } from '../core/shared/utils/markers';
 export { maybeThen } from '../core/shared/utils/promises';
 export {
@@ -63,3 +64,4 @@ export {
 export { serializeAttribute } from '../core/shared/utils/styles';
 export { VNodeDataChar, VNodeDataSeparator } from '../core/shared/vnode-data-types';
 export { getValidManifest } from '../optimizer/src/manifest';
+export { getPropId, getPropName } from '../core/shared/utils/prop';

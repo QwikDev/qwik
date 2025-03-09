@@ -5,6 +5,7 @@ import { SignalFlags, WrappedSignal, WrappedSignalFlags } from './signal';
 import { isSignal, type Signal } from './signal.public';
 import { getStoreTarget } from './store';
 import { isPropsProxy } from '../shared/jsx/jsx-runtime';
+import { getPropId } from '../shared/utils/prop';
 
 // Keep these properties named like this so they're the same as from wrapSignal
 const getValueProp = (p0: any) => p0.value;
@@ -40,9 +41,10 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(...args
   }
   if (isPropsProxy(obj)) {
     const constProps = obj[_CONST_PROPS] as any;
-    if (constProps && prop in constProps) {
+    const numericProp = getPropId(prop as string);
+    if (constProps && numericProp in constProps) {
       // Const props don't need wrapping
-      return constProps[prop];
+      return constProps[numericProp];
     }
   } else {
     const target = getStoreTarget(obj);

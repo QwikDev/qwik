@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   convertEventNameFromHtmlAttrToJsxProp,
   convertEventNameFromJsxPropToHtmlAttr,
+  createEventName,
   getEventNameFromHtmlAttr,
   getEventNameFromJsxProp,
 } from './event-names';
@@ -25,9 +26,15 @@ describe('event-names', () => {
     it('1', () =>
       expect(convertEventNameFromHtmlAttrToJsxProp('on:-dblclick')).toEqual('on-Dblclick$'));
   });
-  // it.only('test', () => {
-  //   expectMatch('on--click$', 'on:--click', '-click');
-  // });
+
+  describe('createEventName', () => {
+    it('1', () => expect(createEventName('click')).toEqual('onClick$'));
+    it('1', () => expect(createEventName('click', 'window')).toEqual('window:onClick$'));
+    it('2', () => expect(createEventName('click', 'document')).toEqual('document:onClick$'));
+    it('3', () => expect(createEventName('dblclick', 'document')).toEqual('document:onDblclick$'));
+    it('4', () => expect(createEventName('dblClick', 'document')).toEqual('document:onDblclick$'));
+    it('4', () => expect(createEventName('DOMContentLoaded')).toEqual('onDOMContentLoaded$'));
+  });
 
   it('should convert prefix', () => {
     expectMatch('onClick$', 'on:click', 'click');

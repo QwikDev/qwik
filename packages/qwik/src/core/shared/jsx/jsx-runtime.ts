@@ -12,6 +12,7 @@ import { WrappedSignal, WrappedSignalFlags } from '../../signal/signal';
 import type { DevJSX, FunctionComponent, JSXNode, JSXNodeInternal } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
+import { getPropId, getPropName, type NumericPropKey } from '../utils/prop';
 
 export type Props = Record<string, unknown>;
 export type PropsProxy = { [_VAR_PROPS]: Props; [_CONST_PROPS]: Props | null };
@@ -203,6 +204,7 @@ export const isPropsProxy = (obj: any): obj is PropsProxy => {
 
 export class JSXNodeImpl<T> implements JSXNodeInternal<T> {
   dev?: DevJSX;
+
   constructor(
     public type: T,
     public varProps: Props,
@@ -211,6 +213,17 @@ export class JSXNodeImpl<T> implements JSXNodeInternal<T> {
     public flags: number,
     public key: string | null = null
   ) {
+    const numericVarProps: Props = {};
+    convertToNumericProps(varProps, numericVarProps);
+    this.varProps = numericVarProps;
+
+    let numericConstProps: Props | null = null;
+    if (constProps) {
+      numericConstProps = {};
+      convertToNumericProps(constProps, numericConstProps);
+    }
+    this.constProps = numericConstProps;
+
     if (qDev) {
       if (typeof varProps !== 'object') {
         throw new Error(`JSXNodeImpl: varProps must be objects: ` + JSON.stringify(varProps));
@@ -228,6 +241,12 @@ export class JSXNodeImpl<T> implements JSXNodeInternal<T> {
       this._proxy = createPropsProxy(this.varProps, this.constProps, this.children);
     }
     return this._proxy as typeof this.props;
+  }
+}
+
+export function convertToNumericProps(originalProps: Props, propsObject: Props): void {
+  for (const key in originalProps) {
+    propsObject[getPropId(key)] = originalProps[key];
   }
 }
 
@@ -337,13 +356,14 @@ class PropsProxyHandler implements ProxyHandler<any> {
     if (prop === _VAR_PROPS) {
       return this.$varProps$;
     }
-    if (this.$children$ != null && prop === 'children') {
+    if (prop === 'children') {
       return this.$children$;
     }
+    const numericProp = getPropId(prop);
     const value =
-      this.$constProps$ && prop in this.$constProps$
-        ? this.$constProps$[prop as string]
-        : this.$varProps$[prop as string];
+      this.$constProps$ && numericProp in this.$constProps$
+        ? this.$constProps$[numericProp]
+        : this.$varProps$[numericProp];
     // a proxied value that the optimizer made
     return value instanceof WrappedSignal && value.$flags$ & WrappedSignalFlags.UNWRAP
       ? value.value
@@ -358,10 +378,11 @@ class PropsProxyHandler implements ProxyHandler<any> {
       this.$varProps$ = value;
       return true;
     }
-    if (this.$constProps$ && prop in this.$constProps$) {
-      this.$constProps$[prop as string] = value;
+    const numericProp = getPropId(prop);
+    if (this.$constProps$ && numericProp in this.$constProps$) {
+      this.$constProps$[numericProp] = value;
     } else {
-      this.$varProps$[prop as string] = value;
+      this.$varProps$[numericProp] = value;
     }
     return true;
   }
@@ -369,9 +390,10 @@ class PropsProxyHandler implements ProxyHandler<any> {
     if (typeof prop !== 'string') {
       return false;
     }
-    let didDelete = delete this.$varProps$[prop];
+    const numericProp = getPropId(prop);
+    let didDelete = delete this.$varProps$[numericProp];
     if (this.$constProps$) {
-      didDelete = delete this.$constProps$[prop as string] || didDelete;
+      didDelete = delete this.$constProps$[numericProp] || didDelete;
     }
     if (this.$children$ != null && prop === 'children') {
       this.$children$ = null;
@@ -379,21 +401,23 @@ class PropsProxyHandler implements ProxyHandler<any> {
     return didDelete;
   }
   has(_: any, prop: string | symbol) {
+    const numericProp = getPropId(prop);
     const hasProp =
       (prop === 'children' && this.$children$ != null) ||
       prop === _CONST_PROPS ||
       prop === _VAR_PROPS ||
-      prop in this.$varProps$ ||
-      (this.$constProps$ ? prop in this.$constProps$ : false);
+      numericProp in this.$varProps$ ||
+      (this.$constProps$ ? numericProp in this.$constProps$ : false);
     return hasProp;
   }
-  getOwnPropertyDescriptor(_: any, p: string | symbol): PropertyDescriptor | undefined {
+  getOwnPropertyDescriptor(_: any, prop: string | symbol): PropertyDescriptor | undefined {
+    const numericProp = getPropId(prop);
     const value =
-      p === 'children' && this.$children$ != null
+      prop === 'children' && this.$children$ != null
         ? this.$children$
-        : this.$constProps$ && p in this.$constProps$
-          ? this.$constProps$[p as string]
-          : this.$varProps$[p as string];
+        : this.$constProps$ && numericProp in this.$constProps$
+          ? this.$constProps$[numericProp]
+          : this.$varProps$[numericProp];
     return {
       configurable: true,
       enumerable: true,
@@ -401,14 +425,17 @@ class PropsProxyHandler implements ProxyHandler<any> {
     };
   }
   ownKeys() {
-    const out = Object.keys(this.$varProps$);
+    const out = [];
+    for (const key in this.$varProps$) {
+      out.push(getPropName(key as unknown as NumericPropKey));
+    }
     if (this.$children$ != null && out.indexOf('children') === -1) {
       out.push('children');
     }
     if (this.$constProps$) {
       for (const key in this.$constProps$) {
         if (out.indexOf(key) === -1) {
-          out.push(key);
+          out.push(getPropName(key as unknown as NumericPropKey));
         }
       }
     }
@@ -421,8 +448,11 @@ class PropsProxyHandler implements ProxyHandler<any> {
  * Use this function to get the props directly from a const or var props.
  */
 export const directGetPropsProxyProp = <T, JSX>(jsx: JSXNodeInternal<JSX>, prop: string): T => {
+  const numericProp = getPropId(prop);
   return (
-    jsx.constProps && prop in jsx.constProps ? jsx.constProps[prop] : jsx.varProps[prop]
+    jsx.constProps && numericProp in jsx.constProps
+      ? jsx.constProps[numericProp]
+      : jsx.varProps[numericProp]
   ) as T;
 };
 

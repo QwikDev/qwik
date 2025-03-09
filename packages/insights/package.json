@@ -32,6 +32,7 @@
     "prettier": "3.3.3",
     "prettier-plugin-tailwindcss": "0.5.14",
     "tailwindcss": "4.0.12",
+    "@tailwindcss/vite": "4.0.12",
     "typescript": "5.4.5",
     "undici": "*",
     "vite": "5.3.5",

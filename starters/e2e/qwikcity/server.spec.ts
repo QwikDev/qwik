@@ -112,11 +112,23 @@ test.describe("server$", () => {
         "POST--MyCustomValue-GET--MyCustomValue",
       );
     });
-    test("should allow for ServerError", async ({ page }) => {
+    test("should modify ServerError in middleware", async ({ page }) => {
       await page.goto("/qwikcity-test/server-func/server-error");
       const serverConfigContainer = page.locator("#server-error");
 
-      await expect(serverConfigContainer).toContainText("my errorPOST");
+      await expect(serverConfigContainer).toContainText(
+        "my errorserver-error-caughtPOST",
+      );
+    });
+    test("should catch ServerError in routeLoader", async ({ page }) => {
+      await page.goto("/qwikcity-test/server-func/server-error/loader");
+      const serverConfigContainer = page.locator("#server-error");
+      await expect(serverConfigContainer).toContainText("loader-error-data");
+    });
+    test("should allow primitive ServerError data", async ({ page }) => {
+      await page.goto("/qwikcity-test/server-func/server-error/primitive");
+      const serverConfigContainer = page.locator("#server-error");
+      await expect(serverConfigContainer).toContainText("1error");
     });
   });
 });

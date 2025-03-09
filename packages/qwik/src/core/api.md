@@ -217,7 +217,7 @@ export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>
     class?: ClassList | Signal<ClassList> | undefined;
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type EagernessOptions = 'visible' | 'load' | 'idle';
 
 // @public (undocumented)
@@ -1654,7 +1654,7 @@ export const useContext: UseContext;
 export const useContextProvider: <STATE>(context: ContextId<STATE>, newValue: STATE) => void;
 
 // @public (undocumented)
-export const useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
+export const useErrorBoundary: () => ErrorBoundaryStore;
 
 // @public (undocumented)
 export const useId: () => string;
@@ -1728,7 +1728,7 @@ export const useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
 // @public
 export const useTask$: (qrl: TaskFn, opts?: UseTaskOptions | undefined) => void;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export interface UseTaskOptions {
     eagerness?: EagernessOptions;
 }

@@ -78,7 +78,7 @@
     "codesandbox.sync": "tsx codesandbox.sync.ts",
     "contributors": "tsx contributors.ts",
     "deploy": "wrangler pages publish ./dist",
-    "dev": "concurrently \"tsx check-qwik-build.ts\" \"vite --mode ssr --open\"",
+    "dev": "tsx check-qwik-build.ts && vite --mode ssr --open",
     "dev.debug": "node --inspect-brk ../../node_modules/vite/bin/vite.js --mode ssr --force",
     "prebuild.core": "tsx check-qwik-build.ts",
     "preview": "qwik build preview && vite preview --open",

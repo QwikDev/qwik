@@ -174,12 +174,16 @@ export default defineConfig(async () => {
       qwikInsights({ publicApiKey: PUBLIC_QWIK_INSIGHTS_KEY }),
       tailwindcss(),
     ],
+    optimizeDeps: {
+      include: ['@docsearch/css'],
+    },
     build: {
       sourcemap: true,
       rollupOptions: {
         output: {
           assetFileNames: 'assets/[hash]-[name].[ext]',
         },
+        external: ['@docsearch/css'],
       },
     },
     clearScreen: false,

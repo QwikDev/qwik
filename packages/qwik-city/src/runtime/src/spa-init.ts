@@ -3,7 +3,7 @@ import type { ScrollHistoryState } from './scroll-restoration';
 import type { ScrollState } from './types';
 
 import { isDev } from '@builder.io/qwik';
-import { event$ } from '@builder.io/qwik';
+import { $ } from '@builder.io/qwik';
 
 // TODO Dedupe handler code from here and QwikCityProvider?
 // TODO Navigation API; check for support & simplify.
@@ -14,7 +14,7 @@ import { event$ } from '@builder.io/qwik';
 // - Robust, fully relies only on history. (scrollRestoration = 'manual')
 
 // ! DO NOT IMPORT OR USE ANY EXTERNAL REFERENCES IN THIS SCRIPT.
-export default event$((_: Event, el: Element) => {
+export default $((_: Event, el: Element) => {
   const win: ClientSPAWindow = window;
   const spa = '_qCitySPA';
   const initPopstate = '_qCityInitPopstate';

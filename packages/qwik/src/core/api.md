@@ -230,7 +230,7 @@ export interface ErrorBoundaryStore {
     error: any | undefined;
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export const event$: <T>(qrl: T) => QRL<T>;
 
 // @public

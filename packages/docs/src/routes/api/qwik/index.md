@@ -2168,6 +2168,10 @@ any \| undefined
 
 ## event$
 
+> Warning: This API is now obsolete.
+>
+> will be removed in v2 use $
+
 ```typescript
 event$: <T>(qrl: T) => QRL<T>;
 ```
@@ -3657,7 +3661,7 @@ Options for the prefetch service worker.
 </tbody></table>
 **Returns:**
 
-[JSXNode](#jsxnode)&lt;'script'&gt;
+JSXNode&lt;'script'&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 

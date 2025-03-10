@@ -5,7 +5,7 @@ import { SignalFlags, WrappedSignal, WrappedSignalFlags } from './signal';
 import { isSignal, type Signal } from './signal.public';
 import { getStoreTarget } from './store';
 import { isPropsProxy } from '../shared/jsx/jsx-runtime';
-import { getPropId } from '../shared/utils/prop';
+import { getPropId } from '../shared/utils/numeric-prop-key';
 
 // Keep these properties named like this so they're the same as from wrapSignal
 const getValueProp = (p0: any) => p0.value;

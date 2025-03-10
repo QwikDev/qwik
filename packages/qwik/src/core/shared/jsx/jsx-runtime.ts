@@ -12,7 +12,7 @@ import { WrappedSignal, WrappedSignalFlags } from '../../signal/signal';
 import type { DevJSX, FunctionComponent, JSXNode, JSXNodeInternal } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
-import { getPropId, getPropName, type NumericPropKey } from '../utils/prop';
+import { getPropId, getPropName, type NumericPropKey } from '../utils/numeric-prop-key';
 
 export type Props = Record<string, unknown>;
 export type PropsProxy = { [_VAR_PROPS]: Props; [_CONST_PROPS]: Props | null };

@@ -1,4 +1,4 @@
-import type { NumericPropKey } from '../../utils/prop';
+import type { NumericPropKey } from '../../utils/numeric-prop-key';
 import type { JSXChildren } from './jsx-qwik-attributes';
 
 /**

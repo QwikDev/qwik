@@ -170,7 +170,7 @@ import {
 } from './vnode-namespace';
 import { mergeMaps } from '../shared/utils/maps';
 import { _EFFECT_BACK_REF } from '../signal/flags';
-import { getPropId, getPropName, type NumericPropKey } from '../shared/utils/prop';
+import { getPropId, getPropName, type NumericPropKey } from '../shared/utils/numeric-prop-key';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 

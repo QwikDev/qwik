@@ -1,5 +1,5 @@
 import { assertTrue } from '../shared/error/assert';
-import type { NumericPropKey } from '../shared/utils/prop';
+import type { NumericPropKey } from '../shared/utils/numeric-prop-key';
 
 export const mapApp_findIndx = <T>(
   array: (T | null)[],

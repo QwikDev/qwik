@@ -2,7 +2,7 @@
 
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { Container } from '../shared/types';
-import type { NumericPropKey } from '../shared/utils/prop';
+import type { NumericPropKey } from '../shared/utils/numeric-prop-key';
 import type { VNodeJournal } from './vnode';
 
 export type ClientAttrValue = unknown | null;

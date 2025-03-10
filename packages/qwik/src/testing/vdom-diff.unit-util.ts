@@ -49,7 +49,7 @@ import {
   QBackRefs,
   Q_PROPS_SEPARATOR,
 } from '../core/shared/utils/markers';
-import { getPropId, getPropName, type NumericPropKey } from '../core/shared/utils/prop';
+import { getPropId, getPropName, type NumericPropKey } from '../core/shared/utils/numeric-prop-key';
 
 expect.extend({
   toMatchVDOM(

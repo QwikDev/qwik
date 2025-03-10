@@ -25,7 +25,7 @@ import { constPropsToSsrAttrs, varPropsToSsrAttrs } from '../ssr/ssr-render-jsx'
 import { type SSRContainer } from '../ssr/ssr-types';
 import { _qrlSync } from '../shared/qrl/qrl.public';
 import { SignalFlags } from '../signal/signal';
-import { getPropId } from '../shared/utils/prop';
+import { getPropId } from '../shared/utils/numeric-prop-key';
 
 describe('serializer v2', () => {
   describe('rendering', () => {

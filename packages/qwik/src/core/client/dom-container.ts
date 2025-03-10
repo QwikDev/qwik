@@ -32,7 +32,8 @@ import {
   QLocaleAttr,
 } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
-import { getPropId, isSlotProp, type NumericPropKey } from '../shared/utils/prop';
+import { isSlotProp } from '../shared/utils/prop';
+import { getPropId, type NumericPropKey } from '../shared/utils/numeric-prop-key';
 import { qDev } from '../shared/utils/qdev';
 import {
   convertScopedStyleIdsToArray,

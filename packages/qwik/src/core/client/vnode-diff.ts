@@ -88,17 +88,13 @@ import { getNewElementNamespaceData } from './vnode-namespace';
 import { EffectProperty, isSignal, SubscriptionData } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
 import { executeComponent } from '../shared/component-execution';
+import { getSlotName, isEventProp, isHandlerProp, isQProp, isSlotProp } from '../shared/utils/prop';
 import {
   StaticPropId,
   getPropId,
   getPropName,
-  getSlotName,
-  isEventProp,
-  isHandlerProp,
-  isQProp,
-  isSlotProp,
   type NumericPropKey,
-} from '../shared/utils/prop';
+} from '../shared/utils/numeric-prop-key';
 import { escapeHTML } from '../shared/utils/character-escaping';
 import { clearAllEffects } from '../signal/signal-cleanup';
 import { serializeAttribute } from '../shared/utils/styles';

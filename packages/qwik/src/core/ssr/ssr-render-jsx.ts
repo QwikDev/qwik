@@ -37,14 +37,13 @@ import { trackSignalAndAssignHost } from '../use/use-core';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrComponentFrame, SSRContainer, SsrAttrs } from './ssr-types';
 import { isQrl } from '../shared/qrl/qrl-utils';
+import { getSlotName, isEventProp } from '../shared/utils/prop';
 import {
   StaticPropId,
   getPropId,
   getPropName,
-  getSlotName,
-  isEventProp,
   type NumericPropKey,
-} from '../shared/utils/prop';
+} from '../shared/utils/numeric-prop-key';
 
 class ParentComponentData {
   constructor(

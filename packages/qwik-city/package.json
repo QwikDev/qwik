@@ -11,8 +11,8 @@
     "undici": "*",
     "valibot": ">=0.36.0 <2",
     "vfile": "6.0.2",
-    "vite": "^5",
-    "vite-imagetools": "^7",
+    "vite": ">=5 <7",
+    "vite-imagetools": "^7.0.5",
     "zod": "3.22.4"
   },
   "devDependencies": {
@@ -175,7 +175,7 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "vite": "^5"
+    "vite": ">=5 <7"
   },
   "publishConfig": {
     "access": "public"

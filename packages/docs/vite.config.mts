@@ -57,7 +57,8 @@ export default defineConfig(async () => {
 
   const routesDir = resolve('src', 'routes');
   return {
-    dev: {
+    server: {
+      port: 3000,
       headers: {
         'Cache-Control': 'public, max-age=0',
       },
@@ -179,8 +180,5 @@ export default defineConfig(async () => {
       },
     },
     clearScreen: false,
-    server: {
-      port: 3000,
-    },
   };
 });

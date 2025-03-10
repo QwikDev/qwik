@@ -16,7 +16,7 @@ export default defineConfig(async () => {
       tsconfigPaths({ projects: ['.'] }),
       qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),
     ],
-    dev: {
+    server: {
       headers: {
         'Cache-Control': 'public, max-age=0',
       },

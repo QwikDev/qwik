@@ -227,7 +227,7 @@
     "cli.qwik": "pnpm build.cli && node packages/qwik/qwik-cli.cjs",
     "cli.validate": "tsx --require ./scripts/runBefore.ts scripts/validate-cli.ts",
     "deps": "corepack pnpm upgrade -i -r --latest && syncpack fix-mismatches && corepack pnpm dedupe",
-    "docs.dev": "cd packages/docs && pnpm build.repl-sw && pnpm dev",
+    "docs.dev": "pnpm -C packages/docs build.repl-sw && pnpm -C packages/docs dev",
     "docs.preview": "cd packages/docs && pnpm preview",
     "docs.sync": "tsx --require ./scripts/runBefore.ts scripts/docs_sync/index.ts && pnpm fmt",
     "eslint.update": "tsx --require ./scripts/runBefore.ts scripts/eslint-docs.ts",

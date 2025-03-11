@@ -2170,7 +2170,7 @@ any \| undefined
 
 > Warning: This API is now obsolete.
 >
-> will be removed in v2 use $
+> It will be removed in v2. Instead, use `$()`, and inside the function add `if (isServer) { return; }`
 
 ```typescript
 event$: <T>(qrl: T) => QRL<T>;
@@ -3661,7 +3661,7 @@ Options for the prefetch service worker.
 </tbody></table>
 **Returns:**
 
-JSXNode&lt;'script'&gt;
+[JSXNode](#jsxnode)&lt;'script'&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 

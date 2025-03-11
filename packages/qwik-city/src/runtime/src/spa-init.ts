@@ -2,7 +2,7 @@ import type { ClientSPAWindow } from './qwik-city-component';
 import type { ScrollHistoryState } from './scroll-restoration';
 import type { ScrollState } from './types';
 
-import { isDev } from '@builder.io/qwik';
+import { isDev, isServer } from '@builder.io/qwik';
 import { $ } from '@builder.io/qwik';
 
 // TODO Dedupe handler code from here and QwikCityProvider?
@@ -21,6 +21,11 @@ export default $((_: Event, el: Element) => {
   const initAnchors = '_qCityInitAnchors';
   const initVisibility = '_qCityInitVisibility';
   const initScroll = '_qCityInitScroll';
+
+  if (isServer) {
+    return;
+  }
+
   if (
     !win[spa] &&
     !win[initPopstate] &&

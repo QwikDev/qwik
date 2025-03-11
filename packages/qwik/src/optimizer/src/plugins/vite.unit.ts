@@ -61,6 +61,13 @@ test('command: serve, mode: development', async () => {
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
   const outputOptions = rollupOptions.output as Rollup.OutputOptions;
+  const chunkFileNames = outputOptions.chunkFileNames as (
+    chunkInfo: Rollup.PreRenderedChunk
+  ) => string;
+  const entryFileNames = outputOptions.entryFileNames as (
+    chunkInfo: Rollup.PreRenderedChunk
+  ) => string;
+  const fakeChunkInfo = { name: 'chunk.tsx' } as Rollup.PreRenderedChunk;
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'development');
@@ -71,8 +78,8 @@ test('command: serve, mode: development', async () => {
   assert.deepEqual(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev')));
 
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
-  assert.deepEqual(outputOptions.chunkFileNames, 'build/[name].js');
-  assert.deepEqual(outputOptions.entryFileNames, 'build/[name].js');
+  assert.deepEqual(chunkFileNames(fakeChunkInfo), 'build/[name].js');
+  assert.deepEqual(entryFileNames(fakeChunkInfo), 'build/[name].js');
   assert.deepEqual(outputOptions.format, 'es');
 
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);

@@ -231,8 +231,8 @@ export function normalizeRollupOutputOptionsObject(
         }
 
         const sanitizedPath = sanitizePath(optimizer, chunkInfo.name);
-
-        return `build/${sanitizedPath}.js`;
+        chunkInfo.name = sanitizedPath;
+        return `build/[name].js`;
       };
     }
     // client production output

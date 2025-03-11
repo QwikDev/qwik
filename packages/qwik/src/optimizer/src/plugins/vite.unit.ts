@@ -12,6 +12,17 @@ import {
 
 const cwd = process.cwd();
 
+const chunkInfoMock: Rollup.PreRenderedChunk = {
+  exports: [''],
+  name: 'chunk.tsx',
+  facadeModuleId: 'chunk.tsx',
+  isDynamicEntry: false,
+  isEntry: false,
+  isImplicitEntry: false,
+  moduleIds: ['chunk.tsx'],
+  type: 'chunk',
+};
+
 function mockOptimizerOptions(): OptimizerOptions {
   return {
     sys: {
@@ -67,7 +78,6 @@ test('command: serve, mode: development', async () => {
   const entryFileNames = outputOptions.entryFileNames as (
     chunkInfo: Rollup.PreRenderedChunk
   ) => string;
-  const fakeChunkInfo = { name: 'chunk.tsx' } as Rollup.PreRenderedChunk;
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'development');
@@ -78,8 +88,8 @@ test('command: serve, mode: development', async () => {
   assert.deepEqual(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev')));
 
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
-  assert.deepEqual(chunkFileNames(fakeChunkInfo), 'build/[name].js');
-  assert.deepEqual(entryFileNames(fakeChunkInfo), 'build/[name].js');
+  assert.deepEqual(chunkFileNames(chunkInfoMock), 'build/[name].js');
+  assert.deepEqual(entryFileNames(chunkInfoMock), 'build/[name].js');
   assert.deepEqual(outputOptions.format, 'es');
 
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
@@ -138,6 +148,12 @@ test('command: build, mode: development', async () => {
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
   const outputOptions = rollupOptions.output as Rollup.OutputOptions;
+  const chunkFileNames = outputOptions.chunkFileNames as (
+    chunkInfo: Rollup.PreRenderedChunk
+  ) => string;
+  const entryFileNames = outputOptions.entryFileNames as (
+    chunkInfo: Rollup.PreRenderedChunk
+  ) => string;
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'development');
@@ -151,8 +167,8 @@ test('command: build, mode: development', async () => {
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
 
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
-  assert.deepEqual(outputOptions.chunkFileNames, 'build/[name].js');
-  assert.deepEqual(outputOptions.entryFileNames, 'build/[name].js');
+  assert.deepEqual(chunkFileNames(chunkInfoMock), 'build/[name].js');
+  assert.deepEqual(entryFileNames(chunkInfoMock), 'build/[name].js');
 
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
   assert.deepEqual(build.ssr, undefined);

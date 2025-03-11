@@ -28,6 +28,7 @@ import {
   vnode_setText,
   type VNodeJournal,
 } from './vnode';
+import { StaticPropId, getPropId } from '../../server/qwik-copy';
 
 describe('vnode', () => {
   let parent: ContainerElement;
@@ -285,9 +286,9 @@ describe('vnode', () => {
       const fragment1 = vnode_newVirtual();
       const fragment2 = vnode_newVirtual();
       const fragment3 = vnode_newVirtual();
-      vnode_setAttr(null, fragment1, 'q:id', '1');
-      vnode_setAttr(null, fragment2, 'q:id', '2');
-      vnode_setAttr(null, fragment3, 'q:id', '3');
+      vnode_setAttr(null, fragment1, StaticPropId.ELEMENT_ID, '1');
+      vnode_setAttr(null, fragment2, StaticPropId.ELEMENT_ID, '2');
+      vnode_setAttr(null, fragment3, StaticPropId.ELEMENT_ID, '3');
       const textA = vnode_newText(document.createTextNode('1A'), '1A');
       const textB = vnode_newText(document.createTextNode('2B'), '2B');
       const textC = vnode_newText(document.createTextNode('3C'), '3C');
@@ -482,8 +483,8 @@ describe('vnode', () => {
       const v2 = vnode_getNextSibling(v1) as VirtualVNode;
       expect(v1).toMatchVDOM(<>A</>);
       expect(v2).toMatchVDOM(<>B</>);
-      expect(vnode_getProp(v1, '', getVNode)).toBe(v2);
-      expect(vnode_getProp(v2, ':', getVNode)).toBe(v1);
+      expect(vnode_getProp(v1, getPropId(''), getVNode)).toBe(v2);
+      expect(vnode_getProp(v2, getPropId(':'), getVNode)).toBe(v1);
     });
   });
   describe('attributes', () => {
@@ -500,7 +501,7 @@ describe('vnode', () => {
       it('should update innerHTML', () => {
         parent.innerHTML = '<div q:container="html"><i>content</i></div>';
         const div = vnode_getFirstChild(vParent) as ElementVNode;
-        vnode_setAttr(journal, div, 'dangerouslySetInnerHTML', '<b>new content</b>');
+        vnode_setAttr(journal, div, StaticPropId.INNER_HTML, '<b>new content</b>');
         vnode_applyJournal(journal);
         expect(parent.innerHTML).toBe('<div q:container="html"><b>new content</b></div>');
         expect(vParent).toMatchVDOM(
@@ -509,7 +510,7 @@ describe('vnode', () => {
             <div q:container="html" dangerouslySetInnerHTML="<b>new content</b>" />
           </test>
         );
-        expect(vnode_getAttr(div, 'dangerouslySetInnerHTML')).toBe('<b>new content</b>');
+        expect(vnode_getAttr(div, StaticPropId.INNER_HTML)).toBe('<b>new content</b>');
       });
       it('should have empty child for dangerouslySetInnerHTML', () => {
         parent.innerHTML = '<div q:container="html"><i>content</i></div>';
@@ -536,7 +537,7 @@ describe('vnode', () => {
       it('should update textContent', () => {
         parent.innerHTML = '<textarea q:container="text">content</textarea>';
         const textarea = vnode_getFirstChild(vParent) as ElementVNode;
-        vnode_setAttr(journal, textarea, 'value', 'new content');
+        vnode_setAttr(journal, textarea, StaticPropId.VALUE, 'new content');
         vnode_applyJournal(journal);
         expect(parent.innerHTML).toBe('<textarea q:container="text">new content</textarea>');
         expect(vParent).toMatchVDOM(
@@ -545,7 +546,7 @@ describe('vnode', () => {
             <textarea q:container="text" value="new content" />
           </test>
         );
-        expect(vnode_getAttr(textarea, 'value')).toBe('new content');
+        expect(vnode_getAttr(textarea, StaticPropId.VALUE)).toBe('new content');
       });
       it('should have empty child for value', () => {
         parent.innerHTML = '<textarea q:container="text">content</textarea>';
@@ -650,10 +651,10 @@ describe('vnode', () => {
       it('should set attribute', () => {
         parent.innerHTML = '<div foo="bar"></div>';
         const div = vnode_getFirstChild(vParent) as ElementVNode;
-        vnode_setAttr(journal, div, 'key', '123');
+        vnode_setAttr(journal, div, getPropId('key'), '123');
         vnode_applyJournal(journal);
         expect(parent.innerHTML).toBe('<div foo="bar" key="123"></div>');
-        vnode_setAttr(journal, div, 'foo', null);
+        vnode_setAttr(journal, div, getPropId('foo'), null);
         vnode_applyJournal(journal);
         expect(parent.innerHTML).toBe('<div key="123"></div>');
       });

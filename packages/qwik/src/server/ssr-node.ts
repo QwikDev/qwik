@@ -6,19 +6,23 @@ import {
 } from '@qwik.dev/core';
 import { isDev } from '@qwik.dev/core/build';
 import {
-  QSlotParent,
   mapApp_remove,
   mapArray_get,
   mapArray_set,
   mapArray_has,
-  ELEMENT_SEQ,
   QSlot,
   QDefaultSlot,
-  NON_SERIALIZABLE_MARKER_PREFIX,
-  QBackRefs,
   getPropId,
+  startsWithColon,
+  StaticPropId,
 } from './qwik-copy';
-import type { SsrAttrs, ISsrNode, ISsrComponentFrame, JSXChildren } from './qwik-types';
+import type {
+  SsrAttrs,
+  ISsrNode,
+  ISsrComponentFrame,
+  JSXChildren,
+  NumericPropKey,
+} from './qwik-types';
 import type { CleanupQueue } from './ssr-container';
 import type { VNodeData } from './vnode-data';
 
@@ -52,7 +56,7 @@ export class SsrNode implements ISsrNode {
   public childrenVNodeData: VNodeData[] | null = null;
 
   get [_EFFECT_BACK_REF]() {
-    return this.getProp(QBackRefs);
+    return this.getProp(StaticPropId.BACK_REFS);
   }
 
   constructor(
@@ -72,40 +76,37 @@ export class SsrNode implements ISsrNode {
     }
   }
 
-  setProp(name: string, value: any): void {
+  setProp(key: NumericPropKey, value: any): void {
     if (this.attrs === _EMPTY_ARRAY) {
       this.attrs = [];
     }
-    const numericProp = getPropId(name);
-    if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
-      mapArray_set(this.locals || (this.locals = []), numericProp, value, 0);
+    if (startsWithColon(key)) {
+      mapArray_set(this.locals || (this.locals = []), key, value, 0);
     } else {
-      mapArray_set(this.attrs, numericProp, value, 0);
+      mapArray_set(this.attrs, key, value, 0);
     }
-    if (name == ELEMENT_SEQ && value) {
+    if (key == StaticPropId.ELEMENT_SEQ && value) {
       // Sequential Arrays contain Tasks. And Tasks contain cleanup functions.
       // We need to collect these cleanup functions and run them when the rendering is done.
       this.cleanupQueue.push(value);
     }
   }
 
-  getProp(name: string): any {
-    const numericProp = getPropId(name);
-    if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
-      return this.locals ? mapArray_get(this.locals, numericProp, 0) : null;
+  getProp(key: NumericPropKey): any {
+    if (startsWithColon(key)) {
+      return this.locals ? mapArray_get(this.locals, key, 0) : null;
     } else {
-      return mapArray_get(this.attrs, numericProp, 0);
+      return mapArray_get(this.attrs, key, 0);
     }
   }
 
-  removeProp(name: string): void {
-    const numericProp = getPropId(name);
-    if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
+  removeProp(key: NumericPropKey): void {
+    if (startsWithColon(key)) {
       if (this.locals) {
-        mapApp_remove(this.locals, numericProp, 0);
+        mapApp_remove(this.locals, key, 0);
       }
     } else {
-      mapApp_remove(this.attrs, numericProp, 0);
+      mapApp_remove(this.attrs, key, 0);
     }
   }
 
@@ -200,14 +201,15 @@ export class SsrComponentFrame implements ISsrComponentFrame {
     return QDefaultSlot;
   }
 
-  hasSlot(slotName: string): boolean {
-    return mapArray_has(this.slots, getPropId(slotName), 0);
+  hasSlot(slotNameKey: NumericPropKey): boolean {
+    return mapArray_has(this.slots, slotNameKey, 0);
   }
 
   consumeChildrenForSlot(projectionNode: ISsrNode, slotName: string): JSXChildren | null {
-    const children = mapApp_remove(this.slots, getPropId(slotName), 0);
-    this.componentNode.setProp(slotName, projectionNode.id);
-    projectionNode.setProp(QSlotParent, this.componentNode.id);
+    const slotNamePropId = getPropId(slotName);
+    const children = mapApp_remove(this.slots, slotNamePropId, 0);
+    this.componentNode.setProp(slotNamePropId, projectionNode.id);
+    projectionNode.setProp(StaticPropId.SLOT_PARENT, this.componentNode.id);
     return children;
   }
 

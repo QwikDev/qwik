@@ -6,7 +6,7 @@ import {
   vnode_locate,
 } from '../client/vnode';
 import type { ISsrNode } from '../ssr/ssr-types';
-import { QSlotParent } from './utils/markers';
+import { StaticPropId } from './utils/numeric-prop-key';
 
 /// These global variables are used to avoid creating new arrays for each call to `vnode_documentPosition`.
 const aVNodePath: VNode[] = [];
@@ -33,12 +33,14 @@ export const vnode_documentPosition = (
   while (a) {
     const vNode = (aVNodePath[++aDepth] = a);
     a = (vNode[VNodeProps.parent] ||
-      (rootVNode && vnode_getProp(a, QSlotParent, (id) => vnode_locate(rootVNode, id))))!;
+      (rootVNode &&
+        vnode_getProp(a, StaticPropId.SLOT_PARENT, (id) => vnode_locate(rootVNode, id))))!;
   }
   while (b) {
     const vNode = (bVNodePath[++bDepth] = b);
     b = (vNode[VNodeProps.parent] ||
-      (rootVNode && vnode_getProp(b, QSlotParent, (id) => vnode_locate(rootVNode, id))))!;
+      (rootVNode &&
+        vnode_getProp(b, StaticPropId.SLOT_PARENT, (id) => vnode_locate(rootVNode, id))))!;
   }
 
   while (aDepth >= 0 && bDepth >= 0) {
@@ -64,7 +66,10 @@ export const vnode_documentPosition = (
           return -1;
         }
       } while (cursor);
-      if (rootVNode && vnode_getProp(b, QSlotParent, (id) => vnode_locate(rootVNode, id))) {
+      if (
+        rootVNode &&
+        vnode_getProp(b, StaticPropId.SLOT_PARENT, (id) => vnode_locate(rootVNode, id))
+      ) {
         // The "b" node is a projection, so we need to set it after "a" node,
         // because the "a" node could be a context provider.
         return -1;

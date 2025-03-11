@@ -129,7 +129,7 @@ describe('serializer v2', () => {
           ssr.closeElement();
         });
         const vnodeSpan = await clientContainer.$getObjectById$(0).someProp;
-        expect(vnode_getAttr(vnodeSpan, 'id')).toBe('myId');
+        expect(vnode_getAttr(vnodeSpan, getPropId('id'))).toBe('myId');
       });
       it('should retrieve text node', async () => {
         const clientContainer = await withContainer((ssr) => {

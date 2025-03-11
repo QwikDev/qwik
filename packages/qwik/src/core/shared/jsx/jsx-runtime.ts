@@ -447,12 +447,12 @@ class PropsProxyHandler implements ProxyHandler<any> {
  * Instead of using PropsProxyHandler getter (which could create a component-level subscription).
  * Use this function to get the props directly from a const or var props.
  */
-export const directGetPropsProxyProp = <T, JSX>(jsx: JSXNodeInternal<JSX>, prop: string): T => {
-  const numericProp = getPropId(prop);
+export const directGetPropsProxyProp = <T, JSX>(
+  jsx: JSXNodeInternal<JSX>,
+  prop: NumericPropKey
+): T => {
   return (
-    jsx.constProps && numericProp in jsx.constProps
-      ? jsx.constProps[numericProp]
-      : jsx.varProps[numericProp]
+    jsx.constProps && prop in jsx.constProps ? jsx.constProps[prop] : jsx.varProps[prop]
   ) as T;
 };
 

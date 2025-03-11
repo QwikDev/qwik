@@ -53,6 +53,7 @@ import {
   getPropId,
   getPropName,
   refAttr,
+  StaticPropId,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -275,9 +276,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
     const ssrNode: ISsrNode = host as any;
-    let ctx: Array<string | unknown> = ssrNode.getProp(QCtxAttr);
+    let ctx: Array<string | unknown> = ssrNode.getProp(StaticPropId.CTX);
     if (!ctx) {
-      ssrNode.setProp(QCtxAttr, (ctx = []));
+      ssrNode.setProp(StaticPropId.CTX, (ctx = []));
     }
     mapArray_set(ctx, getPropId(context.id), value, 0);
     // Store the node which will store the context
@@ -287,7 +288,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined {
     let ssrNode: ISsrNode | null = host as any;
     while (ssrNode) {
-      const ctx: Array<string | unknown> = ssrNode.getProp(QCtxAttr);
+      const ctx: Array<string | unknown> = ssrNode.getProp(StaticPropId.CTX);
       if (ctx) {
         const value = mapArray_get(ctx, getPropId(contextId.id), 0) as T;
         if (value) {
@@ -304,12 +305,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return ssrNode.currentComponentNode as ISsrNode | null;
   }
 
-  setHostProp<T>(host: ISsrNode, name: string, value: T): void {
+  setHostProp<T>(host: ISsrNode, name: NumericPropKey, value: T): void {
     const ssrNode: ISsrNode = host as any;
     return ssrNode.setProp(name, value);
   }
 
-  getHostProp<T>(host: ISsrNode, name: string): T | null {
+  getHostProp<T>(host: ISsrNode, name: NumericPropKey): T | null {
     const ssrNode: ISsrNode = host as any;
     return ssrNode.getProp(name);
   }
@@ -579,7 +580,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       const componentFrame = this.getComponentFrame(0)!;
       componentFrame.scopedStyleIds.add(styleId);
       const scopedStyleIds = convertStyleIdsToString(componentFrame.scopedStyleIds);
-      this.setHostProp(host, QScopedStyle, scopedStyleIds);
+      this.setHostProp(host, StaticPropId.SCOPED_STYLE, scopedStyleIds);
     }
 
     if (!this.styleIds.has(styleId)) {
@@ -974,15 +975,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             // scopedStyleId is always after ssrComponentNode
             scopedStyleId = unclaimedProjections[idx++] as string;
           } else if (typeof value === 'number') {
-            const slotName = getPropName(value as NumericPropKey);
+            const slotNameKey = value as NumericPropKey;
             const children = unclaimedProjections[idx++] as JSXOutput;
-            if (!ssrComponentFrame?.hasSlot(slotName)) {
+            if (!ssrComponentFrame?.hasSlot(slotNameKey)) {
               /**
                * Skip the slot if it is already claimed by previous unclaimed projections. We need
                * to remove the slot from the component frame so that it does not incorrectly resolve
                * non-existing node later
                */
-              ssrComponentFrame && ssrComponentFrame.componentNode.removeProp(slotName);
+              ssrComponentFrame && ssrComponentFrame.componentNode.removeProp(slotNameKey);
               continue;
             }
             this.unclaimedProjectionComponentFrameQueue.shift();
@@ -995,7 +996,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             if (lastNode.vnodeData) {
               lastNode.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
             }
-            ssrComponentNode?.setProp(slotName, lastNode.id);
+            ssrComponentNode?.setProp(slotNameKey, lastNode.id);
             await _walkJSX(this, children, {
               currentStyleScoped: scopedStyleId,
               parentComponentFrame: null,

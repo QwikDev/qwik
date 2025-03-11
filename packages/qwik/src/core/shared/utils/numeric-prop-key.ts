@@ -15,22 +15,24 @@ import {
   dangerouslySetInnerHTML,
   refAttr,
   OnRenderProp,
+  QSlotParent,
+  QCtxAttr,
+  QSlot,
+  QScopedStyle,
+  ELEMENT_SEQ,
+  ELEMENT_SEQ_IDX,
+  QBackRefs,
+  USE_ON_LOCAL_SEQ_IDX,
+  USE_ON_LOCAL,
+  USE_ON_LOCAL_FLAGS,
 } from './markers';
+import { NumericFlagsShift, NumericPropKeyFlags } from './numeric-prop-key-flags';
 
 const propNameToId = new Map<string | symbol, NumericPropKey>();
 const idToPropName: (string | symbol)[] = [];
 export type NumericPropKey = number & { __brand__: 'NumericPropKey' };
 
 const colonOnLength = ':on'.length;
-
-export const enum NumericPropKeyFlags {
-  EVENT = 1,
-  Q_PREFIX = 2,
-  HANDLER_PREFIX = 4,
-  SLOT = 8,
-}
-
-export const NumericFlagsShift = 4;
 
 export const getPropId = (name: string | symbol): NumericPropKey => {
   let id = propNameToId.get(name);
@@ -47,7 +49,7 @@ export const getPropId = (name: string | symbol): NumericPropKey => {
     } else if (name.startsWith(Q_PREFIX)) {
       (id as number) |= NumericPropKeyFlags.Q_PREFIX;
     } else if (name.startsWith(HANDLER_PREFIX)) {
-      (id as number) |= NumericPropKeyFlags.HANDLER_PREFIX;
+      (id as number) |= NumericPropKeyFlags.START_WITH_COLON;
     }
 
     if (!name.startsWith(Q_PREFIX) && !name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
@@ -65,11 +67,22 @@ export const StaticPropId = {
   ELEMENT_ID: getPropId(ELEMENT_ID),
   ELEMENT_PROPS: getPropId(ELEMENT_PROPS),
   REF: getPropId(refAttr),
-  INNERHTML: getPropId(dangerouslySetInnerHTML),
+  INNER_HTML: getPropId(dangerouslySetInnerHTML),
   VALUE: getPropId('value'),
   ON_RENDER: getPropId(OnRenderProp),
   CLASS: getPropId('class'),
   CLASS_NAME: getPropId('classname'),
+  SLOT: getPropId(QSlot),
+  SLOT_PARENT: getPropId(QSlotParent),
+  CTX: getPropId(QCtxAttr),
+  SCOPED_STYLE: getPropId(QScopedStyle),
+  ELEMENT_SEQ: getPropId(ELEMENT_SEQ),
+  ELEMENT_SEQ_IDX: getPropId(ELEMENT_SEQ_IDX),
+  BACK_REFS: getPropId(QBackRefs),
+  USE_ON_LOCAL_SEQ_IDX: getPropId(USE_ON_LOCAL_SEQ_IDX),
+  USE_ON_LOCAL: getPropId(USE_ON_LOCAL),
+  USE_ON_LOCAL_FLAGS: getPropId(USE_ON_LOCAL_FLAGS),
+  CHILDREN: getPropId('children'),
 };
 
 export const getPropName = <T extends string>(id: NumericPropKey): T => {

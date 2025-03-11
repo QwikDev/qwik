@@ -182,7 +182,7 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     ensureProjectionResolved(vNode: _VirtualVNode): void;
     // (undocumented)
-    getHostProp<T>(host: HostElement, name: string): T | null;
+    getHostProp<T>(host: HostElement, name: NumericPropKey): T | null;
     // (undocumented)
     getParentHost(host: HostElement): HostElement | null;
     // (undocumented)
@@ -209,8 +209,10 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     scheduleRender(): Promise<void>;
     // (undocumented)
     setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
+    // Warning: (ae-forgotten-export) The symbol "NumericPropKey" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    setHostProp<T>(host: HostElement, name: string, value: T): void;
+    setHostProp<T>(host: HostElement, name: NumericPropKey, value: T): void;
     // (undocumented)
     vNodeLocate: (id: string | Element) => _VNode;
 }
@@ -231,8 +233,6 @@ export class _EffectData {
     data: NodePropData;
 }
 
-// Warning: (ae-forgotten-export) The symbol "NumericPropKey" needs to be exported by the entry point index.d.ts
-//
 // @internal (undocumented)
 export type _ElementVNode = [
 _VNodeFlags.Element,
@@ -362,7 +362,7 @@ export interface ISsrComponentFrame {
     // (undocumented)
     distributeChildrenIntoSlots(children: JSXChildren, parentScopedStyle: string | null, parentComponentFrame: ISsrComponentFrame | null): void;
     // (undocumented)
-    hasSlot(slotName: string): boolean;
+    hasSlot(slotNameKey: NumericPropKey): boolean;
     // (undocumented)
     projectionComponentFrame: ISsrComponentFrame | null;
     // (undocumented)
@@ -846,7 +846,7 @@ export abstract class _SharedContainer implements Container {
     // (undocumented)
     abstract ensureProjectionResolved(host: HostElement): void;
     // (undocumented)
-    abstract getHostProp<T>(host: HostElement, name: string): T | null;
+    abstract getHostProp<T>(host: HostElement, name: NumericPropKey): T | null;
     // (undocumented)
     abstract getParentHost(host: HostElement): HostElement | null;
     // (undocumented)
@@ -870,7 +870,7 @@ export abstract class _SharedContainer implements Container {
     // (undocumented)
     abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)
-    abstract setHostProp<T>(host: HostElement, name: string, value: T): void;
+    abstract setHostProp<T>(host: HostElement, name: NumericPropKey, value: T): void;
     // (undocumented)
     trackSignalValue<T>(signal: Signal, subscriber: HostElement, property: string, data: _EffectData): T;
 }

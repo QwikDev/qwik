@@ -114,11 +114,11 @@ import { type QRLInternal } from './qrl/qrl-class';
 import { ssrNodeDocumentPosition, vnode_documentPosition } from './scheduler-document-position';
 import type { Container, HostElement } from './types';
 import { logWarn } from './utils/log';
-import { QScopedStyle } from './utils/markers';
 import { isPromise, retryOnPromise, safeCall } from './utils/promises';
 import { addComponentStylePrefix } from './utils/scoped-styles';
 import { serializeAttribute } from './utils/styles';
 import type { ValueOrPromise } from './utils/types';
+import { StaticPropId, getPropId } from './utils/numeric-prop-key';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -360,7 +360,10 @@ export const createScheduler = (
                 if (isServer) {
                   return jsx;
                 } else {
-                  const styleScopedId = container.getHostProp<string>(host, QScopedStyle);
+                  const styleScopedId = container.getHostProp<string>(
+                    host,
+                    StaticPropId.SCOPED_STYLE
+                  );
                   return retryOnPromise(() =>
                     vnode_diff(
                       container as ClientContainer,
@@ -458,7 +461,7 @@ export const createScheduler = (
               const element = virtualNode[ElementVNodeProps.element] as Element;
               journal.push(VNodeJournalOpCode.SetAttribute, element, property, serializedValue);
             } else {
-              vnode_setAttr(journal, virtualNode, property, serializedValue);
+              vnode_setAttr(journal, virtualNode, getPropId(property), serializedValue);
             }
           }
           break;

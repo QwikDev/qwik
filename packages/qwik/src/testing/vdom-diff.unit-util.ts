@@ -49,7 +49,12 @@ import {
   QBackRefs,
   Q_PROPS_SEPARATOR,
 } from '../core/shared/utils/markers';
-import { getPropId, getPropName, type NumericPropKey } from '../core/shared/utils/numeric-prop-key';
+import {
+  StaticPropId,
+  getPropId,
+  getPropName,
+  type NumericPropKey,
+} from '../core/shared/utils/numeric-prop-key';
 
 expect.extend({
   toMatchVDOM(
@@ -154,8 +159,10 @@ function diffJsxVNode(
       );
     }
     const allProps: string[] = [];
-    expected.varProps && propsAdd(allProps, Object.keys(expected.varProps));
-    expected.constProps && propsAdd(allProps, Object.keys(expected.constProps));
+    expected.varProps &&
+      propsAdd(allProps, Object.keys(expected.varProps).map(Number) as NumericPropKey[]);
+    expected.constProps &&
+      propsAdd(allProps, Object.keys(expected.constProps).map(Number) as NumericPropKey[]);
     const receivedElement = vnode_isElementVNode(received)
       ? (vnode_getNode(received) as Element)
       : null;
@@ -163,8 +170,8 @@ function diffJsxVNode(
       allProps,
       vnode_isElementVNode(received)
         ? vnode_getAttrKeys(received)
-            .filter((key) => !ignoredAttributes.includes(key))
-            .map((key) => getPropId(key).toString())
+            .filter((key) => !ignoredAttributes.includes(getPropName(key)))
+            .map((key) => key)
             .sort()
         : []
     );
@@ -180,8 +187,8 @@ function diffJsxVNode(
       // we need this, because Domino lowercases all attributes for `element.attributes`
       const propLowerCased = prop.toLowerCase();
       let receivedValue =
-        vnode_getAttr(received, prop) ||
-        vnode_getAttr(received, propLowerCased) ||
+        vnode_getAttr(received, getPropId(prop)) ||
+        vnode_getAttr(received, getPropId(propLowerCased)) ||
         receivedElement?.getAttribute(prop) ||
         receivedElement?.getAttribute(propLowerCased);
       let expectedValue =
@@ -379,11 +386,12 @@ function tagToString(tag: any): string {
 function shouldSkip(vNode: _VNode | null) {
   if (vNode && vnode_isElementVNode(vNode)) {
     const tag = vnode_getElementName(vNode);
+    const typeId = getPropId('type');
     if (
       tag === 'script' &&
-      (vnode_getAttr(vNode, 'type') === 'qwik/vnode' ||
-        vnode_getAttr(vNode, 'type') === 'x-qwik/vnode' ||
-        vnode_getAttr(vNode, 'type') === 'qwik/state')
+      (vnode_getAttr(vNode, typeId) === 'qwik/vnode' ||
+        vnode_getAttr(vNode, typeId) === 'x-qwik/vnode' ||
+        vnode_getAttr(vNode, typeId) === 'qwik/state')
     ) {
       return true;
     }
@@ -446,16 +454,11 @@ export function vnode_fromJSX(jsx: JSXOutput) {
         const props = jsx.varProps;
         for (const key in props) {
           if (Object.prototype.hasOwnProperty.call(props, key)) {
-            vnode_setAttr(
-              journal,
-              child,
-              getPropName(key as unknown as NumericPropKey),
-              String(props[key as unknown as NumericPropKey])
-            );
+            vnode_setAttr(journal, child, Number(key) as NumericPropKey, String(props[key as any]));
           }
         }
         if (jsx.key != null) {
-          vnode_setAttr(journal, child, 'q:key', String(jsx.key));
+          vnode_setAttr(journal, child, StaticPropId.ELEMENT_KEY, String(jsx.key));
         }
         vParent = child;
       } else {
@@ -478,20 +481,20 @@ export function vnode_fromJSX(jsx: JSXOutput) {
   return { vParent, vNode: vnode_getFirstChild(vParent), document: doc };
 }
 function constPropsFromElement(element: Element) {
-  const props: string[] = [];
+  const props: NumericPropKey[] = [];
   for (let i = 0; i < element.attributes.length; i++) {
     const attr = element.attributes[i];
     if (!ignoredAttributes.includes(attr.name)) {
-      props.push(getPropId(attr.name).toString());
+      props.push(getPropId(attr.name));
     }
   }
   props.sort();
   return props;
 }
 
-function propsAdd(existing: string[], incoming: string[]) {
+function propsAdd(existing: string[], incoming: NumericPropKey[]) {
   for (const prop of incoming) {
-    const propName = getPropName(prop as unknown as NumericPropKey);
+    const propName = getPropName(prop as NumericPropKey);
     if (propName !== 'children') {
       let found = false;
       for (let i = 0; i < existing.length; i++) {

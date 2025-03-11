@@ -17,7 +17,6 @@ import { type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { trackSignal, tryGetInvokeContext } from '../use/use-core';
 import { isTask, Task, TaskFlags } from '../use/use-task';
-import { ELEMENT_PROPS, OnRenderProp } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
 import { qDev } from '../shared/utils/qdev';
 import type { VNode } from '../client/types';
@@ -34,6 +33,7 @@ import { QError, qError } from '../shared/error/error';
 import { isDomContainer } from '../client/dom-container';
 import { type BackRef } from './signal-cleanup';
 import { getSubscriber } from './subscriber';
+import { StaticPropId } from '../../server/qwik-copy';
 
 const DEBUG = false;
 
@@ -263,7 +263,7 @@ export const addQrlToSerializationCtx = (
     } else if (effect instanceof ComputedSignal) {
       qrl = effect.$computeQrl$;
     } else if (property === EffectProperty.COMPONENT) {
-      qrl = container.getHostProp<QRL>(effect as ISsrNode, OnRenderProp);
+      qrl = container.getHostProp<QRL>(effect as ISsrNode, StaticPropId.ON_RENDER);
     }
     if (qrl) {
       (container as SSRContainer).serializationCtx.$eventQrls$.add(qrl);
@@ -304,9 +304,12 @@ export const triggerEffects = (
         (consumer as ComputedSignal<unknown> | WrappedSignal<unknown>).$invalidate$();
       } else if (property === EffectProperty.COMPONENT) {
         const host: HostElement = consumer as any;
-        const qrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(host, OnRenderProp);
+        const qrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(
+          host,
+          StaticPropId.ON_RENDER
+        );
         assertDefined(qrl, 'Component must have QRL');
-        const props = container.getHostProp<Props>(host, ELEMENT_PROPS);
+        const props = container.getHostProp<Props>(host, StaticPropId.ELEMENT_PROPS);
         container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
       } else if (isBrowser) {
         if (property === EffectProperty.VNODE) {

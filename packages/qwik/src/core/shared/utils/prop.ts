@@ -10,33 +10,7 @@ import type { JSXNodeInternal } from '../jsx/types/jsx-node';
 import type { Container, HostElement } from '../types';
 import { _CONST_PROPS, _VAR_PROPS } from './constants';
 import { QDefaultSlot } from './markers';
-import {
-  NumericFlagsShift,
-  NumericPropKeyFlags,
-  getPropId,
-  getPropName,
-  type NumericPropKey,
-} from './numeric-prop-key';
-
-function getFlags(id: number) {
-  return ((1 << NumericFlagsShift) - 1) & (id >> 0);
-}
-
-export function isEventProp(numericProp: NumericPropKey): boolean {
-  return (getFlags(numericProp) & NumericPropKeyFlags.EVENT) !== 0;
-}
-
-export function isQProp(numericProp: NumericPropKey): boolean {
-  return (getFlags(numericProp) & NumericPropKeyFlags.Q_PREFIX) !== 0;
-}
-
-export function isHandlerProp(numericProp: NumericPropKey): boolean {
-  return (getFlags(numericProp) & NumericPropKeyFlags.HANDLER_PREFIX) !== 0;
-}
-
-export function isSlotProp(numericProp: NumericPropKey): boolean {
-  return (getFlags(numericProp) & NumericPropKeyFlags.SLOT) !== 0;
-}
+import { getPropId, getPropName, type NumericPropKey } from './numeric-prop-key';
 
 export function getSlotName(
   host: HostElement | null,
@@ -51,7 +25,7 @@ export function getSlotName(
       return trackSignalAndAssignHost(constValue, host, EffectProperty.COMPONENT, container);
     }
   }
-  return directGetPropsProxyProp(jsx, 'name') || QDefaultSlot;
+  return directGetPropsProxyProp(jsx, nameId) || QDefaultSlot;
 }
 
 /** @internal */

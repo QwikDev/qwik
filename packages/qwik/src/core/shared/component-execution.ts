@@ -15,17 +15,11 @@ import { isQrl } from './qrl/qrl-utils';
 import type { Container, HostElement } from './types';
 import { EMPTY_OBJ } from './utils/flyweight';
 import { logWarn } from './utils/log';
-import {
-  ELEMENT_PROPS,
-  ELEMENT_SEQ_IDX,
-  OnRenderProp,
-  RenderEvent,
-  USE_ON_LOCAL,
-  USE_ON_LOCAL_SEQ_IDX,
-} from './utils/markers';
+import { RenderEvent } from './utils/markers';
 import { MAX_RETRY_ON_PROMISE_COUNT, isPromise, maybeThen, safeCall } from './utils/promises';
 import type { ValueOrPromise } from './utils/types';
 import { getSubscriber } from '../signal/subscriber';
+import { StaticPropId } from './utils/numeric-prop-key';
 
 /**
  * Use `executeComponent` to execute a component.
@@ -69,11 +63,11 @@ export const executeComponent = (
   container.ensureProjectionResolved(renderHost);
   let isInlineComponent = false;
   if (componentQRL === null) {
-    componentQRL = container.getHostProp(renderHost, OnRenderProp)!;
+    componentQRL = container.getHostProp(renderHost, StaticPropId.ON_RENDER)!;
     assertDefined(componentQRL, 'No Component found at this location');
   }
   if (isQrl(componentQRL)) {
-    props = props || container.getHostProp(renderHost, ELEMENT_PROPS) || EMPTY_OBJ;
+    props = props || container.getHostProp(renderHost, StaticPropId.ELEMENT_PROPS) || EMPTY_OBJ;
     if (props.children) {
       delete props.children;
     }
@@ -95,9 +89,9 @@ export const executeComponent = (
     safeCall<JSXOutput, JSXOutput, JSXOutput>(
       () => {
         if (!isInlineComponent) {
-          container.setHostProp(renderHost, ELEMENT_SEQ_IDX, null);
-          container.setHostProp(renderHost, USE_ON_LOCAL_SEQ_IDX, null);
-          container.setHostProp(renderHost, ELEMENT_PROPS, props);
+          container.setHostProp(renderHost, StaticPropId.ELEMENT_SEQ_IDX, null);
+          container.setHostProp(renderHost, StaticPropId.USE_ON_LOCAL_SEQ_IDX, null);
+          container.setHostProp(renderHost, StaticPropId.ELEMENT_PROPS, props);
         }
 
         if (vnode_isVNode(renderHost)) {
@@ -107,7 +101,7 @@ export const executeComponent = (
         return componentFn(props);
       },
       (jsx) => {
-        const useOnEvents = container.getHostProp<UseOnMap>(renderHost, USE_ON_LOCAL);
+        const useOnEvents = container.getHostProp<UseOnMap>(renderHost, StaticPropId.USE_ON_LOCAL);
         if (useOnEvents) {
           return addUseOnEvents(jsx, useOnEvents);
         }

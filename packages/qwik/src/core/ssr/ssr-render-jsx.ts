@@ -22,7 +22,6 @@ import {
   ELEMENT_KEY,
   FLUSH_COMMENT,
   QDefaultSlot,
-  QScopedStyle,
   QSlot,
   QSlotParent,
   qwikInspectorAttr,
@@ -37,13 +36,14 @@ import { trackSignalAndAssignHost } from '../use/use-core';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrComponentFrame, SSRContainer, SsrAttrs } from './ssr-types';
 import { isQrl } from '../shared/qrl/qrl-utils';
-import { getSlotName, isEventProp } from '../shared/utils/prop';
+import { getSlotName } from '../shared/utils/prop';
 import {
   StaticPropId,
   getPropId,
   getPropName,
   type NumericPropKey,
 } from '../shared/utils/numeric-prop-key';
+import { isEventProp } from '../shared/utils/numeric-prop-key-flags';
 
 class ParentComponentData {
   constructor(
@@ -229,7 +229,7 @@ function processJSXNode(
             ssr.closeFragment();
           }
         } else if (type === SSRComment) {
-          ssr.commentNode(directGetPropsProxyProp(jsx, 'data') || '');
+          ssr.commentNode(directGetPropsProxyProp(jsx, getPropId('data')) || '');
         } else if (type === SSRStream) {
           ssr.commentNode(FLUSH_COMMENT);
           const generator = jsx.children as SSRStreamChildren;
@@ -251,7 +251,7 @@ function processJSXNode(
           enqueue(value as StackValue);
           isPromise(value) && enqueue(Promise);
         } else if (type === SSRRaw) {
-          ssr.htmlNode(directGetPropsProxyProp(jsx, 'data'));
+          ssr.htmlNode(directGetPropsProxyProp(jsx, getPropId('data')));
         } else if (isQwikComponent(type)) {
           // prod: use new instance of an array for props, we always modify props for a component
           ssr.openComponent(isDev ? [getPropId(DEBUG_TYPE), VirtualType.Component] : []);
@@ -264,7 +264,9 @@ function processJSXNode(
           );
 
           const jsxOutput = applyQwikComponentBody(ssr, jsx, type);
-          const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
+          const compStyleComponentId = addComponentStylePrefix(
+            host.getProp(StaticPropId.SCOPED_STYLE)
+          );
           enqueue(new ParentComponentData(options.styleScoped, options.parentComponentFrame));
           enqueue(ssr.closeComponent);
           enqueue(jsxOutput);
@@ -515,11 +517,11 @@ function appendQwikInspectorAttribute(jsx: JSXNodeInternal, qwikInspectorAttrVal
 
 // append class attribute if styleScopedId exists and there is no class attribute
 function appendClassIfScopedStyleExists(jsx: JSXNodeInternal, styleScoped: string | null) {
-  const classAttributeExists = directGetPropsProxyProp(jsx, 'class') != null;
+  const classAttributeExists = directGetPropsProxyProp(jsx, StaticPropId.CLASS) != null;
   if (!classAttributeExists && styleScoped) {
     if (!jsx.constProps) {
       jsx.constProps = {};
     }
-    jsx.constProps[getPropId('class')] = '';
+    jsx.constProps[StaticPropId.CLASS] = '';
   }
 }

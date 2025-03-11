@@ -51,10 +51,10 @@ import type { DeserializeContainer, HostElement, ObjToProxyMap } from './types';
 import { _CONST_PROPS, _VAR_PROPS } from './utils/constants';
 import { isElement, isNode } from './utils/element';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
-import { ELEMENT_ID } from './utils/markers';
 import { isPromise } from './utils/promises';
 import { fastSkipSerialize } from './utils/serialize-utils';
 import { type ValueOrPromise } from './utils/types';
+import { StaticPropId, type NumericPropKey } from './utils/numeric-prop-key';
 
 const deserializedProxyMap = new WeakMap<object, unknown[]>();
 
@@ -654,8 +654,8 @@ export interface SerializationContext {
   $renderSymbols$: Set<string>;
   $storeProxyMap$: ObjToProxyMap;
 
-  $getProp$: (obj: any, prop: string) => any;
-  $setProp$: (obj: any, prop: string, value: any) => void;
+  $getProp$: (obj: any, prop: NumericPropKey) => any;
+  $setProp$: (obj: any, prop: NumericPropKey, value: any) => void;
   $prepVNodeData$?: (vNodeData: VNodeData) => void;
 }
 
@@ -674,8 +674,8 @@ export const createSerializationContext = (
     new (...rest: any[]): { $ssrNode$: ISsrNode };
   } | null,
   symbolToChunkResolver: SymbolToChunkResolver,
-  getProp: (obj: any, prop: string) => any,
-  setProp: (obj: any, prop: string, value: any) => void,
+  getProp: (obj: any, prop: NumericPropKey) => any,
+  setProp: (obj: any, prop: NumericPropKey, value: any) => void,
   storeProxyMap: ObjToProxyMap,
   writer?: StreamWriter,
   // temporary until we serdes the vnode data here
@@ -1223,7 +1223,7 @@ function serialize(serializationContext: SerializationContext): void {
     } else if ($isSsrNode$(value)) {
       if (isRootObject) {
         // Tell the SsrNode which root id it is
-        $setProp$(value, ELEMENT_ID, String(idx));
+        $setProp$(value, StaticPropId.ELEMENT_ID, String(idx));
         // we need to output before the vnode overwrites its values
         output(TypeIds.VNode, value.id);
         const vNodeData = value.vnodeData;

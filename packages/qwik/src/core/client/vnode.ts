@@ -125,23 +125,14 @@ import { DEBUG_TYPE, QContainerValue, VirtualType, VirtualTypeName } from '../sh
 import { isText } from '../shared/utils/element';
 import {
   dangerouslySetInnerHTML,
-  ELEMENT_ID,
-  ELEMENT_KEY,
-  ELEMENT_PROPS,
-  ELEMENT_SEQ,
-  ELEMENT_SEQ_IDX,
-  OnRenderProp,
   Q_PROPS_SEPARATOR,
   QContainerAttr,
   QContainerAttrEnd,
   QContainerIsland,
   QContainerIslandEnd,
-  QCtxAttr,
   QIgnore,
   QIgnoreEnd,
   QScopedStyle,
-  QSlot,
-  QSlotParent,
   QStyle,
   QStylesAllSelector,
 } from '../shared/utils/markers';
@@ -170,7 +161,13 @@ import {
 } from './vnode-namespace';
 import { mergeMaps } from '../shared/utils/maps';
 import { _EFFECT_BACK_REF } from '../signal/flags';
-import { getPropId, getPropName, type NumericPropKey } from '../shared/utils/numeric-prop-key';
+import {
+  StaticPropId,
+  getPropId,
+  getPropName,
+  type NumericPropKey,
+} from '../shared/utils/numeric-prop-key';
+import { startsWithColon } from '../shared/utils/numeric-prop-key-flags';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -337,7 +334,7 @@ export const vnode_isProjection = (vNode: VNode): vNode is VirtualVNode => {
   const flag = (vNode as VNode)[VNodeProps.flags];
   return (
     (flag & VNodeFlags.Virtual) === VNodeFlags.Virtual &&
-    vnode_getProp(vNode as VirtualVNode, QSlot, null) !== null
+    vnode_getProp(vNode as VirtualVNode, StaticPropId.SLOT, null) !== null
   );
 };
 
@@ -394,9 +391,9 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
         break;
       } else if (key.startsWith(QContainerAttr)) {
         if (attr.value === QContainerValue.HTML) {
-          mapArray_set(props, getPropId(dangerouslySetInnerHTML), element.innerHTML, 0);
+          mapArray_set(props, StaticPropId.INNER_HTML, element.innerHTML, 0);
         } else if (attr.value === QContainerValue.TEXT && 'value' in element) {
-          mapArray_set(props, getPropId('value'), element.value, 0);
+          mapArray_set(props, StaticPropId.VALUE, element.value, 0);
         }
       } else if (!key.startsWith('on:')) {
         const value = attr.value;
@@ -1083,7 +1080,7 @@ export const vnode_remove = (
   vToRemove[VNodeProps.nextSibling] = null;
   if (removeDOM) {
     const domParent = vnode_getDomParent(vParent);
-    const isInnerHTMLParent = vnode_getAttr(vParent, dangerouslySetInnerHTML);
+    const isInnerHTMLParent = vnode_getAttr(vParent, StaticPropId.INNER_HTML);
     if (isInnerHTMLParent) {
       // ignore children, as they are inserted via innerHTML
       return;
@@ -1439,7 +1436,7 @@ const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null, vDat
         }
         const id = consumeValue();
         container.$setRawState$(parseInt(id), vParent);
-        isDev && vnode_setAttr(null, vParent, ELEMENT_ID, id);
+        isDev && vnode_setAttr(null, vParent, StaticPropId.ELEMENT_ID, id);
       } else if (peek() === VNodeDataChar.BACK_REFS) {
         if (!container) {
           container = getDomContainer(vParent[ElementVNodeProps.element]);
@@ -1524,15 +1521,15 @@ export const vnode_getPreviousSibling = (vnode: VNode): VNode | null => {
   return vnode[VNodeProps.previousSibling];
 };
 
-export const vnode_getAttrKeys = (vnode: ElementVNode | VirtualVNode): string[] => {
+export const vnode_getAttrKeys = (vnode: ElementVNode | VirtualVNode): NumericPropKey[] => {
   const type = vnode[VNodeProps.flags];
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
     vnode_ensureElementInflated(vnode);
-    const keys: string[] = [];
+    const keys: NumericPropKey[] = [];
     const props = vnode_getProps(vnode);
     for (let i = 0; i < props.length; i = i + 2) {
-      const key = getPropName(props[i] as NumericPropKey);
-      if (!key.startsWith(Q_PROPS_SEPARATOR)) {
+      const key = props[i] as NumericPropKey;
+      if (!startsWithColon(key)) {
         keys.push(key);
       }
     }
@@ -1544,20 +1541,20 @@ export const vnode_getAttrKeys = (vnode: ElementVNode | VirtualVNode): string[] 
 export const vnode_setAttr = (
   journal: VNodeJournal | null,
   vnode: VNode,
-  key: string,
+  key: NumericPropKey,
   value: string | null | boolean
 ): void => {
   const type = vnode[VNodeProps.flags];
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
     vnode_ensureElementInflated(vnode);
     const props = vnode_getProps(vnode);
-    const idx = mapApp_findIndx(props, getPropId(key), 0);
+    const idx = mapApp_findIndx(props, key, 0);
 
     if (idx >= 0) {
       if (props[idx + 1] != value && (type & VNodeFlags.Element) !== 0) {
         // Values are different, update DOM
         const element = vnode[ElementVNodeProps.element] as Element;
-        journal && journal.push(VNodeJournalOpCode.SetAttribute, element, key, value);
+        journal && journal.push(VNodeJournalOpCode.SetAttribute, element, getPropName(key), value);
       }
       if (value == null) {
         props.splice(idx, 2);
@@ -1565,56 +1562,59 @@ export const vnode_setAttr = (
         props[idx + 1] = value;
       }
     } else if (value != null) {
-      props.splice(idx ^ -1, 0, getPropId(key), value);
+      props.splice(idx ^ -1, 0, key, value);
       if ((type & VNodeFlags.Element) !== 0) {
         // New value, update DOM
         const element = vnode[ElementVNodeProps.element] as Element;
-        journal && journal.push(VNodeJournalOpCode.SetAttribute, element, key, value);
+        journal && journal.push(VNodeJournalOpCode.SetAttribute, element, getPropName(key), value);
       }
     }
   }
 };
 
-export const vnode_getAttr = (vnode: VNode, key: string): string | null => {
+export const vnode_getAttr = (vnode: VNode, key: NumericPropKey): string | null => {
   const type = vnode[VNodeProps.flags];
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
     vnode_ensureElementInflated(vnode);
     const props = vnode_getProps(vnode);
-    return mapArray_get(props as string[], getPropId(key), 0);
+    return mapArray_get(props as string[], key, 0);
   }
   return null;
 };
 
 export const vnode_getProp = <T>(
   vnode: VNode,
-  key: string,
+  key: NumericPropKey,
   getObject: ((id: string) => any) | null
 ): T | null => {
   const type = vnode[VNodeProps.flags];
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
     type & VNodeFlags.Element && vnode_ensureElementInflated(vnode);
     const props = vnode_getProps(vnode);
-    const idx = mapApp_findIndx(props, getPropId(key), 0);
+    const idx = mapApp_findIndx(props, key, 0);
     if (idx >= 0) {
       let value = props[idx + 1] as any;
       if (typeof value === 'string' && getObject) {
         props[idx + 1] = value = getObject(value);
       }
-      return value;
+      return value as T;
     }
   }
   return null;
 };
 
-export const vnode_setProp = (vnode: VirtualVNode | ElementVNode, key: string, value: unknown) => {
+export const vnode_setProp = (
+  vnode: VirtualVNode | ElementVNode,
+  key: NumericPropKey,
+  value: unknown
+) => {
   ensureElementOrVirtualVNode(vnode);
   const props = vnode_getProps(vnode);
-  const numericKey = getPropId(key);
-  const idx = mapApp_findIndx(props, numericKey, 0);
+  const idx = mapApp_findIndx(props, key, 0);
   if (idx >= 0) {
     props[idx + 1] = value as any;
   } else if (value != null) {
-    props.splice(idx ^ -1, 0, numericKey, value as any);
+    props.splice(idx ^ -1, 0, key, value as any);
   }
 };
 
@@ -1665,6 +1665,7 @@ export function vnode_toString(
     return 'undefined';
   }
   const strings: string[] = [];
+  const debugTypeId = getPropId(DEBUG_TYPE);
   do {
     if (vnode_isTextVNode(vnode)) {
       strings.push(qwikDebugToString(vnode_getText(vnode)));
@@ -1672,13 +1673,13 @@ export function vnode_toString(
       const idx = vnode[VNodeProps.flags] >>> VNodeFlagsIndex.shift;
       const attrs: string[] = ['[' + String(idx) + ']'];
       vnode_getAttrKeys(vnode).forEach((key) => {
-        if (key !== DEBUG_TYPE) {
+        if (key !== debugTypeId) {
           const value = vnode_getAttr(vnode!, key);
-          attrs.push(' ' + key + '=' + qwikDebugToString(value));
+          attrs.push(' ' + getPropName(key) + '=' + qwikDebugToString(value));
         }
       });
       const name =
-        VirtualTypeName[vnode_getAttr(vnode, DEBUG_TYPE) || VirtualType.Virtual] ||
+        VirtualTypeName[vnode_getAttr(vnode, debugTypeId) || VirtualType.Virtual] ||
         VirtualTypeName[VirtualType.Virtual];
       strings.push('<' + name + attrs.join('') + '>');
       const child = vnode_getFirstChild(vnode);
@@ -1691,7 +1692,7 @@ export function vnode_toString(
       const keys = vnode_getAttrKeys(vnode);
       keys.forEach((key) => {
         const value = vnode_getAttr(vnode!, key);
-        attrs.push(' ' + key + '=' + qwikDebugToString(value));
+        attrs.push(' ' + getPropName(key) + '=' + qwikDebugToString(value));
       });
       const node = vnode_getNode(vnode) as HTMLElement;
       if (node) {
@@ -1703,7 +1704,7 @@ export function vnode_toString(
       const domAttrs = node.attributes;
       for (let i = 0; i < domAttrs.length; i++) {
         const attr = domAttrs[i];
-        if (keys.indexOf(attr.name) === -1) {
+        if (keys.indexOf(getPropId(attr.name)) === -1) {
           attrs.push(' ' + attr.name + (attr.value ? '=' + qwikDebugToString(attr.value) : ''));
         }
       }
@@ -1782,33 +1783,33 @@ function materializeFromVNodeData(
       }
       // collect the elements;
     } else if (peek() === VNodeDataChar.SCOPED_STYLE) {
-      vnode_setAttr(null, vParent, QScopedStyle, consumeValue());
+      vnode_setAttr(null, vParent, StaticPropId.SCOPED_STYLE, consumeValue());
     } else if (peek() === VNodeDataChar.RENDER_FN) {
-      vnode_setAttr(null, vParent, OnRenderProp, consumeValue());
+      vnode_setAttr(null, vParent, StaticPropId.ON_RENDER, consumeValue());
     } else if (peek() === VNodeDataChar.ID) {
       if (!container) {
         container = getDomContainer(element);
       }
       const id = consumeValue();
       container.$setRawState$(parseInt(id), vParent);
-      isDev && vnode_setAttr(null, vParent, ELEMENT_ID, id);
+      isDev && vnode_setAttr(null, vParent, StaticPropId.ELEMENT_ID, id);
     } else if (peek() === VNodeDataChar.PROPS) {
-      vnode_setAttr(null, vParent, ELEMENT_PROPS, consumeValue());
+      vnode_setAttr(null, vParent, StaticPropId.ELEMENT_PROPS, consumeValue());
     } else if (peek() === VNodeDataChar.KEY) {
-      vnode_setAttr(null, vParent, ELEMENT_KEY, consumeValue());
+      vnode_setAttr(null, vParent, StaticPropId.ELEMENT_KEY, consumeValue());
     } else if (peek() === VNodeDataChar.SEQ) {
-      vnode_setAttr(null, vParent, ELEMENT_SEQ, consumeValue());
+      vnode_setAttr(null, vParent, StaticPropId.ELEMENT_SEQ, consumeValue());
     } else if (peek() === VNodeDataChar.SEQ_IDX) {
-      vnode_setAttr(null, vParent, ELEMENT_SEQ_IDX, consumeValue());
+      vnode_setAttr(null, vParent, StaticPropId.ELEMENT_SEQ_IDX, consumeValue());
     } else if (peek() === VNodeDataChar.BACK_REFS) {
       if (!container) {
         container = getDomContainer(element);
       }
       setEffectBackRefFromVNodeData(vParent, consumeValue(), container);
     } else if (peek() === VNodeDataChar.SLOT_PARENT) {
-      vnode_setProp(vParent, QSlotParent, consumeValue());
+      vnode_setProp(vParent, StaticPropId.SLOT_PARENT, consumeValue());
     } else if (peek() === VNodeDataChar.CONTEXT) {
-      vnode_setAttr(null, vParent, QCtxAttr, consumeValue());
+      vnode_setAttr(null, vParent, StaticPropId.CTX, consumeValue());
     } else if (peek() === VNodeDataChar.OPEN) {
       consume();
       addVNode(vnode_newVirtual());
@@ -1819,7 +1820,7 @@ function materializeFromVNodeData(
     } else if (peek() === VNodeDataChar.SEPARATOR) {
       const key = consumeValue();
       const value = consumeValue();
-      vnode_setAttr(null, vParent as VirtualVNode, key, value);
+      vnode_setAttr(null, vParent as VirtualVNode, getPropId(key), value);
     } else if (peek() === VNodeDataChar.CLOSE) {
       consume();
       vParent[ElementVNodeProps.lastChild] = vLast;
@@ -1829,7 +1830,7 @@ function materializeFromVNodeData(
       vFirst = stack.pop();
       vParent = stack.pop();
     } else if (peek() === VNodeDataChar.SLOT) {
-      vnode_setAttr(null, vParent, QSlot, consumeValue());
+      vnode_setAttr(null, vParent, StaticPropId.SLOT, consumeValue());
     } else {
       const textNode =
         child && fastNodeType(child) === /* Node.TEXT_NODE */ 3 ? (child as Text) : null;
@@ -1901,9 +1902,11 @@ export const vnode_getProjectionParentComponent = (
   while (projectionDepth--) {
     while (
       vHost &&
-      (vnode_isVirtualVNode(vHost) ? vnode_getProp(vHost, OnRenderProp, null) === null : true)
+      (vnode_isVirtualVNode(vHost)
+        ? vnode_getProp(vHost, StaticPropId.ON_RENDER, null) === null
+        : true)
     ) {
-      const qSlotParent = vnode_getProp<VNode | null>(vHost, QSlotParent, (id) =>
+      const qSlotParent = vnode_getProp<VNode | null>(vHost, StaticPropId.SLOT_PARENT, (id) =>
         vnode_locate(rootVNode, id)
       );
       const vProjectionParent = vnode_isVirtualVNode(vHost) && qSlotParent;

@@ -230,13 +230,7 @@ export function normalizeRollupOutputOptionsObject(
           return 'build/qwik-city.js';
         }
 
-        // some chunk names are absolute paths and rollup doesn't accept that so we must sanitize those instead of simply returning `build/[name].js`.
-        const path = optimizer.sys.path;
-        const relativePath = path.relative(optimizer.sys.cwd(), chunkInfo.name);
-        const sanitizedPath = relativePath
-          .replace(/^(\.\.\/)+/, '')
-          .replace(/^\/+/, '')
-          .replace(/\//g, '-');
+        const sanitizedPath = sanitizePath(optimizer, chunkInfo.name);
 
         return `build/${sanitizedPath}.js`;
       };
@@ -281,6 +275,20 @@ export function normalizeRollupOutputOptionsObject(
   }
 
   return outputOpts;
+}
+
+/**
+ * @private Sanitize The path to use dashes instead of slashes, to keep the same folder strucutre as
+ *   without debug:true. Besides, Rollup doesn't accept absolute or relative paths as inputs for the
+ *   [name] placeholder for the same reason.
+ */
+export function sanitizePath(optimizer: Optimizer, pathToSanitize: string) {
+  const path = optimizer.sys.path;
+  const relativePath = path.relative(optimizer.sys.cwd(), pathToSanitize);
+  return relativePath
+    .replace(/^(\.\.\/)+/, '')
+    .replace(/^\/+/, '')
+    .replace(/\//g, '-');
 }
 
 export function createRollupError(id: string, diagnostic: Diagnostic) {

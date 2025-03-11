@@ -12,27 +12,19 @@ import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-se
 import { QContainerValue, type HostElement, type ObjToProxyMap } from '../shared/types';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
 import {
-  ELEMENT_PROPS,
-  ELEMENT_SEQ,
-  ELEMENT_SEQ_IDX,
-  OnRenderProp,
   QBaseAttr,
   QContainerAttr,
   QContainerSelector,
-  QCtxAttr,
   QInstanceAttr,
-  QScopedStyle,
-  QSlotParent,
   QStyle,
   QStyleSelector,
-  QBackRefs,
   Q_PROPS_SEPARATOR,
-  USE_ON_LOCAL_SEQ_IDX,
   getQFuncs,
   QLocaleAttr,
 } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
-import { isSlotProp } from '../shared/utils/prop';
+import { isSlotProp } from '../shared/utils/numeric-prop-key-flags';
+import { StaticPropId, getPropId, type NumericPropKey } from '../shared/utils/numeric-prop-key';
 import { qDev } from '../shared/utils/qdev';
 import {
   convertScopedStyleIdsToArray,
@@ -224,18 +216,18 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   }
 
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
-    let ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
+    let ctx = this.getHostProp<Array<string | unknown>>(host, StaticPropId.CTX);
     if (!ctx) {
-      this.setHostProp(host, QCtxAttr, (ctx = []));
+      this.setHostProp(host, StaticPropId.CTX, (ctx = []));
     }
-    mapArray_set(ctx, context.id, value, 0);
+    mapArray_set(ctx, getPropId(context.id), value, 0);
   }
 
   resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined {
     while (host) {
-      const ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
+      const ctx = this.getHostProp<Array<string | unknown>>(host, StaticPropId.CTX);
       if (ctx) {
-        const value = mapArray_get(ctx, contextId.id, 0) as T;
+        const value = mapArray_get(ctx, getPropId(contextId.id), 0) as T;
         if (value) {
           return value as T;
         }
@@ -249,13 +241,13 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     let vNode = vnode_getParent(host as any);
     while (vNode) {
       if (vnode_isVirtualVNode(vNode)) {
-        if (vnode_getProp(vNode, OnRenderProp, null) !== null) {
+        if (vnode_getProp(vNode, StaticPropId.ON_RENDER, null) !== null) {
           return vNode as any as HostElement;
         }
         vNode =
           vnode_getParent(vNode) ||
           // If virtual node, than it could be a slot so we need to read its parent.
-          vnode_getProp<VNode>(vNode, QSlotParent, this.vNodeLocate);
+          vnode_getProp<VNode>(vNode, StaticPropId.SLOT_PARENT, this.vNodeLocate);
       } else {
         vNode = vnode_getParent(vNode);
       }
@@ -263,24 +255,24 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     return null;
   }
 
-  setHostProp<T>(host: HostElement, name: string, value: T): void {
+  setHostProp<T>(host: HostElement, name: NumericPropKey, value: T): void {
     const vNode: VirtualVNode = host as any;
     vnode_setProp(vNode, name, value);
   }
 
-  getHostProp<T>(host: HostElement, name: string): T | null {
+  getHostProp<T>(host: HostElement, name: NumericPropKey): T | null {
     const vNode: VirtualVNode = host as any;
     let getObjectById: ((id: string) => any) | null = null;
     switch (name) {
-      case ELEMENT_SEQ:
-      case ELEMENT_PROPS:
-      case OnRenderProp:
-      case QCtxAttr:
-      case QBackRefs:
+      case StaticPropId.ELEMENT_SEQ:
+      case StaticPropId.ELEMENT_PROPS:
+      case StaticPropId.ON_RENDER:
+      case StaticPropId.CTX:
+      case StaticPropId.BACK_REFS:
         getObjectById = this.$getObjectById$;
         break;
-      case ELEMENT_SEQ_IDX:
-      case USE_ON_LOCAL_SEQ_IDX:
+      case StaticPropId.ELEMENT_SEQ_IDX:
+      case StaticPropId.USE_ON_LOCAL_SEQ_IDX:
         getObjectById = parseInt;
         break;
     }
@@ -319,7 +311,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       vNode[VNodeProps.flags] |= VNodeFlags.Resolved;
       const props = vnode_getProps(vNode);
       for (let i = 0; i < props.length; i = i + 2) {
-        const prop = props[i] as string;
+        const prop = props[i] as NumericPropKey;
         if (isSlotProp(prop)) {
           const value = props[i + 1];
           if (typeof value == 'string') {
@@ -349,10 +341,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   $appendStyle$(content: string, styleId: string, host: VirtualVNode, scoped: boolean): void {
     if (scoped) {
-      const scopedStyleIdsString = this.getHostProp<string>(host, QScopedStyle);
+      const scopedStyleIdsString = this.getHostProp<string>(host, StaticPropId.SCOPED_STYLE);
       const scopedStyleIds = new Set(convertScopedStyleIdsToArray(scopedStyleIdsString));
       scopedStyleIds.add(styleId);
-      this.setHostProp(host, QScopedStyle, convertStyleIdsToString(scopedStyleIds));
+      this.setHostProp(host, StaticPropId.SCOPED_STYLE, convertStyleIdsToString(scopedStyleIds));
     }
 
     if (this.$styleIds$ == null) {

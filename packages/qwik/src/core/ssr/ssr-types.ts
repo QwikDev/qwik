@@ -13,6 +13,7 @@ import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { ResourceReturnInternal } from '../use/use-resource';
 import type { Signal } from '../signal/signal.public';
 import type { VNodeData } from '../../server/vnode-data';
+import type { NumericPropKey } from '../shared/utils/numeric-prop-key';
 
 export type SsrAttrKey = string;
 export type SsrAttrValue = string | Signal<any> | boolean | object | null;
@@ -27,9 +28,9 @@ export interface ISsrNode {
   id: string;
   currentComponentNode: ISsrNode | null;
   vnodeData?: VNodeData;
-  setProp(name: string, value: any): void;
-  getProp(name: string): any;
-  removeProp(name: string): void;
+  setProp(key: NumericPropKey, value: any): void;
+  getProp(key: NumericPropKey): any;
+  removeProp(key: NumericPropKey): void;
   addChildVNodeData(child: VNodeData): void;
 }
 
@@ -49,7 +50,7 @@ export interface ISsrComponentFrame {
     parentScopedStyle: string | null,
     parentComponentFrame: ISsrComponentFrame | null
   ): void;
-  hasSlot(slotName: string): boolean;
+  hasSlot(slotNameKey: NumericPropKey): boolean;
 }
 
 export type SymbolToChunkResolver = (symbol: string) => string;

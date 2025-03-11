@@ -8,6 +8,7 @@ import type { Scheduler } from './scheduler';
 import { createScheduler } from './scheduler';
 import { createSerializationContext, type SerializationContext } from './shared-serialization';
 import type { Container, HostElement, ObjToProxyMap } from './types';
+import type { NumericPropKey } from './utils/numeric-prop-key';
 
 /** @internal */
 export abstract class _SharedContainer implements Container {
@@ -76,8 +77,8 @@ export abstract class _SharedContainer implements Container {
   abstract getParentHost(host: HostElement): HostElement | null;
   abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
   abstract resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
-  abstract setHostProp<T>(host: HostElement, name: string, value: T): void;
-  abstract getHostProp<T>(host: HostElement, name: string): T | null;
+  abstract setHostProp<T>(host: HostElement, name: NumericPropKey, value: T): void;
+  abstract getHostProp<T>(host: HostElement, name: NumericPropKey): T | null;
   abstract $appendStyle$(
     content: string,
     styleId: string,

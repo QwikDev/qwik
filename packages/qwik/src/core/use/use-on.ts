@@ -7,7 +7,8 @@ import type {
   AllEventKeys,
 } from '../shared/jsx/types/jsx-qwik-attributes';
 import type { HostElement } from '../shared/types';
-import { USE_ON_LOCAL, USE_ON_LOCAL_FLAGS, USE_ON_LOCAL_SEQ_IDX } from '../shared/utils/markers';
+import { createEventName } from '../shared/utils/event-names';
+import { StaticPropId } from '../shared/utils/numeric-prop-key';
 
 export type EventQRL<T extends string = AllEventKeys> =
   | QRL<EventHandler<EventFromName<T>, Element>>
@@ -97,17 +98,6 @@ export const useOnWindow = <T extends KnownEventNames>(event: T | T[], eventQrl:
   _useOn(createEventName(event, 'window'), eventQrl);
 };
 
-const createEventName = (
-  event: KnownEventNames | KnownEventNames[],
-  eventType: 'window' | 'document' | undefined
-) => {
-  const prefix = eventType !== undefined ? eventType + ':' : '';
-  const map = (name: string) =>
-    prefix + 'on' + name.charAt(0).toUpperCase() + name.substring(1) + '$';
-  const res = Array.isArray(event) ? event.map(map) : map(event);
-  return res;
-};
-
 const _useOn = (eventName: string | string[], eventQrl: EventQRL) => {
   const { isAdded, addEvent } = useOnEventsSequentialScope();
   if (isAdded) {
@@ -135,20 +125,20 @@ const useOnEventsSequentialScope = () => {
   const iCtx = useInvokeContext();
   const hostElement = iCtx.$hostElement$;
   const host: HostElement = hostElement as any;
-  let onMap = iCtx.$container$.getHostProp<UseOnMap>(host, USE_ON_LOCAL);
+  let onMap = iCtx.$container$.getHostProp<UseOnMap>(host, StaticPropId.USE_ON_LOCAL);
   if (onMap === null) {
     onMap = {};
-    iCtx.$container$.setHostProp(host, USE_ON_LOCAL, onMap);
+    iCtx.$container$.setHostProp(host, StaticPropId.USE_ON_LOCAL, onMap);
   }
-  let seqIdx = iCtx.$container$.getHostProp<number>(host, USE_ON_LOCAL_SEQ_IDX);
+  let seqIdx = iCtx.$container$.getHostProp<number>(host, StaticPropId.USE_ON_LOCAL_SEQ_IDX);
   if (seqIdx === null) {
     seqIdx = 0;
   }
-  iCtx.$container$.setHostProp(host, USE_ON_LOCAL_SEQ_IDX, seqIdx + 1);
-  let addedFlags = iCtx.$container$.getHostProp<boolean[]>(host, USE_ON_LOCAL_FLAGS);
+  iCtx.$container$.setHostProp(host, StaticPropId.USE_ON_LOCAL_SEQ_IDX, seqIdx + 1);
+  let addedFlags = iCtx.$container$.getHostProp<boolean[]>(host, StaticPropId.USE_ON_LOCAL_FLAGS);
   if (addedFlags === null) {
     addedFlags = [];
-    iCtx.$container$.setHostProp(host, USE_ON_LOCAL_FLAGS, addedFlags);
+    iCtx.$container$.setHostProp(host, StaticPropId.USE_ON_LOCAL_FLAGS, addedFlags);
   }
   while (addedFlags.length <= seqIdx) {
     addedFlags.push(false);

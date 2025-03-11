@@ -19,17 +19,10 @@ import { TaskFlags, cleanupTask, isTask } from '../use/use-task';
 import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import {
   ELEMENT_KEY,
-  ELEMENT_PROPS,
-  ELEMENT_SEQ,
-  OnRenderProp,
   QContainerAttr,
   QDefaultSlot,
-  QSlot,
-  QSlotParent,
-  QBackRefs,
   QTemplate,
-  Q_PREFIX,
-  dangerouslySetInnerHTML,
+  HANDLER_PREFIX,
 } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
 import { type ValueOrPromise } from '../shared/utils/types';
@@ -37,8 +30,6 @@ import {
   convertEventNameFromJsxPropToHtmlAttr,
   getEventNameFromJsxProp,
   getEventNameScopeFromJsxProp,
-  isHtmlAttributeAnEventName,
-  isJsxPropertyAnEventName,
 } from '../shared/utils/event-names';
 import { ChoreType } from '../shared/util-chore-type';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
@@ -48,8 +39,6 @@ import type { DomContainer } from './dom-container';
 import {
   VNodeFlags,
   VNodeProps,
-  type ClientAttrKey,
-  type ClientAttrs,
   type ClientContainer,
   type ElementVNode,
   type TextVNode,
@@ -90,10 +79,22 @@ import {
 import { mapApp_findIndx } from './util-mapArray';
 import { mapArray_set } from './util-mapArray';
 import { getNewElementNamespaceData } from './vnode-namespace';
-import { WrappedSignal, EffectProperty, isSignal, SubscriptionData } from '../signal/signal';
+import { EffectProperty, isSignal, SubscriptionData } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
 import { executeComponent } from '../shared/component-execution';
-import { isSlotProp } from '../shared/utils/prop';
+import { getSlotName } from '../shared/utils/prop';
+import {
+  isEventProp,
+  startsWithColon,
+  isQProp,
+  isSlotProp,
+} from '../shared/utils/numeric-prop-key-flags';
+import {
+  StaticPropId,
+  getPropId,
+  getPropName,
+  type NumericPropKey,
+} from '../shared/utils/numeric-prop-key';
 import { escapeHTML } from '../shared/utils/character-escaping';
 import { clearAllEffects } from '../signal/signal-cleanup';
 import { serializeAttribute } from '../shared/utils/styles';
@@ -402,15 +403,15 @@ export const vnode_diff = (
       return new JSXNodeImpl(Projection, EMPTY_OBJ, null, [], 0, slotName);
     };
 
-    const projections: Array<string | JSXNodeInternal> = [];
+    const projections: Array<string | NumericPropKey | JSXNodeInternal> = [];
     if (host) {
       const props = vnode_getProps(host);
       // we need to create empty projections for all the slots to remove unused slots content
       for (let i = 0; i < props.length; i = i + 2) {
-        const prop = props[i] as string;
+        const prop = props[i] as NumericPropKey;
         if (isSlotProp(prop)) {
-          const slotName = prop;
-          projections.push(slotName);
+          const slotName = getPropName(prop);
+          projections.push(prop);
           projections.push(createProjectionJSXNode(slotName));
         }
       }
@@ -425,14 +426,20 @@ export const vnode_diff = (
     for (let i = 0; i < projectionChildren.length; i++) {
       const child = projectionChildren[i];
       const slotName = String(
-        (isJSXNode(child) && directGetPropsProxyProp(child, QSlot)) || QDefaultSlot
+        (isJSXNode(child) && directGetPropsProxyProp(child, StaticPropId.SLOT)) || QDefaultSlot
       );
-      const idx = mapApp_findIndx(projections, slotName, 0);
+      const slotNameNumeric = getPropId(slotName);
+      const idx = mapApp_findIndx(projections, slotNameNumeric, 0);
       let jsxBucket: JSXNodeImpl<typeof Projection>;
       if (idx >= 0) {
         jsxBucket = projections[idx + 1] as any;
       } else {
-        projections.splice(~idx, 0, slotName, (jsxBucket = createProjectionJSXNode(slotName)));
+        projections.splice(
+          ~idx,
+          0,
+          slotNameNumeric,
+          (jsxBucket = createProjectionJSXNode(slotName))
+        );
       }
       const removeProjection = child === false;
       if (!removeProjection) {
@@ -452,7 +459,7 @@ export const vnode_diff = (
     // console.log('expectProjection', JSON.stringify(slotName));
     vCurrent = vnode_getProp<VirtualVNode | null>(
       vParent, // The parent is the component and it should have our portal.
-      slotName,
+      getPropId(slotName),
       (id) => vnode_locate(container.rootVNode, id)
     );
     // if projection is marked as deleted then we need to create a new one
@@ -463,24 +470,24 @@ export const vnode_diff = (
       // that is wrong. We don't yet know if the projection will be projected, so
       // we should leave it unattached.
       // vNewNode[VNodeProps.parent] = vParent;
-      isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Projection);
-      isDev && vnode_setProp(vNewNode, 'q:code', 'expectProjection');
-      vnode_setProp(vNewNode as VirtualVNode, QSlot, slotName);
-      vnode_setProp(vNewNode as VirtualVNode, QSlotParent, vParent);
-      vnode_setProp(vParent as VirtualVNode, slotName, vNewNode);
+      isDev && vnode_setProp(vNewNode, getPropId(DEBUG_TYPE), VirtualType.Projection);
+      isDev && vnode_setProp(vNewNode, getPropId('q:code'), 'expectProjection');
+      vnode_setProp(vNewNode as VirtualVNode, StaticPropId.SLOT, slotName);
+      vnode_setProp(vNewNode as VirtualVNode, StaticPropId.SLOT_PARENT, vParent);
+      vnode_setProp(vParent as VirtualVNode, getPropId(slotName), vNewNode);
     }
   }
 
   function expectSlot() {
     const vHost = vnode_getProjectionParentComponent(vParent, container.rootVNode);
 
-    const slotNameKey = getSlotNameKey(vHost);
+    const slotNameKey = getSlotName(vHost, jsxValue as JSXNodeInternal, container);
     // console.log('expectSlot', JSON.stringify(slotNameKey));
 
     const vProjectedNode = vHost
       ? vnode_getProp<VirtualVNode | null>(
           vHost,
-          slotNameKey,
+          getPropId(slotNameKey),
           // for slots this id is vnode ref id
           null // Projections should have been resolved through container.ensureProjectionResolved
           //(id) => vnode_locate(container.rootVNode, id)
@@ -495,10 +502,10 @@ export const vnode_diff = (
         (vNewNode = vnode_newVirtual()),
         vCurrent && getInsertBefore()
       );
-      vnode_setProp(vNewNode, QSlot, slotNameKey);
-      vHost && vnode_setProp(vHost, slotNameKey, vNewNode);
-      isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Projection);
-      isDev && vnode_setProp(vNewNode, 'q:code', 'expectSlot' + count++);
+      vnode_setProp(vNewNode, StaticPropId.SLOT, slotNameKey);
+      vHost && vnode_setProp(vHost, getPropId(slotNameKey), vNewNode);
+      isDev && vnode_setProp(vNewNode, getPropId(DEBUG_TYPE), VirtualType.Projection);
+      isDev && vnode_setProp(vNewNode, getPropId('q:code'), 'expectSlot' + count++);
       return false;
     } else if (vProjectedNode === vCurrent) {
       // All is good.
@@ -526,24 +533,12 @@ export const vnode_diff = (
         (vNewNode = vProjectedNode),
         vCurrent && getInsertBefore()
       );
-      vnode_setProp(vNewNode, QSlot, slotNameKey);
-      vHost && vnode_setProp(vHost, slotNameKey, vNewNode);
-      isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Projection);
-      isDev && vnode_setProp(vNewNode, 'q:code', 'expectSlot' + count++);
+      vnode_setProp(vNewNode, StaticPropId.SLOT, slotNameKey);
+      vHost && vnode_setProp(vHost, getPropId(slotNameKey), vNewNode);
+      isDev && vnode_setProp(vNewNode, getPropId(DEBUG_TYPE), VirtualType.Projection);
+      isDev && vnode_setProp(vNewNode, getPropId('q:code'), 'expectSlot' + count++);
     }
     return true;
-  }
-
-  function getSlotNameKey(vHost: VNode | null) {
-    const jsxNode = jsxValue as JSXNodeInternal;
-    const constProps = jsxNode.constProps;
-    if (constProps && typeof constProps == 'object' && 'name' in constProps) {
-      const constValue = constProps.name;
-      if (vHost && constValue instanceof WrappedSignal) {
-        return trackSignalAndAssignHost(constValue, vHost, EffectProperty.COMPONENT, container);
-      }
-    }
-    return directGetPropsProxyProp(jsxNode, 'name') || QDefaultSlot;
   }
 
   function drainAsyncQueue(): ValueOrPromise<void> {
@@ -619,16 +614,18 @@ export const vnode_diff = (
       // For this reason we can cheat and write them directly into the DOM.
       // We never tell the vNode about them saving us time and memory.
       for (const key in constProps) {
-        let value = constProps[key];
-        if (isJsxPropertyAnEventName(key)) {
+        let value = constProps[key as unknown as NumericPropKey];
+        const numericKey = Number(key) as NumericPropKey;
+        const nameKey = getPropName(numericKey);
+        if (isEventProp(numericKey)) {
           // So for event handlers we must add them to the vNode so that qwikloader can look them up
           // But we need to mark them so that they don't get pulled into the diff.
-          const eventName = getEventNameFromJsxProp(key);
-          const scope = getEventNameScopeFromJsxProp(key);
+          const eventName = getEventNameFromJsxProp(nameKey);
+          const scope = getEventNameScopeFromJsxProp(nameKey);
           if (eventName) {
             vnode_setProp(
               vNewNode as ElementVNode,
-              HANDLER_PREFIX + ':' + scope + ':' + eventName,
+              getPropId(HANDLER_PREFIX + ':' + scope + ':' + eventName),
               value
             );
             registerQwikLoaderEvent(eventName);
@@ -638,9 +635,9 @@ export const vnode_diff = (
             // add an event attr with empty value for qwikloader element selector.
             // We don't need value here. For ssr this value is a QRL,
             // but for CSR value should be just empty
-            const htmlEvent = convertEventNameFromJsxPropToHtmlAttr(key);
+            const htmlEvent = convertEventNameFromJsxPropToHtmlAttr(nameKey);
             if (htmlEvent) {
-              vnode_setAttr(journal, vNewNode as ElementVNode, htmlEvent, '');
+              vnode_setAttr(journal, vNewNode as ElementVNode, getPropId(htmlEvent), '');
             }
           }
 
@@ -648,7 +645,7 @@ export const vnode_diff = (
           continue;
         }
 
-        if (key === 'ref') {
+        if (numericKey === StaticPropId.REF) {
           if (isSignal(value)) {
             value.value = element;
             continue;
@@ -670,19 +667,19 @@ export const vnode_diff = (
           value = trackSignalAndAssignHost(
             value as Signal<unknown>,
             vNewNode as ElementVNode,
-            key,
+            nameKey,
             container,
             signalData
           );
         }
 
-        if (key === dangerouslySetInnerHTML) {
+        if (numericKey === StaticPropId.INNER_HTML) {
           element.innerHTML = value as string;
           element.setAttribute(QContainerAttr, QContainerValue.HTML);
           continue;
         }
 
-        if (elementName === 'textarea' && key === 'value') {
+        if (elementName === 'textarea' && numericKey === StaticPropId.VALUE) {
           if (value && typeof value !== 'string') {
             if (isDev) {
               throw qError(QError.wrongTextareaValue, [currentFile, value]);
@@ -693,16 +690,16 @@ export const vnode_diff = (
           continue;
         }
 
-        value = serializeAttribute(key, value, scopedStyleIdPrefix);
+        value = serializeAttribute(nameKey, value, scopedStyleIdPrefix);
         if (value != null) {
-          element.setAttribute(key, String(value));
+          element.setAttribute(nameKey, String(value));
         }
       }
     }
     const key = jsx.key;
     if (key) {
       element.setAttribute(ELEMENT_KEY, key);
-      vnode_setProp(vNewNode as ElementVNode, ELEMENT_KEY, key);
+      vnode_setProp(vNewNode as ElementVNode, StaticPropId.ELEMENT_KEY, key);
     }
 
     // append class attribute if styleScopedId exists and there is no class attribute
@@ -759,16 +756,16 @@ export const vnode_diff = (
     }
     // reconcile attributes
 
-    const jsxAttrs = [] as ClientAttrs;
+    const jsxAttrs: NumericPropKey[] = [];
     const props = jsx.varProps;
     for (const key in props) {
-      const value = props[key];
+      const value = props[key as unknown as NumericPropKey];
       if (value != null) {
-        mapArray_set(jsxAttrs, key, value, 0);
+        mapArray_set(jsxAttrs, Number(key) as NumericPropKey, value, 0);
       }
     }
     if (jsxKey !== null) {
-      mapArray_set(jsxAttrs, ELEMENT_KEY, jsxKey, 0);
+      mapArray_set(jsxAttrs, StaticPropId.ELEMENT_KEY as NumericPropKey, jsxKey, 0);
     }
     const vNode = (vNewNode || vCurrent) as ElementVNode;
     needsQDispatchEventPatch =
@@ -781,8 +778,8 @@ export const vnode_diff = (
           const eventName = event.type;
           const eventProp = ':' + scope.substring(1) + ':' + eventName;
           const qrls = [
-            vnode_getProp<QRL>(vNode, eventProp, null),
-            vnode_getProp<QRL>(vNode, HANDLER_PREFIX + eventProp, null),
+            vnode_getProp<QRL>(vNode, getPropId(eventProp), null),
+            vnode_getProp<QRL>(vNode, getPropId(HANDLER_PREFIX + eventProp), null),
           ];
           let returnValue = false;
           qrls.flat(2).forEach((qrl) => {
@@ -805,26 +802,26 @@ export const vnode_diff = (
   /** @returns True if `qDispatchEvent` needs patching */
   function setBulkProps(
     vnode: ElementVNode,
-    srcAttrs: ClientAttrs,
+    srcAttrs: NumericPropKey[],
     currentFile?: string | null
   ): boolean {
     vnode_ensureElementInflated(vnode);
-    const dstAttrs = vnode_getProps(vnode) as ClientAttrs;
+    const dstAttrs = vnode_getProps(vnode) as NumericPropKey[];
     let srcIdx = 0;
     const srcLength = srcAttrs.length;
     let dstIdx = 0;
     let dstLength = dstAttrs.length;
-    let srcKey: ClientAttrKey | null = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
-    let dstKey: ClientAttrKey | null = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
+    let srcKey: NumericPropKey | null = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
+    let dstKey: NumericPropKey | null = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
     let patchEventDispatch = false;
 
-    const record = (key: string, value: any) => {
-      if (key.startsWith(':')) {
+    const record = (key: NumericPropKey, value: any) => {
+      if (startsWithColon(key)) {
         vnode_setProp(vnode, key, value);
         return;
       }
 
-      if (key === 'ref') {
+      if (key === StaticPropId.REF) {
         const element = vnode_getNode(vnode) as Element;
         if (isSignal(value)) {
           value.value = element;
@@ -839,26 +836,28 @@ export const vnode_diff = (
         }
       }
 
+      const keyName = getPropName(key);
       if (isSignal(value)) {
         const signalData = new SubscriptionData({
           $scopedStyleIdPrefix$: scopedStyleIdPrefix,
           $isConst$: false,
         });
-        value = trackSignalAndAssignHost(value, vnode, key, container, signalData);
+        value = trackSignalAndAssignHost(value, vnode, keyName, container, signalData);
       }
 
-      vnode_setAttr(journal, vnode, key, serializeAttribute(key, value, scopedStyleIdPrefix));
+      vnode_setAttr(journal, vnode, key, serializeAttribute(keyName, value, scopedStyleIdPrefix));
       if (value === null) {
         // if we set `null` than attribute was removed and we need to shorten the dstLength
         dstLength = dstAttrs.length;
       }
     };
 
-    const recordJsxEvent = (key: string, value: any) => {
-      const eventName = getEventNameFromJsxProp(key);
-      const scope = getEventNameScopeFromJsxProp(key);
+    const recordJsxEvent = (key: NumericPropKey, value: any) => {
+      const keyName = getPropName(key);
+      const eventName = getEventNameFromJsxProp(keyName);
+      const scope = getEventNameScopeFromJsxProp(keyName);
       if (eventName) {
-        record(':' + scope + ':' + eventName, value);
+        record(getPropId(':' + scope + ':' + eventName), value);
         // register an event for qwik loader
         registerQwikLoaderEvent(eventName);
       }
@@ -867,22 +866,23 @@ export const vnode_diff = (
         // add an event attr with empty value for qwikloader element selector.
         // We don't need value here. For ssr this value is a QRL,
         // but for CSR value should be just empty
-        const htmlEvent = convertEventNameFromJsxPropToHtmlAttr(key);
+        const htmlEvent = convertEventNameFromJsxPropToHtmlAttr(keyName);
         if (htmlEvent) {
-          record(htmlEvent, '');
+          record(getPropId(htmlEvent), '');
         }
       }
     };
 
     while (srcKey !== null || dstKey !== null) {
-      if (dstKey?.startsWith(HANDLER_PREFIX) || dstKey?.startsWith(Q_PREFIX)) {
+      // if starts with colon it means that it is const event handler
+      if ((dstKey && startsWithColon(dstKey)) || (dstKey && isQProp(dstKey))) {
         // These are a special keys which we use to mark the event handlers as immutable or
         // element key we need to ignore them.
         dstIdx++; // skip the destination value, we don't care about it.
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (srcKey == null) {
         // Source has more keys, so we need to remove them from destination
-        if (dstKey && isHtmlAttributeAnEventName(dstKey)) {
+        if (dstKey && isEventProp(dstKey)) {
           patchEventDispatch = true;
           dstIdx++;
         } else {
@@ -892,7 +892,7 @@ export const vnode_diff = (
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (dstKey == null) {
         // Destination has more keys, so we need to insert them from source.
-        const isEvent = isJsxPropertyAnEventName(srcKey);
+        const isEvent = isEventProp(srcKey);
         if (isEvent) {
           // Special handling for events
           patchEventDispatch = true;
@@ -916,7 +916,7 @@ export const vnode_diff = (
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else if (srcKey < dstKey) {
         // Destination is missing the key, so we need to insert it.
-        if (isJsxPropertyAnEventName(srcKey)) {
+        if (isEventProp(srcKey)) {
           // Special handling for events
           patchEventDispatch = true;
           recordJsxEvent(srcKey, srcAttrs[srcIdx]);
@@ -933,7 +933,7 @@ export const vnode_diff = (
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else {
         // Source is missing the key, so we need to remove it from destination.
-        if (isHtmlAttributeAnEventName(dstKey)) {
+        if (isEventProp(dstKey)) {
           patchEventDispatch = true;
           dstIdx++;
         } else {
@@ -1039,8 +1039,8 @@ export const vnode_diff = (
       (vNewNode = vnode_newVirtual()),
       vCurrent && getInsertBefore()
     );
-    vnode_setProp(vNewNode as VirtualVNode, ELEMENT_KEY, jsxKey);
-    isDev && vnode_setProp((vNewNode || vCurrent) as VirtualVNode, DEBUG_TYPE, type);
+    vnode_setProp(vNewNode as VirtualVNode, StaticPropId.ELEMENT_KEY, jsxKey);
+    isDev && vnode_setProp((vNewNode || vCurrent) as VirtualVNode, getPropId(DEBUG_TYPE), type);
   }
 
   function expectComponent(component: Function) {
@@ -1081,7 +1081,11 @@ export const vnode_diff = (
       }
 
       if (host) {
-        const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
+        const vNodeProps = vnode_getProp<any>(
+          host,
+          StaticPropId.ELEMENT_PROPS,
+          container.$getObjectById$
+        );
         shouldRender = shouldRender || propsDiffer(jsxProps, vNodeProps);
         if (shouldRender) {
           /**
@@ -1124,7 +1128,7 @@ export const vnode_diff = (
         while (
           componentHost &&
           (vnode_isVirtualVNode(componentHost)
-            ? vnode_getProp(componentHost, OnRenderProp, null) === null
+            ? vnode_getProp(componentHost, StaticPropId.ON_RENDER, null) === null
             : true)
         ) {
           componentHost = vnode_getParent(componentHost);
@@ -1158,10 +1162,10 @@ export const vnode_diff = (
       vCurrent && getInsertBefore()
     );
     const jsxNode = jsxValue as JSXNodeInternal;
-    isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.Component);
-    container.setHostProp(vNewNode, OnRenderProp, componentQRL);
-    container.setHostProp(vNewNode, ELEMENT_PROPS, jsxProps);
-    container.setHostProp(vNewNode, ELEMENT_KEY, jsxNode.key);
+    isDev && vnode_setProp(vNewNode, getPropId(DEBUG_TYPE), VirtualType.Component);
+    container.setHostProp(vNewNode, StaticPropId.ON_RENDER, componentQRL);
+    container.setHostProp(vNewNode, StaticPropId.ELEMENT_PROPS, jsxProps);
+    container.setHostProp(vNewNode, StaticPropId.ELEMENT_KEY, jsxNode.key);
   }
 
   function insertNewInlineComponent() {
@@ -1172,10 +1176,10 @@ export const vnode_diff = (
       vCurrent && getInsertBefore()
     );
     const jsxNode = jsxValue as JSXNodeInternal;
-    isDev && vnode_setProp(vNewNode, DEBUG_TYPE, VirtualType.InlineComponent);
-    vnode_setProp(vNewNode, ELEMENT_PROPS, jsxNode.props);
+    isDev && vnode_setProp(vNewNode, getPropId(DEBUG_TYPE), VirtualType.InlineComponent);
+    vnode_setProp(vNewNode, StaticPropId.ELEMENT_PROPS, jsxNode.props);
     if (jsxNode.key) {
-      vnode_setProp(vNewNode, ELEMENT_KEY, jsxNode.key);
+      vnode_setProp(vNewNode, StaticPropId.ELEMENT_KEY, jsxNode.key);
     }
   }
 
@@ -1209,7 +1213,15 @@ function getKey(vNode: VNode | null): string | null {
   if (vNode == null) {
     return null;
   }
-  return vnode_getProp<string>(vNode, ELEMENT_KEY, null);
+  const type = vNode[VNodeProps.flags];
+  if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
+    const props = vnode_getProps(vNode);
+    // this works, because q:key is always at 0 position or it is not present
+    if (props[0] === StaticPropId.ELEMENT_KEY) {
+      return props[1] as string | null;
+    }
+  }
+  return null;
 }
 
 /**
@@ -1223,7 +1235,7 @@ function getComponentHash(vNode: VNode | null, getObject: (id: string) => any): 
   if (vNode == null) {
     return null;
   }
-  const qrl = vnode_getProp<QRLInternal>(vNode, OnRenderProp, getObject);
+  const qrl = vnode_getProp<QRLInternal>(vNode, StaticPropId.ON_RENDER, getObject);
   return qrl ? qrl.$hash$ : null;
 }
 
@@ -1258,8 +1270,14 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
   if (!src || !dst) {
     return true;
   }
-  let srcKeys = removePropsKeys(Object.keys(src), ['children', QBackRefs]);
-  let dstKeys = removePropsKeys(Object.keys(dst), ['children', QBackRefs]);
+  let srcKeys = removePropsKeys(Object.keys(src).map(Number) as NumericPropKey[], [
+    StaticPropId.CHILDREN,
+    StaticPropId.BACK_REFS,
+  ]);
+  let dstKeys = removePropsKeys(Object.keys(dst).map(Number) as NumericPropKey[], [
+    StaticPropId.CHILDREN,
+    StaticPropId.BACK_REFS,
+  ]);
   if (srcKeys.length !== dstKeys.length) {
     return true;
   }
@@ -1275,7 +1293,7 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
   return false;
 }
 
-function removePropsKeys(keys: string[], propKeys: string[]): string[] {
+function removePropsKeys(keys: NumericPropKey[], propKeys: NumericPropKey[]): NumericPropKey[] {
   for (let i = propKeys.length - 1; i >= 0; i--) {
     const propKey = propKeys[i];
     const propIdx = keys.indexOf(propKey);
@@ -1283,7 +1301,6 @@ function removePropsKeys(keys: string[], propKeys: string[]): string[] {
       keys.splice(propIdx, 1);
     }
   }
-
   return keys;
 }
 
@@ -1313,7 +1330,10 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
       markVNodeAsDeleted(vCursor);
       // Only elements and virtual nodes need to be traversed for children
       if (type & VNodeFlags.Virtual) {
-        const seq = container.getHostProp<Array<any>>(vCursor as VirtualVNode, ELEMENT_SEQ);
+        const seq = container.getHostProp<Array<any>>(
+          vCursor as VirtualVNode,
+          StaticPropId.ELEMENT_SEQ
+        );
         if (seq) {
           for (let i = 0; i < seq.length; i++) {
             const obj = seq[i];
@@ -1332,12 +1352,12 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
 
       const isComponent =
         type & VNodeFlags.Virtual &&
-        vnode_getProp(vCursor as VirtualVNode, OnRenderProp, null) !== null;
+        vnode_getProp(vCursor as VirtualVNode, StaticPropId.ON_RENDER, null) !== null;
       if (isComponent) {
         // SPECIAL CASE: If we are a component, we need to descend into the projected content and release the content.
         const attrs = vnode_getProps(vCursor);
         for (let i = 0; i < attrs.length; i = i + 2) {
-          const key = attrs[i] as string;
+          const key = attrs[i] as NumericPropKey;
           if (isSlotProp(key)) {
             const value = attrs[i + 1];
             if (value) {
@@ -1440,11 +1460,6 @@ function markVNodeAsDeleted(vCursor: VNode) {
   vCursor[VNodeProps.flags] |= VNodeFlags.Deleted;
 }
 
-/**
- * This marks the property as immutable. It is needed for the QRLs so that QwikLoader can get a hold
- * of them. This character must be `:` so that the `vnode_getAttr` can ignore them.
- */
-const HANDLER_PREFIX = ':';
 let count = 0;
 const enum SiblingsArray {
   Name = 0,

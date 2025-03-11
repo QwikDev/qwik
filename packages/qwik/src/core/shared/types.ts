@@ -3,6 +3,7 @@ import type { VNode } from '../client/types';
 import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { Scheduler } from './scheduler';
 import type { SerializationContext } from './shared-serialization';
+import type { NumericPropKey } from './utils/numeric-prop-key';
 
 export interface DeserializeContainer {
   $getObjectById$: (id: number | string) => unknown;
@@ -27,8 +28,8 @@ export interface Container {
   getParentHost(host: HostElement): HostElement | null;
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
   resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
-  setHostProp<T>(host: HostElement, name: string, value: T): void;
-  getHostProp<T>(host: HostElement, name: string): T | null;
+  setHostProp<T>(host: HostElement, name: NumericPropKey, value: T): void;
+  getHostProp<T>(host: HostElement, name: NumericPropKey): T | null;
   $appendStyle$(content: string, styleId: string, host: HostElement, scoped: boolean): void;
   /**
    * When component is about to be executed, it may add/remove children. This can cause problems

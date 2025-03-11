@@ -1,4 +1,3 @@
-import { QBackRefs } from '../shared/utils/markers';
 import {
   type Consumer,
   EffectProperty,
@@ -9,6 +8,7 @@ import type { ISsrNode } from '../ssr/ssr-types';
 import { _EFFECT_BACK_REF } from '../signal/flags';
 import { isServer } from '@qwik.dev/core/build';
 import { BackRef } from './signal-cleanup';
+import { StaticPropId } from '../../server/qwik-copy';
 
 export function getSubscriber(
   effect: Consumer,
@@ -17,7 +17,7 @@ export function getSubscriber(
 ): EffectSubscription {
   if (!(effect as BackRef)[_EFFECT_BACK_REF]) {
     if (isServer && isSsrNode(effect)) {
-      effect.setProp(QBackRefs, new Map());
+      effect.setProp(StaticPropId.BACK_REFS, new Map());
     } else {
       (effect as BackRef)[_EFFECT_BACK_REF] = new Map();
     }

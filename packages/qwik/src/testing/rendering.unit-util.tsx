@@ -38,8 +38,6 @@ import { inlinedQrl } from '../core/shared/qrl/qrl';
 import { ChoreType } from '../core/shared/util-chore-type';
 import { dumpState } from '../core/shared/shared-serialization';
 import {
-  ELEMENT_PROPS,
-  OnRenderProp,
   QContainerSelector,
   QFuncsPrefix,
   QInstanceAttr,
@@ -53,7 +51,7 @@ import { createDocument } from './document';
 import { getTestPlatform } from './platform';
 import './vdom-diff.unit-util';
 import { VNodeProps, VirtualVNodeProps, type VNode, type VirtualVNode } from '../core/client/types';
-import { DEBUG_TYPE, VirtualType } from '../server/qwik-copy';
+import { DEBUG_TYPE, StaticPropId, VirtualType, getPropId } from '../server/qwik-copy';
 
 /** @public */
 export async function domRender(
@@ -175,7 +173,7 @@ export async function ssrRenderToDom(
 
     // Create a fragment
     const fragment = vnode_newVirtual();
-    vnode_setProp(fragment, DEBUG_TYPE, VirtualType.Fragment);
+    vnode_setProp(fragment, getPropId(DEBUG_TYPE), VirtualType.Fragment);
 
     const childrenToMove = [];
 
@@ -187,8 +185,8 @@ export async function ssrRenderToDom(
       if (
         vnode_isElementVNode(child) &&
         ((vnode_getElementName(child) === 'script' &&
-          (vnode_getAttr(child, 'type') === 'qwik/state' ||
-            vnode_getAttr(child, 'id') === 'qwikloader')) ||
+          (vnode_getAttr(child, getPropId('type')) === 'qwik/state' ||
+            vnode_getAttr(child, getPropId('id')) === 'qwikloader')) ||
           vnode_getElementName(child) === 'q:template')
       ) {
         insertBefore = child;
@@ -276,8 +274,11 @@ export async function rerenderComponent(element: HTMLElement, flush?: boolean) {
   const container = _getDomContainer(element);
   const vElement = vnode_locate(container.rootVNode, element);
   const host = getHostVNode(vElement) as HostElement;
-  const qrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(host, OnRenderProp)!;
-  const props = container.getHostProp<Props>(host, ELEMENT_PROPS);
+  const qrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(
+    host,
+    StaticPropId.ON_RENDER
+  )!;
+  const props = container.getHostProp<Props>(host, StaticPropId.ELEMENT_PROPS);
   container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
   if (flush) {
     // Note that this can deadlock
@@ -287,7 +288,7 @@ export async function rerenderComponent(element: HTMLElement, flush?: boolean) {
 
 function getHostVNode(vElement: _VNode | null) {
   while (vElement != null) {
-    if (vnode_getAttr(vElement, OnRenderProp) != null) {
+    if (vnode_getAttr(vElement, StaticPropId.ON_RENDER) != null) {
       return vElement as _VirtualVNode;
     }
     vElement = vnode_getParent(vElement);

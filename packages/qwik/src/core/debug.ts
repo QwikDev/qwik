@@ -1,10 +1,11 @@
 import { isQrl } from '../server/prefetch-strategy';
-import { isJSXNode } from './shared/jsx/jsx-runtime';
+import { isJSXNode, isPropsProxy } from './shared/jsx/jsx-runtime';
 import { isTask } from './use/use-task';
 import { vnode_getProp, vnode_isVNode } from './client/vnode';
 import { ComputedSignal, WrappedSignal, isSignal } from './signal/signal';
 import { isStore } from './signal/store';
 import { DEBUG_TYPE } from './shared/types';
+import { getPropId } from '../server/qwik-copy';
 
 const stringifyPath: any[] = [];
 export function qwikDebugToString(value: any): any {
@@ -31,7 +32,7 @@ export function qwikDebugToString(value: any): any {
       stringifyPath.push(value);
       if (Array.isArray(value)) {
         if (vnode_isVNode(value)) {
-          return '(' + vnode_getProp(value, DEBUG_TYPE, null) + ')';
+          return '(' + vnode_getProp(value, getPropId(DEBUG_TYPE), null) + ')';
         } else {
           return value.map(qwikDebugToString);
         }
@@ -47,6 +48,8 @@ export function qwikDebugToString(value: any): any {
         return 'Store';
       } else if (isJSXNode(value)) {
         return jsxToString(value);
+      } else if (isPropsProxy(value)) {
+        return '{*}';
       }
     } finally {
       stringifyPath.pop();

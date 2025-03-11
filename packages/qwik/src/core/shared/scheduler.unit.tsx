@@ -19,6 +19,7 @@ import { ChoreType } from './util-chore-type';
 import type { HostElement } from './types';
 import { QContainerAttr } from './utils/markers';
 import { _EFFECT_BACK_REF } from '../signal/flags';
+import { StaticPropId } from './utils/numeric-prop-key';
 
 declare global {
   let testLog: string[];
@@ -47,13 +48,13 @@ describe('scheduler', () => {
     vBody = vnode_newUnMaterializedElement(document.body);
     vA = vnode_locate(vBody, document.querySelector('a') as Element) as ElementVNode;
     vAHost = vnode_newVirtual();
-    vnode_setProp(vAHost, 'q:id', 'A');
+    vnode_setProp(vAHost, StaticPropId.ELEMENT_ID, 'A');
     vnode_insertBefore([], vA, vAHost, null);
     vB = vnode_locate(vBody, document.querySelector('b') as Element) as ElementVNode;
     vBHost1 = vnode_newVirtual();
-    vnode_setProp(vBHost1, 'q:id', 'b1');
+    vnode_setProp(vBHost1, StaticPropId.ELEMENT_ID, 'b1');
     vBHost2 = vnode_newVirtual();
-    vnode_setProp(vBHost2, 'q:id', 'b2');
+    vnode_setProp(vBHost2, StaticPropId.ELEMENT_ID, 'b2');
     vnode_insertBefore([], vB, vBHost1, null);
     vnode_insertBefore([], vB, vBHost2, null);
   });

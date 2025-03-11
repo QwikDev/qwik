@@ -5,10 +5,10 @@ import { useSignal } from '../core/use/use-signal';
 import { ssrRenderToDom } from '../testing/rendering.unit-util';
 import { encodeAsAlphanumeric } from './vnode-data';
 import { vnode_getProp, vnode_locate } from '../core/client/vnode';
-import { ELEMENT_PROPS, OnRenderProp } from '../core/shared/utils/markers';
 import { type QRLInternal } from '../core/shared/qrl/qrl-class';
 import type { DomContainer } from '../core/client/dom-container';
 import { createContextId, useContext, useContextProvider } from '@qwik.dev/core';
+import { StaticPropId } from '../core/shared/utils/numeric-prop-key';
 
 const debug = false;
 
@@ -225,13 +225,17 @@ function expectVNodeSymbol(container: DomContainer, vNodeId: string, cmpSymbol: 
   const vnode = vnode_locate(container.rootVNode, vNodeId);
 
   expect(
-    vnode_getProp<QRLInternal>(vnode, OnRenderProp, container.$getObjectById$)?.$hash$
+    vnode_getProp<QRLInternal>(vnode, StaticPropId.ON_RENDER, container.$getObjectById$)?.$hash$
   ).toEqual(cmpSymbol);
 }
 
 function expectVNodeProps(container: DomContainer, vNodeId: string, props: any) {
   const vnode = vnode_locate(container.rootVNode, vNodeId);
-  const elementProps = vnode_getProp(vnode, ELEMENT_PROPS, container.$getObjectById$) as any;
+  const elementProps = vnode_getProp(
+    vnode,
+    StaticPropId.ELEMENT_PROPS,
+    container.$getObjectById$
+  ) as any;
 
   // TODO(hack): elementProps object does not contain fields because it is a PropsProxy,
   // so we need to manually read the property value and create a new object

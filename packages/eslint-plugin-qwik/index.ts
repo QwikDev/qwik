@@ -1,3 +1,4 @@
+import type { TSESLint } from '@typescript-eslint/utils';
 import { jsxAtag } from './src/jsxAtag';
 import { jsxImg } from './src/jsxImg';
 import { jsxKey } from './src/jsxKey';
@@ -11,11 +12,13 @@ import { useMethodUsage } from './src/useMethodUsage';
 import { validLexicalScope } from './src/validLexicalScope';
 import pkg from './package.json';
 
+type Rules = NonNullable<TSESLint.FlatConfig.Plugin['rules']>;
+
 const rules = {
-  'use-method-usage': useMethodUsage,
   'valid-lexical-scope': validLexicalScope,
-  'loader-location': loaderLocation,
+  'use-method-usage': useMethodUsage,
   'no-react-props': noReactProps,
+  'loader-location': loaderLocation,
   'prefer-classlist': preferClasslist,
   'jsx-no-script-url': jsxNoScriptUrl,
   'jsx-key': jsxKey,
@@ -23,26 +26,27 @@ const rules = {
   'jsx-img': jsxImg,
   'jsx-a': jsxAtag,
   'no-use-visible-task': noUseVisibleTask,
-};
+} as const satisfies Rules;
 
-const recommendedRules = {
-  'qwik/use-method-usage': 'error',
+const recommendedRulesLevels = {
   'qwik/valid-lexical-scope': 'error',
+  'qwik/use-method-usage': 'error',
   'qwik/no-react-props': 'error',
+  'qwik/loader-location': 'warn',
   'qwik/prefer-classlist': 'warn',
   'qwik/jsx-no-script-url': 'warn',
-  'qwik/loader-location': 'warn',
   'qwik/jsx-key': 'warn',
   'qwik/unused-server': 'error',
   'qwik/jsx-img': 'warn',
   'qwik/jsx-a': 'warn',
   'qwik/no-use-visible-task': 'warn',
-};
-const strictRules = {
+} as const satisfies TSESLint.FlatConfig.Rules;
+
+const strictRulesLevels = {
   'qwik/valid-lexical-scope': 'error',
   'qwik/use-method-usage': 'error',
-  'qwik/loader-location': 'error',
   'qwik/no-react-props': 'error',
+  'qwik/loader-location': 'error',
   'qwik/prefer-classlist': 'error',
   'qwik/jsx-no-script-url': 'error',
   'qwik/jsx-key': 'error',
@@ -50,37 +54,27 @@ const strictRules = {
   'qwik/jsx-img': 'error',
   'qwik/jsx-a': 'error',
   'qwik/no-use-visible-task': 'warn',
-};
+} as const satisfies TSESLint.FlatConfig.Rules;
 
 const configs = {
   recommended: {
     plugins: ['qwik'],
-    rules: recommendedRules,
+    rules: recommendedRulesLevels,
   },
   strict: {
     plugins: ['qwik'],
-    rules: strictRules,
+    rules: strictRulesLevels,
   },
-};
+} as const satisfies Record<string, TSESLint.ClassicConfig.Config>;
 
-const qwikEslint9Plugin = {
+const qwikEslint9Plugin: TSESLint.FlatConfig.Plugin = {
   configs: {
-    recommended: [
-      {
-        plugins: {
-          qwik: this,
-        },
-        rules: recommendedRules,
-      },
-    ],
-    strict: [
-      {
-        plugins: {
-          qwik: this,
-        },
-        rules: strictRules,
-      },
-    ],
+    get recommended() {
+      return recommendedConfig;
+    },
+    get strict() {
+      return strictConfig;
+    },
   },
   meta: {
     name: pkg.name,
@@ -88,5 +82,23 @@ const qwikEslint9Plugin = {
   },
   rules,
 };
+
+const recommendedConfig: TSESLint.FlatConfig.ConfigArray = [
+  {
+    plugins: {
+      qwik: qwikEslint9Plugin,
+    },
+    rules: recommendedRulesLevels,
+  },
+];
+
+const strictConfig: TSESLint.FlatConfig.ConfigArray = [
+  {
+    plugins: {
+      qwik: qwikEslint9Plugin,
+    },
+    rules: strictRulesLevels,
+  },
+];
 
 export { configs, qwikEslint9Plugin, rules };

@@ -360,6 +360,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         updatedViteConfig.build!.rollupOptions = {
           input: opts.input,
           output: normalizeRollupOutputOptions(
+            qwikPlugin.getOptimizer(),
             opts,
             viteConfig.build?.rollupOptions?.output,
             useAssetsDir,

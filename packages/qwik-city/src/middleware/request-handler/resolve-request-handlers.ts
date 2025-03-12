@@ -252,8 +252,7 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
             loaders[selectedActionId] = requestEv.fail(result.status ?? 500, result.error);
           } else {
             //@ts-ignore
-            const resolve = (loaderOrAction: LoaderInternal | ActionInternal) => {
-              console.log(loaderOrAction.__id, loaderOrAction.__brand);
+            const resolve = async (loaderOrAction: LoaderInternal | ActionInternal) => {
               id = loaderOrAction.__id && loaderOrAction.__brand === 'server_loader';
               return requestEv.resolveValue(loaderOrAction) as any;
             };

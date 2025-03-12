@@ -1229,7 +1229,7 @@ Description
 
 </td><td>
 
-(statusCode: ErrorCodes, message: string) =&gt; ErrorResponse
+&lt;T = any&gt;(statusCode: ErrorCodes, message: T) =&gt; [ServerError](#servererror)&lt;T&gt;
 
 </td><td>
 
@@ -1478,7 +1478,7 @@ export interface ResolveValue
 ## ServerError
 
 ```typescript
-export declare class ServerError<T = Record<any, any>> extends Error
+export declare class ServerError<T = any> extends Error
 ```
 
 **Extends:** Error

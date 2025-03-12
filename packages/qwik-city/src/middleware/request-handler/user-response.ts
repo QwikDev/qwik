@@ -1,7 +1,12 @@
 import type { QwikSerializer, ServerRequestEvent, StatusCodes } from './types';
 import type { RequestEvent, RequestHandler } from '@builder.io/qwik-city';
-import { createRequestEvent, getRequestMode, type RequestEventInternal } from './request-event';
-import { ErrorResponse, getErrorHtml, minimalHtmlResponse } from './error-handler';
+import {
+  RequestEvQwikSerializer,
+  createRequestEvent,
+  getRequestMode,
+  type RequestEventInternal,
+} from './request-event';
+import { ServerError, getErrorHtml, minimalHtmlResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { LoadedRoute } from '../../runtime/src/types';
 import { encoder } from './resolve-request-handlers';
@@ -65,12 +70,18 @@ async function runNext(requestEv: RequestEventInternal, resolve: (value: any) =>
     if (e instanceof RedirectMessage) {
       const stream = requestEv.getWritableStream();
       await stream.close();
-    } else if (e instanceof ErrorResponse) {
-      console.error(e);
+    } else if (e instanceof ServerError) {
       if (!requestEv.headersSent) {
-        const html = getErrorHtml(e.status, e);
         const status = e.status as StatusCodes;
-        requestEv.html(status, html);
+        const accept = requestEv.request.headers.get('Accept');
+        if (accept && !accept.includes('text/html')) {
+          const qwikSerializer = requestEv[RequestEvQwikSerializer];
+          requestEv.headers.set('Content-Type', 'application/qwik-json');
+          requestEv.send(status, await qwikSerializer._serializeData(e.data, true));
+        } else {
+          const html = getErrorHtml(e.status, e.data);
+          requestEv.html(status, html);
+        }
       }
     } else if (!(e instanceof AbortMessage)) {
       if (getRequestMode(requestEv) !== 'dev') {

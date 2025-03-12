@@ -119,5 +119,29 @@ test.describe("loaders", () => {
         ]);
       }
     });
+    test("should modify ServerError in middleware", async ({ page }) => {
+      const response = await page.goto("/qwikcity-test/loaders/loader-error");
+      const contentType = await response?.headerValue("Content-Type");
+      const status = response?.status();
+
+      expect(status).toEqual(401);
+      expect(contentType).toEqual("text/html; charset=utf-8");
+      const body = page.locator("body");
+      await expect(body).toContainText("loader-error-caught");
+    });
+    test("should return html with uncaught ServerErrors thrown in loaders", async ({
+      page,
+    }) => {
+      const response = await page.goto(
+        "/qwikcity-test/loaders/loader-error/uncaught-server",
+      );
+      const contentType = await response?.headerValue("Content-Type");
+      const status = response?.status();
+
+      expect(status).toEqual(401);
+      expect(contentType).toEqual("text/html; charset=utf-8");
+      const body = page.locator("body");
+      await expect(body).toContainText("server-error-data");
+    });
   }
 });

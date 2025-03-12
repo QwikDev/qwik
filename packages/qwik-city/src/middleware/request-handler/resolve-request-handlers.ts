@@ -281,8 +281,8 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
 
     if (routeLoaders.length > 0) {
       await ddd(id);
-      id = '';
     }
+    id = '';
   };
 }
 

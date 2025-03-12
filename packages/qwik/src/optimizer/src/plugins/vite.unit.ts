@@ -25,12 +25,12 @@ const chunkInfoMocks: Rollup.PreRenderedChunk[] = [
   },
   {
     exports: [''],
-    name: '/Users/username/app/chunk.tsx',
-    facadeModuleId: '/Users/username/app/chunk.tsx',
+    name: cwd + '/app/chunk.tsx',
+    facadeModuleId: cwd + '/app/chunk.tsx',
     isDynamicEntry: false,
     isEntry: false,
     isImplicitEntry: false,
-    moduleIds: ['/Users/username/app/chunk.tsx'],
+    moduleIds: [cwd + '/app/chunk.tsx'],
     type: 'chunk',
   },
 ];
@@ -102,8 +102,8 @@ test('command: serve, mode: development', async () => {
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
   assert.deepEqual(chunkFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
   assert.deepEqual(entryFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
-  assert.deepEqual(chunkFileNames(chunkInfoMocks[1]), 'build/username-app-chunk.tsx.js');
-  assert.deepEqual(entryFileNames(chunkInfoMocks[1]), 'build/username-app-chunk.tsx.js');
+  assert.deepEqual(chunkFileNames(chunkInfoMocks[1]), 'build/app-chunk.tsx.js');
+  assert.deepEqual(entryFileNames(chunkInfoMocks[1]), 'build/app-chunk.tsx.js');
   assert.deepEqual(outputOptions.format, 'es');
 
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
@@ -183,8 +183,8 @@ test('command: build, mode: development', async () => {
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
   assert.deepEqual(chunkFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
   assert.deepEqual(entryFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
-  assert.deepEqual(chunkFileNames(chunkInfoMocks[1]), 'build/username-app-chunk.tsx.js');
-  assert.deepEqual(entryFileNames(chunkInfoMocks[1]), 'build/username-app-chunk.tsx.js');
+  assert.deepEqual(chunkFileNames(chunkInfoMocks[1]), 'build/app-chunk.tsx.js');
+  assert.deepEqual(entryFileNames(chunkInfoMocks[1]), 'build/app-chunk.tsx.js');
 
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
   assert.deepEqual(build.ssr, undefined);

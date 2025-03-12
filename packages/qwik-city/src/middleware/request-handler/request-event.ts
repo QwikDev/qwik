@@ -37,7 +37,7 @@ export const RequestRouteName = '@routeName';
 export const RequestEvSharedActionId = '@actionId';
 export const RequestEvSharedActionFormData = '@actionFormData';
 export const RequestEvSharedNonce = '@nonce';
-const loaders: Record<string, Promise<any>> = {};
+
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
   loadedRoute: LoadedRoute | null,
@@ -134,7 +134,7 @@ export function createRequestEvent(
     routeModuleIndex = ABORT_INDEX;
     return new AbortMessage();
   };
-
+  const loaders: Record<string, Promise<any>> = {};
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,
     [RequestEvMode]: serverRequestEv.mode,
@@ -286,7 +286,7 @@ export function createRequestEvent(
       return writableStream;
     },
   };
-  return Object.freeze(requestEv);
+  return requestEv;
 }
 
 export interface RequestEventInternal extends RequestEvent, RequestEventLoader {

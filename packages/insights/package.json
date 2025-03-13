@@ -60,6 +60,7 @@
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "lint": "eslint \"src/**/*.ts*\"",
+    "lint.fix": "eslint --fix \"src/**/*.ts*\"",
     "preview": "qwik build preview && vite preview --open",
     "qManifest.post": "curl -X POST -H 'Content-Type: application/json' -d @./dist/q-manifest.json https://qwik-insights.builder.io/api/v1/221smyuj5gl/post/manifest/",
     "qManifest.post.local": "curl -X POST -H 'Content-Type: application/json' -d @./dist/q-manifest.json http://localhost:5173/api/v1/221smyuj5gl/post/manifest/",

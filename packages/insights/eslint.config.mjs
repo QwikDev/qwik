@@ -1,6 +1,7 @@
-import js from '@eslint/js';
 import globals from 'globals';
+import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
+import { qwikEslint9Plugin } from 'eslint-plugin-qwik';
 import { globalIgnores } from 'eslint/config';
 
 const ignores = [
@@ -19,7 +20,6 @@ const ignores = [
   '**/dist-dev',
   '**/lib',
   '**/lib-types',
-  '**/vite',
   '**/etc',
   '**/external',
   '**/node_modules',
@@ -36,6 +36,16 @@ const ignores = [
   '**/dist',
   '**/tsconfig.tsbuildinfo',
   '**/vite.config.ts',
+  '**/*.spec.tsx',
+  '**/*.spec.ts',
+  '**/.netlify',
+  '**/pnpm-lock.yaml',
+  '**/package-lock.json',
+  '**/yarn.lock',
+  '**/server',
+  'src/styled-system',
+  '**/panda.config.ts',
+  '**/drizzle.config.ts',
 ];
 
 export default tseslint.config(
@@ -52,7 +62,6 @@ export default tseslint.config(
       },
       parserOptions: {
         projectService: true,
-        project: ['./tsconfig.json', './tsconfig-vite.json'],
         tsconfigRootDir: import.meta.dirname,
         ecmaFeatures: {
           jsx: true,
@@ -75,7 +84,24 @@ export default tseslint.config(
       'prefer-spread': 'off',
       'no-case-declarations': 'off',
       'no-console': 'off',
-      '@typescript-eslint/no-unused-vars': ['error'],
+      '@typescript-eslint/consistent-type-imports': 'warn',
+      '@typescript-eslint/no-unnecessary-condition': 'warn',
+      '@typescript-eslint/no-unused-expressions': 'off',
+      '@typescript-eslint/no-empty-object-type': 'off',
+      '@typescript-eslint/no-unsafe-function-type': 'off',
+      curly: 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          args: 'all',
+          argsIgnorePattern: '^_',
+          caughtErrors: 'all',
+          caughtErrorsIgnorePattern: '^_',
+          destructuredArrayIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+        },
+      ],
     },
   }
 );

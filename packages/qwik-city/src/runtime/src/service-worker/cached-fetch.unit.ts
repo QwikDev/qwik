@@ -1,4 +1,3 @@
-/* eslint-disable no-empty-pattern */
 import { assert, beforeEach, test } from 'vitest';
 import { cachedFetch } from './cached-fetch';
 import type { AwaitingRequests, Fetch } from './types';

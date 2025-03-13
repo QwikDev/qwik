@@ -1,8 +1,11 @@
 import { _jsxSorted } from '@qwik.dev/core';
 import { vnode_fromJSX } from '@qwik.dev/core/testing';
 import { afterEach, describe, expect, it } from 'vitest';
-import { vnode_applyJournal, vnode_getNode, type VNodeJournal } from './vnode';
+import { vnode_applyJournal, vnode_getFirstChild, vnode_getNode, type VNodeJournal } from './vnode';
 import { vnode_diff } from './vnode-diff';
+import type { QElement } from '../shared/types';
+import { createSignal } from '../signal/signal-api';
+import { QError, qError } from '../shared/error/error';
 
 describe('vNode-diff', () => {
   const journal: VNodeJournal = [];
@@ -457,5 +460,331 @@ describe('vNode-diff', () => {
     });
   });
   describe.todo('fragments', () => {});
-  describe.todo('attributes', () => {});
+  describe('attributes', () => {
+    describe('var props', () => {
+      it('should set attributes', () => {
+        const { vParent, document } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
+        const test = _jsxSorted(
+          'span',
+          {
+            id: 'a',
+            class: 'test',
+          },
+          null,
+          [],
+          0,
+          null
+        );
+        vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+        vnode_applyJournal(journal);
+        expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
+      });
+
+      it('should remove attributes', () => {
+        const { vParent, document } = vnode_fromJSX(
+          _jsxSorted(
+            'span',
+            {
+              id: 'a',
+              class: 'test',
+            },
+            null,
+            [],
+            0,
+            null
+          )
+        );
+        const test = _jsxSorted('span', {}, null, [], 0, null);
+        vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+        vnode_applyJournal(journal);
+        expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
+      });
+
+      it('should update attributes', () => {
+        const { vParent, document } = vnode_fromJSX(
+          _jsxSorted(
+            'span',
+            {
+              id: 'a',
+              class: 'test',
+            },
+            null,
+            [],
+            0,
+            null
+          )
+        );
+        const test = _jsxSorted(
+          'span',
+          {
+            id: 'b',
+            class: 'updated',
+          },
+          null,
+          [],
+          0,
+          null
+        );
+        vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+        vnode_applyJournal(journal);
+        expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
+      });
+
+      it('should skip props starting with handler prefix (colon)', () => {
+        const { vParent, document } = vnode_fromJSX(
+          _jsxSorted('span', { ':::onClick$': () => null }, null, [], 0, null)
+        );
+        const test = _jsxSorted(
+          'span',
+          {
+            ':::onClick$': () => null,
+            id: 'a',
+          },
+          null,
+          [],
+          0,
+          null
+        );
+        vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+        vnode_applyJournal(journal);
+        expect(vnode_getFirstChild(vParent)).toMatchVDOM(<span id="a"></span>);
+      });
+
+      it('should skip props starting with q prefix (q:)', () => {
+        const { vParent, document } = vnode_fromJSX(
+          _jsxSorted('span', { 'q:id': 'abcd' }, null, [], 0, null)
+        );
+        const test = _jsxSorted(
+          'span',
+          {
+            'q:id': 'abcd',
+            id: 'a',
+          },
+          null,
+          [],
+          0,
+          null
+        );
+        vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+        vnode_applyJournal(journal);
+        expect(vnode_getFirstChild(vParent)).toMatchVDOM(<span id="a"></span>);
+      });
+
+      it('should add qDispatchEvent for existing html event attribute', () => {
+        const { vParent, document } = vnode_fromJSX(
+          _jsxSorted('span', { id: 'a', 'on:click': 'abcd' }, null, [], 0, null)
+        );
+        const test = _jsxSorted('span', { id: 'a' }, null, [], 0, null);
+        vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+        vnode_applyJournal(journal);
+        const firstChild = vnode_getFirstChild(vParent);
+        expect(firstChild).toMatchVDOM(test);
+        const element = vnode_getNode(firstChild) as QElement;
+        expect(element.qDispatchEvent).not.toBeDefined();
+      });
+
+      it('should add qDispatchEvent for existing html event attribute', () => {
+        const { vParent, document } = vnode_fromJSX(
+          _jsxSorted('span', { id: 'a', 'on:click': 'abcd' }, null, [], 0, null)
+        );
+        const test = _jsxSorted('span', { id: 'a', onClick$: 'abcd' }, null, [], 0, null);
+        vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+        vnode_applyJournal(journal);
+        const firstChild = vnode_getFirstChild(vParent);
+        expect(firstChild).toMatchVDOM(test);
+        const element = vnode_getNode(firstChild) as QElement;
+        expect(element.qDispatchEvent).toBeDefined();
+      });
+
+      it('should add qDispatchEvent for new jsx event attribute', () => {
+        const { vParent, document } = vnode_fromJSX(
+          _jsxSorted('span', { id: 'a' }, null, [], 0, null)
+        );
+        const test = _jsxSorted('span', { id: 'a', onClick$: () => null }, null, [], 0, null);
+        vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+        vnode_applyJournal(journal);
+        const firstChild = vnode_getFirstChild(vParent);
+        expect(firstChild).toMatchVDOM(test);
+        const element = vnode_getNode(firstChild) as QElement;
+        expect(element.qDispatchEvent).toBeDefined();
+      });
+
+      it('should add qDispatchEvent for existing html event attribute and new jsx event attribute', () => {
+        const { vParent, document } = vnode_fromJSX(
+          _jsxSorted('span', { id: 'a', 'on:click': 'abcd' }, null, [], 0, null)
+        );
+        const test = _jsxSorted('span', { id: 'a', onClick$: () => null }, null, [], 0, null);
+        vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+        vnode_applyJournal(journal);
+        const firstChild = vnode_getFirstChild(vParent);
+        expect(firstChild).toMatchVDOM(test);
+        const element = vnode_getNode(firstChild) as QElement;
+        expect(element.qDispatchEvent).toBeDefined();
+      });
+
+      it('should change to alphabetically later attribute', () => {
+        const { vParent, document } = vnode_fromJSX(
+          _jsxSorted('span', { id: 'aaa' }, null, [], 0, null)
+        );
+        const test = _jsxSorted('span', { name: 'bbb' }, null, [], 0, null);
+        vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+        vnode_applyJournal(journal);
+        const firstChild = vnode_getFirstChild(vParent);
+        expect(firstChild).toMatchVDOM(test);
+      });
+
+      it('should change to alphabetically later attribute and add a new one', () => {
+        const { vParent, document } = vnode_fromJSX(
+          _jsxSorted('span', { id: 'aaa' }, null, [], 0, null)
+        );
+        const test = _jsxSorted('span', { name: 'bbb', title: 'ccc' }, null, [], 0, null);
+        vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+        vnode_applyJournal(journal);
+        const firstChild = vnode_getFirstChild(vParent);
+        expect(firstChild).toMatchVDOM(test);
+      });
+
+      it('should change to alphabetically later attribute and add a remove one', () => {
+        const { vParent, document } = vnode_fromJSX(
+          _jsxSorted('span', { id: 'aaa', title: 'ccc' }, null, [], 0, null)
+        );
+        const test = _jsxSorted('span', { name: 'bbb' }, null, [], 0, null);
+        vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+        vnode_applyJournal(journal);
+        const firstChild = vnode_getFirstChild(vParent);
+        expect(firstChild).toMatchVDOM(test);
+      });
+
+      it('should change to alphabetically earlier attribute', () => {
+        const { vParent, document } = vnode_fromJSX(
+          _jsxSorted('span', { name: 'aaa' }, null, [], 0, null)
+        );
+        const test = _jsxSorted('span', { id: 'bbb' }, null, [], 0, null);
+        vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+        vnode_applyJournal(journal);
+        const firstChild = vnode_getFirstChild(vParent);
+        expect(firstChild).toMatchVDOM(test);
+      });
+
+      it('should change to alphabetically earlier attribute and add a new one', () => {
+        const { vParent, document } = vnode_fromJSX(
+          _jsxSorted('span', { name: 'aaa' }, null, [], 0, null)
+        );
+        const test = _jsxSorted('span', { id: 'bbb', title: 'ccc' }, null, [], 0, null);
+        vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+        vnode_applyJournal(journal);
+        const firstChild = vnode_getFirstChild(vParent);
+        expect(firstChild).toMatchVDOM(test);
+      });
+
+      it('should change to alphabetically earlier attribute and remove a new one', () => {
+        const { vParent, document } = vnode_fromJSX(
+          _jsxSorted('span', { name: 'aaa', title: 'ccc' }, null, [], 0, null)
+        );
+        const test = _jsxSorted('span', { id: 'bbb' }, null, [], 0, null);
+        vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+        vnode_applyJournal(journal);
+        const firstChild = vnode_getFirstChild(vParent);
+        expect(firstChild).toMatchVDOM(test);
+      });
+
+      it('should change to alphabetically later event attribute and add qDispatchEvent', () => {
+        const { vParent, document } = vnode_fromJSX(
+          _jsxSorted('span', { onDblClick$: 'aaa' }, null, [], 0, null)
+        );
+        const test = _jsxSorted('span', { onClick$: 'bbb' }, null, [], 0, null);
+        vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+        vnode_applyJournal(journal);
+        const firstChild = vnode_getFirstChild(vParent);
+        expect(firstChild).toMatchVDOM(test);
+        const element = vnode_getNode(firstChild) as QElement;
+        expect(element.qDispatchEvent).toBeDefined();
+      });
+
+      it('should change to alphabetically earlier event attribute and add qDispatchEvent', () => {
+        const { vParent, document } = vnode_fromJSX(
+          _jsxSorted('span', { onClick$: 'aaa' }, null, [], 0, null)
+        );
+        const test = _jsxSorted('span', { onDblClick$: 'bbb' }, null, [], 0, null);
+        vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+        vnode_applyJournal(journal);
+        const firstChild = vnode_getFirstChild(vParent);
+        expect(firstChild).toMatchVDOM(test);
+        const element = vnode_getNode(firstChild) as QElement;
+        expect(element.qDispatchEvent).toBeDefined();
+      });
+
+      it('should add event scope to element add qDispatchEvent', () => {
+        const { vParent, document } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
+        const test = _jsxSorted('span', { 'window:onClick$': 'bbb' }, null, [], 0, null);
+        vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+        vnode_applyJournal(journal);
+        const firstChild = vnode_getFirstChild(vParent);
+        expect(firstChild).toMatchVDOM(<span on-window:click></span>);
+        const element = vnode_getNode(firstChild) as QElement;
+        expect(element.qDispatchEvent).toBeDefined();
+      });
+
+      describe('ref', () => {
+        it('should handle ref signal attribute', () => {
+          const { vParent, document } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
+          const signal = createSignal();
+          const test = _jsxSorted('span', { ref: signal }, null, [], 0, null);
+          vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+          vnode_applyJournal(journal);
+          const firstChild = vnode_getFirstChild(vParent);
+          expect(firstChild).toMatchVDOM(<span></span>);
+          expect(signal.value).toBe(vnode_getNode(firstChild));
+        });
+
+        it('should handle ref function attribute', () => {
+          const { vParent, document } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
+          (globalThis as any).node = undefined;
+          const test = _jsxSorted(
+            'span',
+            { ref: (element: Element) => ((globalThis as any).node = element) },
+            null,
+            [],
+            0,
+            null
+          );
+          vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+          vnode_applyJournal(journal);
+          const firstChild = vnode_getFirstChild(vParent);
+          expect(firstChild).toMatchVDOM(<span></span>);
+          expect((globalThis as any).node).toBe(vnode_getNode(firstChild));
+          (globalThis as any).node = undefined;
+        });
+
+        it('should handle null ref value attribute', () => {
+          const { vParent, document } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
+          const test = _jsxSorted('span', { ref: null }, null, [], 0, null);
+          vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+          vnode_applyJournal(journal);
+          const firstChild = vnode_getFirstChild(vParent);
+          expect(firstChild).toMatchVDOM(<span></span>);
+        });
+
+        it('should throw error for invalid ref attribute', () => {
+          const { vParent, document } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
+          const test = _jsxSorted('span', { ref: 'abc' }, null, [], 0, null);
+          expect(() => {
+            vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+          }).toThrowError(qError(QError.invalidRefValue, [null]));
+        });
+      });
+
+      describe('signal', () => {
+        it('should handle signal attribute', () => {
+          const { vParent, document } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
+          const signal = createSignal('test');
+          const test = _jsxSorted('span', { class: signal }, null, [], 0, null);
+          vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
+          vnode_applyJournal(journal);
+          const firstChild = vnode_getFirstChild(vParent);
+          expect(firstChild).toMatchVDOM(<span class="test"></span>);
+        });
+      });
+    });
+  });
 });

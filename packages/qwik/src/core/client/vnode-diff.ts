@@ -832,9 +832,9 @@ export const vnode_diff = (
         } else if (typeof value === 'function') {
           value(element);
           return;
-        } else if (value == null) {
-          return;
-        } else {
+        }
+        // handling null value is not needed here, because we are filtering null values earlier
+        else {
           throw qError(QError.invalidRefValue, [currentFile]);
         }
       }
@@ -847,7 +847,12 @@ export const vnode_diff = (
         value = trackSignalAndAssignHost(value, vnode, key, container, signalData);
       }
 
-      vnode_setAttr(journal, vnode, key, serializeAttribute(key, value, scopedStyleIdPrefix));
+      vnode_setAttr(
+        journal,
+        vnode,
+        key,
+        value !== null ? serializeAttribute(key, value, scopedStyleIdPrefix) : null
+      );
       if (value === null) {
         // if we set `null` than attribute was removed and we need to shorten the dstLength
         dstLength = dstAttrs.length;
@@ -883,7 +888,6 @@ export const vnode_diff = (
       } else if (srcKey == null) {
         // Source has more keys, so we need to remove them from destination
         if (dstKey && isHtmlAttributeAnEventName(dstKey)) {
-          patchEventDispatch = true;
           dstIdx++;
         } else {
           record(dstKey!, null);
@@ -930,6 +934,7 @@ export const vnode_diff = (
         // we need to increment dstIdx too, because we added destination key and value to the VNode
         // and dstAttrs is a reference to the VNode
         dstIdx++;
+        dstLength = dstAttrs.length;
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else {
         // Source is missing the key, so we need to remove it from destination.
@@ -1444,7 +1449,7 @@ function markVNodeAsDeleted(vCursor: VNode) {
  * This marks the property as immutable. It is needed for the QRLs so that QwikLoader can get a hold
  * of them. This character must be `:` so that the `vnode_getAttr` can ignore them.
  */
-const HANDLER_PREFIX = ':';
+export const HANDLER_PREFIX = ':';
 let count = 0;
 const enum SiblingsArray {
   Name = 0,

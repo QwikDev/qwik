@@ -133,6 +133,12 @@ export const vnode_diff = (
   /// and is not connected to the tree.
   let vNewNode: VNode | null = null;
 
+  /// When elements have keys they can be consumed out of order and therefore we can't use nextSibling.
+  /// In such a case this array will contain the elements after the current location.
+  /// The array even indices will contains keys and odd indices the vNode.
+  let vSiblings: Map<string, VNode> | null = null;
+  let vSiblingsArray: Array<string | VNode | null> | null = null;
+
   /// Current set of JSX children.
   let jsxChildren: JSXChildren[] = null!;
   // Current JSX child.
@@ -315,6 +321,8 @@ export const vnode_diff = (
     stackPush(children, descendVNode);
     if (descendVNode) {
       assertDefined(vCurrent || vNewNode, 'Expecting vCurrent to be defined.');
+      vSiblings = null;
+      vSiblingsArray = null;
       vParent = vNewNode || vCurrent!;
       vCurrent = vnode_getFirstChild(vParent);
       vNewNode = null;
@@ -325,6 +333,8 @@ export const vnode_diff = (
   function ascend() {
     const descendVNode = stack.pop(); // boolean: descendVNode
     if (descendVNode) {
+      vSiblings = stack.pop();
+      vSiblingsArray = stack.pop();
       vNewNode = stack.pop();
       vCurrent = stack.pop();
       vParent = stack.pop();
@@ -339,7 +349,7 @@ export const vnode_diff = (
   function stackPush(children: JSXChildren, descendVNode: boolean) {
     stack.push(jsxChildren, jsxIdx, jsxCount, jsxValue);
     if (descendVNode) {
-      stack.push(vParent, vCurrent, vNewNode);
+      stack.push(vParent, vCurrent, vNewNode, vSiblingsArray, vSiblings);
     }
     stack.push(descendVNode);
     if (Array.isArray(children)) {
@@ -820,7 +830,12 @@ export const vnode_diff = (
         value = trackSignalAndAssignHost(value, vnode, key, container, signalData);
       }
 
-      vnode_setAttr(journal, vnode, key, serializeAttribute(key, value, scopedStyleIdPrefix));
+      vnode_setAttr(
+        journal,
+        vnode,
+        key,
+        value !== null ? serializeAttribute(key, value, scopedStyleIdPrefix) : null
+      );
       if (value === null) {
         // if we set `null` than attribute was removed and we need to shorten the dstLength
         dstLength = dstAttrs.length;
@@ -926,21 +941,59 @@ export const vnode_diff = (
     }
   }
 
-  /** Retrieve the child with the given key. */
+  /**
+   * This function is used to retrieve the child with the given key. If the child is not found, it
+   * will return null.
+   *
+   * After finding the first child with the given key we will create a map of all the keyed siblings
+   * and an array of non-keyed siblings. This is done to optimize the search for the next child with
+   * the specified key.
+   *
+   * @param nodeName - The name of the node.
+   * @param key - The key of the node.
+   * @returns The child with the given key or null if not found.
+   */
   function retrieveChildWithKey(
     nodeName: string | null,
     key: string | null
   ): ElementVNode | VirtualVNode | null {
     let vNodeWithKey: ElementVNode | VirtualVNode | null = null;
-    let vNode = vCurrent;
-    while (vNode) {
-      const name = vnode_isElementVNode(vNode) ? vnode_getElementName(vNode) : null;
-      const vKey = getKey(vNode) || getComponentHash(vNode, container.$getObjectById$);
-      if (vKey == key && name == nodeName) {
-        vNodeWithKey = vNode as ElementVNode | VirtualVNode;
-        break;
+    if (vSiblings === null) {
+      // it is not materialized; so materialize it.
+      vSiblings = new Map<string, VNode>();
+      vSiblingsArray = [];
+      let vNode = vCurrent;
+      while (vNode) {
+        const name = vnode_isElementVNode(vNode) ? vnode_getElementName(vNode) : null;
+        const vKey = getKey(vNode) || getComponentHash(vNode, container.$getObjectById$);
+        if (vNodeWithKey === null && vKey == key && name == nodeName) {
+          vNodeWithKey = vNode as ElementVNode | VirtualVNode;
+        } else {
+          if (vKey === null) {
+            vSiblingsArray.push(name, vNode);
+          } else {
+            // we only add the elements which we did not find yet.
+            vSiblings.set(name + ':' + vKey, vNode);
+          }
+        }
+        vNode = vnode_getNextSibling(vNode);
       }
-      vNode = vnode_getNextSibling(vNode);
+    } else {
+      if (key === null) {
+        for (let i = 0; i < vSiblingsArray!.length; i += 2) {
+          if (vSiblingsArray![i] === nodeName) {
+            vNodeWithKey = vSiblingsArray![i + 1] as ElementVNode | VirtualVNode;
+            vSiblingsArray!.splice(i, 2);
+            break;
+          }
+        }
+      } else {
+        const vSibling = vSiblings.get(nodeName + ':' + key);
+        if (vSibling) {
+          vNodeWithKey = vSibling as ElementVNode | VirtualVNode;
+          vSiblings.delete(nodeName + ':' + key);
+        }
+      }
     }
     return vNodeWithKey;
   }

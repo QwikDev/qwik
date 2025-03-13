@@ -166,7 +166,7 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
       requestEv.exit();
       return;
     }
-    let id;
+    let isAction = false;
     const { method } = requestEv;
     const loaders = getRequestLoaders(requestEv);
     const isDev = getRequestMode(requestEv) === 'dev';
@@ -180,16 +180,10 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
     }
 
     if (routeLoaders.length > 0) {
-      await ddd();
+      await Promise.all(loader() || []);
     }
-    async function ddd(id?: string) {
-      let list;
-      if (id) {
-        list = routeLoaders.filter((item) => item.__id === id);
-      } else {
-        list = routeLoaders;
-      }
-      const resolvedLoadersPromises = list.map((loader) => {
+    function loader() {
+      return routeLoaders.map((loader) => {
         const loaderId = loader.__id;
         loaders[loaderId] = runValidators(
           requestEv,
@@ -226,8 +220,6 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
 
         return loaders[loaderId];
       });
-
-      await Promise.all(resolvedLoadersPromises);
     }
 
     if (method === 'POST') {
@@ -252,36 +244,25 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
             loaders[selectedActionId] = requestEv.fail(result.status ?? 500, result.error);
           } else {
             //@ts-ignore
-            const resolve = async (loaderOrAction: LoaderInternal | ActionInternal) => {
-              id = loaderOrAction.__id && loaderOrAction.__brand === 'server_loader';
-              return requestEv.resolveValue(loaderOrAction) as any;
-            };
             const actionResolved = isDev
               ? await measure(requestEv, action.__qrl.getSymbol().split('_', 1)[0], () =>
-                  action.__qrl.call(
-                    requestEv,
-                    result.data as JSONObject,
-                    Object.assign({}, requestEv, { resolveValue: resolve })
-                  )
+                  action.__qrl.call(requestEv, result.data as JSONObject, requestEv)
                 )
-              : await action.__qrl.call(
-                  requestEv,
-                  result.data as JSONObject,
-                  Object.assign({}, requestEv, { resolveValue: resolve })
-                );
+              : await action.__qrl.call(requestEv, result.data as JSONObject, requestEv);
             if (isDev) {
               verifySerializable(qwikSerializer, actionResolved, action.__qrl);
             }
+
             loaders[selectedActionId] = actionResolved;
+            isAction = true;
           }
         }
       }
     }
-    console.log(routeLoaders, 'routeLoaders');
-    if (routeLoaders.length > 0) {
-      ddd(id);
+    if (routeLoaders.length > 0 && isAction) {
+      await Promise.all(loader() || []);
     }
-    id = '';
+    isAction = false;
   };
 }
 

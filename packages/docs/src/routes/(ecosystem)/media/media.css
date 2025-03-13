@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .media {
   margin: 10px auto;
   padding: 0 20px;
@@ -100,5 +102,5 @@
 }
 
 .info-bg {
-  @apply uppercase text-white bg-black bg-opacity-40 backdrop-blur-md px-1 rounded-md;
+  @apply uppercase text-white bg-black/40 backdrop-blur-md px-1 rounded-md;
 }

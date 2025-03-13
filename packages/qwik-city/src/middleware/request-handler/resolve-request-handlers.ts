@@ -277,9 +277,9 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
         }
       }
     }
-
+    console.log(routeLoaders, 'routeLoaders');
     if (routeLoaders.length > 0) {
-      await ddd(id);
+      ddd(id);
     }
     id = '';
   };

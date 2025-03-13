@@ -8,6 +8,8 @@ export type QwikSymbolEvent = CustomEvent<{ symbol: string; element: Element; re
 export type QwikInitEvent = CustomEvent<{}>;
 /** Emitted by qwik-loader on document when the document first becomes idle @public */
 export type QwikIdleEvent = CustomEvent<{}>;
+/** Emitted by qwik-core on document when the a view transition start @public */
+export type QwikViewTransitionEvent = CustomEvent<ViewTransition>;
 
 // Utility types for supporting autocompletion in union types
 

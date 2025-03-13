@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type { Rollup, Plugin, ViteDevServer, HmrContext } from 'vite';
 import { hashCode } from '../../../core/util/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
@@ -877,42 +878,20 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     const module = getModuleInfo(id)!;
     const segment = module.meta.segment;
 
+    // We need to specifically return segment.entry for qwik-insights
     if (segment) {
-      // We need to specifically return segment.entry for qwik-insights
       return segment.entry;
     }
 
-    // To prevent over-prefetching, we need to clearly seperate those chunks,
-    // otherwise rollup can bundle them together with the first component chunk it finds.
-    // For example, the core code could go into an Accordion.tsx chunk, which would make the whole app import accordion related chunks everywhere.
-    if (/\/(qwik|core)\/dist\/core.*js$/.test(id) || id.includes('@builder.io/qwik/build')) {
-      return 'core';
-    }
-    if (/\/(qwik-city|router)\/lib\/index.qwik.*js$/.test(id)) {
-      return 'qwik-city';
-    }
-    if (id.endsWith('vite/preload-helper.js')) {
-      return 'preload-helper';
-    }
-
-    // We can't return a chunk for each module as that creates too many small chunks that slow down the prefetching as well,
-    // nor can we bundle related node_modules together (e.g. all shiki modules together), as that can create very big 10MB chunks.
-    // So here we let rollup do its job.
     if (id.includes('node_modules')) {
       return null;
     }
 
-    // Also to prevent over-prefetching, we must clearly separate those chunks so that rollup doesn't add additional imports into entry files.
-    // We do this after the node_modules check, because some node_modules can end with .js, .ts, etc.
-    if (/\.(qwik\.mjs|qwik\.cjs|tsx|jsx|mdx|ts|js)$/.test(id)) {
-      const optimizer = getOptimizer();
-      const path = optimizer.sys.path;
-      const relativePath = path.relative(optimizer.sys.cwd(), id);
-      const sanitizedPath = relativePath
-        .replace(/^(\.\.\/)+/, '')
-        .replace(/^\/+/, '')
-        .replace(/\//g, '-');
-      return sanitizedPath; // We return sanitizedPath for qwikVite plugin with debug:true
+    // Patch to prevent over-prefetching, we must clearly separate .tsx/.jsx chunks so that rollup doesn't mix random imports into non-entry files such as hooks.
+    // Maybe a better solution would be to mark those files as entires earlier in the chain so that we can remove this check and the one above altogether.
+    // We check .(tsx|jsx) after node_modules in case some node_modules end with .jsx or .tsx.
+    if (/\.(tsx|jsx)$/.test(id)) {
+      return id;
     }
 
     return null;

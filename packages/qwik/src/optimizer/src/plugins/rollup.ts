@@ -78,6 +78,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 
     outputOptions(rollupOutputOpts) {
       return normalizeRollupOutputOptionsObject(
+        qwikPlugin.getOptimizer(),
         qwikPlugin.getOptions(),
         rollupOutputOpts,
         false,
@@ -160,6 +161,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 }
 
 export function normalizeRollupOutputOptions(
+  optimizer: Optimizer,
   opts: NormalizedQwikPluginOptions,
   rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined,
   useAssetsDir: boolean,
@@ -173,18 +175,31 @@ export function normalizeRollupOutputOptions(
     }
 
     return rollupOutputOpts.map((outputOptsObj) => ({
-      ...normalizeRollupOutputOptionsObject(opts, outputOptsObj, useAssetsDir, manualChunks),
+      ...normalizeRollupOutputOptionsObject(
+        optimizer,
+        opts,
+        outputOptsObj,
+        useAssetsDir,
+        manualChunks
+      ),
       dir: outDir || outputOptsObj.dir,
     }));
   }
 
   return {
-    ...normalizeRollupOutputOptionsObject(opts, rollupOutputOpts, useAssetsDir, manualChunks),
+    ...normalizeRollupOutputOptionsObject(
+      optimizer,
+      opts,
+      rollupOutputOpts,
+      useAssetsDir,
+      manualChunks
+    ),
     dir: outDir || rollupOutputOpts?.dir,
   };
 }
 
 export function normalizeRollupOutputOptionsObject(
+  optimizer: Optimizer,
   opts: NormalizedQwikPluginOptions,
   rollupOutputOptsObj: Rollup.OutputOptions | undefined,
   useAssetsDir: boolean,
@@ -201,9 +216,31 @@ export function normalizeRollupOutputOptionsObject(
         ? `${opts.assetsDir}/${assetFileNames}`
         : assetFileNames;
     }
-    // Friendly name in dev or preview with debug mode
-    const fileName =
-      opts.buildMode == 'production' && !opts.debug ? 'build/q-[hash].js' : 'build/[name].js';
+
+    let fileName: string | ((chunkInfo: Rollup.PreRenderedChunk) => string) | undefined;
+    if (opts.buildMode === 'production' && !opts.debug) {
+      fileName = 'build/q-[hash].js';
+    } else {
+      // Friendlier names in dev or preview with debug mode
+      fileName = (chunkInfo) => {
+        if (chunkInfo.moduleIds?.some((id) => id.endsWith('core.prod.mjs'))) {
+          return 'build/core.js';
+        }
+        if (chunkInfo.moduleIds?.some((id) => id.endsWith('qwik-city/lib/index.qwik.mjs'))) {
+          return 'build/qwik-city.js';
+        }
+
+        // The chunk name can often be a path. We sanitize it to use dashes instead of slashes, to keep the same folder structure as without debug:true.
+        // Besides, Rollup doesn't accept absolute or relative paths as inputs for the [name] placeholder for the same reason.
+        const path = optimizer.sys.path;
+        const relativePath = path.relative(optimizer.sys.cwd(), chunkInfo.name);
+        const sanitized = relativePath
+          .replace(/^(\.\.\/)+/, '')
+          .replace(/^\/+/, '')
+          .replace(/\//g, '-');
+        return `build/${sanitized}.js`;
+      };
+    }
     // client production output
     if (!outputOpts.entryFileNames) {
       outputOpts.entryFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;

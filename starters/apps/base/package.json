@@ -20,7 +20,7 @@
     "@builder.io/qwik-city": "latest",
     "@eslint/js": "latest",
     "@types/node": "latest",
-    "@typescript-eslint": "latest",
+    "typescript-eslint": "latest",
     "eslint": "latest",
     "eslint-plugin-qwik": "latest",
     "prettier": "latest",

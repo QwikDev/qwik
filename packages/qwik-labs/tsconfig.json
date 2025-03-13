@@ -19,6 +19,5 @@
       "@qwik-client-manifest": ["../../qwik/src/server/server-modules.d.ts"]
     }
   },
-  "files": ["./eslint.config.mjs"],
   "include": ["src"]
 }

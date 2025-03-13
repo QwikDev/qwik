@@ -37,6 +37,7 @@ const ignores = [
   '**/dist',
   '**/tsconfig.tsbuildinfo',
   '**/vite.config.ts',
+  'eslint.config.mjs',
 ];
 
 export default tseslint.config(

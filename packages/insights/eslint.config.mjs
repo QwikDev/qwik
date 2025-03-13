@@ -46,6 +46,7 @@ const ignores = [
   'src/styled-system',
   '**/panda.config.ts',
   '**/drizzle.config.ts',
+  'eslint.config.mjs',
 ];
 
 export default tseslint.config(

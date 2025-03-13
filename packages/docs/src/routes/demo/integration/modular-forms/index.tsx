@@ -1,5 +1,5 @@
 // @ts-nocheck
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { $, component$, type QRL } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
 import type { InitialValues, SubmitHandler } from '@modular-forms/qwik';

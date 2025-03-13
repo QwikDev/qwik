@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { ReplInputOptions } from '../types';
 import { QWIK_PKG_NAME, QWIK_REPL_DEPS_CACHE } from './repl-constants';
 import type { QwikWorkerGlobal } from './repl-service-worker';

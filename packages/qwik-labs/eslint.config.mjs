@@ -1,14 +1,49 @@
-import globals from 'globals';
 import js from '@eslint/js';
+import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import { globalIgnores } from 'eslint/config';
-// import { qwikEslint9Plugin } from 'eslint-plugin-qwik';
+import { qwikEslint9Plugin } from 'eslint-plugin-qwik';
+
+const ignores = [
+  '**/*.log',
+  '**/.DS_Store',
+  '**/*.',
+  '.vscode/settings.json',
+  '**/.history',
+  '**/.yarn',
+  '**/bazel-*',
+  '**/bazel-bin',
+  '**/bazel-out',
+  '**/bazel-qwik',
+  '**/bazel-testlogs',
+  '**/dist',
+  '**/dist-dev',
+  '**/lib',
+  '**/lib-types',
+  '**/vite',
+  '**/etc',
+  '**/external',
+  '**/node_modules',
+  '**/temp',
+  '**/tsc-out',
+  '**/tsdoc-metadata.json',
+  '**/target',
+  '**/output',
+  '**/rollup.config.js',
+  '**/build',
+  '**/.cache',
+  '**/.vscode',
+  '**/.rollup.cache',
+  '**/dist',
+  '**/tsconfig.tsbuildinfo',
+  '**/vite.config.ts',
+];
 
 export default tseslint.config(
   globalIgnores(ignores),
   js.configs.recommended,
   tseslint.configs.recommended,
-  // qwikEslint9Plugin.configs.recommended,
+  qwikEslint9Plugin.configs.recommended,
   {
     languageOptions: {
       globals: {
@@ -17,10 +52,11 @@ export default tseslint.config(
         ...globals.es2021,
       },
       parserOptions: {
-        // Needed when using the qwik plugin
-        // projectService: true,
-        // tsconfigRootDir: import.meta.dirname,
-        ecmaFeatures: { jsx: true },
+        project: ['./tsconfig.json', './tsconfig-vite.json'],
+        tsconfigRootDir: import.meta.dirname,
+        ecmaFeatures: {
+          jsx: true,
+        },
       },
     },
   },
@@ -40,8 +76,10 @@ export default tseslint.config(
       'no-case-declarations': 'off',
       'no-console': 'off',
       '@typescript-eslint/no-unused-vars': ['error'],
-      '@typescript-eslint/consistent-type-imports': 'warn',
-      // 'qwik/no-react-props': 'off',
+      '@typescript-eslint/no-empty-object-type': 'off',
+      '@typescript-eslint/no-unsafe-function-type': 'off',
+      '@typescript-eslint/no-unused-expressions': 'off',
+      curly: 'error',
     },
   }
 );

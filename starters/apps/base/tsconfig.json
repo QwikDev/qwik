@@ -20,6 +20,6 @@
       "~/*": ["./src/*"]
     }
   },
-  "files": ["./.eslintrc.cjs"],
+  "files": ["./eslint.config.js"],
   "include": ["src", "./*.d.ts", "./*.config.ts"]
 }

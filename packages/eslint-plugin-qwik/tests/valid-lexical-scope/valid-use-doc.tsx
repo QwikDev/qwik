@@ -6,7 +6,7 @@ const loc = exampleTest();
 export default component$(() => {
   const head = useDocumentHead();
   const authorId = useComputed$(() => {
-    return head.meta; // <--- ESLint not happy
+    return head.meta; // <--- EESLint was not happy here, but now it is
   });
   return (
     <>

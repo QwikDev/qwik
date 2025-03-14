@@ -30,6 +30,7 @@ import {
   vnode_newText,
   vnode_newUnMaterializedElement,
   vnode_setAttr,
+  vnode_setProp,
   type VNodeJournal,
 } from '../core/client/vnode';
 
@@ -49,6 +50,7 @@ import {
   QBackRefs,
   Q_PROPS_SEPARATOR,
 } from '../core/shared/utils/markers';
+import { HANDLER_PREFIX } from '../core/client/vnode-diff';
 
 expect.extend({
   toMatchVDOM(
@@ -440,11 +442,14 @@ export function vnode_fromJSX(jsx: JSXOutput) {
         const child = vnode_newUnMaterializedElement(doc.createElement(type));
         vnode_insertBefore(journal, vParent, child, null);
 
-        // TODO(hack): jsx.props is an empty object
         const props = jsx.varProps;
         for (const key in props) {
           if (Object.prototype.hasOwnProperty.call(props, key)) {
-            vnode_setAttr(journal, child, key, String(props[key]));
+            if (key.startsWith(HANDLER_PREFIX) || isJsxPropertyAnEventName(key)) {
+              vnode_setProp(child, key, props[key]);
+            } else {
+              vnode_setAttr(journal, child, key, String(props[key]));
+            }
           }
         }
         if (jsx.key != null) {

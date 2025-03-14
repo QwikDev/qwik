@@ -79,7 +79,10 @@ Use the image in the template as a component:
 
 #### Result
 
-This script will generate the following `<img>` element:
+This script will generate the following `<img>` element with the following optimizations:
+
+- Quality = 75
+- Format = .webp
 
 ```tsx
 <img
@@ -175,6 +178,24 @@ export default component$(() => {
     </div>
   );
 });
+```
+
+#### Customize image quality
+As noted above, the default quality is set to 75, but you can also specify the quality manually:
+Quality is an integer between 1 and 100.
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import Image from '~/media/your_image.png?quality=100&jsx';
+
+export default component$(() => {
+  return (
+    <div>
+      <Image />
+    </div>
+  );
+});
+
 ```
 
 #### Customize image `width`  and `height`

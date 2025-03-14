@@ -279,6 +279,8 @@ export function generateManifestFromBundles(
 
     const bundle: QwikBundle = {
       size: outputBundle.code.length,
+      isEntry: outputBundle.isEntry,
+      isPlan: outputBundle.moduleIds?.some((m) => m.endsWith('@qwik-city-plan')),
     };
 
     let hasSymbols = false;

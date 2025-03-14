@@ -90,6 +90,12 @@ test('debug true', async () => {
   assert.deepEqual(opts.debug, true);
 });
 
+test('csr', async () => {
+  const plugin = await mockPlugin();
+  const opts = plugin.normalizeOptions({ csr: true });
+  assert.deepEqual(opts.outDir, '');
+});
+
 test('override entryStrategy', async () => {
   const plugin = await mockPlugin();
   const opts = plugin.normalizeOptions({

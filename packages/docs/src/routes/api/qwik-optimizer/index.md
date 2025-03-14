@@ -1335,6 +1335,36 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
+[isEntry?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[isPlan?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
 [isTask?](#)
 
 </td><td>

@@ -275,6 +275,8 @@ export interface QwikBundle {
   symbols?: string[];
   imports?: string[];
   dynamicImports?: string[];
+  isEntry?: boolean;
+  isPlan?: boolean;
   origins?: string[];
 }
 

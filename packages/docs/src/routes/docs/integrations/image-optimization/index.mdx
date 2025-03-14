@@ -125,7 +125,57 @@ export default component$(() => {
   );
 });
 ```
+#### Customize image format
+Images are automatically converted to `.webp` format, but you can also specify the format manually:
+Available formats:
 
+<div class="docs-long-list">
+- `heic`
+- `heif`
+- `avif`
+- `jpeg`
+- `jpg`
+- `jpe`
+- `tile`
+- `dz`
+- `png`
+- `raw`
+- `tiff`
+- `tif`
+- `webp`
+- `gif`
+- `jp2`
+- `jpx`
+- `j2k`
+- `j2c`
+- `jxl`
+</div>
+
+Supported file formats to be converted are:
+<div class="docs-long-list">
+- `jpg`
+- `jpeg`
+- `png`
+- `webp`
+- `gif`
+- `tiff`
+- `avif`
+</div>
+
+In the below example, a `jpg` image is converted to a `png` format:
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import Image from '~/media/your_image.jpg?format=png&jsx';
+
+export default component$(() => {
+  return (
+    <div>
+      <Image />
+    </div>
+  );
+});
+```
 
 #### Customize image `width`  and `height`
 

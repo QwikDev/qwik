@@ -102,7 +102,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     rootDir: null as any,
     tsconfigFileNames: ['./tsconfig.json'],
     input: null as any,
-    outDir: null as any,
+    outDir: '',
     assetsDir: null as any,
     resolveQwikBuild: true,
     entryStrategy: null as any,

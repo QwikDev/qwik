@@ -43,8 +43,6 @@
     "qwik-image": "0.0.10",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "rehype-pretty-code": "0.14.0",
-    "shiki": "1.29.1",
     "snarkdown": "2.0.0",
     "tailwindcss": "3.4.6",
     "terser": "5.31.3",
@@ -54,6 +52,11 @@
     "valibot": "0.33.3",
     "vite": "5.3.5",
     "vite-plugin-inspect": "0.8.5",
+    "shiki": "3.1.0",
+    "@shikijs/rehype": "3.1.0",
+    "@shikijs/transformers": "3.1.0",
+    "@shikijs/colorized-brackets": "3.1.0",
+    "@shikijs/types": "3.1.0",
     "wrangler": "3.65.1"
   },
   "engines": {

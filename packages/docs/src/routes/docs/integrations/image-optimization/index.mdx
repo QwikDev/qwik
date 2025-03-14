@@ -247,6 +247,24 @@ export default component$(() => {
 }
 ```
 
+#### Image Optimization for SVGs
+<abbr title="Scalable Vector Graphics">SVGs</abbr> can be added directly to your JSX code, but you can also use the image optimization approach to optimize them:
+
+```tsx
+import { component$ } from '@builder.io/qwik';
+import SvgImage from '~/media/your_image.svg?jsx';
+
+export default component$(() => {
+  return (
+    <>
+      <h1>Image Example</h1>
+      <div class="image-wrapper" >
+        <SvgImage />
+      </div>
+    </>
+  );
+});
+```
 ## `@unpic/qwik`
 
 - Site with detailed instructions on usage: [@unpic/qwik](https://unpic.pics/img/qwik/)

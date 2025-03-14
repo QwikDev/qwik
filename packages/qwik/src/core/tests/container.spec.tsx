@@ -312,7 +312,10 @@ describe('serializer v2', () => {
     describe('ErrorSerializer, ///////// ' + TypeIds.Error, () => {
       it('should serialize and deserialize', async () => {
         const obj = Object.assign(new Error('MyError'), { extra: 'property' });
-        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
+        const result = (await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0);
+        expect(result).toBeInstanceOf(Error);
+        expect(result.message).toBe('MyError');
+        expect((result as any).extra).toBe('property');
       });
     });
 

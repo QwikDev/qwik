@@ -317,7 +317,7 @@ const inflate = (
       const second = d[1];
       if (second && Array.isArray(second)) {
         for (let i = 0; i < second.length; i++) {
-          target[second[i++]] = d[i];
+          target[second[i++]] = second[i];
         }
         target.stack = d[2];
       } else {

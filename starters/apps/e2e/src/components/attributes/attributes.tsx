@@ -18,6 +18,7 @@ export const Attributes = component$(() => {
       >
         Rerender
       </button>
+      <span id="render-count">{render.value}</span>
       <AttributesChild v={render.value} key={render.value} />
       <ProgressParent />
     </>

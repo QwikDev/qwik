@@ -412,16 +412,18 @@ describe('vNode-diff', () => {
   describe('keys', () => {
     it('should not reuse element because old has a key and new one does not', () => {
       const { vNode, vParent, document } = vnode_fromJSX(
-        <test key="KA_6">
-          <b {...{ 'q:key': '1' }}>old</b>
-        </test>
+        _jsxSorted('test', {}, null, [_jsxSorted('b', {}, null, 'old', 0, '1')], 0, 'KA_6')
       );
-      const test = (
-        <test key="KA_6">
-          <b>new</b>
-        </test>
+      const test = _jsxSorted(
+        'test',
+        {},
+        null,
+        [_jsxSorted('b', {}, null, 'new', 0, null)],
+        0,
+        'KA_6'
       );
-      const bOriginal = document.querySelector('b[key=1]')!;
+      const bOriginal = document.querySelector('b[q\\:key=1]')!;
+      expect(bOriginal).toBeDefined();
       vnode_diff(
         { $journal$: journal, $scheduler$: scheduler, document } as any,
         test,
@@ -431,32 +433,46 @@ describe('vNode-diff', () => {
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(test);
       const bSecond = document.querySelector('b')!;
+      expect(bSecond).toBeDefined();
       expect(bSecond).not.toBe(bOriginal);
     });
     it('should reuse elements if keys match', () => {
       const { vNode, vParent, document } = vnode_fromJSX(
-        <test key="KA_6">
-          <b {...{ 'q:key': '1' }}>1</b>
-          <b {...{ 'q:key': '2' }}>2</b>
-        </test>
+        _jsxSorted(
+          'test',
+          {},
+          null,
+          [_jsxSorted('b', {}, null, '1', 0, '1'), _jsxSorted('b', {}, null, '2', 0, '2')],
+          0,
+          'KA_6'
+        )
       );
-      const test = (
-        <test key="KA_6">
-          <b>before</b>
-          <b key="2">2</b>
-          <b key="3">3</b>
-          <b>in</b>
-          <b key="1">1</b>
-          <b>after</b>
-        </test>
+      const test = _jsxSorted(
+        'test',
+        {},
+        null,
+        [
+          _jsxSorted('b', {}, null, 'before', 0, null),
+          _jsxSorted('b', {}, null, '2', 0, '2'),
+          _jsxSorted('b', {}, null, '3', 0, '3'),
+          _jsxSorted('b', {}, null, 'in', 0, null),
+          _jsxSorted('b', {}, null, '1', 0, '1'),
+          _jsxSorted('b', {}, null, 'after', 0, null),
+        ],
+        0,
+        'KA_6'
       );
-      const b1 = document.querySelector('b[key=1]')!;
-      const b2 = document.querySelector('b[key=1]')!;
+      const selectB1 = () => document.querySelector('b[q\\:key=1]')!;
+      const selectB2 = () => document.querySelector('b[q\\:key=2]')!;
+      const b1 = selectB1();
+      const b2 = selectB2();
+      expect(b1).toBeDefined();
+      expect(b2).toBeDefined();
       vnode_diff({ $journal$: journal, document } as any, test, vParent, null);
       vnode_applyJournal(journal);
       expect(vNode).toMatchVDOM(test);
-      expect(b1).toBe(document.querySelector('b[key=1]')!);
-      expect(b2).toBe(document.querySelector('b[key=2]')!);
+      expect(b1).toBe(selectB1());
+      expect(b2).toBe(selectB2());
     });
   });
   describe.todo('fragments', () => {});

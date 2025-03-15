@@ -34,6 +34,7 @@ export const DocSearchModal = component$(
     transformItems$ = identity,
     aiResultOpen,
     disableUserPersonalization = false,
+    ...prop
   }: DocSearchModalProps) => {
     const containerRef = useSignal<Element>();
     const modalRef = useSignal<Element>();
@@ -44,7 +45,7 @@ export const DocSearchModal = component$(
     const onSelectItem = noSerialize(({ item, event }: any) => {
       if (event) {
         if (!event.shiftKey && !event.ctrlKey && !event.metaKey) {
-          state.isOpen = false;
+          prop['bind:open'].value = false;
         }
       }
     }) as any;
@@ -167,7 +168,8 @@ export const DocSearchModal = component$(
         tabIndex={0}
         onMouseDown$={(event) => {
           if (event.target === containerRef.value) {
-            state.isOpen = false;
+            prop['bind:open'].value = false;
+            //state.isOpen.value = false;
           }
         }}
       >
@@ -178,7 +180,8 @@ export const DocSearchModal = component$(
               autoFocus={true}
               inputRef={inputRef as any}
               onClose$={() => {
-                state.isOpen = false;
+                //state.isOpen.value = false;
+                prop['bind:open'].value = false;
               }}
             />
           </header>

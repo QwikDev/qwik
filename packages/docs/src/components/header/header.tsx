@@ -1,5 +1,5 @@
 import { useLocation } from '@builder.io/qwik-city';
-import { component$, useStyles$, useContext, useVisibleTask$ } from '@builder.io/qwik';
+import { component$, useStyles$, useContext, useVisibleTask$, useSignal } from '@builder.io/qwik';
 import { DocSearch } from '../docsearch/doc-search';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
@@ -15,9 +15,28 @@ import {
   setPreference,
   ThemeToggle,
 } from '../theme-toggle/theme-toggle';
+import { SearchIcon } from '../docsearch/icons/SearchIcon';
+
+export const SearchButton = component$((props: { onClick$: () => void; class?: string }) => {
+  return (
+    <button
+      onClick$={props.onClick$}
+      class={`flex flex-row justify-between items-center py-0 px-2 my-0 mx-4 h-8 font-medium
+              text-center normal-case border-2 border-solid cursor-pointer select-none
+              border-sky-500 bg-neutral-900 text-sky-500 rounded-2xl ${props.class || ''}`}
+      type="button"
+      title="Search"
+      aria-label="Search"
+    >
+      <span class="mr-2  md:inline-block sm:hiddenmr-2 hidden sm:visible">Search</span>
+      <SearchIcon />
+    </button>
+  );
+});
 
 export const Header = component$(() => {
   useStyles$(styles);
+  const shouldActivate = useSignal(false);
   const globalStore = useContext(GlobalStore);
   const pathname = useLocation().url.pathname;
 
@@ -43,6 +62,14 @@ export const Header = component$(() => {
               <span class="sr-only">Qwik Homepage</span>
               <QwikLogo width={130} height={44} />
             </a>
+          </div>
+          <div class="flex items-center">
+            <SearchButton
+              onClick$={() => {
+                shouldActivate.value = true;
+              }}
+              class=" absolute right-10 lg:hidden"
+            />
           </div>
           <button
             onClick$={() => {
@@ -99,11 +126,11 @@ export const Header = component$(() => {
                 <span>Blog</span>
               </a>
             </li>
-            <li>
-              <DocSearch
-                appId={import.meta.env.VITE_ALGOLIA_APP_ID}
-                apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
-                indexName={import.meta.env.VITE_ALGOLIA_INDEX}
+            <li class="hidden lg:flex">
+              <SearchButton
+                onClick$={() => {
+                  shouldActivate.value = true;
+                }}
               />
             </li>
             <li>
@@ -135,6 +162,12 @@ export const Header = component$(() => {
             </li>
           </ul>
         </div>
+        <DocSearch
+          bind:open={shouldActivate}
+          appId={import.meta.env.VITE_ALGOLIA_APP_ID}
+          apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
+          indexName={import.meta.env.VITE_ALGOLIA_INDEX}
+        />
       </header>
     </>
   );

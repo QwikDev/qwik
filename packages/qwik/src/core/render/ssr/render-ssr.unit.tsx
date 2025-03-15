@@ -672,6 +672,29 @@ test('DelayResource', async () => {
   );
 });
 
+test('AsyncResource', async () => {
+  await testSSR(
+    <body>
+      <ul>
+        <AsyncResource text="thing" />
+        <AsyncResource text="thing" />
+      </ul>
+    </body>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
+    <body>
+      <ul>
+        <!--qv q:id=0 q:key=sX:-->
+          <div class="cmp"><!--qkssr-f--><span>thing</span>;</div>
+        <!--/qv-->
+        <!--qv q:id=1 q:key=sX:-->
+          <div class="cmp"><!--qkssr-f--><span>thing</span>;</div>
+        <!--/qv-->
+      </ul>
+    </body>
+  </html>`
+  );
+});
+
 test('using promises with DelayResource', async () => {
   await testSSR(
     <body>
@@ -1878,6 +1901,17 @@ export const DelayResource = component$((props: { text: string; delay: number })
   return (
     <div class="cmp">
       <Resource value={resource} onResolved={(value) => <span>{value}</span>} />
+    </div>
+  );
+});
+
+export const AsyncResource = component$((props: { text: string }) => {
+  const resource = useResource$<string>(() => {
+    return props.text;
+  });
+  return (
+    <div class="cmp">
+      <Resource value={resource} onResolved={async (value) => <span>{value}</span>} />;
     </div>
   );
 });

@@ -2168,6 +2168,10 @@ any \| undefined
 
 ## event$
 
+> Warning: This API is now obsolete.
+>
+> It will be removed in v2. Instead, use `$()`, and inside the function add `if (isServer) { return; }`
+
 ```typescript
 event$: <T>(qrl: T) => QRL<T>;
 ```

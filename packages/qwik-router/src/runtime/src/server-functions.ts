@@ -40,6 +40,9 @@ import type {
   ServerConfig,
   ServerFunction,
   ServerQRL,
+  StandardSchemaConstructor,
+  StandardSchemaConstructorQRL,
+  StandardSchemaDataValidator,
   ValibotConstructor,
   ValibotConstructorQRL,
   ValibotDataValidator,
@@ -56,6 +59,7 @@ import { isDev, isServer } from '@qwik.dev/core';
 
 import type { FormSubmitCompletedDetail } from './form-component';
 import { deepFreeze } from './utils';
+import type { StandardSchemaV1 } from '@standard-schema/spec';
 
 /** @internal */
 export const routeActionQrl = ((
@@ -232,31 +236,60 @@ export const validatorQrl = ((
 /** @public */
 export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
 
-const flattenValibotIssues = (issues: v.GenericIssue[]) => {
-  return issues.reduce<Record<string, string | string[]>>((acc, issue) => {
-    if (issue.path) {
-      const hasArrayType = issue.path.some((path) => path.type === 'array');
-      if (hasArrayType) {
-        const keySuffix = issue.expected === 'Array' ? '[]' : '';
-        const key =
-          issue.path
-            .map((item) => (item.type === 'array' ? '*' : item.key))
-            .join('.')
-            .replace(/\.\*/g, '[]') + keySuffix;
-        acc[key] = acc[key] || [];
-        if (Array.isArray(acc[key])) {
-          (acc[key] as string[]).push(issue.message);
+/** @public */
+export const schemaQrl: StandardSchemaConstructorQRL = (
+  qrl: QRL<StandardSchemaV1 | ((ev: RequestEvent) => StandardSchemaV1)>
+): StandardSchemaDataValidator => {
+  if (isServer) {
+    return {
+      __brand: 'standard-schema',
+      async validate(ev, inputData) {
+        const schema: StandardSchemaV1 = await qrl
+          .resolve()
+          .then((obj) => (typeof obj === 'function' ? obj(ev) : obj));
+        const data = inputData ?? (await ev.parseBody());
+        const result = await schema['~standard'].validate(data);
+        if (!result.issues) {
+          return {
+            success: true,
+            data: result.value,
+          };
+        } else {
+          if (isDev) {
+            console.error('ERROR: Standard Schema validation failed', result.issues);
+          }
+          const formErrors: string[] = [];
+          const fieldErrors: Partial<Record<string, string[]>> = {};
+          for (const issue of result.issues) {
+            const dotPath = issue.path
+              ?.map((item) => (typeof item === 'object' ? item.key : item))
+              .join('.');
+            if (dotPath) {
+              if (fieldErrors[dotPath]) {
+                fieldErrors[dotPath]!.push(issue.message);
+              } else {
+                fieldErrors[dotPath] = [issue.message];
+              }
+            } else {
+              formErrors.push(issue.message);
+            }
+          }
+          return {
+            success: false,
+            status: 400,
+            error: { formErrors, fieldErrors },
+          };
         }
-        return acc;
-      } else {
-        acc[issue.path.map((item) => item.key).join('.')] = issue.message;
-      }
-    }
-    return acc;
-  }, {});
+      },
+    };
+  }
+  return undefined as never;
 };
 
-/** @internal */
+/** @public */
+export const schema$: StandardSchemaConstructor = /*#__PURE__*/ implicit$FirstArg(schemaQrl);
+
+/** @deprecated */
 export const valibotQrl: ValibotConstructorQRL = (
   qrl: QRL<
     | v.GenericSchema
@@ -287,12 +320,13 @@ export const valibotQrl: ValibotConstructorQRL = (
           if (isDev) {
             console.error('ERROR: Valibot validation failed', result.issues);
           }
+          const flattErrors = v.flatten(result.issues);
           return {
             success: false,
             status: 400,
             error: {
-              formErrors: v.flatten(result.issues).root ?? [],
-              fieldErrors: flattenValibotIssues(result.issues),
+              formErrors: flattErrors.root ?? [],
+              fieldErrors: flattErrors.nested ?? {},
             },
           };
         }
@@ -302,34 +336,10 @@ export const valibotQrl: ValibotConstructorQRL = (
   return undefined as never;
 };
 
-/** @beta */
+/** @deprecated */
 export const valibot$: ValibotConstructor = /*#__PURE__*/ implicit$FirstArg(valibotQrl);
 
-const flattenZodIssues = (issues: z.ZodIssue | z.ZodIssue[]) => {
-  issues = Array.isArray(issues) ? issues : [issues];
-  return issues.reduce<Record<string, string | string[]>>((acc, issue) => {
-    const isExpectingArray = 'expected' in issue && issue.expected === 'array';
-    const hasArrayType = issue.path.some((path) => typeof path === 'number') || isExpectingArray;
-    if (hasArrayType) {
-      const keySuffix = 'expected' in issue && issue.expected === 'array' ? '[]' : '';
-      const key =
-        issue.path
-          .map((path) => (typeof path === 'number' ? '*' : path))
-          .join('.')
-          .replace(/\.\*/g, '[]') + keySuffix;
-      acc[key] = acc[key] || [];
-      if (Array.isArray(acc[key])) {
-        (acc[key] as string[]).push(issue.message);
-      }
-      return acc;
-    } else {
-      acc[issue.path.join('.')] = issue.message;
-    }
-    return acc;
-  }, {});
-};
-
-/** @internal */
+/** @deprecated */
 export const zodQrl: ZodConstructorQRL = (
   qrl: QRL<
     z.ZodRawShape | z.Schema | ((z: typeof import('zod').z, ev: RequestEvent) => z.ZodRawShape)
@@ -357,12 +367,13 @@ export const zodQrl: ZodConstructorQRL = (
           if (isDev) {
             console.error('ERROR: Zod validation failed', result.error.issues);
           }
+          const flattErrors = result.error.flatten();
           return {
             success: false,
             status: 400,
             error: {
-              formErrors: result.error.flatten().formErrors,
-              fieldErrors: flattenZodIssues(result.error.issues),
+              formErrors: flattErrors.formErrors,
+              fieldErrors: flattErrors.fieldErrors,
             },
           };
         }
@@ -372,7 +383,7 @@ export const zodQrl: ZodConstructorQRL = (
   return undefined as never;
 };
 
-/** @public */
+/** @deprecated */
 export const zod$: ZodConstructor = /*#__PURE__*/ implicit$FirstArg(zodQrl);
 
 /** @internal */

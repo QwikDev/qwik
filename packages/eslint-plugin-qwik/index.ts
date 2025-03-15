@@ -26,7 +26,7 @@ const rules = {
   'jsx-img': jsxImg,
   'jsx-a': jsxAtag,
   'no-use-visible-task': noUseVisibleTask,
-} as const satisfies Rules;
+} satisfies Rules;
 
 const recommendedRulesLevels = {
   'qwik/valid-lexical-scope': 'error',
@@ -40,7 +40,7 @@ const recommendedRulesLevels = {
   'qwik/jsx-img': 'warn',
   'qwik/jsx-a': 'warn',
   'qwik/no-use-visible-task': 'warn',
-} as const satisfies TSESLint.FlatConfig.Rules;
+} satisfies TSESLint.FlatConfig.Rules;
 
 const strictRulesLevels = {
   'qwik/valid-lexical-scope': 'error',
@@ -54,7 +54,7 @@ const strictRulesLevels = {
   'qwik/jsx-img': 'error',
   'qwik/jsx-a': 'error',
   'qwik/no-use-visible-task': 'warn',
-} as const satisfies TSESLint.FlatConfig.Rules;
+} satisfies TSESLint.FlatConfig.Rules;
 
 const configs = {
   recommended: {
@@ -65,9 +65,9 @@ const configs = {
     plugins: ['qwik'],
     rules: strictRulesLevels,
   },
-} as const satisfies Record<string, TSESLint.ClassicConfig.Config>;
+} satisfies Record<string, TSESLint.ClassicConfig.Config>;
 
-const qwikEslint9Plugin: TSESLint.FlatConfig.Plugin = {
+const qwikEslint9Plugin = {
   configs: {
     get recommended() {
       return recommendedConfig;
@@ -81,24 +81,24 @@ const qwikEslint9Plugin: TSESLint.FlatConfig.Plugin = {
     version: pkg.version,
   },
   rules,
-};
+} as const;
 
-const recommendedConfig: TSESLint.FlatConfig.ConfigArray = [
+const recommendedConfig = [
   {
     plugins: {
       qwik: qwikEslint9Plugin,
     },
     rules: recommendedRulesLevels,
   },
-];
+] satisfies TSESLint.FlatConfig.ConfigArray;
 
-const strictConfig: TSESLint.FlatConfig.ConfigArray = [
+const strictConfig = [
   {
     plugins: {
       qwik: qwikEslint9Plugin,
     },
     rules: strictRulesLevels,
   },
-];
+] satisfies TSESLint.FlatConfig.ConfigArray;
 
 export { configs, qwikEslint9Plugin, rules };

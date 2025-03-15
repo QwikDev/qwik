@@ -22,7 +22,8 @@ import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { vnode_getNextSibling, vnode_getProp, vnode_locate } from '../client/vnode';
-import { HTML_NS, SVG_NS } from '../shared/utils/markers';
+import { HTML_NS, QContainerAttr, SVG_NS } from '../shared/utils/markers';
+import { QContainerValue } from '../shared/types';
 
 const DEBUG = false;
 
@@ -1557,13 +1558,14 @@ describe.each([
         );
       });
       const { document } = await render(<Parent />, { debug: DEBUG });
+      const qContainerAttr = { [QContainerAttr]: QContainerValue.HTML };
       await expect(document.querySelector('#first')).toMatchDOM(
-        <div id="first" q:slot="content-1">
+        <div id="first" q:slot="content-1" {...qContainerAttr}>
           <strong>A variable here!</strong>
         </div>
       );
       await expect(document.querySelector('#second')).toMatchDOM(
-        <div q:slot="content-2" id="second" class="after">
+        <div q:slot="content-2" id="second" class="after" {...qContainerAttr}>
           <span>here my raw HTML</span>
         </div>
       );
@@ -1587,7 +1589,9 @@ describe.each([
       const { document, vNode } = await render(<Cmp>{content}</Cmp>, { debug: DEBUG });
       if (render == ssrRenderToDom) {
         await expect(document.querySelector('q\\:template')).toMatchDOM(
-          <q:template key={undefined}>{content}</q:template>
+          <q:template key={undefined} style="display: none">
+            {content}
+          </q:template>
         );
       }
       expect(vNode).toMatchVDOM(
@@ -1675,7 +1679,9 @@ describe.each([
       const { document } = await render(<Parent />, { debug: DEBUG });
       if (render == ssrRenderToDom) {
         await expect(document.querySelector('q\\:template')).toMatchDOM(
-          <q:template key={undefined}>{content}</q:template>
+          <q:template key={undefined} style="display: none">
+            {content}
+          </q:template>
         );
       }
 
@@ -1683,7 +1689,7 @@ describe.each([
       await trigger(document.body, '#slot', 'click');
       if (render == ssrRenderToDom) {
         await expect(document.querySelector('q\\:template')).toMatchDOM(
-          <q:template key={undefined}></q:template>
+          <q:template key={undefined} style="display: none"></q:template>
         );
       }
     });
@@ -1731,7 +1737,9 @@ describe.each([
       const { document } = await render(<Parent />, { debug: DEBUG });
       if (render == ssrRenderToDom) {
         await expect(document.querySelector('q\\:template')).toMatchDOM(
-          <q:template key={undefined}>{content}</q:template>
+          <q:template key={undefined} style="display: none">
+            {content}
+          </q:template>
         );
       }
       await trigger(document.body, '#reload', 'click');

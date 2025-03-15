@@ -167,7 +167,7 @@ export default defineConfig(async () => {
           ],
         },
       }),
-      qwikVite(),
+      qwikVite({ debug: true }),
       partytownVite({
         dest: resolve('dist', '~partytown'),
       }),
@@ -180,6 +180,7 @@ export default defineConfig(async () => {
       // qwikInsights({ publicApiKey: PUBLIC_QWIK_INSIGHTS_KEY }),
     ],
     build: {
+      minify: false,
       sourcemap: true,
       rollupOptions: {
         output: {

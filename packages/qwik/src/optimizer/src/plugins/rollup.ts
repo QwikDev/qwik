@@ -187,7 +187,6 @@ export function normalizeRollupOutputOptionsObject(
   const outputOpts: Rollup.OutputOptions = { ...rollupOutputOptsObj };
   const opts = qwikPlugin.getOptions();
   const optimizer = qwikPlugin.getOptimizer();
-  const manualChunks = qwikPlugin.manualChunks;
   if (opts.target === 'client') {
     // client output
     if (!outputOpts.assetFileNames) {

@@ -3605,7 +3605,7 @@ _(Optional)_ Options for the loading prefetch graph.
 
 [JSXOutput](#jsxoutput)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/buffering/components/prefetch.ts)
 
 ## PrefetchServiceWorker
 
@@ -3659,7 +3659,7 @@ Options for the prefetch service worker.
 
 [JSXNode](#jsxnode)&lt;'script'&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/buffering/components/prefetch.ts)
 
 ## ProgressHTMLAttributes
 

@@ -1,6 +1,8 @@
 /* eslint-disable */
 import type { QPrefetchData, QPrefetchMessage } from './service-worker/types';
-
+declare global {
+  var qwikCitySWVerbose: boolean;
+}
 // Source for what becomes innerHTML to the <ServiceWorkerRegister/> script
 
 ((
@@ -43,10 +45,20 @@ import type { QPrefetchData, QPrefetchMessage } from './service-worker/types';
         if (reg.installing) {
           reg.installing.addEventListener('statechange', (ev: any) => {
             if (ev.target.state == 'activated') {
+              if (globalThis.qwikCitySWVerbose) {
+                reg.active?.postMessage({
+                  type: 'verbose',
+                });
+              }
               initServiceWorker!();
             }
           });
         } else if (reg.active) {
+          if (globalThis.qwikCitySWVerbose) {
+            reg.active.postMessage({
+              type: 'verbose',
+            });
+          }
           initServiceWorker!();
         }
       })

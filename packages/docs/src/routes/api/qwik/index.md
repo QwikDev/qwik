@@ -5095,7 +5095,7 @@ _(Optional)_
 
 </td><td>
 
-(value: T) =&gt; [JSXOutput](#jsxoutput)
+(value: T) =&gt; [JSXOutput](#jsxoutput) \| Promise&lt;[JSXOutput](#jsxoutput)&gt;
 
 </td><td>
 

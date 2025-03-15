@@ -886,7 +886,7 @@ export interface ResourceProps<T> {
     // (undocumented)
     onRejected?: (reason: Error) => JSXOutput;
     // (undocumented)
-    onResolved: (value: T) => JSXOutput;
+    onResolved: (value: T) => JSXOutput | Promise<JSXOutput>;
     // (undocumented)
     readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
 }

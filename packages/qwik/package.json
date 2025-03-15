@@ -159,7 +159,7 @@
   "license": "MIT",
   "main": "./dist/core.mjs",
   "peerDependencies": {
-    "vite": "^5"
+    "vite": "^5 || ^6"
   },
   "repository": {
     "type": "git",

@@ -16,6 +16,8 @@ import {
   $,
   Slot,
 } from '@qwik.dev/core';
+import { QContainerAttr } from '../shared/utils/markers';
+import { QContainerValue } from '../shared/types';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -193,9 +195,12 @@ describe.each([
       });
       const { document } = await render(<Cmp />, { debug });
 
+      const qContainerAttr =
+        render === ssrRenderToDom ? { [QContainerAttr]: QContainerValue.TEXT } : {};
+
       await expect(document.querySelector('div')).toMatchDOM(
         <div>
-          <textarea>123</textarea>
+          <textarea {...qContainerAttr}>123</textarea>
           <input value="123" />
         </div>
       );
@@ -207,7 +212,7 @@ describe.each([
 
       await expect(document.querySelector('div')).toMatchDOM(
         <div>
-          <textarea>abcd</textarea>
+          <textarea {...qContainerAttr}>abcd</textarea>
           <input value="abcd" />
         </div>
       );

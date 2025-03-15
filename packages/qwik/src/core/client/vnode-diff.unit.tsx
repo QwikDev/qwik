@@ -1,4 +1,4 @@
-import { _jsxSorted } from '@qwik.dev/core';
+import { Fragment, _jsxSorted } from '@qwik.dev/core';
 import { vnode_fromJSX } from '@qwik.dev/core/testing';
 import { afterEach, describe, expect, it } from 'vitest';
 import { vnode_applyJournal, vnode_getFirstChild, vnode_getNode, type VNodeJournal } from './vnode';
@@ -477,6 +477,20 @@ describe('vNode-diff', () => {
   });
   describe.todo('fragments', () => {});
   describe('attributes', () => {
+    describe('const props', () => {
+      it('should set attributes', async () => {
+        const { vParent, container } = vnode_fromJSX(<Fragment></Fragment>);
+        const test = _jsxSorted('span', {}, { class: 'abcd', id: 'b' }, null, 0, null);
+        vnode_diff(container, test, vParent, null);
+        vnode_applyJournal(container.$journal$);
+        const firstChild = vnode_getFirstChild(vParent);
+        const firstChildNode = vnode_getNode(firstChild) as Element;
+        await expect(firstChildNode).toMatchDOM(test);
+      });
+
+      // todo: add more tests for const props
+    });
+
     describe('var props', () => {
       it('should set attributes', () => {
         const { vParent, document } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));

@@ -8,7 +8,8 @@ import {
   Fragment as Signal,
   type JSXOutput,
 } from '@qwik.dev/core';
-import { HTML_NS, MATH_NS, SVG_NS } from '../shared/utils/markers';
+import { HTML_NS, MATH_NS, QContainerAttr, SVG_NS } from '../shared/utils/markers';
+import { QContainerValue } from '../shared/types';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -38,7 +39,7 @@ describe.each([
       );
       await expect(container.document.querySelector('svg')).toMatchDOM(
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="ka">
-          <fegaussianblur></fegaussianblur>
+          <feGaussianBlur></feGaussianBlur>
           <circle cx="50" cy="50" r="50"></circle>
         </svg>
       );
@@ -338,14 +339,14 @@ describe.each([
         );
       });
       const { vNode, document } = await render(<SvgComp />, { debug });
+      const qContainerAttr = { [QContainerAttr]: QContainerValue.HTML };
       expect(vNode).toMatchVDOM(
         <Component>
-          {/* @ts-ignore-next-line */}
-          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:container="html"></svg>
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" {...qContainerAttr}></svg>
         </Component>
       );
       await expect(document.querySelector('svg')).toMatchDOM(
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" {...qContainerAttr}>
           <circle cx="50" cy="50" r="50" />
           <path d="M10 10" />
           <path d="M20 20" />

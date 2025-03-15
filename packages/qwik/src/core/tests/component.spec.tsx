@@ -27,6 +27,8 @@ import { delay } from '../shared/utils/promises';
 import { QError } from '../shared/error/error';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import * as qError from '../shared/error/error';
+import { QContainerValue } from '../shared/types';
+import { QContainerAttr } from '../shared/utils/markers';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -360,16 +362,19 @@ describe.each([
       );
     });
     const { document } = await render(<Cmp />, { debug });
+    const qContainerAttr = { [QContainerAttr]: QContainerValue.HTML };
     await expect(document.querySelector('#first')).toMatchDOM(
-      <span id="first">vanilla HTML here</span>
+      <span id="first" {...qContainerAttr}>
+        vanilla HTML here
+      </span>
     );
     await expect(document.querySelector('#second')).toMatchDOM(
-      <span id="second" class="after">
+      <span id="second" class="after" {...qContainerAttr}>
         <h1>I'm an h1!</h1>
       </span>
     );
     await expect(document.querySelector('#third')).toMatchDOM(
-      <span id="third" class="after">
+      <span id="third" class="after" {...qContainerAttr}>
         <h2>
           <span>I'm a signal value!</span>
         </h2>
@@ -377,7 +382,7 @@ describe.each([
     );
     await trigger(document.body, 'button', 'click');
     await expect(document.querySelector('#third')).toMatchDOM(
-      <span id="third" class="after">
+      <span id="third" class="after" {...qContainerAttr}>
         <h2>
           <span>I'm a updated signal value!</span>
         </h2>
@@ -419,23 +424,26 @@ describe.each([
       );
     });
     const { document } = await render(<Parent />, { debug });
+    const qContainerAttr = { [QContainerAttr]: QContainerValue.HTML };
     await expect(document.querySelector('#first')).toMatchDOM(
-      <span id="first">vanilla HTML here</span>
+      <span id="first" {...qContainerAttr}>
+        vanilla HTML here
+      </span>
     );
     await expect(document.querySelector('#second')).toMatchDOM(
-      <span id="second" class="after">
+      <span id="second" class="after" {...qContainerAttr}>
         <h1>I'm an h1!</h1>
       </span>
     );
     await expect(document.querySelector('#third')).toMatchDOM(
-      <span id="third" class="after">
+      <span id="third" class="after" {...qContainerAttr}>
         <h2>
           <span>I'm a signal value!</span>
         </h2>
       </span>
     );
     await expect(document.querySelector('#fourth')).toMatchDOM(
-      <span id="fourth" class="after">
+      <span id="fourth" class="after" {...qContainerAttr}>
         <h3>Test content</h3>
       </span>
     );
@@ -443,22 +451,24 @@ describe.each([
     await trigger(document.body, 'button', 'click');
 
     await expect(document.querySelector('#first')).toMatchDOM(
-      <span id="first">vanilla HTML here</span>
+      <span id="first" {...qContainerAttr}>
+        vanilla HTML here
+      </span>
     );
     await expect(document.querySelector('#second')).toMatchDOM(
-      <span id="second" class="after">
+      <span id="second" class="after" {...qContainerAttr}>
         <h1>I'm an h1!</h1>
       </span>
     );
     await expect(document.querySelector('#third')).toMatchDOM(
-      <span id="third" class="after">
+      <span id="third" class="after" {...qContainerAttr}>
         <h2>
           <span>I'm a updated signal value!</span>
         </h2>
       </span>
     );
     await expect(document.querySelector('#fourth')).toMatchDOM(
-      <span id="fourth" class="after">
+      <span id="fourth" class="after" {...qContainerAttr}>
         <h3>Test content</h3>
       </span>
     );
@@ -476,9 +486,15 @@ describe.each([
     });
 
     const { document } = await render(<Cmp />, { debug });
-    await expect(document.querySelector('textarea')).toMatchDOM(<textarea>value 123</textarea>);
+    const qContainerAttr =
+      render === ssrRenderToDom ? { [QContainerAttr]: QContainerValue.TEXT } : {};
+    await expect(document.querySelector('textarea')).toMatchDOM(
+      <textarea {...qContainerAttr}>value 123</textarea>
+    );
     await trigger(document.body, 'button', 'click');
-    await expect(document.querySelector('textarea')).toMatchDOM(<textarea>value 123!</textarea>);
+    await expect(document.querySelector('textarea')).toMatchDOM(
+      <textarea {...qContainerAttr}>value 123!</textarea>
+    );
   });
 
   it('should render textarea without error', async () => {
@@ -497,7 +513,11 @@ describe.each([
     });
 
     const { document } = await render(<Cmp />, { debug });
-    await expect(document.querySelector('textarea')).toMatchDOM(<textarea></textarea>);
+    const qContainerAttr =
+      render === ssrRenderToDom ? { [QContainerAttr]: QContainerValue.TEXT } : {};
+    await expect(document.querySelector('textarea')).toMatchDOM(
+      <textarea {...qContainerAttr}></textarea>
+    );
   });
 
   it('should not render textarea value for non-text value', async () => {
@@ -1992,14 +2012,15 @@ describe.each([
         );
       });
       const { document, container } = await render(<Issue3643 />, { debug });
+      const qContainerAttr = { [QContainerAttr]: QContainerValue.HTML };
       await expect(document.querySelector('main')).toMatchDOM(
         <main>
           <button>Toggle</button>
           <div>
-            <div>Hello</div>
+            <div {...qContainerAttr}>Hello</div>
           </div>
           <div>
-            <div>Hello</div>
+            <div {...qContainerAttr}>Hello</div>
           </div>
         </main>
       );
@@ -2022,10 +2043,10 @@ describe.each([
         <main>
           <button>Toggle</button>
           <div>
-            <div>Hello</div>
+            <div {...qContainerAttr}>Hello</div>
           </div>
           <div>
-            <div>Hello</div>
+            <div {...qContainerAttr}>Hello</div>
           </div>
         </main>
       );
@@ -2048,10 +2069,10 @@ describe.each([
         <main>
           <button>Toggle</button>
           <div>
-            <div>Hello</div>
+            <div {...qContainerAttr}>Hello</div>
           </div>
           <div>
-            <div>Hello</div>
+            <div {...qContainerAttr}>Hello</div>
           </div>
         </main>
       );

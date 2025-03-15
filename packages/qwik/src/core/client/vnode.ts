@@ -914,6 +914,7 @@ export const vnode_applyJournal = (journal: VNodeJournal) => {
           (element as any).value = String(value);
         } else if (key === dangerouslySetInnerHTML) {
           (element as any).innerHTML = value!;
+          element.setAttribute(QContainerAttr, QContainerValue.HTML);
         } else {
           if (value == null || value === false) {
             element.removeAttribute(key);

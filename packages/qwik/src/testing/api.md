@@ -92,6 +92,7 @@ export function vnode_fromJSX(jsx: JSXOutput): {
     vParent: _ElementVNode;
     vNode: _VNode | null;
     document: _QDocument;
+    container: ClientContainer;
 };
 
 // @public (undocumented)

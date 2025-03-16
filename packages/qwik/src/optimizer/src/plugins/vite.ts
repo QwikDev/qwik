@@ -25,7 +25,7 @@ import {
   Q_MANIFEST_FILENAME,
   SSR_OUT_DIR,
   TRANSFORM_REGEX,
-  createPlugin,
+  createQwikPlugin,
   parseId,
   type ExperimentalFeatures,
   type NormalizedQwikPluginOptions,
@@ -74,7 +74,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     ? (id, type) => TRANSFORM_REGEX.test(id) || qwikViteOpts.fileFilter!(id, type)
     : () => true;
   const injections: GlobalInjections[] = [];
-  const qwikPlugin = createPlugin(qwikViteOpts.optimizerOptions);
+  const qwikPlugin = createQwikPlugin(qwikViteOpts.optimizerOptions);
 
   async function loadQwikInsights(clientOutDir = ''): Promise<InsightManifest | null> {
     const sys = qwikPlugin.getSys();
@@ -360,11 +360,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         updatedViteConfig.build!.rollupOptions = {
           input: opts.input,
           output: normalizeRollupOutputOptions(
-            qwikPlugin.getOptimizer(),
-            opts,
+            qwikPlugin,
             viteConfig.build?.rollupOptions?.output,
             useAssetsDir,
-            qwikPlugin.manualChunks,
             buildOutputDir
           ),
           preserveEntrySignatures: 'exports-only',

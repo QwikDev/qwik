@@ -1,7 +1,7 @@
 import path, { resolve } from 'node:path';
 import { assert, describe, expect, test } from 'vitest';
 import type { QwikManifest } from '../types';
-import { ExperimentalFeatures, createPlugin } from './plugin';
+import { ExperimentalFeatures, createQwikPlugin } from './plugin';
 import { normalizePath } from '../../../testing/util';
 import { qwikVite } from './vite';
 
@@ -88,6 +88,12 @@ test('debug true', async () => {
   const plugin = await mockPlugin();
   const opts = plugin.normalizeOptions({ debug: true });
   assert.deepEqual(opts.debug, true);
+});
+
+test('csr', async () => {
+  const plugin = await mockPlugin();
+  const opts = plugin.normalizeOptions({ csr: true });
+  assert.deepEqual(opts.outDir, '');
 });
 
 test('override entryStrategy', async () => {
@@ -291,7 +297,7 @@ describe('resolveId', () => {
 });
 
 async function mockPlugin(os = process.platform) {
-  const plugin = createPlugin({
+  const plugin = createQwikPlugin({
     sys: {
       cwd: () => process.cwd(),
       env: 'node',

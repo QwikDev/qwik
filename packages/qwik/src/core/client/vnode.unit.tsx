@@ -227,6 +227,180 @@ describe('vnode', () => {
       vnode_applyJournal(journal);
       expect(parent.innerHTML).toEqual(`AB`);
     });
+
+    describe('node removing from shared text node', () => {
+      it('should inflate text nodes on first node remove', () => {
+        parent.innerHTML = `012`;
+        document.qVNodeData.set(parent, 'BBB');
+        vnode_getFirstChild(vParent) as VirtualVNode;
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'0'}
+            {'1'}
+            {'2'}
+          </test>
+        );
+        const firstText = vnode_getFirstChild(vParent) as TextVNode;
+        vnode_remove(journal, vParent, firstText, true);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'1'}
+            {'2'}
+          </test>
+        );
+        expect(parent.innerHTML).toEqual(`12`);
+      });
+
+      it('should inflate text nodes on second node remove', () => {
+        parent.innerHTML = `012`;
+        document.qVNodeData.set(parent, 'BBB');
+        vnode_getFirstChild(vParent) as VirtualVNode;
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'0'}
+            {'1'}
+            {'2'}
+          </test>
+        );
+        const firstText = vnode_getFirstChild(vParent) as TextVNode;
+        const secondText = vnode_getNextSibling(firstText) as TextVNode;
+        vnode_remove(journal, vParent, secondText, true);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'0'}
+            {'2'}
+          </test>
+        );
+        expect(parent.innerHTML).toEqual(`02`);
+      });
+
+      it('should inflate text nodes on last node remove', () => {
+        parent.innerHTML = `012`;
+        document.qVNodeData.set(parent, 'BBB');
+        vnode_getFirstChild(vParent) as VirtualVNode;
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'0'}
+            {'1'}
+            {'2'}
+          </test>
+        );
+        const firstText = vnode_getFirstChild(vParent) as TextVNode;
+        const secondText = vnode_getNextSibling(firstText) as TextVNode;
+        const thirdText = vnode_getNextSibling(secondText) as TextVNode;
+        vnode_remove(journal, vParent, thirdText, true);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'0'}
+            {'1'}
+          </test>
+        );
+        expect(parent.innerHTML).toEqual(`01`);
+      });
+
+      it('should inflate text nodes on first node remove and change text of second', () => {
+        parent.innerHTML = `012`;
+        document.qVNodeData.set(parent, 'BBB');
+        vnode_getFirstChild(vParent) as VirtualVNode;
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'0'}
+            {'1'}
+            {'2'}
+          </test>
+        );
+        const firstText = vnode_getFirstChild(vParent) as TextVNode;
+        const secondText = vnode_getNextSibling(firstText) as TextVNode;
+        vnode_remove(journal, vParent, firstText, true);
+        vnode_setText(journal, secondText, '!');
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'!'}
+            {'2'}
+          </test>
+        );
+        expect(parent.innerHTML).toEqual(`!2`);
+      });
+
+      it('should inflate text nodes on first virtual node remove', () => {
+        parent.innerHTML = `0123`;
+        document.qVNodeData.set(parent, '{B}{B}{B}');
+        vnode_getFirstChild(vParent) as VirtualVNode;
+        expect(vParent).toMatchVDOM(
+          <test>
+            <>0</>
+            <>1</>
+            <>2</>
+          </test>
+        );
+        const firstVirtual = vnode_getFirstChild(vParent) as VirtualVNode;
+        vnode_remove(journal, vParent, firstVirtual, true);
+
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            <>1</>
+            <>2</>
+          </test>
+        );
+        expect(parent.innerHTML).toEqual(`12`);
+      });
+
+      it('should inflate text nodes on middle virtual node remove', () => {
+        parent.innerHTML = `0123`;
+        document.qVNodeData.set(parent, '{B}{B}{B}');
+        vnode_getFirstChild(vParent) as VirtualVNode;
+        expect(vParent).toMatchVDOM(
+          <test>
+            <>0</>
+            <>1</>
+            <>2</>
+          </test>
+        );
+        const firstVirtual = vnode_getFirstChild(vParent) as VirtualVNode;
+        const secondVirtual = vnode_getNextSibling(firstVirtual) as VirtualVNode;
+        vnode_remove(journal, vParent, secondVirtual, true);
+
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            <>0</>
+            <>2</>
+          </test>
+        );
+        expect(parent.innerHTML).toEqual(`02`);
+      });
+
+      it('should inflate text nodes on last virtual node remove', () => {
+        parent.innerHTML = `0123`;
+        document.qVNodeData.set(parent, '{B}{B}{B}');
+        vnode_getFirstChild(vParent) as VirtualVNode;
+        expect(vParent).toMatchVDOM(
+          <test>
+            <>0</>
+            <>1</>
+            <>2</>
+          </test>
+        );
+        const firstVirtual = vnode_getFirstChild(vParent) as VirtualVNode;
+        const secondVirtual = vnode_getNextSibling(firstVirtual) as VirtualVNode;
+        const thirdVirtual = vnode_getNextSibling(secondVirtual) as VirtualVNode;
+        vnode_remove(journal, vParent, thirdVirtual, true);
+
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            <>0</>
+            <>1</>
+          </test>
+        );
+        expect(parent.innerHTML).toEqual(`01`);
+      });
+    });
   });
   describe('virtual', () => {
     it('should create empty Virtual', () => {

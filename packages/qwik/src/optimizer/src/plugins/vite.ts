@@ -334,11 +334,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           dynamicImportVarsOptions: {
             exclude: [/./],
           },
-          rollupOptions: {
-            output: {
-              manualChunks: qwikPlugin.manualChunks,
-            },
-          },
         },
         define: {
           [qDevKey]: qDev,

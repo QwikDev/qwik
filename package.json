@@ -197,7 +197,7 @@
     "build.clean": "tsx ./scripts/build-clean.ts",
     "build.cli": "tsx --require ./scripts/runBefore.ts scripts/index.ts --cli --dev",
     "build.cli.prod": "tsx --require ./scripts/runBefore.ts scripts/index.ts --cli",
-    "build.core": "tsxs --require ./scripts/runBefore.ts scripts/index.ts --tsc --build --qwikcity --api --platform-binding",
+    "build.core": "tsx --require ./scripts/runBefore.ts scripts/index.ts --tsc --build --qwikcity --api --platform-binding",
     "build.eslint": "tsx --require ./scripts/runBefore.ts scripts/index.ts --eslint",
     "build.full": "tsx --require ./scripts/runBefore.ts scripts/index.ts --tsc --tsc-docs --build --supabaseauthhelpers --api --eslint --qwikcity --qwikworker --qwiklabs --qwikreact --qwikauth --cli --platform-binding --wasm",
     "build.local": "tsx  --require ./scripts/runBefore.ts scripts/index.ts --tsc --tsc-docs --build --supabaseauthhelpers --api --eslint --qwikcity --qwikworker --qwiklabs --qwikreact --qwikauth --cli --platform-binding-wasm-copy",

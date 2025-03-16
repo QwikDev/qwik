@@ -110,7 +110,7 @@ export const dbAddUserToApplication = async (email: string, publicApiKey: string
       .insert(userApplicationMap)
       .values({ userId: user.userId, applicationId: app?.applicationId })
       .execute();
-  } catch (_e) {
+  } catch (e) {
     console.warn('User already exists', email, publicApiKey);
   }
 };

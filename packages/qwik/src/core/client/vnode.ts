@@ -1067,6 +1067,17 @@ export const vnode_remove = (
     vnode_ensureTextInflated(journal, vToRemove);
   }
 
+  if (removeDOM) {
+    const domParent = vnode_getDomParent(vParent);
+    const isInnerHTMLParent = vnode_getAttr(vParent, dangerouslySetInnerHTML);
+    if (isInnerHTMLParent) {
+      // ignore children, as they are inserted via innerHTML
+      return;
+    }
+    const children = vnode_getDOMChildNodes(journal, vToRemove);
+    domParent && children.length && journal.push(VNodeJournalOpCode.Remove, domParent, ...children);
+  }
+
   const vPrevious = vToRemove[VNodeProps.previousSibling];
   const vNext = vToRemove[VNodeProps.nextSibling];
   if (vPrevious) {
@@ -1081,16 +1092,6 @@ export const vnode_remove = (
   }
   vToRemove[VNodeProps.previousSibling] = null;
   vToRemove[VNodeProps.nextSibling] = null;
-  if (removeDOM) {
-    const domParent = vnode_getDomParent(vParent);
-    const isInnerHTMLParent = vnode_getAttr(vParent, dangerouslySetInnerHTML);
-    if (isInnerHTMLParent) {
-      // ignore children, as they are inserted via innerHTML
-      return;
-    }
-    const children = vnode_getDOMChildNodes(journal, vToRemove);
-    domParent && children.length && journal.push(VNodeJournalOpCode.Remove, domParent, ...children);
-  }
 };
 
 export const vnode_queryDomNodes = (

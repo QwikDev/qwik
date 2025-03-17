@@ -1,4 +1,5 @@
 import { QContainerValue } from '../types';
+import { EMPTY_ARRAY } from './flyweight';
 
 /** State factory of the component. */
 export const OnRenderProp = 'q:renderFn';
@@ -23,7 +24,7 @@ export const getQFuncs = (
   document: Document,
   hash: string
 ): Array<(...args: unknown[]) => unknown> => {
-  return (document as any)[QFuncsPrefix + hash] || [];
+  return (document as any)[QFuncsPrefix + hash] || EMPTY_ARRAY;
 };
 
 export const QRenderAttr = 'q:render';

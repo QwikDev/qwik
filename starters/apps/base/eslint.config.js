@@ -1,8 +1,8 @@
-import js from '@eslint/js';
-import globals from 'globals';
-import tseslint from 'typescript-eslint';
-import { globalIgnores } from 'eslint/config';
-import { qwikEslint9Plugin } from 'eslint-plugin-qwik';
+import js from "@eslint/js";
+import globals from "globals";
+import tseslint from "typescript-eslint";
+import { globalIgnores } from "eslint/config";
+import { qwikEslint9Plugin } from "eslint-plugin-qwik";
 
 const ignores = [
   "**/*.log",
@@ -69,5 +69,5 @@ export default tseslint.config(
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
     },
-  }
+  },
 );

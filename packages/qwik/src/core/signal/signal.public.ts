@@ -1,8 +1,9 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import type { QRL } from '../shared/qrl/qrl.public';
+import type { SerializerArg } from './signal';
 import {
   createSignal as _createSignal,
-  createComputedSignal as _createComputedSignal,
+  createComputedSignal as createComputedQrl,
+  createSerializerSignal as createSerializerQrl,
 } from './signal-api';
 
 export { isSignal } from './signal';
@@ -44,6 +45,16 @@ export interface ComputedSignal<T> extends ReadonlySignal<T> {
 }
 
 /**
+ * A serializer signal holds a custom serializable value. See `useSerializer$` for more details.
+ *
+ * @public
+ */
+export interface SerializerSignal<T> extends ComputedSignal<T> {
+  /** Fake property to make the serialization linter happy */
+  __no_serialize__: true;
+}
+
+/**
  * Creates a Signal with the given value. If no value is given, the signal is created with
  * `undefined`.
  *
@@ -54,21 +65,34 @@ export const createSignal: {
   <T>(value: T): Signal<T>;
 } = _createSignal;
 
-/** @internal */
-export const createComputedQrl: <T>(
-  qrl: QRL<() => T>
-) => T extends Promise<any> ? never : ComputedSignal<T> = _createComputedSignal as any;
-
 /**
  * Create a computed signal which is calculated from the given QRL. A computed signal is a signal
  * which is calculated from other signals. When the signals change, the computed signal is
  * recalculated.
  *
  * The QRL must be a function which returns the value of the signal. The function must not have side
- * effects, and it mus be synchronous.
+ * effects, and it must be synchronous.
  *
  * If you need the function to be async, use `useSignal` and `useTask$` instead.
  *
  * @public
  */
-export const createComputed$ = /*#__PURE__*/ implicit$FirstArg(createComputedQrl);
+export const createComputed$: <T>(
+  qrl: () => T
+) => T extends Promise<any> ? never : ComputedSignal<T> = /*#__PURE__*/ implicit$FirstArg(
+  createComputedQrl as any
+);
+export { createComputedQrl };
+
+/**
+ * Create a signal that holds a custom serializable value. See {@link useSerializer$} for more
+ * details.
+ *
+ * @public
+ */
+export const createSerializer$: <T, S>(
+  arg: SerializerArg<T, S>
+) => T extends Promise<any> ? never : SerializerSignal<T> = implicit$FirstArg(
+  createSerializerQrl as any
+);
+export { createSerializerQrl };

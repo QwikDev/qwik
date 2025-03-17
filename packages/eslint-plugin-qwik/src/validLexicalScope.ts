@@ -287,7 +287,15 @@ function _isTypeCapturable(
     return;
   }
   seen.add(type);
-  if (type.getProperty('__no_serialize__') || type.getProperty('__qwik_serializable__')) {
+  if (
+    type
+      .getProperties()
+      .some((p) =>
+        /(__no_serialize__|__qwik_serializable__|NoSerializeSymbol|SerializerSymbol)/i.test(
+          p.escapedName as string
+        )
+      )
+  ) {
     return;
   }
   const isUnknown = type.flags & ts.TypeFlags.Unknown;

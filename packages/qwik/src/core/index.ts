@@ -111,6 +111,7 @@ export type { ContextId } from './use/use-context';
 export type { UseStoreOptions } from './use/use-store.public';
 export type { ComputedFn } from './use/use-computed';
 export { useComputedQrl } from './use/use-computed';
+export { useSerializerQrl, useSerializer$ } from './use/use-serializer';
 export type { OnVisibleTaskOptions, VisibleTaskStrategy } from './use/use-visible-task';
 export { useVisibleTaskQrl } from './use/use-visible-task';
 export type { TaskCtx, TaskFn, Tracker } from './use/use-task';
@@ -129,18 +130,29 @@ export { useResource$ } from './use/use-resource-dollar';
 export { useTaskQrl } from './use/use-task';
 export { useTask$ } from './use/use-task-dollar';
 export { useVisibleTask$ } from './use/use-visible-task-dollar';
-export { useComputed$ } from './use/use-computed-dollar';
+export { useComputed$ } from './use/use-computed';
 export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './shared/error/error-handling';
 export { type ReadonlySignal, type Signal, type ComputedSignal } from './signal/signal.public';
-export { isSignal, createSignal, createComputedQrl, createComputed$ } from './signal/signal.public';
+export {
+  isSignal,
+  createSignal,
+  createComputedQrl,
+  createComputed$,
+  createSerializerQrl,
+  createSerializer$,
+} from './signal/signal.public';
 export { SubscriptionData as _EffectData } from './signal/signal';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API
 //////////////////////////////////////////////////////////////////////////////////////////
 export type { ValueOrPromise } from './shared/utils/types';
-export { type NoSerialize } from './shared/utils/serialize-utils';
+export {
+  NoSerializeSymbol,
+  SerializerSymbol,
+  type NoSerialize,
+} from './shared/utils/serialize-utils';
 export { noSerialize } from './shared/utils/serialize-utils';
 export { version } from './version';
 

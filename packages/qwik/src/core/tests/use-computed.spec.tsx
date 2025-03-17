@@ -17,8 +17,8 @@ import {
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
-import { QError } from '../shared/error/error';
 import * as qError from '../shared/error/error';
+import { QError } from '../shared/error/error';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

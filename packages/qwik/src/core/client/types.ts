@@ -13,7 +13,6 @@ export interface ClientContainer extends Container {
   document: QDocument;
   element: ContainerElement;
   qContainer: string;
-  qBase: string;
   $locale$: string;
   qManifestHash: string;
   rootVNode: ElementVNode;

@@ -176,7 +176,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public tag: string;
   public writer: StreamWriter;
   public timing: RenderToStreamResult['timing'];
-  public buildBase: string;
   public resolvedManifest: ResolvedManifest;
   public symbolToChunkResolver: SymbolToChunkResolver;
   public renderOptions: RenderOptions;
@@ -247,7 +246,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.tag = opts.tagName;
     this.writer = opts.writer;
     this.timing = opts.timing;
-    this.buildBase = opts.buildBase;
+    this.$buildBase$ = opts.buildBase;
     this.resolvedManifest = opts.resolvedManifest;
     this.renderOptions = opts.renderOptions;
 
@@ -325,7 +324,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     containerAttributes[QRuntimeAttr] = '2';
     containerAttributes[QVersionAttr] = this.$version$ ?? 'dev';
     containerAttributes[QRenderAttr] = (qRender ? qRender + '-' : '') + (isDev ? 'ssr-dev' : 'ssr');
-    containerAttributes[QBaseAttr] = this.buildBase || '';
+    containerAttributes[QBaseAttr] = this.$buildBase$ || '';
     containerAttributes[QLocaleAttr] = this.$locale$;
     containerAttributes[QManifestHashAttr] = this.resolvedManifest.manifest.manifestHash;
     containerAttributes[QInstanceAttr] = this.$instanceHash$;

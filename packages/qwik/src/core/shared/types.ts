@@ -22,6 +22,7 @@ export interface Container {
   readonly $getObjectById$: (id: number | string) => any;
   readonly $serverData$: Record<string, any>;
   $currentUniqueId$: number;
+  $buildBase$: string | null;
 
   handleError(err: any, $host$: HostElement): void;
   getParentHost(host: HostElement): HostElement | null;

@@ -36,8 +36,6 @@ export interface ClientContainer extends Container {
     // (undocumented)
     parseQRL<T = unknown>(qrl: string): QRL<T>;
     // (undocumented)
-    qBase: string;
-    // (undocumented)
     qContainer: string;
     // (undocumented)
     qManifestHash: string;
@@ -193,8 +191,6 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     handleError(err: any, host: HostElement): void;
     // (undocumented)
     parseQRL<T = unknown>(qrl: string): QRL<T>;
-    // (undocumented)
-    qBase: string;
     // (undocumented)
     qContainer: string;
     // (undocumented)
@@ -822,6 +818,8 @@ export const setPlatform: (plt: CorePlatform) => CorePlatform;
 export abstract class _SharedContainer implements Container {
     // (undocumented)
     abstract $appendStyle$(content: string, styleId: string, host: HostElement, scoped: boolean): void;
+    // (undocumented)
+    $buildBase$: string | null;
     // (undocumented)
     $currentUniqueId$: number;
     // (undocumented)

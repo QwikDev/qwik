@@ -39,9 +39,13 @@ export const createPlatform = (): CorePlatform => {
       });
     },
     nextTick: (fn) => {
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         setTimeout(() => {
-          resolve(fn());
+          try {
+            resolve(fn());
+          } catch (err) {
+            reject(err);
+          }
         });
       });
     },

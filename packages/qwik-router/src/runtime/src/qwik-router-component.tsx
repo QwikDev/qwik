@@ -66,6 +66,7 @@ import type {
 import { loadClientData } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
 import { isSameOrigin, isSamePath, toUrl } from './utils';
+import { startViewTransition } from './view-transition';
 
 /**
  * @deprecated Use `QWIK_ROUTER_SCROLLER` instead (will be removed in V3)
@@ -122,7 +123,18 @@ const internalState = { navCount: 0 };
 
 /** @public */
 export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
-  useStyles$(`:root{view-transition-name:none}`);
+  useStyles$(`
+    @layer qwik {
+      @supports selector(html:active-view-transition-type(type)) {
+        html:active-view-transition-type(qwik-router-spa) {
+          :root{view-transition-name:none}
+        }
+      }
+      @supports not selector(html:active-view-transition-type(type)) {
+        :root{view-transition-name:none}
+      }
+    }
+  `);
   const env = useQwikRouterEnv();
   if (!env?.params) {
     throw new Error(
@@ -437,11 +449,6 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
         documentHead.frontmatter = resolvedHead.frontmatter;
 
         if (isBrowser) {
-          if (props.viewTransition !== false) {
-            // mark next DOM render to use startViewTransition API
-            (document as any).__q_view_transition__ = true;
-          }
-
           let scrollState: ScrollState | undefined;
           if (navType === 'popstate') {
             scrollState = getScrollHistory();
@@ -655,11 +662,17 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
         }
       }
     }
-    const promise = run();
+
     if (isServer) {
-      return promise;
+      return run();
+    }
+    if (props.viewTransition === false) {
+      run();
     } else {
-      return;
+      startViewTransition({
+        update: run,
+        types: ['qwik-router-spa'],
+      });
     }
   });
 

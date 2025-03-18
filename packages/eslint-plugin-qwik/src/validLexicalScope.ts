@@ -61,7 +61,6 @@ export const validLexicalScope = createRule({
     const esTreeNodeToTSNodeMap = services.esTreeNodeToTSNodeMap;
     const typeChecker = services.program.getTypeChecker();
     const relevantScopes: Map<any, string> = new Map();
-    let exports: ts.Symbol[] = [];
 
     function walkScope(scope: Scope.Scope) {
       scope.references.forEach((ref) => {

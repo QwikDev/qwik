@@ -2,7 +2,7 @@ import { isQrl } from '../server/prefetch-strategy';
 import { isJSXNode } from './shared/jsx/jsx-runtime';
 import { isTask } from './use/use-task';
 import { vnode_getProp, vnode_isVNode } from './client/vnode';
-import { ComputedSignal, WrappedSignal, isSignal } from './signal/signal';
+import { ComputedSignalImpl, WrappedSignal, isSignal } from './signal/signal';
 import { isStore } from './signal/store';
 import { DEBUG_TYPE } from './shared/types';
 
@@ -38,7 +38,7 @@ export function qwikDebugToString(value: any): any {
       } else if (isSignal(value)) {
         if (value instanceof WrappedSignal) {
           return 'WrappedSignal';
-        } else if (value instanceof ComputedSignal) {
+        } else if (value instanceof ComputedSignalImpl) {
           return 'ComputedSignal';
         } else {
           return 'Signal';

@@ -390,7 +390,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Create a computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated.\n\nThe QRL must be a function which returns the value of the signal. The function must not have side effects, and it mus be synchronous.\n\nIf you need the function to be async, use `useSignal` and `useTask$` instead.\n\n\n```typescript\ncreateComputed$: <T>(qrl: () => T) => T extends Promise<any> ? never : ComputedSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n() =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nT extends Promise&lt;any&gt; ? never : [ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;",
+      "content": "Create a computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated.\n\nThe QRL must be a function which returns the value of the signal. The function must not have side effects, and it must be synchronous.\n\nIf you need the function to be async, use `useSignal` and `useTask$` instead.\n\n\n```typescript\ncreateComputed$: <T>(qrl: () => T) => T extends Promise<any> ? never : ComputedSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n() =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nT extends Promise&lt;any&gt; ? never : [ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts",
       "mdFile": "core.createcomputed_.md"
     },
@@ -407,6 +407,20 @@
       "content": "Create a context ID to be used in your application. The name should be written with no spaces.\n\nContext is a way to pass stores to the child components without prop-drilling.\n\nUse `createContextId()` to create a `ContextId`<!-- -->. A `ContextId` is just a serializable identifier for the context. It is not the context value itself. See `useContextProvider()` and `useContext()` for the values. Qwik needs a serializable ID for the context so that the it can track context providers and consumers in a way that survives resumability.\n\n\\#\\#\\# Example\n\n```tsx\n// Declare the Context type.\ninterface TodosStore {\n  items: string[];\n}\n// Create a Context ID (no data is saved here.)\n// You will use this ID to both create and retrieve the Context.\nexport const TodosContext = createContextId<TodosStore>('Todos');\n\n// Example of providing context to child components.\nexport const App = component$(() => {\n  useContextProvider(\n    TodosContext,\n    useStore<TodosStore>({\n      items: ['Learn Qwik', 'Build Qwik app', 'Profit'],\n    })\n  );\n\n  return <Items />;\n});\n\n// Example of retrieving the context provided by a parent component.\nexport const Items = component$(() => {\n  const todos = useContext(TodosContext);\n  return (\n    <ul>\n      {todos.items.map((item) => (\n        <li>{item}</li>\n      ))}\n    </ul>\n  );\n});\n\n```\n\n\n```typescript\ncreateContextId: <STATE = unknown>(name: string) => ContextId<STATE>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nname\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nThe name of the context.\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[ContextId](#contextid)<!-- -->&lt;STATE&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-context.ts",
       "mdFile": "core.createcontextid.md"
+    },
+    {
+      "name": "createSerializer$",
+      "id": "createserializer_",
+      "hierarchy": [
+        {
+          "name": "createSerializer$",
+          "id": "createserializer_"
+        }
+      ],
+      "kind": "Function",
+      "content": "Create a signal that holds a custom serializable value. See [useSerializer$](#useserializer_) for more details.\n\n\n```typescript\ncreateSerializer$: <T, S>(arg: SerializerArg<T, S>) => T extends Promise<any> ? never : SerializerSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\narg\n\n\n</td><td>\n\nSerializerArg&lt;T, S&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nT extends Promise&lt;any&gt; ? never : SerializerSignal&lt;T&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts",
+      "mdFile": "core.createserializer_.md"
     },
     {
       "name": "createSignal",
@@ -716,7 +730,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nisSignal: (value: any) => value is ISignal<unknown>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\nany\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvalue is [ISignal](#signal)<!-- -->&lt;unknown&gt;",
+      "content": "```typescript\nisSignal: (value: any) => value is Signal<unknown>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\nany\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvalue is [Signal](#signal)<!-- -->&lt;unknown&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.ts",
       "mdFile": "core.issignal.md"
     },
@@ -1013,6 +1027,20 @@
       "content": "Returned type of the `noSerialize()` function. It will be TYPE or undefined.\n\n\n```typescript\nexport type NoSerialize<T> = (T & {\n    __no_serialize__: true;\n}) | undefined;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts",
       "mdFile": "core.noserialize.md"
+    },
+    {
+      "name": "NoSerializeSymbol",
+      "id": "noserializesymbol",
+      "hierarchy": [
+        {
+          "name": "NoSerializeSymbol",
+          "id": "noserializesymbol"
+        }
+      ],
+      "kind": "Variable",
+      "content": "If an object has this property, it will not be serialized. Use this on prototypes to avoid having to call `noSerialize()` on every object.\n\n\n```typescript\nNoSerializeSymbol: unique symbol\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts",
+      "mdFile": "core.noserializesymbol.md"
     },
     {
       "name": "OnRenderFn",
@@ -1715,6 +1743,20 @@
       "mdFile": "core.resourcereturn.md"
     },
     {
+      "name": "SerializerSymbol",
+      "id": "serializersymbol",
+      "hierarchy": [
+        {
+          "name": "SerializerSymbol",
+          "id": "serializersymbol"
+        }
+      ],
+      "kind": "Variable",
+      "content": "If an object has this property as a function, it will be called with the object and should return a serializable value.\n\nThis can be used to clean up, integrate with other libraries, etc.\n\nThe type your object should conform to is:\n\n```ts\n{\n  [SerializerSymbol]: (this: YourType, toSerialize: YourType) => YourSerializableType;\n}\n```\n\n\n```typescript\nSerializerSymbol: unique symbol\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts",
+      "mdFile": "core.serializersymbol.md"
+    },
+    {
       "name": "setPlatform",
       "id": "setplatform",
       "hierarchy": [
@@ -2060,8 +2102,8 @@
         }
       ],
       "kind": "Function",
-      "content": "Creates a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nThe function must be synchronous and must not have any side effects.\n\n\n```typescript\nuseComputed$: <T>(qrl: import(\"./use-computed\").ComputedFn<T>) => T extends Promise<any> ? never : import(\"..\").ReadonlySignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nimport(\"./use-computed\").[ComputedFn](#computedfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nT extends Promise&lt;any&gt; ? never : import(\"..\").[ReadonlySignal](#readonlysignal)<!-- -->&lt;T&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed-dollar.ts",
+      "content": "Creates a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nThe function must be synchronous and must not have any side effects.\n\n\n```typescript\nuseComputed$: <T>(qrl: ComputedFn<T>) => T extends Promise<any> ? never : ReadonlySignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[ComputedFn](#computedfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nT extends Promise&lt;any&gt; ? never : [ReadonlySignal](#readonlysignal)<!-- -->&lt;T&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts",
       "mdFile": "core.usecomputed_.md"
     },
     {
@@ -2189,6 +2231,20 @@
       "content": "This method works like an async memoized function that runs whenever some tracked value changes and returns some data.\n\n`useResource` however returns immediate a `ResourceReturn` object that contains the data and a state that indicates if the data is available or not.\n\nThe status can be one of the following:\n\n- `pending` - the data is not yet available. - `resolved` - the data is available. - `rejected` - the data is not available due to an error or timeout.\n\nBe careful when using a `try/catch` statement in `useResource$`<!-- -->. If you catch the error and don't re-throw it (or a new Error), the resource status will never be `rejected`<!-- -->.\n\n\\#\\#\\# Example\n\nExample showing how `useResource` to perform a fetch to request the weather, whenever the input city name changes.\n\n```tsx\nconst Cmp = component$(() => {\n  const cityS = useSignal('');\n\n  const weatherResource = useResource$(async ({ track, cleanup }) => {\n    const cityName = track(cityS);\n    const abortController = new AbortController();\n    cleanup(() => abortController.abort('cleanup'));\n    const res = await fetch(`http://weatherdata.com?city=${cityName}`, {\n      signal: abortController.signal,\n    });\n    const data = await res.json();\n    return data as { temp: number };\n  });\n\n  return (\n    <div>\n      <input name=\"city\" bind:value={cityS} />\n      <Resource\n        value={weatherResource}\n        onResolved={(weather) => {\n          return <div>Temperature: {weather.temp}</div>;\n        }}\n      />\n    </div>\n  );\n});\n```\n\n\n```typescript\nuseResource$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => ResourceReturn<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ngeneratorFn\n\n\n</td><td>\n\n[ResourceFn](#resourcefn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\n[ResourceOptions](#resourceoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[ResourceReturn](#resourcereturn)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource-dollar.ts",
       "mdFile": "core.useresource_.md"
+    },
+    {
+      "name": "useSerializer$",
+      "id": "useserializer_",
+      "hierarchy": [
+        {
+          "name": "useSerializer$",
+          "id": "useserializer_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "Creates a signal which holds a custom serializable value. It requires that the value implements the `CustomSerializable` type, which means having a function under the `[SerializeSymbol]` property that returns a serializable value when called.\n\nThe `fn` you pass is called with the result of the serialization (in the browser, only when the value is needed), or `undefined` when not yet initialized. If you refer to other signals, `fn` will be called when those change just like computed signals, and then the argument will be the previous output, not the serialized result.\n\nThis is useful when using third party libraries that use custom objects that are not serializable.\n\nNote that the `fn` is called lazily, so it won't impact container resume.\n\n\n```typescript\nuseSerializer$: typeof createSerializer$\n```\n\n\n\n```tsx\nclass MyCustomSerializable {\n  constructor(public n: number) {}\n  inc() {\n    this.n++;\n  }\n}\nconst Cmp = component$(() => {\n  const custom = useSerializer$({\n    deserialize: (data) => new MyCustomSerializable(data),\n    serialize: (data) => data.n,\n    initial: 2,\n  });\n  return <div onClick$={() => custom.value.inc()}>{custom.value.n}</div>;\n});\n```\n\n\nWhen using a Signal as the data to create the object, you need to pass the configuration as a function, and you can then also provide the `update` function to update the object when the signal changes.\n\nBy returning an object from `update`<!-- -->, you signal that the listeners have to be notified. You can mutate the current object but you should return it so that it will trigger listeners.\n\n```tsx\nconst Cmp = component$(() => {\n  const n = useSignal(2);\n  const custom = useSerializer$(() =>\n    ({\n      deserialize: () => new MyCustomSerializable(n.value),\n      update: (current) => {\n        current.n = n.value;\n        return current;\n      }\n    })\n  );\n  return <div onClick$={() => n.value++}>{custom.value.n}</div>;\n});\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-serializer.ts",
+      "mdFile": "core.useserializer_.md"
     },
     {
       "name": "useServerData",

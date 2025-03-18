@@ -785,10 +785,21 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     const collectServerRpcAndCtxKindSymbols = async () => {
       const manifest = assembleManifestData(injections, rollupBundle);
-      const path = optimizer.sys.path;
+      const sysPath = optimizer.sys.path;
+
+      return Object.entries(manifest.symbols)
+        .filter(
+          ([_, symbol]) =>
+            symbol.displayName?.endsWith('serverQrl_rpc') && symbol.ctxKind === 'function'
+        )
+        .map(([hash, symbol]) => ({
+          ...symbol,
+          hash,
+          origin: normalizePath(sysPath.join(opts.rootDir, symbol.origin)),
+        }));
     };
 
-    return { addInjection, generateManifest };
+    return { addInjection, generateManifest, collectServerRpcAndCtxKindSymbols };
   };
 
   const assembleManifestData = (injections: GlobalInjections[], rollupBundle: OutputBundle) => {

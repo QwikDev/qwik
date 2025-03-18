@@ -36,7 +36,7 @@ contributors:
   - Jemsco
   - shairez
   - ianlet
-updated_at: '2023-10-04T21:48:45Z'
+updated_at: '2025-03-17T12:00:00Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
@@ -550,12 +550,74 @@ export const Child = component$(() => {
 ```
 </CodeSandbox>
 
-## `noSerialize()`
+## `useSerializer$()` / `createSerializer$()`
+
+Sometimes you need to serialize data that Qwik doesn't know how to serialize. For this, you can use the `useSerializer$(cfg)` hook to create a serializer for the data. `createSerializer$(cfg)` does the same thing but is not bound to a specific component and can be called anywhere.
+
+The `cfg` argument is an object with generic type `S` (serialized data) and `T` (the object type) with the following properties:
+
+- `deserialize: (data: S) => T`: Creates the object using the initial value or the deserialized value.
+- `serialize?: (value: T) => S | Promise<S>`: Optional, serializes the object. If not provided, the object will be serialized as `undefined`.
+- `initial?: S`: Optional, the initial value of the serializer.
+- `update?: (value: T) => T | void`: Optional, updates the object when the reactive state changes. This can only be passed when `cfg` is a function, see below.
+
+The result is a `SerializerSignal<T>` object. This is a lazy reactive signal that contains the serialized value of the object. It must be passed around as the signal, otherwise serialization will not work.
+
+```tsx /useSerializer$/
+import { component$, useSerializer$ } from '@qwik.dev/core';
+import { MyClass } from './my-class';
+
+export default component$(() => {
+  const serializer = useSerializer$({
+    deserialize: (data) => new MyClass(data),
+    serialize: (value) => value.serialize(),
+    initial: {x: 3, y: 4},
+  });
+
+  return <div>{JSON.stringify(serializer.value)}</div>;
+});
+```
+
+During SSR, `deserialize` will be called with the initial value. You can then use `signal.value` to access the custom object. On the client, the `deserialize` function will be called with the serialized value, but only when the signal is first read. So if you don't need to read the signal, no code will run.
+
+You can also use reactive state to create a serializer. For this, you need to pass the config as a function that captures the reactive state. Then you can use the `update` function to update the object when the reactive state changes. If the `update` function returns an object, it will be used as the new value for the serializer, and it will trigger all listeners. The trigger happens even when returning the same object.
+
+```tsx /useSerializer$/
+import { component$, useSerializer$ } from '@qwik.dev/core';
+import { ComplexObject } from './complex-object';
+
+export default component$(() => {
+  const sig = useSignal(123);
+  const serializer = useSerializer$((cfg) => ({
+    deserialize: () => new ComplexObject(sig.value),
+    update: (obj) => {
+      if (sig.value < 7) {
+        // ignore changes below 7
+        return;
+      }
+      // Tell the object about the change
+      obj.update(sig.value);
+      // Return the updated object so the listeners are notified
+      return obj;
+    }
+  }));
+
+  // ...
+});
+```
+
+This primitive is very powerful, and can be used to create all sorts of custom serializers. Note that the `serialize` function is allowed to return a Promise, so you could for example write the data to a database and return the id. Note that you will need to use `if (isServer)` to guard this operation, so vite won't bundle database code in the client bundle.
+
+Also note that serialization can also happen on the client, when calling `server$` functions.
+
+## `noSerialize()` / `NoSerializeSymbol`
 
 Qwik ensures that all application state is always serializable. This is important to ensure that Qwik applications have a [resumability](/docs/(qwik)/concepts/resumable/index.mdx) property.
 
 Sometimes, it's necessary to store data that can't be serialized; `noSerialize()` instructs Qwik not to attempt serializing the marked value.
 For example, a reference to a third-party library such as [Monaco editor](https://microsoft.github.io/monaco-editor/) will always need `noSerialize()`, as it is not serializable.
+
+`NoSerializeSymbol` is an alternative to `noSerialize()`: You can add this symbol to an object (preferably on the prototype) and it will mark the object as non-serializable.
 
 If a value is marked as non-serializable, then that value will not survive serialization events, such as resuming the application on the client from SSR. In this situation, the value will be set to `undefined` and it is up to the developer to re-initialize the value on the client.
 
@@ -572,10 +634,15 @@ import {
 import type Monaco from './monaco';
 import { monacoEditor } from './monaco';
 
+class MyClass {
+  [NoSerializeSymbol] = true;
+}
+
 export default component$(() => {
   const editorRef = useSignal<HTMLElement>();
-  const store = useStore<{ monacoInstance: NoSerialize<Monaco> }>({
+  const store = useStore<{ monacoInstance: NoSerialize<Monaco>, myClass: MyClass }>({
     monacoInstance: undefined,
+    myClass: undefined,
   });
 
   useVisibleTask$(() => {
@@ -585,8 +652,38 @@ export default component$(() => {
     // Monaco is not serializable, so we can't serialize it as part of SSR
     // We can however instantiate it on the client after the component is visible
     store.monacoInstance = noSerialize(editor);
+    // Here we demonstrate `NoSerializeSymbol` for the same purpose
+    store.myClass = new MyClass();
   });
   return <div ref={editorRef}>loading...</div>;
 });
 ```
 </CodeSandbox>
+
+## `SerializerSymbol`
+
+The `SerializerSymbol` is a symbol that can be added to an object to achieve custom serialization. There is no corresponding `DeserializerSymbol` however, for that you should use the `useSerializer$()` hook.
+
+This can be used to skip serializing part of an object, or to work with third-party objects that are not serializable by default.
+
+```tsx /SerializerSymbol/
+import { component$, SerializerSymbol } from '@qwik.dev/core';
+import { getItem, type Item } from './my-db-layer';
+
+const serializer = (o: Item) => o.toJSON();
+type MyItem = Item & { [SerializerSymbol]: typeof serializer };
+
+export default component$((props: {id: string}) => {
+  const obj = useSignal<MyItem | null>(null);
+  useTask$(async () => {
+    const item = await getItem(props.id);
+    if (item) {
+      item[SerializerSymbol] = serializer;
+      obj.value = item;
+    }
+  });
+  return <div>{JSON.stringify(obj.value)}</div>;
+});
+```
+
+You could even monkey-patch the third-party library to add the `SerializerSymbol` to their objects. Note that this can result in problems when the third-party library is updated, so use this method with caution. You will also need to update the types so that our linting plugin doesn't complain about serialization of unknown types.

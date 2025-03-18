@@ -216,7 +216,7 @@ string
 
 </td><td>
 
-[SourceLocation](#sourcelocation)[]
+[SourceLocation](#sourcelocation)[] \| null
 
 </td><td>
 

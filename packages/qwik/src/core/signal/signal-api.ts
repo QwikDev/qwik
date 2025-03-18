@@ -3,7 +3,7 @@ import type { QRL } from '../shared/qrl/qrl.public';
 import {
   ComputedSignalImpl,
   SerializerSignalImpl,
-  Signal as SignalImpl,
+  SignalImpl,
   throwIfQRLNotResolved,
   type SerializerArg,
 } from './signal';

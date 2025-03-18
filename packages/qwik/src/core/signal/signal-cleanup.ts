@@ -2,7 +2,7 @@ import {
   EffectSubscriptionProp,
   WrappedSignal,
   type EffectSubscription,
-  Signal,
+  SignalImpl,
   type EffectProperty,
   type Consumer,
 } from './signal';
@@ -30,7 +30,7 @@ export function clearAllEffects(container: Container, consumer: Consumer): void 
       return;
     }
     for (const producer of backRefs) {
-      if (producer instanceof Signal) {
+      if (producer instanceof SignalImpl) {
         clearSignal(container, producer, effect);
       } else if (container.$storeProxyMap$.has(producer)) {
         const target = container.$storeProxyMap$.get(producer)!;
@@ -41,7 +41,7 @@ export function clearAllEffects(container: Container, consumer: Consumer): void 
   }
 }
 
-function clearSignal(container: Container, producer: Signal, effect: EffectSubscription) {
+function clearSignal(container: Container, producer: SignalImpl, effect: EffectSubscription) {
   const effects = producer.$effects$;
   if (effects) {
     effects.delete(effect);

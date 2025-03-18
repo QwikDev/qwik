@@ -1,7 +1,7 @@
 import { $, component$, noSerialize } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
 import { _fnSignal, _wrapProp } from '../internal';
-import { SubscriptionData, type Signal } from '../signal/signal';
+import { SubscriptionData, type SignalImpl } from '../signal/signal';
 import {
   createComputed$,
   createSerializer$,
@@ -581,8 +581,8 @@ describe('shared-serialization', () => {
     it(title(TypeIds.Promise), async () => {
       const objs = await serialize(Promise.resolve(shared1), Promise.reject(shared1), shared1);
       const [p1, p2, shared] = deserialize(objs);
-      expect(p1).resolves.toBe(shared);
-      expect(p2).rejects.toBe(shared);
+      await expect(p1).resolves.toBe(shared);
+      await expect(p2).rejects.toBe(shared);
     });
     it(title(TypeIds.Set), async () => {
       const objs = await serialize(shared1, new Set([shared1, ['hi']]));
@@ -658,7 +658,7 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.Component));
     it(title(TypeIds.Signal), async () => {
       const objs = await serialize(createSignal('hi'));
-      const signal = deserialize(objs)[0] as Signal;
+      const signal = deserialize(objs)[0] as SignalImpl;
       expect(isSignal(signal)).toBeTruthy();
       expect(signal.value).toBe('hi');
     });

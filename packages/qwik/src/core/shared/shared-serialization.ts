@@ -14,7 +14,7 @@ import {
   type EffectSubscription,
   EffectSubscriptionProp,
   SerializerSignalImpl,
-  Signal,
+  SignalImpl,
   SubscriptionData,
   WrappedSignal,
   isSerializerObj,
@@ -263,7 +263,7 @@ const inflate = (
       break;
     }
     case TypeIds.Signal: {
-      const signal = target as Signal<unknown>;
+      const signal = target as SignalImpl<unknown>;
       const d = data as [unknown, ...EffectSubscription[]];
       signal.$untrackedValue$ = d[0];
       signal.$effects$ = new Set(d.slice(1) as EffectSubscription[]);
@@ -488,7 +488,7 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
     case TypeIds.Component:
       return componentQrl(null!);
     case TypeIds.Signal:
-      return new Signal(container as any, 0);
+      return new SignalImpl(container as any, 0);
     case TypeIds.WrappedSignal:
       return new WrappedSignal(container as any, null!, null!, null!);
     case TypeIds.ComputedSignal:
@@ -836,7 +836,7 @@ export const createSerializationContext = (
         obj.forEach((v, k) => {
           discoveredValues.push(k, v);
         });
-      } else if (obj instanceof Signal) {
+      } else if (obj instanceof SignalImpl) {
         /**
          * ComputedSignal can be left un-calculated if invalid.
          *
@@ -1221,7 +1221,7 @@ function serialize(serializationContext: SerializationContext): void {
     } else if ($isDomRef$(value)) {
       value.$ssrNode$.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
       output(TypeIds.RefVNode, value.$ssrNode$.id);
-    } else if (value instanceof Signal) {
+    } else if (value instanceof SignalImpl) {
       /**
        * Special case: when a Signal value is an SSRNode, it always needs to be a DOM ref instead.
        * It can never be meant to become a vNode, because vNodes are internal only.
@@ -1604,7 +1604,7 @@ const frameworkType = (obj: any) => {
   return (
     (typeof obj === 'object' &&
       obj !== null &&
-      (obj instanceof Signal || obj instanceof Task || isJSXNode(obj))) ||
+      (obj instanceof SignalImpl || obj instanceof Task || isJSXNode(obj))) ||
     isQrl(obj)
   );
 };

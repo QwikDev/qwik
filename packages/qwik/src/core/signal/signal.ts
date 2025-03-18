@@ -32,7 +32,7 @@ import { trackSignal, tryGetInvokeContext } from '../use/use-core';
 import { Task, TaskFlags, isTask } from '../use/use-task';
 import { NEEDS_COMPUTATION, _EFFECT_BACK_REF } from './flags';
 import { type BackRef } from './signal-cleanup';
-import type { Signal as ISignal, ReadonlySignal } from './signal.public';
+import type { Signal, ReadonlySignal } from './signal.public';
 import type { TargetType } from './store';
 import { getSubscriber } from './subscriber';
 
@@ -74,8 +74,8 @@ export const throwIfQRLNotResolved = (qrl: QRL) => {
 };
 
 /** @public */
-export const isSignal = (value: any): value is ISignal<unknown> => {
-  return value instanceof Signal;
+export const isSignal = (value: any): value is Signal<unknown> => {
+  return value instanceof SignalImpl;
 };
 
 /**
@@ -87,7 +87,7 @@ export const isSignal = (value: any): value is ISignal<unknown> => {
  * - `VNode` and `ISsrNode`: Either a component or `<Signal>`
  * - `Signal2`: A derived signal which contains a computation function.
  */
-export type Consumer = Task | VNode | ISsrNode | Signal;
+export type Consumer = Task | VNode | ISsrNode | SignalImpl;
 
 /** @internal */
 export class SubscriptionData {
@@ -137,7 +137,7 @@ export class SubscriptionData {
 export type EffectSubscription = [
   Consumer, // EffectSubscriptionProp.CONSUMER
   EffectProperty | string, // EffectSubscriptionProp.PROPERTY or string for attributes
-  Set<Signal | TargetType> | null, // EffectSubscriptionProp.BACK_REF
+  Set<SignalImpl | TargetType> | null, // EffectSubscriptionProp.BACK_REF
   SubscriptionData | null, // EffectSubscriptionProp.DATA
 ];
 
@@ -153,7 +153,7 @@ export const enum EffectProperty {
   VNODE = '.',
 }
 
-export class Signal<T = any> implements ISignal<T> {
+export class SignalImpl<T = any> implements Signal<T> {
   $untrackedValue$: T;
 
   /** Store a list of effects which are dependent on this signal. */
@@ -273,7 +273,7 @@ export const addQrlToSerializationCtx = (
 
 export const triggerEffects = (
   container: Container | null,
-  signal: Signal | TargetType,
+  signal: SignalImpl | TargetType,
   effects: Set<EffectSubscription> | null
 ) => {
   const isBrowser = isDomContainer(container);
@@ -290,7 +290,7 @@ export const triggerEffects = (
           choreType = ChoreType.VISIBLE;
         }
         container.$scheduler$(choreType, consumer);
-      } else if (consumer instanceof Signal) {
+      } else if (consumer instanceof SignalImpl) {
         // we don't schedule ComputedSignal/DerivedSignal directly, instead we invalidate it and
         // and schedule the signals effects (recursively)
         if (consumer instanceof ComputedSignalImpl) {
@@ -311,7 +311,7 @@ export const triggerEffects = (
       } else if (isBrowser) {
         if (property === EffectProperty.VNODE) {
           const host: HostElement = consumer;
-          container.$scheduler$(ChoreType.NODE_DIFF, host, host, signal as Signal);
+          container.$scheduler$(ChoreType.NODE_DIFF, host, host, signal as SignalImpl);
         } else {
           const host: HostElement = consumer;
           const effectData = effectSubscription[EffectSubscriptionProp.DATA];
@@ -319,7 +319,7 @@ export const triggerEffects = (
             const data = effectData.data;
             const payload: NodePropPayload = {
               ...data,
-              $value$: signal as Signal,
+              $value$: signal as SignalImpl,
             };
             container.$scheduler$(ChoreType.NODE_PROP, host, property, payload);
           }
@@ -341,7 +341,7 @@ type ComputeQRL<T> = QRLInternal<() => T>;
  *
  * The value is available synchronously, but the computation is done lazily.
  */
-export class ComputedSignalImpl<T> extends Signal<T> implements BackRef {
+export class ComputedSignalImpl<T> extends SignalImpl<T> implements BackRef {
   /**
    * The compute function is stored here.
    *
@@ -435,7 +435,7 @@ export class ComputedSignalImpl<T> extends Signal<T> implements BackRef {
   }
 }
 
-export class WrappedSignal<T> extends Signal<T> implements BackRef {
+export class WrappedSignal<T> extends SignalImpl<T> implements BackRef {
   $args$: any[];
   $func$: (...args: any[]) => T;
   $funcStr$: string | null;

@@ -759,23 +759,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     const addInjection = (b: GlobalInjections) => injections.push(b);
     const generateManifest = async () => {
-      const optimizer = getOptimizer();
+      const manifest = assembleManifestData(injections, rollupBundle);
       const path = optimizer.sys.path;
-
-      const segments = Array.from(clientResults.values())
-        .flatMap((r) => r.modules)
-        .map((mod) => mod.segment)
-        .filter((h) => !!h) as SegmentAnalysis[];
-
-      const manifest = generateManifestFromBundles(
-        path,
-        segments,
-        injections,
-        rollupBundle,
-        opts,
-        debug
-      );
-
       for (const symbol of Object.values(manifest.symbols)) {
         if (symbol.origin) {
           symbol.origin = normalizePath(symbol.origin);
@@ -798,7 +783,24 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       return manifest;
     };
 
+    const collectServerRpcAndCtxKindSymbols = async () => {
+      const manifest = assembleManifestData(injections, rollupBundle);
+      const path = optimizer.sys.path;
+    };
+
     return { addInjection, generateManifest };
+  };
+
+  const assembleManifestData = (injections: GlobalInjections[], rollupBundle: OutputBundle) => {
+    const optimizer = getOptimizer();
+    const path = optimizer.sys.path;
+
+    const segments = Array.from(clientResults.values())
+      .flatMap((r) => r.modules)
+      .map((mod) => mod.segment)
+      .filter((h) => !!h) as SegmentAnalysis[];
+
+    return generateManifestFromBundles(path, segments, injections, rollupBundle, opts, debug);
   };
 
   const getOptions = () => opts;

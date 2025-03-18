@@ -1,8 +1,6 @@
 import type { QRL } from '..';
 import { hashCode } from '../shared/utils/hash_code';
 import { OnRenderProp } from '../shared/utils/markers';
-import { isDomContainer } from '../client/dom-container';
-import type { SSRContainer } from '../ssr/ssr-types';
 import { useSequentialScope } from './use-sequential-scope';
 import { getNextUniqueIndex } from '../shared/utils/unique-index-generator';
 
@@ -12,13 +10,20 @@ export const useId = (): string => {
   if (val != null) {
     return val;
   }
-  const containerBase = isDomContainer(iCtx.$container$)
-    ? ''
-    : (iCtx.$container$ as SSRContainer).buildBase || '';
-  const base = containerBase ? hashCode(containerBase) : '';
+  const containerBase = iCtx.$container$.$buildBase$ || '';
+  const base = containerBase ? hashCode(containerBase).substring(0, 3) : '';
   const componentQrl = iCtx.$container$.getHostProp<QRL>(iCtx.$hostElement$, OnRenderProp);
-  const hash = componentQrl?.getHash() || '';
+  const hash = componentQrl?.getHash().substring(0, 3) || '';
   const counter = getNextUniqueIndex(iCtx.$container$) || '';
-  const id = `${base}-${hash}-${counter}`; // If no base and no hash, then "--#"
+  let id = `${base}${hash}${counter}`;
+
+  let firstChar = id.charCodeAt(0);
+  // convert first char to letter if starts with a number, because CSS does not allow class names to start with a number
+  if (firstChar >= 48 /* 0 */ && firstChar <= 57 /* 9 */) {
+    // 48 is char code for '0', 65 is char code for 'A'
+    // 65 - 48 = 17, so we add 17 to the char code of the first char to convert it to a letter
+    firstChar += 17;
+    id = String.fromCharCode(firstChar) + id.substring(1);
+  }
   return set(id);
 };

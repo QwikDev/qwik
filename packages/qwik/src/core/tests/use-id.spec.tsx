@@ -1,7 +1,6 @@
 import { component$, componentQrl, inlinedQrl, useId } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
-import { domRender, ssrRenderToDom } from '../../testing/rendering.unit-util';
-import '../../testing/vdom-diff.unit-util';
+import { domRender, ssrRenderToDom } from '@qwik.dev/core/testing';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -21,7 +20,7 @@ describe.each([
       inlinedQrl(() => {
         const id = useId();
         return <div id="cmp2">{id}</div>;
-      }, 's_cmp2Hash')
+      }, 's_2cmpHash')
     );
 
     const Parent = component$(() => {
@@ -34,7 +33,12 @@ describe.each([
     });
 
     const { document } = await render(<Parent />, { debug });
-    expect(document.querySelector('#cmp1')?.textContent).toMatch(/^\w*-cmpHash-0*$/);
-    expect(document.querySelector('#cmp2')?.textContent).toMatch(/^\w*-cmp2Hash-1*$/);
+    if (render === ssrRenderToDom) {
+      expect(document.querySelector('#cmp1')?.textContent).toMatch(/^\w{3}cmp0$/);
+      expect(document.querySelector('#cmp2')?.textContent).toMatch(/^\w{3}2cm1$/);
+    } else {
+      expect(document.querySelector('#cmp1')?.textContent).toMatch(/^cmp0$/);
+      expect(document.querySelector('#cmp2')?.textContent).toMatch(/^Ccm1$/);
+    }
   });
 });

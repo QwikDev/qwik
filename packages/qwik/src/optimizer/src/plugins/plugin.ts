@@ -119,7 +119,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       clickToSource: ['Alt'],
     },
     inlineStylesUpToBytes: null as any,
-    lint: true,
+    lint: false,
     experimental: undefined,
   };
 
@@ -328,8 +328,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     if (typeof updatedOpts.lint === 'boolean') {
       opts.lint = updatedOpts.lint;
-    } else {
-      opts.lint = updatedOpts.buildMode === 'development';
     }
 
     opts.experimental = undefined;

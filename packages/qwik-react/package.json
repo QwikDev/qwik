@@ -59,6 +59,7 @@
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "lint": "eslint \"src/**/*.ts*\"",
+    "lint.fix": "eslint --fix \"src/**/*.ts*\"",
     "release": "pnpm run -w build.local && pnpm publish",
     "start": "npm run dev",
     "typecheck": "tsc --noEmit"

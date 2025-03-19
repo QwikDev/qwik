@@ -811,13 +811,11 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const debug = (...str: any[]) => {
     if (opts.debug) {
-      // eslint-disable-next-line no-console
       console.debug(`[QWIK PLUGIN: ${id}]`, ...str);
     }
   };
 
   const log = (...str: any[]) => {
-    // eslint-disable-next-line no-console
     console.log(`[QWIK PLUGIN: ${id}]`, ...str);
   };
 

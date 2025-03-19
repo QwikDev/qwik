@@ -8,7 +8,12 @@ import { emitEvent } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ChoreType } from '../shared/util-chore-type';
 import { _SharedContainer } from '../shared/shared-container';
-import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
+import {
+  TypeIds,
+  inflateQRL,
+  parseQRL,
+  wrapDeserializerProxy,
+} from '../shared/shared-serialization';
 import { QContainerValue, type HostElement, type ObjToProxyMap } from '../shared/types';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
 import {
@@ -83,25 +88,6 @@ export function getDomContainerFromQContainerElement(qContainerElement: Element)
   let container = qElement.qContainer;
   if (!container) {
     container = new DomContainer(qElement);
-
-    const containerAttributes: Record<string, string> = {};
-    if (qElement) {
-      const attrs = qElement.attributes;
-      if (attrs) {
-        for (let index = 0; index < attrs.length; index++) {
-          const attr = attrs[index];
-          if (attr.name === Q_PROPS_SEPARATOR) {
-            continue;
-          }
-          containerAttributes[attr.name] = attr.value;
-        }
-      }
-    }
-    (container as DomContainer).$serverData$ = { containerAttributes };
-
-    qElement.setAttribute(QContainerAttr, QContainerValue.RESUMED);
-
-    qElement.qContainer = container;
   }
   return container;
 }
@@ -170,6 +156,11 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (!document.qVNodeData) {
       processVNodeData(document);
     }
+    this.$qFuncs$ = getQFuncs(document, this.$instanceHash$) || EMPTY_ARRAY;
+    this.$setServerData$();
+    element.setAttribute(QContainerAttr, QContainerValue.RESUMED);
+    element.qContainer = this;
+
     this.$rawStateData$ = [];
     this.$stateData$ = [];
     const qwikStates = element.querySelectorAll('script[type="qwik/state"]');
@@ -177,8 +168,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       const lastState = qwikStates[qwikStates.length - 1];
       this.$rawStateData$ = JSON.parse(lastState.textContent!);
       this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+      this.$scheduleQRLs$();
     }
-    this.$qFuncs$ = getQFuncs(document, this.$instanceHash$) || EMPTY_ARRAY;
   }
 
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void {
@@ -366,6 +357,42 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       styleElement.setAttribute(QStyle, styleId);
       styleElement.textContent = content;
       this.$journal$.push(VNodeJournalOpCode.Insert, this.document.head, null, styleElement);
+    }
+  }
+
+  // TODO: should be moved to the Qwik Router?
+  /** Set the server data for the Qwik Router. */
+  private $setServerData$(): void {
+    const containerAttributes: Record<string, string> = {};
+    const attrs = this.element.attributes;
+    if (attrs) {
+      for (let index = 0; index < attrs.length; index++) {
+        const attr = attrs[index];
+        if (attr.name === Q_PROPS_SEPARATOR) {
+          continue;
+        }
+        containerAttributes[attr.name] = attr.value;
+      }
+    }
+    this.$serverData$ = { containerAttributes };
+  }
+
+  /**
+   * Schedule all computed signals to be inflated. This is done after at the time of DomContainer
+   * creation to ensure that all computed signals are inflated and QRLs are resolved before any
+   * signals are used. This is necessary because if a computed QRL is not resolved, it will throw a
+   * promise and we will have to rerun the entire function, which we want to avoid.
+   */
+  private $scheduleQRLs$(): void {
+    const deserializeValue = <T>(i: number) => {
+      return this.$stateData$[i / 2] as T;
+    };
+    for (let i = 0; i < this.$rawStateData$.length; i += 2) {
+      const type = this.$rawStateData$[i];
+      if (type === TypeIds.ComputedSignal) {
+        // use deserializer proxy to inflate the computed signal and schedule computed QRL
+        deserializeValue(i);
+      }
     }
   }
 }

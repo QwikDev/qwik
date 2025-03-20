@@ -1,5 +1,4 @@
-use crate::transform::SegmentData;
-use crate::transform::SegmentKind;
+use crate::transform::{SegmentData, SegmentKind};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use swc_atoms::JsWord;
@@ -29,6 +28,7 @@ pub trait EntryPolicy: Send + Sync {
 		hash: &str,
 		context: &[String],
 		segment: &SegmentData,
+		map_only: bool,
 	) -> Option<JsWord>;
 }
 
@@ -41,6 +41,7 @@ impl EntryPolicy for InlineStrategy {
 		_hash: &str,
 		_context: &[String],
 		_segment: &SegmentData,
+		_map_only: bool,
 	) -> Option<JsWord> {
 		Some(ENTRY_SEGMENTS.clone())
 	}
@@ -63,12 +64,16 @@ impl EntryPolicy for SingleStrategy {
 		hash: &str,
 		_context: &[String],
 		_segment: &SegmentData,
+		_map_only: bool,
 	) -> Option<JsWord> {
 		if let Some(map) = &self.map {
 			let entry = map.get(hash);
 			if let Some(entry) = entry {
 				return Some(entry.clone());
 			}
+		}
+		if _map_only {
+			return None;
 		}
 		Some(ENTRY_SEGMENTS.clone())
 	}
@@ -91,6 +96,7 @@ impl EntryPolicy for PerSegmentStrategy {
 		hash: &str,
 		_context: &[String],
 		_segment: &SegmentData,
+		_map_only: bool,
 	) -> Option<JsWord> {
 		if let Some(map) = &self.map {
 			let entry = map.get(hash);
@@ -119,12 +125,16 @@ impl EntryPolicy for PerComponentStrategy {
 		hash: &str,
 		context: &[String],
 		segment: &SegmentData,
+		map_only: bool,
 	) -> Option<JsWord> {
 		if let Some(map) = &self.map {
 			let entry = map.get(hash);
 			if let Some(entry) = entry {
 				return Some(entry.clone());
 			}
+		}
+		if map_only {
+			return None;
 		}
 		context.first().map_or_else(
 			|| Some(ENTRY_SEGMENTS.clone()),
@@ -143,15 +153,18 @@ impl SmartStrategy {
 		Self { map }
 	}
 }
+
 impl EntryPolicy for SmartStrategy {
 	fn get_entry_for_sym(
 		&self,
 		hash: &str,
 		context: &[String],
 		segment: &SegmentData,
+		map_only: bool,
 	) -> Option<JsWord> {
 		// Event handlers without scope variables are put into a separate file
-		if segment.scoped_idents.is_empty()
+		if !map_only
+			&& segment.scoped_idents.is_empty()
 			&& (segment.ctx_kind != SegmentKind::Function || &segment.ctx_name == "event$")
 		{
 			return None;
@@ -163,6 +176,10 @@ impl EntryPolicy for SmartStrategy {
 				return Some(entry.clone());
 			}
 		}
+		if map_only {
+			return None;
+		}
+
 		// Everything else is put into a single file per component
 		// This means that all QRLs for a component are loaded together
 		// if one is used

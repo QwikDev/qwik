@@ -8642,12 +8642,12 @@ void
 ## useErrorBoundary
 
 ```typescript
-useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
+useErrorBoundary: () => ErrorBoundaryStore;
 ```
 
 **Returns:**
 
-Readonly&lt;[ErrorBoundaryStore](#errorboundarystore)&gt;
+[ErrorBoundaryStore](#errorboundarystore)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-error-boundary.ts)
 
@@ -9333,7 +9333,7 @@ Use `useTask` to observe changes on a set of inputs, and then re-execute the `ta
 The `taskFn` only executes if the observed inputs change. To observe the inputs, use the `obs` function to wrap property reads. This creates subscriptions that will trigger the `taskFn` to rerun.
 
 ```typescript
-useTask$: (qrl: import("./use-task").TaskFn) => void
+useTask$: (fn: TaskFn) => void
 ```
 
 <table><thead><tr><th>
@@ -9351,11 +9351,11 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-qrl
+fn
 
 </td><td>
 
-import("./use-task").[TaskFn](#taskfn)
+[TaskFn](#taskfn)
 
 </td><td>
 
@@ -9390,7 +9390,7 @@ const Timer = component$(() => {
 ```
 
 ```typescript
-useVisibleTask$: (qrl: import("./use-task").TaskFn, opts?: import("./use-visible-task").OnVisibleTaskOptions | undefined) => void
+useVisibleTask$: (fn: TaskFn, opts?: OnVisibleTaskOptions) => void
 ```
 
 <table><thead><tr><th>
@@ -9408,11 +9408,11 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-qrl
+fn
 
 </td><td>
 
-import("./use-task").[TaskFn](#taskfn)
+[TaskFn](#taskfn)
 
 </td><td>
 
@@ -9423,7 +9423,7 @@ opts
 
 </td><td>
 
-import("./use-visible-task").[OnVisibleTaskOptions](#onvisibletaskoptions) \| undefined
+[OnVisibleTaskOptions](#onvisibletaskoptions)
 
 </td><td>
 

@@ -718,9 +718,9 @@ export const createSerializationContext = (
   const isSsrNode = (NodeConstructor ? (obj) => obj instanceof NodeConstructor : () => false) as (
     obj: unknown
   ) => obj is SsrNode;
-  isDomRef = (DomRefConstructor ? (obj) => obj instanceof DomRefConstructor : () => false) as (
-    obj: unknown
-  ) => obj is DomRef;
+  isDomRef = (
+    DomRefConstructor ? (obj) => obj instanceof DomRefConstructor : ((() => false) as any)
+  ) as (obj: unknown) => obj is DomRef;
 
   return {
     $serialize$(): void {

@@ -31,10 +31,10 @@
     "prettier": "3.4.2",
     "prettier-plugin-tailwindcss": "0.5.14",
     "tailwindcss": "3.4.6",
-    "typescript": "5.4.5",
+    "typescript": "5.8.2",
     "undici": "*",
     "vite": "5.4.10",
-    "vite-tsconfig-paths": "5.0.1",
+    "vite-tsconfig-paths": "5.1.4",
     "vitest": "3.0.8",
     "zod": "3.22.4"
   },

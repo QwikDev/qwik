@@ -10,11 +10,11 @@ import type { ServerRenderOptions } from '@qwik.dev/router/middleware/request-ha
 export const createQwikCity: typeof createQwikRouter;
 
 // @public (undocumented)
-export function createQwikRouter(opts: QwikRouterCloudflarePagesOptions): (request: PlatformCloudflarePages['request'], env: PlatformCloudflarePages['env'] & {
+export function createQwikRouter(opts: QwikRouterCloudflarePagesOptions): (request: PlatformCloudflarePages["request"], env: PlatformCloudflarePages["env"] & {
     ASSETS: {
         fetch: (req: Request) => Response;
     };
-}, ctx: PlatformCloudflarePages['ctx']) => Promise<Response>;
+}, ctx: PlatformCloudflarePages["ctx"]) => Promise<Response>;
 
 // @public (undocumented)
 export interface PlatformCloudflarePages {

@@ -785,18 +785,13 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     const collectServerRpcAndCtxKindSymbols = async () => {
       const manifest = assembleManifestData(injections, rollupBundle);
-      const sysPath = optimizer.sys.path;
 
-      return Object.entries(manifest.symbols)
-        .filter(
+      return Object.fromEntries(
+        Object.entries(manifest.symbols).filter(
           ([_, symbol]) =>
             symbol.displayName?.endsWith('serverQrl_rpc') && symbol.ctxKind === 'function'
         )
-        .map(([hash, symbol]) => ({
-          ...symbol,
-          hash,
-          origin: normalizePath(sysPath.join(opts.rootDir, symbol.origin)),
-        }));
+      );
     };
 
     return { addInjection, generateManifest, collectServerRpcAndCtxKindSymbols };
@@ -1011,6 +1006,7 @@ export const SSR_OUT_DIR = 'server';
 const LIB_OUT_DIR = 'lib';
 
 export const Q_MANIFEST_FILENAME = 'q-manifest.json';
+export const Q_SERVER_RPC_CTX_KIND_SYMBOLS_FILENAME = 'q-server-rpc-ctx-kind-symbols.json';
 
 export interface QwikPluginDevTools {
   imageDevTools?: boolean | true;

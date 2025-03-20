@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="node" />
-
 import type { ClientConn } from '@qwik.dev/router/middleware/request-handler';
 import type { Http2ServerRequest } from 'node:http2';
 import type { IncomingMessage } from 'node:http';

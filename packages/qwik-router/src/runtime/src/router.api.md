@@ -206,6 +206,11 @@ export interface DocumentStyle {
     readonly style: string;
 }
 
+// Warning: (ae-forgotten-export) The symbol "ErrorBoundaryProps" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export const ErrorBoundary: Component<ErrorBoundaryProps>;
+
 // @public (undocumented)
 export type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<infer ERROR>[] ? ERROR : never;
 
@@ -298,7 +303,8 @@ export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<infer VALIDAT
 export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 
 // @public (undocumented)
-export type NavigationType = 'initial' | 'form' | 'link' | 'popstate';
+type NavigationType_2 = 'initial' | 'form' | 'link' | 'popstate';
+export { NavigationType_2 as NavigationType }
 
 // @beta
 export function omitProps<T, KEYS extends keyof T>(obj: T, keys: KEYS[]): Omit<T, KEYS>;
@@ -441,7 +447,7 @@ export interface RouteLocation {
 
 // @public (undocumented)
 export type RouteNavigate = QRL<(path?: string | number | URL, options?: {
-    type?: Exclude<NavigationType, 'initial'>;
+    type?: Exclude<NavigationType_2, 'initial'>;
     forceReload?: boolean;
     replaceState?: boolean;
     scroll?: boolean;

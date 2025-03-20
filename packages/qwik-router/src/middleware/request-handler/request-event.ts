@@ -11,7 +11,6 @@ import type {
 import { isPromise } from '../../runtime/src/utils';
 import { createCacheControl } from './cache-control';
 import { Cookie } from './cookie';
-import { ErrorResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { encoder } from './resolve-request-handlers';
 import type {
@@ -27,6 +26,7 @@ import type {
   ServerRequestMode,
 } from './types';
 import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
+import { ServerError } from './error-handler';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
@@ -204,9 +204,9 @@ export function createRequestEvent(
       return locale || '';
     },
 
-    error: (statusCode: number, message: string) => {
+    error: <T = any>(statusCode: number, message: T) => {
       status = statusCode;
-      return new ErrorResponse(statusCode, message);
+      return new ServerError(statusCode, message);
     },
 
     redirect: (statusCode: number, url: string) => {
@@ -342,7 +342,7 @@ const parseRequest = async (
       if (data) {
         try {
           return qwikSerializer._deserialize(decodeURIComponent(data)) as JSONValue;
-        } catch (err) {
+        } catch {
           //
         }
       }

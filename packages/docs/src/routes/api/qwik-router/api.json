@@ -199,6 +199,20 @@
       "mdFile": "router.documentstyle.md"
     },
     {
+      "name": "ErrorBoundary",
+      "id": "errorboundary",
+      "hierarchy": [
+        {
+          "name": "ErrorBoundary",
+          "id": "errorboundary"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nErrorBoundary: import(\"@qwik.dev/core\").Component<ErrorBoundaryProps>\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/error-boundary.tsx",
+      "mdFile": "router.errorboundary.md"
+    },
+    {
       "name": "FailOfRest",
       "id": "failofrest",
       "hierarchy": [
@@ -423,18 +437,18 @@
       "mdFile": "router.menudata.md"
     },
     {
-      "name": "NavigationType",
-      "id": "navigationtype",
+      "name": "NavigationType_2",
+      "id": "navigationtype_2",
       "hierarchy": [
         {
-          "name": "NavigationType",
-          "id": "navigationtype"
+          "name": "NavigationType_2",
+          "id": "navigationtype_2"
         }
       ],
       "kind": "TypeAlias",
       "content": "```typescript\nexport type NavigationType = 'initial' | 'form' | 'link' | 'popstate';\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
-      "mdFile": "router.navigationtype.md"
+      "mdFile": "router.navigationtype_2.md"
     },
     {
       "name": "omitProps",
@@ -740,7 +754,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type RouteNavigate = QRL<(path?: string | number | URL, options?: {\n    type?: Exclude<NavigationType, 'initial'>;\n    forceReload?: boolean;\n    replaceState?: boolean;\n    scroll?: boolean;\n} | boolean) => Promise<void>>;\n```\n**References:** [NavigationType](#navigationtype)",
+      "content": "```typescript\nexport type RouteNavigate = QRL<(path?: string | number | URL, options?: {\n    type?: Exclude<NavigationType, 'initial'>;\n    forceReload?: boolean;\n    replaceState?: boolean;\n    scroll?: boolean;\n} | boolean) => Promise<void>>;\n```\n**References:** [NavigationType](#navigationtype_2)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.routenavigate.md"
     },

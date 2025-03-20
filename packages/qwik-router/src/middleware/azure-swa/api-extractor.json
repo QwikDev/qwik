@@ -4,7 +4,6 @@
   "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik-router/src/middleware/azure-swa/index.d.ts",
   "apiReport": {
     "enabled": true,
-    "reportFileName": "api.md",
     "reportFolder": "<projectFolder>/src/middleware/azure-swa/",
     "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-router/middleware/azure-swa"
   },

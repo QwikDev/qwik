@@ -1132,6 +1132,14 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
+## ErrorBoundary
+
+```typescript
+ErrorBoundary: import("@qwik.dev/core").Component<ErrorBoundaryProps>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/error-boundary.tsx)
+
 ## FailOfRest
 
 ```typescript
@@ -1593,7 +1601,7 @@ export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-## NavigationType
+## NavigationType_2
 
 ```typescript
 export type NavigationType = "initial" | "form" | "link" | "popstate";
@@ -2262,7 +2270,7 @@ export type RouteNavigate = QRL<
 >;
 ```
 
-**References:** [NavigationType](#navigationtype)
+**References:** [NavigationType](#navigationtype_2)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 

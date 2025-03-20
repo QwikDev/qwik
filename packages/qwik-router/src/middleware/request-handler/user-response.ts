@@ -1,9 +1,14 @@
 import type { QwikManifest, ResolvedManifest } from '@qwik.dev/core/optimizer';
 import type { RequestEvent, RequestHandler } from '@qwik.dev/router';
 import type { LoadedRoute } from '../../runtime/src/types';
-import { ErrorResponse, getErrorHtml, minimalHtmlResponse } from './error-handler';
+import { ServerError, getErrorHtml, minimalHtmlResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
-import { createRequestEvent, getRequestMode, type RequestEventInternal } from './request-event';
+import {
+  RequestEvQwikSerializer,
+  createRequestEvent,
+  getRequestMode,
+  type RequestEventInternal,
+} from './request-event';
 import { encoder } from './resolve-request-handlers';
 import type { QwikSerializer, ServerRequestEvent, StatusCodes } from './types';
 
@@ -65,12 +70,18 @@ async function runNext(requestEv: RequestEventInternal, resolve: (value: any) =>
     if (e instanceof RedirectMessage) {
       const stream = requestEv.getWritableStream();
       await stream.close();
-    } else if (e instanceof ErrorResponse) {
-      console.error(e);
+    } else if (e instanceof ServerError) {
       if (!requestEv.headersSent) {
-        const html = getErrorHtml(e.status, e);
         const status = e.status as StatusCodes;
-        requestEv.html(status, html);
+        const accept = requestEv.request.headers.get('Accept');
+        if (accept && !accept.includes('text/html')) {
+          const qwikSerializer = requestEv[RequestEvQwikSerializer];
+          requestEv.headers.set('Content-Type', 'application/qwik-json');
+          requestEv.send(status, await qwikSerializer._serialize([e.data]));
+        } else {
+          const html = getErrorHtml(e.status, e.data);
+          requestEv.html(status, html);
+        }
       }
     } else if (!(e instanceof AbortMessage)) {
       if (getRequestMode(requestEv) !== 'dev') {

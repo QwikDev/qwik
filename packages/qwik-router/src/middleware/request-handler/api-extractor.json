@@ -4,7 +4,6 @@
   "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik-router/src/middleware/request-handler/index.d.ts",
   "apiReport": {
     "enabled": true,
-    "reportFileName": "api.md",
     "reportFolder": "<projectFolder>/src/middleware/request-handler/",
     "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-router/middleware/request-handler"
   },

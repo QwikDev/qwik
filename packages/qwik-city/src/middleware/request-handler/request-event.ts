@@ -130,7 +130,6 @@ export function createRequestEvent(
     routeModuleIndex = ABORT_INDEX;
     return new AbortMessage();
   };
-
   const loaders: Record<string, Promise<any>> = {};
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,
@@ -283,7 +282,7 @@ export function createRequestEvent(
       return writableStream;
     },
   };
-  return Object.freeze(requestEv);
+  return requestEv;
 }
 
 export interface RequestEventInternal extends RequestEvent, RequestEventLoader {

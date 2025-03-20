@@ -22,7 +22,7 @@ export default component$(() => {
     <div class="flex min-h-screen justify-center gap-8 bg-gray-50 p-8">
       <div
         data-dropzone
-        class="h-[25em] w-80 rounded-xl border-2 border-dashed border-gray-300 bg-white p-6 shadow-sm transition-all duration-300 hover:border-gray-400 [&[data-over]]:border-blue-300 [&[data-over]]:bg-blue-50"
+        class="h-[25em] w-80 rounded-xl border-2 border-dashed border-gray-300 bg-white p-6 shadow-xs transition-all duration-300 hover:border-gray-400 [&[data-over]]:border-blue-300 [&[data-over]]:bg-blue-50"
         preventdefault:dragover
         preventdefault:drop
         onDragOver$={sync$((_: DragEvent, currentTarget: HTMLDivElement) => {
@@ -100,7 +100,7 @@ export default component$(() => {
       </div>
 
       <div
-        class="h-[25em] w-80 rounded-xl border-2 border-dashed border-gray-300 bg-white p-6 shadow-sm transition-all duration-300 hover:border-gray-400 [&[data-over]]:border-blue-300 [&[data-over]]:bg-blue-50"
+        class="h-[25em] w-80 rounded-xl border-2 border-dashed border-gray-300 bg-white p-6 shadow-xs transition-all duration-300 hover:border-gray-400 [&[data-over]]:border-blue-300 [&[data-over]]:bg-blue-50"
         data-dropzone
         preventdefault:dragover
         preventdefault:drop

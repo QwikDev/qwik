@@ -186,6 +186,7 @@ export async function build(config: BuildConfig) {
         [join(config.srcQwikDir, 'prefetch-service-worker')]: () => submoduleQwikPrefetch(config),
         [join(config.srcQwikDir, 'server')]: () => submoduleServer(config),
         [join(config.srcQwikCityDir, 'runtime/src')]: () => buildQwikCity(config),
+        [join(config.srcQwikCityDir, 'buildtime')]: () => buildQwikCity(config),
       });
     }
   } catch (e: any) {

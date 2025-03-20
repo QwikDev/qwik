@@ -2270,7 +2270,7 @@ export type ServerQRL<T extends ServerFunction> = QRL<
 ## ServiceWorkerRegister
 
 ```typescript
-ServiceWorkerRegister: (props: { nonce?: string }) =>
+ServiceWorkerRegister: (props: { nonce?: string; verbose?: boolean }) =>
   import("@builder.io/qwik").JSXNode<"script">;
 ```
 
@@ -2293,7 +2293,7 @@ props
 
 </td><td>
 
-{ nonce?: string; }
+{ nonce?: string; verbose?: boolean; }
 
 </td><td>
 

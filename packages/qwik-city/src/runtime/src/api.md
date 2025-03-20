@@ -450,6 +450,7 @@ export const serverQrl: <T extends ServerFunction>(qrl: QRL<T>, options?: Server
 // @public (undocumented)
 export const ServiceWorkerRegister: (props: {
     nonce?: string;
+    verbose?: boolean;
 }) => JSXNode<"script">;
 
 // @public (undocumented)

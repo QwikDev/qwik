@@ -756,6 +756,7 @@ impl<'a> QwikTransform<'a> {
 			&segment_data.hash,
 			&self.stack_ctxt,
 			&segment_data,
+			false,
 		);
 
 		let mut import_path = ["./", &canonical_filename].concat();

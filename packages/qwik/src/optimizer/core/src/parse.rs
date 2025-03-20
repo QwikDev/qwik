@@ -409,6 +409,9 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							let need_handle_watch =
 								might_need_handle_watch(&h.data.ctx_kind, &h.data.ctx_name);
 
+							// Clone h.data early to avoid partial move issues
+							let h_data_clone = h.data.clone();
+
 							let (mut segment_module, comments) = new_module(NewModuleCtx {
 								expr: h.expr,
 								path: &path_data,
@@ -460,7 +463,16 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 								segment: Some(SegmentAnalysis {
 									origin: h.data.origin,
 									name: h.name,
-									entry: h.entry,
+									entry: if is_entry {
+										config.entry_policy.get_entry_for_sym(
+											&h_data_clone.hash,
+											&[],
+											&h_data_clone,
+											true,
+										)
+									} else {
+										h.entry.clone()
+									},
 									extension: h.data.extension,
 									canonical_filename: h.canonical_filename,
 									path: h.data.path,

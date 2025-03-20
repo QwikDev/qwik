@@ -21,6 +21,7 @@ export abstract class _SharedContainer implements Container {
   $serverData$: Record<string, any>;
   $currentUniqueId$ = 0;
   $instanceHash$: string | null = null;
+  $buildBase$: string | null = null;
 
   constructor(
     scheduleDrain: () => void,

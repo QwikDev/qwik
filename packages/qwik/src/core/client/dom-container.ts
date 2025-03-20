@@ -30,6 +30,7 @@ import {
   USE_ON_LOCAL_SEQ_IDX,
   getQFuncs,
   QLocaleAttr,
+  QManifestHashAttr,
 } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
 import { isSlotProp } from '../shared/utils/prop';
@@ -121,7 +122,6 @@ export const isDomContainer = (container: any): container is DomContainer => {
 export class DomContainer extends _SharedContainer implements IClientContainer {
   public element: ContainerElement;
   public qContainer: string;
-  public qBase: string;
   public qManifestHash: string;
   public rootVNode: ElementVNode;
   public document: QDocument;
@@ -159,10 +159,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     ];
     this.document = element.ownerDocument as QDocument;
     this.element = element;
-    this.qBase = element.getAttribute(QBaseAttr)!;
+    this.$buildBase$ = element.getAttribute(QBaseAttr)!;
     this.$instanceHash$ = element.getAttribute(QInstanceAttr)!;
-    // this.containerState = createContainerState(element, this.qBase);
-    this.qManifestHash = element.getAttribute('q:manifest-hash')!;
+    this.qManifestHash = element.getAttribute(QManifestHashAttr)!;
     this.rootVNode = vnode_newUnMaterializedElement(this.element);
     // These are here to initialize all properties at once for single class transition
     this.$rawStateData$ = null!;

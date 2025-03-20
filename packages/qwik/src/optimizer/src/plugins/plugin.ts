@@ -759,23 +759,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     const addInjection = (b: GlobalInjections) => injections.push(b);
     const generateManifest = async () => {
-      const optimizer = getOptimizer();
+      const manifest = assembleManifestData(injections, rollupBundle);
       const path = optimizer.sys.path;
-
-      const segments = Array.from(clientResults.values())
-        .flatMap((r) => r.modules)
-        .map((mod) => mod.segment)
-        .filter((h) => !!h) as SegmentAnalysis[];
-
-      const manifest = generateManifestFromBundles(
-        path,
-        segments,
-        injections,
-        rollupBundle,
-        opts,
-        debug
-      );
-
       for (const symbol of Object.values(manifest.symbols)) {
         if (symbol.origin) {
           symbol.origin = normalizePath(symbol.origin);
@@ -798,7 +783,30 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       return manifest;
     };
 
-    return { addInjection, generateManifest };
+    const collectServerRpcAndCtxKindSymbols = async () => {
+      const manifest = assembleManifestData(injections, rollupBundle);
+
+      return Object.fromEntries(
+        Object.entries(manifest.symbols).filter(
+          ([_, symbol]) =>
+            symbol.displayName?.endsWith('serverQrl_rpc') && symbol.ctxKind === 'function'
+        )
+      );
+    };
+
+    return { addInjection, generateManifest, collectServerRpcAndCtxKindSymbols };
+  };
+
+  const assembleManifestData = (injections: GlobalInjections[], rollupBundle: OutputBundle) => {
+    const optimizer = getOptimizer();
+    const path = optimizer.sys.path;
+
+    const segments = Array.from(clientResults.values())
+      .flatMap((r) => r.modules)
+      .map((mod) => mod.segment)
+      .filter((h) => !!h) as SegmentAnalysis[];
+
+    return generateManifestFromBundles(path, segments, injections, rollupBundle, opts, debug);
   };
 
   const getOptions = () => opts;
@@ -998,6 +1006,7 @@ export const SSR_OUT_DIR = 'server';
 const LIB_OUT_DIR = 'lib';
 
 export const Q_MANIFEST_FILENAME = 'q-manifest.json';
+export const Q_SERVER_RPC_CTX_KIND_SYMBOLS_FILENAME = 'q-server-rpc-ctx-kind-symbols.json';
 
 export interface QwikPluginDevTools {
   imageDevTools?: boolean | true;

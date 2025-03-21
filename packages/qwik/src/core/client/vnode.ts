@@ -965,11 +965,29 @@ export const vnode_insertBefore = (
   if (vnode_isElementVNode(parent)) {
     ensureMaterialized(parent);
   }
+  const newChildCurrentParent = newChild[VNodeProps.parent];
   if (newChild === insertBefore) {
     // invalid insertBefore. We can't insert before self reference
     // prevent infinity loop and putting self reference to next sibling
-    insertBefore = null;
+    if (newChildCurrentParent) {
+      // early return, as the newChild is already in the tree and we are already in the correct position
+      return;
+    } else {
+      // if the newChild is not in the tree, than we insert it at the end of the list
+      insertBefore = null;
+    }
   }
+
+  // ensure that the previous node is unlinked.
+  if (
+    newChildCurrentParent &&
+    (newChild[VNodeProps.previousSibling] ||
+      newChild[VNodeProps.nextSibling] ||
+      newChildCurrentParent !== parent)
+  ) {
+    vnode_remove(journal, newChildCurrentParent, newChild, false);
+  }
+
   let adjustedInsertBefore: VNode | null = null;
   if (insertBefore == null) {
     if (vnode_isVirtualVNode(parent)) {
@@ -1011,17 +1029,6 @@ export const vnode_insertBefore = (
         vnode_getNode(adjustedInsertBefore),
         ...domChildren
       );
-  }
-
-  // ensure that the previous node is unlinked.
-  const newChildCurrentParent = newChild[VNodeProps.parent];
-  if (
-    newChildCurrentParent &&
-    (newChild[VNodeProps.previousSibling] ||
-      newChild[VNodeProps.nextSibling] ||
-      (vnode_isElementVNode(newChildCurrentParent) && newChildCurrentParent !== parent))
-  ) {
-    vnode_remove(journal, newChildCurrentParent, newChild, false);
   }
 
   // link newChild into the previous/next list

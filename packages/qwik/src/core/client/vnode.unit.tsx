@@ -583,6 +583,1626 @@ describe('vnode', () => {
     });
   });
   describe('insert', () => {
+    describe('text node', () => {
+      it('should insert text node', () => {
+        expect(vParent).toMatchVDOM(<test></test>);
+        const text = vnode_newText(document.createTextNode('foo'), 'foo');
+        vnode_insertBefore(journal, vParent, text, null);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(<test>foo</test>);
+        expect(parent.innerHTML).toBe('foo');
+      });
+
+      it('should insert text node inside element', () => {
+        parent.innerHTML = '<div></div>';
+        expect(vParent).toMatchVDOM(
+          <test>
+            <div></div>
+          </test>
+        );
+        const text = vnode_newText(document.createTextNode('foo'), 'foo');
+        const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+        vnode_insertBefore(journal, firstNode, text, null);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            <div>foo</div>
+          </test>
+        );
+        expect(parent.innerHTML).toBe('<div>foo</div>');
+      });
+
+      it('should insert text node inside virtual', () => {
+        parent.innerHTML = '';
+        document.qVNodeData.set(parent, '{}');
+        expect(vParent).toMatchVDOM(
+          <test>
+            <></>
+          </test>
+        );
+        const text = vnode_newText(document.createTextNode('foo'), 'foo');
+        const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+        vnode_insertBefore(journal, firstNode, text, null);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            <>foo</>
+          </test>
+        );
+        expect(parent.innerHTML).toBe('foo');
+      });
+
+      describe('inserting text node near element node sibling', () => {
+        it('should insert text node before element', () => {
+          parent.innerHTML = '<b></b>';
+          expect(vParent).toMatchVDOM(
+            <test>
+              <b />
+            </test>
+          );
+          const text = vnode_newText(document.createTextNode('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent);
+          expect(firstNode).toMatchVDOM(<b />);
+          vnode_insertBefore(journal, vParent, text, firstNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              foo
+              <b />
+            </test>
+          );
+          expect(parent.innerHTML).toBe('foo<b></b>');
+        });
+
+        it('should insert text node after element at the end', () => {
+          parent.innerHTML = '<b></b>';
+          expect(vParent).toMatchVDOM(
+            <test>
+              <b />
+            </test>
+          );
+          const text = vnode_newText(document.createTextNode('foo'), 'foo');
+          vnode_insertBefore(journal, vParent, text, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <b />
+              foo
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<b></b>foo');
+        });
+
+        it('should insert text node between elements', () => {
+          parent.innerHTML = '<b></b><p></p>';
+          expect(vParent).toMatchVDOM(
+            <test>
+              <b />
+              <p />
+            </test>
+          );
+          const text = vnode_newText(document.createTextNode('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent);
+          const targetNode = vnode_getNextSibling(firstNode!);
+          expect(targetNode).toMatchVDOM(<p />);
+          vnode_insertBefore(journal, vParent, text, targetNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <b />
+              foo
+              <p />
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<b></b>foo<p></p>');
+        });
+      });
+
+      describe('inserting text node near text node sibling', () => {
+        it('should insert text node before text node', () => {
+          parent.innerHTML = 'b';
+          document.qVNodeData.set(parent, 'B');
+          expect(vParent).toMatchVDOM(<test>b</test>);
+          const text = vnode_newText(document.createTextNode('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent);
+          vnode_insertBefore(journal, vParent, text, firstNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              {'foo'}
+              {'b'}
+            </test>
+          );
+          expect(parent.innerHTML).toBe('foob');
+        });
+
+        it('should insert text node after text node at the end', () => {
+          parent.innerHTML = 'b';
+          document.qVNodeData.set(parent, 'B');
+          expect(vParent).toMatchVDOM(<test>b</test>);
+          const text = vnode_newText(document.createTextNode('foo'), 'foo');
+          vnode_insertBefore(journal, vParent, text, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              {'b'}
+              {'foo'}
+            </test>
+          );
+          expect(parent.innerHTML).toBe('bfoo');
+        });
+
+        it('should insert text node between text nodes', () => {
+          parent.innerHTML = 'bp';
+          document.qVNodeData.set(parent, 'BB');
+          expect(vParent).toMatchVDOM(
+            <test>
+              {'b'}
+              {'p'}
+            </test>
+          );
+          const text = vnode_newText(document.createTextNode('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent);
+          const targetNode = vnode_getNextSibling(firstNode!);
+          expect(targetNode).toMatchVDOM('p');
+          vnode_insertBefore(journal, vParent, text, targetNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              {'b'}
+              {'foo'}
+              {'p'}
+            </test>
+          );
+          expect(parent.innerHTML).toBe('bfoop');
+        });
+      });
+
+      describe('inserting text node near virtual node sibling', () => {
+        it('should insert text node before virtual node', () => {
+          parent.innerHTML = '';
+          document.qVNodeData.set(parent, '{}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <></>
+            </test>
+          );
+          const text = vnode_newText(document.createTextNode('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent);
+          vnode_insertBefore(journal, vParent, text, firstNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              {'foo'}
+              <></>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('foo');
+        });
+
+        it('should insert text node after text node at the end', () => {
+          parent.innerHTML = '';
+          document.qVNodeData.set(parent, '{}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <></>
+            </test>
+          );
+          const text = vnode_newText(document.createTextNode('foo'), 'foo');
+          vnode_insertBefore(journal, vParent, text, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <></>
+              {'foo'}
+            </test>
+          );
+          expect(parent.innerHTML).toBe('foo');
+        });
+
+        it('should insert text node between text nodes', () => {
+          parent.innerHTML = '';
+          document.qVNodeData.set(parent, '{}{}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <></>
+              <></>
+            </test>
+          );
+          const text = vnode_newText(document.createTextNode('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent);
+          const targetNode = vnode_getNextSibling(firstNode!);
+          vnode_insertBefore(journal, vParent, text, targetNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <></>
+              {'foo'}
+              <></>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('foo');
+        });
+      });
+
+      describe('inserting text node inside element node near element node sibling', () => {
+        it('should insert text node before element', () => {
+          parent.innerHTML = '<div><b></b></div>';
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <b />
+              </div>
+            </test>
+          );
+          const text = vnode_newText(document.createTextNode('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode);
+          expect(firstInnerNode).toMatchVDOM(<b />);
+          vnode_insertBefore(journal, firstNode, text, firstInnerNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                foo
+                <b />
+              </div>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<div>foo<b></b></div>');
+        });
+
+        it('should insert text node before virtual element', () => {
+          parent.innerHTML = '<div></div>';
+          document.qVNodeData.set(parent.firstChild as Element, '{}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <></>
+              </div>
+            </test>
+          );
+          const text = vnode_newText(document.createTextNode('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode);
+          expect(firstInnerNode).toMatchVDOM(<></>);
+          vnode_insertBefore(journal, firstNode, text, firstInnerNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                foo
+                <></>
+              </div>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<div>foo</div>');
+        });
+
+        it('should insert text node after element at the end', () => {
+          parent.innerHTML = '<div><b></b></div>';
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <b />
+              </div>
+            </test>
+          );
+          const text = vnode_newText(document.createTextNode('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          vnode_insertBefore(journal, firstNode, text, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <b />
+                foo
+              </div>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<div><b></b>foo</div>');
+        });
+
+        it('should insert text node after virtual element', () => {
+          parent.innerHTML = '<div></div>';
+          document.qVNodeData.set(parent.firstChild as Element, '{}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <></>
+              </div>
+            </test>
+          );
+          const text = vnode_newText(document.createTextNode('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode);
+          expect(firstInnerNode).toMatchVDOM(<></>);
+          vnode_insertBefore(journal, firstNode, text, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <></>
+                foo
+              </div>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<div>foo</div>');
+        });
+
+        it('should insert text node between virtual elements', () => {
+          parent.innerHTML = '<div></div>';
+          document.qVNodeData.set(parent.firstChild as Element, '{}{}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <></>
+                <></>
+              </div>
+            </test>
+          );
+          const text = vnode_newText(document.createTextNode('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode) as ElementVNode;
+          const targetNode = vnode_getNextSibling(firstInnerNode!);
+          expect(targetNode).toMatchVDOM(<></>);
+          vnode_insertBefore(journal, firstNode, text, targetNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <></>
+                foo
+                <></>
+              </div>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<div>foo</div>');
+        });
+      });
+
+      describe('inserting text node inside virtual node near element node sibling', () => {
+        it('should insert text node before element', () => {
+          parent.innerHTML = '<b></b>';
+          document.qVNodeData.set(parent, '{1}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <b />
+              </>
+            </test>
+          );
+          const text = vnode_newText(document.createTextNode('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent) as VirtualVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode);
+          expect(firstInnerNode).toMatchVDOM(<b />);
+          vnode_insertBefore(journal, firstNode, text, firstInnerNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                foo
+                <b />
+              </>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('foo<b></b>');
+        });
+
+        it('should insert text node before virtual element', () => {
+          parent.innerHTML = '';
+          document.qVNodeData.set(parent, '{{}}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <></>
+              </>
+            </test>
+          );
+          const text = vnode_newText(document.createTextNode('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode);
+          expect(firstInnerNode).toMatchVDOM(<></>);
+          vnode_insertBefore(journal, firstNode, text, firstInnerNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                foo
+                <></>
+              </>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('foo');
+        });
+
+        it('should insert text node after element at the end', () => {
+          parent.innerHTML = '<b></b>';
+          document.qVNodeData.set(parent, '{1}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <b />
+              </>
+            </test>
+          );
+          const text = vnode_newText(document.createTextNode('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          vnode_insertBefore(journal, firstNode, text, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <b />
+                foo
+              </>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<b></b>foo');
+        });
+
+        it('should insert text node after virtual element', () => {
+          parent.innerHTML = '';
+          document.qVNodeData.set(parent, '{{}}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <></>
+              </>
+            </test>
+          );
+          const text = vnode_newText(document.createTextNode('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent) as VirtualVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode);
+          expect(firstInnerNode).toMatchVDOM(<></>);
+          vnode_insertBefore(journal, firstNode, text, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <></>
+                foo
+              </>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('foo');
+        });
+
+        it('should insert text node between virtual elements', () => {
+          parent.innerHTML = '';
+          document.qVNodeData.set(parent, '{{}{}}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <></>
+                <></>
+              </>
+            </test>
+          );
+          const text = vnode_newText(document.createTextNode('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode) as ElementVNode;
+          const targetNode = vnode_getNextSibling(firstInnerNode!);
+          expect(targetNode).toMatchVDOM(<></>);
+          vnode_insertBefore(journal, firstNode, text, targetNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <></>
+                foo
+                <></>
+              </>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('foo');
+        });
+      });
+    });
+    describe('element node', () => {
+      it('should insert element node', () => {
+        expect(vParent).toMatchVDOM(<test></test>);
+        const element = vnode_newElement(document.createElement('foo'), 'foo');
+        vnode_insertBefore(journal, vParent, element, null);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            <foo />
+          </test>
+        );
+        expect(parent.innerHTML).toBe('<foo></foo>');
+      });
+
+      it('should insert element node inside element', () => {
+        parent.innerHTML = '<div></div>';
+        expect(vParent).toMatchVDOM(
+          <test>
+            <div></div>
+          </test>
+        );
+        const element = vnode_newElement(document.createElement('foo'), 'foo');
+        const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+        vnode_insertBefore(journal, firstNode, element, null);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            <div>
+              <foo></foo>
+            </div>
+          </test>
+        );
+        expect(parent.innerHTML).toBe('<div><foo></foo></div>');
+      });
+
+      it('should insert element node inside virtual', () => {
+        parent.innerHTML = '';
+        document.qVNodeData.set(parent, '{}');
+        expect(vParent).toMatchVDOM(
+          <test>
+            <></>
+          </test>
+        );
+        const element = vnode_newElement(document.createElement('foo'), 'foo');
+        const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+        vnode_insertBefore(journal, firstNode, element, null);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            <>
+              <foo></foo>
+            </>
+          </test>
+        );
+        expect(parent.innerHTML).toBe('<foo></foo>');
+      });
+
+      describe('inserting element node near element node sibling', () => {
+        it('should insert element node before element', () => {
+          parent.innerHTML = '<b></b>';
+          expect(vParent).toMatchVDOM(
+            <test>
+              <b />
+            </test>
+          );
+          const element = vnode_newElement(document.createElement('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent);
+          expect(firstNode).toMatchVDOM(<b />);
+          vnode_insertBefore(journal, vParent, element, firstNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <foo />
+              <b />
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<foo></foo><b></b>');
+        });
+
+        it('should insert element node after element at the end', () => {
+          parent.innerHTML = '<b></b>';
+          expect(vParent).toMatchVDOM(
+            <test>
+              <b />
+            </test>
+          );
+          const element = vnode_newElement(document.createElement('foo'), 'foo');
+          vnode_insertBefore(journal, vParent, element, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <b />
+              <foo />
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<b></b><foo></foo>');
+        });
+
+        it('should insert element node between elements', () => {
+          parent.innerHTML = '<b></b><p></p>';
+          expect(vParent).toMatchVDOM(
+            <test>
+              <b />
+              <p />
+            </test>
+          );
+          const element = vnode_newElement(document.createElement('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent);
+          const targetNode = vnode_getNextSibling(firstNode!);
+          expect(targetNode).toMatchVDOM(<p />);
+          vnode_insertBefore(journal, vParent, element, targetNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <b />
+              <foo />
+              <p />
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<b></b><foo></foo><p></p>');
+        });
+      });
+
+      describe('inserting element node near text node sibling', () => {
+        it('should insert element node before text node', () => {
+          parent.innerHTML = 'b';
+          document.qVNodeData.set(parent, 'B');
+          expect(vParent).toMatchVDOM(<test>b</test>);
+          const element = vnode_newElement(document.createElement('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent);
+          vnode_insertBefore(journal, vParent, element, firstNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <foo />
+              {'b'}
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<foo></foo>b');
+        });
+
+        it('should insert element node after text node at the end', () => {
+          parent.innerHTML = 'b';
+          document.qVNodeData.set(parent, 'B');
+          expect(vParent).toMatchVDOM(<test>b</test>);
+          const element = vnode_newElement(document.createElement('foo'), 'foo');
+          vnode_insertBefore(journal, vParent, element, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              {'b'}
+              <foo />
+            </test>
+          );
+          expect(parent.innerHTML).toBe('b<foo></foo>');
+        });
+
+        it('should insert element node between text nodes', () => {
+          parent.innerHTML = 'bp';
+          document.qVNodeData.set(parent, 'BB');
+          expect(vParent).toMatchVDOM(
+            <test>
+              {'b'}
+              {'p'}
+            </test>
+          );
+          const element = vnode_newElement(document.createElement('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent);
+          const targetNode = vnode_getNextSibling(firstNode!);
+          expect(targetNode).toMatchVDOM('p');
+          vnode_insertBefore(journal, vParent, element, targetNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              {'b'}
+              <foo />
+              {'p'}
+            </test>
+          );
+          expect(parent.innerHTML).toBe('b<foo></foo>p');
+        });
+      });
+
+      describe('inserting element node near virtual node sibling', () => {
+        it('should insert element node before virtual node', () => {
+          parent.innerHTML = '';
+          document.qVNodeData.set(parent, '{}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <></>
+            </test>
+          );
+          const element = vnode_newElement(document.createElement('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent);
+          vnode_insertBefore(journal, vParent, element, firstNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <foo />
+              <></>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<foo></foo>');
+        });
+
+        it('should insert element node after text node at the end', () => {
+          parent.innerHTML = '';
+          document.qVNodeData.set(parent, '{}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <></>
+            </test>
+          );
+          const element = vnode_newElement(document.createElement('foo'), 'foo');
+          vnode_insertBefore(journal, vParent, element, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <></>
+              <foo />
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<foo></foo>');
+        });
+
+        it('should insert element node between text nodes', () => {
+          parent.innerHTML = '';
+          document.qVNodeData.set(parent, '{}{}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <></>
+              <></>
+            </test>
+          );
+          const element = vnode_newElement(document.createElement('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent);
+          const targetNode = vnode_getNextSibling(firstNode!);
+          vnode_insertBefore(journal, vParent, element, targetNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <></>
+              <foo />
+              <></>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<foo></foo>');
+        });
+      });
+
+      describe('inserting element node inside element node near element node sibling', () => {
+        it('should insert element node before element', () => {
+          parent.innerHTML = '<div><b></b></div>';
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <b />
+              </div>
+            </test>
+          );
+          const element = vnode_newElement(document.createElement('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode);
+          expect(firstInnerNode).toMatchVDOM(<b />);
+          vnode_insertBefore(journal, firstNode, element, firstInnerNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <foo />
+                <b />
+              </div>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<div><foo></foo><b></b></div>');
+        });
+
+        it('should insert element node before virtual element', () => {
+          parent.innerHTML = '<div></div>';
+          document.qVNodeData.set(parent.firstChild as Element, '{}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <></>
+              </div>
+            </test>
+          );
+          const element = vnode_newElement(document.createElement('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode);
+          expect(firstInnerNode).toMatchVDOM(<></>);
+          vnode_insertBefore(journal, firstNode, element, firstInnerNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <foo />
+                <></>
+              </div>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<div><foo></foo></div>');
+        });
+
+        it('should insert element node after element at the end', () => {
+          parent.innerHTML = '<div><b></b></div>';
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <b />
+              </div>
+            </test>
+          );
+          const element = vnode_newElement(document.createElement('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          vnode_insertBefore(journal, firstNode, element, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <b />
+                <foo />
+              </div>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<div><b></b><foo></foo></div>');
+        });
+
+        it('should insert element node after virtual element', () => {
+          parent.innerHTML = '<div></div>';
+          document.qVNodeData.set(parent.firstChild as Element, '{}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <></>
+              </div>
+            </test>
+          );
+          const element = vnode_newElement(document.createElement('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode);
+          expect(firstInnerNode).toMatchVDOM(<></>);
+          vnode_insertBefore(journal, firstNode, element, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <></>
+                <foo />
+              </div>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<div><foo></foo></div>');
+        });
+
+        it('should insert element node between virtual elements', () => {
+          parent.innerHTML = '<div></div>';
+          document.qVNodeData.set(parent.firstChild as Element, '{}{}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <></>
+                <></>
+              </div>
+            </test>
+          );
+          const element = vnode_newElement(document.createElement('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode) as ElementVNode;
+          const targetNode = vnode_getNextSibling(firstInnerNode!);
+          expect(targetNode).toMatchVDOM(<></>);
+          vnode_insertBefore(journal, firstNode, element, targetNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <></>
+                <foo />
+                <></>
+              </div>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<div><foo></foo></div>');
+        });
+      });
+
+      describe('inserting element node inside virtual node near element node sibling', () => {
+        it('should insert element node before element', () => {
+          parent.innerHTML = '<b></b>';
+          document.qVNodeData.set(parent, '{1}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <b />
+              </>
+            </test>
+          );
+          const element = vnode_newElement(document.createElement('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent) as VirtualVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode);
+          expect(firstInnerNode).toMatchVDOM(<b />);
+          vnode_insertBefore(journal, firstNode, element, firstInnerNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <foo />
+                <b />
+              </>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<foo></foo><b></b>');
+        });
+
+        it('should insert element node before virtual element', () => {
+          parent.innerHTML = '';
+          document.qVNodeData.set(parent, '{{}}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <></>
+              </>
+            </test>
+          );
+          const element = vnode_newElement(document.createElement('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode);
+          expect(firstInnerNode).toMatchVDOM(<></>);
+          vnode_insertBefore(journal, firstNode, element, firstInnerNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <foo />
+                <></>
+              </>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<foo></foo>');
+        });
+
+        it('should insert element node after element at the end', () => {
+          parent.innerHTML = '<b></b>';
+          document.qVNodeData.set(parent, '{1}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <b />
+              </>
+            </test>
+          );
+          const element = vnode_newElement(document.createElement('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          vnode_insertBefore(journal, firstNode, element, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <b />
+                <foo />
+              </>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<b></b><foo></foo>');
+        });
+
+        it('should insert element node after virtual element', () => {
+          parent.innerHTML = '';
+          document.qVNodeData.set(parent, '{{}}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <></>
+              </>
+            </test>
+          );
+          const element = vnode_newElement(document.createElement('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent) as VirtualVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode);
+          expect(firstInnerNode).toMatchVDOM(<></>);
+          vnode_insertBefore(journal, firstNode, element, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <></>
+                <foo />
+              </>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<foo></foo>');
+        });
+
+        it('should insert element node between virtual elements', () => {
+          parent.innerHTML = '';
+          document.qVNodeData.set(parent, '{{}{}}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <></>
+                <></>
+              </>
+            </test>
+          );
+          const element = vnode_newElement(document.createElement('foo'), 'foo');
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode) as ElementVNode;
+          const targetNode = vnode_getNextSibling(firstInnerNode!);
+          expect(targetNode).toMatchVDOM(<></>);
+          vnode_insertBefore(journal, firstNode, element, targetNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <></>
+                <foo />
+                <></>
+              </>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<foo></foo>');
+        });
+      });
+    });
+    describe('virtual node', () => {
+      it('should insert virtual node', () => {
+        expect(vParent).toMatchVDOM(<test></test>);
+        const virtual = vnode_newVirtual();
+        vnode_insertBefore(journal, vParent, virtual, null);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            <></>
+          </test>
+        );
+        expect(parent.innerHTML).toBe('');
+      });
+
+      it('should insert virtual node inside element', () => {
+        parent.innerHTML = '<div></div>';
+        expect(vParent).toMatchVDOM(
+          <test>
+            <div></div>
+          </test>
+        );
+        const virtual = vnode_newVirtual();
+        const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+        vnode_insertBefore(journal, firstNode, virtual, null);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            <div>
+              <></>
+            </div>
+          </test>
+        );
+        expect(parent.innerHTML).toBe('<div></div>');
+      });
+
+      it('should insert virtual node inside virtual', () => {
+        parent.innerHTML = '';
+        document.qVNodeData.set(parent, '{}');
+        expect(vParent).toMatchVDOM(
+          <test>
+            <></>
+          </test>
+        );
+        const virtual = vnode_newVirtual();
+        const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+        vnode_insertBefore(journal, firstNode, virtual, null);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            <>
+              <></>
+            </>
+          </test>
+        );
+        expect(parent.innerHTML).toBe('');
+      });
+
+      describe('inserting virtual node near element node sibling', () => {
+        it('should insert virtual node before element', () => {
+          parent.innerHTML = '<b></b>';
+          expect(vParent).toMatchVDOM(
+            <test>
+              <b />
+            </test>
+          );
+          const virtual = vnode_newVirtual();
+          const firstNode = vnode_getFirstChild(vParent);
+          expect(firstNode).toMatchVDOM(<b />);
+          vnode_insertBefore(journal, vParent, virtual, firstNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <></>
+              <b />
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<b></b>');
+        });
+
+        it('should insert virtual node after element at the end', () => {
+          parent.innerHTML = '<b></b>';
+          expect(vParent).toMatchVDOM(
+            <test>
+              <b />
+            </test>
+          );
+          const virtual = vnode_newVirtual();
+          vnode_insertBefore(journal, vParent, virtual, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <b />
+              <></>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<b></b>');
+        });
+
+        it('should insert virtual node between elements', () => {
+          parent.innerHTML = '<b></b><p></p>';
+          expect(vParent).toMatchVDOM(
+            <test>
+              <b />
+              <p />
+            </test>
+          );
+          const virtual = vnode_newVirtual();
+          const firstNode = vnode_getFirstChild(vParent);
+          const targetNode = vnode_getNextSibling(firstNode!);
+          expect(targetNode).toMatchVDOM(<p />);
+          vnode_insertBefore(journal, vParent, virtual, targetNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <b />
+              <></>
+              <p />
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<b></b><p></p>');
+        });
+      });
+
+      describe('inserting virtual node near text node sibling', () => {
+        it('should insert virtual node before text node', () => {
+          parent.innerHTML = 'b';
+          document.qVNodeData.set(parent, 'B');
+          expect(vParent).toMatchVDOM(<test>b</test>);
+          const virtual = vnode_newVirtual();
+          const firstNode = vnode_getFirstChild(vParent);
+          vnode_insertBefore(journal, vParent, virtual, firstNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <></>
+              {'b'}
+            </test>
+          );
+          expect(parent.innerHTML).toBe('b');
+        });
+
+        it('should insert virtual node after text node at the end', () => {
+          parent.innerHTML = 'b';
+          document.qVNodeData.set(parent, 'B');
+          expect(vParent).toMatchVDOM(<test>b</test>);
+          const virtual = vnode_newVirtual();
+          vnode_insertBefore(journal, vParent, virtual, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              {'b'}
+              <></>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('b');
+        });
+
+        it('should insert virtual node between text nodes', () => {
+          parent.innerHTML = 'bp';
+          document.qVNodeData.set(parent, 'BB');
+          expect(vParent).toMatchVDOM(
+            <test>
+              {'b'}
+              {'p'}
+            </test>
+          );
+          const virtual = vnode_newVirtual();
+          const firstNode = vnode_getFirstChild(vParent);
+          const targetNode = vnode_getNextSibling(firstNode!);
+          expect(targetNode).toMatchVDOM('p');
+          vnode_insertBefore(journal, vParent, virtual, targetNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              {'b'}
+              <></>
+              {'p'}
+            </test>
+          );
+          expect(parent.innerHTML).toBe('bp');
+        });
+      });
+
+      describe('inserting virtual node near virtual node sibling', () => {
+        it('should insert virtual node before virtual node', () => {
+          parent.innerHTML = '';
+          document.qVNodeData.set(parent, '{}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <></>
+            </test>
+          );
+          const virtual = vnode_newVirtual();
+          const firstNode = vnode_getFirstChild(vParent);
+          vnode_insertBefore(journal, vParent, virtual, firstNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <></>
+              <></>
+            </test>
+          );
+
+          expect(vnode_getFirstChild(vParent)).not.toBe(firstNode);
+          expect(vnode_getNextSibling(vnode_getFirstChild(vParent)!)).toBe(firstNode);
+          expect(parent.innerHTML).toBe('');
+        });
+
+        it('should insert virtual node after text node at the end', () => {
+          parent.innerHTML = '';
+          document.qVNodeData.set(parent, '{}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <></>
+            </test>
+          );
+          const virtual = vnode_newVirtual();
+          const firstNode = vnode_getFirstChild(vParent);
+          vnode_insertBefore(journal, vParent, virtual, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <></>
+              <></>
+            </test>
+          );
+          expect(vnode_getNextSibling(vnode_getFirstChild(vParent)!)).not.toBe(firstNode);
+          expect(vnode_getFirstChild(vParent)).toBe(firstNode);
+          expect(parent.innerHTML).toBe('');
+        });
+
+        it('should insert virtual node between text nodes', () => {
+          parent.innerHTML = '';
+          document.qVNodeData.set(parent, '{}{}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <></>
+              <></>
+            </test>
+          );
+          const virtual = vnode_newVirtual();
+          const firstNode = vnode_getFirstChild(vParent);
+          const targetNode = vnode_getNextSibling(firstNode!);
+          vnode_insertBefore(journal, vParent, virtual, targetNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <></>
+              <></>
+              <></>
+            </test>
+          );
+          expect(vnode_getFirstChild(vParent)).toBe(firstNode);
+          expect(vnode_getNextSibling(vnode_getFirstChild(vParent)!)).not.toBe(firstNode);
+          expect(vnode_getNextSibling(vnode_getFirstChild(vParent)!)).not.toBe(targetNode);
+          expect(vnode_getNextSibling(vnode_getNextSibling(vnode_getFirstChild(vParent)!)!)).toBe(
+            targetNode
+          );
+          expect(parent.innerHTML).toBe('');
+        });
+      });
+
+      describe('inserting virtual node inside element node near element node sibling', () => {
+        it('should insert virtual node before element', () => {
+          parent.innerHTML = '<div><b></b></div>';
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <b />
+              </div>
+            </test>
+          );
+          const virtual = vnode_newVirtual();
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode);
+          expect(firstInnerNode).toMatchVDOM(<b />);
+          vnode_insertBefore(journal, firstNode, virtual, firstInnerNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <></>
+                <b />
+              </div>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<div><b></b></div>');
+        });
+
+        it('should insert virtual node before virtual element', () => {
+          parent.innerHTML = '<div></div>';
+          document.qVNodeData.set(parent.firstChild as Element, '{}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <></>
+              </div>
+            </test>
+          );
+          const virtual = vnode_newVirtual();
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode);
+          expect(firstInnerNode).toMatchVDOM(<></>);
+          vnode_insertBefore(journal, firstNode, virtual, firstInnerNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <></>
+                <></>
+              </div>
+            </test>
+          );
+
+          expect(vnode_getNextSibling(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!)).toBe(
+            firstInnerNode
+          );
+          expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)).not.toBe(firstInnerNode);
+          expect(parent.innerHTML).toBe('<div></div>');
+        });
+
+        it('should insert virtual node after element at the end', () => {
+          parent.innerHTML = '<div><b></b></div>';
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <b />
+              </div>
+            </test>
+          );
+          const virtual = vnode_newVirtual();
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          vnode_insertBefore(journal, firstNode, virtual, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <b />
+                <></>
+              </div>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<div><b></b></div>');
+        });
+
+        it('should insert virtual node after virtual element', () => {
+          parent.innerHTML = '<div></div>';
+          document.qVNodeData.set(parent.firstChild as Element, '{}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <></>
+              </div>
+            </test>
+          );
+          const virtual = vnode_newVirtual();
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode);
+          expect(firstInnerNode).toMatchVDOM(<></>);
+          vnode_insertBefore(journal, firstNode, virtual, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <></>
+                <></>
+              </div>
+            </test>
+          );
+          expect(
+            vnode_getNextSibling(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!)
+          ).not.toBe(firstInnerNode);
+          expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)).toBe(firstInnerNode);
+          expect(parent.innerHTML).toBe('<div></div>');
+        });
+
+        it('should insert virtual node between virtual elements', () => {
+          parent.innerHTML = '<div></div>';
+          document.qVNodeData.set(parent.firstChild as Element, '{}{}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <></>
+                <></>
+              </div>
+            </test>
+          );
+          const virtual = vnode_newVirtual();
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode) as ElementVNode;
+          const targetNode = vnode_getNextSibling(firstInnerNode!);
+          expect(targetNode).toMatchVDOM(<></>);
+          vnode_insertBefore(journal, firstNode, virtual, targetNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <div>
+                <></>
+                <></>
+                <></>
+              </div>
+            </test>
+          );
+
+          expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)).toBe(firstInnerNode);
+          expect(
+            vnode_getNextSibling(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!)
+          ).not.toBe(firstInnerNode);
+          expect(
+            vnode_getNextSibling(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!)
+          ).not.toBe(targetNode);
+          expect(
+            vnode_getNextSibling(
+              vnode_getNextSibling(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!)!
+            )
+          ).toBe(targetNode);
+          expect(parent.innerHTML).toBe('<div></div>');
+        });
+      });
+
+      describe('inserting virtual node inside virtual node near element node sibling', () => {
+        it('should insert virtual node before element', () => {
+          parent.innerHTML = '<b></b>';
+          document.qVNodeData.set(parent, '{1}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <b />
+              </>
+            </test>
+          );
+          const virtual = vnode_newVirtual();
+          const firstNode = vnode_getFirstChild(vParent) as VirtualVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode);
+          expect(firstInnerNode).toMatchVDOM(<b />);
+          vnode_insertBefore(journal, firstNode, virtual, firstInnerNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <></>
+                <b />
+              </>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<b></b>');
+        });
+
+        it('should insert virtual node before virtual element', () => {
+          parent.innerHTML = '';
+          document.qVNodeData.set(parent, '{{}}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <></>
+              </>
+            </test>
+          );
+          const virtual = vnode_newVirtual();
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode);
+          expect(firstInnerNode).toMatchVDOM(<></>);
+          vnode_insertBefore(journal, firstNode, virtual, firstInnerNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <></>
+                <></>
+              </>
+            </test>
+          );
+
+          expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)).not.toBe(firstInnerNode);
+          expect(vnode_getNextSibling(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!)).toBe(
+            firstInnerNode
+          );
+          expect(parent.innerHTML).toBe('');
+        });
+
+        it('should insert virtual node after element at the end', () => {
+          parent.innerHTML = '<b></b>';
+          document.qVNodeData.set(parent, '{1}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <b />
+              </>
+            </test>
+          );
+          const virtual = vnode_newVirtual();
+          const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
+          vnode_insertBefore(journal, firstNode, virtual, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <b />
+                <></>
+              </>
+            </test>
+          );
+          expect(parent.innerHTML).toBe('<b></b>');
+        });
+
+        it('should insert virtual node after virtual element', () => {
+          parent.innerHTML = '';
+          document.qVNodeData.set(parent, '{{}}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <></>
+              </>
+            </test>
+          );
+          const virtual = vnode_newVirtual();
+          const firstNode = vnode_getFirstChild(vParent) as VirtualVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode);
+          expect(firstInnerNode).toMatchVDOM(<></>);
+          vnode_insertBefore(journal, firstNode, virtual, null);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <></>
+                <></>
+              </>
+            </test>
+          );
+          expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)).toBe(firstInnerNode);
+          expect(
+            vnode_getNextSibling(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!)
+          ).not.toBe(firstInnerNode);
+          expect(parent.innerHTML).toBe('');
+        });
+
+        it('should insert virtual node between virtual elements', () => {
+          parent.innerHTML = '';
+          document.qVNodeData.set(parent, '{{}{}}');
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <></>
+                <></>
+              </>
+            </test>
+          );
+          const virtual = vnode_newVirtual();
+          const firstNode = vnode_getFirstChild(vParent) as VirtualVNode;
+          const firstInnerNode = vnode_getFirstChild(firstNode) as VirtualVNode;
+          const targetNode = vnode_getNextSibling(firstInnerNode!);
+          expect(targetNode).toMatchVDOM(<></>);
+          vnode_insertBefore(journal, firstNode, virtual, targetNode);
+          vnode_applyJournal(journal);
+          expect(vParent).toMatchVDOM(
+            <test>
+              <>
+                <></>
+                <></>
+                <></>
+              </>
+            </test>
+          );
+
+          expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)).toBe(firstInnerNode);
+          expect(
+            vnode_getNextSibling(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!)
+          ).not.toBe(firstInnerNode);
+          expect(
+            vnode_getNextSibling(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!)
+          ).not.toBe(targetNode);
+          expect(
+            vnode_getNextSibling(
+              vnode_getNextSibling(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!)!
+            )
+          ).toBe(targetNode);
+          expect(parent.innerHTML).toBe('');
+        });
+      });
+    });
     it('should insert at the end', () => {
       parent.innerHTML = '<b></b><i></i>';
       document.qVNodeData.set(parent, '{{1}}1');
@@ -614,7 +2234,7 @@ describe('vnode', () => {
       );
       expect(parent.innerHTML).toBe('<b></b>INSERT<i></i>');
     });
-    it('should replace insertBefore with null for newChild equals to insertBefore', () => {
+    it('should replace insertBefore with null for created newChild equals to insertBefore', () => {
       parent.innerHTML = '<b></b><i></i>';
       document.qVNodeData.set(parent, '{{1}}1');
       expect(vParent).toMatchVDOM(
@@ -646,6 +2266,305 @@ describe('vnode', () => {
       expect(parent.innerHTML).toBe('<b></b>INSERT<i></i>');
       expect(vnode_getNextSibling(text)).toBeNull();
     });
+  });
+  describe('move', () => {
+    describe('text node', () => {
+      it('should move middle text node to the start', () => {
+        parent.innerHTML = 'ABC';
+        document.qVNodeData.set(parent, 'BBB');
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'A'}
+            {'B'}
+            {'C'}
+          </test>
+        );
+        const text1 = vnode_getFirstChild(vParent) as TextVNode;
+        const text2 = vnode_getNextSibling(text1) as TextVNode;
+        vnode_insertBefore(journal, vParent, text2, text1);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'B'}
+            {'A'}
+            {'C'}
+          </test>
+        );
+        expect(parent.innerHTML).toBe('BAC');
+      });
+      it('should move middle text node to the end', () => {
+        parent.innerHTML = 'ABC';
+        document.qVNodeData.set(parent, 'BBB');
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'A'}
+            {'B'}
+            {'C'}
+          </test>
+        );
+        const text1 = vnode_getFirstChild(vParent) as TextVNode;
+        const text2 = vnode_getNextSibling(text1) as TextVNode;
+        vnode_insertBefore(journal, vParent, text2, null);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'A'}
+            {'C'}
+            {'B'}
+          </test>
+        );
+        expect(parent.innerHTML).toBe('ACB');
+      });
+      it('should move start text node to the middle', () => {
+        parent.innerHTML = 'ABC';
+        document.qVNodeData.set(parent, 'BBB');
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'A'}
+            {'B'}
+            {'C'}
+          </test>
+        );
+        const text1 = vnode_getFirstChild(vParent) as TextVNode;
+        const text2 = vnode_getNextSibling(text1) as TextVNode;
+        const text3 = vnode_getNextSibling(text2) as TextVNode;
+        vnode_insertBefore(journal, vParent, text1, text3);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'B'}
+            {'A'}
+            {'C'}
+          </test>
+        );
+        expect(parent.innerHTML).toBe('BAC');
+      });
+      it('should move start text node to the end', () => {
+        parent.innerHTML = 'ABC';
+        document.qVNodeData.set(parent, 'BBB');
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'A'}
+            {'B'}
+            {'C'}
+          </test>
+        );
+        const text1 = vnode_getFirstChild(vParent) as TextVNode;
+        vnode_insertBefore(journal, vParent, text1, null);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'B'}
+            {'C'}
+            {'A'}
+          </test>
+        );
+        expect(parent.innerHTML).toBe('BCA');
+      });
+      it('should move end text node to the start', () => {
+        parent.innerHTML = 'ABC';
+        document.qVNodeData.set(parent, 'BBB');
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'A'}
+            {'B'}
+            {'C'}
+          </test>
+        );
+        const text1 = vnode_getFirstChild(vParent) as TextVNode;
+        const text2 = vnode_getNextSibling(text1) as TextVNode;
+        const text3 = vnode_getNextSibling(text2) as TextVNode;
+        vnode_insertBefore(journal, vParent, text3, text1);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'C'}
+            {'A'}
+            {'B'}
+          </test>
+        );
+        expect(parent.innerHTML).toBe('CAB');
+      });
+      it('should move end text node to the middle', () => {
+        parent.innerHTML = 'ABC';
+        document.qVNodeData.set(parent, 'BBB');
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'A'}
+            {'B'}
+            {'C'}
+          </test>
+        );
+        const text1 = vnode_getFirstChild(vParent) as TextVNode;
+        const text2 = vnode_getNextSibling(text1) as TextVNode;
+        const text3 = vnode_getNextSibling(text2) as TextVNode;
+        vnode_insertBefore(journal, vParent, text3, text2);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'A'}
+            {'C'}
+            {'B'}
+          </test>
+        );
+        expect(parent.innerHTML).toBe('ACB');
+      });
+      it('should reverse order', () => {
+        parent.innerHTML = 'ABC';
+        document.qVNodeData.set(parent, 'BBB');
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'A'}
+            {'B'}
+            {'C'}
+          </test>
+        );
+        const text1 = vnode_getFirstChild(vParent) as TextVNode;
+        const text2 = vnode_getNextSibling(text1) as TextVNode;
+        const text3 = vnode_getNextSibling(text2) as TextVNode;
+        vnode_insertBefore(journal, vParent, text2, text1);
+        vnode_insertBefore(journal, vParent, text3, text2);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'C'}
+            {'B'}
+            {'A'}
+          </test>
+        );
+        expect(parent.innerHTML).toBe('CBA');
+      });
+      it('should move text node to virtual node', () => {
+        parent.innerHTML = 'ABC';
+        document.qVNodeData.set(parent, 'BBB');
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'A'}
+            {'B'}
+            {'C'}
+          </test>
+        );
+        const text1 = vnode_getFirstChild(vParent) as TextVNode;
+        const text2 = vnode_getNextSibling(text1) as TextVNode;
+        const virtual = vnode_newVirtual();
+        vnode_insertBefore(journal, vParent, virtual, text2);
+        vnode_insertBefore(journal, virtual, text2, null);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'A'}
+            <>{'B'}</>
+            {'C'}
+          </test>
+        );
+        expect(parent.innerHTML).toBe('ABC');
+      });
+      it('should move text node to element node', () => {
+        parent.innerHTML = 'ABC';
+        document.qVNodeData.set(parent, 'BBB');
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'A'}
+            {'B'}
+            {'C'}
+          </test>
+        );
+        const text1 = vnode_getFirstChild(vParent) as TextVNode;
+        const text2 = vnode_getNextSibling(text1) as TextVNode;
+        const element = vnode_newElement(document.createElement('foo'), 'foo');
+        vnode_insertBefore(journal, vParent, element, text2);
+        vnode_insertBefore(journal, element, text2, null);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'A'}
+            <foo>{'B'}</foo>
+            {'C'}
+          </test>
+        );
+        expect(parent.innerHTML).toBe('A<foo>B</foo>C');
+      });
+      it('should move text node to from element node to element node', () => {
+        parent.innerHTML = 'A<div>B</div><p>C</p>';
+        document.qVNodeData.set(parent, 'B2');
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'A'}
+            <div>{'B'}</div>
+            <p>{'C'}</p>
+          </test>
+        );
+        const text1 = vnode_getFirstChild(vParent) as TextVNode;
+        const element1 = vnode_getNextSibling(text1) as ElementVNode;
+        const text2 = vnode_getFirstChild(element1) as TextVNode;
+        const element2 = vnode_getNextSibling(element1) as ElementVNode;
+        const text3 = vnode_getFirstChild(element2) as TextVNode;
+        vnode_insertBefore(journal, element2, text2, text3);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'A'}
+            <div></div>
+            <p>
+              {'B'}
+              {'C'}
+            </p>
+          </test>
+        );
+        expect(parent.innerHTML).toBe('A<div></div><p>BC</p>');
+      });
+      it('should move text node to from element node to virtual node', () => {
+        parent.innerHTML = 'A<div>B</div>C';
+        document.qVNodeData.set(parent, 'B1{B}');
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'A'}
+            <div>{'B'}</div>
+            <>{'C'}</>
+          </test>
+        );
+        const text1 = vnode_getFirstChild(vParent) as TextVNode;
+        const element1 = vnode_getNextSibling(text1) as ElementVNode;
+        const text2 = vnode_getFirstChild(element1) as TextVNode;
+        const virtual1 = vnode_getNextSibling(element1) as ElementVNode;
+        const text3 = vnode_getFirstChild(virtual1) as TextVNode;
+        vnode_insertBefore(journal, virtual1, text2, text3);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            {'A'}
+            <div></div>
+            <>
+              {'B'}
+              {'C'}
+            </>
+          </test>
+        );
+        expect(parent.innerHTML).toBe('A<div></div>BC');
+      });
+    });
+    describe('element node', () => {
+      it('should early return for moving element node before itself', () => {
+        parent.innerHTML = '<div>A</div><div>B</div>';
+        expect(vParent).toMatchVDOM(
+          <test>
+            <div>{'A'}</div>
+            <div>{'B'}</div>
+          </test>
+        );
+        const element1 = vnode_getFirstChild(vParent) as ElementVNode;
+        vnode_insertBefore(journal, vParent, element1, element1);
+        vnode_applyJournal(journal);
+        expect(vParent).toMatchVDOM(
+          <test>
+            <div>{'A'}</div>
+            <div>{'B'}</div>
+          </test>
+        );
+        expect(parent.innerHTML).toBe('<div>A</div><div>B</div>');
+      });
+    });
+    describe.todo('virtual node');
   });
   describe('portal', () => {
     it('should link source-destination', () => {

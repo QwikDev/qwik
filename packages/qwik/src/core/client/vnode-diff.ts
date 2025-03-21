@@ -491,21 +491,6 @@ export const vnode_diff = (
       // All is good.
       // console.log('  NOOP', String(vCurrent));
     } else {
-      const parent = vnode_getParent(vProjectedNode);
-      const isAlreadyProjected =
-        !!parent && !(vnode_isElementVNode(parent) && vnode_getElementName(parent) === QTemplate);
-      if (isAlreadyProjected && vParent !== parent) {
-        /**
-         * The node is already projected, but structure has been changed. In next steps we will
-         * insert the vProjectedNode at the end. However we will find existing projection elements
-         * (from already projected THE SAME projection as vProjectedNode!) during
-         * vnode_insertBefore. We need to remove vnode from the vnode tree to avoid referencing it
-         * to self and cause infinite loop. Don't remove it from DOM to avoid additional operations
-         * and flickering.
-         */
-        vnode_remove(journal, parent, vProjectedNode, false);
-      }
-
       // move from q:template to the target node
       vnode_insertBefore(
         journal,

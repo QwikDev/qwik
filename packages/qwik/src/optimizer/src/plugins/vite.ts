@@ -336,6 +336,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           },
           rollupOptions: {
             output: {
+              // We have waterfall prevention so don't hoist
+              hoistTransitiveImports: false,
               manualChunks: qwikPlugin.manualChunks,
             },
           },

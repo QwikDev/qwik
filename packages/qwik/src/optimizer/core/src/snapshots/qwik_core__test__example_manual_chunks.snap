@@ -175,7 +175,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "Parent_component_div_onClick_C5XE49Nqd3A",
-  "entry": "chunk_clicks",
+  "entry": null,
   "displayName": "test.tsx_Parent_component_div_onClick",
   "hash": "C5XE49Nqd3A",
   "canonicalFilename": "test.tsx_Parent_component_div_onClick_C5XE49Nqd3A",
@@ -245,7 +245,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 {
   "origin": "test.tsx",
   "name": "Child_component_div_onClick_elliVSnAiOQ",
-  "entry": "chunk_clicks",
+  "entry": null,
   "displayName": "test.tsx_Child_component_div_onClick",
   "hash": "elliVSnAiOQ",
   "canonicalFilename": "test.tsx_Child_component_div_onClick_elliVSnAiOQ",

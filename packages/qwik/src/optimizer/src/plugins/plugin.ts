@@ -17,6 +17,7 @@ import type {
   TransformModuleInput,
   TransformModulesOptions,
   TransformOutput,
+  SmartEntryStrategy,
 } from '../types';
 import { createLinter, type QwikLinter } from './eslint-plugin';
 import type { LoadResult, OutputBundle, ResolveIdResult, TransformResult } from 'rollup';
@@ -882,12 +883,17 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
   // optimization opportunity: group small segments that don't import anything into smallish chunks
   // order by discovery time, so that related segments are more likely to group together
   function manualChunks(id: string, { getModuleInfo }: Rollup.ManualChunkMeta) {
-    const module = getModuleInfo(id)!;
-    const segment = module.meta.segment;
+    if ((opts.entryStrategy as SmartEntryStrategy).manual) {
+      const module = getModuleInfo(id)!;
+      const segment = module.meta.segment as SegmentAnalysis | undefined;
 
-    // We need to specifically return segment.entry for qwik-insights
-    if (segment) {
-      return segment.entry;
+      if (segment) {
+        const { hash } = segment;
+        const chunkName = (opts.entryStrategy as SmartEntryStrategy).manual![hash] || segment.entry;
+        if (chunkName) {
+          return chunkName;
+        }
+      }
     }
 
     if (id.includes('node_modules')) {

@@ -154,7 +154,6 @@ fn optimize(
 		mode: optimizer_input.mode,
 		scope: optimizer_input.scope,
 
-		manual_chunks: None,
 		strip_exports: None,
 		strip_ctx_name: None,
 		strip_event_handlers: false,

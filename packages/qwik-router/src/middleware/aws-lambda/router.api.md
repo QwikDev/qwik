@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="node" />
-
 import { Http2ServerRequest } from 'http2';
 import { IncomingMessage } from 'http';
 import { NodeRequestNextFunction } from '@qwik.dev/router/middleware/node';
@@ -24,9 +22,9 @@ export const createQwikCity: typeof createQwikRouter;
 // @public (undocumented)
 export function createQwikRouter(opts: AwsOpt): {
     fixPath: (pathT: string) => string;
-    router: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse<IncomingMessage>, next: NodeRequestNextFunction) => Promise<void>;
-    staticFile: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse<IncomingMessage>, next: (e?: any) => void) => Promise<void>;
-    notFound: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse<IncomingMessage>, next: (e: any) => void) => Promise<void>;
+    router: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: NodeRequestNextFunction) => Promise<void>;
+    staticFile: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e?: any) => void) => Promise<void>;
+    notFound: (req: IncomingMessage | Http2ServerRequest, res: ServerResponse, next: (e: any) => void) => Promise<void>;
     handle: (req: any, res: any) => void;
 };
 

@@ -1,19 +1,20 @@
 /** @public */
-export class ServerError<T = Record<any, any>> extends Error {
+export class ServerError<T = any> extends Error {
   constructor(
     public status: number,
     public data: T
   ) {
-    super();
+    super(typeof data === 'string' ? data : undefined);
   }
 }
 
-export class ErrorResponse extends Error {
+/** @deprecated */
+export class ErrorResponse extends ServerError {
   constructor(
     public status: number,
     message?: string
   ) {
-    super(message);
+    super(status, message);
   }
 }
 

@@ -89,6 +89,10 @@ export async function configureDevServer(
   const hasQwikRouter = server.config.plugins?.some(
     (plugin) => plugin.name === 'vite-plugin-qwik-router'
   );
+
+  // to maintain css importers after HMR
+  const cssImportedByCSS = new Set<string>();
+
   // qwik middleware injected BEFORE vite internal middlewares
   server.middlewares.use(async (req, res, next) => {
     try {
@@ -163,12 +167,30 @@ export async function configureDevServer(
 
               if (query === '' && CSS_EXTENSIONS.some((ext) => pathId.endsWith(ext))) {
                 const isEntryCSS = v.importers.size === 0;
+                const hasCSSImporter = Array.from(v.importers).some((importer) => {
+                  const importerPath = (importer as typeof v).url || (importer as typeof v).file;
+
+                  const isCSS =
+                    importerPath && CSS_EXTENSIONS.some((ext) => importerPath.endsWith(ext));
+
+                  if (isCSS && v.url) {
+                    cssImportedByCSS.add(v.url);
+                  }
+
+                  return isCSS;
+                });
+
                 const hasJSImporter = Array.from(v.importers).some((importer) => {
                   const importerPath = (importer as typeof v).url || (importer as typeof v).file;
                   return importerPath && JS_EXTENSIONS.test(importerPath);
                 });
 
-                if ((isEntryCSS || hasJSImporter) && !added.has(v.url)) {
+                if (
+                  (isEntryCSS || hasJSImporter) &&
+                  !hasCSSImporter &&
+                  !cssImportedByCSS.has(v.url) &&
+                  !added.has(v.url)
+                ) {
                   added.add(v.url);
                   manifest.injections!.push({
                     tag: 'link',
@@ -218,12 +240,29 @@ export async function configureDevServer(
                 CSS_EXTENSIONS.some((ext) => pathId.endsWith(ext))
               ) {
                 const isEntryCSS = v.importers.size === 0;
+                const hasCSSImporter = Array.from(v.importers).some((importer) => {
+                  const importerPath = (importer as typeof v).url || (importer as typeof v).file;
+
+                  const isCSS =
+                    importerPath && CSS_EXTENSIONS.some((ext) => importerPath.endsWith(ext));
+
+                  if (isCSS && v.url) {
+                    cssImportedByCSS.add(v.url);
+                  }
+
+                  return isCSS;
+                });
+
                 const hasJSImporter = Array.from(v.importers).some((importer) => {
                   const importerPath = (importer as typeof v).url || (importer as typeof v).file;
                   return importerPath && JS_EXTENSIONS.test(importerPath);
                 });
 
-                if (isEntryCSS || hasJSImporter) {
+                if (
+                  (isEntryCSS || hasJSImporter) &&
+                  !hasCSSImporter &&
+                  !cssImportedByCSS.has(v.url)
+                ) {
                   res.write(`<link rel="stylesheet" href="${base}${v.url.slice(1)}">`);
                   added.add(v.url);
                 }

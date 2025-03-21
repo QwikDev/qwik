@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="node" />
-
 import type { RenderOptions } from '@qwik.dev/core/server';
 
 // @public

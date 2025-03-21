@@ -165,6 +165,7 @@ export type {
   QwikVisibleEvent,
   QwikIdleEvent,
   QwikInitEvent,
+  QwikTransitionEvent,
   // old
   NativeAnimationEvent,
   NativeClipboardEvent,
@@ -192,7 +193,6 @@ export type {
   QwikTouchEvent,
   QwikUIEvent,
   QwikWheelEvent,
-  QwikTransitionEvent,
 } from './shared/jsx/types/jsx-qwik-events';
 
 //////////////////////////////////////////////////////////////////////////////////////////

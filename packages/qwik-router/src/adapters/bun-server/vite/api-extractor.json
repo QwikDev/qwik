@@ -4,7 +4,6 @@
   "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik-router/src/adapters/bun-server/vite/index.d.ts",
   "apiReport": {
     "enabled": true,
-    "reportFileName": "api.md",
     "reportFolder": "<projectFolder>/src/adapters/bun-server/",
     "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-router/adapters/bun-server"
   },

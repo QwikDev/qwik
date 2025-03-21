@@ -8,7 +8,10 @@ import * as CSS_2 from 'csstype';
 import { isBrowser } from '@qwik.dev/core/build';
 import { isDev } from '@qwik.dev/core/build';
 import { isServer } from '@qwik.dev/core/build';
+import { QRL as QRL_2 } from './qrl.public';
+import { ReadonlySignal as ReadonlySignal_2 } from '..';
 import type { StreamWriter as StreamWriter_2 } from '@qwik.dev/core';
+import { ValueOrPromise as ValueOrPromise_2 } from '..';
 
 // @public
 export const $: <T>(expression: T) => QRL<T>;
@@ -275,7 +278,7 @@ export interface ErrorBoundaryStore {
 }
 
 // @public (undocumented)
-export const event$: <T>(qrl: T) => QRL<T>;
+export const event$: <T>(qrl: T) => QRL_2<T>;
 
 // @public
 export type EventHandler<EV = Event, EL = Element> = {
@@ -826,7 +829,7 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 export const _restProps: (props: PropsProxy, omit: string[], target?: Props) => Props;
 
 // @internal
-export const _run: (...args: unknown[]) => ValueOrPromise<void>;
+export const _run: (...args: unknown[]) => ValueOrPromise_2<void>;
 
 // @internal
 export function _serialize(data: unknown[]): Promise<string>;
@@ -1613,7 +1616,7 @@ export const useContext: UseContext;
 export const useContextProvider: <STATE>(context: ContextId<STATE>, newValue: STATE) => void;
 
 // @public (undocumented)
-export const useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
+export const useErrorBoundary: () => ErrorBoundaryStore;
 
 // @public (undocumented)
 export const useId: () => string;
@@ -1648,7 +1651,7 @@ export const useSerializer$: typeof createSerializer$;
 // Warning: (ae-internal-missing-underscore) The name "useSerializerQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const useSerializerQrl: <T, S>(qrl: QRL<SerializerArg<T, S>>) => ReadonlySignal<unknown>;
+export const useSerializerQrl: <T, S>(qrl: QRL<SerializerArg<T, S>>) => ReadonlySignal_2<unknown>;
 
 // @public (undocumented)
 export function useServerData<T>(key: string): T | undefined;
@@ -1701,7 +1704,7 @@ export interface UseStylesScoped {
 export const useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
 
 // @public
-export const useTask$: (qrl: TaskFn) => void;
+export const useTask$: (fn: TaskFn) => void;
 
 // Warning: (ae-internal-missing-underscore) The name "useTaskQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -1709,7 +1712,7 @@ export const useTask$: (qrl: TaskFn) => void;
 export const useTaskQrl: (qrl: QRL<TaskFn>) => void;
 
 // @public
-export const useVisibleTask$: (qrl: TaskFn, opts?: OnVisibleTaskOptions | undefined) => void;
+export const useVisibleTask$: (fn: TaskFn, opts?: OnVisibleTaskOptions) => void;
 
 // Warning: (ae-internal-missing-underscore) The name "useVisibleTaskQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -1804,7 +1807,7 @@ export const _weakSerialize: <T extends object>(input: T) => Partial<T>;
 export function withLocale<T>(locale: string, fn: () => T): T;
 
 // @internal
-export const _wrapProp: <T extends Record<any, any>, P extends keyof T>(args_0: T, args_1?: P | undefined) => any;
+export const _wrapProp: <T extends Record<any, any>, P extends keyof T>(...args: [T, P?]) => any;
 
 // @internal @deprecated (undocumented)
 export const _wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;

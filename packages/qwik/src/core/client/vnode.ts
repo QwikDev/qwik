@@ -670,6 +670,11 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
     refElement = qVNodeRefs.get(elementOffset)!;
   } else {
     refElement = id;
+
+    const vNode = containerElement.qContainer?.vNodeRefs.get(refElement);
+    if (vNode) {
+      return vNode;
+    }
   }
   assertDefined(refElement, 'Missing refElement.');
   if (!vnode_isVNode(refElement)) {

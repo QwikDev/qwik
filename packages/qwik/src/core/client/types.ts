@@ -18,6 +18,7 @@ export interface ClientContainer extends Container {
   rootVNode: ElementVNode;
   $journal$: VNodeJournal;
   renderDone: Promise<void> | null;
+  vNodeRefs: WeakMap<Element, ElementVNode>;
   parseQRL<T = unknown>(qrl: string): QRL<T>;
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
 }

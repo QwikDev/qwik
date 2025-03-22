@@ -43,6 +43,8 @@ export interface ClientContainer extends Container {
     renderDone: Promise<void> | null;
     // (undocumented)
     rootVNode: _ElementVNode;
+    // (undocumented)
+    vNodeRefs: WeakMap<Element, _ElementVNode>;
 }
 
 // @public
@@ -226,6 +228,8 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     setHostProp<T>(host: HostElement, name: string, value: T): void;
     // (undocumented)
     vNodeLocate: (id: string | Element) => _VNode;
+    // (undocumented)
+    vNodeRefs: WeakMap<Element, _ElementVNode>;
 }
 
 // Warning: (ae-internal-missing-underscore) The name "DomContainer" should be prefixed with an underscore because the declaration is marked as @internal

@@ -3,13 +3,7 @@ import { assertDefined } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import {
-  ComputedEvent,
-  QLocaleAttr,
-  RenderEvent,
-  ResourceEvent,
-  TaskEvent,
-} from '../shared/utils/markers';
+import { ComputedEvent, RenderEvent, ResourceEvent, TaskEvent } from '../shared/utils/markers';
 import { seal } from '../shared/utils/qdev';
 import { isArray } from '../shared/utils/types';
 import { setLocale } from './use-locale';
@@ -152,11 +146,15 @@ export function invokeApply<FN extends (...args: any) => any>(
 
 export const newInvokeContextFromTuple = ([element, event, url]: InvokeTuple) => {
   const domContainer = getDomContainer(element);
-  const container = domContainer.element;
-  const vNode = container ? vnode_locate(domContainer.rootVNode, element) : undefined;
-  const locale = container?.getAttribute(QLocaleAttr) || undefined;
+  let hostElement: HostElement | undefined = undefined;
+  try {
+    hostElement = vnode_locate(domContainer.rootVNode, element);
+  } catch (_) {
+    // ignore
+  }
+  const locale = domContainer.$locale$;
   locale && setLocale(locale);
-  return newInvokeContext(locale, vNode, element, event, url);
+  return newInvokeContext(locale, hostElement, element, event, url);
 };
 
 // TODO how about putting url and locale (and event/custom?) in to a "static" object

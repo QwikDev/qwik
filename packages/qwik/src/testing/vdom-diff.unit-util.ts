@@ -52,10 +52,10 @@ import {
   QContainerAttr,
 } from '../core/shared/utils/markers';
 import { HANDLER_PREFIX } from '../core/client/vnode-diff';
-import { QContainerValue } from '../core/shared/types';
 import { prettyJSX } from './jsx';
 import { prettyHtml } from './html';
 import type { VNode } from '../core/client/types';
+import { QContainerValue } from '../core/shared/types';
 
 expect.extend({
   toMatchVDOM(
@@ -445,7 +445,7 @@ export function vnode_fromJSX(jsx: JSXOutput) {
   const container: ClientContainer = _getDomContainer(doc.body);
   const vBody = vnode_newUnMaterializedElement(doc.body);
   let vParent: _ElementVNode | _VirtualVNode = vBody;
-  const journal: VNodeJournal = [];
+  const journal: VNodeJournal = container.$journal$;
   walkJSX(jsx, {
     enter: (jsx) => {
       const type = jsx.type;

@@ -6,6 +6,7 @@ import { createQRL, emitEvent, type QRLInternal } from './qrl-class';
 import type { QRL } from './qrl.public';
 
 // https://regexr.com/68v72
+// @ts-expect-error this is a valid regex
 const EXTRACT_IMPORT_PATH = /\(\s*(['"])([^\1]+)\1\s*\)/;
 
 // https://regexr.com/690ds

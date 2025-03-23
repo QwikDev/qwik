@@ -12,7 +12,6 @@ import type {
   RouteModule,
   ValidatorReturn,
 } from '../../runtime/src/types';
-import { ServerError } from './error-handler';
 import { HttpStatus } from './http-status-codes';
 import { RedirectMessage } from './redirect-handler';
 import {
@@ -305,23 +304,12 @@ async function pureServerFunction(ev: RequestEvent) {
       const [qrl, ...args] = data;
       if (isQrl(qrl) && qrl.getHash() === fn) {
         let result: unknown;
-        try {
-          if (isDev) {
-            result = await measure(ev, `server_${qrl.getSymbol()}`, () =>
-              (qrl as Function).apply(ev, args)
-            );
-          } else {
-            result = await (qrl as Function).apply(ev, args);
-          }
-        } catch (err) {
-          if (err instanceof ServerError) {
-            ev.headers.set('Content-Type', 'application/qwik-json');
-            ev.send(err.status, await qwikSerializer._serialize([err.data]));
-            return;
-          }
-          ev.headers.set('Content-Type', 'application/qwik-json');
-          ev.send(500, await qwikSerializer._serialize([err]));
-          return;
+        if (isDev) {
+          result = await measure(ev, `server_${qrl.getSymbol()}`, () =>
+            (qrl as Function).apply(ev, args)
+          );
+        } else {
+          result = await (qrl as Function).apply(ev, args);
         }
         if (isAsyncIterator(result)) {
           ev.headers.set('Content-Type', 'text/qwik-json-stream');

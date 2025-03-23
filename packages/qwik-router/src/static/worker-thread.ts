@@ -289,7 +289,7 @@ const noopWriter: WritableStreamDefaultWriter<any> = {
   releaseLock() {},
 };
 
-const noopWritableStream: WritableStream = {
+const noopWritableStream = {
   get locked() {
     return false;
   },

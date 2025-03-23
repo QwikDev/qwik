@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "@azure/functions": "3.5.1",
-    "@microsoft/api-extractor": "7.43.1",
+    "@microsoft/api-extractor": "7.52.1",
     "@netlify/edge-functions": "2.10.0",
     "@qwik.dev/core": "workspace:*",
     "@types/mdast": "4.0.4",
@@ -37,7 +37,7 @@
     "remark-gfm": "4.0.0",
     "set-cookie-parser": "2.6.0",
     "tsm": "2.3.0",
-    "typescript": "5.4.5",
+    "typescript": "5.8.2",
     "unified": "11.0.5",
     "unist-util-visit": "5.0.0",
     "uvu": "0.5.6",

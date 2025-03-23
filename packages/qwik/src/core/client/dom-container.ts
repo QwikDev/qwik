@@ -200,15 +200,19 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         }
         errorDiv.setAttribute('q:key', '_error_');
         const journal: VNodeJournal = [];
-        vnode_getDOMChildNodes(journal, vHost).forEach((child) => errorDiv.appendChild(child));
-        const vErrorDiv = vnode_newElement(errorDiv, 'error-host');
+
+        const vErrorDiv = vnode_newElement(errorDiv, 'errored-host');
+
+        vnode_getDOMChildNodes(journal, vHost, true).forEach((child) => {
+          vnode_insertBefore(journal, vErrorDiv, child, null);
+        });
         vnode_insertBefore(journal, vHost, vErrorDiv, null);
         vnode_applyJournal(journal);
       }
 
       if (err && err instanceof Error) {
         if (!('hostElement' in err)) {
-          (err as any)['hostElement'] = host;
+          (err as any)['hostElement'] = String(host);
         }
       }
       if (!isRecoverable(err)) {

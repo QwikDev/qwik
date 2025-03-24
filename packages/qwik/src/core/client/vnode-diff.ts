@@ -34,11 +34,11 @@ import {
 import { isPromise } from '../shared/utils/promises';
 import { type ValueOrPromise } from '../shared/utils/types';
 import {
-  convertEventNameFromJsxPropToHtmlAttr,
-  getEventNameFromJsxProp,
-  getEventNameScopeFromJsxProp,
+  getEventNameFromJsxEvent,
+  getEventNameScopeFromJsxEvent,
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
+  jsxEventToHtmlAttribute,
 } from '../shared/utils/event-names';
 import { ChoreType } from '../shared/util-chore-type';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
@@ -595,8 +595,8 @@ export const vnode_diff = (
         if (isJsxPropertyAnEventName(key)) {
           // So for event handlers we must add them to the vNode so that qwikloader can look them up
           // But we need to mark them so that they don't get pulled into the diff.
-          const eventName = getEventNameFromJsxProp(key);
-          const scope = getEventNameScopeFromJsxProp(key);
+          const eventName = getEventNameFromJsxEvent(key);
+          const scope = getEventNameScopeFromJsxEvent(key);
           if (eventName) {
             vnode_setProp(
               vNewNode as ElementVNode,
@@ -610,7 +610,7 @@ export const vnode_diff = (
             // add an event attr with empty value for qwikloader element selector.
             // We don't need value here. For ssr this value is a QRL,
             // but for CSR value should be just empty
-            const htmlEvent = convertEventNameFromJsxPropToHtmlAttr(key);
+            const htmlEvent = jsxEventToHtmlAttribute(key);
             if (htmlEvent) {
               vnode_setAttr(journal, vNewNode as ElementVNode, htmlEvent, '');
             }
@@ -828,8 +828,8 @@ export const vnode_diff = (
     };
 
     const recordJsxEvent = (key: string, value: any) => {
-      const eventName = getEventNameFromJsxProp(key);
-      const scope = getEventNameScopeFromJsxProp(key);
+      const eventName = getEventNameFromJsxEvent(key);
+      const scope = getEventNameScopeFromJsxEvent(key);
       if (eventName) {
         record(':' + scope + ':' + eventName, value);
         // register an event for qwik loader
@@ -840,7 +840,7 @@ export const vnode_diff = (
         // add an event attr with empty value for qwikloader element selector.
         // We don't need value here. For ssr this value is a QRL,
         // but for CSR value should be just empty
-        const htmlEvent = convertEventNameFromJsxPropToHtmlAttr(key);
+        const htmlEvent = jsxEventToHtmlAttribute(key);
         if (htmlEvent) {
           record(htmlEvent, '');
         }

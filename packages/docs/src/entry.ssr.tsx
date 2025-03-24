@@ -5,6 +5,14 @@ import Root from './root';
 export default function (opts: RenderToStreamOptions) {
   return renderToStream(<Root />, {
     manifest,
+    prefetchStrategy: {
+      implementation: {
+        linkInsert: 'html-append',
+        linkRel: 'modulepreload',
+        linkFetchPriority: 'high',
+        prefetchEvent: null,
+      },
+    },
     qwikLoader: {
       // The docs can be long so make sure to intercept events before the end of the document.
       position: 'top',

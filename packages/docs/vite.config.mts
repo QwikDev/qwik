@@ -181,11 +181,11 @@ export default defineConfig(async () => {
       qwikInsights({ publicApiKey: PUBLIC_QWIK_INSIGHTS_KEY }),
     ],
     build: {
+      minify: false,
+      modulePreload: false,
       sourcemap: true,
       rollupOptions: {
-        output: {
-          assetFileNames: 'assets/[hash]-[name].[ext]',
-        },
+        output: { experimentalMinChunkSize: 1024, assetFileNames: 'assets/[hash]-[name].[ext]' },
       },
     },
     clearScreen: false,

@@ -130,29 +130,17 @@ export const PrefetchGraph = (
   const isTest = import.meta.env.TEST;
   if (isDev && !isTest) {
     const props = {
-      dangerouslySetInnerHTML: '<!-- PrefetchGraph is disabled in dev mode. -->',
+      dangerouslySetInnerHTML: '/* PrefetchGraph is disabled in dev mode. */',
     };
     return _jsxC('script', props, 0, 'prefetch-graph');
   }
   const serverData = useServerData<Record<string, string>>('containerAttributes', {});
-  const resolvedOpts = {
-    // /build/q-bundle-graph-${manifestHash}.json is always within the q:base location /build/
-    base: serverData['q:base'],
-    manifestHash: serverData['q:manifest-hash'],
-    scope: '/',
-    verbose: false,
-    path: 'qwik-prefetch-service-worker.js',
-    ...opts,
-  };
-  const args = JSON.stringify([
-    'graph-url',
-    resolvedOpts.base,
-    `q-bundle-graph-${resolvedOpts.manifestHash}.json`,
-  ]);
-  const code = `(window.qwikPrefetchSW||(window.qwikPrefetchSW=[])).push(${args})`;
-  const props = {
-    dangerouslySetInnerHTML: code,
-    nonce: opts.nonce,
-  };
-  return _jsxC('script', props, 0, 'prefetch-graph');
+  // /build/q-bundle-graph-${manifestHash}.json is always within the q:base location /build/
+  const url = `${serverData['q:base']}q-bundle-graph-${serverData['q:manifest-hash']}.json`;
+  return _jsxC(
+    'link',
+    { rel: 'modulepreload', href: url, nonce: opts.nonce, priority: 'high' },
+    0,
+    'prefetch-graph'
+  );
 };

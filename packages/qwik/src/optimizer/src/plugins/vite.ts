@@ -1136,6 +1136,20 @@ function absolutePathAwareJoin(path: Path, ...segments: string[]): string {
   return path.join(...segments);
 }
 
+const dynamicTag = '<dynamic>';
+/**
+ * This creates a compact array of dependencies for each bundle. It also contains the symbols. The
+ * format is:
+ *
+ * ```
+ *   [...(bundleName: string, ...directImports: index[], ...dynamicImports: [-1, ...index[]] | [])]
+ * ```
+ *
+ * (index is the position of the dependency in the bundleGraph array)
+ *
+ * This format allows any string to denote a set of dependencies, which is useful for symbols and
+ * SPA paths.
+ */
 export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundleGraph {
   const bundleGraph: QwikBundleGraph = [];
   const graph = manifest.bundles;
@@ -1181,7 +1195,7 @@ export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundle
       }
       if (dep.isTask) {
         if (!didAdd) {
-          deps.add('<dynamic>');
+          deps.add(dynamicTag);
           didAdd = true;
         }
         deps.add(depName);
@@ -1191,6 +1205,17 @@ export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundle
     bundleGraph.push(bundleName);
     while (index + deps.size >= bundleGraph.length) {
       bundleGraph.push(null!);
+    }
+  }
+  // Add the symbols to the bundle graph
+  for (const [symbol, chunkname] of Object.entries(manifest.mapping)) {
+    const bundle = map.get(chunkname);
+    if (!bundle) {
+      console.warn(`Chunk ${chunkname} for symbol ${symbol} not found in the bundle graph.`);
+    } else {
+      const idx = symbol.lastIndexOf('_');
+      const hash = idx === -1 ? symbol : symbol.slice(idx + 1);
+      bundleGraph.push(hash, bundle.index);
     }
   }
   // Second pass to to update dependency pointers
@@ -1204,7 +1229,7 @@ export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundle
     let { index, deps } = bundle;
     index++;
     for (const depName of deps) {
-      if (depName === '<dynamic>') {
+      if (depName === dynamicTag) {
         bundleGraph[index++] = -1;
         continue;
       }

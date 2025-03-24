@@ -88,6 +88,7 @@ async function validateStarter(
   appPkgJson.devDependencies['@builder.io/qwik'] = 'latest';
   appPkgJson.devDependencies['@builder.io/qwik-city'] = 'latest';
   appPkgJson.devDependencies['eslint-plugin-qwik'] = 'latest';
+  appPkgJson.devDependencies['eslint'] = 'latest';
   writeFileSync(appPkgJsonPath, JSON.stringify(appPkgJson, null, 2));
 
   const tsconfigPath = join(result.outDir, 'tsconfig.json');

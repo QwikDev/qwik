@@ -72,10 +72,8 @@ export const processMessage = async (state: SWState, msg: SWMessages) => {
   } else if (type === 'prefetch-all') {
     await processPrefetchAll(state, msg[1]);
   } else if (type === 'ping') {
-    // eslint-disable-next-line no-console
     log('ping');
   } else if (type === 'verbose') {
-    // eslint-disable-next-line no-console
     (state.$log$ = log)('mode: verbose');
   } else {
     console.error('UNKNOWN MESSAGE:', msg);

@@ -45,7 +45,7 @@ export default component$(() => {
 });
 ```
 
-The above implementation will cause the whole template to be re-rendered when the signal changes. This is because the `isBiggerThanZero` is not inlined in the template.
+The above implementation will cause the whole component to be re-rendered when the signal changes. This is because the `isBiggerThanZero` is not inlined in the template.
 
 ```tsx title="Optimal Implementation"
 export default component$(() => {

@@ -12,10 +12,10 @@ import { qrlToString, type SerializationContext } from '../shared/shared-seriali
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
 import {
-  convertEventNameFromJsxPropToHtmlAttr,
-  getEventNameFromJsxProp,
+  getEventNameFromJsxEvent,
   isJsxPropertyAnEventName,
   isPreventDefault,
+  jsxEventToHtmlAttribute,
 } from '../shared/utils/event-names';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
@@ -368,7 +368,7 @@ export function toSsrAttrs(
       }
       const eventValue = setEvent(serializationCtx, key, value);
       if (eventValue) {
-        ssrAttrs.push(convertEventNameFromJsxPropToHtmlAttr(key), eventValue);
+        ssrAttrs.push(jsxEventToHtmlAttribute(key), eventValue);
       }
       continue;
     }
@@ -479,7 +479,7 @@ function addQwikEventToSerializationContext(
   key: string,
   qrl: QRL
 ) {
-  const eventName = getEventNameFromJsxProp(key);
+  const eventName = getEventNameFromJsxEvent(key);
   if (eventName) {
     serializationCtx.$eventNames$.add(eventName);
     serializationCtx.$eventQrls$.add(qrl);

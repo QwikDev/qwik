@@ -293,6 +293,60 @@ describe.each([
         </Component>
       );
     });
+
+    it('should update value for DOMContentLoaded event', async () => {
+      const Counter = component$((props: { initial: number }) => {
+        const count = useSignal(props.initial);
+        useOnDocument(
+          'DOMContentLoaded',
+          $(() => count.value++)
+        );
+        return <button>Count: {count.value}!</button>;
+      });
+
+      const { vNode, container } = await render(<Counter initial={123} />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Count: <Signal ssr-required>{'123'}</Signal>!
+          </button>
+        </Component>
+      );
+      await trigger(container.element, 'button', ':document:DOMContentLoaded');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Count: <Signal ssr-required>{'124'}</Signal>!
+          </button>
+        </Component>
+      );
+    });
+
+    it('should update value for DOMContentLoaded jsx event', async () => {
+      const Counter = component$((props: { initial: number }) => {
+        const count = useSignal(props.initial);
+        return (
+          <button document:onDOMContentLoaded$={() => count.value++}>Count: {count.value}!</button>
+        );
+      });
+
+      const { vNode, container } = await render(<Counter initial={123} />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Count: <Signal ssr-required>{'123'}</Signal>!
+          </button>
+        </Component>
+      );
+      await trigger(container.element, 'button', ':document:DOMContentLoaded');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Count: <Signal ssr-required>{'124'}</Signal>!
+          </button>
+        </Component>
+      );
+    });
   });
 
   describe('useOnWindow', () => {
@@ -475,6 +529,62 @@ describe.each([
     });
   });
 
+  describe('custom events', () => {
+    it('should update counter for useOn', async () => {
+      const Counter = component$((props: { initial: number }) => {
+        const count = useSignal(props.initial);
+        useOn(
+          '-SomeCustomEvent',
+          $(() => count.value++)
+        );
+        return <button>Count: {count.value}!</button>;
+      });
+
+      const { vNode, container } = await render(<Counter initial={123} />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Count: <Signal ssr-required>{'123'}</Signal>!
+          </button>
+        </Component>
+      );
+
+      await trigger(container.element, 'button', 'SomeCustomEvent');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Count: <Signal ssr-required>{'124'}</Signal>!
+          </button>
+        </Component>
+      );
+    });
+
+    it('should update counter for jsx event', async () => {
+      const Counter = component$((props: { initial: number }) => {
+        const count = useSignal(props.initial);
+        return <button on-SomeCustomEvent$={() => count.value++}>Count: {count.value}!</button>;
+      });
+
+      const { vNode, container } = await render(<Counter initial={123} />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Count: <Signal ssr-required>{'123'}</Signal>!
+          </button>
+        </Component>
+      );
+
+      await trigger(container.element, 'button', 'SomeCustomEvent');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Count: <Signal ssr-required>{'124'}</Signal>!
+          </button>
+        </Component>
+      );
+    });
+  });
+
   it('should update value with useOn, useOnDocument and useOnWindow', async () => {
     const Counter = component$((props: { initial: number }) => {
       const count = useSignal(props.initial);
@@ -650,75 +760,77 @@ describe.each([
     await expect(document.querySelector('div')).toMatchDOM(<div>1</div>);
   });
 
-  it('#7230 - when multiple useOn are used in a component that is not rendered, it should add multiple script nodes', async () => {
-    const BreakpointProvider = component$(() => {
-      useOnDocument(
-        'click',
-        $(() => {})
-      );
+  describe('regression', () => {
+    it('#7230 - when multiple useOn are used in a component that is not rendered, it should add multiple script nodes', async () => {
+      const BreakpointProvider = component$(() => {
+        useOnDocument(
+          'click',
+          $(() => {})
+        );
 
-      useOnWindow(
-        'resize',
-        $(() => {})
-      );
+        useOnWindow(
+          'resize',
+          $(() => {})
+        );
 
-      useVisibleTask$(() => {});
+        useVisibleTask$(() => {});
 
-      return <Slot />;
-    });
+        return <Slot />;
+      });
 
-    const LayoutTest = component$(() => {
-      return (
-        <BreakpointProvider>
-          <div>test</div>
-        </BreakpointProvider>
-      );
-    });
-    const { vNode } = await render(<LayoutTest />, { debug });
-    expect(vNode).toMatchVDOM(
-      <Component ssr-required>
+      const LayoutTest = component$(() => {
+        return (
+          <BreakpointProvider>
+            <div>test</div>
+          </BreakpointProvider>
+        );
+      });
+      const { vNode } = await render(<LayoutTest />, { debug });
+      expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Component ssr-required>
             <Component ssr-required>
-              <div>test</div>
+              <Component ssr-required>
+                <div>test</div>
+              </Component>
+              <script type="placeholder" hidden></script>
+              <script type="placeholder" hidden></script>
+              <script type="placeholder" hidden></script>
             </Component>
-            <script type="placeholder" hidden></script>
-            <script type="placeholder" hidden></script>
-            <script type="placeholder" hidden></script>
           </Component>
         </Component>
-      </Component>
-    );
-  });
-  it('#7230 - when useOnDocument is used in a component that is not rendered, it should add a script node', async () => {
-    const BreakpointProvider = component$(() => {
-      useOnDocument(
-        'click',
-        $(() => {})
-      );
-
-      return <Slot />;
-    });
-
-    const Layout = component$(() => {
-      return (
-        <BreakpointProvider>
-          <div>test</div>
-        </BreakpointProvider>
       );
     });
-    const { vNode } = await render(<Layout />, { debug });
-    expect(vNode).toMatchVDOM(
-      <Component ssr-required>
+    it('#7230 - when useOnDocument is used in a component that is not rendered, it should add a script node', async () => {
+      const BreakpointProvider = component$(() => {
+        useOnDocument(
+          'click',
+          $(() => {})
+        );
+
+        return <Slot />;
+      });
+
+      const Layout = component$(() => {
+        return (
+          <BreakpointProvider>
+            <div>test</div>
+          </BreakpointProvider>
+        );
+      });
+      const { vNode } = await render(<Layout />, { debug });
+      expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Component ssr-required>
-            <Projection ssr-required>
-              <div>test</div>
-            </Projection>
-            <script type="placeholder" hidden></script>
+            <Component ssr-required>
+              <Projection ssr-required>
+                <div>test</div>
+              </Projection>
+              <script type="placeholder" hidden></script>
+            </Component>
           </Component>
         </Component>
-      </Component>
-    );
+      );
+    });
   });
 });

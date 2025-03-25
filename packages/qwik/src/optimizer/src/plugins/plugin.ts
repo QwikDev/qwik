@@ -17,6 +17,7 @@ import type {
   TransformModuleInput,
   TransformModulesOptions,
   TransformOutput,
+  SmartEntryStrategy,
 } from '../types';
 import { createLinter, type QwikLinter } from './eslint-plugin';
 import type { LoadResult, OutputBundle, ResolveIdResult, TransformResult } from 'rollup';
@@ -118,7 +119,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       imageDevTools: true,
       clickToSource: ['Alt'],
     },
-    inlineStylesUpToBytes: null as any,
+    inlineStylesUpToBytes: 20000,
     lint: false,
     experimental: undefined,
   };
@@ -174,7 +175,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     ) {
       opts.target = updatedOpts.target;
     } else {
-      opts.target = 'client';
+      opts.target ||= 'client';
     }
 
     if (opts.target === 'lib') {
@@ -182,7 +183,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     } else if (updatedOpts.buildMode === 'production' || updatedOpts.buildMode === 'development') {
       opts.buildMode = updatedOpts.buildMode;
     } else {
-      opts.buildMode = 'development';
+      opts.buildMode ||= 'development';
     }
 
     if (updatedOpts.entryStrategy && typeof updatedOpts.entryStrategy === 'object') {
@@ -206,7 +207,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.rootDir = updatedOpts.rootDir;
     }
     if (typeof opts.rootDir !== 'string') {
-      opts.rootDir = optimizer.sys.cwd();
+      opts.rootDir ||= optimizer.sys.cwd();
     }
     opts.rootDir = normalizePath(path.resolve(optimizer.sys.cwd(), opts.rootDir));
     let srcDir = normalizePath(path.resolve(opts.rootDir, SRC_DIR_DEFAULT));
@@ -218,7 +219,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.srcInputs = [...updatedOpts.srcInputs];
       opts.srcDir = null;
     } else {
-      opts.srcDir = srcDir;
+      opts.srcDir ||= srcDir;
     }
 
     if (Array.isArray(updatedOpts.tsconfigFileNames) && updatedOpts.tsconfigFileNames.length > 0) {
@@ -241,10 +242,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       } else {
         if (opts.target === 'ssr') {
           // ssr input default
-          opts.input = [path.resolve(srcDir, 'entry.ssr')];
+          opts.input ||= [path.resolve(srcDir, 'entry.ssr')];
         } else if (opts.target === 'client') {
           // client input default
-          opts.input = [path.resolve(srcDir, 'root')];
+          opts.input ||= [path.resolve(srcDir, 'root')];
         } else if (opts.target === 'lib') {
           if (typeof updatedOpts.input === 'object') {
             for (const key in updatedOpts.input) {
@@ -259,28 +260,28 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
             }
           } else {
             // lib input default
-            opts.input = [path.resolve(srcDir, 'index.ts')];
+            opts.input ||= [path.resolve(srcDir, 'index.ts')];
           }
         } else {
-          opts.input = [];
+          opts.input ||= [];
         }
       }
-      opts.input = Array.isArray(opts.input)
-        ? opts.input.reduce((inputs, i) => {
-            let input = i;
-            if (!i.startsWith('@') && !i.startsWith('~') && !i.startsWith('#')) {
-              input = normalizePath(path.resolve(opts.rootDir, i));
-            }
-            if (!inputs.includes(input)) {
-              inputs.push(input);
-            }
-            return inputs;
-          }, [] as string[])
-        : opts.input;
+      if (Array.isArray(opts.input)) {
+        opts.input = opts.input.reduce((inputs, i) => {
+          let input = i;
+          if (!i.startsWith('@') && !i.startsWith('~') && !i.startsWith('#')) {
+            input = normalizePath(path.resolve(opts.rootDir, i));
+          }
+          if (!inputs.includes(input)) {
+            inputs.push(input);
+          }
+          return inputs;
+        }, [] as string[]);
+      }
 
       if (typeof updatedOpts.outDir === 'string') {
         opts.outDir = normalizePath(path.resolve(opts.rootDir, normalizePath(updatedOpts.outDir)));
-      } else {
+      } else if (!opts.outDir) {
         if (opts.target === 'ssr') {
           opts.outDir = normalizePath(path.resolve(opts.rootDir, SSR_OUT_DIR));
         } else if (opts.target === 'lib') {
@@ -304,7 +305,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.transformedModuleOutput = updatedOpts.transformedModuleOutput;
     }
 
-    opts.scope = updatedOpts.scope ?? null;
+    if (updatedOpts.scope !== undefined) {
+      opts.scope = updatedOpts.scope;
+    }
 
     if (typeof updatedOpts.resolveQwikBuild === 'boolean') {
       opts.resolveQwikBuild = updatedOpts.resolveQwikBuild;
@@ -321,21 +324,26 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
     opts.csr = !!updatedOpts.csr;
 
-    opts.inlineStylesUpToBytes = optimizerOptions.inlineStylesUpToBytes ?? 20000;
-    if (typeof opts.inlineStylesUpToBytes !== 'number' || opts.inlineStylesUpToBytes < 0) {
-      opts.inlineStylesUpToBytes = 0;
+    if ('inlineStylesUpToBytes' in optimizerOptions) {
+      if (typeof optimizerOptions.inlineStylesUpToBytes === 'number') {
+        opts.inlineStylesUpToBytes = optimizerOptions.inlineStylesUpToBytes;
+      } else if (typeof opts.inlineStylesUpToBytes !== 'number' || opts.inlineStylesUpToBytes < 0) {
+        opts.inlineStylesUpToBytes = 0;
+      }
     }
 
     if (typeof updatedOpts.lint === 'boolean') {
       opts.lint = updatedOpts.lint;
     }
 
-    opts.experimental = undefined;
-    for (const feature of updatedOpts.experimental ?? []) {
-      if (!ExperimentalFeatures[feature as ExperimentalFeatures]) {
-        console.error(`Qwik plugin: Unknown experimental feature: ${feature}`);
-      } else {
-        (opts.experimental ||= {} as any)[feature] = true;
+    if ('experimental' in updatedOpts) {
+      opts.experimental = undefined;
+      for (const feature of updatedOpts.experimental ?? []) {
+        if (!ExperimentalFeatures[feature as ExperimentalFeatures]) {
+          console.error(`Qwik plugin: Unknown experimental feature: ${feature}`);
+        } else {
+          (opts.experimental ||= {} as any)[feature] = true;
+        }
       }
     }
 
@@ -869,29 +877,19 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     }
   }
 
-  // This groups all QRL segments into their respective entry points
-  // optimization opportunity: group small segments that don't import anything into smallish chunks
-  // order by discovery time, so that related segments are more likely to group together
   function manualChunks(id: string, { getModuleInfo }: Rollup.ManualChunkMeta) {
-    const module = getModuleInfo(id)!;
-    const segment = module.meta.segment;
+    if ((opts.entryStrategy as SmartEntryStrategy).manual) {
+      const module = getModuleInfo(id)!;
+      const segment = module.meta.segment as SegmentAnalysis | undefined;
 
-    // We need to specifically return segment.entry for qwik-insights
-    if (segment) {
-      return segment.entry;
+      if (segment) {
+        const { hash } = segment;
+        const chunkName = (opts.entryStrategy as SmartEntryStrategy).manual![hash] || segment.entry;
+        if (chunkName) {
+          return chunkName;
+        }
+      }
     }
-
-    if (id.includes('node_modules')) {
-      return null;
-    }
-
-    // Patch to prevent over-prefetching, we must clearly separate .tsx/.jsx chunks so that rollup doesn't mix random imports into non-entry files such as hooks.
-    // Maybe a better solution would be to mark those files as entires earlier in the chain so that we can remove this check and the one above altogether.
-    // We check .(tsx|jsx) after node_modules in case some node_modules end with .jsx or .tsx.
-    if (/\.(tsx|jsx)$/.test(id)) {
-      return id;
-    }
-
     return null;
   }
 

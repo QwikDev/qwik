@@ -279,10 +279,10 @@ export function generateManifestFromBundles(
 
     const bundle: QwikBundle = {
       size: outputBundle.code.length,
+      hasSymbols: false,
     };
 
     let hasSymbols = false;
-    let hasHW = false;
     for (const symbol of outputBundle.exports) {
       if (qrlNames.has(symbol)) {
         // When not minifying we see both the entry and the segment file
@@ -292,12 +292,9 @@ export function generateManifestFromBundles(
           manifest.mapping[symbol] = bundleFileName;
         }
       }
-      if (symbol === '_hW') {
-        hasHW = true;
-      }
     }
-    if (hasSymbols && hasHW) {
-      bundle.isTask = true;
+    if (hasSymbols) {
+      bundle.hasSymbols = true;
     }
 
     const bundleImports = outputBundle.imports

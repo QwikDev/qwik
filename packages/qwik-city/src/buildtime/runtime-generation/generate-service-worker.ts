@@ -66,7 +66,7 @@ export function generateAppBundles(appBundles: AppBundle[], manifest: QwikManife
       if (!manifest.bundles[dynamicDepName]) {
         continue;
       }
-      if (dynamicDep.isEntry || dynamicDep.isTask) {
+      if (dynamicDep.hasSymbols) {
         dynamicDepsNames.push(dynamicDepName);
       }
     }

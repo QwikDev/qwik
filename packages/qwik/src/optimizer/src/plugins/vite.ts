@@ -1180,7 +1180,7 @@ export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundle
         continue;
       }
       // prevent importing all segments chunks
-      if ((dep.isTask || dep.isEntry) && !dep.isPlan) {
+      if (dep.hasSymbols) {
         if (!didAdd) {
           deps.add('<dynamic>');
           didAdd = true;

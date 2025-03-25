@@ -47,6 +47,7 @@ export interface PrefetchImplementation {
     linkInsert?: 'js-append' | 'html-append' | null;
     linkRel?: 'prefetch' | 'preload' | 'modulepreload' | null;
     prefetchEvent?: 'always' | null;
+    // @deprecated
     workerFetchInsert?: 'always' | 'no-link-support' | null;
 }
 
@@ -90,6 +91,8 @@ export interface RenderOptions extends SerializeDocumentOptions {
     prefetchStrategy?: PrefetchStrategy | null;
     qwikLoader?: QwikLoaderOptions;
     // Warning: (ae-forgotten-export) The symbol "QwikPrefetchServiceWorkerOptions" needs to be exported by the entry point index.d.ts
+    //
+    // @deprecated (undocumented)
     qwikPrefetchServiceWorker?: QwikPrefetchServiceWorkerOptions;
     // (undocumented)
     serverData?: Record<string, any>;

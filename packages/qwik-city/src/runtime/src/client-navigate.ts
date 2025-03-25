@@ -1,7 +1,6 @@
-import { isBrowser } from '@builder.io/qwik';
+import { isBrowser, _preload } from '@builder.io/qwik';
 import type { NavigationType, ScrollState } from './types';
 import { isSamePath, toPath } from './utils';
-import { PREFETCHED_NAVIGATE_PATHS } from './constants';
 
 export const clientNavigate = (
   win: Window,
@@ -43,9 +42,7 @@ export const newScrollState = (): ScrollState => {
 export const prefetchSymbols = (path: string) => {
   if (isBrowser) {
     path = path.endsWith('/') ? path : path + '/';
-    if (!PREFETCHED_NAVIGATE_PATHS.has(path)) {
-      PREFETCHED_NAVIGATE_PATHS.add(path);
-      document.dispatchEvent(new CustomEvent('qprefetch', { detail: { links: [path] } }));
-    }
+    path = path.length > 1 && path.startsWith('/') ? path.slice(1) : path;
+    _preload(path, true);
   }
 };

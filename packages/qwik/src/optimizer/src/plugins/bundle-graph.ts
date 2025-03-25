@@ -1,3 +1,4 @@
+import { getSymbolHash } from 'packages/qwik/src/core/qrl/qrl-class';
 import type { QwikBundleGraph, QwikManifest } from '../types';
 
 /**
@@ -84,9 +85,7 @@ export function convertManifestToBundleGraph(
     if (!bundle) {
       console.warn(`Chunk ${chunkname} for symbol ${symbol} not found in the bundle graph.`);
     } else {
-      const idx = symbol.lastIndexOf('_');
-      const hash = idx === -1 ? symbol : symbol.slice(idx + 1);
-      bundleGraph.push(hash, bundle.index);
+      bundleGraph.push(getSymbolHash(symbol), bundle.index);
     }
   }
   // Second pass to to update dependency pointers

@@ -10,7 +10,6 @@ import { CookieOptions } from '@builder.io/qwik-city/middleware/request-handler'
 import { CookieValue } from '@builder.io/qwik-city/middleware/request-handler';
 import { DeferReturn } from '@builder.io/qwik-city/middleware/request-handler';
 import type { EnvGetter } from '@builder.io/qwik-city/middleware/request-handler';
-import { JSXNode } from '@builder.io/qwik';
 import { JSXOutput } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
 import { QRLEventHandlerMulti } from '@builder.io/qwik';
@@ -447,10 +446,10 @@ export type ServerQRL<T extends ServerFunction> = QRL<((abort: AbortSignal, ...a
 // @public (undocumented)
 export const serverQrl: <T extends ServerFunction>(qrl: QRL<T>, options?: ServerConfig) => ServerQRL<T>;
 
-// @public (undocumented)
+// @public
 export const ServiceWorkerRegister: (props: {
     nonce?: string;
-}) => JSXNode<"script">;
+}) => JSXOutput;
 
 // @public (undocumented)
 export interface StaticGenerate {

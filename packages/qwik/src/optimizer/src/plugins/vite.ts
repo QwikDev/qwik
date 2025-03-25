@@ -611,17 +611,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             ),
             source: JSON.stringify(bundleGraph),
           });
-          const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-          const workerScriptPath = (await this.resolve('@builder.io/qwik/qwik-prefetch.js'))!.id;
-          const workerScript = await fs.promises.readFile(workerScriptPath, 'utf-8');
-          const qwikPrefetchServiceWorkerFile = 'qwik-prefetch-service-worker.js';
-          this.emitFile({
-            type: 'asset',
-            fileName: useAssetsDir
-              ? sys.path.join(assetsDir, 'build', qwikPrefetchServiceWorkerFile)
-              : qwikPrefetchServiceWorkerFile,
-            source: workerScript,
-          });
 
           if (typeof opts.manifestOutput === 'function') {
             await opts.manifestOutput(manifest);

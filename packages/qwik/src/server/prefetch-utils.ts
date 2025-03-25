@@ -1,6 +1,7 @@
 import type { QPrefetchData } from '../../../qwik-city/src/runtime/src/service-worker/types';
 import type { PrefetchResource } from './types';
 
+// TODO deprecation message and fallback to preload
 export function workerFetchScript() {
   const fetch = `Promise.all(e.data.map(u=>fetch(u))).finally(()=>{setTimeout(postMessage({}),9999)})`;
 
@@ -21,7 +22,9 @@ export function workerFetchScript() {
 
 export function prefetchUrlsEventScript(base: string, prefetchResources: PrefetchResource[]) {
   const data: QPrefetchData = {
-    bundles: flattenPrefetchResources(prefetchResources).map((u) => u.split('/').pop()!),
+    bundles: Array.from(flattenPrefetchResources(prefetchResources).keys()).map(
+      (u) => u.split('/').pop()!
+    ),
   };
   const args = JSON.stringify(['prefetch', base, ...data.bundles!]);
 
@@ -30,13 +33,16 @@ export function prefetchUrlsEventScript(base: string, prefetchResources: Prefetc
 }
 
 export function flattenPrefetchResources(prefetchResources: PrefetchResource[]) {
-  const urls: string[] = [];
+  const urls = new Map<string, boolean>();
   const addPrefetchResource = (prefetchResources: PrefetchResource[]) => {
     if (Array.isArray(prefetchResources)) {
       for (const prefetchResource of prefetchResources) {
-        if (!urls.includes(prefetchResource.url)) {
-          urls.push(prefetchResource.url);
-          addPrefetchResource(prefetchResource.imports);
+        const prev = urls.get(prefetchResource.url);
+        if (!prev) {
+          urls.set(prefetchResource.url, prefetchResource.priority);
+          if (prev === undefined) {
+            addPrefetchResource(prefetchResource.imports);
+          }
         }
       }
     }

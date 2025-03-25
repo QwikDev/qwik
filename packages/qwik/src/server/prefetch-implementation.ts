@@ -9,6 +9,7 @@ import type { PrefetchImplementation, PrefetchResource, PrefetchStrategy } from 
 
 export function applyPrefetchImplementation(
   base: string,
+  manifestHash: string | undefined,
   prefetchStrategy: PrefetchStrategy | undefined,
   prefetchResources: PrefetchResource[],
   nonce?: string
@@ -24,7 +25,14 @@ export function applyPrefetchImplementation(
   }
 
   if (prefetchImpl.linkInsert === 'html-append') {
-    linkHtmlImplementation(prefetchNodes, prefetchResources, prefetchImpl);
+    linkHtmlImplementation(
+      base,
+      manifestHash,
+      nonce,
+      prefetchNodes,
+      prefetchResources,
+      prefetchImpl
+    );
   }
 
   if (prefetchImpl.linkInsert === 'js-append') {
@@ -67,30 +75,45 @@ function prefetchUrlsEvent(
   );
 }
 
-/** Creates the `<link>` within the rendered html. Optionally add the JS worker fetch */
+/** Creates the `<link>` within the rendered html */
 function linkHtmlImplementation(
+  base: string,
+  manifestHash: string | undefined,
+  nonce: string | undefined,
   prefetchNodes: JSXNode[],
   prefetchResources: PrefetchResource[],
   prefetchImpl: Required<PrefetchImplementation>
 ) {
   const urls = flattenPrefetchResources(prefetchResources);
-  const rel = prefetchImpl.linkRel || 'prefetch';
-  const priority = prefetchImpl.linkFetchPriority;
+  const rel = prefetchImpl.linkRel || 'modulepreload';
 
-  for (const url of urls) {
-    const attributes: Record<string, string> = {};
-    attributes['href'] = url;
-    attributes['rel'] = rel;
-    if (priority) {
-      attributes['fetchpriority'] = priority;
-    }
-    if (rel === 'prefetch' || rel === 'preload') {
-      if (url.endsWith('.js')) {
-        attributes['as'] = 'script';
-      }
-    }
-
-    prefetchNodes.push(jsx('link', attributes, undefined));
+  if (manifestHash) {
+    prefetchNodes.push(
+      jsx('link', {
+        rel: 'fetch',
+        id: `qwik-bg-${manifestHash}`,
+        href: `${base}q-bundle-graph-${manifestHash}.json`,
+        as: 'fetch',
+        crossorigin: 'anonymous',
+        priority: prefetchImpl.linkFetchPriority || undefined,
+      })
+    );
+  }
+  for (const [url, priority] of urls) {
+    const fetchpriority = priority
+      ? prefetchImpl.linkFetchPriority || 'high'
+      : prefetchImpl.linkFetchPriority === 'low'
+        ? 'low'
+        : undefined;
+    prefetchNodes.push(
+      jsx('link', {
+        href: url,
+        rel,
+        fetchpriority,
+        nonce,
+        // TODO: add integrity
+      })
+    );
   }
 }
 
@@ -104,7 +127,7 @@ function linkJsImplementation(
   prefetchImpl: Required<PrefetchImplementation>,
   nonce?: string
 ) {
-  const rel = prefetchImpl.linkRel || 'prefetch';
+  const rel = prefetchImpl.linkRel || 'modulepreload';
   const priority = prefetchImpl.linkFetchPriority;
   let s = ``;
 
@@ -112,7 +135,7 @@ function linkJsImplementation(
     s += `let supportsLinkRel = true;`;
   }
 
-  s += `const u=${JSON.stringify(flattenPrefetchResources(prefetchResources))};`;
+  s += `const u=${JSON.stringify(flattenPrefetchResources(prefetchResources).keys())};`;
   s += `u.map((u,i)=>{`;
 
   s += `const l=document.createElement('link');`;
@@ -159,7 +182,7 @@ function workerFetchImplementation(
   prefetchResources: PrefetchResource[],
   nonce?: string
 ) {
-  let s = `const u=${JSON.stringify(flattenPrefetchResources(prefetchResources))};`;
+  let s = `const u=${JSON.stringify(flattenPrefetchResources(prefetchResources).keys())};`;
   s += workerFetchScript();
 
   prefetchNodes.push(
@@ -179,9 +202,9 @@ function normalizePrefetchImplementation(
 }
 
 const PrefetchImplementationDefault: Required<PrefetchImplementation> = {
-  linkInsert: null,
-  linkRel: null,
+  linkInsert: 'html-append',
+  linkRel: 'modulepreload',
   linkFetchPriority: null,
   workerFetchInsert: null,
-  prefetchEvent: 'always',
+  prefetchEvent: null,
 };

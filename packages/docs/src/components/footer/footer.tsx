@@ -90,7 +90,7 @@ export const FooterSocialLinks = component$(() => {
   ];
 
   return (
-    <div class="flex gap-4 mt-4">
+    <ul class="flex gap-4 mt-4">
       {socialLinks.map(({ title, href, Logo }) => (
         <li key={title} class="list-none">
           <a href={href} target="_blank" title={title}>
@@ -100,6 +100,6 @@ export const FooterSocialLinks = component$(() => {
           </a>
         </li>
       ))}
-    </div>
+    </ul>
   );
 });

@@ -258,11 +258,11 @@ _(Optional)_ Value of the `<link fetchpriority="...">` attribute when link is us
 
 </td><td>
 
-_(Optional)_ `js-append`: Use JS runtime to create each `<link>` and append to the body.
+_(Optional)_ `js-append`: Use JS runtime to create each `<link>` and append to the head.
 
 `html-append`: Render each `<link>` within html, appended at the end of the body.
 
-Defaults to `html-append`.
+Defaults to `js-append`.
 
 </td></tr>
 <tr><td>
@@ -647,9 +647,7 @@ QwikPrefetchServiceWorkerOptions
 
 </td><td>
 
-_(Optional)_ Specifies if the Qwik Prefetch Service Worker script is added to the document or not.
-
-Defaults to `{ include: false }`. NOTE: This may be change in the future.
+_(Optional)_
 
 </td></tr>
 <tr><td>

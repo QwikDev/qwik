@@ -1,6 +1,7 @@
 import { Fragment, jsx, type JSXNode } from '@builder.io/qwik';
 import { flattenPrefetchResources, getMostReferenced, workerFetchScript } from './prefetch-utils';
 import type { PrefetchImplementation, PrefetchResource, PrefetchStrategy } from './types';
+import { makeMakePreloadLink } from '../core/qrl/preload';
 
 export function applyPrefetchImplementation(
   base: string,
@@ -31,7 +32,7 @@ export function applyPrefetchImplementation(
   }
 
   if (prefetchImpl.linkInsert === 'js-append') {
-    linkJsImplementation(prefetchNodes, prefetchResources, prefetchImpl, nonce);
+    linkJsImplementation(base, manifestHash, nonce, prefetchNodes, prefetchResources, prefetchImpl);
   } else if (prefetchImpl.workerFetchInsert === 'always') {
     workerFetchImplementation(prefetchNodes, prefetchResources, nonce);
   }
@@ -90,7 +91,7 @@ function linkHtmlImplementation(
         href: `${base}q-bundle-graph-${manifestHash}.json`,
         as: 'fetch',
         crossorigin: 'anonymous',
-        priority: prefetchImpl.linkFetchPriority || undefined,
+        fetchpriority: prefetchImpl.linkFetchPriority || undefined,
       })
     );
   }
@@ -119,57 +120,48 @@ function linkHtmlImplementation(
  * TODO use idle event
  */
 function linkJsImplementation(
+  base: string,
+  manifestHash: string | undefined,
+  nonce: string | undefined,
   prefetchNodes: JSXNode[],
   prefetchResources: PrefetchResource[],
-  prefetchImpl: Required<PrefetchImplementation>,
-  nonce?: string
+  prefetchImpl: Required<PrefetchImplementation>
 ) {
-  const rel = prefetchImpl.linkRel || 'modulepreload';
-  const priority = prefetchImpl.linkFetchPriority;
-  let s = ``;
-
-  if (prefetchImpl.workerFetchInsert === 'no-link-support') {
-    s += `let supportsLinkRel = true;`;
+  const injector = makeMakePreloadLink.toString();
+  const urls = flattenPrefetchResources(prefetchResources);
+  const fetchPriority = prefetchImpl.linkFetchPriority;
+  const forceLow = fetchPriority === 'low';
+  const prio = [];
+  const low = [];
+  for (const [url, priority] of urls) {
+    if (!priority || forceLow) {
+      low.push(url);
+    } else {
+      prio.push(url);
+    }
   }
 
-  s += `const u=${JSON.stringify(flattenPrefetchResources(prefetchResources).keys())};`;
-  s += `u.map((u,i)=>{`;
-
-  s += `const l=document.createElement('link');`;
-  s += `l.setAttribute("href",u);`;
-  s += `l.setAttribute("rel","${rel}");`;
-  if (priority) {
-    s += `l.setAttribute("fetchpriority","${priority}");`;
-  }
-
-  if (prefetchImpl.workerFetchInsert === 'no-link-support') {
-    s += `if(i===0){`;
-    s += `try{`;
-    s += `supportsLinkRel=l.relList.supports("${rel}");`;
-    s += `}catch(e){}`;
-    s += `}`;
-  }
-
-  s += `document.body.appendChild(l);`;
-
-  s += `});`;
-
-  if (prefetchImpl.workerFetchInsert === 'no-link-support') {
-    s += `if(!supportsLinkRel){`;
-    s += workerFetchScript();
-    s += `}`;
-  }
-
-  if (prefetchImpl.workerFetchInsert === 'always') {
-    s += workerFetchScript();
-  }
+  // Maybe this needs to be delayed
+  const script = `
+    var _=(${injector})(null);
+    ${prio.length ? `${JSON.stringify(prio)}.forEach(u=>_(u,1));` : ''}
+    ${low.length ? `${JSON.stringify(low)}.forEach(u=>_(u,0));` : ''}
+  `.replaceAll(/^\s+|\s*\n/gm, '');
 
   prefetchNodes.push(
     jsx('script', {
       type: 'module',
       'q:type': 'link-js',
-      dangerouslySetInnerHTML: s,
+      dangerouslySetInnerHTML: script,
       nonce,
+    }),
+    jsx('link', {
+      rel: 'fetch',
+      id: `qwik-bg-${manifestHash}`,
+      href: `${base}q-bundle-graph-${manifestHash}.json`,
+      as: 'fetch',
+      crossorigin: 'anonymous',
+      fetchpriority: prefetchImpl.linkFetchPriority || undefined,
     })
   );
 }
@@ -199,7 +191,7 @@ function normalizePrefetchImplementation(
 }
 
 const PrefetchImplementationDefault: Required<PrefetchImplementation> = {
-  linkInsert: 'html-append',
+  linkInsert: 'js-append',
   linkRel: 'modulepreload',
   linkFetchPriority: null,
   workerFetchInsert: null,

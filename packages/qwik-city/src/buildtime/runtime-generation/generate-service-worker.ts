@@ -58,15 +58,27 @@ export function generateAppBundles(appBundles: AppBundle[], manifest: QwikManife
     const symbolHashesInBundle: string[] = [];
 
     const manifestBundle = manifest.bundles[appBundleName];
-    const importedBundleNames = Array.isArray(manifestBundle.imports) ? manifestBundle.imports : [];
+    const staticDepsNames = Array.isArray(manifestBundle.imports) ? manifestBundle.imports : [];
 
-    const depsSet = new Set(importedBundleNames);
-
-    for (const importedBundleName of importedBundleNames) {
-      clearTransitiveDeps(depsSet, new Set(), importedBundleName);
+    const dynamicDepsNames = [];
+    for (const dynamicDepName of manifestBundle.dynamicImports || []) {
+      const dynamicDep = manifest.bundles[dynamicDepName];
+      if (!manifest.bundles[dynamicDepName]) {
+        continue;
+      }
+      if (dynamicDep.hasSymbols) {
+        dynamicDepsNames.push(dynamicDepName);
+      }
     }
+    const depsNames = [...staticDepsNames, ...dynamicDepsNames];
+    const depsNamesSet = new Set(depsNames);
+
+    for (const depName of depsNames) {
+      clearTransitiveDeps(depsNamesSet, new Set(), depName);
+    }
+
     // set the imports based on the sorted index number
-    appBundle[1] = Array.from(depsSet).map((dep) => sortedBundles.indexOf(dep));
+    appBundle[1] = Array.from(depsNamesSet).map((dep) => sortedBundles.indexOf(dep));
 
     if (manifestBundle.symbols) {
       for (const manifestBundleSymbolName of manifestBundle.symbols) {

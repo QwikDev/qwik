@@ -879,9 +879,6 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     }
   }
 
-  // This groups all QRL segments into their respective entry points
-  // optimization opportunity: group small segments that don't import anything into smallish chunks
-  // order by discovery time, so that related segments are more likely to group together
   function manualChunks(id: string, { getModuleInfo }: Rollup.ManualChunkMeta) {
     if ((opts.entryStrategy as SmartEntryStrategy).manual) {
       const module = getModuleInfo(id)!;
@@ -895,18 +892,6 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
         }
       }
     }
-
-    if (id.includes('node_modules')) {
-      return null;
-    }
-
-    // Patch to prevent over-prefetching, we must clearly separate .tsx/.jsx chunks so that rollup doesn't mix random imports into non-entry files such as hooks.
-    // Maybe a better solution would be to mark those files as entires earlier in the chain so that we can remove this check and the one above altogether.
-    // We check .(tsx|jsx) after node_modules in case some node_modules end with .jsx or .tsx.
-    if (/\.(tsx|jsx)$/.test(id)) {
-      return id;
-    }
-
     return null;
   }
 

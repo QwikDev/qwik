@@ -65,7 +65,7 @@ function getAutoPrefetch(
       const resolvedSymbol = mapper[qrlSymbolName];
       if (resolvedSymbol) {
         const bundleFileName = resolvedSymbol[1];
-        addBundle(manifest, urls, prefetchResources, buildBase, bundleFileName);
+        addBundle(manifest, urls, prefetchResources, buildBase, bundleFileName, true);
       }
     }
   }
@@ -77,7 +77,8 @@ function addBundle(
   urls: Map<string, PrefetchResource>,
   prefetchResources: PrefetchResource[],
   buildBase: string,
-  bundleFileName: string
+  bundleFileName: string,
+  priority: boolean
 ) {
   const url = qDev ? bundleFileName : buildBase + bundleFileName;
   let prefetchResource = urls.get(url);
@@ -85,6 +86,7 @@ function addBundle(
     prefetchResource = {
       url,
       imports: [],
+      priority,
     };
     urls.set(url, prefetchResource);
 
@@ -92,7 +94,19 @@ function addBundle(
     if (bundle) {
       if (Array.isArray(bundle.imports)) {
         for (const importedFilename of bundle.imports) {
-          addBundle(manifest, urls, prefetchResource.imports, buildBase, importedFilename);
+          addBundle(
+            manifest,
+            urls,
+            prefetchResource.imports,
+            buildBase,
+            importedFilename,
+            priority
+          );
+        }
+      }
+      if (Array.isArray(bundle.dynamicImports) && bundle.dynamicImports.length < 10) {
+        for (const importedFilename of bundle.dynamicImports) {
+          addBundle(manifest, urls, prefetchResource.imports, buildBase, importedFilename, false);
         }
       }
     }

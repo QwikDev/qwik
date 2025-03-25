@@ -516,7 +516,17 @@ suite('convertManifestToBundleGraph', () => {
           size: 0,
         },
       } as Record<string, QwikBundle>,
+      mapping: {},
     } as QwikManifest;
-    expect(convertManifestToBundleGraph(manifest)).toEqual(['a.js', 2, 'b.js', 'c.js']);
+    expect(convertManifestToBundleGraph(manifest)).toEqual([
+      'a.js',
+      4,
+      -1,
+      7,
+      'b.js',
+      -1,
+      7,
+      'c.js',
+    ]);
   });
 });

@@ -23,7 +23,6 @@ import { submoduleCli } from './submodule-cli';
 import { submoduleCore } from './submodule-core';
 import { submoduleOptimizer } from './submodule-optimizer';
 import { submoduleQwikLoader } from './submodule-qwikloader';
-import { submoduleQwikPrefetch } from './submodule-qwikprefetch';
 import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
 import { buildSupabaseAuthHelpers } from './supabase-auth-helpers';
@@ -73,7 +72,6 @@ export async function build(config: BuildConfig) {
       await Promise.all([
         submoduleCore(config),
         submoduleQwikLoader(config),
-        submoduleQwikPrefetch(config),
         submoduleBuild(config),
         submoduleTesting(config),
         submoduleCli(config),
@@ -183,7 +181,6 @@ export async function build(config: BuildConfig) {
         },
         [join(config.srcQwikDir, 'cli')]: () => submoduleCli(config),
         [join(config.srcQwikDir, 'optimizer')]: () => submoduleOptimizer(config),
-        [join(config.srcQwikDir, 'prefetch-service-worker')]: () => submoduleQwikPrefetch(config),
         [join(config.srcQwikDir, 'server')]: () => submoduleServer(config),
         [join(config.srcQwikCityDir, 'runtime/src')]: () => buildQwikCity(config),
       });

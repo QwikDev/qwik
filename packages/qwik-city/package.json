@@ -155,7 +155,7 @@
       "require": "./lib/vite/index.cjs"
     },
     "./service-worker": {
-      "types": "./lib/service-worker.d.ts",
+      "types": "./service-worker.d.ts",
       "import": "./lib/service-worker.mjs",
       "require": "./lib/service-worker.cjs"
     }

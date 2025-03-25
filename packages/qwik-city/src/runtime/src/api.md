@@ -10,8 +10,8 @@ import { CookieOptions } from '@builder.io/qwik-city/middleware/request-handler'
 import { CookieValue } from '@builder.io/qwik-city/middleware/request-handler';
 import { DeferReturn } from '@builder.io/qwik-city/middleware/request-handler';
 import type { EnvGetter } from '@builder.io/qwik-city/middleware/request-handler';
-import { JSXNode } from '@builder.io/qwik';
-import { JSXOutput } from '@builder.io/qwik';
+import { JSXOutput } from 'packages/qwik/dist';
+import { JSXOutput as JSXOutput_2 } from '@builder.io/qwik';
 import { QRL } from '@builder.io/qwik';
 import { QRLEventHandlerMulti } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
@@ -220,7 +220,7 @@ export type FailOfRest<REST extends readonly DataValidator[]> = REST extends rea
 export type FailReturn<T> = T & Failed;
 
 // @public (undocumented)
-export const Form: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>, key: string | null) => JSXOutput;
+export const Form: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>, key: string | null) => JSXOutput_2;
 
 // @public (undocumented)
 export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
@@ -447,10 +447,10 @@ export type ServerQRL<T extends ServerFunction> = QRL<((abort: AbortSignal, ...a
 // @public (undocumented)
 export const serverQrl: <T extends ServerFunction>(qrl: QRL<T>, options?: ServerConfig) => ServerQRL<T>;
 
-// @public (undocumented)
+// @public
 export const ServiceWorkerRegister: (props: {
     nonce?: string;
-}) => JSXNode<"script">;
+}) => JSXOutput;
 
 // @public (undocumented)
 export interface StaticGenerate {

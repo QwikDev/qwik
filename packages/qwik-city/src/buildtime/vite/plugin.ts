@@ -19,10 +19,7 @@ import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikCityEntries } from '../runtime-generation/generate-entries';
 import { generateQwikCityPlan } from '../runtime-generation/generate-qwik-city-plan';
-import {
-  generateServiceWorkerRegister,
-  prependManifestToServiceWorker,
-} from '../runtime-generation/generate-service-worker';
+import { generateServiceWorkerRegister } from '../runtime-generation/generate-service-worker';
 import type { BuildContext } from '../types';
 import { modifyBundleGraph } from './bundle-graph-modifier';
 import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
@@ -270,37 +267,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
       async handler() {
         if (ctx?.target === 'ssr' && !ctx?.isDevServer) {
           // ssr build
-          const manifest = qwikPlugin!.api.getManifest();
           const clientOutDir = qwikPlugin!.api.getClientOutDir();
-
-          if (manifest && clientOutDir) {
-            const basePathRelDir = api.getBasePathname().replace(/^\/|\/$/, '');
-            const clientOutBaseDir = join(clientOutDir, basePathRelDir);
-            const insightsManifest = await qwikPlugin!.api.getInsightsManifest(clientOutDir);
-
-            for (const swEntry of ctx.serviceWorkers) {
-              try {
-                const swClientDistPath = join(clientOutBaseDir, swEntry.chunkFileName);
-                const swCode = await fs.promises.readFile(swClientDistPath, 'utf-8');
-                try {
-                  const swCodeUpdate = prependManifestToServiceWorker(
-                    ctx,
-                    manifest,
-                    insightsManifest?.prefetch || null,
-                    swCode
-                  );
-                  if (swCodeUpdate) {
-                    await fs.promises.mkdir(clientOutDir, { recursive: true });
-                    await fs.promises.writeFile(swClientDistPath, swCodeUpdate);
-                  }
-                } catch (e2) {
-                  console.error(e2);
-                }
-              } catch (e) {
-                // safe to ignore if a service-worker.js not found
-              }
-            }
-          }
 
           if (outDir && clientOutDir) {
             const assetsDir = qwikPlugin!.api.getAssetsDir();

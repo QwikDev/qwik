@@ -1,4 +1,3 @@
-import type { QPrefetchData } from '../../../qwik-city/src/runtime/src/service-worker/types';
 import type { PrefetchResource } from './types';
 
 // TODO deprecation message and fallback to preload
@@ -21,15 +20,9 @@ export function workerFetchScript() {
 }
 
 export function prefetchUrlsEventScript(base: string, prefetchResources: PrefetchResource[]) {
-  const data: QPrefetchData = {
-    bundles: Array.from(flattenPrefetchResources(prefetchResources).keys()).map(
-      (u) => u.split('/').pop()!
-    ),
-  };
-  const args = JSON.stringify(['prefetch', base, ...data.bundles!]);
-
-  return `document.dispatchEvent(new CustomEvent("qprefetch",{detail:${JSON.stringify(data)}}));
-          (window.qwikPrefetchSW||(window.qwikPrefetchSW=[])).push(${args});`;
+  // TODO convert links to bundles
+  // see how preload() can be leveraged during
+  return '';
 }
 
 export function flattenPrefetchResources(prefetchResources: PrefetchResource[]) {

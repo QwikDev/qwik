@@ -1991,6 +1991,55 @@ describe.each([
     );
   });
 
+  it('should reexecute entire component without key', async () => {
+    const Child = component$((props: { text: string }) => {
+      const text = useSignal('');
+      useTask$(() => {
+        text.value = props.text;
+      });
+      return <div>{text.value}</div>;
+    });
+
+    const Cmp = component$(() => {
+      const toggle = useSignal(true);
+
+      return (
+        <>
+          <button onClick$={() => (toggle.value = !toggle.value)}></button>
+          {/* no key for both components */}
+          {toggle.value ? jsx(Child, { text: 'Hello' }, null) : jsx(Child, { text: 'World' }, null)}
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <div>
+              <Signal ssr-required>Hello</Signal>
+            </div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <div>
+              <Signal ssr-required>World</Signal>
+            </div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+  });
+
   describe('regression', () => {
     it('#3643', async () => {
       const Issue3643 = component$(() => {

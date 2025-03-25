@@ -16,3 +16,4 @@ export {
 } from './use/use-core';
 export { _jsxQ, _jsxC, _jsxS } from './render/jsx/jsx-runtime';
 export { _fnSignal } from './qrl/inlined-fn';
+export { preload as _preload } from './qrl/preload';

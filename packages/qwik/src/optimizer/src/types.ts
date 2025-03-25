@@ -270,7 +270,6 @@ export interface QwikSymbol {
 /** @public */
 export interface QwikBundle {
   size: number;
-  /** Not precise, but an indication of whether this import may be a task */
   hasSymbols?: boolean;
   symbols?: string[];
   imports?: string[];

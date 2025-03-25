@@ -176,6 +176,7 @@ export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 export interface QwikBundle {
     // (undocumented)
     dynamicImports?: string[];
+    // (undocumented)
     hasSymbols?: boolean;
     // (undocumented)
     imports?: string[];

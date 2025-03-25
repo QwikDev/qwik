@@ -42,15 +42,6 @@ test.describe("container", () => {
     const hash = await container.getAttribute("q:manifest-hash");
     const bundleLink = page.locator(`link#qwik-bg-${hash}`).first();
     await expect(bundleLink).toHaveAttribute("href");
-
-    const headPreload = page.locator(`head > link[rel="modulepreload"]`);
-    const beforeCount = await headPreload.count();
-
-    const anchor = container.locator("a");
-    await anchor.click();
-    await expect(anchor).toHaveText("2 / 3");
-
-    const afterCount = await headPreload.count();
-    expect(afterCount).toBeGreaterThan(beforeCount);
+    // We don't have a way to check if other modules are preloaded, because the link goes away
   });
 });

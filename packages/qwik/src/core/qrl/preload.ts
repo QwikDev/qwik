@@ -103,7 +103,6 @@ export const loadBundleGraph = (element: Element) => {
 
 // we stringify this in prefetch-implementation.ts
 export const makeMakePreloadLink =
-  /*@__PURE__*/
   (canModulePreload: boolean | null) => (url: string, priority: boolean) => {
     const link = document.createElement('link');
     if (canModulePreload === null) {
@@ -119,16 +118,16 @@ export const makeMakePreloadLink =
     if (!canModulePreload) {
       link.as = 'script';
     }
+    link.onload = link.onerror = () => link.remove();
+
     document.head.appendChild(link);
   };
-const makePreloadLink = makeMakePreloadLink(null);
+const makePreloadLink = /*@__PURE__*/ makeMakePreloadLink(null);
 
 const prioritizeLink = (url: string) => {
   const link = document.querySelector(`link[href="${url}"]`) as HTMLLinkElement | null;
   if (link) {
     link.fetchPriority = 'high';
-  } else {
-    console.warn(`Preload link ${url} not found`);
   }
 };
 

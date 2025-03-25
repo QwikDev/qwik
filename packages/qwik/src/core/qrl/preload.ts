@@ -101,12 +101,22 @@ export const loadBundleGraph = (element: Element) => {
     });
 };
 
+let canModulePreload: boolean | null = null;
 const makePreloadLink = (bundle: BundleImport, priority: boolean) => {
   const link = document.createElement('link');
-  link.rel = 'modulepreload';
+  if (canModulePreload === null) {
+    if (link.relList.supports('modulepreload')) {
+      canModulePreload = true;
+    } else {
+      canModulePreload = false;
+    }
+  }
+  link.rel = canModulePreload ? 'modulepreload' : 'preload';
   link.href = bundle.$url$!;
   link.fetchPriority = priority ? 'high' : 'low';
-  link.as = 'script';
+  if (!canModulePreload) {
+    link.as = 'script';
+  }
   document.head.appendChild(link);
 };
 

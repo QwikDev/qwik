@@ -624,6 +624,9 @@ export const PrefetchServiceWorker: (opts: {
     nonce?: string;
 }) => JSXNode_2<'script'>;
 
+// @internal (undocumented)
+export const _preload: (name: string, priority: boolean) => void;
+
 // @public (undocumented)
 export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progress', T> {
 }

@@ -32,11 +32,8 @@ type BundleImport = {
   $dynamicImports$: string[];
 };
 let bundles: Map<string, BundleImport> | undefined;
-type WantedBundle = {
-  name: string;
-  priority: boolean;
-};
-const wantedBundles: Set<WantedBundle> = new Set();
+
+const wantedBundles = new Map<string, boolean>();
 
 const parseBundleGraph = (text: string, base: string) => {
   try {
@@ -65,7 +62,7 @@ const parseBundleGraph = (text: string, base: string) => {
         $dynamicImports$: dynamicImports,
       });
     }
-    for (const { name, priority } of wantedBundles) {
+    for (const [name, priority] of wantedBundles) {
       preload(name, priority);
     }
     wantedBundles.clear();
@@ -75,6 +72,7 @@ const parseBundleGraph = (text: string, base: string) => {
   }
 };
 
+/** @internal */
 export const loadBundleGraph = (element: Element) => {
   if (typeof window === 'undefined' || bundlesP) {
     return;
@@ -137,9 +135,10 @@ const preloadBundle = (bundle: BundleImport, priority: boolean) => {
   bundle.$state$ = priority ? BundleImportState.Loading : BundleImportState.Low;
 };
 
+/** @internal */
 export const preload = (name: string, priority: boolean) => {
   if (!bundles) {
-    wantedBundles.add({ name, priority });
+    wantedBundles.set(name, priority || !!wantedBundles.get(name));
     return;
   }
   const bundle = bundles.get(name);

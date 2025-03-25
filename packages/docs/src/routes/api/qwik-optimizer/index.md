@@ -1330,7 +1330,7 @@ boolean
 
 </td><td>
 
-_(Optional)_ Not precise, but an indication of whether this import may be a task
+_(Optional)_
 
 </td></tr>
 <tr><td>

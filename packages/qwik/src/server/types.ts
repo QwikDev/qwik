@@ -22,11 +22,11 @@ export interface PrefetchStrategy {
 /** @public */
 export interface PrefetchImplementation {
   /**
-   * `js-append`: Use JS runtime to create each `<link>` and append to the body.
+   * `js-append`: Use JS runtime to create each `<link>` and append to the head.
    *
    * `html-append`: Render each `<link>` within html, appended at the end of the body.
    *
-   * Defaults to `html-append`.
+   * Defaults to `js-append`.
    */
   linkInsert?: 'js-append' | 'html-append' | null;
   /** Value of the `<link rel="...">` attribute when link is used. Defaults to `modulepreload`. */
@@ -40,6 +40,8 @@ export interface PrefetchImplementation {
    * `<link>` prefetch/preload/modulepreload.
    *
    * Defaults to `null`.
+   *
+   * @deprecated Use `linkInsert` instead
    */
   workerFetchInsert?: 'always' | 'no-link-support' | null;
   /**
@@ -142,11 +144,7 @@ export interface RenderOptions extends SerializeDocumentOptions {
    */
   qwikLoader?: QwikLoaderOptions;
 
-  /**
-   * Specifies if the Qwik Prefetch Service Worker script is added to the document or not.
-   *
-   * Defaults to `{ include: false }`. NOTE: This may be change in the future.
-   */
+  /** @deprecated Use `prefetchStrategy` instead */
   qwikPrefetchServiceWorker?: QwikPrefetchServiceWorkerOptions;
 
   prefetchStrategy?: PrefetchStrategy | null;

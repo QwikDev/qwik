@@ -43,11 +43,14 @@ test.describe("container", () => {
     const bundleLink = page.locator(`link#qwik-bg-${hash}`).first();
     await expect(bundleLink).toHaveAttribute("href");
 
-    const headPreload = page
-      .locator(`head > link[rel="modulepreload"]`)
-      .first();
-    await expect(headPreload).not.toBeAttached();
-    await container.locator("a").click();
-    await expect(headPreload).toBeAttached();
+    const headPreload = page.locator(`head > link[rel="modulepreload"]`);
+    const beforeCount = await headPreload.count();
+
+    const anchor = container.locator("a");
+    await anchor.click();
+    await expect(anchor).toHaveText("2 / 3");
+
+    const afterCount = await headPreload.count();
+    expect(afterCount).toBeGreaterThan(beforeCount);
   });
 });

@@ -101,24 +101,27 @@ export const loadBundleGraph = (element: Element) => {
     });
 };
 
-let canModulePreload: boolean | null = null;
-const makePreloadLink = (bundle: BundleImport, priority: boolean) => {
-  const link = document.createElement('link');
-  if (canModulePreload === null) {
-    if (link.relList.supports('modulepreload')) {
-      canModulePreload = true;
-    } else {
-      canModulePreload = false;
+// we stringify this in prefetch-implementation.ts
+export const makeMakePreloadLink =
+  /*@__PURE__*/
+  (canModulePreload: boolean | null) => (url: string, priority: boolean) => {
+    const link = document.createElement('link');
+    if (canModulePreload === null) {
+      if (link.relList.supports('modulepreload')) {
+        canModulePreload = true;
+      } else {
+        canModulePreload = false;
+      }
     }
-  }
-  link.rel = canModulePreload ? 'modulepreload' : 'preload';
-  link.href = bundle.$url$!;
-  link.fetchPriority = priority ? 'high' : 'low';
-  if (!canModulePreload) {
-    link.as = 'script';
-  }
-  document.head.appendChild(link);
-};
+    link.rel = canModulePreload ? 'modulepreload' : 'preload';
+    link.href = url;
+    link.fetchPriority = priority ? 'high' : 'low';
+    if (!canModulePreload) {
+      link.as = 'script';
+    }
+    document.head.appendChild(link);
+  };
+const makePreloadLink = makeMakePreloadLink(null);
 
 const prioritizeLink = (url: string) => {
   const link = document.querySelector(`link[href="${url}"]`) as HTMLLinkElement | null;
@@ -135,9 +138,9 @@ const preloadBundle = (bundle: BundleImport, priority: boolean) => {
   }
   if (bundle.$url$) {
     if (bundle.$state$ === BundleImportState.None) {
-      makePreloadLink(bundle, priority);
+      makePreloadLink(bundle.$url$, priority);
     } else if (priority && bundle.$state$ === BundleImportState.Low) {
-      prioritizeLink(bundle.$url$!);
+      prioritizeLink(bundle.$url$);
     } else {
       return;
     }

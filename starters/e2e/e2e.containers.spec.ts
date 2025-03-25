@@ -20,7 +20,7 @@ test.describe("container", () => {
   });
 
   test("should handle inner counter", async ({ page }) => {
-    const container = page.locator(".inline-container");
+    const container = page.locator(".inline-container container");
     const anchor = container.locator("a");
 
     await expect(anchor).toHaveText("1 / 1");
@@ -35,5 +35,19 @@ test.describe("container", () => {
     await expect(anchor).toHaveText("1 / 1");
     await anchor.click();
     await expect(anchor).toHaveText("2 / 3");
+  });
+
+  test("dynamic preload", async ({ page }) => {
+    const container = page.locator(".inline-container container");
+    const hash = await container.getAttribute("q:manifest-hash");
+    const bundleLink = page.locator(`link#qwik-bg-${hash}`).first();
+    await expect(bundleLink).toHaveAttribute("href");
+
+    const headPreload = page
+      .locator(`head > link[rel="modulepreload"]`)
+      .first();
+    await expect(headPreload).not.toBeAttached();
+    await container.locator("a").click();
+    await expect(headPreload).toBeAttached();
   });
 });

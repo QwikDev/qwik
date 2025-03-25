@@ -55,6 +55,8 @@ export interface PrefetchResource {
     // (undocumented)
     imports: PrefetchResource[];
     // (undocumented)
+    priority: boolean;
+    // (undocumented)
     url: string;
 }
 

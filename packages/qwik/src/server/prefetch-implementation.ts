@@ -1,10 +1,5 @@
 import { Fragment, jsx, type JSXNode } from '@builder.io/qwik';
-import {
-  flattenPrefetchResources,
-  getMostReferenced,
-  prefetchUrlsEventScript,
-  workerFetchScript,
-} from './prefetch-utils';
+import { flattenPrefetchResources, getMostReferenced, workerFetchScript } from './prefetch-utils';
 import type { PrefetchImplementation, PrefetchResource, PrefetchStrategy } from './types';
 
 export function applyPrefetchImplementation(
@@ -64,15 +59,15 @@ function prefetchUrlsEvent(
       })
     );
   }
-  prefetchNodes.push(
-    jsx('script', {
-      'q:type': 'prefetch-bundles',
-      dangerouslySetInnerHTML:
-        prefetchUrlsEventScript(base, prefetchResources) +
-        `document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`,
-      nonce,
-    })
-  );
+  // TODO: convert links to bundles
+  // prefetchNodes.push(
+  //   jsx('script', {
+  //     'q:type': 'prefetch-bundles',
+  //     dangerouslySetInnerHTML:
+  //     prefetchUrlsEventScript(base, prefetchResources),
+  //     nonce,
+  //   })
+  // );
 }
 
 /** Creates the `<link>` within the rendered html */
@@ -120,6 +115,8 @@ function linkHtmlImplementation(
 /**
  * Uses JS to add the `<link>` elements at runtime, and if the link prefetching isn't supported,
  * it'll also add the web worker fetch.
+ *
+ * TODO use idle event
  */
 function linkJsImplementation(
   prefetchNodes: JSXNode[],

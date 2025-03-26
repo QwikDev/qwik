@@ -76,19 +76,6 @@ export interface InlineEntryStrategy {
 }
 
 // @public (undocumented)
-export interface InsightManifest {
-    // (undocumented)
-    manual: Record<string, string>;
-    // (undocumented)
-    prefetch: {
-        route: string;
-        symbols: string[];
-    }[];
-    // (undocumented)
-    type: 'smart';
-}
-
-// @public (undocumented)
 export type MinifyMode = 'simplify' | 'none';
 
 // @public (undocumented)
@@ -298,8 +285,6 @@ export interface QwikVitePluginApi {
     getClientOutDir: () => string | null;
     // (undocumented)
     getClientPublicOutDir: () => string | null;
-    // (undocumented)
-    getInsightsManifest: (clientOutDir?: string | null) => Promise<InsightManifest | null>;
     // (undocumented)
     getManifest: () => QwikManifest | null;
     // (undocumented)

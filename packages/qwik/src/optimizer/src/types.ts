@@ -321,10 +321,3 @@ export interface ResolvedManifest {
   mapper: SymbolMapper;
   manifest: QwikManifest;
 }
-
-/** @public */
-export interface InsightManifest {
-  type: 'smart';
-  manual: Record<string, string>;
-  prefetch: { route: string; symbols: string[] }[];
-}

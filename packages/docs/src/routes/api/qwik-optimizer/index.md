@@ -594,72 +594,6 @@ Description
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
-## InsightManifest
-
-```typescript
-export interface InsightManifest
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[manual](#)
-
-</td><td>
-
-</td><td>
-
-Record&lt;string, string&gt;
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[prefetch](#)
-
-</td><td>
-
-</td><td>
-
-{ route: string; symbols: string[]; }[]
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[type](#)
-
-</td><td>
-
-</td><td>
-
-'smart'
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
 ## isAbsolute
 
 ```typescript
@@ -2182,19 +2116,6 @@ Description
 </td><td>
 
 () =&gt; string \| null
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[getInsightsManifest](#)
-
-</td><td>
-
-</td><td>
-
-(clientOutDir?: string \| null) =&gt; Promise&lt;[InsightManifest](#insightmanifest) \| null&gt;
 
 </td><td>
 

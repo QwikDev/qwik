@@ -52,18 +52,21 @@ _(Optional)_
 
 string
 
-## BundleGraphModifier
+## BundleGraphAdder
 
-A function that creates a modified version of the bundle graph. Used to inject routes and their dependencies into the bundle graph.
+A function that returns a map of bundle names to their dependencies.
 
 ```typescript
-export type BundleGraphModifier = (
-  graph: QwikBundleGraph,
-  manifest: QwikManifest,
-) => QwikBundleGraph;
+export type BundleGraphAdder = (manifest: QwikManifest) => Record<
+  string,
+  {
+    imports?: string[];
+    dynamicImports?: string[];
+  }
+>;
 ```
 
-**References:** [QwikBundleGraph](#qwikbundlegraph), [QwikManifest](#qwikmanifest)
+**References:** [QwikManifest](#qwikmanifest)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/bundle-graph.ts)
 
@@ -2250,13 +2253,13 @@ Description
 </td></tr>
 <tr><td>
 
-[registerBundleGraphModifier](#)
+[registerBundleGraphAdder](#)
 
 </td><td>
 
 </td><td>
 
-(modifier: [BundleGraphModifier](#bundlegraphmodifier)) =&gt; void
+(adder: [BundleGraphAdder](#bundlegraphadder)) =&gt; void
 
 </td><td>
 

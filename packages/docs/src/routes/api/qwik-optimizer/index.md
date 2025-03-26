@@ -1320,6 +1320,21 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
+[hasSymbols?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
 [imports?](#)
 
 </td><td>
@@ -1331,21 +1346,6 @@ string[]
 </td><td>
 
 _(Optional)_
-
-</td></tr>
-<tr><td>
-
-[isTask?](#)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_ Not precise, but an indication of whether this import may be a task
 
 </td></tr>
 <tr><td>

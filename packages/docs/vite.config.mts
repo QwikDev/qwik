@@ -149,7 +149,6 @@ export default defineConfig(async () => {
         ['SOURCEMAP_ERROR', "Can't resolve original location of error"],
         ['MODULE_LEVEL_DIRECTIVE', 'use client'],
       ]),
-      tsconfigPaths({ ignoreConfigErrors: true }),
       rawSource(),
       qwikCity({
         mdxPlugins: {

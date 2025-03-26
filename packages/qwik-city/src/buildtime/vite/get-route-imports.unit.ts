@@ -29,6 +29,10 @@ describe('modifyBundleGraph', () => {
           size: 0,
           origins: ['src/routes/layout.tsx'],
         },
+        'q-city-plan.js': {
+          size: 0,
+          origins: ['@qwik-city-plan'],
+        },
       } as Record<string, QwikBundle>,
     } as QwikManifest;
 
@@ -61,6 +65,10 @@ describe('modifyBundleGraph', () => {
             "fake-bundle-part-of-sub-route.js",
             "fake-bundle-part-of-layout.js",
           ],
+        },
+        "q-city-plan.js": {
+          "dynamicImports": [],
+          "imports": undefined,
         },
       }
     `);

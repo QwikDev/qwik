@@ -95,6 +95,9 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
       if (!qwikPlugin) {
         throw new Error('Missing vite-plugin-qwik');
       }
+      qwikPlugin.api.registerBundleGraphAdder?.((manifest) => {
+        return getRouteImports(ctx!.routes, manifest);
+      });
 
       // @ts-ignore `format` removed in Vite 5
       if (config.ssr?.format === 'cjs') {
@@ -236,10 +239,6 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
     generateBundle(_, bundles) {
       // client bundles
       if (ctx?.target === 'client') {
-        qwikPlugin!.api.registerBundleGraphAdder((manifest) => {
-          return getRouteImports(ctx!.routes, manifest);
-        });
-
         const entries = [...ctx.entries, ...ctx.serviceWorkers].map((entry) => {
           return {
             chunkFileName: entry.chunkFileName,

@@ -315,7 +315,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
 }
 
 const QWIK_SERIALIZER = '@qwik-serializer';
-const QWIK_CITY_PLAN_ID = '@qwik-city-plan';
+export const QWIK_CITY_PLAN_ID = '@qwik-city-plan';
 const QWIK_CITY_ENTRIES_ID = '@qwik-city-entries';
 const QWIK_CITY = '@builder.io/qwik-city';
 const QWIK_CITY_SW_REGISTER = '@qwik-city-sw-register';

@@ -175,7 +175,9 @@ export default defineConfig(async () => {
           ],
         },
       }),
-      qwikVite(),
+      qwikVite({
+        debug: true,
+      }),
       partytownVite({
         dest: resolve('dist', '~partytown'),
       }),
@@ -185,7 +187,7 @@ export default defineConfig(async () => {
       sourceResolver(docsDir),
       qwikReact(),
       Inspect(),
-      qwikInsights({ publicApiKey: PUBLIC_QWIK_INSIGHTS_KEY }),
+      // qwikInsights({ publicApiKey: PUBLIC_QWIK_INSIGHTS_KEY }),
       tailwindcss(),
     ],
     optimizeDeps: {
@@ -193,6 +195,7 @@ export default defineConfig(async () => {
     },
     build: {
       sourcemap: true,
+      minify: false,
       rollupOptions: {
         output: {
           assetFileNames: 'assets/[hash]-[name].[ext]',

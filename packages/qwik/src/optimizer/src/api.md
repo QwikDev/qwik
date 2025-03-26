@@ -7,7 +7,10 @@
 import type { Plugin as Plugin_2 } from 'vite';
 
 // @public
-export type BundleGraphModifier = (graph: QwikBundleGraph, manifest: QwikManifest) => QwikBundleGraph;
+export type BundleGraphAdder = (manifest: QwikManifest) => Record<string, {
+    imports?: string[];
+    dynamicImports?: string[];
+}>;
 
 // @public (undocumented)
 export interface ComponentEntryStrategy {
@@ -308,7 +311,7 @@ export interface QwikVitePluginApi {
     // (undocumented)
     getRootDir: () => string | null;
     // (undocumented)
-    registerBundleGraphModifier: (modifier: BundleGraphModifier) => void;
+    registerBundleGraphAdder: (adder: BundleGraphAdder) => void;
 }
 
 // Warning: (ae-forgotten-export) The symbol "QwikVitePluginCSROptions" needs to be exported by the entry point index.d.ts

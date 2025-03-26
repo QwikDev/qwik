@@ -1,6 +1,6 @@
 import type { OutputBundle } from 'rollup';
 import { type NormalizedQwikPluginOptions } from './plugins/plugin';
-import type { GlobalInjections, SegmentAnalysis, Path, QwikBundle, QwikManifest } from './types';
+import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis } from './types';
 
 // This is just the initial prioritization of the symbols and entries
 // at build time so there's less work during each SSR. However, SSR should
@@ -279,7 +279,6 @@ export function generateManifestFromBundles(
 
     const bundle: QwikBundle = {
       size: outputBundle.code.length,
-      hasSymbols: false,
     };
 
     let hasSymbols = false;
@@ -347,27 +346,40 @@ export function generateManifestFromBundles(
     };
   }
   // To inspect the bundles, uncomment the following lines
-  // and temporarily add the writeFileSync import from fs
-  // writeFileSync(
-  //   'output-bundles.json',
-  //   JSON.stringify(
-  //     Object.entries(outputBundles).map(([n, b]) => [
-  //       n,
+  // import('node:fs').then((fs) =>
+  //   fs.writeFileSync(
+  //     'output-bundles.json',
+  //     JSON.stringify(
   //       {
-  //         ...b,
-  //         code: '<removed>',
-  //         map: '<removed>',
-  //         source: '<removed>',
-  //         modules:
-  //           'modules' in b
-  //             ? Object.fromEntries(
-  //                 Object.entries(b.modules).map(([k, v]) => [k, { ...v, code: '<removed>' }])
-  //               )
-  //             : undefined,
+  //         segments,
+  //         bundles: Object.fromEntries(
+  //           Object.entries(outputBundles).map(([n, b]) => [
+  //             n,
+  //             {
+  //               ...b,
+  //               // code: 'code' in b ? `<removed ${b.code.length} bytes>` : undefined,
+  //               map: 'map' in b ? `<removed>` : undefined,
+  //               source: 'source' in b ? `<removed ${b.source.length} bytes>` : undefined,
+  //               modules:
+  //                 'modules' in b
+  //                   ? Object.fromEntries(
+  //                       Object.entries(b.modules).map(([k, v]) => [
+  //                         k,
+  //                         {
+  //                           ...v,
+  //                           code:
+  //                             'code' in v ? `<removed ${v.code?.length || 0} bytes>` : undefined,
+  //                         },
+  //                       ])
+  //                     )
+  //                   : undefined,
+  //             },
+  //           ])
+  //         ),
   //       },
-  //     ]),
-  //     null,
-  //     '\t'
+  //       null,
+  //       '\t'
+  //     ).replaceAll(process.cwd(), '')
   //   )
   // );
 

@@ -10,7 +10,6 @@ export type {
   SegmentAnalysis as HookAnalysis,
   SegmentEntryStrategy as HookEntryStrategy,
   InlineEntryStrategy,
-  InsightManifest,
   MinifyMode,
   Optimizer,
   OptimizerOptions,

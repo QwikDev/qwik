@@ -8,7 +8,6 @@ import type {
   EntryStrategy,
   GlobalInjections,
   SegmentAnalysis,
-  InsightManifest,
   Optimizer,
   OptimizerOptions,
   OptimizerSystem,
@@ -111,7 +110,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     srcInputs: null as any,
     sourcemap: !!optimizerOptions.sourcemap,
     manifestInput: null,
-    insightsManifest: null,
     manifestOutput: null,
     transformedModuleOutput: null,
     scope: null,
@@ -1011,7 +1009,6 @@ export interface QwikPluginOptions {
   vendorRoots?: string[];
   manifestOutput?: ((manifest: QwikManifest) => Promise<void> | void) | null;
   manifestInput?: QwikManifest | null;
-  insightsManifest?: InsightManifest | null;
   input?: string[] | string | { [entry: string]: string };
   outDir?: string;
   assetsDir?: string;

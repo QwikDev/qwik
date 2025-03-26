@@ -12,7 +12,7 @@ import type {
   TransformModule,
 } from '../types';
 import { versions } from '../versions';
-import { convertManifestToBundleGraph, type BundleGraphModifier } from './bundle-graph';
+import { convertManifestToBundleGraph, type BundleGraphAdder } from './bundle-graph';
 import { getImageSizeServer } from './image-size-server';
 import {
   CLIENT_OUT_DIR,
@@ -93,7 +93,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     return null;
   }
 
-  const bundleGraphModifiers = new Set<BundleGraphModifier>();
+  const bundleGraphAdders = new Set<BundleGraphAdder>();
 
   const api: QwikVitePluginApi = {
     getOptimizer: () => qwikPlugin.getOptimizer(),
@@ -104,8 +104,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     getClientOutDir: () => clientOutDir,
     getClientPublicOutDir: () => clientPublicOutDir,
     getAssetsDir: () => viteAssetsDir,
-    registerBundleGraphModifier: (modifier: BundleGraphModifier) =>
-      bundleGraphModifiers.add(modifier),
+    registerBundleGraphAdder: (adder: BundleGraphAdder) => bundleGraphAdders.add(adder),
   };
 
   // We provide two plugins to Vite. The first plugin is the main plugin that handles all the
@@ -604,7 +603,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           const useAssetsDir = !!assetsDir && assetsDir !== '_astro';
           const sys = qwikPlugin.getSys();
 
-          const bundleGraph = convertManifestToBundleGraph(manifest, bundleGraphModifiers);
+          const bundleGraph = convertManifestToBundleGraph(manifest, bundleGraphAdders);
 
           this.emitFile({
             type: 'asset',
@@ -1103,7 +1102,7 @@ export interface QwikVitePluginApi {
   getClientOutDir: () => string | null;
   getClientPublicOutDir: () => string | null;
   getAssetsDir: () => string | undefined;
-  registerBundleGraphModifier: (modifier: BundleGraphModifier) => void;
+  registerBundleGraphAdder: (adder: BundleGraphAdder) => void;
 }
 
 /**

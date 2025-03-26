@@ -112,9 +112,8 @@ export function convertManifestToBundleGraph(
     for (const depName of dynDeps) {
       clearTransitiveDeps(dynDeps, depName);
     }
-    // If we have a lot of dynamic imports, we don't know which ones are needed, so we don't add any
-    // This can happen with registry bundles like for routing
-    if (dynDeps.size > 0 && dynDeps.size < 10) {
+    if (dynDeps.size > 0) {
+      // We rely on the Set keeping the items in order, everything after this is dynamic
       deps.add(dynamicTag);
       for (const depName of dynDeps) {
         deps.add(depName);

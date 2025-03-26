@@ -105,7 +105,11 @@
     }
   ],
   "dependencies": {
-    "esbuild-plugin-raw": "^0.1.8"
+    "@tailwindcss/typography": "^0.5.16",
+    "autoprefixer": "10.4.19",
+    "esbuild-plugin-raw": "^0.1.8",
+    "postcss": "8.4.39",
+    "tailwindcss": "4.0.12"
   },
   "devDependencies": {
     "@builder.io/partytown": "0.10.2",

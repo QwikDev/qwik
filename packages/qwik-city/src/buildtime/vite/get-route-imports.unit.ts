@@ -1,11 +1,7 @@
-import {
-  type QwikBundle,
-  type QwikBundleGraph,
-  type QwikManifest,
-} from '@builder.io/qwik/optimizer';
+import { type QwikBundle, type QwikManifest } from '@builder.io/qwik/optimizer';
 import { describe, expect, test } from 'vitest';
 import type { BuildLayout, BuildRoute } from '../types';
-import { modifyBundleGraph } from './bundle-graph-modifier';
+import { getRouteImports } from './get-route-imports';
 
 describe('modifyBundleGraph', () => {
   test(`GIVEN 2 routes, one with a layout
@@ -36,17 +32,6 @@ describe('modifyBundleGraph', () => {
       } as Record<string, QwikBundle>,
     } as QwikManifest;
 
-    const fakeBundleGraph: QwikBundleGraph = [
-      'fake-bundle1.js',
-      2,
-      'fake-bundle-static-dep.js',
-      -1,
-      4,
-      'fake-bundle-dynamic-dep.js',
-      'fake-bundle-part-of-sub-route.js',
-      'fake-bundle-part-of-layout.js',
-    ];
-
     const fakeRoutes: BuildRoute[] = [
       {
         routeName: '/',
@@ -63,18 +48,22 @@ describe('modifyBundleGraph', () => {
       },
     ] as BuildRoute[];
 
-    const actualResult = modifyBundleGraph(fakeRoutes, fakeBundleGraph, fakeManifest);
-
-    const expectedResult: QwikBundleGraph = [
-      ...fakeBundleGraph,
-      '/',
-      0, // fake-bundle1.js
-      '/subroute',
-      6, // fake-bundle-part-of-sub-route.js
-      7, // fake-bundle-part-of-layout.js
-    ];
-
-    expect(actualResult).toEqual(expectedResult);
+    const actualResult = getRouteImports(fakeRoutes, fakeManifest);
+    expect(actualResult).toMatchInlineSnapshot(`
+      {
+        "/": {
+          "imports": [
+            "fake-bundle1.js",
+          ],
+        },
+        "/subroute": {
+          "imports": [
+            "fake-bundle-part-of-sub-route.js",
+            "fake-bundle-part-of-layout.js",
+          ],
+        },
+      }
+    `);
   });
 
   test(`GIVEN a mismatch between the bundle graph and the manifest
@@ -93,8 +82,6 @@ describe('modifyBundleGraph', () => {
       } as Record<string, QwikBundle>,
     } as QwikManifest;
 
-    const fakeBundleGraph: QwikBundleGraph = ['fake-bundle1.js'];
-
     const fakeRoutes: BuildRoute[] = [
       {
         routeName: '/',
@@ -102,14 +89,17 @@ describe('modifyBundleGraph', () => {
       },
     ] as BuildRoute[];
 
-    const actualResult = modifyBundleGraph(fakeRoutes, fakeBundleGraph, fakeManifest);
+    const actualResult = getRouteImports(fakeRoutes, fakeManifest);
 
-    const expectedResult: QwikBundleGraph = [
-      ...fakeBundleGraph,
-      '/',
-      0, // fake-bundle1.js
-    ];
-
-    expect(actualResult).toEqual(expectedResult);
+    expect(actualResult).toMatchInlineSnapshot(`
+      {
+        "/": {
+          "imports": [
+            "fake-bundle1.js",
+            "fake-bundle2.js",
+          ],
+        },
+      }
+    `);
   });
 });

@@ -1,0 +1,708 @@
+{
+  "segments": [
+    {
+      "origin": "components/app/app.tsx",
+      "name": "App_component_div_div_div_div_div_div_button_onClick_2_cibDwmrlmRI",
+      "entry": null,
+      "displayName": "app.tsx_App_component_div_div_div_div_div_div_button_onClick_2",
+      "hash": "cibDwmrlmRI",
+      "canonicalFilename": "app.tsx_App_component_div_div_div_div_div_div_button_onClick_2_cibDwmrlmRI",
+      "path": "components/app",
+      "extension": "js",
+      "parent": "App_component_jn5XSz7NZ88",
+      "ctxKind": "eventHandler",
+      "ctxName": "onClick$",
+      "captures": true,
+      "loc": [2427, 2502]
+    },
+    {
+      "origin": "components/app/app.tsx",
+      "name": "App_component_div_div_div_div_div_div_button_onClick_3_dHjr9JWbW34",
+      "entry": null,
+      "displayName": "app.tsx_App_component_div_div_div_div_div_div_button_onClick_3",
+      "hash": "dHjr9JWbW34",
+      "canonicalFilename": "app.tsx_App_component_div_div_div_div_div_div_button_onClick_3_dHjr9JWbW34",
+      "path": "components/app",
+      "extension": "js",
+      "parent": "App_component_jn5XSz7NZ88",
+      "ctxKind": "eventHandler",
+      "ctxName": "onClick$",
+      "captures": true,
+      "loc": [2769, 3038]
+    },
+    {
+      "origin": "components/app/app.tsx",
+      "name": "App_component_div_table_tbody_tr_td_a_onClick_DDeCLEw4BYU",
+      "entry": null,
+      "displayName": "app.tsx_App_component_div_table_tbody_tr_td_a_onClick",
+      "hash": "DDeCLEw4BYU",
+      "canonicalFilename": "app.tsx_App_component_div_table_tbody_tr_td_a_onClick_DDeCLEw4BYU",
+      "path": "components/app",
+      "extension": "js",
+      "parent": "App_component_jn5XSz7NZ88",
+      "ctxKind": "eventHandler",
+      "ctxName": "onClick$",
+      "captures": true,
+      "loc": [4339, 4357]
+    },
+    {
+      "origin": "components/app/app.tsx",
+      "name": "App_component_div_div_div_div_div_div_button_onClick_1_WC1qsF4RHoU",
+      "entry": null,
+      "displayName": "app.tsx_App_component_div_div_div_div_div_div_button_onClick_1",
+      "hash": "WC1qsF4RHoU",
+      "canonicalFilename": "app.tsx_App_component_div_div_div_div_div_div_button_onClick_1_WC1qsF4RHoU",
+      "path": "components/app",
+      "extension": "js",
+      "parent": "App_component_jn5XSz7NZ88",
+      "ctxKind": "eventHandler",
+      "ctxName": "onClick$",
+      "captures": true,
+      "loc": [2144, 2181]
+    },
+    {
+      "origin": "components/app/app.tsx",
+      "name": "App_component_div_div_div_div_div_div_button_onClick_wEyctjlC58Q",
+      "entry": null,
+      "displayName": "app.tsx_App_component_div_div_div_div_div_div_button_onClick",
+      "hash": "wEyctjlC58Q",
+      "canonicalFilename": "app.tsx_App_component_div_div_div_div_div_div_button_onClick_wEyctjlC58Q",
+      "path": "components/app",
+      "extension": "js",
+      "parent": "App_component_jn5XSz7NZ88",
+      "ctxKind": "eventHandler",
+      "ctxName": "onClick$",
+      "captures": true,
+      "loc": [1859, 1895]
+    },
+    {
+      "origin": "components/app/app.tsx",
+      "name": "App_component_jn5XSz7NZ88",
+      "entry": null,
+      "displayName": "app.tsx_App_component",
+      "hash": "jn5XSz7NZ88",
+      "canonicalFilename": "app.tsx_App_component_jn5XSz7NZ88",
+      "path": "components/app",
+      "extension": "js",
+      "parent": null,
+      "ctxKind": "function",
+      "ctxName": "component$",
+      "captures": false,
+      "loc": [1334, 5133]
+    },
+    {
+      "origin": "components/app/app.tsx",
+      "name": "App_component_div_div_div_div_div_div_button_onClick_4_5fYbrS6ABNA",
+      "entry": null,
+      "displayName": "app.tsx_App_component_div_div_div_div_div_div_button_onClick_4",
+      "hash": "5fYbrS6ABNA",
+      "canonicalFilename": "app.tsx_App_component_div_div_div_div_div_div_button_onClick_4_5fYbrS6ABNA",
+      "path": "components/app",
+      "extension": "js",
+      "parent": "App_component_jn5XSz7NZ88",
+      "ctxKind": "eventHandler",
+      "ctxName": "onClick$",
+      "captures": true,
+      "loc": [3289, 3312]
+    },
+    {
+      "origin": "components/app/app.tsx",
+      "name": "App_component_div_div_div_div_div_div_button_onClick_5_rpMfjSetIeI",
+      "entry": null,
+      "displayName": "app.tsx_App_component_div_div_div_div_div_div_button_onClick_5",
+      "hash": "rpMfjSetIeI",
+      "canonicalFilename": "app.tsx_App_component_div_div_div_div_div_div_button_onClick_5_rpMfjSetIeI",
+      "path": "components/app",
+      "extension": "js",
+      "parent": "App_component_jn5XSz7NZ88",
+      "ctxKind": "eventHandler",
+      "ctxName": "onClick$",
+      "captures": true,
+      "loc": [3550, 3842]
+    }
+  ],
+  "bundles": {
+    "build/root.js": {
+      "exports": ["default"],
+      "facadeModuleId": "/starters/apps/perf.prod/src/root.tsx",
+      "isDynamicEntry": false,
+      "isEntry": true,
+      "isImplicitEntry": false,
+      "moduleIds": [
+        "/starters/apps/perf.prod/src/global.css",
+        "/starters/apps/perf.prod/src/root.tsx"
+      ],
+      "name": "root",
+      "type": "chunk",
+      "dynamicImports": [],
+      "fileName": "build/root.js",
+      "implicitlyLoadedBefore": [],
+      "importedBindings": {
+        "build/core.js": ["_", "a"],
+        "build/app.js": ["A"],
+        "build/preload-helper.js": []
+      },
+      "imports": ["build/core.js", "build/app.js", "build/preload-helper.js"],
+      "modules": {
+        "/starters/apps/perf.prod/src/global.css": {
+          "code": "<removed 0 bytes>",
+          "originalLength": 45,
+          "removedExports": [],
+          "renderedExports": [],
+          "renderedLength": 0
+        },
+        "/starters/apps/perf.prod/src/root.tsx": {
+          "code": "<removed 1007 bytes>",
+          "originalLength": 356,
+          "removedExports": [],
+          "renderedExports": ["default"],
+          "renderedLength": 1007
+        }
+      },
+      "referencedFiles": [],
+      "viteMetadata": {
+        "importedAssets": {},
+        "importedCss": {}
+      },
+      "code": "import { _ as _jsxQ, a as _jsxC } from \"./core.js\";\nimport { A as App } from \"./app.js\";\nimport \"./preload-helper.js\";\nconst root = () => {\n  return /* @__PURE__ */ _jsxQ(\"html\", null, null, [\n    /* @__PURE__ */ _jsxQ(\"head\", null, null, [\n      /* @__PURE__ */ _jsxQ(\"meta\", null, {\n        charset: \"utf-8\"\n      }, null, 3, null, {\n        fileName: \"root.tsx\",\n        lineNumber: 9,\n        columnNumber: 9\n      }),\n      /* @__PURE__ */ _jsxQ(\"title\", null, null, \"Qwik Blank App\", 3, null, {\n        fileName: \"root.tsx\",\n        lineNumber: 10,\n        columnNumber: 9\n      }),\n      /* @__PURE__ */ _jsxQ(\"meta\", null, {\n        name: \"viewport\",\n        content: \"width=device-width, initial-scale=1.0\"\n      }, null, 3, null, {\n        fileName: \"root.tsx\",\n        lineNumber: 11,\n        columnNumber: 9\n      })\n    ], 3, null, {\n      fileName: \"root.tsx\",\n      lineNumber: 8,\n      columnNumber: 7\n    }),\n    /* @__PURE__ */ _jsxQ(\"body\", null, null, /* @__PURE__ */ _jsxC(App, null, 3, \"0t_0\"), 1, null, {\n      fileName: \"root.tsx\",\n      lineNumber: 13,\n      columnNumber: 7\n    })\n  ], 1, \"0t_1\");\n};\nexport {\n  root as default\n};\n",
+      "map": "<removed>",
+      "preliminaryFileName": "build/root.js",
+      "sourcemapFileName": null
+    },
+    "build/core.js": {
+      "exports": ["_", "a", "b", "c", "q", "u"],
+      "facadeModuleId": null,
+      "isDynamicEntry": false,
+      "isEntry": false,
+      "isImplicitEntry": false,
+      "moduleIds": ["@builder.io/qwik/build", "/packages/qwik/dist/core.mjs"],
+      "name": "core",
+      "type": "chunk",
+      "dynamicImports": [],
+      "fileName": "build/core.js",
+      "implicitlyLoadedBefore": [],
+      "importedBindings": {},
+      "imports": [],
+      "modules": {
+        "@builder.io/qwik/build": {
+          "code": "<removed 49 bytes>",
+          "originalLength": 115,
+          "removedExports": ["isBrowser", "isDev"],
+          "renderedExports": ["isServer"],
+          "renderedLength": 49
+        },
+        "/packages/qwik/dist/core.mjs": {
+          "code": "<removed 164160 bytes>",
+          "originalLength": 258665,
+          "removedExports": [
+            "HTMLFragment",
+            "PrefetchGraph",
+            "PrefetchServiceWorker",
+            "RenderOnce",
+            "Resource",
+            "SSRComment",
+            "SSRHint",
+            "SSRRaw",
+            "SSRStream",
+            "SSRStreamBlock",
+            "_deserializeData",
+            "_fnSignal",
+            "_getContextElement",
+            "_getContextEvent",
+            "_hW",
+            "_jsxBranch",
+            "_jsxS",
+            "_noopQrl",
+            "_noopQrlDEV",
+            "_qrlSync",
+            "_regSymbol",
+            "_renderSSR",
+            "_restProps",
+            "_serializeData",
+            "_verifySerializable",
+            "_waitUntilRendered",
+            "_weakSerialize",
+            "_wrapProp",
+            "_wrapSignal",
+            "component$",
+            "createComputed$",
+            "createComputedQrl",
+            "createElement",
+            "createSignal",
+            "event$",
+            "eventQrl",
+            "getLocale",
+            "h",
+            "implicit$FirstArg",
+            "inlinedQrl",
+            "inlinedQrlDEV",
+            "isBrowser",
+            "isDev",
+            "jsx",
+            "jsxDEV",
+            "jsxs",
+            "render",
+            "setPlatform",
+            "sync$",
+            "useComputed$",
+            "useComputedQrl",
+            "useConstant",
+            "useContext",
+            "useContextProvider",
+            "useErrorBoundary",
+            "useId",
+            "useOn",
+            "useOnDocument",
+            "useOnWindow",
+            "useResource$",
+            "useResourceQrl",
+            "useServerData",
+            "useSignal",
+            "useStyles$",
+            "useStylesQrl",
+            "useStylesScoped$",
+            "useStylesScopedQrl",
+            "useTask$",
+            "useTaskQrl",
+            "useVisibleTask$",
+            "useVisibleTaskQrl",
+            "version",
+            "withLocale"
+          ],
+          "renderedExports": [
+            "$",
+            "Fragment",
+            "SkipRender",
+            "Slot",
+            "_IMMUTABLE",
+            "_jsxC",
+            "_jsxQ",
+            "_pauseFromContexts",
+            "_preload",
+            "componentQrl",
+            "createContextId",
+            "getPlatform",
+            "isServer",
+            "isSignal",
+            "noSerialize",
+            "qrl",
+            "qrlDEV",
+            "untrack",
+            "unwrapStore",
+            "useLexicalScope",
+            "useStore"
+          ],
+          "renderedLength": 164160
+        }
+      },
+      "referencedFiles": [],
+      "viteMetadata": {
+        "importedAssets": {},
+        "importedCss": {}
+      },
+      "code": "removed for fixture",
+      "map": "<removed>",
+      "preliminaryFileName": "build/core.js",
+      "sourcemapFileName": null
+    },
+    "build/app.js": {
+      "exports": ["A", "b"],
+      "facadeModuleId": null,
+      "isDynamicEntry": false,
+      "isEntry": false,
+      "isImplicitEntry": false,
+      "moduleIds": ["/starters/apps/perf.prod/src/components/app/app.tsx"],
+      "name": "app",
+      "type": "chunk",
+      "dynamicImports": ["build/app.tsx_App_component_jn5XSz7NZ88.js"],
+      "fileName": "build/app.js",
+      "implicitlyLoadedBefore": [],
+      "importedBindings": {
+        "build/preload-helper.js": ["_"],
+        "build/core.js": ["c", "q"]
+      },
+      "imports": ["build/preload-helper.js", "build/core.js"],
+      "modules": {
+        "/starters/apps/perf.prod/src/components/app/app.tsx": {
+          "code": "<removed 1351 bytes>",
+          "originalLength": 5135,
+          "removedExports": [],
+          "renderedExports": ["buildData", "App"],
+          "renderedLength": 1351
+        }
+      },
+      "referencedFiles": [],
+      "viteMetadata": {
+        "importedAssets": {},
+        "importedCss": {}
+      },
+      "code": "import { _ as __vitePreload } from \"./preload-helper.js\";\nimport { c as componentQrl, q as qrlDEV } from \"./core.js\";\nlet idCounter = 1;\nconst adjectives = [\n  \"pretty\",\n  \"large\",\n  \"big\",\n  \"small\",\n  \"tall\",\n  \"short\",\n  \"long\",\n  \"handsome\",\n  \"plain\",\n  \"quaint\",\n  \"clean\",\n  \"elegant\",\n  \"easy\",\n  \"angry\",\n  \"crazy\",\n  \"helpful\",\n  \"mushy\",\n  \"odd\",\n  \"unsightly\",\n  \"adorable\",\n  \"important\",\n  \"inexpensive\",\n  \"cheap\",\n  \"expensive\",\n  \"fancy\"\n], colours = [\n  \"red\",\n  \"yellow\",\n  \"blue\",\n  \"green\",\n  \"pink\",\n  \"brown\",\n  \"purple\",\n  \"brown\",\n  \"white\",\n  \"black\",\n  \"orange\"\n], nouns = [\n  \"table\",\n  \"chair\",\n  \"house\",\n  \"bbq\",\n  \"desk\",\n  \"car\",\n  \"pony\",\n  \"cookie\",\n  \"sandwich\",\n  \"burger\",\n  \"pizza\",\n  \"mouse\",\n  \"keyboard\"\n];\nfunction _random(max) {\n  return Math.round(Math.random() * 1e3) % max;\n}\nfunction buildData(count) {\n  const data = new Array(count);\n  for (let i = 0; i < count; i++) data[i] = {\n    id: idCounter++,\n    label: `${adjectives[_random(adjectives.length)]} ${colours[_random(colours.length)]} ${nouns[_random(nouns.length)]}`\n  };\n  return data;\n}\nconst App = /* @__PURE__ */ componentQrl(/* @__PURE__ */ qrlDEV(() => __vitePreload(() => import(\"./app.tsx_App_component_jn5XSz7NZ88.js\"), true ? [] : void 0), \"App_component_jn5XSz7NZ88\", {\n  file: \"/starters/apps/perf.prod/src/components/app/app.tsx\",\n  lo: 1334,\n  hi: 5133,\n  displayName: \"app.tsx_App_component\"\n}));\nexport {\n  App as A,\n  buildData as b\n};\n",
+      "map": "<removed>",
+      "preliminaryFileName": "build/app.js",
+      "sourcemapFileName": null
+    },
+    "build/preload-helper.js": {
+      "exports": ["_"],
+      "facadeModuleId": null,
+      "isDynamicEntry": false,
+      "isEntry": false,
+      "isImplicitEntry": false,
+      "moduleIds": ["\u0000vite/preload-helper.js"],
+      "name": "preload-helper",
+      "type": "chunk",
+      "dynamicImports": [],
+      "fileName": "build/preload-helper.js",
+      "implicitlyLoadedBefore": [],
+      "importedBindings": {},
+      "imports": [],
+      "modules": {
+        "\u0000vite/preload-helper.js": {
+          "code": "<removed 1945 bytes>",
+          "originalLength": 2281,
+          "removedExports": [],
+          "renderedExports": ["__vitePreload"],
+          "renderedLength": 1945
+        }
+      },
+      "referencedFiles": [],
+      "viteMetadata": {
+        "importedAssets": {},
+        "importedCss": {}
+      },
+      "code": "const scriptRel = function detectScriptRel() {\n  const relList = typeof document !== \"undefined\" && document.createElement(\"link\").relList;\n  return relList && relList.supports && relList.supports(\"modulepreload\") ? \"modulepreload\" : \"preload\";\n}();\nconst assetsURL = function(dep) {\n  return \"/perf.prod/\" + dep;\n};\nconst seen = {};\nconst __vitePreload = function preload(baseModule, deps, importerUrl) {\n  let promise = Promise.resolve();\n  if (deps && deps.length > 0) {\n    document.getElementsByTagName(\"link\");\n    const cspNonceMeta = document.querySelector(\n      \"meta[property=csp-nonce]\"\n    );\n    const cspNonce = (cspNonceMeta == null ? void 0 : cspNonceMeta.nonce) || (cspNonceMeta == null ? void 0 : cspNonceMeta.getAttribute(\"nonce\"));\n    promise = Promise.all(\n      deps.map((dep) => {\n        dep = assetsURL(dep);\n        if (dep in seen) return;\n        seen[dep] = true;\n        const isCss = dep.endsWith(\".css\");\n        const cssSelector = isCss ? '[rel=\"stylesheet\"]' : \"\";\n        if (document.querySelector(`link[href=\"${dep}\"]${cssSelector}`)) {\n          return;\n        }\n        const link = document.createElement(\"link\");\n        link.rel = isCss ? \"stylesheet\" : scriptRel;\n        if (!isCss) {\n          link.as = \"script\";\n          link.crossOrigin = \"\";\n        }\n        link.href = dep;\n        if (cspNonce) {\n          link.setAttribute(\"nonce\", cspNonce);\n        }\n        document.head.appendChild(link);\n        if (isCss) {\n          return new Promise((res, rej) => {\n            link.addEventListener(\"load\", res);\n            link.addEventListener(\n              \"error\",\n              () => rej(new Error(`Unable to preload CSS for ${dep}`))\n            );\n          });\n        }\n      })\n    );\n  }\n  return promise.then(() => baseModule()).catch((err) => {\n    const e = new Event(\"vite:preloadError\", { cancelable: true });\n    e.payload = err;\n    window.dispatchEvent(e);\n    if (!e.defaultPrevented) {\n      throw err;\n    }\n  });\n};\nexport {\n  __vitePreload as _\n};\n",
+      "map": "<removed>",
+      "preliminaryFileName": "build/preload-helper.js",
+      "sourcemapFileName": null
+    },
+    "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_2_cibDwmrlmRI.js": {
+      "exports": ["App_component_div_div_div_div_div_div_button_onClick_2_cibDwmrlmRI"],
+      "facadeModuleId": "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_div_div_div_div_div_button_onClick_2_cibDwmrlmRI.js",
+      "isDynamicEntry": true,
+      "isEntry": true,
+      "isImplicitEntry": false,
+      "moduleIds": [
+        "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_div_div_div_div_div_button_onClick_2_cibDwmrlmRI.js"
+      ],
+      "name": "app.tsx_App_component_div_div_div_div_div_div_button_onClick_2_cibDwmrlmRI",
+      "type": "chunk",
+      "dynamicImports": [],
+      "fileName": "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_2_cibDwmrlmRI.js",
+      "implicitlyLoadedBefore": [],
+      "importedBindings": {
+        "build/core.js": ["u"],
+        "build/app.js": ["b"],
+        "build/preload-helper.js": []
+      },
+      "imports": ["build/core.js", "build/app.js", "build/preload-helper.js"],
+      "modules": {
+        "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_div_div_div_div_div_button_onClick_2_cibDwmrlmRI.js": {
+          "code": "<removed 182 bytes>",
+          "originalLength": 281,
+          "removedExports": [],
+          "renderedExports": ["App_component_div_div_div_div_div_div_button_onClick_2_cibDwmrlmRI"],
+          "renderedLength": 182
+        }
+      },
+      "referencedFiles": [],
+      "viteMetadata": {
+        "importedAssets": {},
+        "importedCss": {}
+      },
+      "code": "import { u as useLexicalScope } from \"./core.js\";\nimport { b as buildData } from \"./app.js\";\nimport \"./preload-helper.js\";\nconst App_component_div_div_div_div_div_div_button_onClick_2_cibDwmrlmRI = () => {\n  const [state] = useLexicalScope();\n  return state.data = state.data.concat(buildData(1e3));\n};\nexport {\n  App_component_div_div_div_div_div_div_button_onClick_2_cibDwmrlmRI\n};\n",
+      "map": "<removed>",
+      "preliminaryFileName": "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_2_cibDwmrlmRI.js",
+      "sourcemapFileName": null
+    },
+    "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_3_dHjr9JWbW34.js": {
+      "exports": ["App_component_div_div_div_div_div_div_button_onClick_3_dHjr9JWbW34"],
+      "facadeModuleId": "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_div_div_div_div_div_button_onClick_3_dHjr9JWbW34.js",
+      "isDynamicEntry": true,
+      "isEntry": true,
+      "isImplicitEntry": false,
+      "moduleIds": [
+        "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_div_div_div_div_div_button_onClick_3_dHjr9JWbW34.js"
+      ],
+      "name": "app.tsx_App_component_div_div_div_div_div_div_button_onClick_3_dHjr9JWbW34",
+      "type": "chunk",
+      "dynamicImports": [],
+      "fileName": "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_3_dHjr9JWbW34.js",
+      "implicitlyLoadedBefore": [],
+      "importedBindings": {
+        "build/core.js": ["u"]
+      },
+      "imports": ["build/core.js"],
+      "modules": {
+        "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_div_div_div_div_div_button_onClick_3_dHjr9JWbW34.js": {
+          "code": "<removed 212 bytes>",
+          "originalLength": 272,
+          "removedExports": [],
+          "renderedExports": ["App_component_div_div_div_div_div_div_button_onClick_3_dHjr9JWbW34"],
+          "renderedLength": 212
+        }
+      },
+      "referencedFiles": [],
+      "viteMetadata": {
+        "importedAssets": {},
+        "importedCss": {}
+      },
+      "code": "import { u as useLexicalScope } from \"./core.js\";\nconst App_component_div_div_div_div_div_div_button_onClick_3_dHjr9JWbW34 = () => {\n  const [state] = useLexicalScope();\n  for (let i = 0, d = state.data, len = d.length; i < len; i += 10) d[i].label += \" !!!\";\n};\nexport {\n  App_component_div_div_div_div_div_div_button_onClick_3_dHjr9JWbW34\n};\n",
+      "map": "<removed>",
+      "preliminaryFileName": "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_3_dHjr9JWbW34.js",
+      "sourcemapFileName": null
+    },
+    "build/app.tsx_App_component_div_table_tbody_tr_td_a_onClick_DDeCLEw4BYU.js": {
+      "exports": ["App_component_div_table_tbody_tr_td_a_onClick_DDeCLEw4BYU"],
+      "facadeModuleId": "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_table_tbody_tr_td_a_onClick_DDeCLEw4BYU.js",
+      "isDynamicEntry": true,
+      "isEntry": true,
+      "isImplicitEntry": false,
+      "moduleIds": [
+        "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_table_tbody_tr_td_a_onClick_DDeCLEw4BYU.js"
+      ],
+      "name": "app.tsx_App_component_div_table_tbody_tr_td_a_onClick_DDeCLEw4BYU",
+      "type": "chunk",
+      "dynamicImports": [],
+      "fileName": "build/app.tsx_App_component_div_table_tbody_tr_td_a_onClick_DDeCLEw4BYU.js",
+      "implicitlyLoadedBefore": [],
+      "importedBindings": {
+        "build/core.js": ["u"]
+      },
+      "imports": ["build/core.js"],
+      "modules": {
+        "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_table_tbody_tr_td_a_onClick_DDeCLEw4BYU.js": {
+          "code": "<removed 138 bytes>",
+          "originalLength": 198,
+          "removedExports": [],
+          "renderedExports": ["App_component_div_table_tbody_tr_td_a_onClick_DDeCLEw4BYU"],
+          "renderedLength": 138
+        }
+      },
+      "referencedFiles": [],
+      "viteMetadata": {
+        "importedAssets": {},
+        "importedCss": {}
+      },
+      "code": "import { u as useLexicalScope } from \"./core.js\";\nconst App_component_div_table_tbody_tr_td_a_onClick_DDeCLEw4BYU = () => {\n  const [label] = useLexicalScope();\n  return alert(label);\n};\nexport {\n  App_component_div_table_tbody_tr_td_a_onClick_DDeCLEw4BYU\n};\n",
+      "map": "<removed>",
+      "preliminaryFileName": "build/app.tsx_App_component_div_table_tbody_tr_td_a_onClick_DDeCLEw4BYU.js",
+      "sourcemapFileName": null
+    },
+    "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_1_WC1qsF4RHoU.js": {
+      "exports": ["App_component_div_div_div_div_div_div_button_onClick_1_WC1qsF4RHoU"],
+      "facadeModuleId": "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_div_div_div_div_div_button_onClick_1_WC1qsF4RHoU.js",
+      "isDynamicEntry": true,
+      "isEntry": true,
+      "isImplicitEntry": false,
+      "moduleIds": [
+        "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_div_div_div_div_div_button_onClick_1_WC1qsF4RHoU.js"
+      ],
+      "name": "app.tsx_App_component_div_div_div_div_div_div_button_onClick_1_WC1qsF4RHoU",
+      "type": "chunk",
+      "dynamicImports": [],
+      "fileName": "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_1_WC1qsF4RHoU.js",
+      "implicitlyLoadedBefore": [],
+      "importedBindings": {
+        "build/core.js": ["u"],
+        "build/app.js": ["b"],
+        "build/preload-helper.js": []
+      },
+      "imports": ["build/core.js", "build/app.js", "build/preload-helper.js"],
+      "modules": {
+        "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_div_div_div_div_div_button_onClick_1_WC1qsF4RHoU.js": {
+          "code": "<removed 164 bytes>",
+          "originalLength": 263,
+          "removedExports": [],
+          "renderedExports": ["App_component_div_div_div_div_div_div_button_onClick_1_WC1qsF4RHoU"],
+          "renderedLength": 164
+        }
+      },
+      "referencedFiles": [],
+      "viteMetadata": {
+        "importedAssets": {},
+        "importedCss": {}
+      },
+      "code": "import { u as useLexicalScope } from \"./core.js\";\nimport { b as buildData } from \"./app.js\";\nimport \"./preload-helper.js\";\nconst App_component_div_div_div_div_div_div_button_onClick_1_WC1qsF4RHoU = () => {\n  const [state] = useLexicalScope();\n  return state.data = buildData(1e4);\n};\nexport {\n  App_component_div_div_div_div_div_div_button_onClick_1_WC1qsF4RHoU\n};\n",
+      "map": "<removed>",
+      "preliminaryFileName": "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_1_WC1qsF4RHoU.js",
+      "sourcemapFileName": null
+    },
+    "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_wEyctjlC58Q.js": {
+      "exports": ["App_component_div_div_div_div_div_div_button_onClick_wEyctjlC58Q"],
+      "facadeModuleId": "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_div_div_div_div_div_button_onClick_wEyctjlC58Q.js",
+      "isDynamicEntry": true,
+      "isEntry": true,
+      "isImplicitEntry": false,
+      "moduleIds": [
+        "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_div_div_div_div_div_button_onClick_wEyctjlC58Q.js"
+      ],
+      "name": "app.tsx_App_component_div_div_div_div_div_div_button_onClick_wEyctjlC58Q",
+      "type": "chunk",
+      "dynamicImports": [],
+      "fileName": "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_wEyctjlC58Q.js",
+      "implicitlyLoadedBefore": [],
+      "importedBindings": {
+        "build/core.js": ["u"],
+        "build/app.js": ["b"],
+        "build/preload-helper.js": []
+      },
+      "imports": ["build/core.js", "build/app.js", "build/preload-helper.js"],
+      "modules": {
+        "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_div_div_div_div_div_button_onClick_wEyctjlC58Q.js": {
+          "code": "<removed 161 bytes>",
+          "originalLength": 260,
+          "removedExports": [],
+          "renderedExports": ["App_component_div_div_div_div_div_div_button_onClick_wEyctjlC58Q"],
+          "renderedLength": 161
+        }
+      },
+      "referencedFiles": [],
+      "viteMetadata": {
+        "importedAssets": {},
+        "importedCss": {}
+      },
+      "code": "import { u as useLexicalScope } from \"./core.js\";\nimport { b as buildData } from \"./app.js\";\nimport \"./preload-helper.js\";\nconst App_component_div_div_div_div_div_div_button_onClick_wEyctjlC58Q = () => {\n  const [state] = useLexicalScope();\n  return state.data = buildData(1e3);\n};\nexport {\n  App_component_div_div_div_div_div_div_button_onClick_wEyctjlC58Q\n};\n",
+      "map": "<removed>",
+      "preliminaryFileName": "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_wEyctjlC58Q.js",
+      "sourcemapFileName": null
+    },
+    "build/app.tsx_App_component_jn5XSz7NZ88.js": {
+      "exports": ["App_component_jn5XSz7NZ88"],
+      "facadeModuleId": "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_jn5XSz7NZ88.js",
+      "isDynamicEntry": true,
+      "isEntry": true,
+      "isImplicitEntry": false,
+      "moduleIds": [
+        "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_jn5XSz7NZ88.js"
+      ],
+      "name": "app.tsx_App_component_jn5XSz7NZ88",
+      "type": "chunk",
+      "dynamicImports": [
+        "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_wEyctjlC58Q.js",
+        "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_1_WC1qsF4RHoU.js",
+        "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_2_cibDwmrlmRI.js",
+        "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_3_dHjr9JWbW34.js",
+        "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_4_5fYbrS6ABNA.js",
+        "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_5_rpMfjSetIeI.js",
+        "build/app.tsx_App_component_div_table_tbody_tr_td_a_onClick_DDeCLEw4BYU.js"
+      ],
+      "fileName": "build/app.tsx_App_component_jn5XSz7NZ88.js",
+      "implicitlyLoadedBefore": [],
+      "importedBindings": {
+        "build/preload-helper.js": ["_"],
+        "build/core.js": ["b", "_", "q"]
+      },
+      "imports": ["build/preload-helper.js", "build/core.js"],
+      "modules": {
+        "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_jn5XSz7NZ88.js": {
+          "code": "<removed 11377 bytes>",
+          "originalLength": 11168,
+          "removedExports": [],
+          "renderedExports": ["App_component_jn5XSz7NZ88"],
+          "renderedLength": 11377
+        }
+      },
+      "referencedFiles": [],
+      "viteMetadata": {
+        "importedAssets": {},
+        "importedCss": {}
+      },
+      "code": "import { _ as __vitePreload } from \"./preload-helper.js\";\nimport { b as useStore, _ as _jsxQ, q as qrlDEV } from \"./core.js\";\nconst App_component_jn5XSz7NZ88 = () => {\n  const state = useStore({\n    data: [],\n    selected: null\n  });\n  return /* @__PURE__ */ _jsxQ(\"div\", null, {\n    class: \"container\"\n  }, [\n    /* @__PURE__ */ _jsxQ(\"div\", null, {\n      class: \"jumbotron\"\n    }, /* @__PURE__ */ _jsxQ(\"div\", null, {\n      class: \"row\"\n    }, [\n      /* @__PURE__ */ _jsxQ(\"div\", null, {\n        class: \"col-md-6\"\n      }, /* @__PURE__ */ _jsxQ(\"h1\", null, null, \"Qwik Keyed\", 3, null, {\n        fileName: \"components/app/app.tsx\",\n        lineNumber: 88,\n        columnNumber: 13\n      }), 3, null, {\n        fileName: \"components/app/app.tsx\",\n        lineNumber: 87,\n        columnNumber: 11\n      }),\n      /* @__PURE__ */ _jsxQ(\"div\", null, {\n        class: \"col-md-6\"\n      }, /* @__PURE__ */ _jsxQ(\"div\", null, {\n        class: \"row\"\n      }, /* @__PURE__ */ _jsxQ(\"div\", null, {\n        class: \"col-sm-6 smallpad\"\n      }, [\n        /* @__PURE__ */ _jsxQ(\"button\", null, {\n          id: \"run\",\n          class: \"btn btn-primary btn-block\",\n          type: \"button\",\n          onClick$: /* @__PURE__ */ qrlDEV(() => __vitePreload(() => import(\"./app.tsx_App_component_div_div_div_div_div_div_button_onClick_wEyctjlC58Q.js\"), true ? [] : void 0), \"App_component_div_div_div_div_div_div_button_onClick_wEyctjlC58Q\", {\n            file: \"/starters/apps/perf.prod/src/components/app/app.tsx\",\n            lo: 1859,\n            hi: 1895,\n            displayName: \"app.tsx_App_component_div_div_div_div_div_div_button_onClick\"\n          }, [\n            state\n          ])\n        }, \"Create 1,000 rows\", 3, null, {\n          fileName: \"components/app/app.tsx\",\n          lineNumber: 93,\n          columnNumber: 17\n        }),\n        /* @__PURE__ */ _jsxQ(\"button\", null, {\n          id: \"runlots\",\n          class: \"btn btn-primary btn-block\",\n          type: \"button\",\n          onClick$: /* @__PURE__ */ qrlDEV(() => __vitePreload(() => import(\"./app.tsx_App_component_div_div_div_div_div_div_button_onClick_1_WC1qsF4RHoU.js\"), true ? [] : void 0), \"App_component_div_div_div_div_div_div_button_onClick_1_WC1qsF4RHoU\", {\n            file: \"/starters/apps/perf.prod/src/components/app/app.tsx\",\n            lo: 2144,\n            hi: 2181,\n            displayName: \"app.tsx_App_component_div_div_div_div_div_div_button_onClick_1\"\n          }, [\n            state\n          ])\n        }, \"Create 10,000 rows\", 3, null, {\n          fileName: \"components/app/app.tsx\",\n          lineNumber: 101,\n          columnNumber: 17\n        }),\n        /* @__PURE__ */ _jsxQ(\"button\", null, {\n          id: \"add\",\n          class: \"btn btn-primary btn-block\",\n          type: \"button\",\n          onClick$: /* @__PURE__ */ qrlDEV(() => __vitePreload(() => import(\"./app.tsx_App_component_div_div_div_div_div_div_button_onClick_2_cibDwmrlmRI.js\"), true ? [] : void 0), \"App_component_div_div_div_div_div_div_button_onClick_2_cibDwmrlmRI\", {\n            file: \"/starters/apps/perf.prod/src/components/app/app.tsx\",\n            lo: 2427,\n            hi: 2502,\n            displayName: \"app.tsx_App_component_div_div_div_div_div_div_button_onClick_2\"\n          }, [\n            state\n          ])\n        }, \"Append 1,000 rows\", 3, null, {\n          fileName: \"components/app/app.tsx\",\n          lineNumber: 109,\n          columnNumber: 17\n        }),\n        /* @__PURE__ */ _jsxQ(\"button\", null, {\n          id: \"update\",\n          class: \"btn btn-primary btn-block\",\n          type: \"button\",\n          onClick$: /* @__PURE__ */ qrlDEV(() => __vitePreload(() => import(\"./app.tsx_App_component_div_div_div_div_div_div_button_onClick_3_dHjr9JWbW34.js\"), true ? [] : void 0), \"App_component_div_div_div_div_div_div_button_onClick_3_dHjr9JWbW34\", {\n            file: \"/starters/apps/perf.prod/src/components/app/app.tsx\",\n            lo: 2769,\n            hi: 3038,\n            displayName: \"app.tsx_App_component_div_div_div_div_div_div_button_onClick_3\"\n          }, [\n            state\n          ])\n        }, \"Update every 10th row\", 3, null, {\n          fileName: \"components/app/app.tsx\",\n          lineNumber: 119,\n          columnNumber: 17\n        }),\n        /* @__PURE__ */ _jsxQ(\"button\", null, {\n          id: \"clear\",\n          class: \"btn btn-primary btn-block\",\n          type: \"button\",\n          onClick$: /* @__PURE__ */ qrlDEV(() => __vitePreload(() => import(\"./app.tsx_App_component_div_div_div_div_div_div_button_onClick_4_5fYbrS6ABNA.js\"), true ? [] : void 0), \"App_component_div_div_div_div_div_div_button_onClick_4_5fYbrS6ABNA\", {\n            file: \"/starters/apps/perf.prod/src/components/app/app.tsx\",\n            lo: 3289,\n            hi: 3312,\n            displayName: \"app.tsx_App_component_div_div_div_div_div_div_button_onClick_4\"\n          }, [\n            state\n          ])\n        }, \"Clear\", 3, null, {\n          fileName: \"components/app/app.tsx\",\n          lineNumber: 135,\n          columnNumber: 17\n        }),\n        /* @__PURE__ */ _jsxQ(\"button\", null, {\n          id: \"swaprows\",\n          class: \"btn btn-primary btn-block\",\n          type: \"button\",\n          onClick$: /* @__PURE__ */ qrlDEV(() => __vitePreload(() => import(\"./app.tsx_App_component_div_div_div_div_div_div_button_onClick_5_rpMfjSetIeI.js\"), true ? [] : void 0), \"App_component_div_div_div_div_div_div_button_onClick_5_rpMfjSetIeI\", {\n            file: \"/starters/apps/perf.prod/src/components/app/app.tsx\",\n            lo: 3550,\n            hi: 3842,\n            displayName: \"app.tsx_App_component_div_div_div_div_div_div_button_onClick_5\"\n          }, [\n            state\n          ])\n        }, \"Swap Rows\", 3, null, {\n          fileName: \"components/app/app.tsx\",\n          lineNumber: 143,\n          columnNumber: 17\n        })\n      ], 3, null, {\n        fileName: \"components/app/app.tsx\",\n        lineNumber: 92,\n        columnNumber: 15\n      }), 3, null, {\n        fileName: \"components/app/app.tsx\",\n        lineNumber: 91,\n        columnNumber: 13\n      }), 3, null, {\n        fileName: \"components/app/app.tsx\",\n        lineNumber: 90,\n        columnNumber: 11\n      })\n    ], 3, null, {\n      fileName: \"components/app/app.tsx\",\n      lineNumber: 86,\n      columnNumber: 9\n    }), 3, null, {\n      fileName: \"components/app/app.tsx\",\n      lineNumber: 85,\n      columnNumber: 7\n    }),\n    /* @__PURE__ */ _jsxQ(\"table\", null, {\n      class: \"table table-hover table-striped test-data\"\n    }, /* @__PURE__ */ _jsxQ(\"tbody\", null, null, state.data.map(({ id, label }) => {\n      return /* @__PURE__ */ _jsxQ(\"tr\", {\n        class: id === state.selected ? \"danger\" : \"\"\n      }, null, [\n        /* @__PURE__ */ _jsxQ(\"td\", null, {\n          class: \"col-md-1\"\n        }, id, 1, null, {\n          fileName: \"components/app/app.tsx\",\n          lineNumber: 169,\n          columnNumber: 17\n        }),\n        /* @__PURE__ */ _jsxQ(\"td\", null, {\n          class: \"col-md-4\"\n        }, /* @__PURE__ */ _jsxQ(\"a\", {\n          onClick$: /* @__PURE__ */ qrlDEV(() => __vitePreload(() => import(\"./app.tsx_App_component_div_table_tbody_tr_td_a_onClick_DDeCLEw4BYU.js\"), true ? [] : void 0), \"App_component_div_table_tbody_tr_td_a_onClick_DDeCLEw4BYU\", {\n            file: \"/starters/apps/perf.prod/src/components/app/app.tsx\",\n            lo: 4339,\n            hi: 4357,\n            displayName: \"app.tsx_App_component_div_table_tbody_tr_td_a_onClick\"\n          }, [\n            label\n          ])\n        }, null, label, 0, null, {\n          fileName: \"components/app/app.tsx\",\n          lineNumber: 171,\n          columnNumber: 19\n        }), 1, null, {\n          fileName: \"components/app/app.tsx\",\n          lineNumber: 170,\n          columnNumber: 17\n        }),\n        /* @__PURE__ */ _jsxQ(\"td\", null, {\n          class: \"col-md-1\"\n        }, /* @__PURE__ */ _jsxQ(\"a\", null, null, /* @__PURE__ */ _jsxQ(\"span\", null, {\n          class: \"glyphicon glyphicon-remove\",\n          ariaHidden: \"true\"\n        }, null, 3, null, {\n          fileName: \"components/app/app.tsx\",\n          lineNumber: 183,\n          columnNumber: 21\n        }), 3, null, {\n          fileName: \"components/app/app.tsx\",\n          lineNumber: 174,\n          columnNumber: 19\n        }), 3, null, {\n          fileName: \"components/app/app.tsx\",\n          lineNumber: 173,\n          columnNumber: 17\n        }),\n        /* @__PURE__ */ _jsxQ(\"td\", null, {\n          class: \"col-md-6\"\n        }, null, 3, null, {\n          fileName: \"components/app/app.tsx\",\n          lineNumber: 189,\n          columnNumber: 17\n        })\n      ], 1, id, {\n        fileName: \"components/app/app.tsx\",\n        lineNumber: 168,\n        columnNumber: 15\n      });\n    }), 1, null, {\n      fileName: \"components/app/app.tsx\",\n      lineNumber: 165,\n      columnNumber: 9\n    }), 1, null, {\n      fileName: \"components/app/app.tsx\",\n      lineNumber: 164,\n      columnNumber: 7\n    }),\n    /* @__PURE__ */ _jsxQ(\"span\", null, {\n      class: \"preloadicon glyphicon glyphicon-remove\",\n      ariaHidden: \"true\"\n    }, null, 3, null, {\n      fileName: \"components/app/app.tsx\",\n      lineNumber: 195,\n      columnNumber: 7\n    })\n  ], 1, \"bK_0\");\n};\nexport {\n  App_component_jn5XSz7NZ88\n};\n",
+      "map": "<removed>",
+      "preliminaryFileName": "build/app.tsx_App_component_jn5XSz7NZ88.js",
+      "sourcemapFileName": null
+    },
+    "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_4_5fYbrS6ABNA.js": {
+      "exports": ["App_component_div_div_div_div_div_div_button_onClick_4_5fYbrS6ABNA"],
+      "facadeModuleId": "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_div_div_div_div_div_button_onClick_4_5fYbrS6ABNA.js",
+      "isDynamicEntry": true,
+      "isEntry": true,
+      "isImplicitEntry": false,
+      "moduleIds": [
+        "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_div_div_div_div_div_button_onClick_4_5fYbrS6ABNA.js"
+      ],
+      "name": "app.tsx_App_component_div_div_div_div_div_div_button_onClick_4_5fYbrS6ABNA",
+      "type": "chunk",
+      "dynamicImports": [],
+      "fileName": "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_4_5fYbrS6ABNA.js",
+      "implicitlyLoadedBefore": [],
+      "importedBindings": {
+        "build/core.js": ["u"]
+      },
+      "imports": ["build/core.js"],
+      "modules": {
+        "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_div_div_div_div_div_button_onClick_4_5fYbrS6ABNA.js": {
+          "code": "<removed 150 bytes>",
+          "originalLength": 210,
+          "removedExports": [],
+          "renderedExports": ["App_component_div_div_div_div_div_div_button_onClick_4_5fYbrS6ABNA"],
+          "renderedLength": 150
+        }
+      },
+      "referencedFiles": [],
+      "viteMetadata": {
+        "importedAssets": {},
+        "importedCss": {}
+      },
+      "code": "import { u as useLexicalScope } from \"./core.js\";\nconst App_component_div_div_div_div_div_div_button_onClick_4_5fYbrS6ABNA = () => {\n  const [state] = useLexicalScope();\n  return state.data = [];\n};\nexport {\n  App_component_div_div_div_div_div_div_button_onClick_4_5fYbrS6ABNA\n};\n",
+      "map": "<removed>",
+      "preliminaryFileName": "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_4_5fYbrS6ABNA.js",
+      "sourcemapFileName": null
+    },
+    "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_5_rpMfjSetIeI.js": {
+      "exports": ["App_component_div_div_div_div_div_div_button_onClick_5_rpMfjSetIeI"],
+      "facadeModuleId": "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_div_div_div_div_div_button_onClick_5_rpMfjSetIeI.js",
+      "isDynamicEntry": true,
+      "isEntry": true,
+      "isImplicitEntry": false,
+      "moduleIds": [
+        "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_div_div_div_div_div_button_onClick_5_rpMfjSetIeI.js"
+      ],
+      "name": "app.tsx_App_component_div_div_div_div_div_div_button_onClick_5_rpMfjSetIeI",
+      "type": "chunk",
+      "dynamicImports": [],
+      "fileName": "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_5_rpMfjSetIeI.js",
+      "implicitlyLoadedBefore": [],
+      "importedBindings": {
+        "build/core.js": ["u"]
+      },
+      "imports": ["build/core.js"],
+      "modules": {
+        "/starters/apps/perf.prod/src/components/app/app.tsx_App_component_div_div_div_div_div_div_button_onClick_5_rpMfjSetIeI.js": {
+          "code": "<removed 283 bytes>",
+          "originalLength": 343,
+          "removedExports": [],
+          "renderedExports": ["App_component_div_div_div_div_div_div_button_onClick_5_rpMfjSetIeI"],
+          "renderedLength": 283
+        }
+      },
+      "referencedFiles": [],
+      "viteMetadata": {
+        "importedAssets": {},
+        "importedCss": {}
+      },
+      "code": "import { u as useLexicalScope } from \"./core.js\";\nconst App_component_div_div_div_div_div_div_button_onClick_5_rpMfjSetIeI = () => {\n  const [state] = useLexicalScope();\n  const d = state.data.slice();\n  if (d.length > 998) {\n    const tmp = d[1];\n    d[1] = d[998];\n    d[998] = tmp;\n    state.data = d;\n  }\n};\nexport {\n  App_component_div_div_div_div_div_div_button_onClick_5_rpMfjSetIeI\n};\n",
+      "map": "<removed>",
+      "preliminaryFileName": "build/app.tsx_App_component_div_div_div_div_div_div_button_onClick_5_rpMfjSetIeI.js",
+      "sourcemapFileName": null
+    },
+    "assets/97WVOY9i-style.css": {
+      "fileName": "assets/97WVOY9i-style.css",
+      "name": "style.css",
+      "needsCodeReference": false,
+      "source": "<removed 45 bytes>",
+      "type": "asset"
+    },
+    "q-manifest.json": {
+      "fileName": "q-manifest.json",
+      "needsCodeReference": false,
+      "source": "<removed 10698 bytes>",
+      "type": "asset"
+    },
+    "build/q-bundle-graph-uiknax.json": {
+      "fileName": "build/q-bundle-graph-uiknax.json",
+      "needsCodeReference": false,
+      "source": "<removed 276 bytes>",
+      "type": "asset"
+    }
+  }
+}

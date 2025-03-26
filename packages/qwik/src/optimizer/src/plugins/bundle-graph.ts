@@ -1,16 +1,14 @@
 import { getSymbolHash } from 'packages/qwik/src/core/qrl/qrl-class';
-import type { QwikBundleGraph, QwikManifest } from '../types';
+import type { QwikBundle, QwikBundleGraph, QwikManifest } from '../types';
 
 /**
- * A function that creates a modified version of the bundle graph. Used to inject routes and their
- * dependencies into the bundle graph.
+ * A function that returns a map of bundle names to their dependencies.
  *
  * @public
  */
-export type BundleGraphModifier = (
-  graph: QwikBundleGraph,
+export type BundleGraphAdder = (
   manifest: QwikManifest
-) => QwikBundleGraph;
+) => Record<string, { imports?: string[]; dynamicImports?: string[] }>;
 
 const dynamicTag = '<dynamic>';
 /**
@@ -28,16 +26,58 @@ const dynamicTag = '<dynamic>';
  */
 export function convertManifestToBundleGraph(
   manifest: QwikManifest,
-  bundleGraphModifiers?: Set<BundleGraphModifier>
+  bundleGraphAdders?: Set<BundleGraphAdder>
 ): QwikBundleGraph {
-  let bundleGraph: QwikBundleGraph = [];
-  const graph = manifest.bundles;
-  if (!graph) {
+  const bundleGraph: QwikBundleGraph = [];
+  if (!manifest.bundles) {
     return [];
   }
-  const names = Object.keys(graph).sort();
+  // All known chunks
+  const graph = { ...manifest.bundles };
+  // Symbols
+  Object.assign(
+    graph,
+    Object.fromEntries(
+      Object.entries(manifest.mapping).map(([symbol, chunkname]) => [
+        getSymbolHash(symbol),
+        { imports: [chunkname] } as QwikBundle,
+      ])
+    )
+  );
+  // Routes etc
+  if (bundleGraphAdders) {
+    for (const adder of bundleGraphAdders) {
+      const result = adder(manifest);
+      if (result) {
+        Object.assign(graph, result);
+      }
+    }
+  }
+
+  // Remove unused bundles
+  const notUsed = new Set(Object.keys(graph));
+  for (const bundleName of Object.keys(graph)) {
+    for (const dep of graph[bundleName].imports || []) {
+      notUsed.delete(dep);
+    }
+    for (const dep of graph[bundleName].dynamicImports || []) {
+      notUsed.delete(dep);
+    }
+  }
+  for (const bundleName of notUsed) {
+    const bundle = graph[bundleName];
+    if (!bundle.imports?.length && !bundle.dynamicImports?.length) {
+      delete graph[bundleName];
+    }
+  }
+
+  const names = Object.keys(graph);
   const map = new Map<string, { index: number; deps: Set<string> }>();
-  const clearTransitiveDeps = (parentDeps: Set<string>, seen: Set<string>, bundleName: string) => {
+  const clearTransitiveDeps = (
+    parentDeps: Set<string>,
+    bundleName: string,
+    seen: Set<string> = new Set()
+  ) => {
     const bundle = graph[bundleName];
     if (!bundle) {
       // external dependency
@@ -49,46 +89,47 @@ export function convertManifestToBundleGraph(
       }
       if (!seen.has(dep)) {
         seen.add(dep);
-        clearTransitiveDeps(parentDeps, seen, dep);
+        clearTransitiveDeps(parentDeps, dep, seen);
       }
     }
   };
+  const withoutExternalDependencies = (imports: string[] | undefined) => {
+    return imports?.filter((dep) => graph[dep]) || [];
+  };
+
+  /**
+   * First pass to collect minimal dependency lists and allocate space for dependencies. Minimal
+   * means that if one of your dependencies depends on another of your dependencies, there's no need
+   * to add that other dependency.
+   */
   for (const bundleName of names) {
     const bundle = graph[bundleName];
-    const index = bundleGraph.length;
-    const deps = new Set(bundle.imports);
+    const deps = new Set(withoutExternalDependencies(bundle.imports));
     for (const depName of deps) {
-      if (!graph[depName]) {
-        // external dependency
-        continue;
-      }
-      clearTransitiveDeps(deps, new Set(), depName);
+      clearTransitiveDeps(deps, depName);
     }
-    const internalDynamicImports = bundle.dynamicImports?.filter((d) => graph[d]) || [];
+    const dynDeps = new Set(withoutExternalDependencies(bundle.dynamicImports));
+    for (const depName of dynDeps) {
+      clearTransitiveDeps(dynDeps, depName);
+    }
     // If we have a lot of dynamic imports, we don't know which ones are needed, so we don't add any
     // This can happen with registry bundles like for routing
-    if (internalDynamicImports.length > 0 && internalDynamicImports.length < 10) {
+    if (dynDeps.size > 0 && dynDeps.size < 10) {
       deps.add(dynamicTag);
-      for (const depName of internalDynamicImports) {
+      for (const depName of dynDeps) {
         deps.add(depName);
       }
     }
-    map.set(bundleName, { index, deps });
+    const index = bundleGraph.length;
     bundleGraph.push(bundleName);
-    while (index + deps.size >= bundleGraph.length) {
+    // allocate space for the dependency indices
+    for (let i = 0; i < deps.size; i++) {
       bundleGraph.push(null!);
     }
+    map.set(bundleName, { index, deps });
   }
-  // Add the symbols to the bundle graph
-  for (const [symbol, chunkname] of Object.entries(manifest.mapping)) {
-    const bundle = map.get(chunkname);
-    if (!bundle) {
-      console.warn(`Chunk ${chunkname} for symbol ${symbol} not found in the bundle graph.`);
-    } else {
-      bundleGraph.push(getSymbolHash(symbol), bundle.index);
-    }
-  }
-  // Second pass to to update dependency pointers
+
+  // Second pass to set the dependency indices
   for (const bundleName of names) {
     const bundle = map.get(bundleName);
     if (!bundle) {
@@ -103,19 +144,11 @@ export function convertManifestToBundleGraph(
         bundleGraph[index++] = -1;
         continue;
       }
-      const dep = map.get(depName);
-      if (!dep) {
-        console.warn(`Dependency ${depName} of ${bundleName} not found in the bundle graph.`);
-        continue;
-      }
+      const dep = map.get(depName)!;
       const depIndex = dep.index;
       bundleGraph[index++] = depIndex;
     }
   }
-  if (bundleGraphModifiers && bundleGraphModifiers.size > 0) {
-    for (const modifier of bundleGraphModifiers) {
-      bundleGraph = modifier(bundleGraph, manifest);
-    }
-  }
+
   return bundleGraph;
 }

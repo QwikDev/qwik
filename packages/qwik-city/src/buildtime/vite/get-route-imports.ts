@@ -1,14 +1,9 @@
-import type { QwikBundle, QwikBundleGraph, QwikManifest } from '@builder.io/qwik/optimizer';
+import type { QwikBundle, QwikManifest } from '@builder.io/qwik/optimizer';
 import { removeExtension } from '../../utils/fs';
 import type { BuildRoute } from '../types';
 
-export function modifyBundleGraph(
-  routes: BuildRoute[],
-  originalGraph: QwikBundleGraph,
-  manifest: QwikManifest
-) {
-  const graph = [...originalGraph];
-
+export function getRouteImports(routes: BuildRoute[], manifest: QwikManifest) {
+  const result: Record<string, { imports?: string[] }> = {};
   routes.forEach((route) => {
     const routePath = removeExtension(route.filePath);
     const layoutPaths = route.layouts
@@ -16,21 +11,18 @@ export function modifyBundleGraph(
       : [];
     const routeAndLayoutPaths = [routePath, ...layoutPaths];
 
-    const routeDeps = [];
+    const imports = [];
 
     for (const [bundleName, bundle] of Object.entries(manifest.bundles)) {
       if (isBundlePartOfRoute(bundle, routeAndLayoutPaths)) {
-        const bundleIndex = originalGraph.indexOf(bundleName);
-        if (bundleIndex !== -1) {
-          routeDeps.push(bundleIndex);
-        }
+        imports.push(bundleName);
       }
     }
-    if (routeDeps.length > 0) {
-      graph.push(route.routeName, ...routeDeps);
+    if (imports.length > 0) {
+      result[route.routeName] = { imports };
     }
   });
-  return graph;
+  return result;
 }
 
 function isBundlePartOfRoute(bundle: QwikBundle, routeAndLayoutPaths: string[]) {

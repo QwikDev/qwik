@@ -48,7 +48,7 @@ export type {
   QwikVitePluginOptions,
 } from './plugins/vite';
 
-export type { BundleGraphModifier } from './plugins/bundle-graph';
+export type { BundleGraphAdder } from './plugins/bundle-graph';
 
 export { qwikRollup } from './plugins/rollup';
 export { qwikVite } from './plugins/vite';

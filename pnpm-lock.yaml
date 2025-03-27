@@ -292,9 +292,6 @@ importers:
       '@builder.io/sdk-qwik':
         specifier: 0.14.31
         version: 0.14.31(@builder.io/qwik@packages+qwik)
-      '@docsearch/css':
-        specifier: 3.9.0
-        version: 3.9.0
       '@emotion/react':
         specifier: 11.13.0
         version: 11.13.0(@types/react@18.3.3)(react@18.3.1)
@@ -1103,9 +1100,6 @@ packages:
   '@dependents/detective-less@4.1.0':
     resolution: {integrity: sha512-KrkT6qO5NxqNfy68sBl6CTSoJ4SNDIS5iQArkibhlbGU4LaDukZ3q2HIkh8aUKDio6o4itU4xDR7t82Y2eP1Bg==}
     engines: {node: '>=14'}
-
-  '@docsearch/css@3.9.0':
-    resolution: {integrity: sha512-cQbnVbq0rrBwNAKegIac/t6a8nWoUAn8frnkLFW6YARaRmAQr5/Eoe6Ln2fqkUCZ40KpdrKbpSAmgrkviOxuWA==}
 
   '@drizzle-team/brocli@0.10.2':
     resolution: {integrity: sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w==}
@@ -10438,8 +10432,6 @@ snapshots:
     dependencies:
       gonzales-pe: 4.3.0
       node-source-walk: 6.0.2
-
-  '@docsearch/css@3.9.0': {}
 
   '@drizzle-team/brocli@0.10.2': {}
 

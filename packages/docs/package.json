@@ -13,7 +13,6 @@
     "@builder.io/qwik-labs": "workspace:^",
     "@builder.io/qwik-react": "workspace:^",
     "@builder.io/sdk-qwik": "0.14.31",
-    "@docsearch/css": "3.9.0",
     "@emotion/react": "11.13.0",
     "@emotion/styled": "11.13.0",
     "@modular-forms/qwik": "0.23.1",

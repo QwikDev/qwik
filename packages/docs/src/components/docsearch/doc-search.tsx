@@ -1,5 +1,4 @@
 import type { SearchClient } from 'algoliasearch/lite';
-import { SearchIcon } from './icons/SearchIcon';
 import {
   component$,
   useStore,
@@ -10,11 +9,10 @@ import {
   type Signal,
   $,
   sync$,
-  useTask$,
 } from '@builder.io/qwik';
 import { Modal } from '@qwik-ui/headless';
 import type { DocSearchHit, InternalDocSearchHit } from './types';
-import { type ButtonTranslations, DocSearchButton } from './doc-search-button';
+import { type ButtonTranslations } from './doc-search-button';
 import { DocSearchModal, type ModalTranslations } from './doc-search-modal';
 import styles from './doc-search.css?inline';
 
@@ -117,9 +115,9 @@ export const DocSearch = component$((props: DocSearchProps) => {
         }),
       ]}
     >
-      <Modal.Root bind:show={props['bind:open']}>
-        <Modal.Panel class="w-full h-full md:w-fit md:h-fit">
-          {props['bind:open'].value && (
+      <Modal.Root bind:show={props.isOpen}>
+        <Modal.Panel>
+          {props.isOpen.value && (
             <DocSearchModal
               bind:open={props['bind:open']}
               aiResultOpen={aiResultOpen.value}

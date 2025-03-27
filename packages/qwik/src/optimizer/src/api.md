@@ -10,6 +10,7 @@ import type { Plugin as Plugin_2 } from 'vite';
 export type BundleGraphAdder = (manifest: QwikManifest) => Record<string, {
     imports?: string[];
     dynamicImports?: string[];
+    hasSegments?: boolean;
 }>;
 
 // @public (undocumented)
@@ -170,7 +171,7 @@ export interface QwikBundle {
     // (undocumented)
     dynamicImports?: string[];
     // (undocumented)
-    hasSymbols?: boolean;
+    hasSegments?: boolean;
     // (undocumented)
     imports?: string[];
     // (undocumented)

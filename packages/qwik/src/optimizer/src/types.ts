@@ -270,7 +270,7 @@ export interface QwikSymbol {
 /** @public */
 export interface QwikBundle {
   size: number;
-  hasSymbols?: boolean;
+  hasSegments?: boolean;
   symbols?: string[];
   imports?: string[];
   dynamicImports?: string[];

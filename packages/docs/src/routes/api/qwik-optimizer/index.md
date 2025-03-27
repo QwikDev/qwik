@@ -62,6 +62,7 @@ export type BundleGraphAdder = (manifest: QwikManifest) => Record<
   {
     imports?: string[];
     dynamicImports?: string[];
+    hasSegments?: boolean;
   }
 >;
 ```
@@ -1272,7 +1273,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[hasSymbols?](#)
+[hasSegments?](#)
 
 </td><td>
 

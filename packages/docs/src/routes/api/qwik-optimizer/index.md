@@ -1267,22 +1267,7 @@ string[]
 
 </td><td>
 
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[hasSymbols?](#)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_
+_(Optional)_ Dynamic imports
 
 </td></tr>
 <tr><td>
@@ -1297,7 +1282,7 @@ string[]
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ Direct imports
 
 </td></tr>
 <tr><td>
@@ -1312,7 +1297,7 @@ string[]
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ Source files of the bundle
 
 </td></tr>
 <tr><td>
@@ -1327,6 +1312,8 @@ number
 
 </td><td>
 
+Size of the bundle
+
 </td></tr>
 <tr><td>
 
@@ -1340,7 +1327,7 @@ string[]
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ Symbols in the bundle
 
 </td></tr>
 </tbody></table>
@@ -1859,7 +1846,7 @@ boolean
 
 </td><td>
 
-'function' \| 'event'
+'function' \| 'eventHandler'
 
 </td><td>
 
@@ -2390,7 +2377,7 @@ boolean
 
 </td><td>
 
-'event' \| 'function'
+'eventHandler' \| 'function'
 
 </td><td>
 

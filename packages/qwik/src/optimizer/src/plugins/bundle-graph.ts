@@ -54,13 +54,30 @@ export function convertManifestToBundleGraph(
     }
   }
 
+  // Filter out external and non-segment dynamic imports
+  for (const bundleName of Object.keys(graph)) {
+    const bundle = graph[bundleName];
+    const imports = bundle.imports?.filter((dep) => graph[dep]) || [];
+
+    // We only include dynamic imports that have qrl segments
+    // If the dev wants to include other dynamic imports, they can just make a qrl()
+    const dynamicImports = bundle.dynamicImports?.filter((dep) => graph[dep]?.hasSegments) || [];
+
+    // Overwrite so we don't mutate
+    graph[bundleName] = {
+      imports,
+      dynamicImports,
+      size: bundle.size,
+    };
+  }
+
   // Remove unused bundles
   const notUsed = new Set(Object.keys(graph));
   for (const bundleName of Object.keys(graph)) {
-    for (const dep of graph[bundleName].imports || []) {
+    for (const dep of graph[bundleName].imports!) {
       notUsed.delete(dep);
     }
-    for (const dep of graph[bundleName].dynamicImports || []) {
+    for (const dep of graph[bundleName].dynamicImports!) {
       notUsed.delete(dep);
     }
   }
@@ -79,11 +96,7 @@ export function convertManifestToBundleGraph(
     seen: Set<string> = new Set()
   ) => {
     const bundle = graph[bundleName];
-    if (!bundle) {
-      // external dependency
-      return;
-    }
-    for (const dep of bundle.imports || []) {
+    for (const dep of bundle.imports!) {
       if (parentDeps.has(dep)) {
         parentDeps.delete(dep);
       }
@@ -93,9 +106,6 @@ export function convertManifestToBundleGraph(
       }
     }
   };
-  const withoutExternalDependencies = (imports: string[] | undefined) => {
-    return imports?.filter((dep) => graph[dep]) || [];
-  };
 
   /**
    * First pass to collect minimal dependency lists and allocate space for dependencies. Minimal
@@ -104,11 +114,12 @@ export function convertManifestToBundleGraph(
    */
   for (const bundleName of names) {
     const bundle = graph[bundleName];
-    const deps = new Set(withoutExternalDependencies(bundle.imports));
+    // external dependencies are not included in `graph`
+    const deps = new Set(bundle.imports!);
     for (const depName of deps) {
       clearTransitiveDeps(deps, depName);
     }
-    const dynDeps = new Set(withoutExternalDependencies(bundle.dynamicImports));
+    const dynDeps = new Set(bundle.dynamicImports!);
     for (const depName of dynDeps) {
       clearTransitiveDeps(dynDeps, depName);
     }
@@ -130,11 +141,7 @@ export function convertManifestToBundleGraph(
 
   // Second pass to set the dependency indices
   for (const bundleName of names) {
-    const bundle = map.get(bundleName);
-    if (!bundle) {
-      console.warn(`Bundle ${bundleName} not found in the bundle graph.`);
-      continue;
-    }
+    const bundle = map.get(bundleName)!;
     // eslint-disable-next-line prefer-const
     let { index, deps } = bundle;
     index++;

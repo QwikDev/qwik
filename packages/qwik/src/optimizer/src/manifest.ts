@@ -15,15 +15,15 @@ function prioritizeSymbolNames(manifest: QwikManifest) {
     const b = symbols[symbolNameB];
 
     // events should sort highest
-    if (a.ctxKind === 'event' && b.ctxKind !== 'event') {
+    if (a.ctxKind === 'eventHandler' && b.ctxKind !== 'eventHandler') {
       return -1;
     }
-    if (a.ctxKind !== 'event' && b.ctxKind === 'event') {
+    if (a.ctxKind !== 'eventHandler' && b.ctxKind === 'eventHandler') {
       return 1;
     }
 
-    if (a.ctxKind === 'event' && b.ctxKind === 'event') {
-      // both are an event
+    if (a.ctxKind === 'eventHandler' && b.ctxKind === 'eventHandler') {
+      // both are an event handler
       const aIndex = EVENT_PRIORITY.indexOf(a.ctxName.toLowerCase());
       const bIndex = EVENT_PRIORITY.indexOf(b.ctxName.toLowerCase());
 
@@ -281,19 +281,14 @@ export function generateManifestFromBundles(
       size: outputBundle.code.length,
     };
 
-    let hasSymbols = false;
     for (const symbol of outputBundle.exports) {
       if (qrlNames.has(symbol)) {
         // When not minifying we see both the entry and the segment file
         // The segment file will only have 1 export, we want the entry
         if (!manifest.mapping[symbol] || outputBundle.exports.length !== 1) {
-          hasSymbols = true;
           manifest.mapping[symbol] = bundleFileName;
         }
       }
-    }
-    if (hasSymbols) {
-      bundle.hasSymbols = true;
     }
 
     const bundleImports = outputBundle.imports

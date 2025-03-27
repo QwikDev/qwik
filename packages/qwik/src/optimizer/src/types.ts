@@ -107,7 +107,7 @@ export interface SegmentAnalysis {
   canonicalFilename: string;
   extension: string;
   parent: string | null;
-  ctxKind: 'event' | 'function';
+  ctxKind: 'eventHandler' | 'function';
   ctxName: string;
   captures: boolean;
   loc: [number, number];
@@ -260,7 +260,7 @@ export interface QwikSymbol {
   displayName: string;
   hash: string;
   canonicalFilename: string;
-  ctxKind: 'function' | 'event';
+  ctxKind: 'function' | 'eventHandler';
   ctxName: string;
   captures: boolean;
   parent: string | null;
@@ -269,11 +269,15 @@ export interface QwikSymbol {
 
 /** @public */
 export interface QwikBundle {
+  /** Size of the bundle */
   size: number;
-  hasSymbols?: boolean;
+  /** Symbols in the bundle */
   symbols?: string[];
+  /** Direct imports */
   imports?: string[];
+  /** Dynamic imports */
   dynamicImports?: string[];
+  /** Source files of the bundle */
   origins?: string[];
 }
 

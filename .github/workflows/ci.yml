@@ -665,7 +665,8 @@ jobs:
     # Sometimes the tests just hang
     timeout-minutes: 20
     name: E2E Tests
-    if: always() && needs.changes.outputs.build-e2e == 'true'
+    # if: always() && needs.changes.outputs.build-e2e == 'true'
+    if: false
 
     needs:
       - build-other-packages

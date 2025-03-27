@@ -21,8 +21,8 @@ import { generateQwikCityEntries } from '../runtime-generation/generate-entries'
 import { generateQwikCityPlan } from '../runtime-generation/generate-qwik-city-plan';
 import { generateServiceWorkerRegister } from '../runtime-generation/generate-service-worker';
 import type { BuildContext } from '../types';
-import { getRouteImports } from './get-route-imports';
 import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
+import { getRouteImports } from './get-route-imports';
 import { imagePlugin } from './image-jsx';
 import type { QwikCityPluginApi, QwikCityVitePluginOptions } from './types';
 import { validatePlugin } from './validate-plugin';

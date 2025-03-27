@@ -17,10 +17,13 @@ import type {
   TransformModulesOptions,
   TransformOutput,
   SmartEntryStrategy,
+  ServerQwikManifest,
 } from '../types';
 import { createLinter, type QwikLinter } from './eslint-plugin';
 import type { LoadResult, OutputBundle, ResolveIdResult, TransformResult } from 'rollup';
-import { isWin } from './vite-utils';
+import { isWin, parseId } from './vite-utils';
+import type { BundleGraphAdder } from '..';
+import { convertManifestToBundleGraph } from './bundle-graph';
 
 const REG_CTX_NAME = ['server'];
 
@@ -775,7 +778,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     const injections: GlobalInjections[] = [];
 
     const addInjection = (b: GlobalInjections) => injections.push(b);
-    const generateManifest = async () => {
+
+    const generateManifest = async (extra?: Partial<QwikManifest>) => {
       const optimizer = getOptimizer();
       const path = optimizer.sys.path;
 
@@ -792,6 +796,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         opts,
         debug
       );
+      if (extra) {
+        Object.assign(manifest, extra);
+      }
 
       for (const symbol of Object.values(manifest.symbols)) {
         if (symbol.origin) {
@@ -855,8 +862,18 @@ export const isDev = ${JSON.stringify(isDev)};
 
   async function getQwikServerManifestModule(isServer: boolean) {
     const manifest = isServer ? opts.manifestInput : null;
+    let serverManifest: ServerQwikManifest | null = null;
+    if (manifest?.manifestHash) {
+      serverManifest = {
+        manifestHash: manifest.manifestHash,
+        injections: manifest.injections,
+        bundleGraph: manifest.bundleGraph,
+        mapping: manifest.mapping,
+        preloader: manifest.preloader,
+      };
+    }
     return `// @qwik-client-manifest
-export const manifest = ${JSON.stringify(manifest)};\n`;
+export const manifest = ${JSON.stringify(serverManifest)};\n`;
   }
 
   function setSourceMapSupport(sourcemap: boolean) {
@@ -889,8 +906,12 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
   }
 
   function manualChunks(id: string, { getModuleInfo }: Rollup.ManualChunkMeta) {
-    // The preloader has to stay in a separate chunk
-    if (id.endsWith(QWIK_PRELOADER_REAL_ID)) {
+    // The preloader has to stay in a separate chunk if it's a client build
+    // the vite preload helper must be included or to prevent breaking circular dependencies
+    if (
+      opts.target === 'client' &&
+      (id.endsWith(QWIK_PRELOADER_REAL_ID) || id === '\0vite/preload-helper.js')
+    ) {
       return 'qwik-preloader';
     }
 
@@ -904,6 +925,59 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
       }
     }
     return null;
+  }
+
+  async function generateManifest(
+    ctx: Rollup.PluginContext,
+    rollupBundle: OutputBundle,
+    bundleGraphAdders?: Set<BundleGraphAdder>,
+    manifestExtra?: Partial<QwikManifest>
+  ) {
+    const outputAnalyzer = createOutputAnalyzer(rollupBundle);
+    const manifest = await outputAnalyzer.generateManifest(manifestExtra);
+
+    manifest.platform = {
+      ...manifestExtra?.platform,
+      rollup: ctx.meta?.rollupVersion || '',
+      env: optimizer.sys.env,
+      os: optimizer.sys.os,
+    };
+    if (optimizer.sys.env === 'node') {
+      manifest.platform!.node = process.versions.node;
+    }
+
+    const assetsDir = opts.assetsDir;
+    const useAssetsDir = !!assetsDir && assetsDir !== '_astro';
+    const bundleGraph = convertManifestToBundleGraph(manifest, bundleGraphAdders);
+    ctx.emitFile({
+      type: 'asset',
+      fileName: optimizer.sys.path.join(
+        useAssetsDir ? assetsDir : '',
+        'build',
+        `q-bundle-graph-${manifest.manifestHash}.js`
+      ),
+      source: `export const B=${JSON.stringify(bundleGraph)}`,
+    });
+
+    manifest.bundleGraph = bundleGraph;
+
+    const manifestStr = JSON.stringify(manifest, null, '\t');
+    ctx.emitFile({
+      fileName: Q_MANIFEST_FILENAME,
+      type: 'asset',
+      source: manifestStr,
+    });
+
+    if (typeof opts.manifestOutput === 'function') {
+      await opts.manifestOutput(manifest);
+    }
+
+    if (typeof opts.transformedModuleOutput === 'function') {
+      await opts.transformedModuleOutput(getTransformedOutputs());
+    }
+
+    // TODO get rid of this with the vite environment api
+    return manifestStr;
   }
 
   return {
@@ -929,6 +1003,7 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     configureServer,
     handleHotUpdate,
     manualChunks,
+    generateManifest,
   };
 }
 
@@ -957,20 +1032,6 @@ export const makeNormalizePath = (sys: OptimizerSystem) => (id: string) => {
 function isAdditionalFile(mod: TransformModule) {
   return mod.isEntry || mod.segment;
 }
-
-export function parseId(originalId: string) {
-  const [pathId, query] = originalId.split('?');
-  const queryStr = query || '';
-  return {
-    originalId,
-    pathId,
-    query: queryStr ? `?${query}` : '',
-    params: new URLSearchParams(queryStr),
-  };
-}
-
-export const getSymbolHash = (symbolName: string) =>
-  /_([a-z0-9]+)($|\.js($|\?))/.exec(symbolName)?.[1];
 
 const TRANSFORM_EXTS = {
   '.jsx': true,

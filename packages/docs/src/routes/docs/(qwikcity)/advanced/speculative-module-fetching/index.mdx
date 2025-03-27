@@ -62,7 +62,7 @@ However, Qwik knows the module graph and controls QRL segment loading, we do kno
 
 The Qwik build process generates a `q-manifest.json` file. The `q-manifest.json` includes a detailed module graph of how bundles are associated and which symbols are within each bundle.
 
-This is then further used to generate the `build/q-bundle-graph-xyz.json` file, which is a compact representation of the module graph, and is loaded by Qwik to preload QRL segment loading.
+This is then further used to generate the `build/q-bundle-graph-xyz.js` file, which is a compact representation of the module graph, including probabilities of which bundlers are more likely to be requested next given a certain bundle has loaded, and is loaded by Qwik to preload QRL segment loading.
 
 Qwik-City also injects all routes with their dependencies into this bundlegraph file.
 
@@ -70,9 +70,9 @@ When a container resumes, it will fetch the bundlegraph file (probably from the 
 
 Static imports are preloaded with high priority, and dynamic imports are preloaded with low priority. The browser will decide when to download the modules.
 
-The preloading happens with the `_preload` function, which is an internal Qwik API. It works by traversing the bundlegraph and adding `<link rel="modulepreload">` tags for each module.
+The preloading happens with the `_preload` function, which is an internal Qwik API. It works by traversing the bundlegraph and adding `<link rel="modulepreload">` tags for each bundle that is likely to be requested next.
 
-## Disabled During Development
+## During Development
 
-Speculative module fetching only kicks in preview or on a production build. In development, the service worker is disabled which also disables speculative module fetching. This is because during development we want to always ensure the latest development code is being used, rather than what's been previously cached.
+Speculative module fetching only really works in preview or on a production build. In development, we don't have the bundle graph available, so we can't prevent waterfalls from happening. However, we do ask the browser to preload the bundles that are most likely to be requested after SSR.
 

@@ -1287,6 +1287,21 @@ _(Optional)_ Direct imports
 </td></tr>
 <tr><td>
 
+[interactivity?](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ Interactivity score of the bundle
+
+</td></tr>
+<tr><td>
+
 [origins?](#)
 
 </td><td>
@@ -1328,6 +1343,21 @@ string[]
 </td><td>
 
 _(Optional)_ Symbols in the bundle
+
+</td></tr>
+<tr><td>
+
+[total](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+Total size of this bundle's static import graph
 
 </td></tr>
 </tbody></table>
@@ -1372,6 +1402,21 @@ Description
 
 </th></tr></thead>
 <tbody><tr><td>
+
+[bundleGraph?](#)
+
+</td><td>
+
+</td><td>
+
+[QwikBundleGraph](#qwikbundlegraph)
+
+</td><td>
+
+_(Optional)_ All bundles in a compact graph format with probabilities
+
+</td></tr>
+<tr><td>
 
 [bundles](#)
 
@@ -1439,11 +1484,11 @@ Where QRLs are located
 
 </td><td>
 
-{ target?: string; buildMode?: string; entryStrategy?: { [key: string]: any; }; }
+{ target?: string; buildMode?: string; entryStrategy?: { type: [EntryStrategy](#entrystrategy)['type']; }; }
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ The options used to build the manifest
 
 </td></tr>
 <tr><td>
@@ -1458,7 +1503,7 @@ _(Optional)_
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ The platform used to build the manifest
 
 </td></tr>
 <tr><td>
@@ -1473,7 +1518,7 @@ string
 
 </td><td>
 
-_(Optional)_ The preloader bundle
+_(Optional)_ The preloader bundle fileName
 
 </td></tr>
 <tr><td>
@@ -1502,6 +1547,8 @@ QRL symbols
 string
 
 </td><td>
+
+The version of the manifest
 
 </td></tr>
 </tbody></table>
@@ -2306,6 +2353,19 @@ Description
 
 </th></tr></thead>
 <tbody><tr><td>
+
+[injections](#)
+
+</td><td>
+
+</td><td>
+
+[GlobalInjections](#globalinjections)[]
+
+</td><td>
+
+</td></tr>
+<tr><td>
 
 [manifest](#)
 

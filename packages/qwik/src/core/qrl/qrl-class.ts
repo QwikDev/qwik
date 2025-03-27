@@ -16,9 +16,10 @@ import { isPromise, maybeThen } from '../util/promises';
 import { qDev, qSerialize, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../util/types';
 // @ts-expect-error we don't have types for the preloader
-import { l as loadBundleGraph, p as preload } from '@builder.io/qwik/preloader';
+import { p as preload } from '@builder.io/qwik/preloader';
 import type { QRLDev } from './qrl';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
+import { isBrowser } from '@builder.io/qwik/build';
 
 export const isQrl = <T = unknown>(value: unknown): value is QRLInternal<T> => {
   return typeof value === 'function' && typeof (value as any).getSymbol === 'function';
@@ -91,10 +92,6 @@ export const createQRL = <TYPE>(
     if (!_containerEl) {
       _containerEl = el;
     }
-    // try every time just in case
-    if (el) {
-      loadBundleGraph(el);
-    }
     return _containerEl;
   };
 
@@ -127,8 +124,6 @@ export const createQRL = <TYPE>(
   };
 
   const resolve = async (containerEl?: Element): Promise<TYPE> => {
-    // Give it another bump
-    preload(getSymbolHash(symbol), true);
     if (symbolRef !== null) {
       // Resolving (Promise) or already resolved (value)
       return symbolRef;
@@ -144,6 +139,11 @@ export const createQRL = <TYPE>(
       const qFuncs = getQFuncs(doc, hash);
       // No need to wrap, syncQRLs can't have captured scope
       return (qrl.resolved = symbolRef = qFuncs[Number(symbol)] as TYPE);
+    }
+
+    if (isBrowser && chunk) {
+      /** We run the QRL, so now the probability of the chunk is 100% */
+      preload(chunk, 1);
     }
 
     const start = now();
@@ -229,7 +229,13 @@ export const createQRL = <TYPE>(
   if (qDev) {
     seal(qrl);
   }
-  preload(hash);
+  if (isBrowser && resolvedSymbol) {
+    /**
+     * Preloading the symbol instead of the chunk allows us to get probabilities for the bundle
+     * based on its contents.
+     */
+    preload(resolvedSymbol, 0.8);
+  }
   return qrl;
 };
 

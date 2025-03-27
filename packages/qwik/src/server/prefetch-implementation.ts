@@ -1,218 +1,113 @@
-import { Fragment, jsx, type JSXNode } from '@builder.io/qwik';
-import { flattenPrefetchResources, getMostReferenced, workerFetchScript } from './prefetch-utils';
-import type {
-  PrefetchImplementation,
-  PrefetchResource,
-  PrefetchStrategy,
-  QwikManifest,
-} from './types';
+import { Fragment, jsx, type JSXNode, type PropsOf } from '@builder.io/qwik';
+import type { ResolvedManifest } from '../optimizer/src/types';
+import { expandBundles } from './prefetch-strategy';
+import type { PrefetchImplementation, PrefetchStrategy } from './types';
 
-export function applyPrefetchImplementation(
+export function includePreloader(
   base: string,
-  manifest: QwikManifest | undefined,
+  manifest: ResolvedManifest | undefined,
   prefetchStrategy: PrefetchStrategy | undefined,
-  prefetchResources: PrefetchResource[],
+  referencedBundles: string[],
   nonce?: string
 ): JSXNode | null {
-  // if prefetchStrategy is undefined, use defaults
-  // set default if implementation wasn't provided
-  const prefetchImpl = normalizePrefetchImplementation(prefetchStrategy?.implementation);
-
-  const prefetchNodes: JSXNode[] = [];
-
-  if (prefetchImpl.prefetchEvent === 'always') {
-    prefetchUrlsEvent(base, prefetchNodes, prefetchResources, nonce);
+  if (referencedBundles.length === 0) {
+    return null;
   }
+  const {
+    maxPreloads,
+    linkRel,
+    linkFetchPriority,
+    minProbability,
+    debug,
+    maxSimultaneousPreloads,
+    minPreloadProbability,
+  } = normalizePrefetchImplementation(prefetchStrategy?.implementation);
+  let allowed = maxPreloads;
 
-  if (prefetchImpl.linkInsert === 'html-append') {
-    linkHtmlImplementation(
-      base,
-      manifest?.manifestHash,
-      nonce,
-      prefetchNodes,
-      prefetchResources,
-      prefetchImpl
-    );
-  }
+  const nodes: JSXNode[] = [];
 
-  if (prefetchImpl.linkInsert === 'js-append') {
-    linkJsImplementation(base, manifest, nonce, prefetchNodes, prefetchResources, prefetchImpl);
-  } else if (prefetchImpl.workerFetchInsert === 'always') {
-    workerFetchImplementation(prefetchNodes, prefetchResources, nonce);
-  }
-
-  if (prefetchNodes.length > 0) {
-    return jsx(Fragment, { children: prefetchNodes });
-  }
-
-  return null;
-}
-
-function prefetchUrlsEvent(
-  base: string,
-  prefetchNodes: JSXNode[],
-  prefetchResources: PrefetchResource[],
-  nonce?: string
-) {
-  const mostReferenced = getMostReferenced(prefetchResources);
-  for (const url of mostReferenced) {
-    prefetchNodes.push(
-      jsx('link', {
-        rel: 'modulepreload',
-        href: base + url,
-        nonce,
-      })
-    );
-  }
-  // TODO: convert links to bundles
-  // prefetchNodes.push(
-  //   jsx('script', {
-  //     'q:type': 'prefetch-bundles',
-  //     dangerouslySetInnerHTML:
-  //     prefetchUrlsEventScript(base, prefetchResources),
-  //     nonce,
-  //   })
-  // );
-}
-
-/** Creates the `<link>` within the rendered html */
-function linkHtmlImplementation(
-  base: string,
-  manifestHash: string | undefined,
-  nonce: string | undefined,
-  prefetchNodes: JSXNode[],
-  prefetchResources: PrefetchResource[],
-  prefetchImpl: Required<PrefetchImplementation>
-) {
-  const urls = flattenPrefetchResources(prefetchResources);
-  const rel = prefetchImpl.linkRel || 'modulepreload';
-
-  if (manifestHash) {
-    prefetchNodes.push(
-      jsx('link', {
-        rel: 'fetch',
-        id: `qwik-bg-${manifestHash}`,
-        href: `${base}q-bundle-graph-${manifestHash}.json`,
-        as: 'fetch',
-        crossorigin: 'anonymous',
-        fetchpriority: prefetchImpl.linkFetchPriority || undefined,
-      })
-    );
-  }
-  for (const [url, priority] of urls) {
-    const fetchpriority = priority
-      ? prefetchImpl.linkFetchPriority || 'high'
-      : prefetchImpl.linkFetchPriority === 'low'
-        ? 'low'
-        : undefined;
-    prefetchNodes.push(
-      jsx('link', {
-        href: base + url,
-        rel,
-        fetchpriority,
-        nonce,
-        // TODO: add integrity
-      })
-    );
-  }
-}
-
-/**
- * Uses the preloader chunk to add the `<link>` elements at runtime. This allows core to simply
- * import the preloader as well and have all the state there, plus it makes it easy to write a
- * complex implementation.
- */
-function linkJsImplementation(
-  base: string,
-  manifest: QwikManifest | undefined,
-  nonce: string | undefined,
-  prefetchNodes: JSXNode[],
-  prefetchResources: PrefetchResource[],
-  prefetchImpl: Required<PrefetchImplementation>
-) {
-  const preloadChunk = manifest?.preloader;
-  if (!preloadChunk) {
-    return linkHtmlImplementation(
-      base,
-      manifest?.manifestHash,
-      nonce,
-      prefetchNodes,
-      prefetchResources,
-      prefetchImpl
-    );
-  }
-  const manifestHash = manifest.manifestHash;
-  const urlMap = flattenPrefetchResources(prefetchResources);
-
-  // TODO modulepreload the preloader before ssr, optional because we can't predict if we need it
-
-  // TODO order imports by size/number of dependents?
-  if (urlMap.size) {
-    const urls = [...urlMap.keys()];
-
-    // Already fetch the first 7 urls while we wait for the preloader to load
-    for (const url of urls.slice(0, 7)) {
-      prefetchNodes.push(
-        jsx('link', {
-          href: base + url,
-          // not modulepreload, we don't want to fetch dependencies yet
-          rel: 'preload',
-          as: 'script',
-          fetchpriority: 'low',
-        })
-      );
+  if (import.meta.env.DEV) {
+    // Vite dev server active
+    // in dev, all bundles are absolute paths from the base url, not /build
+    base = import.meta.env.BASE_URL;
+    if (base.endsWith('/')) {
+      base = base.slice(0, -1);
     }
+  }
 
-    // preload the bundle graph at low priority
-    // TODO make this a .js file so we can modulepreload it
-    prefetchNodes.push(
-      jsx('link', {
-        rel: 'fetch',
-        id: `qwik-bg-${manifestHash}`,
-        href: `${base}q-bundle-graph-${manifestHash}.json`,
-        as: 'fetch',
-        crossorigin: 'anonymous',
-        fetchpriority: 'low',
-      })
-    );
+  const makeLink = (base: string, href: string) => {
+    const linkProps: PropsOf<'link'> = {
+      rel: linkRel!,
+      href: `${base}${href}`,
+    };
+    if (linkRel !== 'modulepreload') {
+      linkProps['fetchPriority'] = linkFetchPriority!;
+      linkProps['as'] = 'script';
+    }
+    return jsx('link', linkProps as any);
+  };
 
-    // We request all the urls as low priority, so that newly needed resources are loaded first
-    // We use a Promise so the script doesn't block the initial page load
-    const script =
-      `const d=Date.now();console.log('preloader loading',d);` +
-      `import("${base}${preloadChunk}").then(({l,p})=>{` +
-      (`console.log('preloader start',Date.now()-d);` +
-        `l(${JSON.stringify(base)},${JSON.stringify(manifestHash)});` +
-        `p(${JSON.stringify([...urlMap.keys()])});`) +
-      `})`;
-
-    prefetchNodes.push(
+  const preloadChunk = manifest?.manifest.preloader;
+  const manifestHash = manifest?.manifest.manifestHash;
+  if (allowed && preloadChunk) {
+    allowed--;
+    nodes.push(makeLink(base, preloadChunk!));
+    if (allowed && manifestHash) {
+      allowed--;
+      nodes.push(makeLink(base, `q-bundle-graph-${manifestHash}.js`));
+    }
+  }
+  if (allowed) {
+    const expandedBundles = expandBundles(referencedBundles, manifest);
+    // Keep the same as in expandBundles (but *10)
+    let probability = 8;
+    const tenXMinProbability = minProbability * 10;
+    for (const bundleOrProbability of expandedBundles) {
+      if (typeof bundleOrProbability === 'string') {
+        if (probability < tenXMinProbability) {
+          break;
+        }
+        nodes.push(makeLink(base, bundleOrProbability));
+        if (--allowed === 0) {
+          break;
+        }
+      } else {
+        probability = bundleOrProbability;
+      }
+    }
+  }
+  if (preloadChunk) {
+    const opts: string[] = [];
+    if (debug) {
+      opts.push('d:1');
+    }
+    if (maxSimultaneousPreloads) {
+      opts.push(`P:${maxSimultaneousPreloads}`);
+    }
+    if (minPreloadProbability) {
+      opts.push(`Q:${minPreloadProbability}`);
+    }
+    const optsStr = opts.length ? `,{${opts.join(',')}}` : '';
+    /**
+     * Uses the preloader chunk to add the `<link>` elements at runtime. This allows core to simply
+     * import the preloader as well and have all the state there, plus it makes it easy to write a
+     * complex implementation.
+     */
+    nodes.push(
       jsx('script', {
         type: 'module',
         'q:type': 'link-js',
-        dangerouslySetInnerHTML: script,
+        dangerouslySetInnerHTML: `import("${base}${preloadChunk}").then(({l,p})=>{l(${JSON.stringify(base)}${manifestHash ? `,${JSON.stringify(manifestHash)}` : ''}${optsStr});p(${JSON.stringify(referencedBundles)});})`,
         nonce,
       })
     );
   }
-}
 
-function workerFetchImplementation(
-  prefetchNodes: JSXNode[],
-  prefetchResources: PrefetchResource[],
-  nonce?: string
-) {
-  let s = `const u=${JSON.stringify(flattenPrefetchResources(prefetchResources).keys())};`;
-  s += workerFetchScript();
+  if (nodes.length > 0) {
+    return jsx(Fragment, { children: nodes });
+  }
 
-  prefetchNodes.push(
-    jsx('script', {
-      type: 'module',
-      'q:type': 'prefetch-worker',
-      dangerouslySetInnerHTML: s,
-      nonce,
-    })
-  );
+  return null;
 }
 
 function normalizePrefetchImplementation(
@@ -222,9 +117,14 @@ function normalizePrefetchImplementation(
 }
 
 const PrefetchImplementationDefault: Required<PrefetchImplementation> = {
-  linkInsert: 'js-append',
+  maxPreloads: import.meta.env.DEV ? 10 : 5,
+  minProbability: 0.6,
+  debug: false,
+  maxSimultaneousPreloads: 5,
+  minPreloadProbability: 0.25,
   linkRel: 'modulepreload',
-  linkFetchPriority: null,
-  workerFetchInsert: null,
-  prefetchEvent: null,
+  linkFetchPriority: undefined!,
+  linkInsert: undefined!,
+  workerFetchInsert: undefined!,
+  prefetchEvent: undefined!,
 };

@@ -231,13 +231,17 @@ async function submoduleCoreDev(config: BuildConfig) {
     outExtension: { '.js': '.mjs' },
   });
 
+  // We do a CJS build, only for the repl service worker
   const cjs = build({
     ...opts,
     // we don't externalize qwik build because then the repl service worker sees require()
     define: {
       ...opts.define,
+      // We need to get rid of the import.meta.env values
       // Vite's base url
       'import.meta.env.BASE_URL': '"globalThis.BASE_URL||\'/\'"',
+      // Vite's devserver mode
+      'import.meta.env.DEV': 'false',
     },
     format: 'cjs',
     outExtension: { '.js': '.cjs' },

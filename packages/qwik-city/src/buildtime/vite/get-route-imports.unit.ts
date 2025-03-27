@@ -7,32 +7,29 @@ describe('modifyBundleGraph', () => {
   test(`GIVEN 2 routes, one with a layout
         AND a manifest with 3 bundles 
         THEN the bundle graph should contain the routes and their dependencies`, () => {
+    const size = 0;
+    const total = 0;
     const fakeManifest = {
       bundles: {
         'fake-bundle1.js': {
-          size: 0,
+          size,
+          total,
           imports: ['fake-bundle-static-dep.js'],
           origins: ['src/routes/index.tsx'],
         },
         'fake-bundle-static-dep.js': {
-          size: 0,
+          size,
+          total,
           dynamicImports: ['fake-bundle-dynamic-dep.js'],
         },
-        'fake-bundle-dynamic-dep.js': {
-          size: 0,
-        },
+        'fake-bundle-dynamic-dep.js': { size, total },
         'fake-bundle-part-of-sub-route.js': {
-          size: 0,
+          size,
+          total,
           origins: ['src/routes/subroute/index.tsx', 'src/some/other/component.tsx'],
         },
-        'fake-bundle-part-of-layout.js': {
-          size: 0,
-          origins: ['src/routes/layout.tsx'],
-        },
-        'q-city-plan.js': {
-          size: 0,
-          origins: ['@qwik-city-plan'],
-        },
+        'fake-bundle-part-of-layout.js': { size, total, origins: ['src/routes/layout.tsx'] },
+        'q-city-plan.js': { size, total, origins: ['@qwik-city-plan'] },
       } as Record<string, QwikBundle>,
     } as QwikManifest;
 
@@ -76,17 +73,13 @@ describe('modifyBundleGraph', () => {
 
   test(`GIVEN a mismatch between the bundle graph and the manifest
         THEN the resulted bundle graph routes should not contain -1 (not found) indices `, () => {
+    const size = 0;
+    const total = 0;
     const fakeManifest = {
       bundles: {
-        'fake-bundle1.js': {
-          size: 0,
-          origins: ['src/routes/index.tsx'],
-        },
+        'fake-bundle1.js': { size, total, origins: ['src/routes/index.tsx'] },
         // 👇 doesn't exist in the bundle graph for some reason
-        'fake-bundle2.js': {
-          size: 0,
-          origins: ['src/routes/index.tsx'],
-        },
+        'fake-bundle2.js': { size, total, origins: ['src/routes/index.tsx'] },
       } as Record<string, QwikBundle>,
     } as QwikManifest;
 
